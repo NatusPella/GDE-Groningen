@@ -4,7 +4,7 @@
 //   node scripts/credits_test.mjs
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { CONTRIBUTORS, AI_ASSISTENTS, CREDITS_HTML, THIRD_PARTY_CARDS } from '../game/js/credits.js';
+import { CONTRIBUTORS, AI_ASSISTENTS, CREDITS_HTML, LICENSES_HTML, THIRD_PARTY_CARDS } from '../game/js/credits.js';
 
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n += 1; };
@@ -37,5 +37,9 @@ ok(THIRD_PARTY_CARDS.some(([t]) => t.startsWith('astnagrath')), 'de aftiteling n
 
 const verboden = new RegExp('(^|[^a-z0-9])(GTA|GTE|Grand Theft|Rockstar|Take-Two)([^a-z0-9]|$)|Alexander Buist', 'i');
 ok(!verboden.test(CREDITS_HTML + JSON.stringify(CONTRIBUTORS)), 'geen merknaam of echte naam in de credits');
+
+// Review 0.62: de privacettekst wees naar pauzemenu › Spel › Spelen; dat tabblad bestaat niet
+// meer. Live bussen staan onder Instellingen › Spel.
+ok(/pauzemenu › Instellingen › Spel/.test(LICENSES_HTML) && !/Spel › Spelen/.test(LICENSES_HTML), 'de privacettekst noemt de echte plek van de live bussen');
 
 console.log(`credits_test: ${n}/${n} ok`);

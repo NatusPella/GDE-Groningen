@@ -22,7 +22,7 @@ const model = (name, len, wid) => ({ name, len, wid });
 // sidejobmodellen; zie de commentaren in vrachtruimte.js).
 const GEVALLEN = [
   ['bestelbus', voertuig(model('van', 5.0, 2.0)), 'bestelbus'],
-  ['bestelbus-lang', voertuig(model('van', 7.2, 2.4)), 'bestelbus'],       // sidejob_stad.js vrachtwagen
+  ['bestelbus-lang', voertuig(model('van', 7.2, 2.4)), 'bestelbus'],       // een lange bestelbus (los model; de bietencampagne rijdt sinds #976 met een truck)
   ['bestelbus-kort', voertuig(model('van', 5.4, 2.1)), 'bestelbus'],      // sidejob_bijbaan.js
   ['cashvan', voertuig(model('cashvan', 5.2, 2.0)), 'cashvan'],
   ['foodtruck', voertuig(model('foodtruck', 5.4, 2.1)), 'foodtruck'],

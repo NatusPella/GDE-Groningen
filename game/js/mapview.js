@@ -28,6 +28,7 @@ import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender } from './stationtravel.js';
+import { liveBusMarks } from './busmap.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID, klikActie } from './kaartactie.js';
@@ -38,7 +39,8 @@ import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
-import { perceelMapSpots } from './perceelmap.js';
+import { perceelMapSpots, eigenPerceelVlakken } from './perceelmap.js';
+import { veldBij } from './percelen.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
@@ -1449,6 +1451,34 @@ function drawDynamicMarkers(ctx, world) {
   };
 
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
+  // #972: je eigen akkers en weilanden als vlak met een duidelijke omtrek (en akkerstrepen).
+  // De hover licht het veld op; de rest van de kaart blijft rustig.
+  const eigenVelden = layerOn('percelen') ? eigenPerceelVlakken() : [];
+  state.eigenVelden = eigenVelden;
+  for (const v of eigenVelden) {
+    const hoverVeld = state.hoverVeldId === v.id;
+    ctx.save();
+    ctx.beginPath();
+    v.punten.forEach(([x, y], i) => { const [sx, sy] = toScreen(x, y); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
+    ctx.closePath();
+    ctx.fillStyle = inkA('greenLight', hoverVeld ? 0.3 : 0.14);
+    ctx.fill();
+    ctx.lineWidth = (hoverVeld ? 3.4 : 2.2) * Math.min(2, Math.max(1, state.zoom || 1));
+    ctx.strokeStyle = inkA('greenLight', hoverVeld ? 1 : 0.8);
+    ctx.stroke();
+    // akkerstrepen, zodat het vlak als land leest en niet als een gekleurd blok
+    const [a, b, c, d] = v.punten.map(([x, y]) => toScreen(x, y));
+    ctx.beginPath();
+    for (let k = 1; k < 4; k++) {
+      const f = k / 4;
+      ctx.moveTo(a[0] + (b[0] - a[0]) * f + (d[0] - a[0]) * 0.08, a[1] + (b[1] - a[1]) * f + (d[1] - a[1]) * 0.08);
+      ctx.lineTo(d[0] + (c[0] - d[0]) * f - (a[0] - d[0]) * 0.08, d[1] + (c[1] - d[1]) * f - (a[1] - d[1]) * 0.08);
+    }
+    ctx.lineWidth = 1 * Math.min(2, Math.max(1, state.zoom || 1));
+    ctx.strokeStyle = inkA('greenLight', hoverVeld ? 0.75 : 0.45);
+    ctx.stroke();
+    ctx.restore();
+  }
   // de OV-lijnen van de bestemming waar de kaartkaart open voor staat (#97)
   if (state.reis) tekenLijnen(ctx, state.reis.lagen, toScreen, 1);
 
@@ -1570,6 +1600,8 @@ function drawDynamicMarkers(ctx, world) {
   }
   for (const sj of getSideJobSpotsForRender()) { if (onbekend(sj.x, sj.y)) continue; icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id }, samenVan('bijbaan', sj.job.id)); }
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}. Machinist: pak een stilstaande trein (E), dan G` : 'Reizen met de trein. Machinist: pak een stilstaande trein (E), dan G');
+  // #922: de live bussen van vandaag, met hun lijn en dienst als label
+  for (const b of liveBusMarks(hoofdspeler(world), 4)) icon(null, 'livebus', b.x, b.y, b.label, {}, b.sub);
   for (const q of ommelandMapSpots()) { if (onbekend(q.x, q.y)) continue; icon('ommeland', q.kind, q.x, q.y, q.name, {}, q.sub); }
   // het eerbetoonbankje (#832): een eigen icoon, altijd zichtbaar zodat de plek
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
@@ -1959,8 +1991,16 @@ function gebiedSub(r) {
 
 function updateTooltip(sx, sy) {
   const tip = state.tooltip;
-  const h = nearestHover(sx, sy);
-  state.canvas.classList.toggle('pointing', !!h || !!gebiedBij(...toWorld(sx, sy)));
+  const [wx, wy] = toWorld(sx, sy);
+  // #972: een eigen veld heeft geen pin maar wel een hover: de omtrek licht op en de
+  // tip noemt het gewas, de grootte en de grond.
+  const veld = !nearestHover(sx, sy) ? veldBij(state.eigenVelden, wx, wy) : null;
+  const h = nearestHover(sx, sy) || (veld ? { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, veld: true } : null);
+  if ((state.hoverVeldId || null) !== (veld ? veld.id : null)) {
+    state.hoverVeldId = veld ? veld.id : null;
+    state.dirty = true;
+  }
+  state.canvas.classList.toggle('pointing', !!h || !!gebiedBij(wx, wy));
   let main = '', sub = '';
   if (h) {
     main = h.name;
@@ -2029,15 +2069,19 @@ function teleportTo(world, target) {
 function handleClick(world, sx, sy, shift = false) {
   const h = nearestHover(sx, sy);
   const [wx, wy] = toWorld(sx, sy);
+  // #972: een klik op je eigen akker opent hetzelfde kaartje als een plek, met de naam van het veld
+  const veld = !h ? veldBij(state.eigenVelden, wx, wy) : null;
   // de cheat Overal en nergens, of shift+klik (instelling mapShiftTeleport, kaartteleport.js)
   if (wantsTeleport({ shift, enabled: getSettings().mapShiftTeleport, teleportMode: state.teleport })) {
     if (h && h.teleport) teleportTo(world, h.teleport);
-    else teleportTo(world, { x: wx, y: wy, name: plekNaam(streetAt(wx, wy, 60), wijkAt(wx, wy)) });
+    else teleportTo(world, { x: wx, y: wy, name: plekNaam(veld && veld.naam, streetAt(wx, wy, 60), wijkAt(wx, wy)) });
     return;
   }
   // een klik op het waypoint zelf haalt het weg (#445): de tweede klik wist hem
   if (h && h.isGoal && klikActie(getUserWaypoint(), { x: h.x, y: h.y }) === 'weg') { hideCard(); clearUserWaypoint(); return; }
-  if (state.card) { hideCard(); if (!h) return; }
+  if (state.card) { hideCard(); if (!h && !veld) return; }
+  // je eigen veld: het kaartje van het perceel, met dezelfde acties als een plek
+  if (veld) { showCard(world, { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, spot: true }, sx, sy); return; }
   // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
   if (h && h.self) { showCard(world, h, sx, sy); return; }
   // een marker: een kaartje met wat het is en "Zet als doel"
@@ -2272,7 +2316,7 @@ const LEGEND = [
     { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
-    { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou; klik voor een doel', layers: ['percelen'] },
+    { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou (met omtrek en hover); klik voor een doel', layers: ['percelen'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
   ] },
   { group: 'Diensten', folded: true, rows: [
@@ -2281,6 +2325,7 @@ const LEGEND = [
     { kind: 'garage', label: 'Garage en pomp', note: 'repareren, spuiten, opvoeren, wrakken', layers: ['garage'] },
     { kind: 'hospital', label: 'Ziekenhuis en huisarts', layers: ['zorg'] },
     { kind: 'politiebureau', label: 'Politiebureau', layers: ['politiebureau'] },
+    { kind: 'police', label: 'Politie-eenheid', note: 'de ring om het schild is de warmte: rood = je bent gezocht, feller = heter; stippen = meer eenheden' },
     { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
     { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },

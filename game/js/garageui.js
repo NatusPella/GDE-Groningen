@@ -119,12 +119,15 @@ function detailsHtml(e, msg) {
       : '') + '</div>';
   // te koop: "Kopen" zet een waypoint naar de winkel waar hij staat (#435)
   const koop = garageSaleShop(e);
-  const acts = koop ? `<div class="m-acts td-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts">' +
+  // De knoppenrij is een eigen blok onder de gegevens (gar-acts), geen plakkerige voetregel:
+  // anders schoof hij over de laatste regel van WAAR (review 0.62).
+  const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
     (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
     (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
+  const waarHtml = waar && waar.trim() ? secHtml('Waar', '', waar) : '';
   return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2></div>` +
     (e.meme ? `<p class="mut gar-meme">${esc(e.meme)}</p>` : '') +
-    secHtml('Waar', '', waar) + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
+    waarHtml + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
     `<p class="gar-msg g" role="status">${esc(msg || '')}</p><span class="m-grow"></span>` + acts;
 }
 

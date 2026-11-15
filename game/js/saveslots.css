@@ -36,7 +36,7 @@
 #saveslots .ssl-prog { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
 #saveslots .ssl-prog .m-bar { flex: 1; max-width: 150px; height: 4px; }
 #saveslots .ssl-prog .m-bar i { background: var(--g); }
-#saveslots .ssl-prog .bebas { font-size: 16px; color: var(--g); }
+#saveslots .ssl-prog .bebas { font-size: 16px; color: var(--g); white-space: nowrap; }
 /* the '…' button: top right of the card, visible on the chosen card, on hover and on touch */
 #saveslots .ssl-more { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; background: rgba(6, 12, 8, 0.78); color: var(--ink); opacity: 0; transition: opacity 0.2s, background 0.2s; }
 #saveslots .ssl-card:hover .ssl-more, #saveslots .ssl-card.sel .ssl-more, #saveslots .ssl-more:focus-visible { opacity: 1; }

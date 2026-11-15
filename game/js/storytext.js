@@ -11,7 +11,7 @@
 //   talkLines(id)              lines for storytalk.js, the subtitle talk that runs during a mission
 //   radioContacts(step, at)    Radio Nachtstreek fragments for storycontact.js (anchor at 'start' or 'after' a step)
 //   appSchedule()/appsAt(step, at)   the silent app texts and the step they arrive on
-//   banterExchanges()          banter.js exchanges (the autogesprekken)
+//   banterExchanges()/banterLineVoice(line)  banter.js exchanges and the recording of each line
 //   readingTime(text)          how long a line is up when nothing is played
 // Pure apart from the fetch of the data; Node tests call setStoryData().
 
@@ -28,6 +28,17 @@ export function setStoryData(d, m = null) {
   data = d;
   byId = new Map(d.scenes.map((s) => [s.id, s]));
   if (m) Object.assign(manifests, m);
+}
+
+// { src, dur } of a banter line's recording (src absolute), or null when it has none. The line
+// names its own manifest (`rec`); a short reaction without one comes from the banter bank.
+const SPEAKER_KEY = { T: 'Tammo', A: 'Anita' };
+export function banterLineVoice(l) {
+  if (!l) return null;
+  const rec = l[3] || 'banter';
+  const who = l[4] || SPEAKER_KEY[l[0]] || l[0];
+  const v = manifests[rec] && manifests[rec][who + '|' + l[1]];
+  return v ? { src: DIRS[rec] + v.src, dur: v.dur } : null;
 }
 
 export const storyDataReady = () => !!data;
@@ -205,13 +216,15 @@ function chunk(lines, sizes) {
 
 // banter.js exchanges for the new arc: the autogesprekken of the script. The pools [B1]-[B5] are
 // idle chit-chat in the car (gated per act); an "Autogesprek" scene of a mission is heard in the
-// first shared ride after that mission. Lines [speaker 'T' | 'A', text, tag].
+// first shared ride after that mission. Lines [speaker 'T' | 'A', text, tag, rec, voice]:
+// `rec` is the manifest the recording lives in (story, lines or banter) and `voice` the name
+// its key uses (Tessa is 'Anita' in the manifests). banterLineVoice resolves it.
 export function banterExchanges() {
   if (!data) return [];
   const out = [];
   for (const s of data.scenes) {
     if (s.kind !== 'banter') continue;
-    const lines = s.lines.filter((l) => l.key === 'T' || l.key === 'A').map((l) => [l.key, l.text, l.tag]);
+    const lines = s.lines.filter((l) => l.key === 'T' || l.key === 'A').map((l) => [l.key, l.text, l.tag, l.rec, l.voice || l.speaker]);
     if (!lines.length) continue;
     if (s.pool) {
       chunk(lines, POOL_SPLIT[s.pool]).forEach((ex, i) => out.push({ id: `n-${s.pool}-${i}`, trigger: 'idle', ...(POOL_GATE[s.pool] || {}), lines: ex }));

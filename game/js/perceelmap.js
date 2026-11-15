@@ -1,7 +1,7 @@
 // De kaartlaag 'Percelen' (#415): akkers en weilanden te koop, te huur en van jou, elk met een doel (waypoint) bij het aanklikken.
 // Te koop is geel, te huur blauw, van jou groen; een blokje met akkerstrepen. De Zonnehoek ligt waar je eigen perceel gevonden is.
 import { getBoerderij } from './boerderijlive.js';
-import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift } from './percelen.js';
+import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK } from './mapstyle.js';
 
@@ -20,6 +20,25 @@ export function perceelMapSpots() {
 }
 
 const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'perceel-eigen': INK.greenLight };
+
+// #972: de percelen die van jou zijn, als vlak met een duidelijke omtrek op de grote kaart.
+// Alleen eigen grond: aangeboden akkers blijven een pictogram, anders wordt de kaart vol.
+export function eigenPerceelVlakken() {
+  const b = getBoerderij();
+  const out = [];
+  for (const p of PERCELEN) {
+    const s = stand(b.bedrijf, 'perceel', p.id);
+    if (s.van !== 'jou') continue;
+    const [x, y] = p.id === START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wereld(p);
+    const punten = perceelVlak(p, { x, y }, p.id === START_PERCEEL && b.perceel && Number.isFinite(b.perceel.a) ? b.perceel.a : null);
+    if (punten.length < 4) continue;
+    out.push({
+      id: p.id, naam: p.naam, soort: p.soort, ha: p.ha, bodem: p.bodem, punten, x, y,
+      sub: `${p.soort === 'weiland' ? 'Weiland' : 'Akker'} · ${p.ha} ha · jouw perceel`,
+    });
+  }
+  return out;
+}
 
 // Tekent het pictogram (hud_panel.js geeft de schaal s); geeft false voor een andere soort.
 export function drawPerceelMapIcon(ctx, kind, s) {

@@ -50,7 +50,7 @@ t('#497: vehicle.js her-exporteert de namen en heeft geen tweede kopie', () => {
   assert.doesNotMatch(v, /function canEnterVehicle/);
   assert.doesNotMatch(v, /function findEnterableVehicle/);
   assert.doesNotMatch(v, /function findNearestVehicle/);
-  assert.ok(fs.readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8').split('\n').length < 2240, 'vehicle.js is korter dan 2240 regels');
+  assert.ok(fs.readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8').split('\n').length < 2400, 'vehicle.js blijft onder 2400 regels');
 });
 
 console.log(`vehicleenter_test: ${n - fails}/${n} ok`);

@@ -203,7 +203,7 @@ for (const soort of Object.keys(THREE_MODEL)) {
   check(`${soort}: het stuur draait mee`, near(g.userData.wheel.rotation.x, -1.1, 1e-9), String(g.userData.wheel.rotation.x));
   v.steer = 0;
   // de eerste-persooncamera: het oog (hoofdbot) valt in de cabine/romp, boven de vloer
-  const oog = seat.y + 0.82; // hoofd = zitting + 0,65 (models3d_people.js NECK_Y) + 0,17 (firstpersoncam.js)
+  const oog = seat.y + 0.82; // zitting + 0,65 (nekbot boven de zitting) + 0,175 (firstperson.js EYE_ABOVE_NECK)
   check(`${soort}: eerste-persoonoog in de cabine (y)`, oog > L.shell.floorY + 0.2 && oog <= L.cab.roofY, `${oog.toFixed(2)} in ${L.shell.floorY}..${L.cab.roofY}`);
   const e = CI.interiorEyePose(v);
   check(`${soort}: BINNENIN-oog eindig en op cabinehoogte`, e && [e.x, e.y, e.z, e.fx, e.fy].every((n) => Number.isFinite(n)) && e.z > L.shell.floorY && e.z < L.cab.roofY, JSON.stringify(e));

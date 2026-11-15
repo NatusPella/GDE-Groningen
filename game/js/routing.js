@@ -165,6 +165,32 @@ export function lineHitsBuilding(map, ax, ay, bx, by) {
   return false;
 }
 
+// Raakt de lijn van a naar b een kerkhof? (#930) De kaart kent kerkhoven als
+// groenvlak (green.kind 'cemetery'); een route hoort er niet dwars over heen,
+// ook niet als die toevallig de kortste is. Om de 2 m een punt is genoeg: een
+// kerkhof is tientallen meters breed.
+export function lineHitsCemetery(map, ax, ay, bx, by) {
+  if (!map || typeof map.greenNear !== 'function') return false;
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+    for (const g of map.greenNear(x, y, 0.5)) {
+      if (g && g.kind === 'cemetery' && g.pts && pointInPolygon(x, y, g.pts)) return true;
+    }
+  }
+  return false;
+}
+
+// Mag de route een rechte lijn van de weg naar het doel trekken? Alleen als het
+// stuk kort is en niet door een gebouw of over een kerkhof gaat (#930): de
+// speler ziet de lijn en wil die op de weg houden, niet over de graven.
+export function targetLeadAllowed(map, ax, ay, bx, by) {
+  if (Math.hypot(bx - ax, by - ay) > CONNECTOR_MAX_M) return false;
+  if (lineHitsBuilding(map, ax, ay, bx, by)) return false;
+  return !lineHitsCemetery(map, ax, ay, bx, by);
+}
+
 function buildGraph(map) {
   const t0 = performance.now();
   const ids = new Map();
@@ -671,7 +697,11 @@ function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(
   const ps = pIn ? null : snapRoad(p.x, p.y, COUNTRY_SNAP_M, !driveOnly);
   const ts = tIn ? null : snapRoad(target.x, target.y, COUNTRY_SNAP_M, !driveOnly);
   if ((!pIn && !ps) || (!tIn && !ts)) return null;
-  const lead = (s, x, y) => (s && s.d > 0.5 ? [[x, y]] : []);
+  // #930: het laatste stuk van de weg naar het doel is alleen een rechte lijn
+  // als het kort is en niet door een gebouw of over een kerkhof gaat. Een kerk
+  // op een wierde ligt vaak 20 m van de weg; de lijn stopte daarvoor dwars over
+  // het kerkhof. Liever houd je de lijn op de weg en loop je het laatste stuk.
+  const lead = (s, x, y, doel = false) => (s && s.d > 0.5 && (!doel || targetLeadAllowed(map, s.x, s.y, x, y)) ? [[x, y]] : []);
   const gws = pIn || tIn ? cityGateways(map, kind) : null;
   const outer = pIn ? ts : ps;
   const cityEnd = pIn ? p : target;
@@ -680,7 +710,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(
   const attempt = (free) => {
     if (!pIn && !tIn) {
       const cp = roadPath(ps, ts, free);
-      return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y)] : null;
+      return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y, true)] : null;
     }
     // towards the outer end for a trip into the country, from it for a trip back (one-ways)
     const { dist } = roadCosts(outer, pIn, free);
@@ -700,7 +730,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(
       if (!city) continue;
       const country = pIn ? roadPathFromNode(g.n, outer, free) : roadPathToNode(outer, g.n, free);
       if (!country) continue;
-      return pIn ? [...city, ...country, ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
+      return pIn ? [...city, ...country, ...lead(ts, target.x, target.y, true)] : [...lead(ps, p.x, p.y), ...country, ...city];
     }
     return null;
   };
@@ -885,7 +915,8 @@ function computeRoute(world, target, mode, start = hoofdspeler(world)) {
       if (dFirst > 0.5 && dFirst <= CONNECTOR_MAX_M && !lineHitsBuilding(map, p.x, p.y, first[0], first[1])) pts.unshift([p.x, p.y]);
       const last = pts[pts.length - 1];
       const dLast = Math.hypot(last[0] - target.x, last[1] - target.y);
-      if (dLast > 0.5 && dLast <= CONNECTOR_MAX_M && !lineHitsBuilding(map, last[0], last[1], target.x, target.y)) pts.push([target.x, target.y]);
+      // #930: geen rechte lijn door een gebouw of over een kerkhof
+      if (dLast > 0.5 && targetLeadAllowed(map, last[0], last[1], target.x, target.y)) pts.push([target.x, target.y]);
     }
   }
 

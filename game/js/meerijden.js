@@ -96,6 +96,29 @@ export function skipHint(rit) {
   return canSkip(rit) ? { toets: 'Spatie', tekst: 'overslaan' } : null;
 }
 
+// #932: waar je na de rit echt uitstapt. De kaart zocht eerst een open plek binnen 400 m
+// (findOpenSpawn) en zette de speler daar neer; bij een landelijk doel kon dat honderden
+// meters verderop zijn, in een ander buitengebied dan waar je heen wilde. Nu telt alleen
+// een plek dicht bij het doel (de bestemming zelf als daar open grond is), anders het
+// dichtstbijzijnde open punt binnen `maxDrift`; lukt dat niet, dan de bestemming zelf.
+export const LANDING_DRIFT_M = 90;
+export const BOAT_DRIFT_M = 40;
+
+export function landingsplek(dest, kandidaten = [], maxDrift = LANDING_DRIFT_M) {
+  const doel = dest && Number.isFinite(dest.x) && Number.isFinite(dest.y) ? dest : null;
+  if (!doel) return null;
+  const grens = Number.isFinite(maxDrift) && maxDrift > 0 ? maxDrift : LANDING_DRIFT_M;
+  let best = null;
+  for (const k of Array.isArray(kandidaten) ? kandidaten : []) {
+    if (!k || !Number.isFinite(k.x) || !Number.isFinite(k.y)) continue;
+    const afstand = Math.hypot(k.x - doel.x, k.y - doel.y);
+    if (afstand > grens) continue;
+    if (!best || afstand < best.afstand) best = { x: k.x, y: k.y, afstand, road: k.road || null };
+  }
+  if (best) return { ...best, terugval: false };
+  return { x: doel.x, y: doel.y, afstand: 0, road: null, terugval: true };
+}
+
 // Ondertitel bij de scène (alleen tekst): wat je nu doet, aan de hand van de
 // haltes van de optie en hoe ver de scène is.
 export function ondertitel(rit) {

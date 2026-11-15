@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { collect, isVoiced, missingKeys, manifest, BUBBLE, NARRATOR, REPO } from './voicelines_collect.mjs';
-import { ACCENT, GRO_ACCENT, DUO, TTS_MODELS, TTS_LANG, styleOf } from './tts_cast.mjs';
+import { ACCENT, GRO_ACCENT, DUO, TTS_MODELS, TTS_LANG, langOf, styleOf } from './tts_cast.mjs';
 import { GRO } from '../game/js/subtitles.js';
 
 const GRO_WORDS = /\b(mien|nait|moar|mor|goud|kiek|joe|doar|noar|hoes|ain|hail|mout|stoet|wicht|oet|veur|zain|laven|dij|wies|lopst|rieden)\b/i;
@@ -162,6 +162,10 @@ function recording(e, sp) {
 const jobs = [];
 const seen = new Set();
 const push = (j) => { if (!seen.has(j.out + '|' + j.key)) { seen.add(j.out + '|' + j.key); jobs.push(j); } };
+// Eén bubbletekst kan in twee contexten voorkomen (toeriste op de rondvaartboot én klant in de
+// bus) terwijl het manifest maar één opname per "~f|<tekst>" heeft. De Nederlandse opname dekt
+// beide; zonder deze uitzondering zou de generator hem heen en weer naar Gronings en terug zetten (#924).
+const SHARED_BUBBLE = new Set(['~f|Mijn koffie!']);
 
 // --- the new story (game/storydata/script.json): a line without a recording is `textOnly` and is
 // shown as text only (#326). voice_coverage checks these apart from collect(); a recording goes
@@ -176,14 +180,15 @@ const groFile = path.join(REPO, 'scripts', 'gronings_spoken.json');
 const REC = ['story', 'lines', 'banter']; // the manifests the game plays a story line from
 const waiting = { gronings: [], cast: [] };
 const wacht = []; // #735: the same lines with their scene and reason, for the definitive recording list
-// the clip of a recorded line, and whether it is still there and current
+// the clip of a recorded line, and whether it is still there, current, and in the right language
 const recorded = (key) => {
   for (const m of REC) {
     const entry = manifest(m)[key];
     if (!entry) continue;
     const file = path.join(REPO, 'game', 'audio', 'voicelines', m, entry.src);
-    const fresh = fs.existsSync(file) && TTS_MODELS.includes(ttsLog(m)[key]?.model);
-    return { out: m, src: entry.src, fresh };
+    const log = ttsLog(m)[key];
+    const fresh = fs.existsSync(file) && TTS_MODELS.includes(log?.model);
+    return { out: m, src: entry.src, fresh, lang: log?.lang };
   }
   return null;
 };
@@ -194,16 +199,18 @@ if (fs.existsSync(scriptFile)) {
       if (!l.key) continue; // the silent app messages have no key
       const sp = l.voice || l.speaker;
       const key = `${sp}|${l.text}`;
-      const have = l.textOnly ? null : recorded(key);
-      if (have?.fresh) continue;
       const c = CAST[sp];
       const accent = c?.accent || (isGronings(l.text) ? GRO_ACCENT : ACCENT);
-      const gronings = /Gronings/.test(accent);
+      const lang = langOf(accent);
+      const have = l.textOnly ? null : recorded(key);
+      // a take in the other language is wrong even when its model is current: Tessa's old
+      // Gronings takes stayed "current" and kept playing (#924)
+      if (have?.fresh && have.lang === lang) continue;
       if (!c) { waiting.cast.push(`${sp} (${l.text})`); wacht.push({ reason: 'stemkeuze', speaker: sp, text: l.text, scene: sc.id }); continue; }
-      if (gronings && !(l.text in spoken)) { waiting.gronings.push(`${sp}: ${l.text}`); wacht.push({ reason: 'spreektekst', speaker: sp, text: l.text, scene: sc.id }); continue; }
+      if (lang === TTS_LANG && !(l.text in spoken)) { waiting.gronings.push(`${sp}: ${l.text}`); wacht.push({ reason: 'spreektekst', speaker: sp, text: l.text, scene: sc.id }); continue; }
       const tag = mood(sp, l.text, key);
       push({
-        key, speaker: sp, text: l.text, area: sc.id, out: have?.out || 'lines', lang: gronings ? TTS_LANG : 'own',
+        key, speaker: sp, text: l.text, area: sc.id, out: have?.out || 'lines', lang,
         voice: c.voice, who: c.who, tag, style: styleOf(c.who, tag, accent),
         file: have?.src || `${slug(sp)}/${slug(l.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`,
       });
@@ -217,7 +224,9 @@ for (const e of collect()) {
     const r = recording(e, sp);
     if (r && r.out !== 'jobs') {
       const j = makeJob(e, sp, r.out, r.entry.src);
-      if (!TTS_MODELS.includes(r.log?.model) || (j.lang === TTS_LANG && r.log?.lang !== TTS_LANG)) push(j);
+      if (SHARED_BUBBLE.has(j.key)) continue;
+      // re-record a take that was made in the other language too (Tessa's Gronings takes, #924)
+      if (!TTS_MODELS.includes(r.log?.model) || r.log?.lang !== j.lang) push(j);
     }
   }
 }

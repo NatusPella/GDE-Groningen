@@ -8,22 +8,49 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 const beat = { x: 1 };
-ok(S.decideTravel({ on: true, beat, handled: false, busy: false, dist: 20000 }) === 'vraag', 'far: ask');
+ok(S.decideTravel({ on: true, beat, handled: false, busy: false, dist: 20000, progress: 200 }) === 'vraag', 'far and on the way: ask');
+ok(S.decideTravel({ on: true, beat, handled: false, busy: false, dist: 20000 }) === 'wacht', '#947: far but not travelling yet: wait');
+ok(S.decideTravel({ on: true, beat, handled: false, busy: false, dist: 20000, progress: 20 }) === 'wacht', 'a few metres is not a trip yet');
+ok(S.decideTravel({ on: true, beat, handled: false, busy: false, dist: 20000, moving: true }) === 'vraag', 'in a moving vehicle: ask');
 ok(S.decideTravel({ on: true, beat, handled: false, busy: false, dist: 3000 }) === 'sla-over', 'near: skip the beat');
-ok(S.decideTravel({ on: false, beat, handled: false, busy: false, dist: 20000 }) === null, 'flag off: nothing');
-ok(S.decideTravel({ on: true, beat, handled: true, busy: false, dist: 20000 }) === null, 'handled: nothing');
-ok(S.decideTravel({ on: true, beat, handled: false, busy: true, dist: 20000 }) === null, 'busy: wait');
-ok(S.decideTravel({ on: true, beat: null, handled: false, busy: false, dist: 20000 }) === null, 'no beat');
+ok(S.decideTravel({ on: false, beat, handled: false, busy: false, dist: 20000, progress: 200 }) === null, 'flag off: nothing');
+ok(S.decideTravel({ on: true, beat, handled: true, busy: false, dist: 20000, progress: 200 }) === null, 'handled: nothing');
+ok(S.decideTravel({ on: true, beat, handled: false, busy: true, dist: 20000, progress: 200 }) === null, 'busy: wait');
+ok(S.decideTravel({ on: true, beat: null, handled: false, busy: false, dist: 20000, progress: 200 }) === null, 'no beat');
 
 const mkWorld = (x) => {
   const msgs = [];
   return { time: 0, clock: 10, money: 100, player: { x, y: 0 }, companion: { x, y: 0, state: 'ok' }, storyGuide: { x: 17000, y: 0 }, addMessage: (t) => msgs.push(t), msgs };
 };
 const step = { id: 'T1' };
+// #947: de eerste tick legt de afstand tot het doel vast; de reisbeat vraagt pas
+// als de speler echt op reis is (in een rijdend voertuig of een stuk onderweg).
+const startTick = (args) => S.tickStoryTravel({ ...args, ask: async () => { throw new Error('te vroeg gevraagd'); } });
+const drive = (w, m = 100) => { w.player.x += m; };
+
+// Na een missie, stil naast Tessa: het paneel blijft dicht; na 60 m rijden komt het.
+{
+  const w = mkWorld(0), flags = new Set();
+  let asked = 0;
+  const ask = async () => { asked++; return 'overslaan'; };
+  const m17 = { id: 'M17', goal: { type: 'goto' } };
+  startTick({ on: true, step: m17, flags, world: w, busy: false, script: lookup });
+  S.tickStoryTravel({ on: true, step: m17, flags, world: w, busy: false, script: lookup, ask });
+  ok(asked === 0, '#947: stil naast Tessa: geen reispaneel');
+  w.player.x += 59;
+  S.tickStoryTravel({ on: true, step: m17, flags, world: w, busy: false, script: lookup, ask });
+  ok(asked === 0, '#947: 59 m is nog geen reis');
+  w.player.x += 2;
+  S.tickStoryTravel({ on: true, step: m17, flags, world: w, busy: false, script: lookup, ask });
+  await tick(); await tick();
+  ok(asked === 1, '#947: na 61 m rijden vraagt de beat wel');
+}
 
 // skip: player and companion are put at the goal, clock moves, lines show, flag set
 {
   const w = mkWorld(0), flags = new Set();
+  startTick({ on: true, step, flags, world: w, busy: false, script: lookup });
+  drive(w);
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'overslaan' });
   await tick(); await tick();
   ok(w.player.x === 17000 && w.companion.x > 16999, 'skip teleports both');
@@ -40,9 +67,11 @@ const step = { id: 'T1' };
   const w = mkWorld(0), flags = new Set();
   const step2 = { id: 'T2' };
   w.storyGuide = { x: 30000, y: 0 };
+  startTick({ on: true, step: step2, flags, world: w, busy: false, script: lookup });
+  drive(w);
   S.tickStoryTravel({ on: true, step: step2, flags, world: w, busy: false, script: lookup, ask: async () => 'zelf' });
   await tick(); await tick();
-  ok(w.player.x === 0 && w.clock === 10 && w.money === 100, 'zelf: no change yet');
+  ok(w.player.x === 100 && w.clock === 10 && w.money === 100, 'zelf: no change yet');
   w.player.x = 29950;
   S.tickStoryTravel({ on: true, step: step2, flags, world: w, busy: false, script: lookup, ask: async () => 'zelf' });
   ok(w.money === 100 + 120, 'zelf: paid on arrival', w.money);
@@ -69,6 +98,8 @@ const step = { id: 'T1' };
   const w = mkWorld(0), flags = new Set();
   let got = null;
   const fake = async (world, o, d) => { got = { world, o, d }; world.player.x = d.x; return { aangekomen: true }; };
+  startTick({ on: true, step, flags, world: w, busy: false, script: lookup });
+  drive(w);
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: S.rideWith(w, fake) });
   await tick(); await tick();
   ok(got && got.world === w && got.o.id === 'trein' && got.d.name === 'Warffum' && w.player.x === 17000, 'rideWith: de wereld gaat mee als eerste argument', JSON.stringify(got && { o: got.o.id, d: got.d }));
@@ -77,6 +108,8 @@ const step = { id: 'T1' };
 {
   const w = mkWorld(0), flags = new Set();
   let got = null;
+  startTick({ on: true, step, flags, world: w, busy: false, script: lookup });
+  drive(w);
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden',
     ride: async (o, d) => { got = { o, d }; w.player.x = d.x; return { aangekomen: true }; } });
   await tick(); await tick();
@@ -86,6 +119,8 @@ const step = { id: 'T1' };
 }
 {
   const w = mkWorld(0), flags = new Set();
+  startTick({ on: true, step, flags, world: w, busy: false, script: lookup });
+  drive(w);
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: async () => ({ aangekomen: false }) });
   await tick(); await tick(); await tick();
   ok(w.player.x === 17000, 'scene refused (no money): arrive directly');
@@ -93,6 +128,7 @@ const step = { id: 'T1' };
 {
   const w = mkWorld(0), flags = new Set();
   w.player.inVehicle = { x: 5, y: 5, speed: 9 };
+  // een rijdend voertuig is op zich al een bewuste reisactie (#947)
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'overslaan' });
   await tick(); await tick();
   ok(w.player.inVehicle.x === 17000 && w.player.inVehicle.speed === 0, 'vehicle comes along');

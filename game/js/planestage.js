@@ -97,6 +97,35 @@ function ensure(world, st) {
   return S0;
 }
 
+// #940: een vliegtuig van een eerdere poging kan disabled of met een scènestuurman
+// in de wereld staan; dan weigert het instappen en zit de eerste stap muurvast.
+// Zet hem klaar om in te stappen voordat de stage begint.
+export function readyToBoard(v) {
+  if (!v) return null;
+  v.driver = null;
+  v.disabled = false;
+  v.parked = false;
+  v.wrecked = false;
+  v.sinking = null;
+  v.health = 100;
+  return v;
+}
+
+// #940: de eerste stap van de missie is instappen. Als een andere laag de E
+// heeft opgegeten (een actieve missie, een activiteit, een prompt), pakt deze
+// knop het instappen zelf op: je staat bij dit vliegtuig, dus je stapt in.
+export function tryBoardPlane(world) {
+  if (!S0 || !S0.plane) return false;
+  const p = hoofdspeler(world);
+  if (!p || p.inVehicle) return false;
+  const v = S0.plane;
+  if (!world.vehicles.includes(v)) return false;
+  if (Math.hypot(p.x - v.x, p.y - v.y) > Math.max(6, (v.halfLen || 3) + 3)) return false;
+  readyToBoard(v);
+  p.enterVehicle(v, world);
+  return p.inVehicle === v;
+}
+
 // Roelfien's plane on the strip: a new one, or the old one put back after a failed run.
 function placePlane(world) {
   const s = S0.strip;
@@ -113,6 +142,7 @@ function placePlane(world) {
     world.vehicles.push(v);
     S0.plane = v;
   }
+  readyToBoard(v); // #940: ook een disabled of bezet vliegtuig is weer instapbaar
   attachPlane(v, at.x, at.y, gz, s.heading);
   v.speed = 0;
   return v;

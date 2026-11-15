@@ -12,7 +12,7 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
 
 // --- night and risk
 {
-  check('night factor: day 0, evening a bit, night full', M.nightFactor(14) === 0 && M.nightFactor(19) < M.nightFactor(20) && M.nightFactor(20) < M.nightFactor(21) && M.nightFactor(23.5) === 1 && M.nightFactor(2) === 1 && M.nightFactor(7) === 0);
+  check('night factor: day 0, evening a bit, night full', M.nightFactor(14) === 0 && M.nightFactor(20) < M.nightFactor(20.5) && M.nightFactor(20.5) < M.nightFactor(21) && M.nightFactor(23.5) === 1 && M.nightFactor(2) === 1 && M.nightFactor(7) === 0);
   check('night factor wraps and rejects junk', M.nightFactor(25) === 1 && M.nightFactor(-1) === 1 && M.nightFactor(NaN) === 0 && M.nightFactor(undefined) === 0);
   check('no risk by day', Object.keys(M.RISKY).every((w) => M.riskLevel(w, 13) === 0 && !M.warnsOn(w, 13)));
   check('risk at night in the risky wijken', Object.keys(M.RISKY).every((w) => M.riskLevel(w, 1) > 0 && M.warnsOn(w, 1)));
@@ -99,3 +99,4 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
 
 console.log(`muggings: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);
+

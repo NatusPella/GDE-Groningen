@@ -4,17 +4,24 @@ import { hoofdspeler } from './players.js';
 // zitten in meerijden.js. Na de scène staat de speler op de bestemming (de interne
 // verplaatsing, zoals een respawn) en toont main.js het laadscherm voor de sprong.
 import { zachtePauze, klokSprongMag, meerSpelers } from './coopgroep.js';
-import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY } from './meerijden.js';
+import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY, landingsplek, LANDING_DRIFT_M, BOAT_DRIFT_M } from './meerijden.js';
 import { padButtonIndex, playerPad } from './glyphs.js';
+import { treinReis } from './trainride.js';
 
 let active = null;
 
 export const isRitActive = () => !!active;
 
-function build(taxi = false, label = '') {
+function build(taxi = false, label = '', trein = false) {
   const el = document.createElement('div');
-  el.className = 'reisrit' + (taxi ? ' reisrit-taxi' : '');
+  el.className = 'reisrit' + (taxi ? ' reisrit-taxi' : '') + (trein ? ' reisrit-trein' : '');
   el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#0f5c30;color:#f0ede4;font:20px Arial,sans-serif;display:grid;grid-template-rows:12% 1fr 12%;pointer-events:none';
+  // #926: de treinreis is een echte scène: een trein op het spoor, het perron
+  // met zijn bord en de polder die voorbijschuift. Het canvas ligt onder de
+  // tekst; de rest van de laag (voortgang, skip) blijft hetzelfde.
+  const treinLayer = trein
+    ? '<canvas class="rr-trein" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>'
+    : '';
   // #882: de taxi is in beeld: een weg met een rijdende taxi, het dakbord en de
   // meter. De rest van de scène blijft dezelfde dunne, overslaanbare laag.
   const taxiLayer = taxi
@@ -29,12 +36,218 @@ function build(taxi = false, label = '') {
       + '<div style="position:absolute;right:14px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:#0f5c30;border:2px solid #f0ede4"></div>'
       + '</div></div>'
     : '';
-  el.innerHTML = '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%"><div><div class="rr-lijn" style="font:14px Arial,sans-serif;letter-spacing:3px;color:#f0ede4"></div><div class="rr-tekst" style="font-size:34px;margin-top:10px"></div><div class="rr-balk" style="margin:26px auto 0;width:280px;height:4px;background:#0f5c30"><div class="rr-vul" style="height:100%;width:0;background:#3fc97a"></div></div>' + taxiLayer + '</div></div>' +
+  el.innerHTML = treinLayer + '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%;position:relative"><div' + (trein ? ' class="rr-plaat" style="background:rgba(12,20,14,.62);padding:14px 26px 18px;border-radius:10px"' : '') + '><div class="rr-lijn" style="font:14px Arial,sans-serif;letter-spacing:3px;color:#f0ede4"></div><div class="rr-tekst" style="font-size:34px;margin-top:10px"></div><div class="rr-balk" style="margin:26px auto 0;width:280px;height:4px;background:#0f5c30"><div class="rr-vul" style="height:100%;width:0;background:#3fc97a"></div></div>' + taxiLayer + '</div></div>' +
     '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px Arial,sans-serif"><span class="hud-key" data-gk="SPATIE" style="background:#f0ede4;color:#0f5c30;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
   // de eerste frame is nooit leeg: de scène vult zichzelf meteen met de rit
   el.querySelector('.rr-lijn').textContent = String(label || '').toUpperCase();
   el.querySelector('.rr-tekst').textContent = taxi ? 'Instappen' : '';
   return el;
+}
+
+// --- de treinreis tekenen (#926) ------------------------------------------------
+// Alles wat je ziet is met de hand op een canvas gezet: geen modellen, geen
+// textures, zodat de scène ook op een zwakke kaart meteen loopt. De stand komt
+// uit trainride.js (puur); hier staan alleen de vormen en de kleuren van de
+// low-poly-stijl (DESIGN_SYSTEM.md): polder, spoor, perron en een stoptrein.
+const T_GEEL = '#e8c93a', T_BLAUW = '#2d6a86', T_CREAM = '#f0ede4';
+const T_GROEN = ['#a6e04f', '#5a8445', '#55733f', '#34562c'];
+const T_LUCHT = ['#bee1f5', '#e8eae8', '#f5f0e6'];
+
+function rrPath(g, x, y, w, h, r) {
+  const q = Math.min(r, w / 2, h / 2);
+  g.beginPath();
+  g.moveTo(x + q, y);
+  g.arcTo(x + w, y, x + w, y + h, q);
+  g.arcTo(x + w, y + h, x, y + h, q);
+  g.arcTo(x, y + h, x, y, q);
+  g.arcTo(x, y, x + w, y, q);
+  g.closePath();
+}
+function rrFill(g, x, y, w, h, r, kleur) { g.fillStyle = kleur; rrPath(g, x, y, w, h, r); g.fill(); }
+
+function wolk(g, x, y, s) {
+  g.fillStyle = 'rgba(255,255,255,.82)';
+  for (const [dx, dy, r] of [[0, 0, 18], [18, -6, 22], [40, 2, 16], [24, 8, 18]]) {
+    g.beginPath(); g.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2); g.fill();
+  }
+}
+
+// Een stipje kerk of molen aan de horizon, zodat het landschap Groningen blijft.
+function silhouet(g, x, y, soort, s, kleur) {
+  g.fillStyle = kleur;
+  if (soort === 'kerk') {
+    g.fillRect(x - 9 * s, y - 26 * s, 18 * s, 26 * s);
+    g.beginPath(); g.moveTo(x - 11 * s, y - 26 * s); g.lineTo(x, y - 40 * s); g.lineTo(x + 11 * s, y - 26 * s); g.closePath(); g.fill();
+    g.fillRect(x - 1.5 * s, y - 46 * s, 3 * s, 8 * s);
+  } else {
+    g.beginPath(); g.moveTo(x - 2 * s, y); g.lineTo(x - 2 * s, y - 26 * s); g.lineTo(x + 2 * s, y - 26 * s); g.lineTo(x + 2 * s, y); g.closePath(); g.fill();
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + 0.5;
+      g.save(); g.translate(x, y - 26 * s); g.rotate(a);
+      g.fillRect(-1.2 * s, -1.2 * s, 20 * s, 2.4 * s);
+      g.restore();
+    }
+  }
+}
+
+function tekenPerron(g, x, y, w2, h2, bord, links) {
+  // Een perron met een abri en een bord: het vertrek- of aankomststation.
+  const px = links ? 0 : x - w2, py = y;
+  g.fillStyle = '#a9a69b';
+  g.fillRect(px, py, w2, h2);
+  g.fillStyle = '#8a8474';
+  g.fillRect(px, py, w2, 3);
+  // abri
+  const sx = links ? w2 * 0.34 : px + w2 * 0.5;
+  g.fillStyle = '#6d6f66';
+  g.fillRect(sx - 34, py - 54, 68, 7);
+  g.fillRect(sx - 30, py - 50, 4, 50);
+  g.fillRect(sx + 26, py - 50, 4, 50);
+  g.fillStyle = 'rgba(207,214,220,.55)';
+  g.fillRect(sx - 26, py - 46, 52, 40);
+  // bord op een paal
+  const bx = links ? w2 * 0.7 : px + w2 * 0.16;
+  g.fillStyle = '#333a36';
+  g.fillRect(bx, py - 46, 3, 46);
+  rrFill(g, bx - 34, py - 74, 140, 30, 4, T_BLAUW);
+  g.fillStyle = T_CREAM;
+  g.font = "bold 15px 'Arial Narrow', Arial, sans-serif";
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(String(bord || 'Station').slice(0, 17).toUpperCase(), bx + 36, py - 59);
+}
+
+export function drawTrein(canvas, plan, rit) {
+  if (!canvas || typeof canvas.getContext !== 'function') return;
+  const s = treinReis(plan, rit.t);
+  const w = canvas.clientWidth || canvas.width || 1280;
+  const h = canvas.clientHeight || canvas.height || 720;
+  const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
+  const bw = Math.max(1, Math.round(w * dpr)), bh = Math.max(1, Math.round(h * dpr));
+  if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; }
+  const g = canvas.getContext('2d');
+  if (!g) return;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  const horizon = h * 0.45, basis = h * 0.84;
+
+  // lucht en zon
+  const lucht = g.createLinearGradient(0, 0, 0, horizon);
+  lucht.addColorStop(0, T_LUCHT[0]); lucht.addColorStop(0.55, T_LUCHT[1]); lucht.addColorStop(1, T_LUCHT[2]);
+  g.fillStyle = lucht; g.fillRect(0, 0, w, horizon);
+  const zon = 0.18 + s.p * 0.24;
+  g.fillStyle = 'rgba(255,233,160,.95)';
+  g.beginPath(); g.arc(w * zon, h * 0.13, Math.max(16, h * 0.032), 0, Math.PI * 2); g.fill();
+  for (let i = 0; i < 3; i++) {
+    const cx = (((i * 0.37 + 0.08 - s.scroll * 0.018) % 1.2) + 1.2) % 1.2;
+    wolk(g, cx * w, h * (0.09 + i * 0.055), Math.max(0.6, h / 900));
+  }
+
+  // de verte: velden, kerk en molen schuiven langzaam langs
+  g.fillStyle = T_GROEN[2]; g.fillRect(0, horizon, w, h * 0.07);
+  g.fillStyle = T_GROEN[1]; g.fillRect(0, horizon + h * 0.07, w, h * 0.08);
+  const kerkX = (((0.55 - s.scroll * 0.07) % 1.4) + 1.4) % 1.4 * w;
+  silhouet(g, kerkX, horizon + 2, 'kerk', Math.max(0.7, h / 900), '#34562c');
+  const molenX = (((0.16 - s.scroll * 0.1) % 1.5) + 1.5) % 1.5 * w;
+  silhouet(g, molenX, horizon + h * 0.03, 'molen', Math.max(0.7, h / 900), '#2f4f33');
+
+  // sloten met riet en een heg
+  g.fillStyle = '#4a8fae';
+  g.fillRect(0, horizon + h * 0.13, w, h * 0.035);
+  g.fillStyle = 'rgba(52,86,44,.55)';
+  const rietOff = (s.scroll * 0.09 % 0.04) * w;
+  for (let x = -rietOff; x < w; x += 26) {
+    g.fillRect(x, horizon + h * 0.11, 2, h * 0.02);
+    g.fillRect(x + 6, horizon + h * 0.115, 2, h * 0.015);
+  }
+  // weiland met koeien
+  g.fillStyle = T_GROEN[0]; g.fillRect(0, horizon + h * 0.165, w, h * 0.18);
+  g.fillStyle = T_GROEN[3];
+  g.fillRect(0, horizon + h * 0.3, w, h * 0.06);
+  for (let i = 0; i < 2; i++) {
+    const kx = ((i * 0.53 + 0.2 - s.scroll * 0.13) % 1.3 + 1.3) % 1.3 * w;
+    g.fillStyle = i ? '#e8e4d8' : '#333a36';
+    rrFill(g, kx, horizon + h * 0.23, 26, 13, 5, g.fillStyle);
+    g.fillRect(kx + 3, horizon + h * 0.255, 3, 8); g.fillRect(kx + 19, horizon + h * 0.255, 3, 8);
+  }
+  // hekpalen langs het spoor
+  g.fillStyle = '#8a8474';
+  for (let x = -((s.scroll * 0.4) % 0.07) * w; x < w; x += Math.max(70, w * 0.07)) {
+    g.fillRect(x, basis - h * 0.13, Math.max(3, w * 0.003), h * 0.085);
+    g.fillRect(x - 4, basis - h * 0.1, Math.max(11, w * 0.009), 3);
+  }
+
+  // de baan: ballast, dwarsliggers en de twee spoorstaven
+  g.fillStyle = '#8a8474'; g.fillRect(0, basis - 4, w, h - basis + 4);
+  g.fillStyle = '#55524c';
+  const sk = Math.max(18, w * 0.022);
+  const sleepOff = (s.scroll * 0.34 % 1) * sk * 2;
+  for (let x = -sleepOff; x < w + sk; x += sk * 2) g.fillRect(x, basis + 2, sk, h * 0.035);
+  g.fillStyle = '#333a36';
+  g.fillRect(0, basis + 5, w, Math.max(3, h * 0.006));
+  g.fillRect(0, basis + h * 0.035, w, Math.max(3, h * 0.006));
+  // het perron van vertrek of aankomst
+  if (s.perron) {
+    const pw = Math.min(w * 0.3, 420), ph = h * 0.115;
+    tekenPerron(g, w * 0.5, basis - ph, pw, ph, s.bord, s.shot === 'perron');
+  }
+
+  // de trein, van opzij: twee rijtuigen, een neus, wielen en een stroomafnemer
+  const tw = Math.min(w * 0.64, 980), th = Math.max(64, h * 0.16);
+  const cx = w * s.trein;
+  if (cx > -tw && cx < w + tw) {
+    const x0 = cx - tw / 2, y0 = basis - th - h * 0.012;
+    const car = tw * 0.48, gap = tw * 0.04;
+    for (const [i, ox] of [[0, 0], [1, car + gap]]) {
+      // bak
+      rrFill(g, x0 + ox, y0, car, th, Math.max(4, th * 0.08), T_GEEL);
+      // blauwe raamband met ramen
+      rrFill(g, x0 + ox + car * 0.06, y0 + th * 0.2, car * 0.88, th * 0.3, 3, T_BLAUW);
+      for (let k = 0; k < 5; k++) {
+        rrFill(g, x0 + ox + car * (0.1 + k * 0.17), y0 + th * 0.24, car * 0.12, th * 0.2, 2, '#bee1f5');
+      }
+      // deuren en een onderband
+      for (const dx of [0.02, 0.93]) rrFill(g, x0 + ox + car * dx, y0 + th * 0.16, car * 0.05, th * 0.62, 2, T_CREAM);
+      rrFill(g, x0 + ox, y0 + th * 0.78, car, th * 0.12, 0, T_BLAUW);
+      // dak
+      rrFill(g, x0 + ox + car * 0.02, y0 - th * 0.04, car * 0.96, th * 0.07, 3, '#cfd6dc');
+      // draaistellen met wielen
+      for (const wx of [0.2, 0.8]) {
+        g.fillStyle = '#1b1d22';
+        g.beginPath(); g.arc(x0 + ox + car * wx, basis + h * 0.005, th * 0.13, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#8f9095';
+        g.beginPath(); g.arc(x0 + ox + car * wx, basis + h * 0.005, th * 0.055, 0, Math.PI * 2); g.fill();
+      }
+    }
+    // neus links met cabine en koplamp
+    g.fillStyle = T_GEEL;
+    g.beginPath();
+    g.moveTo(x0 + 2, y0 + th * 0.12);
+    g.lineTo(x0 - tw * 0.055, y0 + th * 0.5);
+    g.lineTo(x0 - tw * 0.045, y0 + th);
+    g.lineTo(x0 + 2, y0 + th);
+    g.closePath(); g.fill();
+    rrFill(g, x0 - tw * 0.04, y0 + th * 0.18, tw * 0.04, th * 0.26, 2, '#1f2a3a');
+    rrFill(g, x0 - tw * 0.045, y0 + th * 0.72, tw * 0.02, th * 0.09, 2, '#ffe9a0');
+    // stroomafnemer
+    g.strokeStyle = '#333a36'; g.lineWidth = Math.max(2, th * 0.03);
+    g.beginPath();
+    g.moveTo(x0 + car * 0.55, y0 - th * 0.04);
+    g.lineTo(x0 + car * 0.6, y0 - th * 0.28);
+    g.lineTo(x0 + car * 0.72, y0 - th * 0.28);
+    g.lineTo(x0 + car * 0.66, y0 - th * 0.04);
+    g.stroke();
+    // de naam van de trein, klein op de bak
+    g.fillStyle = T_BLAUW;
+    g.font = `bold ${Math.max(9, th * 0.11)}px Arial, sans-serif`;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('STOPTREIN', x0 + car * 0.5, y0 + th * 0.92);
+  }
+
+  // onderin een zachte donkere band, zodat de tekst altijd leesbaar is
+  const onder = g.createLinearGradient(0, h * 0.72, 0, h);
+  onder.addColorStop(0, 'rgba(12,20,14,0)'); onder.addColorStop(1, 'rgba(12,20,14,.72)');
+  g.fillStyle = onder; g.fillRect(0, h * 0.72, w, h * 0.28);
 }
 
 // optie: een optie uit ovopties.reisOpties, dest: { x, y, name }. Resolved met
@@ -47,7 +260,7 @@ export function startMeerijden(world, optie, dest) {
     world.addMessage('Te weinig geld voor dit kaartje', 2.5);
     return Promise.resolve({ aangekomen: false });
   }
-  const el = build(plan.mode === 'taxi', optie.label);
+  const el = build(plan.mode === 'taxi', optie.label, plan.mode === 'trein');
   document.body.appendChild(el);
   const q = (s) => el.querySelector(s);
   // zoals het laadscherm: de wereld staat stil tijdens de scène
@@ -77,9 +290,18 @@ export function startMeerijden(world, optie, dest) {
       if (!a) return resolve({ aangekomen: false });
       world.money -= a.prijs;
       if (typeof world.clock === 'number' && klokSprongMag(world)) world.clock = (world.clock + a.klokMinuten / 60) % 24; // met meer spelers springt de klok niet: de tijd is van iedereen (#452)
-      // met de boot kom je bij de aanlegplaats aan (#438): daar blijf je in de buurt, niet 400 m het land op
-      const straal = rit.plan.mode === 'boot' ? 40 : 400;
-      const spot = (world.map.findOpenSpawn && world.map.findOpenSpawn(a.x, a.y, straal)) || { x: a.x, y: a.y };
+      // #932: de bestemming is het doel, niet een weg honderden meters verderop. Eerst de
+      // open grond bij het doel zelf (openSpotNear), dan pas een straat binnen de korte
+      // landingsmarge; de oude 400 m bracht een taxi soms in een ander buitengebied.
+      const boot = rit.plan.mode === 'boot';
+      const kandidaten = [];
+      if (world.map.openSpotNear) {
+        try { const o = world.map.openSpotNear(a.x, a.y); if (o) kandidaten.push(o); } catch (e) { /* kaart zonder open plekken */ }
+      }
+      if (world.map.findOpenSpawn) {
+        try { const s = world.map.findOpenSpawn(a.x, a.y, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M); if (s) kandidaten.push(s); } catch (e) { /* idem */ }
+      }
+      const spot = landingsplek(a, kandidaten, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M) || { x: a.x, y: a.y };
       const p = hoofdspeler(world);
       if (p.inVehicle) { p.inVehicle.speed = 0; p.inVehicle.x = spot.x; p.inVehicle.y = spot.y; }
       p.x = spot.x; p.y = spot.y;
@@ -100,6 +322,8 @@ export function startMeerijden(world, optie, dest) {
       q('.rr-lijn').textContent = (plan.lines[0] || optie.label).toUpperCase();
       q('.rr-tekst').textContent = ondertitel(rit);
       q('.rr-vul').style.width = `${Math.round(voortgang(rit) * 100)}%`;
+      const treinCanvas = q('.rr-trein');
+      if (treinCanvas) drawTrein(treinCanvas, plan, rit);
       const cab = q('.rr-cab');
       if (cab) cab.style.left = `${6 + voortgang(rit) * 66}%`;
       q('.rr-hint').style.display = skipHint(rit) ? 'inline' : 'none';

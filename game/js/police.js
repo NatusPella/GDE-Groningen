@@ -12,7 +12,7 @@ import { roadNetReady } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf, hintFor } from './signalement.js';
-import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR, policeTarget, policeArmor } from './wantedlevels.js';
+import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR, policeArmor, policeDensity } from './wantedlevels.js';
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
@@ -36,7 +36,7 @@ const MOTOR_WANTED = 4;
 const MOTOR_MAX = 2;
 const MOTOR_MODEL = { name: 'scooter', len: 1.3, wid: 0.45, maxSpeed: 15.5, accel: 6, brake: 9, turnRate: 5, color: '#eceae4', rider: '#1c3fae' };
 const DESPAWN_DIST = 260;
-const SPAWN_STAGGER = 1.4;
+const AMBIENT_DESPAWN_DIST = 140; // #933: zonder sterren ruimt de politie sneller op
 const FIRE_RANGE = 28;
 const DIRECT_CHASE_DIST = 30;
 
@@ -227,8 +227,13 @@ function trySpawnPolice(world, state) {
     if (isPatrolCar(v)) alive++;
   }
   state.outrun = !!pv && !pv.isBoat && Math.abs(pv.speed) > OUTRUN_SPEED && !(pol && pol.searching) && nearest > OUTRUN_CLEAR_DIST;
-  const target = policeTarget(world.wanted);
-  if (alive >= target || world.time < state.nextSpawnAt) return;
+  // #933: geen spontaan volk meer bij 0 sterren, en buiten de stad een dunnere
+  // bezetting met een langere aanlooptijd. De politie verschijnt alleen bij
+  // daadwerkelijk gezocht/gevaar, niet omdat je toevallig in een weiland rijdt.
+  const country = roadNetReady() && edgeDistance(p.x, p.y) > 0;
+  const density = policeDensity(world.wanted, { country });
+  if (world.wanted < 1 || density.target <= 0) return;
+  if (alive >= density.target || world.time < state.nextSpawnAt) return;
   state.nextSpawnAt = world.time + 0.5;
   const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : p;
   const rp = findSpawnPoint(world, c.x, c.y, pol && pol.searching ? SEARCH_SPAWN_MIN_DIST : SPAWN_MIN_DIST, state.outrun);
@@ -238,7 +243,7 @@ function trySpawnPolice(world, state) {
   v._interceptor = isInterceptorSlot(world.wanted, alive);
   tunePoliceCar(v, world);
   world.vehicles.push(v);
-  state.nextSpawnAt = world.time + SPAWN_STAGGER;
+  state.nextSpawnAt = world.time + density.stagger;
 }
 
 // The police model object is per car/mount (spawnVehicleOnRoad and
@@ -277,7 +282,11 @@ function despawnFarPolice(world, state) {
     // so a fresh unit can come in ahead
     const behind = recycle && isPatrolCar(v) && d > RECYCLE_DIST && !v._sees &&
       (v.x - px) * hx + (v.y - py) * hy < 0 && isSpawnHidden(world, v.x, v.y);
-    if (behind || (!v.wrecked && ((v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40))) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
+    // #933: de achtervolging is voorbij (0 sterren). Een gewone patrouillewagen die
+    // uit zicht en ver genoeg is ruimt op, zodat er geen politieauto met je mee blijft
+    // rijden. Een auto met agenten te voet, een wegblokkade of een motor blijft staan.
+    const klaar = world.wanted === 0 && isPatrolCar(v) && d > AMBIENT_DESPAWN_DIST && isSpawnHidden(world, v.x, v.y);
+    if (behind || klaar || (!v.wrecked && ((v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40))) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
   }
 }
 

@@ -1,10 +1,12 @@
 import { hoofdspeler } from './players.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPerson, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
 import { buildCowMesh3D } from './wildlife.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { getScene } from './scene3d.js';
+import { signBothSides, fitText } from './canvastex.js';
 import { boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles } from './tileplace.js';
 import { urbanWeight } from './provinceworld.js';
 import { findOpenSpot, placeNamed } from './ommelandplace.js';
@@ -88,6 +90,55 @@ function findSites(map) {
   }
   if (!hide) return null;
   return { farm, hide, dist: Math.hypot(hide.x - farm.x, hide.y - farm.y) };
+}
+
+// #969: het doel van de rit is de schuur zelf, niet het open plekje ernaast
+// (daar parkeer je). Zo staat de balk en de pijl van het waypoint op het gebouw
+// dat je moet hebben en niet in een leeg weiland.
+export function koeBarnTarget(S) {
+  if (!S || !S.hide) return null;
+  // sites.hide.b is the barn record of barnsAround ({ b: the map building, x, y, m })
+  const rec = S.hide.b;
+  const b = rec && rec.b ? rec.b : rec;
+  const q = b && b.pts ? boxOf(b) : null;
+  const x = q && Number.isFinite(q.x) ? q.x : S.hide.x;
+  const y = q && Number.isFinite(q.y) ? q.y : S.hide.y;
+  return { x, y, label: 'De schuur van Durk en Douwe' };
+}
+
+// Een bord op een paal naast de schuur, zodat de schuur van een afstand te
+// herkennen is (#969): je ziet meteen welk gebouw het is.
+function buildBarnSign(S) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 160;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f4efe0'; g.fillRect(0, 0, 512, 160);
+  g.strokeStyle = '#7a2a1e'; g.lineWidth = 10; g.strokeRect(5, 5, 502, 150);
+  g.fillStyle = '#7a2a1e'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  fitText(g, 'DURK & DOUWE', 460, 50, 'bold', 'Arial', 26); g.fillText('DURK & DOUWE', 256, 56);
+  fitText(g, 'GEERTJE', 460, 42, 'bold', 'Arial', 24); g.fillText('GEERTJE', 256, 114);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const board = signBothSides(3.4, 1.06, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  board.position.y = 3.3;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 3.3, 6), new THREE.MeshBasicMaterial({ color: 0x6b4a2a }));
+  pole.position.y = 1.65;
+  const group = new THREE.Group();
+  group.add(pole, board);
+  group.position.set(S.hide.x + Math.cos(S.hide.a + Math.PI / 2) * 3.4, 0, S.hide.y + Math.sin(S.hide.a + Math.PI / 2) * 3.4);
+  group.rotation.y = -S.hide.a;
+  group.userData.sign = true;
+  getScene()?.add(group);
+  return group;
+}
+
+function disposeBarnSign(group) {
+  if (!group) return;
+  group.removeFromParent();
+  group.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); }
+  });
 }
 
 // The sites are picked from the tiles round Ten Boer (the farm lies up to 1.7 km
@@ -268,6 +319,8 @@ function setupHideout(run) {
   prop.group.rotation.y = -H.a;
   getScene().add(prop.group);
   d.hideProp = prop;
+  // #969: een bord naast de schuur, zodat je hem van een afstand herkent
+  d.barnSign = buildBarnSign(H);
   const loc = (lx, lz) => [H.x + lx * Math.cos(H.a) - lz * Math.sin(H.a), H.y + lx * Math.sin(H.a) + lz * Math.cos(H.a)];
   // Geertje tied to the barn, the twins on their bales
   const [cx, cy] = loc(-1, -4.2);
@@ -433,7 +486,8 @@ export const KOE = {
     const go = () => {
       if (run.data.stage !== 'intro') return;
       run.data.stage = 'drive';
-      setTarget({ x: sites.hide.x, y: sites.hide.y });
+      setTarget(koeBarnTarget(sites));
+      w.addMessage('De schuur van Durk en Douwe staat op je kaart.', 4, { kind: 'missie', key: 'koe-barn' });
       // Ome Jan's old moped, for when you came by train
       const p = hoofdspeler(w);
       const near = w.vehicles.some((v) => !v.wrecked && !v.isBoat && (v.playerOwned || v.isHeroCar || v.driver === 'player') && Math.hypot(v.x - p.x, v.y - p.y) < 80);
@@ -529,6 +583,7 @@ export const KOE = {
     if (current === run) current = null;
     w.missionPrompt = null;
     if (d.hideProp) disposeProp(d.hideProp);
+    disposeBarnSign(d.barnSign);
     if (d.cow) d.cow.mesh.removeFromParent();
     freeFigure(d.durk); freeFigure(d.douwe);
     if (d.tractor) {

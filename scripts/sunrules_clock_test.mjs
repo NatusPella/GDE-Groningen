@@ -37,10 +37,15 @@ for (const h of [NaN, Infinity, -Infinity, undefined, null, 'het is avond']) {
 }
 ok(wrapHour(NaN) === 12, 'NaN valt terug op 12:00 (dezelfde stand-in als dayState en de 3D-belichting)');
 
-// 2b. en dat is echt het verschil: de oude wikkel liet de NaN door naar de interpolatie
+// 2b. en dat is echt het verschil: de oude formule liet de NaN door naar de interpolatie
+//     (de zonshoogte zelf vangt een onbruikbare klok nu op via solarHour/wrapHour)
+const oudeHoogte = (h) => {
+  const lat = 53.2 * Math.PI / 180, dec = 15 * Math.PI / 180, ha = (h - 12) * 15 * Math.PI / 180;
+  return Math.asin(Math.max(-1, Math.min(1, Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(ha)))) * 180 / Math.PI;
+};
 const oudeWikkel = (h) => ((h % 24) + 24) % 24;
 for (const h of [NaN, Infinity]) {
-  const oud = Math.max(0, Math.min(1, (sunElevationDeg(oudeWikkel(h)) - 6) / (14 - 6)));
+  const oud = Math.max(0, Math.min(1, (oudeHoogte(oudeWikkel(h)) - 6) / (14 - 6)));
   const nieuw = Math.max(0, Math.min(1, (sunElevationDeg(wrapHour(h)) - 6) / (14 - 6)));
   ok(!eindig(oud), `de oude regel gaf een onbruikbare t voor ${String(h)} (dit is het gat)`, String(oud));
   ok(eindig(nieuw), `de nieuwe regel geeft een echte t voor ${String(h)}`, String(nieuw));

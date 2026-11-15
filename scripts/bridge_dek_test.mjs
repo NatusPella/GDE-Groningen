@@ -53,6 +53,18 @@ for (const r of bridges) {
   }
   const width = hi - lo;
   ok(width >= (r.width || 4) * 0.8, `${r.name || r.type}: het dek is ${width.toFixed(1)} m breed boven het water`);
+  // (#919) het dek zelf: onder de wegribbon hoort een dichte plaat te zitten, ook als
+  // de stenen oever van quaywalls.js nog niet is gestreamd (rand van de detailring)
+  const group = RS.buildRoadGroup(r);
+  let core = null;
+  group.traverse((o) => { if (o.isMesh && o.userData.roadStructure) core = o; });
+  ok(!!core, `${r.name || r.type}: de vlakke brug heeft een eigen dek onder de weg`);
+  if (core) {
+    const cp = core.geometry.attributes.position.array;
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 1; i < cp.length; i += 3) { minY = Math.min(minY, cp[i]); maxY = Math.max(maxY, cp[i]); }
+    ok(minY < -0.3 && maxY <= 0.001, `${r.name || r.type}: het dek steekt onder de weg door (${minY.toFixed(2)}..${maxY.toFixed(2)})`);
+  }
 }
 console.log(`bridge_dek_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

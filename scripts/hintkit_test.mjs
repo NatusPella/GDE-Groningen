@@ -60,5 +60,25 @@ const html = helpHtml((t) => `<kbd>${t}</kbd>`, (s) => s.replace(/&/g, '&amp;').
 ok(html.includes('<kbd>E</kbd>') && html.includes('<kbd>ESC</kbd>') && !html.includes('{'), 'help tokens become keys');
 ok(helpPlain().includes('Activiteiten') && !/[{}]/.test(helpPlain()), 'help text mentions Activiteiten, plain text has no tokens');
 ok(HELP_TOPICS.every((t) => t.lines.every((l) => !/\b(the|and|press)\b/i.test(l))), 'help is Dutch');
+
+// Review 0.62: de hulp wijst naar de plekken zoals ze sinds de instellingenronde zijn. De
+// oude paden (Interface › Meer opties, Spel › Overzicht met de volumes, Spel › Spelen) bestaan
+// niet meer en stuurden de speler naar een tab zonder de genoemde optie.
+{
+  const fs = await import('node:fs');
+  const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  const plain = helpPlain();
+  ok(!/Interface › Meer opties/.test(plain), 'Hulp: Interface heeft geen "Meer opties" meer');
+  ok(!/Spel › Overzicht staat het ook bij de volumes/.test(plain), 'Hulp: de volumes staan niet meer op Spel › Overzicht');
+  ok(!/pauzemenu › Spel › Spelen|Spel › Spelen/.test(plain + fs.readFileSync(new URL('../game/js/credits.js', import.meta.url), 'utf8')), 'Hulp en credits: de Spelen-subtab bestaat niet meer');
+  ok(/Instellingen › Spel/.test(plain) && /Spel › Hints & uitleg/.test(plain) && /Instellingen › Geluid & ondertitels/.test(plain), 'Hulp noemt de nieuwe plekken van de shift-klik, de uitleg en de volumes');
+  ok(/Spel › Overzicht heeft "Vastgelopen\? Zet me vrij"/.test(plain), 'Hulp noemt Spel › Overzicht bij Vastgelopen');
+  // elke "Spel › X" in de hulp is een bestaand tabblad van Spel
+  const subBlock = pm.slice(pm.indexOf('const SUBTABS = {'), pm.indexOf('// old tab names'));
+  const spelRegel = subBlock.split('\n').find((l) => l.trim().startsWith('spel: [')) || '';
+  const spelTabs = [...spelRegel.matchAll(/\['\w+', '([^']+)'\]/g)].map((m) => m[1]);
+  const genoemd = [...plain.matchAll(/Spel › /g)].map((m) => spelTabs.slice().sort((a, b) => b.length - a.length).find((t) => plain.startsWith(t, m.index + m[0].length)));
+  ok(genoemd.length > 0 && genoemd.every(Boolean), 'Hulp: elk genoemd Spel-tabblad bestaat', genoemd.join('|'));
+}
 console.log(fails ? `${fails} of ${n} failed` : `hintkit_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

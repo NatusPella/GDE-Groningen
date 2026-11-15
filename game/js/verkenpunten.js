@@ -31,11 +31,33 @@ export function uitkijkpunten(landmarks = [], plekken = MENU_PLEKKEN, streken = 
   return uit;
 }
 
+// Een uitkijkpunt hoort op een plek waar de speler kan staan: een menuplek is soms een
+// camerastandpunt boven of in een gebouw (Bourtange: het punt lag in de vestingmolen).
+// (#954) Schuif zo'n punt naar het dichtstbijzijnde open plekje, zodat de E-actie daar
+// bereikbaar is. Zonder `isOpenSpot` (een testkaart) blijft het punt staan.
+export function snapViewpoint(point, map, radius = 24) {
+  if (!point || !map || typeof map.isOpenSpot !== 'function') return point;
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return point;
+  if (map.isOpenSpot(point.x, point.y)) return point;
+  for (let r = 1; r <= radius; r += 1) {
+    for (let k = 0; k < 24; k++) {
+      const a = (k / 24) * Math.PI * 2;
+      const x = point.x + Math.cos(a) * r, y = point.y + Math.sin(a) * r;
+      if (!map.isOpenSpot(x, y)) continue;
+      point.x = Math.round(x * 10) / 10;
+      point.y = Math.round(y * 10) / 10;
+      return point;
+    }
+  }
+  return point;
+}
+
 // De acht punten op de kaart zetten (#807, A15): de kaartlaag leest ze uit dit meta-veld,
 // net als de landmarks. Geen nieuwe namen of coördinaten: alles komt uit MENU_PLEKKEN en
 // landmarkkits.json. Aanroepen zodra de kits geladen zijn (ommelandlandmarks.js).
 export function installeerUitkijkpunten(map, kits, { plekken = MENU_PLEKKEN, streken = STREKEN } = {}) {
   const punten = uitkijkpunten(kits || [], plekken, streken);
+  for (const p of punten) snapViewpoint(p, map);
   if (map && map.meta) map.meta.uitkijkpunten = punten;
   return punten;
 }

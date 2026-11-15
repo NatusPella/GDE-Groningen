@@ -3,8 +3,9 @@
 import { clamp } from './util.js';
 
 // Cars should survive a fair amount of reckless driving: every collision
-// (cars, walls, props) does this fraction of its raw damage.
-export const CRASH_DAMAGE_SCALE = 0.4;
+// (cars, walls, props) does this fraction of its raw damage. #934 verlaagde
+// hem van 0,4 naar 0,32 samen met de nieuwe impactregels (impactbalance.js).
+export const CRASH_DAMAGE_SCALE = 0.32;
 // Fixed ring of recent contacts for effects/audio; readers keep their own
 // cursor against `head` and skip what has been overwritten.
 const CONTACT_CAP = 64;

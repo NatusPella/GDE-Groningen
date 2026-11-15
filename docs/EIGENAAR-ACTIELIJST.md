@@ -255,6 +255,15 @@ is de open lijst met per regel wat een kenner moet beslissen;
 `python scripts/tts_lines.py --budget 0.5`, `node scripts/build_story_data.mjs` en
 `node scripts/voice_coverage.mjs --quiet`.
 
+**Daarnaast #924 (Tessa's Groningse opnames en de stille autorit):** de autoritregels van het
+verhaal vinden hun opname weer (ze zochten alleen in `banter`, terwijl 70 regels in `lines`
+staan). Tessa's stem stond goed in de code, maar haar bestaande opnames waren nog met de
+Groningse spreektekst gemaakt. Op **15-11-2026** zijn **367 + 21 + 2 clips** opnieuw ingesproken
+via de LiteLLM-gateway (ca. **$0,23**); de wachtrij staat daarna op **0 jobs**. De proef van 8
+clips staat in `game/audio/voicelines/proef/` om te beluisteren. Wat nog open is: de 18 regels
+van Geesje + 2 van Rotor Roelf (Groningse spreektekst) en de kapotte barks-generator (#812);
+zie [verhaal/TESSA-NEDERLANDS.md](verhaal/TESSA-NEDERLANDS.md).
+
 **Wat een agent niet mag of kan:** Groningse tekst verzinnen of goedkeuren, `.env` lezen, de
 LiteLLM-sleutel gebruiken of opnemen zonder expliciete opdracht. Een agent mag tot de
 wachtrij en de droogloop (`--dry-run`) komen; schrijven en opnemen zijn van de eigenaar of een

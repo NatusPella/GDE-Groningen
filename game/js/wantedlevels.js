@@ -29,9 +29,27 @@ export function levelOf(stars) {
 // politieauto's, alleen taaiers en met meer volk.
 const TARGET = [1, 2, 3, 4, 7];
 const ARMOR = [1, 1, 1, 0.85, 0.6]; // hoeveel schade een politicauto op dat niveau nog krijgt
+const starsOf = (s) => (Number.isFinite(s) ? Math.max(0, Math.min(5, Math.floor(s))) : 0);
+// Zonder gezocht-niveau komt er geen eenheid bij (#933): de oude tabel telde 0 sterren
+// als 1 en hield zo altijd één politieauto in de buurt, ook in de weilanden.
 export function policeTarget(stars) {
-  const n = Math.max(1, Math.min(5, Math.floor(stars) || 1));
-  return TARGET[n - 1];
+  const n = starsOf(stars);
+  return n < 1 ? 0 : TARGET[n - 1];
+}
+
+// #933: de politiedichtheid per niveau. In de stad komt er per ster meer volk; buiten
+// de stad (het Ommeland) is het korps veel dunner bezet en duurt het langer voor er
+// iemand bijkomt. Bij 0 sterren is het overal 0: politie verschijnt alleen als je
+// echt gezocht wordt.
+const COUNTRY_TARGET = [0, 1, 1, 2, 2, 3];
+const CITY_STAGGER = 1.4;      // s tussen twee eenheden in de stad
+const COUNTRY_STAGGER = 6;     // s tussen twee eenheden in het Ommeland
+export function policeDensity(stars, { country = false } = {}) {
+  const n = starsOf(stars);
+  if (n === 0) return { target: 0, stagger: 0 };
+  const target = country ? COUNTRY_TARGET[n] : TARGET[n - 1];
+  const stagger = country ? COUNTRY_STAGGER : CITY_STAGGER + (n <= 1 ? 1 : 0);
+  return { target, stagger };
 }
 export function policeArmor(stars) {
   const n = Math.max(1, Math.min(5, Math.floor(stars) || 1));

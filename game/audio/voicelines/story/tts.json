@@ -1,23 +1,25 @@
 {
 "Anita|Bijhouden, hè.": {
 "src": "duo/s2/intro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Biehollen, hè.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"input": "Bijhouden, hè.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Dan staan we hier morgen nog.": {
 "src": "duo/s3/intro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Dan stoan wie hier mörn nog.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"input": "Dan staan we hier morgen nog.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Dan wordt het moderne dans.": {
 "src": "m3/fail_0_anita.mp3",
@@ -31,13 +33,14 @@
 },
 "Anita|Dat zeg je elke keer.": {
 "src": "duo/s1/intro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Dat zegst doe elke keer.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Dat zeg je elke keer.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Dit vertellen we Berend dus niet.": {
 "src": "m0/fail_0_anita.mp3",
@@ -51,33 +54,36 @@
 },
 "Anita|Drie kroegen is ook een tocht.": {
 "src": "m5/fail_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Drij kroegen is ook n tocht.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"input": "Drie kroegen is ook een tocht.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|En jij als een fietser zonder fiets. Sleutels, Berend.": {
 "src": "m0/intro_4_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "En doe as n fietser zonder fiets. Sleutels, Berend.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"input": "En jij als een fietser zonder fiets. Sleutels, Berend.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|En ouders die de huur betalen.": {
 "src": "m2/fail_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "En olders dij de huur betoalen.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"input": "En ouders die de huur betalen.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Gids zijn is moeilijker dan het lijkt.": {
 "src": "m7/fail_0_anita.mp3",
@@ -91,23 +97,25 @@
 },
 "Anita|Ik heb je altijd door, droogkloot.": {
 "src": "duo/s4/outro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Ik heb die aaltied deur, droogkloot.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"input": "Ik heb je altijd door, droogkloot.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Ik hou niet van snorren. Ik hou van petten.": {
 "src": "m5/outro_3_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Ik hol nait van snorren. Ik hol van petten.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"input": "Ik hou niet van snorren. Ik hou van petten.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Ik rij.": {
 "src": "m0/intro_2_anita.mp3",
@@ -121,63 +129,69 @@
 },
 "Anita|Ik rij. Geen discussie.": {
 "src": "duo/s0/intro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Ik rie. Gain discussie.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Ik rij. Geen discussie.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Ik was al goed. Jij haakte aan.": {
 "src": "duo/s2/outro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Ik was al goud. Doe haakte aan.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Ik was al goed. Jij haakte aan.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Je was er echt, vandaag.": {
 "src": "duo/s3/outro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Doe was der echt, vandoage.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"input": "Je was er echt, vandaag.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Kom, ik help je overeind. Weer.": {
 "src": "m6/fail_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Kom, ik help die overaind. Weer.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"input": "Kom, ik help je overeind. Weer.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Laat maar. Ik weet het al.": {
 "src": "duo/s5/outro_2_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Loat mor. Ik wait t al.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"input": "Laat maar. Ik weet het al.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Niet slecht, pet.": {
 "src": "duo/s1/outro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Nait slecht, pet.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"input": "Niet slecht, pet.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Nog een rondje. Ik let op de pionnen.": {
 "src": "m4/fail_1_anita.mp3",
@@ -191,13 +205,14 @@
 },
 "Anita|O ja? Sinds wanneer bepaal jij dat?": {
 "src": "m5/intro_3_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "O jo? Zied wanneer bepoal doe dat?",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+"input": "O ja? Sinds wanneer bepaal jij dat?",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Saai. Zelfs de duiven gaan weg.": {
 "src": "m1/fail_0_anita.mp3",
@@ -211,93 +226,102 @@
 },
 "Anita|Samen, of helemaal niet.": {
 "src": "duo/s6/intro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Samen, of hielemoal nait.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Samen, of helemaal niet.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Spreek voor jezelf. Ik ben heel veel content.": {
 "src": "m1/intro_3_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Proat veur dissels. Ik ben hail völ content.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"input": "Spreek voor jezelf. Ik ben heel veel content.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Tammo heeft hier nog gestudeerd. Twee weken.": {
 "src": "m2/intro_2_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Tammo het hier nog studeerd. Twij weken.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"input": "Tammo heeft hier nog gestudeerd. Twee weken.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Van het studeren?": {
 "src": "m2/intro_4_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Van t studeren?",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+"input": "Van het studeren?",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Verrassend voor jou.": {
 "src": "duo/s0/outro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Verrassend veur die.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"input": "Verrassend voor jou.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Voor vandaag.": {
 "src": "duo/s7/intro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Veur vandoage.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"input": "Voor vandaag.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Voorzichtig doen, hè.": {
 "src": "duo/s4/intro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Voorzichtig doun, hè.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"input": "Voorzichtig doen, hè.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Weet ik. Daarom blijf ik.": {
 "src": "duo/s6/outro_1_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Wait ik. Doarom blief ik.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"input": "Weet ik. Daarom blijf ik.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Zeg het maar gewoon, Tammo.": {
 "src": "duo/s5/outro_0_anita.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Zeg t mor gewoon, Tammo.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"input": "Zeg het maar gewoon, Tammo.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Harm|Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.": {
 "src": "m4/intro_1_harm.mp3",

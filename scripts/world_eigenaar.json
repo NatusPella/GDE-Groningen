@@ -137,6 +137,10 @@
     "__knutselwagenChecked": {
       "eigenaar": "game/js/onderdelenlive.js",
       "notitie": "eenmalige herstelvlag voor de gebouwde auto na het laden"
+    },
+    "_containerTerminal": {
+      "eigenaar": "game/js/containerterminal.js",
+      "notitie": "containerstapel op de missieplek (#928)"
     }
   },
   "uitzonderingen": [
@@ -367,7 +371,7 @@
     {
       "veld": "audioEvents",
       "bestand": "game/js/vehicle.js",
-      "max": 1,
+      "max": 2,
       "reden": "meldt een geluidsevent; audio.js leest de lijst",
       "issue": "#498"
     },
@@ -969,7 +973,7 @@
     {
       "veld": "particles",
       "bestand": "game/js/vehicle.js",
-      "max": 3,
+      "max": 4,
       "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
       "issue": "#498"
     },

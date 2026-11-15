@@ -39,6 +39,7 @@ import { groupSpot, crowdPedCap } from './evenementenlive.js';
 import { centreOf } from './evenementen.js';
 import { noteWantedWhy, noteWitnessHint, witnessCallStands } from './wantedwhy.js';
 import { isMissieVoertuig } from './missievoertuig.js';
+import { takeRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -633,9 +634,18 @@ const RIDER_CLOSING_AMBIENT = 6;
 
 // A bike or scooter hit hard enough loses its rider: the built-in rider on
 // the bike mesh is hidden (ragdoll.syncBikeRider) and an identical-looking
-// pedestrian - or the player - is launched from the saddle.
-function knockOffRiders(world) {
+// pedestrian - or the player - is launched from the saddle. A melee hit from
+// the player lands here too (#944): combat.js leaves a request on the bike
+// (bikerider.js) and the same throw takes the rider off.
+export function knockOffRiders(world) {
   for (const b of world.vehicles) {
+    const melee = takeRiderOff(b);
+    if (melee) {
+      if (!(b.isBike || b.isScooter) || b.wrecked || b.sinking || b.riderOff || b._riderAway || b._mount === 'horse') continue;
+      throwRider(world, b, { driver: melee.byPlayer ? 'player' : null }, melee.vx, melee.vy, melee.closing,
+        { nx: melee.nx, ny: melee.ny }, { melee: true, byPlayer: !!melee.byPlayer, dader: melee.dader });
+      continue;
+    }
     if (!(b.isBike || b.isScooter) || b.wrecked || b.sinking || b.riderOff || b._riderAway || b._mount === 'horse') continue;
     const byPlayerBike = b.driver === 'player';
     if (!byPlayerBike && !b.road) continue;
@@ -659,7 +669,11 @@ function knockOffRiders(world) {
   }
 }
 
-function throwRider(world, b, u, vx, vy, closing, push) {
+// opts: { melee, byPlayer, dader } voor een klap van de speler (#944). Bij een melee-treffer is
+// er geen auto in het spel: geen autoblood en geen "aangereden" in het misdaadspoor.
+function throwRider(world, b, u, vx, vy, closing, push, opts = null) {
+  const melee = !!(opts && opts.melee);
+  const byPlayer = opts ? !!opts.byPlayer : u.driver === 'player';
   const vz = 1.8 + closing * 0.2;
   b.riderOff = true;
   b.riderOffAt = world.time;
@@ -697,12 +711,12 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   const dead = ped.health <= 0;
   world.pedestrians.push(ped);
   knockDown(ped, world, { kind: 'hit', startPose: 'ride', dead, vx, vy, vz });
-  if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
-  if (u.driver === 'player') {
+  if (dead) { killPed(ped, world); bleedPed(ped, world, melee ? {} : { vehicle: u }); }
+  if (byPlayer) {
     world.lastPedHitAt = world.time;
-    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit', { vehicle: u });
-    if (dead && !u.coopBestuurder) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
-    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious && !u.coopBestuurder }); // een gast als dader: zijn getuigen tellen bij zijn eigen niveau (coopgezocht.js)
+    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit', melee ? {} : { vehicle: u });
+    if (dead && !(u && u.coopBestuurder)) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
+    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious && !(u && u.coopBestuurder) }); // een gast als dader: zijn getuigen tellen bij zijn eigen niveau (coopgezocht.js)
   }
 }
 

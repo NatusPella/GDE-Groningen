@@ -47,6 +47,7 @@ export const SLOW = new Set([
   'swim_escape_test.mjs', 'corridor_test.mjs', 'barge_test.mjs', 'tileworld_test.mjs',
   'mode_route_test.mjs', 'world_tiles_test.mjs', 'navgraph_test.mjs', 'minigames_test.mjs',
   'import_cycles_test.mjs', 'stad_test.mjs', 'overlap_test.mjs', 'road_route_test.mjs', 'water_look_test.mjs', 'route_quality_test.mjs',
+  'grass_water_paved_test.mjs', // leest de echte tegels (±20 s: groen tegen water en verharding)
   'coop_licht_test.mjs', // start alle coop-tests als eigen Node-processen (samen ±1 min)
 
 ]);

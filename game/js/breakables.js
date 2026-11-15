@@ -3,6 +3,7 @@ import { probe } from './hitchprobe.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { disableVehicle } from './vehiclewreck.js';
 import { reportImpact, vehicleContacts, CRASH_DAMAGE_SCALE } from './vehicleimpact.js';
+import { propImpactDamage, propBreakDamage } from './impactbalance.js';
 import { clamp, closestPointOnSegment, isInWater } from './util.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
@@ -243,12 +244,18 @@ export function resolvePropCollisions(vehicles, w) {
     const mine = v.driver === 'player';
     if (!mine && (v.isBike || v.isScooter)) continue;
     const dx = v.x - pl.x, dy = v.y - pl.y;
-    if (dx * dx + dy * dy > VEHICLE_RANGE * VEHICLE_RANGE) { prevPos.delete(v); continue; }
+    const far = dx * dx + dy * dy > VEHICLE_RANGE * VEHICLE_RANGE;
     let prev = prevPos.get(v);
     if (!prev) prevPos.set(v, prev = { x: v.x, y: v.y, a: v.angle });
     const moving = Math.abs(v.speed) > 0.15 || Math.abs(v.driftX) + Math.abs(v.driftY) > 0.15;
     if (moving) {
-      const near = propsNear(v.x, v.y, v.halfLen + 2 + Math.hypot(v.x - prev.x, v.y - prev.y), _near);
+      // (#970) Een vaste wand (garage, perron, pijler) is ook ver van de speler een
+      // wand: een politieauto die op de garage af rijdt, mag daar niet doorheen. Losse
+      // props blijven binnen de straal van de speler (die zijn voor de sfeer en de
+      // snelheid); de vaste wanden toetsen we altijd, met een korte straal.
+      const reach = far ? v.halfLen + 6 : v.halfLen + 2 + Math.hypot(v.x - prev.x, v.y - prev.y);
+      let near = propsNear(v.x, v.y, reach, _near);
+      if (far) near = near.filter((p) => p.breakSpeed === Infinity && !p.water);
       if (near.length) collideVehicle(v, prev, near);
     }
     prev.x = v.x; prev.y = v.y; prev.a = v.angle;
@@ -267,6 +274,23 @@ function collideVehicle(v, prev, near) {
       const x = prev.x + (v.x - prev.x) * t, y = prev.y + (v.y - prev.y) * t;
       const hit = testCapsule(v, x, y, v.angle, p);
       if (!hit) continue;
+      // (#970) Kop op de wand: de capsule raakt met zijn punt en de terugduw-N werd
+      // de rijrichting zelf, waardoor de neus in (en bij snelheid door) de muur werd
+      // geduwd. Reken de echte indringing langs de wandnormaal: de hele neus moet er
+      // voor langs, niet alleen de halve breedte.
+      if (p.breakSpeed === Infinity) {
+        const pl = Math.hypot(p.hx, p.hy);
+        const hx = Math.cos(v.angle), hy = Math.sin(v.angle);
+        if (pl > 1e-6 && Math.abs(hit.nx * hx + hit.ny * hy) > 0.98) {
+          let wx = -p.hy / pl, wy = p.hx / pl;
+          const side = (prev.x - p.x) * wx + (prev.y - p.y) * wy;
+          if (side < 0) { wx = -wx; wy = -wy; }        // van de wand af, naar de auto toe
+          const ext = v.halfLen * Math.abs(hx * wx + hy * wy) + v.halfWid * Math.abs(-hy * wx + hx * wy);
+          const dist = Math.abs((x - p.x) * wx + (y - p.y) * wy);
+          hit.nx = -wx; hit.ny = -wy;
+          hit.pen = Math.max(hit.pen, ext - dist + 0.05);
+        }
+      }
       if (t < 1) { v.x = x; v.y = y; }
       hitProp(v, p, hit);
       break;
@@ -307,7 +331,8 @@ function hitProp(v, p, hit) {
   recordContact(v, hit.cx, hit.cy, nx, ny, vn, slide);
   reportImpact(world, hit.cx, hit.cy, vn, mine);
   audio(hit.cx, hit.cy, vn / 14, p.material);
-  if (vn > 4.5) damageCar(v, Math.min(22, (vn - 4.5) * 2.4 * (p.kind === 'tree' ? 1.15 : 1)));
+  // #934: straatmeubilair doet pas vanaf 6 m/s iets, en dan nog gematigd.
+  damageCar(v, propImpactDamage(vn, { tree: p.kind === 'tree' }));
   if (p.kind === 'tree' && vn > 3) burstLeaves(p, 4 + vn, vx, vy);
 }
 
@@ -318,7 +343,8 @@ function breakByVehicle(v, p, hit, vx, vy, vn) {
   setCarVelocity(v, vx - nx * dvn, vy - ny * dvn);
   const mine = v.driver === 'player';
   const eff = vn * clamp(mp / 300, 0.12, 1);
-  damageCar(v, clamp(vn * mp / 900 * 3, 0, 20));
+  // #934: een paaltje of heg voelt lichter dan vroeger; een zware prop blijft voelen.
+  damageCar(v, propBreakDamage(vn, mp));
   if (mp >= 40 && eff > 1.5) recordContact(v, hit.cx, hit.cy, nx, ny, eff, 0);
   if (eff > 2) reportImpact(world, hit.cx, hit.cy, eff, mine);
   const kick = 0.1 + 0.95 * mc / (mc + mp);

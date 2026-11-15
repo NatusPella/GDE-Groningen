@@ -8,7 +8,7 @@ import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from 
 import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur, SPELERS_KNOP, spelersKnopTekst } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
 import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
@@ -117,17 +117,22 @@ function zorgVoorStijl() {
 
 // ---- de lijst bij Tab (elke frame vanuit main.js via coophud.js) en op aanraking (#636)
 let overlay = null, laatste = '', knop = null, vast = false;
-function zorgVoorKnop(world, zichtbaar) {
+function zorgVoorKnop(world, zichtbaar, aantal = 0) {
   if (typeof document === 'undefined') return;
   if (!zichtbaar) { if (knop) knop.style.display = 'none'; return; }
   zorgVoorStijl();
   if (!knop) {
     knop = document.createElement('button');
-    knop.type = 'button'; knop.id = 'coop-spelers-knop'; knop.className = 'cs-open'; knop.textContent = 'Spelers';
+    knop.type = 'button'; knop.id = 'coop-spelers-knop'; knop.className = 'cs-open';
     knop.setAttribute('aria-controls', 'coop-spelers');
     knop.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); vast = !vast; updateSpelersOverlay(world); });
     document.body.appendChild(knop);
   }
+  // #971: een grijze knop met alleen "Spelers" zei niet wat hij deed. Nu staat er
+  // "Spelerslijst" (met het aantal) en leggen title en aria-label de knop uit.
+  knop.textContent = spelersKnopTekst(aantal);
+  knop.title = SPELERS_KNOP.title;
+  knop.setAttribute('aria-label', `${SPELERS_KNOP.title}${aantal ? `, ${aantal} spelers` : ''}`);
   knop.style.display = '';
   knop.setAttribute('aria-expanded', vast ? 'true' : 'false');
 }
@@ -137,7 +142,7 @@ export function updateSpelersOverlay(world) {
   const menu = document.getElementById('pause-menu');
   const film = document.body.classList.contains('cine-hide-hud'); // een filmpje verbergt de HUD, dus ook de lijst
   const vrij = !world.paused && !(menu && menu.classList.contains('visible')) && !film;
-  zorgVoorKnop(world, !!rijen && rijen.length && vrij);
+  zorgVoorKnop(world, !!rijen && rijen.length && vrij, rijen ? rijen.length : 0);
   const toon = !!(rijen && rijen.length && vrij && ((world.input && world.input.isDown && world.input.isDown('tab')) || vast)); // Tab of de 44px-knop op aanraking/controller
   if (!toon) { if (overlay) overlay.style.display = 'none'; return; }
   zorgVoorStijl();
@@ -185,7 +190,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
     const naamInvoer = schermNaam && document.activeElement === schermNaam ? schermNaam.value : prof.onlineNaam;
     root.dataset.key = key; root.dataset.klaar = '1';
     const kop = rijen.length
-      ? `<div class="cs-kop"><span class="m-eb">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b><p>De wereld, de tijd en het geld zijn samen van de groep. Alleen wie het spel opende kan iemand eruit zetten.</p></div>`
+      ? `<div class="cs-kop"><span class="m-eb">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b><p>De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
       : `<div class="cs-kop cs-kop-leeg"><span class="m-eb">Samen spelen</span><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Samen spelen. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
     root.innerHTML = kop + (rijen.length
       ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +

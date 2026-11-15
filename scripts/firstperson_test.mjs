@@ -1,11 +1,14 @@
 // Eerste persoon (#833): de pure stand en meetkunde van firstperson.js, de bedrading in de
 // game-modules en de kosten van het eigen-voertuiginterieur (carinterior.js), dat sinds #833
 // als samengevoegde geometrie met vertexkleuren en één gedeeld materiaal gebouwd wordt.
+// Sinds #941 staat de camera ook op echte ooghoogte in een voertuig (onder de hemel, mee met de
+// vering) en sinds #942 hangt het interieur aan de carrosserie.
 //   node scripts/firstperson_test.mjs   (eenmalig: cd desktop && npm run stage)
 import './node3d.mjs';
 import fs from 'node:fs';
 import {
   PITCH_LIMIT, PITCH_LIMIT_DEG, EYE_STAND, EYE_CROUCH, EYE_SWIM,
+  EYE_ABOVE_NECK, CABIN_ROOF_CLEARANCE, cabinEyeY, useStanceEye,
   initFirstPerson, firstPersonOn, syncFirstPerson, setFirstPerson, toggleFirstPerson,
   addLookPitch, clampPitch, lookVector, firstPersonEye, eyeHeight,
 } from '../game/js/firstperson.js';
@@ -93,6 +96,25 @@ ok(near(wadend.y, EYE_STAND - 0.4), 'wadend door een sloot zakt het oog mee', wa
 const zwemmend = firstPersonEye({ x: 0, y: 0, z: 0.3, swimming: true });
 ok(near(zwemmend.y, 0.3 + EYE_SWIM), 'zwemmend oog boven de zwemhoogte', zwemmend);
 ok(near(firstPersonEye(null).x, 0) && near(firstPersonEye(null).y, EYE_STAND), 'zonder speler een bruikbaar oog');
+
+// --- #941: echte ooghoogte, ook in een voertuig -------------------------------------------
+// De camera staat op de nekbot van het figuur; het oog zit in de kop erboven. Die marge is
+// 0,175 m (HEAD_Y + de oogplaatjes tegenover NECK_Y, models3d_people.js). De nekbot zelf is dus
+// geen ooghoogte: daarom telt de camera de oogopslag erbij op.
+ok(near(EYE_ABOVE_NECK, 0.175, 1e-9), 'het oog zit 0,175 m boven de nekbot', EYE_ABOVE_NECK);
+ok(EYE_ABOVE_NECK > 0.15 && EYE_ABOVE_NECK < 0.19, 'de oogopslag is een kop hoog, geen nek');
+// In een lage cabine mag het oog niet in de hemelbekleding staan: minstens 15 cm onder het dak.
+ok(CABIN_ROOF_CLEARANCE === 0.15, 'minstens 15 cm tussen oog en dak', CABIN_ROOF_CLEARANCE);
+ok(near(cabinEyeY(1.2, 1.33), 1.33 - CABIN_ROOF_CLEARANCE), 'een oog boven dak - marge zakt naar de marge', cabinEyeY(1.2, 1.33));
+ok(near(cabinEyeY(1.0, 1.33), 1.0), 'een oog onder de hemel blijft staan');
+ok(cabinEyeY(1.2, null) === 1.2 && cabinEyeY(1.2, NaN) === 1.2, 'zonder dakhoogte geen klem');
+ok(near(cabinEyeY(NaN, 1.33), 1.33 - CABIN_ROOF_CLEARANCE) && cabinEyeY(NaN, null) === 0,
+  'zonder bruikbaar oog een bruikbare stand');
+// Zwemmend ligt het figuur plat (swimTilt), dus de nekbot is dan geen ooghoogte meer.
+ok(useStanceEye({ swimming: true }) === true && useStanceEye({ water: 'swim' }) === true, 'zwemmen: de zwemstand');
+ok(useStanceEye({ swimming: true, inVehicle: {} }) === false, 'in een voertuig nooit de zwemstand');
+ok(useStanceEye({}) === false && useStanceEye({ water: 'climb' }) === false, 'staan en klimmen: het figuur');
+ok(useStanceEye(null) === false, 'zonder speler geen zwemstand');
 
 // --- de bedrading in de game-modules ------------------------------------------------------
 const bron = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
@@ -329,6 +351,120 @@ for (const [naam, model, flags] of gevallen) {
 const e = interiorEyePose(new Vehicle(0, 0, 0, modellen.get('sedan')));
 ok(e && Number.isFinite(e.x) && Number.isFinite(e.y) && Number.isFinite(e.z) && Number.isFinite(e.fx) && Number.isFinite(e.fy),
   'interiorEyePose van de BINNENIN-camera blijft werken', e);
+
+// --- #941/#942: het oog in de auto en het interieur aan de carrosserie ----------------------
+// De camera staat op de nekbot plus de oogopslag; dat is precies het oog van de kop van het
+// figuur (HEAD_Y + de oogplaatjes). De nekbot alleen is te laag.
+const { buildPersonMesh, PERSON_RIG, TAMMO_APPEARANCE } = await import('../game/js/models3d_people.js');
+const { placeSeated } = await import('../game/js/seating3d.js');
+const { applyVehicleDamage } = await import('../game/js/models3d_vehicles.js');
+const { interiorRoofY } = await import('../game/js/carinterior.js');
+const THREE = await import('three'); // via node3d.mjs de gebundelde three
+ok(near(PERSON_RIG.NECK_Y + EYE_ABOVE_NECK, PERSON_RIG.HEAD_Y + 0.01, 1e-9),
+  'nekbot + oogopslag is het oog van het figuur', { nek: PERSON_RIG.NECK_Y, oog: PERSON_RIG.HEAD_Y });
+
+const fpScene = new THREE.Scene();
+const fpCam = new THREE.PerspectiveCamera(60, 16 / 9, 0.5, 500);
+fpScene.add(fpCam);
+const fworld = {
+  firstPersoon: { on: true, pitch: 0 },
+  input: { mouse: { dx: 0, dy: 0, rightDown: false }, locked: true, lookActive: () => true, isDown: () => false },
+  scoped: false, camYaw: 0, cameraOverride: null, time: 10,
+};
+const fplayer = { x: 0, y: 0, gz: 0, z: 0, wade: 0, angle: 0, inVehicle: null, character: 'tammo', vx: 0, vy: 0, swimming: false };
+const fpose = { position: {}, lookAt: {}, at: 0 };
+const fout = {};
+setSetting('firstPersoon', true); // de stand van deze sectie: eerste persoon aan
+const figuur = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
+figuur.scale.y = 1; // scene3d.js zet dit elk beeld
+figuur.position.set(0, 0, 0);
+fpSync(fworld, fplayer, null, null, false, false);
+fpCamera(fworld, fpCam, fplayer, figuur, true, false, 0.0025, false, fpose, fout, null, fpScene);
+ok(near(fpCam.position.y, PERSON_RIG.NECK_Y + EYE_ABOVE_NECK, 1e-6),
+  'staand staat de camera op de echte ooghoogte van het figuur (nekbot + oogopslag)', fpCam.position.y);
+ok(near(fpCam.position.y, PERSON_RIG.HEAD_Y + 0.01, 1e-6), 'dat is de ooglijn van de kop, geen nekhoogte', fpCam.position.y);
+
+// Zwemmend ligt het figuur plat (scene3d zet swimTilt op de hele figuur): dan is de nekbot geen
+// ooghoogte en zakt de camera mee onder water. Daar geldt de zwemstand (#941).
+figuur.rotation.x = -0.85;
+fplayer.swimming = true;
+fpCamera(fworld, fpCam, fplayer, figuur, true, false, 0.0025, false, fpose, fout, null, fpScene);
+ok(near(fpCam.position.y, EYE_SWIM, 1e-6), 'zwemmend staat de camera op de zwemstand, niet op de natte nekbot', fpCam.position.y);
+figuur.rotation.x = 0;
+fplayer.swimming = false;
+
+// In een sportwagen is het dak laag (1,11 m). Het oog van het zittende figuur zit daar op 1,08:
+// tegen de hemelbekleding. De camera moet onder het dak blijven (#941).
+const sportModel = modellen.get('sport');
+const sport = new Vehicle(0, 0, 0, sportModel);
+const sportMesh = buildVehicleMesh(sport);
+fpScene.add(sportMesh);
+sportMesh.updateMatrixWorld(true);
+const sportBody = sportMesh.userData.body;
+const sportSeat = vehicleSeat(sport, true);
+const sportFig = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
+sportFig.scale.y = 1;
+fplayer.inVehicle = sport;
+placeSeated(sportFig, sportMesh, sport, sportSeat, 0);
+fpScene.add(sportFig);
+fpSync(fworld, fplayer, sport, sportMesh, false, false);
+fpCamera(fworld, fpCam, fplayer, sportFig, true, false, 0.0025, false, fpose, fout, sportMesh, fpScene);
+const sportRoof = interiorRoofY(sport);
+ok(Number.isFinite(sportRoof), 'de sportwagen heeft een bekende hemelhoogte', sportRoof);
+ok(sportRoof - fpCam.position.y >= CABIN_ROOF_CLEARANCE - 1e-6,
+  'in de sportwagen blijft het oog onder de hemel (geen camera in de bekleding)', { oog: fpCam.position.y, dak: sportRoof });
+ok(sportRoof - fpCam.position.y < 0.5, 'en niet onnodig laag: het oog zit nog in de cabine', sportRoof - fpCam.position.y);
+// De camera hangt aan de carrosserie: de vering (susPitch/susRoll/susHeave op de body) beweegt
+// het oog mee, anders danst het dashboard om de camera heen (#941/#942).
+const rustY = fpCam.position.y;
+sportBody.position.y += 0.08;
+sportMesh.updateMatrixWorld(true);
+fpCamera(fworld, fpCam, fplayer, sportFig, true, false, 0.0025, false, fpose, fout, sportMesh, fpScene);
+ok(near(fpCam.position.y - rustY, 0.08, 1e-6), 'het oog gaat mee met de vering van de carrosserie', fpCam.position.y - rustY);
+sportBody.position.y -= 0.08;
+sportMesh.updateMatrixWorld(true);
+
+// Het interieur hangt aan de carrosserie (#942), niet aan de greep van het voertuig: de vering
+// beweegt alleen de body, dus dashboard, stuur en stoelen horen mee te gaan.
+const intSport = updateCarInterior(sportMesh, sport, true);
+ok(intSport === true && sportMesh.userData.interior, 'het interieur van de sportwagen staat aan');
+const intGroep = sportMesh.userData.interior;
+ok(intGroep.parent === sportMesh.userData.body, 'het interieur hangt aan de carrosserie', intGroep.parent && intGroep.parent.name);
+ok(intGroep.parent !== sportMesh, 'niet direct aan de greep van het voertuig');
+const eerst = new THREE.Vector3();
+intGroep.getWorldPosition(eerst);
+sportBody.position.y += 0.08;
+sportMesh.updateMatrixWorld(true);
+intGroep.getWorldPosition(eerst);
+ok(near(eerst.y, 0.08, 1e-6), 'het interieur beweegt mee met de carrosserie', eerst.y);
+// en na schade: de body krijgt een nieuwe geometrie, maar het interieur blijft eraan hangen
+applyVehicleDamage(sportMesh, sport, 1.3, 0.2, 0.6);
+ok(intGroep.parent === sportMesh.userData.body, 'na schade hangt het interieur nog steeds aan de carrosserie');
+sportBody.position.y += 0.05;
+sportMesh.updateMatrixWorld(true);
+intGroep.getWorldPosition(eerst);
+ok(near(eerst.y, 0.13, 1e-6), 'na schade beweegt het interieur nog steeds mee met de carrosserie', eerst.y);
+sportBody.position.y -= 0.13;
+sportMesh.updateMatrixWorld(true);
+
+// Een zittend figuur zit op de stoel van de carrosserie, niet op de stilstaande greep: ook de
+// inzittenden bewegen mee met de vering (#942).
+const zitFig = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
+zitFig.scale.y = 1;
+placeSeated(zitFig, sportMesh, sport, vehicleSeat(sport, true), 0);
+const zitRust = zitFig.position.y;
+sportBody.position.y = 0.1;
+sportMesh.updateMatrixWorld(true);
+placeSeated(zitFig, sportMesh, sport, vehicleSeat(sport, true), 0);
+ok(near(zitFig.position.y - zitRust, 0.1, 1e-6), 'een zittend figuur zakt mee met de carrosserie', zitFig.position.y - zitRust);
+sportBody.position.y = 0;
+sportMesh.updateMatrixWorld(true);
+fplayer.inVehicle = null;
+fpScene.remove(sportMesh);
+fpScene.remove(sportFig);
+fpScene.remove(figuur);
+setSetting('firstPersoon', false);
+
 
 if (metingen.length) console.log('interieur:', metingen.map((m) => `${m.naam} ${m.objecten} objecten/${m.driehoeken} driehoeken`).join(', '));
 console.log(bad ? `firstperson_test: ${bad} van ${n} checks rood` : `firstperson_test: ${n} checks groen`);

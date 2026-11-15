@@ -8,7 +8,7 @@
 import json, os, subprocess, urllib.error, wave, time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, SAMPLE_RATE
+from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, SAMPLE_RATE, LANG
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 AUDIO = os.path.join(REPO, 'game', 'audio')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12'
@@ -31,7 +31,8 @@ def encode(src, dst):
 def job(l):
     dst = f"{AUDIO}/{l['file']}"
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    if current(logs[os.path.dirname(l['file'])], f"{l['speaker']}|{l['text']}", dst):
+    # a bark in the other language is not current: Tessa's Gronings barks are re-recorded in Dutch (#924)
+    if current(logs[os.path.dirname(l['file'])], f"{l['speaker']}|{l['text']}", dst, l.get('lang', LANG)):
         return l, 'skip', None
     err = None
     for attempt, style in enumerate(tries(l)):

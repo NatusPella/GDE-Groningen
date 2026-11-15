@@ -8,6 +8,7 @@ import { buildAkte5Defs, applyAkte5 } from './missions_akte5.js';
 import { wgsToWorld } from './rdnew.js';
 import { ROOSTER } from './heliplan.js';
 import { makeStrip } from './planecontrol.js';
+import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT } from './containerplan.js';
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
@@ -104,17 +105,17 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       reward: 900,
       onFoot: true,
       heist: { bare: true },
-      start: spotAt(53.4440, 6.8560),
+      start: { ...M13_QUAY },
       stages: [
-        { kind: 'goto', watch: { guards: 1, cameras: 1 }, target: { ...spotAt(53.4440, 6.8560, 120, -55), label: 'De kraan aan de kade' }, mode: 'foot', radius: 7,
+        { kind: 'goto', watch: { guards: 1, cameras: 1 }, target: { ...M13_CRANE, label: 'De kraan aan de kade' }, mode: 'foot', radius: 7,
           label: 'Sluip naar de kraan aan de kade', say: "Eerst de kraan: daarvan zien we welke container blauw is. Blijf uit de lichtbundels en de camera's." },
-        { kind: 'hold', target: { ...spotAt(53.4440, 6.8560, 120, -55), label: 'De kraankooi' }, radius: 8, time: 9, mode: 'foot', ticks: ['Het eerste piepje. Niet bewegen.', 'Het tweede piepje. De bewaker kijkt omhoog.'],
+        { kind: 'hold', target: { ...M13_CRANE, label: 'De kraankooi' }, radius: 8, time: 9, mode: 'foot', ticks: ['Het eerste piepje. Niet bewegen.', 'Het tweede piepje. De bewaker kijkt omhoog.'],
           label: 'Blijf stil in de kraankooi tot de bewaker wegloopt', say: 'In de kooi van de kraan. Lammert belt: de bewaker kijkt bij het tweede piepje omhoog. Niet bewegen.', talk: { ids: ['M13.2'], delay: 1.5 } },
-        { kind: 'goto', watch: { guards: 2, cameras: 1 }, target: { ...spotAt(53.4440, 6.8560, 260, 40), label: 'Container 4471' }, mode: 'foot', radius: 6,
+        { kind: 'goto', watch: { guards: 2, cameras: 1 }, target: { ...M13_CONTAINER, label: 'Container 4471' }, mode: 'foot', radius: 6,
           label: 'Zoek container 4471, de blauwe naast de rode', say: 'Van boven zag je hem: de blauwe, naast de rode. Container 4471.' },
-        { kind: 'hold', target: { ...spotAt(53.4440, 6.8560, 260, 40), label: 'Container 4471' }, radius: 6, time: 6, mode: 'foot', ticks: ['De oude papieren eruit.', 'De nieuwe erin, naar het adres van Lammert.'],
+        { kind: 'hold', target: { ...M13_CONTAINER, label: 'Container 4471' }, radius: 6, time: 6, mode: 'foot', ticks: ['De oude papieren eruit.', 'De nieuwe erin, naar het adres van Lammert.'],
           label: 'Verwissel de papieren van container 4471', say: 'Papieren eruit, papieren erin. Even rustig staan.' },
-        { kind: 'goto', watch: { guards: 1, cameras: 0 }, target: { ...spotAt(53.4440, 6.8560, 10, 5), label: 'Lammert, aan de kade' }, mode: 'foot', radius: 7,
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, target: { ...M13_LAMMERT, label: 'Lammert, aan de kade' }, mode: 'foot', radius: 7,
           label: 'Terug naar Lammert aan de kade', say: 'Klaar. Terug naar de kade, voor het schip vertrekt.' },
       ],
     },

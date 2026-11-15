@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
+import { buildOffice, OFFICE } from './office3d.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
@@ -31,6 +32,7 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 //   cine:   extra playCinematic fields (id, priority, kicker, title, tint, ...)
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
 //   def.set 'keuken': Tessa's kitchen (introkitchen3d.js) is built at the anchor (anchor.z = floor height) and the camera is kept inside it;
+//   def.set 'kantoor': het kantoorset van Wiebelwerk (#950, office3d.js), eveneens op de vloerhoogte van de kaart, camera binnen;
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
 //   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
@@ -175,21 +177,27 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     kit = buildKitchen(anchor.x, anchor.y, anchor.z || 0);
     group.add(kit.group);
     kit.reset();
+  } else if (def.set === 'kantoor') {
+    // #950: het kantoorset van Wiebelwerk, op de plek van het echte pand
+    kit = buildOffice(anchor.x, anchor.y, anchor.z || 0);
+    group.add(kit.group);
   }
   const doorFx = fx.filter((f) => f.fx === 'door');
   const sfx = (kind, name) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(name ? { kind, name, x: anchor.x, y: anchor.y } : { kind, x: anchor.x, y: anchor.y }); };
-  const kitchenFrame = (t) => {
+  // De effecten van de set (en de sfx van elke set); de keuken heeft daarnaast
+  // zijn eigen radio, deur en kopjes. Het kantoorset heeft die niet (#950).
+  const setFrame = (t) => {
     let buzz = false;
     for (const f of fx) {
       if (f.t0 > t) break;
       if (f.fx === 'sfx' && !fired.has(f)) { fired.add(f); sfx(f.kind, f.name); }
-      if (!kit) continue;
+      if (!kit || def.set !== 'keuken') continue;
       if (f.fx === 'buzz' && t < f.t0 + (f.dur ?? 2)) buzz = true;
       if (f.fx === 'pulse' && t < f.t0 + (f.dur ?? 2)) kit.radio.rotation.z = Math.sin(t * 9) * 0.05;
       if (f.fx === 'cups') cupState[f.actor] = f;
       if (f.fx === 'tablecups') for (const c of kit.tableCups) c.visible = f.on !== false;
     }
-    if (!kit) return;
+    if (!kit || def.set !== 'keuken') return;
     kit.buzz(t, buzz);
     if (!buzz) kit.radio.rotation.z = 0;
     // the door: nearly shut until the first door effect, then eased to its target
@@ -209,7 +217,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     scene, group, actors, props, anchor, env, kit,
     frame(t, dt) {
       const s = scene.sample(t, anchor, env);
-      kitchenFrame(t);
+      setFrame(t);
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
         if (verberg.has(id)) { m.visible = false; continue; } // (#434) een dubbele kopie van een rol danst niet mee
@@ -287,6 +295,22 @@ function kitchenEnv(at) {
   };
 }
 
+// #950: het kantoorset is groter (7,8 x 5,6 x 2,9 m); de camera blijft binnen.
+function officeEnv(at) {
+  return {
+    solid: () => false,
+    clamp(x, y, z, kind) {
+      if (kind !== 'camera') return null;
+      const base = at.z || 0;
+      return {
+        x: Math.max(at.x - (OFFICE.w / 2 - 0.45), Math.min(at.x + (OFFICE.w / 2 - 0.45), x)),
+        y: Math.max(at.y - (OFFICE.d / 2 - 0.45), Math.min(at.y + (OFFICE.d / 2 - 0.45), y)),
+        z: Math.max(base + 0.3, Math.min(base + OFFICE.h - 0.25, z)),
+      };
+    },
+  };
+}
+
 // QA-haak (scripts/qa/cutscene_shots.page.js): speelt een scène stil per tijdstip af; geen export, zodat de dode-code-telling gelijk blijft
 if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
 
@@ -321,7 +345,11 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const root = getScene();
   if (!root) return false;
   const p = hoofdspeler(w);
-  const a = anchor || { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
+  const a = anchor ? { ...anchor } : { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
+  // (#950) een kantoorset staat op de begane grond: de vloerhoogte komt van de kaart
+  if (def.set === 'kantoor' && !a.z && w && w.map && w.map.groundHeightAt) {
+    try { a.z = w.map.groundHeightAt(a.x, a.y, 50) || 0; } catch (e) { a.z = 0; }
+  }
   // (#731) De stemmen plannen vóór het compileren: shots, cues en L-tijden horen dezelfde
   // (opgerekte) duur te hebben als de stemmen. Anders lopen beeld en stem aan het eind uit
   // elkaar en vuren deuren/props op de oude tijd. attachVoices in cinematics.js doet
@@ -336,8 +364,12 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     return false;
   }
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
-  const indoors = def.set === 'keuken';
-  const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
+  const indoors = def.set === 'keuken' || def.set === 'kantoor';
+  const env = envIn || (def.set === 'keuken'
+    ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 })
+    : def.set === 'kantoor'
+      ? officeEnv({ x: a.x, y: a.y, z: a.z || 0 })
+      : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
   let run = null, lastT = 0;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`

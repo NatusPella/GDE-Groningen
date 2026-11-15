@@ -5,7 +5,6 @@
 // op 0 blijft (zelfde naad als vehicle/traffic.js en vehicle/boatwater.js).
 import { linesNear, project as projectOnLine, makeRunner, startAt, busMagWeg } from '../busroutes.js';
 import { closestPointOnSegment, normalizeAngle } from '../util.js';
-import { MIDIBUS_MODEL } from '../trafficfleet.js';
 
 let host = null;
 export function setBusPopHost(h) { host = h; }
@@ -39,8 +38,19 @@ export function busSpawnPoint(map, line, x, y, reach = 25) {
 // what the line spawner did (read by the QA scenes): tries, no road of the line near the spot, wrong way, blocked, spawned
 export const busSpawnStats = { tries: 0, noRoad: 0, wrongWay: 0, blocked: 0, spawned: 0 };
 
+// Een live bus die de speler overneemt (of anders losraakt) is vanaf dat moment
+// een gewone spelbus: hij houdt zijn lijn en dienst, maar volgt de echte bus
+// niet meer (#922).
+export function detachLiveBus(v) {
+  if (!v || v.liveId == null) return false;
+  v.liveId = null;
+  return true;
+}
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
+  // zonder live-bron rijden alle bussen hun eigen dienst: laat het label vallen (#922)
+  if (!liveBussen) for (const v of vehicles) if (v.liveId != null) v.liveId = null;
   // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
   const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
   const line = near[0] || null;
@@ -51,6 +61,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     // out of sight they make room for the line's own buses (#160), else they fill the quota for ever
     if (line && !v.busRun && !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) > spawnMin * 0.7) { vehicles.splice(i, 1); continue; }
     if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || host.focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    // de bron kent deze bus niet meer (bron weg of lang verouderd): gewone spelbus (#922)
+    else if (v.isBus && v.liveId != null && liveBussen && !liveBussen.positie(v.liveId)) detachLiveBus(v);
   }
 
   let count = 0;
@@ -99,21 +111,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     vehicles.push(v);
     count++;
   }
-  // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
-  if (line) return;
-
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'major' || r.cat === 'normal' || r.busOnly) && busMagWeg(r, null));   // #322: geen woonstraten, paden of smalle wegen
-  let guard = 0;
-  while (count < target && candidates.length && guard++ < target * 6) {
-    const road = candidates[Math.floor(Math.random() * candidates.length)];
-    // the 18 m gelede buses keep to the main roads and bus lanes; a midi bus
-    // now and then there too, always on the quieter lines
-    const midi = road.cat === 'normal' || Math.random() < 0.25;
-    const v = host.spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
-    const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !host.spawnSpotFree(vehicles, v) || host.inPrivateGarage(map, v.x, v.y, 2) || host.spawnWouldPop(world, v)) continue;
-    vehicles.push(v);
-    count++;
-  }
+  // #922: geen willekeurige bussen meer op hoofdwegen zonder dienst. Elke bus
+  // hoort een echte lijn te volgen (de eigen dienst, of een live bus); zonder
+  // lijndata in de buurt rijdt er hier geen bus in plaats van een verzonnen een.
 }
 

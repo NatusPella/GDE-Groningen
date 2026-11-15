@@ -66,6 +66,9 @@ ok(/pm-progress/.test(pm) && /insertAdjacentHTML\('afterend'/.test(pm), 'het voo
 ok(/#pause-menu \.pm-progress \{/.test(css), 'het voortgangsblok heeft een eigen stijl');
 
 ok(/saveProgress/.test(ssl) && /ssl-prog/.test(ssl), 'elke savekaart laat het voortgangspercentage van dat spel zien');
+// review 0.62: op de kleine kaart stond alleen "X%", terwijl de HUD en het Overzicht het
+// samengestelde cijfer tonen. Het label zegt nu zichtbaar dat dit het verhaal van die save is.
+ok(/ssl-prog[\s\S]{0,220}%\s*verhaal/.test(ssl), 'de kleine savekaart noemt zichtbaar dat het percentage over het verhaal gaat');
 ok(/ssl-hero-prog/.test(ssl) && /% verhaal/.test(ssl), 'de grote Doorgaan-knop noemt het verhaalpercentage');
 ok(/#saveslots \.ssl-prog/.test(scss), 'het balkje op de savekaart heeft een eigen stijl');
 

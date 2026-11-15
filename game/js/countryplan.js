@@ -5,6 +5,7 @@ import {
 import { worldPlaceNames } from './worldplaces.js';
 import { EDGE, initCountryEdge, edgeBlocked, landOk } from './countryedge.js';
 import { farSolidsNear } from './farprops.js';
+import { baleRadius } from './bales.js';
 
 // Deterministic layout of everything built on the polder grid past the
 // province's tiles, per polder block: farmsteads along the polder roads and on
@@ -102,7 +103,9 @@ function farmItems(f, R) {
     for (const [layer, count] of [[0, 4], [1, 3], [2, 2]]) {
       for (let k = 0; k < count; k++) {
         const o = (k - (count - 1) / 2) * 1.3;
-        add('bale', lx + Math.cos(rot) * o, lz - Math.sin(rot) * o, rot, 0.86, 0.86, 0.86, wrap).h = layer * 1.3;
+        // #939: alleen de onderste rij is een obstakel; de balen op de stapel
+        // hangen boven de bumper en tellen niet mee voor een auto.
+        add('bale', lx + Math.cos(rot) * o, lz - Math.sin(rot) * o, rot, 0.86, 0.86, 0.86, wrap, layer === 0 ? 1 : 0).h = layer * 1.3;
       }
     }
   };
@@ -133,7 +136,7 @@ function farmItems(f, R) {
     if (R() < 0.7) add('tractor', 16, 12.5, 0, 0.8, 0.8, 0.8, R() < 0.6 ? 0x3f7d3a : 0xb8322a, 1);
     if (R() < 0.55) add('shed', 34, -9.5, 0, 9, 0.7, 10, 0x7a6a58, 1);
     for (let i = 0; i < 6; i++) add('tree', 30 + (i % 3) * 5, 8 + Math.floor(i / 3) * 5, R() * 6, 0.5, 0.5, 0.5);
-    if (R() < 0.6) add('bale', 38, 0, R() * 3, 1, 1, 1, 0xc9b26a);
+    if (R() < 0.6) add('bale', 38, 0, R() * 3, 1, 1, 1, 0xc9b26a, 1);
     shelter(4, 40, 43, 1);
   } else {
     slab(9, 21, -17, 26, CONCRETE);
@@ -175,7 +178,7 @@ function makeFarm(x, y, angle, type, front, seed) {
 }
 
 // Radius of the round yard items, matching their countrymodels geometry.
-const ROUND_ITEMS = { mestsilo: (it) => it.sx * 1.01, towersilo: () => 3, feedsilo: () => 1.2 };
+const ROUND_ITEMS = { mestsilo: (it) => it.sx * 1.01, towersilo: () => 3, feedsilo: () => 1.2, bale: (it) => baleRadius(it.sx, it.sz) };
 
 // Yard furniture and its colliders, built on first use (near the player).
 export function farmDetail(f) {

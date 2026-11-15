@@ -22,11 +22,14 @@ export const QUAKE = {
   first: [300, 600],
   duration: [5, 8],
   magnitude: [1.6, 3.1],
-  maxShake: 0.075,
-  reactRadius: 45,
-  reactors: 4,
-  bikeRadius: 55,
-  alarms: 2,
+  // #974: de aardbeving moest heftiger voelen: meer schudden, stof en een zwaarder geluid.
+  maxShake: 0.17,
+  reactRadius: 65,
+  reactors: 7,
+  bikeRadius: 70,
+  alarms: 3,
+  dustPerS: 9,      // stofpuffen per seconde rond de speler op het hoogtepunt
+  dustRadius: 11,   // m
 };
 
 export function rollQuakeGap(rng = Math.random, first = false) {
@@ -65,11 +68,21 @@ export function quakeJitter(time, amp) {
 }
 
 // How strongly the picture shakes for magnitude `mag`: a 3.1 is the full shake, a 1.6 about half.
-export const quakeStrength = (mag) => clamp(0.35 + (mag - 1.5) * 0.4, 0.3, 1);
+// #974: de ondergrens ligt hoger, zodat ook een lichte beving duidelijk te voelen is.
+export const quakeStrength = (mag) => clamp(0.5 + (mag - 1.5) * 0.42, 0.45, 1);
+
+// Hoeveel stofpuffen deze stap: op het hoogtepunt meer, aan de randen minder. Puur en
+// begrensd, zodat de wereldlaag alleen hoeft te spawnen.
+export function quakeDust(dt, amp, rng = Math.random) {
+  const k = clamp(amp, 0, 1);
+  if (!(dt > 0) || k <= 0.08) return 0;
+  const verwacht = QUAKE.dustPerS * k * dt;
+  return Math.floor(verwacht) + (rng() < verwacht - Math.floor(verwacht) ? 1 : 0);
+}
 
 // What a parked bike does: a small rattle around its own heading.
 export function bikeWobble(time, amp, seed = 0) {
-  return Math.sin(time * 38 + seed * 7.3) * 0.035 * clamp(amp, 0, 1);
+  return Math.sin(time * 38 + seed * 7.3) * 0.07 * clamp(amp, 0, 1);
 }
 
 export const QUAKE_BARKS = [

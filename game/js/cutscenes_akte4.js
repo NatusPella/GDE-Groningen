@@ -43,6 +43,7 @@ S['M17.outro'] = {
 
 // --- M18 Wiebelwerk: the glass office in Veendam, a desk with a screen ---
 S['M18.intro'] = {
+  set: 'kantoor',
   cast: { accountmanager: { key: 'accountmanager', at: [3.4, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'point', 'talk'] } },
   props: { klembord: { kind: 'klembord', at: [2.4, -0.9, 0.9] } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
@@ -59,6 +60,7 @@ S['M18.intro'] = {
   wide: WIDE([-5, 4, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
 };
 S['M18.outro'] = {
+  set: 'kantoor',
   cast: { accountmanager: { key: 'accountmanager', at: [2.6, -0.3], face: 175, anim: 'idle', gest: ['hips', 'shrug', 'talk'] } },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:accountmanager' }, { actor: 'tammo', face: 'actor:accountmanager' }],
@@ -628,6 +630,7 @@ S['M21.6'] = { ...S['M21.3'], beats: [
 const MANAGER = (x) => ({ accountmanager: { key: 'accountmanager', at: [x, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'shrug'] } });
 const mgrOpen = [{ actor: 'tessa', face: 'actor:accountmanager' }, { actor: 'tammo', face: 'actor:accountmanager' }];
 S['M18.2'] = {
+  set: 'kantoor',
   cast: MANAGER(3.0), props: {}, open: mgrOpen,
   beats: [
     { on: 'Warm, droog', actor: 'accountmanager', anim: 'nod' },
@@ -638,6 +641,7 @@ S['M18.2'] = {
   shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 S['M18.6'] = {
+  set: 'kantoor',
   cast: MANAGER(2.6), props: {}, open: mgrOpen,
   beats: [
     { on: 'Interessant', actor: 'accountmanager', anim: 'point' },
@@ -648,6 +652,7 @@ S['M18.6'] = {
   shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 S['M18.7'] = {
+  set: 'kantoor',
   cast: MANAGER(2.4), props: {}, open: mgrOpen,
   beats: [
     { on: 'Twee antwoorden', actor: 'accountmanager', anim: 'point' },

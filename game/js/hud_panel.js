@@ -28,13 +28,14 @@ import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
+import { liveBusMarks, drawLiveBusMapIcon } from './busmap.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { tickLowHealth } from './lowhealth.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
 import { isMuted, engineReadout, toggleMute } from './audio.js';
-import { dempHint, dempMelding } from './coopgeluid.js';
+import { dempMelding } from './coopgeluid.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
@@ -49,6 +50,7 @@ import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
+import { heatRing, unitDots, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -64,7 +66,7 @@ import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
-import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
+import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { gastDoelen } from './coopextra.js';
@@ -251,7 +253,7 @@ export function initHud(world) {
       '<div class="hud-id-main">' +
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
-          '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid uit: U: geluid" title="Geluid uit: U: geluid" hidden>🔇 <small>U: geluid</small></button>' +
+          '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
           // #898: hoe ver je bent, als één stil chipje naast je naam (zelfde cijfer als het Overzicht)
           '<span class="hud-chip hud-done" role="status" hidden><b></b></span>' +
         '</div></div>' +
@@ -572,20 +574,18 @@ function updateVehicleName(dt, world) {
   } else if (!v) els.vehName.classList.remove('on');
 }
 
-// De dempindicator (#434): alleen zichtbaar als het geluid uit staat, met de
-// toets erbij (of de tik op een touch-toestel). Dezelfde knop zet het weer aan,
-// zodat een gast nooit in stilte blijft zitten zonder te weten hoe het moet.
+// De dempindicator (#434): alleen zichtbaar als het geluid uit staat. #966: geen
+// toetsenhint meer in de HUD (radio en dempen staan in de instellingen); het
+// luidsprekertje zelf blijft de knop om het weer aan te zetten.
 let muteHint = '';
 function updateMute() {
   const demp = isMuted();
   els.mute.hidden = !demp;
   if (!demp) return;
   const touch = document.documentElement.classList.contains('touch-device');
-  const hint = dempHint({ touch });
-  if (hint === muteHint) return;
-  muteHint = hint;
-  els.mute.querySelector('small').textContent = hint;
   const label = dempMelding(true, { touch });
+  if (label === muteHint) return;
+  muteHint = label;
   els.mute.title = label;
   els.mute.setAttribute('aria-label', label);
 }
@@ -1588,7 +1588,7 @@ function updateNowPlaying(dt, world) {
   }
   if (np && npWait > 0 && npTimer <= 0) {
     if (!isBusy(world) && !isDialogue() && !zones.occupant('E') && !world.paused) {
-      npTimer = E_SHOW;
+      npTimer = nowPlayingSeconds(np); // #975: lang genoeg om titel, artiest en zender te lezen
       npWait = 0;
       restartClass(els.nowPlaying, 'on', () => npTimer > 0);
     } else if (!world.paused && (npWait -= dt) <= 0) world.nowPlaying = null;
@@ -2068,6 +2068,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind.startsWith('act-')) drawActivityMapIcon(ctx, kind, s);
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
+      else if (kind === 'livebus') drawLiveBusMapIcon(ctx, s, t);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
       else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
       else if (kind.startsWith('mm-')) drawMissionLayerIcon(ctx, kind, s);
@@ -2536,6 +2537,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
     add('rondvaarttour', sjs.filter((sj) => sj.job.layer === 'rondvaarttour'), (sj) => 'sj-' + sj.job.id, 1, MM_POI_FAR_M);
   }
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
+  // #922: de live bussen met hun eigen icoon; dichterbij dan de POI-grens
+  add(null, liveBusMarks(player, 3), 'livebus', 3, MM_POI_FAR_M);
   add('ommeland', ommelandMapSpots().filter((q) => sichtbaar(q.x, q.y)), (q) => q.kind, 2, MM_POI_FAR_M);
   // het eerbetoonbankje (#832): een eigen icoon, ook zichtbaar voordat je er geweest bent
   const beppe = beppeMapSpot();
@@ -2870,22 +2873,39 @@ function drawMinimap(dt, world) {
   // roepjes van de medespelers (samen spelen, #367): een ster of kruis in de kleur van wie riep
   for (const m of world.coopPingMarks || []) if (!icon('partner', m.x, m.y, { kleur: m.kleur, vorm: m.vorm, angle: 0 })) partnerEdges.push({ a: edgeAngle(m.x, m.y), kleur: m.kleur });
 
-  // #638: bij vijf sterren stonden er tien schilden over de straten. De politie is nu één badge
-  // met het aantal erbij; losse cash-doelen krijgen hoogstens drie plekken naast de rest.
+  // #638: bij vijf sterren stonden er tien schilden over de straten. De politie is nu één badge.
+  // #952: het aantal eenheden stond als kaal cijfer naast het schild en werd als heat gelezen.
+  // Nu toont een ring om het schild de warmte (één segment per ster) en kleine stippen de
+  // extra eenheden; de cijfers zijn weg.
   const polities = [];
   forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind }));
+  const heatSter = Math.max(world.wanted | 0, world.coopHudWanted | 0);
   if (polities.length === 1) icon(polities[0].kind, polities[0].x, polities[0].y);
   else if (polities.length > 1) {
     let best = polities[0], bestD = Infinity;
     for (const q of polities) { const d = (q.x - player.x) ** 2 + (q.y - player.y) ** 2; if (d < bestD) { bestD = d; best = q; } }
     if (icon('police', best.x, best.y)) {
       const [sx, sy] = toScreen(best.x, best.y);
+      const ring = heatRing(heatSter, { searching: !!(world.police && world.police.searching), time: t });
       ctx.save();
-      ctx.font = "bold 9px 'Arial Narrow', Arial, sans-serif";
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.lineWidth = 2; ctx.strokeStyle = inkA('dark', 0.85); ctx.fillStyle = INK.cream;
-      ctx.strokeText(String(polities.length), sx + 7, sy - 7);
-      ctx.fillText(String(polities.length), sx + 7, sy - 7);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = HEAT_RING.breed;
+      for (const s of ring.segmenten) {
+        ctx.globalAlpha = s.aan ? Math.min(1, ring.alpha + 0.3) : Math.min(0.5, ring.alpha * 0.7);
+        ctx.strokeStyle = s.aan ? C.red : C.policeBlue;
+        ctx.beginPath();
+        ctx.arc(sx, sy, HEAT_RING.r, s.van, s.tot);
+        ctx.stroke();
+      }
+      // de eenheden zelf: stippen in plaats van een getal
+      const dots = unitDots(polities.length);
+      ctx.globalAlpha = 1;
+      for (let i = 0; i < dots; i++) {
+        const dx = sx + 7.2, dy = sy - 8.4 + i * 3.2;
+        ctx.beginPath(); ctx.arc(dx, dy, 1.35, 0, Math.PI * 2);
+        ctx.fillStyle = INK.cream; ctx.fill();
+        ctx.lineWidth = 1; ctx.strokeStyle = inkA('dark', 0.9); ctx.stroke();
+      }
       ctx.restore();
     }
   }
@@ -3144,5 +3164,3 @@ function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
   ctx.stroke();
   ctx.restore();
 }
-
-

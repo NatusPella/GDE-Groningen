@@ -98,7 +98,11 @@ const inside = (poly, x, y) => { let c = false; for (let i = 0, j = poly.length 
 for (const [key, p] of Object.entries(PLACES)) {
   const t = key === 'tinusSchuur' ? 'zuidhorn' : town(key);
   const d = km(p, TOWN[t]);
-  ok(d < (key === 'tinusSchuur' ? 3.5 : 3), `${key}: ${d.toFixed(2)} km from ${t}`);
+  // (#948) De bootmissie M17 vaart over de Boven Oosterdiep: die loopt vanaf de
+  // zuidkant van Veendam 5,8 km noordwaarts door de hele plaats. De oude schatting
+  // lag bij het centrum op het land; de gemeten route ligt verder van dat ene punt.
+  const bootRoute = /^veendam(Boot|Kade|A|B|C|D)$/.test(key);
+  ok(d < (key === 'tinusSchuur' ? 3.5 : bootRoute ? 6.5 : 3), `${key}: ${d.toFixed(2)} km from ${t}`);
   const [x, y] = wgsToWorld(p[0], p[1]);
   ok(inside(FALLBACK.outline, x, y), `${key}: inside the province's outline`);
 }

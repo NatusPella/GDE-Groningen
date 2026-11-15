@@ -110,6 +110,19 @@ export function storyBounds(view) {
 
 export const clampDay = (n, b) => Math.max(b.min, Math.min(b.max, Math.max(1, Math.floor(n) || 1)));
 
+// Is this step the last mission of its calendar day? (#935) The day closing
+// line ("Laatste klus? Voor vandaag.") may only play there, once.
+export function isLastMissionOfDay(id) {
+  const k = STEPS.findIndex((s) => s.id === id);
+  if (k < 0) return false;
+  const d = STEP_DAY.get(id);
+  for (let j = k + 1; j < STEPS.length; j++) {
+    if (STEPS[j].kind !== 'mission') continue;
+    return (STEP_DAY.get(STEPS[j].id) ?? d) > d;
+  }
+  return true;
+}
+
 // A save from before the calendar: the day of the step it continues at
 // (savemigrate.js savedStoryStep: a step, or { end, finale }).
 export function dayForSavedStep(step) {

@@ -41,6 +41,11 @@ if (s) {
   }
   const d = Math.hypot(s.hide.x - s.farm.x, s.hide.y - s.farm.y);
   ok(d > 200 && d < 1100, `the barn is a minute's drive from the farm (${Math.round(d)} m)`);
+  // #969: het waypoint van de koeienmissie staat op de schuur, niet op het
+  // open plekje ernaast, zodat je ziet welk gebouw je moet hebben.
+  const bt = Koe.koeBarnTarget(s);
+  ok(!!bt && /schuur/i.test(bt.label || ''), 'the cow waypoint names the barn (#969)');
+  ok(!!bt && TP.buildingAt(map, bt.x, bt.y, 0.5), 'the cow waypoint sits on the barn itself (#969)');
   const tb = (await import('../game/js/worldplaces.js')).worldPlaceNamed('Ten Boer');
   const df = Math.hypot(s.farm.x - tb.x, s.farm.y - tb.y);
   ok(df > 300 && df < 1800, `the farm lies out of Ten Boer (${Math.round(df)} m)`);

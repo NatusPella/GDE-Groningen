@@ -33,6 +33,25 @@ export function countryRailsNear(x, y, R = 4) {
   return _lines;
 }
 
+// First polder railing a walker at (x, y) heading along the unit (dx, dy) meets
+// within `reach`: { dist, h, depth } or null. Used for vaulting over it (#959):
+// the railing is 1.15 m, low enough to swing over like a bridge railing.
+export function countryRailAhead(x, y, dx, dy, reach) {
+  const L = countryRailsNear(x, y, reach + 2);
+  let best = null;
+  for (let i = 0; i < L.length; i += 4) {
+    const ax = L[i], ay = L[i + 1], bx = L[i + 2], by = L[i + 3];
+    const ex = bx - ax, ey = by - ay;
+    const den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-6) continue;
+    const wx = ax - x, wy = ay - y;
+    const t = (wx * ey - wy * ex) / den, u = (wx * dy - wy * dx) / den;
+    if (t < 0 || t > reach || u < 0 || u > 1) continue;
+    if (!best || t < best.dist) best = { dist: t, h: COUNTRY_RAIL_H, depth: 0.12 };
+  }
+  return best;
+}
+
 // Keeps obj ({x, y}, radius r) on its side of every railing: the side of
 // (fromX, fromY) when given (a fast corner probe that went through in one
 // step comes back), else the side it is on. Returns the push normal

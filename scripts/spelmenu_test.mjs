@@ -212,6 +212,10 @@ ok(mm.includes("['autos', \"Auto's\"]") && mm.indexOf("['autos'") < mm.indexOf("
 ok(gp.includes('export function garageSaleShop(') && gu.includes('data-garage-koop='), 'bij een voertuig dat te koop is staat een knop Kopen met de winkel erbij');
 ok(pm.includes("[data-garage-koop]") && pm.includes('garageNaarWinkel(world, gw.dataset.garageKoop)'), 'Kopen zet een waypoint naar de plek waar het te koop is (pausemenu.js)');
 ok(gu.includes('gar-stage') && gu.includes('gar-still') && gu.includes('showStageFallback'), 'het 3D-voorbeeld heeft een stilstaand beeld en een silhouet als terugval, zodat het paneel nooit leeg is');
+// review 0.62: de knoppenrij van de garage schoof over de laatste regel van WAAR; ze is nu
+// een eigen blok onder de gegevens en de vraag "WAAR" verschijnt alleen met inhoud
+ok(gu.includes('m-acts td-acts gar-acts') && /const waarHtml = waar && waar\.trim\(\) \? secHtml\('Waar'/.test(gu), 'de garageknoppen staan in een eigen rij onder de gegevens, met WAAR alleen als er iets staat');
+ok(/#pause-menu \.gar-viewer > \.m-acts\.td-acts \{[^}]*position: static/.test(read('game/js/pausemenu.css')), 'de garageknoppen zijn niet plakkerig: geen overlap met de gegevens');
 ok(gu.includes('viewerCanvas !== c') && gu.includes('onFirstFrame'), 'het voorbeeld wordt hergebruikt: een andere keuze wisselt alleen het model, geen nieuwe renderer of canvas');
 ok(vp.includes('GL_RETRY_MS') && vp.includes('glRetryAt') && !vp.includes('if (url || glFailed)'), 'een mislukte of verloren voorbeeldcontext wordt na een korte pauze opnieuw geprobeerd en een leeg plaatje wordt niet bewaard');
 ok(pm.includes('if (isPhotoMode()) return;'), 'het pauzemenu opent niet over de fotomodus (Escape en M horen bij de fotomodus)');

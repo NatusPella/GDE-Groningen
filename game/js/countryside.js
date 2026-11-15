@@ -19,10 +19,11 @@ import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt, hedgeMapped } from './countryedge.js';
 import { propVrij } from './propclear.js';
+import { baleSolid } from './bales.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
-import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
+import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks, setTileSolids, clearTileSolids } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
 import { updateTileWater, tileWaterStats } from './tilewatermask.js';
 import { waterAt } from './waterlevels.js';
@@ -281,6 +282,11 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
   if ((type === 'tree' || type === 'poplar' || type === 'willow') && tile.tx !== undefined) {
     (tile.trunks || (tile.trunks = [])).push(x, y, x, y, 99, 0.22 * Math.max(0.8, Math.min(sx, sz)));
   }
+  // #939: een hooibaal is een echt obstakel, geen decor. Hij staat in de losse
+  // velden als een rond vast prop; auto's en voetgangers lopen ertegenaan.
+  if (type === 'bale' && tile.tx !== undefined) {
+    (tile.solids || (tile.solids = [])).push(...baleSolid(x, y, sx, sz));
+  }
   const list = tile.items[type] || (tile.items[type] = { m: [], c: [] });
   _e.set(0, rotY, 0);
   _q.setFromEuler(_e);
@@ -318,6 +324,10 @@ function* genTileSteps(tx, ty) {
   const W = (a, b) => blockToWorld(bx, by, rot, a, b);
   const lineAng = rot ? 0 : Math.PI / 2; // three rotY that lays local +X along the strip direction b
   const plan = blockPlan(bx, by);
+  // #945: with real tiles here, the real roads, ditches and field edges of the
+  // data are in charge. No procedural parcels or edges in such a block any more:
+  // they ran over the real road (Winschoten).
+  const covered = provinceBlock(bx, by);
   yield;
 
   // strip-boundary lines: tree rows, hedges, electric fences
@@ -339,7 +349,7 @@ function* genTileSteps(tx, ty) {
         if (!fadeKeep(x, y) || !okSpot(x, y, 1.5)) continue;
         push(tile, 'hedge', x, y, lineAng + (R() - 0.5) * 0.3, 2.6, 0.9 + R() * 0.35, 1.3, 0xffffff, 0.08);
       }
-    } else if (lh < WIRE_ROW_P) {
+    } else if (!covered && lh < WIRE_ROW_P) {
       let run = null;
       const flush = () => {
         if (!run || run.n < 2) { run = null; return; }
@@ -360,7 +370,9 @@ function* genTileSteps(tx, ty) {
     }
   }
   yield;
-  genFieldEdges(tile, bx, by, rot, aMin, bMin, W);
+  // #945: in a block with real tiles there are no procedural edges: the real
+  // edges (the tiles' mapped hedges and rows) are already there.
+  if (!covered) genFieldEdges(tile, bx, by, rot, aMin, bMin, W);
   yield;
 
   // polder-road verges: tree lanes of oaks / poplars
@@ -508,12 +520,14 @@ function parcelGate(R, a0, b0, b1) {
 const parcelRng = (seed) => mulberry(chash(Math.floor(seed * 1e7), 91));
 
 // pastures (and some mown strips) kept in by barbed wire
-// (x, y): where the tiles give the land use (OSM landuse: arable has no barbed wire, a meadow keeps it), they decide; else the hash does
+// (x, y): where the tiles give the land use (OSM landuse), those decide. Without
+// real data there is no fictitious parcel with a fence any more (#945): those
+// edges ran over the real road (Winschoten). A real arable field keeps no edge either.
 function fencedParcel(seed, x, y) {
-  const real = x === undefined ? null : landUseAt(x, y);
-  if (real === 'akker') return false;
-  const use = real === 'weide' ? 'pasture' : parcelUse(seed), h = chash(Math.floor(seed * 1e6), 5);
-  return use === 'pasture' ? h < 0.8 : use === 'mown' && h < 0.25;
+  const real = landUseAt(x, y);
+  if (real !== 'weide' && real !== 'boomgaard') return false;
+  const h = chash(Math.floor(seed * 1e6), 5);
+  return h < 0.8;
 }
 
 // emit(s, e) for each stretch of samples t0, t0 + step, .. t1 that all pass
@@ -1120,6 +1134,7 @@ function syncTiles(px, py, viewDist, budgetEnd) {
 function loadTile(t) {
   setTileWalls(t.tx, t.ty, t.walls);
   setTileTrunks(t.tx, t.ty, t.trunks);
+  setTileSolids(t.tx, t.ty, t.solids);
   t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
   const ch = chunkFor(t);
   ch.tiles.add(t);
@@ -1140,6 +1155,7 @@ function loadTile(t) {
 function unloadTile(t) {
   clearTileWalls(t.tx, t.ty);
   clearTileTrunks(t.tx, t.ty);
+  clearTileSolids(t.tx, t.ty);
   const ch = chunkFor(t);
   ch.tiles.delete(t);
   ch.dirty = true;

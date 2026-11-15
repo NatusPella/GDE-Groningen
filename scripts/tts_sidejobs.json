@@ -7,6 +7,7 @@
   "tag": "cheerful, welcoming",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, welcoming."
  },
  {
@@ -17,6 +18,7 @@
   "tag": "businesslike, fast",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: businesslike, fast."
  },
  {
@@ -27,6 +29,7 @@
   "tag": "laughing, teasing",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: laughing, teasing."
  },
  {
@@ -38,6 +41,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored, matter-of-fact."
  },
  {
@@ -49,6 +53,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: instructive, calm."
  },
  {
@@ -60,6 +65,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: amused, gossiping."
  },
  {
@@ -70,6 +76,7 @@
   "tag": "enthusiastic, a bit nervous",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: enthusiastic, a bit nervous."
  },
  {
@@ -80,6 +87,7 @@
   "tag": "stern, pedantic",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: stern, pedantic."
  },
  {
@@ -90,6 +98,7 @@
   "tag": "worried, warning",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: worried, warning."
  },
  {
@@ -100,6 +109,7 @@
   "tag": "groaning, apologetic",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, apologetic."
  },
  {
@@ -110,6 +120,7 @@
   "tag": "explaining, warm",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: explaining, warm."
  },
  {
@@ -120,6 +131,7 @@
   "tag": "grumpy, warning",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: grumpy, warning."
  },
  {
@@ -130,6 +142,7 @@
   "tag": "stern, businesslike",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
  },
  {
@@ -140,6 +153,7 @@
   "tag": "strict, instructive",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, instructive."
  },
  {
@@ -150,6 +164,7 @@
   "tag": "dry, warning",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: dry, warning."
  },
  {
@@ -160,6 +175,7 @@
   "tag": "harried, dramatic",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, dramatic."
  },
  {
@@ -170,6 +186,7 @@
   "tag": "fast, instructive",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: fast, instructive."
  },
  {
@@ -180,6 +197,7 @@
   "tag": "sighing, joking",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sighing, joking."
  },
  {
@@ -190,6 +208,7 @@
   "tag": "cheerful, fast",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, fast."
  },
  {
@@ -200,6 +219,7 @@
   "tag": "delighted",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: delighted."
  },
  {
@@ -210,6 +230,7 @@
   "tag": "amused, playful",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: amused, playful."
  },
  {
@@ -220,6 +241,7 @@
   "tag": "disappointed sigh",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: disappointed sigh."
  },
  {
@@ -230,6 +252,7 @@
   "tag": "conspiratorial whisper, proud",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: conspiratorial whisper, proud."
  },
  {
@@ -241,6 +264,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored radio dispatcher."
  },
  {
@@ -252,6 +276,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: dry, approving."
  },
  {
@@ -263,6 +288,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: suspicious, surprised."
  },
  {
@@ -274,6 +300,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: annoyed, weary."
  },
  {
@@ -285,6 +312,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: grudging respect."
  },
  {
@@ -295,6 +323,7 @@
   "tag": "pedantic, strict",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: pedantic, strict."
  },
  {
@@ -305,6 +334,7 @@
   "tag": "moved, satisfied",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: moved, satisfied."
  },
  {
@@ -315,6 +345,7 @@
   "tag": "dry, amused",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: dry, amused."
  },
  {
@@ -325,6 +356,7 @@
   "tag": "cold anger",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: cold anger."
  },
  {
@@ -335,6 +367,7 @@
   "tag": "emotional, voice cracking",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: emotional, voice cracking."
  },
  {
@@ -345,6 +378,7 @@
   "tag": "groaning, weary",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, weary."
  },
  {
@@ -355,6 +389,7 @@
   "tag": "warm, proud",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: warm, proud."
  },
  {
@@ -365,6 +400,7 @@
   "tag": "chuckling",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: chuckling."
  },
  {
@@ -375,6 +411,7 @@
   "tag": "pained, then shocked",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: pained, then shocked."
  },
  {
@@ -385,6 +422,7 @@
   "tag": "impressed, nostalgic",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: impressed, nostalgic."
  },
  {
@@ -395,6 +433,7 @@
   "tag": "stern, businesslike",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
  },
  {
@@ -405,6 +444,7 @@
   "tag": "deadpan",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: deadpan."
  },
  {
@@ -415,6 +455,7 @@
   "tag": "smug, satisfied",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: smug, satisfied."
  },
  {
@@ -425,6 +466,7 @@
   "tag": "strict, disapproving",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, disapproving."
  },
  {
@@ -435,6 +477,7 @@
   "tag": "impressed, almost smiling",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: impressed, almost smiling."
  },
  {
@@ -445,6 +488,7 @@
   "tag": "harried, jovial",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, jovial."
  },
  {
@@ -455,6 +499,7 @@
   "tag": "relieved, laughing",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: relieved, laughing."
  },
  {
@@ -465,6 +510,7 @@
   "tag": "sarcastic",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sarcastic."
  },
  {
@@ -475,6 +521,7 @@
   "tag": "exasperated",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: exasperated."
  },
  {
@@ -485,6 +532,7 @@
   "tag": "hearty laugh",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: hearty laugh."
  },
  {
@@ -495,6 +543,7 @@
   "tag": "dry, deadpan",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry, deadpan."
  },
  {
@@ -505,6 +554,7 @@
   "tag": "tired, deadpan",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
+  "lang": "gro",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: tired, deadpan."
  },
  {
@@ -514,8 +564,9 @@
   "text": "Bijbaantje! Eindelijk iets nuttigs.",
   "tag": "enthusiastic, teasing",
   "voice": "Callirrhoe",
-  "who": "Groningse vrouw, lacherig en ad rem",
-  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthusiastic, teasing."
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "lang": "own",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthusiastic, teasing."
  },
  {
   "file": "duo/anita_end_0.mp3",
@@ -524,7 +575,8 @@
   "text": "Kijk ons nou, harde werkers.",
   "tag": "proud, laughing",
   "voice": "Callirrhoe",
-  "who": "Groningse vrouw, lacherig en ad rem",
-  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: proud, laughing."
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "lang": "own",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: proud, laughing."
  }
 ]

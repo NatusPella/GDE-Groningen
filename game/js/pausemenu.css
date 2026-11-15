@@ -42,10 +42,11 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .ra.pm-exit::after { content: ''; position: absolute; left: 24px; right: 16px; top: -5px; height: 1px; background: var(--line2); }
 #pause-menu .pm-rail-sp { height: 18px; }
 /* #911: de rail vertelt zelf waar je bent: drie groepen met een kop en het aantal onderdelen
-   erachter. De kop is klein en stil; de rijen blijven de grote lijnen. */
+   erachter. De kop is klein en stil; de rijen blijven de grote lijnen. Sinds de review van
+   0.62 staat de kop op --mut: navigatielabels halen 4,5:1 op de donkere kaart (was 0,42/0,32). */
 #pause-menu .pm-rail-group { display: flex; flex-direction: column; }
-#pause-menu .pm-rail-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 4px 16px 2px 24px; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(240, 237, 228, 0.42); }
-#pause-menu .pm-rail-h .cnt { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.06em; color: rgba(240, 237, 228, 0.32); }
+#pause-menu .pm-rail-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 4px 16px 2px 24px; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mut); }
+#pause-menu .pm-rail-h .cnt { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.06em; color: var(--mut); }
 #pause-menu .pm-rail-h .cnt:empty { display: none; }
 #pause-menu .pm-rail-gap { flex: 1; min-height: 12px; }
 #pause-menu .pm-back { display: none; }
@@ -74,6 +75,9 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 /* #915: de vraag bij het afsluiten hangt over het hele menu, niet in één tabblad: Afsluiten
    staat ook in de rail, en de vraag moet daar net zo goed te zien zijn. */
 #pause-menu .pm-quitbox { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 40px; background: rgba(12, 20, 14, 0.78); animation: m-up 0.2s ease both; }
+/* #915: zolang een vraag openstaat is het menu erachter ook met de muis buiten bereik;
+   het `inert`-attribuut (pausemenu.js) doet hetzelfde voor toetsenbord en schermlezer. */
+#pause-menu.pm-question .pm-fold { pointer-events: none; }
 #pause-menu .pm-quitbox[hidden] { display: none; }
 #pause-menu .pm-quitpane { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: min(680px, 100%); padding: 30px 34px 28px; border-radius: 16px; background: linear-gradient(180deg, rgba(20, 40, 27, 0.97), rgba(12, 20, 14, 0.98)); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.16), 0 32px 64px rgba(0, 0, 0, 0.45); }
 #pause-menu .pm-quitpane p { margin: 0; font-size: 20px; line-height: 1.45; color: rgba(240, 237, 228, 0.86); }
@@ -400,8 +404,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .td-h2, #pause-menu .m-pane .m-h2 { hyphens: auto; overflow-wrap: break-word; }
 }
 
-/* #911: waar je bent in de rail, rechts in de bladkop ("Spelen · 2 van 5") */
-#pause-menu .pm-sheet-pos { font-size: 15px; letter-spacing: 0.04em; color: rgba(240, 237, 228, 0.45); }
+/* #911: waar je bent in de rail, rechts in de bladkop ("Spelen · 2 van 5"). Ook dit is
+   tekst, geen decoratie: --mut haalt op de donkere kaart ruim 4,5:1. */
+#pause-menu .pm-sheet-pos { font-size: 15px; letter-spacing: 0.04em; color: var(--mut); }
 #pause-menu .pm-sheet-pos:empty { display: none; }
 
 /* #898: het voortgangsblok onder de hero van Overzicht: één percentage, één balk, en de vier
@@ -481,6 +486,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-stage .gar-hint .m-kc { min-width: 26px; height: 26px; padding: 0 6px; font-size: 15px; }
 #pause-menu .gar-dot { display: inline-block; width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.5); vertical-align: -2px; }
 #pause-menu .gar-msg { font-size: 18px; min-height: 24px; }
+/* Review 0.62: menu.css maakt .m-pane > .m-acts.td-acts plakkerig (position: sticky) voor
+   de detailkolommen met een lange lijst. In de garage schoof KOPEN of LATEN AFLEVEREN
+   daardoor over de laatste regel van WAAR. Hier neemt de knoppenrij weer gewoon haar
+   eigen ruimte onder de gegevens in. */
+#pause-menu .gar-viewer > .m-acts.td-acts { position: static; flex: none; padding-top: 4px; background: none; }
 #pause-menu .gar-viewer { width: auto; }
 /* #892: de tekst onder het model heeft drie blokken met een eigen kop, in de taal van de
    vernieuwde schermen (pm-sec/pm-stats), zonder de marge van een volle pagina. */

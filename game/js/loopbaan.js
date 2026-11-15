@@ -148,6 +148,20 @@ export const START = {
   buiten: { baan: null, plek: 'Het Stadspark of het Grunopark', klus: 'Eén activiteit buiten: skaten, skiën, klimmen, zwemmen of wandelen.' },
 };
 export const startVan = (vak) => START[vak] || null;
+
+// #972: de landbouw was te vaag. Dit is de uitleg in gewone taal: wat een losse missie is,
+// wat je eigen boerderij is, en hoe je begint. Puur (tekst), zodat het Loopbanen-scherm hem
+// kan tonen en een test hem kan nalezen.
+export const LANDBOUW_GIDS = {
+  titel: 'Zo werkt de landbouw',
+  stappen: [
+    'Losse missies en bijbanen, zoals Loonwerk: bietenoogst of de Balenrit, zijn klussen op andermans land: je doet één oogst of rit en krijgt loon en punten. Daarna is die akker weer van de buurman.',
+    'Je eigen boerderij is blijvend: op Eigen boerderij koop of huur je percelen, kies je per perceel een gewas en werk je de taken (ploegen, zaaien, oogsten) zelf of met de loonwerker.',
+    'Je eigen percelen staan met een groene omtrek op de kaart. Beweeg eroverheen voor de naam, de grootte en de grond; klik erop voor een doel of om erheen te rijden.',
+    'Begin klein: de akker De Zonnehoek is van jou. Zaai een gewas, oogst het en verkoop aan de afnemer; van de opbrengst huur je meer land of machines.',
+  ],
+  verschil: 'Missie = één betaalde klus op het land van een ander. Eigen boerderij = jouw land, jouw teeltplan en je eigen opbrengst, elke dag opnieuw.',
+};
 // De eerste klus is begonnen: een vak met voortgang telt als gestart, ook als het profiel van voor #431 is.
 export const isGestart = (profiel, vak) => !!(profiel && Array.isArray(profiel.gestart) && profiel.gestart.includes(vak));
 // Een loopbaan beginnen (vanuit het Loopbaan-scherm of de eerste punten van een vak): eenmalig, geeft de eerste klus terug.

@@ -9,7 +9,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { DUO, CLIP_CAST, styleOf } from './tts_cast.mjs';
+import { DUO, CLIP_CAST, langOf, styleOf } from './tts_cast.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 // key: [delivery tag, variant 0, 1, 2]
@@ -38,7 +38,7 @@ const out = [];
 for (const [speaker, keys] of Object.entries(BARKS)) {
   const c = DUO[speaker];
   for (const [key, [tag, ...texts]] of Object.entries(keys)) {
-    texts.forEach((text, n) => out.push({ file: `voicelines/${speaker.toLowerCase()}/${key}${n ? `_v${n}` : ''}.wav`, speaker, text, tag, voice: c.voice, style: styleOf(c.who, tag, c.accent) }));
+    texts.forEach((text, n) => out.push({ file: `voicelines/${speaker.toLowerCase()}/${key}${n ? `_v${n}` : ''}.wav`, speaker, text, tag, voice: c.voice, lang: langOf(c.accent), style: styleOf(c.who, tag, c.accent) }));
   }
 }
 
@@ -54,7 +54,7 @@ const arr = (src, name) => {
   return eval(src.slice(src.indexOf('[', at), src.indexOf('];', at) + 1));
 };
 const clip = (kind, file, text, tag, say = text) => CLIP_CAST[kind].forEach((c, n) => out.push({
-  file: kind === 'jingle' ? file : `${file}_v${n}.wav`, speaker: c.speaker, text, say, tag, voice: c.voice, style: styleOf(c.who, tag, c.accent),
+  file: kind === 'jingle' ? file : `${file}_v${n}.wav`, speaker: c.speaker, text, say, tag, voice: c.voice, lang: langOf(c.accent), style: styleOf(c.who, tag, c.accent),
 }));
 arr(js('pedestrians.js'), 'GRONINGS_PHRASES').forEach((t, i) => clip('npc', `npc/phrase_${i}`, t, 'vriendelijk, terloops, in het voorbijgaan'));
 const POLICE = {

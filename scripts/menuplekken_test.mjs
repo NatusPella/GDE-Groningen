@@ -8,7 +8,7 @@ import {
   MENU_PLEKKEN, STAD_STREEK, STAD_GEWICHT, PLEKKEN_SLEUTEL, RECENT_N, REEKS_N, SHOT_S, UREN, BEWEGINGEN,
   stadPlek, leesVerleden, bewaarVerleden, leegVerleden, kiesVolgende, kiesReeks, noteer, uurKandidaten, zonAzimut, kiesKantEnUur, maakBeeld,
 } from '../game/js/menuplekken.js';
-import { sunElevationDeg } from '../game/js/sunrules.js';
+import { sunElevationDeg, solarHour } from '../game/js/sunrules.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
@@ -136,7 +136,8 @@ const winkel = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
     ok(k.every((u) => sunElevationDeg(u) >= 8), `kant ${th}: de zon staat hoog genoeg`);
   }
   ok(uurKandidaten(270 * Math.PI / 180).length > 5 && uurKandidaten(0).length > 5, 'noord en oost hebben ruim keuze aan uren');
-  ok(Math.abs(deg(zonAzimut(13)) - deg(zonAzimut(12)) - 15) < 1e-9, 'de zon draait 15 graden per uur');
+  ok(Math.abs(deg(zonAzimut(13)) - deg(zonAzimut(12)) - (solarHour(13) - 12) * 15) < 1e-9, 'de zon draait met het zonne-uur mee (#946)');
+  ok(deg(zonAzimut(21)) > deg(zonAzimut(19)), 'de avondzon zakt naar het westen');
 }
 
 // ---- de camera ----
@@ -196,3 +197,5 @@ const winkel = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
+
+

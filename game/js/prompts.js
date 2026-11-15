@@ -661,7 +661,6 @@ const PIC = {
   horn: '<path d="M3 9.8v4.4h4l5 4V5.8l-5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18.2 6.4a7.6 7.6 0 0 1 0 11.2"/>',
   cinecam: '<rect x="2.5" y="9" width="12.5" height="9.5" rx="1.5"/><path d="M15 12.2l6-3v9.3l-6-3"/><circle cx="6" cy="5.6" r="2.3"/><circle cx="11.5" cy="5.6" r="2.3"/>',
   lookback: '<path d="M8 20.5V10a5 5 0 0 1 10 0v2.2"/><path d="M5 17.5l3 3 3-3"/>',
-  radio: '<rect x="2.5" y="8" width="19" height="12" rx="2"/><path d="M5 8l11-5"/><circle cx="15.5" cy="14" r="3"/><path d="M5.5 12h4M5.5 15h4M5.5 18h4"/>',
   exit: '<path d="M4 3h9.5v18H4z"/><path d="M13.5 12H21M17.8 8.6L21 12l-3.2 3.4"/>',
   swim: '<circle cx="16" cy="6.5" r="2"/><path d="M4.5 12.5l5.2-3.2 4.2 2.4M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8"/>',
   swimfast: '<path d="M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M6 4l4 4-4 4M12 4l4 4-4 4"/>',
@@ -687,7 +686,6 @@ const PAD_DESC = {
   climb: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a}: de kade op, ${L.y === 'triangle' ? 'driehoek' : L.y}: in een boot`,
   drive: (L) => `${L.rt} gas, ${L.lt} remmen en achteruit, linkerstick sturen`,
   handbrake: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a} in een bocht = driften`,
-  radio: (L) => `${L.lb} in een voertuig: G-Music aan of uit (te voet via Instellingen)`,
   cinecam: () => 'D-pad omlaag: filmische shots',
   lookback: () => 'Druk de rechterstick in',
   heliUp: (L) => `${L.rt} omhoog, ${L.lt} omlaag: landen doe je laag en langzaam`,
@@ -729,7 +727,6 @@ function contextRows(world, primary) {
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
-    rows.push(tut('radio', ['N'], 'Radio', 'G-Music aan of uit', true));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
     if (p.canClimbOut) rows.push(tut('climb', ['SPATIE'], 'Eruit klimmen', 'Klim de kade op (E stapt in een boot)'));

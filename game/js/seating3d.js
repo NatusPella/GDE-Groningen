@@ -260,10 +260,17 @@ function baseY(v) {
   return v.isBoat ? WATER_Y : v.sinking ? v.sinking.z : v.z || 0;
 }
 
-// World pose of a vehicle-local point (y absolute in the local frame).
+// World pose of a vehicle-local point (y absolute in the local frame). #942: de carrosserie
+// (userData.body) draagt de vering, dus een zittend iemand hoort op de bewegende stoel te
+// zitten, niet op de onbeweeglijke greep eromheen. Zonder body (bus, fiets) blijft het de greep.
 function localToWorld(vehMesh, v, x, y, z, out) {
   if (vehMesh) {
     vehMesh.updateMatrix();
+    const body = vehMesh.userData && vehMesh.userData.body;
+    if (body) {
+      body.updateMatrix();
+      return out.set(x, y, z).applyMatrix4(_m.multiplyMatrices(vehMesh.matrix, body.matrix));
+    }
     return out.set(x, y, z).applyMatrix4(vehMesh.matrix);
   }
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
@@ -271,7 +278,11 @@ function localToWorld(vehMesh, v, x, y, z, out) {
 }
 
 function vehicleQuat(vehMesh, v, out) {
-  if (vehMesh) return out.copy(vehMesh.quaternion);
+  if (vehMesh) {
+    const body = vehMesh.userData && vehMesh.userData.body;
+    if (body) return out.copy(vehMesh.quaternion).multiply(body.quaternion);
+    return out.copy(vehMesh.quaternion);
+  }
   return out.setFromAxisAngle(_up, -v.angle);
 }
 

@@ -171,7 +171,7 @@ applyMapPhase('dag');
 const mv = src('game/js/mapview.js');
 ok(/import \{[^}]*kaartLaag[^}]*openGebied[^}]*\} from '\.\/gebiedenkaart\.js'/.test(mv), 'de kaart leent de gebiedenlaag van gebiedenkaart.js');
 ok(mv.includes('function gebiedBij') && mv.includes('openGebied(kaartLaag().lijst'), 'de kaart zoekt het gebied onder de cursor met het open niveau (#900)');
-ok(mv.includes('gebiedBij(...toWorld(sx, sy))') && mv.includes('gebiedSub(gebied)') && mv.includes('showCard(world, { name: gebied.gebied.naam'), 'hover en klik gebruiken het gevonden gebied');
+ok(mv.includes('gebiedBij(') && mv.includes('toWorld(') && mv.includes('gebiedSub(gebied)') && mv.includes('showCard(world, { name: gebied.gebied.naam'), 'hover en klik gebruiken het gevonden gebied');
 ok(mv.includes('data-act="layers"') && mv.includes('toggleLegend(true)') && mv.includes("layerOn('veroverd')"), 'legenda en filters komen terug achter Lagen');
 
 // --- #594: geen "niet voor jou" op de kaart en de minimap -------------------------

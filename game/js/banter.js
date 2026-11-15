@@ -20,7 +20,7 @@ import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from '.
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { hoofdspeler } from './spelersregister.js'; // wie er praat is de speler achter dit scherm (#446)
 import { KEYS } from './storagekeys.js';
-import { banterExchanges, storyDataReady } from './storytext.js';
+import { banterExchanges, banterLineVoice, storyDataReady } from './storytext.js';
 import { openBank } from './voicebank.js';
 
 const GLOBAL_CD = 75;
@@ -44,8 +44,9 @@ const LINE_GAP = 0.3;
 const REPEAT_AFTER_MS = 3 * 3600 * 1000;
 const HEARD_KEY = KEYS.banter;
 
-const VOICE_DIR = openBank('banter').dir;
-const voices = openBank('banter').entries;
+// An autogesprek names the manifest its recording lives in (storytext.js banterLineVoice,
+// `rec`: story, lines or banter). Looking only in 'banter' kept the 70 lines recorded in
+// 'lines' silent (#924).
 
 let BY_TRIGGER = new Map();
 let BY_ID = new Map();
@@ -245,8 +246,9 @@ function quiet() {
 
 // --- conversation ---------------------------------------------------------------------
 
-function lineDur([s, text]) {
-  const v = voices[SPEAKERS[s] + '|' + text];
+function lineDur(l) {
+  const v = banterLineVoice(l);
+  const text = l[1];
   return v ? v.dur + 0.25 : Math.max(1.8, Math.min(5.5, 1.2 + text.length * 0.055));
 }
 
@@ -263,8 +265,8 @@ function nextLine() {
   tk.i++;
   if (tk.i >= tk.lines.length) { end(); return; }
   const l = tk.lines[tk.i];
-  const v = voices[SPEAKERS[l[0]] + '|' + l[1]];
-  if (v) playBanterVoice(VOICE_DIR + v.src);
+  const v = banterLineVoice(l);
+  if (v) playBanterVoice(v.src);
   else stopBanterVoice();
   tk.t = 0;
   tk.until = lineDur(l) + (tk.i < tk.lines.length - 1 ? LINE_GAP : 0);
@@ -427,7 +429,7 @@ const api = {
     talking: st.talk ? { id: st.talk.ex ? st.talk.ex.id : null, kind: st.talk.kind, line: st.talk.lines[st.talk.i] } : null,
     ride: +st.ride.toFixed(1), sinceLast: world ? +(world.time - st.lastEnd).toFixed(1) : null, together: world ? together() : false,
     quiet: world ? quiet() : false, step: st.step, pending: st.pending.map((p) => p.trigger), rest: !!st.rest,
-    situations: st.situations.map((s) => s.kind), wijk: st.wijk, voices: Object.keys(voices).length,
+    situations: st.situations.map((s) => s.kind), wijk: st.wijk, voices: ['story', 'lines', 'banter'].reduce((a, k) => a + Object.keys(openBank(k).entries).length, 0),
   }),
   play: (id) => { const ex = BY_ID.get(id); if (!ex || !world) return false; if (st.talk) end(); start(ex, ex.lines, ex.trigger.startsWith('after:') ? 'after' : 'debug'); return true; },
   after: (trigger) => { if (!world) return false; addAfter(trigger); return true; },

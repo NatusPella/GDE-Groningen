@@ -4,18 +4,18 @@ import { hoofdspeler } from './players.js';
 // 08-IMPLEMENTATIE §3c). Tessa's walk through the carriages is the script's scene, not physics.
 //
 // st { kind: 'rit', target: <boarding platform>, length (m of track to the next platform), radius, vmax,
-//      late (fail reason: through the station), board (hint), brake (hint) }
+//      late (fail reason: through the station), board (hint), brake (hint), train (a treintype: 'stoom' voor de
+//      museumtrein van M19), fallbackSay }
 // The train is the real railway.js one: a parked/dwelling train at the platform, or, when the world has a
-// line there but no train, one of the line's trains parked at the platform. Without any line near the
-// platform (the tile world of the south may lack the museum line) the ride is told as a scene: the stage
-// passes by itself after a few seconds, so the story never dead-ends.
-import { getTrains, getRoutes, routePoint, addMissionTrain, parkTrain } from './railway.js';
+// line there but no train, a mission train of the requested type parked at the platform. Without any line near
+// the platform (the tile world of the south may lack the museum line) the ride cannot be driven: the player
+// must walk to the platform and ask the conductor (E), so standing still at the start never passes (#951).
+import { getTrains, getRoutes, routePoint, addMissionTrain, parkTrain, clearTrackFor, placeTrain } from './railway.js';
 import { groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
 
 const NEAR_LINE = 120;   // m: a route this close to the platform counts as the line
 const NEAR_TRAIN = 70;   // m: a parked or dwelling train this close is the train
 const SAMPLE = 5;
-const FALLBACK_S = 9;
 
 function nearestOnRoute(route, x, y) {
   let best = 0, bd = Infinity;
@@ -32,10 +32,12 @@ export function enterRit(world, st, S) {
   const R = S.rit = { boarded: false, reached: false, fallback: false, train: null, platform: null, said: 0 };
   const at = S.target;
   if (!at) { R.fallback = true; return; }
-  // an existing train at the platform
+  // an existing train at the platform (van dezelfde soort: een gewone stoptrein
+  // is niet de museumtrein van deze missie, #951)
   let train = null, bd = NEAR_TRAIN;
   for (const t of getTrains()) {
     if (t.state !== 'dwell' && t.state !== 'parked') continue;
+    if (st.train && t.type !== st.train) continue;
     const mid = t.cars[t.cars.length >> 1];
     const d = Math.hypot(mid.x - at.x, mid.y - at.y);
     if (d < bd) { bd = d; train = t; }
@@ -53,11 +55,33 @@ export function enterRit(world, st, S) {
   const length = st.length || 2500;
   const dir = route.len - s0 > length + 150 ? 1 : -1;
   if (!train) {
-    train = addMissionTrain(route.name, route.train || 'gtw', s0, dir);
+    // #951: de museumtrein zelf, niet de eerste de beste stoptrein van de lijn
+    train = addMissionTrain(route.name, st.train || route.train || 'gtw', s0, dir);
     if (!train) { R.fallback = true; return; }
     // the cab end that points down the line stands at the platform
     train.c = s0 - dir * (train.halfLen - 3);
     parkTrain(train);
+    R.created = true;
+    // de dienstregeling van de lijn houdt afstand van de museumtrein (#951),
+    // anders staat de gewone stoptrein op dezelfde plek op het spoor.
+    const s1 = Math.max(0, Math.min(route.len, s0 + dir * length));
+    clearTrackFor(train, Math.min(s0, s1), Math.max(s0, s1), world, 300);
+    // Een trein die hier stilstaat kan de speler per ongeluk instappen; dan rijdt
+    // hij niet de museumtrein en komt de rit nooit verder. Stuur hem naar het verre
+    // uiteinde van zijn eigen lijn.
+    for (const t of getTrains()) {
+      if (t === train || t.state === 'player' || t.state === 'mission' || (world && world.trainDriving === t)) continue;
+      const mid = t.cars[t.cars.length >> 1];
+      if (Math.hypot(mid.x - at.x, mid.y - at.y) > 90) continue;
+      const stops = t.route.stops;
+      let best = 0, bd = -1;
+      for (let i = 0; i < stops.length; i++) {
+        const d = Math.abs(stops[i].s - s0);
+        if (d > bd) { bd = d; best = i; }
+      }
+      Object.assign(t, { c: stops[best].s, target: best, state: 'dwell', v: 0, pv: 0, dir: best === 0 ? 1 : -1, timer: 300, ctl: null });
+      placeTrain(t);
+    }
   }
   R.train = train;
   R.dir = dir;
@@ -70,8 +94,16 @@ export function enterRit(world, st, S) {
 export function updateRit(dt, world, st, S, hint) {
   const R = S.rit;
   if (R.fallback) {
-    if (S.t < 1.2 && !R.said) { R.said = 1; world.addMessage(st.fallbackSay || 'De trein rijdt vanzelf het volgende perron in.', 4); }
-    return S.t > FALLBACK_S ? 'done' : null;
+    // #951: geen lijn in deze wereld. Vroeger speelde de stage zichzelf na 9 s af,
+    // waardoor stilstaan bij de start de missie al haalde. Nu moet de speler naar
+    // het perron lopen en daar met E de conducteur aanspreken.
+    if (!R.said) { R.said = 1; world.addMessage(st.fallbackSay || 'De trein staat hier niet: loop naar het perron en vraag de conducteur.', 4); }
+    const p = hoofdspeler(world);
+    const at = S.target || R.platform || p;
+    if (Math.hypot(p.x - at.x, p.y - at.y) > 30) return null;
+    if (world.input && world.input.wasPressed && world.input.wasPressed('e')) { R.boarded = true; return 'done'; }
+    hint(world, 'Geen trein op dit spoor: druk op E bij het perron.');
+    return null;
   }
   // Samen spelen (#525): de rit begint pas als de hele groep op het perron staat;
   // wie achterloopt krijgt de wachtmelding en de trein blijft staan.

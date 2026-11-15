@@ -17,6 +17,18 @@ export const EYE_STAND = 1.62;
 export const EYE_CROUCH = 1.08;
 export const EYE_SWIM = 0.55;
 
+// #941: de camera staat op de nekbot van het figuur (models3d_people.js), maar het oog zit in
+// de kop erboven: het midden van de kop op HEAD_Y = 1,655, de oogplaatjes op HEAD_Y + 0,01 en de
+// nekbot op NECK_Y = 1,49. Dat is samen 0,175 m. Deze marge hoort bij de meetkunde van het
+// figuur en niet bij de camera, dus hij staat hier als constante (de test vergelijkt hem met de
+// maten uit models3d_people.js).
+export const EYE_ABOVE_NECK = 0.175;
+
+// Minimale ruimte tussen het oog en de binnenkant van het dak in een voertuig (#941). Zonder
+// deze marge staat de camera in een lage cabine (de sportwagen, de laadmachine) tegen de
+// hemelbekleding en zie je alleen nog plafond in plaats van de weg.
+export const CABIN_ROOF_CLEARANCE = 0.15;
+
 // Zet de stand klaar op de wereld; zonder bestaande stand leest hij de bewaarde instelling.
 // De pitch is de eigen kijkhoek van de eerste-persooncamera (radialen, 0 = recht vooruit).
 export function initFirstPerson(world) {
@@ -122,4 +134,21 @@ export function eyeHeight(player) {
   if (p.swimming || p.water) return EYE_SWIM;
   if (p.crouching) return EYE_CROUCH;
   return EYE_STAND;
+}
+
+// Het oog in een voertuig (#941): het oog van het zittende figuur, maar altijd onder de
+// binnenkant van het dak. `eyeY` en `roofY` zijn in dezelfde maat (voertuiglokaal). Zonder
+// bruikbare dakhoogte blijft het oog staan; met een onbruikbaar oog valt het terug op het dak.
+export function cabinEyeY(eyeY, roofY) {
+  const dak = Number.isFinite(roofY) ? roofY - CABIN_ROOF_CLEARANCE : null;
+  if (!Number.isFinite(eyeY)) return dak === null ? 0 : dak;
+  return dak === null ? eyeY : Math.min(eyeY, dak);
+}
+
+// In het water ligt het figuur plat: scene3d.js zet swimTilt op de hele figuur, dus de nekbot is
+// dan geen ooghoogte meer en zakt de camera mee onder water. Daar geldt de zwemstand uit
+// eyeHeight (#941); in een voertuig nooit (een boot heeft zijn eigen dek).
+export function useStanceEye(player) {
+  const p = player || {};
+  return !p.inVehicle && (!!p.swimming || p.water === 'swim');
 }

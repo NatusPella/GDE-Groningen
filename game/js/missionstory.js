@@ -14,6 +14,8 @@ import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 import { showNameCard } from './namecard.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
+import { isLastMissionOfDay } from './calendar.js';
+import { resolveDuo } from './missionduo.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
 import { AKTE5_STORY } from './missionstory_akte5.js';
 import { openBank } from './voicebank.js';
@@ -500,7 +502,9 @@ for (const [id, e] of Object.entries(AKTE5_STORY)) { const k = MISSION_IDS.index
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up
 // to it (via the phone), so no callback refers to something that hasn't happened.
-const DUO_BY_STAGE = [
+// The pair follows the stage the player has really reached (#935): only the
+// mission that closes the calendar day may say it is the last job of today.
+export const DUO_BY_STAGE = [
   { intro: [['A', 'Ik rij. Geen discussie.'], ['T', 'Er was ook geen discussie. Er was alleen jij.']], outro: [['T', 'Dat ging… verrassend goed.'], ['A', 'Verrassend voor jou.']] },
   { intro: [['T', 'Ik doe het wel. Maar daarna een eierbal.'], ['A', 'Dat zeg je elke keer.']], outro: [['A', 'Niet slecht, pet.'], ['T', 'De pet bedankt je.']] },
   { intro: [['A', 'Bijhouden, hè.'], ['T', 'Ik hou je al de hele week bij.']], outro: [['T', 'We worden hier best goed in.'], ['A', 'Ik was al goed. Jij haakte aan.']] },
@@ -510,6 +514,44 @@ const DUO_BY_STAGE = [
   { intro: [['A', 'Samen, of helemaal niet.'], ['T', 'Samen.']], outro: [['T', 'Zonder jou lag ik allang in het Reitdiep.'], ['A', 'Weet ik. Daarom blijf ik.']] },
   { intro: [['T', 'Laatste klus?'], ['A', 'Voor vandaag.']], outro: [['A', 'Wij tweeën tegen de rest?'], ['T', 'Wij tweeën tegen de rest.']] },
 ];
+
+// The same point in the story, but for a mission the player starts too early:
+// no promise about today (#935). Three missions in a row otherwise all got
+// "de laatste klus voor vandaag".
+const DUO_EARLY_LAST = {
+  intro: [['T', 'Deze ook al?'], ['A', 'Deze ook. En dan zie ik wel hoe laat het wordt.']],
+  outro: [['A', 'Dat was die.'], ['T', 'De volgende staat alweer op de kaart.']],
+};
+
+// #960: dezelfde terugval bij elke vroege missie is ook weer een sleur ("wij
+// tweeën tegen de rest" kwam zo bij een reeks missies terug). Daarom een paar
+// neutrale paren; de missie kiest op zijn eigen plek in de reeks, zodat twee
+// opdrachten na elkaar niet dezelfde regel horen.
+const DUO_EARLY_POOL = [
+  DUO_EARLY_LAST,
+  { intro: [['A', 'Nog eentje dan.'], ['T', 'Dat zei je bij de vorige ook.']], outro: [['T', 'Klaar. Mijn voeten doen zeer.'], ['A', 'Je zat de hele tijd.']] },
+  { intro: [['T', 'Moeten we dit echt doen?'], ['A', 'Jij vroeg om meer werk.']], outro: [['A', 'Zie je wel.'], ['T', 'Ik zie niets, ik hijg.']] },
+  { intro: [['A', 'Rustig aan, we hebben geen haast.'], ['T', 'Jij hebt nooit haast, behalve als het misgaat.']], outro: [['T', 'Dat ging bijna mis.'], ['A', 'Bijna telt niet.']] },
+];
+
+// The last mission of the calendar day: the only moment the day closing line is
+// true. The mission plays it once, in the intro.
+export function dayClosePair(kind) {
+  return resolveDuo(DUO_BY_STAGE, DUO_BY_STAGE.length - 1, kind, { dayFinale: true });
+}
+
+// The fallback text for a mission started out of order (#935). `variant` is the
+// mission's own place in the story (#960): a different early pair per mission,
+// so the same line does not come back every time.
+export function duoFor(stage, kind, opts = {}) {
+  const { variant = 0, ...rest } = opts;
+  const i = Math.max(0, Math.min(DUO_BY_STAGE.length - 1, stage));
+  if (i === DUO_BY_STAGE.length - 1 && !opts.dayFinale) {
+    const k = Number.isInteger(variant) ? Math.abs(variant) % DUO_EARLY_POOL.length : 0;
+    return DUO_EARLY_POOL[k][kind] || [];
+  }
+  return resolveDuo(DUO_BY_STAGE, stage, kind, { earlyLast: DUO_EARLY_LAST, ...rest });
+}
 
 // boats float at WATER_Y (scene3d.js); the deck is a little above that
 const DECK_H = WATER_Y + 0.45;
@@ -1274,12 +1316,30 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
 // the entry of mission index i: the main table, or an act's own table keyed by mission id (missionstory_akte4.js)
 const storyOf = (i) => STORY[i] || STORY_AKTE4[MISSION_IDS[i]] || STORY_AKTE2[MISSION_IDS[i]] || STORY_AKTE6[MISSION_IDS[i]];
 
+// The step of mission index i (a step's `mission` is the mission id in
+// MISSION_IDS), for the calendar question whether this is the day's last
+// mission (#935).
+function missionStepId(i) {
+  const id = MISSION_IDS[i];
+  if (!id) return null;
+  const q = STEPS.find((s) => s.kind === 'mission' && s.mission === id);
+  return q ? q.id : null;
+}
+
 function stageLines(i, stage, kind, entry = storyOf(i)) {
   const s = entry;
   const base = s[kind];
-  if (stage >= i) return base;
+  if (stage >= i) {
+    // #935: the day closing belongs to the last mission of the real day, not to
+    // every mission the player starts early. Once, in the intro.
+    const step = missionStepId(i);
+    if (kind !== 'intro' || !step || !isLastMissionOfDay(step)) return base;
+    const close = dayClosePair('intro');
+    if (base.some((l) => close.some((c) => c[0] === l[0] && c[1] === l[1]))) return base;
+    return [...base.slice(0, 1), ...close, ...base.slice(1)];
+  }
   const npcLines = base.filter((l) => l[0] === 'N');
-  const duo = DUO_BY_STAGE[Math.max(0, Math.min(DUO_BY_STAGE.length - 1, stage))][kind];
+  const duo = duoFor(stage, kind, { variant: i });
   return kind === 'intro' ? [...npcLines.slice(0, 2), ...duo, ...npcLines.slice(2)] : [...npcLines.slice(0, 1), ...duo];
 }
 

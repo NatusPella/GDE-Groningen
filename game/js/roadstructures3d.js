@@ -677,6 +677,24 @@ export function buildOverpassDeck(r, map) {
   if (r._geoOverDeck === undefined) r._geoOverDeck = structureGroup(map, overpassDeckArrays(r, map));
   return r._geoOverDeck;
 }
+
+// (#919) Een vlakke brug op straatniveau heeft in roadstructures3d geen eigen dek (dat
+// begint pas boven RAISED); quaywalls.js tekent de stenen dekplaat, maar die komt met de
+// oever mee en is aan de rand van de detailring nog niet gebouwd. Zonder dek kijk je
+// onder de smalle wegribbon door het water. Deze kern ligt mét marge binnen de stenen
+// plaat (top -0,01, onderkant -0,44, 15 cm smaller), dus als die er wel is, is de kern
+// onzichtbaar; is zij er niet, dan is de brug dicht.
+export function flatBridgeCoreArrays(r, map) {
+  if (!r || !r.bridge || r.tunnel || r.z || !r.pts || r.pts.length < 2) return null;
+  if (!map) return null;
+  const B = new Buf();
+  const half = Math.max(0.8, surfaceHalfWidth(r) - 0.15);
+  for (let i = 0; i < r.pts.length - 1; i++) {
+    const a = r.pts[i], b = r.pts[i + 1];
+    B.wallBox('concrete', a[0], a[1], b[0], b[1], half * 2, -0.44, -0.02, -0.44, -0.02);
+  }
+  return B.arrays();
+}
 export function overpassDeckArrays(r, map) {
   const elev = map.elev;
   if (!elev.has || !elev.cuts.length || r.z) return null;

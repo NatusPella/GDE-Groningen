@@ -46,13 +46,14 @@ const museumbus = {
     : pay(0, 0, false, 'De bus staat nog in het museum.', true),
 };
 
-// 2. Suikerbieten: bieten laden bij de hoop, naar de fabriek rijden zonder dat de lading van de kar valt.
+// 2. Suikerbieten: met de vrachtwagen en bietenoplegger laden bij de hoop en naar de fabriek
+// rijden zonder dat de lading van de kar valt (#976: geen bestelbusje meer).
 const suikerbieten = {
   id: 'suikerbieten', naam: 'Suikerbieten naar de fabriek', bedrijf: 'Suikerhal Hoogkerk', regio: 'stad', voertuig: 'vrachtwagen',
   plek: { wgs: [53.2336, 6.4977] },
-  blurb: 'Bieten laden bij Hoogkerk en veilig naar de fabriek rijden',
+  blurb: 'Met de truck en bietenoplegger: laden bij Hoogkerk en veilig naar de fabriek',
   tagline: 'Suikercampagne: de bieten gaan dit jaar nog door de fabriek, de straat is niet de bedoeling.',
-  intro: ['Het is campagne in Hoogkerk. De bietenhoop wacht, de fabriek ook.', 'Sta stil bij de hoop tot de kar vol is. Rem en stuur zacht: elke bocht die te hard gaat strooit bieten over de weg.'],
+  intro: ['Het is campagne in Hoogkerk. De vrachtwagen met bietenoplegger staat klaar, de bietenhoop wacht, de fabriek ook.', 'Sta stil bij de hoop tot de kar vol is. Rem en stuur zacht: elke bocht die te hard gaat strooit bieten over de weg.'],
   init: (level) => ({ phase: 'laden', fill: 0, load: 100, wait: 0, time: 0, limit: 220 - lvlK(level) * 40, delivered: false }),
   step(s, i, dt) {
     const ev = [];

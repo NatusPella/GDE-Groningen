@@ -6,7 +6,7 @@ import { buildingAt } from './tileplace.js';
 import { resolveWalkerProps } from './breakables.js';
 import { countryWeight } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
-import { pushOutOfTrunks, pushOutOfWalls } from './countrywalls.js';
+import { pushOutOfTrunks, pushOutOfWalls, pushOutOfSolids } from './countrywalls.js';
 import { pushOutOfRails, COUNTRY_RAIL_H } from './countryrails.js';
 import { resolveRailings } from './bridgerails.js';
 import { resolveElevWalls } from './elevation.js';
@@ -109,6 +109,9 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
     if (pushOutOfPlan(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;
     if (pushOutOfTrunks(o, radius)) { x = o.x; y = o.y; }
+    o.x = x; o.y = y;
+    // #939: de hooibalen in de velden zijn ook voor een voetganger vast
+    if (atStreet && pushOutOfSolids(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;
     if (atStreet && hop < COUNTRY_RAIL_H && pushOutOfRails(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;

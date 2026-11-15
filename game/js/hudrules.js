@@ -50,7 +50,16 @@ export const STAR_AFTERGLOW = 6;
 export const MONEY_SHOW = 5;
 export const BAR_SHOW = 3;
 export const PLACE_SHOW = 4;
-export const E_SHOW = 4;
+// #975: een radiomelding met titel, artiest en zender was na vier seconden weg; te kort om
+// te lezen. De leestijd groeit mee met de tekst en heeft een ruime ondergrens.
+export const NP_MIN = 6.5;
+export const NP_MAX = 10;
+export function nowPlayingSeconds(np) {
+  if (!np) return NP_MIN;
+  const tekst = [np.station, np.programme, np.title, np.artist].filter(Boolean).join(' · ');
+  const lees = 2.2 + 0.05 * String(tekst).length;
+  return Math.min(NP_MAX, Math.max(NP_MIN, lees));
+}
 export const IDLE_AFTER = 8;
 export const WAKE_FOR = 4;
 export const DEFER_MAX = 30;

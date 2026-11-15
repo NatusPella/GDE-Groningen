@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import { noteVehicleChange, initFirstPerson, syncFirstPerson, firstPersonOn, setFirstPerson } from '../game/js/firstperson.js';
 import { getSettings, setSetting } from '../game/js/settings.js';
 import { PRESET_ORDER, PRESET_HINTS, presetLabel } from '../game/js/gfxprofile.js';
+import { contrastRatio, toRgb } from '../game/js/a11ylogic.js';
 
 const lees = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
 const leesHtml = () => fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
@@ -184,6 +185,63 @@ const html = leesHtml();
   ok(/a === 'quit-now'/.test(pm) && /DESKTOP\.quit\(\)/.test(pm), '#915: pas "Ja, opslaan en sluiten" sluit het spel');
   ok(/quitBox && !quitBox\.hidden/.test(pm), '#915: Esc sluit alleen de vraag');
   ok(/data-quit-confirm/.test(pm.slice(pm.indexOf('function syncRail'))), '#915: een nieuwe opening begint zonder de vraag in beeld');
+}
+
+// --- #920: één menu, ook na navigeren tussen schermen --------------------------------
+{
+  // een tweede init mag geen tweede #pause-menu met een eigen toetsenlijst maken
+  const init = pm.slice(pm.indexOf('export function initPauseMenu('), pm.indexOf('export function initPauseMenu(') + 700);
+  ok(/if \(root \|\| document\.getElementById\('pause-menu'\)\) return;/.test(init), '#920: initPauseMenu bouwt maar één menu');
+  ok((pm.match(/window\.addEventListener\('keydown', onKey, true\)/g) || []).length === 1, '#920: er luistert één keydown-handler naar Escape');
+  // een tweede open-verzoek op een al open menu doet niets: geen tweede laag, geen sprong
+  const setOpen = pm.slice(pm.indexOf('function setOpen('), pm.indexOf('// Opens a section from inside the menu') > 0 ? pm.indexOf('function setOpen(') + 1200 : pm.length);
+  ok(/if \(open === value\) \{[\s\S]*?#920: een tweede open-verzoek[\s\S]*?return;/.test(setOpen), '#920: een dubbel open-verzoek is een no-op');
+  ok(!/if \(open === value\) \{[\s\S]{0,120}showTab\(name, how\)/.test(setOpen), '#920: een dubbel open-verzoek navigeert niet opnieuw');
+  // sluiten laat geen vraaglaag of oude herkomst achter
+  ok(/for \(const box of root\.querySelectorAll\('\[data-exit-confirm\], \[data-quit-confirm\]'\)\) box\.hidden = true;/.test(pm), '#920: sluiten ruimt de vraaglagen op');
+  ok(/origin = 'home';/.test(pm.slice(pm.indexOf('if (!value) {'), pm.indexOf('open = value;'))), '#920: sluiten zet de herkomst terug');
+}
+
+// --- #915: de afsluitvraag houdt de focus vast ---------------------------------------
+{
+  ok(/function visibleQuestion\(\)/.test(pm) && /querySelector\('\[data-quit-confirm\]:not\(\[hidden\]\)'\) \|\| root\.querySelector\('\[data-exit-confirm\]:not\(\[hidden\]\)'\)/.test(pm), '#915: er is één plek die de open vraag herkent');
+  ok(/fold\.inert = on/.test(pm), '#915: de rest van het menu is inert zolang de vraag openstaat');
+  ok(/function showQuestion\(box, on\)/.test(pm) && /syncQuestionLayers\(\)/.test(pm), '#915: openen en sluiten werken de inert-stand bij');
+  ok(!/(?:exitBox|quitBox)\.hidden = /.test(pm), '#915: geen vraaglaag wordt buiten showQuestion om open of dicht gezet');
+  const tab = pm.slice(pm.indexOf('function tabFocus('), pm.indexOf('function tabFocus(') + 700);
+  ok(/const vraag = visibleQuestion\(\)/.test(tab) && /scopes = vraag \? \[vraag\]/.test(tab), '#915: Tab blijft binnen de open vraag');
+  const move = pm.slice(pm.indexOf('function moveFocus('), pm.indexOf('function moveFocus(') + 600);
+  ok(/const vraag = visibleQuestion\(\)/.test(move) && /list = visibleFocusables\(vraag\)/.test(move), '#915: de pijlen blijven binnen de open vraag');
+  ok(/if \(vraag && !vraag\.contains\(e\.target\)\)/.test(pm), '#915: de focus kan niet achter de vraag belanden');
+  ok(/#pause-menu\.pm-question \.pm-fold \{ pointer-events: none; \}/.test(css), '#915: ook de muis komt niet achter de vraag');
+  ok(/visibleQuestion\(\) && !\(k === 'Escape' \|\| k === 'Backspace' \|\| k === 'Tab' \|\| dir \|\| k === 'Enter' \|\| k === ' '\)/.test(pm), '#915: andere menutoetsen staan stil zolang de vraag openstaat');
+}
+
+// --- review 0.62: de railkoppen en de positieaanduiding halen 4,5:1 -------------------
+{
+  const kleur = (re) => { const m = css.match(re); return m ? m[1].trim() : ''; };
+  const railH = kleur(/#pause-menu \.pm-rail-h \{[^}]*color: ([^;]+);/);
+  const cnt = kleur(/#pause-menu \.pm-rail-h \.cnt \{[^}]*color: ([^;]+);/);
+  const pos = kleur(/#pause-menu \.pm-sheet-pos \{[^}]*color: ([^;]+);/);
+  ok(railH === 'var(--mut)' && cnt === 'var(--mut)' && pos === 'var(--mut)', 'review: de drie navigatielabels gebruiken de leesbare mut-token', `${railH}|${cnt}|${pos}`);
+  // de token echt doorrekenen op de donkerste en de lichtste menukaart
+  const m = menuCss.match(/--mut: rgba\(([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\)/);
+  ok(!!m, 'review: --mut is een rgba-token');
+  if (m) {
+    const [r, g, b, a] = m.slice(1).map(Number);
+    const mix = (bg) => toRgb(bg).map((v, i) => Math.round([r, g, b][i] * a + v * (1 - a)));
+    for (const bg of ['#0c140e', '#17301f']) {
+      const ratio = contrastRatio(mix(bg), bg);
+      ok(ratio >= 4.5, `review: de railkoppen halen 4,5:1 op ${bg}`, ratio.toFixed(2));
+    }
+  }
+}
+
+// --- review 0.62: Terug naar standaard ververst de toetsenlijst ----------------------
+{
+  const tak = pm.slice(pm.indexOf("a === 'binds-reset-all'"), pm.indexOf("a === 'pigeon-stop'"));
+  ok(/setBindMsg\('Alles staat weer op de standaard\.'\);[\s\S]*?renderBinds\(\);[\s\S]*?syncControls\(\);/.test(tak), 'review: de reset tekent de toetsen- en knoppenlijst opnieuw');
+  ok(/if \(k\) k\.innerHTML = bindRowsKeys\(\);/.test(pm) && !/if \(k && !k\.hidden\)/.test(pm), 'review: renderBinds ververst ook een tabblad dat dicht is');
 }
 
 console.log(bad ? `menu_issues_062_test: ${bad} van ${n} checks rood` : `menu_issues_062_test: ${n} checks groen`);

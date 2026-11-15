@@ -63,6 +63,14 @@ const MISSION_TRAIN_TYPES = {
     body: 0x3d4a57, stripe: 0xe8b21c, door: 0x2a323b, nose: 0xe8b21c, accent: 0x1c2228,
     segments: [{ len: 17, kind: 'loco' }, { len: 14, kind: 'flat' }, { len: 14, kind: 'flat' }, { len: 14, kind: 'flat' }],
   },
+  // #951: de museumstoomtrein van M19. De vorm is de bestaande stoptrein (met een
+  // echte cabine om in te rijden); de kleuren zijn die van een museumtrein, zodat
+  // de trein op het perron ook echt als museumtrein te herkennen is.
+  stoom: {
+    label: 'Museumstoomtrein', vmax: 12, height: 3.85, doubleDeck: false, front: 'gtw', gap: 0.4,
+    body: 0x2f3a33, stripe: 0xc9a04a, door: 0x1c1c1c, nose: 0x1c1c1c, accent: 0xc9a04a,
+    segments: GTW_SEGMENTS,
+  },
 };
 export const FLAT_DECK_Z = 1.25;
 

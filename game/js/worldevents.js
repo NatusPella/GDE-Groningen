@@ -17,7 +17,7 @@ import { GROTE_MARKT } from './flavour.js';
 import { showFor } from './evenementen.js';
 import { updateMarktSigns } from './marktfiets.js';
 import {
-  QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, bikeWobble, QUAKE_BARKS, quakeNewsText,
+  QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, quakeDust, bikeWobble, QUAKE_BARKS, quakeNewsText,
   ALGAE, algaePatches, patchAt, algaeEffect, algaeHurt, algaeDay, nextAlgaeDay, ALGAE_SIGN, ALGAE_NEWS, ALGAE_SWIM_MSG,
   SHOW, showState, shellGap, makeShell, soundLag,
   TOURISTS, touristTarget, GERMAN_LINES, GERMAN_HELLO, touristGroup,
@@ -107,6 +107,15 @@ function updateQuake(dt, w) {
   const env = quakeEnvelope(q.t, q.dur);
   w.quake = { amp: env * q.strength, t: q.t };
   const p = hoofdspeler(w);
+  // #974: stof walmt bij het schudden uit de grond, rond de speler; hoe harder, hoe meer.
+  const stof = quakeDust(dt, env * q.strength);
+  for (let i = 0; i < stof; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.random() * QUAKE.dustRadius;
+    spawnFxPuff(p.x + Math.cos(a) * r, 0.25, p.y + Math.sin(a) * r,
+      Math.cos(a) * 0.7, 0.35 + Math.random() * 0.5, Math.sin(a) * 0.7,
+      1.1 + Math.random() * 0.9, 0.6, 2.6 + Math.random() * 2.2,
+      0.62, 0.55, 0.45, 0.34, 1.2, 0.25);
+  }
   if (q.t > 1.0 && !q.reacted) {
     q.reacted = true;
     let n = 0;

@@ -211,8 +211,30 @@ function buildInterior(mesh, v) {
     return { id: t.id, group: tm };
   });
   mesh.userData.interior = g;
-  mesh.add(g);
+  // #942: het interieur hangt aan de carrosserie (userData.body), niet aan de greep van het
+  // voertuig. De vering beweegt alleen de body (scene3d.js zet susPitch/susRoll/susHeave op
+  // body), dus dashboard, stuur en stoelen horen die beweging mee te maken; anders blijft het
+  // interieur recht staan terwijl de auto om je heen danst, het duidelijkst na een klap. De
+  // cabine van buiten (cabin3d.js) hangt om dezelfde reden al aan de body.
+  (mesh.userData.body || mesh).add(g);
   return g;
+}
+
+// De binnenhoogte (binnenkant dak/hemel) van de cabine van dit voertuig, in voertuiglokale
+// maten; null als er geen interieur is. De eerste-persooncamera (#941) gebruikt hem om onder
+// de hemel te blijven: in een lage sportwagen of machine zit het oog anders tegen de bekleding.
+// Per voertuig één keer uitgerekend: de indeling hangt aan het model en de stoel, niet aan de rit.
+const roofYCache = new WeakMap();
+export function interiorRoofY(v) {
+  if (!hasCarInterior(v) || v.wrecked) return null;
+  let y = roofYCache.get(v);
+  if (y === undefined) {
+    const seat = vehicleSeat(v, true);
+    const { L } = layoutVan(v, seat);
+    y = L.shell ? L.shell.roofY : L.roof.y;
+    roofYCache.set(v, y);
+  }
+  return y;
 }
 
 // Called every frame from scene3d for the player's car. show = the first-person camera or

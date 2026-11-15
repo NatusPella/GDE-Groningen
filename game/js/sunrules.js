@@ -30,8 +30,22 @@ export function hourAngle(hour) {
   return (hour - 12) * 15 * Math.PI / 180;
 }
 
+// #946: the summer daylight cycle. The clock stays 24 hours and the calendar
+// (and so the sun's declination per day) stays as it is; only the night is
+// short. The sun runs with the clock around midday and is pulled towards the day
+// at the edges, so it sets later and rises earlier. One definition for height,
+// bearing, twilight and every rule that only knows an hour; daynight.js and
+// menuplekken.js ask for the same solar hour.
+export const SUMMER_STRETCH = 1.55;
+export function solarHour(hour) {
+  const h = wrapHour(hour);
+  const d = h - 12;
+  const t = Math.abs(d) / 12;
+  return 12 + Math.sign(d) * Math.pow(t, SUMMER_STRETCH) * 12;
+}
+
 export function sunElevationDeg(hour) {
-  const s = Math.sin(LATITUDE) * Math.sin(DECLINATION) + Math.cos(LATITUDE) * Math.cos(DECLINATION) * Math.cos(hourAngle(hour));
+  const s = Math.sin(LATITUDE) * Math.sin(DECLINATION) + Math.cos(LATITUDE) * Math.cos(DECLINATION) * Math.cos(hourAngle(solarHour(hour)));
   return Math.asin(Math.max(-1, Math.min(1, s))) * 180 / Math.PI;
 }
 

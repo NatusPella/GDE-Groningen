@@ -31,6 +31,7 @@ import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
 import { fitCamera } from './cutscript.js';
+import { markVehiclesInShot, clearVehicleHiding } from './cinehide.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 export function setCameraOverride(world, pose) {
@@ -64,6 +65,8 @@ const LANDMARK_HEIGHT = {
 let world = null;
 let els = null;
 let active = null;
+// #964: het gewone verkeer dat nu voor de scène uit wordt gehouden
+const shotVehicles = new Set();
 // De wereld van de lopende sessie, voor de intocht die vanuit een menu wordt teruggekeken (#708).
 export const cinematicWorld = () => world;
 let queue = [];
@@ -399,7 +402,7 @@ function begin(spec) {
   if (active.voiced) setStoryScene(true, 'cine');
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
   // doesn't launch you onward at full speed - except the ones that ask to
-  // keep the motion (the wijk flyover only plays at low speed anyway)
+  // keep the motion (the conquest tour only plays at low speed anyway)
   const eigen = hoofdspeler(world);
   if (active.pause && !active.keepMotion && eigen && eigen.inVehicle) {
     const v = eigen.inVehicle;
@@ -425,9 +428,10 @@ function finish(skipped, replaced = false) {
   setTint('');
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
+  clearVehicleHiding(shotVehicles); // #964: het verkeer mag weer gezien worden
   if (a && a.voiced) setStoryScene(false, 'cine');
   // a story or mission scene counts against the attention budget too: no
-  // wijk flyover straight after an outro or the opening montage
+  // wijk card straight after an outro or the opening montage
   if (a && (a.pause || a.hideHud) && !OWN_MOMENTS.has(a.id)) noteMoment('scene');
   if (a) endedAt = performance.now();
   try {
@@ -609,6 +613,10 @@ export function updateCinematics(dt, w) {
   else if (!active && camMode && lichaam.inVehicle) pose = cinemaCamPose(w);
   if (pose && active) notePose(active.id, pose);
   w.cameraOverride = pose;
+  // #964: laat geen gewoon verkeer door de opname rijden. Alleen rijdende
+  // voertuigen dicht bij de filmcamera; de auto van de speler en de cast blijven.
+  if (active && pose && pose.position) markVehiclesInShot(w.vehicles, pose.position, shotVehicles, { playerVehicle: lichaam.inVehicle });
+  else if (!active) clearVehicleHiding(shotVehicles);
 
   const target = active ? active.timeScale : 1;
   scale += (target - scale) * Math.min(1, dt * 7);
@@ -996,7 +1004,9 @@ export function wijkHighlights(w, name, max = 3) {
 }
 
 // The default for a new wijk: a short name card with Rikus's line spoken and
-// the wijk's highlights listed; the flyover is the optional film (Instellingen).
+// the wijk's highlights listed. #709/#925: the old flyover is gone for good and
+// discovering a wijk never starts a video; the conquest tour (#704) is the only
+// film per wijk, and it waits for a quiet moment far away from here.
 let wijkCardEl = null;
 let wijkCardT = 0;
 function showWijkCard(w, wijk, left = 30) {

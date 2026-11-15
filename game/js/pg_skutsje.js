@@ -1,5 +1,5 @@
 import { hoofdspeler } from './players.js';
-import { Vehicle } from './vehicle.js';
+import { Vehicle, boatInTheWay } from './vehicle.js';
 import { getVehicleMesh, animateSkutsjeRig } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPerson, seatedY } from './models3d_people.js';
 import { BOAT_KINDS, boatSeats } from './boattypes.js';
@@ -10,6 +10,7 @@ import { isInWater, boatDryPoints, clamp } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget } from './pghost.js';
 import { weerWindVan } from './zeilrules.js';
+import { getMovableBridges, requestOpening, boatNeedsOpening, boatFrame, openingLead } from './movablebridges.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
 // southern Diepenring to the Hoge der A. Speed comes from the wind
@@ -59,10 +60,45 @@ export function sailSpeed(eff, strike) {
   return (2.4 + 7 * eff) * (strike ? STRIKE_SPEED : 1);
 }
 
-// Jelle's target speed: his trim, and a rubber band that lets you close a gap
+// Jelle's target speed: his trim, and a rubber band that lets you close a gap.
+// He never gets *faster* than his own sail allows (#968: the old 1.04 boost made
+// him sail through a waiting player), he only eases off when he is well ahead.
 export function jelleSpeed(theta, strike, gap) {
-  const band = gap > 40 ? 0.8 : gap > 15 ? 0.9 : gap < -25 ? 1.04 : 1;
+  const band = gap > 40 ? 0.8 : gap > 15 ? 0.9 : 1;
   return sailSpeed(sailPolar(theta) * JELLE_TRIM, strike) * band;
+}
+
+// A movable bridge on Jelle's or the player's course: he asks for it well before
+// the deck and waits at the barrier until the leaf is really up (#968). The old
+// race let him sail through a closed bridge while the player was held by it.
+const BRIDGE_ASK_M = 300; // ask this far from the deck: the leaf is up on arrival
+const BRIDGE_HOLD_M = 24; // stand this close to a bridge that is not open yet
+export function bridgeWaits(state, w) {
+  return state !== 'open' && w > -2 && w < BRIDGE_HOLD_M;
+}
+// Asking again while the leaf is already coming up would put it back in its
+// booms phase (and the deck back): only a shut bridge gets a new request.
+const bridgeAsks = (state) => state === 'closed' || state === 'closing' || state === 'up';
+// Ask when the boat would reach the deck within the time the bridge needs, so a
+// bridge far away is not opened for nothing (the auto-open of movablebridges.js
+// uses the same lead).
+export function bridgeInTime(voor, speed) {
+  return !!voor && voor.w / Math.max(3, Math.abs(speed || 0)) <= openingLead() + 5;
+}
+// The nearest movable bridge before the boat, or null. `w` is the distance to
+// the deck's edge along the water (see boatFrame), also when it lies behind.
+export function bridgeBefore(v, reach = BRIDGE_ASK_M) {
+  if (!v || !boatNeedsOpening(v)) return null;
+  let best = null;
+  for (const b of getMovableBridges()) {
+    if (Math.abs(b.x - v.x) > reach + b.len || Math.abs(b.y - v.y) > reach + b.len) continue;
+    const f = boatFrame(b, v);
+    const w = Math.abs(f.w);
+    if (Math.abs(f.s) > b.len / 2 + 5 || w > reach) continue;
+    if (f.vw <= 0) continue; // sailing away from it
+    if (!best || w < best.w) best = { b, w };
+  }
+  return best;
 }
 
 function windFrom(w) {
@@ -78,7 +114,9 @@ function boomSide(heading, wf) {
   return Math.sin(wf - heading) > 0 ? -1 : 1;
 }
 
-function bridgeAhead(map, v, reach = 11) {
+// The mast goes down for every deck over the water (a fixed bridge or a movable
+// one that is open); the race's own bridges are handled by bridgeBefore below.
+function underBridgeAhead(map, v, reach = 11) {
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   for (let k = -3; k <= reach; k += 2) if (map.isOnBridge(v.x + c * k, v.y + s * k)) return true;
   return false;
@@ -136,6 +174,9 @@ function jelleSkutsje(jb) {
   jv.isBoat = true;
   jv.scripted = true;
   jv.missionCar = true;
+  // #968: Jelle's boat is a moving scene boat: it never shoves the player (or
+  // another boat) onto the bank. He waits behind traffic and at the bridge.
+  jv.ghost = true;
   jv.driver = 'jelle';
   jv.label = 'Skûtsje Us Heit';
   return jv;
@@ -249,6 +290,16 @@ export const SKUTSJE = {
       if (d.offT > 10) { finish(run, { success: false, medal: 0, reason: 'Van boord gestapt. Een schipper verlaat zijn schip niet.', stats: [] }); return; }
     } else d.offT = 0;
     const wf = windFrom(w);
+    // #968: ask the bridge ahead to open well before the deck, so a race that
+    // starts a hundred metres from it is not lost at a closed leaf.
+    const voor = bridgeBefore(boat);
+    if (voor) {
+      if (bridgeAsks(voor.b.state) && bridgeInTime(voor, boat.speed)) requestOpening(voor.b, boat);
+      if (d.go && bridgeWaits(voor.b.state, voor.w) && run.t - (d.bridgeSaid || -99) > 8) {
+        d.bridgeSaid = run.t;
+        w.addMessage(voor.b.name ? `De ${voor.b.name} gaat open. Wacht even op de brug.` : 'De brug gaat open. Wacht even.', 3, { kind: 'tip', key: 'pg-brug' });
+      }
+    }
     // the player's sail
     if (d.trimIn) d.trim -= TRIM_RATE * dt;
     if (d.trimOut) d.trim += TRIM_RATE * dt;
@@ -256,7 +307,7 @@ export const SKUTSJE = {
     const theta = offWind(boat.angle, wf);
     const ideal = idealTrim(theta);
     const trimEff = clamp(1 - ((d.trim - ideal) / (35 * DEG)) ** 2, 0.3, 1);
-    const strike = bridgeAhead(map, boat) ? 1 : 0;
+    const strike = underBridgeAhead(map, boat) ? 1 : 0;
     d.eff = sailPolar(theta) * trimEff;
     boat.sailLuff = strike ? 1 : 1 - trimEff;
     boat.sailTop = d.go ? sailSpeed(d.eff, strike) : 0;
@@ -314,7 +365,7 @@ export const SKUTSJE = {
   idle(world) {
     idleMoored(world);
     if (!leftover) return;
-    if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, bridgeAhead(world.map, leftover) ? 1 : 0, world.time);
+    if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, underBridgeAhead(world.map, leftover) ? 1 : 0, world.time);
     else if (Math.hypot(leftover.x - hoofdspeler(world).x, leftover.y - hoofdspeler(world).y) > 120) { removeBoat(world, leftover); leftover = null; }
   },
   debugWin(run) {
@@ -356,11 +407,24 @@ function placeJelle(run, dt, wf) {
   const d = run.data, w = run.world, v = d.jv;
   const q = routeAt(d.js);
   const theta = offWind(q.a, wf);
-  const strike = bridgeAhead(w.map, v) ? 1 : 0;
+  const strike = underBridgeAhead(w.map, v) ? 1 : 0;
   const gap = d.js - d.ps;
-  const want = d.jfin != null ? 0 : jelleSpeed(theta, strike, gap);
+  let want = d.jfin != null ? 0 : jelleSpeed(theta, strike, gap);
+  // #968: he does not shove another boat aside; he waits behind it.
+  if (want > 0 && boatInTheWay(v, w.vehicles, 18)) want = 0;
+  // #968: and he waits at the barrier of a bridge that is not open, like the
+  // player. Before, he sailed straight through the closed span.
+  const probe = { x: v.x, y: v.y, angle: v.angle, speed: d.jspeed, model: v.model };
+  const voor = want > 0 ? bridgeBefore(probe) : null;
+  let hold = false;
+  if (voor) {
+    if (bridgeAsks(voor.b.state) && bridgeInTime(voor, d.jspeed)) requestOpening(voor.b, v);
+    hold = bridgeWaits(voor.b.state, voor.w);
+    if (hold) want = 0;
+  }
   d.jspeed += clamp(want - d.jspeed, -2 * dt, 0.9 * dt);
-  d.js += d.jspeed * dt;
+  // standing at the bank or the barrier: he holds his place instead of sliding on
+  if (!hold) d.js = clamp(d.js + d.jspeed * dt, 0, d.s1);
   // ease from the berth beside you onto the line
   const k = clamp((d.js - d.s0 - 4) / 40, 0, 1);
   v.x = d.jlat.x + (q.x - d.jlat.x) * k;
@@ -368,7 +432,7 @@ function placeJelle(run, dt, wf) {
   let da = q.a - v.angle;
   da = Math.atan2(Math.sin(da), Math.cos(da));
   v.angle += da * Math.min(1, dt * 3);
-  v.speed = d.jspeed;
+  v.speed = hold ? 0 : d.jspeed;
   v.driftX = 0; v.driftY = 0;
   animateSkutsjeRig(v, boomSide(v.angle, wf) * idealTrim(theta), strike, w.time);
 }

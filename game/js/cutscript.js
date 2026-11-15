@@ -8,7 +8,7 @@
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
-//   set: 'keuken' (the kitchen set of the opening, built by the host), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
+//   set: 'keuken' | 'kantoor' (a built set: the opening's kitchen, the office of #950), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
 //   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden } }
 //   cues:   [{ t, actor | prop, ...verb }]   verbs, see VERBS
 //   shots:  [{ t, shot: 'cut' | 'dolly' | 'orbit' | 'follow', ... }]
@@ -406,7 +406,7 @@ export function compileScene(def, opts = {}) {
       pos = { f: pos.f + Math.sin(t * 1.3) * a, s: pos.s + Math.sin(t * 1.9 + 2) * a, h: pos.h + Math.sin(t * 1.7 + 1) * a * 0.6 };
     }
     // a camera never stands inside a person: pushed out to CAM_CLEAR, away from them (continuous in t)
-    if (pos.h < 2.4 && !def.set) for (const id of Object.keys(track)) {
+    if (pos.h < 2.4 && def.set !== 'keuken') for (const id of Object.keys(track)) {
       if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
       const p = actorPos(id, t);
       let dx = pos.f - p.f, ds = pos.s - p.s, d = Math.hypot(dx, ds);
@@ -414,7 +414,7 @@ export function compileScene(def, opts = {}) {
       if (d < 0.05) { dx = pos.f - look.f; ds = pos.s - look.s; d = Math.hypot(dx, ds) || 1; }
       pos = { f: p.f + dx / d * CAM_CLEAR, s: p.s + ds / d * CAM_CLEAR, h: pos.h };
     }
-    if (!def.set) for (const id of Object.keys(ptrack)) {
+    if (def.set !== 'keuken') for (const id of Object.keys(ptrack)) {
       const q = propState(id, t);
       const foot = propFoot(props[id].kind);
       if (foot && q.visible) {
@@ -453,7 +453,7 @@ export function compileScene(def, opts = {}) {
       }
       return propsNear.some((q) => Math.hypot(x - q.x, y - q.y) < q.r - 1e-6);
     };
-    if (!def.set && cam.z - z0 < 2.4) for (const id of Object.keys(track)) {
+    if (def.set !== 'keuken' && cam.z - z0 < 2.4) for (const id of Object.keys(track)) {
       if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
       const q = actorPos(id, t), W = world(anchor, q.f, q.s);
       const dx = cam.x - W.x, dy = cam.y - W.y, d = Math.hypot(dx, dy);
@@ -466,7 +466,7 @@ export function compileScene(def, opts = {}) {
     }
     // still inside someone's personal space (the push out landed in a wall or a prop, so fitCamera had pulled the camera in beside them: a
     // back or a head filled the lens, M02.intro and M03.intro in the real world): the free spot round them nearest to where the shot wanted to be
-    if (!def.set && cam.z - z0 < 2.4) {
+    if (def.set !== 'keuken' && cam.z - z0 < 2.4) {
       const people = [];
       for (const id of Object.keys(track)) {
         if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;

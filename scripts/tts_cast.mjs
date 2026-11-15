@@ -43,3 +43,9 @@ export const CLIP_CAST = {
 };
 
 export const styleOf =(who, tag, accent = ACCENT) => `${accent}; ${who}.${tag ? ` Tone: ${tag}.` : ''}`;
+
+// Which text a job is voiced with: the Gronings spoken text (lang 'gro') when its delivery is
+// Gronings, and the written text (lang 'own') for everyone who speaks standard Dutch, Frisian or a
+// foreign language. The scripts need this per job: a job without a lang is spoken as Gronings by
+// default (gemini_tts.LANG), which made Tessa sound Gronings (#924).
+export const langOf = (accent) => (/Gronings/.test(accent || ACCENT) ? TTS_LANG : 'own');

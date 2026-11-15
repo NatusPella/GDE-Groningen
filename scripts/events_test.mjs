@@ -30,8 +30,12 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   for (let t = 0; t < 20; t += 0.013) { const j = E.quakeJitter(t, 1); maxJ = Math.max(maxJ, Math.abs(j.x), Math.abs(j.y), Math.abs(j.z)); if (![j.x, j.y, j.z].every(Number.isFinite)) maxJ = Infinity; }
   check('shake is small and finite', maxJ > 0.02 && maxJ <= E.QUAKE.maxShake + 1e-9, maxJ);
   check('no shake without amplitude', E.quakeJitter(1, 0).x === 0);
-  check('strength grows with magnitude', E.quakeStrength(3.1) > E.quakeStrength(1.6) && E.quakeStrength(1.6) >= 0.3 && E.quakeStrength(9) <= 1);
-  check('bike wobble is small', Math.abs(E.bikeWobble(0.37, 1, 5)) <= 0.035 && E.bikeWobble(1, 0, 2) === 0);
+  check('strength grows with magnitude', E.quakeStrength(3.1) > E.quakeStrength(1.6) && E.quakeStrength(1.6) >= 0.45 && E.quakeStrength(9) <= 1);
+  // #974: de impact is heftiger, maar blijft begrensd en respecteert de stof-teller
+  check('de beving schudt nu duidelijk harder', E.QUAKE.maxShake >= 0.14 && E.quakeStrength(3.1) > 0.9, String(E.QUAKE.maxShake));
+  check('stof alleen bij echte trillingen', E.quakeDust(0.016, 0) === 0 && E.quakeDust(0.016, 0.05) === 0 && E.quakeDust(1, 1, () => 0) >= 5 && E.quakeDust(1, 1, () => 0) <= E.QUAKE.dustPerS + 1, String(E.quakeDust(1, 1, () => 0)));
+  check('na een beving is het stil', E.quakeDust(-1, 1) === 0 && E.quakeDust(0, 1) === 0);
+  check('bike wobble is small', Math.abs(E.bikeWobble(0.37, 1, 5)) <= 0.07 && E.bikeWobble(1, 0, 2) === 0);
   const calm = { wanted: 0 };
   check('quake may start when calm', E.mayQuake(calm));
   for (const k of ['cinematic', 'minigame', 'paused', 'dead', 'indoors', 'heliRun', 'pigeon', 'call', 'mission', 'sideJob']) check(`no quake during ${k}`, !E.mayQuake({ ...calm, [k]: true }));

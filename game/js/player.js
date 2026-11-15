@@ -1,8 +1,9 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMapWater, WATER_Y, clamp } from './util.js';
 import { heeftAutoPortier } from './sfx/samples.js';
 import { wallAhead } from './countrywalls.js';
+import { countryRailAhead } from './countryrails.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
-import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
+import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap, detachLiveBus } from './vehicle.js';
 import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
 import { waterAt, surfaceLiftAt, boatDeck } from './waterlevels.js';
@@ -285,6 +286,9 @@ export class Player {
     // the hedges and wire fences of the Ommeland fields
     const fence = this.gz < 0.5 ? wallAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
     if (fence && (!ob || fence.dist < ob.dist)) ob = fence;
+    // (#959) de leuningen van de polderbruggen: 1,15 m, net als een brugleuning over te stappen
+    const polderRail = this.gz < 0.5 ? countryRailAhead(this.x, this.y, dx, dy, reach) : null;
+    if (polderRail && (!ob || polderRail.dist < ob.dist)) ob = polderRail;
     const car = this.vehicleAhead(world, dx, dy, reach);
     if (car && (!ob || car.dist < ob.dist)) ob = car;
     // already above it (hopping off a car roof): nothing to vault
@@ -946,6 +950,9 @@ export class Player {
     const stolen = !own && (driven || bezet || hadDriver || v.parked || (v.isPolice && !v.hijacked));
     v.carjacked = !own && (driven || bezet || hadDriver); // its AI driver gets pulled out (pedestrians.js)
     v.driver = 'player';
+    // #922: een gekaapte live bus is vanaf nu een gewone spelbus: hij houdt zijn
+    // lijn en dienst, maar volgt de echte bus niet meer.
+    detachLiveBus(v);
     v.road = null; // player takes manual control
     v.parked = false;
     v.rollingFree = false;
@@ -1211,25 +1218,36 @@ const CLIMB_DIRS = 16;
 // Nearest dry, walkable spot along the waterline within reach, preferring
 // the direction the swimmer faces. `bank` marks park/grass banks, which
 // are low enough to just walk out of.
+//
+// (#958) De klimplek ligt op de oever zelf: we lopen vanuit de zwemmer tot het eerste
+// droge punt (de waterkant) en zetten de plek daar 0,4 m achter. Vroeger zocht de regel
+// een droog punt binnen 1,3 m en schoof dat nog eens 0,5 m naar binnen, waardoor de
+// speler bij een kade meters landinwaarts omhoogklom en door de kademuur heen ging.
+// Nu klimt hij bij de rand omhoog, en de kade blijft een echte rand.
+const CLIMB_LAND = 0.4;   // m voorbij de waterkant
 export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
-  for (let r = 0.45; r <= reach; r += 0.2) {
-    let best = null, bestScore = -Infinity;
-    for (let i = 0; i < CLIMB_DIRS; i++) {
-      const a = (i / CLIMB_DIRS) * Math.PI * 2;
-      const cx = Math.cos(a), cy = Math.sin(a);
-      const sx = x + cx * r, sy = y + cy * r;
-      if (inMapWater(map, sx, sy)) continue;
-      const lx = sx + cx * 0.5, ly = sy + cy * 0.5;
-      if (inMapWater(map, lx, ly) || isInsideBuilding(map, lx, ly)) continue;
-      const score = Math.cos(normalizeAngle(a - angle));
-      if (score > bestScore) { bestScore = score; best = { x: lx, y: ly }; }
+  const step = 0.15;
+  let best = null, bestScore = -Infinity;
+  for (let i = 0; i < CLIMB_DIRS; i++) {
+    const a = (i / CLIMB_DIRS) * Math.PI * 2;
+    const cx = Math.cos(a), cy = Math.sin(a);
+    // de waterkant: het eerste droge punt op deze koers (binnen klimbereik)
+    let edge = -1;
+    for (let d = 0.2; d <= reach + 1e-6; d += step) {
+      if (!inMapWater(map, x + cx * d, y + cy * d)) { edge = d; break; }
     }
-    if (best) {
-      best.bank = map.greenNear(best.x, best.y, 0.5).some((g) => pointInPolygon(best.x, best.y, g.pts));
-      return best;
-    }
+    if (edge < 0) continue;
+    const ex = x + cx * edge, ey = y + cy * edge;
+    const sx = x + cx * (edge + CLIMB_LAND), sy = y + cy * (edge + CLIMB_LAND);
+    if (inMapWater(map, sx, sy) || isInsideBuilding(map, sx, sy)) continue;
+    // de plek zelf moet ook vrij staan (een huis op de kade telt niet als oever)
+    if (isInsideBuilding(map, ex, ey)) continue;
+    const score = Math.cos(normalizeAngle(a - angle)) - edge * 0.08;
+    if (score > bestScore) { bestScore = score; best = { x: sx, y: sy }; }
   }
-  return null;
+  if (!best) return null;
+  best.bank = map.greenNear(best.x, best.y, 0.5).some((g) => pointInPolygon(best.x, best.y, g.pts));
+  return best;
 }
 
 function isInsideBuilding(map, x, y) {

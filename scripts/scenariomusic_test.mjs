@@ -154,12 +154,27 @@ console.log('scenariomusic_test: ok');
   console.log('scenariomusic_test: thuis ok');
 }
 
-// het pauzemenu wint van alles (ook van een race of een achtervolging), voor deze speler
+// het pauzemenu wint van alles (ook van een race of een achtervolging), voor deze speler,
+// maar start pas na een flinke tijd in het menu (#931: geen herstart bij elke Escape)
 {
   const d = createScenarioDirector();
-  run(d, 1, { activity: 'menu', chasing: true });
-  assert.equal(run(d, 1, { activity: 'menu', chasing: true }), 'menu');
+  assert.equal(d.update(0.1, { activity: 'menu' }), null, 'niet meteen bij het openen');
+  assert.equal(run(d, 3, { activity: 'menu' }), null, 'nog stil na een korte Escape');
+  assert.equal(run(d, 6, { activity: 'menu', chasing: true }), 'menu', 'na de delay speelt de menu-loop (en wint van een achtervolging)');
   assert.equal(run(d, 1, { activity: 'menu', race: true }), 'menu');
+  assert.equal(run(d, 1, {}), 'menu', 'na het sluiten blijft hij nog even staan');
+  assert.equal(run(d, 2, { activity: 'menu' }), 'menu', 'snel heen en weer: dezelfde loop, geen herstart');
   console.log('scenariomusic_test: menu ok');
+}
+
+// De menu-loop in audio/scenario.js houdt zijn plek vast in plaats van te stoppen (#931).
+{
+  const bron = readFileSync(new URL('../game/js/audio/scenario.js', import.meta.url), 'utf8');
+  assert.match(bron, /export const MENU_PARK_S = \d+/, 'de parkeertijd staat als constante in de bron');
+  assert.match(bron, /function parkScenarioTrack\(\)/);
+  assert.match(bron, /function resumeScenarioTrack\(\)/);
+  assert.match(bron, /if \(key === 'menu' && resumeScenarioTrack\(\)\) return true/);
+  assert.match(bron, /if \(cur === 'menu'\) parkScenarioTrack\(\); else stopScenarioTrack\(\);/);
+  console.log('scenariomusic_test: menu-park ok');
 }
 

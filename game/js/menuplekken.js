@@ -3,7 +3,7 @@
 // elkaar), de zon (het uur volgt de kant waar de camera staat) en de rustige camerabeweging. startscreen.js verplaatst de speler
 // naar de plek en laat de wereld eromheen inladen; scripts/menuplekken_test.mjs draait de regels.
 import { GRID_CONVERGENCE } from './rdnew.js';
-import { sunElevationDeg } from './sunrules.js';
+import { sunElevationDeg, solarHour } from './sunrules.js';
 
 export const PLEKKEN_SLEUTEL = 'gde-menuplekken-v1';
 const D2R = Math.PI / 180;
@@ -124,8 +124,10 @@ export function kiesReeks(pool, h, rand = Math.random, n = REEKS_N) {
 // ---- de zon ----
 
 // Draait de zon met het uur zoals daynight.js: de middagrichting -60° plus de roosterconvergentie, 15° per uur (in x/y van de kaart)
+// #946: through the same solar hour as the height (sunrules.solarHour), so the
+// photo spot and the sun on screen follow the same summer day.
 const NOON_BEARING = -60 * D2R + GRID_CONVERGENCE;
-export const zonAzimut = (uur) => NOON_BEARING + (uur - 12) * 15 * D2R;
+export const zonAzimut = (uur) => NOON_BEARING + (solarHour(uur) - 12) * 15 * D2R;
 const hoekVerschil = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
 export const UREN = [];
 for (let u = 7.5; u <= 18.75; u += 0.25) UREN.push(u);

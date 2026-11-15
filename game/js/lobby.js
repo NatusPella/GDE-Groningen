@@ -535,19 +535,24 @@ export function view(s) {
       const getoond = q.rijen.length, totaal = q.totaal, alles = q.alles;
       const telling = alles === 0 || totaal === 0 ? '' : getoond < totaal ? `${getoond} van ${totaal} sessies` : totaal < alles ? `${totaal} van ${alles} sessies` : `${alles} ${alles === 1 ? 'sessie' : 'sessies'}`;
       const lines = [alles === 0
-        ? 'We zoeken openbare sessies. Er zijn er nu geen gevonden; de lijst ververst zichzelf elke paar seconden, dus even geduld kan helpen.'
+        ? 'We zoeken openbare sessies. Er zijn er nu geen gevonden; de lijst ververst zichzelf elke paar seconden, dus even geduld kan helpen. Je kunt hieronder ook een kamercode van een vriend invullen.'
         : totaal === 0
-          ? 'Geen sessies die passen. Wis het zoekveld of de filters om alles te zien.'
-          : 'Kies een sessie om aan te sluiten. De lijst ververst zichzelf elke paar seconden.' + (telling ? ` ${telling}.` : '')];
+          ? 'Geen sessies die passen. Wis het zoekveld of de filters om alles te zien, of vul hieronder een kamercode in.'
+          : 'Kies een sessie om aan te sluiten, of vul hieronder de kamercode van een vriend in. De lijst ververst zichzelf elke paar seconden.' + (telling ? ` ${telling}.` : '')];
       if (s.lijstZoek) lines.push(`Je zoekt op "${s.lijstZoek}".`);
       return V({
         title: 'Openbare sessies', lines, sessies,
+        // #973: de serverbrowser en de kamercode staan nu op één scherm: de speler hoeft niet
+        // vooraf te weten welke van de twee hij wil. De lijst is de route om iemand te vinden,
+        // het veld is de route als je al een code van een vriend hebt.
+        input: { placeholder: 'Kamercode of GDE2-… (van een vriend)', value: s.caps.laatsteCode || '', maxLength: 64 },
         lijstInfo: {
           zoek: s.lijstZoek || '', sortering: s.lijstSortering, aantal: s.lijstAantal, filters: { ...f },
           getoond, totaal, alles, meer: getoond < totaal, telling, ververst: s.lijstVervers || 0,
           sorteringen: SORTERINGEN.map((id) => ({ id, label: SORTERING_LABEL[id], gekozen: id === s.lijstSortering })),
         },
         buttons: [
+          { act: 'koppel', label: 'Met kamercode meedoen' },
           { act: 'lijst-ververs', label: 'Lijst verversen' },
           ...(totaal === 0 && alles > 0 ? [{ act: 'lijst-filters-wissen', label: 'Filters wissen' }] : []),
           { act: 'lijst-terug', label: 'Terug', primary: true },

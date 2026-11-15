@@ -201,9 +201,11 @@ export function openSaveSlots(opts = {}) {
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
     const meta = sm ? `${S.formatPlaytime(sm.playSeconds)} · ${ago}` : '';
     // #898: hoe ver het verhaal van dít spel is, ook op de kaarten (niet alleen op de grote
-    // knop bovenaan): één balk en het percentage, dezelfde maat als op het Overzicht.
+    // knop bovenaan): één balk en het percentage, dezelfde maat als op het Overzicht. Het
+    // label "verhaal" staat er zichtbaar bij, want dit cijfer telt alleen het verhaal van deze
+    // save; de HUD en het Overzicht tellen verhaal, prestaties, kaart en gebieden samen.
     const prog = data && !bad ? saveProgress(data) : null;
-    const progHtml = prog ? `<span class="ssl-prog" title="Verhaal: ${prog}%"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '';
+    const progHtml = prog != null ? `<span class="ssl-prog" title="Verhaal: ${prog}%"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}% verhaal</span></span>` : '';
     const tip = story && story.next && !bad ? `Volgende stap: ${story.next}` : '';
     const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie';
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +

@@ -37,6 +37,24 @@ export function trunkTileCount() {
   return trunkTiles.size;
 }
 
+// Rond vast spul van de velden dat geen boom is (#939: de hooibalen). Zelfde
+// vorm als een stam (een segment van lengte nul met een straal), zodat auto's
+// en voetgangers er precies zo tegenaan lopen; apart gehouden van de stammen
+// omdat de bomen ook voor het bosgeluid en de camera meetellen.
+const solidTiles = new Map();
+export function setTileSolids(tx, ty, solids) {
+  // een lijst van baleSolid()-uitkomsten mag ook; we bewaren één platte lijst
+  const flat = solids && solids.length && Array.isArray(solids[0]) ? solids.flat() : solids;
+  if (flat && flat.length) solidTiles.set(tkey(tx, ty), flat);
+  else solidTiles.delete(tkey(tx, ty));
+}
+export function clearTileSolids(tx, ty) {
+  solidTiles.delete(tkey(tx, ty));
+}
+export function solidTileCount() {
+  return solidTiles.size;
+}
+
 function eachNear(x, y, fn, tiles = wallTiles) {
   if (!tiles.size) return;
   const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
@@ -92,6 +110,11 @@ export function trunksNear(x, y, r, out = null, max = 10) {
 // Pushes obj ({x, y}) radius r out of every tree trunk; true when it moved.
 export function pushOutOfTrunks(obj, r) {
   return pushOutOfWalls(obj, r, trunkTiles);
+}
+
+// Pushes obj out of the round field solids (hay bales); true when it moved.
+export function pushOutOfSolids(obj, r) {
+  return pushOutOfWalls(obj, r, solidTiles);
 }
 
 // Nearest wall along (dx, dy) from (x, y) within reach, for a body of

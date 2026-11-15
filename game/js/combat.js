@@ -26,6 +26,7 @@ import { wantedVan, zetWantedVan } from './coopgezocht.js';
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446); politie en gezocht blijven per speler
 import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)
 import { nieuweBlok, blokkeer, herstel, blokActief, schadeNaBlok } from './blockregels.js'; // blokkeren met een slagwapen (#492)
+import { requestRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -226,7 +227,7 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
   const stand = reeks.get(sleutel) || nieuweCombo();
   const slag = comboSlag(stand, nu);
   const schade = weapon.damage * slag.factor;
-  const gewicht = { ...weapon, damage: schade, knock: (weapon.knock || 0) + slag.knockExtra }; // de derde slag duwt harder
+  const gewicht = { ...weapon, key, damage: schade, knock: (weapon.knock || 0) + slag.knockExtra }; // de derde slag duwt harder
   const cone = weapon.cone || Math.PI / 3;
   const ca = Math.cos(angle), sa = Math.sin(angle);
   const inReach = (x, y, extra) => {
@@ -248,6 +249,9 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
   }
   for (const v of world.vehicles) {
     if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
+    // #944: een fietser of scooterrijder sla je van zijn voertuig. Dat is een persoon, geen
+    // blikschade: pedestrians.js maakt er dezelfde worp van als bij een aanrijding.
+    if (requestRiderOff(v, ca, sa, gewicht, { dader, time: nu })) { landed = landed || 'flesh'; continue; }
     if (weapon.damage >= 20 || key === 'fists') {
       v.health -= schade * 0.4;
       if (v.health <= 0) wreckVehicle(world, v, !ctx);

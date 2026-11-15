@@ -4,7 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { DUO as DUO_CAST, styleOf } from './tts_cast.mjs';
+import { DUO as DUO_CAST, langOf, styleOf } from './tts_cast.mjs';
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOT = path.join(REPO, 'game', 'js') + '/';
 const JOBS = ['bezorger', 'taxi', 'bus', 'rondvaart', 'fietsdepot', 'verhuizing'];
@@ -45,7 +45,8 @@ for (const id of JOBS) {
 for (const [who, kinds] of Object.entries(DUO)) for (const [kind, list] of Object.entries(kinds)) list.forEach((l, n) => out.push({ file: `duo/${who.toLowerCase()}_${kind}_${n}.mp3`, speaker: who, cast: who, text: l.t, tag: l.tag }));
 for (const l of out) {
   const { accent, ...c } = CAST[l.cast];
-  Object.assign(l, c, { style: styleOf(c.who, l.tag, accent) });
+  // Tessa (DUO.Anita) is Dutch: 'own' speaks her written text instead of the Gronings table (#924)
+  Object.assign(l, c, { lang: langOf(accent), style: styleOf(c.who, l.tag, accent) });
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_sidejobs.json'), JSON.stringify(out, null, 1));
 console.log(out.length, 'lines', out.reduce((a, l) => a + l.text.length, 0), 'chars');

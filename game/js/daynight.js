@@ -1,9 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GRID_CONVERGENCE } from './rdnew.js';
-import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle, wrapHour } from './sunrules.js';
+import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle, wrapHour, solarHour } from './sunrules.js';
 
-// the sun and the night live in sunrules.js (one definition of night, #107)
-export { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour };
+// the sun and the night live in sunrules.js (one definition of night, #107);
+// the summer daylight cycle (#946) lives in the same solar hours
+export { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, solarHour };
 
 // world.clock: in-game hours 0..24. Advanced only from updateGameplay, so
 // the pause menu and map freeze time. world.dayNight is the derived,
@@ -77,7 +78,9 @@ export function computeLighting(hour, out = {}) {
   for (const c of COLOR_KEYS) out[c].copy(KEY_COLORS[i][c]).lerp(KEY_COLORS[i + 1][c], t);
   for (const n of NUM_KEYS) out[n] = a[n] + (b[n] - a[n]) * t;
 
-  const H = hourAngle(hour);
+  // #946: the bearing follows the same solar hour as the height, otherwise the
+  // setting sun stands in the wrong place on the horizon.
+  const H = hourAngle(solarHour(hour));
   const bearing = NOON_BEARING + H;
   dirFromAngles(out.sunDir, bearing, elev * Math.PI / 180);
   const moonElev = Math.max(12, Math.min(48, -elev * 1.4 + 8));

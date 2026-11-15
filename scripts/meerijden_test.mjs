@@ -50,6 +50,17 @@ ok(!r2.skipped && M.aankomst(r2, { x: 0, y: 0 }, 99).aankomstS === M.PLAYED_ARRI
 const t0 = r2.t;
 M.stepRit(r2, 5, { skip: true });
 ok(r2.t === t0, 'done stays done');
+// aankomstplek (#932): nooit honderden meters naast het doel
+const doel = { x: 1000, y: 2000 };
+const dichtbij = M.landingsplek(doel, [{ x: 1012, y: 2008 }, { x: 1480, y: 2000 }]);
+ok(dichtbij && Math.abs(dichtbij.x - 1012) < 1e-9 && dichtbij.afstand < 20 && !dichtbij.terugval, 'dichtstbijzijnde open punt bij het doel wint', JSON.stringify(dichtbij));
+const ver = M.landingsplek(doel, [{ x: 1480, y: 2000 }], 90);
+ok(ver && ver.x === doel.x && ver.y === doel.y && ver.terugval, 'een punt 480 m verderop telt niet: dan de bestemming zelf', JSON.stringify(ver));
+ok(M.landingsplek(doel, []) && M.landingsplek(doel, []).x === 1000, 'zonder open punt de bestemming zelf');
+ok(M.landingsplek(doel, [{ x: NaN, y: 2 }, null, { x: 1001, y: 2001 }]).x === 1001, 'kapotte punten overslaan');
+ok(M.landingsplek(null, []) === null && M.landingsplek({ x: NaN }, []) === null, 'zonder doel geen plek');
+ok(M.LANDING_DRIFT_M <= 100 && M.BOAT_DRIFT_M < M.LANDING_DRIFT_M, 'de landingsmarge is kort en de boot nog korter');
+
 // ondertitels
 const r3 = M.startRit(plan);
 ok(/Instappen bij Grunn/.test(M.ondertitel(r3)), 'subtitle: boarding', M.ondertitel(r3));

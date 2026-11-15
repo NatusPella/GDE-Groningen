@@ -63,7 +63,8 @@ const fin = (() => { const list = [{ label: 'Ontzet, net als in 1672', stages: [
 const streets = fin.stages.filter((q) => q.kind === 'timing')[1];
 for (const tag of ['bond-bus', 'bond-trekker', 'bond-scooter']) {
   const S = {}; enterTiming(S, streets, (t) => t === tag);
-  const widened = streets.rounds.map((r, i) => S.rounds[i].zone[1] - S.rounds[i].zone[0] > r.zone[1] - r.zone[0]);
+  const base = {}; enterTiming(base, streets, () => false);
+  const widened = streets.rounds.map((r, i) => (S.rounds[i].zone[1] - S.rounds[i].zone[0]) > (base.rounds[i].zone[1] - base.rounds[i].zone[0]) + 1e-9);
   ok(widened.filter(Boolean).length === 1 && widened[streets.rounds.findIndex((r) => r.zoneIf === tag)], `M26: only ${tag}'s street gets the wider zone`);
 }
 ok(streets.rounds.every((r) => r.zone[0] - 0.09 > 0 && r.zone[1] + 0.09 < 1), 'M26: a widened zone stays on the bar');

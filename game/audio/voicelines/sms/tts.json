@@ -161,13 +161,14 @@
 },
 "Anita|Nog even dit. Het staat op je kaart, als je zin hebt.": {
 "src": "anita/nog_even_dit_het_staat_op_je_kaa_a5161004.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
 "voice": "Callirrhoe",
-"input": "Nog eefkes dit. t Stait op dien kaart, as je zin hebben.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Nog even dit. Het staat op je kaart, als je zin hebt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
+"date": "2026-11-15"
 },
 "Anita|Oma Trijntje wil ons iets vertellen over de bal. Maar eerst de fatbikes, in de Oude Ebbingestraat.": {
 "src": "anita/oma_trijntje_wil_ons_iets_vertel_aeab583e.mp3",

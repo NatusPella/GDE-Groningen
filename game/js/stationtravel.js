@@ -121,9 +121,10 @@ function badgeMaterial() {
 }
 
 // A plain ticket machine: dark-blue cabinet, yellow front, lit screen.
-function buildMachine(x, y, facing) {
+// z: de hoogte waarop hij staat (het perron, PLAT_TOP), niet de grond.
+function buildMachine(x, y, facing, z = 0) {
   const group = new THREE.Group();
-  group.position.set(x, 0, y);
+  group.position.set(x, z, y);
   group.rotation.y = -facing + Math.PI / 2;
   const box = (w, h, d, color, px, py, pz, emissive) => {
     const mat = new THREE.MeshLambertMaterial({ color });
@@ -217,41 +218,60 @@ function entranceSpot(map, x, y, px, py) {
 }
 
 // A halt out in the country (map.countryStations): no city data round it, so
-// the machine simply stands on the platform side a few metres off the track.
-function placeCountryStation(def, stops, scene) {
+// the machine stands on the platform itself, on the station side of the track.
+// #927: it used to stand 7 m off the track, and on a double-track line that is
+// exactly the second track (Warffum, Usquert). The platform lies PLAT_OFF from
+// the own track with a width of PLAT_W; the machine stands on that slab, clear
+// of the shelter, and the arrival spot is the first walkable ground beyond all
+// tracks (railDist >= RAIL_CLEAR), found again when the tiles are in.
+const PLAT_LEN = 80, PLAT_W = 3.2, PLAT_OFF = 3.3, PLAT_TOP = 1.02, RAMP_LEN = 7;
+const MACHINE_OFF = PLAT_OFF + 0.4;         // 3.7 m van het spoor: op de perrontegel
+
+// Waar de automaat staat, in wereldcoördinaten. Puur, zodat de test hem kan
+// narekenen zonder de scène.
+export function countryMachineSpot(px, py, nx, ny) {
+  return { x: px + nx * MACHINE_OFF, y: py + ny * MACHINE_OFF, z: PLAT_TOP };
+}
+
+// De aankomstplek van een halte: buiten het perron, aan de stationskant, en pas
+// voorbij alle sporen. Zonder tegels (railDist kent dan nog geen landspoor) valt
+// hij terug op de eerste vrije plek; settleCountryStation zoekt hem opnieuw.
+export function countryArriveSpot(map, px, py, nx, ny) {
+  for (let d = PLAT_OFF + PLAT_W / 2 + 1.5; d <= 60; d += 1.5) {
+    const x = px + nx * d, y = py + ny * d;
+    if (isInWater(map, x, y) || railDist(map, x, y) < RAIL_CLEAR) continue;
+    if (buildingAt(map, x, y, 1)) continue;
+    if (map.canWalkOut && !map.canWalkOut(x, y)) continue;
+    return { x, y };
+  }
+  const q = map.findOpenSpawn ? map.findOpenSpawn(px + nx * 20, py + ny * 20, 60) : null;
+  return q || { x: px + nx * 20, y: py + ny * 20 };
+}
+
+function placeCountryStation(map, def, stops, scene) {
   const st = stops[0];
   const [px, py] = routePoint(st.route, st.s);
   const [tx, ty] = tangentAt(st.route, st.s);
   let nx = -ty, ny = tx;
   if ((def.x - px) * nx + (def.y - py) * ny < 0) { nx = -nx; ny = -ny; }
-  const x = px + nx * 7, y = py + ny * 7;
+  const m = countryMachineSpot(px, py, nx, ny);
   const s = {
-    name: def.name, short: shortName(def.name), x, y, stops, exitAngle: Math.atan2(ny, nx), country: true,
-    arrive: { x: x + nx * 3, y: y + ny * 3 },
+    name: def.name, short: shortName(def.name), x: m.x, y: m.y, stops, exitAngle: Math.atan2(ny, nx), country: true,
+    arrive: countryArriveSpot(map, px, py, nx, ny),
+    rail: { x: px, y: py, nx, ny },
   };
-  s.machine = buildMachine(x, y, s.exitAngle);
+  s.machine = buildMachine(m.x, m.y, s.exitAngle, PLAT_TOP);
   scene.add(s.machine);
   scene.add(buildPlatform(px, py, tx, ty, nx, ny));
   return s;
 }
 
-// A country halt's machine is first put beside the track without a look at what
-// stands there. Once the tiles round it are in (prepareCountryStations, from
-// ommelandfun.js) it steps further out, or to the other side of the track, when a
-// building of the tiles stands on it.
+// Once the tiles round a country halt are in (prepareCountryStations, from
+// ommelandfun.js) the arrival spot is checked against the real tracks: a halt on
+// a double-track line may only land beyond the second track (#927).
 function settleCountryStation(map, s) {
-  if (!buildingAt(map, s.x, s.y, 1)) return;
-  const nx = Math.cos(s.exitAngle), ny = Math.sin(s.exitAngle);
-  // the track lies 7 m back along -n: further out on this side first, then past it
-  for (const d of [3, 6, 9, 12, -14, -17, -20]) {
-    const x = s.x + nx * d, y = s.y + ny * d;
-    if (buildingAt(map, x, y, 1) || isInWater(map, x, y)) continue;
-    if (d < 0) s.exitAngle += Math.PI;
-    s.x = x; s.y = y;
-    s.arrive = { x: x + Math.cos(s.exitAngle) * 3, y: y + Math.sin(s.exitAngle) * 3 };
-    if (s.machine) { s.machine.position.set(x, 0, y); s.machine.rotation.y = -s.exitAngle + Math.PI / 2; }
-    return;
-  }
+  if (!s.rail) return;
+  s.arrive = countryArriveSpot(map, s.rail.x, s.rail.y, s.rail.nx, s.rail.ny);
 }
 
 export async function prepareCountryStations(map) {
@@ -265,7 +285,6 @@ export async function prepareCountryStations(map) {
 // Concrete platform with a shelter beside a country halt: its top 0.76 m
 // above the rails (RAIL_TOP 0.26), the edge 1.7 m from the track's centre,
 // a ramp down at either end. Solid to walkers (a static collider).
-const PLAT_LEN = 80, PLAT_W = 3.2, PLAT_OFF = 3.3, PLAT_TOP = 1.02, RAMP_LEN = 7;
 function buildPlatform(px, py, tx, ty, nx, ny) {
   const g = new THREE.Group();
   g.position.set(px + nx * PLAT_OFF, 0, py + ny * PLAT_OFF);
@@ -311,7 +330,7 @@ function buildPlatform(px, py, tx, ty, nx, ny) {
 function placeStation(map, def, scene) {
   const stops = stopsFor(def.name);
   if (!stops.length || !Number.isFinite(def.x)) return null;
-  if (def.country) return placeCountryStation(def, stops, scene);
+  if (def.country) return placeCountryStation(map, def, stops, scene);
   const st = stops[0];
   const [px, py] = routePoint(st.route, st.s);
   const open = entranceSpot(map, def.x, def.y, px, py);
@@ -802,6 +821,9 @@ function arrive(w) {
   w.cameraOverride = null;
   if (!trip) return;
   const { to, legs, info, saved, ride: rode } = trip;
+  // #927: de aankomstplek van een landhalte hangt aan de sporen van de tegels;
+  // die zijn er nu zeker, dus zoek hem nog één keer voor de speler er staat.
+  if (to.country && to.rail) to.arrive = countryArriveSpot(w.map, to.rail.x, to.rail.y, to.rail.nx, to.rail.ny);
   const last = legs[legs.length - 1];
   for (const s of saved) if (s.t !== last.train) restoreTrain(s);
   // the train you came with waits at the platform for a bit, then goes on

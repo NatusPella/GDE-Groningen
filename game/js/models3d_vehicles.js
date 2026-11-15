@@ -191,6 +191,40 @@ function extrudeProfile(pts, depth, bevel = 0.04) {
   return geo;
 }
 
+// Het koetswerk is een dichte extrusie tot de raamlijn: de bovenkant van het profiel tussen
+// voor- en achterruit is daardoor één plaat over de hele cabine, dwars door het interieur dat
+// sinds #442/#847 door de ruiten te zien is (#923, de Knakker). Die plaat gaat er hier uit,
+// net als bij de open cabine van de maaidorser (#847): de raamlijst die er al langs de
+// buitenkant ligt (sideStrip) en de ruiten sluiten de band af. Alleen vlakke driehoeken in het
+// raamlijnvlak tussen de twee opgegeven x'en verdwijnen; de schuine neus, het dak en de bevels
+// blijven staan.
+function withoutBeltPlate(geo, beltY, x0, x1, pad = 0.2) {
+  const src = geo.index ? geo.toNonIndexed() : geo;
+  const pos = src.attributes.position;
+  const keep = [];
+  const n = pos.count / 3;
+  for (let i = 0; i < n; i++) {
+    const o = i * 9;
+    let flat = true, xmin = Infinity, xmax = -Infinity;
+    for (let k = 0; k < 3; k++) {
+      const y = pos.array[o + k * 3 + 1], x = pos.array[o + k * 3];
+      if (Math.abs(y - beltY) > 1e-3) { flat = false; break; }
+      if (x < xmin) xmin = x;
+      if (x > xmax) xmax = x;
+    }
+    if (flat && xmin >= x0 - pad && xmax <= x1 + pad) continue;
+    keep.push(o);
+  }
+  if (keep.length * 9 === pos.count * 3) { if (src !== geo) src.dispose(); return geo; }
+  const out = new THREE.BufferGeometry();
+  const p = new Float32Array(keep.length * 9);
+  keep.forEach((o, i) => { for (let k = 0; k < 9; k++) p[i * 9 + k] = pos.array[o + k]; });
+  out.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  if (src !== geo) src.dispose();
+  geo.dispose();
+  return out;
+}
+
 // Bottom edge from rear to front with semicircular arches over each wheel.
 function archedSill(x0, x1, sillY, arches) {
   const pts = [[x0, sillY + 0.02]];
@@ -252,7 +286,13 @@ function buildCarGeometry(type, L, W, paint, opts) {
     ? [[hl, P.nose], [hl - 0.12, P.hood], [P.xA, P.belt], [xK, P.belt], [xK, P.roof], [-hl + 0.06, P.roof], [-hl, P.roof - 0.06]]
     : [[hl, P.nose], [hl - (P.boxy ? 0.05 : 0.14), P.hood], [P.xA, P.belt], [P.xD, P.belt], [-hl + (P.boxy ? 0.04 : 0.1), P.deck], [-hl, P.tail]];
   const outline = [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
-  B.geo(extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05), null, paint);
+  // #923: bij een personenauto staat de raamband open (zie withoutBeltPlate), zodat het interieur
+  // door het glas te zien is; de raamlijst (sideStrip, verderop) sluit de band langs de buitenkant
+  // af. Een bestelbus houdt zijn vlak tussen voorruit en laadruimte: dat is de neus/dashboardplaat.
+  const body = P.van
+    ? extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05)
+    : withoutBeltPlate(extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05), P.belt, P.xD, P.xA);
+  B.geo(body, null, paint);
   archLiners(B, arches, W);
 
   if (P.van) {
@@ -275,7 +315,10 @@ function buildCarGeometry(type, L, W, paint, opts) {
     // langs naar binnen - bij de lichtgrijze Knakker leek de cabine daardoor open te zijn, met de
     // losse stangen van het interieur in het zicht. Het glas staat nu 1 cm binnen de body, het dak
     // sluit erop aan en de stijlen staan op de ruit in plaats van ernaast.
-    B.geo(extrudeProfile(gh, W * 0.94, 0.03), null, GLASS, G_GLASS);
+    // De glasband is een dichte extrusie: de onderkant daarvan is een plaat over de hele cabine
+    // op de raamlijn, en die sneed door het interieur (#923). De onderkant gaat eruit; de
+    // raamlijst van het koetswerk sluit de band af.
+    B.geo(withoutBeltPlate(extrudeProfile(gh, W * 0.94, 0.03), P.belt - 0.03, P.xD, P.xA), null, GLASS, G_GLASS);
     const roofPts = [[P.xB + 0.07, P.roof - 0.09], [P.xB - 0.04, P.roof], [P.xC + 0.04, P.roof], [P.xC - 0.07, P.roof - 0.09]];
     B.geo(extrudeProfile(roofPts, W * 0.98, 0.025), null, paint);
     const pz = W * 0.47;
@@ -493,7 +536,10 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
     for (const s of [1, -1]) {
       const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, W * 0.3), lampMaterial(0x2f6bff, 0.25));
       lamp.position.set(barX, barY, s * W * 0.2);
-      group.add(lamp);
+      // #938: the lamps hang on the body, not on the root: when braking or pulling
+      // away the body moves (susPitch/susRoll, scene3d.js), and the beacons should
+      // move with it. On the root they stayed bolt upright.
+      body.add(lamp);
       lamps.push(lamp);
     }
     group.userData.policeLamps = lamps;

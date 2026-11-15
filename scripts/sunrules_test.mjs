@@ -53,7 +53,9 @@ const dawn = (dec) => { S.setSunDeclination(dec); for (let h = 12; h > 0; h -= 0
 const lenNight = (dec) => (24 - dusk(dec)) + dawn(dec);
 ok(dusk(20.5) > dusk(10) && dusk(10) > dusk(0), 'dusk comes later towards midsummer', `${dusk(0).toFixed(2)} ${dusk(10).toFixed(2)} ${dusk(20.5).toFixed(2)}`);
 ok(lenNight(20.5) < lenNight(0), 'the midsummer night is shorter than the spring night', `${lenNight(20.5).toFixed(2)} vs ${lenNight(0).toFixed(2)}`);
-ok(dusk(15) > 19 && dusk(15) < 22 && dawn(15) > 3 && dawn(15) < 6, 'at the default date night is from about 19:40 to 04:20', `${dusk(15).toFixed(2)} - ${dawn(15).toFixed(2)}`);
+// #946: door de zomerse daglichtcyclus valt de nacht later en begint de dag eerder
+// (de eigen checks van #946 staan in scripts/summerday_test.mjs).
+ok(dusk(15) > 20.4 && dusk(15) < 22 && dawn(15) > 2.5 && dawn(15) < 4.5, 'at the default date night is from about 20:50 to 03:10', `${dusk(15).toFixed(2)} - ${dawn(15).toFixed(2)}`);
 
 // junk in, day out
 S.setSunDeclination(null);

@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { probe } from './hitchprobe.js';
 import { gridItems } from './spatialgrid.js';
 import { applyWetGround } from './terrain3d.js';
-import { buildRoadStructure, buildOverpassDeck, structureGroup, jointAway, jointMiter } from './roadstructures3d.js';
+import { buildRoadStructure, buildOverpassDeck, structureGroup, jointAway, jointMiter, flatBridgeCoreArrays } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { getWaterIndex } from './waterindex.js';
@@ -1772,6 +1772,12 @@ function roadGroup(r) {
     // merged with the road's cell; a knocked-out crash barrier bumps its
     // geometry's batchVer, which redoes the cell
     if (struct) { struct.userData.batchChildren = true; group.add(struct); }
+  }
+  // (#919) een vlakke brug houdt een eigen dek, ook als de stenen plaat van de
+  // oever er nog niet is (de rand van de detailring): anders kijk je eronderdoor
+  if (netMap && netMap.elev && !r.z && r.bridge && !r.tunnel) {
+    if (r._geoBridgeCore === undefined) r._geoBridgeCore = structureGroup(netMap, flatBridgeCoreArrays(r, netMap));
+    if (r._geoBridgeCore) { r._geoBridgeCore.userData.batchChildren = true; group.add(r._geoBridgeCore); }
   }
   return group;
 }

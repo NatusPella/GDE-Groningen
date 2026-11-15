@@ -340,7 +340,15 @@ function addPolyGeometry(B, geo, c) {
 // rasters toevoegt. (#755) De basisindex wordt uit die rasters opgebouwd en na een
 // tegel-add/drop opnieuw, in stukken; zie daarvoor de baseBuild-machinerie hieronder.
 export function createFarLOD(scene, map, opts) {
-  const { flatGeometry, colors, sidewalkExtra, roadColorOf } = opts;
+  const { flatGeometry, colors, sidewalkExtra, roadColorOf, hideBuilding = null } = opts;
+  // (#917) Een gebouw dat de detailring verbergt (scene3d.setBuildingHidden: een kit-kerk,
+  // -molen of -borg staat ervoor in de plaats) hoort ook geen verre-kist te hebben. Anders
+  // steekt dat blok tussen de detailring en de verre ring dwars door de kit en flikkert de
+  // gevel. `hideBuilding(b)` komt uit scene3d en kijkt in dezelfde verborgen-set.
+  const isHidden = (b) => !!b.landmark || (hideBuilding ? !!hideBuilding(b) : false);
+  // welk verre-tegel een gebouw tekent, zodat een gebouw dat pas later verborgen wordt
+  // uit die ene tegel kan (en niet de hele laag opnieuw hoeft)
+  const buildingTile = new WeakMap();
   const roadColor = Object.fromEntries(Object.entries(colors.roads).map(([k, hex]) => {
     const a = new THREE.Color(hex), s = new THREE.Color(colors.sidewalk);
     const mixed = (k === 'major' || k === 'normal' || k === 'minor') ? a.lerp(s, 0.3) : a;
@@ -350,6 +358,10 @@ export function createFarLOD(scene, map, opts) {
   const tintCache = new Map();
 
   const tiles = new Map();
+  // (#921) de rijen die een gestroomde tegel zelf tekent: de basisindex slaat ze over,
+  // anders staat elk gestroomd gebouw, elke weg en elk vlak groen er twee keer in (dubbel
+  // werk, en bij een verandering een oude kopie die blijft staan).
+  const streamedRows = new WeakSet();
   let geoSeen = map.geoVer; // (#314 C2) de kaartstand van de LOD-tegels
   let tilesVersion = 0, lastPass = null, passFrame = 0; // idle-pass bookkeeping of update()
   const tileOf = (x, y) => {
@@ -371,17 +383,20 @@ export function createFarLOD(scene, map, opts) {
   // (per rastercel, niet per raster in één keer).
   const takeBase = {
     building: (b) => {
-      if (b.landmark || !b.bounds) return;
-      tileOf((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2).buildings.push(b);
+      if (isHidden(b) || !b.bounds || streamedRows.has(b)) return;
+      const t = tileOf((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2);
+      t.buildings.push(b);
+      buildingTile.set(b, t);
     },
     road: (r) => {
+      if (streamedRows.has(r)) return;
       for (let i = 0; i < r.pts.length - 1; i++) {
         const a = r.pts[i], c = r.pts[i + 1];
         tileOf((a[0] + c[0]) / 2, (a[1] + c[1]) / 2).segs.push(r, i);
       }
     },
     green: (g) => {
-      if (!g.bounds || g.pts.length < 3) return;
+      if (!g.bounds || g.pts.length < 3 || streamedRows.has(g)) return;
       tileOf((g.bounds[0] + g.bounds[2]) / 2, (g.bounds[1] + g.bounds[3]) / 2).green.push(g);
     },
   };
@@ -525,14 +540,40 @@ export function createFarLOD(scene, map, opts) {
     t.job = null;
   }
 
-  // (#755) De kaartstand veranderde (map.geoVer): deze tegels zijn oud. Alles
-  // weg, ook de gestroomde tegels (hun rijen zitten in de rasters en komen met
-  // de herbouw van de basisindex terug), en de basisindex opnieuw opbouwen zodra
-  // update() weer ruimte heeft.
+  // (#917) Een gebouw dat de detailring nu verbergt (scene3d.setBuildingHidden, vanuit
+  // ommelandlandmarks.coverBuildings als er een kit-kerk/-molen/-borg voor in de plaats staat)
+  // uit zijn verre tegel halen: het blok stak tussen de detailring en de verre ring dwars
+  // door de kit en gaf z-fighting op de gevel. Alleen die ene tegel wordt opnieuw gebouwd.
+  function hideFarBuilding(b) {
+    const t = buildingTile.get(b);
+    if (!t) return false;
+    buildingTile.delete(b);
+    if (tiles.get(t.key) !== t) return false; // de tegel is al weg (resetTiles): niets te doen
+    const i = t.buildings.indexOf(b);
+    if (i < 0) return false;
+    t.buildings.splice(i, 1);
+    if (t.job) {
+      const q = queue.indexOf(t);
+      if (q >= 0) queue.splice(q, 1);
+      t.job = null;
+    }
+    if (t.meshes) disposeTile(t);
+    if (!t.job) startJob(t);
+    tilesVersion++;
+    return true;
+  }
+
+  // (#755) De kaartstand veranderde (map.geoVer): de basisindex komt opnieuw uit de
+  // rasters. (#921) Alleen de basisdelen: een gestroomde tegel houdt zijn mesh en
+  // wordt niet weggegooid en opnieuw opgebouwd bij elke tegel die erbij komt of
+  // weggaat (dat was het "opnieuw inladen" van een stadsdeel). Zijn rijen staan in
+  // streamedRows, zodat de basisindex ze niet nog een keer tekent.
   function resetTiles() {
-    for (const t of tiles.values()) if (t.meshes || t.job) disposeTile(t);
-    tiles.clear();
-    queue.length = 0;
+    for (const [k, t] of tiles) {
+      if (t.stream) continue;
+      if (t.meshes || t.job) disposeTile(t);
+      tiles.delete(k);
+    }
     lastPass = null;
     baseBuild = null;
   }
@@ -634,9 +675,10 @@ export function createFarLOD(scene, map, opts) {
     const k = 's:' + key;
     if (tiles.has(k)) disposeTile(tiles.get(k));
     const t = { key: k, x0, y0, x1: x0 + size, y1: y0 + size, buildings: [], segs: [], green: [], water: water.filter((w) => w.flat && w.pts.length >= 4), meshes: null, job: null, stream: true };
-    for (const b of buildings) if (!b.landmark && b.bounds) t.buildings.push(b);
+    for (const b of buildings) if (!isHidden(b) && b.bounds) { t.buildings.push(b); streamedRows.add(b); buildingTile.set(b, t); }
     for (const r of roads) for (let i = 0; i < r.pts.length - 1; i++) t.segs.push(r, i);
-    for (const g of green) if (g.bounds && g.pts.length >= 3) t.green.push(g);
+    for (const r of roads) streamedRows.add(r);
+    for (const g of green) if (g.bounds && g.pts.length >= 3) { t.green.push(g); streamedRows.add(g); }
     if (colors.greenRank) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
     tiles.set(k, t);
     tilesVersion++;
@@ -654,5 +696,5 @@ export function createFarLOD(scene, map, opts) {
     shared.uLitFrac.value = litFrac;
   }
 
-  return { update, setNight, stats, root, addStreamTile, dropStreamTile };
+  return { update, setNight, stats, root, addStreamTile, dropStreamTile, hideBuilding: hideFarBuilding };
 }

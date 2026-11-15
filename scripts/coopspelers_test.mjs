@@ -172,4 +172,16 @@ t('spelerskleuren (#592): alleen #rrggbb komt in de lijst en in het style-attrib
   assert.doesNotMatch(net, /world\.coopRoster = s\.welcome\.lijst/, 'de ruwe welkomstlijst komt nergens meer binnen');
 });
 
+// Review 0.62: de kop van de Spelers-lijst zei dat geld gedeeld was en dat "wie het spel
+// opende" altijd de baas is. Elk van beide is onwaar: geld en spullen zijn per speler en het
+// verwijderrecht hoort bij de gastheer van nu (#439), niet bij de opener.
+t('de kop van de Spelers-lijst zegt wat van jou blijft en wie er mag verwijderen', () => {
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
+  assert.match(ui, /De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou\./);
+  assert.match(ui, /Alleen de speler bij wie de sessie draait, kan iemand eruit zetten\./);
+  assert.doesNotMatch(ui, /wereld, de tijd en het geld zijn samen van de groep/);
+  assert.doesNotMatch(ui, /wie het spel opende kan iemand eruit zetten/);
+  assert.match(ui, /const rol = echteSessie\(world\) && world\.coopNet\.role;/, 'de knoppen volgen de gastheer van nu, niet de opener');
+});
+
 console.log(`coopspelers_test: ${n}/${n} ok`);

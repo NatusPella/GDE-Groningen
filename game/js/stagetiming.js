@@ -11,6 +11,7 @@
 // Space, E or F press. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { neemTimingDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
+import { timingGrace, widenZone, graceHint } from './timingassist.js'; // #957: ruimere zone per stand en hulp
 
 const REPLY_S = 1.5;
 let panel = null;
@@ -20,10 +21,18 @@ export function closeTiming() {
   if (panel) panel.hide();
 }
 
-export function enterTiming(S, st, on) {
-  // a round with zoneIf gets a wider zone when that choice was made (M26: the ally of M23 closes the street the surest)
-  S.rounds = on && st && st.rounds.some((r) => r.zoneIf)
-    ? st.rounds.map((r) => (r.zoneIf && on(r.zoneIf) ? { ...r, zone: [r.zone[0] - 0.09, r.zone[1] + 0.09], ok: r.okIf || r.ok } : r))
+// #957: de zone wordt ruimer per moeilijkheidsstand en hulp (opts.mode, opts.settings).
+// Zonder die twee blijft de standaardmaat gelden, maar altijd ruimer dan de oude balk.
+export function enterTiming(S, st, on, opts = {}) {
+  S.grace = timingGrace(opts.mode, opts.settings);
+  // een ronde met zoneIf krijgt een nog ruimere zone als die keuze gemaakt is (M26: de bondgenoot van M23)
+  S.rounds = st && Array.isArray(st.rounds)
+    ? st.rounds.map((r) => {
+      const zone = widenZone(r.zone, S.grace);
+      return r.zoneIf && on && on(r.zoneIf)
+        ? { ...r, zone: widenZone([zone[0] - 0.09, zone[1] + 0.09], 1), ok: r.okIf || r.ok }
+        : { ...r, zone };
+    })
     : null;
   S.ti = 0;
   S.hits = 0;
@@ -47,11 +56,21 @@ export function stepTiming(st, S, press, dt) {
     S.needleT += dt;
     if (!press) return null;
     const hit = typeof press === 'object' ? !!press.hit : inZone(round, needleAt(round, S.needleT));
-    if (hit) S.hits++; else S.miss++;
+    if (hit) S.hits++;
+    else {
+      S.miss++;
+      // #962: een gemiste druk maakt de volgende poging makkelijker (ruimere
+      // zone, langzamere naald) in plaats van het verhaal meteen te laten
+      // mislukken. Alleen de kopie van deze ronde wordt aangepast.
+      const r = S.rounds && S.rounds[S.ti];
+      if (r) { r.zone = widenZone(r.zone, 1.35); r.speed = Math.max(0.35, (r.speed || 0.7) * 0.85); }
+    }
     S.treply = { text: (hit ? round.ok : round.bad) || '', bad: !hit };
     S.tphase = 'reply';
     S.replyT = REPLY_S;
-    S.pendingFail = st.failAt && S.miss >= st.failAt ? st.failText || 'het lukte niet' : null;
+    // #962: één misser extra voordat een verhaalstap mislukt; de QTE blijft
+    // een kort moment, geen poortwachter.
+    S.pendingFail = st.failAt && S.miss >= st.failAt + 1 ? st.failText || 'het lukte niet' : null;
     return null;
   }
   S.replyT -= dt;
@@ -80,7 +99,7 @@ function paint(st, S, round) {
     nr: Math.min(S.ti + 1, st.rounds.length),
     flash: reply ? reply.text : '',
     bad: !!reply && reply.bad,
-    help: reply ? '' : `${keycap('SPATIE')} ${st.help || 'druk als de streep in het groen is'}`,
+    help: reply ? '' : `${keycap('SPATIE')} ${st.help || 'druk als de streep in het groen is'}${graceHint(S.grace) ? ` · ${graceHint(S.grace).toLowerCase()}` : ''}`,
   });
 }
 

@@ -42,9 +42,13 @@ export function updateRegioLeven(dt, w) {
   // ambient), not in a cutscene, a minigame or a respawn, and not from a fast vehicle
   const pv = hoofdspeler(w).inVehicle;
   if ((!pv || Math.abs(pv.speed || 0) < 6) && !playerBusy(w, ['cinematic', 'respawn', 'heliRun', 'pigeon', 'train', 'padel', 'activityGame']).busy) tikStraatpraat(dt, w);
+  // (#954) Het uitkijkpunt gaat vóór de algemene "ben je ergens mee bezig"-poort: een
+  // missie in de buurt (Bourtange) zette die poort dicht, waardoor de speler bij het
+  // uitkijkpunt niets kon doen. Alleen een filmpje, een minigame of een rit houdt hem
+  // nog tegen; de E-actie van het punt is maar een melding en neemt niets over.
+  const kijkVrij = playerBusy(w, ['cinematic', 'respawn', 'padel', 'activityGame', 'heliRun', 'pigeon', 'train']);
+  if (!kijkVrij.busy && tryViewpointInteract(w)) return;
   if (playerBusy(w).busy) return;
-  // #825: E bij een uitkijkpunt onthult de streek en zet het punt in het eigen profiel
-  if (tryViewpointInteract(w)) return;
   const p = hoofdspeler(w);
   const moving = p.inVehicle ? Math.abs(p.inVehicle.speed || 0) > 0.5 : (p.speed || 0) > 0.3;
   if ((scanT -= dt) <= 0) {

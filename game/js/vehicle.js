@@ -9,13 +9,15 @@ import { resolvePropCollisions } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
 import { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
 export { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
+import { vehicleImpactDamage, wallImpactDamage, landingImpactDamage, flatTirePossible } from './impactbalance.js';
+import { EDGE, shoreBlocks, lastDryDistance, edgeBackOff } from './wateredge.js';
 import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle, restWreck } from './vehiclewreck.js';
 export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle, restWreck } from './vehiclewreck.js';
 // canUseRoad woont bij de verkeers-AI (die beslist welke weg een voertuig mag gebruiken) en wordt
 // door de spawnteller hier ook gebruikt; vandaar de import naast de host-wissel.
 import { setTrafficHost, canUseRoad } from './vehicle/traffic.js';
-import { setBusPopHost, manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, busSpawnPoint, getLiveBussen } from './vehicle/buspop.js';
-export { manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats };
+import { setBusPopHost, manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, busSpawnPoint, getLiveBussen, detachLiveBus } from './vehicle/buspop.js';
+export { manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, detachLiveBus };
 import { playerTune, playerTopSpeed, speedCap, coastDrag, lateralGrip, maxYawRate, maxCurvature } from './vehicle/tuning.js';
 export { playerTopSpeed, speedCap, maxYawRate, maxCurvature };
 import { pushBusTrail, sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAILER_MAX_ANGLE } from './vehicle/trailer.js';
@@ -34,7 +36,7 @@ import { lockGateStop } from './sluizen.js';
 import { countrySurface, countryWeight, edgeDistance } from './countryfield.js';
 import { countryWater } from './countryedge.js';
 import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
-import { pushOutOfTrunks } from './countrywalls.js';
+import { pushOutOfTrunks, pushOutOfSolids } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority, junctionArm } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, roadCapacityTarget, roadLengthWithin } from './trafficfleet.js';
@@ -166,6 +168,10 @@ export class Vehicle {
     this.wrecked = false;
     this.driver = null; // 'player' | ai-controlled marker | null
     this.passenger = null; // 'companion' | null - the non-driving Tammo/Tessa riding along
+    // A scripted scene boat or a film car never shoves the player (see #964/#968):
+    // it may pass through others without a contact impulse, so a rail-bound rival
+    // cannot push the player's boat onto the bank.
+    this.ghost = false;
     this.horn = false;
 
     // Residual world-space sideways velocity (m/s) left over from a
@@ -439,7 +445,19 @@ const PLAYER_STEER_RETURN = 9;
 // a move is only refused when it puts MORE of the hull on land, so a boat that
 // already touches a quay can still turn and sail off.
 const BOAT_SUBSTEP = 0.6;
+// (#948) Een boot hoort op het water. Staat hij op de kant (een missie die hem daar
+// neerzette, een duw van een andere boot), dan vaart hij niet verder maar gaat hij
+// terug naar de laatste waterplek; zo komt hij nooit onder de grond. Geeft true als
+// de boot op het land stond (en dus is tegengehouden of teruggezet).
+export function rescueBoat(map, v) {
+  if (inMapWater(map, v.x, v.y)) { v._wetPose = { x: v.x, y: v.y, a: v.angle }; return false; }
+  if (v._wetPose) { v.x = v._wetPose.x; v.y = v._wetPose.y; v.angle = v._wetPose.a; }
+  v.speed = 0;
+  v.driftX = 0; v.driftY = 0;
+  return true;
+}
 export function drivePlayerBoat(v, map, dt, throttle, steer, brake) {
+  if (rescueBoat(map, v)) return false;
   updateOpenWater(v, map, dt);
   const n = Math.min(8, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / BOAT_SUBSTEP)));
   for (let i = 0; i < n; i++) {
@@ -1080,15 +1098,11 @@ const CRUNCH_SPEED = 9; // above this, hits absorb most of their energy instead 
 const CONTACT_FRICTION = 0.35;
 const WALL_FRICTION = 0.25;
 const IMPACT_EVENT_SPEED = 1.5;
-const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed before a hit counts as "hard" (sparks/damage)
-const IMPACT_DAMAGE_PER_MPS = 3.5;
-const MAX_IMPACT_DAMAGE = 30;
-const FLAT_MIN_DAMAGE = 8; // een klap van minstens zoveel schade kan een band lek slaan
+const HARD_HIT_CLOSING_SPEED = 5; // m/s of closing speed before a hit counts as "hard" (sparks/damage)
 const FLAT_MAX_CHANCE = 0.5;
 const FLAT_TOP_FACTOR = 0.7; // lekke band: topsnelheid
 const FLAT_PULL = 0.12; // lekke band: de auto trekt scheef (stuurbias)
-const WALL_DAMAGE_SPEED = 7;
-const MAX_WALL_DAMAGE = 20;
+const LAND_DAMAGE_SPEED = 9;
 const SCRAPE_SPEED = 3;
 
 function velocityOf(v) {
@@ -1150,9 +1164,11 @@ function tangentialSpeed(a, b, nx, ny) {
 }
 
 // Een politiepaard (#331) gaat niet kapot en blijft ook niet staan: een klap van deze schade (een auto
-// van ~5 m/s tegen het paard) gooit de ruiter eraf en het paard slaat op hol. Dat doet policemounts.js
-// maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier komt hij er in één klap onder.
-const HORSE_KNOCK_DAMAGE = 10;
+// van ~5 m/s tegen het paard, de aanrijdrempel van de impactbalans van #934) gooit de ruiter eraf en het paard
+// slaat op hol. Dat doet policemounts.js maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier
+// komt hij er in één klap onder. Elke klap boven de drempel telt: een paard is schrikachtig, ook al is de
+// schade aan de auto nu veel lager.
+const HORSE_KNOCK_DAMAGE = 0.01;
 const HORSE_KNOCKED_HEALTH = 30;
 const HORSE_SOFT = 0.35; // een paard is zacht: de auto die het raakt krijgt zoveel van de schade
 const isMountHorse = (v) => v._mount === 'horse' && v.driver !== 'player';
@@ -1170,7 +1186,7 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
   // klappen voordat de speler hem stuk rijdt
   if (v.isPolice && v.driver !== 'player' && v.armor) dmg *= v.armor;
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
-  if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
+  if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && flatTirePossible(dmg) && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);
 }
 
@@ -1267,6 +1283,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       // wrecks are solid, heavy obstacles; two wrecks never interact
       // a boat and a car only ever share x/y with a bridge deck between them
       if (b.sinking || (a.wrecked && b.wrecked) || !a.isBoat !== !b.isBoat) continue;
+      // a film car or Jelle's scripted skutsje never touches the player (#964/#968)
+      if (a.ghost || b.ghost) continue;
       // two far cars the simulation worker drives keep their own gaps (simbridge.js)
       if (a._wid && b._wid) continue;
       // a helicopter in the air passes over everything
@@ -1309,9 +1327,10 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       const playerInvolved = a.driver === 'player' || b.driver === 'player';
       reportImpact(world, hx, hy, relN, playerInvolved, a.driver === 'player' ? b : a);
       if (relN > HARD_HIT_CLOSING_SPEED) {
-        const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
-        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(b) ? HORSE_SOFT : 1), playerInvolved, world);
-        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(a) ? HORSE_SOFT : 1), playerInvolved, world);
+        // #934: de pure impactregels (impactbalance.js) bepalen de schade; een tik
+        // onder de drempel doet niets en een harde klap blijft voelen.
+        applyImpactDamage(a, vehicleImpactDamage(relN, clamp(2 * mB / (mA + mB), 0.25, 1.6)) * (isMountHorse(b) ? HORSE_SOFT : 1), playerInvolved, world);
+        applyImpactDamage(b, vehicleImpactDamage(relN, clamp(2 * mA / (mA + mB), 0.25, 1.6)) * (isMountHorse(a) ? HORSE_SOFT : 1), playerInvolved, world);
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
       }
@@ -1350,9 +1369,9 @@ function resolveTrailerContacts(a, vehicles, world) {
     const playerInvolved = a.driver === 'player' || b.driver === 'player';
     reportImpact(world, hx, hy, relN, playerInvolved);
     if (relN > HARD_HIT_CLOSING_SPEED) {
-      const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
-      applyImpactDamage(b, clamp(base, 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
-      applyImpactDamage(a, clamp(base * 0.5, 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+      const dmg = vehicleImpactDamage(relN);
+      applyImpactDamage(b, dmg, playerInvolved, world);
+      applyImpactDamage(a, dmg * 0.5, playerInvolved, world);
       b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
     }
   }
@@ -1371,7 +1390,6 @@ function collisionProbe(v, k) {
 }
 
 const FALL_G = 9.8;
-const LAND_DAMAGE_SPEED = 7;
 // m/s the road must fall away from the car's own vertical motion before the
 // wheels leave it (a 5% crest at ~160 km/h and up)
 const CREST_VZ = 2.2;
@@ -1414,7 +1432,7 @@ export function settleVehicleHeight(v, map, dt) {
       v.susHeaveV = (v.susHeaveV || 0) - Math.min(2.5, hit * 0.35);
       v.susPitchV = (v.susPitchV || 0) - Math.min(1.2, hit * 0.12);
       if (hit > LAND_DAMAGE_SPEED) {
-        applyImpactDamage(v, Math.min(60, (hit - LAND_DAMAGE_SPEED) * 7), v.driver === 'player', null);
+        applyImpactDamage(v, landingImpactDamage(hit), v.driver === 'player', null);
         v.pendingImpact = { x: v.x, y: v.y, speed: hit * 1.5 };
       }
     }
@@ -1588,6 +1606,8 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     _cp.x = v.x; _cp.y = v.y;
     country = pushOutOfPlan(_cp, reach);
     if (!country) { _cp.x = v.x; _cp.y = v.y; country = pushOutOfTrunks(_cp, reach); }
+    // #939: hooibalen in de losse velden zijn net zo vast als een stam
+    if (!country) { _cp.x = v.x; _cp.y = v.y; country = pushOutOfSolids(_cp, reach); }
     rails = countryRailsNear(v.x, v.y, reach + 1).length > 0;
   }
   for (let k = 0; k < count; k++) {
@@ -1609,8 +1629,8 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     }
     if (country) {
       _cp.x = c[0]; _cp.y = c[1];
-      const inPlan = pushOutOfPlan(_cp, 0.05), onTrunk = pushOutOfTrunks(_cp, 0.05);
-      if (inPlan || onTrunk) {
+      const inPlan = pushOutOfPlan(_cp, 0.05), onTrunk = pushOutOfTrunks(_cp, 0.05), onSolid = pushOutOfSolids(_cp, 0.05);
+      if (inPlan || onTrunk || onSolid) {
         const ddx = _cp.x - c[0], ddy = _cp.y - c[1], d = Math.hypot(ddx, ddy) || 0.01;
         const nx = ddx / d, ny = ddy / d;
         v.x += nx * (d + 0.03);
@@ -1693,9 +1713,8 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   if (worst > IMPACT_EVENT_SPEED && worst > ((v.pendingImpact && v.pendingImpact.speed) || 0)) {
     v.pendingImpact = { x: hx, y: hy, speed: worst };
   }
-  if (worst > WALL_DAMAGE_SPEED) {
-    applyImpactDamage(v, Math.min(MAX_WALL_DAMAGE, (worst - WALL_DAMAGE_SPEED) * 2.5), v.driver === 'player', null);
-  }
+  // #934: een muur of gebouw doet pas vanaf 9 m/s iets, en dan nog gematigd.
+  applyImpactDamage(v, wallImpactDamage(worst), v.driver === 'player', null);
   return hit;
 }
 
@@ -2040,14 +2059,54 @@ const SUNK_Z = WATER_Y - 2.8;
 const sinkingVehicles = new Set();
 let sinkTickAt = -1;
 
-export function checkVehicleWater(v, map, world) {
+export function checkVehicleWater(v, map, world, wet = null) {
   tickSinkingVehicles(world);
   if (v.sinking && !v.wrecked) { v.x = v.sinking.x; v.y = v.sinking.y; v.speed = 0; return false; }
   if (v.isBoat || v.wrecked || v.sinking || (v.parked && !v.speed)) return false;
   // a helicopter only goes in once it is down on the canal
   if (v.isHeli && (v.z || 0) > 0.2) return false;
-  if (v.airborne || !overOpenWater(map, v.x, v.y, v.z || 0)) return false;
+  const isWet = wet || ((x, y, z) => overOpenWater(map, x, y, z));
+  // #936/#949: alleen de auto van de speler wordt bij een graskade of kade
+  // tegengehouden. Rustig ertegenaan is een tik; hard eroverheen is een plons.
+  if (v.driver === 'player' && guardWaterEdge(v, map, world, isWet)) return false;
+  if (v.airborne || !isWet(v.x, v.y, v.z || 0)) return false;
   startVehicleFall(v, world);
+  return true;
+}
+
+// De waterrand als echte rand (#936). Klopt de beweging van de auto met de wal
+// (onder de stopSnelheid), dan zetten we hem terug en remmen hem af. Boven die
+// snelheid laten we los: dan volgt de echte val met de plons (startVehicleFall).
+// `wet` is de watertoets van de kaart; los te geven voor de test.
+export function guardWaterEdge(v, map, world = null, wet = null) {
+  if (v.isBoat || v.isHeli || v.isPlane || v.sinking || v.wrecked || v.airborne) return false;
+  const z = v.z || 0;
+  const isWet = wet || ((x, y, zz) => overOpenWater(map, x, y, zz));
+  if (isWet(v.x, v.y, z)) return false; // al boven het water: de val neemt over
+  const [vx, vy] = velocityOf(v);
+  const speed = Math.hypot(vx, vy);
+  if (speed < EDGE.minSpeed || speed >= EDGE.stopSpeed) return false;
+  // goedkope voorwaartse blik: alleen als er water in de buurt ligt
+  const reach = v.halfLen + EDGE.pad;
+  if (map.waterNear && !map.waterNear(v.x, v.y, reach + EDGE.extra + 4).length) return false;
+  const ux = vx / speed, uy = vy / speed;
+  const aheadWet = isWet(v.x + ux * reach, v.y + uy * reach, z);
+  if (!shoreBlocks({ speed, onLand: true, aheadWet })) return false;
+  const lastDry = lastDryDistance({ x: v.x, y: v.y }, ux, uy, reach + EDGE.extra, (x, y) => isWet(x, y, z));
+  if (lastDry === null || lastDry >= reach) return false;
+  // de neus staat tegen de wal: terug en afremmen
+  const back = edgeBackOff(lastDry, v.halfLen);
+  v.x -= ux * back;
+  v.y -= uy * back;
+  v.speed *= EDGE.keep;
+  v.driftX *= EDGE.keep;
+  v.driftY *= EDGE.keep;
+  v.yawVel *= 0.5;
+  v.pendingImpact = { x: v.x + ux * v.halfLen, y: v.y + uy * v.halfLen, speed: speed * 1.6 };
+  if (world && v.driver === 'player' && world.time >= (v._edgeMsgAt || 0)) {
+    v._edgeMsgAt = world.time + 3;
+    world.addMessage('De kade houdt je tegen. Rustig aan bij het water.', 2.5, { kind: 'tip', key: 'kade-rand' });
+  }
   return true;
 }
 
@@ -2077,7 +2136,7 @@ function startVehicleFall(v, world) {
   const pv = hoofdspeler(world).inVehicle;
   const byPlayer = v.driver === 'player' || (pv && pv !== v && Math.hypot(pv.x - v.x, pv.y - v.y) < 7 && Math.abs(pv.speed) > 3);
   v.sinking = {
-    phase: 'fall', t: 0, x: v.x, y: v.y, z: 0, vz: 0, pitch: 0, roll: 0,
+    phase: 'fall', t: 0, x: v.x, y: v.y, z: v.z || 0, vz: 0, pitch: 0, roll: 0,
     vx: Math.cos(v.angle) * v.speed + v.driftX,
     vy: Math.sin(v.angle) * v.speed + v.driftY,
     dir: v.speed < 0 ? 1 : -1,
@@ -2131,9 +2190,16 @@ function updateSinking(v, dt, world) {
     v.health = 0;
     restWreck(v);
     if (s.byPlayer) markWreckedByPlayer(v, world);
+    // #949: de plons hoort bij de klap. Hoe harder de auto het water raakt (naar
+    // beneden en vooruit), hoe meer water er opspat en hoe groter het geluid.
+    const val = Math.min(12, Math.abs(s.vz) + Math.hypot(s.vx, s.vy));
     const fx = Math.cos(v.angle) * (v.halfLen || 1) * 0.6, fy = Math.sin(v.angle) * (v.halfLen || 1) * 0.6;
     world.particles.push({ kind: 'splash', x: v.x, y: v.y, until: world.time + SPLASH_LIFETIME });
     if (!s.small) world.particles.push({ kind: 'splash', x: v.x + fx, y: v.y + fy, until: world.time + SPLASH_LIFETIME });
+    if (val > 4) world.particles.push({ kind: 'splash', x: v.x - fx * 0.6 + (Math.random() - 0.5), y: v.y - fy * 0.6 + (Math.random() - 0.5), until: world.time + SPLASH_LIFETIME });
+    const q = world.audioEvents || (world.audioEvents = []);
+    if (q.length < 64) q.push({ kind: 'splash', x: v.x, y: v.y });
+    if (val > 4 && q.length < 64) q.push({ kind: 'fx', name: 'splash_big', x: v.x, y: v.y });
     if (v.driver === 'player') {
       if (s.small) { hoofdspeler(world).ejectIntoWater(v, world); world.addMessage('Nat geworden!', 3); }
       else world.addMessage('Plons! Je auto zinkt - E om uit te stappen', 3.5);

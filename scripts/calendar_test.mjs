@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import {
   day, weekdayOf, formatDay, STEP_DAY, storyBounds, clampDay, dayForSavedStep, sunDeclinationDeg, SPECIAL_DAYS,
   specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS, ontzetCountdown,
+  isLastMissionOfDay,
 } from '../game/js/calendar.js';
 import { STEPS, PARTS, ARC_ID } from '../game/js/storyarc.js';
 
@@ -52,6 +53,11 @@ if (NEW) {
   ok(STEP_DAY.get('M03') === day(8, 15) && weekdayOf(STEP_DAY.get('M03')) === 6, 'het Loket: zaterdag 15 augustus');
   ok(STEP_DAY.get('M06') === day(8, 17) && STEP_DAY.get('E') === EPILOGUE_DAY, 'the kraak is on maandag 17, the epilogue on vr 11 september');
   ok(isSpecial('kermis', STEP_DAY.get('M16')) || STEP_DAY.get('M16') === day(8, 22), 'M16 is on za 22 augustus');
+// #935: de dagafsluiting hoort bij de laatste missie van de kalenderdag
+ok(isLastMissionOfDay('M17') === false && isLastMissionOfDay('M19') === true, 'M19 sluit de dag van M17-M19 af');
+ok(isLastMissionOfDay('M27') === true && isLastMissionOfDay('M28') === true && isLastMissionOfDay('M29') === true, 'Deel 4: elke missie is die dag de laatste');
+ok(isLastMissionOfDay('M30') === true, 'de laatste missie van het verhaal sluit de dag');
+ok(isLastMissionOfDay('bestaatniet') === false, 'een onbekende stap is geen dagafsluiter');
 } else {
   ok(STEP_DAY.get('H7') === day(8, 19) && day(8, 20) === SPECIAL_DAYS.find((s) => s.id === 'noorderzon').from, 'H7 decor the day before Noorderzon opens');
   ok(isSpecial('kermis', STEP_DAY.get('r-kermis')), 'r-kermis is during the Zomerkermis');

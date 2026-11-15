@@ -6,7 +6,9 @@ import {
   createStreamAhead, advanceStreamAhead, streamLead, streamRank, streamNear,
   noteStreamFocus, streamAheadHere, streamRankHere, streamNearHere,
   makeGeoQueue, geoPush, geoTake,
+  createStreamBudget, noteStreamWorldPart, streamFrameMs,
   STREAM_SPEED_MIN, STREAM_LEAD_S, STREAM_MAX_LEAD, GEO_OPEN_PER_WORKER, GEO_DISPATCH_PER_FRAME,
+  STREAM_FRAME_MS, STREAM_SLOW_FRAME_MS, STREAM_BOOT_MS, STREAM_BOOT_S, STREAM_SLOW_MS, STREAM_FAST_SPEED,
 } from '../game/js/streambudget.js';
 const { registerKernels, runGeo, geoStats, geoOpenCount, geoFrame } = await import('../game/js/geojobs.js');
 
@@ -108,6 +110,22 @@ ok(geoOpenCount() === 0 && geoStats.queued === 0, 'niets blijft in de wachtrij h
 ok(typeof geoFrame === 'function', 'het frame-budget is er ook zonder worker');
 geoFrame();
 ok(geoStats.sync === 1 && got === 42, 'de terugval telt mee in geoStats');
+
+// ---- 6. het frame-budget van het laadwerk (#937) ----------------------
+// gewoon: 1,5 ms; na een traag beeld of op hoge snelheid minder; de eerste
+// seconden na een sprong het minst.
+const b = createStreamBudget();
+ok(streamFrameMs(b, 1000, 16, 10) === STREAM_FRAME_MS, 'gewoon: het normale budget', String(streamFrameMs(b, 1000, 16, 10)));
+ok(streamFrameMs(b, 1000, STREAM_SLOW_MS + 1, 10) === STREAM_SLOW_FRAME_MS, 'na een traag beeld: minder tegelwerk', String(streamFrameMs(b, 1000, STREAM_SLOW_MS + 1, 10)));
+ok(streamFrameMs(b, 1000, 16, STREAM_FAST_SPEED + 5) === STREAM_SLOW_FRAME_MS, 'op hoge snelheid: minder tegelwerk', String(streamFrameMs(b, 1000, 16, STREAM_FAST_SPEED + 5)));
+ok(streamFrameMs(b, 1000, 16, STREAM_FAST_SPEED) === STREAM_FRAME_MS, 'op de drempel zelf: nog normaal');
+noteStreamWorldPart(b, 1000);
+ok(streamFrameMs(b, 1100, 16, 10) === STREAM_BOOT_MS, 'na een sprong: het laagste budget');
+ok(streamFrameMs(b, 1000 + STREAM_BOOT_S * 1000 - 1, 16, 10) === STREAM_BOOT_MS, 'tot het einde van de eerste seconden');
+ok(streamFrameMs(b, 1000 + STREAM_BOOT_S * 1000, 16, 10) === STREAM_FRAME_MS, 'daarna weer normaal');
+ok(STREAM_BOOT_MS < STREAM_SLOW_FRAME_MS && STREAM_SLOW_FRAME_MS < STREAM_FRAME_MS, 'de drie budgetten lopen op');
+ok(noteStreamWorldPart(createStreamBudget(), NaN).bootUntil === 0, 'een onbekende klok zet geen budget');
+ok(streamFrameMs(null, 1000, 16, 10) === STREAM_FRAME_MS, 'zonder budget: het normale budget');
 
 console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} controles`);
 process.exit(fails ? 1 : 0);

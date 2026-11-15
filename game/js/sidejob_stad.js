@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 // Zijmissies uit stadmissies.js (#26) op het sidejob-contract van sidejobs.js. De regels
 // zijn puur; deze adapter zet plekken en voertuig neer, voedt de regels met snelheid,
 // remvertraging en bochtkracht en vertaalt hun gebeurtenissen naar meldingen, HUD en
@@ -14,9 +15,20 @@ import { createChoicePanel, keycap } from './choicepanel.js';
 import { dist } from './util.js';
 
 const STAD = { x: 213.81, y: 9.9 };
+// #976: de bietencampagne rijdt met een vrachtauto en een oplegger vol bieten, niet met
+// een bestelbusje. De vrachtwagen is een echte truck (zwaar, traag, weinig wendbaar) en de
+// oplegger staat er zichtbaar achter; de bietenhoop groeit bij het laden en slinkt als er
+// bieten van de kar rollen.
+export const BEET_TRUCK = { name: 'truck', len: 6.8, wid: 2.5, maxSpeed: 18, accel: 3.2, brake: 12, turnRate: 1.25, color: '#6d7a34' };
+export const BEET_TRAILER = { len: 8.4, wid: 2.55, hoog: 1.55, gap: 0.5 };
+// De vulling van de hoop: tijdens het laden de laadstand, daarna de lading die overblijft.
+export function bietenVulling(fase, fill, load) {
+  const k = fase === 'laden' ? fill : (Number.isFinite(load) ? load / 100 : 0);
+  return Math.max(0, Math.min(1, Number.isFinite(k) ? k : 0));
+}
 const MODELS = {
   oudebus: { kind: 'bus', model: { name: 'bus', len: 9.4, wid: 2.4, maxSpeed: 14, accel: 2.6, brake: 8, turnRate: 1.0, color: '#b9552b' } },
-  vrachtwagen: { kind: 'car', model: { name: 'van', len: 7.2, wid: 2.4, maxSpeed: 20, accel: 4, brake: 12, turnRate: 1.4, color: '#7a8a3a' } },
+  vrachtwagen: { kind: 'car', model: BEET_TRUCK },
   bestelbus: { kind: 'car', model: { name: 'van', len: 5.4, wid: 2.1, maxSpeed: 24, accel: 6, brake: 18, turnRate: 1.9, color: '#d8a31c' } },
   camerabus: { kind: 'car', model: { name: 'van', len: 5.6, wid: 2.1, maxSpeed: 26, accel: 6.5, brake: 18, turnRate: 1.9, color: '#e8e6e0' } },
 };
@@ -46,6 +58,59 @@ function plek(map, regel) {
   return STAD;
 }
 
+// --- de bietenoplegger (#976) -------------------------------------------------------------
+// Een kipoplegger met hoge zeilen en een berg bieten. De hoop is één geschaalde vorm met
+// een paar losse bieten erop: goedkoop, en van een afstand leest hij als een volle kar.
+function maakBietenoplegger() {
+  const g = new THREE.Group();
+  g.name = 'bietenoplegger';
+  const body = new THREE.Mesh(new THREE.BoxGeometry(BEET_TRAILER.len, BEET_TRAILER.hoog, BEET_TRAILER.wid), new THREE.MeshLambertMaterial({ color: '#7a8a3a' }));
+  body.position.set(0, 0.95 + BEET_TRAILER.hoog / 2, 0);
+  g.add(body);
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(BEET_TRAILER.len, 0.28, BEET_TRAILER.wid * 0.78), new THREE.MeshLambertMaterial({ color: 0x2b2b2e }));
+  chassis.position.set(0, 0.66, 0);
+  g.add(chassis);
+  const wheelGeo = new THREE.CylinderGeometry(0.48, 0.48, 0.3, 10);
+  const wheelMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1c });
+  for (const dx of [-0.9, 0, 0.9]) for (const side of [-1, 1]) {
+    const w = new THREE.Mesh(wheelGeo, wheelMat);
+    w.rotation.x = Math.PI / 2;
+    w.position.set(dx - BEET_TRAILER.len * 0.18, 0.48, side * (BEET_TRAILER.wid / 2 - 0.08));
+    g.add(w);
+  }
+  // de berg bieten: een platgedrukte vorm plus losse knollen, samen in één schaalgroep
+  const heap = new THREE.Group();
+  heap.position.set(0, 1.02 + BEET_TRAILER.hoog * 0.42, 0);
+  const hoop = new THREE.Mesh(new THREE.DodecahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ color: 0x9a5a3c }));
+  hoop.scale.set(BEET_TRAILER.len * 0.44, 1.15, BEET_TRAILER.wid * 0.42);
+  heap.add(hoop);
+  const knolGeo = new THREE.IcosahedronGeometry(0.34, 0);
+  const knolMat = new THREE.MeshLambertMaterial({ color: 0xb06a44 });
+  for (let i = 0; i < 9; i++) {
+    const k = new THREE.Mesh(knolGeo, knolMat);
+    const a = (i / 9) * Math.PI * 2;
+    k.position.set(Math.cos(a) * BEET_TRAILER.len * 0.3, 0.55 + (i % 3) * 0.16, Math.sin(a) * BEET_TRAILER.wid * 0.28);
+    heap.add(k);
+  }
+  g.add(heap);
+  return { group: g, heap };
+}
+
+function zetBietenoplegger(c, vulling) {
+  const d = c.data;
+  if (!d.oplegger || !c.vehicle) return;
+  const v = c.vehicle, afstand = v.model.len / 2 + BEET_TRAILER.len / 2 + BEET_TRAILER.gap;
+  d.oplegger.group.position.set(v.x - Math.cos(v.angle) * afstand, v.gz || 0, v.y - Math.sin(v.angle) * afstand);
+  d.oplegger.group.rotation.set(0, -v.angle, 0);
+  d.oplegger.heap.scale.y = 0.14 + 0.86 * bietenVulling(vulling.fase, vulling.fill, vulling.load);
+  d.oplegger.heap.visible = d.oplegger.heap.scale.y > 0.16;
+}
+
+function ruimBietenoplegger(c) {
+  const d = c && c.data;
+  if (d && d.oplegger && c.removeMesh) { c.removeMesh(d.oplegger.group); d.oplegger.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); d.oplegger = null; }
+}
+
 function maakRit(regel) {
   const id = regel.id;
   const voertuig = MODELS[regel.voertuig];
@@ -66,6 +131,12 @@ function maakRit(regel) {
       const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, voertuig);
       if (!v) return 'Geen voertuig beschikbaar';
       c.vehicle = v;
+      // #976: de bietenrit krijgt een zichtbare oplegger met een berg bieten achter de truck
+      if (id === 'suikerbieten' && c.addMesh) {
+        const op = maakBietenoplegger();
+        c.addMesh(op.group);
+        c.data.oplegger = op;
+      }
       return true;
     },
 
@@ -99,6 +170,8 @@ function maakRit(regel) {
       const turn = Math.abs(Math.atan2(Math.sin(v.angle - prev.angle), Math.cos(v.angle - prev.angle))) / dt;
       d.prev = { speed, angle: v.angle };
       const input = { speed, decel: Math.max(0, (prev.speed - speed) / dt), lat: speed * turn, dist: Math.hypot(doel.x - v.x, doel.y - v.y) };
+      // de bietenhoop groeit bij het laden en slinkt als er bieten van de kar rollen
+      if (id === 'suikerbieten') zetBietenoplegger(c, { fase: d.ronde.s.phase, fill: d.ronde.s.fill, load: d.ronde.s.load });
       for (const e of stapStadRonde(d.ronde, input, dt)) {
         // doorlopende gebeurtenissen (elke stap) melden we hooguit om de drie seconden
         const vaak = e.type === 'laden' || e.type === 'kras' || e.type === 'bieten' || e.type === 'tehard' || e.type === 'hardremmen';
@@ -137,7 +210,7 @@ function maakRit(regel) {
       };
     },
 
-    stop() {},
+    stop(c) { ruimBietenoplegger(c); },
   };
 }
 

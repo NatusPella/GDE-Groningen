@@ -14,6 +14,11 @@ const CHASE_START_S = 2;
 const CHASE_STOP_S = 6;
 const ACT_START_S = 0.4;
 const ACT_STOP_S = 1.5;
+// #931: het pauzemenu is vaak maar een tik op Escape. De menu-loop start daarom
+// pas na een flinke tijd in het menu, en na het sluiten blijft hij nog even
+// staan (de bron in audio/scenario.js speelt door en pakt zijn plek weer op).
+export const MENU_START_S = 8;
+export const MENU_STOP_S = 2;
 
 import { isPauseMenuOpen } from './pausestate.js';
 
@@ -77,7 +82,12 @@ export function createScenarioDirector() {
       else {
         if (want !== actWant) { actWant = want; actFor = 0; }
         actFor += dt;
-        if (want ? (act ? true : actFor >= ACT_START_S) : actFor >= ACT_STOP_S) { act = want; actFor = 0; }
+        // naar het menu pas na MENU_START_S; uit het menu na MENU_STOP_S, zodat
+        // een snel heen-en-weer via Escape dezelfde loop laat doorlopen (#931)
+        const delay = want
+          ? (actWant === 'menu' && act !== 'menu' ? MENU_START_S : act ? 0 : ACT_START_S)
+          : (act === 'menu' ? MENU_STOP_S : ACT_STOP_S);
+        if (actFor >= delay) { act = want; actFor = 0; }
       }
       if (act === 'menu') return 'menu'; // the pause menu: this player's own music, over a race or a chase
       if (race) return 'race';

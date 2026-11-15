@@ -37,6 +37,7 @@ import { updateHostScene, hasHostScene } from './coopscene.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
+import { createStreamBudget, noteStreamWorldPart, streamFrameMs } from './streambudget.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
@@ -952,6 +953,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   let menuDt = 0;
   let trafficTimer = 0;
   const tileFollow = {};
+  // #937: the frame budget for the tile work (streambudget.js): low in the first
+  // seconds after a jump or a new part of the world, and at high speed.
+  const streamBudget = createStreamBudget();
   let pedTimer = 0;
   function frame(now) {
     // #804: plan het volgende beeld meteen, vóór al het werk van dit beeld. Een lange staart (of een
@@ -1063,7 +1067,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       // vaak van plek en tileverwerking kostte anders frames van 100+ ms.
       // De tegels komen een paar frames later; het beeld blijft vol.
       const cine = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || (world.cineQuiet && performance.now() < world.cineQuiet);
-      world.map.follow(tf.x, tf.y, tf.opts, cine ? 0.4 : (laatsteFrameMs > 25 ? 0.6 : 1.5));
+      // #937: a jump (no vx/vy) is a new part of the world: keep a low budget for
+      // the first seconds. At high speed less goes through per frame too; the
+      // queue itself stays sorted on the driving direction.
+      const opts = tf.opts || {};
+      if (opts.vx === undefined) noteStreamWorldPart(streamBudget, performance.now());
+      const speed = Math.hypot(opts.vx || 0, opts.vy || 0);
+      world.map.follow(tf.x, tf.y, tf.opts, cine ? 0.4 : streamFrameMs(streamBudget, performance.now(), laatsteFrameMs, speed));
     };
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, hoofdspeler(world).x, hoofdspeler(world).y);

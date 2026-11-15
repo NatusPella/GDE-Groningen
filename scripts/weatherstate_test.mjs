@@ -48,7 +48,7 @@ const rng = mulberry32(3);
 let mistNoon = 0, mistMorning = 0, thunderNight = 0;
 for (let i = 0; i < 4000; i++) {
   if (nextKind('helder', 13, 0.5, 1, rng) === 'mist') mistNoon++;
-  if (nextKind('helder', 6, 0.5, 1, rng) === 'mist') mistMorning++;
+  if (nextKind('helder', 4, 0.5, 1, rng) === 'mist') mistMorning++;
   if (nextKind('bewolkt', 2, 1, 1.2, rng) === 'onweer') thunderNight++;
 }
 ok(mistNoon === 0, 'no mist at noon');
@@ -77,3 +77,4 @@ ok(thunderNight === 0, 'no thunder at night');
 
 console.log(fails ? `${fails} of ${n} failed` : `weatherstate_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
+

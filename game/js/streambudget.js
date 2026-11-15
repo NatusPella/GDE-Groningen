@@ -127,3 +127,37 @@ export function geoTake(queue, open, maxOpen, allowance) {
   const n = Math.min(queue.items.length, room, Math.max(0, allowance));
   return n > 0 ? queue.items.splice(0, n) : [];
 }
+
+// ---------------------------------------------------------------- #937
+// One frame budget for the loading work on the main thread. Tile work always
+// got 1.5 ms, also right after a jump or at 130 km/h, while buildings, signs
+// and traffic lights asked for their turn at the same time: together that was a
+// thick spike. In the first seconds after a new part of the world and while the
+// player really drives fast, the queue keeps a smaller budget. The rows stay in
+// the same (look-ahead) order; only less goes through per frame.
+export const STREAM_FRAME_MS = 1.5;       // ms of tile work per frame, normal
+export const STREAM_SLOW_FRAME_MS = 0.6;  // after a slow frame or at high speed
+export const STREAM_BOOT_MS = 0.5;        // the first seconds after a jump/new part
+export const STREAM_BOOT_S = 1.5;
+export const STREAM_SLOW_MS = 25;         // a slow frame (the existing threshold in main.js)
+export const STREAM_FAST_SPEED = 25;      // m/s: faster than 90 km/h
+
+export function createStreamBudget() {
+  return { bootUntil: 0 };
+}
+
+// A jump (fast travel, train, respawn) or a new part of the world: keep a low
+// budget for a moment, so the first frames do not fill up.
+export function noteStreamWorldPart(b, now) {
+  if (!Number.isFinite(now)) return b;
+  b.bootUntil = now + STREAM_BOOT_S * 1000;
+  return b;
+}
+
+// The tile budget for this frame: the lowest of the three rules.
+export function streamFrameMs(b, now, lastFrameMs = 0, speed = 0) {
+  if (b && Number.isFinite(now) && now < b.bootUntil) return STREAM_BOOT_MS;
+  if (lastFrameMs > STREAM_SLOW_MS) return STREAM_SLOW_FRAME_MS;
+  if (speed > STREAM_FAST_SPEED) return STREAM_SLOW_FRAME_MS;
+  return STREAM_FRAME_MS;
+}

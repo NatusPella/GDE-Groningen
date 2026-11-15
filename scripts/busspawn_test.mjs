@@ -93,7 +93,8 @@ const rondjeLive = (w, n = 20) => {
   rondje(w);
   ok(w.vehicles.some((v) => v.isBus && v.road === wilgen), 'een lijn over een woonstraat: de bus rijdt daar (de lijndata is de echte route)');
 }
-// 3. zonder lijn in de buurt: alleen het busnet
+// 3. zonder lijn in de buurt: geen bussen (#922: geen willekeurige nep-bussen,
+//    ook niet op het busnet; elke bus volgt een echte dienst of een live bus)
 {
   const wilgen = road('Wilgenpad', 0, { width: 6.5 });
   const pad = road('Fietspad', 30, { cat: 'cycle', type: 'cycleway', width: 2 });
@@ -105,8 +106,7 @@ const rondjeLive = (w, n = 20) => {
   const hoofd = road('Hoofdweg', 60, { type: 'secondary', cat: 'major', width: 9 });
   const w2 = wereld(kaart([wilgen, pad, hoofd]));
   rondje(w2);
-  const b2 = w2.vehicles.filter((v) => v.isBus);
-  ok(b2.length > 0 && b2.every((v) => v.road === hoofd), 'zonder lijn rijdt een bus alleen over de hoofdweg', b2.map((v) => v.road.name).join());
+  ok(w2.vehicles.filter((v) => v.isBus).length === 0, 'zonder lijn ook geen bus op de hoofdweg (#922)');
 }
 // 4. live bussen (#395, livebussen.js): een echte bus op de lijn in bereik wordt een bus met liveId, één per id; de echte bus
 //    bepaalt de snelheid; is de echte bus weg of keert hij om, dan rijdt hij zijn eigen dienst

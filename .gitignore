@@ -65,3 +65,6 @@ desktop/.shots*/
 website/_site/
 .agents/
 .agents/worktrees/
+
+# wegwerpmap van een TTS-proef (python scripts/tts_lines.py --out proef)
+game/audio/voicelines/proef/

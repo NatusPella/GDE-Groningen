@@ -88,7 +88,7 @@ t('de HUD-indicator is een knop die het geluid weer aanzet, met de toets erbij',
   assert.match(hud, /<button[^>]*class="hud-chip hud-mute"/);
   assert.match(hud, /import \{[^}]*toggleMute[^}]*\} from '\.\/audio\.js'/);
   assert.match(hud, /els\.mute\.addEventListener\('click'[\s\S]{0,200}toggleMute\(\)/);
-  assert.match(hud, /dempHint\(\{ touch \}\)/);
+  assert.ok(!/dempHint\(/.test(hud), 'geen keybind-hint meer in de HUD (#966)');
   assert.match(hud, /els\.mute\.hidden = !demp/);
 });
 

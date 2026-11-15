@@ -26,6 +26,10 @@ const SCENARIO_TRACKS = {
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s
 const SCENARIO_FADE_OUT = 2.2; // s
+// #931: de menu-loop stopt niet meteen als je het pauzemenu sluit: hij speelt
+// zacht door en pakt zijn plek weer op als je binnen deze tijd terugkomt. Zo
+// begint de muziek niet bij elke Escape opnieuw.
+export const MENU_PARK_S = 45;
 
 let host = null;
 export function setScenarioHost(h) { host = h; }
@@ -34,6 +38,8 @@ const scenarioDirector = createScenarioDirector();
 const scenarioBuffers = {};
 let scenarioVol = null;
 let scenarioNow = null; // { key, src, fade }
+let parkedMenu = null;  // de menu-loop die net zweeg en nog even zijn plek houdt
+let parkTimer = null;
 
 function loadScenarioBuffer(key) {
   if (scenarioBuffers[key]) return;
@@ -77,7 +83,46 @@ function stopScenarioTrack() {
   s.src.onended = () => s.fade.disconnect();
 }
 
+// Het menu zweeg: de loop blijft draaien (op 0) en houdt zijn plek MENU_PARK_S
+// seconden vast. Kom je binnen die tijd terug, dan gaat hij daar verder in plaats
+// van opnieuw te beginnen (#931).
+function parkScenarioTrack() {
+  const s = scenarioNow;
+  scenarioNow = null;
+  if (!s) return;
+  const ctx = host.ctx();
+  const t = ctx.currentTime;
+  s.fade.gain.cancelScheduledValues(t);
+  s.fade.gain.setValueAtTime(s.fade.gain.value, t);
+  s.fade.gain.linearRampToValueAtTime(0, t + SCENARIO_FADE_OUT);
+  parkedMenu = s;
+  clearTimeout(parkTimer);
+  parkTimer = setTimeout(() => {
+    if (parkedMenu !== s) return;
+    parkedMenu = null;
+    try { s.src.stop(); } catch (e) { /* al gestopt */ }
+    s.src.onended = () => s.fade.disconnect();
+  }, MENU_PARK_S * 1000);
+}
+
+function resumeScenarioTrack() {
+  const s = parkedMenu;
+  if (!s) return false;
+  clearTimeout(parkTimer);
+  parkTimer = null;
+  parkedMenu = null;
+  const ctx = host.ctx();
+  const t = ctx.currentTime;
+  s.fade.gain.cancelScheduledValues(t);
+  s.fade.gain.setValueAtTime(Math.max(0, s.fade.gain.value), t);
+  s.fade.gain.linearRampToValueAtTime(0.7, t + SCENARIO_FADE_IN);
+  scenarioNow = s;
+  return true;
+}
+
 function startScenarioTrack(key) {
+  // het menu pakt zijn oude plek weer op als het kort geleden zweeg (#931)
+  if (key === 'menu' && resumeScenarioTrack()) return true;
   const entry = scenarioBuffers[key];
   if (!entry || !entry.buf || !entry.loop) return false;
   const ctx = host.ctx();
@@ -120,7 +165,10 @@ export function updateScenarioMusic(dt, world) {
   const cur = scenarioNow ? scenarioNow.key : null;
   if (want !== cur) {
     // switch once the new loop is decoded; until then the old one keeps going
-    if (!want) stopScenarioTrack();
+    if (!want) {
+      // het menu houdt zijn plek vast in plaats van te stoppen (#931)
+      if (cur === 'menu') parkScenarioTrack(); else stopScenarioTrack();
+    }
     else if (scenarioBuffers[want].loop) { stopScenarioTrack(); startScenarioTrack(want); }
     else if (scenarioBuffers[want].failed) want = null;
   }

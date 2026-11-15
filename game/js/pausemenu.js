@@ -829,6 +829,10 @@ function problemsHtml() {
 }
 
 export function initPauseMenu(w) {
+  // #920: één menu, één keer. Een tweede init (een dubbel geladen module, een hervatte
+  // pagina) maakte een tweede #pause-menu met een eigen toetsenlijst: Escape opende er dan
+  // twee over elkaar. Het eerste menu blijft de eigenaar van de toetsen en de DOM.
+  if (root || document.getElementById('pause-menu')) return;
   world = w;
   input = w.input;
   for (const css of ['menu.css', 'pausemenu.css']) {
@@ -1006,6 +1010,13 @@ export function initPauseMenu(w) {
   // a click: keep the sheet title in step
   root.addEventListener('click', () => { if (tab === 'garage' || tab === 'prestaties') syncSheetSub(); });
   root.addEventListener('focusin', (e) => {
+    // #915: de vraag is echt modaal; de focus kan niet naar de rail of het blad erachter
+    const vraag = visibleQuestion();
+    if (vraag && !vraag.contains(e.target)) {
+      const b = visibleFocusables(vraag)[0];
+      if (b) b.focus({ preventScroll: true });
+      return;
+    }
     const p = activePanel();
     if (p && p.contains(e.target)) lastFocus[tab] = e.target;
     if (tab === 'todo' && p) todoFocus(p, world, e.target);
@@ -1175,6 +1186,12 @@ function onKey(e) {
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
   const dir = ARROWS[k];
   if (e.repeat && !dir) return;
+  // #915: een open vraag houdt alle andere menutoetsen tegen; alleen Esc, Tab, de pijlen
+  // en Enter/Space (op de twee knoppen) doen nog iets.
+  if (visibleQuestion() && !(k === 'Escape' || k === 'Backspace' || k === 'Tab' || dir || k === 'Enter' || k === ' ')) {
+    consume(e);
+    return;
+  }
   const inRail = !!(t && t.closest && t.closest('.pm-rail'));
   if (k === 'Escape' || k === 'Backspace') {
     consume(e);
@@ -1240,6 +1257,28 @@ function onKey(e) {
   }
 }
 
+// #915: de afsluitvraag en de foutvraag zijn echte modale lagen. Zolang er één open
+// staat is de rest van het menu inert en houdt Tab de focus binnen de vraag; anders liep
+// een toetsenbordgebruiker achter de dialoog langs naar de rail.
+function visibleQuestion() {
+  if (!root) return null;
+  return root.querySelector('[data-quit-confirm]:not([hidden])') || root.querySelector('[data-exit-confirm]:not([hidden])');
+}
+
+function syncQuestionLayers() {
+  if (!root) return;
+  const on = !!visibleQuestion();
+  const fold = root.querySelector('.pm-fold');
+  if (fold) fold.inert = on;
+  root.classList.toggle('pm-question', on);
+}
+
+function showQuestion(box, on) {
+  if (!box) return;
+  box.hidden = !on;
+  syncQuestionLayers();
+}
+
 // Esc/Backspace: close an open confirm, then back to Overzicht, then close.
 function goBack() {
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
@@ -1271,7 +1310,7 @@ function goBack() {
   }
   const exitBox = root.querySelector('[data-exit-confirm]');
   if (exitBox && !exitBox.hidden) {
-    exitBox.hidden = true;
+    showQuestion(exitBox, false);
     closeAction = null;
     const b = root.querySelector('[data-action="exit"]') || root.querySelector('[data-action="menu"]');
     if (b) b.focus();
@@ -1280,7 +1319,7 @@ function goBack() {
   // #915: de vraag bij het afsluiten gaat voor alles; Esc sluit alleen de vraag
   const quitBox = root.querySelector('[data-quit-confirm]');
   if (quitBox && !quitBox.hidden) {
-    quitBox.hidden = true;
+    showQuestion(quitBox, false);
     const b = root.querySelector('[data-action="exit"]');
     if (b) b.focus();
     return;
@@ -1421,8 +1460,10 @@ function renderBinds() {
   const keep = a && root.contains(a) && a.dataset ? (a.dataset.rebindKey || a.dataset.rebindPad || a.dataset.action) : null;
   const k = root.querySelector('[data-of="controls"][data-sub="toetsen"]');
   const p = root.querySelector('[data-of="controls"][data-sub="knoppen"]');
-  if (k && !k.hidden) k.innerHTML = bindRowsKeys();
-  if (p && !p.hidden) p.innerHTML = bindRowsPad();
+  // ook als het tabblad dicht is: een reset op de Besturing-tab moet de lijst verversen
+  // voordat de speler hem weer opent (review 0.62)
+  if (k) k.innerHTML = bindRowsKeys();
+  if (p) p.innerHTML = bindRowsPad();
   const zoek = root.querySelector('[data-controls-search]');
   if (zoek && zoek.value) filterControls(zoek.value);
   syncKeyChanged();
@@ -1530,9 +1571,10 @@ function focusSheet() {
   zet(panel.querySelector('[role="tab"][aria-selected="true"]') || list[0] || root.querySelector(`.pm-game [data-goto="${tab}"]`));
 }
 
-// Tab/Shift+Tab stay inside the menu.
+// Tab/Shift+Tab stay inside the menu, and inside a question that is open (#915).
 function tabFocus(dir) {
-  const scopes = [root.querySelector('.pm-game'), root.querySelector('.pm-sheet-head'), activePanel()];
+  const vraag = visibleQuestion();
+  const scopes = vraag ? [vraag] : [root.querySelector('.pm-game'), root.querySelector('.pm-sheet-head'), activePanel()];
   const list = scopes.flatMap((s) => visibleFocusables(s));
   if (!list.length) return;
   const i = list.indexOf(document.activeElement);
@@ -1578,6 +1620,16 @@ function toggleFold(btn, open) {
 // or the sheet; left from the sheet's edge lands on the rail, right from the
 // rail goes into the sheet. Nothing further down or up scrolls the panel.
 function moveFocus(dir) {
+  const vraag = visibleQuestion();
+  if (vraag) {
+    // #915: ook de pijlen blijven binnen de open vraag
+    const list = visibleFocusables(vraag);
+    if (!list.length) return;
+    const i = list.indexOf(document.activeElement);
+    const stap = dir === 'up' || dir === 'left' ? -1 : 1;
+    focusEl(list[i < 0 ? 0 : (i + stap + list.length) % list.length]);
+    return;
+  }
   const rail = root.querySelector('.pm-game');
   const panel = activePanel();
   const head = root.querySelector('.pm-sheet-head');
@@ -1635,7 +1687,7 @@ function askClose(a) {
   box.querySelector('[data-exit-text]').textContent = (a === 'quit-now' || a === 'exit')
     ? 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch sluiten?'
     : 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch herstarten?';
-  box.hidden = false;
+  showQuestion(box, true);
   const b = box.querySelector('[data-action="exit-retry"]');
   if (b) b.focus();
 }
@@ -1718,14 +1770,14 @@ function runAction(a) {
     root.querySelector('[data-restart-confirm]').hidden = true;
     root.querySelector('[data-coop-load-confirm]').hidden = true;
     root.querySelector('[data-coop-new-confirm]').hidden = true;
-    root.querySelector('[data-exit-confirm]').hidden = true;
-    box.hidden = false;
+    showQuestion(root.querySelector('[data-exit-confirm]'), false);
+    showQuestion(box, true);
     box.querySelector('[data-action="exit-go"]').focus();
   } else if (a === 'exit-go') {
-    root.querySelector('[data-quit-confirm]').hidden = true;
+    showQuestion(root.querySelector('[data-quit-confirm]'), false);
     runAction('quit-now');
   } else if (a === 'exit-cancel-ask') {
-    root.querySelector('[data-quit-confirm]').hidden = true;
+    showQuestion(root.querySelector('[data-quit-confirm]'), false);
     status('Niet afgesloten: je spel staat nog open.');
     const b = root.querySelector('[data-action="exit"]');
     if (b) b.focus();
@@ -1750,7 +1802,7 @@ function runAction(a) {
     if (!res.ok) askClose(a);
   } else if (a === 'exit-retry' || a === 'exit-anyway' || a === 'exit-cancel') {
     const box = root.querySelector('[data-exit-confirm]');
-    if (box) box.hidden = true;
+    showQuestion(box, false);
     if (a === 'exit-retry') { const want = closeAction; closeAction = null; if (want) runAction(want); return; }
     if (a === 'exit-cancel') {
       closeAction = null;
@@ -1769,6 +1821,8 @@ function runAction(a) {
     setSetting('keyBinds', {});
     setSetting('padBinds', {});
     setBindMsg('Alles staat weer op de standaard.');
+    // de lijst eronder is één keer getekend: zonder deze hertekening blijven de oude toetsen staan
+    renderBinds();
     syncControls();
     const row = root.querySelector('[data-keys-changed] button');
     if (row) row.focus();
@@ -2204,9 +2258,8 @@ function syncRail() {
   root.querySelector('[data-restart-confirm]').hidden = true;
   root.querySelector('[data-coop-load-confirm]').hidden = true;
   root.querySelector('[data-coop-new-confirm]').hidden = true;
-  root.querySelector('[data-exit-confirm]').hidden = true;
-  const quitBox = root.querySelector('[data-quit-confirm]');
-  if (quitBox) quitBox.hidden = true;
+  for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm]')) box.hidden = true;
+  syncQuestionLayers();
   closeAction = null;
   root.querySelector('[data-game-status]').textContent = '';
   syncSaveButtons();
@@ -2381,7 +2434,9 @@ function setOpen(value, name = HOME, how = 'direct') {
   if (!root) return;
   if (value && !started() && !prestart) return;
   if (open === value) {
-    if (value) { showTab(name, how); focusSheet(); }
+    // #920: een tweede open-verzoek (dezelfde Escape via een tweede pad, een te laat
+    // binnenkomende melding) zet het menu niet nóg eens op een scherm en verplaatst de
+    // speler ook niet naar een ander onderdeel. Eén menu, één stand.
     return;
   }
   if (!value) {
@@ -2389,6 +2444,11 @@ function setOpen(value, name = HOME, how = 'direct') {
     // en Doorgaan via runAction('resume'), Afsluiten, closePauseMenu, de toets M, een prestart-sluiting)
     // komt hier langs, dus de wachtstand en de input-capture gaan hier altijd vrij.
     cancelRebind(true);
+    // #920: een sluiting laat geen vraaglaag of oude herkomst achter. Een achtergebleven
+    // laag kwam bij de volgende opening bovenop het menu terug.
+    for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm]')) box.hidden = true;
+    syncQuestionLayers();
+    origin = 'home';
     try { markCluesSeen(); } catch (e) { /* verhaal niet klaar */ }
   }
   open = value;

@@ -232,8 +232,8 @@ ok(() => {
   assert.match(pm, /Toch sluiten/);
   assert.match(pm, /a === 'exit-retry'\) \{ const want = closeAction; closeAction = null; if \(want\) runAction\(want\); return; \}/, 'opnieuw proberen doet dezelfde stap nog eens');
   assert.match(pm, /Opslaan mislukt\. Je voortgang sinds je laatste savegame is niet bewaard\./, 'de melding is Nederlands en eerlijk');
-  assert.match(pm, /const exitBox = root\.querySelector\('\[data-exit-confirm\]'\);[\s\S]{0,120}exitBox\.hidden = true;/, 'Escape ruimt de vraag op');
-  assert.match(pm, /root\.querySelector\('\[data-exit-confirm\]'\)\.hidden = true;\s*(const quitBox[\s\S]{0,120})?closeAction = null;/, 'het menu opent weer schoon');
+  assert.match(pm, /const exitBox = root\.querySelector\('\[data-exit-confirm\]'\);[\s\S]{0,160}showQuestion\(exitBox, false\);/, 'Escape ruimt de vraag op');
+  assert.match(pm, /for \(const box of root\.querySelectorAll\('\[data-exit-confirm\], \[data-quit-confirm\]'\)\) box\.hidden = true;\s*syncQuestionLayers\(\);\s*closeAction = null;/, 'het menu opent weer schoon');
 }, 'pauzemenu: een mislukte save bij Afsluiten of Herstarten blijft open met een keuze (#563)');
 
 console.log(`coopladen_test: ${n - fails}/${n}`);

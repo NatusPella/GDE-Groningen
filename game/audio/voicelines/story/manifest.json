@@ -9,7 +9,7 @@
 },
 "Anita|En jij als een fietser zonder fiets. Sleutels, Berend.": {
 "src": "m0/intro_4_anita.mp3",
-"dur": 5.02
+"dur": 5.27
 },
 "Anita|Dit vertellen we Berend dus niet.": {
 "src": "m0/fail_0_anita.mp3",
@@ -21,7 +21,7 @@
 },
 "Anita|Spreek voor jezelf. Ik ben heel veel content.": {
 "src": "m1/intro_3_anita.mp3",
-"dur": 4.26
+"dur": 3.95
 },
 "Tammo|Nee.": {
 "src": "m1/intro_7_tammo.mp3",
@@ -37,7 +37,7 @@
 },
 "Anita|Tammo heeft hier nog gestudeerd. Twee weken.": {
 "src": "m2/intro_2_anita.mp3",
-"dur": 2.2
+"dur": 3.34
 },
 "Tammo|Drie. De derde was ik ziek.": {
 "src": "m2/intro_3_tammo.mp3",
@@ -45,7 +45,7 @@
 },
 "Anita|Van het studeren?": {
 "src": "m2/intro_4_anita.mp3",
-"dur": 1.16
+"dur": 1.8
 },
 "Tammo|Van de mensa.": {
 "src": "m2/intro_5_tammo.mp3",
@@ -57,7 +57,7 @@
 },
 "Anita|En ouders die de huur betalen.": {
 "src": "m2/fail_1_anita.mp3",
-"dur": 1.76
+"dur": 2.08
 },
 "Anita|Dan wordt het moderne dans.": {
 "src": "m3/fail_0_anita.mp3",
@@ -89,15 +89,15 @@
 },
 "Anita|O ja? Sinds wanneer bepaal jij dat?": {
 "src": "m5/intro_3_anita.mp3",
-"dur": 2.65
+"dur": 2.29
 },
 "Anita|Ik hou niet van snorren. Ik hou van petten.": {
 "src": "m5/outro_3_anita.mp3",
-"dur": 2.79
+"dur": 2.64
 },
 "Anita|Drie kroegen is ook een tocht.": {
 "src": "m5/fail_0_anita.mp3",
-"dur": 3.06
+"dur": 2.65
 },
 "Tammo|Een tochtje. Morgen de rest.": {
 "src": "m5/fail_1_tammo.mp3",
@@ -109,7 +109,7 @@
 },
 "Anita|Kom, ik help je overeind. Weer.": {
 "src": "m6/fail_1_anita.mp3",
-"dur": 3.23
+"dur": 2.44
 },
 "Anita|Gids zijn is moeilijker dan het lijkt.": {
 "src": "m7/fail_0_anita.mp3",
@@ -121,7 +121,7 @@
 },
 "Anita|Ik rij. Geen discussie.": {
 "src": "duo/s0/intro_0_anita.mp3",
-"dur": 1.83
+"dur": 1.77
 },
 "Tammo|Er was ook geen discussie. Er was alleen jij.": {
 "src": "duo/s0/intro_1_tammo.mp3",
@@ -133,7 +133,7 @@
 },
 "Anita|Verrassend voor jou.": {
 "src": "duo/s0/outro_1_anita.mp3",
-"dur": 2.11
+"dur": 2.39
 },
 "Tammo|Ik doe het wel. Maar daarna een eierbal.": {
 "src": "duo/s1/intro_0_tammo.mp3",
@@ -141,11 +141,11 @@
 },
 "Anita|Dat zeg je elke keer.": {
 "src": "duo/s1/intro_1_anita.mp3",
-"dur": 2.53
+"dur": 2.57
 },
 "Anita|Niet slecht, pet.": {
 "src": "duo/s1/outro_0_anita.mp3",
-"dur": 1.18
+"dur": 1.45
 },
 "Tammo|De pet bedankt je.": {
 "src": "duo/s1/outro_1_tammo.mp3",
@@ -153,7 +153,7 @@
 },
 "Anita|Bijhouden, hè.": {
 "src": "duo/s2/intro_0_anita.mp3",
-"dur": 2.27
+"dur": 1.11
 },
 "Tammo|Ik hou je al de hele week bij.": {
 "src": "duo/s2/intro_1_tammo.mp3",
@@ -165,7 +165,7 @@
 },
 "Anita|Ik was al goed. Jij haakte aan.": {
 "src": "duo/s2/outro_1_anita.mp3",
-"dur": 1.83
+"dur": 4.01
 },
 "Tammo|Laat mij maar praten.": {
 "src": "duo/s3/intro_0_tammo.mp3",
@@ -173,11 +173,11 @@
 },
 "Anita|Dan staan we hier morgen nog.": {
 "src": "duo/s3/intro_1_anita.mp3",
-"dur": 2.79
+"dur": 2.48
 },
 "Anita|Je was er echt, vandaag.": {
 "src": "duo/s3/outro_0_anita.mp3",
-"dur": 2.32
+"dur": 1.94
 },
 "Tammo|Ik ben er altijd. Meestal zwijgend.": {
 "src": "duo/s3/outro_1_tammo.mp3",
@@ -185,7 +185,7 @@
 },
 "Anita|Voorzichtig doen, hè.": {
 "src": "duo/s4/intro_0_anita.mp3",
-"dur": 1.31
+"dur": 2.26
 },
 "Tammo|Zegt degene met de rode jas en de haast.": {
 "src": "duo/s4/intro_1_tammo.mp3",
@@ -197,7 +197,7 @@
 },
 "Anita|Ik heb je altijd door, droogkloot.": {
 "src": "duo/s4/outro_1_anita.mp3",
-"dur": 2.73
+"dur": 2.06
 },
 "Tammo|Blijf een beetje bij mij in de buurt.": {
 "src": "duo/s5/intro_0_tammo.mp3",
@@ -205,7 +205,7 @@
 },
 "Anita|Zeg het maar gewoon, Tammo.": {
 "src": "duo/s5/outro_0_anita.mp3",
-"dur": 1.93
+"dur": 2.9
 },
 "Tammo|Wat zeggen?": {
 "src": "duo/s5/outro_1_tammo.mp3",
@@ -213,7 +213,7 @@
 },
 "Anita|Laat maar. Ik weet het al.": {
 "src": "duo/s5/outro_2_anita.mp3",
-"dur": 1.96
+"dur": 2.83
 },
 "Anita|Samen, of helemaal niet.": {
 "src": "duo/s6/intro_0_anita.mp3",
@@ -229,7 +229,7 @@
 },
 "Anita|Weet ik. Daarom blijf ik.": {
 "src": "duo/s6/outro_1_anita.mp3",
-"dur": 1.78
+"dur": 1.93
 },
 "Tammo|Laatste klus?": {
 "src": "duo/s7/intro_0_tammo.mp3",
@@ -237,7 +237,7 @@
 },
 "Anita|Voor vandaag.": {
 "src": "duo/s7/intro_1_anita.mp3",
-"dur": 1.46
+"dur": 1.35
 },
 "Schipper Wiebe (megafoon)|HÉ! DAT IS MIEN BOOT! KLAAS, IK WEET DAT JIJ DIT BENT!": {
 "src": "m7/wiebe_00.mp3",

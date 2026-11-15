@@ -89,6 +89,13 @@ export const kanOverdragen = (rol, r) => kanEruitZetten(rol, r);
 export const overdragenKnopTekst = 'Spel overdragen';
 export const eruitKnopTekst = (bevestig) => (bevestig ? 'Zeker weten?' : 'Eruit zetten');
 export const eruitGezetTekst = (r) => `${r.naam} is uit het spel gezet. De anderen spelen door.`;
+// #971: de grijze knop rechtsonder heette alleen "Spelers" en niemand wist wat hij deed.
+// Een duidelijke naam plus uitleg; de teller staat erbij zodat je ziet dat het een lijst is.
+export const SPELERS_KNOP = { label: 'Spelerslijst', title: 'Bekijk wie er meespeelt (of houd Tab ingedrukt)' };
+export function spelersKnopTekst(aantal = 0) {
+  const n = Number.isFinite(aantal) ? Math.max(0, Math.round(aantal)) : 0;
+  return n > 1 ? `${SPELERS_KNOP.label} · ${n}` : SPELERS_KNOP.label;
+}
 // wat de weggestuurde gast ziet; 'spel gestopt' is stoppen voor iedereen
 // Alleen een kamercode (nooit een koppelcode van de IP-route: die bevat een adres) komt in beeld, zodat wie eruit gezet is weet hoe hij opnieuw kan aansluiten.
 const KAMERCODE = /^[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/;

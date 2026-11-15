@@ -30,6 +30,7 @@ import { spawnFxSpark } from './fx3d.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
 import { playCastScene } from './missionstory.js';
 import { Vehicle } from './vehicle.js';
+import { placeContainerTerminal } from './containerterminal.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { bootVaartVrij, bootVrijeRun, kiesVaarrichting, mooringBruikbaar, mooringDataVrij } from './heistboot.js';
 import {
@@ -38,6 +39,8 @@ import {
   MODI, buitVerdelen, rolPunt } from './heistrollen.js';
 import { gastheerMee, opdrachtId, deelnemers } from './coopmissie.js';import * as UI from './heistui.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { getSettings } from './settings.js';
+import { timingGrace } from './timingassist.js'; // #957: de zekering- en slotbalk zijn ruimer per stand en hulp
 
 const SPOTS_BEFORE_HELP = 3;
 const MISSES_BEFORE_HELP = 5;
@@ -211,6 +214,10 @@ export function startHeist(world, opts = {}) {
   if (!opts.bare) {
     for (const [id, d] of Object.entries(DOORS)) buildDoor(id, d);
     setMuseumLights(true, 0);
+  } else {
+    // #928: het containerlabyrint (M13) ligt tussen echte containers, niet in
+    // een leeg weiland: de waypoints van de missie wijzen naar deze rekwisieten.
+    placeContainerTerminal(world, THREE);
   }
   return H;
 }
@@ -1065,7 +1072,7 @@ export function closeFuse() {
 export function updateFuse(dt, world, target, input) {
   if (!H) return true;
   const p = hoofdspeler(world);
-  const F = H.fuse || (H.fuse = { x: 0, dir: 1, hits: 0, misses: 0, width: 0.16, center: 0.5 });
+  const F = H.fuse || (H.fuse = { x: 0, dir: 1, hits: 0, misses: 0, width: Math.min(0.4, 0.16 * timingGrace(getSettings().difficulty, getSettings())), center: 0.5 });
   const near = target && dist(p.x, p.y, target.x, target.y) < 3.2 && !p.inVehicle;
   if (!near) { closeFuse(); return false; }
   H.fuseOpen = true;
@@ -1100,7 +1107,7 @@ export function updateFuse(dt, world, target, input) {
 export function updateLock(dt, world, target) {
   if (!H) return true;
   const p = hoofdspeler(world);
-  const L = H.lock || (H.lock = { pins: [1.25, 0.95, 1.4, 1.1].map((P, i) => ({ P, ph: i * 1.7, y: 0 })), cur: 0, zone: 0.18, misses: 0, t: 0 });
+  const L = H.lock || (H.lock = { pins: [1.25, 0.95, 1.4, 1.1].map((P, i) => ({ P, ph: i * 1.7, y: 0 })), cur: 0, zone: Math.min(0.5, 0.18 * timingGrace(getSettings().difficulty, getSettings())), misses: 0, t: 0 });
   if (!target || p.inVehicle || dist(p.x, p.y, target.x, target.y) > 2.2) { UI.closePanel(); return false; }
   world.minigameUntil = world.time + 0.25;
   L.t += dt;

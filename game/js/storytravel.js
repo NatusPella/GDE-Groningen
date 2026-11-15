@@ -18,11 +18,20 @@ export const destOf = (step, g) => (step && step.goal && step.goal.type === 'rei
 
 export const REIS_FLAG = (id) => `reis:${id}`;
 
-// 'vraag' | 'sla-over' | null
-export function decideTravel({ on, beat, handled, busy, dist }) {
+// #947: the travel panel opened right after a mission, while the player still
+// stood next to Tessa. A travel beat belongs to a deliberate travel action: the
+// player got into a moving vehicle or has already covered part of the way to
+// the goal. Until then the question waits; the map ("Reis erheen") keeps working.
+export const TRAVEL_START_M = 60;
+export const TRAVEL_MOVING_SPEED = 2; // m/s
+
+// 'vraag' | 'sla-over' | 'wacht' | null
+export function decideTravel({ on, beat, handled, busy, dist, progress = 0, moving = false }) {
   if (!on || !beat || handled) return null;
   if (busy || !(dist >= 0)) return null;
-  return needsBeat(dist) ? 'vraag' : 'sla-over';
+  if (!needsBeat(dist)) return 'sla-over';
+  if (!moving && !(progress >= TRAVEL_START_M)) return 'wacht';
+  return 'vraag';
 }
 
 // What the world does for a choice. Pure over a small world-like object:
@@ -58,6 +67,9 @@ export const rideWith = (world, startRide) => (option, dest) => startRide(world,
 
 let asking = false;
 const pendingSelf = new Map();
+// #947: the distance to the goal when this step began, per step: the difference
+// is the real trip the player has already made.
+const tripStart = new Map();
 
 // The scene option for riding along: reisrit.js plays it (skip with space).
 // Without a stops list the subtitles say "Instappen"/"Onderweg" only.
@@ -85,12 +97,20 @@ export function tickStoryTravel(ctx) {
   }
   if (asking || !beat || !g) return;
   const dist = Math.hypot(g.x - hoofdspeler(w).x, g.y - hoofdspeler(w).y);
-  const d = decideTravel({ on, beat, handled: flags.has(REIS_FLAG(step.id)), busy: ctx.busy, dist });
-  if (d === 'sla-over') { flags.add(REIS_FLAG(step.id)); return; }
+  // #947: the first time this step is far enough away, remember how far the goal
+  // was. The travel beat only asks once the player is really travelling.
+  let start = tripStart.get(step.id);
+  if (start === undefined && dist >= 0) { start = dist; tripStart.set(step.id, start); }
+  const p = hoofdspeler(w);
+  const moving = !!(p.inVehicle && Math.abs(p.inVehicle.speed || 0) > TRAVEL_MOVING_SPEED);
+  const progress = start === undefined ? 0 : Math.max(0, start - dist);
+  const d = decideTravel({ on, beat, handled: flags.has(REIS_FLAG(step.id)), busy: ctx.busy, dist, progress, moving });
+  if (d === 'sla-over') { flags.add(REIS_FLAG(step.id)); tripStart.delete(step.id); return; }
   if (d !== 'vraag') return;
   asking = true;
   Promise.resolve(ask(beat)).then((choice) => {
     flags.add(REIS_FLAG(step.id));
+    tripStart.delete(step.id);
     if (choice === 'meerijden' && ctx.ride) {
       return Promise.resolve(ctx.ride(rideOption(beat), { x: g.x, y: g.y, name: beat.to })).then((r) => {
         if (r && r.aangekomen) return;

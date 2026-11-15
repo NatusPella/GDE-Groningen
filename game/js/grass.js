@@ -5,8 +5,7 @@ import { applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask } from './cutmask3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, markInstancesDirty } from './util.js';
-import { getWaterIndex } from './waterindex.js';
-import { dryIndices } from './greenwater.js';
+import { dryPavedIndices, pavedTester, waterTester } from './greenwater.js';
 
 // Green areas: merged per-chunk lawn surfaces with a procedural world-space
 // grass shader, translucent kerb/path wear strips along their borders, and
@@ -318,7 +317,7 @@ const edgeMat = withUniforms(new THREE.MeshStandardMaterial({
 
 // ---------------------------------------------------------------- chunk geometry
 
-function fillInto(B, g, geo) {
+function fillInto(B, g, geo, chunkWater = null, chunkPaved = null) {
   const info = polyInfo(g);
   const pos = geo.attributes.position.array;
   const base = B.pos.length / 3;
@@ -327,10 +326,27 @@ function fillInto(B, g, geo) {
     B.pos.push(pos[i * 3], 0, pos[i * 3 + 2]);
     B.attr.push(info.angle, info.hash, info.mow, info.wild);
   }
-  const inWater = map ? getWaterIndex(map).inWater : null;
+  // Water altijd boven groen (#918) en verharding boven groen (#883): het water van een
+  // gestroomde tegel staat niet in de stadsindex, dus vragen we het per punt op bij de index van
+  // de tegel (met de stad als terugval, waterIndexAt). De weg waar het vlak over heen valt knippen
+  // we er ook uit. Zo kan een groenvlak de rijbaan of een sloot nooit bedekken, ook niet als de
+  // offset of de hoogte van de lagen net de andere kant op valt.
+  let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+  for (let i = 0; i < nv; i++) {
+    const x = pos[i * 3], y = pos[i * 3 + 2];
+    if (x < bx0) bx0 = x;
+    if (x > bx1) bx1 = x;
+    if (y < by0) by0 = y;
+    if (y > by1) by1 = y;
+  }
+  const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2, reach = Math.hypot(bx1 - bx0, by1 - by0) / 2;
+  // (waterTester: eerst de dozen van het water in de buurt, dan pas de index van de tegel, zodat
+  // het water van een gestroomde tegel meetelt zonder dat elk driehoekje een indexopzoek kost, #918)
+  const inWater = chunkWater || waterTester(map, cx, cy, reach + 4);
+  const onPaved = chunkPaved || (map && map.roadsNear ? pavedTester(map, cx, cy, reach + 8) : null);
   let idx = geo.index ? geo.index.array : null;
   if (!idx) { idx = new Array(nv); for (let i = 0; i < nv; i++) idx[i] = i; }
-  if (inWater) idx = dryIndices(pos, idx, inWater);
+  if (inWater || onPaved) idx = dryPavedIndices(pos, idx, inWater, onPaved);
   for (let i = 0; i < idx.length; i++) B.idx.push(base + idx[i]);
 }
 
@@ -657,7 +673,8 @@ export function generateCell(map, ci, cj, Q, full) {
     }
   }
   const blds = map.buildingsNear(cx, cy, CELL * 0.75);
-  const water = getWaterIndex(map);
+  // (het water van een gestroomde tegel staat niet in de stadsindex: per punt vragen, #918)
+  const inWater = waterTester(map, cx, cy, CELL) || (() => false);
 
   const classify = (x, y) => {
     for (const g of greens) if (inPolyRow(x, y, g)) return g;
@@ -680,7 +697,7 @@ export function generateCell(map, ci, cj, Q, full) {
     }
     // (padel courts, the home garage)
     if (map.reservedAt && map.reservedAt(x, y)) return true;
-    return water.inWater(x, y);
+    return inWater(x, y);
   };
   const inCell = (x, y) => x >= x0 && x < x1 && y >= y0 && y < y1;
   const R = rng(hashi(ci * 7 + 3, cj * 13 + 1));
@@ -917,12 +934,18 @@ function assignSubLayers(map) {
 function buildChunk(c) {
   const groups = new Map();
   const E = { pos: [], attr: [], idx: [] };
+  // één water- en verhardingstoets voor de hele chunk (#918/#883): dat scheelt een zoekopdracht
+  // per groenvlak, en de chunk is maar 10 m
+  const b = c.bounds;
+  const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+  const wT = waterTester(map, cx, cy, CELL * 0.75 + 4);
+  const pT = map && map.roadsNear ? pavedTester(map, cx, cy, CELL * 0.75 + 8) : null;
   for (const g of c.polys) {
     const K = kindOf(g);
     const key = K.layer * 2 + (g._gSub || 0);
     let B = groups.get(key);
     if (!B) groups.set(key, B = { kind: g.kind, sub: g._gSub || 0, pos: [], attr: [], idx: [] });
-    fillInto(B, g, polyGeometry(g));
+    fillInto(B, g, polyGeometry(g), wT, pT);
     edgesInto(E, g, map);
   }
   const group = new THREE.Group();
@@ -1114,4 +1137,3 @@ export function grassFarColor(g) {
 export function grassFarRank(g) {
   return kindOf(g).prio;
 }
-

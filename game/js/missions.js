@@ -26,7 +26,7 @@ import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } fr
 import { createSearchlight } from './searchlight.js';
 import { sweepAngle, inBeam, stepExposure } from './searchlightlogic.js';
 import { helipadById } from './heliflight.js';
-import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage, debugCompletePlaneStage } from './planestage.js';
+import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage, debugCompletePlaneStage, tryBoardPlane } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian } from './pedestrians.js';
 import { isInsideBuilding, setPedPose } from './pedgeom.js';
@@ -66,6 +66,8 @@ import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
+import { buildWaitDressing, updateWaitDressing, disposeWaitDressing } from './wachtprops.js';
+import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
@@ -796,6 +798,7 @@ export function setMissionProgress(world, prog) {
   chainState().armed = true;
   chainState().wpIndex = 0;
   chainState().run = null;
+  disposeStageDressing(); // #963: ook de wachtkring gaat mee
   chainState().stage = null;
   chainState().stagePending = false;
   if (chainState().retry && chainState().retry.fade != null) respawnFade(0, 0);
@@ -1294,6 +1297,7 @@ function succeed(world, def) {
   sluitGastStart(world, mee); // keek de gastheer toe, dan springt zijn eigen keten terug naar waar hij was (#452)
   chainState().phase = 'idle';
   chainState().wpIndex = 0;
+  disposeStageDressing(); // #963: ook de wachtkring gaat mee
   chainState().stage = null;
   if (mee) hooks.passed(world, i);
 }
@@ -1353,6 +1357,7 @@ function endInFailure(world, text) {
   // an aborted or skipped H15 must not leave the heli run flying on
   if (isHeliRunActive()) abortHeliRun();
   dropPursuer(world);
+  disposeStageDressing(); // #963: ook de wachtkring gaat mee
   chainState().stage = null;
   releaseMissionVehicle(world);
   chainState().phase = 'cooldown';
@@ -1549,6 +1554,7 @@ function startMission(world, def) {
       chainState().vehicle = spawnMissionBoat(def, world.map);
       world.vehicles.push(chainState().vehicle);
     }
+    disposeStageDressing(); // #963: ook de wachtkring gaat mee
     chainState().stage = null;
     chainState().stageIndex = -1;
     chainState().stagePending = true;
@@ -2454,6 +2460,7 @@ function showMissionFlag(world, def, from) {
 
 function enterStage(world, def, k) {
   chainState().stageIndex = k;
+  disposeStageDressing(); // #963: de kring van de vorige wachtstap gaat weg
   const st = def.stages[k];
   if (!st) { succeed(world, def); return; }
   // a stage that belongs to one answer: ifTag / unlessTag (a choice of this mission or a remembered one)
@@ -2502,16 +2509,28 @@ function enterStage(world, def, k) {
   }
   if (st.kind === 'scene' && st.dropFlag) dropFlag();
   if (st.kind === 'chase' && st.race) S.finish = resolveTarget(world, st.finish, from);
+  // #955: een race eindigt bij een finish met publiek: boog, pylonen, hekken en
+  // toeschouwers, en bij de start het startdoek. Het decor gaat met de stap mee.
+  if (st.kind === 'chase' && st.race && S.finish) {
+    const a = Math.atan2(S.finish.y - def.start.y, S.finish.x - def.start.x);
+    S.raceDecor = [
+      buildRaceDecor(world, { ...S.finish, a }, { title: 'FINISH' }),
+      buildRaceDecor(world, { ...def.start, a: a + Math.PI }, { title: 'START', count: 4 }),
+    ].filter(Boolean);
+  }
   disposePlaneStage(world);
   if (st.kind === 'plane' || st.kind === 'airgates' || st.kind === 'landplane') enterPlaneStage(world, st, S);
   if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
   if (st.kind === 'choice') enterChoice(S);
-  if (st.kind === 'timing') enterTiming(S, st, choiceOn);
+  if (st.kind === 'timing') enterTiming(S, st, choiceOn, { mode: cleanDifficulty(getSettings().difficulty), settings: getSettings() }); // #957: ruimere zone per stand en hulp
   if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; chainState().eggFast = false; }
   chainState().stage = S;
+  // #963: een wachtstap krijgt een echte kring met passende spullen; de ring
+  // licht op terwijl de klok loopt, zodat het wachten iets te zien geeft.
+  if (st.kind === 'hold' && S.target) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chainState().timeLeft += st.bonus;
@@ -2708,6 +2727,14 @@ function disposeLight() {
   if (!chainState().light) return;
   if (chainState().light.ctl) chainState().light.ctl.dispose();
   chainState().light = null;
+}
+
+// #963: de aankleding van een wachtstap (de kring met spullen) gaat mee met de
+// stap: bij de volgende stap, bij slagen en bij mislukken.
+function disposeStageDressing() {
+  const S = chainState().stage;
+  if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
+  if (S && S.raceDecor) { for (const g of S.raceDecor) disposeRaceDecor(g); S.raceDecor = null; }
 }
 
 // M11: a hop over the water or the coast, Klaas' cutter: the pair stands at `spec` (a stage target), on foot
@@ -3298,8 +3325,9 @@ function updateStages(dt, world, def) {
       const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
       if (g.status === 'modus') { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (g.status === 'wacht') hint(world, WACHT_OP_ANDEREN);
-      if (g.status !== 'binnen') { S.hold = Math.max(0, S.hold - dt * 0.5); break; }
+      if (g.status !== 'binnen') { S.hold = Math.max(0, S.hold - dt * 0.5); if (S.wait) updateWaitDressing(S.wait, st.time ? S.hold / st.time : 0); break; }
       S.hold += dt;
+      if (S.wait) updateWaitDressing(S.wait, st.time ? Math.min(1, S.hold / st.time) : 1);
       const third = Math.floor(S.hold / st.time * 3);
       if (third > S.said && third < 3) { S.said = third; world.addMessage(st.ticks ? st.ticks[third - 1] : `Klik. Camera ${third} van 3 gaat op zwart.`, 2.4); }
       if (S.hold >= st.time) nextStage(world, def);
@@ -3463,6 +3491,10 @@ function updateStages(dt, world, def) {
     case 'plane':
     case 'airgates':
     case 'landplane': {
+      // #940: de eerste stap is instappen. Een actieve missie of een activiteit
+      // kan de E van het instappen hebben opgegeten; bij dit vliegtuig telt hij
+      // hoe dan ook, anders zit de missie muurvast.
+      if (st.kind === 'plane' && world.input && !p.inVehicle && world.input.wasPressed('e') && tryBoardPlane(world)) world.input.consume('e');
       const r = updatePlaneStage(dt, world, st, S);
       if (r === 'next') nextStage(world, def);
       else if (r && r.fail) fail(world, def, r.fail);

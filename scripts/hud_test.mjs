@@ -310,7 +310,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const panel = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
   ok(/const MM_ICON_BUDGET = \d+/.test(panel), 'minimap: een totaalplafond voor de losse iconen');
   ok(/iconCount >= MM_ICON_BUDGET/.test(panel), 'minimap: de icoonhelper stopt bij het budget');
-  ok(/polities\.length > 1/.test(panel) && /strokeText\(String\(polities\.length\)/.test(panel), 'minimap: politie is één badge met het aantal');
+  ok(/polities\.length > 1/.test(panel) && /heatRing\(/.test(panel) && /unitDots\(/.test(panel) && !/strokeText\(String\(polities\.length\)/.test(panel), 'minimap: politie is één badge met een heat-ring, geen cijfer (#952)');
   ok(/cashN < 3/.test(panel), 'minimap: hoogstens drie cash-doelen');
   ok(/if \(\+\+n >= 3\) break; \/\/ #638/.test(panel), 'minimap: hoogstens drie plaatsnamen');
 }
@@ -326,7 +326,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(/html\.touch-play \.hud-chip\.hud-mute \{ min-height: 44px/.test(css), 'de dempknop haalt 44 px op touch');
   ok(/hud-money-delta\[data-sign="min"\] \{ color: var\(--mk-danger/.test(css), 'geld eraf is het ene gevaar-rood via de tokens');
   ok(/MM_ICON_BUDGET = 10/.test(panel), 'de minimap heeft een totaalbudget');
-  ok(/polities\.length > 1/.test(panel) && /strokeText\(String\(polities\.length\)/.test(panel), 'de politie is één badge met aantal');
+  ok(/polities\.length > 1/.test(panel) && /heatRing\(/.test(panel) && /unitDots\(/.test(panel) && !/strokeText\(String\(polities\.length\)/.test(panel), 'de politie is één badge met een heat-ring, geen cijfer (#952)');
   // #638: op 1280x720 en 1280x800 raakt de naamkaart het racepaneel niet en blijft de telefoonkolom links.
   for (const vh of [720, 800]) {
     const raceTop = 173;
@@ -353,8 +353,3 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
 
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
-
-
-
-
-

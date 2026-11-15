@@ -14,15 +14,30 @@ import { wgsToWorld } from './rdnew.js';
 
 // places [lat, lon]
 export const PLACES = {
-  veendamBoot: [53.1050, 6.8570],     // the Oosterdiep at the western edge of Veendam (the route is still an estimate, not checked on the tiles)
-  veendamA: [53.1054, 6.86585],
-  veendamB: [53.10539, 6.87446],
-  veendamC: [53.10662, 6.88408],
-  veendamD: [53.10546, 6.89134],        // bridge eleven
-  wiebelwerk: [53.1040, 6.8765],      // the invented web agency in an office building by a roundabout
-  wiebelwerkServers: [53.1042, 6.8769],
-  wiebelwerkUit: [53.1038, 6.87595],
-  veendamPerron: [53.1033, 6.8830],   // the station of the museum line; the ride ends at Wildervank, 2.3 km on
+  // #948: de bootmissie lag op een schatting: de start en de vier tussenpunten lagen
+  // op het land (de start 86 m van het water) en de route stak weilanden over, zodat de
+  // sloep onder de grond verdween. Gemeten op de tegels: de Boven Oosterdiep in
+  // Veendam loopt van (19356,17800) noordwaarts en heeft daar elf beweegbare bruggen
+  // (J Kammingastraat, J. Kammingakade, service, J Kammingakade, J Kammingakade,
+  // Dalweg, Raadhuiskade, Raadhuisstraat, Werkhuisweg, Torenstraat, Poststraat).
+  // De start en de vier punten liggen nu op dat water, in de volgorde van de bruggen.
+  veendamBoot: [53.05641, 6.84933],     // op de Boven Oosterdiep, zuidelijk van brug 1
+  veendamKade: [53.05640, 6.84937],     // de kade 4 m oostelijk, waar de speler instapt
+  veendamA: [53.06644, 6.85538],        // voorbij brug 1 tot en met 4
+  veendamB: [53.07327, 6.85951],        // voorbij brug 5, 6 en 7
+  veendamC: [53.07975, 6.86144],        // voorbij brug 8, 9 en 10
+  veendamD: [53.07910, 6.86306],        // brug elf (Poststraat)
+  // #950: gemeten op de tegels (53.10417, 6.87794 is de ingang van het grote
+  // kantoorglaspand aan het Julianapark); het weiland van de oude schatting lag
+  // 100 m verderop, waar het gesprek met de accountmanager buiten bleef hangen.
+  wiebelwerk: [53.10417, 6.87794],      // the invented web agency in the office building on the Julianapark
+  wiebelwerkServers: [53.10416, 6.87829],
+  wiebelwerkUit: [53.10439, 6.87832],
+  // #951: gemeten op de tegels: de halte Veendam van de Stoptrein Veendam, en
+  // een loopbaar punt 3 m naast het spoor (het oude punt lag 295 m van de lijn,
+  // waardoor er geen trein in de buurt was en de rit zichzelf afspeelde).
+  veendamPerron: [53.10501, 6.88635],   // the Veendam stop; the ride goes on along the line to the next platform
+  veendamPerronStart: [53.10503, 6.88631],
   bourtangeWalB: [53.00693, 7.1892],
   bourtangeKruitB: [53.0074, 7.19305],
   bourtangeKruitC: [53.0070, 7.1934],
@@ -51,9 +66,9 @@ export function buildAkte4Defs() {
       timeUp: 'tijd op. Jelles mosterdschip is al door alle elf de bruggen',
       costRow: ['Gered', 'Plakje zeven: de grove mosterd gaat naar Oma'],
       reward: 700,
-      boatAt: { ...xy('veendamBoot'), angle: 0 },
+      boatAt: { ...xy('veendamBoot'), angle: -1.2 }, // met de neus naar brug 1 (noordwaarts de diep op)
       boatModel: 'sloep',
-      start: spot('veendamBoot'),
+      start: spot('veendamKade'),
       say: 'Een sloep op het Oosterdiep, elf bruggen en Jelles mosterdschip erachteraan.',
       stages: [
         { kind: 'board', label: 'Stap in de sloep', say: 'Instappen. De sloep ligt aan de kant, Wubbo wacht bij de eerste brug.' },
@@ -144,19 +159,20 @@ export function buildAkte4Defs() {
       // M19 Stoom: Tammo drives the stopped museum steam train to the next platform (gas and brake only), Tessa frees the jury in the carriages (the script's scene)
       type: 'stages',
       label: 'Stoom',
-      intro: ['Jelle heeft de machinist van de museumstoomtrein omgekocht. De trein staat stil, en de laatste juryleden zitten er vier uur in vast.', 'Doel: rij de trein van Veendam naar het perron van Wildervank, zodat de juryleden kunnen uitstappen.'],
+      intro: ['Jelle heeft de machinist van de museumstoomtrein omgekocht. De trein staat stil, en de laatste juryleden zitten er vier uur in vast.', 'Doel: stap in de stilstaande museumtrein en rij hem een stuk verder naar het volgende perron, zodat de juryleden kunnen uitstappen.'],
       outro: 'Eén jurylid stapt uit. Eén blijft bij Jelle. De bewaarder blijft zitten, dus het oudste jurylid, Berend, zit voor.',
       reward: 800,
       onFoot: true,
       costRow: ['Gevolg', 'Eén jurylid bevrijd, één blijft bij Jelle, de voorzitter is verhinderd'],
-      start: spot('veendamPerron'),
+      start: spot('veendamPerronStart'),
       say: 'Het perron in Veendam. De machinist eet een eierbal op een bank.',
       stages: [
         { kind: 'goto', target: ll('veendamPerron', { label: 'Het perron' }), mode: 'foot', radius: 14, label: 'Ga naar de stilstaande stoomtrein', say: 'De trein staat stil, de machinist zit op een bank. Naar de kop van de trein.' },
         {
-          kind: 'rit', target: ll('veendamPerron', { label: 'De kop van de trein' }), length: 2300, radius: 45,
-          label: 'Rij de trein naar het perron van Wildervank: W gas, S rem', say: 'Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.',
-          exit: true, late: 'de trein reed door het station. De juryleden zitten nog vast',
+          kind: 'rit', target: ll('veendamPerron', { label: 'De kop van de trein' }), length: 2300, radius: 45, train: 'stoom',
+          label: 'Rij de museumtrein naar het volgende perron: W gas, S rem', say: 'Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.',
+          exit: true, late: 'de trein reed door het perron. De juryleden zitten nog vast',
+          fallbackSay: 'De trein is hier niet gevonden: de conducteur zet hem zelf op het volgende spoor.',
           talk: { ids: ['M19.2'], delay: 6 },
         },
       ],
@@ -312,4 +328,3 @@ export function applyAkte4(list) {
     { kind: 'scene', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), label: 'Tammo, de vrienden', kicker: 'Woensdag 26 augustus', big: 'Tammo, de vrienden', solo: true, script: { ids: ['M21.4'] } },
   ];
 }
-

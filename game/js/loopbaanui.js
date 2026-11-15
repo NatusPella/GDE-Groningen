@@ -100,6 +100,9 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-start.klaar { background: none; box-shadow: none; padding: 0; }
 .lb-stap { margin: 6px 0 2px; }
 .lb-stap-actie { margin: 2px 0 8px; }
+.lb-gids-lijst { margin: 4px 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; max-width: 720px; }
+.lb-gids-lijst li { font-size: 17px; line-height: 1.35; }
+.lb-gids .lb-kan { margin: 4px 0 0; }
 `;
 let cssAan = false;
 function zetCss() {
@@ -176,6 +179,16 @@ function dienstHtml(id, w) {
   return `<p class="${s ? 'lb-kan' : 'mut'}">${esc(L.dienstTekst(s))}</p>`;
 }
 
+// #972: de landbouw uitgelegd in het Loopbanen-scherm: wat een missie is en wat je eigen
+// boerderij is, en dat je eigen percelen op de kaart staan. Alleen bij het vak Landbouw.
+function landbouwGidsHtml(id) {
+  if (id !== 'landbouw') return '';
+  const g = L.LANDBOUW_GIDS;
+  return `<div class="lb-blok lb-gids"><h3 class="m-eb">${esc(g.titel)}</h3>` +
+    `<ul class="lb-gids-lijst">${g.stappen.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>` +
+    `<p class="lb-kan">${esc(g.verschil)}</p></div>`;
+}
+
 function detailHtml(profiel, id, w = null) {
   const info = L.vakInfo(id);
   if (!info) return '<p class="mut">Kies een vak om te zien hoe het ervoor staat.</p>';
@@ -218,6 +231,7 @@ function detailHtml(profiel, id, w = null) {
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>${stapHtml}` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}${dienstHtml(id, w)}</div>` +
+    landbouwGidsHtml(id) +
     startHtml(profiel, id) + bezigheden + trap;
 }
 

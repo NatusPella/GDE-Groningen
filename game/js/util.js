@@ -118,9 +118,21 @@ export function boatShoreDepth(map, v, x, y, angle) {
 // it doesn't push the hull further into the shore band, otherwise slide
 // (keep only the part of the move along the wall), else undo it. Returns
 // false when the boat was stopped.
+//
+// (#948) Een boot vaart niet het land op: stond hij op het water, dan is een stap
+// waarvan het middelpunt droog valt geen vaarbeweging. Zonder deze regel bleef een
+// boot die eenmaal op een oever stond (een missie-start op het land, een duw) op
+// volle snelheid doorrijden: op het land is de afstand tot de wal overal gelijk,
+// dus `boatShoreDepth` veranderde niet en elke stap leek toegestaan. De speler
+// verdween dan onder de grond.
 export function keepBoatOffShore(map, v, px, py, pa) {
   const before = boatShoreDepth(map, v, px, py, pa);
-  const ok = (x, y, a) => { const d = boatShoreDepth(map, v, x, y, a); return d < 1e-3 || d <= before + 1e-4; };
+  const wasWet = waterClearance(map, px, py, 1) >= 0;
+  const ok = (x, y, a) => {
+    if (wasWet && waterClearance(map, x, y, 1) < 0) return false;
+    const d = boatShoreDepth(map, v, x, y, a);
+    return d < 1e-3 || d <= before + 1e-4;
+  };
   const nx = v.x, ny = v.y, na = v.angle;
   if (ok(nx, ny, na)) return true;
   for (const [x, y, a] of [[nx, py, na], [px, ny, na], [nx, py, pa], [px, ny, pa], [px, py, na]]) {

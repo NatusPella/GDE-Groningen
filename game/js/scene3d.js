@@ -278,6 +278,9 @@ export function setBuildingHidden(b, hidden) {
   if (hidden) hiddenBuildings.add(b); else hiddenBuildings.delete(b);
   const mesh = buildingMeshes.get(b);
   if (mesh) mesh.visible = !hidden;
+  // (#917) de verre laag tekent hetzelfde gebouw als kist: een kit-kerk of -molen die
+  // de detailring verbergt hoort daar ook weg (anders flikkert het blok door de kit)
+  if (hidden && farLod) farLod.hideBuilding(b);
 }
 const roadMeshes = new Map();
 const waterMeshes = new Map();
@@ -993,6 +996,7 @@ export function init3D(map) {
     colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR, greenOf: grassFarColor, greenRank: grassFarRank },
     sidewalkExtra: SIDEWALK_EXTRA,
     roadColorOf: roadFarColor,
+    hideBuilding: (b) => hiddenBuildings.has(b),
   });
   // streamed tiles (the province's, tileworld.js) join the far LOD as they
   // come and go; up close the detail streamers find them in the map's grids.
@@ -2750,6 +2754,8 @@ export function update3D(dt, world) {
       mesh = null;
     }
     if (mesh) {
+      // #964: een auto die net door de cutscene zou rijden staat even uit
+      mesh.visible = !v.hideInScene;
       if (v.isBoat) {
         // the water under the hull: the kolk of a lock lifts it, a lake at its own peil lies above the boezem
         const cl = chamberLiftAt(v.x, v.y);
@@ -3217,7 +3223,7 @@ export function update3D(dt, world) {
   if (firstPersonView) {
     // eerste persoon (#833): muisLOOK, oog en kijkdoel staan in firstpersoncam.js; bij het
     // aanzetten kwamen de door de volgcam verborgen kroontjes weer vrij
-    if (fpCamera(world, cam, player, playerMesh, playerMeshPlaced, looking, lookK, lookBack, followPose, _fpLook)) {
+    if (fpCamera(world, cam, player, playerMesh, playerMeshPlaced, looking, lookK, lookBack, followPose, _fpLook, pvMesh, scene)) {
       updateCamTreeHiding(world.map, cam.position.x, cam.position.y, cam.position.z, cam.position.x, cam.position.y, cam.position.z);
     }
     lookX = _fpLook.x; lookY = _fpLook.y; lookZ = _fpLook.z;

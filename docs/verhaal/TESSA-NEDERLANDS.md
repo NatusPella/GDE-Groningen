@@ -1,23 +1,38 @@
-# Tessa spreekt standaard Nederlands (issue #134)
+# Tessa spreekt standaard Nederlands (issue #134, #924)
 
-**Besluit van de eigenaar (verhaalronde 3):** Tessa is Nederlandse en praat standaard Nederlands. Ze mag af en toe een Gronings woord zeggen als iemand van buiten de streek (voorzichtig, licht stuntelig, soms met een verbetering door een Groninger). Vastgelegd in [STIJLGIDS.md](STIJLGIDS.md). De bestaande opnames hebben nog het Groningse accent; heropnemen kost TTS en wacht op akkoord.
+**Besluit van de eigenaar (verhaalronde 3):** Tessa is Nederlandse en praat standaard Nederlands. Ze mag af en toe een Gronings woord zeggen als iemand van buiten de streek (voorzichtig, licht stuntelig, soms met een verbetering door een Groninger). Vastgelegd in [STIJLGIDS.md](STIJLGIDS.md).
 
-Onderzoek, geen TTS gedraaid. Stand: nieuwe verhaal (`game/storydata/script.json`) en de stem-config.
+**Stand 15-11-2026 (#924).** De stemkeuze in de code is goed (`tts_cast.mjs`: `Nederlandse vrouw`, standaard Nederlands, `lang: 'own'`). De oude opnames waren bijna allemaal met de Groningse spreektekst en stijlinstructie gemaakt; daardoor klonk Tessa soms Gronings. Daarnaast bleken 70 opgenomen autoritregels **stil** te zijn: `banter.js` zocht ze alleen in het banter-manifest terwijl het verhaal ze in `lines` opneemt. De selectie is gerepareerd en de opnameronde is op **15-11-2026** gedraaid: **367 + 21 + 2 clips** zijn opnieuw ingesproken via de LiteLLM-gateway (ca. **$0,23**), plus een proef van 8 clips in `game/audio/voicelines/proef/`. De sleutel is nooit gelezen of geprint; de TTS-scripts hebben hem zelf uit `.env` gehaald.
 
-## Bevinding
+## Wat in de code is gerepareerd
 
-- **De geschreven tekst van Tessa is al standaard Nederlands.** Alle 274 tekst-only regels van Tessa zijn Nederlands (geen aanpassing nodig). Citaten van anderen blijven staan ("doe bist schier" is Tammo, "Foar mem"/"Tige tank" staan op kaartjes).
-- **Het accent zit in de opname, niet in de tekst.** `scripts/tts_cast.mjs`: `Anita: { voice: 'Callirrhoe', who: 'Groningse vrouw, lacherig en ad rem', accent: ACCENT }`, met `ACCENT = GRO_ACCENT` ("spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent"). `TTS_LANG = 'gro'`: `scripts/gemini_tts.py` spreekt niet de geschreven tekst uit, maar de Gronings-vertaling uit `scripts/gronings_spoken.json` ("Een kat" wordt "N kat", "Hij heeft" wordt "Hai het", "Jij" wordt "Doe").
-- Van de 106 opgenomen Tessa-regels in het nieuwe verhaal is de gesproken tekst bij **95** anders dan de geschreven. In het hele manifest zijn dat 295 van de 315 Anita-regels (oud en nieuw).
+1. `game/js/storytext.js`: `banterExchanges()` geeft per autoritregel het manifest mee waar zijn opname staat (`rec`: story, lines of banter) plus de naam waaronder hij in dat manifest staat; `banterLineVoice(line)` zoekt de opname daar op. `game/js/banter.js` gebruikt die resolver. Vóór #924 keek de autorit alleen in `banter`, waardoor 70 van de 86 gesproken autoritregels (Tammo én Tessa) zwegen terwijl de clips er wel waren.
+2. `scripts/tts_cast.mjs`: `DUO.Anita` is `Nederlandse vrouw` met `accent` standaard Nederlands; de nieuwe helper `langOf(accent)` bepaalt per opdracht `lang: 'own'` (geschreven tekst) of `'gro'` (Groningse spreektekst).
+3. De TTS-generatoren zetten die `lang` nu per regel: `tts_lines_list.mjs` (verhaal, banter, hints, sms), `tts_sidejobs_lines.mjs` (bijbaantjes) en `tts_barks_lines.mjs` (barks). Vóór #924 viel elke regel zonder `lang` terug op `'gro'`, ook Tessa's.
+4. `tts_lines_list.mjs` keurt een opname nu op **taal**: een oude Groningse take van een Nederlandse regel geldt niet meer als actueel en komt opnieuw in de wachtrij. Dat geldt ook voor de verhaallijnen uit `script.json` (die alleen naar het model keken).
+5. `tts_sidejobs.py` en `tts_barks.py` geven de taal mee aan `current()`, zodat een take in de verkeerde taal opnieuw wordt opgenomen en een Nederlandse take daarna blijft staan.
+6. `scripts/tts_tessa_test.mjs` en `scripts/voice_lookup_audit_test.mjs` bewaken de resolutie, de stemkeuze per lijst en de taalcontrole.
 
-## Wat nodig is (geen tekstwijziging)
+## Wat er op 15-11 is opgenomen
 
-1. `tts_cast.mjs`: voor Tessa `who: 'Nederlandse vrouw ...'` en `accent`: standaard Nederlands, geen dialect. Gronings staat in de stijl en in het spoken-script.
-2. Tessa-regels met `lang: 'own'` (gesproken = geschreven tekst) in plaats van `gro` (de code in `gemini_tts.py` kent die al).
-3. De 95 hieronder (en de 200 oude Klassiek-regels) opnieuw inspreken; dat is TTS-uitgave en vraagt akkoord van de eigenaar.
-4. Regels met Gronings/Fries in de geschreven tekst zelf (hieronder gemarkeerd **G**) kunnen blijven als citaat, maar "Moi." (M16.6) en "Mien jong." (M26.7) zijn Tessa die Gronings gebruikt; voorstel: "Hoi." en "Mijn jongen." als ze standaard Nederlands moet blijven (beslissing eigenaar).
+| Ronde | Wat | Aantal | Resultaat |
+|---|---|---:|---|
+| Verhaal, autorit, hints, sms | Tessa's bestaande takes in het Nederlands, plus één Nederlandse toeristenbubbel | **367** | alle 367 current; `tts_lines.json` daarna **0 jobs** |
+| Barks | Tessa's korte reactieclips | **21** | alle 21 `lang: own` |
+| Bijbaantjes | Tessa's twee duo-regels | **2** | beide `lang: own` |
 
-## Opgenomen regels: geschreven (blijft) en de huidige Gronings gesproken tekst (verdwijnt bij heropname)
+De wachtrij is na de ronde weer **0 jobs**; `voice_coverage` staat op **2664/2664** en `audio_herkomst` telt **4147** clips, allemaal gelogd. Eén bubbletekst (`~f|Mijn koffie!`) komt in twee contexten voor (toeriste op de boot en klant in de bus) en heeft maar één opname; de Nederlandse take dekt beide en wordt niet heen en weer opnieuw opgenomen (`SHARED_BUBBLE` in `tts_lines_list.mjs`).
+
+**Wat nog open is:** de 18 regels van Geesje + 2 van Rotor Roelf (zie hieronder), de kapotte barks-generator (#812) en de stale, niet-gebruikte oude opnames (`audio_unused` meldt 1.874 manifestregels; aparte opruiming). Tessa's 8 stille appjes en Tammo's 6 zijn bewust `textOnly`.
+
+**Grens bij de barks.** `scripts/tts_barks.json` heeft de taal per regel gekregen, zodat `tts_barks.py` Tessa's 21 clips opnieuw opneemt. De generator `tts_barks_lines.mjs` zelf loopt sinds de Kiekdoar-hernoeming (#812) vast op `WANTED_UP`; dat is een aparte bug (de lijst is nu met de hand bijgewerkt, zonder de nieuwsregels te wijzigen).
+
+**Geesje (aanvulling op #924).** Geesje heeft haar stem (`Pulcherrima`) al, maar 18 nieuwe verhaalregels (M09, M21, M23, M26, M30) wachten op een **Groningse spreektekst** van een kenner; zonder die tekst weigert de generator terecht om in het Nederlands op te nemen. Dat is een tekstknoop, geen stemknoop: zie [GRONINGS-20-SPREEKTEKSTEN.md](GRONINGS-20-SPREEKTEKSTEN.md) en `scripts/gronings_spoken_draft.json`. Zodra de kenner de teksten invult (`node scripts/gronings_merge_draft.mjs --write`), komen de 18 regels met `node scripts/tts_lines_list.mjs` in de wachtrij. Hetzelfde geldt voor de 2 regels van Rotor Roelf.
+
+## Geschiedenis: de eerste meting (15-11, vóór de reparatie)
+
+De oude meting hieronder is bewaard als bewijs van de omvang; de aantallen zijn die van vóór de reparatie.
+
 
 Scene | Geschreven tekst (voorstel: blijft zo, standaard Nederlands) | Huidig gesproken (Gronings)
 --- | --- | ---
