@@ -1439,6 +1439,7 @@ function drawDynamicMarkers(ctx, world) {
   // samen spelen: met twee of meer spelers is een onderdeel dat nog niet samen werkt grijs ('nee') of heeft een markering ('deels'), met de melding bij hover en klik
   const samenVan = (soort, id, status) => samenWaarschuwing(world, soort, id, status);
   const icon = (layer, kind, x, y, name, opts, sub, pick, samen = null) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return; // een laag zonder echte plek mag geen pin of toFixed-crash geven
     if (layer && !layerOn(layer)) return;
     if (!mapKindVisible(kind, z)) return;
     const [sx, sy] = toScreen(x, y);
