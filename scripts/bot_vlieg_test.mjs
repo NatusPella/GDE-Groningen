@@ -128,7 +128,12 @@ const stripSpec = m15.stages[0].strip;
   const perS = Number((stuntavond.match(/const DRIFT_PER_S = (\d+)/) || [])[1]);
   ok(handrem === 9, 'vehicle.js: de handremdrift begint boven 9 m/s', String(handrem));
   ok(scoreS === 2.2 && scoreV === 6, 'stuntavond.js: punten vanaf 2,2 m/s slip en 6 m/s', `${scoreS}/${scoreV}`);
-  ok(perS === 60, 'stuntavond.js: 60 punten per seconde driften', String(perS));
+  ok(perS === 80, 'stuntavond.js: 80 punten per seconde driften', String(perS));
+  // #914: de stunt is eerlijker: meer punten per ding en een schadevloer voor de bakkie
+  const nieuw = readFileSync(path.join(root, 'game/js/missions_nieuw.js'), 'utf8');
+  ok(/stunt: \{[^\n]*shield: 30/.test(nieuw), 'M01 geeft de bakkie een schadevloer van 30');
+  ok(/R\.shield > 0/.test(stuntavond), 'stuntavond.js handhaaft de schadevloer tijdens de stunt');
+  ok(/pts: 160/.test(stuntavond) && /pts: 110/.test(stuntavond), 'parasol en kliko leveren meer punten');
   // de bot zet de handrem pas boven de drempel van het spel, met volle lock (anders slaat de drift niet aan)
   ok(St.STUNT.startSpeed > handrem, 'de stunt begint boven de drempel van 9 m/s', String(St.STUNT.startSpeed));
   ok(St.STUNT.runTop > St.STUNT.startSpeed, 'de aanloop is sneller dan de startdrempel');
@@ -151,10 +156,10 @@ const stripSpec = m15.stages[0].strip;
   ok(St.stuntStep(s({ score: 20 }), klok, St.STUNT.budget + 1).phase === 'timeout', 'geen punten meer: een time-out voor de ladder', String(St.STUNT.budget));
   const klaar = St.stuntStep(s({ score: 1500 }), {}, 0);
   ok(klaar.phase === 'klaar' && klaar.score === 1500, 'vijftienhonderd punten: de stunt is klaar');
-  // de punten van een slid zoals het spel ze telt (30 per halve seconde), tegen de tijd van de bot
+  // de punten van een slid zoals het spel ze telt (40 per halve seconde), tegen de tijd van de bot
   let punten = 0;
   for (let t2 = 0; t2 < St.STUNT.slideS; t2 += 0.5) punten += perS * 0.5;
-  ok(punten === 330, 'een slid van 5,5 s telt 330 punten in het spel', String(punten));
+  ok(punten === 440, 'een slid van 5,5 s telt 440 punten in het spel', String(punten));
   ok(tik === 11, 'elf telmomenten in een slid', String(tik));
 }
 

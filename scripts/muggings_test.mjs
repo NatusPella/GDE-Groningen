@@ -21,6 +21,9 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   check('warning on the map from the evening on, by the sun (the same night as the street lights), not by day', M.warnsOn('Stationsgebied', 21) && !M.warnsOn('Stationsgebied', 14) && !M.warnsOn('Peizerweg', 14) && M.warnsOn('Peizerweg', 23));
   check('every risky wijk has a reason in plain words', Object.keys(M.RISKY).every((w) => M.riskWhy(w).length > 8) && M.riskWhy('Selwerd') === '');
   check('the hazard grows with the risk and is a small per-second chance', M.hazard(1) > M.hazard(0.5) && M.hazard(0) === 0 && M.hazard(1) < 0.02 && M.hazard(-1) === 0);
+  // #888: een veroverde wijk is niet gevaarlijk meer
+  check('a conquered wijk has no risk and no warning', Object.keys(M.RISKY).every((w) => M.riskLevel(w, 1, true) === 0 && !M.warnsOn(w, 1, true)));
+  check('without the conquest flag the old risk stays', M.riskLevel('Binnenstad', 1) === 1 && M.warnsOn('Binnenstad', 1));
   // expected time to the first mugging standing in the busiest wijk at night: a few minutes
   const mean = 1 / M.hazard(1);
   check('on average a few minutes in the busiest wijk', mean > 120 && mean < 400, mean);
@@ -89,6 +92,9 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   check('only a minority of the wijken carries a warning', Object.keys(M.RISKY).length <= names.size * 0.25, `${Object.keys(M.RISKY).length}/${names.size}`);
   const src = fs.readFileSync(path.join(here, '../game/js/mapview.js'), 'utf8');
   check('the map draws the warning', /warnsOn\(p\.name/.test(src));
+  check('a conquered buurt or wijk is checked before the map warns', /veroverdOp\(getProfiel\(\), getIndeling\(\), p\.x, p\.y, 'buurt'\) \|\| veroverdOp\(getProfiel\(\), getIndeling\(\), p\.x, p\.y, 'wijk'\)/.test(src));
+  const mug = fs.readFileSync(path.join(here, '../game/js/muggings.js'), 'utf8');
+  check('the muggings use the conquest state', /isConquered\(w\)/.test(mug) && /riskLevel\(wijk, hour, own\)/.test(mug));
 }
 
 console.log(`muggings: ${n - bad}/${n} ok`);

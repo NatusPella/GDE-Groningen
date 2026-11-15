@@ -136,5 +136,60 @@ t('de haken: de grote kaart tekent laag en legenda, de minikaart de laag, de leg
   assert.ok(hud.indexOf('tekenVeroverdMini(ctx') > hud.indexOf('fillPolys(ctx, view.water)') && hud.indexOf('tekenVeroverdMini(ctx') < hud.indexOf('for (const r of view.roads)'), 'boven groen en water, onder de wegen');
 });
 
+t('#900: één niveau waarop een gebied opengaat (de wijk), los van de zoomlaag', () => {
+  // de test hierboven haalde de indeling weg; zet dezelfde proef opnieuw neer
+  Live.initGebieden({ bron: () => ({ grenzen, taken, bekend: () => new Set() }), opslag: nepOpslag });
+  Live.getIndeling();
+  for (const id of ['m:a', 'b:b', 'a:f', 'b:g']) Live.doeTaak(w, id);
+  K.vernieuwKaartLaag();
+  assert.equal(K.OPEN_NIVEAU, 'wijk', 'de wijk is het open niveau');
+  const { lijst, typisch } = K.kaartLaag();
+  for (const [x, y] of [[gx, gy], [gx + 300, gy - 200], [gx - 400, gy + 100]]) {
+    let eerste = null;
+    // het open niveau hangt niet van de zoom af: op elk zoomniveau hetzelfde gebied
+    for (const sc of [0.004, 0.045, 0.09, 0.22, 0.45, 1.4]) {
+      const a = K.openGebied(lijst, x, y);
+      assert.ok(a && a.niveau.id === 'wijk', `open niveau op schaal ${sc}: ${a && a.niveau.id}`);
+      if (eerste) assert.equal(a.gebied.id, eerste.gebied.id, `schaal ${sc}: hetzelfde gebied als op het eerste niveau`);
+      else eerste = a;
+    }
+    assert.ok(eerste, 'er is een wijk onder dit punt');
+  }
+  assert.equal(K.openGebied(lijst, NaN, 0), null);
+  assert.equal(K.openGebied([], 0, 0), null);
+  assert.equal(K.openGebied(null, 0, 0), null);
+  assert.ok(typisch.wijk > 0, 'de wijklaag bestaat');
+});
+
+t('#900: de status van de gestarte gebieden staat op elk zoomniveau in de strook', () => {
+  const { lijst } = K.kaartLaag();
+  const regels = K.statusRegels(lijst, 3);
+  assert.ok(regels.length >= 1 && regels.length <= 3, 'één tot drie regels');
+  assert.ok(regels.every((r) => /^.+ · .+$/.test(r.tekst) && r.kleur), 'elke regel noemt een gebied en zijn stand: ' + regels.map((r) => r.tekst).join(' | '));
+  assert.ok(regels.every((r) => /^.+ · (veroverd|\d+ van \d+ · \d+%)$/.test(r.tekst)), 'dezelfde woorden als de kaartlaag');
+  // de strook noemt de voortgang van álle lagen, niet alleen de laag die dit zoomniveau tekent
+  assert.ok(lijst.some((r) => (r.voltooid || r.klaar > 0) && r.niveau.id !== 'wijk'), 'de proef heeft voortgang buiten de wijklaag');
+  assert.ok([...new Set(regels.map((r) => r.tekst.split(' · ')[0]))].every((naam) => lijst.some((r) => r.gebied.naam === naam && (r.voltooid || r.klaar > 0))), 'de strook noemt alleen gebieden met voortgang');
+  assert.equal(K.statusRegels([], 3).length, 0);
+  assert.equal(K.statusRegels(null).length, 0);
+  // veroverd eerst, dan wat het verst gevorderd is; wat niets deed valt weg
+  const schijn = [
+    { gebied: { naam: 'A' }, voltooid: false, klaar: 1, totaal: 4, deel: 0.25, pct: 25, vlag: '#fff' },
+    { gebied: { naam: 'B' }, voltooid: true, klaar: 2, totaal: 2, deel: 1, pct: 100, vlag: '#123' },
+    { gebied: { naam: 'C' }, voltooid: false, klaar: 0, totaal: 4, deel: 0, pct: 0, vlag: '#fff' },
+  ];
+  const s = K.statusRegels(schijn, 3);
+  assert.deepEqual(s.map((r) => r.tekst.split(' · ')[0]), ['B', 'A'], 'veroverd eerst, wat niets deed valt weg');
+});
+
+t('#900: de grote kaart opent hetzelfde gebied en toont de strook op elk zoomniveau', () => {
+  const src = (f) => fs.readFileSync(fileURLToPath(new URL('../game/js/' + f, import.meta.url)), 'utf8');
+  const view = src('mapview.js');
+  assert.ok(view.includes('openGebied(kaartLaag().lijst, wx, wy)'), 'hover en klik gebruiken het open niveau');
+  assert.ok(view.includes('statusRegels(kaartLaag().lijst)'), 'de voortgangsstrook komt uit alle lagen');
+  assert.ok(view.includes('if (strookRegels.length) tekenVoortgangsStrook('), 'de strook staat er ook als de getekende laag geen naam kwijt kan');
+  assert.ok(!view.includes('const hoofd = kiesLaag(typisch, state.scale)'), 'de hover hangt niet meer aan de zoomlaag');
+});
+
 console.log(`${n - fails}/${n} geslaagd`);
 process.exit(fails ? 1 : 0);

@@ -43,13 +43,17 @@ function lockedRow(c) {
   return `<div class="m-li off" tabindex="0" data-cheat-row="${c.id}"><span class="nm"><span class="one">???</span><span class="mut one">${esc(hintOf(c))}</span></span>${LOCK}<span class="t">Op slot</span></div>`;
 }
 
+// #895: wat een cheat doet staat meteen in de rij, niet pas in het paneel als je hem kiest. De
+// uitleg is één regel (de rest staat in het paneel) zodat de lijst scanbaar blijft.
+const descOf = (c) => (c.desc ? `<span class="mut one">${esc(c.desc)}</span>` : '');
+
 function actionRow(c, w) {
   const busy = blockedReason(w);
   let ctrl;
   if (c.id === 'teleport') ctrl = `<button type="button" class="m-bt" data-cheat-act="teleport"${busy ? ' disabled' : ''}>Kies op de kaart</button>`;
   else if (c.id === 'voertuig') ctrl = `<button type="button" class="m-bt" data-cheat-act="picker" aria-expanded="${picker}"${busy ? ' disabled' : ''}>${picker ? 'Lijst dicht' : 'Kies voertuig'}</button>`;
   else ctrl = '<span class="t g">Vrijgespeeld</span>';
-  let row = `<div class="m-li" data-cheat-row="${c.id}"><span class="nm"><span class="one">${esc(c.name)}</span>${busy && (c.id === 'teleport' || c.id === 'voertuig') ? `<span class="mut one">${esc(busy)}</span>` : ''}</span>${ctrl}</div>`;
+  let row = `<div class="m-li" data-cheat-row="${c.id}"><span class="nm"><span class="one">${esc(c.name)}</span>${busy && (c.id === 'teleport' || c.id === 'voertuig') ? `<span class="mut one">${esc(busy)}</span>` : descOf(c)}</span>${ctrl}</div>`;
   if (c.id === 'voertuig' && picker && !busy) {
     row += '<div class="st-pick">' + spawnChoices(w).map((v) => `<button type="button" class="m-chip" data-cheat-spawn="${esc(v.id)}">${esc(v.label)} <span>${KIND[v.kind] || ''}${v.own ? '' : ' · showroom'}</span></button>`).join('') + '</div>';
   }
@@ -60,16 +64,25 @@ function toggleRow(c) {
   const on = isCheatOn(c.id), hinder = impact(c) === 'hindert', ask = st.pending === c.id;
   const icon = hinder ? `<span class="cheat-ic red" title="Zet prestaties uit">${TROPHY_OFF}</span>` : `<span class="cheat-ic g" title="Veilig voor prestaties">${TROPHY}</span>`;
   const label = on ? 'Zet uit' : ask ? 'Zeker? Bevestig' : 'Zet aan';
-  return `<div class="m-li${on ? ' on' : ''}" data-cheat-row="${c.id}">${icon}<span class="nm"><span class="one">${esc(c.name)}</span></span><span class="t ${on ? 'g' : 'mut'}">${on ? 'Aan' : 'Uit'}</span><button type="button" class="m-bt" data-cheat-toggle="${c.id}">${label}</button></div>`;
+  // #895: de uitleg staat er meteen bij; de trophy vertelt of prestaties meetellen, en bij een
+  // cheat die ze uitzet staat dat er ook in woorden bij (kleur is nooit de enige aanwijzing).
+  return `<div class="m-li${on ? ' on' : ''}" data-cheat-row="${c.id}">${icon}<span class="nm"><span class="one">${esc(c.name)}${hinder ? '<span class="mut"> · prestaties uit</span>' : ''}</span>${descOf(c)}</span><span class="t ${on ? 'g' : 'mut'}">${on ? 'Aan' : 'Uit'}</span><button type="button" class="m-bt" data-cheat-toggle="${c.id}">${label}</button></div>`;
+}
+
+// #895: de regel over prestaties staat één keer boven de lijst (en in het paneel), zodat je
+// hem leest voordat je iets aanzet in plaats van erna.
+function introOf(w) {
+  const blocked = achievementsBlocked();
+  if (cheatsUit(w)) return CHEATS_UIT_TEKST;
+  if (blocked) return 'Prestaties staan uit zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).';
+  return 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
 }
 
 function paneHtml(w) {
   const c = CHEATS.find((x) => x.id === sel);
   const blocked = achievementsBlocked();
   const busy = cheatsBusy(w);
-  const intro = cheatsUit(w) ? CHEATS_UIT_TEKST : blocked
-    ? 'Prestaties staan uit zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).'
-    : 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
+  const intro = introOf(w);
   if (!c) return `<div class="pm-pane-top"><span class="m-eb">Cheats</span><h2 class="m-h2 td-h2">Een beetje vals spelen</h2></div><p>${intro}</p>`;
   const open = isAvailable(c.id);
   return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
@@ -94,6 +107,7 @@ export function renderCheatsPanel(el, w) {
   const sum = summaryLine(CHEATS, isCheatOn);
   el.innerHTML = '<div class="m-main"><div class="m-list pm-slist">' +
     `<p class="cheat-sum ${sum.tone === 'red' ? 'red' : 'g'}" role="status">${esc(sum.text)}</p>` +
+    `<p class="m-note cheat-rule">${esc(introOf(w))}</p>` +
     '<div class="m-gh"><span>Acties</span></div>' + actions.filter((c) => isAvailable(c.id)).map((c) => actionRow(c, w)).join('') +
     `<div class="m-gh"><span>Cheats</span><span>${lit ? `${lit} aan` : ''}</span></div>` + open.map(toggleRow).join('') +
     (shut.length ? `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="locked" aria-expanded="${lockedOpen}" aria-controls="pm-f-locked">${CHEV}<b>Nog ${shut.length} op slot</b><span class="mut one">Speel verder in het verhaal of haal prestaties</span></button>` +

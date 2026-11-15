@@ -90,27 +90,33 @@ roepen.
 
 De structuur staat op één plek: `SECTIONS` (`pausemenu.js:235`), `RAIL_GROUPS`
 (`:254`), `CHILD` (`:257`), `SUBTABS` (`:259`) en `HINTS` (`:275`). De rail heeft
-drie groepen: Spel, Verhaal, Loopbanen, Activiteiten / Kaart, Spullen, Garage,
-Prestaties, Foto's / Instellingen, Cheats. De tabs uit `SUBTABS`:
+drie groepen met een eigen kop en het aantal onderdelen erachter (#911): Spelen
+(Spel, Verhaal, Loopbanen, Veroverd, Activiteiten) / Jij (Kaart, Spullen, Garage,
+Prestaties, Foto's) / Systeem (Instellingen, Cheats). De kop van het blad noemt de
+groep en de plek ("Spelen · 2 van 5"). De tabs uit `SUBTABS`:
 
 | Sectie | Tabs |
 |---|---|
-| Spel | Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg |
+| Spel | Overzicht, Samen spelen, Opslaan & stoppen, Camera & richten, Hints & uitleg |
 | Samen spelen | Samen spelen, Spelers |
-| Verhaal | Opdrachten, Personages, Aanwijzingen, Veroverd |
+| Verhaal | Opdrachten, Personages, Aanwijzingen |
 | Activiteiten | Alles, Dichtbij |
-| Instellingen | Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats |
-| Besturing | Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp |
+| Instellingen | Beeld, Geluid & ondertitels, Spel, Besturing, Interface, Toegankelijkheid |
+| Besturing | Toetsenbord en muis, Controller, Toetsenoverzicht, Aanraken, Hulp |
 
 - De kaart is één scherm zonder rail; Visboek en Boerderij hangen onder Loopbanen,
   Besturing onder Instellingen en **Over** onder Instellingen > Interface. Spelers
   alleen in een sessie (`:358`); voor een spel begint alleen Spel, Instellingen en
-  Besturing (`:258`). De rail heeft tien vaste rijen van 56 px in drie groepen; de stage
-  is altijd 1920x1080 ontwerp-px, dus de rail krimpt of scrollt niet op 1280x720 en
-  1920x1080 (#601). Over is een naslagscherm met twee vouwen (Wat is er nieuw, Credits
-  en licenties) en 18 px body; "Snel instellen" op Overzicht is één gevouwen blok.
+  Besturing (`:258`). De rail heeft twaalf vaste rijen van 50 px in drie groepen met
+  een kleine groepskop; de stage is altijd 1920x1080 ontwerp-px, dus de rail krimpt
+  of scrollt niet op 1280x720 en 1920x1080 (#601, #911). Over is een naslagscherm met
+  twee vouwen (Wat is er nieuw, Credits en licenties) en 18 px body.
 - Spel > Overzicht is thuis: daar opent het menu, en Esc gaat van een kindscherm naar
-  de ouder, dan naar Overzicht en sluit. Eén primaire knop per scherm, de rest ghost
+  de ouder, dan naar Overzicht en sluit. Het Overzicht is een rustig beeld: waar je
+  bent, hoe ver je bent (hetzelfde percentage als de HUD, #898), wat er in de buurt
+  is en wat je bijna haalt. Instellingen (volume, beweging) staan onder Instellingen,
+  niet op het Overzicht (#896); hoe het spel speelt en hoe moeilijk het is onder
+  Instellingen > Spel (#891, #897). Eén primaire knop per scherm, de rest ghost
   of stille tekst; groen voor gekozen of primair, rood alleen wat iets verwoest.
 - Eén eigenaar: de structuur staat alleen in `pausemenu.js`, de vorm alleen in
   `menu.css` (`.gm`, `.m-*`). Geen ander bestand definieert knoppen, rijen of tabs

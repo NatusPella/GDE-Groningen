@@ -74,4 +74,16 @@ t('het scherm heeft een zoekveld, de delen als knoppen en een lege melding', () 
   assert.match(sp, /const zichtbaar = zoekSpullen\(items, zoek, deel\)/, 'de lijst gebruikt dezelfde regels als de test');
 });
 
+t('#908: Spullen begint met een kop en telt per categorie mee', () => {
+  const sp = lees('spullen.js');
+  assert.match(sp, /function overviewHtml\(/, 'de kop is een eigen functie');
+  assert.match(sp, /pm-hero sp-hero/, 'de kop gebruikt de gedeelde hero-opmaak');
+  assert.match(sp, /sp-cat/, 'elke categorie heeft een eigen kop');
+  assert.match(sp, /const pctVan = /, 'de stand van een categorie komt uit dezelfde teller');
+  assert.match(sp, /sp-detail-cat/, 'het detail noemt de categorie');
+  const css = lees('pausemenu.css');
+  assert.match(css, /#pause-menu \.sp-hero/);
+  assert.match(css, /#pause-menu \.sp-cat \.sp-cbar/);
+});
+
 console.log(`spullen_test: ${n}/${n} ok`);

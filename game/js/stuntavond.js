@@ -24,10 +24,10 @@ import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
 
 const COMBO_S = 4;
 const COMBO_MAX = 5;
-const NEAR_MISS = 40;
-const DRIFT_PER_S = 60;
-const FLOCK = 120;
-const SPRAY = 300;
+const NEAR_MISS = 50;
+const DRIFT_PER_S = 80;
+const FLOCK = 150;
+const SPRAY = 400;
 
 // Samen spelen (#525): the riders of the group who are in a car on the square. Whoever of the group
 // scores, scores for the evening; with one player this is the body of this device, exactly as before
@@ -41,13 +41,13 @@ function stuntRijders(w) {
   });
 }
 const KINDS = [
-  { kind: 'parasol', label: 'parasol', pts: 120, n: 10, opts: { r: 0.3, h: 2.4, mass: 12, material: 'plastic', breakSpeed: 0.6, breakCost: 0 } },
-  { kind: 'kliko', label: 'kliko', pts: 80, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
-  { kind: 'stoepbord', label: 'reclamebord', pts: 60, n: 10, opts: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 } },
+  { kind: 'parasol', label: 'parasol', pts: 160, n: 10, opts: { r: 0.3, h: 2.4, mass: 12, material: 'plastic', breakSpeed: 0.6, breakCost: 0 } },
+  { kind: 'kliko', label: 'kliko', pts: 110, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
+  { kind: 'stoepbord', label: 'reclamebord', pts: 80, n: 10, opts: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 } },
 ];
 const EXTRA = [
-  { kind: 'chair', label: 'terrasstoel', pts: 40, n: 14, opts: { r: 0.26, h: 0.9, mass: 5, material: 'plastic', breakSpeed: 0.2, breakCost: 0 } },
-  { kind: 'table', label: 'terrastafel', pts: 70, n: 8, opts: { r: 0.38, h: 0.8, mass: 14, material: 'metal', breakSpeed: 0.4, breakCost: 0 } },
+  { kind: 'chair', label: 'terrasstoel', pts: 60, n: 14, opts: { r: 0.26, h: 0.9, mass: 5, material: 'plastic', breakSpeed: 0.2, breakCost: 0 } },
+  { kind: 'table', label: 'terrastafel', pts: 90, n: 8, opts: { r: 0.38, h: 0.8, mass: 14, material: 'metal', breakSpeed: 0.4, breakCost: 0 } },
 ];
 KINDS.push(...EXTRA);
 const SAY_COMBO = ['Combo!', 'Chat gaat los!', 'Dik feest!'];
@@ -111,15 +111,17 @@ function addPoints(w, pts, label, say = null) {
   else if (R.combo >= 3 && R.combo !== R.saidCombo) { R.saidCombo = R.combo; w.addMessage(`${SAY_COMBO[R.combo % SAY_COMBO.length]} x${R.combo}`, 1.4, { kind: 'missie', key: 'stunt' }); }
 }
 
-// opts: { center: {x, y}, radius, target }
-export function startStunt(w, { center, radius = 45, target = 1500 } = {}) {
+// opts: { center: {x, y}, radius, target, shield }. shield: the health floor
+// of the car during the stunt (#914: Berend's bakkie wrecked too fast on the
+// square, so the evening ends in a fail instead of a score).
+export function startStunt(w, { center, radius = 45, target = 1500, shield = 0 } = {}) {
   stopStunt(w);
   const scene = sceneMod && sceneMod.getScene && sceneMod.getScene();
   const group = new THREE.Group();
   group.name = 'stuntavond';
   if (scene) scene.add(group);
   const id = ++seq;
-  run = { center, radius, target, score: 0, combo: 1, lastAt: -99, saidCombo: 0, events: 0, broken: 0, flocks: new Set(), props: [], group, drift: 0, near: new WeakSet(), unlisten: null, sprayed: false, sprayT: 0, truck: null };
+  run = { center, radius, target, shield: Math.max(0, Number(shield) || 0), shielded: false, score: 0, combo: 1, lastAt: -99, saidCombo: 0, events: 0, broken: 0, flocks: new Set(), props: [], group, drift: 0, near: new WeakSet(), unlisten: null, sprayed: false, sprayT: 0, truck: null };
   // the props for the evening, on open ground round the square
   // open ground (isOpenSpot knows the footprints), not hard against a wall, and not inside another prop. Until #392 this also asked
   // for no building within 0.8 m by bounding box, which is never true on the Grote Markt: the evening's own props never stood there.
@@ -209,6 +211,17 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
   let drifting = false;
   for (const actor of stuntRijders(w)) {
     const v = actor.inVehicle;
+    // #914: de bakkie mag rook, maar niet total loss: een vloer op de schade
+    // tijdens de stunt, met één keer uitleg. De missie faalt niet meer op een
+    // paar paaltjes en stoepranden.
+    if (R.shield > 0 && !v.wrecked && (v.health < R.shield || v.disabled)) {
+      v.health = Math.max(R.shield, v.health);
+      if (v.disabled) { v.disabled = false; v.burnLeft = 30; }
+      if (!R.shielded) {
+        R.shielded = true;
+        w.addMessage('De bakkie rookt en tikt, maar Berend heeft hem nog niet afgeschreven. Rustig aan.', 4, { kind: 'missie', key: 'stunt-schade' });
+      }
+    }
     // drifting through the square
     const slip = Math.hypot(v.driftX || 0, v.driftY || 0);
     if (slip > 2.2 && Math.abs(v.speed) > 6) drifting = true;

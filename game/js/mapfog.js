@@ -2,6 +2,8 @@
 // cel, op volle kaartformaat) en serialiseerde elke 3 s alle bits. Alleen het
 // geraakte venster uploaden en minder vaak opslaan scheelt haperingen bij het
 // rijden. Pure rekenregels, zodat de maten los te testen zijn.
+// #899: de kaart gebruikt deze mistlaag niet meer (de onbezochte buurten worden nu
+// uitgegrijsd, zie kaartontdekking.js); de regels blijven als naslag en voor de test.
 export const FOG_SAVE_MS = 15000;
 
 // De cellen die het verkennen rond (cx, cy) raakt, als tekenrechthoek (incl. rand).

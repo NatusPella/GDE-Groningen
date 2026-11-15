@@ -261,6 +261,9 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-chip[hidden] { display: none; }
 #hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
+/* #898: het voortgangschipje naast de naam: stil, in dezelfde maat als de andere chips */
+#hud .hud-chip.hud-done { border-color: rgba(63, 201, 122, 0.45); }
+#hud .hud-chip.hud-done b { font-weight: normal; color: var(--gron-green-light, #3fc97a); letter-spacing: 0.02em; }
 
 #hud .hud-meter { display: flex; align-items: center; gap: 8px; margin: 0; }
 #hud .hud-meter[hidden] { display: none; }

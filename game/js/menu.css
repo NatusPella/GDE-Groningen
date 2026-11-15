@@ -21,6 +21,12 @@
 }
 .gm-stage { position: absolute; left: 0; top: 0; width: calc(100vw / var(--mz)); height: calc(100vh / var(--mz)); zoom: var(--mz); }
 .gm *, .gm *::before, .gm *::after { box-sizing: border-box; }
+/* #889: menutekst is geen leesvoer. Slepen over een lijst selecteerde de regels en gaf
+   een blauwe highlight over het menu heen; alleen een echt invoerveld (zoeken, een naam
+   typen) houdt zijn selectie. Een code die je moet overschrijven zet `all` op zijn eigen
+   regel (pausemenu.css, .coop-code), dus die blijft werken. */
+.gm { -webkit-user-select: none; user-select: none; }
+.gm :is(input, textarea, select, [contenteditable="true"]) { -webkit-user-select: text; user-select: text; }
 :where(.gm) :is(h1, h2, h3, h4, p, dl, dd, ul, ol) { margin: 0; padding: 0; font-weight: normal; }
 :where(.gm) li { list-style: none; }
 :where(.gm) :is(button, input) { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; letter-spacing: inherit; }

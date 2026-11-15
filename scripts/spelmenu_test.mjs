@@ -36,11 +36,22 @@ ok(NU.every((k) => VOOR.includes(k)), 'geen optie erbij die geen instelling is',
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
 // wat naar Spel verhuisd is, en wat blijft
-const NAAR_SPEL = ['fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'showHints', 'hintSource', 'onboardingTips', 'ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'mapShiftTeleport', 'liveBussen'];
-ok(NAAR_SPEL.every((k) => spelKeys.includes(k) && !settingsKeys.includes(k)), 'de speelopties staan onder Spel en niet meer onder Instellingen');
+// #897: "Spelen" is geen tabblad van Spel meer maar een instelling: verkeer, geweld, rijden en de
+// kaart staan onder Instellingen > Spel, net als de moeilijkheid (#891). Camera en hints blijven
+// bij Spel, want dat is hoe je speelt en wat je in beeld ziet.
+const NAAR_INSTELLINGEN = ['ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'mapShiftTeleport', 'liveBussen', 'difficulty'];
+ok(NAAR_INSTELLINGEN.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'de speelopties en de moeilijkheid staan onder Instellingen > Spel', NAAR_INSTELLINGEN.filter((k) => !settingsKeys.includes(k)).join(', '));
+const IN_SPEL = ['fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'showHints', 'hintSource', 'onboardingTips', 'firstPersoon'];
+ok(IN_SPEL.every((k) => spelKeys.includes(k) && !settingsKeys.includes(k)), 'camera, richten en hints blijven onder Spel');
 const BLIJFT = ['resolution', 'shadows', 'masterVolume', 'mouseSensitivity', 'invertY', 'padLayout', 'hudMode', 'showMinimap', 'minimapZoom', 'minimapNorth', 'touchControls', 'showFog', 'colorBlind', 'uiScale', 'reduceMotion', 'stapAnimatie', 'helpTime', 'helpOffer', 'subtitleSize'];
 ok(BLIJFT.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'beeld, geluid, besturing, interface en toegankelijkheid blijven onder Instellingen');
 ok(settingsSrc.includes('data-preset-btn'), 'de voorinstellingen staan onder Instellingen > Beeld als knoppen, niet als picker (#435)');
+
+// #891: de moeilijkheid staat bovenaan Instellingen > Spel, met de uitleg van de drie standen ernaast
+const moeilijkheid = settingsSrc.slice(settingsSrc.indexOf("tab('spel'"), settingsSrc.indexOf("tab('besturing'"));
+ok(/picker\('difficulty', 'Moeilijkheid'/.test(moeilijkheid) && moeilijkheid.indexOf("picker('difficulty'") < moeilijkheid.indexOf("picker('ruzie'"), 'de moeilijkheid staat bovenaan het tabblad Spel (#891)');
+ok(/function difficultyRows\(\)/.test(pm) && /pm-diff-row/.test(pm) && /data-diff="\$\{id\}"/.test(pm), 'de drie standen worden met hun gevolgen uitgelegd (#891)');
+ok((settingsSrc.match(/picker\('difficulty'/g) || []).length === 1, 'de moeilijkheid staat op precies één plek');
 
 // elke optie is een echte instelling (settings.js) en de opslagsleutels zijn dezelfde gebleven
 const settingsJs = read('game/js/settings.js');
@@ -52,10 +63,9 @@ ok(!/localStorage\.(setItem|getItem)\([^)]*spel/i.test(pm), 'Spel bewaart niets 
 // de tabbladen van Spel, de sectie en alles eromheen
 const sub = (pm.match(/spel: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(subIds.join() === 'overzicht,samen,acties,spelen,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
+ok(subIds.join() === 'overzicht,samen,acties,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Opslaan & stoppen, Camera & richten en Hints & uitleg (#897: Spelen is een instelling geworden)', subIds.join());
 ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
-ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Veroverd, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676)');
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
 ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
@@ -162,7 +172,7 @@ ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
-ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['besturing', 'Besturing'\], \['display', 'Interface'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft vijf echte instellingstabbladen; Cheats staat als eigen onderdeel in de rail (#604)');
+ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spel'\], \['besturing', 'Besturing'\], \['display', 'Interface'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft zes echte instellingstabbladen (met Spel erbij sinds #897); Cheats staat als eigen onderdeel in de rail (#604)');
 ok(!/\['fouten', 'Foutrapport'\]/.test(pm) && pm.includes('<span>Problemen</span>') && pm.includes('data-errsum'), 'het foutrapport staat onder Over als Problemen met een Nederlandse samenvatting (#604)');
 ok(pm.includes('data-reset-confirm') && pm.includes('data-action="reset-go"') && pm.includes('data-action="reset-undo"') && pm.includes('data-action="reset-cancel"'), 'Standaard herstellen vraagt eerst en kan daarna ongedaan gemaakt worden (#604)');
 ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Samen spelen er niet');
@@ -223,10 +233,10 @@ ok(read('game/js/helpoverview.js').includes("id: 'kaart'"), 'Besturing, Hulp: de
 
 
 // #435: veilig afsluiten vanuit het hoofdmenu en de nieuw-bolletjes op de rail
-const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
+const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'quit-now'"), pm.indexOf("a === 'pigeon-stop'"));
 ok(/started\(\) && !prestart && world \? saveGame\(world\) : undefined/.test(exitBranch), 'Afsluiten bewaart alleen een lopend spel, niet de menuscene boven het hoofdmenu (#435); de uitslag gaat naar #563');
 ok(!/if \(world\) saveGame\(world\)/.test(exitBranch), 'geen onvoorwaardelijke save meer bij Spel herstarten of Afsluiten');
-const pcss = read('game/js/pausemenu.css');
+const pcss = read('game/js/pausemenu.css').replace(/\r\n/g, '\n');
 ok(pcss.includes('.ra[data-new] .ra-t::after'), 'de nieuw-bolletjes op de rail (Verhaal, Prestaties) hebben een eigen stijl (#435)');
 ok(pcss.includes('.ra.pm-exit::after'), 'Afsluiten staat met een scheidingslijn onder de andere secties');
 ok(pm.includes("setN('todo', '');") && !pm.includes("setN('todo', fresh"), "'nieuw' van een verhaal-aanwijzing staat niet meer op Activiteiten (#435)");
@@ -251,15 +261,20 @@ ok(/if \(k === 'Escape' \|\| k === 'Backspace'\) \{ consume\(e\); cancelRebind\(
 ok(pm.includes("if (prev === 'controls' && name !== 'controls') cancelRebind();"), 'een tabwissel weg van Besturing annuleert de rebind');
 ok(exitBranch.includes('cancelRebind(true)'), 'Afsluiten geeft de wachtstand vrij voordat het spel opslaat en sluit');
 
-// --- #601: vaste rail, rustig Overzicht, voorspelbare Q/E en een naslag-Over ---------
-// drie groepen, geen Over als twaalfde rij; Over hangt onder Instellingen
+// #911: drie zichtbare groepen met een kop en een telling, in dezelfde volgorde als de secties
 const railGroepen = (pm.match(/const RAIL_GROUPS = \[([\s\S]*?)\];/) || [])[1] || '';
-const railDelen = [...railGroepen.matchAll(/\[([^\]]+)\]/g)].map((m) => [...m[1].matchAll(/'(\w+)'/g)].map((x) => x[1]));
-ok(railDelen.length === 3 && !railDelen.flat().includes('over'), 'de rail heeft drie groepen en geen Over-rij (#601)', JSON.stringify(railDelen));
+const railDelen = [...railGroepen.matchAll(/\['(\w+)', '([^']+)', \[([^\]]+)\]\]/g)].map((m) => [m[1], m[2], [...m[3].matchAll(/'(\w+)'/g)].map((x) => x[1])]);
+ok(railDelen.length === 3 && !railDelen.flatMap((d) => d[2]).includes('over'), 'de rail heeft drie groepen en geen Over-rij (#601)', JSON.stringify(railDelen.map((d) => d[0])));
+ok(railDelen.map((d) => d[0]).join() === 'spelen,jij,systeem' && railDelen.map((d) => d[1]).join() === 'Spelen,Jij,Systeem', 'de groepen heten Spelen, Jij en Systeem (#911)');
+ok(railDelen[0][2].join() === 'spel,verhaal,loopbaan,veroverd,todo' && railDelen[1][2].join() === 'map,spullen,garage,prestaties,fotos' && railDelen[2][2].join() === 'settings,streken', 'de rail: Spel, Verhaal, Loopbanen, Veroverd, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676, #911)');
+ok(/pm-rail-h/.test(pm) && /data-gcount/.test(pm) && /function railPosition\(/.test(pm), 'de kop van een groep telt zijn onderdelen en de bladkop zegt waar je bent (#911)');
 ok(/'over',\s*'Over'/.test(pm) && /data-goto="over"|data-goto-sub="[a-z]+:over"/.test(pm), 'Over bestaat nog als onderdeel met een ingang (#601)');
 ok(/rowName\('Over GDE'.*?data-goto="over"/.test(pm), 'Instellingen > Interface heeft een rij naar Over (#601)');
-// de rail is niet meer ingekrompen per vensterhoogte: de stage is altijd 1080 px ontwerp
-ok(/--ra-h: 56px/.test(pcss) && !/--ra-h: (38|36)px/.test(pcss) && !/max-height: 1000px/.test(pcss), 'de railrijen zijn 56 px en krimpen niet meer per vensterhoogte (#601)');
+// de rail past op de stage: 48 px per rij op 1080p, 40 px op 1280x720 (QA #911), en nooit
+// meer de oude 56 px of een inklapregel per vensterhoogte
+ok(/--ra-h: 48px/.test(pcss) && !/--ra-h: 56px/.test(pcss) && !/max-height: 1000px/.test(pcss), 'de railrijen zijn 48 px en krimpen niet meer per vensterhoogte (#601, #911)');
+const compactRail = [...pcss.matchAll(/@media \(max-height: 820px\) \{([\s\S]*?)\n\}/g)].map((m) => m[1]).join('\n');
+ok(/--ra-h: 40px/.test(compactRail) && /\.pm-rail-h \{/.test(compactRail), 'op 1280x720 krijgt de rail compactere rijen en koppen, zodat alle twaalf onderdelen passen (#911)');
 // Q/E en [ ] doen hetzelfde en pakken de zichtbare (binnenste) tabrij, daarna het onderdeel
 ok(/lower === 'q' \|\| lower === 'e' \|\| k === '\[' \|\| k === '\]'/.test(pm) && /function cycleVisibleTabs/.test(pm) && /lists\[lists\.length - 1\]/.test(pm),
   'Q/E en [ ] pakken de zichtbare tabrij, de binnenste eerst (#601)');

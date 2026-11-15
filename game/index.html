@@ -134,6 +134,13 @@
 
   body:not(.game-started) #hud { visibility: hidden; }
   body.hide-minimap .hud-minimap-wrap { display: none; }
+
+  /* #889: HUD- en menutekst is geen leesvoer. Slepen over het scherm selecteerde de
+     tekst en gaf een blauwe highlight midden in het spel; alleen een echt invoerveld
+     (zoeken, een naam typen) houdt zijn eigen selectie. Alles wat op een knop lijkt is
+     een knop, geen tekst om te kopiëren. */
+  body, #hud, .gm { -webkit-user-select: none; user-select: none; }
+  :is(input, textarea, select, [contenteditable="true"]) { -webkit-user-select: text; user-select: text; }
 </style>
 </head>
 <body>

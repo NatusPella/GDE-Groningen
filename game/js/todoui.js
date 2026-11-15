@@ -7,7 +7,7 @@ import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
 import { activityTodoItems } from './activities.js';
 import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
-import { PARTS, CLUES, WHY } from './storyarc.js';
+import { PARTS, CLUES, WHY, partName } from './storyarc.js';
 import { getAchievementView, getAchievementSummary, getSaveSet, EIERBAL_TOTAL, MEDALS } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
@@ -100,12 +100,13 @@ function endOf(it) {
 function row(it, extra = '') {
   const off = it.status === 'later' || it.status === 'slot' || (it.status === 'klaar' && it.medal == null);
   // De catalogus (Activiteiten) heeft een eigen taal: het kaartpictogram van de activiteit (#607).
-  // De verhaalmissies in Verhaal > Opdrachten houden hun code en status, zonder pictogram.
+  // De verhaalmissies in Verhaal > Opdrachten houden hun eigen regel, zonder pictogram. Het
+  // missienummer staat niet meer in beeld (#913): de titel en de context vertellen waar het over gaat.
   const ico = it.icon && it.group !== 'missies' && it.group !== 'verhaal' ? `<img class="td-ico" src="${mapIconUrl(it.icon, 22)}" alt="">` : '';
   // #681: het Ommeland-paspoort laat per dorp een voortgangsbalk zien; de rest van de rijen houdt zijn taal.
   const progress = it.progress ? `<span class="m-bar td-pbar" aria-hidden="true"><i data-bar="om-${esc(it.key)}" data-w="${it.progress.pct}"></i></span>` : '';
   return `<button type="button" class="m-li${off ? ' off' : ''}${extra}" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` + ico +
-    `<span class="nm"><span class="one">${it.code ? `${esc(it.code)} · ` : ''}${esc(it.title)}</span><span class="mut one">${esc(it.record && it.status !== 'nu' && it.status !== 'later' ? it.record : it.meta)}</span></span>` +
+    `<span class="nm"><span class="one">${esc(it.title)}</span><span class="mut one">${esc(it.record && it.status !== 'nu' && it.status !== 'later' ? it.record : it.meta)}</span></span>` +
     `${progress}${medalDot(it.medal)}${endOf(it)}</button>`;
 }
 
@@ -133,7 +134,7 @@ function goalLine(world) {
   if (!g) return '';
   const wait = storyWaiting(world);
   const d = Math.hypot(g.x - hoofdspeler(world).x, g.y - hoofdspeler(world).y);
-  return `<span class="ov-goal mut">${svg(ICON.flag)}<span class="one">Doel: ${esc(g.name)}${[formatDistance(d), wait ? `verhaal wacht: ${wait.code}` : ''].filter(Boolean).map((t) => ' · ' + esc(t)).join('')}</span>` +
+  return `<span class="ov-goal mut">${svg(ICON.flag)}<span class="one">Doel: ${esc(g.name)}${[formatDistance(d), wait ? `verhaal wacht: ${wait.label}` : ''].filter(Boolean).map((t) => ' · ' + esc(t)).join('')}</span>` +
     '<button type="button" class="m-bt" data-todo-clear>Doel wissen</button></span>';
 }
 
@@ -141,7 +142,7 @@ function heroHtml(world) {
   const sv = getStoryView();
   if (sv.end) {
     const e = sv.ending;
-    const open = e && !e.done ? [...e.challenges.map((c) => c.name), ...e.missions.map((m) => `${m.code} · ${m.title}`)] : [];
+    const open = e && !e.done ? [...e.challenges.map((c) => c.name), ...e.missions.map((m) => m.title)] : [];
     const text = open.length
       ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
       : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
@@ -154,12 +155,12 @@ function heroHtml(world) {
   const cur = getStorySteps().find((s) => s.current);
   const it = cur ? byKey.get(cur.kind === 'mission' ? 'm:' + cur.mission : 'st:' + cur.id) : null;
   const goal = getGoal();
-  const title = cur && cur.kind === 'mission' ? `${cur.id} · ${cur.title}` : sv.title;
+  const title = cur ? cur.title : sv.title;
   const where = it && it.x != null ? placeName(world, it.x, it.y) : '';
   const shot = it && it.x != null ? placeShot(world, it.key, it.x, it.y, (url) => showHeroShot(it.key, url)) : null;
   const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
   return `<article class="ov-hero"${it ? ` data-todo-hero="${esc(it.key)}"` : ''}>${shot ? heroShotHtml(shot) : ''}` +
-    `<div class="ov-main"><span class="m-eb">Het verhaal · ${esc(PARTS[sv.part].title)}</span>` +
+    `<div class="ov-main"><span class="m-eb">Het verhaal · ${esc(partName(sv.part))}</span>` +
     `<h1 class="ov-title${title.length > 20 ? " long" : ""}">${esc(title)}</h1>${cur && cur.lead ? `<p class="ov-lead">${esc(cur.lead)}</p>` : ''}` +
     `<div class="ov-prog"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="mut">Stap <span data-num="ov-part" data-to="${done}">${done}</span> van ${steps.length}${where ? ` · ${esc(where)}` : ''}</span></div></div>` +
     `<div class="m-acts ov-acts">${deviceText('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">Esc</span></button>', '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>')}` +
@@ -259,16 +260,6 @@ function stepRow(s) {
     : `<div class="m-li off" data-st="${st}">${inner}</div>`;
 }
 
-// Bovenaan Opdrachten: wat je nu moet doen, met een knop naar de plek (#435); daaronder de lijst per deel.
-function nextHtml(cur) {
-  if (!cur) return '';
-  const it = byKey.get(cur.kind === 'mission' ? 'm:' + cur.mission : 'st:' + cur.id);
-  const titel = cur.kind === 'mission' ? `${cur.id} · ${cur.title}` : cur.title;
-  const goal = getGoal();
-  return `<section class="td-next" aria-label="Volgende stap"><span class="m-eb">Volgende stap</span><b class="td-next-t">${esc(titel)}</b>${cur.lead ? `<p class="mut">${esc(cur.lead)}</p>` : ''}` +
-    (it ? `<button type="button" class="m-bp" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button>` : '') + '</section>';
-}
-
 // De volgende stap (#435): de stap die nu loopt; loopt er geen, dan de eerste
 // die je kunt doen en nog niet klaar is. Puur, zodat verhaalopdrachten_test hem
 // kan natrekken.
@@ -277,43 +268,82 @@ export function volgendeStap(steps) {
   return lijst.find((s) => s.current) || lijst.find((s) => s.available && !s.done) || null;
 }
 
+// Bovenaan Opdrachten: wat je nu moet doen, met de context erbij (#435, #912) en één knop naar de
+// plek. Het missienummer staat er niet in (#913): titel, hoofdstuk en voortgang vertellen genoeg.
+function nextHtml(cur) {
+  if (!cur) return '';
+  const it = byKey.get(cur.kind === 'mission' ? 'm:' + cur.mission : 'st:' + cur.id);
+  const list = getStorySteps().filter((s) => s.part === cur.part);
+  const done = list.filter((s) => s.done).length;
+  const pct = list.length ? Math.round((done / list.length) * 100) : 0;
+  const goal = getGoal();
+  return `<section class="td-next" aria-label="Volgende stap"><div class="td-next-top"><span class="m-eb">Waar je nu bent · ${esc(partName(cur.part))}</span><span class="pm-badge" data-tone="ok">Nu</span></div>` +
+    `<b class="td-next-t">${esc(cur.title)}</b>${cur.lead ? `<p class="td-next-lead">${esc(cur.lead)}</p>` : ''}` +
+    `<div class="td-next-prog"><span class="m-bar on"><i data-bar="next-${cur.part}" data-w="${pct}"></i></span><span class="mut">${done} van ${list.length} in dit hoofdstuk</span></div>` +
+    (it ? `<div class="m-acts td-next-acts"><button type="button" class="m-bp" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button></div>` : '') + '</section>';
+}
+
+// De hoofdstukken als één rustige lijst (#912): het hoofdstuk waar je bent staat open, afgeronde
+// hoofdstukken zijn één regel met hun stand, en wat nog komt staat op slot of te wachten. De namen
+// komen uit partName(), zodat "Akte 3: Aan de Eems" en "Deel 4: Nazomer" geen administratie meer
+// zijn maar gewoon twee hoofdstukken na elkaar.
 function storyHtml() {
   const steps = getStorySteps();
   const jr = getStoryJournal();
   const found = new Set(jr.found.map((c) => c.title));
   const cur = volgendeStap(steps);
-  if (!ui.open) ui.open = new Set([cur ? cur.part : PART_IDS[PART_IDS.length - 1]]);
-  return nextHtml(cur) + PART_IDS.map((part) => {
-    const P = PARTS[part];
+  const curPart = cur ? cur.part : null;
+  if (!ui.open) ui.open = new Set([curPart || PART_IDS[PART_IDS.length - 1]]);
+  const info = PART_IDS.map((part) => {
     const list = steps.filter((s) => s.part === part);
-    const done = list.filter((s) => s.done).length;
+    return { part, P: PARTS[part], list, done: list.filter((s) => s.done).length };
+  });
+  const byPart = new Map(info.map((p) => [p.part, p]));
+  const klaar = new Set(info.filter((p) => p.list.length && p.done === p.list.length).map((p) => p.part));
+  return nextHtml(cur) + PART_IDS.map((part) => {
+    const { P, list, done } = byPart.get(part);
+    const naam = partName(part);
+    // Een hoofdstuk na een finale (Nazomer) wacht op de eindkaart van het hoofdstuk ervoor: het
+    // staat niet als "nu te spelen" in de lijst voordat die kaart is geweest.
+    const wacht = !!(P.after && !klaar.has(P.after));
+    const openbaar = !!P.open && !wacht && list.some((s) => s.available);
+    const af = list.length > 0 && done === list.length;
+    const nu = part === curPart;
+    const open = ui.open.has(part) && openbaar;
     const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
     const known = clues.filter((c) => found.has(c.title));
-    const open = ui.open.has(part);
-    const locked = !P.open || !list.some((s) => s.available);
-    const count = `<span class="v">${locked ? '' : `<span data-num="part-${part}" data-to="${done}">${done}</span>/${list.length}`}</span>`;
+    const count = `<span class="v"><span data-num="part-${part}" data-to="${done}">${done}</span>/${list.length}</span>`;
+    const stand = af ? `Afgerond · ${done} van ${list.length}` : nu ? `${done} van ${list.length} · nu` : openbaar ? `${done} van ${list.length}` : wacht ? 'Wacht op het einde hiervoor' : 'Op slot';
+    const ico = af ? svg(ICON.check) : !openbaar ? svg(ICON.lock) : svg(ICON.chev);
     if (!open) {
-      return `<button type="button" class="m-li off" data-part-toggle="${part}" aria-expanded="false"><span class="nm one">${esc(P.title)}</span>` +
-        `${locked ? `${svg(ICON.lock)}<span class="t">Op slot</span>` : `${count}${done === list.length ? svg(ICON.check) : ''}`}</button>`;
+      // Een hoofdstuk dat nog niet kan, is geen knop die niets doet: het staat als rustige regel
+      // met een slot. Een hoofdstuk dat je al haalde of waar je bent, klapt wel open.
+      const inner = `<span class="td-chapter-ico" aria-hidden="true">${ico}</span>` +
+        `<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(stand)}</span></span>` +
+        `${openbaar ? count : ''}${nu ? '<span class="pm-badge" data-tone="ok">Hier ben je</span>' : af ? '<span class="pm-badge" data-tone="ok">Klaar</span>' : ''}`;
+      return `<section class="td-chapter${nu ? ' td-here' : ''}${af ? ' td-done' : ''}">` +
+        (openbaar ? `<button type="button" class="m-li td-chapter-row" data-part-toggle="${part}" aria-expanded="false">${inner}</button>` : `<div class="m-li td-chapter-row off">${inner}</div>`) + '</section>';
     }
     const first = list.findIndex((s) => !s.done);
     let cut = list.length - 1;
-    if (first >= 0 && !ui.more.has(part)) {
+    if (first >= 0 && !ui.more.has(part) && !af) {
       const m = list.findIndex((s, k) => k >= first && s.kind === 'mission' && !s.current);
       if (m >= 0) cut = m;
     }
     const rest = list.length - 1 - cut;
     const body = list.slice(0, cut + 1).map((s) => {
-      if (s.kind === 'mission') { const it = byKey.get('m:' + s.mission); return it ? row(it) : ''; }
+      if (s.kind === 'mission') { const it = byKey.get('m:' + s.mission); return it ? row(it, nu && s.current ? ' td-current' : '') : ''; }
       return stepRow(s);
     }).join('');
     const more = rest > 0 ? `<button type="button" class="m-more" data-part-more="${part}">Nog ${rest} ${rest === 1 ? 'stap' : 'stappen'} tot ${esc(list[list.length - 1].title)}</button>` : '';
-    const why = cur && cur.part === part && WHY[part] ? `<p class="m-note"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '';
+    const why = nu && WHY[part] ? `<p class="m-note td-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '';
     const clueInner = known.map((c) => `<p class="m-note"><b>${c.kind === 'hart' ? '&#9829; ' : ''}${esc(c.title)}</b> ${esc(c.text)}</p>`).join('') +
       (known.length < clues.length ? `<p class="m-note">Nog ${clues.length - known.length} te ontdekken. Speel verder om ze te vinden.</p>` : '');
     const clueHtml = clues.length ? disc('clues', 'Wat weten we?', known.length ? `${known.length} ${known.length === 1 ? 'aanwijzing' : 'aanwijzingen'}` : 'Nog niets gevonden', clueInner) : '';
-    return `<button type="button" class="m-gh m-ghbtn" data-part-toggle="${part}" aria-expanded="true"><span class="cur">${esc(P.title)}</span><span><span data-num="part-${part}" data-to="${done}">${done}</span> van ${list.length}</span></button>` +
-      `<div class="m-bar td-pbar"><i data-bar="part-${part}" data-w="${list.length ? Math.round((done / list.length) * 100) : 0}"></i></div>${body}${more}${why}${clueHtml}`;
+    return `<section class="td-chapter td-chapter-open${nu ? ' td-here' : ''}${af ? ' td-done' : ''}">` +
+      `<button type="button" class="m-gh m-ghbtn td-chapter-head" data-part-toggle="${part}" aria-expanded="true"><span class="cur">${esc(naam)}</span><span>${esc(stand)}</span></button>` +
+      `<div class="m-bar td-pbar on"><i data-bar="part-${part}" data-w="${list.length ? Math.round((done / list.length) * 100) : 0}"></i></div>` +
+      `${body}${more}${why}${clueHtml}</section>`;
   }).join('');
 }
 
@@ -323,14 +353,24 @@ const SHOW_FIRST = 4;
 // eigen klikgedrag. Elke rij opent het detail, waar je hem ook aanklikt.
 export function setTodoFilter(near) { ui.near = !!near; }
 
+// De kop van Activiteiten (#907): in één oogopslag hoeveel er te doen is en hoeveel daarvan
+// een plek op de kaart heeft. Dezelfde tellingen als de filters eronder, dus geen tweede waarheid.
+function activiteitenHero(eigen, metPlek) {
+  const dichtbij = eigen.filter((it) => it.dist != null && it.dist < 600).length;
+  return `<section class="td-acthero" aria-label="Activiteiten"><div class="td-acthero-main"><span class="m-eb">In en om Grunn</span>` +
+    `<b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} te doen</b>` +
+    `<p class="td-acthero-lead">Klussen, minigames en uitjes. Kies er een voor de uitleg, de afstand en de knop naar de plek.</p></div>` +
+    `<div class="td-acthero-facts"><span class="pm-stat" data-tone="accent"><b>${dichtbij}</b><span>dichtbij</span></span><span class="pm-stat"><b>${metPlek}</b><span>met een plek</span></span></div></section>`;
+}
+
 // #681: het Ommeland-paspoort boven de lijst: één balk voor de dorpen en de hint vanaf 80%.
 // De dorpen zelf staan als gewone rijen in de groep Ommeland (todo.js), dus de kaart leest ze ook.
 function paspoortHtml() {
   if (!worldNow) return '';
   const p = paspoortOverzicht(worldNow);
   const hint = p.hint.length ? `<p class="m-note">${p.hint.map((h) => esc(h)).join(' · ')}</p>` : '';
-  return `<div class="m-gh"><span>Ommeland-paspoort</span><span>${p.klaar} van ${p.totaal} dorpen · ${p.onderdelenKlaar} van ${p.onderdelenTotaal} onderdelen</span></div>` +
-    `<span class="m-bar td-pbar"><i data-bar="om-paspoort" data-w="${p.pct}"></i></span>${hint}`;
+  return `<section class="td-passport"><div class="m-gh"><span>Ommeland-paspoort</span><span>${p.klaar} van ${p.totaal} dorpen · ${p.onderdelenKlaar} van ${p.onderdelenTotaal} onderdelen</span></div>` +
+    `<div class="td-passport-row"><span class="m-num">${p.pct}%</span><span class="m-bar on"><i data-bar="om-paspoort" data-w="${p.pct}"></i></span><span class="mut">vier dingen per dorp</span></div>${hint}</section>`;
 }
 
 // #813: bovenaan Te doen de telling en de drie dichtstbijzijnde dingen. De
@@ -343,8 +383,8 @@ function beginHierHtml() {
   if (!n) return '';
   const next = near[0];
   return `<section class="td-begin" aria-label="Begin hier"><div class="m-gh"><span>Begin hier</span><span>${n} te doen</span></div>` +
-    `<p class="m-note">Er is hier ${n} te doen${next ? ` · eerstvolgende: <b>${esc(next.title)}</b>` : ''}</p>` +
-    near.map((it) => row(it)).join('') + '</section>';
+    `<p class="m-note td-begin-lead">Er is hier ${n} te doen${next ? ` · eerstvolgende: <b>${esc(next.title)}</b>` : ''}</p>` +
+    `<div class="td-begin-list">${near.map((it, i) => `<div class="td-begin-item"><span class="td-begin-nr" aria-hidden="true">${i + 1}</span>${row(it, ' td-begin-row')}</div>`).join('')}</div></section>`;
 }
 
 function allHtml() {
@@ -356,11 +396,13 @@ function allHtml() {
   const filter = `<div class="m-chips" role="group" aria-label="Filter"><button type="button" class="m-chip" data-todo-near aria-pressed="${ui.near}">Dichtbij <span>${metPlek}</span></button></div>`;
   const chips = `<div class="m-chips" role="radiogroup" aria-label="Soort"><button type="button" class="m-chip" role="radio" data-todo-kind="alles" aria-checked="${ui.kind === 'alles'}">Alles <span>${total}</span></button>` +
     SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
+  const tools = `<div class="td-acttools"><div class="m-gh"><span>Wat wil je doen?</span><span>Kies een soort of blijf bij alles</span></div>${filter}${chips}</div>`;
+  const hero = activiteitenHero(eigen, metPlek);
   if (ui.near) {
     const label = ((SHOWN.find(([g]) => g === ui.kind) || [])[1] || '');
     const list = eigen.filter((it) => it.dist != null && (ui.kind === 'alles' || it.group === ui.kind))
       .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
-    return begin + filter + chips + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
+    return hero + begin + tools + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
       (!list.length ? '<p class="m-note">Niks met een plek in deze soort. Kies een andere soort of zet de filter uit.</p>' : '');
   }
   const groups = SHOWN.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
@@ -372,10 +414,10 @@ function allHtml() {
     const sel = list.find((it) => it.key === ui.sel);
     if (!all && sel && !shown.includes(sel)) shown[shown.length - 1] = sel;
     const rest = list.length - shown.length;
-    return `<div class="m-gh"><span>${label}</span><span>${rest > 0 || all ? `${list.length} · ` : ''}${sub}</span></div>${shown.map((it) => row(it)).join('')}` +
-      (rest > 0 ? `<button type="button" class="m-more" data-grp-more="${g}">Nog ${rest} ${esc(label.toLowerCase())}</button>` : '');
+    return `<section class="td-group"><div class="m-gh"><span>${esc(label)}</span><span>${list.length} · ${esc(sub)}</span></div><div class="td-group-rows">${shown.map((it) => row(it)).join('')}</div>` +
+      (rest > 0 ? `<button type="button" class="m-more" data-grp-more="${g}">Nog ${rest} ${esc(label.toLowerCase())}</button>` : '') + '</section>';
   }).join('');
-  return begin + filter + chips + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
+  return hero + begin + tools + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
 }
 
 // Eén vaste opmaak voor een feit, niet afhankelijk van de lengte van de tekst (#607): het
@@ -405,7 +447,10 @@ function detailHtml(world) {
   if (it.stopJob) quiet += '<button type="button" class="m-bt danger" data-todo-stopjob>Dienst stoppen</button>';
   const acts = primary + more + (quiet ? `<span class="m-grow"></span>${quiet}` : '');
   const kick = [d.kicker, it.dist != null ? formatDistance(it.dist) : ''].filter(Boolean).join(' · ');
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(kick)}</span><h2 class="m-h2 td-h2">${it.code ? `${esc(it.code)} · ` : ''}${esc(it.title)}</h2></div>` +
+  // De stand staat als woord naast de titel (#907): kleur of een streepje is nooit de enige aanwijzing.
+  const stand = it.isGoal ? 'Jouw doel' : it.status === 'nu' ? 'Nu' : it.status === 'klaar' ? 'Klaar' : it.status === 'later' ? 'Later' : it.status === 'slot' ? 'Op slot' : '';
+  const standTone = it.isGoal || it.status === 'klaar' ? 'ok' : it.status === 'later' || it.status === 'slot' ? 'warn' : 'ok';
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? `<span class="pm-badge" data-tone="${standTone}">${esc(stand)}</span>` : ''}</div></div>` +
     (d.text ? `<p>${esc(d.text)}</p>` : '') + (rows ? `<div class="m-facts">${rows}</div>` : '') + medals +
     (it.record ? `<p class="mut">${medalDot(it.medal)} ${esc(it.record)}</p>` : '') +
     '<span class="m-grow"></span>' +

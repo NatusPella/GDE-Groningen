@@ -33,7 +33,7 @@ import { showCard } from './hudcards.js';
 import { recordUnique, hasUnique, unlockAchievement } from './achievements.js';
 import { BEPPE_SIGN, ROAD_SIGN, LAST_BENCH, HOUSE_ARRIVAL, REMEMBRANCE } from './beppe_texts.js';
 import {
-  TRIBUTE, LAYOUT, pickTributeEnd, nearestOnPath, crossingOnRoad, crossingAhead, layoutTribute,
+  TRIBUTE, LAYOUT, pickTributeEnd, nearestOnPath, crossingOnRoad, crossingAhead, chooseTributeSite,
   housePoint, markerOf, once, tributeTodo, farewellGuide,
 } from './beppe_rules.js';
 import { ensureWorldEnds, getWorldEndSpots } from './worldends.js';
@@ -73,16 +73,67 @@ function groundAt(map, x, y) {
 
 // --- the site: from the western world end back to the provincial border ------
 
+// De westelijke overgang naar Friesland (#916): de weg over de Lauwers bij Visvliet.
+// We zoeken de overgang op de weg zelf (een rood/wit punt in de grens tussen Groningen
+// en Friesland) en geven de buitenrichting en de halve wegbreedte mee, zodat
+// chooseTributeSite daar bankje, bord en huis kan neerzetten. De grootste weg wint.
+function westernFrieslandCrossing(rows) {
+  const rank = (kind) => (kind === 3 ? 0 : kind === 4 ? 1 : kind === 5 ? 2 : kind === 6 ? 3 : 4);
+  let best = null;
+  for (const r of rows) {
+    if (!r || !r.pts || r.pts.length < 2) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], b = r.pts[i + 1];
+      // alleen de noordwestelijke grens (de weg naar Kollum); scheelt duizenden
+      // grensopzoekingen op de rest van het wegennet
+      if (a[0] > -15000 || b[0] > -15000 || a[1] > -1000 || b[1] > -1000) continue;
+      // regionAt kent ook de zeepolygoon; door de noordwest-filter blijven het er weinig
+      const ra = regionAt(a[0], a[1]).id, rb = regionAt(b[0], b[1]).id;
+      const g = ra === 'groningen' ? a : rb === 'groningen' ? b : null;
+      const f = ra === 'friesland' ? a : rb === 'friesland' ? b : null;
+      if (!g || !f) continue;
+      const c = { gx: g[0], gy: g[1], fx: f[0], fy: f[1], kind: r.kind, w: r.w || 5 };
+      if (!best || rank(c.kind) < rank(best.kind) || (rank(c.kind) === rank(best.kind) && (c.w > best.w || (c.w === best.w && c.gx < best.gx)))) best = c;
+    }
+  }
+  if (!best) return null;
+  const dx = best.fx - best.gx, dy = best.fy - best.gy, L = Math.hypot(dx, dy) || 1;
+  return {
+    x: (best.gx + best.fx) / 2, y: (best.gy + best.fy) / 2,
+    ux: dx / L, uy: dy / L,
+    hw: Math.max(3, best.w / 2),
+  };
+}
+
 function computeSite() {
   if (!world || !world.map || !world.map.store) return null;
-  ensureWorldEnds();
-  const end = pickTributeEnd(getWorldEndSpots());
-  if (!end) return null;
   const rows = roadNetRows();
   if (!rows || !rows.length) return null;
   const map = world.map;
+  // a dry, free verge: no water on the spots of the place, no real building
+  // of the tiles and no carriageway. The border crossing itself is often the
+  // bridge over the Lauwers or a built-up quay (#916): chooseTributeSite walks
+  // a little along the road on both sides until the place fits.
+  const dry = (x, y) => !waterAt(map, x, y);
+  const free = (x, y) => {
+    if (waterAt(map, x, y)) return false;
+    if (map.buildingsNear && map.buildingsNear(x, y, 7).length) return false;
+    if (map.onCarriageway && map.onCarriageway(x, y, 1.2)) return false;
+    return true;
+  };
+  const regionOf = (x, y) => regionAt(x, y).id;
+  // het westelijke punt: bij voorkeur de echte overgang naar Friesland (de weg over de
+  // Lauwers bij Visvliet); het wereldeinde is de terugval als die overgang er niet is (#916)
+  const west = westernFrieslandCrossing(rows);
+  if (west) {
+    const place = chooseTributeSite({ border: west, ux: west.ux, uy: west.uy, hw: west.hw, dry, free, regionOf });
+    if (place) return place;
+  }
+  ensureWorldEnds();
+  const end = pickTributeEnd(getWorldEndSpots());
+  if (!end) return null;
   const isData = (x, y) => inProvinceData(x, y) === true;
-  const areaOf = (x, y) => regionAt(x, y).id;
+  const areaOf = regionOf;
   // the road of the world end: its polyline and its nearest point to the spot
   let best = null;
   for (const r of rows) {
@@ -113,31 +164,42 @@ function computeSite() {
     }
     return null;
   }
-  // a dry, free verge: no water on the spots of the place, and no real building
-  // of the tiles (the same rule the countryside props keep; the tiles around the
-  // spot are not built in this worktree, so this has not been seen in game)
-  const dry = (x, y) => {
-    if (waterAt(map, x, y)) return false;
-    if (map.buildingsNear && map.buildingsNear(x, y, 4).length) return false;
-    return true;
-  };
-  const place = layoutTribute({
+  const place = chooseTributeSite({
     border: crossing,
     ux: crossing.ux,
     uy: crossing.uy,
     hw: (best.row.w || 6) / 2,
     dry,
+    free,
+    regionOf,
   });
+  if (place && place.clear === false && !warned) {
+    warned = true;
+    console.warn('eerbetoon: geen vrije berm bij de grens gevonden, de plek staat op de eerste berm');
+  }
   return place;
+}
+
+// De klok voor de herhaalpogingen: de wereldklok zolang het spel loopt, anders de echte
+// tijd. Op het startscherm (en in de QA) staat world.time stil op 0, waardoor de plek
+// anders nooit werd opgezocht en het bankje niet op de kaart kwam (#916).
+let worldClock = false;
+function siteClock() {
+  const heeft = !!(world && typeof world.time === 'number' && world.time > 0);
+  if (heeft && !worldClock) { worldClock = true; retryAt = 0; } // de wereldklok begint bij 0
+  else if (!heeft) worldClock = false;
+  return heeft ? world.time : (typeof performance !== 'undefined' ? performance.now() / 1000 : Date.now() / 1000);
 }
 
 function ensureSite() {
   if (site) return site;
-  if (!world || typeof world.time !== 'number' || world.time < retryAt) return null;
+  if (!world) return null;
+  const t = siteClock();
+  if (t < retryAt) return null;
   tries++;
   // the world's road data arrives with the first tiles: give it a few tries,
   // then back off instead of scanning every two seconds for nothing.
-  retryAt = world.time + Math.min(30, 2 + tries * 2);
+  retryAt = t + Math.min(30, 2 + tries * 2);
   site = computeSite();
   return site;
 }
@@ -601,6 +663,7 @@ export function initBeppeGarden(w) {
   tries = 0;
   warned = false;
   retryAt = 0;
+  worldClock = false;
   // The post-game guided route (postgame.js) asks this: point at the place
   // until the remembrance there has been read. A closure, so the site may
   // still be computed later; no import from postgame here (no cycle).

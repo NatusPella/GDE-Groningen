@@ -619,6 +619,15 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten, het tik
   assert.ok(gb.includes("'grenzen.json'") && gb.includes('ontvouw'), 'de bronnen laden game/grenzen.json');
   assert.ok(!gb.includes('neighbourhoodPoints') && !gb.includes('STREKEN'), 'de oude indeling (wijkpunten en streken) is weg');
 });
+t('#906: Veroverd heeft een kop, een standenrij en een eigen detailstrook', () => {
+  assert.match(bron('veroverdpanel.js'), /pm-hero vo-hero/, 'de kop gebruikt de gedeelde hero-opmaak');
+  assert.match(bron('veroverdpanel.js'), /pm-stats vo-stats/, 'de stand staat in staten naast elkaar');
+  assert.match(bron('veroverdpanel.js'), /vo-uitleg/, 'wat meetelt staat in een eigen vouw');
+  assert.match(bron('veroverdpanel.js'), /volgendeStats/, 'de derde stat komt uit de eerstvolgende taak');
+  assert.match(bron('gebiedenui.js'), /gb-kpis/, 'het detail heeft een KPI-strook');
+  assert.match(bron('gebiedenui.js'), /stats: \{/, 'het overzicht geeft de stand door aan het paneel');
+});
+
 t('de safehouses hangen aan het spel: een activiteit, een laag op de kaart, de knop Reis erheen en de teksten', () => {
   const heeft = (f, s, m) => assert.ok(bron(f).includes(s), m || `${f}: ${s}`);
   assert.match(bron('activities.js'), /SAFEHUIS[,\]]/, 'activities.js: SAFEHUIS staat in de lijst');

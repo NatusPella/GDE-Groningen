@@ -41,7 +41,7 @@ try {
   const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
   const env = { ...process.env, GDE_TEST_PROFILE: profile, ...(process.argv.includes('--nomenu') ? {} : { GDE_MENU_TEST: '1' }) };
   delete env.ELECTRON_RUN_AS_NODE;
-  const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${arg('w', '1280x720')}`,
+  const r = spawnSync(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', `--window-size=${arg('w', '1280x720')}`,
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(process.argv.includes('--audio-graph') ? ['--audio-graph'] : [])],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 45 * 60 * 1000, killSignal: 'SIGKILL' });
   if (r.error) console.error('Electron starten mislukt:', r.error.message);

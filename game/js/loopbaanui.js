@@ -48,30 +48,41 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 
 
 const CSS = `${SFEER_BAND_CSS}
-.lb-groep { margin: 14px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+.lb-hero { flex: none; }
+.lb-hero .pm-hero-t { font-size: 44px; }
+.lb-stats { flex: none; }
+.lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
+.lb-groep .lb-gn { margin-left: auto; letter-spacing: 0; text-transform: none; opacity: 0.85; font-size: max(14px, var(--menu-min, 14px)); }
 .lb-li { gap: 12px; }
 .lb-li .nm { min-width: 0; }
-.lb-li .lb-niv { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
+.lb-li .lb-niv { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.9; background: rgba(240, 237, 228, 0.08); }
+.lb-li .lb-niv b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 20px; line-height: 1; }
 .lb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
 .lb-li.nul .pa-ico { opacity: 0.4; }
+.lb-li.sel .lb-niv { background: rgba(63, 201, 122, 0.2); }
 .m-pane.lb-pane { gap: 12px; }
 .lb-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .lb-pane .lb-blok p { margin: 4px 0; }
 .lb-pane p.lb-titel { margin: 0 0 2px; font-size: 24px; }
 .lb-pane .lb-kop p { margin: 0; }
+.lb-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; }
+.lb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); }
+.lb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
+.lb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; }
+.lb-kpi small { font-size: 16px; color: var(--mut); }
 .lb-voort { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
 .lb-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
 .lb-pane .m-num { font-size: 26px; }
-.lb-trap { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 28px; max-width: 640px; }
-.lb-trap li { display: flex; gap: 10px; align-items: baseline; opacity: 0.45; }
+.lb-trap { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 28px; max-width: 640px; }
+.lb-trap li { display: flex; gap: 10px; align-items: baseline; padding: 3px 8px; border-radius: 6px; opacity: 0.45; }
 .lb-trap li.bereikt { opacity: 0.85; }
-.lb-trap li.nu { opacity: 1; color: var(--g, #3fc97a); }
+.lb-trap li.nu { opacity: 1; color: var(--g, #3fc97a); background: rgba(63, 201, 122, 0.12); box-shadow: inset 2px 0 0 var(--g, #3fc97a); }
 .lb-trap .nr { min-width: 1.6em; text-align: right; opacity: 0.8; }
 .lb-trap .bonus { margin-left: auto; opacity: 0.8; }
-.lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
-.lb-banen li { display: flex; gap: 8px; align-items: center; opacity: 0.6; min-height: 34px; }
-.lb-banen li:has(.lb-doel) { opacity: 1; }
+.lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 0; }
+.lb-banen li { display: flex; gap: 8px; align-items: center; opacity: 0.6; min-height: 38px; padding: 2px 8px; border-radius: 6px; }
+.lb-banen li:has(.lb-doel) { opacity: 1; background: rgba(240, 237, 228, 0.04); }
 .lb-banen .lb-doel { margin-left: auto; height: 34px; white-space: nowrap; }
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
@@ -111,7 +122,7 @@ function rij(profiel, info) {
   return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
     `<span class="lb-sfeer-chip" style="${sfeerStijl(info.id)}" aria-hidden="true"></span>` +
     `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(onder)}</span></span>` +
-    `<span class="lb-niv">niveau ${d.niveau}</span><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lb-${info.id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span></button>`;
+    `<span class="lb-niv"><b>${d.niveau}</b><span>van ${L.MAX_NIVEAU}</span></span><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lb-${info.id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span></button>`;
 }
 
 // Elke bezigheid van een loopbaan staat er één keer: de bijbanen uit loopbaan.js (BAAN_VAK) en, bij Vissen en Landbouw, het
@@ -132,7 +143,7 @@ function startHtml(profiel, id) {
   const gestart = L.isGestart(profiel, id);
   const stap = loopbaanStap(id);
   const step = stap && STEP_BY_ID.get(stap);
-  const verhaal = step ? `<p class="mut">In het verhaal: ${esc(stap)} · ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '';
+  const verhaal = step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '';
   if (gestart) return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${verhaal}</div>`;
   const baan = s.baan && doelen.has(s.baan)
     ? `<button type="button" class="m-bt" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
@@ -197,8 +208,13 @@ function detailHtml(profiel, id, w = null) {
   // wat dit niveau je aan een handeling geeft (#437): niveau 3 bij Spoor is kaartjes knippen op het perron, geen getal
   const kan = L.vaardigheidVan(id, d.niveau);
   const vaardigheid = kan ? `<p class="lb-kan"><b>${esc(kan.titel)}:</b> ${esc(kan.wat)}</p>` : '';
+  // #905: de drie dingen die je van dit vak wilt weten staan naast elkaar, niet in een lange regel.
+  const kpi = `<div class="lb-kpis"><div class="lb-kpi"><span>Niveau</span><b>${d.niveau}<small> / ${L.MAX_NIVEAU}</small></b></div>` +
+    `<div class="lb-kpi"><span>Titel</span><b>${esc(d.titel)}</b></div>` +
+    `<div class="lb-kpi"><span>Betaalt</span><b>${factor > 1 ? `+${L.percentage(factor)}%` : 'basis'}</b></div></div>`;
   return `<div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
+    kpi +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>${stapHtml}` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}${dienstHtml(id, w)}</div>` +
@@ -237,8 +253,25 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   // op negentien de blijvende titel. De felicitatie zelf komt eenmalig als prestatiekaart (achievements.js).
   const eerste = L.eersteKlusStand(profiel);
   const duizendpoot = eerste.klaar ? ` · titel ${esc(L.DUIZENDPOOT_TITEL)}` : '';
-  const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
-  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${eerste.gedaan}</span><span class="mut">van ${eerste.totaal} eerste klussen${duizendpoot}</span></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
+  const omhoog = sam.som - L.VAKKEN.length;
+  const maxOmhoog = sam.max - L.VAKKEN.length;
+  const pctEerste = eerste.totaal ? Math.round((eerste.gedaan / eerste.totaal) * 100) : 0;
+  const pctNiveau = maxOmhoog ? Math.round((omhoog / maxOmhoog) * 100) : 0;
+  const pctGestart = Math.round((sam.aantal / L.VAKKEN.length) * 100);
+  const hoogsteTitel = sam.hoogste ? sam.hoogste.titel : 'Je eerste titel wacht';
+  const hero = `<section class="pm-hero lb-hero" aria-label="Loopbanen"><div class="pm-hero-h"><span class="m-eb">Je loopbaan</span><span class="pm-badge" data-tone="ok">${sam.aantal} van ${L.VAKKEN.length} begonnen</span></div>` +
+    `<h2 class="pm-hero-t${hoogsteTitel.length > 22 ? ' long' : ''}">${esc(hoogsteTitel)}</h2>` +
+    `<p class="pm-hero-lead">Kies links een vak: elk vak heeft zijn eigen ladder, zijn eigen loon en de klussen die erbij horen.${eerste.klaar ? ' Je bent de duizendpoot van Grunn.' : ''}</p></section>`;
+  const stats = `<div class="pm-stats lb-stats">` +
+    `<span class="pm-stat" data-tone="accent"><b>${eerste.gedaan}</b><span>van ${eerste.totaal} eerste klussen${duizendpoot}</span><span class="m-bar${eerste.gedaan ? ' on' : ''}"><i data-bar="lb-eerste" data-w="${pctEerste}"></i></span></span>` +
+    `<span class="pm-stat"><b>${omhoog}</b><span>van ${maxOmhoog} niveaus omhoog</span><span class="m-bar${omhoog ? ' on' : ''}"><i data-bar="lb-niveau" data-w="${pctNiveau}"></i></span></span>` +
+    `<span class="pm-stat"><b>${sam.aantal}</b><span>van ${L.VAKKEN.length} loopbanen begonnen</span><span class="m-bar${sam.aantal ? ' on' : ''}"><i data-bar="lb-gestart" data-w="${pctGestart}"></i></span></span></div>`;
+  const lijst = L.GROEPEN.map((g) => {
+    const vakken = L.VAKKEN.filter((v) => v.groep === g.id);
+    const begonnen = vakken.filter((v) => L.isGestart(profiel, v.id)).length;
+    return `<div class="lb-groep"><span>${esc(g.naam)}</span><span class="lb-gn">${begonnen} van ${vakken.length} begonnen</span></div>` + vakken.map((v) => rij(profiel, v)).join('');
+  }).join('');
+  el.innerHTML = hero + stats +
     `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {

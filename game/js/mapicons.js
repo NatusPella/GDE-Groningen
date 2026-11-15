@@ -202,7 +202,8 @@ export function mapIconAlpha(kind, zoom) {
 }
 export const FLAT_INK = HALO_DARK;
 // the colour of the category, or null when this kind keeps its own look (you, goals, missions,
-// police, mission-layer marks, your own vehicles and home)
+// police, mission-layer marks, your own vehicles and home; the uitkijkpunt keeps its round eye, #886)
 export function mapFillColor(kind) {
+  if (kind === 'uitkijkpunt') return null;
   return FLAT_FILL[mapCategory(kind)] || null;
 }

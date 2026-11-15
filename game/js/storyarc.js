@@ -26,6 +26,15 @@ export const BETWEEN_STEPS = NIEUW.BETWEEN_STEPS;
 // "Deel 1" for the date cards.
 export const partNumber = (part) => (PARTS[part] ? PARTS[part].title.split(':')[0] : '');
 
+// The chapter's own name for the menu (#912): the story is what the player follows, not the
+// administration around it. "Akte 3: Aan de Eems" and "Deel 4: Nazomer" read as one calm list
+// of chapters ("Aan de Eems", "Nazomer"), so the act numbers and the second "deel 4" disappear.
+// The data itself keeps its titles; only the screen asks for this shorter form.
+export function partName(part) {
+  const title = PARTS[part] ? String(PARTS[part].title) : '';
+  return title.replace(/^(?:Akte|Deel)\s+\d+\s*:\s*/i, '');
+}
+
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));
 
 export function stepAvailable(step) {

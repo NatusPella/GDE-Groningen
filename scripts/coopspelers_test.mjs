@@ -92,6 +92,14 @@ t('wie welke groepen kent (#492): de host alle groepen, een gast alleen zijn eig
   assert.deepEqual(groepenVoor(null, 0), []);
   assert.deepEqual(groepenVoor({ coopRole: 'host', coopGroepen: null }, 0), []);
 });
+t('#903: de spelerslijst heeft een kop en een avatar per speler', () => {
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
+  assert.match(ui, /cs-kop/, 'de lijst begint met de sessie in één regel');
+  assert.match(ui, /cs-avatar/, 'elke speler heeft een avatar met zijn vorm en kleur');
+  assert.match(ui, /cs-acties/, 'de knoppen staan bij de speler, niet als losse rij');
+  assert.match(ui, /Samen in Grunn/, 'de kop zegt waar je bent');
+});
+
 t('de lijst in beeld zet de groep bij de naam (#492)', () => {
   const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
   assert.match(ui, /const groep = r\.groep \?/);

@@ -19,7 +19,8 @@ Nederlands en zomer. Dit document is de basis voor de losse issues A15-A20 uit
 
 De eigenaar koos op 9-11-2026: de wereld blijft bestaan en navigeerbaar, op de kaart wordt van een
 onbekende streek alleen de naam, het streeklabel en de activiteiten-iconen verborgen (geen mist over
-de wereld, niets onbereikbaar). `game/js/verkenpunten.js` heeft daarvoor de pure regels
+de wereld, niets onbereikbaar). Sinds #899 grijst de kaart de nog niet bezochte buurten uit; dat is
+dezelfde `bezocht`-lijst van gebieden.js, per speler. `game/js/verkenpunten.js` heeft daarvoor de pure regels
 (`newExplorationProfile`, `normaliseExploration`, `revealArea`, `areaProgress`, `awardAreaStamp`,
 `areaLabels`, `travelFactor`, `isHiddenOnMap`); `game/js/explorationlive.js` houdt het eigen profiel
 bij (`gde-verkenning-v1`), legt de eigen plek langs de streken, doet de E-actie bij een uitkijkpunt
@@ -77,7 +78,11 @@ Van een onbekende streek worden naast de activiteiten nu ook de bijbanen, vondst
   er zijn.
 - **Kaart onthullen** (A15) is met #825 gedaan als ontdekking per speler: geen mist en geen
   onbereikbare plekken, alleen de naam, het streeklabel en de activiteiten-iconen van een onbekende
-  streek weg. De bestaande `ontvouw`/`grenzen`-laag en de mistinstelling blijven zoals ze waren.
+  streek weg. Sinds #899 grijst de instelling "Verkende gebieden op de kaart" de nog niet bezochte
+  CBS-buurten van de provincie uit (dezelfde `bezocht`-lijst als de prestatie "de kaart verkend"),
+  met een zachte rand en een fade als je een buurt voor het eerst binnenkomt; de strekenlaag van
+  #825 blijft daarnaast de namen en iconen van een onbekende streek verbergen. De ontvouw- en
+  grenzenlaag zelf is niet veranderd.
 
 ## Samen spelen
 

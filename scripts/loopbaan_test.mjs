@@ -478,5 +478,14 @@ t('#846: wat het scherm en Te doen tonen komt uit dezelfde teller', () => {
   assert.ok(!/from '\.\/story\.js'/.test(kaarten), 'geen import van story.js (geen cyclus)');
 });
 
+t('#905: het Loopbanen-scherm heeft een kop, een standenrij en een KPI-strook', () => {
+  const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
+  assert.match(ui, /pm-hero lb-hero/, 'de kop gebruikt de gedeelde hero-opmaak');
+  assert.match(ui, /pm-stats lb-stats/, 'de stand staat in drie staten naast elkaar');
+  assert.match(ui, /lb-kpis/, 'het detail heeft een KPI-strook');
+  assert.match(ui, /lb-gn/, 'elke groep noemt hoeveel vakken er begonnen zijn');
+  assert.match(ui, /lb-kpi/, 'de KPI heeft een eigen opmaak');
+});
+
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

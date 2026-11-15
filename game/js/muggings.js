@@ -10,7 +10,27 @@ import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { MUG, MUG_TEXT, mayMug, riskLevel, hazard, warnsOn, riskWhy, stolenAmount, caught, escaped, nightFactor } from './muggingrules.js';
+import { getProfiel, getIndeling } from './gebiedenlive.js';
+import { veroverdOp } from './gebieden.js';
 import { playerBusy } from './busy.js';
+
+// #888: een veroverde wijk is niet gevaarlijk meer. De vraag kost een
+// punt-in-polygoon en de takenlijst, dus het antwoord blijft een paar seconden
+// staan en wordt alleen opnieuw gevraagd als de speler in een andere wijk is.
+const CONQUERED_MS = 4000;
+let conquered = { wijk: null, at: -1e9, val: false };
+function isConquered(w) {
+  const p = hoofdspeler(w), wijk = wijkOf(w);
+  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  if (conquered.wijk === wijk && now - conquered.at < CONQUERED_MS) return conquered.val;
+  let val = false;
+  try {
+    const ind = getIndeling();
+    if (ind && p) val = veroverdOp(getProfiel(), ind, p.x, p.y, 'buurt') || veroverdOp(getProfiel(), ind, p.x, p.y, 'wijk');
+  } catch (e) { val = false; }
+  conquered = { wijk, at: now, val };
+  return val;
+}
 
 // Berovingen (rules in muggingrules.js): in the wijken that are busy or empty
 // after dark a wallet can be snatched: you lose a share of your money, no
@@ -25,6 +45,7 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 export function initMuggings(w) {
   world = w;
   S.phase = null; S.ped = null; S.since = 1e9; S.warned.clear();
+  conquered = { wijk: null, at: -1e9, val: false };
   window.__muggings = {
     state: () => ({ phase: S.phase, lost: S.lost, since: S.since, wijk: wijkOf(w), level: levelNow(w), thief: !!S.ped }),
     // forces a mugging right now (tests): returns true when the thief is on the way
@@ -115,10 +136,11 @@ export function updateMuggings(dt, w) {
   const p = hoofdspeler(w);
   const hour = hourOf(w);
   const wijk = wijkOf(w);
-  const level = riskLevel(wijk, hour);
+  const own = isConquered(w);
+  const level = riskLevel(wijk, hour, own);
 
   // the warning card, once per wijk and night
-  if (level > 0 && warnsOn(wijk, hour) && !S.warned.has(wijk) && !busy(w) && !cardsBusy() && !inHomeFlat() && (w.time || 0) > 20) {
+  if (level > 0 && warnsOn(wijk, hour, own) && !S.warned.has(wijk) && !busy(w) && !cardsBusy() && !inHomeFlat() && (w.time || 0) > 20) {
     S.warned.add(wijk);
     showCard(w, { kind: 'tip', kicker: 'Waarschuwing', title: MUG_TEXT.warnTitle(wijk), body: MUG_TEXT.warnBody(riskWhy(wijk)), key: 'beroving-' + wijk, voice: false });
   }

@@ -6,9 +6,10 @@
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
+import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
-import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
+import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
@@ -58,6 +59,7 @@ import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
+import { gameProgress } from './progresslive.js';
 import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -376,17 +378,17 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
-  ['spel', 'Spel', 'Opslaan, stoppen, samen spelen en waar je bent'],
+  ['spel', 'Spel', 'Doorgaan, opslaan, samen spelen en je camera'],
   ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
   ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
-  ['veroverd', 'Veroverd', 'Je gebieden, de eerstvolgende taken en wat meetelt'],
+  ['veroverd', 'Veroverd', 'Je gebieden en wat meetelt'],
   ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
-  ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
+  ['prestaties', 'Prestaties', 'Wat je gehaald hebt en nog kunt halen'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ['settings', 'Instellingen', 'Beeld, geluid, besturing, toegankelijkheid en hulp'],
+  ['settings', 'Instellingen', 'Beeld, geluid, spel, besturing, interface en toegankelijkheid'],
   ['over', 'Over', 'Nieuws, credits, versie en licenties'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
@@ -394,18 +396,26 @@ const SECTIONS = [
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
-// the rail's three groups: playing, collected, system. Over hangs under Instellingen
-// (a row in that sheet) instead of being a twelfth rail row: the rail keeps its
-// fixed, scanable shape on 1280x720 and 1920x1080 (#601).
-// Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
+// #911: de rail heeft drie zichtbare groepen met een eigen kop en het aantal onderdelen
+// erachter, zodat je ziet hoeveel er is, waar het staat en waar het bij hoort: wat je nu
+// doet, wat van jou is, en het systeem eromheen. Over hangt onder Instellingen (een rij in
+// dat blad), want de rail houdt zijn vaste, scanbare vorm (#601). Cheats staat sinds #435
+// naast Instellingen: het was te verstopt onder Instellingen > Cheats.
+const RAIL_GROUPS = [
+  ['spelen', 'Spelen', ['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo']],
+  ['jij', 'Jij', ['map', 'spullen', 'garage', 'prestaties', 'fotos']],
+  ['systeem', 'Systeem', ['settings', 'streken']],
+];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
 const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  // #890/#897: Spel gaat over je spel zelf (overzicht, samen spelen, opslaan en stoppen) en
+  // over de camera en de uitleg in beeld. Hoe het spel speelt (verkeer, rijden, de kaart) en
+  // hoe moeilijk het is, zijn instellingen: die staan onder Instellingen > Spel.
+  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
@@ -413,12 +423,29 @@ const SUBTABS = {
   // #604: alleen echte instellingen. Cheats staat sinds #435 als eigen onderdeel in de rail en het
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid']],
+  // #891/#897: het tabblad Spel heeft de moeilijkheid bovenaan staan, met de uitleg van de drie
+  // standen ernaast; de speelopties van Spel > Spelen staan er ook, want het zijn instellingen.
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spel'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
 // de oude plekken: de telefoon is nu Verhaal > Contacten en Berichten, Overzicht is Spel > Overzicht (#430)
 const SUB_ALIAS = { settings: { controller: 'besturing', camera: 'besturing' } };
+
+// #911: waar je bent in de rail, voor de rechterkant van de bladkop: "Spelen · 2 van 5". Zo zie
+// je hoeveel onderdelen er zijn en waar dit er een van is. Een onderdeel onder een ander
+// (Besturing onder Instellingen) noemt de plek van zijn ouder.
+function railPosition(id) {
+  const ids = sectionIds();
+  const railIds = ids.filter((s) => !CHILD[s]);
+  const want = CHILD[id] || id;
+  for (const [, label, members] of RAIL_GROUPS) {
+    const zichtbaar = members.filter((m) => railIds.includes(m));
+    const i = zichtbaar.indexOf(want);
+    if (i >= 0) return `${label} · ${i + 1} van ${zichtbaar.length}`;
+  }
+  return '';
+}
 
 // The footer: two to four hints, [keys, label, action]. ' back' is filled in.
 // Every hint names what Q/E (and [ ]) really do on that screen: the visible tab
@@ -543,7 +570,77 @@ function disclosure(id, title, hint, inner, open = false) {
     `<div class="m-fold" id="pm-f-${id}" data-fold-body="${id}"${open ? '' : ' hidden'}>${inner}</div>`;
 }
 
-const pane = (eyebrow, title, inner = '') => `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${eyebrow}</span><h2 class="m-h2">${title}</h2></div>${inner}</aside>`;
+// De decoratieve kolom naast een instellingentab. De titel is een kop van 48 px (niet 64):
+// in een smalle kolom brak "ZO SPEEL HET" anders af tegen de rand (#911-QA, 1280x720).
+const pane = (eyebrow, title, inner = '') => `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${eyebrow}</span><h2 class="m-h2 td-h2">${title}</h2></div>${inner}</aside>`;
+
+// #891: de drie moeilijkheidsstanden in gewone taal, met de factoren uit difficulty.js erbij.
+// De keuze stond verstopt onder Toegankelijkheid > Hulp; nu staat hij bovenaan Instellingen > Spel,
+// met de gevolgen ernaast zodat je weet wat je kiest in plaats van een woord te raden.
+function difficultyRows() {
+  const D = DIFFICULTY;
+  const p = (f) => `${Math.round(Math.abs(f - 1) * 100)}%`;
+  const tijd = (f) => (f > 1 ? `${p(f)} meer tijd` : f < 1 ? `${p(f)} minder tijd` : 'geen extra tijd');
+  const doel = (f) => (f > 1 ? `${p(f)} ruimere medailles` : f < 1 ? `${p(f)} strengere medailles` : 'de gewone medailles');
+  const schade = (f) => (f > 1 ? `${p(f)} meer schade` : f < 1 ? `${p(f)} minder schade` : 'de gewone schade');
+  const rij = (id) => `<div class="pm-diff-row" data-diff="${id}" role="listitem"><b>${esc(D[id].label)}</b>` +
+    `<span>${tijd(D[id].time)}, ${doel(D[id].target)} en ${schade(D[id].damage)}</span></div>`;
+  return `<div class="pm-diff" role="list" data-diff-now aria-label="Wat de drie standen doen">${DIFFICULTY_MODES.map(rij).join('')}</div>`;
+}
+
+// #894: hoeveel toetsen en knoppen wijken af van de standaard, met één knop om alles terug te
+// zetten. Zo zie je meteen of je iets veranderd hebt zonder alle rijen langs te lopen.
+function bindChangeText() {
+  const st = getSettings();
+  const keys = KEY_ACTIONS.filter(([k]) => physicalKey(st.keyBinds, k) !== defaultKey(k)).length;
+  const pads = PAD_REMAPPABLE.filter((slot) => physicalButton(st.padBinds, slot) !== slot).length;
+  return keys || pads
+    ? `${keys} ${keys === 1 ? 'toets' : 'toetsen'} en ${pads} ${pads === 1 ? 'knop' : 'knoppen'} anders dan de standaard`
+    : 'Alles staat op de standaard';
+}
+function keyChangedRow() {
+  return `<div class="m-li pm-row pm-keys-changed" data-keys-changed>${rowName('Aangepast', `<span data-keys-text>${esc(bindChangeText())}</span>`)}<button type="button" class="m-bg" data-action="binds-reset-all">Terug naar standaard</button></div>`;
+}
+// De telling bij "Aangepast" volgt elke wijziging, ook als de rij er al staat (#894).
+function syncKeyChanged() {
+  const el = root && root.querySelector('[data-keys-text]');
+  if (el) el.textContent = bindChangeText();
+}
+
+// De toetsen die het menu en de fotomodus zelf nodig hebben: geen conflict, maar wel handig om
+// te weten voordat je gaat schuiven.
+function fixedKeysHtml() {
+  const rows = [
+    ['Esc', 'Pauzemenu, terug en een vraag sluiten'],
+    ['Enter', 'Bevestigen en in het menu ok'],
+    ['Pijltjes', 'Kiezen in het menu'],
+    ['F8', 'Fotomodus'],
+    ['F11', 'Volledig scherm (ook Alt+Enter)'],
+    ['Muis', 'Kijken, richten en schieten'],
+  ];
+  return '<div class="pm-fixed">' + rows.map(([k, v]) => `<div class="pm-fixed-row"><span class="m-kc">${esc(k)}</span><span>${esc(v)}</span></div>`).join('') + '</div>';
+}
+
+// #894: dezelfde toets doet in verschillende situaties iets anders (E is gebruiken, instappen,
+// uitstappen en pikken). Dat is geen fout, maar wel de vraag die iedereen heeft; daarom staat het
+// één keer op een rij, met de acties die de speler echt tegenkomt.
+const KEY_WORD = { WASD: 'WASD', MOUSE: 'Muis', LMB: 'Muisknop', RMB: 'Rechtermuis', WHEEL: 'Scrollwiel', SPACE: 'Spatie', CTRL: 'Ctrl', SHIFT: 'Shift', ESC: 'Esc', ARROWS: 'Pijltjes', BACKSPACE: 'Backspace', TAB: 'Tab' };
+const keyLabel = (t) => KEY_WORD[t] || keyName(t.toLowerCase());
+function keyReuseHtml() {
+  const perKey = new Map();
+  for (const [, titel, rows] of CONTROL_GROUPS) {
+    for (const [keys, desc] of rows) {
+      const hoofd = keys[0].split('+')[0];
+      if (!perKey.has(hoofd)) perKey.set(hoofd, []);
+      perKey.get(hoofd).push(`${desc.charAt(0).toLowerCase()}${desc.slice(1)} (${titel.toLowerCase()})`);
+    }
+  }
+  const dubbel = [...perKey.entries()].filter(([, lijst]) => lijst.length > 1)
+    .sort((a, b) => b[1].length - a[1].length).slice(0, 4);
+  if (!dubbel.length) return '';
+  return '<div class="pm-keyreuse"><b>Dezelfde toets, meer taken</b>' +
+    dubbel.map(([k, lijst]) => `<div class="pm-keyreuse-row"><span class="m-kc">${esc(keyLabel(k))}</span><span>${esc(lijst.join(' · '))}</span></div>`).join('') + '</div>';
+}
 
 function settingsHtml() {
   const qualities = Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]);
@@ -559,7 +656,9 @@ function settingsHtml() {
     </div>
     ${tab('video', `
       <div class="pm-advice" data-bench-banner hidden></div>
-      <div class="m-li pm-row"><span class="nm" id="pm-l-presetknoppen">Voorinstelling<span class="mut" data-preset-now></span></span><span class="pm-chips" role="group" aria-labelledby="pm-l-presetknoppen">${PRESET_ORDER.map((n) => `<button type="button" class="m-chip" data-preset-btn="${n}" aria-pressed="false">${presetLabel(n)}</button>`).join('')}</span></div>
+      <div class="m-li pm-row pm-rowfull"><span class="nm" id="pm-l-presetknoppen">Voorinstelling<span class="mut" data-preset-now></span></span>
+        <span class="pm-seg" role="group" aria-labelledby="pm-l-presetknoppen">${PRESET_ORDER.map((n) => `<button type="button" class="pm-segbtn" data-preset-btn="${n}" aria-pressed="false" title="${esc(PRESET_HINTS[n] || '')}">${presetLabel(n)}</button>`).join('')}</span>
+        <span class="pm-seg-hint mut" data-preset-hint></span></div>
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
@@ -583,6 +682,7 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
+      <div class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Staat het uit, dan staat linksboven een luidspreker met een streep')}<span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></div>
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
@@ -591,24 +691,47 @@ function settingsHtml() {
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
+    ${tab('spel', `
+      ${picker('difficulty', 'Moeilijkheid', [['ontspannen', 'Ontspannen'], ['standaard', 'Standaard'], ['uitdagend', 'Uitdagend']], 'Bepaalt hoeveel tijd je krijgt, hoe streng de medailles zijn en hoeveel schade je voertuig houdt. Je keuze geldt meteen; records en medailles zijn per stand gescheiden')}
+      ${difficultyRows()}
+      <div class="m-gh"><span>Verkeer en geweld</span></div>
+      ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
+      ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
+      ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
+      <div class="m-gh"><span>Rijden</span></div>
+      ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
+      ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
+      ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
+      ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
+      ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
+      <div class="m-gh"><span>Kaart</span></div>
+      ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
+      `${pane('Spel', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Spel > Camera &amp; richten.</p>')}`)}
     ${tab('besturing', `
-      <div class="m-gh"><span>Muis en toetsenbord</span></div>
-      ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05)}
-      ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
-      <div class="m-li pm-row">${rowName('Toetsen aanpassen', 'Elke toets een andere functie geven')}<button type="button" class="m-bg" data-goto-sub="controls:toetsen">Aanpassen</button></div>
+      <div class="m-gh"><span>Muis</span></div>
+      ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt')}
+      ${toggle('invertY', 'Omhoog en omlaag omkeren', 'Geldt voor de muis en de rechterstick')}
+      <div class="m-gh"><span>Toetsenbord</span></div>
+      <div class="m-li pm-row">${rowName('Toetsen aanpassen', 'Elke toets een andere functie geven; zit een toets al op iets anders, dan ruilen ze')}<button type="button" class="m-bg" data-goto-sub="controls:toetsen">Aanpassen</button></div>
+      ${keyChangedRow()}
+      <div class="m-li pm-row">${rowName('Toetsenoverzicht', 'Alle toetsen per situatie, om na te lezen')}<button type="button" class="m-bg" data-goto-sub="controls:overzicht">Bekijken</button></div>
+      ${disclosure('keys-fixed', 'Deze toetsen liggen vast', 'Esc, Enter, de pijltjes en de functietoetsen', fixedKeysHtml())}
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via een koppelprogramma), kies dan zelf; knoppen en hints volgen je keuze')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
-      ${slider('steerSensitivity', 'Stuurgevoeligheid', 0.5, 1.5, 0.05, 'Hoe fel een voertuig op links en rechts reageert')}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Elke knop een andere functie geven')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
       <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>
       <div class="m-gh"><span>Aanraken</span></div>
       ${picker('touchControls', 'Aanraakbediening', [['auto', 'Automatisch'], ['aan', 'Aan'], ['uit', 'Uit']], 'Knoppen op het scherm voor telefoon en tablet; wisselen werkt na een herstart')}
-      <div class="m-gh"><span>Overzicht en hulp</span></div>
-      <div class="m-li pm-row">${rowName('Toetsenoverzicht', 'Alle toetsen en knoppen, per situatie')}<button type="button" class="m-bg" data-goto-sub="controls:overzicht">Bekijken</button></div>
+      <div class="m-gh"><span>In het spel</span></div>
+      ${slider('steerSensitivity', 'Stuurgevoeligheid', 0.5, 1.5, 0.05, 'Hoe fel een voertuig op links en rechts reageert')}
       <div class="m-li pm-row">${rowName('Toetshints in beeld', 'Aan of uit, en voor toetsenbord of controller')}<button type="button" class="m-bg" data-goto-sub="spel:hints">Hints</button></div>
-      <div class="m-li pm-row">${rowName('Hulp en oefenronde', 'Uitleg over de besturing en een rustige oefenronde')}<button type="button" class="m-bg" data-goto-sub="controls:hulp">Openen</button></div>`, `${pane('Besturing', 'Hoe je speelt', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">Camera-afstand, beeldhoek en automatisch richten staan onder Spel.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Hulp en oefenronde', 'Uitleg over de besturing en een rustige oefenronde')}<button type="button" class="m-bg" data-goto-sub="controls:hulp">Openen</button></div>`,
+      `${pane('Besturing', 'Hoe je speelt', `<p>Alles staat per apparaat bij elkaar: de muis, het toetsenbord, de controller en het scherm. Een toets die je wijzigt ruilt met de toets die er al zat, dus twee dingen op één toets kan niet.</p>
+<p>De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p>
+${keyReuseHtml()}
+<p class="mut">Camera-afstand, beeldhoek en eerste persoon staan onder Spel &gt; Camera &amp; richten.</p>`)}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
@@ -627,7 +750,6 @@ function settingsHtml() {
       ${toggle('reduceFlash', 'Flitsen beperken', 'Geen witte schermflitsen in filmpjes en intro')}
       ${toggle('screenNarration', 'Schermnarratie', 'Lees statuswijzigingen voor via de schermlezer: doel, gezondheid, politie en plaatsnaam')}
       <div class="m-gh"><span>Hulp</span></div>
-      ${picker('difficulty', 'Moeilijkheid', [['ontspannen', 'Ontspannen'], ['standaard', 'Standaard'], ['uitdagend', 'Uitdagend']], 'Ontspannen geeft meer tijd en ruimere medailles, Uitdagend minder. Standaard is het spel zoals het was; records en medailles zijn per stand gescheiden')}
       ${picker('helpTime', 'Meer tijd', [['uit', 'Uit'], ['ruimer', '+25%'], ['ruim', '+50%'], ['heel ruim', 'Dubbel']], 'Langere tijdslimieten en vensters in missies')}
       ${picker('helpDamage', 'Minder schade', [['normaal', 'Normaal'], ['minder', 'Minder'], ['veel minder', 'Veel minder']], 'Je eigen voertuig houdt meer over na een klap')}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}
@@ -659,11 +781,7 @@ function spelHtml() {
       <div class="m-gh"><span>Stoppen</span></div>
 <div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
       <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
-      ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Slaat op en sluit het spel')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
-      <div class="pm-confirm" data-exit-confirm hidden>
-        <p data-exit-text></p>
-        <div class="m-acts"><button type="button" class="m-bp" data-action="exit-retry">Opnieuw proberen</button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten</button><button type="button" class="m-bt" data-action="exit-cancel">Annuleren</button></div>
-      </div>
+      ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Vraagt eerst of je het zeker weet en slaat je voortgang op')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
       <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
       <div class="pm-confirm" data-restart-confirm hidden>
@@ -679,22 +797,9 @@ function spelHtml() {
       <div class="pm-confirm" data-coop-new-confirm hidden>
         <p data-coop-new-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="coop-new-go">Ja, sessie beëindigen en nieuw spel</button><button type="button" class="m-bt" data-action="coop-new-cancel">Annuleren</button></div>
-      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt staat bij de andere tabbladen; beeld en geluid onder Instellingen.</p>')}`)}
-    ${tab('spelen', `
-      <div class="m-gh"><span>Verkeer en geweld</span></div>
-      ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
-      ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
-      ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
-      <div class="m-gh"><span>Rijden</span></div>
-      ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
-      ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
-      ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
-      ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
-      ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
-      <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
+      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt en hoe moeilijk het is, staat onder Instellingen &gt; Spel; beeld en geluid op de andere tabbladen daar.</p>')}`)}
     ${tab('camera', `
-      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik; de C-toets (in de browser G) doet hetzelfde')}
+      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik; de stand geldt overal (te voet en in elk voertuig) en blijft na in- en uitstappen staan. De C-toets (in de browser G) doet hetzelfde')}
       ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoe wijd je kijkt: hoger laat meer zien, maar maakt alles kleiner')}
       ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat, te voet en in elk voertuig; in eerste persoon maakt dit niet uit')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
@@ -742,14 +847,18 @@ export function initPauseMenu(w) {
   root.setAttribute('aria-labelledby', 'pm-title');
   root.dataset.level = 'section';
   const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
+  // #911: elke groep met een eigen kop en het aantal onderdelen erachter; de telling volgt in
+  // showTab wat er echt in de rail staat (het hoofdmenu toont er maar drie).
+  const railGroup = ([id, label, members]) => `<div class="pm-rail-group" data-group="${id}"><span class="pm-rail-h"><span>${esc(label)}</span><span class="cnt" data-gcount="${id}"></span></span>` +
+    members.map(railBtn).join('') + '</div>';
   root.innerHTML = `
     <div class="pm-fold gm-stage">
       <nav class="pm-rail" aria-label="Pauzemenu">
         <div class="pm-inner pm-game">
           <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title" class="pm-sr">Pauze</b><span class="mut pm-q-info" data-info="when"></span></div>
-          ${RAIL_GROUPS.map((g) => g.map(railBtn).join('')).join('<span class="pm-rail-sp"></span>')}
+          ${RAIL_GROUPS.map(railGroup).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
-          ${DESKTOP ? `<button type="button" class="ra pm-exit" data-action="exit" title="Opslaan en het spel sluiten">${icon('exit', 'pm-ic ra-ic')}<span class="ra-t">Afsluiten</span></button>` : ''}
+          ${DESKTOP ? `<button type="button" class="ra pm-exit" data-action="exit" title="Vraagt eerst of je het zeker weet; je voortgang wordt opgeslagen">${icon('exit', 'pm-ic ra-ic')}<span class="ra-t">Afsluiten</span></button>` : ''}
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <p class="pm-ver">${versionLabel(VERSION)}</p>
         </div>
@@ -757,7 +866,7 @@ export function initPauseMenu(w) {
       <section class="pm-sheet m-panel" aria-labelledby="pm-sheet-title">
         <header class="pm-sheet-head m-head">
           <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb" hidden></span><h1 class="m-h1 pm-sheet-title" id="pm-sheet-title"></h1></div>
-          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-sub"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
+          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span><span class="mut pm-sheet-sub"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
         </header>
         <div class="pm-sheet-body">
           <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-todo">
@@ -801,6 +910,22 @@ export function initPauseMenu(w) {
           </div></section>
         </div>
       </section>
+      ${DESKTOP ? `<div class="pm-quitbox" data-quit-confirm hidden role="alertdialog" aria-modal="true" aria-labelledby="pm-quit-title">
+        <div class="pm-quitpane">
+          <span class="m-eb">Afsluiten</span>
+          <h2 class="m-h2" id="pm-quit-title">Weet je het zeker?</h2>
+          <p>Je voortgang wordt opgeslagen en daarna sluit het spel. Je kunt later gewoon verdergaan waar je nu bent.</p>
+          <div class="m-acts"><button type="button" class="m-bp" data-action="exit-go">Ja, opslaan en sluiten</button><button type="button" class="m-bt" data-action="exit-cancel-ask">Annuleren</button></div>
+        </div>
+      </div>` : ''}
+      <div class="pm-quitbox" data-exit-confirm hidden role="alertdialog" aria-modal="true" aria-label="Opslaan mislukt">
+        <div class="pm-quitpane">
+          <span class="m-eb">Stoppen</span>
+          <h2 class="m-h2">Opslaan mislukt</h2>
+          <p data-exit-text></p>
+          <div class="m-acts"><button type="button" class="m-bp" data-action="exit-retry">Opnieuw proberen</button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten</button><button type="button" class="m-bt" data-action="exit-cancel">Annuleren</button></div>
+        </div>
+      </div>
       <footer class="pm-footer m-foot"></footer>
     </div>`;
   document.body.appendChild(root);
@@ -1148,7 +1273,15 @@ function goBack() {
   if (exitBox && !exitBox.hidden) {
     exitBox.hidden = true;
     closeAction = null;
-    const b = root.querySelector('[data-action="menu"]');
+    const b = root.querySelector('[data-action="exit"]') || root.querySelector('[data-action="menu"]');
+    if (b) b.focus();
+    return;
+  }
+  // #915: de vraag bij het afsluiten gaat voor alles; Esc sluit alleen de vraag
+  const quitBox = root.querySelector('[data-quit-confirm]');
+  if (quitBox && !quitBox.hidden) {
+    quitBox.hidden = true;
+    const b = root.querySelector('[data-action="exit"]');
     if (b) b.focus();
     return;
   }
@@ -1292,6 +1425,7 @@ function renderBinds() {
   if (p && !p.hidden) p.innerHTML = bindRowsPad();
   const zoek = root.querySelector('[data-controls-search]');
   if (zoek && zoek.value) filterControls(zoek.value);
+  syncKeyChanged();
   if (keep) {
     const el = root.querySelector(`[data-rebind-key="${CSS.escape(keep)}"], [data-rebind-pad="${CSS.escape(keep)}"], [data-action="${CSS.escape(keep)}"]`);
     if (el) el.focus({ preventScroll: true });
@@ -1378,9 +1512,22 @@ function focusSheet() {
   if (tab === 'map') return;
   const panel = activePanel();
   const prev = lastFocus[tab];
-  if (prev && prev.isConnected && panel.contains(prev) && prev.getClientRects().length && !prev.closest('[hidden]')) return focusEl(prev);
+  // Focus zonder de sheet te laten scrollen: op 1280x720 is de inhoud hoger dan het blad en
+  // scrollIntoView trok de grote titel boven het scherm uit (#906). De lijst zelf scrollt.
+  const zet = (el) => {
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    // Alleen de lijst of het detail zelf mag naar de focus scrollen, nooit het hele blad: anders
+    // verdwijnt de grote titel boven het scherm (#906). Buiten een scroller (een tab, de eerste
+    // knop van een paneel) blijft de stand zoals hij is.
+    const sc = scrollerOf(el, panel);
+    if (!sc || sc === panel) return;
+    const r = el.getBoundingClientRect(), s = sc.getBoundingClientRect();
+    if (r.top < s.top || r.bottom > s.bottom) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  };
+  if (prev && prev.isConnected && panel.contains(prev) && prev.getClientRects().length && !prev.closest('[hidden]')) return zet(prev);
   const list = visibleFocusables(panel).filter((el) => !(el.tagName === 'INPUT' && el.type === 'search'));
-  focusEl(panel.querySelector('[role="tab"][aria-selected="true"]') || list[0] || root.querySelector(`.pm-game [data-goto="${tab}"]`));
+  zet(panel.querySelector('[role="tab"][aria-selected="true"]') || list[0] || root.querySelector(`.pm-game [data-goto="${tab}"]`));
 }
 
 // Tab/Shift+Tab stay inside the menu.
@@ -1485,7 +1632,7 @@ function askClose(a) {
   if (!box) return;
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (confirmEl) confirmEl.hidden = true;
-  box.querySelector('[data-exit-text]').textContent = a === 'exit'
+  box.querySelector('[data-exit-text]').textContent = (a === 'quit-now' || a === 'exit')
     ? 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch sluiten?'
     : 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch herstarten?';
   box.hidden = false;
@@ -1555,12 +1702,34 @@ function runAction(a) {
     confirmEl.hidden = false;
     syncSaveButtons();
     confirmEl.querySelector('button').focus();
+    // de vraag staat onderaan de lijst: op een laag venster staat hij anders half onder de
+    // paneelrand, met de drie keuzes eronder. In één keer helemaal in beeld (#911-QA).
+    if (confirmEl.scrollIntoView) confirmEl.scrollIntoView({ block: 'nearest' });
   } else if (a === 'cancel') {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
     root.querySelector('[data-coop-new-confirm]').hidden = true;
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
-  } else if (a === 'menu' || a === 'exit') {
+  } else if (a === 'exit') {
+    // #915: eerst vragen, met de melding dat de voortgang bewaard wordt. De rail en Spel >
+    // Opslaan & stoppen gebruiken dezelfde vraag; pas "Ja, opslaan en sluiten" sluit echt.
+    const box = root.querySelector('[data-quit-confirm]');
+    if (!box) { runAction('quit-now'); return; }
+    root.querySelector('[data-restart-confirm]').hidden = true;
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
+    root.querySelector('[data-coop-new-confirm]').hidden = true;
+    root.querySelector('[data-exit-confirm]').hidden = true;
+    box.hidden = false;
+    box.querySelector('[data-action="exit-go"]').focus();
+  } else if (a === 'exit-go') {
+    root.querySelector('[data-quit-confirm]').hidden = true;
+    runAction('quit-now');
+  } else if (a === 'exit-cancel-ask') {
+    root.querySelector('[data-quit-confirm]').hidden = true;
+    status('Niet afgesloten: je spel staat nog open.');
+    const b = root.querySelector('[data-action="exit"]');
+    if (b) b.focus();
+  } else if (a === 'menu' || a === 'quit-now') {
     // #586: Afsluiten gaat niet via setOpen(false); geef een lopende rebind hier ook vrij voordat het spel
     // opslaat en herstart of sluit, zodat er geen toets of knop meer in de capture blijft hangen.
     cancelRebind(true);
@@ -1576,7 +1745,7 @@ function runAction(a) {
     const res = runCoopStop(world, {
       stop: (w) => { if (isSoloHost(w)) stopSoloHost(w); else stopCoopNet(w); },
       save: () => (started() && !prestart && world ? saveGame(world) : undefined),
-      go: () => { if (a === 'exit' && DESKTOP) DESKTOP.quit(); else location.reload(); },
+      go: () => { if (a === 'quit-now' && DESKTOP) DESKTOP.quit(); else location.reload(); },
     });
     if (!res.ok) askClose(a);
   } else if (a === 'exit-retry' || a === 'exit-anyway' || a === 'exit-cancel') {
@@ -1592,8 +1761,17 @@ function runAction(a) {
     }
     const want = closeAction;
     closeAction = null;
-    if (want === 'exit' && DESKTOP) DESKTOP.quit();
+    if ((want === 'quit-now' || want === 'exit') && DESKTOP) DESKTOP.quit();
     else location.reload();
+  } else if (a === 'binds-reset-all') {
+    // #894: één knop voor alles wat afwijkt (toetsen en knoppen), met dezelfde melding als de
+    // twee losse knoppen onder Besturing.
+    setSetting('keyBinds', {});
+    setSetting('padBinds', {});
+    setBindMsg('Alles staat weer op de standaard.');
+    syncControls();
+    const row = root.querySelector('[data-keys-changed] button');
+    if (row) row.focus();
   } else if (a === 'pigeon-stop') {
     if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
   } else if (a === 'job-stop') {
@@ -1810,6 +1988,10 @@ function syncControls() {
   const shadowBox = root.querySelector('[data-setting="shadows"]');
   shadowBox.disabled = !shadowsAllowed;
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
+  // #891: de gekozen moeilijkheidsstand licht op in de uitleg ernaast
+  const diffBox = root.querySelector('[data-diff-now]');
+  if (diffBox) for (const row of diffBox.querySelectorAll('[data-diff]')) row.toggleAttribute('data-on', row.dataset.diff === st.difficulty);
+  syncKeyChanged();
 }
 
 // The preset buttons, the explanation beside them and, after a benchmark, one
@@ -1820,6 +2002,9 @@ function syncPresets(st) {
   for (const b of root.querySelectorAll('[data-preset-btn]')) b.setAttribute('aria-pressed', String(b.dataset.presetBtn === cur));
   const now = root.querySelector('[data-preset-now]');
   now.textContent = cur ? '' : 'Eigen instellingen';
+  // #893: onder de segmented control staat in één regel wat de gekozen stand doet
+  const hint = root.querySelector('[data-preset-hint]');
+  if (hint) hint.textContent = cur ? (PRESET_HINTS[cur] || '') : 'Je hebt zelf iets aangepast; kies een stand om terug te gaan naar een van de vier.';
   const pane = root.querySelector('[data-preset-pane]');
   pane.querySelector('[data-preset-name]').textContent = cur ? presetLabel(cur) : 'Eigen';
   pane.querySelector('[data-preset-desc]').textContent = cur ? describePreset(cur) : 'Wat je zelf instelt: resolutie, schaduwen en zichtafstand wijken af van de vier standen.';
@@ -1868,12 +2053,35 @@ function stopInfo() {
   return { title: (w.mission && w.mission.label) || 'de missie' };
 }
 
+// #896: het Overzicht is een rustig beeld, geen instellingenscherm. De volumes, "beweging
+// beperken" en de luidsprekerhint stonden hier als losse blokken; die horen bij Geluid en
+// Toegankelijkheid en staan nu daar. Wat overblijft is waar je bent, hoe ver je bent (#898),
+// wat er in de buurt is en wat je bijna haalt.
+function progressOverviewHtml() {
+  let info;
+  try { info = gameProgress(); } catch (e) { return ''; }
+  if (!info.parts.length) return '';
+  const rijen = info.parts.map((p) => `<li><span>${esc(p.label)}</span><span class="mut">${p.done} van ${p.total} · ${p.pct}%</span></li>`).join('');
+  return `<section class="pm-progress" aria-label="Je voortgang">` +
+    `<div class="pm-progress-head"><span class="m-eb">Je voortgang</span><span class="pm-progress-pct"><b>${info.pct}%</b><span class="mut">klaar</span></span></div>` +
+    `<span class="m-bar on"><i style="width:${info.pct}%"></i></span>` +
+    `<ul class="pm-progress-parts">${rijen}</ul></section>`;
+}
+
 function renderOverviewPanel() {
   const el = root.querySelector(OV_SUB);
-  // de luidspreker met streep uit de HUD, met de toets erbij: wat dat teken betekent en hoe je het weer aanzet (#435)
-  const stil = `<div class="m-li pm-row pm-mute">${rowName('Geluid', 'Staat het uit, dan staat dit teken linksboven')}<span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></div>`;
-  const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}${stil}</div>`;
-  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick, stop: stopInfo() }); syncControls(); } catch (err) { console.error('overzicht', err); }
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo() }); } catch (err) { console.error('overzicht', err); }
+  // #898: het voortgangsblok staat onder de hero, zodat het Overzicht één rustig beeld houdt
+  // en het percentage toch meteen in het oog valt.
+  if (el && !el.querySelector('.pm-progress')) {
+    const blok = progressOverviewHtml();
+    const hero = el.querySelector('.ov-hero');
+    if (blok) {
+      if (hero) hero.insertAdjacentHTML('afterend', blok);
+      else el.insertAdjacentHTML('afterbegin', blok);
+    }
+  }
+  syncControls();
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
   const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;
@@ -1997,6 +2205,8 @@ function syncRail() {
   root.querySelector('[data-coop-load-confirm]').hidden = true;
   root.querySelector('[data-coop-new-confirm]').hidden = true;
   root.querySelector('[data-exit-confirm]').hidden = true;
+  const quitBox = root.querySelector('[data-quit-confirm]');
+  if (quitBox) quitBox.hidden = true;
   closeAction = null;
   root.querySelector('[data-game-status]').textContent = '';
   syncSaveButtons();
@@ -2069,6 +2279,14 @@ function showTab(name, how) {
     b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
   }
+  // #911: de kop van een groep telt wat er in de rail staat; een lege groep (het hoofdmenu
+  // toont alleen Spel, Instellingen en Besturing) verdwijnt met zijn kop.
+  for (const g of root.querySelectorAll('.pm-rail-group')) {
+    const shown = [...g.querySelectorAll('[data-goto]')].filter((b) => !b.hidden).length;
+    g.hidden = shown === 0;
+    const cnt = g.querySelector('[data-gcount]');
+    if (cnt) cnt.textContent = String(shown);
+  }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');
   if (name !== 'garage') disposeGarageViewer();
@@ -2079,6 +2297,8 @@ function showTab(name, how) {
   const [, label, hint] = sectionOf(name);
   sheet.querySelector('.pm-sheet-title').textContent = label;
   sheet.querySelector('.pm-sheet-sub').textContent = SHEET_NOTE[name] || hint;
+  const pos = sheet.querySelector('.pm-sheet-pos');
+  if (pos) pos.textContent = prestart ? '' : railPosition(name);
   if (name !== 'map') sheetNote('');
   root.querySelector('[data-action="reset"]').hidden = name !== 'settings';
   if (name !== 'settings') {
@@ -2118,7 +2338,21 @@ function showTab(name, how) {
   if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
-  if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
+  // Elke opening van een onderdeel begint bovenaan: het blad zelf (dat bij een lange inhoud
+  // door focus kan zijn meegescrold), de paneelinhoud en de lijst/het detail erin (#906).
+  resetScrolls();
+}
+
+// Zet elke scrollstand van het open onderdeel terug naar boven, zonder de focus te verplaatsen.
+function resetScrolls() {
+  if (!sheet) return;
+  sheet.scrollTop = 0;
+  const body = sheet.querySelector('.pm-sheet-body');
+  if (body) body.scrollTop = 0;
+  const panel = activePanel();
+  if (!panel) return;
+  panel.scrollTop = 0;
+  for (const n of panel.querySelectorAll('.pm-inner, .m-main, .m-list, .m-pane, .pm-vsub, .pm-samen-inner, .pm-hub, .pm-spelers')) n.scrollTop = 0;
 }
 
 // Opens the menu on a section ('overzicht' by default); with { prestart: true }
@@ -2171,7 +2405,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     refreshInfo();
     syncRail();
     showTab(name, how);
-    if (atHome()) focusEl(root.querySelector(`${OV_SUB} [data-action="resume"]`) || root.querySelector('[data-action="resume"]'));
+    if (atHome()) { const home = root.querySelector(`${OV_SUB} [data-action="resume"]`) || root.querySelector('[data-action="resume"]'); if (home) home.focus({ preventScroll: true }); }
     else focusSheet();
   } else {
     if (world) setMapActive(world, false);

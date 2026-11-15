@@ -3,6 +3,8 @@
 // onderdeel Spel > Samen spelen van het pauzemenu en gebruikt daar de gewone knoppen (m-bp, m-bg, m-tab), zodat de
 // pijlen, Tab, Enter en de muis van pausemenu.js ongewijzigd blijven werken. Escape vraagt dit scherm eerst om een
 // stap terug (hubTerug) en beëindigt nooit een sessie: dat is de knop Ontsnappen naar besloten (#527).
+// #903: de hub heeft een eigen kop, genummerde stappen met een verbindingslijn en keuzekaarten met een duidelijke
+// stand. De gegevens blijven die van samenhub.js; dit bestand voegt geen regel toe aan het netwerk of de opslag.
 import { STAP, STAPPEN, hubView, escapeStap, isStap, volgendeStap, vorigeStap, ACT } from './samenhub.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -11,6 +13,10 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 // knop kent dezelfde ingang houden; data-hub-keuze is de naam waar dit scherm zelf naar luistert. "Meedoen" heet
 // daarom 'kies-gast' en "Zelf openen" 'kies-host': dezelfde twee knoppen als het oude beginscherm van de lobby.
 const ACT_NAAM = { [ACT.MEEDOEN]: 'kies-gast', [ACT.HOSTEN]: 'kies-host', [ACT.BESLOTEN]: 'besloten', [ACT.ALLEEN]: 'alleen', [ACT.CODE]: 'kies-gast' };
+
+// De vorm naast een keuze is een letter/teken uit de eigen set, geen los icoon van buiten: dezelfde
+// lijn als de rest van het menu en zonder een tweede beeldtaal.
+const KEUZE_TEKEN = { [ACT.MEEDOEN]: '↔', [ACT.HOSTEN]: '＋', [ACT.BESLOTEN]: '·' };
 
 // Eén hub tegelijk: dezelfde module-stand als samenkeuze.js, zodat de Escape van het pauzemenu weet of de hub
 // open is zonder het DOM te hoeven vragen.
@@ -38,10 +44,13 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
   let nu = isStap(stap) ? stap : STAP.WAAR;
 
   const keuzes = (v) => `<div class="pm-hub-keuzes" role="group" aria-label="Waar speel je">${v.keuzes.map((k) => `
-    <button type="button" class="pm-hub-keuze${k.kan ? '' : ' pm-hub-uit'}" data-hub-keuze="${k.act}" data-act="${ACT_NAAM[k.act] || k.act}"${k.kan ? '' : ' aria-disabled="true"'}>
-      <span class="pm-hub-kt">${esc(k.label)}</span><small>${esc(k.uitleg)}</small></button>`).join('')}</div>`;
-  const rijen = (v) => `<ul class="pm-hub-rijen">${(v.rijen || []).map((r) => `<li data-hub-rij="${r.soort}">${esc(r.tekst)}</li>`).join('')}</ul>`;
-  const knoppen = (v) => (v.knoppen || []).map((k) => `<button type="button" class="${k.primary ? 'm-bp' : 'm-bg'} pm-hub-knop" data-hub-act="${k.act}"${k.disabled ? ' disabled aria-disabled="true"' : ''}>${esc(k.label)}</button>`).join('')
+    <button type="button" class="pm-hub-keuze${k.kan ? '' : ' pm-hub-uit'}" data-hub-keuze="${k.act}" data-act="${ACT_NAAM[k.act] || k.act}" data-keuze="${k.act}"${k.kan ? '' : ' aria-disabled="true"'}>
+      <span class="pm-hub-ico" aria-hidden="true">${KEUZE_TEKEN[k.act] || '·'}</span>
+      <span class="pm-hub-kt">${esc(k.label)}</span>
+      <span class="pm-hub-staat">${k.kan ? 'Kan nu' : 'Kan nu niet'}</span>
+      <small>${esc(k.uitleg)}</small></button>`).join('')}</div>`;
+  const rijen = (v) => `<ul class="pm-hub-rijen">${(v.rijen || []).map((r) => `<li data-hub-rij="${r.soort}"><span>${esc(r.tekst)}</span></li>`).join('')}</ul>`;
+  const knoppen = (v) => (v.knoppen || []).map((k) => `<button type="button" class="${k.primary ? 'm-bp' : 'm-bg'} pm-hub-knop${k.primary ? ' pm-hub-primary' : ''}" data-hub-act="${k.act}"${k.disabled ? ' disabled aria-disabled="true"' : ''}>${esc(k.label)}</button>`).join('')
     + (nu === STAP.WAAR ? '' : '<button type="button" class="m-bg pm-hub-knop" data-hub-act="terug-stap">Vorige stap</button>');
 
   const teken = () => {
@@ -52,10 +61,17 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
     // statusregel die de wissel aankondigt. aria-current="step" markeert waar je staat; role="tab"
     // zou panelen beloven die er niet zijn, en "tabpanel" past niet bij één zichtbare stap.
     for (const b of tree.querySelectorAll('[data-hub-stap]')) {
-      b.setAttribute('aria-current', b.getAttribute('data-hub-stap') === nu ? 'step' : 'false');
+      const i = STAPPEN.findIndex((s) => s.id === b.getAttribute('data-hub-stap'));
+      const eigen = b.getAttribute('data-hub-stap') === nu;
+      b.setAttribute('aria-current', eigen ? 'step' : 'false');
+      b.setAttribute('data-staat', eigen ? 'nu' : i < STAPPEN.findIndex((s) => s.id === nu) ? 'klaar' : 'straks');
     }
     const teller = tree.querySelector('.pm-hub-teller');
     if (teller) teller.textContent = `Stap ${v.nummer} van ${v.totaal}: ${stap.hint || ''}`;
+    const titel = tree.querySelector('.pm-hub-hero-t');
+    if (titel) titel.textContent = stap.label || 'Samen spelen';
+    const hint = tree.querySelector('.pm-hub-hero-hint');
+    if (hint) hint.textContent = stap.hint || '';
     const inhoud = tree.querySelector('.pm-hub-inhoud');
     if (inhoud) {
       inhoud.innerHTML = `${nu === STAP.WAAR ? keuzes(v) : nu === STAP.METWIE ? rijen(v) : ''}
@@ -70,11 +86,17 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
   const bouw = () => {
     tree.classList.add('pm-hub');
     tree.innerHTML = `
+      <div class="pm-hub-hero">
+        <span class="m-eb">Samen spelen</span>
+        <b class="pm-hub-hero-t">Waar speel je</b>
+        <p class="pm-hub-hero-hint"></p>
+      </div>
       <div class="pm-hub-stappen" role="group" aria-label="Stappen van Samen spelen">
         ${STAPPEN.map((s, i) => `<button type="button" class="m-tab pm-hub-stap" data-hub-stap="${s.id}"${s.id === nu ? ' aria-current="step"' : ' aria-current="false"'}><span class="pm-hub-nr">${i + 1}</span>${esc(s.label)}</button>`).join('')}
       </div>
       <p class="pm-hub-teller mut" id="pm-hub-teller" role="status" aria-live="polite"></p>
-      <div class="pm-hub-inhoud" aria-labelledby="pm-hub-teller"></div>`;
+      <div class="pm-hub-inhoud" aria-labelledby="pm-hub-teller"></div>
+      <p class="pm-hub-veilig">Escape gaat een stap terug en beëindigt nooit een sessie. Je kunt altijd terug naar je eigen spel.</p>`;
   };
 
   // De stapknoppen blijven staan; alleen de inhoud en de statusregel wisselen. Deze focus zet de

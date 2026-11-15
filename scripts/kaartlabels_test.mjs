@@ -193,6 +193,12 @@ const PRIO = { missie: 0, wijk: 1, poi: 2 }; // dezelfde volgorde als LABEL_PRIO
   ok(!bron.includes('state.pinsSleutel = geplaatst.map((q) => q.x.toFixed(1)'), '#759: de positie van een pin maakt de vaste laag niet meer vuil');
   ok(bron.includes('pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)'), 'een pin onder de strook wijkt (behalve de belangrijke)');
   ok(bron.includes('state.pinsGebruikt = state.pinsSleutel') && bron.includes("pins: [],\n    pinsSleutel: '',\n    pinsGebruikt: '',\n    strook: null,"), 'de staat kent de pins en de strook vanaf het begin');
+  // #887: de hover noemt bij een weg de straat én de plaats, bij een buurdorp het object zelf
+  ok(bron.includes('const road = streetAt(wx, wy, spotM)') && bron.includes("sub = inCity ? (wijkAt(wx, wy) || 'Groningen') : placeNameAt(wx, wy)"), 'bij een weg: straatnaam en plaatsnaam');
+  ok(bron.includes('const buur = inCity ? null : borderPlaceAt(wx, wy, spotM * 1.4)') && bron.includes('sub = regionName(buur.region)'), 'bij een buurdorp of eiland: de naam van dat object');
+  ok(bron.includes('const tekst = viewpointHover(u, { known: isAreaKnown(u.streek), used: isViewpointUsed(u) })'), 'de uitkijkpunten zijn aanwijsbaar met context');
+  // #901: de buurlanden hebben ook dichtbij (voorbij de regiokaart-gate) een naam langs de grens
+  ok(bron.includes('de naam van Friesland, Drenthe of Duitsland staat ook dichtbij langs de grens') && bron.includes('regionEdgeLabels(rx0 + m'), 'de buurlanden hebben ook dichtbij een naam');
 }
 
 console.log(`${n - fails}/${n} ok`);

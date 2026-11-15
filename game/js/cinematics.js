@@ -24,7 +24,7 @@ export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
-import { toggleFirstPerson } from './firstperson.js';
+import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler } from './players.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
@@ -577,7 +577,17 @@ export function updateCinematics(dt, w) {
     if (aan && camMode) setCamMode(0); // de speelcamera gaat voor de filmcamera
     w.addMessage(aan ? 'Eerste persoon aan' : 'Eerste persoon uit', 2);
   }
-  if (camMode && !lichaam.inVehicle) setCamMode(0);
+  // #890: BINNENIN keek door de ogen van de bestuurder. Stap je uit, dan houdt de speler die
+  // blik: de stand gaat over in de eerste-persooncamera in plaats van terug naar de volgcam.
+  // De andere filmcamera's (bumper, zijkant, helikopter, telelens) kijken van buiten en vallen
+  // gewoon terug; de trein houdt zijn eigen cabinecamera (ADR 0035).
+  if (camMode && !lichaam.inVehicle) {
+    if (camMode === 5 && !w.pigeonMode && !w.trainDriving) {
+      setFirstPerson(w, true);
+      w.addMessage('Eerste persoon aan', 2);
+    }
+    setCamMode(0);
+  }
 
   // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run
   // cleans up in between and clears the flag (two identical Tammos next to Tessa, #264)

@@ -280,24 +280,40 @@ function takeShot(world) {
 // --- pauzemenu: sectie Foto's ---------------------------------------------------------------
 
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.5-2h7L17 8.5h3v10H4z"/><circle cx="12" cy="13" r="3.4"/></svg>';
+
+// #910: de lege staat is een uitnodiging, geen kaal "Meer opties"-blok met uitleg. Eén duidelijk
+// actie (de fotomodus starten), de drie toetsen die je meteen nodig hebt, en de uitleg waar de
+// foto blijft. Zodra er foto's zijn, is de galerij het eerste beeld en blijft de uitleg gevouwen.
+function leegStateHtml() {
+  return '<div class="foto-leegstaat">' +
+    `<span class="foto-leegstaat-ic">${CAM}</span>` +
+    '<b>Nog geen foto\'s</b>' +
+    '<p class="mut">Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer, en maak een foto. Hij komt als bestand op je eigen schijf; er gaat niets het internet op.</p>' +
+    '<div class="foto-tips">' +
+    '<span class="foto-tip"><kbd class="m-kc">F8</kbd> fotomodus</span>' +
+    '<span class="foto-tip"><kbd class="m-kc">Enter</kbd> foto maken</span>' +
+    '<span class="foto-tip"><kbd class="m-kc">F</kbd> filter · <kbd class="m-kc">T</kbd> weer</span>' +
+    '</div></div>';
+}
 
 // De galerij staat vooraan: beeld boven tekst (#611). De uitleg over de fotomodus
 // en de opslag zit achter "Meer opties"; de knop om te starten blijft in het eerste beeld.
 export function renderFotoPanel(el) {
   const list = F.loadGallery(store());
-  const gal = list.length
-    ? '<div class="foto-gal">' + list.map((s) =>
+  const leeg = !list.length;
+  const gal = leeg ? leegStateHtml()
+    : '<div class="foto-gal">' + list.map((s) =>
       `<figure>${s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(s.plaats)}">` : '<div class="foto-leeg">Geen voorbeeld</div>'}` +
       `<figcaption><b>${esc(s.plaats)}</b><br>${esc(s.dagLabel)} ${esc(s.uur)}${s.weer ? ' · ' + esc(F.WEER_NAMEN[s.weer] || s.weer) : ''}<br><small>${esc(s.file)}</small>` +
-      `<br><button type="button" class="m-bg" data-foto-del="${esc(s.id)}">Weghalen</button></figcaption></figure>`).join('') + '</div>'
-    : '<p class="mut">Nog geen foto\'s. Het bestand zelf blijft staan als je een foto hier weghaalt.</p>';
+      `<br><button type="button" class="m-bg" data-foto-del="${esc(s.id)}">Weghalen</button></figcaption></figure>`).join('') + '</div>';
   el.innerHTML =
     '<div class="foto-panel">' + gal +
-    `<p class="mut foto-count">${list.length} van ${F.GALLERY.max} foto's</p>` +
-    '<div class="m-acts"><button type="button" class="m-bp" data-foto-start>Fotomodus starten</button></div>' +
-    `<button type="button" class="m-disc" data-fold="foto-uitleg" aria-expanded="false">${CHEV}<b>Meer opties</b><span class="mut">Zo werkt de fotomodus en waar je foto's blijven</span></button>` +
-    '<div class="m-fold" data-fold-body="foto-uitleg" hidden><p class="foto-lead">Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer en maak een foto. ' +
-    'De foto komt als bestand op je eigen schijf; er gaat niets het internet op.</p></div>' +
+    (leeg ? '' : `<p class="mut foto-count">${list.length} van ${F.GALLERY.max} foto's</p>`) +
+    `<div class="m-acts foto-start${leeg ? ' foto-start-big' : ''}"><button type="button" class="m-bp" data-foto-start>${leeg ? 'Fotomodus starten' : 'Nog een foto maken'}</button></div>` +
+    (leeg ? '' : `<button type="button" class="m-disc" data-fold="foto-uitleg" aria-expanded="false">${CHEV}<b>Meer opties</b><span class="mut">Zo werkt de fotomodus en waar je foto's blijven</span></button>` +
+      '<div class="m-fold" data-fold-body="foto-uitleg" hidden><p class="foto-lead">Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer en maak een foto. ' +
+      'De foto komt als bestand op je eigen schijf; er gaat niets het internet op. Het bestand zelf blijft staan als je een foto hier weghaalt.</p></div>') +
     '</div>';
 }
 

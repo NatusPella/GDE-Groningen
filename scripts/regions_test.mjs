@@ -2,7 +2,7 @@
 // with a built province layer in game/world the layer's own data as well).
 import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
-import { regionAt, areaNameAt, setRegionData, regionLabels, seaRing } from '../game/js/regions.js';
+import { regionAt, areaNameAt, placeNameAt, landRegionAt, setRegionData, regionLabels, seaRing } from '../game/js/regions.js';
 import { setWorldPlaces } from '../game/js/worldplaces.js';
 
 let bad = 0;
@@ -99,6 +99,33 @@ if (fs.existsSync(idx)) {
   const g = JSON.parse(fs.readFileSync(idx, 'utf8')).global;
   setRegionData(g);
   run('layer');
+  // #887: de hover bij de Waddeneilanden en de zee leent nooit het dichtstbijzijnde
+  // Groningse dorp. Op een eiland staat de zee (of het buurland), niet 'Warffum'.
+  {
+    setWorldPlaces([
+      { name: 'Lauwersoog', kind: 'village', x: P(53.4045, 6.2)[0], y: P(53.4045, 6.2)[1] },
+      { name: 'Warffum', kind: 'village', x: P(53.3911, 6.5588)[0], y: P(53.3911, 6.5588)[1] },
+    ]);
+    for (const [naam, la, lo] of [['Schiermonnikoog', 53.478, 6.161], ['Rottumeroog', 53.55, 6.55], ['Waddenzee', 53.45, 6.5]]) {
+      const [x, y] = P(la, lo);
+      const a = areaNameAt(x, y);
+      if (/Warffum/.test(a.name) || /Warffum/.test(a.sub)) fail(`${naam} noemt Warffum: ${JSON.stringify(a)}`);
+      if (!a.region || a.region === 'groningen') fail(`${naam} hoort niet bij Groningen: ${JSON.stringify(a)}`);
+      if (placeNameAt(x, y) === 'Warffum') fail(`${naam}: placeNameAt leent Warffum`);
+    }
+    const [wx, wy] = P(53.3911, 6.5588);
+    if (areaNameAt(wx, wy).name !== 'Warffum') fail('Warffum zelf hoort Warffum te heten: ' + JSON.stringify(areaNameAt(wx, wy)));
+    if (placeNameAt(wx, wy) !== 'Warffum') fail('placeNameAt(Warffum) is ' + placeNameAt(wx, wy));
+    // een open plek in Friesland: de streek, geen Gronings dorp
+    const [fx, fy] = P(53.2, 5.8);
+    const f = areaNameAt(fx, fy);
+    if (f.name !== 'Friesland' || f.near) fail('open Friesland: ' + JSON.stringify(f));
+    if (placeNameAt(fx, fy) !== 'Friesland') fail('placeNameAt(Friesland) is ' + placeNameAt(fx, fy));
+    // het land van een eiland is Friesland, ook al ligt het in de Waddenzee
+    if (landRegionAt(...P(53.478, 6.161)) !== 'friesland') fail('Schiermonnikoog is geen Friesland: ' + landRegionAt(...P(53.478, 6.161)));
+    if (landRegionAt(...P(53.2, 6.5665)) !== 'groningen') fail('Groningen-stad is geen Groningen');
+  }
+  setWorldPlaces([]);
   setRegionData(null);
 }
 

@@ -198,13 +198,16 @@ export function waterStreamMaterial() {
   return m;
 }
 
-// Offsets stay below the detailed ground decals (green starts at 1).
+// Offsets stay below the detailed ground decals: detailed grass starts at 0.08
+// and the road at 5, while the far road sits at 0.7 (#883: the far green used
+// to sit at 0.2, under the detailed grass, and a grass fill that reached past
+// the far road's offset drew grass over the asphalt in the LOD ring).
 const MATS = {
   building: buildingMaterial(),
-  green: groundMaterial(0.2),
+  green: groundMaterial(0.02),
   path: groundMaterial(0.45),
   road: groundMaterial(0.7),
-  greenNear: groundMaterial(0.2, true),
+  greenNear: groundMaterial(0.02, true),
   water: groundMaterial(0.3, true),
   waterStream: waterStreamMaterial(),
 };

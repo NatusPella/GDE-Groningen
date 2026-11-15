@@ -10,6 +10,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
+import { borderSegments, BORDER_CELL } from './mapborders.js'; // #885: stabiele buurtgrenzen op de minikaart
 import { tekenVeroverdMini } from './gebiedenkaart.js';
 import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
@@ -78,6 +79,8 @@ import { controlHint, hintText } from './controlhint.js'; // #824: compacte bedi
 import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
+import { gameProgress, progressText } from './progresslive.js';
+import { getPlaySeconds } from './savegame.js';
 import { hudExpensiveDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
@@ -249,6 +252,8 @@ export function initHud(world) {
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
           '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid uit: U: geluid" title="Geluid uit: U: geluid" hidden>🔇 <small>U: geluid</small></button>' +
+          // #898: hoe ver je bent, als één stil chipje naast je naam (zelfde cijfer als het Overzicht)
+          '<span class="hud-chip hud-done" role="status" hidden><b></b></span>' +
         '</div></div>' +
         '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
         '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
@@ -285,6 +290,7 @@ export function initHud(world) {
     drunk: topLeft.querySelector('.hud-chip.drunk'),
     idKey: '', hpKey: '', arKey: '', stKey: '', vehKey: '',
     mute: topLeft.querySelector('.hud-mute'),
+    done: topLeft.querySelector('.hud-done'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
     search: topRight.querySelector('.hud-search'),
@@ -584,6 +590,40 @@ function updateMute() {
   els.mute.setAttribute('aria-label', label);
 }
 
+// #898: hoe ver de speler is, in één stil chipje naast de naam. Het cijfer komt uit
+// progress.js — dezelfde bron als het Overzicht en het savegame-overzicht — en wordt elke
+// tien seconden opnieuw gevraagd: een verhaalstap of een prestatie is geen haastwerk, en de
+// HUD mag er niets van merken. In de minimale HUD-stand blijft het weg (#638: rust is rust).
+const PROGRESS_EVERY = 10;
+let progT = PROGRESS_EVERY, progText = '', hervatGemeld = false;
+function updateProgress(dt, world) {
+  if (!els.done) return;
+  progT += dt;
+  if (progT < PROGRESS_EVERY) return;
+  progT = 0;
+  if (getSettings().hudMode === 'minimaal') { els.done.hidden = true; return; }
+  let info;
+  try { info = gameProgress(); } catch (e) { return; }
+  if (!info.parts.length) { els.done.hidden = true; return; }
+  els.done.hidden = false;
+  const tekst = progressText(info.pct);
+  if (tekst === progText) return;
+  progText = tekst;
+  els.done.querySelector('b').textContent = tekst;
+  els.done.title = `Voortgang van de game: ${info.parts.map((p) => `${p.label.toLowerCase()} ${p.pct}%`).join(' · ')}`;
+  els.done.setAttribute('aria-label', `Voortgang: ${tekst}`);
+  // #898: bij het hervatten van een spel dat al liep één keer zeggen hoe ver je bent. Een
+  // nieuw spel begint op nul en heeft niets te hervatten, dus die krijgt de melding niet.
+  if (hervatGemeld) return;
+  hervatGemeld = true;
+  // getPlaySeconds is de speeltijd uit de save (of van deze sessie): nul bij een nieuw spel,
+  // en een paar minuten bij een spel dat je opnieuw oppakt.
+  let eerder = 0;
+  try { eerder = getPlaySeconds(); } catch (e) { eerder = 0; }
+  if (!(eerder > 60) || !(info.pct > 0)) return;
+  if (world && world.addMessage) world.addMessage(`Welkom terug in Grunn · ${tekst}`, 4, { kind: 'tip' });
+}
+
 // #802: statusaankondigingen voor de schermnarratie. Alleen als de instelling
 // aan staat, en begrensd door de wachtrij in narration.js.
 function announce(text) {
@@ -617,6 +657,7 @@ export function updateHud(dt, world) {
   updateCharacter(dt, world);
   updateBars(world);
   updateMute();
+  updateProgress(dt, world);
   updateWanted(world);
   updateMoneyWeapon(dt, world);
   updateClock(world);
@@ -1405,7 +1446,7 @@ function currentObjective(world) {
     const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - hoofdspeler(world).x, goal.y - hoofdspeler(world).y);
     const wait = storyWaiting(world);
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
-    const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.code}` : ''].filter(Boolean).join(' · ');
+    const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
     // the HUD takes no clicks: say where the goal can be dropped, the first few times
     return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
   }
@@ -1930,15 +1971,26 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     case 'uitkijkpunt': {
-      // uitkijkpunt (#807 A15): een oog in de landmarkkleur, per streek op de kaart
+      // uitkijkpunt (#886, #902): een rond oog met een pupil in de landmarkkleur. Vector en
+      // rond, dus geen platgedrukte ovaal en scherp op elke zoom; de hover noemt de streek
+      // en waarom je erheen gaat (verkenpunten.js, viewpointHover).
       ctx.beginPath();
-      ctx.ellipse(0, 0, 5.2 * s, 3.2 * s, 0, 0, Math.PI * 2);
+      ctx.arc(0, 0, 5.2 * s, 0, Math.PI * 2);
       ctx.fillStyle = C.cream;
       ctx.fill();
-      outline(ctx, s, C.dark, 1);
+      outline(ctx, s, C.dark, 1.3);
       ctx.beginPath();
-      ctx.arc(0, 0, 1.8 * s, 0, Math.PI * 2);
+      ctx.arc(0, 0, 2.5 * s, 0, Math.PI * 2);
       ctx.fillStyle = C.landmark;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, 1.15 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.dark;
+      ctx.fill();
+      // een klein lichtpuntje op de pupil: scherp en levend, ook op de minikaart
+      ctx.beginPath();
+      ctx.arc(-0.45 * s, -0.45 * s, 0.38 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.cream;
       ctx.fill();
       break;
     }
@@ -2687,8 +2739,9 @@ function drawMinimap(dt, world) {
   const MM_BUILDING_COLORS = MINI_STYLE.buildings;
   fillBuildings(ctx, view.buildings, MM_BUILDING_COLORS);
   ctx.globalAlpha = 1;
-  // outside the province darker, with its land borders
-  if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: inkA('tintMini', 0.34), width: 2.6 });
+  // outside the province darker, with its land borders (#885: doorgetrokken op de
+  // minikaart, want streeplengtes die met de zoom meeschuiven lieten de lijn trillen)
+  if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: inkA('tintMini', 0.34), width: 2.6, dash: false });
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
@@ -3059,43 +3112,37 @@ function mmHash(x, y) {
 // sampling a coarse grid for nearest-point and drawing where the answer
 // changes between neighbouring cells gives boundaries that agree with the
 // HUD instead of showing unrelated administrative lines.
-let borderCache = null; // {ox, oy, rects}
-let borderCacheTimer = 0;
+// De grenzen tussen de wijken op de minikaart (#885): de lijnen liggen op een vast
+// wereldraster en worden als één doorlopend pad getekend. Ze schuiven daardoor niet meer
+// met de speler mee (dat was het trillen) en de cache wordt alleen bij een nieuwe cel
+// opnieuw opgebouwd. De lijnbreedte staat in schermpunten, dus ook bij in- en uitzoomen
+// blijft de lijn rustig.
+let borderCache = null; // { gx, gy, half, lines }
 function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
   const points = world.map.meta.neighbourhoodPoints;
   if (!points || !points.length) return;
-  const cell = 14; // meters
+  const cell = BORDER_CELL;
   const half = Math.ceil(MM_RADIUS_M / cell) + 1;
-  const ox = Math.round(player.x / cell), oy = Math.round(player.y / cell);
-
-  borderCacheTimer -= dt;
-  if (!borderCache || borderCacheTimer <= 0 || borderCache.ox !== ox || borderCache.oy !== oy || borderCache.half !== half) {
-    borderCacheTimer = 0.3;
-    const rects = [];
-    const width = half * 2 + 2;
-    let prevRow = null;
-    for (let gy = oy - half; gy <= oy + half; gy++) {
-      const curRow = new Array(width);
-      for (let gx = ox - half; gx <= ox + half; gx++) {
-        const wx = gx * cell, wy = gy * cell;
-        let best = -1, bestD2 = Infinity;
-        for (let i = 0; i < points.length; i++) {
-          const d2 = (points[i].x - wx) ** 2 + (points[i].y - wy) ** 2;
-          if (d2 < bestD2) { bestD2 = d2; best = i; }
-        }
-        const col = gx - (ox - half);
-        curRow[col] = best;
-        const leftIdx = col > 0 ? curRow[col - 1] : best;
-        const upIdx = prevRow ? prevRow[col] : best;
-        if (best !== leftIdx || best !== upIdx) rects.push([wx - cell / 2, wy - cell / 2]);
-      }
-      prevRow = curRow;
-    }
-    borderCache = { ox, oy, half, rects };
+  // het venster ligt op het wereldraster (niet op de spelerspositie): de lijnen blijven
+  // daardoor op hun plek en de cache vervalt pas als je een cel opschuift
+  const gx = Math.floor(player.x / cell), gy = Math.floor(player.y / cell);
+  if (!borderCache || borderCache.gx !== gx || borderCache.gy !== gy || borderCache.half !== half) {
+    const x0 = (gx - half) * cell, y0 = (gy - half) * cell;
+    const x1 = (gx + half + 1) * cell, y1 = (gy + half + 1) * cell;
+    borderCache = { gx, gy, half, lines: borderSegments(points, x0, y0, x1, y1, cell) };
   }
-
-  ctx.fillStyle = inkA('white', 0.35);
-  for (const [rx, ry] of borderCache.rects) ctx.fillRect(rx, ry, cell * 0.5, cell * 0.5);
+  if (!borderCache.lines.length) return;
+  ctx.save();
+  ctx.beginPath();
+  for (const [ax, ay, bx, by] of borderCache.lines) { ctx.moveTo(ax, ay); ctx.lineTo(bx, by); }
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = inkA('dark', 0.35);
+  ctx.lineWidth = 2.8 / mmScale;
+  ctx.stroke();
+  ctx.strokeStyle = inkA('white', 0.4);
+  ctx.lineWidth = 1.2 / mmScale;
+  ctx.stroke();
+  ctx.restore();
 }
 
 

@@ -85,6 +85,8 @@ function row(e) {
 // too; the keycaps follow the last used device (#610).
 function stageHtml(e) {
   const model = esc(e.model);
+  // #892: het model en de hint staan onder elkaar in plaats van over elkaar: de auto zakte
+  // over "Sleep of draai met ← →" heen, waardoor de hint onleesbaar werd.
   return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}` +
     '<img class="gar-still" alt="" draggable="false" hidden>' +
     `<canvas tabindex="0" role="img" aria-label="3D-model van ${model}: sleep of gebruik de pijltjes om te draaien"></canvas>` +
@@ -92,23 +94,37 @@ function stageHtml(e) {
 }
 
 // Everything beside the stage: name, facts, the message and the buttons.
+// #892: de tekst rechtsonder had geen hiërarchie (een rij feiten, een losse melding en de
+// knoppen door elkaar). Nu drie rustige blokken met een eigen kop — waar hij staat, de cijfers
+// en de uitvoering — en de knoppen onderaan op één regel.
+function secHtml(title, note, inner) {
+  return `<div class="pm-sec gar-sec"><h3>${esc(title)}</h3>${note ? `<span>${note}</span>` : ''}</div>${inner}`;
+}
+
+function statsHtml(e) {
+  return '<div class="pm-stats gar-stats">' +
+    `<span class="pm-stat"><b>${e.topSpeed}</b><span>km/u topsnelheid</span></span>` +
+    `<span class="pm-stat"><b>${e.accelScore} / 10</b><span>trekkracht</span></span></div>`;
+}
+
 function detailsHtml(e, msg) {
-  const rows = [];
-  if (e.owned) rows.push(['Waar', esc([e.statusLabel, whereText(e)].filter(Boolean).join(' · '))]);
-  else if (e.locked) rows.push(['Vrijspelen', esc(e.unlockText || 'Via het verhaal of een prestatie')]);
-  else if (e.spec && e.spec.unlock) rows.push(['Vrijgespeeld', esc(e.statusLabel)]);
-  else rows.push(['Te koop', `${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''}. Nog niet van jou: na het kopen staat hij thuis`]);
-  rows.push(['Topsnelheid', `${e.topSpeed} km/u`], ['Trekkracht', `${e.accelScore} / 10`]);
-  rows.push(['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`]);
-  if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') rows.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
+  let waar;
+  if (e.owned) waar = `<p class="gar-where"><b>${esc(e.statusLabel || 'Van jou')}</b>${whereText(e) ? ` <span class="mut">${esc(whereText(e))}</span>` : ''}</p>`;
+  else if (e.locked) waar = `<p class="gar-where"><b>Op slot</b> <span class="mut">${esc(e.unlockText || 'Via het verhaal of een prestatie')}</span></p>`;
+  else if (e.spec && e.spec.unlock) waar = `<p class="gar-where"><b>Vrijgespeeld</b> <span class="mut">${esc(e.statusLabel)}</span></p>`;
+  else waar = `<p class="gar-where"><b>Te koop</b> <span class="mut">${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''} · na het kopen staat hij thuis</span></p>`;
+  const uitvoering = `<div class="gar-look"><span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}` +
+    (e.owned && e.kind !== 'boat' && e.kind !== 'heli'
+      ? `<span class="mut">${e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`}</span>`
+      : '') + '</div>';
   // te koop: "Kopen" zet een waypoint naar de winkel waar hij staat (#435)
   const koop = garageSaleShop(e);
   const acts = koop ? `<div class="m-acts td-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts">' +
     (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
     (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
   return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2></div>` +
-    (e.meme ? `<p class="mut">${esc(e.meme)}</p>` : '') +
-    `<div class="m-facts td-stack">${rows.map(([k, v]) => `<div class="m-fact"><span>${k}</span><span class="${String(v).length > 13 ? 'td-fv' : 'm-num'}">${v}</span></div>`).join('')}</div>` +
+    (e.meme ? `<p class="mut gar-meme">${esc(e.meme)}</p>` : '') +
+    secHtml('Waar', '', waar) + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
     `<p class="gar-msg g" role="status">${esc(msg || '')}</p><span class="m-grow"></span>` + acts;
 }
 

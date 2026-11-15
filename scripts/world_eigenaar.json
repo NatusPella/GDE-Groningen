@@ -430,8 +430,8 @@
     {
       "veld": "camYaw",
       "bestand": "game/js/firstpersoncam.js",
-      "max": 3,
-      "reden": "de eerste-persooncamera zet de kijkhoek (te voet, in een voertuig en bij het uitzetten); scene3d.js blijft de eigenaar van de camera",
+      "max": 4,
+      "reden": "de eerste-persooncamera zet de kijkhoek (te voet, in een voertuig en bij het uitzetten); scene3d.js blijft de eigenaar van de camera De vierde schrijf is de herstelde first-person-stand na een voertuigwissel (#890).",
       "issue": "#833"
     },
     {

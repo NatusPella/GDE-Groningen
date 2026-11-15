@@ -10,19 +10,27 @@ const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 
 const VLAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21V4M7 5l10 3.5L7 12"/></svg>';
 
 export const GEBIEDEN_CSS = `
-.gb-groep { margin: 14px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; display: flex; gap: 10px; }
+.gb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .gb-groep:first-child { margin-top: 0; }
-.gb-groep .gb-n { margin-left: auto; letter-spacing: 0; }
+.gb-groep .gb-n { margin-left: auto; letter-spacing: 0; text-transform: none; opacity: 0.85; }
 .gb-li .gb-vlag { flex: none; width: 26px; height: 26px; display: grid; place-items: center; opacity: 0.35; }
 .gb-li .gb-vlag svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .gb-li.klaar .gb-vlag { opacity: 1; color: var(--vlag, #e8a33c); }
 .gb-li.klaar .gb-vlag svg { fill: currentColor; }
 .gb-li .gb-tel { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
 .gb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
+.gb-li.sel .gb-tel { opacity: 1; color: var(--ink); }
 .gb-pane { min-width: 0; overflow-x: hidden; }
 .gb-pane .m-h2 { font-size: 32px; overflow-wrap: anywhere; line-height: 1.05; }
 .gb-pane .gb-titel { margin: 0 0 2px; font-size: 22px; overflow-wrap: anywhere; }
 .gb-pane .gb-regel { margin: 4px 0 10px; }
+.gb-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 2px 0 6px; }
+.gb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.12); }
+.gb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
+.gb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; }
+.gb-kpi small { font-size: 16px; color: var(--mut); }
+.gb-blok { display: flex; flex-direction: column; gap: 2px; }
+.gb-blok h3 { margin: 12px 0 2px; }
 .gb-soort { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 3px 16px; }
 .gb-soort li { display: flex; gap: 6px; align-items: center; opacity: 0.55; }
 .gb-soort li.klaar { opacity: 1; }
@@ -75,19 +83,23 @@ function detail(o, id) {
   const kop = v.voltooid
     ? `<p class="gb-titel g"><b>${esc(b.titel)}</b></p><p class="gb-regel mut">Veroverd, zonder een vinger uit te steken tegen iemand. ${esc(b.regel)}</p>`
     : `<p class="gb-regel mut">Doe alles wat er te doen is in ${esc(g.naam)} en de ${esc(niv.enkel)} is van jou. Titel: ${esc(b.titel)}, met €${b.geld} erbij en een vlag op de kaart.</p>`;
+  // #906: de stand van dit gebied als drie feiten naast elkaar, zodat de balk niet het enige is dat telt.
+  const kpi = `<div class="gb-kpis"><div class="gb-kpi"><span>Gedaan</span><b>${v.klaar}<small> / ${v.totaal}</small></b></div>` +
+    `<div class="gb-kpi"><span>Stand</span><b>${Math.round(v.deel * 100)}%</b></div>` +
+    `<div class="gb-kpi"><span>Nog</span><b>${Math.max(0, v.totaal - v.klaar)}</b></div></div>`;
   const blokken = G.SOORTEN.map((s) => {
     const ids = g.taken.filter((t) => o.ind.taak.get(t).soort === s.id);
     if (!ids.length) return '';
     const klaar = ids.filter((t) => gedaan.has(t)).length;
-    return `<h3 class="m-eb">${esc(s.naam)} <span class="mut">${klaar} van ${ids.length}</span></h3><ul class="gb-soort">` +
-      ids.map((t) => `<li class="${gedaan.has(t) ? 'klaar' : ''}">${CHECK}<span>${esc(o.ind.taak.get(t).naam)}</span></li>`).join('') + '</ul>';
+    return `<section class="gb-blok"><h3 class="m-eb">${esc(s.naam)} <span class="mut">${klaar} van ${ids.length}</span></h3><ul class="gb-soort">` +
+      ids.map((t) => `<li class="${gedaan.has(t) ? 'klaar' : ''}">${CHECK}<span>${esc(o.ind.taak.get(t).naam)}</span></li>`).join('') + '</ul></section>';
   }).join('');
   const bar = `<div class="lb-voort"><span class="m-bar${v.deel > 0 ? ' on' : ''}"><i data-bar="gbd-${esc(id)}" data-w="${(v.deel * 100).toFixed(1)}"></i></span><span class="m-num">${v.klaar} / ${v.totaal}</span></div>`;
   // #708: de intocht van een veroverd gebied is terug te kijken (alleen als je hem al zag)
   const gezien = Array.isArray(o.profiel.intochten) && o.profiel.intochten.includes(id);
   const intocht = v.voltooid && gezien ? `<button type="button" class="m-bp gb-reis" data-intocht="${esc(id)}">Bekijk de intocht</button>` : '';
   const pad = G.keten(o.ind, id).slice(0, -1).map((x) => esc(x.naam)).join(' › ');
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}${pad ? ` · ${pad}` : ''}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${intocht}${huisHtml(o, id, v)}${blokken}`;
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}${pad ? ` · ${pad}` : ''}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${kpi}${intocht}${huisHtml(o, id, v)}${blokken}`;
 }
 
 // De kop van Veroverd (#608): het getal krijgt woorden, zodat niemand hoeft te raden of het
@@ -109,7 +121,14 @@ export function gebiedenHtml(kies = gekozen) {
   const lijst = `<div class="gb-groep">Kaart verkend<span class="gb-n">${o.kaart.gedaan} van ${o.kaart.totaal} buurten · ${o.kaart.pct}%</span></div>` +
     o.overzicht.map((n) => `<div class="gb-groep">${esc(n.niveau.naam)}<span class="gb-n">${n.voltooid} van ${n.gebieden.length} veroverd</span></div>` + n.gebieden.map((r) => rij(r, o.ind)).join('')).join('');
   const sam = G.samenvatting(o.profiel, o.ind);
-  return { lijst, pane: detail(o, gekozen), totaal: veroverdKop(sam) };
+  return {
+    lijst, pane: detail(o, gekozen), totaal: veroverdKop(sam),
+    stats: {
+      klaar: Number(sam.voltooid) || 0, totaal: Number(sam.totaal) || 0,
+      pct: sam.totaal ? Math.round((sam.voltooid / sam.totaal) * 100) : 0,
+      kaartGedaan: o.kaart.gedaan, kaartTotaal: o.kaart.totaal, kaartPct: o.kaart.pct,
+    },
+  };
 }
 
 // #676: de eerstvolgende drie taken over alle gebieden, voor de eigen Veroverd-tab.

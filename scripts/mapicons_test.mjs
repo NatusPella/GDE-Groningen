@@ -90,6 +90,18 @@ for (const [cat, fill] of Object.entries(FLAT_FILL)) {
 }
 ok(new Set(['zorg', 'politiebureau', 'garage', 'station', 'job', 'shop', 'fun', 'horeca', 'ommeland'].map((c) => FLAT_FILL[c])).size === 9, 'categories have their own colour');
 ok(mapFillColor('hospital') === FLAT_FILL.zorg && mapFillColor('shop-bakker') === FLAT_FILL.shop && mapFillColor('player') === null && mapFillColor('missionActive') === null && mapFillColor('police') === null, 'fill follows the category; you, goals, missions and police keep their look');
+// #886: het uitkijkpunt houdt zijn eigen ronde oog in plaats van een platgedrukte badge-glyph
+ok(mapFillColor('uitkijkpunt') === null, 'het uitkijkpunt houdt zijn eigen look (geen badge)');
+{
+  const fs = await import('node:fs');
+  const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  const start = hud.indexOf("case 'uitkijkpunt'");
+  const eind = hud.indexOf('break;', start);
+  const blok = start >= 0 && eind > start ? hud.slice(start, eind + 6) : '';
+  ok(blok.includes('ctx.arc(0, 0, 5.2 * s'), 'het uitkijkpunt is een ronde cirkel');
+  ok(!blok.includes('ctx.ellipse'), 'geen platgedrukte ovaal meer (#886)');
+  ok(blok.includes('C.landmark') && blok.includes('C.cream'), 'de landmarkkleur en het oog blijven');
+}
 // the badge (#180): a shape and colour per category, a readable glyph, states and the zoom fade
 for (const cat of Object.keys(FLAT_FILL)) ok(BADGE_SHAPE[cat], 'a badge shape for ' + cat);
 {

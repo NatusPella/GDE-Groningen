@@ -257,6 +257,26 @@ function homeRoute(what) {
   return `Route naar huis (${what})`;
 }
 
+// #908: de kop van Spullen zegt in één oogopslag wat je hebt: geld, het aantal dingen en de
+// verzamelingen die je bijhoudt. Alleen bij "Alles" en zonder zoekopdracht, zodat een zoekresultaat
+// niet onder een algemene kop verdwijnt.
+function overviewHtml(items, w) {
+  const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;
+  const geld = euro(Math.max(0, Math.floor(w.money)));
+  let jr = null;
+  try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
+  const eieren = getSaveSet('eierballen').size;
+  const geheimen = getSaveSet('geheimen').size;
+  const meta = [
+    jr ? `${jr.found.length} van ${jr.total} aanwijzingen` : '',
+    `${eieren} van ${EIERBAL_TOTAL} eierballen`,
+    `${geheimen} van ${SECRETS_TOTAL} geheimpjes`,
+  ].filter(Boolean);
+  return `<section class="pm-hero sp-hero" aria-label="Spullen"><div class="pm-hero-h"><span class="m-eb">Spullen</span><span class="pm-badge" data-tone="ok">${owned} ${owned === 1 ? 'ding' : 'dingen'} in bezit</span></div>` +
+    `<h2 class="pm-hero-t">${geld}</h2><p class="pm-hero-lead">Contant op zak. Kies links wat je bij je hebt; rechts zie je wat het doet, waar het vandaan komt en wat je ermee kunt.</p>` +
+    `<div class="pm-hero-meta">${meta.map((m) => `<span>${esc(m)}</span>`).join('')}</div></section>`;
+}
+
 function card(it) {
   return `<button type="button" class="m-li" data-spul="${esc(it.key)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
     `${svg(it.icon)}<span class="nm"><span class="one">${esc(it.title)}</span><span class="mut one">${esc(it.sub || '')}</span></span>` +
@@ -270,10 +290,17 @@ function detailHtml() {
   let btns = '';
   if (it.act) btns += `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
   if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
-  return `<div class="pm-pane-top"><span class="m-eb sp-gh">${svg(it.icon)}${esc((SECTIONS.find(([c]) => c === it.cat) || [, ''])[1])}</span><h2 class="m-h2 td-h2">${esc(it.title)}</h2></div>` +
-    `${it.sub ? `<p>${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>` +
+  const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
+  return `<div class="pm-pane-top"><span class="m-eb sp-detail-cat">${svg(it.icon)}${esc(cat)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${it.side ? `<span class="pm-badge" data-tone="ok">${esc(it.side)}</span>` : ''}</div></div>` +
+    `${it.sub ? `<p class="sp-detail-sub">${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>` +
     `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
 }
+
+// '3 van 8' -> 38, zodat een categorie ook een balk kan dragen zonder een tweede telling.
+const pctVan = (tekst) => {
+  const m = /(\d+)\s*van\s*(\d+)/.exec(String(tekst || ''));
+  return m && Number(m[2]) ? Math.round((Number(m[1]) / Number(m[2])) * 100) : null;
+};
 
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
 export function renderSpullen(panel, w) {
@@ -287,10 +314,15 @@ export function renderSpullen(panel, w) {
   const secties = SECTIONS.map(([cat, label]) => {
     const mine = zichtbaar.filter((it) => it.cat === cat);
     if (!mine.length && !(ALWAYS.has(cat) && !leeg)) return '';
-    const kop = `<div class="m-gh"><span class="sp-gh">${svg(cat)}${label}</span>${counts[cat] ? `<span>${esc(counts[cat])}</span>` : ''}</div>`;
-    return kop + (mine.length ? mine.map(card).join('') : `<p class="mut sp-leeg">${esc(EMPTY[cat] || '')}</p>`);
+    const count = counts[cat] || '';
+    const pct = pctVan(count);
+    const kop = `<div class="m-gh sp-cat"><span class="sp-gh">${svg(cat)}${label}</span><span class="sp-cat-r">${count ? `<span class="sp-cat-n">${esc(count)}</span>` : ''}` +
+      `${pct != null ? `<span class="m-bar sp-cbar${pct ? ' on' : ''}" aria-hidden="true"><i data-bar="sp-${cat}" data-w="${pct}" style="width:${pct}%"></i></span>` : ''}</span></div>`;
+    return `<section class="sp-cat-sec" data-cat="${cat}">${kop}` +
+      (mine.length ? mine.map(card).join('') : `<p class="mut sp-leeg sp-empty">${esc(EMPTY[cat] || '')}</p>`) + '</section>';
   }).join('');
-  list.innerHTML = secties || `<p class="m-note sp-leeg" data-spul-leeg>Niks gevonden${zoek.trim() ? ` voor "${esc(zoek.trim())}"` : ''}. ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om alles te zien.'}</p>`;
+  const hero = !leeg ? overviewHtml(items, w) : '';
+  list.innerHTML = hero + (secties || `<p class="m-note sp-leeg" data-spul-leeg>Niks gevonden${zoek.trim() ? ` voor "${esc(zoek.trim())}"` : ''}. ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om alles te zien.'}</p>`);
   // de knoppen boven de lijst tonen de stand (#435)
   for (const b of panel.querySelectorAll('[data-spul-deel]')) b.setAttribute('aria-pressed', String(b.dataset.spulDeel === deel));
   const zoekveld = panel.querySelector('[data-spul-search]');

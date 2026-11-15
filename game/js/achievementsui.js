@@ -40,12 +40,16 @@ const whenText = (at) => achWhen(at, Date.now(), new Date(at).getTimezoneOffset(
 
 function row(it, catLabel) {
   const title = it.hidden ? '???' : dualHtml(it.title);
+  // #909: waar je al bijna bent laat de rij zelf zien: een dunne balk onder de titel met
+  // dezelfde verhouding als het cijfer ernaast, zodat je in één oogopslag ziet hoever je bent.
+  const bijna = !it.unlocked && !it.hidden && it.progress && it.progress.cur > 0;
+  const rowbar = bijna ? `<span class="m-bar pa-rowbar" aria-hidden="true"><i style="width:${pctOf(it).toFixed(1)}%"></i></span>` : '';
   let end = '';
   if (it.unlocked) end = freshIds.has(it.id) ? '<span class="t g">nieuw</span>' + CHECK : CHECK;
   else if (it.hidden) end = LOCK;
-  else if (it.progress && it.progress.cur > 0) end = `<span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span>`;
+  else if (bijna) end = `<span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span>`;
   return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${sel === it.id ? ' sel' : ''}" data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
-    `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}</span>${end}</button>`;
+    `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}${rowbar}</span>${end}</button>`;
 }
 
 function disc(id, title, hintHtml, inner, open, attr) {
@@ -128,6 +132,28 @@ function detailHtml(it, catLabel) {
     (it.hidden ? '' : !it.unlocked && !it.progress ? '<p class="mut">Nog niet behaald.</p>' : '');
 }
 
+// #909: één blok bovenaan dat zegt hoe het ervoor staat, met hetzelfde cijfer als de balk in
+// de tabrij en de vier getallen die er iets betekenen. Geen nieuwe definities: alles komt uit
+// getAchievementSummary en dezelfde view als de lijst eronder.
+function heroHtml(sum, near, verborgen) {
+  const pct = sum.total ? (sum.done / sum.total) * 100 : 0;
+  const teGaan = Math.max(0, sum.total - sum.done);
+  const klaar = sum.total > 0 && sum.done >= sum.total;
+  const lead = klaar
+    ? 'Alles gehaald. Grunn is van jou.'
+    : `${teGaan} ${teGaan === 1 ? 'prestatie' : 'prestaties'} te gaan${near.length ? `, ${near.length} ${near.length === 1 ? 'is' : 'zijn'} dichtbij` : ''}. Prestaties blijven bewaard, ook bij een nieuw spel.`;
+  return '<section class="pm-hero pa-hero" aria-label="Prestaties">' +
+    `<div class="pm-hero-h"><span class="m-eb">Prestaties</span><span class="pm-badge" data-tone="${klaar ? 'ok' : 'warn'}">${Math.round(pct)}%</span></div>` +
+    `<p class="pm-hero-lead">${esc(lead)}</p>` +
+    `<div class="pa-hero-bar"><span class="m-bar on"><i style="width:${pct.toFixed(1)}%"></i></span><span class="mut">${sum.done} van ${sum.total} behaald</span></div>` +
+    '<div class="pm-stats pa-stats">' +
+      `<span class="pm-stat" data-tone="accent"><b>${sum.done}</b><span>behaald</span></span>` +
+      `<span class="pm-stat"><b>${teGaan}</b><span>nog te gaan</span></span>` +
+      `<span class="pm-stat"><b>${near.length}</b><span>bijna binnen</span></span>` +
+      `<span class="pm-stat"><b>${verborgen}</b><span>nog geheim</span></span>` +
+    '</div></section>';
+}
+
 export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   if (!el) return;
   const view = getAchievementView();
@@ -143,21 +169,26 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   const tab = (id, label, n) => `<button type="button" role="tab" class="m-tab" data-achview="${id}" aria-selected="${tabView === id}">${label}${n != null ? `<small>${n}</small>` : ''}</button>`;
   const extras = [['gebieden', 'Gebieden', 'buurt tot provincie', gebiedenBlock()], ['cijfers', 'Cijfers', 'sinds je eerste spel', figuresBlock(st)], ['medailles', 'Medailles', 'per missie', medalsBlock()], ['records', 'Records', 'per bijbaantje', jobRecordsBlock()]];
   let list;
-  if (tabView === 'bijna') list = near.length ? near.map((a) => row(a, a.catLabel)).join('') : '<p class="m-note">Speel wat rond, dan komen ze vanzelf.</p>';
-  else if (tabView === 'behaald') list = done.length ? done.map((a) => row(a, a.catLabel)).join('') : '<p class="m-note">Nog niks behaald. Dat komt vanzelf.</p>';
+  if (tabView === 'bijna') list = near.length ? near.map((a) => row(a, a.catLabel)).join('')
+    : '<div class="pa-leeg"><b>Nog niks dichtbij</b><p class="m-note">Speel wat rond: bijna elke prestatie laat vanzelf een balk zien zodra je begint.</p></div>';
+  else if (tabView === 'behaald') list = done.length ? done.map((a) => row(a, a.catLabel)).join('')
+    : '<div class="pa-leeg"><b>Nog niks behaald</b><p class="m-note">De eerste komt vanzelf: een missie, een ritje of een bezoekje aan de markt.</p></div>';
   else {
     list = view.map((c) => {
       const open = openCats.has(c.cat);
       const pct = achCategoryPct(c);
       const items = achCategoryOrder(c.items);
       const inner = items.map((a) => row(a, c.label)).join('');
-      return disc(c.cat, c.label, `<span class="m-bar${open ? ' on' : ''}"><i data-bar="cat-${c.cat}" data-w="${pct}"></i></span><span class="bebas">${c.done}/${c.items.length}</span>`, inner, open, `data-achcat="${c.cat}"`);
+      // #909: de dichte rij zegt in woorden hoe ver de categorie is, niet alleen met een balkje
+      const af = c.items.length > 0 && c.done >= c.items.length;
+      return disc(c.cat, c.label, `<span class="m-bar${open || af ? ' on' : ''}"><i data-bar="cat-${c.cat}" data-w="${pct}"></i></span><span class="bebas">${c.done}/${c.items.length}</span><span class="mut pa-cat-note">${af ? 'klaar' : `${c.items.length - c.done} te gaan`}</span>`, inner, open, `data-achcat="${c.cat}"`);
     }).join('') + '<div class="m-rule"></div>' +
       extras.map(([id, t, hint, inner]) => disc(id, t, `<span class="mut">${hint}</span>`, inner, openExtra.has(id), `data-achextra="${id}"`)).join('');
   }
   el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
     `<span class="m-grow"></span><span class="pa-total">${bar('total', sum.total ? (sum.done / sum.total) * 100 : 0)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
+    heroHtml(sum, near, all.filter((a) => a.hidden).length) +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel)}</aside></div>`;
   fillBars(el, bars);
   const pct = el.querySelector('[data-pa-pct]');

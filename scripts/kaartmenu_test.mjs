@@ -37,5 +37,14 @@ ok(/#pause-menu \.mapview-overlay\.embedded \.mapview-zoom \.m-bg \{ width: 56px
 ok(/knop Lagen rechtsboven opent de legenda/i.test(read('game/js/helpoverview.js')), 'Besturing, Hulp noemt de knop Lagen');
 ok(/\.mapview-zoom button \{\s*width: 44px; height: 44px/.test(mv), 'de zoemknoppen buiten het menu zijn 44 px');
 
+// QA 0.62.0: het laagjespaneel past op 720 px: de titel blijft staan en de laagjes
+// scrollen in een eigen vak naast de zoomknoppen, met een zachte onderrand.
+ok(mv.includes('<div class="mv-legend-body"></div>') && mv.includes('body.appendChild(box)'), 'de legenda heeft een eigen scrollvak onder de titel');
+ok(/\.mapview-legend \.mv-legend-body \{ min-height: 0; overflow-y: auto/.test(mv), 'het scrollvak scrollt zelf');
+ok(/\.mapview-legend \{[\s\S]*?overflow: hidden/.test(mv), 'de legenda zelf kapt niet hard af');
+ok(/#pause-menu \.mapview-overlay\.embedded \.mapview-legend \{[\s\S]*?overflow: hidden/.test(pcss), 'het ingesloten paneel kapt niet hard af');
+ok(/#pause-menu \.mapview-overlay\.embedded \.mapview-legend \.mv-legend-body \{[\s\S]*?overflow-y: auto/.test(pcss), 'de ingesloten laagjes scrollen in hun eigen vak');
+ok(/max-height: calc\(100% - var\(--mt\) - 72px - 104px\)/.test(pcss), 'het paneel blijft binnen het scherm');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

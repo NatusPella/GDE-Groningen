@@ -284,7 +284,10 @@ await t('de hub opent op stap 1 als wizard: geen tabsemantiek, wel een statusreg
   assert.equal(root.querySelector('.pm-hub-inhoud').getAttribute('aria-labelledby'), 'pm-hub-teller', 'de inhoud hangt aan de teller');
   const k = root.querySelectorAll('[data-hub-keuze]').map((b) => b.getAttribute('data-hub-keuze'));
   assert.deepEqual(k, [ACT.MEEDOEN, ACT.HOSTEN, ACT.BESLOTEN]);
+  assert.ok(root.querySelector('.pm-hub-hero'), 'de hub heeft een eigen kop (#903)');
   assert.match(root.innerHTML, /Waar speel je/, 'de speler ziet de vraag');
+  assert.deepEqual(stappen.map((b) => b.getAttribute('data-staat')), ['nu', 'straks', 'straks'], 'de stappen zeggen waar je bent');
+  assert.match(root.innerHTML, /Samen spelen/, 'de hub zegt waar hij bij hoort');
   closeSamenHub();
   assert.equal(isHubOpen(), false);
 });

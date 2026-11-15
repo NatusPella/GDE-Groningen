@@ -10,6 +10,7 @@ import { HOUSE_ARRIVAL, TODO, FAREWELL } from '../game/js/beppe_texts.js';
 import {
   BEPPE_END_ID, TRIBUTE, LAYOUT, sideOffsets, pickTributeEnd, nearestOnPath, walkPath,
   crossingOnRoad, crossingAhead, layoutTribute, housePoint, markerOf, tributeTodo, farewellGuide, TODO_KEY, once,
+  chooseTributeSite,
 } from '../game/js/beppe_rules.js';
 
 let bad = 0;
@@ -96,6 +97,18 @@ if (site) {
   // een bredere weg schuift de bank van het asfalt
   const wide = layoutTribute({ border: { x: 1500, y: 0 }, ux: 1, uy: 0, hw: 9 });
   ok(!!wide && Math.abs(wide.bench.y) >= 11, 'een brede weg houdt het bankje van de rijbaan', JSON.stringify(wide && wide.bench));
+}
+
+// --- #916: de plek zoekt een vrije berm als de grens zelf vol staat --------
+{
+  const border = { x: 1500, y: 0 };
+  const regionOf = (x) => (x >= 1530 ? 'friesland' : 'groningen');
+  const site = chooseTributeSite({ border, ux: 1, uy: 0, hw: HW, free: () => true, regionOf });
+  ok(!!site && site.shift === 24, 'de plek schuift langs de weg tot huis en tuin over de grens vallen', JSON.stringify(site && { shift: site.shift, house: site.house }));
+  ok(!!site && regionOf(site.house.x) === 'friesland' && regionOf(site.bench.x) === 'groningen', 'het bankje blijft in Grunn, het huis in Friesland');
+  const blocked = chooseTributeSite({ border, ux: 1, uy: 0, hw: HW, free: () => false, regionOf });
+  ok(!!blocked && blocked.clear === false, 'past de plek nergens vrij, dan meldt hij dat');
+  ok(chooseTributeSite({}) === null, 'zonder grens geen plek');
 }
 
 // --- de regio: Groningen tegenover Friesland ---------------------------------

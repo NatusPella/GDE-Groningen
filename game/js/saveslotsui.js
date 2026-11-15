@@ -16,6 +16,7 @@
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
 import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST } from './savegame.js';
+import { saveProgress } from './progress.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 
@@ -199,12 +200,16 @@ export function openSaveSlots(opts = {}) {
     const part = bad ? S.stateText(s.state) : story ? (story.ended ? 'Het verhaal is uit' : story.part) : sm ? 'Het begin' : '';
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
     const meta = sm ? `${S.formatPlaytime(sm.playSeconds)} · ${ago}` : '';
+    // #898: hoe ver het verhaal van dít spel is, ook op de kaarten (niet alleen op de grote
+    // knop bovenaan): één balk en het percentage, dezelfde maat als op het Overzicht.
+    const prog = data && !bad ? saveProgress(data) : null;
+    const progHtml = prog ? `<span class="ssl-prog" title="Verhaal: ${prog}%"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '';
     const tip = story && story.next && !bad ? `Volgende stap: ${story.next}` : '';
     const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie';
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
       `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}"${tip ? ` title="${esc(tip)}"` : ''}>` +
       `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span>` +
-      `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-part one">${esc(part)}</span><span class="ssl-meta one mut">${esc(meta)}</span></span></button>` +
+      `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-part one">${esc(part)}</span><span class="ssl-meta one mut">${esc(meta)}</span>${progHtml}</span></button>` +
       `<button type="button" class="ssl-more" data-grp="list" data-more="${s.n}" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Meer voor ${esc(s.name)}" title="Meer">${svg(IC.more)}</button>` +
       (open ? overHtml(s) : '') + '</div>';
   };
@@ -238,12 +243,13 @@ export function openSaveSlots(opts = {}) {
     const thumb = S.readThumb(null, s.n);
     const part = story ? (story.ended ? 'Het verhaal is uit' : story.part) : 'Het begin';
     const ago = S.agoText(s.summary.savedAt) || dateText(s.summary.savedAt);
-    const prog = story && story.total ? Math.round((story.done / story.total) * 100) : null;
+    const prog = data ? saveProgress(data) : null;
+    const nog = story && story.next && !story.ended ? `Volgende stap: ${story.next}` : '';
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     return `<button type="button" class="ssl-hero" data-grp="hero" data-do="load" data-slot="${s.n}" aria-label="Doorgaan: ${esc(s.name)}">` +
       `<span class="ssl-hero-pic">${pic}</span><span class="ssl-hero-body"><span class="ssl-hero-lab">${svg(IC.resume, 'ssl-hero-ic')}Doorgaan</span>` +
-      `<span class="ssl-hero-nm one">${esc(s.name)} · ${esc(part)}</span><span class="ssl-hero-meta one mut">${esc(S.formatPlaytime(s.summary.playSeconds))} · ${esc(ago)}</span>` +
-      (prog != null ? `<span class="ssl-hero-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</span></button>';
+      `<span class="ssl-hero-nm one">${esc(s.name)} · ${esc(part)}</span><span class="ssl-hero-meta one mut">${esc(S.formatPlaytime(s.summary.playSeconds))} · ${esc(ago)}${nog ? ` · ${esc(nog)}` : ''}</span>` +
+      (prog != null ? `<span class="ssl-hero-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}% verhaal</span></span>` : '') + '</span></button>';
   };
 
   let intro = true;

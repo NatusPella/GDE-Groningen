@@ -45,6 +45,20 @@ export function syncFirstPerson(world) {
   return true;
 }
 
+// #890: de camerastand is één voorkeur van de speler, niet van het voertuig. Bij het in- of
+// uitstappen begint de blik recht vooruit (je zit of staat ergens anders), maar de stand zelf
+// blijft: eerst stond de camera na het uitstappen weer achter het figuur, terwijl de speler in
+// de auto juist door zijn eigen ogen keek. Alleen een filmcamera of cutscene neemt de camera
+// tijdelijk over (cinematics.js zet hem daarna terug); de trein houdt zijn eigen cabinecamera
+// (ADR 0035). Geeft de stand terug die nu geldt.
+export function noteVehicleChange(world) {
+  const st = world && (world.firstPersoon || initFirstPerson(world));
+  if (!st) return false;
+  st.pitch = 0;
+  st.on = getSettings().firstPersoon === true;
+  return st.on;
+}
+
 // Aan of uit, en de keuze bewaren. Een nieuwe stand begint recht vooruit.
 export function setFirstPerson(world, aan) {
   if (!world) return false;

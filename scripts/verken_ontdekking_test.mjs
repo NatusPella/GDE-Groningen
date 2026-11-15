@@ -12,7 +12,7 @@ import {
   newExplorationProfile, normaliseExploration, mergeExploration, knownAreas,
   areaIsKnown, revealArea, usesPoint, hasAreaStamp, areaForPoint, areaName, pointArea, viewpointKey,
   areasFromVisits, areaProgress, awardAreaStamp, areaLabels, travelFactor, isHiddenOnMap,
-  isAreaId, EXPLORATION_VERSION, TRAVEL_BONUS,
+  isAreaId, EXPLORATION_VERSION, TRAVEL_BONUS, viewpointHover,
 } from '../game/js/verkenpunten.js';
 import { STREKEN } from '../game/js/regioleven.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
@@ -58,6 +58,22 @@ const punten = uitkijkpunten(kits, MENU_PLEKKEN, STREKEN);
   const map = { meta: {} };
   const gezet = installeerUitkijkpunten(map, kits, { plekken: MENU_PLEKKEN, streken: STREKEN });
   ok(map.meta.uitkijkpunten === gezet && gezet.every((p) => typeof p.id === 'string'), 'de kaartlaag krijgt de id mee');
+}
+
+// 2b. De hover bij een uitkijkpunt (#902): welk gebied je opent en waarom je erheen gaat.
+{
+  const punt = { id: 'uitkijkpunt:hogeland', streek: 'hogeland', streekNaam: 'Hogeland', naam: 'Menkemaborg', x: 1, y: 2 };
+  const onbekend = viewpointHover(punt, { known: false, used: false });
+  ok(onbekend.main === 'Menkemaborg', 'de hover noemt het punt zelf');
+  ok(onbekend.sub.includes('Hogeland') && /ontdek/i.test(onbekend.sub), 'de hover noemt de streek die je opent en hoe: ' + onbekend.sub);
+  const bekend = viewpointHover(punt, { known: true, used: false });
+  ok(bekend.sub.includes('Hogeland') && /stempel/i.test(bekend.sub) && /10%/.test(bekend.sub), 'bij een bekende streek zegt hij waarom je erheen gaat: ' + bekend.sub);
+  const gebruikt = viewpointHover(punt, { known: true, used: true });
+  ok(/gebruikt/i.test(gebruikt.sub) && gebruikt.sub.includes('Hogeland'), 'een gebruikt punt zegt dat het al telt: ' + gebruikt.sub);
+  const zonderNaam = viewpointHover({ streek: 'hogeland' }, {});
+  ok(zonderNaam.main === 'Uitkijkpunt' && zonderNaam.sub.includes('Hogeland'), 'zonder puntnaam blijft de uitleg staan');
+  ok(viewpointHover(null, {}).main === 'Uitkijkpunt', 'zonder punt geen crash');
+  ok(`${onbekend.main}${onbekend.sub}${bekend.sub}${gebruikt.sub}`.indexOf('undefined') < 0, 'geen undefined in de hovertekst');
 }
 
 // 3. Ontdekken: door er te komen (een plek) of door het uitkijkpunt te gebruiken.
@@ -212,7 +228,7 @@ const punten = uitkijkpunten(kits, MENU_PLEKKEN, STREKEN);
   ok(view.indexOf('activityMapIcons(world)') >= 0 && view.indexOf('activityMapIcons(world)') < view.indexOf('isAreaHidden(a.x, a.y)'), 'de activiteiten-iconen gaan door de verkenlaag');
   ok(view.includes('for (const area of explorationLabels())') && view.includes('drawAreaStamp(ctx'), 'de kaart tekent de namen en de stempel van bekende streken');
   ok(view.includes('if (provinceMapOn() && names.regions)') && view.includes('explorationLabels()'), 'de streeknamen staan bij de regiokaart, niet boven de dorpen');
-  ok(view.includes("const streek = isAreaKnown(u.streek)") && view.includes('isViewpointUsed(u)'), 'de hover van een uitkijkpunt noemt de streek pas als je hem kent');
+  ok(view.includes('viewpointHover(u, { known: isAreaKnown(u.streek), used: isViewpointUsed(u) })'), '#902: de hover van een uitkijkpunt noemt de streek en waarom je erheen gaat');
   ok(view.includes('onExplorationChange(() => { if (state) state.dirty = true; })'), 'de kaart tekent meteen opnieuw als er een streek bij komt');
   // de wereld blijft: de wegen, het water en de eigen positie worden niet door de verkenlaag geraakt
   for (const teken of ['drawCountryBase', 'drawProvinceBase', 'drawSea', 'drawDynamicMarkers', "icon(null, 'player'", 'hierHtml']) {

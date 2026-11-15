@@ -37,8 +37,13 @@ t('de kaart vraagt de taxi alleen aan bij een echte rit en de sneltoets is 5', (
 t('de taxi gebruikt de bestaande reisscène en aankomst', () => {
   const rit = lees('meerijden.js');
   assert.match(rit, /SHOT_NAMES\[optie.id\]/);
+  assert.match(rit, /taxi: \['instappen', 'rit', 'aankomst'\]/);
   const reis = lees('reisrit.js');
   assert.match(reis, /startMeerijden\(world, optie, dest\)/);
+  // #882: de taxi is in beeld, niet alleen een balk en een skipknop
+  assert.match(reis, /reisrit-taxi/);
+  assert.match(reis, /rr-cab/);
+  assert.match(reis, /cab\.style\.left/);
 });
 
 console.log(`taxi_en_waypoint_test: ${n}/${n} ok`);

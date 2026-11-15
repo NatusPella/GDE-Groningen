@@ -12,14 +12,14 @@ const css = lees('pausemenu.css');
 let n = 0;
 const t = (naam, f) => { f(); n++; };
 
-t('Instellingen heeft vijf echte instellingstabbladen; Cheats en Foutrapport zijn er geen tabblad meer', () => {
+t('Instellingen heeft zes echte instellingstabbladen; Cheats en Foutrapport zijn er geen tabblad meer', () => {
   const m = pm.match(/settings: \[(\['video'[\s\S]*?)\],\n/);
   assert.ok(m, 'de settings-tabs staan in pausemenu.js');
   const tabs = [...m[1].matchAll(/\['(\w+)',/g)].map((x) => x[1]);
-  assert.deepEqual(tabs, ['video', 'sound', 'besturing', 'display', 'a11y'], 'Beeld, Geluid, Besturing, Interface, Toegankelijkheid');
+  assert.deepEqual(tabs, ['video', 'sound', 'spel', 'besturing', 'display', 'a11y'], 'Beeld, Geluid, Spel, Besturing, Interface, Toegankelijkheid (#897: Spelen is hier een instelling geworden)');
   assert.ok(!pm.includes("tab('cheats'"), 'Cheats is geen tabblad van Instellingen meer');
   assert.ok(!pm.includes('data-sub="fouten"'), 'Foutrapport is geen tabblad van Instellingen meer');
-  assert.match(pm, /RAIL_GROUPS = \[[^\]]*\], \[[^\]]*\], \['settings', 'streken'\]\]/, 'Cheats staat als eigen onderdeel in de rail');
+  assert.match(pm, /RAIL_GROUPS = \[[\s\S]*?\['settings', 'streken'\]\]/, 'Cheats staat als eigen onderdeel in de rail');
   assert.match(pm, /rowName\('Over GDE'[\s\S]*?data-goto="over"/, 'Over heeft een ingang via Instellingen > Interface (#601)');
 });
 

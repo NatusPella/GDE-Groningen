@@ -1,7 +1,7 @@
 // Paginascript voor scripts/qa/menuplekken_shots.mjs --page=spelmenu.page.js --nomenu (#416): het pauzemenu met Spel naast Instellingen.
-// Opnames: shots-spel-<tab>.png (Spelen, Camera & richten, Hints & uitleg), shots-instellingen-<tab>.png (Muis & controller, Interface) en
-// shots-voorstart.png (het hoofdmenu > Instellingen: Spel staat in de rail). Controleert ook dat een regelaar onder Spel dezelfde instelling
-// verandert en bewaart (getSettings en gde-settings) en dat de rail op dit scherm niet onder de rand loopt.
+// Opnames: shots-spel-<tab>.png (Opslaan & stoppen, Camera & richten, Hints & uitleg), shots-instellingen-<tab>.png (Spel met de
+// moeilijkheid, Camera, Interface) en shots-voorstart.png (het hoofdmenu > Instellingen: Spel staat in de rail). Controleert ook dat een
+// regelaar onder Spel dezelfde instelling verandert en bewaart (getSettings en gde-settings) en dat de rail op dit scherm niet onder de rand loopt.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await sleep(500);
 const w = window.__debug.world;
@@ -18,7 +18,7 @@ const check = (naam, ok, info = '') => uit.controles.push({ naam, ok: !!ok, info
 const root = () => document.getElementById('pause-menu');
 const zichtbaar = (el) => !!el && el.getClientRects().length > 0 && !el.closest('[hidden]');
 
-for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
+for (const sub of ['acties', 'camera', 'hints']) {
   PM.openPauseMenu('spel', { sub });
   await sleep(1100);
   const rij = [...root().querySelectorAll(`[data-of="spel"][data-sub="${sub}"] .pm-row`)].filter(zichtbaar).map((r) => (r.querySelector('.nm') || r).textContent.trim().slice(0, 40));
@@ -43,6 +43,14 @@ for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
   root().querySelector('[data-action="restart"]').click();
   await sleep(400);
   check('Opnieuw beginnen vraagt eerst (Laatste spel laden, Nieuw spel, Annuleren)', !vraag.hidden && !!vraag.querySelector('[data-action="load"]') && !!vraag.querySelector('[data-action="new"]'));
+  {
+    // #911-QA: de vraag en haar drie keuzes moeten helemaal in het blad passen, niet half eronder
+    const paneel = root().querySelector('.pm-sheet').getBoundingClientRect();
+    const knoppen = [...vraag.querySelectorAll('button')].map((b) => b.getBoundingClientRect());
+    check('de vraag bij Opnieuw beginnen staat met al haar knoppen in het blad',
+      knoppen.length >= 3 && knoppen.every((r) => r.top >= paneel.top && r.bottom <= paneel.bottom + 0.5),
+      knoppen.map((r) => Math.round(r.top) + '-' + Math.round(r.bottom)).join(' ') + ' in ' + Math.round(paneel.top) + '-' + Math.round(paneel.bottom));
+  }
   console.log('[capture] spel-acties-vraag');
   await sleep(500);
   root().querySelector('[data-action="cancel"]').click();
@@ -64,7 +72,12 @@ for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
   const spelKnop = [...rail.querySelectorAll('.ra')].find((b) => b.dataset.goto === 'spel');
   check('de rail heeft een knop Spel', zichtbaar(spelKnop), spelKnop && spelKnop.textContent.trim());
   const volgorde = [...rail.querySelectorAll('.ra[data-goto]')].filter(zichtbaar).map((b) => b.dataset.goto);
-  check('de rail: Spel, Verhaal, Loopbanen, Activiteiten, Kaart, Spullen, Garage, Prestaties, Foto2019s, Instellingen', volgorde.join(',') === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,settings', volgorde.join(','));
+  check('de rail: Spel, Verhaal, Loopbanen, Veroverd, Activiteiten, Kaart, Spullen, Garage, Prestaties, Foto’s, Instellingen, Cheats', volgorde.join(',') === 'spel,verhaal,loopbaan,veroverd,todo,map,spullen,garage,prestaties,fotos,settings,streken', volgorde.join(','));
+  const koppen = [...rail.querySelectorAll('.pm-rail-h')].filter(zichtbaar).map((h) => h.textContent.trim().replace(/\s+/g, ' '));
+  check('de rail heeft drie groepen met een kop en een telling (#911)', koppen.length === 3 && /^Spelen ?5$/.test(koppen[0]) && /^Jij ?5$/.test(koppen[1]) && /^Systeem ?2$/.test(koppen[2]), koppen.join(' | '));
+  // #911-QA: op 1280x720 moeten alle twaalf onderdelen en de drie koppen in de rail passen
+  const onderaan = Math.max(...[...rail.querySelectorAll('.ra[data-goto]')].filter(zichtbaar).map((b) => b.getBoundingClientRect().bottom));
+  check('alle railrijen passen op dit venster (geen afgekapte onderkant)', onderaan <= innerHeight - 1, 'onderkant ' + Math.round(onderaan) + ' van ' + innerHeight);
 }
 // een regelaar onder Spel: dezelfde instelling, meteen bewaard
 {
@@ -93,12 +106,25 @@ for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
   await sleep(300);
   check('E gaat naar het volgende tabblad van Spel', sel() && sel().subtab && sel().subtab !== begin, `${begin} -> ${sel() && sel().subtab}`);
 }
-// Instellingen: de camera- en interfacetab zonder de verhuisde opties
-for (const sub of ['camera', 'display']) {
+// Instellingen: het Spel-tabblad met de verhuisde speelopties en de moeilijkheid (#891, #897),
+// en de camera- en interfacetab zonder die opties
+for (const sub of ['spel', 'camera', 'display']) {
   PM.openPauseMenu('settings', { sub });
   await sleep(1100);
   const keys = [...root().querySelectorAll(`[data-of="settings"][data-sub="${sub}"] [data-setting]`)].map((e) => e.dataset.setting);
-  check(`Instellingen > ${sub}: geen speelopties meer`, !['fov', 'cameraDistance', 'autoAim', 'showHints', 'ruzie', 'gore', 'shiftMode'].some((k) => keys.includes(k)), keys.join(','));
+  if (sub === 'spel') {
+    check('Instellingen > Spel heeft de moeilijkheid bovenaan', keys[0] === 'difficulty', keys.slice(0, 3).join(','));
+    check('Instellingen > Spel heeft de verhuisde speelopties', ['ruzie', 'gore', 'shiftMode', 'liveBussen'].every((k) => keys.includes(k)), keys.join(','));
+    check('de uitleg van de drie standen staat ernaast', !!root().querySelector('[data-diff-now] [data-diff="uitdagend"]'));
+    // #911-QA: de decoratieve rechterkolom valt op dit venster weg en de kaarten blijven binnen de lijst
+    const zij = root().querySelector(`[data-of="settings"][data-sub="${sub}"] .m-pane`);
+    check('de rechterkolom is verborgen op dit venster', !zij || getComputedStyle(zij).display === 'none', zij ? getComputedStyle(zij).display : 'geen');
+    const lijst = root().querySelector(`[data-of="settings"][data-sub="${sub}"] .pm-slist`).getBoundingClientRect();
+    const kaarten = [...root().querySelectorAll('[data-of="settings"][data-sub="spel"] .pm-diff-row')].map((c) => c.getBoundingClientRect());
+    check('de drie moeilijkheidkaarten staan naast elkaar binnen de lijst', kaarten.length === 3 && kaarten.every((r) => r.left >= lijst.left - 0.5 && r.right <= lijst.right + 0.5), kaarten.map((r) => Math.round(r.left) + '-' + Math.round(r.right)).join(' ') + ' in ' + Math.round(lijst.left) + '-' + Math.round(lijst.right));
+  } else {
+    check(`Instellingen > ${sub}: geen speelopties meer`, !['fov', 'cameraDistance', 'autoAim', 'showHints', 'ruzie', 'gore', 'shiftMode', 'difficulty'].some((k) => keys.includes(k)), keys.join(','));
+  }
   console.log('[capture] instellingen-' + sub);
   await sleep(500);
 }

@@ -283,11 +283,13 @@ function withUniforms(m, surf, own) {
   return m;
 }
 
-// Depth steps: above the far-LOD green (factor -0.2 / units -0.8, which
-// overlaps near chunks in the LOD ring), below the edge strips and the
-// sidewalk layer (-2 / -8). sub = half step for a polygon that overlaps an
-// earlier one of the same kind.
-const FILL_OFFSET = { factor: 0.36, units: 1.6, factorStep: 0.1, unitsStep: 0.6 };
+// Depth steps: above the far-LOD green (factor -0.02 / units -0.08), below the
+// road (the far LOD draws it at factor -0.7 / units -2.8) and below the edge
+// strips and the sidewalk layer (-2 / -8). sub = half step for a polygon that
+// overlaps an earlier one of the same kind. The steps stay small on purpose
+// (#883): a fill that reaches past the far road's offset drew grass over the
+// asphalt in the LOD ring.
+const FILL_OFFSET = { factor: 0.08, units: 0.3, factorStep: 0.02, unitsStep: 0.08 };
 const fillMats = new Map();
 function fillMaterial(kind, sub = 0) {
   const K = KINDS[kind] || KINDS.grass;
@@ -311,7 +313,7 @@ function fillMaterial(kind, sub = 0) {
 
 const edgeMat = withUniforms(new THREE.MeshStandardMaterial({
   color: 0xffffff, roughness: 0.95, transparent: true, depthWrite: false,
-  polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -7.7,
+  polygonOffset: true, polygonOffsetFactor: -0.35, polygonOffsetUnits: -1.3,
 }), EDGE_SURF, {});
 
 // ---------------------------------------------------------------- chunk geometry

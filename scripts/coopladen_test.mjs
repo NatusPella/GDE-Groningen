@@ -210,7 +210,7 @@ ok(() => {
   assert.deepEqual(seen, ['stop', 'go'], 'zonder bewaarstap (prestart) blijft de volgorde kloppen');
 }, 'stoppen: save mag ontbreken');
 ok(() => {
-  const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
+  const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'quit-now'"), pm.indexOf("a === 'pigeon-stop'"));
   assert.match(exitBranch, /runCoopStop\(world, \{/, 'pauzemenu: herstarten en afsluiten gebruiken de vaste volgorde');
   assert.match(exitBranch, /stop: \(w\) => \{ if \(isSoloHost\(w\)\) stopSoloHost\(w\); else stopCoopNet\(w\); \}/,
     'pauzemenu: een solo-sessie stopt via stopSoloHost, een echte sessie via stopCoopNet');
@@ -218,12 +218,12 @@ ok(() => {
   const saveCb = exitBranch.indexOf('save: () =>'), goCb = exitBranch.indexOf('go: () =>');
   assert.ok(stopAt >= 0 && stopCb > stopAt && saveCb > stopCb && goCb > saveCb, 'pauzemenu: stop, dan bewaren, dan herstarten of sluiten');
   assert.match(exitBranch, /save: \(\) => \(started\(\) && !prestart && world \? saveGame\(world\) : undefined\)/, 'pauzemenu: alleen een lopend spel bewaart (#435)');
-  assert.match(exitBranch, /go: \(\) => \{ if \(a === 'exit' && DESKTOP\) DESKTOP\.quit\(\); else location\.reload\(\); \}/, 'pauzemenu: de herstart of sluiting is de laatste stap');
+  assert.match(exitBranch, /go: \(\) => \{ if \(a === 'quit-now' && DESKTOP\) DESKTOP\.quit\(\); else location\.reload\(\); \}/, 'pauzemenu: de herstart of sluiting is de laatste stap');
   assert.doesNotMatch(exitBranch, /if \(started\(\) && !prestart && world\) saveGame\(world\);\s*if \(a === 'exit'/, 'pauzemenu: geen bewaren-en-herladen meer buiten de vaste volgorde');
 }, 'pauzemenu: de sessie stopt vóór het bewaren en herstarten');
 // #563: bij een mislukte save blijft het spel open met de melding en een keuze (opnieuw proberen of toch sluiten)
 ok(() => {
-  const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
+  const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'quit-now'"), pm.indexOf("a === 'pigeon-stop'"));
   assert.match(exitBranch, /if \(!res\.ok\) askClose\(a\);/);
   assert.match(pm, /function askClose\(a\) \{[\s\S]{0,1200}if \(!box\) return;/, 'de vraag wordt opgebouwd');
   assert.match(pm, /data-action="exit-retry">Opnieuw proberen<\/button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten/, 'de keuze staat in de melding');
@@ -233,7 +233,7 @@ ok(() => {
   assert.match(pm, /a === 'exit-retry'\) \{ const want = closeAction; closeAction = null; if \(want\) runAction\(want\); return; \}/, 'opnieuw proberen doet dezelfde stap nog eens');
   assert.match(pm, /Opslaan mislukt\. Je voortgang sinds je laatste savegame is niet bewaard\./, 'de melding is Nederlands en eerlijk');
   assert.match(pm, /const exitBox = root\.querySelector\('\[data-exit-confirm\]'\);[\s\S]{0,120}exitBox\.hidden = true;/, 'Escape ruimt de vraag op');
-  assert.match(pm, /root\.querySelector\('\[data-exit-confirm\]'\)\.hidden = true;\s*closeAction = null;/, 'het menu opent weer schoon');
+  assert.match(pm, /root\.querySelector\('\[data-exit-confirm\]'\)\.hidden = true;\s*(const quitBox[\s\S]{0,120})?closeAction = null;/, 'het menu opent weer schoon');
 }, 'pauzemenu: een mislukte save bij Afsluiten of Herstarten blijft open met een keuze (#563)');
 
 console.log(`coopladen_test: ${n - fails}/${n}`);

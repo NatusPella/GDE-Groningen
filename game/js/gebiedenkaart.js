@@ -8,6 +8,7 @@
 import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { landBorders } from './regions.js';
+import { gebiedIn } from './grenzen.js';
 
 let laag = null;   // { t, lijst, typisch }
 
@@ -72,6 +73,33 @@ export const laagNaam = (id) => (G.niveauInfo(id) || { naam: '' }).naam;
 
 // De dikte van een grenslijn in schermpixels: dunner ver uit, dikker dichtbij (de lijn schaalt mee met de zoom).
 export const lijnDikte = (scale) => Math.max(1.1, Math.min(3.4, 1 + Math.log2(1 + scale * 40) * 0.45));
+
+// #900: één niveau waarop een gebied op de kaart opengaat (hover en klik), los van de zoomlaag
+// die je ziet. De wijk is de verover-eenheid (docs/GEBIEDEN.md, #716), dus je opent altijd
+// dezelfde wijk, ook als de kaart ver uit gemeenten of dichtbij buurten toont.
+export const OPEN_NIVEAU = 'wijk';
+
+// Het gebied onder een plek op het open niveau (#900), of null. `lijst` is kaartLaag().lijst.
+export function openGebied(lijst, x, y) {
+  if (!Array.isArray(lijst) || !lijst.length || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  const kandidaten = lijst.filter((q) => q && q.niveau && q.niveau.id === OPEN_NIVEAU && q.gebied && q.gebied.grens);
+  if (!kandidaten.length) return null;
+  const g = gebiedIn(kandidaten.map((q) => q.gebied.grens), x, y);
+  return g ? kandidaten.find((q) => q.gebied.grens === g) || null : null;
+}
+
+// #900: de stand van alle gebieden waar je al iets deed, voor de strook op de kaart. Die
+// staat er op elk zoomniveau (dus ook als de kaart een andere laag tekent), met dezelfde
+// woorden als de kaartlaag: "naam · 2 van 5 · 40%" of "naam · veroverd".
+export function statusRegels(lijst, max = 3) {
+  if (!Array.isArray(lijst) || !lijst.length) return [];
+  const gestart = lijst.filter((r) => r && r.gebied && (r.voltooid || r.klaar > 0));
+  gestart.sort((a, b) => (b.voltooid - a.voltooid) || (b.deel - a.deel) || (b.totaal - a.totaal) || a.gebied.naam.localeCompare(b.gebied.naam, 'nl'));
+  return gestart.slice(0, Math.max(0, max)).map((r) => ({
+    tekst: `${r.gebied.naam} · ${r.voltooid ? 'veroverd' : `${r.klaar} van ${r.totaal} · ${r.pct}%`}`,
+    kleur: r.voltooid ? r.vlag : '#f2ead8',
+  }));
+}
 
 // Het uiterlijk van een gebied: { vul, alpha, lijn, lijnAlpha, breed, streep } (breed: veelvoud van lijnDikte; streep: gestippeld).
 export function stijl(r, kleurTekst = '#f2ead8') {

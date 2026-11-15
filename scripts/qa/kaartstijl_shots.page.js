@@ -17,6 +17,9 @@ const cine = await imp('cinematics');
 const PM = await imp('pausemenu');
 const MV = await imp('mapview');
 const DN = await imp('daynight');
+const SET = await imp('settings');
+const GL = await imp('gebiedenlive');
+const BG = await imp('beppe_garden');
 const errors = [];
 window.addEventListener('error', (e) => { errors.push(String(e.message)); console.error('[ks-error] ' + e.message); });
 window.addEventListener('unhandledrejection', (e) => { errors.push(String(e.reason)); console.error('[ks-error] ' + e.reason); });
@@ -43,11 +46,18 @@ const teleport = (x, y) => {
 };
 
 const results = { css: [innerWidth, innerHeight], shots: [] };
+const diagnostiek = (S, q) => {
+  let beppe = null, kaart = null;
+  try { beppe = BG.beppeMapSpot(); } catch (e) { beppe = { fout: String(e && e.message) }; }
+  try { const o = GL.getOverzicht(); kaart = o ? { ...o.kaart } : null; } catch (e) { kaart = { fout: String(e && e.message) }; }
+  return { plek: S.naam, plaats: q && { x: Math.round(q.x), y: Math.round(q.y) }, beppe: beppe && { x: beppe.x, y: beppe.y, kind: beppe.kind, naam: beppe.name }, kaart, bezocht: (kaart && kaart.done) || 0 };
+};
 for (const S of CFG.spots) {
   const q = place(S.plaats, S.kind);
   if (!q) { results.shots.push({ naam: S.naam, fout: 'plaats niet gevonden' }); continue; }
   teleport(q.x, q.y);
   hold = { x: q.x, y: q.y };
+  results[S.naam] = diagnostiek(S, q);
   for (const [dagdeel, uur] of Object.entries(CFG.uren)) {
     hour = uur;
     await sleep(CFG.settle);
@@ -67,6 +77,19 @@ for (const S of CFG.spots) {
       console.log('[capture] ' + name); results.shots.push(name);
       await sleep(700);
     }
+    // diagnostiek: dezelfde kaart zonder de ontdekkingswaas, om de maskerlagen te scheiden
+    if (dagdeel === 'dag' && CFG.zooms.includes(6)) {
+      SET.setSetting('showFog', false);
+      MV.setMapView(q.x, q.y, 6);
+      await sleep(900);
+      name = `ks-${S.naam}-${dagdeel}-kaart-z6-zondermasker`;
+      console.log('[capture] ' + name); results.shots.push(name);
+      await sleep(500);
+      SET.setSetting('showFog', true);
+      MV.setMapView(q.x, q.y, 6);
+      await sleep(900);
+    }
+    results[S.naam].na = diagnostiek(S, q);
     PM.closePauseMenu();
     await sleep(600);
   }

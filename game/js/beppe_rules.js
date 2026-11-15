@@ -45,7 +45,7 @@ export const LAYOUT = {
   benchIn: 24,           // the last bench: this far inside (Groningen side)
   benchSide: 5.2,        // ... and at least this far from the road centre line
   signIn: 18,            // the Kollum sign: a little nearer the border
-  signSide: 7.8,
+  signSide: 6.2,         // just off the asphalt: a sign on a bridge verge must stay on the verge
   arrivalR: 38,          // the arrival card when the player comes this close
   houseOut: 22,          // Beppe's house: this far past the border
   houseSide: 15,         // ... and at least this far off the road
@@ -57,11 +57,13 @@ export const LAYOUT = {
 
 // The side offsets for a road of half width hw: a little clear of the asphalt,
 // and far enough from the centre line that the whole front garden fits beside
-// the road (the garden reaches about 12 m out from the house towards it).
+// the road (the garden reaches about 12 m out from the house towards it). The
+// sign stands just off the asphalt (#916): on a bridge or a narrow verge a
+// sign at the old 7.8 m fell into the water, and the whole place moved with it.
 export function sideOffsets(hw = 0) {
   return {
     bench: Math.max(LAYOUT.benchSide, hw + 2.0),
-    sign: Math.max(LAYOUT.signSide, hw + 4.2),
+    sign: Math.max(LAYOUT.signSide, hw + 1.2),
     house: Math.max(LAYOUT.houseSide, hw + 14),
     gardenBench: Math.max(LAYOUT.gardenBenchSide, hw + 5.5),
   };
@@ -187,17 +189,20 @@ export function crossingAhead(at, dir, { regionOf, max = 5000, step = 4 } = {}) 
 
 // The spots of the place, laid out from the border crossing and the outward
 // direction. side: +1/-1 picks the verge; leave it 0 to let `dry` decide (a
-// verge is dry when dry(x, y) says so; the other side is tried first). a is the
-// facing angle in map coordinates for a group whose local +x points that way
-// (the same convention as geheimen.js/worldends.js).
-export function layoutTribute({ border, ux, uy, hw = 3, side = 0, dry = null } = {}) {
+// verge is dry when dry(x, y) says so; the other side is tried first). `shift`
+// moves the whole place along the road, away from a bridge, a quay or a row of
+// houses; the border itself stays the border. a is the facing angle in map
+// coordinates for a group whose local +x points that way (the same convention
+// as geheimen.js/worldends.js).
+export function layoutTribute({ border, ux, uy, hw = 3, side = 0, dry = null, shift = 0 } = {}) {
   const out = unit(ux, uy);
   if (!border || !Number.isFinite(border.x) || !Number.isFinite(border.y) || !out) return null;
   const off = sideOffsets(hw);
   const nx = -out.y, ny = out.x;
+  const along0 = Number.isFinite(shift) ? shift : 0;
   const at = (along, lat, s) => ({
-    x: border.x + out.x * along + nx * lat * s,
-    y: border.y + out.y * along + ny * lat * s,
+    x: border.x + out.x * (along0 + along) + nx * lat * s,
+    y: border.y + out.y * (along0 + along) + ny * lat * s,
   });
   const needed = (s) => [
     at(-LAYOUT.benchIn, off.bench, s),
@@ -217,12 +222,41 @@ export function layoutTribute({ border, ux, uy, hw = 3, side = 0, dry = null } =
   const house = at(LAYOUT.houseOut, off.house, used);
   const gardenBench = at(LAYOUT.gardenBenchOut, off.gardenBench, used);
   return {
-    border: { x: border.x, y: border.y }, out, side: used, hw, wet,
+    border: { x: border.x, y: border.y }, out, side: used, hw, wet, shift: along0,
     bench: { ...bench, a: facing },
     sign: { ...sign, a: facing },
     house: { ...house, a: front },
     gardenBench: { ...gardenBench, a: front },
   };
+}
+
+// Where the place really goes (#916): the verge at the border is often a
+// bridge, a quay or built up, so try a little along the road on both sides
+// before giving up. `free(x, y)` says whether a spot is clear (no water, no
+// building, no carriageway) and `regionOf(x, y)` which province it is in:
+// bench and sign stay in Groningen, house and garden in Friesland. The first
+// fit wins; a shifted place keeps its own border, so the cards still speak of
+// "net over de grens". Returns null only without a border or direction.
+export const SITE_SHIFTS = [0, 24, -24, 48, -48, 72, -72, 96, -96, 120, -120];
+export function chooseTributeSite({ border, ux, uy, hw = 3, dry = null, free = null, regionOf = null, shifts = SITE_SHIFTS } = {}) {
+  if (!border || !unit(ux, uy)) return null;
+  let fallback = null;
+  for (const shift of shifts) {
+    for (const side of [0, 1, -1]) {
+      const site = layoutTribute({ border, ux, uy, hw, side, dry, shift });
+      if (!site) continue;
+      if (!fallback) fallback = site;
+      const spots = [site.bench, site.sign, site.house, site.gardenBench];
+      if (free && !spots.every((p) => free(p.x, p.y))) continue;
+      if (regionOf && !(regionOf(site.bench.x, site.bench.y) === 'groningen'
+        && regionOf(site.sign.x, site.sign.y) === 'groningen'
+        && regionOf(site.house.x, site.house.y) === 'friesland'
+        && regionOf(site.gardenBench.x, site.gardenBench.y) === 'friesland')) continue;
+      return site;
+    }
+  }
+  if (fallback) fallback.clear = false;
+  return fallback;
 }
 
 // A point in the house's own frame (+x towards the road, +z to the side), in

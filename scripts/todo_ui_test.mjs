@@ -74,5 +74,17 @@ t('#821: één blok "Je voortgang" met de drie lussen uit de bestaande systemen'
   assert.ok(!/data-bar=/.test(blok), 'geen vierde progressiebalk');
 });
 
+t('#907: Activiteiten begint met een kop en houdt de tellingen bij elkaar', () => {
+  const td = lees('todoui.js');
+  assert.match(td, /function activiteitenHero\(/, 'de kop is een eigen functie');
+  assert.match(td, /td-acthero/, 'de kop heeft een eigen opmaak');
+  assert.match(td, /td-passport/, 'het Ommeland-paspoort is een eigen blok');
+  assert.match(td, /td-begin-nr/, 'Begin hier is genummerd');
+  assert.match(td, /pm-badge/, 'de stand van een detail staat als woord naast de titel');
+  const css = lees('pausemenu.css');
+  assert.match(css, /#pause-menu \.td-acthero/);
+  assert.match(css, /#pause-menu \.td-passport-row/);
+});
+
 if (process.exitCode) console.log(`todo_ui_test: ${n} tests, mislukt`);
 else console.log(`todo_ui_test: ${n}/${n} ok`);

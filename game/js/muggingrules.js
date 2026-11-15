@@ -49,14 +49,17 @@ export const MUG = {
 export const nightFactor = (hour) => nightAtHour(hour);
 
 
-// 0..1 for a wijk name at an hour.
-export function riskLevel(wijk, hour) {
+// 0..1 for a wijk name at an hour. A conquered wijk is no longer dangerous
+// (#888): taking the neighbourhood over with work and service is the whole
+// point, so the pickpockets move on. The caller says whether it is conquered;
+// this stays pure.
+export function riskLevel(wijk, hour, conquered = false) {
   const r = RISKY[wijk];
-  if (!r) return 0;
+  if (!r || conquered) return 0;
   return (r.tier / 2) * nightFactor(hour);
 }
 
-export const warnsOn = (wijk, hour) => riskLevel(wijk, hour) >= MUG.warnFrom;
+export const warnsOn = (wijk, hour, conquered = false) => riskLevel(wijk, hour, conquered) >= MUG.warnFrom;
 export const riskWhy = (wijk) => (RISKY[wijk] ? RISKY[wijk].why : '');
 
 // The chance per second, only on foot in a risky wijk at night.

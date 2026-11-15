@@ -68,7 +68,7 @@ export function getUserWaypoint() {
 }
 
 function stepLabel(step) {
-  return step.kind === 'mission' ? `${step.id} · ${step.title}` : step.title;
+  return step.title;
 }
 
 // The story step that waits while a goal is set: { code, label } or null.

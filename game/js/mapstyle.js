@@ -53,6 +53,8 @@ export const INK = {
   railBed: '#1b1d22',
   // the mission layer's route line and mission areas, the Ommeland's world-end disc
   routeLine: '#3fd0ff', missionArea: '#ffd84a', worldEnd: '#1f2a3a',
+  // de onbezochte gebieden op de kaart (#899): een grijsgroen dat het land uitgrauwt
+  discovery: '#5b625c',
 };
 const inkRgb = {};
 // the ink as 'rgba(r, g, b, alpha)'; alpha is a number or a ready string

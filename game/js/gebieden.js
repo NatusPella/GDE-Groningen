@@ -89,6 +89,15 @@ export function gebiedenVan(ind, x, y) {
   return uit;
 }
 
+// Is the area of this layer at (x, y) conquered by this player? The map, the
+// muggings and the neighbourhood cards ask it: a conquered wijk is no longer
+// dangerous (#888). False without an index or a profile.
+export function veroverdOp(p, ind, x, y, niveau = 'wijk') {
+  if (!p || !ind || !ind.grenzen) return false;
+  const id = gebiedenVan(ind, x, y)[niveau];
+  return !!id && voortgang(p, ind, id).voltooid;
+}
+
 // De dichtstbijzijnde woonplaats van een gebied, binnen dezelfde gemeente (#710): de kale wijken van het CBS ("Wijk 14") zijn
 // anders een interne naam in de titel, de HUD en het safehouse. Geeft de naam of null.
 function dichtstbijzijndePlaats(g, plaatsen, gemeenteNaam) {

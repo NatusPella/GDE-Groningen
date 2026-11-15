@@ -11,8 +11,10 @@ import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUn
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
-import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, kiesLaag } from './gebiedenkaart.js';
-import { gebiedIn } from './grenzen.js';
+import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, statusRegels } from './gebiedenkaart.js';
+import { gebiedenVan } from './gebieden.js';
+import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
+import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -43,8 +45,10 @@ import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
 import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter } from './mapstyle.js';
-import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, regionBorderColor } from './regions.js';
-import { borderPlaceLabels } from './borderplaces.js';
+import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
+import { borderPlaceLabels, borderPlaceAt } from './borderplaces.js';
+import { viewpointHover } from './verkenpunten.js';
+import { frameScale, clampView } from './kaartkader.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
@@ -71,6 +75,8 @@ import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
+import { getProfiel, getIndeling } from './gebiedenlive.js';
+import { veroverdOp } from './gebieden.js';
 import { loopbaanTeken } from './loopbaanlive.js'; // #674: de hoogste titel naast je eigen plek op de kaart
 
 const PADDING = 0.94;
@@ -93,14 +99,14 @@ const MID_ZOOM = ZOOM.mid;
 const NEAR_ZOOM = ZOOM.near;
 const DRAG_PX = 4;
 const HOVER_PX = 12;
-const FOG_CELL = 50;
-const FOG_REVEAL = 2;
+// #887: de hover pakt een buurplaats of een weg binnen deze schermpunten op
+const HOVER_SPOT_PX = 10;
+// #899: het masker van de kaartontdekking (kaartontdekking.js) en de fade van een net
+// bezochte buurt
+const DISCOVERY_MARGIN = 4000; // m om de provincie heen, zodat de rand van het masker zacht valt
 // #661: alleen het geraakte venster uploaden en de mist minder vaak bewaren
-import { revealRect, fogSaveDue, FOG_SAVE_MS } from './mapfog.js';
 import { mapRenderDue } from './mapcache.js';
 import { isAreaHidden, isAreaKnown, isViewpointUsed, explorationLabels, onExplorationChange } from './explorationlive.js';
-const FOG_KEY = KEYS.fog;
-const FOG_FEATHER = 16; // cells
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
 // (read live: the palette turns to its night colours, see mapstyle.js)
@@ -206,6 +212,9 @@ function injectStyles() {
     .mapview-canvas {
       flex: 1; min-width: 0; height: 100%; display: block;
       pointer-events: auto; cursor: crosshair; touch-action: none;
+      /* de rand van de kaart loopt zacht weg in plaats van als een harde vierkante
+         rand; buiten het kader tekent de kaart hetzelfde donkere buurland. */
+      box-shadow: inset 0 0 44px ink(black 0.5);
     }
     .mapview-canvas.dragging { cursor: grabbing; }
     .mapview-canvas.pointing { cursor: pointer; }
@@ -244,11 +253,13 @@ function injectStyles() {
     .mapview-tooltip .sub { color: ink(greenLight); margin-left: 6px; }
     .mapview-legend {
       flex: 0 0 auto; width: 280px; margin: 12px 12px 12px 0; padding: 12px;
-      align-self: flex-start; max-height: calc(100% - 24px); overflow-y: auto; box-sizing: border-box;
+      align-self: flex-start; max-height: calc(100% - 24px); overflow: hidden; box-sizing: border-box;
       display: flex; flex-direction: column; gap: 8px;
       background: ink(dark 0.8);
       border: 1px solid ink(greenLight 0.35); border-radius: 4px; pointer-events: auto;
     }
+    /* de titel en de uitleg blijven staan; alleen de laagjes scrollen */
+    .mapview-legend .mv-legend-body { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .mapview-legend h3 { margin: 0 2px; font-size: 24px; font-weight: normal; letter-spacing: 1px; color: ink(greenLight); }
     .mapview-legend .hint { margin: 0 2px; font: 13px 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); color: ink(cream 0.6); }
     .mapview-legend .mv-grp { border-radius: 10px; background: ink(white 0.035); border: 1px solid ink(white 0.08); }
@@ -320,94 +331,177 @@ function setLayer(key, on) {
   state.dirty = true;
 }
 
-// --- fog of war -------------------------------------------------------------
+// --- kaartontdekking (#899) -------------------------------------------------
+// De mist van #661 dekte alleen de stad en was een donkere laag die met de speler
+// meereed; de rest van de provincie was meteen zichtbaar. Nu grijst de kaart de
+// buurten uit die deze speler nog niet bezocht heeft (de `bezocht`-lijst van
+// gebieden.js, dezelfde die de prestatie "de kaart verkend" telt). Eén masker over
+// de provincie, met een zachte rand; een net bezochte buurt gloeit zacht uit. De
+// pure regels staan in kaartontdekking.js.
 
-function initFog(world) {
-  const [minx, miny, maxx, maxy] = world.map.meta.bounds;
-  const w = Math.ceil((maxx - minx) / FOG_CELL), h = Math.ceil((maxy - miny) / FOG_CELL);
-  const bits = new Uint8Array(Math.ceil((w * h) / 8));
-  try {
-    const raw = localStorage.getItem(FOG_KEY);
-    const m = raw && /^(\d+)x(\d+):(.*)$/.exec(raw);
-    if (m && +m[1] === w && +m[2] === h) {
-      const bin = atob(m[3]);
-      for (let i = 0; i < Math.min(bin.length, bits.length); i++) bits[i] = bin.charCodeAt(i);
+let discovery = null; // { ind, seen, byId, unseen, canvas, edge, ctx, w, h, minx, miny, res, reveal }
+const discoveryHiddenCache = new Map();
+
+function discoveryBounds(world) {
+  const o = getOverzicht();
+  const g = o && o.ind && o.ind.grenzen && o.ind.grenzen.provincie;
+  const b = g && g.b ? g.b : world.map.meta.bounds;
+  return [b[0] - DISCOVERY_MARGIN, b[1] - DISCOVERY_MARGIN, b[2] + DISCOVERY_MARGIN, b[3] + DISCOVERY_MARGIN];
+}
+
+function traceArea(ctx, grens) {
+  if (!grens || !Array.isArray(grens.p)) return;
+  ctx.beginPath();
+  for (const poly of grens.p) for (const ring of poly) {
+    for (let i = 0; i < ring.length; i++) {
+      if (i) ctx.lineTo(ring[i][0], ring[i][1]); else ctx.moveTo(ring[i][0], ring[i][1]);
     }
-  } catch (e) { /* ignore */ }
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const fctx = canvas.getContext('2d');
-  const img = fctx.createImageData(w, h);
-  for (let i = 0; i < w * h; i++) {
-    img.data[i * 4] = 12;
-    img.data[i * 4 + 1] = 20;
-    img.data[i * 4 + 2] = 14;
-    // the unexplored tint fades out smoothly over the outer ~800 m of the
-    // map, so zoomed out it never reads as a dark square against the Ommelanden
-    const cx = i % w, cy = (i - cx) / w;
-    const edge = Math.min(1, (Math.min(cx, cy, w - 1 - cx, h - 1 - cy) + 0.5) / FOG_FEATHER);
-    img.data[i * 4 + 3] = bits[i >> 3] & (1 << (i & 7)) ? 0 : Math.round(130 * edge * edge * (3 - 2 * edge));
+    ctx.closePath();
   }
-  fctx.putImageData(img, 0, 0);
-  state.fog = { w, h, minx, miny, bits, canvas, fctx, img, cell: -1, saveAt: 0, dirtySave: false };
-  window.addEventListener('beforeunload', saveFog);
 }
 
-function saveFog() {
-  const f = state && state.fog;
-  if (!f || !f.dirtySave) return;
-  f.dirtySave = false;
-  try {
-    let bin = '';
-    for (let i = 0; i < f.bits.length; i++) bin += String.fromCharCode(f.bits[i]);
-    localStorage.setItem(FOG_KEY, `${f.w}x${f.h}:${btoa(bin)}`);
-  } catch (e) { /* ignore */ }
-  // de prestaties 'de kaart verkend' (#435) tellen de bezochte buurten (gebieden.js), niet de mist: die dekt ook zee
-  // en plekken waar je nooit komt, dus 100% was daar niet te halen
-}
-
-function updateFog(world) {
-  const f = state.fog;
-  const ik = hoofdspeler(world);
-  const cx = Math.floor((ik.x - f.minx) / FOG_CELL), cy = Math.floor((ik.y - f.miny) / FOG_CELL);
-  const key = cy * f.w + cx;
-  if (key !== f.cell) {
-    f.cell = key;
-    let changed = false;
-    for (let dy = -FOG_REVEAL; dy <= FOG_REVEAL; dy++) {
-      for (let dx = -FOG_REVEAL; dx <= FOG_REVEAL; dx++) {
-        if (dx * dx + dy * dy > FOG_REVEAL * FOG_REVEAL + 0.5) continue;
-        const x = cx + dx, y = cy + dy;
-        if (x < 0 || y < 0 || x >= f.w || y >= f.h) continue;
-        const i = y * f.w + x;
-        if (f.bits[i >> 3] & (1 << (i & 7))) continue;
-        f.bits[i >> 3] |= 1 << (i & 7);
-        f.img.data[i * 4 + 3] = 0;
-        changed = true;
+// Alle onbezochte buurten in één pad en één vulling (#899 QA): losse vullingen gaven
+// langs elke buurtgrens een lichte antialias-naad, die op de kaart als een grijs
+// raster/checkerpatroon te zien was.
+function traceAreas(ctx, areas) {
+  ctx.beginPath();
+  for (const g of areas) {
+    const grens = g && g.grens;
+    if (!grens || !Array.isArray(grens.p)) continue;
+    for (const poly of grens.p) for (const ring of poly) {
+      for (let i = 0; i < ring.length; i++) {
+        if (i) ctx.lineTo(ring[i][0], ring[i][1]); else ctx.moveTo(ring[i][0], ring[i][1]);
       }
-    }
-    if (changed) {
-      // #661: alleen de geraakte cellen (het venster) uploaden, niet de hele kaart
-      const r = revealRect(cx, cy, FOG_REVEAL, f.w, f.h);
-      if (r) f.fctx.putImageData(f.img, 0, 0, r.x0, r.y0, r.w, r.h);
-      f.dirtySave = true;
-      state.dirty = true;
+      ctx.closePath();
     }
   }
+}
+
+function buildDiscoveryMask() {
+  const d = discovery;
+  if (!d) return;
+  const c = d.ctx;
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.clearRect(0, 0, d.w, d.h);
+  const s = 1 / d.res;
+  c.setTransform(s, 0, 0, s, -d.minx * s, -d.miny * s);
+  c.fillStyle = INK.discovery;
+  traceAreas(c, d.unseen);
+  c.fill('evenodd');
+  // een zachte rand: het masker één keer blurren, zodat de overgang naar een
+  // bezochte buurt niet als een harde trap van cellen leest
+  const e = d.edge.getContext('2d');
+  e.setTransform(1, 0, 0, 1, 0, 0);
+  e.clearRect(0, 0, d.w, d.h);
+  try { e.filter = 'blur(3px)'; } catch (err) { /* zonder filter blijft de rand scherper */ }
+  e.drawImage(d.canvas, 0, 0);
+  try { e.filter = 'none'; } catch (err) { /* niets */ }
+}
+
+// Wat deze speler sinds het vorige beeld ontdekte: de nieuwe buurten gloeien uit.
+function refreshDiscovery(animate = true) {
+  const o = getOverzicht();
+  if (!discovery || !o) return;
+  const profiel = o.profiel;
+  const seen = new Set(profiel.bezocht || []);
+  const byId = new Map(o.ind.gebieden.filter((g) => g && g.niveau === 'buurt').map((g) => [g.id, g]));
   const now = performance.now();
-  if (f.dirtySave && fogSaveDue(now, f.saveAt)) {
-    f.saveAt = now + FOG_SAVE_MS; // #661: was elke 3 s een volledige serialisatie
-    saveFog();
+  if (animate) for (const id of seen) if (!discovery.seen.has(id) && byId.has(id)) discovery.reveal.push({ id, at: now });
+  discovery.ind = o.ind;
+  discovery.seen = seen;
+  discovery.byId = byId;
+  discovery.unseen = unseenDistricts(o.ind, profiel);
+  discoveryHiddenCache.clear();
+  buildDiscoveryMask();
+  if (animate && discovery.reveal.length) state.revealUntil = now + 1600;
+}
+
+function initDiscovery(world) {
+  if (discovery || !world) return;
+  const o = getOverzicht();
+  if (!o || !o.ind || !o.ind.grenzen) return;
+  const b = discoveryBounds(world);
+  const m = maskSize(b, DISCOVERY_RES_M);
+  if (!m) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = m.w; canvas.height = m.h;
+  const edge = document.createElement('canvas');
+  edge.width = m.w; edge.height = m.h;
+  discovery = {
+    ind: o.ind, seen: new Set(o.profiel.bezocht || []), byId: new Map(), unseen: [],
+    canvas, edge, ctx: canvas.getContext('2d'), w: m.w, h: m.h, minx: b[0], miny: b[1], res: DISCOVERY_RES_M, reveal: [],
+  };
+  refreshDiscovery(false);
+  onGebiedenChange(() => {
+    if (!state) return;
+    // de kaart is dicht: het masker wordt bij het openen opnieuw opgebouwd, niet elke
+    // seconde terwijl je rijdt (#899)
+    if (!state.open) return;
+    refreshDiscovery(true);
+    state.dirty = true;
+  });
+}
+
+// Ligt deze plek in een buurt die de speler nog niet bezocht? Dan houdt de kaart
+// de plaatsnaam weg (het masker grijst het gebied al uit). Een buurt die nu nog
+// uitgloeit telt ook als verborgen, zodat de naam pas komt als de fade klaar is.
+function discoveryHidden(x, y) {
+  if (!discovery || !getSettings().showFog || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+  const key = Math.round(x) + ',' + Math.round(y);
+  const hit = discoveryHiddenCache.get(key);
+  if (hit !== undefined) return hit;
+  let hidden = false;
+  try {
+    const van = gebiedenVan(discovery.ind, x, y);
+    hidden = !!van.buurt && !discovery.seen.has(van.buurt);
+    if (!hidden && van.buurt && discovery.reveal.length) {
+      const now = performance.now();
+      for (const r of discovery.reveal) if (r.id === van.buurt && revealAlpha(now, r.at) > 0.02) { hidden = true; return true; }
+    }
+  } catch (e) { hidden = false; }
+  discoveryHiddenCache.set(key, hidden);
+  return hidden;
+}
+
+// De onthulling over de kaarttegel (#899): één zachte, doorlopende grijze waas over de
+// onbezochte buurten, met een fade als je een buurt voor het eerst binnenkomt. Geen
+// blend-modi of losse vullingen: die gaven op de kaart een raster van celranden.
+const DISCOVERY_ALPHA = 0.3;
+function drawDiscovery(c, now) {
+  const d = discovery;
+  if (!d || !getSettings().showFog) return;
+  const [sx, sy] = toScreen(d.minx, d.miny);
+  const size = d.res * state.scale * state.dpr;
+  const x = sx * state.dpr, y = sy * state.dpr, w = d.w * size, h = d.h * size;
+  c.save();
+  c.globalCompositeOperation = 'source-over';
+  c.imageSmoothingEnabled = true;
+  try { c.imageSmoothingQuality = 'high'; } catch (e) { /* niet elke ctx kent dit */ }
+  c.globalAlpha = DISCOVERY_ALPHA;
+  c.drawImage(d.edge, x, y, w, h);
+  const levend = [];
+  for (const r of d.reveal) {
+    const a = revealAlpha(now, r.at);
+    if (a > 0.01) levend.push(r);
+    const g = d.byId.get(r.id);
+    if (!g || !g.grens || a <= 0.01) continue;
+    // het gebied krijgt zijn helderheid terug naarmate de fade vordert
+    c.globalAlpha = a * DISCOVERY_ALPHA;
+    c.fillStyle = INK.discovery;
+    c.setTransform(state.dpr * state.scale, 0, 0, state.dpr * state.scale, state.ox * state.dpr, state.oy * state.dpr);
+    traceArea(c, g.grens);
+    c.fill('evenodd');
+    c.setTransform(1, 0, 0, 1, 0, 0);
   }
+  d.reveal = levend;
+  c.restore();
 }
 
 export function getDiscoveredRatio() {
-  const f = state && state.fog;
-  if (!f) return 0;
-  let n = 0;
-  for (let i = 0; i < f.w * f.h; i++) if (f.bits[i >> 3] & (1 << (i & 7))) n++;
-  return n / (f.w * f.h);
+  const o = getOverzicht();
+  if (o && o.kaart && o.kaart.totaal) return o.kaart.pct / 100;
+  const d = discovery;
+  return d ? discoveryRatio(d.ind, { bezocht: [...d.seen] }).pct / 100 : 0;
 }
 
 // --- view transform ---------------------------------------------------------
@@ -436,21 +530,27 @@ function sizeCanvas() {
   updateTransform();
 }
 
-// as far out as the whole province fits (else the villages round town)
+// as far out as the whole province fits (else the villages round town). #901: het kader
+// past precies in het scherm, zodat er bij het verste zoomniveau geen rand meer overblijft.
 function minZoom() {
-  if (provinceMapOn() && state.baseScale) {
+  if (provinceMapOn() && state.baseScale) return frameScale(state.bounds, state.cw, state.ch) / state.baseScale;
+  // zonder de provinciekaart: net ver genoeg inzoomen dat het stadskaartje het scherm vult
+  if (state.baseScale) {
     const [x0, y0, x1, y1] = state.bounds;
-    return Math.min(state.cw / (x1 - x0), state.ch / (y1 - y0)) * 0.98 / state.baseScale;
+    const cover = Math.max(state.cw / (x1 - x0), state.ch / (y1 - y0)) / state.baseScale;
+    return Math.max(MIN_ZOOM, cover);
   }
   return MIN_ZOOM;
 }
 
 function updateTransform() {
-  const [minx, miny, maxx, maxy] = state.bounds;
   state.zoom = Math.max(minZoom(), Math.min(MAX_ZOOM, state.zoom));
-  state.cx = Math.max(minx, Math.min(maxx, state.cx));
-  state.cy = Math.max(miny, Math.min(maxy, state.cy));
   state.scale = state.baseScale * state.zoom;
+  // #901: het beeld blijft binnen het kader; past het kader niet in het scherm, dan
+  // centreert de kaart en kun je niet naar de rand pannen.
+  const v = clampView(state.cx, state.cy, state.scale, state.cw, state.ch, state.bounds);
+  state.cx = v.cx;
+  state.cy = v.cy;
   state.ox = state.cw / 2 - state.cx * state.scale;
   state.oy = state.ch / 2 - state.cy * state.scale;
   state.dirty = true;
@@ -994,13 +1094,10 @@ function drawStaticOverlay(ctx) {
 
   // de voortgangsstrook meteen zijn plek laten reserveren (#463): hij is even
   // breed als zijn langste regel, dus dat kan voordat de andere labels gelegd
-  // worden. Zonder chip is er geen strook en houdt de vorige plek niets vrij.
-  const strookRegels = [];
-  let laatsteNaam = '';
-  for (const it of gebiedLabels) {
-    if (!isVoortgangsregel(it.tekst)) { laatsteNaam = it.tekst; continue; }
-    if (laatsteNaam && strookRegels.length < 3) strookRegels.push({ tekst: `${laatsteNaam} · ${it.tekst}`, kleur: it.kleur });
-  }
+  // #900: de stand van alle gebieden waar je al iets deed, op elk zoomniveau. Niet alleen
+  // de laag die de kaart nu tekent: een veroverd gebied of een half gedane wijk blijft zo
+  // ook zichtbaar als je ver uit- of dicht inzoomt.
+  const strookRegels = layerOn('veroverd') ? statusRegels(kaartLaag().lijst).map((r) => ({ tekst: r.tekst, kleur: r.kleur })) : [];
   if (strookRegels.length) {
     ctx.font = '600 12px sans-serif';
     let w = 0;
@@ -1043,9 +1140,9 @@ function drawStaticOverlay(ctx) {
     }
   }
   // #807 A15: één uitkijkpunt per streek (verkenpunten.js), uit de bestaande punten;
-  // klikken zet er een waypoint, zoals bij een bezienswaardigheid. #825: de streeknaam in de
-  // hover komt pas als de speler die streek kent; het punt zelf blijft altijd staan (het is
-  // juist hoe je een onbekende streek ontdekt).
+  // klikken zet er een waypoint, zoals bij een bezienswaardigheid. #902: de hover noemt
+  // het gebied dat je ermee opent en waarom je erheen gaat; het punt zelf blijft altijd
+  // staan (het is juist hoe je een onbekende streek ontdekt).
   if (layerOn('uitkijkpunt')) {
     for (const u of state.map.meta.uitkijkpunten || []) {
       if (!Number.isFinite(u.x) || !Number.isFinite(u.y)) continue;
@@ -1053,17 +1150,17 @@ function drawStaticOverlay(ctx) {
       if (!onScreen(sx, sy, 120)) continue;
       drawMapIcon(ctx, 'uitkijkpunt', sx, sy, sc, { t: 0 });
       bezet.push(pinDoos(sx, sy, sc));
-      const streek = isAreaKnown(u.streek) ? ` · ${u.streekNaam || u.streek}${isViewpointUsed(u) ? ' (gebruikt)' : ''}` : '';
-      hover.push({ sx, sy, name: u.naam, sub: `Uitkijkpunt${streek}`, x: u.x, y: u.y });
+      const tekst = viewpointHover(u, { known: isAreaKnown(u.streek), used: isViewpointUsed(u) });
+      hover.push({ sx, sy, name: tekst.main, sub: tekst.sub, x: u.x, y: u.y });
     }
   }
 
   // region names (Friesland, Drenthe, Duitsland, the seas) under the places
+  const [rx0, ry0, rx1, ry1] = provinceMapOn() ? viewRect() : [0, 0, 0, 0];
+  const named = new Set();
   if (provinceMapOn() && names.regions) {
-    const [rx0, ry0, rx1, ry1] = viewRect();
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
-    const named = new Set();
     // (the right edge is pulled in by 8%: a clamped name at the bottom right would sit under the zoom buttons)
     for (const r of regionLabels(rx0, ry0, rx1 - (rx1 - rx0) * 0.08, ry1, 0.1)) {
       if (r.id === 'groningen' && !names.cityRegion) continue;
@@ -1079,8 +1176,12 @@ function drawStaticOverlay(ctx) {
       boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
       named.add(r.id);
     }
-    // the regions beyond the border or the coast that are in view but have no name on screen yet (#237):
-    // the name sits outside the line, kept off the frame so nothing is clipped
+  }
+  // #901: de naam van Friesland, Drenthe of Duitsland staat ook dichtbij langs de grens,
+  // waar de kaart verder geen regiokaart-labels tekent. Zo zie je altijd waar je ophoudt.
+  if (provinceMapOn()) {
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
     const m = 110 / state.scale;
     for (const r of regionEdgeLabels(rx0 + m, ry0 + m, rx1 - m, ry1 - m, 34 / state.scale)) {
       if (named.has(r.id)) continue;
@@ -1107,6 +1208,7 @@ function drawStaticOverlay(ctx) {
       const [cx0, cy0, cx1, cy1] = state.real;
       for (const v of worldPlaceLabels(vx0, vy0, vx1, vy1)) {
         if (z < v.zoom) continue;
+        if (discoveryHidden(v.x, v.y)) continue; // #899: nog niet bezocht: de naam wacht
         if (v.rank >= 5 && v.x > cx0 && v.x < cx1 && v.y > cy0 && v.y < cy1) continue;
         const [sx, sy] = toScreen(v.x, v.y);
         const big = v.rank <= 1;
@@ -1122,6 +1224,7 @@ function drawStaticOverlay(ctx) {
       ctx.font = `${names.placePx}px ${FONT}`;
       for (const v of villageLabels(vx0, vy0, vx1, vy1)) {
         if ((v.kind === 'hamlet' || v.kind === 'quarter') && !names.hamlets) continue;
+        if (discoveryHidden(v.x, v.y)) continue; // #899
         const [sx, sy] = toScreen(v.x, v.y);
         const label = v.name.toUpperCase();
         const box = labelDoos(ctx, label, sx, sy);
@@ -1157,13 +1260,16 @@ function drawStaticOverlay(ctx) {
     for (const p of state.map.meta.neighbourhoodPoints || []) {
       const [sx, sy] = toScreen(p.x, p.y);
       if (!onScreen(sx, sy, 80)) continue;
+      if (discoveryHidden(p.x, p.y)) continue; // #899
       const label = p.name.toUpperCase();
       const w = ctx.measureText(label).width;
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
       if (!vrij(box)) continue;
       boxes.push(box);
-      // after dark a few wijken carry a warning (muggingrules.js): amber name and a triangle
-      const warn = warnsOn(p.name, ((state.world.clock % 24) + 24) % 24);
+      // after dark a few wijken carry a warning (muggingrules.js): amber name and a triangle.
+      // #888: een veroverde wijk is niet gevaarlijk meer.
+      const conquered = veroverdOp(getProfiel(), getIndeling(), p.x, p.y, 'buurt') || veroverdOp(getProfiel(), getIndeling(), p.x, p.y, 'wijk');
+      const warn = warnsOn(p.name, ((state.world.clock % 24) + 24) % 24, conquered);
       drawLabel(ctx, label, sx, sy, warn ? inkA('amber', Math.max(0.85, alpha).toFixed(2)) : inkA('cream', alpha.toFixed(2)), 'center');
       if (warn) {
         const tx = sx - w / 2 - 11;
@@ -1212,8 +1318,9 @@ function drawStaticOverlay(ctx) {
       drawLabel(ctx, k.tekst, k.x, k.y, k.kleur, k.uitlijning);
       boxes.push(k.box);
     }
-    if (strookRegels.length) tekenVoortgangsStrook(ctx, strookRegels, state.strook);
   }
+  // de strook staat er ook als de getekende laag even geen naam kwijt kan (#900)
+  if (strookRegels.length) tekenVoortgangsStrook(ctx, strookRegels, state.strook);
 
   if (layerOn('streets') && names.streets) drawStreetNames(ctx, boxes, bezet);
 
@@ -1250,7 +1357,12 @@ function compose() {
   const c = state.composeCtx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, state.compose.width, state.compose.height);
+  // #901: buiten het kader van de kaart ligt hetzelfde donkere buurland als erbinnen
+  // (meadow met de tint van drawOutside), zodat de rand van de kaart nooit als een
+  // lichte of harde vierkante rand in beeld komt als het scherm breder is dan de kaart.
   c.fillStyle = MAP_STYLE.meadow;
+  c.fillRect(0, 0, state.compose.width, state.compose.height);
+  c.fillStyle = inkA('tintMap', 0.5);
   c.fillRect(0, 0, state.compose.width, state.compose.height);
   c.imageSmoothingEnabled = true;
 
@@ -1266,12 +1378,8 @@ function compose() {
   drawTiles(c, L, out, tws);
   if (ready) keepLastGood();
 
-  if (getSettings().showFog) {
-    const f = state.fog;
-    const [sx, sy] = toScreen(f.minx, f.miny);
-    const size = FOG_CELL * state.scale * state.dpr;
-    c.drawImage(f.canvas, sx * state.dpr, sy * state.dpr, f.w * size, f.h * size);
-  }
+  // #899: de onbezochte buurten uitgrijzen, met de fade van net ontdekte buurten
+  drawDiscovery(c, performance.now());
 
   const t1 = performance.now();
   c.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
@@ -1362,7 +1470,7 @@ function drawDynamicMarkers(ctx, world) {
   if (layerOn('klussen') && !job) {
     for (const k of getMissionList()) {
       if (!k.done || (showMission && k.index === m.index) || k.status === 'actief') continue;
-      icon(null, missionMapKind(k.index, false), k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index }, samenVan('missie', k.index, k.samen));
+      icon(null, missionMapKind(k.index, false), k.start.x, k.start.y, k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index }, samenVan('missie', k.index, k.samen));
     }
   }
   if (showMission) {
@@ -1707,7 +1815,7 @@ function todoEntries() {
     if (it.dist == null || it.status === 'slot') continue;
     const label = (it.code ? it.code + ' ' : '') + it.title;
     const norm = normalize(label);
-    out.push({ label: it.code ? `${it.code} · ${it.title}` : it.title, kind: it.status === 'klaar' && it.group === 'missies' ? 'Klus' : TODO_KIND[it.group] || 'Te doen', pri: 0, x: it.x, y: it.y, zoom: 6, todo: it.key, icon: it.icon, norm, compact: norm.replace(/ /g, '') });
+    out.push({ label: it.title, kind: it.status === 'klaar' && it.group === 'missies' ? 'Klus' : TODO_KIND[it.group] || 'Te doen', pri: 0, x: it.x, y: it.y, zoom: 6, todo: it.key, icon: it.icon, norm, compact: norm.replace(/ /g, '') });
   }
   return out;
 }
@@ -1827,22 +1935,14 @@ function plekHier(p) {
   return hierAt.naam;
 }
 
-// Het gebied onder de cursor (#435): dezelfde laag die de kaart tekent (gemeenten
-// ver uit, wijken en buurten dichtbij), zodat elk gebied aan te wijzen en aan te
-// klikken is en niet alleen het naamlabel. De laatste opzoeking wordt bewaard:
-// de kaart staat stil tussen twee muisbewegingen.
+// Het gebied onder de cursor (#435, #900): altijd het open niveau (de wijk), zodat je
+// bij elke zoom hetzelfde gebied opent; de kaartlaag zelf wisselt nog met de zoom.
+// De laatste opzoeking wordt bewaard: de kaart staat stil tussen twee muisbewegingen.
 let gebiedCache = { x: NaN, y: NaN, scale: 0, r: null };
 function gebiedBij(wx, wy) {
   if (!layerOn('veroverd')) return null;
   if (gebiedCache.x === wx && gebiedCache.y === wy && gebiedCache.scale === state.scale) return gebiedCache.r;
-  const { lijst, typisch } = kaartLaag();
-  const hoofd = kiesLaag(typisch, state.scale);
-  let r = null;
-  if (hoofd) {
-    const kandidaten = lijst.filter((q) => q.niveau.id === hoofd);
-    const g = gebiedIn(kandidaten.map((q) => q.gebied.grens), wx, wy);
-    if (g) r = kandidaten.find((q) => q.gebied.grens === g) || null;
-  }
+  const r = openGebied(kaartLaag().lijst, wx, wy);
   gebiedCache = { x: wx, y: wy, scale: state.scale, r };
   return r;
 }
@@ -1868,10 +1968,23 @@ function updateTooltip(sx, sy) {
     const [wx, wy] = toWorld(sx, sy);
     const gebied = gebiedBij(wx, wy);
     const [minx, miny, maxx, maxy] = state.real;
-    if (gebied) {
+    const inCity = !(wx < minx || wy < miny || wx > maxx || wy > maxy);
+    const spotM = Math.max(6, HOVER_SPOT_PX / state.scale);
+    // #887: bij een weg de straatnaam en de plaatsnaam, bij een buurdorp of eiland
+    // de naam van dat object, en anders het gebied. Nooit het dichtstbijzijnde
+    // Groningse dorp op zee of in een buurprovincie.
+    const road = streetAt(wx, wy, spotM);
+    const buur = inCity ? null : borderPlaceAt(wx, wy, spotM * 1.4);
+    if (road) {
+      main = road;
+      sub = inCity ? (wijkAt(wx, wy) || 'Groningen') : placeNameAt(wx, wy);
+    } else if (gebied) {
       main = gebied.gebied.naam;
       sub = gebiedSub(gebied);
-    } else if (wx < minx || wy < miny || wx > maxx || wy > maxy) {
+    } else if (buur) {
+      main = buur.name;
+      sub = regionName(buur.region) || 'Buiten de provincie';
+    } else if (!inCity) {
       if (worldPlacesReady() || provinceMapOn()) {
         const a = areaNameAt(wx, wy);
         main = a.name;
@@ -1882,9 +1995,8 @@ function updateTooltip(sx, sy) {
         sub = v ? 'Dorp in het Ommeland' : '';
       }
     } else {
-      main = streetAt(wx, wy, Math.max(4, 10 / state.scale)) || '';
-      sub = wijkAt(wx, wy) || '';
-      if (!main) { main = sub; sub = ''; }
+      main = wijkAt(wx, wy) || '';
+      sub = main ? 'Wijk' : '';
     }
   }
   if (!main) { tip.style.display = 'none'; return; }
@@ -2148,7 +2260,7 @@ function handleKeys(dt, world) {
 // a row with several layers switches them together (same keys as before,
 // mapfilters.js); Diensten and Onderweg start folded.
 const LEGEND = [
-  { group: 'Altijd', rows: [
+  { group: 'Altijd', folded: true, rows: [
     { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
     { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
     { kind: 'userWaypoint', label: 'Jouw waypoint', dyn: 'goal', note: 'een klik erop of Haal weg haalt hem weg' },
@@ -2217,7 +2329,8 @@ function buildLegend(root) {
   const dpr = window.devicePixelRatio || 1;
   // de uitleg bovenaan (#445), met de Samen spelen-regel voor een gast; bij het
   // openen van de kaart volgt syncKaartUitleg je rol
-  root.innerHTML = '<h3>Op de kaart</h3>' + legendaHintHtml({ gast: !!(state.world && state.world.coopRole === 'client' && state.world.coopNet) });
+  root.innerHTML = '<h3>Op de kaart</h3>' + legendaHintHtml({ gast: !!(state.world && state.world.coopRole === 'client' && state.world.coopNet) }) + '<div class="mv-legend-body"></div>';
+  const body = root.querySelector('.mv-legend-body');
   state.legendDyn = {};
   for (const g of LEGEND) {
     const box = document.createElement('div');
@@ -2287,7 +2400,7 @@ function buildLegend(root) {
       list.appendChild(li);
     }
     box.append(head, list);
-    root.appendChild(box);
+    body.appendChild(box);
   }
 }
 
@@ -2324,10 +2437,17 @@ function setMode(m) {
 function openMap(world) {
   ensureCountryEdge(world.map);
   setMode(travelModeOf(world));
+  // #899: de buurt waar je staat heb je altijd gezien, ook als de tracker nog niet liep
+  // (het eerste beeld, of een QA-start): die blijft helder op de kaart.
+  try { bezoekPlek(world); } catch (e) { /* zonder wereld of indeling: geen bezoek */ }
   state.open = true;
   setMapOpenState(true);
   state.overlay.classList.add('open');
   sizeCanvas();
+  // #899: de grenzen kunnen later binnenkomen dan de kaart; haal de ontdekking dan op.
+  // Wat je sinds de vorige keer op de kaart ontdekte, gloeit nu zacht uit.
+  initDiscovery(world);
+  if (discovery) refreshDiscovery(true);
   ensureLevel0();
   state.dirty = true;
   syncKaartUitleg(world);
@@ -2419,7 +2539,9 @@ function render(world) {
   const t0 = performance.now();
   state.frame++;
   followViewTiles(false);
-  if (state.dirty) compose();
+  // #899: tijdens de fade van een net ontdekte buurt blijft de kaart opnieuw tekenen,
+  // ook als er verder niets vuil is.
+  if (state.dirty || performance.now() < (state.revealUntil || 0)) compose();
   const { ctx } = state;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
@@ -2512,6 +2634,7 @@ export function initMapView(world) {
     found: [],
     sel: -1,
     legendMaat: null,
+    revealUntil: 0,          // #899: tot wanneer de fade van net ontdekte buurten loopt
     perf: { composeMs: 0, frameMs: 0, avgMs: 0, maxMs: 0 },
   };
   state.ctx = state.canvas.getContext('2d');
@@ -2532,7 +2655,7 @@ export function initMapView(world) {
   reticle.innerHTML = '<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="9"/><path d="M17 2v8M17 24v8M2 17h8M24 17h8"/></svg>';
   state.canvas.parentElement.appendChild(reticle);
   state.searchIndex = buildSearchIndex(world);
-  initFog(world);
+  initDiscovery(world);
   buildLegend(overlay.querySelector('.mapview-legend'));
   state.avoidBtn = overlay.querySelector('[data-act="avoid"]');
   state.modeNote = document.createElement('p');
@@ -2773,7 +2896,6 @@ export function setMapView(x, y, zoom) {
 
 export function updateMapView(dt, world) {
   if (!state) return;
-  updateFog(world);
   updateRouting(dt, world);
   if (!state.open) return;
   if (syncMapPhase(world) !== state.phase) { state.phase = syncMapPhase(world); clearTiles(); }

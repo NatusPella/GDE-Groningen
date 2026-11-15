@@ -14,7 +14,8 @@ Tests: `scripts/gebieden_test.mjs`, `scripts/grenzen_test.mjs`. Beeldcheck: `scr
   en bovenaan waar het gebied in ligt (Groningen › Centrum › Binnenstad). Het safehouse van het gebied staat eronder.
 - **Kaart › laag Veroverd** (legenda: Veroverd, standaard aan): de **echte grenzen**. Welke laag je ziet hangt van de zoom: de laag waarvan de gebieden ongeveer een handpalm
   groot in beeld staan, met de grenzen van de laag erboven dikker. Wat je aan het doen bent kleurt mee (van oker naar groen, met de naam en "3/5" erbij); een gebied dat
-  helemaal gedaan is krijgt de kleur van zijn vlag, een vlag en zijn titel bij het aanwijzen.
+  helemaal gedaan is krijgt de kleur van zijn vlag, een vlag en zijn titel bij het aanwijzen. Sinds #900 opent hover en klik altijd hetzelfde niveau (de **wijk**), los van
+  de laag die de zoom tekent, en staat de stand van alle begonnen gebieden in de strook rechtsboven, op elk zoomniveau.
 - **Bij de laatste taak**: een kaartje met de titel, een grapje en het geld, één keer per gebied. Onderweg meldt een klein kaartje "3 van 5 gedaan" voor het kleinste gebied
   dat te veroveren is.
 - **De hele provincie**: alles wat er in de provincie te doen is gedaan, is "de hele kaart veroverd": de titel **Provinciebaas van Grunn**.

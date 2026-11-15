@@ -16,8 +16,22 @@ export const GFX_PRESETS = {
   hoog: { quality: 'hoog', shadows: true, drawDistance: 'heelver', resolution: 1, autoResolution: true },
 };
 export const PRESET_ORDER = ['laag', 'middel', 'vlot', 'hoog'];
-const LABELS = { laag: 'Laag', middel: 'Gemiddeld', vlot: 'Vlot', hoog: 'Hoog' };
+// #893: één heldere reeks van licht naar zwaar. De sleutels blijven zoals ze zijn (bestaande
+// instellingen, de benchmark en ?preset= verwijzen ernaar), maar de namen die de speler ziet
+// lopen op: Laag, Midden, Hoog, Ultra. 'vlot' is de 60fps-stand met de look van de zwaarste
+// stand en de zichtafstand van Laag; daarom heet die Hoog, en de zwaarste heet Ultra.
+// "Gemiddeld" en "Vlot" klonken als twee losse maten naast Laag en Hoog, terwijl het er vier
+// op één lijn zijn.
+const LABELS = { laag: 'Laag', middel: 'Midden', vlot: 'Hoog', hoog: 'Ultra' };
 export const presetLabel = (name) => LABELS[name] || name;
+// Eén regel per stand, voor de segmented control in Instellingen > Beeld: wat je kiest, niet
+// alleen hoe het heet.
+export const PRESET_HINTS = {
+  laag: 'Lichtste stand: minder detail, korte zichtafstand, schaduwen uit',
+  middel: 'Middenweg: schaduwen aan, normale zichtafstand, 1,5x resolutie',
+  vlot: 'De look van Ultra met een korte zichtafstand: soepel op een laptop',
+  hoog: 'Alles op zijn mooist: verste zichtafstand en de grootste schaduwkaart',
+};
 
 // "schaduwen uit · resolutie 75%, automatisch · zichtafstand kort"
 export function describePreset(name) {

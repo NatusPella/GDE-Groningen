@@ -14,6 +14,9 @@ const SHOT_NAMES = {
   bus: ['halte', 'raam', 'aankomst'],
   boot: ['kade', 'dek', 'aankomst'],
   auto: ['instappen', 'weg', 'aankomst'],
+  // #882: een taxi is geen leeg wachtscherm: instappen, de rit met de taxi in
+  // beeld, en de aankomst. De scène zelf (reisrit.js) tekent de taxi.
+  taxi: ['instappen', 'rit', 'aankomst'],
 };
 
 // De aanlegplaats van een bootreis (#438): het laatste punt van het laatste vaarstuk,

@@ -53,7 +53,7 @@ for (const run of RUNS) {
   if (run.game) env.GDE_GAME_DIR = run.game;
   delete env.ELECTRON_RUN_AS_NODE;
   let stdout = '', stderr = '';
-  const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--smoke-test=${path.join(out, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env });
+  const child = spawn(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1280x720', `--smoke-test=${path.join(out, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
   child.stdout.on('data', (d) => { stdout += d; });
   child.stderr.on('data', (d) => { stderr += d; });

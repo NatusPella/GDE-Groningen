@@ -3,7 +3,7 @@
 // camera zelf. Geen three.js-import: de camera wordt via cam.position gezet en het kijkdoel gaat
 // in een object van de aanroeper. Alles met positionele argumenten en module-tijdelijke objecten,
 // zodat een eerste-persoonframe niets alloceert. Zo blijft scene3d.js onder zijn omvangsgrens (#497).
-import { initFirstPerson, syncFirstPerson, addLookPitch, clampPitch, lookVector, firstPersonEye } from './firstperson.js';
+import { initFirstPerson, syncFirstPerson, noteVehicleChange, addLookPitch, clampPitch, lookVector, firstPersonEye } from './firstperson.js';
 import { updateCarInterior } from './carinterior.js';
 import { getSettings } from './settings.js';
 import { normalizeAngle } from './util.js';
@@ -23,6 +23,7 @@ let shown = false;         // stond de camera vorige frame in eerste persoon?
 let toggled = false;       // de schakelaar veranderde dit frame: recht vooruit beginnen
 let justEntered = false;   // net aangezet: de verborgen boomkronen een keer vrijgeven
 let wasInVehicle = false;  // zat de camera vorige frame in een voertuig?
+let wasVehicleFp = false;  // #890: hetzelfde, maar voor de stand (los van fpCamera's kijkhoek)
 let lookYaw = 0;           // hoofd op de voertuighoek; eerste persoon zet die nooit zelf terug
 let interiorMesh = null;   // de auto waarvan het detailinterieur het laatst zichtbaar was
 const _altEye = { x: 0, y: 0, z: 0 };
@@ -36,9 +37,22 @@ const _dir = { x: 0, y: 0, z: 0 };
 export function fpSync(world, player, pv, pvMesh, hidePlayers, interiorCamera) {
   const st = world.firstPersoon || initFirstPerson(world);
   if (syncFirstPerson(world)) st.pitch = 0;
+  // #890: in- of uitstappen verandert de plek waar je bent, niet je camera. De stand blijft
+  // de spelersvoorkeur (instelling firstPersoon) en begint alleen recht vooruit; eerst viel de
+  // camera na het uitstappen terug achter het figuur.
+  const vehicleChanged = !!pv !== wasVehicleFp;
+  wasVehicleFp = !!pv;
+  if (vehicleChanged) {
+    // de stand blijft de voorkeur van de speler; alleen de blik begint opnieuw, recht vooruit
+    noteVehicleChange(world);
+    toggled = true;
+    if (player && pv) lookYaw = 0;
+    else if (player) world.camYaw = player.angle;
+  }
   const view = !!st.on && !world.cameraOverride && !world.trainCam && !world.trainDriving && !world.cinematicHidePlayers;
   if (!!st.on !== wasOn) { wasOn = !!st.on; toggled = true; }
   let bits = 0;
+  if (vehicleChanged) bits |= FP_CUT;
   if (view !== shown) {
     // uit in een voertuig: de volgcam begint weer recht achter de auto, net als toen de stand
     // nog in scene3d zat (de FP-tak hield world.camYaw daar op de voertuighoek)

@@ -85,7 +85,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
       destName: 'het Boterdiep',
-      stunt: { center: { x: 168.69, y: 70.04 }, radius: 46, target: 1500 },
+      stunt: { center: { x: 168.69, y: 70.04 }, radius: 46, target: 1500, shield: 30 },
       handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
       start: drive(223.17, -30.52),
       dest: drive(-22.92, -491.56),

@@ -13,12 +13,12 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* the rail */
-#pause-menu .pm-rail { position: absolute; top: var(--mt); left: 80px; bottom: var(--mt); width: 288px; display: flex; flex-direction: column; animation: m-rail-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; --ra-h: 56px; }
+#pause-menu .pm-rail { position: absolute; top: var(--mt); left: 80px; bottom: var(--mt); width: 288px; display: flex; flex-direction: column; animation: m-rail-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* #911: 48 in plaats van 56 px, zodat de twaalf rijen en de drie groepskoppen ook op een 1080p-stage passen */ --ra-h: 48px; }
 #pause-menu .pm-inner.pm-game { display: flex; flex-direction: column; height: 100%; overflow-y: auto; scrollbar-width: none; }
 #pause-menu .pm-game > * { flex-shrink: 0; }
 #pause-menu .pm-game [hidden] { display: none; }
 #pause-menu.prestart .pm-ingame { display: none; }
-#pause-menu .pm-q-head { display: flex; flex-direction: column; gap: 4px; padding: 0 0 36px 24px; }
+#pause-menu .pm-q-head { display: flex; flex-direction: column; gap: 4px; padding: 0 0 26px 24px; }
 #pause-menu .pm-logo { font-size: 66px; align-self: flex-start; text-align: left; margin: 0; }
 #pause-menu .pm-logo .gde-sign { display: none; }
 #pause-menu .pm-logo .gde-mark { line-height: 0.78; }
@@ -40,7 +40,13 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .ra:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 8px; }
 #pause-menu .ra.pm-exit { margin-top: 10px; }
 #pause-menu .ra.pm-exit::after { content: ''; position: absolute; left: 24px; right: 16px; top: -5px; height: 1px; background: var(--line2); }
-#pause-menu .pm-rail-sp { height: 24px; }
+#pause-menu .pm-rail-sp { height: 18px; }
+/* #911: de rail vertelt zelf waar je bent: drie groepen met een kop en het aantal onderdelen
+   erachter. De kop is klein en stil; de rijen blijven de grote lijnen. */
+#pause-menu .pm-rail-group { display: flex; flex-direction: column; }
+#pause-menu .pm-rail-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 4px 16px 2px 24px; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(240, 237, 228, 0.42); }
+#pause-menu .pm-rail-h .cnt { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.06em; color: rgba(240, 237, 228, 0.32); }
+#pause-menu .pm-rail-h .cnt:empty { display: none; }
 #pause-menu .pm-rail-gap { flex: 1; min-height: 12px; }
 #pause-menu .pm-back { display: none; }
 #pause-menu.prestart .pm-back { display: flex; }
@@ -49,7 +55,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-rail-acts [data-action="saves"] { grid-column: 1 / -1; order: -1; }
 #pause-menu .pm-rail-foot { display: flex; flex-direction: column; padding: 16px 0 0 24px; }
 #pause-menu .pm-rail-foot .m-bt { align-self: flex-start; }
-#pause-menu .pm-ver { margin: 0; padding: 12px 0 0 24px; font-size: 16px; letter-spacing: 1px; color: var(--mut); }
+#pause-menu .pm-ver { margin: 0; padding: 8px 0 0 24px; font-size: 16px; letter-spacing: 1px; color: var(--mut); }
 #pause-menu .pm-status { margin: 0; font-size: 18px; color: var(--mut); min-height: 0; }
 #pause-menu .pm-status:empty { display: none; }
 #pause-menu .pm-game .pm-confirm { margin-top: 8px; margin-right: 8px; }
@@ -64,6 +70,15 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-confirm .m-acts { gap: 16px; }
 #pause-menu .pm-slist .pm-confirm { margin: 4px 24px 12px; }
 #pause-menu .pm-slist .pm-status { margin: 4px 24px 8px; }
+
+/* #915: de vraag bij het afsluiten hangt over het hele menu, niet in één tabblad: Afsluiten
+   staat ook in de rail, en de vraag moet daar net zo goed te zien zijn. */
+#pause-menu .pm-quitbox { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 40px; background: rgba(12, 20, 14, 0.78); animation: m-up 0.2s ease both; }
+#pause-menu .pm-quitbox[hidden] { display: none; }
+#pause-menu .pm-quitpane { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: min(680px, 100%); padding: 30px 34px 28px; border-radius: 16px; background: linear-gradient(180deg, rgba(20, 40, 27, 0.97), rgba(12, 20, 14, 0.98)); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.16), 0 32px 64px rgba(0, 0, 0, 0.45); }
+#pause-menu .pm-quitpane p { margin: 0; font-size: 20px; line-height: 1.45; color: rgba(240, 237, 228, 0.86); }
+#pause-menu .pm-quitpane .m-acts { gap: 14px; padding-top: 6px; }
+#pause-menu .pm-quitpane .m-bp { height: 52px; padding: 0 24px; font-size: 24px; }
 
 /* the panel */
 /* de kop staat onder elkaar: datum, titel, uitleg; anders valt de uitleg naast de titel (#463) */
@@ -213,7 +228,17 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* de stand die nu geldt: groen, met een vinkje, zoals de gekozen keuze in de rest van het menu */
 #pause-menu .pm-chips .m-chip[aria-pressed="true"] { color: var(--g); background: rgba(63, 201, 122, 0.14); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.6); }
 #pause-menu .pm-chips .m-chip[aria-pressed="true"]::before { content: '✓'; margin-right: 6px; font-size: 16px; }
-#pause-menu .td-next { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 0 24px 16px; padding: 14px 18px; border-radius: 10px; background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.55); }
+
+/* #893: de voorinstellingen zijn één reeks van licht naar zwaar (Laag, Midden, Hoog, Ultra),
+   geen vier losse chips met een eigen maat. Eén track, vier gelijke stukken, het gekozen stuk
+   groen; de regel eronder zegt in gewone taal wat die stand doet. */
+#pause-menu .pm-rowfull { flex-wrap: wrap; row-gap: 10px; }
+#pause-menu .pm-seg { display: inline-flex; flex: none; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .pm-segbtn { min-width: 104px; height: 38px; padding: 0 18px; border-radius: 999px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.07em; text-align: center; color: var(--mut); transition: background 0.18s, color 0.18s; }
+#pause-menu .pm-segbtn:hover { color: var(--ink); background: rgba(240, 237, 228, 0.06); }
+#pause-menu .pm-segbtn[aria-pressed="true"] { color: #0c140e; background: var(--g); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+#pause-menu .pm-segbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+#pause-menu .pm-seg-hint { flex: 1 0 100%; font-size: 16px; line-height: 1.35; }
 #pause-menu .td-next .td-next-t { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 30px; letter-spacing: 0.04em; line-height: 1.05; }
 #pause-menu .td-next p { margin: 0; font-size: 18px; }
 #pause-menu .td-h2 { font-size: 48px; }
@@ -232,6 +257,183 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .m-chip[aria-pressed="true"] span { opacity: 1; }
 #pause-menu .m-facts .m-fact { max-width: 260px; }
 #pause-menu .td-acts { flex: none; }
+
+/* #903-#908: één hero- en statentaal voor de vernieuwde schermen. Zelfde tokens, zelfde
+   lettertypen en dezelfde menuvloer als de rest van het menu; alleen de opbouw is rijker. */
+#pause-menu .pm-hero { position: relative; display: flex; flex-direction: column; gap: 10px; margin: 0 24px 18px; padding: 18px 22px 18px 26px; border-radius: 12px; background: linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.86)); box-shadow: inset 0 0 0 1px var(--line2); overflow: hidden; flex: none; }
+#pause-menu .pm-hero::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--g); opacity: 0.85; }
+#pause-menu .pm-hero[data-tone="quiet"]::before { background: var(--line2); opacity: 1; }
+#pause-menu .pm-hero-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
+#pause-menu .pm-hero-t { margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 44px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .pm-hero-t.long { font-size: 34px; }
+#pause-menu .pm-hero-lead { margin: 0; max-width: 720px; font-size: 20px; line-height: 1.4; color: rgba(240, 237, 228, 0.86); }
+#pause-menu .pm-hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; font-size: 18px; color: var(--mut); }
+#pause-menu .pm-hero-acts { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+#pause-menu .pm-inner > .pm-hero:first-child { margin-top: 28px; }
+/* #909: de hero van Prestaties staat tussen de tabrij en de lijst: hij houdt zijn hoogte, de
+   lijst eronder scrolt (net als bij de andere vernieuwde schermen). */
+#pause-menu .pm-ach > .pm-hero, #pause-menu .pm-inner > .pm-hero { flex: none; }
+#pause-menu .pm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 0 24px 18px; flex: none; }
+#pause-menu .pm-stat { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 12px 16px; border-radius: 10px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .pm-stat b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .pm-stat span { font-size: 16px; line-height: 1.25; color: var(--mut); }
+#pause-menu .pm-stat .m-bar { margin-top: 5px; }
+#pause-menu .pm-stat[data-tone="accent"] { background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.45); }
+#pause-menu .pm-stat[data-tone="accent"] b { color: var(--g); }
+#pause-menu .pm-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 999px; font-size: 15px; letter-spacing: 0.03em; color: var(--mut); white-space: nowrap; box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .pm-badge[data-tone="ok"] { color: var(--g); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.55); }
+#pause-menu .pm-badge[data-tone="warn"] { color: var(--mk-mission, #e8c93a); box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.5); }
+#pause-menu .pm-sec { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin: 18px 24px 6px; }
+#pause-menu .pm-sec h3 { margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.04em; }
+#pause-menu .pm-sec span { font-size: 16px; color: var(--mut); }
+
+/* Verhaal > Opdrachten (#912): de volgende stap bovenaan, daaronder de hoofdstukken als één
+   rustige lijst. Het huidige hoofdstuk staat open; de rest is één regel met zijn stand. */
+#pause-menu .td-next { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin: 0 24px 18px; padding: 16px 20px 18px; border-radius: 12px; background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.55); flex: none; }
+#pause-menu .td-next-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+#pause-menu .td-next-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; letter-spacing: 0.03em; line-height: 1.04; }
+#pause-menu .td-next-lead { margin: 0; max-width: 600px; font-size: 20px; line-height: 1.4; color: rgba(240, 237, 228, 0.86); }
+#pause-menu .td-next-prog { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; font-size: 16px; }
+#pause-menu .td-next-prog .m-bar { flex: 1 1 160px; max-width: 300px; }
+#pause-menu .td-next-acts { justify-content: flex-start; padding-top: 2px; }
+#pause-menu .td-chapter { display: flex; flex-direction: column; margin-top: 8px; }
+#pause-menu .td-chapter:first-of-type { margin-top: 0; }
+#pause-menu .td-chapter-row { padding: 0 24px; gap: 14px; }
+#pause-menu .td-chapter-ico { flex: none; display: grid; place-items: center; width: 24px; height: 24px; color: var(--mut); }
+#pause-menu .td-chapter-ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-chapter.td-here .td-chapter-ico, #pause-menu .td-chapter.td-done .td-chapter-ico { color: var(--g); }
+#pause-menu .td-chapter.td-here > .td-chapter-row, #pause-menu .td-chapter.td-here > .td-chapter-head { background: rgba(63, 201, 122, 0.08); }
+#pause-menu .td-chapter-open { margin-top: 10px; }
+#pause-menu .td-chapter-head { margin: 0; padding-top: 18px; }
+#pause-menu .td-chapter-open .td-pbar { margin: 0 24px 10px; }
+#pause-menu .td-current { background: rgba(63, 201, 122, 0.14); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.45); }
+#pause-menu .td-why { max-width: 640px; padding-bottom: 8px; }
+
+/* Activiteiten (#907): een kop met de telling, daaronder de filters en de lijst per soort. */
+#pause-menu .td-acthero { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px 24px; margin: 0 24px 16px; padding: 16px 20px; border-radius: 12px; background: linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.86)); box-shadow: inset 0 0 0 1px var(--line2); flex: none; }
+#pause-menu .td-acthero-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 600px; }
+#pause-menu .td-acthero-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .td-acthero-lead { margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
+#pause-menu .td-acthero-facts { display: flex; gap: 10px; flex-wrap: wrap; }
+#pause-menu .td-acthero .pm-stat { min-width: 104px; padding: 8px 12px; }
+#pause-menu .td-acthero .pm-stat b { font-size: 30px; }
+#pause-menu .td-acttools { display: flex; flex-direction: column; margin: 0 0 4px; }
+#pause-menu .td-acttools .m-gh { padding: 4px 24px 8px; }
+#pause-menu .td-acttools .m-chips { padding: 0 24px 10px; }
+#pause-menu .td-begin { margin: 0 24px 16px; padding: 14px 16px 8px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .td-begin .m-gh { padding: 0 0 4px; }
+#pause-menu .td-begin-lead { padding: 0 0 8px; }
+#pause-menu .td-begin-list { display: flex; flex-direction: column; gap: 4px; }
+#pause-menu .td-begin-item { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 4px; }
+#pause-menu .td-begin-nr { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; line-height: 1; text-align: center; color: var(--g); }
+#pause-menu .td-begin-row { padding: 0 8px; }
+#pause-menu .td-passport { margin: 0 24px 16px; padding: 14px 16px 6px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .td-passport .m-gh { padding: 0 0 6px; }
+#pause-menu .td-passport-row { display: flex; align-items: center; gap: 14px; }
+#pause-menu .td-passport-row .m-num { font-size: 34px; color: var(--g); }
+#pause-menu .td-passport-row .m-bar { flex: 1; max-width: 360px; }
+#pause-menu .td-passport-row .mut { font-size: 16px; }
+#pause-menu .td-group { display: flex; flex-direction: column; }
+#pause-menu .td-group .m-gh { padding-top: 20px; }
+#pause-menu .td-group-rows { display: flex; flex-direction: column; }
+#pause-menu .td-dhead { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; min-width: 0; }
+#pause-menu .td-dhead .td-h2 { margin: 0; min-width: 0; overflow-wrap: break-word; }
+/* #903-#908 op 1280x720: lange titels en een smalle rechterkolom mogen nooit een horizontale
+   scrollbar maken; de pane wikkelt en de lijst houdt een zichtbare scrollbalk. */
+#pause-menu .m-pane, #pause-menu .td-detail { overflow-x: hidden; }
+#pause-menu .m-pane .m-h2, #pause-menu .td-h2 { overflow-wrap: break-word; }
+#pause-menu .m-list, #pause-menu .m-pane, #pause-menu .td-list, #pause-menu .pm-samen-inner, #pause-menu .pm-spelers {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(240, 237, 228, 0.3) transparent;
+}
+#pause-menu .m-list::-webkit-scrollbar, #pause-menu .m-pane::-webkit-scrollbar, #pause-menu .td-list::-webkit-scrollbar,
+#pause-menu .pm-samen-inner::-webkit-scrollbar, #pause-menu .pm-spelers::-webkit-scrollbar { width: 8px; height: 8px; }
+#pause-menu .m-list::-webkit-scrollbar-thumb, #pause-menu .m-pane::-webkit-scrollbar-thumb, #pause-menu .td-list::-webkit-scrollbar-thumb,
+#pause-menu .pm-samen-inner::-webkit-scrollbar-thumb, #pause-menu .pm-spelers::-webkit-scrollbar-thumb { background: rgba(240, 237, 228, 0.22); border-radius: 4px; }
+#pause-menu .m-list::-webkit-scrollbar-track, #pause-menu .m-pane::-webkit-scrollbar-track, #pause-menu .td-list::-webkit-scrollbar-track,
+#pause-menu .pm-samen-inner::-webkit-scrollbar-track, #pause-menu .pm-spelers::-webkit-scrollbar-track { background: transparent; }
+
+/* Op een korte viewport (1280x720, 1280x800) is de verticale ruimte het schaarse goed: de
+   opening wordt compacter, zodat de eerste kaart en de lijst volledig in beeld blijven. */
+@media (max-height: 820px) {
+  #pause-menu .pm-hero { gap: 6px; margin-bottom: 12px; padding: 12px 18px 12px 22px; }
+  #pause-menu .pm-hero-t { font-size: 34px; }
+  #pause-menu .pm-hero-t.long { font-size: 28px; }
+  #pause-menu .pm-hero-lead { font-size: 18px; line-height: 1.35; }
+  #pause-menu .pm-hero-meta { font-size: 16px; }
+  #pause-menu .pm-stats { gap: 8px; margin-bottom: 10px; }
+  #pause-menu .pm-stat { padding: 8px 12px; }
+  #pause-menu .pm-stat b { font-size: 28px; }
+  #pause-menu .pm-stat span { font-size: 15px; }
+  #pause-menu .td-acthero { padding: 12px 16px; margin-bottom: 10px; }
+  #pause-menu .td-acthero-t { font-size: 32px; }
+  #pause-menu .td-next { margin-bottom: 12px; padding: 12px 16px; }
+  #pause-menu .td-next-t { font-size: 28px; }
+  #pause-menu .td-begin, #pause-menu .td-passport { margin-bottom: 10px; padding: 10px 12px 4px; }
+  #pause-menu .pm-hub { gap: 10px; }
+  #pause-menu .pm-hub-hero { padding: 12px 16px 12px 20px; }
+  #pause-menu .pm-hub-hero-t { font-size: 32px; }
+  #pause-menu .pm-hub-hero-hint { font-size: 16px; }
+  #pause-menu .pm-hub-stap { height: 42px; padding: 0 12px; }
+  #pause-menu .pm-hub-keuze { padding: 10px 14px; }
+  #pause-menu .pm-hub-kt { font-size: 22px; }
+  #pause-menu .pm-hub-keuze small { font-size: 16px; }
+  #pause-menu .pm-hub-rijen li { padding: 6px 10px; font-size: 18px; }
+  #pause-menu .pm-hub-uitleg { font-size: 16px; }
+  #pause-menu .pm-hub-veilig { font-size: 15px; }
+  #pause-menu .pm-samen-inner { padding-right: 6px; }
+  #pause-menu .lb-pane .lb-sfeer { min-height: 44px; }
+  #pause-menu .lb-pane .lb-sfeer-groot { display: none; }
+  #pause-menu .lb-pane .lb-sfeer-ico { width: 34px; height: 34px; padding: 6px; right: 8px; }
+  #pause-menu .lb-pane .lb-sfeer-klein { top: 50%; left: 12px; transform: translateY(-50%); }
+  #pause-menu .pm-detail .lb-kpis { grid-template-columns: 1fr 1fr; }
+  #pause-menu .lb-kpis { grid-template-columns: 1fr 1fr; }
+  #pause-menu .lb-kpi:nth-child(1) { grid-area: 1 / 1; }
+  #pause-menu .lb-kpi:nth-child(3) { grid-area: 1 / 2; }
+  #pause-menu .lb-kpi:nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
+  #pause-menu .pm-detail .lb-kpi:nth-child(2) { grid-column: 1 / -1; }
+  #pause-menu .pm-detail .lb-kpi b { font-size: 18px; }
+  #pause-menu .lb-kpi b { font-size: 20px; overflow-wrap: anywhere; }
+  #pause-menu .m-pane { padding-left: 48px; }
+  #pause-menu .td-h2 { font-size: 30px; }
+  #pause-menu .m-pane .m-h2 { font-size: 34px; }
+  #pause-menu .td-h2, #pause-menu .m-pane .m-h2 { hyphens: auto; overflow-wrap: break-word; }
+}
+
+/* #911: waar je bent in de rail, rechts in de bladkop ("Spelen · 2 van 5") */
+#pause-menu .pm-sheet-pos { font-size: 15px; letter-spacing: 0.04em; color: rgba(240, 237, 228, 0.45); }
+#pause-menu .pm-sheet-pos:empty { display: none; }
+
+/* #898: het voortgangsblok onder de hero van Overzicht: één percentage, één balk, en de vier
+   onderdelen in gewone taal ernaast. Hetzelfde cijfer als het chipje op de HUD. */
+#pause-menu .pm-progress { display: flex; flex-direction: column; gap: 8px; margin: 0 24px 18px; padding: 14px 18px 12px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .pm-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+#pause-menu .pm-progress-pct { display: inline-flex; align-items: baseline; gap: 6px; }
+#pause-menu .pm-progress-pct b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 38px; line-height: 1; letter-spacing: 0.03em; color: var(--g); }
+#pause-menu .pm-progress-pct .mut { font-size: 16px; }
+#pause-menu .pm-progress .m-bar { height: 6px; }
+#pause-menu .pm-progress-parts { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 2px 0 0; padding: 0; list-style: none; }
+#pause-menu .pm-progress-parts li { display: flex; align-items: baseline; gap: 8px; font-size: 16px; }
+#pause-menu .pm-progress-parts li > span:first-child { color: var(--ink); }
+
+/* #891: de drie moeilijkheidsstanden naast elkaar, met de gevolgen erbij; de gekozen stand licht op */
+#pause-menu .pm-diff { flex: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 0 24px 18px; }
+#pause-menu .pm-diff-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-radius: 10px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .pm-diff-row b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.04em; }
+#pause-menu .pm-diff-row span { font-size: 15px; line-height: 1.3; color: var(--mut); }
+#pause-menu .pm-diff-row[data-on] { background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.55); }
+#pause-menu .pm-diff-row[data-on] b { color: var(--g); }
+
+/* #894: de vaste toetsen en de toetsen met meer taken, als twee kleine blokken in het paneel */
+#pause-menu .pm-fixed, #pause-menu .pm-keyreuse { display: flex; flex-direction: column; gap: 6px; }
+#pause-menu .pm-fixed-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: baseline; gap: 10px; font-size: 16px; }
+#pause-menu .pm-fixed-row .m-kc { justify-self: start; }
+#pause-menu .pm-keyreuse { margin: 6px 0 2px; padding-top: 10px; border-top: 1px solid var(--line); }
+#pause-menu .pm-keyreuse b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 22px; letter-spacing: 0.04em; }
+#pause-menu .pm-keyreuse-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: baseline; gap: 10px; font-size: 16px; color: var(--mut); }
+#pause-menu .pm-keyreuse-row .m-kc { justify-self: start; }
+/* op een smal venster staan de drie standen onder elkaar in plaats van naast elkaar */
+@media (max-width: 1100px) { #pause-menu .pm-diff { grid-template-columns: 1fr; } }
 @media (max-height: 820px) {
   #pause-menu .ov-title { font-size: 80px; } #pause-menu .ov-title.long { font-size: 64px; }
   #pause-menu .ov-cols { margin-top: 28px; }
@@ -264,20 +466,35 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .st-pick .m-chip { box-shadow: inset 0 0 0 1px var(--line2); }
 
 /* Garage */
-#pause-menu .gar-stage { position: relative; flex: none; height: 220px; background: radial-gradient(ellipse at 50% 80%, rgba(240, 237, 228, 0.07), rgba(240, 237, 228, 0) 60%); }
-#pause-menu .gar-stage canvas { position: relative; z-index: 1; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+/* #892: het model en de draaihint staan onder elkaar in plaats van over elkaar; de hint is een
+   eigen strook die nooit onder de auto schuift. */
+#pause-menu .gar-stage { position: relative; flex: none; display: flex; flex-direction: column; height: 220px; background: radial-gradient(ellipse at 50% 80%, rgba(240, 237, 228, 0.07), rgba(240, 237, 228, 0) 60%); }
+#pause-menu .gar-stage canvas { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; width: 100%; height: auto; display: block; cursor: grab; touch-action: none; }
 #pause-menu .gar-stage canvas:active { cursor: grabbing; }
 /* toetsenbord- of padfocus: de ring valt binnen de stage, anders klipt de pane hem weg (#610) */
 #pause-menu .gar-stage canvas:focus-visible { outline-offset: -4px; }
 /* achter de live preview: het silhouet en een stilstaand beeld uit dezelfde renderer (#435) */
 #pause-menu .gar-stage > svg { position: absolute; inset: 0; margin: auto; width: 168px; height: 168px; opacity: 0.85; pointer-events: none; }
 #pause-menu .gar-stage .gar-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-#pause-menu .gar-stage .gar-hint { position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: 6px; font-size: 18px; color: var(--mut); pointer-events: none; }
+#pause-menu .gar-stage .gar-hint { position: static; flex: none; display: flex; align-items: center; gap: 6px; min-height: 30px; padding-top: 4px; font-size: 18px; color: var(--mut); pointer-events: none; }
 /* de toets- of padplaatjes in de draaihint blijven klein naast de 18 px-tekst (#610) */
 #pause-menu .gar-stage .gar-hint .m-kc { min-width: 26px; height: 26px; padding: 0 6px; font-size: 15px; }
 #pause-menu .gar-dot { display: inline-block; width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.5); vertical-align: -2px; }
-#pause-menu .gar-msg { font-size: 18px; }
+#pause-menu .gar-msg { font-size: 18px; min-height: 24px; }
 #pause-menu .gar-viewer { width: auto; }
+/* #892: de tekst onder het model heeft drie blokken met een eigen kop, in de taal van de
+   vernieuwde schermen (pm-sec/pm-stats), zonder de marge van een volle pagina. */
+#pause-menu .gar-viewer .pm-sec { margin: 14px 0 4px; }
+#pause-menu .gar-viewer .pm-sec h3 { font-size: 20px; }
+#pause-menu .gar-viewer .pm-sec span { font-size: 15px; }
+#pause-menu .gar-viewer .pm-stats { margin: 0 0 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#pause-menu .gar-viewer .pm-stat { padding: 8px 12px; }
+#pause-menu .gar-viewer .pm-stat b { font-size: 28px; }
+#pause-menu .gar-where { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 18px; }
+#pause-menu .gar-where b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 24px; letter-spacing: 0.04em; color: var(--g); }
+#pause-menu .gar-look { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 18px; }
+#pause-menu .gar-look .mut { font-size: 16px; }
+#pause-menu .gar-meme { font-size: 17px; line-height: 1.35; }
 #pause-menu .m-main > .m-list.gar-list { width: 700px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: min-content; gap: 12px; align-content: start; }
 #pause-menu .gar-list .m-gh, #pause-menu .gar-list .m-note { grid-column: 1 / -1; }
 /* 720p and 1366: two columns, so the viewer keeps room for the name and the button */
@@ -300,7 +517,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-st .v { font-size: 22px; }
 
 /* Prestaties */
-#pause-menu .pa-list { width: 640px; }
+#pause-menu .pa-list { width: clamp(320px, calc(100% - 420px), 640px); }
 #pause-menu .pa-total { display: flex; align-items: baseline; gap: 12px; font-size: 18px; }
 #pause-menu .pa-total .m-bar { width: 120px; }
 #pause-menu .pa-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; padding: 8px 24px 16px; }
@@ -313,6 +530,21 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pa-prog { display: flex; flex-direction: column; gap: 12px; max-width: 480px; }
 #pause-menu .pa-prog .m-bar { height: 6px; }
 #pause-menu .pa-total { align-items: center; }
+
+/* #909: Prestaties krijgt een kop die iets zegt, een balk per rij die bijna is, en een lege
+   staat die uitnodigt. Zelfde tokens als de rest van het menu; geen nieuwe definities. */
+#pause-menu .pa-hero .pm-stats { margin: 0; }
+#pause-menu .pa-hero .pm-stat { padding: 10px 14px; }
+#pause-menu .pa-hero .pm-stat b { font-size: 28px; }
+#pause-menu .pa-hero .pm-hero-lead { max-width: 640px; }
+#pause-menu .pa-hero-bar { display: flex; align-items: center; gap: 14px; }
+#pause-menu .pa-hero-bar .m-bar { flex: 1; max-width: 420px; height: 8px; }
+#pause-menu .pa-hero-bar .mut { font-size: 16px; }
+#pause-menu .pa-rowbar { display: block; width: min(220px, 100%); height: 4px; margin-top: 5px; }
+#pause-menu .pa-cat-note { font-size: 15px; white-space: nowrap; }
+#pause-menu .pa-leeg { display: flex; flex-direction: column; gap: 4px; padding: 18px 24px 8px; }
+#pause-menu .pa-leeg b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 28px; letter-spacing: 0.03em; }
+#pause-menu .pa-leeg .m-note { max-width: 520px; }
 #pause-menu .m-disc .bebas { font-size: 22px; color: var(--mut); margin-left: auto; }
 #pause-menu .m-disc .m-bar + .bebas { margin-left: 0; }
 
@@ -375,10 +607,16 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .mapview-overlay.embedded .mv-hr > * { pointer-events: auto; }
 #pause-menu .mv-layers { background: rgba(12, 20, 14, 0.75); }
 #pause-menu .mv-layers-n { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--mut); }
-#pause-menu .mapview-overlay.embedded .mapview-legend { position: absolute; right: 80px; top: calc(var(--mt) + 72px); width: 420px; max-height: 62%; margin: 0; padding: 24px; gap: 8px; border-radius: 16px; background: rgba(12, 20, 14, 0.94); border: 0; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.1), 0 24px 48px rgba(0, 0, 0, 0.4); overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.2) transparent; display: flex; flex-direction: column; }
+#pause-menu .mapview-overlay.embedded .mapview-legend { position: absolute; right: 152px; top: calc(var(--mt) + 72px); width: 420px; max-height: calc(100% - var(--mt) - 72px - 104px); margin: 0; padding: 24px 24px 32px; gap: 8px; border-radius: 16px; background: rgba(12, 20, 14, 0.94); border: 0; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.1), 0 24px 48px rgba(0, 0, 0, 0.4); overflow: hidden; display: flex; flex-direction: column; }
+/* QA 0.62.0: de titel en de uitleg blijven staan; de laagjes scrollen in hun eigen vak
+   naast de zoomknoppen, met een zachte onderrand i.p.v. een harde afkap. */
+#pause-menu .mapview-overlay.embedded .mapview-legend .mv-legend-body { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.2) transparent; scrollbar-gutter: stable; scroll-snap-type: y proximity;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 30px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 30px), transparent 100%); }
 #pause-menu .mapview-overlay.embedded .mapview-legend[hidden] { display: none; }
 #pause-menu .mapview-overlay.embedded .mapview-legend h3 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; margin: 0 0 4px; }
-#pause-menu .mapview-overlay.embedded .mapview-legend .mv-grp { border: 0; background: none; border-radius: 0; }
+#pause-menu .mapview-overlay.embedded .mapview-legend .mv-leg-hint { display: none; }
+#pause-menu .mapview-overlay.embedded .mapview-legend .mv-grp { border: 0; background: none; border-radius: 0; scroll-snap-align: start; }
 #pause-menu .mapview-overlay.embedded .mapview-legend .mv-grp-head { padding: 12px 0 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.05em; color: var(--ink); }
 #pause-menu .mapview-overlay.embedded .mapview-legend li { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; border-radius: 8px; font-size: 18px; }
 #pause-menu .mapview-overlay.embedded .mapview-legend li[role="switch"]:hover { background: rgba(240, 237, 228, 0.05); }
@@ -482,11 +720,22 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* Samen spelen (lobbyui.js, #95): kop, tekst, code, invoer en knoppen in de menustijl; ook in het wachtscherm (.coop-hold) */
 #pause-menu .pm-samen { display: flex; flex-direction: column; gap: 12px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: none; }
 /* the sheet already has the title: the lobby's own one is dropped, and Foto's gets the same inset as the other sections (m-main: 64px) */
-#pause-menu .pm-samen .coop-title { display: none; }
+#pause-menu .pm-samen .coop-title { display: block; margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; line-height: 1; letter-spacing: 0.03em; color: var(--ink); }
 #pause-menu .pm-fotos { overflow-y: auto; scrollbar-width: none; }
 #pause-menu .pm-fotos .foto-panel { padding: 32px 64px 40px; }
 /* Foto's: de galerij eerst, de telling en de uitleg erachter (#611) */
 #pause-menu .pm-fotos .foto-count { margin: 0; font-size: 18px; }
+/* #910: de lege staat van Foto's is een uitnodiging: icoon, één zin, de drie toetsen en de
+   startknop. Geen kaal "Meer opties"-blok met alleen uitleg. */
+#pause-menu .foto-leegstaat { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: min(760px, 100%); padding: 26px 28px 22px; border-radius: 12px; background: linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.86)); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .foto-leegstaat-ic { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(63, 201, 122, 0.14); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.45); }
+#pause-menu .foto-leegstaat-ic svg { width: 28px; height: 28px; fill: none; stroke: var(--g); stroke-width: 1.7; stroke-linejoin: round; }
+#pause-menu .foto-leegstaat b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .foto-leegstaat p { margin: 0; max-width: 620px; font-size: 18px; line-height: 1.4; }
+#pause-menu .foto-tips { display: flex; flex-wrap: wrap; gap: 8px 18px; padding-top: 4px; font-size: 16px; color: var(--mut); }
+#pause-menu .foto-tip { display: inline-flex; align-items: center; gap: 6px; }
+#pause-menu .pm-fotos .foto-start { flex: none; }
+#pause-menu .pm-fotos .foto-start-big .m-bp { height: 52px; padding: 0 26px; font-size: 24px; }
 #pause-menu .pm-fotos .foto-panel .m-disc { width: min(760px, 100%); }
 #pause-menu .pm-fotos .foto-panel .m-fold { align-self: stretch; width: min(760px, 100%); }
 #pause-menu .pm-fotos .foto-panel .m-fold .foto-lead { font-size: 18px; }
@@ -534,7 +783,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* Samen spelen en de spelerslijst als twee tabbladen van Spel (#434): de lijst erft de marge van het onderdeel */
 #pause-menu .pm-samen > .m-tabs { margin: 0; }
 #pause-menu .pm-samen > .m-tabs .m-tab { height: 44px; font-size: 22px; }
-#pause-menu .pm-samen-inner { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+#pause-menu .pm-samen-inner { display: flex; flex: 1; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; overflow-x: hidden; }
 #pause-menu .pm-samen .pm-samen-spelers { max-width: none; padding: 0; overflow: visible; flex: 1; min-height: 0; }
 #pause-menu .pm-spelcoop[hidden] { display: none; }
 #pause-menu .pm-spelcoop:not([hidden]) { flex: 1; min-height: 0; }
@@ -547,27 +796,62 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-spulbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 24px 12px; flex: none; }
 #pause-menu .pm-spulbar .pm-csearch { margin: 0; flex: 1 1 260px; max-width: 520px; }
 #pause-menu .pm-spulchips { justify-content: flex-start; }
+/* #908: Spullen begint met wat je hebt en houdt per categorie de stand bij; de pictogrammen
+   blijven de taal van de lijst. */
+#pause-menu .sp-hero { margin: 0 0 16px; }
+#pause-menu .sp-hero .pm-hero-t { font-size: 48px; color: var(--g); }
+#pause-menu .sp-hero .pm-hero-meta span { position: relative; padding-left: 14px; }
+#pause-menu .sp-hero .pm-hero-meta span::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 5px; height: 5px; border-radius: 50%; background: var(--g); opacity: 0.8; }
+#pause-menu .sp-cat-sec { display: flex; flex-direction: column; }
+#pause-menu .sp-cat .sp-cat-r { display: inline-flex; align-items: center; gap: 10px; }
+#pause-menu .sp-cat .sp-cat-n { font-size: 16px; color: var(--mut); }
+#pause-menu .sp-cat .sp-cbar { width: 76px; flex: none; }
+#pause-menu .sp-empty { padding: 2px 24px 14px; margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
+#pause-menu .sp-detail-cat { display: inline-flex; align-items: center; gap: 10px; }
+#pause-menu .sp-detail-cat .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .sp-detail-sub { font-size: 22px; line-height: 1.35; color: var(--ink); }
 /* Samen spelen (#527): de hub met drie stappen in het vak van Spel > Samen spelen. Zelfde maten en knoppen als de
    lobby eronder (.m-bp/.m-bg), zodat het als een scherm voelt en niet als een tweede menu. */
-#pause-menu .pm-hub { display: flex; flex-direction: column; gap: 12px; }
-#pause-menu .pm-hub-stappen { display: flex; flex-wrap: wrap; gap: 8px; }
+#pause-menu .pm-hub { display: flex; flex: none; flex-direction: column; gap: 14px; }
+#pause-menu .pm-hub-hero { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 16px 24px; border-radius: 12px; background: linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.86)); box-shadow: inset 0 0 0 1px var(--line2); overflow: hidden; }
+#pause-menu .pm-hub-hero::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--g); }
+#pause-menu .pm-hub-hero-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .pm-hub-hero-hint { margin: 0; max-width: 720px; font-size: 18px; line-height: 1.4; color: var(--mut); }
+#pause-menu .pm-hub-stappen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 #pause-menu .pm-hub-inhoud { display: flex; flex-direction: column; gap: 12px; }
-#pause-menu .pm-hub-stap { display: inline-flex; align-items: center; gap: 8px; }
-#pause-menu .pm-hub-stap[aria-current="step"] { box-shadow: inset 0 0 0 2px var(--g, #3fc97a); }
-#pause-menu .pm-hub-nr { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(240, 237, 228, 0.14); font-family: 'Barlow', Arial, sans-serif; font-size: 14px; }
+#pause-menu .pm-hub-stap { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 16px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .pm-hub-stap[data-staat="klaar"] { color: var(--g); opacity: 0.85; }
+#pause-menu .pm-hub-stap[data-staat="straks"] { opacity: 0.55; }
+#pause-menu .pm-hub-stap[aria-current="step"] { color: var(--ink); box-shadow: inset 0 0 0 2px var(--g, #3fc97a); opacity: 1; }
+#pause-menu .pm-hub-nr { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(240, 237, 228, 0.14); font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; }
+#pause-menu .pm-hub-stap[aria-current="step"] .pm-hub-nr { background: var(--g); color: #0c140e; }
 #pause-menu .pm-hub-teller { margin: 0; font-size: 17px; }
 #pause-menu .pm-hub-keuzes { display: flex; flex-direction: column; gap: 10px; }
-#pause-menu .pm-hub-keuze { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; max-width: 760px; padding: 16px 18px; border: 0; border-radius: 8px; background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); color: inherit; font: inherit; text-align: left; cursor: pointer; }
-#pause-menu .pm-hub-keuze:hover { background: rgba(240, 237, 228, 0.12); }
+#pause-menu .pm-hub-keuze { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; gap: 2px 14px; width: 100%; max-width: 820px; padding: 14px 18px; border: 0; border-radius: 10px; background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+#pause-menu .pm-hub-keuze:hover { background: rgba(240, 237, 228, 0.12); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.55); }
 #pause-menu .pm-hub-keuze:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
 #pause-menu .pm-hub-keuze.pm-hub-uit { opacity: 0.55; cursor: default; }
-#pause-menu .pm-hub-kt { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
-#pause-menu .pm-hub-keuze small { font-size: 17px; line-height: 1.35; opacity: 0.85; }
-#pause-menu .pm-hub-rijen { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; max-width: 760px; }
-#pause-menu .pm-hub-rijen li { font-size: 20px; line-height: 1.35; }
+#pause-menu .pm-hub-ico { grid-row: 1 / span 2; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(63, 201, 122, 0.14); color: var(--g); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; line-height: 1; }
+#pause-menu .pm-hub-kt { display: block; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; line-height: 1.05; letter-spacing: 0.04em; }
+#pause-menu .pm-hub-staat { justify-self: end; align-self: start; padding: 2px 10px; border-radius: 999px; font-size: 14px; color: var(--mut); box-shadow: inset 0 0 0 1px var(--line2); white-space: nowrap; }
+#pause-menu .pm-hub-keuze[data-keuze="meedoen"] .pm-hub-ico, #pause-menu .pm-hub-keuze[data-keuze="hosten"] .pm-hub-ico { background: rgba(63, 201, 122, 0.2); }
+#pause-menu .pm-hub-keuze:not(.pm-hub-uit) .pm-hub-staat { color: var(--g); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.55); }
+#pause-menu .pm-hub-keuze small { grid-column: 2 / -1; font-size: 17px; line-height: 1.35; opacity: 0.85; }
+#pause-menu .pm-hub-rijen { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; max-width: 820px; }
+#pause-menu .pm-hub-rijen li { display: flex; align-items: baseline; gap: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(240, 237, 228, 0.04); font-size: 20px; line-height: 1.35; }
+#pause-menu .pm-hub-rijen li::before { flex: none; width: 20px; text-align: center; color: var(--g); }
+#pause-menu .pm-hub-rijen li[data-hub-rij="rol"]::before { content: '›'; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="spelers"]::before { content: '•'; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="code"]::before { content: '#'; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="openbaar"]::before { content: '◎'; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="besloten"]::before { content: '·'; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="gasten"]::before { content: '+'; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="eerder"]::before { content: '↺'; }
 #pause-menu .pm-hub-rijen li[data-hub-rij="code"] { font-family: Consolas, 'Courier New', monospace; letter-spacing: 0.02em; }
 #pause-menu .pm-hub-uitleg { margin: 0; max-width: 720px; font-size: 18px; line-height: 1.4; opacity: 0.85; }
-#pause-menu .pm-hub-knoppen { display: flex; flex-wrap: wrap; gap: 12px; }
+#pause-menu .pm-hub-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+#pause-menu .pm-hub-primary { order: -1; }
+#pause-menu .pm-hub-veilig { margin: 0; font-size: 16px; line-height: 1.35; color: var(--mut); }
 
 /* #604: "Standaard herstellen" vraagt eerst (met een lijst van wat teruggaat) en kan daarna ongedaan
    gemaakt worden; de twee stroken staan boven de tabbladen van Instellingen. */
@@ -619,3 +903,61 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 .coop-kleur-stip { font-size: 0.9em; }
 .coop-kleur-0 { color: #4fb3ff; } .coop-kleur-1 { color: #5bd6a0; } .coop-kleur-2 { color: #f2b134; } .coop-kleur-3 { color: #ff9a62; }
 .coop-kleur-4 { color: #ff7ab8; } .coop-kleur-5 { color: #b78cff; } .coop-kleur-6 { color: #e86a6a; } .coop-kleur-7 { color: #6fd3e0; }
+/* 1280x720 en 1366x768 (visuele QA van #911): de beelden lieten zien dat de rail onderaan afkapte, de
+   decoratieve rechterkolom van een instellingentab buiten het blad viel en een lange lijst
+   (Spel > Opslaan & stoppen) half onder de paneelrand verdween. Drie regels lossen dat op:
+   de rail krijgt compactere rijen en koppen zodat alle twaalf onderdelen passen, de
+   rechterkolom verdwijnt waar geen breedte voor is, en de lijst krijgt lucht, kleinere rijen
+   en een zichtbare scrollbalk. */
+@media (max-height: 820px) {
+  /* de rail: twaalf rijen van 40 px met drie koppen en de voet passen op een 864-px-stage */
+  #pause-menu .pm-rail { --ra-h: 40px; }
+  #pause-menu .ra { font-size: 22px; gap: 12px; }
+  #pause-menu .ra .ra-ic { width: 20px; height: 20px; }
+  #pause-menu .pm-logo { font-size: 44px; }
+  #pause-menu .pm-q-head { padding-bottom: 6px; }
+  #pause-menu .pm-q-info { font-size: 15px; margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #pause-menu .pm-rail-h { padding: 2px 16px 1px 24px; font-size: 13px; }
+  #pause-menu .pm-rail-h .cnt { font-size: 13px; }
+  #pause-menu .pm-rail-sp { height: 10px; }
+  #pause-menu .pm-ver { font-size: 14px; padding-top: 6px; }
+
+  /* het blad: de kop staat naast de titel in plaats van eronder (#463 deed dat voor de leesbaarheid
+     onder elkaar, maar op 720p kost dat 70 px die de lijst nodig heeft), een kleinere titel en een
+     kortere tabrij */
+  #pause-menu .pm-sheet-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 20px 40px 0; }
+  #pause-menu .pm-sheet-title { font-size: 52px; }
+  #pause-menu .pm-sheet-r { flex: 0 1 46%; margin-top: 0; padding-bottom: 2px; }
+  #pause-menu .pm-sheet-pos { font-size: 13px; }
+  #pause-menu .pm-sheet-sub { font-size: 15px; line-height: 1.3; text-align: right; }
+  #pause-menu .m-tabs { margin: 14px 40px 0; }
+  #pause-menu .m-tab { height: 44px; font-size: 22px; }
+  #pause-menu .m-tab small { font-size: 15px; }
+
+  /* de lijst: kleinere rijen en koppen, minder vulsel, en een scrollbalk die je ziet */
+  #pause-menu .m-main, #pause-menu .pm-settab:not([hidden]) { padding: 14px 40px 16px; }
+  #pause-menu .pm-slist .m-li { min-height: 42px; }
+  #pause-menu .pm-slist .m-li .nm { padding: 4px 0; line-height: 1.25; }
+  #pause-menu .pm-slist .m-li .nm > .mut { font-size: 16px; }
+  #pause-menu .pm-slist .m-gh { padding: 8px 24px 2px; font-size: 15px; }
+  #pause-menu .pm-slist .m-gh span:last-child:not(:first-child) { font-size: 14px; }
+  #pause-menu .pm-slist .pm-status { margin: 2px 24px 4px; font-size: 16px; }
+  #pause-menu .pm-slist .m-note { padding: 8px 24px; font-size: 16px; }
+  #pause-menu .pm-slist, #pause-menu .m-list { scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.26) transparent; }
+  #pause-menu .pm-slist::-webkit-scrollbar, #pause-menu .m-list::-webkit-scrollbar { width: 8px; }
+  #pause-menu .pm-slist::-webkit-scrollbar-thumb, #pause-menu .m-list::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240, 237, 228, 0.26); }
+  #pause-menu .pm-slist::-webkit-scrollbar-track, #pause-menu .m-list::-webkit-scrollbar-track { background: transparent; }
+  /* loopt een lijst verder dan het blad, dan vervaagt de onderste rand: dat leest als "er is
+     meer" in plaats van als een half afgekapte rij (de scrollbalk staat er ook) */
+  #pause-menu .pm-settab .pm-slist { mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) calc(100% - 26px), rgba(0, 0, 0, 0)); }
+
+  /* de moeilijkheidkaarten: twee kolommen naast elkaar in plaats van drie die net niet passen */
+  #pause-menu .pm-diff { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin: 0 24px 12px; }
+}
+
+/* Onder 1440 px breed is er geen ruimte voor de decoratieve rechterkolom van een
+   instellingentab; die viel buiten het blad en kapte af. De lijst krijgt die breedte. */
+@media (max-width: 1440px) {
+  #pause-menu .pm-settab > .m-pane { display: none; }
+  #pause-menu .pm-settab .pm-slist { width: auto; flex: 1 1 auto; max-width: 100%; padding-right: 0; margin-left: 0; }
+}

@@ -1566,7 +1566,7 @@ function startMission(world, def) {
   if (def.crowds) lanes.spawnCrowds(world, def);
   const i = chainState().index;
   const code = missionCode(i);
-  const kicker = code ? `Missie ${code}` : def.side ? 'Zijmissie' : `Missie ${i + 1}/${chainState().defs.length}`;
+  const kicker = def.side ? 'Zijmissie' : 'Missie';
   const title = def.label;
   const objective = chainState().vehicle || def.dest || (def.waypoints && def.waypoints[0]) || def.start;
   const shown = playStoryIntro(world, i, { stage: storyStage(i), short: chainState().seen.has(i), kicker, title, target: objective });

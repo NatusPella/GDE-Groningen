@@ -8,7 +8,7 @@ import { createSharedPreview, renderSnapshot, PORTRAIT_ANGLE } from './vehiclepr
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { NPC } from './missionstory.js';
 import { getStorySteps, getStoryJournal } from './story.js';
-import { PARTS, CLUES, WHY } from './storyarc.js';
+import { PARTS, CLUES, WHY, partName } from './storyarc.js';
 import { speakerColor } from './speakers.js';
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
@@ -92,6 +92,26 @@ const CSS = `
 #pause-menu .vh-plakje[data-state="geblokkeerd"] b::after { content: ' · geblokkeerd'; color: var(--mk-mission, #e8c93a); }
 #pause-menu .vh-plakje[data-state="open"] b::after { content: ' · nog open'; color: var(--mut); }
 #pause-menu .vh-clue[data-new] b::after { content: ' nieuw'; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); }
+/* #904: de kop van Personages en Aanwijzingen is één rustige strook met de stand erin; de
+   geschiedenis en de aanwijzingen krijgen daardoor een begin in plaats van een lijst die maar loopt. */
+#pause-menu .vh-hero { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 14px 18px; border-radius: 12px; background: linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.86)); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .vh-hero-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; }
+#pause-menu .vh-hero-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .vh-hero .m-bar { width: 100%; max-width: 420px; height: 6px; }
+#pause-menu .vh-hero p { margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
+#pause-menu .vh-hero-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 16px; color: var(--mut); }
+#pause-menu .vh-party { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+#pause-menu .vh-party b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.02em; color: var(--ink); }
+#pause-menu .vh-facts { grid-template-columns: auto minmax(0, 1fr); }
+#pause-menu .vh-clue-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+#pause-menu .vh-clue-kind { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
+#pause-menu .vh-clue[data-kind="hart"] .vh-clue-kind { color: var(--mk-care, #ff5fb4); }
+#pause-menu .vh-part { position: relative; }
+#pause-menu .vh-part[data-cur] { box-shadow: inset 3px 0 0 var(--g); padding-left: 14px; }
+#pause-menu .vh-summary { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; padding: 14px 18px; border-radius: 12px; background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.45); }
+#pause-menu .vh-summary b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 30px; letter-spacing: 0.03em; }
+#pause-menu .vh-summary p { margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
+#pause-menu .vh-summary .m-bar { width: 100%; max-width: 420px; height: 6px; }
 `;
 
 let styled = false;
@@ -146,7 +166,8 @@ function missionChips(c) {
   if (!list.length) return '';
   return '<div class="vh-miss">' + list.map((s) => {
     const st = s.done ? 'klaar' : s.current ? 'nu' : 'later';
-    return `<span data-st="${st}" title="${esc(s.title)}">${esc(s.id)}${st === 'klaar' ? ' ✓' : ''}</span>`;
+    const staat = st === 'klaar' ? ' ✓' : st === 'nu' ? ' · nu' : '';
+    return `<span data-st="${st}">${esc(s.title)}${staat}</span>`;
   }).join('') + '</div>';
 }
 
@@ -166,7 +187,7 @@ function viewerHtml(c) {
     `<div><span class="vh-kicker">${esc(c.role)}</span><h3>${esc(c.name)}</h3></div>` +
     `<p class="vh-quote" style="--spk:${speakerColor(c.speakers[0])}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p>` +
     `<p class="vh-bio">${esc(c.bio)}</p>` +
-    `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen</dt><dd>${steps}</dd>` : ''}</dl>` +
+    `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen in</dt><dd>${steps}</dd>` : ''}</dl>` +
     '<div class="vh-phone" data-vh-phone></div>';
 }
 
@@ -237,7 +258,11 @@ const SIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" 
 function peopleHtml() {
   const n = metCount();
   const unknown = CHARACTERS.length - n;
-  return `<div class="vh-layout"><div class="vh-left">${inboxHtml()}<div class="m-gh"><span>Personages</span><span>${n} van ${CHARACTERS.length} ontmoet · wie je spreekt, komt erbij</span></div><div class="vh-grid">${knownCharacters().map(charCard).join('')}${overigCard()}</div>` +
+  const pct = CHARACTERS.length ? Math.round((n / CHARACTERS.length) * 100) : 0;
+  return `<div class="vh-layout"><div class="vh-left">${inboxHtml()}<section class="vh-hero" aria-label="Personages"><div class="vh-hero-top"><span class="m-eb">Personages</span><span class="vh-party"><b>${n}</b> van ${CHARACTERS.length} ontmoet</span></div>` +
+    `<span class="m-bar on" aria-hidden="true"><i data-bar="people" data-w="${pct}"></i></span>` +
+    '<p>Wie je spreekt, komt erbij. De rest van Grunn leer je onderweg kennen.</p></section>' +
+    `<div class="vh-grid">${knownCharacters().map(charCard).join('')}${overigCard()}</div>` +
     (unknown > 0 ? `<p class="vh-unknown">${SIL}<span>${esc(unknownLine(unknown))}</span></p>` : '') +
     '</div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>';
 }
@@ -266,7 +291,11 @@ function cluesHtml() {
   const jr = getStoryJournal();
   const found = new Map(jr.found.map((c) => [c.title, c]));
   const cur = steps.find((s) => s.current);
-  return '<div class="vh-parts">' + plakjesHtml(jr.plakjes) + partOrder(steps, found, cur).map((part) => { // waar je bent en wat je vond bovenaan (#435)
+  const pct = jr.total ? Math.round((jr.found.length / jr.total) * 100) : 0;
+  const kop = `<section class="vh-summary" aria-label="Aanwijzingen"><div class="vh-hero-top"><span class="m-eb">Aanwijzingen</span><span class="vh-party"><b>${jr.found.length}</b> van ${jr.total} gevonden</span></div>` +
+    `<span class="m-bar on" aria-hidden="true"><i data-bar="clues-all" data-w="${pct}"></i></span>` +
+    `<p>${cur ? `Je bent in ${esc(partName(cur.part))}. ` : ''}Wat je vindt, staat per hoofdstuk; het nieuwste bovenaan.</p></section>`;
+  return '<div class="vh-parts">' + kop + plakjesHtml(jr.plakjes) + partOrder(steps, found, cur).map((part) => { // waar je bent en wat je vond bovenaan (#435)
     const list = steps.filter((s) => s.part === part);
     const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
     if (!clues.length) return '';
@@ -274,16 +303,17 @@ function cluesHtml() {
     const open = list.some((s) => s.available);
     const here = cur && cur.part === part;
     if (!open && !known.length) return '';
-    return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(PARTS[part].title)}</span><span>${known.length} van ${clues.length}</span></div>` +
-      `<span class="m-bar vh-pbar"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +
+    return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(partName(part))}${here ? ' · nu' : ''}</span><span>${known.length} van ${clues.length}</span></div>` +
+      `<span class="m-bar vh-pbar${known.length ? ' on' : ''}"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +
       (here && WHY[part] ? `<p class="vh-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '') +
-      // per opdracht gegroepeerd, de nieuwste opdracht eerst (#435)
+      // per opdracht gegroepeerd, de nieuwste opdracht eerst (#435); de opdrachttitel is de
+      // enige aanduiding, geen missienummer (#913)
       '<div class="vh-clues">' + [...list].reverse().map((st) => {
         const mine = clues.filter((c) => c.step === st.id && found.has(c.title));
         if (!mine.length) return '';
         return `<div class="vh-gk"><span>${esc(st.title)}</span>${mine.some((c) => found.get(c.title).isNew) ? '<em>nieuw</em>' : ''}</div>` + mine.map((c) => {
           const f = found.get(c.title);
-          return `<div class="vh-clue"${f.isNew ? ' data-new' : ''}><b>${c.kind === 'hart' ? '<em>&#9829;</em>' : ''}${esc(c.title)}</b><p>${esc(c.text)}</p></div>`;
+          return `<div class="vh-clue" data-kind="${c.kind}"${f.isNew ? ' data-new' : ''}><div class="vh-clue-head"><span class="vh-clue-kind">${c.kind === 'hart' ? 'Keerpunt' : 'Aanwijzing'}</span><b>${esc(c.title)}</b></div><p>${esc(c.text)}</p></div>`;
         }).join('');
       }).join('') +
       // de nog niet gevonden aanwijzingen als één rustige regel, geen muur van vraagtekens (#92)
@@ -311,6 +341,7 @@ export function renderVerhaal(panel, view, w = null) {
     return;
   }
   el.innerHTML = peopleHtml();
+  fillBars(el, bars);
   loadPics(el);
   if (!CHARACTER_BY_ID.has(selected) && selected !== OVERIG) selected = 'tammo';
   selectCharacter(el, selected);

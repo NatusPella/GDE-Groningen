@@ -17,7 +17,9 @@ console.log(`#661 meting mist: upload ${(uploadFraction(r, W, H) * 100).toFixed(
 ok(FOG_SAVE_MS === 15000, 'opslaginterval 15 s', FOG_SAVE_MS);
 ok(!fogSaveDue(1000, 2000) && fogSaveDue(2001, 2000), 'opslagtimer');
 const src = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
-ok(/putImageData\(f\.img, 0, 0, r\.x0, r\.y0, r\.w, r\.h\)/.test(src), 'mapview uploadt alleen de rechthoek');
-ok(/fogSaveDue\(now, f\.saveAt\)/.test(src), 'mapview gebruikt het nieuwe opslaginterval');
+// #899 verving de oude mistlaag over de stad door de kaartontdekking per buurt; de
+// rekenregels van #661 blijven als pure helper bestaan, de kaart gebruikt ze niet meer.
+ok(!src.includes('initFog(') && !src.includes('FOG_SAVE_MS'), 'de oude mistlaag is uit de kaart');
+ok(src.includes("from './kaartontdekking.js'") && src.includes('drawDiscovery('), 'de kaart gebruikt de nieuwe kaartontdekking (#899)');
 console.log(`${n - fails}/${n} mapfog`);
 process.exit(fails ? 1 : 0);

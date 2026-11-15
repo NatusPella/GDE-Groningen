@@ -994,8 +994,7 @@ function ribbonClip(r, rs, kind) {
     }
     return out;
   };
-  const lanesBelow = (segs, px, py, h) => {
-    for (let m = 0; m < segs.length; m += 3) {
+  const lanesBelow = (segs, px, py, h) => {    for (let m = 0; m < segs.length; m += 3) {
       const o = segs[m], i = segs[m + 1], ho = segs[m + 2], Q = o.pts;
       const cp = closestPointOnSegment(px, py, Q[i][0], Q[i][1], Q[i + 1][0], Q[i + 1][1]);
       if (cp.dist2 >= ho * ho) continue;
@@ -1004,6 +1003,9 @@ function ribbonClip(r, rs, kind) {
     }
     return false;
   };
+  // a road with a real height profile is a bridge or a viaduct, also where its
+  // own profile is still at street level: keep its surface over the water (#884)
+  const profiled = !!(r.z && r.z.length && r.z.some((v) => Math.abs(v) >= 0.02));
   const at = (x, y, mx, my, k, t) => {
     const ml = Math.hypot(mx, my) || 1, reach = half * ml;
     // (at an end along its miter: a way carrying on from there shares it, so
@@ -1013,8 +1015,9 @@ function ribbonClip(r, rs, kind) {
     const res = [half, half];
     const zr = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
     const level = index && Math.abs(zr) < 0.3;
-    // (a path drawn out over the water without a bridge: nothing there)
-    if (level && index.inWater(x, y)) return [0, 0];
+    // (a path drawn out over the water without a bridge: nothing there; a
+    // bridge deck, or a profiled approach, is exactly what carries it over, #884)
+    if (level && !r.bridge && !profiled && index.inWater(x, y)) return [0, 0];
     if (level) {
       for (let j = 0; j < 2; j++) {
         const sg = j ? -1 : 1, ux = mx / ml * sg, uy = my / ml * sg, probe = reach + SHORE_INSET + 0.1;

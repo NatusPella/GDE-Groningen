@@ -196,18 +196,43 @@ export function regionAt(x, y) {
   return { id, name: r.name, land: r.land };
 }
 
-// The name to show for a spot: { name, sub, region, near } - the place (and its
-// district) where one is near, else the region's name; the sea by its own name.
+// De leesbare naam van een streek-id (voor de hover bij de buren, #887).
+export const regionName = (id) => (REGIONS[id] ? REGIONS[id].name : '');
+
+// De landstreek buiten de provincie op een plek (friesland, drenthe of duitsland) en
+// 'groningen' binnen de provincie. Voor de hover bij de buren (#887).
+export function landRegionAt(x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  if (inRing(x, y, S.outline, S.outlineBox)) return 'groningen';
+  const [la, lo] = worldToWgs(x, y);
+  return landKind(la, lo);
+}
+
+// De naam van het gebied onder een plek, zonder ooit een dorp van de overkant te lenen (#887):
+// op water en in een buurprovincie is dat de zee of de streek zelf, in Groningen de plaats (en
+// de wijk) waar je bent. `near` betekent: geen plaats binnen bereik, alleen het open gebied.
 export function areaNameAt(x, y) {
   const r = regionAt(x, y);
-  if (!r.land) return { name: r.name, sub: '', region: r.id, near: false };
+  if (!r.land) return { name: r.name, sub: 'Water', region: r.id, near: false };
+  // een eiland of een stuk buurland is geen Gronings dorp: nooit 'bij Warffum' op de Wadden (#887)
+  if (r.id !== 'groningen') return { name: r.name, sub: 'Buiten de provincie', region: r.id, near: false };
+  // de kuststrook van de landraster valt soms net naast het land: geen dorp van de overkant lenen
+  if (!provinceLandAt(x, y)) return { name: r.name, sub: '', region: r.id, near: false };
   const w = worldPlaceAt(x, y);
-  const open = r.id === 'groningen' ? 'Ommeland' : r.name;
   if (w && w.place && !w.near) {
-    return { name: w.district || w.place, sub: w.district ? w.place : r.id === 'groningen' ? '' : r.name, region: r.id, near: false };
+    return { name: w.district || w.place, sub: w.district ? w.place : '', region: r.id, near: false };
   }
   // out in the open: the region, with the place it lies near
-  return { name: open, sub: w && w.place ? `bij ${w.place}` : '', region: r.id, near: true };
+  return { name: 'Ommeland', sub: w && w.place ? `bij ${w.place}` : '', region: r.id, near: true };
+}
+
+// De plaatsnaam bij een plek in Groningen (voor de hover bij een weg: straat + plaats, #887);
+// in een buurprovincie of op zee de naam van dat gebied.
+export function placeNameAt(x, y) {
+  const r = regionAt(x, y);
+  if (!r.land || r.id !== 'groningen' || !provinceLandAt(x, y)) return r.name;
+  const w = worldPlaceAt(x, y);
+  return w && w.place ? w.place : 'Ommeland';
 }
 
 // A Path2D of the sea (islands cut out), built once.
@@ -274,7 +299,9 @@ export function drawSea(ctx, px, { fill = SEA_FILL, edge = SEA_EDGE } = {}) {
 // Over the map's vectors, world-transformed: the outside of the province
 // darker, and the land borders as a line in the colour of the region beyond.
 // frame: the world box the tint covers. px(n): n screen pixels in metres.
-export function drawOutside(ctx, frame, px, { tint = TINT, border = true, width = 2.2 } = {}) {
+// dash: false tekent de grens doorgetrokken; de minikaart doet dat (#885), want
+// streeplengtes die met de zoom meekrimpen lieten de lijn heen en weer kruipen.
+export function drawOutside(ctx, frame, px, { tint = TINT, border = true, width = 2.2, dash = true } = {}) {
   const [x0, y0, x1, y1] = frame;
   ctx.save();
   ctx.fillStyle = tint;
@@ -291,7 +318,7 @@ export function drawOutside(ctx, frame, px, { tint = TINT, border = true, width 
       ctx.lineWidth = px(width + 2);
       ctx.stroke();
       ctx.strokeStyle = BORDER_COLOR[L.kind] || INK.borderOther;
-      ctx.setLineDash([px(width * 4), px(width * 2.2)]);
+      ctx.setLineDash(dash ? [px(width * 4), px(width * 2.2)] : []);
       ctx.lineWidth = px(width);
       ctx.stroke();
       ctx.setLineDash([]);

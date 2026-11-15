@@ -161,9 +161,9 @@ function missionItems(world) {
     return {
       key: 'm:' + i, group: 'missies', icon: 'mi-' + i, title: m.label, code: m.code || '', meta, status,
       medal: g && status !== 'later' ? (rec ? rec.medal : 0) : null, record: status === 'later' ? '' : record, x: m.start.x, y: m.start.y, mission: i, needs: m.needs,
-      goal: step && step.current && !active ? 'story' : { kind: 'mission', id: i, name: m.code ? `${m.code} · ${m.label}` : m.label, sub: place, x: def.start.x, y: def.start.y },
+      goal: step && step.current && !active ? 'story' : { kind: 'mission', id: i, name: m.label, sub: place, x: def.start.x, y: def.start.y },
       detail: {
-        kicker: [m.code, m.done ? 'klus' : 'missie', play && `speel als ${play}`].filter(Boolean).join(' · '),
+        kicker: [m.done ? 'klus' : 'missie', play && `speel als ${play}`].filter(Boolean).join(' · '),
         text: step && step.lead && (m.done || status === 'nu') ? step.lead : status === 'later' ? 'Dit deel van het verhaal komt later. Je kunt hem nu al spelen, maar dan hoor je dingen die nog niet gebeurd zijn.' : '',
         rows, medals: g ? medalRows(g, left) : null,
       },
@@ -559,7 +559,7 @@ export function chooseTodo(world, it, after = null) {
   if (!it || !it.goal) return false;
   if (it.goal === 'story') {
     clearGoal({ quiet: true });
-    world.addMessage(`Route naar het verhaal: ${it.code ? it.code + ' · ' : ''}${it.title}`, 3, { kind: 'missie', key: 'goal' });
+    world.addMessage(`Route naar het verhaal: ${it.title}`, 3, { kind: 'missie', key: 'goal' });
     if (after) after();
     return true;
   }
@@ -590,13 +590,13 @@ export function playMission(world, i, after = null) {
   const cur = getStorySteps().find((s) => s.current && s.mission === i);
   if (cur) {
     clearGoal({ quiet: true });
-    world.addMessage(`Route naar ${m.code || m.label}`, 3, { kind: 'missie', key: 'goal' });
+    world.addMessage(`Route naar ${m.label}`, 3, { kind: 'missie', key: 'goal' });
     if (after) after();
     return true;
   }
   const go = () => {
     trackMission(world, i);
-    world.addMessage(m.done ? `Klus: ${m.label} (${'€' + m.klusloon})` : `Doel: ${m.code ? m.code + ' · ' : ''}${m.label}`, 3, { kind: 'missie', key: 'goal' });
+    world.addMessage(m.done ? `Klus: ${m.label} (${'€' + m.klusloon})` : `Doel: ${m.label}`, 3, { kind: 'missie', key: 'goal' });
     if (after) after();
   };
   const ahead = storyMissionAhead(i);
@@ -658,10 +658,10 @@ function closeDialog(go) {
 function confirmPlayAhead(world, ahead, onGo) {
   if (!dlg) dlg = buildDialog();
   const el = dlg.el;
-  el.querySelector('#ga-title').textContent = `${ahead.code} nu al spelen?`;
+  el.querySelector('#ga-title').textContent = 'Deze missie nu al spelen?';
   el.querySelector('.ga-text').textContent = `${ahead.title} ligt verder in het verhaal. Speel je hem nu, dan loopt het verhaal door elkaar: je krijgt dingen te horen die nog niet gebeurd zijn.`;
-  el.querySelector('.ga-now').textContent = `Je verhaal staat op ${ahead.now.code ? ahead.now.code + ' · ' : ''}${ahead.now.title}.`;
-  el.querySelector('[data-ga="go"]').textContent = `Toch ${ahead.code} spelen`;
+  el.querySelector('.ga-now').textContent = `Je verhaal staat op ${ahead.now.title}.`;
+  el.querySelector('[data-ga="go"]').textContent = 'Toch deze missie spelen';
   dlg.onGo = onGo;
   dlg.world = world;
   dlg.prevFocus = document.activeElement;

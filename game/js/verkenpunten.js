@@ -40,6 +40,20 @@ export function installeerUitkijkpunten(map, kits, { plekken = MENU_PLEKKEN, str
   return punten;
 }
 
+// De hover bij een uitkijkpunt (#902): welk gebied je ermee opent en waarom je erheen
+// gaat. De streeknaam staat er ook als je hem nog niet kent: het punt is juist hoe je
+// hem ontdekt (de #825-laag verbergt de namen van de streken zelf, niet dit punt).
+export function viewpointHover(point, { known = false, used = false, bonus = TRAVEL_BONUS } = {}) {
+  const naam = point ? point.streekNaam || areaName(point.streek) : '';
+  const waar = naam ? ` · ${naam}` : '';
+  const pct = Math.round((Number.isFinite(bonus) ? bonus : TRAVEL_BONUS) * 100);
+  let sub;
+  if (used) sub = `Uitkijkpunt${waar} (gebruikt): de streek staat op je kaart`;
+  else if (known) sub = `Uitkijkpunt${waar}: beklim hem voor de stempel en ${pct}% sneller reizen`;
+  else sub = `Uitkijkpunt${waar}: vanaf hier ontdek je de streek op je kaart`;
+  return { main: point && point.naam ? point.naam : 'Uitkijkpunt', sub };
+}
+
 // Het album: hoeveel herkenningspunten per streek, en hoeveel daarvan kerk, molen of borg zijn.
 export function albumStand(landmarks = [], streken = STREKEN, streekAtFn = null) {
   const per = new Map(streken.map((s) => [s.id, { totaal: 0, kerk: 0, molen: 0, borg: 0 }]));
