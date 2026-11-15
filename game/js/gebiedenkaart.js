@@ -53,7 +53,7 @@ export function tekenVlag(ctx, x, y, s, kleur) {
   ctx.fill();
   ctx.beginPath();
   ctx.moveTo(x, y); ctx.lineTo(x, y - s);
-  ctx.strokeStyle = '#f2ead8'; ctx.lineWidth = Math.max(1.4, s * 0.12); ctx.stroke();
+  ctx.strokeStyle = '#f0ede4'; ctx.lineWidth = Math.max(1.4, s * 0.12); ctx.stroke();
   ctx.restore();
 }
 
@@ -97,12 +97,12 @@ export function statusRegels(lijst, max = 3) {
   gestart.sort((a, b) => (b.voltooid - a.voltooid) || (b.deel - a.deel) || (b.totaal - a.totaal) || a.gebied.naam.localeCompare(b.gebied.naam, 'nl'));
   return gestart.slice(0, Math.max(0, max)).map((r) => ({
     tekst: `${r.gebied.naam} · ${r.voltooid ? 'veroverd' : `${r.klaar} van ${r.totaal} · ${r.pct}%`}`,
-    kleur: r.voltooid ? r.vlag : '#f2ead8',
+    kleur: r.voltooid ? r.vlag : '#f0ede4',
   }));
 }
 
 // Het uiterlijk van een gebied: { vul, alpha, lijn, lijnAlpha, breed, streep } (breed: veelvoud van lijnDikte; streep: gestippeld).
-export function stijl(r, kleurTekst = '#f2ead8') {
+export function stijl(r, kleurTekst = '#f0ede4') {
   if (r.voltooid) return { vul: r.vlag, alpha: 0.38, lijn: r.vlag, lijnAlpha: 1, breed: 1.8, streep: false };
   if (r.veroverbaar && r.klaar > 0) return { vul: r.kleur, alpha: Math.max(0.24, r.alpha + 0.1), lijn: r.kleur, lijnAlpha: 0.95, breed: 1.3, streep: false };
   if (r.veroverbaar) return { vul: null, alpha: 0, lijn: kleurTekst, lijnAlpha: 0.7, breed: 1, streep: true };
@@ -135,7 +135,7 @@ function lijn(ctx, s, breed, dikte, streep) {
 
 // Tekent de laag op de statische overlay van de grote kaart. toScreen(x, y) -> [sx, sy]; scale: px per meter; hover: de lijst van aanwijsbare dingen van
 // mapview.js; label(ctx, tekst, x, y, kleur, uitlijning) tekent een naam met rand. Geeft de naam van de getoonde laag (voor de legenda).
-export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurTekst = '#f2ead8') {
+export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurTekst = '#f0ede4') {
   const { lijst, typisch } = kaartLaag();
   if (!lijst.length) return null;
   const hoofd = kiesLaag(typisch, scale);
@@ -220,7 +220,7 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
 }
 
 // De legenda linksonder: welke laag je ziet en wat de drie toestanden zijn.
-export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = '#f2ead8') {
+export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = '#f0ede4') {
   if (!hoofd) return;
   const x = 16, rij = 20, h = 30 + rij * 3 + 8, y = ch - 56 - h;
   ctx.save();
@@ -271,7 +271,7 @@ export function tekenVeroverdMini(ctx, scale, px, py, straal) {
       ctx.globalAlpha = s.lijnAlpha; ctx.strokeStyle = s.lijn; ctx.lineWidth = dikte * s.breed; ctx.stroke();
       ctx.setLineDash([]);
     } else {
-      ctx.globalAlpha = 0.85; ctx.strokeStyle = r.voltooid ? r.vlag : '#f2ead8'; ctx.lineWidth = dikte * 2; ctx.stroke();
+      ctx.globalAlpha = 0.85; ctx.strokeStyle = r.voltooid ? r.vlag : '#f0ede4'; ctx.lineWidth = dikte * 2; ctx.stroke();
     }
   }
   ctx.restore();
