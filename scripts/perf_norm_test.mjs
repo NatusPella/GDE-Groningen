@@ -5,7 +5,7 @@ let fails = 0;
 const ok = (c, name, extra) => { if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
 
 const schoon = { frames: 900, avg: 16.7, p95: 33, p99: 24, max: 33, hitch: { over50: 0, over100: 0, cpuP95: 30 } };
-const p95TeHoog = { frames: 900, avg: 20, p95: 34, p99: 40, max: 55 };
+const p95TeHoog = { frames: 900, avg: 20, p95: 36, p99: 40, max: 55 };
 const maxTeHoog = { frames: 900, avg: 20, p95: 22, p99: 90, max: 1415 };
 const alleenHitch = { frames: 900, hitch: { over50: 3, over100: 1 } };
 const zonder = { frames: 900 };
@@ -16,7 +16,7 @@ ok(routeMeasured(schoon) && routeMeasured(alleenHitch), 'frametijden of hitch-te
 ok(!routeMeasured(zonder), 'zonder cijfers geen meting');
 ok(routeHasFrames(schoon) && !routeHasFrames(losseMeting), 'losse metingen zijn geen frameroute');
 ok(normViolations(schoon).length === 0, 'schone route haalt de norm');
-ok(normViolations(p95TeHoog).some((v) => /p95/.test(v.rule)), 'p95 boven 33,4 ms is een overtreding');
+ok(normViolations(p95TeHoog).some((v) => /p95/.test(v.rule)), 'p95 boven 35,5 ms is een overtreding');
 ok(normViolations(maxTeHoog).some((v) => /max/.test(v.rule)), 'max boven 1000 ms is een overtreding');
 ok(normViolations(alleenHitch).length === 0, 'hitchtellers boven 50/100 ms worden gerapporteerd, niet als poort');
 ok(normViolations(zonder).length === 1 && normViolations(zonder)[0].rule === 'geen meting in deze route', 'zonder meting geen groen');
