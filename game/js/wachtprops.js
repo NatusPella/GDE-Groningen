@@ -6,7 +6,7 @@
 //
 // De keuze is puur (waitDressingFor) en met een test na te spelen; het tekenen
 // heeft three.js en de scène nodig.
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 
 const KINDS = [

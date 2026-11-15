@@ -1,5 +1,5 @@
 import { hoofdspeler } from './players.js';
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPerson, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
@@ -112,9 +112,9 @@ function buildBarnSign(S) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 160;
   const g = c.getContext('2d');
-  g.fillStyle = '#f4efe0'; g.fillRect(0, 0, 512, 160);
-  g.strokeStyle = '#7a2a1e'; g.lineWidth = 10; g.strokeRect(5, 5, 502, 150);
-  g.fillStyle = '#7a2a1e'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#f0ede4'; g.fillRect(0, 0, 512, 160);
+  g.strokeStyle = '#d93f3f'; g.lineWidth = 10; g.strokeRect(5, 5, 502, 150);
+  g.fillStyle = '#d93f3f'; g.textAlign = 'center'; g.textBaseline = 'middle';
   fitText(g, 'DURK & DOUWE', 460, 50, 'bold', 'Arial', 26); g.fillText('DURK & DOUWE', 256, 56);
   fitText(g, 'GEERTJE', 460, 42, 'bold', 'Arial', 24); g.fillText('GEERTJE', 256, 114);
   const tex = new THREE.CanvasTexture(c);

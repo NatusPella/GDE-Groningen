@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 
 // #950: het kantoor van Wiebelwerk, voor het gesprek met de accountmanager (M18).
@@ -20,8 +20,8 @@ const canvasTex = (w, h, draw) => sharedCanvasTex(w, h, draw, { anisotropy: 4 })
 
 function wallTex() {
   return canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#e7e4dd'; g.fillRect(0, 0, w, h);
-    g.fillStyle = 'rgba(120, 124, 130, 0.10)';
+    g.fillStyle = '#f0ede4'; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(240, 237, 228, 0.10)';
     for (let x = 0; x < w; x += 64) g.fillRect(x, 0, 2, h);
     const r = g.createLinearGradient(0, 0, 0, h);
     r.addColorStop(0, 'rgba(40, 44, 50, 0.10)'); r.addColorStop(0.55, 'rgba(0, 0, 0, 0)'); r.addColorStop(1, 'rgba(40, 44, 50, 0.12)');
@@ -31,8 +31,8 @@ function wallTex() {
 
 function floorTex() {
   const t = canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#6a6f74'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = 'rgba(30, 33, 36, 0.35)'; g.lineWidth = 2;
+    g.fillStyle = '#0f5c30'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(12, 20, 14, 0.35)'; g.lineWidth = 2;
     for (let y = 0; y <= h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
     g.fillStyle = 'rgba(255, 255, 255, 0.05)';
     for (let x = 0; x < w; x += 32) g.fillRect(x, 0, 12, h);
@@ -44,11 +44,11 @@ function floorTex() {
 
 function signTex() {
   return canvasTex(512, 256, (g, w, h) => {
-    g.fillStyle = '#f5f4ef'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#1f7a6a'; g.fillRect(0, 0, w, 22);
-    g.fillStyle = '#20242a'; g.font = 'bold 62px Arial, sans-serif'; g.fillText('WIEBELWERK', 34, 112);
-    g.fillStyle = '#5b6168'; g.font = 'italic 30px Arial, sans-serif'; g.fillText('websites met karakter', 36, 164);
-    g.strokeStyle = '#9aa0a6'; g.lineWidth = 3;
+    g.fillStyle = '#f0ede4'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#1e9e56'; g.fillRect(0, 0, w, 22);
+    g.fillStyle = '#0f5c30'; g.font = 'bold 62px Arial, sans-serif'; g.fillText('WIEBELWERK', 34, 112);
+    g.fillStyle = '#0f5c30'; g.font = 'italic 30px Arial, sans-serif'; g.fillText('websites met karakter', 36, 164);
+    g.strokeStyle = '#f0ede4'; g.lineWidth = 3;
     for (let y = 198; y < 240; y += 14) { g.beginPath(); g.moveTo(36, y); g.lineTo(36 + 150 + (y % 40) * 4, y); g.stroke(); }
   });
 }

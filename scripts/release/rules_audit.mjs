@@ -268,6 +268,8 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     const file = normalize(item.file);
     const line = Number(item.line) || 0;
     const text = String(item.text ?? '');
+    // Gegenereerde TTS-manifesten zijn audio-data, geen speltekst die de speler leest.
+    if (/^game\/audio\//.test(file)) continue;
 
     // Design: kleuren, typografie en !important.
     const kandidaten = designCandidates(file, text);

@@ -8,7 +8,7 @@
 // scripts/firstpersonhands_test.mjs hem in gewone node kan narekenen; syncFirstPersonHands zet
 // hem op de three-objecten. Behalve de three-objecten leest dit bestand alleen world.weapon,
 // world.time en het laatste gevechtseffect (combateffect.js).
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { buildWeaponMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getCombatEffect } from './combateffect.js';
 import { isRangedWeapon } from './weapons.js';

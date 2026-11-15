@@ -4,7 +4,7 @@
 //
 // De opstelling is puur (raceDecorPlan) en met een test na te spelen; het
 // tekenen heeft three.js en de scène nodig.
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { signBothSides, fitText } from './canvastex.js';
@@ -33,9 +33,9 @@ function banner(text, w = 6.4) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 96;
   const g = c.getContext('2d');
-  g.fillStyle = '#f4efe0'; g.fillRect(0, 0, 512, 96);
-  g.strokeStyle = '#c8261e'; g.lineWidth = 8; g.strokeRect(4, 4, 504, 88);
-  g.fillStyle = '#c8261e'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#f0ede4'; g.fillRect(0, 0, 512, 96);
+  g.strokeStyle = '#d93f3f'; g.lineWidth = 8; g.strokeRect(4, 4, 504, 88);
+  g.fillStyle = '#d93f3f'; g.textAlign = 'center'; g.textBaseline = 'middle';
   fitText(g, text, 470, 46, 'bold', 'Arial', 22); g.fillText(text, 256, 48);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;

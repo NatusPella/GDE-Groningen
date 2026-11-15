@@ -1,5 +1,5 @@
 import { hoofdspeler } from './players.js';
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 // Zijmissies uit stadmissies.js (#26) op het sidejob-contract van sidejobs.js. De regels
 // zijn puur; deze adapter zet plekken en voertuig neer, voedt de regels met snelheid,
 // remvertraging en bochtkracht en vertaalt hun gebeurtenissen naar meldingen, HUD en
@@ -19,7 +19,7 @@ const STAD = { x: 213.81, y: 9.9 };
 // een bestelbusje. De vrachtwagen is een echte truck (zwaar, traag, weinig wendbaar) en de
 // oplegger staat er zichtbaar achter; de bietenhoop groeit bij het laden en slinkt als er
 // bieten van de kar rollen.
-export const BEET_TRUCK = { name: 'truck', len: 6.8, wid: 2.5, maxSpeed: 18, accel: 3.2, brake: 12, turnRate: 1.25, color: '#6d7a34' };
+export const BEET_TRUCK = { name: 'truck', len: 6.8, wid: 2.5, maxSpeed: 18, accel: 3.2, brake: 12, turnRate: 1.25, color: '#1e9e56' };
 export const BEET_TRAILER = { len: 8.4, wid: 2.55, hoog: 1.55, gap: 0.5 };
 // De vulling van de hoop: tijdens het laden de laadstand, daarna de lading die overblijft.
 export function bietenVulling(fase, fill, load) {
