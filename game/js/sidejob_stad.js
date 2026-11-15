@@ -64,7 +64,7 @@ function plek(map, regel) {
 function maakBietenoplegger() {
   const g = new THREE.Group();
   g.name = 'bietenoplegger';
-  const body = new THREE.Mesh(new THREE.BoxGeometry(BEET_TRAILER.len, BEET_TRAILER.hoog, BEET_TRAILER.wid), new THREE.MeshLambertMaterial({ color: '#7a8a3a' }));
+  const body = new THREE.Mesh(new THREE.BoxGeometry(BEET_TRAILER.len, BEET_TRAILER.hoog, BEET_TRAILER.wid), new THREE.MeshLambertMaterial({ color: 0x1e9e56 }));
   body.position.set(0, 0.95 + BEET_TRAILER.hoog / 2, 0);
   g.add(body);
   const chassis = new THREE.Mesh(new THREE.BoxGeometry(BEET_TRAILER.len, 0.28, BEET_TRAILER.wid * 0.78), new THREE.MeshLambertMaterial({ color: 0x2b2b2e }));
