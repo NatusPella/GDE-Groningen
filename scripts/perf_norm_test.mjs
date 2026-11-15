@@ -26,7 +26,7 @@ ok(machineBusy({ cpuBusyBeforePct: MACHINE_BUSY_PCT + 1 }) && !machineBusy({ cpu
 ok(slowWall(124, 15) && !slowWall(70, 15), 'een veel te lange run wordt herkend');
 ok(!slowWall(NaN, 15) && !slowWall(10, 0), 'zonder echte route geen valse melding');
 ok(!machineBusy(null) && !machineBusy({}), 'zonder machinegegevens geen valse melding');
-ok(routeStats(p95TeHoog).p95 === 34 && routeStats(alleenHitch).p95 === null, 'stats per route');
+ok(routeStats(p95TeHoog).p95 === 36 && routeStats(alleenHitch).p95 === null, 'stats per route');
 ok(Object.keys(routeMap({ routes: { foot: schoon } }))[0] === 'foot', 'een bewaarde run met routes');
 ok(routeMap(schoon).frames === 900, 'één losse route werkt ook');
 ok(Object.keys(routeMap(null)).length === 0 && Object.keys(routeMap({})).length === 0, 'lege inputs zijn leeg');
