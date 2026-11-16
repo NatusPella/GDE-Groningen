@@ -101,22 +101,23 @@ try {
     assert.equal(rij.spelers, 1, 'de sessie zelf, niet de spelerloze plek 0');
     assert.equal(rij.max, 4);
     assert.equal(rij.versie, VERSION);
-    assert.equal(rij.room, ROOM);
+    assert.match(rij.hostKey, /^[A-Za-z0-9_-]{20,}$/, 'de joingate-sleutel staat in de lijst; de kamercode niet (#583)');
     assert.equal(rij.id, host.world.coopNet.hub.id, 'het vaste id van deze sessie');
     assert.deepEqual([rij.anders, rij.vol, rij.kan], [false, false, true], 'aan te sluiten volgens de lijst');
     // de rij heeft precies de velden die de UI leest: er is geen apart veld voor een koploze host nodig
-    assert.deepEqual(Object.keys(rij).sort(), ['anders', 'dim', 'gezien', 'id', 'kan', 'max', 'naam', 'ouderdom', 'room', 'spelers', 'versie', 'vol']);
-    assert.deepEqual(host.publiek(), { id: host.world.coopNet.hub.id, naam: 'Zomeravond', spelers: 1, max: 4 });
+    assert.deepEqual(Object.keys(rij).sort(), ['anders', 'dim', 'gezien', 'hostKey', 'id', 'kan', 'max', 'naam', 'ouderdom', 'spelers', 'versie', 'vol']);
+    assert.deepEqual([host.publiek().id, host.publiek().naam, host.publiek().spelers, host.publiek().max], [host.world.coopNet.hub.id, 'Zomeravond', 1, 4]);
     assert.equal(host.kamer, ROOM);
     return `${rij.naam}: ${rij.spelers}/${rij.max}, versie ${rij.versie}`;
   });
 
-  await t('wat er de deur uit gaat: naam, spelers, maximum, versie en de kamercode; geen adres, koppelcode of wachtwoord', async () => {
+  await t('wat er de deur uit gaat: naam, spelers, maximum, versie en de joingate-sleutel; geen adres, kamercode, koppelcode of wachtwoord', async () => {
     assert.ok(net.publicaties.length >= 1);
     const a = aankondigingen(net);
     assert.ok(a.length >= 1, 'de host plaatst herhaaldelijk');
-    assert.deepEqual(Object.keys(a[0]).sort(), ['c', 'g', 'i', 'k', 'm', 'n', 'p', 's', 't', 'v'], 'dezelfde velden als een gewone host');
-    assert.deepEqual([a[0].n, a[0].s, a[0].m, a[0].g, a[0].p, a[0].k], ['Zomeravond', 1, 4, VERSION, PROTO, ROOM]);
+    assert.deepEqual(Object.keys(a[0]).sort(), ['c', 'g', 'h', 'i', 'm', 'n', 'p', 's', 't', 'v'], 'dezelfde velden als een gewone host');
+    assert.deepEqual([a[0].n, a[0].s, a[0].m, a[0].g, a[0].p], ['Zomeravond', 1, 4, VERSION, PROTO]);
+    assert.match(a[0].h, /^[A-Za-z0-9_-]{20,}$/, 'de joingate-sleutel in plaats van de kamercode (#583)');
     assert.ok(/^[a-z0-9]{8,16}$/.test(a[0].i), 'het id van de sessie');
     for (const m of net.seen) {
       const tekst = typeof m.data === 'string' ? m.data : Buffer.from(m.data).toString('latin1');

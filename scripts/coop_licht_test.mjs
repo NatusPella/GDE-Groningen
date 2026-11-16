@@ -20,11 +20,8 @@ const COOP = path.join(ROOT, 'scripts', 'coop');
 const PER_TEST_MS = 240_000;
 const only = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 
-// Bekend kapot op 7-11-2026 (#646): de verwachtingen lopen achter op de code.
-// Reden erbij, zodat de volgende sessie weet wat er moet gebeuren.
-export const BEKEND_KAPOT = {
-  'nodehost_lijst_test.mjs': 'de kamercode staat sinds #583 niet meer in de openbare lijst (joingate)',
-};
+// Geen bekend kapotte coöptests meer (16-11-2026, na #452/#502/#583).
+export const BEKEND_KAPOT = {};
 
 const bestanden = fs.readdirSync(COOP)
   .filter((n) => /_test\.mjs$/.test(n))
