@@ -581,7 +581,7 @@ function updateRide(w, dt) {
   const cars = built.cars;
   if (g.phase === 'intro') {
     g.phaseT -= dt;
-    if (g.phaseT <= 0) { g.phase = 'ride'; g.phaseT = g.rideS; g.t = 0; pushAudioEvent(w, { kind: 'bell', x: K.x, y: K.y }); }
+    if (g.phaseT <= 0) { g.phase = 'ride'; g.phaseT = g.rideS; g.t = 0; pushAudioEvent(w, { kind: 'bumper', x: K.x, y: K.y, strength: 0.5 }); pushAudioEvent(w, { kind: 'bell', x: K.x, y: K.y }); }
   } else if (g.phase === 'ride') {
     g.phaseT -= dt;
     if (g.phaseT < 12 && !g.lastCall) { g.lastCall = true; janSay(w, 'last'); }

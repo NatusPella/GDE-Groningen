@@ -2385,6 +2385,13 @@ function playAudioEvents(world) {
         playNoiseBurst({ duration: 0.9, freq: 600, freqEnd: 400, q: 0.5, gain: 0.035, type: 'lowpass', bus: worldBus || undefined, prio: 2 });
         break;
       }
+      case 'bumper': {
+        // Botsauto's: één korte elektromotor-aanzet bij het begin van de rit.
+        const g = 0.05 * clamp(e.strength ?? 0.5, 0, 1);
+        playTone({ freq: 120, freqEnd: 230, type: 'sawtooth', duration: 0.9, gain: g, filterFreq: 900, bus: worldBus || undefined, prio: 2 });
+        playTone({ freq: 180, freqEnd: 280, type: 'square', duration: 0.9, gain: g * 0.4, filterFreq: 1300, bus: worldBus || undefined, prio: 2 });
+        break;
+      }
       case 'sting': playSting(e.name, world); break;   // stings.js: afteller, finish, uitslag, Meedoen?, trein, halte
       case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {

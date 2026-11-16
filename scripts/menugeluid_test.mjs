@@ -21,14 +21,17 @@ const pauseBack = infoOf(el('#pause-menu', '.gm', 'button', '[data-back]'));
 const shopBtn = infoOf(el('.gm', 'button'));
 const slotsBtn = infoOf(el('.gm', 'button'));
 const phoneBtn = infoOf(el('.phone', 'button'));
+// de fotomodus is een eigen scherm met knoppen; sinds de review van 0.62 geeft het
+// dezelfde menutikken als de andere schermen (het is geen .gm, dus een eigen root).
+const fotoBtn = infoOf(el('#foto-ui', 'button'));
 const sliderI = infoOf(el('#pause-menu', '.gm', 'input[type="range"]'), 'range');
 const boxI = infoOf(el('#pause-menu', '.gm', 'input[type="checkbox"]'), 'checkbox');
 const textI = infoOf(el('.gm', 'input:not([type="checkbox"]):not([type="range"]):not([type="button"]):not([type="radio"])'));
 const losse = infoOf(el());
 
 // ---- de menu's ----
-ok(rootOf(el('#pause-menu', '.gm')) === 'pause' && rootOf(el('#start-screen')) === 'start' && rootOf(el('.phone')) === 'phone' && rootOf(el('.gm')) === 'gm' && rootOf(el()) === null, 'de menu\'s worden herkend (pauze, start, telefoon, gm, geen)');
-ok(startBtn.root === 'start' && startBtn.item && pauseBtn.root === 'pause' && shopBtn.root === 'gm' && phoneBtn.root === 'phone' && !losse.root && !losse.item, 'info per element');
+ok(rootOf(el('#pause-menu', '.gm')) === 'pause' && rootOf(el('#start-screen')) === 'start' && rootOf(el('.phone')) === 'phone' && rootOf(el('.gm')) === 'gm' && rootOf(el('#foto-ui')) === 'foto' && rootOf(el()) === null, 'de menu\'s worden herkend (pauze, start, telefoon, gm, foto, geen)');
+ok(startBtn.root === 'start' && startBtn.item && pauseBtn.root === 'pause' && shopBtn.root === 'gm' && phoneBtn.root === 'phone' && fotoBtn.root === 'foto' && fotoBtn.item && !losse.root && !losse.item, 'info per element');
 ok(pauseBack.back && !pauseBtn.back && sliderI.ownSound && sliderI.range && boxI.ownSound && boxI.checkbox && textI.editable, 'terug, eigen geluid en tekstvelden');
 
 // elke menuwortel in de code is een van de ROOTS: het pauzemenu, het startscherm, de telefoon of een gm
@@ -36,7 +39,7 @@ ok(pauseBack.back && !pauseBtn.back && sliderI.ownSound && sliderI.range && boxI
   const gm = ['pausemenu.js', 'samenkeuze.js', 'saveslotsui.js', 'shopui.js', 'padtest.js'];
   for (const f of gm) ok(/className = 'gm'/.test(read('game/js/' + f)), `${f} is een gm-menu`);
   ok(/\.gm \{/.test(read('game/js/menu.css')), 'menu.css kent .gm');
-  ok(ROOTS.split(',').map((x) => x.trim()).join() === '#start-screen,#pause-menu,.phone,.gm', 'de wortels staan op één plek', ROOTS);
+  ok(ROOTS.split(',').map((x) => x.trim()).join() === '#start-screen,#pause-menu,.phone,.gm,#foto-ui', 'de wortels staan op één plek', ROOTS);
   ok(/data-back|cancel|resume/.test(BACKS) && /button/.test(ITEMS) && /\.ss-item/.test(ITEMS), 'items en terugknoppen');
 }
 

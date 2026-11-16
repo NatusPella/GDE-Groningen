@@ -8,7 +8,7 @@
 
 // the start screen, the pause menu (with the map, the phone, loopbaan, garage, settings and the rest as its sections), the phone and
 // every `gm` menu (menu.css): saved games, shops and wardrobes, Samen spelen, the controller test
-export const ROOTS = '#start-screen, #pause-menu, .phone, .gm';
+export const ROOTS = '#start-screen, #pause-menu, .phone, .gm, #foto-ui';
 // what can be moved to, chosen or pressed
 export const ITEMS = 'button, [role="menuitem"], [role="tab"], [role="option"], [role="radio"], [data-idx], [data-mission], [data-tab], .ss-item, a[href]';
 // the way back
@@ -37,6 +37,7 @@ export function rootOf(closest) {
   if (closest('#pause-menu')) return 'pause';
   if (closest('#start-screen')) return 'start';
   if (closest('.phone')) return 'phone';
+  if (closest('#foto-ui')) return 'foto';
   if (closest('.gm')) return 'gm';
   return null;
 }
