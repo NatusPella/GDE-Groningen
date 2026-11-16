@@ -917,6 +917,22 @@ while (true) {
   if (Bk && s.mission.active && s.mission.race && s.mission.race.bikes && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && !s.blocking.ride && !(s.blocking.dialog && s.blocking.dialog.options && s.blocking.dialog.options.length)) {
     if (await bikeRaceStage(s, stepKey)) continue;
   }
+  // M01 begint met een drive-start en heeft geen 'board'-stap: de bot blijft bij de bakkie staan.
+  // Alleen voor deze missie: bij de startmarker instappen zodra de wagen binnen bereik is.
+  if (s.story.id === 'M01' && s.mission.active && !s.player.vehicle && s.target && s.target.distance < 7 &&
+      !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused &&
+      !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && !s.blocking.ride && (!mem.m01Start || s.t - mem.m01Start > 4)) {
+    const car = V.findEnterableVehicle(player.x, player.y, world.vehicles);
+    if (car) {
+      mem.m01Start = s.t;
+      B.log('m01-start', { afstand: Math.round(s.target.distance), auto: { x: Math.round(car.x * 10) / 10, y: Math.round(car.y * 10) / 10, naam: car.name || car.label || '', hero: !!car.isHeroCar } });
+      B.stick(0, 0);
+      await keyTap('e', 240);
+      await sleep(700);
+      follower = null;
+      continue;
+    }
+  }
   const act = L.decide(s, mem);
   if (s.mission.active && s.mission.stage === 'choice' && act.type !== 'choose' && s.t - (mem.choiceDbgT || -99) > 10) {
     mem.choiceDbgT = s.t;
