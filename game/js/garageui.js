@@ -37,8 +37,59 @@ function vehicleGlyph(kind, color) {
 }
 
 
-// the old phone app's styles are gone with the app
-export function initGarageStyles() {}
+// The garage's own rules. The shared menu chrome lives in pausemenu.css; these
+// fix the grid and the detail pane here, next to the markup they describe (the
+// same pattern as verhaalui.js). Injected once, after the menu's stylesheets,
+// so an equal-specificity rule here wins.
+const CSS = `
+/* Elke kaart is even hoog en nooit afgeknipt: een vaste minimumhoogte per kaart
+   in plaats van grid-auto-rows: min-content, dat de rij op de kleinste inhoud zette
+   terwijl de kaart zelf hoger werd (de onderste regel viel buiten de rij). */
+#pause-menu .m-main > .m-list.gar-list { grid-auto-rows: auto; align-items: stretch; overflow-x: hidden; }
+#pause-menu .gar-card { justify-content: flex-start; min-height: 192px; }
+#pause-menu .gar-card .gar-ph { flex: 0 0 104px; }
+#pause-menu .gar-card .nm { flex: 0 0 auto; min-width: 0; gap: 4px; }
+/* een lange modelnaam stopt met een … in plaats van onder de buurkaart te lopen */
+#pause-menu .gar-card .nm .one { max-width: 100%; }
+#pause-menu .gar-card .gar-st { flex-wrap: nowrap; min-width: 0; }
+#pause-menu .gar-card .gar-st .t { display: block; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* 1280x720: dezelfde kaart, compacter, zodat er meer rijen volledig in beeld staan */
+@media (max-height: 820px) {
+  #pause-menu .gar-card { min-height: 178px; }
+  #pause-menu .gar-card .gar-ph { flex-basis: 86px; height: 86px; }
+}
+/* Het detailpaneel: titel en status, dan de feiten, dan pas de actie. De blokken
+   liggen dichter op elkaar dan de paginamarge van pm-sec, zodat de hele kolom op
+   720p past. */
+#pause-menu .gar-viewer { gap: 10px; }
+#pause-menu .gar-viewer > .pm-pane-top { gap: 6px; }
+/* De statuschip en de hint volgen de menuvloer (--menu-min, menu.css): op 720p
+   krimpt de stage met --mz en mag de tekst daarmee niet onder 13 schermpixels
+   zakken. */
+#pause-menu .gar-viewer .gar-state { align-self: flex-start; display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 14px; font-size: max(17px, var(--menu-min, 17px)); letter-spacing: 0.04em; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .gar-viewer .gar-state.g { color: var(--g); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.45); }
+#pause-menu .gar-viewer .gar-sec { margin: 2px 0 0; }
+#pause-menu .gar-viewer > .m-acts.td-acts { position: static; gap: 12px; padding: 6px 0 2px; background: none; }
+#pause-menu .gar-viewer .gar-msg { margin: 0; }
+/* De draaihint staat als eigen strook onder het model (nooit erover) en licht op
+   zodra de muis of de focus op de draaitafel staat, zodat hij leesbaar blijft.
+   Het silhouet en de stilstaande foto houden die strook vrij, zodat ook zij de
+   hint niet afdekken. */
+#pause-menu .gar-stage > svg { bottom: 34px; }
+#pause-menu .gar-stage .gar-still { inset: 0 0 34px; height: auto; }
+#pause-menu .gar-stage .gar-hint { flex-wrap: wrap; row-gap: 2px; min-height: 32px; font-size: max(18px, var(--menu-min, 18px)); white-space: normal; }
+#pause-menu .gar-stage:hover .gar-hint, #pause-menu .gar-stage:focus-within .gar-hint { color: var(--ink); }
+`;
+
+let styled = false;
+export function initGarageStyles() {
+  if (styled || typeof document === 'undefined') return;
+  styled = true;
+  const st = document.createElement('style');
+  st.id = 'style-garage';
+  st.textContent = CSS;
+  document.head.appendChild(st);
+}
 
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>';
@@ -107,12 +158,29 @@ function statsHtml(e) {
     `<span class="pm-stat"><b>${e.accelScore} / 10</b><span>trekkracht</span></span></div>`;
 }
 
+// De korte status naast de titel: thuis, in de buurt, te koop, op slot. De kaart
+// toont dezelfde woorden, zodat lijst en paneel hetzelfde zeggen.
+function statusText(e) {
+  if (e.locked) return 'Op slot';
+  if (!e.owned) return e.spec && e.spec.unlock ? 'Vrijgespeeld' : 'Te koop';
+  if (e.status === 'lost') return 'Afgeschreven';
+  if (e.status === 'garage') return 'Thuis';
+  return e.statusLabel || 'Van jou';
+}
+
 function detailsHtml(e, msg) {
-  let waar;
-  if (e.owned) waar = `<p class="gar-where"><b>${esc(e.statusLabel || 'Van jou')}</b>${whereText(e) ? ` <span class="mut">${esc(whereText(e))}</span>` : ''}</p>`;
-  else if (e.locked) waar = `<p class="gar-where"><b>Op slot</b> <span class="mut">${esc(e.unlockText || 'Via het verhaal of een prestatie')}</span></p>`;
-  else if (e.spec && e.spec.unlock) waar = `<p class="gar-where"><b>Vrijgespeeld</b> <span class="mut">${esc(e.statusLabel)}</span></p>`;
-  else waar = `<p class="gar-where"><b>Te koop</b> <span class="mut">${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''} · na het kopen staat hij thuis</span></p>`;
+  const status = statusText(e);
+  // WAAR gaat over de plek. De korte status staat al naast de titel; hier komt de
+  // volledige plek (straat en afstand, of de winkel waar hij te koop staat). Zegt
+  // die niets meer dan de titel, dan valt het blok weg in plaats van het te herhalen.
+  let waar = '';
+  if (e.owned) waar = e.status !== 'lost' ? esc(whereText(e)) : '';
+  else if (e.locked) waar = '';
+  else if (e.spec && e.spec.unlock) waar = esc(e.statusLabel || '');
+  else waar = `${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''} · na het kopen staat hij thuis`;
+  // Op slot: geen plek maar de weg ernaartoe, onder een eigen kop in plaats van
+  // de status nog eens als feit te herhalen.
+  const slotHtml = e.locked ? secHtml('Vrijspelen', '', `<p class="gar-where">${esc(e.unlockText || 'Via het verhaal of een prestatie')}</p>`) : '';
   const uitvoering = `<div class="gar-look"><span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}` +
     (e.owned && e.kind !== 'boat' && e.kind !== 'heli'
       ? `<span class="mut">${e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`}</span>`
@@ -124,13 +192,15 @@ function detailsHtml(e, msg) {
   const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
     (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
     (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
-  const waarHtml = waar && waar.trim() ? secHtml('Waar', '', waar) : '';
-  return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2></div>` +
+  const waarHtml = waar && waar.trim() ? secHtml('Waar', '', `<p class="gar-where">${waar}</p>`) : '';
+  // Eerst wie en wat (titel, status, sfeerregel), dan de feiten (waar, cijfers,
+  // uitvoering) en pas daarna de actie: de knop hoort bij het besluit dat de
+  // feiten boven hem onderbouwen, niet andersom.
+  return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2>` +
+    `<span class="gar-state${e.status === 'driving' || (!e.owned && !e.locked) ? ' g' : ''}">${esc(status)}</span></div>` +
     (e.meme ? `<p class="mut gar-meme">${esc(e.meme)}</p>` : '') +
-    // De actie staat meteen onder de titel: boven de feiten is hij altijd in beeld,
-    // zonder plakkerige voetregel over de laatste WAAR-regel (review 0.62).
+    waarHtml + slotHtml + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
     acts +
-    waarHtml + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
     `<p class="gar-msg g" role="status">${esc(msg || '')}</p>`;
 }
 
@@ -391,6 +461,7 @@ function bindToolbar(el) {
 }
 
 export function renderGaragePanel(el, world, msg = '') {
+  initGarageStyles(); // het paneel kan zonder phone.js openen; de stijl hoort er dan ook te zijn
   bindToolbar(el);
   const list = getGarageCatalog(world);
   lastList = list;
