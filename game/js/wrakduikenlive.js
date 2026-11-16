@@ -2,6 +2,7 @@
 // voorwerp en dat komt in je album. Geen nieuwe opslagsleutel; de vondsten staan in de
 // bestaande prestatieset.
 import { hoofdspeler } from './players.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { recordUnique, hasUnique, recordStat, getSaveSet } from './achievements.js';
 import { DUIK_R, WRAKVONDSTEN_SET, WRAKDUIKEN_STAT, duikplekken, duikplekBij, vondstId, duikStand } from './wrakduiken.js';
@@ -56,6 +57,8 @@ export function tryWrakduikInteract(world) {
   inp.consume?.('f');
   if (!recordUnique(world, WRAKVONDSTEN_SET, id)) return false;
   recordStat(world, WRAKDUIKEN_STAT);
+  pushAudioEvent(world, { kind: 'splash', x: p.x, y: p.y });
+  pushAudioEvent(world, { kind: 'whoosh', x: p.x, y: p.y, strength: 0.35 });
   speelDuikScene(plek);
   world.addMessage(`Je duikt naar ${plek.wrak.naam}. ${plek.vondst.naam}: ${plek.vondst.tekst}`, 5, { kind: 'prestatie' });
   const stand = duikStand(gedoken);
