@@ -88,6 +88,10 @@ let state = { allIn: false, phase: '' };
 const FPS = { n: 0, t: performance.now(), prev: performance.now(), gap: 0, fps: 0, gapLast: 0 };
 const tickFps = (now) => { FPS.n++; const g = now - FPS.prev; FPS.prev = now; if (g > FPS.gap) FPS.gap = g; if (now - FPS.t >= 1000) { FPS.fps = Math.round(FPS.n * 1000 / (now - FPS.t)); FPS.gapLast = Math.round(FPS.gap); FPS.n = 0; FPS.t = now; FPS.gap = 0; } requestAnimationFrame(tickFps); };
 requestAnimationFrame(tickFps);
+// Het wachtscherm van Samen spelen (#636/#639): één overlay-component met .cp-overlay.
+// De oude class .coop-hold bestaat niet meer; deze helper houdt de checks gelijk aan de code.
+const HOUD_SEL = '.coop-hold, .cp-overlay';
+const houdOpen = () => !!document.querySelector(HOUD_SEL);
 function sampleNow(n) {
   const x = W(); if (!x) return null;
   const b = (o) => (o ? { x: Math.round(o.x * 10) / 10, y: Math.round(o.y * 10) / 10, char: o.character || '' } : null);
@@ -96,7 +100,7 @@ function sampleNow(n) {
   const cine = document.getElementById('cine');
   return {
     fps: FPS.fps, gap: FPS.gapLast,
-    n, ph: state.phase, paused: !!x.paused, uiPaused: !!x.uiPaused, coopHold: !!x.coopHold, hold: !!document.querySelector('.coop-hold'), clock: x.time, uur: x.clock, slot: ses ? ses.slot : (net && net.role === 'host' ? 0 : -1),
+    n, ph: state.phase, paused: !!x.paused, uiPaused: !!x.uiPaused, coopHold: !!x.coopHold, hold: houdOpen(), clock: x.time, uur: x.clock, slot: ses ? ses.slot : (net && net.role === 'host' ? 0 : -1),
     status: ses ? ses.status : (net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + v.status).join(',') : null),
     inp: ses && ses.pendingInput ? [Math.round(ses.pendingInput.mx * 100) / 100, Math.round(ses.pendingInput.my * 100) / 100] : null,
     ids: net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + (v.link && v.link.id)).join(',') : null,
@@ -106,7 +110,14 @@ function sampleNow(n) {
     partners: (x.coopPartners || []).map((p) => [p.slot, p.naam, p.status, Math.round(p.x), Math.round(p.y)]),
     roster: x.coopRoster ? x.coopRoster.map((s) => [s.slot, s.char, s.verbinding]) : null, figuren: Object.keys(x.coopFigures || {}).length,
     sc: x.coopScene ? [x.coopScene.filmpje ? 1 : 0, x.coopScene.pauze ? 1 : 0, x.coopScene.regel ? x.coopScene.regel.tekst.slice(0, 40) : '', x.coopScene.keuze ? x.coopScene.keuze.opties.length : 0] : null, sceneEl: !!document.getElementById('coop-scene'),
-    verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
+    verdiend: x.coopVerdiend || 0,
+    // #516/#502: de invoer van een gast staat op zijn eigen figuur (coopFigures[slot].input);
+    // world.coop.remoteInput wordt sindsdien niet meer gevuld. De oude bron blijft als terugval.
+    ri: (() => {
+      const f = x.coopFigures && x.coopFigures[1];
+      const r = (f && f.input) || (x.coop && x.coop.remoteInput);
+      return r ? [Math.round((r.mx || 0) * 100) / 100, Math.round((r.my || 0) * 100) / 100, r.buttons | 0] : null;
+    })(),
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     weer: x.weatherState && x.weatherState.regions ? Object.entries(x.weatherState.regions).map(([id, r]) => id + ':' + r.kind + ':' + Math.round(r.rain * 100)).join(',') : null, wx: x.weather ? [x.weather.kind || '', Math.round((x.weather.intensity || 0) * 100)] : null, pm: (x.coopPingMarks || []).map((m) => m.tekst + '|' + m.naam).join(';'), voert: x.coopInVoertuig ? 1 : 0,
     hostMesh: x.coopHostMeshes || null, hostDbg: x.coopHostDbg || null, deuren: x.coopDeurenDbg ?? null, geluid: [x.coopHoornDbg || 0, x.coopSirenDbg || 0], extraDbg: x.coopExtraDbg || null, extra: x.coopExtraMeshes || null, extraB: x.coopExtraBytes || 0, extraS: x.coopExtra ? [x.coopExtra.voetgangers.size, x.coopExtra.uiterlijk.size, x.coopExtra.dieren.size, x.coopExtra.lichten.size, x.coopExtra.kapot.length] : null,
@@ -394,7 +405,7 @@ const PHASES = {
     simulate({ cut: true });
     log('uitval', { begin: true, s });
     await sleep(s * 1000);
-    log('uitval-midden', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!(W() || {}).coopHold, paused: !!(W() || {}).paused, status: net() && net().session ? net().session.status : null });
+    log('uitval-midden', { hold: houdOpen(), uiPaused: !!(W() || {}).coopHold, paused: !!(W() || {}).paused, status: net() && net().session ? net().session.status : null });
     shot('uitval-hold');
     simulate({});
     log('uitval', { begin: false });
@@ -407,10 +418,10 @@ const PHASES = {
     // de fasen van gast en gastheer lopen niet gelijk (een rit duurt soms langer): wacht tot de speler echt als weg te boek staat (de gast sluit zijn verbinding 8 s)
     { const w0 = performance.now(); while (performance.now() - w0 < (s + 40) * 1000 && !(W().coopRoster || []).some((r) => r.slot === 1 && r.verbinding === 'lost')) await sleep(200); }
     await sleep(500);
-    log('uitval-host', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+    log('uitval-host', { hold: houdOpen(), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
     shot('uitval-host-hold');
     await sleep(21000);
-    log('uitval-host-na', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+    log('uitval-host-na', { hold: houdOpen(), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // de verbinding van de gast gaat dicht (TCP weg): wachtscherm, 'Opnieuw verbinden', de code opnieuw invoeren, akkoord: zoals een speler
   async herverbind({ wie = 'gast' }) {
@@ -418,7 +429,7 @@ const PHASES = {
     const ses = net() && net().session;
     if (!ses) { log('herverbind-geen-sessie', {}); return; }
     ses.link.close();
-    const hold = () => document.querySelector('.coop-hold');
+    const hold = () => houdOpen();
     await until(hold, 20000, 'wachtscherm na het sluiten van de verbinding');
     log('herverbind-hold', { hold: true, paused: !!W().paused, coopHold: !!W().coopHold, status: ses.status });
     shot('herverbind-hold');
@@ -441,13 +452,13 @@ const PHASES = {
     const end = performance.now() + 24000;
     while (performance.now() < end) {
       const x = W();
-      if (document.querySelector('.coop-hold')) z.holdGezien = true;
+      if (houdOpen()) z.holdGezien = true;
       if (x.paused && x.coopHold) z.pauzeGezien = true;
       if ((x.coopRoster || []).some((r) => r.slot === 1 && r.verbinding === 'lost')) z.lostGezien = true;
       await sleep(200);
     }
-    log('herverbind-host', { ...z, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]), hold: !!document.querySelector('.coop-hold'), paused: !!W().paused });
-    log('herverbind-host-na', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+    log('herverbind-host', { ...z, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]), hold: houdOpen(), paused: !!W().paused });
+    log('herverbind-host-na', { hold: houdOpen(), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // een afwijking op één gast: de snapshot klopt niet met de hash van de host
   async desync({ s = 25, wie = 'gast' }) {

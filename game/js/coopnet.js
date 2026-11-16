@@ -1179,8 +1179,14 @@ export function tickCoopNet(world, dt) {
     let sc = null; try { sc = n.scene(); } catch (e) { sc = null; }
     n.filmpjeT = sc && sc.filmpje ? n.filmpjeT + tScene : 0;
     if (sc && sc.filmpje && n.filmpjeT < 0.7) sc = { ...sc, filmpje: false }; // een kort kaartje (zoals bij dood) is geen filmpje
-    const r = sceneBericht(n.sceneNu, sc); n.sceneNu = r.huidig;
-    if (r.event) n.hub.announce(r.event);
+    const r = sceneBericht(n.sceneNu, sc);
+    // Alleen bijwerken als de gasten het echt hebben gekregen. `announce` geeft false als de
+    // betrouwbare wachtrij vol zit (de gast reageert even niet, #589). Toch bijwerken liet de
+    // gast voor altijd in de oude stand staan: stond er een filmpje aan, dan bleef zijn invoer
+    // op nul (coopnet.js:1105) en kon hij niet meer lopen — precies wat de net-testbank liet
+    // zien (filmpje 231 van 284 samples). Bij een mislukte zending proberen we het de volgende
+    // ronde opnieuw, net als bij de andere betrouwbare berichten.
+    if (!r.event || n.hub.announce(r.event)) n.sceneNu = r.huidig;
   }
   meldVoertuig(world, n); // de gastheer stapt in: Tessa leest hoe ze meerijdt (#388)
   // Wat de host speelt, voor de gasten (#452). De leider van de groep gaat mee (#492), dus eerst werkt de groep bij: die stand is

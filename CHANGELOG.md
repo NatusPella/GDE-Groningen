@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De opening loopt weer door en je kunt hem overslaan:** sinds een prestatie-aanpassing werd de telefoon-update overgeslagen zolang de montage liep, en dat was net de plek waar de filmklok werd bijgewerkt. De opening stond daardoor stil (ruim tweeënhalve minuut) en "Spatie vasthouden om over te slaan" deed niets. De montage werkt de film nu zelf bij.
+- **Samen spelen blijft staan als iemand even wegvalt:** de gastheer verbrak de verbinding al na vijf seconden volle wachtrij, terwijl het protocol twee minuten hersteltijd belooft. Een korte netwerkhik kostte zo de hele sessie. En bleef er een filmpje "aan" staan bij een gast, dan kon hij niet meer lopen; nu alleen bijwerken als het bericht echt aankwam.
 - **Na een reis is de wereld meteen soepel (#929):** het laadscherm wachtte alleen tot de gebouwen en wegen klaar waren. De tegels van de bestemming en het voorwerk daarvan kwamen pas daarna, zodat de eerste seconden na de trein of taxi nog bouwden. Het scherm warmt de bestemming nu zelf voor en telt de tegels mee, dus je komt aan in een wereld die al klaarstaat.
 - **De uitleg wijst naar de goede plek en de kaarten zijn kort:** het doel staat onderin, niet bovenin, de kaartjes blijven onder het woordbudget en de menupaden kloppen (Instellingen › Spel, Instellingen › Hints & uitleg, Instellingen › Geluid & ondertitels). De hulp zegt niet meer "in het hoofdmenu".
 - **Nieuwskaarten stoppen niet meer midden in een zin:** de eerste zin wordt de kop en de rest de body, en wat echt wordt afgekapt eindigt op een beletselteken. De Kiezelweek-aankondiging en de andere evenementberichten passen nu in één kaart.

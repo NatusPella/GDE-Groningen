@@ -203,11 +203,17 @@ export class HostSession extends Base {
     // #589: een gast die zijn betrouwbare wachtrij structureel laat vollopen (tab op de achtergrond,
     // kanaal hapert) houdt anders voor altijd 32 berichten vast. Na een paar seconden gaat hij met een
     // gewoon afscheid weg; een gast met een oude missie/scène kan de hash-desync niet redden.
+    //
+    // Maar een gast die net wegvalt hoort niet meteen verwijderd te worden: het protocol belooft hem
+    // RESUME_WINDOW (120 s) om met zijn token terug te komen (#95, #450). De wachtrij loopt juist vol
+    // omdát hij even niets ontvangt — dat is geen weigering, dat is een hik. Daarom pas verbreken als de
+    // gast ook echt stil is: geen enkel bericht van hem sinds de wachtrij vol liep.
     const vol = this.rel.pending.length >= this.rel.maxPending;
     if (vol && this.overflowSinds == null) this.overflowSinds = this.now;
     else if (!vol) this.overflowSinds = null;
-    if (this.overflowSinds != null && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
-      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol; de verbinding wordt verbroken`);
+    const stil = this._quiet();
+    if (this.overflowSinds != null && stil >= LOST_AFTER && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
+      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol en de gast is ${Math.round(stil)} s stil; de verbinding wordt verbroken`);
       this.leave();
       return;
     }

@@ -479,6 +479,9 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
 const NAMES = ['host', 'gast', ...(GASTEN > 1 ? ['gast2'] : [])];
 const samples = (n) => of(E[n], 'sample');
 const phase = (n, ph) => samples(n).filter((s) => s.ph === ph);
+// Het laatste sample waarin de sessie nog liep: na stopHost is roster/partners leeg,
+// en een check over de lopende sessie moet daar niet naar kijken (dat gaf "undefined").
+const levend = (n) => { const alle = samples(n).filter((s) => s.role && s.roster && s.roster.length); return alle[alle.length - 1] || last(samples(n)); };
 const at = (E_, type, pred = () => true) => E_.find((e) => e.type === type && pred(e));
 
 check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
@@ -514,17 +517,18 @@ check(of(H, 'verbonden').length && of(G, 'verbonden').length, 'beide kanten bere
 const hs = samples('host'), gs = samples('gast');
 check(hs.length >= 10 && gs.length >= 10, `genoeg samples (${hs.length}/${gs.length})`);
 const firstFull = (n) => samples(n).find((s) => s.roster && s.roster.length >= EXPECT);
-check(last(hs).me && last(hs).me.char === 'tammo', 'host speelt Tammo');
+check(levend('host') && levend('host').me && levend('host').me.char === 'tammo', 'host speelt Tammo');
 // Twee kanten, twee verhalen (#455, #502): de gastheer ziet de gast als zijn eigen avatar (eigen figuur, eigen naam),
 // terwijl de gast in zijn eigen beeld de hoofdpersoon van zijn eigen verhaal is. De computermetgezel van de gastheer
 // blijft Tessa zolang er geen tweede mens is; die staat niet op plek 1.
 const gMe = [...gs].reverse().find((q) => q.role === 'client' && q.me);
 check(gMe && !!gMe.me.char, `gast heeft een eigen personage (${gMe && gMe.me.char})`); // in eigen beeld de hoofdpersoon van zijn verhaal
-const hRij = last(hs) && (last(hs).roster || []).find((r) => r[0] === 1);
+const hLevend = levend('host');
+const hRij = hLevend && (hLevend.roster || []).find((r) => r[0] === 1);
 check(!!hRij && !/^(tammo|anita)$/i.test(String(hRij[1] || '').trim()), `de gastheer ziet de gast als eigen figuur (${hRij && hRij[1]})`);
-const gZien = last(hs) && last(hs).partners && last(hs).partners.find((p) => p[0] !== 0);
+const gZien = hLevend && hLevend.partners && hLevend.partners.find((p) => p[0] !== 0);
 check(!!gZien && !!String(gZien[1] || '').trim() && !/^(tammo|tessa|anita)$/i.test(String(gZien[1] || '').trim()), `de gastheer ziet de gast als zichzelf, niet als Tessa (${gZien && gZien[1]})`);
-check(last(hs).companion && last(hs).companion.char === 'anita', `de computermetgezel blijft Tessa (${last(hs).companion && last(hs).companion.char})`);
+check(hLevend && hLevend.companion && hLevend.companion.char === 'anita', `de computermetgezel blijft Tessa (${hLevend && hLevend.companion && hLevend.companion.char})`);
 check(gs.some((q) => q.role === 'client') && hs.some((q) => q.role === 'host'), 'rollen host/client');
 for (const n of NAMES) {
   const f = firstFull(n);
