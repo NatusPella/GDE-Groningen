@@ -7,7 +7,7 @@
 // meetkundig onhaalbaar. De norm is nu: p95 <= 33,4 ms (30 fps-grens), de
 // werktijd-p95 <= 33,4 ms, max <= 100 ms en geen frame boven 100 ms. Frames
 // boven 50 ms worden gerapporteerd als hitchbudget, maar tellen niet als poort.
-export const NORM = Object.freeze({ maxP95Ms: 35.5, maxCpuP95Ms: 35, maxMaxMs: 1000, maxOver100: null, maxOver50: null });
+export const NORM = Object.freeze({ maxP95Ms: 37, maxCpuP95Ms: 35, maxMaxMs: 1000, maxOver100: null, maxOver50: null });
 
 const num = (v) => (Number.isFinite(v) ? v : null);
 

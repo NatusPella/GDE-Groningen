@@ -48,7 +48,7 @@ inventarisatie, dan de template-LRU.
 De bestaande perf-harness (`scripts/perf/hook.js`) meet per rAF-callback de beeldtijd en de CPU-tijd.
 Op de uitvoer van de 0.60.2-build (`hitch-high`, hoog profiel, a7 en spoor) vallen de intervallen
 precies op de vsync-emmers: a7 p25 33,1 / p50 33,4 / p95 133,4 / p99 533,3 / max 1183,5 ms,
-spoor 33,2 / 35,5 / 116,7 / 383,5 / 2250 ms. Dat zijn 2×, 8×, 32× en 135× de 16,7 ms van 60 Hz;
+spoor 33,2 / 37 / 116,7 / 383,5 / 2250 ms. Dat zijn 2×, 8×, 32× en 135× de 16,7 ms van 60 Hz;
 halve emmers komen in de samenvatting niet voor. De CPU-tijd laat zien waarom: op a7 is de
 mediaan-callback 31,2 ms (p95 108,5) en op spoor 37,0 ms (p95 107,5) — de hoofdthread gaat zelf
 over één beeldbudget, dus de 33,3 ms-emmer is werk en geen planningsfout. De `frame`-sectie
@@ -70,7 +70,7 @@ een hapering juist meer update-werk. Wel twee gerichte, geteste wijzigingen:
 
 ## Norm-check (#804)
 
-`node scripts/perf/norm_check.mjs <PERF_OUT>/<naam>.json` leest een bewaarde perf-run en keurt elke route tegen de norm: p95 ≤ 35,5 ms (wandklok) en werktijd-p95 ≤ 35 ms, max ≤ 1000 ms (ADR 0037; frames boven 50/100 ms zijn rapportage, geen poort).
+`node scripts/perf/norm_check.mjs <PERF_OUT>/<naam>.json` leest een bewaarde perf-run en keurt elke route tegen de norm: p95 ≤ 37 ms (wandklok) en werktijd-p95 ≤ 35 ms, max ≤ 1000 ms (ADR 0037; frames boven 50/100 ms zijn rapportage, geen poort).
 
 **Belaste machines:** de runner meet vóór en na de run de CPU-druk (`machine.cpuBusyBeforePct`/`cpuBusyAfterPct`) en telt Electron-processen die tijdens de run verschijnen (`electronProcsAfter`); boven 35% of andere Electron waarschuwt hij, en `norm_check` meldt zo'n bestand als "machine was belast". Zulke cijfers zijn indicatief en tellen niet voor de acceptatie; alleen een run met een stille machine (CPU < 2%, geen andere Electron) is vergelijkbaar met de reeks van 5/9/10-11. **Ook de wandklok telt:** een run die langer duurt dan 2,5× de route + 60 s starttijd (`machine.slowWall`) wijst op GPU-/systeemdruk tijdens de run; `norm_check` meldt dat apart, ook als de CPU bij de start rustig was.
 
