@@ -35,6 +35,7 @@ import { today as calendarDay } from './calendarday.js';
 import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
+import { isViewpointUsed } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
 import { SECRETS_TOTAL } from './geheimen.js';
 import { HERKENNINGSPUNTEN, HERKENNINGSPUNTEN_TOTAAL } from './herkenningspunten.js';
 import { albumStand, dichtstbijzijndeOpen } from './herkenningsalbum.js';
@@ -401,13 +402,40 @@ function ommelandItems(world) {
   const names = Object.keys(VILLAGES);
   const ends = uniqueCount('wereldeinden');
   const beppe = beppeTodoItem(world);
+  const uitkijk = uitkijkItem(world);
   return [
     ...ommelandPaspoortItems(world),
     ...(beppe ? [beppe] : []),
+    ...(uitkijk ? [uitkijk] : []),
     { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
       meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Ommeland · verkennen', text: 'Ergens houden de wegen van het Ommeland op. Waar, dat zeggen we niet.', rows: [] } },
   ];
+}
+
+// #844: een uitkijkpunt dat je nog niet gebruikte, als echte Te-doen-rij met een place-doel.
+// De punten komen van de kaart (verkenpunten.js zet ze in map.meta.uitkijkpunten zodra de kits
+// geladen zijn); zonder wereld of zonder punten is er geen rij en dus geen leugen.
+function uitkijkItem(world) {
+  const points = (world && world.map && world.map.meta && world.map.meta.uitkijkpunten) || null;
+  if (!points || !points.length) return null;
+  const p = hoofdspeler(world);
+  const open = points.filter((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && !isViewpointUsed(q));
+  if (!open.length) return null;
+  const near = open.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0];
+  const gebruikt = points.length - open.length;
+  return {
+    key: 'om:uitkijk', group: 'ommeland', icon: 'uitkijkpunt', title: 'Uitkijken over de streek', status: '',
+    meta: `${near.q.streekNaam || 'de provincie'} · ${Math.round(near.d)} m`,
+    medal: null, record: `${gebruikt} van ${points.length} gebruikt`,
+    x: near.q.x, y: near.q.y,
+    goal: { kind: 'place', id: near.q.id || 'uitkijkpunt', name: near.q.naam || 'Uitkijkpunt', x: near.q.x, y: near.q.y },
+    detail: {
+      kicker: 'Ommeland · verkennen',
+      text: 'Loop naar een uitkijkpunt en druk E. Je ziet de streek van boven en die plek komt op je kaart; elk punt telt mee voor de stempel van zijn streek.',
+      rows: [['Dichtstbijzijnde punt', near.q.naam || 'Uitkijkpunt'], ['Nog te doen', `${open.length} van ${points.length}`]],
+    },
+  };
 }
 
 function collectItems(world) {
