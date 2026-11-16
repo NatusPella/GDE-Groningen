@@ -17,7 +17,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Op een telefoon is de radio-kaart leesbaar:** "PROAT IN DE OCHTEND" en de omschrijving passen op twee regels in plaats van afgekapt te worden.
 - **Negen stille plekken hebben geluid:** het reuzenrad klonkt en belt, de schotel sist per fase, de garage klapt en spuit, het pannenkoekenschip sizzelt, het cabaret klapt, de fotomodus en het heistpaneel tikken als de andere menu's, de botsauto's starten hoorbaar en de wrakduik spat en ruist.
 - **De kaart is rustiger in het centrum:** alleen de speler, je maat en je doel zijn nooit weg te drukken; missie-, politie-, halte- en huisiconen wijken nu voor een hogere prioriteit.
-- **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.>>>>>>> 38df186e6 (#929: het laadscherm wacht ook op de tegels en de prewarm van de bestemming)
+- **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.
 
 ## [0.65.0] - 2026-11-16
 
