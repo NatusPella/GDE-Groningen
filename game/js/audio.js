@@ -2369,6 +2369,22 @@ function playAudioEvents(world) {
         break;
       }
       case 'whistle': playWhistle(); break;
+      case 'sizzle': {
+        // Pannenkoekenschip: het beslag in de pan. Kort, hoog en zacht, zodat het
+        // onder de stem en de muziek blijft.
+        playNoiseBurst({ duration: Math.max(0.4, Math.min(1.6, e.dur || 0.9)), freq: 5200, freqEnd: 3600, q: 0.8, gain: 0.075, type: 'bandpass', bus: worldBus || undefined, prio: 2 });
+        playNoiseBurst({ duration: 0.08, freq: 7000, q: 1.4, gain: 0.04, type: 'bandpass', bus: worldBus || undefined, prio: 2 });
+        break;
+      }
+      case 'applause': {
+        // Cabaret: een zaal die klapt. Losse klapjes met een kleine spreiding, geen opname.
+        const n = 10 + Math.round(clamp(e.strength ?? 0.6, 0, 1) * 8);
+        for (let i = 0; i < n; i++) {
+          playNoiseBurst({ duration: 0.03 + Math.random() * 0.02, freq: 1500 + Math.random() * 900, q: 1.1, gain: 0.035 + Math.random() * 0.02, type: 'bandpass', delay: i * 0.043 + Math.random() * 0.02, bus: worldBus || undefined, prio: 2 });
+        }
+        playNoiseBurst({ duration: 0.9, freq: 600, freqEnd: 400, q: 0.5, gain: 0.035, type: 'lowpass', bus: worldBus || undefined, prio: 2 });
+        break;
+      }
       case 'sting': playSting(e.name, world); break;   // stings.js: afteller, finish, uitslag, Meedoen?, trein, halte
       case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {

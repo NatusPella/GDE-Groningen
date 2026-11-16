@@ -10,6 +10,7 @@ import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { bubble, clearBubbles } from './minigamekit.js';
 import { CABARET, heckleTiming, cabaretSchedule, cabaretPay } from './casework.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { medeGrapje } from './bijbaanhulp.js';
 import { dist } from './util.js';
 import { accentVan } from './sidejobprofiel.js';
@@ -125,6 +126,7 @@ export default {
     if (d.t >= d.sched.end) {
       d.phase = 'result';
       d.resultT = RESULT_S;
+      pushAudioEvent(world, { kind: 'applause', x: p.x, y: p.y, strength: 0.7 });
       paintResult(c);
       return;
     }

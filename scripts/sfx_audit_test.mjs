@@ -76,6 +76,8 @@ const MUST = [
   ['reuzenrad-instappen', 'reuzenrad.js', /pushAudioEvent/],
   ['schotel-fases', 'schaapontvoeringrt.js', /pushAudioEvent/],
   ['garage-reparatie', 'garages.js', /pushAudioEvent/],
+  ['pannenkoek-sizzle', 'pannenkoek.js', /sizzle/],
+  ['cabaret-applaus', 'sidejob_cabaret.js', /applause/],
 ];
 for (const [what, f, re] of MUST) ok(re.test(src[f] ?? fs.readFileSync(path.join(JS, f), 'utf8')), `${what}: ${f} makes a sound`);
 

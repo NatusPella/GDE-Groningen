@@ -10,6 +10,7 @@ import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo
 import { getPancakeBoatSpot } from './cityprops.js';
 import { PANNENKOEK_LINES } from './minigamelines3.js';
 import { PAN, TOPPINGS, MEDAL_AT, scaledMedalAt, createPan, usePan, serve, stepPan, goldenNow, pannenkoekMedal } from './pannenkoekrules.js';
+import { pushAudioEvent } from './pedgeom.js';
 
 // Pannenkoekenschip De Gouden Pan (the moored boat of the city props, #23):
 // you are the cook for two minutes. [1] [2] [3] pour batter, flip and plate
@@ -77,10 +78,16 @@ function updateGame(w, dt) {
     if (gi < 0) { g.flash = { text: `Niemand wil ${TOPPINGS[i].name}`, bad: true, t: 0 }; return; }
     if (!s.plate.length) { g.flash = { text: 'Geen pannenkoek op het bord', bad: true, t: 0 }; return; }
     const r = serve(s, gi, top);
-    if (r.type === 'serve') g.flash = { text: r.fast ? 'Snel geserveerd! Bonus' : 'Geserveerd', bad: false, t: 0 };
+    if (r.type === 'serve') {
+      pushAudioEvent(w, { kind: 'sizzle', strength: 0.7 });
+      g.flash = { text: r.fast ? 'Snel geserveerd! Bonus' : 'Geserveerd', bad: false, t: 0 };
+    }
   });
   for (const e of stepPan(s, dt)) {
-    if (e.type === 'burnt') g.flash = { text: 'Aangebrand! Druk de pantoets om te schrapen', bad: true, t: 0 };
+    if (e.type === 'burnt') {
+      pushAudioEvent(w, { kind: 'sizzle', strength: 0.4, dur: 0.5 });
+      g.flash = { text: 'Aangebrand! Druk de pantoets om te schrapen', bad: true, t: 0 };
+    }
     else if (e.type === 'leave') { g.flash = { text: 'Een gast is weggelopen', bad: true, t: 0 }; say(w, 'leave'); }
     else if (e.type === 'guest' && !g.said) { g.said = true; say(w, 'order'); }
   }
