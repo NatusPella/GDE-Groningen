@@ -9,6 +9,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De uitleg wijst naar de goede plek en de kaarten zijn kort:** het doel staat onderin, niet bovenin, de kaartjes blijven onder het woordbudget en de menupaden kloppen (Instellingen › Spel, Instellingen › Hints & uitleg, Instellingen › Geluid & ondertitels). De hulp zegt niet meer "in het hoofdmenu".
+- **Nieuwskaarten stoppen niet meer midden in een zin:** de eerste zin wordt de kop en de rest de body, en wat echt wordt afgekapt eindigt op een beletselteken. De Kiezelweek-aankondiging en de andere evenementberichten passen nu in één kaart.
+- **De menukaart past op 1280x720:** de kaart schaalt nu met de echte verhouding tot 1920x1080 in plaats van met een ondergrens van 1, dus de onderste tegelrij, de filterregel en de garage-tabs blijven in beeld. De rail en het speelscherm hebben een dunne, zichtbare scrollbalk.
+- **Feiten en acties in het menu staan weer netjes:** een lang feit als "DE FONTEIN · 292 M" wikkelt niet meer over drie regels, de actiebalk heeft geen donkere lege knopvorm meer en in de garage staat "Laten afleveren" onder de titel en boven de feiten.
+- **Op een telefoon is de radio-kaart leesbaar:** "PROAT IN DE OCHTEND" en de omschrijving passen op twee regels in plaats van afgekapt te worden.
+- **Negen stille plekken hebben geluid:** het reuzenrad klonkt en belt, de schotel sist per fase, de garage klapt en spuit, het pannenkoekenschip sizzelt, het cabaret klapt, de fotomodus en het heistpaneel tikken als de andere menu's, de botsauto's starten hoorbaar en de wrakduik spat en ruist.
+- **De kaart is rustiger in het centrum:** alleen de speler, je maat en je doel zijn nooit weg te drukken; missie-, politie-, halte- en huisiconen wijken nu voor een hogere prioriteit.
+- **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.
+
 ## [0.65.0] - 2026-11-16
 
 - **De openingsscènes en missie-intro's ogen weer normaal (#858-#864):** de camera wijkt bij een blokkade achteruit in plaats van op Tessa's rug te klappen, Tessa zit aan tafel zonder stuurhouding, de matras rijdt met de Escapade mee, acteurs lopen om geparkeerde voertuigen heen, cutscene-voertuigen en fietsers volgen de echte weg en fietsers verdwijnen na hun rit; gedragen spullen hangen aan de hand en de kermiskarren zijn weer botsauto's.
