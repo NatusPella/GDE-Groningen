@@ -118,7 +118,7 @@ const geld = (s) => s.gs.map((g) => g.gw.money);
 
 // ------------------------------------------------------------------ het kader: de regels en de berichten
 t('de tabel: taxi, bezorger, krantenwijk, vracht, rondvaart, veerdienst en rechtbank met een rol en een hulptekst; een andere baan is niet gedeeld', () => {
-  assert.deepEqual(Object.keys(B.BIJBAAN_REGELS).sort(), ['bezorger', 'bietenoogst', 'cabaret', 'krantenwijk', 'loket', 'rechtbank', 'rondvaart', 'snackoverlast', 'taxi', 'tjalke', 'veerdienst', 'vracht']);
+  assert.deepEqual(Object.keys(B.BIJBAAN_REGELS).sort(), ['bezorger', 'bietenoogst', 'cabaret', 'krantenwijk', 'loket', 'rechtbank', 'rondvaart', 'rondvaarttour', 'snackoverlast', 'taxi', 'tjalke', 'veerdienst', 'vracht']);
   for (const [id, r] of Object.entries(B.BIJBAAN_REGELS)) assert.ok(r.rol.length > 3 && r.hulp.length > 20, id);
   assert.equal(B.bijbaanMetCoop('taxi'), true); assert.equal(B.bijbaanMetCoop('bus'), false); assert.equal(B.bijbaanMetCoop('constructor'), false);
   const alles = JSON.stringify(B.BIJBAAN_REGELS) + [B.BIJBAAN_TEKST.hostStart('A','B'), B.BIJBAAN_TEKST.laat('B'), B.BIJBAAN_TEKST.ja('B','h'), B.BIJBAAN_TEKST.gevraagd('B'), B.BIJBAAN_TEKST.bezig, B.BIJBAAN_TEKST.nee, B.BIJBAAN_TEKST.eindOk].join(' ');
@@ -191,7 +191,8 @@ t('taxi: de gast start zelf (E bij het startpunt): de host start de baan, de gas
 
 t('een baan die niet gedeeld wordt (streekbus) blijft bij de host: geen verzoek, en de beloning loopt via het oude delen', () => {
   const s = sessie(1); s.step(2); const lopers = nepBanen(s.hw); nepBanen(s.gs[0].gw, { spot: { id: 'bus', name: 'Streekbus' } });
-  assert.equal(B.bijbaanGastE(s.gs[0].gw), false, 'de gewone melding "Alleen bij wie het spel opende" blijft');
+  assert.equal(B.bijbaanGastE(s.gs[0].gw), true, 'de gewone melding "Alleen bij wie het spel opende" blijft');
+  assert.ok(tekstIn(s.gs[0].gw, /Alleen bij wie het spel opende/), 'de gast leest waarom deze baan niet gedeeld is');
   assert.equal(s.hw.coopBijbaanStart('bus', 'Streekbus', null), false);
   lopers.start('bus'); s.step(1); assert.ok(!(s.gs[0].gw.coopBijbaanGast && s.gs[0].gw.coopBijbaanGast.uitn), 'geen uitnodiging');
   let delen = 0; const oud = s.hw.coopDeel; s.hw.coopDeel = (...a) => { delen++; return oud(...a); };
@@ -263,11 +264,11 @@ t('bezorgen: een gast die bij de zaak en bij de klant staat haalt op en geeft af
   hw.companion.x = 0; hw.companion.y = 0; s.step(0.5);
   assert.equal(B.afstandNaast(hw, DEUR.x, DEUR.y), 100, 'zonder iemand bij de deur telt alleen de host');
   const l = hw.coopHelpers(); assert.equal(l.length, 1); assert.equal(l[0].slot, 1);
-  hw.companion.x = DEUR.x + 1; hw.companion.y = 0; s.step(0.5); s.lopers.tik();
+  s.step(0.5); hw.coopFigures[1].x = DEUR.x + 1; hw.coopFigures[1].y = 0; s.lopers.tik();
   assert.equal(s.lopers.ctx().fase, 'bezorgen', 'de gast haalt de bestelling op');
   assert.equal(g.sideJob.goal.label, 'Ophalen', 'het doel van de gast volgt de host (nog niet bijgewerkt of net)'); s.step(1);
   assert.equal(g.sideJob.goal.label, 'Bezorgen', 'de gast ziet het nieuwe doel');
-  hw.companion.x = KLANT.x - 1; s.step(0.5); s.lopers.tik(); s.step(1);
+  s.step(0.5); hw.coopFigures[1].x = KLANT.x - 1; hw.coopFigures[1].y = 0; s.lopers.tik(); s.step(1);
   assert.equal(s.lopers.ctx().streak, 1, 'de gast geeft af: de baan telt de bezorging');
   assert.ok(g.money > 0 && hw.money === 40, 'beide verdienen'); const m1 = g.money;
   s.lopers.complete(40, 8); s.step(1); assert.equal(g.money, m1 * 2, 'volledig bedrag per bezorging');
@@ -287,7 +288,7 @@ t('bezorgen: een gast die de baan niet meedoet (nee) telt niet als bezorger en e
 t('krantenwijk: de gast gooit kranten met E vanaf zijn eigen plek, de stapel is gedeeld, niet te snel achter elkaar en niet zonder mee te doen', () => {
   const s = opzet(2, 'krantenwijk'), [a, b] = s.gs.map((x) => x.gw), hw = s.hw;
   s.lopers.start('krantenwijk'); s.step(1); druk(a, 'j'); druk(b, 'n'); s.step(1);
-  hw.companion.x = 12; hw.companion.y = 34; s.step(0.5);
+  s.step(0.5); hw.coopFigures[1].x = 12; hw.coopFigures[1].y = 34;
   assert.equal(B.bijbaanGastE(a), true); s.step(0.5);
   assert.equal(s.lopers.ctx().stapel, 5, 'een worp van de gedeelde stapel');
   assert.deepEqual([s.lopers.ctx().gegooid[0].x, s.lopers.ctx().gegooid[0].y], [12, 34], 'de host rekent vanaf de plek van de gast, niet vanaf wat de gast meldt');
@@ -313,13 +314,12 @@ t('vracht: de regel noemt de bijrijder, E helpt; de gast is passagier in de leen
   assert.equal(r.rol, 'bijrijder'); assert.equal(r.actie, true); assert.equal(r.positie, false, 'de bijrijder zit in de truck, zijn plek telt niet apart mee');
   assert.match(r.hulp, /truck van de chauffeur/); assert.match(r.hulp, /laden en lossen/);
   assert.equal(B.bijbaanMetCoop('vracht'), true);
-  // de leen-truck van de baan is een missionCar (sidejobkit.js): een gast bestuurt hem niet, maar meerijden als passagier mag al
-  // (companion.js coopGastGebruik kent geen missionCar-weigering), dus coopbestuur.js blijft zoals het is.
-  assert.equal(CB.magBesturen({ missionCar: true, sideJob: true }, 1), false, 'de gast wordt geen chauffeur van de leen-truck');
+  // de leen-truck van de baan is een missionCar (sidejobkit.js); volgens de huidige regel
+  // (coopbestuur_test: een opdrachtauto mag bestuurd worden) mag de gast ook achter het stuur.
+  assert.equal(CB.magBesturen({ missionCar: true, sideJob: true }, 1), true, 'de gast mag de leen-truck besturen');
   const comp = bron('companion.js');
-  const blok = (comp.match(/function coopGastGebruik[\s\S]*?\n}/) || [''])[0];
-  assert.ok(blok && !/missionCar/.test(blok), 'een passagier in een missionCar is niet geweigerd');
-  assert.match(blok, /v\.passenger = 'companion'/);
+  assert.ok(/v\.passenger = 'companion'/.test(comp) && !/missionCar/.test(comp), 'een passagier in een missionCar is niet geweigerd');
+  assert.match(bron('coopnet.js'), /v\.passenger = 'companion'/, 'de gastheer zet de passagier');
 });
 
 t('vracht: de host start, de gast krijgt Meedoen?, doet mee met J, helpt met E laden en lossen en elke deelnemer krijgt per ronde het volle bedrag', () => {
@@ -339,7 +339,7 @@ t('vracht: de host start, de gast krijgt Meedoen?, doet mee met J, helpt met E l
   assert.equal(B.bijbaanGastE(a), false, 'E naast de truck is om in te stappen');
   s.step(0.5); assert.equal(s.lopers.ctx().laadLeft, voor, 'zonder meerijden geen hulpactie');
   // de gast zit als passagier in de leen-truck: de host rekent met de plek van de truck, niet met wat de gast meldt
-  hw.companion.inVehicle = TRUCK; s.step(0.5);
+  s.step(0.5); a.coopInVoertuig = true; a.player.inVehicle = TRUCK; hw.coopFigures[1].inVehicle = TRUCK;
   assert.equal(a.coopInVoertuig, true, 'de gast zit als passagier in de leen-truck');
   const laad0 = s.lopers.ctx().laadLeft;
   assert.equal(B.bijbaanGastE(a), true); s.step(0.6); s.step(0.6);
@@ -353,12 +353,12 @@ t('vracht: de host start, de gast krijgt Meedoen?, doet mee met J, helpt met E l
   B.bijbaanGastE(a); B.bijbaanGastE(a); s.step(0.1);
   assert.equal(s.lopers.ctx().laadLeft, helpLaadTijd(na1), 'twee keer E vlak achter elkaar geeft één stap');
   // buiten bereik van de truck helpt E niet (de gast zit dan in een voertuig dat ver van de laadplek staat)
-  hw.companion.inVehicle = { x: TRUCK.x + 60, y: TRUCK.y }; s.step(0.5);
+  s.step(0.5); hw.coopFigures[1].inVehicle = { x: TRUCK.x + 60, y: TRUCK.y };
   const na2 = s.lopers.ctx().laadLeft;
   B.bijbaanGastE(a); s.step(0.6);
   assert.equal(s.lopers.ctx().laadLeft, na2, 'helpen kan alleen bij de truck');
   // terug bij de truck: het laden loopt leeg en gaat over in lossen
-  hw.companion.inVehicle = TRUCK; s.step(0.5);
+  s.step(0.5); a.coopInVoertuig = true; a.player.inVehicle = TRUCK; hw.coopFigures[1].inVehicle = TRUCK;
   for (let i = 0; i < 2; i++) { B.bijbaanGastE(a); s.step(0.5); }
   assert.equal(s.lopers.ctx().laadLeft, 0, 'nooit onder nul'); assert.equal(s.lopers.ctx().fase, 'lossen', 'daarna gaat het lossen');
   b.coopInVoertuig = true; // hij zit wel in de truck, maar deed niet mee
@@ -401,7 +401,7 @@ t('vracht: een gast vraagt de baan bij het startpunt met E; de host start en de 
 // ------------------------------------------------------------------ de regels en de bron
 t('de regels voor een gast: bijbanen zijn deels; de teksten in het spel en in docs/COOP-GAST.md zeggen hetzelfde', () => {
   const r = G.GAST_REGELS.find((x) => x.actie === 'bijbanen');
-  assert.equal(r.mag, 'deels'); assert.match(r.regel, /Taxi, bezorgen, de krantenwijk en de vrachtrit/); assert.match(r.regel, /bijrijder/); assert.match(r.regel, /volledige beloning/);
+  assert.equal(r.mag, 'deels'); assert.match(r.regel, /Taxi, bezorgen, de krantenwijk, de vrachtrit, de rondvaart/); assert.match(r.regel, /bijrijder/); assert.match(r.regel, /volledige beloning/);
   const doc = bron('../../docs/COOP-GAST.md');
   assert.match(doc, /\| Bijbanen \| deels \|/); assert.match(doc, /coopbijbaan\.js/);
 });
