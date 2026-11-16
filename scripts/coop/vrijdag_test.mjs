@@ -52,13 +52,15 @@ t('vier spelers: iedereen krijgt een eigen plek, naam, kleur en vorm; de lijst i
 });
 
 t('de spelerslijst (Tab en het pauzemenu): iedereen heeft rijen met naam, wat ze doen en verbinding; de gastheer kent ieders ping, een gast alleen de eigen', () => {
-  const s = avond(3, { hostExtra: { mission: { phase: 'active', label: 'Het Loket', index: 3, marker: { x: 9, y: 9 } } } }); s.step(4);
+  const s = avond(3, { hostExtra: { mission: { phase: 'active', label: 'Het Loket', index: 3, marker: { x: 9, y: 9 } } } });
+  s.hw.mission = { phase: 'active', label: 'Het Loket' }; // de sessie-start zet de missie terug; zet hem daarna pas goed
+  s.step(4);
   const rh = s.hw.coopSpelers; assert.deepEqual(rh.map((r) => r.slot), [0, 1, 2, 3]); assert.equal(rh[0].jij, true); assert.match(rh[0].doet, /in opdracht/);
   assert.ok(rh.slice(1).every((r) => Number.isFinite(r.ms) && r.ms >= 0), 'de gastheer kent de ping van elke gast: ' + JSON.stringify(rh.map((r) => r.ms)));
   const rg = s.gs[1].gw.coopSpelers; assert.deepEqual(rg.map((r) => r.slot), [2, 0, 1, 3], 'jij bovenaan');
   assert.deepEqual(rg.map((r) => r.naam), ['Bram', 'Tammo', 'Rik', 'Lotte'], 'ook bij een gast staan de namen erin (de lijst bevat alleen personages)');
   assert.ok(Number.isFinite(rg[0].ms) && rg.slice(1).every((r) => r.ms === null), 'een gast kent alleen zijn eigen ping');
-  assert.match(rg.find((r) => r.slot === 0).doet, /in opdracht/, 'ook een gast ziet dat de ander in een opdracht zit');
+  assert.match(rg.find((r) => r.slot === 0).doet, /te voet/i, 'een gast ziet het personage, niet de opdracht van de gastheer (#452)');
   s.gs[2].link.cut(); s.step(8);
   assert.equal(s.hw.coopSpelers.find((r) => r.slot === 3).verbindingTekst, 'weg');
   N.stopCoopNet(s.hw); assert.deepEqual(s.hw.coopSpelers, [], 'zonder sessie geen lijst');
@@ -149,7 +151,7 @@ t('wanted is gedeeld en volgt de gastheer', () => {
   assert.deepEqual(s.gs.map((g) => g.gw.wanted), [0, 0, 0]);
 });
 
-t('neergeslagen en gepakt: de anderen horen het, het label toont de status, en Tessa hoort dat zij geraakt is', () => {
+t('neergeslagen en gepakt: de anderen horen het, het label toont de status; de metgezel is geen gast meer (#502)', () => {
   const s = avond(3); s.step(2);
   s.hw.pendingRespawn = { busted: true }; s.step(1);
   for (const g of s.gs) { assert.match(g.gw.messages.join(' '), /Tammo is door de politie gepakt/); assert.equal(g.gw.coopPartners.find((p) => p.naam === 'Tammo').status, 'neer'); }
@@ -158,18 +160,16 @@ t('neergeslagen en gepakt: de anderen horen het, het label toont de status, en T
   s.hw.pendingRespawn = { busted: false }; s.step(1); s.hw.pendingRespawn = null;
   assert.match(s.gs[2].gw.messages.join(' '), /Tammo is neergeslagen/);
   s.hw.companion.state = 'dead'; s.step(1);
-  assert.match(s.gs[0].gw.messages.join(' '), /Je bent geraakt/); assert.doesNotMatch(s.gs[1].gw.messages.join(' '), /Je bent geraakt/, 'alleen Tessa hoort dat');
-  assert.equal(s.gs[1].gw.coopPartners.find((p) => p.naam === 'Tessa').status, 'neer');
+  for (const g of s.gs) assert.doesNotMatch(g.gw.messages.join(' '), /Je bent geraakt/, 'de metgezel is geen gast meer (#502)');
   s.hw.companion.state = 'alive'; s.step(1);
-  assert.match(s.gs[0].gw.messages.join(' '), /Je staat weer/);
 });
 
-t('een opdracht of minigame parkeert Tessa: haar speler hoort waarom hij even niet kan lopen', () => {
+t('een opdracht of minigame parkeert de metgezel: geen gast hoort dat meer (de metgezel is een computerfiguur, #502)', () => {
   const s = avond(2); s.step(2);
   s.hw.companionHold = { x: 5, y: 5, face: 0 }; s.step(1);
-  assert.match(s.gs[0].gw.messages.join(' '), /Je kijkt even mee/); assert.doesNotMatch(s.gs[1].gw.messages.join(' '), /Je kijkt even mee/);
+  for (const g of s.gs) assert.doesNotMatch(g.gw.messages.join(' '), /Je kijkt even mee/, 'de metgezel is geen gast meer (#502)');
   s.hw.companionHold = null; s.step(1);
-  assert.match(s.gs[0].gw.messages.join(' '), /Je kunt weer lopen/);
+  for (const g of s.gs) assert.doesNotMatch(g.gw.messages.join(' '), /Je kunt weer lopen/);
 });
 
 t('roepjes: 7, 8 en 9 geven bij iedereen een baken met naam, kleur en regel; te snel achter elkaar kan niet; na 8 s zijn ze weg', () => {
@@ -277,15 +277,15 @@ t('de gastheer rijdt snel weg: een speler te voet die achterblijft wordt niet do
   assert.ok(Math.hypot(fb.x - fiets.x, fb.y) < 15, 'met B bij de groep');
 });
 
-t('Tessa valt weg: het spel pauzeert voor de gastheer; een extra speler niet; geen dubbele of verdwenen figuren', () => {
+t('een gast valt weg: het spel pauzeert niet voor de gastheer; geen dubbele of verdwenen figuren', () => {
   const s = avond(3); s.step(3);
   s.gs[1].link.cut(); s.step(8);
   assert.deepEqual(s.holds.filter((h) => h[0] === 'host'), [], 'Bram weg: de rest speelt door');
   assert.equal(s.hw.coopRoster.find((r) => r.slot === 2).verbinding, 'lost');
   for (const g of [s.gs[0], s.gs[2]]) assert.equal(g.gw.coopPartners.find((p) => p.naam === 'Bram').status, 'weg', 'de anderen zien dat Bram weg is');
   s.gs[0].link.cut(); s.step(8);
-  assert.deepEqual(s.holds.filter((h) => h[0] === 'host'), [], 'Tessa weg: de rest speelt door, ze kan terugkomen (#452)');
-  assert.equal(Object.keys(s.hw.coopFigures).length, 2, 'geen extra figuren of verdwenen figuren');
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host'), [], 'ook de tweede weggevallen gast pauzeert niets; hij kan terugkomen (#452)');
+  assert.equal(Object.keys(s.hw.coopFigures).length, 3, 'de drie coop-plekken blijven gereserveerd; geen dubbele figuur');
 });
 
 t('uit het spel en erbij: een speler vertrekt, een nieuwe neemt de plek, de rest merkt niets; de gastheer stopt: iedereen is weer alleen', () => {

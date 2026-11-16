@@ -23,7 +23,6 @@ const only = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 // Bekend kapot op 7-11-2026 (#646): de verwachtingen lopen achter op de code.
 // Reden erbij, zodat de volgende sessie weet wat er moet gebeuren.
 export const BEKEND_KAPOT = {
-  'vrijdag_test.mjs': 'verwacht dat een gast de opdracht van de gastheer in de spelerslijst ziet; die regel veranderde met #452',
   'gaststart_test.mjs': 'de wedstrijdflow van een gast die zelf start is veranderd (#452); de testfixture mist de figuren van plek 1',
   'gaten_tcp_test.mjs': 'de metgezel is sinds #502 een computerfiguur en hoort niet meer bij plek 1',
   'nodehost_lijst_test.mjs': 'de kamercode staat sinds #583 niet meer in de openbare lijst (joingate)',
