@@ -86,14 +86,24 @@ check('E kantelt niet (E is instappen)', !/k === 'e'\)[^\n]*roll/.test(fu) && fu
 check('de knoppenbalk noemt C V bij Kantelen', fu.includes("KEYBTN('C V', 'Kantelen')"));
 check('Escape sluit de foto en opent het pauzemenu niet', fu.includes("k === 'escape'") && pm.includes('if (isPhotoMode()) return;'));
 
-// #611: beeld boven tekst: de galerij staat vooraan en de uitleg zit achter "Meer opties"
+// #980: één hero-taal voor Foto's: een kop met de stand, een galerij met lagen in het
+// bijschrift, Weghalen als kleine actie per foto en de uitleg open in een strook
+// in plaats van achter "Meer opties". De galerij staat nog steeds vóór de uitleg (#611).
 const panel = fu.slice(fu.indexOf('export function renderFotoPanel'), fu.indexOf('// true als de klik van de fotomodus was'));
-check('de galerij staat vóór de uitleg in het paneel', panel.indexOf('foto-gal') >= 0 && panel.indexOf('foto-gal') < panel.indexOf('foto-lead'));
-check('de uitleg zit in een dichtgeklapte vouw', /class="m-disc" data-fold="foto-uitleg" aria-expanded="false"/.test(panel) && /data-fold-body="foto-uitleg" hidden/.test(panel));
-check('de knop om te starten staat in het eerste beeld, vóór de vouw', panel.indexOf('data-foto-start') < panel.indexOf('data-fold="foto-uitleg"'));
-check('geen leidende alinea meer vóór de galerij', !/<div class="foto-panel"><p class="foto-lead">/.test(panel));
-check('de telling staat als korte regel bij de galerij', /foto-count/.test(panel));
-check('de vouw gebruikt de gedeelde menu-set', panel.includes('m-disc') && panel.includes('m-fold') && pm.includes("closest('[data-fold]')"));
+const gezicht = fu.slice(fu.indexOf('function heroHtml'));
+const sectie = fu.slice(fu.indexOf('function heroHtml'), fu.indexOf('// true als de klik van de fotomodus was'));
+check('de galerij staat vóór de uitleg in het paneel', panel.indexOf('foto-gal') >= 0 && panel.indexOf('foto-gal') < panel.indexOf('+ voet)'));
+check('de hero staat bovenaan met de stand als badge', /class="pm-hero foto-hero"/.test(gezicht) && /\$\{n\} van \$\{F\.GALLERY\.max\} foto's/.test(gezicht));
+check('de hero zegt met één zin wat je hier doet', /pm-hero-lead/.test(gezicht) && /nieuwste eerst/.test(gezicht));
+const kaart = fu.slice(fu.indexOf('function kaartHtml'), fu.indexOf('function voetHtml'));
+const bijschrift = kaart.slice(kaart.indexOf('<figcaption'), kaart.indexOf('</figcaption>'));
+check('het bijschrift staat in lagen: plek, dag en uur, bestand', /foto-plek/.test(bijschrift) && /foto-wanneer/.test(bijschrift) && /foto-bestand/.test(bijschrift));
+check('Weghalen is een kleine actie per foto, niet een blok eronder', /class="foto-weg" data-foto-del=/.test(kaart) && !/Weghalen/.test(bijschrift));
+check('de knop om te starten staat in het eerste beeld, vóór de uitleg', sectie.indexOf('data-foto-start') < sectie.indexOf('foto-noot'));
+check('de telling staat in de hero, niet als losse regel', !/foto-count/.test(fu) && /\$\{n\} van/.test(gezicht));
+check('geen "Meer opties"-vouw meer bij Foto\'s', !/data-fold="foto-uitleg"/.test(fu) && !/data-fold-body="foto-uitleg"/.test(fu));
+check('de uitleg staat open in een compacte strook', /foto-voet/.test(fu) && /foto-noot/.test(fu));
+check('de stijl woont bij de module, met de eigen id', /function zetFotoCss/.test(fu) && /style-fotos/.test(fu));
 
 console.log(bad ? `${bad} van ${n} mislukt` : `fotomodus_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
