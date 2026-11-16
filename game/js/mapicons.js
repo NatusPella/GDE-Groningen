@@ -4,19 +4,21 @@
 // would overlap the one with the higher priority wins.
 import { INK, inkA, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, iconMinZoom, iconVisibleAtZoom } from './mapstyle.js';
 
-// pri: who wins a collision; keep: never dropped by a collision. The zoom a category
-// shows from is in mapstyle.js (ICON_MIN_ZOOM), with the other layer rules.
+// pri: who wins a collision; keep: never dropped by a collision. Alleen de speler, zijn
+// maat en het doel zijn nooit weg te drukken; alle andere categorieën wijken voor een
+// hogere prioriteit, zodat de kaart in het centrum niet dichtslibt. De zoom waarop een
+// categorie verschijnt staat in mapstyle.js (ICON_MIN_ZOOM), met de andere laagregels.
 const CATS = {
   player: { pri: 1000, keep: true },
   partner: { pri: 950, keep: true }, // medespelers (samen spelen, #95)
   goal: { pri: 900, keep: true },
-  mission: { pri: 800, keep: true },
-  police: { pri: 700, keep: true },
-  gevaar: { pri: 650, keep: true },
-  rival: { pri: 640, keep: true },
-  halte: { pri: 620, keep: true },
+  mission: { pri: 800 },
+  police: { pri: 700 },
+  gevaar: { pri: 650 },
+  rival: { pri: 640 },
+  halte: { pri: 620 },
   subdoel: { pri: 590 },
-  home: { pri: 600, keep: true },
+  home: { pri: 600 },
   own: { pri: 560 },
   station: { pri: 520 },
   zorg: { pri: 500 },
@@ -105,11 +107,7 @@ export function mapRimColor(kind) {
 
 // Icons that have to be drawn, in any order: [{ kind, sx, sy }]. Returns the
 // ones that fit: the highest priority first, an icon whose centre lies closer
-// than `gap` px to one already placed is dropped. Alleen de speler, zijn maat en
-// het doel zijn nooit weg te drukken; de andere "keep"-categorieën (missie,
-// politie, halte, huis) wijken nu voor een hogere prioriteit, zodat de kaart in
-// het centrum niet meer vol loopt.
-const ALTIJD = new Set(['player', 'partner', 'goal']);
+// than `gap` px to one already placed is dropped (unless its category is kept).
 export function placeIcons(items, gap) {
   const order = items.map((it, i) => ({ it, i, pri: mapPriority(it.kind) })).sort((a, b) => b.pri - a.pri || a.i - b.i);
   const cell = Math.max(1, gap);
@@ -125,8 +123,7 @@ export function placeIcons(items, gap) {
         for (const o of row) if ((o.sx - it.sx) ** 2 + (o.sy - it.sy) ** 2 < gap * gap) { clash = true; break; }
       }
     }
-    const cat = mapCategory(it.kind);
-    if (clash && (!CATS[cat].keep || !ALTIJD.has(cat))) continue;
+    if (clash && !CATS[mapCategory(it.kind)].keep) continue;
     const key = gx * 65537 + gy;
     if (!grid.has(key)) grid.set(key, []);
     grid.get(key).push(it);

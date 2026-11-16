@@ -30,7 +30,10 @@ const placed = placeIcons([
 const has = (k) => placed.some((p) => p.kind === k);
 ok(has('shop-snack') && !has('horeca'), 'a shop beats food');
 ok(has('hospital') && !has('flitspaal'), 'a hospital beats a speed camera');
-ok(has('ma-1') && has('home'), 'goal and home are never dropped');
+// De mapdeclutter (mapdeclutter_test.mjs) laat alleen de speler, zijn maat en het doel staan:
+// een huis wijkt voor een doel, en een doel wijkt niet voor een gewoon icoon.
+ok(has('ma-1') && !has('home'), 'a goal beats home; only you, your mate and the goal are kept');
+ok(placeIcons([{ kind: 'home', sx: 0, sy: 0 }, { kind: 'horeca', sx: 2, sy: 0 }], 22).some((p) => p.kind === 'home'), 'a home still beats food');
 ok(mapPriority(placed[placed.length - 1].kind) >= mapPriority(placed[0].kind), 'drawn last = highest priority');
 
 // minimum sizes (#114): a floor in HUD px at every zoom, the minimap bigger in proportion
