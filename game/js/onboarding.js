@@ -46,28 +46,28 @@ const LESSONS = [
   {
     id: 'doel',
     when: (w) => !!w.storyGuide && w.stats.missionsDone === 0 && !busy(w),
-    card: () => ({ title: 'Je eerste klus', body: `Bovenin staat je doel. Volg de gele route op de minimap tot in de gele marker. ${SKIP_NOTE}` }),
+    card: () => ({ title: 'Je eerste klus', body: `Je doel staat onderin. Volg de gele route. ${SKIP_NOTE}` }),
   },
   {
     id: 'geld',
     when: (w) => !!(w.storyGuide && w.storyGuide.buy) && !busy(w),
-    card: () => ({ title: 'Geld en winkels', body: `Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven. Een winkel staat op de kaart: loop naar binnen en druk {E}.` }),
+    card: () => ({ title: 'Geld en winkels', body: 'Geld komt van klussen; je saldo staat rechtsboven. Winkel: naar binnen en {E}.' }),
   },
   {
     id: 'kaart',
     known: () => hintUses('map') > 0,
     when: (w, s) => s.has('doel') && !busy(w),
-    card: () => ({ title: 'Zelf kiezen', body: `Liever iets anders eerst? Kies op de kaart ({M}) een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang.` }),
+    card: () => ({ title: 'Zelf kiezen', body: 'Liever iets anders? Kies op de kaart ({M}) een plek of missie.' }),
   },
   {
     id: 'tedoen',
     when: (w) => w.stats.missionsDone > startDone && !busy(w),
-    card: () => ({ title: 'Activiteiten', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder {ESC} › Verhaal en Activiteiten: kies iets en de route gaat erheen.' }),
+    card: () => ({ title: 'Activiteiten', body: 'Missie klaar en opgeslagen. Alles staat onder {ESC} › Verhaal of Activiteiten.' }),
   },
   {
     id: 'eerstedag',
     when: (w, s) => s.has('tedoen') && !busy(w),
-    card: () => ({ title: 'Je eerste dag', body: `Dit is genoeg om te beginnen: kleding en de spuiterij helpen tegen de politie, je garage repareert en levert voertuigen af, en met {5} zet je een waypoint. Meer staat onder {ESC} › Besturing › Hulp.` }),
+    card: () => ({ title: 'Je eerste dag', body: 'Kleding en spuiterij helpen tegen de politie. {5} zet een waypoint.' }),
   },
   {
     id: 'samen',
@@ -75,7 +75,7 @@ const LESSONS = [
     // spelen is sinds #554 een sessie van één (wel een hub), maar geen samen-sessie: daar hoort de kaart
     // juist wel te komen (#568).
     when: (w) => w.stats.missionsDone > startDone && !busy(w) && !isSamenSessie(w),
-    card: () => ({ title: 'Samen spelen', body: 'Met vrienden in dezelfde wereld? Druk op {ESC} en kies Samen spelen. Je eigen geld, spullen en loopbaan gaan mee; de wereld en het verhaal zijn van wie het spel opende.' }),
+    card: () => ({ title: 'Samen spelen', body: 'Met vrienden? {ESC} › Samen spelen. Je geld en spullen blijven van jou.' }),
   },
 ];
 

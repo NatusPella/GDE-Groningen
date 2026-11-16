@@ -6,7 +6,7 @@
 
 export const HELP_TOPICS = [
   { id: 'doel', title: 'Waar moet ik heen?', lines: [
-    'Bovenin staat je doel. Volg de gele route op de minimap tot in de gele marker.',
+    'Onderin staat je doel. Volg de gele route op de minimap tot in de gele marker.',
     'Open de kaart met {M}, kies een plek of missie en de route gaat erheen. Het verhaal wacht zolang.',
     'Shift + klik op de kaart zet je meteen op die plek (uit te zetten bij {ESC} › Instellingen › Spel).',
   ] },
@@ -18,7 +18,7 @@ export const HELP_TOPICS = [
     'In Samen spelen kan een gast een waypoint zetten. Reizen kan alleen in je eigen spel.',
   ] },
   { id: 'eerstedag', title: 'Je eerste dag in Grunn', lines: [
-    'Je eerste klus staat bovenin; volg de gele route. Daarna kun je zelf kiezen wat je doet.',
+    'Onderin staat je eerste klus; volg de gele route. Daarna kun je zelf kiezen wat je doet.',
     'Kleding wisselen kan in je thuis of in een kledingwinkel; met de politie op je hielen kan een andere outfit of de spuiterij je uit de nest helpen.',
     'Je garage repareert, spuit en levert je eigen voertuigen af; op de kaart zie je welke garage bij je in de buurt is.',
     'Met {5} zet je een waypoint naar je eigen doel en met de kaart kun je ook een taxi nemen of met bus en trein reizen.',
@@ -51,7 +51,7 @@ export const HELP_TOPICS = [
     '{ESC} › Spel › Overzicht heeft "Vastgelopen? Zet me vrij" en, tijdens een missie, "Missie stoppen" (je krijgt eerst een vraag).',
   ] },
   { id: 'samen', title: 'Samen spelen', lines: [
-    'Kies Samen spelen in het hoofdmenu of onder {ESC} › Spel › Samen spelen. Eén speler kiest Een spel openen en deelt de kamercode; de anderen kiezen Meedoen en typen of plakken die code.',
+    'Kies Samen spelen onder {ESC} › Spel › Samen spelen. Eén speler kiest Een spel openen en deelt de kamercode; de anderen kiezen Meedoen en typen of plakken die code.',
     'Iedereen moet dezelfde versie van het spel hebben. Staat er "Andere versie", installeer dan allemaal de nieuwste.',
     'Lukt het niet? Kies in dat scherm Verbinding testen: daar staat in gewone taal wat er mis is en wat je kunt doen. Met Foutrapport kopiëren kun je dat naar iemand sturen.',
     'Windows vraagt de eerste keer of GDE Groningen het netwerk mag gebruiken. Kies Toestaan (privé netwerk).',

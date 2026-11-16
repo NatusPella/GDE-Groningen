@@ -32,7 +32,7 @@ ok(() => assert.match(ob, /import \{[^}]*\bisSamenSessie\b[^}]*\} from '\.\/cont
 ok(() => assert.match(ob, /id: 'samen',[\s\S]{0,700}?when: \(w\) => w\.stats\.missionsDone > startDone && !busy\(w\) && !isSamenSessie\(w\)/), 'de samen-kaart hangt aan isSamenSessie, niet aan de hub');
 ok(() => assert.doesNotMatch(ob, /!w\.coopNet/), 'de oude poort (!w.coopNet) is weg');
 ok(() => assert.match(ob, /title: 'Samen spelen'/), 'de kaart heet nog Samen spelen');
-ok(() => assert.match(ob, /\{ESC\} en kies Samen spelen/), 'de kaart zegt nog waar Samen spelen staat');
+ok(() => assert.match(ob, /\{ESC\} › Samen spelen/), 'de kaart zegt nog waar Samen spelen staat');
 // De kaarten blijven in volgorde staan en de samen-kaart is de laatste.
 ok(() => {
   const ids = [...ob.matchAll(/^    id: '([a-z]+)',$/gm)].map((m) => m[1]);
