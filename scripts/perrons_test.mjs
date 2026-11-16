@@ -9,6 +9,7 @@ const { derivePerrons, stripsOf } = await import('./world/perrons.mjs');
 const P = await import('../game/js/perrons.js');
 const E = await import('../game/js/elevation.js');
 const R = await import('../game/js/railprofile.js');
+const P3 = await import('../game/js/perrons3d.js');
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -173,6 +174,57 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
     ok(lum(under[0].material) > lum(platen[0].material) + 0.2, 'de onderkant is duidelijk lichter dan de plaat erboven', `${lum(under[0].material).toFixed(2)} vs ${lum(platen[0].material).toFixed(2)}`);
     ok(under[0].material.emissive && under[0].material.emissiveIntensity > 0, 'de onderkant heeft eigen licht, ook in de schaduw van de kap');
   }
+}
+
+// 5. de perronvloer komt er ook later bij (#961): een landhalte voegt zijn rij na de
+//    start toe. Een tweede addPerrons mag de randen van de stadstations niet dubbel
+//    in het muurraster zetten.
+{
+  const rows = [{ id: 'tweede', nm: 'Perron 1', p: [[-30, 3.8, 1.9, 1.02], [0, 3.8, 1.9, 1.02], [30, 3.8, 1.9, 1.02]], r: [] }];
+  const map = { perrons: rows, roads: [], terrainOn: false };
+  const e1 = E.addPerrons(map, { has: false });
+  const cel = e1.wallGrid.at(0, 3.8) || [];
+  const n1 = cel.length;
+  const e2 = E.addPerrons(map, e1);
+  const cel2 = e2.wallGrid.at(0, 3.8) || [];
+  ok(n1 > 0, 'de rand van het perron staat in het muurraster', String(n1));
+  ok(cel2.length === n1 && new Set(cel2).size === cel2.length, 'een tweede addPerrons zet geen dubbele randstukken neer', `${cel2.length} tegen ${n1}`);
+  ok(E.groundHeightAt(e2, 0, 3.8, 1.02) > 0.9, 'het perron is na de tweede keer nog steeds een vloer');
+}
+
+// 6. het hoge perron van Groningen Noord (#961): de zijkant van de vloer houdt op waar
+//    het perron op staat (de dijk, 1,02 m onder de bovenkant), niet op straatniveau,
+//    zodat de Kastanjelaan eronder vrij zichtbaar blijft. De onderkant is dicht, want
+//    van onderen keek je anders door de open vloer heen. Een laag perron blijft tot de
+//    grond doorlopen.
+{
+  const top = 6.62;
+  const hoog = { id: 'hoog', nm: 'Perron 1', p: [[-20, 5, 2, top], [0, 5, 2, top], [20, 5, 2, top]], r: [] };
+  const grp = P3.buildPerrons3D({ perrons: [hoog] });
+  const zij = grp.getObjectByName('perron-zij');
+  ok(!!zij, 'de zijkant van het hoge perron is er');
+  let minY = Infinity, maxY = -Infinity;
+  const pos = zij.geometry.attributes.position;
+  for (let i = 0; i < pos.count; i++) { minY = Math.min(minY, pos.getY(i)); maxY = Math.max(maxY, pos.getY(i)); }
+  ok(minY >= top - P.PERRON_TOP - 0.1, 'de zijkant stopt op de dijk, niet op straat (#961)', minY.toFixed(2));
+  ok(maxY <= top + 0.02, 'de zijkant komt niet boven het perron uit', maxY.toFixed(2));
+  const onder = grp.getObjectByName('perron-onder');
+  ok(!!onder, 'de onderkant van een hoog perron is dicht');
+  if (onder) {
+    let oy = Infinity, oy2 = -Infinity;
+    const op = onder.geometry.attributes.position;
+    for (let i = 0; i < op.count; i++) { oy = Math.min(oy, op.getY(i)); oy2 = Math.max(oy2, op.getY(i)); }
+    ok(near(oy, top - P.PERRON_TOP - 0.05, 0.02), 'de onderkant ligt op de dijk', oy.toFixed(2));
+    ok(near(oy2, oy, 0.001), 'de onderkant is vlak');
+  }
+  const laag = { id: 'laag', nm: 'Perron 1', p: [[-20, 5, 2, 1.02], [0, 5, 2, 1.02], [20, 5, 2, 1.02]], r: [] };
+  const grp2 = P3.buildPerrons3D({ perrons: [laag] });
+  const zij2 = grp2.getObjectByName('perron-zij');
+  let minY2 = Infinity;
+  const pos2 = zij2.geometry.attributes.position;
+  for (let i = 0; i < pos2.count; i++) minY2 = Math.min(minY2, pos2.getY(i));
+  ok(minY2 <= 0, 'een laag perron loopt gewoon tot de grond door', minY2.toFixed(2));
+  ok(!grp2.getObjectByName('perron-onder'), 'een laag perron heeft geen losse onderkant nodig');
 }
 
 console.log(`${n - fails}/${n} perron-controles gehaald`);

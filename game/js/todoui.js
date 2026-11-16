@@ -234,7 +234,10 @@ export function renderOverview(el, world, help, extra = {}) {
   const stopHtml = extra.stop ? `<div class="ov-stop"><div class="m-gh"><span>Missie bezig</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bg" data-action="mission-stop">${ICON.stop || ''}<span>Missie stoppen</span></button></div>` +
     '<div class="pm-confirm" data-stop-confirm hidden><p>Missie stoppen?</p><p class="m-note">Je krijgt geen straf en je kunt hem opnieuw starten. Wat je in deze poging deed, telt niet mee.</p>' +
     '<div class="m-acts"><button type="button" class="m-bp" data-action="mission-stop-go">Ja, stoppen</button><button type="button" class="m-bt" data-action="mission-stop-no">Nee, doorgaan</button></div></div></div>' : '';
-  el.innerHTML = heroHtml(world) + stopHtml + tilesHtml(world, extra) + voortgangHtml() +
+  // #965: de hero staat buiten de scroller. De tabs en de grote kop blijven staan
+  // en alleen wat eronder komt (voortgang, tegels, dichtbij, vouwen) scrolt; eerst
+  // schoof de kop onder de tabbalk en werd hij daar afgekapt.
+  el.innerHTML = heroHtml(world) + '<div class="ov-scroll">' + stopHtml + tilesHtml(world, extra) + voortgangHtml() +
     '<div class="ov-cols"><section aria-label="Dichtbij" class="ov-col"><div class="m-gh"><span>Dichtbij</span></div>' +
     (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Activiteiten.</p>') +
     '</section><section aria-label="Bijna binnen" class="ov-col"><div class="m-gh"><span>Bijna binnen</span></div>' +
@@ -243,7 +246,7 @@ export function renderOverview(el, world, help, extra = {}) {
       `<span class="m-bar"><i data-bar="ach-${esc(a.id)}" data-w="${Math.round((a.progress.cur / a.progress.goal) * 100)}"></i></span></span></button>`).join('')}</div>`
       : '<p class="m-note">Speel wat rond, dan komen ze vanzelf.</p>') +
     '</section></div><div class="ov-folds"><div class="m-rule"></div>' +
-    (extra.quick ? disc('quick', 'Snel instellen', 'Geluid en beweging', extra.quick) : '') + disc('help', 'Vastgelopen?', 'Naar huis of jezelf vrijzetten', helpHtml) + agendaHtml(world) + '</div>';
+    (extra.quick ? disc('quick', 'Snel instellen', 'Geluid en beweging', extra.quick) : '') + disc('help', 'Vastgelopen?', 'Naar huis of jezelf vrijzetten', helpHtml) + agendaHtml(world) + '</div></div>';
   animateChanges(el);
 }
 

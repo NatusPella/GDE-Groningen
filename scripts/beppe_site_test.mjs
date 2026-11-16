@@ -62,6 +62,7 @@ ok(garden.includes('function siteClock()') && garden.includes('performance.now()
   const zlib = await import('node:zlib');
   const RG = await import('../game/js/roadgraph.js');
   const BG = await import('../game/js/beppe_garden.js');
+  const WV = await import('../game/js/wegvlak.js');
   const layer = T.index.layers.provincie.global;
   REG.setRegionData(layer, null);
   RG.setRoadNet(RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(Buffer.from(files[layer.roadsFile])).toString('utf8'))));
@@ -71,7 +72,23 @@ ok(garden.includes('function siteClock()') && garden.includes('performance.now()
   const lp = Object.fromEntries(BG.beppeSpots().map((s) => [s.id, s]));
   ok(!!lp.bankje && REG.regionAt(lp.bankje.x, lp.bankje.y).id === 'groningen', 'de live-plek: bankje in Grunn');
   ok(!!lp.huis && REG.regionAt(lp.huis.x, lp.huis.y).id === 'friesland', 'de live-plek: huis in Friesland');
-  ok(!!lp.bankje && !WL.waterAt(map, lp.bankje.x, lp.bankje.y) && !(map.buildingsNear && map.buildingsNear(lp.bankje.x, lp.bankje.y, 5).length), 'de live-plek staat op een droge, vrije berm');
+  // #review N355: de plek lag met bankje en Kollum-bord op de verhoogde weg (en
+  // met het tuinbankje op het fietspad ernaast). Alle vier de plekken horen op
+  // een droge berm te staan, niet op asfalt, helling, fietspad of in het water.
+  const nearPath = (x, y) => map.roadsNear(x, y, 18).some((r) => {
+    if (!r || !r.pts || r.pts.length < 2) return false;
+    const q = R.nearestOnPath(r.pts, x, y);
+    return !!q && q.d < Math.max(1, (r.width || 3) / 2) + 0.6;
+  });
+  for (const [id, p] of Object.entries(lp)) {
+    ok(!!p && !WL.waterAt(map, p.x, p.y), `${id}: niet in het water`);
+    ok(!!p && !(map.buildingsNear && map.buildingsNear(p.x, p.y, 5).length), `${id}: niet in een gebouw`);
+    ok(!!p && !WV.onRoadway(map, p.x, p.y, 0.2), `${id}: niet op de rijbaan of de helling`);
+    ok(!!p && !nearPath(p.x, p.y), `${id}: niet op een weg of fietspad`);
+  }
+  ok(!!lp.tuinbankje && !!lp.huis && Math.hypot(lp.tuinbankje.x - lp.huis.x, lp.tuinbankje.y - lp.huis.y) < 10, 'het tuinbankje staat in de voortuin van het huis');
+  // de marker staat op het tuinbankje en dus ook op die veilige plek
+  ok(!!live && !!lp.tuinbankje && live.x === lp.tuinbankje.x && live.y === lp.tuinbankje.y, 'de kaart-marker staat op het tuinbankje');
 }
 console.log(`beppe_site_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

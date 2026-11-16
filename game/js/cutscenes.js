@@ -18,13 +18,14 @@ const POSTBODE = { shirt: 0xd9742a, skin: 0xd9b48f, variant: 'male', seed: 211 }
 
 const STREET_LIFE = {
   actors: {
-    fietser: { look: FIETSER_A, at: [-30, -4.2], face: 0, anim: 'idle' },
-    fietsster: { look: FIETSER_B, at: [-34, -3.4], face: 0, anim: 'idle' },
+    fietser: { look: FIETSER_A, at: [-30, -4.2], face: 0, anim: 'idle', road: 'fiets1' },
+    fietsster: { look: FIETSER_B, at: [-34, -3.4], face: 0, anim: 'idle', road: 'fiets2' },
     buurvrouw: { look: BUURVROUW, at: [-14, -6], face: 20, anim: 'phone' },
   },
   props: {
-    fiets1: { kind: 'fiets', at: [-30, -4.2, 0], face: 0 },
-    fiets2: { kind: 'fiets', at: [-34, -3.4, 0], face: 0 },
+    // #863: de fietsers volgen de echte weg/fietspad (roadPathDef) en verdwijnen na hun korte rit.
+    fiets1: { kind: 'fiets', at: [-30, -4.2, 0], face: 0, road: 'cycle' },
+    fiets2: { kind: 'fiets', at: [-34, -3.4, 0], face: 0, road: 'cycle' },
   },
   cues: [
     { t: 0, prop: 'fiets1', path: [[-30, -4.2], [900, -4.2]], speed: 5 },
@@ -44,8 +45,9 @@ const ACT_TRAILER = {
   },
   props: {
     ...STREET_LIFE.props,
-    escapade: { kind: 'auto', at: [8, 4.5], face: 80 },
-    matras: { kind: 'matras', at: [8, 4.5, 1.45], face: 80 },
+    // #862: de Escapade staat op de weg, niet op de verhoogde stoep; de matras ligt op het dak.
+    escapade: { kind: 'auto', at: [8, 4.5], face: 80, road: true },
+    matras: { kind: 'matras', at: [8, 4.5, 1.45], face: 80, follows: 'escapade' },
     tas: { kind: 'tas', at: [-8, 7, 1] },
     duif: { kind: 'duif', at: [-20, 8, 8], face: 0 },
   },
@@ -187,14 +189,15 @@ const ACT_VERHUISDAG = {
     tammo: { look: 'tammo', at: [-4, -5.5], face: 20, anim: 'carry', speaker: 'Tammo', gaze: 'speaker' },
     tessa: { look: 'anita', at: [6.2, 1.9], face: -30, anim: 'idle', speaker: ['Anita', 'Tessa'], gaze: 'speaker' },
     buurvrouw: STREET_LIFE.actors.buurvrouw,
-    fietser: { look: FIETSER_A, at: [-60, -4.2], face: 0, anim: 'ride' },
+    fietser: { look: FIETSER_A, at: [-60, -4.2], face: 0, anim: 'ride', road: 'fiets1' },
   },
   props: {
-    escapade: { kind: 'auto', at: [8, 4.5], face: 80 },
-    matras: { kind: 'matras', at: [8, 4.5, 1.45], face: 80 },
+    // #862: ook de Escapade in C00.3 hoort met zijn wielen op de weg te staan; de matras volgt hem.
+    escapade: { kind: 'auto', at: [8, 4.5], face: 80, road: true },
+    matras: { kind: 'matras', at: [8, 4.5, 1.45], face: 80, follows: 'escapade' },
     koffer: { kind: 'koffer', at: [-4, -5.5, 0] },
     plan: { kind: 'klembord', at: [6.2, 1.9, 1] },
-    fiets1: { kind: 'fiets', at: [-60, -4.2, 0], face: 0 },
+    fiets1: { kind: 'fiets', at: [-60, -4.2, 0], face: 0, road: 'cycle' },
   },
   fx: [
     { t: 'L2+3.0', fx: 'sfx', kind: 'bell' },
@@ -328,7 +331,7 @@ export const END_CARD = {
     tessa: { look: 'anita', at: [1.2, -0.7], face: 0, anim: 'hips' },
   },
   props: {
-    bus: { kind: 'bestelbus', at: [8, -2.2, 0], face: 0 },
+    bus: { kind: 'bestelbus', at: [8, -2.2, 0], face: 0, road: true },
     duif: { kind: 'duif', at: [6, 6, 7], face: 200 },
   },
   cues: [

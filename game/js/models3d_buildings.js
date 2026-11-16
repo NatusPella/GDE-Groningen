@@ -1510,7 +1510,27 @@ export function buildingLodStyle(b) {
   };
 }
 
+// (#917) Een paar millimeter per gebouw: twee panden die een muur delen staan
+// anders exact coplanair en dan flikkert de gevel (Z-fighting). De nudge is
+// deterministisch (zelfde pand, zelfde plek) en kleiner dan een baksteen, dus
+// onzichtbaar; de botsingen blijven op de voetafdruk in de kaart. Ook een paar
+// millimeter in hoogte: twee overlappende kavels met een plat dak op dezelfde
+// verdieping hebben anders een coplanair dakvlak (de grootste kit-post).
+export function buildingNudge(b) {
+  const p = (b && b.pts && b.pts[0]) || [0, 0];
+  const f = hash2(p[0] * 0.37 + 11.3, p[1] * 0.41 - 7.9);
+  const g = hash2(p[0] * -0.23 + 4.1, p[1] * 0.19 + 13.7);
+  const k = hash2(p[0] * 0.61 - 2.9, p[1] * -0.53 + 8.3);
+  return { x: (f - 0.5) * 0.008, y: (k - 0.5) * 0.008, z: (g - 0.5) * 0.008 };
+}
+
 export function buildBuildingMesh(b) {
+  const group = buildBuildingMeshRaw(b);
+  if (group) { const n = buildingNudge(b); group.position.x += n.x; group.position.y += n.y; group.position.z += n.z; }
+  return group;
+}
+
+function buildBuildingMeshRaw(b) {
   capBuilding(b); // heights the footprint and kind can carry (buildingcap.js, issue #179)
   if (b.landmark && b.name) {
     const model = getLandmarkModel(b.name);

@@ -3,17 +3,23 @@
 // pings komt uit coopping.js (getest); dit bestand is alleen three.js en is niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { pasLabel } from './multiplayerlabels.js';
 
 const baken = new Map(); // id -> { group, beam, ring, label, kleur }
 const HOOGTE = 60;
+// #872: het pinglabel ("Naam · Kom hier") past op de vaste kaart: een lange naam krimpt
+// het lettertype en, als ook dat niet past, kort de tekst in met een ellipsis.
+const LABEL_B = 384, LABEL_H = 72, LABEL_VLAK = 372;
 
 function makeLabel(tekst, kleur) {
-  const c = document.createElement('canvas'); c.width = 384; c.height = 72;
+  const c = document.createElement('canvas'); c.width = LABEL_B; c.height = LABEL_H;
   const g = c.getContext('2d');
-  g.font = 'bold 38px "Arial Narrow", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillStyle = 'rgba(8,16,10,0.72)'; g.fillRect(6, 6, 372, 60);
-  g.strokeStyle = kleur; g.lineWidth = 3; g.strokeRect(6, 6, 372, 60);
-  g.fillStyle = '#f0ede4'; g.fillText(tekst, 192, 38);
+  const font = (px) => `bold ${px}px "Arial Narrow", Arial, sans-serif`;
+  const past = pasLabel(tekst, { maxBreedte: LABEL_VLAK, px: 38, minPx: 22, meet: (t, px) => { g.font = font(px); return g.measureText(t).width; } });
+  g.font = font(past.px); g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(8,16,10,0.72)'; g.fillRect(6, 6, LABEL_VLAK, LABEL_H - 12);
+  g.strokeStyle = kleur; g.lineWidth = 3; g.strokeRect(6, 6, LABEL_VLAK, LABEL_H - 12);
+  g.fillStyle = '#f0ede4'; g.fillText(past.tekst, LABEL_B / 2, 38);
   const tex = new THREE.CanvasTexture(c);
   const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
   spr.scale.set(5.4, 1.0, 1); spr.renderOrder = 20;

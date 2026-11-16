@@ -41,6 +41,7 @@ import { roadNetRows } from './roadgraph.js';
 import { inProvinceData } from './provinceworld.js';
 import { regionAt } from './regions.js';
 import { waterAt } from './waterlevels.js';
+import { onRoadway } from './wegvlak.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { GeoBuilder, vcMaterial, markShared } from './pixelart3d.js';
 import { gableRoofX, windowAt, jitterIco } from './countrymodels.js';
@@ -115,18 +116,39 @@ function computeSite() {
   // bridge over the Lauwers or a built-up quay (#916): chooseTributeSite walks
   // a little along the road on both sides until the place fits.
   const dry = (x, y) => !waterAt(map, x, y);
+  // every road or path (a cycle path too) under a spot: its own half width plus
+  // a metre of verge. The Lauwerspad runs parallel to the N355 here; a bench on
+  // the cycle path is just as wrong as one on the carriageway.
+  const nearPath = (x, y, margin) => {
+    for (const r of map.roadsNear(x, y, 18)) {
+      if (!r || !r.pts || r.pts.length < 2) continue;
+      const q = nearestOnPath(r.pts, x, y);
+      if (q && q.d < Math.max(1, (r.width || 3) / 2) + margin) return true;
+    }
+    return false;
+  };
+  const road = (x, y) => onRoadway(map, x, y, 0.6) || nearPath(x, y, 0.6);
   const free = (x, y) => {
     if (waterAt(map, x, y)) return false;
     if (map.buildingsNear && map.buildingsNear(x, y, 7).length) return false;
-    if (map.onCarriageway && map.onCarriageway(x, y, 1.2)) return false;
-    return true;
+    // the carriageway and the slope of a raised road (the N355 at Visvliet is
+    // one); onRoadway also knows the asphalt round a junction (wegvlak.js)
+    return !road(x, y);
   };
+  // the drawn garden reaches about 12 m from the house towards the road and 8 m
+  // to the sides: keep that whole front garden off the paths and the water, not
+  // just the four spots (the hedge would otherwise stand on the cycle path)
+  const clear = (place) => [[11.4, -8.2], [11.4, 8.2], [10.2, 6.4], [9.4, -2.6], [8.3, 0], [6.2, 3.0]]
+    .every(([lx, lz]) => {
+      const p = housePoint(place, lx, lz);
+      return !!p && !waterAt(map, p.x, p.y) && !road(p.x, p.y);
+    });
   const regionOf = (x, y) => regionAt(x, y).id;
   // het westelijke punt: bij voorkeur de echte overgang naar Friesland (de weg over de
   // Lauwers bij Visvliet); het wereldeinde is de terugval als die overgang er niet is (#916)
   const west = westernFrieslandCrossing(rows);
   if (west) {
-    const place = chooseTributeSite({ border: west, ux: west.ux, uy: west.uy, hw: west.hw, dry, free, regionOf });
+    const place = chooseTributeSite({ border: west, ux: west.ux, uy: west.uy, hw: west.hw, dry, free, road, clear, regionOf });
     if (place) return place;
   }
   ensureWorldEnds();
@@ -171,11 +193,13 @@ function computeSite() {
     hw: (best.row.w || 6) / 2,
     dry,
     free,
+    road,
+    clear,
     regionOf,
   });
   if (place && place.clear === false && !warned) {
     warned = true;
-    console.warn('eerbetoon: geen vrije berm bij de grens gevonden, de plek staat op de eerste berm');
+    console.warn('eerbetoon: geen vrije berm bij de grens gevonden, de plek staat op de eerste berm naast de weg');
   }
   return place;
 }

@@ -4,6 +4,17 @@ import { onSettingsChange } from './settings.js';
 import { WATER_TONES as TONES, WATER_SHARED_GLSL } from './watertones.js';
 import { KIELZOG_GLSL, kielzogVeld, veldHoogte } from './kielzogveld.js';
 
+// #865: gebouwen die in het water staan (werelddata: de waterpolygoon ligt over
+// de gebouwvoet). tilewatermask.js bakt de voeten van die gebouwen in een masker
+// (1 m per texel); de watermaterialen hieronder gooien hun fragmenten daar weg,
+// zodat er geen waterlaag door of over een gebouw loopt. De rect is
+// (x0, y0, 1/size) in wereldcoördinaten; buiten de rect doet het masker niets.
+export const WATER_BUILDING_CUT = {
+  uMask: { value: new THREE.DataTexture(new Uint8Array([0]), 1, 1, THREE.RedFormat) },
+  uRect: { value: new THREE.Vector4(1e9, 1e9, 0, 0) },
+};
+WATER_BUILDING_CUT.uMask.value.needsUpdate = true;
+
 // Stylised canal water: a grid-filled surface clipped exactly to each water
 // polygon, low-poly faceted swell (derivative normals), a per-vertex
 // distance-to-shore attribute that drives the depth gradient, foam line,
@@ -90,12 +101,21 @@ varying float vFacade;
 
 #include <fog_pars_fragment>
 
+uniform sampler2D uBldgMask;
+uniform vec4 uBldgRect;
+bool bldgCut(vec2 q) {
+  vec2 uv = (q - uBldgRect.xy) * uBldgRect.z;
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return false;
+  return texture2D(uBldgMask, uv).r > 0.35;
+}
+
 ${WATER_SHARED_GLSL}
 #define hash2 wtrHash
 #define valueNoise wtrNoise
 
 void main() {
   vec2 p = vWorldPos.xz;
+  if (bldgCut(p)) discard;
   vec3 v = normalize(cameraPosition - vWorldPos);
 
   vec3 n = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
@@ -221,6 +241,8 @@ export function createWaterMaterial(sky = null) {
       uRain: { value: 0 },
       uLight: { value: 1 },
       uNight: { value: 0 },
+      uBldgMask: WATER_BUILDING_CUT.uMask,
+      uBldgRect: WATER_BUILDING_CUT.uRect,
       fogColor: { value: new THREE.Color(0xffffff) },
       fogNear: { value: 1 },
       fogFar: { value: 2000 },

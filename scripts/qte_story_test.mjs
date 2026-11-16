@@ -10,6 +10,7 @@
 process.env.GDE_NIEUW_VERHAAL = '1';
 import './node3d.mjs';
 import { buildAkte4Defs, applyAkte4 } from '../game/js/missions_akte4.js';
+import { buildAkte5Defs, applyAkte5 } from '../game/js/missions_akte5.js';
 
 const { enterChoice, stepChoice } = await import('../game/js/stagechoice.js');
 const { enterTiming, stepTiming } = await import('../game/js/stagetiming.js');
@@ -92,6 +93,52 @@ const by = (label) => defs.find((d) => d.label === label);
   }
   ok(!failed, 'vier missers laten de missie niet mislukken zonder failAt (#962)');
   ok(S.miss >= 2, 'de missers tellen wel mee voor de tag', String(S.miss));
+}
+
+// --- M24/M25/M26: het verhaal is geen QTE meer --------------------------------
+{
+  // the shared defs get their act 5 staging from applyAkte5; the M22 def comes
+  // from buildAkte5Defs so its action timing can be checked too.
+  const list = [
+    { label: "Er hangt iets Fries aan d'Olle Grieze", stages: [{ kind: 'pigeon' }, { kind: 'scene', dropFlag: true }], start: {} },
+    { label: 'Het bod viel tegen', stages: [{ kind: 'goto' }], start: {} },
+    { label: 'Ontzet, net als in 1672', stages: [{ kind: 'bake' }, { kind: 'hold' }, { kind: 'chase', route: [] }], start: {} },
+  ];
+  applyAkte5(list);
+  const m24 = list.find((d) => /Fries/.test(d.label));
+  ok(m24 && !m24.stages.some((s) => s.kind === 'timing'), 'M24: de windvlaag is geen timing-QTE meer (#962)');
+  const pig = m24 && m24.stages.find((s) => s.kind === 'pigeon');
+  ok(pig && pig.tag === 'vlag-top', 'M24: de duifstap geeft de wind-uitkomst als tag');
+  const m26 = list.find((d) => /Ontzet/.test(d.label));
+  ok(m26 && !m26.stages.some((s) => s.kind === 'timing'), 'M26: de duiven en de straten zijn geen timing-QTE meer (#962)');
+  ok(m26 && m26.stages.find((s) => s.kind === 'chase').tag === 'duiven-top', 'M26: de achtervolging geeft de duiventag');
+  ok(m26 && m26.stages.some((s) => s.kind === 'scene' && s.tag === 'straten-dicht' && (s.scriptIf || []).length === 3), 'M26: de straten-scène draagt de tag en de bondgenoot');
+  ok(m26 && !m26.stages.some((s) => s.script && (s.script.ids || []).some((id) => /M26\.14/.test(id)) && s.scriptIf && s.scriptIf.length !== 3), 'M26: de straten-scène blijft één scène met drie varianten');
+
+  const defs5 = buildAkte5Defs({ map: { nearestRoadPoint: () => null }, walk: (x, y) => ({ x, y }), drive: (x, y) => ({ x, y }) });
+  const luik = defs5.find((d) => d.label === 'Een luik erin');
+  const mud = luik && luik.stages.find((s) => s.kind === 'timing');
+  ok(!!mud && mud.kicker === 'Los uit de modder' && mud.failAt === undefined && mud.failText === undefined, 'M22: het loswippen is een korte actie-QTE zonder afloop');
+  const bod = list.find((d) => /bod/.test(d.label));
+  ok(!!bod && bod.stages.some((s) => s.kind === 'bake' && s.set === 'omakeuken'), 'M25: het bakken speelt binnen in Oma\'s keuken (#956)');
+}
+
+// --- alle overgebleven QTE's zijn mild: geen failAt/failText -------------------
+{
+  const defs = [...buildAkte4Defs()];
+  const list = [
+    { label: "Er hangt iets Fries aan d'Olle Grieze", stages: [{ kind: 'pigeon' }, { kind: 'scene', dropFlag: true }], start: {} },
+    { label: 'Ontzet, net als in 1672', stages: [{ kind: 'bake' }, { kind: 'hold' }, { kind: 'chase', route: [] }], start: {} },
+  ];
+  applyAkte5(list);
+  const all = [...defs, ...buildAkte5Defs({ map: { nearestRoadPoint: () => null }, walk: (x, y) => ({ x, y }), drive: (x, y) => ({ x, y }) }), ...list];
+  const timings = all.flatMap((d) => (d.stages || []).filter((s) => s.kind === 'timing').map((s) => ({ d: d.label, s })));
+  ok(timings.length >= 4 && timings.length <= 6, 'er blijven een paar korte actie-QTE\'s over', String(timings.length));
+  ok(timings.every(({ s }) => s.failAt === undefined && s.failText === undefined), 'geen enkele QTE laat de missie nog mislukken (#962)');
+  ok(timings.every(({ s }) => Array.isArray(s.rounds) && s.rounds.length <= 3), 'elke QTE is kort: hooguit drie rondes');
+  const kinds = timings.map(({ s }) => s.kicker || '').join(' | ');
+  ok(/Fierljep|wagons|modder|gang/.test(kinds), 'de overgebleven QTE\'s zijn actie (klimmen, springen, wippen, sluipen)', kinds);
+  ok(!/wind|duiven|straten|vrienden/i.test(kinds), 'verhaal-QTE\'s zijn weg', kinds);
 }
 
 console.log(fails ? `${fails} van ${n} mislukt` : `qte_story_test: ${n} controles ok`);

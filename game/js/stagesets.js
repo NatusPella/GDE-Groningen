@@ -1,32 +1,42 @@
 // #956: a mission stage that plays indoors gets a real room around the player instead of a
-// conversation in the open air. Two sets, both from office3d.js:
+// conversation in the open air. Four sets:
 //   kantoor      the intake at Wiebelwerk (M18): the player stands at the visitor's side,
 //                the account manager behind the desk, a colleague at work;
-//   serverkamer  the server room (M18): the same long hall that builds the scene of M18.3.
+//   serverkamer  the server room (M18): the same long hall that builds the scene of M18.3;
+//   loket        the Loket of the Stadhuis (M03): the counter with three windows, the queue
+//                rope and the number screen, the clerk behind the glass;
+//   omakeuken    Oma Trijntje's kitchen at the Noorderhaven (M25): the stove, the table with
+//                the five ingredients and the recipe card by the window.
 //
 // The set stands on the map's floor height and is turned to the east (+u = +x), like the
-// indoor scenes (cutscenehost.js keeps an indoor set square). The choice stage keeps the
-// player at his chair (`hold`) so he cannot walk out through a wall; the wait stage in the
-// server room leaves him free (the hall is wide enough).
+// indoor scenes (cutscenehost.js keeps an indoor set square). A stage with a hold keeps the
+// player at his chair or at the counter (`hold`) so he cannot walk out through a wall; the
+// wait stage in the server room leaves him free (the hall is wide enough).
 //
 // The layout (stageSetLayout) is pure and tested; drawing needs three.js and the scene.
 import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 import { buildOffice, buildServerRoom } from './office3d.js';
+import { buildLoket, LOKET } from './loket3d.js';
+import { buildOmaKitchen, OMA_KEUKEN } from './omakeuken3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { animateActor } from './actoranim.js';
 import { NPC } from './missionstory.js';
 
-export const STAGE_SETS = ['kantoor', 'serverkamer'];
+export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken'];
 
 // Where the room goes: in the office the player stands 0.55 m before the middle (between the
-// door and the visitor's chair, not on the table); the server room is centred on the player.
-// The player faces +x (the desk or the terminal), as in the indoor scenes.
+// door and the visitor's chair, not on the table); the server room is centred on the player;
+// at the Loket the player stands 0.8 m before the middle so the counter is a few metres
+// ahead; in Oma's kitchen he stands 0.6 m before the middle, at the table.
+// The player faces +x (the desk, the counter or the stove), as in the indoor scenes.
 export function stageSetLayout(kind, player) {
   if (!STAGE_SETS.includes(kind) || !player) return null;
   const x = Number.isFinite(player.x) ? player.x : 0;
   const y = Number.isFinite(player.y) ? player.y : 0;
   if (kind === 'kantoor') return { kind, x: x + 0.55, y, hold: { x, y, angle: 0 }, facing: 0 };
+  if (kind === 'loket') return { kind, x: x + 0.8, y, hold: { x, y, angle: 0 }, facing: 0 };
+  if (kind === 'omakeuken') return { kind, x: x + 0.6, y, hold: { x, y, angle: 0 }, facing: 0 };
   return { kind, x, y, hold: null, facing: 0 };
 }
 
@@ -59,14 +69,25 @@ export function buildStageSet(world, kind, player, targetScene = null) {
   try {
     if (world && world.map && world.map.groundHeightAt) base = world.map.groundHeightAt(layout.x, layout.y, 50) || 0;
   } catch (e) { base = 0; }
-  const kit = kind === 'kantoor' ? buildOffice(layout.x, layout.y, base) : buildServerRoom(layout.x, layout.y, base);
+  const kit = kind === 'kantoor' ? buildOffice(layout.x, layout.y, base)
+    : kind === 'serverkamer' ? buildServerRoom(layout.x, layout.y, base)
+      : kind === 'loket' ? buildLoket(layout.x, layout.y, base)
+        : buildOmaKitchen(layout.x, layout.y, base);
   const group = new THREE.Group();
   group.add(kit.group);
   const people = [];
   if (kind === 'kantoor') {
     // the account manager behind the desk (local 3.25 / -0.4), a colleague at work
-    people.push({ mesh: buildPerson('accountmanager', [3.25, -0.4], 180), anim: () => 'talk', gaze: 0 });
-    people.push({ mesh: buildPerson('student', [1.2, 2.4], 250), anim: (t) => (Math.sin(t * 0.8) > 0 ? 'phone' : 'look'), gaze: 0 });
+    people.push({ mesh: buildPerson('accountmanager', [3.25, -0.4], Math.PI), anim: () => 'talk', gaze: 0 });
+    people.push({ mesh: buildPerson('student', [1.2, 2.4], 250 * Math.PI / 180), anim: (t) => (Math.sin(t * 0.8) > 0 ? 'phone' : 'look'), gaze: 0 });
+  } else if (kind === 'loket') {
+    // the clerk behind the middle window, and one person still in the queue
+    people.push({ mesh: buildPerson('loketbediende', [LOKET.clerkU, 0], Math.PI), anim: () => 'talk', gaze: 0 });
+    people.push({ mesh: buildPerson('student', [-2.7, 2.5], 0.4), anim: (t) => (Math.sin(t * 0.6) > 0 ? 'phone' : 'idle'), gaze: 0 });
+  } else if (kind === 'omakeuken') {
+    // Oma at the stove (she keeps an eye on the pan), Mem at the table
+    people.push({ mesh: buildPerson('trijntje', [OMA_KEUKEN.stoveU - 0.85, 0.5], 0), anim: () => 'talk', gaze: 0 });
+    people.push({ mesh: buildPerson('mem', [OMA_KEUKEN.tableU + 0.2, -1.75], -0.7), anim: (t) => (Math.sin(t * 0.7) > 0.2 ? 'talk' : 'idle'), gaze: 0 });
   }
   for (const p of people) kit.group.add(p.mesh);
   scene.add(group);

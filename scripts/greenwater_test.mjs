@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 
 globalThis.requestAnimationFrame = (f) => setImmediate(f);
-const { dryIndices } = await import('../game/js/greenwater.js');
+const { dryIndices, dryPavedIndices, pavedTester, triangleOnPaved } = await import('../game/js/greenwater.js');
 const { createWaterIndex } = await import('../game/js/waterindex.js');
 
 let n = 0, fails = 0;
@@ -14,6 +14,21 @@ const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`
 const pos = [0, 0, 0, 10, 0, 0, 0, 0, 10, 20, 0, 20, 30, 0, 20, 20, 0, 30];
 const kept = dryIndices(pos, [0, 1, 2, 3, 4, 5], (x) => x > 15);
 ok(kept.length === 3 && kept[0] === 0, 'helper keeps the dry triangle, drops the wet one', String(kept));
+
+// #883: een grote driehoek van een akker ligt met zijn zwaartepunt naast de weg maar met zijn
+// randen over het asfalt. Alleen het zwaartepunt toetsen liet hem staan; de hele driehoek toetsen
+// haalt hem weg.
+{
+  const fake = { roadsNear: () => [{ pts: [[-50, 20], [50, 20]], width: 6 }] };
+  const on = pavedTester(fake, 0, 0, 100);
+  ok(on && !on(0, 0), 'pavedTester: het zwaartepunt naast de weg is droog');
+  ok(on && on(0, 21), 'pavedTester: op de rijbaan is verhard');
+  ok(triangleOnPaved(on, -30, 0, 30, 0, 0, 40), 'driehoek met de rand over de weg telt als verhard');
+  ok(!triangleOnPaved(on, -30, 0, 30, 0, 0, 10), 'driehoek die de weg niet raakt blijft groen');
+  const p3 = [-30, 0, 0, 30, 0, 0, 0, 0, 40];
+  const cut = dryPavedIndices(p3, [0, 1, 2], null, on);
+  ok(cut.length === 0, 'dryPavedIndices haalt de driehoek over de weg weg', String(cut));
+}
 
 const { loadCityData } = await import('./lib/loadworld.mjs');
 const map = await loadCityData({ extras: false });

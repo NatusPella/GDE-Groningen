@@ -104,6 +104,18 @@ ok(missionScene('X99.intro', [{ speaker: 'Tammo', text: 'x', at: 1, dur: 2 }], {
   ok(end.actors.tammo.visible === false && end.actors.tessa.visible === false, 'M02: they get into the car');
 }
 
+// #863: the rider and the bike are marked for the same road path
+{
+  const spec = Object.values(SPECS).find((s) => Object.values(s.props || {}).some((p) => p.kind === 'fiets'));
+  ok(spec, 'act 2 has a rider scene');
+  if (spec) {
+    const bikeId = Object.keys(spec.props).find((id) => spec.props[id].kind === 'fiets');
+    const actorId = bikeId.replace(/f$/, '');
+    ok(spec.props[bikeId].road === 'cycle', 'the bike follows the cycle path');
+    ok(spec.cast[actorId] && spec.cast[actorId].road === bikeId, 'the rider rides the bike road path');
+  }
+}
+
 // #741: naamkaarten bij de eerste zichtbare ontmoeting, niet bij een telefoonregel of een verborgen plek
 ok(SPECS['M08.outro'].fx && SPECS['M08.outro'].fx.some((f) => f.fx === 'naam' && f.text === 'Oma Trijntje'),
   "M08.3 (Oma's kamer): Oma Trijntje krijgt daar haar naamkaart");

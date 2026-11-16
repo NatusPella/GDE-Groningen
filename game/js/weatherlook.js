@@ -9,10 +9,13 @@ import { mulberry32 } from './rng.js';
 
 // Per quality level (settings.quality): how much of the rain pool is drawn,
 // how many puddles and how much wet shine the ground gets, how strong the mist is.
+// #866: de puddles stonden op 1 (hoog) en 0,7 (middel): op nat asfalt gaf dat
+// grote donkere vlekken die als olie of gaten lezen. Het natte wegdek blijft
+// (sheen), de vlekken zijn nu subtieler.
 export const QUALITY_LOOK = {
   laag: { rain: 0.45, puddles: 0, sheen: 0.5, mist: 0.8, flashes: 1 },
-  middel: { rain: 0.75, puddles: 0.7, sheen: 0.8, mist: 1, flashes: 2 },
-  hoog: { rain: 1, puddles: 1, sheen: 1, mist: 1, flashes: 3 },
+  middel: { rain: 0.75, puddles: 0.4, sheen: 0.8, mist: 1, flashes: 2 },
+  hoog: { rain: 1, puddles: 0.55, sheen: 1, mist: 1, flashes: 3 },
 };
 export const qualityLook = (q) => QUALITY_LOOK[q] || QUALITY_LOOK.hoog;
 
@@ -34,10 +37,22 @@ export function stepWet(wet, rain, dt) {
 }
 
 // Mist: fog distance (m) for a mist amount 0..1, quality and region.
-// Thick mist gets the far end down to 70 m.
+// #866: dichte mist zette het zicht op ~50 m en maakte een hoog beeld helemaal
+// wit. De mist blijft (kleur en sfeer ongewijzigd), maar met een zichtbodem:
+// dichtbij nooit onder MIST_NEAR m en in de verte nooit onder MIST_FAR m, zodat
+// de wereld ook in dichte mist leesbaar blijft.
+export const MIST_NEAR = 16, MIST_FAR = 150;
+// #866: een hoog beeld (camera ver boven de straat) kijkt over de mist heen; demp de mist daar,
+// anders wordt het hele beeld wit. Tot 25 m boven de grond telt de mist vol, daarna loopt hij
+// terug tot 40 % op 100 m.
+export function mistAtHeight(mist, camY = 0) {
+  const high = Math.min(1, Math.max(0, (camY - 25) / 75));
+  return mist * (1 - 0.6 * high);
+}
 export function mistFog(mist, quality = 'hoog', region = 'stad', base = { near: 40, far: 400 }) {
   const m = Math.min(1, Math.max(0, mist * qualityLook(quality).mist * regionHaze(region).mistK));
-  return { near: base.near * (1 - m), far: Math.max(70, base.far + (70 - base.far) * m) };
+  const nearAt = Math.max(MIST_NEAR, base.near * 0.25), farAt = Math.max(MIST_FAR, base.far * 0.45);
+  return { near: Math.max(MIST_NEAR, base.near + (nearAt - base.near) * m), far: Math.max(MIST_FAR, base.far + (farAt - base.far) * m) };
 }
 
 // Sunrise and sunset glow 0..1 from the sun's height: strongest when the sun

@@ -174,18 +174,50 @@ export function mountLobby(root, hooks, opts = {}) {
     const toestemming = v.consent ? consentOnthoudenHtml(v.consent) : '';
     // het wachtwoordveld (#450): dezelfde stijl als het zoekveld (m-inp + ss-label), met de uitleg eronder
     const ww = v.wachtwoord ? `<div class="coop-wachtwoord-veld"><label class="m-inp coop-wachtwoord-label"><span class="ss-label">${esc(v.wachtwoord.label)}</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="${esc(v.wachtwoord.placeholder)}" value="${esc(v.wachtwoord.value)}"></label><p class="coop-wachtwoord-hint mut">${esc(v.wachtwoord.hint)}</p></div>` : '';
+    // (#871) op een telefoon (portrait) of een laag scherm is de hoogte het schaarse goed: het
+    // avatarblok klapt in, het kamercodeveld staat meteen bovenaan en de figuurkeuzes komen na
+    // de knoppen. Zo blijven de eerste actie en "Verder" in beeld.
+    const klein = typeof innerWidth === 'number' && typeof innerHeight === 'number' && (innerHeight <= 560 || (innerWidth <= 760 && innerHeight > innerWidth));
+    // (#874) de spelers als chips in plaats van één lange namenzin. De telling blijft als regel
+    // staan; de chips maken de namen scanbaar en kunnen met 16 spelers gewoon doorlopen.
+    const chipSpeler = (p) => {
+      if (!p) return '';
+      const weg = p.verbinding === 'lost', hapert = p.verbinding === 'lag', host = p.slot === 0;
+      return `<li class="coop-speler${weg ? ' coop-speler-weg' : hapert ? ' coop-speler-lag' : ''}"${host ? ' data-host="1"' : ''}>${esc(p.naam || '?')}${host ? ' <small>host</small>' : ''}${weg ? ' <small>· weg</small>' : hapert ? ' <small>· hapert</small>' : ''}</li>`;
+    };
+    const chips = Array.isArray(v.spelers) && v.spelers.length
+      ? `<ul class="coop-spelers-chips" aria-label="Spelers in deze sessie">${v.spelers.map(chipSpeler).join('')}</ul>` : '';
+    const regels = [];
+    let chipsGeplaatst = false;
+    for (const l of v.lines) {
+      regels.push(`<p>${esc(l)}</p>`);
+      if (chips && !chipsGeplaatst && /^Spelers \(\d+ van \d+\)/.test(l)) { regels.push(chips); chipsGeplaatst = true; }
+    }
+    if (chips && !chipsGeplaatst) regels.push(chips);
+    // (#874) eruit zetten en overdragen horen bij de speler op het tabblad Spelers; de
+    // wachtkamer zegt waar je dat vindt in plaats van vijftien knoppen te tonen.
+    const beheerHint = state.rol === ROLES.HOST && v.spelers && v.spelers.length > 1
+      ? '<p class="coop-beheer-hint">Spelers eruit zetten of het spel overdragen: open het tabblad Spelers.</p>' : '';
+    // een hertekening (verbindingsstatus, de lijst) mag het avatarblok niet dichtklappen
+    const vouwOpen = !!(root.querySelector && root.querySelector('.coop-profiel-vouw[open]'));
+    const profielBlok = klein && prof ? `<details class="coop-profiel-vouw"${vouwOpen ? ' open' : ''}><summary>Je online-avatar</summary>${prof}</details>` : prof;
+    const code = v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '';
+    const invoer = v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" aria-label="${esc(v.input.label || v.input.placeholder)}" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
-      v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
-      prof +
+      (klein ? invoer : '') +
+      code +
+      regels.join('') +
+      beheerHint +
+      profielBlok +
       toestemming +
       sessies +
       ww +
-      (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
-      (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" aria-label="${esc(v.input.label || v.input.placeholder)}" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '') +
-      wensen +
+      (klein ? '' : invoer) +
+      (klein ? '' : wensen) +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
-      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>` +
+      (klein ? wensen : '');
     if (veldStand && root.querySelector) {
       const veld = root.querySelector('.' + veldStand.klasse);
       if (veld && veld.focus) {

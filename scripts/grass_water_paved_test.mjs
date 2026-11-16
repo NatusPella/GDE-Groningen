@@ -12,8 +12,9 @@
 import fs from 'node:fs';
 import './node3d.mjs';
 const THREE = await import('three');
-const { dryPavedIndices, pavedTester } = await import('../game/js/greenwater.js');
+const { dryPavedIndices, pavedTester, triangleOnPaved } = await import('../game/js/greenwater.js');
 const { waterIndexAt, getWaterIndex } = await import('../game/js/waterindex.js');
+const { tileIndexOf, tileKey } = await import('../game/js/gdt.js');
 const G = await import('../game/js/grass.js');
 
 let n = 0, bad = 0;
@@ -41,11 +42,13 @@ const wetTriangles = (pos, idx, wi) => {
   return wet;
 };
 const pavedTriangles = (pos, idx, on) => {
+  if (!on) return 0;
   let k = 0;
+  // de hele driehoek, niet alleen het zwaartepunt: een grote akkerdriehoek ligt vaak met zijn
+  // zwaartepunt naast de rijbaan terwijl zijn randen eroverheen liggen (#883)
   for (let i = 0; i + 2 < idx.length; i += 3) {
     const a = idx[i] * 3, b = idx[i + 1] * 3, c = idx[i + 2] * 3;
-    const x = (pos[a] + pos[b] + pos[c]) / 3, z = (pos[a + 2] + pos[b + 2] + pos[c + 2]) / 3;
-    if (on(x, z)) k++;
+    if (triangleOnPaved(on, pos[a], pos[a + 2], pos[b], pos[b + 2], pos[c], pos[c + 2])) k++;
   }
   return k;
 };
@@ -89,6 +92,11 @@ if (!fs.existsSync(new URL('index-provincie.json', root))) {
   const keys = Object.keys(T.index.tiles);
   const take = [];
   for (let i = 0; i < keys.length; i += 5) take.push(keys[i]);
+  // de plekken uit #883 (Usquert) altijd meenemen, ook als de steekproef ze overslaat
+  for (const [x, y] of [[2779.1, -20401.5]]) {
+    const k = tileKey(...tileIndexOf(x, y));
+    if (T.index.tiles[k] && !take.includes(k)) take.push(k);
+  }
   await Promise.all(take.map((k) => T.store.request(k, { priority: -1 })));
   map.tileQueue.run(1e9);
   const TM = T.index.tileM || 320;
@@ -176,6 +184,12 @@ if (!fs.existsSync(new URL('index-provincie.json', root))) {
   console.log(`graspollen: ${inst} instanties in ${checked} cellen, ${inWater} nat, ${onRoad} op de weg`);
 }
 
+// --- de productieweg: de graschunk toetst per groenvlak, niet met één kleine toets rond het chunkmidden
+{
+  const src = fs.readFileSync(new URL('../game/js/grass.js', import.meta.url), 'utf8');
+  ok(/fillInto\(B, g, polyGeometry\(g\)\)/.test(src), 'de graschunk toetst de verharding per groenvlak (#883)');
+  ok(!/fillInto\(B, g, polyGeometry\(g\), wT, pT\)/.test(src), 'geen chunkbrede verhardingstoets meer (#883)');
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `grass_water_paved_test: ok (${n} controles)`);
 process.exit(bad ? 1 : 0);
-

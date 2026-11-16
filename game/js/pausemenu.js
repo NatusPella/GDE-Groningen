@@ -2226,13 +2226,13 @@ function progressOverviewHtml() {
 function renderOverviewPanel() {
   const el = root.querySelector(OV_SUB);
   try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo() }); } catch (err) { console.error('overzicht', err); }
-  // #898: het voortgangsblok staat onder de hero, zodat het Overzicht één rustig beeld houdt
-  // en het percentage toch meteen in het oog valt.
+  // #898/#965: het voortgangsblok staat onder de hero, boven aan de scrollende
+  // inhoud, zodat het percentage meteen in het oog valt en de grote kop blijft staan.
   if (el && !el.querySelector('.pm-progress')) {
     const blok = progressOverviewHtml();
-    const hero = el.querySelector('.ov-hero');
+    const body = el.querySelector('.ov-scroll');
     if (blok) {
-      if (hero) hero.insertAdjacentHTML('afterend', blok);
+      if (body) body.insertAdjacentHTML('afterbegin', blok);
       else el.insertAdjacentHTML('afterbegin', blok);
     }
   }
@@ -2514,7 +2514,7 @@ function resetScrolls() {
   const panel = activePanel();
   if (!panel) return;
   panel.scrollTop = 0;
-  for (const n of panel.querySelectorAll('.pm-inner, .m-main, .m-list, .m-pane, .pm-vsub, .pm-samen-inner, .pm-hub, .pm-spelers')) n.scrollTop = 0;
+  for (const n of panel.querySelectorAll('.pm-inner, .m-main, .m-list, .m-pane, .pm-vsub, .pm-samen-inner, .pm-hub, .pm-spelers, .ov-scroll')) n.scrollTop = 0;
 }
 
 // Opens the menu on a section ('overzicht' by default); with { prestart: true }

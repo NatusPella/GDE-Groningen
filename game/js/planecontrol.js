@@ -78,7 +78,12 @@ export function flyPlaneVehicle(v, dt, isDown, groundAt, onRunway, wind = null) 
 export function idlePlane(v, dt, groundAt) {
   const p = v.plane;
   if (!p || p.crashed) return;
-  if (p.onGround) { p.speed = Math.max(0, p.speed - 8 * dt); p.throttle = 0; v.planeCtl.thr = 0; }
+  if (p.onGround) {
+    p.speed = Math.max(0, p.speed - 8 * dt); p.throttle = 0; v.planeCtl.thr = 0;
+    // #856: a parked plane keeps the height it was spawned at, which was 0 when Eelde was not
+    // streamed in yet; follow the ground so it never stands buried when the tiles arrive.
+    p.z = groundAt(p.x, p.y);
+  }
   else { p.speed = Math.max(PLANE.stall, p.speed); stepPlane(p, { throttle: 0.3, pitch: -0.1 }, dt, groundAt, () => false); }
   syncToVehicle(v);
 }

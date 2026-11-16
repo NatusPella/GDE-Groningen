@@ -12,12 +12,19 @@ import { bestuurInvoer } from './coopgast.js';
 import { Vehicle } from './vehicle.js';
 import { isInWater } from './util.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
+import { levelShadow } from './shadowlevel.js';
 import { attachPlane, flyPlaneVehicle, idlePlane, makeStrip, planeStatus } from './planecontrol.js';
 import { veldBaan } from './arcadeplane.js';
 import { instrumentData, maakPaneel, zomerWind, UITLEG_INSTAPPEN } from './instrumenten.js';
 
 export const PLANE_MODEL = { name: 'plane', len: 8, wid: 10.6, maxSpeed: 70, accel: 14, brake: 10, turnRate: 1, color: '#e9e4d3' };
 const DEALER = { x: 1764.51, y: 9959.94 };   // Rotor Roelf op Eelde, zie shops.js
+const RESPAWN_AT_M = 900;   // #856: binnen deze afstand van Eelde zet de attractie de Kist terug
+// #856: findStrip has no data around Eelde at start-up and picks the first flat candidate; once
+// the airport buildings are streamed in it rejects every candidate. That first candidate is the
+// grass strip the attraction has always used, so keep it as a fallback instead of having no Kist
+// at all. Its centre line is clear; the plane starts 30 m along it, between the buildings.
+const EELDE_STRIP = makeStrip({ x: DEALER.x + Math.cos(1.2) * 70, y: DEALER.y + Math.sin(1.2) * 70, heading: 0, length: 520 });
 
 let strip = null;
 let plane = null;
@@ -26,6 +33,7 @@ let plekken = null;   // de gemeten velden (game/vliegplekken.json), voor de vlu
 let msgAt = -Infinity;
 let uitgelegd = null;
 let vlagVanMij = false;   // heeft deze module world.noLookBack gezet (Q is in de kist het roer)
+let missingSince = -Infinity;   // #856: laatste controle of de Kist nog in de wereld staat
 
 const groundOf = (map) => (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) : 0);
 
@@ -84,9 +92,18 @@ function laadPlekken(w) {
     .catch(() => {});
 }
 
-function initPlanes(w) {
-  strip = findStrip(w.map);
-  if (!strip) return;
+// The strip of Eelde: found on the streamed map, or the fixed first candidate when the tiles
+// around the airport are not there (yet) or are too built up for findStrip.
+function ensureStrip(w) {
+  if (!strip) strip = findStrip(w.map) || EELDE_STRIP;
+  return strip;
+}
+
+// Put a Kist on the strip. Once at start-up; if the plane goes missing later (the traffic
+// cull used to remove it while the player was far away, #856), updatePlanes puts it back as
+// soon as the player is near Eelde again.
+function spawnPlane(w) {
+  if (!ensureStrip(w)) return null;
   const gh = groundOf(w.map);
   const at = strip.point(30);
   const v = new Vehicle(at.x, at.y, strip.heading, { ...PLANE_MODEL });
@@ -97,6 +114,12 @@ function initPlanes(w) {
   w.vehicles.push(v);
   plane = v;
   w.planeStrip = strip;
+  return v;
+}
+
+function initPlanes(w) {
+  strip = findStrip(w.map) || EELDE_STRIP;
+  spawnPlane(w);
   w.planeVelden = veldenVan();
   laadPlekken(w);
 }
@@ -126,6 +149,24 @@ function showCard(mine, w) {
   hud.zet(instrumentData(mine, windNu(w, mine)), planeStatus(mine).state, mine.schoolKist ? 'Schoolkist' : 'Kist Kees');
 }
 
+// #852: the blob shadow is a child of the mesh, so it rose to flight level and tilted with the
+// plane. The heli already flattens it on the ground and lets it fade with height (heliflight.js
+// + shadowlevel.js); a plane does the same here. `groundZ` is the ground under the plane now,
+// not the take-off field, so a shadow stays on the ground over hills too.
+export function updatePlaneShadow(mesh, v, groundZ) {
+  const sh = mesh && mesh.userData && mesh.userData.shadow;
+  if (!sh || !v) return null;
+  const alt = Math.max(0, (v.z || 0) - (Number.isFinite(groundZ) ? groundZ : 0));
+  levelShadow(sh, mesh, alt - 0.03);
+  const k = Math.max(0, Math.min(1, 1 - alt / 60));
+  sh.visible = k > 0.05;
+  const f = 1 + (1 - k) * 0.4;   // farther away: a larger, vaguer patch
+  const len = (v.model && v.model.len) || PLANE_MODEL.len;
+  const wid = (v.model && v.model.wid) || PLANE_MODEL.wid;
+  sh.scale.set(len * 1.12 * f, 1, wid * 1.3 * f);
+  return sh;
+}
+
 function updatePlanes(dt, w) {
   if (!dt) return;
   const gh = groundOf(w.map);
@@ -134,7 +175,20 @@ function updatePlanes(dt, w) {
     if (!v.isPlane) continue;
     if (v !== pv) idlePlane(v, dt, gh);
     const mesh = getVehicleMesh(v.id);
-    if (mesh && mesh.userData.prop) mesh.userData.prop.rotation.x += dt * (6 + 60 * (v.throttle || 0)) * (v.wrecked ? 0 : 1);
+    if (mesh) {
+      if (mesh.userData.prop) mesh.userData.prop.rotation.x += dt * (6 + 60 * (v.throttle || 0)) * (v.wrecked ? 0 : 1);
+      updatePlaneShadow(mesh, v, gh(v.x, v.y));
+    }
+  }
+  // #856: if the Kist is no longer in the world (culled while the player was far away, or a
+  // first findStrip that ran before the tiles were there), put it back near Eelde.
+  if ((!plane || !w.vehicles.includes(plane)) && (w.time || 0) - missingSince > 1.5) {
+    missingSince = w.time || 0;
+    const p = hoofdspeler(w);
+    if (p && Math.hypot(p.x - DEALER.x, p.y - DEALER.y) < RESPAWN_AT_M) {
+      const v = spawnPlane(w);
+      if (v) w.planeVelden = veldenVan();
+    }
   }
   if (pv && pv.isPlane && pv.plane && pv.plane.landing && w.time - msgAt > 3) {
     msgAt = w.time;

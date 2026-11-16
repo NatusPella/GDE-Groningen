@@ -69,6 +69,7 @@ import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming
 import { buildWaitDressing, updateWaitDressing, disposeWaitDressing } from './wachtprops.js';
 import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
+import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } from './missiedecor.js';
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
@@ -2461,9 +2462,13 @@ function showMissionFlag(world, def, from) {
 
 function enterStage(world, def, k) {
   chainState().stageIndex = k;
-  disposeStageDressing(); // #963: de kring van de vorige wachtstap gaat weg
   const st = def.stages[k];
-  if (!st) { succeed(world, def); return; }
+  const prev = chainState().stage;
+  // #956: twee binnensets achter elkaar (de balie, de keuze, de balie) zijn één kamer:
+  // dezelfde set blijft staan in plaats van bij elke stap opnieuw in en uit te faden.
+  const reuse = !!(st && st.set && prev && prev.set && prev.set.kind === st.set);
+  if (!st) { disposeStageDressing(); succeed(world, def); return; }
+  disposeStageDressing(reuse);
   // a stage that belongs to one answer: ifTag / unlessTag (a choice of this mission or a remembered one)
   if ((st.ifTag && !choiceOn(st.ifTag)) || (st.unlessTag && choiceOn(st.unlessTag))) { enterStage(world, def, k + 1); return; }
   const p = hoofdspeler(world), from = { x: p.x, y: p.y };
@@ -2529,9 +2534,17 @@ function enterStage(world, def, k) {
   if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; chainState().eggFast = false; }
   chainState().stage = S;
-  // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer).
-  // In een auto slaan we hem over: dan blijft de stap in de open lucht, zoals eerst.
-  if (st.set && !p.inVehicle) S.set = buildStageSet(world, st.set, p);
+  // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer,
+  // het Loket, Oma's keuken). In een auto slaan we hem over: dan blijft de stap in de open
+  // lucht, zoals eerst. Twee dezelfde sets achter elkaar houden dezelfde kamer.
+  if (st.set && !p.inVehicle) S.set = reuse ? prev.set : buildStageSet(world, st.set, p);
+  else if (reuse && prev && prev.set) { disposeStageSet(prev.set); prev.set = null; }
+  // #955: de aankleding van een missie (de naspeling in Bourtange, het erf van
+  // Tinus) staat om het doel van deze stap, met de kijkrichting van de speler.
+  if (st.dressing) {
+    const at = S.target || S.here || from;
+    S.dressing = buildMissionDressing(world, st.dressing, { x: at.x, y: at.y, a: p.angle });
+  }
   // #963: een wachtstap krijgt een echte kring met passende spullen; de ring
   // licht op terwijl de klok loopt, zodat het wachten iets te zien geeft.
   // (#956) In een binnenset staat de kamer zelf al om de speler: geen kring op de vloer.
@@ -2588,6 +2601,10 @@ function resumeFromCheckpoint(world, def) {
 
 function nextStage(world, def) {
   const cur = def.stages[chainState().stageIndex];
+  // #962: een verhaalstap die geen QTE meer is, kan zijn gevolg als tag meegeven
+  // (de windvlaag van M24, de duiven en de straten van M26). De tag telt gewoon
+  // mee in de uitslag (def.tagAdjust/def.tagRows), net als een keuze of een timing.
+  if (cur && cur.tag) (chainState().tags = chainState().tags || new Set()).add(cur.tag);
   dropPursuer(world);
   if (chainState().light && !(def.stages[chainState().stageIndex + 1] && def.stages[chainState().stageIndex + 1].light)) disposeLight();
   // #591: a stage the player skipped with O has not been done, so it earns no role point for the loot
@@ -2736,10 +2753,11 @@ function disposeLight() {
 
 // #963: de aankleding van een wachtstap (de kring met spullen) gaat mee met de
 // stap: bij de volgende stap, bij slagen en bij mislukken.
-function disposeStageDressing() {
+function disposeStageDressing(keepSet = false) {
   const S = chainState().stage;
   if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
-  if (S && S.set) { disposeStageSet(S.set); S.set = null; } // #956: de kamer gaat mee met de stap
+  if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; } // #956: de kamer gaat mee met de stap
+  if (S && S.dressing) { disposeMissionDressing(S.dressing); S.dressing = null; } // #955: de aankleding gaat mee met de stap
   if (S && S.raceDecor) { for (const g of S.raceDecor) disposeRaceDecor(g); S.raceDecor = null; }
 }
 
@@ -3284,6 +3302,7 @@ function updateStages(dt, world, def) {
       p.vx = 0; p.vy = 0; p.vz = 0;
     }
   }
+  if (S.dressing) updateMissionDressing(S.dressing, dt);
   if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
     chainState().windowT += dt;
     const W = def.window;

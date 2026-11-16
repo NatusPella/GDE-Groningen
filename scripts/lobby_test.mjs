@@ -219,20 +219,31 @@ t('statusbadge en lagbeleid (na 5 s wacht het spel)', () => {
   assert.equal(L.lagPolicy(6).hold, true);
 });
 const LIJST = (n, extra = {}) => [{ slot: 0, char: 'tammo', naam: 'Tammo' }, { slot: 1, char: 'anita', naam: 'Tessa' }, { slot: 2, char: 'bram', naam: 'Bram' }, { slot: 3, char: 'lotte', naam: 'Lotte', ...extra }].slice(0, n);
-t('N spelers: de host ziet de lijst, kan iedereen apart verwijderen en het maximum verhogen', () => {
+t('N spelers: de host ziet de telling en het maximum; het beheer per speler staat op het tabblad Spelers (#874)', () => {
   let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' });
   s = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 4 });
   assert.equal(s.step, 'verbonden');
   const v = L.view(s);
-  assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo, Tessa, Bram, Lotte/);
-  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')).map((b) => b.act), ['kick-1', 'kick-2', 'kick-3']);
+  assert.equal(v.lines[0], 'Spelers (4 van 4).', 'de telling is kort; de namen staan als chips in de spelerslijst');
+  assert.deepEqual(v.spelers.map((p) => p.naam), ['Tammo', 'Tessa', 'Bram', 'Lotte'], 'de namen gaan naar de chips');
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')), [], 'geen losse kick-knop per speler meer (#874)');
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-8'], 'één limietknop, geen rij van vier (#434)');
   assert.equal(L.volgendeMax(4, 4), 8); assert.equal(L.volgendeMax(16, 3), 4); assert.equal(L.volgendeMax(8, 9), 12); assert.equal(L.volgendeMax(16, 16), 16);
-  assert.ok(v.buttons.filter((b) => b.act.startsWith('kick-')).every((b) => /eruit zetten$/.test(b.label)));
   assert.equal(v.code, null, 'vol: de code hoeft niet meer getoond');
   const s6 = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 8 });
   assert.equal(L.view(s6).code, 'K3J9D-8F2MN', 'er is weer plek: de code blijft zichtbaar');
   assert.match(L.view(s6).lines.join(' '), /nog plek/);
+});
+t('#874: met 16 spelers blijven de telling en de knoppen kort; de namen gaan naar de chips', () => {
+  const veel = Array.from({ length: 16 }, (_, i) => ({ slot: i, char: i ? 'rik' : 'tammo', naam: i ? `Speler ${i}` : 'Tammo' }));
+  let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' });
+  s = L.reduce(s, { t: 'spelers', lijst: veel, max: 16 });
+  const v = L.view(s);
+  assert.equal(v.lines[0], 'Spelers (16 van 16).');
+  assert.ok(v.lines[0].length < 30, 'geen namenzin van 250 tekens');
+  assert.equal(v.spelers.length, 16, 'alle namen gaan naar de chips');
+  assert.equal(v.buttons.filter((b) => b.act.startsWith('kick-')).length, 0, 'geen vijftien kick-knoppen');
+  assert.ok(v.buttons.length <= 6, `de wachtkamer houdt hooguit een handvol knoppen: ${v.buttons.length}`);
 });
 t('N spelers: iedereen weg terwijl de uitnodiging openstaat: terug naar wachten op de code', () => {
   let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' });
@@ -241,7 +252,9 @@ t('N spelers: iedereen weg terwijl de uitnodiging openstaat: terug naar wachten 
 });
 t('N spelers: een verbroken speler staat in de lijst; de pauze noemt de naam', () => {
   const s = L.reduce(run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: LIJST(3, {}).map((p) => (p.slot === 2 ? { ...p, verbinding: 'lost' } : p)), max: 4 });
-  assert.match(L.view(s).lines[0], /Bram · verbinding weg/);
+  const v = L.view(s);
+  assert.equal(v.lines[0], 'Spelers (3 van 4).');
+  assert.equal(v.spelers.find((p) => p.slot === 2).verbinding, 'lost', 'de chips lezen de verbindingsstand per speler');
   const h = L.reduce(L.reduce(s, { t: 'hold', slot: 2, naam: 'Bram' }), { t: 'status', status: 'lost' });
   assert.match(L.view(h).lines[0], /Bram is niet meer bereikbaar/); assert.match(L.view(h).lines[1], /verwijder je Bram/);
 });

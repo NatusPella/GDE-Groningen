@@ -449,9 +449,10 @@ export function view(s) {
       const host = s.rol === ROLES.HOST;
       const lijst = s.spelers || [];
       const ik = host ? 0 : s.partner && s.partner.slot;
-      const namen = lijst.map((p) => p.naam + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
       const opener = openerNaam(lijst);
-      const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}): ${namen.join(', ')}.` : 'Je speelt met je medespeler.'];
+      // #874: geen lange namenzin meer: de telling staat hier, de namen tekent lobbyui.js als
+      // chips uit s.spelers. Zo blijft de wachtkamer met 16 spelers scanbaar.
+      const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}).` : 'Je speelt met je medespeler.'];
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
       lines.push(profielTekst(s.profil), PASSIEF_REGEL);
@@ -464,7 +465,9 @@ export function view(s) {
         buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
       }
       if (host) {
-        for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} eruit zetten` });
+        // #874: het beheer per speler (eruit zetten, het spel overdragen) staat op het tabblad
+        // Spelers (coopspelersui.js): daar hoort het bij de speler en is het één knop per rij
+        // in plaats van vijftien knoppen onder de wachtkamer.
         const volgende = volgendeMax(s.max, lijst.length); if (volgende !== s.max) buttons.push({ act: 'max-' + volgende, label: `Maximaal ${s.max} spelers: wijzig naar ${volgende}` }); // één instelling in plaats van vier knoppen (#434)
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         if (s.openbaar) lines.push(openbaarRegel(s));

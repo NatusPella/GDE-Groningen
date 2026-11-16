@@ -87,6 +87,20 @@ for (const key of Object.keys(SPECS)) {
   ok(def && validateScene(def, { lines: edited, duration: total }).length === 0, 'edited lines still validate');
 }
 
+// #864: the fair carts are bumper cars, not full Escapade cars (kind 'auto' is the hero model)
+{
+  const { lines, total } = linesOf(SCENES['M16.outro']);
+  const def = missionScene('M16.outro', lines, { looks });
+  ok(def && def.props.botsauto1 && def.props.botsauto1.kind === 'botsauto', 'M16.outro: cart 1 is a bumper car');
+  ok(def && def.props.botsauto2 && def.props.botsauto2.kind === 'botsauto', 'M16.outro: cart 2 is a bumper car');
+  ok(def && Object.values(def.props).every((p) => p.kind !== 'auto'), 'M16.outro: no full Escapade on the fair');
+  if (def) {
+    const sc = compileScene(def, { lines, duration: total });
+    const s = sc.sample(1, { x: 500, y: -300, facing: 1.1, z: 0 });
+    ok(s.props.botsauto1 && s.props.botsauto1.visible !== false, 'M16.outro: the bumper car is placed');
+  }
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte3_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
 

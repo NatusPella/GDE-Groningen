@@ -33,12 +33,12 @@ export const LINE_MIN_M = 2;
 // What --strict allows. Placed fences and hedges over a way or water: none.
 // Buildings in water: the city's OSM has 104 (piers, moorings and boat sheds
 // mapped as building=yes on a harbour or river polygon; counted 2026-10-18),
-// so 110; for the province 0.1 % of the buildings until the first run over
-// the built tiles has given a real baseline (nothing to measure it on here).
+// so 110; for the province 0 (#878: de drempel van 0,1 % hield ±370 gevallen
+// buiten beeld; de wereldbouw haalt natte voeten er nu uit, dus elke rest is fout).
 // Green outlines (grass, park, forest) that lie nearly wholly in water draw a green strip across
 // the open water (issue #185): build_province.mjs drops them (DROWNED_FRAC); the city's map has one.
 export const GREEN_WET_FRAC = 0.8;
-export const THRESHOLDS = { city: 110, worldRatio: 0.001, placedOver: 0, greenInWater: 1 };
+export const THRESHOLDS = { city: 110, worldRatio: 0, placedOver: 0, greenInWater: 1 };
 
 const CELL = 64;
 const cellKey = (i, j) => i * 100003 + j;
@@ -163,14 +163,17 @@ export function auditPlacement(data) {
   for (const b of data.buildings || []) {
     if (!b.pts || b.pts.length < 4 || b.type === 'houseboat') continue;
     const bb = bounds(b.pts);
+    const stage = isLandingStage(b.pts);
     // a landing stage (long, narrow, partly in water) over a carriageway: a metre grid over its footprint
-    if (isLandingStage(b.pts) && wetFraction(b.pts, wet) >= 0.1) {
+    if (stage && wetFraction(b.pts, wet) >= 0.1) {
       let onRoad = 0;
       for (let x = bb[0]; x <= bb[2]; x++) for (let y = bb[1]; y <= bb[3]; y++) if (inRing(x, y, b.pts) && way(x, y) === 'road') onRoad++;
       if (onRoad >= 3) rep.stagesOnRoad.push({ at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], m2: onRoad, name: b.name || '' });
     }
     const f = wetFraction(b.pts, wet);
-    if (f >= WET_FRAC) rep.buildingsInWater.push({ at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], frac: Math.round(f * 100) / 100, type: b.type || '', name: b.name || '' });
+    // een landing stage hoort in het water (pier, steiger, mooring); die telt niet als nat gebouw
+    if (stage && f >= 0.1) continue;
+    if (f >= WET_FRAC) rep.buildingsInWater.push({ id: b.id || '', at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], frac: Math.round(f * 100) / 100, type: b.type || '', name: b.name || '' });
   }
   rep.buildingsInWater.sort((a, b) => b.frac - a.frac);
   for (const g of data.green || []) {
@@ -191,13 +194,13 @@ export function auditPlacement(data) {
 }
 
 export const problems = (rep, world = false) => {
-  const max = world ? Math.floor(rep.buildings * THRESHOLDS.worldRatio) : THRESHOLDS.city;
+  const max = world ? 0 : THRESHOLDS.city;
   return rep.stagesOnRoad.length + Math.max(0, rep.buildingsInWater.length - max) + Math.max(0, rep.placed.over.length - THRESHOLDS.placedOver) + Math.max(0, rep.greenInWater.length - THRESHOLDS.greenInWater);
 };
 
 export function printAudit(rep, limit = 8) {
   console.log(`buildings in water (>= ${Math.round(WET_FRAC * 100)} % of the footprint): ${rep.buildingsInWater.length} of ${rep.buildings}`);
-  for (const q of rep.buildingsInWater.slice(0, limit)) console.log(`  ${q.type || 'building'}${q.name ? ' ' + q.name : ''} ${Math.round(q.frac * 100)} % at ${q.at}`);
+  for (const q of rep.buildingsInWater.slice(0, limit)) console.log(`  ${q.type || 'building'}${q.name ? ' ' + q.name : ''}${q.id ? ' id ' + q.id : ''} ${Math.round(q.frac * 100)} % at ${q.at}`);
   console.log(`green outlines in open water (>= ${Math.round(GREEN_WET_FRAC * 100)} %): ${rep.greenInWater.length}`);
   for (const q of rep.greenInWater.slice(0, limit)) console.log(`  ${q.kind || 'green'} ${Math.round(q.frac * 100)} % at ${q.at}`);
   console.log(`landing stages (long narrow buildings) over a carriageway: ${rep.stagesOnRoad.length}`);
@@ -268,7 +271,7 @@ async function main() {
   }
   const t0 = performance.now();
   const rep = auditPlacement(data);
-  printAudit(rep);
+  printAudit(rep, args.includes('--world') ? 40 : 8);
   console.log(`(${((performance.now() - t0) / 1000).toFixed(1)} s)`);
   if (args.includes('--strict') && problems(rep, args.includes('--world'))) process.exit(1);
 }

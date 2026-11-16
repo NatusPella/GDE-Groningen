@@ -748,12 +748,16 @@ function deckSlab(B, a, b, len, s0, s1, half) {
   const P = (s, o) => [a[0] + tx * s + nx * o, a[1] + ty * s + ny * o];
   const mid = P((s0 + s1) / 2, 0);
   const acc = B('stone', mid[0], mid[1]);
-  const top = -0.01, bot = -DECK_T;
+  // (#919) de bovenkant ligt nét boven de waterspiegel (0) en is dicht: het
+  // wegdek ligt op 0,03 en dekt de plaat, maar als de wegribbon er (nog) niet is
+  // of aan de rand van de detailring valt, mag je door het dek geen water zien
+  const top = 0.005, bot = -DECK_T;
   const face = (q, col, fx, fy, fz) => {
     const ids = q.map(([x, y, z]) => acc.v(x, y, z, col));
     acc.quad(ids[0], ids[1], ids[2], ids[3], fx, fy, fz);
   };
   const L0 = P(s0, -half), L1 = P(s1, -half), R0 = P(s0, half), R1 = P(s1, half);
+  face([[L0[0], top, L0[1]], [R0[0], top, R0[1]], [R1[0], top, R1[1]], [L1[0], top, L1[1]]], DECK_SIDE, 0, 1, 0);
   face([[L0[0], bot, L0[1]], [L1[0], bot, L1[1]], [R1[0], bot, R1[1]], [R0[0], bot, R0[1]]], DECK_SOFFIT, 0, -1, 0);
   face([[L0[0], bot, L0[1]], [L1[0], bot, L1[1]], [L1[0], top, L1[1]], [L0[0], top, L0[1]]], DECK_SIDE, -nx, 0, -ny);
   face([[R0[0], bot, R0[1]], [R1[0], bot, R1[1]], [R1[0], top, R1[1]], [R0[0], top, R0[1]]], DECK_SIDE, nx, 0, ny);

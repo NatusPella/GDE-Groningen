@@ -308,12 +308,15 @@ function addBuilding(B, b, lift = 0) {
 
 // za/zb: height of a raised ring road (the far view keeps its viaducts up;
 // sunken sections stay at street level, where the ground covers them anyway)
-function addSegment(B, ax, ay, bx, by, half, c, za = 0, zb = 0) {
+// bump: a bridge deck lies a hair above the water (WATER_Y = 0), like the
+// detail road at 0.03; the water surface is drawn after the opaque road, so a
+// deck at exactly 0 is covered by it and the bridge looks transparent (#919)
+function addSegment(B, ax, ay, bx, by, half, c, za = 0, zb = 0, bump = 0) {
   const dx = bx - ax, dy = by - ay;
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len * half, ny = dx / len * half;
   const i = B.vertCount;
-  const ya = Math.max(0, za), yb = Math.max(0, zb);
+  const ya = Math.max(0, za) + bump, yb = Math.max(0, zb) + bump;
   B.vert(ax + nx, ya, ay + ny, c);
   B.vert(ax - nx, ya, ay - ny, c);
   B.vert(bx + nx, yb, by + ny, c);
@@ -442,6 +445,11 @@ export function createFarLOD(scene, map, opts) {
     }
     // een tegel groepeert zijn groen op dezelfde rangorde als voor #755
     if (colors.greenRank) for (const t of tiles.values()) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
+    // (#921) een oude tegel waarvan alle rijen nu door een gestroomde tegel
+    // getekend worden, houdt niets nieuws over: zijn oude mesh gaat nu weg
+    for (const t of tiles.values()) {
+      if (t.oldMeshes && !t.buildings.length && !t.segs.length && !t.green.length) disposeTile(t);
+    }
     baseBuild = null;
     return true;
   }
@@ -491,7 +499,11 @@ export function createFarLOD(scene, map, opts) {
             if (!col) tintCache.set(key, col = rgb8(new THREE.Color(tint).lerp(new THREE.Color(colors.sidewalk), car ? 0.3 : 0).getHex()));
           }
           const ta = map.terrainOn ? roadBaseAt(map, r, a[0], a[1]) : 0, tb = map.terrainOn ? roadBaseAt(map, r, c[0], c[1]) : 0;
-          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col, (r.z ? r.z[s] : 0) + ta, (r.z ? r.z[s + 1] : 0) + tb);
+          const za = (r.z ? r.z[s] : 0) + ta, zb = (r.z ? r.z[s + 1] : 0) + tb;
+          // (#919) een vlakke brug in de verte ligt op 0 terwijl het water ook op 0 ligt:
+          // het water wordt daarna getekend en dekt het dek af, dus de brug lijkt doorzichtig.
+          // Het detail-dek ligt op 0,03; de verre brug krijgt dezelfde lift.
+          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col, za, zb, r.bridge ? 0.05 : 0);
         }
       } else if (J.phase === 2) {
         if (J.i >= t.green.length) { J.phase = 3; J.i = 0; continue; }
@@ -510,6 +522,9 @@ export function createFarLOD(scene, map, opts) {
   function finishJob(t) {
     const J = t.job;
     t.job = null;
+    // (#921) pas nu de oude mesh weghalen: de nieuwe is compleet, dus de tegel
+    // valt geen frame weg tijdens de herbouw na een tegel-add/drop
+    if (t.oldMeshes) { dropMeshes(t.oldMeshes); t.oldMeshes = null; }
     t.meshes = [];
     t.pooled = !perfOff('pool');
     for (const [name, B] of [['building', J.bld], ['green', J.green], ['path', J.path], ['road', J.road], ['water', J.water]]) {
@@ -530,13 +545,20 @@ export function createFarLOD(scene, map, opts) {
     }
   }
 
-  function disposeTile(t) {
-    if (t.meshes) for (const m of t.meshes) {
+  function dropMeshes(list) {
+    if (!list) return;
+    for (const m of list) {
       if (m.handle) { drawHub.remove(m.handle); continue; }
       root.remove(m);
       m.geometry.dispose();
     }
+  }
+
+  function disposeTile(t) {
+    dropMeshes(t.meshes);
     t.meshes = null;
+    dropMeshes(t.oldMeshes);
+    t.oldMeshes = null;
     t.job = null;
   }
 
@@ -568,11 +590,22 @@ export function createFarLOD(scene, map, opts) {
   // wordt niet weggegooid en opnieuw opgebouwd bij elke tegel die erbij komt of
   // weggaat (dat was het "opnieuw inladen" van een stadsdeel). Zijn rijen staan in
   // streamedRows, zodat de basisindex ze niet nog een keer tekent.
+  // De oude mesh van een basis-tegel blijft zichtbaar tot de herbouwde tegel klaar
+  // is; finishJob wisselt ze in één frame om. Eerst weggooien gaf precies de pop
+  // die #921 beschrijft: een stadsdeel verdween even en kwam in brokjes terug.
   function resetTiles() {
     for (const [k, t] of tiles) {
       if (t.stream) continue;
-      if (t.meshes || t.job) disposeTile(t);
-      tiles.delete(k);
+      if (t.job) {
+        const q = queue.indexOf(t);
+        if (q >= 0) queue.splice(q, 1);
+        t.job = null;
+      }
+      if (t.meshes) { t.oldMeshes = t.oldMeshes ? t.oldMeshes.concat(t.meshes) : t.meshes; t.meshes = null; }
+      t.buildings = [];
+      t.segs = [];
+      t.green = [];
+      if (!t.oldMeshes) tiles.delete(k);
     }
     lastPass = null;
     baseBuild = null;
@@ -635,7 +668,7 @@ export function createFarLOD(scene, map, opts) {
       t.dist = d;
       if (d < start) {
         if (!t.meshes && !t.job) startJob(t);
-      } else if (d > drop && (t.meshes || t.job)) {
+      } else if (d > drop && (t.meshes || t.job || t.oldMeshes)) {
         // pas hier, ruim achter de zichtafstand: een tegel die net buiten beeld
         // valt of waar de speler omheen draait blijft staan
         disposeTile(t);
@@ -648,6 +681,11 @@ export function createFarLOD(scene, map, opts) {
           if (vis) stats.triangles += m.userData.tris;
         }
         if (vis) stats.visible++;
+      }
+      // (#921) een tegel die opnieuw gebouwd wordt, houdt zijn oude mesh zichtbaar
+      if (t.oldMeshes) {
+        const vis = d < visibleDist;
+        for (const m of t.oldMeshes) m.visible = vis;
       }
     }
     for (let i = queue.length - 1; i >= 0; i--) if (!queue[i].job) queue.splice(i, 1);

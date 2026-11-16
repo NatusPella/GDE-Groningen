@@ -122,6 +122,11 @@ const worldOf = (piv, x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(piv.ma
   ok(twoLayers.length > 0, `the paint of a second way rides on the deck (${twoLayers.length} bridges)`);
   const probe = withRiders[0].b;
   probe.open = 1;
+  // #919: ver weg is er geen leaf-view; dan moet de stille weg blijven staan,
+  // anders kijk je door de open brug heen naar het water
+  M3.syncMovableBridges3D(1e6, 1e6, map);
+  ok(!M3.openBridgeRoads(new Set()).has(probe.r), 'een open brug ver weg houdt zijn stille dek');
+  M3.syncMovableBridges3D(probe.x, probe.y, map);
   const hidden = M3.openBridgeRoads(new Set());
   ok(hidden.has(probe.r) && probe.riders.every((r) => hidden.has(r)), 'an open bridge hides the second way too', JSON.stringify([...hidden].length));
   probe.open = 0;

@@ -326,6 +326,14 @@ const todoSrc = read('game/js/todoui.js');
 ok(/folds: new Set\(\['clues', 'quick', 'voortgang'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
   'Overzicht toont "Snel instellen" als één gevouwen blok (#601)');
 ok(/export function foldNote/.test(todoSrc) && /foldNote\(btn\.dataset\.fold, on\)/.test(pm), 'de vouwen van Over en Overzicht onthouden hun stand');
+// #965: de grote hero-kop van Spel > Overzicht schoof onder de tabbalk en werd daar
+// afgekapt. De tabs en de hero staan nu stil; alleen de inhoud eronder scrolt.
+ok(/el\.innerHTML = heroHtml\(world\) \+ '<div class="ov-scroll">'/.test(todoSrc), 'de hero staat buiten de scrollende inhoud (#965)');
+ok(/class="ov-scroll"/.test(todoSrc) && /'<\/div><\/div>';/.test(todoSrc), 'de inhoud onder de hero zit in één scroller (#965)');
+ok(/querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat bovenaan de scrollende inhoud, niet meer tussen de tabs en de hero (#965)');
+ok(/#pause-menu \.pm-ov \{[^}]*overflow: hidden/.test(pmcss) && /#pause-menu \.ov-scroll \{[^}]*overflow-y: auto/.test(pmcss), 'de tabs en de hero blijven staan en alleen .ov-scroll scrolt (#965)');
+ok(/-webkit-mask-image: linear-gradient\(180deg, transparent 0, #000 14px\)/.test(pmcss), 'wat wegscrolt vervaagt, in plaats van midden in een regel af te knippen (#965)');
+ok(/\.ov-scroll'\)\) n\.scrollTop = 0/.test(pm), 'bij het openen begint het Overzicht weer bovenaan (#965)');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

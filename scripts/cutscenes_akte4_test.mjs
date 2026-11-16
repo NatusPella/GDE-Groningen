@@ -3,6 +3,7 @@
 // Same checks as cutscenes_akte1_test: every scene compiles and validates, samples finite and near the set, nobody jumps.
 import { readFileSync } from 'node:fs';
 import { compileScene, validateScene } from '../game/js/cutscript.js';
+import { propFoot } from '../game/js/cutscenemodels.js';
 import { MORE_SPECS as SPECS, missionScene } from '../game/js/cutscenes_akte1.js';
 import '../game/js/cutscenes_akte4.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
@@ -92,6 +93,38 @@ for (const key of KEYS) {
   const edited = lines.map((l, i) => ({ ...l, text: 'Bewerkte regel ' + i }));
   const def = missionScene('M20.intro', edited, { looks });
   ok(def && validateScene(def, { lines: edited, duration: total }).length === 0, 'edited lines still validate');
+}
+
+// #861: an actor never walks through a parked vehicle. The two reported cases (Tinus past the
+// tractor in M22.4, Jelle past the limo in M26.4#7-14) are checked on their footprints; the same
+// check runs over every scene of this act so a script edit cannot quietly put someone back inside.
+{
+  const VEHICLES = new Set(['auto', 'bestelbus', 'bakkie', 'trekker', 'politie', 'botsauto']);
+  for (const key of KEYS) {
+    const { lines, total } = linesOf(SCENES[key], SLICE[key]);
+    const def = missionScene(key, lines, { looks });
+    const scene = compileScene(def, { lines, duration: total });
+    const anchor = { x: 500, y: -300, facing: 1.1, z: 0 };
+    let hits = 0, worst = null;
+    for (let t = 0; t <= total; t += 0.1) {
+      const s = scene.sample(t, anchor);
+      for (const [aid, a] of Object.entries(s.actors)) {
+        if (a.visible === false) continue;
+        for (const [pid, p] of Object.entries(s.props)) {
+          if (!p.visible || !VEHICLES.has(def.props[pid] && def.props[pid].kind)) continue;
+          const foot = propFoot(def.props[pid].kind);
+          if (!foot) continue;
+          const dx = a.x - p.x, dy = a.y - p.y, c = Math.cos(p.a), sn = Math.sin(p.a);
+          const lx = dx * c + dy * sn, ls = -dx * sn + dy * c;
+          if (Math.abs(lx) < foot[0] / 2 && Math.abs(ls) < foot[1] / 2) {
+            hits++;
+            worst = { actor: aid, prop: pid, t: +t.toFixed(1), lx: +lx.toFixed(2), ls: +ls.toFixed(2) };
+          }
+        }
+      }
+    }
+    ok(hits === 0, `#861: ${key}: actors walk around parked vehicles`, JSON.stringify(worst) + ' hits=' + hits);
+  }
 }
 
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte4_test: ${n} checks ok`);

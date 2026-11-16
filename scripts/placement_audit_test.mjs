@@ -61,6 +61,14 @@ const bld = (pts, o = {}) => ({ pts, type: 'house', ...o });
   const bad = A.auditPlacement({ buildings: [], water: [lake], roads: [], placed: [{ k: 'fence', pts: [[10, 10], [10, 30]] }] });
   assert.equal(bad.placed.over.length, 1);
   assert.equal(A.problems(bad), 1, 'a placed fence in the water fails');
+  // #878: in de provincie is de drempel 0 en noemt de audit het gebouw bij id en coördinaat
+  const prov = A.auditPlacement({ buildings: [bld(rect(10, 10, 12, 12), { id: 'bag-42' })], water: [lake], roads: [] });
+  assert.equal(A.problems(prov, true), 1, 'provincie: één nat gebouw valt boven de drempel 0');
+  assert.equal(prov.buildingsInWater[0].id, 'bag-42', 'het gebouw staat met zijn id in de audit');
+  assert.deepEqual(prov.buildingsInWater[0].at, [16, 16]);
+  // een landing stage (pier/steiger) hoort in het water en telt niet als nat gebouw
+  const pier = A.auditPlacement({ buildings: [bld(rect(40, 96, 2, 14), { type: 'yes' })], water: [lake], roads: [] });
+  assert.equal(pier.buildingsInWater.length, 0, 'een landing stage in het water telt niet als nat gebouw');
 }
 
 // --- islands cut out of the outline

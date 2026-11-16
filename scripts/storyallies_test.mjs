@@ -58,16 +58,12 @@ const play = (st, hitEvery) => {
 ok(play(hard, true).r === 'done' && play(hard, true).S.hits === 3, 'M18 hard hall: pressing in the zone passes all three cameras');
 ok(play(hard, false).r === 'done', 'M18 hard hall: missers kosten tijd maar laten de missie door (#962)');
 
-// M26: the street timing gives the chosen ally the wider zone, and the others stay as written
+// M26: the ally still decides the chase time and which street scene plays; the
+// street timing is gone (the scene carries the tag), so no zone test remains.
 const fin = (() => { const list = [{ label: 'Ontzet, net als in 1672', stages: [{ kind: 'bake' }, { kind: 'hold' }, { kind: 'chase', route: [] }], start: {} }]; applyAkte5(list); return list[0]; })();
-const streets = fin.stages.filter((q) => q.kind === 'timing')[1];
-for (const tag of ['bond-bus', 'bond-trekker', 'bond-scooter']) {
-  const S = {}; enterTiming(S, streets, (t) => t === tag);
-  const base = {}; enterTiming(base, streets, () => false);
-  const widened = streets.rounds.map((r, i) => (S.rounds[i].zone[1] - S.rounds[i].zone[0]) > (base.rounds[i].zone[1] - base.rounds[i].zone[0]) + 1e-9);
-  ok(widened.filter(Boolean).length === 1 && widened[streets.rounds.findIndex((r) => r.zoneIf === tag)], `M26: only ${tag}'s street gets the wider zone`);
-}
-ok(streets.rounds.every((r) => r.zone[0] - 0.09 > 0 && r.zone[1] + 0.09 < 1), 'M26: a widened zone stays on the bar');
+const streets = fin.stages.find((q) => q.kind === 'scene' && q.tag === 'straten-dicht');
+ok(!!streets && streets.scriptIf.map((q) => q.tag).sort().join() === 'bond-bus,bond-scooter,bond-trekker', 'M26: the street scene still has a line per ally');
+ok(!fin.stages.some((q) => q.kind === 'timing'), 'M26: no timing-QTE holds the story any more (#962)');
 const lim = fin.stages.find((q) => q.kind === 'chase');
 ok(Object.values(lim.timeIf).every((s) => s > lim.time), 'M26: every ally gives the chase more time than none');
 

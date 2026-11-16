@@ -41,6 +41,14 @@ export const TODO_KEY = TODO.key;
 // offset from the point where the road centre crosses the border (`out` is the
 // unit direction from Groningen into Friesland). The side offsets grow with
 // the road: a wide road keeps the bench off the asphalt.
+//
+// A raised road (a dyke or a bridge approach, `r.z` in the map) owns more than
+// its asphalt: the slope beside it counts as carriageway too (mapdata.js
+// onCarriageway adds surfaceHalfWidth + 1). The offsets below therefore grow
+// with `hw` and chooseTributeSite widens them a step at a time (`SITE_SPREADS`)
+// until all four spots are really on the verge; the N355 at Visvliet is such a
+// raised road and left the bench and the Kollum sign on the slope when the
+// place was laid out at the old fixed offsets.
 export const LAYOUT = {
   benchIn: 24,           // the last bench: this far inside (Groningen side)
   benchSide: 5.2,        // ... and at least this far from the road centre line
@@ -49,8 +57,8 @@ export const LAYOUT = {
   arrivalR: 38,          // the arrival card when the player comes this close
   houseOut: 22,          // Beppe's house: this far past the border
   houseSide: 15,         // ... and at least this far off the road
-  gardenBenchOut: 16,    // the garden bench: in the front garden, reachable
-  gardenBenchSide: 9.5,  // ... on the same verge as the house
+  gardenBenchIn: 5.6,    // the garden bench: this far in front of the house (towards the road)
+  gardenBenchSide: 5.2,  // ... and this far to its side: in the front garden, not on a path
   houseR: 7.5,           // within this of the house: the memory as a fallback
   leaveR: 80,            // walking away this far sets the doves off
 };
@@ -65,7 +73,6 @@ export function sideOffsets(hw = 0) {
     bench: Math.max(LAYOUT.benchSide, hw + 2.0),
     sign: Math.max(LAYOUT.signSide, hw + 1.2),
     house: Math.max(LAYOUT.houseSide, hw + 14),
-    gardenBench: Math.max(LAYOUT.gardenBenchSide, hw + 5.5),
   };
 }
 
@@ -190,39 +197,60 @@ export function crossingAhead(at, dir, { regionOf, max = 5000, step = 4 } = {}) 
 // The spots of the place, laid out from the border crossing and the outward
 // direction. side: +1/-1 picks the verge; leave it 0 to let `dry` decide (a
 // verge is dry when dry(x, y) says so; the other side is tried first). `shift`
-// moves the whole place along the road, away from a bridge, a quay or a row of
-// houses; the border itself stays the border. a is the facing angle in map
-// coordinates for a group whose local +x points that way (the same convention
-// as geheimen.js/worldends.js).
-export function layoutTribute({ border, ux, uy, hw = 3, side = 0, dry = null, shift = 0 } = {}) {
+// moves the bench and the sign along the road, away from the bridge itself;
+// `houseShift` does the same for the house and its garden (default: the same
+// shift). The border itself stays the border. The N355 at Visvliet bridges the
+// Lauwers: the bench and the sign have to move inward to the Groningen bank,
+// while the house stays just over the border on the Frisian bank. `spread`
+// widens the side offsets (1 = the base verge), for a raised road whose slope
+// owns more than its asphalt. a is the facing angle in map coordinates for a
+// group whose local +x points that way (the same convention as
+// geheimen.js/worldends.js).
+export function layoutTribute({ border, ux, uy, hw = 3, side = 0, dry = null, shift = 0, houseShift = shift, spread = 1 } = {}) {
   const out = unit(ux, uy);
   if (!border || !Number.isFinite(border.x) || !Number.isFinite(border.y) || !out) return null;
   const off = sideOffsets(hw);
+  const wide = Number.isFinite(spread) && spread > 1 ? spread : 1;
   const nx = -out.y, ny = out.x;
-  const along0 = Number.isFinite(shift) ? shift : 0;
-  const at = (along, lat, s) => ({
-    x: border.x + out.x * (along0 + along) + nx * lat * s,
-    y: border.y + out.y * (along0 + along) + ny * lat * s,
+  const near0 = Number.isFinite(shift) ? shift : 0;
+  const house0 = Number.isFinite(houseShift) ? houseShift : near0;
+  const at = (along0, along, lat, s) => ({
+    x: border.x + out.x * (along0 + along) + nx * lat * wide * s,
+    y: border.y + out.y * (along0 + along) + ny * lat * wide * s,
   });
+  const atNear = (along, lat, s) => at(near0, along, lat, s);
+  const atHouse = (along, lat, s) => at(house0, along, lat, s);
+  // the house faces the road (from the house back to the centre line); the
+  // garden bench stands in the front garden, in the house's own frame, so it
+  // stays in the garden however wide the verge has to be
+  const frontFor = (s) => Math.atan2(-ny * s, -nx * s);
+  const gardenBenchAt = (s) => {
+    const h = atHouse(LAYOUT.houseOut, off.house, s);
+    const a = frontFor(s);
+    const c = Math.cos(a), sn = Math.sin(a);
+    return {
+      x: h.x + LAYOUT.gardenBenchIn * c - LAYOUT.gardenBenchSide * sn,
+      y: h.y + LAYOUT.gardenBenchIn * sn + LAYOUT.gardenBenchSide * c,
+    };
+  };
   const needed = (s) => [
-    at(-LAYOUT.benchIn, off.bench, s),
-    at(-LAYOUT.signIn, off.sign, s),
-    at(LAYOUT.houseOut, off.house, s),
-    at(LAYOUT.gardenBenchOut, off.gardenBench, s),
+    atNear(-LAYOUT.benchIn, off.bench, s),
+    atNear(-LAYOUT.signIn, off.sign, s),
+    atHouse(LAYOUT.houseOut, off.house, s),
+    gardenBenchAt(s),
   ];
   const drySide = (s) => !dry || needed(s).every((p) => dry(p.x, p.y));
   let used = side;
   if (!used) used = drySide(1) || !dry ? 1 : drySide(-1) ? -1 : 1;
   const wet = !!dry && !drySide(used);
   const facing = Math.atan2(out.y, out.x);
-  // the house faces the road (from the house back to the centre line)
-  const front = Math.atan2(-ny * used, -nx * used);
-  const bench = at(-LAYOUT.benchIn, off.bench, used);
-  const sign = at(-LAYOUT.signIn, off.sign, used);
-  const house = at(LAYOUT.houseOut, off.house, used);
-  const gardenBench = at(LAYOUT.gardenBenchOut, off.gardenBench, used);
+  const front = frontFor(used);
+  const bench = atNear(-LAYOUT.benchIn, off.bench, used);
+  const sign = atNear(-LAYOUT.signIn, off.sign, used);
+  const house = atHouse(LAYOUT.houseOut, off.house, used);
+  const gardenBench = gardenBenchAt(used);
   return {
-    border: { x: border.x, y: border.y }, out, side: used, hw, wet, shift: along0,
+    border: { x: border.x, y: border.y }, out, side: used, hw, wet, shift: near0, houseShift: house0, spread: wide,
     bench: { ...bench, a: facing },
     sign: { ...sign, a: facing },
     house: { ...house, a: front },
@@ -231,32 +259,60 @@ export function layoutTribute({ border, ux, uy, hw = 3, side = 0, dry = null, sh
 }
 
 // Where the place really goes (#916): the verge at the border is often a
-// bridge, a quay or built up, so try a little along the road on both sides
-// before giving up. `free(x, y)` says whether a spot is clear (no water, no
-// building, no carriageway) and `regionOf(x, y)` which province it is in:
-// bench and sign stay in Groningen, house and garden in Friesland. The first
-// fit wins; a shifted place keeps its own border, so the cards still speak of
-// "net over de grens". Returns null only without a border or direction.
+// bridge, a quay, a raised dyke or built up, so try a little along the road on
+// both sides and widen the verge a step at a time before giving up.
+// `free(x, y)` says whether a spot is clear (no water, no building, no
+// carriageway) and `regionOf(x, y)` which province it is in: bench and sign
+// stay in Groningen, house and garden in Friesland. `road(x, y)` (optional)
+// says whether a spot is on the carriageway or its slope; a site with a spot on
+// the road is never chosen, not even as the fallback (the N355 at Visvliet left
+// the bench and the Kollum sign on the asphalt through the old fallback). The
+// bench and the sign may shift along the road independently of the house
+// (`shifts` vs `houseShifts`): at a border bridge the near pair moves inward to
+// the Groningen bank while the house stays just over the border. Pairs are
+// tried from the smallest total shift, so a place only moves as far as needed.
+// The first fit wins; a shifted place keeps its own border, so the cards still
+// speak of "net over de grens". `clear(site)` (optional) judges the whole
+// place, e.g. the garden that reaches out from the house: a site that fails it
+// is skipped. When nothing fits, a dry off-road site is preferred over a wet
+// one (the place still never stands on the roadway). Returns null only without
+// a border or direction, or when every candidate with `road` given lies on the
+// roadway.
 export const SITE_SHIFTS = [0, 24, -24, 48, -48, 72, -72, 96, -96, 120, -120];
-export function chooseTributeSite({ border, ux, uy, hw = 3, dry = null, free = null, regionOf = null, shifts = SITE_SHIFTS } = {}) {
+export const SITE_SPREADS = [1, 1.3, 1.6, 2.0];
+export function chooseTributeSite({ border, ux, uy, hw = 3, dry = null, free = null, road = null, clear = null, regionOf = null, shifts = SITE_SHIFTS, houseShifts = SITE_SHIFTS, spreads = SITE_SPREADS } = {}) {
   if (!border || !unit(ux, uy)) return null;
-  let fallback = null;
-  for (const shift of shifts) {
-    for (const side of [0, 1, -1]) {
-      const site = layoutTribute({ border, ux, uy, hw, side, dry, shift });
-      if (!site) continue;
-      if (!fallback) fallback = site;
-      const spots = [site.bench, site.sign, site.house, site.gardenBench];
-      if (free && !spots.every((p) => free(p.x, p.y))) continue;
-      if (regionOf && !(regionOf(site.bench.x, site.bench.y) === 'groningen'
-        && regionOf(site.sign.x, site.sign.y) === 'groningen'
-        && regionOf(site.house.x, site.house.y) === 'friesland'
-        && regionOf(site.gardenBench.x, site.gardenBench.y) === 'friesland')) continue;
-      return site;
+  const pairs = [];
+  for (const houseShift of houseShifts) for (const shift of shifts) {
+    pairs.push({ shift, houseShift, cost: Math.abs(shift) + Math.abs(houseShift) });
+  }
+  pairs.sort((a, b) => a.cost - b.cost);
+  let fallback = null, fallbackWet = null;
+  // nearest to the border first: a small shift with a wider verge beats a
+  // narrow verge far along the road (the bench belongs at the border)
+  for (const pair of pairs) {
+    for (const spread of spreads) {
+      for (const side of [0, 1, -1]) {
+        const site = layoutTribute({ border, ux, uy, hw, side, dry, shift: pair.shift, houseShift: pair.houseShift, spread });
+        if (!site) continue;
+        const spots = [site.bench, site.sign, site.house, site.gardenBench];
+        const onRoad = typeof road === 'function' && spots.some((p) => road(p.x, p.y));
+        if (onRoad) continue;
+        if (site.wet) { if (!fallbackWet) fallbackWet = site; }
+        else if (!fallback) fallback = site;
+        if (clear && !clear(site)) continue;
+        if (free && !spots.every((p) => free(p.x, p.y))) continue;
+        if (regionOf && !(regionOf(site.bench.x, site.bench.y) === 'groningen'
+          && regionOf(site.sign.x, site.sign.y) === 'groningen'
+          && regionOf(site.house.x, site.house.y) === 'friesland'
+          && regionOf(site.gardenBench.x, site.gardenBench.y) === 'friesland')) continue;
+        return site;
+      }
     }
   }
-  if (fallback) fallback.clear = false;
-  return fallback;
+  const out = fallback || fallbackWet;
+  if (out) out.clear = false;
+  return out;
 }
 
 // A point in the house's own frame (+x towards the road, +z to the side), in

@@ -7,9 +7,11 @@
 //   const a = fitAnchor(scene, anchor, env, { radii });     // the anchor (turned, or moved when radii are given) where nothing stands in a wall
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
-//   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
+//   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m, road: '<prop>' } }
 //   set: 'keuken' | 'kantoor' | 'serverkamer' (a built set: the opening's kitchen, the office and the server room of #950/#956), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
-//   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden } }
+//   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden, road: true | 'cycle', follows: '<prop>' } }
+//           road: het voertuig/de fiets volgt bij de start de echte weg (roadPathDef hieronder; true = berijdbaar,
+//           'cycle' = ook fietspad); follows: rijdt met dat voertuig mee op zijn eigen hoogte (de matras op het dak)
 //   cues:   [{ t, actor | prop, ...verb }]   verbs, see VERBS
 //   shots:  [{ t, shot: 'cut' | 'dolly' | 'orbit' | 'follow', ... }]
 // `t` is seconds, or 'L<n>' / 'L<n>+1.5' (relative to the start of spoken line n), or 'end'.
@@ -67,11 +69,14 @@ export function validateScene(def, opts = {}) {
     if (a.anim && !ACTOR_ANIMS.includes(a.anim)) err(`acteur ${id}: onbekende anim ${a.anim}`);
     if (a.sit !== undefined && a.sit !== false && !(isNum(a.sit) && a.sit > 0)) err(`acteur ${id}: sit is een zithoogte in m`);
     if (typeof a.face === 'string' && !refOk(a.face, actors, props)) err(`acteur ${id}: face verwijst nergens heen: ${a.face}`);
+    if (a.road !== undefined && (typeof a.road !== 'string' || !props[a.road])) err(`acteur ${id}: road verwijst naar een onbekende prop`);
   }
   for (const [id, p] of Object.entries(props)) {
     if (!PROP_KINDS.includes(p.kind)) err(`prop ${id}: onbekende soort ${p.kind}`);
     else { const bad = propKindIssue(p.kind); if (bad) err(`prop ${id}: ${bad}`); }
     if (!isVec(p.at, 2)) err(`prop ${id}: at moet [f, s, h?] zijn`);
+    if (p.road !== undefined && ![true, 'road', 'cycle', 'foot'].includes(p.road)) err(`prop ${id}: road is true, 'cycle' of 'foot'`);
+    if (p.follows !== undefined && !props[p.follows]) err(`prop ${id}: follows verwijst naar een onbekende prop`);
   }
   const timeOf = (spec, what) => {
     const t = resolveTime(spec, lines, duration);
@@ -491,6 +496,67 @@ export function compileScene(def, opts = {}) {
         if (best) cam = { ...cam, x: best.x, y: best.y };
       }
     }
+    // #858: a camera that the wall guard moved and that ended up right on the subject (a back or a
+    // head filling the lens, C00.3) backs off along its own view axis to a normal shot distance, as
+    // long as that free spot is not in a wall, a tree or a vehicle. Deterministic: no previous-frame
+    // state, and a shot that was authored close (the intended distance is small) is left alone.
+    if (!def.set) {
+      const intended = { x: P.x, y: P.y, z: z0 + pos.h };
+      const subj = { x: L.x, y: L.y, z: z0 + look.h };
+      const dSubj = Math.hypot(cam.x - subj.x, cam.y - subj.y, cam.z - subj.z);
+      const dWas = Math.hypot(intended.x - subj.x, intended.y - subj.y, intended.z - subj.z);
+      const moved = Math.hypot(cam.x - intended.x, cam.y - intended.y) + Math.abs(cam.z - intended.z);
+      const want = Math.min(2.6, dWas);
+      if (moved > 0.15 && dSubj < want - 0.05) {
+        let bx = cam.x - subj.x, by = cam.y - subj.y, bz = cam.z - subj.z;
+        const bl = Math.hypot(bx, by, bz) || 1;
+        bx /= bl; by /= bl; bz /= bl;
+        let best = null;
+        for (let k = 1; k <= 16 && !best; k++) {
+          const dd = dSubj + (want - dSubj) * (k / 16);
+          const c = { x: subj.x + bx * dd, y: subj.y + by * dd, z: subj.z + bz * dd };
+          if (env && env.solid && env.solid(c.x, c.y, c.z)) continue;
+          if (env && env.tree && env.tree(c.x, c.y, c.z)) continue;
+          if (propBlocks(c.x, c.y)) continue;
+          if (env && env.clamp) {
+            const c2 = env.clamp(c.x, c.y, c.z, 'camera');
+            if (c2 && (Math.abs(c2.x - c.x) > 1e-6 || Math.abs(c2.y - c.y) > 1e-6 || Math.abs((c2.z ?? c.z) - c.z) > 1e-6)) continue;
+          }
+          best = c;
+        }
+        if (best) cam = best;
+      }
+      // the same guard can land the camera on somebody's back while the look target (the car) is
+      // at a normal distance: keep 2,2 m from every visible actor too when the camera was moved.
+      if (moved > 0.15 && cam.z - z0 < 2.4) {
+        let near = null, nd = Infinity;
+        for (const id of Object.keys(track)) {
+          if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
+          const q = actorPos(id, t), W = world(anchor, q.f, q.s);
+          const d = Math.hypot(cam.x - W.x, cam.y - W.y);
+          if (d < nd) { nd = d; near = W; }
+        }
+        if (near && nd < 1.45) {
+          let best = null, bd = Infinity;
+          for (const r of [2.2, 2.6, 3.0, 3.6]) {
+            for (let k = 0; k < 24; k++) {
+              const a = k / 24 * Math.PI * 2, x = near.x + Math.cos(a) * r, y = near.y + Math.sin(a) * r;
+              if (env && env.solid && env.solid(x, y, cam.z)) continue;
+              if (env && env.tree && env.tree(x, y, cam.z)) continue;
+              if (propBlocks(x, y)) continue;
+              if (env && env.clamp) {
+                const c2 = env.clamp(x, y, cam.z, 'camera');
+                if (c2 && (Math.abs(c2.x - x) > 1e-6 || Math.abs(c2.y - y) > 1e-6)) continue;
+              }
+              const d = Math.hypot(x - cam.x, y - cam.y);
+              if (d < bd) { bd = d; best = { x, y }; }
+            }
+            if (best) break;
+          }
+          if (best) cam = { ...cam, x: best.x, y: best.y };
+        }
+      }
+    }
     return {
       position: clearOfTrees(cam, { x: L.x, y: L.y, z: z0 + look.h }, env),
       lookAt: { x: L.x, y: L.y, z: z0 + look.h },
@@ -589,23 +655,50 @@ function clearOfTrees(pos, look, env) {
   return pos;
 }
 
-// A camera that sits in a wall is moved into free space: clamped, then pulled towards what it
-// looks at, then lifted over the roof. Returns {x, y, z}.
+// A camera that sits in a wall is moved into free space. #858: first straight back along the view
+// axis (away from what it looks at, so the shot keeps its distance and the subject stays in
+// frame), then to the side, and only as a last resort towards what it looks at or over the roof.
+// The old order pulled the camera towards the subject and put a back or a head in the lens in
+// C00.3. Returns {x, y, z}.
 export function fitCamera(pos, look, env) {
   if (!env) return pos;
   let p = pos;
   if (env.clamp) { const q = env.clamp(p.x, p.y, p.z, 'camera'); if (q) p = { x: q.x, y: q.y, z: q.z ?? p.z }; }
-  if (env.solid && env.solid(p.x, p.y, p.z)) {
-    let found = null;
-    for (let k = 1; k <= 8 && !found; k++) {
-      const u = k / 8 * 0.85;
-      const c = { x: p.x + (look.x - p.x) * u, y: p.y + (look.y - p.y) * u, z: p.z + (look.z - p.z) * u * 0.5 };
-      if (!env.solid(c.x, c.y, c.z)) found = c;
+  if (!env.solid || !env.solid(p.x, p.y, p.z)) return p;
+  const free = (x, y, z) => !env.solid(x, y, z) && !(env.tree && env.tree(x, y, z));
+  const clampOk = (x, y, z) => {
+    if (!env.clamp) return true;
+    const q = env.clamp(x, y, z, 'camera');
+    return !q || (Math.abs(q.x - x) < 1e-6 && Math.abs(q.y - y) < 1e-6 && Math.abs((q.z ?? z) - z) < 1e-6);
+  };
+  // 1. back along the horizontal view axis: the same shot, further away. Keep the camera height.
+  const dx = p.x - look.x, dy = p.y - look.y, dl = Math.hypot(dx, dy);
+  if (dl > 1e-6) {
+    const ux = dx / dl, uy = dy / dl;
+    for (let d = 0.6; d <= 12; d += 0.6) {
+      const c = { x: p.x + ux * d, y: p.y + uy * d, z: p.z };
+      if (free(c.x, c.y, c.z) && clampOk(c.x, c.y, c.z)) return c;
     }
-    if (!found) { found = { ...p }; for (let k = 0; k < 12 && env.solid(found.x, found.y, found.z); k++) found.z += 1.5; }
-    p = found;
   }
-  return p;
+  // 2. sideways: out through the nearest free side, still looking at the same subject.
+  if (dl > 1e-6) {
+    const ux = dx / dl, uy = dy / dl;
+    for (let d = 0.6; d <= 10; d += 0.6) {
+      for (const side of [1, -1]) {
+        const c = { x: p.x - uy * d * side, y: p.y + ux * d * side, z: p.z };
+        if (free(c.x, c.y, c.z) && clampOk(c.x, c.y, c.z)) return c;
+      }
+    }
+  }
+  // 3. the old last resort: in towards what it looks at (a tighter shot), if that is free.
+  let found = null;
+  for (let k = 1; k <= 8 && !found; k++) {
+    const u = k / 8 * 0.85;
+    const c = { x: p.x + (look.x - p.x) * u, y: p.y + (look.y - p.y) * u, z: p.z + (look.z - p.z) * u * 0.5 };
+    if (free(c.x, c.y, c.z)) found = c;
+  }
+  if (!found) { found = { ...p }; for (let k = 0; k < 12 && !free(found.x, found.y, found.z); k++) found.z += 1.5; }
+  return found;
 }
 
 // The anchor, turned in steps of 30 degrees (the smallest turn that is clean), so that no actor, prop or
@@ -660,6 +753,242 @@ export function fitAnchor(scene, anchor, env, opts = {}) {
     if (bestScore < 1) break;
   }
   return best;
+}
+
+// --- road following for cutscene vehicles and cyclists (#862, #863) -----------------
+// A driving vehicle in a cutscene is authored in the anchor frame (f forward, s left), which says
+// nothing about the real road. At scene start its path is replaced by a route along the road
+// polylines of the map (map.nearestRoadPoint(x, y, radius, drivable) and, when present,
+// map.roadsNear(x, y, radius)), in the direction the scene authored. Cast members with
+// `road: '<prop id>'` (the hidden driver/passengers) get the same waypoints, so a follow shot keeps
+// aiming at the vehicle; a prop with `follows: '<prop id>'` rides along at its own height (the
+// mattress on the Escapade). Cyclists (`road: 'cycle'`) get a short route and disappear after it,
+// instead of standing still in a riding pose for the rest of the scene. Pure: computed once per
+// scene, never per frame; without road data the definition is left alone.
+
+const round2 = (v) => Math.round(v * 100) / 100;
+
+function roadClosest(road, x, y) {
+  const pts = road && road.pts;
+  if (!Array.isArray(pts) || pts.length < 2) return null;
+  let best = null;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const ax = pts[i][0], ay = pts[i][1], bx = pts[i + 1][0], by = pts[i + 1][1];
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2));
+    const px = ax + dx * t, py = ay + dy * t, d = Math.hypot(px - x, py - y);
+    if (!best || d < best.d) {
+      const l = Math.sqrt(l2) || 1;
+      best = { seg: i, t, d, x: px, y: py, dir: { x: dx / l, y: dy / l }, segLen: l };
+    }
+  }
+  return best;
+}
+
+// The road polyline turned so that it is travelled in the direction of `heading` from `at`.
+function orientRoad(road, heading, at) {
+  if (!road || !Array.isArray(road.pts) || road.pts.length < 2) return null;
+  let pts = road.pts.map((q) => [q[0], q[1]]);
+  let start = roadClosest({ pts }, at.x, at.y);
+  if (!start) return null;
+  if (start.dir.x * heading.x + start.dir.y * heading.y < 0) {
+    pts = pts.reverse();
+    start = roadClosest({ pts }, at.x, at.y);
+    if (!start) return null;
+  }
+  return { road: { ...road, pts }, src: road, start };
+}
+
+// The next road at the end of this one (a corner), chosen by distance and by how well it continues
+// the heading. Roads that only touch at the vertex are found through roadsNear; without it a
+// nearestRoadPoint probe ahead is the fallback.
+function nextRoad(map, p, heading, drivable, exclude) {
+  const cands = [];
+  if (typeof map.roadsNear === 'function') for (const r of map.roadsNear(p.x, p.y, 30)) if (r && r !== exclude) cands.push(r);
+  if (!cands.length && typeof map.nearestRoadPoint === 'function') {
+    const rp = map.nearestRoadPoint(p.x, p.y, 30, drivable);
+    if (rp && rp.road && rp.road !== exclude) cands.push(rp.road);
+  }
+  let best = null;
+  for (const road of cands) {
+    const c = roadClosest(road, p.x, p.y);
+    if (!c || c.d > 16) continue;
+    const dot = Math.abs(c.dir.x * heading.x + c.dir.y * heading.y);
+    // a corner can be square: allow a perpendicular road at a junction, but prefer one that
+    // continues the heading (a crossing should go straight, not turn off at random).
+    if (dot < 0.05 && c.d > 4) continue;
+    const score = c.d * 2 + (1 - dot) * 3;
+    if (!best || score < best.score) best = { road, score };
+  }
+  return best ? best.road : null;
+}
+
+function followRoute(map, startW, heading, length, step, drivable) {
+  if (typeof map.nearestRoadPoint !== 'function') return null;
+  const rp = map.nearestRoadPoint(startW.x, startW.y, 60, drivable);
+  if (!rp || !rp.road) return null;
+  let oriented = orientRoad(rp.road, heading, startW);
+  if (!oriented) return null;
+  let road = oriented.road, roadSrc = oriented.src, seg = oriented.start.seg, t = oriented.start.t;
+  let headingNow = heading;
+  const out = [{ x: oriented.start.x, y: oriented.start.y }];
+  let travelled = 0, guard = 0;
+  while (travelled < length - 1e-6 && guard++ < 2000) {
+    const pts = road.pts;
+    const ax = pts[seg][0], ay = pts[seg][1], bx = pts[seg + 1][0], by = pts[seg + 1][1];
+    const dx = bx - ax, dy = by - ay, segLen = Math.hypot(dx, dy) || 1e-9;
+    const remain = (1 - t) * segLen;
+    if (remain > 1e-6) {
+      const want = Math.min(step, length - travelled, remain);
+      t += want / segLen;
+      travelled += want;
+      out.push({ x: ax + dx * t, y: ay + dy * t });
+      headingNow = { x: dx / segLen, y: dy / segLen };
+    } else if (seg + 1 < pts.length - 1) {
+      seg += 1; t = 0;
+    } else {
+      const end = { x: pts[pts.length - 1][0], y: pts[pts.length - 1][1] };
+      const next = nextRoad(map, end, headingNow, drivable, roadSrc);
+      if (!next) break;
+      oriented = orientRoad(next, headingNow, end);
+      if (!oriented) break;
+      road = oriented.road; roadSrc = oriented.src; seg = oriented.start.seg; t = oriented.start.t;
+    }
+  }
+  return out.length >= 2 ? out : null;
+}
+
+// Fallback when one road cannot be followed: snap every sampled authored point to its nearest road.
+function snapRoute(map, world, drivable, step = 2.5) {
+  const out = [];
+  for (let i = 1; i < world.length; i++) {
+    const a = world[i - 1], b = world[i];
+    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / step));
+    for (let k = 1; k <= n; k++) {
+      const x = a.x + (b.x - a.x) * k / n, y = a.y + (b.y - a.y) * k / n;
+      const rp = map.nearestRoadPoint(x, y, 60, drivable);
+      if (!rp) continue;
+      const q = { x: rp.x, y: rp.y };
+      const prev = out[out.length - 1];
+      if (!prev || Math.hypot(q.x - prev.x, q.y - prev.y) > 0.5) out.push(q);
+    }
+  }
+  return out.length >= 2 ? out : null;
+}
+
+// Returns a new def with the road-bound props (and their passengers, followers and riders) on the
+// road, or null when there is nothing to snap. `opts.duration` keeps a hide cue inside the scene.
+export function roadPathDef(def, at, map, opts = {}) {
+  if (!def || !def.props || !map || typeof map.nearestRoadPoint !== 'function' || !at) return null;
+  const out = JSON.parse(JSON.stringify(def));
+  const arrays = ['cues', 'open', 'beats'].map((k) => out[k]).filter((a) => Array.isArray(a));
+  const pathCue = (prop, actor = null) => {
+    for (const arr of arrays) for (const q of arr) {
+      if (!q || (actor ? q.actor !== actor : q.prop !== prop)) continue;
+      if (Array.isArray(q.path) && q.path.length >= 2) return q;
+    }
+    return null;
+  };
+  const walkCue = (actor) => {
+    for (const arr of arrays) for (const q of arr) if (q && q.actor === actor && Array.isArray(q.walk) && q.walk.length) return q;
+    return null;
+  };
+  const c = Math.cos(at.facing), sn = Math.sin(at.facing);
+  const toW = (f, s) => ({ x: at.x + f * c - s * sn, y: at.y + f * sn + s * c });
+  const toL = (x, y) => ({ f: (x - at.x) * c + (y - at.y) * sn, s: -(x - at.x) * sn + (y - at.y) * c });
+  const duration = Number.isFinite(opts.duration) ? opts.duration : Infinity;
+  const roadIds = Object.keys(out.props).filter((id) => out.props[id] && out.props[id].road);
+  const snapped = {};
+  const roadDone = new Set();
+  let changed = false;
+  for (const id of roadIds) {
+    const p = out.props[id];
+    const drivable = p.road !== 'cycle' && p.road !== 'foot';
+    const q = pathCue(id);
+    if (!q) {
+      // a parked vehicle that is only placed: put it on the nearest road, nothing moves
+      const w = toW(p.at[0], p.at[1]);
+      const rp = map.nearestRoadPoint(w.x, w.y, 40, drivable);
+      if (rp && Math.hypot(rp.x - w.x, rp.y - w.y) < 25) {
+        const l = toL(rp.x, rp.y);
+        p.at[0] = round2(l.f); p.at[1] = round2(l.s);
+        roadDone.add(id);
+        changed = true;
+      }
+      continue;
+    }
+    const path = q.path;
+    const baseH = path[0][2] ?? p.at[2] ?? 0;
+    const world = path.map((pt) => toW(pt[0], pt[1]));
+    let len = 0;
+    for (let i = 1; i < world.length; i++) len += Math.hypot(world[i].x - world[i - 1].x, world[i].y - world[i - 1].y);
+    if (len < 0.5) continue;
+    const hx = world[world.length - 1].x - world[0].x;
+    const hy = world[world.length - 1].y - world[0].y;
+    const hl = Math.hypot(hx, hy) || 1;
+    const heading = { x: hx / hl, y: hy / hl };
+    // a cyclist only has to leave the frame; cars drive the authored distance
+    let length = len;
+    if (!drivable) length = Math.min(length, opts.rideLen ?? 70);
+    if (typeof p.roadLen === 'number' && p.roadLen > 0) length = Math.min(length, p.roadLen);
+    let roadPts = followRoute(map, world[0], heading, length, opts.step ?? 2.5, drivable);
+    if (!roadPts) roadPts = snapRoute(map, world, drivable, opts.step ?? 2.5);
+    if (!roadPts || roadPts.length < 2) continue;
+    let pts = roadPts.map((r) => { const l = toL(r.x, r.y); return [round2(l.f), round2(l.s), baseH]; });
+    pts = pts.filter((pt, i) => i === 0 || Math.hypot(pt[0] - pts[i - 1][0], pt[1] - pts[i - 1][1]) > 0.05);
+    if (pts.length < 2) continue;
+    q.path = pts;
+    p.at = p.at.length > 2 ? [pts[0][0], pts[0][1], p.at[2]] : [pts[0][0], pts[0][1]];
+    snapped[id] = pts;
+    roadDone.add(id);
+    changed = true;
+    // #863: after its short route the cyclist (and the bike) leave the scene instead of standing
+    // still in a riding pose. Only inside the scene; the validator rejects cues after the end.
+    if (!drivable && typeof q.t === 'number') {
+      let route = 0;
+      for (let i = 1; i < pts.length; i++) route += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      const endT = q.t + route / (q.speed || 3) + 0.8;
+      if (endT < duration - 0.1) {
+        const cues = out.cues || (out.cues = []);
+        cues.push({ t: endT, prop: id, hide: true });
+        for (const aid of Object.keys(out.actors || {})) if (out.actors[aid].road === id) cues.push({ t: endT, actor: aid, hide: true });
+      }
+    }
+  }
+  // hidden drivers/passengers follow the vehicle's road route
+  for (const aid of Object.keys(out.actors || {})) {
+    const link = out.actors[aid].road;
+    if (typeof link !== 'string' || !snapped[link]) continue;
+    const pts = snapped[link];
+    out.actors[aid].at = [pts[0][0], pts[0][1]];
+    const w = walkCue(aid);
+    if (w) w.walk = pts.slice(1).map((pt) => [pt[0], pt[1]]);
+    else (out.cues || (out.cues = [])).push({ t: 0, actor: aid, walk: pts.slice(1).map((pt) => [pt[0], pt[1]]) });
+    changed = true;
+  }
+  // a prop that rides along with another prop (the mattress on the Escapade)
+  for (const id of Object.keys(out.props)) {
+    const p = out.props[id];
+    if (!p || typeof p.follows !== 'string') continue;
+    const target = out.props[p.follows];
+    if (!target || !roadDone.has(p.follows)) continue;
+    const pts = snapped[p.follows];
+    const h = p.at[2] ?? 0;
+    if (pts) {
+      const tq = pathCue(p.follows);
+      const q = pathCue(id);
+      const path = pts.map((pt) => [pt[0], pt[1], h]);
+      if (q) {
+        q.path = path;
+        if (tq) { q.t = tq.t; q.speed = tq.speed; q.dur = tq.dur; }
+      } else if (tq) (out.cues || (out.cues = [])).push({ t: tq.t, prop: id, path, speed: tq.speed, dur: tq.dur });
+      p.at = [pts[0][0], pts[0][1], h];
+    } else {
+      p.at = [target.at[0], target.at[1], h];
+    }
+    changed = true;
+  }
+  return changed ? out : null;
 }
 
 // --- geometry helpers ---------------------------------------------------------

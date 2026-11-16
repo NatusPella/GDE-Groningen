@@ -80,7 +80,11 @@ if (site) {
   ok(close(d(site.sign), Math.hypot(LAYOUT.signIn, OFF.sign)), 'de bordje-afstand tot de grens');
   ok(site.house.x > 1500, 'Beppes huis staat over de grens', JSON.stringify(site.house));
   ok(close(d(site.house), Math.hypot(LAYOUT.houseOut, OFF.house)), 'de huis-afstand tot de grens');
-  ok(site.gardenBench.x > 1500 && d(site.gardenBench) < LAYOUT.houseOut, 'het tuinbankje ligt net over de grens');
+  // het tuinbankje staat in de voortuin van het huis (huis-frame), niet meer op
+  // een vaste offset vanaf de grens: zo blijft het in de tuin als de berm breder
+  // moet (#review N355)
+  const dh = Math.hypot(site.gardenBench.x - site.house.x, site.gardenBench.y - site.house.y);
+  ok(site.gardenBench.x > 1500 && dh < 10, 'het tuinbankje ligt in de voortuin, net over de grens', JSON.stringify({ d: dh, bench: site.gardenBench }));
   ok(LAYOUT.arrivalR >= d(site.bench), 'de aankomstkaart haalt het bankje');
   ok(LAYOUT.leaveR > d(site.house) + 30, 'de duiven vliegen pas op als je echt wegloopt');
   // de tuin staat in het huis-frame: het prieelpad en de heg horen bij het huis
@@ -104,11 +108,31 @@ if (site) {
   const border = { x: 1500, y: 0 };
   const regionOf = (x) => (x >= 1530 ? 'friesland' : 'groningen');
   const site = chooseTributeSite({ border, ux: 1, uy: 0, hw: HW, free: () => true, regionOf });
-  ok(!!site && site.shift === 24, 'de plek schuift langs de weg tot huis en tuin over de grens vallen', JSON.stringify(site && { shift: site.shift, house: site.house }));
+  ok(!!site && site.houseShift === 24 && site.shift === 0, 'het huis schuift langs de weg tot het over de grens valt', JSON.stringify(site && { shift: site.shift, houseShift: site.houseShift, house: site.house }));
   ok(!!site && regionOf(site.house.x) === 'friesland' && regionOf(site.bench.x) === 'groningen', 'het bankje blijft in Grunn, het huis in Friesland');
   const blocked = chooseTributeSite({ border, ux: 1, uy: 0, hw: HW, free: () => false, regionOf });
   ok(!!blocked && blocked.clear === false, 'past de plek nergens vrij, dan meldt hij dat');
   ok(chooseTributeSite({}) === null, 'zonder grens geen plek');
+
+  // De N355 bij Visvliet: een verhoogde weg met een parallel fietspad. De berm
+  // is daar smaller dan de oude vaste offset, dus de plek moet opschuiven en de
+  // berm verbreden; geen enkel punt mag op de rijbaan (of de helling) vallen.
+  const road = (x, y) => Math.abs(y) < 8;
+  const wide = chooseTributeSite({ border, ux: 1, uy: 0, hw: 5, free: () => true, road, regionOf });
+  ok(!!wide && wide.spread >= 1.3, 'een brede, verhoogde weg verbreedt de berm', JSON.stringify(wide && { spread: wide.spread, shift: wide.shift }));
+  ok(!!wide && [wide.bench, wide.sign, wide.house, wide.gardenBench].every((p) => Math.abs(p.y) >= 8), 'geen enkel punt van de plek ligt op de rijbaan');
+  ok(!!wide && Math.hypot(wide.gardenBench.x - wide.house.x, wide.gardenBench.y - wide.house.y) < 10, 'het tuinbankje blijft in de voortuin van het huis');
+  // Een weg die alles afkeurt: dan komt er geen plek op de rijbaan, ook niet als terugval
+  ok(chooseTributeSite({ border, ux: 1, uy: 0, hw: HW, road: () => true, regionOf }) === null, 'nooit een terugval op de rijbaan');
+  // De tuin als geheel: een plek die de voortuin op een pad zet, wordt overgeslagen
+  const cleared = chooseTributeSite({ border, ux: 1, uy: 0, hw: HW, free: () => true, clear: (s) => s.spread >= 1.3, regionOf });
+  ok(!!cleared && cleared.spread >= 1.3, 'een tuin die niet past laat de berm verder verbreden');
+  // spread schaalt de zijwaartse offsets, maar houdt het tuinbankje bij het huis
+  const base = layoutTribute({ border, ux: 1, uy: 0, hw: HW });
+  const wider = layoutTribute({ border, ux: 1, uy: 0, hw: HW, spread: 1.6 });
+  ok(!!base && !!wider && wider.bench.y > base.bench.y, 'een grotere spread schuift het bankje verder van de weg');
+  ok(!!wider && close(Math.hypot(wider.gardenBench.x - wider.house.x, wider.gardenBench.y - wider.house.y),
+    Math.hypot(base.gardenBench.x - base.house.x, base.gardenBench.y - base.house.y)), 'het tuinbankje houdt dezelfde plek in de tuin');
 }
 
 // --- de regio: Groningen tegenover Friesland ---------------------------------

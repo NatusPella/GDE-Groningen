@@ -274,11 +274,12 @@ S['M24.intro'] = {
 
 // --- M25 Het bod: Oma's kitchen table, the four ingredients ---
 S['M25.intro'] = {
+  set: 'omakeuken',
   cast: {
-    trijntje: { key: 'trijntje', at: [3, 0.7], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
-    mem: { key: 'mem', at: [3.2, -1.4], face: 170, anim: 'idle', gest: ['talk', 'hips'] },
+    trijntje: { key: 'trijntje', at: [2.4, 0.7], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+    mem: { key: 'mem', at: [3.0, -1.4], face: 170, anim: 'idle', gest: ['talk', 'hips'] },
   },
-  props: { doos: { kind: 'doos', at: [2.2, 0, 0.8] } },
+  props: { doos: { kind: 'doos', at: [1.8, 0, 0.8] } },
   open: [{ actor: 'tessa', face: 'actor:trijntje' }, { actor: 'tammo', face: 'actor:trijntje' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'mem', walk: [[2.2, -1.2]], speed: 0.8 },
@@ -290,13 +291,14 @@ S['M25.intro'] = {
     { on: 'De notaris zit in de Oude Boteringestraat', actor: 'tessa', anim: 'phone' },
   ],
   shots: [],
-  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:trijntje,mem@1'),
+  wide: WIDE([-3.9, 2.4, 2.8], [-2.4, 1.8, 2.2], 'mid:trijntje,mem@1'),
 };
 S['M25.outro'] = {
+  set: 'omakeuken',
   cast: {
-    trijntje: { key: 'trijntje', at: [3, 0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
-    mem: { key: 'mem', at: [3.2, -1.3], face: 170, anim: 'idle', gest: ['talk', 'nod'] },
-    jelle: { key: 'jelle', at: [5.4, 0], face: 180, anim: 'idle', bg: true, gest: ['talk', 'hips'] },
+    trijntje: { key: 'trijntje', at: [2.4, 0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
+    mem: { key: 'mem', at: [2.6, -1.3], face: 170, anim: 'idle', gest: ['talk', 'nod'] },
+    jelle: { key: 'jelle', at: [3.9, 0], face: 180, anim: 'idle', bg: true, gest: ['talk', 'hips'] },
   },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:trijntje' }, { actor: 'tammo', face: 'actor:trijntje' }],
@@ -310,7 +312,7 @@ S['M25.outro'] = {
     { on: 'Ik kom, jonge', actor: 'mem', anim: 'nod' },
   ],
   shots: [],
-  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:trijntje,mem@1'),
+  wide: WIDE([-3.9, 2.4, 2.8], [-2.4, 1.8, 2.2], 'mid:trijntje,mem@1'),
 };
 
 // --- M26 Ontzet: the stage at the Vismarkt; the finale outro is the pair alone with the crowd ---
@@ -461,7 +463,8 @@ S['M22.2'] = {
     { on: 'Het bovenstuk is blauw', actor: 'tammo', anim: 'shake' },
     { on: 'Het is de kleur van de naam', actor: 'tessa', anim: 'point' },
     { on: 'Het luik is betaald', actor: 'henk', face: 'actor:sjabbe' },
-    { on: 'Het luik is betaald', dt: 0.3, actor: 'sjabbe', walk: [[3.4, -1.8]], speed: 1.5 },
+    // #861: Sjabbe liep dwars door de geparkeerde trekker; hij loopt er nu bovenom.
+    { on: 'Het luik is betaald', dt: 0.3, actor: 'sjabbe', walk: [[11, -2.2], [8, -1.5], [3.4, -1.8]], speed: 1.5 },
     { on: 'Tammo belde vannacht', actor: 'sjabbe', anim: 'talk' },
     { on: 'Het horloge van je opa', actor: 'tessa', face: 'actor:tammo' },
     { on: 'Het horloge van je opa', dt: 0.6, actor: 'tammo', face: 'prop:escapade' },
@@ -473,9 +476,11 @@ S['M22.2'] = {
 
 // M22.4 the barn at night: the two of them apologise beside the car, Tinus walks across the yard
 S['M22.4'] = {
-  cast: { tinus: { key: 'tinus', at: [9, 4], face: 200, anim: 'idle', bg: true, gest: ['look', 'nod'] } },
+  // #861: Tinus liep dwars door de geparkeerde trekker; hij start nu verder weg en loopt er met een
+  // boog omheen (t 0-6,25 s zat hij in de voetafdruk van de trekker).
+  cast: { tinus: { key: 'tinus', at: [11.6, 4.4], face: 200, anim: 'idle', bg: true, gest: ['look', 'nod'] } },
   props: { escapade: { kind: 'auto', at: [4.2, 0.2, 0], face: 90 }, trekker: { kind: 'trekker', at: [7.5, 3.2, 0], face: 150 } },
-  open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }, { t: 0, actor: 'tinus', walk: [[5.2, 2.4], [7, 1.2]], speed: 0.7 }],
+  open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }, { t: 0, actor: 'tinus', walk: [[11.4, 0.0], [7.0, 0.6]], speed: 0.7 }],
   beats: [
     { on: 'We hebben een wagen', actor: 'tessa', walk: [[2.6, -0.9]], speed: 0.8 },
     { on: 'We hebben een wagen', dt: 0.5, actor: 'tammo', walk: [[2.4, 0.5]], speed: 0.8 },
@@ -521,8 +526,9 @@ S['M23.3'] = {
 
 // M25.3 Oma's kitchen: Jelle makes his offer, the answer is not money
 S['M25.3'] = {
+  set: 'omakeuken',
   cast: {
-    jelle: { key: 'jelle', at: [6, 2], face: 190, anim: 'idle', gest: ['nod', 'hips', 'point', 'shrug'] },
+    jelle: { key: 'jelle', at: [4.0, 1.6], face: 190, anim: 'idle', gest: ['nod', 'hips', 'point', 'shrug'] },
     trijntje: { key: 'trijntje', at: [-2.2, 1.5], face: 10, anim: 'idle', bg: true, gest: ['nod', 'look'] },
     mem: { key: 'mem', at: [-2.4, -1.2], face: 350, anim: 'idle', bg: true, gest: ['look', 'shrug'] },
   },
@@ -542,7 +548,7 @@ S['M25.3'] = {
     { on: '…We bakken op het Ontzet', actor: 'jelle', walk: [[7, 2.6]], speed: 1.3 },
   ],
   shots: [],
-  wide: WIDE([-4.6, 3.8, 3], [-2.6, 2.8, 2.3], 'mid:jelle,tessa@1'),
+  wide: WIDE([-3.8, 2.4, 2.6], [-2.0, 1.8, 2.1], 'mid:jelle,tessa@1'),
 };
 
 // M26.5 the Oude Boteringestraat: Mem takes over from the limo's back seat
@@ -766,9 +772,10 @@ for (const [id, key, x] of [['M18.7', 'accountmanager', 2.4], ['M23.6', 'wubbo',
 // has to follow the car, so there is no automatic coverage: a wide shot of the bakkie pulling away, then the camera rides along.
 S['M21.intro'] = {
   solo: true, manual: true, align: 'road',
-  cast: { berend: { key: 'berend', at: [-34, 0], face: 0, anim: 'idle', noauto: true } },
-  duo: { tessa: { at: [-34, 0], face: 0, anim: 'idle' } },
-  props: { bakkie: { kind: 'bakkie', at: [-34, 0, 0], face: 0 } },
+  cast: { berend: { key: 'berend', at: [-34, 0], face: 0, anim: 'idle', noauto: true, road: 'bakkie' } },
+  duo: { tessa: { at: [-34, 0], face: 0, anim: 'idle', road: 'bakkie' } },
+  // #862: ook deze rit volgt de weg; de twee stemmen in de cab rijden mee.
+  props: { bakkie: { kind: 'bakkie', at: [-34, 0, 0], face: 0, road: true } },
   open: [
     { actor: 'berend', hide: true }, { actor: 'tessa', hide: true },
     { prop: 'bakkie', path: [[-34, 0], [34, 0]], speed: 2.8 },
@@ -814,7 +821,9 @@ S['M26.4#7-14'] = {
     { on: 'Rook! Links', dt: 0.4, actor: 'durk', anim: 'cheer' },
     { on: 'Rook! Links', dt: 0.4, prop: 'vuurwerk', bob: 0.06 },
     { on: 'Mevrouw. U staat', actor: 'jelle', anim: 'point' },
-    { on: 'Mevrouw. U staat', dt: 2.4, actor: 'jelle', walk: [[8.8, -3.6]], speed: 0.9 },
+    // #861: Jelle liep door de limo heen; hij stapt nu eerst van de limo af en loopt er met een boog
+    // omheen naar de waterkant (t 11,75-15,5 s zat hij in de voetafdruk van de limo).
+    { on: 'Mevrouw. U staat', dt: 2.4, actor: 'jelle', walk: [[3.4, 0.8], [3.4, -3.8], [8.8, -4.4]], speed: 2.4 },
     { on: 'Mevrouw. U staat', dt: 2.6, prop: 'duif', path: [[6.2, -0.7], [8.4, -3.2]], speed: 1.2 },
     { on: '…Plons', actor: 'jelle', anim: 'sprong' },
     { on: '…Plons', dt: 0.5, actor: 'jelle', hide: true },

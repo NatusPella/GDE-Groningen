@@ -44,12 +44,12 @@ export function buildAkte5Defs({ map, walk, drive }) {
       say: 'Blijf bij de wagen: Henk bouwt het luik in.',
       stages: [
         {
-          kind: 'hold', target: { at: SCHUUR, snap: 'walk', label: 'Tinus\' schuur' }, radius: 16, time: 6, mode: 'any',
+          kind: 'hold', dressing: 'schuur', target: { at: SCHUUR, snap: 'walk', label: 'Tinus\' schuur' }, radius: 16, time: 6, mode: 'any',
           label: 'Laat Henk het luik inbouwen: blijf bij de wagen', say: 'Henk zaagt een gat in de zijkant. Blijf bij de wagen tot het luik erin zit.',
           ticks: ['Henk zaagt een gat in de zijkant.', 'Het luik past. Het is blauw.'],
         },
         {
-          kind: 'scene', label: 'Het luik zit erin', target: { at: SCHUUR, snap: 'walk' }, kicker: 'Tinus\' schuur', script: { ids: ['M22.2'] },
+          kind: 'scene', dressing: 'schuur', label: 'Het luik zit erin', target: { at: SCHUUR, snap: 'walk' }, kicker: 'Tinus\' schuur', script: { ids: ['M22.2'] },
           cast: [{ key: 'henk', pose: 'hips', at: [2.8, 1.0] }, { key: 'tinus', pose: 'arms', at: [3.4, -1.6] }],
         },
         { kind: 'board', label: 'Stap in de Escapade', say: 'Instappen. Tinus wijst naar het weiland: de modder wacht.' },
@@ -67,6 +67,8 @@ export function buildAkte5Defs({ map, walk, drive }) {
           talk: { ids: ['M22.3'], from: 0, to: 4, delay: 1.5 }, mud: true,
         },
         {
+          // #962: het loswippen is een korte actie-QTE (drie rondes) zonder failAt:
+          // een misser kost de tag en een tel, maar Tinus trekt de wagen er altijd uit.
           // stuck in the mud: not a wait but a rocking rhythm; Tinus pulls on the beat (the tags only colour the mission's own report)
           kind: 'timing', kicker: 'Los uit de modder', help: 'wip op het ritme', goodAt: 2, tagGood: 'modder-los', tagLow: 'modder-traag',
           label: 'Zit vast: wip de wagen los terwijl Tinus trekt', say: 'Vast. Tinus haakt de trekker aan: wip mee op het ritme, druk als de streep in het groen is.',
@@ -155,21 +157,16 @@ export function applyAkte5(list) {
     const drop = vlag.stages.find((q) => q.dropFlag);
     pig.label = 'Haal Jelles vlag van d\'Olle Grieze: pik de vijf touwen door';
     pig.talk = { ids: ['M24.2'], delay: 14 };
+    // #962: de windvlaag was een timing-QTE boven de toren; het verhaal van de
+    // laatste touwen zit al in de duifstap en de valscène (M24.3). De duif die
+    // alle vijf touwen doorpikt levert de uitkomst van de windstap: de vlag valt
+    // naast de kraam. Geen extra QTE meer, wel dezelfde beloning.
+    pig.tag = 'vlag-top';
     drop.script = { ids: ['M24.3'] };
     drop.lines = [];
-    // the pigeon's twist: the last rope is pulled on the wind (three gusts), so the flag lands beside the stall and not on it
-    const wind = {
-      kind: 'timing', kicker: 'De laatste touwen', help: 'pik op de windvlaag', goodAt: 2, tagGood: 'vlag-top', tagLow: 'vlag-raak',
-      label: 'Pik de laatste touwen door op de windvlaag', say: 'De vlag hangt nog aan drie touwen. Pik door als de wind meewerkt: de streep in het vak.',
-      rounds: [
-        { text: 'Een windvlaag uit het westen.', speed: 0.8, zone: [0.36, 0.64], ok: 'Het touw geeft mee.', bad: 'De duif slipt langs het touw.' },
-        { text: 'De vlag draait naar de kraam toe.', speed: 1.0, zone: [0.4, 0.6], ok: 'De vlag draait weg van de kraam.', bad: 'De vlag zwiept richting de kraam.' },
-        { text: 'Het laatste touw: de hele Grote Markt kijkt.', speed: 1.15, zone: [0.43, 0.57], ok: 'Doorgepikt, precies op tijd.', bad: 'Net te laat: het touw trilt nog.' },
-      ],
-    };
-    vlag.stages = [pig, wind, drop];
+    vlag.stages = [pig, drop];
     vlag.tagAdjust = { 'vlag-top': 100 };
-    vlag.tagRows = { 'vlag-top': ['Wind', 'De vlag viel naast de kraam'], 'vlag-raak': ['Wind', 'De vlag raakte de rand van de kraam: Jelle zag het'] };
+    vlag.tagRows = { 'vlag-top': ['Wind', 'De vlag viel naast de kraam'] };
     vlag.timeLimit = null;
     vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de Fjord Frituur.', 'Doel: pik als duif de vijf touwen van de vlag door.'];
     vlag.outro = 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.';
@@ -188,7 +185,9 @@ export function applyAkte5(list) {
     bod.say = 'Bak in Oma\'s keuken: ei, zout, grof meel, vet en mosterd.';
     bod.stages = [
       {
-        kind: 'bake', recipe: 'practice', rounds: 2, farHint: 'Terug naar het fornuis. De eierballen wachten niet.', target: keuken, radius: 40, mode: 'foot',
+        // #956: het oefenen en het bod spelen in Oma's keuken (omakeuken3d.js), niet op
+        // een plek in de open lucht; de keuken houdt de speler bij het fornuis.
+        kind: 'bake', set: 'omakeuken', recipe: 'practice', rounds: 2, farHint: 'Terug naar het fornuis. De eierballen wachten niet.', target: keuken, radius: 40, mode: 'foot',
         label: 'Bak een oefenronde eierballen met alle vijf ingrediënten', say: 'Oma\'s volgorde: eerst het ei, dan het zout, dan het grove meel, het vet en de mosterd. Toetsen 1 tot en met 5.',
         talk: { ids: ['M25.2'], delay: 4 },
       },
@@ -211,7 +210,7 @@ export function applyAkte5(list) {
     // the baking score decides how the jury votes (M26.10-12) and pays a bonus on the 4000
     ontzet.bakeBonus = { top: 600, goed: 200, mager: 0 };
     ontzet.tagAdjust = { 'duiven-top': 200, 'straten-dicht': 150 };
-    ontzet.tagRows = { 'duiven-top': ['Duiven', 'De wolk stond precies voor de voorruit'], 'duiven-los': ['Duiven', 'De duiven gingen een eigen weg'], 'straten-dicht': ['Colonne', 'De bus, de trekker en de scooter sloten de straten af'] };
+    ontzet.tagRows = { 'duiven-top': ['Duiven', 'De wolk stond precies voor de voorruit'], 'straten-dicht': ['Colonne', 'De bus, de trekker en de scooter sloten de straten af'] };
     ontzet.bakeRows = { top: ['Jury', 'Vijf van de vijf: foutloos gebakken'], goed: ['Jury', 'Vier van de vijf'], mager: ['Jury', 'Drie van de vijf: rommelig gebakken'] };
     ontzet.start = { ...ontzet.start };
     fire.label = 'Houd de kraam heel tegen het vuurwerk van Durk en Douwe';
@@ -233,6 +232,10 @@ export function applyAkte5(list) {
     chase.stopped = 'De limo staat vast, neus tegen het luik.';
     chase.swarm = { stall: stalls, near: 260, close: 45, closeFor: 20, script: { ids: ['M26.4'], from: 3, to: 7 } };
     chase.talk = { ids: ['M26.4'], from: 0, to: 3, delay: 1 };
+    // #962: de duiven zijn geen timing-QTE meer. Tammo fluit in de achtervolging
+    // (M26.4), de duivenwolk komt in de wereld neer (chase.swarm) en de tag
+    // vertelt achteraf dat de wolk precies voor de voorruit stond.
+    chase.tag = 'duiven-top';
     ontzet.stages = [
       {
         kind: 'bake', recipe: 'contest', rounds: 3, farHint: 'Terug naar de kraam. De eierballen wachten niet.', target: stalls, radius: 40, mode: 'foot',
@@ -242,28 +245,13 @@ export function applyAkte5(list) {
       fire,
       { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
       {
-        kind: 'timing', kicker: 'Berts duiven', help: 'fluit op de maat', goodAt: 2, tagGood: 'duiven-top', tagLow: 'duiven-los',
-        label: 'Fluit Berts duiven op, voor de limo uit', say: 'Tammo fluit, Bert stuurt de duiven. Fluit op de maat: de streep in het vak.',
-        rounds: [
-          { text: 'Eerste fluit: de duiven stijgen op van het dak.', speed: 0.9, zone: [0.38, 0.62], ok: 'De duiven komen als één wolk.', bad: 'Twee duiven nemen een omweg.' },
-          { text: 'Tweede fluit: richting de Oude Boteringestraat.', speed: 1.1, zone: [0.41, 0.59], ok: 'De wolk draait de straat in.', bad: 'De duiven gaan een kerktoren in.' },
-          { text: 'Derde fluit: voor de voorruit van de limo.', speed: 1.25, zone: [0.43, 0.57], ok: 'Een muur van veren. De limo remt.', bad: 'De duiven zijn te vroeg: de limo rijdt erdoor.' },
-        ],
-      },
-      {
-        // the column of M23 comes back: the bus and the tractor close the streets, the scooter takes the alleys; the ally you chose sits the surest
-        kind: 'timing', kicker: 'De colonne sluit de straten', help: 'sluit op de maat', goodAt: 2, tagGood: 'straten-dicht', tagLow: 'straten-open',
-        label: 'Laat de colonne de straten afsluiten voor Jelles limo', say: 'Wubbo, Tinus en Geesje sluiten de straten. Druk als de streep in het vak staat.',
-        rounds: [
-          { text: 'Wubbo zet de bus dwars in de Herestraat.', speed: 0.9, zone: [0.4, 0.6], zoneIf: 'bond-bus', ok: 'De bus staat dwars, deuren open, Wubbo zwaait.', okIf: 'De bus staat dwars. Wubbo weet precies hoe breed hij is.', bad: 'De bus staat half. De limo glipt langs de zijspiegel.' },
-          { text: 'Tinus trekt zijn trekker voor de Gedempte Zuiderdiep.', speed: 1.05, zone: [0.42, 0.58], zoneIf: 'bond-trekker', ok: 'De trekker staat. Er past geen limo meer langs.', okIf: 'De trekker staat als een muur. Tinus: "Ik trek hem weg."', bad: 'De trekker slaat af in plaats van aan. De limo wrijft langs de band.' },
-          { text: 'Geesje stuurt de scooter door de steeg naast de Oude Boteringestraat.', speed: 1.2, zone: [0.44, 0.56], zoneIf: 'bond-scooter', ok: 'De scooter staat in de steeg. Jelle moet de lange weg.', okIf: 'De scooter staat in de steeg. Geesje heeft alle steegjes geteld.', bad: 'De scooter valt om in de steeg. Geesje: "Hij is sneller dan hij lijkt."' },
-        ],
-      },
-      {
-        // the ally of M23 speaks over the radio while he closes his street
+        // #962: de straten werden met een timing-QTE afgesloten; het verhaal
+        // zit al in de scène hieronder (M26.14-M26.16, één per bondgenoot).
+        // De bondgenoot bepaalt nog steeds de tijd van de achtervolging en welke
+        // straat er dicht is; de tag maakt de afloop zichtbaar in de uitslag.
         kind: 'scene', label: 'De straten zijn dicht', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.14'] },
         scriptIf: [{ tag: 'bond-trekker', ids: ['M26.15'] }, { tag: 'bond-scooter', ids: ['M26.16'] }, { tag: 'bond-bus', ids: ['M26.14'] }],
+        tag: 'straten-dicht',
         cast: [{ key: 'wubbo', pose: 'hips', at: [3.0, 1.2] }, { key: 'tinus', pose: 'hips', at: [3.2, -0.2] }, { key: 'geesje', pose: 'arms', at: [3.0, -1.6] }],
       },
       chase,

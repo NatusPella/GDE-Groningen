@@ -25,6 +25,11 @@ export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'ma
 // geen spelobject: er is geen register voor, dus niet in een cutscene
 export const PLACEHOLDER_KINDS = ['aanhanger'];
 
+// Zitten aan tafel (#859): de keuken van de opening gebruikt deze pose in de host én in
+// de intromontage. De armen hangen op schoot/tafel ('lap'); 'wheel' is de stuurhouding
+// van de auto en zette Tessa met wijd uitgespreide armen naast de tafel.
+export const TABLE_SIT = { recline: 0.02, footX: 0.42, footY: -0.44, arms: 'lap' };
+
 export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike'];
 export const ANIMAL_KINDS = DIEREN.filter((d) => d.cutscene).map((d) => d.kind);
 

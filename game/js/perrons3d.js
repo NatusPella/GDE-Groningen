@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { addStaticCollider } from './breakables.js';
-import { buildPerrons } from './perrons.js';
+import { buildPerrons, PERRON_TOP } from './perrons.js';
 import { perronMateriaal, perronTegelUV, RAND_M, RAND_KLEUR } from './stationperronmateriaal.js';
 
 // De perrons en trappen van map.perrons (perrons.js, #436) als beeld: een vloer met een stoeprand en een gemetselde zijkant tot op de grond,
@@ -14,6 +14,9 @@ const MAT = {
   top: perronMateriaal(0xa4a5a0),
   rand: perronMateriaal(RAND_KLEUR, { roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
   zij: perronMateriaal(0x7a6f66, { roughness: 0.95 }),
+  // de onderkant van een perron op een dijk of viaduct: van onderen zie je anders
+  // door de open vloer heen (Groningen Noord boven de Kastanjelaan, #961)
+  onder: perronMateriaal(0x6f665e, { roughness: 0.95 }),
   trede: perronMateriaal(0x9a9b96, { roughness: 0.9 }),
   stoot: perronMateriaal(0x6a6b66, { roughness: 0.9 }),
   leuning: new THREE.MeshStandardMaterial({ color: 0x2f3e36, roughness: 0.6, metalness: 0.4, flatShading: true, side: THREE.DoubleSide }),
@@ -40,6 +43,12 @@ class Mesh {
 
 const GROND = -0.15;
 const lerp = (a, b, t) => a + (b - a) * t;
+// Tot waar de zijkant van een perron doorloopt: tot de grond waar het perron op staat
+// (de spoorvloer, PERRON_TOP onder de bovenkant), niet tot straatniveau eronder. Zo
+// loopt de Kastanjelaan onder Groningen Noord weer vrij zichtbaar door (#961; de rand
+// in het hoogtemodel reikt om dezelfde reden niet dieper, #509). Ligt het perron op
+// straatniveau, dan blijft de voet op GROND staan.
+const perronVoet = (z) => (z - PERRON_TOP > 0.5 ? z - PERRON_TOP - 0.05 : GROND);
 
 function bordTexture(tekst) {
   if (typeof document === 'undefined') return null;
@@ -68,17 +77,23 @@ function strook(M, row) {
   }
   for (let i = 0; i < pts.length - 1; i++) {
     M.top.quad(L[i], L[i + 1], R[i + 1], R[i]);
+    const a = L[i], b = L[i + 1], ra = R[i], rb = R[i + 1];
+    const ba = perronVoet(a[2]), bb = perronVoet(b[2]);
+    M.zij.quad([a[0], a[1], a[2]], [b[0], b[1], b[2]], [b[0], b[1], bb], [a[0], a[1], ba]);
+    M.zij.quad([ra[0], ra[1], ra[2]], [rb[0], rb[1], rb[2]], [rb[0], rb[1], bb], [ra[0], ra[1], ba]);
+    // een verhoogd perron is van onderen dicht: de vloer is de bovenkant van een brugdek
+    if (ba > GROND + 0.01 || bb > GROND + 0.01) M.onder.quad([a[0], a[1], ba], [b[0], b[1], bb], [rb[0], rb[1], bb], [ra[0], ra[1], ba]);
     for (const E of [L, R]) {
-      const a = E[i], b = E[i + 1];
-      M.zij.quad([a[0], a[1], a[2]], [b[0], b[1], b[2]], [b[0], b[1], GROND], [a[0], a[1], GROND]);
+      const c = E[i], d = E[i + 1];
       // de rand van het perron: een betonband van RAND_M naar binnen, geen verfstreep (#502)
-      const ia = [a[0] - a[3] * RAND_M, a[1] - a[4] * RAND_M, a[2] + 0.012], ib = [b[0] - b[3] * RAND_M, b[1] - b[4] * RAND_M, b[2] + 0.012];
-      M.rand.quad([a[0], a[1], a[2] + 0.012], [b[0], b[1], b[2] + 0.012], ib, ia);
+      const ia = [c[0] - c[3] * RAND_M, c[1] - c[4] * RAND_M, c[2] + 0.012], ib = [d[0] - d[3] * RAND_M, d[1] - d[4] * RAND_M, d[2] + 0.012];
+      M.rand.quad([c[0], c[1], c[2] + 0.012], [d[0], d[1], d[2] + 0.012], ib, ia);
     }
   }
   const e = pts.length - 1;
-  M.zij.quad([L[0][0], L[0][1], L[0][2]], [R[0][0], R[0][1], R[0][2]], [R[0][0], R[0][1], GROND], [L[0][0], L[0][1], GROND]);
-  M.zij.quad([L[e][0], L[e][1], L[e][2]], [R[e][0], R[e][1], R[e][2]], [R[e][0], R[e][1], GROND], [L[e][0], L[e][1], GROND]);
+  const b0 = perronVoet(L[0][2]), b1 = perronVoet(R[0][2]), be = perronVoet(L[e][2]), bf = perronVoet(R[e][2]);
+  M.zij.quad([L[0][0], L[0][1], L[0][2]], [R[0][0], R[0][1], R[0][2]], [R[0][0], R[0][1], b1], [L[0][0], L[0][1], b0]);
+  M.zij.quad([L[e][0], L[e][1], L[e][2]], [R[e][0], R[e][1], R[e][2]], [R[e][0], R[e][1], bf], [L[e][0], L[e][1], be]);
 }
 
 function trap(M, grp, r, nm) {
@@ -124,7 +139,7 @@ export function buildPerrons3D(map) {
   if (!rows.length) return null;
   const grp = new THREE.Group();
   grp.name = 'perrons';
-  const M = { top: new Mesh(), rand: new Mesh(), zij: new Mesh(), trede: new Mesh(), stoot: new Mesh(), leuning: new Mesh() };
+  const M = { top: new Mesh(), rand: new Mesh(), zij: new Mesh(), onder: new Mesh(), trede: new Mesh(), stoot: new Mesh(), leuning: new Mesh() };
   for (const row of rows) {
     strook(M, row);
     for (const r of row.r || []) trap(M, grp, r, row.nm || 'Perron');

@@ -6,7 +6,7 @@ import { getSettings } from './settings.js';
 import { regenDruppels } from './weerlook.js';
 import { streekZonHoogte } from './weerdag.js';
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
-import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt } from './weatherlook.js';
+import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR } from './weatherlook.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 const LIGHTNING_COLOR = new THREE.Color(0.85, 0.88, 0.95);
@@ -361,9 +361,18 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   _mist.copy(MIST_COLOR).multiplyScalar(0.08 + 0.92 * base.daylight);
 
   if (scene.fog) {
+    // #866: mist 0,7 zette het zicht op ~50 m en maakte een hoog beeld helemaal
+    // wit. De mist blijft (kleur en sfeer ongewijzigd), maar met een zichtbodem:
+    // dichtbij nooit onder ~16 m en in de verte nooit onder ~150 m, zodat de
+    // wereld ook in dichte mist leesbaar blijft.
+    const fogBaseNear = lerp(base.fogNear, base.fogNear * 0.4, t);
+    const fogBaseFar = lerp(base.fogFar, base.fogFar * 0.45, t);
+    // #866: vanaf een hoog beeld (camera ver boven de straat) dempt de mist mee, anders
+    // verdwijnt de hele wereld achter de dichtstbijzijnde mistlaag.
+    const fogMist = mistAtHeight(mist, cam && cam.position ? cam.position.y : 0);
     scene.fog.color.copy(base.fog).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
-    scene.fog.near = lerp(lerp(base.fogNear, base.fogNear * 0.4, t), 0, mist);
-    scene.fog.far = lerp(lerp(base.fogFar, base.fogFar * 0.45, t), 70, mist);
+    scene.fog.near = lerp(fogBaseNear, Math.max(MIST_NEAR, fogBaseNear * 0.25), fogMist);
+    scene.fog.far = lerp(fogBaseFar, Math.max(MIST_FAR, fogBaseFar * 0.45), fogMist);
   }
   if (scene.background && scene.background.isColor) {
     scene.background.copy(base.fog).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.6);

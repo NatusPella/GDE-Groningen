@@ -39,7 +39,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       // M03 Het Loket: a queue puzzle on foot. Jelle bought the queue, so from his scene on the clock runs faster.
       type: 'stages',
       label: 'Het Loket',
-      intro: ['Het Loket in het Stadhuis aan de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'De rij staat buiten, voor de gevel. Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
+      intro: ['Het Loket in het Stadhuis aan de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'De rij staat binnen in de hal. Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. Jelle wil de Gouden Eierbal: pak hem eerst. Nieuw doel: naar Bert op het Stationsplein.',
       // #664: geen ruime fail-timer meer; binnen een minuut is de medaille-eis (tag 'snel').
       timeLimit: null,
@@ -51,23 +51,45 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       onFoot: true,
       start: loketAt(-10, 14),
       stages: [
-        { kind: 'goto', target: loket('rij', 'Het Loket: wachtnummer'), mode: 'foot', radius: 5, stop: 0.8, label: 'Trek een wachtnummer', say: 'Nummer 4117. Op het scherm staat 4093.' },
-        // a beat of waiting, so the queue is felt before Jelle buys it (timing instead of only walking)
-        { kind: 'hold', target: loket('rij', 'Het Loket: wachtrij'), radius: 6, time: 5, ticks: ['Scherm: 4101. Nog zestien nummers.', 'Scherm: 4109. Bijna aan de beurt.'], label: 'Wacht in de rij tot je nummer komt', say: 'Blijf in de rij staan tot 4117 wordt omgeroepen.' },
+        { kind: 'goto', target: loket('rij', 'De hal van het Stadhuis'), mode: 'foot', radius: 5, stop: 0.8, label: 'Ga naar de hal van het Stadhuis', say: 'De rij staat binnen, achter de glazen deuren. Nummer 4117.' },
+        // #956: het wachten op de rij, het gesprek met Jelle en het loket zelf spelen
+        // in de hal van het Stadhuis (loket3d.js) in plaats van op het plein.
+        {
+          kind: 'hold', set: 'loket', target: loket('rij', 'Het Loket: wachtrij'), radius: 6, time: 5,
+          ticks: ['Scherm: 4101. Nog zestien nummers.', 'Scherm: 4109. Bijna aan de beurt.'],
+          label: 'Wacht in de rij tot je nummer komt', say: 'Blijf in de rij staan tot 4117 wordt omgeroepen.',
+        },
         {
           kind: 'scene', label: 'Jelle', kicker: 'Het Loket', script: { ids: ['M03.2'] }, clock: 3,
           cast: [{ key: 'jelle', pose: 'hold', at: [2.6, 0.8] }, { key: 'bewaarder', pose: 'hips', at: [3.6, -1.2] }],
         },
         {
-          kind: 'goto', target: loket('A', 'Loket A: formulier 7B'), mode: 'foot', radius: 5, stop: 0.8,
-          label: 'Haal formulier 7B bij loket A', say: 'Formulier 7B, in drievoud. Niet vouwen.', talk: { ids: ['M03.3'], from: 0, to: 4, delay: 1.2 },
+          // #962: de twee loketbezoeken zijn korte keuzes aan de balie, geen puzzel
+          // met een afloop; een verkeerd antwoord is een gemeentegrap, geen mislukking.
+          kind: 'choice', set: 'loket', kicker: 'Loket A', label: 'Haal formulier 7B bij loket A',
+          talk: { ids: ['M03.3'], from: 0, to: 4, delay: 1.2 },
+          rounds: [
+            { who: 'Loketbediende', text: 'Welk formulier had u nodig?', options: [
+              { label: 'Formulier 7B, in drievoud.', reply: 'In drievoud. Niet vouwen, dat staat er niet voor niets.' },
+              { label: 'Formulier 7B, maar dan gevouwen.', reply: 'Gevouwen? Dan is het formulier 7C. Dat bestaat niet.' },
+              { label: 'Het formulier van de fiets.', reply: 'Dat is loket B. Loket B is vandaag loket A.' },
+            ] },
+          ],
         },
         {
-          kind: 'goto', target: loket('C', 'Loket C: de zijdeur van het Stadhuis'), mode: 'foot', radius: 5, stop: 0.8,
-          label: 'Haal de stempel bij loket C', say: 'Loket C heeft een zijdeur, naast de kopieermachine die iemand buiten heeft gezet.', talk: { ids: ['M03.3'], from: 4, to: 7, delay: 1.2 },
+          kind: 'choice', set: 'loket', kicker: 'Loket C', label: 'Haal de stempel bij loket C',
+          talk: { ids: ['M03.3'], from: 4, to: 7, delay: 1.2 },
+          rounds: [
+            { who: 'Loketbediende', text: 'En waar haalt u de stempel?', options: [
+              { label: 'Bij loket C, naast de kopieermachine.', reply: 'De stempel is vanmiddag bij loket C. De kopieermachine is van niemand.' },
+              { label: 'Bij loket B.', reply: 'Loket B is nu loket A. De stempel is bij C. Zo gaat dat hier.' },
+              { label: 'Bij de bewaarder van de Gouden Eierbal.', reply: 'Die bewaart de bal, niet de stempel. Loket C.' },
+            ] },
+          ],
         },
         {
-          kind: 'goto', target: loket('rij', 'Het Loket: inschrijven'), mode: 'foot', radius: 5, stop: 0.8,
+          kind: 'hold', set: 'loket', target: loket('rij', 'Het Loket: inschrijven'), radius: 6, time: 4,
+          ticks: ['Formulier 7B, de stempel en honderdvijftig euro contant.', 'Ingeschreven. Nummer 4117 is klaar.'],
           label: 'Schrijf in bij de balie', say: 'Alles bij elkaar: nu inschrijven, honderdvijftig euro contant.', pay: 150, paid: 'Inschrijving Noordelijke Snackprijs', payShort: ' Tessa legt de rest bij.',
         },
       ],

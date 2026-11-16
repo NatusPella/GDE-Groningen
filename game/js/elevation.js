@@ -13,6 +13,7 @@
 import { closestPointOnSegment } from './util.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { buildPerrons, perronHitAt, perronWallSide, wallBox } from './perrons.js';
+import { wallAheadOf } from './vaultkit.js';
 
 export const DECK_T = 1.0;           // viaduct deck thickness below the road surface
 export const EMB_SLOPE = 0.6;        // embankment side slope (rise per metre)
@@ -111,6 +112,9 @@ export function addPerrons(map, elev) {
   const rows = map.perrons || [];
   if (!rows.length) return elev;
   if (!elev || !elev.has) elev = newElevation(map);
+  // Een tweede keer (een landhalte komt er later bij, #961): de oude randstukken
+  // gaan er eerst uit, anders staat elk stadsperron twee keer in het muurraster.
+  if (elev.perrons) for (const w of elev.perrons.walls) { const b = wallBox(w); elev.wallGrid.remove(w, b); }
   const P = buildPerrons(rows);
   elev.perrons = P;
   for (const w of P.walls) { const b = wallBox(w); elev.wallGrid.insert(w, b[0], b[1], b[2], b[3]); }
@@ -1067,6 +1071,17 @@ export function resolveElevWalls(elev, x, y, z, radius, frame = null) {
     moved = true;
   }
   return moved ? [x, y] : null;
+}
+
+// #959: the first low wall (a retaining wall along a sunken road, the edge of a
+// platform) a walker at (x, y) heading along (dx, dy) meets within `reach`, seen
+// from the low side and at height z. Returns { dist, h, depth } or null; the
+// caller's landingAt() still decides whether the far side is safe to land on.
+export function lowWallAhead(elev, x, y, dx, dy, reach, z) {
+  if (!elev || !elev.has || !elev.wallGrid || typeof elev.wallGrid.queryRadius !== 'function') return null;
+  const frame = elev.frame || null;
+  return wallAheadOf(elev.wallGrid.queryRadius(x, y, reach + 2), x, y, dx, dy, reach, z,
+    frame ? (w, zz) => zz - wallBase(w, frame) : null);
 }
 
 // Vehicles: one-sided like bridge railings - a probe up to `band` past a wall

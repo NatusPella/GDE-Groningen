@@ -89,6 +89,18 @@ for (const key of Object.keys(SPECS).filter((k) => !(k in SPECS_AKTE2))) {
 }
 ok(missionScene('X99.intro', [{ speaker: 'Tammo', text: 'x', at: 1, dur: 2 }], { looks }) === null, 'unknown scene is null');
 
+// #862: the moving vehicles and the cyclists are marked for road following (cutscenehost.js)
+{
+  const { lines } = linesOf(['M02.1']);
+  const def = missionScene('M02.intro', lines, { looks });
+  ok(def.props.trekker.road === true && def.props.politie.road === true, 'M02: the tractor and police car follow the road');
+  ok(def.actors.durk.road === 'trekker' && def.actors.douwe.road === 'trekker', 'M02: the hidden cab follows the tractor');
+  const m1 = missionScene('M01.intro', linesOf(['M01.1']).lines, { looks });
+  const bike = Object.entries(m1.props).find(([, p]) => p.kind === 'fiets');
+  ok(bike && bike[1].road === 'cycle', 'M01: the cyclist bike is marked for the cycle path');
+  ok(bike && m1.actors[bike[0].replace(/f$/, '')] && m1.actors[bike[0].replace(/f$/, '')].road === bike[0], 'M01: the cyclist rides the same road path as the bike');
+}
+
 // specific stagings
 {
   const { lines, total } = linesOf(['M02.1']);

@@ -742,7 +742,10 @@ function flat(B, p, lod) {
   const L = p.len, W = p.wid, lv = 3, H = p.levels * lv;
   const wall = BRICK[p.brick] || BRICK.red;
   B.box(0, H / 2, 0, L, H, W, wall);
-  B.box(0, H + 0.25, 0, L + 0.4, 0.5, W + 0.4, 0xb8b4aa);
+  // (#917) de dakplaat ligt 1 cm boven de muur in plaats van exact erop: anders
+  // is de onderkant van de plaat coplanair met de bovenkant van het pand en
+  // flikkert het hele dak (de grootste kit-tegen-kit-post uit zfight_audit)
+  B.box(0, H + 0.26, 0, L + 0.4, 0.5, W + 0.4, 0xb8b4aa);
   B.box(L / 2 - 4, H + 1.5, 0, 5, 2, 4, wall); // stair and lift top
   p.top = H + 2.5;
   if (lod === LOD_SKY) return;

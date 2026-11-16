@@ -63,9 +63,9 @@ t('M16 kroegentocht: te voet rennen zolang de klok telt', () => {
   assert.match(logic, /m\.timeLeft > 0/);
 });
 
-// --- M20: het beleg (timing-meters, zoals M18/M21/M26) ---
+// --- M20: het beleg (timing-meters, zoals M18/M21/M22) ---
 t('M20 beleg: de timing-stap leest de meter en drukt op de groene zone', () => {
-  assert.match(page, /a timing stage \(M18, M20, M21, M26\)/);
+  assert.match(page, /a timing stage \(M18, M20, M21, M22\)/);
   assert.match(page, /s\.mission\.stage === 'timing'/);
   assert.match(page, /cw-meter/);
 });

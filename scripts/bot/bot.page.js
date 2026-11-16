@@ -870,7 +870,7 @@ while (true) {
     detector.hold(s.t); heldSince = null;
     continue;
   }
-  // a timing stage (M18, M20, M21, M26)
+  // a timing stage (M18, M20, M21, M22)
   if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic) {
     B.stick(0, 0);
     // like a player: wait until the needle sits in the green zone of the meter (read from the panel), then press

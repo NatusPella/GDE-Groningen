@@ -317,7 +317,7 @@ const edgeMat = withUniforms(new THREE.MeshStandardMaterial({
 
 // ---------------------------------------------------------------- chunk geometry
 
-function fillInto(B, g, geo, chunkWater = null, chunkPaved = null) {
+function fillInto(B, g, geo) {
   const info = polyInfo(g);
   const pos = geo.attributes.position.array;
   const base = B.pos.length / 3;
@@ -342,8 +342,8 @@ function fillInto(B, g, geo, chunkWater = null, chunkPaved = null) {
   const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2, reach = Math.hypot(bx1 - bx0, by1 - by0) / 2;
   // (waterTester: eerst de dozen van het water in de buurt, dan pas de index van de tegel, zodat
   // het water van een gestroomde tegel meetelt zonder dat elk driehoekje een indexopzoek kost, #918)
-  const inWater = chunkWater || waterTester(map, cx, cy, reach + 4);
-  const onPaved = chunkPaved || (map && map.roadsNear ? pavedTester(map, cx, cy, reach + 8) : null);
+  const inWater = waterTester(map, cx, cy, reach + 4);
+  const onPaved = map && map.roadsNear ? pavedTester(map, cx, cy, reach + 8) : null;
   let idx = geo.index ? geo.index.array : null;
   if (!idx) { idx = new Array(nv); for (let i = 0; i < nv; i++) idx[i] = i; }
   if (inWater || onPaved) idx = dryPavedIndices(pos, idx, inWater, onPaved);
@@ -934,18 +934,16 @@ function assignSubLayers(map) {
 function buildChunk(c) {
   const groups = new Map();
   const E = { pos: [], attr: [], idx: [] };
-  // één water- en verhardingstoets voor de hele chunk (#918/#883): dat scheelt een zoekopdracht
-  // per groenvlak, en de chunk is maar 10 m
-  const b = c.bounds;
-  const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
-  const wT = waterTester(map, cx, cy, CELL * 0.75 + 4);
-  const pT = map && map.roadsNear ? pavedTester(map, cx, cy, CELL * 0.75 + 8) : null;
+  // Geen water- of verhardingstoets voor de hele chunk (#918/#883): de chunk hangt aan het
+  // zwaartepunt van een groenvlak en kan dus een akker van honderden meters zijn. Een toets rond
+  // het chunkmidden zou de wegen en sloten aan de rand van dat vlak niet zien, terwijl fillInto
+  // de hele polygoon tekent. fillInto bouwt de toets daarom per vlak om zijn eigen omhullende doos.
   for (const g of c.polys) {
     const K = kindOf(g);
     const key = K.layer * 2 + (g._gSub || 0);
     let B = groups.get(key);
     if (!B) groups.set(key, B = { kind: g.kind, sub: g._gSub || 0, pos: [], attr: [], idx: [] });
-    fillInto(B, g, polyGeometry(g), wT, pT);
+    fillInto(B, g, polyGeometry(g));
     edgesInto(E, g, map);
   }
   const group = new THREE.Group();

@@ -1,5 +1,5 @@
 // Weather look (game/js/weatherlook.js, #194): quality scaling, mist, sunset glow, storm planner.
-import { QUALITY_LOOK, qualityLook, mistFog, sunGlow, stepWet, createStormPlanner, stepStorm, flashAt, weatherLook, REGION_HAZE } from '../game/js/weatherlook.js';
+import { QUALITY_LOOK, qualityLook, mistFog, mistAtHeight, sunGlow, stepWet, createStormPlanner, stepStorm, flashAt, weatherLook, REGION_HAZE } from '../game/js/weatherlook.js';
 import { REGION_IDS, WEATHER_KINDS } from '../game/js/weatherstate.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -18,6 +18,16 @@ for (let m = 0; m <= 1.0001; m += 0.1) {
 }
 ok(mistFog(0).far === 400, 'no mist keeps base');
 ok(mistFog(0.6, 'hoog', 'oost').far < mistFog(0.6, 'hoog', 'stad').far, 'peat mist thicker than city');
+// #866: mist 0,7 maakte een hoog beeld 100 % wit; de zichtbodem houdt near/far leesbaar
+{
+  const f = mistFog(0.7);
+  ok(f.near >= 16 && f.far >= 150, 'mist 0,7 houdt een zichtbodem', JSON.stringify(f));
+  const d = mistFog(1);
+  ok(d.near >= 16 && d.far >= 150, 'dichte mist houdt de verte leesbaar', JSON.stringify(d));
+  ok(QUALITY_LOOK.hoog.puddles <= 0.6 && QUALITY_LOOK.middel.puddles <= 0.45, 'natte plekken zijn gedempt (#866)');
+  ok(mistAtHeight(0.7, 0) === 0.7 && mistAtHeight(0.7, 30) < 0.7 && mistAtHeight(0.7, 100) <= 0.29,
+    'een hoog beeld dempt de mist (#866)', `${mistAtHeight(0.7, 0)} ${mistAtHeight(0.7, 100)}`);
+}
 
 // sunset glow: peaks near the horizon, absent at noon and midnight, weak under cloud
 ok(sunGlow(2).strength > 0.95, 'glow at horizon');

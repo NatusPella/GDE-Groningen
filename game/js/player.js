@@ -22,6 +22,7 @@ import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker, findExitSpot, EXIT_LEFT_FIRST, EXIT_RIGHT_FIRST } from './collision.js';
 import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
+import { lowWallAhead } from './elevation.js';
 import { drunkMove, drunkSteer } from './drunk.js';
 import { vaultDecision, vehicleHeight, roofSpot, onRoof, localToWorld, worldToLocal as worldToLocalV, standable, PERCH_SLIP_SPEED } from './vaultkit.js';
 
@@ -289,6 +290,10 @@ export class Player {
     // (#959) de leuningen van de polderbruggen: 1,15 m, net als een brugleuning over te stappen
     const polderRail = this.gz < 0.5 ? countryRailAhead(this.x, this.y, dx, dy, reach) : null;
     if (polderRail && (!ob || polderRail.dist < ob.dist)) ob = polderRail;
+    // (#959) lage keermuren en perronwanden uit het hoogtemodel: alleen van de lage
+    // kant en alleen als de wall zelf laag genoeg is; landingAt keurt de overkant.
+    const lowWall = map.elev && map.elev.has ? lowWallAhead(map.elev, this.x, this.y, dx, dy, reach, this.gz + this.z) : null;
+    if (lowWall && (!ob || lowWall.dist < ob.dist)) ob = lowWall;
     const car = this.vehicleAhead(world, dx, dy, reach);
     if (car && (!ob || car.dist < ob.dist)) ob = car;
     // already above it (hopping off a car roof): nothing to vault

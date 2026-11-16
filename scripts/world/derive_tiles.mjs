@@ -52,7 +52,7 @@ const CAR_WAYS = new Set(['major', 'normal', 'minor']);
 // Footprints in the water slid the shortest way onto dry land (25 m at most, steps of 0.5 m
 // over 16 directions), clear of other footprints, and beyond 12 m also clear of the car roads and rails;
 // none is dropped. Houseboats and landmarks stay. -> the number moved
-export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
+export function slideOutOfWater(feats, maxSlide = MAX_SLIDE, minWet = WET_FRAC) {
   const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
   const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
   if (!water.length || !blds.length) return 0;
@@ -91,8 +91,8 @@ export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
   });
   let moved = 0;
   for (const b of blds) {
-    if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
-    if (wetFraction(b.pts, wet) < WET_FRAC) continue;
+    if (b.type === 'houseboat' || WATER_KEEP_TYPES.has(b.type) || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
+    if (wetFraction(b.pts, wet) < minWet) continue;
     const q = boundsOf(b);
     const others = grid.query(q[0] - maxSlide, q[1] - maxSlide, q[2] + maxSlide, q[3] + maxSlide).filter((o) => o !== b);
     const clear = (ox, oy) => !others.some((o) => {
@@ -119,10 +119,11 @@ export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
 }
 
 // What cannot slide to land and is small, low and wholly in the water is a floating cabin, a boat shed or a mooring
-// platform mapped as building=yes (the marina at 9900,8770 has 38 of 31-40 m2 and 0.8 m): it becomes a houseboat,
-// which floats on purpose (derive.js mooredHouseboats, the audits). A named or tall or large footprint stays as it is
-// and the audit counts it. -> the number turned into houseboats
-export const FLOAT_MIN_WET = 0.75, FLOAT_MAX_AREA = 120, FLOAT_MAX_H = 1.5;
+// platform mapped as building=yes (the marina at 9900,8770 has 38 of 31-40 m2 and 0.8 m; the Reitdiep marina has
+// 2 m boathouses of 4-23 m2): it becomes a houseboat, which floats on purpose (derive.js mooredHouseboats, the audits).
+// A named or tall or large footprint stays as it is and the audit counts it. A mapped house/office is never floated.
+// -> the number turned into houseboats
+export const FLOAT_MIN_WET = 0.75, FLOAT_MAX_AREA = 120, FLOAT_MAX_H = 2.2;
 export function floatStuckSheds(feats) {
   const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
   const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
@@ -131,6 +132,8 @@ export function floatStuckSheds(feats) {
   let n = 0;
   for (const b of blds) {
     if (b.type === 'houseboat' || b.name || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || !b.pts || b.pts.length < 3) continue;
+    // (een gemapt huis of kantoor is geen schuurtje; dat schuift of valt in de harde opruiming)
+    if (b.type && b.type !== 'yes') continue;
     if ((b.h || 3) > FLOAT_MAX_H) continue;
     let A = 0;
     for (let i = 0, j = b.pts.length - 1; i < b.pts.length; j = i++) A += (b.pts[j][0] + b.pts[i][0]) * (b.pts[j][1] - b.pts[i][1]);
@@ -139,6 +142,63 @@ export function floatStuckSheds(feats) {
     n++;
   }
   return n;
+}
+
+// #878: wat na het schuiven (25 m) en het houseboat-maken nog steeds grotendeels
+// in het water staat, is geen huis op de kant maar een fout in de bron (een flat
+// in het Woldmeer, een flat in de Eems, een hal in een vaart). Zo'n voet schuift
+// eerst nog één keer, tot 60 m; lukt dat niet, dan komt het gebouw niet in de
+// wereldbouw. De drempel is dezelfde 20 % als de audit (#878: de provincie heeft
+// geen marge meer), dus ook een voet die maar met een hoek in een sloot hangt
+// wordt rechtgezet of weggehaald. Woonboten, moorings en landing stages blijven:
+// die horen te drijven.
+// -> { rescued: verschoven in de tweede poging, dropped: weggelaten }
+export const HARD_WET = WET_FRAC, RESCUE_SLIDE = 60;
+const WATER_KEEP_TYPES = new Set(['houseboat', 'mooring', 'pier', 'steiger']);
+export function rescueStuckWaterBuildings(feats, { maxWet = HARD_WET, maxSlide = RESCUE_SLIDE } = {}) {
+  const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
+  const bFeats = feats.filter((f) => f.kind === 'buildings');
+  if (!water.length || !bFeats.length) return { rescued: 0, dropped: 0 };
+  const wet = waterIndex(water);
+  const rescued = slideOutOfWater(feats, maxSlide, maxWet);
+  const drop = new Set();
+  for (const f of bFeats) {
+    const b = f.row;
+    if (!b.pts || b.pts.length < 3) continue;
+    if (WATER_KEEP_TYPES.has(b.type) || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
+    if (wetFraction(b.pts, wet) >= maxWet) drop.add(f);
+  }
+  if (drop.size) {
+    const out = [];
+    for (const f of feats) if (!drop.has(f)) out.push(f);
+    feats.length = 0;
+    for (const f of out) feats.push(f);
+  }
+  return { rescued, dropped: drop.size };
+}
+
+// Alleen opruimen (geen nieuwe schuifronde): na het schuiven van de
+// duidelijkheidspoort (clearFootprints) kan een voet net in het water zijn
+// geduwd; die valt hier alsnog weg. -> aantal weggelaten
+export function dropStillWetBuildings(feats, { maxWet = HARD_WET } = {}) {
+  const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
+  const bFeats = feats.filter((f) => f.kind === 'buildings');
+  if (!water.length || !bFeats.length) return 0;
+  const wet = waterIndex(water);
+  const drop = new Set();
+  for (const f of bFeats) {
+    const b = f.row;
+    if (!b.pts || b.pts.length < 3) continue;
+    if (WATER_KEEP_TYPES.has(b.type) || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
+    if (wetFraction(b.pts, wet) >= maxWet) drop.add(f);
+  }
+  if (drop.size) {
+    const out = [];
+    for (const f of feats) if (!drop.has(f)) out.push(f);
+    feats.length = 0;
+    for (const f of out) feats.push(f);
+  }
+  return drop.size;
 }
 
 // Water features that came from a waterway line (f.line) without a mapped width
@@ -317,17 +377,40 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
   const bFeats = of('buildings'), rFeats = of('roads');
   const buildings = bFeats.map((f) => f.row);
   const roads = rFeats.map((f) => f.row);
-  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, floated: 0 };
+  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, floated: 0, wetRescued: 0, wetDropped: 0 };
   // (before the clearance: the footprints settle on dry land first, then keep off the roads)
   stats.trimmed = trimWaterways(feats);
   Object.assign(stats, { ditchCut: 0, ditchJoined: 0, ditchDropped: 0 });
   { const c = cutDitches(feats); stats.ditchCut = c.cut; stats.ditchJoined = c.joined; stats.ditchDropped = c.dropped; }
   stats.afloat = slideOutOfWater(feats);
   stats.floated = floatStuckSheds(feats);
+  // #878: wat hierna nog ≥20 % nat is en geen woonboot/mooring/landing stage is,
+  // schuift nog één keer (tot 60 m) of valt uit de wereldbouw. Zo komt een flat in
+  // het Woldmeer of de Eems niet meer in de tegels.
+  {
+    const r = rescueStuckWaterBuildings(feats);
+    stats.wetRescued = r.rescued;
+    stats.wetDropped = r.dropped;
+    if (r.dropped) {
+      bFeats.length = 0;
+      for (const f of feats) if (f.kind === 'buildings') bFeats.push(f);
+      buildings.length = 0;
+      for (const f of bFeats) buildings.push(f.row);
+    }
+  }
   if (clear && buildings.length && roads.length) {
     const was = buildings.map((b) => b.pts);
     clearFootprints({ roads, buildings });
     stats.moved = buildings.reduce((n, b, i) => n + (b.pts !== was[i] ? 1 : 0), 0);
+    // #878: de duidelijkheidspoort kan een voet net in het water hebben geduwd; die valt hier alsnog weg
+    const extra = dropStillWetBuildings(feats);
+    if (extra) {
+      stats.wetDropped += extra;
+      bFeats.length = 0;
+      for (const f of feats) if (f.kind === 'buildings') bFeats.push(f);
+      buildings.length = 0;
+      for (const f of bFeats) buildings.push(f.row);
+    }
   }
   const rowFeat = new Map(bFeats.map((f) => [f.row, f]));
   // (no height profiles yet: a bridge or tunnel carriageway does not run on the footprints under it)
@@ -366,3 +449,4 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
   for (const f of roadFeats) out.push(f);
   return { feats: out, stats };
 }
+

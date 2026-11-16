@@ -862,7 +862,10 @@ export function manageTrafficPopulation(world, opts = {}) {
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
-    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked || v.homeStored || (v.isBoat && v.playerOwned)) continue;
+    // #856: a plane is not traffic; the Kist of planeflight.js stands at Eelde and was removed
+    // as soon as the player was more than ~260 m away (the intro montage moves the player through
+    // the city), so the flight school and the round-trip service could not find it at all.
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isPlane || v.isBike || v.isBus || v.parked || v.homeStored || (v.isBoat && v.playerOwned)) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no

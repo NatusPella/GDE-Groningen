@@ -51,7 +51,7 @@ t('de uitschieters hebben een rustpunt of kortere houd-momenten', () => {
   const a6 = fs.readFileSync(new URL('../game/js/missions_akte6.js', import.meta.url), 'utf8');
   const defs = fs.readFileSync(new URL('../game/js/missions_defs.js', import.meta.url), 'utf8');
   assert.match(mus, /kind: 'laser', checkpoint: true/, 'M06 heeft een rustpunt na de entree');
-  assert.match(a4, /kind: 'scene', checkpoint: true, target: ll\('bourtangeGracht'/, 'M20 hervat na het fierljep-duel');
+  assert.match(a4, /kind: 'scene',[^\n]*checkpoint: true,[^\n]*ll\('bourtangeGracht'/, 'M20 hervat na het fierljep-duel');
   assert.ok(!/time: 16, ticks: \['Het eerste kanon/.test(a4), 'M20: de westwal is ingekort');
   assert.match(a4, /time: 12, ticks: \['Het eerste kanon/);
   assert.match(defs, /radius: 9, time: 22, mode: 'foot'/, 'M26: de vuurwerkhold is 22 s');

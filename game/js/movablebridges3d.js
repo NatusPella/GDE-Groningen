@@ -40,6 +40,7 @@ function stripeTexture() {
 
 let scene = null;
 const views = [];
+let viewPx = null, viewPy = null; // focus of the last sync: only near open spans hide their static road (#919)
 
 // A leaf of length L and half width h in its own frame: x from the hinge
 // along the span, z across, the top at y = 0: deck, carriageway, footways and
@@ -234,6 +235,7 @@ function buildView(b, map) {
 
 export function initMovableBridges3D(sceneRef, map = null) {
   scene = sceneRef;
+  viewPx = null; viewPy = null;
   if (!BOOM_MAT) { const t = stripeTexture(); BOOM_MAT = new THREE.MeshLambertMaterial(t ? { map: t } : { color: 0xd42020 }); }
   for (const v of views) scene.remove(v.group);
   views.length = 0;
@@ -245,6 +247,7 @@ export function initMovableBridges3D(sceneRef, map = null) {
 // call: the leaf's road surfaces are built here), and a bridge that has left the list loses it.
 let viewsVersion = -1;
 export function syncMovableBridges3D(px, py, map = null) {
+  viewPx = px; viewPy = py;
   if (!scene) return;
   const list = getMovableBridges();
   if (viewsVersion === movableBridgesVersion() && views.length === list.length) return;
@@ -262,10 +265,15 @@ export function syncMovableBridges3D(px, py, map = null) {
 
 // the roads of the bridges that are not lying closed (scene3d hides their static road), and every
 // second way that lies on an open span: its asphalt and paint would otherwise stay in the air (#967)
+// (#919) Alleen binnen de zichtafstand van de leaf: is de brug verder weg, dan is er
+// geen leaf-view en zou het verbergen van de stille weg een gat in het dek geven (je keek door de
+// brug heen naar het water). Ver weg blijft de brug dus gewoon dicht; dichtbij neemt de leaf over.
 export function openBridgeRoads(out = new Set()) {
   out.clear();
   for (const b of getMovableBridges()) {
     if (b.open <= 0) continue;
+    if (viewPx !== null && (Math.abs(b.x - viewPx) >= VIEW || Math.abs(b.y - viewPy) >= VIEW)) continue;
+    if (viewPx !== null && !views.some((v) => v.b === b)) continue;
     out.add(b.r);
     for (const r of b.riders || []) out.add(r);
   }

@@ -63,7 +63,10 @@ for (const r of bridges) {
     const cp = core.geometry.attributes.position.array;
     let minY = Infinity, maxY = -Infinity;
     for (let i = 1; i < cp.length; i += 3) { minY = Math.min(minY, cp[i]); maxY = Math.max(maxY, cp[i]); }
-    ok(minY < -0.3 && maxY <= 0.001, `${r.name || r.type}: het dek steekt onder de weg door (${minY.toFixed(2)}..${maxY.toFixed(2)})`);
+    ok(minY < -0.3 && maxY <= 0.01, `${r.name || r.type}: het dek steekt onder de weg door (${minY.toFixed(2)}..${maxY.toFixed(2)})`);
+    // (#919) de bovenkant van de kern ligt boven de waterspiegel (0), anders dekt
+    // het water dat later getekend wordt de bovenkant af en lijkt de brug doorzichtig
+    ok(maxY > 0.002, `${r.name || r.type}: de bovenkant van het dek ligt boven water (${maxY.toFixed(3)})`);
   }
 }
 console.log(`bridge_dek_test: ${n - bad}/${n} ok`);

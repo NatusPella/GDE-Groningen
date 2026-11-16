@@ -62,7 +62,7 @@ ok(/Welkom terug in Grunn/.test(hud) && /getPlaySeconds\(\)/.test(hud), 'bij het
 ok(/hud-chip\.hud-done/.test(hcss), 'het chipje heeft een eigen, stille stijl');
 
 ok(/from '\.\/progresslive\.js'/.test(pm) && /gameProgress\(\)/.test(pm), 'het Overzicht haalt hetzelfde cijfer uit progresslive.js');
-ok(/pm-progress/.test(pm) && /insertAdjacentHTML\('afterend'/.test(pm), 'het voortgangsblok staat onder de hero van Overzicht');
+ok(/pm-progress/.test(pm) && /querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat boven aan de scrollende inhoud van Overzicht (#965)');
 ok(/#pause-menu \.pm-progress \{/.test(css), 'het voortgangsblok heeft een eigen stijl');
 
 ok(/saveProgress/.test(ssl) && /ssl-prog/.test(ssl), 'elke savekaart laat het voortgangspercentage van dat spel zien');

@@ -13,6 +13,8 @@ import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';
 import { buildingAt, withTiles } from './tileplace.js';
 import { addStaticCollider } from './breakables.js';
+import { addPerrons } from './elevation.js';
+import { PAAL_GAT } from './perrons.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
 import { playerBusy } from './busy.js';
@@ -221,11 +223,16 @@ function entranceSpot(map, x, y, px, py) {
 // the machine stands on the platform itself, on the station side of the track.
 // #927: it used to stand 7 m off the track, and on a double-track line that is
 // exactly the second track (Warffum, Usquert). The platform lies PLAT_OFF from
-// the own track with a width of PLAT_W; the machine stands on that slab, clear
-// of the shelter, and the arrival spot is the first walkable ground beyond all
-// tracks (railDist >= RAIL_CLEAR), found again when the tiles are in.
+// the own track with a width of PLAT_W and the machine stands on that slab,
+// clear of the shelter.
+// #961: the slab is also a real floor in the height model, so you arrive ON the
+// platform (Zuidhorn used to drop you beyond the second track, with the machine
+// on the far side of the island platform) and a train does not hit you there.
 const PLAT_LEN = 80, PLAT_W = 3.2, PLAT_OFF = 3.3, PLAT_TOP = 1.02, RAMP_LEN = 7;
 const MACHINE_OFF = PLAT_OFF + 0.4;         // 3.7 m van het spoor: op de perrontegel
+const ARRIVE_OFF = PLAT_OFF - 0.3;          // 3,0 m: tussen de automaat en de rand, op de tegel
+const RAMP_HW = (PLAT_W - 0.6) / 2;         // de oprit is 2,6 m breed
+const r2 = (v) => Math.round(v * 100) / 100;
 
 // Waar de automaat staat, in wereldcoördinaten. Puur, zodat de test hem kan
 // narekenen zonder de scène.
@@ -233,19 +240,44 @@ export function countryMachineSpot(px, py, nx, ny) {
   return { x: px + nx * MACHINE_OFF, y: py + ny * MACHINE_OFF, z: PLAT_TOP };
 }
 
-// De aankomstplek van een halte: buiten het perron, aan de stationskant, en pas
-// voorbij alle sporen. Zonder tegels (railDist kent dan nog geen landspoor) valt
-// hij terug op de eerste vrije plek; settleCountryStation zoekt hem opnieuw.
+// Het perron van een landhalte als rij in map.perrons (#961): dezelfde vloer als
+// de stadstations, met aan beide koppen de helling die buildPlatform er al tekent.
+// Puur, zodat de test hem kan narekenen zonder de scène.
+export function countryPlatformRow(px, py, tx, ty, nx, ny, name) {
+  const cx = px + nx * PLAT_OFF, cy = py + ny * PLAT_OFF;
+  const hx = tx * (PLAT_LEN / 2), hy = ty * (PLAT_LEN / 2);
+  const p = [
+    [r2(cx - hx), r2(cy - hy), PLAT_W / 2, PLAT_TOP],
+    [r2(cx + hx), r2(cy + hy), PLAT_W / 2, PLAT_TOP],
+  ];
+  const r = [];
+  for (const e of [-1, 1]) {
+    const ax = cx + tx * e * (PLAT_LEN / 2), ay = cy + ty * e * (PLAT_LEN / 2);
+    r.push({
+      a: [r2(ax), r2(ay)],
+      b: [r2(ax + tx * e * RAMP_LEN), r2(ay + ty * e * RAMP_LEN)],
+      hw: RAMP_HW, za: PLAT_TOP, zb: 0, k: 'helling',
+    });
+  }
+  const id = 'halte-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return { id, nm: 'Perron', st: name, p, r };
+}
+
+// De aankomstplek van een halte: op het perron, naast de automaat. Zonder
+// perronvloer (een testmap zonder hoogtemodel) of op water/een gebouw valt hij
+// terug op de eerste vrije plek aan de stationskant.
 export function countryArriveSpot(map, px, py, nx, ny) {
+  const x = px + nx * ARRIVE_OFF, y = py + ny * ARRIVE_OFF;
+  if (!isInWater(map, x, y) && !buildingAt(map, x, y, 0.5)) return { x, y, z: PLAT_TOP };
   for (let d = PLAT_OFF + PLAT_W / 2 + 1.5; d <= 60; d += 1.5) {
-    const x = px + nx * d, y = py + ny * d;
-    if (isInWater(map, x, y) || railDist(map, x, y) < RAIL_CLEAR) continue;
-    if (buildingAt(map, x, y, 1)) continue;
-    if (map.canWalkOut && !map.canWalkOut(x, y)) continue;
-    return { x, y };
+    const qx = px + nx * d, qy = py + ny * d;
+    if (isInWater(map, qx, qy) || railDist(map, qx, qy) < RAIL_CLEAR) continue;
+    if (buildingAt(map, qx, qy, 1)) continue;
+    if (map.canWalkOut && !map.canWalkOut(qx, qy)) continue;
+    return { x: qx, y: qy, z: 0 };
   }
   const q = map.findOpenSpawn ? map.findOpenSpawn(px + nx * 20, py + ny * 20, 60) : null;
-  return q || { x: px + nx * 20, y: py + ny * 20 };
+  return q ? { x: q.x, y: q.y, z: 0 } : { x: px + nx * 20, y: py + ny * 20, z: 0 };
 }
 
 function placeCountryStation(map, def, stops, scene) {
@@ -259,6 +291,7 @@ function placeCountryStation(map, def, stops, scene) {
     name: def.name, short: shortName(def.name), x: m.x, y: m.y, stops, exitAngle: Math.atan2(ny, nx), country: true,
     arrive: countryArriveSpot(map, px, py, nx, ny),
     rail: { x: px, y: py, nx, ny },
+    row: countryPlatformRow(px, py, tx, ty, nx, ny, def.name),
   };
   s.machine = buildMachine(m.x, m.y, s.exitAngle, PLAT_TOP);
   scene.add(s.machine);
@@ -267,8 +300,8 @@ function placeCountryStation(map, def, stops, scene) {
 }
 
 // Once the tiles round a country halt are in (prepareCountryStations, from
-// ommelandfun.js) the arrival spot is checked against the real tracks: a halt on
-// a double-track line may only land beyond the second track (#927).
+// ommelandfun.js) the arrival spot is checked against the real water and
+// buildings; without tiles it stayed on the platform.
 function settleCountryStation(map, s) {
   if (!s.rail) return;
   s.arrive = countryArriveSpot(map, s.rail.x, s.rail.y, s.rail.nx, s.rail.ny);
@@ -284,7 +317,8 @@ export async function prepareCountryStations(map) {
 
 // Concrete platform with a shelter beside a country halt: its top 0.76 m
 // above the rails (RAIL_TOP 0.26), the edge 1.7 m from the track's centre,
-// a ramp down at either end. Solid to walkers (a static collider).
+// a ramp down at either end. The floor itself comes from map.perrons (see
+// countryPlatformRow); the posts at the ramp feet keep a car off it (#436).
 function buildPlatform(px, py, tx, ty, nx, ny) {
   const g = new THREE.Group();
   g.position.set(px + nx * PLAT_OFF, 0, py + ny * PLAT_OFF);
@@ -305,8 +339,8 @@ function buildPlatform(px, py, tx, ty, nx, ny) {
   g.add(edge);
   const slope = Math.atan2(PLAT_TOP, RAMP_LEN), rl = Math.hypot(PLAT_TOP, RAMP_LEN);
   for (const e of [-1, 1]) {
-    const ramp = new THREE.Mesh(perronTegelUV(new THREE.BoxGeometry(rl, 0.2, PLAT_W - 0.6)), mat);
-    ramp.position.set(e * (PLAT_LEN / 2 + RAMP_LEN / 2), PLAT_TOP / 2 - 0.08, side * 0.3);
+    const ramp = new THREE.Mesh(perronTegelUV(new THREE.BoxGeometry(rl, 0.2, RAMP_HW * 2)), mat);
+    ramp.position.set(e * (PLAT_LEN / 2 + RAMP_LEN / 2), PLAT_TOP / 2 - 0.08, 0);
     ramp.rotation.z = -e * slope;
     ramp.receiveShadow = true;
     g.add(ramp);
@@ -321,9 +355,22 @@ function buildPlatform(px, py, tx, ty, nx, ny) {
     m.castShadow = true;
     g.add(m);
   }
+  // paaltjes aan de voet van de hellingen, net als bij de perrons in de stad: een
+  // voetganger of fiets past er tussen, een auto niet (#436)
   const cx = px + nx * PLAT_OFF, cy = py + ny * PLAT_OFF;
-  // walkers only (base above the road): a level crossing may run past its ends
-  addStaticCollider('perron', cx, cy, PLAT_W / 2, PLAT_LEN / 2 + RAMP_LEN * 0.4, Math.atan2(ty, tx), false, PLAT_TOP).base = 0.05;
+  const paalGeo = new THREE.CylinderGeometry(0.11, 0.11, 0.9, 8);
+  const paalMat = new THREE.MeshLambertMaterial({ color: 0xe3b81f });
+  for (const e of [-1, 1]) {
+    const lx = e * (PLAT_LEN / 2 + RAMP_LEN);
+    for (const o of [-PAAL_GAT, PAAL_GAT]) {
+      const x = cx + tx * lx + nx * o, y = cy + ty * lx + ny * o;
+      const paal = new THREE.Mesh(paalGeo, paalMat);
+      paal.position.set(lx, 0.45, o);
+      paal.castShadow = true;
+      g.add(paal);
+      addStaticCollider('post', x, y, 0.11);
+    }
+  }
   return g;
 }
 
@@ -358,6 +405,19 @@ export function initStationTravel(w) {
   const scene = getScene() || { add() {} };
   const defs = (w.map.stations || []).concat((w.map.countryStations || []).map((d) => ({ ...d, country: true })));
   stations = defs.map((d) => placeStation(w.map, d, scene)).filter(Boolean);
+  // #961: de perrons van de landhaltes zijn echte vloeren, net als die van de
+  // stadstations, zodat de aankomst op het perron zelf kan liggen.
+  const rows = stations.filter((s) => s.row).map((s) => s.row);
+  if (rows.length && w.map) {
+    const bestaand = w.map.perrons || (w.map.perrons = []);
+    let toegevoegd = false;
+    for (const r of rows) {
+      if (bestaand.some((q) => q.id === r.id)) continue;
+      bestaand.push(r);
+      toegevoegd = true;
+    }
+    if (toegevoegd) w.map.elev = addPerrons(w.map, w.map.elev);
+  }
   if (!fadeEl) {
     fadeEl = document.createElement('div');
     fadeEl.id = 'train-fade';
@@ -839,7 +899,10 @@ function arrive(w) {
   const p = hoofdspeler(w);
   p.x = to.arrive.x; p.y = to.arrive.y;
   p.angle = to.exitAngle;
-  p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
+  p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
+  // #961: een landhalte zet je op de perronvloer (1,02 m), niet op de grond
+  // ernaast; op een stadstation is dit 0.
+  p.gz = Number.isFinite(to.arrive.z) ? to.arrive.z : 0;
   p.inVehicle = null; p.water = null; p.swimming = false; p.climb = null;
   const c = w.companion;
   if (c && c.state !== 'dead' && !meerSpelers(w)) { // met meer spelers reist alleen jezelf; de anderen blijven (#452)

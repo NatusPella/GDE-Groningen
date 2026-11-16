@@ -2,8 +2,8 @@
 // scenes in game/js/cutscenes.js, on the real script lines of the opening:
 //   node scripts/cutscript_test.mjs
 import { readFileSync } from 'node:fs';
-import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS, PROP_KINDS, shotPoints } from '../game/js/cutscript.js';
-import { PROP_SOURCES, DECOR_KINDS, PLACEHOLDER_KINDS, VEHICLE_MODEL_NAMES, ANIMAL_KINDS, propKindIssue } from '../game/js/cutscenemodels.js';
+import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS, PROP_KINDS, shotPoints, roadPathDef } from '../game/js/cutscript.js';
+import { PROP_SOURCES, DECOR_KINDS, PLACEHOLDER_KINDS, VEHICLE_MODEL_NAMES, ANIMAL_KINDS, propKindIssue, TABLE_SIT } from '../game/js/cutscenemodels.js';
 import { ANIMS } from '../game/js/actoranim.js';
 import { openingActs, END_CARD, flatScene } from '../game/js/cutscenes.js';
 
@@ -110,9 +110,51 @@ for (const x of compiled) {
   const a = moving.scene.sample(0.5, anchor).props.escapade, b = moving.scene.sample(moving.duration - 0.2, anchor).props.escapade;
   ok(Math.hypot(a.x - b.x, a.y - b.y) > 20, 'the Escapade drives away at the end');
   ok(moving.scene.sample(moving.duration - 0.2, anchor).actors.tessa.visible === false, 'Tessa is in the car');
+  // #860: the mattress lies on the roof and must ride along with the car (it used to stay floating)
+  let carried = 0, maxOff = 0, maxHeight = 0;
+  let start = null;
+  for (let t = 0; t <= moving.duration; t += 0.2) {
+    const s = moving.scene.sample(t, anchor);
+    if (!start) start = { ...s.props.escapade };
+    const car = s.props.escapade, mat = s.props.matras;
+    if (!mat || !car) continue;
+    if (Math.hypot(car.x - start.x, car.y - start.y) > 3) {
+      carried++;
+      maxOff = Math.max(maxOff, Math.hypot(car.x - mat.x, car.y - mat.y));
+      maxHeight = Math.max(maxHeight, Math.abs((mat.h - car.h) - 1.45));
+    }
+  }
+  ok(carried > 20, 'the mattress is checked while the car drives', String(carried));
+  ok(maxOff < 0.15, 'the mattress stays on the roof of the moving Escapade', String(maxOff));
+  ok(maxHeight < 0.15, 'the mattress keeps its height above the car roof', String(maxHeight));
+}
+// #859: the seated kitchen pose is shared and is not the steering pose
+{
+  ok(TABLE_SIT.arms === 'lap', 'the table pose holds the hands on lap/tabletop, not on a wheel', TABLE_SIT.arms);
+  const hostSrc = readFileSync(new URL('../game/js/cutscenehost.js', import.meta.url), 'utf8');
+  const introSrc = readFileSync(new URL('../game/js/intromontage.js', import.meta.url), 'utf8');
+  const uses = (src) => /import\s*\{[^}]*TABLE_SIT[^}]*\}\s*from\s*'\.\/cutscenemodels\.js'/.test(src);
+  ok(uses(hostSrc) && uses(introSrc), 'the host and the intro montage use the same table pose');
+  ok(!/const TABLE_SIT\s*=\s*\{[^}]*arms:\s*'wheel'/.test(hostSrc + introSrc), 'no steering pose is defined for the table');
+}
+// #864: a carried prop hangs by the carrier, at hand height, not floating in front of the chest
+{
+  const s = moving.scene.sample(1, anchor);
+  for (const [actor, prop, low] of [['tessa', 'plan', 0.98], ['tammo', 'koffer', 0.9]]) {
+    const a = s.actors[actor], p = s.props[prop];
+    ok(a && p && a.carrying === prop, `#864: ${actor} carries ${prop}`, JSON.stringify({ carrying: a && a.carrying }));
+    if (!a || !p) continue;
+    const d = Math.hypot(p.x - a.x, p.y - a.y);
+    ok(d >= 0.24 && d <= 0.45, `#864: ${prop} hangs at the carrier, not in front of the chest`, String(d));
+    ok(Math.abs(p.h - low) < 0.02, `#864: ${prop} hangs at hip/hand height`, String(p.h));
+  }
 }
 // the trailer: cyclists ride, the street lives
 ok(trailer.scene.sample(2, anchor).actors.fietser.anim === 'ride', 'cyclists ride');
+// #862/#863: the opening's bikes and cars are marked for the road (cutscenehost.js roadPathDef)
+ok(trailer.def.props.fiets1.road === 'cycle' && trailer.def.actors.fietser.road === 'fiets1', 'C00.1: the cycling postman rides the cycle path');
+ok(moving.def.props.escapade.road === true && moving.def.props.fiets1.road === 'cycle', 'C00.3: the Escapade and the cyclist follow the road');
+ok(moving.def.props.matras.follows === 'escapade', 'C00.3: the mattress follows the Escapade');
 
 // the validator catches broken scenes
 const bad = (patch, what) => {
@@ -131,6 +173,8 @@ bad({ shots: [{ t: 0, shot: 'cut', at: [0, 0, 1], look: 'ghost' }] }, 'unknown l
 bad({ shots: [{ t: 0, shot: 'orbit', target: 'tammo', radius: 0.1 }] }, 'orbit too tight');
 bad({ shots: [{ t: 0, shot: 'zoom' }] }, 'unknown shot type');
 bad({ props: { x: { kind: 'raket', at: [0, 0] } } }, 'unknown prop kind');
+bad({ props: { x: { kind: 'auto', at: [0, 0], road: 'water' } }, cues: [] }, 'unknown road mode');
+bad({ props: { x: { kind: 'auto', at: [0, 0], follows: 'ghost' } }, cues: [] }, 'follower points nowhere');
 // a person standing around too long and a dull long shot are flagged
 const still = { id: 's', actors: { a: { look: 'tammo', at: [0, 0], face: 0 } }, shots: [{ t: 0, shot: 'cut', at: [3, 0, 1.6], look: 'a' }] };
 const sv = validateScene(still, { duration: 20 });
@@ -164,19 +208,22 @@ ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.include
 {
   const solid = (x, y, z) => x > 1.5 && x < 11.5 && y > -5 && y < 5 && z < 8;
   const env = { solid };
-  // a camera in the wall moves out, towards what it looks at
+  // #858: a camera in the wall backs away from what it looks at (the old order pulled it towards
+  // the subject, which put a back or a head in the lens in C00.3)
   const c = fitCamera({ x: 6, y: 0, z: 1.6 }, { x: -2, y: 0, z: 1.4 }, env);
   ok(!solid(c.x, c.y, c.z), 'a camera inside a building is moved to free space', JSON.stringify(c));
+  ok(c.x > 11.5, 'and it steps back along the view axis, not towards the subject', JSON.stringify(c));
+  ok(Math.hypot(c.x + 2, c.y, c.z - 1.4) > 8, 'the corrected camera is farther from the subject than the walled-in spot', JSON.stringify(c));
   ok(fitCamera({ x: -3, y: 0, z: 1.6 }, { x: -2, y: 0, z: 1.4 }, env).x === -3, 'a free camera stays');
   // the opening scene faces the building: the anchor turns away until nothing stands in the wall
-  // the shot wants a spot inside the building, next to an actor: fitCamera pulls it in beside them; the camera ends 1,5 m from them
+  // the shot wants a spot inside the building, next to an actor: the camera must not end up on top of them
   {
     const def = { id: 'ring-test', actors: { a: { look: 'tammo', at: [1.0, 0], face: 0, anim: 'idle', speaker: 'Tammo' } }, shots: [{ t: 0, shot: 'cut', at: [4, 0, 1.6], look: 'speaker', fov: 40 }, { t: 1.5, shot: 'cut', at: [3, 1, 1.6], look: 'speaker', fov: 40 }] };
     const sc2 = compileScene(def, { lines: [{ speaker: 'Tammo', text: 'Hallo.', at: 0.2, dur: 2 }], duration: 3 });
     const anch = { x: 0, y: 0, facing: 0, z: 0 };
     for (const t of [0.5, 2]) {
       const s = sc2.sample(t, anch, env), cp = s.camera.position, ap = s.actors.a;
-      ok(Math.hypot(cp.x - ap.x, cp.y - ap.y) >= 1.49, 'camera at 1,5 m from the actor although the wall is in the way (t=' + t + ')', JSON.stringify({ cp, ap }));
+      ok(Math.hypot(cp.x - ap.x, cp.y - ap.y) >= 1.49, 'the camera keeps its distance to the actor although the wall is in the way (t=' + t + ')', JSON.stringify({ cp, ap }));
       ok(!solid(cp.x, cp.y, cp.z), 'and not in the wall (t=' + t + ')', JSON.stringify(cp));
     }
   }
@@ -243,6 +290,94 @@ for (const x of compiled) {
   ok(pts.every((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && Math.hypot(q.x - an.x, q.y - an.y) < 80), x.def.id + ': shotPoints near the set');
 }
 ok(shotPoints({ sample() { throw new Error('x'); } }, anchor, 10).length === 0, 'shotPoints survives a failing sample');
+
+// #862/#863: a moving cutscene vehicle and a cyclist follow the road instead of a straight local line
+{
+  const roads = [
+    { cat: 'road', pts: [[-40, 0], [40, 0]] },
+    { cat: 'road', pts: [[40, 0], [40, 40]] },
+    { cat: 'cycle', pts: [[-40, 3], [40, 3]] },
+  ];
+  const onRoad = (road, x, y) => {
+    let best = null;
+    for (let i = 0; i + 1 < road.pts.length; i++) {
+      const [ax, ay] = road.pts[i], [bx, by] = road.pts[i + 1];
+      const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2));
+      const d = Math.hypot(ax + dx * t - x, ay + dy * t - y);
+      if (!best || d < best.d) best = { d, x: ax + dx * t, y: ay + dy * t };
+    }
+    return best;
+  };
+  const map = {
+    nearestRoadPoint(x, y, r = 400, drivable = false) {
+      let best = null;
+      for (const road of roads) {
+        if (drivable && (road.cat === 'foot' || road.cat === 'cycle')) continue;
+        const c = onRoad(road, x, y);
+        if (c && (!best || c.d < best.d)) best = { ...c, road };
+      }
+      return best && best.d <= r ? best : null;
+    },
+    roadsNear(x, y, r) { return roads.filter((road) => onRoad(road, x, y).d <= r); },
+  };
+  const def = {
+    id: 'road-test', duration: 18,
+    actors: {
+      driver: { look: 'tammo', at: [0, 0], face: 0, anim: 'idle' },
+      rider: { look: 'fietser', at: [0, 10], face: 0, anim: 'ride', road: 'bike' },
+    },
+    props: {
+      car: { kind: 'auto', at: [0, 0, 0], face: 0, road: true },
+      matras: { kind: 'matras', at: [0, 0, 1.45], follows: 'car' },
+      bike: { kind: 'fiets', at: [0, 10, 0], face: 0, road: 'cycle' },
+    },
+    cues: [
+      { t: 0, prop: 'car', path: [[0, 0], [60, 0]], speed: 5 },
+      { t: 0, actor: 'driver', walk: [[60, 0]], speed: 5 },
+      { t: 0, prop: 'bike', path: [[0, 10], [70, 10]], speed: 5 },
+      { t: 0, actor: 'rider', walk: [[70, 10]], speed: 5, ride: true },
+    ],
+    shots: [
+      { t: 0, shot: 'dolly', from: [10, 0, 1.6], to: [12, 0, 1.6], look: 'car', fov: 40 },
+      { t: 7, shot: 'cut', at: [10, 10, 1.6], look: 'bike', fov: 40 },
+      { t: 12, shot: 'cut', at: [8, 4, 1.8], look: 'car', fov: 44 },
+    ],
+  };
+  const before = JSON.stringify(def);
+  const routed = roadPathDef(def, { x: 0, y: 0, facing: 0, z: 0 }, map, { duration: 18 });
+  ok(routed, 'a road-bound scene is rewritten');
+  ok(JSON.stringify(def) === before, 'roadPathDef does not change the scene data it is given');
+  if (routed) {
+    const car = routed.cues.find((c) => c.prop === 'car' && c.path);
+    const bike = routed.cues.find((c) => c.prop === 'bike' && c.path);
+    ok(car && car.path.length >= 2, 'the car gets a road path');
+    ok(car && car.path[car.path.length - 1][0] >= 39 && Math.abs(car.path[car.path.length - 1][1] - 20) < 1, 'the car follows the road round the corner', JSON.stringify(car && car.path.slice(-2)));
+    ok(car && car.path.every(([f, s]) => Math.abs(s) < 0.1 || Math.abs(f - 40) < 0.1), 'every car point lies on the road');
+    ok(bike && bike.path.every(([f, s]) => Math.abs(s - 3) < 0.1 || Math.abs(f - 40) < 0.1), 'the cyclist follows the cycle path and the road, not the water');
+    ok(routed.props.car.at[0] === car.path[0][0] && routed.props.car.at[1] === car.path[0][1], 'the parked start of the car is on the road too');
+    const rider = routed.actors.rider;
+    const walk = routed.cues.find((c) => c.actor === 'rider' && c.walk);
+    ok(rider && Math.abs(rider.at[1] - 3) < 0.1, 'the cyclist and the bike start together on the cycle path', JSON.stringify(rider && rider.at));
+    ok(walk && walk.walk.every(([f, s]) => Math.abs(s - 3) < 0.1 || Math.abs(f - 40) < 0.1), 'the cyclist rides the same waypoints as the bike');
+    const hides = routed.cues.filter((c) => c.hide === true);
+    ok(hides.some((c) => c.prop === 'bike') && hides.some((c) => c.actor === 'rider'), 'the cyclist leaves the scene after the short ride', JSON.stringify(hides));
+    const matt = routed.cues.find((c) => c.prop === 'matras' && c.path);
+    ok(matt && matt.path.every(([f, s, h]) => Math.abs(h - 1.45) < 1e-6), 'the mattress follows the car at its own height');
+    const scene = compileScene(routed, { lines: [], duration: 18 });
+    const s9 = scene.sample(15.2, { x: 0, y: 0, facing: 0, z: 0 });
+    ok(s9.props.bike.visible === false && s9.actors.rider.visible === false, 'after the ride the bike and cyclist are gone, not standing still');
+    const s2 = scene.sample(2, { x: 0, y: 0, facing: 0, z: 0 });
+    ok(Math.abs(s2.props.matras.x - s2.props.car.x) < 0.05 && Math.abs(s2.props.matras.y - s2.props.car.y) < 0.05, 'the follower rides on the car');
+    ok(Math.abs(s2.props.matras.h - 1.45) < 0.01, 'the follower keeps its own height');
+  }
+  // a parked vehicle marked as road-bound only moves its start
+  const parked = { id: 'parked-road', actors: {}, props: { car: { kind: 'auto', at: [0, 10, 0], road: true } }, shots: [{ t: 0, shot: 'cut', at: [5, 0, 1.6], look: 'car' }], duration: 4 };
+  const p = roadPathDef(parked, { x: 0, y: 0, facing: 0, z: 0 }, map);
+  ok(p && Math.abs(p.props.car.at[1]) < 0.1, 'a parked car on a marked scene is put on the road', JSON.stringify(p && p.props.car.at));
+  // without roads nothing changes
+  ok(roadPathDef(def, { x: 0, y: 0, facing: 0, z: 0 }, { nearestRoadPoint: () => null }) === null, 'without road data the scene is left alone');
+}
 
 // cutscene props come from the world's registers (#136): no placeholder vehicles or animals
 {

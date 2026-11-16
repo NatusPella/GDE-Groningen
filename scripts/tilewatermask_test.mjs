@@ -99,5 +99,28 @@ ok(afterSlowRun.bakes > beforeSlowRun.bakes && afterSlowRun.farBakes > beforeSlo
   ok(st2.bakes >= 1 && st2.farBakes >= 1, '#756: koude start met alleen trage beelden bakt binnen 0,5 s', `${st2.bakes} nabij, ${st2.farBakes} ver na ${t2.toFixed(2)} s`);
 }
 
+// #865: een gebouw dat in het water staat (werelddatafout) krijgt een droge voet in het
+// watermasker, zodat de grond onder het gebouw dicht blijft en er geen water door de gevel loopt.
+{
+  const W3 = await import('../game/js/tilewatermask.js?bldg=865');
+  const sc = { add() {} };
+  const waterRow = { pts: [[-40, -30], [40, -30], [40, 30], [-40, 30], [-40, -30]], bounds: [-40, -30, 40, 30] };
+  const building = { pts: [[-5, -4], [5, -4], [5, 4], [-5, 4], [-5, -4]], type: 'house', h: 3 };
+  const mp = {
+    _waterVer: 1, _buildingVer: 1,
+    waterNear: () => [waterRow],
+    buildingsNear: () => [building],
+    roadsNear: () => [],
+  };
+  for (let f = 0; f < 3; f++) W3.updateTileWater(mp, sc, 0, 0, 80, f * 0.05, 1 / 60);
+  const s3 = W3.tileWaterStats();
+  ok(s3.buildingCuts === 1, '#865: een nat gebouw krijgt een droge voet in het masker', JSON.stringify([s3.buildingCuts, s3.bdBakes]));
+  // een gebouw op de kant telt niet mee
+  const dry = { pts: [[40, 40], [50, 40], [50, 50], [40, 50], [40, 40]], type: 'house', h: 3 };
+  const mp2 = { _waterVer: 2, _buildingVer: 2, waterNear: () => [waterRow], buildingsNear: () => [dry], roadsNear: () => [] };
+  for (let f = 0; f < 3; f++) W3.updateTileWater(mp2, sc, 0, 0, 80, 1 + f * 0.05, 1 / 60);
+  ok(W3.tileWaterStats().buildingCuts === 0, '#865: een gebouw op de kant heeft geen droge voet nodig');
+}
+
 console.log(`${n - fails}/${n} tilewatermask`);
 process.exit(fails ? 1 : 0);

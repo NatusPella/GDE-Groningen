@@ -8,12 +8,13 @@
 //   M10.intro               Jelle's tractor-limo drives up, the golden case in his hand
 //   M11.intro / M11.outro   Klaas on the quay of Zoutkamp; at the end of the night Dijkstra's call
 
-// a rider crossing behind the scene (rider and bike are separate: the bike is a prop on the same path)
+// a rider crossing behind the scene (rider and bike are separate: the bike is a prop on the same path).
+// #863: beiden volgen de echte weg (roadPathDef in cutscript.js) en verdwijnen na hun rit.
 const rider = (id, look, from, to, t = 0, speed = 5.5) => {
   const face = Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI;
   return {
-    cast: { [id]: { key: look, at: [from[0], from[1]], face, anim: 'ride', bg: true } },
-    props: { [id + 'f']: { kind: 'fiets', at: [from[0], from[1], 0], face } },
+    cast: { [id]: { key: look, at: [from[0], from[1]], face, anim: 'ride', bg: true, road: id + 'f' } },
+    props: { [id + 'f']: { kind: 'fiets', at: [from[0], from[1], 0], face, road: 'cycle' } },
     cues: [{ t, actor: id, walk: [to], speed, ride: true }, { t, prop: id + 'f', path: [from, to], speed }],
   };
 };

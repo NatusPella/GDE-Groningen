@@ -163,5 +163,42 @@ for (const [mode, p] of Object.entries(PALETTES)) {
   ok(hides('body:has\\(#hud \\.hud-place\\.on\\)'), 'draaibanner wijkt voor de plaatsnaam');
 }
 
+// --- #849/#850/#854/#855: regressiewachten voor de vlieg-HUD -----------------
+// Het vliegtuigpaneel lag linksboven omdat de cockpit-CSS (later in de head,
+// zelfde specificiteit) `position: relative` op het paneel zette. Deze controles
+// houden de CSS-orde, de aanraakregels en de reserveringen bij elkaar.
+{
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
+  const cockpit = fs.readFileSync(path.join(dir, 'cockpit.js'), 'utf8');
+  const sheet = (cockpit.match(/COCKPIT_CSS = `([\s\S]*?)`/) || [])[1] || '';
+  const basis = (sheet.match(/#hud \.\$\{COCKPIT_CLASS\}\s*\{([^}]*)\}/) || [])[1] || '';
+  ok(sheet !== '', '#849: cockpit.js heeft de cockpit-CSS');
+  ok(!/position\s*:/.test(basis), '#849: cockpit-frame zet geen position (zou het absolute vliegpaneel overschrijven)', basis.trim());
+  const instr = fs.readFileSync(path.join(dir, 'instrumenten.js'), 'utf8');
+  ok(/#hud \.hud-instr\{position:absolute;right:var\(--hud-edge/.test(instr), '#849: vliegtuigpaneel staat absoluut aan de rechterrand');
+
+  const touch = (fs.readFileSync(path.join(dir, 'touch.js'), 'utf8').match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
+  ok(/html\.touch-device #hud \.hud-speedo, html\.touch-device #hud \.hud-heli, html\.touch-device #hud \.hud-instr \{ right: auto; left: 50%; transform: translateX\(-50%\); \}/.test(touch),
+    '#850: het vliegtuigpaneel staat op aanraak gecentreerd, vrij van de roerknoppen');
+  ok(/html\.touch-device\.touch-portrait #hud \.hud-instr \{ right: var\(--hud-edge\); left: auto; transform: none; bottom: calc\(var\(--hud-f-top, 430px\) \+ 12px\); \}/.test(touch),
+    '#850: in portret zakt het paneel boven de linkerkolom');
+  ok(/\.hud-instr small, \.hud-instr \.hi-keys, \.hud-instr \.hi-st, \.hud-instr \.hi-row, \.hud-instr \.hi-num span,\s*\.hud-instr \.hi-lamp/.test(touch),
+    '#850: alle paneellabels staan in de 12px-vloer');
+
+  const hull = fs.readFileSync(path.join(dir, 'hud_panel.css'), 'utf8');
+  ok(/body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{\s*bottom: calc\(500px \* var\(--ui, 1\)\) !important;/.test(hull),
+    '#855: de radio-ondertitel wijkt in de vlucht boven het vliegpaneel');
+  ok(/@media \(max-height: 640px\) \{[\s\S]*?body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{ display: none; \}/.test(hull),
+    '#855: op een korte telefoon verdwijnt de ondertitel tijdens het vliegen (radio speelt door)');
+
+  const mg = fs.readFileSync(path.join(dir, 'minigamekit.js'), 'utf8');
+  ok(/box-sizing: border-box[^}]*max-width: min\(760px, calc\(100vw \/ var\(--ui, 1\) - 2 \* \(var\(--hud-edge, 46px\) \+ 310px\)\)/.test(mg),
+    '#854: het lesbord reserveert de zone C-kolom (310 px, boven de gemeten 293 px)');
+  ok(/@media \(max-width: 900px\) and \(orientation: landscape\) \{\s*#hud \.mg-board \{ left: 50%; transform: translateX\(-50%\); top: calc\(var\(--hud-top, 18px\) \+ 170px\);/.test(mg),
+    '#854: op een smalle liggende telefoon zakt het bord onder de zone C-rij');
+  const panel = fs.readFileSync(path.join(dir, 'hud_panel.js'), 'utf8');
+  ok(/--hud-c-width/.test(panel) && /getBoundingClientRect\(\)/.test(panel), '#854: hud_panel.js meet zone C met de echte kolombreedte');
+}
+
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
 console.log(`hud_layout_test: ok (${SIZES.length} formaten, ${Object.keys(PALETTES).length} paletten)`);

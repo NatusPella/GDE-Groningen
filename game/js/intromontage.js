@@ -28,6 +28,7 @@ import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
 import { KEYS } from './storagekeys.js';
+import { TABLE_SIT } from './cutscenemodels.js';
 import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
@@ -534,9 +535,6 @@ function clearSpot(map, spots, look, near) {
 // shots end on a beat.
 const BEAT = 60 / 111;
 const BEAT0 = 0.331;
-
-// Seated at the kitchen table: feet on the floor, hands on the tabletop.
-const TABLE_SIT = { recline: 0.02, footX: 0.42, footY: -0.44, arms: 'wheel' };
 
 // The kitchen set is shared by several shots: built once, hidden between them.
 function useKitchen(r, at) {

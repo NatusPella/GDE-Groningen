@@ -45,6 +45,36 @@ export function vaultDecision(h, o = {}) {
   return 'block';
 }
 
+// #959: the low walls of the elevation model (a retaining wall along a sunken
+// road, the edge of a platform) are real obstacles a walker can meet. Only the
+// low kinds and only from the low side: `nx/ny` point into the higher side, which
+// is where a vault must land. A wall taller than VAULT_MAX_H stays blocking, and
+// the caller's landingAt() still rejects water, a blocked far side or a big drop.
+const LOW_WALL_KINDS = new Set(['retain', 'perron']);
+export function wallAheadOf(walls, x, y, dx, dy, reach, z, zOf = null) {
+  if (!walls || !walls.length) return null;
+  let best = null;
+  for (const w of walls) {
+    if (!LOW_WALL_KINDS.has(w.kind) || w.parapet || w.fence || w.brk) continue;
+    if (w.low === false || !Number.isFinite(w.z)) continue;
+    const zw = zOf ? zOf(w, z) : z;
+    const h = w.z - zw;
+    if (!(h >= VAULT_MIN_H && h <= VAULT_MAX_H)) continue;
+    // only from the low side: the normal points into the road/platform
+    if ((x - w.ax) * w.nx + (y - w.ay) * w.ny > -0.02) continue;
+    const ex = w.bx - w.ax, ey = w.by - w.ay;
+    const den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-6) continue;
+    const wx = w.ax - x, wy = w.ay - y;
+    const t = (wx * ey - wy * ex) / den; // how far along the walk direction
+    const u = (wx * dy - wy * dx) / den; // where along the wall piece
+    if (t < 0 || t > reach || u < 0 || u > 1) continue;
+    const depth = w.kind === 'perron' ? 0.3 : 0.45;
+    if (!best || t < best.dist) best = { dist: t, h, depth, wall: w };
+  }
+  return best;
+}
+
 // Point on a vehicle's roof to land on after climbing up from (x, y): a bit
 // in from the edge you came from, in the car's local frame (lx along the
 // nose, ly to the left), kept inside the roof.

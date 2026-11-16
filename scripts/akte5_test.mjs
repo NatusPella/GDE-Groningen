@@ -71,11 +71,11 @@ for (const d of defs) for (const st of d.stages) {
 }
 for (const s of akte5) for (const id of s.scenes) ok(played.has(id), `${s.id}: scene ${id} is played by the step or a stage`);
 
-// the finale: bake -> stall -> board -> block -> fall -> Mem -> jury's question -> jury, then the outro of the step
+// the finale: bake -> stall -> board -> the allies close the streets -> the limo chase -> Mem -> jury's question -> jury, then the outro of the step
 const fin = byLabel('Ontzet, net als in 1672');
-ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,timing,timing,scene,chase,scene,scene,choice,scene,scene,scene', 'the finale runs in order (the column closes the streets before the limo chase)');
+ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,scene,chase,scene,scene,choice,scene,scene,scene', 'the finale runs in order (the column closes the streets before the limo chase, without a QTE)');
 {
-  // M23 ally: one remembered choice, read again in M26 (chase time, wider zone, the street scene)
+  // M23 ally: one remembered choice, read again in M26 (chase time, the street scene, the tag)
   const col = byLabel('De colonne');
   ok(col.stages[0].kind === 'choice' && col.stages[0].rounds[0].options.map((o) => o.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: choose the ally next to the Fjord Frituur');
   ok(col.remember.join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: the ally is remembered for M26');
@@ -83,9 +83,9 @@ ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,timing,timing,scene
   ok(col.stages.find((q) => q.kind === 'convoy').limoAfterIf['bond-bus'] > 30, 'M23: the bus holds the limo back');
   const lim = fin.stages.find((q) => q.kind === 'chase');
   ok(lim.timeIf['bond-trekker'] > lim.time && lim.timeIf['bond-bus'] > lim.time, 'M26: the ally gives the chase more time');
-  const streets = fin.stages.filter((q) => q.kind === 'timing')[1];
-  ok(streets.rounds.length === 3 && streets.rounds.every((r) => r.zoneIf), 'M26: the column closes three streets, the ally the surest');
-  ok(fin.stages.filter((q) => q.kind === 'scene')[0].scriptIf.length === 3, 'M26: the street scene has a line per ally');
+  const streets = fin.stages.find((q) => q.kind === 'scene' && q.tag === 'straten-dicht');
+  ok(streets && streets.scriptIf.length === 3 && streets.scriptIf.every((q) => ['bond-bus', 'bond-trekker', 'bond-scooter'].includes(q.tag)), 'M26: the street scene has a line per ally and pays the tag');
+  ok(!fin.stages.some((q) => q.kind === 'timing'), 'M26: the story no longer runs through a timing-QTE (#962)');
 }
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
 ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 3, 'the mud is a slalom of three drives');

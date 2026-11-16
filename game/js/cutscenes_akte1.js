@@ -32,10 +32,11 @@ const DUO = {
 const DUO_GEST = { tammo: ['talk', 'shrug', 'hips', 'talk', 'point'], tessa: ['talk', 'point', 'hips', 'talk', 'shrug'] };
 const NPC_GEST = ['talk', 'point', 'shrug', 'talk', 'hips'];
 
-// street life that crosses behind the scene (a cyclist, someone with a phone)
+// street life that crosses behind the scene (a cyclist, someone with a phone). #863: de fiets en
+// de fietser volgen samen de echte weg (roadPathDef in cutscript.js) en verdwijnen na hun rit.
 const cyclist = (id, look, from, to, t = 0, speed = 4.5) => ({
-  cast: { [id]: { key: look, at: [from[0], from[1]], face: Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI, anim: 'ride', bg: true } },
-  props: { [id + 'f']: { kind: 'fiets', at: [from[0], from[1], 0], face: Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI } },
+  cast: { [id]: { key: look, at: [from[0], from[1]], face: Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI, anim: 'ride', bg: true, road: id + 'f' } },
+  props: { [id + 'f']: { kind: 'fiets', at: [from[0], from[1], 0], face: Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI, road: 'cycle' } },
   cues: [
     { t, actor: id, walk: [to], speed, ride: true },
     { t, prop: id + 'f', path: [from, to], speed },
@@ -160,16 +161,18 @@ Object.assign(SPECS, SPECS_AKTE2);
     duo: { tammo: { at: [-7.5, 2.4], face: 0, anim: 'idle' }, tessa: { at: [0.4, -0.2], face: 60, anim: 'shake' } },
     cast: {
       // Durk and Douwe sit in the cab (hidden, but they move with it, so the camera finds the voices)
-      durk: { key: 'durk', at: [8.4, 3.4], face: 0, anim: 'idle', hidden: true, noauto: true },
-      douwe: { key: 'douwe', at: [8.4, 3.4], face: 0, anim: 'idle', hidden: true, noauto: true },
+      durk: { key: 'durk', at: [8.4, 3.4], face: 0, anim: 'idle', hidden: true, noauto: true, road: 'trekker' },
+      douwe: { key: 'douwe', at: [8.4, 3.4], face: 0, anim: 'idle', hidden: true, noauto: true, road: 'trekker' },
       ...life.cast,
     },
     props: {
-      trekker: { kind: 'trekker', at: [8.4, 3.4, 0], face: 0 },
+      // #862: de trekker en de politieauto volgen de weg (roadPathDef in cutscenehost.js), ook al
+      // staat hun pad hier als rechte lijn in het ankerframe.
+      trekker: { kind: 'trekker', at: [8.4, 3.4, 0], face: 0, road: true },
       automaat: { kind: 'automaat', at: [5.2, 3.4, 0], face: 270 },
       paal: { kind: 'bord', at: [5.9, 2.2, 0], face: 0 },
       escapade: { kind: 'auto', at: [-3.2, -4.4, 0], face: 80 },
-      politie: { kind: 'politie', at: [-60, -6, 0], face: 0 },
+      politie: { kind: 'politie', at: [-60, -6, 0], face: 0, road: true },
       ...life.props,
     },
     open: [
@@ -246,13 +249,14 @@ Object.assign(SPECS, SPECS_AKTE2);
   const queue = (id, look, at, face, anim) => ({ cast: { [id]: { key: look, at, face, anim, bg: true } } });
   const q = merge(queue('wachter1', 'femke', [3.8, -3.1], 200, 'phone'), queue('wachter2', 'harm', [4.9, -1.6], 190, 'lean'), queue('wachter3', 'geert', [4.4, 3.4], 170, 'idle'));
   SPECS['M03.intro'] = {
+    set: 'loket',
     cast: {
-      loketbediende: { key: 'loketbediende', at: [6.4, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'talk'] },
+      loketbediende: { key: 'loketbediende', at: [4.6, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'talk'] },
       ...q.cast,
     },
     props: {
       zuil: { kind: 'zuil', at: [1.8, 2.4, 0], face: 270 },
-      scherm: { kind: 'bord', at: [6.8, -0.4, 0], face: 180 },
+      scherm: { kind: 'bord', at: [5.1, -0.4, 0], face: 180 },
       bord: { kind: 'bord', at: [4.6, 2.2, 0], face: 200 },
     },
     open: [{ actor: 'wachter1', gaze: 'actor:tammo' }, { actor: 'wachter3', gaze: 'actor:loketbediende' }, { actor: 'loketbediende', gaze: 'actor:wachter2' }, { prop: 'scherm', bob: 0.005 }],
@@ -280,10 +284,11 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tessa. Sjabbe', actor: 'tammo', face: 'actor:tessa' },
     ],
     shots: [{ on: 'Nummer 4117', shot: 'cut', at: [1.0, -1.8, 1.7], look: 'scherm@1.7', fov: 34 }],
-    wide: { from: [-4, 4.6, 3.6], to: [-1.8, 3.2, 2.9], look: 'mid:tessa,loketbediende@1.2', fov: 52, until: 1 },
+    wide: { from: [-3.6, 3.0, 3.0], to: [-1.8, 2.4, 2.5], look: 'mid:tessa,loketbediende@1.2', fov: 52, until: 1 },
   };
 
   SPECS['M03.outro'] = {
+    set: 'loket',
     cast: {
       loketbediende: { key: 'loketbediende', at: [3.4, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
       ...q.cast,
@@ -311,7 +316,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tammo. Bert', actor: 'tessa', face: 'actor:tammo' },
     ],
     shots: [],
-    wide: { from: [-3.4, 4, 3.2], to: [-1.8, 3, 2.6], look: 'mid:loketbediende,tessa@1.3', fov: 50, until: 1 },
+    wide: { from: [-3.4, 3.0, 2.9], to: [-1.8, 2.4, 2.4], look: 'mid:loketbediende,tessa@1.3', fov: 50, until: 1 },
   };
 }
 
@@ -523,14 +528,15 @@ Object.assign(SPECS, SPECS_AKTE2);
 
   // M03.2: Jelle buys the queue, the Bewaarder stamps
   SPECS['M03.2'] = {
+    set: 'loket',
     cast: {
       jelle: { key: 'jelle', at: [3.0, 0.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
-      bewaarder: { key: 'bewaarder', at: [5.6, -1.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
-      loketbediende: { key: 'loketbediende', at: [6.8, 0.2], face: 180, anim: 'idle', gest: ['point', 'talk'] },
-      wachter1: { key: 'femke', at: [4.2, -3.4], face: 200, anim: 'phone', bg: true },
-      wachter2: { key: 'harm', at: [5.4, 3.4], face: 170, anim: 'lean', bg: true },
+      bewaarder: { key: 'bewaarder', at: [4.2, -1.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      loketbediende: { key: 'loketbediende', at: [4.7, 0.2], face: 180, anim: 'idle', gest: ['point', 'talk'] },
+      wachter1: { key: 'femke', at: [2.8, -2.9], face: 200, anim: 'phone', bg: true },
+      wachter2: { key: 'harm', at: [3.6, 2.9], face: 170, anim: 'lean', bg: true },
     },
-    props: { klomp: { kind: 'tas', at: [3.0, 0.6, 1] }, scherm: { kind: 'bord', at: [7.2, -0.4, 0], face: 180 }, stempel: { kind: 'klembord', at: [5.6, -1.6, 1] } },
+    props: { klomp: { kind: 'tas', at: [3.0, 0.6, 1] }, scherm: { kind: 'bord', at: [4.9, -0.4, 0], face: 180 }, stempel: { kind: 'klembord', at: [4.2, -1.6, 1] } },
     open: [{ actor: 'jelle', carry: 'klomp' }, { actor: 'bewaarder', carry: 'stempel' }],
     beats: [
       { on: 'Goedemorgen', actor: 'jelle', anim: 'hips' },
@@ -554,7 +560,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Het museum', actor: 'bewaarder', anim: 'hips' },
     ],
     shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 2.6, side: 0.8, h: 1.6, fov: 38 }],
-    wide: { from: [-3.2, 4.6, 3.4], to: [-1.2, 3.2, 2.7], look: 'mid:jelle,bewaarder@1.2', fov: 52, until: 1 },
+    wide: { from: [-3.2, 3.0, 3.0], to: [-1.2, 2.4, 2.5], look: 'mid:jelle,bewaarder@1.2', fov: 52, until: 1 },
   };
 }
 
@@ -589,11 +595,14 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   if (!spec || !lines || !lines.length) return null;
   const actors = {};
   for (const id of ['tammo', 'tessa']) actors[id] = { ...DUO[id], ...((spec.duo || {})[id] || {}) };
+  for (const id of ['tammo', 'tessa']) if (spec.duo && spec.duo[id] && spec.duo[id].road) actors[id].road = spec.duo[id].road;
   const meta = { tammo: { gest: DUO_GEST.tammo }, tessa: { gest: DUO_GEST.tessa } };
   for (const [id, c] of Object.entries(spec.cast || {})) {
     const look = looks[c.key];
     if (!look) return null;
     actors[id] = { look, at: c.at, face: c.face ?? 180, anim: c.anim || 'idle', speaker: c.key === 'jelmer' ? [look.name, 'Streamer'] : [look.name], gaze: 'speaker' };
+    // #862: een verborgen inzittende met `road: '<prop>'` rijdt mee met het wegvolgende voertuig
+    if (c.road) actors[id].road = c.road;
     meta[id] = { gest: c.gest || NPC_GEST, bg: !!c.bg, noauto: !!c.noauto };
   }
   const props = spec.props || {};

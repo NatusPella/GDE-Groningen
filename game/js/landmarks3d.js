@@ -6,6 +6,7 @@ import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
 import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
 import { P } from './worldframe.js';
 import { kitItemFromBuilding, landmarkParams, landmarkGeometry, LOD_FULL } from './landmarkkit.js';
+import { hash2 } from './rng.js';
 
 // Procedural models for the named Groningen landmarks, one merged
 // vertex-coloured geometry per building (five shared materials). Geometry is
@@ -36,10 +37,15 @@ const C = {
 const W = (x, h, y) => [x, h, y];
 
 // Oriented box built from quads (planar metre UVs, so brick/tile textures keep
-// their scale); bottom face omitted.
+// their scale); bottom face omitted. (#917) Een halve millimeter deterministische
+// jitter per box: twee kits die een muur delen staan anders exact coplanair en
+// flikkeren; de jitter is kleiner dan de dikte van een verfstreek en onzichtbaar.
 function obox(B, cx, cy, y0, sx, sy, h, rot, color, g) {
   const c = Math.cos(rot), s = Math.sin(rot);
   const hx = sx / 2, hy = sy / 2;
+  const f = hash2(cx * 1.7 + 3.2, cy * 1.3 + y0 * 0.7 + sx * 0.11);
+  const jx = (f - 0.5) * 0.004, jz = (((f * 13.7) % 1) - 0.5) * 0.004;
+  cx += jx; cy += jz;
   const P = (a, b, y) => [cx + a * c - b * s, y, cy + a * s + b * c];
   const y1 = y0 + h;
   const p = [P(-hx, -hy, y0), P(hx, -hy, y0), P(hx, hy, y0), P(-hx, hy, y0)];

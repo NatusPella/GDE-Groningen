@@ -93,13 +93,13 @@ for (const key of ['plein', 'poort', 'brug', 'bolwerk1', 'bolwerk2', 'bolwerk3']
   ok(seen[j * W + i] === 1, `${key} is te voet vanaf het Marktplein te bereiken`);
 }
 
-// --- 3. de bolwerken en de poort niet met de cirkel in de gracht ------------------------------
+// --- 3. de bolwerken en de gracht niet met de cirkel in het water ----------------------------
 // De missiestap bij de bolwerken heeft radius 12 (missions_akte6.js): daar moet de speler zes
 // tellen blijven staan. Zweeft het bolwerk zelf minder dan dat van het water, dan zet de marker
-// hem in de gracht (#953). De poort, de ophaalbrug en de gracht liggen per definitie aan het
-// water: daar telt alleen dat het punt zelf droog is (punt 1) en niet verder dan een paar meter
-// van de kant, want dat is de plek van de scène.
-const NEAR = { bolwerk1: 12, bolwerk2: 12, bolwerk3: 12, poort: 2, brug: 2, gracht: 3 };
+// hem in de gracht (#953). De grachtstap heeft radius 10; die moet op de oever blijven. De
+// poort en de ophaalbrug liggen per definitie aan het water (het deck is droog): daar telt dat
+// het punt zelf droog is en niet verder dan een paar meter van de kant, want dat is de scène.
+const NEAR = { bolwerk1: 13, bolwerk2: 13, bolwerk3: 13, gracht: 11, poort: 2, brug: 2 };
 for (const [key, min] of Object.entries(NEAR)) {
   const d = waterDist(BOURTANGE[key][0], BOURTANGE[key][1]);
   ok(d > 0, `${key} ligt niet in de gracht`);
@@ -116,10 +116,14 @@ const RADIUS = { gracht: 10, brug: 7, bolwerk1: 12, bolwerk2: 12, bolwerk3: 12, 
     const m = /radius: (\d+)/.exec(win);
     ok(!!m && Number(m[1]) <= r, `${key}: de missie gebruikt radius ${m ? m[1] : '?'} (hooguit ${r})`);
   }
-  // de bolwerken: de stapcirkel blijft op de wal
+  // de bolwerken: de stapcirkel blijft op de wal, en er staat geen boom of hek in de cirkel
   for (const key of ['bolwerk1', 'bolwerk2', 'bolwerk3']) {
     ok(waterDist(BOURTANGE[key][0], BOURTANGE[key][1]) >= RADIUS[key], `${key}: de cirkel van de stap valt niet in de gracht`);
+    ok(map.canWalkOut(BOURTANGE[key][0], BOURTANGE[key][1], RADIUS[key]), `${key}: de hele walcirkel is beloopbaar`);
+    ok(map.treesNear(BOURTANGE[key][0], BOURTANGE[key][1], RADIUS[key]).length === 0, `${key}: geen boom in de stapcirkel`);
   }
+  // de grachtstap: de cirkel blijft op de oever
+  ok(waterDist(BOURTANGE.gracht[0], BOURTANGE.gracht[1]) >= RADIUS.gracht, 'gracht: de cirkel van de stap valt niet in de gracht');
 }
 
 console.log(bad ? `${bad} van ${n} mislukt` : `bourtange_test: ok (${n} controles, ${reached} droge cellen bereikbaar)`);

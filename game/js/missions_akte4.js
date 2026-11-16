@@ -199,21 +199,24 @@ export function buildAkte4Defs() {
       start: spot('bourtangeWal'),
       say: 'Vesting Bourtange, fakkels, een gracht en kartonnen kanonnen.',
       stages: [
-        { kind: 'goto', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 18, label: 'Naar de wallen van de vesting', say: 'Het Beleg begint. Berend is de bisschop en valt aan. Wij verdedigen de wallen.' },
+        { kind: 'goto', dressing: 'naspeling', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 18, label: 'Naar de wallen van de vesting', say: 'Het Beleg begint. Berend is de bisschop en valt aan. Wij verdedigen de wallen.' },
         {
-          kind: 'hold', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 12, time: 12, ticks: ['Het eerste kanon van karton is leeg. Volgende!'],
+          kind: 'hold', dressing: 'naspeling', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 12, time: 12, ticks: ['Het eerste kanon van karton is leeg. Volgende!'],
           fireworks: { every: [2.5, 4.5], hit: 1.9, cost: 2, hitText: 'Een kartonnen kogel met confetti. Even liggen, dan weer de wal op.' },
           label: 'Verdedig de westwal tegen het beleg', say: 'Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.',
         },
-        { kind: 'goto', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 10, label: 'Ren naar de noordwal: daar breekt Berends bisschopsleger door', say: 'Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.' },
+        { kind: 'goto', dressing: 'naspeling', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 10, label: 'Ren naar de noordwal: daar breekt Berends bisschopsleger door', say: 'Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.' },
         {
-          kind: 'hold', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 12, time: 10, ticks: ['De wal houdt stand. Nog even.'],
+          kind: 'hold', dressing: 'naspeling', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 12, time: 10, ticks: ['De wal houdt stand. Nog even.'],
           fireworks: { every: [2.0, 3.8], hit: 1.9, cost: 2, hitText: 'Confetti in je gezicht. Even liggen, dan weer de wal op.' },
           label: 'Houd ook de noordwal tegen het beleg', say: 'Blijf op de noordwal staan tot het beleg voorbij is.',
         },
-        { kind: 'goto', target: ll('bourtangeGracht', { label: 'De gracht' }), mode: 'foot', radius: 12, label: 'Naar de gracht: Durk en Douwe dagen je uit', say: 'Durk en Douwe houden je bezig. Naar de gracht.' },
+        { kind: 'goto', dressing: 'naspeling', target: ll('bourtangeGracht', { label: 'De gracht' }), mode: 'foot', radius: 12, label: 'Naar de gracht: Durk en Douwe dagen je uit', say: 'Durk en Douwe houden je bezig. Naar de gracht.' },
         {
-          kind: 'timing', vaultJump: true, kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
+          // #962: de fierljep is een korte actie-QTE (drie rondes) en heeft geen
+          // failAt: een misser kost de tag, niet het verhaal. De echte sprong volgt
+          // als animatie (playDuelJump).
+          kind: 'timing', dressing: 'naspeling', vaultJump: true, kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
           label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het vak staat.',
           rounds: [
             { text: '1. De aanloop: vol gas naar de gracht.', speed: 0.8, zone: [0.36, 0.64], ok: 'Een strakke aanloop. Durk kijkt jaloers.', bad: 'Je struikelt over een kartonnen kanon.' },
@@ -222,7 +225,7 @@ export function buildAkte4Defs() {
           ],
         },
         {
-          kind: 'scene', checkpoint: true, target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Luister naar Durk en Douwe: zij houden je bezig', kicker: 'De gracht van Bourtange',
+          kind: 'scene', dressing: 'naspeling', checkpoint: true, target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Luister naar Durk en Douwe: zij houden je bezig', kicker: 'De gracht van Bourtange',
           script: { ids: ['M20.2'] }, cast: [{ key: 'durk', pose: 'arms', at: [3.2, 1.0] }, { key: 'douwe', pose: 'arms', at: [3.2, -1.4] }],
         },
         {
@@ -250,7 +253,15 @@ export function buildAkte4Defs() {
           fireworks: { every: [1.6, 3.0], hit: 1.9, cost: 3, hitText: 'Jelles mannen duwen allemaal tegelijk. Even liggen, dan terug in de deur.' },
           label: 'Houd de derde deur tegen', say: 'De laatste deur. Daarna naar de poort.',
         },
-        { kind: 'goto', target: ll('bourtangePoort', { label: 'Berends bakkie' }), mode: 'foot', radius: 9, stop: 1, label: 'Draag de bal naar het bakkie bij de poort', say: 'Links is vrij. Naar de poort, Berends bakkie staat klaar.' },
+        { kind: 'goto', dressing: 'naspeling', target: ll('bourtangePoort', { label: 'Berends bakkie' }), mode: 'foot', radius: 9, stop: 1, label: 'Draag de bal naar het bakkie bij de poort', say: 'Links is vrij. Naar de poort, Berends bakkie staat klaar.' },
+        {
+          // #955: de naspeling eindigt niet met een lege weg: het publiek klapt,
+          // de kanonnen zijn van karton en Berend deelt flyers uit. Vijf tellen
+          // kijken, daarna is de missie klaar.
+          kind: 'hold', dressing: 'naspeling', target: ll('bourtangePoort', { label: 'De poort' }), mode: 'foot', radius: 9, time: 5,
+          ticks: ['Het publiek klapt. De kanonnen zijn van karton.', 'De naspeling is klaar. Berend deelt flyers uit.'],
+          label: 'Kijk naar de naspeling: het publiek klapt', say: 'De naspeling is klaar. Blijf even staan voor het publiek en de fotograaf.',
+        },
       ],
     },
   );
@@ -286,6 +297,8 @@ export function applyAkte4(list) {
   fj.stages = [
     { kind: 'goto', target: ll('zuidhornOverweg', { label: 'De overweg bij Zuidhorn' }), mode: 'any', radius: 30, label: 'Naar de overweg bij Zuidhorn: daar stopt de trein om middernacht', say: 'Mems appje: de trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn.', talk: { ids: ['M21.2'], delay: 3 } },
     {
+      // #962: over de wagons is een korte actie-QTE (drie rondes), geen verhaalpoort:
+      // een misser kost de tag en wat tijd, niet de missie.
       kind: 'timing', kicker: 'Over de wagons', help: 'spring op het goede moment', goodAt: 2, tagGood: 'sprint-goed', tagLow: 'sprint-slecht',
       label: 'Spring van wagon naar wagon naar de Escapade', say: 'De trein rijdt. Druk als de streep in het vak staat om naar de volgende wagon te springen.',
       rounds: [

@@ -4,14 +4,16 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
 import { buildOffice, OFFICE, buildServerRoom, SERVER } from './office3d.js';
+import { buildLoket, LOKET } from './loket3d.js';
+import { buildOmaKitchen, OMA_KEUKEN } from './omakeuken3d.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { treeBlocksPoint } from './greenery.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
 import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
 import { carModel } from './trafficfleet.js';
-import { propSource } from './cutscenemodels.js';
-import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js';
+import { propSource, TABLE_SIT } from './cutscenemodels.js';
+import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
 import { showNameCard } from './namecard.js';
@@ -35,6 +37,8 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 //   def.set 'keuken': Tessa's kitchen (introkitchen3d.js) is built at the anchor (anchor.z = floor height) and the camera is kept inside it;
 //   def.set 'kantoor': het kantoorset van Wiebelwerk (#950, office3d.js), eveneens op de vloerhoogte van de kaart, camera binnen;
 //   def.set 'serverkamer': de serverkamer van Wiebelwerk (#956, office3d.js), een lange hal met rekken en een terminal, camera binnen;
+//   def.set 'loket': de hal van het Loket in het Stadhuis (#956, loket3d.js), met de balie, de rij en het nummerscherm;
+//   def.set 'omakeuken': Oma Trijntje's keuken aan de Noorderhaven (#956, omakeuken3d.js), met het fornuis en de tafel;
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
 //   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
@@ -187,6 +191,14 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     // #956: de serverkamer van Wiebelwerk, op de plek van de servers (M18.3)
     kit = buildServerRoom(anchor.x, anchor.y, anchor.z || 0);
     group.add(kit.group);
+  } else if (def.set === 'loket') {
+    // #956: de hal van het Loket in het Stadhuis (M03)
+    kit = buildLoket(anchor.x, anchor.y, anchor.z || 0);
+    group.add(kit.group);
+  } else if (def.set === 'omakeuken') {
+    // #956: Oma Trijntje's keuken (M25)
+    kit = buildOmaKitchen(anchor.x, anchor.y, anchor.z || 0);
+    group.add(kit.group);
   }
   const doorFx = fx.filter((f) => f.fx === 'door');
   const sfx = (kind, name) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(name ? { kind, name, x: anchor.x, y: anchor.y } : { kind, x: anchor.x, y: anchor.y }); };
@@ -269,8 +281,9 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
 
 let current = null;
 
-// Seated at a table (the kitchen): feet on the floor, hands on the tabletop; a gesture is a head or chest movement
-const TABLE_SIT = { recline: 0.02, footX: 0.42, footY: -0.44, arms: 'wheel' };
+// Seated at a table (the kitchen): feet on the floor, hands on lap/tabletop (#859: no steering
+// pose); a gesture is a head or chest movement. The pose itself lives in cutscenemodels.js, so
+// the opening and the intro montage cannot drift apart.
 function seatedFrame(m, st, t) {
   const ud = m.userData;
   if (!ud.pelvis || !ud.head) return;
@@ -335,6 +348,38 @@ function serverEnv(at) {
   };
 }
 
+// #956: het Loket is een brede hal (12 x 7,4 x 3 m); de camera blijft binnen de wanden.
+function loketEnv(at) {
+  return {
+    solid: () => false,
+    clamp(x, y, z, kind) {
+      if (kind !== 'camera') return null;
+      const base = at.z || 0;
+      return {
+        x: Math.max(at.x - (LOKET.w / 2 - 0.45), Math.min(at.x + (LOKET.w / 2 - 0.45), x)),
+        y: Math.max(at.y - (LOKET.d / 2 - 0.45), Math.min(at.y + (LOKET.d / 2 - 0.45), y)),
+        z: Math.max(base + 0.3, Math.min(base + LOKET.h - 0.25, z)),
+      };
+    },
+  };
+}
+
+// #956: Oma's keuken (8,4 x 6 x 2,8 m); de camera blijft binnen de keuken.
+function omaKeukenEnv(at) {
+  return {
+    solid: () => false,
+    clamp(x, y, z, kind) {
+      if (kind !== 'camera') return null;
+      const base = at.z || 0;
+      return {
+        x: Math.max(at.x - (OMA_KEUKEN.w / 2 - 0.45), Math.min(at.x + (OMA_KEUKEN.w / 2 - 0.45), x)),
+        y: Math.max(at.y - (OMA_KEUKEN.d / 2 - 0.45), Math.min(at.y + (OMA_KEUKEN.d / 2 - 0.45), y)),
+        z: Math.max(base + 0.3, Math.min(base + OMA_KEUKEN.h - 0.25, z)),
+      };
+    },
+  };
+}
+
 // #955: de bomen rond een punt (map.treesNear), met dezelfde vorm die de wereld tekent
 // (greenery.js treeDims). Een camera in een kroon of tegen een stam telt als bedekt: de
 // camera stapt eruit (cutscript.js clearOfTrees) en de ankerstand zoekt vrije grond.
@@ -383,7 +428,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const p = hoofdspeler(w);
   const a = anchor ? { ...anchor } : { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
   // (#950) een kantoorset staat op de begane grond: de vloerhoogte komt van de kaart
-  if ((def.set === 'kantoor' || def.set === 'serverkamer') && !a.z && w && w.map && w.map.groundHeightAt) {
+  if ((def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken') && !a.z && w && w.map && w.map.groundHeightAt) {
     try { a.z = w.map.groundHeightAt(a.x, a.y, 50) || 0; } catch (e) { a.z = 0; }
   }
   // (#731) De stemmen plannen vóór het compileren: shots, cues en L-tijden horen dezelfde
@@ -400,20 +445,40 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     return false;
   }
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
-  const indoors = def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer';
+  const indoors = def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken';
   const env = envIn ? { ...envIn, tree: envIn.tree || (def.set ? null : treeEnv(w && w.map)) } : (def.set === 'keuken'
     ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 })
     : def.set === 'kantoor'
       ? officeEnv({ x: a.x, y: a.y, z: a.z || 0 })
       : def.set === 'serverkamer'
         ? serverEnv({ x: a.x, y: a.y, z: a.z || 0 })
-        : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2, tree: treeEnv(w && w.map) });
+        : def.set === 'loket'
+          ? loketEnv({ x: a.x, y: a.y, z: a.z || 0 })
+          : def.set === 'omakeuken'
+            ? omaKeukenEnv({ x: a.x, y: a.y, z: a.z || 0 })
+            : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2, tree: treeEnv(w && w.map) });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
+  // #862/#863: een rijdend voertuig of een fietser volgt de echte weg in plaats van een rechte lijn
+  // in het ankerframe. De scene wordt één keer bij de start omgezet (niet per frame); de gasten
+  // krijgen dezelfde definitie en zetten die met hun eigen kaart opnieuw om.
+  let useDef = def, useScene = scene;
+  if (!indoors && w && w.map) {
+    try {
+      const routed = roadPathDef(def, at, w.map, { duration: sceneDur });
+      if (routed) {
+        useDef = routed;
+        useScene = compileScene(routed, { lines: sceneLines, duration: sceneDur });
+      }
+    } catch (e) {
+      console.error('cutscript road', e);
+      useDef = def; useScene = scene;
+    }
+  }
   let run = null, lastT = 0;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`
   // (missionstory.js, #711) counts too, so a guest's replay shows the same name card as the host.
   const cards = [
-    ...(def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, sceneLines, sceneDur) ?? 0, dur: f.dur ?? 2.4 })),
+    ...(useDef.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, sceneLines, sceneDur) ?? 0, dur: f.dur ?? 2.4 })),
   ];
   // (#711) een gast ziet de naamkaarten die de gastheer bij zijn regie toont (missionstory.js speelt ze daar zelf af):
   // een regel met `card` (de sleutel uit storyarc.js CHARACTERS) komt mee in het pakket en verschijnt alleen bij de replay,
@@ -422,22 +487,22 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   let lineCardNow = null;
   let cardNow = null;
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
-  const prewarm = cine.prewarm || shotPoints(scene, at, sceneDur);
+  const prewarm = cine.prewarm || shotPoints(useScene, at, sceneDur);
   const cutId = replay ? 0 : cutHostId();
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, mumble: true,
     prewarm,
-    ...cine, id: cine.id || def.id, duration: sceneDur, lines: sceneLines,
+    ...cine, id: cine.id || useDef.id, duration: sceneDur, lines: sceneLines,
     onStart() {
       if (cine.onStart) cine.onStart();
       try {
-        run = buildScriptRun(def, scene, at, env, w);
+        run = buildScriptRun(useDef, useScene, at, env, w);
         root.add(run.group);
         current = run;
         w.cinematicHidePlayers = true;
         w.cinematicHideNav = true;
       } catch (e) {
-        console.error('cutscript', def.id, e);
+        console.error('cutscript', useDef.id, e);
         run = null;
       }
     },
@@ -472,7 +537,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     },
   });
   // samen spelen: de gasten spelen dezelfde scène (na de start, zodat een scène die niet begint ook niet wordt doorgestuurd)
-  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines: sceneLines, duration: sceneDur, anchor: at, cine, voices }));
+  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def: useDef, lines: sceneLines, duration: sceneDur, anchor: at, cine, voices }));
   return ok;
 }
 

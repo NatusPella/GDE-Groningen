@@ -682,8 +682,9 @@ export function buildOverpassDeck(r, map) {
 // begint pas boven RAISED); quaywalls.js tekent de stenen dekplaat, maar die komt met de
 // oever mee en is aan de rand van de detailring nog niet gebouwd. Zonder dek kijk je
 // onder de smalle wegribbon door het water. Deze kern ligt mét marge binnen de stenen
-// plaat (top -0,01, onderkant -0,44, 15 cm smaller), dus als die er wel is, is de kern
-// onzichtbaar; is zij er niet, dan is de brug dicht.
+// plaat (top nét boven water, onderkant -0,44, 15 cm smaller), dus als die er wel is, is
+// de kern onzichtbaar; is zij er niet, dan is de brug dicht. De top ligt op 0,005 en dus
+// boven de waterspiegel (0): anders dekt het water de bovenkant van de kern af.
 export function flatBridgeCoreArrays(r, map) {
   if (!r || !r.bridge || r.tunnel || r.z || !r.pts || r.pts.length < 2) return null;
   if (!map) return null;
@@ -691,7 +692,7 @@ export function flatBridgeCoreArrays(r, map) {
   const half = Math.max(0.8, surfaceHalfWidth(r) - 0.15);
   for (let i = 0; i < r.pts.length - 1; i++) {
     const a = r.pts[i], b = r.pts[i + 1];
-    B.wallBox('concrete', a[0], a[1], b[0], b[1], half * 2, -0.44, -0.02, -0.44, -0.02);
+    B.wallBox('concrete', a[0], a[1], b[0], b[1], half * 2, -0.44, 0.005, -0.44, 0.005);
   }
   return B.arrays();
 }

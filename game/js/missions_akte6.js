@@ -9,8 +9,9 @@
 // on the paths round the vesting: the bastions are where the guardhouses stand (historic=guardhouse), the bridges are the ones
 // of the Batterijenstraat and the Bisschopsweg. scripts/akte6_test.mjs checks that they lie in the right place, and
 // scripts/bourtange_test.mjs checks them on the loaded tiles (#953): dry, not in a building, reachable on foot from the
-// Marktplein, and the three bastions far enough from the moat that the stage circle stays on the rampart (a marker at the
-// water's edge let the player walk into the gracht). The staged scenes themselves have not been looked at in the game yet.
+// Marktplein, and every step circle (the 12 m hold on the bastions, the 10 m gracht step) stays on the bank instead of
+// reaching into the moat (a marker at the water's edge let the player walk into the gracht). The staged scenes themselves
+// have not been looked at in the game yet.
 
 export const LOPPERSUM = {
   huis: [12039, -12622],     // Willemien's house: a plain house on the Hofstraat
@@ -20,7 +21,7 @@ export const LOPPERSUM = {
 };
 export const BOURTANGE = {
   hooiberg: [42440, 22420],  // the haystack on the heath north of the vesting
-  gracht: [42481, 22662],    // the northern bridge over the moat (Batterijenstraat)
+  gracht: [42468, 22640],    // the northern moat bank by the Batterijenstraat, 12 m from the water (#953)
   brug: [42505, 22712],      // the bridge at the Friesche Poort, where Wubbo's winch is (dry: a bridge)
   bolwerk1: [42583, 22731],  // east bastion (a guardhouse stands at 42595, 22723), 18 m from the water
   bolwerk2: [42435, 22930],  // south bastion (the tip at 42426, 22938 lies in the moat), 19 m from the water

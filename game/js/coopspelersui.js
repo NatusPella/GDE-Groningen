@@ -69,14 +69,20 @@ const CSS = `
 .cs-eruit { justify-self: start; margin: 0; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(217,63,63,0.28); color: inherit; font: inherit; cursor: pointer; }
 .cs-naar { justify-self: start; margin: 0; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: inherit; font: inherit; cursor: pointer; }
 .cs-naar:hover, .cs-naar:focus-visible { background: rgba(63,201,122,0.35); outline: none; }
-#coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: 12px 16px 10px; background: rgba(12,20,14,0.88); color: var(--ink); border-radius: 8px; box-shadow: 0 0 0 1px rgba(240,237,228,0.14); pointer-events: none; }
+#coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; box-sizing: border-box; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: 12px 16px 10px; background: rgba(12,20,14,0.88); color: var(--ink); border-radius: 8px; box-shadow: 0 0 0 1px rgba(240,237,228,0.14); pointer-events: none; }
+/* #873: de lijst zelf scrolt (de overlay kapte hem af) en alleen de lijst vangt de muis,
+   zodat de rest van het scherm doorklikbaar blijft naar het spel. */
+#coop-spelers .cs-lijst { max-height: calc(100vh - 204px); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.32) transparent; padding-right: 4px; }
+#coop-spelers .cs-lijst::-webkit-scrollbar { width: 8px; }
+#coop-spelers .cs-lijst::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240,237,228,0.32); }
+#coop-spelers .cs-lijst::-webkit-scrollbar-track { background: transparent; }
 #coop-spelers h3 { margin: 0 0 4px; font: normal 22px "Bebas Neue", "Arial Narrow", Arial, sans-serif; letter-spacing: 0.06em; }
 #coop-spelers .cs-voet { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(240,237,228,0.16); font: 14px "Arial Narrow", Arial, sans-serif; opacity: 0.8; }
 #coop-spelers .cs-voet b { padding: 0 5px; border-radius: 3px; background: rgba(240,237,228,0.18); }
 #coop-spelers .cs-rij { padding: 6px 8px; grid-template-columns: 32px minmax(80px, auto) minmax(0, 1fr) auto; }
 #coop-spelers .cs-avatar { width: 32px; height: 32px; }
 #coop-spelers .cs-vorm { font-size: 18px; }
-.pm-spelers { display: flex; flex-direction: column; gap: 16px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: none; font-family: "Arial Narrow", Arial, sans-serif; color: var(--ink); }
+.pm-spelers { display: flex; flex-direction: column; gap: 16px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.32) transparent; font-family: "Arial Narrow", Arial, sans-serif; color: var(--ink); }
 .pm-spelers .cs-lijst { font-size: 22px; gap: 8px; } .pm-spelers .cs-rij { padding: 12px 16px; grid-template-columns: 52px minmax(140px, auto) minmax(0, 1fr) auto; } .pm-spelers .cs-avatar { width: 52px; height: 52px; } .pm-spelers .cs-vorm { font-size: 26px; }
 .pm-spelers p { margin: 0; max-width: 680px; font-size: 20px; line-height: 1.35; opacity: 0.85; }
 .pm-spelers .cs-kop { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; border-radius: 12px; background: linear-gradient(180deg, rgba(23,48,31,0.9), rgba(12,20,14,0.86)); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.14); }
@@ -107,6 +113,37 @@ const CSS = `
 .cs-kleuren button:focus-visible, .cs-profiel-naam:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .cs-profiel-fout { color: var(--redtx); }
 .cs-profiel-hint { font-size: 16px; opacity: 0.75; }
+/* #873: de Spelers-lijst in het pauzemenu op een smal scherm: minder kolommen, de
+   netstatus onder de naam en kortere actieknoppen. */
+@media (max-width: 760px) {
+  .pm-spelers { padding: 12px; }
+  .pm-spelers .cs-lijst { font-size: 18px; gap: 6px; }
+  .pm-spelers .cs-rij { padding: 4px 0; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 2px 8px; }
+  .pm-spelers .cs-doet { font-size: 16px; }
+  .pm-spelers .cs-net { grid-column: 2 / -1; justify-self: start; font-size: 14px; }
+  .pm-spelers .cs-eruit, .pm-spelers .cs-naar { min-height: 38px; font-size: 20px; padding: 0 10px; }
+}
+/* #873: op smalle schermen is er geen breedte voor vier kolommen: de netstatus zakt
+   onder de naam en de avatar wordt smaller. */
+@media (max-width: 520px) {
+  #coop-spelers { width: calc(100vw - 16px); }
+  #coop-spelers .cs-rij { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 2px 8px; padding: 4px 0; }
+  #coop-spelers .cs-doet { font-size: 14px; }
+  #coop-spelers .cs-net { grid-column: 2 / -1; justify-self: start; font-size: 13px; }
+}
+/* #873: op een lage viewport (telefoon op zijn kant) is elke rij kostbaar: compacte
+   kop, rijen en geen voet; de lijst houdt een zichtbare scrollbalk. */
+@media (max-height: 460px) {
+  #coop-spelers { top: 48px; max-height: calc(100vh - 56px); padding: 8px 12px 6px; }
+  #coop-spelers h3 { font-size: 18px; margin-bottom: 2px; }
+  #coop-spelers .cs-lijst { max-height: calc(100vh - 108px); font-size: 14px; }
+  #coop-spelers .cs-rij { padding: 2px 0; }
+  #coop-spelers .cs-voet { display: none; }
+  .pm-spelers { padding: 10px 14px 14px; }
+  .pm-spelers .cs-lijst { font-size: 18px; }
+  .pm-spelers .cs-rij { padding: 3px 0; grid-template-columns: 24px minmax(90px, auto) 1fr auto; }
+  .pm-spelers .cs-eruit, .pm-spelers .cs-naar { min-height: 34px; font-size: 19px; padding: 0 10px; margin-bottom: 2px; }
+}
 `;
 let stijl = false;
 function zorgVoorStijl() {

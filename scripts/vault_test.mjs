@@ -2,7 +2,8 @@
 // hop / vault / climb / block, no accidental vault into the canal, and the
 // car-roof helpers.
 //   node scripts/vault_test.mjs
-import { bridgeWithin, vaultDecision, vehicleHeight, standable, roofSpot, onRoof, localToWorld, worldToLocal, CLIMB_MAX_H } from '../game/js/vaultkit.js';
+import { bridgeWithin, vaultDecision, vehicleHeight, standable, roofSpot, onRoof, localToWorld, worldToLocal, CLIMB_MAX_H, wallAheadOf } from '../game/js/vaultkit.js';
+import { lowWallAhead } from '../game/js/elevation.js';
 
 let fails = 0;
 const check = (name, ok) => { if (!ok) { fails++; console.log('FAIL', name); } else console.log('ok  ', name); };
@@ -49,7 +50,31 @@ check('past the bonnet you step off', !onRoof(v, 2.2, 0));
 check('past the side you step off', !onRoof(v, 0, 0.9));
 
 
-// Jelle's polsstok: not over a canal with a bridge close by (bridgeWithin)
+// #959: lage keermuren en perronwanden uit het hoogtemodel
+{
+  const wall = (kind, z, extra = {}) => ({ ax: 4, ay: -3, bx: 4, by: 3, nx: -1, ny: 0, z, kind, low: true, ...extra });
+  const walkWest = (list, z = 0) => wallAheadOf(list, 5, 0, -1, 0, 1.05, z);
+  check('een keermuur van 1,0 m is te overstappen', (() => { const w = walkWest([wall('retain', 1.0)], 0); return w && Math.abs(w.h - 1.0) < 1e-9 && w.depth > 0.3; })());
+  check('een keermuur van 2,6 m blijft een muur', walkWest([wall('retain', 2.6)], 0) === null);
+  check('een perronrand van 1,02 m is te overstappen', (() => { const w = walkWest([wall('perron', 1.02)], 0); return w && Math.abs(w.h - 1.02) < 1e-9; })());
+  check('een lage rand onder de spronghoogte telt niet', walkWest([wall('retain', 0.4)], 0) === null);
+  check('vanaf de hoge kant is er niets over te stappen', wallAheadOf([wall('retain', 1.0, { nx: 1 })], 5, 0, -1, 0, 1.05, 0) === null);
+  check('een hek of parapet heeft zijn eigen route', walkWest([wall('retain', 1.0, { fence: true })], 0) === null && walkWest([wall('retain', 1.0, { parapet: true })], 0) === null);
+  check('een gebroken of onbekende wand telt niet', walkWest([wall('retain', 1.0, { brk: 'hek' })], 0) === null && walkWest([wall('cut', 1.0)], 0) === null);
+  check('naast de wand is er niets', wallAheadOf([wall('retain', 1.0)], 5, 0, 1, 0, 1.05, 0) === null);
+  check('zonder hoogte geen kandidaat', walkWest([wall('retain', NaN)], 0) === null);
+  const cand = walkWest([wall('retain', 1.0)], 0);
+  check('de kandidaat gaat door de gewone vaultregel', cand && vaultDecision(cand.h, { landing: { blocked: false, water: false, drop: 0 } }) === 'vault');
+  check('over een keermuur het water in alleen bewust', cand && vaultDecision(cand.h, { landing: { water: true }, deliberate: false }) === 'block');
+  check('over een keermuur met een diepe val niet', cand && vaultDecision(cand.h, { landing: { drop: 6 } }) === 'block');
+  // de hoogtemodel-helper haalt de wanden uit het raster en geeft dezelfde kandidaat
+  const elev = { has: true, wallGrid: { queryRadius: () => [wall('perron', 1.02)] } };
+  const viaMap = lowWallAhead(elev, 5, 0, -1, 0, 1.05, 0);
+  check('lowWallAhead leest de perronwand uit het hoogtemodel', viaMap && Math.abs(viaMap.h - 1.02) < 1e-9);
+  check('zonder hoogtemodel geen kandidaat', lowWallAhead(null, 5, 0, -1, 0, 1.05, 0) === null);
+}
+
+
 {
   const bridgeAt = (bx, by, r = 3) => ({ isOnBridge: (x, y) => Math.hypot(x - bx, y - by) < r });
   check('bridge 20 m away is within 45 m', bridgeWithin(bridgeAt(20, 0), 0, 0, 45));
