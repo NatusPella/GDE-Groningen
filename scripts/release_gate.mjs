@@ -137,7 +137,12 @@ function fasePerf(ctx) {
     if (!electronPad()) return { status: 'SKIP', code: 3, secs: 0, detail: 'geen Electron gevonden (desktop/node_modules ontbreekt en ELECTRON_EXE leeg)', log: d };
     const perfOut = path.join(d, 'runs');
     fs.mkdirSync(perfOut, { recursive: true });
-    const env = { PERF_OUT: perfOut };
+    // Het wegwerpprofiel van de perf-run binnen de uitvoermap: %TEMP% is niet overal
+    // schrijfbaar (sandbox, strak ingestelde machine) en dan weigert Electron zijn
+    // GPUCache en stopt de run na 1 s zonder meting. Zie PERF_PROFILE_DIR in perf/run.mjs.
+    const profileDir = path.join(d, 'profiles');
+    fs.mkdirSync(profileDir, { recursive: true });
+    const env = { PERF_OUT: perfOut, PERF_PROFILE_DIR: profileDir };
     const slotDir = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
     if (fs.existsSync(slotDir)) env.PERF_LOCKS = slotDir;
     const perfArgs = (process.env.GDE_RELEASE_PERF_ARGS || '--hitch').split(/\s+/).filter(Boolean);
