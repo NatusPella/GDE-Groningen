@@ -85,7 +85,7 @@ const uitSlots = (log) => log.filter(([, b]) => b.f === 'uit').map(([s]) => s).s
   check('de eindstand heeft alleen gasten en AI, geen host', W0.uitslag.rijen.every((x) => x.ai || x.slot === 1 || x.slot === 2) && !W0.uitslag.rijen.some((x) => x.slot === 0));
   check('de uitslag gaat naar de gast die nog speelt, de beloning ook; wie wegviel krijgt niets', log.some(([s, b]) => s === 1 && b.f === 'eind') && !log.some(([s, b]) => s === 2 && b.f === 'eind') && !betaald.some(([s]) => s === 2) && betaald.every(([s]) => s === 1), JSON.stringify(betaald));
   check('de host krijgt geen uitslagkaart', kaartModel(world) === null);
-  check('de lichamen zijn weer vrij', world.companion.coopWedstrijd === false && world.coopFigures[2].coopWedstrijd === false);
+  check('de lichamen zijn weer vrij', !world.companion.coopWedstrijd && Object.values(world.coopFigures).every((f) => !f.coopWedstrijd));
   // een rematch kan zonder J van de host: een gast vraagt het
   const nUit = log.filter(([, b]) => b.f === 'uit').length;
   check('een gast wil nog een keer: de rematch wordt uitgenodigd', W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W0.u && log.filter(([, b]) => b.f === 'uit').length > nUit);
@@ -132,7 +132,8 @@ const uitSlots = (log) => log.filter(([, b]) => b.f === 'uit').map(([s]) => s).s
   for (let i = 0; i < 60 * 11; i++) W.wedHostTik(world, DT);
   check('de wedstrijd loopt', !!(world.coopNet.wed.lv || world.coopNet.wed.r));
   world.meldingen.length = 0;
-  check('tijdens de wedstrijd: Er loopt al een wedstrijd', !vraag(world, 3, 'kartbaan') && world.meldingen[0][1] === 'Er loopt al een wedstrijd. Wacht of doe mee.');
+  const vWed = vraag(world, 3, 'kartbaan');
+  check('tijdens de wedstrijd: de gast hoort dat de wedstrijd al loopt', !vWed && /loopt al, de volgende ronde doe je mee/.test(world.meldingen[0][1]));
 }
 {
   const { world } = nepWereld();
