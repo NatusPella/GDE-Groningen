@@ -32,7 +32,11 @@ function nepBrokers() {
     const deliver = (data) => later(() => { if (!ws.closed && ws.onmessage) ws.onmessage({ data }); });
     ws.close = () => { ws.closed = true; ws.readyState = 3; };
     const soort = /mqtt|mosquitto|emqx|hivemq/i.test(url) ? 'mqtt' : 'tracker';
-    later(() => ws.onopen && ws.onopen());
+    // De nep-socket opent in een microtaak, niet met setTimeout(0): onder belasting duurde een
+    // timer van 0 ms op deze machine 224 ms, langer dan de brokerTimeout hieronder, en dan gaf de
+    // signaler de broker als "fout" op voordat er iets geabonneerd was. Een echte socket opent ook
+    // binnen dezelfde gebeurtenislus, dus dit is dichter bij de werkelijkheid.
+    queueMicrotask(() => { if (!ws.closed && ws.onopen) ws.onopen(); });
     ws.send = (data) => {
       net.seen.push({ soort, url, data });
       if (soort === 'tracker') {

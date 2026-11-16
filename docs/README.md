@@ -84,6 +84,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PROVINCIE-VERHAAL.md](<PROVINCIE-VERHAAL.md>) | Ontwerpdocument, oktober 2026, bij [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md). |
 | [PUBLICATIECHECKLIST.md](<PUBLICATIECHECKLIST.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [PUBLICEREN.md](<PUBLICEREN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [QA-AUDIT-2026-11-16.md](<QA-AUDIT-2026-11-16.md>) | Onafhankelijke QA-audit van 0.65.0: scorekaart, de bevindingen en hun fixes, de open risico's (Samen spelen, M02, TTS) en wat niet is getest. De bewijsbeelden staan in een worktree en niet in git. |
 | [QA-START-VAN-MENU-AF.md](<QA-START-VAN-MENU-AF.md>) | Het oude startscherm (`runMenuScreen`, `#start-screen`) is alleen nog de |
 | [RELEASEGATE.md](<RELEASEGATE.md>) | Het releasegate-rapport en draaiboek: elke release bewijsbaar zonder regressie (ADR 0034). |
 | [RELEASEN.md](<RELEASEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
