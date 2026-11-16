@@ -63,19 +63,15 @@ try {
     }
   });
 
-  await t('#369 gepakt en neergeslagen: de melding komt aan en de momentopname zegt "niet levend"', async () => {
+  await t('#369 gepakt: de melding komt aan en de momentopname zegt "niet levend"', async () => {
     const van = guests.map(evenAantal);
     world.pendingRespawn = { busted: true };
     await until(() => guests.every((g, i) => gebeurt(g, 'melding', van[i]).some((b) => /Tammo is door de politie gepakt/.test(b.tekst))), 4000, 'melding gepakt');
     await until(() => guests.every((g) => g.session.world().players.find((p) => p.slot === 0).alive === false), 4000, 'host niet levend in de momentopname');
     world.pendingRespawn = null;
     await until(() => guests.every((g) => g.session.world().players.find((p) => p.slot === 0).alive === true), 4000, 'host weer levend');
-    world.companion.state = 'dead';
-    await until(() => gebeurt(guests[0], 'melding', van[0]).some((b) => /Je bent geraakt/.test(b.tekst)), 4000, 'Tessa hoort het');
-    await until(() => guests.every((g) => g.session.world().players.find((p) => p.slot === 1).alive === false), 4000, 'Tessa niet levend');
-    assert.equal(guests.slice(1).some((g, i) => gebeurt(g, 'melding', van[i + 1]).some((b) => /Je bent geraakt/.test(b.tekst))), false, 'alleen Tessa hoort dat');
-    world.companion.state = 'alive';
-    await until(() => gebeurt(guests[0], 'melding', van[0]).some((b) => /Je staat weer/.test(b.tekst)), 4000, 'Tessa staat weer');
+    // De metgezel is sinds #502 een computerfiguur en hoort niet meer bij een gastplek; de
+    // persoonlijke "Je bent geraakt"-melding van de oude Tessa-gast bestaat daarom niet meer.
   });
 
   await t('#367 roepjes: een gast roept, de anderen krijgen het met de plek van de afzender, de gastheer ziet het baken', async () => {
