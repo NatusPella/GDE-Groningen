@@ -77,7 +77,7 @@ const ROOM = 'K3J9D8F2MN';
 const lijstSignaal = (net, seed = 11) => new B.LijstSignaler(
   { TRACKERS: ['wss://tracker.een.test'], MQTT_BROKERS: ['wss://broker.een.test/mqtt'] },
   { socket: net.socket, rand: makeRng(seed) },
-  { brokerTimeout: 200, interval: 40 },
+  { brokerTimeout: 2000, interval: 40 }, // geen prestatiemeting: een ruime grens haalt de gevoeligheid voor machinebelasting weg
 );
 // De lijst bij een speler: dezelfde klasse als in lobbyui.js, met een vaste klok zodat verlopen te testen is.
 async function luisteraar(net, k = { now: Date.now() }) {
