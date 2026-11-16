@@ -54,6 +54,6 @@ for (const naam of bestanden) {
   void secs;
 }
 
-console.log(`\ncoop-tests: ${pass} geslaagd, ${bekend} bekend kapot (zie #646), ${fail} onverwacht mislukt (${bestanden.length} bestanden)`);
+console.log(`\ncoop-tests: ${pass} geslaagd, ${bekend} bekend kapot, ${fail} onverwacht mislukt (${bestanden.length} bestanden)`);
 if (fail) { console.log('Onverwacht mislukt: ' + fouten.join(' | ')); process.exit(1); }
 process.exit(0);
