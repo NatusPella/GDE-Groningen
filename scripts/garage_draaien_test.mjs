@@ -20,7 +20,7 @@ ok(/canvas tabindex="0"/.test(gu), 'de canvas van het model is met de toetsen en
 ok(/aria-label="3D-model van \$\{model\}: sleep of gebruik de pijltjes om te draaien"/.test(gu), 'de canvas vertelt dat hij te draaien is');
 // de hint noemt niet alleen slepen: de pijltjes (of de D-pad) staan er als toetsplaatje bij,
 // en glyphs.js (data-gk) wisselt dat plaatje naar de controller als die het laatst gebruikt is
-ok(/Sleep of draai met <kbd class="m-kc" data-gk="arrowleft">/.test(gu), 'de hint noemt de pijltjes als toetsplaatje');
+ok(/Sleep of gebruik <kbd class="m-kc" data-gk="arrowleft">/.test(gu), 'de hint noemt de pijltjes als toetsplaatje');
 ok(/data-gk="arrowright"/.test(gu), 'en de andere richting ook');
 ok(!/Sleep om te draaien/.test(gu), 'de oude hint die alleen slepen beloofde is weg');
 // een toets of pad op de draaitafel draait het model; de rest van het menu blijft werken

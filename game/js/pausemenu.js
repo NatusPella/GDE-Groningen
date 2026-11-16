@@ -735,7 +735,7 @@ function settingsHtml() {
         </div>`)}`, `
       <aside class="m-pane" data-preset-pane><div class="pm-pane-top"><span class="m-eb">Voorinstelling</span><h2 class="m-h2" data-preset-name></h2></div>
         <p data-preset-desc></p>
-        <div class="m-fact" data-preset-fps hidden><span>Verwacht op deze computer</span><span class="m-num pm-big"></span></div>
+        <div class="m-fact" data-preset-fps hidden><span>Verwacht voor deze computer</span><span class="m-num pm-big"></span></div>
         <div class="pm-fpsbars" data-preset-bars></div><p class="mut" data-bench-note></p></aside>`)}
     ${tab('sound', `
       ${slider('masterVolume', 'Hoofdvolume')}

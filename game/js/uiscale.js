@@ -48,6 +48,14 @@ function apply() {
   const s = compute();
   const fit = Math.max(0.6, (window.innerHeight - FOOT_H * s - 40) / CARD_H);
   document.documentElement.style.setProperty('--ui-fit', fit.toFixed(3));
+  // De menukaart is 1920x1080 ontwerp-px. Op een laag venster (720p, 1366x768)
+  // moet hij krimpen; de HUD-vloer van --ui (nooit onder 1) deed dat niet, waardoor
+  // de onderste rijen van een blad buiten beeld vielen. --mz-fit volgt de echte
+  // verhouding tot 1920x1080, keer de keuze van de speler voor de interfacegrootte.
+  // Op aanraakschermen blijft de bestaande --ui/1.2-indeling staan.
+  const touch = document.documentElement.classList.contains('touch-device');
+  const mz = touch ? s / 1.2 : Math.max(0.5, Math.min(4, Math.min(window.innerHeight / 1080, window.innerWidth / 1920) * (Number(getSettings().uiScale) || 1)));
+  document.documentElement.style.setProperty('--mz-fit', mz.toFixed(3));
   if (s === scale) return;
   scale = s;
   document.documentElement.style.setProperty('--ui', String(s));

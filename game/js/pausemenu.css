@@ -14,7 +14,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 
 /* the rail */
 #pause-menu .pm-rail { position: absolute; top: var(--mt); left: 80px; bottom: var(--mt); width: 288px; display: flex; flex-direction: column; animation: m-rail-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* #911: 48 in plaats van 56 px, zodat de twaalf rijen en de drie groepskoppen ook op een 1080p-stage passen */ --ra-h: 48px; }
-#pause-menu .pm-inner.pm-game { display: flex; flex-direction: column; height: 100%; overflow-y: auto; scrollbar-width: none; }
+#pause-menu .pm-inner.pm-game { display: flex; flex-direction: column; height: 100%; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.22) transparent; }
 #pause-menu .pm-game > * { flex-shrink: 0; }
 #pause-menu .pm-game [hidden] { display: none; }
 #pause-menu.prestart .pm-ingame { display: none; }
@@ -178,8 +178,10 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
    out in 1920x1080 px and zoomed (menu.css), so the rail never has to shrink or
    scroll on 1280x720 and 1920x1080; the scroll stays only as a guard for a window
    far under the design height. */
-#pause-menu .pm-rail { overflow-y: auto; scrollbar-width: none; }
-#pause-menu .pm-rail::-webkit-scrollbar { display: none; }
+#pause-menu .pm-rail { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.22) transparent; }
+#pause-menu .pm-rail::-webkit-scrollbar { display: block; width: 6px; }
+#pause-menu .pm-rail::-webkit-scrollbar-thumb { background: rgba(240, 237, 228, 0.22); border-radius: 3px; }
+#pause-menu .pm-rail::-webkit-scrollbar-track { background: transparent; }
 #pause-menu .pm-rail > * { flex-shrink: 0; }
 
 /* Overzicht */
@@ -271,7 +273,19 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .m-chip[aria-pressed="true"] { background: rgba(63, 201, 122, 0.12); color: var(--ink); }
 #pause-menu .m-chip[aria-pressed="true"] span { opacity: 1; }
 #pause-menu .m-facts .m-fact { max-width: 260px; }
+/* Een feit met een lange waarde (het dichtstbijzijnde herkenningspunt) mag de
+   volle breedte gebruiken; anders wikkelt "DE FONTEIN · 292 M" in drie regels. */
+#pause-menu .m-facts .m-fact.td-fact { max-width: 100%; }
 #pause-menu .td-acts { flex: none; }
+/* De plakkerige actierij hoort bij de knoppen, niet bij de lege ruimte ernaast:
+   zo is er geen donkere lege knopvorm rechts van "Op de kaart". */
+#pause-menu .m-pane > .m-acts.td-acts { width: fit-content; max-width: 100%; background: none; }
+/* In de garage staat de actie onder de titel en boven de feiten (garageui.js):
+   zo is "Laten afleveren" altijd in beeld en schuift hij niet over de WAAR-regel. */
+#pause-menu .gar-viewer > .m-acts.td-acts {
+  position: static; flex: none; padding: 4px 0 10px;
+  background: none;
+}
 
 /* #903-#908: één hero- en statentaal voor de vernieuwde schermen. Zelfde tokens, zelfde
    lettertypen en dezelfde menuvloer als de rest van het menu; alleen de opbouw is rijker. */
@@ -499,9 +513,8 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-msg { font-size: 18px; min-height: 24px; }
 /* Review 0.62: menu.css maakt .m-pane > .m-acts.td-acts plakkerig (position: sticky) voor
    de detailkolommen met een lange lijst. In de garage schoof KOPEN of LATEN AFLEVEREN
-   daardoor over de laatste regel van WAAR. Hier neemt de knoppenrij weer gewoon haar
-   eigen ruimte onder de gegevens in. */
-#pause-menu .gar-viewer > .m-acts.td-acts { position: static; flex: none; padding-top: 4px; background: none; }
+   daardoor over de laatste regel van WAAR. De actie staat nu boven de feiten
+   (garageui.js) en neemt daar gewoon haar eigen ruimte in. */
 #pause-menu .gar-viewer { width: auto; }
 /* #892: de tekst onder het model heeft drie blokken met een eigen kop, in de taal van de
    vernieuwde schermen (pm-sec/pm-stats), zonder de marge van een volle pagina. */

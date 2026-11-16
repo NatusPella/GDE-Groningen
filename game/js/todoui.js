@@ -361,7 +361,7 @@ export function setTodoFilter(near) { ui.near = !!near; }
 function activiteitenHero(eigen, metPlek) {
   const dichtbij = eigen.filter((it) => it.dist != null && it.dist < 600).length;
   return `<section class="td-acthero" aria-label="Activiteiten"><div class="td-acthero-main"><span class="m-eb">In en om Grunn</span>` +
-    `<b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} te doen</b>` +
+    `<b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} in en om Grunn</b>` +
     `<p class="td-acthero-lead">Klussen, minigames en uitjes. Kies er een voor de uitleg, de afstand en de knop naar de plek.</p></div>` +
     `<div class="td-acthero-facts"><span class="pm-stat" data-tone="accent"><b>${dichtbij}</b><span>dichtbij</span></span><span class="pm-stat"><b>${metPlek}</b><span>met een plek</span></span></div></section>`;
 }
@@ -470,7 +470,7 @@ export function todoSummary(world) {
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
     verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length),
-    subTodo: `${items.filter(isActiviteit).length} dingen te doen · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij · Veroverd staat in de rail`,
+    subTodo: `${items.filter(isActiviteit).length} dingen in en om Grunn · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij · Veroverd staat in de rail`,
     sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
 }

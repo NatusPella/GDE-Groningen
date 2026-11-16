@@ -120,8 +120,15 @@ html.touch-device body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-e
   html.touch-device body.plane-flying #hud .hud-mission .hud-mission-label { -webkit-line-clamp: 1; line-clamp: 1; }
 }
 html.touch-device #hud .ach-toast { top: calc(var(--hud-top, 34px) + 72px) !important; bottom: auto !important; left: 50% !important; transform: translateX(-50%); }
-html.touch-device #hud .hud-nowplaying { max-width: 132px; }
+html.touch-device #hud .hud-nowplaying { max-width: min(64vw, 300px); }
 html.touch-device #hud .hud-nowplaying small, html.touch-device #hud .hud-nowplaying b, html.touch-device #hud .np-artist, html.touch-device #hud .np-title { font-size: max(18px, calc(12px / var(--ui, 1))); }
+/* Op een telefoon was de kaart 132 px breed: "PROAT IN DE OCHTEND" werd "PROAT IN …".
+   Iets breder en twee regels, zodat de titel en de omschrijving leesbaar blijven. */
+html.touch-device #hud .hud-nowplaying b,
+html.touch-device #hud .hud-nowplaying span:not(.np-ic) {
+  white-space: normal; display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
 html.touch-device #hud .wp-text b { font-size: max(18px, calc(12px / var(--ui, 1))) !important; }
 html.touch-device:not(.touch-portrait) #hud .hud-place { left: 90px; right: 300px; }
 /* small HUD texts stay at 12 px on screen after the phone's HUD scale (0.62-0.8) */

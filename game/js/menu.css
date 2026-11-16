@@ -11,7 +11,7 @@
 .gm {
   --g: #3fc97a; --g2: #1e9e56; --gd: #0f5c30; --ink: #f0ede4; --mut: rgba(240, 237, 228, 0.68);
   --line: rgba(240, 237, 228, 0.08); --line2: rgba(240, 237, 228, 0.16); --red: #d93f3f; --redtx: #f08a8a;
-  --mz: calc(var(--ui, 1.2) / 1.2);
+  --mz: var(--mz-fit, calc(var(--ui, 1.2) / 1.2));
   /* #868: de menutekst wordt met --mz verkleind; deze vloer houdt kleine regels op
      12 schermpixels, net als --hud-min in de HUD. */
   --menu-min: calc(13px / var(--mz));

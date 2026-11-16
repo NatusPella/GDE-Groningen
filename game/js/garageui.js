@@ -90,7 +90,7 @@ function stageHtml(e) {
   return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}` +
     '<img class="gar-still" alt="" draggable="false" hidden>' +
     `<canvas tabindex="0" role="img" aria-label="3D-model van ${model}: sleep of gebruik de pijltjes om te draaien"></canvas>` +
-    '<span class="gar-hint">Sleep of draai met <kbd class="m-kc" data-gk="arrowleft">←</kbd><kbd class="m-kc" data-gk="arrowright">→</kbd></span></div>';
+    '<span class="gar-hint">Sleep of gebruik <kbd class="m-kc" data-gk="arrowleft">←</kbd><kbd class="m-kc" data-gk="arrowright">→</kbd></span></div>';
 }
 
 // Everything beside the stage: name, facts, the message and the buttons.
@@ -127,8 +127,11 @@ function detailsHtml(e, msg) {
   const waarHtml = waar && waar.trim() ? secHtml('Waar', '', waar) : '';
   return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2></div>` +
     (e.meme ? `<p class="mut gar-meme">${esc(e.meme)}</p>` : '') +
+    // De actie staat meteen onder de titel: boven de feiten is hij altijd in beeld,
+    // zonder plakkerige voetregel over de laatste WAAR-regel (review 0.62).
+    acts +
     waarHtml + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
-    `<p class="gar-msg g" role="status">${esc(msg || '')}</p><span class="m-grow"></span>` + acts;
+    `<p class="gar-msg g" role="status">${esc(msg || '')}</p>`;
 }
 
 function viewerHtml(e, msg) {
@@ -392,7 +395,7 @@ export function renderGaragePanel(el, world, msg = '') {
   const list = getGarageCatalog(world);
   lastList = list;
   const owned = list.filter((e) => e.owned);
-  el.dataset.sub = `${owned.length} van ${list.length} voertuigen van jou`;
+  el.dataset.sub = `${owned.length} van ${list.length} voertuigen`;
   el.innerHTML = `<div class="m-tabs">${tabsHtml(list)}</div>` +
     '<div class="m-main"><div class="m-list gar-list"></div><aside class="m-pane gar-viewer" aria-live="polite" aria-label="Details"></aside></div>';
   aim.hover = null;
