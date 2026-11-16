@@ -572,11 +572,15 @@ if (SUITE === 'net') {
   const hm = samples('host').filter((s) => s.ph === 'loop'); const hc0 = hm[0] && hm[0].companion, hc1 = last(hm).companion;
   const hcMax = hm.filter((q) => q.companion && hc0).reduce((m, q) => Math.max(m, Math.hypot(q.companion.x - hc0.x, q.companion.y - hc0.y)), 0);
   check(lg && hc0 && hcMax > 1.5, `Tessa loopt: de host ziet haar niet bewegen (grootste afstand tot het begin ${hcMax.toFixed(1)} m)`);
-  // uitval van de gast: pauze aan beide kanten, daarna hervat
+  // Uitval van de gast. Wat er hoort te gebeuren staat in docs/COOP-GAST.md ("Wegvallen") en in
+  // coopplayers.js holdBeleid: alle spelers zijn gelijkwaardig, dus de rest speelt door en alleen als
+  // de lopende opdracht deze speler echt nodig heeft (vereistVoor) pauzeert het spel. Buiten een missie
+  // is dat niet zo, dus de gastheer hoort GEEN wachtscherm te krijgen — de check eiste eerder het
+  // omgekeerde en maakte daarmee een correcte uitkomst rood.
   const uh = of(H, 'uitval-host')[0], uhn = of(H, 'uitval-host-na')[0], ug = of(G, 'uitval-midden')[0];
-  check(uh && uh.hold && uh.uiPaused && uh.paused, 'uitval: de host krijgt geen pauzescherm: ' + JSON.stringify(uh));
+  check(uh && !uh.hold && !uh.uiPaused, 'uitval: de host pauzeert terwijl de opdracht deze speler niet nodig heeft: ' + JSON.stringify(uh));
   check(uh && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: Tessa staat niet als weggevallen in de lijst van de host: ' + JSON.stringify(uh && uh.roster));
-  check(ug && ug.hold && ug.uiPaused && ug.paused, 'uitval: de gast krijgt geen pauzescherm: ' + JSON.stringify(ug));
+  check(ug && !ug.hold && !ug.uiPaused, 'uitval: de gast houdt zijn eigen wereld stil terwijl hij weg is: ' + JSON.stringify(ug));
   check(uhn && !uhn.hold && !uhn.uiPaused && uhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'uitval: na het herstel loopt het spel bij de host niet door: ' + JSON.stringify(uhn));
   const gEnd = samples('gast').filter((s) => s.ph === 'betaal' || s.ph === 'opgeslagen' || s.ph === 'wacht');
   check(gEnd.length && !last(gEnd).hold && !last(gEnd).uiPaused && ['ok', 'lag'].includes(last(gEnd).status), 'uitval: na het herstel loopt het spel bij de gast niet door: ' + JSON.stringify({ hold: last(gEnd).hold, ui: last(gEnd).uiPaused, st: last(gEnd).status }));
@@ -595,10 +599,14 @@ if (SUITE === 'net') {
   // de verbinding gaat dicht en de gast verbindt opnieuw via het wachtscherm (alleen met een Electron-gast)
   if (GASTEN > 0) {
     const hh = of(G, 'herverbind-hold')[0], hk = of(G, 'herverbind-klaar')[0], hc = of(G, 'herverbind-code')[0], hhh = of(H, 'herverbind-host')[0], hhn = of(H, 'herverbind-host-na')[0];
+    // De gast die zijn eigen verbinding verliest krijgt zijn eigen wachtscherm met pauze: dat is zijn eigen
+    // spel, geen hostrecht (docs/COOP-GAST.md). De host hoort géén wachtscherm te krijgen zolang de
+    // lopende opdracht die speler niet nodig heeft (holdBeleid) — daarom bewaken we bij de host alleen
+    // dat hij het wegvallen in de lijst zag, niet dat hij pauzeerde.
     check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm met pauze: ' + JSON.stringify(hh));
     check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is na "Opnieuw verbinden" niet terug op plek 1: ' + JSON.stringify(hk));
-    if (hhh && hhh.holdGezien) check(hhh.pauzeGezien && hhh.lostGezien, 'herverbinden: de host kreeg wel een wachtscherm maar geen pauze: ' + JSON.stringify(hhh));
-    else note('herverbinden: de gast was binnen 5 s terug, de host zag geen wegvallen (de uitval van 8 s hierboven dekt het wachtscherm van de host)');
+    if (hhh && hhh.holdGezien) check(hhh.lostGezien, 'herverbinden: de host zag het wegvallen niet in de lijst: ' + JSON.stringify(hhh));
+    else note('herverbinden: de gast was binnen 5 s terug, de host zag geen wegvallen (de uitval van 8 s hierboven dekt het wegvallen van de host)');
     check(hhn && !hhn.hold && !hhn.paused && hhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'herverbinden: de host speelt na het terugkomen niet door: ' + JSON.stringify(hhn));
     note('herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
   }
