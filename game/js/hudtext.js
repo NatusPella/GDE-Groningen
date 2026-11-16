@@ -58,14 +58,33 @@ export const fitSubtitle = (text) => trimWords(text, WORD_BUDGET.subtitle);
 
 // #643: één telefoonkaart van hooguit WORD_BUDGET.phone woorden (kop + body samen). De titel is een
 // kop, de body wordt op het budget afgekapt; `over` zegt of dat nodig was, zodat de audit een te
-// lange (ook dynamische) melding kan markeren in plaats van hem stil te laten groeien.
+// lange (ook dynamische) melding kan markeren in plaats van hem stil te laten groeien. Wat wordt
+// afgekapt, eindigt op een beletselteken: een kaart die midden in een zin stopt leest als een fout.
 export function phoneCard(title, body) {
   const t = String(title ?? '').trim();
   const b = String(body ?? '').trim();
   const woorden = wordCount(t) + wordCount(b);
   const titel = trimWords(t, 8);
   const rest = trimWords(b, Math.max(0, WORD_BUDGET.phone - wordCount(titel)));
-  return { title: titel, body: rest, words: woorden, over: woorden > WORD_BUDGET.phone };
+  return {
+    title: titel + (wordCount(t) > 8 && titel ? '…' : ''),
+    body: rest + (wordCount(b) > Math.max(0, WORD_BUDGET.phone - wordCount(titel)) && rest ? '…' : ''),
+    words: woorden,
+    over: woorden > WORD_BUDGET.phone,
+  };
+}
+
+// Een nieuwsbericht zonder eigen kop: de eerste zin is de kop, de rest de body. Lukt dat niet,
+// dan de eerste komma, het eerste streepje of de eerste dubbele punt; anders blijft het één regel.
+// Puur, zodat scripts/hud_test.mjs de drie evenementberichten kan nalopen.
+export function splitNewsCard(text) {
+  const s = String(text ?? '').trim();
+  if (!s) return { title: '', body: '' };
+  const sentence = /^(.{8,60}?[.!?])\s+(.{6,})$/.exec(s);
+  if (sentence) return { title: sentence[1], body: sentence[2] };
+  const sep = /^(.{8,52}?)(, | – | - |: )(.{6,})$/.exec(s);
+  if (sep) return { title: sep[1], body: sep[3] };
+  return { title: s, body: '' };
 }
 
 // --- the 'seen' counter --------------------------------------------------------

@@ -1,5 +1,5 @@
 import { dualHtml, dutchFor } from './subtitles.js';
-import { fitCard, phoneCard } from './hudtext.js';
+import { fitCard, phoneCard, splitNewsCard } from './hudtext.js';
 import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -119,8 +119,12 @@ function parse(n) {
   let title = n.title || '';
   let body = text;
   if (!title && app === 'sikkom') {
-    const c = /^(.{8,52}?)(, | – | - |: )(.{6,})$/.exec(text);
-    if (c) { title = c[1]; body = c[3]; } else { title = text; body = ''; }
+    // Eerst de eerste zin als kop, dan pas een komma/streepje/dubbele punt; anders bleef
+    // "Kiezelweek! Groepjes ... Rustig rijden." één lange titel en kapte de kaart hem
+    // midden in de zin af (#643). De nieuwsteksten zijn zo ook zonder afkapping te lezen.
+    const c = splitNewsCard(text);
+    title = c.title;
+    body = c.body;
     title = title[0].toUpperCase() + title.slice(1);
   }
   // #643: één telefoonkaart met een gemeten woordbudget (ook bij dynamische tekst)

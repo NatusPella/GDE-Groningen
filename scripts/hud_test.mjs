@@ -343,6 +343,19 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const lang = 'Dit is een veel te lange dynamische telefoonmelding met meer dan veertien woorden erin en nog wat extra woorden';
   const k = T.phoneCard('Kop', lang);
   ok(k.over && T.wordCount(k.title + ' ' + k.body) <= T.WORD_BUDGET.phone, 'een lange dynamische telefoontekst wordt geknipt en gemeld', String(k.words));
+  ok(k.body.endsWith('…'), 'een afgekapte body eindigt op een beletselteken', k.body);
+  // De drie evenementberichten (flavourlines.js) moeten zonder afkapping in één kaart passen.
+  const F = await import('../game/js/flavourlines.js');
+  for (const [key, ev] of Object.entries(F.EVENT_DAYS)) {
+    const split = T.splitNewsCard(ev.announce);
+    const card = T.phoneCard(split.title, split.body);
+    ok(!card.title.endsWith('…') && !card.body.endsWith('…'), `nieuwsbericht ${key} past zonder afkapping`, `${card.title} | ${card.body}`);
+    ok(T.wordCount(card.title + ' ' + card.body) <= T.WORD_BUDGET.phone, `nieuwsbericht ${key} blijft binnen het telefoonbudget`, String(T.wordCount(card.title + ' ' + card.body)));
+    ok(card.title.length > 0 && card.body.length > 0, `nieuwsbericht ${key} heeft een kop en een body`, JSON.stringify(card));
+  }
+  // Een oude, langere Kiekdoar-zin valt terug op de eerste zin en houdt de rest als body.
+  const oud = T.splitNewsCard('Kiezelweek! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.');
+  ok(oud.title === 'Kiezelweek!' && oud.body.startsWith('Groepjes'), 'een nieuwsbericht splitst op de eerste zin', JSON.stringify(oud));
   const cardsCss = readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
   ok(!/rgba\(232, 201, 58/.test(cardsCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(cardsCss), 'de prestatiekaart heeft één accent uit --hc');
   const pfCss = readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');
