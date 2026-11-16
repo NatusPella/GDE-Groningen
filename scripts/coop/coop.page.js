@@ -439,7 +439,12 @@ const PHASES = {
     log('herverbind-code', { voorgevuld: veld.value === CFG.code });
     veld.value = CFG.code; veld.dispatchEvent(new Event('input', { bubbles: true }));
     await until(() => knop('koppel'), 5000, 'knop koppel'); knop('koppel').click(); await sleep(400);
-    await until(() => knop('akkoord'), 5000, 'toestemming bij het opnieuw verbinden'); shot('herverbind-toestemming'); knop('akkoord').click();
+    // De toestemmingsknop is er met opzet niet bij het hervatten: coophold.js opent het wachtscherm met
+    // start:'verbroken', lobbyui.js zet daarmee consented, en lobby.js slaat de stap 'toestemming' dan
+    // over (hasConsent). Al één keer toegestemd in deze sessie. Alleen als de knop er wél is, klikken we.
+    const akkoord = knop('akkoord');
+    log('herverbind-toestemming', { knop: !!akkoord });
+    if (akkoord) { shot('herverbind-toestemming'); akkoord.click(); }
     await until(() => !hold(), 30000, 'wachtscherm sluit na het opnieuw verbinden');
     await sleep(1500);
     log('herverbind-klaar', { hold: !!hold(), paused: !!W().paused, status: ses.status, slot: ses.slot, coopNet: !!net() });
