@@ -1,5 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { toonStartkaart } from './startkaart.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { easeStep, createBoard, mgThema } from './minigamekit.js';
@@ -68,6 +69,10 @@ function interact(w) {
 }
 
 function start(w, index) {
+  // Geluid bij het instappen: het staal van de gondel, en de bel van de kermisbaas.
+  // Zonder dit was een rit in het reuzenrad van begin tot eind stil.
+  pushAudioEvent(w, { kind: 'fx', name: 'bridge_clunk', x: LOAD.x, y: LOAD.y, gain: 0.35 });
+  pushAudioEvent(w, { kind: 'bell', x: LOAD.x, y: LOAD.y });
   const rot = kermisWheel().rot;
   w.money -= W.PRICE;
   ride = { plan: W.ridePlan(rot, index), look: { yaw: Math.PI / 2, pitch: -0.12 }, aim: null, seat: null, exitReq: false, t: 0 };
@@ -80,6 +85,7 @@ function start(w, index) {
 }
 
 function end(w, { quit = false } = {}) {
+  pushAudioEvent(w, { kind: 'fx', name: 'bridge_clunk', x: LOAD.x, y: LOAD.y, gain: 0.3 });
   if (!ride) return;
   ride = null;
   w.cinematicHidePlayers = false;

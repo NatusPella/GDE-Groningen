@@ -2,6 +2,7 @@ import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { notifyPhone } from './phonefeed.js';
 import { buildUfoMesh, kleurLampjes, buildStraal, setStraal } from './ufo3d.js';
+import { pushAudioEvent } from './pedgeom.js';
 import * as S from './schaapontvoering.js';
 
 // Schaapontvoering (#333), de kant van de wereld: kiest in de nacht een grazend wildlife-schaap op het land,
@@ -9,7 +10,7 @@ import * as S from './schaapontvoering.js';
 // (wildlife.js slaat een `ontvoerd` dier over), hangt via `a.lift` boven de grond (scene3d.js) en verdwijnt
 // in de schotel. Eén keer per nacht hoogstens, en alleen als de speler het kan zien. `window.__ontvoering` debug.
 
-let st = null, schaap = null, ufo = null, straal = null, nacht = null, plan = false, klaar = false, checkT = 3, regel = -1, hudT = 0;
+let st = null, schaap = null, ufo = null, straal = null, nacht = null, plan = false, klaar = false, checkT = 3, regel = -1, hudT = 0, laatsteFase = null;
 let sceneOverride = null;
 
 function mesh(scene) {
@@ -21,6 +22,7 @@ function mesh(scene) {
 }
 
 function stop() {
+  laatsteFase = null;
   if (schaap) { schaap.lift = 0; schaap.draai = 0; schaap.ontvoerd = false; }
   if (ufo) ufo.g.visible = false;
   if (straal) straal.visible = false;
@@ -69,6 +71,14 @@ export function tickSchaapontvoering(dt, world, scene = null) {
   // het schaap is intussen weggehaald (de speler is ver weg gereden): de schotel gaat er alleen vandoor
   if (schaap && world.wildlife && !world.wildlife.includes(schaap) && st.fase !== 'weg') { st.fase = 'weg'; st.t = 0; st.schaapWeg = true; st.lift = Math.min(st.lift, S.HOOGTE - 2.4); }
   S.stap(st, dt);
+  // Eén geluid per fase: de schotel sist binnen, de straal zet aan, het schaap gaat omhoog
+  // en de schotel schiet weg. Zonder dit was de hele ontvoering stil (alleen de omgeving).
+  if (st.fase !== laatsteFase) {
+    laatsteFase = st.fase;
+    const q = st.ufo || { x: 0, y: 0 };
+    const g = st.fase === 'weg' ? 0.9 : st.fase === 'aanvlucht' ? 0.75 : 0.6;
+    pushAudioEvent(world, { kind: 'whoosh', x: q.x, y: q.y, strength: g });
+  }
   const t = world.time || 0;
   ufo.g.visible = true;
   ufo.g.position.set(st.ufo.x + Math.sin(t * 1.3) * 0.6, st.ufo.z + Math.sin(t * 1.7) * 0.5, st.ufo.y);

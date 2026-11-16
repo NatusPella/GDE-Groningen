@@ -72,6 +72,10 @@ const MUST = [
   ['discgolf-foley', 'discgolf.js', /discgolfFx\(/],
   ['skatepark-foley', 'skatepark.js', /skateFx\(/],
   ['klimtoren-foley', 'klimtoren.js', /climbFx\(/],
+  // plekken die stil waren (review 0.62): het reuzenrad, de schotel en de garage
+  ['reuzenrad-instappen', 'reuzenrad.js', /pushAudioEvent/],
+  ['schotel-fases', 'schaapontvoeringrt.js', /pushAudioEvent/],
+  ['garage-reparatie', 'garages.js', /pushAudioEvent/],
 ];
 for (const [what, f, re] of MUST) ok(re.test(src[f] ?? fs.readFileSync(path.join(JS, f), 'utf8')), `${what}: ${f} makes a sound`);
 

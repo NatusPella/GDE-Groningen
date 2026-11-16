@@ -8,6 +8,7 @@ import { isCinematicActive } from './cinematics.js';
 import { tuningKind, optionsFor, PARTS, PART_LABELS, tuningEffects, installPrice, withOption, loadTuning, saveTuning, optionById } from './tuningplan.js';
 import { KEYS } from './storagekeys.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE, garageKorting } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savehook.js';
@@ -317,6 +318,7 @@ function tuningItems(w, v) {
           if (!next || !pay(w, price)) return null;
           all[id] = next;
           saveTuning(store, KEYS.tuning, all);
+          pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.45, x: v.x, y: v.y });
           v.tuning = tuningEffects(next);
           return o.label + ' erop. Henk knikt goedkeurend';
         },
@@ -355,6 +357,7 @@ function garageMenu(w, site) {
         buy() {
           if (!pay(w, price)) return null;
           repairVehicle(v);
+          pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.55, x: v.x, y: v.y });
           markDirty('reparatie');
           return 'Als nieuw! Henk veegt zijn handen af aan zijn overall';
         },
@@ -386,9 +389,9 @@ function garageMenu(w, site) {
       });
       out.push({ title: 'Werkplaats', note: isOwn(v) ? '' : 'Let op: niet jouw voertuig, upgrades blijven er niet aan hangen', items });
       const paint = paintItems(w, v);
-      if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? (koel > 0 ? `De spuitcabine is nog ${Math.ceil(koel)} s afgekoeld` : 'Een nieuwe kleur en de politie is je kwijt') : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('lak'); return r; } })) });
+      if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? (koel > 0 ? `De spuitcabine is nog ${Math.ceil(koel)} s afgekoeld` : 'Een nieuwe kleur en de politie is je kwijt') : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'whoosh', x: v.x, y: v.y, strength: 0.7 }); markDirty('lak'); } return r; } })) });
       const up = vehicleUpgradeItems(w, v);
-      if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('upgrade'); return r; } })) });
+      if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.45, x: v.x, y: v.y }); markDirty('upgrade'); } return r; } })) });
     }
     if (serviceable(v) && isOwn(v)) {
       const parts = tuningItems(w, v);
