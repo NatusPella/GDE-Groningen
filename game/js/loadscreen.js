@@ -10,11 +10,11 @@ import { getStoryView } from './storyquery.js';
 import { zachtePauze } from './coopgroep.js';
 import { PARTS } from './storyarc.js';
 import { hudDate } from './hudcalendar.js';
-import { streamPending } from './scene3d.js';
+import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S } from './loadlogic.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending } from './loadlogic.js';
 
 let tips = [];
 export const setLoadTips = (list) => { tips = [...list]; };
@@ -109,6 +109,12 @@ export function startLoadScreen(world, opts = {}) {
   if (boot) boot.classList.add('ls-over');
   requestAnimationFrame(() => el.classList.add('on'));
 
+  // #929: de bestemming wordt voorverwarmd terwijl het scherm openstaat. Het laden
+  // wachtte alleen op de gebouwen en wegen van scene3d; de tegels van de plek waar je
+  // aankomt en het voorwerk daarvan kwamen pas daarna, zodat de wereld na het
+  // laadscherm nog seconden traag bleef. De straal is de boot van de prewarm-lus
+  // (PREWARM_R, 110 m) met een lange looptijd: het scherm dekt de eerste frames.
+  if (kind !== 'snel') prewarmStreamAt(x, y, 30);
   const wasPaused = !!world.uiPaused;
   world.uiPaused = true;
   zachtePauze(world, 'laden', true); // met meer spelers loopt de wereld door (#452)
@@ -147,8 +153,11 @@ export function startLoadScreen(world, opts = {}) {
     // done-promise hangen en de wereld (en de wachters erop) voor altijd wachten.
     if (!el.isConnected) { finish(); return; }
     const now = performance.now();
+    // #929: ook de tegelwachtrij en de prewarm van de bestemming tellen mee; zonder
+    // die twee sloot het scherm terwijl de eerste seconde nog bouwde.
     const st = streamPending();
-    prog = stepProgress(prog, st.buildings + st.roads, (now - t0) / 1000, kind);
+    const tiles = world.map && world.map.tileQueue ? world.map.tileQueue.size : 0;
+    prog = stepProgress(prog, loadPending(st, tiles, prewarmPending()), (now - t0) / 1000, kind);
     fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
     barEl.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
     if (now - lineAt >= lineS * 1000) nextLine(now);

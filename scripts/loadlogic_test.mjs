@@ -1,5 +1,5 @@
 // Pure logic of the load screens (game/js/loadlogic.js):  node scripts/loadlogic_test.mjs
-import { loadKind, stepProgress, startProgress, pickTips, buildLines, tipText, barsFor, BAR_PHASES, TIP_MAX_CHARS, MAX_S, SNEL_M } from '../game/js/loadlogic.js';
+import { loadKind, stepProgress, startProgress, pickTips, buildLines, tipText, barsFor, BAR_PHASES, TIP_MAX_CHARS, MAX_S, SNEL_M, loadPending } from '../game/js/loadlogic.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
@@ -24,6 +24,23 @@ ok(a.bar <= 0.05 && !a.done, 'first frame starts low');
 let q = startProgress(); let d = -1;
 for (let f = 0; f < 400; f++) { q = stepProgress(q, 0, f / 60, 'snel'); if (q.done && d < 0) d = f / 60; }
 ok(d >= 0.6 && d < 1.2, 'snel with an empty queue is quick', d);
+
+// #929: het laadscherm telt ook de tegelwachtrij en de prewarm van de bestemming
+// mee; een reis die alleen op gebouwen en wegen wachtte, sloot te vroeg.
+ok(loadPending({ buildings: 3, roads: 2 }) === 5, 'loadPending: gebouwen en wegen');
+ok(loadPending({ buildings: 3 }, 7, 4) === 14, 'loadPending: tegels en prewarm tellen mee');
+ok(loadPending(null, 2, 0) === 2 && loadPending({ buildings: NaN, roads: -5 }, 0, 2) === 2, 'loadPending: onzin telt niet mee');
+{
+  // met een niet-lege tegelwachtrij is het scherm nog niet klaar, ook al staan de
+  // gebouwen en wegen op nul; dat was precies de trage eerste seconde na een reis
+  let p = startProgress(), klaarMetTegels = -1;
+  for (let f = 0; f < 900; f++) {
+    const t = f / 60, tiles = f < 180 ? 40 : 0; // 3 s lang tegels in de wachtrij
+    p = stepProgress(p, loadPending({ buildings: 0, roads: 0 }, tiles), t, 'travel');
+    if (p.done && klaarMetTegels < 0) klaarMetTegels = t;
+  }
+  ok(klaarMetTegels >= 3, 'de tegelwachtrij houdt het scherm open tot die leeg is', klaarMetTegels);
+}
 // stuck stream gives up after MAX_S
 let z = startProgress();
 z = stepProgress(z, 50, MAX_S + 0.1, 'travel');

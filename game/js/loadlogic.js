@@ -17,6 +17,16 @@ export function loadKind(distance, { save = false } = {}) {
   return distance < SNEL_M ? 'snel' : 'travel';
 }
 
+// Everything the world still has to build or load before the first seconds are
+// smooth: the buildings and roads of scene3d, the tiles still in the queue and
+// the prewarm of the place you are going to. The load screen waited only on the
+// first two, so after fast travel the destination stayed coarse for a while
+// once the screen was gone (#929).
+export function loadPending(st, tiles = 0, prewarm = 0) {
+  const n = (v) => (Number.isFinite(v) && v > 0 ? v : 0);
+  return n(st && st.buildings) + n(st && st.roads) + n(tiles) + n(prewarm);
+}
+
 // The streaming status counts what is still to be built; the first frames
 // have not looked at the new place yet, so they report nothing useful.
 // state: { total, shown, calm, frames }, returns the next state plus bar (0..1)

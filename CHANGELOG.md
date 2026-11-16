@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Na een reis is de wereld meteen soepel (#929):** het laadscherm wachtte alleen tot de gebouwen en wegen klaar waren. De tegels van de bestemming en het voorwerk daarvan kwamen pas daarna, zodat de eerste seconden na de trein of taxi nog bouwden. Het scherm warmt de bestemming nu zelf voor en telt de tegels mee, dus je komt aan in een wereld die al klaarstaat.
 - **De uitleg wijst naar de goede plek en de kaarten zijn kort:** het doel staat onderin, niet bovenin, de kaartjes blijven onder het woordbudget en de menupaden kloppen (Instellingen › Spel, Instellingen › Hints & uitleg, Instellingen › Geluid & ondertitels). De hulp zegt niet meer "in het hoofdmenu".
 - **Nieuwskaarten stoppen niet meer midden in een zin:** de eerste zin wordt de kop en de rest de body, en wat echt wordt afgekapt eindigt op een beletselteken. De Kiezelweek-aankondiging en de andere evenementberichten passen nu in één kaart.
 - **De menukaart past op 1280x720:** de kaart schaalt nu met de echte verhouding tot 1920x1080 in plaats van met een ondergrens van 1, dus de onderste tegelrij, de filterregel en de garage-tabs blijven in beeld. De rail en het speelscherm hebben een dunne, zichtbare scrollbalk.
@@ -16,7 +17,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Op een telefoon is de radio-kaart leesbaar:** "PROAT IN DE OCHTEND" en de omschrijving passen op twee regels in plaats van afgekapt te worden.
 - **Negen stille plekken hebben geluid:** het reuzenrad klonkt en belt, de schotel sist per fase, de garage klapt en spuit, het pannenkoekenschip sizzelt, het cabaret klapt, de fotomodus en het heistpaneel tikken als de andere menu's, de botsauto's starten hoorbaar en de wrakduik spat en ruist.
 - **De kaart is rustiger in het centrum:** alleen de speler, je maat en je doel zijn nooit weg te drukken; missie-, politie-, halte- en huisiconen wijken nu voor een hogere prioriteit.
-- **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.
+- **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.>>>>>>> 38df186e6 (#929: het laadscherm wacht ook op de tegels en de prewarm van de bestemming)
 
 ## [0.65.0] - 2026-11-16
 
