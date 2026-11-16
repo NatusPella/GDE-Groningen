@@ -109,9 +109,16 @@ function stingTik(world, kaart) {
 }
 
 let el = null, laatste = '';
-const CSS = `.wed-kaart{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:55;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:14px 20px 12px;border-radius:10px;background:rgba(12,20,14,.92);color:#f0ede4;border-left:4px solid #f2b82a;font:16px/1.45 'Arial Narrow', Arial, sans-serif;pointer-events:none}
+// (#875) De kaart hing op een vast deel van de hoogte midden in beeld en zakte op lage
+// schermen de HUD in. Hij hangt nu onder de bovenste HUD-strook: de vaste marge onder
+// --hud-top, of lager als de gemeten berichtenkolom van zone A tot daar komt
+// (--hud-a-bottom). Op een laag venster is hij compacter, zodat vier regels niet bijna
+// de onderrand raken.
+const CSS = `.wed-kaart{position:fixed;left:50%;top:max(calc(var(--hud-top, 34px) + 64px), calc(var(--hud-a-bottom, 0px) + 8px));transform:translateX(-50%);z-index:55;box-sizing:border-box;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:14px 20px 12px;border-radius:10px;background:rgba(12,20,14,.92);color:#f0ede4;border-left:4px solid #f2b82a;font:16px/1.45 'Arial Narrow', Arial, sans-serif;pointer-events:none}
 .wed-kaart b{display:block;font-size:12px;letter-spacing:3px;color:#f2b82a;text-transform:uppercase;margin-bottom:6px}
-.wed-kaart p{margin:2px 0;white-space:pre-wrap}.wed-kaart em{display:block;margin-top:8px;font-style:normal;font-size:14px;color:rgba(240,237,228,.8)}`;
+.wed-kaart p{margin:2px 0;white-space:pre-wrap}.wed-kaart em{display:block;margin-top:8px;font-style:normal;font-size:14px;color:rgba(240,237,228,.8)}
+@media (max-height:560px){.wed-kaart{top:max(calc(var(--hud-top, 18px) + 62px), calc(var(--hud-a-bottom, 0px) + 6px));min-width:0;padding:8px 14px 7px;font-size:14px;line-height:1.35}
+.wed-kaart b{font-size:13px;letter-spacing:2px;margin-bottom:3px}.wed-kaart em{font-size:13px;margin-top:5px}}`;
 function tekenKaart(m) {
   if (typeof document === 'undefined') return;
   if (!m) { if (el) { el.hidden = true; laatste = ''; } return; }
