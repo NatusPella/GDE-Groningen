@@ -50,6 +50,10 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 const CSS = `${SFEER_BAND_CSS}
 .lb-hero { flex: none; }
 .lb-hero .pm-hero-t { font-size: 44px; }
+.lb-hero > :not(.lb-hero-sfeer):not(.lb-hero-ico) { position: relative; z-index: 1; }
+.lb-hero > .lb-hero-sfeer { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: 320px; opacity: 0.42; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%); mask-image: linear-gradient(90deg, transparent, #000 70%); }
+.lb-hero > .lb-hero-ico { position: absolute; z-index: 2; right: 32px; top: 50%; width: 72px; height: 72px; margin: 0; color: rgba(240, 237, 228, 0.9); transform: translateY(-50%); }
+.lb-hero-ico svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .lb-stats { flex: none; }
 .lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
@@ -66,20 +70,38 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-pane .lb-blok p { margin: 4px 0; }
 .lb-pane p.lb-titel { margin: 0 0 2px; font-size: 24px; }
 .lb-pane .lb-kop p { margin: 0; }
-.lb-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; }
+.lb-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; flex: none; }
 .lb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); }
 .lb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
-.lb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; }
+.lb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; overflow-wrap: anywhere; }
 .lb-kpi small { font-size: 16px; color: var(--mut); }
 .lb-voort { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
 .lb-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
 .lb-pane .m-num { font-size: 26px; }
-.lb-trap { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 28px; max-width: 640px; }
-.lb-trap li { display: flex; gap: 10px; align-items: baseline; padding: 3px 8px; border-radius: 6px; opacity: 0.45; }
-.lb-trap li.bereikt { opacity: 0.85; }
-.lb-trap li.nu { opacity: 1; color: var(--g, #3fc97a); background: rgba(63, 201, 122, 0.12); box-shadow: inset 2px 0 0 var(--g, #3fc97a); }
-.lb-trap .nr { min-width: 1.6em; text-align: right; opacity: 0.8; }
-.lb-trap .bonus { margin-left: auto; opacity: 0.8; }
+/* De ladder als trap: elk niveau staat een stap verder naar rechts (--stap), zodat je de klim ziet, niet alleen leest. */
+.lb-trap { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.lb-trap li { display: grid; grid-template-columns: 1.8em minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 44px; padding: 5px 12px 5px calc(8px + var(--stap, 1) * 10px); border-radius: 7px; background: rgba(240, 237, 228, 0.03); opacity: 0.72; }
+.lb-trap li.bereikt { opacity: 0.9; box-shadow: inset 2px 0 0 rgba(63, 201, 122, 0.55); }
+.lb-trap li.nu { opacity: 1; background: rgba(63, 201, 122, 0.12); box-shadow: inset 3px 0 0 var(--g, #3fc97a); }
+.lb-trap .nr { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-size: 22px; line-height: 1; text-align: right; opacity: 0.85; }
+.lb-trap li.nu .nr { color: var(--g, #3fc97a); }
+.lb-trap .lb-stap-t { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.lb-trap .lb-stap-t b { font-weight: normal; font-size: 20px; }
+.lb-trap .lb-stap-t .mut { font-size: max(13px, var(--menu-min, 13px)); }
+.lb-trap .staat { padding: 1px 8px; border-radius: 999px; white-space: nowrap; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); box-shadow: inset 0 0 0 1px var(--line2); }
+.lb-trap li.nu .staat { color: var(--g, #3fc97a); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.55); }
+.lb-trap li.bereikt .staat { color: var(--ink); }
+.lb-h3 { margin: 6px 0 0; }
+.lb-next { padding: 10px 14px 10px 16px; border-radius: 10px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 3px 0 0 var(--g, #3fc97a); }
+.lb-next.klaar { box-shadow: inset 3px 0 0 var(--line2); }
+.lb-next p { margin: 4px 0; }
+.lb-next .lb-voort { margin: 0 0 6px; }
+.lb-hero:has(.lb-hero-ico) :is(.pm-hero-h, .pm-hero-t, .pm-hero-lead) { padding-right: 120px; }
+@media (max-height: 820px) {
+  .lb-hero:has(.lb-hero-ico) :is(.pm-hero-h, .pm-hero-t, .pm-hero-lead) { padding-right: 92px; }
+  .lb-hero > .lb-hero-ico { right: 20px; width: 54px; height: 54px; }
+  .lb-trap li { min-height: 40px; }
+}
 .lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 0; }
 .lb-banen li { display: flex; gap: 8px; align-items: center; opacity: 0.6; min-height: 38px; padding: 2px 8px; border-radius: 6px; }
 .lb-banen li:has(.lb-doel) { opacity: 1; background: rgba(240, 237, 228, 0.04); }
@@ -189,6 +211,24 @@ function landbouwGidsHtml(id) {
     `<p class="lb-kan">${esc(g.verschil)}</p></div>`;
 }
 
+// De ladder van dit vak als zichtbare trap: elk niveau staat een stap verder naar rechts, het huidige niveau heeft een
+// eigen rand en staat als aria-current, en per niveau staat het loon dat het oplevert. Zo lees je de klim in één oogopslag.
+function trapHtml(id, d) {
+  const info = L.vakInfo(id);
+  if (!info) return '';
+  return '<ol class="lb-trap" aria-label="Niveaus">' + info.titels.map((t, i) => {
+    const niv = i + 1;
+    const cls = niv < d.niveau ? 'bereikt' : niv === d.niveau ? 'nu' : '';
+    const plus = L.percentage(L.factorVoorNiveau(niv));
+    const staat = niv < d.niveau ? 'Bereikt' : niv === d.niveau ? 'Nu' : 'Nog niet';
+    const loon = plus ? `+${plus}% loon` : 'basisloon';
+    return `<li class="${cls}" style="--stap:${niv - 1}"${niv === d.niveau ? ' aria-current="step"' : ''}>` +
+      `<span class="nr" aria-hidden="true">${niv}</span>` +
+      `<span class="lb-stap-t"><b>${esc(t)}</b><span class="mut">${loon}</span></span>` +
+      `<span class="staat">${staat}</span></li>`;
+  }).join('') + '</ol>';
+}
+
 function detailHtml(profiel, id, w = null) {
   const info = L.vakInfo(id);
   if (!info) return '<p class="mut">Kies een vak om te zien hoe het ervoor staat.</p>';
@@ -210,14 +250,12 @@ function detailHtml(profiel, id, w = null) {
   const voort = `<div class="lb-voort"><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lbd-${id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span><span class="m-num">${d.volgend ? `${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} / ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])}` : 'klaar'}</span></div>`;
   const telt = [L.tellerTekst(profiel, id)];
   if (v.uniek.length) telt.push(`${v.uniek.length} verschillende ${esc(info.uniek)}`);
-  const trap = '<ol class="lb-trap">' + info.titels.map((t, i) => {
-    const niv = i + 1;
-    const cls = niv < d.niveau ? 'bereikt' : niv === d.niveau ? 'nu' : '';
-    const plus = L.percentage(L.factorVoorNiveau(niv));
-    return `<li class="${cls}"><span class="nr">${niv}</span><span>${esc(t)}</span><span class="bonus">${plus ? `+${plus}%` : 'basis'}</span></li>`;
-  }).join('') + '</ol>';
+  const trap = trapHtml(id, d);
   const banen = L.banenVan(id);
   const bezigheden = bezighedenHtml(id, v, banen);
+  // Een loopbaan die je nog niet begon, begint met zijn eerste klus: die kaart staat na de ladder en de stap,
+  // zodat de ene primaire knop en de eerstvolgende stap bij elkaar staan en niet onderaan de uitleg verdwijnen.
+  const start = startHtml(profiel, id);
   // wat dit niveau je aan een handeling geeft (#437): niveau 3 bij Spoor is kaartjes knippen op het perron, geen getal
   const kan = L.vaardigheidVan(id, d.niveau);
   const vaardigheid = kan ? `<p class="lb-kan"><b>${esc(kan.titel)}:</b> ${esc(kan.wat)}</p>` : '';
@@ -225,14 +263,19 @@ function detailHtml(profiel, id, w = null) {
   const kpi = `<div class="lb-kpis"><div class="lb-kpi"><span>Niveau</span><b>${d.niveau}<small> / ${L.MAX_NIVEAU}</small></b></div>` +
     `<div class="lb-kpi"><span>Titel</span><b>${esc(d.titel)}</b></div>` +
     `<div class="lb-kpi"><span>Betaalt</span><b>${factor > 1 ? `+${L.percentage(factor)}%` : 'basis'}</b></div></div>`;
+  // De volgorde is de leesorde: eerst wie je bent en waar je staat, dan de ladder, dan de ene volgende stap met de
+  // startplek en de ene primaire knop, dan wat je hier doet; de langere uitleg en de gids komen pas daarna.
   return `<div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     kpi +
-    `<div class="lb-blok">${voort}<p class="mut">${doel}</p>${stapHtml}` +
+    trap +
+    `<div class="lb-next${stap && stap.klaar ? ' klaar' : ''}">${voort}${stapHtml}<p class="mut">${doel}</p></div>` +
+    start +
+    bezigheden +
+    `<div class="lb-blok"><h3 class="m-eb lb-h3">Over dit vak</h3>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}${dienstHtml(id, w)}</div>` +
-    landbouwGidsHtml(id) +
-    startHtml(profiel, id) + bezigheden + trap;
+    landbouwGidsHtml(id);
 }
 
 // De bezigheden van dit vak, elk met hun eigen stand en één actie. De eerste klus die je nog niet deed en die nu te kiezen is,
@@ -273,7 +316,15 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   const pctNiveau = maxOmhoog ? Math.round((omhoog / maxOmhoog) * 100) : 0;
   const pctGestart = Math.round((sam.aantal / L.VAKKEN.length) * 100);
   const hoogsteTitel = sam.hoogste ? sam.hoogste.titel : 'Je eerste titel wacht';
-  const hero = `<section class="pm-hero lb-hero" aria-label="Loopbanen"><div class="pm-hero-h"><span class="m-eb">Je loopbaan</span><span class="pm-badge" data-tone="ok">${sam.aantal} van ${L.VAKKEN.length} begonnen</span></div>` +
+  // De hero draagt het sfeervlak en -icoon van het vak waar je het hoogst staat, zodat de opening niet alleen tekst is.
+  // Zonder enige voortgang is er nog geen loopbaan om te tonen en blijft de hero tekst (het gekozen vak staat rechts).
+  // Kleur is nooit de enige cue: het patroon, het icoon en de titel staan erbij.
+  const heroVak = sam.hoogste ? sam.hoogste.vak : null;
+  const heroInfo = heroVak ? L.vakInfo(heroVak) : null;
+  const heroSfeer = heroInfo
+    ? `<span class="lb-hero-sfeer" style="${sfeerStijl(heroVak)}" aria-hidden="true"></span>` + loopbaanIcoon(heroInfo.icoon, 'lb-hero-ico')
+    : '';
+  const hero = `<section class="pm-hero lb-hero" aria-label="Loopbanen">${heroSfeer}<div class="pm-hero-h"><span class="m-eb">Je loopbaan</span><span class="pm-badge" data-tone="ok">${sam.aantal} van ${L.VAKKEN.length} begonnen</span></div>` +
     `<h2 class="pm-hero-t${hoogsteTitel.length > 22 ? ' long' : ''}">${esc(hoogsteTitel)}</h2>` +
     `<p class="pm-hero-lead">Kies links een vak: elk vak heeft zijn eigen ladder, zijn eigen loon en de klussen die erbij horen.${eerste.klaar ? ' Je bent de duizendpoot van Grunn.' : ''}</p></section>`;
   const stats = `<div class="pm-stats lb-stats">` +
