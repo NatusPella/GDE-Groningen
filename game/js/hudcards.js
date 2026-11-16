@@ -195,7 +195,7 @@ export function showCard(w, spec) {
   // "Missie: X" under the kicker MISSIE: X is the title
   if (title && body && title.toLowerCase() === (spec.kicker || CARD_KINDS[kind].label).toLowerCase()) { title = body; body = ''; }
   const all = `${title} ${body}`.trim();
-  // #801: 'Leestijd' in Spel > Hints & uitleg; bij 'geen timer' wacht een
+  // #801: 'Leestijd' in Instellingen > Hints & uitleg; bij 'geen timer' wacht een
   // belangrijke kaart op een klik of Enter in plaats van vanzelf te verdwijnen.
   const mode = getSettings().readingTime || 'normaal';
   const secs = cardSeconds({ textSeconds: readingSeconds(all), duration: spec.duration || 0, mode });

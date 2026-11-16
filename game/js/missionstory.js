@@ -1273,12 +1273,21 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
     const at = alignToRoad(w, anchor, facing);
     if (at) { anchor = { x: at.x, y: at.y }; facing = at.facing; }
   }
+  // #955: a staged scene that may play anywhere (the intro of M02 stands where the player
+  // came from) asks for free ground in its spec (`fit: { radii }`): the anchor turns or moves
+  // when a camera would start inside a tree or a wall (cutscript.js fitAnchor).
+  let fit = null;
+  if (spec && spec.fit) {
+    fit = { ...spec.fit };
+    if (fit.radii && !fit.ground) fit.ground = (x, y) => roofAt(w.map, x, y) === 0 && !isInWater(w.map, x, y);
+  }
   const lines = tl.lines;
   let voiced = null;
   let peds = [];
   const ok = playScript(w, def, {
     lines: cineLines(lines), duration: tl.total,
     anchor: { x: anchor.x, y: anchor.y, facing, z },
+    fit,
     // (#711) de gast hoort dezelfde opname als de gastheer: de scène speelt haar stemmen zelf, dus de opnames gaan
     // als hulplijst mee in het pakket in plaats van dat de gast ze in de 'lines'-bank zoekt (dat schoof de tijden op)
     voices: lines.map((l) => (l.voice ? { src: VOICE_DIR + l.voice.src, dur: l.voice.dur } : null)),

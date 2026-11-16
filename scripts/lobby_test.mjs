@@ -129,6 +129,28 @@ t('gast typt: kamercode of koppelcode wordt herkend, rommel krijgt een Nederland
   assert.match(L.classifyInput('hallo wereld').reason, /geen kamercode/);
   assert.match(L.classifyInput('GDE2-1.2.3.4:41000-ABCDEFGH-0000').reason, /klopt niet/);
 });
+t('het kamercodeveld houdt wat je typt vast als het scherm opnieuw tekent (review 0.63)', () => {
+  let s = run(WEB, { t: 'kies', rol: 'gast' });
+  assert.equal(L.view(s).input.label, 'Kamercode of koppelcode', 'het veld heeft een eigen label voor de schermlezer');
+  s = L.reduce(s, { t: 'invoer-typ', tekst: 'K3J9' });
+  assert.equal(s.step, 'gast-typt', 'typen keurt de code nog niet');
+  assert.equal(L.view(s).input.value, 'K3J9', 'de getypte tekst staat in de staat, niet alleen in het veld');
+  assert.equal(L.view(s).error, '', 'tijdens het typen geen foutmelding');
+  // elke nieuwe tekening leest dezelfde staat: de tekst blijft staan
+  assert.equal(L.view(s).input.value, 'K3J9', 'opnieuw tekenen verliest de tekst niet');
+  // Verder keurt hem; ook een fout bewaart wat er stond
+  let fout = L.reduce(s, { t: 'invoer', text: 'K3J9' });
+  assert.match(fout.error, /geen kamercode/);
+  assert.equal(L.view(fout).input.value, 'K3J9', 'ook bij een fout blijft de invoer staan');
+  assert.equal(L.view(L.reduce(fout, { t: 'invoer-typ', tekst: 'K3J9D' })).error, '', 'opnieuw typen wist de oude foutmelding');
+  s = L.reduce(s, { t: 'invoer', text: 'K3J9D-8F2MN' });
+  assert.equal(s.invoerDraft, 'K3J9D-8F2MN', 'de gekeurde code blijft als invoer bewaard');
+  assert.equal(s.step, 'toestemming');
+  // zonder eigen invoer toont het veld de laatst gebruikte code; de ruwe invoer is begrensd
+  assert.equal(L.view(run({ ...WEB, laatsteCode: 'K3J9D-8F2MN' }, { t: 'kies', rol: 'gast' })).input.value, 'K3J9D-8F2MN');
+  const lang = L.reduce(run(WEB, { t: 'kies', rol: 'gast' }), { t: 'invoer-typ', tekst: 'x'.repeat(100) });
+  assert.equal(L.view(lang).input.value.length, 64);
+});
 t('gast-pad: invoer, toestemming, akkoord, verbinden, verbonden', () => {
   let s = run(WEB, { t: 'kies', rol: 'gast' });
   assert.ok(L.view(s).input);

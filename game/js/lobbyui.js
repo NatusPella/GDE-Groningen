@@ -132,11 +132,19 @@ export function mountLobby(root, hooks, opts = {}) {
 
   function draw() {
     const v = view(state);
-    // het zoekveld van de lijst (#464): na een nieuwe tekening de focus en de cursor terugzetten, zodat je
-    // tijdens het typen niet uit het veld valt (de waarde zelf staat in de state)
+    // #464/#review 0.63: een nieuwe tekening (de lijst ververst elke 2 s, een statuswissel) mag niet
+    // stelen wat je aan het typen bent. Onthoud van het actieve tekstveld de klasse, de waarde en de
+    // cursor, en zet ze na het tekenen terug. Het zoekveld deed dit al; het kamercodeveld op het
+    // joinscherm raakte door dezelfde herteken zijn tekst, focus en cursor kwijt.
     const actief = typeof document !== 'undefined' ? document.activeElement : null;
-    const zoekFocus = !!(actief && actief.classList && actief.classList.contains('coop-lijst-zoek'));
-    const cursor = zoekFocus && typeof actief.selectionStart === 'number' ? actief.selectionStart : null;
+    const veldKlasse = ['coop-lijst-zoek', 'coop-input', 'coop-wachtwoord', 'coop-profiel-naam']
+      .find((k) => actief && actief.classList && actief.classList.contains(k)) || null;
+    const veldStand = veldKlasse ? {
+      klasse: veldKlasse,
+      waarde: typeof actief.value === 'string' ? actief.value : null,
+      start: typeof actief.selectionStart === 'number' ? actief.selectionStart : null,
+      eind: typeof actief.selectionEnd === 'number' ? actief.selectionEnd : null,
+    } : null;
     const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span class="coop-kleur-stip ${kleurKlasse(w.kleur)}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
     const chip = (act, label, aan) => `<button type="button" class="m-chip coop-chip" data-act="${act}" aria-pressed="${aan}">${esc(label)}</button>`;
     const li = v.lijstInfo;
@@ -174,15 +182,19 @@ export function mountLobby(root, hooks, opts = {}) {
       sessies +
       ww +
       (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
-      (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '') +
+      (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" aria-label="${esc(v.input.label || v.input.placeholder)}" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '') +
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
       `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
-    if (zoekFocus && root.querySelector) {
-      const veld = root.querySelector('.coop-lijst-zoek');
+    if (veldStand && root.querySelector) {
+      const veld = root.querySelector('.' + veldStand.klasse);
       if (veld && veld.focus) {
+        // de staat is de bron, maar wat net getypt is en nog niet verwerkt was, wint
+        if (veldStand.waarde != null && 'value' in veld && veld.value !== veldStand.waarde) veld.value = veldStand.waarde;
         veld.focus();
-        if (cursor != null && veld.setSelectionRange) { try { veld.setSelectionRange(cursor, cursor); } catch (e) { /* niet elk veld */ } }
+        if (veldStand.start != null && veld.setSelectionRange) {
+          try { veld.setSelectionRange(veldStand.start, veldStand.eind != null ? veldStand.eind : veldStand.start); } catch (e) { /* niet elk veld */ }
+        }
       }
     }
   }
@@ -655,6 +667,17 @@ export function mountLobby(root, hooks, opts = {}) {
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) state = reduce(state, { t: 'profiel', naam: e.target.value });
     // het wachtwoord (#450): meteen bewaren en bij de gastheer meteen laten gelden voor de volgende kennismaking
     else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); }
+    // het kamercodeveld (review 0.63): de waarde staat meteen in de staat, zodat een hertekening
+    // (de lijst ververst elke paar seconden) hem niet terugzet; pas bij Verder wordt hij gekeurd.
+    // Het naamveld van een openbare sessie gebruikt dezelfde klasse maar hoort hier niet bij.
+    else if (e.target && e.target.classList && e.target.classList.contains('coop-input')) {
+      if (state.step === 'gast-typt' || state.step === 'lijst') {
+        const hadFout = !!state.error;
+        state = reduce(state, { t: 'invoer-typ', tekst: e.target.value });
+        // een oude foutmelding verdwijnt meteen; draw() houdt de focus en de cursor vast (review 0.63)
+        if (hadFout) draw();
+      }
+    }
     // de lijst (#464): de waarde staat in de state, draw() zet de focus en de cursor terug
     else if (e.target && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) { state = reduce(state, { t: 'lijst-zoek', tekst: e.target.value }); draw(); }
   });

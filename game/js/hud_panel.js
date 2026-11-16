@@ -50,7 +50,7 @@ import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
-import { heatRing, unitDots, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
+import { policeBadge, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -2876,31 +2876,34 @@ function drawMinimap(dt, world) {
   // #638: bij vijf sterren stonden er tien schilden over de straten. De politie is nu één badge.
   // #952: het aantal eenheden stond als kaal cijfer naast het schild en werd als heat gelezen.
   // Nu toont een ring om het schild de warmte (één segment per ster) en kleine stippen de
-  // extra eenheden; de cijfers zijn weg.
+  // extra eenheden; de cijfers zijn weg. Review 0.63: de ring hoort er ook bij precies één
+  // eenheid, want de warmte geldt dan net zo goed.
   const polities = [];
   forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind }));
   const heatSter = Math.max(world.wanted | 0, world.coopHudWanted | 0);
-  if (polities.length === 1) icon(polities[0].kind, polities[0].x, polities[0].y);
-  else if (polities.length > 1) {
-    let best = polities[0], bestD = Infinity;
-    for (const q of polities) { const d = (q.x - player.x) ** 2 + (q.y - player.y) ** 2; if (d < bestD) { bestD = d; best = q; } }
-    if (icon('police', best.x, best.y)) {
+  const badge = policeBadge(polities.length, heatSter, { searching: !!(world.police && world.police.searching), time: t });
+  if (badge) {
+    let best = polities[0];
+    if (polities.length > 1) {
+      let bestD = Infinity;
+      for (const q of polities) { const d = (q.x - player.x) ** 2 + (q.y - player.y) ** 2; if (d < bestD) { bestD = d; best = q; } }
+    }
+    // bij één eenheid houdt het schild zijn eigen soort (voet, motor, paard); bij meer is het één badge
+    if (icon(polities.length === 1 ? best.kind : 'police', best.x, best.y)) {
       const [sx, sy] = toScreen(best.x, best.y);
-      const ring = heatRing(heatSter, { searching: !!(world.police && world.police.searching), time: t });
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineWidth = HEAT_RING.breed;
-      for (const s of ring.segmenten) {
-        ctx.globalAlpha = s.aan ? Math.min(1, ring.alpha + 0.3) : Math.min(0.5, ring.alpha * 0.7);
+      for (const s of badge.ring.segmenten) {
+        ctx.globalAlpha = s.aan ? Math.min(1, badge.ring.alpha + 0.3) : Math.min(0.5, badge.ring.alpha * 0.7);
         ctx.strokeStyle = s.aan ? C.red : C.policeBlue;
         ctx.beginPath();
         ctx.arc(sx, sy, HEAT_RING.r, s.van, s.tot);
         ctx.stroke();
       }
       // de eenheden zelf: stippen in plaats van een getal
-      const dots = unitDots(polities.length);
       ctx.globalAlpha = 1;
-      for (let i = 0; i < dots; i++) {
+      for (let i = 0; i < badge.dots; i++) {
         const dx = sx + 7.2, dy = sy - 8.4 + i * 3.2;
         ctx.beginPath(); ctx.arc(dx, dy, 1.35, 0, Math.PI * 2);
         ctx.fillStyle = INK.cream; ctx.fill();

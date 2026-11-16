@@ -40,7 +40,7 @@ const answers = (keys) => { const S = {}; enterChoice(S); let r = null; for (con
 ok(answers(['2', '2', '1']).wrong === 0, 'M18: three right answers, no suspicion');
 ok(answers(['1', '2', '1']).wrong === 1, 'M18: one wrong answer, suspicion 1');
 ok(answers(['1', '1', '1']).wrong === 2 && answers(['1', '1', '1']).r === 'done', 'M18: two wrong answers, suspicion 2, still through');
-ok(answers(['1', '1', '2']).r && answers(['1', '1', '2']).r.fail, 'M18: three wrong answers fail the intake with the manager\'s reason');
+ok(answers(['1', '1', '2']).r === 'done', 'M18: wrong answers give argwaan maar laten de intake door (#962)');
 ok(wieb.tagAdjust.argwaan2 < wieb.tagAdjust.argwaan1 && wieb.tagAdjust.argwaan1 < 0, 'M18: more suspicion costs more');
 
 // M18: the hard hall can still be passed by pressing in the zone, and two misses fail it
@@ -56,7 +56,7 @@ const play = (st, hitEvery) => {
   return { r, S };
 };
 ok(play(hard, true).r === 'done' && play(hard, true).S.hits === 3, 'M18 hard hall: pressing in the zone passes all three cameras');
-ok(play(hard, false).r && play(hard, false).r.fail, 'M18 hard hall: two misses end the mission');
+ok(play(hard, false).r === 'done', 'M18 hard hall: missers kosten tijd maar laten de missie door (#962)');
 
 // M26: the street timing gives the chosen ally the wider zone, and the others stay as written
 const fin = (() => { const list = [{ label: 'Ontzet, net als in 1672', stages: [{ kind: 'bake' }, { kind: 'hold' }, { kind: 'chase', route: [] }], start: {} }]; applyAkte5(list); return list[0]; })();

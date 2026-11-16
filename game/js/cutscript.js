@@ -8,7 +8,7 @@
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
-//   set: 'keuken' | 'kantoor' (a built set: the opening's kitchen, the office of #950), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
+//   set: 'keuken' | 'kantoor' | 'serverkamer' (a built set: the opening's kitchen, the office and the server room of #950/#956), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
 //   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden } }
 //   cues:   [{ t, actor | prop, ...verb }]   verbs, see VERBS
 //   shots:  [{ t, shot: 'cut' | 'dolly' | 'orbit' | 'follow', ... }]
@@ -492,7 +492,8 @@ export function compileScene(def, opts = {}) {
       }
     }
     return {
-      position: cam, lookAt: { x: L.x, y: L.y, z: z0 + look.h },
+      position: clearOfTrees(cam, { x: L.x, y: L.y, z: z0 + look.h }, env),
+      lookAt: { x: L.x, y: L.y, z: z0 + look.h },
       fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
     };
   }
@@ -559,10 +560,33 @@ export function compileScene(def, opts = {}) {
 //   solid(x, y, z) -> true when the point is inside a building or wall
 //   clamp(x, y, z, kind) -> { x, y, z } the point moved into the allowed space; kind 'actor' | 'prop' | 'camera'
 //                           (the flat upstairs: inside its walls and above the cutaway)
+//   tree(x, y, z) -> true when a tree trunk or crown covers that point (#955): a camera
+//                    in a tree steps out of it and the anchor turns away from it
 function fit(p, env) {
   if (!env || !env.clamp) return p;
   const q = env.clamp(p.x, p.y, 0, 'actor');
   return q ? { x: q.x, y: q.y } : p;
+}
+
+// #955: a camera that sits inside a tree (the M02 establishing shot could stand in a
+// street tree: trunk and branches filled the frame) steps out through the nearest
+// side: first towards the subject (a tighter shot with the same framing), then up
+// out of the crown. A crown that still hangs between camera and subject is left out
+// of the drawn trees by the host (scene3d.js), so the view stays free.
+function clearOfTrees(pos, look, env) {
+  if (!env || !env.tree || !env.tree(pos.x, pos.y, pos.z)) return pos;
+  for (let k = 1; k <= 6; k++) {
+    const u = k / 6 * 0.55;
+    const q = { x: pos.x + (look.x - pos.x) * u, y: pos.y + (look.y - pos.y) * u, z: pos.z + (look.z - pos.z) * u * 0.55 };
+    // niet in de persoon van het onderwerp stappen: een camera hoort op minstens 1,6 m te blijven
+    if (Math.hypot(q.x - look.x, q.y - look.y, (q.z - look.z) * 0.5) < 1.6) break;
+    if (!env.tree(q.x, q.y, q.z)) return q;
+  }
+  for (let k = 1; k <= 8; k++) {
+    const z = pos.z + k * 0.7;
+    if (!env.tree(pos.x, pos.y, z)) return { ...pos, z };
+  }
+  return pos;
 }
 
 // A camera that sits in a wall is moved into free space: clamped, then pulled towards what it
@@ -598,6 +622,9 @@ function anchorScore(scene, a, env, step = 0.6) {
     for (const o of Object.values(s.props)) if (o.visible && env.solid(o.x, o.y, o.h + 0.4)) bad += 1;
     const c = s.camera.position;
     if (env.solid(c.x, c.y, c.z)) bad += 1;
+    // #955: a camera in a tree weighs as much as a camera in a wall: the anchor turns or
+    // moves to free ground instead of starting the scene inside a crown
+    if (env.tree && env.tree(c.x, c.y, c.z)) bad += 3;
   }
   return bad;
 }

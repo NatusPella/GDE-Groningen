@@ -19,10 +19,15 @@ import { climbFx, pushFoley } from './sfx/minigamefoley.js';
 
 // Klimtoren Zernike: a 12 m climbing tower on open ground at the Zernike
 // campus. Hold A (left hand) and D (right hand) to reach and grip the next
-// hold, let go of one to move it up, never both. Grip drains the arms, a big
-// hold rests them, Space chalks once. A fall costs four seconds and a try,
-// three falls end the climb. Medals by time, record in seconds (lower is
+// hold: with both keys held the lower hand climbs up by itself, a hand the
+// player lets go of lets go of the wall. Never let go of both. Grip drains the
+// arms, a big hold rests them, Space chalks once. A fall costs four seconds and
+// a try, three falls end the climb. Medals by time, record in seconds (lower is
 // better). Free. Rules: climbrules.js. `window.__klimtoren` debug.
+// #978: keyboard and controller are one input source -- gamepad.js turns the
+// pad's buttons into the same keys (controls.js PAD_MAPS.klimtoren: LB and RB
+// for the two hands), so the game and the HUD hints read only A, D, Space and
+// Backspace and never have to know which device was used.
 const ACCENT = mgThema('klimtoren').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = geo(53.236337, 6.537852);
 const ROT = 0;
@@ -246,8 +251,8 @@ function updateHud(w) {
   const stand = online.length ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Klimmer</th><th scope="col">Tijd</th><th scope="col">Stand</th></tr></thead><tbody>${online.map((r) => `<tr class="${r.weg ? 'weg' : ''}"><td>${online.indexOf(r) + 1}</td><th scope="row">${esc(r.naam)}</th><td>${r.banen === 1 ? fmtTime(r.slagen / 10) : '-'}</td><td>${r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'}</td></tr>`).join('')}</tbody></table>` : '';
   const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
-  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
-  const help = `${key('A')} linkerhand · ${key('D')} rechterhand · houd vast, laat één hand los om hem hoger te zetten · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
+  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A en D allebei vast: je klimt omhoog' : '';
+  const help = `${key('A')} + ${key('D')} vasthouden · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
   board.set({ row, extra: stand, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
@@ -304,7 +309,7 @@ function start(w, { online = null, revealed = false } = {}) {
   const side = FR.toW(7, 3);
   w.companionHold = { x: side.x, y: side.y, face: Math.PI };
   if (online === 'gast') { place(w); return true; } // a guest reads the keys on the board; the host's invitation said what is played
-  showCard(w, { kind: 'tip', kicker: 'Klimtoren', title: 'Twaalf meter', body: 'Houd [A] vast voor je linkerhand en [D] voor je rechter: de hand grijpt na een tel de ring. Laat één hand los om hem hoger te zetten, nooit allebei. Grote grepen zijn rustplekken.', duration: 11, key: 'klimtoren-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Klimtoren', title: 'Twaalf meter', body: 'Houd [A] en [D] allebei vast: je handen grijpen om de beurt een greep hoger. Laat je één hand los, dan hangt de klimmer aan de andere; laat je allebei los, dan val je. Grote grepen zijn rustplekken, [Spatie] is magnesium.', duration: 11, key: 'klimtoren-help', voice: false });
   say(w, 'start', true);
   place(w);
   return true;

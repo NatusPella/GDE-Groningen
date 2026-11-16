@@ -67,6 +67,7 @@ import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { buildWaitDressing, updateWaitDressing, disposeWaitDressing } from './wachtprops.js';
+import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
@@ -2528,9 +2529,13 @@ function enterStage(world, def, k) {
   if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; chainState().eggFast = false; }
   chainState().stage = S;
+  // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer).
+  // In een auto slaan we hem over: dan blijft de stap in de open lucht, zoals eerst.
+  if (st.set && !p.inVehicle) S.set = buildStageSet(world, st.set, p);
   // #963: een wachtstap krijgt een echte kring met passende spullen; de ring
   // licht op terwijl de klok loopt, zodat het wachten iets te zien geeft.
-  if (st.kind === 'hold' && S.target) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
+  // (#956) In een binnenset staat de kamer zelf al om de speler: geen kring op de vloer.
+  if (st.kind === 'hold' && S.target && !S.set) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chainState().timeLeft += st.bonus;
@@ -2734,6 +2739,7 @@ function disposeLight() {
 function disposeStageDressing() {
   const S = chainState().stage;
   if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
+  if (S && S.set) { disposeStageSet(S.set); S.set = null; } // #956: de kamer gaat mee met de stap
   if (S && S.raceDecor) { for (const g of S.raceDecor) disposeRaceDecor(g); S.raceDecor = null; }
 }
 
@@ -3269,6 +3275,15 @@ function updateStages(dt, world, def) {
   const S = chainState().stage;
   if (!st || !S) return;
   S.t += dt;
+  // #956: de kamer van deze stap blijft staan zolang de stap duurt; bij een keuzegesprek
+  // houdt hij de speler bij zijn stoel (anders loopt hij door de muur naar buiten).
+  if (S.set) {
+    updateStageSet(S.set, dt);
+    if (S.set.hold) {
+      p.x = S.set.hold.x; p.y = S.set.hold.y; p.angle = S.set.hold.angle;
+      p.vx = 0; p.vy = 0; p.vz = 0;
+    }
+  }
   if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
     chainState().windowT += dt;
     const W = def.window;

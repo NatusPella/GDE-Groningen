@@ -54,6 +54,19 @@ for (const ctx of ['coopvraag', 'hengelen', 'trekker']) {
   ok(typeof PAD_MAPS[ctx].stick === 'string', `${ctx}: de stick doet iets`);
 }
 
+// --- 6. de klimtoren (#978): elke hand zijn eigen knop --------------------------------------
+// Een stick kan maar één hand tegelijk vasthouden, dus klimmen met een controller wisselde steeds
+// tussen de handen (en de hints tussen toetsenbord en controller). LB en RB zijn nu de twee handen.
+import { GAME_PAD_CTX } from '../game/js/controls.js';
+ok(GAME_PAD_CTX.klimtoren === 'klimtoren', 'klimtoren: de wedstrijd kiest de eigen indeling');
+ok(PAD_MAPS.klimtoren.stick === 'none', 'klimtoren: de stick houdt geen handen vast');
+ok(padSlotFor('A', 'klimtoren') === 'lb', 'klimtoren: de linkerhand zit op LB', padSlotFor('A', 'klimtoren'));
+ok(padSlotFor('D', 'klimtoren') === 'rb', 'klimtoren: de rechterhand zit op RB', padSlotFor('D', 'klimtoren'));
+ok(padSlotFor('A', 'klimtoren') !== padSlotFor('D', 'klimtoren'), 'klimtoren: twee handen, twee knoppen (geen wisselende hint)');
+ok(PAD_MAPS.klimtoren.a === ' ', 'klimtoren: A is magnesium (Spatie)');
+ok(PAD_MAPS.klimtoren.b === 'backspace' && PAD_MAPS.klimtoren.start === 'escape', 'klimtoren: B en Start stoppen');
+ok(!['up', 'down'].some((s) => PAD_MAPS.klimtoren[s]), 'klimtoren: de D-pad omhoog/omlaag doet niets in de klim (radio blijft uit)');
+
 // --- de situatiekeuze van gamepad.js, tegen een nepbrowser ------------------------------------
 class ClassList {
   constructor() { this.s = new Set(); }

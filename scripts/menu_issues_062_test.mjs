@@ -93,7 +93,7 @@ const html = leesHtml();
 
 // --- #894: Instellingen > Besturing is gegroepeerd ----------------------------------------
 {
-  const besturing = pm.slice(pm.indexOf("tab('besturing'"), pm.indexOf("tab('display'"));
+  const besturing = pm.slice(pm.indexOf("tab('besturing'"), pm.indexOf("tab('camera'"));
   const koppen = [...besturing.matchAll(/m-gh"><span>([^<]+)<\/span>/g)].map((m) => m[1]);
   ok(koppen.join('|') === 'Muis|Toetsenbord|Controller|Aanraken|In het spel', '#894: vijf koppen in een vaste, leesbare volgorde', koppen.join('|'));
   ok(/\$\{keyChangedRow\(\)\}/.test(besturing) && /function keyChangedRow/.test(pm), '#894: één rij zegt hoeveel er aangepast is, met één knop terug');
@@ -167,7 +167,7 @@ const html = leesHtml();
   // elke sectie heeft één korte zin, en die zegt wat je er doet
   const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
   ok(secties.every(([, , zin]) => zin && zin.split(/\s+/).length <= 8), '#911: elke sectie heeft een zin van hooguit acht woorden');
-  ok(secties.find((s) => s[0] === 'settings')[2].includes('spel'), '#911: de zin van Instellingen noemt het nieuwe tabblad Spel');
+  ok(/ziet.*hoort.*bestuurt/.test(secties.find((s) => s[0] === 'settings')[2]), '#911/#979: de zin van Instellingen dekt beeld, geluid en besturing');
 }
 
 // --- #915: bevestiging bij het afsluiten --------------------------------------------------

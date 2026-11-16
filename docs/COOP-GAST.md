@@ -148,6 +148,8 @@ Een scène die binnenkomt terwijl een gast in zijn eigen menu, kaart, winkel, te
 
 Valt de gastheer weg of draagt hij het spel over midden in een scène (#713), dan eindigt die scène netjes in plaats van te blijven hangen: het wachtscherm van samen spelen stopt de lopende kopie en het eigen filmpje, en de gast ziet "De scène stopt: er viel een speler weg." De herstelmomentopname zegt alleen dát er een scène liep (`scène` in `coophostwissel.js`); de nieuwe gastheer kan hem niet afmaken (de camera en de scène-data zijn van de oude wereld) en meldt "De scène van de vorige speler is gestopt." aan iedereen.
 
+**Binnensets (#956).** Een kamer van een missiestap (`stagesets.js`: het kantoor en de serverkamer van Wiebelwerk) is decor van de gastheer: die zet de kamer om zijn eigen speler. De keuze- en wachtstappen gaan als paneel en stand naar de gasten (dezelfde knoppen, dezelfde balk), en de scènes van M18 gaan als scènebeschrijving mee en worden bij de gast in dezelfde kamer nagespeeld (`set: 'kantoor'` / `set: 'serverkamer'` in `game/js/cutscenes_akte4.js`). De kamer van een stage zelf ziet een gast niet; beloning en voortgang blijven per speler (#429).
+
 ## Hoe het werkt
 
 **Winkelen.** In `updateGameplay` (main.js) draait voor een gast alleen `updateGastLokaal`: eerst `tryShopInteract`, `tryMachineInteract`

@@ -35,6 +35,15 @@ export function unitDots(units) {
   return clamp(geheel(units) - 1, 0, UNIT_DOTS);
 }
 
+// Wat er om het politie-schild hoort: altijd de heat-ring, ook bij precies één eenheid
+// (review 0.63: de ring werd alleen bij meer dan één eenheid getekend), en stippen voor
+// de eenheden bovenop de eerste. Zonder politie in beeld is er geen badge.
+export function policeBadge(units, wanted, { searching = false, time = 0 } = {}) {
+  const n = geheel(units);
+  if (n <= 0) return null;
+  return { eenheden: n, ring: heatRing(wanted, { searching, time }), dots: unitDots(n) };
+}
+
 // Wat een schermlezer en de legendaregel zeggen. Leeg zonder politie in beeld.
 export function heatUitleg(wanted, units = 0, { searching = false } = {}) {
   const n = geheel(units);

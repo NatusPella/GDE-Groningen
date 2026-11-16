@@ -3,9 +3,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
-import { buildOffice, OFFICE } from './office3d.js';
+import { buildOffice, OFFICE, buildServerRoom, SERVER } from './office3d.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
+import { treeBlocksPoint } from './greenery.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
 import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
 import { carModel } from './trafficfleet.js';
@@ -33,6 +34,7 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
 //   def.set 'keuken': Tessa's kitchen (introkitchen3d.js) is built at the anchor (anchor.z = floor height) and the camera is kept inside it;
 //   def.set 'kantoor': het kantoorset van Wiebelwerk (#950, office3d.js), eveneens op de vloerhoogte van de kaart, camera binnen;
+//   def.set 'serverkamer': de serverkamer van Wiebelwerk (#956, office3d.js), een lange hal met rekken en een terminal, camera binnen;
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
 //   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
@@ -181,6 +183,10 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     // #950: het kantoorset van Wiebelwerk, op de plek van het echte pand
     kit = buildOffice(anchor.x, anchor.y, anchor.z || 0);
     group.add(kit.group);
+  } else if (def.set === 'serverkamer') {
+    // #956: de serverkamer van Wiebelwerk, op de plek van de servers (M18.3)
+    kit = buildServerRoom(anchor.x, anchor.y, anchor.z || 0);
+    group.add(kit.group);
   }
   const doorFx = fx.filter((f) => f.fx === 'door');
   const sfx = (kind, name) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(name ? { kind, name, x: anchor.x, y: anchor.y } : { kind, x: anchor.x, y: anchor.y }); };
@@ -218,6 +224,8 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     frame(t, dt) {
       const s = scene.sample(t, anchor, env);
       setFrame(t);
+      // #956: de serverkamer heeft eigen beweging (knipperende ledjes, koel licht)
+      if (kit && typeof kit.frame === 'function') kit.frame(t);
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
         if (verberg.has(id)) { m.visible = false; continue; } // (#434) een dubbele kopie van een rol danst niet mee
@@ -311,6 +319,34 @@ function officeEnv(at) {
   };
 }
 
+// #956: de serverkamer is een lange hal (11 x 6,4 x 2,9 m); de camera blijft binnen de wanden.
+function serverEnv(at) {
+  return {
+    solid: () => false,
+    clamp(x, y, z, kind) {
+      if (kind !== 'camera') return null;
+      const base = at.z || 0;
+      return {
+        x: Math.max(at.x - (SERVER.w / 2 - 0.45), Math.min(at.x + (SERVER.w / 2 - 0.45), x)),
+        y: Math.max(at.y - (SERVER.d / 2 - 0.45), Math.min(at.y + (SERVER.d / 2 - 0.45), y)),
+        z: Math.max(base + 0.3, Math.min(base + SERVER.h - 0.25, z)),
+      };
+    },
+  };
+}
+
+// #955: de bomen rond een punt (map.treesNear), met dezelfde vorm die de wereld tekent
+// (greenery.js treeDims). Een camera in een kroon of tegen een stam telt als bedekt: de
+// camera stapt eruit (cutscript.js clearOfTrees) en de ankerstand zoekt vrije grond.
+function treeEnv(map) {
+  return (x, y, z) => {
+    if (!map || typeof map.treesNear !== 'function') return false;
+    for (const t of map.treesNear(x, y, 12)) if (treeBlocksPoint(t, x, y, z, 0.35)) return true;
+    return false;
+  };
+}
+
+
 // QA-haak (scripts/qa/cutscene_shots.page.js): speelt een scène stil per tijdstip af; geen export, zodat de dode-code-telling gelijk blijft
 if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
 
@@ -347,7 +383,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const p = hoofdspeler(w);
   const a = anchor ? { ...anchor } : { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
   // (#950) een kantoorset staat op de begane grond: de vloerhoogte komt van de kaart
-  if (def.set === 'kantoor' && !a.z && w && w.map && w.map.groundHeightAt) {
+  if ((def.set === 'kantoor' || def.set === 'serverkamer') && !a.z && w && w.map && w.map.groundHeightAt) {
     try { a.z = w.map.groundHeightAt(a.x, a.y, 50) || 0; } catch (e) { a.z = 0; }
   }
   // (#731) De stemmen plannen vóór het compileren: shots, cues en L-tijden horen dezelfde
@@ -364,12 +400,14 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     return false;
   }
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
-  const indoors = def.set === 'keuken' || def.set === 'kantoor';
-  const env = envIn || (def.set === 'keuken'
+  const indoors = def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer';
+  const env = envIn ? { ...envIn, tree: envIn.tree || (def.set ? null : treeEnv(w && w.map)) } : (def.set === 'keuken'
     ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 })
     : def.set === 'kantoor'
       ? officeEnv({ x: a.x, y: a.y, z: a.z || 0 })
-      : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
+      : def.set === 'serverkamer'
+        ? serverEnv({ x: a.x, y: a.y, z: a.z || 0 })
+        : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2, tree: treeEnv(w && w.map) });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
   let run = null, lastT = 0;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`

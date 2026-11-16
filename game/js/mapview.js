@@ -44,7 +44,7 @@ import { veldBij } from './percelen.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
-import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
+import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE, builtUpAt } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
 import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
@@ -634,6 +634,15 @@ function renderTile(L, tx, ty) {
   const tws = TILE_PX / s;
   const [minx, miny, maxx, maxy] = state.bounds;
   const wx0 = minx + tx * tws, wy0 = miny + ty * tws;
+  // #977: de kavelgrenzen van het platteland blijven buiten de bebouwde kom. Eén vraag per
+  // kaarttegel-cel van 16 m, want de slootlijnen zijn er honderden per tegel.
+  const builtCache = new Map();
+  const builtAt = (x, y) => {
+    const k = `${Math.round(x / 16)},${Math.round(y / 16)}`;
+    let v = builtCache.get(k);
+    if (v === undefined) builtCache.set(k, (v = builtUpAt(state.map, x, y)));
+    return v;
+  };
   let canvas = state.pool.pop();
   if (!canvas) {
     canvas = document.createElement('canvas');
@@ -733,7 +742,7 @@ function renderTile(L, tx, ty) {
     c.stroke();
     c.globalAlpha = 1;
   }
-  drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE);
+  drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE, { built: builtAt });
   drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px(lay.railPx * look.rail));
   // what lies outside the province darker, with its land borders
   if (prov) drawOutside(c, [wx0, wy0, wx0 + tws, wy0 + tws], px);

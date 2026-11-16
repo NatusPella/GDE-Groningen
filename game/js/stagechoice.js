@@ -2,8 +2,12 @@
 // built on the same panel as the text jobs (choicepanel.js). Used by the new arc's akte 4:
 //   M18 Wie draaide de camera's uit?   the intake at Wiebelwerk: a wrong answer makes the account manager suspicious
 //   M21 Tessa's wagon                  one round, the car or the ball (the ball is the way out: the wagon rolls away)
-//   M21 Tammo's friends                every answer fails, the friends leave (designed, not a fail)
+//   M26 de jury                       the jury's two questions (a wrong answer costs points, never the mission)
 //
+// #962: een keuze is een kort gesprek, geen verhaal op zich. De verhalende keuzes van M21
+// (de vrienden bij Tinus' schuur) zijn een scène geworden; hier blijven de momenten waar de
+// speler echt iets kiest. wrongFails is optioneel: zonder die waarde kan een fout antwoord
+// de missie niet meer laten mislukken (het kost alleen de argwaan-tags).
 // st { kind: 'choice', kicker, rounds: [round], wrongFails, wrongText }
 //   round  { who, text, rule, options: [option], hold }   who = the speaker shown above the line
 //   option { label, ok, reply, fail }                     ok === false counts as wrong; reply is shown after the pick;

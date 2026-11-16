@@ -71,7 +71,7 @@ ok(HELP_TOPICS.every((t) => t.lines.every((l) => !/\b(the|and|press)\b/i.test(l)
   ok(!/Interface › Meer opties/.test(plain), 'Hulp: Interface heeft geen "Meer opties" meer');
   ok(!/Spel › Overzicht staat het ook bij de volumes/.test(plain), 'Hulp: de volumes staan niet meer op Spel › Overzicht');
   ok(!/pauzemenu › Spel › Spelen|Spel › Spelen/.test(plain + fs.readFileSync(new URL('../game/js/credits.js', import.meta.url), 'utf8')), 'Hulp en credits: de Spelen-subtab bestaat niet meer');
-  ok(/Instellingen › Spel/.test(plain) && /Spel › Hints & uitleg/.test(plain) && /Instellingen › Geluid & ondertitels/.test(plain), 'Hulp noemt de nieuwe plekken van de shift-klik, de uitleg en de volumes');
+  ok(/Instellingen › Spel/.test(plain) && /Instellingen › Hints & uitleg/.test(plain) && /Instellingen › Geluid & ondertitels/.test(plain), 'Hulp noemt de nieuwe plekken van de shift-klik, de uitleg en de volumes');
   ok(/Spel › Overzicht heeft "Vastgelopen\? Zet me vrij"/.test(plain), 'Hulp noemt Spel › Overzicht bij Vastgelopen');
   // elke "Spel › X" in de hulp is een bestaand tabblad van Spel
   const subBlock = pm.slice(pm.indexOf('const SUBTABS = {'), pm.indexOf('// old tab names'));

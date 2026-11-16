@@ -13,7 +13,7 @@ Sizes, buttons and messages: [DESIGN-COMPONENTEN.md](DESIGN-COMPONENTEN.md). Kno
 `inputdevice.js` keeps the active device: `kb` (keyboard and mouse), `pad` (controller) or `touch`. **The last real input wins**, also in mixed use: take the mouse for a moment while driving
 with a pad and the hints show keys, the next button press brings the pad glyphs back. The mouse must move more than 6 px to count (`MOUSE_MOVE_MIN`); synthetic keys of the pad and untrusted events
 never count. `<html>` carries `dev-kb|dev-pad|dev-touch` and `data-device`; `html.pad-active` and `data-pad` (xbox, ps, deck) style the pause menu footer.
-Spel > Hints & uitleg "Hints tonen voor" can override it (`hintSource`: auto, keys, pad) and `padLayout` picks the glyph set (auto, xbox, ps, switch, deck).
+The "Hints tonen voor" picker in Instellingen > Hints & uitleg can override it (`hintSource`: auto, keys, pad) and `padLayout` picks the glyph set (auto, xbox, ps, switch, deck).
 `node scripts/inputdevice_test.mjs`.
 
 Design rules that follow:
@@ -24,7 +24,7 @@ Design rules that follow:
 3. **The hint shows what you can do now**, not everything: the key hints at the bottom right are at most two rows (`MAX_ROWS`), appear 2.5 s after spawning or a cutscene and then one per 1.4 s, are hidden while a card, call or subtitle is up,
    and show only with something to do. One secondary prompt at most (`MAX_SECONDARY`).
 4. **Teach once.** A hint is counted per use (`hintUses`); a context card (first time in a vehicle kind or a minigame) shows once per device and never in the first quiet minutes (`hintkit.js`, `contexthints.js`).
-   "Uitleg voor nieuwe spelers" and "Toetshints" can be switched off in Spel > Hints & uitleg.
+   "Uitleg voor nieuwe spelers" and "Toetshints" can be switched off in Instellingen > Hints & uitleg.
 
 ## Keyboard and mouse
 
@@ -50,7 +50,7 @@ A text field never remaps and stops the game keys while it has focus (`input.js`
 
 **The mouse.** The game asks for pointer lock when the world is loaded and on a click or key; **Esc releases it and opens the pause menu** (`main.js`, `pointerlockchange`). The pause menu, map, phone and shops release the mouse and show the system cursor.
 Embedded browsers refuse the lock; after three refused gestures in a row the cursor steers freely (`LOCK_FAILS` in `input.js`, #328), which on several monitors can let the cursor leave the window. See debt (#435).
-Mouse sensitivity and invert Y are in Instellingen > Besturing, auto-aim in Spel > Camera & richten; the right stick steers the camera without any lock (`padLook`). Steering sensitivity (`steerSensitivity`, 0.5 to 1.5) scales the player's own throttle steering; bots and guests keep their own (#801).
+Mouse sensitivity and invert Y are in Instellingen > Besturing, auto-aim in Instellingen > Camera; the right stick steers the camera without any lock (`padLook`). Steering sensitivity (`steerSensitivity`, 0.5 to 1.5) scales the player's own throttle steering; bots and guests keep their own (#801).
 
 ## Controller
 

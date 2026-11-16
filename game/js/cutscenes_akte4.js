@@ -42,26 +42,41 @@ S['M17.outro'] = {
 };
 
 // --- M18 Wiebelwerk: the glass office in Veendam, a desk with a screen ---
+// #955: de intake is een kantoorscène, geen praatje in de open lucht: een collega werkt
+// mee op de achtergrond en de camera gaat van een over-de-schouder naar de spreker.
 S['M18.intro'] = {
   set: 'kantoor',
-  cast: { accountmanager: { key: 'accountmanager', at: [3.4, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'point', 'talk'] } },
+  cast: {
+    accountmanager: { key: 'accountmanager', at: [3.4, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'point', 'talk'] },
+    collega: { key: 'student', at: [1.4, 2.5], face: 250, anim: 'idle', bg: true, gest: ['talk', 'phone', 'look', 'hips'] },
+  },
   props: { klembord: { kind: 'klembord', at: [2.4, -0.9, 0.9] } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 'Wiebelwerk. Websites', actor: 'tammo', anim: 'shrug' },
     { on: 'Wie de camera', actor: 'tammo', anim: 'point' },
     { on: 'Als in het logboek staat', actor: 'tessa', anim: 'nod' },
-    { on: 'Welkom bij Wiebelwerk', actor: 'accountmanager', walk: [[2.2, -0.2]], speed: 0.9 },
+    { on: 'Welkom bij Wiebelwerk', actor: 'accountmanager', walk: [[3.4, -1.6], [1.5, -1.6], [1.5, -0.4]], speed: 0.9 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.3, actor: 'accountmanager', face: 'actor:tessa' },
     { on: 'Een website voor een frietwagen', actor: 'tessa', anim: 'talk' },
     { on: 'Prachtig. Dan beginnen', actor: 'accountmanager', anim: 'point' },
+    // de collega loopt met een map langs de wand, achter de twee langs
+    { on: 'Als in het logboek staat', dt: 0.6, actor: 'collega', walk: [[0.3, 2.45]], speed: 0.7 },
+    { on: 'Welkom bij Wiebelwerk', dt: 0.4, actor: 'collega', anim: 'phone' },
   ],
-  shots: [],
+  shots: [
+    { on: 'Welkom bij Wiebelwerk', dt: 0.2, shot: 'ots', from: 'tammo', target: 'accountmanager', dist: 1.05, side: 0.5, fov: 36 },
+    { on: 'Een website voor een frietwagen', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 28 },
+    { on: 'Prachtig. Dan beginnen', dt: 0.2, shot: 'close', target: 'accountmanager', dist: 1.35, side: 0.25, fov: 30 },
+  ],
   wide: WIDE([-5, 4, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
 };
 S['M18.outro'] = {
   set: 'kantoor',
-  cast: { accountmanager: { key: 'accountmanager', at: [2.6, -0.3], face: 175, anim: 'idle', gest: ['hips', 'shrug', 'talk'] } },
+  cast: {
+    accountmanager: { key: 'accountmanager', at: [2.6, -0.3], face: 175, anim: 'idle', gest: ['hips', 'shrug', 'talk'] },
+    collega: { key: 'student', at: [1.2, -2.5], face: 162, anim: 'idle', bg: true, gest: ['look', 'phone', 'talk'] },
+  },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:accountmanager' }, { actor: 'tammo', face: 'actor:accountmanager' }],
   beats: [
@@ -71,8 +86,12 @@ S['M18.outro'] = {
     { on: 'Een webbureau', actor: 'tessa', anim: 'look' },
     { on: 'Dan is het niet Wiebelwerk', actor: 'tammo', anim: 'nod' },
     { on: 'Dan is het Jelle', actor: 'tessa', anim: 'point' },
+    { on: 'Een webbureau', dt: 0.2, actor: 'collega', walk: [[2.6, -1.6]], speed: 0.7 },
   ],
-  shots: [],
+  shots: [
+    { on: 'Een webbureau', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28 },
+    { on: 'Dan is het Jelle', dt: 0.2, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.05, side: 0.45, fov: 36 },
+  ],
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 
@@ -627,18 +646,26 @@ S['M21.6'] = { ...S['M21.3'], beats: [
 ] };
 
 // --- M18 the intake in three outcomes (M18.2 passed, M18.6 one wrong answer, M18.7 two): the manager at his desk ---
+// #955: ook deze drie varianten krijgen eigen camerawerk (over-de-schouder en close-ups) in
+// plaats van alleen de automatische dekking, en in M18.2 werkt een collega op de achtergrond.
 const MANAGER = (x) => ({ accountmanager: { key: 'accountmanager', at: [x, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'shrug'] } });
+const COLLEGA = { key: 'student', at: [1.2, 2.5], face: 250, anim: 'idle', bg: true, gest: ['talk', 'look', 'phone'] };
 const mgrOpen = [{ actor: 'tessa', face: 'actor:accountmanager' }, { actor: 'tammo', face: 'actor:accountmanager' }];
 S['M18.2'] = {
   set: 'kantoor',
-  cast: MANAGER(3.0), props: {}, open: mgrOpen,
+  cast: { ...MANAGER(3.0), collega: COLLEGA }, props: {}, open: mgrOpen,
   beats: [
     { on: 'Warm, droog', actor: 'accountmanager', anim: 'nod' },
-    { on: 'Ik maak een offerte', actor: 'accountmanager', walk: [[3.8, -0.6]], speed: 0.7 },
+    { on: 'Ik maak een offerte', actor: 'accountmanager', walk: [[3.55, -0.6]], speed: 0.7 },
     { on: 'Dat ging makkelijk', actor: 'tammo', anim: 'shrug' },
     { on: 'Wacht tot we binnen zijn', actor: 'tessa', anim: 'look' },
+    { on: 'Warm, droog', dt: 0.4, actor: 'collega', anim: 'talk' },
   ],
-  shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
+  shots: [
+    { on: 'Ik maak een offerte', dt: 0.2, shot: 'close', target: 'accountmanager', dist: 1.35, side: 0.2, fov: 30 },
+    { on: 'Dat ging makkelijk', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28 },
+  ],
+  wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 S['M18.6'] = {
   set: 'kantoor',
@@ -649,7 +676,11 @@ S['M18.6'] = {
     { on: 'Iedereen is nieuw', actor: 'accountmanager', walk: [[2.0, -0.2]], speed: 0.8 },
     { on: 'Die staat bij de serverdeur', actor: 'tammo', anim: 'point' },
   ],
-  shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
+  shots: [
+    { on: 'Interessant', dt: 0.2, shot: 'close', target: 'accountmanager', dist: 1.3, side: 0.2, fov: 30 },
+    { on: 'Die staat bij de serverdeur', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
+  ],
+  wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 S['M18.7'] = {
   set: 'kantoor',
@@ -660,7 +691,11 @@ S['M18.7'] = {
     { on: 'Bij Wiebelwerk is alles gratis', actor: 'accountmanager', anim: 'hips' },
     { on: 'Loop maar voor', actor: 'tessa', anim: 'point' },
   ],
-  shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
+  shots: [
+    { on: 'Twee antwoorden', dt: 0.2, shot: 'close', target: 'accountmanager', dist: 1.35, side: 0.2, fov: 30 },
+    { on: 'Loop maar voor', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 28 },
+  ],
+  wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 
 // --- M23 who rides next to the Fjord Frituur (M23.6 Wubbo, M23.7 Tinus, M23.8 Geesje) and M26 the streets they close (M26.14-16) ---
@@ -846,9 +881,12 @@ S['M06.3#0-4'] = {
 
 // --- #743: het logboek van 12 augustus (M18.3) als eigen scène in de serverkamer ------------------
 // De clue wordt gelezen, niet tijdens het sluipen verteld: Tessa leest het scherm voor, Tammo kijkt mee.
+// #956: de scène speelt nu echt in de serverkamer (office3d.js buildServerRoom), met de rekken,
+// de kabelbaan en het logboek op de terminal; #955: ots en close-ups op wie leest.
 S['M18.3'] = {
+  set: 'serverkamer',
   cast: {},
-  props: { scherm: { kind: 'bord', at: [4.6, -1.0, 1], face: 175 }, klembord: { kind: 'klembord', at: [2.2, 0.4, 1.0] } },
+  props: { scherm: { kind: 'bord', at: [4.6, -1.0, 1], face: 175 }, klembord: { kind: 'klembord', at: [4.1, 0.6, 0.82], face: 175 } },
   open: [{ actor: 'tessa', face: 'prop:scherm' }, { actor: 'tammo', face: 'prop:scherm' }, { t: 0.2, actor: 'tessa', walk: [[1.4, -0.5]], speed: 0.7 }],
   beats: [
     { on: 'De update. Altijd om middernacht', actor: 'tessa', anim: 'point' },
@@ -859,9 +897,12 @@ S['M18.3'] = {
   ],
   shots: [
     { on: 'De update. Altijd om middernacht', dt: 0.2, shot: 'dolly', from: [-2.2, 2.6, 1.7], to: [-0.8, 1.6, 1.55], look: 'tessa@1.3', fov: 36 },
+    { on: 'En kijk', dt: 0.2, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.05, side: 0.5, fov: 36 },
+    { on: 'De toegangspas', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
     { on: 'Dus wij kraakten', dt: 0.2, shot: 'cut', at: [-1.2, -2.2, 1.6], look: 'tammo@1.3', fov: 34 },
+    { on: 'Ik print dit', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 27 },
   ],
-  wide: WIDE([-4.6, 3.6, 3], [-2.6, 2.8, 2.2], 'mid:tammo,tessa@1.2'),
+  wide: WIDE([-4.6, 2.6, 3], [-2.6, 2.1, 2.2], 'mid:tammo,tessa@1.2'),
 };
 
 // --- #739: M21.4 (Tammo, de vrienden) als stage-outro: de vrienden zeggen nee en gaan weg -----------

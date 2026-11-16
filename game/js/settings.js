@@ -81,7 +81,7 @@ const BASE_DEFAULTS = {
   steerSensitivity: 1,
   invertY: false,
   // eerste persoon (#833): de speelcamera op de ogen van het eigen figuur in plaats van de
-  // volgcam (C in de app, G in de browser; ook onder Camera & richten in het pauzemenu)
+  // volgcam (C in de app, G in de browser; ook onder Instellingen > Camera in het pauzemenu)
   firstPersoon: false,
   autoAim: true,
   drunkFx: 'aan',

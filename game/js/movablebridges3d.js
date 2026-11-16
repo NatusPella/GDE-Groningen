@@ -5,7 +5,7 @@
 // quaywalls) stand for the bridge while it is closed; while it moves the road
 // is hidden (scene3d.js passes openBridgeRoads() to the road batcher).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getMovableBridges, boomsOf, boatSignal, movableBridgesVersion, onOtherCarRoad } from './movablebridges.js';
+import { getMovableBridges, boomsOf, boatSignal, movableBridgesVersion, onOtherCarRoad, findRiders } from './movablebridges.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { waterAt } from './waterlevels.js';
 import { roadSurfaceGeometries, roadSurfaceMaterials, getMarkingMaterial } from './roadsurface.js';
@@ -66,7 +66,7 @@ function buildLeaf(L, h, wide, plain = true) {
 // is L long, hinged at s0 and running on (dir 1) or back (dir -1, the
 // second half of a double bascule, whose frame runs the other way). Triangles go
 // to the leaf their centre is over. Returns { pos, nrm, uv } for a Mesh.
-export function leafMarkings(pos, uv, b, s0, L, dir, lift = 0.03, low = undefined, nrm = null) {
+export function leafMarkings(pos, uv, b, s0, L, dir, lift = 0.03, low = undefined, nrm = null, half = Infinity) {
   if (low === undefined) { low = Infinity; for (let i = 1; i < pos.length; i += 3) low = Math.min(low, pos[i]); }
   const frame = (k) => {
     const dx = pos[k * 3] - b.ax, dz = pos[k * 3 + 2] - b.ay;
@@ -78,6 +78,8 @@ export function leafMarkings(pos, uv, b, s0, L, dir, lift = 0.03, low = undefine
     const f = [frame(t), frame(t + 1), frame(t + 2)];
     const cx = (f[0][0] + f[1][0] + f[2][0]) / 3;
     if (cx < 0 || cx >= L) continue;
+    // paint from a way beside the movable one stays on the deck too, not beside it
+    if (half !== Infinity && f.some((q) => Math.abs(q[1]) > half + 0.05)) continue;
     for (let k = 0; k < 3; k++) {
       out.pos.push(f[k][0], pos[(t + k) * 3 + 1] - low + lift, f[k][1]);
       if (nrm) { const nx = nrm[(t + k) * 3], nz = nrm[(t + k) * 3 + 2]; const [fx, fz] = dir > 0 ? [nx * b.ux + nz * b.uy, -nx * b.uy + nz * b.ux] : [-(nx * b.ux + nz * b.uy), nx * b.uy - nz * b.ux]; out.nrm.push(fx, nrm[(t + k) * 3 + 1], fz); } else out.nrm.push(0, 1, 0);
@@ -103,7 +105,7 @@ function surfaceMesh(b, s0, L, dir, geo, material, lift, low) {
     U.push(uv ? uv.getX(v) : 0, uv ? uv.getY(v) : 0);
     if (nrm) N.push(nrm.getX(v), nrm.getY(v), nrm.getZ(v));
   }
-  const m = leafMarkings(P, U, b, s0, L, dir, lift, low, nrm ? N : null);
+  const m = leafMarkings(P, U, b, s0, L, dir, lift, low, nrm ? N : null, b.half);
   if (!m.pos.length) return null;
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(m.pos, 3));
@@ -115,17 +117,19 @@ function surfaceMesh(b, s0, L, dir, geo, material, lift, low) {
 }
 
 // What a leaf wears: the road's carriageway, pavements and paint, each cut to
-// the leaf (#153). Nothing for a road without geometry (the leaf then keeps its
-// flat colours).
-function surfaceMeshes(b, s0, L, dir, geo, mats) {
+// the leaf (#153), plus the paint of every second way that lies on the span
+// (#967: its marks would otherwise stay in the air when the leaf rises).
+// Nothing for a road without geometry (the leaf then keeps its flat colours).
+function surfaceMeshes(b, s0, L, dir, geo, mats, riders = []) {
   if (!geo || !geo.road || !mats) return [];
   const rp = geo.road.getAttribute('position');
   let low = Infinity;
   for (let i = 0; i < rp.count; i++) low = Math.min(low, rp.getY(i));
+  const paint = [geo.mark, ...riders.map((q) => q && q.mark)];
   return [
     surfaceMesh(b, s0, L, dir, geo.road, mats.road, 0.01, low),
     mats.sidewalk ? surfaceMesh(b, s0, L, dir, geo.sidewalk, mats.sidewalk, 0.02, low) : null,
-    surfaceMesh(b, s0, L, dir, geo.mark, getMarkingMaterial(), 0.035, low),
+    ...paint.map((m) => surfaceMesh(b, s0, L, dir, m, getMarkingMaterial(), 0.035, low)),
   ].filter(Boolean);
 }
 
@@ -193,13 +197,14 @@ function buildBoom(bm) {
 }
 
 function buildView(b, map) {
+  if (!b.riders) b.riders = findRiders(b, map);
   const group = new THREE.Group();
   group.visible = false;
   const wide = b.r.cat === 'major' || b.r.cat === 'normal' || b.r.cat === 'minor';
   const yaw = -Math.atan2(b.uy, b.ux);
   const leaves = [];
   const double = b.kind === 'bascule' && b.len > 26;
-  let surf;
+  let surf, riderGeos;
   const pieces = double ? [[0, b.len / 2, 1], [b.len, b.len / 2, -1]] : [[0, b.len, 1]];
   for (const [s0, L, dir] of pieces) {
     const pivot = new THREE.Group();
@@ -207,9 +212,14 @@ function buildView(b, map) {
     pivot.position.set(ex, 0, ey);
     pivot.rotation.y = dir > 0 ? yaw : yaw + Math.PI;
     // the road's surface, pavements and paint ride on the leaf with the
-    // road's own materials, so the deck looks the same open and closed (#153)
+    // road's own materials, so the deck looks the same open and closed (#153);
+    // the paint of a way that lies on the same span rides along too (#967)
     if (surf === undefined) { try { surf = { geo: roadSurfaceGeometries(b.r), mats: roadSurfaceMaterials(b.r) }; } catch { surf = null; } }
-    const worn = surf ? surfaceMeshes(b, s0, L, dir, surf.geo, surf.mats) : [];
+    if (riderGeos === undefined) {
+      riderGeos = [];
+      for (const r of b.riders || []) { try { riderGeos.push(roadSurfaceGeometries(r)); } catch { riderGeos.push(null); } }
+    }
+    const worn = surf ? surfaceMeshes(b, s0, L, dir, surf.geo, surf.mats, riderGeos) : [];
     const leaf = buildLeaf(L, b.half, wide, !worn.length);
     for (const m of worn) leaf.add(m);
     pivot.add(leaf);
@@ -250,10 +260,15 @@ export function syncMovableBridges3D(px, py, map = null) {
   if (!pending) viewsVersion = movableBridgesVersion();
 }
 
-// the roads of the bridges that are not lying closed (scene3d hides their static road)
+// the roads of the bridges that are not lying closed (scene3d hides their static road), and every
+// second way that lies on an open span: its asphalt and paint would otherwise stay in the air (#967)
 export function openBridgeRoads(out = new Set()) {
   out.clear();
-  for (const b of getMovableBridges()) if (b.open > 0) out.add(b.r);
+  for (const b of getMovableBridges()) {
+    if (b.open <= 0) continue;
+    out.add(b.r);
+    for (const r of b.riders || []) out.add(r);
+  }
   return out;
 }
 

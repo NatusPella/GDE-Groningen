@@ -128,8 +128,25 @@ export function drawCountryBase(ctx, x0, y0, x1, y1, st) {
   }
 }
 
+// Hoe ver van een gebouw het als bebouwde kom telt (#977: geen kavelgrenzen dwars door een dorp).
+export const BUILT_R = 22;
+
+// Ligt (x, y) in de bebouwde kom: staat er een gebouw binnen BUILT_R meter? De kaart
+// tekent daar geen kavelsloten: die van het hash-rooster weten niets van de dorpen en
+// liepen in Marum en Oude Pekela dwars door de huizen (spelersfeedback 15-11).
+export function builtUpAt(map, x, y, r = BUILT_R) {
+  if (!map || !map.buildingsNear || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+  for (const b of map.buildingsNear(x, y, r)) {
+    const bd = b.bounds;
+    if (!bd || bd.length < 4) continue;
+    if (x >= bd[0] - r && x <= bd[2] + r && y >= bd[1] - r && y <= bd[3] + r) return true;
+  }
+  return false;
+}
+
 // Everything on the meadows. pxPerM: screen pixels per metre (detail level).
-export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
+// opts.built(x, y): true in de bebouwde kom; daar blijven de kavelgrenzen weg.
+export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st, opts = null) {
   // map tiles are small, so they are drawn wherever they lie (#244: the Ommeland beyond the
   // test strip stayed empty); only a window wider than 40 km is held to the reachable countryside
   if (Math.max(x1 - x0, y1 - y0) > 40000) {
@@ -143,6 +160,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   let outside = false;
   for (let gx = 0; gx <= 4 && !outside; gx++) for (let gy = 0; gy <= 4; gy++) if (edgeDistance(x0 + ((x1 - x0) * gx) / 4, y0 + ((y1 - y0) * gy) / 4) > -Math.max(x1 - x0, y1 - y0) / 4 - 60) { outside = true; break; }
   if (!outside) return;
+  const built = opts && typeof opts.built === 'function' ? opts.built : null;
   const px = (n) => n / pxPerM;
   ctx.save();
   ctx.lineCap = 'butt';
@@ -152,7 +170,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
     ctx.moveTo(ax, ay);
     ctx.lineTo(bx, by);
   };
-  // long grid lines in pieces, only out in the country
+  // long grid lines in pieces, only out in the country (and never through a village)
   const segOut = (ax, ay, bx, by, step = 120, notReal = false) => {
     const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
     for (let i = 0; i < n; i++) {
@@ -160,6 +178,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
       const qx = ax + (bx - ax) * t0, qy = ay + (by - ay) * t0, rx = ax + (bx - ax) * t1, ry = ay + (by - ay) * t1;
       const mx = (qx + rx) / 2, my = (qy + ry) / 2;
       if (edgeDistance(mx, my) < 5 || !provinceLandAt(mx, my)) continue; // none over the sea or beyond the border (#233)
+      if (!notReal && built && built(mx, my)) continue; // geen kavelgrens door de bebouwde kom (#977; een maar is water en blijft)
       if (notReal && provinceBlock(Math.floor(mx / BLOCK), Math.floor(my / BLOCK))) continue;
       seg(qx, qy, rx, ry);
     }
@@ -179,7 +198,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
           const hS = chash(col + bx * 131 + 5, by * 977 + 61);
           for (let b = 0; b < BLOCK; b += 80) {
             const [mx, my] = W(col * PW, b + 40);
-            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my)) continue;
+            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my) || (built && built(mx, my))) continue;
             const [ax, ay] = W(col * PW, b), [cx, cy] = W(col * PW, b + 80);
             seg(ax, ay, cx, cy);
           }
@@ -189,7 +208,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
             const b = row * PL - off;
             if (b <= 0) continue;
             const [mx, my] = W(c0 * PW + PW / 2, b);
-            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my)) continue;
+            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my) || (built && built(mx, my))) continue;
             const [ax, ay] = W(c0 * PW, b), [cx, cy] = W(col * PW, b);
             seg(ax, ay, cx, cy);
           }
@@ -206,8 +225,10 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   ctx.strokeStyle = st.ditch;
   ctx.lineWidth = Math.max(px(0.9), MAIN_HW * 1.6);
   ctx.beginPath();
-  for (let bx = bx0; bx <= bx1 + 1; bx++) segOut(bx * BLOCK, y0, bx * BLOCK, y1);
-  for (let by = by0; by <= by1 + 1; by++) segOut(x0, by * BLOCK, x1, by * BLOCK);
+  // met een dorp in beeld in korte stukken, zodat de lijn bij de bebouwde kom ophoudt (#977)
+  const mainStep = built ? 30 : 120;
+  for (let bx = bx0; bx <= bx1 + 1; bx++) segOut(bx * BLOCK, y0, bx * BLOCK, y1, mainStep);
+  for (let by = by0; by <= by1 + 1; by++) segOut(x0, by * BLOCK, x1, by * BLOCK, mainStep);
   ctx.stroke();
   // open water (maaren) as solid as the city's water; only the ditch grid fades
   ctx.globalAlpha = 1;

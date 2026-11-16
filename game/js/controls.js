@@ -204,7 +204,7 @@ const FOOT = {
   ls: 'shift', rs: 'tab', up: 'n', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
 };
 // Minigames with their own button layout: world.activityGame -> PAD_MAPS situation
-export const GAME_PAD_CTX = { carillon: 'klokken', pannenkoek: 'pannenkoek' };
+export const GAME_PAD_CTX = { carillon: 'klokken', pannenkoek: 'pannenkoek', klimtoren: 'klimtoren' };
 
 export const PAD_MAPS = {
   foot: FOOT,
@@ -249,6 +249,10 @@ export const PAD_MAPS = {
   klokken: { a: ';', b: 'l', x: 'j', y: 'k', lb: 'q', rb: 'e', lt: 'backspace', rt: ' ', ls: null, rs: null, up: 'f', down: 's', left: 'a', right: 'd', view: 'm', start: 'escape', stick: 'arrows' },
   // the pancake ship: A B X Y serve the four toppings (Q W E R), the bumpers and LT pick the pans (1 2 3), RT stops
   pannenkoek: { a: 'q', b: 'w', x: 'e', y: 'r', lb: '1', rb: '2', lt: '3', rt: 'backspace', ls: null, rs: null, up: null, down: null, left: null, right: null, view: 'm', start: 'escape', stick: 'none' },
+  // de klimtoren (#978): elke hand heeft zijn eigen knop -- LB de linkerhand, RB de rechter (en de D-pad
+  // links/rechts kan ook) -- want een stick kan maar één hand tegelijk vasthouden en dan wisselden de
+  // hints tussen toetsenbord en controller. A is magnesium (Spatie), B stopt, de stick doet niets.
+  klimtoren: { ...FOOT, lb: 'a', rb: 'd', left: 'a', right: 'd', up: null, down: null, b: 'backspace', stick: 'none' },
   // the Fjord Frituur: the D-pad and the bumpers pick from the menu
   foodtruck: { a: ' ', b: 'backspace', x: 'backspace', y: 'e', up: '1', right: '2', down: '3', left: '4', lb: '5', rb: '6', lt: null, rt: '@gas', ls: null, rs: null, view: 'm', start: 'escape', stick: 'move' },
   // de vliegschool (#397): het lesmenu bij de balie; A kiest, B gaat terug, de pijlen (en de stick) bladeren. In de lucht

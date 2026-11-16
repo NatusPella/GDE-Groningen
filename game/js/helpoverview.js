@@ -60,7 +60,7 @@ export const HELP_TOPICS = [
   { id: 'toetsen', title: 'Toetsen en controller', lines: [
     'Alles staat bij elkaar onder Instellingen › Besturing: muis en toetsenbord, controller en aanraken. Het Toetsenoverzicht zet de besturing per situatie bij elkaar: te voet, vervoer, vechten, duif, samen spelen en het menu.',
     'Toetsen en knoppen kun je zelf anders zetten, voor toetsenbord en controller.',
-    'Zet de uitleg uit onder Spel › Hints & uitleg.',
+    'Zet de uitleg uit onder Instellingen › Hints & uitleg.',
   ] },
   { id: 'geluid', title: 'Geluid uit of weer aan', lines: [
     'Staat het geluid uit, dan staat linksboven in beeld een luidspreker met een streep erdoor, met de toets erbij. Druk op {U} om het weer aan te zetten.',

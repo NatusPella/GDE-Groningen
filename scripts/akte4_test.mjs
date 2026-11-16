@@ -74,7 +74,7 @@ ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length >= 5, '
 const list = [{ label: 'Iedereen heeft een rode auto gezien', stages: [], start: {} }];
 applyAkte4(list);
 const fj = list[0];
-ok(fj.fjordTrain === false && fj.stages.filter((q) => q.kind === 'choice').length === 2, 'fjord: Tessa\'s wagon choice and Tammo\'s friends');
+ok(fj.fjordTrain === false && fj.stages.filter((q) => q.kind === 'choice').length >= 1, 'fjord: Tessa\'s wagon choice en de vriendenscène');
 // #739: M21.4 is geen dode scène meer: hij speelt als stage-outro van Tammo's deel, na de keuzepuzzel
 const laatste = fj.stages[fj.stages.length - 1];
 ok(laatste && laatste.kind === 'scene' && (laatste.script?.ids || []).includes('M21.4'), 'fjord: M21.4 speelt als stage-outro van Tammo\'s deel');
@@ -117,7 +117,7 @@ const run = (st, keys) => {
   return { r, S };
 };
 ok(run(wieb, ['2', '2', '1']).r === 'done' && run(wieb, ['2', '2', '1']).S.wrong === 0, 'intake: the right answers pass');
-ok(run(wieb, ['1', '1', '2']).r && run(wieb, ['1', '1', '2']).r.fail, 'intake: three wrong answers fail');
+ok(run(wieb, ['1', '1', '2']).r === 'done', 'intake: wrong answers give argwaan maar laten de missie door (#962)');
 ok(run(wieb, ['1', '1', '1']).r === 'done' && run(wieb, ['1', '1', '1']).S.wrong === 2, 'intake: two wrong answers are survived, with a wary manager (argwaan2)');
 ok(run(wieb, ['1', '2', '1']).r === 'done' && run(wieb, ['1', '2', '1']).S.wrong === 1, 'intake: one wrong answer is forgiven (argwaan1)');
 ok(wieb.countTag === 'argwaan' && wieb.rounds.length === 3, 'intake: three questions, the wrong answers are counted as argwaan1/argwaan2');
@@ -130,8 +130,7 @@ const wagon = fj.stages.find((q) => q.kind === 'choice' && q.kicker === 'Op de w
 ok(run(wagon, ['1']).r === 'done', 'wagon: the car passes');
 ok(run(wagon, ['2']).r === 'done', 'wagon: keeping the ball does not restart the mission (the reply tells the consequence)');
 const friends = fj.stages.find((q) => q.kind === 'choice' && /vrienden/.test(q.kicker));
-for (const combo of [['1', '1', '1', '1'], ['2', '2', '2', '2'], ['3', '3', '3', '3'], ['1', '2', '3', '1']]) ok(run(friends, combo).r === 'done', `friends: ${combo.join('')} always ends the mission, never a fail`);
-ok(friends.rounds.length === 4 && friends.rounds.every((r) => r.options.every((o) => o.ok !== false || o.reply)), 'friends: four friends, every answer has a reply');
+ok(!friends, 'friends: de keuzepuzzel is vervangen door de M21.4-scene (#962)');
 
 // the M20 duel ends in the real pole vault (missionstory.playDuelJump, missions.js timing stage)
 ok(mine.some((d) => d.stages.some((q) => q.kind === 'timing' && q.vaultJump)), 'M20: the duel timing stage has vaultJump');

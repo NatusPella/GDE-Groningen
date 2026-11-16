@@ -134,7 +134,7 @@ export function createLobby(caps = {}) {
   const lijstEerst = caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false;
   return {
     // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
-    step: caps.start || (lijstEerst ? (consentSaved ? 'lijst' : 'lijst-vraag') : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
+    step: caps.start || (lijstEerst ? (consentSaved ? 'lijst' : 'lijst-vraag') : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null, invoerDraft: null,
     // toestemming (#526): één keer per sessie; consented zet het akkoord van dit scherm, consentSaved de keuze van dit apparaat
     consented: !!caps.consented, consentSaved, consentRemember: consentSaved,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
@@ -187,11 +187,18 @@ export function reduce(s, ev) {
       n.route = ev.route; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     case 'invoer': { // alleen gast
       const c = classifyInput(ev.text);
+      n.invoerDraft = String(ev.text ?? '');
       if (!c.ok) return { ...n, error: c.reason };
       if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag om een kamercode.' };
       if (c.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet.' };
       n.route = c.route; n.invoer = c; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     }
+    // #review 0.63: het kamercodeveld bewaart wat je typt ook als het scherm opnieuw tekent
+    // (de lijst ververst elke paar seconden). Geen keuring: pas bij "Verder" telt de code.
+    case 'invoer-typ':
+      n.invoerDraft = String(ev.tekst ?? '').slice(0, 64);
+      if (s.step === 'gast-typt' && s.error) n.error = ''; // een nieuwe poging wist de oude melding
+      return n;
     case 'consent-vink': // "Niet meer vragen" op het toestemmingsscherm (#526): alleen de keuze van dit scherm, akkoord bewaart hem
       if (s.step !== 'toestemming' && s.step !== 'lijst-vraag' && s.step !== 'diag-vraag') return s;
       n.consentRemember = !!ev.aan; return n;
@@ -363,6 +370,9 @@ export function jijRegel(s, lijst, ik) {
 }
 
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
+// Het kamercodeveld toont wat je zelf typte (invoerDraft), ook na een nieuwe tekening; zonder eigen
+// invoer valt het terug op de laatst gebruikte code.
+const invoerWaarde = (s) => (s.invoerDraft != null ? s.invoerDraft : (s.caps.laatsteCode || ''));
 export function view(s) {
   // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
   const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
@@ -428,7 +438,7 @@ export function view(s) {
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Je speelt lokaal je eigen verhaal (Tammo of Tessa, wat jouw opdracht vraagt) en de anderen zien je als je online-avatar. Kies hieronder je naam, kleur en figuur: je naam en kleur zijn wat de anderen bij je figuur zien.', GAST_BEWAREN(s.caps.spelNaam)],
         profiel,
         wachtwoord: wachtwoordVeld(),
-        input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
+        input: { placeholder: 'Kamercode of GDE2-…', value: invoerWaarde(s), maxLength: 64, label: 'Kamercode of koppelcode' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
       });
@@ -545,7 +555,7 @@ export function view(s) {
         // #973: de serverbrowser en de kamercode staan nu op één scherm: de speler hoeft niet
         // vooraf te weten welke van de twee hij wil. De lijst is de route om iemand te vinden,
         // het veld is de route als je al een code van een vriend hebt.
-        input: { placeholder: 'Kamercode of GDE2-… (van een vriend)', value: s.caps.laatsteCode || '', maxLength: 64 },
+        input: { placeholder: 'Kamercode of GDE2-… (van een vriend)', value: invoerWaarde(s), maxLength: 64, label: 'Kamercode of koppelcode van een vriend' },
         lijstInfo: {
           zoek: s.lijstZoek || '', sortering: s.lijstSortering, aantal: s.lijstAantal, filters: { ...f },
           getoond, totaal, alles, meer: getoond < totaal, telling, ververst: s.lijstVervers || 0,

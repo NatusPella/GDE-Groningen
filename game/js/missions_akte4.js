@@ -99,8 +99,11 @@ export function buildAkte4Defs() {
       stages: [
         { kind: 'goto', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), mode: 'foot', radius: 14, label: 'Ga naar binnen bij Wiebelwerk', say: 'Wiebelwerk, websites met karakter. Binnen doen we alsof we een website willen.' },
         {
-          kind: 'choice', kicker: 'Intake bij Wiebelwerk', wrongFails: 3, countTag: 'argwaan', wrongText: 'de accountmanager ziet dat je geen klant bent. De beveiliging komt eraan',
-          label: 'Overtuig de accountmanager: je bent klant', say: 'Geef de juiste antwoorden op de intake, dan mogen we naar de serverkamer.',
+          // #956: de intake speelt binnen, in het kantoorset van Wiebelwerk (stagesets.js);
+          // #962: geen afloop meer op foute antwoorden — de argwaan-tags bepalen hoe wantrouwend
+          // de manager is (M18.6/M18.7), maar een verkeerd antwoord stopt de missie niet meer.
+          kind: 'choice', set: 'kantoor', kicker: 'Intake bij Wiebelwerk', countTag: 'argwaan',
+          label: 'Overtuig de accountmanager: je bent klant', say: 'Beantwoord de intake. Een fout antwoord maakt de manager wantrouwig; hij loopt dan mee naar de serverkamer.',
           rounds: [
             { who: 'Accountmanager', text: 'Wat is uw merkpersoonlijkheid?', options: [
               { label: 'Friet.', ok: false, reply: 'Dat is een product, geen persoonlijkheid.' },
@@ -127,8 +130,10 @@ export function buildAkte4Defs() {
         },
         { kind: 'goto', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 5, label: 'Naar de serverkamer', say: 'De accountmanager belt een collega. Nu snel naar de serverkamer.' },
         {
-          // a wary manager walks along and the guard looks out: the same hall, a faster sweep, a narrower dark zone
-          kind: 'timing', ifTag: 'argwaan1', kicker: 'De gang, met de accountmanager achter je', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de accountmanager zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
+          // a wary manager walks along and the guard looks out: the same hall, a faster sweep, a narrower dark zone.
+          // #962: een gemiste druk kost de stap (de manager kijkt om), maar laat de missie niet meer mislukken:
+          // het verhaal gaat door, met de argwaan-tag als gevolg.
+          kind: 'timing', ifTag: 'argwaan1', kicker: 'De gang, met de accountmanager achter je', help: 'druk als de camera wegdraait', goodAt: 3, tagGood: 'sluip-top',
           label: 'Glip langs de camera\'s, met de accountmanager in je nek', say: 'Hij loopt twee stappen achter je. De camera\'s draaien sneller en het groen is smaller.',
           rounds: [
             { text: 'Camera één kijkt naar de koffieautomaat. De accountmanager vraagt of je koffie wilt.', speed: 0.85, zone: [0.39, 0.61], ok: 'Door, achter de plant.', bad: 'Camera één piept. Hij kijkt om.' },
@@ -137,7 +142,9 @@ export function buildAkte4Defs() {
           ],
         },
         {
-          kind: 'timing', unlessTag: 'argwaan1', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de camera zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
+          // #962: ook hier geen afloop meer op twee missers: de camera ziet je, de manager wordt
+          // wantrouwig (en dat merk je in de scène), maar de missie loopt door.
+          kind: 'timing', unlessTag: 'argwaan1', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', goodAt: 3, tagGood: 'sluip-top',
           label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het vak staat, dan sluip je door.',
           rounds: [
             { text: 'Camera één kijkt naar de koffieautomaat.', speed: 0.7, zone: [0.36, 0.64], ok: 'Door, achter de plant.', bad: 'Camera één piept. Terug achter de plant.' },
@@ -146,7 +153,8 @@ export function buildAkte4Defs() {
           ],
         },
         {
-          kind: 'hold', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Hoving is die dag geblokkeerd.'],
+          // #956: het logboek wordt in de serverkamer gelezen, in de hal van M18.3 (office3d.js)
+          kind: 'hold', set: 'serverkamer', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Hoving is die dag geblokkeerd.'],
           label: 'Lees het logboek van 12 augustus', say: 'Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.',
         },
         // #743: de centrale clue (Jelle had de bal al vijf dagen eerder) is geen 54 s 'talk' meer tijdens het
@@ -287,9 +295,11 @@ export function applyAkte4(list) {
       ],
     },
     {
+      // #962: geen klok meer op deze keuze. Het is een verhaalbeslissing (de auto of de bal),
+      // geen reactietest; de speler mag erover nadenken. De bal-keuze houdt zijn eigen variant.
       kind: 'choice', kicker: 'Op de wagon', label: 'Kies: de auto of de bal', say: 'Jelles mannen staan op de wagon. Jelle belt: de auto redden of de bal houden. Niet allebei.',
       rounds: [
-        { who: 'Jelle', time: 6, timeoutPick: 2, rule: 'Beslis snel', text: 'U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.', options: [
+        { who: 'Jelle', text: 'U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.', options: [
           { label: 'De auto: de Escapade redden', tag: 'auto', reply: 'Tessa laat de rugzak vallen. Jelles mannen springen met de bal naar een limo.' },
           { label: 'De bal: de rugzak vasthouden', ok: false, tag: 'bal', reply: 'Tessa houdt de bal tot een belegger hem uit haar handen trekt. Dan springt ze terug naar de Escapade: de wagon rolt, maar ze haalt hem in.' },
         ] },
@@ -298,33 +308,11 @@ export function applyAkte4(list) {
     { kind: 'scene', target: ll('zuidhornOverweg', { label: 'De overweg' }), label: 'De klomp', kicker: 'De overweg bij Zuidhorn', script: { ids: ['M21.3'] }, scriptIf: [{ tag: 'bal', ids: ['M21.6'] }], cast: [{ key: 'berend', pose: 'arms', at: [3.2, 0.8] }] },
     { kind: 'scene', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), label: 'Tammo', kicker: 'Woensdag 26 augustus', big: 'Tammo, bij Tinus\' schuur', solo: true, lines: [] },
     { kind: 'goto', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), mode: 'any', radius: 25, label: 'Naar Tinus\' schuur bij Zuidhorn', say: 'Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Jelles advocaten bellen ze terug.' },
-    {
-      kind: 'choice', kicker: 'De vrienden bij Tinus\' schuur', label: 'Houd Oma\'s vrienden bij elkaar, ook al zeggen ze nee', say: 'Zeg het goed. Elke vriend zegt dat Jelles advocaten gebeld hebben.',
-      rounds: [
-        { who: 'Geesje', text: 'Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong.', options: [
-          { label: 'Wacht.', reply: 'Tinus: "Laat ze, jong. Praten kun je niet."' },
-          { label: 'Alsjeblieft.', reply: 'Geesje vertrekt met haar eieren.' },
-          { label: 'Ik… zeg het niet goed.', reply: 'Geesje: "Dat hoor ik."' },
-        ] },
-        { who: 'Kapitein Klaas', text: 'Mijn rubberboot is in beslag genomen. Tot de sluis ging het. Nu ben ik voor eigen rekening.', options: [
-          { label: 'Alsjeblieft.', reply: 'Klaas tilt zijn pet op en vertrekt.' },
-          { label: 'Wacht.', reply: 'Klaas wacht. Twee tellen.' },
-          { label: 'Ik vind wel een boot.', reply: 'Klaas: "Daar ging het niet om."' },
-        ] },
-        { who: 'Wubbo', text: 'De brug draait op tijd. Maar vandaag draait hij voor een evenement.', options: [
-          { label: 'Ik… zeg het niet goed.', reply: 'Wubbo knikt en loopt weg.' },
-          { label: 'Wacht.', reply: 'Wubbo: "Ik heb een brug."' },
-          { label: 'Blijf nog even.', reply: 'Wubbo kijkt naar zijn horloge.' },
-        ] },
-        { who: 'Roelfien', text: 'Mijn vliegvergunning is ingetrokken. Zeg het tegen Trijntje.', options: [
-          { label: 'Wacht.', reply: 'Tinus: "Mijn schuur is leeg, maar Henk komt met een luik. Voor jou en je ruzie."' },
-          { label: 'Alsjeblieft.', reply: 'Roelfien loopt naar buiten.' },
-          { label: 'Voor ons.', reply: 'Tammo zegt: "Voor ons." Roelfien is al weg.' },
-        ] },
-      ],
-    },
-    // #739: M21.4 ("Tammo, de vrienden", het dieptepunt) stond dood in de data. Hij speelt nu als
-    // stage-outro van Tammo's deel, na de keuzepuzzel: de vrienden gaan weg en Tammo blijft alleen achter.
+    // #962: de vier gesprekken bij Tinus' schuur waren een keuzepuzzel waarin elk antwoord
+    // "fout" was en die daarna alsnog door de scène werd verteld. De scène M21.4 zegt het
+    //zelfde, met de vrienden zelf: de keuzepuzzel is weg, het verhaal blijft.
+    // #739: M21.4 ("Tammo, de vrienden", het dieptepunt) speelt als stage-outro van Tammo's
+    // deel: de vrienden gaan weg en Tammo blijft alleen achter.
     { kind: 'scene', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), label: 'Tammo, de vrienden', kicker: 'Woensdag 26 augustus', big: 'Tammo, de vrienden', solo: true, script: { ids: ['M21.4'] } },
   ];
 }

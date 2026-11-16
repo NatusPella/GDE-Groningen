@@ -13,6 +13,13 @@ const scr = await imp('cutscript');
 const prev = await imp('cutpreview');
 const cam = await imp('camerapath');
 const sc3 = await imp('scene3d');
+const gre = await imp('greenery');
+// #955: dezelfde bomen als in het spel (greenery.js treeDims): een camera in een kroon telt
+// als bedekt, zodat de stills laten zien wat de speler ziet en niet een lens vol bladeren.
+const treeAt = (x, y, z) => {
+  for (const t of map.treesNear(x, y, 12)) if (gre.treeBlocksPoint(t, x, y, z, 0.35)) return true;
+  return false;
+};
 const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 // kijkstraal door pixel (px, py): welke meshes zitten daar (naam, ouderketen, kleur), voor CS.probe = { id, t, px: [[x, y], ...] }
 const probeAt = (px, py) => {
@@ -61,7 +68,7 @@ for (const e of cat) {
   if (sampled && !sampled.has(e.id)) continue;
   if (CS.only && CS.only.length && !CS.only.some((o) => e.id === o || e.id.startsWith(o))) continue;
   const anchor0 = { x: spot.x, y: spot.y, facing: spot.a, z: p.gz || 0 };
-  const env = { solid: (x, y, z) => cam.roofAt(map, x, y) > z - 0.2 };
+  const env = { solid: (x, y, z) => cam.roofAt(map, x, y) > z - 0.2, tree: treeAt };
   const at = scr.fitAnchor(e.scene, anchor0, env);
   let run;
   const notes = [];

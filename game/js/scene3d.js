@@ -124,7 +124,6 @@ import { today as calendarTodayEv } from './calendarday.js';
 import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, syncMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
-import { getMovableBridges } from './movablebridges.js';
 import { chamberLiftAt } from './sluizen.js';
 import { surfaceLift, surfaceLiftAt } from './waterlevels.js';
 import { updateSluizen3D } from './sluizen3d.js';
@@ -2145,6 +2144,7 @@ function syncWater(items, cache, y, map, px, py) {
 
 let roadQuality = getRoadQualityVersion();
 const openSpans = new Set();
+const hiddenSpans = new Set(); // de wegen die de vorige frame voor een open brug verborgen waren
 const _roadSeen = new Set();
 let bridgeViews = false;
 // An idle road pass is skipped, mirroring the building guard (syncBuildings): the
@@ -2714,7 +2714,11 @@ export function update3D(dt, world) {
   syncMovableBridges3D(focus.x, focus.y, world.map);
   openBridgeRoads(openSpans);
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 3 });
-  for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
+  // de open span en elke tweede weg die erop ligt (#967: anders blijft daar de verf in de lucht
+  // hangen); komt de brug weer dicht, dan worden ze allebei weer zichtbaar
+  for (const r of hiddenSpans) if (!openSpans.has(r)) { const m = roadMeshes.get(r); if (m) m.visible = true; }
+  hiddenSpans.clear();
+  for (const r of openSpans) { hiddenSpans.add(r); const m = roadMeshes.get(r); if (m) m.visible = false; }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
   if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
@@ -4191,6 +4195,11 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     cam.position.lerp(overridePos, t);
     _camLook.lerp(overrideLook, t);
     guardCinematicCamera(dt, world);
+    // #955: een filmcamera die in een boomkroon staat (M02.intro: stam en takken vulden het
+    // beeld) laat die kroon net als de volgcam weg: de kijker ziet de scène, geen bladeren.
+    // De camera zelf stapt er al uit (cutscript.js clearOfTrees); dit dekt de kroon die
+    // precies op de lens hangt.
+    if (world && world.map) updateCamTreeHiding(world.map, cam.position.x, cam.position.y, cam.position.z, cam.position.x, cam.position.y, cam.position.z);
   } else {
     guardLift = 0;
   }

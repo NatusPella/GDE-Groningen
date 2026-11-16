@@ -245,8 +245,8 @@ the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
 "Grootte interface" and works from 1280x720 to 4K.
 
 **Pause menu structure** (`pausemenu.js` `SECTIONS`, `RAIL_GROUPS`, `SUBTABS`; the canonical table is in [.specs-fire/standards/ui-taal.md](.specs-fire/standards/ui-taal.md), "Menu's"). A fixed rail on the left never changes shape; the sheet beside it shows one section. Three groups:
-**Spel** (tabs Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (the vakken with their side jobs), **Activiteiten** (Alles, Dichtbij) /
-**Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats), **Cheats** (its own place in the rail since #435).
+**Spel** (tabs Overzicht, Samen spelen, Opslaan & stoppen), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (the vakken with their side jobs), **Activiteiten** (Alles, Dichtbij) /
+**Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Spel, Besturing, Camera, Interface, Hints & uitleg, Toegankelijkheid), **Cheats** (its own place in the rail since #435).
 **Visboek** and **Boerderij** hang under Loopbanen and **Besturing** (Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp) under Instellingen; each opens as its own screen and goes back to its parent.
 **Over** is not a rail row: it is a row under Instellingen > Interface (#601). The rail rows are 56 px at every window size (the stage is always laid out in 1920x1080 design px, so the rail never shrinks or scrolls on 1280x720 or 1920x1080).
 **Samen spelen** is a tab of Spel with its own two tabs, Samen spelen and Spelers; the players list only exists while you play together (#434).

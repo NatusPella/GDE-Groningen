@@ -37,12 +37,13 @@ ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((
 
 // wat naar Spel verhuisd is, en wat blijft
 // #897: "Spelen" is geen tabblad van Spel meer maar een instelling: verkeer, geweld, rijden en de
-// kaart staan onder Instellingen > Spel, net als de moeilijkheid (#891). Camera en hints blijven
-// bij Spel, want dat is hoe je speelt en wat je in beeld ziet.
+// kaart staan onder Instellingen > Spel, net als de moeilijkheid (#891).
+// #979: Camera & richten en Hints & uitleg horen bij Instellingen, niet als losse Spel-tabs: ze
+// gaan over hoe je kijkt en wat je in beeld ziet, niet over je spel zelf.
 const NAAR_INSTELLINGEN = ['ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'mapShiftTeleport', 'liveBussen', 'difficulty'];
 ok(NAAR_INSTELLINGEN.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'de speelopties en de moeilijkheid staan onder Instellingen > Spel', NAAR_INSTELLINGEN.filter((k) => !settingsKeys.includes(k)).join(', '));
-const IN_SPEL = ['fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'showHints', 'hintSource', 'onboardingTips', 'firstPersoon'];
-ok(IN_SPEL.every((k) => spelKeys.includes(k) && !settingsKeys.includes(k)), 'camera, richten en hints blijven onder Spel');
+const IN_INSTELLINGEN = ['fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'showHints', 'hintSource', 'onboardingTips', 'firstPersoon'];
+ok(IN_INSTELLINGEN.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'camera, richten en hints staan onder Instellingen (#979)', IN_INSTELLINGEN.filter((k) => !settingsKeys.includes(k)).join(', '));;
 const BLIJFT = ['resolution', 'shadows', 'masterVolume', 'mouseSensitivity', 'invertY', 'padLayout', 'hudMode', 'showMinimap', 'minimapZoom', 'minimapNorth', 'touchControls', 'showFog', 'colorBlind', 'uiScale', 'reduceMotion', 'stapAnimatie', 'helpTime', 'helpOffer', 'subtitleSize'];
 ok(BLIJFT.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'beeld, geluid, besturing, interface en toegankelijkheid blijven onder Instellingen');
 ok(settingsSrc.includes('data-preset-btn'), 'de voorinstellingen staan onder Instellingen > Beeld als knoppen, niet als picker (#435)');
@@ -63,8 +64,14 @@ ok(!/localStorage\.(setItem|getItem)\([^)]*spel/i.test(pm), 'Spel bewaart niets 
 // de tabbladen van Spel, de sectie en alles eromheen
 const sub = (pm.match(/spel: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(subIds.join() === 'overzicht,samen,acties,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Opslaan & stoppen, Camera & richten en Hints & uitleg (#897: Spelen is een instelling geworden)', subIds.join());
+ok(subIds.join() === 'overzicht,samen,acties', 'Spel heeft de tabbladen Overzicht, Samen spelen en Opslaan & stoppen (#979: Camera en Hints zijn instellingen geworden)', subIds.join());
 ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
+// #979: de twee verhuisde tabbladen staan nu onder Instellingen, met hun eigen inhoud.
+const setSub = (pm.match(/settings: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
+const setIds = [...setSub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
+ok(setIds.join() === 'video,sound,spel,besturing,camera,display,hints,a11y', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen (#979)', setIds.join());
+ok(setIds.filter((id) => ['camera', 'hints'].includes(id)).every((id) => settingsSrc.includes(`tab('${id}'`)), 'Camera en Hints hebben hun eigen inhoud onder Instellingen');
+ok(!/data-goto-sub="spel:camera"/.test(pm) && !/data-goto-sub="spel:hints"/.test(pm), 'geen enkele knop of verwijzing wijst nog naar Spel > Camera of Spel > Hints');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
@@ -90,10 +97,28 @@ ok(/data-action="menu"[^>]*>Herstarten</.test(pm), 'het pauzemenu heeft Spel her
 ok(/\[data-action="reset"\]'\)\.hidden = name !== 'settings'/.test(pm), 'Standaard herstellen blijft bij Instellingen');
 // oude opgeslagen keuzes (pref.sub) breken niets: een onbekend tabblad valt terug op het eerste
 ok(/if \(!subs\.some\(\(\[id\]\) => id === name\)\) name = subs\[0\]\[0\]/.test(pm), 'een onbekend of oud tabblad valt terug op het eerste');
-ok(/SUB_ALIAS = \{ settings: \{ controller: 'besturing', camera: 'besturing' \} \}/.test(pm), 'de oude namen controller en camera werken nog');
+ok(/SUB_ALIAS = \{ settings: \{ controller: 'besturing' \} \}/.test(pm), 'de oude naam controller werkt nog; camera is sinds #979 een eigen tabblad');
 
 // het woordbudget: de nieuwe titels en tabnamen zijn kort
 for (const t of ['Spel', 'Spelen', 'Camera & richten', 'Hints & uitleg', 'Muis & controller']) ok(t.split(/\s+/).filter((w) => w !== '&').length <= 3, `'${t}' is kort`);
+
+// #979: een oude opgeslagen Spel-keuze voor Camera of Hints wijst door naar Instellingen, waar ze nu staan.
+ok(/sub\.spel === 'camera' \|\| sub\.spel === 'hints'/.test(pm) && /sub\.settings = sub\.spel/.test(pm), 'een oude Spel-voorkeur Camera of Hints opent onder Instellingen');
+
+// #980: de twee verhuisde schermen beginnen met wat er nu staat: Camera met stand, beeldhoek en
+// richten; Hints met een voorbeeld. De waarden volgen de regelaars meteen (syncNowFacts).
+ok(/camNowHtml\(\)/.test(settingsSrc) && /data-cam-stand/.test(pm) && /data-cam-fov/.test(pm) && /data-cam-aim/.test(pm), 'Camera toont de camerastand van nu bovenaan');
+ok(/hintsNowHtml\(\)/.test(settingsSrc) && /data-hintprev/.test(pm) && /Hints staan uit/.test(pm), 'Hints toont een voorbeeld en zegt het als hints uit staan');
+ok(/function syncNowFacts/.test(pm) && /syncNowFacts\(st\)/.test(pm) && /syncNowFacts\(\)/.test(pm), 'de samenvatting volgt elke wijziging en de invoerwissel');
+ok(/afstand\.disabled = !!st\.firstPersoon/.test(pm), 'in eerste persoon is de camera-afstand niet meer bedienbaar');
+ok(/stand === 'pad' \? `\$\{pg\('y'\)\}<span>Instappen<\/span>`/.test(pm), 'het hintvoorbeeld toont op de controller de gebruiksknop (Y), niet A (#980)');
+ok(/bron\.setAttribute\('aria-disabled', String\(!st\.showHints\)\)/.test(pm) && /if \(!pk \|\| pk\.getAttribute\('aria-disabled'\) === 'true'\) return;/.test(pm), 'zonder toetshints is de keuze "Hints tonen voor" niet meer bedienbaar');
+ok(/tab\('camera'[\s\S]*?<span>Kijken<\/span>[\s\S]*?<span>Richten<\/span>[\s\S]*?<span>Sfeer<\/span>/.test(settingsSrc), 'Camera groepeert de regelaars in Kijken, Richten en Sfeer (#980)');
+ok(/tab\('hints'[\s\S]*?<span>In beeld<\/span>[\s\S]*?<span>Uitleg<\/span>[\s\S]*?<span>Terugkijken<\/span>/.test(settingsSrc), 'Hints groepeert de regelaars in In beeld, Uitleg en Terugkijken (#980)');
+ok(/saveFactsHtml\(\)/.test(spelSrc) && /data-save-now/.test(pm) && /function syncSaveFacts/.test(pm), 'Opslaan & stoppen toont sessietijd, laatste opslag en de savegame (#980)');
+const pmcss = read('game/js/pausemenu.css');
+ok(/\.pm-nowfacts/.test(pmcss) && /\.pm-hintprev/.test(pmcss), 'de samenvatting en het hintvoorbeeld hebben eigen vormgeving');
+ok(/\[data-panel="settings"\] \.pm-inner\.pm-settings > \.m-tabs \.m-tablist \{ gap: 0 28px; \}/.test(pmcss), 'de acht instellingentabs blijven met een krappere tussenruimte op één rij (#979)');
 
 // --- #430: Loopbaan met Bezigheden, Besturing bij elkaar, Te doen en Verhaal gesplitst ---------------------------------------------
 const kinderen = (pm.match(/const CHILD = \{([^}]+)\}/) || [])[1] || '';
@@ -121,7 +146,7 @@ ok(/Veroverd staat in de rail/.test(read('game/js/todoui.js')) && pm.includes("[
 // Besturing: alles bij elkaar in Instellingen
 const bes = settingsSrc.slice(settingsSrc.indexOf("tab('besturing'"), settingsSrc.indexOf("tab('display'"));
 for (const k of ['mouseSensitivity', 'invertY', 'padLayout', 'padLookSensitivity', 'rumble', 'touchControls']) ok(keysOf(bes).includes(k), 'Besturing heeft ' + k);
-ok(/data-pad-test/.test(bes) && /data-goto-sub="controls:knoppen"/.test(bes) && /data-goto-sub="controls:toetsen"/.test(bes) && /data-goto-sub="controls:overzicht"/.test(bes) && /data-goto-sub="controls:hulp"/.test(bes) && /data-goto-sub="spel:hints"/.test(bes), 'Besturing verwijst naar Controller testen, Knoppen indelen, Toetsen, Toetsenoverzicht, Hulp en Hints');
+ok(/data-pad-test/.test(bes) && /data-goto-sub="controls:knoppen"/.test(bes) && /data-goto-sub="controls:toetsen"/.test(bes) && /data-goto-sub="controls:overzicht"/.test(bes) && /data-goto-sub="controls:hulp"/.test(bes) && /data-goto-sub="settings:hints"/.test(bes), 'Besturing verwijst naar Controller testen, Knoppen indelen, Toetsen, Toetsenoverzicht, Hulp en Hints (#979: Hints staat onder Instellingen)');
 ok(!/touchControls/.test(settingsSrc.slice(settingsSrc.indexOf("tab('display'"), settingsSrc.indexOf("tab('a11y'"))), 'Interface heeft de aanraakbediening niet meer');
 ok(/\['overzicht', 'Toetsenoverzicht'\]/.test(pm) && !/'Alle toetsen'\]/.test(pm), "'Alle toetsen' heet Toetsenoverzicht en staat onder Besturing");
 // de besturing staat per situatie bij elkaar en elke regel staat er één keer (#430)
@@ -172,7 +197,7 @@ ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
-ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spel'\], \['besturing', 'Besturing'\], \['display', 'Interface'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft zes echte instellingstabbladen (met Spel erbij sinds #897); Cheats staat als eigen onderdeel in de rail (#604)');
+ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spel'\], \['besturing', 'Besturing'\], \['camera', 'Camera'\], \['display', 'Interface'\], \['hints', 'Hints & uitleg'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft acht echte instellingstabbladen (met Spel sinds #897 en Camera/Hints sinds #979); Cheats staat als eigen onderdeel in de rail (#604)');
 ok(!/\['fouten', 'Foutrapport'\]/.test(pm) && pm.includes('<span>Problemen</span>') && pm.includes('data-errsum'), 'het foutrapport staat onder Over als Problemen met een Nederlandse samenvatting (#604)');
 ok(pm.includes('data-reset-confirm') && pm.includes('data-action="reset-go"') && pm.includes('data-action="reset-undo"') && pm.includes('data-action="reset-cancel"'), 'Standaard herstellen vraagt eerst en kan daarna ongedaan gemaakt worden (#604)');
 ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Samen spelen er niet');

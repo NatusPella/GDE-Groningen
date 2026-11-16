@@ -9,6 +9,18 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-11-16
+
+- **Klimmen werkt met toetsenbord én controller (#978):** de klimtoren leest nog maar één invoerbron, dus de hints wisselen niet meer tussen toetsenbord en controller. Op een controller heeft elke hand zijn eigen knop (LB en RB) in plaats van de stick, die maar één hand tegelijk kon vasthouden. Houd A en D allebei vast en de handen grijpen om de beurt een greep hoger; laat je één hand los, dan zakt de klimmer, en na een val pak je met dezelfde ingedrukte toetsen gewoon weer vast.
+- **Een tweede weg op een brugdek gaat mee omhoog (#967):** bij bruggen waar OSM naast de beweegbare weg nog een rijstrook of fietspad over hetzelfde dek heeft (de Europaweg, de Eltjo Ruggeweg), bleven die verfstrepen en pijlen in de lucht hangen als de brug openging. Ze rijden nu mee op het dek of verdwijnen met de brug.
+- **Kavelgrenzen blijven buiten de bebouwde kom (#977):** op de kaart liepen de sloten van het kavelrooster dwars door dorpen als Marum en Oude Pekela. Waar gebouwen staan, houdt de kaart de kavelgrenzen nu tegen.
+- **De plekken van het proefbeleg liggen op de wal (#953):** de marker van het derde bolwerk van Vesting Bourtange stond op de rand van de gracht, zodat je bij het volgen van de marker het water in liep. De bolwerken, de poort, de ophaalbrug en de gracht zijn op de geladen tegels gecontroleerd en de stapcirkels zijn zo klein dat ze op de wal blijven.
+- **De intake en de serverkamer van Wiebelwerk spelen echt binnen (#956):** de keuzestap bij de balie zet het kantoorset om je heen (balie, planten, koffiehoek, een collega), het logboek wordt in een serverhal met rekken, kabelbaan en een terminal gelezen, en de scène van 12 augustus speelt in diezelfde hal in plaats van in de open lucht.
+- **Meer aankleding en camerawerk in de binnenscènes (#955):** het kantoorset heeft warm plafondlicht, een schemerlamp, een kapstok, koffiezetapparaat, printer en klok; de serverkamer heeft koel licht en knipperende ledjes. De M18-scènes krijgen over-de-schouder- en close-upbeelden in plaats van alleen automatische dekking, en een korte doof naar zwart bij het binnengaan.
+- **Minder verhaal in quicktime-events (#962):** de vier gesprekken bij Tinus' schuur zijn een scène geworden (M21.4 vertelt hetzelfde met de vrienden zelf); de intake en het sluipen langs de camera's laten de missie niet meer mislukken (een fout antwoord of misser kost argwaan, geen afloop), en de wagonkeuze heeft geen klok meer.
+- **De M02-cutscene staat niet meer in een boom (#955):** camera's die in een kroon of tegen een stam staan stappen naar de open kant of boven de kroon, de scène zoekt vrije grond, en een kroon die precies voor de lens hangt wordt niet getekend. Dit geldt voor elke missiecutscene, niet alleen M02.
+  Samen spelen: een binnenset is decor van wie het spel opende; de keuzepanelen en de scènes (playScript) gaan zoals eerst naar de meespelers, de kamer zelf ziet een meespeler niet, en beloning en voortgang blijven per speler.
+
 ## [0.63.0] - 2026-11-15
 
 - **Fast travel komt aan waar je klikte (#932):** de taxi, bus en trein zochten na de rit een open plek binnen 400 m en zetten je soms in een ander buitengebied neer; nu land je op de bestemming zelf of binnen 90 m daarvan (bij de boot 40 m).

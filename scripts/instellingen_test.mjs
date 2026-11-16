@@ -1,4 +1,4 @@
-// Instellingen en het foutrapport (#604): vijf echte instellingstabbladen, "Standaard herstellen"
+// Instellingen en het foutrapport (#604): acht echte instellingstabbladen, "Standaard herstellen"
 // vraagt eerst en kan ongedaan gemaakt worden, elke rij heeft een regel uitleg, het foutrapport staat
 // onder Over met een Nederlandse samenvatting en Engelse details achter een vouw, en Toegankelijkheid
 // toont een kleine proef van markers, routelijnen en tekst.
@@ -12,11 +12,11 @@ const css = lees('pausemenu.css');
 let n = 0;
 const t = (naam, f) => { f(); n++; };
 
-t('Instellingen heeft zes echte instellingstabbladen; Cheats en Foutrapport zijn er geen tabblad meer', () => {
+t('Instellingen heeft acht echte instellingstabbladen; Cheats en Foutrapport zijn er geen tabblad meer', () => {
   const m = pm.match(/settings: \[(\['video'[\s\S]*?)\],\n/);
   assert.ok(m, 'de settings-tabs staan in pausemenu.js');
   const tabs = [...m[1].matchAll(/\['(\w+)',/g)].map((x) => x[1]);
-  assert.deepEqual(tabs, ['video', 'sound', 'spel', 'besturing', 'display', 'a11y'], 'Beeld, Geluid, Spel, Besturing, Interface, Toegankelijkheid (#897: Spelen is hier een instelling geworden)');
+  assert.deepEqual(tabs, ['video', 'sound', 'spel', 'besturing', 'camera', 'display', 'hints', 'a11y'], 'Beeld, Geluid, Spel, Besturing, Camera, Interface, Hints en Toegankelijkheid (#897, #979)');
   assert.ok(!pm.includes("tab('cheats'"), 'Cheats is geen tabblad van Instellingen meer');
   assert.ok(!pm.includes('data-sub="fouten"'), 'Foutrapport is geen tabblad van Instellingen meer');
   assert.match(pm, /RAIL_GROUPS = \[[\s\S]*?\['settings', 'streken'\]\]/, 'Cheats staat als eigen onderdeel in de rail');
@@ -26,7 +26,7 @@ t('Instellingen heeft zes echte instellingstabbladen; Cheats en Foutrapport zijn
 t('Standaard herstellen vraagt eerst en noemt wat teruggezet wordt', () => {
   const box = pm.slice(pm.indexOf('data-reset-confirm'), pm.indexOf('data-reset-undo'));
   assert.ok(box.includes('Alles terug naar de standaard?'), 'de vraag staat er');
-  assert.ok(/Beeld, geluid, ondertitels, beweging, tekstgrootte en de hulpinstellingen gaan terug/.test(box), 'de vraag noemt wat er teruggezet wordt');
+  assert.ok(/Beeld, geluid, camera, hints, ondertitels, beweging, tekstgrootte en de hulpinstellingen gaan terug/.test(box), 'de vraag noemt wat er teruggezet wordt');
   assert.ok(box.includes('data-action="reset-cancel"'), 'er is een annuleerknop');
   assert.match(pm, /else if \(a === 'reset'\) \{[\s\S]*?box\.hidden = false;[\s\S]*?reset-cancel"\]'\)\.focus\(\)/, 'de herstelknop opent eerst de vraag en zet de focus op Annuleren');
   assert.match(pm, /const resetBox = root\.querySelector\('\[data-reset-confirm\]'\);\s*if \(resetBox && !resetBox\.hidden\) \{[\s\S]*?return;/, 'Escape sluit de vraag zonder iets te herstellen');

@@ -19,6 +19,14 @@ const seg = H.heatRing(1).segmenten;
 ok(seg.every((s, i) => i === 0 || s.van > seg[i - 1].tot), 'de segmenten lopen netjes rond');
 
 ok(H.unitDots(0) === 0 && H.unitDots(1) === 0 && H.unitDots(2) === 1 && H.unitDots(9) === H.UNIT_DOTS, 'eenheden als stippen, nooit als cijfer');
+// Review 0.63: ook bij precies één eenheid hoort de heat-ring om het schild; stippen pas bij meer.
+const een = H.policeBadge(1, 3);
+ok(een && een.ring.sterren === 3 && een.dots === 0, 'één politie-eenheid krijgt de heat-ring en geen stip');
+ok(een.ring.segmenten.filter((s) => s.aan).length === 3, 'de ring bij één eenheid toont de warmte');
+const twee = H.policeBadge(2, 0);
+ok(twee && twee.ring.sterren === 0 && twee.dots === 1, 'twee eenheden: koude ring plus één stip');
+ok(H.policeBadge(0, 5) === null && H.policeBadge(-1, 5) === null, 'zonder politie in beeld geen badge');
+ok(H.policeBadge(9, 9).dots === H.UNIT_DOTS, 'het aantal stippen blijft begrensd');
 ok(H.heatUitleg(0, 0) === '', 'geen politie, geen tekst');
 ok(/2 politie-eenheden/.test(H.heatUitleg(2, 2)) && /2 van 5/.test(H.heatUitleg(2, 2)), 'de uitleg noemt eenheden en heat');
 ok(/niet gezocht/.test(H.heatUitleg(0, 1)) && /zoeken je/.test(H.heatUitleg(3, 1, { searching: true })), 'de uitleg zegt koud of zoekend');

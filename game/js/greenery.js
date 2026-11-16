@@ -120,6 +120,27 @@ export function treeDims(t) {
   d.ly = d.cy + d.ry * (s.crown === 'weeping' ? -0.25 : 0.35);
   return d;
 }
+
+// #955: does the drawn tree t cover the point (x, y, z)? The trunk as a
+// cylinder and the crown (and its second lobe) as ellipsoids, the same shapes
+// scene3d.js uses to hide the crowns the follow camera sits in. `pad` widens
+// them, so a camera just beside a trunk counts too (a lens at 0.4 m from the
+// bark already sees nothing else). Pure: no THREE, no map; the caller asks the
+// map for the trees round the point (map.treesNear).
+export function treeBlocksPoint(t, x, y, z, pad = 0) {
+  if (!t || t._broken) return false;
+  const d = treeDims(t);
+  const dx = x - t[0], dz = y - t[1];
+  if (Math.hypot(dx, dz) < d.tr + pad && z > -pad && z < d.trunkH + pad) return true;
+  const R = d.r + pad, V = d.ry + pad;
+  if ((dx * dx + dz * dz) / (R * R) + ((z - d.cy) ** 2) / (V * V) < 1) return true;
+  if (d.lr > 0) {
+    const lx = dx - d.lx, lz = dz - d.lz, LR = d.lr + pad, LV = d.lr * 0.85 + pad;
+    if ((lx * lx + lz * lz) / (LR * LR) + ((z - d.ly) ** 2) / (LV * LV) < 1) return true;
+  }
+  return false;
+}
+
 // the colour of tree t's leaves (hex), a few percent either way per tree
 export function treeColor(t, out) {
   const sp = t.length > 2 && t[2] >= 0 ? t[2] : 0;

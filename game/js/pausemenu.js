@@ -378,7 +378,7 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
-  ['spel', 'Spel', 'Doorgaan, opslaan, samen spelen en je camera'],
+  ['spel', 'Spel', 'Doorgaan, samen spelen en je spel opslaan'],
   ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
   ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
   ['veroverd', 'Veroverd', 'Je gebieden en wat meetelt'],
@@ -388,7 +388,7 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Wat je gehaald hebt en nog kunt halen'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ['settings', 'Instellingen', 'Beeld, geluid, spel, besturing, interface en toegankelijkheid'],
+  ['settings', 'Instellingen', 'Alles wat je ziet, hoort en bestuurt'],
   ['over', 'Over', 'Nieuws, credits, versie en licenties'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
@@ -412,10 +412,11 @@ const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings'
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  // #890/#897: Spel gaat over je spel zelf (overzicht, samen spelen, opslaan en stoppen) en
-  // over de camera en de uitleg in beeld. Hoe het spel speelt (verkeer, rijden, de kaart) en
-  // hoe moeilijk het is, zijn instellingen: die staan onder Instellingen > Spel.
-  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  // #890/#897: Spel gaat over je spel zelf (overzicht, samen spelen, opslaan en stoppen).
+  // Hoe het spel speelt (verkeer, rijden, de kaart), hoe je kijkt en hoe de uitleg in beeld staat,
+  // zijn instellingen: die staan onder Instellingen (#979: Camera en Hints horen daar, niet als
+  // losse Spel-tabs).
+  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
@@ -424,13 +425,17 @@ const SUBTABS = {
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
   // #891/#897: het tabblad Spel heeft de moeilijkheid bovenaan staan, met de uitleg van de drie
-  // standen ernaast; de speelopties van Spel > Spelen staan er ook, want het zijn instellingen.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spel'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid']],
+  // standen ernaast; de speelopties staan er ook, want het zijn instellingen.
+  // #979: Camera & richten en Hints & uitleg staan hier, naast Besturing en Interface; het zijn
+  // instellingen van het beeld en van de bediening, geen spelacties.
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spel'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
-// de oude plekken: de telefoon is nu Verhaal > Contacten en Berichten, Overzicht is Spel > Overzicht (#430)
-const SUB_ALIAS = { settings: { controller: 'besturing', camera: 'besturing' } };
+// de oude plekken: de telefoon is nu Verhaal > Contacten en Berichten, Overzicht is Spel > Overzicht (#430).
+// 'camera' onder Instellingen was vroeger een verwijzing naar Besturing; sinds #979 is het een eigen
+// tabblad, dus die oude voorkeur opent nu gewoon Camera.
+const SUB_ALIAS = { settings: { controller: 'besturing' } };
 
 // #911: waar je bent in de rail, voor de rechterkant van de bladkop: "Spelen · 2 van 5". Zo zie
 // je hoeveel onderdelen er zijn en waar dit er een van is. Een onderdeel onder een ander
@@ -506,6 +511,8 @@ function loadPref() {
     const sub = p.sub && typeof p.sub === 'object' ? p.sub : {};
     // een oud tabblad Spelers (#434): de lijst zit nu onder Samen spelen
     if (sub.spel === 'spelers') { sub.spel = 'samen'; if (!sub.samen) sub.samen = 'spelers'; }
+    // #979: Camera & richten en Hints & uitleg zaten onder Spel; ze horen nu bij Instellingen.
+    if (sub.spel === 'camera' || sub.spel === 'hints') { sub.settings = sub.spel; sub.spel = 'overzicht'; }
     return { last: typeof p.last === 'string' ? p.last : 'todo', sub };
   } catch (e) {
     return { last: 'todo', sub: {} };
@@ -642,12 +649,65 @@ function keyReuseHtml() {
     dubbel.map(([k, lijst]) => `<div class="pm-keyreuse-row"><span class="m-kc">${esc(keyLabel(k))}</span><span>${esc(lijst.join(' · '))}</span></div>`).join('') + '</div>';
 }
 
+// #980: Instellingen > Camera opent met wat er nu staat, in één blik: de stand, de beeldhoek en
+// het richten. Zo zie je het gevolg van de regelaars eronder voordat je ergens aan draait.
+function camNowHtml() {
+  return '<div class="pm-nowfacts" data-cam-now role="group" aria-label="Camerastand van nu" aria-live="polite">' +
+    '<div class="m-fact"><span>Stand</span><b data-cam-stand>Derde persoon</b></div>' +
+    '<div class="m-fact"><span>Beeldhoek</span><b data-cam-fov>64°</b></div>' +
+    '<div class="m-fact"><span>Richten</span><b data-cam-aim>Automatisch</b></div></div>';
+}
+
+// #980: een voorbeeld van een hint zoals hij nu in beeld komt. Zo zie je wat "aan", "uit" en
+// "voor toetsenbord of controller" betekenen zonder eerst een potje te spelen.
+function hintsNowHtml() {
+  return '<div class="pm-hintprev" data-hintprev role="group" aria-label="Zo zien hints eruit">' +
+    '<span class="m-eb">Zo zien hints eruit</span>' +
+    '<span class="pm-hintprev-row" data-hintprev-row aria-live="polite"><span class="m-kc">E</span><span>Instappen</span></span></div>';
+}
+
+// De feiten bovenaan Camera en het hintvoorbeeld onder Hints volgen elke wijziging meteen (#980).
+function syncNowFacts(st = getSettings()) {
+  if (!root) return;
+  const zet = (el, tekst) => { if (el && el.textContent !== tekst) el.textContent = tekst; };
+  const stand = root.querySelector('[data-cam-stand]');
+  zet(stand, st.firstPersoon ? 'Eerste persoon' : 'Derde persoon');
+  const fov = root.querySelector('[data-cam-fov]');
+  zet(fov, `${st.fov}°`);
+  const aim = root.querySelector('[data-cam-aim]');
+  zet(aim, st.autoAim ? 'Automatisch' : 'Zelf');
+  // in eerste persoon doet de afstand niets: de regelaar gaat opzij in plaats van een dood spoor te zijn
+  const afstand = root.querySelector('[data-setting="cameraDistance"]');
+  if (afstand) {
+    afstand.disabled = !!st.firstPersoon;
+    const rij = afstand.closest('.pm-row');
+    if (rij) rij.classList.toggle('pm-disabled', !!st.firstPersoon);
+  }
+  const voorbeeld = root.querySelector('[data-hintprev-row]');
+  if (voorbeeld) {
+    const stand = !st.showHints ? 'uit' : st.hintSource === 'pad' || (st.hintSource === 'auto' && isPadActive()) ? 'pad' : 'toets';
+    if (voorbeeld.dataset.stand !== stand) {
+      voorbeeld.dataset.stand = stand;
+      voorbeeld.innerHTML = stand === 'uit' ? '<span class="mut">Hints staan uit.</span>'
+        : stand === 'pad' ? `${pg('y')}<span>Instappen</span>`
+          : '<span class="m-kc">E</span><span>Instappen</span>';
+    }
+  }
+  // zonder hints heeft "Hints tonen voor" geen gevolg: de kiezer gaat opzij in plaats van dood te lopen
+  const bron = root.querySelector('[data-setting="hintSource"]');
+  if (bron) {
+    bron.setAttribute('aria-disabled', String(!st.showHints));
+    const rij = bron.closest('.pm-row');
+    if (rij) rij.classList.toggle('pm-disabled', !st.showHints);
+  }
+}
+
 function settingsHtml() {
   const qualities = Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]);
   const tab = (id, rows, side = '') => `<div data-of="settings" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('settings', 'Onderdeel')}
     <div class="pm-confirm pm-resetbox" data-reset-confirm hidden>
-      <p><b>Alles terug naar de standaard?</b> Beeld, geluid, ondertitels, beweging, tekstgrootte en de hulpinstellingen gaan terug naar hoe het spel begon. Je toetsen en knoppen, je naam en de keuze voor Samen spelen blijven staan.</p>
+      <p><b>Alles terug naar de standaard?</b> Beeld, geluid, camera, hints, ondertitels, beweging, tekstgrootte en de hulpinstellingen gaan terug naar hoe het spel begon. Je toetsen en knoppen, je naam en de keuze voor Samen spelen blijven staan.</p>
       <div class="m-acts"><button type="button" class="m-bp" data-action="reset-go">Ja, herstellen</button><button type="button" class="m-bt" data-action="reset-cancel">Annuleren</button></div>
     </div>
     <div class="pm-confirm pm-resetbox" data-reset-undo hidden>
@@ -706,7 +766,7 @@ function settingsHtml() {
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
-      `${pane('Spel', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Spel > Camera &amp; richten.</p>')}`)}
+      `${pane('Spel', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt')}
@@ -726,12 +786,22 @@ function settingsHtml() {
       ${picker('touchControls', 'Aanraakbediening', [['auto', 'Automatisch'], ['aan', 'Aan'], ['uit', 'Uit']], 'Knoppen op het scherm voor telefoon en tablet; wisselen werkt na een herstart')}
       <div class="m-gh"><span>In het spel</span></div>
       ${slider('steerSensitivity', 'Stuurgevoeligheid', 0.5, 1.5, 0.05, 'Hoe fel een voertuig op links en rechts reageert')}
-      <div class="m-li pm-row">${rowName('Toetshints in beeld', 'Aan of uit, en voor toetsenbord of controller')}<button type="button" class="m-bg" data-goto-sub="spel:hints">Hints</button></div>
+      <div class="m-li pm-row">${rowName('Toetshints in beeld', 'Aan of uit, en voor toetsenbord of controller')}<button type="button" class="m-bg" data-goto-sub="settings:hints">Hints</button></div>
       <div class="m-li pm-row">${rowName('Hulp en oefenronde', 'Uitleg over de besturing en een rustige oefenronde')}<button type="button" class="m-bg" data-goto-sub="controls:hulp">Openen</button></div>`,
       `${pane('Besturing', 'Hoe je speelt', `<p>Alles staat per apparaat bij elkaar: de muis, het toetsenbord, de controller en het scherm. Een toets die je wijzigt ruilt met de toets die er al zat, dus twee dingen op één toets kan niet.</p>
 <p>De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p>
 ${keyReuseHtml()}
-<p class="mut">Camera-afstand, beeldhoek en eerste persoon staan onder Spel &gt; Camera &amp; richten.</p>`)}`)}
+<p class="mut">Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera.</p>`)}`)}
+    ${tab('camera', `
+      ${camNowHtml()}
+      <div class="m-gh"><span>Kijken</span></div>
+      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik. Geldt overal en blijft na in- en uitstappen staan. C (in de browser G) doet hetzelfde')}
+      ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoger laat meer zien, maar maakt alles kleiner')}
+      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat; in eerste persoon maakt dit niet uit')}
+      <div class="m-gh"><span>Richten</span></div>
+      ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
+      <div class="m-gh"><span>Sfeer</span></div>
+      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
@@ -740,6 +810,16 @@ ${keyReuseHtml()}
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       <div class="m-gh"><span>Over het spel</span></div>
       <div class="m-li pm-row">${rowName('Over GDE', 'Versie, wat er nieuw is, credits en licenties')}<button type="button" class="m-bg" data-goto="over">Openen</button></div>`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel, ondertitels, de kaart en de snelheidsmeter over.</p><p class="mut">Over GDE met de versie, de wijzigingen en de credits staat onderaan dit tabblad.</p>')}`)}
+    ${tab('hints', `
+      ${hintsNowHtml()}
+      <div class="m-gh"><span>In beeld</span></div>
+      ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
+      ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
+      <div class="m-gh"><span>Uitleg</span></div>
+      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}
+      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
+      <div class="m-gh"><span>Terugkijken</span></div>
+      <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -761,6 +841,34 @@ ${keyReuseHtml()}
 </div>
 <p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}`;
 }
+// #980: Opslaan & stoppen opent met de stand van deze speelsessie: hoelang je speelt, wanneer het
+// spel voor het laatst bewaard werd en in welke savegame. Zo zie je wat "Spel opslaan" overschrijft.
+function saveFactsInner() {
+  const s = getSaveSummary();
+  const speel = getPlaySeconds();
+  const tijd = speel >= 3600
+    ? `${Math.floor(speel / 3600)} u ${Math.round((speel % 3600) / 60)} min`
+    : `${Math.max(0, Math.round(speel / 60))} min`;
+  const w = s && s.savedAt ? new Date(s.savedAt) : null;
+  const vandaag = w && w.toDateString() === new Date().toDateString();
+  const wanneer = w
+    ? `${vandaag ? 'vandaag' : w.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${w.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`
+    : 'nog niet';
+  const naam = s && s.name ? s.name : 'deze speelsessie';
+  return '<div class="m-fact"><span>Deze sessie</span><b>' + esc(tijd) + '</b></div>' +
+    '<div class="m-fact"><span>Laatst opgeslagen</span><b>' + esc(wanneer) + '</b></div>' +
+    '<div class="m-fact"><span>Savegame</span><b>' + esc(naam) + '</b></div>';
+}
+function saveFactsHtml() {
+  // Leeg bij het bouwen: syncSaveButtons vult de feiten zodra het menu opengaat, zodat het bouwen
+  // van het menu geen save hoeft te lezen.
+  return '<div class="pm-nowfacts pm-savefacts" data-save-now role="group" aria-label="Deze speelsessie"></div>';
+}
+function syncSaveFacts() {
+  const box = root && root.querySelector('[data-save-now]');
+  if (box) box.innerHTML = saveFactsInner();
+}
+
 // Spel (#416): how the game itself plays, apart from the system settings of Instellingen. The same keys in the same settings (settings.js):
 // only the place in the menu changed, nothing is lost and nothing is saved differently.
 function spelHtml() {
@@ -773,6 +881,7 @@ function spelHtml() {
       <div data-of="samen" data-sub="spelers" class="pm-spelers pm-samen-spelers" hidden></div>
     </div>
     ${tab('acties', `
+      ${saveFactsHtml()}
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
       <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart waar je nu bent')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
@@ -797,19 +906,7 @@ function spelHtml() {
       <div class="pm-confirm" data-coop-new-confirm hidden>
         <p data-coop-new-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="coop-new-go">Ja, sessie beëindigen en nieuw spel</button><button type="button" class="m-bt" data-action="coop-new-cancel">Annuleren</button></div>
-      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt en hoe moeilijk het is, staat onder Instellingen &gt; Spel; beeld en geluid op de andere tabbladen daar.</p>')}`)}
-    ${tab('camera', `
-      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik; de stand geldt overal (te voet en in elk voertuig) en blijft na in- en uitstappen staan. De C-toets (in de browser G) doet hetzelfde')}
-      ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoe wijd je kijkt: hoger laat meer zien, maar maakt alles kleiner')}
-      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat, te voet en in elk voertuig; in eerste persoon maakt dit niet uit')}
-      ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
-      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p><p class="mut">Eerste persoon zet de camera op de ogen van je figuur; je eigen lichaam en zijn schaduw zijn dan niet te zien.</p>')}`)}
-    ${tab('hints', `
-      ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
-      ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
-      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}
-      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
-      <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
+      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt en hoe moeilijk het is, staat onder Instellingen &gt; Spel; camera en hints onder Instellingen &gt; Camera en Hints &amp; uitleg.</p>')}`)}`;
 }
 // Problemen (#604): het foutrapport staat onder Over, niet meer als tabblad onder Instellingen. De
 // Nederlandse samenvatting staat vooraan; de ruwe, Engelse meldingen zitten achter de vouw.
@@ -1600,7 +1697,7 @@ function pickerState(pk) {
 }
 
 function stepPicker(pk, dir) {
-  if (!pk) return;
+  if (!pk || pk.getAttribute('aria-disabled') === 'true') return;
   const { options, i } = pickerState(pk);
   const next = Math.min(options.length - 1, Math.max(0, i + dir));
   if (next === i) return;
@@ -1703,6 +1800,7 @@ function runAction(a) {
     if (!ok) status('Opslaan mislukt');
     else if (world && world.coopRole === 'client') status(GAST_BEWAARD_TEKST);
     else status(`Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
+    if (ok) syncSaveFacts();
   }
   else if (a === 'load') {
     if (coopSessieLoopt(world)) {
@@ -2048,6 +2146,7 @@ function syncControls() {
   const diffBox = root.querySelector('[data-diff-now]');
   if (diffBox) for (const row of diffBox.querySelectorAll('[data-diff]')) row.toggleAttribute('data-on', row.dataset.diff === st.difficulty);
   syncKeyChanged();
+  syncNowFacts(st);
 }
 
 // The preset buttons, the explanation beside them and, after a benchmark, one
@@ -2244,14 +2343,12 @@ function renderVerhaalPanel() {
 }
 
 function syncSaveButtons() {
+  syncSaveFacts();
   if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je savegame.'); return; }
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
-  const s = getSaveSummary();
-  if (s && !root.querySelector('[data-game-status]').textContent) {
-    const d = new Date(s.savedAt);
-    status(`Laatst opgeslagen: ${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
-  }
+  // De laatste opslag staat sinds #980 in de feiten bovenaan (saveFactsHtml), niet nog eens in de
+  // statusregel; die regel is er voor wat je net deed ("Opgeslagen om 14:32").
 }
 
 function syncRail() {
@@ -2310,6 +2407,8 @@ function syncFooter() {
   if (tab === 'spel' && (pref.sub.spel || 'overzicht') === 'samen') hints = hints.map(([k, l, a]) => (k.join() === 'Q,E' ? [k, 'spelers-tab', a] : [k, l, a]));
   if (prestart) hints = hints.map(([k, l, a]) => [k, l, a === 'resume' ? 'back' : a]);
   root.querySelector('.pm-footer').innerHTML = hints.map((h) => hintHtml(h, pad, back)).join('');
+  // een andere invoer (toetsen of controller) verandert ook het hintvoorbeeld onder Instellingen > Hints
+  if (tab === 'settings') syncNowFacts();
 }
 
 function showTab(name, how) {
@@ -2323,6 +2422,14 @@ function showTab(name, how) {
   if (name === 'verhaal' && pref.sub.verhaal === 'veroverd') { pref.sub.verhaal = 'opdrachten'; name = 'veroverd'; }
   if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') name = 'todo';
+  // #979: Camera & richten en Hints & uitleg zaten onder Spel. Een opgeslagen keuze opent ze nu
+  // onder Instellingen, waar ze staan; Spel zelf begint weer bij Overzicht.
+  if (name === 'spel' && (pref.sub.spel === 'camera' || pref.sub.spel === 'hints')) {
+    pref.sub.settings = pref.sub.spel;
+    pref.sub.spel = 'overzicht';
+    name = 'settings';
+    savePref();
+  }
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
   if (how) origin = how;
   const prev = tab;

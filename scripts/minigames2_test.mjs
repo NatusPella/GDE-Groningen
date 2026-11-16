@@ -74,6 +74,31 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   const ev = [];
   for (let i = 0; i < 10; i++) ev.push(...CL.stepClimb(st, { a: false }, 0.1));
   check('letting go near the mat is no fall', !ev.some((e) => e.type === 'fall') && st.ground && st.falls === 0);
+  // #978: toetsenbord en controller zijn één bron. A en D samen houden klimt
+  // (de oude regel liet twee handen op dezelfde greep belanden en stond stil).
+  const both = (() => {
+    const s = CL.createClimb(holds);
+    CL.startClimb(s);
+    let t = 0, same = 0;
+    while (s.phase === 'climb' && t < 300) {
+      CL.stepClimb(s, { a: true, d: true }, 1 / 60);
+      if (s.hands.a.hold && s.hands.a.hold === s.hands.d.hold) same++;
+      t += 1 / 60;
+    }
+    return { s, same };
+  })();
+  check('holding A and D climbs to the top (so the keyboard works)', both.s.phase === 'top' && both.s.falls === 0, JSON.stringify({ p: both.s.phase, t: both.s.time, f: both.s.falls }));
+  check('the two hands never take the same hold', both.same === 0, both.same);
+  check('a hand that climbs on by itself is slower than one the player moves', CL.WALL.autoReach > CL.WALL.reachT && both.s.time > good.time + 5, `${both.s.time} vs ${good.time}`);
+  check('after a fall, keys that are still held grip again', (() => {
+    const s = CL.createClimb(holds);
+    CL.startClimb(s);
+    for (let i = 0; i < 60 * 40 && s.body < 2.5; i++) CL.stepClimb(s, CL.botInput(s, 0.5), 1 / 60);
+    CL.stepClimb(s, {}, 0.1); // both hands off the wall: a fall
+    if (s.falls !== 1) return false;
+    for (let i = 0; i < 60; i++) CL.stepClimb(s, { a: true, d: true }, 1 / 60);
+    return s.hands.a.state !== 'free' && s.hands.d.state !== 'free' && s.body > 0.1;
+  })());
   const hi = CL.createClimb(holds);
   CL.startClimb(hi);
   for (let i = 0; i < 60 * 40 && hi.body < 2.5; i++) CL.stepClimb(hi, CL.botInput(hi, 0.5), 1 / 60);

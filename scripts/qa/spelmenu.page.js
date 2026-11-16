@@ -1,7 +1,8 @@
 // Paginascript voor scripts/qa/menuplekken_shots.mjs --page=spelmenu.page.js --nomenu (#416): het pauzemenu met Spel naast Instellingen.
-// Opnames: shots-spel-<tab>.png (Opslaan & stoppen, Camera & richten, Hints & uitleg), shots-instellingen-<tab>.png (Spel met de
-// moeilijkheid, Camera, Interface) en shots-voorstart.png (het hoofdmenu > Instellingen: Spel staat in de rail). Controleert ook dat een
-// regelaar onder Spel dezelfde instelling verandert en bewaart (getSettings en gde-settings) en dat de rail op dit scherm niet onder de rand loopt.
+// Opnames: shots-spel-<tab>.png (Opslaan & stoppen), shots-instellingen-<tab>.png (Spel met de moeilijkheid, Camera, Hints, Interface)
+// en shots-voorstart.png (het hoofdmenu > Instellingen: Spel staat in de rail). Controleert ook dat een regelaar onder Instellingen
+// dezelfde instelling verandert en bewaart (getSettings en gde-settings) en dat de rail op dit scherm niet onder de rand loopt.
+// #979: Camera & richten en Hints & uitleg staan onder Instellingen, niet meer als tabbladen van Spel.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await sleep(500);
 const w = window.__debug.world;
@@ -18,7 +19,7 @@ const check = (naam, ok, info = '') => uit.controles.push({ naam, ok: !!ok, info
 const root = () => document.getElementById('pause-menu');
 const zichtbaar = (el) => !!el && el.getClientRects().length > 0 && !el.closest('[hidden]');
 
-for (const sub of ['acties', 'camera', 'hints']) {
+for (const sub of ['acties']) {
   PM.openPauseMenu('spel', { sub });
   await sleep(1100);
   const rij = [...root().querySelectorAll(`[data-of="spel"][data-sub="${sub}"] .pm-row`)].filter(zichtbaar).map((r) => (r.querySelector('.nm') || r).textContent.trim().slice(0, 40));
@@ -31,6 +32,8 @@ for (const sub of ['acties', 'camera', 'hints']) {
   console.log('[capture] spel-' + sub);
   await sleep(500);
 }
+// #979: Camera & richten en Hints & uitleg zijn tabbladen van Instellingen geworden; die worden
+// hieronder met de andere instellingentabbladen geopend en gecontroleerd.
 // de knoppen werken: Spel opslaan meldt het, Opnieuw beginnen vraagt eerst, Annuleren sluit de vraag
 {
   PM.openPauseMenu('spel', { sub: 'acties' });
@@ -79,9 +82,9 @@ for (const sub of ['acties', 'camera', 'hints']) {
   const onderaan = Math.max(...[...rail.querySelectorAll('.ra[data-goto]')].filter(zichtbaar).map((b) => b.getBoundingClientRect().bottom));
   check('alle railrijen passen op dit venster (geen afgekapte onderkant)', onderaan <= innerHeight - 1, 'onderkant ' + Math.round(onderaan) + ' van ' + innerHeight);
 }
-// een regelaar onder Spel: dezelfde instelling, meteen bewaard
+// een regelaar onder Instellingen > Camera: dezelfde instelling, meteen bewaard (#979)
 {
-  PM.openPauseMenu('spel', { sub: 'camera' });
+  PM.openPauseMenu('settings', { sub: 'camera' });
   await sleep(900);
   const box = root().querySelector('[data-setting="autoAim"]');
   const voor = ST.getSettings().autoAim;
@@ -89,17 +92,19 @@ for (const sub of ['acties', 'camera', 'hints']) {
   await sleep(300);
   const na = ST.getSettings().autoAim;
   const opgeslagen = JSON.parse(localStorage.getItem('gde-settings') || '{}');
-  check('autoAim onder Spel verandert de instelling', voor !== na, `${voor} -> ${na}`);
+  check('autoAim onder Instellingen > Camera verandert de instelling', voor !== na, `${voor} -> ${na}`);
   check('en bewaart die onder dezelfde sleutel (gde-settings)', opgeslagen.autoAim === na, JSON.stringify(opgeslagen.autoAim));
   box.click();
   await sleep(200);
   check('terugzetten werkt', ST.getSettings().autoAim === voor);
   const dist = root().querySelector('[data-setting="cameraDistance"]');
-  check('de camera-afstand staat onder Spel met de huidige waarde', dist && Math.abs(Number(dist.value) - ST.getSettings().cameraDistance) < 1e-6, dist && dist.value);
-  check('en niet meer onder Instellingen', !root().querySelector('[data-of="settings"] [data-setting="cameraDistance"]'));
+  check('de camera-afstand staat onder Instellingen > Camera met de huidige waarde', dist && Math.abs(Number(dist.value) - ST.getSettings().cameraDistance) < 1e-6, dist && dist.value);
+  check('en niet meer onder Spel', !root().querySelector('[data-of="spel"] [data-setting="cameraDistance"]'));
 }
 // Q en E wisselen tussen de tabbladen van Spel
 {
+  PM.openPauseMenu('spel', { sub: 'acties' });
+  await sleep(700);
   const sel = () => (root().querySelector('[data-of="spel"][data-subtab][aria-selected="true"]') || {}).dataset;
   const begin = sel() && sel().subtab;
   for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
@@ -107,8 +112,8 @@ for (const sub of ['acties', 'camera', 'hints']) {
   check('E gaat naar het volgende tabblad van Spel', sel() && sel().subtab && sel().subtab !== begin, `${begin} -> ${sel() && sel().subtab}`);
 }
 // Instellingen: het Spel-tabblad met de verhuisde speelopties en de moeilijkheid (#891, #897),
-// en de camera- en interfacetab zonder die opties
-for (const sub of ['spel', 'camera', 'display']) {
+// het Camera- en Hints-tabblad van #979, en Interface zonder die opties
+for (const sub of ['spel', 'camera', 'hints', 'display']) {
   PM.openPauseMenu('settings', { sub });
   await sleep(1100);
   const keys = [...root().querySelectorAll(`[data-of="settings"][data-sub="${sub}"] [data-setting]`)].map((e) => e.dataset.setting);
@@ -122,8 +127,16 @@ for (const sub of ['spel', 'camera', 'display']) {
     const lijst = root().querySelector(`[data-of="settings"][data-sub="${sub}"] .pm-slist`).getBoundingClientRect();
     const kaarten = [...root().querySelectorAll('[data-of="settings"][data-sub="spel"] .pm-diff-row')].map((c) => c.getBoundingClientRect());
     check('de drie moeilijkheidkaarten staan naast elkaar binnen de lijst', kaarten.length === 3 && kaarten.every((r) => r.left >= lijst.left - 0.5 && r.right <= lijst.right + 0.5), kaarten.map((r) => Math.round(r.left) + '-' + Math.round(r.right)).join(' ') + ' in ' + Math.round(lijst.left) + '-' + Math.round(lijst.right));
+  } else if (sub === 'camera') {
+    check('Instellingen > Camera heeft de cameraregelaars', ['firstPersoon', 'fov', 'cameraDistance', 'autoAim', 'cinematicMoments'].every((k) => keys.includes(k)), keys.join(','));
+    check('en toont de stand van nu bovenaan (#980)', !!root().querySelector('[data-cam-now] [data-cam-fov]'));
+    check('de camera-rijen zijn zichtbaar', [...root().querySelectorAll('[data-of="settings"][data-sub="camera"] .pm-row')].filter(zichtbaar).length >= 3);
+  } else if (sub === 'hints') {
+    check('Instellingen > Hints heeft de hintsregelaars', ['showHints', 'hintSource', 'onboardingTips', 'readingTime'].every((k) => keys.includes(k)), keys.join(','));
+    check('en toont een hintvoorbeeld (#980)', !!root().querySelector('[data-hintprev] [data-hintprev-row]'));
+    check('de hintsrijen zijn zichtbaar', [...root().querySelectorAll('[data-of="settings"][data-sub="hints"] .pm-row')].filter(zichtbaar).length >= 3);
   } else {
-    check(`Instellingen > ${sub}: geen speelopties meer`, !['fov', 'cameraDistance', 'autoAim', 'showHints', 'ruzie', 'gore', 'shiftMode', 'difficulty'].some((k) => keys.includes(k)), keys.join(','));
+    check(`Instellingen > ${sub}: geen camera-, hints- of speelopties meer`, !['fov', 'cameraDistance', 'autoAim', 'showHints', 'hintSource', 'ruzie', 'gore', 'shiftMode', 'difficulty'].some((k) => keys.includes(k)), keys.join(','));
   }
   console.log('[capture] instellingen-' + sub);
   await sleep(500);

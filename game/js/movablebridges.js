@@ -138,10 +138,42 @@ function makeBridge(r, pinned) {
     r, kind: r.movable, ax: a[0], ay: a[1], bx: b[0], by: b[1], len, ux, uy,
     x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2,
     half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
-    name: r.name || '', pinned,
+    name: r.name || '', pinned, riders: null,
     state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null, cool: 0, aborted: 0,
     snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(), passed: new Set(),
   };
+}
+
+// A second way that lies on the span itself: OSM tags only the movable way, so
+// a separate carriageway or cycleway over the same deck (the Europaweg, the
+// lift at the Van Ketwich Verschuurlaan) is not movable and would keep its
+// asphalt and its paint in the air while the leaf rises (#967). Such a way
+// rides on the same leaf (movablebridges3d.js) and is hidden with it
+// (openBridgeRoads). Only a way that is entirely on the span and runs along it
+// counts: a road under the bridge, a canal-side road along the water, or a way
+// that continues past the bridge does not.
+export function ridesOnSpan(b, r) {
+  if (!b || !r || r === b.r || !r.pts || r.pts.length < 2) return false;
+  if (r.z || r.tunnel) return false;
+  const a = r.pts[0], z = r.pts[r.pts.length - 1];
+  const len = Math.hypot(z[0] - a[0], z[1] - a[1]);
+  if (len < 3 || len > b.len + 3) return false;
+  if (Math.abs(((z[0] - a[0]) * b.ux + (z[1] - a[1]) * b.uy) / len) < 0.85) return false; // not along the span
+  for (const p of r.pts) {
+    const s = (p[0] - b.ax) * b.ux + (p[1] - b.ay) * b.uy;
+    const o = -(p[0] - b.ax) * b.uy + (p[1] - b.ay) * b.ux;
+    if (s < -2 || s > b.len + 2 || Math.abs(o) > b.half + 2) return false;
+  }
+  return true;
+}
+
+// The ways that ride on this bridge's span, from the roads round it. Cached on
+// the bridge: asked again when an opening starts (a tile may bring the second
+// way later) and once where a bridge stands without a map.
+export function findRiders(b, map = null) {
+  const m = map || bridgeMap;
+  if (!b || !m || !m.roadsNear) return [];
+  return m.roadsNear(b.x, b.y, b.len / 2 + 20).filter((r) => ridesOnSpan(b, r));
 }
 
 // The bridges of a map: one per movable road. Span along the road from its
@@ -208,7 +240,11 @@ export function requestOpening(b, who = null, twins = true, auto = false) {
     // the side the boat came from: it has passed when it is on the other one
     if (!b.boats.has(who)) b.boats.set(who, who.x !== undefined ? boatFrame(b, who).side : 1);
   }
-  if (b.state === 'closed') { b.state = 'warn'; b.t = 0; }
+  if (b.state === 'closed') {
+    b.state = 'warn'; b.t = 0;
+    // het dek gaat omhoog: welke wegen er nog meer op liggen, is nu pas zeker
+    b.riders = findRiders(b);
+  }
   else if (b.state === 'closing') {
     // the leaf rises again from where it is (the span is no bridge, so nobody is on it)
     b.state = 'opening'; b.t = BRIDGE_TIMING.MOVE_S * (1 - b.open);

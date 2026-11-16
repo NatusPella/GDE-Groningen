@@ -153,6 +153,10 @@ Object.assign(SPECS, SPECS_AKTE2);
 {
   const life = merge(passer('student', 'student', [-2, -9], [14, -9], 1.5, 1.2, 'phone'));
   SPECS['M02.intro'] = {
+    // #955: de intro staat waar de speler vandaan komt (na M01 vaak onder de bomen langs het
+    // Boterdiep). De scène zoekt vrije grond als een camera in een kroon of tegen een stam
+    // zou beginnen; de camera's stappen zelf ook uit de boom (cutscript.js, greenery.js).
+    fit: { radii: [4, 7, 10] },
     duo: { tammo: { at: [-7.5, 2.4], face: 0, anim: 'idle' }, tessa: { at: [0.4, -0.2], face: 60, anim: 'shake' } },
     cast: {
       // Durk and Douwe sit in the cab (hidden, but they move with it, so the camera finds the voices)
@@ -208,6 +212,8 @@ Object.assign(SPECS, SPECS_AKTE2);
   };
 
   SPECS['M02.outro'] = {
+    // #955: ook de outro (achter Pand & Poen, bomen langs de straat) zoekt vrije grond.
+    fit: { radii: [4, 7, 11] },
     cast: {
       sjabbe: { key: 'sjabbe', at: [2.4, 0.2], face: 185, anim: 'idle', gest: ['talk', 'hips', 'point', 'shrug'] },
     },

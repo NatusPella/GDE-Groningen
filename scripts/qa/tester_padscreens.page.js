@@ -128,7 +128,7 @@ await sleep(2500);
 // ---- pauzemenu: elke sectie, elk subtabblad
 const PM = await import('/js/pausemenu.js');
 const SECTIES = ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen', 'garage', 'prestaties', 'fotos', 'samen', 'settings', 'controls', 'streken'];
-const SUBS = { todo: ['verhaal', 'alles', 'dichtbij'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'a11y', 'fouten'], controls: ['toetsen', 'knoppen', 'overzicht', 'hulp'] };
+const SUBS = { todo: ['verhaal', 'alles', 'dichtbij'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'hints', 'a11y', 'fouten'], controls: ['toetsen', 'knoppen', 'overzicht', 'hulp'] };
 async function pauzeScherm(sectie, sub) {
   PM.openPauseMenu(sectie, sub ? { sub } : {});
   await sleep(900);

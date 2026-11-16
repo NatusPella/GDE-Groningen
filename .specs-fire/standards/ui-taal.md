@@ -97,11 +97,11 @@ groep en de plek ("Spelen · 2 van 5"). De tabs uit `SUBTABS`:
 
 | Sectie | Tabs |
 |---|---|
-| Spel | Overzicht, Samen spelen, Opslaan & stoppen, Camera & richten, Hints & uitleg |
+| Spel | Overzicht, Samen spelen, Opslaan & stoppen |
 | Samen spelen | Samen spelen, Spelers |
 | Verhaal | Opdrachten, Personages, Aanwijzingen |
 | Activiteiten | Alles, Dichtbij |
-| Instellingen | Beeld, Geluid & ondertitels, Spel, Besturing, Interface, Toegankelijkheid |
+| Instellingen | Beeld, Geluid & ondertitels, Spel, Besturing, Camera, Interface, Hints & uitleg, Toegankelijkheid |
 | Besturing | Toetsenbord en muis, Controller, Toetsenoverzicht, Aanraken, Hulp |
 
 - De kaart is één scherm zonder rail; Visboek en Boerderij hangen onder Loopbanen,

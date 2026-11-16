@@ -64,6 +64,22 @@ const worldOf = (piv, x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(piv.ma
   ok(along >= half - 1 && along <= len && Math.abs(across - 0.7) < 0.06, 'the far half\'s paint keeps its place on the road');
 }
 
+// #967: a second way on the same deck. OSM tags only the movable way, so its paint hung in the air
+// when the leaf rose. Such a way rides on the span: it is worn by the leaf and hidden with it.
+{
+  const { ridesOnSpan } = await import('../game/js/movablebridges.js');
+  const span = { ax: 0, ay: 0, ux: 1, uy: 0, len: 30, half: 6, r: { pts: [[0, 0], [30, 0]], cat: 'major' } };
+  const road = (pts, o = {}) => ({ pts, cat: 'cycle', width: 2, ...o });
+  ok(ridesOnSpan(span, road([[0, 2], [30, 2]])), 'a way over the whole deck, along the span, rides along');
+  ok(ridesOnSpan(span, road([[2, -4], [10, -4], [28, -4]], { cat: 'normal', width: 6 })), 'a second carriageway with a bend rides along');
+  ok(!ridesOnSpan(span, span.r), 'the movable way itself is not a rider');
+  ok(!ridesOnSpan(span, road([[-20, 2], [50, 2]])), 'a way that continues past the bridge does not ride along');
+  ok(!ridesOnSpan(span, road([[10, -40], [10, 40]])), 'a road under the bridge (across the span) does not ride along');
+  ok(!ridesOnSpan(span, road([[0, 2], [30, 2]], { z: [0, 4] })), 'a way with its own height profile does not ride along');
+  ok(!ridesOnSpan(span, road([[0, 2], [30, 2]], { tunnel: true })), 'a tunnel does not ride along');
+  ok(!ridesOnSpan(span, road([[0, 20], [30, 20]])), 'a way beside the deck does not ride along');
+}
+
 // the real bridges of the city: the leaf wears the road's own materials, open and closed
 {
   const fs = await import('node:fs');
@@ -91,10 +107,25 @@ const worldOf = (piv, x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(piv.ma
     if (closed.length !== open.length || closed.some((m, i) => m !== open[i]) || before.some((m, i) => m !== open[i])) same = false;
     if (open.includes(want.road)) wearing++;
     if (open.includes(RS.getMarkingMaterial())) marked++;
+    v.b.open = 0;
   }
   ok(same, 'the leaf keeps the same materials open and closed');
   ok(wearing === views.length, `every leaf wears its road's material (${wearing} of ${views.length})`);
   ok(marked > 0, `paint rides on the leaves (${marked})`);
+
+  // #967: the city has bridges where a second way lies on the very same deck (the Europaweg, the
+  // Eltjo Ruggeweg). Its paint has to ride on the leaf and its asphalt has to go when the leaf rises.
+  const mark = RS.getMarkingMaterial();
+  const withRiders = views.filter((v) => (v.b.riders || []).length > 0);
+  ok(withRiders.length > 0, `a second way on the deck exists in the city (${withRiders.length} bridges)`);
+  const twoLayers = views.filter((v) => v.leaves.some((l) => l.leaf.children.filter((c) => c.material === mark).length > 1));
+  ok(twoLayers.length > 0, `the paint of a second way rides on the deck (${twoLayers.length} bridges)`);
+  const probe = withRiders[0].b;
+  probe.open = 1;
+  const hidden = M3.openBridgeRoads(new Set());
+  ok(hidden.has(probe.r) && probe.riders.every((r) => hidden.has(r)), 'an open bridge hides the second way too', JSON.stringify([...hidden].length));
+  probe.open = 0;
+  ok(M3.openBridgeRoads(new Set()).size === 0, 'a closed bridge hides nothing');
 }
 
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} movable-bridge paint checks passed`);

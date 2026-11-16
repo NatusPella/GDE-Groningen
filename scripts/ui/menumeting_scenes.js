@@ -41,7 +41,7 @@ const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[cap
 const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 const info = [];
 const TABS = [['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['loopbaan'], ['boerderij'], ['settings'], ['controls'], ['over'], ['fotos']];
-const SUBS = { todo: ['alles'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'aanraken', 'hulp'] };
+const SUBS = { todo: ['alles'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'hints', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'aanraken', 'hulp'] };
 const meet = () => {
   const root = document.querySelector('#pause-menu .pm-sheet, #pause-menu') || document.body;
   const vh = innerHeight, vw = innerWidth;
