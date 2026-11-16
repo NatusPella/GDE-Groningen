@@ -7,6 +7,7 @@
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
+//   GDE_COOP_ELECTRON_ARGS=<vlag,...>: extra Chromium-vlaggen voor de instanties (zie LOCKS)
 // Neemt Electron-sloten uit de slotenmap (GDE_LOCKS, standaard ~/gde-locks) (max. 3 totaal) en geeft ze altijd vrij. GDE_COOP_TEST=1: geen UPnP,
 // lokaal adres 127.0.0.1, wegwerpprofielen. De route 'direct' is TCP op de loopback; 'kamer' gebruikt WebRTC met een
 // nep-tracker op 127.0.0.1 en zonder STUN: er verlaat niets deze machine.
@@ -34,6 +35,12 @@ const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare br
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
+// Extra Chromium-vlaggen voor de Electron-instanties (komma-gescheiden). Op een machine waar de
+// vensters door andere vensters bedekt zijn, knijpt Chromium de timers van de testpagina af tot
+// één keer per minuut (backgroundThrottling, #656); deze vlaggen zetten dat uit, zodat een
+// testbank-run niet op machinelast of windowbeheer vastloopt:
+//   GDE_COOP_ELECTRON_ARGS=--disable-background-timer-throttling,--disable-renderer-backgrounding,--disable-backgrounding-occluded-windows
+const EXTRA_ARGS = (process.env.GDE_COOP_ELECTRON_ARGS || '').split(',').map((x) => x.trim()).filter(Boolean);
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
 const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
@@ -99,7 +106,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const profile = `gde-test-coop-${process.pid}-${name}`;
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', ...(MENU ? { GDE_MENU_TEST: '1' } : {}) };
   delete env.ELECTRON_RUN_AS_NODE;
-  const extra = [...extraArgs];
+  const extra = [...EXTRA_ARGS, ...extraArgs];
   if (ROUTE === 'kamer' && !PUBLIEK) extra.push('--disable-features=WebRtcHideLocalIpsWithMdns', '--allow-loopback-in-peer-connection'); // kandidaten op de loopback, zonder mDNS-naam en zonder firewall
   const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', `--autoplay=${seed}`,
     `--smoke-test=${path.join(dir, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`, ...extra], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
