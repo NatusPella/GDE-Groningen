@@ -248,6 +248,10 @@ export function storageKeySeverity(key) {
  * @param {string[]} [addedFiles]
  * @param {{brands?: string[], sensitive?: {naam: string, bron: string, beoordeling: string}[]}} [options]
  */
+// Canvastexturen en 3D-decor zijn beeld, geen HUD-chroom: hun kleuren mogen
+// vrij zijn (zelfde grens als hud_kleuren_test se BUITEN-lijst).
+export const ART_FILES = new Set(['office3d.js', 'loket3d.js', 'omakeuken3d.js', 'missiedecor.js', 'coopfigures3d.js', 'cooppings3d.js', 'racedecor.js', 'wachtprops.js', 'pg_koe.js', 'trainride.js', 'containerterminal.js']);
+
 export function auditLines(addedLines = [], addedFiles = [], options = {}) {
   const findings = [];
   const brands = options.brands || [];
@@ -272,7 +276,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     if (/^game\/audio\//.test(file)) continue;
 
     // Design: kleuren, typografie en !important.
-    const kandidaten = designCandidates(file, text);
+    const kandidaten = ART_FILES.has(file.split('/').pop()) ? { kleur: 0, typografie: 0, fontgrootte: 0, important: 0 } : designCandidates(file, text);
     for (const soort of ['kleur', 'typografie', 'fontgrootte', 'important']) if (kandidaten[soort]) perRegel[soort] += 1;
     if (kandidaten.kleur || kandidaten.typografie || kandidaten.fontgrootte || kandidaten.important) {
       for (const f of checkDesignLine({ file, line, text })) voegToe(f, `design-${f.titel}`);
