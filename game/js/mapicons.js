@@ -105,7 +105,11 @@ export function mapRimColor(kind) {
 
 // Icons that have to be drawn, in any order: [{ kind, sx, sy }]. Returns the
 // ones that fit: the highest priority first, an icon whose centre lies closer
-// than `gap` px to one already placed is dropped (unless its category is kept).
+// than `gap` px to one already placed is dropped. Alleen de speler, zijn maat en
+// het doel zijn nooit weg te drukken; de andere "keep"-categorieën (missie,
+// politie, halte, huis) wijken nu voor een hogere prioriteit, zodat de kaart in
+// het centrum niet meer vol loopt.
+const ALTIJD = new Set(['player', 'partner', 'goal']);
 export function placeIcons(items, gap) {
   const order = items.map((it, i) => ({ it, i, pri: mapPriority(it.kind) })).sort((a, b) => b.pri - a.pri || a.i - b.i);
   const cell = Math.max(1, gap);
@@ -121,7 +125,8 @@ export function placeIcons(items, gap) {
         for (const o of row) if ((o.sx - it.sx) ** 2 + (o.sy - it.sy) ** 2 < gap * gap) { clash = true; break; }
       }
     }
-    if (clash && !CATS[mapCategory(it.kind)].keep) continue;
+    const cat = mapCategory(it.kind);
+    if (clash && (!CATS[cat].keep || !ALTIJD.has(cat))) continue;
     const key = gx * 65537 + gy;
     if (!grid.has(key)) grid.set(key, []);
     grid.get(key).push(it);
