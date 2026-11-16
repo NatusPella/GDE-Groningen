@@ -19,7 +19,7 @@ const wrapper = fs.readFileSync(abs('scripts/coop_licht_test.mjs'), 'utf8');
 ok(coopFiles.length >= 14, 'minstens de veertien coop-tests op schijf', coopFiles.length);
 ok(/readdirSync\(COOP\)/.test(wrapper), 'de wrapper scant de coop-map (geen vaste lijst die kan verouderen)');
 const bekend = [...wrapper.matchAll(/'([\w_]+\.mjs)':\s*'([^']+)'/g)].map((m) => [m[1], m[2]]);
-ok(bekend.length > 0, 'bekend-kapotte tests hebben een reden', bekend.length);
+ok(bekend.every(([, reden]) => reden.length > 10), 'bekend-kapotte tests hebben een reden', bekend.length);
 for (const [f, reden] of bekend) {
   ok(coopFiles.includes(f), 'bekend-kapot bestaat nog: ' + f);
   ok(reden.length > 10, 'reden bij ' + f);

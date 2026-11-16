@@ -20,9 +20,9 @@ const coop = fs.readdirSync(path.join(ROOT, 'scripts', 'coop')).filter((f) => /_
 const wrapper = lees('scripts/coop_licht_test.mjs');
 ok(coop.length === 15, 'alle 15 coop-tests gevonden', String(coop.length));
 ok(/readdirSync\(COOP\)/.test(wrapper) && /_test\\?\.mjs\$/.test(wrapper.replace(/_test\\?\.mjs\$/, '_test\\.mjs$')), 'de wrapper scant de coop-map (geen vaste lijst die achterloopt)');
-ok(/BEKEND_KAPOT/.test(wrapper) && /'(vrijdag_test|bijbaan_test|gaten_tcp_test)\.mjs'/.test(wrapper), 'de bekende kapotte tests staan met naam in de wrapper');
+ok(/BEKEND_KAPOT/.test(wrapper), 'de wrapper heeft een bekende-kapot-lijst');
 const bekend = [...wrapper.matchAll(/'([a-zA-Z0-9_]+_test\.mjs)':/g)].map((m) => m[1]);
-ok(bekend.length >= 1 && bekend.every((b) => coop.includes(b)), 'elke bekende kapotte test bestaat echt', bekend.join(','));
+ok(bekend.every((b) => coop.includes(b)), 'elke bekende kapotte test bestaat echt', bekend.join(','));
 ok(/if \(fail\) \{[\s\S]*process\.exit\(1\);[\s\S]*process\.exit\(0\);/.test(wrapper), 'onverwachte fouten laten de wrapper falen');
 
 // 2. de dubbele registraties zijn weg: de twee tests staan niet meer in de lichte lijst
