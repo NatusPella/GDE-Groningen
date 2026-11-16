@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.65.0] - 2026-11-16
+
 - **De opening loopt weer door en je kunt hem overslaan:** sinds een prestatie-aanpassing werd de telefoon-update overgeslagen zolang de montage liep, en dat was net de plek waar de filmklok werd bijgewerkt. De opening stond daardoor stil (ruim tweeënhalve minuut) en "Spatie vasthouden om over te slaan" deed niets. De montage werkt de film nu zelf bij.
 - **Samen spelen blijft staan als iemand even wegvalt:** de gastheer verbrak de verbinding al na vijf seconden volle wachtrij, terwijl het protocol twee minuten hersteltijd belooft. Een korte netwerkhik kostte zo de hele sessie. En bleef er een filmpje "aan" staan bij een gast, dan kon hij niet meer lopen; nu alleen bijwerken als het bericht echt aankwam.
 - **Na een reis is de wereld meteen soepel (#929):** het laadscherm wachtte alleen tot de gebouwen en wegen klaar waren. De tegels van de bestemming en het voorwerk daarvan kwamen pas daarna, zodat de eerste seconden na de trein of taxi nog bouwden. Het scherm warmt de bestemming nu zelf voor en telt de tegels mee, dus je komt aan in een wereld die al klaarstaat.
@@ -20,9 +22,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Negen stille plekken hebben geluid:** het reuzenrad klonkt en belt, de schotel sist per fase, de garage klapt en spuit, het pannenkoekenschip sizzelt, het cabaret klapt, de fotomodus en het heistpaneel tikken als de andere menu's, de botsauto's starten hoorbaar en de wrakduik spat en ruist.
 - **De kaart is rustiger in het centrum:** alleen de speler, je maat en je doel zijn nooit weg te drukken; missie-, politie-, halte- en huisiconen wijken nu voor een hogere prioriteit.
 - **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.
-
-## [0.65.0] - 2026-11-16
-
 - **De openingsscènes en missie-intro's ogen weer normaal (#858-#864):** de camera wijkt bij een blokkade achteruit in plaats van op Tessa's rug te klappen, Tessa zit aan tafel zonder stuurhouding, de matras rijdt met de Escapade mee, acteurs lopen om geparkeerde voertuigen heen, cutscene-voertuigen en fietsers volgen de echte weg en fietsers verdwijnen na hun rit; gedragen spullen hangen aan de hand en de kermiskarren zijn weer botsauto's.
 
 - **Samen spelen op een klein scherm is weer te bedienen (#871):** de hub en de wachtkamer scrollen met een zichtbare dunne scrollbalk, de kamercode en de acties blijven bovenaan en onderaan staan, en op een telefoon in portret klapt het avatarblok in met één compacte tabrij. Het kamercodeveld en "Verder" staan meteen in beeld.
