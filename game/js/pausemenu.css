@@ -77,7 +77,8 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-quitbox { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 40px; background: rgba(12, 20, 14, 0.78); animation: m-up 0.2s ease both; }
 /* #915: zolang een vraag openstaat is het menu erachter ook met de muis buiten bereik;
    het `inert`-attribuut (pausemenu.js) doet hetzelfde voor toetsenbord en schermlezer. */
-#pause-menu.pm-question .pm-fold { pointer-events: none; }
+#pause-menu.pm-question .pm-fold > .pm-rail,
+#pause-menu.pm-question .pm-fold > .pm-sheet { pointer-events: none; }
 #pause-menu .pm-quitbox[hidden] { display: none; }
 #pause-menu .pm-quitpane { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: min(680px, 100%); padding: 30px 34px 28px; border-radius: 16px; background: linear-gradient(180deg, rgba(20, 40, 27, 0.97), rgba(12, 20, 14, 0.98)); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.16), 0 32px 64px rgba(0, 0, 0, 0.45); }
 #pause-menu .pm-quitpane p { margin: 0; font-size: 20px; line-height: 1.45; color: rgba(240, 237, 228, 0.86); }

@@ -1269,7 +1269,9 @@ function syncQuestionLayers() {
   if (!root) return;
   const on = !!visibleQuestion();
   const fold = root.querySelector('.pm-fold');
-  if (fold) fold.inert = on;
+  // Alleen het menu achter de vraag wordt inert; de vraag zelf staat in de fold en
+  // moet juist focusbaar en klikbaar blijven (#915).
+  if (fold) for (const el of fold.querySelectorAll('.pm-rail, .pm-sheet')) el.inert = on;
   root.classList.toggle('pm-question', on);
 }
 

@@ -205,7 +205,7 @@ const html = leesHtml();
 // --- #915: de afsluitvraag houdt de focus vast ---------------------------------------
 {
   ok(/function visibleQuestion\(\)/.test(pm) && /querySelector\('\[data-quit-confirm\]:not\(\[hidden\]\)'\) \|\| root\.querySelector\('\[data-exit-confirm\]:not\(\[hidden\]\)'\)/.test(pm), '#915: er is één plek die de open vraag herkent');
-  ok(/fold\.inert = on/.test(pm), '#915: de rest van het menu is inert zolang de vraag openstaat');
+  ok(/querySelectorAll\('\.pm-rail, \.pm-sheet'\)/.test(pm), '#915: de rest van het menu is inert zolang de vraag openstaat');
   ok(/function showQuestion\(box, on\)/.test(pm) && /syncQuestionLayers\(\)/.test(pm), '#915: openen en sluiten werken de inert-stand bij');
   ok(!/(?:exitBox|quitBox)\.hidden = /.test(pm), '#915: geen vraaglaag wordt buiten showQuestion om open of dicht gezet');
   const tab = pm.slice(pm.indexOf('function tabFocus('), pm.indexOf('function tabFocus(') + 700);
@@ -213,7 +213,7 @@ const html = leesHtml();
   const move = pm.slice(pm.indexOf('function moveFocus('), pm.indexOf('function moveFocus(') + 600);
   ok(/const vraag = visibleQuestion\(\)/.test(move) && /list = visibleFocusables\(vraag\)/.test(move), '#915: de pijlen blijven binnen de open vraag');
   ok(/if \(vraag && !vraag\.contains\(e\.target\)\)/.test(pm), '#915: de focus kan niet achter de vraag belanden');
-  ok(/#pause-menu\.pm-question \.pm-fold \{ pointer-events: none; \}/.test(css), '#915: ook de muis komt niet achter de vraag');
+  ok(/#pause-menu\.pm-question \.pm-fold > \.pm-rail[\s\S]{0,120}pointer-events: none/.test(css), '#915: ook de muis komt niet achter de vraag');
   ok(/visibleQuestion\(\) && !\(k === 'Escape' \|\| k === 'Backspace' \|\| k === 'Tab' \|\| dir \|\| k === 'Enter' \|\| k === ' '\)/.test(pm), '#915: andere menutoetsen staan stil zolang de vraag openstaat');
 }
 
