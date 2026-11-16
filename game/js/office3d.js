@@ -180,7 +180,7 @@ export const SERVER = {
 
 function serverWallTex() {
   return canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#3d444b'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#0f5c30'; g.fillRect(0, 0, w, h);
     g.fillStyle = 'rgba(255, 255, 255, 0.04)';
     for (let y = 0; y < h; y += 42) g.fillRect(0, y, w, 2);
     g.fillStyle = 'rgba(0, 0, 0, 0.12)';
@@ -190,7 +190,7 @@ function serverWallTex() {
 
 function serverFloorTex() {
   const t = canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#2b3035'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#0f5c30'; g.fillRect(0, 0, w, h);
     g.strokeStyle = 'rgba(0, 0, 0, 0.35)'; g.lineWidth = 2;
     for (let y = 0; y <= h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
     for (let x = 0; x <= w; x += 64) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
@@ -204,12 +204,12 @@ function serverFloorTex() {
 
 function serverScreenTex() {
   return canvasTex(512, 384, (g, w, h) => {
-    g.fillStyle = '#0b1a14'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#d7f7e4'; g.font = 'bold 30px monospace'; g.fillText('WIEBELWERK / logboek', 26, 46);
-    g.fillStyle = '#63e08a'; g.font = '24px monospace';
+    g.fillStyle = '#0f5c30'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#f0ede4'; g.font = 'bold 30px monospace'; g.fillText('WIEBELWERK / logboek', 26, 46);
+    g.fillStyle = '#3fc97a'; g.font = '24px monospace';
     const rows = ['12 aug 00:00  update 3 min', '12 aug 00:02  zijdeur open', '12 aug 00:03  pas bewaker 2', '12 aug 00:11  update klaar', '12 aug 00:11  Us Mem Snacks'];
     rows.forEach((r, i) => g.fillText(r, 26, 100 + i * 44));
-    g.fillStyle = '#2b5d43';
+    g.fillStyle = '#1e9e56';
     for (let y = 330; y < 372; y += 8) g.fillRect(26, y, 210 + (y % 24) * 2, 3);
   });
 }
