@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import { createLink, makeRng } from '../game/js/net/memtransport.js';
 import { HostHub } from '../game/js/net/hub.js';
-import { ClientSession, SLUIT_NA_MS, REJECTED_MAX, OVERFLOW_MAX_S } from '../game/js/net/session.js';
+import { ClientSession, SLUIT_NA_MS, REJECTED_MAX, OVERFLOW_MAX_S, LOST_AFTER } from '../game/js/net/session.js';
 import { T, encodeJson } from '../game/js/net/codec.js';
 
 let n = 0, fails = 0;
@@ -117,14 +117,37 @@ await t('een gast met een structureel volle wachtrij wordt losgelaten, niet stil
     for (let i = 0; i < 40; i++) r.hub.announce({ k: 'test', i });
     assert.equal(ses.rel.pending.length, ses.rel.maxPending, 'de wachtrij zit vol');
     assert.ok(ses.dropped >= 1, 'weggevallen berichten worden geteld');
-    // geen enkel ACK meer: de wachtrij blijft vol en de host verbreekt na OVERFLOW_MAX_S
-    for (let i = 0; i < Math.ceil(OVERFLOW_MAX_S * 60) + 60; i++) r.hub.tick(1 / 60);
+    // De gast blijft zijn kant op sturen (de heenweg is stuk, de terugweg niet): dat is de echte #589-capaciteit
+    // en die wordt losgelaten na OVERFLOW_MAX_S. Houd de sessie daarom in de stand 'ok' (de gast stuurt
+    // berichten, dus de host hoort hem), met een lege wachtrij die we elke tick opnieuw vullen.
+    const sessie = [...r.hub.sessions.values()][0];
+    for (let i = 0; i < Math.ceil(OVERFLOW_MAX_S * 60) + 60; i++) {
+      sessie.lastRecv = sessie.now; // de gast stuurt nog: niet 'lost'
+      sessie.rel.pending.length = sessie.rel.maxPending; // en de host krijgt niets bevestigd
+      r.hub.tick(1 / 60);
+    }
     assert.equal(r.hub.sessions.size, 0, 'de host heeft de gast met een afscheid laten gaan');
     assert.equal(r.hub.roster.spelers.filter((s) => s.slot >= 1).length, 0);
     assert.ok(warns.some((w) => /wachtrij/.test(w)), warns.join(' | '));
   } finally { console.warn = orig; }
   await wait(SLUIT_NA_MS + 100);
   assert.equal(r.links[0].a.isOpen(), false, 'de verbinding is opgeruimd');
+});
+
+await t('een weggevallen gast met een volle wachtrij houdt zijn hersteltijd (#95, #450)', async () => {
+  // Het spiegelbeeld van de vorige test: hier is de gast echt weg (geen bericht meer), dus de wachtrij loopt
+  // vol doordat hij niets ontvangt. Het protocol belooft hem RESUME_WINDOW seconden om met zijn token terug te
+  // komen; de overflow-guard mag daar niet tussen komen. In de net-testbank brak de sessie hierdoor na 8 s uitval.
+  const r = room(); r.add(); r.step(2);
+  const sessie = [...r.hub.sessions.values()][0];
+  for (let i = 0; i < 40; i++) r.hub.announce({ k: 'test', i });
+  assert.equal(sessie.rel.pending.length, sessie.rel.maxPending, 'de wachtrij zit vol');
+  // de gast stuurt niets meer: na LOST_AFTER staat hij op 'lost'
+  const tot = Math.ceil((LOST_AFTER + OVERFLOW_MAX_S + 2) * 60);
+  for (let i = 0; i < tot; i++) r.hub.tick(1 / 60);
+  assert.equal(sessie.status, 'lost', 'de gast is als weggevallen herkend');
+  assert.equal(r.hub.sessions.size, 1, 'de sessie blijft staan: de gast mag nog terugkomen');
+  assert.equal(sessie.rel.pending.length, sessie.rel.maxPending, 'de wachtrij blijft vol staan tot de gast terugkomt');
 });
 
 console.log(`net_lifecycle_test: ${n}/${n + fails} ok`);

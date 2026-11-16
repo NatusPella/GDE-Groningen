@@ -204,16 +204,16 @@ export class HostSession extends Base {
     // kanaal hapert) houdt anders voor altijd 32 berichten vast. Na een paar seconden gaat hij met een
     // gewoon afscheid weg; een gast met een oude missie/scène kan de hash-desync niet redden.
     //
-    // Maar een gast die net wegvalt hoort niet meteen verwijderd te worden: het protocol belooft hem
-    // RESUME_WINDOW (120 s) om met zijn token terug te komen (#95, #450). De wachtrij loopt juist vol
-    // omdát hij even niets ontvangt — dat is geen weigering, dat is een hik. Daarom pas verbreken als de
-    // gast ook echt stil is: geen enkel bericht van hem sinds de wachtrij vol liep.
+    // Maar dit mag een gast die gewoonweg even weg is niet raken: die zit in de stand 'lost' en heeft
+    // RESUME_WINDOW (120 s) om met zijn token terug te komen (#95, #450). Zijn wachtrij loopt juist vol
+    // omdát hij niets ontvangt, dus hier verbreken zou de hersteltijd overslaan — precies wat er in de
+    // net-testbank gebeurde (uitval van 8 s, sessie weg). De guard geldt daarom alleen voor een gast die
+    // nog wél berichten stuurt maar niet meer bevestigt: een echt kapotte eenrichtingsverbinding.
     const vol = this.rel.pending.length >= this.rel.maxPending;
     if (vol && this.overflowSinds == null) this.overflowSinds = this.now;
     else if (!vol) this.overflowSinds = null;
-    const stil = this._quiet();
-    if (this.overflowSinds != null && stil >= LOST_AFTER && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
-      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol en de gast is ${Math.round(stil)} s stil; de verbinding wordt verbroken`);
+    if (this.overflowSinds != null && this.status !== 'lost' && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
+      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol terwijl de gast nog berichten stuurt; de verbinding wordt verbroken`);
       this.leave();
       return;
     }
