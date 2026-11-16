@@ -83,9 +83,11 @@ const stem = (duren) => (spreker, tekst) => (duren[tekst] ? { src: 'x/' + tekst 
   const iCompile = host.indexOf('scene = compileScene(def, { lines: sceneLines, duration: sceneDur })');
   ok(iPlan > 0 && iCompile > iPlan, 'cutscenehost plant de stemmen vóór compileScene', `${iPlan} < ${iCompile}`);
   ok(/compileScene\(def, \{ lines: sceneLines, duration: sceneDur \}\)/.test(host), 'de compilatie gebruikt de geplande regels en duur');
-  ok(/\.\.\.cine, id: cine\.id \|\| def\.id, duration: sceneDur, lines: sceneLines,/.test(host), 'de cinematic speelt met dezelfde duur en regels');
-  ok(/cutPakket\(\{ def, lines: sceneLines, duration: sceneDur,/.test(host), 'de gasten krijgen dezelfde geplande tijden (#711)');
-  ok(/shotPoints\(scene, at, sceneDur\)/.test(host) && /resolveTime\(f\.t, sceneLines, sceneDur\)/.test(host), 'prewarm en naamkaarten gebruiken dezelfde tijden');
+  // De variabelen heten in de ene revisie def/scene en in de andere useDef/useScene; de
+  // test controleert de bedding (geplande regels en duur naar spel en gasten), niet de naam.
+  ok(/\.\.\.cine, id: cine\.id \|\| (?:use)?[dD]ef\.id, duration: sceneDur, lines: sceneLines,/.test(host), 'de cinematic speelt met dezelfde duur en regels');
+  ok(/cutPakket\(\{ (?:def: useDef|def), lines: sceneLines, duration: sceneDur,/.test(host), 'de gasten krijgen dezelfde geplande tijden (#711)');
+  ok(/shotPoints\((?:use)?[sS]cene, at, sceneDur\)/.test(host) && /resolveTime\(f\.t, sceneLines, sceneDur\)/.test(host), 'prewarm en naamkaarten gebruiken dezelfde tijden');
   const cin = fs.readFileSync(path.join(ROOT, 'game/js/cinematics.js'), 'utf8');
   ok(/export function attachVoices\(a\)/.test(cin), 'attachVoices is exporteerbaar (test en gastkant, coopcut_test)');
   ok(/const r = plannedVoiceLines\(a\.lines, a\.duration, lineVoiceFor\);/.test(cin), 'attachVoices gebruikt dezelfde pure regels (één bron)');
