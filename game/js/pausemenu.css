@@ -596,6 +596,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-k-sep { color: var(--mut); font-size: 16px; margin: 0 2px; }
 #pause-menu .pm-cempty { padding-left: 24px; }
 #pause-menu .pm-bind .m-kc { min-width: 48px; }
+/* de varianten van een actie (heli, vliegtuig, trein) staan op een tweede, stillere regel
+   in plaats van in dezelfde zin; de hoofdactie blijft de grote regel */
+#pause-menu .pm-bind .pm-ook { font-size: max(14px, var(--menu-min)); color: var(--mut); }
 #pause-menu .pm-bind.pm-changed .m-kc { box-shadow: inset 0 0 0 1.5px var(--g); color: var(--g); }
 #pause-menu .pm-bind.pm-waiting { background: rgba(63, 201, 122, 0.18); box-shadow: inset 4px 0 0 var(--g); }
 #pause-menu .pm-padcap { display: inline-flex; }

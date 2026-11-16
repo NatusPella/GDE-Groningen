@@ -13,6 +13,28 @@ import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 import { impact, summaryLine, pressToggle, onSelect } from './cheatsuilogic.js';
 
 const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Heli' };
+
+// De kop en de rijen van dit scherm. De module zet zijn eigen stijl neer, zodat Cheats
+// dezelfde hero-taal spreekt als Prestaties en Loopbanen zonder in pausemenu.css te wonen.
+const CSS = `
+#pause-menu .ch-hero .pm-hero-t { font-size: 40px; }
+#pause-menu .ch-stats { margin: 0 24px 14px; }
+#pause-menu .ch-trophy { display: inline-flex; align-items: center; gap: 8px; }
+#pause-menu .ch-trophy svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .ch-note { margin: 0 24px 10px; max-width: 760px; }
+#pause-menu .cheat-ic { display: inline-grid; place-items: center; width: 28px; height: 28px; flex: none; }
+#pause-menu .cheat-ic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .m-li[data-cheat-row] .nm .mut.one { font-size: max(15px, var(--menu-min)); }
+`;
+let cssAan = false;
+function zetCss() {
+  if (cssAan || typeof document === 'undefined') return;
+  cssAan = true;
+  const el = document.createElement('style');
+  el.id = 'style-cheats';
+  el.textContent = CSS;
+  document.head.appendChild(el);
+}
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
@@ -91,12 +113,13 @@ function paneHtml(w) {
     (open && st.pending === c.id ? `<p class="red">Weet je het zeker? Prestaties gaan uit zolang hij aan staat. Druk nog eens ${key('Enter')} (of A) om hem aan te zetten; een andere rij annuleert.</p>` : open && (!c.kind || c.kind === 'toggle') ? `<p class="mut">Bladeren verandert niets. Zet aan of uit met ${key('Enter')} (of A) op de knop.</p>` : '') +
     '<span class="m-grow"></span>' +
     (busy ? '<p class="mut">Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.</p>' : '') +
-    `<p class="${blocked ? 'red' : 'mut'}">${intro}</p><p class="g st-msg" role="status">${esc(msg)}</p>`;
+    `<p class="g st-msg" role="status">${esc(msg)}</p>`;
 }
 
 // Fills the section; returns the sheet subtitle.
 export function renderCheatsPanel(el, w) {
   lastW = w;
+  zetCss();
   const actions = CHEATS.filter((c) => c.kind === 'action' || c.kind === 'perk');
   const toggles = CHEATS.filter((c) => !c.kind || c.kind === 'toggle');
   const open = toggles.filter((c) => isAvailable(c.id));
@@ -105,9 +128,19 @@ export function renderCheatsPanel(el, w) {
   const lockedOpen = isFolded('locked');
   if (sel && !CHEATS.some((c) => c.id === sel)) sel = null;
   const sum = summaryLine(CHEATS, isCheatOn);
-  el.innerHTML = '<div class="m-main"><div class="m-list pm-slist">' +
-    `<p class="cheat-sum ${sum.tone === 'red' ? 'red' : 'g'}" role="status">${esc(sum.text)}</p>` +
-    `<p class="m-note cheat-rule">${esc(introOf(w))}</p>` +
+  // De uitleg over prestaties stond boven de lijst én in het paneel én onderin het paneel:
+  // drie keer hetzelfde. Nu één hero bovenaan met de stand, en het paneel zegt het alleen
+  // nog bij de cheat die je bekijkt.
+  const aan = toggles.filter((c) => isCheatOn(c.id)).length;
+  const hero = `<section class="pm-hero ch-hero" aria-label="Cheats">` +
+    `<div class="pm-hero-h"><span class="m-eb">Cheats</span><span class="pm-badge" data-tone="${sum.tone === 'red' ? 'warn' : 'ok'}">${n} van ${CHEATS.length} vrijgespeeld</span></div>` +
+    `<h2 class="pm-hero-t">Een beetje vals spelen</h2>` +
+    `<p class="pm-hero-lead">${esc(sum.text)}</p></section>` +
+    `<div class="pm-stats ch-stats"><span class="pm-stat" data-tone="accent"><b>${n}</b><span>vrijgespeeld</span></span>` +
+    `<span class="pm-stat"><b>${aan}</b><span>nu aan</span></span>` +
+    `<span class="pm-stat"><b>${CHEATS.length - n}</b><span>nog op slot</span></span></div>`;
+  el.innerHTML = hero + '<div class="ch-note">' + `<p class="m-note cheat-rule">${esc(introOf(w))}</p></div>` +
+    '<div class="m-main"><div class="m-list pm-slist">' +
     '<div class="m-gh"><span>Acties</span></div>' + actions.filter((c) => isAvailable(c.id)).map((c) => actionRow(c, w)).join('') +
     `<div class="m-gh"><span>Cheats</span><span>${lit ? `${lit} aan` : ''}</span></div>` + open.map(toggleRow).join('') +
     (shut.length ? `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="locked" aria-expanded="${lockedOpen}" aria-controls="pm-f-locked">${CHEV}<b>Nog ${shut.length} op slot</b><span class="mut one">Speel verder in het verhaal of haal prestaties</span></button>` +
