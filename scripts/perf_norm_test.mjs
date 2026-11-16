@@ -5,7 +5,7 @@ let fails = 0;
 const ok = (c, name, extra) => { if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
 
 const schoon = { frames: 900, avg: 16.7, p95: 33, p99: 24, max: 33, hitch: { over50: 0, over100: 0, cpuP95: 30 } };
-const p95TeHoog = { frames: 900, avg: 20, p95: 36, p99: 40, max: 55 };
+const p95TeHoog = { frames: 900, avg: 20, p95: 38, p99: 40, max: 55 };
 const maxTeHoog = { frames: 900, avg: 20, p95: 22, p99: 90, max: 1415 };
 const alleenHitch = { frames: 900, hitch: { over50: 3, over100: 1 } };
 const zonder = { frames: 900 };
