@@ -102,10 +102,9 @@ function introOf(w) {
 
 function paneHtml(w) {
   const c = CHEATS.find((x) => x.id === sel);
-  const blocked = achievementsBlocked();
   const busy = cheatsBusy(w);
-  const intro = introOf(w);
-  if (!c) return `<div class="pm-pane-top"><span class="m-eb">Cheats</span><h2 class="m-h2 td-h2">Een beetje vals spelen</h2></div><p>${intro}</p>`;
+  // De prestatiesregel staat boven de lijst; het paneel herhaalt hem niet nog eens.
+  if (!c) return `<div class="pm-pane-top"><span class="m-eb">Cheats</span><h2 class="m-h2 td-h2">Een beetje vals spelen</h2></div><p class="mut">Kies links een cheat om te zien wat hij doet en of hij je prestaties raakt.</p>`;
   const open = isAvailable(c.id);
   return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
     `<p>${open ? esc(c.desc) : esc(hintOf(c))}</p>` +
