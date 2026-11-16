@@ -36,8 +36,8 @@ export const HELP_TOPICS = [
     'Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven.',
     'Een winkel staat op de kaart: loop naar binnen en druk {E}.',
   ] },
-  { id: 'telefoon', title: 'Telefoon', lines: [
-    'Berichten komen als kaartje binnen. Teruglezen, bellen en contacten vind je onder {ESC} › Verhaal › Personages.',
+  { id: 'telefoon', title: 'Berichten', lines: [
+    'Berichten komen als kaartje binnen. Bellen en contacten vind je onder {ESC} › Verhaal › Personages: het laatste bericht van iemand staat bij zijn kaart.',
   ] },
   { id: 'opslaan', title: 'Opslaan', lines: [
     'Het spel slaat zelf op na een missie en als je naar bed gaat. Je hoeft er niets voor te doen.',
