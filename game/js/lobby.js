@@ -399,7 +399,8 @@ export function view(s) {
           // (#526) dit apparaat koos "Niet meer vragen": zeg het hier, zodat de keuze niet vastzit
           ...(s.consentSaved ? ['Dit apparaat gaf eerder toestemming voor samen spelen en vraagt het daarom niet meer. Wil je het toch elke keer zien? Kies Toestemming intrekken.'] : [])],
         profiel,
-        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, ...(s.consentSaved ? [{ act: 'consent-vergeet', label: 'Toestemming intrekken' }] : [])],
+        // "Code of adres" zei een speler niets; dit is de kant waar je een code van iemand anders intypt
+        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Ik heb een kamercode gekregen' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, ...(s.consentSaved ? [{ act: 'consent-vergeet', label: 'Toestemming intrekken' }] : [])],
       });
     case 'methode': {
       const buttons = [{ act: 'route-kamer', label: 'Kamercode', primary: true }];
