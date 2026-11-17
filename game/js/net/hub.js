@@ -14,7 +14,8 @@ import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, zetAvatar,
 export const PENDING_MAX = 20; // s: een verbinding die in zo lang geen geldige hello stuurde (of geweigerd is), wordt gesloten en vergeten
 
 export class HostHub {
-  // cfg: { info, seed, sim, caps, max, onJoin(slot, char), onLeave(slot, why), onLost(slot), onResumed(slot), onEvent(slot, body) }
+  // cfg: { info, seed, sim, caps, max, onJoin(slot, char), onLeave(slot, why, naam), onLost(slot), onResumed(slot), onEvent(slot, body) }
+  // onLeave krijgt de naam erbij: de plek is dan al uit de lijst verwijderd.
   constructor(cfg) {
     this.cfg = cfg; this.roster = createRoster(cfg.max);
     this.sessions = new Map();   // slot -> HostSession
@@ -110,10 +111,14 @@ export class HostHub {
         return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijstEvent(hub.roster).lijst } }; // de korte lijst (zonder naam en kleur): met 16 spelers past de volle lijst niet in een welkomstbericht (MAX_JSON)
       },
       onRelease(slot, why) {
+        // De naam moet vóór het verwijderen gelezen worden: daarna staat de plek leeg en zegt een
+        // melding "De ander". onLeave krijgt hem als derde argument mee (#QoL).
+        const vorige = hub.roster.spelers.find((s) => s && s.slot === slot);
+        const naam = (vorige && ((vorige.avatar && vorige.avatar.naam) || vorige.naam)) || '';
         hub.sessions.delete(slot); verwijder(hub.roster, slot);
         if (hub.cfg.sim.vergeet) hub.cfg.sim.vergeet(slot); // wat de extra wereld die plek vertelde, geldt niet voor de volgende speler
         if (why === 'verlopen') { try { ses.link.close && ses.link.close(); } catch (e) { /* weg */ } } // niet teruggekomen binnen het venster: de verbinding zelf ook dicht
-        if (hub.cfg.onLeave) hub.cfg.onLeave(slot, why);
+        if (hub.cfg.onLeave) hub.cfg.onLeave(slot, why, naam);
         hub._announceList();
       },
     };
