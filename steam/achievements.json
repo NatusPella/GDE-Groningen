@@ -436,7 +436,7 @@
     {
       "id": "landmarks",
       "titel": "Toerist in eigen stad",
-      "omschrijving": "Bezoek alle 14 bezienswaardigheden",
+      "omschrijving": "Bezoek 14 bezienswaardigheden in en om de stad",
       "verborgen": false,
       "voorstelApiNaam": "ACH_LANDMARKS",
       "steamApiNaam": ""

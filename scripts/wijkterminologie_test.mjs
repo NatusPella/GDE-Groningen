@@ -12,12 +12,15 @@ let n = 0;
 const ok = (c, m, extra = '') => { n++; if (!c) { console.log('FAIL ' + m + (extra ? ' (' + extra + ')' : '')); process.exitCode = 1; } };
 
 const ach = lees('game/js/achievements.js');
-ok(/Ontdek alle 66 buurten/.test(ach), 'de prestatie voor de 66 punten zegt "buurten"');
+// Het aantal komt uit WIJKEN_TOTAL, één bron voor de prestatie en de teller (QoL-ronde): de
+// tekst zegt nog steeds "buurten", alleen niet meer met een losse 66 in de bron
+ok(/Ontdek alle \$\{WIJKEN_TOTAL\} buurten/.test(ach), 'de prestatie voor de 66 punten zegt "buurten"');
 ok(!/66 wijken/.test(ach) && !/Ontdek \d+ wijken/.test(ach), 'geen "wijken" meer voor de 66 punten');
+ok(/export const WIJKEN_TOTAL = 66/.test(ach), 'de 66 staat als één constante in achievements.js');
 ok(/Deelgebied-held/.test(ach), 'de CBS-buurtprestatie heet "deelgebied" (geen botsing met de 66 buurten)');
 
 const ui = lees('game/js/achievementsui.js');
-ok(/'Buurten', `\$\{st\.wijken\}\/66`/.test(ui), 'het overzicht toont "Buurten" met de 66 punten');
+ok(/'Buurten', `\$\{st\.wijken\}\/\$\{WIJKEN_TOTAL\}`/.test(ui), 'het overzicht toont "Buurten" met de 66 punten');
 
 const cine = lees('game/js/cinematics.js');
 ok(/wc-kick">Nieuwe buurt</.test(cine), 'het kaartje bij een nieuw punt zegt "Nieuwe buurt"');
