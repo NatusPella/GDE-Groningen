@@ -695,11 +695,16 @@ function syncNowFacts(st = getSettings()) {
   const voorbeeld = root.querySelector('[data-hintprev-row]');
   if (voorbeeld) {
     const stand = !st.showHints ? 'uit' : st.hintSource === 'pad' || (st.hintSource === 'auto' && isPadActive()) ? 'pad' : 'toets';
-    if (voorbeeld.dataset.stand !== stand) {
-      voorbeeld.dataset.stand = stand;
+    // #985 punt 2: hier stond hardgecodeerd "E", en de hertekening hing alleen aan `stand`.
+    // Na een herbinding loog het voorbeeld dus: je zag E terwijl instappen op Q stond. De letter
+    // komt nu uit de echte binding, en de sleutel waarop hertekend wordt bevat hem ook.
+    const instap = keyLabel(physicalKey(st.keyBinds, 'e'));
+    const sig = `${stand}|${instap}`;
+    if (voorbeeld.dataset.stand !== sig) {
+      voorbeeld.dataset.stand = sig;
       voorbeeld.innerHTML = stand === 'uit' ? '<span class="mut">Hints staan uit.</span>'
         : stand === 'pad' ? `${pg('y')}<span>Instappen</span>`
-          : '<span class="m-kc">E</span><span>Instappen</span>';
+          : `<span class="m-kc">${esc(instap)}</span><span>Instappen</span>`;
     }
   }
   // zonder hints heeft "Hints tonen voor" geen gevolg: de kiezer gaat opzij in plaats van dood te lopen

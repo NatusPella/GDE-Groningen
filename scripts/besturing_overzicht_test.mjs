@@ -93,4 +93,13 @@ t('de lange uitleg noemt een toets als token, niet als losse letter', () => {
   assert.ok(pm.includes('${keyText(longTextFor(id, desc))}'), 'Hulp gebruikt de tokenregel');
 });
 
+// #985 punt 2: het hintvoorbeeld stond hardgecodeerd op "E" en hertekende alleen als de stand
+// veranderde, dus na een herbinding loog het. De letter moet uit de echte binding komen.
+t('#985: het hintvoorbeeld volgt de echte instaptoets', () => {
+  assert.match(pm, /const instap = keyLabel\(physicalKey\(st\.keyBinds, 'e'\)\)/, 'de letter komt uit physicalKey');
+  assert.match(pm, /const sig = `\$\{stand\}\|\$\{instap\}`/, 'de hertekening hangt ook aan de letter');
+  assert.match(pm, /<span class="m-kc">\$\{esc\(instap\)\}<\/span><span>Instappen<\/span>/, 'en die letter wordt gebruikt');
+  assert.doesNotMatch(pm, /: '<span class="m-kc">E<\/span><span>Instappen<\/span>'/, 'geen hardgecodeerde E meer');
+});
+
 console.log(`OK besturing_overzicht_test: ${n} controles`);
