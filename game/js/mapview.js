@@ -2181,23 +2181,28 @@ function initKaartUitleg(overlay) {
   document.head.appendChild(st);
 }
 // De uitleg past bij je rol (#445): een gast leest er de Samen spelen-regel bij.
-// Bij het openen, want of je gast bent kan na het starten veranderen. De uitleg
-// staat in de kaartkolom onder het zoekveld, zodat hij nooit over de titel,
-// het zoekveld of de zoemknoppen valt (#602).
+// Bij het openen, want of je gast bent kan na het starten veranderen. De uitleg is een
+// eenmalige popup over de kaart: één keer, met de focus erop, daarna nooit meer vanzelf.
 function syncKaartUitleg(world) {
-  const kolom = state.overlay.querySelector('.mv-hl');
-  if (!kolom) return;
+  if (!state.overlay) return;
+  const body = state.overlay.querySelector('.mapview-body');
+  if (!body) return;
   const gast = !!world && world.coopRole === 'client' && !!world.coopNet;
-  const box = kolom.querySelector('.mv-uitleg');
+  const box = state.overlay.querySelector('.mv-help');
   if (box) {
     if ((box.dataset.gast === '1') !== gast) box.outerHTML = uitlegHtml({ gast });
-  } else if (!kaartGezien()) kolom.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
+  } else if (!kaartGezien()) {
+    // eenmalige popup over de kaart; hij neemt zelf de focus, dus de kaart eronder is even rustig
+    body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
+    const knop = state.overlay.querySelector('.mv-help .mapview-btn');
+    if (knop) knop.focus({ preventScroll: true });
+  }
   // de legenda bovenaan Lagen zegt hetzelfde in het kort (#445)
   const leg = state.overlay.querySelector('.mv-leg-hint');
   if (leg && (leg.dataset.gast === '1') !== gast) leg.outerHTML = legendaHintHtml({ gast });
 }
 function sluitKaartUitleg(btn) {
-  const box = btn.closest('.mv-uitleg');
+  const box = btn && btn.closest ? btn.closest('.mv-help') : state.overlay && state.overlay.querySelector('.mv-help');
   if (box) box.remove();
   try { localStorage.setItem(KEYS.hudSeen, JSON.stringify(markSeen(parseSeen(localStorage.getItem(KEYS.hudSeen)), UITLEG_ID))); } catch (e) { /* ignore */ }
 }
@@ -2724,6 +2729,9 @@ export function initMapView(world) {
   overlay.addEventListener('mousedown', (e) => e.stopPropagation());
 
   overlay.addEventListener('click', (e) => {
+    // de eenmalige uitleg gaat ook weg als je ernaast klikt, niet alleen op Begrepen
+    const uitleg = state.overlay && state.overlay.querySelector('.mv-help');
+    if (uitleg && e.target === uitleg) { sluitKaartUitleg(uitleg); return; }
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;

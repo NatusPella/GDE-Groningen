@@ -13,6 +13,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { profileDirFor, verwijderProfiel } from '../lib/testprofile.mjs';
 import { decodePng, analyseImage } from '../lib/pngcheck.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -111,10 +112,10 @@ const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.wor
 await new Promise((r) => setTimeout(r, 4000));\n`;
 
 async function runPart(deel, pre, pageFile, extraEnv = {}) {
-  const profile = `gde-test-sweep-${process.pid}-${deel}`;
+  const profDir = profileDirFor(`gde-test-sweep-${process.pid}-${deel}`, OUT);
   const script = path.join(OUT, `_page-${deel}.js`);
   fs.writeFileSync(script, WACHT + (process.env.SWEEP_PRE || "") + pre + fs.readFileSync(path.join(HERE, pageFile), "utf8")); // SWEEP_PRE: eigen code vóór de pagina (stadvergelijk: HUD verbergen)
-  const env = { ...process.env, GDE_TEST_PROFILE: profile, ...extraEnv };
+  const env = { ...process.env, GDE_TEST_PROFILE: profDir, ...extraEnv };
   delete env.ELECTRON_RUN_AS_NODE;
   const logFd = fs.openSync(path.join(OUT, `run-${deel}.log`), 'w');
   const child = spawn(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1600x900',
@@ -124,7 +125,7 @@ async function runPart(deel, pre, pageFile, extraEnv = {}) {
   const code = await new Promise((res) => { child.on('exit', (c, sig) => res(sig || c)); child.on('error', (e) => res('fout ' + e.message)); });
   clearTimeout(kill);
   fs.closeSync(logFd);
-  fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+  verwijderProfiel(profDir);
   console.log(`${deel}: exit ${code}`);
   return fs.readFileSync(path.join(OUT, `run-${deel}.log`), 'utf8');
 }

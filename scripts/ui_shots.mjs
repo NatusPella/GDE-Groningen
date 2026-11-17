@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { profileDirFor, verwijderProfiel } from './lib/testprofile.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
@@ -53,16 +54,17 @@ for (let i = 0; busy(); i++) {
 
 let failed = 0;
 for (const size of sizes) {
-  const profile = 'gde-test-shots-' + process.pid;
-  const profDir = path.join(os.tmpdir(), profile);
-  fs.rmSync(profDir, { recursive: true, force: true });
+  // het profiel binnen de uitvoermap als %TEMP% niet schrijfbaar is (zie lib/testprofile.mjs)
+  const profDir = profileDirFor('gde-test-shots-' + process.pid, out);
+  verwijderProfiel(profDir);
+  fs.mkdirSync(profDir, { recursive: true });
   const script = path.join(out, `_scenes-${size}.js`);
   fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\nwindow.__shotsTypes = ${JSON.stringify(types)};\n` + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, size + '.png');
   const args = ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), ...(flags ? ['--url-flags=' + flags] : []), '--smoke-test=' + png, '--perf-script=' + script, ...extraArgs];
   console.log('==', size);
-  const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: (() => { const e = { ...process.env, GDE_TEST_PROFILE: profile }; delete e.ELECTRON_RUN_AS_NODE; return e; })(), shell: process.platform === 'win32' });
+  const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: (() => { const e = { ...process.env, GDE_TEST_PROFILE: profDir }; delete e.ELECTRON_RUN_AS_NODE; return e; })(), shell: process.platform === 'win32' });
   let log = '';
   child.stdout.on('data', (d) => { log += d; });
   child.stderr.on('data', (d) => { log += d; });

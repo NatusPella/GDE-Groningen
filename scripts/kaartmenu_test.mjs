@@ -21,10 +21,16 @@ ok(/\.mv-actie \.mv-al \{ font: normal 26px/.test(kau) && /\.mv-actie small \{ f
 ok(!/font: 13px Arial|font: 11px|font-size: 11px|font-size: 12px/.test(kau), 'geen tekst onder 13 px in de actiebalk');
 ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95, 180, 217/.test(kau), 'de actiebalk heeft geen eigen groen, rood, grijs of blauw');
 
-// de eerste-keer-uitleg staat in de kaartkolom onder het zoekveld, niet over de titel
-ok(/querySelector\('\.mv-hl'\)[\s\S]{0,400}?insertAdjacentHTML\('beforeend', uitlegHtml/.test(mv),
-  'de eerste-keer-uitleg staat in de kaartkolom onder het zoekveld');
-ok(/\.mapview-overlay \.mv-uitleg \{ position: relative/.test(kau), 'de uitleg valt niet meer over de titel en het zoekveld');
+// De uitleg is een eenmalige popup over de kaart (herzien na spelersfeedback): hij verschijnt
+// één keer, neemt de focus, en gaat weg met Begrepen, Escape of een klik ernaast. Daarna komt
+// hij nooit meer vanzelf terug; hij blijft te vinden onder Instellingen > Besturing > Hulp.
+ok(/body\.insertAdjacentHTML\('beforeend', uitlegHtml/.test(mv),
+  'de uitleg wordt als popup over de kaart geplaatst');
+ok(/\.mapview-overlay \.mv-help \{ position: absolute; inset: 0;/.test(kau),
+  'de uitleg dekt de kaart af als popup in plaats van in een kolom te staan');
+ok(/role="dialog" aria-modal="true"/.test(kau) && /aria-label="Sluiten"/.test(kau),
+  'de popup is een dialoog met een eigen sluitknop');
+ok(/knop\.focus\(\{ preventScroll: true \}\)/.test(mv), 'de popup zet de focus op Begrepen');
 
 // legenda en lagen: de knop Lagen en de legenda zijn weer bereikbaar, de reisbalk blijft weg
 ok(/#pause-menu \.mapview-overlay\.embedded \.mv-goal \{ display: none !important; \}/.test(pcss),

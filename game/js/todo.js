@@ -30,11 +30,13 @@ import { prestigeStand } from './prestige.js'; // #675: Grunn is van jou
 import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
 import { VILLAGES, WORLD_END_TOTAL } from './ommelandlines.js';
 import { SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
-import { loadSeen } from './evenementen.js';
+import { loadSeen, agendaOn, centreOf } from './evenementen.js'; // #844: het evenement van vandaag als rij
 import { today as calendarDay } from './calendarday.js';
 import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
+import { DIEREN, SET_DIEREN, DIEREN_TOTAL } from './dierenregister.js'; // #844: dierenboek als verzamelrij
+import { isViewpointUsed } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
 import { SECRETS_TOTAL } from './geheimen.js';
 import { HERKENNINGSPUNTEN, HERKENNINGSPUNTEN_TOTAAL } from './herkenningspunten.js';
 import { albumStand, dichtstbijzijndeOpen } from './herkenningsalbum.js';
@@ -401,13 +403,95 @@ function ommelandItems(world) {
   const names = Object.keys(VILLAGES);
   const ends = uniqueCount('wereldeinden');
   const beppe = beppeTodoItem(world);
+  const uitkijk = uitkijkItem(world);
+  const feest = evenementItem(world);
   return [
     ...ommelandPaspoortItems(world),
     ...(beppe ? [beppe] : []),
+    ...(feest ? [feest] : []),
+    ...(uitkijk ? [uitkijk] : []),
     { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
       meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Ommeland · verkennen', text: 'Ergens houden de wegen van het Ommeland op. Waar, dat zeggen we niet.', rows: [] } },
   ];
+}
+
+// #844: een uitkijkpunt dat je nog niet gebruikte, als echte Te-doen-rij met een place-doel.
+// De punten komen van de kaart (verkenpunten.js zet ze in map.meta.uitkijkpunten zodra de kits
+// geladen zijn); zonder wereld of zonder punten is er geen rij en dus geen leugen.
+function uitkijkItem(world) {
+  const points = (world && world.map && world.map.meta && world.map.meta.uitkijkpunten) || null;
+  if (!points || !points.length) return null;
+  const p = hoofdspeler(world);
+  const open = points.filter((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && !isViewpointUsed(q));
+  if (!open.length) return null;
+  const near = open.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0];
+  const gebruikt = points.length - open.length;
+  return {
+    key: 'om:uitkijk', group: 'ommeland', icon: 'uitkijkpunt', title: 'Uitkijken over de streek', status: '',
+    meta: `${near.q.streekNaam || 'de provincie'} · ${Math.round(near.d)} m`,
+    medal: null, record: `${gebruikt} van ${points.length} gebruikt`,
+    x: near.q.x, y: near.q.y,
+    goal: { kind: 'place', id: near.q.id || 'uitkijkpunt', name: near.q.naam || 'Uitkijkpunt', x: near.q.x, y: near.q.y },
+    detail: {
+      kicker: 'Ommeland · verkennen',
+      text: 'Loop naar een uitkijkpunt en druk E. Je ziet de streek van boven en die plek komt op je kaart; elk punt telt mee voor de stempel van zijn streek.',
+      rows: [['Dichtstbijzijnde punt', near.q.naam || 'Uitkijkpunt'], ['Nog te doen', `${open.length} van ${points.length}`]],
+    },
+  };
+}
+
+// #844: het evenement van vandaag (of het eerstvolgende dat loopt) als echte Te-doen-rij.
+// Op een dag zonder evenement is er geen rij: geen verzonnen uitje.
+function evenementItem(world) {
+  let dag = null;
+  try { dag = calendarDay(world); } catch (e) { return null; }
+  let lijst = [];
+  try { lijst = agendaOn(dag) || []; } catch (e) { return null; }
+  if (!lijst.length) return null;
+  const ev = lijst[0];
+  let c = null;
+  try { c = centreOf(ev); } catch (e) { return null; }
+  if (!c || !Number.isFinite(c.x) || !Number.isFinite(c.y)) return null;
+  const uur = Number.isFinite(world.clock) ? ((world.clock % 24) + 24) % 24 : 12;
+  const loopt = uur >= ev.hours[0] && uur < ev.hours[1];
+  const tijd = `${String(ev.hours[0]).padStart(2, '0')}:00`;
+  return {
+    key: 'om:evenement', group: 'ommeland', icon: 'landmark', title: ev.naam || 'Evenement in Grunn', status: loopt ? 'nu' : '',
+    meta: loopt ? `Nu aan de gang · ${ev.plaats || 'in de provincie'}` : `Vandaag vanaf ${tijd} · ${ev.plaats || 'in de provincie'}`,
+    medal: null, record: ev.plaats || '',
+    x: c.x, y: c.y,
+    goal: { kind: 'place', id: 'evenement:' + ev.id, name: ev.naam || 'Evenement', x: c.x, y: c.y },
+    detail: {
+      kicker: 'Ommeland · vandaag',
+      text: `Vandaag in Grunn: ${ev.naam}. ${loopt ? 'Het is al begonnen.' : `Het begint om ${tijd}.`} De weg erheen staat op de kaart.`,
+      rows: [['Waar', ev.plaats || 'in de provincie'], ['Hoe laat', loopt ? 'nu' : `vanaf ${tijd}`]],
+    },
+  };
+}
+
+// #844 (derde kandidaat): de dierenboek-rij. Er waren al vijftien dieren met een eigen
+// ontdekking en een prestatie, maar in Te doen stond niets erover. Deze rij telt de stand en
+// zegt waar je moet kijken: de stad of de wei. Geen doel-coordinaat, want een dier wandelt.
+function dierenboekItem() {
+  if (!DIEREN.length) return null;
+  const gezien = getSaveSet(SET_DIEREN);
+  const n = gezien.size;
+  if (n >= DIEREN_TOTAL) return null;
+  const eerste = DIEREN.find((d) => !gezien.has(d.id));
+  // `biotoop` zegt waar het dier hoort (weide, stad, water); dat is preciezer dan de soort.
+  const bio = (eerste && eerste.biotoop) || [];
+  const waar = bio.includes('weide') || bio.includes('water') ? 'buiten de stad, in de wei en langs het water' : 'in de stad en op de erven';
+  return {
+    key: 'col:dieren', group: 'verzamelen', icon: 'landmark', title: 'Dierenboek', status: '',
+    meta: `${n} van ${DIEREN_TOTAL} gezien · ${waar}`, medal: null, record: `${n} van ${DIEREN_TOTAL}`,
+    goal: null,
+    detail: {
+      kicker: 'Verzamelen · dieren',
+      text: 'Telkens als je een dier voor het eerst ziet, schrijft het spel het in je dierenboek. Je hoeft er niets voor te doen behalve rondkijken: het telt bij de eerste blik.',
+      rows: [['Stand', `${n} van ${DIEREN_TOTAL}`], ['Waar', waar]],
+    },
+  };
 }
 
 function collectItems(world) {
@@ -428,7 +512,9 @@ function collectItems(world) {
   const duikSpots = getWrakduikSpotsForRender().filter((q) => !q.gedoken);
   const duikNear = duikSpots.length ? duikSpots.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0] : null;
   const uitdaging = getStreekuitdagingSpotsForRender()[0] || null;
+  const dieren = dierenboekItem();
   return [
+    ...(dieren ? [dieren] : []),
     { key: 'col:eieren', group: 'verzamelen', icon: 'eierbalTip', title: 'Eierballen zoeken', status: eggs >= EIERBAL_TOTAL ? 'klaar' : '',
       meta: 'Verstopt bij de bezienswaardigheden', medal: null, record: `${eggs} van ${EIERBAL_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Verzamelen', text: 'Overal in Grunn ligt een eierbal verstopt. Een tip nodig? De wandkaart thuis weet er een paar.', rows: [] } },

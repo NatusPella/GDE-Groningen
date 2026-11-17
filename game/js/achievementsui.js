@@ -1,6 +1,7 @@
 // Pause-menu view for achievements.js: the Prestaties section. Tabs Alles,
-// Bijna binnen and Behaald; in Alles the categories fold open to their
-// prestaties, the one you pick is explained beside the list. Lifetime
+// Bijna binnen and Behaald; in Alles every category is a tile with its icon,
+// a bar and the prestatie that is next up, and a tile folds open to its
+// prestaties; the one you pick is explained beside the list. Lifetime
 // figures, medals per mission and the job records fold at the bottom.
 import { dualHtml } from './subtitles.js';
 import {
@@ -16,6 +17,51 @@ import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, ac
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+
+// de categorieën zijn kaarten met een icoon, een balk en de eerstvolgende
+// prestatie. De vormgeving woont hier bij de module, niet in pausemenu.css; alleen
+// de bestaande tokens en lettertypen van het menu.
+const CSS = `
+#pause-menu .pa-cats { display: flex; flex-direction: column; gap: 14px; padding: 0 0 10px 24px; }
+#pause-menu .pa-tile { position: relative; flex: none; border-radius: 12px; background: rgba(240, 237, 228, 0.045); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+#pause-menu .pa-tile.near { background: rgba(63, 201, 122, 0.09); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.38); }
+#pause-menu .pa-tile.open { background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .pa-tile.open::before, #pause-menu .pa-tile.near::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--g); }
+#pause-menu .pa-tile-top { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "ico head end" "ico next next" ". bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; width: 100%; padding: 14px 16px 12px 18px; text-align: left; }
+#pause-menu .pa-tile-top:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 12px; }
+#pause-menu .pa-tile-ico { grid-area: ico; align-self: center; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; color: var(--g); background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.3); }
+#pause-menu .pa-tile-ico svg { width: 24px; height: 24px; }
+#pause-menu .pa-tile-h { grid-area: head; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 12px; min-width: 0; }
+#pause-menu .pa-tile-h b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.05em; color: var(--ink); }
+#pause-menu .pa-tile-end { grid-area: end; align-self: center; display: flex; align-items: center; gap: 8px; }
+#pause-menu .pa-tile-chev { display: grid; place-items: center; width: 20px; height: 20px; color: var(--mut); transition: transform 0.2s; }
+#pause-menu .pa-tile-chev svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .pa-tile.open .pa-tile-chev { transform: rotate(90deg); color: var(--g); }
+#pause-menu .pa-tile-pct { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 30px; letter-spacing: 0.03em; color: var(--mut); }
+#pause-menu .pa-tile.open .pa-tile-pct, #pause-menu .pa-tile.near .pa-tile-pct { color: var(--g); }
+#pause-menu .pa-cat-note { font-size: max(15px, var(--menu-min)); color: var(--mut); white-space: nowrap; }
+#pause-menu .pa-tile-next { grid-area: next; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0; font-size: max(16px, var(--menu-min)); line-height: 1.3; color: rgba(240, 237, 228, 0.86); }
+#pause-menu .pa-tile-next-t { min-width: 0; overflow-wrap: anywhere; }
+#pause-menu .pa-tile.near .pa-tile-next-t { color: var(--ink); }
+#pause-menu .pa-tile-fig { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; color: var(--g); white-space: nowrap; }
+#pause-menu .pa-tile-bar { grid-area: bar; display: block; width: 100%; height: 5px; margin-top: 7px; }
+#pause-menu .pa-tile .m-fold { padding: 2px 8px 8px; }
+#pause-menu .pa-tile .m-li { min-height: 50px; padding: 0 16px; }
+#pause-menu .pa-row-end { display: inline-flex; align-items: baseline; gap: 8px; flex: none; }
+#pause-menu .pa-row-pct { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.04em; color: var(--g); }
+#pause-menu .m-li.near { color: rgba(240, 237, 228, 0.92); }
+#pause-menu .pa-empty-pane { display: flex; flex-direction: column; gap: 16px; }
+#pause-menu .pa-next-go { align-self: flex-start; height: 48px; padding: 0 22px; font-size: 22px; }
+`;
+let cssAan = false;
+function zetCss() {
+  if (cssAan || typeof document === 'undefined') return;
+  cssAan = true;
+  const el = document.createElement('style');
+  el.id = 'style-prestaties';
+  el.textContent = CSS;
+  document.head.appendChild(el);
+}
 
 let tabView = 'alles';
 let sel = null;
@@ -47,14 +93,47 @@ function row(it, catLabel) {
   let end = '';
   if (it.unlocked) end = freshIds.has(it.id) ? '<span class="t g">nieuw</span>' + CHECK : CHECK;
   else if (it.hidden) end = LOCK;
-  else if (bijna) end = `<span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span>`;
-  return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${sel === it.id ? ' sel' : ''}" data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
+  else if (bijna) end = `<span class="pa-row-end"><span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span><span class="pa-row-pct">${Math.round(pctOf(it))}%</span></span>`;
+  return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${bijna ? ' near' : ''}${sel === it.id ? ' sel' : ''}" data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
     `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}${rowbar}</span>${end}</button>`;
 }
 
 function disc(id, title, hintHtml, inner, open, attr) {
   return `<button type="button" class="m-disc" ${attr} aria-expanded="${open}">${CHEV}<b>${esc(title)}</b>${hintHtml}</button>` +
     `<div class="m-fold" ${open ? '' : 'hidden'}>${inner}</div>`;
+}
+
+// de eerstvolgende haalbare prestatie van een categorie, met het cijfer erbij.
+// Eerst een die al begonnen is (dezelfde volgorde als "Bijna binnen"), dan een met een
+// telbaar cijfer, anders de eerste die nog niet gehaald is. Zo blijft een categorie
+// nooit een lege regel en staat er waar het kan een concreet getal naast.
+function nextOf(items) {
+  const open = items.filter((a) => !a.unlocked && !a.hidden);
+  return open.find((a) => a.progress && a.progress.cur > 0) ||
+    open.find((a) => a.progress) || open[0] || null;
+}
+
+function catTile(c) {
+  const open = openCats.has(c.cat);
+  const pct = achCategoryPct(c);
+  const items = achCategoryOrder(c.items);
+  const teGaan = c.items.length - c.done;
+  const next = nextOf(items);
+  const started = !!(next && next.progress && next.progress.cur > 0 && !next.unlocked);
+  const fig = next && next.progress && !next.unlocked ? `${fmtAmount(next.progress.cur, next.progress.unit)}/${fmtAmount(next.progress.goal, next.progress.unit)}` : '';
+  const nextLine = next
+    ? `<span class="pa-tile-next-t">${started ? 'Bijna binnen: ' : 'Volgende: '}${dualHtml(next.title)}</span>${fig ? `<span class="pa-tile-fig">${fig}</span>` : ''}`
+    : `<span class="pa-tile-next-t">${teGaan === 0 ? 'Alles in deze categorie gehaald.' : 'De rest is nog geheim.'}</span>`;
+  const note = teGaan === 0 ? 'alles gehaald' : `${c.done} van ${c.items.length} · nog ${teGaan}`;
+  return `<div class="pa-tile${open ? ' open' : ''}${started ? ' near' : ''}">` +
+    `<button type="button" class="pa-tile-top" data-achcat="${esc(c.cat)}" aria-expanded="${open}">` +
+      `<span class="pa-tile-ico" aria-hidden="true">${iconSvg({ id: '', cat: c.cat, hidden: false })}</span>` +
+      `<span class="pa-tile-h"><b>${esc(c.label)}</b><span class="pa-cat-note">${note}</span></span>` +
+      `<span class="pa-tile-next">${nextLine}</span>` +
+      `<span class="m-bar pa-tile-bar${pct > 0 ? ' on' : ''}"><i data-bar="cat-${c.cat}" data-w="${pct}"></i></span>` +
+      `<span class="pa-tile-end"><span class="pa-tile-pct">${pct}%</span><span class="pa-tile-chev" aria-hidden="true">${CHEV}</span></span>` +
+    `</button>` +
+    `<div class="m-fold" ${open ? '' : 'hidden'}>${items.map((a) => row(a, c.label)).join('')}</div></div>`;
 }
 
 // a progress bar with its own fill animation; the number is written next to it,
@@ -118,8 +197,20 @@ function layerText(id) {
   return n ? `<p class="mut">Stand van de ${esc(n.niveau.naam.toLowerCase())}: ${n.voltooid} van ${n.gebieden.length} veroverd.</p>` : '';
 }
 
-function detailHtml(it, catLabel) {
-  if (!it) return '<p class="mut">Kies een prestatie om te zien wat je ervoor doet.</p>';
+function detailHtml(it, catLabel, next) {
+  // zonder keuze is het rechterpaneel niet leeg maar bruikbaar: de eerstvolgende
+  // prestatie met haar cijfer en één knop die haar in de lijst opent.
+  if (!it) {
+    if (!next) return '<p class="mut">Kies een prestatie om te zien wat je ervoor doet.</p>';
+    const nt = next.hidden ? '???' : dualHtml(next.title);
+    const np = next.progress && !next.unlocked
+      ? `<div class="pa-prog"><span class="m-num">${fmtAmount(next.progress.cur, next.progress.unit)} <span class="mut">/ ${fmtAmount(next.progress.goal, next.progress.unit)}</span></span>${bar('d-' + next.id, pctOf(next))}</div>`
+      : '';
+    return '<div class="pa-empty-pane">' +
+      '<div class="pm-pane-top"><span class="m-eb">Eerstvolgende</span><h2 class="m-h2 td-h2"><span class="pa-ico big">' + iconSvg(next) + '</span>' + nt + '</h2></div>' +
+      `<p>${next.hidden ? 'Geheim. Blijf rondkijken in Grunn.' : esc(next.desc)}</p>${np}` +
+      `<button type="button" class="m-bg pa-next-go" data-ach-next="${esc(next.id)}">Bekijk in de lijst</button></div>`;
+  }
   const title = it.hidden ? '???' : dualHtml(it.title);
   const desc = it.hidden ? 'Geheim. Blijf rondkijken in Grunn.' : esc(it.desc);
   let prog = '';
@@ -166,6 +257,8 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   const done = achDone(all);
   if (sel && !all.some((a) => a.id === sel)) sel = null;
   const selItem = all.find((a) => a.id === sel);
+  // de eerstvolgende over alle categorieën heen, voor het lege detailpaneel
+  const nextOverall = nextOf([...near, ...all.filter((a) => !a.unlocked && !a.hidden && !near.includes(a))]);
   const tab = (id, label, n) => `<button type="button" role="tab" class="m-tab" data-achview="${id}" aria-selected="${tabView === id}">${label}${n != null ? `<small>${n}</small>` : ''}</button>`;
   const extras = [['gebieden', 'Gebieden', 'buurt tot provincie', gebiedenBlock()], ['cijfers', 'Cijfers', 'sinds je eerste spel', figuresBlock(st)], ['medailles', 'Medailles', 'per missie', medalsBlock()], ['records', 'Records', 'per bijbaantje', jobRecordsBlock()]];
   let list;
@@ -174,22 +267,18 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   else if (tabView === 'behaald') list = done.length ? done.map((a) => row(a, a.catLabel)).join('')
     : '<div class="pa-leeg"><b>Nog niks behaald</b><p class="m-note">De eerste komt vanzelf: een missie, een ritje of een bezoekje aan de markt.</p></div>';
   else {
-    list = view.map((c) => {
-      const open = openCats.has(c.cat);
-      const pct = achCategoryPct(c);
-      const items = achCategoryOrder(c.items);
-      const inner = items.map((a) => row(a, c.label)).join('');
-      // #909: de dichte rij zegt in woorden hoe ver de categorie is, niet alleen met een balkje
-      const af = c.items.length > 0 && c.done >= c.items.length;
-      return disc(c.cat, c.label, `<span class="m-bar${open || af ? ' on' : ''}"><i data-bar="cat-${c.cat}" data-w="${pct}"></i></span><span class="bebas">${c.done}/${c.items.length}</span><span class="mut pa-cat-note">${af ? 'klaar' : `${c.items.length - c.done} te gaan`}</span>`, inner, open, `data-achcat="${c.cat}"`);
-    }).join('') + '<div class="m-rule"></div>' +
+    // elke categorie is een kaart met een icoon, de stand in woorden, een balk en de
+    // eerstvolgende prestatie; klikken vouwt de prestaties eronder open. De extras blijven
+    // gewone vouwen onder de kaarten.
+    list = '<div class="pa-cats">' + view.map(catTile).join('') + '</div><div class="m-rule"></div>' +
       extras.map(([id, t, hint, inner]) => disc(id, t, `<span class="mut">${hint}</span>`, inner, openExtra.has(id), `data-achextra="${id}"`)).join('');
   }
   el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
     `<span class="m-grow"></span><span class="pa-total">${bar('total', sum.total ? (sum.done / sum.total) * 100 : 0)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
     heroHtml(sum, near, all.filter((a) => a.hidden).length) +
-    `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel)}</aside></div>`;
+    `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel, nextOverall)}</aside></div>`;
+  zetCss();
   fillBars(el, bars);
   const pct = el.querySelector('[data-pa-pct]');
   if (shownPct != null) pct.dataset.moValue = String(shownPct);
@@ -203,9 +292,19 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
       const c = e.target.closest('[data-achcat]');
       const x = e.target.closest('[data-achextra]');
       const a = e.target.closest('[data-ach]');
+      const n = e.target.closest('[data-ach-next]');
       if (t) { tabView = t.dataset.achview; renderAchievementsPanel(el, { keepFresh: true }); keepFocus(`[data-achview="${tabView}"]`); }
       else if (c) { const id = c.dataset.achcat; if (openCats.has(id)) openCats.delete(id); else openCats.add(id); renderAchievementsPanel(el, { keepFresh: true }); keepFocus(`[data-achcat="${id}"]`); }
       else if (x) { const id = x.dataset.achextra; if (openExtra.has(id)) openExtra.delete(id); else openExtra.add(id); renderAchievementsPanel(el, { keepFresh: true }); keepFocus(`[data-achextra="${id}"]`); }
+      else if (n) {
+        // vanaf de eerstvolgende in het paneel naar diezelfde prestatie in de lijst
+        const id = n.dataset.achNext;
+        const cat = all.find((it) => it.id === id);
+        if (cat) openCats.add(cat.cat);
+        tabView = 'alles'; sel = id;
+        renderAchievementsPanel(el, { keepFresh: true });
+        keepFocus(`[data-ach="${id}"]`);
+      }
       else if (a) { sel = a.dataset.ach; for (const b of el.querySelectorAll('[data-ach]')) { const on = b.dataset.ach === sel; b.classList.toggle('sel', on); b.toggleAttribute('aria-current', on); } const it = all2(el, sel); el.querySelector('.pa-pane').innerHTML = it; }
     });
     el.addEventListener('focusin', (e) => {

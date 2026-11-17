@@ -13,6 +13,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { profileDirFor, verwijderProfiel } from '../lib/testprofile.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -67,11 +68,11 @@ if (flag('lijst')) {
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
-const profile = `gde-test-readme-${process.pid}`;
+const profDir = profileDirFor(`gde-test-readme-${process.pid}`, OUT);
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, WACHT + `window.__rs = ${JSON.stringify({ only: ONLY.split(',').filter(Boolean), settle: Number(arg('settle', 7000)), stap: arg('stap', ''), waits: arg('waits', '') ? arg('waits', '').split(',').map(Number) : null, scout: arg('scout', '') ? JSON.parse(fs.readFileSync(path.resolve(arg('scout')), 'utf8')) : [] })};\n` + page);
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' };
+const env = { ...process.env, GDE_TEST_PROFILE: profDir, GDE_NIEUW_VERHAAL: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
 // Windows houdt een venster binnen het werkgebied (hier 1904x993 in plaats van 1920x1080): de pagina legt zich daarom uit
 // op 1920x1080 (--emulate-view) in een venster van 0,9 keer die grootte, een beeld van 1728x972 (16:9)
@@ -80,7 +81,7 @@ const r = spawnSync(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--f
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt (zet ELECTRON_EXE):', r.error.message);
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
-fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+verwijderProfiel(profDir);
 let full = {};
 for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }
 fs.writeFileSync(path.join(OUT, 'readme_shots.json'), JSON.stringify(full, null, 1));
