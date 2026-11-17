@@ -394,7 +394,9 @@ const ACTION_WORDS = Object.fromEntries(KEY_ACTIONS.map(([k, d]) => [k, d.split(
 Object.assign(ACTION_WORDS, {
   '@fire': 'Aanvallen, schieten', '@aim': 'Richten', '@wheel+': 'Volgend wapen', '@wheel-': 'Vorig wapen', '@gas': 'Gas', '@brake': 'Remmen, achteruit',
   escape: 'Pauzemenu', enter: 'Kiezen', delete: 'Doel wissen',
-  arrowup: 'Omhoog', arrowdown: 'Omlaag', arrowleft: 'Links', arrowright: 'Rechts', ' ': 'Springen, handrem', q: 'Achterom kijken', e: 'Instappen, gebruiken', f: 'Gebruiken (tweede knop), duif: poepen', m: 'Kaart',
+  // #985 punt 50: Q doet alleen iets in een voertuig (lookBackActive eist inVehicle). Zonder die
+  // vermelding zocht een speler te voet naar een functie die er niet was.
+  arrowup: 'Omhoog', arrowdown: 'Omlaag', arrowleft: 'Links', arrowright: 'Rechts', ' ': 'Springen, handrem', q: 'Achterom kijken (in een voertuig)', e: 'Instappen, gebruiken', f: 'Gebruiken (tweede knop), duif: poepen', m: 'Kaart',
   b: 'Bij de groep komen (Samen spelen)', t: 'Hef omhoog of omlaag (trekker)',
 });
 const MENU_WORDS = { enter: 'kiezen', escape: 'terug', delete: 'doel wissen', ' ': 'naar jezelf op de kaart', q: 'vorig onderdeel', e: 'volgend onderdeel', '[': 'vorig tabblad, uitzoomen', ']': 'volgend tabblad, inzoomen', m: 'kaart' };
