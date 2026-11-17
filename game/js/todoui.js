@@ -446,7 +446,7 @@ function beginCard(it, i) {
   return `<div class="td-card${first ? ' td-card-next' : ''}">` +
     `<button type="button" class="td-card-main" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +
     `<span class="td-begin-nr" aria-hidden="true">${i + 1}</span>${ico}` +
-    `<span class="td-card-nm"><b class="one">${esc(it.title)}</b><span class="td-card-cat one">${esc(cat)}</span></span>` +
+    `<span class="td-card-nm"><b>${esc(it.title)}</b><span class="td-card-cat one">${esc(cat)}</span></span>` +
     `<span class="td-card-dist">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
     `<button type="button" class="td-card-act" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Kaart</button></div>`;
 }

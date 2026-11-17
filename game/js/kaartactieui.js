@@ -96,7 +96,8 @@ export const KAART_ACTIE_CSS = `
 .mapview-overlay .mv-help ul { margin: 0 0 18px 20px; padding: 0; }
 .mapview-overlay .mv-help li { margin: 6px 0; }
 .mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
-.mapview-overlay .mv-help-foot small { color: var(--mut, rgba(240,237,228,0.7)); font-size: 15px; }
+/* Het pad naar Hulp liep buiten de popup af; het mag krimpen en doorlopen (#602). */
+.mapview-overlay .mv-help-foot small { min-width: 0; flex: 1 1 220px; color: var(--mut, rgba(240,237,228,0.7)); font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
 .mapview-overlay .mv-help .mapview-btn { height: 44px; padding: 0 22px; border: 0; border-radius: 8px; background: var(--g, #3fc97a); color: #0c140e; font: 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; }
 .mapview-overlay .mv-help .mapview-btn:hover { filter: brightness(1.08); }
 .mapview-overlay .mv-help .mapview-btn:focus-visible, .mapview-overlay .mv-help-x:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
