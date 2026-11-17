@@ -16,7 +16,7 @@ const DIRECT_CODE = makeCode({ ip: '84.12.34.56', port: 41000, key: 'ABCDEFGH' }
 t('start: twee keuzes, geen keuze per save of bij het starten', () => {
   const v = L.view(L.createLobby(APP));
   assert.deepEqual(v.buttons.map((b) => b.act), ['kies-host', 'kies-gast', 'lijst', 'diag']);
-  assert.deepEqual(v.buttons.map((b) => b.label), ['Iemand uitnodigen', 'Code of adres invoeren', 'Openbare sessies', 'Verbinding testen']);
+  assert.deepEqual(v.buttons.map((b) => b.label), ['Iemand uitnodigen', 'Ik heb een kamercode gekregen', 'Openbare sessies', 'Verbinding testen']);
   assert.match(v.lines[0], /eigen voortgang/); assert.match(v.lines[0], /Tammo/);
 });
 t('methode: kamercode altijd, IP-adres alleen in de desktop-app', () => {
