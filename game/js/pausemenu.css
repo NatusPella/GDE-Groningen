@@ -840,9 +840,14 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .sp-hero .pm-hero-meta span { position: relative; padding-left: 14px; }
 #pause-menu .sp-hero .pm-hero-meta span::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 5px; height: 5px; border-radius: 50%; background: var(--g); opacity: 0.8; }
 #pause-menu .sp-cat-sec { display: flex; flex-direction: column; }
-#pause-menu .sp-cat .sp-cat-r { display: inline-flex; align-items: center; gap: 10px; }
-#pause-menu .sp-cat .sp-cat-n { font-size: 16px; color: var(--mut); }
-#pause-menu .sp-cat .sp-cbar { width: 76px; flex: none; }
+/* De lijstkolom is 320 px breed, dus "0 van 11" en het balkje mogen daar niet over twee
+   regels vallen. Ze houden hun breedte; de categorienaam krimpt in als het krap wordt. */
+#pause-menu .sp-cat { min-width: 0; }
+#pause-menu .sp-cat .sp-cat-r { display: inline-flex; align-items: center; gap: 10px; flex: none; white-space: nowrap; }
+#pause-menu .sp-cat .sp-cat-n { font-size: 16px; color: var(--mut); white-space: nowrap; }
+#pause-menu .sp-cat .sp-cbar { width: 56px; flex: none; }
+#pause-menu .sp-cat .sp-gh { min-width: 0; overflow: hidden; }
+#pause-menu .sp-cat .sp-gh > svg { flex: none; }
 #pause-menu .sp-empty { padding: 2px 24px 14px; margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
 #pause-menu .sp-detail-cat { display: inline-flex; align-items: center; gap: 10px; }
 #pause-menu .sp-detail-cat .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
