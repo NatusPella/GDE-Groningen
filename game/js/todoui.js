@@ -65,7 +65,7 @@ const TDOU_CSS = `
 #pause-menu .td-card-main:hover { background: rgba(240, 237, 228, 0.06); }
 #pause-menu .td-card-main:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 #pause-menu .td-card-nm { display: flex; flex-direction: column; gap: 3px; min-width: 0; line-height: 1.2; }
-#pause-menu .td-card-nm b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.03em; }
+#pause-menu .td-card-nm b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; line-height: 1.05; letter-spacing: 0.03em; }
 #pause-menu .td-card-cat { font-size: max(15px, var(--menu-min, 15px)); color: var(--mut); }
 #pause-menu .td-card-next .td-card-cat { color: var(--g); }
 #pause-menu .td-card-dist { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; white-space: nowrap; }
@@ -438,7 +438,10 @@ const GROUP_LABEL = Object.fromEntries(GROUPS.map(([g, label]) => [g, label]));
 function beginCard(it, i) {
   const first = i === 0;
   const ico = it.icon ? `<img class="td-card-ico" src="${mapIconUrl(it.icon, 30)}" alt="">` : `<span class="td-card-pin" aria-hidden="true">${svg(ICON.pin)}</span>`;
-  const cat = [it.isGoal ? 'Jouw doel' : first ? 'Eerstvolgende' : '', it.status === 'nu' ? 'Nu' : '', GROUP_LABEL[it.group] || '', it.where || ''].filter(Boolean).join(' · ');
+  // Hooguit twee delen: de rol en de soort. De afstand en de plek staan al rechts en in de
+  // uitleg eronder; vier delen achter elkaar werden in de smalle kolom afgekapt (#980-review).
+  const rol = it.isGoal ? 'Jouw doel' : first ? 'Eerstvolgende' : (it.status === 'nu' ? 'Nu' : '');
+  const cat = [rol, GROUP_LABEL[it.group] || it.where || ''].filter(Boolean).join(' · ');
   const why = first && !it.isGoal ? 'Deze is het dichtstbij en kan nu.' : '';
   return `<div class="td-card${first ? ' td-card-next' : ''}">` +
     `<button type="button" class="td-card-main" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +
