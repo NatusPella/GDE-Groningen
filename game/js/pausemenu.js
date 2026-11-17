@@ -40,13 +40,16 @@ import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
 import { radioIsOn, setRadio } from './radio.js';
 import { isMuted, toggleMute } from './audio.js';
-import { glyphHtml } from './prompts.js';
+import { glyphHtml, resetHintUses } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
+import { resetOnboarding } from './onboarding.js';
+import { resetContextHints } from './contexthints.js';
+import { menuMelding } from './menumelding.js';
 import { getUiScale } from './uiscale.js';
 import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
@@ -820,7 +823,8 @@ ${keyReuseHtml()}
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}
       ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
       <div class="m-gh"><span>Terugkijken</span></div>
-      <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
+      <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -1040,6 +1044,13 @@ export function initPauseMenu(w) {
 
   root.addEventListener('click', (e) => {
     if (e.target.closest('[data-card-log]')) { setOpen(false); openCardLog(); return; }
+    // "Uitleg opnieuw tonen": de drie eigen sleutels wissen (uitlegkaarten, contexthints,
+    // geleerde toetsen), zodat een speler die de kaarten wegklikte ze terug kan krijgen
+    if (e.target.closest('[data-hints-reset]')) {
+      resetOnboarding(); resetContextHints(); resetHintUses();
+      menuMelding('De uitleg begint opnieuw; de eerstvolgende kaarten en hints komen vanzelf.');
+      return;
+    }
     if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
