@@ -30,7 +30,7 @@ import { prestigeStand } from './prestige.js'; // #675: Grunn is van jou
 import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
 import { VILLAGES, WORLD_END_TOTAL } from './ommelandlines.js';
 import { SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
-import { loadSeen } from './evenementen.js';
+import { loadSeen, agendaOn, centreOf } from './evenementen.js'; // #844: het evenement van vandaag als rij
 import { today as calendarDay } from './calendarday.js';
 import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
@@ -403,9 +403,11 @@ function ommelandItems(world) {
   const ends = uniqueCount('wereldeinden');
   const beppe = beppeTodoItem(world);
   const uitkijk = uitkijkItem(world);
+  const feest = evenementItem(world);
   return [
     ...ommelandPaspoortItems(world),
     ...(beppe ? [beppe] : []),
+    ...(feest ? [feest] : []),
     ...(uitkijk ? [uitkijk] : []),
     { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
       meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
@@ -434,6 +436,35 @@ function uitkijkItem(world) {
       kicker: 'Ommeland · verkennen',
       text: 'Loop naar een uitkijkpunt en druk E. Je ziet de streek van boven en die plek komt op je kaart; elk punt telt mee voor de stempel van zijn streek.',
       rows: [['Dichtstbijzijnde punt', near.q.naam || 'Uitkijkpunt'], ['Nog te doen', `${open.length} van ${points.length}`]],
+    },
+  };
+}
+
+// #844: het evenement van vandaag (of het eerstvolgende dat loopt) als echte Te-doen-rij.
+// Op een dag zonder evenement is er geen rij: geen verzonnen uitje.
+function evenementItem(world) {
+  let dag = null;
+  try { dag = calendarDay(world); } catch (e) { return null; }
+  let lijst = [];
+  try { lijst = agendaOn(dag) || []; } catch (e) { return null; }
+  if (!lijst.length) return null;
+  const ev = lijst[0];
+  let c = null;
+  try { c = centreOf(ev); } catch (e) { return null; }
+  if (!c || !Number.isFinite(c.x) || !Number.isFinite(c.y)) return null;
+  const uur = Number.isFinite(world.clock) ? ((world.clock % 24) + 24) % 24 : 12;
+  const loopt = uur >= ev.hours[0] && uur < ev.hours[1];
+  const tijd = `${String(ev.hours[0]).padStart(2, '0')}:00`;
+  return {
+    key: 'om:evenement', group: 'ommeland', icon: 'landmark', title: ev.naam || 'Evenement in Grunn', status: loopt ? 'nu' : '',
+    meta: loopt ? `Nu aan de gang · ${ev.plaats || 'in de provincie'}` : `Vandaag vanaf ${tijd} · ${ev.plaats || 'in de provincie'}`,
+    medal: null, record: ev.plaats || '',
+    x: c.x, y: c.y,
+    goal: { kind: 'place', id: 'evenement:' + ev.id, name: ev.naam || 'Evenement', x: c.x, y: c.y },
+    detail: {
+      kicker: 'Ommeland · vandaag',
+      text: `Vandaag in Grunn: ${ev.naam}. ${loopt ? 'Het is al begonnen.' : `Het begint om ${tijd}.`} De weg erheen staat op de kaart.`,
+      rows: [['Waar', ev.plaats || 'in de provincie'], ['Hoe laat', loopt ? 'nu' : `vanaf ${tijd}`]],
     },
   };
 }
