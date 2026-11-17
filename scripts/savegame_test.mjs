@@ -359,5 +359,41 @@ ok(() => {
   assert.deepEqual(meldingen, ['m'], 'en wordt gemeld');
 }, 'gast: een mislukte schrijfbeurt blijft een fout (#579)');
 
+// --- #985 punt 8: een mislukte save vertelt één keer wat er aan de hand is en laat daarna een
+// blijvend chipje staan. Dit speelt de echte functies na met een nagebootst HUD-element.
+ok(() => {
+  const meldingen = [];
+  const klassen = new Set();
+  const el = {
+    innerHTML: '', title: '',
+    classList: { add: (...k) => k.forEach((x) => klassen.add(x)), remove: (...k) => k.forEach((x) => klassen.delete(x)), contains: (x) => klassen.has(x) },
+  };
+  const scope = {
+    toastEl: el, toastTimer: 0, DISK_SVG: '<svg/>', BROKEN_SVG: '<svg/>', saveBroken: false, TOAST_S: 2.2,
+    world: { addMessage: (t, d, o) => meldingen.push({ t, d, o }) },
+  };
+  const fn = new Function('scope', `with (scope) {
+    ${haalFunctie(sg, 'showToast')}
+    ${haalFunctie(sg, 'markSaveBroken')}
+    return { showToast, markSaveBroken, staat: () => saveBroken };
+  }`)(scope);
+  fn.markSaveBroken('QuotaExceededError');
+  assert.equal(meldingen.length, 1, 'één melding met de reden');
+  assert.match(meldingen[0].t, /QuotaExceededError/, 'de reden staat erin');
+  assert.match(meldingen[0].t, /ruimte vrij/, 'en wat je eraan kunt doen');
+  assert.ok(klassen.has('hud-saved-broken'), 'het chipje staat in de storingsstand');
+  assert.equal(scope.toastTimer, 0, 'geen aflopende timer: het chipje blijft');
+  fn.markSaveBroken('QuotaExceededError');
+  assert.equal(meldingen.length, 1, 'de tweede fout herhaalt de melding niet');
+  fn.showToast();
+  assert.equal(fn.staat(), false, 'een geslaagde save haalt de storingsstand weg');
+  assert.ok(!klassen.has('hud-saved-broken'), 'en het chipje valt terug op "Opgeslagen"');
+  assert.equal(scope.toastTimer > 0, true, 'met de gewone, aflopende timer');
+}, '#985: een mislukte save meldt één keer en laat een blijvend chipje');
+
+ok(() => {
+  assert.match(src('hud_panel.css'), /\.hud-saved\.hud-saved-broken\s*\{/, 'de storingsstand heeft eigen kleuren');
+}, '#985: het chipje valt op in de HUD');
+
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
