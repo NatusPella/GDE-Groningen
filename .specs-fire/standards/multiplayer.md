@@ -194,7 +194,7 @@ dan geldt de band van 110 m — waarschuwen boven 80 m, na 4 s terug bij de groe
 (`FIGUUR_BAND`, `FIGUUR_WAARSCHUWING`, `FIGUUR_TERUG_S`, `game/js/coopnet.js:73-77`).
 Hoort hij bij een losse groep (buiten 150 m van de gastheer), dan is de wereld rond die
 groep geladen en loopt hij vrij; alleen bij 300 m zegt het spel één keer dat B hem bij de
-groep brengt (`LOS_MELD_M`, `game/js/coopnet.js:614`). Er is geen vaste maximale afstand
+groep brengt (`LOS_MELD_M`, `game/js/coopnet.js:655`). Er is geen vaste maximale afstand
 tussen spelers (`MAX_AFSTAND` oneindig, `game/js/coopfoci.js:10`); het plafond is het
 aantal foci (8) en het tegelbudget (#366, #429).
 

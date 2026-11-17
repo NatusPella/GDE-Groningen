@@ -29,6 +29,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Negen stille plekken hebben geluid:** het reuzenrad klonkt en belt, de schotel sist per fase, de garage klapt en spuit, het pannenkoekenschip sizzelt, het cabaret klapt, de fotomodus en het heistpaneel tikken als de andere menu's, de botsauto's starten hoorbaar en de wrakduik spat en ruist.
 - **De kaart is rustiger in het centrum:** alleen de speler, je maat en je doel zijn nooit weg te drukken; missie-, politie-, halte- en huisiconen wijken nu voor een hogere prioriteit.
 - **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.
+- **Radio: opgenomen praatblokken zijn ondertiteld:** Geesje, Rikus, de koeien, het verkeer en de Kiekdoar-clips speelden als opname zonder ondertitel, terwijl de instellingen ondertitels voor de radio beloven. Elke regel met tekst zet nu een ondertitel.
+- **"Toetshints uit" verbergt ook de bedieningsregel:** de regel met W/A/S/D, E en SPATIE in de doellijn bleef tijdens elke missie staan, ook met hints uit of de HUD op Minimaal.
+- **De host hoort het als er iemand bij komt of weggaat in Samen spelen:** de melding zweeg omdat de speler al uit de lijst was voordat de callback kwam; de naam gaat nu mee.
+- **Een foute kamercode zegt wat er mis is:** in plaats van een algemene weigering lees je nu wat er niet klopt aan de code die je intypte.
+- **Het keuzescherm van Samen spelen gebruikt geen jargon meer:** "host", "client" en "peer" zijn gewone woorden geworden die zeggen wat je doet.
 - **Je eten en je gevangen vis blijven bewaard:** snacks en vissen zaten niet in de savegame en waren na een herstart weg. Ze staan nu in je opgeslagen spel en in de autosave-handtekening, dus een vis vangen of een snack opeten bewaart meteen.
 - **Eten kopen met een volle maag levert iets op:** je betalen en "ingepakt, voor straks" horen en zat er niets in je voorraad. Het gekochte eten staat nu bij Spullen › Eten.
 - **Verkopen vraagt net zo goed om een tweede druk als kopen:** een geweer of vest ging met één klik weg terwijl kopen van hetzelfde bedrag wél vroeg. De knop zegt nu "Zeker? Nog eens: +€…".
