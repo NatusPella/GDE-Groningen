@@ -208,13 +208,17 @@ export function decideHud(s = {}) {
   // rust: na een tijd zonder invoer blijft alleen de kaart, met het doel en de
   // routestatus erbij. Het doel gaat er niet meer uit: in de playtest van 27-10
   // zei een speler "ik kan niet meer zien wat ik moet doen", en een missiedoel is
-  // nu eenmaal waar de HUD voor is.
+  // nu eenmaal waar de HUD voor is. De klok van een lopende missie of klus blijft
+  // staan: die loopt door terwijl je wacht, dus hem juist bij stilstand verbergen
+  // liet spelers de tijd verliezen zonder dat ze het zagen.
   if (!all && (s.idle ?? 0) >= IDLE_AFTER && !s.wake && !wanted && !busy) {
     // 'gps' staat hier bewust niet in het rijtje: die is alleen waar als er een
     // route loopt (hud_panel geeft 'er is een afslagkaart of een reiskaart'), dus
     // een lopende route houdt zijn kaart vanzelf en zonder route valt er niets
     // te bewaren.
-    for (const k of ['timer', 'place', 'money', 'weapon', 'clock', 'bars', 'vehicle', 'keys']) show[k] = false;
+    for (const k of ['place', 'money', 'weapon', 'clock', 'bars', 'vehicle', 'keys']) show[k] = false;
+    // de balken blijven bij lage gezondheid: een speler die stil staat en bloedt moet dat zien
+    if (s.hpLow || (s.hpFull === false && (s.hpAgo ?? Infinity) < BAR_SHOW)) show.bars = true;
     if (show.cardE) show.cardE = false;
   }
 

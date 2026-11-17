@@ -1,5 +1,6 @@
 import { probe } from './hitchprobe.js';
 import { wantedPhase } from './wantedstate.js';
+import { levelOf } from './wantedlevels.js';
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
@@ -73,6 +74,7 @@ import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
+import { fmtTime } from './missionstats.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
@@ -1413,6 +1415,25 @@ function updateMoneyWeapon(dt, world) {
   }
 }
 
+// De klok van een missie of klus. Onder een minuut telt hij in seconden ("42s", leesbaar
+// terwijl je rent); daarboven als een klok ("6:52"), want "412s" zegt niemand iets.
+const clockText = (s) => (s < 60 ? `${Math.ceil(s)}s` : fmtTime(s));
+
+// Tijdens de zoektocht: hoeveel seconden je nog uit het zicht moet blijven voordat er een ster
+// afgaat. De teller loopt met dt * (buiten de cirkel ? 2 : 1) * de signalementfactor
+// (stepUnseen in wantedlevels.js, decayFactor in signalement.js); die factoren staan hier
+// deels in plaats van in een import, omdat de HUD alleen hoeft te schatten wat de speler ziet.
+function zoekSub(world) {
+  const pol = world.police;
+  const lvl = levelOf(Math.max(1, world.wanted | 0));
+  const h = hoofdspeler(world);
+  const buiten = !!(pol.searchCenter && Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y) > pol.searchRadius);
+  const rest = Math.max(0, Math.ceil(lvl.cooldown - (world.wantedDecayTimer || 0)));
+  return buiten
+    ? `Buiten de cirkel: nog ${rest}s, dan een ster minder`
+    : `Ze zijn je kwijt · ${rest}s uit het zicht voor een ster minder`;
+}
+
 // The objective line: one objective at a time (a mission stage, else the
 // bijbaan's next goal, else "lose the police"), genre style: the objective
 // big, its live counter small under it, a timer to the right. It pops in
@@ -1421,13 +1442,14 @@ function currentObjective(world) {
   const m = world.mission;
   const job = world.sideJob;
   if (job && job.active) {
-    const timer = job.timeLeft != null ? Math.ceil(job.timeLeft) + 's' : '';
+    // een klus met een limiet van twee minuten leest als "1:42", niet als "102s"
+    const timer = job.timeLeft != null ? clockText(job.timeLeft) : '';
     const g = job.goal;
     return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer };
   }
   if (m && m.phase === 'active') {
     const text = missionProgressText(m);
-    const timer = m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
+    const timer = m.timeLeft != null && !m.raceHud ? clockText(m.timeLeft) : '';
     const cut = text.search(/ · | \(\d+\/\d+\)$/);
     const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
     if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer };
@@ -1436,7 +1458,9 @@ function currentObjective(world) {
     const searching = !!(world.police && world.police.searching);
     return {
       kind: 'police', title: searching ? 'Blijf uit het zicht' : 'Ontsnap aan de politie', timer: '',
-      sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : hoofdspeler(world).inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
+      // tijdens de zoektocht zegt de regel hoe ver je van een ster af bent, niet alleen "ze zijn je kwijt":
+      // de balk op de minimap is klein en deze regel staat waar je kijkt (decay: buiten de cirkel dubbel zo snel)
+      sub: searching ? zoekSub(world) : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : hoofdspeler(world).inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     };
   }
   // the player's own goal (goal.js): the story waits meanwhile
@@ -1485,9 +1509,10 @@ function updateMission(world) {
   if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
   if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;
   const r = getActiveRoute();
-  // the turn card already carries the distance of the route
+  // the turn card already carries the distance of the route. Een bijbaan deed hier niet mee en
+  // heeft ook geen eigen GPS-kaart, dus te voet naar een klus toe was er nergens een afstand.
   const gpsShows = !els.gps.hidden && !els.gps.classList.contains('no-turn') && !els.gps.classList.contains('hv-off');
-  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' && distanceOwner({ gps: gpsShows, objective: true }) === 'objective' ? formatDistance(r.remaining) : '');
+  setText(els.missionDist, r && r.remaining > 12 && distanceOwner({ gps: gpsShows, objective: true }) === 'objective' ? formatDistance(r.remaining) : '');
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;

@@ -39,7 +39,10 @@ export function wasHelped(stepId) { return !!load().helped[stepId]; }
 
 // --- het aanbod ----------------------------------------------------------------
 
-// the offer never waits for ever: after this long without an answer it counts as 'nee' (a bot, a player who walked away)
+// Het aanbod wacht niet eindeloos: na deze tijd zonder antwoord gaat het scherm weg. Dat telt
+// alleen als "niets gezien" en niet als "nee" (#QoL): de teller blijft staan, zodat de volgende
+// mislukking van dezelfde stap het aanbod opnieuw laat zien. Wie bewust "Nee" kiest of Escape
+// indrukt, sluit het voor die stap wél af.
 export const OFFER_TIMEOUT_MS = 45000;
 let dlg = null;
 let offerTimer = 0;
@@ -74,7 +77,10 @@ function buildDialog() {
   return d;
 }
 
-function closeOffer(choice) {
+// tel = de speler heeft echt geantwoord (een knop, Escape): alleen dán telt het aanbod voor
+// deze stap als gedaan. Een time-out laat de teller staan, zodat de volgende mislukking het
+// aanbod opnieuw laat zien.
+function closeOffer(choice, tel = true) {
   const d = dlg;
   clearTimeout(offerTimer);
   d.el.hidden = true;
@@ -85,6 +91,8 @@ function closeOffer(choice) {
   }
   if (d.prevFocus && d.prevFocus.isConnected) d.prevFocus.focus({ preventScroll: true });
   if (HELP_PRESETS[choice] && choice !== 'uit') for (const [k, v] of Object.entries(HELP_PRESETS[choice])) setSetting(k, v);
+  if (tel && d.stepId) { load(); data.offered[d.stepId] = true; save(); }
+  d.stepId = '';
 }
 
 // Na een mislukking van `stepId` (fails = het totaal tot nu toe). Eenmalig per stap.
@@ -92,11 +100,10 @@ export function maybeOfferHelp(world, stepId, fails) {
   if (!world || !stepId || AUTOPLAY || STORY_TEST) return false;
   load();
   if (!shouldOffer({ fails, offered: !!data.offered[stepId], settings: getSettings() })) return false;
-  data.offered[stepId] = true;
-  save();
   if (!dlg) dlg = buildDialog();
   dlg.el.querySelector('.ga-text').textContent = offerText('licht');
   dlg.world = world;
+  dlg.stepId = stepId;
   dlg.prevFocus = document.activeElement;
   world.uiPaused = true;
   zachtePauze(world, 'hulpaanbod', true); // met meer spelers loopt de wereld door (#452)
@@ -104,6 +111,7 @@ export function maybeOfferHelp(world, stepId, fails) {
   dlg.el.hidden = false;
   dlg.el.querySelector('[data-gh="licht"]').focus({ preventScroll: true });
   clearTimeout(offerTimer);
-  offerTimer = setTimeout(() => { if (isHelpOfferOpen()) closeOffer('nee'); }, OFFER_TIMEOUT_MS);
+  // time-out: scherm weg zonder als "nee" te tellen (zie closeOffer)
+  offerTimer = setTimeout(() => { if (isHelpOfferOpen()) closeOffer('nee', false); }, OFFER_TIMEOUT_MS);
   return true;
 }

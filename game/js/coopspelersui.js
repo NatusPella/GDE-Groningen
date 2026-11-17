@@ -215,7 +215,13 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   zorgVoorStijl();
   root.classList.add('pm-spelers');
   const teken = () => {
-    if (!root.isConnected || root.closest('[hidden]')) { if (timer) { clearInterval(timer); timer = null; } return; }
+    if (!root.isConnected || root.closest('[hidden]')) {
+      if (timer) { clearInterval(timer); timer = null; }
+      // "Zeker weten?" hoort bij deze keer: het paneel ging dicht, dus een volgende opening begint
+      // weer op "Eruit zetten". Zonder dit stond de knop later scherp en zette één klik iemand eruit.
+      bevestig = null;
+      return;
+    }
     const rijen = (echteSessie(world) && world.coopSpelers) || [];
     const schermNaam = root.querySelector('.cs-profiel-naam');
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button, input');

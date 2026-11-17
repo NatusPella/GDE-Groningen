@@ -39,13 +39,17 @@ import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
 import { radioIsOn, setRadio } from './radio.js';
-import { glyphHtml } from './prompts.js';
+import { isMuted, toggleMute } from './audio.js';
+import { glyphHtml, resetHintUses } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
+import { resetOnboarding } from './onboarding.js';
+import { resetContextHints } from './contexthints.js';
+import { menuMelding } from './menumelding.js';
 import { getUiScale } from './uiscale.js';
 import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
@@ -744,7 +748,7 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
-      <div class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Staat het uit, dan staat linksboven een luidspreker met een streep')}<span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></div>
+      <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
@@ -821,7 +825,8 @@ ${keyReuseHtml()}
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de kaart en Activiteiten')}
       ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
       <div class="m-gh"><span>Terugkijken</span></div>
-      <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
+      <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -886,7 +891,7 @@ function spelHtml() {
       ${saveFactsHtml()}
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
-      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart waar je nu bent')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
+      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden begint buiten je flat')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
@@ -1041,6 +1046,13 @@ export function initPauseMenu(w) {
 
   root.addEventListener('click', (e) => {
     if (e.target.closest('[data-card-log]')) { setOpen(false); openCardLog(); return; }
+    // "Uitleg opnieuw tonen": de drie eigen sleutels wissen (uitlegkaarten, contexthints,
+    // geleerde toetsen), zodat een speler die de kaarten wegklikte ze terug kan krijgen
+    if (e.target.closest('[data-hints-reset]')) {
+      resetOnboarding(); resetContextHints(); resetHintUses();
+      menuMelding('De uitleg begint opnieuw; de eerstvolgende kaarten en hints komen vanzelf.');
+      return;
+    }
     if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
@@ -1094,6 +1106,9 @@ export function initPauseMenu(w) {
   });
   root.addEventListener('input', (e) => {
     if (e.target.dataset && 'radioSwitch' in e.target.dataset) { setRadio(e.target.checked, { announce: false }); syncControls(); return; }
+    // dempen is een stand van deze speler, geen instelling in gde-settings: de knop roept dezelfde
+    // toggleMute als de U-toets en de HUD-luidspreker, zodat er één waarheid is (audio.js)
+    if (e.target.dataset && 'muteSwitch' in e.target.dataset) { if (isMuted() !== e.target.checked) toggleMute(); syncControls(); return; }
     if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
       DESKTOP.setFullscreen(e.target.checked);
       return;
@@ -1264,6 +1279,9 @@ function onKey(e) {
   if (!open) {
     // de fotomodus heeft zijn eigen Escape en M (#435): anders komt het pauzemenu over de foto heen
     if (isPhotoMode()) return;
+    // een laadscherm of reisscène dekt het spel af (z-index 50 en 9000, boven het menu op 40):
+    // Escape of M opende daar een onzichtbaar pauzemenu, dat je pas na aankomst ineens zag.
+    if (document.getElementById('load-screen') || (world && world.uiPaused)) return;
     if (e.repeat || !started()) return;
     if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
@@ -2141,6 +2159,8 @@ function syncControls() {
   const st = getSettings();
   const radio = root.querySelector('[data-radio-switch]');
   if (radio) radio.checked = radioIsOn();
+  const demp = root.querySelector('[data-mute-switch]');
+  if (demp) demp.checked = isMuted();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
   syncPresets(st);
   for (const el of root.querySelectorAll('[data-setting]')) {

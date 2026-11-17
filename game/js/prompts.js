@@ -99,6 +99,14 @@ function used(id, n = 1) {
 
 const count = (id) => uses[id] || 0;
 export const hintUses = count;
+
+// "Uitleg opnieuw tonen" (Hints & uitleg): de toetshints beginnen weer als nieuw, dus de
+// geleerde toetsen en hun tellers gaan weg. De uitlegkaarten en contexthints hebben hun eigen
+// reset in onboarding.js en contexthints.js; pausemenu.js roept die drie bij elkaar aan.
+export function resetHintUses() {
+  uses = {};
+  saveUses();
+}
 const learning = (id) => count(id) < LEARN_USES;
 const mastered = (id) => count(id) >= MASTER_USES;
 

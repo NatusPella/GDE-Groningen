@@ -71,7 +71,7 @@ export function offerText(preset = 'licht') {
   if (p.helpTime !== 'uit') bits.push(`${Math.round((HELP_TIME[p.helpTime] - 1) * 100)}% meer tijd`);
   if (p.helpDamage !== 'normaal') bits.push('minder schade aan je voertuig');
   if (p.helpGates !== 'normaal') bits.push('ruimere vliegpoorten');
-  return `Dit lukt nog niet. Wil je hulp? ${bits.join(', ')}. Je prestaties blijven open; de stap krijgt het label "met hulp". Je kunt het altijd uitzetten onder Toegankelijk › Hulp.`;
+  return `Dit lukt nog niet. Wil je hulp? ${bits.join(', ')}. Je prestaties blijven open; de stap krijgt het label "met hulp". Je kunt het altijd uitzetten onder Instellingen › Toegankelijkheid › Hulp.`;
 }
 
 // "Met hulp"-boekhouding per stap-id: {stepId: true}

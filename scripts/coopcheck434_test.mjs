@@ -139,7 +139,9 @@ punt('kicken: de knop per speler, en wat de gast te lezen krijgt', () => {
   assert.equal(P.eruitKnopTekst(true), 'Zeker weten?');
   const m = P.wegMelding('gekickt', 'Tammo', 'ABCDE-FGHJK');
   assert.match(m, /uit het spel gezet/);
-  assert.match(m, /ABCDE-FGHJK/, 'de kamercode staat klaar');
+  // de host rouleert de kamer meteen bij het kicken, dus de oude code is al ongeldig: geen belofte meer
+  assert.doesNotMatch(m, /ABCDE-FGHJK/, 'geen kamercode die na het kicken al vervallen is');
+  assert.match(m, /nieuwe kamercode/, 'wel hoe de gast weer mee kan doen');
   assert.doesNotMatch(m, /\d+\.\d+\.\d+\.\d+/, 'nooit een IP-adres');
 });
 
