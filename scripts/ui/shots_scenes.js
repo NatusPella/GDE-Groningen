@@ -97,13 +97,23 @@ if (want('trein')) {
     done.push('hud-trein ' + JSON.stringify({ driving: !!w.trainDriving, speedo: !!document.querySelector('#hud .hud-speedo.visible') }));
   }
 }
-for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen', 'garage', 'prestaties', 'settings', 'controls']) {
+// Alle twaalf menu-onderdelen, zodat de beeldcontrole van de release ook de schermen dekt die
+// eerder buiten de set vielen (Loopbanen, Veroverd, Foto's en Cheats).
+for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'loopbaan', 'veroverd', 'spullen', 'garage', 'prestaties', 'fotos', 'settings', 'controls', 'streken']) {
   if (!want(tab)) continue;
-  teleport(...P(100, 77));
-  PM.openPauseMenu(tab);
-  await shot('menu-' + tab, 1500);
-  PM.closePauseMenu();
-  done.push('menu-' + tab);
+  // Elk scherm in zijn eigen try: één onderdeel dat omvalt mag de beelden van de andere
+  // niet tegenhouden (de beeldcontrole moet ze allemaal laten zien).
+  try {
+    teleport(...P(100, 77));
+    PM.openPauseMenu(tab);
+    await shot('menu-' + tab, 1500);
+    PM.closePauseMenu();
+    done.push('menu-' + tab);
+  } catch (e) {
+    try { PM.closePauseMenu(); } catch (e2) { /* menu stond niet open */ }
+    console.log('[scene] ' + tab + ': ' + (e && e.message ? e.message : e));
+    done.push('menu-' + tab + ' FOUT');
+  }
 }
 // The garage's vehicle pictures (#196): the overview with every card's picture, then the
 // turntable by mouse, by keyboard focus and by touch, and with "Beweging beperken".

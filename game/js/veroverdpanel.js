@@ -4,8 +4,7 @@
 // #906: de kop is een hero met de stand, daaronder de eerstvolgende taken als kaarten, de uitleg
 // met de echte aantallen en pas dan de lijst met provincies en gebieden. Kop, stand, taken en
 // uitleg zitten samen in één scrolvlak, zodat de taken altijd in beeld beginnen.
-// Niet door een mens in beeld bekeken.
-import { gebiedenHtml, kiesGebied, reisNaar, volgendeTaken, GEBIEDEN_CSS } from './gebiedenui.js';
+import { gebiedenHtml, kiesGebied, reisNaar, volgendeTaken, soortenStand, GEBIEDEN_CSS } from './gebiedenui.js';
 import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
