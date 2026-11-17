@@ -5,7 +5,7 @@
 import { dualHtml } from './subtitles.js';
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
-  MISSION_GOALS, isRetiredMission, MEDALS, EIERBAL_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
+  MISSION_GOALS, isRetiredMission, MEDALS, EIERBAL_TOTAL, WIJKEN_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
@@ -90,7 +90,7 @@ function figuresBlock(st) {
   const figs = [
     ['Gelopen', fmtAmount(st.walked, 'm'), 'voet'], ['Gezwommen', fmtAmount(st.swum, 'm'), 'boot'], ['Rakelings', nl(st.nearMiss), 'wiel'], ['Gejat', nl(st.stolen), 'tas'],
     ['Wrakken', nl(st.wrecks), 'wiel'], ['Kusjes', nl(st.kisses), 'ster'], ['Treinritten', nl(st.trainTrips), 'trein'], ['Bijbaan-loon', `€${nl(getStat('sjEarned'))}`, 'munt'],
-    ['Eierballen', `${st.eierballen}/${EIERBAL_TOTAL}`, 'mand'], ['Buurten', `${st.wijken}/66`, 'kompas'], ['Gereden', fmtAmount(st.driven, 'm'), 'wiel'], ['Topsnelheid', fmtAmount(st.topSpeed, 'km/u'), 'rad'],
+    ['Eierballen', `${st.eierballen}/${EIERBAL_TOTAL}`, 'mand'], ['Buurten', `${st.wijken}/${WIJKEN_TOTAL}`, 'kompas'], ['Gereden', fmtAmount(st.driven, 'm'), 'wiel'], ['Topsnelheid', fmtAmount(st.topSpeed, 'km/u'), 'rad'],
   ];
   return `<div class="pa-grid">${figs.map(([k, v, ico]) => `<div class="pa-cell"><span class="pa-fig-k">${figIco(ico)}<span class="mut">${k}</span></span><span class="bebas">${v}</span></div>`).join('')}</div>`;
 }
