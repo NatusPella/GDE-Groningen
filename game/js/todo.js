@@ -35,6 +35,7 @@ import { today as calendarDay } from './calendarday.js';
 import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
+import { DIEREN, SET_DIEREN, DIEREN_TOTAL } from './dierenregister.js'; // #844: dierenboek als verzamelrij
 import { isViewpointUsed } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
 import { SECRETS_TOTAL } from './geheimen.js';
 import { HERKENNINGSPUNTEN, HERKENNINGSPUNTEN_TOTAAL } from './herkenningspunten.js';
@@ -469,6 +470,30 @@ function evenementItem(world) {
   };
 }
 
+// #844 (derde kandidaat): de dierenboek-rij. Er waren al vijftien dieren met een eigen
+// ontdekking en een prestatie, maar in Te doen stond niets erover. Deze rij telt de stand en
+// zegt waar je moet kijken: de stad of de wei. Geen doel-coordinaat, want een dier wandelt.
+function dierenboekItem() {
+  if (!DIEREN.length) return null;
+  const gezien = getSaveSet(SET_DIEREN);
+  const n = gezien.size;
+  if (n >= DIEREN_TOTAL) return null;
+  const eerste = DIEREN.find((d) => !gezien.has(d.id));
+  // `biotoop` zegt waar het dier hoort (weide, stad, water); dat is preciezer dan de soort.
+  const bio = (eerste && eerste.biotoop) || [];
+  const waar = bio.includes('weide') || bio.includes('water') ? 'buiten de stad, in de wei en langs het water' : 'in de stad en op de erven';
+  return {
+    key: 'col:dieren', group: 'verzamelen', icon: 'landmark', title: 'Dierenboek', status: '',
+    meta: `${n} van ${DIEREN_TOTAL} gezien · ${waar}`, medal: null, record: `${n} van ${DIEREN_TOTAL}`,
+    goal: null,
+    detail: {
+      kicker: 'Verzamelen · dieren',
+      text: 'Telkens als je een dier voor het eerst ziet, schrijft het spel het in je dierenboek. Je hoeft er niets voor te doen behalve rondkijken: het telt bij de eerste blik.',
+      rows: [['Stand', `${n} van ${DIEREN_TOTAL}`], ['Waar', waar]],
+    },
+  };
+}
+
 function collectItems(world) {
   const eggs = getSaveSet('eierballen').size, secrets = getSaveSet('geheimen').size;
   // #820: het herkenningspunten-album per speler: totale stand, per soort en de route naar het
@@ -487,7 +512,9 @@ function collectItems(world) {
   const duikSpots = getWrakduikSpotsForRender().filter((q) => !q.gedoken);
   const duikNear = duikSpots.length ? duikSpots.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0] : null;
   const uitdaging = getStreekuitdagingSpotsForRender()[0] || null;
+  const dieren = dierenboekItem();
   return [
+    ...(dieren ? [dieren] : []),
     { key: 'col:eieren', group: 'verzamelen', icon: 'eierbalTip', title: 'Eierballen zoeken', status: eggs >= EIERBAL_TOTAL ? 'klaar' : '',
       meta: 'Verstopt bij de bezienswaardigheden', medal: null, record: `${eggs} van ${EIERBAL_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Verzamelen', text: 'Overal in Grunn ligt een eierbal verstopt. Een tip nodig? De wandkaart thuis weet er een paar.', rows: [] } },
