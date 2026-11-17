@@ -29,11 +29,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Negen stille plekken hebben geluid:** het reuzenrad klonkt en belt, de schotel sist per fase, de garage klapt en spuit, het pannenkoekenschip sizzelt, het cabaret klapt, de fotomodus en het heistpaneel tikken als de andere menu's, de botsauto's starten hoorbaar en de wrakduik spat en ruist.
 - **De kaart is rustiger in het centrum:** alleen de speler, je maat en je doel zijn nooit weg te drukken; missie-, politie-, halte- en huisiconen wijken nu voor een hogere prioriteit.
 - **M02 "Even pinnen" is eerlijker:** de garage-stap begint met één ster in plaats van twee, zodat de politie de rit naar Spuit & Klaar niet meer voor je afmaakt.
-- **Radio: opgenomen praatblokken zijn ondertiteld:** Geesje, Rikus, de koeien, het verkeer en de Kiekdoar-clips speelden als opname zonder ondertitel, terwijl de instellingen ondertitels voor de radio beloven. Elke regel met tekst zet nu een ondertitel.
-- **"Toetshints uit" verbergt ook de bedieningsregel:** de regel met W/A/S/D, E en SPATIE in de doellijn bleef tijdens elke missie staan, ook met hints uit of de HUD op Minimaal.
-- **De host hoort het als er iemand bij komt of weggaat in Samen spelen:** de melding zweeg omdat de speler al uit de lijst was voordat de callback kwam; de naam gaat nu mee.
-- **Een foute kamercode zegt wat er mis is:** in plaats van een algemene weigering lees je nu wat er niet klopt aan de code die je intypte.
-- **Het keuzescherm van Samen spelen gebruikt geen jargon meer:** "host", "client" en "peer" zijn gewone woorden geworden die zeggen wat je doet.
 - **Je eten en je gevangen vis blijven bewaard:** snacks en vissen zaten niet in de savegame en waren na een herstart weg. Ze staan nu in je opgeslagen spel en in de autosave-handtekening, dus een vis vangen of een snack opeten bewaart meteen.
 - **Eten kopen met een volle maag levert iets op:** je betalen en "ingepakt, voor straks" horen en zat er niets in je voorraad. Het gekochte eten staat nu bij Spullen › Eten.
 - **Verkopen vraagt net zo goed om een tweede druk als kopen:** een geweer of vest ging met één klik weg terwijl kopen van hetzelfde bedrag wél vroeg. De knop zegt nu "Zeker? Nog eens: +€…".
@@ -49,8 +44,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Geen "[E] meedoen" meer bij een evenement** waar E niets deed; de kaart zegt nu wat er te doen is: er gewoon zijn.
 - **De Dichtbij-teller in Activiteiten telt wat hij filtert**, en je gekozen soort en filter blijven bewaard als je het menu sluit.
 - **Toets 5 zegt wat er aan de hand is:** zonder eigen doel zei hij dat een verhaalmissie al een route heeft, ook als er geen missie liep.
-
-
+- **Radio: opgenomen praatblokken zijn ondertiteld:** Geesje, Rikus, de koeien, het verkeer en de Kiekdoar-clips spelen als opname zonder ondertitel, terwijl de instellingen ondertitels voor de radio beloven. Elke regel met tekst zet nu een ondertitel, net als de reclames.
+- **"Toetshints uit" verbergt ook de bedieningsregel:** de regel met W/A/S/D, E en SPATIE in de doellijn bleef tijdens elke missie, klus en achtervolging staan, ook met hints uit of de HUD op Minimaal.
+- **Samen spelen zegt het als er iemand bij komt of weggaat:** een nieuwe speler stond er ineens en wie zelf "Spel verlaten" koos verdween stil. Beide geven nu één regel met de naam.
+- **Een gekickte gast krijgt geen vervallen kamercode meer:** de host rolt de kamer meteen, dus de code in die melding werkte nooit. De melding zegt nu dat je de nieuwe code aan de opener vraagt, en "Zeker weten?" blijft niet scherp staan als je het paneel opnieuw opent.
+- **Een foute kamercode zegt wat er mis is**, en de knop heet "Ik heb een kamercode gekregen" in plaats van "Code of adres invoeren".
+- **Carbid zegt het als de klok naar de schemer springt**, in plaats van stil acht uur vooruit te zetten.
+- **De doellijn toont de afstand bij een bijbaan** en hoeveel seconden je nog uit het zicht moet blijven voor er een ster afgaat.
+- **Uitleg opnieuw tonen:** onder Instellingen › Hints & uitleg beginnen de uitlegkaarten, de contexthints en de geleerde toetshints weer als nieuw.
 - **De openingsscènes en missie-intro's ogen weer normaal (#858-#864):** de camera wijkt bij een blokkade achteruit in plaats van op Tessa's rug te klappen, Tessa zit aan tafel zonder stuurhouding, de matras rijdt met de Escapade mee, acteurs lopen om geparkeerde voertuigen heen, cutscene-voertuigen en fietsers volgen de echte weg en fietsers verdwijnen na hun rit; gedragen spullen hangen aan de hand en de kermiskarren zijn weer botsauto's.
 
 - **Samen spelen op een klein scherm is weer te bedienen (#871):** de hub en de wachtkamer scrollen met een zichtbare dunne scrollbalk, de kamercode en de acties blijven bovenaan en onderaan staan, en op een telefoon in portret klapt het avatarblok in met één compacte tabrij. Het kamercodeveld en "Verder" staan meteen in beeld.
