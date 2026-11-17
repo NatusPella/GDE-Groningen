@@ -1846,6 +1846,23 @@ function resolveSpotStarts(world) {
 
 // #214: after a failure, Enter (or E: pad and touch send it) fades out and puts you, your vehicle and your companion at the mission's start
 const RETRY_FADE_S = 0.45;
+
+// #985 punt 16: de hint na een mislukking verdween na 40 s en dan was "opnieuw beginnen"
+// alleen nog via de startmarker te vinden. Deze actie doet precies hetzelfde als Enter, en de
+// Overzicht-knop gebruikt hem. Puur op de ketenstand, zodat de test hem kan naspelen.
+export function retryBeschikbaar() {
+  const st = chainState();
+  return !!(st && st.retry && retryOfferLive(st.retry, worldRef ? worldRef.time : Infinity));
+}
+export function herstartMissie(world) {
+  const st = chainState();
+  if (!st || !st.retry || !world) return false;
+  if (st.phase !== 'idle') return false;
+  st.retry.fade = RETRY_FADE_S;
+  respawnFade(1, 350);
+  return true;
+}
+
 function updateRetry(dt, world, def) {
   const r = chainState().retry;
   if (!r) return;
