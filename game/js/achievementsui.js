@@ -228,7 +228,16 @@ function detailHtml(it, catLabel, next) {
   }
   return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2"><span class="pa-ico big">${iconSvg(it)}</span>${title}</h2></div><p>${desc}</p>${prog}${it.hidden ? '' : layerText(it.id)}` +
     (it.unlocked ? `<p class="g">Behaald${it.at ? ` · ${whenText(it.at)}` : ''}</p>` : '') +
-    (it.hidden ? '' : !it.unlocked && !it.progress ? '<p class="mut">Nog niet behaald.</p>' : '');
+    (it.hidden ? '' : !it.unlocked && !it.progress ? `<p class="mut">${nogNietTekst(catLabel)}</p>` : '');
+}
+
+// #985 punt 42: 108 prestaties hebben geen tussenstand (eenmalige dingen als "haal M3"), en het
+// detailpaneel zei alleen "Nog niet behaald" — dat wist de speler al. Nu zegt het paneel waar je
+// moet kijken en wat de prestatie van je vraagt, zonder een balk te veinzen die er niet is.
+// `catLabel` komt van de aanroeper (dezelfde naam als in de tabrij); geen tweede categorietabel.
+function nogNietTekst(catLabel) {
+  const waar = catLabel ? ` Het valt onder ${catLabel}.` : '';
+  return `Nog niet behaald.${waar} Deze gaat in één keer: er is geen tussenstand.`;
 }
 
 // #909: één blok bovenaan dat zegt hoe het ervoor staat, met hetzelfde cijfer als de balk in

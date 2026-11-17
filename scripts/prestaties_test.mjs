@@ -59,4 +59,12 @@ check('de kaartduur is een pure functie van titel en omschrijving', toastDuur('K
 check('de ontgrendelmelding stuurt goud mee naar het geluid', /kind: 'prestatie'[\s\S]{0,80}goud: !!gold/.test(ach));
 check('audio.js speelt het eigen register op de sting-bus', /from '\.\/achievementgeluid\.js'/.test(read('audio.js')) && /playPrestatieSting/.test(read('audio.js')) && /bus: stingBus/.test(read('audio.js')));
 
+// #985 punt 42: 108 prestaties hebben geen tussenstand (eenmalige dingen). Het detailpaneel zei
+// alleen "Nog niet behaald" — dat wist de speler al. Nu zegt het onder welke categorie het valt
+// en dat er geen balk is, in plaats van een lege regel die niets toevoegt.
+const achUi = read('achievementsui.js');
+check('#985: het detail legt uit dat er geen tussenstand is', /Deze gaat in één keer: er is geen tussenstand/.test(achUi));
+check('#985: en noemt de categorie erbij', /Het valt onder \$\{catLabel\}|\(catLabel\)/.test(ui) && /nogNietTekst\(catLabel\)/.test(achUi));
+check('#985: geen kale "Nog niet behaald." meer', !/'<p class="mut">Nog niet behaald\.<\/p>'/.test(ui));
+
 process.exit(fail ? 1 : 0);
