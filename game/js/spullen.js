@@ -147,8 +147,10 @@ export function eet(w, id) {
   return `${waar.label}: lekker! Gezondheid ${Math.round(w.health)}`;
 }
 
-// Wat er in een kaartje staat, als één lap tekst om in te zoeken
-const zoektekst = (it) => [it.title, it.sub, it.how, it.perk, (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1]].join(' ').toLowerCase();
+// Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en
+// de cijfers van het detailpaneel tellen mee: anders zou een woord dat alleen daar
+// staat (zoals "boete" bij geld) niet vindbaar zijn.
+const zoektekst = (it) => [it.title, it.sub, it.how, it.perk, it.desc, ...(it.rows || []).flat(), (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1]].join(' ').toLowerCase();
 
 // Zoeken en filteren (#435): alle woorden moeten ergens in het kaartje staan,
 // en het kaartje moet in het gekozen deel vallen. Puur, zodat spullen_test het
@@ -173,29 +175,84 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const svg = (id) => `<svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[id] || ICON.kaart}</svg>`;
 
-// Inkomsten en uitgaven (finance.js, #206): vandaag, deze week, totaal en de grootste posten.
-function financeRows() {
-  const s = summary(getLedger());
-  if (!s.inTotal && !s.outTotal) return [['Kasboek', 'Nog leeg. Verdien of geef iets uit']];
+// Kasboek bij het geld (#206): wat er werkelijk in en uit ging, met een strip van de
+// laatste zeven dagen. Is het kasboek nog leeg, dan zegt het detail dat eerlijk in
+// plaats van een rij met nullen te tonen.
+const bedrag = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
+
+function moneyLedgerHtml() {
+  const l = getLedger();
+  const s = summary(l);
+  if (!s.inTotal && !s.outTotal) return '<p class="sp-eerlijk">Nog geen inkomsten of uitgaven geboekt. Zodra je iets verdient of uitgeeft, staat het hier.</p>';
   const post = (list) => list.map(([k, v]) => `${k} ${euro(v)}`).join(', ');
-  return [
-    ['Vandaag', `+${euro(s.todayIn)} / -${euro(s.todayOut)}`],
-    ['Deze week', `+${euro(s.weekIn)} / -${euro(s.weekOut)}`],
-    ['Totaal verdiend', euro(s.inTotal)],
-    ['Totaal uitgegeven', euro(s.outTotal)],
-    ...(s.topIn.length ? [['Meeste inkomsten', post(s.topIn)]] : []),
-    ...(s.topOut.length ? [['Meeste uitgaven', post(s.topOut)]] : []),
-  ];
+  const row = (k, v) => `<div class="sp-lrow"><span>${esc(k)}</span><span class="sp-lv">${esc(v)}</span></div>`;
+  const dagen = l.days.slice(-7);
+  const netten = dagen.map((d) => bedrag(d.in) - bedrag(d.out));
+  const max = Math.max(1, ...netten.map(Math.abs));
+  const strip = netten.length ? `<div class="sp-days" role="img" aria-label="Inkomsten en uitgaven van de laatste ${netten.length} dagen">` +
+    netten.map((n, i) => `<span class="sp-day${n < 0 ? ' uit' : ''}" title="Dag ${dagen[i].day}: ${n < 0 ? '-' : '+'}${euro(Math.abs(n))}"><i style="height:${Math.max(6, Math.round(Math.abs(n) / max * 100))}%"></i></span>`).join('') +
+    '</div><p class="sp-lleg">Laatste zeven dagen: groen erbij, rood eraf</p>' : '';
+  return `<div class="sp-ledger"><span class="sp-lhead">Kasboek</span>${strip}<div class="sp-lrows">` +
+    row('Vandaag', `+${euro(s.todayIn)} / -${euro(s.todayOut)}`) +
+    row('Deze week', `+${euro(s.weekIn)} / -${euro(s.weekOut)}`) +
+    row('Totaal verdiend', euro(s.inTotal)) +
+    row('Totaal uitgegeven', euro(s.outTotal)) +
+    (s.topIn.length ? row('Meeste inkomsten', post(s.topIn)) : '') +
+    (s.topOut.length ? row('Meeste uitgaven', post(s.topOut)) : '') +
+    '</div></div>';
 }
 
-// Items: { key, cat, icon, title, sub, side, how, perk, rows, act: { label, run } }
+// De vaste opmaak van het detailpaneel. Eigen <style> in dit bestand: Spullen tekent
+// zijn eigen paneel en deelt geen klasse met een ander scherm dan de .m-* basis. De
+// blokken zijn directe kinderen van .td-detail (net als de rest van het paneel), zodat
+// de plakkende actiebalk onderaan blijft werken; de klassen heten sp-* zodat de gedeelde
+// .m-* van Te doen en Verhaal ongemoeid blijven. De stijl staat bij de lijst, die elke
+// tekening opnieuw wordt gevuld: precies één keer in het paneel.
+const SP_CSS = `<style data-spul-css>
+/* De lijst hoeft geen 600 px: de kaarten zijn kort (naam, stand, pictogram) en het detail
+   heeft de ruimte nodig. 320 px laat op 1280x720 het detail genoeg over voor het kasboek;
+   de lijst scrollt zelf. De marge ertussen is kleiner dan de standaard 48/64 px. */
+#pause-menu [data-panel="spullen"] .td-list{width:min(320px,40%);padding-right:32px}
+#pause-menu [data-panel="spullen"] .m-pane{padding-left:32px}
+@media (max-width:760px){#pause-menu [data-panel="spullen"] .td-list{width:auto;max-width:100%}}
+#pause-menu .sp-dhead{display:flex;align-items:center;gap:18px;min-width:0}
+#pause-menu .sp-big{width:76px;height:76px;flex:none;display:grid;place-items:center;border-radius:18px;background:rgba(63,201,122,.10);box-shadow:inset 0 0 0 1px rgba(63,201,122,.30);color:var(--g)}
+#pause-menu .sp-big svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#pause-menu .sp-dmeta{display:flex;flex-direction:column;gap:6px;min-width:0}
+#pause-menu .sp-dmeta .td-h2{margin:0}
+#pause-menu .sp-desc{margin:0;max-width:640px;font-size:20px;line-height:1.45;color:var(--ink)}
+#pause-menu .sp-eerlijk{margin:0;max-width:640px;font-size:18px;line-height:1.45;color:var(--mut)}
+#pause-menu .sp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 32px;padding:16px 0 0;border-top:1px solid var(--line)}
+#pause-menu .sp-fact{display:flex;flex-direction:column;gap:3px;min-width:0}
+#pause-menu .sp-fact > span:first-child{font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+#pause-menu .sp-fact > span:last-child{font-size:19px;line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
+#pause-menu .sp-ledger{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:rgba(12,20,14,.55);box-shadow:inset 0 0 0 1px var(--line2)}
+#pause-menu .sp-lhead{font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+#pause-menu .sp-days{display:flex;align-items:flex-end;gap:6px;height:56px}
+#pause-menu .sp-day{flex:1;display:flex;align-items:flex-end;height:100%}
+#pause-menu .sp-day i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--g);opacity:.85}
+#pause-menu .sp-day.uit i{background:var(--redtx)}
+#pause-menu .sp-lleg{margin:0;font-size:14px;color:var(--mut)}
+#pause-menu .sp-lrows{display:flex;flex-direction:column;gap:6px}
+#pause-menu .sp-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;font-size:17px;line-height:1.35}
+#pause-menu .sp-lrow > span:first-child{color:var(--mut);flex:none}
+#pause-menu .sp-lv{color:var(--ink);text-align:right;overflow-wrap:anywhere}
+@media (max-width:1440px){#pause-menu .sp-facts{grid-template-columns:1fr}}
+</style>`;
+
+// Items: { key, cat, icon, title, sub, side, desc, how, perk, rows, act: { label, run }, link, ledger }
+// `sub` is wat de kaart links al zegt (stand, aantal, munitie); het detail herhaalt dat nooit.
+// `desc` is de korte typering in de toon van het spel, `how` de herkomst, `perk` het effect,
+// `rows` de cijfers en `ledger` zet het kasboek van finance.js onder het geld.
 function collect(w) {
   const out = [];
   const counts = {};
   const shop = inventoryShopState();
   const ch = w.player.character === 'anita' ? 'anita' : 'tammo';
 
-  out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant, in je zak', how: 'Verdiend met klussen, missies en bijbaantjes', perk: 'Gepakt worden kost een boete per ster', rows: financeRows() });
+  out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant',
+    desc: 'Wat je op zak hebt om uit te geven. Waar het vandaan kwam en waar het heen ging, staat eronder in het kasboek.',
+    how: 'Missies, bijbaantjes en verkopen', perk: 'Gepakt worden kost een boete per ster', ledger: true });
 
   const stock = new Map(WEAPON_STOCK.map((s) => [s.key, s]));
   const guns = Object.keys(WEAPONS).filter((k) => k !== 'fists' && !['throw', 'rocket'].includes(WEAPONS[k].kind));
@@ -208,14 +265,18 @@ function collect(w) {
     return {
       key: 'w:' + k, cat, icon: melee ? 'melee' : cat === 'werp' ? 'werp' : 'wapens', title: s.label || k,
       sub: melee ? 'Slaan · altijd bij de hand' : `${ammo} ${s.unit || 'patronen'}${s.cap ? ` (max ${s.cap})` : ''}`,
-      side: held ? 'In de hand' : '', how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '', perk: s.desc || '',
+      side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
+      how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '',
       rows: [['Toets', String(WEAPONS[k].slot)], ...(WEAPONS[k].damage ? [['Schade', String(WEAPONS[k].damage)]] : [])],
       act: held ? null : { label: 'In de hand nemen', run: () => { w.weapon = k; return `${s.label || k} in de hand`; } },
     };
   };
   const ownGuns = guns.filter((k) => hasWeapon(w, k));
   counts.wapens = `${ownGuns.length} van ${guns.length}`;
-  out.push({ key: 'w:fists', cat: 'wapens', icon: 'melee', title: 'Vuisten', sub: 'Altijd bij je', side: w.weapon === 'fists' ? 'In de hand' : '', how: 'Van jezelf', perk: 'Slaan, toets 1', act: w.weapon === 'fists' ? null : { label: 'In de hand nemen', run: () => { w.weapon = 'fists'; return 'Vuisten'; } } });
+  out.push({ key: 'w:fists', cat: 'wapens', icon: 'melee', title: 'Vuisten', sub: 'Altijd bij je', side: w.weapon === 'fists' ? 'In de hand' : '',
+    desc: 'Je eigen vuisten: geen munitie nodig en nooit kapot.',
+    rows: [['Toets', '1'], ['Schade', String(WEAPONS.fists.damage)]],
+    act: w.weapon === 'fists' ? null : { label: 'In de hand nemen', run: () => { w.weapon = 'fists'; return 'Vuisten'; } } });
   for (const k of ownGuns) out.push(weaponItem(k, 'wapens'));
   const ownThrows = throws.filter((k) => hasWeapon(w, k));
   counts.werp = `${ownThrows.length} van ${throws.length}`;
@@ -226,7 +287,8 @@ function collect(w) {
   counts.kleding = `${ownOutfits.length} van ${outfits.length}`;
   for (const o of ownOutfits) {
     const wearing = (shop.storyOutfit || shop.outfit[ch]) === o.id;
-    out.push({ key: 'o:' + o.id, cat: 'kleding', icon: 'kleding', title: o.label, sub: o.desc, side: wearing ? 'Aan' : '',
+    out.push({ key: 'o:' + o.id, cat: 'kleding', icon: 'kleding', title: o.label, sub: wearing ? '' : 'Ligt thuis in de kast', side: wearing ? 'Aan' : '',
+      desc: o.desc,
       how: o.price && o.id !== 'stadjer' && o.id !== 'classic' ? `Stoer & Stads, ${euro(o.price)}` : 'Van jezelf',
       perk: o.stealth ? 'Onopvallend: de politie raakt je sneller kwijt' : 'Omkleden kan thuis bij de kast',
       act: !wearing && getHomeForRender().length ? { label: 'Route naar de kast thuis', run: () => homeRoute('Kledingkast') } : null });
@@ -235,8 +297,9 @@ function collect(w) {
   const furn = furnitureOwned();
   counts.thuis = `${furn.length} van ${FURNITURE_TOTAL}`;
   for (const f of furn) {
-    out.push({ key: 'f:' + f.id, cat: 'thuis', icon: 'thuis', title: f.label, sub: f.ready ? f.perk : f.pending ? 'Wordt nog bezorgd' : 'Nog in elkaar zetten, thuis',
-      how: `EIKEA, ${euro(f.price)}`, perk: f.perk, rows: f.stat ? [[f.stat[0], f.stat[1]]] : [],
+    out.push({ key: 'f:' + f.id, cat: 'thuis', icon: 'thuis', title: f.label,
+      sub: f.ready ? 'Staat thuis' : f.pending ? 'Wordt bezorgd' : 'Moet nog in elkaar',
+      desc: f.perk, how: `EIKEA, ${euro(f.price)}`, rows: f.stat ? [[f.stat[0], f.stat[1]]] : [],
       act: getHomeForRender().length ? { label: 'Route naar huis', run: () => homeRoute(f.short || f.label) } : null });
   }
 
@@ -246,25 +309,38 @@ function collect(w) {
   const stuks = eten.reduce((n, e) => n + e.aantal, 0);
   counts.eten = stuks ? `${stuks} ${stuks === 1 ? 'stuk' : 'stuks'}` : '';
   for (const e of eten) {
-    out.push({ key: 'e:' + e.id, cat: 'eten', icon: 'eten', title: e.label, sub: `${e.aantal} ${e.aantal === 1 ? 'stuk' : 'stuks'} · +${e.hp} gezondheid`,
-      side: '', how: e.how, perk: 'Opeten kan overal, ook hier in het menu', rows: [['Gezondheid', `${Math.round(w.health)} van 100`]],
+    out.push({ key: 'e:' + e.id, cat: 'eten', icon: 'eten', title: e.label, sub: `${e.aantal} ${e.aantal === 1 ? 'stuk' : 'stuks'}`,
+      desc: e.how === 'Zelf gevangen' ? 'Zelf gevangen aan de waterkant. Opeten kan overal, ook hier in het menu.'
+        : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
+      rows: [['Per stuk', `+${e.hp} gezondheid`], ['Jij nu', `${Math.round(w.health)} van 100`]],
       act: { label: 'Opeten', run: () => eet(w, e.id) } });
   }
 
-  out.push({ key: 'k:stempels', cat: 'kaart', icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`, how: 'Een stempel per aankoop bij Krant & Kauwgom', perk: 'Volle kaart: inleveren bij Krant & Kauwgom' });
+  const nogStempels = Math.max(0, shop.stampCard - shop.stamps);
+  out.push({ key: 'k:stempels', cat: 'kaart', icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`,
+    desc: 'Elke aankoop bij Krant & Kauwgom levert een stempel. Vol is inleveren voor iets leuks.',
+    how: 'Krant & Kauwgom', rows: [['Stand', nogStempels ? `nog ${nogStempels} ${nogStempels === 1 ? 'stempel' : 'stempels'}` : 'vol, inleveren maar']] });
   let jr = null;
   try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
-  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`, how: 'Verhaal', perk: 'Alles wat je weet staat in Verhaal', link: ['verhaal', 'Naar Verhaal'] });
-  out.push({ key: 'k:eieren', cat: 'kaart', icon: 'kaart', title: 'Eierballen', sub: `${getSaveSet('eierballen').size} van ${EIERBAL_TOTAL} gevonden`, how: 'Gevonden', perk: 'Verstopt bij de bezienswaardigheden', link: ['todo', 'Naar Te doen'] });
-  out.push({ key: 'k:geheim', cat: 'kaart', icon: 'kaart', title: 'Geheimpjes', sub: `${getSaveSet('geheimen').size} van ${SECRETS_TOTAL} gevonden`, how: 'Gevonden', perk: 'We verklappen niks', link: ['todo', 'Naar Te doen'] });
+  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`,
+    desc: 'Alles wat je onderweg hoorde en zag over het verhaal. De volledige tekst staat bij Verhaal.', how: 'Verhaal',
+    link: ['verhaal', 'Naar Verhaal'] });
+  const eieren = getSaveSet('eierballen').size;
+  out.push({ key: 'k:eieren', cat: 'kaart', icon: 'kaart', title: 'Eierballen', sub: `${eieren} van ${EIERBAL_TOTAL} gevonden`,
+    desc: 'Verstopt bij de bezienswaardigheden van de provincie. Zoeken maar.',
+    link: ['todo', 'Naar Te doen'] });
+  const geheimen = getSaveSet('geheimen').size;
+  out.push({ key: 'k:geheim', cat: 'kaart', icon: 'kaart', title: 'Geheimpjes', sub: `${geheimen} van ${SECRETS_TOTAL} gevonden`,
+    desc: 'Kleine geheimpjes, hier en daar verstopt. We verklappen niks.',
+    link: ['todo', 'Naar Te doen'] });
 
   const ups = [];
   const label = (list, id) => (list.find((u) => u.id === id) || {});
-  for (const id of shop.heroUpgrades) { const u = label(CAR_UPGRADES, id); ups.push({ key: 'u:hero:' + id, title: u.label || id, sub: 'Fjord Escapade', perk: u.desc, how: u.price ? `Knal & Kolder, ${euro(u.price)}` : '' }); }
+  for (const id of shop.heroUpgrades) { const u = label(CAR_UPGRADES, id); ups.push({ key: 'u:hero:' + id, title: u.label || id, sub: 'Fjord Escapade', desc: u.desc, how: u.price ? `Knal & Kolder, ${euro(u.price)}` : '' }); }
   for (const v of shop.vehicles) {
-    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, perk: u.desc, how: u.price ? euro(u.price) : '' }); }
+    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, desc: u.desc, how: u.price ? euro(u.price) : '' }); }
   }
-  for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, title: u.name, sub: 'Fjord Frituur', perk: u.blurb, how: euro(u.price) });
+  for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, title: u.name, sub: 'Fjord Frituur', desc: u.blurb, how: euro(u.price) });
   for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });
   counts.upgrade = `${ups.length}`;
   return { items: out, counts };
@@ -293,7 +369,7 @@ function overviewHtml(items, w) {
     `${geheimen} van ${SECRETS_TOTAL} geheimpjes`,
   ].filter(Boolean);
   return `<section class="pm-hero sp-hero" aria-label="Spullen"><div class="pm-hero-h"><span class="m-eb">Spullen</span><span class="pm-badge" data-tone="ok">${owned} ${owned === 1 ? 'ding' : 'dingen'} in bezit</span></div>` +
-    `<h2 class="pm-hero-t">${geld}</h2><p class="pm-hero-lead">Contant op zak. Kies links wat je bij je hebt; rechts zie je wat het doet, waar het vandaan komt en wat je ermee kunt.</p>` +
+    `<h2 class="pm-hero-t">${geld}</h2><p class="pm-hero-lead">Contant op zak. Kies links wat je bij je hebt; rechts staat wat het is, waar het vandaan komt en wat je ermee kunt.</p>` +
     `<div class="pm-hero-meta">${meta.map((m) => `<span>${esc(m)}</span>`).join('')}</div></section>`;
 }
 
@@ -303,16 +379,36 @@ function card(it) {
     `${it.side ? `<span class="t g">${esc(it.side)}</span>` : ''}</button>`;
 }
 
+// Het detailpaneel (#929): wat het item IS, waar het vandaan komt, wat je ermee kunt
+// en, bij geld, het kasboek. De kaart links draagt de naam en de stand al; hier staat
+// nooit dezelfde regel nog eens, en is er niets te zeggen dan zegt het paneel dat in
+// één eerlijke zin in plaats van een rij met nullen.
 function detailHtml() {
   const it = byKey.get(sel);
-  if (!it) return '<p class="mut">Kies iets om te zien wat het doet, of wat je ermee kunt.</p>';
-  const rows = [['Hoe', it.how], ['Doet', it.perk], ...(it.rows || [])].filter(([, v]) => v).map(([k, v]) => `<div class="m-fact"><span>${esc(k)}</span><span class="td-fv">${esc(v)}</span></div>`).join('');
+  if (!it) return '<p class="mut">Kies links iets; hier lees je wat het is, waar het vandaan komt en wat je ermee kunt.</p>';
+  const facts = [
+    it.how ? ['Herkomst', it.how] : null,
+    it.perk ? ['Effect', it.perk] : null,
+    ...(it.rows || []),
+  ].filter(Boolean);
+  const factHtml = facts.length
+    ? `<div class="sp-facts">${facts.map(([k, v]) => `<div class="sp-fact"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}</div>`
+    : '';
+  const ledger = it.ledger ? moneyLedgerHtml() : '';
   let btns = '';
   if (it.act) btns += `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
   if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
   const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
-  return `<div class="pm-pane-top"><span class="m-eb sp-detail-cat">${svg(it.icon)}${esc(cat)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${it.side ? `<span class="pm-badge" data-tone="ok">${esc(it.side)}</span>` : ''}</div></div>` +
-    `${it.sub ? `<p class="sp-detail-sub">${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>` +
+  // Het geldkaartje links zegt het bedrag en "Contant" al; daar staat de kop gewoon
+  // "Geld" en is de categorie-eyebrow weggelaten in plaats van hem te herhalen.
+  const kop = it.cat === 'geld' ? 'Geld' : it.title;
+  // De blokken zijn directe kinderen van .td-detail (die zelf al een flexkolom met gap is),
+  // precies zoals het paneel daarvoor ook werkte: de .m-grow duwt de acties naar onderen.
+  return `<div class="sp-dhead"><span class="sp-big">${svg(it.icon)}</span><div class="sp-dmeta">` +
+    `${cat && cat !== kop ? `<span class="m-eb sp-detail-cat">${esc(cat)}</span>` : ''}<h2 class="m-h2 td-h2">${esc(kop)}</h2></div></div>` +
+    `${it.desc ? `<p class="sp-desc">${esc(it.desc)}</p>` : ''}` +
+    (ledger || factHtml ? (ledger || '') + factHtml : (!it.desc ? '<p class="sp-eerlijk">Verder valt hier niets over te zeggen.</p>' : '')) +
+    `<span class="m-grow"></span>` +
     `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
 }
 
@@ -322,6 +418,9 @@ const pctVan = (tekst) => {
   return m && Number(m[2]) ? Math.round((Number(m[1]) / Number(m[2])) * 100) : null;
 };
 
+// Het <style>-blok staat één keer boven de lijst. De lijst wordt bij elke tekening
+// opnieuw gevuld, dus er staat nooit een tweede kopie in het paneel; het detailpaneel
+// wordt los hertekend (spullenFocus) en houdt de stijl zo gewoon.
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
 export function renderSpullen(panel, w) {
   const { items, counts } = collect(w);
@@ -342,7 +441,9 @@ export function renderSpullen(panel, w) {
       (mine.length ? mine.map(card).join('') : `<p class="mut sp-leeg sp-empty">${esc(EMPTY[cat] || '')}</p>`) + '</section>';
   }).join('');
   const hero = !leeg ? overviewHtml(items, w) : '';
-  list.innerHTML = hero + (secties || `<p class="m-note sp-leeg" data-spul-leeg>Niks gevonden${zoek.trim() ? ` voor "${esc(zoek.trim())}"` : ''}. ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om alles te zien.'}</p>`);
+  // De stijl hoort bij de lijst, die elke tekening opnieuw wordt gevuld: zo staat hij
+  // er precies één keer en niet in het detail (dat los hertekend wordt).
+  list.innerHTML = SP_CSS + hero + (secties || `<p class="m-note sp-leeg" data-spul-leeg>Niks gevonden${zoek.trim() ? ` voor "${esc(zoek.trim())}"` : ''}. ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om alles te zien.'}</p>`);
   // de knoppen boven de lijst tonen de stand (#435)
   for (const b of panel.querySelectorAll('[data-spul-deel]')) b.setAttribute('aria-pressed', String(b.dataset.spulDeel === deel));
   const zoekveld = panel.querySelector('[data-spul-search]');

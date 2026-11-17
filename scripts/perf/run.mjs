@@ -5,9 +5,10 @@
 // Env: PERF_OUT (default <tmp>/gde-perf), PERF_DUR (ms per route, default 20000),
 // PERF_ONLY=foot,ring,a7,... PERF_DIAG=1, PERF_PROFILE=<routes>, PERF_SIM=0-2,
 // PERF_LOCKS=<dir> (take an Electron slot with mkdir <dir>/electron-1..3 while running;
-// see the lock protocol of the night rounds). 1920x1080 CSS px at dpr 1, silent,
-// throwaway profile. Output: $PERF_OUT/<name>.json (routes, also those that finished
-// before a crash) and <name>.log; prints the table.
+// see the lock protocol of the night rounds), PERF_PROFILE_DIR=<absolute dir> (waar het
+// wegwerpprofiel komt als %TEMP% niet schrijfbaar is, zie onderaan). 1920x1080 CSS px at
+// dpr 1, silent, throwaway profile. Output: $PERF_OUT/<name>.json (routes, also those
+// that finished before a crash) and <name>.log; prints the table.
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -47,12 +48,23 @@ const scriptFile = path.join(OUT, `_${name}.js`);
 fs.writeFileSync(scriptFile, script);
 
 await takeSlot();
+// Het wegwerpprofiel van deze run. Standaard onder %TEMP%, maar dat is niet overal
+// schrijfbaar: in een sandbox of op een strak ingestelde machine weigert Electron daar
+// zijn GPUCache en single-instance-lock ("Toegang geweigerd") en stopt de run na 1 s
+// zonder één meting. PERF_PROFILE_DIR zet het profiel ergens anders neer; die waarde
+// moet een ABSOLUUT pad zijn, want desktop/main.js maakt een relatieve naam weer
+// relatief aan %TEMP% (dezelfde reden staat daar in een comment).
 const profile = `gde-test-k1perf-${name}`;
-const profileDir = path.join(os.tmpdir(), profile);
+const profileRoot = process.env.PERF_PROFILE_DIR ? path.resolve(process.env.PERF_PROFILE_DIR) : os.tmpdir();
+const profileDir = path.join(profileRoot, profile);
 fs.rmSync(profileDir, { recursive: true, force: true });
 // #827: Electron maakt de userData-map pas laat aan; een bestaande map voorkomt
 // dat de single-instance-lock of de GPUCache op een schone machine faalt.
 fs.mkdirSync(profileDir, { recursive: true });
+try { fs.accessSync(profileDir, fs.constants.W_OK); } catch (e) {
+  console.error(`het perf-profiel ${profileDir} is niet schrijfbaar; zet PERF_PROFILE_DIR op een schrijfbare map`);
+  process.exit(2);
+}
 const desktop = path.join(HERE, '..', '..', 'desktop');
 const electron = process.env.ELECTRON_EXE || path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
 const args = ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1920x1080',
@@ -76,7 +88,9 @@ const busyBefore = await cpuBusy();
 if (busyBefore > 35) console.error(`WAARSCHUWING: machine is belast (CPU ${busyBefore}% vóór de run); de cijfers zijn niet vergelijkbaar met een stille reeks.`);
 const before = others();
 const t0 = Date.now();
-const perfEnv = { ...process.env, GDE_TEST_PROFILE: profile };
+// Het ABSOLUTE pad naar het profiel: desktop/main.js maakt een relatieve naam weer
+// relatief aan %TEMP%, en juist daar kan Electron niet schrijven in een sandbox.
+const perfEnv = { ...process.env, GDE_TEST_PROFILE: profileDir };
 delete perfEnv.ELECTRON_RUN_AS_NODE; // #827: een testsessie mag Electron niet als Node starten
 const child = spawn(electron, args, { cwd: desktop, env: perfEnv, stdio: ['ignore', 'pipe', 'pipe'] });
 child.stdout.pipe(log, { end: false });

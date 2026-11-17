@@ -1115,7 +1115,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       updateCinematics(dt, world);
     }
     else {
+        // De openingsmontage slaat de telefoon over (2ab3ab848: die kostte 50-145 ms-frames in de
+        // film), maar updatePhone is de enige plek in dit pad die updateCinematics aanroept. Zonder
+        // deze regel staat de klok van de film stil: de montage eindigt niet vanzelf en "Spatie
+        // vasthouden om over te slaan" doet niets (de speler zit ruim 2,5 minuut vast).
+        // De film bijwerken is goedkoop; de telefoon blijft overgeslagen.
         if (!document.body.classList.contains('intro-montage')) updatePhone(dt, world);
+        else updateCinematics(dt, world);
         // Autosave tijdens de opening/cutscene uitstellen: de save-tik kostte anders 55-75 ms-frames in de film.
         if (!document.body.classList.contains('intro-montage') && !document.body.classList.contains('cine-hide-hud')) updateSaveGame(dt, world);
     }

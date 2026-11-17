@@ -45,5 +45,11 @@ const rp = blok(phone, 'function refreshPause() {', 'let phoneWasOpen');
 ok(/const hard = cinematicPausesGameplay\(\);/.test(rp), 'refreshPause leest cinematicPausesGameplay');
 ok(/world\.uiPaused = hard \|\|/.test(rp), 'en zet world.uiPaused daarop');
 
+// 5. De openingsmontage slaat de telefoon over (prestatie, 2ab3ab848), maar updatePhone is in dat
+// pad de enige die updateCinematics aanroept. Zonder de else-tak staat de klok van de montage stil:
+// de film eindigt niet vanzelf en "Spatie vasthouden om over te slaan" doet niets.
+const montageTak = blok(main, "if (!document.body.classList.contains('intro-montage')) updatePhone(dt, world);", 'if (world.coopNet || world.coopWissel)');
+ok(/else updateCinematics\(dt, world\);/.test(montageTak), 'de montage-tak werkt de film zelf bij (anders staat de opening stil)');
+
 console.log(fails ? `cine_pause_test: ${fails} van ${n} mislukt` : `cine_pause_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);

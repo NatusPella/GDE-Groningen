@@ -479,6 +479,9 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
 const NAMES = ['host', 'gast', ...(GASTEN > 1 ? ['gast2'] : [])];
 const samples = (n) => of(E[n], 'sample');
 const phase = (n, ph) => samples(n).filter((s) => s.ph === ph);
+// Het laatste sample waarin de sessie nog liep: na stopHost is roster/partners leeg,
+// en een check over de lopende sessie moet daar niet naar kijken (dat gaf "undefined").
+const levend = (n) => { const alle = samples(n).filter((s) => s.role && s.roster && s.roster.length); return alle[alle.length - 1] || last(samples(n)); };
 const at = (E_, type, pred = () => true) => E_.find((e) => e.type === type && pred(e));
 
 check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
@@ -514,17 +517,18 @@ check(of(H, 'verbonden').length && of(G, 'verbonden').length, 'beide kanten bere
 const hs = samples('host'), gs = samples('gast');
 check(hs.length >= 10 && gs.length >= 10, `genoeg samples (${hs.length}/${gs.length})`);
 const firstFull = (n) => samples(n).find((s) => s.roster && s.roster.length >= EXPECT);
-check(last(hs).me && last(hs).me.char === 'tammo', 'host speelt Tammo');
+check(levend('host') && levend('host').me && levend('host').me.char === 'tammo', 'host speelt Tammo');
 // Twee kanten, twee verhalen (#455, #502): de gastheer ziet de gast als zijn eigen avatar (eigen figuur, eigen naam),
 // terwijl de gast in zijn eigen beeld de hoofdpersoon van zijn eigen verhaal is. De computermetgezel van de gastheer
 // blijft Tessa zolang er geen tweede mens is; die staat niet op plek 1.
 const gMe = [...gs].reverse().find((q) => q.role === 'client' && q.me);
 check(gMe && !!gMe.me.char, `gast heeft een eigen personage (${gMe && gMe.me.char})`); // in eigen beeld de hoofdpersoon van zijn verhaal
-const hRij = last(hs) && (last(hs).roster || []).find((r) => r[0] === 1);
+const hLevend = levend('host');
+const hRij = hLevend && (hLevend.roster || []).find((r) => r[0] === 1);
 check(!!hRij && !/^(tammo|anita)$/i.test(String(hRij[1] || '').trim()), `de gastheer ziet de gast als eigen figuur (${hRij && hRij[1]})`);
-const gZien = last(hs) && last(hs).partners && last(hs).partners.find((p) => p[0] !== 0);
+const gZien = hLevend && hLevend.partners && hLevend.partners.find((p) => p[0] !== 0);
 check(!!gZien && !!String(gZien[1] || '').trim() && !/^(tammo|tessa|anita)$/i.test(String(gZien[1] || '').trim()), `de gastheer ziet de gast als zichzelf, niet als Tessa (${gZien && gZien[1]})`);
-check(last(hs).companion && last(hs).companion.char === 'anita', `de computermetgezel blijft Tessa (${last(hs).companion && last(hs).companion.char})`);
+check(hLevend && hLevend.companion && hLevend.companion.char === 'anita', `de computermetgezel blijft Tessa (${hLevend && hLevend.companion && hLevend.companion.char})`);
 check(gs.some((q) => q.role === 'client') && hs.some((q) => q.role === 'host'), 'rollen host/client');
 for (const n of NAMES) {
   const f = firstFull(n);
@@ -568,11 +572,15 @@ if (SUITE === 'net') {
   const hm = samples('host').filter((s) => s.ph === 'loop'); const hc0 = hm[0] && hm[0].companion, hc1 = last(hm).companion;
   const hcMax = hm.filter((q) => q.companion && hc0).reduce((m, q) => Math.max(m, Math.hypot(q.companion.x - hc0.x, q.companion.y - hc0.y)), 0);
   check(lg && hc0 && hcMax > 1.5, `Tessa loopt: de host ziet haar niet bewegen (grootste afstand tot het begin ${hcMax.toFixed(1)} m)`);
-  // uitval van de gast: pauze aan beide kanten, daarna hervat
+  // Uitval van de gast. Wat er hoort te gebeuren staat in docs/COOP-GAST.md ("Wegvallen") en in
+  // coopplayers.js holdBeleid: alle spelers zijn gelijkwaardig, dus de rest speelt door en alleen als
+  // de lopende opdracht deze speler echt nodig heeft (vereistVoor) pauzeert het spel. Buiten een missie
+  // is dat niet zo, dus de gastheer hoort GEEN wachtscherm te krijgen — de check eiste eerder het
+  // omgekeerde en maakte daarmee een correcte uitkomst rood.
   const uh = of(H, 'uitval-host')[0], uhn = of(H, 'uitval-host-na')[0], ug = of(G, 'uitval-midden')[0];
-  check(uh && uh.hold && uh.uiPaused && uh.paused, 'uitval: de host krijgt geen pauzescherm: ' + JSON.stringify(uh));
+  check(uh && !uh.hold && !uh.uiPaused, 'uitval: de host pauzeert terwijl de opdracht deze speler niet nodig heeft: ' + JSON.stringify(uh));
   check(uh && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: Tessa staat niet als weggevallen in de lijst van de host: ' + JSON.stringify(uh && uh.roster));
-  check(ug && ug.hold && ug.uiPaused && ug.paused, 'uitval: de gast krijgt geen pauzescherm: ' + JSON.stringify(ug));
+  check(ug && !ug.hold && !ug.uiPaused, 'uitval: de gast houdt zijn eigen wereld stil terwijl hij weg is: ' + JSON.stringify(ug));
   check(uhn && !uhn.hold && !uhn.uiPaused && uhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'uitval: na het herstel loopt het spel bij de host niet door: ' + JSON.stringify(uhn));
   const gEnd = samples('gast').filter((s) => s.ph === 'betaal' || s.ph === 'opgeslagen' || s.ph === 'wacht');
   check(gEnd.length && !last(gEnd).hold && !last(gEnd).uiPaused && ['ok', 'lag'].includes(last(gEnd).status), 'uitval: na het herstel loopt het spel bij de gast niet door: ' + JSON.stringify({ hold: last(gEnd).hold, ui: last(gEnd).uiPaused, st: last(gEnd).status }));
@@ -591,10 +599,14 @@ if (SUITE === 'net') {
   // de verbinding gaat dicht en de gast verbindt opnieuw via het wachtscherm (alleen met een Electron-gast)
   if (GASTEN > 0) {
     const hh = of(G, 'herverbind-hold')[0], hk = of(G, 'herverbind-klaar')[0], hc = of(G, 'herverbind-code')[0], hhh = of(H, 'herverbind-host')[0], hhn = of(H, 'herverbind-host-na')[0];
+    // De gast die zijn eigen verbinding verliest krijgt zijn eigen wachtscherm met pauze: dat is zijn eigen
+    // spel, geen hostrecht (docs/COOP-GAST.md). De host hoort géén wachtscherm te krijgen zolang de
+    // lopende opdracht die speler niet nodig heeft (holdBeleid) — daarom bewaken we bij de host alleen
+    // dat hij het wegvallen in de lijst zag, niet dat hij pauzeerde.
     check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm met pauze: ' + JSON.stringify(hh));
     check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is na "Opnieuw verbinden" niet terug op plek 1: ' + JSON.stringify(hk));
-    if (hhh && hhh.holdGezien) check(hhh.pauzeGezien && hhh.lostGezien, 'herverbinden: de host kreeg wel een wachtscherm maar geen pauze: ' + JSON.stringify(hhh));
-    else note('herverbinden: de gast was binnen 5 s terug, de host zag geen wegvallen (de uitval van 8 s hierboven dekt het wachtscherm van de host)');
+    if (hhh && hhh.holdGezien) check(hhh.lostGezien, 'herverbinden: de host zag het wegvallen niet in de lijst: ' + JSON.stringify(hhh));
+    else note('herverbinden: de gast was binnen 5 s terug, de host zag geen wegvallen (de uitval van 8 s hierboven dekt het wegvallen van de host)');
     check(hhn && !hhn.hold && !hhn.paused && hhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'herverbinden: de host speelt na het terugkomen niet door: ' + JSON.stringify(hhn));
     note('herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
   }

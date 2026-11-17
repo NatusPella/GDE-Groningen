@@ -17,8 +17,9 @@ export const GEBIEDEN_CSS = `
 .gb-li .gb-vlag svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .gb-li.klaar .gb-vlag { opacity: 1; color: var(--vlag, #e8a33c); }
 .gb-li.klaar .gb-vlag svg { fill: currentColor; }
+.gb-li { gap: 12px; }
 .gb-li .gb-tel { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
-.gb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
+.gb-li .m-bar { flex: none; width: 104px; height: 6px; margin-left: 12px; }
 .gb-li.sel .gb-tel { opacity: 1; color: var(--ink); }
 .gb-pane { min-width: 0; overflow-x: hidden; }
 .gb-pane .m-h2 { font-size: 32px; overflow-wrap: anywhere; line-height: 1.05; }
@@ -54,8 +55,17 @@ function ouderTekst(ind, g) {
 function rij(r, ind) {
   const klaar = r.voltooid;
   const niv = G.niveauInfo(r.gebied.niveau);
+  // #906: de rij zegt wat er nog ontbreekt in plaats van alleen "Bezig"; de soorten met de
+  // aantallen die er al zijn komen uit voortgang.perSoort, zodat er geen tweede telling nodig is.
+  const open = G.SOORTEN
+    .map((s) => ({ s, n: r.perSoort && r.perSoort[s.id] }))
+    .filter((x) => x.n && x.n.klaar < x.n.totaal)
+    .map((x) => `${x.n.totaal - x.n.klaar} ${x.s.meer}`);
+  const onder = klaar
+    ? esc(G.beloningVan(ind, r.gebied.id).titel)
+    : esc(`${r.klaar > 0 ? 'Bezig' : 'Nog niet begonnen'}${ouderTekst(ind, r.gebied)}${open.length ? ` · nog ${open.join(', ')}` : ''}`);
   return `<button type="button" class="m-li lb-li gb-li${klaar ? ' klaar' : ''}${gekozen === r.gebied.id ? ' sel' : ''}" data-gebied="${esc(r.gebied.id)}" style="--vlag:${niv.vlag}"${gekozen === r.gebied.id ? ' aria-current="true"' : ''}>` +
-    `<span class="gb-vlag">${VLAG}</span><span class="nm"><span class="one">${esc(r.gebied.naam)}</span><span class="mut one">${klaar ? esc(G.beloningVan(ind, r.gebied.id).titel) : esc(`${r.klaar > 0 ? 'Bezig' : 'Nog niet begonnen'}${ouderTekst(ind, r.gebied)}`)}</span></span>` +
+    `<span class="gb-vlag">${VLAG}</span><span class="nm"><span class="one">${esc(r.gebied.naam)}</span><span class="mut one">${onder}</span></span>` +
     `<span class="gb-tel">${r.klaar} van ${r.totaal}</span><span class="m-bar${r.deel > 0 ? ' on' : ''}"><i data-bar="gb-${esc(r.gebied.id)}" data-w="${(r.deel * 100).toFixed(1)}"></i></span></button>`;
 }
 
@@ -132,6 +142,7 @@ export function gebiedenHtml(kies = gekozen) {
 }
 
 // #676: de eerstvolgende drie taken over alle gebieden, voor de eigen Veroverd-tab.
+// #906: met de plek en de soort erbij, zodat het paneel een kaart met een afstand en één actie kan tekenen.
 export function volgendeTaken(aantal = 3) {
   const o = getOverzicht();
   if (!o) return [];
@@ -143,11 +154,29 @@ export function volgendeTaken(aantal = 3) {
       const taak = o.ind.taak.get(t);
       if (!taak) continue;
       const v = G.voortgang(o.profiel, o.ind, g.id);
-      uit.push({ id: t, naam: taak.naam, soort: taak.soort, gebied: g.naam, klaar: v.klaar, totaal: v.totaal });
+      uit.push({
+        id: t, naam: taak.naam, soort: taak.soort, soortNaam: (G.soortInfo(taak.soort) || {}).naam || '',
+        gebied: g.naam, gebiedId: g.id, x: taak.x, y: taak.y, klaar: v.klaar, totaal: v.totaal,
+      });
       if (uit.length >= aantal) return uit;
     }
   }
   return uit;
+}
+// #906: wat er per soort meetelt en hoeveel daarvan al gedaan is, over de hele provincie.
+// Alleen taken die in een gebied liggen tellen mee; dezelfde bron als volgendeTaken, dus geen tweede teller.
+export function soortenStand() {
+  const o = getOverzicht();
+  if (!o) return [];
+  const gedaan = new Set(o.profiel.gedaan);
+  const tel = new Map(G.SOORTEN.map((s) => [s.id, { id: s.id, naam: s.naam, enkel: s.enkel, klaar: 0, totaal: 0 }]));
+  for (const t of o.ind.taak.values()) {
+    const r = tel.get(t.soort);
+    if (!r || !(o.ind.perTaak.get(t.id) || []).length) continue;
+    r.totaal++;
+    if (gedaan.has(t.id)) r.klaar++;
+  }
+  return [...tel.values()].filter((r) => r.totaal > 0);
 }
 export const gekozenGebied = () => gekozen;
 export function kiesGebied(id) { gekozen = id; return detailHtml(); }

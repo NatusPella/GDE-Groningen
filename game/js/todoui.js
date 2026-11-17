@@ -70,6 +70,57 @@ const ICON = {
 };
 const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 
+// De kaarten van "Begin hier" en de rangorde in het detailpaneel zijn eigen opmaak. Die
+// staat hier, zodat dit scherm zijn eigen vorm kan geven zonder menu.css of pausemenu.css
+// te raken; de kleuren en lijnen komen uit de bestaande tokens.
+const TDOU_CSS = `
+#pause-menu .td-begin-cards { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 10px; }
+#pause-menu .td-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 4px; border-radius: 10px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .td-card.td-card-next { background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.5); }
+#pause-menu .td-card-main { display: grid; grid-template-columns: 22px 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; min-height: 60px; padding: 6px 8px; border-radius: 8px; }
+#pause-menu .td-card-main:hover { background: rgba(240, 237, 228, 0.06); }
+#pause-menu .td-card-main:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+#pause-menu .td-card-nm { display: flex; flex-direction: column; gap: 3px; min-width: 0; line-height: 1.2; }
+#pause-menu .td-card-nm b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; line-height: 1.05; letter-spacing: 0.03em; }
+#pause-menu .td-card-cat { font-size: max(15px, var(--menu-min, 15px)); color: var(--mut); }
+#pause-menu .td-card-next .td-card-cat { color: var(--g); }
+#pause-menu .td-card-dist { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; white-space: nowrap; }
+#pause-menu .td-card-ico { width: 30px; height: 30px; display: block; justify-self: center; }
+#pause-menu .td-card-pin { display: grid; place-items: center; color: var(--g); }
+#pause-menu .td-card-pin svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-card-act { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; white-space: nowrap; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .td-card-act:hover { background: rgba(240, 237, 228, 0.07); }
+#pause-menu .td-card-act svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-begin-lead { padding: 0 0 8px; font-size: max(16px, var(--menu-min, 16px)); line-height: 1.35; }
+/* Het detail: eerst wat dit is en wat het oplevert, dan de drie kloppende cijfers groot,
+   en pas daarna de volledige lijst achter een vouw. */
+#pause-menu .td-dtop .m-eb { white-space: normal; line-height: 1.35; letter-spacing: 0.14em; }
+#pause-menu .td-dlead { display: flex; flex-direction: column; gap: 10px; }
+#pause-menu .td-dlead p { max-width: 640px; }
+#pause-menu .td-yield { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 20px; font-size: max(18px, var(--menu-min, 18px)); color: var(--mut); }
+#pause-menu .td-yield-item { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
+#pause-menu .td-yield b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 24px; letter-spacing: 0.03em; color: var(--g); }
+#pause-menu .td-medals { font-size: max(18px, var(--menu-min, 18px)); }
+#pause-menu .td-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+#pause-menu .td-kpi { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 10px 14px 12px; border-radius: 10px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .td-kpi-v { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 34px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pause-menu .td-kpi-v small { font-size: 20px; color: var(--mut); }
+#pause-menu .td-kpi-v.long { font-size: 22px; line-height: 1.15; white-space: normal; overflow-wrap: break-word; }
+#pause-menu .td-kpi-l { font-size: max(15px, var(--menu-min, 15px)); line-height: 1.25; color: var(--mut); }
+#pause-menu .td-kpi .m-bar { margin-top: 4px; }
+#pause-menu .td-numgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px 24px; padding: 4px 0 8px; }
+#pause-menu .td-numgrid .td-fact .m-num { font-size: 22px; }
+#pause-menu .td-drec { font-size: max(16px, var(--menu-min, 16px)); color: var(--mut); }
+`;
+let cssReady = false;
+function ensureCss() {
+  if (cssReady || typeof document === 'undefined') return;
+  cssReady = true;
+  const el = document.createElement('style');
+  el.textContent = TDOU_CSS;
+  document.head.appendChild(el);
+}
+
 let worldNow = null;
 
 function refresh(world) {
@@ -241,6 +292,7 @@ function tilesHtml(world, extra) {
 // help: [[action, icon svg, label]] for the contextual buttons (pausemenu.js decides which)
 // extra: { play: seconds played, quick: html of the quick settings }
 export function renderOverview(el, world, help, extra = {}) {
+  ensureCss();
   refresh(world);
   const near = items.filter((it) => it.dist != null && it.goal && it.goal !== 'story' && !['later', 'slot', 'nu'].includes(it.status))
     .sort((a, b) => a.dist - b.dist).slice(0, 3);
@@ -399,6 +451,27 @@ function paspoortHtml() {
 
 // #813: bovenaan Te doen de telling en de drie dichtstbijzijnde dingen. De
 // rijen zijn gewone data-todo-rijen, zodat kiezen en het detail gelijk blijven.
+// Sinds het Activiteiten-scherm is opgeschoond is elke rij een kaart met het
+// categoriepictogram, de naam, de afstand en één knop naar de plek; de eerste
+// kaart zegt waarom hij de eerstvolgende is.
+const GROUP_LABEL = Object.fromEntries(GROUPS.map(([g, label]) => [g, label]));
+
+function beginCard(it, i) {
+  const first = i === 0;
+  const ico = it.icon ? `<img class="td-card-ico" src="${mapIconUrl(it.icon, 30)}" alt="">` : `<span class="td-card-pin" aria-hidden="true">${svg(ICON.pin)}</span>`;
+  // Hooguit twee delen: de rol en de soort. De afstand en de plek staan al rechts en in de
+  // uitleg eronder; vier delen achter elkaar werden in de smalle kolom afgekapt (#980-review).
+  const rol = it.isGoal ? 'Jouw doel' : first ? 'Eerstvolgende' : (it.status === 'nu' ? 'Nu' : '');
+  const cat = [rol, GROUP_LABEL[it.group] || it.where || ''].filter(Boolean).join(' · ');
+  const why = first && !it.isGoal ? 'Deze is het dichtstbij en kan nu.' : '';
+  return `<div class="td-card${first ? ' td-card-next' : ''}">` +
+    `<button type="button" class="td-card-main" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +
+    `<span class="td-begin-nr" aria-hidden="true">${i + 1}</span>${ico}` +
+    `<span class="td-card-nm"><b>${esc(it.title)}</b><span class="td-card-cat one">${esc(cat)}</span></span>` +
+    `<span class="td-card-dist">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
+    `<button type="button" class="td-card-act" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Kaart</button></div>`;
+}
+
 function beginHierHtml() {
   if (!worldNow) return '';
   const p = hoofdspeler(worldNow);
@@ -407,8 +480,8 @@ function beginHierHtml() {
   if (!n) return '';
   const next = near[0];
   return `<section class="td-begin" aria-label="Begin hier"><div class="m-gh"><span>Begin hier</span><span>${n} te doen</span></div>` +
-    `<p class="m-note td-begin-lead">Er is hier ${n} te doen${next ? ` · eerstvolgende: <b>${esc(next.title)}</b>` : ''}</p>` +
-    `<div class="td-begin-list">${near.map((it, i) => `<div class="td-begin-item"><span class="td-begin-nr" aria-hidden="true">${i + 1}</span>${row(it, ' td-begin-row')}</div>`).join('')}</div></section>`;
+    `<p class="m-note td-begin-lead">Er is hier ${n} te doen.${next ? ` De eerste kaart is het dichtstbij: <b>${esc(next.title)}</b>${next.dist != null ? `, ${esc(formatDistance(next.dist))} van hier` : ''}.` : ''}</p>` +
+    `<div class="td-begin-list td-begin-cards">${near.map(beginCard).join('')}</div></section>`;
 }
 
 function allHtml() {
@@ -458,8 +531,50 @@ function detailHtml(world) {
   if (!it) return '<p class="mut">Kies iets om te zien wat het is.</p>';
   const d = it.detail || {};
   const sv = getStoryView();
-  const rows = (d.rows || []).map(([k, v]) => factHtml(k, v)).join('');
-  const medals = d.medals ? `<div class="m-row2"><span class="mut">Medailles</span>${d.medals.map(([m, text]) => `<span${it.medal >= m ? '' : ' class="mut"'}><span class="m-medal m${m}"></span>${esc(text)}</span>`).join('')}</div>` : '';
+  // Rangorde in het detail. Eerst wat dit is en wat het oplevert, dan de drie
+  // belangrijkste getallen groot, en pas daarna de volledige lijst achter een vouw.
+  // Een teller ("Kerken 0 van 353") is een cijfer om te halen; een gewone regel
+  // ("Dichtstbijzijnde · De Fontein · 290 m", "Beloning €120") vertelt het verhaal
+  // en hoort dus boven, niet in het raster.
+  const all = d.rows || [];
+  const isCount = ([, v]) => /^\d[\d.]*\s+van\s+\d/.test(String(v));
+  const isYield = ([k]) => /^(Beloning|Prijs|Verdien|Niveau|Loon|Kosten|Opbrengst)\b/i.test(k);
+  const counts = all.filter(isCount);
+  const plain = all.filter((r) => !isCount(r));
+  const yields = plain.filter(isYield);
+  const kpis = [];
+  const rest = plain.filter((r) => !isYield(r));
+  // een sleutel bevat een dubbele punt ("col:herkenningspunten"); in een id en een
+  // data-bar-naam is dat onhandig, dus daar alleen letters, cijfers en streepjes
+  const id = String(it.key).replace(/[^a-z0-9-]+/gi, '-');
+  const prog = /^(\d[\d.]*)\s+van\s+(\d[\d.]*)(?:\s+(.*))?$/.exec(String(it.record || ''));
+  if (prog) {
+    const cur = Number(prog[1].replace(/\./g, '')), tot = Number(prog[2].replace(/\./g, ''));
+    kpis.push(`<div class="td-kpi"><span class="td-kpi-v"><span data-num="td-${id}" data-to="${cur}">${esc(prog[1])}</span><small> van ${esc(prog[2])}</small></span>` +
+      `<span class="td-kpi-l">${esc((prog[3] || 'gedaan').replace(/^·\s*/, ''))}</span><span class="m-bar" aria-hidden="true"><i data-bar="td-${id}" data-w="${tot ? Math.round((cur / tot) * 100) : 0}"></i></span></div>`);
+  }
+  // Een groot cijfer is alleen een cijfer als er ook iets te tellen valt: een regel met
+  // een getal (afstand, bedrag, niveau) of een korte plek/aanduiding. Een zin als
+  // "Eerste klus gedaan" hoort in de lijst eronder, niet in een kader.
+  const isMetric = (k, v) => /\d/.test(String(v)) || /^(Start|Waar|Hier begin je|Route|Zones?|Banen)$/i.test(k);
+  const kpiTaken = new Set();
+  for (let i = 0; i < rest.length; i++) {
+    const [k, v] = rest[i];
+    if (kpis.length >= 3) break;
+    // dezelfde stand niet twee keer groot: de teller uit `record` zegt het al
+    if (prog && /^stand$/i.test(k)) continue;
+    const parts = String(v).split(' · ');
+    const tail = parts.length > 1 ? parts[parts.length - 1] : '';
+    if (/^\d+([.,]\d+)?\s*(m|km)$/.test(tail)) {
+      kpis.push(`<div class="td-kpi"><span class="td-kpi-v">${esc(tail)}</span><span class="td-kpi-l">${esc(k)}${parts.length > 1 ? ` · ${esc(parts.slice(0, -1).join(' · '))}` : ''}</span></div>`);
+    } else if (isMetric(k, v) && String(v).length <= 24) {
+      kpis.push(`<div class="td-kpi"><span class="td-kpi-v${String(v).length > 14 ? ' long' : ''}">${esc(v)}</span><span class="td-kpi-l">${esc(k)}</span></div>`);
+    } else continue;
+    kpiTaken.add(i);
+  }
+  // de teller uit `record` staat al groot; een tweede "Stand 0/353" eronder is dubbel
+  const usedRest = rest.filter((r, i) => !kpiTaken.has(i) && !(prog && /^stand$/i.test(r[0])));
+  const medals = d.medals ? `<div class="m-row2 td-medals"><span class="mut">Medailles</span>${d.medals.map(([m, text]) => `<span${it.medal >= m ? '' : ' class="mut"'}><span class="m-medal m${m}"></span>${esc(text)}</span>`).join('')}</div>` : '';
   const story = it.goal === 'story';
   let primary = '';
   if (it.upgrade && it.status !== 'klaar') primary = `<button type="button" class="m-bp" data-todo-buy="${esc(it.upgrade)}">Kopen (${esc(it.record)})</button>`;
@@ -477,9 +592,20 @@ function detailHtml(world) {
   // De stand staat als woord naast de titel (#907): kleur of een streepje is nooit de enige aanwijzing.
   const stand = it.isGoal ? 'Jouw doel' : it.status === 'nu' ? 'Nu' : it.status === 'klaar' ? 'Klaar' : it.status === 'later' ? 'Later' : it.status === 'slot' ? 'Op slot' : '';
   const standTone = it.isGoal || it.status === 'klaar' ? 'ok' : it.status === 'later' || it.status === 'slot' ? 'warn' : 'ok';
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? `<span class="pm-badge" data-tone="${standTone}">${esc(stand)}</span>` : ''}</div></div>` +
-    (d.text ? `<p>${esc(d.text)}</p>` : '') + (rows ? `<div class="m-facts">${rows}</div>` : '') + medals +
-    (it.record ? `<p class="mut">${medalDot(it.medal)} ${esc(it.record)}</p>` : '') +
+  // wat dit oplevert staat direct onder de uitleg, als label plus bedrag; deze regels
+  // gaan niet nog eens in het cijferraster
+  const yieldLine = yields.length ? `<p class="td-yield">${yields.map(([k, v]) => `<span class="td-yield-item"><span>${esc(k)}</span><b>${esc(v)}</b></span>`).join('')}</p>` : '';
+  const recLine = it.record && !prog ? `<p class="td-drec">${medalDot(it.medal)} ${esc(it.record)}</p>` : '';
+  // het volledige raster staat achter een vouw: het vertelt de fijnere standen (kerken,
+  // molens, borgen) pas als je erom vraagt, in plaats van als muur van getallen bovenaan
+  const detailRows = usedRest.length + counts.length;
+  const facts = detailRows
+    ? disc('td-feiten-' + id, 'Alle cijfers', `${detailRows} ${detailRows === 1 ? 'regel' : 'regels'}`,
+      `<div class="td-numgrid">${usedRest.map(([k, v]) => factHtml(k, v)).join('')}${counts.map(([k, v]) => factHtml(k, v)).join('')}</div>`)
+    : '';
+  return `<div class="pm-pane-top td-dtop"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? `<span class="pm-badge" data-tone="${standTone}">${esc(stand)}</span>` : ''}</div></div>` +
+    `<div class="td-dlead">${d.text ? `<p>${esc(d.text)}</p>` : ''}${yieldLine}${medals}${recLine}</div>` +
+    (kpis.length ? `<div class="td-kpis">${kpis.join('')}</div>` : '') + facts +
     '<span class="m-grow"></span>' +
     (acts ? `<div class="m-acts td-acts">${acts}</div>` : '') + (it.goal == null && it.dist == null ? '<p class="mut">Hier is geen route naartoe: dit moet je zelf vinden.</p>' : '');
 }
@@ -512,6 +638,7 @@ export function baanDoelen(world) {
 }
 
 export function renderTodoStory(el, world) {
+  ensureCss();
   refresh(world);
   if (!ui.sel || !byKey.has(ui.sel)) {
     const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items[0];
@@ -523,6 +650,7 @@ export function renderTodoStory(el, world) {
 }
 
 export function renderTodo(panel, world) {
+  ensureCss();
   refresh(world);
   if (!ui.sel || !byKey.has(ui.sel) || !isActiviteit(byKey.get(ui.sel))) { // Activiteiten kiest nooit een verhaalitem (#435)
     const eigen = items.filter(isActiviteit);

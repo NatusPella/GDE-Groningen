@@ -730,13 +730,15 @@ function settingsHtml() {
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
-      ${disclosure('video', 'Meer opties', 'Licht en gloed, benchmark draaien', `
-        ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}
-        <div class="m-li pm-row">${rowName('Benchmark', 'Test hoe soepel Grunn draait op deze computer en welke stand past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
-        <div class="pm-confirm" data-bench-confirm hidden>
-          <p data-bench-text></p>
-          <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
-        </div>`)}`, `
+      <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
+           beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
+      <div class="m-li pm-row">${rowName('Benchmark', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
+      <div class="pm-confirm" data-bench-confirm hidden>
+        <p data-bench-text></p>
+        <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
+      </div>
+      ${disclosure('video', 'Meer opties', 'Licht, gloed en kleuren', `
+        ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}`)}`, `
       <aside class="m-pane" data-preset-pane><div class="pm-pane-top"><span class="m-eb">Voorinstelling</span><h2 class="m-h2" data-preset-name></h2></div>
         <p data-preset-desc></p>
         <div class="m-fact" data-preset-fps hidden><span>Verwacht voor deze computer</span><span class="m-num pm-big"></span></div>
@@ -820,7 +822,7 @@ ${keyReuseHtml()}
       ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       <div class="m-gh"><span>Uitleg</span></div>
-      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}
+      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de kaart en Activiteiten')}
       ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
       <div class="m-gh"><span>Terugkijken</span></div>
       <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
@@ -1543,9 +1545,27 @@ let bindMsg = '';
 let resetBackup = null;
 
 function bindPane(kind, note, extra = '') {
-  return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kind === 'keys' ? 'Toetsenbord en muis' : 'Controller'}</span><h2 class="m-h2 td-h2">Toets wijzigen</h2></div>` +
+  const titel = kind === 'keys' ? 'Toets wijzigen' : 'Knop wijzigen';
+  const kop = kind === 'keys' ? 'Toetsenbord en muis' : 'Controller';
+  return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kop}</span><h2 class="m-h2 td-h2">${titel}</h2></div>` +
     `<p>${note}</p><p class="pm-status pm-bindmsg g" role="status">${esc(bindMsg)}</p><span class="m-grow"></span>` +
     `<div class="m-acts td-acts"><button type="button" class="m-bg" data-action="binds-reset-${kind === 'keys' ? 'keys' : 'pad'}">${icon('restart')}Standaard herstellen</button></div>${extra}</aside>`;
+}
+
+// Een actie heeft vaak een hoofdgedaante en daarna varianten per voertuig of minigame
+// ("Vooruit, gas geven; heli: vooruit; vliegtuig: gas"). Die varianten in dezelfde regel
+// proppen maakte de lijst onleesbaar (spelersfeedback 15-11), dus de hoofdactie staat
+// vooraan en de varianten staan compact op een tweede regel.
+function splitAction(desc) {
+  const delen = String(desc).split(';').map((t) => t.trim()).filter(Boolean);
+  const hoofd = delen.shift() || '';
+  const varianten = [];
+  for (const d of delen) {
+    const m = d.match(/^([^:]+):\s*(.+)$/);
+    if (m) varianten.push(`${m[1].trim()} ${m[2].trim()}`);
+    else varianten.push(d);
+  }
+  return { hoofd, varianten };
 }
 
 function bindRowsKeys() {
@@ -1553,8 +1573,10 @@ function bindRowsKeys() {
   const groups = KEY_GROUPS.map(([g, title]) => `<div class="m-gh"><span>${esc(title)}</span></div>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
     const phys = physicalKey(binds, k);
     const changed = phys !== defaultKey(k);
+    const { hoofd, varianten } = splitAction(desc);
+    const ook = varianten.length ? `<span class="mut one pm-ook">Ook: ${esc(varianten.join(' · '))}</span>` : '';
     return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen">` +
-      `<span class="nm"><span class="one">${esc(desc)}</span>${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
+      `<span class="nm"><span class="one">${esc(hoofd)}</span>${ook}${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
   const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}`;
   return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
@@ -2192,7 +2214,7 @@ function syncPresets(st) {
   const top = Math.max(1, ...shown.map(([n]) => fpsOf(n)));
   pane.querySelector('[data-preset-bars]').innerHTML = shown.map(([n, label]) =>
     `<div class="pm-fpsbar${n === cur ? ' on' : ''}"><span>${esc(label)}</span><span class="m-bar${n === cur ? ' on' : ''}"><i style="width:${Math.round((fpsOf(n) / top) * 100)}%"></i></span><span class="bebas">${Math.round(fpsOf(n))} fps</span></div>`).join('');
-  pane.querySelector('[data-bench-note]').textContent = res ? 'Gemeten met de benchmark op deze computer.' : 'Draai de benchmark (onder Meer opties) om te zien wat elke stand haalt.';
+  pane.querySelector('[data-bench-note]').textContent = res ? 'Gemeten met de benchmark op deze computer.' : 'Draai de benchmark hiernaast om te zien wat elke stand op deze computer haalt.';
   const ban = root.querySelector('[data-bench-banner]');
   ban.hidden = !(res && res.banner);
   if (ban.hidden) return;
@@ -2433,7 +2455,8 @@ function syncFooter() {
 
 function showTab(name, how) {
   const ids = sectionIds();
-  // de oude namen: Overzicht is Spel > Overzicht, de telefoon is Verhaal > Contacten of Berichten, cheats zijn een onderdeel van Instellingen
+  // de oude namen: Overzicht is Spel > Overzicht, cheats zijn een onderdeel van Instellingen.
+  // 'telefoon' bestond als los scherm; dat is weg, dus de naam wijst door naar Personages.
   if (name === 'overzicht' || name === 'game') { pref.sub.spel = 'overzicht'; name = 'spel'; }
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   if (name === 'missions') name = 'todo';

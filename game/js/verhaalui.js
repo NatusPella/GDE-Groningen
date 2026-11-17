@@ -32,14 +32,8 @@ const CSS = `
 #pause-menu .vh-layout { display: flex; flex: 1; min-height: 0; }
 #pause-menu .vh-left { flex: 1 1 46%; min-width: 0; display: flex; flex-direction: column; padding-right: 48px; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.18) transparent; }
 #pause-menu .vh-left .m-gh { padding-left: 0; padding-top: 0; }
-#pause-menu .vh-inbox { flex: none; margin-bottom: 18px; }
-#pause-menu .vh-inbox .m-gh { padding-top: 0; }
-#pause-menu .vh-inbox-list { display: flex; flex-direction: column; gap: 2px; }
-#pause-menu .vh-inbox-item { width: 100%; text-align: left; }
-#pause-menu .vh-inbox-item .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-#pause-menu .vh-inbox-item .one { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#pause-menu .vh-inbox-item .t { flex: none; font-size: 18px; color: var(--mut); }
-#pause-menu .vh-inbox-more { font-size: 18px; padding: 4px 24px 0; }
+/* Het losse BERICHTEN-blok bovenaan is weg: dezelfde regels stonden al bij het personage
+   zelf, waardoor je ze twee keer las. De ongelezen-teller staat nu in de hero. */
 #pause-menu .vh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 #pause-menu .vh-card { --spk: var(--g); position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px 12px; border-radius: 8px; text-align: center; transition: background 0.2s, box-shadow 0.2s; }
 #pause-menu .vh-card:hover { background: rgba(240,237,228,0.04); }
@@ -132,24 +126,10 @@ function lookOf(c) {
 }
 
 const initial = (name) => esc(String(name).replace(/^(Oma|Ome|Dokter|Kapitein|Schipper|Boer|Duivenmelker|Bommen) /, '')[0] || '?');
-const initials = (name) => esc(String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase());
 
-// #603: één zichtbare plek met alle ongelezen berichten bovenaan Verhaal > Personages. Een klik
-// opent het personage (of Overig) waar het bericht bij hoort; daar staan alle regels van oud naar
-// nieuw. Zo hoeft een gemist bericht niet per personage gezocht te worden.
-function inboxHtml() {
-  const items = worldRef ? unreadInbox(worldRef) : [];
-  const shown = items.slice(0, 6);
-  return '<div class="vh-inbox" aria-label="Berichten">' +
-    `<div class="m-gh"><span>Berichten</span><span>${items.length ? `${items.length} ongelezen · nieuwste eerst` : 'niets ongelezen'}</span></div>` +
-    (shown.length ? '<div class="vh-inbox-list">' + shown.map((m) =>
-      `<button type="button" class="m-li vh-inbox-item" data-char="${esc(m.id)}">` +
-      `<span class="av">${initials(m.from)}</span>` +
-      `<span class="nm"><span class="one">${esc(m.from)}</span><span class="mut one">${esc(m.body)}</span></span>` +
-      `<span class="t">${esc(m.at)}</span></button>`).join('') + '</div>' : '') +
-    (items.length > shown.length ? `<p class="vh-inbox-more">en ${items.length - shown.length} meer bij de personages</p>` : '') +
-    '</div>';
-}
+// De berichten leven bij het personage zelf (de gesprekskolom onder de kaart). Een tweede
+// lijst bovenaan met dezelfde regels las dubbel en duwde de personages naar beneden, dus die
+// is weg; wat overblijft is de ongelezen-teller in de hero en het stippje op de tegel.
 
 // Alleen personages die je al kent krijgen een tegel (#608): geen grid van vraagtekens.
 // Wie je nog niet ontmoette staat als één rustige regel onder het grid.
@@ -205,19 +185,9 @@ function loadPics(el) {
   }
 }
 
-// #603: na het lezen van een bericht verdwijnt het uit de inbox (en telt de rail meteen mee).
+// Na het lezen van een bericht telt de rail meteen mee: de hero-teller en de badge worden
+// opnieuw gezet zodra een personage opengaat (de berichten zelf staan bij het personage).
 function refreshInbox(panel, id) {
-  const box = panel && panel.querySelector('.vh-inbox');
-  if (!box) return;
-  let gone = false;
-  for (const b of box.querySelectorAll('.vh-inbox-item')) if (b.dataset.char === id) { b.remove(); gone = true; }
-  if (!gone) return;
-  const items = worldRef ? unreadInbox(worldRef) : [];
-  const info = box.querySelector('.m-gh span:last-child');
-  if (info) info.textContent = items.length ? `${items.length} ongelezen · nieuwste eerst` : 'niets ongelezen';
-  const more = box.querySelector('.vh-inbox-more');
-  if (more) more.remove();
-  if (!items.length) { const list = box.querySelector('.vh-inbox-list'); if (list) list.remove(); }
   document.dispatchEvent(new Event('nieuwgezien'));
 }
 
@@ -259,7 +229,8 @@ function peopleHtml() {
   const n = metCount();
   const unknown = CHARACTERS.length - n;
   const pct = CHARACTERS.length ? Math.round((n / CHARACTERS.length) * 100) : 0;
-  return `<div class="vh-layout"><div class="vh-left">${inboxHtml()}<section class="vh-hero" aria-label="Personages"><div class="vh-hero-top"><span class="m-eb">Personages</span><span class="vh-party"><b>${n}</b> van ${CHARACTERS.length} ontmoet</span></div>` +
+  const ongelezen = worldRef ? unreadInbox(worldRef).length : 0;
+  return `<div class="vh-layout"><div class="vh-left"><section class="vh-hero" aria-label="Personages"><div class="vh-hero-top"><span class="m-eb">Personages</span><span class="vh-party"><b>${n}</b> van ${CHARACTERS.length} ontmoet${ongelezen ? ` · <b>${ongelezen}</b> ongelezen` : ''}</span></div>` +
     `<span class="m-bar on" aria-hidden="true"><i data-bar="people" data-w="${pct}"></i></span>` +
     '<p>Wie je spreekt, komt erbij. De rest van Grunn leer je onderweg kennen.</p></section>' +
     `<div class="vh-grid">${knownCharacters().map(charCard).join('')}${overigCard()}</div>` +

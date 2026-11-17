@@ -275,21 +275,20 @@ export function phoneUnreadFor(w, id) {
 function markReadFor(id) {
   for (const e of (world && world.phoneHistory) || []) if (characterForSender(senderOf(e)) === id) e.read = true;
 }
+// Alleen de nieuwste regel per afzender, niet de hele geschiedenis: het teruglezen van alles
+// wat je ooit kreeg voegde niets toe en maakte het personagescherm een muur van tekst. Wat je
+// miste staat in de ongelezen-teller; wat je las hoeft niet bewaard te blijven in het menu.
 function messagesHtml(id) {
-  const items = ((world && world.phoneHistory) || []).filter((e) => characterForSender(senderOf(e)) === id);
-  if (!items.length) return '<p class="m-note">Nog geen berichten.</p>';
-  let last = null;
-  // Oudste bovenaan (#603): een gesprek leest als een gesprek, niet als een muur van tekst.
-  // Elk gesprek staat sinds #603 regel voor regel in de geschiedenis, dus dit is de leesbare volgorde.
-  return '<div class="ph-thread">' + [...items].reverse().map((e) => {
-    const from = senderOf(e);
-    const kop = id === OVERIG && from !== last ? `<h4 class="m-eb">${esc(from === 'Kiekdoar' ? 'Nieuws (Kiekdoar)' : from)}</h4>` : '';
-    last = from;
-    return `${kop}<div class="ph-msg"><span class="mut">${esc(e.at || '')}</span><p>${dualHtml(bodyOf(e))}</p></div>`;
-  }).join('') + '</div>';
+  const all = (world && world.phoneHistory) || [];
+  const items = all.filter((e) => characterForSender(senderOf(e)) === id);
+  if (!items.length) return '';
+  const laatste = items[0]; // phoneHistory is nieuwste-eerst (phonefeed.js)
+  const from = senderOf(laatste);
+  const kop = id === OVERIG ? `<h4 class="m-eb">${esc(from === 'Kiekdoar' ? 'Nieuws (Kiekdoar)' : from)}</h4>` : '';
+  return '<div class="ph-thread">' + kop + `<div class="ph-msg"><span class="mut">${esc(laatste.at || '')}</span><p>${dualHtml(bodyOf(laatste))}</p></div></div>`;
 }
-// Het blok onder een personage: bellen (als het een contact is), het gesprek, en de berichten
-// van oud naar nieuw, zodat een gesprek van boven naar beneden te lezen is (#603).
+// Het blok onder een personage: bellen (als het een contact is) en het laatste bericht.
+// De volledige geschiedenis wordt niet meer getoond (zie messagesHtml).
 export function renderCharacterPhone(block, w, id) {
   if (!block) return;
   world = w;

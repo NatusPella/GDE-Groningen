@@ -9,6 +9,17 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.65.0] - 2026-11-16
+
+- **Elk escape-menu heeft nu een kop die iets zegt (#980):** Loopbanen toont de ladder als een trap met het loon per niveau en de eerstvolgende stap in een eigen kader; Prestaties laat de elf categorieën als kaarten zien met hun icoon, balk en de eerstvolgende haalbare prestatie; Veroverd zet de taken open met een knop naar de kaart; Spullen legt uit wat een voorwerp is en waar het vandaan komt in plaats van de lijst te herhalen, met een kasboek bij je geld; Activiteiten opent met kaarten voor "Begin hier" en drie grote getallen in plaats van een muur van tellers; Garage knipt geen kaarten meer af en zet de feiten vóór de actie; Foto's is een galerij met een kop in plaats van een bestandslijst.
+- **De kaart legt zichzelf één keer uit (#602):** de uitleg bij de kaart is nu een popup die de kaart afdekt, de focus pakt en weggaat met Begrepen, Escape of een klik ernaast. Daarna komt hij nooit meer vanzelf terug; hij blijft te vinden onder Instellingen › Besturing › Hulp.
+- **De telefoon is geen eigen scherm meer (#603):** wat er nog van over was, was een tweede lijst met dezelfde berichten boven Verhaal › Personages. Die lijst is weg, het teruglezen van de hele geschiedenis ook: je ziet het laatste bericht bij de persoon zelf en het aantal ongelezen staat in de kop.
+- **De benchmark staat bij de beeldinstellingen (#893):** hij zat achter "Meer opties" terwijl hij juist de vraag beantwoordt welke stand bij deze computer past. Ook de toetsenlijst leest rustiger: de hoofdactie staat vooraan en de varianten per voertuig staan op een tweede regel.
+- **De cheats zeggen één keer wat ze met je prestaties doen (#895):** de waarschuwing stond boven de lijst, boven het paneel en onderin het paneel. Nu één keer in de kop, en in het paneel alleen bij de cheat die je bekijkt.
+- **Een uitkijkpunt staat nu in Te doen (#844):** de punten bestonden al op de kaart met een E-actie en een stempel per streek, maar je kreeg ze nooit als suggestie. De rij wijst naar het dichtstbijzijnde punt dat je nog niet gebruikte en verdwijnt als je ze allemaal hebt gehad.
+
+- **De opening loopt weer door en je kunt hem overslaan:** sinds een prestatie-aanpassing werd de telefoon-update overgeslagen zolang de montage liep, en dat was net de plek waar de filmklok werd bijgewerkt. De opening stond daardoor stil (ruim tweeënhalve minuut) en "Spatie vasthouden om over te slaan" deed niets. De montage werkt de film nu zelf bij.
+- **Samen spelen blijft staan als iemand even wegvalt:** de gastheer verbrak de verbinding al na vijf seconden volle wachtrij, terwijl het protocol twee minuten hersteltijd belooft. Een korte netwerkhik kostte zo de hele sessie. En bleef er een filmpje "aan" staan bij een gast, dan kon hij niet meer lopen; nu alleen bijwerken als het bericht echt aankwam.
 - **Na een reis is de wereld meteen soepel (#929):** het laadscherm wachtte alleen tot de gebouwen en wegen klaar waren. De tegels van de bestemming en het voorwerk daarvan kwamen pas daarna, zodat de eerste seconden na de trein of taxi nog bouwden. Het scherm warmt de bestemming nu zelf voor en telt de tegels mee, dus je komt aan in een wereld die al klaarstaat.
 - **De uitleg wijst naar de goede plek en de kaarten zijn kort:** het doel staat onderin, niet bovenin, de kaartjes blijven onder het woordbudget en de menupaden kloppen (Instellingen › Spel, Instellingen › Hints & uitleg, Instellingen › Geluid & ondertitels). De hulp zegt niet meer "in het hoofdmenu".
 - **Nieuwskaarten stoppen niet meer midden in een zin:** de eerste zin wordt de kop en de rest de body, en wat echt wordt afgekapt eindigt op een beletselteken. De Kiezelweek-aankondiging en de andere evenementberichten passen nu in één kaart.
@@ -33,9 +44,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Geen "[E] meedoen" meer bij een evenement** waar E niets deed; de kaart zegt nu wat er te doen is: er gewoon zijn.
 - **De Dichtbij-teller in Activiteiten telt wat hij filtert**, en je gekozen soort en filter blijven bewaard als je het menu sluit.
 - **Toets 5 zegt wat er aan de hand is:** zonder eigen doel zei hij dat een verhaalmissie al een route heeft, ook als er geen missie liep.
-
-## [0.65.0] - 2026-11-16
-
+- **Radio: opgenomen praatblokken zijn ondertiteld:** Geesje, Rikus, de koeien, het verkeer en de Kiekdoar-clips spelen als opname zonder ondertitel, terwijl de instellingen ondertitels voor de radio beloven. Elke regel met tekst zet nu een ondertitel, net als de reclames.
+- **"Toetshints uit" verbergt ook de bedieningsregel:** de regel met W/A/S/D, E en SPATIE in de doellijn bleef tijdens elke missie, klus en achtervolging staan, ook met hints uit of de HUD op Minimaal.
+- **Samen spelen zegt het als er iemand bij komt of weggaat:** een nieuwe speler stond er ineens en wie zelf "Spel verlaten" koos verdween stil. Beide geven nu één regel met de naam.
+- **Een gekickte gast krijgt geen vervallen kamercode meer:** de host rolt de kamer meteen, dus de code in die melding werkte nooit. De melding zegt nu dat je de nieuwe code aan de opener vraagt, en "Zeker weten?" blijft niet scherp staan als je het paneel opnieuw opent.
+- **Een foute kamercode zegt wat er mis is**, en de knop heet "Ik heb een kamercode gekregen" in plaats van "Code of adres invoeren".
+- **Carbid zegt het als de klok naar de schemer springt**, in plaats van stil acht uur vooruit te zetten.
+- **De doellijn toont de afstand bij een bijbaan** en hoeveel seconden je nog uit het zicht moet blijven voor er een ster afgaat.
+- **Uitleg opnieuw tonen:** onder Instellingen › Hints & uitleg beginnen de uitlegkaarten, de contexthints en de geleerde toetshints weer als nieuw.
 - **De openingsscènes en missie-intro's ogen weer normaal (#858-#864):** de camera wijkt bij een blokkade achteruit in plaats van op Tessa's rug te klappen, Tessa zit aan tafel zonder stuurhouding, de matras rijdt met de Escapade mee, acteurs lopen om geparkeerde voertuigen heen, cutscene-voertuigen en fietsers volgen de echte weg en fietsers verdwijnen na hun rit; gedragen spullen hangen aan de hand en de kermiskarren zijn weer botsauto's.
 
 - **Samen spelen op een klein scherm is weer te bedienen (#871):** de hub en de wachtkamer scrollen met een zichtbare dunne scrollbalk, de kamercode en de acties blijven bovenaan en onderaan staan, en op een telefoon in portret klapt het avatarblok in met één compacte tabrij. Het kamercodeveld en "Verder" staan meteen in beeld.

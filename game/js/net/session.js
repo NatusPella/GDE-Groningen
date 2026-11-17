@@ -120,7 +120,9 @@ export class HostSession extends Base {
       // alleen een hello met token hervat, of invoer van de gast zelf: de gast merkte de stilte niet (hij hoorde de pings van de host nog),
       // dus hij stuurt nooit een hello. Zonder dit bleef de host hem voor altijd als weggevallen zien (en negeerde zijn invoer).
       if (h.type !== T.INPUT) return;
-      this.lastRecv = this.now; this.lostAt = null; this._setStatus('ok'); this._sendResync();
+      // Ook hier de overflow-teller wissen: de gast stuurt weer, dus de wachtrij begint opnieuw.
+      // Zonder dit verbrak de volgende tick hem meteen als de wachtrij vóór zijn uitval vol stond.
+      this.lastRecv = this.now; this.lostAt = null; this.overflowSinds = null; this._setStatus('ok'); this._sendResync();
     }
     this.lastRecv = this.now;
     if (this.status === 'lag') this._setStatus('ok');
@@ -155,7 +157,9 @@ export class HostSession extends Base {
       const resumed = this.status === 'lost' || hervat;
       this.lastRecv = this.now; this.lostAt = null; this.badHellos = 0; this._setStatus('ok');
       reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra }));
-      if (resumed) { this.rel.reset(); this._sendResync(); }
+      // De overflow-teller begint opnieuw bij een hervatting: de wachtrij is net geleegd, dus een
+      // oude teller zou de gast meteen weer laten verbreken terwijl hij net terug is.
+      if (resumed) { this.rel.reset(); this.overflowSinds = null; this._sendResync(); }
       return;
     }
     if (this.guest && !tok && this.guest.lastInputSeq == null) { // welkom ging verloren: herhaal
@@ -203,11 +207,20 @@ export class HostSession extends Base {
     // #589: een gast die zijn betrouwbare wachtrij structureel laat vollopen (tab op de achtergrond,
     // kanaal hapert) houdt anders voor altijd 32 berichten vast. Na een paar seconden gaat hij met een
     // gewoon afscheid weg; een gast met een oude missie/scène kan de hash-desync niet redden.
+    //
+    // Maar dit mag een gast die gewoonweg even weg is niet raken: die zit in de stand 'lost' en heeft
+    // RESUME_WINDOW (120 s) om met zijn token terug te komen (#95, #450). Zijn wachtrij loopt juist vol
+    // omdát hij niets ontvangt, dus hier verbreken zou de hersteltijd overslaan — precies wat er in de
+    // net-testbank gebeurde (uitval van 8 s, sessie weg). De guard geldt daarom alleen voor een gast die
+    // nog wél berichten stuurt maar niet meer bevestigt: een echt kapotte eenrichtingsverbinding.
     const vol = this.rel.pending.length >= this.rel.maxPending;
+    // De overflow-teller hoort bij dít tijdperk van de verbinding. Na een hervatting is de wachtrij
+    // geleegd (rel.reset) en begint de gast opnieuw: een oude overflowSinds zou hem op de eerstvolgende
+    // tick meteen weer laten verbreden, terwijl hij net terug is. Reset hem daarom mee.
     if (vol && this.overflowSinds == null) this.overflowSinds = this.now;
     else if (!vol) this.overflowSinds = null;
-    if (this.overflowSinds != null && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
-      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol; de verbinding wordt verbroken`);
+    if (this.overflowSinds != null && this.status !== 'lost' && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
+      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol terwijl de gast nog berichten stuurt; de verbinding wordt verbroken`);
       this.leave();
       return;
     }

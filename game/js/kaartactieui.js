@@ -34,13 +34,17 @@ export function infoHtml(regels) {
   return `<div class="mv-infostap">${regels.map((r) => `<p>${esc(r)}</p>`).join('')}</div>`;
 }
 
-// de eerste keer: korte uitleg, te sluiten (data-act="uitleg-sluit"); een gast
-// leest er ook bij wat wel en niet kan in Samen spelen. De uitleg staat in de
-// kaartkolom (mapview.js zet hem onder het zoekveld), niet meer over de titel (#602).
+// De uitleg bij de kaart, als eenmalige popup over de kaart (#445, herzien): hij verschijnt
+// één keer, dimt de kaart erachter en gaat weg met "Begrepen", Escape of een klik ernaast.
+// mapview.js bepaalt wanneer hij opengaat en onthoudt dat hij gezien is.
 export function uitlegHtml({ gast = false } = {}) {
   const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
-  return `<div class="mv-uitleg m-note" role="note" data-gast="${gast ? 1 : 0}"><b>Zo werkt de kaart</b><ul>` + regels.map((l) => `<li>${esc(l)}</li>`).join('') +
-    '</ul><button type="button" class="mapview-btn" data-act="uitleg-sluit">Begrepen</button><small>Terug te vinden onder Besturing › Hulp.</small></div>';
+  return '<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t">' +
+    '<div class="mv-help-box"><div class="mv-help-head"><h2 id="mv-help-t" class="m-h2">Zo werkt de kaart</h2>' +
+    '<button type="button" class="mv-help-x" data-act="uitleg-sluit" aria-label="Sluiten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<ul>' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
+    '<div class="mv-help-foot"><button type="button" class="mapview-btn" data-act="uitleg-sluit">Begrepen</button>' +
+    '<small>Terug te vinden onder Instellingen › Besturing › Hulp.</small></div></div></div>';
 }
 
 // De legenda bovenaan het luik Lagen (#445): wat een klik doet en, voor een
@@ -82,13 +86,23 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-hier b { display: block; font: normal 26px/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-hier .mv-hier-plek { margin: 2px 0 4px; font: 20px/1.35 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
 /* de uitleg: een blok in de kaartkolom onder het zoekveld, geen los vlak over de titel (#602) */
-.mapview-overlay .mv-uitleg { position: relative; z-index: 3; width: auto; max-width: 560px; box-sizing: border-box; padding: 20px 24px; border-radius: 12px; background: rgba(12,20,14,0.92); box-shadow: inset 0 0 0 1px var(--line2, rgba(240,237,228,0.16)); color: var(--ink, #f0ede4); font: 18px/1.45 'Arial Narrow', Arial, sans-serif; }
-.mapview-overlay .mv-uitleg b { display: block; margin-bottom: 8px; font: normal 26px/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
-.mapview-overlay .mv-uitleg ul { margin: 0 0 12px 20px; padding: 0; }
-.mapview-overlay .mv-uitleg li { margin: 4px 0; }
-.mapview-overlay .mv-uitleg .mapview-btn { height: 44px; padding: 0 20px; border: 0; border-radius: 8px; background: var(--g, #3fc97a); color: #0c140e; font: 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; }
-.mapview-overlay .mv-uitleg .mapview-btn:hover { background: var(--g, #3fc97a); filter: brightness(1.08); }
-.mapview-overlay .mv-uitleg .mapview-btn:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+.mapview-overlay .mv-help { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; padding: 40px; background: rgba(6, 11, 8, 0.72); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: mv-help-in 0.18s ease-out; }
+.mapview-overlay .mv-help-box { width: min(600px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; padding: 24px 28px 20px; border-radius: 14px; background: linear-gradient(180deg, #17301f, #0c140e); box-shadow: inset 0 0 0 1px var(--line2, rgba(240,237,228,0.16)), 0 24px 60px rgba(0, 0, 0, 0.5); color: var(--ink, #f0ede4); font: 18px/1.45 'Arial Narrow', Arial, sans-serif; }
+.mapview-overlay .mv-help-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
+.mapview-overlay .mv-help-head .m-h2 { margin: 0; font-size: 40px; }
+.mapview-overlay .mv-help-x { flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin-left: auto; padding: 0; border: 0; border-radius: 8px; background: rgba(240,237,228,0.06); color: var(--ink, #f0ede4); cursor: pointer; }
+.mapview-overlay .mv-help-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.mapview-overlay .mv-help-x:hover { background: rgba(240,237,228,0.14); }
+.mapview-overlay .mv-help ul { margin: 0 0 18px 20px; padding: 0; }
+.mapview-overlay .mv-help li { margin: 6px 0; }
+.mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
+/* Het pad naar Hulp liep buiten de popup af; het mag krimpen en doorlopen (#602). */
+.mapview-overlay .mv-help-foot small { min-width: 0; flex: 1 1 220px; color: var(--mut, rgba(240,237,228,0.7)); font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+.mapview-overlay .mv-help .mapview-btn { height: 44px; padding: 0 22px; border: 0; border-radius: 8px; background: var(--g, #3fc97a); color: #0c140e; font: 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; }
+.mapview-overlay .mv-help .mapview-btn:hover { filter: brightness(1.08); }
+.mapview-overlay .mv-help .mapview-btn:focus-visible, .mapview-overlay .mv-help-x:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+@keyframes mv-help-in { from { opacity: 0; } to { opacity: 1; } }
+@media (max-height: 760px) { .mapview-overlay .mv-help-head .m-h2 { font-size: 30px; } .mapview-overlay .mv-help-box { padding: 18px 22px 16px; font-size: 16px; } }
 .mapview-overlay .mv-uitleg small { display: block; margin-top: 8px; font-size: 18px; color: var(--mut, rgba(240,237,228,0.65)); }
 .mapview-legend .mv-leg-hint { margin: 0 2px 8px; }
 .mapview-legend .mv-leg-hint .hint { margin: 0 0 2px; }

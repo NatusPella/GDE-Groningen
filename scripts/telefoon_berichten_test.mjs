@@ -47,20 +47,19 @@ t('een gesprek staat regel voor regel in de geschiedenis, niet als één blok', 
   assert.match(pf, /read = false/, 'een nieuw bericht is ongelezen');
 });
 
-t('berichten bij een personage lezen van oud naar nieuw', () => {
+t('een personage toont alleen zijn laatste bericht, niet de hele geschiedenis', () => {
   const m = ph.slice(ph.indexOf('function messagesHtml'), ph.indexOf('// Het blok onder een personage'));
-  assert.match(m, /\[\.\.\.items\]\.reverse\(\)/, 'de oudste regel staat bovenaan');
+  assert.match(m, /const laatste = items\[0\]/, 'het nieuwste bericht staat bovenaan de geschiedenis');
+  assert.ok(!/reverse\(\)/.test(m), 'de volledige geschiedenis wordt niet meer teruggelezen');
+  assert.match(m, /return ''/, 'zonder berichten blijft het blok leeg in plaats van een lege regel');
 });
 
-t('er is één zichtbare plek met alle ongelezen berichten', () => {
+t('de ongelezen-teller staat in de hero, niet in een tweede berichtenlijst', () => {
   assert.ok(ph.includes('export function unreadInbox('), 'phone.js geeft de ongelezen lijst');
-  assert.ok(vu.includes('unreadInbox'), 'Verhaal > Personages gebruikt hem');
-  assert.match(vu, /function inboxHtml\(\)[\s\S]*?unreadInbox\(worldRef\)[\s\S]*?data-char="\$\{esc\(m\.id\)\}"/, 'elk bericht is een knop naar zijn personage');
-  assert.match(vu, /ongelezen · nieuwste eerst/, 'de lijst zegt hoeveel er ongelezen is');
-  assert.match(vu, /en \$\{items\.length - shown\.length\} meer bij de personages/, 'meer dan zes staat er als regel bij');
-  assert.match(vu, /<div class="vh-left">\$\{inboxHtml\(\)\}/, 'de inbox staat bovenaan Personages');
-  assert.match(vu, /function refreshInbox\(panel, id\)[\s\S]*?unreadInbox\(worldRef\)/, 'na het lezen verdwijnt het bericht uit de inbox');
-  assert.match(vu, /if \(met\) \{ renderCharacterPhone\([\s\S]*?refreshInbox\(panel, id\); \}/, 'de inbox wordt bijgewerkt zodra het personage opengaat');
+  assert.ok(vu.includes('unreadInbox'), 'Verhaal > Personages gebruikt hem voor de teller');
+  assert.ok(!vu.includes('inboxHtml'), 'de losse BERICHTEN-lijst is weg');
+  assert.match(vu, /ongelezen \? ` · <b>\$\{ongelezen\}<\/b> ongelezen`/, 'de hero noemt het aantal ongelezen');
+  assert.match(vu, /if \(met\) \{ renderCharacterPhone\([\s\S]*?refreshInbox\(panel, id\); \}/, 'de teller wordt bijgewerkt zodra het personage opengaat');
 });
 
 t('een gemist bericht blijft bereikbaar vanaf de HUD-kaart (Esc)', () => {
