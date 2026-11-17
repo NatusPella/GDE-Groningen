@@ -29,6 +29,15 @@ t('het Toetsenoverzicht past binnen 270 woorden en is per situatie te scannen', 
   assert.ok(scherm <= 270, `het Toetsenoverzicht blijft binnen 270 woorden (nu ${scherm})`);
 });
 
+// #985 punt 1: toets 5 werkt (snelwaypoint.js) maar stond niet in het overzicht, dus een speler
+// kon hem niet vinden. Elke toets uit KEY_ACTIONS met een vaste functie hoort in het overzicht.
+t('#985: elke werkende getal-toets staat in het overzicht', () => {
+  const keys = new Set(groepen.flatMap(([, , rijen]) => rijen.flatMap(([k]) => k)));
+  for (const cijfer of ['1', '2', '3', '4', '5']) {
+    assert.ok(keys.has(cijfer), `toets ${cijfer} staat in het Toetsenoverzicht`);
+  }
+});
+
 t('de lange uitleg staat niet meer in het overzicht maar op één plek: Hulp', () => {
   assert.ok(pm.includes("const CONTROL_LONG = ["), 'de lange uitleg is eigen data');
   assert.ok(pm.includes('const longTextFor ='), 'er is één opzoekregel voor de lange uitleg');

@@ -133,6 +133,9 @@ const CONTROL_GROUPS = [
     // #985 punt 9: snelopslaan, zodat een save niet elke keer via het menu hoeft.
     [['F5'], 'Snel opslaan'],
     [['M'], 'Kaart'],
+    // #985 punt 1: toets 5 stond wel in KEY_ACTIONS (en werkt), maar niet in dit overzicht: een
+    // speler kon hem dus niet vinden. Hij staat bij de kaart, want hij zet een doel op de kaart.
+    [['5'], 'Eigen doel op de kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'Volgend tabblad of onderdeel'],
     [['[', ']'], 'Zelfde als Q en E'],
