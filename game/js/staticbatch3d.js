@@ -472,9 +472,20 @@ export function mergeAtOnce(list, withDetail = true) {
 export const buildingBatcher = createStaticBatcher({
   name: 'building-batch',
   bake: true,
-  eligible: (b, mesh) => !b.landmark && mesh.position.y === 0,
+  // Een gebouw staat op y=0, op twee uitzonderingen na: een woonboot drijft op zijn eigen
+  // waterhoogte, en sinds #917 krijgt elk pand een nudge van hooguit 8 mm (buildingNudge)
+  // om Z-fighting tegen te gaan. Die nudge mag de batching niet uitsluiten: de batcher bakt
+  // de wereldmatrix in de samengevoegde geometrie, dus de verschuiving blijft kloppen.
+  // Zonder deze marge viel de hele gebouwbatch weg (0 in plaats van 212 cellen, ruim 2x
+  // zoveel draw calls in de stad) en dat kostte meer dan de Z-fighting-fix opleverde.
+  eligible: (b, mesh) => !b.landmark && isNudgedToGround(mesh),
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
 });
+
+// Een gebouw dat op de grond staat, inclusief de millimeter-nudge van #917 (hooguit 8 mm
+// in elke richting, dus |y| <= 0.005 is ruim). Een woonboot staat op zijn waterhoogte en
+// valt hier dus buiten; die tekent zichzelf.
+const isNudgedToGround = (mesh) => Math.abs(mesh.position.y) <= 0.005;
 
 // 'laag' (or a busy CPU) draws facade details only up close: those of the
 // buildings well inside that radius are merged per cell on their own;
@@ -483,7 +494,7 @@ export const facadeBatcher = createStaticBatcher({
   name: 'facade-batch',
   bake: true,
   part: (mesh) => mesh.userData.facadeDetail,
-  eligible: (b, mesh) => !b.landmark && mesh.position.y === 0 && !!mesh.userData.facadeDetail,
+  eligible: (b, mesh) => !b.landmark && isNudgedToGround(mesh) && !!mesh.userData.facadeDetail,
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
 });
 

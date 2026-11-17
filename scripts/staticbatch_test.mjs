@@ -6,7 +6,7 @@
 import './node3d.mjs';
 
 const THREE = await import('three');
-const { createStaticBatcher, drawHub, mergeAtOnce } = await import('../game/js/staticbatch3d.js');
+const { createStaticBatcher, drawHub, mergeAtOnce, buildingBatcher } = await import('../game/js/staticbatch3d.js');
 const { noteFrame, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } = await import('../game/js/gfxprofile.js');
 
 let fail = 0;
@@ -126,6 +126,36 @@ run(slow, 40);
 ok('and it finishes once there is budget', slow.info().merged === 2, String(slow.info().merged));
 slow.clear();
 ok('clear gives every building back', slow.info().merged === 0 && hiddenParts() === 0, `${slow.info().merged} ${hiddenParts()}`);
+
+// --- de echte gebouwenbatcher laat de nudge van #917 door -------------------
+// Dit ving de regressie die de reviewfase vond: de gebouwenbatcher eiste `position.y === 0`,
+// maar sinds #917 krijgt elk pand een nudge van hooguit 8 mm om Z-fighting tegen te gaan.
+// Daardoor viel de héle gebouwbatch weg (0 in plaats van 212 cellen, 1,6 tot 2,6x zoveel
+// draw calls in de stad). De test hier gebruikte een eigen eligible en zag het nooit.
+{
+  const bScene = new THREE.Scene();
+  const bMeshes = new Map();
+  const bHidden = new Set();
+  const cell = [];
+  for (const dx of [0, 60]) { // twee aparte cellen (CELL = 48 m), anders is het één merge
+    const x = 300 + dx, y = 300;
+    const b = { bounds: [x - 3, y - 3, x + 3, y + 3] };
+    const mesh = new THREE.Group();
+    // de nudge van buildingNudge: deterministisch, hooguit 4 mm per as
+    mesh.position.set((dx ? 0.002 : -0.001), (dx ? -0.004 : 0.003), 0.001);
+    const part = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x888888 }));
+    part.geometry.userData.batchVer = 0;
+    mesh.add(part);
+    bScene.add(mesh);
+    bMeshes.set(b, mesh); cell.push(b);
+  }
+  bScene.updateMatrixWorld(true);
+  const bCtx = { scene: bScene, meshes: bMeshes, hidden: bHidden, px: 330, py: 300, detailR: 190, drawDist: 900, withDetail: true, budgetMs: 50 };
+  for (let i = 0; i < 40; i++) buildingBatcher.update(bCtx);
+  const bi = buildingBatcher.info();
+  ok('een gebouw met de millimeter-nudge van #917 wordt nog gebatst', bi.merged === 2, `merged ${bi.merged} (0 = de nudge sluit de batch uit, de regressie van de review)`) ;
+  buildingBatcher.clear();
+}
 
 // --- a batcher without the pool draws loose meshes -------------------------
 const loose = makeBatcher('test-loose', { pool: false });
