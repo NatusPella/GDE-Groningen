@@ -99,7 +99,11 @@ const stand = {
   getRadioSave: () => 'aan',
   getFinanceSave: () => kasboek,
   getWijkenSeen: () => wijken,
+  // eten (#502) staat sinds de QoL-ronde ook in de signatuur; zonder deze nep-functie
+  // gooit stateSignature en blijft de oude signatuur staan
+  etenSave: () => etenStand,
 };
+let etenStand = {};
 let kasboek = { day: 0, total: { in: {}, out: {} }, days: [] };
 let wijken = [];
 const { stateSignature, markDirty } = new Function('scope', `with (scope) {

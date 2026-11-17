@@ -26,6 +26,7 @@ import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
+import { etenSave, applyEtenSave } from './spullen.js';
 import { slotKey, slotRecoveryKey } from './storagekeys.js';
 import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './coopsave.js';
 import { verhaalStatus } from './coopverhaal.js';
@@ -252,6 +253,8 @@ function serialize(w) {
     armor: clamp(num(w.armor, 0), 0, 100),
     weapon: w.weapon,
     ammo,
+    // eten (#502): gekochte snacks en zelf gevangen vis, net als ammo een gewoon veld
+    eten: etenSave(w),
     stats: { ...w.stats },
     character: p.character,
     pos,
@@ -467,6 +470,9 @@ function stateSignature(w) {
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
       getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(), getGoalSave(), getHomeSave(), getCheatSave(), getRadioSave(),
       w.money, getFinanceSave(),
+      // eten (#502): een gevangen vis of een opgegeten snack is een echte wijziging; zonder dit
+      // bleef de autosave stil tot de volgende aankoop of missie
+      etenSave(w),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone,
       // #790: een nieuwe wijkkaart (#726) staat in de save; zonder deze teller bleef de autosave
       // stil tot een volgende wijziging en was de kaart na een crash/force-kill weer ongezien.
@@ -564,6 +570,8 @@ export function applySave(w, d) {
       ammo[k] = v === 'inf' ? Infinity : Math.max(0, num(v, 0));
     }
     w.ammo = ammo;
+    // eten (#502): een save van vóór dit veld begint met een lege maag, zonder fout
+    applyEtenSave(w, d.eten);
     w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || Number.isFinite(ammo[d.weapon])) ? d.weapon : 'fists';
     for (const k of Object.keys(w.stats)) delete w.stats[k];
     Object.assign(w.stats, statsFromSave(d.stats));
