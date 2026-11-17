@@ -851,17 +851,22 @@ ${keyReuseHtml()}
 }
 // #980: Opslaan & stoppen opent met de stand van deze speelsessie: hoelang je speelt, wanneer het
 // spel voor het laatst bewaard werd en in welke savegame. Zo zie je wat "Spel opslaan" overschrijft.
+// Wanneer het spel voor het laatst bewaard werd, in gewone taal ("vandaag 14:02", "12 nov 09:15").
+// Ook gebruikt door de vraag bij Afsluiten, zodat daar hetzelfde moment staat als in de feiten.
+function lastSavedText(s = getSaveSummary()) {
+  const w = s && s.savedAt ? new Date(s.savedAt) : null;
+  if (!w) return 'nog niet';
+  const vandaag = w.toDateString() === new Date().toDateString();
+  return `${vandaag ? 'vandaag' : w.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${w.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
 function saveFactsInner() {
   const s = getSaveSummary();
   const speel = getPlaySeconds();
   const tijd = speel >= 3600
     ? `${Math.floor(speel / 3600)} u ${Math.round((speel % 3600) / 60)} min`
     : `${Math.max(0, Math.round(speel / 60))} min`;
-  const w = s && s.savedAt ? new Date(s.savedAt) : null;
-  const vandaag = w && w.toDateString() === new Date().toDateString();
-  const wanneer = w
-    ? `${vandaag ? 'vandaag' : w.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${w.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`
-    : 'nog niet';
+  const wanneer = lastSavedText(s);
   const naam = s && s.name ? s.name : 'deze speelsessie';
   return '<div class="m-fact"><span>Deze sessie</span><b>' + esc(tijd) + '</b></div>' +
     '<div class="m-fact"><span>Laatst opgeslagen</span><b>' + esc(wanneer) + '</b></div>' +
@@ -1824,9 +1829,17 @@ function askClose(a) {
   if (!box) return;
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (confirmEl) confirmEl.hidden = true;
-  box.querySelector('[data-exit-text]').textContent = (a === 'quit-now' || a === 'exit')
-    ? 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch sluiten?'
-    : 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch herstarten?';
+  // Noem het moment van de laatste save en wat er sindsdien bij kwam (#QoL): "je voortgang sinds je
+  // laatste savegame" zegt niets als je niet weet wanneer dat was. De feiten erboven noemen het wel,
+  // dus dezelfde helper, en de speeltijd en het geld sindsdien erbij.
+  const wanneer = lastSavedText();
+  const speel = Math.max(0, Math.round(getPlaySeconds() / 60));
+  const sinds = wanneer === 'nog niet'
+    ? `Deze sessie (${speel} min) is niet bewaard.`
+    : `Wat je sinds ${wanneer} deed (${speel} min in deze sessie) is niet bewaard.`;
+  box.querySelector('[data-exit-text]').textContent = a === 'quit-now' || a === 'exit'
+    ? `Opslaan mislukt. ${sinds} Wil je het spel toch sluiten?`
+    : `Opslaan mislukt. ${sinds} Wil je het spel toch herstarten?`;
   showQuestion(box, true);
   const b = box.querySelector('[data-action="exit-retry"]');
   if (b) b.focus();
