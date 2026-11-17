@@ -86,6 +86,19 @@ t('de nee blijft ook staan bij Standaard herstellen', async () => {
   assert.equal(S.getSettings().onlineMeedoen, false);
 });
 
+// #985 punt 6: de naam en de toestemming bleven bewaard maar de kleur en het onthouden
+// antwoord niet, dus na herstellen vroeg het spel opnieuw om toestemming en sprong je kleur
+// terug. De hele online-identiteit hoort bij elkaar te blijven.
+t('de online-identiteit blijft heel bij Standaard herstellen', async () => {
+  zetBestand({ onlineNaam: 'Sanne', onlineKleur: '#ff8800', multiplayerConsentRemembered: true, v: 10 });
+  const S = await laad();
+  S.resetSettings();
+  const s = S.getSettings();
+  assert.equal(s.onlineNaam, 'Sanne', 'de naam blijft');
+  assert.equal(s.onlineKleur, '#ff8800', 'de kleur blijft');
+  assert.equal(s.multiplayerConsentRemembered, true, 'het onthouden antwoord blijft');
+});
+
 t('naar null terugzetten kan niet per ongeluk via een lege waarde', async () => {
   zetBestand({ onlineMeedoen: true, v: 10 });
   const S = await laad();

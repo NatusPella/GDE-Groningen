@@ -144,7 +144,11 @@ const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 // the Besturing screen has its own "Standaard herstellen" for the bindings; the
 // consent for Samen spelen survives too, because resetting preferences is not
 // withdrawing a permission (#528, ADR 0022)
-const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'onlineNaam']);
+// Wat "Standaard herstellen" niet mag wissen: de identity van de speler in Samen spelen hoort
+// bij elkaar. `onlineMeedoen` en `onlineNaam` stonden er al, maar `onlineKleur` en
+// `multiplayerConsentRemembered` niet: na een herstel vroeg het spel opnieuw om toestemming
+// terwijl het antwoord bewaard bleef, en je kleur sprong terug (#985 punt 6).
+const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'onlineNaam', 'onlineKleur', 'multiplayerConsentRemembered']);
 const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
