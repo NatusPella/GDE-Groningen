@@ -39,6 +39,7 @@ import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
 import { radioIsOn, setRadio } from './radio.js';
+import { isMuted, toggleMute } from './audio.js';
 import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
@@ -742,7 +743,7 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
-      <div class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Staat het uit, dan staat linksboven een luidspreker met een streep')}<span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></div>
+      <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
@@ -1092,6 +1093,9 @@ export function initPauseMenu(w) {
   });
   root.addEventListener('input', (e) => {
     if (e.target.dataset && 'radioSwitch' in e.target.dataset) { setRadio(e.target.checked, { announce: false }); syncControls(); return; }
+    // dempen is een stand van deze speler, geen instelling in gde-settings: de knop roept dezelfde
+    // toggleMute als de U-toets en de HUD-luidspreker, zodat er één waarheid is (audio.js)
+    if (e.target.dataset && 'muteSwitch' in e.target.dataset) { if (isMuted() !== e.target.checked) toggleMute(); syncControls(); return; }
     if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
       DESKTOP.setFullscreen(e.target.checked);
       return;
@@ -2119,6 +2123,8 @@ function syncControls() {
   const st = getSettings();
   const radio = root.querySelector('[data-radio-switch]');
   if (radio) radio.checked = radioIsOn();
+  const demp = root.querySelector('[data-mute-switch]');
+  if (demp) demp.checked = isMuted();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
   syncPresets(st);
   for (const el of root.querySelectorAll('[data-setting]')) {
