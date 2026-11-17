@@ -14,7 +14,12 @@ export function tryQuickWaypoint(world) {
     return false;
   }
   const g = getGoal();
-  if (!g || g.kind === 'mission') {
+  if (!g) {
+    // zonder eigen doel liep hier de missietekst, ook als er geen missie was: zeg wat er echt aan de hand is
+    world.addMessage('Je hebt nog geen eigen doel. Kies er een op de kaart (M).', 3);
+    return false;
+  }
+  if (g.kind === 'mission') {
     world.addMessage('Een verhaalmissie heeft al een route; een eigen waypoint is nu niet nodig.', 2.6);
     return false;
   }

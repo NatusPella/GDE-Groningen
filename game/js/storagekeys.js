@@ -28,6 +28,8 @@ export const BASE_KEYS = {
   achievements: 'gde-prestaties-v1',
   saveBackup: 'gde-save-backup',
   menu: 'gde-menu-v1',
+  // soort en Dichtbij-filter van Te doen (todoui.js): blijven bewaard tussen sessies
+  todoFilter: 'gde-todo-filter',
   pigeon: 'gde-duif-v1',
   flavour: 'gde-flavour-v1',
   banter: 'gde-banter-v1',

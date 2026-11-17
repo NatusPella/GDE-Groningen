@@ -13,6 +13,7 @@ import { SECRETS_TOTAL } from './geheimen.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
 import { deviceText } from './touchui.js';
+import { KEYS } from './storagekeys.js';
 import { dualHtml } from './subtitles.js';
 import { loopbaanSamenvatting, loopbaanEersteKlusStand } from './loopbaanlive.js'; // #821, #846: de lussen in gewone taal
 import { getSideJobList } from './sidejobs.js';
@@ -26,7 +27,22 @@ import { calIcon } from './calendar.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
 
-const ui = { kind: 'alles', near: false, sel: null, open: null, more: new Set(), folds: new Set(['clues', 'quick', 'voortgang']) };
+// Soort en Dichtbij blijven bewaard (#QoL): wie "Minigames" koos, begon na het sluiten van het
+// menu weer op Alles. Alleen deze twee, geen selectie: een rij die je aanklikte hoeft niet terug.
+const FILTER_KEY = KEYS.todoFilter;
+function leesFilter() {
+  try {
+    const d = JSON.parse(localStorage.getItem(FILTER_KEY) || '{}');
+    // GROUPS, niet SHOWN: die wordt verderop in dit bestand pas bepaald
+    const kind = GROUPS.some(([g]) => g === d.kind) ? d.kind : 'alles';
+    return { kind, near: d.near === true };
+  } catch (e) { return { kind: 'alles', near: false }; }
+}
+const bewaarFilter = () => {
+  try { localStorage.setItem(FILTER_KEY, JSON.stringify({ kind: ui.kind, near: ui.near })); } catch (e) { /* privémodus */ }
+};
+const startFilter = leesFilter();
+const ui = { kind: startFilter.kind, near: startFilter.near, sel: null, open: null, more: new Set(), folds: new Set(['clues', 'quick', 'voortgang']) };
 const bars = new Map();
 const nums = new Map();
 
@@ -358,8 +374,13 @@ export function setTodoFilter(near) { ui.near = !!near; }
 
 // De kop van Activiteiten (#907): in één oogopslag hoeveel er te doen is en hoeveel daarvan
 // een plek op de kaart heeft. Dezelfde tellingen als de filters eronder, dus geen tweede waarheid.
+// Wat "dichtbij" heet: één grens voor de hero, de filterchip en de ondertitel van het scherm,
+// zodat dezelfde drie plekken nooit verschillende getallen met hetzelfde woord tonen.
+const DICHTBIJ_M = 600;
+const telDichtbij = (lijst) => lijst.filter((it) => it.dist != null && it.dist < DICHTBIJ_M).length;
+
 function activiteitenHero(eigen, metPlek) {
-  const dichtbij = eigen.filter((it) => it.dist != null && it.dist < 600).length;
+  const dichtbij = telDichtbij(eigen);
   return `<section class="td-acthero" aria-label="Activiteiten"><div class="td-acthero-main"><span class="m-eb">In en om Grunn</span>` +
     `<b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} in en om Grunn</b>` +
     `<p class="td-acthero-lead">Klussen, minigames en uitjes. Kies er een voor de uitleg, de afstand en de knop naar de plek.</p></div>` +
@@ -395,8 +416,11 @@ function allHtml() {
   const counts = Object.fromEntries(SHOWN.map(([g]) => [g, eigen.filter((it) => it.group === g).length]));
   const total = eigen.length;
   const metPlek = eigen.filter((it) => it.dist != null).length;
+  // De chip heet Dichtbij en telt daarom hetzelfde als de hero: wat binnen 600 m is. Eerst stond er
+  // "Dichtbij 140" naast "12 dichtbij" (het aantal met een plek), twee getallen met één woord.
+  const dichtbij = telDichtbij(eigen);
   const begin = beginHierHtml();
-  const filter = `<div class="m-chips" role="group" aria-label="Filter"><button type="button" class="m-chip" data-todo-near aria-pressed="${ui.near}">Dichtbij <span>${metPlek}</span></button></div>`;
+  const filter = `<div class="m-chips" role="group" aria-label="Filter"><button type="button" class="m-chip" data-todo-near aria-pressed="${ui.near}">Dichtbij <span>${dichtbij}</span></button></div>`;
   const chips = `<div class="m-chips" role="radiogroup" aria-label="Soort"><button type="button" class="m-chip" role="radio" data-todo-kind="alles" aria-checked="${ui.kind === 'alles'}">Alles <span>${total}</span></button>` +
     SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
   const tools = `<div class="td-acttools"><div class="m-gh"><span>Wat wil je doen?</span><span>Kies een soort of blijf bij alles</span></div>${filter}${chips}</div>`;
@@ -470,7 +494,7 @@ export function todoSummary(world) {
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
     verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length),
-    subTodo: `${items.filter(isActiviteit).length} dingen in en om Grunn · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij · Veroverd staat in de rail`,
+    subTodo: `${items.filter(isActiviteit).length} dingen in en om Grunn · ${telDichtbij(items.filter(isActiviteit))} dichtbij · Veroverd staat in de rail`,
     sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
 }
@@ -564,10 +588,10 @@ export function todoClick(e, world, panel, api) {
   const view = t.closest('[data-todo-view]');
   if (view) { api.showView(view.dataset.todoView); return true; }
   const kind = t.closest('[data-todo-kind]');
-  if (kind) { ui.kind = kind.dataset.todoKind; api.rerender(kind); return true; }
+  if (kind) { ui.kind = kind.dataset.todoKind; bewaarFilter(); api.rerender(kind); return true; }
   // de Dichtbij-filter aan of uit (#607): dezelfde lijst, hetzelfde detail, geen eigen weergave
   const near = t.closest('[data-todo-near]');
-  if (near) { ui.near = !ui.near; api.rerender(near); return true; }
+  if (near) { ui.near = !ui.near; bewaarFilter(); api.rerender(near); return true; }
   const part = t.closest('[data-part-toggle]');
   if (part) { const p = part.dataset.partToggle; if (ui.open.has(p)) ui.open.delete(p); else ui.open.add(p); api.rerender(part); return true; }
   const more = t.closest('[data-part-more]');
