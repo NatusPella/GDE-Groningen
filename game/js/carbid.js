@@ -259,8 +259,13 @@ function start(w) {
   if (p.inVehicle) p.exitVehicle(w.map, w);
   // carbid is shot at dusk: by day the farmers wait for it
   const h = ((w.clock % 24) + 24) % 24;
-  let waited = false;
-  if (h >= 8 && h < DUSK) { w.clock = DUSK; refreshDayNight(w); waited = true; }
+  if (h >= 8 && h < DUSK) {
+    w.clock = DUSK;
+    refreshDayNight(w);
+    // De klok sprong acht uur vooruit zonder dat de speler het wist (de oude `waited`-vlag werd
+    // gezet en nooit gelezen). Zeg het één keer, met de reden uit het verhaal.
+    w.addMessage('Het is schemer geworden; carbidschieten gaat pas in het donker.', 4);
+  }
   p.x = STAND.x; p.y = STAND.y; p.angle = FIELD.rot;
   const mate = toW(-3.2, 4.6);
   w.companionHold = { x: mate.x, y: mate.y, face: FIELD.rot };
