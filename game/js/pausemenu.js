@@ -130,6 +130,8 @@ const CONTROL_GROUPS = [
   ]],
   ['menu', 'Menu en radio', [
     [['ESC'], 'Pauzemenu'],
+    // #985 punt 9: snelopslaan, zodat een save niet elke keer via het menu hoeft.
+    [['F5'], 'Snel opslaan'],
     [['M'], 'Kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'Volgend tabblad of onderdeel'],

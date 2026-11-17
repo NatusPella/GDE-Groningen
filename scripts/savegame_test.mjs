@@ -395,5 +395,15 @@ ok(() => {
   assert.match(src('hud_panel.css'), /\.hud-saved\.hud-saved-broken\s*\{/, 'de storingsstand heeft eigen kleuren');
 }, '#985: het chipje valt op in de HUD');
 
+// #985 punt 9: snelopslaan met F5, zodat een save niet elke keer via het menu hoeft. F5 is ook
+// de herlaadtoets van de browser, dus die moet worden tegengehouden.
+ok(() => {
+  assert.match(sg, /e\.key !== 'F5'/, 'de snelopslag luistert naar F5');
+  assert.match(sg, /e\.preventDefault\(\);[\s\S]{0,200}saveGame\(world, \{ toast: true, manual: true \}\)/, 'F5 houdt de browserherlaad tegen en slaat op');
+  assert.match(sg, /game-started/, 'alleen in een lopend spel');
+  assert.match(sg, /input, textarea, \[contenteditable/, 'niet terwijl je typt');
+  assert.match(pm, /\['F5'\], 'Snel opslaan'/, 'het staat in het Toetsenoverzicht');
+}, '#985: F5 is snelopslaan (#985)');
+
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

@@ -692,6 +692,23 @@ export function initSaveGame(w) {
     toastEl.innerHTML = DISK_SVG + '<span>Opgeslagen</span>';
     hud.appendChild(toastEl);
   }
+  // #985 punt 9: snelopslaan met F5. Elke save kostte Escape › Spel › Opslaan, en F5/F9 zijn
+  // vrij. F5 is bovendien de toets die een browser gebruikt om de pagina te herladen, dus die
+  // moet worden tegengehouden; anders kost een snelopslag je juist je voortgang.
+  if (!quickSaveBound && typeof document !== 'undefined') {
+    quickSaveBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'F5' || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (!world || !document.body.classList.contains('game-started')) return;
+      if (closeSaveOff) return;
+      const t = e.target;
+      if (t && t.closest && t.closest('input, textarea, [contenteditable="true"]')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const gelukt = saveGame(world, { toast: true, manual: true });
+      if (gelukt && world.addMessage) world.addMessage('Snel opgeslagen', 2, { key: 'snelopslaan' });
+    });
+  }
   // a phone kills a backgrounded app without warning: save when the page goes to the background (#227)
   if (!hiddenSaveBound && typeof document !== 'undefined') {
     hiddenSaveBound = true;
@@ -716,6 +733,7 @@ export function initSaveGame(w) {
   }
 }
 let hiddenSaveBound = false;
+let quickSaveBound = false;   // #985 punt 9: F5 luistert maar één keer
 
 // Samen spelen (#448): elke speler (ook een gast, in zijn eigen save) schrijft zijn voortgang elke minuut en na elke gelukte opdracht weg,
 // ook achter het pauzemenu; een sessie die wegvalt of crasht kost dan hooguit een minuut.
