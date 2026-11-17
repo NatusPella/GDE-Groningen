@@ -44,6 +44,9 @@ const R = { queue: [], nextAt: 0, rot: {}, played: 0, done: null, breakUntil: 0 
 // the adverts (radioads.js, #409): when the last block ran, how many breaks ago, which ones were heard
 const ADS = createAdState();
 let subOn = false;
+// tot wanneer de ondertitel van een opgenomen regel mag blijven staan (world.time, geen klok-timer:
+// een menu pauzeert de wereld en dan hoort de regel ook te blijven)
+let subUntil = 0;
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -107,6 +110,8 @@ export function radioKeyBlocked(w) {
 
 export function updateRadio(dt, w) {
   if (subOn && w.paused) hideSub();
+  // een opgenomen radiolijn is klaar: haal zijn ondertitel weg (de wereldklok staat stil in een menu)
+  else if (subOn && subUntil && w.time >= subUntil) hideSub();
   if (!radioKeyBlocked(w) && w.input.wasPressed('n')) setRadio(!on);
   // Alleen de speler zet de radio aan. Vroeger stond hier `on || playerBusy(...)`,
   // waardoor een minigame, de helirun en de duifmodus hem zelf weer aanzetten en
@@ -213,6 +218,15 @@ function talk(w) {
   if (!playLineVoice(v.src, v.dur, 'radio')) { R.nextAt = w.time + 1.2; return; }
   R.queue.shift();
   R.played++;
+  // Een opgenomen radiolijn kreeg geen ondertitel: alleen de reclames (textOnly) deden dat. De
+  // instellingen beloven ondertitels voor "filmpjes, gesprekken, telefoon, radio en naamkaarten",
+  // dus wie doof is of de radio in een lawaaiige omgeving aan heeft, miste het hele praatblok.
+  if (line.text) {
+    subOn = true;
+    showRadioSub(line.speaker, line.text);
+    // de ondertitel gaat weg als de regel klaar is; de volgende regel zet zijn eigen eindtijd
+    subUntil = w.time + Math.max(1.5, (v.dur || 3) + 0.4);
+  }
   R.nextAt = w.time + v.dur + (R.queue.length ? 0.5 : 1.2);
 }
 
@@ -225,6 +239,7 @@ function talkText(w, line) {
   if (line.jingle) { hideSub(); playRadioJingle(line.jingle); } else {
     subOn = true;
     showRadioSub(line.speaker, line.text);
+    subUntil = w.time + Math.max(1.5, (line.dur || 3) + 0.4);
     playTextMumble('R', line.text, line.dur);
   }
   R.nextAt = w.time + line.dur;

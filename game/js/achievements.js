@@ -25,6 +25,9 @@ const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
 const TOAST_S = 4.2;
 export const EIERBAL_TOTAL = 30;
+// De buurten van de stad (stad.json meta.neighbourhoodPoints): één bron voor de prestatie en
+// de teller in Prestaties, zodat het cijfer niet stil gaat liegen als de kaart groeit.
+export const WIJKEN_TOTAL = 66;
 
 export const CATEGORIES = [
   ['missies', 'Missies'],
@@ -105,8 +108,11 @@ export const ACHIEVEMENTS = [
 
   { id: 'wijken_10', cat: 'verkennen', title: 'Stadjer in wording', desc: 'Ontdek 10 buurten', set: 'wijken', goal: 10 },
   { id: 'wijken_33', cat: 'verkennen', title: 'Halve Stadjer', desc: 'Ontdek 33 buurten', set: 'wijken', goal: 33 },
-  { id: 'wijken_alle', cat: 'verkennen', title: 'Kenner van Grunn', desc: 'Ontdek alle 66 buurten', set: 'wijken', goal: 66 },
-  { id: 'landmarks', cat: 'verkennen', title: 'Toerist in eigen stad', desc: 'Bezoek alle 14 bezienswaardigheden', set: 'landmarks', goal: 14 },
+  { id: 'wijken_alle', cat: 'verkennen', title: 'Kenner van Grunn', desc: `Ontdek alle ${WIJKEN_TOTAL} buurten`, set: 'wijken', goal: WIJKEN_TOTAL },
+  // De stad heeft er 18 (stad.json meta.landmarks), met Eemshaven en Vesting Bourtange erbij: die
+  // twee horen niet bij "in eigen stad", dus de prestatie telt de eerste veertien. Zeg geen "alle"
+  // als het er meer zijn (de QoL-review zag de teller te vroeg vol lopen).
+  { id: 'landmarks', cat: 'verkennen', title: 'Toerist in eigen stad', desc: 'Bezoek 14 bezienswaardigheden in en om de stad', set: 'landmarks', goal: 14 },
   { id: 'kaart_25', cat: 'verkennen', title: 'Kaartlezer', desc: 'Bezoek een kwart van alle buurten van de provincie', stat: 'kaartVerkend', goal: 25, unit: '%' },
   { id: 'kaart_50', cat: 'verkennen', title: 'Halve kaart gezien', desc: 'Bezoek de helft van alle buurten van de provincie', stat: 'kaartVerkend', goal: 50, unit: '%' },
   { id: 'kaart_alle', cat: 'verkennen', title: 'De hele kaart verkend', desc: 'Bezoek elke buurt van de provincie, tot in de uiterste hoek', stat: 'kaartVerkend', goal: 100, unit: '%' },
@@ -450,11 +456,24 @@ function leesGebiedStand() {
 
 // --- progress --------------------------------------------------------------
 
+// De beste medaille per missie over álle moeilijkheidsstanden (#800 schrijft een andere stand in
+// life.missionModes). Zonder dit telde een goud op Ontspannen wel in de missielijst maar niet in
+// de medaille-prestaties, en bleef "Gouden Eierbal" op 0/8 staan.
+function bestPerMission() {
+  const uit = {};
+  for (const [i, r] of Object.entries(life.missions)) uit[i] = Math.max(0, r.medal | 0);
+  for (const map of Object.values(life.missionModes)) {
+    for (const [i, r] of Object.entries(map || {})) uit[i] = Math.max(uit[i] || 0, r.medal | 0);
+  }
+  return uit;
+}
+
 function derived(key) {
-  const recs = Object.values(life.missions);
   if (key === 'missionsDone') return MISSION_GOALS.filter((g, i) => life.unlocked[`m${i + 1}_klaar`]).length;
-  if (key === 'silverPlus') return recs.filter((r) => r.medal >= 2).length;
-  if (key === 'goldCount') return recs.filter((r) => r.medal >= 3).length;
+  // een missie telt één keer, met zijn beste medaille, niet één keer per stand
+  const recs = Object.values(bestPerMission());
+  if (key === 'silverPlus') return recs.filter((m) => m >= 2).length;
+  if (key === 'goldCount') return recs.filter((m) => m >= 3).length;
   return 0;
 }
 

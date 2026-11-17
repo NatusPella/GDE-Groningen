@@ -97,8 +97,10 @@ export function spelersKnopTekst(aantal = 0) {
   return n > 1 ? `${SPELERS_KNOP.label} · ${n}` : SPELERS_KNOP.label;
 }
 // wat de weggestuurde gast ziet; 'spel gestopt' is stoppen voor iedereen
-// Alleen een kamercode (nooit een koppelcode van de IP-route: die bevat een adres) komt in beeld, zodat wie eruit gezet is weet hoe hij opnieuw kan aansluiten.
-const KAMERCODE = /^[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/;
-export const wegMelding = (reden, opener, code = '') => (reden === 'spel gestopt'
+// Geen kamercode meer in de melding (#QoL): de host laat bij het eruit zetten meteen een nieuwe kamer
+// rouleren (coopnet.js removeGuest), dus de code die de gast hier kreeg was al ongeldig en hij wachtte
+// 30 s op een verbinding die nooit kwam. Alleen een koppelcode van de IP-route komt hier nooit in beeld:
+// die bevat een adres.
+export const wegMelding = (reden, opener) => (reden === 'spel gestopt'
   ? `${opener} heeft het spel gestopt. Je speelt weer in je eigen spel.`
-  : `${opener} heeft je uit het spel gezet. Je speelt weer in je eigen spel, waar je gebleven was.${KAMERCODE.test(code || '') ? ` Opnieuw aansluiten kan met de kamercode ${code}: die staat klaar bij Samen spelen in het pauzemenu.` : ''}`);
+  : `${opener} heeft je uit het spel gezet. Je speelt weer in je eigen spel, waar je gebleven was. Vraag ${opener} om de nieuwe kamercode als je weer mee wilt doen.`);

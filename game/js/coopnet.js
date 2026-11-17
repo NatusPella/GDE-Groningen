@@ -350,8 +350,14 @@ export function startHost(world, info, opts = {}) {
         }
       }
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
+      // Zeg het ook: een nieuwe speler stond er anders ineens, zonder dat iemand het wist (#QoL).
+      // Een gast die zelf weggaat meldt zich via onLeave; dit is de kennismaking.
+      if (slot >= 1 && world.addMessage) world.addMessage(`${gastNaam(world, slot)} doet mee.`, 3.5);
     },
-    onLeave: (slot) => {
+    onLeave: (slot, why, naam = '') => {
+      // een gast die zelf "Spel verlaten" kiest, verdween stil uit de wereld; de host zegt het nu.
+      // De naam komt van de hub: die is al uit de lijst weg als dit draait.
+      if (slot >= 1 && world.addMessage) world.addMessage(`${naam || gastNaam(world, slot)} heeft het spel verlaten.`, 3.5);
       bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
@@ -1575,7 +1581,8 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt'), n.code), 6);
+      // geen code mee: de host rouleert de kamer meteen bij het eruit zetten (removeGuest), dus de oude code is al ongeldig
+      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt')), 6);
       stopCoopNet(world);
       return true;
     default: return typeof body.k === 'string' && body.k.startsWith('hw-') ? wisselEvent(world, body, van) : false; // het spel overdragen (#439)

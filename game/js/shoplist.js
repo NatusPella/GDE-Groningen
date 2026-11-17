@@ -88,18 +88,22 @@ export function refusalMessage(it, money = 0) {
   return it.disabled || st.label;
 }
 
-// Expensive purchases ask once more.
+// Expensive purchases ask once more, and so do expensive sales (#1 in de QoL-review):
+// een verkoopregel heeft price 0 en income > 0, dus zonder deze regel ging een geweer of
+// een vest van honderden euro's met één druk weg terwijl kopen wél vroeg.
 const CONFIRM_FROM = 1000;
+const CONFIRM_SELL_FROM = 300;
 const CONFIRM_SHARE = 0.5;
 export function needsConfirm(it, money = 0) {
-  return !!it.confirmText || it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > money * CONFIRM_SHARE);
+  return !!it.confirmText || it.price >= CONFIRM_FROM || it.income >= CONFIRM_SELL_FROM
+    || (it.price >= 300 && it.price > money * CONFIRM_SHARE);
 }
 
 // Label of the one buy button.
 export function buyLabel(it, shopType, armed = false) {
   if (it.disabled) return it.disabled;
   const verb = it.verb || (shopType === 'tuning' ? 'Betalen' : 'Kopen voor');
-  if (armed) return `Zeker? Nog eens: €${it.price}`;
+  if (armed) return it.income > 0 ? `Zeker? Nog eens: +€${it.income}` : `Zeker? Nog eens: €${it.price}`;
   if (it.income > 0) return `Verkopen voor €${it.income}`;
   if (it.price > 0) return `${verb} €${it.price}`;
   return it.verb || 'Kiezen';

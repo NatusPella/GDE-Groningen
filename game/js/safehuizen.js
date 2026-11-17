@@ -489,8 +489,13 @@ export const SAFEHUIS = {
   layer: 'safehuis',
   gastTick: true, // ook bij een gast bouwen: het losse huisje heeft muren die zijn lichaam tegenhouden (#434), een bestaand pand is al solide
   legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een woning om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
-  // #679: teller van je eigen veilige huizen, uit je eigen profiel.
-  doel: () => ({ tekst: `${huizen.filter((h) => heeftHuisLive(h.id)).length} van 3 veilige huizen` }),
+  // #679: teller van je eigen veilige huizen, uit je eigen profiel. Het plafond is het aantal
+  // huizen dat er echt is (één per veroverbaar gebied), niet 3: bij de vierde stond er "4 van 3".
+  doel: () => {
+    const eigen = huizen.filter((h) => heeftHuisLive(h.id)).length;
+    const totaal = huizen.length || eigen;
+    return { tekst: totaal ? `${eigen} van ${totaal} veilige huizen` : `${eigen} veilige huizen` };
+  },
   init(w) {
     if (kamer) verlaat(wereld || w, true);
     kamerGen++;

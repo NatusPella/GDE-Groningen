@@ -19,6 +19,7 @@ import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
+import { voegEtenToe } from './spullen.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
@@ -835,7 +836,10 @@ export function hengelSections(world) {
     };
   });
   const aas = TUIG.AAS.map((a) => ({
-    id: 'as-' + a.id, label: a.naam, desc: `${a.desc} · een pak van ${TUIG.AAS_PER_PAK} beten`, price: a.prijs,
+    id: 'as-' + a.id, label: a.naam,
+    // een ander soort aas in je zak gaat bij de aankoop weg: zeg dat vóór de betaling, niet erna
+    desc: `${a.desc} · een pak van ${TUIG.AAS_PER_PAK} beten${t.aas && t.aas.id !== a.id ? ` · je ${t.aas.n} beten ${TUIG.aasById(t.aas.id) ? TUIG.aasById(t.aas.id).naam.toLowerCase() : 'aas'} gaan weg` : ''}`,
+    price: a.prijs,
     tag: t.aas && t.aas.id === a.id ? `In je zak: ${t.aas.n}` : '',
     effect: 'De vis van dit aas bijt vaker',
     disabled: TUIG.aasBlokkade(t, a.id, world.money) || '',
@@ -843,7 +847,7 @@ export function hengelSections(world) {
       const r = TUIG.koopAas(getTuig(), a.id, world.money);
       if (r.fout || !pay(world, r.prijs)) return null;
       zetTuig(r.tuig);
-      return `${a.naam} in je zak: ${TUIG.AAS_PER_PAK} beten. Ander aas gaat weg`;
+      return `${a.naam} in je zak: ${TUIG.AAS_PER_PAK} beten`;
     },
   }));
   const op = t.upgrades >= TUIG.UPGRADE_MAX;
@@ -879,7 +883,8 @@ function foodItem(world, id, label, desc, price, hp, product, eaten) {
     disabled: broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
-      if (world.health >= 100) return `${label} ingepakt, voor straks`;
+      // vol: het eten gaat mee in de voorraad (Spullen > Eten), anders was het geld weg zonder iets
+      if (world.health >= 100) { voegEtenToe(world, id, 1); return `${label} ingepakt, voor straks`; }
       world.health = Math.min(100, world.health + hp);
       return eaten(label);
     },

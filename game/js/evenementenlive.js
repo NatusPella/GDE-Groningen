@@ -110,7 +110,9 @@ export function updateEvenementen(dt, world, n) {
     let st = null;
     try { st = typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { st = null; }
     if (!seen) seen = loadSeen(st);
-    if (!seen.includes(here.ev.id)) toonUitje(world, 'evenementen', { regel: arrivalText(here.ev), hint: '[E] meedoen', secs: 5 });
+    // Geen "[E] meedoen": een evenement is een plek om te zijn, er is geen actie aan E
+    // (evenementenact.js interact geeft altijd false). De hint beloofde iets dat niet gebeurde.
+    if (!seen.includes(here.ev.id)) toonUitje(world, 'evenementen', { regel: arrivalText(here.ev), hint: 'Je bent erbij · blijf even staan voor de sfeer', secs: 5 });
     seen = markSeen(st, seen, here.ev.id);
   }
   if (world.coopRole !== 'client' && world.eventsNow.length && Array.isArray(world.vehicles)) { // een gast ruimt niets op: zijn voertuigen komen uit het snapshot (#452)

@@ -30,7 +30,7 @@
 body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 /* what the rules (hudrules.js) leave out: faded, not removed, so layout holds */
-#hud .hv-off, #hud.hv-e-off .hud-nowplaying, #hud.hv-e-off .hud-cards-e, #hud.hv-keys-off .hud-ctx { opacity: 0 !important; visibility: hidden; transition: opacity 0.5s ease, visibility 0s 0.5s !important; }
+#hud .hv-off, #hud.hv-e-off .hud-nowplaying, #hud.hv-e-off .hud-cards-e, #hud.hv-keys-off .hud-ctx, #hud.hv-keys-off .hud-obj-keys, body.hide-hints #hud .hud-obj-keys { opacity: 0 !important; visibility: hidden; transition: opacity 0.5s ease, visibility 0s 0.5s !important; }
 #hud .hv-in { animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud.hud-dimmed > :not(.hud-damage) { opacity: 0.12; }
 

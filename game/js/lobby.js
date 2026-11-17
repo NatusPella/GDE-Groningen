@@ -123,7 +123,9 @@ export function classifyInput(text) {
     return c.ok ? { ok: true, route: ROUTES.DIRECT, code: t.replace(/\s+/g, '') } : c;
   }
   const r = parseRoom(t);
-  return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: 'Dit is geen kamercode en geen koppelcode van dit spel.' };
+  // parseRoom zegt precies wat er mis is ("10 tekens, zoals K3J9D-8F2MN"); die uitleg is nuttiger
+  // dan één algemene regel, zeker bij een typefout van de juiste lengte.
+  return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: r.reason || 'Dit is geen kamercode en geen koppelcode van dit spel.' };
 }
 
 // caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als wie het spel opende start), spelNaam (het opgeslagen spel van deze speler), consentSaved (dit apparaat koos "Niet meer vragen") }
@@ -397,7 +399,8 @@ export function view(s) {
           // (#526) dit apparaat koos "Niet meer vragen": zeg het hier, zodat de keuze niet vastzit
           ...(s.consentSaved ? ['Dit apparaat gaf eerder toestemming voor samen spelen en vraagt het daarom niet meer. Wil je het toch elke keer zien? Kies Toestemming intrekken.'] : [])],
         profiel,
-        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, ...(s.consentSaved ? [{ act: 'consent-vergeet', label: 'Toestemming intrekken' }] : [])],
+        // "Code of adres" zei een speler niets; dit is de kant waar je een code van iemand anders intypt
+        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Ik heb een kamercode gekregen' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, ...(s.consentSaved ? [{ act: 'consent-vergeet', label: 'Toestemming intrekken' }] : [])],
       });
     case 'methode': {
       const buttons = [{ act: 'route-kamer', label: 'Kamercode', primary: true }];

@@ -65,8 +65,8 @@ const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kledi
 // eten; de namen en de gezondheid per stuk zijn daar overgenomen, want deze module mag de
 // winkel niet aanpassen. Opeten gebruikt precies de regel van de toonbank:
 // world.health = min(100, health + hp). De aantallen staan als voorraad op het world-object
-// (id -> aantal), net als w.ammo: geen eigen saveformaat. De save schrijft dit veld nog niet
-// (savegame.js valt buiten deze opdracht), dus na een herstart begin je met een lege maag.
+// (id -> aantal), net als w.ammo: geen eigen saveformaat, wel een eigen veld in de save
+// (etenSave/applyEtenSave hieronder, savegame.js schrijft en leest het).
 const TOONBANK = [
   ['krentenbol', 'Krentenbol', 3, 'Avondwinkel'],
   ['koffie', 'Koude bak koffie', 6, 'Avondwinkel'],
@@ -102,6 +102,26 @@ export function eetVoorraad(w) {
     if (waar && aantal > 0) out.push({ id, ...waar, aantal });
   }
   return out.sort((a, b) => a.label.localeCompare(b.label, 'nl'));
+}
+
+// De voorraad voor de save: alleen bekende ids met een aantal boven nul, zodat een oud of
+// geknoeid bestand geen spooketen in Spullen zet.
+export function etenSave(w) {
+  const uit = {};
+  for (const { id, aantal } of eetVoorraad(w)) uit[id] = aantal;
+  return uit;
+}
+
+export function applyEtenSave(w, raw) {
+  const uit = {};
+  if (w && raw && typeof raw === 'object') {
+    for (const [id, n] of Object.entries(raw)) {
+      const aantal = Math.min(999, Math.max(0, Math.floor(Number(n) || 0)));
+      if (aantal > 0 && eetWaar(id)) uit[id] = aantal;
+    }
+  }
+  if (w) w.eten = uit;
+  return uit;
 }
 
 // Erbij krijgen (hengelen.js doet dit met een vis). Zonder world of met een onbekend id
