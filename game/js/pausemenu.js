@@ -437,7 +437,10 @@ const SUBTABS = {
   // standen ernaast; de speelopties staan er ook, want het zijn instellingen.
   // #979: Camera & richten en Hints & uitleg staan hier, naast Besturing en Interface; het zijn
   // instellingen van het beeld en van de bediening, geen spelacties.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spel'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid']],
+  // #985 punt 7: dit tabblad heette ook "Spel", net als het rail-onderdeel waar je je save beheert.
+  // Twee dingen met dezelfde naam in hetzelfde menu is een raadsel; "Spelregels" zegt wat erin staat
+  // (moeilijkheid, verkeer, geweld, rijden) en botst nergens meer mee.
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
@@ -783,7 +786,7 @@ function settingsHtml() {
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
-      `${pane('Spel', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
+      `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt')}
@@ -934,7 +937,7 @@ function spelHtml() {
       <div class="pm-confirm" data-coop-new-confirm hidden>
         <p data-coop-new-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="coop-new-go">Ja, sessie beëindigen en nieuw spel</button><button type="button" class="m-bt" data-action="coop-new-cancel">Annuleren</button></div>
-      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt en hoe moeilijk het is, staat onder Instellingen &gt; Spel; camera en hints onder Instellingen &gt; Camera en Hints &amp; uitleg.</p>')}`)}`;
+      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt en hoe moeilijk het is, staat onder Instellingen &gt; Spelregels; camera en hints onder Instellingen &gt; Camera en Hints &amp; uitleg.</p>')}`)}`;
 }
 // Problemen (#604): het foutrapport staat onder Over, niet meer als tabblad onder Instellingen. De
 // Nederlandse samenvatting staat vooraan; de ruwe, Engelse meldingen zitten achter de vouw.

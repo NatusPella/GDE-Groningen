@@ -129,7 +129,7 @@ const html = leesHtml();
 // --- #897: Spelen hoort bij Instellingen --------------------------------------------------
 {
   ok(!/spel: \[[^\]]*'spelen'/.test(pm), '#897: Spel heeft geen tabblad Spelen meer');
-  ok(/\['spel', 'Spel'\]/.test(pm), '#897: Instellingen heeft een tabblad Spel');
+  ok(/\['spel', 'Spelregels'\]/.test(pm), '#897/#985: Instellingen heeft een tabblad Spelregels (niet twee dingen die Spel heten)');
   ok(/\$\{tab\('spel', `/.test(pm) && /data-of="settings" data-sub="\$\{id\}"/.test(pm), '#897: dat tabblad heeft zijn eigen inhoud in Instellingen');
 }
 
