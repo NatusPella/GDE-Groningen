@@ -1536,7 +1536,10 @@ function besturingLabel(token) {
 }
 function updateObjectiveKeys(world, kind) {
   if (!els.objKeys) return;
-  const hint = kind === 'mission' || kind === 'job' || kind === 'police' ? controlHint(world, hoofdspeler(world)) : null;
+  // "Toetshints uit" hoort ook deze regel te verbergen: hij stond in de doellijn en niet in
+  // .hud-prompts, dus de instelling liet hem tijdens elke missie staan (QoL-review).
+  const hintsOn = getSettings().showHints !== false;
+  const hint = hintsOn && (kind === 'mission' || kind === 'job' || kind === 'police') ? controlHint(world, hoofdspeler(world)) : null;
   const sig = hint ? hint.context + '|' + hint.groepen.map((g) => g.keys.join('+') + g.werk).join('|') : '';
   if (sig === els.objKeysSig) return;
   els.objKeysSig = sig;
