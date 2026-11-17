@@ -567,8 +567,11 @@ function subtabsHtml(of, label) {
 
 const rowName = (label, note) => `<span class="nm">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>`;
 
-function slider(k, label, min = 0, max = 1, step = 0.05, note = '') {
-  return `<label class="m-li pm-row">${rowName(label, note)}<input type="range" class="m-sl" min="${min}" max="${max}" step="${step}" data-setting="${k}"><output class="m-val"></output></label>`;
+// `weergave`: 'procent' (volumes, helderheid) of 'keer' (afstand, gevoeligheid). Een
+// percentage bij "Camera-afstand 1,2x" of "Stuurgevoeligheid" zegt niets; 120% van wat?
+// (#985 punt 3). De standaard blijft procent, zodat de bestaande schuiven niet veranderen.
+function slider(k, label, min = 0, max = 1, step = 0.05, note = '', weergave = 'procent') {
+  return `<label class="m-li pm-row">${rowName(label, note)}<input type="range" class="m-sl" min="${min}" max="${max}" step="${step}" data-setting="${k}" data-weergave="${weergave}"><output class="m-val"></output></label>`;
 }
 
 function toggle(k, label, note = '') {
@@ -789,7 +792,7 @@ function settingsHtml() {
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
-      ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt')}
+      ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt', 'keer')}
       ${toggle('invertY', 'Omhoog en omlaag omkeren', 'Geldt voor de muis en de rechterstick')}
       <div class="m-gh"><span>Toetsenbord</span></div>
       <div class="m-li pm-row">${rowName('Toetsen aanpassen', 'Elke toets een andere functie geven; zit een toets al op iets anders, dan ruilen ze')}<button type="button" class="m-bg" data-goto-sub="controls:toetsen">Aanpassen</button></div>
@@ -798,7 +801,7 @@ function settingsHtml() {
       ${disclosure('keys-fixed', 'Deze toetsen liggen vast', 'Esc, Enter, de pijltjes en de functietoetsen', fixedKeysHtml())}
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via een koppelprogramma), kies dan zelf; knoppen en hints volgen je keuze')}
-      ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
+      ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05, '', 'keer')}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Elke knop een andere functie geven')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
       <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>
@@ -817,7 +820,7 @@ ${keyReuseHtml()}
       <div class="m-gh"><span>Kijken</span></div>
       ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik. Geldt overal en blijft na in- en uitstappen staan. C (in de browser G) doet hetzelfde')}
       ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoger laat meer zien, maar maakt alles kleiner')}
-      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat; in eerste persoon maakt dit niet uit')}
+      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat; in eerste persoon maakt dit niet uit', 'keer')}
       <div class="m-gh"><span>Richten</span></div>
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
       <div class="m-gh"><span>Sfeer</span></div>
@@ -2210,7 +2213,9 @@ function syncControls() {
     else el.value = String(v);
     const out = el.nextElementSibling;
     if (out && out.tagName === 'OUTPUT') {
-      out.textContent = el.dataset.setting === 'fov' ? `${v}°` : `${Math.round(v * 100)}%`;
+      out.textContent = el.dataset.setting === 'fov' ? `${v}°`
+        : el.dataset.weergave === 'keer' ? `${Number(v).toFixed(2).replace('.', ',').replace(/,?0$/, '')}×`
+        : `${Math.round(v * 100)}%`;
     }
     if (el.type === 'range') el.style.setProperty('--fill', `${((Number(el.value) - Number(el.min)) / (Number(el.max) - Number(el.min))) * 100}%`);
   }
