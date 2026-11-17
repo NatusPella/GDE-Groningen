@@ -20,7 +20,6 @@ import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getLedger, summary } from './finance.js';
 import { woordenVan, past } from './zoektekst.js';
-import { soort as visSoort } from './visdata.js';
 
 const ICON = {
   geld: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
@@ -61,91 +60,10 @@ export const DELEN = [['alles', 'Alles'], ['uitrusting', 'Uitrusting'], ['thuis'
 // andere delen gaat het over spullen (#435)
 const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kleding: 'uitrusting', eten: 'uitrusting', upgrade: 'uitrusting', thuis: 'thuis', kaart: 'verzameling' };
 
-// Eten (#502): wat je bij je hebt om op te eten. De toonbank (shops.js) verkoopt hetzelfde
-// eten; de namen en de gezondheid per stuk zijn daar overgenomen, want deze module mag de
-// winkel niet aanpassen. Opeten gebruikt precies de regel van de toonbank:
-// world.health = min(100, health + hp). De aantallen staan als voorraad op het world-object
-// (id -> aantal), net als w.ammo: geen eigen saveformaat, wel een eigen veld in de save
-// (etenSave/applyEtenSave hieronder, savegame.js schrijft en leest het).
-const TOONBANK = [
-  ['krentenbol', 'Krentenbol', 3, 'Avondwinkel'],
-  ['koffie', 'Koude bak koffie', 6, 'Avondwinkel'],
-  ['drop', 'Zak drop', 5, 'Avondwinkel'],
-  ['energie', 'Energiedrankje "Grunn Bull"', 12, 'Avondwinkel'],
-  ['ehbo', 'EHBO-doos', 45, 'Avondwinkel'],
-  ['kroket', 'Kroket', 8, 'Snackbar'],
-  ['frikandel', 'Frikandel speciaal', 9, 'Snackbar'],
-  ['eierbal', 'Eierbal', 12, 'Snackbar'],
-  ['oorlog', 'Patatje oorlog', 13, 'Snackbar'],
-  ['kapsalon', 'Kapsalon', 30, 'Snackbar'],
-];
-const EETBAAR = new Map(TOONBANK.map(([id, label, hp, how]) => [id, { label, hp, how }]));
-// Een gevangen vis is ook eten; hij vult meer dan een snack. De soort komt uit visdata.js.
-const VIS_HP = 15;
-const VIS_VOOR = 'vis:';
-
-// Wat een id is: een snack van de toonbank of een vis uit het hengelen (vis:<soort>).
-export function eetWaar(id) {
-  const snack = EETBAAR.get(id);
-  if (snack) return snack;
-  const s = typeof id === 'string' && id.startsWith(VIS_VOOR) ? visSoort(id.slice(VIS_VOOR.length)) : null;
-  return s ? { label: s.naam, hp: VIS_HP, how: 'Zelf gevangen' } : null;
-}
-
-// De voorraad eten die je bij je hebt, op naam gesorteerd. Wat niet (meer) bestaat telt niet mee.
-export function eetVoorraad(w) {
-  const bron = w && w.eten && typeof w.eten === 'object' ? w.eten : {};
-  const out = [];
-  for (const [id, n] of Object.entries(bron)) {
-    const waar = eetWaar(id);
-    const aantal = Math.max(0, Math.floor(Number(n) || 0));
-    if (waar && aantal > 0) out.push({ id, ...waar, aantal });
-  }
-  return out.sort((a, b) => a.label.localeCompare(b.label, 'nl'));
-}
-
-// De voorraad voor de save: alleen bekende ids met een aantal boven nul, zodat een oud of
-// geknoeid bestand geen spooketen in Spullen zet.
-export function etenSave(w) {
-  const uit = {};
-  for (const { id, aantal } of eetVoorraad(w)) uit[id] = aantal;
-  return uit;
-}
-
-export function applyEtenSave(w, raw) {
-  const uit = {};
-  if (w && raw && typeof raw === 'object') {
-    for (const [id, n] of Object.entries(raw)) {
-      const aantal = Math.min(999, Math.max(0, Math.floor(Number(n) || 0)));
-      if (aantal > 0 && eetWaar(id)) uit[id] = aantal;
-    }
-  }
-  if (w) w.eten = uit;
-  return uit;
-}
-
-// Erbij krijgen (hengelen.js doet dit met een vis). Zonder world of met een onbekend id
-// gebeurt er niets, zodat een aanroep nooit stukloopt.
-export function voegEtenToe(w, id, n = 1) {
-  if (!w || !eetWaar(id)) return 0;
-  if (!w.eten || typeof w.eten !== 'object') w.eten = {};
-  const bij = Math.floor(Number(n));
-  const aantal = Math.max(0, Math.floor(Number(w.eten[id]) || 0) + (Number.isFinite(bij) ? bij : 0));
-  if (aantal) w.eten[id] = aantal; else delete w.eten[id];
-  return aantal;
-}
-
-// Opeten: dezelfde regel als de toonbank (shops.js foodItem). Op volle gezondheid blijft
-// het eten liggen, net als daar ("om mee te nemen"). Geeft de melding voor het paneel.
-export function eet(w, id) {
-  const waar = eetWaar(id);
-  const hebben = w && w.eten ? Math.floor(Number(w.eten[id]) || 0) : 0;
-  if (!waar || hebben <= 0) return 'Dat heb je niet bij je.';
-  if (w.health >= 100) return `${waar.label}: je zit vol, die bewaar je voor straks.`;
-  w.health = Math.min(100, w.health + waar.hp);
-  voegEtenToe(w, id, -1);
-  return `${waar.label}: lekker! Gezondheid ${Math.round(w.health)}`;
-}
+// Eten (#502) woont in eten.js: een bladmodule, want de winkel (shops.js) en de savegame
+// gebruiken dezelfde voorraad en mogen daarvoor niet van dit menu afhangen. Hier alleen
+// doorgeven, zodat het menu en de tests dezelfde namen houden.
+export { eetWaar, eetVoorraad, etenSave, applyEtenSave, voegEtenToe, eet } from './eten.js';
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en
 // de cijfers van het detailpaneel tellen mee: anders zou een woord dat alleen daar

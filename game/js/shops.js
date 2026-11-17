@@ -19,7 +19,7 @@ import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
-import { voegEtenToe } from './spullen.js';
+import { voegEtenToe } from './eten.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
@@ -883,8 +883,9 @@ function foodItem(world, id, label, desc, price, hp, product, eaten) {
     disabled: broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
-      // vol: het eten gaat mee in de voorraad (Spullen > Eten), anders was het geld weg zonder iets
-      if (world.health >= 100) { voegEtenToe(world, id, 1); return `${label} ingepakt, voor straks`; }
+      // vol: het eten gaat mee in de voorraad (Spullen > Eten), anders was het geld weg zonder iets.
+      // Het winkel-id draagt een 'f-' voor de preview; de voorraad kent alleen het echte id.
+      if (world.health >= 100) { voegEtenToe(world, String(id).replace(/^f-/, ''), 1); return `${label} ingepakt, voor straks`; }
       world.health = Math.min(100, world.health + hp);
       return eaten(label);
     },

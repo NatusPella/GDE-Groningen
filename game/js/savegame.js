@@ -26,7 +26,7 @@ import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
-import { etenSave, applyEtenSave } from './spullen.js';
+import { etenSave, applyEtenSave } from './eten.js';
 import { slotKey, slotRecoveryKey } from './storagekeys.js';
 import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './coopsave.js';
 import { verhaalStatus } from './coopverhaal.js';
