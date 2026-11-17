@@ -77,6 +77,8 @@ let lastMissionsDone = 0;
 let missionSaveIn = -1;
 let toastEl = null;
 let toastTimer = 0;
+// #985 punt 8: staat de opslag stuk? Dan blijft het chipje staan tot een save lukt.
+let saveBroken = false;
 let restoredMoney = -1;
 // seconds played in this save; counted while the game runs, stored in the save
 let playSeconds = 0;
@@ -300,9 +302,13 @@ export function saveGame(w = world, { toast = true, manual = false } = {}) {
   } catch (e) {
     // #590: log it (Foutrapport) and try the same state again later; without the retry the pending
     // autosave was dropped while the state really was not on disk.
-    logError('warn', 'Opslaan mislukt: ' + ((e && e.message) || e));
+    const reden = (e && e.message) || String(e || 'onbekend');
+    logError('warn', 'Opslaan mislukt: ' + reden);
     noteSaveFailed(hadSave);
-    if (toast) w.addMessage('Opslaan mislukt', 2.5);
+    // Eén keer uitleg met de reden en een blijvend chipje, in plaats van elke twintig seconden
+    // dezelfde regel (#985 punt 8). De melding in de wereld alleen bij een handmatige save of de
+    // eerste fout: daarna draagt het chipje de boodschap.
+    if (toast) markSaveBroken(reden);
     return false;
   }
   dirtyIn = -1;
@@ -646,9 +652,34 @@ const DISK_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="t
 
 function showToast() {
   if (!toastEl) return;
+  // Een geslaagde save haalt de storingsstand weg (#985 punt 8).
+  saveBroken = false;
+  toastEl.classList.remove('hud-saved-broken');
+  toastEl.innerHTML = DISK_SVG + '<span>Opgeslagen</span>';
   toastEl.classList.add('visible');
   toastTimer = TOAST_S;
 }
+
+// #985 punt 8: "Opslaan mislukt" kwam elke twintig seconden terug zonder oorzaak of uitweg, en
+// binnen een menu was het 3,5 s tekst onderin: een speler kon uren doorspelen zonder te weten dat
+// er niets bewaard werd. Nu één uitleg met de reden en de uitweg, en daarna een blijvend chipje in
+// de HUD dat pas weggaat als een save lukt.
+function markSaveBroken(reason) {
+  if (toastEl) {
+    toastEl.innerHTML = BROKEN_SVG + '<span>Niet opgeslagen</span>';
+    toastEl.classList.add('visible', 'hud-saved-broken');
+    toastEl.title = reason;
+  }
+  // Het chipje blijft staan: geen aflopende timer zolang de opslag stuk is.
+  toastTimer = 0;
+  if (saveBroken) return;
+  saveBroken = true;
+  if (world && world.addMessage) {
+    world.addMessage(`Opslaan lukt niet (${reason}). Je spel blijft staan zolang je dit venster openhoudt; `
+      + 'maak ruimte vrij in je browseropslag en het gaat vanzelf weer.', 8, { key: 'save-broken', exact: true });
+  }
+}
+const BROKEN_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 8v5M12 16.5v.5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 3.6 21 20H3z"/></svg>';
 
 export function initSaveGame(w) {
   world = w;

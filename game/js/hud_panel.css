@@ -292,6 +292,10 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
 #hud .hud-saved span { text-transform: lowercase; }
 #hud .hud-saved.visible { opacity: 1; transform: none; }
+/* #985 punt 8: de opslag is stuk. Het chipje blijft staan en valt op, zodat een speler het ziet
+   ook als hij allang niet meer in een menu keek. */
+#hud .hud-saved.hud-saved-broken { color: var(--mk-danger, #e8654f); }
+#hud .hud-saved.hud-saved-broken svg { color: var(--mk-danger, #e8654f); }
 
 /* --- zone H: speed, gear, revs; the key hints above ----------------------- */
 #hud .hud-speedo {
