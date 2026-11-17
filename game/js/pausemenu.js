@@ -851,6 +851,11 @@ ${keyReuseHtml()}
 }
 // #980: Opslaan & stoppen opent met de stand van deze speelsessie: hoelang je speelt, wanneer het
 // spel voor het laatst bewaard werd en in welke savegame. Zo zie je wat "Spel opslaan" overschrijft.
+// Een save in een boot bewaart geen positie (savegame.js serialize: de boot vaart niet mee), en de
+// speler kwam er dus thuis achter. Eén regel bij het opslaan zegt het meteen.
+const inBoot = (w) => !!(w && hoofdspeler(w) && hoofdspeler(w).inVehicle && hoofdspeler(w).inVehicle.isBoat);
+const nu = () => new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
 // Wanneer het spel voor het laatst bewaard werd, in gewone taal ("vandaag 14:02", "12 nov 09:15").
 // Ook gebruikt door de vraag bij Afsluiten, zodat daar hetzelfde moment staat als in de feiten.
 function lastSavedText(s = getSaveSummary()) {
@@ -1853,7 +1858,8 @@ function runAction(a) {
     const ok = saveGame(world, { manual: true });
     if (!ok) status('Opslaan mislukt');
     else if (world && world.coopRole === 'client') status(GAST_BEWAARD_TEKST);
-    else status(`Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
+    else if (inBoot(world)) status(`Opgeslagen om ${nu()} · je boot blijft aan de steiger`);
+    else status(`Opgeslagen om ${nu()}`);
     if (ok) syncSaveFacts();
   }
   else if (a === 'load') {
