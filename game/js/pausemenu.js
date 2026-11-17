@@ -885,7 +885,7 @@ function spelHtml() {
       ${saveFactsHtml()}
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
-      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart waar je nu bent')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
+      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden begint buiten je flat')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
@@ -1266,6 +1266,9 @@ function onKey(e) {
   if (!open) {
     // de fotomodus heeft zijn eigen Escape en M (#435): anders komt het pauzemenu over de foto heen
     if (isPhotoMode()) return;
+    // een laadscherm of reisscène dekt het spel af (z-index 50 en 9000, boven het menu op 40):
+    // Escape of M opende daar een onzichtbaar pauzemenu, dat je pas na aankomst ineens zag.
+    if (document.getElementById('load-screen') || (world && world.uiPaused)) return;
     if (e.repeat || !started()) return;
     if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
