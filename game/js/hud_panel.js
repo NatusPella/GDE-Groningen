@@ -1544,7 +1544,10 @@ function updateMission(dt, world) {
 // de bestaande doellijn (zone G), dus hij maakt geen eigen vak en kan de rest van de HUD niet
 // overlappen; de toetsen volgen de toetsenbord-/controllerbinding via physicalKey/keyName.
 function besturingLabel(token) {
-  if (token === 'spatie') return 'SPATIE';
+  // 'spatie' is de leestoken van een tekstregel; de echte binding kan intussen een andere toets
+  // zijn (springen op T). Geen hardgecodeerd "SPATIE" meer: de schermnarratie las altijd de
+  // standaardtoets voor, ook als de speler hem verlegd had (#QoL).
+  if (token === 'spatie') token = ' ';
   const fysiek = physicalKey(getSettings().keyBinds, token);
   return keyName(fysiek).toUpperCase();
 }
