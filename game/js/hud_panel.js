@@ -73,6 +73,7 @@ import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
+import { fmtTime } from './missionstats.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
@@ -1413,6 +1414,10 @@ function updateMoneyWeapon(dt, world) {
   }
 }
 
+// De klok van een missie of klus. Onder een minuut telt hij in seconden ("42s", leesbaar
+// terwijl je rent); daarboven als een klok ("6:52"), want "412s" zegt niemand iets.
+const clockText = (s) => (s < 60 ? `${Math.ceil(s)}s` : fmtTime(s));
+
 // The objective line: one objective at a time (a mission stage, else the
 // bijbaan's next goal, else "lose the police"), genre style: the objective
 // big, its live counter small under it, a timer to the right. It pops in
@@ -1421,13 +1426,14 @@ function currentObjective(world) {
   const m = world.mission;
   const job = world.sideJob;
   if (job && job.active) {
-    const timer = job.timeLeft != null ? Math.ceil(job.timeLeft) + 's' : '';
+    // een klus met een limiet van twee minuten leest als "1:42", niet als "102s"
+    const timer = job.timeLeft != null ? clockText(job.timeLeft) : '';
     const g = job.goal;
     return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer };
   }
   if (m && m.phase === 'active') {
     const text = missionProgressText(m);
-    const timer = m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
+    const timer = m.timeLeft != null && !m.raceHud ? clockText(m.timeLeft) : '';
     const cut = text.search(/ · | \(\d+\/\d+\)$/);
     const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
     if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer };
