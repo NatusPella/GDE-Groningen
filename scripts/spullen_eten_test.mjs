@@ -150,5 +150,20 @@ t('de melding staat in het detailpaneel, niet in de HUD', () => {
   assert.match(bron, /data-spul-melding role="status"/, 'en de melding is voor de voorlezer');
 });
 
+// Elk eetbaar id uit de winkel moet ook in de voorraad bestaan (#502): anders betaalt een
+// speler met een volle maag en krijgt hij niets, want voegEtenToe() negeert een onbekend id
+// stil. De correctheidsreview van de releasegate vond vier winkeleten-ids die hier ontbraken
+// (koek, kauwgom, ballen, hotdog).
+{
+  const eten = await import('../game/js/eten.js');
+  const bron = lees('shops.js');
+  const ids = [...new Set([...bron.matchAll(/\b(?:snack|food)\('([a-z0-9_-]+)'/g)].map((m) => m[1]))];
+  assert.ok(ids.length >= 6, 'de winkel noemt zijn eetbare ids', String(ids.length));
+  const onbekend = ids.filter((id) => !eten.eetWaar(id));
+  assert.deepEqual(onbekend, [], 'elk eetbaar winkel-id staat in de voorraad van eten.js');
+  const toe = eten.voegEtenToe({ eten: {} }, ids[0], 1);
+  assert.equal(toe, 1, 'en het id komt er ook echt in');
+}
+
 console.log(`spullen_eten_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);

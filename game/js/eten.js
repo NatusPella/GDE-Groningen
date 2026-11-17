@@ -19,6 +19,13 @@ export const TOONBANK = [
   ['eierbal', 'Eierbal', 12, 'Snackbar'],
   ['oorlog', 'Patatje oorlog', 13, 'Snackbar'],
   ['kapsalon', 'Kapsalon', 30, 'Snackbar'],
+  // Deze vier staan ook als eetbaar in de winkel (shops.js snack/food) en horen dus in de
+  // voorraad: zonder regel hier betaalde een speler met een volle maag en kreeg hij niets,
+  // want voegEtenToe() negeert een onbekend id stil.
+  ['koek', 'Grunneger koek', 6, 'Avondwinkel'],
+  ['kauwgom', 'Kauwgom "Frisse Adem"', 1, 'Avondwinkel'],
+  ['ballen', 'Gehaktballetjes "Kötbullen"', 25, 'Restaurant'],
+  ['hotdog', 'Hotdog bij de kassa', 6, 'Restaurant'],
 ];
 const EETBAAR = new Map(TOONBANK.map(([id, label, hp, how]) => [id, { label, hp, how }]));
 // Een gevangen vis is ook eten; hij vult meer dan een snack. De soort komt uit visdata.js.
