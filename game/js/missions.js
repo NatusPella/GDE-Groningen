@@ -3,6 +3,9 @@ import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
 import { getSettings } from './settings.js';
+import { keyWord } from './controls.js';
+import { isTouchUi } from './touchui.js';
+import { touchLabelForToken } from './touchlogic.js';
 import { cleanDifficulty, scaleTimeLimit } from './difficulty.js'; // #800: de stand schaalt missietijden en vensters
 import { missionStats, fmtTime, failureStats } from './missionstats.js';
 import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning, eggFailText } from './eggspeed.js';
@@ -1886,7 +1889,12 @@ function updateRetry(dt, world, def) {
   if (isCinematicActive() || world.pendingRespawn || (world.sideJob && world.sideJob.active) || playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return;
   if (!r.hintedAt || world.time - r.hintedAt > 10) {
     r.hintedAt = world.time;
-    world.addMessage(`${def.label}: opnieuw beginnen? Druk op Enter (of E).`, 4, { key: 'missie-opnieuw' });
+    // Op een telefoon heet die knop "Gebruik", niet "Enter (of E)": de hint volgt de
+    // besturing die de speler echt heeft (#985 punt 19).
+    const toets = isTouchUi()
+      ? (RETRY_KEYS.map((k) => touchLabelForToken(k, 'voet')).find(Boolean) || 'Gebruik')
+      : RETRY_KEYS.map((k) => keyWord(getSettings().keyBinds, k)).join(' of ');
+    world.addMessage(`${def.label}: opnieuw beginnen? Druk op ${toets}.`, 4, { key: 'missie-opnieuw' });
   }
   for (const k of RETRY_KEYS) {
     if (!world.input.wasPressed(k)) continue;
