@@ -123,7 +123,9 @@ export function classifyInput(text) {
     return c.ok ? { ok: true, route: ROUTES.DIRECT, code: t.replace(/\s+/g, '') } : c;
   }
   const r = parseRoom(t);
-  return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: 'Dit is geen kamercode en geen koppelcode van dit spel.' };
+  // parseRoom zegt precies wat er mis is ("10 tekens, zoals K3J9D-8F2MN"); die uitleg is nuttiger
+  // dan één algemene regel, zeker bij een typefout van de juiste lengte.
+  return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: r.reason || 'Dit is geen kamercode en geen koppelcode van dit spel.' };
 }
 
 // caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als wie het spel opende start), spelNaam (het opgeslagen spel van deze speler), consentSaved (dit apparaat koos "Niet meer vragen") }
