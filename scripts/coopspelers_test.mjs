@@ -124,9 +124,11 @@ t('eruit zetten', () => {
   assert.doesNotMatch(eruitGezetTekst(anderen.find((x) => x.slot === 1)), /loopt weer zelf mee|gastheer/i, 'geen vaste rol per plek meer (#455)');
   assert.match(wegMelding('verwijderd', 'Tammo'), /Tammo heeft je uit het spel gezet. Je speelt weer in je eigen spel/);
   assert.match(wegMelding('spel gestopt', 'Tammo'), /het spel gestopt/);
-  assert.match(wegMelding('verwijderd', 'Tammo', 'ABCDE-FGHJK'), /Opnieuw aansluiten kan met de kamercode ABCDE-FGHJK/, 'een gekickte gast ziet de kamercode (#434)');
+  // #QoL: de host rouleert de kamer meteen bij het eruit zetten, dus een kamercode in deze melding
+  // was altijd al ongeldig. De gast krijgt geen code meer te zien, maar vraagt de nieuwe aan de opener.
+  assert.doesNotMatch(wegMelding('verwijderd', 'Tammo', 'ABCDE-FGHJK'), /ABCDE-FGHJK/, 'geen oude kamercode meer: die is na het kicken al vervallen');
+  assert.match(wegMelding('verwijderd', 'Tammo'), /Vraag Tammo om de nieuwe kamercode/, 'de gast weet wel hoe hij weer mee kan doen');
   assert.doesNotMatch(wegMelding('verwijderd', 'Tammo', 'GDE2-192.168.1.5:41000-AAAAAAAA-0000'), /GDE2|192\.168/, 'een koppelcode met een adres komt nooit in beeld');
-  assert.doesNotMatch(wegMelding('verwijderd', 'Tammo'), /kamercode/, 'zonder bekende code geen belofte');
   assert.doesNotMatch(wegMelding('spel gestopt', 'Tammo', 'ABCDE-FGHJK'), /ABCDE/, 'bij stoppen voor iedereen is er niets om opnieuw bij aan te sluiten');
 });
 
