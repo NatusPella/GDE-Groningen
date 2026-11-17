@@ -188,6 +188,12 @@ const HUD_DRIFT = {
   // #633: de gedeelde uitje-kaart leent alles van de sfeer- en thematabellen.
   'uitjepaneel.js': [],
   'kaartactieui.js': [],
+  // De drie menu-panelen zetten sinds de menu-ronde hun eigen opmaak op met zetCss(). Ze zijn
+  // panelen van het pauzemenu (zie de menu-surface in hudbus.js) en gebruiken alleen chroom:
+  // geen losse kleuren, dus een lege basis is geen verlegenheid maar de gemeten stand.
+  'achievementsui.js': [],
+  'cheatsui.js': [],
+  'fotomodusui.js': [],
 };
 for (const [f, basis] of Object.entries(HUD_DRIFT)) {
   const nieuw = strayHexes(f).filter((h) => !basis.includes(h));

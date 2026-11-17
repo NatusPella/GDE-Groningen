@@ -61,8 +61,10 @@ export const DELEN = [['alles', 'Alles'], ['uitrusting', 'Uitrusting'], ['thuis'
 const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kleding: 'uitrusting', eten: 'uitrusting', upgrade: 'uitrusting', thuis: 'thuis', kaart: 'verzameling' };
 
 // Eten (#502) woont in eten.js: een bladmodule, want de winkel (shops.js) en de savegame
-// gebruiken dezelfde voorraad en mogen daarvoor niet van dit menu afhangen. Hier alleen
-// doorgeven, zodat het menu en de tests dezelfde namen houden.
+// gebruiken dezelfde voorraad en mogen daarvoor niet van dit menu afhangen. Hier zowel
+// importeren (dit bestand gebruikt eetVoorraad en eet zelf) als doorgeven, zodat het menu en
+// de tests dezelfde namen houden.
+import { eetVoorraad, eet } from './eten.js';
 export { eetWaar, eetVoorraad, etenSave, applyEtenSave, voegEtenToe, eet } from './eten.js';
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en
