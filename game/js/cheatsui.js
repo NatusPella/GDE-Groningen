@@ -130,6 +130,7 @@ export function renderCheatsPanel(el, w) {
   // De uitleg over prestaties stond boven de lijst én in het paneel én onderin het paneel:
   // drie keer hetzelfde. Nu één hero bovenaan met de stand, en het paneel zegt het alleen
   // nog bij de cheat die je bekijkt.
+  const n = CHEATS.filter((c) => isAvailable(c.id)).length;
   const aan = toggles.filter((c) => isCheatOn(c.id)).length;
   const hero = `<section class="pm-hero ch-hero" aria-label="Cheats">` +
     `<div class="pm-hero-h"><span class="m-eb">Cheats</span><span class="pm-badge" data-tone="${sum.tone === 'red' ? 'warn' : 'ok'}">${n} van ${CHEATS.length} vrijgespeeld</span></div>` +
@@ -145,7 +146,6 @@ export function renderCheatsPanel(el, w) {
     (shut.length ? `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="locked" aria-expanded="${lockedOpen}" aria-controls="pm-f-locked">${CHEV}<b>Nog ${shut.length} op slot</b><span class="mut one">Speel verder in het verhaal of haal prestaties</span></button>` +
       `<div class="m-fold" id="pm-f-locked" data-fold-body="locked"${lockedOpen ? '' : ' hidden'}>${shut.map(lockedRow).join('')}</div>` : '') +
     `</div><aside class="m-pane cheat-pane" aria-live="polite">${paneHtml(w)}</aside></div>`;
-  const n = CHEATS.filter((c) => isAvailable(c.id)).length;
   return `${n} van ${CHEATS.length} vrijgespeeld${lit ? ` · ${lit} aan` : ''}`;
 }
 
