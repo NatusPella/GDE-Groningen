@@ -73,12 +73,16 @@ t('de HUD zet de regel in de bestaande doellijn, zonder eigen vak of absolute po
   assert.match(hud, /kind === 'mission' \|\| kind === 'job' \|\| kind === 'police'/, 'alleen bij missie, bijbaan of achtervolging');
   assert.match(hud, /physicalKey\(getSettings\(\)\.keyBinds/, 'de toetsen volgen de toetsenbordbinding');
   const css = lees('game/js/hud_panel.css');
-  const blok = /#hud \.hud-obj-keys \{([^}]*)\}/.exec(css);
+  // de eigen regel begint bij de selector, niet bij een voorwaarde als `body.hide-hints ...`:
+  // sinds de QoL-ronde verbergt die de regel ook als de speler de hints uitzet
+  const blok = /(?:^|\n)#hud \.hud-obj-keys \{([^}]*)\}/.exec(css);
   assert.ok(blok, 'de CSS voor de regel bestaat');
   assert.doesNotMatch(blok[1], /position:\s*absolute/, 'de regel is geen eigen vak op het scherm');
   assert.match(blok[1], /flex-wrap:\s*wrap/, 'hij wrapt binnen de doellijn');
   assert.match(blok[1], /font-size:\s*var\(--hud-min, 13px\)/, 'hij houdt de leesbare 13 px-vloer');
   assert.match(css, /#hud \.hud-obj-key \.hud-key \{/, 'de toetskappen zijn compacter binnen de regel');
+  // "Toetshints uit" hoort deze regel net zo goed te verbergen als .hud-prompts
+  assert.match(css, /body\.hide-hints #hud \.hud-obj-keys/, 'de instelling Toetshints verbergt de regel');
 });
 
 console.log(bad ? `controlhint_test: ${n - bad}/${n} ok` : `controlhint_test: ${n}/${n} ok`);
