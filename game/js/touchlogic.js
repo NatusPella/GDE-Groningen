@@ -74,6 +74,9 @@ const LABELS = {
   backspace: { _: 'Stop', vliegschool: 'Terug' }, ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
   // #151: de vliegschool (#397) leest Enter en de pijlen; de balk noemt ze zoals ze daar werken
   enter: 'Kies', arrowup: 'Vorige', arrowdown: 'Volgende', arrowleft: 'Links', arrowright: 'Rechts',
+  // #978: de klimtoren heeft per hand een eigen knop (A links, D rechts). Zonder regel hier vielen
+  // beide knoppen op aanraakbediening weg en deed de stick niets, want die staat daar op 'none'.
+  a: { _: 'Links', klimtoren: 'Linkerhand' }, d: { _: 'Rechts', klimtoren: 'Rechterhand' },
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
 };
 
@@ -128,6 +131,9 @@ const ICONS = {
   Gas: '<path d="M3.5 17a8.5 8.5 0 0 1 17 0"/><path d="M12 17l4.5-6"/><circle cx="12" cy="17" r="1.4"/>',
   Hoger: '<path d="M6 13.5l6-6 6 6"/><path d="M6 19l6-6 6 6"/>',
   Lager: '<path d="M6 5l6 6 6-6"/><path d="M6 10.5l6 6 6-6"/>',
+  // #978: de twee handen van de klimtoren; een pijl per kant, net als de D-pad
+  Linkerhand: '<path d="M20 12H4"/><path d="M9 7l-5 5 5 5"/>',
+  Rechterhand: '<path d="M4 12h16"/><path d="M15 7l5 5-5 5"/>',
   Alarm: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',
   Film: '<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3z"/>',
   Links: '<path d="M20 12H4"/><path d="M9 7l-5 5 5 5"/>',
