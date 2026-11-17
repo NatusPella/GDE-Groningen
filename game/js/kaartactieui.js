@@ -86,7 +86,7 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-hier b { display: block; font: normal 26px/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-hier .mv-hier-plek { margin: 2px 0 4px; font: 20px/1.35 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
 /* de uitleg: een blok in de kaartkolom onder het zoekveld, geen los vlak over de titel (#602) */
-.mapview-overlay .mv-help { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; padding: 40px; background: rgba(6, 11, 8, 0.72); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: mv-help-in 0.18s ease-out; }
+.mapview-overlay .mv-help { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; padding: 40px; background: rgba(12, 20, 14, 0.78); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: mv-help-in 0.18s ease-out; }
 .mapview-overlay .mv-help-box { width: min(600px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; padding: 24px 28px 20px; border-radius: 14px; background: linear-gradient(180deg, #17301f, #0c140e); box-shadow: inset 0 0 0 1px var(--line2, rgba(240,237,228,0.16)), 0 24px 60px rgba(0, 0, 0, 0.5); color: var(--ink, #f0ede4); font: 18px/1.45 'Arial Narrow', Arial, sans-serif; }
 .mapview-overlay .mv-help-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
 .mapview-overlay .mv-help-head .m-h2 { margin: 0; font-size: 40px; }

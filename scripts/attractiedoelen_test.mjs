@@ -15,13 +15,15 @@ const rij = standaardTodo({ id: 'x', label: 'Uitje', doel: () => ({ tekst: '2 va
 ok(rij && rij.detail.rows.some(([k, v]) => k === 'Doel' && v === '2 van 5'), 'Te doen: doelregel met teller');
 ok(rij && /2 van 5/.test(rij.meta), 'Te doen: teller staat ook in de regel');
 
-// De vier attracties leveren een doel met een teller.
+// De vier attracties leveren een doel met een teller. Het plafond komt uit de bron en staat
+// niet meer hardgecodeerd: "x van 5" bij 24 snackbars, "x van 3" bij elk veroverbaar gebied en
+// "x van 3" bij dertien evenementen liepen vol voorbij hun eigen grens (QoL-review).
 const snack = lees('snackketen.js');
-ok(/doel: \(\) => \(\{ tekst: `\$\{outletCount\(chain\)\} van 5 vestigingen` \}\)/.test(snack), 'snackketen: teller van de vestigingen');
+ok(/outletCount\(chain\)\} van \$\{SNACK\.maxOutlets\} vestigingen/.test(snack), 'snackketen: teller met het echte plafond uit SNACK.maxOutlets');
 const veilig = lees('safehuizen.js');
-ok(/doel: \(\) => \(\{ tekst: `\$\{huizen\.filter\(\(h\) => heeftHuisLive\(h\.id\)\)\.length\} van 3 veilige huizen` \}\)/.test(veilig), 'veilige huizen: teller uit het eigen profiel');
+ok(/heeftHuisLive\(h\.id\)\)\.length/.test(veilig) && /van \$\{totaal\} veilige huizen/.test(veilig), 'veilige huizen: teller uit het eigen profiel, met het aantal huizen als plafond');
 const even = lees('evenementenact.js');
-ok(/3 evenementen bezocht/.test(even) && /loadSeen\(/.test(even), 'evenementen: teller uit de eigen gezien-lijst');
+ok(/van \$\{AGENDA\.length\} evenementen bezocht/.test(even) && /loadSeen\(/.test(even), 'evenementen: teller uit de eigen gezien-lijst, met de echte agenda als plafond');
 const rad = lees('reuzenrad.js');
 ok(/getStat\('reuzenradRides'\)/.test(rad) && /\[.Doel., `\$\{ritten\} van 5 ritjes/.test(rad), 'reuzenrad: teller van de ritjes en een doel');
 
