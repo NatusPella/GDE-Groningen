@@ -15,6 +15,10 @@ ok(A.OFFER_TIMEOUT_MS > 0 && A.OFFER_TIMEOUT_MS <= 60000, 'aanbod heeft een time
 const fs = await import('node:fs');
 const src = fs.readFileSync(new URL('../game/js/assistlive.js', import.meta.url), 'utf8');
 ok(/AUTOPLAY \|\| STORY_TEST/.test(src), 'geen aanbod bij Spelbot of storytest');
-ok(/setTimeout\(\(\) => \{ if \(isHelpOfferOpen\(\)\) closeOffer\('nee'\)/.test(src), 'timeout sluit als nee');
+// Een time-out haalt het scherm weg maar telt niet als "nee": de teller blijft staan, zodat de
+// volgende mislukking het aanbod opnieuw laat zien. Wie zelf "Nee" kiest of Escape indrukt,
+// sluit het voor die stap wél af.
+ok(/setTimeout\(\(\) => \{ if \(isHelpOfferOpen\(\)\) closeOffer\('nee', false\)/.test(src), 'timeout sluit zonder als nee te tellen');
+ok(/if \(tel && d\.stepId\) \{ load\(\); data\.offered\[d\.stepId\] = true; save\(\); \}/.test(src), 'alleen een echt antwoord legt het aanbod vast');
 console.log(fails ? `${fails} mislukt` : 'assistlive_test ok');
 process.exit(fails ? 1 : 0);
