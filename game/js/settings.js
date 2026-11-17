@@ -102,6 +102,9 @@ const BASE_DEFAULTS = {
   rumble: true,
   subtitleSize: 'normaal',
   subtitleBox: false,
+  // #985: gesproken ondertitels aan of uit. De geluidscaptions ([sirene], [claxon]) hebben hun
+  // eigen schakelaar eronder: dit gaat over wat er gezegd wordt, niet over wat je hoort.
+  showSubtitles: true,
   // [sirene], [claxon]...: korte tekst bij belangrijke geluiden (soundcaptions.js)
   soundCaptions: false,
   // schermnarratie (#802): statuswijzigingen (doel, gezondheid, politie, plaats) in een aria-live-regio
@@ -179,6 +182,7 @@ function load() {
     if (!SUBTITLE_CONTRASTS.includes(out.subtitleContrast)) out.subtitleContrast = DEFAULTS.subtitleContrast;
     if (!(out.textSize in TEXT_SIZES)) out.textSize = DEFAULTS.textSize;
     if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
+    if (typeof out.showSubtitles !== 'boolean') out.showSubtitles = DEFAULTS.showSubtitles;
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
     if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
     if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;

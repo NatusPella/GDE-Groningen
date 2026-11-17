@@ -70,6 +70,12 @@ html.sub-box #hud .sc-bubble { background: rgba(12, 20, 14, 0.92); }
 html.sub-box #hud .pf-callcard { background: rgba(12, 20, 14, 0.96); }
 html.sub-box #name-card { padding: 10px 18px 12px; border-radius: 8px; background: rgba(12, 20, 14, 0.84); }
 
+/* #985: gesproken ondertitels uit. De geluidscaptions ([sirene]) blijven staan: die hebben hun
+   eigen schakelaar. Elke drager staat hier, ook de naamkaart en de telefoonkaart. */
+html.sub-uit :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) { display: none !important; }
+html.sub-uit #name-card { display: none !important; }
+html.sub-uit #hud .sc-bubble, html.sub-uit #hud .pf-callcard { display: none !important; }
+
 /* --- colour-blind palettes: HUD states -------------------------------------- */
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.low .hud-bar-fill.health {
   background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, rgba(12, 20, 14, 0.85) 5px 8px);

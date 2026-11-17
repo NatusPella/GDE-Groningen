@@ -32,7 +32,10 @@ const VOOR = ['preset', 'resolution', 'autoResolution', 'zuinig', 'shadows', 'dr
 const NU = [...settingsKeys, ...spelKeys];
 ok(VOOR.length === 58, 'de lijst van vóór de wijziging heeft 58 opties (53 + #801/#802: stuurgevoeligheid, schermnarratie, leestijd; #800: moeilijkheid; #833: eerste persoon)');
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
-ok(NU.every((k) => VOOR.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k)).join(', '));
+// #985: nieuwe opties staan hier met hun issuenummer. VOOR blijft de bevroren lijst van main,
+// zodat een optie die zonder uitleg verdwijnt of verschijnt nog steeds opvalt.
+const NIEUW = ['showSubtitles'];   // #985 punt 4: ondertitels uit
+ok(NU.every((k) => VOOR.includes(k) || NIEUW.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k) && !NIEUW.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
 // wat naar Spel verhuisd is, en wat blijft

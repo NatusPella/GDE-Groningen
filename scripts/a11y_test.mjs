@@ -100,5 +100,17 @@ const html = readFileSync(new URL('../game/index.html', import.meta.url), 'utf8'
 ok(/<span class="heart" role="img" aria-label="liefde">/.test(html), 'het hart is role="img" met een Nederlandse naam');
 const spansMetLabel = html.match(/<span[^>]*aria-label="[^"]*"[^>]*>/g) || [];
 ok(spansMetLabel.every((s) => /role="img"/.test(s)), 'elke span met een aria-label heeft role="img"');
+// #985 punt 4: "Ondertitels" had geen uit-stand. De instelling zet één klasse op <html> en de
+// CSS verbergt elke drager; de geluidscaptions houden hun eigen schakelaar.
+const a11yJs = readFileSync(new URL('../game/js/a11y.js', import.meta.url), 'utf8');
+const a11yCss = readFileSync(new URL('../game/js/a11y.css', import.meta.url), 'utf8');
+const settingsJs = readFileSync(new URL('../game/js/settings.js', import.meta.url), 'utf8');
+const pmSrc = readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+ok(/showSubtitles: true/.test(settingsJs), 'de instelling bestaat en staat standaard aan');
+ok(/html\.classList\.toggle\('sub-uit', s\.showSubtitles === false\)/.test(a11yJs), 'uit zet de klasse op <html>');
+ok(/html\.sub-uit :is\(#cine \.cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage \.im-sub, #trailer \.tr-sub\) \{ display: none !important; \}/.test(a11yCss), 'elke gesproken drager verdwijnt');
+ok(/html\.sub-uit #name-card \{ display: none !important; \}/.test(a11yCss), 'de naamkaart verdwijnt ook');
+ok(/toggle\('showSubtitles', 'Ondertitels aan'/.test(pmSrc), 'de schakelaar staat in de vouw Ondertitels');
+
 console.log(fails ? `${fails} of ${n} failed` : `a11y_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

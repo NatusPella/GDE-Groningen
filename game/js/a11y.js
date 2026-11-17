@@ -43,6 +43,9 @@ function apply(s, key) {
   for (const size of Object.keys(SUBTITLE_SIZES)) html.classList.toggle('sub-' + size, s.subtitleSize === size);
   html.style.setProperty('--sub-scale', String(SUBTITLE_SIZES[s.subtitleSize] || 1));
   html.classList.toggle('sub-box', !!s.subtitleBox);
+  // #985: de uit-stand van de gesproken ondertitels. Eén klasse op <html>, zodat elke drager
+  // (film, banter, radio, verhaal, telefoon, montage, trailer) in één CSS-regel meegaat.
+  html.classList.toggle('sub-uit', s.showSubtitles === false);
   html.classList.toggle('subc-hoog', s.subtitleContrast === 'hoog');
   for (const size of Object.keys(TEXT_SIZES)) html.classList.toggle('text-' + size, s.textSize === size);
   html.style.setProperty('--text-scale', String(textScale(s.textSize)));

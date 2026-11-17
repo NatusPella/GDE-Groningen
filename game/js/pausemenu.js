@@ -751,6 +751,7 @@ function settingsHtml() {
       <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
+        ${toggle('showSubtitles', 'Ondertitels aan', 'Uit verbergt wat er gezegd wordt; geluiden beschrijven hieronder blijft dan gewoon werken')}
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
         ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}
         ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
