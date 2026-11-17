@@ -899,9 +899,12 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
    scanbare rij, met de host en een weggevallen of haperende verbinding als klein label
    ernaast; kleur en vorm horen bij de spelerslijst, niet bij deze regel. */
 .coop-spelers-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; max-width: 760px; }
-.coop-speler { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 12px; border-radius: 999px; background: rgba(240, 237, 228, 0.1); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.18); font: 17px 'Arial Narrow', Arial, sans-serif; overflow-wrap: anywhere; }
-.coop-speler small { font-size: 14px; opacity: 0.7; }
+.coop-speler { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 12px; border-radius: 999px; background: rgba(240, 237, 228, 0.1); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.18); font: max(17px, var(--menu-min)) 'Arial Narrow', Arial, sans-serif; overflow-wrap: anywhere; }
+.coop-speler small { font-size: max(14px, var(--menu-min)); opacity: 0.7; }
+/* Wie het spel opende heeft een groene rand, maar kleur alleen is voor een voorlezer en voor
+   wie kleuren slecht onderscheidt geen informatie: de chip zegt het ook met tekst (#a11y). */
 .coop-speler[data-host="1"] { box-shadow: inset 0 0 0 1px var(--g); }
+.coop-speler[data-host="1"] .coop-speler-rol { font-size: max(14px, var(--menu-min)); opacity: 0.7; }
 .coop-speler-lag { opacity: 0.8; }
 .coop-speler-weg { background: rgba(217, 63, 63, 0.16); text-decoration: line-through; }
 #pause-menu .coop-beheer-hint { margin: 0; max-width: 640px; font-size: 16px; line-height: 1.35; opacity: 0.75; }

@@ -141,20 +141,20 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-dmeta{display:flex;flex-direction:column;gap:6px;min-width:0}
 #pause-menu .sp-dmeta .td-h2{margin:0}
 #pause-menu .sp-desc{margin:0;max-width:640px;font-size:20px;line-height:1.45;color:var(--ink)}
-#pause-menu .sp-eerlijk{margin:0;max-width:640px;font-size:18px;line-height:1.45;color:var(--mut)}
+#pause-menu .sp-eerlijk{margin:0;max-width:640px;font-size:max(18px,var(--menu-min));line-height:1.45;color:var(--mut)}
 #pause-menu .sp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 32px;padding:16px 0 0;border-top:1px solid var(--line)}
 #pause-menu .sp-fact{display:flex;flex-direction:column;gap:3px;min-width:0}
-#pause-menu .sp-fact > span:first-child{font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
-#pause-menu .sp-fact > span:last-child{font-size:19px;line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
+#pause-menu .sp-fact > span:first-child{font-size:max(15px,var(--menu-min));letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+#pause-menu .sp-fact > span:last-child{font-size:max(19px,var(--menu-min));line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
 #pause-menu .sp-ledger{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:rgba(12,20,14,.55);box-shadow:inset 0 0 0 1px var(--line2)}
 #pause-menu .sp-lhead{font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 #pause-menu .sp-days{display:flex;align-items:flex-end;gap:6px;height:56px}
 #pause-menu .sp-day{flex:1;display:flex;align-items:flex-end;height:100%}
 #pause-menu .sp-day i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--g);opacity:.85}
 #pause-menu .sp-day.uit i{background:var(--redtx)}
-#pause-menu .sp-lleg{margin:0;font-size:14px;color:var(--mut)}
+#pause-menu .sp-lleg{margin:0;font-size:max(14px,var(--menu-min));color:var(--mut)}
 #pause-menu .sp-lrows{display:flex;flex-direction:column;gap:6px}
-#pause-menu .sp-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;font-size:17px;line-height:1.35}
+#pause-menu .sp-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;font-size:max(17px,var(--menu-min));line-height:1.35}
 #pause-menu .sp-lrow > span:first-child{color:var(--mut);flex:none}
 #pause-menu .sp-lv{color:var(--ink);text-align:right;overflow-wrap:anywhere}
 @media (max-width:1440px){#pause-menu .sp-facts{grid-template-columns:1fr}}

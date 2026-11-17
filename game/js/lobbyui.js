@@ -184,9 +184,9 @@ export function mountLobby(root, hooks, opts = {}) {
       if (!p) return '';
       const weg = p.verbinding === 'lost', hapert = p.verbinding === 'lag', host = p.slot === 0;
       // Geen rolnaam bij de speler (docs/WOORDENLIJST.md: "geen rolnaam bij samen spelen", eigenaar
-      // 20-10). Wie het spel opende is te zien aan de groene rand (data-host, pausemenu.css), niet
-      // aan het woord "host".
-      return `<li class="coop-speler${weg ? ' coop-speler-weg' : hapert ? ' coop-speler-lag' : ''}"${host ? ' data-host="1"' : ''}>${esc(p.naam || '?')}${weg ? ' <small>· weg</small>' : hapert ? ' <small>· hapert</small>' : ''}</li>`;
+      // 20-10). Wie het spel opende is te zien aan de groene rand én aan het woord "opent": kleur
+      // alleen is voor een voorlezer en voor wie kleuren slecht onderscheidt geen informatie.
+      return `<li class="coop-speler${weg ? ' coop-speler-weg' : hapert ? ' coop-speler-lag' : ''}"${host ? ' data-host="1"' : ''}>${esc(p.naam || '?')}${host ? '<small class="coop-speler-rol">· opent</small>' : ''}${weg ? ' <small>· weg</small>' : hapert ? ' <small>· hapert</small>' : ''}</li>`;
     };
     const chips = Array.isArray(v.spelers) && v.spelers.length
       ? `<ul class="coop-spelers-chips" aria-label="Spelers in deze sessie">${v.spelers.map(chipSpeler).join('')}</ul>` : '';
