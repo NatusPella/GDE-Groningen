@@ -219,12 +219,16 @@ export class HostSession extends Base {
     // tick meteen weer laten verbreden, terwijl hij net terug is. Reset hem daarom mee.
     if (vol && this.overflowSinds == null) this.overflowSinds = this.now;
     else if (!vol) this.overflowSinds = null;
-    if (this.overflowSinds != null && this.status !== 'lost' && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
+    const q = this._quiet();
+    // De guard toetst de stilte zelf en niet de status: 'lost' wordt verderop in dezezelfde tick pas
+    // gezet, dus een gast die net 5 s stil is zou hier nog op 'ok' staan en precies op het moment dat
+    // zijn hersteltijd begint alsnog verwijderd worden. Alleen een gast die nog berichten stuurt
+    // (q < LOST_AFTER) maar niets bevestigt is de kapotte eenrichtingsverbinding van #589.
+    if (this.overflowSinds != null && q < LOST_AFTER && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
       console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol terwijl de gast nog berichten stuurt; de verbinding wordt verbroken`);
       this.leave();
       return;
     }
-    const q = this._quiet();
     if (this.status === 'ok' && q >= LAG_AFTER) this._setStatus('lag');
     if ((this.status === 'ok' || this.status === 'lag') && q >= LOST_AFTER) {
       this.lostAt = this.now; this._setStatus('lost');
