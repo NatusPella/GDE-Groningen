@@ -365,7 +365,7 @@ function kaartHtml(s) {
   const wanneer = [s.dagLabel, s.uur].filter(Boolean).join(' · ');
   return '<figure class="foto-kaart">' +
     '<div class="foto-beeld">' +
-      (s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(plek)}" loading="lazy" decoding="async">` : '<div class="foto-leeg">Geen voorbeeld</div>') +
+      (s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(plek)}" decoding="async">` : '<div class="foto-leeg">Geen voorbeeld</div>') +
     '</div>' +
     '<figcaption class="foto-tekst">' +
       `<span class="foto-kop"><b class="foto-plek" title="${esc(plek)}">${esc(plek)}</b>${weer ? `<span class="foto-weer">${esc(weer)}</span>` : ''}</span>` +

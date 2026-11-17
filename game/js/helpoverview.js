@@ -37,7 +37,7 @@ export const HELP_TOPICS = [
     'Een winkel staat op de kaart: loop naar binnen en druk {E}.',
   ] },
   { id: 'telefoon', title: 'Berichten', lines: [
-    'Berichten komen als kaartje binnen. Bellen en contacten vind je onder {ESC} › Verhaal › Personages: het laatste bericht van iemand staat bij zijn kaart.',
+    'Berichten komen als kaartje binnen. Bellen en contacten vind je onder {ESC} › Verhaal › Personages: het laatste bericht van iemand staat bij die persoon.',
   ] },
   { id: 'opslaan', title: 'Opslaan', lines: [
     'Het spel slaat zelf op na een missie en als je naar bed gaat. Je hoeft er niets voor te doen.',
