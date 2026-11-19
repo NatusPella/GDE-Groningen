@@ -30,6 +30,18 @@ licentie, de gekozen knip en de meting waarop die is gekozen, en de bewerking.
 | `trein_deur_piep` | het waarschuwingssignaal in de laatste 2,4 s voor het automatisch sluiten |
 | `trein_deur_dicht` | de treindeuren gaan dicht |
 
+## Procedurele geluiden naast de opnames (SFX-GAPS)
+
+Naast de opnames en de synth staan sinds de SFX-ronde drie extra procedurele banken, alle zonder opname en door `sfx/fxbank.js` in de bank gezet:
+
+- `sfx/uibank.js` en `sfx/uitaal.js`: de UI-geluidstaal (tabwissel, weigeren, melding, kaart open en dicht, ontdekking, uitkijkpunt, verzameld,
+  loopbaantrap, uitgave, waarschuwing). `sfx/ui.js` speelt ze op de UI-bus (`uiFx`) met een variant per aanroep, een toonspreiding van 3 procent, een
+  afkoeltijd per geluid en een regel die meldingsgeluiden niet laat stapelen. De keuze per melding gaat op `kind` en `kicker` van `world.addMessage`.
+- `sfx/worldbank.js`: hengelen (`hengel_*`), uit het water klimmen (`water_uit`) en een hapje (`horeca_hap`) als `fx`-gebeurtenis (afstand, luchtfilter, spraakdemping),
+  en de lagen per streek (`bed_kust`, `bed_polder`, `bed_riet`, `bed_industrie`). `sfx/streekklank.js` (puur) kiest welke laag klinkt; `sfx/ambience.js` mengt ze.
+- De tests: `scripts/sfx_uitaal_test.mjs` (renderen, lagen, `ui.js` met een nagemaakte kit, streekregels). De inventaris en wat nog open staat: [SFX-GAPS.md](SFX-GAPS.md).
+  Wat een mens moet beluisteren: [SFX-LUISTERLIJST.md](SFX-LUISTERLIJST.md).
+
 ## Nieuwe opnames
 
 Nieuwe opnames gaan altijd door `scripts/audio/master_sfx.mjs` (een herhaalbare bewerking, even hard en even helder) en krijgen
