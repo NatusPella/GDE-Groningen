@@ -34,6 +34,7 @@ import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from '
 import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { tickLowHealth } from './lowhealth.js';
+import { schadeFase, schadeLabel } from './vehicledamage.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
 import { isMuted, engineReadout, toggleMute, playTimeWarning } from './audio.js';
 import { timeWarning, timeWarningText } from './timewarn.js'; // #985
@@ -1153,13 +1154,16 @@ function updateBars(world) {
   // the vehicle's damage under yours, with its name (the train has none)
   const v = hoofdspeler(world).inVehicle;
   const vh = v && Number.isFinite(v.health) ? Math.round(clampPct(v.health)) : null;
-  const vKey = vh == null ? '' : (v.id || '') + ':' + vh;
+  const vFase = vh == null ? 'heel' : schadeFase(v, v.model ? v.model.len : 4, v.model ? v.model.wid : 2);
+  const vKey = vh == null ? '' : (v.id || '') + ':' + vh + ':' + vFase;
   if (vKey !== els.vehKey) {
     const fresh = !els.vehKey || els.vehKey.split(':')[0] !== String(v ? v.id || '' : '');
+    const vNaam = vh == null ? '' : vehicleDisplayName(v).model || 'Voertuig';
     els.vehKey = vKey;
     els.vehRow.hidden = vh == null;
     if (vh != null) {
-      if (fresh) { setText(els.vehLabel, vehicleDisplayName(v).model || 'Voertuig'); S.vehAt = -Infinity; } else S.vehAt = nowS();
+      setText(els.vehLabel, schadeLabel(vNaam, vFase)); // de fase ("Rookt") staat erbij zodra het niet meer heel is (#985)
+      if (fresh) S.vehAt = -Infinity; else S.vehAt = nowS();
       setGhostBar(els.vehFill, els.vehFill.previousElementSibling, vh);
       els.vehRow.setAttribute('aria-valuenow', vh);
       els.vehRow.classList.toggle('hurt', vh <= 35);

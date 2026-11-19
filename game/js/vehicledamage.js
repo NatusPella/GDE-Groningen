@@ -102,6 +102,13 @@ export function faseEffect(fase) {
 const FASE_TEKST = { heel: 'Heel', gedeukt: 'Gedeukt', rook: 'Rookt', brand: 'Staat in brand', wrak: 'Wrak' };
 const faseTekst = (f) => FASE_TEKST[f] || FASE_TEKST.heel;
 
+// QoL (#985): de naam bij de schadebalk in de HUD, met de fase erbij zodra het voertuig niet meer heel is
+// ("Escapade · Rookt"), dezelfde woorden als in het garagemenu.
+export function schadeLabel(naam, fase) {
+  const n = naam || 'Voertuig';
+  return !fase || fase === 'heel' ? n : `${n} · ${faseTekst(fase)}`;
+}
+
 // Een zin voor het garagemenu: "Gedeukt: voor en zijkant. Los: spiegels".
 export function schadeTekst(v, len, wid) {
   const fase = schadeFase(v, len, wid);

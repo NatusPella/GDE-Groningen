@@ -1,6 +1,6 @@
 // Zichtbare voertuigschade (#205): zones, losse onderdelen, fases (game/js/vehicledamage.js).
 //   node scripts/vehicledamage_test.mjs
-import { zoneOf, zoneTotals, losseOnderdelen, nieuwLos, onderdelenPrijs, schadeFase, faseEffect, schadeTekst, kapRookt, ONDERDELEN, SMOKE_HEALTH, FIRE_HEALTH } from '../game/js/vehicledamage.js';
+import { schadeLabel, zoneOf, zoneTotals, losseOnderdelen, nieuwLos, onderdelenPrijs, schadeFase, faseEffect, schadeTekst, kapRookt, ONDERDELEN, SMOKE_HEALTH, FIRE_HEALTH } from '../game/js/vehicledamage.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -45,6 +45,12 @@ check('kap scheef + matige schade rookt', kapRookt(kapV(70, 0.9), L, W) && schad
 check('zonder kapschade geen rook bij 70', !kapRookt(kapV(70, 0), L, W) && schadeFase(kapV(70, 0), L, W) === 'gedeukt');
 check('kap scheef maar bijna heel: geen rook', !kapRookt(kapV(95, 0.9), L, W));
 check('wrak rookt niet via de kap', !kapRookt({ health: 10, wrecked: true, dentLog: [[1.8, 0, 2]] }, L, W));
+
+// QoL (#985): de schadebalk in de HUD noemt de fase zodra het voertuig niet meer heel is
+check('schadelabel: heel blijft de kale naam', schadeLabel('Escapade', 'heel') === 'Escapade' && schadeLabel('Escapade') === 'Escapade');
+check('schadelabel: rookt en brand en wrak', schadeLabel('Escapade', 'rook') === 'Escapade · Rookt' && schadeLabel('Bus', 'brand') === 'Bus · Staat in brand' && schadeLabel('Bus', 'wrak') === 'Bus · Wrak');
+check('schadelabel: zonder naam het woord Voertuig', schadeLabel('', 'gedeukt') === 'Voertuig · Gedeukt');
+check('schadelabel volgt schadeFase', schadeLabel('Auto', schadeFase({ health: 40, dentLog: [] }, L, W)) === 'Auto · Rookt');
 
 console.log(bad ? `${bad} mislukt` : 'vehicledamage_test: alles goed');
 process.exit(bad ? 1 : 0);
