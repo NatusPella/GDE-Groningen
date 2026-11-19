@@ -32,5 +32,10 @@ ok(/2 politie-eenheden/.test(H.heatUitleg(2, 2)) && /2 van 5/.test(H.heatUitleg(
 ok(/niet gezocht/.test(H.heatUitleg(0, 1)) && /zoeken je/.test(H.heatUitleg(3, 1, { searching: true })), 'de uitleg zegt koud of zoekend');
 ok(!/\d{1,2}(?! van)/.test(H.heatUitleg(0, 1).replace('1 politie', '')), 'geen los cijfer als heat');
 
+ok(H.heatTooltip(0, 0) === '', 'zonder politie in beeld geen tooltip');
+const tip = H.heatTooltip(3, 2, { searching: true });
+ok(/3 van 5 sterren/.test(tip) && /2 politie-eenheden/.test(tip) && /segment is een ster/.test(tip) && /stippen/.test(tip), 'de tooltip noemt de stand en legt ring en stippen uit');
+ok(!/(police|wanted|heat)/i.test(tip), 'de tooltip is Nederlands, zonder Engelse rolwoorden');
+
 console.log(fails ? `${fails} of ${n} failed` : `minimapheat_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

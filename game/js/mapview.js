@@ -46,7 +46,7 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE, builtUpAt } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
-import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter } from './mapstyle.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
 import { borderPlaceLabels, borderPlaceAt } from './borderplaces.js';
 import { viewpointHover } from './verkenpunten.js';
@@ -343,6 +343,7 @@ function setLayer(key, on) {
 
 let discovery = null; // { ind, seen, byId, unseen, canvas, edge, ctx, w, h, minx, miny, res, reveal }
 const discoveryHiddenCache = new Map();
+const DISCOVERY_CACHE_MAX = 5000; // zonder grens groeit de cache met elke rondgetoonde plek
 
 function discoveryBounds(world) {
   const o = getOverzicht();
@@ -461,6 +462,7 @@ function discoveryHidden(x, y) {
       for (const r of discovery.reveal) if (r.id === van.buurt && revealAlpha(now, r.at) > 0.02) { hidden = true; return true; }
     }
   } catch (e) { hidden = false; }
+  if (discoveryHiddenCache.size > DISCOVERY_CACHE_MAX) discoveryHiddenCache.clear();
   discoveryHiddenCache.set(key, hidden);
   return hidden;
 }
@@ -675,6 +677,9 @@ function renderTile(L, tx, ty) {
       drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
       c.restore();
     } else drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
+    // zonder canvasfilter (Safari/WebKit): 's nachts een donkere laag over de basis in plaats van brightness()
+    const dim = baseDimOverlay(c);
+    if (dim) { c.fillStyle = dim; c.fillRect(wx0, wy0, tws, tws); }
     c.restore();
   }
 

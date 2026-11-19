@@ -53,3 +53,12 @@ export function heatUitleg(wanted, units = 0, { searching = false } = {}) {
   const heat = warm === 0 ? 'je bent niet gezocht' : `gezocht: ${warm} van ${HEAT_MAX} sterren${searching ? ', ze zoeken je' : ''}`;
   return `${n} ${eenheid} in beeld · ${heat}`;
 }
+
+// De legenda bij de ring (tooltip en schermlezer van de minimap): wat de segmenten en stippen zijn.
+export const HEAT_LEGENDA = 'Ring om het politieschild: elk rood segment is een ster (hoe meer, hoe harder ze je zoeken); stippen zijn extra eenheden.';
+
+// De hele tekst voor de minimap: de stand van nu, plus de legenda zodra er politie in beeld is.
+export function heatTooltip(wanted, units = 0, opts = {}) {
+  const stand = heatUitleg(wanted, units, opts);
+  return stand ? `${stand}. ${HEAT_LEGENDA}` : '';
+}

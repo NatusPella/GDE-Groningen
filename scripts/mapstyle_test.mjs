@@ -195,5 +195,16 @@ if (tipCss) {
   ok(!/white-space: nowrap/.test(tipCss[1]), 'geen nowrap meer voor de hoverregel (#815)');
 }
 
+{
+  // terugval voor een canvas zonder filter (Safari/WebKit)
+  const metFilter = { filter: 'none' }, zonder = {};
+  applyMapPhase('dag');
+  ok(baseDimOverlay(zonder) === null && baseDimOverlay(metFilter) === null, 'overdag geen dempende laag, met of zonder canvasfilter');
+  applyMapPhase('nacht');
+  ok(baseDimOverlay(metFilter) === null, "'s nachts met canvasfilter dempt het filter, geen laag erbovenop");
+  ok(baseDimOverlay(zonder) === 'rgba(0, 0, 0, 0.4)' && baseDimOverlay(null) === 'rgba(0, 0, 0, 0.4)', "'s nachts zonder canvasfilter dempt een donkere laag");
+  applyMapPhase('dag');
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);

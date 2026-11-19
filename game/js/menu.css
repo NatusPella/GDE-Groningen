@@ -232,10 +232,10 @@ html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::befo
 #foto-ui .foto-info { grid-column: 1; opacity: .9; font-weight: 700; letter-spacing: .02em; }
 #foto-ui .foto-row { grid-column: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
 #foto-ui .foto-row-move { opacity: .8; }
-#foto-ui .foto-lbl { min-width: 4.4em; font-size: .78em; text-transform: uppercase; letter-spacing: .1em; opacity: .65; }
+#foto-ui .foto-lbl { min-width: 4.4em; font-size: max(13px, .78em); text-transform: uppercase; letter-spacing: .1em; opacity: .65; }
 #foto-ui .foto-key { white-space: nowrap; }
 #foto-ui .foto-acts { grid-column: 2; grid-row: 1 / span 3; display: flex; flex-direction: column; gap: 8px; }
-#foto-ui .foto-acts kbd { margin-left: 6px; font-size: .8em; background: rgba(27,32,39,.14); box-shadow: none; }
+#foto-ui .foto-acts kbd { margin-left: 6px; font-size: max(12px, .8em); background: rgba(27,32,39,.14); box-shadow: none; }
 #foto-ui .foto-go { background: #3ecf7c; }
 @media (max-width: 760px) { #foto-ui .foto-bar { grid-template-columns: 1fr; } #foto-ui .foto-acts { grid-column: 1; grid-row: auto; flex-direction: row; } #foto-ui .foto-acts .foto-btn { flex: 1; } #foto-ui .foto-lbl { display: none; } }
 #foto-ui .foto-look { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
