@@ -1,0 +1,202 @@
+/* Designsysteem v2, tokens (#980). Nog niet geladen door het spel: de ontwikkelgalerij
+   (game/ds-galerij.html) is de enige gebruiker tot fase 2 (migratie van de schermen).
+
+   Eén bron voor kleur, letter, ruimte, vorm en beweging. Componenten (ds-components.css)
+   gebruiken alleen var(--ds-...), nooit een hex. De regels staan in DESIGN_SYSTEM.md
+   ("Designsysteem v2"); de contrasttabel daar wordt door scripts/ds_tokens_test.mjs
+   tegen deze waarden gerekend.
+
+   Twee oppervlakken: PAPIER (een crème bon of kaartje, voor winkel, aanbod, missies en
+   loopbanen) en GLAS (donker groen glas, alleen voor de pauze- en kaartlaag en de HUD).
+   De rolkleuren hieronder (--ds-bg, --ds-tx, --ds-probleem-*, ...) wisselen mee met het
+   oppervlak; een component leest alleen de rol. */
+
+:root {
+  /* ---- Palet: papier en inkt ---- */
+  --ds-c-papier: #f5efe0;
+  --ds-c-papier-2: #ebe2cb;
+  --ds-c-wit: #ffffff;
+  --ds-c-inkt: #1d1b17;
+  --ds-c-inkt-zacht: #4d483c;
+  /* ---- Palet: bordgroen en kentekengeel (de eigen identiteit) ---- */
+  --ds-c-bord: #0e6b3c;
+  --ds-c-geel: #f9c80e;
+  --ds-c-geel-hover: #ffd633;
+  --ds-c-geel-druk: #e0b000;
+  /* ---- Palet: rollen op papier ---- */
+  --ds-c-rood-vlak: #fbe1dc;
+  --ds-c-rood-tx: #8c1d18;
+  --ds-c-rood: #b3261e;
+  --ds-c-groen-vlak: #dcefdc;
+  --ds-c-groen-tx: #14582f;
+  --ds-c-sel-vlak: #dcebdd;
+  --ds-c-amber-vlak: #fdebc8;
+  --ds-c-amber-tx: #7a4a00;
+  --ds-c-amber: #a15c00;
+  /* ---- Palet: glas (de bestaande tokens van het spel, hier benoemd) ---- */
+  --ds-c-glas: #0c140e;
+  --ds-c-glas-2: #17301f;
+  --ds-c-glas-3: #1f3a28;
+  --ds-c-creme: #f0ede4;
+  --ds-c-creme-zacht: #b9b7ad;
+  --ds-c-licht-groen: #3fc97a;
+  --ds-c-rood-glas-vlak: #3a1816;
+  --ds-c-rood-glas-tx: #f5b5ad;
+  --ds-c-rood-glas: #d93f3f;
+  --ds-c-amber-glas-vlak: #3a2a0c;
+  --ds-c-amber-glas-tx: #ffbe46;
+  --ds-c-sel-glas-vlak: #1d3a23;
+
+  /* ---- Rollen, standaard op papier ---- */
+  --ds-bg: var(--ds-c-papier);
+  --ds-bg-2: var(--ds-c-papier-2);
+  --ds-tx: var(--ds-c-inkt);
+  --ds-tx-zacht: var(--ds-c-inkt-zacht);
+  --ds-rand: var(--ds-c-inkt);
+  --ds-focus: var(--ds-c-inkt);
+  --ds-kop-bg: var(--ds-c-bord);
+  --ds-kop-tx: var(--ds-c-wit);
+  --ds-primair: var(--ds-c-geel);
+  --ds-primair-tx: var(--ds-c-inkt);
+  --ds-primair-rand: var(--ds-c-inkt);
+  --ds-primair-hover: var(--ds-c-geel-hover);
+  --ds-primair-druk: var(--ds-c-geel-druk);
+  --ds-probleem-vlak: var(--ds-c-rood-vlak);
+  --ds-probleem-tx: var(--ds-c-rood-tx);
+  --ds-probleem: var(--ds-c-rood);
+  --ds-selectie-vlak: var(--ds-c-sel-vlak);
+  --ds-selectie: var(--ds-c-bord);
+  --ds-selectie-tx: var(--ds-c-inkt);
+  --ds-succes-vlak: var(--ds-c-groen-vlak);
+  --ds-succes-tx: var(--ds-c-groen-tx);
+  --ds-succes: var(--ds-c-bord);
+  --ds-waarschuwing-vlak: var(--ds-c-amber-vlak);
+  --ds-waarschuwing-tx: var(--ds-c-amber-tx);
+  --ds-waarschuwing: var(--ds-c-amber);
+  --ds-tab-bg: var(--ds-c-wit);
+  --ds-tab-tx: var(--ds-c-inkt);
+  --ds-tab-actief-bg: var(--ds-c-inkt);
+  --ds-tab-actief-tx: var(--ds-c-papier);
+  --ds-toets-bg: var(--ds-c-inkt);
+  --ds-toets-tx: var(--ds-c-papier);
+
+  /* ---- Typografie: rollen, geen losse px. Ontwerpmaat 1080p (stage, zoom --mz) ---- */
+  --ds-font-kop: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-tekst: 'Arial Narrow', Arial, sans-serif;
+  --ds-t-display: 64px;
+  --ds-t-kop: 44px;
+  --ds-t-subkop: 28px;
+  --ds-t-cijfer: 48px;
+  --ds-t-body: 20px;
+  --ds-t-label: 16px;
+  --ds-t-hulp: max(14px, var(--menu-min, 13px));
+  --ds-t-toets: 12px; /* alleen de binnenkant van een toetsplaatje */
+  --ds-lh-kop: 1;
+  --ds-lh-tekst: 1.4;
+  --ds-ls-kop: 1px;
+  --ds-ls-label: 0.06em;
+  --ds-gewicht-vet: 700;
+
+  /* ---- Ruimte: 4-px-basis ---- */
+  --ds-s-1: 4px;
+  --ds-s-2: 8px;
+  --ds-s-3: 12px;
+  --ds-s-4: 16px;
+  --ds-s-5: 24px;
+  --ds-s-6: 32px;
+  --ds-s-7: 48px;
+  --ds-s-8: 64px;
+  --ds-rand-hud: var(--ds-s-6); /* vaste marge van de HUD-hoeken (1080p) */
+
+  /* ---- Vorm: één radius, één dun randje, geen glans of verloop ---- */
+  --ds-r: 10px;
+  --ds-r-pil: 999px;
+  --ds-r-toets: 6px; /* alleen het toetsplaatje, zoals de bestaande keycap */
+  --ds-lijn: 1px;
+  --ds-lijn-dik: 2px;
+  --ds-status-rand: 6px; /* gekleurde linkerrand van een kaart */
+  --ds-focus-dikte: 2px;
+  --ds-focus-afstand: 2px;
+  --ds-hoogte-rij: 56px;
+  --ds-hoogte-knop: 56px;
+  --ds-hoogte-chip: 32px;
+  --ds-hoogte-tab: 40px;
+  --ds-doel-aanraken: 44px;
+
+  /* ---- Schaduw: alleen zacht ---- */
+  --ds-schaduw-laag: 0 1px 2px rgba(12, 20, 14, 0.25);
+  --ds-schaduw: 0 6px 18px rgba(12, 20, 14, 0.28);
+
+  /* ---- Beweging: hooguit 250 ms, ease-out ---- */
+  --ds-m-snel: 120ms;
+  --ds-m: 200ms;
+  --ds-m-max: 250ms;
+  --ds-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Glas: dezelfde rollen op donker groen glas. */
+.ds-glas {
+  --ds-bg: var(--ds-c-glas-2);
+  --ds-bg-2: var(--ds-c-glas-3);
+  --ds-tx: var(--ds-c-creme);
+  --ds-tx-zacht: var(--ds-c-creme-zacht);
+  --ds-rand: var(--ds-c-creme-zacht);
+  --ds-focus: var(--ds-c-creme);
+  --ds-kop-bg: var(--ds-c-glas);
+  --ds-primair-rand: var(--ds-c-geel);
+  --ds-kop-tx: var(--ds-c-licht-groen);
+  --ds-probleem-vlak: var(--ds-c-rood-glas-vlak);
+  --ds-probleem-tx: var(--ds-c-rood-glas-tx);
+  --ds-probleem: var(--ds-c-rood-glas);
+  --ds-selectie-vlak: var(--ds-c-sel-glas-vlak);
+  --ds-selectie: var(--ds-c-licht-groen);
+  --ds-selectie-tx: var(--ds-c-creme);
+  --ds-succes-vlak: var(--ds-c-sel-glas-vlak);
+  --ds-succes-tx: var(--ds-c-licht-groen);
+  --ds-succes: var(--ds-c-licht-groen);
+  --ds-waarschuwing-vlak: var(--ds-c-amber-glas-vlak);
+  --ds-waarschuwing-tx: var(--ds-c-amber-glas-tx);
+  --ds-waarschuwing: var(--ds-c-amber-glas-tx);
+  --ds-tab-bg: var(--ds-c-glas-3);
+  --ds-tab-tx: var(--ds-c-creme);
+  --ds-tab-actief-bg: var(--ds-c-creme);
+  --ds-tab-actief-tx: var(--ds-c-glas);
+  --ds-toets-bg: var(--ds-c-creme);
+  --ds-toets-tx: var(--ds-c-glas);
+}
+
+/* Papier is de standaard; de klasse bestaat zodat een kaart op glas terug kan naar papier. */
+.ds-papier {
+  --ds-bg: var(--ds-c-papier);
+  --ds-bg-2: var(--ds-c-papier-2);
+  --ds-tx: var(--ds-c-inkt);
+  --ds-tx-zacht: var(--ds-c-inkt-zacht);
+  --ds-rand: var(--ds-c-inkt);
+  --ds-focus: var(--ds-c-inkt);
+  --ds-kop-bg: var(--ds-c-bord);
+  --ds-kop-tx: var(--ds-c-wit);
+  --ds-probleem-vlak: var(--ds-c-rood-vlak);
+  --ds-probleem-tx: var(--ds-c-rood-tx);
+  --ds-probleem: var(--ds-c-rood);
+  --ds-selectie-vlak: var(--ds-c-sel-vlak);
+  --ds-selectie: var(--ds-c-bord);
+  --ds-selectie-tx: var(--ds-c-inkt);
+  --ds-succes-vlak: var(--ds-c-groen-vlak);
+  --ds-succes-tx: var(--ds-c-groen-tx);
+  --ds-succes: var(--ds-c-bord);
+  --ds-waarschuwing-vlak: var(--ds-c-amber-vlak);
+  --ds-waarschuwing-tx: var(--ds-c-amber-tx);
+  --ds-waarschuwing: var(--ds-c-amber);
+  --ds-tab-bg: var(--ds-c-wit);
+  --ds-tab-tx: var(--ds-c-inkt);
+  --ds-tab-actief-bg: var(--ds-c-inkt);
+  --ds-tab-actief-tx: var(--ds-c-papier);
+  --ds-toets-bg: var(--ds-c-inkt);
+  --ds-toets-tx: var(--ds-c-papier);
+}
+
+/* Beweging beperken: de tokens zelf worden nul, zodat elke component meebeweegt zonder eigen regel. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
+}
+html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }

@@ -39,6 +39,11 @@ export const ALLOWED_COLORS = new Set([
   // Gedocumenteerde paneelgradiënt (DESIGN_SYSTEM.md:80) en hooglichten (#fff is de
   // 3-cijferige vorm van #ffffff).
   '#14281b', '#ffffff', '#fff',
+  // Designsysteem v2 (game/js/ds-tokens.css, #980): papier, inkt, bordgroen, kentekengeel en de
+  // rolkleuren op papier en glas. Alleen de tokens zelf mogen deze hex dragen (zie checkDsLine).
+  '#f5efe0', '#ebe2cb', '#1d1b17', '#4d483c', '#0e6b3c', '#f9c80e', '#ffd633', '#e0b000',
+  '#fbe1dc', '#8c1d18', '#b3261e', '#dcefdc', '#14582f', '#dcebdd', '#fdebc8', '#7a4a00', '#a15c00',
+  '#1f3a28', '#b9b7ad', '#3a1816', '#f5b5ad', '#3a2a0c',
 ]);
 
 // Dezelfde kleuren als RGB-triples, voor rgb()/rgba()-notatie.
@@ -61,6 +66,12 @@ export const ALLOWED_FONTS = new Set([
 // zin; alleen de binnenkant van een toetsplaatje mag kleiner. spec_check.mjs houdt de spec hierop vast.
 export const TEXT_NORM_PX = 13;
 export const TEXT_FLOOR_PX = 12;
+
+// Designsysteem v2 (#980): de twee CSS-bestanden hebben strengere regels dan de rest van de UI.
+const DS_COMPONENTS = /(?:^|\/)game\/js\/ds-components\.css$/;
+const DS_TOKENS = /(?:^|\/)game\/js\/ds-tokens\.css$/;
+export const DS_MAX_MOTION_MS = 250;
+export const DS_TOETS_SELECTOR = '.ds-badge';
 
 const UI_ROOTS = /^(?:game|web)\//;
 const MENU_FILE = /(?:^|\/)(?:menu\.css|[^/]*menu[^/]*\.(?:css|js|mjs|html)|pausemenu\.js|shopui\.js|spullen\.js|hudcards\.css|prompts\.css)$/i;
@@ -116,6 +127,103 @@ export function designCandidates(file, text) {
     fontgrootte: ui && /font-size|fontSize/i.test(line),
     important: ui && /!important/i.test(line),
   };
+}
+
+export function isDsComponentsFile(file) { return DS_COMPONENTS.test(String(file || '').replaceAll('\\', '/')); }
+export function isDsTokensFile(file) { return DS_TOKENS.test(String(file || '').replaceAll('\\', '/')); }
+
+function durationsMs(text) {
+  const out = [];
+  for (const m of String(text).matchAll(/(?<![\w.-])(\d*\.?\d+)\s*(ms|s)\b/g)) out.push(m[2] === 's' ? Number(m[1]) * 1000 : Number(m[1]));
+  return out;
+}
+
+/**
+ * Strengere regels voor game/js/ds-components.css en ds-tokens.css, per toegevoegde regel.
+ * Componenten: geen hex, rgb() of hsl(), geen verloop, geen losse px voor lettergrootte, ruimte of
+ * radius (alleen var(--ds-...)), tekst niet onder 13 px en beweging hooguit 250 ms. Tokens: hex alleen
+ * als palet (--ds-c-*), rgba alleen in een schaduw, lettergrootte-tokens niet onder 13 px (12 px alleen
+ * --ds-t-toets), ruimte op de 4-px-basis en beweging hooguit 250 ms.
+ */
+export function checkDsLine({ file, line, text } = {}) {
+  const filePath = String(file ?? '').replaceAll('\\', '/');
+  const comp = isDsComponentsFile(filePath);
+  const tok = isDsTokensFile(filePath);
+  if (!comp && !tok) return [];
+  const raw = String(text ?? '');
+  if (!raw.trim() || FULL_LINE_COMMENT.test(raw)) return [];
+  const clean = stripComments(raw, filePath);
+  const out = [];
+  const add = (ernst, titel, beschrijving, fix) => out.push(finding({ file: filePath, line, text: raw, ernst, categorie: 'design-system', titel, beschrijving, fix }));
+
+  if (comp) {
+    const colour = clean.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/);
+    if (colour) add('blokkerend', 'Losse kleur in ds-components.css', `Kleur ${colour[0]} in de componenten; die lezen alleen var(--ds-...) uit ds-tokens.css.`, 'Gebruik een token (een rol) en voeg zo nodig een token toe in ds-tokens.css en de contrasttabel in DESIGN_SYSTEM.md.');
+    if (/(?:linear|radial|conic)-gradient\(/i.test(clean)) add('belangrijk', 'Verloop in ds-components.css', 'Het designsysteem kent geen glans of verloop; alleen vlakke kleur en een zachte schaduw.', 'Gebruik een vlak en --ds-schaduw.');
+    for (const m of clean.matchAll(/font-size\s*:\s*([^;}]+)/gi)) {
+      const px = [...m[1].matchAll(/(\d+(?:\.\d+)?)px/g)].map((x) => Number(x[1]));
+      if (px.some((n) => n < TEXT_NORM_PX) && !/var\(\s*--ds-t-toets/.test(m[1])) add('blokkerend', 'Lettergrootte onder 13 px in ds-components.css', `Tekst op ${px.join(', ')} px; het systeem heeft een vloer van ${TEXT_NORM_PX} px.`, 'Gebruik een rol (--ds-t-body, --ds-t-hulp, ...).');
+      else if (px.length && !/var\(/.test(m[1])) add('belangrijk', 'Losse lettergrootte in ds-components.css', `Lettergrootte ${m[1].trim()} buiten de typografieschaal.`, 'Gebruik een rol uit --ds-t-*.');
+    }
+    for (const m of clean.matchAll(/(?<![\w-])((?:padding|margin|gap|row-gap|column-gap|border-radius)[\w-]*)\s*:\s*([^;}]+)/gi)) {
+      const literal = m[2].replace(/var\([^)]*\)/g, '').match(/-?\d*\.?\d+px/);
+      if (literal) add('belangrijk', 'Losse px in ds-components.css', `${m[1]}: ${m[2].trim()}; ruimte en radius komen uit --ds-s-* en --ds-r.`, 'Gebruik var(--ds-s-n) of var(--ds-r).');
+    }
+    if (/(?:transition|animation)[\w-]*\s*:/i.test(clean) && durationsMs(clean.replace(/var\([^)]*\)/g, '')).some((ms) => ms > DS_MAX_MOTION_MS)) {
+      add('blokkerend', 'Beweging langer dan 250 ms', `Duur boven ${DS_MAX_MOTION_MS} ms in ds-components.css.`, 'Gebruik --ds-m-snel, --ds-m of --ds-m-max (hooguit 250 ms).');
+    }
+  }
+
+  if (tok) {
+    const def = clean.match(/^\s*(--[\w-]+)\s*:\s*([^;]+)/);
+    const name = def ? def[1] : '';
+    const value = def ? def[2] : '';
+    if (/#[0-9a-fA-F]{3,8}\b/.test(clean) && !/^--ds-c-/.test(name)) add('blokkerend', 'Hex buiten het palet in ds-tokens.css', `Hex in ${name || 'een regel'} die geen palettoken (--ds-c-*) is.`, 'Zet de kleur als --ds-c-* en verwijs ernaar met var().');
+    if (/rgba?\(/.test(clean) && !/^--ds-schaduw/.test(name)) add('blokkerend', 'rgba buiten een schaduw in ds-tokens.css', `rgba() in ${name || 'een regel'}; doorzichtige kleur is alleen voor een schaduw.`, 'Gebruik een palettoken, of maak er een schaduwtoken van.');
+    if (/^--ds-t-/.test(name)) {
+      const px = [...value.matchAll(/(\d+(?:\.\d+)?)px/g)].map((x) => Number(x[1]));
+      if (px.some((n) => n < TEXT_NORM_PX) && name !== '--ds-t-toets') add('blokkerend', 'Lettergrootte-token onder 13 px', `${name}: ${value.trim()}; alleen --ds-t-toets (toetsplaatje) mag op 12 px.`, 'Maak het 13 px of groter.');
+      if (name === '--ds-t-toets' && px.some((n) => n < TEXT_FLOOR_PX)) add('blokkerend', 'Toetsmaat onder 12 px', `${name}: ${value.trim()}.`, 'Houd de toets op 12 px.');
+    }
+    if (/^--ds-s-\d+$/.test(name) && value.trim().endsWith('px') && Number.parseFloat(value) % 4 !== 0) add('belangrijk', 'Ruimte-token buiten de 4-px-basis', `${name}: ${value.trim()}.`, 'Gebruik een veelvoud van 4 px.');
+    if (/^--ds-m(?:-|$)/.test(name) && durationsMs(value).some((ms) => ms > DS_MAX_MOTION_MS)) add('blokkerend', 'Beweging-token langer dan 250 ms', `${name}: ${value.trim()}.`, 'Houd beweging op 250 ms of korter.');
+  }
+  return out;
+}
+
+/** Splitst platte CSS (ook binnen @media) in { selector, body, line }-regels. */
+function cssRules(css) {
+  const out = [];
+  const stripped = String(css).replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+  for (const m of stripped.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    out.push({ selector: m[1].trim(), body: m[2], line: stripped.slice(0, m.index + m[0].indexOf('{')).split('\n').length });
+  }
+  return out;
+}
+
+/**
+ * Bestandsregels die een regel niet ziet: reduced-motion en focus aanwezig, het toetsplaatje als enige
+ * met 12 px, en elke regel van beide bestanden door checkDsLine. Voor de gedragstest en de gate.
+ */
+export function checkDsFiles({ tokensCss = '', componentsCss = '', tokensFile = 'game/js/ds-tokens.css', componentsFile = 'game/js/ds-components.css' } = {}) {
+  const out = [];
+  const lines = (css, file) => String(css).split('\n').forEach((text, i) => out.push(...checkDsLine({ file, line: i + 1, text })));
+  lines(tokensCss, tokensFile);
+  lines(componentsCss, componentsFile);
+  const bestandsfout = (file, titel, beschrijving, fix) => out.push(finding({ file, line: 1, text: titel, ernst: 'blokkerend', categorie: 'design-system', titel, beschrijving, fix }));
+  if (!/prefers-reduced-motion\s*:\s*reduce/.test(componentsCss) || !/html\.reduce-motion/.test(componentsCss)) {
+    bestandsfout(componentsFile, 'Reduced-motion ontbreekt in ds-components.css', 'Een van beide takken ontbreekt: @media (prefers-reduced-motion: reduce) en html.reduce-motion (de instelling van het spel).', 'Zet transitions en animaties uit in beide takken.');
+  }
+  if (!/prefers-reduced-motion\s*:\s*reduce/.test(tokensCss) || !/html\.reduce-motion/.test(tokensCss)) {
+    bestandsfout(tokensFile, 'Reduced-motion ontbreekt in ds-tokens.css', 'De beweging-tokens worden niet nul bij "Beweging beperken".', 'Zet --ds-m* op 0ms in beide takken.');
+  }
+  if (!/:focus-visible/.test(componentsCss)) bestandsfout(componentsFile, 'Focusring ontbreekt in ds-components.css', 'Zonder :focus-visible is er geen zichtbare focus.', 'Voeg één focusring toe voor alle bedienbare componenten.');
+  for (const rule of cssRules(componentsCss)) {
+    if (/var\(\s*--ds-t-toets\b/.test(rule.body) && rule.selector !== DS_TOETS_SELECTOR) {
+      out.push(finding({ file: componentsFile, line: rule.line, text: rule.selector, ernst: 'blokkerend', categorie: 'typografie', titel: 'Toetsmaat buiten het toetsplaatje', beschrijving: `${rule.selector} gebruikt --ds-t-toets; alleen ${DS_TOETS_SELECTOR} mag op 12 px.`, fix: 'Gebruik --ds-t-hulp of groter.' }));
+    }
+  }
+  return out;
 }
 
 function quote(text) {
@@ -233,7 +341,8 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
   const raw = String(text ?? '');
   if (!filePath || !raw.trim()) return [];
   const candidates = designCandidates(filePath, raw);
-  if (!candidates.kleur && !candidates.typografie && !candidates.fontgrootte && !candidates.important) return [];
+  const dsFindings = checkDsLine({ file: filePath, line, text: raw });
+  if (!candidates.kleur && !candidates.typografie && !candidates.fontgrootte && !candidates.important) return dsFindings;
 
   const allowed = opts.allowed instanceof Set ? opts.allowed : null;
   const findings = [];
@@ -297,7 +406,7 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
     }));
   }
 
-  return findings;
+  return [...findings, ...dsFindings];
 }
 
-export default { ALLOWED_COLORS, ALLOWED_FONTS, isUiFile, looksLikeStyleLine, stripComments, designCandidates, checkDesignLine };
+export default { ALLOWED_COLORS, ALLOWED_FONTS, isUiFile, looksLikeStyleLine, stripComments, designCandidates, checkDesignLine, checkDsLine, checkDsFiles, isDsComponentsFile, isDsTokensFile };

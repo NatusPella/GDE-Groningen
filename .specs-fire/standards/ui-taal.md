@@ -188,6 +188,13 @@ een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
   Nederlandse gezinsauto uit de jaren 90" en kiest kantig boven chibi, met de echte
   maten uit `models3d_people.js` (#479).
 
+## Designsysteem v2 (#980, fase 1: nog niet in het spel)
+
+Een tweede oppervlak naast het glas: een crème papieren bon (winkel, aanbod, missies, loopbanen) met bordgroen voor koppen, kentekengeel als het ene accent voor "kan nu" en inkt voor tekst; glas blijft voor de pauze- en kaartlaag en de HUD. De tokens (`game/js/ds-tokens.css`), de componenten (`game/js/ds-components.css`), de galerij (`game/ds-galerij.html`), de contrasttabel, de typografie- en ruimteschaal, de HUD-hoeken, de beweging, de regels en de migratiekaarten per scherm staan in het hoofdstuk "Design system v2" van `DESIGN_SYSTEM.md`; de telling van de huidige CSS in `docs/DESIGN-AUDIT-CSS.md`.
+- Kleur is een rol (primair, probleem, selectie, succes, waarschuwing), nooit alleen de kleur: er gaat een icoon, vorm of woord mee. Geen blauw accent en geen tweede rood buiten de papier-variant van het ene rood.
+- Hulptekst minstens 13 px en 4,5:1; beweging hooguit 250 ms en uit bij "Beweging beperken"; elk scherm heeft een hero of een reden waarom niet, en elke lege toestand een haak en een handeling.
+- Bewaakt door `checkDsLine` en `checkDsFiles` in `scripts/release/design_rules.mjs` en door `scripts/ds_tokens_test.mjs` (contrast per kleurpaar, componentenlijst, galerij). De bestaande schermen veranderen pas in fase 2.
+
 ## Regels voor een nieuw scherm of nieuwe tekst
 
 1. Alleen de tokens hierboven; een rolkleur via `markerColors()` of `--mk-*`. Geen

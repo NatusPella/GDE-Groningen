@@ -324,6 +324,19 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+// ---------------------------------------------------------------- designsysteem v2 (#980)
+// De strengere regels voor game/js/ds-components.css en ds-tokens.css; de rest staat in scripts/ds_tokens_test.mjs.
+{
+  const comp = (text) => checkDesignLine({ file: 'game/js/ds-components.css', line: 3, text });
+  const tok = (text) => checkDesignLine({ file: 'game/js/ds-tokens.css', line: 3, text });
+  ok(comp('  color: #1d1b17;').some((f) => f.ernst === 'blokkerend' && f.titel.includes('Losse kleur')), 'ds: hex in ds-components.css blokkeert, ook als het een bekende tokenwaarde is');
+  ok(comp('  color: var(--ds-tx);').length === 0, 'ds: var(--ds-tx) in ds-components.css is goed');
+  ok(comp('  font-size: 11px;').some((f) => f.ernst === 'blokkerend'), 'ds: 11 px in ds-components.css blokkeert');
+  ok(tok('  --ds-c-nieuw: #1d1b17;').length === 0, 'ds: een palettoken met een bekende hex is goed');
+  ok(tok('  --ds-c-nieuw: #123456;').some((f) => f.titel.includes('Kleur buiten de tokens')), 'ds: een onbekende hex in de tokens meldt ook de gewone kleurregel');
+  ok(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '  color: #1d1b17;' }).length === 0, 'ds: de nieuwe tokenhex mag ook elders (alleen de ds-bestanden zijn strenger)');
+}
+
 if (fouten) {
   console.log(`release_designrules_test: ${fouten} fout(en) van ${controles} controles`);
   process.exitCode = 1;

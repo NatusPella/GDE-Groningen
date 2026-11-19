@@ -15,6 +15,9 @@ This page holds the overview and the rules. The details live next to it, each re
 | [docs/DESIGN-BEDIENING.md](docs/DESIGN-BEDIENING.md) | keyboard, controller and touch, device detection, hints, rebinding, the mouse, accessibility settings and the colour-blind palettes |
 | [docs/DESIGN-SAMEN-SPELEN.md](docs/DESIGN-SAMEN-SPELEN.md) | designing for more than one player, the players list, passive mode, Meedoen? J or N, host handover, the wait screens |
 | [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md) | where the code breaks these rules, honest and dated, and what could not be checked |
+| [docs/DESIGN-AUDIT-CSS.md](docs/DESIGN-AUDIT-CSS.md) | what the UI CSS actually uses (colours, radii, sizes, spacing, with counts) against this page, #980 |
+
+The second surface, the tokens and the components of **Design system v2** are in the chapter of that name below (files `game/js/ds-tokens.css` and `game/js/ds-components.css`, gallery `game/ds-galerij.html`).
 
 **The principles behind every choice**
 
@@ -332,6 +335,201 @@ For every new screen, mission, side job or minigame answer, in the issue or chan
 6. **Which test covers it?** A pure test in `scripts/coop/` or a test-bank step.
 
 The wording, the players list (hold Tab), passive mode, Meedoen?, host handover and the wait screens are in [docs/DESIGN-SAMEN-SPELEN.md](docs/DESIGN-SAMEN-SPELEN.md).
+
+## Design system v2 (#980, phase 1: the system, no screen migrated yet)
+
+The glass-on-dark look above stays the HUD, the pause menu's rail and the map layer. v2 adds a second surface and one shared set of tokens and components so the shop, offers, missions and careers read as *one* system with the world instead of a template repeated per screen.
+It lives in two new files, `game/js/ds-tokens.css` and `game/js/ds-components.css`, which no screen loads yet (phase 2 migrates them in the order below). `game/ds-galerij.html` shows every token and component in every state on paper and on glass; `node scripts/qa/ds_galerij.mjs` takes screenshots of it in Electron (not run in phase 1, so nothing here was seen in the game). The audit of what the CSS does today, with counts, is [docs/DESIGN-AUDIT-CSS.md](docs/DESIGN-AUDIT-CSS.md).
+
+**Where it comes from.** Principles, not a copy: the UI and the world share one palette; light cards with dark heavy text on a mid-tone scene stay readable where dark glass on dark falls away; very few colours with one fixed meaning; one shape language; type hierarchy through size and weight; the UI sits on the edges and the middle stays the world; a decision screen shows the consequence before the choice. Our own identity supplies the look: Dutch street signs and paper receipts. **Bordgroen** (sign green with white) for navigation and headings, **kentekengeel** (plate yellow) as the one accent for "you can do this now", a **cream paper receipt** for shops, offers, missions and careers, and **dark glass** only for the pause and map layers and the HUD. No real signage colour codes or organisation names are used or implied; the names are invented.
+
+**The AAA critique (#980 comment) as rules.** Every screen was the same template, there was no hero, empty states were dead, small helper texts had low contrast and nothing moved. v2 answers each with a rule (see "Rules v2"): a hero or a stated reason why not, an empty state with a hook and an action, helper text of at least 13 px at 4.5:1, a defined motion scale that respects "Beweging beperken", and more than one card shape per screen type (offer card, receipt, ladder, character card, list row).
+
+### Colour roles
+
+One palette (`--ds-c-*`), a handful of roles, two surfaces. A component reads the role (`--ds-tx`, `--ds-probleem-vlak`, ...), never a palette colour, so it works on paper and on glass (`.ds-papier`, `.ds-glas`; paper is the default).
+
+| Role | Means | On paper | On glass | Never |
+|---|---|---|---|---|
+| `ink` (`--ds-tx`) | text, edges | `#1d1b17` | cream `#f0ede4` | flat black |
+| `paper` (`--ds-bg`, `--ds-bg-2`) | card and quiet fill | `#f5efe0`, `#ebe2cb` | `#17301f`, `#1f3a28` | white card on paper |
+| `primair` (kentekengeel) | the one thing you can do now: primary button, "Kan nu" chip | `#f9c80e` with an ink edge | same yellow | a status, a link or an icon on paper (1,4:1 against the paper; the edge carries it) |
+| `bord` (bordgroen) | navigation, card header band, selection edge | `#0e6b3c` on white text | `#3fc97a` on `#0c140e` | a button fill (that is yellow) |
+| `probleem` | something is wrong, with numbers | `#fbe1dc` fill, `#8c1d18` text, `#b3261e` edge | `#3a1816` fill, `#f5b5ad` text, `#d93f3f` edge | decoration; a second red |
+| `selectie` | neutral selection or focus of a choice | bordgroen edge on `#dcebdd` | `#3fc97a` edge on `#1d3a23` | the only cue (add the check mark) |
+| `succes` | done, right, earned | `#14582f` on `#dcefdc` | `#3fc97a` | without a check or a word |
+| `waarschuwing` | be careful, time running out | `#7a4a00` on `#fdebc8` | `#ffbe46` on `#3a2a0c` | without an icon and a word |
+
+Rules that come with it:
+
+- **Status is never colour alone.** A chip carries an icon and a word; a selected card carries the edge, a tick and `aria-current`; a problem has a triangle and a sentence. The three colour-blind palettes (`--mk-*`) keep deciding the world markers; the v2 roles are UI chrome and keep a shape or word with every colour.
+- **The old yellow rule is not changed for old screens.** `#e8c93a` stays the wanted star, special-day badge and mission marker. v2's `#f9c80e` is a second yellow; at migration the HUD keeps `#e8c93a` and the v2 surfaces use `#f9c80e`, and the owner decides whether the two merge (open).
+- **No blue accent (kept).** "Neutral / selection" is bordgroen plus ink, not blue; the earlier rule "blue would be the only blue in the game" still stands. A blue selection colour is an open choice for the owner; it would be one token (`--ds-selectie`), changed in two places.
+- **Red on paper is the same red family at a different lightness.** `#d93f3f` stays the one red on glass and in the HUD; on cream it only reaches 3,9:1, so paper uses `#8c1d18` for text and `#b3261e` for edges. One hue, two surfaces; no further reds.
+- **Yellow never carries text.** Text on yellow is ink; yellow text on paper does not exist. Yellow on glass may be a fill, an edge or text (7,9:1 and up).
+
+#### Contrast table
+
+Every pair the components draw, computed from the tokens by `scripts/ds_tokens_test.mjs` (WCAG 2 ratio; norm 4.5 for text, 3 for large text, edges, icons and fills). The test fails when a ratio drops under its norm or this table differs from the tokens; `node scripts/ds_tokens_test.mjs --write` regenerates it.
+
+<!-- ds-contrast:start -->
+| Surface | Role pair | Foreground | Background | Norm | Ratio |
+|---|---|---|---|---|---|
+| papier | `--ds-tx` on `--ds-bg` | `--ds-c-inkt` | `--ds-c-papier` | 4.5 | 14.99 |
+| papier | `--ds-tx` on `--ds-bg-2` | `--ds-c-inkt` | `--ds-c-papier-2` | 4.5 | 13.32 |
+| papier | `--ds-tx-zacht` on `--ds-bg` | `--ds-c-inkt-zacht` | `--ds-c-papier` | 4.5 | 7.93 |
+| papier | `--ds-tx-zacht` on `--ds-bg-2` | `--ds-c-inkt-zacht` | `--ds-c-papier-2` | 4.5 | 7.05 |
+| papier | `--ds-probleem-tx` on `--ds-probleem-vlak` | `--ds-c-rood-tx` | `--ds-c-rood-vlak` | 4.5 | 7.34 |
+| papier | `--ds-probleem-tx` on `--ds-bg` | `--ds-c-rood-tx` | `--ds-c-papier` | 4.5 | 7.94 |
+| papier | `--ds-succes-tx` on `--ds-succes-vlak` | `--ds-c-groen-tx` | `--ds-c-groen-vlak` | 4.5 | 7.06 |
+| papier | `--ds-succes-tx` on `--ds-bg` | `--ds-c-groen-tx` | `--ds-c-papier` | 4.5 | 7.42 |
+| papier | `--ds-waarschuwing-tx` on `--ds-waarschuwing-vlak` | `--ds-c-amber-tx` | `--ds-c-amber-vlak` | 4.5 | 6.37 |
+| papier | `--ds-selectie-tx` on `--ds-selectie-vlak` | `--ds-c-inkt` | `--ds-c-sel-vlak` | 4.5 | 13.89 |
+| papier | `--ds-primair-tx` on `--ds-primair` | `--ds-c-inkt` | `--ds-c-geel` | 4.5 | 10.89 |
+| papier | `--ds-primair-tx` on `--ds-primair-hover` | `--ds-c-inkt` | `--ds-c-geel-hover` | 4.5 | 12.21 |
+| papier | `--ds-primair-tx` on `--ds-primair-druk` | `--ds-c-inkt` | `--ds-c-geel-druk` | 4.5 | 8.50 |
+| papier | `--ds-kop-tx` on `--ds-kop-bg` | `--ds-c-wit` | `--ds-c-bord` | 4.5 | 6.59 |
+| papier | `--ds-tab-tx` on `--ds-tab-bg` | `--ds-c-inkt` | `--ds-c-wit` | 4.5 | 17.19 |
+| papier | `--ds-tab-actief-tx` on `--ds-tab-actief-bg` | `--ds-c-papier` | `--ds-c-inkt` | 4.5 | 14.99 |
+| papier | `--ds-rand` on `--ds-bg` | `--ds-c-inkt` | `--ds-c-papier` | 3 | 14.99 |
+| papier | `--ds-selectie` on `--ds-bg` | `--ds-c-bord` | `--ds-c-papier` | 3 | 5.74 |
+| papier | `--ds-probleem` on `--ds-bg` | `--ds-c-rood` | `--ds-c-papier` | 3 | 5.70 |
+| papier | `--ds-waarschuwing` on `--ds-bg` | `--ds-c-amber` | `--ds-c-papier` | 3 | 4.52 |
+| glas | `--ds-tx` on `--ds-bg` | `--ds-c-creme` | `--ds-c-glas-2` | 4.5 | 12.13 |
+| glas | `--ds-tx` on `--ds-bg-2` | `--ds-c-creme` | `--ds-c-glas-3` | 4.5 | 10.59 |
+| glas | `--ds-tx-zacht` on `--ds-bg` | `--ds-c-creme-zacht` | `--ds-c-glas-2` | 4.5 | 7.06 |
+| glas | `--ds-tx-zacht` on `--ds-bg-2` | `--ds-c-creme-zacht` | `--ds-c-glas-3` | 4.5 | 6.16 |
+| glas | `--ds-probleem-tx` on `--ds-probleem-vlak` | `--ds-c-rood-glas-tx` | `--ds-c-rood-glas-vlak` | 4.5 | 9.15 |
+| glas | `--ds-probleem-tx` on `--ds-bg` | `--ds-c-rood-glas-tx` | `--ds-c-glas-2` | 4.5 | 8.18 |
+| glas | `--ds-succes-tx` on `--ds-succes-vlak` | `--ds-c-licht-groen` | `--ds-c-sel-glas-vlak` | 4.5 | 5.86 |
+| glas | `--ds-succes-tx` on `--ds-bg` | `--ds-c-licht-groen` | `--ds-c-glas-2` | 4.5 | 6.66 |
+| glas | `--ds-waarschuwing-tx` on `--ds-waarschuwing-vlak` | `--ds-c-amber-glas-tx` | `--ds-c-amber-glas-vlak` | 4.5 | 8.38 |
+| glas | `--ds-selectie-tx` on `--ds-selectie-vlak` | `--ds-c-creme` | `--ds-c-sel-glas-vlak` | 4.5 | 10.67 |
+| glas | `--ds-primair-tx` on `--ds-primair` | `--ds-c-inkt` | `--ds-c-geel` | 4.5 | 10.89 |
+| glas | `--ds-primair-tx` on `--ds-primair-hover` | `--ds-c-inkt` | `--ds-c-geel-hover` | 4.5 | 12.21 |
+| glas | `--ds-primair-tx` on `--ds-primair-druk` | `--ds-c-inkt` | `--ds-c-geel-druk` | 4.5 | 8.50 |
+| glas | `--ds-kop-tx` on `--ds-kop-bg` | `--ds-c-licht-groen` | `--ds-c-glas` | 4.5 | 8.78 |
+| glas | `--ds-tab-actief-tx` on `--ds-tab-actief-bg` | `--ds-c-glas` | `--ds-c-creme` | 4.5 | 15.99 |
+| glas | `--ds-rand` on `--ds-bg` | `--ds-c-creme-zacht` | `--ds-c-glas-2` | 3 | 7.06 |
+| glas | `--ds-selectie` on `--ds-bg` | `--ds-c-licht-groen` | `--ds-c-glas-2` | 3 | 6.66 |
+| glas | `--ds-probleem` on `--ds-bg` | `--ds-c-rood-glas` | `--ds-c-glas-2` | 3 | 3.20 |
+| glas | `--ds-waarschuwing` on `--ds-bg` | `--ds-c-amber-glas-tx` | `--ds-c-glas-2` | 3 | 8.59 |
+| glas | `--ds-primair-rand` on `--ds-bg` | `--ds-c-geel` | `--ds-c-glas-2` | 3 | 8.99 |
+<!-- ds-contrast:end -->
+
+### Type, space, shape, elevation, stroke
+
+Roles, not loose px. The values are design pixels at the 1080p stage (`.gm-stage` zooms them with `--mz`; outside a stage multiply by `--ui`). Tokens in `ds-tokens.css`.
+
+| Role | Token | Value | Use |
+|---|---|---|---|
+| display | `--ds-t-display` | 64 px Bebas | hero title, screen title (one per screen) |
+| kop | `--ds-t-kop` | 44 px Bebas | section and hero heading |
+| subkop | `--ds-t-subkop` | 28 px Bebas | card title, button label, row value |
+| cijfer-groot | `--ds-t-cijfer` | 48 px Bebas | price, balance, count; always with its context (delta, n/m, unit) |
+| body | `--ds-t-body` | 20 px Arial Narrow, 1,4 | running text |
+| label | `--ds-t-label` | 16 px Bebas, caps, +0,06 em | eyebrow, chip, tab, small label; calm, not loud |
+| kleine hulptekst | `--ds-t-hulp` | `max(14px, --menu-min)`, never under 13 | footnote, sub line, explanation, risk |
+| toets | `--ds-t-toets` | 12 px | the inside of a hotkey badge only |
+
+Space is a 4 px base: `--ds-s-1` to `--ds-s-8` = 4, 8, 12, 16, 24, 32, 48, 64. A card has 16 px above and below and 24 px at the sides; the HUD margin is `--ds-rand-hud` (32). Row and button height `56` (`--ds-hoogte-rij`, `--ds-hoogte-knop`), chip 32, tab 40, touch target 44 (`--ds-doel-aanraken`).
+
+Shape: **one radius**, `--ds-r` 10 px (the HUD card's), plus `--ds-r-pil` for pills (tabs, chips) and `--ds-r-toets` 6 px for the keycap only. **One thin dark edge**: `--ds-lijn` 1 px in ink (cream-grey on glass), `--ds-lijn-dik` 2 px for outlined buttons and the focus ring. A **status edge** on the left of a card, `--ds-status-rand` 6 px, in the role colour. **No gloss and no gradient**; flat fills.
+Elevation is only a soft shadow: `--ds-schaduw-laag` (a pressed or flat element) and `--ds-schaduw` (a card, a raised button). Nothing glows.
+
+### Components
+
+Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below is checked against the CSS and against the gallery (`scripts/ds_tokens_test.mjs`).
+
+<!-- ds-componenten:start -->
+| Class | What | Parts | Modifiers and states |
+|---|---|---|---|
+| `.ds-papier`, `.ds-glas` | surface scope that sets the roles | none | paper is the default; nest a paper card on glass with `.ds-papier` |
+| `.ds-t-*` | type roles (`display`, `kop`, `subkop`, `cijfer`, `body`, `label`, `hulp`) | none | none |
+| `.ds-icoon` | one icon style: filled, one stroke weight, 24 px, colour by category | none | `--klein`, `--groot`, `--probleem`, `--succes`, `--waarschuwing`, `--selectie`, `--zacht` |
+| `.ds-kaart` | paper receipt or glass card: thin edge, status edge, soft shadow | `__kop`, `__titel`, `__label`, `__cijfer`, `__tekst`, `__voet` | `--klik` (hover lifts 1 px), `--selectie` (edge + tick), `--probleem`, `--succes`, `--waarschuwing`, `--uit` (dashed, with a reason), `--kop` (bordgroen header band), `--plat`, `--in` (fade-in) |
+| `.ds-chip` | status or consequence: icon or shape plus word | `__icoon` | `--primair` (Kan nu), `--selectie`, `--probleem`, `--succes`, `--waarschuwing` |
+| `.ds-knop` | button; yellow is the one primary, outlined is the risky choice | `__sub` (cost, payback) | `--secundair`, `--gevaar` (outlined, risk colour), `--tekst`, `--vol`; hover, active, `:focus-visible`, `:disabled` and `[aria-disabled]` (dashed, says why), `[aria-busy]` |
+| `.ds-tabs`, `.ds-tab` | row of white pills, the active one filled | none | `[aria-selected="true"]` or `--actief`, `:disabled` |
+| `.ds-streep` | micro progress for time or count, always with a number beside it | `__baan`, `__vul`, `__label` | `--tijd` (amber), `--laag` (red), `--dik`; set `--ds-streep-w` |
+| `.ds-cijfer` | number with context: unit, delta, n/m | `__waarde`, `__eenheid`, `__delta` | `__delta--op` (triangle up), `__delta--neer` (triangle down) |
+| `.ds-callout` | the problem panel: what goes wrong with numbers, then the solution button, then the risk as a footnote | `__kop`, `__tekst`, `__cijfers`, `__oplossing`, `__terug`, `__risico` | `--waarschuwing` |
+| `.ds-tip` | explanation bubble (position it in code) | none | none |
+| `.ds-badge` | hotkey badge: the key as a token, the only 12 px | none | none |
+| `.ds-leeg` | empty state: a picture, a hook, one action | `__beeld`, `__kop`, `__tekst` | none |
+| `.ds-hero` | hero slot: one picture (3D, map fragment, character, ladder) and the text beside it, never over it | `__beeld`, `__tekst`, `__oog`, `__kop`, `__lead`, `__feiten` | `--omgekeerd`, `--smal` (stacked) |
+| `.ds-rij` | list row: icon, name with a line under it, value, action | `__naam`, `__sub`, `__waarde` | `--selectie` or `[aria-current]`, `--probleem`, `--uit`, hover, `:focus-visible` |
+| `.ds-hud` | frame with the four corner roles | `__links`, `__boven`, `__rechts`, `__minimap`, `__toetsen` | none |
+<!-- ds-componenten:end -->
+
+**Anatomy and states, in one place.**
+
+- **Card (`.ds-kaart`).** Edge 1 px ink, left status edge 6 px, radius `--ds-r`, soft shadow. Header row (title left, chip right), a small label, the number (`cijfer`), one or two lines of body, a time streep under it, a footnote row for the consequence. Selected: tinted fill, the edge in the selection role, a tick top right and `aria-current="true"`. Disabled: dashed edge, quiet fill, no shadow, and the card says *why* in a line ("Niet beschikbaar: pas na 20:00 uur."); never plain grey without a reason. A card that can be clicked is `tabindex="0"` or a `button` with the focus ring.
+- **Chip.** Height 32, a pill, icon (or a shape) plus a word in capitals, role colours. It names a status ("Kan nu", "Te duur") or a consequence ("+€20 bonus"); it is never a button.
+- **Buttons.** Primary: yellow, ink text, ink edge, 56 px, one per screen or per card group. Secondary: transparent, 2 px edge in ink. Risk (`--gevaar`): outlined in the problem colour, never a solid red; the risk goes in a footnote under it. Text: underlined, for the third option. Under a primary that costs something, the `__sub` line says cost and payback ("€60, terugverdiend in 5 min"). States: hover lightens the yellow and raises the shadow, pressed darkens it and drops 1 px, focus is one ring, disabled is dashed with a reason, busy shows a progress cursor.
+- **Tab pill.** White pill (glass: dark pill), 40 px high, label in capitals; the active one is filled (ink on paper, cream on glass), so it is never colour alone. Q and E switch tabs as in the menus.
+- **Streep.** 4 px track with a fill and a label that always says the numbers ("70 van 120 min", "3 van 5"). Time uses amber, a low level red, a count the selection colour; the label carries the meaning, not the colour.
+- **Problem callout.** The "consequence before the choice" pattern, in this order: (1) a red panel (soft pink fill, dark red text) with the problem as a title and an icon, (2) one or two sentences, (3) the numbers that matter (`cijfer` with a delta: "4 min over", "−€200 bij zinken"), (4) a yellow primary with the **solution**, its cost and its payback time, next to an outlined button for the risky choice, (5) the risk as a footnote. The reader sees what goes wrong, what fixes it and what it costs before anything is chosen.
+- **Tooltip and explanation.** A dark bubble on paper, a light one on glass, 36 characters wide at most, a sentence of at most 14 words; shows on hover and on focus, never only on hover. A hotkey inside it is a badge.
+- **Hotkey badge.** The canonical keycap as a token (`{E}`, `glyphHtml()`): follows rebinding and the pad glyph. 12 px is allowed only inside it.
+- **Empty state.** A dashed card with a picture, a **hook** (what this space is for) and **one action** that fills it ("Naar de markt", "Zet een waypoint"). Never "Niets gevonden" alone. A locked state names what unlocks it.
+- **Hero slot.** Each screen has one picture or a stated reason why not (a settings page is allowed none; write it in the migration card). The hero shows the thing itself: a turning vehicle, a map fragment, a character card, the ladder as a staircase. Text sits beside it, never over a 3D view, so contrast never depends on the scene.
+- **List row.** 56 px, icon, name (bold) with a sub line, value in Bebas on the right, an action or chip at the end; hover tints, selection has the left edge, a problem row has the red edge plus a chip.
+- **Number with context.** A bare number is never enough: add the unit, the delta (triangle up in the success tone, down in the problem tone; the triangle is the shape cue) or the n/m ("3 van 5").
+
+### HUD corners
+
+The HUD sits on the edges with a fixed margin (`--ds-rand-hud`, 32 px at 1080p; the real HUD keeps `--hud-edge` and `--hud-top` from `hud_panel.css`). Every corner has one role; **the middle is the world** and nothing but a subtitle, a prompt or a cinematic may enter it (the existing rules of "HUD, load screen and boot screen" and `hudrules.js` still decide *whether* an element shows).
+
+| Corner | Role | Examples | Never |
+|---|---|---|---|
+| top left | incoming work | phone card, new offer, objective card | a settings control |
+| top centre | time and speed, with the goal directly under it | clock, day, speed, "Naar de Grote Markt, 840 m" | more than two lines |
+| top right | status and tools | money, wanted level, health, weapon | a list of more than three items |
+| bottom left | minimap with the place label under it | minimap, "Binnenstad" | text over the map |
+| bottom right | key hints, at most two | badge plus one word | a hint that is not a key |
+
+No HUD element takes a click; a HUD chip is `.ds-chip`, a HUD card is `.ds-kaart--plat` on `.ds-glas`. Wording stays inside the 14-word budget.
+
+### Motion and sound
+
+- **Scale:** `--ds-m-snel` 120 ms (a hover or press), `--ds-m` 200 ms (a fade-in, a streep), `--ds-m-max` 250 ms (the longest anything may take). Easing is `--ds-ease`, an ease-out (`cubic-bezier(0.2, 0.7, 0.2, 1)`). Only opacity, a 1 to 8 px move and fills animate; nothing bounces, flashes or loops.
+- **Reduced motion:** `prefers-reduced-motion: reduce` and `html.reduce-motion` (the game's "Beweging beperken") set the three durations to 0, so every component stops moving with no rule of its own. Meaning never depends on motion. No flash above three a second (`reduce-flash` stays).
+- **Sound hooks:** components make no sound themselves; the rules in `sfx/menunav.js` do (a tick, select, back, toggle, slider). A `.ds-knop`, `.ds-tab` and `.ds-rij` are real buttons and `role="tab"`, so they are already `ITEMS`; phase 2 adds `.ds-papier, .ds-glas` to `ROOTS` and nothing else. A callout that appears is announced with the existing alert caption and, where the screen has one, the existing sound call; no new sound.
+
+### Rules v2 (additions to the checklist)
+
+1. **No loose hex.** `ds-components.css` has no hex, `rgb()` or `hsl()`; only `var(--ds-...)`. `ds-tokens.css` has hex only as palette (`--ds-c-*`) and `rgba()` only in a shadow. New screens use the roles, not the palette.
+2. **Text.** Never under 13 px except a hotkey badge (12). Helper text uses `--ds-t-hulp` and 4,5:1. No `opacity` to make text quiet; use `--ds-tx-zacht`.
+3. **No colour-only meaning.** Every colour comes with an icon, a shape, a mark or a word.
+4. **One primary.** One yellow button per screen or per card group; the risky choice is outlined; the rest is secondary or text.
+5. **A hero or a reason.** Every screen has a hero slot with a picture of the thing, or a line in its migration card saying why it has none.
+6. **A designed empty state.** Every list, grid and offer area has a `.ds-leeg` with a hook and an action, and a locked state that says what opens it.
+7. **Consequence before the choice.** A screen that asks for a decision shows the numbers first (cost, gain, time, payback, risk) in a callout or a chip row.
+8. **More than one card shape per screen type.** Offers are cards with chips and a time streep, shops are receipts, careers are a ladder, characters are a character card, long lists are rows. The same card is not repeated on every screen.
+9. **Motion** at most 250 ms, ease-out, off when reduced; a screen opening may fade in once (`.ds-kaart--in`), nothing loops.
+10. **Two surfaces only.** Paper for shop, offers, missions, careers and anything you read and decide; glass for the pause rail, the map layer and the HUD. Do not put a glass card on paper or the reverse without the scope class.
+11. **Checks.** `scripts/release/design_rules.mjs` (`checkDsLine`, `checkDsFiles`) enforces rules 1, 2 and 9 on the two files and the contrast, motion and focus checks in `scripts/ds_tokens_test.mjs`; the rest is review and the checklist below.
+
+Extra checklist items for a v2 screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions.
+
+### Migration cards (phase 2)
+
+One card per screen: which components, which hero, and what the screen must show before a choice. **Order**, by impact against effort and by how little a screen shares with the others: (1) Winkel and beleidswinkel, (2) Te doen, (3) Garage, (4) Loopbanen, (5) Verhaal, (6) Kaart, (7) Prestaties and Foto's, (8) Samen spelen, (9) the HUD last (rules first, only for new elements).
+
+| # | Screen | Surface | Components | Hero | Decision shown before the choice |
+|---|---|---|---|---|---|
+| 1 | **Winkel and beleidswinkel** (`shopui.js`, `shopui.css`, `beleidswinkel.js`) | paper receipt in the glass pause layer | `ds-kaart--kop` per item or bundle, `ds-rij` for the list, `ds-callout` for a policy with a downside, `ds-chip`, `ds-knop`, `ds-leeg` for an empty shop | the receipt itself with the shop's invented name and sign (`shopsign.js`) | price, delta on the balance, payback ("verdiend in 6 dagen") on the yellow button, the risk as a footnote under an outlined button |
+| 2 | **Te doen** (`todoui.js`, `todo.js`, `todofilter.js`) | paper | `ds-kaart` offer cards with `ds-chip` (Kan nu, Nog 2 uur, Te ver) and a `ds-streep--tijd`, `ds-tabs` for Alles and Dichtbij, `ds-leeg` | a map fragment of the offer, or the giver's character | reward with bonus delta, distance, time left; "Kan nu" only when the player can start now |
+| 3 | **Garage** (`garageui.js`, `garagepics.js`) | glass list, paper detail | `ds-hero` with the turning vehicle (the one renderer stays in the Garage), `ds-rij`, `ds-cijfer`, `ds-streep` for damage and fuel, `ds-callout` for a repair | the **turning vehicle** | repair cost and what it fixes, fuel for the next trip, outlined "Zo laten" for the risk |
+| 4 | **Loopbanen** (`loopbaanui.js`, `loopbaankaarten.js`, `carrieresfeer.js`) | paper | `ds-hero` with the ladder drawn as a staircase (one step per level, the current one yellow-edged and ticked), `ds-kaart--selectie`, `ds-streep` (n/m to next rung) | the **ladder as a staircase**, keeping the sfeer band | what the next rung pays and asks, with the delta |
+| 5 | **Verhaal** (`verhaalui.js`) | paper | `ds-hero` with a character card, `ds-rij` for chapters (current open, done ticked, locked says what unlocks it) | a **character card** (the invented person, a render of the game) | for a choice: both outcomes in chips before the buttons |
+| 6 | **Kaart** (`mapview.js`, `kaartactieui.js`) | glass (the map layer) with a paper place card | `ds-kaart` for the selected place, `ds-knop` (waypoint, travel, info), `ds-chip` for cost and time | a **map fragment** of the place | travel cost and time on the button's sub line ("Snel reizen", "Zelf gaan") |
+| 7 | **Prestaties and Foto's** (`achievementsui.js`, `fotomodusui.js`) | paper grid | `ds-kaart` tiles with `ds-streep` (n/m), `ds-chip`, `ds-leeg` (no photos yet: "Druk op F8") | the latest photo or the next achievement; none for an empty grid (the empty state is the hero) | for a locked one: what it needs (n/m) |
+| 8 | **Samen spelen** (`lobbyui.js`, the pause menu tab) | glass | `ds-rij` for players, `ds-chip` (Meedoen, Passief), `ds-callout` for Meedoen? J/N, `ds-leeg` for an empty room | the room code and the players' shapes | who is asked and what a yes costs the others |
+| 9 | **HUD** (`hud_panel.css`, `hudcards.css`, `prompts.css`) | glass | corner roles, `ds-chip`, `ds-kaart--plat`, `ds-streep`, `ds-badge` | none (the world is the picture) | the attention budget still decides what shows |
+
+**Phase 2 touches**, one PR per row so the other agents' files change one at a time: `game/index.html` (two `<link>`s), then per row the files in brackets above, plus `game/js/sfx/menunav.js` (`ROOTS`), `game/js/a11y.css` (one focus ring), `scripts/hud_kleuren_test.mjs` (accept the new tokens), `scripts/release/design_rules.mjs` (turn the loose-hex rule on for migrated files), `docs/DESIGN-SCHULD.md` (a row per deviation fixed) and `docs/DESIGN-AUDIT-CSS.md` (re-count).
 
 ## Known deviations and open UX debt
 

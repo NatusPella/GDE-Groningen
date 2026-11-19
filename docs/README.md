@@ -47,6 +47,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [COOP-OVERDRAGEN.md](<COOP-OVERDRAGEN.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-TESTBANK.md](<COOP-TESTBANK.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [CREDITS.md](<CREDITS.md>) | Iedereen die meehielp, op volgorde van bijdrage, met de meetmethode en wat de eigenaar nog moet goedkeuren. |
+| [DESIGN-AUDIT-CSS.md](<DESIGN-AUDIT-CSS.md>) | Naslag (#980, fase 1). Telling van wat de acht UI-CSS-bestanden feitelijk gebruiken (kleuren, radii, lettergroottes, ruimte) tegen [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)… |
 | [DESIGN-BEDIENING.md](<DESIGN-BEDIENING.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [DESIGN-COMPONENTEN.md](<DESIGN-COMPONENTEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [DESIGN-SAMEN-SPELEN.md](<DESIGN-SAMEN-SPELEN.md>) | How the UI of Samen spelen (multiplayer) looks and behaves, and what every new screen has to answer about i… |

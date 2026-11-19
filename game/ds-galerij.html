@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designsysteem-galerij</title>
+<!-- Ontwikkelpad (#980, fase 1): toont de tokens en componenten van ds-tokens.css en ds-components.css in
+     alle toestanden, op papier en op glas, met Nederlandse voorbeeldteksten en zonder spelstaat.
+     Open het via de dev-server of file://; het spel laadt deze bestanden nog niet. Schermafbeeldingen:
+     node scripts/qa/ds_galerij.mjs (Electron, nog niet gedraaid). Alleen var(--ds-...) in de stijl hieronder. -->
+<link rel="stylesheet" href="js/ds-tokens.css">
+<link rel="stylesheet" href="js/ds-components.css">
+<style>
+  html, body { margin: 0; background: var(--ds-c-glas); color: var(--ds-c-creme); font-family: var(--ds-font-tekst); font-size: var(--ds-t-body); }
+  .g-kop { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: var(--ds-s-3); align-items: center; padding: var(--ds-s-3) var(--ds-s-5); background: var(--ds-c-glas); border-bottom: var(--ds-lijn) solid var(--ds-c-creme-zacht); }
+  .g-kop h1 { margin: 0; margin-right: auto; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); font-weight: normal; text-transform: uppercase; }
+  .g-sectie { padding: var(--ds-s-6) var(--ds-s-5); border-bottom: var(--ds-lijn) solid var(--ds-c-glas-3); }
+  .g-sectie > h2 { margin: 0 0 var(--ds-s-4); font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); font-weight: normal; letter-spacing: var(--ds-ls-kop); text-transform: uppercase; color: var(--ds-c-licht-groen); }
+  .g-sectie > p.g-uitleg { margin: 0 0 var(--ds-s-4); max-width: 80ch; color: var(--ds-c-creme-zacht); font-size: var(--ds-t-hulp); }
+  .g-paar { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: var(--ds-s-5); align-items: start; }
+  .g-paneel { padding: var(--ds-s-5); border-radius: var(--ds-r); display: flex; flex-direction: column; gap: var(--ds-s-4); }
+  .g-paneel[hidden] { display: none; }
+  .g-paneel.ds-papier { background: var(--ds-c-papier-2); }
+  .g-paneel.ds-glas { background: var(--ds-c-glas); border: var(--ds-lijn) solid var(--ds-c-glas-3); }
+  .g-rij { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); align-items: center; }
+  .g-kolom { display: flex; flex-direction: column; gap: var(--ds-s-3); }
+  .g-naam { font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+  .g-wissel { display: inline-flex; gap: var(--ds-s-2); }
+  .g-stalen { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--ds-s-3); }
+  .g-staal { display: flex; flex-direction: column; border: var(--ds-lijn) solid var(--ds-c-creme-zacht); border-radius: var(--ds-r); overflow: hidden; background: var(--ds-c-glas-2); }
+  .g-staal i { display: block; height: var(--ds-s-7); }
+  .g-staal span { padding: var(--ds-s-2); font-size: var(--ds-t-hulp); color: var(--ds-c-creme); word-break: break-all; }
+  .g-ruimte { display: flex; align-items: flex-end; gap: var(--ds-s-3); }
+  .g-ruimte i { display: block; background: var(--ds-c-licht-groen); }
+  .g-hud { position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: var(--ds-r); overflow: hidden; background: color-mix(in srgb, var(--ds-c-bord) 45%, var(--ds-c-papier-2)); }
+  .g-scherm-hoek { font-size: var(--ds-t-hulp); }
+  .g-beeld-leeg { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+  .g-minimap { width: calc(var(--ds-s-8) * 2); height: calc(var(--ds-s-8) * 2); border: var(--ds-lijn-dik) solid var(--ds-c-glas); border-radius: var(--ds-r); background: var(--ds-c-licht-groen); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-munt" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5V19h-2v-1.5c-1.6-.3-2.6-1.2-2.8-2.7h2c.2.6.7 1 1.8 1 1 0 1.7-.4 1.7-1.1 0-.7-.5-1-2-1.4-1.9-.5-3.2-1.2-3.2-2.9 0-1.4 1.1-2.4 2.5-2.7V6h2v1.5c1.4.3 2.3 1.2 2.5 2.5h-2c-.2-.6-.7-.9-1.5-.9-.9 0-1.5.4-1.5 1 0 .6.5.9 1.9 1.3 2 .5 3.3 1.2 3.3 3 0 1.4-1 2.4-2.7 2.6z"/></symbol>
+  <symbol id="ic-klok" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.2 13.3-5.2-3V6h2v5.2l4.2 2.4-1 1.7z"/></symbol>
+  <symbol id="ic-let-op" viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></symbol>
+  <symbol id="ic-vink" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.5 14.5L6 12l1.4-1.4 3.1 3.1 6.1-6.1L18 9l-7.5 7.5z"/></symbol>
+  <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></symbol>
+  <symbol id="ic-auto" viewBox="0 0 24 24"><path d="M5 11l1.6-4.5A2 2 0 0 1 8.5 5h7a2 2 0 0 1 1.9 1.5L19 11h1a1 1 0 0 1 1 1v6h-2v1.5a1.5 1.5 0 0 1-3 0V18H8v1.5a1.5 1.5 0 0 1-3 0V18H3v-6a1 1 0 0 1 1-1h1zm2.2 0h9.6l-1.2-3.5H8.4L7.2 11zM6.5 14.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm11 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/></symbol>
+  <symbol id="ic-ster" viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.7-5.3 4.8 1.5 7-6.2-3.6-6.2 3.6 1.5-7L2 9.3l7.1-.7L12 2z"/></symbol>
+  <symbol id="ic-tas" viewBox="0 0 24 24"><path d="M9 3h6a1 1 0 0 1 1 1v2h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4V4a1 1 0 0 1 1-1zm1 2v1h4V5h-4z"/></symbol>
+</svg>
+
+<header class="g-kop">
+  <h1>Designsysteem v2: galerij</h1>
+  <span class="g-wissel" role="group" aria-label="Oppervlak">
+    <button class="ds-tab ds-glas" type="button" data-oppervlak="beide" aria-selected="true">Beide</button>
+    <button class="ds-tab ds-glas" type="button" data-oppervlak="papier" aria-selected="false">Papier</button>
+    <button class="ds-tab ds-glas" type="button" data-oppervlak="glas" aria-selected="false">Glas</button>
+  </span>
+  <button class="ds-tab ds-glas" type="button" id="g-beweging" aria-pressed="false">Beweging beperken</button>
+</header>
+
+<main id="g-main">
+
+<section class="g-sectie" id="s-kleur" data-shot="kleur">
+  <h2>Kleur: palet en rollen</h2>
+  <p class="g-uitleg">Het palet staat op de tokens (--ds-c-...); de rollen (primair, probleem, selectie, succes, waarschuwing) wisselen mee met het oppervlak. Contrastcijfers: DESIGN_SYSTEM.md, getoetst door scripts/ds_tokens_test.mjs.</p>
+  <div class="g-stalen" id="g-stalen"></div>
+</section>
+
+<section class="g-sectie" id="s-type" data-shot="type" data-demo>
+  <h2>Typografie en ruimte</h2>
+  <div class="g-kolom">
+    <div class="ds-t-display">Display: Zomer vol misdaad</div>
+    <div class="ds-t-kop">Kop: Aanbod van vandaag</div>
+    <div class="ds-t-subkop">Subkop: Pakketje voor Tessa</div>
+    <div class="ds-t-cijfer">€ 1.240</div>
+    <div class="ds-t-body">Body: lopende tekst in Arial Narrow, regelafstand 1,4, rustig en kort.</div>
+    <div class="ds-t-label">Label: klein en rustig</div>
+    <div class="ds-t-hulp">Hulptekst: nooit kleiner dan 13 px, ook niet op een kleine kaart.</div>
+    <div class="g-rij"><span class="ds-badge">E</span><span class="g-naam">Toetsplaatje: de enige plek voor 12 px</span></div>
+  </div>
+  <div class="g-ruimte" aria-label="Ruimteschaal">
+    <i style="width:var(--ds-s-1);height:var(--ds-s-1)"></i><i style="width:var(--ds-s-2);height:var(--ds-s-2)"></i><i style="width:var(--ds-s-3);height:var(--ds-s-3)"></i><i style="width:var(--ds-s-4);height:var(--ds-s-4)"></i><i style="width:var(--ds-s-5);height:var(--ds-s-5)"></i><i style="width:var(--ds-s-6);height:var(--ds-s-6)"></i><i style="width:var(--ds-s-7);height:var(--ds-s-7)"></i><i style="width:var(--ds-s-8);height:var(--ds-s-8)"></i>
+    <span class="g-naam">4, 8, 12, 16, 24, 32, 48, 64</span>
+  </div>
+</section>
+
+<section class="g-sectie" id="s-kaart" data-shot="kaart" data-demo>
+  <h2>Kaart</h2>
+  <div class="g-kolom">
+    <article class="ds-kaart ds-kaart--klik" tabindex="0">
+      <div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Pakketje voor Tessa</h3><span class="ds-chip ds-chip--primair"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Kan nu</span></div>
+      <div class="ds-kaart__label">Aanbod</div>
+      <div class="ds-cijfer"><span class="ds-cijfer__waarde">€120</span><span class="ds-cijfer__delta ds-cijfer__delta--op">+€20 bonus</span></div>
+      <p class="ds-kaart__tekst">Breng het pakket naar de Grote Markt voordat de koffie koud is.</p>
+      <div class="ds-streep ds-streep--tijd" role="progressbar" aria-valuemin="0" aria-valuemax="120" aria-valuenow="70" aria-label="Tijd over"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:58%"></span></span><span class="ds-streep__label">70 van 120 min</span></div>
+    </article>
+    <article class="ds-kaart ds-kaart--selectie" aria-current="true">
+      <div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Rondvaart door de gracht</h3></div>
+      <p class="ds-kaart__tekst">Gekozen. Je vertrekt bij de Noorderhaven.</p>
+      <div class="ds-kaart__voet"><span class="ds-chip ds-chip--selectie"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Gekozen</span></div>
+    </article>
+    <article class="ds-kaart ds-kaart--probleem"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Boete niet betaald</h3><span class="ds-chip ds-chip--probleem"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-let-op"/></svg>Probleem</span></div><p class="ds-kaart__tekst">Betaal €80 bij het loket.</p></article>
+    <article class="ds-kaart ds-kaart--succes"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Rit afgerond</h3><span class="ds-chip ds-chip--succes"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Klaar</span></div></article>
+    <article class="ds-kaart ds-kaart--waarschuwing"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Tank bijna leeg</h3><span class="ds-chip ds-chip--waarschuwing"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-let-op"/></svg>Let op</span></div></article>
+    <article class="ds-kaart ds-kaart--uit" aria-disabled="true"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Nachtrit</h3></div><p class="ds-kaart__tekst">Niet beschikbaar: pas na 20:00 uur.</p></article>
+    <article class="ds-kaart ds-kaart--kop"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Bon met bordgroene kop</h3><span class="ds-badge">Q</span></div><p class="ds-kaart__tekst">Voor winkel, aanbod en loopbanen.</p></article>
+  </div>
+</section>
+
+<section class="g-sectie" id="s-chip" data-shot="chip-knop" data-demo>
+  <h2>Chips en knoppen</h2>
+  <div class="g-rij">
+    <span class="ds-chip">Neutraal</span>
+    <span class="ds-chip ds-chip--primair"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Kan nu</span>
+    <span class="ds-chip ds-chip--selectie"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-pin"/></svg>Gekozen</span>
+    <span class="ds-chip ds-chip--probleem"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-let-op"/></svg>Te duur</span>
+    <span class="ds-chip ds-chip--succes"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Gehaald</span>
+    <span class="ds-chip ds-chip--waarschuwing"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-klok"/></svg>Nog 2 uur</span>
+  </div>
+  <div class="g-rij">
+    <button class="ds-knop" type="button">Aannemen<span class="ds-knop__sub">€120 beloning</span></button>
+    <button class="ds-knop ds-knop--secundair" type="button">Later</button>
+    <button class="ds-knop ds-knop--gevaar" type="button">Doorvaren</button>
+    <button class="ds-knop ds-knop--tekst" type="button">Meer uitleg</button>
+    <button class="ds-knop" type="button" disabled>Aannemen</button>
+    <button class="ds-knop" type="button" aria-busy="true">Bezig</button>
+  </div>
+  <div class="g-rij"><span class="g-naam">Toestanden: hover en indrukken met de muis, focus met Tab (een ring, ook met een controller).</span></div>
+</section>
+
+<section class="g-sectie" id="s-tab" data-shot="tab-streep" data-demo>
+  <h2>Tabs, streepjes en cijfers</h2>
+  <div class="ds-tabs" role="tablist" aria-label="Voorbeeld">
+    <button class="ds-tab" role="tab" aria-selected="true" type="button">Alles</button>
+    <button class="ds-tab" role="tab" aria-selected="false" type="button">Dichtbij</button>
+    <button class="ds-tab" role="tab" aria-selected="false" type="button">Verhaal</button>
+    <button class="ds-tab" role="tab" aria-selected="false" type="button" disabled>Nacht</button>
+  </div>
+  <div class="g-kolom">
+    <div class="ds-streep"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:60%"></span></span><span class="ds-streep__label">3 van 5</span></div>
+    <div class="ds-streep ds-streep--tijd"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:35%"></span></span><span class="ds-streep__label">Nog 12 min</span></div>
+    <div class="ds-streep ds-streep--laag ds-streep--dik"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:12%"></span></span><span class="ds-streep__label">Tank 12%</span></div>
+  </div>
+  <div class="g-rij">
+    <span class="ds-cijfer"><span class="ds-cijfer__waarde">€1.240</span><span class="ds-cijfer__delta ds-cijfer__delta--op">+€45</span></span>
+    <span class="ds-cijfer"><span class="ds-cijfer__waarde">7</span><span class="ds-cijfer__eenheid">van 12</span></span>
+    <span class="ds-cijfer"><span class="ds-cijfer__waarde">3,2</span><span class="ds-cijfer__eenheid">km</span><span class="ds-cijfer__delta ds-cijfer__delta--neer">−0,4 km</span></span>
+  </div>
+</section>
+
+<section class="g-sectie" id="s-callout" data-shot="callout" data-demo>
+  <h2>Probleem-callout: het gevolg vóór de keuze</h2>
+  <div class="ds-callout">
+    <div class="ds-callout__kop"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-let-op"/></svg>Je boot lekt</div>
+    <p class="ds-callout__tekst">Het water staat al op de bodem. Zonder reparatie zinkt hij binnen vier minuten.</p>
+    <div class="ds-callout__cijfers">
+      <span class="ds-cijfer"><span class="ds-cijfer__waarde">4</span><span class="ds-cijfer__eenheid">min over</span></span>
+      <span class="ds-cijfer"><span class="ds-cijfer__waarde">€200</span><span class="ds-cijfer__eenheid">lading</span><span class="ds-cijfer__delta ds-cijfer__delta--neer">−€200 bij zinken</span></span>
+    </div>
+    <div class="ds-callout__oplossing">
+      <button class="ds-knop" type="button">Repareren<span class="ds-knop__sub">€60, terugverdiend in 5 min</span></button>
+      <button class="ds-knop ds-knop--secundair" type="button">Doorvaren</button>
+    </div>
+    <p class="ds-callout__risico">Risico bij doorvaren: de boot zinkt en je raakt de lading kwijt.</p>
+  </div>
+  <div class="ds-callout ds-callout--waarschuwing"><div class="ds-callout__kop"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-klok"/></svg>Winkel sluit bijna</div><p class="ds-callout__tekst">Nog 15 minuten tot sluitingstijd.</p></div>
+</section>
+
+<section class="g-sectie" id="s-tip" data-shot="tip-leeg" data-demo>
+  <h2>Uitleg, toetsplaatje en lege toestand</h2>
+  <div class="g-rij"><span class="ds-tip">Tanken kost €45 en duurt 20 seconden.</span><span class="ds-badge">E</span><span class="ds-badge">Esc</span><span class="ds-badge">Q</span></div>
+  <div class="ds-leeg">
+    <div class="ds-leeg__beeld"><svg class="ds-icoon ds-icoon--groot" aria-hidden="true"><use href="#ic-tas"/></svg></div>
+    <h3 class="ds-leeg__kop">Je tas is nog leeg</h3>
+    <p class="ds-leeg__tekst">Pak onderweg iets mee, bijvoorbeeld bij de markt op de Grote Markt.</p>
+    <button class="ds-knop" type="button">Naar de markt<span class="ds-knop__sub">Zet een waypoint</span></button>
+  </div>
+</section>
+
+<section class="g-sectie" id="s-hero" data-shot="hero-rij" data-demo>
+  <h2>Hero-slot en lijst-rij</h2>
+  <div class="ds-hero">
+    <div class="ds-hero__beeld"><div class="g-beeld-leeg">Hier komt het voertuig, de kaart of het personage</div></div>
+    <div class="ds-hero__tekst">
+      <div class="ds-hero__oog">Garage</div>
+      <h3 class="ds-hero__kop">De rode gezinsauto</h3>
+      <p class="ds-hero__lead">Zuinig, kantig en betrouwbaar. Je hoort hem al van ver.</p>
+      <div class="ds-hero__feiten"><span class="ds-chip">Snelheid 140 km/u</span><span class="ds-chip ds-chip--succes"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Ingesteld</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="ds-rij ds-rij--selectie" aria-current="true"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-auto"/></svg><span class="ds-rij__naam">De rode gezinsauto<span class="ds-rij__sub">In de garage</span></span><span class="ds-rij__waarde">€0</span><span class="ds-badge">E</span></div>
+    <div class="ds-rij" tabindex="0"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-auto"/></svg><span class="ds-rij__naam">Bestelbusje<span class="ds-rij__sub">Tank 40%</span></span><span class="ds-rij__waarde">€850</span><span class="ds-chip ds-chip--waarschuwing">Let op</span></div>
+    <div class="ds-rij ds-rij--probleem"><svg class="ds-icoon ds-icoon--probleem" aria-hidden="true"><use href="#ic-let-op"/></svg><span class="ds-rij__naam">Oude scooter<span class="ds-rij__sub">Kapot, repareren €60</span></span><span class="ds-rij__waarde">€0</span><span class="ds-chip ds-chip--probleem">Kapot</span></div>
+    <div class="ds-rij ds-rij--uit" aria-disabled="true"><svg class="ds-icoon ds-icoon--zacht" aria-hidden="true"><use href="#ic-ster"/></svg><span class="ds-rij__naam">Raceauto<span class="ds-rij__sub">Pas vanaf niveau 5</span></span><span class="ds-rij__waarde">€4.000</span><span class="ds-chip">Op slot</span></div>
+  </div>
+</section>
+
+<section class="g-sectie" id="s-hud" data-shot="hud" data-demo>
+  <h2>HUD-hoeken</h2>
+  <div class="g-hud">
+    <div class="ds-hud ds-glas">
+      <div class="ds-hud__links"><article class="ds-kaart ds-kaart--plat"><div class="ds-kaart__titel">Tessa belt</div><div class="ds-kaart__voet">Nieuw werk: pakketje</div></article></div>
+      <div class="ds-hud__boven"><span class="ds-chip">14:20 Zo, snelheid x1</span><span class="ds-chip ds-chip--primair"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-pin"/></svg>Naar de Grote Markt, 840 m</span></div>
+      <div class="ds-hud__rechts"><span class="ds-chip"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-munt"/></svg>€1.240</span><span class="ds-chip ds-chip--waarschuwing"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-ster"/></svg>Gezocht 1</span></div>
+      <div class="ds-hud__minimap"><div class="g-minimap" role="img" aria-label="Minimap"></div><span class="ds-chip">Binnenstad</span></div>
+      <div class="ds-hud__toetsen"><span class="ds-badge">E</span><span class="g-scherm-hoek">Instappen</span><span class="ds-badge">M</span><span class="g-scherm-hoek">Kaart</span></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<script type="module" src="js/ds-galerij.js"></script>
+</body>
+</html>
