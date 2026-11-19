@@ -3762,6 +3762,7 @@ function updatePigeonStage(dt, world, def, st, S) {
       if (st.flag) cutFlagRope(k);
       const text = st.verb ? st.verb.replace('%s', t.label) : `Klik! ${t.label} staat op de foto`;
       world.addMessage(`${text} (${S.spotted.size}/${S.targets.length})`, 2.6);
+      meldRegelkaart('foto' + S.spotted.size); // de regelkaart van M04 telt mee (AAA akte 1)
     }
   });
   if (S.spotted.size >= S.targets.filter(Boolean).length) {

@@ -180,5 +180,40 @@ if (m01) {
   }
 }
 
+// --- M03: de rij in de hal van het Loket -----------------------------------------------------------------------
+{
+  const { LOKET } = await import('../game/js/loket3d.js');
+  const { buildStageSet, updateStageSet, disposeStageSet } = await import('../game/js/stagesets.js');
+  const rij = P.loketRij();
+  ok(rij.length === 6, 'de rij heeft zes mensen');
+  ok(rij.filter((q) => q.u > P.LOKET_SPELER_U).length === 4 && rij.filter((q) => q.u < P.LOKET_SPELER_U).length === 2, 'vier voor de speler, twee erachter');
+  ok(rij.every((q) => Math.abs(q.v) < 1.9 && q.u > -LOKET.w / 2 + 0.5 && q.u < LOKET.counterU - 0.5), 'iedereen staat binnen de touwen en voor de loketten');
+  let dichtst = Infinity;
+  for (let i = 0; i < rij.length; i++) {
+    dichtst = Math.min(dichtst, Math.hypot(rij[i].u - P.LOKET_SPELER_U, rij[i].v));
+    for (let j = i + 1; j < rij.length; j++) dichtst = Math.min(dichtst, Math.hypot(rij[i].u - rij[j].u, rij[i].v - rij[j].v));
+  }
+  ok(dichtst >= 0.8, 'niemand staat in een ander of in de speler', String(dichtst));
+  ok(new Set(rij.map((q) => q.seed)).size === 6, 'elk figuur heeft een eigen uiterlijk');
+  const GELDIG = ['idle', 'look', 'phone', 'hips', 'talk'];
+  let alle = true, bewegend = false;
+  for (const q of rij) {
+    const clips = new Set();
+    for (let t = 0; t < 60; t += 0.5) { const a = P.loketRijAnim(q, t); if (!GELDIG.includes(a)) alle = false; clips.add(a); }
+    if (clips.size >= 2) bewegend = true;
+  }
+  ok(alle && bewegend, 'de animaties zijn bekend en wisselen na verloop van tijd');
+  ok(new Set(rij.map((q) => P.loketRijAnim(q, 7))).size >= 2, 'de rij beweegt niet allemaal tegelijk hetzelfde');
+  ok(P.loketRijAnim(null, 1) === 'idle' && P.loketRijAnim(rij[0], NaN) !== undefined, 'rommel geeft een rustige idle');
+  const scene = new THREE.Scene();
+  const world = { map: { groundHeightAt: () => 0 } };
+  const set = buildStageSet(world, 'loket', { x: 100, y: 100, angle: 0 }, scene);
+  ok(set && set.people.length === 8, 'de hal bouwt de rij mee', set && String(set.people.length));
+  for (let k = 0; k < 40; k++) updateStageSet(set, 0.25);
+  ok(set.people.every((q) => q.mesh.position.x === q.mesh.position.x && q.mesh.position.y === q.mesh.position.y), 'de rij doorloopt tien seconden zonder rommel');
+  disposeStageSet(set);
+  ok(set.people.length === 0, 'de rij wordt opgeruimd');
+}
+
 console.log(`akte1_aaa_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

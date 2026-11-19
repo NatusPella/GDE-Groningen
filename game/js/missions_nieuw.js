@@ -49,6 +49,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       costRow: ['Inschrijfgeld', '-€150, contant betaald'],
       reward: 0,
       onFoot: true,
+      aaa: true, // AAA akte 1: een voltooide stap klinkt
       start: loketAt(-10, 14),
       stages: [
         { kind: 'goto', target: loket('rij', 'De hal van het Stadhuis'), mode: 'foot', radius: 5, stop: 0.8, label: 'Ga naar de hal van het Stadhuis', say: 'De rij staat binnen, achter de glazen deuren. Nummer 4117.' },
@@ -58,6 +59,14 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
           kind: 'hold', set: 'loket', target: loket('rij', 'Het Loket: wachtrij'), radius: 6, time: 5,
           ticks: ['Scherm: 4101. Nog zestien nummers.', 'Scherm: 4109. Bijna aan de beurt.'],
           label: 'Wacht in de rij tot je nummer komt', say: 'Blijf in de rij staan tot 4117 wordt omgeroepen.',
+          // AAA akte 1: de vier delen van het loket in één regel, en dat het wachten vanzelf gaat
+          kaart: {
+            doel: 'Schrijf in voor de Noordelijke Snackprijs',
+            druk: 'binnen een minuut geeft een medaille',
+            regels: [
+              { type: 'stappen', inv: { label: 'Het loket', klaar: 0, stappen: [{ icoon: 'klok', label: 'Wacht in de rij' }, { icoon: 'pakje', label: 'Formulier 7B' }, { icoon: 'hand', label: 'Stempel' }, { icoon: 'pakje', label: 'Inschrijven' }] }, na: 3, duur: 8 },
+            ],
+          },
         },
         {
           kind: 'scene', label: 'Jelle', kicker: 'Het Loket', script: { ids: ['M03.2'] }, clock: 3,
@@ -238,6 +247,16 @@ export function applyNieuw(list) {
     // the goal said aloud (#93): shake the police, then deliver
     pin.stages[1].label = 'Schud de politie af: rij een garage in';
     pin.stages[2].label = 'Breng de automaat naar Sjabbe (Pand & Poen)';
+    // AAA akte 1: een voltooide stap klinkt, de garage krijgt een regelkaart en na vijftig seconden zoeken een hulpaanbod
+    pin.aaa = true;
+    pin.stages[1].kaart = {
+      doel: 'Schud de politie af: rij een garage in',
+      afloop: 'één ster is genoeg: Spuit & Klaar spuit je om en de politie kent je auto niet meer',
+      regels: [
+        { type: 'stappen', inv: { label: 'Drie delen', klaar: 0, stappen: [{ icoon: 'auto', label: 'Garage in' }, { icoon: 'pakje', label: 'Nieuwe kleur' }, { icoon: 'hart', label: 'Naar Sjabbe' }] }, na: 8, duur: 7 },
+        { type: 'wijzer', inv: { afstand: 300, hoek: 0, label: 'Garage' }, tekst: 'Sjabbe belt: Spuit & Klaar staat op je kaart, rij er gewoon in. Ik heb de poort al open.', na: 50, duur: 8 },
+      ],
+    };
   }
   const duif = by('Kieken van boven');
   if (duif) {
@@ -245,6 +264,17 @@ export function applyNieuw(list) {
     // the goal said aloud, and the fuse box too (09-script: three cameras, two guards, a fuse box)
     duif.stages[0].label = 'Fotografeer 3 camera\'s, 2 bewakers en de stroomkast';
     duif.stages[0].targets.push({ landmark: 'Groninger Museum', off: [-29, -38], label: 'De stroomkast achter de fietsenstalling' });
+    // AAA akte 1: een voltooide stap klinkt en de regelkaart legt het fotograferen uit en telt mee (meldRegelkaart 'foto4' en 'foto6')
+    duif.aaa = true;
+    duif.stages[0].kaart = {
+      doel: 'Fotografeer alles wat het museum bewaakt',
+      druk: 'binnen een minuut geeft een medaille',
+      regels: [
+        { type: 'stappen', inv: { label: 'Zo fotografeer je', klaar: 0, stappen: [{ icoon: 'pijl', label: 'Vlieg erheen' }, { icoon: 'klok', label: 'Zweef even stil' }, { icoon: 'hart', label: 'Klik, op de foto' }] }, na: 10, duur: 8 },
+        { type: 'stappen', inv: { label: 'Voortgang', klaar: 1, stappen: [{ icoon: 'hart', label: 'Vliegles' }, { icoon: 'hart', label: 'Camera\'s en bewakers' }, { icoon: 'hart', label: 'Stroomkast' }] }, tekst: 'Meer dan de helft staat op de foto. Nog drie.', bij: 'foto4', duur: 6 },
+        { type: 'stappen', inv: { label: 'Voortgang', klaar: 2, stappen: [{ icoon: 'hart', label: 'Vliegles' }, { icoon: 'hart', label: 'Camera\'s en bewakers' }, { icoon: 'hart', label: 'Stroomkast' }] }, tekst: 'Nog één foto en je bent klaar.', bij: 'foto6', duur: 6 },
+      ],
+    };
     // #664: ook hier geen ruime fail-timer; binnen een minuut is de medaille-eis (tag 'snel').
     duif.timeLimit = null;
     duif.medalTime = 60;

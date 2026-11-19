@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 import { buildOffice, buildServerRoom } from './office3d.js';
 import { buildLoket, LOKET } from './loket3d.js';
+import { loketRij, loketRijAnim } from './akte1_plan.js';
 import { buildOmaKitchen, OMA_KEUKEN } from './omakeuken3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { animateActor } from './actoranim.js';
@@ -101,6 +102,13 @@ export function buildStageSet(world, kind, player, targetScene = null) {
     // the clerk behind the middle window, and one person still in the queue
     people.push({ mesh: buildPerson('loketbediende', [LOKET.clerkU, 0], Math.PI), anim: () => 'talk', gaze: 0 });
     people.push({ mesh: buildPerson('student', [-2.7, 2.5], 0.4), anim: (t) => (Math.sin(t * 0.6) > 0 ? 'phone' : 'idle'), gaze: 0 });
+    // AAA akte 1 (M03): de rij zelf, zes mensen die wachten (akte1_plan.js loketRij): vier voor je, twee achter je
+    for (const q of loketRij()) {
+      const m = buildPersonMesh(q.shirt, q.skin, { seed: q.seed, variant: q.variant });
+      m.position.set(q.u, 0, q.v);
+      m.rotation.y = -q.face;
+      people.push({ mesh: m, anim: (t) => loketRijAnim(q, t), gaze: 0 });
+    }
   } else if (kind === 'omakeuken') {
     // Oma at the stove (she keeps an eye on the pan), Mem at the table
     people.push({ mesh: buildPerson('trijntje', [OMA_KEUKEN.stoveU - 0.85, 0.5], 0), anim: () => 'talk', gaze: 0 });

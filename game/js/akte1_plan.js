@@ -97,3 +97,31 @@ export function kortPrompt(st, k, plek) {
     cooldown: Math.max(0.001, 1 - k.voortgang), // de ring loopt vol terwijl je werkt (prompts.js)
   };
 }
+
+// --- M03: de wachtrij in de hal van het Loket ------------------------------------------------------------------------
+
+// Zes mensen in de rij, in de lokale maten van de set (u langs de hal, v dwars; de speler staat op u = -0,8 en kijkt
+// naar +u, de loketten staan op u = 3,6). Vier staan voor je, twee achter je; ze staan binnen de touwen van de
+// rij (|v| < 1,9) en niet in elkaar. `anim` is de idle van actoranim.js; de ritmes verschillen per figuur, zodat de rij
+// niet in de maat beweegt (wachten, op het scherm kijken, de telefoon, de handen in de zij).
+export const LOKET_SPELER_U = -0.8;
+export function loketRij() {
+  const rij = [
+    { u: 0.25, v: 0.5, face: 0.15, shirt: 0x6a3a3a, skin: 0xd9a06e, seed: 9101, variant: 'male', cyc: ['idle', 'look', 'idle'], tempo: 0.55, fase: 0.3 },
+    { u: 1.1, v: -0.45, face: -0.1, shirt: 0x3a5a6a, skin: 0xf1c9a5, seed: 9102, variant: 'female', cyc: ['phone', 'idle'], tempo: 0.7, fase: 1.4 },
+    { u: 1.95, v: 0.4, face: 0.05, shirt: 0x5a5a3a, skin: 0xa9744a, seed: 9103, variant: 'male', cyc: ['hips', 'idle', 'look'], tempo: 0.45, fase: 2.2 },
+    { u: 2.8, v: -0.35, face: 0, shirt: 0x7a4a6a, skin: 0xf1c9a5, seed: 9104, variant: 'female', cyc: ['idle', 'talk'], tempo: 0.6, fase: 0.9 },
+    { u: -1.9, v: 0.35, face: 0.1, shirt: 0x3a6a4a, skin: 0xd9a06e, seed: 9105, variant: 'male', cyc: ['look', 'idle', 'phone'], tempo: 0.5, fase: 3.1 },
+    { u: -2.8, v: -0.4, face: -0.05, shirt: 0x8a6a2a, skin: 0x7a4e2e, seed: 9106, variant: 'female', cyc: ['idle', 'hips'], tempo: 0.65, fase: 1.9 },
+  ];
+  return rij.map((q) => ({ ...q, cyc: [...q.cyc] }));
+}
+
+// De animatie van figuur q op tijd t (puur): de cyclus loopt rond, per figuur met eigen tempo en fase.
+export function loketRijAnim(q, t) {
+  const c = q && q.cyc;
+  if (!c || !c.length) return 'idle';
+  const tt = eindig(t) ? t : 0;
+  const i = Math.floor(Math.abs(tt * q.tempo * 0.5 + q.fase)) % c.length;
+  return c[i];
+}

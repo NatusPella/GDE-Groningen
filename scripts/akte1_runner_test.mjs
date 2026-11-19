@@ -20,6 +20,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 const M = await import('../game/js/missions.js');
 const { ververs } = await import('../game/js/spelersregister.js');
 const { KEI_ROUTE } = await import('../game/js/keiroute.js');
+const { kaartVan, startKaart, tikKaart, meldKaart } = await import('../game/js/regelkaart.js');
 document.body = document.createElement('div');
 
 let n = 0, fails = 0;
@@ -163,6 +164,54 @@ t('M01 loopt in de runner: de stunt start en de kaart en arena doen geen kwaad',
   assert.equal(M.missionDebug.start(w, idx), true);
   tik(w, 5);
   assert.equal(st().phase, 'active');
+});
+
+t('M03: de stappen van het Loket klinken, het wachten heeft een kaart en de tekst is ongewijzigd', () => {
+  const w = wereld();
+  const idx = M.getMissionDefs().findIndex((d) => d.label === 'Het Loket');
+  const def = M.getMissionDefs()[idx];
+  assert.ok(def.aaa && def.stages[1].kaart && def.stages[1].kaart.regels.length === 1, 'de kaart staat op het wachten');
+  assert.match(def.intro[1], /wachtnummer, haal formulier 7B/, 'de herschreven openingstekst (#987) is intact');
+  assert.equal(M.missionDebug.start(w, idx), true);
+  tik(w, 1); naarDoel(w); tik(w, 2);
+  assert.ok(stappen(w) >= 1, 'de eerste stap (naar de hal) klinkt');
+  assert.equal(st().phase, 'active');
+});
+
+t('M02: garagekaart met hulpaanbod, stings, en de stappen en de tekst blijven zoals ze waren', () => {
+  wereld();
+  const def = M.getMissionDefs().find((d) => d.label === 'Even pinnen');
+  assert.deepEqual(def.stages.map((q) => q.kind), ['board', 'garage', 'goto'], 'dezelfde stappen in dezelfde volgorde (saves)');
+  assert.ok(def.aaa);
+  const kv = kaartVan(def.stages[1]);
+  assert.ok(kv && /garage/.test(kv.doel) && kv.regels.length === 2, 'de garagestap heeft een kaart');
+  const k = startKaart(def.stages[1], 'M02:1');
+  tikKaart(k, 0.016);
+  let t0 = 0, spec = null;
+  while (t0 < 20) { const c = tikKaart(k, 0.5); t0 += 0.5; if (c) spec = c; }
+  assert.ok(spec && /stappen|Drie delen|garage/i.test(JSON.stringify(spec)), 'binnen twintig seconden staat de uitleg er');
+  const hulp = [];
+  while (t0 < 80) { const c = tikKaart(k, 0.5); t0 += 0.5; if (c) hulp.push(c); }
+  assert.ok(hulp.some((c) => /Sjabbe belt/.test(c.body)), 'na vijftig seconden zoeken biedt Sjabbe hulp aan');
+  assert.match(def.intro[1], /Eerst de pliesie kwijt, dan een nieuwe kleur/, 'de openingstekst is intact');
+});
+
+t('M04: de fotokaart telt mee met de foto\'s en de stap en de tekst blijven zoals ze waren', () => {
+  wereld();
+  const def = M.getMissionDefs().find((d) => d.label === 'Kieken van boven');
+  assert.deepEqual(def.stages.map((q) => q.kind), ['pigeon'], 'dezelfde stap (saves)');
+  assert.ok(def.aaa && def.stages[0].targets.length === 7, 'zeven doelen, zoals eerst');
+  const k = startKaart(def.stages[0], 'M04:0');
+  tikKaart(k, 0.016);
+  let t0 = 0; const getoond = [];
+  while (t0 < 40) { const c = tikKaart(k, 0.5); t0 += 0.5; if (c) getoond.push(c.body); }
+  assert.equal(getoond.length, 1, 'eerst alleen de uitleg; de voortgangsregels wachten op foto\'s');
+  meldKaart(k, 'foto4');
+  assert.match(tikKaart(k, 0.5).body, /Nog drie/);
+  meldKaart(k, 'foto6');
+  assert.equal(tikKaart(k, 0.5), null, 'de volgende regel wacht tot de vorige zijn tijd heeft gehad');
+  tik(wereld(), 0.1);
+  assert.match(def.intro[1], /fotografeer de camera/, 'de openingstekst is intact');
 });
 
 console.log(`akte1_runner_test: ${n - fails}/${n}`);

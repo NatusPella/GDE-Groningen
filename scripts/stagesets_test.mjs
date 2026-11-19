@@ -148,7 +148,7 @@ function badPositions(group) {
 
   const loket = buildStageSet(world, 'loket', player, scene);
   ok(loket && loket.kind === 'loket', 'de Loket-stap bouwt de hal');
-  ok(loket && loket.people.length === 2, 'de loketbediende en een wachtende staan in de hal', String(loket && loket.people.length));
+  ok(loket && loket.people.length === 8, 'de loketbediende, een wachtende en de rij van zes staan in de hal (AAA akte 1)', String(loket && loket.people.length));
   ok(loket && loket.hold && loket.hold.x === 4 && loket.hold.y === -2, 'de speler blijft bij de balie');
   if (loket) {
     updateStageSet(loket, 0.1);
