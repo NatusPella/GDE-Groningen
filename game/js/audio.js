@@ -2335,7 +2335,7 @@ function playAudioEvents(world) {
     const e = q[i];
     const speler = hoofdspeler(world);
     const x = e.x ?? speler.x, y = e.y ?? speler.y;
-    noteSound(e.kind, { sub: e.kind === 'weapon' ? e.sub : e.kind === 'fx' ? e.name : '', dist: Math.hypot(x - speler.x, y - speler.y) });
+    noteSound(e.kind, { sub: e.kind === 'weapon' ? e.sub : e.kind === 'fx' ? e.name : e.kind === 'sample' ? e.key : '', dist: Math.hypot(x - speler.x, y - speler.y) });
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;

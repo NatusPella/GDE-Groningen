@@ -3,7 +3,10 @@ import { SOUND_LABELS, labelFor, createCaptions, pushCaption, visibleCaptions } 
 let fails = 0;
 const ok = (c, n, x) => { if (!c) { fails++; console.log('FAIL', n, x !== undefined ? JSON.stringify(x) : ''); } };
 ok(labelFor('weapon', 'shot') === 'schot' && labelFor('horn') === 'claxon', 'labels via soort en subsoort');
-ok(labelFor('door_open') === null, 'deurgeluid krijgt geen ondertitel');
+ok(labelFor('door_open') === 'deur gaat open', 'een deur krijgt een ondertitel (#985)');
+ok(labelFor('sample', 'trein_deur_piep') === 'treindeur piept' && labelFor('fx', 'bridge_clunk') === 'brug klinkt' && labelFor('fx', 'kermis_ding') === 'kermisbel', 'trein, brug en kermis via de opname- en fx-naam (#985)');
+ok(labelFor('train_clack') === 'treinwielen ratelen' && labelFor('step') === 'voetstappen' && labelFor('engine_start') === 'motor start' && labelFor('fx', 'tyre_screech') === 'banden gieren', 'wielen, voetstappen en voertuiggeluiden (#985)');
+ok(labelFor('sample', 'onbekend') === null && labelFor('prop_hit') === null, 'wat geen label heeft blijft stil');
 for (const [k, v] of Object.entries(SOUND_LABELS)) ok(/^[a-zà-ÿ' ]+$/.test(v), 'label in kleine letters, Nederlands: ' + k);
 const s = createCaptions();
 ok(pushCaption(s, 'horn', { now: 0 }) === '[claxon]', 'eerste claxon');

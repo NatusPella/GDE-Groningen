@@ -12,6 +12,14 @@ export const SOUND_LABELS = {
   alarm: 'alarm', whistle: 'fluitje', splash: 'plons', siren: 'sirene', explosion: 'explosie',
   shot: 'schot', swing: 'zwaai', coo: 'duif', caw: 'kraai', bell_note: 'klokkenspel', stall: 'motor slaat af',
   grind: 'versnellingsbak knarst', camera_shutter: 'camera', gore: 'vervelend geluid', bonk: 'bonk', reklametaxi: 'reclametaxi met megafoon',
+  // #985: trein, brug, sluis, deuren, kermis, voetstappen en voertuiggeluiden
+  train_clack: 'treinwielen ratelen', train_pass: 'trein raast voorbij', rail_squeal: 'treinwielen piepen',
+  trein_deur_open: 'treindeur gaat open', trein_deur_dicht: 'treindeur gaat dicht', trein_deur_piep: 'treindeur piept',
+  bridge_clunk: 'brug klinkt', sluis_poort: 'sluispoort', ship_horn: 'scheepshoorn',
+  door_open: 'deur gaat open', door_close: 'deur gaat dicht', bus_door_hiss: 'busdeur sist', shop_bell: 'winkelbel',
+  kermis_ding: 'kermisbel', step: 'voetstappen', applause: 'applaus',
+  engine_start: 'motor start', engine_stop: 'motor stopt', engine_stall: 'motor slaat af', 'gear-grind': 'versnellingsbak knarst',
+  tyre_screech: 'banden gieren', hood_thump: 'motorkap bonkt', impact: 'klap',
 };
 
 const COOLDOWN_S = 2.2;
