@@ -1835,12 +1835,12 @@ function buildSearchIndex(world) {
   }
   for (const l of world.map.meta.landmarks || []) entries.push({ label: l.name, kind: 'Bezienswaardigheid', pri: 0, x: l.x, y: l.y, zoom: 6 });
   for (const p of world.map.meta.neighbourhoodPoints || []) entries.push({ label: p.name, kind: 'Wijk', pri: 1, x: p.x, y: p.y, zoom: 4 });
-  for (const h of getHorecaForRender() || []) if (h.name) entries.push({ label: h.name, kind: 'Horeca', pri: 3, x: h.x, y: h.y, zoom: 8 });
-  for (const g of getGaragesForRender()) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
+  for (const h of getHorecaForRender() || []) if (h.name && !isAreaHidden(h.x, h.y)) entries.push({ label: h.name, kind: 'Horeca', pri: 3, x: h.x, y: h.y, zoom: 8 });
+  for (const g of getGaragesForRender()) if (!isAreaHidden(g.x, g.y)) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
   for (const h of getHomeForRender()) entries.push({ label: h.name, kind: 'Jullie flat en garage', pri: 0, x: h.x, y: h.y, zoom: 7 });
   for (const h of getHomeMooringForRender(world)) entries.push({ label: h.name, kind: 'Boten thuis', pri: 1, x: h.x, y: h.y, zoom: 8 });
   for (const h of getHomeHelipadForRender()) entries.push({ label: h.name, kind: 'Heli thuis', pri: 1, x: h.x, y: h.y, zoom: 8 });
-  for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
+  for (const sh of getShopsForRender()) if (!isAreaHidden(sh.x, sh.y)) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
   for (const sj of getSideJobSpotsForRender()) { if (isAreaHidden(sj.x, sj.y)) continue; entries.push({ label: sj.job.name, kind: sj.job.kicker || 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 }); }
   for (const q of getOnderdeelSpotsForRender()) { if (isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Onderdeel', pri: 1, x: q.x, y: q.y, zoom: 8 }); }
   for (const q of getWrakduikSpotsForRender()) { if (q.gedoken || isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Duikplek', pri: 1, x: q.x, y: q.y, zoom: 8 }); }

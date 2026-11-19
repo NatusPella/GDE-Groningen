@@ -36,8 +36,9 @@ import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
 import { DIEREN, SET_DIEREN, DIEREN_TOTAL } from './dierenregister.js'; // #844: dierenboek als verzamelrij
-import { isViewpointUsed } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
+import { isViewpointUsed, isAreaHidden } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
 import { SECRETS_TOTAL } from './geheimen.js';
+import { hideUnknownAreas } from './todofilter.js'; // #985
 import { HERKENNINGSPUNTEN, HERKENNINGSPUNTEN_TOTAAL } from './herkenningspunten.js';
 import { albumStand, dichtstbijzijndeOpen } from './herkenningsalbum.js';
 import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
@@ -626,7 +627,8 @@ export function getTodoItems(world) {
   const p = hoofdspeler(world);
   const acts = activityMapIcons(world);
   const basis = [...missionItems(world), ...minigameItems(world, acts), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world)];
-  const items = [...basis, ...loopbaanItems(world, basis, acts)];
+  // #985: een onbekende streek lekt niet via Te doen (de kaart verbergt hem ook, #825)
+  const items = hideUnknownAreas([...basis, ...loopbaanItems(world, basis, acts)], isAreaHidden);
   const st = storyStepItem(world);
   if (st) items.unshift(st);
   const goal = getGoal();
