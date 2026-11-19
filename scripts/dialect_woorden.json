@@ -1,11 +1,5 @@
 {
   "gronings": {
-    "post": {
-      "nl": "post",
-      "status": "bron",
-      "n": 1,
-      "opm": "Ten Post is een echte dorpsnaam in de gemeente Groningen (molennaam in het herkenningspuntenalbum), geen dialectwoord"
-    },
     "bieno": {
       "nl": "bijna",
       "status": "twijfel",
@@ -3524,6 +3518,12 @@
     }
   },
   "fries": {
+    "post": {
+      "nl": "post (Ten Post, een dorp in de gemeente Groningen)",
+      "status": "kennis",
+      "opm": "Onderdeel van de echte dorpsnaam Ten Post in een molennaam van het herkenningspuntenalbum; geen Fries woord",
+      "bewijs": "dorpsnaam in de gemeente Groningen"
+    },
     "moai": {
       "nl": "mooi",
       "status": "bron",
