@@ -221,7 +221,7 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
   position: absolute; left: var(--hud-edge); bottom: var(--mm-bottom); width: var(--mm-size); height: var(--mm-size);
   border-radius: 18px; overflow: hidden; background: #17301f;
   box-shadow: 0 0 0 2px rgba(63, 201, 122, 0.55), 0 14px 32px rgba(0, 0, 0, 0.45);
-  transition: box-shadow 0.4s ease;
+  transition: box-shadow 0.4s ease; pointer-events: auto; cursor: pointer;
 }
 #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px #d93f3f, 0 0 18px rgba(217, 63, 63, 0.45), 0 14px 32px rgba(0, 0, 0, 0.5); }
 #hud .hud-minimap-wrap canvas { display: block; width: 100%; height: 100%; }

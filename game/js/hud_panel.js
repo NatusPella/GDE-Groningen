@@ -85,7 +85,8 @@ import { physicalKey, keyName } from './controls.js';
 import { controlHint, hintText } from './controlhint.js'; // #824: compacte bedieningsregel in de doellijn
 import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
-import { isPauseMenuOpen } from './pausestate.js';
+import { isPauseMenuOpen, openPauseMenu } from './pausestate.js';
+import { bindMinimapOpen } from './minimaptap.js'; // #985
 import { gameProgress, progressText } from './progresslive.js';
 import { getPlaySeconds } from './savegame.js';
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
@@ -240,6 +241,10 @@ export function initHud(world) {
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
   root.appendChild(mmWrap);
+  // #985: een tik op de minikaart opent de kaart (op een telefoon stond die achter "Meer")
+  mmWrap.setAttribute('role', 'button');
+  mmWrap.setAttribute('aria-label', 'Kaart openen');
+  bindMinimapOpen(mmWrap, () => openPauseMenu('map'), () => isPauseMenuOpen() || isCinematicActive());
 
   const fcol = document.createElement('div');
   fcol.className = 'hud-fcol';
