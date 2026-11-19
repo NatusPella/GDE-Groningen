@@ -252,7 +252,7 @@ export const SURFACES = {
   opmerking: { files: ['story.js'], p: P1, gates: [['narrative', 'say']] },
   autopraat: { files: ['banter.js'], zone: 'G', p: P3, gates: [['narrative', 'banter'], ['narrative', 'sub-banter'], ['speech', 'banter']] },
   ondertitel: { files: ['cinematics.js', 'storytalk.js', 'subtitles.js', 'radiosub.js'], zone: 'G', p: P1, gates: [['narrative', 'sub-cine']] },
-  scene: { files: ['cinematics.js', 'intromontage.js', 'respawn.js', 'reisrit.js'], gates: [['narrative', 'scene']] },
+  scene: { files: ['cinematics.js', 'intromontage.js', 'respawn.js', 'reisrit.js', 'reisrit3d.js'], gates: [['narrative', 'scene']] },
   moment: { files: ['cinematics.js'], gates: [['moment', 'wijk'], ['moment', 'landmark'], ['moment', 'ommelanden'], ['moment', 'veroverd'], ['moment', 'crash'], ['moment', 'wanted5']] },
   banner: { files: ['cinematics.js'], zone: 'D', p: P0, gates: [['overlay', 'resultaat'], ['narrative', 'scene']] },
   naamkaart: { files: ['namecard.js'], gates: [['overlay', 'naamkaart']] },

@@ -27,6 +27,7 @@ Vier gewassen met eigen zaaigoed.
 Twintig lessen bij Eelde, en elf vliegtuig- en negen helikopterlessen.
 Discgolf: negen holes. Pitch en putt: zes holes.
 `;
+const UITAAL = `# UI-taal\n\nLeesnorm: 13 px voor menu's en HUD, harde ondergrens 12 px.\n`;
 const SCENES = (n = {}) => JSON.stringify({
   note: 'fixture',
   scenes: [
@@ -44,6 +45,7 @@ function maak({ verhaal = VERHAAL(), mechanica = MECHANICA, code = CODE, scenes 
   const put = (f, t) => { const p = path.join(root, f); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, t); };
   put('.specs-fire/standards/verhaal.md', verhaal);
   put('.specs-fire/standards/mechanica.md', mechanica);
+  put('.specs-fire/standards/ui-taal.md', UITAAL);
   put('game/js/a.js', code);
   if (scenes !== null) put('game/storydata/script.json', scenes);
   if (manifests) for (const k of ['story', 'lines', 'banter']) put(`game/audio/voicelines/${k}/manifest.json`, '{}');
@@ -58,7 +60,7 @@ const meldingen = (r) => r.problems.map((p) => `${p.where}: ${p.message}`).join(
   ok(r.problems.length === 0, 'goede fixture geeft geen fouten: ' + meldingen(r));
   ok(r.refs === 1, `een verwijzing met pad geteld, zonder pad overgeslagen (${r.refs})`);
   ok(r.counters === 12, `tellers geteld: ${r.counters}`);
-  ok(r.skipped.length === 7 && r.skipped.every((s) => s.includes('mechanica')), 'ontbrekende regelmodule geeft SKIP: ' + r.skipped.join(' | '));
+  ok(r.skipped.length === 8 && r.skipped.filter((s) => s.includes('mechanica')).length === 7 && r.skipped.some((s) => s.includes('ui-taal')), 'ontbrekende regelmodules geven SKIP (7 mechanica, 1 leesnorm): ' + r.skipped.join(' | '));
 }
 
 // ontbrekend bestand
@@ -97,7 +99,7 @@ const meldingen = (r) => r.problems.map((p) => `${p.where}: ${p.message}`).join(
 {
   const r = await check({ repo: maak({ scenes: null }) });
   ok(r.problems.length === 0, 'zonder verhaaldata geen fouten: ' + meldingen(r));
-  ok(r.skipped.length === 13, `zonder verhaaldata dertien tellers overgeslagen (${r.skipped.length})`);
+  ok(r.skipped.length === 14, `zonder verhaaldata veertien tellers overgeslagen (${r.skipped.length})`);
   ok(r.skipped.some((s) => /script\.json ontbreekt/.test(s)), 'de SKIP-regel noemt de ontbrekende bron');
 }
 
