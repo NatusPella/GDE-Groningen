@@ -830,9 +830,13 @@ function pruneWrecks(world) {
 // model, label or heading is left alone. Returns how many were removed.
 export function dedupeVehicles(vehicles) {
   let removed = 0;
+  // first position per object: an earlier copy of the same object means a duplicate (was indexOf per vehicle).
+  // Removals only happen at i, so the positions before i stay valid.
+  const first = new Map();
+  for (let i = 0; i < vehicles.length; i++) if (!first.has(vehicles[i])) first.set(vehicles[i], i);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (vehicles.indexOf(v) < i) { vehicles.splice(i, 1); removed++; continue; }
+    if (first.get(v) < i) { vehicles.splice(i, 1); removed++; continue; }
     if (v.driver === 'player' || v.wrecked || v.isBoat) continue;
     for (let j = 0; j < i; j++) {
       const o = vehicles[j];

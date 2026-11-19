@@ -62,6 +62,7 @@ import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
 import { PATH_BUILDS_PER_FRAME } from './pathbudget.js';
+import { createPopStagger, POP_SLOTS } from './popstagger.js';
 import { setSpawnBudget, updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE, ejectPassenger } from './pedestrians.js';
 import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding } from './combat.js';
@@ -951,12 +952,11 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   let laatsteFrameMs = 16;
   let soloWachtS = 0;
   let menuDt = 0;
-  let trafficTimer = 0;
+  const popStagger = createPopStagger(POP_SLOTS); // #efficiëntie: verkeer en voetgangers op verschillende frames
   const tileFollow = {};
   // #937: the frame budget for the tile work (streambudget.js): low in the first
   // seconds after a jump or a new part of the world, and at high speed.
   const streamBudget = createStreamBudget();
-  let pedTimer = 0;
   function frame(now) {
     // #804: plan het volgende beeld meteen, vóór al het werk van dit beeld. Een lange staart (of een
     // fout in de staart) kan de aanvraag dan niet meer overslaan; de browser houdt de cadans vast en
@@ -1176,45 +1176,46 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     probe.mark('populate-pre'); // #804: sectie begint hier, niet bij de vorige frame-mark
 
     probe.mark('populate-pre:voor-traffic');
-    trafficTimer -= dt;
-    if (trafficTimer <= 0) {
-      trafficTimer = 1.5;
+    // Efficiëntie: de bevolking per soort op een eigen frame (popstagger.js), geen piek van 1-4 ms.
+    const popDue = popStagger.tick(dt);
+    for (const slot of popDue) {
       // Tijdens het streamen geen spawngolf: de wereld is nog niet klaar en de
       // speler ziet de auto's toch niet. Daarna weer onbeperkt (#804).
-      const pend0 = streamPending();
-      const druk0 = pend0.buildings + pend0.roads > 0 || prewarmPending() > 0 || prewarmBusy() || (world.map.tileQueue && world.map.tileQueue.size > 0);
-      setSpawnBudget(druk0 ? 4 : Infinity);
+      if (slot !== 'peds') {
+        const pend0 = streamPending();
+        const druk0 = pend0.buildings + pend0.roads > 0 || prewarmPending() > 0 || prewarmBusy() || (world.map.tileQueue && world.map.tileQueue.size > 0);
+        setSpawnBudget(druk0 ? 4 : Infinity);
+      }
       const fociN = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci.length : 1, fa = aandeel(fociN); // spelers uit elkaar (#429): de foci delen het budget
-      manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
-      probe.mark('pop-traffic');
-      // the centre is full of bikes: eight more cyclists while you are in it
-      const inCentre = Math.hypot(hoofdspeler(world).x - CITY_CENTRE.x, hoofdspeler(world).y - CITY_CENTRE.y) < CITY_CENTRE.r;
-      const rush = bikeBoost(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, Math.hypot(hoofdspeler(world).x - CITY_CENTRE.x, hoofdspeler(world).y - CITY_CENTRE.y), hourOf(world));
-      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes * fa) });
-      probe.mark('pop-bikes');
-      // live bussen (#395): hooguit één opvraag per minuut, alleen met de instelling aan, nooit in de geautomatiseerde runs (buslive.js)
-      busLive.tick(getBusLines());
-      manageBusPopulation(world);
-      probe.mark('pop-bus');
-      manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
-      probe.mark('pop-scooters');
-      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, hourOf(world))) * MODS.motors * fa) });
-      probe.mark('pop-motors');
-      if (fociN > 1) for (const f of world.coopFoci) if (!f.host) verkeerRondFocus(world, f, fa);
-      manageBoatPopulation(world, { target: boatTarget() });
-      tickRowingCoaches(world);
-      probe.mark('pop-boats');
-      if (simLevel() || MODS.fading) thinTraffic(world);
+      if (slot === 'cars') {
+        manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
+        probe.mark('pop-traffic');
+      } else if (slot === 'bikes') {
+        // the centre is full of bikes: eight more cyclists while you are in it
+        const inCentre = Math.hypot(hoofdspeler(world).x - CITY_CENTRE.x, hoofdspeler(world).y - CITY_CENTRE.y) < CITY_CENTRE.r;
+        const rush = bikeBoost(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, Math.hypot(hoofdspeler(world).x - CITY_CENTRE.x, hoofdspeler(world).y - CITY_CENTRE.y), hourOf(world));
+        manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes * fa) });
+        probe.mark('pop-bikes');
+        // live bussen (#395): hooguit één opvraag per minuut, alleen met de instelling aan, nooit in de geautomatiseerde runs (buslive.js)
+        busLive.tick(getBusLines());
+        manageBusPopulation(world);
+        probe.mark('pop-bus');
+      } else if (slot === 'scooters') {
+        manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
+        probe.mark('pop-scooters');
+      } else if (slot === 'motors') {
+        manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, hourOf(world))) * MODS.motors * fa) });
+        probe.mark('pop-motors');
+        if (fociN > 1) for (const f of world.coopFoci) if (!f.host) verkeerRondFocus(world, f, fa);
+        manageBoatPopulation(world, { target: boatTarget() });
+        tickRowingCoaches(world);
+        probe.mark('pop-boats');
+        if (simLevel() || MODS.fading) thinTraffic(world);
+      } else if (slot === 'peds') {
+        maintainPedestrians(world);
+        probe.mark('pop-peds');
+      }
       setSpawnBudget(Infinity);
-      probe.mark('populate-pre:na-traffic');
-    }
-    probe.mark('populate-pre:voor-peds');
-    pedTimer -= dt;
-    if (pedTimer <= 0) {
-      pedTimer = 2;
-      maintainPedestrians(world);
-      probe.mark('pop-peds');
-      probe.mark('populate-pre:na-peds');
     }
     probe.mark('populate');
 
