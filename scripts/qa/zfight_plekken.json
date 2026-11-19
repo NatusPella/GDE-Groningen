@@ -1,0 +1,17 @@
+[
+  { "naam": "usquert-kerk-45m", "x": 2769.7, "y": -20431.3, "d": 45, "az": 0.8, "h": 12, "lz": 10 },
+  { "naam": "usquert-kerk-120m", "x": 2769.7, "y": -20431.3, "d": 120, "az": 0.8, "h": 20, "lz": 10 },
+  { "naam": "usquert-kerk-200m", "x": 2769.7, "y": -20431.3, "d": 200, "az": 2.4, "h": 6, "lz": 10 },
+  { "naam": "usquert-kerk-300m", "x": 2769.7, "y": -20431.3, "d": 300, "az": 0.8, "h": 6, "lz": 10 },
+  { "naam": "usquert-straat", "x": 2809.7, "y": -20401.3, "oog": true, "a": -2.498, "h": 1.7, "lz": 8 },
+  { "naam": "stad-grotemarkt-straat", "x": 106.3, "y": 58.6, "oog": true, "a": 2.798, "h": 1.7, "lz": 6 },
+  { "naam": "stad-grotemarkt-150m", "x": 106.3, "y": 58.6, "d": 150, "az": 1.2, "h": 30, "lz": 5 },
+  { "naam": "stad-grotemarkt-250m-oog", "x": 106.3, "y": 58.6, "d": 250, "az": 1.2, "h": 2, "lz": 8 },
+  { "naam": "stad-grotemarkt-350m-oog", "x": 106.3, "y": 58.6, "d": 350, "az": 4.2, "h": 2, "lz": 8 },
+  { "naam": "stad-binnenstad-straat", "x": 507.4, "y": -164.4, "oog": true, "a": 0.138, "h": 1.7, "lz": 6 },
+  { "naam": "visvliet-brug-80m", "x": -20965, "y": -4927, "d": 80, "az": 0.8, "h": 20, "lz": 0 },
+  { "naam": "eendrachtskade-80m", "x": -874, "y": 566, "d": 80, "az": 0.9, "h": 18, "lz": 0 },
+  { "naam": "detailrand-250m", "x": -768.5, "y": -1144.3, "d": 250, "az": 0.5, "h": 25, "lz": 5 },
+  { "naam": "woonwijk-400m-oog", "x": -768.5, "y": -1144.3, "d": 400, "az": 0.5, "h": 2, "lz": 8 },
+  { "naam": "woonwijk-500m", "x": -768.5, "y": -1144.3, "d": 500, "az": 0.5, "h": 60, "lz": 5 }
+]
