@@ -251,25 +251,6 @@
      "voice": "Anita"
     },
     {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Sympathiek is toch goed?",
-     "tag": "BEHOUDEN",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Een kat is ook sympathiek. Die krijgt ook geen lening.",
-     "tag": "BEHOUDEN",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
      "speaker": "Tessa",
      "key": "A",
      "text": "Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.",
@@ -310,21 +291,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "…Dat komt op de zijkant van de wagen.",
+     "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Zonder bank blijft er één weg over: de Noordelijke Snackprijs. De winnaar krijgt de enige vrije standplaats van Grunn.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -340,25 +310,6 @@
      "speaker": "Tessa",
      "key": "A",
      "text": "Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Op Gronings Ontzet.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Dat is de dag dat Grunn in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik heb het nog nooit gezien.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": false,
@@ -468,11 +419,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Eerst geld. Inschrijven voor de Snackprijs kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur, bij Het Loket.",
+     "text": "Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -567,6 +517,15 @@
     {
      "speaker": "Tessa",
      "key": "A",
+     "text": "Gronings Ontzet, Tammo. Elk jaar spelen ze na hoe Grunn in 1672 de bisschop buiten hield.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
      "text": "Wij brengen hem. Eerst even een klus op de Grote Markt, dan naar uw zus.",
      "tag": "NIEUW",
      "channel": "stem",
@@ -605,11 +564,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo.",
+     "text": "Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we ons inschrijven, Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     }
    ]
@@ -659,11 +617,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Zonder krassen.",
+     "text": "Zonder krassen, want het is Berends bakkie.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -679,11 +636,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Eerst de Grote Markt, dan Berends zus.",
+     "text": "Eerst de stunts op de Grote Markt, dan brengen we het bakkie naar Berends zus.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     }
    ]
@@ -1013,11 +969,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Trede twee van de complimentenladder, Tammo.",
-     "tag": "BEHOUDEN",
+     "text": "Goud, Tammo. Van Berend is dat een medaille.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -1420,11 +1375,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen de automaat naar Sjabbe.",
+     "text": "Ik ken iemand die opent wat niemand kan. Wij brengen de automaat naar hem.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -1592,11 +1546,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het museum. De Gouden Eierbal.",
-     "tag": "BEHOUDEN",
+     "text": "Het museum. Daar staat de Gouden Eierbal, de wisselprijs van de Snackprijs.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {

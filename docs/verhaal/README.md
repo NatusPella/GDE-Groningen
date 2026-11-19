@@ -34,6 +34,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 Deze documenten zijn verslagen van eerdere rondes, geen actuele canon. Ze hebben een datum in de
 kop; vervangen door de spec of de actuele documenten:
 
+- [OPENING-ONTHULLING.md](OPENING-ONTHULLING.md) (#987, actueel): meting en ontwerp van de geleidelijke onthulling in de opening en M01-M03; de test is `scripts/verhaal_onthulling_test.mjs`.
 - [OPENING-BIJBEL.md](OPENING-BIJBEL.md), [OPENING-DIAGNOSE.md](OPENING-DIAGNOSE.md),
   [OPENING-LEESTEST.md](OPENING-LEESTEST.md) — de opening van het verhaal, oude ronde.
 - [REVIEWS-RONDE3.md](REVIEWS-RONDE3.md) — verslag van de derde reviewronde.

@@ -131,8 +131,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 0, dt: 0.4, actor: 'berend', walk: [[4.6, 1.2], [6.6, 3.0], [4.8, 4.9], [3.0, 2.6], [2.6, 0.2]], speed: 1.3 },
       { on: 0, dt: 0.4, actor: 'berend', gaze: 'prop:bakkie' },
       { on: '…Goud.', actor: 'tessa', face: 'actor:tammo' },
-      { on: 'Trede twee', actor: 'tessa', anim: 'point' },
-      { on: 'Trede twee', dt: 0.1, actor: 'berend', gaze: 'actor:tessa' },
+      { on: 'Goud, Tammo', actor: 'tessa', anim: 'point' },
+      { on: 'Goud, Tammo', dt: 0.1, actor: 'berend', gaze: 'actor:tessa' },
       { on: 'Overdrijf niet', actor: 'berend', face: 'actor:tammo' },
       { on: 'Overdrijf niet', dt: 3.5, actor: 'berend', anim: 'shrug' },
       { on: 'Wat moet een Fries', actor: 'tammo', anim: 'shrug' },
@@ -195,8 +195,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'In die pas', dt: 0.2, actor: 'tessa', anim: 'hips' },
       { on: 'Dus we pinnen', actor: 'tammo', face: 'prop:automaat' },
       { on: 'Dus we pinnen', dt: 0.4, actor: 'tammo', walk: [[4.2, 1.9]], speed: 1.6 },
-      { on: 'Sjabbe van', actor: 'tessa', walk: [[3.4, 0.6]], speed: 1.6 },
-      { on: 'Sjabbe van', dt: 1.5, actor: 'tessa', anim: 'point' },
+      { on: 'Ik ken iemand', actor: 'tessa', walk: [[3.4, 0.6]], speed: 1.6 },
+      { on: 'Ik ken iemand', dt: 1.5, actor: 'tessa', anim: 'point' },
       // the police car comes round the corner: get in
       { on: 'Er komt een politie', dt: -1.4, prop: 'politie', path: [[-60, -6], [-3, -6], [-3, -6]], speed: 11 },
       { on: 'Er komt een politie', actor: 'tammo', face: 'prop:politie' },
@@ -209,7 +209,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     shots: [
       { on: 'Douwe. Hij is los', shot: 'follow', target: 'durk', dist: 3.6, side: 1.2, h: 1.9, fov: 42 },
       { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
-      { on: 'Sjabbe van', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
+      { on: 'Ik ken iemand', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
     ],
     wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,automaat@1', fov: 50, until: 1 },
   };

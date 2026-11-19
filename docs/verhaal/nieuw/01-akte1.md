@@ -21,20 +21,24 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 
 ### Opening (cutscène, geen missie)
 
-**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
+**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart; de slotkaart zegt de haak: "Twee Stadjers. Eén frietwagen. Geen plek."), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
 
 **Opening, de keuken (uitsnede):**
 
 - **RIKUS (radio):** Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens. [BEHOUDEN]
-- **RIKUS (radio):** Het is vrijdag 14 augustus, Kiezelweek. En een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is, plakje voor plakje. [NIEUW]
+- **RIKUS (radio):** Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is. Ik zeg niks. [NIEUW]
 - **TAMMO:** Moi. De bank? [BEHOUDEN]
 - **TESSA:** "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN]
-- **TESSA:** Luister. De Fjord Frituur heeft ook een plek nodig. In Grunn is er maar één vrije standplaats, en die gaat naar de winnaar van de Noordelijke Snackprijs. [NIEUW]
-- **TAMMO:** De Snackprijs. Met de Gouden Eierbal. [NIEUW]
-- **TESSA:** Op 28 augustus, op Gronings Ontzet. Wij winnen, wij krijgen die standplaats. Dan heeft de Fjord Frituur een thuis. [NIEUW]
-- **TAMMO:** Een thuis. [NIEUW]
-- **TESSA:** Een thuis met wielen. Dat kan ik aan. [NIEUW]
+- **TESSA:** Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEHOUDEN]
+- **TAMMO:** Ik wel. De Escapade. [BEHOUDEN]
+- **TESSA:** Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen. [NIEUW]
+- **TAMMO:** De prijs voor de beste eierbal. [NIEUW]
+- **TESSA:** Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis. [NIEUW]
+- **TAMMO:** En tot die tijd? Hier past geen frietwagen. [NIEUW]
+- **TESSA:** Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 - **TESSA:** Als huisgenoten, Tammo. Teken nou maar. [BEHOUDEN]
+
+(Gronings Ontzet en 1672 staan hier niet meer: het Ontzet wordt uitgelegd waar het nodig is, bij Berend in 1.1. Zie [../OPENING-ONTHULLING.md](../OPENING-ONTHULLING.md).)
 
 (Rikus' opmerking over "kom" en Tammo is geschrapt: de radio doet geen romantiekcommentaar.)
 

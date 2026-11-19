@@ -83,7 +83,7 @@ const ACT_TRAILER = {
   ],
 };
 
-// act 2: the kitchen (C00.2: two lines of Rikus, then Tessa and Tammo; line 13 states the goal)
+// act 2: the kitchen (C00.2: two lines of Rikus, then Tessa and Tammo; line 10 states the goal)
 const ACT_KEUKEN = {
   id: 'story-opening-keuken',
   set: 'keuken',
@@ -247,8 +247,8 @@ const ACT_VERHUISDAG = {
 };
 
 export const OPENING_ACTS = [ACT_TRAILER, ACT_KEUKEN, ACT_VERHUISDAG];
-// the story line each act starts at (C00.1: 0-2, C00.2: 3-25, C00.3: 26-30) and the silence around it
-const ACT_SPLIT = [0, 3, 26, Infinity];
+// the story line each act starts at (C00.1: 0-2, C00.2: 3-20, C00.3: 21-25) and the silence around it
+const ACT_SPLIT = [0, 3, 21, Infinity];
 const ACT_LEAD = [1.2, 1.0, 1.0];
 const ACT_TAIL = [2.6, 4.2, 4.6];
 
@@ -257,13 +257,9 @@ const ACT_TAIL = [2.6, 4.2, 4.6];
 // doel (huur, frietwagen, Snackprijs, Paddepoel, samen) vallen weg. De catalogus
 // (cutpreview.js) en story.js gebruiken dezelfde functie, dus de gemeten en de
 // gespeelde duur blijven gelijk.
-const OPENING_CUT = [
-  'Sympathiek is toch goed?',
-  'Een kat is ook sympathiek.',
-  '…Dat komt op de zijkant van de wagen.',
-  'Op Gronings Ontzet.',
-  'Dat is de dag dat Grunn in 1672 de bisschop buiten hield.',
-];
+// #987: de vijf geschrapte regels staan niet meer in het script (de opening is zelf ingekort en legt eerst
+// uit wat ze noemt); de lijst blijft voor een volgende inkorting.
+const OPENING_CUT = [];
 const openingLineCut = (l) => OPENING_CUT.some((t) => (l.text || '').startsWith(t));
 
 // The opening lines (story.js timing) cut into the acts, each rebased to start at its own zero.
