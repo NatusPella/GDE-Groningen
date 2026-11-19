@@ -102,8 +102,17 @@ ok(/eigenTruckHook\.haal\(/.test(src), 'de baan vraagt de garage om de eigen tru
 ok(/const v = eigen \|\| spawnJobVehicle\(/.test(src), 'zonder eigen truck blijft de leen-truck');
 ok(/c\.ownVehicle = !!eigen/.test(src), 'de baan onthoudt of het de eigen truck is');
 ok(/const kosten = ritKosten\(dist \/ 1000, !!c\.ownVehicle\)/.test(src), 'de ritkosten hangen van de rit en de truck af');
-ok(/noteMoney\('Overige uitgaven'\)/.test(src), 'de kosten gaan via de finance-haak');
-ok(/world\.money -= betaald/.test(src), 'de kosten gaan van je geld af');
+// gedrag: de echte betaalRitkosten (met scripts/node3d.mjs is sidejob_vracht.js in Node te laden)
+{
+  await import('./node3d.mjs');
+  const { betaalRitkosten } = await import('../game/js/sidejob_vracht.js');
+  const w = { money: 300 };
+  eq(betaalRitkosten(w, { totaal: 120 }), 120, 'de ritkosten gaan van je geld af');
+  eq(w.money, 180, 'het geld van de speler is lager');
+  const arm = { money: 50 };
+  eq(betaalRitkosten(arm, { totaal: 120 }), 50, 'meer dan je hebt kost de rit niet');
+  eq(arm.money, 0, 'het geld wordt nooit negatief');
+}
 ok(!/world\.money\s*\+=/.test(src), 'geen eigen kasboek in de baan');
 ok(!/getLedger\(/.test(src), 'de baan houdt geen tweede kasboek bij');
 ok(/newTrailer\(contract\.trailer/.test(src), 'de oplegger volgt het contracttype, ook achter de eigen truck');

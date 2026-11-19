@@ -292,5 +292,49 @@ t('de host wordt niet uitgenodigd voor een gastenbaan als hij zelf al werkt', ()
   S.quitSideJob(1); S.quitSideJob(0);
 });
 
+// ------------------------------------------------------------------ schrijfacties van een gastbaan (#847-review)
+// De baan van een gast draait op een schaduw van de wereld van de host. Schrijfacties (geld, gezocht) mogen daar niet
+// stilletjes verdwijnen of de stand van de host aanraken: ze gaan via de haken van sidejobwereld.js.
+const WW = await import('../game/js/sidejobwereld.js');
+const { betaalRitkosten } = await import('../game/js/sidejob_vracht.js');
+
+t('een echte gastdienst: ritkosten raken het geld van de host niet, sterren komen op de plek van de gast', () => {
+  const s = sessie(2); s.step(2);
+  const hw = s.hw;
+  hw.money = 500;
+  S.updateSideJobs(0, hw);
+  let gezien = null;
+  const baan = { ...NEPBAAN, start: (c) => {
+    gezien = { world: c.world, betaald: betaalRitkosten(c.world, { totaal: 120 }) };
+    WW.zetBanenWanted(c.world, 3);
+    c.world.money = 9999; // een baan die toch rechtstreeks schrijft: gemeld en niet bewaard
+    c.world.wanted = 5;
+    return true;
+  } };
+  const warn = console.warn; const meldingen = []; console.warn = (...a) => meldingen.push(a.join(' '));
+  try { assert.equal(S.startSideJobVoorTest(baan, 2), true); } finally { console.warn = warn; }
+  assert.equal(gezien.world.gastWereld, true, 'een gastwereld');
+  assert.equal(gezien.betaald, 0, 'een gast betaalt de ritkosten niet van het geld van de host');
+  assert.equal(hw.money, 500, 'het geld van de host is onaangeroerd');
+  assert.equal(hw.wanted, 0, 'de sterren van de host zijn onaangeroerd');
+  assert.equal(hw.coopWanted[2], 3, 'de gast heeft zijn eigen sterren');
+  assert.equal(WW.banenWanted(gezien.world), 3, 'de baan leest het niveau van de gast');
+  assert.equal(Object.prototype.hasOwnProperty.call(Object.getPrototypeOf(gezien.world) === hw ? gezien.world : {}, 'money'), false, 'geen stille eigen kopie van money op de schaduw');
+  assert.equal(gezien.world.money, 500, 'lezen blijft op de host');
+  assert.ok(meldingen.some((m) => /world.money/.test(m)) && meldingen.some((m) => /world.wanted/.test(m)), 'directe schrijfacties zijn gemeld: ' + meldingen.join('|'));
+  S.quitSideJob(2);
+});
+
+t('dezelfde haken bij de host: ritkosten van zijn geld, sterren in world.wanted', () => {
+  const w = { money: 80, wanted: 1, wantedDecayTimer: 7 };
+  const boeken = [];
+  assert.equal(WW.betaalBanenUitgave(w, 120, 'Overige uitgaven', (r) => boeken.push(r)), 80, 'hooguit wat hij heeft');
+  assert.equal(w.money, 0); assert.deepEqual(boeken, ['Overige uitgaven']);
+  assert.equal(betaalRitkosten({ money: 300 }, { totaal: 120 }), 120);
+  assert.equal(WW.banenWanted(w), 1);
+  WW.zetBanenWanted(w, 4);
+  assert.equal(w.wanted, 4); assert.equal(w.wantedDecayTimer, 0);
+});
+
 console.log(`sidejobcontext_test: ${n} tests ok`);
 
