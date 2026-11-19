@@ -370,7 +370,7 @@ function keepThumb(n, force) {
     if (!src || !src.width || !src.height) return;
     const c = document.createElement('canvas');
     c.width = 224; c.height = 126;
-    const g = c.getContext('2d');
+    const g = c.getContext('2d', { willReadFrequently: true }); // getImageData hieronder: software-canvas, geen GPU-readback
     // cover-crop to 16:9
     const sw = src.width, sh = src.height, want = 16 / 9;
     let cw = sw, ch = sw / want;

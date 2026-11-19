@@ -269,23 +269,35 @@ export function nameOf(ls, n) {
 // The robust write: the previous good save becomes the recovery copy, the new text is
 // read back and compared, and a failed write puts the old text back. No room for the
 // recovery copy is no reason to lose the save itself. Returns true when the new text stands.
+// Efficiëntie: de tekst die we zelf schreven en terugleasen is bewezen een goede save. Staat die
+// nog op de plek (prev === laatste tekst), dan hoeft isSaveText de vorige save niet opnieuw te
+// parsen bij elke autosave. Een andere tab die iets anders schrijft, geeft een andere tekst.
+const lastWritten = new Map();
+export function lastWrittenText(ls, n) {
+  const s = ls0(ls);
+  const e = s && lastWritten.get(slotKey(n));
+  return e && e.s === s ? e.text : null;
+}
 export function writeSlotRaw(ls, n, text) {
   const s = ls0(ls);
   if (!s) return false;
   const key = slotKey(n);
   let prev = null;
   try { prev = s.getItem(key); } catch (e) { return false; }
-  if (prev != null && prev !== text && isSaveText(prev)) {
+  const known = prev != null && lastWrittenText(ls, n) === prev;
+  if (prev != null && prev !== text && (known || isSaveText(prev))) {
     try { s.setItem(slotRecoveryKey(n), prev); } catch (e) { /* full: the recovery copy of this round is skipped */ }
   }
   const put = () => { s.setItem(key, text); if (s.getItem(key) !== text) { const e = new Error('read-back differs'); e.torn = true; throw e; } };
   try {
     put();
+    lastWritten.set(key, { s, text });
     dropSlotCache(n);
     return true;
   } catch (e) {
     // full: the recovery copy takes as much room as the save, so give it up before giving up the save
-    if (!e.torn) { try { s.removeItem(slotRecoveryKey(n)); put(); return true; } catch (e1) { /* still no room */ } }
+    if (!e.torn) { try { s.removeItem(slotRecoveryKey(n)); put(); lastWritten.set(key, { s, text }); return true; } catch (e1) { /* still no room */ } }
+    lastWritten.delete(key);
     try { if (prev != null) s.setItem(key, prev); } catch (e2) { /* nothing more to do */ }
     dropSlotCache(n);
     return false;
