@@ -94,6 +94,9 @@ if (MENS) {
   for (const k of Object.keys(B.cheat)) B.cheat[k] = () => { B.log('cheat-geweigerd', { welke: k }); return false; };
   B.log('mens', { seed: CFG.seed || 1, reactieMs: [Mens.MENS.reactieMin, Mens.MENS.reactieMax], pogingen: mensP.pogingen, wachtS: CFG.waitS || 45, cheats: 'geweigerd' });
 }
+// de detectoren en chaos-verstoringen (scripts/bot/detect/page.js, window.__botDetectPage; docs/PROEFSPELER.md): alleen met --detect of --mens (en niet met --geen-detect)
+const Dt = CFG.detect && window.__botDetectPage ? window.__botDetectPage.maak({ B, world, player, CFG, imp, keyTap: (k, ms) => keyTap(k, ms), footFree: (x, y) => footFree(x, y), stilS: () => (meter ? B.time() - meter.lastAct : 99) }) : null;
+if (CFG.detect && !Dt) B.log('detect', { soort: 'fout', wat: 'window.__botDetectPage ontbreekt: start via scripts/bot/run.mjs' });
 // de camera als basis (three-ruimte: X = x, Y = hoogte, Z = y) en de dakhoogte van een gebouw (b.h verdiepingen van 3,1 m, scene3d.js)
 function camDesc() {
   try { const c = S3 && S3.getCamera(); if (!c) return null; c.updateMatrixWorld(); return Mens.cameraUitMatrix(c.matrixWorld.elements, c.fov, c.aspect); } catch (e) { return null; }
@@ -115,6 +118,7 @@ function oog(reden, opts = {}) {
   const fm = window.__debug && window.__debug.frameStats ? window.__debug.frameStats.frameMs : null;
   B.log('oog', Mens.bouwOogMoment({ reden, naam: s.story.title || '', s, zicht, frameMs: fm, kaartTekst: kaart, kaartS: kaartDuur.zie(s.t, kaart), spreiding: Mens.bewegingsSpreiding(posTrail), stilS: meter ? Math.max(0, s.t - meter.lastAct) : 0, shot: naam }));
   shot(naam, true);
+  if (Dt) Dt.oogDom(s, naam);
 }
 // per tick: de positiereeks voor de spreiding, de duur van de kaart en een 'stil'-moment als de bot 8 s niets deed
 function mensTick(s) {
@@ -818,6 +822,7 @@ while (true) {
   const s = B.status();
   if (performance.now() - wall0 > MAX_WALL || s.t > MAX_GAME) break;
   if (mem.opgegeven) { result = 'OPGEGEVEN'; reason = mem.opgegeven; break; }
+  if (Dt) { Dt.tick(s); if (await Dt.werk(s)) { follower = null; detector.reset(B.time()); continue; } }
   if (MENS) {
     mensTick(s);
     // een nieuwe situatie (ander doel, gesprek, einde filmpje): een mens kijkt eerst even (reactietijd in speltijd), de stick blijft zoals hij was
@@ -1315,6 +1320,7 @@ if (CFG.sweep && CFG.sweep.length) {
 B.releaseAll();
 if (meter && lastStep) meterEnd(B.status(), lastStep, 'laatste');   // the step the run ends in (the part is over, or time ran out)
 shot(`einde-${result.toLowerCase()}`);
+if (Dt) Dt.eind();
 // where the run stopped, in the last line of the log: the report says it at the top of a run that did not finish (#387)
 let at = null;
 try { at = B.status(); } catch (e) { /* wereld al weg */ }

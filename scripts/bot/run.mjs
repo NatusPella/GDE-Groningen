@@ -18,6 +18,8 @@
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
 //   node scripts/bot/run.mjs --mode=cheatsweep [--only=M03,M04] [--stappen=3] [--events=<events.jsonl>]
 //        (code-only, geen Electron: print het cheatplan per missie en met --events de cheattabel van een run)
+//   --detect / --geen-detect   de detectoren (scripts/bot/detect/, docs/PROEFSPELER.md): standaard aan met --mens. Variatie (scripts/bot/matrix.mjs): --klok=<uur> zet de klok vast,
+//        --weer=regenbui|onweer|mist, --scherm=<B>x<H> (venstergrootte), --invoer=controller (prompts), --chaos=<sterf|voertuig-uit|gebied-uit|save-load|snelreis>:<s>, --flikker=<n> (a/b/c-beelden bij stilstand)
 //   --stage-vehicle=<naam>   kies bij een board-stage dat voertuig (quad, limo, frituur) in plaats van de dichtstbijzijnde
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
@@ -29,6 +31,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { detectPrelude } from './detect/prelude.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -108,7 +111,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), stageVehicle: arg('stage-vehicle', ''), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln'), mens: flag('mens'), seed, pogingen: Number(arg('pogingen', 3)) || 3 };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), stageVehicle: arg('stage-vehicle', ''), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln'), mens: flag('mens'), detect: (flag('mens') || flag('detect')) && !flag('geen-detect'), klok: arg('klok', '') === '' ? null : Number(arg('klok')), weer: arg('weer', ''), invoer: arg('invoer', ''), flikker: Number(arg('flikker', 0)) || 0, chaos: /^[\w-]+(:\d+)?$/.test(arg('chaos', '')) ? { soort: arg('chaos').split(':')[0], na: Number(arg('chaos').split(':')[1]) || 20 } : null, seed, pogingen: Number(arg('pogingen', 3)) || 3 };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 // #312: de pure heli- en zeilbesturing staat in scripts/bot/nav.mjs (buiten game/js) en gaat
 // als window.__botNav mee de pagina in; bot.page.js gebruikt hem voor de toetsen en de timing.
@@ -162,6 +165,8 @@ let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
   const mens = fs.readFileSync(path.join(HERE, 'mens.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
   pre += `window.__botMens = (() => {\n${mens}\nreturn { MENS, rng, mensProfiel, situatieSleutel, pogingenOp, cameraUitMatrix, doelZichtbaarheid, bewegingsSpreiding, TekstDuur, OogRem, bouwOogMoment };\n})();\n`;
 }
+// de detectoren (detect/*.mjs: dom, console, frametijd) en hun page-kant (detect/page.js) als window.__botDetect en window.__botDetectPage
+if (cfg.detect) pre += detectPrelude();
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;
@@ -179,7 +184,7 @@ const t0 = Date.now();
 let r;
 for (let poging = 1; poging <= 2; poging++) {
   const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
-  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
+  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${/^\d{3,4}x\d{3,4}$/.test(arg('scherm', '')) ? arg('scherm') : '1280x720'}`, '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
   { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
   fs.closeSync(logFd);
