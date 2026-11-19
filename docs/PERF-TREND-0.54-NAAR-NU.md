@@ -92,3 +92,28 @@ Prijs: de film krijgt zijn programma's niet meer voor het laadscherm, dus de sho
 | Film hapert 2-4 s per shotwissel | warm, tour, `setHold*`, cine-batches, voertuigfasering | ~420 nieuwe programma's tijdens de film, 135 `physical/STANDARD`-sleutels: elke variant linkt synchroon bij eerste draw | varianten tellen en samenvoegen (gedeelde materialen of een vaste set lichtvarianten); daarna de cine-pleisters schrappen |
 | Hoge heap in/na de film | `setHoldMaterials/Grass` | de film bouwt per plek eigen meshes en materialen | opruimen per shot; heap valt nu pas na de film terug (2,0 -> 0,9 GB) |
 | Bijna alle `updateGameplay`-groei | | +18 aanroepen sinds 0.62 | per systeem meten, niet gedaan |
+
+## D. Oorzaak aangepakt: het aantal shaderprogramma's (19-11-2026, tweede ronde)
+
+Gemeten met `scripts/perf/programs.page.js` (snapshots van `renderer.info.programs` met sleutelontleding) en `scripts/perf/programs.mjs` (ontleedt de sleutel van three r160 in velden en rekent uit hoeveel programma's verdwijnen als een veld constant was). Spelerspad (`?warm`, geen `--stil`), stage van de basiscommit `e631ae561` en daarna, elk 2 runs behalve de laatste stap (1 run + 1 run met veel machineruis). Bron: `.scr/out/*.json`, niet in git.
+
+**Wat de 509 programma's waren (basis, 70 s):** 6 lichttoestanden: rig uit `0/0/1` (138), rig aan `10/3/1` (139), **`0/0/2` met 2 zonnen en 2 hemilampen (108)**, keukenset `2/0/1` (88) en `12/3/1` (24), 12 overig. De sleutel van three telt `numPointLights`, `numDirLights` en `numHemiLights`; elk materiaal heeft per toestand een eigen programma. De `customProgramCacheKey`-sleutels van de game zelf (15 plekken, `programs.mjs --static`) zijn in orde: alleen letterlijke teksten en vaste achtervoegsels (`|pool`, `|cut`, `|portal`, `|bakedcolor`, `|pedfade`), geen waarde per instantie of per frame. `MeshPhysicalMaterial` komt nergens voor: `physical` in de lijst is three's shader-ID van `MeshStandardMaterial` (define `STANDARD`).
+
+| Oorzaak | Bewijs | Fix | Programma's |
+|---|---|---|---|
+| `precompilePrograms()` compileerde de hele scène tegen een lichtscène die alle lichten nog eens bevat: three telt de lichten van doel en object samen, dus 2 zon + 2 hemi. Geen enkele echte draw gebruikt die programma's | 108 programma's in toestand `0/0/2/2` vanaf t=0, onveranderd tot het einde | `compiletarget.js`: de scène is zelf het doel (`2ace773b5`, `146487938`, test `compiletarget_test.mjs`) | -108 |
+| Setlichten (keuken, loket, kantoor, serverkamer, Oma's keuken, kamers) zijn echte `PointLight`s die met de groep verschijnen en verdwijnen (`kit.group.visible` per montageshot) | 2/0/1-programma's groeien in de film van 48 naar 88 en worden bij de eerste keukenshot gelinkt | `setlights.js`: de set houdt zijn lichten maar ze worden niet getekend; kleur, bereik, verval, plek en sterkte worden elk frame gekopieerd naar de laatste puntlichten van de nachtrig (`4c4d9014a`, test `setlights_test.mjs`) | -80 tot -112 |
+
+**Resultaat (programma's):** start 266/260 -> 168/175/159, na 70 s 509/503 -> 385/424 (alleen eerste fix) -> 309/310 (beide fixes). Heap na 70 s ongeveer 1,2-1,3 GB -> 1,1 GB. Wat overblijft is echte combinatoriek (rig uit/aan x instancing, vertexkleur, flatShading, dubbelzijdig, textuur): 145 + 143 programma's in de twee rigtoestanden. Het rig-aan-stel groeit in de eerste 15 s van de film van 40 naar 132 (de film speelt bij dageraad), met 10 punt- en 3 spotlichten in de lus: dat linkt traag en is nu de rest van de haperingen.
+
+**Gemeten (spelerspad, ms sinds spelstart):**
+
+| Stap | `gameStart` | >100 ms eerste 25 s | >100 ms 25-70 s | slechtste frame |
+|---|---|---|---|---|
+| basis (2 runs) | 23,3 / 19,3 s | 32 / 40 | 8 / 15 | 4,5 / 6,1 s |
+| fix 1 (2 runs) | 17,8 / 17,1 s | 33 / 42 | 11 / 9 | 5,2 / 3,7 s |
+| fix 1 + 2 (2 runs) | 18,7 / 18,8 s | 23 / 60 | 4 / 6 | 1,8 / 2,4 s (en 2,5 s bij 26 s) |
+
+Lezing: programma's zijn deterministisch gemeten (3 vergelijkbare runs per stap); de laadtijd daalt met 1 tot 5 s (machineruis +-2 s, dus alleen de richting is zeker); de haperingen in 25-70 s gaan omlaag, die in de eerste 25 s niet aantoonbaar (de machine deelde CPU met andere agents; 60 haperingen in 175 frames in de laatste run wijst op ruis). **Niet gemeten:** rijden/streamen na de film (geen rit in het meetscript), de frametijd-norm, GPU-kosten van de geleende lampen (in een set staat de rig nu aan, dus de lichtlus heeft 10 puntlichten i.p.v. 2), en alle beeldvergelijking: de set ziet er in code gelijk uit (kleur, bereik, verval, plek, sterkte worden gekopieerd) maar is niet in beeld gezien.
+
+Open: (d) `renderer.compileAsync` is niet toegevoegd: `KHR_parallel_shader_compile` is aanwezig (`parallel: true` in elke snapshot) en `hookLinkGuard` gebruikt hem al voor alle draws; wat blijft is het rig-aan-stel dat het eerste draw-moment synchroon opvraagt.

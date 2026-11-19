@@ -100,3 +100,15 @@ Oorzaak-codes (hieronder uitgelegd in "Oorzaken"): S = shader-first-use/te veel 
 4. **Oorzaak H en D:** `addTile` en `registerShots` gebudgetteerd, `updateGameplay`-systemen meten per sectie.
 5. **Dan schrappen:** A1 (start-warm tot hooguit tegels), A2 en B2/B3/B9/B10 (film-pleisters) met hun test, A3 (hold), A5 (telefoon-skip); houd B8, B11, C1-C6. Elke schrapstap met een gepaarde A/B en een zero-regressie op `over100`.
 6. **Niet doen:** meer vaste budgetten bijplaatsen; een nieuw pleister krijgt pas een commit als de gemeten oorzaak erbij staat.
+
+## Update 19-11 (tweede ronde): meting van de oorzaak S
+
+Oorzaak S is nu gemeten (zie [PERF-TREND-0.54-NAAR-NU.md](PERF-TREND-0.54-NAAR-NU.md), deel D): 509 programma's na de film, waarvan 108 door een dubbel geteld licht in `precompilePrograms` (B1: gefixt) en 80 tot 112 door setlichten die het lichtaantal wijzigen (gefixt met `setlights.js`); nu ~310. Daarmee geldt voor de pleisters:
+
+| # | Stand | Besluit |
+|---|---|---|
+| B1 `precompilePrograms` | compileerde tot nu toe in een lichttoestand die niemand tekent: het deed niets behalve 108 programma's en heap erbij. Nu compileert hij de echte toestand | houden en opnieuw meten (A/B niet gedaan) |
+| A1-A3, B2, B3, B9, B10 | de film bouwt na de fixes nog ~130 rig-aan-programma's in de eerste 15 s | **niet geschrapt**: zonder pleister haperen de eerste 25 s nog 23-60 frames > 100 ms; elke schrapstap vraagt een gepaarde meting met meer runs dan er nu zijn |
+| `?warmfilm`, `setHold*`, `drainCineBatches`, vaste wachttijden | niet opnieuw gemeten | blijven staan |
+
+Volgende stap (oorzaak): het rig-aan-stel (10 punt- en 3 spotlichten in de shaderlus) linkt traag en wordt in de film bij dageraad gebruikt; alleen met minder lichten in de lus of met alle rig-aan-programma's klaar vóór de film is dat weg.
