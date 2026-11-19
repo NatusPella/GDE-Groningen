@@ -1020,6 +1020,35 @@ function syncChunks(px, py, dist) {
   }
 }
 
+// The cells around the camera that may hold tufts, nearest first: { i, j, d, full } with d the distance from the camera to the
+// cell centre and full = inside the grass radius (outside it only the shrubs and hedges grow). Pure: syncTufts caches the list.
+export function tuftWantCells(cx, cy, outer, inner, cell = CELL) {
+  const ci = Math.floor(cx / cell), cj = Math.floor(cy / cell);
+  const span = Math.ceil(outer / cell);
+  const want = [];
+  for (let j = cj - span; j <= cj + span; j++) {
+    for (let i = ci - span; i <= ci + span; i++) {
+      const d = Math.hypot((i + 0.5) * cell - cx, (j + 0.5) * cell - cy);
+      if (d > outer) continue;
+      want.push({ i, j, d, full: d < inner, cell: null });
+    }
+  }
+  want.sort((a, b) => a.d - b.d);
+  return want;
+}
+// The list of a moment ago still serves when the camera stayed in its cell and moved less than WANT_REUSE_M with the same radii.
+const WANT_REUSE_M = 0.25;
+export function canReuseWant(prev, cellKey, cx, cy, outer, inner) {
+  return !!prev && prev.key === cellKey && prev.outer === outer && prev.inner === inner
+    && Math.abs(prev.cx - cx) < WANT_REUSE_M && Math.abs(prev.cy - cy) < WANT_REUSE_M;
+}
+// perf counters (window.__grassWant in a run): how often the list was built and how often it was reused
+export const wantStats = { built: 0, reused: 0 };
+// cell key as a number: no string per cell per frame (and no split to read it back)
+const KEY_OFF = 1 << 20, KEY_MUL = 1 << 21;
+const cellNum = (i, j) => (i + KEY_OFF) * KEY_MUL + (j + KEY_OFF);
+let wantCache = null;
+
 function syncTufts(cam, dt) {
   const Q = quality;
   if (!Q) {
@@ -1028,23 +1057,22 @@ function syncTufts(cam, dt) {
   }
   const cx = cam.position.x, cy = cam.position.z;
   const ci = Math.floor(cx / CELL), cj = Math.floor(cy / CELL);
-  const key = ci + ',' + cj;
-  if (key !== lastCellKey) { lastCellKey = key; dirty = true; }
+  const key = cellNum(ci, cj);
+  const cellChanged = key !== lastCellKey;
+  if (cellChanged) { lastCellKey = key; dirty = true; }
   const outer = Q.shrubRadius + CELL, inner = Q.radius + CELL * 0.75;
-  const span = Math.ceil(outer / CELL);
-  const want = [];
   let pending = false;
   const t0 = performance.now();
-  for (let j = cj - span; j <= cj + span; j++) {
-    for (let i = ci - span; i <= ci + span; i++) {
-      const d = Math.hypot((i + 0.5) * CELL - cx, (j + 0.5) * CELL - cy);
-      if (d > outer) continue;
-      want.push({ i, j, d, full: d < inner });
-    }
+  let want;
+  if (canReuseWant(wantCache, key, cx, cy, outer, inner)) { want = wantCache.list; wantStats.reused++; }
+  else {
+    want = tuftWantCells(cx, cy, outer, inner);
+    wantCache = { key, cx, cy, outer, inner, list: want };
+    wantStats.built++;
   }
-  want.sort((a, b) => a.d - b.d);
   for (const w of want) {
-    const k = w.i + ',' + w.j;
+    w.cell = null;
+    const k = cellNum(w.i, w.j);
     const c = cells.get(k);
     if (c && (c.full || !w.full)) { w.cell = c; continue; }
     if (performance.now() - t0 > 2.5 && w.d > 12) { pending = true; continue; }
@@ -1052,9 +1080,12 @@ function syncTufts(cam, dt) {
     cells.set(k, w.cell);
     dirty = true;
   }
-  for (const [k, c] of cells) {
-    const [i, j] = k.split(',').map(Number);
-    if (Math.hypot((i + 0.5) * CELL - cx, (j + 0.5) * CELL - cy) > outer + CELL * 3) cells.delete(k);
+  // far cells go only when the camera changed cell (the limit lies 3 cells beyond the ones in use)
+  if (cellChanged) {
+    for (const k of cells.keys()) {
+      const i = Math.floor(k / KEY_MUL) - KEY_OFF, j = k % KEY_MUL - KEY_OFF;
+      if (Math.hypot((i + 0.5) * CELL - cx, (j + 0.5) * CELL - cy) > outer + CELL * 3) cells.delete(k);
+    }
   }
   rebuildTimer -= dt;
   if (!dirty || (pending && rebuildTimer > 0)) return;
@@ -1118,7 +1149,7 @@ export function updateGrass(dt, world, cam, drawDist) {
 // gras-cellen eronder worden weggegooid en komen zonder gras terug.
 export function wisGrasCellen(x0, y0, x1, y1) {
   for (const k of [...cells.keys()]) {
-    const [i, j] = k.split(',').map(Number);
+    const i = Math.floor(k / KEY_MUL) - KEY_OFF, j = k % KEY_MUL - KEY_OFF;
     if ((i + 1) * CELL > x0 && i * CELL < x1 && (j + 1) * CELL > y0 && j * CELL < y1) cells.delete(k);
   }
   dirty = true;
