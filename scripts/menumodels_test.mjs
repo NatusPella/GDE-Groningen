@@ -2,7 +2,7 @@
 //   node scripts/menumodels_test.mjs
 import {
   garageCategory, garageGroup, garageShown, garageSections, garageTabCounts, cycleOption, keepSelection, stepSelection,
-  GARAGE_FILTERS, GARAGE_SORTS, achPct, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, versionLabel,
+  GARAGE_FILTERS, GARAGE_SORTS, achPct, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, versionLabel, achStilNoot,
 } from '../game/js/menumodels.js';
 
 let n = 0, fails = 0;
@@ -73,5 +73,7 @@ ok(achWhen(Date.UTC(2026, 5, 9, 23, 30), Date.UTC(2026, 5, 10, 0, 30), -120, () 
 
 ok(versionLabel('0.35.0') === 'GDE Groningen v0.35.0' && versionLabel('v1.2.3') === 'GDE Groningen v1.2.3', 'version label');
 ok(versionLabel('dev') === 'GDE Groningen · ontwikkelversie' && versionLabel('') === versionLabel('dev'), 'version label of a dev build');
+// #985: het Prestaties-paneel zegt dat het stilstaat bij een cheat
+ok(achStilNoot(false) === '' && /staan stil/.test(achStilNoot(true)) && /Streken/.test(achStilNoot(true)), 'stilstaan-noot alleen als de prestaties stilstaan');
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

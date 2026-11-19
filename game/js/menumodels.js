@@ -76,6 +76,11 @@ export const achDone = (all) => all.filter((a) => a.unlocked).sort((a, b) => (b.
 // inside a category: done ones first, then by progress
 export const achCategoryOrder = (items) => [...items].sort((a, b) => Number(b.unlocked) - Number(a.unlocked) || achPct(b) - achPct(a));
 export const achCategoryPct = (c) => (c.items.length ? Math.round((c.done / c.items.length) * 100) : 0);
+// #985: prestaties staan stil zolang een cheat aan staat die niet veilig is (cheats.js). Het paneel zei daar
+// niets over, dus een speler zag zijn voortgang vastlopen zonder reden. Leeg als alles meetelt.
+export const achStilNoot = (stil) => (stil
+  ? 'Prestaties staan stil: er staat een cheat aan die het spel makkelijker maakt. Zet hem uit bij Streken en je telt weer mee.'
+  : '');
 // "vandaag", "gisteren", "3 dagen geleden"; `fmtDate(at)` gives the date from a week on
 export function achWhen(at, now, tzOffsetMin, fmtDate) {
   const day = (t) => Math.floor((t - tzOffsetMin * 60000) / 86400000);

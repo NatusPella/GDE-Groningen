@@ -6,13 +6,13 @@
 import { dualHtml } from './subtitles.js';
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
-  MISSION_GOALS, isRetiredMission, MEDALS, EIERBAL_TOTAL, WIJKEN_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
+  achievementsGated, MISSION_GOALS, isRetiredMission, MEDALS, EIERBAL_TOTAL, WIJKEN_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
-import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
+import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
 
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
@@ -276,6 +276,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
     `<span class="m-grow"></span><span class="pa-total">${bar('total', sum.total ? (sum.done / sum.total) * 100 : 0)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
+    (achStilNoot(achievementsGated()) ? `<p class="m-note pa-stil" role="status">${achStilNoot(true)}</p>` : '') +
     heroHtml(sum, near, all.filter((a) => a.hidden).length) +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel, nextOverall)}</aside></div>`;
   zetCss();
