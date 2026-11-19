@@ -76,6 +76,21 @@ export function approachPoint(v, from, side = 0) {
   return { x: v.x + c * deur - s * kant * af, y: v.y + s * deur + c * kant * af, side: kant, door: deur };
 }
 
+// #955: een auto, bus, trein of trekker laat je alleen bij een deur instappen (vehicledoors.js, #459): de bestuurders- of
+// bijrijdersdeur ligt op een vaste plek langs de zijkant (de trekker: 0,17 van de lengte achter het midden) en E werkt binnen
+// DEUR_BEREIK van dat punt, niet overal binnen ENTER_REACH van de romp. De bot stond bij M09 aan de neus van de trekker,
+// 'bij' het voertuig volgens het spel, en drukte 258 keer E zonder dat de deur ooit open ging. DR = de module vehicledoors.js
+// (de pagina geeft hem mee, deze module blijft zonder imports); geeft null voor een voertuig zonder deur (quad, boot, fiets).
+// { ok, to, side }: ok = de bot staat nu bij een deur, to = het instappunt aan zijn kant (of aan de gevraagde kant).
+export function deurPunt(v, from, DR, side = 0) {
+  if (!v || !DR || !DR.heeftInstapdeur || !DR.heeftInstapdeur(v)) return null;
+  const kant = side || DR.instapKant(v, from.x, from.y);
+  const d = DR.deurVoorStoel(v, { role: kant < 0 ? 'bestuurder' : 'bijrijder', z: kant });
+  if (!d) return null;
+  const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
+  return { ok: !!DR.bijInstapdeur(v, from.x, from.y), to: { x: v.x + c * d.x - s * d.z, y: v.y + s * d.x + c * d.z }, side: kant };
+}
+
 // Welk voertuig van een board-stage: het eigen voertuig van de missie (missionCar) wint, dan een
 // vrije wagen bij de marker, dan de dichtstbijzijnde. Een auto met bestuurder is autodiefstal (de
 // politie zit meteen achter de bot aan), een fiets of scooter is zelden wat de stage wil, een boot
@@ -168,17 +183,20 @@ export function boardStep(s, mem, now = Number.isFinite(s.t) ? s.t : 0) {
   // het spel let E toe binnen ENTER_REACH van de romp (een boot vanaf de kade, een fiets dichterbij)
   const reach = (v.kind === 'boot' ? BOARD.reach + 1.2 : v.kind === 'fiets' || v.kind === 'scooter' ? BOARD.reach * 0.7 : BOARD.reach) - 0.2;
   const body = bodyDistance(v, p);
-  if (body <= reach) { mem.body = body; mem.stallAt = null; return { type: 'enter', vehicle: v, body }; }
+  // #955: een voertuig met deuren: pas bij de deur E drukken (s.deur(kant) = deurPunt van de pagina)
+  const deur = typeof s.deur === 'function' ? s.deur(mem.side || 0) : null;
+  if (body <= reach && (!deur || deur.ok)) { mem.body = body; mem.stallAt = null; return { type: 'enter', vehicle: v, body }; }
   // de deur komt niet dichterbij (een hek, een muur, een dranghek): de andere kant van de wagen
   if (mem.body == null || body < mem.body - 0.5) { mem.body = body; mem.stallAt = null; }
   else if (mem.stallAt == null) mem.stallAt = now;
   else if (now - mem.stallAt > BOARD.stallS) {
-    mem.side = -(mem.side || approachPoint(v, p).side);
+    mem.side = -(mem.side || (deur ? deur.side : approachPoint(v, p).side));
     mem.stallAt = null;
     mem.body = body;
-    return { type: 'walk', to: approachPoint(v, p, mem.side), flipped: true };
+    const ander = typeof s.deur === 'function' ? s.deur(mem.side) : null;
+    return { type: 'walk', to: ander ? ander.to : approachPoint(v, p, mem.side), flipped: true };
   }
-  const to = approachPoint(v, p, mem.side);
+  const to = deur ? deur.to : approachPoint(v, p, mem.side);
   return { type: 'walk', to, body };
 }
 

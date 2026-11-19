@@ -17,6 +17,7 @@ const L = await imp('botlogic');
 const R = await imp('routing');
 const M = await imp('missions');
 const V = await imp('vehicle');
+const DR = await imp('vehicledoors');
 const Br = await imp('breakables');
 const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
@@ -682,7 +683,7 @@ async function boardStage(s, stepKey) {
   // game's own vehicle, or the door and the reach of vehicle.js would be measured on a make-believe box
   const vObj = v ? world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6) : null;
   const body = vObj ? { ...v, angle: vObj.angle, halfLen: vObj.halfLen, halfWid: vObj.halfWid } : v;
-  const step = Bd.boardStep({ player: { x: s.player.x, y: s.player.y, speed: s.player.vehicle ? s.player.vehicle.speed : 0, vehicle: s.player.vehicle ? { kind: s.player.vehicle.kind, mission: !!s.player.vehicle.mission } : null }, vehicle: body, target: s.target, wrongVehicle: inWrong }, mem.board, s.t);
+  const step = Bd.boardStep({ player: { x: s.player.x, y: s.player.y, speed: s.player.vehicle ? s.player.vehicle.speed : 0, vehicle: s.player.vehicle ? { kind: s.player.vehicle.kind, mission: !!s.player.vehicle.mission } : null }, vehicle: body, target: s.target, wrongVehicle: inWrong, deur: vObj ? (kant) => Bd.deurPunt(vObj, { x: s.player.x, y: s.player.y }, DR, kant) : null }, mem.board, s.t);
   if (step.type === 'giveup') {
     // no progress: the reason and the spot go into the report as a 'timeout', then the rescue ladder takes over
     B.log('timeout', { step: stepKey, what: 'board: ' + step.why, forS: Math.round(step.forS || 0), x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, doel: s.target && { x: Math.round(s.target.x), y: Math.round(s.target.y) }, voertuig: v ? { kind: v.kind, x: Math.round(v.x), y: Math.round(v.y), afstand: Math.round(v.distance), missie: !!v.mission, vrij: !!v.free } : { nu: s.player.vehicle && s.player.vehicle.kind }, drukken: step.presses || 0, deur: step.to ? [Math.round(step.to.x), Math.round(step.to.y)] : null });
@@ -706,9 +707,11 @@ async function boardStage(s, stepKey) {
     if (await footUnstick(s, aimAt)) return true;
     if (mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); return true; }
   }
-  const d = steerTowards(s, 'walk', aimAt, false, 24, big || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
+  // naar het instappunt van een deur (#955) loopt hij tot 0,5 m: DEUR_BEREIK is 1,4 m, de 2,2 m van het midden is te ver
+  const d = steerTowards(s, 'walk', aimAt, false, 24, big || (mem.nearMiss || 0) >= 2 || (step.to && vObj && DR.heeftInstapdeur(vObj)) ? 0.4 : 2.2);
   // the game's own test: this is what lights the prompt and lets E in (and never another vehicle)
-  const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
+  // en bij een auto, bus of trein alleen bij een deur (#955): anders weigert het spel met 'Loop naar een deur'
+  const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj && DR.bijInstapdeur(vObj, player.x, player.y) : d < 3.5;
   if (near || (!vObj && d < 3.5)) {
     B.stick(0, 0);
     Bd.pressed(mem.board, s.t);
@@ -1115,9 +1118,11 @@ while (true) {
       if (await footUnstick(s, v)) continue;
       if (mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
     }
-    const d = steerTowards(s, 'walk', v, false, 24, big || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
+    // een auto, bus of trein of trekker laat je alleen bij een deur in (#955): loop naar het instappunt
+    const dp = vObj && Bd ? Bd.deurPunt(vObj, { x: player.x, y: player.y }, DR) : null;
+    const d = steerTowards(s, 'walk', dp ? { ...v, ...dp.to } : v, false, 24, big || dp || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
     // the game's own test: this is what lights the prompt and lets E in
-    const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
+    const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj && (!dp || DR.bijInstapdeur(vObj, player.x, player.y)) : d < 3.5;
     // only the game's own test lets E in: from further off keep walking (stopping to press E there was a deadlock)
     if (near || (!vObj && d < 3.5)) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] }); follower = null; }
     else if (d < 3.5) mem.nearMiss = (mem.nearMiss || 0) + 1;
