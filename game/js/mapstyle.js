@@ -200,6 +200,11 @@ let phase = 'dag';
 // is drawn through this canvas filter instead (roughly the palette's land factor).
 const NIGHT_BASE_FILTER = 'brightness(0.6) saturate(0.9)';
 export function baseFilter() { return phase === 'nacht' ? NIGHT_BASE_FILTER : 'none'; }
+// Safari/WebKit kent ctx.filter niet overal: de toewijzing doet dan niets en de provinciekaart bleef 's nachts
+// op dagfelheid. Dan dempt een donkere laag (ongeveer brightness 0.6) de basis in plaats van het filter.
+export const NIGHT_BASE_OVERLAY = 'rgba(0, 0, 0, 0.4)';
+export function canvasFilterSupported(ctx) { return !!ctx && typeof ctx.filter === 'string'; }
+export function baseDimOverlay(ctx) { return phase === 'nacht' && !canvasFilterSupported(ctx) ? NIGHT_BASE_OVERLAY : null; }
 
 const DAY = { map: { ...MAP_PALETTE }, mini: { ...MINI_PALETTE } };
 export function currentMapPhase() { return phase; }
