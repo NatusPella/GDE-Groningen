@@ -94,7 +94,15 @@ ok(/export function introShotPoints\(w\)/.test(read('game/js/intromontage.js')),
 ok(/introShotPoints\(world\)/.test(warmBody) && /registerShots\(spots/.test(warmBody) && /prewarmStreamAt\(p\.x, p\.y, 180, 170\)/.test(warmBody), 'de warm-stap laadt en prewarmt de montageplekken');
 ok(/INTRO_WARM_MS/.test(main) && /!world\.loadedFromSave/.test(warmBody), 'de montage wordt alleen bij een nieuw spel voorgereden en heeft een eigen grens');
 ok(/releaseShots\(\)/.test(read('game/js/intromontage.js')), 'de montage geeft de gepinde tegels weer vrij');
-ok(/const WARM_START = !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over');
+ok(/const WARM_START = FLAGS\.warm \|\| !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over, tenzij ?warm (meting)');
+// Prestatiebesluit (trend 0.54 -> nu): het laadscherm houdt het voorwarmen kort; de som van de budgetten mag niet terug naar tientallen seconden.
+const num = (k) => +((new RegExp('const ' + k + ' = ([0-9]+);').exec(main) || [0, 0])[1]);
+ok(num('START_WARM_MS') > 0 && num('START_WARM_MS') <= 12000, 'het startgebied voorwarmt hooguit 12 s', num('START_WARM_MS'));
+ok(num('WARM_BOOT_MS') > 0 && num('WARM_BOOT_MS') <= 15000, 'het hele voorwarmen heeft een harde bovengrens van hooguit 15 s', num('WARM_BOOT_MS'));
+ok(num('INTRO_WARM_MS') > 0 && num('INTRO_WARM_MS') <= 10000 && num('INTRO_TOUR_MS') <= num('INTRO_WARM_MS'), 'de montage-warm is kort en de tour past erin', num('INTRO_WARM_MS') + '/' + num('INTRO_TOUR_MS'));
+ok(/Math\.min\(performance\.now\(\) \+ INTRO_WARM_MS, Math\.max\(t0 \+ WARM_BOOT_MS/.test(main), 'de montage-deadline volgt de totale bovengrens');
+ok(/performance\.now\(\) \+ INTRO_TOUR_SPOT_MS/.test(main), 'elke montageplek krijgt een korte eigen grens');
+
 ok(/const START_WARM_R = \d+;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
 ok((/const START_WARM_R = (\d+);/.exec(main) || [0, 0])[1] <= 360, 'de startring blijft binnen een redelijke grens (<= 360 m)');
 ok(/window\.__loadMarks\.startWarm/.test(main) && /window\.__loadMarks\.shaders/.test(main) && /warmWorstFrame/.test(main), 'de perf-meting ziet het voorladen, het compileren en het slechtste frame');

@@ -270,19 +270,24 @@ initLoading();
 // keys, so the first seconds in the world build and link nothing on the main
 // thread. A longer boot is the price the owner chose for a smooth start. A test
 // or QA run skips it: those start from a script and their timing must stay put.
-const WARM_START = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
+const WARM_START = FLAGS.warm || !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
 // the start area's prewarm radius (the cutscene prewarm uses 110 m), the longest
 // the boot screen may spend on it before it goes on anyway, and the frame time
 // and calm run that count as "warm": a worker result or shader link that lands
 // after the boot screen would be exactly the hitch we are trying to remove
 const START_WARM_R = 320;
-const START_WARM_MS = 25000;
+const START_WARM_MS = 10000;
 const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
-  // De eigenaar koos een langer laadscherm boven een haperende eerste minuut: de
-  // montageplekken mogen samen ruim een minuut kosten om klaar te zetten.
-  const INTRO_WARM_MS = 70000;
-  const INTRO_TOUR_MS = 35000;
+// Prestatiebesluit (#553, trend 0.54 -> nu, docs/PERF-TREND-0.54-NAAR-NU.md): het laadscherm
+// was door de vaste opwarmbudgetten (25 s + 70 s) tientallen seconden langer dan in 0.54.0.
+// Samen mag het voorwarmen (startbuurt, montage, palette) nu hooguit WARM_BOOT_MS duren; de
+// montage krijgt wat overblijft, met een eigen bovengrens. Wat niet past, bouwt de film zelf
+// gespreid (tegels vastgehouden, gebouwen en gras per frame begroot) en kost geen laadscherm.
+const WARM_BOOT_MS = 15000;
+const INTRO_WARM_MS = 8000;
+const INTRO_TOUR_MS = 4500;
+const INTRO_TOUR_SPOT_MS = 700;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -398,7 +403,7 @@ function waitForStart(world, ready) {
           for (const p of spots) prewarmStreamAt(p.x, p.y, 180, 170);
           // Eén deadline voor het hele intro-voorrijden: op een trage machine
           // mag dit blok niet oplopen tot minuten; de tour krijgt wat overblijft.
-          const introDeadline = performance.now() + INTRO_WARM_MS;
+          const introDeadline = Math.min(performance.now() + INTRO_WARM_MS, Math.max(t0 + WARM_BOOT_MS, performance.now() + 2500));
           // Reserve tijd voor de tour: anders gebruikt de prewarm-lus op een
           // trage machine het hele budget en slaat de tour (en dus het
           // voorbereiden van de film) over.
@@ -427,7 +432,7 @@ function waitForStart(world, ready) {
           if (performance.now() >= tourEnd) break;
           setCameraOverride(world, { position: { x: p.x + 14, y: p.y + 14, z: 24 }, lookAt: { x: p.x, y: p.y, z: 2 }, fov: 62, cut: true });
             // Kort per plek: alle tien de plekken moeten aan bod komen (museum en ring staan achteraan; die cuts gaven anders nog 700 ms shaderpieken).
-            const stop = Math.min(tourEnd, performance.now() + 2200);
+            const stop = Math.min(tourEnd, performance.now() + INTRO_TOUR_SPOT_MS);
           let n = 0;
           while (performance.now() < stop && n < 70) {
           try { tick(1 / 60); render(1 / 60); } catch (e) { break; }
