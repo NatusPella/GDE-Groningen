@@ -1,6 +1,6 @@
 import { probe } from './hitchprobe.js';
 import { wantedPhase } from './wantedstate.js';
-import { levelOf } from './wantedlevels.js';
+import { levelOf, zoekBalkVulling } from './wantedlevels.js';
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
@@ -1182,7 +1182,7 @@ function updateWanted(world) {
   if (searching && world.wanted > 0 && pol.searchCenter) {
     const h = hoofdspeler(world);
     const d = Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y);
-    const k = Math.max(0, Math.min(1, d / Math.max(1, pol.searchRadius) * 0.5 + (world.wantedDecayTimer || 0) / 24));
+    const k = zoekBalkVulling(d, pol.searchRadius, world.wantedDecayTimer, levelOf(Math.max(1, world.wanted | 0)).cooldown);
     const w = Math.round(k * 50) * 2 + '%';
     if (els.searchBar.style.width !== w) els.searchBar.style.width = w;
   }

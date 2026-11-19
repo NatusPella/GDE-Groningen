@@ -93,6 +93,15 @@ export function bystanderReaction({ dist, unitSpeed, onRoad, seated = false, rol
 // simulation (scripts/pursuit_sim_test.mjs) steps the real rules.
 export const SEARCH_MIN_RADIUS = 25;
 
+// QoL (#985): de vulling van de zoekbalk in de HUD, 0..1. De helft is hoe ver je buiten de cirkel zit (de
+// cirkel krimpt, dus de actuele straal telt), de andere helft hoe ver de teller naar de volgende ster is
+// (de afkoeltijd van dit niveau: 10 tot 20 s, niet vast 24 zoals eerst).
+export function zoekBalkVulling(afstand, straal, timer, cooldown) {
+  const buiten = Math.max(0, Math.min(1, (Number(afstand) || 0) / Math.max(1, Number(straal) || 0)));
+  const tijd = Math.max(0, Math.min(1, (Number(timer) || 0) / Math.max(1, Number(cooldown) || 0)));
+  return (buiten + tijd) * 0.5;
+}
+
 // A unit sees the player (or the escalation still holds): the chase is on.
 export function markSeen(pol, w, px, py) {
   pol.lastSeen = { x: px, y: py };
