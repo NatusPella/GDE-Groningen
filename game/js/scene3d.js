@@ -94,6 +94,7 @@ import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, heavyRoadAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
+import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
@@ -894,13 +895,13 @@ export function init3D(map) {
   scene.userData.sky = { uniforms: skyUniforms };
   scene.userData.lightBase = lightBase;
 
-  // near=0.5 (not something tiny like 0.15) keeps depth-buffer precision
+  // near=0.5 on the ground (not something tiny like 0.15) keeps depth-buffer precision
   // usable out at DRAW_DIST - too-small a near plane collapses the ground
   // vs. road/water/green y-offsets into the same depth bucket at range,
   // which read as "roads just don't render" (ground always won the z-test)
   // fov is de VERTICALE kijkhoek (three.js): op een breed scherm blijft die
   // gelijk, de horizontale volgt uit de verhouding (#463)
-  cam = new THREE.PerspectiveCamera(cameraVerticalFov(getSettings().fov), cameraAspect(innerWidth, innerHeight), 0.5, DRAW_DIST * 1.4);
+  cam = new THREE.PerspectiveCamera(cameraVerticalFov(getSettings().fov), cameraAspect(innerWidth, innerHeight), NEAR_MIN, DRAW_DIST * 1.4);
   setFxCamera(cam);
   // de route-ribbon (scene3d/routeribbon3d.js) krijgt scene en camera via een
   // setter: een import terug zou een modulecyclus geven (#502)
@@ -1112,7 +1113,7 @@ function applyViewSettings(st, key) {
 function applyViewDistance(st) {
   viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
   DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
-  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
+  cam.far = parseFarFlag(FLAGS.far) ?? Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1); // ?far=<m>: testvlag (#917)
   lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
   lightBase.fogFar = viewDist * 1.02;
 }
@@ -3457,6 +3458,7 @@ export function update3D(dt, world) {
     lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
   }
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
+  updateCameraNear(dt, world, camVeh, firstPersonView);
 
   probe.mark('3d:camera');
   updateSunAndSky(focus, dt, world);
@@ -4189,6 +4191,31 @@ function guardCinematicCamera(dt, world) {
     }
   }
   if (cam.position.y < 0.4) cam.position.y = 0.4;
+}
+
+// (#917) near groeit mee met de vrije ruimte onder de camera (cameranear.js): in de lucht minder dieptezwermen op afstand,
+// op de grond, in de eerste persoon, in een auto of in een cutscene blijft hij 0,5 m. ?near=<m> zet hem vast (test).
+let camNear = NEAR_MIN;
+let camClearance = 0;
+let camClearanceAt = 0;
+function updateCameraNear(dt, world, camVeh, firstPersonView) {
+  const forced = parseNearFlag(FLAGS.near);
+  let clearance = camClearance;
+  if (forced == null && cam.position.y > 10 && world.map && world.map.groundHeightAt) {
+    // de grond onder de camera (een brug of het reliëf telt mee) en wat de speler zelf draagt; elke 6e beeld
+    if (++camClearanceAt % 6 === 1) {
+      const pl = hoofdspeler(world);
+      const support = camVeh || !pl ? 0 : (pl.gz || 0) + Math.max(0, pl.z || 0);
+      camClearance = cam.position.y - Math.max(world.map.groundHeightAt(cam.position.x, cam.position.z, cam.position.y), support);
+    }
+    clearance = camClearance;
+  } else if (forced == null) camClearance = clearance = 0;
+  const target = cameraNearTarget({
+    clearance, forced, firstPerson: firstPersonView, override: !!world.cameraOverride || overrideBlend > 0, indoors: false,
+    inVehicle: !!camVeh, flying: !!(camVeh && camVeh.isHeli),
+  });
+  const next = forced != null ? forced : stepNear(camNear, target, dt);
+  if (Math.abs(next - cam.near) > 1e-4) { camNear = next; cam.near = next; cam.updateProjectionMatrix(); } else camNear = cam.near;
 }
 
 function applyCameraOverride(dt, world, lx, ly, lz) {

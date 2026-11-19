@@ -258,6 +258,8 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?cut` | Trailer: montagevariant (vol, kort, ...) |
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
+| `?near` | Zet het near-vlak van de camera vast op zoveel meter (0,1 tot 10); zonder de vlag is het 0,5 op de grond en groter in de lucht (#917) |
+| `?far` | Zet het far-vlak van de camera vast op zoveel meter (100 tot 20000) (#917) |
 | `?terrain` | Het AHN-reliëf (dijken, wierden, heuvels) rijst uit de grond; wegen, gebouwen en bomen liggen erop (#269; props, gras, water en spoor blijven vlak) |
 | `?vlakbruggen` | Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken; standaard hebben ze een profiel, #300) |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
