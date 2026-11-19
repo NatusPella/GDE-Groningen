@@ -63,11 +63,32 @@ await sectie('m07', async () => {
   await zet(621.49 - 25, 662.56, 0, 6000);
   if (!M.missionDebug.start(w, idx)) throw new Error('M07 startte niet');
   await sleep(1500);
-  let g = 0; while (M.missionDebug.state().stage < 3 && g++ < 6) { M.missionDebug.skipStage(w); await sleep(1500); }
+  await zet(p.x, p.y, 0, 9000); // de regelkaart van de jacht komt 8 s na het begin
+  await grab('m07-kaart');
+  // stap voor stap naar de goto-stap bij de Oosterpoort (complete, want skipStage is alleen voor heists)
+  let g = 0; while ((M.getMissionDefs()[idx].stages[M.missionDebug.state().stage] || {}).kind !== 'goto' && g++ < 8) { M.missionDebug.complete(w); await sleep(1800); }
   out.stand.m07 = { stage: M.missionDebug.state().stage, doel: M.missionDebug.state().stageInfo && M.missionDebug.state().stageInfo.target };
-  await zet(621.49 - 24, 662.56, 0, 4000);
-  await grab('m07-plein');
-  await zet(621.49 - 14, 662.56 - 4, 0.3, 3000);
+  { const sc = SC.getScene(); let gr = null; sc.traverse((o) => { if (o.name === 'mission-dressing-plein') gr = o; });
+    out.stand.m07.speler = { x: Math.round(p.x), y: Math.round(p.y), a: +p.angle.toFixed(2) };
+    if (gr) {
+      const ps = gr.children.map((c) => ({ x: c.position.x, y: c.position.z })).filter((c) => c.x || c.y);
+      const cx = ps.reduce((q, c) => q + c.x, 0) / (ps.length || 1), cy = ps.reduce((q, c) => q + c.y, 0) / (ps.length || 1);
+      out.stand.m07.plein = { kinderen: gr.children.length, middenX: Math.round(cx), middenY: Math.round(cy), eerste: ps.slice(0, 3).map((c) => [Math.round(c.x), Math.round(c.y)]), hoogtes: gr.children.map((c) => +c.position.y.toFixed(1)).slice(0, 8), namen: gr.children.map((c) => c.type + ':' + (c.visible ? 1 : 0) + ':' + c.children.length).slice(0, 8), ouder: gr.parent && gr.parent.type, boven: gr.position.y, schaal: gr.scale.x };
+      const tg = M.missionDebug.state().stageInfo && M.missionDebug.state().stageInfo.target;
+      const ang = Math.atan2(cy - tg.y, cx - tg.x); const d = Math.hypot(cx - tg.x, cy - tg.y);
+      // in de tankwagen blijven: uitstappen zet de stap op 'ga terug naar de auto' en de aankleding gaat weg
+      const zv = async (x, y, a, ms) => { const v = p.inVehicle; if (v) { v.x = x; v.y = y; v.angle = a; v.speed = 0; v.vx = 0; v.vy = 0; } p.x = x; p.y = y; p.angle = a; await sleep(ms); let n = 0; while (SC.streamPending().roads > 0 && n++ < 60) await sleep(500); };
+      out.stand.m07.inAuto = !!p.inVehicle;
+      await zv(cx - Math.cos(ang) * 30, cy - Math.sin(ang) * 30, ang, 6000);
+      out.stand.m07.pleinNaTeleport = (() => { let g2 = null; SC.getScene().traverse((o) => { if (o.name === 'mission-dressing-plein') g2 = o; }); return !!g2; })();
+      { const cam = SC.getCamera(); let g3 = null; SC.getScene().traverse((o) => { if (o.name === 'mission-dressing-plein') g3 = o; });
+        const V = cam.position.constructor; const d = cam.getWorldDirection(new V()); const cf = [d.x, d.y, d.z];
+        out.stand.m07.cam = { x: +cam.position.x.toFixed(1), y: +cam.position.y.toFixed(1), z: +cam.position.z.toFixed(1), dir: cf.map((v) => +v.toFixed(2)) };
+        out.stand.m07.kraam = g3 ? g3.children.slice(0, 5).map((c) => { const q = c.getWorldPosition(new V()); const pr = q.clone().project(cam); return [Math.round(q.x), Math.round(q.z), +pr.x.toFixed(2), +pr.y.toFixed(2), +pr.z.toFixed(2)]; }) : null; }
+      await grab('m07-plein');
+      await zv(cx - Math.cos(ang) * 20, cy - Math.sin(ang) * 20 + 2, ang, 3000);
+    } else { out.stand.m07.plein = null; await zet(p.x, p.y, 0, 2000); await grab('m07-plein'); }
+  }
   await grab('m07-plein-dichtbij');
 });
 
@@ -104,11 +125,20 @@ await sectie('sprint', async () => {
 await sectie('a1', async () => {
   const SJ = D.sidejobs;
   if (!SJ) throw new Error('geen sidejobs-haak');
-  const sp = (SJ.spots() || []).find((s) => s.def && s.def.id === 'bietenoogst') || (SJ.spots() || []).find((s) => /biet/i.test(JSON.stringify(s.def && s.def.id)));
-  out.stand.a1 = { spot: sp ? { x: sp.x, y: sp.y } : null };
+  out.stand.a1 = { aantalSpots: (SJ.spots() || []).length, ids: (SJ.spots() || []).map((s) => s.job && s.job.id).filter((i) => /biet|boer|akker/i.test(i || '')) };
+  // de startplek zit eerst in de stad (terugval) en schuift naar de akker zodra de tegels bij Hoogkerk geladen zijn
+  const R = await imp('rdnew'); const [fx, fy] = R.wgsToWorld(53.2336, 6.4977);
+  await zet(fx, fy, 0, 12000);
+  const sp = (SJ.spots() || []).find((s) => s.job && s.job.id === 'bietenoogst');
+  out.stand.a1 = { ...out.stand.a1, spot: sp ? { x: sp.x, y: sp.y } : null };
   if (!sp) throw new Error('geen bietenspot');
   await zet(sp.x, sp.y, 0, 8000);
-  if (!SJ.start('bietenoogst')) throw new Error('A1 startte niet');
+  try { out.stand.a1.sprong = !!(window.__story && window.__story.jump('A1')); } catch (e) { out.stand.a1.sprong = String(e); }
+  await sleep(3000);
+  const sp2 = (SJ.spots() || []).find((s) => s.job && s.job.id === 'bietenoogst'); if (sp2) await zet(sp2.x, sp2.y, 0, 6000);
+  const meldingen = []; const oudMsg = w.addMessage; w.addMessage = function (m, ...r) { meldingen.push(String(m)); return oudMsg.call(this, m, ...r); };
+  const gestart = SJ.start('bietenoogst'); w.addMessage = oudMsg; out.stand.a1.meldingen = meldingen;
+  if (!gestart) throw new Error('A1 startte niet: ' + meldingen.join(' | '));
   await sleep(3500);
   out.stand.a1.ctx = !!SJ.ctx();
   await grab('a1-kaart');

@@ -98,7 +98,7 @@ await sectie('m15', async () => {
   const a = def.stages[0].dressingAt;
   await zet(a.x - Math.cos(sp.heading) * 14, a.y - Math.sin(sp.heading) * 14, sp.heading, 3500);
   await grab('m15-strook-erf');
-  let g = 0; while (M.missionDebug.state().stage < 2 && g++ < 6) { M.missionDebug.skipStage(w); await sleep(1800); }
+  let g = 0; while (M.missionDebug.state().stage < 2 && g++ < 6) { M.missionDebug.complete(w); await sleep(1800); }
   out.stand.m15.stage2 = M.missionDebug.state().stage;
   const b = def.stages[2].dressingAt;
   await zet(b.x - Math.cos(sp.heading) * 16, b.y - Math.sin(sp.heading) * 16, sp.heading, 5000);
@@ -110,13 +110,15 @@ await sectie('m15', async () => {
 // ---- M16: de toast in de kroeg -----------------------------------------------------------------------------
 await sectie('m16', async () => {
   uur = 21.5; fix(uur);
-  skipAan = false;
+  skipAan = true; // de intro slaan we over: een toast speelt niet tijdens een filmpje
   const idx = idxVan('Nog eentje dan');
   const def = M.getMissionDefs()[idx];
   await zet(def.start.x, def.start.y, 0, SETTLE + 3000);
   if (!M.missionDebug.start(w, idx)) throw new Error('M16 startte niet');
   await sleep(3500);
   await grab('m16-kaart');
+  await wacht(() => !cine.isCinematicActive(), 15000);
+  skipAan = false; // nu mag de toast zelf als filmpje lopen
   const wp = def.waypoints;
   for (let k = 0; k < 2; k++) { p.x = wp[k].x; p.y = wp[k].y; await sleep(600); }
   await sleep(1800);
