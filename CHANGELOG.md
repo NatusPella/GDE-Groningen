@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De minimap loopt soepeler en kost minder (#952):** staat je personage stil, dan tekent de kaart rustig op ongeveer 10 beelden per seconde in plaats van 30; onderweg blijft hij op zijn tempo, en een dure kaart (5 ms per tekenbeurt) ververst nu 20 keer per seconde in plaats van 12. De politie op de minimap is een schild met een ring (een rood segment per ster, stippen voor extra eenheden); houd de aanwijzer erboven of laat een schermlezer de kaart voorlezen voor de uitleg in gewoon Nederlands. De GPS zoekt de straatnaam achter een afslag één keer op in plaats van vijf keer per seconde. Kleine tekst in de fotomodus en de woordenlijst valt niet meer onder 13 pixels, en de kaart is 's nachts ook op Safari donker. Samen spelen: alles is lokaal per speler, er verandert niets aan wie wat ziet of krijgt.
 - **De weg ligt weer onder je voeten (#883):** in dorpen als Usquert en Visvliet zag je vlak bij jezelf alleen gras of akker, terwijl de weg verderop wel klopte; auto's reden over het gras. De wegen binnen honderdveertig meter bleven wachten op een beurt die nooit kwam. Ze worden nu in volgorde van dichtbij naar ver opgebouwd, een per beeld, dus ook als er tientallen wegen in beeld zijn.
 
 ## [0.64.0] - 2026-11-17

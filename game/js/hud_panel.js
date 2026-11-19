@@ -53,7 +53,7 @@ import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
-import { policeBadge, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
+import { policeBadge, heatTooltip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -2685,7 +2685,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 // De cadans (#804: dure kaart 20 fps, lichte 30 fps, stilstaand rustig) staat in minimapcadence.js.
-let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true;
+let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true, mmHeatTip = '';
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);
@@ -2917,6 +2917,13 @@ function drawMinimap(dt, world) {
   forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind }));
   const heatSter = Math.max(world.wanted | 0, world.coopHudWanted | 0);
   const badge = policeBadge(polities.length, heatSter, { searching: !!(world.police && world.police.searching), time: t });
+  // de legenda bij de ring: tooltip en schermlezer van de minimap, alleen bijgewerkt als de tekst verandert
+  const heatTip = heatTooltip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
+  if (heatTip !== mmHeatTip) {
+    mmHeatTip = heatTip;
+    if (heatTip) { els.mmWrap.title = heatTip; els.mmWrap.setAttribute('aria-label', heatTip); }
+    else { els.mmWrap.removeAttribute('title'); els.mmWrap.removeAttribute('aria-label'); }
+  }
   if (badge) {
     let best = polities[0];
     if (polities.length > 1) {
