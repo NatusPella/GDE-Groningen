@@ -67,7 +67,7 @@ Weergave `ver` (far 1650 m, `meting4`):
 
 Visvliet, de brug van de N355 (x -20758, y -5195; `meting9`, weergave `ver`): schuin op 60 m 588 / 459 / 591; schuin op 200 m 283 / 1 / 1; onder het dek 1444 / 0 / 816. Beeld `docs/img/qa/917-visvliet-n355-brug-60m.png`: het dek is dicht en doorlopend, vangrail en talud staan scherp, geen speckles.
 
-De grote getallen zijn bijna steeds restruis: in de hitkaart zijn het geparkeerde auto's (zij worden niet door de verbergregel van de rijdende voertuigen gedekt), de omtrek van de wolken, het draaiende waypointteken en het water. Ze veranderen niet met near. Wat bij near 0,5 hoger is en bij 1,5 en 2,5 wegvalt (usquert-straat `kort`, detailrand-250m, stad-binnenstad-straat `kort`, Visvliet op 200 m) is wel precisie, maar het zijn enkele honderden tot enkele duizenden pixels per beeld, geen geveldekkende speckles.
+De grote getallen zijn bijna steeds restruis: in de hitkaart zijn het waarschijnlijk geparkeerde auto's (de verbergregel van de meting dekt alleen rijdende voertuigen, mensen en dieren), de omtrek van de wolken, het draaiende waypointteken en het water. Ze veranderen niet met near. Wat bij near 0,5 hoger is en bij 1,5 en 2,5 wegvalt (usquert-straat `kort`, detailrand-250m, stad-binnenstad-straat `kort`, Visvliet op 200 m) is wel precisie, maar het zijn enkele honderden tot enkele duizenden pixels per beeld, geen geveldekkende speckles.
 
 Near-verschil (a bij near 1,5 en 2,5 tegen a bij near 0,5, `zfight_nearverschil.mjs`): op de plekken waar de omgeving stil is (detailrand-250m 1465 / 3721, woonwijk-500m 2235 / 7147, stad-grotemarkt-150m 2114 / 5294, usquert-kerk-120m 1359 / 3788) zit het hele verschil in de rand van een wolk. Op gevels, daken en straten op 150 tot 500 m verandert geen pixel door near: de gevels staan er bij near 0,5 even goed als bij 2,5.
 
@@ -86,7 +86,7 @@ Niet bekeken: een dijk (geen vaste plek gekozen), het effect op de overgang van 
 
 ## Wat is gebouwd
 
-Het goedkoopste dat werkt, op grond van de meting: `game/js/cameranear.js`. Het near-vlak groeit met de vrije ruimte onder de camera (0,5 m tot 10 m vrij, daarna zacht tot 2,5 m bij 60 m vrij) en blijft 0,5 m op de grond, in de eerste persoon, in een auto of trein, in elke scriptcamera (cutscene, binnenkamer) en bij elk beeld dat de speler zelf draagt. Een vliegende helikopter mag wel groeien: de camera hangt boven de stad en de dichtstbijzijnde vlakken zijn de daken ver onder de lens. Omhoog zacht (e^(-3 dt)), omlaag direct (een te groot near knipt de omgeving weg). `?near=<m>` en `?far=<m>` zetten de waarden vast voor metingen.
+Het goedkoopste dat werkt, op grond van de meting: `game/js/cameranear.js`. Het near-vlak groeit met de vrije ruimte onder de camera (0,5 m tot 10 m vrij, daarna zacht tot 2,5 m bij 60 m vrij) en blijft 0,5 m op de grond, in de eerste persoon, in een auto of trein, en in elke scriptcamera (cutscene, binnenkamer). Een vliegende helikopter mag wel groeien: de camera hangt boven de stad en de dichtstbijzijnde vlakken zijn de daken ver onder de lens. Omhoog zacht (e^(-3 dt)), omlaag direct (een te groot near knipt de omgeving weg). `?near=<m>` en `?far=<m>` zetten de waarden vast voor metingen.
 
 Gemeten in de echte camera (`near_cam.page.js`, weergave `ver`, far 1650 m):
 
