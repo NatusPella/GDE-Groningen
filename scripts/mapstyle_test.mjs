@@ -2,7 +2,7 @@
 // rules, and the three renderers reading it. Run: node scripts/mapstyle_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
-import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
+import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, baseDimOverlay, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
 import * as mapicons from '../game/js/mapicons.js';
 import * as mapstyle from '../game/js/mapstyle.js';
 
