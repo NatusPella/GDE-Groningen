@@ -10,6 +10,11 @@ import { isInWater, boatDryPoints, clamp } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget } from './pghost.js';
 import { weerWindVan } from './zeilrules.js';
+import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
+import { skutsjePubliek, sprintBijna, brugSeinNodig } from './akte2_plan.js';
+import { stingen } from './sfx/stingen.js';
+import { startCameraTake, stopCameraTake } from './cinematics.js';
+import { finishPose, FINISHCAM_SECS } from './akte1_plan.js';
 import { getMovableBridges, requestOpening, boatNeedsOpening, boatFrame, openingLead } from './movablebridges.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
@@ -30,6 +35,19 @@ const TRIM_RATE = 45 * DEG;
 const JELLE_TRIM = 0.85;
 const STRIKE_SPEED = 0.9;
 const GOLD_MARGIN = 12;
+
+// AAA akte 2 (M11, de sprint): publiek langs de kade bij de start en de finish (crowd.js), een startsein, een sting bij elk
+// poortje en bij een brug die opengaat, en een finishcamera die even blijft hangen terwijl het publiek juicht. Alles is
+// lokaal beeld en geluid bij wie de sprint draait; niets gaat over het net.
+const zeg = (fn) => { try { return fn(); } catch (e) { return null; } }; // aankleding mag de sprint nooit raken
+const FIN_CAM = 'skutsje-finish';
+let finishBeeld = null; // { crowd, cam, t0, pos }: blijft na de finish nog even staan voor de camera
+function ruimFinishBeeld() {
+  if (!finishBeeld) return;
+  if (finishBeeld.cam) stopCameraTake(FIN_CAM);
+  if (finishBeeld.crowd) disposeCrowd(finishBeeld.crowd);
+  finishBeeld = null;
+}
 
 let leftover = null;
 // the two skûtsjes moored at the start while you are near it (idle), so the
@@ -267,8 +285,12 @@ export const SKUTSJE = {
     const c = w.companion;
     if (c && c.state !== 'dead' && !c.inVehicle) { c.x = boat.x; c.y = boat.y; c.water = null; c.swimming = false; c.inVehicle = boat; boat.passenger = 'companion'; }
     w.noLookBack = true;
+    ruimFinishBeeld();
+    const pub = skutsjePubliek((q) => routeAt(q), s0, s1, side);
     Object.assign(run.data, {
-      boat, jv, cps, cp: 0, s0, s1, ps: s0, pi: null, js: s0 + 4, jspeed: 0, jlat: jb, jfin: null,
+      boat, jv, bruggen: new Set(), bijna: false,
+      pubStart: pub ? zeg(() => buildCrowd(w, pub.start, { key: 'pg_skutsje.start' })) : null,
+      pubFinish: pub ? zeg(() => buildCrowd(w, pub.finish, { key: 'pg_skutsje.finish' })) : null, cps, cp: 0, s0, s1, ps: s0, pi: null, js: s0 + 4, jspeed: 0, jlat: jb, jfin: null,
       trim: 30 * DEG, elapsed: 0, go: false, count: 3.5, pos: 2, lastPos: 2, offT: 0, said: 0, eff: 0, strike: 0,
     });
     return true;
@@ -284,6 +306,7 @@ export const SKUTSJE = {
     const boat = d.boat, jv = d.jv;
     skipperFigure(jv, JELLE_LOOK, 'pgJelle');
     if (!w.vehicles.includes(jv)) w.vehicles.push(jv);
+    for (const c of [d.pubStart, d.pubFinish]) if (c) zeg(() => updateCrowd(c, dt, boat, boat));
     if (boat.wrecked || boat.sinking) { finish(run, { success: false, medal: 0, reason: 'Je skûtsje is gezonken. Jelle haalt zijn pet af.', stats: [] }); return; }
     if (p.inVehicle !== boat) {
       d.offT += dt;
@@ -294,7 +317,10 @@ export const SKUTSJE = {
     // starts a hundred metres from it is not lost at a closed leaf.
     const voor = bridgeBefore(boat);
     if (voor) {
-      if (bridgeAsks(voor.b.state) && bridgeInTime(voor, boat.speed)) requestOpening(voor.b, boat);
+      if (bridgeAsks(voor.b.state) && bridgeInTime(voor, boat.speed)) {
+        requestOpening(voor.b, boat);
+        if (d.go && brugSeinNodig(d.bruggen, voor.b, voor.b.state)) stingen.push(w, 'stap'); // het brugsein: de brug gaat open, wacht even
+      }
       if (d.go && bridgeWaits(voor.b.state, voor.w) && run.t - (d.bridgeSaid || -99) > 8) {
         d.bridgeSaid = run.t;
         w.addMessage(voor.b.name ? `De ${voor.b.name} gaat open. Wacht even op de brug.` : 'De brug gaat open. Wacht even.', 3, { kind: 'tip', key: 'pg-brug' });
@@ -319,12 +345,13 @@ export const SKUTSJE = {
       w.startLockUntil = d.count > 0 ? w.time + 0.25 : 0;
       if (d.count <= 1 && !d.said) { d.said = 1; jelle(run, 'go', true); }
       w.addMessage(d.count > 0.5 ? String(Math.ceil(d.count - 0.5)) : 'SEIL LOS!', 0.4, { key: 'pg-count', exact: true });
-      if (d.count <= 0) d.go = true;
+      if (d.count <= 0) { d.go = true; stingen.push(w, 'start'); } // het startsein
       placeJelle(run, 0, wf);
       setTarget(d.cps[0]);
       return;
     }
     d.elapsed += dt;
+    if (sprintBijna(d.elapsed, LIMIT, d.bijna)) { d.bijna = true; stingen.push(w, 'bijna'); }
     const pr = diepenringProgress(boat.x, boat.y, d.pi);
     d.pi = pr.i;
     if (pr.d < 60) d.ps = pr.s;
@@ -332,6 +359,7 @@ export const SKUTSJE = {
     if (cp && (d.ps >= cp.s - 4 && pr.d < 26 || Math.hypot(boat.x - cp.x, boat.y - cp.y) < 12)) {
       d.cp++;
       if (d.cp >= d.cps.length) { end(run); return; }
+      stingen.push(w, 'stap'); // een poortje gehaald
       setTarget(d.cps[d.cp]);
     }
     placeJelle(run, dt, wf);
@@ -355,6 +383,10 @@ export const SKUTSJE = {
   stop(run) {
     const w = run.world, d = run.data;
     w.noLookBack = false;
+    if (d.pubStart) { disposeCrowd(d.pubStart); d.pubStart = null; }
+    // het finishpubliek blijft staan als de finishcamera nog draait (idle ruimt het op)
+    if (d.pubFinish && !(finishBeeld && finishBeeld.crowd === d.pubFinish)) disposeCrowd(d.pubFinish);
+    d.pubFinish = null;
     if (d.jv) removeBoat(w, d.jv);
     if (d.boat) {
       d.boat.sailTop = 4.5;
@@ -364,6 +396,8 @@ export const SKUTSJE = {
   },
   idle(world) {
     idleMoored(world);
+    if (finishBeeld && (world.time - finishBeeld.t0 > FINISHCAM_SECS + 1 || !leftover)) ruimFinishBeeld();
+    else if (finishBeeld && finishBeeld.crowd) zeg(() => updateCrowd(finishBeeld.crowd, world.dt || 0.016, leftover, leftover));
     if (!leftover) return;
     if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, underBridgeAhead(world.map, leftover) ? 1 : 0, world.time);
     else if (Math.hypot(leftover.x - hoofdspeler(world).x, leftover.y - hoofdspeler(world).y) > 120) { removeBoat(world, leftover); leftover = null; }
@@ -442,6 +476,14 @@ function end(run) {
   const won = d.jfin == null;
   const margin = won ? (d.s1 - d.js) / Math.max(2, d.jspeed) : 0;
   const medal = won ? (margin >= GOLD_MARGIN ? 3 : 2) : 1;
+  if (won) {
+    // de finishcamera: laag naast de lijn bij de Hoge der A, kijkend naar het skûtsje; het publiek blijft juichen
+    const q = routeAt(d.s1), w = run.world;
+    const pos = { x: q.x, y: q.y, a: q.a };
+    ruimFinishBeeld();
+    finishBeeld = { crowd: d.pubFinish || null, t0: w.time, pos, cam: false };
+    if (zeg(() => startCameraTake(FIN_CAM, (t) => finishPose(pos, { x: d.boat.x, y: d.boat.y }, t), { letterbox: true, hideHud: false }))) finishBeeld.cam = true;
+  }
   finish(run, {
     success: won, medal, value: d.elapsed, lower: true,
     reason: won ? 'Eerder aan de Hoge der A dan Jelle. Met een Fries skûtsje, nog wel.' : 'Jelle was eerder aan de Hoge der A. Hij knoopt al zijn trossen vast.',

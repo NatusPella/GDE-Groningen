@@ -2567,7 +2567,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'choice') enterChoice(S);
   if (st.kind === 'timing') enterTiming(S, st, choiceOn, { mode: cleanDifficulty(getSettings().difficulty), settings: getSettings() }); // #957: ruimere zone per stand en hulp
   if (st.kind === 'rit') enterRit(world, st, S);
-  if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; chainState().eggFast = false; }
+  if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; chainState().eggFast = false; chainState().eggMeld = false; }
   chainState().stage = S;
   // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer,
   // het Loket, Oma's keuken). In een auto slaan we hem over: dan blijft de stap in de open
@@ -2879,7 +2879,7 @@ function updatePursuer(dt, world, def, st, S) {
     v.aiOpts = { goal: { x: ref.x, y: ref.y }, chase: true, cruise: P.cruise || 14 };
   }
   S.caughtT = d < (P.caught || 7) ? (S.caughtT || 0) + dt : Math.max(0, (S.caughtT || 0) - dt * 0.7);
-  if (d < (P.close || 22) && !S.warned) { S.warned = true; world.addMessage(P.closeText || 'De limo zit op je bumper!', 2.6, { kind: 'gevaar', key: 'pursuer-close' }); }
+  if (d < (P.close || 22) && !S.warned) { S.warned = true; meldRegelkaart('limo'); world.addMessage(P.closeText || 'De limo zit op je bumper!', 2.6, { kind: 'gevaar', key: 'pursuer-close' }); }
   else if (d > (P.close || 22) * 2) S.warned = false;
   if (S.caughtT > (P.caughtFor || 3)) {
     fail(world, def, P.fail || 'de limo haalt je in');
@@ -3200,6 +3200,7 @@ function updateEggs(dt, world, def) {
   }
   if (chainState().eggs <= def.eggs.failAt) fail(world, def, eggFailText(def, chainState().eggs));
 }
+    if (loss > 0.4 && !chainState().eggMeld) { chainState().eggMeld = true; meldRegelkaart('eierstoot'); } // AAA akte 2: de eierkaart toont de voorraad bij de eerste stoot
 
 const MODE_HINT = {
   vehicle: 'Met de auto, hè. Die hoort erbij.',

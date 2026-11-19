@@ -18,6 +18,10 @@ import { ankerMetWeg } from './bijbaananker.js';
 import { heeftEigenAkker } from './boerderijlive.js';
 import { currentStep } from './storyquery.js';
 import { isInWater, pointInPolygon } from './util.js';
+import { startKaart, toonRegelkaart } from './regelkaart.js';
+import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
+import { stingen } from './sfx/stingen.js';
+import { kaartA1, hoopPubliek } from './akte2_plan.js'; // AAA akte 2: regelkaart en het publiek bij de hoop
 
 // Suikerhal Hoogkerk: de bietenhoop. Pas bij gebruik berekend: wgsToWorld kent zijn kader pas als de wereld er is.
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
@@ -110,6 +114,8 @@ const MELDING = {
 
 function ruim(c) {
   const d = c.data;
+  if (d.pub) { try { disposeCrowd(d.pub); } catch (e) { /* aankleding mag de bijbaan nooit raken */ } d.pub = null; }
+  d.kaart = null;
   if (d.akker) {
     c.removeMesh(d.akker.group);
     d.akker.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
@@ -163,6 +169,12 @@ export default {
     d.ronde = init(c.level);
     d.help = 0;
     d.hoop = { x: c.spot.x, y: c.spot.y };
+    // AAA akte 2: een regelkaart bij elke ronde en een klein publiek (wegers en collega's) bij de hoop, met een opening naar het land
+    try {
+      d.kaart = startKaart({ kaart: kaartA1(V_MIN, d.ronde.vMax) }, 'A1:' + Math.round(c.world.time || 0));
+      const spec = hoopPubliek(d.hoop, Math.atan2(akker.center.y - d.hoop.y, akker.center.x - d.hoop.x));
+      d.pub = spec ? buildCrowd(c.world, spec, { key: 'A1.hoop' }) : null;
+    } catch (e) { d.kaart = null; d.pub = null; }
     d.prev = null;
     d.melT = 0;
     c.timeLeft = d.ronde.limit;
@@ -174,6 +186,8 @@ export default {
   update(dt, c) {
     const d = c.data, v = c.vehicle;
     if (!d.ronde || !d.akker || dt <= 0) return;
+    if (d.kaart) toonRegelkaart(c.world, d.kaart, dt);
+    if (d.pub) { try { updateCrowd(d.pub, dt, v, v); } catch (e) { d.pub = null; } }
     const s = d.ronde;
     const speed = vehicleSpeed(v);
     const prev = d.prev || { speed, angle: v.angle };
@@ -189,8 +203,8 @@ export default {
     for (const e of step(s, input, dt)) {
       const vaak = e.type === 'tehard' || e.type === 'scheef' || e.type === 'bieten';
       if (MELDING[e.type] && (!vaak || d.melT < c.world.time)) { c.msg(MELDING[e.type], 2.2); if (vaak) d.melT = c.world.time + 3; }
-      if (e.type === 'rij') c.msg(`Rij ${e.n} van ${RIJEN} gerooid.`, 2.4);
-      if (e.type === 'geoogst') c.msg(`Alles gerooid! Nu de bieten naar de hoop bij Suikerhal Hoogkerk.`, 4);
+      if (e.type === 'rij') { c.msg(`Rij ${e.n} van ${RIJEN} gerooid.`, 2.4); stingen.push(c.world, 'stap'); }
+      if (e.type === 'geoogst') { c.msg(`Alles gerooid! Nu de bieten naar de hoop bij Suikerhal Hoogkerk.`, 4); stingen.push(c.world, 'stap'); }
       if (e.type === 'fail') { c.fail(e.why); return; }
       if (e.type === 'done') {
         const r = result(s);

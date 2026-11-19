@@ -6,6 +6,8 @@
 // A start there has no road data until the player is there (the tiles stream in): `lazyStart` makes
 // missions.js look for the road when the mission begins. `models` are the vehicle models of vehicle.js.
 
+import { KAART_M07, KAART_M08, KAART_M09, KAART_M10, KAART_M11_VAREN, KAART_M11_ZOUT, WACHT_M11 } from './akte2_plan.js'; // AAA akte 2: kaarten en wachtfiguren
+
 // M11 Geleend van de Friezen, the coast mission (Zoutkamp, Lauwersmeer, Noordpolderzijl): replaces the old arc's def of the
 // same label (the Diepenring chase) in the new arc. World metres from the OSM extract:
 //   the route of the skûtsje is the water path of the Reitdiep and the Lauwersmeer from the harbour of Zoutkamp
@@ -16,12 +18,14 @@ const KUSTWACHT = { x: 706, y: -24046, from: 1.4, to: 2.65, speed: 0.32, range: 
   warn: 'Het licht komt! Bukken (Ctrl), dan zien ze je niet.', fail: 'in het licht van de kustwacht gezien. Een zeehond loopt niet rechtop' };
 
 function kustDef() {
-  const marsh = (at, label, ticks, o = {}) => ({ kind: 'hold', target: { at, snap: 'walk', label }, mode: 'foot', radius: 4, time: 2.5, ticks, label: `Schep ${label.toLowerCase()} leeg`, light: KUSTWACHT, ...o });
+  let kuip = 0; // AAA akte 2: Klaas staat bij elke kuip anders te wachten (wachtfiguur); de eerste kuip legt de regels uit
+  const marsh = (at, label, ticks, o = {}) => ({ kind: 'hold', target: { at, snap: 'walk', label }, mode: 'foot', radius: 4, time: 2.5, ticks, label: `Schep ${label.toLowerCase()} leeg`, light: KUSTWACHT, wacht: { ...WACHT_M11[kuip % WACHT_M11.length] }, ...(kuip++ === 0 ? { kaart: KAART_M11_ZOUT } : {}), ...o });
   return {
     type: 'stages',
     label: 'Geleend van de Friezen',
     intro: ['Klaas leent jullie een snelle rubberboot. Jelles skûtsje (een groot Fries zeilschip) vaart het Reitdiep af, met een gouden bal in de kist.', 'Haal het skûtsje in en spring aan boord. Haal daarna drie emmers zout van de kwelder bij Noordpolderzijl. Blijf uit het licht van de kustwacht en ga terug voordat het water komt.'],
     outro: 'Het zout is van Oma.',
+    aaa: true, // AAA akte 2: een voltooide stap klinkt
     timeLimit: null,
     timeUp: 'het water kwam terug. Jullie zitten vast op het wad',
     reward: 1300,
@@ -36,6 +40,7 @@ function kustDef() {
         kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', path: SKUTSJE_PATH, lead: 140, board: 9, boardTime: 2.5, escape: 420, time: 240,
         say: 'Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.',
         near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al', talk: { ids: ['M11.2'], delay: 3 },
+        kaart: KAART_M11_VAREN,
       },
       {
         kind: 'scene', label: 'Aan boord', target: { skutsje: true }, deckCam: true, kicker: 'Het skûtsje', big: 'Chocola?!', script: { ids: ['M11.3'] },
@@ -69,6 +74,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       label: 'Heel aankomen is ook een kunst',
       intro: ['Jelle Terpstra kocht alle eieren van het Hogeland, behalve die van Geesje. Oma\'s recept van 1953 heeft er zestig nodig.', 'Breng Geesjes laatste zes kratten, zestig eieren, heel naar de kerkkelder in Usquert. Rij rustig: elk ei telt.'],
       outro: 'Zestig eieren, alle heel. Vet en eieren zijn binnen: twee van vijf.',
+      aaa: true, // AAA akte 2: een voltooide stap klinkt
       timeLimit: null,
       reward: 700,
       costRow: ['Gered', 'Plakje drie: de eieren van Geesje'],
@@ -86,7 +92,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       stages: [
         { kind: 'board', label: 'Stap in Geesjes trekker', say: 'De trekker staat bij de schuur. Instappen, de kratten staan achterop.' },
         // the wierdepaden: the Westerhornseweg south of the main road (the Dorpsweg is shut by Jelle's permit)
-        { kind: 'goto', target: { at: [511.2, -19812.9], snap: 'drive', label: 'Westerhornseweg' }, mode: 'vehicle', radius: 22, label: 'Neem de wierdepaden: de Dorpsweg is dicht', say: 'De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan.', talk: { ids: ['M09.2'], delay: 2 } },
+        { kind: 'goto', target: { at: [511.2, -19812.9], snap: 'drive', label: 'Westerhornseweg' }, mode: 'vehicle', radius: 22, label: 'Neem de wierdepaden: de Dorpsweg is dicht', say: 'De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan.', talk: { ids: ['M09.2'], delay: 2 }, kaart: KAART_M09 },
         // #663: tussenstop op de wierde halverwege (de rit was 2,6 km in één ruk)
         { kind: 'goto', target: { at: [1645.0, -20107.0], snap: 'drive', label: 'Tussenstop op de wierde' }, mode: 'vehicle', radius: 20, label: 'Stop even op de wierde: de kratten schuiven', say: 'Halfweg. Even stil: de kratten zijn op de bulten verschoven. Achterin nog niets gebroken?', talk: { ids: ['M09.2'], delay: 1 } },
         // Usquert: the church (Petrus en Pauluskerk) on its wierde, Kerkstraat
@@ -100,6 +106,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       label: 'Een trekker-limo op de wierde',
       intro: ['Jelle rijdt het erf op in zijn zwarte trekker-limo, met de gouden koffer in zijn hand. Hij wil de museumbeelden ruilen tegen jullie vertrek uit Grunn.', 'Als Jelle de koffer loslaat, pakken wij hem: schud de limo af en haal de sloot bij Uithuizen.'],
       outro: 'Jelle ligt in de sloot, de koffer droog. De bal blijft bij hem. Oma stuurt ons naar Zoutkamp.',
+      aaa: true, // AAA akte 2: een voltooide stap klinkt
       timeLimit: null,
       reward: 900,
       costRow: ['Ontdekt', 'De bal is echt: Jelle draagt hem in een gouden koffer'],
@@ -118,7 +125,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
         {
           kind: 'goto', target: { at: [4272.0, -20816.0], snap: 'drive', label: 'Over de wierde, weg van de limo' }, mode: 'vehicle', radius: 24,
           label: 'Schud de limo af: over de wierdepaden', say: 'Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.', talk: { ids: ['M10.2'], delay: 2 },
-          pursuer: LIMO,
+          pursuer: LIMO, kaart: KAART_M10,
         },
         {
           // the ditch (OSM waterway=ditch) west of Uithuizen, on the road Bovenhuizen (53.40844 N 6.65982 E)
@@ -148,5 +155,15 @@ export function applyAkte2(list) {
     fat.outro = 'Heelhuids bij Oma Trijntje. Nu vertelt ze over de bal.';
     fat.timeUp = 'tijd op. Oma Trijntje heeft de krentjebrij alleen opgegeten';
     fat.costRow = ['Gekregen', "Oma's lijstje: vijf vrienden, vijf ingrediënten"];
+    fat.kaart = KAART_M08; // AAA akte 2: de regel (loop, wijk uit, niet remmen) staat nu op een kaart
+  }
+  // AAA akte 2 (M07): de tankwagen kapen krijgt een kaart, een voltooide stap klinkt en de Oosterpoort een plein met publiek
+  const vet = by('Al het vet van Grunn');
+  if (vet && Array.isArray(vet.stages)) {
+    vet.aaa = true;
+    const jacht = vet.stages.find((q) => q.kind === 'chase');
+    if (jacht) jacht.kaart = KAART_M07;
+    const plein = vet.stages.find((q) => q.kind === 'goto' && q.target && q.target.label === 'De Oosterpoort');
+    if (plein) plein.dressing = 'plein';
   }
 }
