@@ -121,6 +121,9 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-timer span { font-size: max(12px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--hud-redtx, #ff9a9a); font-variant-numeric: tabular-nums; }
 #hud .hud-gps.has-timer .gps-timer, #hud .hud-gps.has-timer .gps-tsep { display: flex; }
+#hud .hud-gps.time-low .gps-timer b { animation: hud-timelow 0.5s ease-in-out infinite alternate; }
+@keyframes hud-timelow { from { opacity: 1; } to { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { #hud .hud-gps.time-low .gps-timer b { animation: none; } }
 #hud .hud-gps:not(.has-timer) .gps-tsep { display: none; }
 #hud .hud-gps.no-turn .gps-arrow, #hud .hud-gps.no-turn .gps-txt, #hud .hud-gps.no-turn .gps-dist, #hud .hud-gps.no-turn .gps-sep:not(.gps-tsep) { display: none; }
 #hud .hud-gps.no-turn .gps-tsep { display: none; }

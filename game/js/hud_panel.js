@@ -35,7 +35,8 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { tickLowHealth } from './lowhealth.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
-import { isMuted, engineReadout, toggleMute } from './audio.js';
+import { isMuted, engineReadout, toggleMute, playTimeWarning } from './audio.js';
+import { timeWarning, timeWarningText } from './timewarn.js'; // #985
 import { dempMelding } from './coopgeluid.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
@@ -1456,14 +1457,14 @@ function currentObjective(world) {
     // een klus met een limiet van twee minuten leest als "1:42", niet als "102s"
     const timer = job.timeLeft != null ? clockText(job.timeLeft) : '';
     const g = job.goal;
-    return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer };
+    return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer, secs: job.timeLeft };
   }
   if (m && m.phase === 'active') {
     const text = missionProgressText(m);
     const timer = m.timeLeft != null && !m.raceHud ? clockText(m.timeLeft) : '';
     const cut = text.search(/ · | \(\d+\/\d+\)$/);
     const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
-    if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer };
+    if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer, secs: m.timeLeft };
   }
   if (world.wanted > 0 && !(m && m.phase === 'active')) {
     const searching = !!(world.police && world.police.searching);
@@ -1513,7 +1514,18 @@ function updateMission(dt, world) {
   const o = currentObjective(world);
   lastObjective = o;
   els.mission.hidden = !o || (!o.title && !o.timer);
-  if (els.mission.hidden) { els.objKey = ''; return; }
+  if (els.mission.hidden) { els.objKey = ''; missionTick.secs = null; els.gps.classList.remove('time-low'); return; }
+  // #985: bij 30 en 10 s een melding, een piep en een rode klok; zonder klok wordt de stand vergeten
+  const secs = o.timer && Number.isFinite(o.secs) ? o.secs : null;
+  const warn = timeWarning(missionTick.secs, secs);
+  missionTick.secs = secs;
+  if (warn) {
+    const tekst = timeWarningText(warn);
+    if (world.addMessage) world.addMessage(tekst, 2.5, { kind: 'tip', key: 'tijd-' + warn });
+    playTimeWarning(warn <= 10);
+    announce(tekst);
+  }
+  els.gps.classList.toggle('time-low', secs != null && secs <= 10);
   const key = o.kind + '|' + o.title;
   if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; }
   // a new objective first says how (the bijbaan's hint), then its counter

@@ -1520,6 +1520,13 @@ function stingDuckMul(dt) {
   return 1 - 0.45 * stingDuck.level;
 }
 
+// De klok van een missie of klus staat op 30 s (twee tonen) of 10 s (drie, hoger): een piep, geen stem (#985).
+export function playTimeWarning(urgent = false) {
+  if (!ctx || muted || !uiBus) return;
+  const n = urgent ? 3 : 2, f = urgent ? 1318.5 : 987.8;
+  for (let i = 0; i < n; i++) playTone({ freq: f, type: 'sine', duration: 0.08, gain: 0.035, delay: i * 0.14, bus: uiBus, prio: 2 });
+}
+
 // One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
 export function playHeartbeat(strength = 0.5) {
   if (!ctx || muted || !uiBus) return;
