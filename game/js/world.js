@@ -55,7 +55,7 @@ export class World {
     const key = opts.key || text;
     this.messages = this.messages.filter((m) => (m.key || m.text) !== key);
     const d = opts.exact ? duration : Math.max(duration, readingSeconds(text));
-    this.messages.push({ text, key, until: this.time + d });
+    this.messages.push({ text, key, until: this.time + d, kind: opts.kind || null, kicker: opts.kicker || null }); // kind en kicker: de UI-geluiden (sfx/uitaal.js) kiezen er een geluid mee
     while (this.messages.length > MAX_MESSAGES) this.messages.shift();
     if (this.cardSink) this.cardSink(text, d, opts);
   }

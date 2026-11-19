@@ -4,6 +4,7 @@
 // variant is rendered from its own seed (the name), so variants differ and a
 // node test can render them offline (scripts/sfx_test.mjs).
 import { defSample, dspKit } from './dsp.js';
+import { UI_FX } from './uibank.js';
 
 const { addNoiseBurst: nb, addPartials, addTone, thump, click, bq } = dspKit;
 
@@ -490,3 +491,10 @@ defSample('klim_val', 0.8, (c, sr, R) => {
   nb(d, sr, 0.01, R, { f: 1200, q: 1, tau: 0.05, amp: 0.35 });
   for (let k = 0; k < 3; k++) click(d, sr, R, 0.2 + k * 0.15 + R() * 0.05, 1600 + R() * 900, 0.15 - k * 0.04);
 }, { rate: 22050, peak: 0.8 });
+
+// De UI-geluidstaal van docs/SFX-GAPS.md (uibank.js): dezelfde registratie als hierboven, zodat sfx_test en
+// sfx_audit ze ook meenemen.
+for (const [name, d] of Object.entries(UI_FX)) {
+  FX_INFO[name] = d.info;
+  defSample(name, d.dur, d.gen, { rate: 22050, peak: 0.9, ...d.opts });
+}

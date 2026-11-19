@@ -14,6 +14,18 @@ import { hoofdspeler } from '../players.js';
 // shops.js and kermis.js push themselves (SELF_PUSHED below).
 
 export const SELF_PUSHED = [
+  // de UI-geluidstaal: sfx/ui.js speelt ze op de UI-bus (uiFx), de keuze per melding staat in sfx/uitaal.js
+  { fx: 'ui_tab', where: 'sfx/ui.js (een tab van een menu: menunav.js geeft sound tab)' },
+  { fx: 'ui_weiger', where: 'sfx/ui.js (melding: te weinig geld, kan niet)' },
+  { fx: 'ui_toast', where: 'sfx/ui.js (melding van soort tip, missie of reis)' },
+  { fx: 'ui_kaart_open', where: 'sfx/ui.js (de kaart gaat open)' },
+  { fx: 'ui_kaart_dicht', where: 'sfx/ui.js (de kaart gaat dicht)' },
+  { fx: 'ui_ontdek', where: 'sfx/ui.js (nieuwe streek, nieuwe vissoort)' },
+  { fx: 'ui_uitkijk', where: 'sfx/ui.js (een uitkijkpunt gebruikt)' },
+  { fx: 'ui_verzameld', where: 'sfx/ui.js (verzamelen)' },
+  { fx: 'ui_loopbaan', where: 'sfx/ui.js (loopbaan: een niveau omhoog)' },
+  { fx: 'ui_uitgave', where: 'sfx/ui.js (het geld daalt met 2 euro of meer)' },
+  { fx: 'ui_gevaar', where: 'sfx/ui.js (melding van soort politie of gevaar)' },
   { fx: 'shop_bell', where: 'shops.js (interact: de winkel gaat open)' },
   { fx: 'kermis_ding', where: 'kermis.js (botsauto raakt een ander)' },
 ];

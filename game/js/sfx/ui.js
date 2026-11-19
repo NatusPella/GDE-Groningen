@@ -4,6 +4,10 @@ import { getUserWaypoint } from '../goal.js';
 import { sfxLinks } from '../latehooks.js';
 import { ROOTS, ITEMS, newNav, decide, infoOf } from './menunav.js';
 import { setMenuSoundSink } from '../menusound.js';
+import { variantsOf } from './dsp.js';
+import { FX_INFO } from './fxbank.js';
+import { categoryLevel } from './mixplan.js';
+import { UI_NIVEAU, toastGeluid, magKlinken, wordtGesmoord, kiesVariant, toonSpreiding } from './uitaal.js';
 
 // Menu/phone/map interface sounds, pickup chimes, mission/wanted stingers.
 // Stingers go through their own bus and briefly duck G-Music.
@@ -13,6 +17,7 @@ let K = null;
 const nav = newNav();
 const st = {
   pause: false, zoom: null, zoomAt: 0, waypoint: null, notif: null, saved: false,
+  mapOpen: false, uiLast: new Map(), uiVorige: new Map(),
   money: null, wanted: 0, stingAt: -10, pingAt: -10, buzzAt: -10, busyAt: -10, roadblocks: new WeakSet(), messages: new WeakSet(),
 };
 let savedEl = null;
@@ -23,6 +28,21 @@ const wpKey = (w) => (w ? `${Math.round(w.x / 40)},${Math.round(w.y / 40)}` : nu
 function t() { return K.ctx.currentTime; }
 const ui = () => K.buses.ui;
 const sting = () => K.buses.sting;
+
+// Een geluid van de UI-taal (uibank.js) op de UI-bus: een variant kiezen, een kleine toonhoogtespreiding, een
+// afkoeltijd per geluid (uitaal.js). false = de bank heeft het nog niet (de worker rendert nog): de aanroeper
+// kan terugvallen op het oude geluid; true = gespeeld of net gespeeld.
+export function uiFx(naam, { gain = 1, delay = 0 } = {}) {
+  if (!K || K.muted()) return false;
+  if (wordtGesmoord(st.uiLast, naam, t())) return true;   // een zwaarder meldingsgeluid klonk net
+  if (!magKlinken(st.uiLast, naam, t())) return true;   // net gespeeld: stil, en geen terugval op een ander geluid
+  const namen = variantsOf(naam);
+  const kies = kiesVariant(namen.length ? namen : [naam], Math.random(), st.uiVorige.get(naam) || null);
+  const info = FX_INFO[kies];
+  if (!info) return false;
+  st.uiVorige.set(naam, kies);
+  return !!K.buf(kies, { bus: ui(), gain: info.gain * categoryLevel('ui') * (UI_NIVEAU[naam] ?? 1) * gain, rate: toonSpreiding(Math.random()), delay, prio: 2 });
+}
 
 function tick(f = 1800, g = 0.035) {
   K.tone({ freq: f, freqEnd: f * 0.9, type: 'square', duration: 0.022, gain: g, filterFreq: 5000, bus: ui(), prio: 2 });
@@ -66,7 +86,7 @@ function ping() {
 
 export function initUiSfx(kit) {
   K = kit;
-  K.bank.warm(['cashreg', 'rack', 'spray']);
+  K.bank.warm(['cashreg', 'rack', 'spray', ...Object.keys(FX_INFO).filter((n) => /^ui_/.test(n))]);
   setMenuSoundSink(menuApi);
 }
 
@@ -106,6 +126,7 @@ function play(r) {
   switch (r.sound) {
     case 'tick': tick(r.f); break;
     case 'select': select(); break;
+    case 'tab': if (!uiFx('ui_tab')) select(); break;
     case 'back': back(); break;
     case 'toggle': toggleSnd(r.on); break;
     case 'slider': K.tone({ freq: 400 + r.u * 900, type: 'sine', duration: 0.035, gain: 0.05, bus: ui(), prio: 2 }); break;
@@ -208,7 +229,9 @@ export function updateUiSfx(dt, world) {
   // a menu that appears takes the focus: that first focus is no move
   if (now - menuPollAt > 0.25) { menuPollAt = now; decide(nav, { kind: 'visible', t: now, visible: menuOnScreen() }); }
 
-  if (isMapOpen()) {
+  const kaart = isMapOpen();
+  if (kaart !== st.mapOpen) { st.mapOpen = kaart; if (!muted) uiFx(kaart ? 'ui_kaart_open' : 'ui_kaart_dicht', { delay: kaart ? 0.1 : 0 }); }
+  if (kaart) {
     const s = sfxLinks.mapStats();
     const z = s ? s.zoom : null;
     if (st.zoom !== null && z !== null && Math.abs(z - st.zoom) / st.zoom > 0.04 && now - st.zoomAt > 0.06) {
@@ -247,9 +270,11 @@ export function updateUiSfx(dt, world) {
     else if (s.indexOf('mislukt') !== -1 && s !== 'Opslaan mislukt' && now - st.busyAt > 3) missionFail();
     else if (/^Opgelapt|^Pleister|^Pijnstillers|^Gezondheid/.test(s)) healthChime();
     else if (/^Kogelwerend|^Pantser/.test(s)) strap();
+    else { const g = toastGeluid(m); if (g) uiFx(g); }
   }
 
   if (st.money !== null && world.money - st.money >= 40 && !muted) moneyTicks(world.money - st.money);
+  else if (st.money !== null && st.money - world.money >= 2 && !muted && !world.paused && !world.pendingRespawn) uiFx('ui_uitgave');
   st.money = world.money;
 
   if (world.wanted !== st.wanted) {

@@ -46,7 +46,7 @@ for (const m of cut.matchAll(/fx:\s*'sfx',\s*kind:\s*'([a-z_]+)'/g)) ok(handled.
 const reach = new Set([...LINK_RULES.flatMap((r) => [r.fx, ...(r.also || [])]), ...SELF_PUSHED.map((s) => s.fx), ...Object.keys(MINIGAME_FX)]);
 const cutaudio = src['cutaudio.js'] + src['sidejob_vracht.js'];
 for (const name of Object.keys(FX_INFO)) {
-  const used = reach.has(name) || new RegExp(`['"\`]${name.replace(/_\d$/, '')}`).test(audio + cutaudio);
+  const used = reach.has(name) || reach.has(name.replace(/_[0-9]$/, '')) || new RegExp(`['"\`]${name.replace(/_\d$/, '')}`).test(audio + cutaudio);
   ok(used, `effect ${name} is played somewhere`);
 }
 

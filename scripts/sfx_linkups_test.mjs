@@ -19,10 +19,12 @@ const ids = new Set();
 for (const r of LINK_RULES) {
   ok(!ids.has(r.id), `rule ${r.id}: unique id`);
   ids.add(r.id);
-  ok(FX_INFO[r.fx], `rule ${r.id}: effect ${r.fx} exists`);
+  ok(FX_INFO[r.fx] || FX_INFO[`${r.fx}_0`], `rule ${r.id}: effect ${r.fx} exists`);
   ok(typeof r.source === 'string' && r.source.length > 10, `rule ${r.id}: names its source`);
 }
-for (const s of SELF_PUSHED) ok(FX_INFO[s.fx], `self-pushed ${s.fx} exists`);
+// de bank heeft varianten (naam_0, naam_1): de regels en de pushers noemen de basisnaam
+const basis = (n) => n.replace(/_[0-9]$/, '');
+for (const s of SELF_PUSHED) ok(FX_INFO[s.fx] || FX_INFO[`${s.fx}_0`], `self-pushed ${s.fx} exists`);
 const linked = new Set([...LINK_RULES.flatMap((r) => [r.fx, ...(r.also || [])]), ...SELF_PUSHED.map((s) => s.fx)]);
 // carbid and explosion are played by audio.js for their own events; door, fuse and
 // the splash come from events that already exist
@@ -38,7 +40,7 @@ OTHER.add('door_wood_open'); OTHER.add('door_wood_close');
 for (const n of ['firework_burst_0', 'firework_burst_1', 'firework_burst_2', 'crossing_bell']) OTHER.add(n);
 // played by audio.js instead of the thin synth versions (#173): swing, empty click, house doors, engine off, alarm, camera
 for (const n of ['swing_whoosh_0', 'swing_whoosh_1', 'swing_whoosh_2', 'empty_click', 'door_house_open', 'door_house_close', 'engine_off', 'alarm_ring', 'camera_click']) OTHER.add(n);
-for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || OTHER.has(name) || MINIGAMES.has(name) || PENDING.has(name), `${name}: has a source`);
+for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || linked.has(basis(name)) || OTHER.has(name) || MINIGAMES.has(name) || PENDING.has(name), `${name}: has a source`);
 // no double playback: an effect is pushed by one place only
 for (const s of SELF_PUSHED) ok(!LINK_RULES.some((r) => r.fx === s.fx), `${s.fx}: not both linked and self-pushed`);
 ok(new Set(LINK_RULES.map((r) => r.fx)).size === LINK_RULES.length, 'one rule per effect');

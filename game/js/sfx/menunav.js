@@ -11,6 +11,8 @@
 export const ROOTS = '#start-screen, #pause-menu, .phone, .gm, #foto-ui, #heist-ui';
 // what can be moved to, chosen or pressed
 export const ITEMS = 'button, [role="menuitem"], [role="tab"], [role="option"], [role="radio"], [data-idx], [data-mission], [data-tab], .ss-item, a[href]';
+// a tab of a menu: its own, lighter sound (ui_tab) instead of the select chime
+export const TABS = '[role="tab"], [data-tab]';
 // the way back
 export const BACKS = '[data-back], [data-action="cancel"], [data-action="resume"]';
 // controls that make their own sound on change (an input event): no select sound for a click or a key on them
@@ -50,6 +52,7 @@ export function infoOf(closest, tag = '') {
     root,
     item: !!root && !!closest(ITEMS),
     back: !!root && !!closest(BACKS),
+    tab: !!root && !!closest(TABS),
     ownSound: !!root && !!closest(OWN_SOUND),
     editable: !!closest(EDITABLE),
     range: tag === 'range',
@@ -95,7 +98,7 @@ export function decide(st, ev) {
       if (i.back) { st.doneAt = t; return { sound: 'back' }; }
       if (i.ownSound || !i.item) return NONE;
       st.doneAt = t;
-      return { sound: 'select' };
+      return { sound: i.tab ? 'tab' : 'select' };
     }
     case 'input': {
       const i = ev.info;
