@@ -16,6 +16,7 @@ import { crowdSpecIssue } from './crowdplan.js';
 
 const isNum = (n) => typeof n === 'number' && Number.isFinite(n);
 const r2 = (n) => Math.round(n * 100) / 100;
+const LOOP_CLOSE = 12; // m: ligt de finish zo dicht bij de start, dan is het een ronde (M05)
 
 export const RACE_VEHICLES = ['auto', 'bestelbus', 'politie', 'trekker', 'fiets'];
 export const CAMERA_TEMPLATES = ['overzicht', 'volg', 'finishlijn', 'reactie'];
@@ -66,11 +67,25 @@ function localStretch(info, anchor, s0, s1, step = 5) {
 // Het plan voor een race zonder eigen start en finish (M05): een startboog, een finishboog en
 // twee groepen publiek langs het begin en het eind. De spec's zijn wereldmaten voor buildCrowd.
 // De posities zitten op de route; racedecor.js buildCheckpointRaceDecor tekent ze.
-export function raceDressingPlan(route, { startCount = 24, finishCount = 40, title = 'FINISH', startTitle = 'START', seed = 1 } = {}) {
+export function raceDressingPlan(route, { startCount = 24, finishCount = 40, title = 'FINISH', startTitle = 'START', loopTitle = 'START / FINISH', seed = 1 } = {}) {
   const info = Array.isArray(route) ? routeInfo(route) : route;
   if (!info) return null;
   const stretch = (s0, s1) => Array.from({ length: 6 }, (_, i) => { const p = info.at(s0 + ((s1 - s0) * i) / 5); return [r2(p.x), r2(p.y)]; });
   const sLen = Math.min(30, info.len * 0.4);
+  // Een ronde (M05: de Kei-race eindigt waar hij begint): één boog "START / FINISH" op de lijn en één
+  // publiek dat langs het stuk voor en na de lijn staat, in plaats van twee bogen op vijf meter van elkaar.
+  if (Math.hypot(info.finish.x - info.start.x, info.finish.y - info.start.y) < LOOP_CLOSE) {
+    const before = Math.min(30, info.len * 0.3), after = Math.min(30, info.len * 0.3);
+    const pts = [];
+    for (let i = 0; i < 6; i++) { const p = info.at(info.len - before + (before * i) / 5); pts.push([r2(p.x), r2(p.y)]); }
+    for (let i = 0; i < 6; i++) { const p = info.at((after * i) / 5); pts.push([r2(p.x), r2(p.y)]); }
+    return {
+      kind: 'checkpoint', loop: true,
+      start: { x: r2(info.start.x), y: r2(info.start.y), a: info.start.a, title: loopTitle },
+      finish: { x: r2(info.start.x), y: r2(info.start.y), a: info.start.a, title: loopTitle },
+      crowds: [{ id: 'lijn', spec: { shape: 'line', pts, count: startCount + finishCount, side: 8.5, spread: 3.5, seed } }],
+    };
+  }
   return {
     kind: 'checkpoint',
     start: { x: r2(info.start.x), y: r2(info.start.y), a: info.start.a, title: startTitle },
@@ -91,6 +106,14 @@ export function startSignalState(t, { lights = 3, gap = 0.9, hold = 0.5 } = {}) 
   if (!isNum(t) || t < 0) return { lit: 0, go: false, goAt };
   if (t >= goAt) return { lit: lights, go: true, goAt };
   return { lit: Math.min(lights, Math.floor(t / gap) + 1), go: false, goAt };
+}
+
+// De klok van het startlicht voor een race met een eigen aftelling (racers.js: fase 'grid', 'countdown', 'race').
+// Bij de grid brandt niets, in het aftellen komt er elke seconde een rood licht bij, bij 'Start!' wordt het groen.
+export function raceLichtTijd(fase, timer = 0) {
+  if (fase === 'countdown') return Math.max(0, isNum(timer) ? timer : 0) * 0.9; // 0,9 s per licht (startSignalState)
+  if (fase === 'race') return 99;
+  return -1;
 }
 
 // --- camerasjablonen -----------------------------------------------------------

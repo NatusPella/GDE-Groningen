@@ -122,7 +122,8 @@ export function buildCheckpointRaceDecor(world, route, { key = null, startCount 
   if (!info) return null;
   const k = key || `race:${Math.round(info.start.x)}:${Math.round(info.start.y)}`;
   const plan = raceDressingPlan(info, { startCount, finishCount, title });
-  const groups = [buildRaceDecor(world, plan.start, { title: plan.start.title, count: 4, scene }), buildRaceDecor(world, plan.finish, { title: plan.finish.title, scene })].filter(Boolean);
+  // een ronde (plan.loop): één boog op de lijn, niet een start- en een finishboog op elkaar
+  const groups = (plan.loop ? [buildRaceDecor(world, plan.finish, { title: plan.finish.title, scene })] : [buildRaceDecor(world, plan.start, { title: plan.start.title, count: 4, scene }), buildRaceDecor(world, plan.finish, { title: plan.finish.title, scene })]).filter(Boolean);
   const clear = pathClearCircles([route], 3.5);
   const crowds = plan.crowds.map((c) => buildCrowd(world, { ...c.spec, seed: seedFromKey(k + ':' + c.id), clear }, { key: k + ':' + c.id, scene })).filter(Boolean);
   const lights = buildStartLights(world, plan.start, { scene });

@@ -59,6 +59,18 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
       reward: 550,
       start: kei(0),
       waypoints: [...KEI_CHECKPOINTS.slice(1).map(kei), kei(0)],
+      // AAA akte 1 (akte1_aaa.js): boog, publiek en startlicht langs de lijn van de ronde, en de regelkaart bij het begin
+      decorRoute: KEI_ROUTE,
+      kaart: {
+        doel: 'Eén rondje Kei-race op de fiets: alleen het podium telt',
+        druk: 'je start met 58 seconden en elk punt geeft er 33 bij',
+        afloop: 'als vierde of lager binnen: opnieuw',
+        regels: [
+          { type: 'teller', inv: { rest: 58, totaal: 58, label: 'Tijd' }, na: 9, duur: 6 },
+          { type: 'stappen', inv: { modus: 'legenda', label: 'De uitslag', stappen: [{ icoon: 'hart', label: 'Plek 1 tot 3', waarde: 'podium' }, { icoon: 'stoepbord', label: 'Plek 4 en 5', waarde: 'opnieuw' }] }, na: 16, duur: 6 },
+          { type: 'teller', inv: { rest: 8, totaal: 58, label: 'Bijna op' }, tekst: 'De klok loopt bijna af: pak snel het volgende punt', bij: 'bijna', duur: 5 },
+        ],
+      },
     },
     retiredDef('noorderzon'),
     retiredDef('ringweg'),

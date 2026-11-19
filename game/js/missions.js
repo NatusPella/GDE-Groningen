@@ -68,6 +68,7 @@ import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { buildWaitDressing, updateWaitDressing, disposeWaitDressing, tickWaitFigure } from './wachtprops.js';
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
+import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
 import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } from './missiedecor.js';
@@ -1081,6 +1082,7 @@ function releaseMissionVehicle(world) {
   if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.chaseDodge = false; chased.aiOpts = null; }
   lanes.releaseLaneBikes(world);
   lanes.releaseCrowd();
+  aaaOpruimen(world);
   stopStunt(world);
   chainState().stuntPhase = false;
   if (chainState().soloHold) { chainState().soloHold = false; world.companionHold = null; }
@@ -1585,6 +1587,7 @@ function startMission(world, def) {
     if (def.ownBike) companionOwnBike(world);
   }
   if (def.crowds) lanes.spawnCrowds(world, def);
+  aaaStart(world, def); // aankleding en regelkaart van een missie zonder stappen (lokaal beeld)
   const i = chainState().index;
   const code = missionCode(i);
   const kicker = def.side ? 'Zijmissie' : 'Missie';
@@ -1712,6 +1715,8 @@ function updateStuntPhase(dt, world, def) {
   if (updateStunt(dt, world, chainState().timeLeft) === 'done') {
     stopStunt(world);
     chainState().stuntPhase = false;
+    aaaStuntKlaar(world);
+    meldRegelkaart('stuntklaar');
     if (storyDataReady() && !isCinematicActive()) playStageScene(world, { script: { ids: ['M01.5'] }, kicker: 'Grote Markt', cast: [{ key: 'jelmer', pose: 'cheer', at: [3.2, 1.2] }, { key: 'terras', pose: 'cheer', at: [3.6, -1.4] }] }, { target: null });
     world.addMessage('Punten binnen. Nu het bakkie heel naar het Boterdiep.', 4.5, { kind: 'missie' });
   }
@@ -1751,6 +1756,7 @@ function reachCheckpoint(world, def, k = chainState().wpIndex) {
   const wp = def.waypoints[chainState().wpIndex];
   chainState().wpIndex++;
   if (!wp.via) chainState().timeLeft += wp.bonus ?? def.checkpointBonus;
+  aaaCheckpoint(world, def, wp, { last: chainState().wpIndex >= def.waypoints.length, plek: chainState().race ? raceStandings(chainState().race).position : 0 });
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
   if (wp.toast && !isCinematicActive()) {
     const eigen = hoofdspeler(world); // de toast hangt boven de speler van dit apparaat
@@ -1976,6 +1982,7 @@ function updateMissionKern(dt, world) {
     } else chainState().run.inVehT = 0;
   }
 
+  aaaTik(world, def, dt, { race: chainState().race, timeLeft: def.type === 'stages' ? null : chainState().timeLeft, stunt: !!chainState().stuntPhase || def.type === 'stunt' });
   if (def.type === 'deliver' && chainState().stuntPhase) {
     updateStuntPhase(dt, world, def);
   } else if (def.type === 'deliver') {
@@ -2773,6 +2780,7 @@ function disposeLight() {
 export function meldRegelkaart(sleutel) {
   const S = chainState().stage;
   if (S && S.kaart) meldKaart(S.kaart, sleutel);
+  aaaMeld(sleutel); // de kaart van een missie zonder stappen (def.kaart)
 }
 
 // #963: de aankleding van een wachtstap (de kring met spullen) gaat mee met de
