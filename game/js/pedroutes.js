@@ -444,12 +444,15 @@ function avoidBias(ped, ang) {
 const SEP_DIST = 0.62;
 const SEP_RATE = 0.8;
 const pinned = (p) => !!(p.scene || p.state === 'guard' || (p.nav && p.nav.sit && p.nav.sit.phase === 'sit'));
+const _sepOut = []; // own reusable list (not _avoidOut): no new Set/array per ped per frame
 export function separatePeds(peds, map) {
   const D2 = SEP_DIST * SEP_DIST;
   for (let n = 0; n < peds.length; n++) {
     const a = peds[n];
     if (a.state === 'dead' || a.ragdoll) continue;
-    for (const b of grid.queryRadius(a.x, a.y, AVOID_CELL)) {
+    grid.queryRadiusInto(_sepOut, a.x, a.y, AVOID_CELL);
+    for (let bi = 0; bi < _sepOut.length; bi++) {
+      const b = _sepOut[bi];
       if (b === a || b._sepN <= n || b.state === 'dead' || b.ragdoll) continue;
       let dx = b.x - a.x, dy = b.y - a.y;
       const d2 = dx * dx + dy * dy;
