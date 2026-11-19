@@ -68,7 +68,7 @@ function bouwTaxi(world, optie, dest) {
       cineDrive(v, w.map, q, stand.v, dt, spring ? zHoogte(w.map, q.x, q.y) : null);
       if (stand.fase === 'sprong' && gezien !== 'sprong') { gezien = 'sprong'; const c = sluitStart(); voorspel(c.x, c.y, 10); }
       const eye = interiorEyePose(v);
-      const oog = eye ? P.achterbankOog(eye, v) : { x: v.x - Math.cos(v.angle) * 0.6, y: v.y - Math.sin(v.angle) * 0.6, z: (v.z || 0) + 1.15, fx: Math.cos(v.angle), fy: Math.sin(v.angle) };
+      const oog = eye ? P.bijrijdersOog(eye, v) : { x: v.x - Math.cos(v.angle) * 0.6, y: v.y - Math.sin(v.angle) * 0.6, z: (v.z || 0) + 1.15, fx: Math.cos(v.angle), fy: Math.sin(v.angle) };
       return { ...P.taxiCamera(oog, t), cut: true };
     },
     einde(w) {

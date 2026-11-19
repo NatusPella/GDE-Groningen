@@ -116,15 +116,16 @@ export function rechterBaan(q, afstand = 1.3) {
   return { x: q.x - Math.sin(q.a) * afstand, y: q.y + Math.cos(q.a) * afstand, a: q.a };
 }
 
-// Het oog van een passagier achter de voorpassagier. eye = interiorEyePose(taxi): het oog van de bestuurder in
-// kaartcoördinaten { x, y, z, fx, fy } (z is de hoogte); taxi = { x, y }. Het oog zit 1,05 m verder naar achteren
-// en aan de andere kant (de achterbank achter de bijrijder), iets onder het oog van de bestuurder.
-export function achterbankOog(eye, taxi, { achter = 1.05, zak = 0.1 } = {}) {
+// Het oog van de passagier: op de bijrijdersstoel, naast de bestuurder. eye = interiorEyePose(taxi): het oog van de
+// bestuurder in kaartcoördinaten { x, y, z, fx, fy } (z is de hoogte); taxi = { x, y }. Het oog zit op dezelfde hoogte en
+// lengte, aan de andere kant van het midden. Op de achterbank (eerst 1,05 m achter de bestuurder) stond de rugleuning van
+// de voorstoel 0,56 m voor de lens en vulde het hele beeld (beeldcheck #882): voorin kijk je door de voorruit.
+export function bijrijdersOog(eye, taxi, { zijwaarts = 0.4 } = {}) {
   if (!eye || !taxi) return null;
   const rx = -eye.fy, ry = eye.fx;
   const dz = (eye.x - taxi.x) * rx + (eye.y - taxi.y) * ry; // zijwaarts van het midden; de bestuurder zit links of rechts
-  const zij = Math.abs(dz) < 0.2 ? 0.4 : -dz;
-  return { x: eye.x - eye.fx * achter + rx * (zij - dz), y: eye.y - eye.fy * achter + ry * (zij - dz), z: eye.z - zak, fx: eye.fx, fy: eye.fy };
+  const zij = Math.abs(dz) < 0.2 ? zijwaarts : -dz;
+  return { x: eye.x + rx * (zij - dz), y: eye.y + ry * (zij - dz), z: eye.z, fx: eye.fx, fy: eye.fy };
 }
 
 // Zachte hoofdbeweging van een passagier: een lichte deining en af en toe een blik uit het raam rechts.

@@ -28,6 +28,21 @@ w.money = 900;
 const index = await fetch('/world/index-provincie.json').then((r) => r.json()).then((j) => j.global);
 const plaats = (naam) => index.places.find((x) => x.name === naam);
 const van = plaats(CFG.vanNaam || 'Groningen') || index.places[0];
+// Wat staat er recht voor de camera? De eerste treffer van een straal door het midden van het beeld, met zijn naam, materiaal
+// (kleur, dekking) en de namen van zijn ouders: zo is een vlak dat het beeld vult te herleiden tot zijn onderdeel.
+const kijkVoorwerp = () => {
+  try {
+    const S3 = window.__scene3d, T = S3.THREE;
+    const rc = new T.Raycaster(); rc.setFromCamera(new T.Vector2(0, 0), S3.cam);
+    const hit = rc.intersectObjects(S3.scene.children, true).find((h) => h.object.visible && h.object.isMesh);
+    if (!hit) return null;
+    const o = hit.object, m = Array.isArray(o.material) ? o.material[hit.face ? hit.face.materialIndex : 0] : o.material;
+    const ouders = []; for (let q = o.parent; q && ouders.length < 5; q = q.parent) ouders.push(q.name || q.type);
+    const t = w.ritTaxi; let plek = null;
+    if (t) { const dx = hit.point.x - t.x, dy = hit.point.z - t.y, c = Math.cos(t.angle), n = Math.sin(t.angle); plek = { vooruit: +(dx * c + dy * n).toFixed(2), rechts: +(-dx * n + dy * c).toFixed(2), hoog: +(hit.point.y - (t.z || 0)).toFixed(2) }; }
+    return { plek, afstand: +hit.distance.toFixed(2), naam: o.name || o.type, kleur: m && m.color ? m.color.getHexString() : null, dekking: m ? m.opacity : null, transparant: m ? !!m.transparent : null, ouders };
+  } catch (e) { return { fout: String(e) }; }
+};
 const MOMENTEN = CFG.momenten || [1.5, 5, 8.5, 10.4, 12.5, 17, 21];
 const out = { van: van.name, ritten: [], errors };
 
@@ -60,6 +75,7 @@ async function rit(soort, naam) {
       klok: w.dayNight ? w.dayNight.label : null, taxi: w.ritTaxi ? { x: Math.round(w.ritTaxi.x), y: Math.round(w.ritTaxi.y), z: +(w.ritTaxi.z || 0).toFixed(1), v: +(w.ritTaxi.speed || 0).toFixed(1) } : null,
       cam: co ? { x: Math.round(co.position.x), y: Math.round(co.position.y), z: +(co.position.z || 0).toFixed(1) } : null,
       speler: { x: Math.round(p.x), y: Math.round(p.y) }, health: Math.round(w.health),
+      kijk: kijkVoorwerp(),
     };
     if (rij.actief || rij.cine) echt = true;
     if (rij.oudeScene) oud = true;

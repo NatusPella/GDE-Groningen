@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **In de taxi kijk je weer naar buiten (#882):** de camera van de taxirit zat op de achterbank vlak achter de bijrijdersstoel, zodat die rugleuning het halve beeld vulde. Hij zit nu op de bijrijdersstoel en kijkt door de voorruit de straat in.
 - **Het Loket (M03) heeft een echte wachtrij:** in de hal staan nu zes wachtende mensen (vier voor je, twee achter je) die om de beurt op hun telefoon kijken, rondkijken of staan te wachten, en een kaartje legt de vier delen van het loket uit (wachten, formulier 7B, stempel, inschrijven). Elke voltooide stap klinkt. Samen spelen: de hal is decor van wie de missie draait; de keuzes aan de balie blijven een groepsstemming en de beloning per speler.
 - **Even pinnen (M02) legt de garage uit en helpt als je hem niet vindt:** een kaartje zegt in drie delen wat er gebeurt (garage in, nieuwe kleur, naar Sjabbe) en dat één ster genoeg is; zoek je na vijftig seconden nog steeds, dan belt Sjabbe dat de garage op je kaart staat. Elke voltooide stap klinkt. Samen spelen: de stap blijft bij wie de missie opende; beloning per speler.
 - **Kieken van boven (M04) vertelt wat je fotografeert:** een kaartje legt het fotograferen in drie stappen uit (erheen vliegen, even stilzweven, klik) en meldt halverwege en vlak voor het einde hoeveel foto's er nog nodig zijn. Elke voltooide stap klinkt. Samen spelen: de duif is van wie de missie opende; een gast kijkt mee en de beloning is per speler.

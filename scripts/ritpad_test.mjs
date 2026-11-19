@@ -134,19 +134,19 @@ t('rechts rijden: de taxi rijdt een stukje rechts van de wegas', () => {
   assert.ok(Math.abs(r2.x - 9) < 1e-9 && Math.abs(r2.y - 10) < 1e-9);
 });
 
-t('de camera zit achterin: achter en aan de andere kant dan de bestuurder, kijkend langs de weg', () => {
+t('de camera zit op de bijrijdersstoel: naast de bestuurder, zonder rugleuning voor de lens, kijkend langs de weg', () => {
   const taxi = { x: 100, y: 50 };
   // de bestuurder zit links (z = -0,35): oog 0,35 links van het midden en 0,3 voor het midden
   const eye = { x: 100.3, y: 50 - 0.35, z: 1.2, fx: 1, fy: 0 };
-  const oog = P.achterbankOog(eye, taxi);
-  assert.ok(oog.x < eye.x - 1, 'achter de bestuurder');
-  assert.ok(oog.y > taxi.y, 'aan de rechterkant (achter de bijrijder)');
-  assert.ok(oog.z < eye.z, 'iets lager dan het oog van de bestuurder');
+  const oog = P.bijrijdersOog(eye, taxi);
+  assert.ok(Math.abs(oog.x - eye.x) < 0.01, 'op dezelfde lengte als de bestuurder: geen voorstoel ervoor');
+  assert.ok(oog.y > taxi.y, 'aan de andere kant van het midden dan de bestuurder (de bijrijder)');
+  assert.equal(oog.z, eye.z, 'op ooghoogte');
   const cam = P.taxiCamera(oog, 3);
   assert.ok(cam.lookAt.x > oog.x + 20, 'kijkt vooruit');
   assert.ok(Math.abs(cam.lookAt.y - oog.y) < 30 * Math.sin(1), 'en niet dwars');
   assert.ok(cam.fov > 50 && cam.fov < 90);
-  assert.equal(P.achterbankOog(null, taxi), null);
+  assert.equal(P.bijrijdersOog(null, taxi), null);
 });
 
 t('de blik beweegt zacht en zonder sprongen', () => {
