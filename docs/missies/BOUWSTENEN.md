@@ -163,3 +163,15 @@ Het is van iedereen en van niemand: publiek en kamers zijn lokaal beeld, zonder 
 ### Nog niet bekeken
 
 Geen enkel beeld is in de app gezien: de uiterlijke maat van kamers en figuren, de reactie-animaties van het publiek (armhoeken van juichen en zwaaien), de camerastanden van de finishscène en de plaatsing op echte kaartgrond (nu alleen met nagebootste kaarten en een nagebootste weg getest). Perf van 60 figuren is niet gemeten.
+
+## Haken van akte 3 (AAA akte 3: M12 tot M16 en de kermisrit)
+
+Code: `game/js/missions_akte3.js` (alleen data: `applyAkte3`, aangeroepen aan het eind van `applyNieuw`), `kermis_uitslag.js` (puur), kleine haken in `missions.js`, `planestage.js` en `missiedecor.js`. Test: `node scripts/akte3_aaa_test.mjs`. Beeld: `scripts/qa/akte3_beeld.mjs`.
+
+- **`step.dressingAt: { x, y }`:** de aankleding van `step.dressing` staat op die plek in plaats van om het doel van de stap. Nodig als het doel in de lucht is (de landing van M15) of als de aankleding naast een baan moet staan. De plannen die hiervoor bedoeld zijn reiken niet verder dan 16 m van het anker, zodat ze in elke kijkrichting buiten een strook van 34 m blijven als het anker 45 m van de as ligt (de test loopt alle richtingen na).
+- **`registreerAankleding(kind, plan)` (`missiedecor.js`):** een akte meldt eigen plannen aan, zonder het gedeelde bestand te vullen; een bestaande naam wordt nooit overschreven. Akte 3 voegt `haven` (kade bij nacht, twee havenwerkers, geen publiek), `graanstrook` (Roelfiens erf) en `graanlanding` (hetzelfde erf met tien kermisgangers en een spandoek) toe.
+- **`def.toastSet`:** een tochtmissie met toasts (M16) zet de toast in een binnenset (`'kroeg'`): de kamer komt bij het tentpunt om de speler en gaat weg zodra de toast voorbij is of de missie eindigt. Past de kamer niet (water, gebouw, in een voertuig), dan speelt de toast buiten zoals eerst.
+- **`meldRegelkaart('punt' + n)`:** na elk tochtpunt (n is het aantal gehaalde punten) kan een regel van `def.kaart` met `bij: 'punt2'` verschijnen. `planestage.js` meldt `'poort' + n` na elke gehaalde poort en laat een stap-sting klinken.
+- **Koe in een scène:** `{ kind: 'koe' }` is een cutscene-prop (het dierenregister, `cutscene: 'koe'`).
+
+Samen spelen: alles is lokaal beeld bij wie de stap draait (zie de secties hierboven); de kermisreactie is alleen beeld bij wie de rit reed.
