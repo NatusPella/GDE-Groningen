@@ -13,6 +13,7 @@ import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
 import { REST_S, hangendeTeken, restMelding, telRest } from './scenerest.js';
 import { cinematicLimit } from './cinelimit.js';
+import { nieuwVast, stapVast, VAST_HINT } from './vastlopen.js';
 
 const RESPAWN_MAX_S = 25;
 const FALL_LIMIT = -16; // the deepest road (the aqueduct) is at -11 m
@@ -29,6 +30,7 @@ let lastSafe = null;
 let safeScanT = 0;
 // per teken van een achtergebleven scène: hoe vaak het al opviel (#435)
 const restTeller = new Map();
+const vast = nieuwVast(); // een voertuig dat klem zit met gas ingedrukt (#985)
 
 export function initSafety(w) {
   world = w;
@@ -240,6 +242,16 @@ function watchPlayer(dt, w) {
     p.inVehicle = null;
     resetWalker(p, p.x, p.y, p.gz || 0);
   }
+  // klem in een voertuig met het gas ingedrukt: eerst een hint, dan met Backspace vrijzetten
+  const inp = w.input;
+  const stap = stapVast(vast, dt, {
+    inVoertuig: !!v && !v.isBoat && !v.isHeli && !v.isTrain, snelheid: v ? v.speed : 0,
+    gas: !!inp && (inp.isDown('w') || inp.isDown('arrowup')), // alleen vooruit: wie bij rood licht op S staat, zit niet vast
+    bezig: isCinematicActive() || isShopOpen() || isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || playerBusy(w, ['padel', 'activityGame', 'heliRun', 'challenge']).busy,
+    houdt: !!inp && inp.isDown('backspace'),
+  });
+  if (stap.hint) w.addMessage(VAST_HINT, 7);
+  if (stap.vrij) { unstuck(w); return; }
   safeScanT -= dt;
   if (safeScanT <= 0) {
     safeScanT = 2;
