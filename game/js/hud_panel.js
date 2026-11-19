@@ -87,7 +87,7 @@ import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { gameProgress, progressText } from './progresslive.js';
 import { getPlaySeconds } from './savegame.js';
-import { hudExpensiveDue } from './hudgate.js';
+import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
@@ -669,7 +669,7 @@ export function updateHud(dt, world) {
   updateSpeedo(world);
   if (expensive) updateSpeedoPrefetch(dt, world);
   updateTrainBand(els.root);
-  updateMission(world);
+  updateMission(dt, world);
   updateGps(dt, world);
   updatePlace(dt, world);
   updateRaceHud(world);
@@ -1506,7 +1506,10 @@ const GOAL_HINTS = 3;
 let goalHints = 0;
 
 let lastObjective = null;
-function updateMission(world) {
+const missionTick = { t: 0 };
+function updateMission(dt, world) {
+  // doelregel op 0,15 s: de klok staat op 1 s, de afstand op 10 m; het wisselmoment van een doel is niet te zien
+  if (!intervalDue(missionTick, dt, 0.15)) return;
   const o = currentObjective(world);
   lastObjective = o;
   els.mission.hidden = !o || (!o.title && !o.timer);

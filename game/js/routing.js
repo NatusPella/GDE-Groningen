@@ -17,6 +17,7 @@ import { playerBusy } from './busy.js';
 import { walkPathHook } from './latehooks.js';
 import { poiLayerPlace, poiLayerPlaces } from './facilities.js';
 import { mayBuildGraph } from './graphgate.js';
+import { createTtlCache } from './ttlcache.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -623,14 +624,17 @@ function careTarget(world, why) {
   return best;
 }
 
+const careCache = createTtlCache(0.6);
 function updateCare(world) {
   const need = careNeed(world);
   if (need !== care) {
     care = need;
+    careCache.clear();
     if (!need) careDismissed = null;
     else if (need === 'heal' && careDismissed !== need) world.addMessage('Opknappen: volg de roze route naar een snackbar of kroeg', 5, { kind: 'gevaar', key: 'care' });
   }
-  return care && careDismissed !== care ? careTarget(world, care) : null;
+  // het dichtstbijzijnde zorgdoel zoeken loopt alle kroegen en winkels af: een halve seconde onthouden
+  return care && careDismissed !== care ? careCache.get(performance.now() / 1000, care, () => careTarget(world, care)) : null;
 }
 
 // Hides the care route until the need is over (healed/fixed, or a new one).
@@ -1119,9 +1123,11 @@ export function getRoutingStats() {
   return { ...stats };
 }
 
+// één gedeelde formatter: toLocaleString met opties bouwde bij elke aanroep een nieuwe Intl.NumberFormat
+const KM_FORMAT = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 export function formatDistance(m) {
   if (m < 1000) return `${Math.max(0, Math.round(m / 10) * 10)} m`;
-  return `${(m / 1000).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
+  return `${KM_FORMAT.format(m / 1000)} km`;
 }
 
 walkPathHook.find = findWalkPath; // pedroutes.js walks over this router (latehooks.js)
