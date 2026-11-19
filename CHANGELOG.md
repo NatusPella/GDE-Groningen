@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Het herkenningspuntenalbum (#820) toont geen echte bedrijven of personen meer en geen dubbelen:** een fabriek, wasstraat of garage heet nu bijvoorbeeld "Aardappelfabriek bij Veendam", een school met een persoonsnaam "Basisschool te Winschoten", en een kale naam als "De Hoop" krijgt de plaats erbij ("Molen De Hoop te Haren"). De Martinitoren en het station van Veendam staan nog maar één keer in het album: 574 punten. Je teller blijft kloppen. Samen spelen: het album blijft per speler; wie het spel opende en een gast vullen elk hun eigen album.
+
 - **De weg ligt weer onder je voeten (#883):** in dorpen als Usquert en Visvliet zag je vlak bij jezelf alleen gras of akker, terwijl de weg verderop wel klopte; auto's reden over het gras. De wegen binnen honderdveertig meter bleven wachten op een beurt die nooit kwam. Ze worden nu in volgorde van dichtbij naar ver opgebouwd, een per beeld, dus ook als er tientallen wegen in beeld zijn.
 
 ## [0.64.0] - 2026-11-17
