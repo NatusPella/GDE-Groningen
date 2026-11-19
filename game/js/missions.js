@@ -2260,6 +2260,17 @@ export function chaseWaitMax(d0, st) {
   return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 10;
 }
 
+// #955: a fleeing vehicle that does not get anywhere (M07's tanker ended up in a dead-end side street by the Eemskanaal and sat
+// there for good, the chase timing out as 'escaped') counts as stopped once it has stayed within CHASE_STUCK_RADIUS metres for
+// CHASE_STUCK_S seconds. Kept pure so a test can prove the timing; S holds the anchor and the clock.
+export const CHASE_STUCK_S = 12;
+export const CHASE_STUCK_RADIUS = 6;
+export function chaseStuckStep(S, v, dt) {
+  if (!S.stuckAt || Math.hypot(v.x - S.stuckAt.x, v.y - S.stuckAt.y) > CHASE_STUCK_RADIUS) { S.stuckAt = { x: v.x, y: v.y }; S.stuckT = 0; return false; }
+  S.stuckT = (S.stuckT || 0) + dt;
+  return S.stuckT >= CHASE_STUCK_S;
+}
+
 // #591: the road under a chase start may not be streamed in when the stage begins. Instead of failing
 // the mission at once, the stage waits for it and tries again a few times (a clean failure was an
 // unwinnable stage, and the player had done nothing wrong).
@@ -2353,18 +2364,18 @@ function startSwarm(world, def, st, S, t) {
 
 // Flat tyres: the chased vehicle rolls to a stop and becomes the mission
 // vehicle; the car the player came in goes back to being ordinary traffic.
-function stopChaseVehicle(world, def, st) {
+function stopChaseVehicle(world, def, st, text = st.stopped) {
   const v = chainState().stage && chainState().stage.target;
   if (!v) { nextStage(world, def); return; }
   if (st.keep) {
     // the finale's limo: it stays where it stopped, nobody's mission car
     v.speed = 0; v.aiOpts = null; v.chaseTarget = false; v.missionCar = false;
-    if (st.stopped) world.addMessage(st.stopped, 4.5);
+    if (text) world.addMessage(text, 4.5);
     nextStage(world, def);
     return;
   }
   adoptVehicle(world, v, st);
-  if (st.stopped) world.addMessage(st.stopped, 4.5);
+  if (text) world.addMessage(text, 4.5);
   nextStage(world, def);
 }
 
@@ -3586,6 +3597,8 @@ function updateStages(dt, world, def) {
         S.goAt = S.t;
         if (st.go) world.addMessage(st.go, 4);
       }
+      // #955: stuck for good (a dead end, a wall): the crew bails out, like with flat tyres, and the run goes on to the board stage
+      if (st.vast && chaseStuckStep(S, t, dt)) { stopChaseVehicle(world, def, st, st.vast); break; }
       // boxed in: it stands still with you right on it for a moment, and that is a stop as well
       if (st.block) {
         S.blockT = Math.abs(t.speed) < 1 && d < 10 ? (S.blockT || 0) + dt : 0;
