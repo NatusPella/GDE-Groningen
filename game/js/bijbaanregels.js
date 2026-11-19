@@ -17,6 +17,8 @@
 // Alleen Nederlands, verzonnen bedrijven, geen getoond leed: een misser is een
 // klacht, een boete of een natte lading, nooit een gewonde.
 
+import { SIDEJOB_PAY_MULT } from './economy.js';
+
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const lerp = (a, b, t) => a + (b - a) * t;
 const lvlK = (level) => clamp(((level || 1) - 1) / 4, 0, 1);       // 0 bij niveau 1 .. 1 bij niveau 5
@@ -247,6 +249,27 @@ const brugwachter = {
 export const BIJBANEN = [fietsbezorger, taxichauffeur, veerboot, trekkertransport, kermisexploitant, bergingsdienst, strandwacht, schoolbus, melkrijder, brugwachter];
 export const BIJBAAN_IDS = BIJBANEN.map((b) => b.id);
 export const bijbaanById = (id) => BIJBANEN.find((b) => b.id === id) || null;
+
+// QoL (#985): de loonschatting voor de telefoon en de lijst "Te doen", tot de speler eigen cijfers heeft.
+// Per baan op niveau 1: de laagste en hoogste basis van een geslaagde ronde (result().base) en de hoogste
+// fooi (result().tip). scripts/bijbaanregels_test.mjs rekent die waarden na met result() zelf.
+export const LOON_SCHATTING = {
+  fietssoep: { min: 31, max: 31, tip: 14 },
+  taxinacht: { min: 6, max: 8, tip: 15 },
+  veerdienst: { min: 60, max: 100, tip: 20 },
+  balenrit: { min: 45, max: 90, tip: 25 },
+  kermisdraai: { min: 51, max: 51, tip: 20 },
+  berging: { min: 55, max: 80, tip: 20 },
+  strandpost: { min: 24, max: 38, tip: 18 },
+  schoolrit: { min: 47, max: 47, tip: 20 },
+  melkrit: { min: 50, max: 50, tip: 25 },
+  brugdienst: { min: 36, max: 84, tip: 20 },
+};
+// [laag, hoog] euro per ronde, met SIDEJOB_PAY_MULT op de basis zoals sidejobs.js doet; de fooi komt erbovenop.
+export function loonSchatting(id) {
+  const e = LOON_SCHATTING[id];
+  return e ? [Math.round(e.min * SIDEJOB_PAY_MULT), Math.round(e.max * SIDEJOB_PAY_MULT) + e.tip] : null;
+}
 
 // Een schone ronde starten: { rule, s } met de rng van de ronde.
 export function startRonde(id, level = 1, rng = Math.random) {

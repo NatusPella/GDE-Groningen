@@ -67,6 +67,7 @@ export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepo
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 import { markerColors } from './a11y.js';
+import { loonSchatting } from './bijbaanregels.js';
 // #631: de klus-marker volgt de kleurenblindmodus (dezelfde bron als de kaartmarkers), geen eigen oranje.
 export const JOB_TARGET_COLOR = markerColors().job;
 const USE_RADIUS = 2.4;
@@ -171,7 +172,7 @@ export function getSideJobOffers(w) {
   const why = blockReason(w);
   return spots.map((s) => {
     const r = rec(s.job.id);
-    const [lo, hi] = r.rounds >= 2 ? [Math.round(r.earned / r.rounds * 0.75), Math.round(r.earned / r.rounds * 1.25)] : PAY_GUESS[s.job.id] || [25, 60];
+    const [lo, hi] = r.rounds >= 2 ? [Math.round(r.earned / r.rounds * 0.75), Math.round(r.earned / r.rounds * 1.25)] : PAY_GUESS[s.job.id] || loonSchatting(s.job.id) || [25, 60];
     const lvl = jobLevel(s.job.id);
     const pr = sidejobProfiel(s.job.id);
     return {
