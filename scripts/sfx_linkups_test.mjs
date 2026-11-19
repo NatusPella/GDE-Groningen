@@ -45,7 +45,7 @@ for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || linked.has(basis
 for (const s of SELF_PUSHED) ok(!LINK_RULES.some((r) => r.fx === s.fx), `${s.fx}: not both linked and self-pushed`);
 ok(new Set(LINK_RULES.map((r) => r.fx)).size === LINK_RULES.length, 'one rule per effect');
 ok(/wood: true/.test(src('geheimen.js')) && /e.wood/.test(src('audio.js')), 'wooden door: geheimen.js asks, audio.js plays door_wood_*');
-const pushers = { shop_bell: ['shops.js'], kermis_ding: ['kermis.js'] };
+const pushers = { shop_bell: ['shops.js'], kermis_ding: ['kermis.js'], hengel_beet: ['hengelen.js'], hengel_uitwerp: ['hengelen.js'], hengel_vangst: ['hengelen.js'], hengel_los: ['hengelen.js'], horeca_hap: ['horeca.js'] };
 for (const [fx, files] of Object.entries(pushers)) for (const f of files) ok(new RegExp(`name: '${fx}'`).test(src(f)), `${f} pushes ${fx}`);
 for (const fx of ['shop_bell', 'kermis_ding']) {
   const count = fs.readdirSync(JS).filter((f) => f.endsWith('.js')).reduce((a, f) => a + (src(f).match(new RegExp(`['"]${fx}['"]`, 'g')) || []).length, 0);

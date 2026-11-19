@@ -5,6 +5,9 @@ import { edgeDistance, parcelAt, MAAR_WATER } from '../countryfield.js';
 import { urbanWeight } from '../provinceworld.js';
 import { trunksNear } from '../countrywalls.js';
 import { rand as rnd } from '../rng.js';
+import { seaAt } from '../regions.js';
+import { streekAt } from '../regioleven.js';
+import { streekNiveaus } from './streekklank.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
 // is, scheduled ambient events (birds, gulls, clinks, thunder), the
@@ -13,14 +16,19 @@ import { rand as rnd } from '../rng.js';
 let K = null;
 const SCAN_EVERY = 0.5;
 const BED_STOP_AFTER = 4;
+// gebouwtypen die als bedrijfsterrein klinken (de industrielaag)
+const INDUSTRIAL = new Set(['industrial', 'warehouse', 'storage_tank', 'silo', 'factory', 'service']);
 
 const place = {
   green: 0, trees: 0, treePts: [], waterD: Infinity, waterX: 0, waterY: 0,
   square: 0, horeca: 0, horecaPts: [], density: 0, open: 0, traffic: 0, peds: 0, rural: 0,
+  // de streek (streekklank.js): op zee, zee in de buurt, de streek, loodsen en fabrieken dichtbij
+  sea: false, coast: 0, streek: null, industrial: 0,
 };
 export function getPlace() { return place; }
 
 const beds = {};
+const skIn = {}, skOut = {};   // hergebruikt: setTargets draait elk beeld
 const BED_DEFS = {
   city: { buf: 'bed_city' },
   wind: { buf: 'bed_wind', filter: true },
@@ -30,6 +38,11 @@ const BED_DEFS = {
   terrace: { buf: 'bed_terrace' },
   crickets: { buf: 'bed_crickets' },
   lap: { buf: 'bed_lap', positional: true },
+  // per streek (streekklank.js): zee en kust, open polder, riet, industrie
+  kust: { buf: 'bed_kust' },
+  polder: { buf: 'bed_polder' },
+  riet: { buf: 'bed_riet' },
+  industrie: { buf: 'bed_industrie' },
 };
 
 let scanTimer = 0;
@@ -218,14 +231,16 @@ function scan(world) {
   for (const g of map.greenNear(x, y, 30)) if (g.kind === 'outdoor_seating') hn += 0.8;
   place.horeca = clamp(hn / 5, 0, 1);
 
-  let dens = 0, near70 = 0;
+  let dens = 0, near70 = 0, ind = 0;
   for (const b of map.buildingsNear(x, y, 60)) {
     const [minx, miny, maxx, maxy] = b.bounds;
     const d = Math.hypot(Math.max(minx - x, 0, x - maxx), Math.max(miny - y, 0, y - maxy));
     if (d < 60) near70++;
+    if (d < 50 && INDUSTRIAL.has(b.type)) ind++;
     if (d < 22) dens += clamp((b.h || 8) / 12, 0.3, 1.6) * (1 - d / 22);
   }
   place.density = clamp(dens / 5, 0, 1);
+  place.industrial = clamp(ind / 4, 0, 1);
   place.open = place.density < 0.35 && near70 > 8 ? clamp((near70 - 8) / 20, 0, 1) * (1 - place.density) : 0;
 
   let traffic = 0;
@@ -242,6 +257,7 @@ function scan(world) {
   place.peds = clamp(peds / 14, 0, 1);
 
   countryPlace(x, y);
+  coastPlace(x, y);
 
   const v = rijdtIn(world);
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;
@@ -273,6 +289,23 @@ function countryPlace(x, y) {
   if (pm < place.waterD) { place.waterD = Math.max(0, pm); place.waterX = x; place.waterY = y; }
 }
 
+// De zee: staat de luisteraar op zee, en hoeveel zee ligt er binnen 150 m (0 tot 1). De zee heeft geen
+// waterpolygoon (alleen de kustlijn), dus dit is de enige manier om een dijk of strand te herkennen.
+const COAST_R = 150;
+function coastPlace(x, y) {
+  place.sea = seaAt(x, y);
+  let n = 0;
+  if (!place.sea) {
+    if (seaAt(x + COAST_R, y)) n++;
+    if (seaAt(x - COAST_R, y)) n++;
+    if (seaAt(x, y + COAST_R)) n++;
+    if (seaAt(x, y - COAST_R)) n++;
+  }
+  place.coast = n / 4;
+  const s = streekAt(x, y);
+  place.streek = s ? s.id : null;
+}
+
 function smooth01(a, b, x) {
   const t = clamp((x - a) / (b - a), 0, 1);
   return t * t * (3 - 2 * t);
@@ -296,6 +329,16 @@ function setTargets(world) {
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
   beds.lap.target = clamp(1 - place.waterD / 28, 0, 1) * (v && v.isBoat ? 0.32 : 0.2) * paused;
+
+  // de lagen per streek: eerst de gemeten niveaus, dan het weer (regen overstemt de brandingwind) en de pauze
+  skIn.sea = place.sea; skIn.coast = place.coast; skIn.streek = place.streek; skIn.rural = place.rural; skIn.open = place.open;
+  skIn.industrial = place.industrial; skIn.waterD = place.waterD; skIn.density = place.density; skIn.closed = closed; skIn.night = night;
+  const sk = streekNiveaus(skIn, skOut);
+  const droog = 1 - rain * 0.5;
+  beds.kust.target = sk.kust * droog * paused;
+  beds.polder.target = sk.polder * (1 - rain * 0.7) * paused;
+  beds.riet.target = sk.riet * (1 - rain * 0.6) * paused;
+  beds.industrie.target = sk.industrie * paused;
 
   const t = now();
   if (beds.wind.filter) beds.wind.filter.frequency.setTargetAtTime(closed ? 700 : 2500 + rain * 6000, t, 0.3);

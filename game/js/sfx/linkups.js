@@ -14,6 +14,12 @@ import { hoofdspeler } from '../players.js';
 // shops.js and kermis.js push themselves (SELF_PUSHED below).
 
 export const SELF_PUSHED = [
+  // de hengel (hengelen.js: uitwerpen, beet, vangst, ontsnapt of te vroeg) en een hapje (horeca.js); de basisnaam, de bank heeft varianten
+  { fx: 'hengel_uitwerp', where: 'hengelen.js (cast: de lijn gaat uit en het dobbertje plopt)' },
+  { fx: 'hengel_beet', where: 'hengelen.js (bite: een vis zit aan de haak)' },
+  { fx: 'hengel_vangst', where: 'hengelen.js (catch: de vis wordt binnengehaald)' },
+  { fx: 'hengel_los', where: 'hengelen.js (lost of early: de vis ontsnapt)' },
+  { fx: 'horeca_hap', where: 'horeca.js (tryHorecaInteract: een hapje en een drankje)' },
   // de UI-geluidstaal: sfx/ui.js speelt ze op de UI-bus (uiFx), de keuze per melding staat in sfx/uitaal.js
   { fx: 'ui_tab', where: 'sfx/ui.js (een tab van een menu: menunav.js geeft sound tab)' },
   { fx: 'ui_weiger', where: 'sfx/ui.js (melding: te weinig geld, kan niet)' },
@@ -149,6 +155,20 @@ export const LINK_RULES = [
         if (k.state === 'closing' || k.state === 'opening') out.push(ev('sluis_poort', k.x, k.y));
         else if (k.state === 'levelling') out.push(ev('sluis_stroom', k.x, k.y));
       }
+    },
+  },
+  {
+    id: 'water-uit',
+    fx: 'water_uit',
+    source: 'player.js: swimming wordt weer false terwijl de speler niet respawnt (uit het water klimmen, in een boot of op de kant)',
+    init: () => ({ was: null, x: 0, y: 0 }),
+    step(s, world, env, out) {
+      const p = hoofdspeler(world);
+      const now = !!p.swimming;
+      // een sprong van meer dan 6 m in een beeld is een teleport (reizen, missie, respawn), geen klim
+      const sprong = Math.hypot(p.x - s.x, p.y - s.y) > 6;
+      if (s.was === true && !now && !sprong && !world.pendingRespawn && !p.dead) out.push(ev('water_uit', p.x, p.y));
+      s.was = now; s.x = p.x; s.y = p.y;
     },
   },
   {

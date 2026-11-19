@@ -4,6 +4,7 @@ import { countryFacilities, countryDoor, poiLayerPlaces } from './facilities.js'
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { noteMoney } from './finance.js';
+import { pushAudioEvent } from './pedgeom.js';
 
 const TRIGGER_RADIUS = 4;
 const USE_COOLDOWN = 60;
@@ -143,6 +144,7 @@ export function tryHorecaInteract(world) {
   world.health = Math.min(100, world.health + HEAL_AMOUNT);
   const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
   world.addMessage(toast(name, amount), TOAST_DURATION);
+  pushAudioEvent(world, { kind: 'fx', name: 'horeca_hap', x: spot.x, y: spot.y });
   recordUnique(world, 'horeca', `${spot.osmName || name}@${Math.round(spot.x)},${Math.round(spot.y)}`);
   return true;
 }

@@ -203,16 +203,17 @@ function updateGame(w, dt) {
   const evs = stepHengel(g.s, { cast }, dt);
   try { if (g.anim === undefined) g.anim = maakHengelAnim(); if (g.anim) g.anim.update(dt, w, g.s, evs, at); } catch (e) { g.anim = null; }
   for (const e of evs) {
-    if (e.type === 'cast') { if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'splash', x: at.x, y: at.y }); }
-    else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); }
-    else if (e.type === 'bite') { g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; }
+    if (e.type === 'cast') { if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'fx', name: 'hengel_uitwerp', x: at.x, y: at.y }); }
+    else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y, gain: 0.6 }); }
+    else if (e.type === 'bite') { g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
     else if (e.type === 'catch') {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
+      pushAudioEvent(w, { kind: 'fx', name: 'hengel_vangst', x: at.x, y: at.y });
       g.haalT = 0.9; // de ruk is voorbij: even binnenhalen voordat je weer klaarstaat
       const naam = (s && (s.naam || s.name)) || e.fish;
       g.flash = { text: `${r && r.nieuweSoort ? 'Nieuw: ' : ''}${naam} van ${kgTekst(e.kg)}!`, bad: false, t: 0 };
-    } else if (e.type === 'lost') { g.flash = { text: 'Ontsnapt', bad: true, t: 0 }; say(w, 'lost'); }
+    } else if (e.type === 'lost') { g.flash = { text: 'Ontsnapt', bad: true, t: 0 }; say(w, 'lost'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y }); }
     else if (e.type === 'done') { einde(w); return; }
   }
   // de hengelhouding (#437): de fase kiest de beweging van het lichaam; in een boot zit je en houdt de pose rust
