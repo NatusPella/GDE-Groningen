@@ -123,7 +123,7 @@ let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 // in scripts/bot/board.mjs, om dezelfde reden buiten game/js.
 {
   const board = fs.readFileSync(path.join(HERE, 'board.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
-  pre += `window.__botBoard = (() => {\n${board}\nreturn { BOARD, bodyDistance, approachPoint, pickVehicle, boardStep, driveStep, pressed, missed };\n})();\n`;
+  pre += `window.__botBoard = (() => {\n${board}\nreturn { BOARD, bodyDistance, approachPoint, deurPunt, pickVehicle, boardStep, driveStep, pressed, missed };\n})();\n`;
 }
 // #312: de fietsrace van M05 (de KEI-route volgen, mikken, sprinten, time-out) staat in
 // scripts/bot/bikerace.mjs, om dezelfde reden buiten game/js.

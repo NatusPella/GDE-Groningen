@@ -62,5 +62,10 @@ t('bot.page.js geeft de deurfunctie door en drukt alleen E bij een deur', () => 
   assert.match(p, /=== vObj && DR\.bijInstapdeur\(vObj, player\.x, player\.y\)/);
 });
 
+t('run.mjs geeft deurPunt aan de pagina mee (window.__botBoard)', () => {
+  const r = fs.readFileSync(new URL('./bot/run.mjs', import.meta.url), 'utf8');
+  assert.match(r, /return {[^}]*approachPoint, deurPunt, pickVehicle/);
+});
+
 console.log(`botdeur_test: ${n} checks`);
 process.exit(process.exitCode || 0);
