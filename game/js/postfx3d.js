@@ -290,6 +290,11 @@ export function createPostFX(renderer, scene, cam) {
     get level() { return level; },
     // where the scene itself is rendered (null: straight to the canvas)
     get sceneTarget() { return composer ? composer.passes[0].target : null; },
+    // can the scene draw with a stencil? (the MSAA target has one; straight to the canvas it depends on the context)
+    get hasStencil() {
+      if (composer) return !!composer.passes[0].target.stencilBuffer;
+      try { const at = renderer.getContext().getContextAttributes(); return !!(at && at.stencil); } catch { return false; }
+    },
     setLevel(next) {
       if (next === level && (composer || (next === 'laag' && nativeAA))) return;
       level = next;

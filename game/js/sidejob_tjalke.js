@@ -6,6 +6,7 @@ import { accentVan } from './sidejobprofiel.js';
 // het sidejob-contract (sidejobs.js: `once` beëindigt de dienst na de aankomst). Alleen als missie: na afloop is hij niet te herhalen.
 import { dist } from './util.js';
 import { spawnJobVehicle } from './sidejobkit.js';
+import { banenWanted, zetBanenWanted } from './sidejobwereld.js';
 import { addDrunk } from './drunk.js';
 import { roadUnder } from './trafficlaw.js';
 import { hasUnique } from './achievements.js';
@@ -88,7 +89,7 @@ export default {
       afstandSlalom: slalomAfstand,
       along: pos.along,
       afstandEinde: dist(p.x, p.y, RIT.einde.x, RIT.einde.y),
-      wanted: w.wanted || 0,
+      wanted: banenWanted(w),
       tikken: pionnenOmgetikt(),
       opWeg: !!(weg && weg.type === 'motorway'),
     };
@@ -98,9 +99,8 @@ export default {
       else if (e.type === 'tik') c.msg(TEKST.tik[(e.n - 1) % TEKST.tik.length], 1.6);
       else if (e.type === 'slalom-klaar') c.msg(TEKST.slalomKlaar, 3.5);
       else if (e.type === 'politie') {
-        w.drunkExempt = false;
-        w.wanted = Math.max(w.wanted || 0, e.sterren);
-        w.wantedDecayTimer = 0;
+        if (!w.gastWereld) w.drunkExempt = false; // alleen de wereld van de host: een gast raakt zijn eigen drankstand niet via de host
+        zetBanenWanted(w, Math.max(banenWanted(w), e.sterren)); // het niveau van wie deze rit rijdt: een gast zet zijn eigen sterren, niet die van de host
         c.msg(e.ruw ? TEKST.politieRuw : TEKST.politieSchoon, 5);
       } else if (e.type === 'kwijt') {
         stopPionnen();

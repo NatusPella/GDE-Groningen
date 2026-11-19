@@ -23,3 +23,14 @@ export function eggSpeedLoss(mps, rough, dt) {
 export function eggSpeedWarning(kmh, limit) {
   return Number.isFinite(kmh) && Number.isFinite(limit) && limit > 0 && kmh >= limit - EGG_SPEED_MARGIN_KMH;
 }
+
+// De foutmelding als de eieren te veel stuk zijn. failAt is een percentage van de meter, geen aantal eieren:
+// bij 60 eieren en failAt 38 faalt de rit met 22 of 23 heel (dus ruim 60% stuk), niet "meer dan de helft".
+// Met een eierental noemt de tekst het echte aantal, zonder die telling de vaste tekst van de opdracht.
+export function eggFailText(def, eggsPct) {
+  const e = def && def.eggs;
+  if (!e) return '';
+  if (!(e.count > 0) || !Number.isFinite(eggsPct)) return e.fail || '';
+  const heel = Math.max(0, Math.min(e.count, Math.round(eggsPct / 100 * e.count)));
+  return `te veel eieren zijn stuk: nog maar ${heel} van de ${e.count} heel. Laad opnieuw`;
+}

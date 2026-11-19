@@ -33,6 +33,7 @@ import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
+import { zetVrachtStencilProbe } from './vrachtruimte3d.js';
 import { syncAutoStuur } from './autointerieur.js';
 import { syncVoertuigBediening } from './voertuigbediening.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
@@ -988,6 +989,7 @@ export function init3D(map) {
   billboardRoot = document.getElementById('hud');
 
   postfx = createPostFX(renderer, scene, cam);
+  zetVrachtStencilProbe(() => postfx.hasStencil);
   initNightLights(scene);
   for (const b of gridItems(map.buildingGrid)) if (b.landmark) landmarkBuildings.push(b);
   farLod = createFarLOD(scene, map, {

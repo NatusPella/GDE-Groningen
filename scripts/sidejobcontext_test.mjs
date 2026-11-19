@@ -120,7 +120,7 @@ t('sidejobs.js: een register per eigenaar, een eigen wereld en invoer voor een g
   assert.match(sj, /owner, world: w, job, spot,/, 'de context kent zijn eigenaar en wereld');
   assert.match(sj, /function startJob\(job, takeover = null, owner = 0, cw = null\)/);
   assert.match(sj, /const cw = Object\.create\(w\)/);
-  assert.match(sj, /cw\.player = spelerBeeld\(lichaamVan\(w, slot\)\)/); assert.match(sj, /function spelerBeeld\(l\)/); assert.match(sj, /if \(k === 'inVehicle'\) return t\.inVehicle \|\| t\.inVeh \|\| null;/, 'een figuur (plek 2 en hoger) zit in inVeh; de baan vraagt naar inVehicle'); assert.match(sj, /cw\.input = invoerVoor\(w, slot\)/);
+  assert.match(sj, /cw\.player = spelerBeeld\(lichaamVan\(w, slot\)\)/); // het gedrag van spelerBeeld staat in sidejobwereld.js en wordt onderaan getest
   assert.match(sj, /startJob\(job, null, slot, gastWereld\(world, slot\)\)/, 'een gast start zijn eigen baan');
   assert.match(sj, /function updateContext\(dt, w, c\)/); assert.match(sj, /if \(!checkVehicle\(dt, c\)\) return;/);
   assert.match(sj, /c\.timeLeft -= dt;[\s\S]*c\.job\.round\(c\)[\s\S]*c\.job\.update\(dt, c\)/, 'timer, ronde en update per context');
@@ -290,6 +290,64 @@ t('de host wordt niet uitgenodigd voor een gastenbaan als hij zelf al werkt', ()
   assert.equal(Object.values(hw.coopNet.bijbanen[1].keuze).includes('wacht'), false, 'geen wachtende uitnodiging voor de host');
   assert.equal(B.bijbaanHostMee(hw, 1), false);
   S.quitSideJob(1); S.quitSideJob(0);
+});
+
+// ------------------------------------------------------------------ schrijfacties van een gastbaan (#847-review)
+// De baan van een gast draait op een schaduw van de wereld van de host. Schrijfacties (geld, gezocht) mogen daar niet
+// stilletjes verdwijnen of de stand van de host aanraken: ze gaan via de haken van sidejobwereld.js.
+const WW = await import('../game/js/sidejobwereld.js');
+const { betaalRitkosten } = await import('../game/js/sidejob_vracht.js');
+
+t('een echte gastdienst: ritkosten raken het geld van de host niet, sterren komen op de plek van de gast', () => {
+  const s = sessie(2); s.step(2);
+  const hw = s.hw;
+  hw.money = 500;
+  S.updateSideJobs(0, hw);
+  let gezien = null;
+  const baan = { ...NEPBAAN, start: (c) => {
+    gezien = { world: c.world, betaald: betaalRitkosten(c.world, { totaal: 120 }) };
+    WW.zetBanenWanted(c.world, 3);
+    c.world.money = 9999; // een baan die toch rechtstreeks schrijft: gemeld en niet bewaard
+    c.world.wanted = 5;
+    return true;
+  } };
+  const warn = console.warn; const meldingen = []; console.warn = (...a) => meldingen.push(a.join(' '));
+  try { assert.equal(S.startSideJobVoorTest(baan, 2), true); } finally { console.warn = warn; }
+  assert.equal(gezien.world.gastWereld, true, 'een gastwereld');
+  assert.equal(gezien.betaald, 0, 'een gast betaalt de ritkosten niet van het geld van de host');
+  assert.equal(hw.money, 500, 'het geld van de host is onaangeroerd');
+  assert.equal(hw.wanted, 0, 'de sterren van de host zijn onaangeroerd');
+  assert.equal(hw.coopWanted[2], 3, 'de gast heeft zijn eigen sterren');
+  assert.equal(WW.banenWanted(gezien.world), 3, 'de baan leest het niveau van de gast');
+  assert.equal(Object.prototype.hasOwnProperty.call(Object.getPrototypeOf(gezien.world) === hw ? gezien.world : {}, 'money'), false, 'geen stille eigen kopie van money op de schaduw');
+  assert.equal(gezien.world.money, 500, 'lezen blijft op de host');
+  assert.ok(meldingen.some((m) => /world.money/.test(m)) && meldingen.some((m) => /world.wanted/.test(m)), 'directe schrijfacties zijn gemeld: ' + meldingen.join('|'));
+  S.quitSideJob(2);
+});
+
+t('dezelfde haken bij de host: ritkosten van zijn geld, sterren in world.wanted', () => {
+  const w = { money: 80, wanted: 1, wantedDecayTimer: 7 };
+  const boeken = [];
+  assert.equal(WW.betaalBanenUitgave(w, 120, 'Overige uitgaven', (r) => boeken.push(r)), 80, 'hooguit wat hij heeft');
+  assert.equal(w.money, 0); assert.deepEqual(boeken, ['Overige uitgaven']);
+  assert.equal(betaalRitkosten({ money: 300 }, { totaal: 120 }), 120);
+  assert.equal(WW.banenWanted(w), 1);
+  WW.zetBanenWanted(w, 4);
+  assert.equal(w.wanted, 4); assert.equal(w.wantedDecayTimer, 0);
+});
+
+t('het spelerbeeld van een gast: inVehicle uit inVeh, methoden gebonden en maar één keer', () => {
+  let aanroepen = 0;
+  const lichaam = { x: 1, char: 'anita', inVeh: { id: 'v' }, zegHoi() { aanroepen++; return this.x; } };
+  const beeld = WW.spelerBeeld(lichaam);
+  assert.equal(beeld.inVehicle, lichaam.inVeh); assert.equal(beeld.character, 'anita');
+  const f1 = beeld.zegHoi, f2 = beeld.zegHoi;
+  assert.equal(f1, f2, 'dezelfde gebonden functie bij elke lezing (geen bind per lezing)');
+  const los = beeld.zegHoi; assert.equal(los(), 1, 'this blijft het lichaam'); assert.equal(aanroepen, 1);
+  lichaam.zegHoi = function () { return 'nieuw'; };
+  assert.equal(beeld.zegHoi(), 'nieuw', 'een vervangen methode wordt weer opgepikt');
+  beeld.x = 5; assert.equal(lichaam.x, 5, 'schrijven gaat naar het lichaam');
+  assert.equal(WW.spelerBeeld(null), null);
 });
 
 console.log(`sidejobcontext_test: ${n} tests ok`);

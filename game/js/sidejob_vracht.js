@@ -16,6 +16,7 @@ import { newTrailer, couple, uncouple, stepTrailer, fifthWheel, loadedHandling, 
 import { maakAanbod, contractLoon, laadTijd, losTijd, helpLaadTijd, HELP_STAP_S } from './vrachtmarkt.js';
 import { ritKosten, eigenTruckHook } from './vrachtkosten.js';
 import { noteMoney } from './finance.js';
+import { betaalBanenUitgave, isGastWereld } from './sidejobwereld.js';
 
 const TRACTOR = { name: 'truck', len: 6.6, wid: 2.5, maxSpeed: 24, accel: 3.6, brake: 12, turnRate: 1.5, color: '#2f5c8a' };
 const KP_BACK = 1.6;
@@ -69,14 +70,9 @@ function clearTrailer(c) {
 // De rit kost brandstof, tol en onderhoud (#492). Dat gaat via de bestaande
 // finance-haak (noteMoney + world.money), niet met een eigen kasboek. Heb je te
 // weinig geld, dan kost de rit niet meer dan je hebt.
-function betaalRitkosten(world, kosten) {
-  const te = Math.max(0, Math.round(kosten.totaal));
-  const betaald = Math.min(te, Math.max(0, Math.floor(world.money || 0)));
-  if (betaald > 0) {
-    noteMoney('Overige uitgaven');
-    world.money -= betaald;
-  }
-  return betaald;
+export function betaalRitkosten(world, kosten) {
+  // via de haak: bij de host van zijn geld, bij een gast niet van het geld van de host (sidejobwereld.js)
+  return betaalBanenUitgave(world, kosten.totaal, 'Overige uitgaven', noteMoney);
 }
 
 // De bijrijder kan alleen helpen als de trekker stilstaat en er nog iets te laden of te lossen is;
@@ -182,7 +178,8 @@ export default {
     // laaddeur of de losplaats nooit de reden is dat de klus mislukt.
     c.timeLeft = 90 + (d.dist * 1.7) / 10 + d.loadLeft + d.losLeft;
     c.msg(`Klus: ${contract.vracht} naar ${contract.klant}. ${contract.naam}, €${contract.tariefPerKm} per km. Rij achteruit onder de oplegger.`, 4.5);
-    c.msg(`Ritkosten €${kosten.totaal}: brandstof €${kosten.brandstof}, tol €${kosten.tol}, ${c.ownVehicle ? 'APK en onderhoud' : 'onderhoud leen-truck'} €${kosten.onderhoud}. Van €${verwacht} bruto blijft ongeveer €${netto} over (excl. fooi)${betaald < kosten.totaal ? ` (je kon maar €${betaald} betalen)` : ''}.`, 5.5);
+    if (isGastWereld(c.world)) c.msg(`Ritkosten €${kosten.totaal}: brandstof €${kosten.brandstof}, tol €${kosten.tol}, onderhoud €${kosten.onderhoud}. Die gaan niet van jouw geld af in deze rit; het loon van de rit komt per ronde binnen.`, 5.5);
+    else c.msg(`Ritkosten €${kosten.totaal}: brandstof €${kosten.brandstof}, tol €${kosten.tol}, ${c.ownVehicle ? 'APK en onderhoud' : 'onderhoud leen-truck'} €${kosten.onderhoud}. Van €${verwacht} bruto blijft ongeveer €${netto} over (excl. fooi)${betaald < kosten.totaal ? ` (je kon maar €${betaald} betalen)` : ''}.`, 5.5);
   },
 
   timeout: (c) => {

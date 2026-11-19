@@ -285,5 +285,33 @@ t('racers.js en stuntavond.js lezen de groep via stagegroep.js, niet met een eig
   assert.match(bron('stagegroep.js'), /export function groepsActeurs\(world\)/, 'de helper staat in de bestaande laag');
 });
 
+// ---- de staat van missions.js is module-globaal: een nieuwe init begint schoon (ketens, pubs, groepsplekken)
+t('initMissions wist de keten van een gastgroep: na een nieuwe init is hij weg', () => {
+  const wp = kroeg().waypoints[1];
+  const w1 = wereld({ gasten: [{ slot: 1, x: wp.x, y: wp.y, status: 'voet', zichtbaar: true }], meedoen: [1] });
+  assert.equal(w1.coopMissieStart(kroegIndex(), 1), true, 'een gast start zijn eigen opdracht (groepsketen)');
+  assert.equal(w1.coopGroepMissieIds().length, 1, 'de groepsketen loopt');
+  assert.equal(w1.coopGroepToets(1, 'KeyE'), true, 'de toets van de gast gaat naar zijn groepsinvoer');
+  M.updateMissions(0.05, w1);
+  const w2 = wereld(); // opnieuw initialiseren (een nieuwe wereld of een geladen spel)
+  assert.equal(w2.coopGroepMissieIds().length, 0, 'de groepsketen van de vorige wereld is weg');
+  assert.equal(w2.coopGroepToets(1, 'KeyE'), false, 'geen groepsinvoer of -plek meer van de vorige wereld');
+  assert.equal(w2.coopGroepMissieVoor(w1.coopGroepMissieIds()[0] || 'x'), null);
+  assert.doesNotThrow(() => { M.updateMissions(0.05, w2); M.updateMissions(0.05, w2); }, 'de lus loopt door met alleen de eigen keten');
+  assert.equal(M.missionDebug.state().phase, 'idle', 'de eigen keten van de nieuwe wereld staat in rust');
+});
+
+t('opnieuw initialiseren zonder groepen houdt de eigen keten en pub per wereld apart', () => {
+  const a = wereld();
+  assert.equal(M.missionDebug.start(a, kroegIndex()), true);
+  assert.equal(a.mission.phase, 'active');
+  const b = wereld();
+  assert.equal(b.mission.phase, 'idle', 'de nieuwe wereld erft de lopende opdracht niet (direct na init)');
+  assert.equal(M.missionDebug.state().index, 0, 'de keten van de nieuwe wereld begint bij het begin');
+  b.player.x = 99999; b.player.y = 99999; // ver van elk startpunt (de eerste opdracht begint op de testkaart bij de oorsprong)
+  M.updateMissions(0.05, b);
+  assert.equal(b.mission.phase, 'idle');
+});
+
 if (fails) console.log(`coopmissie_motor_test: ${n - fails}/${n} ok, ${fails} mislukt`);
 else console.log(`coopmissie_motor_test: ${n}/${n} ok`);
