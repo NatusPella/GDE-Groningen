@@ -9,6 +9,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Waarschuwing als de tijd bijna op is:** bij 30 en 10 seconden op de klok van een missie of klus komt een melding met een piep, en bij de laatste 10 seconden knippert de klok. Samen spelen: iedereen krijgt de waarschuwing in zijn eigen beeld, bij de klok die hij zelf ziet (#985).
+- **De minikaart is aanklikbaar:** een klik of tik op de minikaart opent de kaart, ook op een telefoon waar die achter Meer zat. Samen spelen: lokaal, voor iedereen in zijn eigen spel (#985).
+- **Onbekende streken lekken niet meer:** Te doen en de zoekbalk van de kaart tonen geen activiteiten, winkels of plekken van een streek die je nog niet kent; missies en het verhaal blijven staan. Samen spelen: iedere speler heeft zijn eigen ontdekte streken (#985).
+- **Evenementen staan vooruit in de agenda:** in Overzicht staan naast de bijzondere dagen ook de komende evenementen, met datum, tijd en plaats, zodat je kunt plannen naar bijvoorbeeld de Zomerkermis Zuidbroek (#985).
+- **Voortgang van de streken:** Je voortgang in Overzicht toont "3 van 8 streken verkend" en per ontdekte streek wat er nog openstaat (missies en uitkijkpunt); onbekende streken blijven zonder naam. Samen spelen: de voortgang is per speler (#985).
+- **De minimale HUD houdt de klok:** de stand Minimaal laat de klok van een lopende missie of klus staan en, op een dag met een evenement, ook de tijd van de dag (#985).
+- **De fotogalerij zegt het als de oudste foto wegvalt:** bij 23 foto's waarschuwt het scherm dat de galerij vol raakt, en bij de 25e zegt het dat de oudste uit de galerij is gehaald (het bestand blijft op je schijf) (#985).
+- **Prestaties staan stil bij een cheat:** het Prestaties-paneel zegt dat er een cheat aan staat die het spel makkelijker maakt en dat prestaties daarom niet meetellen (#985).
 - **Samen spelen: geen dubbele namen of kleuren meer (#985):** wie dezelfde naam of kleur kiest als een medespeler krijgt een nummer achter de naam ("Femke 2") of de eerste vrije kleur, zodat de spelerslijst en de naamlabels uit elkaar te houden zijn. Dit regelt de lijst die wie het spel opende aan iedereen doorgeeft, dus iedereen ziet dezelfde namen.
 - **Samen spelen: Verbinden… zegt wat er gebeurt (#985):** het scherm noemt de kamer waarnaar gezocht wordt en zegt na ruim 20 seconden dat een typefout in de code geen foutmelding geeft maar een kamer die niet bestaat. Het wachtscherm van een gast zegt dat de wereld van de ander stilstaat tot jij weer verbonden bent.
 - **De radio herhaalt zich minder (#985):** een regel van Geesje komt niet meteen terug zolang er een andere is, en de rotatie van de praatblokken en de gespeelde reclames blijven bewaard tussen twee keer spelen. Reclames blijven hoogstens 6,5 seconden in beeld, en een motor overstemt een gesprek in de auto niet meer.
