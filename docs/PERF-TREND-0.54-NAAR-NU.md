@@ -52,10 +52,43 @@ Bovengrens in het laadscherm bij een trage machine: 25 + 70 + shadercompilatie. 
 
 Opmerking over de flow: er is geen titelmenu in de gewone start; `runBootScreen` -> `warmBeforeFinish` -> spel. Alle opwarmwerk staat dus tussen "Start" en "speelbaar".
 
-## B. Metingen
+## B. Metingen (19-11-2026, Windows, gedeelde machine, verse wegwerpprofielen)
 
-Zie het eind van dit document (wordt ingevuld zodra Electron vrij is).
+Methode: gestagede builds uit `.scr`, Electron met `--stil --windowed`, `GDE_GAME_DIR`, een renderer-timer die elke 2 s `__loadMarks` en `renderer.info.programs` logt (`ELECTRON_ENABLE_LOGGING=1`). Let op: **elke geautomatiseerde run slaat het opwarmen over** (`WARM_START` is onwaar bij `noattract`, `stil`, `--smoke-test`, `--perf-script`); `loadcheck.mjs` en `run.mjs` meten dus het testpad, niet het spelerspad. Het spelerspad is gemeten met `?warm` (nieuw, `--url-flags=noattract,warm`) of met een staged `WARM_START = true` voor de oude budgetten. De machine deelde CPU met andere agents (de weg-agent); de spreiding tussen runs is groot, de orde van grootte niet.
 
-## C. Herstel
+| Build (wereld van HEAD) | Pad | Start tot speelbaar (`gameStart`) | Shaderprogramma's | Heap | Opmerking |
+|---|---|---|---|---|---|
+| v0.54.0 | n.v.t. | niet te meten | | | oude build leest de nieuwe wereld niet: kaartlaad 30 s en dan vast; een wereld van die tijd is niet bij de hand |
+| v0.58.0 | test = speler (geen opwarm) | 17,0 s | 108 stabiel | 0,8 GB | geen vaste budgetten |
+| HEAD voor de fix (25 s + 70 s) | spelerspad | **111,7 s** (startWarm 98,7 s, introTour 39 s, introPaletteDraw 31 s, slechtste warm-frame 1,96 s) | 157 na 20 s, 556 bij start, 582 later | 2,0 tot 2,8 GB in het laadscherm | 1 geldige run; een tweede werd door mij onderbroken |
+| HEAD na 7faf1917d (15 s totaal) | spelerspad | 36,5 s (run 2; run 1 haalde de start niet binnen 100 s) | 126 na 20 s, 476 later | 0,9 tot 1,1 GB | introPaletteDraw 8,2 s en 2,5 s frame blijven |
+| HEAD, alleen startbuurt-warm | spelerspad | 18,3 en 20,6 s | 201 stabiel | 0,85 GB | |
+| HEAD, geen warm | testpad | 17,5 s | 100 stabiel | 0,75 GB | gelijk aan v0.58.0 |
+| HEAD na deze fix (film-warm uit) | spelerspad | 20,2 s (run 1) | 107 bij start, **521 na 70 s** | 0,9 GB, piek 2,0 GB in de film | de film zelf bouwt ~420 programma's |
 
-Zie het eind van dit document.
+Niet gemeten: frametijd-norm op de routes a7 en stad (`norm_check`; de machine was niet stil genoeg en Electron-tijd ging op aan de laadpadmeting), de portable-exe tegen `win-unpacked`, een tweede en derde run per cel, profielen van v0.54.0. Frames boven 100 ms in de eerste 60 s van de film (zonder film-warm): 3 in run 1, 28 in run 2 (uitschieters 3,6 s en 2,5 s bij shotwissels, dus eerste-draw-links); met film-warm haalde de start geen enkele keer binnen 160 s het spel, dus daar is geen filmvergelijking.
+
+CPU-profiel van een warm-run (80 s): 10,8% GC, 9,6% `WebGLUniforms` (three, uniformen per nieuw programma), 6,4% `(program)`, 15% idle; `warm` zelf 28% inclusief.
+
+## Bevinding
+
+De regressie die de speler merkt zit in **de pleisters zelf, en daarbovenop in de hoeveelheid programma's die de openingsfilm aanmaakt**, niet in het spel na de start: zonder opwarmen start HEAD even snel als v0.58.0 (17,5 s tegen 17,0 s, 100 tegen 108 programma's). Het opwarmen (film-tour, palette, samples) maakte er 36 tot 112 s van en blies programma's en heap 3 tot 5 keer op. De film bouwt daarna alsnog ~420 extra programma's (zichtbaar in `renderer.info.programs`: 107 -> 521 in 50 s, vooral `physical/STANDARD`-varianten, 135 verschillende sleutels met dezelfde eerste 60 tekens) en elk daarvan linkt bij zijn eerste tekening synchroon: dat zijn de haperingen van 2 tot 4 s. De oorzaak is dus het aantal materiaalvarianten, niet het gebrek aan voorwarmen.
+
+## C. Herstel (gedaan)
+
+| Commit | Wat | Gemeten effect |
+|---|---|---|
+| 7faf1917d | totale opwarmgrens 15 s (was 25 + 70 s), per montageplek 0,7 s | start 112 s -> 36 s (1 run) |
+| 05efe3780 | film-warm (tour, palette, samples) standaard uit; `?warmfilm` voor A/B | start ~20 s, programma's bij start 107 (was 556), heap 0,9 GB (was 2-2,8) |
+| (zie hieronder) | opening eerst (#986), `?warm` om het spelerspad te meten | zuivere test `openingstart_test.mjs` |
+
+Prijs: de film krijgt zijn programma's niet meer voor het laadscherm, dus de shotwissels linken synchroon; dat is gemeten als 3 tot 28 frames boven 100 ms met uitschieters van 2,5 tot 3,6 s in de eerste 25 s van de film. Dat is de eerlijke afweging: laadscherm 20 s met een filmhapering, in plaats van 36 tot 112 s zonder.
+
+## Symptoom, pleister, oorzaak, voorstel
+
+| Symptoom | Pleister die het maskeert | Echte oorzaak (gemeten of afgeleid) | Voorstel |
+|---|---|---|---|
+| Laadscherm 36-112 s | START/INTRO-warm, tour, palette | het pleister zelf: 31 s palette-draw, 400+ extra programma's, 2-2,8 GB heap | film-warm uit (gedaan); `precompilePrograms` (+100 programma's, 0,5-9 s) volgende |
+| Film hapert 2-4 s per shotwissel | warm, tour, `setHold*`, cine-batches, voertuigfasering | ~420 nieuwe programma's tijdens de film, 135 `physical/STANDARD`-sleutels: elke variant linkt synchroon bij eerste draw | varianten tellen en samenvoegen (gedeelde materialen of een vaste set lichtvarianten); daarna de cine-pleisters schrappen |
+| Hoge heap in/na de film | `setHoldMaterials/Grass` | de film bouwt per plek eigen meshes en materialen | opruimen per shot; heap valt nu pas na de film terug (2,0 -> 0,9 GB) |
+| Bijna alle `updateGameplay`-groei | | +18 aanroepen sinds 0.62 | per systeem meten, niet gedaan |
