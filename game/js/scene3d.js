@@ -153,6 +153,7 @@ import { lookBackActive, chaseFollowLerp } from './controls.js';
 // los van three.js zodat scripts/camera_mobiel_test.mjs ze per scherm narekent (#463)
 import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, camPushRaysNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
+import { compileTarget } from './compiletarget.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -3974,7 +3975,7 @@ function prewarmLightVariants() {
 function precompile(obj) {
   const prev = renderer.getRenderTarget();
   renderer.setRenderTarget(postfx.sceneTarget);
-  try { renderer.compile(obj, cam, perfOff('compileklein') ? scene : compileScene()); } finally { renderer.setRenderTarget(prev); }
+  try { renderer.compile(obj, cam, perfOff('compileklein') ? scene : compileTarget(obj, scene, compileScene())); } finally { renderer.setRenderTarget(prev); }
 }
 
 // renderer.compile walks the whole target scene (all ~9000 nodes) to find the lights, once per call: for every
