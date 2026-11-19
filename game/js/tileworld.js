@@ -38,6 +38,8 @@ const SIGNAL_RULE = RULES.indexOf('signal');
 const hasSignalArm = (rows) => rows.some((row) => (row.a || []).some((a) => a[3] === SIGNAL_RULE));
 // the sections whose rows the game keeps without their id (rowsOf)
 const ID_ASIDE = [...KIND_OF.keys()];
+// NAV (the nav graph chains of the tiles) is only read by scripts (navgraph_test); the game never looks at it, so streamed tiles do not decode it
+export const GAME_SKIP_SECTIONS = [SECTION.NAV];
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', furniture: 'furnitureGrid', parcels: 'parcelGrid' };
 // A province tile's water row carries kind, lv, dp and nav (waterlevels.js
 // annotateProvinceWater): it joins the water grid like the city's, so boats,
@@ -586,7 +588,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   // start reading the baked ground while the city tiles come in; a build without
   // a cache (or an old stage) silently falls back to building it
   const bakedRead = terrainCache ? Promise.resolve().then(() => source.readAll(TERRAIN_FILE)).catch(() => null) : null;
-  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE)) || ((bytes) => decodeCompressed(bytes, ID_ASIDE));
+  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE, { skip: GAME_SKIP_SECTIONS })) || ((bytes) => decodeCompressed(bytes, ID_ASIDE, GAME_SKIP_SECTIONS));
   // dense: forceer de dichte arraylaag voor tests/audits die kaartrijen lezen; het spel
   // laadt de sparse productiewereld en streamt de stad.
   const dense = !!opts.dense;

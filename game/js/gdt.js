@@ -424,9 +424,10 @@ export function decodeSection(bytes, sec, strings, i, j, aside = null) {
   }
 }
 
-export function decodeBlob(bytes, aside = null) {
+// skip: section types that are not decoded at all (the streamed city tiles skip NAV: nothing in the game reads it, and it was ~31% of a city tile)
+export function decodeBlob(bytes, aside = null, skip = null) {
   const head = blobHeader(bytes);
   const strings = blobStrings(bytes, head);
-  const sections = head.sections.filter((s) => s.type !== SECTION.STRINGS).map((s) => ({ type: s.type, version: s.version, ...decodeSection(bytes, s, strings, head.i, head.j, aside) }));
+  const sections = head.sections.filter((s) => s.type !== SECTION.STRINGS && !(skip && skip.includes(s.type))).map((s) => ({ type: s.type, version: s.version, ...decodeSection(bytes, s, strings, head.i, head.j, aside) }));
   return { ...head, sections };
 }

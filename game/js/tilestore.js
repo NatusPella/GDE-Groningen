@@ -145,8 +145,8 @@ export async function inflateRaw(bytes) {
 
 // aside: a list of section types whose row ids come back as `gids` next to the rows (gdt.js decodeSection); the store passes its
 // meta as the second argument to a plain decoder, which is not a list and is ignored
-export async function decodeCompressed(bytes, aside = null) {
-  return decodeBlob(await inflateRaw(bytes), Array.isArray(aside) ? aside : null);
+export async function decodeCompressed(bytes, aside = null, skip = null) {
+  return decodeBlob(await inflateRaw(bytes), Array.isArray(aside) ? aside : null, Array.isArray(skip) ? skip : null);
 }
 
 // --------------------------------------------------------------- frame queue
@@ -487,8 +487,9 @@ export class TileStore {
 export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   if (typeof Worker === 'undefined') return null;
   const aantal = Math.max(1, Math.min(8, Number(size) || 1));
+  const skip = Array.isArray(opts.skip) ? opts.skip : null; // section types the worker does not decode (and so does not clone back)
   const timeoutMs = Number.isFinite(opts.timeoutMs) && opts.timeoutMs > 0 ? opts.timeoutMs : WORKER_TIMEOUT_MS;
-  const fallback = typeof opts.fallback === 'function' ? opts.fallback : (bytes) => decodeCompressed(bytes, aside);
+  const fallback = typeof opts.fallback === 'function' ? opts.fallback : (bytes) => decodeCompressed(bytes, aside, skip);
   const pool = []; // { w, dood }; a dead worker is gone from this list
   const open = new Map(); // id -> { resolve, reject, timer, rec, bron }
   let next = 1, rr = 0, gestopt = false;
@@ -563,7 +564,7 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
       hoofdthread(bytes).then(resolve, reject);
     }, grens(timeoutMs, BOOT_WORKER_FACTOR));
     open.set(id, { resolve, reject, timer, rec, bron: bytes });
-    try { rec.w.postMessage({ id, bytes: copy, aside }, [copy.buffer]); }
+    try { rec.w.postMessage({ id, bytes: copy, aside, skip }, [copy.buffer]); }
     catch (e) {
       clearTimeout(timer);
       open.delete(id);
