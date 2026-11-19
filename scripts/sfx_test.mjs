@@ -91,6 +91,7 @@ for (const [cat, c] of Object.entries(CATEGORIES)) {
 }
 ok(categoryLevel('onbekend') > 0, 'mix: unknown category has a level');
 ok(speechDuckFactor('ui') === 1, 'mix: UI is never ducked by speech');
+ok(speechDuckFactor('voertuig', 1) < 0.5, 'mix: een motor blijft onder de helft zolang er iemand praat (#985)');
 let prev = Infinity;
 for (const d of [0, 5, 20, 80, 300, 1000]) { const g = distanceGain(d, 8, 0.8); ok(g <= prev && g > 0 && g <= 1, `distanceGain(${d}) monotonic`); prev = g; }
 prev = Infinity;

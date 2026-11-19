@@ -11,7 +11,8 @@ export const SPEED_OF_SOUND = 343;
 export const CATEGORIES = {
   explosie: { level: 1.0, speech: 0.7 },
   wapen: { level: 0.95, speech: 0.8 },
-  voertuig: { level: 0.85, speech: 0.65 },
+  // een motor liet twee derde staan en overstemde een gesprek in de auto (#985): nu blijft hij onder de helft
+  voertuig: { level: 0.85, speech: 0.45 },
   spoor: { level: 0.8, speech: 0.6 },
   water: { level: 0.75, speech: 0.55 },
   brug: { level: 0.75, speech: 0.6 },
