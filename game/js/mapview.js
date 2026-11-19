@@ -49,7 +49,7 @@ import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad }
 import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
 import { borderPlaceLabels, borderPlaceAt } from './borderplaces.js';
-import { viewpointHover } from './verkenpunten.js';
+import { viewpointHover, areaName } from './verkenpunten.js';
 import { frameScale, clampView } from './kaartkader.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
@@ -108,7 +108,10 @@ const HOVER_SPOT_PX = 10;
 const DISCOVERY_MARGIN = 4000; // m om de provincie heen, zodat de rand van het masker zacht valt
 // #661: alleen het geraakte venster uploaden en de mist minder vaak bewaren
 import { mapRenderDue } from './mapcache.js';
-import { isAreaHidden, isAreaKnown, isViewpointUsed, explorationLabels, onExplorationChange } from './explorationlive.js';
+import { isAreaHidden, isAreaKnown, isViewpointUsed, explorationLabels, onExplorationChange, onStreekOntdekt, getStrekenStand } from './explorationlive.js';
+import { MIST_ALPHA, OPEN_MS, NAAMKAART_MS, mistByte, streekOwnerGrid, applyStreekMist, openingRadius, openingLevel, openingDone, focusScale, cameraStep, naamkaart, queueReveal, strekenTekst } from './kaartonthulling.js';
+import { STREKEN } from './regioleven.js';
+import { wgsToWorld } from './rdnew.js';
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
 // (read live: the palette turns to its night colours, see mapstyle.js)
@@ -286,6 +289,17 @@ function injectStyles() {
     .mapview-legend .note { color: ink(cream 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); }
     .mapview-legend .note:empty { display: none; }
     .mapview-legend .always { display: none; }
+    .mv-naamkaart {
+      position: absolute; z-index: 4; left: 50%; top: 18%; transform: translate(-50%, -14px); display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 18px 44px 20px; border-radius: 16px; background: ink(panelDeep 0.88); border: 1px solid ink(greenLight 0.45); box-shadow: 0 18px 48px ink(black 0.55);
+      opacity: 0; pointer-events: none; transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+    .mv-naamkaart.show { opacity: 1; transform: translate(-50%, 0); }
+    .mv-naamkaart[hidden] { display: none; }
+    .mv-nk-k { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; color: ink(greenLight); }
+    .mv-nk-n { font: 44px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: ink(cream); line-height: 1; }
+    .mv-nk-r { font: 15px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.7); }
+    @media (prefers-reduced-motion: reduce) { .mv-naamkaart { transition: opacity 0.2s linear; transform: translate(-50%, 0); } }
     .mapview-card {
       position: absolute; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; width: 360px; max-width: calc(100% - 16px); box-sizing: border-box;
       padding: 12px; border-radius: 12px; background: ink(panelDeep 0.94); border: 1px solid ink(greenLight 0.45); box-shadow: 0 10px 30px ink(black 0.5);
@@ -333,17 +347,18 @@ function setLayer(key, on) {
   state.dirty = true;
 }
 
-// --- kaartontdekking (#899) -------------------------------------------------
-// De mist van #661 dekte alleen de stad en was een donkere laag die met de speler
-// meereed; de rest van de provincie was meteen zichtbaar. Nu grijst de kaart de
-// buurten uit die deze speler nog niet bezocht heeft (de `bezocht`-lijst van
-// gebieden.js, dezelfde die de prestatie "de kaart verkend" telt). Eén masker over
-// de provincie, met een zachte rand; een net bezochte buurt gloeit zacht uit. De
-// pure regels staan in kaartontdekking.js.
+// --- kaartontdekking (#899, #990) --------------------------------------------
+// De kaart grijst uit wat deze speler nog niet kent. Twee lagen in één masker (kaartonthulling.js
+// heeft de pure regels): de buurten die hij nog niet bezocht (de `bezocht`-lijst van gebieden.js,
+// dezelfde die de prestatie "de kaart verkend" telt) krijgen een lichte waas, en een streek die hij
+// nog niet kent (explorationlive.js) ligt onder zware mist. Een uitkijkpunt of een binnenrit opent de
+// streek: de mist trekt open vanaf dat punt (de opening), de kaart zoomt naar het gebied, een
+// naamkaart noemt de streek en er klinkt het ontdekkingsgeluid. Alles per speler.
 
-let discovery = null; // { ind, seen, byId, unseen, canvas, edge, ctx, w, h, minx, miny, res, reveal }
+let discovery = null; // { ind, seen, byId, unseen, canvas, edge, ctx, w, h, minx, miny, res, reveal, base, owners, centers, levels }
 const discoveryHiddenCache = new Map();
 const DISCOVERY_CACHE_MAX = 5000; // zonder grens groeit de cache met elke rondgetoonde plek
+const MIST_RGB = [0x1b, 0x24, 0x20]; // de kleur van de mist; de dekking staat per cel in het masker
 
 function discoveryBounds(world) {
   const o = getOverzicht();
@@ -380,9 +395,53 @@ function traceAreas(ctx, areas) {
   }
 }
 
+// De streken die voor het masker als gekend tellen: wat de speler kent, min de streken waarvan de
+// opening nog moet spelen (die staan nog onder mist tot de mist openrijt).
+function maskKnownNumbers() {
+  const nums = new Set();
+  const pending = new Set((state && state.reveals ? state.reveals : []).map((r) => r.area));
+  const opening = state && state.opening ? state.opening.area : null;
+  STREKEN.forEach((s, i) => { if (isAreaKnown(s.id) && !pending.has(s.id) && s.id !== opening) nums.add(i + 1); });
+  return nums;
+}
+
+// Het masker als niveaus (0 tot 255 per cel): de buurtwaas uit de polygonen, de streekmist erover.
+function computeLevels(d, known) {
+  const lv = new Uint8Array(d.base);
+  applyStreekMist(lv, d.owners, known);
+  return lv;
+}
+
+function paintLevels(d, lv) {
+  const img = d.ctx.createImageData(d.w, d.h);
+  const px = img.data;
+  for (let i = 0; i < lv.length; i++) {
+    const o = i * 4;
+    px[o] = MIST_RGB[0]; px[o + 1] = MIST_RGB[1]; px[o + 2] = MIST_RGB[2]; px[o + 3] = lv[i];
+  }
+  d.ctx.putImageData(img, 0, 0);
+}
+
+// de rand zachter maken: het masker één keer blurren (de rand van een buurt of streek leest anders
+// als een harde trap van cellen)
+function blurEdge(d, x = 0, y = 0, w = d.w, h = d.h) {
+  const e = d.edge.getContext('2d');
+  e.save();
+  e.setTransform(1, 0, 0, 1, 0, 0);
+  e.beginPath(); e.rect(x, y, w, h); e.clip();
+  e.clearRect(x, y, w, h);
+  try { e.filter = 'blur(3px)'; } catch (err) { /* zonder filter blijft de rand scherper */ }
+  const m = 14; // ruime bron, zodat de rand van het venster niet donkerder blurt
+  const sx = Math.max(0, x - m), sy = Math.max(0, y - m), sx1 = Math.min(d.w, x + w + m), sy1 = Math.min(d.h, y + h + m);
+  e.drawImage(d.canvas, sx, sy, sx1 - sx, sy1 - sy, sx, sy, sx1 - sx, sy1 - sy);
+  try { e.filter = 'none'; } catch (err) { /* niets */ }
+  e.restore();
+}
+
 function buildDiscoveryMask() {
   const d = discovery;
   if (!d) return;
+  // de buurtwaas: de onbezochte buurten in één vulling, alleen de dekking telt
   const c = d.ctx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, d.w, d.h);
@@ -391,14 +450,14 @@ function buildDiscoveryMask() {
   c.fillStyle = INK.discovery;
   traceAreas(c, d.unseen);
   c.fill('evenodd');
-  // een zachte rand: het masker één keer blurren, zodat de overgang naar een
-  // bezochte buurt niet als een harde trap van cellen leest
-  const e = d.edge.getContext('2d');
-  e.setTransform(1, 0, 0, 1, 0, 0);
-  e.clearRect(0, 0, d.w, d.h);
-  try { e.filter = 'blur(3px)'; } catch (err) { /* zonder filter blijft de rand scherper */ }
-  e.drawImage(d.canvas, 0, 0);
-  try { e.filter = 'none'; } catch (err) { /* niets */ }
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  const a = c.getImageData(0, 0, d.w, d.h).data;
+  const buurt = mistByte('buurt');
+  d.base = new Uint8Array(d.w * d.h);
+  for (let i = 0; i < d.base.length; i++) d.base[i] = a[i * 4 + 3] > 127 ? buurt : 0;
+  d.levels = computeLevels(d, maskKnownNumbers());
+  paintLevels(d, d.levels);
+  blurEdge(d);
 }
 
 // Wat deze speler sinds het vorige beeld ontdekte: de nieuwe buurten gloeien uit.
@@ -430,9 +489,12 @@ function initDiscovery(world) {
   canvas.width = m.w; canvas.height = m.h;
   const edge = document.createElement('canvas');
   edge.width = m.w; edge.height = m.h;
+  const centers = STREKEN.map((s) => { const [x, y] = wgsToWorld(s.at[0], s.at[1]); return { id: s.id, x, y, reach: s.reach }; });
   discovery = {
     ind: o.ind, seen: new Set(o.profiel.bezocht || []), byId: new Map(), unseen: [],
-    canvas, edge, ctx: canvas.getContext('2d'), w: m.w, h: m.h, minx: b[0], miny: b[1], res: DISCOVERY_RES_M, reveal: [],
+    canvas, edge, ctx: canvas.getContext('2d', { willReadFrequently: true }), w: m.w, h: m.h, minx: b[0], miny: b[1], res: DISCOVERY_RES_M, reveal: [],
+    centers, owners: streekOwnerGrid({ w: m.w, h: m.h, minx: b[0], miny: b[1], res: DISCOVERY_RES_M }, centers),
+    base: null, levels: null,
   };
   refreshDiscovery(false);
   onGebiedenChange(() => {
@@ -445,9 +507,9 @@ function initDiscovery(world) {
   });
 }
 
-// Ligt deze plek in een buurt die de speler nog niet bezocht? Dan houdt de kaart
-// de plaatsnaam weg (het masker grijst het gebied al uit). Een buurt die nu nog
-// uitgloeit telt ook als verborgen, zodat de naam pas komt als de fade klaar is.
+// Ligt deze plek in gebied dat de speler nog niet kent? Dan houdt de kaart de plaatsnaam weg (de mist
+// ligt al over het gebied). Een buurt die nu nog uitgloeit, of een streek waarvan de opening nog
+// speelt, telt ook als verborgen, zodat de naam pas komt als de mist weg is.
 function discoveryHidden(x, y) {
   if (!discovery || !getSettings().showFog || !Number.isFinite(x) || !Number.isFinite(y)) return false;
   const key = Math.round(x) + ',' + Math.round(y);
@@ -467,10 +529,9 @@ function discoveryHidden(x, y) {
   return hidden;
 }
 
-// De onthulling over de kaarttegel (#899): één zachte, doorlopende grijze waas over de
-// onbezochte buurten, met een fade als je een buurt voor het eerst binnenkomt. Geen
-// blend-modi of losse vullingen: die gaven op de kaart een raster van celranden.
-const DISCOVERY_ALPHA = 0.3;
+// De mist over de kaarttegel: één zachte, doorlopende waas (alleen bronkaart en masker, geen blend-modi
+// of losse vullingen: die gaven op de kaart een raster van celranden), met een fade als je een buurt
+// voor het eerst binnenkomt.
 function drawDiscovery(c, now) {
   const d = discovery;
   if (!d || !getSettings().showFog) return;
@@ -481,7 +542,7 @@ function drawDiscovery(c, now) {
   c.globalCompositeOperation = 'source-over';
   c.imageSmoothingEnabled = true;
   try { c.imageSmoothingQuality = 'high'; } catch (e) { /* niet elke ctx kent dit */ }
-  c.globalAlpha = DISCOVERY_ALPHA;
+  c.globalAlpha = 1;
   c.drawImage(d.edge, x, y, w, h);
   const levend = [];
   for (const r of d.reveal) {
@@ -490,7 +551,7 @@ function drawDiscovery(c, now) {
     const g = d.byId.get(r.id);
     if (!g || !g.grens || a <= 0.01) continue;
     // het gebied krijgt zijn helderheid terug naarmate de fade vordert
-    c.globalAlpha = a * DISCOVERY_ALPHA;
+    c.globalAlpha = a * MIST_ALPHA.buurt;
     c.fillStyle = INK.discovery;
     c.setTransform(state.dpr * state.scale, 0, 0, state.dpr * state.scale, state.ox * state.dpr, state.oy * state.dpr);
     traceArea(c, g.grens);
@@ -499,6 +560,129 @@ function drawDiscovery(c, now) {
   }
   d.reveal = levend;
   c.restore();
+}
+
+// --- de onthulling van een streek (#990) -------------------------------------------------------------
+// Een nieuwe streek komt in de wachtrij zodra de speler hem ontdekt (ook als de kaart dicht is). Bij
+// het openen van de kaart speelt de onthulling: de camera zoomt naar de streek, de mist trekt open
+// vanaf het uitkijkpunt, de naamkaart verschijnt en het ontdekkingsgeluid klinkt.
+const CAM_MS = 1200;
+const OPEN_DELAY_MS = 900;
+
+function queueDiscovery(ev) {
+  if (!state) return;
+  state.reveals = queueReveal(state.reveals || [], ev);
+  if (discovery && state.open) startNextReveal();
+}
+
+// De streek-index (1-based, zoals het masker) van een streek-id.
+const areaNumber = (id) => STREKEN.findIndex((s) => s.id === id) + 1;
+
+function startNextReveal() {
+  if (!state || state.opening || !discovery || !(state.reveals || []).length) return;
+  if (!getSettings().showFog) { state.reveals = []; buildDiscoveryMask(); return; }
+  const ev = state.reveals[0];
+  const num = areaNumber(ev.area);
+  const c = num ? discovery.centers[num - 1] : null;
+  if (!c) { state.reveals = state.reveals.slice(1); buildDiscoveryMask(); return startNextReveal(); }
+  const now = performance.now();
+  const g = discovery;
+  const oud = g.levels;
+  // het masker staat nog zonder deze streek bekend; de nieuwe stand heeft hem erbij
+  const nieuw = computeLevels(g, new Set([...maskKnownNumbers(), num]));
+  // het venster: de cellen van de streek (met een rand), alleen daar verandert het masker
+  let x0 = g.w, y0 = g.h, x1 = -1, y1 = -1;
+  for (let j = 0; j < g.h; j++) for (let i = 0; i < g.w; i++) {
+    if (g.owners[j * g.w + i] === num) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; }
+  }
+  if (x1 < 0) { state.reveals = state.reveals.slice(1); buildDiscoveryMask(); return startNextReveal(); }
+  const pad = 14;
+  const win = { x: Math.max(0, x0 - pad), y: Math.max(0, y0 - pad) };
+  win.w = Math.min(g.w, x1 + pad + 1) - win.x; win.h = Math.min(g.h, y1 + pad + 1) - win.y;
+  const target = { x: c.x, y: c.y, zoom: Math.max(minZoom(), Math.min(MAX_ZOOM, focusScale(c.reach, state.cw, state.ch, { fill: 0.9 }) / state.baseScale)) };
+  state.cam = { from: { x: state.cx, y: state.cy, zoom: state.zoom }, to: target, at: now, ms: CAM_MS };
+  state.opening = { area: ev.area, num, x: ev.x, y: ev.y, reach: c.reach, at: now + OPEN_DELAY_MS, oud, nieuw, win, img: null, sounded: false };
+  state.revealUntil = now + OPEN_DELAY_MS + OPEN_MS + 200;
+  state.dirty = true;
+}
+
+// Per beeld: de camera en de opening een stap verder. Geeft true zolang er iets beweegt.
+function tickReveal(now) {
+  if (!state) return false;
+  let moving = false;
+  const cam = state.cam;
+  if (cam) {
+    const t = (now - cam.at) / cam.ms;
+    const p = cameraStep(cam.from, cam.to, t);
+    state.zoom = p.zoom;
+    state.cx = p.x; state.cy = p.y;
+    updateTransform();
+    if (t >= 1) state.cam = null; else moving = true;
+  }
+  const o = state.opening;
+  if (o && discovery) {
+    if (now < o.at) moving = true;
+    else {
+      if (!o.sounded) {
+        o.sounded = true;
+        try { sfxLinks.uiFx('ui_ontdek'); } catch (e) { /* geen geluid is geen ramp */ }
+        showNaamkaart(o.area);
+      }
+      const d = discovery, w = o.win;
+      const r = openingRadius(now, o.at, o.reach);
+      if (!o.img) o.img = d.ctx.createImageData(w.w, w.h);
+      const px = o.img.data;
+      for (let j = 0; j < w.h; j++) {
+        const wy = d.miny + (w.y + j + 0.5) * d.res;
+        for (let i = 0; i < w.w; i++) {
+          const wx = d.minx + (w.x + i + 0.5) * d.res;
+          const gi = (w.y + j) * d.w + (w.x + i);
+          const lv = openingLevel(o.oud[gi], o.nieuw[gi], Math.hypot(wx - o.x, wy - o.y), r);
+          const q = (j * w.w + i) * 4;
+          px[q] = MIST_RGB[0]; px[q + 1] = MIST_RGB[1]; px[q + 2] = MIST_RGB[2]; px[q + 3] = lv;
+        }
+      }
+      d.ctx.putImageData(o.img, w.x, w.y);
+      blurEdge(d, w.x, w.y, w.w, w.h);
+      if (openingDone(now, o.at)) {
+        // klaar: de streek is voortaan gewoon bekend in het masker
+        state.reveals = (state.reveals || []).filter((e) => e.area !== o.area);
+        state.opening = null;
+        discoveryHiddenCache.clear();
+        buildDiscoveryMask();
+        startNextReveal();
+      } else moving = true;
+    }
+  }
+  if (moving || state.opening || state.cam) { state.revealUntil = Math.max(state.revealUntil || 0, now + 120); state.dirty = true; }
+  return moving;
+}
+
+// De naamkaart: een groot streekplaatje met de voortgang, zacht in en uit (css-transitie op de klasse).
+function showNaamkaart(areaId) {
+  const el = state && state.naamEl;
+  if (!el) return;
+  let stand = null;
+  try { stand = getStrekenStand(state.world); } catch (e) { stand = null; }
+  const k = naamkaart(areaName(areaId), stand);
+  if (!k) return;
+  el.innerHTML = `<span class="mv-nk-k">${k.kicker}</span><b class="mv-nk-n">${k.naam}</b><span class="mv-nk-r">${k.regel}</span>`;
+  el.hidden = false;
+  void el.offsetWidth; // de transitie opnieuw laten beginnen
+  el.classList.add('show');
+  clearTimeout(state.naamTimer);
+  state.naamTimer = setTimeout(() => {
+    el.classList.remove('show');
+    state.naamTimer = setTimeout(() => { el.hidden = true; }, 700);
+  }, NAAMKAART_MS - 700);
+}
+
+// De teller in de kop van de kaart: "3 van 8 streken verkend".
+function strekenChip() {
+  let st = null;
+  try { st = getStrekenStand(state.world); } catch (e) { st = null; }
+  if (!st || !st.totaal) return '';
+  return strekenTekst(st);
 }
 
 export function getDiscoveredRatio() {
@@ -569,6 +753,7 @@ function toWorld(sx, sy) {
 }
 
 function zoomAt(factor, sx, sy) {
+  state.cam = null; // #990: zelf zoomen neemt de camera van de onthulling over
   const [wx, wy] = toWorld(sx, sy);
   state.zoom = Math.max(minZoom(), Math.min(MAX_ZOOM, state.zoom * factor));
   const s = state.baseScale * state.zoom;
@@ -2516,6 +2701,7 @@ function openMap(world) {
   // Wat je sinds de vorige keer op de kaart ontdekte, gloeit nu zacht uit.
   initDiscovery(world);
   if (discovery) refreshDiscovery(true);
+  state.cam = null;
   ensureLevel0();
   state.dirty = true;
   syncKaartUitleg(world);
@@ -2523,9 +2709,20 @@ function openMap(world) {
   if (state.legendMaat) state.legendMaat.textContent = c ? `Maat (${c.character === 'tammo' ? 'Tammo' : 'Tessa'})` : 'Maat';
   refreshLegend(world);
   syncLayersButton();
+  setHeaderEyebrow();
+  // #990: een streek die je ontdekte terwijl de kaart dicht was, gaat nu open
+  if (discovery) startNextReveal();
+}
+
+// De kop van de kaart: de teller van de streken en het deel van Grunn dat je zag.
+function setHeaderEyebrow() {
   const eb = state.overlay.querySelector('.mv-eb');
+  if (!eb) return;
   const seen = getDiscoveredRatio();
-  if (eb) { eb.hidden = seen < 0.01; eb.textContent = `${Math.round(seen * 100)}% van Grunn verkend`; }
+  const chip = strekenChip();
+  const delen = [chip, seen >= 0.01 ? `${Math.round(seen * 100)}% van Grunn verkend` : ''].filter(Boolean);
+  eb.hidden = !delen.length;
+  eb.textContent = delen.join(' · ');
 }
 
 // Streken > Overal en nergens: the next click (or A under the crosshair)
@@ -2645,7 +2842,7 @@ export function initMapView(world) {
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
     '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal waypoint weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
-    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
+    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><div class="mv-naamkaart" hidden aria-live="polite"></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
   document.body.appendChild(overlay);
   initKaartUitleg(overlay);
 
@@ -2699,6 +2896,11 @@ export function initMapView(world) {
     pinsPositieGebruikt: '', // de positie-sleutel waarmee de vaste laag is opgebouwd
     pinsDirtyAt: 0,          // ms: wanneer de pins voor het laatst een herschil vroegen
     drag: null,
+    reveals: [],            // #990: ontdekte streken waarvan de onthulling nog moet spelen
+    opening: null,          // #990: de mist die nu openrijdt
+    cam: null,              // #990: de camera naar het ontdekte gebied
+    naamEl: overlay.querySelector('.mv-naamkaart'),
+    naamTimer: 0,
     found: [],
     sel: -1,
     legendMaat: null,
@@ -2733,6 +2935,8 @@ export function initMapView(world) {
   onSettingsChange((s, key) => { if (key === 'showFog') state.dirty = true; });
   // #825: een streek of stempel erbij vraagt meteen een nieuw beeld van de vaste laag
   onExplorationChange(() => { if (state) state.dirty = true; });
+  // #990: een nieuwe streek komt in de wachtrij van de onthulling (speelt zodra de kaart open is)
+  onStreekOntdekt((ev) => queueDiscovery(ev));
 
   overlay.addEventListener('mousedown', (e) => e.stopPropagation());
 
@@ -2791,6 +2995,7 @@ export function initMapView(world) {
     if (document.activeElement === si) si.blur();
     const [sx, sy] = canvasPos(e);
     state.drag = { sx, sy, cx: state.cx, cy: state.cy, moved: false };
+    state.cam = null; // #990: zelf pannen neemt de camera van de onthulling over
   });
   window.addEventListener('mousemove', (e) => {
     if (!state.open) return;
@@ -2971,6 +3176,7 @@ export function updateMapView(dt, world) {
   if (!state.open) return;
   if (syncMapPhase(world) !== state.phase) { state.phase = syncMapPhase(world); clearTiles(); }
   handleKeys(dt, world);
+  tickReveal(performance.now()); // #990: camera en opening van een nieuwe streek
   // #661: stilstaand (gepauzeerd) en niets vuil: 15 Hz is genoeg; bewegen of
   // invoer tekent gewoon elke frame.
   const now = performance.now();

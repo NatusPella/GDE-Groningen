@@ -14,7 +14,12 @@ export function beginHierItems(items, speler, aantal = 3) {
       return true;
     });
   if (!Number.isFinite(aantal)) return out;
-  return out.slice(0, Math.max(0, aantal | 0));
+  const top = out.slice(0, Math.max(0, aantal | 0));
+  // #990: een rij met pin (een nieuwe streek ontdekken) blijft in beeld, ook als hij ver weg ligt: hij
+  // neemt de plek van de laatste kaart. Hoe dichtbij de rest ook is, de speler ziet waar hij kan ontdekken.
+  const pin = out.find((it) => it.pin);
+  if (pin && top.length && !top.includes(pin)) top[top.length - 1] = pin;
+  return top;
 }
 
 export function beginHierCount(items, speler) {

@@ -25,6 +25,7 @@ let seeded = false;
 let firstCheck = true;
 let checkT = 0;
 const listeners = new Set();
+const discoveryListeners = new Set();
 
 const storage = () => {
   try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; }
@@ -61,6 +62,17 @@ function persist() {
 export function onExplorationChange(f) {
   listeners.add(f);
   return () => listeners.delete(f);
+}
+
+// De kaart wil weten wanneer een streek voor het eerst op de kaart komt, en vanaf waar (het uitkijkpunt of
+// de plek waar je binnenreed): daarmee trekt de mist open (kaartonthulling.js, #990). Niet bij het
+// inlezen van een oud profiel: alleen bij echt nieuwe ontdekkingen in dit spel.
+export function onStreekOntdekt(f) {
+  discoveryListeners.add(f);
+  return () => discoveryListeners.delete(f);
+}
+function emitDiscovery(area, x, y) {
+  for (const f of discoveryListeners) { try { f({ area, x, y }); } catch (e) { /* de luisteraar is niet ons probleem */ } }
 }
 
 // --- wat de kaart vraagt -----------------------------------------------------
@@ -142,6 +154,7 @@ export function updateExploration(dt, world) {
   const quiet = firstCheck;
   firstCheck = false;
   if (area && revealArea(getExplorationProfile(), area)) {
+    if (!quiet) emitDiscovery(area, p.x, p.y);
     persist();
     if (!quiet) announceArea(world, area);
   }
@@ -194,6 +207,7 @@ export function tryViewpointInteract(world) {
   if (input.consume) { input.consume('e'); input.consume('f'); }
   const known = areaIsKnown(own, point.streek);
   revealArea(own, point.streek, { point: viewpointKey(point) });
+  if (!known) emitDiscovery(point.streek, point.x, point.y);
   persist();
   if (world.addMessage) {
     const name = point.streekNaam || areaName(point.streek);

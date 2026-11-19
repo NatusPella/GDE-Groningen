@@ -45,6 +45,8 @@ export function uiFx(naam, { gain = 1, delay = 0 } = {}) {
   return !!K.buf(kies, { bus: ui(), gain: info.gain * categoryLevel('ui') * (UI_NIVEAU[naam] ?? 1) * gain, rate: toonSpreiding(Math.random()), delay, prio: 2 });
 }
 
+sfxLinks.uiFx = (naam) => uiFx(naam); // mapview.js (latehooks.js): het ontdekkingsgeluid bij een nieuwe streek
+
 function tick(f = 1800, g = 0.035) {
   K.tone({ freq: f, freqEnd: f * 0.9, type: 'square', duration: 0.022, gain: g, filterFreq: 5000, bus: ui(), prio: 2 });
   K.noise({ duration: 0.012, freq: 4500, q: 2, gain: 0.05, type: 'bandpass', bus: ui(), prio: 2 });

@@ -36,7 +36,8 @@ import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
 import { DIEREN, SET_DIEREN, DIEREN_TOTAL } from './dierenregister.js'; // #844: dierenboek als verzamelrij
-import { isViewpointUsed, isAreaHidden } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
+import { isViewpointUsed, isAreaHidden, isAreaKnown, getStrekenStand } from './explorationlive.js'; // #844: het dichtstbijzijnde ongebruikte uitkijkpunt als rij
+import { nextViewpoint, ontdekRij } from './kaartonthulling.js'; // #990: liefst een punt van een streek die je nog niet kent
 import { SECRETS_TOTAL } from './geheimen.js';
 import { hideUnknownAreas } from './todofilter.js'; // #985
 import { HERKENNINGSPUNTEN, HERKENNINGSPUNTEN_TOTAAL } from './herkenningspunten.js';
@@ -425,14 +426,19 @@ function uitkijkItem(world) {
   if (!points || !points.length) return null;
   const p = hoofdspeler(world);
   const open = points.filter((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && !isViewpointUsed(q));
-  if (!open.length) return null;
-  const near = open.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0];
+  // #990: liefst het dichtstbijzijnde punt van een streek die je nog niet kent (een nieuwe streek ontdekken)
+  const volgende = nextViewpoint(points, p, { isKnown: isAreaKnown, isUsed: isViewpointUsed });
+  if (!volgende) return null;
+  const near = { q: volgende.point, d: volgende.d };
+  let stand = null;
+  try { stand = getStrekenStand(world); } catch (e) { stand = null; }
+  const rij = ontdekRij(stand, volgende);
   const gebruikt = points.length - open.length;
   return {
-    key: 'om:uitkijk', group: 'ommeland', icon: 'uitkijkpunt', title: 'Uitkijken over de streek', status: '',
-    meta: `${near.q.streekNaam || 'de provincie'} · ${Math.round(near.d)} m`,
-    medal: null, record: `${gebruikt} van ${points.length} gebruikt`,
-    x: near.q.x, y: near.q.y,
+    key: 'om:uitkijk', group: 'ommeland', icon: 'uitkijkpunt', title: rij.title, status: '',
+    meta: rij.meta,
+    medal: null, record: `${rij.record} · ${gebruikt} van ${points.length} uitkijkpunten gebruikt`,
+    x: near.q.x, y: near.q.y, pin: volgende.nieuw,
     goal: { kind: 'place', id: near.q.id || 'uitkijkpunt', name: near.q.naam || 'Uitkijkpunt', x: near.q.x, y: near.q.y },
     detail: {
       kicker: 'Ommeland · verkennen',

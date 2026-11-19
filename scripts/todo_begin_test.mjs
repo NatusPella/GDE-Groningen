@@ -23,6 +23,17 @@ ok(beginHierItems([{ key: 'x', dist: 1 }], {}).length === 0, 'zonder doel telt n
 ok(beginHierItems([it('a', 5)], {}, 0).length === 0, 'aantal nul geeft niets');
 ok(beginHierCount([it('a', 1), it('b', 2), it('c', 3), it('d', 4)]) === 4, 'de telling telt alle geldige dingen');
 
+// #990: de rij 'Ontdek een nieuwe streek' (pin) blijft in beeld, ook als hij ver weg ligt
+{
+  const rijen = [it('a', 1), it('b', 2), it('c', 3), { ...it('streek', 9000), pin: true }];
+  const top = beginHierItems(rijen, {}, 3).map((r) => r.key);
+  ok(top.length === 3 && top.includes('streek'), 'de gepinde rij neemt de laatste plek');
+  ok(top[0] === 'a' && top[1] === 'b', 'de dichtstbijzijnde blijven vooraan');
+  ok(beginHierItems([it('a', 1), { ...it('streek', 2), pin: true }, it('c', 3)], {}, 3).length === 3, 'binnen de top blijft alles staan');
+  ok(beginHierItems([{ ...it('streek', 9), pin: true }], {}, 3).length === 1, 'alleen de gepinde rij blijft ook staan');
+  ok(beginHierCount(rijen) === 4, 'de telling verandert niet');
+}
+
 const td = fs.readFileSync(new URL('../game/js/todoui.js', import.meta.url), 'utf8');
 ok(td.includes('beginHierHtml()') && td.includes('data-todo='), 'de UI toont de beginhier-rijen als gewone data-todo-rijen');
 ok(td.includes('beginHierItems(items, p, 3)') && td.includes('beginHierCount(items, p)'), 'de UI gebruikt de pure selectie');

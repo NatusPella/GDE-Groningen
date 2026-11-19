@@ -84,6 +84,19 @@ Van een onbekende streek worden naast de activiteiten nu ook de bijbanen, vondst
   #825 blijft daarnaast de namen en iconen van een onbekende streek verbergen. De ontvouw- en
   grenzenlaag zelf is niet veranderd.
 
+## De onthulling (#990)
+
+De kaart grijst uit wat de speler nog niet kent, in één masker met twee niveaus: een zware mist over een
+streek die hij nog niet kent (`explorationlive.js`) en een lichte waas over buurten die hij nog niet
+bezocht (`gebieden.js`). Een gekende streek is helemaal open. Ontdekt hij een streek (uitkijkpunt of
+binnenrijden), dan komt hij in een wachtrij; bij het openen van de kaart zoomt de camera erheen, trekt
+de mist open vanaf het uitkijkpunt (een groeiende cirkel met een zachte rand), verschijnt een naamkaart
+en klinkt `ui_ontdek` (`sfx/uibank.js`). De pure regels (mistniveaus, opening, camera, naamkaart,
+wachtrij, de lijst van wat nooit verdwijnt, het volgende uitkijkpunt) staan in `kaartonthulling.js` met
+`scripts/kaartonthulling_test.mjs`; `mapview.js` tekent. Boven de kaart staat `x van 8 streken ontdekt ·
+y verkend`. In Te doen staat de rij `Ontdek een nieuwe streek` (en in Begin hier blijft hij in beeld).
+Beelden: `scripts/qa/kaart_ontdekking.mjs --page=voor|na`.
+
 ## Samen spelen
 
 De uitkijkpunten en albumteller zijn per speler (profiel/opslag), net als Veroverd; de punten zelf
