@@ -118,6 +118,11 @@ ok(d({ banner: true }).dimAll, 'a P0 banner dims the rest');
 const mm = d({ mode: 'minimaal', wanted: 2, objective: true, subtitle: true, armed: true, inVehicle: true, moneyAgo: 1, cardA: R.P3, hpFull: false });
 ok(mm.show.stars && mm.show.objective && mm.show.subtitle && mm.show.minimap && mm.show.vehicle && !mm.show.money && !mm.show.weapon && !mm.show.cardA, 'Minimaal: stars, objective, subtitles plus kaart en snelheidsmeter (#638)');
 ok(d({ mode: 'minimaal', cardA: R.P0 }).show.cardA, 'Minimaal keeps P0');
+// #985: Minimaal houdt de missieklok en, op een dag met een evenement, de klok
+const mmTimer = d({ mode: 'minimaal', timer: true, timeGoal: true, objective: true });
+ok(mmTimer.show.timer && mmTimer.show.clock && mmTimer.big.clock, 'Minimaal: een missieklok blijft en de tijd van de dag ook');
+ok(d({ mode: 'minimaal', specialDay: true }).show.clock, 'Minimaal: de klok op een dag met een evenement');
+ok(!d({ mode: 'minimaal', objective: true }).show.clock && !d({ mode: 'minimaal', objective: true }).show.timer, 'Minimaal: zonder klok of evenement blijft het rustig');
 // ceiling: at most 6 besides the minimap, P3 then clock then money go first
 const full = d({ wanted: 3, moneyAgo: 1, armed: true, hpFull: false, inVehicle: true, vehFull: false, keys: 2, objective: true, subtitle: true, cardA: R.P3, cardE: R.P3, gps: true, place: false });
 ok(full.count <= R.CEILING, 'ceiling of 6 holds, got ' + full.count);

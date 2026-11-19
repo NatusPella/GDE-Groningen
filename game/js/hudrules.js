@@ -182,6 +182,12 @@ export function decideHud(s = {}) {
     show.minimap = true;            // #638: zonder kaart moet je blind navigeren
     show.vehicle = !!s.inVehicle;   // en zonder snelheidsmeter blind rijden
     show.cardA = p0Card;
+    // #985: de klok van een lopende missie of klus hoort bij het doel, en op een dag met een
+    // evenement (kermis, reuzenrad, carbid) ook de tijd van de dag: anders mist de rustige stand
+    // precies wat een tijdstip vraagt
+    show.timer = !!s.timer;
+    show.clock = !!(s.specialDay || s.timeGoal);
+    out.big.clock = show.clock;
     out.dimObjective = !!s.subtitle;
     out.count = countShown(show);
     return out;
