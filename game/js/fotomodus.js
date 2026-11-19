@@ -143,6 +143,14 @@ export function addShot(list, shot) {
 }
 export const removeShot = (list, id) => list.filter((s) => s.id !== id);
 
+// #985: de galerij gooit bij het maximum de oudste foto weg. Dat gebeurde stil; deze regel zegt het bij
+// het opslaan. `voor` is het aantal foto's in de galerij vóór deze nieuwe. Leeg zolang er ruimte is.
+export function galerijNoot(voor, max = GALLERY.max) {
+  if (voor >= max) return `Je galerij is vol (${max}): de oudste foto is eruit gehaald. Het bestand blijft op je schijf.`;
+  if (voor === max - 1) return `Je galerij is nu vol (${max} van ${max}). De volgende foto haalt de oudste weg.`;
+  return '';
+}
+
 export function loadGallery(storage, key = GALLERY.key) {
   try {
     const raw = storage && storage.getItem(key);

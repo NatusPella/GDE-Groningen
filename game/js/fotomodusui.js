@@ -274,7 +274,8 @@ function takeShot(world) {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   }, 'image/png');
-  say(`Opgeslagen als ${file}`);
+  const noot = F.galerijNoot(list.length);
+  say(`Opgeslagen als ${file}${noot ? '. ' + noot : ''}`);
 }
 
 // --- pauzemenu: sectie Foto's ---------------------------------------------------------------

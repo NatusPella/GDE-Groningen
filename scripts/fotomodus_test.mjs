@@ -105,5 +105,11 @@ check('geen "Meer opties"-vouw meer bij Foto\'s', !/data-fold="foto-uitleg"/.tes
 check('de uitleg staat open in een compacte strook', /foto-voet/.test(fu) && /foto-noot/.test(fu));
 check('de stijl woont bij de module, met de eigen id', /function zetFotoCss/.test(fu) && /style-fotos/.test(fu));
 
+// #985: de galerij zegt het als de oudste foto wegvalt
+check('galerijnoot: ruimte is stil', F.galerijNoot(5) === '' && F.galerijNoot(22) === '');
+check('galerijnoot: bijna vol waarschuwt vooraf', /nu vol \(24 van 24\)/.test(F.galerijNoot(23)));
+check('galerijnoot: vol zegt dat de oudste weg is en het bestand blijft', /vol \(24\).*oudste foto.*bestand blijft/.test(F.galerijNoot(24)));
+check('galerijnoot volgt het maximum', /\(3\)/.test(F.galerijNoot(3, 3)));
+
 console.log(bad ? `${bad} van ${n} mislukt` : `fotomodus_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
