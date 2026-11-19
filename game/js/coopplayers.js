@@ -119,7 +119,33 @@ export function zetAvatar(r, slot, avatar = {}) {
   const naam = typeof avatar.naam === 'string' && avatar.naam.trim() ? avatar.naam.trim().slice(0, 24) : null;
   const kleur = /^#[0-9a-f]{6}$/i.test(avatar.kleur || '') ? avatar.kleur : null;
   s.avatar = { ...(s.avatar || {}), ...(char ? { char } : {}), ...(naam ? { naam } : {}), ...(kleur ? { kleur } : {}) };
+  maakUniek(r, s);
   return s.avatar;
+}
+
+// Twee keer "Sanne" in dezelfde kleur is in een lijst niet te volgen (#985): wie later komt krijgt een nummer achter
+// de naam ("Sanne 2") en, bij dezelfde kleur, de eerste vrije kleur uit een vaste reeks. De eerste speler blijft
+// zoals hij is; de eigen plek telt niet mee als iemand zijn avatar opnieuw zet.
+const UNIEKE_KLEUREN = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46c8c8', '#f032e6', '#bcd02c', '#008080', '#9a6324', '#800000', '#808000', '#000075', '#e8b923', '#ff7f9f', '#a0a0a0'];
+const naamSleutel = (n) => String(n || '').trim().toLowerCase();
+function maakUniek(r, s) {
+  const anderen = r.spelers.filter((x) => x !== s);
+  const av = s.avatar || {};
+  const eigenNaam = av.naam || (charInfo(s.char) || {}).naam || '';
+  const namen = new Set(anderen.map((x) => naamSleutel((x.avatar && x.avatar.naam) || (charInfo(x.char) || {}).naam)));
+  if (eigenNaam && namen.has(naamSleutel(eigenNaam))) {
+    const basis = eigenNaam.replace(/ \d+$/, '');
+    for (let n = 2; n < 100; n++) {
+      const kandidaat = `${basis.slice(0, 24 - String(n).length - 1)} ${n}`;
+      if (!namen.has(naamSleutel(kandidaat))) { s.avatar = { ...av, naam: kandidaat }; break; }
+    }
+  }
+  const kleuren = new Set(anderen.map((x) => String((x.avatar && x.avatar.kleur) || (charInfo(x.char) || {}).kleur || '').toLowerCase()));
+  const eigenKleur = String(av.kleur || (charInfo(s.char) || {}).kleur || '').toLowerCase();
+  if (eigenKleur && kleuren.has(eigenKleur)) {
+    const vrij = UNIEKE_KLEUREN.find((k) => !kleuren.has(k));
+    if (vrij) s.avatar = { ...s.avatar, kleur: vrij };
+  }
 }
 
 // Wat de ander ziet: naam, kleur, vorm per speler (de volgorde is de slotvolgorde).

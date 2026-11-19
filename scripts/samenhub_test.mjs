@@ -53,7 +53,7 @@ await t('stap 1: met toestemming en een opgehaalde lijst telt de hub de passende
 });
 
 await t('stap 1 met een lopende sessie: meedoen en hosten kunnen niet meer, besloten wel', () => {
-  const sessie = sessieVan({ role: 'host', kamerCode: 'ABC123', hub: { roster: { spelers: [1, 2], max: 8 } } });
+  const sessie = sessieVan({ role: 'host', code: 'ABC123', hub: { roster: { spelers: [1, 2], max: 8 } } });
   const v = stapWaar({ sessie });
   assert.equal(v.keuzes.find((k) => k.act === ACT.MEEDOEN).kan, false);
   assert.equal(v.keuzes.find((k) => k.act === ACT.HOSTEN).kan, false);
@@ -62,9 +62,9 @@ await t('stap 1 met een lopende sessie: meedoen en hosten kunnen niet meer, besl
 
 await t('de sessie: rol, kamercode en aantal spelers komen uit coopNet, zonder coopnet.js aan te raken', () => {
   assert.equal(sessieVan(null), null);
-  const host = sessieVan({ role: 'host', kamerCode: 'K7', hub: { roster: { spelers: [1, 2, 3], max: 8 } } });
+  const host = sessieVan({ role: 'host', code: 'K7', hub: { roster: { spelers: [1, 2, 3], max: 8 } } });
   assert.deepEqual(host, { rol: 'host', spelers: 3, max: 8, code: 'K7', openbaar: false, naam: '' });
-  const gast = sessieVan({ role: 'gast', kamerCode: 'K7', session: { welcome: { lijst: [1, 2], max: 4 } }, openbaar: { naam: 'Zomerrit' } });
+  const gast = sessieVan({ role: 'gast', code: 'K7', session: { welcome: { lijst: [1, 2], max: 4 } }, openbaar: { naam: 'Zomerrit' } });
   assert.equal(gast.rol, 'gast');
   assert.equal(gast.spelers, 2);
   assert.equal(gast.openbaar, true);
@@ -72,7 +72,7 @@ await t('de sessie: rol, kamercode en aantal spelers komen uit coopNet, zonder c
 });
 
 await t('stap 2: de kamercode en de spelers staan er; zonder sessie zegt de stap wat je eerst moet doen', () => {
-  const met = stapMetWie({ sessie: sessieVan({ role: 'host', kamerCode: 'K7', hub: { roster: { spelers: [1, 2], max: 8 } } }) });
+  const met = stapMetWie({ sessie: sessieVan({ role: 'host', code: 'K7', hub: { roster: { spelers: [1, 2], max: 8 } } }) });
   const tekst = met.rijen.map((r) => r.tekst).join(' | ');
   assert.match(tekst, /K7/);
   assert.match(tekst, /2 van 8 spelers/);
@@ -340,7 +340,7 @@ await t('Escape gaat een stap terug en beëindigt nooit een sessie (stap 3 -> 2 
   const geroepen = [];
   let ontsnapt = 0;
   const view = mountSamenHub(root, {
-    sessie: sessieVan({ role: 'host', kamerCode: 'K7', hub: { roster: { spelers: [1, 2], max: 8 } } }),
+    sessie: sessieVan({ role: 'host', code: 'K7', hub: { roster: { spelers: [1, 2], max: 8 } } }),
     genoeg: true,
     // de enige plek waar de hub een sessie mag verlaten: de knop (die komt hier als actie binnen)
     onActie: (a) => { geroepen.push(a); if (a === ACT.ONTSNAP) ontsnapt++; },

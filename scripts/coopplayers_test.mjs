@@ -52,6 +52,22 @@ t('rollen horen bij de speler, niet bij de plek: geen vaste hoofdrol voor plek 0
   const r = P.createRoster(4); P.wijsPlekToe(r); P.wijsPlekToe(r);
   assert.deepEqual(P.lijst(r).map((x) => x.hoofdrol), [false, false, false]);
 });
+t('twee spelers met dezelfde naam en kleur worden uit elkaar gehouden (#985)', () => {
+  const r = P.createRoster(6); P.wijsPlekToe(r); P.wijsPlekToe(r); P.wijsPlekToe(r);
+  P.zetAvatar(r, 0, { naam: 'Femke', kleur: '#123456' });
+  const tweede = P.zetAvatar(r, 1, { naam: 'femke', kleur: '#123456' });
+  const derde = P.zetAvatar(r, 2, { naam: 'Femke', kleur: '#123456' });
+  assert.equal(P.lijst(r)[0].naam, 'Femke', 'de eerste blijft zoals hij is');
+  assert.equal(tweede.naam, 'femke 2'); assert.equal(derde.naam, 'femke 3'.replace('femke', 'Femke'));
+  const kleuren = P.lijst(r).map((x) => x.kleur);
+  assert.equal(new Set(kleuren).size, kleuren.length, 'alle kleuren verschillend');
+  const zelfde = P.zetAvatar(r, 0, { naam: 'Femke', kleur: '#123456' });
+  assert.deepEqual(zelfde, { naam: 'Femke', kleur: '#123456' }, 'zijn eigen avatar opnieuw zetten verandert niets');
+  const lang = P.zetAvatar(r, 1, { naam: 'A'.repeat(24), kleur: '#abcdef' });
+  assert.equal(lang.naam, 'A'.repeat(24));
+  P.zetAvatar(r, 2, { naam: 'A'.repeat(24) });
+  assert.ok(P.lijst(r)[2].naam.length <= 24 && P.lijst(r)[2].naam.endsWith(' 2'), 'ook een naam van volle lengte blijft binnen 24 tekens');
+});
 t('online-avatar per speler: eigen figuur, naam en kleur; het netfilter laat ze heel door', () => {
   const r = P.createRoster(4); P.wijsPlekToe(r); P.wijsPlekToe(r);
   assert.deepEqual(P.zetAvatar(r, 0, { char: 'bram', naam: 'Bouwer', kleur: '#123456' }), { char: 'bram', naam: 'Bouwer', kleur: '#123456' });

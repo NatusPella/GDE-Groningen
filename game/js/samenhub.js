@@ -68,7 +68,7 @@ export function sessieVan(net) {
     : (welkom && Array.isArray(welkom.lijst) ? welkom.lijst.length : 2);
   const max = host ? (roster && roster.max) || 0 : (welkom && welkom.max) || 0;
   const naam = net.openbaar && net.openbaar.naam ? String(net.openbaar.naam) : '';
-  return { rol: host ? 'host' : 'gast', spelers, max, code: String(net.kamerCode || ''), openbaar: !!naam, naam };
+  return { rol: host ? 'host' : 'gast', spelers, max, code: String(net.code || ''), openbaar: !!naam, naam };
 }
 
 // Wat stap 1 toont: per keuze of hij nu kan en waarom (niet), plus waar de sessiekeuze op uitkomt. `gekeken` zegt
