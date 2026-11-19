@@ -140,6 +140,7 @@ export function createLobby(caps = {}) {
     // toestemming (#526): één keer per sessie; consented zet het akkoord van dit scherm, consentSaved de keuze van dit apparaat
     consented: !!caps.consented, consentSaved, consentRemember: consentSaved,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
+    bron: !!caps.bron, // een gast die via de lijst binnenkwam kan via die rij opnieuw verbinden (#983)
     wachtwoord: schoonWachtwoord(caps.wachtwoord), // het wachtwoord van deze sessie (#450): leeg is open
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
     profiel: { naam: String(caps.onlineNaam || '').slice(0, ONLINE_NAAM_MAX), kleur: profielKleur(caps.onlineKleur) }, profielFout: '',
@@ -320,6 +321,12 @@ export function reduce(s, ev) {
     case 'hervat': // de host wacht weer op dezelfde gast; de gast voert de code opnieuw in
       if (s.step !== 'verbroken') return s;
       n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
+    case 'bron-hervat': // een lijstgast verbindt opnieuw via zijn rij in de lijst (#983): geen code om in te voeren
+      if (s.step !== 'verbroken' || s.rol !== ROLES.GAST || !s.bron) return s;
+      n.route = ROUTES.KAMER; n.step = 'verbinden'; return n;
+    case 'bron-mislukt': // dat lukte niet: terug naar het wachtscherm voor een volgende poging
+      if (s.step !== 'verbinden' || !s.bron) return s;
+      n.step = 'verbroken'; n.error = ev.msg || 'Opnieuw verbinden lukte niet.'; return n;
     case 'probeer': // een gast met een verkeerd of ontbrekend wachtwoord probeert het opnieuw, met dezelfde code en hetzelfde woord
       if (s.rol !== ROLES.GAST || s.step !== 'geweigerd' || s.reason !== 'wachtwoord') return s;
       n.step = 'gast-typt'; n.status = null; n.reason = null;
@@ -513,7 +520,7 @@ export function view(s) {
         title: 'Verbinding weg',
         lines: [
           `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.`,
-          host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
+          host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : s.bron ? 'Kies Opnieuw verbinden: het spel zoekt de sessie weer op in de lijst. Of stop met samen spelen; je komt terug waar je was.' : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }, { act: 'diag', label: 'Verbinding testen' }],
       });

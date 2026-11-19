@@ -22,7 +22,7 @@ import { LIJST, Serverlijst } from './net/serverlijst.js';
 import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
 import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
-import { JOIN, vraagKamer } from './net/joingate.js';
+import { JOIN, vraagKamer, onthoudBron } from './net/joingate.js';
 import { PROTO } from './net/protocol.js';
 import { KEYS } from './storagekeys.js';
 import { VERSION } from './version.js';
@@ -163,6 +163,9 @@ export async function openSession(world, rij, { onHold = null, onCode = null, op
     try { stopCoopNet(world); } catch (e) { /* al weg */ }
     throw new Error(reason);
   }
+  // #983: een rij uit de lijst draagt geen code om te bewaren; de sessie onthoudt de rij (id, hostsleutel, naam; alleen in het
+  // geheugen), zodat een gast die wegvalt via de lijst opnieuw kan verbinden (lobbyui.js, hervatViaLijst).
+  if (!rij.room) onthoudBron(session, { id: rij.id, hostKey: rij.hostKey, naam: rij.naam });
   // Tweede slot (#777/#795): het welkom noemt het vaste sessie-id van de host en zijn naam (net/hub.js,
   // net/session.js). Een ander sessie-id is fataal: dit is niet de sessie uit de lijst, dus de wereld terug en de
   // volgende kandidaat proberen. Een andere naam bij hetzelfde id niet: de host kan de sessie hernoemd hebben
@@ -220,14 +223,20 @@ function openInvite(world, boot) {
 // Een kamer klaarzetten voor één gast en hem aan de hub geven. De kamer is eenmalig (uitnodiging,
 // #583); `bijOpen` draait zodra de gast er is en bepaalt of er nog een volgende plek klaargezet moet worden.
 function openSeat(world, boot, room, bijOpen = null) {
+  let eigen = null; // de handle van deze plek, zodra hij er is
   hostRoom(room, {
     signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
     onstate: (state, info) => {
-      if (state === 'fout') console.warn('sessie', info);
+      if (state === 'fout') {
+        console.warn('sessie', info);
+        // #983: een mislukte plek blijft niet in de lijst staan (bij 'open' juist wel: die handle is in gebruik)
+        if (eigen) { const i = boot.handles.indexOf(eigen); if (i >= 0) boot.handles.splice(i, 1); try { eigen.cancel(); } catch (e) { /* al weg */ } }
+      }
       if (state === 'open' && bijOpen) bijOpen();
     },
   }).then((h) => {
     if (sessionBootState(world) !== boot) { try { h.cancel(); } catch (e) { /* al weg */ } return; }
+    eigen = h;
     boot.handles.push(h);
     addGuest(world, h.transport);
   }, (e) => console.warn('sessie', e));

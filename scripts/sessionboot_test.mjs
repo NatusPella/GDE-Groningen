@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
 import { bootSession, canBootSession, openSession, BOOT } from '../game/js/sessionboot.js';
+import { bronVan } from '../game/js/net/joingate.js';
 import { kies, KEUZE } from '../game/js/sessiekeuze.js';
 import { codeer, Serverlijst } from '../game/js/net/serverlijst.js';
 import { maakSleutelpaar, sleutelTekst } from '../game/js/net/sigcrypto.js';
@@ -418,6 +419,7 @@ await t('openSession: geen welkom binnen BOOT.verbindWacht is een begrensde wach
   assert.ok(!gw.coopRole, 'de rol van de gast is terug');
 });
 
+const HK = 'H'.repeat(87); // een hostsleutel van de juiste vorm (#983: onthoudBron keurt hem)
 // #799: de hele keten boot → vraagKamer(hostKey) → kamer → welkom, met een echte host en gast
 // over memtransport. De kamerroute is de enige seam; de rest is de code van het spel.
 await t('boot → vraagKamer(hostKey) → kamer → welkom: de echte keten', async () => {
@@ -427,7 +429,7 @@ await t('boot → vraagKamer(hostKey) → kamer → welkom: de echte keten', asy
   const gw = wereld();
   s.gs.push({ gw, link });
   let gevraagd = null;
-  const rij0 = { id: s.hw.coopNet.hub.id, naam: 'Open spel', spelers: 1, max: 4, versie: 'dev', hostKey: 'HOSTKEY', room: null, anders: false, vol: false, kan: true, ouderdom: 1000 };
+  const rij0 = { id: s.hw.coopNet.hub.id, naam: 'Open spel', spelers: 1, max: 4, versie: 'dev', hostKey: HK, room: null, anders: false, vol: false, kan: true, ouderdom: 1000 };
   const uit = await bootSession(gw, deps({
     haalLijst: lijstVan([rij0]),
     haalKamer: async (r) => { gevraagd = r; return 'ABCDEFGHJK'; },
@@ -435,9 +437,10 @@ await t('boot → vraagKamer(hostKey) → kamer → welkom: de echte keten', asy
     host: () => { throw new Error('de boot hoort te kunnen meedoen, niet te hosten'); },
   }));
   assert.equal(uit.doen, KEUZE.MEEDOEN, 'de boot koos meedoen');
-  assert.ok(gevraagd && gevraagd.hostKey === 'HOSTKEY', 'vraagKamer kreeg de hostsleutel (#795)');
+  assert.ok(gevraagd && gevraagd.hostKey === HK, 'vraagKamer kreeg de hostsleutel (#795)');
   assert.equal(gw.coopRole, 'client', 'de gast zit in de echte sessie');
   assert.ok(gw.coopNet, 'de gast heeft een sessie');
+  assert.deepEqual(bronVan(gw.coopNet.session), { id: rij0.id, hostKey: HK, naam: 'Open spel' }, 'de sessie onthoudt de rij om opnieuw via de lijst te verbinden (#983)');
   s.step(0.4);
   assert.equal(s.hw.coopRoster.length, 2, 'de gastheer ziet de gast');
   N.stopCoopNet(s.hw);

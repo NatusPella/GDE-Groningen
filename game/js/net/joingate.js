@@ -227,3 +227,16 @@ export async function vraagKamer({ id, hostKey, maakSignaler, wacht = JOIN.wacht
     zender.kondig(tv, () => vraag); // de gast herhaalt zijn verzoek tot er antwoord komt
   });
 }
+
+// ---------------------------------------------------------------- de bron van een lijstgast (#983)
+// Een gast die via de lijst binnenkwam, mag na een val opnieuw via diezelfde rij: hij onthoudt het sessie-id, de
+// publieke hostsleutel en de naam van de rij, zolang de sessie bestaat. Alleen in het geheugen (een WeakMap op de
+// sessie): nooit opgeslagen, geen IP-adres en geen kamercode (constitutie 10). De eenmalige kamer van de eerste
+// keer is verbruikt; hervatten vraagt via vraagKamer een nieuwe, met hetzelfde token dus dezelfde plek.
+const bronnen = new WeakMap();
+export function onthoudBron(session, { id, hostKey, naam } = {}) {
+  if (!session || typeof session !== 'object' || !ID_RE.test(String(id)) || !PUB_RE.test(String(hostKey))) return false;
+  bronnen.set(session, { id: String(id), hostKey: String(hostKey), naam: typeof naam === 'string' ? naam.slice(0, 24) : null });
+  return true;
+}
+export function bronVan(session) { return (session && typeof session === 'object' && bronnen.get(session)) || null; }

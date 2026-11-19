@@ -23,7 +23,7 @@ import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import * as CONFIG from './net/netconfig.js';
 import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
 import { LIJST, Serverlijst, maakAankondiger } from './net/serverlijst.js';
-import { JOIN, bedienKamer, vraagKamer } from './net/joingate.js';
+import { JOIN, bedienKamer, vraagKamer, onthoudBron, bronVan } from './net/joingate.js';
 import { PROTO } from './net/protocol.js';
 import { lijst as rosterLijst, charInfo } from './coopplayers.js';
 import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js';
@@ -56,7 +56,7 @@ export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
   const prof = getSettings(); // online-avatar (#455): per apparaat bewaard
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur, favorieten: leesFavorieten(), consentSaved: !!prof.multiplayerConsentRemembered, consented: !!(opts.adopt || opts.start) }); // (#526) een lopende sessie (adopt) of het wachtscherm in het spel is al eens toegestemd
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur, favorieten: leesFavorieten(), consentSaved: !!prof.multiplayerConsentRemembered, consented: !!(opts.adopt || opts.start), bron: !!(opts.session && bronVan(opts.session)) }); // (#526) een lopende sessie (adopt) of het wachtscherm in het spel is al eens toegestemd
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   if (opts.adopt) { // de sessie loopt al (coophostwisselnet.js wisselde hem om): geen beginscherm, wel de kamercode, de spelers en Iedereen stoppen of Spel verlaten
@@ -77,6 +77,8 @@ export function mountLobby(root, hooks, opts = {}) {
   // #779: elke aanvraag voor een nieuw aanbod krijgt een nummer. Een kick of "weer privé" tijdens het
   // vluchtaanbod verhoogt het nummer, zodat een laat antwoord van het oude aanbod geen gast meer toelaat.
   let roomGen = 0;
+  let hervatGen = 0; // #983: een Annuleren of Stoppen tijdens het hervatten via de lijst laat een laat antwoord vervallen
+  const joinKamer = opts.joinRoom || joinRoom; // testnaad (scripts/coop/lijsthervat_test.mjs): standaard het echte pad van net/rtcroom.js
 
   const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst', 'openbaar-ja': 'sessie openbaar gemaakt', privaat: 'sessie weer privé', 'lijst-go': 'lijst met openbare sessies geopend' };
   // Automatisch herstel (kamercode-route, wachtscherm in het spel): wie het spel opende zet na een paar seconden zelf een nieuw aanbod klaar onder
@@ -95,6 +97,8 @@ export function mountLobby(root, hooks, opts = {}) {
         if (state.rol === ROLES.HOST) {
           if (state.step === 'verbroken') await act('hervat');
           else if (state.step === 'host-maakt-code') await hostStart();
+        } else if (state.step === 'verbroken' && state.bron) {
+          await hervatViaLijst(); // #983: een lijstgast heeft geen code; zijn bron (de rij) gaat voor een oude laatsteCode
         } else {
           const code = hooks.laatsteCode || state.caps.laatsteCode;
           if (state.step === 'verbroken') set({ t: 'hervat' });
@@ -551,7 +555,8 @@ export function mountLobby(root, hooks, opts = {}) {
     // (#777) Bij een rij uit de lijst hoort een sessie-id en een naam; na het verbinden controleert de gast
     // of het welkom daarbij hoort (hostIdentityCheck). Bij de kamercode-route valt er niets te vergelijken.
     let expected = null;
-    const bind = (tr) => { if (opts.session) { opts.session.rebind(tr); watch(opts.session); } else watch(metWachtwoord(hooks.startClient(tr, inv.route, state.wens, { wachtwoord: state.wachtwoord })), expected); };
+    let bron = null; // #983: de rij waarop de speler klikte; de nieuwe sessie onthoudt hem om later opnieuw te kunnen verbinden
+    const bind = (tr) => { if (opts.session) { opts.session.rebind(tr); watch(opts.session); } else { const sess = metWachtwoord(hooks.startClient(tr, inv.route, state.wens, { wachtwoord: state.wachtwoord })); if (bron) onthoudBron(sess, bron); watch(sess, expected); } };
     if (inv.route === ROUTES.DIRECT) {
       const tr = ipcTransport(api, 0);
       const r = await api.join(inv.code);
@@ -572,11 +577,12 @@ export function mountLobby(root, hooks, opts = {}) {
       // #795: de gast bindt het antwoord aan de hostsleutel uit de rij; zonder sleutel kan hij niets controleren
       // en vraagt hij niets aan (net/joingate.js geeft dan meteen een fout).
       const hostKey = rij && typeof rij.hostKey === 'string' ? rij.hostKey : '';
-      try { kamer = await (opts.haalKamer ? opts.haalKamer(id) : vraagKamer({ id, maakSignaler: () => newLijstSignaler(JOIN.interval), hostKey })); }
+      if (hostKey) bron = { id, hostKey, naam: expected.naam };
+      try { kamer = await (opts.haalKamer ? opts.haalKamer(id, hostKey) : vraagKamer({ id, maakSignaler: () => newLijstSignaler(JOIN.interval), hostKey })); }
       catch (e) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
       if (!kamer) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
     }
-    handle = await joinRoom(kamer, {
+    handle = await joinKamer(kamer, {
       signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
       onstate: (s, info) => { if (s === 'fout') { set({ t: 'kies', rol: ROLES.GAST }); set({ t: 'fout', msg: info }); } },
     });
@@ -589,7 +595,44 @@ export function mountLobby(root, hooks, opts = {}) {
     handle.opened.then(bind).catch((e) => set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' }));
   }
 
+  // #983: een gast die via de lijst binnenkwam heeft geen kamercode om opnieuw in te voeren (de eenmalige kamer is verbruikt).
+  // Hij vraagt via de bewaarde rij (sessie-id en hostsleutel, alleen in het geheugen) een nieuwe eenmalige kamer, bindt het nieuwe
+  // transport aan dezelfde sessie (hetzelfde token, dus dezelfde plek) en controleert het welkom opnieuw tegen het sessie-id.
+  // Geeft true als de verbinding terug is gebonden; mislukt het, dan staat het scherm weer op 'verbroken' voor een volgende poging.
+  async function hervatViaLijst() {
+    const sess = opts.session, bron = sess ? bronVan(sess) : null;
+    if (!bron) return false;
+    set({ t: 'bron-hervat' });
+    if (state.step !== 'verbinden') return false;
+    const gen = ++hervatGen;
+    const geannuleerd = () => gen !== hervatGen;
+    const mislukt = (msg) => { if (!geannuleerd() && state.step === 'verbinden') set({ t: 'bron-mislukt', msg }); return false; };
+    let h = null;
+    try {
+      const kamer = await (opts.haalKamer ? opts.haalKamer(bron.id, bron.hostKey) : vraagKamer({ id: bron.id, maakSignaler: () => newLijstSignaler(JOIN.interval), hostKey: bron.hostKey }));
+      if (geannuleerd()) return false;
+      if (!kamer) return mislukt('Deze sessie antwoordt niet. Probeer het nog eens.');
+      h = await joinKamer(kamer, {
+        signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
+        onstate: (st, info) => { if (st === 'fout') mislukt(info); },
+      });
+      handle = h;
+      const tr = await h.opened;
+      if (geannuleerd()) { try { if (h.cancel) h.cancel(); } catch (e) { /* al weg */ } return false; }
+      sess.sessie = null; // het nieuwe welkom moet het sessie-id zelf noemen: een oud id telt niet als bewijs
+      sess.rebind(tr);
+      watch(sess, { id: bron.id, ...(bron.naam != null ? { naam: bron.naam } : {}) });
+      verbindingslog.add('herstel', 'opnieuw verbonden via de lijst');
+      return true;
+    } catch (e) {
+      try { if (h && h.cancel) h.cancel(); } catch (e2) { /* al weg */ }
+      verbindingslog.add('herstel', 'hervatten via de lijst mislukt');
+      return mislukt(e && e.message ? e.message : 'Opnieuw verbinden lukte niet.');
+    }
+  }
+
   function cleanup() {
+    hervatGen++;
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     autoTries = AUTO_MAX; // na sluiten geen pogingen meer
     if (handle && handle.cancel) handle.cancel();
@@ -681,6 +724,8 @@ export function mountLobby(root, hooks, opts = {}) {
         if (hooks.disconnect) hooks.disconnect(a, state.rol, opts.holdSlot);
         cleanup();
         set({ t: a === 'terug' ? 'terug' : 'verbreek' });
+      } else if (a === 'hervat' && state.step === 'verbroken' && state.bron) {
+        await hervatViaLijst();
       } else if (a === 'hervat') {
         set({ t: 'hervat' }); // opnieuw uitwisselen; de terugkerende speler vindt zijn plek via zijn token
         if (state.step === 'host-maakt-code') await hostStart();
