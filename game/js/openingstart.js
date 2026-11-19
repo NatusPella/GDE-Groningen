@@ -10,7 +10,7 @@
 export function openingBlockers(s) {
   const out = [];
   if (!s.started) out.push('spel nog niet gestart');
-  if (s.client) out.push('gast (de opening hoort bij de wereld van de gastheer)');
+  if (s.client) out.push('meespeler (de opening hoort bij de wereld van wie het spel opende)');
   if (s.gate) out.push('wachtkamer Samen spelen');
   if (s.missionActive) out.push('missie actief');
   // een andere film dan de spelstart houdt de opening wel tegen; de spelstart zelf niet
@@ -18,7 +18,7 @@ export function openingBlockers(s) {
   if (!s.cinematicActive && s.sinceCinematicS <= 1) out.push('film net afgelopen');
   if (s.narrativeBusy) out.push('vertelling bezig');
   if (s.pigeon) out.push('duifstand');
-  if (s.respawn) out.push('respawn loopt');
+  if (s.respawn) out.push('terugzetten na een val loopt');
   if (!s.dataReady) out.push('verhaaldata nog niet geladen');
   return out;
 }
