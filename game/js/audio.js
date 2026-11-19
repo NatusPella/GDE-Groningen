@@ -15,6 +15,7 @@ import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } fr
 import { updateSkySfx } from './sfx/sky.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
 import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
+import { createParamMemo } from './audio/paramwrite.js';
 import { setSpatialHost, makePanner, setPannerPos, distToListener, inverseGain, spatialOut, updateListener, MAX_DISTANCE, SOURCE_HEIGHT, HRTF_NEAR } from './audio/spatial.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
@@ -346,6 +347,7 @@ async function loadEngineWorklet() {
   roadGain.connect(worldIn);
   rumbleVoice.gain.gain.cancelScheduledValues(ctx.currentTime);
   rumbleVoice.gain.gain.value = 0;
+  paramMemo.forget(rumbleVoice.gain.gain);
   engineVoices.forEach((voice, i) => {
     voice.osc.stop();
     voice.gain.disconnect();
@@ -2208,22 +2210,24 @@ const RUMBLE = {
   gras: { freq: 320, q: 0.5, rate: 1.6, depth: 0.55, gain: 0.011, max: 0.26 },
 };
 
+// AudioParam-events only on change (audio/paramwrite.js); paramMemo.stats is the counter for a measuring run
+export const paramMemo = createParamMemo();
 function updateRumble(dt, world) {
   const v = hoofdspeler(world).inVehicle;
   const t = ctx.currentTime;
   const r = rumbleVoice;
   if (synth.player) return;
-  if (!v || v.isBoat || v.isHeli || v.wrecked || world.paused) { r.gain.gain.setTargetAtTime(0, t, 0.1); return; }
+  if (!v || v.isBoat || v.isHeli || v.wrecked || world.paused) { paramMemo.set(r.gain.gain, 0, t, 0.1); return; }
   const p = RUMBLE[v.surface] || RUMBLE.asfalt;
   const speed = Math.abs(v.speed);
   const scale = v.isBike || v.isScooter ? 0.45 : v.isBus ? 1.3 : 1;
   const g = Math.min(p.max, speed * p.gain) * scale * clamp(speed / 1.5, 0, 1);
-  r.filter.frequency.setTargetAtTime(p.freq * (v.isBus ? 0.7 : 1), t, 0.1);
-  r.filter.Q.setTargetAtTime(p.q, t, 0.1);
-  r.lfo.frequency.setTargetAtTime(clamp(speed * p.rate, 2, 90), t, 0.05);
-  r.lfoDepth.gain.setTargetAtTime(p.depth * 0.5, t, 0.1);
-  r.am.gain.setTargetAtTime(1 - p.depth * 0.5, t, 0.1);
-  r.gain.gain.setTargetAtTime(g, t, 0.12);
+  paramMemo.set(r.filter.frequency, p.freq * (v.isBus ? 0.7 : 1), t, 0.1, 0.5);
+  paramMemo.set(r.filter.Q, p.q, t, 0.1);
+  paramMemo.set(r.lfo.frequency, clamp(speed * p.rate, 2, 90), t, 0.05, 0.05);
+  paramMemo.set(r.lfoDepth.gain, p.depth * 0.5, t, 0.1);
+  paramMemo.set(r.am.gain, 1 - p.depth * 0.5, t, 0.1);
+  paramMemo.set(r.gain.gain, g, t, 0.12);
 }
 
 function updatePlayerHorn(world) {
@@ -2555,7 +2559,7 @@ function fadeVoice(voice, target, dt, rate) {
   voice.level = voice.level || 0;
   voice.level += (target - voice.level) * Math.min(1, dt * rate);
   if (voice.level < 0.002 && target === 0) voice.level = 0;
-  voice.gain.gain.setTargetAtTime(voice.level, ctx.currentTime, 0.04);
+  paramMemo.set(voice.gain.gain, voice.level, ctx.currentTime, 0.04);
 }
 
 function placeVoice(voice, x, y, h = SOURCE_HEIGHT) {
@@ -2735,7 +2739,7 @@ function updateTrafficAudio(dt, world) {
       const pitch = Math.pow(2, clamp(dopplerCents(v, Math.cos(v.angle) * v.speed, Math.sin(v.angle) * v.speed), -250, 250) / 1200);
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
       const d = distToListener(v.x, v.y, 0.7);
-      voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
+      paramMemo.set(voice.distLp.frequency, clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15, 2);
       const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.16 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.18) : p.kind === 11 ? 0.12 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : p.kind === 12 ? 0.42 + p.load * 0.12 : 0.28 + p.load * 0.1;
       fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
@@ -2755,7 +2759,7 @@ function updateTrafficAudio(dt, world) {
 
   const heli = world.policeHeli;
   if (heli) setPannerPos(heliVoice.panner, heli.x, heli.y, heli.z ?? 30, true);
-  heliVoice.gain.gain.setTargetAtTime(heli ? 0.35 : 0, t, 0.4);
+  paramMemo.set(heliVoice.gain.gain, heli ? 0.35 : 0, t, 0.4);
 }
 
 function spatialAt(x, y, opts) {

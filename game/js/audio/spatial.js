@@ -2,6 +2,7 @@
 // de mute/voice-budgetten, de sfx-bus en de camera komen via setSpatialHost
 // binnen, zodat deze module niets uit audio.js hoeft te importeren.
 import { hoofdspeler } from '../players.js';
+import { listenerMoved } from './paramwrite.js';
 
 export const MAX_DISTANCE = 120;
 export const SOURCE_HEIGHT = 1;
@@ -75,16 +76,20 @@ export function spatialOut(x, y, opts = {}) {
   };
 }
 
-function rotateByQuat(q, vx, vy, vz) {
+function rotateByQuat(q, vx, vy, vz, out) {
   const tx = 2 * (q.y * vz - q.z * vy);
   const ty = 2 * (q.z * vx - q.x * vz);
   const tz = 2 * (q.x * vy - q.y * vx);
-  return [
-    vx + q.w * tx + (q.y * tz - q.z * ty),
-    vy + q.w * ty + (q.z * tx - q.x * tz),
-    vz + q.w * tz + (q.x * ty - q.y * tx),
-  ];
+  out[0] = vx + q.w * tx + (q.y * tz - q.z * ty);
+  out[1] = vy + q.w * ty + (q.z * tx - q.x * tz);
+  out[2] = vz + q.w * tz + (q.x * ty - q.y * tx);
+  return out;
 }
+
+// scratch vectors and the pose last written to the listener: no arrays per frame, no automation for a listener that stood still
+const fwdScratch = [0, 0, -1], upScratch = [0, 1, 0];
+const lastPose = { ctx: null, pos: [NaN, NaN, NaN], fwd: [0, 0, 0], up: [0, 0, 0], set: false };
+export const listenerStats = { written: 0, skipped: 0 };
 
 export function updateListener(world) {
   const ctx = host.ctx();
@@ -96,20 +101,30 @@ export function updateListener(world) {
     listenerPos.x = cam.position.x;
     listenerPos.y = cam.position.y;
     listenerPos.z = cam.position.z;
-    fwd = rotateByQuat(cam.quaternion, 0, 0, -1);
-    up = rotateByQuat(cam.quaternion, 0, 1, 0);
+    fwd = rotateByQuat(cam.quaternion, 0, 0, -1, fwdScratch);
+    up = rotateByQuat(cam.quaternion, 0, 1, 0, upScratch);
   } else {
     listenerPos.x = p.x;
     listenerPos.y = SOURCE_HEIGHT;
     listenerPos.z = p.y;
-    fwd = [Math.cos(p.angle || 0), 0, Math.sin(p.angle || 0)];
-    up = [0, 1, 0];
+    fwdScratch[0] = Math.cos(p.angle || 0); fwdScratch[1] = 0; fwdScratch[2] = Math.sin(p.angle || 0);
+    upScratch[0] = 0; upScratch[1] = 1; upScratch[2] = 0;
+    fwd = fwdScratch; up = upScratch;
   }
   const v = p.inVehicle;
   listenerVel.x = v ? Math.cos(v.angle) * v.speed : (p.vx || 0);
   listenerVel.y = v ? Math.sin(v.angle) * v.speed : (p.vy || 0);
 
-  if (![listenerPos.x, listenerPos.y, listenerPos.z, ...fwd, ...up].every(Number.isFinite)) return;
+  if (!(Number.isFinite(listenerPos.x) && Number.isFinite(listenerPos.y) && Number.isFinite(listenerPos.z)
+    && Number.isFinite(fwd[0]) && Number.isFinite(fwd[1]) && Number.isFinite(fwd[2])
+    && Number.isFinite(up[0]) && Number.isFinite(up[1]) && Number.isFinite(up[2]))) return;
+  if (lastPose.ctx !== ctx) { lastPose.ctx = ctx; lastPose.set = false; } // a new context starts with a new listener
+  if (!listenerMoved(lastPose.set ? lastPose : null, listenerPos.x, listenerPos.y, listenerPos.z, fwd, up)) { listenerStats.skipped++; return; }
+  lastPose.set = true;
+  lastPose.pos[0] = listenerPos.x; lastPose.pos[1] = listenerPos.y; lastPose.pos[2] = listenerPos.z;
+  lastPose.fwd[0] = fwd[0]; lastPose.fwd[1] = fwd[1]; lastPose.fwd[2] = fwd[2];
+  lastPose.up[0] = up[0]; lastPose.up[1] = up[1]; lastPose.up[2] = up[2];
+  listenerStats.written++;
   const L = ctx.listener;
   if (L.positionX) {
     const t = ctx.currentTime;
