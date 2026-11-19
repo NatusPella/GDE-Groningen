@@ -85,6 +85,7 @@ import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
 import { buildingAt } from './tileplace.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
+import { VOLUME_KEYS } from './sfx/volume.js';
 import { stepFov } from './gamefeel.js';
 import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
@@ -1069,8 +1070,9 @@ export function refreshCharacterMeshes() {
 let orbitRadius = ORBIT_RADIUS;
 let baseFov = 64;
 
-function applyViewSettings(st) {
+function applyViewSettings(st, key) {
   if (!renderer) return;
+  if (key && VOLUME_KEYS.includes(key)) return; // een volumeslider verandert niets aan het beeld (stond per input-event in deze functie)
   const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
   const preset = QUALITY_PRESETS[level];
   wantRatio = renderPixelRatio(st, preset);

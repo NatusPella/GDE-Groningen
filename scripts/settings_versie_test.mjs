@@ -34,7 +34,7 @@ t('een bestand van versie 11 met een onbekende sleutel: de wijziging bewaart v 1
   zetBestand({ v: SETTINGS_VERSION + 1, masterVolume: 0.5, toekomstInstelling: { aan: true } });
   const S = await laad();
   assert.equal(S.getSettings().masterVolume, 0.5, 'de bekende stand wordt gelezen');
-  S.setSetting('masterVolume', 0.7);
+  S.setSetting('masterVolume', 0.7); S.flushSettings(); // sliders schrijven uitgesteld
   const d = bewaard();
   assert.equal(d.v, SETTINGS_VERSION + 1, 'de versie gaat nooit omlaag');
   assert.equal(d.masterVolume, 0.7, 'de wijziging staat erin');
@@ -44,7 +44,7 @@ t('een bestand van versie 11 met een onbekende sleutel: de wijziging bewaart v 1
 t('een hogere versie zonder onbekende sleutels blijft ook staan', async () => {
   zetBestand({ v: SETTINGS_VERSION + 2, masterVolume: 0.5 });
   const S = await laad();
-  S.setSetting('masterVolume', 0.2);
+  S.setSetting('masterVolume', 0.2); S.flushSettings(); // sliders schrijven uitgesteld
   assert.equal(bewaard().v, SETTINGS_VERSION + 2);
 });
 
@@ -62,7 +62,7 @@ t('een ouder bestand migreert gewoon en schrijft de huidige versie', async () =>
   zetBestand({ v: 1, masterVolume: 0.5, sfxVolume: 1, drawDistance: 'kort' });
   const S = await laad();
   assert.equal(bewaard().v, SETTINGS_VERSION, 'een ouder bestand wordt bijgewerkt naar deze versie');
-  S.setSetting('masterVolume', 0.9);
+  S.setSetting('masterVolume', 0.9); S.flushSettings(); // sliders schrijven uitgesteld
   assert.equal(bewaard().v, SETTINGS_VERSION);
   assert.equal(bewaard().masterVolume, 0.9);
 });
@@ -80,7 +80,7 @@ t('een typewijziging van een bekende sleutel overleeft een round-trip (#781)', a
   zetBestand({ v: SETTINGS_VERSION + 1, showMinimap: 'altijd', masterVolume: 0.5 });
   const S = await laad();
   assert.equal(S.getSettings().showMinimap, true, 'een onbruikbaar type valt in het spel terug op de standaard');
-  S.setSetting('masterVolume', 0.3); // een andere instelling wijzigen schrijft het bestand
+  S.setSetting('masterVolume', 0.3); S.flushSettings(); // sliders schrijven uitgesteld // een andere instelling wijzigen schrijft het bestand
   const d = bewaard();
   assert.equal(d.v, SETTINGS_VERSION + 1, 'de versie blijft van de nieuwere build');
   assert.equal(d.showMinimap, 'altijd', 'de nieuwere waarde wordt niet door de oude default overschreven');
@@ -99,7 +99,7 @@ t('een onbekende enum-waarde van een bekende sleutel blijft bewaard (#781)', asy
   zetBestand({ v: SETTINGS_VERSION + 1, quality: 'ultra', hudMode: 'toekomst', subtitleSize: 'kolossaal', drawDistance: 'verweg', masterVolume: 0.5 });
   const S = await laad();
   assert.notEqual(S.getSettings().quality, 'ultra', 'deze build kent de waarde niet en valt terug op de default');
-  S.setSetting('masterVolume', 0.2); // een andere instelling wijzigen schrijft het bestand
+  S.setSetting('masterVolume', 0.2); S.flushSettings(); // sliders schrijven uitgesteld // een andere instelling wijzigen schrijft het bestand
   const d = bewaard();
   assert.equal(d.v, SETTINGS_VERSION + 1, 'de versie blijft van de nieuwere build');
   assert.equal(d.quality, 'ultra', 'de onbekende kwaliteit blijft bewaard');
@@ -120,7 +120,7 @@ t('een zelf gezette enum-waarde wint van de bewaarde toekomststand (#781)', asyn
 t('een onbekende sleutel blijft ook bij een typewijziging bewaard (#781)', async () => {
   zetBestand({ v: SETTINGS_VERSION + 1, toekomstInstelling: [1, 2], showMinimap: 'altijd' });
   const S = await laad();
-  S.setSetting('masterVolume', 0.9);
+  S.setSetting('masterVolume', 0.9); S.flushSettings(); // sliders schrijven uitgesteld
   assert.deepEqual(bewaard().toekomstInstelling, [1, 2], 'de onbekende sleutel blijft staan');
   assert.equal(bewaard().showMinimap, 'altijd', 'en de bekende sleutel met nieuw type ook');
 });

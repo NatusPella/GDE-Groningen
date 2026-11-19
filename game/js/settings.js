@@ -250,6 +250,30 @@ export function getSettings() {
   return settings;
 }
 
+// De hele stand in één keer wegschrijven; een lopende uitgestelde schrijfbeurt vervalt.
+const SETTINGS_WRITE_DELAY_MS = 200;
+let writeTimer = null;
+let writePending = false;
+function writeSettingsNow() {
+  if (writeTimer) { clearTimeout(writeTimer); writeTimer = null; }
+  writePending = false;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
+}
+function scheduleSettingsWrite() {
+  writePending = true;
+  if (writeTimer) clearTimeout(writeTimer);
+  writeTimer = setTimeout(writeSettingsNow, SETTINGS_WRITE_DELAY_MS);
+}
+// Schrijft een uitgestelde stand direct weg (sluiten, verbergen van de pagina, tests).
+export function flushSettings() { if (writePending) writeSettingsNow(); }
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('pagehide', flushSettings);
+  window.addEventListener('beforeunload', flushSettings);
+}
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSettings(); });
+}
+
 export function setSetting(key, value) {
   if (typeof DEFAULTS[key] === 'number' && typeof value === 'string') value = Number(value);
   // a volume always stays in 0..1, whatever a caller or a keyboard shortcut sends
@@ -263,7 +287,9 @@ export function setSetting(key, value) {
   // nieuwere build bewaren; anders verliest een downgrade de stand van de nieuwere versie. De
   // bewaarde nieuwere waarden staan achter de eigen instellingen, zodat een onbruikbaar type niet
   // door deze build wordt overschreven (#781).
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
+  // Efficiëntie: een slider geeft tientallen input-events per seconde; de opslag volgt dan 200 ms na
+  // de laatste beweging (en bij sluiten of verbergen van de pagina). Een schakelaar of keuze schrijft meteen.
+  if (typeof value === 'number') scheduleSettingsWrite(); else writeSettingsNow();
   applyHudClasses();
   for (const cb of listeners) cb(settings, key);
 }
@@ -286,6 +312,7 @@ export function withTempSettings(values) {
 
 export function resetSettings() {
   for (const k of Object.keys(DEFAULTS)) if (!KEEP_ON_RESET.has(k)) setSetting(k, DEFAULTS[k]);
+  flushSettings();
 }
 
 // Mag dit spel contact zoeken met andere spelers? Alleen bij een uitdrukkelijke ja;
