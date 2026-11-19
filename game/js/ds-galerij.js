@@ -29,24 +29,17 @@ function zetOppervlak(waarde) {
   for (const b of $$('[data-oppervlak]', document.querySelector('.g-wissel'))) b.setAttribute('aria-selected', String(b.dataset.oppervlak === waarde));
 }
 
-async function leesTokens() {
+function leesTokens() {
   const namen = [];
-  const uitSheet = (sheet) => {
+  for (const sheet of document.styleSheets) {
     try { for (const r of sheet.cssRules) if (r.selectorText === ':root') for (const n of r.style) if (n.startsWith('--ds-c-')) namen.push(n); } catch { /* file:// sluit de CSSOM af */ }
-  };
-  for (const s of document.styleSheets) uitSheet(s);
-  if (!namen.length) {
-    try {
-      const tekst = await (await fetch('js/ds-tokens.css')).text();
-      for (const m of tekst.matchAll(/(--ds-c-[\w-]+)\s*:/g)) if (!namen.includes(m[1])) namen.push(m[1]);
-    } catch { /* geen palet te tonen */ }
   }
   return namen;
 }
 
-async function tekenPalet() {
+function tekenPalet() {
   const doel = document.getElementById('g-stalen');
-  const namen = await leesTokens();
+  const namen = leesTokens();
   if (!namen.length) { doel.textContent = 'Palet niet te lezen (open de galerij via de dev-server).'; return; }
   for (const n of namen) {
     const staal = document.createElement('div');
