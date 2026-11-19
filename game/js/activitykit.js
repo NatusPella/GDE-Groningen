@@ -13,6 +13,13 @@ export function activityBlock(w) {
   return null;
 }
 
+// #955: the vehicle a service (flight, boat) lets the player step into from the ground: a free one, and never a mission's own
+// (Roelfien's plane in M15 stands on a field too; the service's E answered 'Niet nu: maak eerst je missie af' and ate the E
+// that boards the mission's plane, so the first stage of M15 could not be finished).
+export function dienstVoertuigVrij(v) {
+  return !!v && !v.driver && !v.wrecked && !v.sinking && !v.missionCar;
+}
+
 // A round map icon in the house style: disc in the accent colour, then the glyph.
 export function iconDisc(ctx, s, color) {
   ctx.beginPath();

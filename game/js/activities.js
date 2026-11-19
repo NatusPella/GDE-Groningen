@@ -58,7 +58,7 @@ import { showCard } from './hudcards.js';
 import { gameUi, mgThema, createBoard, key, stopPressed } from './minigamekit.js';
 import { toonStartkaart, startkaartRegel } from './startkaart.js';
 import { standaardTodo } from './activitytodo.js';
-import { activityBlock, iconDisc } from './activitykit.js';
+import { activityBlock, iconDisc, dienstVoertuigVrij } from './activitykit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
 import { hoofdspeler } from './players.js';
 import { getSettings } from './settings.js';
@@ -126,7 +126,7 @@ function dienstActiviteit(cfg) {
     if (cfg.inVoertuig(p.inVehicle)) return p.inVehicle;
     let best = null;
     for (const v of w.vehicles) {
-      if (!cfg.inVoertuig(v) || v.driver || v.wrecked || v.sinking) continue;
+      if (!cfg.inVoertuig(v) || !dienstVoertuigVrij(v)) continue;
       const d = Math.hypot(v.x - p.x, v.y - p.y);
       if (d <= cfg.instap && (!best || d < best.d)) best = { v, d };
     }
