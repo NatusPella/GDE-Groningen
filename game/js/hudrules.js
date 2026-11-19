@@ -149,6 +149,12 @@ export function bubblePlace(anchor, size, view, pad = 4) {
   };
 }
 
+// De plaats van een bel als transform (compositorlaag, geen layout): de bel staat op left/top 0 en schuift met translate; de
+// ankermaat (-50%, -100%) zit erin. Dezelfde plek als left/top + translate(-50%, -100%) eerder gaf.
+export function bubbleTransform(x, y) {
+  return 'translate(' + x + 'px, ' + y + 'px) translate(-50%, -100%)';
+}
+
 // What shows now. s: the situation (all optional):
 //   mode, hidden, banner, busy, dialogue, idle, wake,
 //   wanted, wantedAgo, moneyAgo, moneySign (+1/-1), nearShop, moneyHeld,

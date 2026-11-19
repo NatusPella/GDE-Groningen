@@ -82,3 +82,12 @@ export function cameraSnapNeeded(cam, pose, maxGap = CAMERA_SNAP_GAP) {
   if (![cam.x, cam.y, cam.z, pose.x, pose.y, pose.z].every((v) => Number.isFinite(v))) return true;
   return Math.hypot(pose.x - cam.x, pose.y - cam.y, pose.z - cam.z) > maxGap;
 }
+
+// Can a push ray (scene3d.js, CAM_CLEARANCE long) hit anything at (x, y)? bounds: flat [minx, miny, maxx, maxy, ...] footprints of the
+// camera targets; false only when (x, y) lies outside every footprint plus the margin (clearance plus eaves and roof overhang).
+export function camPushRaysNeeded(bounds, count, x, y, margin = 1.9) {
+  for (let i = 0; i < count; i += 4) {
+    if (x >= bounds[i] - margin && x <= bounds[i + 2] + margin && y >= bounds[i + 1] - margin && y <= bounds[i + 3] + margin) return true;
+  }
+  return false;
+}

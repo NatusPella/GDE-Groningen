@@ -5,7 +5,7 @@ import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
-import { bubblePlace } from './hudrules.js';
+import { bubblePlace, bubbleTransform } from './hudrules.js';
 import { gridItems } from './spatialgrid.js';
 import { terrainHoleRows } from './terraincache.js';
 import { speakerHtml } from './speakers.js';
@@ -150,7 +150,7 @@ import { updateRouteRibbon3D, hideRouteRibbon3D, setRouteRibbonScene } from './s
 import { lookBackActive, chaseFollowLerp } from './controls.js';
 // de vaste cameraregels (verhouding, verticale kijkhoek, volgplek, harde snee):
 // los van three.js zodat scripts/camera_mobiel_test.mjs ze per scherm narekent (#463)
-import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
+import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, camPushRaysNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -404,6 +404,11 @@ let camPull = 1;
 let camPullReset = true;
 const CAM_TARGET_RADIUS = ORBIT_RADIUS * 5 + CAM_CLEARANCE + 2;
 const camTargetList = [];
+// the footprints [minx, miny, maxx, maxy, ...] of the targets above that have one, and whether every target has one (a target
+// source of another module has none): with them the five push rays are skipped when the camera is clear of all of them
+const camTargetBounds = [];
+let camTargetsBounded = true;
+export const camPushStats = { cast: 0, skipped: 0 };
 let lastPx = null, lastPy = null;
 const camBase = new THREE.Vector3();
 let camBaseInit = false;
@@ -478,12 +483,14 @@ const camTargetSources = [];
 export function addCamTargetSource(fn) { camTargetSources.push(fn); }
 function nearbyCamTargets(px, py) {
   camTargetList.length = 0;
+  camTargetBounds.length = 0;
   for (const [b, mesh] of buildingMeshes) {
     if (hiddenBuildings.has(b)) continue;
     const [minx, miny, maxx, maxy] = b.bounds;
     if (px < minx - CAM_TARGET_RADIUS || px > maxx + CAM_TARGET_RADIUS) continue;
     if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
     camTargetList.push(mesh);
+    camTargetBounds.push(minx, miny, maxx, maxy);
   }
   // viaduct decks, cutting walls and tunnel roofs of the ring (roadstructures3d)
   for (const r of roadMeshes.keys()) {
@@ -493,8 +500,11 @@ function nearbyCamTargets(px, py) {
     if (px < minx - CAM_TARGET_RADIUS || px > maxx + CAM_TARGET_RADIUS) continue;
     if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
     camTargetList.push(g);
+    camTargetBounds.push(minx, miny, maxx, maxy);
   }
+  const bounded = camTargetList.length;
   for (let i = 0; i < camTargetSources.length; i++) camTargetSources[i](px, py, camTargetList);
+  camTargetsBounded = camTargetList.length === bounded;
   return camTargetList;
 }
 
@@ -2588,20 +2598,22 @@ function syncPedestrianMeshes(world, player, animDt) {
 // screen space every frame from the same THREE.Camera the world renders
 // through - the standard cheap "billboard" trick for a handful of labels.
 const _projVec = new THREE.Vector3();
-function projectToScreen(x, y, z) {
+// vw/vh: the viewport in HUD px, read once per frame by the caller (clientWidth after a style write forces a layout)
+function projectToScreen(x, y, z, vw, vh) {
   _projVec.set(x, y, z).project(cam);
   if (_projVec.z > 1) return null; // behind the camera
-  const ui = getUiScale(); // #hud is zoomed by the HUD scale
   return {
-    x: (_projVec.x * 0.5 + 0.5) * renderer.domElement.clientWidth / ui,
-    y: (1 - (_projVec.y * 0.5 + 0.5)) * renderer.domElement.clientHeight / ui,
+    x: (_projVec.x * 0.5 + 0.5) * vw,
+    y: (1 - (_projVec.y * 0.5 + 0.5)) * vh,
   };
 }
 
 function speechBubbleEl() {
   const el = document.createElement('div');
   el.style.position = 'absolute';
-  el.style.transform = 'translate(-50%, -100%)';
+  el.style.left = '0';
+  el.style.top = '0';
+  el.style.transform = bubbleTransform(0, 0);
   el.style.background = 'rgba(242,240,234,0.92)';
   el.style.border = '1px solid rgba(20,20,22,0.6)';
   el.style.borderRadius = '8px';
@@ -2623,8 +2635,12 @@ function syncSpeechBubbles(world) {
   // { x, y, h, speechText, speechUntil, follow? } (follow: a moving vehicle)
   const extra = world.extraSpeakers;
   if (extra) for (let i = extra.length - 1; i >= 0; i--) if (world.time >= extra[i].speechUntil) extra.splice(i, 1);
-  const speakers = extra && extra.length ? [...world.pedestrians, ...extra] : world.pedestrians;
-  for (const p of speakers) {
+  // the viewport in HUD px once per frame (not per bubble: a style write in between forced a layout for every read)
+  const ui = getUiScale();
+  const vw = renderer.domElement.clientWidth / ui, vh = renderer.domElement.clientHeight / ui;
+  const peds = world.pedestrians, nPeds = peds.length, nExtra = extra ? extra.length : 0;
+  for (let n = 0; n < nPeds + nExtra; n++) {
+    const p = n < nPeds ? peds[n] : extra[n - nPeds];
     if (!p.speechText || world.time >= p.speechUntil) { if (p._voicedText) p._voicedText = null; continue; }
     seen.add(p);
     let el = speechBubbleEls.get(p);
@@ -2638,7 +2654,7 @@ function syncSpeechBubbles(world) {
       else if (p.female === undefined) p.female = Math.random() < 0.5;
       speakBubble(p.speechText, p.female, { x: src.x, y: src.y });
     }
-    const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
+    const scr = projectToScreen(src.x, p.h ?? 2.1, src.y, vw, vh);
     if (!scr) { el.style.display = 'none'; continue; }
     if (el._text !== p.speechText) {
       el._text = p.speechText;
@@ -2652,10 +2668,10 @@ function syncSpeechBubbles(world) {
     // randen (hudrules.js bubblePlace); de maat wordt alleen bij nieuwe tekst gemeten.
     el.style.display = 'block';
     if (!el._bw) { el._bw = el.offsetWidth || 140; el._bh = el.offsetHeight || 30; }
-    const placed = bubblePlace(scr, { w: el._bw, h: el._bh }, { w: renderer.domElement.clientWidth / getUiScale(), h: renderer.domElement.clientHeight / getUiScale() });
+    const placed = bubblePlace(scr, { w: el._bw, h: el._bh }, { w: vw, h: vh });
     if (!placed) { el.style.display = 'none'; continue; }
-    el.style.left = placed.x + 'px';
-    el.style.top = placed.y + 'px';
+    const tf = bubbleTransform(placed.x, placed.y);
+    if (el._tf !== tf) { el._tf = tf; el.style.transform = tf; }
   }
   for (const [p, el] of speechBubbleEls) {
     if (seen.has(p)) continue;
@@ -3323,7 +3339,9 @@ export function update3D(dt, world) {
 
     // De rays hierboven toetsen alleen de lijn oog-camera; een muur naast de camera komt anders
     // binnen de near-plane en wordt opengeknipt. Duw hem per as weg van alles dichter dan CAM_CLEARANCE.
-    for (const [ax, ay, az] of CAM_PUSH_DIRS) {
+    const pushNeeded = !noCollide && (!camTargetsBounded || camPushRaysNeeded(camTargetBounds, camTargetBounds.length, desiredX, desiredZ, CAM_CLEARANCE + 1));
+    if (!noCollide) camPushStats[pushNeeded ? 'cast' : 'skipped']++;
+    if (pushNeeded) for (const [ax, ay, az] of CAM_PUSH_DIRS) {
       const hit = raycastFrom(desiredX, desiredY, desiredZ, ax, ay, az, CAM_CLEARANCE);
       if (hit === null) continue;
       const push = CAM_CLEARANCE - hit;

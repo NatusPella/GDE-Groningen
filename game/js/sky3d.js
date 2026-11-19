@@ -194,6 +194,20 @@ function buildEnvScene(zenith, horizon, ground, sunDir, sunColor, gain) {
   return scene;
 }
 
+// Does the environment need a new bake? `last` holds the inputs of the previous bake (null: none yet), `next` the current
+// ones, both flat lists of numbers (colours, sun colour, direction). A change smaller than ENV_EPS (relative to the value,
+// with an absolute floor) is invisible in the reflections, so it is not baked again; drift adds up against the LAST BAKE,
+// so a slow dusk still gets its new bake as soon as it adds up to more than that.
+export const ENV_EPS = 0.015, ENV_FLOOR = 0.004;
+export function envInputsChanged(last, next, eps = ENV_EPS, floor = ENV_FLOOR) {
+  if (!last || last.length !== next.length) return true;
+  for (let i = 0; i < next.length; i++) {
+    if (Math.abs(next[i] - last[i]) > Math.max(floor, eps * Math.abs(last[i]))) return true;
+  }
+  return false;
+}
+export const envStats = { baked: 0, skipped: 0 };
+
 // Re-bakes the PMREM environment from the current sky colours so IBL and
 // reflections follow the time of day and storms.
 export function createEnvironmentUpdater(renderer, sunDir) {
@@ -208,7 +222,8 @@ export function createEnvironmentUpdater(renderer, sunDir) {
     if (!current) current = allocate.call(this);
     return current;
   };
-  const last = [];
+  let last = null;
+  const inputs = new Array(15).fill(0); // scratch: no arrays per call
   return {
     get texture() { return current; },
     update(zenith, horizon, ground, dir, sunColor, gain) {
@@ -217,10 +232,13 @@ export function createEnvironmentUpdater(renderer, sunDir) {
       u.uGround.value.copy(ground).multiplyScalar(gain);
       u.uSun.value.copy(sunColor).multiplyScalar(gain * 12);
       u.uSunDir.value.copy(dir);
-      // identical inputs bake an identical environment
-      const inputs = [u.uZenith.value, u.uHorizon.value, u.uGround.value, u.uSun.value].flatMap((c) => [c.r, c.g, c.b]).concat(dir.x, dir.y, dir.z);
-      if (current && inputs.every((v, i) => v === last[i])) return current.texture;
-      last.splice(0, last.length, ...inputs);
+      // inputs that moved less than ENV_EPS bake (almost) the same environment: skip the bake
+      let n = 0;
+      for (const c of [u.uZenith.value, u.uHorizon.value, u.uGround.value, u.uSun.value]) { inputs[n++] = c.r; inputs[n++] = c.g; inputs[n++] = c.b; }
+      inputs[n++] = dir.x; inputs[n++] = dir.y; inputs[n++] = dir.z;
+      if (current && !envInputsChanged(last, inputs)) { envStats.skipped++; return current.texture; }
+      last = inputs.slice();
+      envStats.baked++;
       return pmrem.fromScene(envScene, 0.02).texture;
     },
   };
