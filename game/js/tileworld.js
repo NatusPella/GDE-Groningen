@@ -38,6 +38,13 @@ const SIGNAL_RULE = RULES.indexOf('signal');
 const hasSignalArm = (rows) => rows.some((row) => (row.a || []).some((a) => a[3] === SIGNAL_RULE));
 // the sections whose rows the game keeps without their id (rowsOf)
 const ID_ASIDE = [...KIND_OF.keys()];
+// Tile decoder workers: as many as the store's concurrency (4) when the machine has the cores, leaving two for the main
+// thread and the renderer; never fewer than 2 (what it was).
+export function tileDecoderPoolSize(hardwareConcurrency) {
+  const hw = Number(hardwareConcurrency);
+  if (!Number.isFinite(hw) || hw <= 0) return 2;
+  return Math.max(2, Math.min(4, Math.floor(hw) - 2));
+}
 // NAV (the nav graph chains of the tiles) is only read by scripts (navgraph_test); the game never looks at it, so streamed tiles do not decode it
 export const GAME_SKIP_SECTIONS = [SECTION.NAV];
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', furniture: 'furnitureGrid', parcels: 'parcelGrid' };
@@ -578,24 +585,29 @@ export class TileWorld extends GameMap {
 // hand them to the scene as world.terrainCache, or null when absent/stale.
 export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, extra = [], terrain = false, terrainCache = false, ...opts } = {}) {
   let index;
-  try { index = JSON.parse(new TextDecoder().decode(await source.readAll('index.json'))); } catch (e) { return null; }
   // more tile layers next to the city (index-corridor.json: the proefstrook,
-  // scripts/world/build_corridor.mjs); a missing one is skipped
-  for (const x of extra) {
-    const { name, only = null } = typeof x === 'string' ? { name: x } : x;
-    try { mergeIndex(index, JSON.parse(new TextDecoder().decode(await source.readAll(name))), { only }); } catch (e) { /* not in this build */ }
+  // scripts/world/build_corridor.mjs); a missing one is skipped. All the index files are
+  // read in parallel (one round trip instead of one after the other), merged in order.
+  const extras = extra.map((x) => (typeof x === 'string' ? { name: x } : x));
+  const extraReads = extras.map(({ name }) => Promise.resolve().then(() => source.readAll(name)).catch(() => null));
+  try { index = JSON.parse(new TextDecoder().decode(await source.readAll('index.json'))); } catch (e) { await Promise.all(extraReads); return null; }
+  for (const [k, bytes] of (await Promise.all(extraReads)).entries()) {
+    if (!bytes) continue;
+    try { mergeIndex(index, JSON.parse(new TextDecoder().decode(bytes)), { only: extras[k].only || null }); } catch (e) { /* not in this build */ }
   }
   // start reading the baked ground while the city tiles come in; a build without
   // a cache (or an old stage) silently falls back to building it
   const bakedRead = terrainCache ? Promise.resolve().then(() => source.readAll(TERRAIN_FILE)).catch(() => null) : null;
-  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE, { skip: GAME_SKIP_SECTIONS })) || ((bytes) => decodeCompressed(bytes, ID_ASIDE, GAME_SKIP_SECTIONS));
+  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), tileDecoderPoolSize(typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : 0), ID_ASIDE, { skip: GAME_SKIP_SECTIONS })) || ((bytes) => decodeCompressed(bytes, ID_ASIDE, GAME_SKIP_SECTIONS));
   // dense: forceer de dichte arraylaag voor tests/audits die kaartrijen lezen; het spel
   // laadt de sparse productiewereld en streamt de stad.
   const dense = !!opts.dense;
   const sparseIdx = dense ? null : (index.sparse || null);
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
-  const globalBlob = decodeBlob(await inflateRaw(await source.read(index.packs[g.pack].file, g.off, g.len)));
+  // the global block is read and decoded while the city tiles come in (it is only needed once they are all there)
+  const globalRead = Promise.resolve().then(async () => decodeBlob(await inflateRaw(await source.read(index.packs[g.pack].file, g.off, g.len))));
+  globalRead.catch(() => {}); // a failure is raised below, with the tiles
   // De stadstegels: uit de nieuwe cityTiles, de oude pins.city of (zonder beide) de
   // tegels zonder overlay/stub-velden (die horen bij een extra laag).
   const keys = index.cityTiles || (index.pins.city && index.pins.city.tiles)
@@ -609,7 +621,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   // tijdens de eerste opbouw moet de hele stad binnenblijven (fromTiles eist de hele set);
   // daarna laat unpinCity haar los zodat de store kan streamen.
   for (const k of keys) store.pin(k);
-  const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
+  const [globalBlob, tiles] = await Promise.all([globalRead, Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })))]);
   const split = tiles.map(splitOverlay);
   const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain, sparse: sparseIdx }).attachStore(store);
   world.tileIndex = index;
