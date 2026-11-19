@@ -1,6 +1,6 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMapWater, WATER_Y, clamp } from './util.js';
 import { heeftAutoPortier } from './sfx/samples.js';
-import { wallAhead } from './countrywalls.js';
+import { wallAhead, solidAhead } from './countrywalls.js';
 import { countryRailAhead } from './countryrails.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap, detachLiveBus } from './vehicle.js';
@@ -24,7 +24,7 @@ import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
 import { lowWallAhead } from './elevation.js';
 import { drunkMove, drunkSteer } from './drunk.js';
-import { vaultDecision, vehicleHeight, roofSpot, onRoof, localToWorld, worldToLocal as worldToLocalV, standable, PERCH_SLIP_SPEED } from './vaultkit.js';
+import { vaultDecision, vehicleHeight, roofSpot, onRoof, ledgeOfSolid, ledgeOfProp, ledgeSpot, onLedge, localToWorld, worldToLocal as worldToLocalV, standable, PERCH_SLIP_SPEED } from './vaultkit.js';
 
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
@@ -282,6 +282,8 @@ export class Player {
     const reach = VAULT_REACH + (sprint ? VAULT_RUN_REACH : 0);
     let ob = propAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6);
     if (ob && ob.prop && ob.prop.top != null && this.gz + this.z > ob.prop.top - 0.3) ob = null;
+    // (#959) a fixed object with a flat top (a crate, a cable drum) can be climbed on; loose props cannot
+    if (ob && ob.prop && ob.prop.top != null) ob.ledge = ledgeOfProp(ob.prop);
     const rail = railingAhead(map, this.x, this.y, dx, dy, reach);
     if (rail && (!ob || rail.dist < ob.dist)) ob = rail;
     // the hedges and wire fences of the Ommeland fields
@@ -294,17 +296,23 @@ export class Player {
     // kant en alleen als de wall zelf laag genoeg is; landingAt keurt de overkant.
     const lowWall = map.elev && map.elev.has ? lowWallAhead(map.elev, this.x, this.y, dx, dy, reach, this.gz + this.z) : null;
     if (lowWall && (!ob || lowWall.dist < ob.dist)) ob = lowWall;
+    // (#959) hooibalen: 1,5 m hoog en rond; te hoog om over te stappen, wel om op te klimmen
+    const bale = this.gz < 0.5 ? solidAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
+    if (bale && (!ob || bale.dist < ob.dist)) { ob = bale; ob.ledge = ledgeOfSolid(bale.cx, bale.cy, bale.rad, bale.h); }
     const car = this.vehicleAhead(world, dx, dy, reach);
     if (car && (!ob || car.dist < ob.dist)) ob = car;
     // already above it (hopping off a car roof): nothing to vault
     if (!ob || this.z >= ob.h - 0.1) return false;
     const over = ob.dist + ob.depth + this.radius + 0.3;
     const tx = this.x + dx * over, ty = this.y + dy * over;
-    const kind = vaultDecision(ob.h, { top: !!(car && ob === car && car.roof), landing: this.landingAt(world, tx, ty), deliberate, sprint });
+    const kind = vaultDecision(ob.h, { top: !!(car && ob === car && car.roof), landing: this.landingAt(world, tx, ty), deliberate, sprint, ledge: !!ob.ledge });
     if (kind === 'vault') this.vault = { t: 0, time: VAULT_TIME, fx: this.x, fy: this.y, tx, ty, h: ob.h, z0: this.z };
     else if (kind === 'climb') {
       const v = car.vehicle, spot = roofSpot(v, this.x + dx * car.dist, this.y + dy * car.dist);
       this.vault = { t: 0, time: CLIMB_UP_TIME, climb: v, fx: this.x, fy: this.y, z0: this.z, gz0: this.gz, lx: spot.lx, ly: spot.ly };
+    } else if (kind === 'ledge') {
+      const L = ob.ledge, spot = ledgeSpot(L, this.x, this.y);
+      this.vault = { t: 0, time: CLIMB_UP_TIME, ledge: L, fx: this.x, fy: this.y, z0: this.z, tx: spot.x, ty: spot.y };
     } else return false;
     this.angle = a;
     this.crouching = false;
@@ -353,6 +361,19 @@ export class Player {
     this.moving = true;
     this.airPose = Math.sin(Math.PI * u);
     this.vaultU = u;
+    if (V.ledge) {
+      // (#959) onto a bale or crate: up and in, then stand on it
+      const up = Math.sin(Math.min(1, u * 1.4) * Math.PI / 2);
+      this.x = V.fx + (V.tx - V.fx) * e;
+      this.y = V.fy + (V.ty - V.fy) * e;
+      this.z = V.z0 + (V.ledge.h - V.z0) * up;
+      this.vx = (V.tx - V.fx) / V.time;
+      this.vy = (V.ty - V.fy) / V.time;
+      if (u < 1) return;
+      this.vault = null;
+      this.startLedgePerch(V.ledge, V.tx, V.ty);
+      return;
+    }
     if (V.climb) {
       const v = V.climb;
       if (v.wrecked || v.sinking || v.driver === 'player' || Math.abs(v.speed) > PERCH_SLIP_SPEED || !world.vehicles.includes(v)) {
@@ -416,6 +437,48 @@ export class Player {
     this.jumpAt = -9;
   }
 
+  // (#959) Standing on a fixed object (hay bale, crate): the perch has no vehicle,
+  // only the footprint. Local to this player, like the roof perch.
+  startLedgePerch(L, x, y) {
+    this.perch = { ledge: L };
+    this.x = x;
+    this.y = y;
+    this.z = L.h;
+    this.vx = 0;
+    this.vy = 0;
+    this.vz = 0;
+    this.airPose = 0;
+    this.jumpAt = -9;
+  }
+
+  // Walk around on the ledge; SPACE hops off, walking past the edge steps down.
+  updateLedge(dt, world) {
+    const L = this.perch.ledge, { input } = world;
+    if (input.wasPressed(' ') && !(world.minigameUntil > world.time)) {
+      this.vz = PERCH_HOP_SPEED;
+      this.jumpAt = world.time;
+      this.leavePerch(world);
+      return false;
+    }
+    const dir = cameraRelativeMove(input, world.camYaw);
+    this.moving = !!dir;
+    this.crouching = false;
+    this.airPose = 0;
+    this.vx = 0;
+    this.vy = 0;
+    if (dir) {
+      this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
+      this.vx = Math.cos(dir.angle) * ROOF_WALK;
+      this.vy = Math.sin(dir.angle) * ROOF_WALK;
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+    }
+    this.z = L.h;
+    this.vz = 0;
+    if (!onLedge(L, this.x, this.y)) { this.leavePerch(world); return false; }
+    return true;
+  }
+
   // Van een dak of dek af (afstapje, over de rand, of eraf gegooid): boven water
   // begint de val daar waar je stond, niet op de straat eronder (#434).
   leavePerch(world) {
@@ -428,6 +491,7 @@ export class Player {
   // Returns false once you are off it, so the normal on-foot update takes over
   // this frame.
   updatePerch(dt, world) {
+    if (this.perch.ledge) return this.updateLedge(dt, world);
     const P = this.perch, v = P.v, { input } = world;
     const p = standPlek(v, world.map);
     const [ex, ey] = localToWorld(v, P.lx, P.ly);
@@ -1230,9 +1294,28 @@ const CLIMB_DIRS = 16;
 // speler bij een kade meters landinwaarts omhoogklom en door de kademuur heen ging.
 // Nu klimt hij bij de rand omhoog, en de kade blijft een echte rand.
 const CLIMB_LAND = 0.4;   // m voorbij de waterkant
+//
+// (#958, vervolg) Een plek op droog land is nog geen plek waar je kunt staan: achter de
+// waterkant kan een kademuur, een hek, een afzetting, een gebouw of een scheepje liggen,
+// en de klim schuift je recht naar de plek. Daarom keurt de regel de plek eerst: het pad
+// van de waterkant naar de plek en de plek zelf moeten vrij zijn voor een lopende speler
+// (resolveWalker laat ze onaangeroerd), anders probeert hij de volgende richting.
+const CLIMB_BODY = 0.3;   // m: straal van het lichaam bij de controle
+const CLIMB_TOL = 0.04;   // m: zoveel mag de botsingsregel een punt verschuiven
+export function climbPathClear(map, ex, ey, sx, sy) {
+  if (insideWaterObstacle(map, sx, sy) || insideWaterObstacle(map, ex, ey)) return false;
+  const len = Math.hypot(sx - ex, sy - ey), n = Math.max(1, Math.ceil(len / 0.1));
+  for (let i = 0; i <= n; i++) {
+    const px = ex + (sx - ex) * (i / n), py = ey + (sy - ey) * (i / n);
+    const [rx, ry] = resolveWalker(px, py, CLIMB_BODY, map, 0, 0, null, 0, 0);
+    if (Math.hypot(rx - px, ry - py) > CLIMB_TOL) return false;
+  }
+  return true;
+}
+
 export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
   const step = 0.15;
-  let best = null, bestScore = -Infinity;
+  const cands = [];
   for (let i = 0; i < CLIMB_DIRS; i++) {
     const a = (i / CLIMB_DIRS) * Math.PI * 2;
     const cx = Math.cos(a), cy = Math.sin(a);
@@ -1247,8 +1330,13 @@ export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
     if (inMapWater(map, sx, sy) || isInsideBuilding(map, sx, sy)) continue;
     // de plek zelf moet ook vrij staan (een huis op de kade telt niet als oever)
     if (isInsideBuilding(map, ex, ey)) continue;
-    const score = Math.cos(normalizeAngle(a - angle)) - edge * 0.08;
-    if (score > bestScore) { bestScore = score; best = { x: sx, y: sy }; }
+    cands.push({ x: sx, y: sy, ex, ey, score: Math.cos(normalizeAngle(a - angle)) - edge * 0.08 });
+  }
+  // beste score eerst; de eerste plek met een vrij pad wint (de controle is duur, dus lui)
+  cands.sort((p, q) => q.score - p.score);
+  let best = null;
+  for (const c of cands) {
+    if (climbPathClear(map, c.ex, c.ey, c.x, c.y)) { best = { x: c.x, y: c.y }; break; }
   }
   if (!best) return null;
   best.bank = map.greenNear(best.x, best.y, 0.5).some((g) => pointInPolygon(best.x, best.y, g.pts));

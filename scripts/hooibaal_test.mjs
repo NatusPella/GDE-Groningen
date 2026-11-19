@@ -55,7 +55,7 @@ import fs from 'node:fs';
 const cs = fs.readFileSync(new URL('../game/js/countryside.js', import.meta.url), 'utf8');
 ok('de velden registreren elke baal bij de geladen tegel', /type === 'bale'[^\n]*tile\.tx !== undefined/.test(cs) && /setTileSolids\(t\.tx, t\.ty, t\.solids\)/.test(cs) && /clearTileSolids\(t\.tx, t\.ty\)/.test(cs));
 const vs = fs.readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8');
-ok('een auto en een voetganger lopen tegen de balen', /pushOutOfSolids\(_cp, reach\)/.test(vs) && /pushOutOfSolids\(_cp, 0\.05\)/.test(vs) && /pushOutOfSolids\(o, radius\)/.test(fs.readFileSync(new URL('../game/js/collision.js', import.meta.url), 'utf8')));
+ok('een auto en een voetganger lopen tegen de balen', /pushOutOfSolids\(_cp, reach\)/.test(vs) && /pushOutOfSolids\(_cp, 0\.05\)/.test(vs) && /pushOutOfSolids\(o, radius, hop\)/.test(fs.readFileSync(new URL('../game/js/collision.js', import.meta.url), 'utf8')));
 
 console.log(`hooibaal_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

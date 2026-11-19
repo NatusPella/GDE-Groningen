@@ -111,7 +111,7 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
     if (pushOutOfTrunks(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;
     // #939: de hooibalen in de velden zijn ook voor een voetganger vast
-    if (atStreet && pushOutOfSolids(o, radius)) { x = o.x; y = o.y; }
+    if (atStreet && pushOutOfSolids(o, radius, hop)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;
     if (atStreet && hop < COUNTRY_RAIL_H && pushOutOfRails(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;

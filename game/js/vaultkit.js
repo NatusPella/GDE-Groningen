@@ -4,6 +4,10 @@
 export const VAULT_MIN_H = 0.6; // lower than this a plain jump clears it
 export const VAULT_MAX_H = 1.3; // fence, hedge, low wall, bollard, a parked bike
 export const CLIMB_MAX_H = 1.95; // a car or estate roof; vans, buses and walls stay blocking
+// (#959) Vaste, ronde of langwerpige voorwerpen met een vlakke bovenkant (een
+// hooibaal, een kabelrol, een opslagkist): te hoog voor over te stappen, maar
+// je klimt erop. Een container (2,6 m) en alles daarboven blijft te hoog.
+export const LEDGE_MAX_H = 2.2;
 export const MAX_DROP = 2.5; // m: a vault never lands you further down than this (viaduct edge, cutting)
 export const PERCH_SLIP_SPEED = 6; // m/s: a car going faster than this throws you off its roof
 
@@ -28,8 +32,11 @@ export function vehicleHeight(v) {
 //   'hop'   - a plain jump clears it (or nothing there)
 //   'vault' - swing over it and land on the far side
 //   'climb' - climb onto its top (car roofs) and stand there
+//   'ledge' - climb onto a fixed flat-topped object (hay bale, crate) and stand
+//             there (#959)
 //   'block' - too tall: just a jump on the spot
 // o.top: it has a top you can stand on (a vehicle roof)
+// o.ledge: it is a fixed object with a flat top (ledgeOfSolid / ledgeOfProp)
 // o.landing: where a vault would come down - { blocked, water, drop }
 // o.deliberate: a fresh SPACE press standing at it, not a run-up or a
 //   jump that happened to meet it - only that may go over into the water
@@ -39,10 +46,44 @@ export function vaultDecision(h, o = {}) {
   const landOk = !L.blocked && !(L.drop > MAX_DROP) && (!L.water || (o.deliberate && !o.sprint));
   if (h <= VAULT_MAX_H) {
     if (landOk) return 'vault';
-    return o.top ? 'climb' : 'block';
+    return o.top ? 'climb' : o.ledge ? 'ledge' : 'block';
   }
   if (o.top && h <= CLIMB_MAX_H) return 'climb';
+  if (o.ledge && h <= LEDGE_MAX_H) return 'ledge';
   return 'block';
+}
+
+// (#959) A fixed object you can climb on, as a capsule: the segment
+// (x - hx, y - hy)..(x + hx, y + hy) widened by r, with its top h metres up.
+export function ledgeOfSolid(x, y, r, h) {
+  return { x, y, hx: 0, hy: 0, r, h };
+}
+export function ledgeOfProp(p) {
+  return { x: p.x, y: p.y, hx: p.hx || 0, hy: p.hy || 0, r: p.r, h: p.h || p.top || 1 };
+}
+function ledgeClosest(L, x, y) {
+  const ax = L.x - L.hx, ay = L.y - L.hy, bx = L.x + L.hx, by = L.y + L.hy;
+  const abx = bx - ax, aby = by - ay, len2 = abx * abx + aby * aby;
+  const t = len2 > 1e-9 ? Math.max(0, Math.min(1, ((x - ax) * abx + (y - ay) * aby) / len2)) : 0;
+  const cx = ax + abx * t, cy = ay + aby * t;
+  return { x: cx, y: cy, dist2: (x - cx) * (x - cx) + (y - cy) * (y - cy) };
+}
+
+// Where to land on a ledge after climbing up from (x, y): from the middle of
+// the object, a bit towards the side you came from, never nearer the edge than
+// a body width. Always inside the footprint.
+export function ledgeSpot(L, x, y) {
+  const c = ledgeClosest(L, x, y);
+  const dx = x - c.x, dy = y - c.y, d = Math.hypot(dx, dy);
+  const inner = Math.max(0, L.r - 0.45);
+  if (d < 1e-4) return { x: c.x, y: c.y };
+  return { x: c.x + (dx / d) * inner, y: c.y + (dy / d) * inner };
+}
+
+// Still standing on the ledge at (x, y)? A small margin past the edge before
+// you step off (the same as onRoof).
+export function onLedge(L, x, y) {
+  return Math.sqrt(ledgeClosest(L, x, y).dist2) <= L.r + 0.1;
 }
 
 // #959: the low walls of the elevation model (a retaining wall along a sunken

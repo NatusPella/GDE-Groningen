@@ -75,10 +75,11 @@ function seg(W, k, x, y) {
 }
 
 // Pushes obj ({x, y}) radius r out of every wall; true when it moved.
-export function pushOutOfWalls(obj, r, src = wallTiles) {
+export function pushOutOfWalls(obj, r, src = wallTiles, hop = 0) {
   let hit = false;
   eachNear(obj.x, obj.y, (W) => {
     for (let k = 0; k < W.length; k += STRIDE) {
+      if (hop > 0 && hop > W[k + 4] - 0.15) continue;
       const m = r + W[k + 5];
       if (obj.x < Math.min(W[k], W[k + 2]) - m || obj.x > Math.max(W[k], W[k + 2]) + m || obj.y < Math.min(W[k + 1], W[k + 3]) - m || obj.y > Math.max(W[k + 1], W[k + 3]) + m) continue;
       const [cx, cy] = seg(W, k, obj.x, obj.y);
@@ -113,13 +114,27 @@ export function pushOutOfTrunks(obj, r) {
 }
 
 // Pushes obj out of the round field solids (hay bales); true when it moved.
-export function pushOutOfSolids(obj, r) {
-  return pushOutOfWalls(obj, r, solidTiles);
+// hop (#959): feet height of a walker above the ground; a solid lower than
+// that is stepped or jumped over, so a walker standing on a bale or in the air
+// above it is not shoved off it. Vehicles leave hop at 0.
+export function pushOutOfSolids(obj, r, hop = 0) {
+  return pushOutOfWalls(obj, r, solidTiles, hop);
 }
 
 // Nearest wall along (dx, dy) from (x, y) within reach, for a body of
 // radius r: { dist, h, depth } or null.
 export function wallAhead(x, y, dx, dy, reach, r = 0.2) {
+  return aheadIn(wallTiles, x, y, dx, dy, reach, r);
+}
+
+// (#959) The same for the round field solids (hay bales): they are 1,5 m high,
+// too tall to vault but a walker can climb on top. The result also carries the
+// centre and radius (cx, cy, rad) so the caller can stand on it.
+export function solidAhead(x, y, dx, dy, reach, r = 0.2) {
+  return aheadIn(solidTiles, x, y, dx, dy, reach, r);
+}
+
+function aheadIn(src, x, y, dx, dy, reach, r) {
   let best = null;
   eachNear(x, y, (W) => {
     for (let k = 0; k < W.length; k += STRIDE) {
@@ -130,10 +145,10 @@ export function wallAhead(x, y, dx, dy, reach, r = 0.2) {
         const px = x + dx * s, py = y + dy * s;
         const [cx, cy] = seg(W, k, px, py);
         if (Math.hypot(px - cx, py - cy) >= m) continue;
-        if (!best || s < best.dist) best = { dist: s, h: W[k + 4], depth: W[k + 5] * 2 + 0.1 };
+        if (!best || s < best.dist) best = { dist: s, h: W[k + 4], depth: W[k + 5] * 2 + 0.1, cx: W[k], cy: W[k + 1], rad: W[k + 5] };
         break;
       }
     }
-  });
+  }, src);
   return best;
 }
