@@ -8,7 +8,7 @@ import { drawMissionLayerIcon, drawLayerAreas, drawLayerLines } from './missionm
 import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
-import { getGaragesForRender } from './garages.js';
+import { getGaragesForRender, lekkeBandGarage } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
 import { borderSegments, BORDER_CELL } from './mapborders.js'; // #885: stabiele buurtgrenzen op de minikaart
@@ -2924,6 +2924,23 @@ function drawMinimap(dt, world) {
     for (const o of eigenRandMarkers(owned, player.x, player.y, (x, y) => !inRange(x, y))) ownEdges.push(edgeAngle(o.x, o.y));
   }
 
+  // lekke band (#985): de dichtstbijzijnde garage gloeit op de minimap, buiten beeld als pijl aan de rand
+  let lekEdge = null;
+  const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
+  if (lekGarage) {
+    if (inRange(lekGarage.x, lekGarage.y)) {
+      const [sx, sy] = toScreen(lekGarage.x, lekGarage.y);
+      ctx.save();
+      ctx.globalAlpha = 0.5 + 0.4 * pulseAt(t);
+      ctx.lineWidth = 2.4;
+      ctx.strokeStyle = ROUTE_COLORS.care;
+      ctx.beginPath(); ctx.arc(sx, sy, 8 + 2.5 * pulseAt(t), 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+      drawMapIconHalo(ctx, 'garage', sx, sy, MM_ICON);
+      drawMapIcon(ctx, 'garage', sx, sy, MM_ICON, { t });
+    } else lekEdge = edgeAngle(lekGarage.x, lekGarage.y);
+  }
+
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle && minimapShows('companion')) icon('companion', c.x, c.y);
   // medespelers (samen spelen, #95): buiten beeld blijven ze als gekleurde pijl aan de rand staan
@@ -2989,6 +3006,7 @@ function drawMinimap(dt, world) {
   if (wind) drawMiniWind(ctx, WIND_X, MINIMAP_SIZE - WIND_Y, wind, mapRotation);
 
   const edgeR = MINIMAP_SIZE / 2 - 11;
+  if (lekEdge != null) drawEdgeArrow(ctx, cx + Math.cos(lekEdge) * edgeR, cy + Math.sin(lekEdge) * edgeR, lekEdge, ROUTE_COLORS.care, 1 + pulseAt(t) * 0.2);
   for (const a of ownEdges) drawEdgeArrow(ctx, cx + Math.cos(a) * edgeR, cy + Math.sin(a) * edgeR, a, C.greenLight, 0.9);
   for (const e of partnerEdges) if (e.a != null) drawEdgeArrow(ctx, cx + Math.cos(e.a) * edgeR, cy + Math.sin(e.a) * edgeR, e.a, e.kleur, 0.9);
   if (jobEdge != null) {

@@ -460,6 +460,28 @@ function nearestSite(x, y) {
   return best;
 }
 
+// QoL (#985): een lekke band blijft tot de garage. De dichtstbijzijnde garage licht dan op de minimap op
+// (hud_panel.js) en één keer, een paar seconden na de eerste waarschuwing, staat er wat de band doet.
+export const LEKKE_BAND_UITLEG_NA_S = 4;
+export function lekkeBandGarage(v, x, y) {
+  if (!v || !v.flat || v.isBoat || v.isHeli) return null;
+  return nearestSite(x, y);
+}
+export function lekkeBandUitleg(v, site) {
+  const waar = site ? `Volg de gloeiende garage op je minimap: ${site.name}.` : 'Zoek een garage.';
+  return v && (v.isBike || v.isScooter)
+    ? `Lekke band: je fiets rijdt zwaar en trekt scheef tot hij gemaakt is. ${waar}`
+    : `Lekke band: je auto is trager en trekt scheef tot hij gemaakt is. ${waar}`;
+}
+// Eén stap voor de speler in een voertuig: geeft de uitleg terug zodra die aan de beurt is (en onthoudt dat).
+export function lekkeBandStap(v, tijd, x, y) {
+  if (!v || !v.flat) { if (v) { v._lekT = undefined; v._lekUitgelegd = false; } return ''; }
+  if (v._lekT === undefined) v._lekT = tijd;
+  if (v._lekUitgelegd || tijd - v._lekT < LEKKE_BAND_UITLEG_NA_S) return '';
+  v._lekUitgelegd = true;
+  return lekkeBandUitleg(v, lekkeBandGarage(v, x, y));
+}
+
 // Nearest garage or Pomp & Poets station (routing.js care route).
 export function nearestRepairSite(x, y) {
   return nearestSite(x, y);
@@ -496,6 +518,7 @@ export function updateGarages(dt, w, gast = false) {
   const scene = getScene();
   const p = hoofdspeler(w);
   const pv = p.inVehicle;
+  if (!gast && pv) { const uitleg = lekkeBandStap(pv, w.time, pv.x, pv.y); if (uitleg) w.addMessage(uitleg, 6); }
   for (const s of sites) {
     const d = Math.max(Math.abs(s.x - p.x), Math.abs(s.y - p.y));
     if (!s.mesh && d < STREAM_IN && scene) {
