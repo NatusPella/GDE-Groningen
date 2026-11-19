@@ -80,7 +80,7 @@ t('#907: Activiteiten begint met een kop en houdt de tellingen bij elkaar', () =
   assert.match(td, /td-acthero/, 'de kop heeft een eigen opmaak');
   assert.match(td, /td-passport/, 'het Ommeland-paspoort is een eigen blok');
   assert.match(td, /td-begin-nr/, 'Begin hier is genummerd');
-  assert.match(td, /pm-badge/, 'de stand van een detail staat als woord naast de titel');
+  assert.match(td, /standChip/, 'de stand van een detail staat als chip met pictogram en woord naast de titel');
   const css = lees('pausemenu.css');
   assert.match(css, /#pause-menu \.td-acthero/);
   assert.match(css, /#pause-menu \.td-passport-row/);

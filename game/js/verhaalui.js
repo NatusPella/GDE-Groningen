@@ -61,6 +61,18 @@ const CSS = `
 #pause-menu .vh-bio { font-size: 20px; line-height: 1.45; }
 #pause-menu .vh-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 20px; font-size: 20px; }
 #pause-menu .vh-facts dt { color: var(--mut); }
+/* #980 fase 3: de personagekaart is de hero van het scherm: een papieren kaart met het draaiende portret links in een omlijnd vlak
+   en rol (chip), naam en citaat rechts; de uitleg en de berichten staan eronder op het glas. */
+#pause-menu .vh-held { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1fr); gap: var(--ds-s-4); align-items: stretch; padding: var(--ds-s-3) var(--ds-s-4) var(--ds-s-3) var(--ds-s-3); border-left-color: var(--spk); }
+#pause-menu .vh-held .vh-stage { height: auto; min-height: 250px; max-width: none; border-radius: var(--ds-r); background: var(--ds-kop-bg); }
+#pause-menu .vh-held .vh-stage .vh-hint { left: var(--ds-s-2); bottom: var(--ds-s-1); font-size: var(--ds-t-hulp); color: var(--ds-kop-tx); }
+#pause-menu .vh-held-tekst { display: flex; flex-direction: column; justify-content: center; gap: var(--ds-s-2); min-width: 0; }
+#pause-menu .vh-held-tekst h3 { margin: 0; font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .vh-held .vh-quote { padding-left: var(--ds-s-3); font-size: var(--ds-t-body); color: var(--ds-tx); }
+#pause-menu .vh-held .vh-quote small { color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); }
+#pause-menu .vh-held .ds-chip { align-self: flex-start; }
+#pause-menu .vh-kort { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-3); min-height: 44px; padding: 0 2px; box-shadow: inset 0 -1px 0 var(--line); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.05em; color: var(--mut); text-transform: uppercase; }
+#pause-menu .vh-leeg { margin: var(--ds-s-2) 0 var(--ds-s-3); padding: var(--ds-s-4); }
 #pause-menu .vh-miss { display: flex; flex-wrap: wrap; gap: 8px; }
 #pause-menu .vh-miss span { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.05em; color: var(--mut); }
 #pause-menu .vh-miss span[data-st="klaar"] { color: var(--g); }
@@ -154,18 +166,20 @@ function missionChips(c) {
 function viewerHtml(c) {
   const met = hasMet(c.id);
   const look = lookOf(c);
-  const stage = `<div class="vh-stage"${met ? '' : ' data-locked'} style="--spk:${speakerColor(c.speakers[0])}">` +
-    (look ? '<canvas aria-hidden="true"></canvas>' : `<span class="vh-mono">${met ? initial(c.name) : '?'}</span>`) +
-    (look && met ? '<span class="vh-hint">Sleep om te draaien</span>' : '') + '</div>';
+  const stageInner = (look ? '<canvas aria-hidden="true"></canvas>' : `<span class="vh-mono">${met ? initial(c.name) : '?'}</span>`) +
+    (look && met ? '<span class="vh-hint">Sleep om te draaien</span>' : '');
   if (!met) {
     // Eén mededeling, niet drie keer hetzelfde (#608): het luik zegt alleen nog dat je
     // deze persoon later ontmoet.
-    return stage + '<p class="vh-bio">Deze persoon ontmoet je nog in het verhaal.</p>';
+    return `<div class="vh-stage" data-locked style="--spk:${speakerColor(c.speakers[0])}">${stageInner}</div><p class="vh-bio">Deze persoon ontmoet je nog in het verhaal.</p>`;
   }
   const steps = missionChips(c);
-  return stage +
-    `<div><span class="vh-kicker">${esc(c.role)}</span><h3>${esc(c.name)}</h3></div>` +
-    `<p class="vh-quote" style="--spk:${speakerColor(c.speakers[0])}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p>` +
+  const spk = speakerColor(c.speakers[0]);
+  // De hero: de papieren personagekaart met het portret in een omlijnd vlak links (designsysteem v2, #980).
+  const held = `<section class="vh-held ds-papier ds-kaart" style="--spk:${spk}" aria-label="${esc(c.name)}"><div class="vh-stage" style="--spk:${spk}">${stageInner}</div>` +
+    `<div class="vh-held-tekst"><span class="ds-chip">${esc(c.role)}</span><h3>${esc(c.name)}</h3>` +
+    `<p class="vh-quote" style="--spk:${spk}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p></div></section>`;
+  return held +
     `<p class="vh-bio">${esc(c.bio)}</p>` +
     `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen in</dt><dd>${steps}</dd>` : ''}</dl>` +
     '<div class="vh-phone" data-vh-phone></div>';
@@ -274,6 +288,11 @@ function cluesHtml() {
     const open = list.some((s) => s.available);
     const here = cur && cur.part === part;
     if (!open && !known.length) return '';
+    // Een hoofdstuk zonder gevonden aanwijzing waar je niet bent, is één rustige regel met een chip in plaats van een eigen blok met een
+    // lege balk: vijf van die blokken onder elkaar lazen als een muur van "nog te ontdekken" (#980).
+    if (!known.length && !(cur && cur.part === part)) {
+      return `<div class="vh-kort"><span>${esc(partName(part))}</span><span class="ds-glas ds-chip"><svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5a4 4 0 0 1 8 0v2h1v7H3V7zm1.6 0h4.8V5a2.4 2.4 0 0 0-4.8 0z"/></svg>${clues.length} te ontdekken</span></div>`;
+    }
     return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(partName(part))}${here ? ' · nu' : ''}</span><span>${known.length} van ${clues.length}</span></div>` +
       `<span class="m-bar vh-pbar${known.length ? ' on' : ''}"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +
       (here && WHY[part] ? `<p class="vh-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '') +
@@ -288,7 +307,8 @@ function cluesHtml() {
         }).join('');
       }).join('') +
       // de nog niet gevonden aanwijzingen als één rustige regel, geen muur van vraagtekens (#92)
-      (known.length < clues.length ? `<div class="vh-clue vh-rest" data-unknown><b>${clues.length - known.length} nog te ontdekken</b></div>` : '') + '</div></section>';
+      (!known.length ? '<div class="ds-glas ds-leeg vh-leeg"><div class="ds-leeg__kop">Nog niets gevonden in dit hoofdstuk</div><p class="ds-leeg__tekst">Speel de opdracht uit: wat je ontdekt, staat hier met de opdracht erbij.</p></div>' : '') +
+      (known.length && known.length < clues.length ? `<div class="vh-clue vh-rest" data-unknown><b>${clues.length - known.length} nog te ontdekken</b></div>` : '') + '</div></section>';
   }).join('') + '</div>';
 }
 

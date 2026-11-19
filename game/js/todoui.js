@@ -26,6 +26,7 @@ import { placeShot } from './placeshot.js';
 import { todayInfo, todaySpecial, upcoming, today as calendarToday } from './calendarday.js';
 import { agendaRegels } from './agendaregels.js'; // #985: evenementen staan ook vooruit in de agenda
 import { calIcon } from './calendar.js';
+import { tijdStreep } from './todotijd.js'; // #980: het tijdstreepje van een evenement
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
@@ -73,27 +74,48 @@ const ICON = {
 };
 const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 
+// Statuschips (designsysteem v2, #980): altijd een pictogram plus een woord, nooit alleen kleur. Op papier (in een kaart)
+// erft de chip de rol van de kaart; in de lijst op glas draagt hij zelf de glasrol.
+const CHIP_ICOON = {
+  ok: '<path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/>',
+  kan: '<path d="M3 2.5l10 5.5-10 5.5z"/>',
+  doel: '<path d="M3 15V2h9l-1.5 3L12 8H4.5V15z"/>',
+  later: '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.8 3v4l2.8 1.7-.8 1.3L7.2 9V4z"/>',
+  slot: '<path d="M4 7V5a4 4 0 0 1 8 0v2h1v7H3V7zm1.6 0h4.8V5a2.4 2.4 0 0 0-4.8 0z"/>',
+  pin: '<path fill-rule="evenodd" d="M8 1a5 5 0 0 0-5 5c0 3.6 5 9 5 9s5-5.4 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>',
+  nieuw: '<path d="M8 1l1.8 4.2L14 6l-3.2 2.8L11.7 13 8 10.8 4.3 13l.9-4.2L2 6l4.2-.8z"/>',
+  klok: '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.8 3v4l2.8 1.7-.8 1.3L7.2 9V4z"/>',
+};
+const chip = (toon, icoon, tekst, glas = false) => `<span class="${glas ? 'ds-glas ' : ''}ds-chip${toon ? ' ds-chip--' + toon : ''}">${icoon ? `<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true">${CHIP_ICOON[icoon]}</svg>` : ''}${esc(tekst)}</span>`;
+
+const tijdStreepHtml = (tijd) => {
+  const t = tijdStreep(tijd);
+  return t ? `<div class="ds-streep ds-streep--tijd" style="--ds-streep-w:${t.pct}%" role="img" aria-label="${esc(t.label)}"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${esc(t.label)}</span></div>` : '';
+};
+
 // De kaarten van "Begin hier" en de rangorde in het detailpaneel zijn eigen opmaak. Die
 // staat hier, zodat dit scherm zijn eigen vorm kan geven zonder menu.css of pausemenu.css
 // te raken; de kleuren en lijnen komen uit de bestaande tokens.
 const TDOU_CSS = `
-#pause-menu .td-begin-cards { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 10px; }
-#pause-menu .td-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 4px; border-radius: 10px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
-#pause-menu .td-card.td-card-next { background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.5); }
-#pause-menu .td-card-main { display: grid; grid-template-columns: 22px 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; min-height: 60px; padding: 6px 8px; border-radius: 8px; }
-#pause-menu .td-card-main:hover { background: rgba(240, 237, 228, 0.06); }
-#pause-menu .td-card-main:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
-#pause-menu .td-card-nm { display: flex; flex-direction: column; gap: 3px; min-width: 0; line-height: 1.2; }
-#pause-menu .td-card-nm b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; line-height: 1.05; letter-spacing: 0.03em; }
-#pause-menu .td-card-cat { font-size: max(15px, var(--menu-min, 15px)); color: var(--mut); }
-#pause-menu .td-card-next .td-card-cat { color: var(--g); }
-#pause-menu .td-card-dist { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; white-space: nowrap; }
+#pause-menu .td-begin-cards { display: flex; flex-direction: column; gap: 10px; padding: 2px 0 10px; }
+#pause-menu .td-card { gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); }
+#pause-menu .td-card:has(.td-card-main[aria-current="true"]) { border-color: var(--ds-selectie); outline: var(--ds-lijn-dik) solid var(--ds-selectie); outline-offset: -1px; }
+#pause-menu .td-card-main { display: grid; grid-template-columns: 24px 34px minmax(0, 1fr) auto; align-items: center; gap: var(--ds-s-3); width: 100%; min-height: 48px; padding: 0; border-radius: var(--ds-r); text-align: left; color: inherit; }
+#pause-menu .td-card-main:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+#pause-menu .td-card-nm { display: flex; flex-direction: column; min-width: 0; }
+#pause-menu .td-card-nm b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .td-card-ico { width: 30px; height: 30px; display: block; justify-self: center; }
-#pause-menu .td-card-pin { display: grid; place-items: center; color: var(--g); }
+#pause-menu .td-card-pin { display: grid; place-items: center; }
 #pause-menu .td-card-pin svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-#pause-menu .td-card-act { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; white-space: nowrap; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line2); }
-#pause-menu .td-card-act:hover { background: rgba(240, 237, 228, 0.07); }
-#pause-menu .td-card-act svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-begin-nr { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: 1; text-align: center; color: var(--ds-tx-zacht); }
+#pause-menu .td-card-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2); }
+#pause-menu .td-card-chips .ds-chip { min-height: 28px; padding: 0 var(--ds-s-3); }
+#pause-menu .td-card-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+#pause-menu .td-card-acts .ds-knop { flex-direction: row; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
+#pause-menu .td-card-acts .ds-knop svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-card-acts .ds-knop:first-child:not(.ds-knop--secundair) { flex: 1 1 auto; }
+#pause-menu .td-card .ds-streep { margin-top: 0; }
+#pause-menu .ds-glas.ds-chip { font-size: var(--ds-t-label); }
 #pause-menu .td-begin-lead { padding: 0 0 8px; font-size: max(16px, var(--menu-min, 16px)); line-height: 1.35; }
 /* Het detail: eerst wat dit is en wat het oplevert, dan de drie kloppende cijfers groot,
    en pas daarna de volledige lijst achter een vouw. */
@@ -113,6 +135,16 @@ const TDOU_CSS = `
 #pause-menu .td-kpi .m-bar { margin-top: 4px; }
 #pause-menu .td-numgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px 24px; padding: 4px 0 8px; }
 #pause-menu .td-numgrid .td-fact .m-num { font-size: 22px; }
+#pause-menu .td-acts.ds-glas { background: none; }
+#pause-menu .td-next-acts .ds-knop { flex-direction: row; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
+#pause-menu .td-next-acts .ds-knop svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-acts .ds-knop { flex-direction: row; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
+#pause-menu .td-acts .ds-knop svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .td-acts .ds-knop--tekst { margin-left: auto; }
+#pause-menu .td-dtijd { max-width: 420px; }
+#pause-menu .td-leeg { margin: 8px 24px 16px; }
+#pause-menu .td-leeg .ds-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+#pause-menu .td-dleeg { margin: 24px 0; max-width: 520px; }
 #pause-menu .td-drec { font-size: max(16px, var(--menu-min, 16px)); color: var(--mut); }
 `;
 let cssReady = false;
@@ -158,11 +190,11 @@ const medalDot = (m) => (m == null || !MEDALS[m] ? '' : `<span class="m-medal m$
 // the right-hand end of a row: your goal, its status, the distance
 function endOf(it) {
   const bits = [];
-  if (it.isGoal) bits.push('<span class="t g">Jouw doel</span>');
-  else if (it.status === 'nu') bits.push('<span class="t g">Nu</span>');
-  else if (it.status === 'klaar' && it.medal == null) bits.push(svg(ICON.check));
-  else if (it.status === 'later') bits.push(`<span class="t">${STATUS_LABEL.later}</span>`);
-  else if (it.status === 'slot') bits.push(`${svg(ICON.lock)}<span class="t">${STATUS_LABEL.slot}</span>`);
+  if (it.isGoal) bits.push(chip('succes', 'doel', 'Jouw doel', true));
+  else if (it.status === 'nu') bits.push(chip('selectie', 'kan', 'Nu', true));
+  else if (it.status === 'klaar' && it.medal == null) bits.push(chip('succes', 'ok', 'Klaar', true));
+  else if (it.status === 'later') bits.push(chip('', 'later', STATUS_LABEL.later, true));
+  else if (it.status === 'slot') bits.push(chip('', 'slot', STATUS_LABEL.slot, true));
   if (it.dist != null) bits.push(`<span class="v">${formatDistance(it.dist)}</span>`);
   return bits.join('');
 }
@@ -363,10 +395,10 @@ function nextHtml(cur) {
   const done = list.filter((s) => s.done).length;
   const pct = list.length ? Math.round((done / list.length) * 100) : 0;
   const goal = getGoal();
-  return `<section class="td-next" aria-label="Volgende stap"><div class="td-next-top"><span class="m-eb">Waar je nu bent · ${esc(partName(cur.part))}</span><span class="pm-badge" data-tone="ok">Nu</span></div>` +
+  return `<section class="td-next" aria-label="Volgende stap"><div class="td-next-top"><span class="m-eb">Waar je nu bent · ${esc(partName(cur.part))}</span>${chip('selectie', 'kan', 'Nu', true)}</div>` +
     `<b class="td-next-t">${esc(cur.title)}</b>${cur.lead ? `<p class="td-next-lead">${esc(cur.lead)}</p>` : ''}` +
     `<div class="td-next-prog"><span class="m-bar on"><i data-bar="next-${cur.part}" data-w="${pct}"></i></span><span class="mut">${done} van ${list.length} in dit hoofdstuk</span></div>` +
-    (it ? `<div class="m-acts td-next-acts"><button type="button" class="m-bp" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button></div>` : '') + '</section>';
+    (it ? `<div class="m-acts td-next-acts ds-glas"><button type="button" class="ds-knop" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button></div>` : '') + '</section>';
 }
 
 // De hoofdstukken als één rustige lijst (#912): het hoofdstuk waar je bent staat open, afgeronde
@@ -406,7 +438,7 @@ function storyHtml() {
       // met een slot. Een hoofdstuk dat je al haalde of waar je bent, klapt wel open.
       const inner = `<span class="td-chapter-ico" aria-hidden="true">${ico}</span>` +
         `<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(stand)}</span></span>` +
-        `${openbaar ? count : ''}${nu ? '<span class="pm-badge" data-tone="ok">Hier ben je</span>' : af ? '<span class="pm-badge" data-tone="ok">Klaar</span>' : ''}`;
+        `${openbaar ? count : ''}${nu ? chip('selectie', 'kan', 'Hier ben je', true) : af ? chip('succes', 'ok', 'Klaar', true) : ''}`;
       return `<section class="td-chapter${nu ? ' td-here' : ''}${af ? ' td-done' : ''}">` +
         (openbaar ? `<button type="button" class="m-li td-chapter-row" data-part-toggle="${part}" aria-expanded="false">${inner}</button>` : `<div class="m-li td-chapter-row off">${inner}</div>`) + '</section>';
     }
@@ -448,10 +480,9 @@ const telDichtbij = (lijst) => lijst.filter((it) => it.dist != null && it.dist <
 
 function activiteitenHero(eigen, metPlek) {
   const dichtbij = telDichtbij(eigen);
-  return `<section class="td-acthero" aria-label="Activiteiten"><div class="td-acthero-main"><span class="m-eb">In en om Grunn</span>` +
-    `<b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} in en om Grunn</b>` +
-    `<p class="td-acthero-lead">Klussen, minigames en uitjes. Kies er een voor de uitleg, de afstand en de knop naar de plek.</p></div>` +
-    `<div class="td-acthero-facts"><span class="pm-stat" data-tone="accent"><b>${dichtbij}</b><span>dichtbij</span></span><span class="pm-stat"><b>${metPlek}</b><span>met een plek</span></span></div></section>`;
+  return `<section class="td-acthero" aria-label="Activiteiten"><div class="td-acthero-main"><b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} in en om Grunn</b>` +
+    `<span class="td-acthero-lead">Kies er een voor de uitleg, de afstand en de knop naar de plek.</span></div>` +
+    `<div class="td-acthero-facts ds-glas">${chip('selectie', 'pin', `${dichtbij} dichtbij`)}${chip('', 'pin', `${metPlek} met een plek`)}</div></section>`;
 }
 
 // #681: het Ommeland-paspoort boven de lijst: één balk voor de dorpen en de hint vanaf 80%.
@@ -474,17 +505,25 @@ const GROUP_LABEL = Object.fromEntries(GROUPS.map(([g, label]) => [g, label]));
 function beginCard(it, i) {
   const first = i === 0;
   const ico = it.icon ? `<img class="td-card-ico" src="${mapIconUrl(it.icon, 30)}" alt="">` : `<span class="td-card-pin" aria-hidden="true">${svg(ICON.pin)}</span>`;
-  // Hooguit twee delen: de rol en de soort. De afstand en de plek staan al rechts en in de
-  // uitleg eronder; vier delen achter elkaar werden in de smalle kolom afgekapt (#980-review).
-  const rol = it.isGoal ? 'Jouw doel' : first ? 'Eerstvolgende' : (it.status === 'nu' ? 'Nu' : '');
-  const cat = [rol, GROUP_LABEL[it.group] || it.where || ''].filter(Boolean).join(' · ');
+  // De statuschips: wat je er mee kunt (Kan nu), waarom hij bovenaan staat, en de soort. "Kan nu" alleen als hij nu te starten is.
+  const chips = [];
+  if (it.isGoal) chips.push(chip('succes', 'doel', 'Jouw doel'));
+  else if (first) chips.push(chip('selectie', 'ok', 'Eerstvolgende'));
+  if (it.status === 'nu' && !it.isGoal) chips.push(chip('primair', 'kan', 'Kan nu'));
+  if (it.key === 'om:uitkijk' && it.pin) chips.push(chip('selectie', 'nieuw', 'Nieuwe streek'));
+  const ts = tijdStreep(it.tijd);
+  if (ts) chips.push(chip(it.tijd.loopt ? 'waarschuwing' : '', 'klok', ts.chip));
+  chips.push(chip('', null, GROUP_LABEL[it.group] || it.where || 'In Grunn'));
   const why = first && !it.isGoal ? 'Deze is het dichtstbij en kan nu.' : '';
-  return `<div class="td-card${first ? ' td-card-next' : ''}">` +
+  const doel = it.goal && !it.isGoal ? `<button type="button" class="ds-knop${first ? '' : ' ds-knop--secundair'}" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}Zet als doel</button>`
+    : it.isGoal ? '<button type="button" class="ds-knop ds-knop--secundair" data-todo-clear>Doel wissen</button>' : '';
+  return `<div class="td-card ds-papier ds-kaart${first ? ' td-card-next' : ''}" data-status="${it.status || ''}">` +
     `<button type="button" class="td-card-main" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +
     `<span class="td-begin-nr" aria-hidden="true">${i + 1}</span>${ico}` +
-    `<span class="td-card-nm"><b>${esc(it.title)}</b><span class="td-card-cat one">${esc(cat)}</span></span>` +
-    `<span class="td-card-dist">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
-    `<button type="button" class="td-card-act" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Kaart</button></div>`;
+    `<span class="td-card-nm"><b>${esc(it.title)}</b></span>` +
+    `<span class="td-card-dist ds-t-subkop">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
+    `<div class="td-card-chips">${chips.join('')}</div>${tijdStreepHtml(it.tijd)}` +
+    `<div class="td-card-acts">${doel}<button type="button" class="ds-knop ds-knop--secundair" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Kaart</button></div></div>`;
 }
 
 function beginHierHtml() {
@@ -513,12 +552,15 @@ function allHtml() {
     SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
   const tools = `<div class="td-acttools"><div class="m-gh"><span>Wat wil je doen?</span><span>Kies een soort of blijf bij alles</span></div>${filter}${chips}</div>`;
   const hero = activiteitenHero(eigen, metPlek);
+  if (!total) {
+    return `<div class="ds-glas ds-leeg td-leeg"><span class="ds-leeg__beeld">${svg(ICON.pin)}</span><div class="ds-leeg__kop">Nog niets te doen in de buurt</div><p class="ds-leeg__tekst">Loop of rij door Grunn: klussen, minigames en uitjes verschijnen hier zodra je ze tegenkomt. Op de kaart zie je waar je heen kunt.</p><button type="button" class="ds-knop" data-goto="map">Naar de kaart</button></div>`;
+  }
   if (ui.near) {
     const label = ((SHOWN.find(([g]) => g === ui.kind) || [])[1] || '');
     const list = eigen.filter((it) => it.dist != null && (ui.kind === 'alles' || it.group === ui.kind))
       .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
     return hero + begin + tools + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
-      (!list.length ? '<p class="m-note">Niks met een plek in deze soort. Kies een andere soort of zet de filter uit.</p>' : '');
+      (!list.length ? `<div class="ds-glas ds-leeg td-leeg"><div class="ds-leeg__kop">Niks met een plek in deze soort</div><p class="ds-leeg__tekst">Kies een andere soort, of zet de filter Dichtbij uit om alles te zien.</p><button type="button" class="ds-knop" data-todo-near>Filter uitzetten</button></div>` : '');
   }
   const groups = SHOWN.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
     let list = eigen.filter((it) => it.group === g);
@@ -543,7 +585,7 @@ function factHtml(k, v) {
 
 function detailHtml(world) {
   const it = byKey.get(ui.sel);
-  if (!it) return '<p class="mut">Kies iets om te zien wat het is.</p>';
+  if (!it) return `<div class="ds-glas ds-leeg td-dleeg"><span class="ds-leeg__beeld">${svg(ICON.pin)}</span><div class="ds-leeg__kop">Kies iets uit de lijst</div><p class="ds-leeg__tekst">Dan zie je wat het is, wat het oplevert en hoe ver het is.</p></div>`;
   const d = it.detail || {};
   const sv = getStoryView();
   // Rangorde in het detail. Eerst wat dit is en wat het oplevert, dan de drie
@@ -592,24 +634,25 @@ function detailHtml(world) {
   const medals = d.medals ? `<div class="m-row2 td-medals"><span class="mut">Medailles</span>${d.medals.map(([m, text]) => `<span${it.medal >= m ? '' : ' class="mut"'}><span class="m-medal m${m}"></span>${esc(text)}</span>`).join('')}</div>` : '';
   const story = it.goal === 'story';
   let primary = '';
-  if (it.upgrade && it.status !== 'klaar') primary = `<button type="button" class="m-bp" data-todo-buy="${esc(it.upgrade)}">Kopen (${esc(it.record)})</button>`;
-  else if (it.goal && !it.isGoal) primary = `<button type="button" class="m-bp" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${story && getGoal() ? 'Terug naar het verhaal' : 'Zet als doel'}</button>`;
+  if (it.upgrade && it.status !== 'klaar') primary = `<button type="button" class="ds-knop" data-todo-buy="${esc(it.upgrade)}">Kopen (${esc(it.record)})</button>`;
+  else if (it.goal && !it.isGoal) primary = `<button type="button" class="ds-knop" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${story && getGoal() ? 'Terug naar het verhaal' : 'Zet als doel'}${deviceText('<span class="ds-badge">Enter</span>', '')}</button>`;
   let more = '';
-  if (it.isGoal) more += '<button type="button" class="m-bg" data-todo-clear>Doel wissen</button>';
-  if (it.dist != null) more += `<button type="button" class="m-bg" data-todo-map="${esc(it.key)}">${svg(ICON.pin)}Op de kaart</button>`;
+  if (it.isGoal) more += '<button type="button" class="ds-knop ds-knop--secundair" data-todo-clear>Doel wissen</button>';
+  if (it.dist != null) more += `<button type="button" class="ds-knop ds-knop--secundair" data-todo-map="${esc(it.key)}">${svg(ICON.pin)}Op de kaart</button>`;
   // #681: vanuit het paspoort de trein plannen: de kaart opent op het station, waar de reisopties staan.
-  if (it.trein && it.trein.lijnen && it.trein.lijnen.length) more += `<button type="button" class="m-bg" data-todo-trein="${esc(it.key)}">${svg(ICON.clock)}Trein plannen</button>`;
+  if (it.trein && it.trein.lijnen && it.trein.lijnen.length) more += `<button type="button" class="ds-knop ds-knop--secundair" data-todo-trein="${esc(it.key)}">${svg(ICON.clock)}Trein plannen</button>`;
   let quiet = '';
-  if (it.status === 'nu' && sv.canSkip && (story || it.mission != null)) quiet += `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>`;
-  if (it.stopJob) quiet += '<button type="button" class="m-bt danger" data-todo-stopjob>Dienst stoppen</button>';
-  const acts = primary + more + (quiet ? `<span class="m-grow"></span>${quiet}` : '');
+  if (it.status === 'nu' && sv.canSkip && (story || it.mission != null)) quiet += `<button type="button" class="ds-knop ds-knop--tekst" data-story-skip>${esc(sv.skipLabel)}</button>`;
+  if (it.stopJob) quiet += '<button type="button" class="ds-knop ds-knop--gevaar" data-todo-stopjob>Dienst stoppen</button>';
+  const acts = primary + more + quiet;
   const kick = [d.kicker, it.dist != null ? formatDistance(it.dist) : ''].filter(Boolean).join(' · ');
   // De stand staat als woord naast de titel (#907): kleur of een streepje is nooit de enige aanwijzing.
   const stand = it.isGoal ? 'Jouw doel' : it.status === 'nu' ? 'Nu' : it.status === 'klaar' ? 'Klaar' : it.status === 'later' ? 'Later' : it.status === 'slot' ? 'Op slot' : '';
-  const standTone = it.isGoal || it.status === 'klaar' ? 'ok' : it.status === 'later' || it.status === 'slot' ? 'warn' : 'ok';
+  const standChip = it.isGoal ? chip('succes', 'doel', 'Jouw doel', true) : it.status === 'nu' ? chip('primair', 'kan', 'Kan nu', true) : it.status === 'klaar' ? chip('succes', 'ok', 'Klaar', true) : it.status === 'later' ? chip('', 'later', 'Later', true) : it.status === 'slot' ? chip('', 'slot', 'Op slot', true) : '';
   // wat dit oplevert staat direct onder de uitleg, als label plus bedrag; deze regels
   // gaan niet nog eens in het cijferraster
   const yieldLine = yields.length ? `<p class="td-yield">${yields.map(([k, v]) => `<span class="td-yield-item"><span>${esc(k)}</span><b>${esc(v)}</b></span>`).join('')}</p>` : '';
+  const tijdLijn = it.tijd ? `<div class="td-dtijd ds-glas">${tijdStreepHtml(it.tijd)}</div>` : '';
   const recLine = it.record && !prog ? `<p class="td-drec">${medalDot(it.medal)} ${esc(it.record)}</p>` : '';
   // het volledige raster staat achter een vouw: het vertelt de fijnere standen (kerken,
   // molens, borgen) pas als je erom vraagt, in plaats van als muur van getallen bovenaan
@@ -618,11 +661,11 @@ function detailHtml(world) {
     ? disc('td-feiten-' + id, 'Alle cijfers', `${detailRows} ${detailRows === 1 ? 'regel' : 'regels'}`,
       `<div class="td-numgrid">${usedRest.map(([k, v]) => factHtml(k, v)).join('')}${counts.map(([k, v]) => factHtml(k, v)).join('')}</div>`)
     : '';
-  return `<div class="pm-pane-top td-dtop"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? `<span class="pm-badge" data-tone="${standTone}">${esc(stand)}</span>` : ''}</div></div>` +
-    `<div class="td-dlead">${d.text ? `<p>${esc(d.text)}</p>` : ''}${yieldLine}${medals}${recLine}</div>` +
+  return `<div class="pm-pane-top td-dtop"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? standChip : ''}</div></div>` +
+    `<div class="td-dlead">${d.text ? `<p>${esc(d.text)}</p>` : ''}${tijdLijn}${yieldLine}${medals}${recLine}</div>` +
     (kpis.length ? `<div class="td-kpis">${kpis.join('')}</div>` : '') + facts +
     '<span class="m-grow"></span>' +
-    (acts ? `<div class="m-acts td-acts">${acts}</div>` : '') + (it.goal == null && it.dist == null ? '<p class="mut">Hier is geen route naartoe: dit moet je zelf vinden.</p>' : '');
+    (acts ? `<div class="m-acts td-acts ds-glas">${acts}</div>` : '') + (it.goal == null && it.dist == null ? '<p class="mut">Hier is geen route naartoe: dit moet je zelf vinden.</p>' : '');
 }
 
 // The sub-tab counts and the sheet subtitle.
@@ -655,8 +698,8 @@ export function baanDoelen(world) {
 export function renderTodoStory(el, world) {
   ensureCss();
   refresh(world);
-  if (!ui.sel || !byKey.has(ui.sel)) {
-    const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items[0];
+  if (!ui.sel || !byKey.has(ui.sel) || isActiviteit(byKey.get(ui.sel))) { // een uitgekozen activiteit hoort niet in het detail van Opdrachten
+    const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items.find((it) => !isActiviteit(it)) || items[0];
     ui.sel = cur ? cur.key : null;
   }
   el.querySelector('.td-list').innerHTML = storyHtml();

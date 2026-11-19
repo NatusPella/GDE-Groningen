@@ -9,19 +9,37 @@ import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
 import { hoofdspeler } from './players.js';
-import { beleidPaneelHtml, koopBeleid } from './beleidswinkel.js';
+import { beleidPaneelHtml, koopBeleid, getBeleid } from './beleidswinkel.js';
 
 const bars = new Map();
 let cssAan = false;
 let sluitMenu = null;
 let laatsteTaken = [];
+let tab = 'gebieden'; // het open tabblad: 'gebieden' of 'beleid'
+
+// De tabbladen wisselen zonder het paneel opnieuw te tekenen: de focus en de scrolstand van het andere blijven staan.
+function zetTab(el, id) {
+  if (id !== 'gebieden' && id !== 'beleid') return;
+  tab = id;
+  for (const t of el.querySelectorAll('[data-vo-tab]')) t.setAttribute('aria-selected', String(t.dataset.voTab === id));
+  for (const b of el.querySelectorAll('[data-vo-body]')) b.hidden = b.dataset.voBody !== id;
+}
 
 const CSS = `${GEBIEDEN_CSS}
-.vo-top { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-top: 28px; }
-.vo-top::-webkit-scrollbar { width: 8px; }
-.vo-top::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240, 237, 228, 0.18); }
+/* #980 fase 3: twee tabbladen (Gebieden, Beleidswinkel). De Beleidswinkel stond onder een gebiedenpaneel van 5000 px en was op 900p niet
+   te bereiken; nu heeft hij een eigen tabblad dat zelf scrolt. Gebieden is één scrolvlak: kop, taken, uitleg en dan de lijst. */
+.vo-tabs { flex: none; margin: 24px 24px 12px; }
+.vo-tabs .ds-tab small { font-family: var(--ds-font-tekst); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+.vo-gebieden { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 24px; }
+.vo-gebieden[hidden], .vo-beleidtab[hidden] { display: none; }
+.vo-gebieden > .m-main { flex: none; height: clamp(360px, 62vh, 640px); padding: 0 24px; }
+.vo-beleidtab { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 0 24px 28px; }
+.vo-beleidtab .bw-beleid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); align-items: start; margin-top: 0; }
+.vo-beleidtab .bw-beleid > :not(.bw-rij) { grid-column: 1 / -1; }
+.vo-gebieden::-webkit-scrollbar, .vo-beleidtab::-webkit-scrollbar { width: 8px; }
+.vo-gebieden::-webkit-scrollbar-thumb, .vo-beleidtab::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240, 237, 228, 0.18); }
+.vo-top { flex: none; padding-top: 0; }
 .vo-top .pm-hero { flex: none; }
-.pm-veroverd > .m-main { flex: 1 1 auto; min-height: 180px; }
 .vo-hero { margin: 0 24px 16px; }
 .vo-hero .pm-hero-t { font-size: 40px; }
 .vo-kop { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; }
@@ -38,27 +56,13 @@ const CSS = `${GEBIEDEN_CSS}
 .vo-stats { margin: 0 24px 14px; }
 .vo-volgende { margin: 0 24px 16px; padding: 10px 16px 12px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
 .vo-volgende > b { margin-bottom: 6px; }
-.vo-volgende ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-.vo-volgende li { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; padding: 10px 12px 11px; border-radius: 10px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line2); font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); line-height: 1.35; }
-.vo-volgende .vo-taak-kop { display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mut); }
-.vo-volgende .vo-taak-kop .one { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vo-volgende .vo-taak-af { flex: none; margin-left: auto; white-space: nowrap; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0.03em; text-transform: none; color: var(--g); }
-.vo-volgende li > b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 22px; line-height: 1.1; letter-spacing: 0.02em; overflow-wrap: anywhere; }
+.vo-volgende ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.vo-volgende li { min-width: 0; align-self: start; }
+.vo-volgende li .ds-kaart__titel { font-size: var(--ds-t-subkop); overflow-wrap: anywhere; }
+.vo-volgende li .ds-chip { min-height: var(--ds-hoogte-chip); }
+.vo-volgende li .ds-knop { align-self: stretch; min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 .vo-volgende .mut { color: var(--c-mut, rgba(240, 237, 228, 0.72)); }
-.vo-volgende .vo-taak-actie { margin-top: 3px; padding: 5px 12px; border-radius: 6px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.04em; border: 1px solid var(--line2); background: rgba(240, 237, 228, 0.08); color: var(--ink, #f0ede4); cursor: pointer; }
-.vo-volgende .vo-taak-actie:hover, .vo-volgende .vo-taak-actie:focus-visible { background: rgba(63, 201, 122, 0.18); border-color: var(--g); outline: none; }
-.vo-beleid { margin: 12px 0 4px; padding: 12px 14px 8px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
-.vo-beleid h3 { margin: 0 0 2px; font: normal 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
-.vo-beleid p { margin: 0 0 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); line-height: 1.4; color: var(--c-mut, rgba(240, 237, 228, 0.72)); }
-.vo-beleid .vo-rij { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; margin-top: 6px; padding: 8px 0; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); box-shadow: inset 0 -1px 0 var(--line); }
-.vo-beleid .vo-rij b { flex: 1 1 140px; min-width: 0; font-weight: normal; color: var(--ink, #f0ede4); }
-.vo-beleid .vo-rij span { flex: 1 1 160px; min-width: 0; color: var(--c-mut, rgba(240, 237, 228, 0.72)); }
-.vo-beleid .vo-rij .mut { flex: none; color: var(--g); }
-.vo-beleid .vo-rij button { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.04em; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--c-line, rgba(240, 237, 228, 0.3)); background: rgba(240, 237, 228, 0.08); color: inherit; cursor: pointer; }
-.vo-beleid .vo-rij button:hover, .vo-beleid .vo-rij button:focus-visible { background: rgba(63, 201, 122, 0.18); border-color: var(--g); outline: none; }
-.vo-beleid .vo-rij button:disabled { opacity: 0.55; cursor: default; }
-.vo-beleid .vo-beleid-saldo { margin: 0 0 6px; }
-.vo-beleid .vo-beleid-melding { margin: 4px 0 6px; color: var(--ink, #f0ede4); }`;
+@media (max-height: 820px) { .vo-hero .pm-hero-lead, .vo-hero .vo-kop { display: none; } }`;
 
 function zetCss() {
   if (cssAan || typeof document === 'undefined') return;
@@ -78,13 +82,16 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 
 // #906: één taak als kaart: het gebied en de soort boven, de taaknaam, de afstand vanaf hier en
 // één knop die het als doel op de kaart zet. Alleen wat volgendeTaken() al geeft, geen nieuwe data.
-function taakKaart(t, world) {
+const PIN = '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1a5 5 0 0 0-5 5c0 3.6 5 9 5 9s5-5.4 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>';
+function taakKaart(t, world, eerste) {
   const p = world ? hoofdspeler(world) : null;
   const af = p && Number.isFinite(t.x) && Number.isFinite(t.y) ? formatDistance(Math.hypot(t.x - p.x, t.y - p.y)) : '';
   const soort = t.soortNaam ? `${esc(t.soortNaam)} · ` : '';
-  return `<li><span class="vo-taak-kop"><span class="one">${esc(t.gebied)}</span>${af ? `<span class="vo-taak-af">${esc(af)}</span>` : ''}</span>` +
-    `<b>${esc(t.naam)}</b><span class="mut">${soort}${t.klaar} van ${t.totaal} in dit gebied</span>` +
-    `<button type="button" class="vo-taak-actie" data-doel="${esc(t.id)}" aria-label="Zet ${esc(t.naam)} als doel op de kaart">Zet als doel</button></li>`;
+  const pct = t.totaal > 0 ? Math.min(100, Math.round((t.klaar / t.totaal) * 100)) : 0;
+  return `<li class="ds-papier ds-kaart"><div class="ds-kaart__kop"><span class="ds-kaart__label">${esc(t.gebied)}</span>${af ? `<span class="ds-chip">${PIN}${esc(af)}</span>` : ''}</div>` +
+    `<div class="ds-kaart__titel">${esc(t.naam)}</div><div class="ds-kaart__voet">${soort}in dit gebied</div>` +
+    `<div class="ds-streep" style="--ds-streep-w:${pct}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${t.klaar} van ${t.totaal}</span></div>` +
+    `<button type="button" class="ds-knop${eerste ? '' : ' ds-knop--secundair'}" data-doel="${esc(t.id)}" aria-label="Zet ${esc(t.naam)} als doel op de kaart">Zet als doel</button></li>`;
 }
 
 export function renderVeroverdPanel(el, sluit = null, world = null) {
@@ -114,7 +121,7 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
       ? '<b>Nog ' + Math.max(0, taken[0].totaal - taken[0].klaar) + ' taken tot de titel van ' + esc(taken[0].gebied) + '.</b> ' : '';
     const voetnoot = `<p class="vo-regel">${nogTitel}Je volgende taak staat ook in <b>Te doen</b>; daar zie je hem met de afstand vanaf hier.</p>`;
     const volgende = taken.length
-      ? '<section class="vo-volgende" aria-label="Eerstvolgende taken"><b>Eerstvolgende taken</b><ol>' + taken.map((t) => taakKaart(t, world)).join('') + '</ol>' + voetnoot + '</section>'
+      ? '<section class="vo-volgende" aria-label="Eerstvolgende taken"><b>Eerstvolgende taken</b><ol>' + taken.map((t, i) => taakKaart(t, world, i === 0)).join('') + '</ol>' + voetnoot + '</section>'
       : '<section class="vo-volgende" aria-label="Eerstvolgende taken"><b>Eerstvolgende taken</b><p class="vo-regel">Alles wat meetelt is gedaan. De titels staan hierboven.</p></section>';
     // #676/#906: wat er meetelt met de echte aantallen erbij, en wat bewust niet (de catalogusregel).
     const stand = soortenStand();
@@ -126,8 +133,13 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
       'Eierballen, losse geheimen, postgame, lucht en dorpsuitjes tellen bewust niet mee; die staan in hun eigen lijst.</p></section>';
     // #906: de kop, de stand, de taken en de uitleg staan samen in één scrolvlak boven de lijst,
     // zodat de taken altijd in beeld beginnen (en op 720p niet onder de vouw verdwijnen).
-    el.innerHTML = `<div class="vo-top">${hero}${stats}${volgende}${regel}</div>` +
-      `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}${beleidHtml()}</aside></div>`;
+    // #980 fase 3: Gebieden en de Beleidswinkel zijn twee tabbladen (Q en E wisselen ze, net als elders in het menu).
+    const aangenomen = getBeleid().gekocht.length;
+    const tabKnop = (id, label, extra = '') => `<button type="button" role="tab" class="ds-tab" data-vo-tab="${id}" aria-selected="${tab === id}">${label}${extra}</button>`;
+    el.innerHTML = `<div class="vo-tabs ds-tabs ds-glas" role="tablist" aria-label="Veroverd">${tabKnop('gebieden', 'Gebieden')}${tabKnop('beleid', 'Beleidswinkel', aangenomen ? ` <small>${aangenomen} aangenomen</small>` : '')}</div>` +
+      `<div class="vo-gebieden" data-vo-body="gebieden"${tab === 'gebieden' ? '' : ' hidden'}><div class="vo-top">${hero}${stats}${volgende}${regel}</div>` +
+      `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div></div>` +
+      `<div class="vo-beleidtab" data-vo-body="beleid"${tab === 'beleid' ? '' : ' hidden'}>${beleidHtml()}</div>`;
     fillBars(el, bars);
   };
   teken();
@@ -138,10 +150,12 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     if (!id || id === gebied) return;
     gebied = id;
     for (const b of el.querySelectorAll('[data-gebied]')) { const aan = b.dataset.gebied === id; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
-    el.querySelector('.lb-pane').innerHTML = kiesGebied(id) + beleidHtml();
+    el.querySelector('.lb-pane').innerHTML = kiesGebied(id);
     queueMicrotask(() => fillBars(el, bars));
   };
   el.addEventListener('click', (e) => {
+    const tb = e.target.closest('[data-vo-tab]');
+    if (tb) { zetTab(el, tb.dataset.voTab); return; }
     // #492: een maatregel kopen in de Beleidswinkel; daarna tekent het paneel opnieuw.
     const b = e.target.closest('[data-beleid]');
     if (b) {

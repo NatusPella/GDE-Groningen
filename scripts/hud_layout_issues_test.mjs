@@ -59,8 +59,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
     ['mapview.js', '.mapview-card small, .mapview-card .mv-rec {'],
     ['mapview.js', '.mapview-card .mv-reisrij {'],
     ['veroverdpanel.js', '.vo-regel {'],
-    ['veroverdpanel.js', '.vo-volgende li {'],
-    ['veroverdpanel.js', '.vo-beleid .vo-rij {'],
+    // de taakkaarten van Veroverd (#980 fase 3) lezen --ds-t-*; --ds-t-hulp is max(14px, var(--menu-min)) en wordt bewaakt door ds_tokens_test
   ]) {
     ok(/var\(--menu-min/.test(vloer(f, sel)), `#868: ${sel} gebruikt de menuvloer`);
   }
@@ -72,7 +71,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   ok(/\.pf-callwho small \{ font-size: max\(13px, var\(--hud-min\)\)/.test(read('phonefeed.css')), '#868: telefoonkop op de HUD-vloer');
   ok(/\.mg-board \.mg-sfeer \{ font: max\(12px, calc\(12px \/ var\(--ui/.test(read('minigamekit.js')), '#868: minigame-sfeer deelt door de HUD-zoom');
   ok(/\.mg-board \.mg-help \{ display: flex;[\s\S]*?max\(14px, calc\(14px \/ var\(--ui/.test(read('minigamekit.js')), '#868: minigame-hulp deelt door de HUD-zoom');
-  ok(/\.vo-beleid \.vo-rij button \{[^}]*var\(--menu-min/.test(read('veroverdpanel.js')), '#868: de knoppen van de Beleidswinkel op de menuvloer');
+  ok(!/\.vo-beleid \.vo-rij/.test(read('veroverdpanel.js')), '#868: de oude Beleidswinkel-rijen zijn weg; de bonnen lezen de ds-tokens');
   const touch = (read('touch.js').match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
   ok(/\.hud-instr \.hi-lamp/.test(touch), '#868: paneellabels staan in de 12px-vloer');
   ok(/\.t-btn \.t-lb \{ line-height: 1; white-space: nowrap; font-size: max\(1em, calc\(13px \/ var\(--t-scale, 1\)\)\)/.test(touch), '#868: aanraakknoppenlabels houden 12 px');

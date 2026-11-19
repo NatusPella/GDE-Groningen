@@ -63,8 +63,24 @@ Wat nog niet gemigreerd is (blijft schuld, een regel weghalen zodra het klaar is
 | Terugverdientijd ("verdiend in 6 dagen") op de gele knop ontbreekt | `shopbon.js` | het spel heeft geen inkomstenmodel per artikel; zonder echte cijfers tonen we niets |
 | De gele knop en de bevestiging staan in de garage onder de feiten: bij een kort paneel moet je scrollen om ze te zien (de vraag scrolt zelf in beeld) | `garageui.js` | het paneel is 440 px hoog op 900p; een compactere kaart of een tweede kolom vraagt een besluit |
 | Reparatiekosten en brandstof in de garage ontbreken als chip of kaart | `garageui.js` | de reparatie loopt via de werkplaatswinkel, niet via de garage; de chips tonen alleen schade en banden |
-| De garage-melding en het veroverd-paneel (`veroverdpanel.js`) bevatten nog eigen CSS voor `.vo-*`; de oude `.vo-beleid`-regels zijn daar dood | `veroverdpanel.js` | niet in het domein van deze ronde; opruimen bij de migratie van Loopbanen/Veroverd |
 | Kleine tekst in de bonregels van de winkel volgt `--ds-t-*`, maar de lijst links houdt de oude maten van `menu.css` | `shopui.css` | menu-brede maten, niet per scherm te wijzigen |
 | `scripts/hud_kleuren_test.mjs` faalt al vóór deze ronde op `reisrit3d.js` (niet als surface geauditeerd) | `scripts/hud_kleuren_test.mjs` | buiten het domein; hoort bij de eigenaar van dat bestand |
-| De Beleidswinkel is in Veroverd bijna niet te bereiken: op 1600x900 heeft het onderste gedeelte (`.m-main`) 80 px hoogte en staat het blok onder een gebiedenpaneel van ruim 5000 px. De bonnen zijn alleen bekeken doordat het beeldscript het blok losmaakte (`ds2-na-beleid-arm.png`) | `veroverdpanel.js` (`.vo-top`, `#pause-menu .m-main`) | niet in het domein van deze ronde; oplossing: de Beleidswinkel boven de gebiedenlijst of op een eigen tabblad, bij de migratie van Veroverd |
 | Niet met een controller of op touch bekeken in het spel | alle drie | alleen muis en synthetische toetsen in Electron (1600x900) gezien; 720p en 4K niet; de focusring met `pad-active` is bedoeld maar niet gezien |
+
+
+## Schermmigratie designsysteem v2, fase 3 (#980): stand na Te doen, Loopbanen, Verhaal en Veroverd
+
+Gemigreerd in deze ronde: Te doen/Activiteiten (`todoui.js`, `todotijd.js`, de kop en de Begin-hier-kaarten), Loopbanen (`loopbaanui.js`: lege hero en de ladder als papieren trap), Verhaal (`verhaalui.js`: personagekaart als hero, aanwijzingen zonder muur van lege blokken; `todoui.js` voor Opdrachten) en Veroverd (`veroverdpanel.js`: twee tabbladen, taakkaarten als papier). De Beleidswinkel is bereikbaar op een eigen tabblad (Q en E wisselen). Voor-en-nabeelden op 1280x720 en 1920x1080 staan in `docs/img/qa/ds3-*` en in het issue.
+
+Wat nog niet gemigreerd is (een regel weghalen zodra het klaar is):
+
+| Wat | Waar | Waarom nog niet |
+|---|---|---|
+| De lijst in Te doen en in Verhaal > Opdrachten zijn nog `.m-li`-rijen (alleen de statuschip is `ds-chip`), geen `.ds-rij` of aanbod-kaarten | `todoui.js` `row`, `stepRow` | de rijen delen toetsenbord-, controller- en scrolgedrag met het pauzemenu, en elke soort telt tientallen rijen; alleen de drie dichtstbijzijnde (Begin hier) zijn kaarten |
+| Een tijdstreepje bestaat alleen voor het evenement van vandaag; andere dingen (kermis, nachtdienst) hebben geen eindtijd in de brondata | `todo.js` `evenementItem` | geen brondata; zonder echte tijd tonen we geen streep |
+| "Kan nu" volgt `status === 'nu'` uit todo.js; een controle op saldo, voertuig of afstand ("Te ver") zit er niet in | `todoui.js` `beginCard` | todo.js kent die voorwaarden niet per rij |
+| Het detail rechts in Te doen is nog het glazen `m-pane`: kpi-blokjes (`td-kpi`) en `pm-pane-top`, geen papieren kaart met een kaartfragment als hero | `todoui.js` `detailHtml` | een kaartfragment per plek vraagt `placeshot.js`-werk buiten dit domein |
+| Loopbanen: de lijst links (`lb-li`) en de bezigheden zijn nog glas; het sfeervlak en het koppelstuk met de hero (`lb-hero-sfeer`) blijven zoals ze waren | `loopbaanui.js` | de sfeerband (`carrieresfeer.js`) is een eigen onderdeel met een eigen test |
+| Verhaal: Opdrachten (hoofdstukken, `td-chapter`) en Personages-lijst zijn nog glas; de aanwijzingen zijn tekstregels, geen `.ds-kaart` per aanwijzing | `todoui.js` `storyHtml`, `verhaalui.js` | het hoofdstukkenmodel (#912) en de personagetegels (#608) zijn recent en hebben eigen tests |
+| Veroverd: de gebiedenlijst en het gebiedsdetail (`gebiedenui.js`) zijn nog glas met eigen `gb-*`-CSS; de hero (`pm-hero`) en de stats zijn nog de oude gedeelde opmaak | `gebiedenui.js`, `veroverdpanel.js` | `gebiedenui.js` is niet in dit domein |
+| Niet met een controller of op touch bekeken in het spel; 4K niet; "Beweging beperken" niet | alle vier | alleen muis en synthetische toetsen in Electron (1280x720 en een venster van 1904x993) gezien |

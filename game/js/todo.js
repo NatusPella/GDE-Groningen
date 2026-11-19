@@ -468,6 +468,8 @@ function evenementItem(world) {
     meta: loopt ? `Nu aan de gang · ${ev.plaats || 'in de provincie'}` : `Vandaag vanaf ${tijd} · ${ev.plaats || 'in de provincie'}`,
     medal: null, record: ev.plaats || '',
     x: c.x, y: c.y,
+    // het tijdstreepje in Te doen (#980): hoeveel uur het evenement nog loopt, of vanaf wanneer het begint
+    tijd: { loopt, over: Math.max(0, ev.hours[1] - uur), totaal: Math.max(0, ev.hours[1] - ev.hours[0]), van: tijd },
     goal: { kind: 'place', id: 'evenement:' + ev.id, name: ev.naam || 'Evenement', x: c.x, y: c.y },
     detail: {
       kicker: 'Ommeland · vandaag',
