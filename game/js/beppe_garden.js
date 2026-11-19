@@ -31,10 +31,10 @@ import { getScene } from './scene3d.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { showCard } from './hudcards.js';
 import { recordUnique, hasUnique, unlockAchievement } from './achievements.js';
-import { BEPPE_SIGN, ROAD_SIGN, LAST_BENCH, HOUSE_ARRIVAL, REMEMBRANCE } from './beppe_texts.js';
+import { BEPPE_SIGN, ROAD_SIGN, ROAD_SIGN_SUB, SIGN_HINT, LAST_BENCH, HOUSE_ARRIVAL, REMEMBRANCE } from './beppe_texts.js';
 import {
   TRIBUTE, LAYOUT, pickTributeEnd, nearestOnPath, crossingOnRoad, crossingAhead, chooseTributeSite,
-  housePoint, markerOf, once, tributeTodo, farewellGuide,
+  housePoint, markerOf, once, tributeTodo, farewellGuide, hintDue, tilesSettled,
 } from './beppe_rules.js';
 import { ensureWorldEnds, getWorldEndSpots } from './worldends.js';
 import { roadNetRows } from './roadgraph.js';
@@ -51,6 +51,7 @@ import { WEAPON_STOCK } from './shops.js';
 import { addStaticCollider } from './breakables.js';
 
 const BUILD_R = 340, DROP_R = 520, ANIM_R = 160;
+const TILES_R = 320; // the tiles this far round the border must be in before the site is final
 const USE_R = 2.4; // E reach of the two benches
 const MAT = markShared(vcMaterial({ roughness: 0.85 }));
 const WOOD = 0x7a5a3a, WOOD_DARK = 0x5a4028, IRON = 0x2f3236, STONE = 0x9a968c;
@@ -215,16 +216,59 @@ function siteClock() {
   return heeft ? world.time : (typeof performance !== 'undefined' ? performance.now() / 1000 : Date.now() / 1000);
 }
 
+// The place is laid out against the tiles around the border (water, buildings,
+// the Lauwerspad): the player is usually far away in Grunn when the site is
+// first asked for, and the tiles there are not in. A site computed blind put the
+// house across the cycle path (#916), so the first answer is provisional: the
+// map has its marker, the tiles round the crossing are requested, and the site
+// is laid out again once they are in. Nothing is built before that.
+const REFINE_MS = 1, REFINE_GIVE_UP = 90; // seconds between looks, looks before the blind site stands
+let refines = 0;
+function tileKeysAround(border) {
+  const store = world && world.map && world.map.store;
+  return store && store.keysAround ? store.keysAround(border.x, border.y, TILES_R).map((k) => ({ k, e: store.index.tiles[k] })) : [];
+}
+function tilesIn(border) {
+  const store = world.map.store, jobs = world.map._tileJobs;
+  return tilesSettled(tileKeysAround(border).map((q) => q.k), (k) => store.ready(k),
+    (k) => { const e = store.index.tiles[k]; return !!(jobs && e && jobs.has(`${e.i},${e.j}`)); });
+}
+function requestTiles(border) {
+  const store = world.map.store;
+  for (const { k } of tileKeysAround(border)) {
+    if (store.ready(k)) continue;
+    try { store.request(k, { priority: -1, token: 'beppe' }).catch(() => {}); } catch (e) { /* the tile streams in by itself when the player comes near */ }
+  }
+}
+
 function ensureSite() {
-  if (site) return site;
   if (!world) return null;
+  if (site && !site.provisional) return site;
   const t = siteClock();
-  if (t < retryAt) return null;
-  tries++;
-  // the world's road data arrives with the first tiles: give it a few tries,
-  // then back off instead of scanning every two seconds for nothing.
-  retryAt = t + Math.min(30, 2 + tries * 2);
-  site = computeSite();
+  if (!site) {
+    if (t < retryAt) return null;
+    tries++;
+    // the world's road data arrives with the first tiles: give it a few tries,
+    // then back off instead of scanning every two seconds for nothing.
+    retryAt = t + Math.min(30, 2 + tries * 2);
+    site = computeSite();
+    if (!site) return null;
+    if (tilesIn(site.border)) return site;
+    site.provisional = true;
+    refines = 0;
+    requestTiles(site.border);
+    retryAt = t + REFINE_MS;
+    return site;
+  }
+  if (t < retryAt) return site;
+  retryAt = t + REFINE_MS;
+  refines++;
+  if (tilesIn(site.border)) {
+    const final = computeSite();
+    site = final || { ...site, provisional: false };
+  } else if (refines >= REFINE_GIVE_UP) {
+    site = { ...site, provisional: false }; // the tiles never came: the blind site stands
+  } else if (refines % 10 === 0) requestTiles(site.border);
   return site;
 }
 
@@ -260,8 +304,10 @@ function roadSignTexture() {
     g.fillStyle = '#f0ede4';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.font = 'bold 40px Arial, sans-serif';
-    g.fillText(ROAD_SIGN, w / 2, h / 2 + 2);
+    g.font = 'bold 36px Arial, sans-serif';
+    g.fillText(ROAD_SIGN, w / 2, h * 0.38);
+    g.font = '17px Arial, sans-serif';
+    g.fillText(ROAD_SIGN_SUB, w / 2, h * 0.74);
   });
 }
 
@@ -649,7 +695,7 @@ export function updateBeppeGarden(dt, w) {
   if (!w || !w.map || !w.map.store) return;
   world = w;
   ensureSite();
-  if (!site) return;
+  if (!site || site.provisional) return; // the tiles round the place are not in yet (#916)
   const p = hoofdspeler(w);
   const v = p.inVehicle;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
@@ -659,6 +705,10 @@ export function updateBeppeGarden(dt, w) {
   if (!built) return;
   // the pigeons
   if (birds && d < ANIM_R) updateBirds(birds, dt, w.time);
+  // on the way (#916): the road-sign card, once per session and not for someone who has been here
+  if (hintDue(d, { arrived: hasUnique(TRIBUTE.set, TRIBUTE.arrival), shown: !!sessionMarks.hint }) && once(sessionMarks, 'hint')) {
+    showCard(w, { kind: 'tip', kicker: ROAD_SIGN, title: SIGN_HINT.title, body: SIGN_HINT.body, duration: 7, key: 'beppe-wegwijzer', voice: false });
+  }
   // arrival: the card, the hidden achievement and the doves are in place
   if (d < LAYOUT.arrivalR) showArrivalCard(w);
   // the memory also comes when the player walks up to the house without using
@@ -685,6 +735,7 @@ export function initBeppeGarden(w) {
   colliders = false;
   dovesOff = false;
   tries = 0;
+  refines = 0;
   warned = false;
   retryAt = 0;
   worldClock = false;
@@ -718,20 +769,20 @@ export function initBeppeGarden(w) {
 // always visible so the place can be found. It is computed on demand, so the
 // map also knows the bench before the player has been near the place.
 export function beppeMapSpot() {
-  if (!site) ensureSite();
+  ensureSite();
   return markerOf(site);
 }
 
 // The "Te doen" entry (todo.js asks for it): the place as a goal, and done once
 // the remembrance has been read. Null until the site is known.
 export function beppeTodoItem(w) {
-  if (!site) ensureSite();
+  ensureSite();
   if (!site) return null;
   return tributeTodo(site, !!(w && hasUnique(TRIBUTE.set, TRIBUTE.remembrance)));
 }
 
 export function beppeSpots() {
-  if (!site) ensureSite();
+  ensureSite();
   if (!site) return [];
   return [
     { id: 'bankje', name: 'laatste bankje van Grunn', x: site.bench.x, y: site.bench.y },

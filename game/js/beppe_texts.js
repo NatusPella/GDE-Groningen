@@ -7,6 +7,13 @@
 
 export const BEPPE_SIGN = 'Beppe';
 export const ROAD_SIGN = 'Kollum';
+// The second line on the direction sign and the card that comes on the way to
+// it (#916): a player who does not know the place finds it from the road.
+export const ROAD_SIGN_SUB = 'Beppe: net over de grens';
+export const SIGN_HINT = {
+  title: 'Richting Kollum',
+  body: 'Het laatste bankje van Grunn staat hier vlakbij. Beppe woont net over de grens.',
+};
 
 // The last bench of Grunn, on the last Groningen spot of the western road.
 export const LAST_BENCH = {
@@ -30,9 +37,9 @@ export const TODO = {
   key: 'om:beppe',
   title: HOUSE_ARRIVAL.title,
   sub: 'Aan de westgrens',
-  meta: "Aan de westgrens · het huis van Tammo's beppe, tussen de tuin en de duiven",
+  meta: "Aan de westgrens, bij Visvliet · het huis van Tammo's beppe, tussen de tuin en de duiven",
   kicker: 'Ommeland · eerbetoon',
-  text: "Waar de weg naar Kollum de provincie verlaat staat het laatste bankje van Grunn. Even verder, net over de grens, het huis van Tammo's beppe, tussen de tuin en de vogels. Ga erheen en lees het plaatje.",
+  text: "Volg de weg naar Kollum (de N355) tot de brug bij Visvliet, waar de weg de provincie verlaat. Daar staat het laatste bankje van Grunn en een bord naar Kollum. Even verder, net over de grens, het huis van Tammo's beppe, tussen de tuin en de vogels. Kies Zet als doel voor de route, ga erheen en lees het plaatje.",
   done: 'Gevonden aan de westgrens.',
 };
 

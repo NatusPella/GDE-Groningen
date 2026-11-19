@@ -10,7 +10,7 @@ import { HOUSE_ARRIVAL, TODO, FAREWELL } from '../game/js/beppe_texts.js';
 import {
   BEPPE_END_ID, TRIBUTE, LAYOUT, sideOffsets, pickTributeEnd, nearestOnPath, walkPath,
   crossingOnRoad, crossingAhead, layoutTribute, housePoint, markerOf, tributeTodo, farewellGuide, TODO_KEY, once,
-  chooseTributeSite,
+  chooseTributeSite, hintDue, tilesSettled,
 } from '../game/js/beppe_rules.js';
 
 let bad = 0;
@@ -203,6 +203,21 @@ if (site) {
   ok(def, 'de verborgen prestatie "Goed eten" staat in achievements.js');
   ok(/id: 'goed_eten'/.test(src), 'de prestatie-id klopt');
 }
+
+// --- de kaart op weg erheen (#916): het bordje met de uitleg komt een keer, onderweg ------------------
+ok(hintDue(LAYOUT.hintR - 1) === true, 'de wegwijzer komt als je onderweg bent');
+ok(hintDue(LAYOUT.hintR + 50) === false, 'te ver weg: nog geen wegwijzer');
+ok(hintDue(LAYOUT.arrivalR - 1) === false, 'bij de aankomst neemt de aankomstkaart het over');
+ok(hintDue(100, { shown: true }) === false, 'de wegwijzer komt maar een keer per sessie');
+ok(hintDue(100, { arrived: true }) === false, 'wie er al geweest is, krijgt hem niet meer');
+ok(hintDue(NaN) === false, 'zonder afstand geen wegwijzer');
+ok(LAYOUT.hintR > LAYOUT.arrivalR, 'de wegwijzer komt voor de aankomst');
+
+// --- de tegels rond de plek (#916): de plek wordt pas definitief als ze er zijn --------------------
+ok(tilesSettled(['a', 'b'], () => true, () => false) === true, 'alle tegels binnen: klaar');
+ok(tilesSettled(['a', 'b'], (k) => k === 'a') === false, 'een tegel mist: nog niet klaar');
+ok(tilesSettled(['a'], () => true, () => true) === false, 'een tegel is nog bezig met toevoegen: nog niet klaar');
+ok(tilesSettled([], () => false) === true, 'geen tegels in de data: niets om op te wachten');
 
 if (bad) { console.error(`${bad} mislukt`); process.exit(1); }
 console.log('beppe_garden_test: ok');

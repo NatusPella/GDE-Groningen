@@ -1846,6 +1846,9 @@ function buildSearchIndex(world) {
   for (const q of getWrakduikSpotsForRender()) { if (q.gedoken || isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Duikplek', pri: 1, x: q.x, y: q.y, zoom: 8 }); }
   for (const q of getStreekuitdagingSpotsForRender()) { if (isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Streekuitdaging', pri: 1, x: q.x, y: q.y, zoom: 8 }); }
   for (const st of getStationsForRender()) entries.push({ label: st.name, kind: 'Treinstation', pri: 0, x: st.x, y: st.y, zoom: 7 });
+  // het eerbetoon aan de westgrens (#832, #916): zoek op Beppe of Kollum en de kaart springt erheen, ook in een onontdekte streek
+  const beppe = beppeMapSpot();
+  if (beppe) entries.push({ label: beppe.name, kind: 'Eerbetoon', pri: 0, x: beppe.x, y: beppe.y, zoom: 8 });
   for (const e of entries) {
     e.norm = normalize(e.label);
     e.compact = e.norm.replace(/ /g, '');

@@ -66,7 +66,32 @@ ok(garden.includes('function siteClock()') && garden.includes('performance.now()
   const layer = T.index.layers.provincie.global;
   REG.setRegionData(layer, null);
   RG.setRoadNet(RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(Buffer.from(files[layer.roadsFile])).toString('utf8'))));
-  BG.initBeppeGarden({ map, time: 1, addMessage() {}, player: { x: X, y: Y } });
+  // Een verse wereld zonder de tegels bij de grens, zoals het spel hem heeft als de speler nog in Grunn staat (#916):
+  // de plek is eerst voorlopig (de kaart heeft meteen een marker) en wordt opnieuw gelegd als de tegels er zijn.
+  // Met de tegels vooraf geladen (zoals hierboven) bleef zichtbaar dat het huis op het fietspad lag niet bestaan.
+  const T2 = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
+  const map2 = T2.world;
+  PW.initProvince({ index: T2.index, world: map2 });
+  const w2 = { map: map2, time: 1, addMessage() {}, player: { x: 0, y: 0 } };
+  BG.initBeppeGarden(w2);
+  const first = BG.beppeMapSpot();
+  ok(!!first && first.kind === 'beppe', 'meteen een kaart-marker, ook voordat de tegels bij de grens er zijn');
+  const keysAtSite = map2.store.keysAround(X, Y, 320);
+  ok(keysAtSite.length > 0 && keysAtSite.some((k) => !map2.store.ready(k)), 'de tegels bij de grens zijn nog niet geladen in de speler-verre wereld');
+  for (let i = 0; i < 120; i++) {
+    w2.time += 2;
+    map2.tileQueue.run(1e9);
+    await new Promise((r) => setTimeout(r, 0));
+    BG.beppeSpots();
+    if (keysAtSite.every((k) => map2.store.ready(k)) && i > 4) break;
+  }
+  w2.time += 2; map2.tileQueue.run(1e9); BG.beppeSpots();
+  w2.time += 2; BG.beppeSpots();
+  ok(keysAtSite.every((k) => map2.store.ready(k)), 'de plek vraagt zelf de tegels rond de grens aan');
+  // voor de controles hieronder moet de wereld rond de plek er wel zijn (zonder tegels is elke controle leeg)
+  const ruim = map2.store.keysAround(X, Y, 700);
+  await Promise.all(ruim.map((k) => map2.store.request(k, { priority: -1 })));
+  map2.tileQueue.run(1e9);
   const live = BG.beppeMapSpot();
   ok(!!live && live.kind === 'beppe' && Math.abs(live.x - X) < 400 && Math.abs(live.y - Y) < 400, 'beppeMapSpot geeft een marker bij de westgrens', JSON.stringify(live && { x: Math.round(live.x), y: Math.round(live.y) }));
   const lp = Object.fromEntries(BG.beppeSpots().map((s) => [s.id, s]));
@@ -75,15 +100,15 @@ ok(garden.includes('function siteClock()') && garden.includes('performance.now()
   // #review N355: de plek lag met bankje en Kollum-bord op de verhoogde weg (en
   // met het tuinbankje op het fietspad ernaast). Alle vier de plekken horen op
   // een droge berm te staan, niet op asfalt, helling, fietspad of in het water.
-  const nearPath = (x, y) => map.roadsNear(x, y, 18).some((r) => {
+  const nearPath = (x, y) => map2.roadsNear(x, y, 18).some((r) => {
     if (!r || !r.pts || r.pts.length < 2) return false;
     const q = R.nearestOnPath(r.pts, x, y);
     return !!q && q.d < Math.max(1, (r.width || 3) / 2) + 0.6;
   });
   for (const [id, p] of Object.entries(lp)) {
-    ok(!!p && !WL.waterAt(map, p.x, p.y), `${id}: niet in het water`);
-    ok(!!p && !(map.buildingsNear && map.buildingsNear(p.x, p.y, 5).length), `${id}: niet in een gebouw`);
-    ok(!!p && !WV.onRoadway(map, p.x, p.y, 0.2), `${id}: niet op de rijbaan of de helling`);
+    ok(!!p && !WL.waterAt(map2, p.x, p.y), `${id}: niet in het water`);
+    ok(!!p && !(map2.buildingsNear && map2.buildingsNear(p.x, p.y, 5).length), `${id}: niet in een gebouw`);
+    ok(!!p && !WV.onRoadway(map2, p.x, p.y, 0.2), `${id}: niet op de rijbaan of de helling`);
     ok(!!p && !nearPath(p.x, p.y), `${id}: niet op een weg of fietspad`);
   }
   ok(!!lp.tuinbankje && !!lp.huis && Math.hypot(lp.tuinbankje.x - lp.huis.x, lp.tuinbankje.y - lp.huis.y) < 10, 'het tuinbankje staat in de voortuin van het huis');

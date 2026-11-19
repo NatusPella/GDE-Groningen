@@ -55,6 +55,7 @@ export const LAYOUT = {
   signIn: 18,            // the Kollum sign: a little nearer the border
   signSide: 6.2,         // just off the asphalt: a sign on a bridge verge must stay on the verge
   arrivalR: 38,          // the arrival card when the player comes this close
+  hintR: 160,            // the road-sign card: the player is on the way (from the border, #916)
   houseOut: 22,          // Beppe's house: this far past the border
   houseSide: 15,         // ... and at least this far off the road
   gardenBenchIn: 5.6,    // the garden bench: this far in front of the house (towards the road)
@@ -313,6 +314,19 @@ export function chooseTributeSite({ border, ux, uy, hw = 3, dry = null, free = n
   const out = fallback || fallbackWet;
   if (out) out.clear = false;
   return out;
+}
+
+// The card on the way (#916): from hintR of the border until the arrival card
+// takes over, once, and not for a player who has been there. d is the distance
+// to the border.
+export function hintDue(d, { arrived = false, shown = false } = {}) {
+  return !arrived && !shown && Number.isFinite(d) && d <= LAYOUT.hintR && d > LAYOUT.arrivalR;
+}
+
+// Whether every tile round the place is in and put into the map: the keys, a
+// test for a ready tile and one for a tile whose rows are still being added.
+export function tilesSettled(keys, isReady, isPending = () => false) {
+  return (keys || []).every((k) => isReady(k) && !isPending(k));
 }
 
 // A point in the house's own frame (+x towards the road, +z to the side), in
