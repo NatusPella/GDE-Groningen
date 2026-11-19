@@ -144,6 +144,7 @@ import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 // #833: de eerste-persoonstand, de camera en het interieur staan in firstpersoncam.js
 import { fpSync, fpCamera, FP_VIEW, FP_HIDE, FP_CUT, FP_INCABIN, FP_TOGGLE } from './firstpersoncam.js';
+import { updateCarInterior } from './carinterior.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 // route-ribbon, waypoint-beacon en setRouteLinks: eigen module onder scene3d/ (#502)
 import { updateRouteRibbon3D, hideRouteRibbon3D, setRouteRibbonScene } from './scene3d/routeribbon3d.js';
@@ -3095,6 +3096,7 @@ export function update3D(dt, world) {
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const fpBits = fpSync(world, player, pv, pvMesh, hidePlayers, !!(world.cameraOverride && world.cameraOverride.interior));
+  if (world.ritTaxi) updateCarInterior(vehicleMeshes.get(world.ritTaxi.id), world.ritTaxi, true); // #882: de passagier zit in het interieur van de taxi van de rit (reisrit3d.js)
   const firstPersonView = (fpBits & FP_VIEW) !== 0;
   const hideFigure = (fpBits & FP_HIDE) !== 0;
   const inCabin = (fpBits & FP_INCABIN) !== 0;

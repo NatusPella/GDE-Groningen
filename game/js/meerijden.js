@@ -15,7 +15,8 @@ const SHOT_NAMES = {
   boot: ['kade', 'dek', 'aankomst'],
   auto: ['instappen', 'weg', 'aankomst'],
   // #882: een taxi is geen leeg wachtscherm: instappen, de rit met de taxi in
-  // beeld, en de aankomst. De scène zelf (reisrit.js) tekent de taxi.
+  // beeld, en de aankomst. De hoofdscène is nu een echte rit (reisrit3d.js, ritpad.js); dit plan blijft
+  // voor de prijs, de klok, het skippen en de oude korte scène als terugval (reisrit.js tekent de taxi).
   taxi: ['instappen', 'rit', 'aankomst'],
 };
 

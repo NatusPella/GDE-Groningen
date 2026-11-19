@@ -1133,3 +1133,10 @@ export function formatDistance(m) {
 walkPathHook.find = findWalkPath; // pedroutes.js walks over this router (latehooks.js)
 
 
+
+// #882: de taxirit rijdt dezelfde autoroute als het routelint (landRoute: de stad en de Ommelanden), van de plek
+// van de speler naar de bestemming. -> { pts, length, noRoute } (noRoute: er is geen weg gevonden).
+export function planDriveRoute(world, target, start = hoofdspeler(world)) {
+  const r = computeRoute(world, { x: target.x, y: target.y, kind: 'taxi' }, 'drive', start);
+  return { pts: r.pts, length: r.length, noRoute: !!r.noRoute || r.pts.length < 2 };
+}

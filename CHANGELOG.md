@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Een echte taxi- en treinrit:** als je met de taxi of de trein naar een plek op de kaart reist, zit je nu zelf achterin en zie je de wereld voorbijrijden: een taxi rijdt over de echte weg naar je bestemming, een trein over het echte spoor met uitzicht over de polder. De eerste en de laatste ruim acht seconden rijd je echt mee; het stuk daartussen slaat een zachte tijdsprong over ("Een kwartier later") en de klok loopt mee naar de aankomsttijd. Korte ritten rijd je helemaal. Spatie slaat over en je staat op de plek bij je bestemming. Samen spelen: de rit is van wie hem rijdt; de klok springt alleen als je alleen speelt, anders staat er "Even later". (#882, #926)
 - **Waarschuwing als de tijd bijna op is:** bij 30 en 10 seconden op de klok van een missie of klus komt een melding met een piep, en bij de laatste 10 seconden knippert de klok. Samen spelen: elke speler krijgt de waarschuwing in het eigen beeld, bij de klok die daar staat (#985).
 - **De minikaart is aanklikbaar:** een klik of tik op de minikaart opent de kaart, ook op een telefoon waar die achter Meer zat. Samen spelen: lokaal, elke speler doet het in het eigen spel (#985).
 - **Onbekende streken lekken niet meer:** Te doen en de zoekbalk van de kaart tonen geen activiteiten, winkels of plekken van een streek die je nog niet kent; missies en het verhaal blijven staan. Samen spelen: iedere speler heeft zijn eigen ontdekte streken (#985).

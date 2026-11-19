@@ -7,6 +7,7 @@ import { zachtePauze, klokSprongMag, meerSpelers } from './coopgroep.js';
 import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY, landingsplek, LANDING_DRIFT_M, BOAT_DRIFT_M } from './meerijden.js';
 import { padButtonIndex, playerPad } from './glyphs.js';
 import { treinReis } from './trainride.js';
+import { start3dRit } from './reisrit3d.js';
 
 let active = null;
 
@@ -250,8 +251,34 @@ export function drawTrein(canvas, plan, rit) {
   g.fillStyle = onder; g.fillRect(0, h * 0.72, w, h * 0.28);
 }
 
+// De landing na een rit (de echte of de oude scène): betalen, de klok, en de speler op de landingsplek bij het doel.
+function landNaRit(world, rit, a) {
+  world.money -= a.prijs;
+  if (typeof world.clock === 'number' && klokSprongMag(world)) world.clock = (world.clock + a.klokMinuten / 60) % 24; // met meer spelers springt de klok niet: de tijd is van iedereen (#452)
+  // #932: de bestemming is het doel, niet een weg honderden meters verderop. Eerst de
+  // open grond bij het doel zelf (openSpotNear), dan pas een straat binnen de korte
+  // landingsmarge; de oude 400 m bracht een taxi soms in een ander buitengebied.
+  const boot = rit.plan.mode === 'boot';
+  const kandidaten = [];
+  if (world.map.openSpotNear) {
+    try { const o = world.map.openSpotNear(a.x, a.y); if (o) kandidaten.push(o); } catch (e) { /* kaart zonder open plekken */ }
+  }
+  if (world.map.findOpenSpawn) {
+    try { const s = world.map.findOpenSpawn(a.x, a.y, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M); if (s) kandidaten.push(s); } catch (e) { /* idem */ }
+  }
+  const spot = landingsplek(a, kandidaten, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M) || { x: a.x, y: a.y };
+  const p = hoofdspeler(world);
+  if (p.inVehicle) { p.inVehicle.speed = 0; p.inVehicle.x = spot.x; p.inVehicle.y = spot.y; }
+  p.x = spot.x; p.y = spot.y;
+  const c = world.companion;
+  if (c && c.state !== 'dead' && !meerSpelers(world)) { c.x = spot.x + 1.5; c.y = spot.y; c.vx = 0; c.vy = 0; }
+  world.addMessage(a.bericht, 4, { kind: 'reis' });
+}
+
 // optie: een optie uit ovopties.reisOpties, dest: { x, y, name }. Resolved met
 // { aangekomen, skipped } nadat de speler is verplaatst.
+// #882 en #926: een taxi of trein rijdt echt door de wereld (reisrit3d.js); lukt dat niet (geen route, geen
+// spoor, een fout) dan speelt de oude korte scène hieronder, nooit een zwart scherm.
 export function startMeerijden(world, optie, dest) {
   if (active || typeof document === 'undefined') return Promise.resolve({ aangekomen: false });
   const plan = ritPlan(optie);
@@ -260,6 +287,28 @@ export function startMeerijden(world, optie, dest) {
     world.addMessage('Te weinig geld voor dit kaartje', 2.5);
     return Promise.resolve({ aangekomen: false });
   }
+  if (plan.mode === 'taxi' || plan.mode === 'trein') {
+    let echt = null;
+    try { echt = start3dRit(world, optie, plan, dest); } catch (e) { console.warn('reisrit: echte rit', e); }
+    if (echt) {
+      active = rit;
+      return echt.then((res) => {
+        active = null;
+        if (res.terugval) return oudeScene(world, optie, dest, plan);
+        rit.skipped = !!res.skipped; rit.done = true;
+        const a = aankomst(rit, dest, world.money);
+        if (!a) return { aangekomen: false };
+        landNaRit(world, rit, a);
+        return { aangekomen: true, skipped: rit.skipped };
+      });
+    }
+  }
+  return oudeScene(world, optie, dest, plan);
+}
+
+// De oude korte scène (DOM-laag): terugval voor de echte rit, en de scène van bus en boot.
+function oudeScene(world, optie, dest, plan) {
+  const rit = startRit(plan);
   const el = build(plan.mode === 'taxi', optie.label, plan.mode === 'trein');
   document.body.appendChild(el);
   const q = (s) => el.querySelector(s);
@@ -288,26 +337,7 @@ export function startMeerijden(world, optie, dest) {
       const a = aankomst(rit, dest, world.money);
       el.remove();
       if (!a) return resolve({ aangekomen: false });
-      world.money -= a.prijs;
-      if (typeof world.clock === 'number' && klokSprongMag(world)) world.clock = (world.clock + a.klokMinuten / 60) % 24; // met meer spelers springt de klok niet: de tijd is van iedereen (#452)
-      // #932: de bestemming is het doel, niet een weg honderden meters verderop. Eerst de
-      // open grond bij het doel zelf (openSpotNear), dan pas een straat binnen de korte
-      // landingsmarge; de oude 400 m bracht een taxi soms in een ander buitengebied.
-      const boot = rit.plan.mode === 'boot';
-      const kandidaten = [];
-      if (world.map.openSpotNear) {
-        try { const o = world.map.openSpotNear(a.x, a.y); if (o) kandidaten.push(o); } catch (e) { /* kaart zonder open plekken */ }
-      }
-      if (world.map.findOpenSpawn) {
-        try { const s = world.map.findOpenSpawn(a.x, a.y, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M); if (s) kandidaten.push(s); } catch (e) { /* idem */ }
-      }
-      const spot = landingsplek(a, kandidaten, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M) || { x: a.x, y: a.y };
-      const p = hoofdspeler(world);
-      if (p.inVehicle) { p.inVehicle.speed = 0; p.inVehicle.x = spot.x; p.inVehicle.y = spot.y; }
-      p.x = spot.x; p.y = spot.y;
-      const c = world.companion;
-      if (c && c.state !== 'dead' && !meerSpelers(world)) { c.x = spot.x + 1.5; c.y = spot.y; c.vx = 0; c.vy = 0; }
-      world.addMessage(a.bericht, 4, { kind: 'reis' });
+      landNaRit(world, rit, a);
       resolve({ aangekomen: true, skipped: rit.skipped });
     };
     const tick = (now) => {
