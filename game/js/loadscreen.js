@@ -14,6 +14,7 @@ import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
+import { skipReady, isSkipKey } from './loadskip.js';
 import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending } from './loadlogic.js';
 
 let tips = [];
@@ -102,6 +103,7 @@ export function startLoadScreen(world, opts = {}) {
         '<div class="ls-tip" aria-live="polite"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
         '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div>' +
       '</div>' +
+      '<button type="button" class="ls-skip" hidden title="Verder zonder te wachten (Enter)">Verder <kbd>Enter</kbd></button>' +
     '</div>';
   document.body.appendChild(el);
   // the boot screen may still be fading underneath: one bar at a time
@@ -139,7 +141,19 @@ export function startLoadScreen(world, opts = {}) {
   let prog = startProgress();
   let res;
   const done = new Promise((r) => { res = r; });
+  let ended = false;
+  const onKey = (e) => {
+    if (skipBtn.hidden || !isSkipKey(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    finish();
+  };
+  const skipBtn = el.querySelector('.ls-skip');
+  skipBtn.addEventListener('click', () => finish());
+  document.addEventListener('keydown', onKey, true);
   const finish = () => {
+    if (ended) return;
+    ended = true;
+    document.removeEventListener('keydown', onKey, true);
     world.uiPaused = wasPaused;
     zachtePauze(world, 'laden', false);
     el.classList.remove('on');
@@ -160,6 +174,7 @@ export function startLoadScreen(world, opts = {}) {
     prog = stepProgress(prog, loadPending(st, tiles, prewarmPending()), (now - t0) / 1000, kind);
     fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
     barEl.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
+    if (skipBtn.hidden && skipReady(kind, (now - t0) / 1000)) skipBtn.hidden = false;
     if (now - lineAt >= lineS * 1000) nextLine(now);
     if (prog.done) { finish(); return; }
     requestAnimationFrame(step);

@@ -62,3 +62,10 @@
   #load-screen { transition: none; }
 }
 html.reduce-motion #load-screen .ls-bg, html.reduce-motion #load-screen .ls-stage { animation: none; }
+
+/* #985: Verder, zodra het scherm langer dan een paar seconden duurt. */
+#load-screen .ls-skip { position: absolute; right: 100px; top: 40px; z-index: 3; padding: 10px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.45); background: rgba(0,0,0,0.5); color: #fff; font: inherit; font-size: 16px; cursor: pointer; }
+#load-screen .ls-skip[hidden] { display: none; }
+#load-screen .ls-skip:hover, #load-screen .ls-skip:focus-visible { background: rgba(255,255,255,0.22); outline: 2px solid #fff; outline-offset: 2px; }
+#load-screen .ls-skip kbd { margin-left: 8px; padding: 1px 6px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.5); font: inherit; font-size: 13px; opacity: 0.85; }
+@media (max-width: 900px) { #load-screen .ls-skip { right: 40px; top: auto; bottom: 120px; } }
