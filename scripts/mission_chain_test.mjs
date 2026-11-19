@@ -217,7 +217,7 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
   // de eigen keten en de loop staan vast in missions.js
   ok(/import \{ maakMissielus, zetGroep, actieveGroepen, tik as tikMissielus \}/.test(src), 'missions.js haalt de missielus binnen');
   ok(/const missieLus = maakMissielus\(\)/.test(src), 'de lus is er één per wereld');
-  ok(/const sleutels = lusSleutels;/.test(src) && /for (const [k, st] of chains)/.test(src), 'alle ketens uit de houder doen mee (hergebruikte lijst, geen allocatie per frame)');
+  ok(/const sleutels = lusSleutels;/.test(src) && /for \(const \[k, st\] of chains\)/.test(src), 'alle ketens uit de houder doen mee (hergebruikte lijst, geen allocatie per frame)');
   ok(/tikMissielus\(missieLus, dt, \(sleutel, deel\) => \{/.test(src), 'de lus tikt per ketensleutel');
   ok(/world\.coopGroepSleutel = sleutel/.test(src) && /updateMissionKern\(deel, world\)/.test(src), 'de sleutel staat om de update van die groep');
   ok(/updateMissionsAlgemeen\(dt, world\)/.test(src), 'de wereldtaken staan buiten de lus');
