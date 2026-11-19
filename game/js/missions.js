@@ -3200,6 +3200,7 @@ function updateEggs(dt, world, def) {
     // pas daarboven en bij hard remmen/stoten breken er eieren (#824).
     if (def.eggs.rough) loss += eggSpeedLoss(sp, def.eggs.rough, dt);
     if (v.health < chainState().eggHp) loss += (chainState().eggHp - v.health) * 1.2;
+    if (loss > 0.4 && !chainState().eggMeld) { chainState().eggMeld = true; meldRegelkaart('eierstoot'); } // AAA akte 2: de eierkaart toont de voorraad bij de eerste stoot
     chainState().eggs = Math.max(0, chainState().eggs - loss);
   }
   chainState().eggVeh = v;
@@ -3223,7 +3224,6 @@ function updateEggs(dt, world, def) {
   }
   if (chainState().eggs <= def.eggs.failAt) fail(world, def, eggFailText(def, chainState().eggs));
 }
-    if (loss > 0.4 && !chainState().eggMeld) { chainState().eggMeld = true; meldRegelkaart('eierstoot'); } // AAA akte 2: de eierkaart toont de voorraad bij de eerste stoot
 
 const MODE_HINT = {
   vehicle: 'Met de auto, hè. Die hoort erbij.',
