@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 
 const { applyShopSave, getOwnedEntries, getShopSave } = await import('../game/js/shops.js');
 const { VEHICLE_STOCK } = await import('../game/js/shopdata.js');
-const { getGarageList, verkoopVoertuig, verkoopWaarde, actieBevestiging } = await import('../game/js/ownedvehicles.js');
+const { getGarageList, verkoopVoertuig, verkoopWaarde, actieBevestiging, eigenRandMarkers } = await import('../game/js/ownedvehicles.js');
 
 let n = 0, fails = 0;
 const t = (naam, fn) => { n++; try { fn(); console.log('ok   ' + naam); } catch (e) { fails++; console.log('FAIL ' + naam + '\n  ' + e.message.split('\n')[0]); } };
@@ -89,6 +89,18 @@ t('bevestiging: verkopen altijd, afleveren pas boven de 100 euro, met duizendsch
   assert.equal(actieBevestiging({ ...e, fee: 10 }, 'aflever'), '');
   assert.match(actieBevestiging({ ...e, fee: 5700 }, 'aflever'), /kost €5\.700\. Druk nog een keer/);
   assert.equal(actieBevestiging({ ...e, owned: false }, 'verkoop'), '');
+});
+
+t('minimap: een eigen voertuig buiten beeld krijgt een randpijl, de Escapade en het dichtstbijzijnde andere', () => {
+  const buiten = (x) => Math.abs(x) > 150;
+  const owned = [
+    { x: 400, y: 0, hero: false, kind: 'car' }, { x: -900, y: 0, hero: false, kind: 'car' },
+    { x: 50, y: 0, hero: false, kind: 'bike' }, { x: 3000, y: 0, hero: true, kind: 'car' },
+  ];
+  const uit = eigenRandMarkers(owned, 0, 0, (x, y) => buiten(x));
+  assert.deepEqual(uit.map((o) => o.x), [3000, 400], 'hero eerst, dan de dichtstbijzijnde buiten beeld; de fiets op 50 m staat gewoon op de minimap');
+  assert.deepEqual(eigenRandMarkers([{ x: 10, y: 0, hero: false }], 0, 0, (x) => buiten(x)), []);
+  assert.deepEqual(eigenRandMarkers(null, 0, 0, () => true), []);
 });
 
 console.log(`${n - fails}/${n} ok`);

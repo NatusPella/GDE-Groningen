@@ -18,7 +18,7 @@ import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
-import { getOwnedVehiclesForMap } from './ownedvehicles.js';
+import { getOwnedVehiclesForMap, eigenRandMarkers } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon, getHeliRunMarks } from './helirun.js';
 import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
@@ -2917,9 +2917,11 @@ function drawMinimap(dt, world) {
   let heliEdge = null;
   if (heliMarks && heliMarks.target && !inRange(heliMarks.target.x, heliMarks.target.y)) heliEdge = edgeAngle(heliMarks.target.x, heliMarks.target.y);
 
-  let heroEdge = null;
-  if (showOwn) for (const o of owned) {
-    if (!icon('own', o.x, o.y, { vkind: o.kind, color: o.color }) && o.hero) heroEdge = edgeAngle(o.x, o.y);
+  // eigen voertuigen: op de minimap als ze erin vallen, anders een pijl aan de rand (de Escapade en de dichtstbijzijnde andere)
+  const ownEdges = [];
+  if (showOwn) {
+    for (const o of owned) icon('own', o.x, o.y, { vkind: o.kind, color: o.color });
+    for (const o of eigenRandMarkers(owned, player.x, player.y, (x, y) => !inRange(x, y))) ownEdges.push(edgeAngle(o.x, o.y));
   }
 
   const c = world.companion;
@@ -2987,9 +2989,7 @@ function drawMinimap(dt, world) {
   if (wind) drawMiniWind(ctx, WIND_X, MINIMAP_SIZE - WIND_Y, wind, mapRotation);
 
   const edgeR = MINIMAP_SIZE / 2 - 11;
-  if (heroEdge != null) {
-    drawEdgeArrow(ctx, cx + Math.cos(heroEdge) * edgeR, cy + Math.sin(heroEdge) * edgeR, heroEdge, C.greenLight, 0.9);
-  }
+  for (const a of ownEdges) drawEdgeArrow(ctx, cx + Math.cos(a) * edgeR, cy + Math.sin(a) * edgeR, a, C.greenLight, 0.9);
   for (const e of partnerEdges) if (e.a != null) drawEdgeArrow(ctx, cx + Math.cos(e.a) * edgeR, cy + Math.sin(e.a) * edgeR, e.a, e.kleur, 0.9);
   if (jobEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);

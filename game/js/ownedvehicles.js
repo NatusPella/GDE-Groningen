@@ -614,6 +614,22 @@ export function getGarageCatalog(world) {
   return [...owned, ...rest];
 }
 
+// QoL (#985): welke eigen voertuigen buiten de minimap een pijl aan de rand krijgen: de Escapade (zoals
+// altijd) en het dichtstbijzijnde andere eigen voertuig, zodat je hem op de minimap blijft vinden.
+// `buitenBereik(x, y)` zegt of een punt buiten de minimap valt; gesorteerd: eerst de Escapade.
+export function eigenRandMarkers(owned, px, py, buitenBereik) {
+  const uit = [];
+  let dichtst = null, dd = Infinity;
+  for (const o of owned || []) {
+    if (!buitenBereik(o.x, o.y)) continue;
+    if (o.hero) { uit.unshift(o); continue; }
+    const d = (o.x - px) ** 2 + (o.y - py) ** 2;
+    if (d < dd) { dd = d; dichtst = o; }
+  }
+  if (dichtst) uit.push(dichtst);
+  return uit;
+}
+
 export function getOwnedVehiclesForMap(world) {
   const out = [];
   const pv = hoofdspeler(world).inVehicle;
