@@ -17,7 +17,7 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave, saveFailReason } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
@@ -1874,7 +1874,7 @@ function runAction(a) {
   else if (a === 'save') {
     // #606: een gast bewaart alleen zijn eigen verdiensten; zeg dat ook, in plaats van "Opgeslagen om ..."
     const ok = saveGame(world, { manual: true });
-    if (!ok) status('Opslaan mislukt');
+    if (!ok) status(`Opslaan mislukt: ${saveFailReason() || 'onbekende reden'}. Je spel blijft staan zolang dit venster open is.`);
     else if (world && world.coopRole === 'client') status(GAST_BEWAARD_TEKST);
     else if (inBoot(world)) status(`Opgeslagen om ${nu()} · je boot blijft aan de steiger`);
     else status(`Opgeslagen om ${nu()}`);

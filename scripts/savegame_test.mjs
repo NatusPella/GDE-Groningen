@@ -369,7 +369,7 @@ ok(() => {
     classList: { add: (...k) => k.forEach((x) => klassen.add(x)), remove: (...k) => k.forEach((x) => klassen.delete(x)), contains: (x) => klassen.has(x) },
   };
   const scope = {
-    toastEl: el, toastTimer: 0, DISK_SVG: '<svg/>', BROKEN_SVG: '<svg/>', saveBroken: false, TOAST_S: 2.2,
+    toastEl: el, lastFailText: '', toastTimer: 0, DISK_SVG: '<svg/>', BROKEN_SVG: '<svg/>', saveBroken: false, TOAST_S: 2.2,
     world: { addMessage: (t, d, o) => meldingen.push({ t, d, o }) },
   };
   const fn = new Function('scope', `with (scope) {

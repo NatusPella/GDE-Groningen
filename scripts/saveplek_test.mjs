@@ -35,5 +35,14 @@ ok(() => {
 }, 'nieuwe spellen op een geheugenopslag');
 ok(() => assert.equal(S.summarize({ v: 1, savedAt: 1 }).plek, '', 'een oude save zonder plek geeft een lege plek'), 'oude save');
 
+ok(() => {
+  const quota = new Error('x'); quota.name = 'QuotaExceededError';
+  assert.equal(S.saveFailText(quota), 'de opslag van je browser is vol');
+  assert.equal(S.saveFailText(new Error('write failed')), 'het schrijven naar de opslag lukte niet');
+  const sec = new Error('denied'); sec.name = 'SecurityError';
+  assert.equal(S.saveFailText(sec), 'de browser staat opslaan nu niet toe');
+  assert.doesNotMatch(S.saveFailText(quota) + S.saveFailText(null), /[A-Z][a-z]+Error|failed/, 'geen Engelse techniek bij de speler');
+}, 'de reden van een mislukte save is Nederlands');
+
 console.log(`saveplek_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

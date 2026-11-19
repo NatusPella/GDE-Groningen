@@ -331,6 +331,16 @@ export function takenNames(ls) {
   return out;
 }
 
+// #985: de reden van een mislukte save in gewone taal. De technische tekst (Engels) gaat naar het
+// Foutrapport; de speler leest wat er aan de hand is.
+export function saveFailText(e) {
+  const naam = e && e.name ? String(e.name) : '';
+  const tekst = e && e.message ? String(e.message) : String(e || '');
+  if (/quota|full|ruimte/i.test(naam + ' ' + tekst)) return 'de opslag van je browser is vol';
+  if (/security|denied|access/i.test(naam + ' ' + tekst)) return 'de browser staat opslaan nu niet toe';
+  return 'het schrijven naar de opslag lukte niet';
+}
+
 // A new empty slot (named), made the active one. Returns its number or 0 when all are in use.
 // fresh: dit is een bewust gestart nieuw spel (#562); de boot opent dan een lege wereld.
 export function createSlot(ls, name, want = 0, fresh = false) {

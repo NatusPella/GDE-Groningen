@@ -35,7 +35,7 @@ import { getRenderer, afterNextFrame } from './scene3d.js';
 import { plekNaam } from './saveplek.js';
 import { ommelandArea } from './ommelandplace.js';
 import { areaNameAt } from './regions.js';
-import { newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf } from './saveslots.js';
+import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf } from './saveslots.js';
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
@@ -315,7 +315,7 @@ export function saveGame(w = world, { toast = true, manual = false } = {}) {
     // Eén keer uitleg met de reden en een blijvend chipje, in plaats van elke twintig seconden
     // dezelfde regel (#985 punt 8). De melding in de wereld alleen bij een handmatige save of de
     // eerste fout: daarna draagt het chipje de boodschap.
-    if (toast) markSaveBroken(reden);
+    if (toast) markSaveBroken(saveFailText(e));
     return false;
   }
   dirtyIn = -1;
@@ -671,7 +671,11 @@ function showToast() {
 // binnen een menu was het 3,5 s tekst onderin: een speler kon uren doorspelen zonder te weten dat
 // er niets bewaard werd. Nu één uitleg met de reden en de uitweg, en daarna een blijvend chipje in
 // de HUD dat pas weggaat als een save lukt.
+// De laatste reden (gewone taal) waarom opslaan niet lukte, voor het pauzemenu.
+let lastFailText = '';
+export const saveFailReason = () => lastFailText;
 function markSaveBroken(reason) {
+  lastFailText = reason;
   if (toastEl) {
     toastEl.innerHTML = BROKEN_SVG + '<span>Niet opgeslagen</span>';
     toastEl.classList.add('visible', 'hud-saved-broken');
