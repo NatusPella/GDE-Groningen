@@ -9,7 +9,12 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { maakWidget } from './regelwidget.js'; // #987: de handeling als toets met een lus in plaats van een lap tekst
-import { widgetUitlegNodig, widgetUitlegKlaar } from './contexthints.js';
+// contexthints.js haalt prompts.js binnen en die weer activities.js (en dus deze module): een statische import sloot een cyclus van twaalf modules.
+// De uitleg-staat wordt lui geladen; tot hij er is (de eerste frames) toont het bord de gewone regel.
+let contextHints = null;
+import('./contexthints.js').then((m) => { contextHints = m; }, () => { /* geen uitleg-staat: de gewone regel blijft */ });
+const widgetUitlegNodig = (id) => !!contextHints && contextHints.widgetUitlegNodig(id);
+const widgetUitlegKlaar = (id) => { if (contextHints) contextHints.widgetUitlegKlaar(id); };
 import { onthullingScene } from './uitjescene.js';
 import { standActivity, recLine } from './standactivity.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
