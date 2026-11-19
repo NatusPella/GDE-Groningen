@@ -10,7 +10,8 @@
 // renderer; Spullen only links to it. The in-world TV overlay in furniture.js is
 // HUD, not this screen (#610).
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
-import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState } from './shops.js';
+import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
+import { VEHICLE_STOCK } from './shopdata.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
 import { fjordUpgradeOffers } from './pg_foodtruck.js';
 import { getHomeForRender } from './home.js';
@@ -262,7 +263,7 @@ function collect(w) {
   }
   for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, title: u.name, sub: 'Fjord Frituur', desc: u.blurb, how: euro(u.price) });
   for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });
-  counts.upgrade = `${ups.length}`;
+  counts.upgrade = `${ups.length} van ${upgradeTotaal(shop, fjordUpgradeOffers(w))}`;
   return { items: out, counts };
 }
 
@@ -342,6 +343,17 @@ const pctVan = (tekst) => {
 // opnieuw gevuld, dus er staat nooit een tweede kopie in het paneel; het detailpaneel
 // wordt los hertekend (spullenFocus) en houdt de stijl zo gewoon.
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
+// QoL (#985): hoeveel upgrades er te halen zijn voor wat je hebt: de Escapade, elk gekocht voertuig (naar zijn
+// soort) en de Fjord Frituur. Zo staat de teller als "3 van 8" en krijgt de categorie zijn voortgangsbalk.
+export function upgradeTotaal(shop, fjordOffers = []) {
+  let totaal = CAR_UPGRADES.length + fjordOffers.length;
+  for (const v of (shop && shop.vehicles) || []) {
+    const spec = VEHICLE_STOCK[v.key];
+    if (spec) totaal += upgradeListForStock(spec).length;
+  }
+  return totaal;
+}
+
 export function renderSpullen(panel, w) {
   const { items, counts } = collect(w);
   byKey = new Map(items.map((it) => [it.key, it]));
