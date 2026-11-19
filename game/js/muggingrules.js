@@ -9,6 +9,7 @@
 // and the empty business parks (nobody around).
 
 import { nightAtHour } from './sunrules.js';
+import { euro } from './geldtekst.js';
 
 export const RISKY = {
   Stationsgebied: { tier: 2, why: 'veel drukte rond het station' },
@@ -91,8 +92,8 @@ export const MUG_TEXT = {
   warnTitle: (wijk) => `Let op in ${wijk}`,
   warnBody: (why) => `'s Nachts: ${why}. Draag niet te veel geld bij je en blijf in drukke straten.`,
   tip: 'Je merkt iets bij je zak',
-  snatch: (lost) => `Iemand botst tegen je op en is met je portemonnee weg: €${lost} kwijt. Ren hem achterna!`,
-  back: (lost) => `Gepakt! Hij liet de portemonnee vallen: €${lost} terug.`,
-  gone: (lost) => `Hij is ontsnapt. Die €${lost} ben je kwijt. Volgende keer minder bij je dragen.`,
+  snatch: (lost) => `Iemand botst tegen je op en is met je portemonnee weg: ${euro(lost)} kwijt. Ren hem achterna!`,
+  back: (lost) => `Gepakt! Hij liet de portemonnee vallen: ${euro(lost)} terug.`,
+  gone: (lost) => `Hij is ontsnapt. Die ${euro(lost)} ben je kwijt. Volgende keer minder bij je dragen.`,
   thiefBark: ['Sorry, sorry!', 'Niks aan de hand!', 'Dat was een vergissing!'],
 };

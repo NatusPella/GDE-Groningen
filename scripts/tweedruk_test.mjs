@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { koopVraag, tweedeDruk, TWEEDE_DRUK_MS } from '../game/js/tweedruk.js';
 import { euro } from '../game/js/geldtekst.js';
 import { buyLabel, brokeMessage } from '../game/js/shoplist.js';
+import { MUG_TEXT } from '../game/js/muggingrules.js';
 import * as B from '../game/js/boerderij.js';
 import * as PC from '../game/js/percelen.js';
 
@@ -48,6 +49,12 @@ t('de winkelknop en de te-weinig-geldmelding tonen grote bedragen met duizendsch
   assert.equal(buyLabel(it, 'auto', true), 'Zeker? Nog eens: €12.500');
   assert.equal(buyLabel({ income: 1500 }, 'auto'), 'Verkopen voor €1.500');
   assert.match(brokeMessage(it, 100), /je mist nog €12\.400/);
+});
+
+t('berovingsmeldingen met grote bedragen hebben duizendscheiding', () => {
+  assert.match(MUG_TEXT.snatch(2500), /€2\.500 kwijt/);
+  assert.match(MUG_TEXT.back(12345), /€12\.345 terug/);
+  assert.match(MUG_TEXT.gone(1000), /€1\.000 ben je kwijt/);
 });
 
 console.log(`${n - fails}/${n} ok`);

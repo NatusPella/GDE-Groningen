@@ -8,6 +8,7 @@
 // alleen via die beloningen.
 
 import { KEYS } from './storagekeys.js';
+import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
 import { zetGarageKorting } from './economy.js';
 import * as L from './loopbaan.js';
@@ -124,7 +125,7 @@ function eersteKlussenBijwerken(w) {
   w.money = (w.money || 0) + bedrag;
   // Samen spelen: de loopbaan is van de speler en dit is een mijlpaal van zijn eigen apparaat. Het bedrag gaat
   // daarom niet mee in coopDeel; gasten verdienen hun eigen loopbaan in hun eigen spel (docs/LOOPBAAN.md).
-  if (w.addMessage) w.addMessage(`${L.DUIZENDPOOT_TITEL}: alle ${stand.totaal} loopbanen begonnen. +€${bedrag}`, 6, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-duizendpoot' });
+  if (w.addMessage) w.addMessage(`${L.DUIZENDPOOT_TITEL}: alle ${stand.totaal} loopbanen begonnen. +${euro(bedrag)}`, 6, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-duizendpoot' });
   return bedrag;
 }
 
@@ -215,7 +216,7 @@ export function loopbaanOpStat(w, key, n = 1) {
   const keer = Math.max(1, Math.round(n));
   if (r.premie) {
     const b = loopbaanVerdien(w, r.vak, r.premie * keer, { xp: r.xp * keer, n: r.n * keer, rubriek: 'Overig inkomsten' });
-    if (b > 0 && w.addMessage) w.addMessage(`Premie: €${b}`, 2.5, { kind: 'geld', key: 'loopbaan-premie' });
+    if (b > 0 && w.addMessage) w.addMessage(`Premie: ${euro(b)}`, 2.5, { kind: 'geld', key: 'loopbaan-premie' });
   } else {
     loopbaanTel(w, r.vak, { n: r.n * keer, xp: r.xp * keer });
   }

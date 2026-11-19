@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { euro } from './geldtekst.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -560,7 +561,7 @@ function dayWage(w) {
   const pay = fjordPassief(fjordSave().upgrades, { open: true });
   if (pay <= 0) return;
   w.money += pay;
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${pay} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: ${euro(pay)} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
 }
 
 // --- automatic route after the ending ------------------------------------------------

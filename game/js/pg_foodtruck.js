@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { euro } from './geldtekst.js';
 import { spawnPed, walkPed, holdPed, freePed, pedAlive, say as pedSay } from './sidejobkit.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { Vehicle, pushCircleOutOfVehicle } from './vehicle.js';
@@ -336,7 +337,7 @@ export const FJORD = {
           const pay = Math.round(base + tip);
           d.earned += pay;
           d.served++;
-          d.flash = { text: `+€${pay}`, t: 1.2, ok: true };
+          d.flash = { text: `+${euro(pay)}`, t: 1.2, ok: true };
           leave(run, q, pick(FJORD_BUBBLES.happy));
         } else {
           d.wrong++;
@@ -386,7 +387,7 @@ export const FJORD = {
 function render(run) {
   const d = run.data;
   const q = d.queue[0];
-  run.ui.setRows([['Plek', `${d.where} (${d.label})`], ['Tijd', `${Math.max(0, Math.ceil(d.left))} s`], ['Kassa', `€${d.earned}`], ['Geholpen', `${d.served}${d.wrong ? ` · ${d.wrong} fout` : ''}${d.lost ? ` · ${d.lost} weg` : ''}`]]);
+  run.ui.setRows([['Plek', `${d.where} (${d.label})`], ['Tijd', `${Math.max(0, Math.ceil(d.left))} s`], ['Kassa', `${euro(d.earned)}`], ['Geholpen', `${d.served}${d.wrong ? ` · ${d.wrong} fout` : ''}${d.lost ? ` · ${d.lost} weg` : ''}`]]);
   let html = '';
   if (q && q.arrived) {
     const want = counts(q.order), have = counts(d.tray);
@@ -420,7 +421,7 @@ function end(run, why, cut = false) {
     success: good, medal, value: earned, lower: false, reward: earned + bonus,
     title: good ? 'DIENST GESLAAGD' : 'DIENST VOORBIJ',
     reason: why + (clean && d.served ? ' Niemand klaagde. Kon minder.' : ''),
-    stats: [['Geholpen', String(d.served)], ['Fout', String(d.wrong)], ['Weggelopen', String(d.lost)], ...(bonus ? [['Dienstbonus', `€${bonus}`]] : [])],
+    stats: [['Geholpen', String(d.served)], ['Fout', String(d.wrong)], ['Weggelopen', String(d.lost)], ...(bonus ? [['Dienstbonus', `${euro(bonus)}`]] : [])],
   });
 }
 

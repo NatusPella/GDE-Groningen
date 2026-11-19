@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { euro } from './geldtekst.js';
 import { playCinematic, roofAt, respawnFromScene, setCinematicLinks } from './cinematics.js';
 import { spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
@@ -329,7 +330,7 @@ const heroHeel = (w) => {
 // world.js nog af voordat de auto wordt neergezet, dus of het lukt blijkt pas in
 // parkHeroCar - die meldt de uitkomst.
 export function heroMelding(w) {
-  const fee = `€${HERO_REPLACE_FEE}`;
+  const fee = euro(HERO_REPLACE_FEE);
   return (w.money || 0) >= HERO_REPLACE_FEE
     ? `Je Escapade is afgeschreven. Een nieuwe kost ${fee}`
     : `Je Escapade is afgeschreven. Bij de garage kost opknappen ${fee}, maar zoveel geld heb je niet`;
@@ -353,7 +354,7 @@ export function parkHeroCar(w, plan, spawn = spawnHeroCarNear) {
       // aankomst nog kon betalen kan hier alsnog te weinig hebben. Zeg dat hier: de
       // aankomsttekst (begin) is voor de boete opgemaakt en kan dat niet weten.
       if ((w.money || 0) < HERO_REPLACE_FEE) {
-        if (w.addMessage) w.addMessage(`Afgeschreven. Een nieuwe Escapade kost €${HERO_REPLACE_FEE}.`, 5);
+        if (w.addMessage) w.addMessage(`Afgeschreven. Een nieuwe Escapade kost ${euro(HERO_REPLACE_FEE)}.`, 5);
         return null;
       }
       hero = spawn(map, at.x, at.y);
@@ -364,7 +365,7 @@ export function parkHeroCar(w, plan, spawn = spawnHeroCarNear) {
       oud.isHeroCar = false;
       noteMoney('Garage'); // het kasboek (finance.js) weet waar dit bedrag heen ging
       w.money -= HERO_REPLACE_FEE;
-      if (w.addMessage) w.addMessage(`Een nieuwe Escapade: €${HERO_REPLACE_FEE} van je rekening`, 5);
+      if (w.addMessage) w.addMessage(`Een nieuwe Escapade: ${euro(HERO_REPLACE_FEE)} van je rekening`, 5);
     } else {
       // geen heldenauto in deze wereld: er is niets kapot, dus er komt gewoon een
       hero = spawn(map, at.x, at.y);
@@ -606,7 +607,7 @@ function begin(w, pending, opts) {
   const total = T.a + T.b + T.c;
   const state = { w, pending, opts, dest, plan, done: false, vehicle: null, heli: null, fromX, fromY, doorCam: doorCam(w, plan) };
   const name = dest.site.name;
-  const penalty = opts.moneyPenalty ? `, €${opts.moneyPenalty} boete` : '';
+  const penalty = opts.moneyPenalty ? `, ${euro(opts.moneyPenalty)} boete` : '';
   const partner = w.companion ? (w.companion.character === 'tammo' ? 'Tammo' : 'Tessa') : null;
   const withCar = !heroHeel(w)
     ? `${partner ? `${partner} staat klaar. ` : ''}${heroMelding(w)}.`

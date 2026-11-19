@@ -16,6 +16,7 @@ import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
+import { euro } from './geldtekst.js';
 
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
 const PLANT_STAP = 2;
@@ -217,8 +218,8 @@ export default {
     const k = nm.kosten;
     const m = d.machineId ? B.MACHINES[d.machineId].naam : null;
     const bits = [B.TAKEN[taak].naam];
-    if (m) bits.push(k.huur ? `${m.toLowerCase()} gehuurd €${k.huur}` : `eigen ${m.toLowerCase()} gekoppeld`);
-    if (k.materiaal) bits.push(`${taak === 'zaaien' ? 'zaaigoed' : 'mest'} €${k.materiaal}`);
+    if (m) bits.push(k.huur ? `${m.toLowerCase()} gehuurd ${euro(k.huur)}` : `eigen ${m.toLowerCase()} gekoppeld`);
+    if (k.materiaal) bits.push(`${taak === 'zaaien' ? 'zaaigoed' : 'mest'} ${euro(k.materiaal)}`);
     c.msg(bits.join(' · '), 3.5);
     if (UITLEG[taak]) c.msg(`${B.TAKEN[taak].naam}: ${UITLEG[taak]}`, 6);
   },
@@ -329,7 +330,7 @@ function klaar(c) {
   if (taak === 'afleveren') {
     const g = B.GEWASSEN[b.schuur.gewas];
     const uit = leverAf(w, r.kwaliteit);
-    c.skip(`${g ? g.afnemer : 'De afnemer'}: ${uit.kg} kg afgeleverd, +€${uit.betaald}.`);
+    c.skip(`${g ? g.afnemer : 'De afnemer'}: ${uit.kg} kg afgeleverd, +${euro(uit.betaald)}.`);
     return;
   }
   const uit = rondAf(w, taak, r.fractie);
