@@ -47,6 +47,7 @@ export const PROP_FOOT = {
   automaat: [0.9, 0.8, 1.6],
   zuil: [0.6, 0.6, 1.4],
   duiventil: [1.6, 1.1, 2.2],
+  koe: [2.4, 0.9, 1.5],
   botsauto: [1.7, 1.1, 1.15],
 };
 export const propFoot = (kind) => PROP_FOOT[kind] || null;

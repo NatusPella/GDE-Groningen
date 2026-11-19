@@ -26,6 +26,9 @@ import { KERMIS_TENT } from './roadaccess.js';
 import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { hoofdspeler } from './players.js';
+import { animateActor } from './actoranim.js';
+import { stingen } from './sfx/stingen.js';
+import { uitslagReactie, publiekAnim, tikReactie } from './kermis_uitslag.js'; // A2: het publiek reageert op de uitslag
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -65,6 +68,8 @@ let game = null;
 let built = null;
 let fair = null;
 let crowd = null;
+let reactie = null; // de reactie van het publiek op de uitslag van de rit (kermis_uitslag.js)
+let reactieT = 0;
 let hud = null;
 let lodT = 0;
 let rides = 0;
@@ -584,7 +589,7 @@ function updateRide(w, dt) {
     if (g.phaseT <= 0) { g.phase = 'ride'; g.phaseT = g.rideS; g.t = 0; pushAudioEvent(w, { kind: 'bumper', x: K.x, y: K.y, strength: 0.5 }); pushAudioEvent(w, { kind: 'bell', x: K.x, y: K.y }); }
   } else if (g.phase === 'ride') {
     g.phaseT -= dt;
-    if (g.phaseT < 12 && !g.lastCall) { g.lastCall = true; janSay(w, 'last'); }
+    if (g.phaseT < 12 && !g.lastCall) { g.lastCall = true; janSay(w, 'last'); stingen.push(w, 'bijna'); }
     if (g.phaseT <= 0) { g.phase = 'outro'; g.phaseT = 2.2; janSay(w, 'end'); pushAudioEvent(w, { kind: 'bell', x: K.x, y: K.y }); }
   } else if (g.phase === 'outro') {
     g.phaseT -= dt;
@@ -645,6 +650,7 @@ function end(w, { quit = false } = {}) {
   recordStat(w, 'botsautoRides');
   unlockAchievement(w, 'botsauto_klaar');
   if (medal >= 3) unlockAchievement(w, 'botsauto_goud');
+  reactie = uitslagReactie(medal); reactieT = 0; // AAA akte 3 (A2): het publiek juicht mee met de medaille
   const prize = loopbaanVerdien(w, 'kermis', (PRIZE[medal] || 0) * (g.bonus ? 2 : 1), { xp: 12, n: 1, uniek: 'botsauto' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
@@ -719,7 +725,14 @@ function sync3D(w, dt) {
     fair.wheelA.material = lit && blink ? mats.bulbA : lit ? mats.bulbOff : mats.bulbA;
     fair.wheelB.material = lit && !blink ? mats.bulbB : lit ? mats.bulbOff : mats.bulbB;
   }
-  if (crowd) for (const c of crowd) animatePersonWalk(c.mesh, 0, dt);
+  if (reactie) { reactieT += dt; reactie = tikReactie(reactie, dt); } // loopt ook zonder publiek af
+  if (crowd) {
+    crowd.forEach((c, i) => {
+      const anim = reactie ? publiekAnim(reactie, i) : null;
+      if (anim) animateActor(c.mesh, { anim, speed: 0, gaze: 0, t: reactieT, dt });
+      else animatePersonWalk(c.mesh, 0, dt);
+    });
+  }
 }
 
 function camera(w) {

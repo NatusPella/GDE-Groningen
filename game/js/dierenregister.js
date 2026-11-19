@@ -19,7 +19,7 @@ export const DIEREN = [
     id: 'koe', naam: 'Koe', soort: 'vee', kind: 'cow', plan: 'koe', biotoop: ['weide'], uren: [5, 23],
     model: { module: 'wildlife', fn: 'buildCowMesh3D', args: [1, false] },
     boek: 'Zwartbont en tevreden. Een koe kijkt naar je alsof jij de vreemde bent.',
-    kopen: { prijs: 450, houden: 'erf' }, cutscene: null,
+    kopen: { prijs: 450, houden: 'erf' }, cutscene: 'koe',
     upgrades: [
       { id: 'verzorgen', label: 'Verzorgen', prijs: 25, effect: 'Een tevreden koe geeft meer melk' },
       { id: 'koebel', label: 'Koebel', prijs: 15, effect: 'Je hoort haar over het erf' },

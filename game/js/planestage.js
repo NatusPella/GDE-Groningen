@@ -19,6 +19,8 @@ import { signBothSides, fitText } from './canvastex.js';
 import { Vehicle } from './vehicle.js';
 import { attachPlane, makeStrip } from './planecontrol.js';
 import { PLANE_MODEL } from './planeflight.js';
+import { meldKaart } from './regelkaart.js';
+import { stingen } from './sfx/stingen.js';
 
 let S0 = null;   // { plane, strip, prevStrip, group, banner }
 
@@ -227,6 +229,9 @@ export function updatePlaneStage(dt, world, st, S) {
       if (g.banner && st.banner) setBanner(world, st.banner);
       if (A.rings[A.i]) A.rings[A.i].material.color.setHex(0x5dff7a);
       A.i++;
+      // AAA akte 3 (M15): een poort klinkt en de regelkaart van de stap krijgt 'poort1', 'poort2', ...
+      stingen.push(world, 'stap');
+      meldKaart(S.kaart, 'poort' + A.i);
       A.state = { closest: Infinity, agl: 0 };
       const nxt = st.gates[A.i];
       if (!nxt) return 'next';

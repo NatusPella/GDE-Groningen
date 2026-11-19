@@ -384,7 +384,7 @@ ok(shotPoints({ sample() { throw new Error('x'); } }, anchor, 10).length === 0, 
   const vsrc = readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8') + readFileSync(new URL('../game/js/trafficfleet.js', import.meta.url), 'utf8');
   const wsrc = readFileSync(new URL('../game/js/wildlife.js', import.meta.url), 'utf8');
   for (const n of VEHICLE_MODEL_NAMES) ok(new RegExp(`name: '${n}'`).test(vsrc), 'vehicle model in the world register: ' + n);
-  for (const a of ANIMAL_KINDS) ok(new RegExp(`case '${a}':`).test(wsrc), 'animal built by the world: ' + a);
+  for (const a of ANIMAL_KINDS) ok(new RegExp(`case '${a}':`).test(wsrc) || (a === 'cow' && /default: return buildCowMesh3D/.test(wsrc)), 'animal built by the world: ' + a);
   for (const k of PROP_KINDS) ok(PROP_SOURCES[k] || DECOR_KINDS.includes(k) || PLACEHOLDER_KINDS.includes(k), 'prop kind classified: ' + k);
   for (const [k, src] of Object.entries(PROP_SOURCES)) ok((src.vehicle && VEHICLE_MODEL_NAMES.includes(src.vehicle) || src.vehicle === 'van') || (src.animal && ANIMAL_KINDS.includes(src.animal)), 'register entry is real: ' + k);
   ok(propKindIssue('aanhanger') && !propKindIssue('auto') && !propKindIssue('kat') && propKindIssue('ufo'), 'propKindIssue');

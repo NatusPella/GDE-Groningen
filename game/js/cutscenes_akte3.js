@@ -28,9 +28,10 @@ S['M12.intro'] = {
   wide: { from: [-5, 4.2, 3.2], to: [-3, 3.0, 2.4], look: 'mid:dijkstra,tessa@1', fov: 50, until: 1 },
 };
 
+// AAA akte 3: de heli landt in een weiland, dus er staan koeien, en de camera komt van hoog naar beneden (de landing)
 S['M12.outro'] = {
   cast: { dijkstra: { key: 'dijkstra', at: [3.4, -0.6], face: 175, anim: 'idle', gest: ['talk', 'shrug', 'hips'] } },
-  props: { aktetas: { kind: 'koffer', at: [0.9, 0.2, 0] } },
+  props: { aktetas: { kind: 'koffer', at: [0.9, 0.2, 0] }, koe1: { kind: 'koe', at: [9, 6, 0], face: 215 }, koe2: { kind: 'koe', at: [11.5, -3.5, 0], face: 150 }, koe3: { kind: 'koe', at: [7.5, -8, 0], face: 190 } },
   open: [{ actor: 'tessa', carry: 'aktetas' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'dijkstra', walk: [[2.0, -0.4]], speed: 0.8 },
@@ -43,7 +44,7 @@ S['M12.outro'] = {
     { on: 'Die Fries is geland', dt: 0.5, actor: 'dijkstra', anim: 'shrug' },
   ],
   shots: [],
-  wide: { from: [-4.5, 4, 3], to: [-2.5, 2.8, 2.3], look: 'mid:tessa,tammo@1', fov: 48, until: 1 },
+  wide: { from: [-13, 9, 11], to: [-3.6, 3.4, 2.5], look: 'mid:tessa,tammo@1', fov: 48, until: 1 },
 };
 
 // --- M13 Het containerlabyrint: Lammert on the quay between containers ---
@@ -146,7 +147,9 @@ S['M15.intro'] = {
   wide: { from: [-5, 4.2, 3], to: [-3, 3, 2.4], look: 'mid:roelfien,tessa@1', fov: 50, until: 1 },
 };
 
+// AAA akte 3: tien kermisgangers staan langs de strook om het vliegtuig te zien landen
 S['M15.outro'] = {
+  crowd: { shape: 'line', pts: [[13, -9], [13, 9]], count: 10, side: 3, spread: 2.5, seed: 1505, key: 'cut:M15.outro' },
   cast: {
     roelfien: { key: 'roelfien', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'shrug', 'point', 'hips'] },
     jurylid1: { key: 'jurylid', at: [6.2, 3.2], face: 195, anim: 'idle', noauto: true },

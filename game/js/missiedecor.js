@@ -143,6 +143,15 @@ const PLANS = {
 
 export const DRESSING_KINDS = Object.keys(PLANS);
 
+// Een missiemodule (missions_akte3.js) meldt hier een eigen plan aan, zodat plannen van een akte in het bestand van die akte
+// staan. Een bestaande naam wordt nooit overschreven; geeft true als het plan erbij kwam.
+export function registreerAankleding(kind, plan) {
+  if (!kind || PLANS[kind] || !plan || !Array.isArray(plan.props) || !Array.isArray(plan.people)) return false;
+  PLANS[kind] = plan;
+  DRESSING_KINDS.push(kind);
+  return true;
+}
+
 // The props and people of a kind, relative to the anchor. Pure; a copy, so a
 // caller cannot change the shared plan.
 export function dressingPlan(kind) {

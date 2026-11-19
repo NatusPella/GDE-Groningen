@@ -686,7 +686,7 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
   drift(shots, lines, endT + 1);
   const fx = (spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
-  return { id: 'story-' + key, actors, props, cues, shots, ...(spec.set ? { set: spec.set } : {}), ...(fx.length ? { fx } : {}) };
+  return { id: 'story-' + key, actors, props, cues, shots, ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
 }
 
 // A scene for lines that have no spec of their own (#352): the repeat of a mission's question (the `short` intro), the one line of

@@ -1095,6 +1095,7 @@ function releaseMissionVehicle(world) {
   lanes.releaseLaneBikes(world);
   lanes.releaseCrowd();
   aaaOpruimen(world);
+  opruimToastSet();
   stopStunt(world);
   chainState().stuntPhase = false;
   if (chainState().soloHold) { chainState().soloHold = false; world.companionHold = null; }
@@ -1770,9 +1771,15 @@ function reachCheckpoint(world, def, k = chainState().wpIndex) {
   if (!wp.via) chainState().timeLeft += wp.bonus ?? def.checkpointBonus;
   aaaCheckpoint(world, def, wp, { last: chainState().wpIndex >= def.waypoints.length, plek: chainState().race ? raceStandings(chainState().race).position : 0 });
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
+  meldRegelkaart('punt' + chainState().wpIndex); // de kaart van een tocht telt de tenten mee (AAA akte 3)
   if (wp.toast && !isCinematicActive()) {
     const eigen = hoofdspeler(world); // de toast hangt boven de speler van dit apparaat
-    playToast(world, { at: { x: eigen.x, y: eigen.y }, facing: eigen.angle, kicker: wp.name, ...wp.toast });
+    // AAA akte 3 (M16): de toast speelt in een kroeg-binnenset (def.toastSet) als die past; de kamer gaat weg als de toast klaar is
+    opruimToastSet();
+    const kamer = def.toastSet && !eigen.inVehicle ? buildStageSet(world, def.toastSet, { x: eigen.x, y: eigen.y, angle: eigen.angle }) : null;
+    if (kamer) { chainState().toastSet = kamer; chainState().toastSetT = 0; }
+    const gespeeld = playToast(world, { at: { x: eigen.x, y: eigen.y }, facing: kamer ? 0 : eigen.angle, kicker: wp.name, ...wp.toast });
+    if (!gespeeld) opruimToastSet();
   }
   if (def.moment && !chainState().momentDone && chainState().wpIndex >= def.moment.at) {
     chainState().momentDone = true;
@@ -1994,6 +2001,7 @@ function updateMissionKern(dt, world) {
     } else chainState().run.inVehT = 0;
   }
 
+  tikToastSet(dt);
   aaaTik(world, def, dt, { race: chainState().race, timeLeft: def.type === 'stages' ? null : chainState().timeLeft, stunt: !!chainState().stuntPhase || def.type === 'stunt' });
   if (def.type === 'deliver' && chainState().stuntPhase) {
     updateStuntPhase(dt, world, def);
@@ -2577,7 +2585,9 @@ function enterStage(world, def, k) {
   // #955: de aankleding van een missie (de naspeling in Bourtange, het erf van
   // Tinus) staat om het doel van deze stap, met de kijkrichting van de speler.
   if (st.dressing) {
-    const at = S.target || S.here || from;
+    // AAA akte 3: `dressingAt` zet de aankleding op een eigen plek (naast een landingsstrook), niet om het doel van de stap
+    const eigen = st.dressingAt && Number.isFinite(st.dressingAt.x) && Number.isFinite(st.dressingAt.y) ? st.dressingAt : null;
+    const at = eigen || S.target || S.here || from;
     S.dressing = buildMissionDressing(world, st.dressing, { x: at.x, y: at.y, a: p.angle });
   }
   // #963: een wachtstap krijgt een echte kring met passende spullen; de ring
@@ -2804,6 +2814,19 @@ function disposeLight() {
   if (!chainState().light) return;
   if (chainState().light.ctl) chainState().light.ctl.dispose();
   chainState().light = null;
+}
+
+// AAA akte 3 (M16): de kroegkamer van een toast gaat weg zodra de toast voorbij is (en bij het einde van de missie).
+function opruimToastSet() {
+  const k = chainState().toastSet;
+  if (k) { disposeStageSet(k); chainState().toastSet = null; }
+}
+function tikToastSet(dt) {
+  const k = chainState().toastSet;
+  if (!k) return;
+  chainState().toastSetT = (chainState().toastSetT || 0) + dt;
+  if (isCinematicActive('mission-scene')) updateStageSet(k, dt);
+  else if (chainState().toastSetT > 1.5) opruimToastSet();
 }
 
 // De runner of een missiemodule meldt dat er iets gebeurde waarvoor een regel van de kaart (`bij`) wacht.
