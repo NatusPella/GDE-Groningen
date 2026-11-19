@@ -336,7 +336,7 @@ For every new screen, mission, side job or minigame answer, in the issue or chan
 
 The wording, the players list (hold Tab), passive mode, Meedoen?, host handover and the wait screens are in [docs/DESIGN-SAMEN-SPELEN.md](docs/DESIGN-SAMEN-SPELEN.md).
 
-## Design system v2 (#980, phase 1: the system, no screen migrated yet)
+## Design system v2 (#980, phase 1: the system; phase 2 under way: Winkel, Beleidswinkel and Garage are migrated, see docs/DESIGN-SCHULD.md)
 
 The glass-on-dark look above stays the HUD, the pause menu's rail and the map layer. v2 adds a second surface and one shared set of tokens and components so the shop, offers, missions and careers read as *one* system with the world instead of a template repeated per screen.
 It lives in two new files, `game/js/ds-tokens.css` and `game/js/ds-components.css`, which no screen loads yet (phase 2 migrates them in the order below). `game/ds-galerij.html` shows every token and component in every state on paper and on glass; `node scripts/qa/ds_galerij.mjs` takes screenshots of it in Electron (not run in phase 1, so nothing here was seen in the game). The audit of what the CSS does today, with counts, is [docs/DESIGN-AUDIT-CSS.md](docs/DESIGN-AUDIT-CSS.md).

@@ -7,6 +7,7 @@ import { isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { shopIconSvg } from './shopicons.js';
 import { deviceText } from './touchui.js';
+import { bonRegels, probleemVan, risicoVan } from './shopbon.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
   flatItems, keepItem, shortPerk,
@@ -26,6 +27,16 @@ let armed = null;
 let tab = 'alles';
 const ARM_TIME = 4000;
 
+// Statuschips met een pictogram en een woord: nooit alleen kleur (designsysteem v2).
+const CHIP_ICOON = {
+  ok: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>',
+  no: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z"/></svg>',
+  mut: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM4.5 7.2h7v1.6h-7z"/></svg>',
+};
+const CHIP_KLASSE = { ok: 'ds-chip--succes', no: 'ds-chip--probleem', mut: '' };
+const chipHtml = (st, extra = '') => `<span class="ds-chip ${CHIP_KLASSE[st.tone] || ''} sm-st ${st.tone}${extra}" data-st="${st.id}">${CHIP_ICOON[st.tone] || CHIP_ICOON.mut}${esc(st.label)}</span>`;
+const euroHeel = (n) => euro(Math.max(0, Math.floor(Number(n) || 0)));
+
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function isShopOpen() {
@@ -35,7 +46,7 @@ export function isShopOpen() {
 export function initShopUi(w) {
   world = w;
   if (root) return;
-  for (const css of ['menu.css', 'shopui.css']) {
+  for (const css of ['menu.css', 'ds-tokens.css', 'ds-components.css', 'shopui.css']) {
     if (document.getElementById('style-' + css)) continue;
     const link = document.createElement('link');
     link.id = 'style-' + css;
@@ -59,15 +70,18 @@ export function initShopUi(w) {
       <nav class="m-tablist sm-tabs" role="tablist" aria-label="Afdeling" hidden></nav>
       <div class="sm-story" role="note" hidden><i aria-hidden="true">!</i><b></b><span></span><small></small></div>
       <div class="m-main sm-main">
-        <div class="m-list sm-list"></div>
+        <div class="m-list sm-list ds-glas"></div>
         <aside class="m-pane sm-pane">
           <div class="sm-stage"><canvas class="sm-preview" aria-hidden="true"></canvas><canvas class="sm-scratch" aria-hidden="true"></canvas></div>
-          <div class="sm-detail" hidden>
-            <div class="pm-pane-top"><span class="m-eb sm-ceb"></span><h2 class="m-h2 sm-dname"></h2></div>
-            <p class="sm-ddesc"></p><p class="sm-effect"></p>
+          <div class="sm-detail ds-papier ds-kaart ds-kaart--kop" hidden>
+            <div class="ds-kaart__kop"><span class="ds-kaart__titel sm-ceb"></span><span class="sm-dchips"></span></div>
+            <h2 class="ds-t-kop sm-dname"></h2>
+            <div class="ds-kaart__tekst sm-ddesc"></div><div class="ds-kaart__tekst sm-effect"></div>
+            <div class="sm-callout ds-callout" role="group" hidden></div>
+            <div class="sm-bon" aria-label="Bon"></div>
             <div class="sm-stats" aria-label="Eigenschappen"></div>
-            <span class="m-grow"></span>
-            <div class="sm-buyrow"><span class="m-num sm-pricebig"></span><button type="button" class="m-bp sm-buy"></button></div>
+            <div class="sm-buyrow"><span class="ds-cijfer__waarde sm-pricebig"></span><button type="button" class="ds-knop sm-buy"></button></div>
+            <div class="sm-risico ds-t-hulp" hidden></div>
           </div>
           <div class="sm-status" role="status" aria-live="polite"></div>
         </aside>
@@ -77,7 +91,7 @@ export function initShopUi(w) {
     </div>`;
   document.body.appendChild(root);
   syncFooter();
-  onPadChange(() => { if (open) syncFooter(); });
+  onPadChange(() => { if (open) { syncFooter(); renderDetail(); } });
   root.addEventListener('click', onClick);
   root.addEventListener('focusin', onFocus);
   // the game's wheel handler (input.js) cancels scrolling page-wide
@@ -163,7 +177,13 @@ function render() {
   renderStory();
   const list = root.querySelector('.sm-list');
   if (!sections.length) {
-    list.innerHTML = '<p class="sm-empty">Hier valt niks te halen.</p>';
+    list.innerHTML = `<div class="sm-empty ds-leeg">
+      <span class="ds-leeg__beeld">${shopIconSvg('standaard', 'sm-ic')}</span>
+      <h3 class="ds-leeg__kop">Hier valt niks te halen</h3>
+      <p class="ds-leeg__tekst">De schappen zijn leeg. Kom later terug of probeer een andere winkel in de buurt.</p>
+      <button type="button" class="ds-knop ds-knop--secundair sm-close">Terug naar de straat</button>
+    </div>`;
+    renderDetail();
     return;
   }
   list.innerHTML = sections.map((sec) => `
@@ -187,7 +207,7 @@ function rowHtml(it, secTitle) {
         <span class="sm-ico">${shopIconSvg(itemIcon(it, shop.type, secTitle))}</span>
         ${swatchHtml(it)}
         <span class="nm"><span class="one">${esc(it.label)}</span>${perk ? `<span class="mut one">${esc(perk)}</span>` : ''}</span>
-        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${it.plain ? '' : priceOnly(it)}<span class="sm-st ${st.tone}" data-st="${st.id}">${esc(st.label)}</span>
+        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${it.plain ? '' : priceOnly(it)}${chipHtml(st)}
       </button>`;
 }
 
@@ -249,13 +269,44 @@ function shortOfMoney(it) {
   m.classList.add('short');
 }
 
+// De toets die de knop bedient, als toetsplaatje (toetsenbord) of als de A-knop (controller).
+const toetsHint = () => (isPadActive() ? PG('a') : '<span class="ds-badge">Enter</span>');
+
+// De bon: prijs, wat je op zak hebt en wat er na afloop overblijft, vóór je kiest.
+function bonHtml(it) {
+  const b = bonRegels(it, world.money);
+  if (!b) return '';
+  const koop = b.soort === 'koop';
+  const delta = b.mist > 0 ? '' : `<span class="ds-cijfer__delta ${koop ? 'ds-cijfer__delta--neer' : 'ds-cijfer__delta--op'}">${koop ? '−' : '+'}${euroHeel(b.bedrag)}</span>`;
+  // de prijs staat al groot bij de knop; de bon toont wat je hebt en wat er overblijft
+  return `<div class="sm-bon-rij"><span>Op zak</span><b>${euroHeel(b.saldo)}</b></div>` +
+    (b.mist > 0
+      ? `<div class="sm-bon-rij sm-bon-na sm-bon-mist"><span>Je mist</span><b>${euroHeel(b.mist)}</b></div>`
+      : `<div class="sm-bon-rij sm-bon-na"><span>${koop ? 'Na aankoop' : 'Na verkoop'}</span><b>${euroHeel(b.na)}</b>${delta}</div>`);
+}
+
+// Het probleem met de oplossing eronder: waarom het niet kan, en wat je wel kunt doen.
+function calloutHtml(p) {
+  const knop = p.oplossing ? `<button type="button" class="ds-knop sm-oplossing" data-oplossing="${esc(p.oplossing.id)}">${esc(p.oplossing.label)}</button>` : '';
+  const mist = p.mist > 0 ? `<div class="ds-callout__cijfers"><span class="ds-cijfer"><span class="ds-cijfer__eenheid">Je mist</span><span class="ds-cijfer__waarde">${euroHeel(p.mist)}</span></span></div>` : '';
+  return `<div class="ds-callout__kop">${CHIP_ICOON.no.replace('ds-chip__icoon', 'ds-icoon ds-icoon--probleem')}<span>${esc(p.kop)}</span></div>` +
+    `<div class="ds-callout__tekst">${esc(p.tekst)}</div>${mist}` +
+    (knop ? `<div class="ds-callout__oplossing">${knop}</div>` : '');
+}
+
 function renderDetail() {
   const bar = root.querySelector('.sm-detail');
   const it = sel && currentItems().find((x) => x.id === sel);
   bar.hidden = !it;
   renderStats(it);
   if (!it) return;
+  const st = itemStatus(it, world.money);
+  const isArmed = !!(armed && armed.id === it.id && Date.now() < armed.until);
+  // de oplossing wijst naar een rij in dezelfde afdeling, zodat je niet van tabblad wisselt
+  const probleem = probleemVan(it, flatItems(tabSections(viewSections(), tab)), world.money);
+  const risico = isArmed ? null : risicoVan(it, world.money);
   bar.querySelector('.sm-ceb').textContent = [shop.name, it.tag].filter(Boolean).join(' · ');
+  bar.querySelector('.sm-dchips').innerHTML = it.plain ? '' : chipHtml(st);
   bar.querySelector('.sm-dname').textContent = it.label;
   const dd = bar.querySelector('.sm-ddesc');
   if (it.route) {
@@ -264,11 +315,23 @@ function renderDetail() {
       `<span class="sm-rt">${esc(r.text)}</span>${r.teaser ? `<span class="sm-rt">${esc(r.teaser)}</span>` : ''}<span class="sm-rt mut">Bord: ${esc(r.board.toLowerCase())}. De rit is over te slaan.</span>`;
   } else dd.textContent = it.desc || '';
   bar.querySelector('.sm-effect').textContent = it.effect || '';
+  bar.querySelector('.sm-bon').innerHTML = bonHtml(it);
   bar.querySelector('.sm-pricebig').textContent = it.plain ? '' : it.income > 0 ? `+${euro(it.income)}` : it.price > 0 ? `${euro(it.price)}` : '';
+  const co = bar.querySelector('.sm-callout');
+  co.hidden = !probleem;
+  co.innerHTML = probleem ? calloutHtml(probleem) : '';
+  bar.classList.toggle('ds-kaart--probleem', !!probleem);
+  bar.classList.toggle('ds-kaart--succes', !probleem && !!st.buyable && !it.plain && !risico);
+  bar.classList.toggle('ds-kaart--waarschuwing', !probleem && (!!risico || isArmed));
   const btn = bar.querySelector('.sm-buy');
-  btn.textContent = buyLabel(it);
+  btn.innerHTML = `<span class="sm-buy-tekst">${esc(buyLabel(it))}</span>` + (it.disabled ? '' : `<span class="ds-knop__sub">${toetsHint()}${esc(isArmed ? ' nog eens om te bevestigen' : it.income > 0 ? ' om te verkopen' : it.price > 0 ? ' om te kopen' : ' om te kiezen')}</span>`);
   btn.setAttribute('aria-disabled', it.disabled ? 'true' : 'false');
-  btn.classList.toggle('armed', !!(armed && armed.id === it.id && Date.now() < armed.until));
+  btn.classList.toggle('armed', isArmed);
+  // risicovol: omlijnd in plaats van geel, met de reden eronder; de ene gele knop blijft voor "kan nu"
+  btn.classList.toggle('ds-knop--gevaar', !it.disabled && (isArmed || !!risico));
+  const ri = bar.querySelector('.sm-risico');
+  ri.hidden = !risico;
+  ri.textContent = risico ? risico.tekst : '';
 }
 
 function renderStats(it) {
@@ -368,6 +431,8 @@ function setPreview(spec) {
   // one small renderer for every shop, reused; its model is freed on close
   if (!preview) preview = createVehiclePreview(canvas, { interactive: true, active: () => open, pixelRatio: () => Math.min(1.5, hudPixelRatio()) });
   preview.show(spec);
+  // een wapen is klein in beeld: dan krijgt de bon de ruimte (een voertuig houdt zijn hero)
+  root.querySelector('.sm-stage').classList.toggle('compact', !!(spec && spec.kind === 'weapon'));
   syncStage();
 }
 
@@ -484,12 +549,23 @@ function onClick(e) {
   if (e.target === root) { closeShopMenu(); return; }
   if (e.target.closest('.sm-scratch')) { if (scratch && scratch.u < 1) { finishScratch(false); scratch.redraw(); } else finishScratch(true); return; }
   if (e.target.closest('.sm-close')) { closeShopMenu(); return; }
+  const op = e.target.closest('.sm-oplossing');
+  if (op) { toonItem(op.dataset.oplossing); return; }
   const tb = e.target.closest('.sm-tab');
   if (tb) { showTab(tb.dataset.tab); return; }
   if (e.target.closest('.sm-hbuy')) { if (sel) activate(sel); return; }
   if (e.target.closest('.sm-buy')) { if (sel) activate(sel); return; }
   const btn = e.target.closest('.sm-item');
   if (btn) { btn.focus({ preventScroll: true }); select(btn.dataset.id); }
+}
+
+// de oplossing van een probleem-callout: ga naar het voorgestelde item in de lijst
+function toonItem(id) {
+  const el = root.querySelector(`.sm-item[data-id="${CSS.escape(id)}"]`);
+  if (!el) return;
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ block: 'nearest' });
+  select(id);
 }
 
 function move(dir) {
@@ -520,6 +596,7 @@ function onKey(e) {
   else if (k === 'Enter' || k === ' ' || lower === 'e' || lower === 'f') {
     const a = document.activeElement;
     if (a && a.classList.contains('sm-close')) closeShopMenu();
+    else if (a && a.classList.contains('sm-oplossing')) toonItem(a.dataset.oplossing);
     else if (a && a.classList.contains('sm-buy')) { if (sel) activate(sel); }
     else if (a && a.classList.contains('sm-item')) { select(a.dataset.id); root.querySelector('.sm-buy').focus({ preventScroll: true }); }
   }

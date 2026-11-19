@@ -48,3 +48,23 @@ When you fix one, remove the row in the same commit.
 - Sound: the rules are read from `sfx/menunav.js` and `sfx/ui.js`; no one listened.
 - Samen spelen: no real session over the internet was joined for this page (see the notes in [COOP-OVERDRAGEN.md](COOP-OVERDRAGEN.md)).
 
+
+## Schermmigratie designsysteem v2, fase 2 (#980): stand na Winkel, Beleidswinkel en Garage
+
+Gemigreerd in deze ronde: de winkel (`shopui.js`, `shopui.css`, `shopbon.js`), de Beleidswinkel (`beleidswinkel.js`) en de Garage (`garageui.js`, `garagetoestand.js`). `game/index.html` laadt nu `ds-tokens.css` en `ds-components.css`; `a11y.css` heeft één focusring voor papieren kaarten (inkt in plaats van crème). Beeldbewijs staat in `docs/img/qa/` en in het issue.
+
+Wat nog niet gemigreerd is (blijft schuld, een regel weghalen zodra het klaar is):
+
+| Wat | Waar | Waarom nog niet |
+|---|---|---|
+| De lijst links in de winkel en de garage zijn nog `.m-li`-rijen met eigen focus en selectiestijl, geen `.ds-rij` | `shopui.js` `rowHtml`, `garageui.js` `row` | de rijen delen toetsenbord-, controller- en scrollgedrag met het pauzemenu; alleen de statuschip is `ds-chip` geworden |
+| De winkelkop, de tabbladen en de voetregel met toetsen zijn nog het glazen menu (`.m-head`, `.m-tab`, `.m-kc`) | `shopui.js` | glas voor navigatie is bedoeld; tabs naar `.ds-tab` vraagt een besluit over het actieve tabblad |
+| De winkelstages (3D-voorbeeld, kraslot) zijn geen `.ds-hero` met een eigen kader | `shopui.css` `.sm-stage` | de renderer en het kraslot-canvas hebben een vaste plek; alleen de garage heeft nu een omlijnde hero |
+| Terugverdientijd ("verdiend in 6 dagen") op de gele knop ontbreekt | `shopbon.js` | het spel heeft geen inkomstenmodel per artikel; zonder echte cijfers tonen we niets |
+| De gele knop en de bevestiging staan in de garage onder de feiten: bij een kort paneel moet je scrollen om ze te zien (de vraag scrolt zelf in beeld) | `garageui.js` | het paneel is 440 px hoog op 900p; een compactere kaart of een tweede kolom vraagt een besluit |
+| Reparatiekosten en brandstof in de garage ontbreken als chip of kaart | `garageui.js` | de reparatie loopt via de werkplaatswinkel, niet via de garage; de chips tonen alleen schade en banden |
+| De garage-melding en het veroverd-paneel (`veroverdpanel.js`) bevatten nog eigen CSS voor `.vo-*`; de oude `.vo-beleid`-regels zijn daar dood | `veroverdpanel.js` | niet in het domein van deze ronde; opruimen bij de migratie van Loopbanen/Veroverd |
+| Kleine tekst in de bonregels van de winkel volgt `--ds-t-*`, maar de lijst links houdt de oude maten van `menu.css` | `shopui.css` | menu-brede maten, niet per scherm te wijzigen |
+| `scripts/hud_kleuren_test.mjs` faalt al vóór deze ronde op `reisrit3d.js` (niet als surface geauditeerd) | `scripts/hud_kleuren_test.mjs` | buiten het domein; hoort bij de eigenaar van dat bestand |
+| De Beleidswinkel is in Veroverd bijna niet te bereiken: op 1600x900 heeft het onderste gedeelte (`.m-main`) 80 px hoogte en staat het blok onder een gebiedenpaneel van ruim 5000 px. De bonnen zijn alleen bekeken doordat het beeldscript het blok losmaakte (`ds2-na-beleid-arm.png`) | `veroverdpanel.js` (`.vo-top`, `#pause-menu .m-main`) | niet in het domein van deze ronde; oplossing: de Beleidswinkel boven de gebiedenlijst of op een eigen tabblad, bij de migratie van Veroverd |
+| Niet met een controller of op touch bekeken in het spel | alle drie | alleen muis en synthetische toetsen in Electron (1600x900) gezien; 720p en 4K niet; de focusring met `pad-active` is bedoeld maar niet gezien |

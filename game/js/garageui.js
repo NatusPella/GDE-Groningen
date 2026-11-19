@@ -5,10 +5,11 @@
 // on it, or it has keyboard or controller focus, or (touch) it was tapped.
 // Stills, turntable and viewer all come from vehiclepreview.js's one shared
 // renderer, so the garage never opens a WebGL context of its own.
-import { getGarageCatalog, whereText } from './ownedvehicles.js';
+import { getGarageCatalog, whereText, actieBevestiging } from './ownedvehicles.js';
+import { garageToestand, statusToon, vraagSoort, chipHtml, TOESTAND_ICOON } from './garagetoestand.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclepreview.js';
 import { reducedMotion } from './motion.js';
-import { getShopsForRender, SHOP_TYPES } from './shops.js';
+import { getShopsForRender, SHOP_TYPES, getOwnedEntries } from './shops.js';
 import { setUserWaypoint } from './routing.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import {
@@ -58,19 +59,35 @@ const CSS = `
   #pause-menu .gar-card { min-height: 178px; }
   #pause-menu .gar-card .gar-ph { flex-basis: 86px; height: 86px; }
 }
-/* Het detailpaneel: titel en status, dan de feiten, dan pas de actie. De blokken
-   liggen dichter op elkaar dan de paginamarge van pm-sec, zodat de hele kolom op
-   720p past. */
-#pause-menu .gar-viewer { gap: 10px; }
-#pause-menu .gar-viewer > .pm-pane-top { gap: 6px; }
-/* De statuschip en de hint volgen de menuvloer (--menu-min, menu.css): op 720p
-   krimpt de stage met --mz en mag de tekst daarmee niet onder 13 schermpixels
-   zakken. */
-#pause-menu .gar-viewer .gar-state { align-self: flex-start; display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 14px; font-size: max(17px, var(--menu-min, 17px)); letter-spacing: 0.04em; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line2); }
-#pause-menu .gar-viewer .gar-state.g { color: var(--g); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.45); }
-#pause-menu .gar-viewer .gar-sec { margin: 2px 0 0; }
-#pause-menu .gar-viewer > .m-acts.td-acts { position: static; gap: 12px; padding: 6px 0 2px; background: none; }
-#pause-menu .gar-viewer .gar-msg { margin: 0; }
+/* Het detailpaneel (designsysteem v2, #980): de draaiende auto is de hero, eronder een papieren kaart met
+   titel en status, de toestand als chips, de feiten en pas dan de actie. Kleuren en maten komen uit
+   ds-tokens.css; de glazen lijst links blijft zoals hij was. */
+#pause-menu .gar-viewer { gap: var(--ds-s-3); }
+#pause-menu .gar-stage { height: clamp(150px, 19vh, 220px); border-radius: var(--ds-r); box-shadow: inset 0 0 0 var(--ds-lijn) var(--line2); }
+#pause-menu .gar-stage .gar-hint { padding-left: var(--ds-s-3); }
+#pause-menu .gar-bon { flex: none; gap: var(--ds-s-3); padding-top: var(--ds-s-4); }
+#pause-menu .gar-bon .ds-kaart__kop { padding-top: var(--ds-s-2); padding-bottom: var(--ds-s-2); }
+#pause-menu .gar-bon .ds-kaart__titel { font-size: var(--ds-t-label); }
+#pause-menu .gar-naam { overflow-wrap: anywhere; }
+#pause-menu .gar-bon .mut, #pause-menu .gar-meme { color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); }
+#pause-menu .gar-bon .gar-state { flex: none; }
+#pause-menu .gar-chips { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+#pause-menu .gar-chips:empty { display: none; }
+#pause-menu .gar-blok { display: flex; flex-direction: column; gap: var(--ds-s-1); }
+#pause-menu .gar-bon .gar-where, #pause-menu .gar-bon .gar-look { color: var(--ds-tx); font-size: var(--ds-t-body); }
+#pause-menu .gar-stats { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-5); }
+#pause-menu .gar-stats .ds-streep { flex: 1 1 200px; }
+#pause-menu .gar-bon .gar-dot { box-shadow: 0 0 0 var(--ds-lijn) var(--ds-tx); }
+#pause-menu .gar-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); padding: var(--ds-s-3) 0 0; border-top: var(--ds-lijn-dik) dashed var(--ds-tx-zacht); }
+#pause-menu .gar-acts .ds-knop { min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-body); }
+#pause-menu .gar-acts .ds-knop { flex-direction: row; gap: var(--ds-s-2); }
+#pause-menu .gar-acts .ds-knop svg { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .gar-msg { margin: 0; min-height: 0; font-size: var(--ds-t-body); }
+#pause-menu .gar-msg:empty { display: none; }
+#pause-menu .gar-msg:not(.ds-callout) { color: var(--ds-succes-tx); font-weight: var(--ds-gewicht-vet); }
+#pause-menu .gar-leeg { margin: var(--ds-s-3) 0 0 var(--ds-s-5); }
+#pause-menu .gar-leeg .ds-leeg__tekst { color: var(--ds-tx); }
+#pause-menu .gar-leeg .gar-ic { width: var(--ds-s-6); height: var(--ds-s-6); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 /* De draaihint staat als eigen strook onder het model (nooit erover) en licht op
    zodra de muis of de focus op de draaitafel staat, zodat hij leesbaar blijft.
    Het silhouet en de stilstaande foto houden die strook vrij, zodat ook zij de
@@ -149,13 +166,15 @@ function stageHtml(e) {
 // knoppen door elkaar). Nu drie rustige blokken met een eigen kop — waar hij staat, de cijfers
 // en de uitvoering — en de knoppen onderaan op één regel.
 function secHtml(title, note, inner) {
-  return `<div class="pm-sec gar-sec"><h3>${esc(title)}</h3>${note ? `<span>${note}</span>` : ''}</div>${inner}`;
+  return `<div class="gar-blok"><h3 class="ds-kaart__label">${esc(title)}${note ? ` <span>${note}</span>` : ''}</h3>${inner}</div>`;
 }
 
+// De cijfers: topsnelheid als getal met eenheid, trekkracht als streep met altijd het getal erbij.
 function statsHtml(e) {
-  return '<div class="pm-stats gar-stats">' +
-    `<span class="pm-stat"><b>${e.topSpeed}</b><span>km/u topsnelheid</span></span>` +
-    `<span class="pm-stat"><b>${e.accelScore} / 10</b><span>trekkracht</span></span></div>`;
+  const kracht = Math.max(0, Math.min(10, Number(e.accelScore) || 0));
+  return '<div class="gar-stats">' +
+    `<span class="ds-cijfer"><span class="ds-cijfer__waarde">${e.topSpeed}</span><span class="ds-cijfer__eenheid">km/u topsnelheid</span></span>` +
+    `<span class="ds-streep ds-streep--dik" style="--ds-streep-w:${kracht * 10}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">trekkracht ${kracht} / 10</span></span></div>`;
 }
 
 // De korte status naast de titel: thuis, in de buurt, te koop, op slot. De kaart
@@ -170,6 +189,7 @@ function statusText(e) {
 
 function detailsHtml(e, msg) {
   const status = statusText(e);
+  const vraag = vraagSoort(msg, { verkoop: actieBevestiging(e, 'verkoop'), aflever: actieBevestiging(e, 'aflever') });
   // WAAR gaat over de plek. De korte status staat al naast de titel; hier komt de
   // volledige plek (straat en afstand, of de winkel waar hij te koop staat). Zegt
   // die niets meer dan de titel, dan valt het blok weg in plaats van het te herhalen.
@@ -180,7 +200,7 @@ function detailsHtml(e, msg) {
   else waar = `${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''} · na het kopen staat hij thuis`;
   // Op slot: geen plek maar de weg ernaartoe, onder een eigen kop in plaats van
   // de status nog eens als feit te herhalen.
-  const slotHtml = e.locked ? secHtml('Vrijspelen', '', `<p class="gar-where">${esc(e.unlockText || 'Via het verhaal of een prestatie')}</p>`) : '';
+  const slotHtml = e.locked ? secHtml('Vrijspelen', '', `<div class="gar-where">${esc(e.unlockText || 'Via het verhaal of een prestatie')}</div>`) : '';
   const uitvoering = `<div class="gar-look"><span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}` +
     (e.owned && e.kind !== 'boat' && e.kind !== 'heli'
       ? `<span class="mut">${e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`}</span>`
@@ -188,21 +208,30 @@ function detailsHtml(e, msg) {
   // te koop: "Kopen" zet een waypoint naar de winkel waar hij staat (#435)
   const koop = garageSaleShop(e);
   // De knoppenrij is een eigen blok onder de gegevens (gar-acts), geen plakkerige voetregel:
-  // anders schoof hij over de laatste regel van WAAR (review 0.62).
-  const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
-    (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
-    (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') +
-    (e.canSell ? `<button type="button" class="m-bg" data-garage-sell="${esc(e.id)}">${esc(e.sellLabel)}</button>` : '') + '</div>';
-  const waarHtml = waar && waar.trim() ? secHtml('Waar', '', `<p class="gar-where">${waar}</p>`) : '';
+  // anders schoof hij over de laatste regel van WAAR (review 0.62). Eén gele hoofdknop; wat je niet
+  // terugdraait (verkopen, slopen) en wat nu om een tweede druk vraagt staat omlijnd.
+  const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="ds-knop" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
+    (e.status !== 'driving' ? `<button type="button" class="ds-knop${vraag === 'aflever' ? ' ds-knop--gevaar' : ''} gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
+    (e.status === 'near' || e.status === 'far' ? `<button type="button" class="ds-knop ds-knop--secundair" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') +
+    (e.canSell ? `<button type="button" class="ds-knop ds-knop--${vraag === 'verkoop' ? 'gevaar' : 'secundair'}" data-garage-sell="${esc(e.id)}">${esc(e.sellLabel)}</button>` : '') + '</div>';
+  const waarHtml = waar && waar.trim() ? secHtml('Waar', '', `<div class="gar-where">${waar}</div>`) : '';
   // Eerst wie en wat (titel, status, sfeerregel), dan de feiten (waar, cijfers,
   // uitvoering) en pas daarna de actie: de knop hoort bij het besluit dat de
   // feiten boven hem onderbouwen, niet andersom.
-  return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2>` +
-    `<span class="gar-state${e.status === 'driving' || (!e.owned && !e.locked) ? ' g' : ''}">${esc(status)}</span></div>` +
-    (e.meme ? `<p class="mut gar-meme">${esc(e.meme)}</p>` : '') +
+  const toestand = garageToestand(e, { entry: getOwnedEntries().find((o) => o.key === e.key) });
+  const kaartToon = e.locked ? ' ds-kaart--uit' : e.status === 'lost' ? ' ds-kaart--probleem' : e.status === 'driving' ? ' ds-kaart--succes' : '';
+  const stoon = statusToon(e);
+  const vraagHtml = vraag
+    ? `<div class="gar-msg ds-callout ds-callout--waarschuwing" role="status"><div class="ds-callout__kop">${TOESTAND_ICOON.warn.replace('ds-chip__icoon', 'ds-icoon ds-icoon--waarschuwing')}<span>Even checken</span></div><div class="ds-callout__tekst">${esc(msg)}</div></div>`
+    : `<div class="gar-msg" role="status">${esc(msg || '')}</div>`;
+  return `<div class="gar-bon ds-papier ds-kaart ds-kaart--kop${kaartToon}">` +
+    `<div class="ds-kaart__kop"><span class="ds-kaart__titel">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span>` +
+    chipHtml(stoon, status, ' gar-state') + '</div>' +
+    `<h2 class="ds-t-kop gar-naam">${esc(e.model)}</h2>` +
+    (e.meme ? `<div class="mut gar-meme">${esc(e.meme)}</div>` : '') +
+    `<div class="gar-chips" aria-label="Toestand">${toestand.map((t) => chipHtml(t.tone, t.label)).join('')}</div>` +
     waarHtml + slotHtml + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
-    acts +
-    `<p class="gar-msg g" role="status">${esc(msg || '')}</p>`;
+    acts + vraagHtml + '</div>';
 }
 
 function viewerHtml(e, msg) {
@@ -244,6 +273,9 @@ export function selectGarageVehicle(el, id, msg = '') {
   } else {
     box.innerHTML = viewerHtml(e, msg);
   }
+  // de bevestigingsvraag staat onderaan het paneel: breng hem in beeld, anders zie je alleen dat er niets gebeurt
+  const vraagEl = box.querySelector('.gar-msg.ds-callout');
+  if (vraagEl && vraagEl.scrollIntoView) vraagEl.scrollIntoView({ block: 'nearest' });
   const c = box.querySelector('canvas');
   if (!c) return;
   if (!viewer || viewerCanvas !== c) {
@@ -418,7 +450,11 @@ function tabsHtml(list) {
 
 function listHtml(list) {
   const shown = shownList(list);
-  if (!shown.length) return '<p class="m-note">Niks in deze selectie. Kies een andere soort of toon alles.</p>';
+  if (!shown.length) {
+    return '<div class="gar-leeg ds-leeg ds-glas"><span class="ds-leeg__beeld"><svg class="gar-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg></span>' +
+      '<h3 class="ds-leeg__kop">Niks in deze selectie</h3><div class="ds-leeg__tekst">Kies een andere soort of toon alles.</div>' +
+      '<button type="button" class="ds-knop ds-knop--secundair" data-garage-cat="all">Alle soorten</button></div>';
+  }
   let out = '';
   for (const { group, items } of garageSections(shown)) out += `<div class="m-gh"><span>${GROUP_HEAD[group]}</span><span>${items.length}</span></div>${items.map(row).join('')}`;
   return out;

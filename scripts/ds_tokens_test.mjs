@@ -231,9 +231,9 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   // de 12 px-regel: alleen .ds-badge gebruikt --ds-t-toets
   const toetsGebruik = [...componentsCss.replace(/\/\*[\s\S]*?\*\//g, ' ').matchAll(/([^{}]+)\{([^{}]*--ds-t-toets[^{}]*)\}/g)].map((m) => m[1].trim());
   ok(toetsGebruik.length === 1 && toetsGebruik[0] === '.ds-badge', `alleen .ds-badge gebruikt --ds-t-toets (kreeg ${toetsGebruik.join(', ')})`);
-  // het spel laadt de bestanden nog niet (fase 1): geen verwijzing in index.html
+  // fase 2 (#980): het spel laadt de tokens vóór de componenten, met precies één link per bestand
   const indexHtml = rd('game/index.html');
-  ok(!/ds-tokens\.css|ds-components\.css/.test(indexHtml), 'game/index.html laadt de ds-bestanden nog niet (fase 1)');
+  ok(/<link rel="stylesheet" href="js\/ds-tokens\.css">/.test(indexHtml) && /<link rel="stylesheet" href="js\/ds-components\.css">/.test(indexHtml) && indexHtml.indexOf('ds-tokens.css') < indexHtml.indexOf('ds-components.css') && indexHtml.split('ds-tokens.css').length === 2 && indexHtml.split('ds-components.css').length === 2, 'game/index.html laadt ds-tokens.css en daarna ds-components.css, elk één keer (fase 2)');
   ok(/Design system v2/.test(doc) && /Migration cards/.test(doc), 'DESIGN_SYSTEM.md heeft het hoofdstuk en de migratiekaarten');
   const migratie = doc.slice(doc.indexOf('### Migration cards'));
   for (const scherm of ['Winkel', 'Te doen', 'Garage', 'Loopbanen', 'Verhaal', 'Kaart', 'Prestaties', 'Foto', 'Samen spelen', 'HUD']) ok(migratie.includes(scherm), `migratiekaart voor ${scherm}`);

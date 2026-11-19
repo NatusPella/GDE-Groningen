@@ -30,40 +30,57 @@
 #shop-menu .sm-story small { flex-basis: 100%; font-size: 18px; color: var(--mut); }
 #shop-menu .sm-story.done { background: rgba(63, 201, 122, 0.12); box-shadow: inset 4px 0 0 var(--g); }
 #shop-menu .sm-story.done i, #shop-menu .sm-story.done b { color: var(--g); }
-#shop-menu .sm-stage { display: none; position: relative; flex: none; height: 220px; background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--shop, #3fc97a) 14%, transparent), rgba(240, 237, 228, 0) 62%); }
+#shop-menu .sm-stage { display: none; position: relative; flex: none; height: clamp(120px, 17vh, 220px); background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--shop, #3fc97a) 14%, transparent), rgba(240, 237, 228, 0) 62%); }
 #shop-menu .sm-stage.on { display: block; }
 #shop-menu .sm-preview, #shop-menu .sm-scratch { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity 0.25s; }
 #shop-menu .sm-preview.on { opacity: 1; }
 #shop-menu .sm-preview:active { cursor: grabbing; }
 #shop-menu .sm-scratch { pointer-events: none; }
 #shop-menu .sm-scratch.on { opacity: 1; pointer-events: auto; cursor: pointer; }
-#shop-menu .sm-detail { display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0; }
-#shop-menu .sm-detail[hidden] { display: none; }
-#shop-menu .sm-effect { color: var(--g); }
+/* de bon (designsysteem v2): papier op het glas van de winkel; tokens uit ds-tokens.css, bouwstenen uit ds-components.css */
+#shop-menu .sm-detail { flex: none; gap: var(--ds-s-3); }
+#shop-menu .sm-stage.compact { height: clamp(80px, 10vh, 110px); }
+#shop-menu .sm-detail[hidden], #shop-menu .sm-callout[hidden], #shop-menu .sm-risico[hidden] { display: none; }
+#shop-menu .sm-detail p, #shop-menu .sm-detail .sm-rt { color: var(--ds-tx); }
+#shop-menu .sm-detail .mut { color: var(--ds-tx-zacht); }
+#shop-menu .sm-dname { overflow-wrap: anywhere; font-size: var(--ds-t-kop); }
+#shop-menu .sm-detail .ds-callout { padding: var(--ds-s-3) var(--ds-s-4); gap: var(--ds-s-2); }
+#shop-menu .sm-dchips { display: inline-flex; gap: var(--ds-s-2); }
+#shop-menu .sm-effect { color: var(--ds-succes-tx); font-weight: var(--ds-gewicht-vet); }
 #shop-menu .sm-effect:empty, #shop-menu .sm-ddesc:empty { display: none; }
-#shop-menu .sm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 48px; }
+#shop-menu .sm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-5); }
 #shop-menu .sm-stats:empty { display: none; }
-#shop-menu .sm-stat { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: baseline; font-size: 18px; }
-#shop-menu .sm-stat > span:first-child { color: var(--mut); }
-#shop-menu .sm-stat > small { text-align: right; font-size: 18px; }
-#shop-menu .sm-bar { grid-column: 1 / -1; position: relative; display: block; height: 4px; border-radius: 2px; background: rgba(240, 237, 228, 0.14); }
-#shop-menu .sm-bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: rgba(240, 237, 228, 0.85); }
-#shop-menu .sm-bar em { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--g); }
-#shop-menu .sm-bar em.down { background: var(--redtx); }
-#shop-menu .sm-buyrow { display: flex; align-items: center; gap: 32px; flex: none; }
-#shop-menu .sm-pricebig { font-size: 56px; }
-#shop-menu .sm-buy { min-width: 240px; }
-#shop-menu .sm-buy[aria-disabled="true"] { background: rgba(240, 237, 228, 0.14); color: rgba(240, 237, 228, 0.6); cursor: default; }
-#shop-menu .sm-buy.armed { background: var(--red); color: #fff; }
+#shop-menu .sm-stat { display: grid; grid-template-columns: auto 1fr; gap: var(--ds-s-1) var(--ds-s-3); align-items: baseline; font-size: var(--ds-t-hulp); }
+#shop-menu .sm-stat > span:first-child { color: var(--ds-tx-zacht); }
+#shop-menu .sm-stat > small { text-align: right; font-size: var(--ds-t-hulp); }
+#shop-menu .sm-bar { grid-column: 1 / -1; position: relative; display: block; height: var(--ds-s-2); border-radius: var(--ds-r-pil); background: var(--ds-bg-2); box-shadow: inset 0 0 0 var(--ds-lijn) var(--ds-tx-zacht); overflow: hidden; }
+#shop-menu .sm-bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--ds-r-pil); background: var(--ds-tx); }
+#shop-menu .sm-bar em { position: absolute; top: 0; bottom: 0; background: var(--ds-succes); }
+#shop-menu .sm-bar em.down { background: var(--ds-probleem); box-shadow: inset 0 0 0 var(--ds-lijn) var(--ds-tx); }
+#shop-menu .sm-buyrow { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-5); flex: none; position: sticky; bottom: calc(-1 * var(--ds-s-4)); margin-bottom: calc(-1 * var(--ds-s-4)); padding: var(--ds-s-2) 0 var(--ds-s-4); background: var(--ds-bg); border-top: var(--ds-lijn) solid var(--ds-bg-2); }
+#shop-menu .sm-pricebig { font-size: var(--ds-t-cijfer); }
+#shop-menu .sm-buy { flex: 1 1 auto; max-width: 360px; }
+#shop-menu .sm-buy-tekst { display: block; }
+#shop-menu .sm-buy.armed { background: var(--ds-probleem-vlak); }
+#shop-menu .sm-risico { margin-top: calc(-1 * var(--ds-s-2)); color: var(--ds-tx); }
+#shop-menu .sm-bon { display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-3) 0; border-top: var(--ds-lijn-dik) dashed var(--ds-tx-zacht); border-bottom: var(--ds-lijn-dik) dashed var(--ds-tx-zacht); }
+#shop-menu .sm-bon:empty { display: none; }
+#shop-menu .sm-bon-rij { display: flex; align-items: baseline; gap: var(--ds-s-3); font-size: var(--ds-t-body); }
+#shop-menu .sm-bon-rij > span:first-child { flex: 1; color: var(--ds-tx-zacht); }
+#shop-menu .sm-bon-rij b { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); font-weight: normal; letter-spacing: var(--ds-ls-kop); }
+#shop-menu .sm-bon-na { padding-top: var(--ds-s-2); border-top: var(--ds-lijn) solid var(--ds-tx-zacht); }
+#shop-menu .sm-bon-na > span:first-child { color: var(--ds-tx); font-weight: var(--ds-gewicht-vet); }
+#shop-menu .sm-bon-mist b { color: var(--ds-probleem-tx); }
 #shop-menu .sm-status { min-height: 28px; font-size: 20px; color: var(--mut); flex: none; }
 #shop-menu .sm-status[data-tone="win"] { color: var(--g); }
 #shop-menu .sm-status[data-tone="no"] { color: var(--redtx); }
 #shop-menu .sm-status[data-tone="jackpot"] { color: #e8c93a; }
 #shop-menu .sm-status.pop { animation: m-up 0.3s ease both; }
-#shop-menu .sm-empty { padding: 16px 24px; color: var(--mut); }
+#shop-menu .sm-empty { margin: var(--ds-s-4) 0 0 var(--ds-s-5); }
+#shop-menu .sm-empty .sm-ic { width: var(--ds-s-6); height: var(--ds-s-6); }
+#shop-menu .sm-empty .ds-leeg__tekst { color: var(--ds-tx); }
 #shop-menu .m-foot .sm-close { display: inline-flex; }
 @media (max-height: 820px) {
-  #shop-menu .sm-stage { height: 160px; }
   #shop-menu .sm-pricebig { font-size: 44px; }
   #shop-menu .sm-list { width: 500px; }
   #shop-menu .sm-detail { gap: 14px; }
@@ -83,9 +100,10 @@
 #shop-menu .sm-ico { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; color: var(--shop, var(--g)); background: color-mix(in srgb, var(--shop, #3fc97a) 16%, transparent); }
 #shop-menu .sm-ic { width: 28px; height: 28px; }
 #shop-menu .sm-item[aria-disabled="true"] .sm-ico { color: rgba(240, 237, 228, 0.45); background: rgba(240, 237, 228, 0.07); }
-#shop-menu .sm-st { flex: none; min-width: 92px; padding: 2px 10px; border-radius: 999px; text-align: center; font-size: 16px; line-height: 1.5; white-space: nowrap; box-shadow: inset 0 0 0 1.5px rgba(240, 237, 228, 0.25); color: var(--mut); }
-#shop-menu .sm-st.ok { color: var(--g); box-shadow: inset 0 0 0 1.5px var(--g); }
-#shop-menu .sm-st.no { color: var(--redtx); box-shadow: inset 0 0 0 1.5px var(--redtx); }
+#shop-menu .sm-st { flex: none; min-width: 92px; justify-content: center; }
+/* één focusring op papier: inkt, ook met een controller (a11y.css zet anders crème) */
+#shop-menu .ds-papier :focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+#shop-menu .ds-papier .sm-buy:focus-visible { outline-offset: var(--ds-s-1); }
 #shop-menu .sm-money.short { animation: sm-pay 0.5s ease-out; }
 #shop-menu .sm-status[data-tone="no"].pop { font-weight: 600; }
 @media (max-width: 1100px), (pointer: coarse) {

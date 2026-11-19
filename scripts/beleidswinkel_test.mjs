@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import {
   BELEID, beleidVan, normaliseerBeleid, heeftBeleid, koopBeleidRegel,
   resetBeleidVoorTest, getBeleid, initBeleid, beleidActief, beleidBoetekorting, beleidBijbaanfactor, beleidMarktdag,
-  beleidOffers, beleidPaneelHtml, koopBeleid, getBeleidSave, applyBeleidSave, BELEID_OPSLAG,
+  beleidOffers, beleidPaneelHtml, beleidBon, koopBeleid, getBeleidSave, applyBeleidSave, BELEID_OPSLAG,
 } from '../game/js/beleidswinkel.js';
 import { KEYS } from '../game/js/storagekeys.js';
 
@@ -131,6 +131,46 @@ t('het paneel toont saldo met duizendscheiding, een uitgezette knop met het teko
   assert.match(rijk, /€12\.500/);
   assert.doesNotMatch(rijk, /disabled/);
   assert.doesNotMatch(rijk, /vo-beleid-melding/);
+});
+
+t('de bon toont het gevolg vóór de keuze: prijs, saldo en saldo erna, of wat er mist', () => {
+  assert.deepEqual(beleidBon(250, 1000), { prijs: 250, saldo: 1000, na: 750, mist: 0 });
+  assert.deepEqual(beleidBon(250, 100), { prijs: 250, saldo: 100, na: 0, mist: 150 });
+  assert.deepEqual(beleidBon(250, NaN), { prijs: 250, saldo: 0, na: 0, mist: 250 });
+  resetBeleidVoorTest(mem());
+  const rijk = beleidPaneelHtml(1000);
+  assert.match(rijk, /Na aankoop<\/span><b>€750<\/b>/, 'saldo erna van de eerste maatregel');
+  assert.doesNotMatch(rijk, /Je mist/);
+  const arm = beleidPaneelHtml(100);
+  assert.match(arm, /Je mist<\/span><b>€150<\/b>/);
+  assert.match(arm, /ds-callout/, 'te weinig geld geeft een probleem-callout');
+  assert.match(arm, /Je hebt nog €150 nodig/);
+});
+
+t('er is één gele hoofdknop, de rest is secundair; een aangenomen maatregel heeft geen knop meer', () => {
+  resetBeleidVoorTest(mem());
+  const html = beleidPaneelHtml(5000);
+  const knoppen = html.match(/<button[^>]*data-beleid="[^"]*"[^>]*>/g) || [];
+  assert.equal(knoppen.length, 3);
+  assert.equal(knoppen.filter((k) => !k.includes('ds-knop--secundair')).length, 1, 'precies één gele knop');
+  koopBeleid(wereld(5000), 'flits');
+  const na = beleidPaneelHtml(4750);
+  assert.equal((na.match(/data-beleid="flits"/g) || []).length, 0, 'gekochte maatregel zonder knop');
+  assert.match(na, /Aangenomen/);
+});
+
+t('bij te weinig geld wijst de oplossing naar een maatregel die je wel kunt betalen, en nergens heen als niets kan', () => {
+  resetBeleidVoorTest(mem());
+  const alt = beleidPaneelHtml(260);
+  assert.match(alt, /data-beleid-ga="flits"/, 'Soepel flitsbeleid kost 250 en past in 260');
+  const niets = beleidPaneelHtml(10);
+  assert.doesNotMatch(niets, /data-beleid-ga/);
+});
+
+t('elke status heeft een pictogram en een woord, niet alleen kleur', () => {
+  resetBeleidVoorTest(mem());
+  const html = beleidPaneelHtml(260);
+  for (const woord of ['Kan nu', 'Te duur']) assert.match(html, new RegExp(`<svg class="ds-chip__icoon"[^>]*>.*?</svg>${woord}`));
 });
 
 console.log(`${n - fails}/${n} ok`);
