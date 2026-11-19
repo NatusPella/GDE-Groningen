@@ -18,6 +18,8 @@ import { dualHtml } from './subtitles.js';
 import { loopbaanSamenvatting, loopbaanEersteKlusStand } from './loopbaanlive.js'; // #821, #846: de lussen in gewone taal
 import { getSideJobList } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
+import { getStrekenStand } from './explorationlive.js';
+import { streekOpenTekst } from './verkenpunten.js'; // #985: voortgang van de streken
 import { samenvatting as gebiedenSamenvatting } from './gebieden.js';
 import { fillBars, countTo } from './motion.js';
 import { placeShot } from './placeshot.js';
@@ -251,20 +253,32 @@ function agendaHtml(world) {
 
 // #821: één blok "Je voortgang" dat de drie lussen naast elkaar zet, met alleen de bestaande
 // systemen als bron (loopbaanlive, sidejobs, gebieden) en geen nieuwe teller of opslagsleutel.
-function voortgangHtml() {
-  let lb = null, ek = null, banen = [], gebieden = null;
+function voortgangHtml(world) {
+  let lb = null, ek = null, banen = [], gebieden = null, streken = null;
   try { lb = loopbaanSamenvatting(); } catch (e) { lb = null; }
   try { ek = loopbaanEersteKlusStand(); } catch (e) { ek = null; }
   try { banen = getSideJobList() || []; } catch (e) { banen = []; }
   try { const o = getOverzicht(); if (o) gebieden = gebiedenSamenvatting(o.profiel, o.ind); } catch (e) { gebieden = null; }
+  try { streken = getStrekenStand(world); } catch (e) { streken = null; }
   const lbTekst = ek ? `${ek.gedaan} van ${ek.totaal} eerste klussen${ek.klaar ? ` · titel ${esc(ek.titel)}` : ''}${lb && lb.hoogste ? ` · hoogste titel: ${esc(lb.hoogste.titel)}` : ''}` : 'Nog niet geladen';
   const niveau2 = banen.filter((b) => b.level >= 2).length;
   const baanTekst = banen.length ? `${niveau2} van ${banen.length} banen op niveau 2 of hoger` : 'Nog geen baan gedaan';
   const gebiedTekst = gebieden ? `${gebieden.voltooid} van ${gebieden.totaal} gebieden veroverd` : 'De kaart wordt nog geladen';
   const rij = (naam, tekst) => `<div class="m-li pm-row"><span class="nm"><span class="one">${naam}</span><span class="mut one">${tekst}</span></span></div>`;
-  const inner = '<div class="ov-voortgang">' + rij('Loopbaan', lbTekst) + rij('Bijbanen', baanTekst) + rij('Veroverd', gebiedTekst) +
+  const inner = '<div class="ov-voortgang">' + rij('Loopbaan', lbTekst) + rij('Bijbanen', baanTekst) + rij('Veroverd', gebiedTekst) + strekenHtml(streken, rij) +
     '<p class="m-note">Herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld.</p></div>';
   return disc('voortgang', 'Je voortgang', 'Drie lussen in gewone taal', inner);
+}
+
+// #985: "3 van 8 streken verkend" en per ontdekte streek wat er nog openstaat; onbekende streken
+// blijven zonder naam, zoals op de kaart.
+function strekenHtml(st, rij) {
+  if (!st) return '';
+  const onbekend = st.totaal - st.ontdekt;
+  let uit = rij('Streken', `${st.verkend} van ${st.totaal} verkend${st.ontdekt > st.verkend ? ` · ${st.ontdekt - st.verkend} nog niet af` : ''}`);
+  for (const r of st.rijen) if (r.ontdekt) uit += rij(esc(r.naam), esc(streekOpenTekst(r)));
+  if (onbekend > 0) uit += rij('Nog onbekend', `${onbekend} ${onbekend === 1 ? 'streek' : 'streken'}: rij of loop erheen, of zoek het uitkijkpunt`);
+  return uit;
 }
 
 function disc(id, title, hint, inner) {
@@ -306,7 +320,7 @@ export function renderOverview(el, world, help, extra = {}) {
   // #965: de hero staat buiten de scroller. De tabs en de grote kop blijven staan
   // en alleen wat eronder komt (voortgang, tegels, dichtbij, vouwen) scrolt; eerst
   // schoof de kop onder de tabbalk en werd hij daar afgekapt.
-  el.innerHTML = heroHtml(world) + '<div class="ov-scroll">' + stopHtml + tilesHtml(world, extra) + voortgangHtml() +
+  el.innerHTML = heroHtml(world) + '<div class="ov-scroll">' + stopHtml + tilesHtml(world, extra) + voortgangHtml(world) +
     '<div class="ov-cols"><section aria-label="Dichtbij" class="ov-col"><div class="m-gh"><span>Dichtbij</span></div>' +
     (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Activiteiten.</p>') +
     '</section><section aria-label="Bijna binnen" class="ov-col"><div class="m-gh"><span>Bijna binnen</span></div>' +

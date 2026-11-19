@@ -68,7 +68,7 @@ t('#821: één blok "Je voortgang" met de drie lussen uit de bestaande systemen'
   assert.match(td, /rij\('Bijbanen'/, 'regel Bijbanen');
   assert.match(td, /rij\('Veroverd'/, 'regel Veroverd');
   assert.match(td, /Herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld\./, 'de zin onderscheidt de drie lussen');
-  assert.match(td, /tilesHtml\(world, extra\) \+ voortgangHtml\(\)/, 'het blok staat in Overzicht');
+  assert.match(td, /tilesHtml\(world, extra\) \+ voortgangHtml(world)\(\)/, 'het blok staat in Overzicht');
   const blok = td.slice(td.indexOf('function voortgangHtml'), td.indexOf('function disc('));
   assert.ok(!/localStorage|sessionStorage/.test(blok), 'geen nieuwe opslag in het blok');
   assert.ok(!/data-bar=/.test(blok), 'geen vierde progressiebalk');

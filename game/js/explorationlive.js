@@ -14,7 +14,7 @@ import {
   TRAVEL_BONUS, newExplorationProfile, normaliseExploration, mergeExploration,
   knownAreas, areaIsKnown, revealArea, usesPoint, pointArea, viewpointKey,
   areasFromVisits, awardAreaStamp, hasAreaStamp, areaLabels, travelFactor, isHiddenOnMap,
-  areaName, areaForPoint,
+  areaName, areaForPoint, strekenStand,
 } from './verkenpunten.js';
 
 const ENTRY_CHECK_S = 1;      // how often the player's own position is laid along the streken
@@ -203,3 +203,11 @@ export function tryViewpointInteract(world) {
   return true;
 }
 
+
+// #985: de streken-voortgang voor Overzicht (x van 8 verkend en wat er per streek openstaat).
+export function getStrekenStand(world) {
+  const points = (world && world.map && world.map.meta && world.map.meta.uitkijkpunten) || [];
+  let missions = [];
+  try { missions = getMissionList() || []; } catch (e) { missions = []; }
+  return strekenStand(getExplorationProfile(), { missions, points });
+}

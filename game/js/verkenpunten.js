@@ -258,3 +258,27 @@ export function isHiddenOnMap(profile, x, y) {
   return !!area && !areaIsKnown(profile, area);
 }
 
+
+// De voortgang van alle streken in één keer (#985): hoeveel zijn er verkend (stempel), hoeveel
+// ontdekt, en per streek wat er nog openstaat. Een onbekende streek heeft hier geen naam: de lijst
+// lekt niet wat de kaart ook verbergt (isHiddenOnMap).
+export function strekenStand(profile, { missions = [], points = [], streken = STREKEN } = {}) {
+  const rijen = streken.map((s) => {
+    const p = areaProgress(profile, s.id, { missions, points });
+    const verkend = hasAreaStamp(profile, s.id) || p.complete;
+    return { id: s.id, naam: p.discovered ? s.name : '', ontdekt: p.discovered, verkend, missionsDone: p.missionsDone, missionsTotal: p.missionsTotal, pointsUsed: p.pointsUsed, pointsTotal: p.pointsTotal };
+  });
+  return { totaal: rijen.length, ontdekt: rijen.filter((r) => r.ontdekt).length, verkend: rijen.filter((r) => r.verkend).length, rijen };
+}
+
+// "Nog 2 van 3 missies en 1 uitkijkpunt" voor een ontdekte, nog niet verkende streek.
+export function streekOpenTekst(r) {
+  if (!r.ontdekt) return 'Nog niet ontdekt';
+  if (r.verkend) return 'Verkend, met stempel';
+  const delen = [];
+  const m = r.missionsTotal - r.missionsDone;
+  if (m > 0) delen.push(`${m} ${m === 1 ? 'missie' : 'missies'}`);
+  const u = r.pointsTotal > 0 ? r.pointsTotal - r.pointsUsed : 1;
+  if (u > 0) delen.push(r.pointsTotal > 0 ? `${u} ${u === 1 ? 'uitkijkpunt' : 'uitkijkpunten'}` : 'het uitkijkpunt');
+  return delen.length ? `Nog open: ${delen.join(' en ')}` : 'Bijna verkend';
+}
