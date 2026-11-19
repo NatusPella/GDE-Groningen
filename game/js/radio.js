@@ -20,6 +20,8 @@ import { playerBusy } from './busy.js';
 import { radioMayTalk } from './speech.js';
 import { createAdState, noteBreak, planAdBlock, commitAdBlock, blockLines } from './radioads.js';
 import { showRadioSub, hideRadioSub } from './radiosub.js';
+import { kiesVers, leesPraatStaat, schrijfPraatStaat } from './radiopraat.js';
+import { KEYS } from './storagekeys.js';
 
 // the recorded Kiekdoar headlines in audio/nieuws (text from its tts.json)
 const NEWS_CLIPS = [
@@ -40,7 +42,7 @@ let on = true;
 // helirun zet de radio niet meer zelf aan (#502), dus dit volgt `on`.
 let playing = true;
 let prog = programmeAt(12);
-const R = { queue: [], nextAt: 0, rot: {}, played: 0, done: null, breakUntil: 0 };
+const R = { queue: [], nextAt: 0, rot: {}, recent: [], played: 0, done: null, breakUntil: 0 };
 // the adverts (radioads.js, #409): when the last block ran, how many breaks ago, which ones were heard
 const ADS = createAdState();
 let subOn = false;
@@ -48,7 +50,18 @@ let subOn = false;
 // een menu pauzeert de wereld en dan hoort de regel ook te blijven)
 let subUntil = 0;
 
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
+// a line that did not just go out when the pool has another one; the rotation, the recent lines and the played adverts
+// are kept between sessions (radiopraat.js, #985), like the music history
+const fresh = (a) => kiesVers(a, R.recent);
+function loadTalkState() {
+  try {
+    const st = leesPraatStaat(localStorage.getItem(KEYS.radioTalk));
+    R.rot = st.rot; R.recent = st.recent; ADS.history = st.ads.history; ADS.blocks = st.ads.blocks;
+  } catch (e) { /* no storage */ }
+}
+function saveTalkState() {
+  try { localStorage.setItem(KEYS.radioTalk, schrijfPraatStaat({ rot: R.rot, recent: R.recent, ads: ADS })); } catch (e) { /* private mode */ }
+}
 
 export function radioIsOn() {
   return on;
@@ -71,6 +84,7 @@ export function setRadio(value, { announce: show = true } = {}) {
 
 export function initRadio(w) {
   world = w;
+  loadTalkState();
   prog = programmeAt(w.clock);
   setRadioProgramme(prog);
   onRadioBreak((done) => startBreak(done));
@@ -139,6 +153,7 @@ function startBreak(done) {
   const i = R.rot[prog.id] || 0;
   R.rot[prog.id] = i + 1;
   R.queue = segment(kinds[i % kinds.length], w);
+  saveTalkState();
   R.done = done;
   R.nextAt = w.time + 0.4;
   R.breakUntil = w.time + BREAK_MAX;
@@ -172,12 +187,12 @@ function news() {
     ...['job_bezorger', 'job_bus', 'job_taxi', 'job_fietsdepot', 'job_rondvaart', 'job_verhuizing'].map((k) => SMS_SAY[k].lines[0]),
     PLANTSOEN_NEWS, ...Object.values(EVENT_DAYS).map((e) => e.announce), KERMIS_NEWS,
   ].filter(Boolean);
-  const t = pick(texts).replace(/^KIEKDOAR( MELDT)?:\s*/i, '');
+  const t = fresh(texts).replace(/^KIEKDOAR( MELDT)?:\s*/i, '');
   return { speaker: 'Kiekdoar-redactie', text: t, voice: () => smsVoiceFor({ from: 'Kiekdoar', text: t }, lineVoiceFor) };
 }
 
 function rikus() {
-  const t = pick(NACHTSTREEK);
+  const t = fresh(NACHTSTREEK);
   return { speaker: NARRATOR, text: t, voice: () => lineVoiceFor(NARRATOR, t) };
 }
 
@@ -185,26 +200,26 @@ function segment(kind, w) {
   const G = RADIO_GRUNN;
   const storm = !!(w.weather && w.weather.active && w.weather.intensity > 0.7);
   const wet = !!(w.weather && w.weather.active && w.weather.intensity > 0.15);
-  if (kind === 'ident') return [host(pick(G.ident))];
-  if (kind === 'news') return [host(pick(G.news)), news()];
-  if (kind === 'clip') return [clip(pick(NEWS_CLIPS))];
-  if (kind === 'ad') return [host(pick(G.ads))];
+  if (kind === 'ident') return [host(fresh(G.ident))];
+  if (kind === 'news') return [host(fresh(G.news)), news()];
+  if (kind === 'clip') return [clip(fresh(NEWS_CLIPS))];
+  if (kind === 'ad') return [host(fresh(G.ads))];
   if (kind === 'reclame') {
     // an advert block now and then (not at night, not twice in a row): without one the recorded advert goes out instead
     const block = planAdBlock(ADS, { now: w.time, progId: prog.id });
-    if (!block) return [host(pick(G.ads))];
+    if (!block) return [host(fresh(G.ads))];
     commitAdBlock(ADS, block, w.time);
     return blockLines(block);
   }
-  if (kind === 'traffic') { const t = pick(KROLBRUG_FAULTS); return [host(pick(G.traffic)), { speaker: 'Verkeersinformatie', text: t, voice: () => lineVoiceFor('Verkeersinformatie', t) }]; }
-  if (kind === 'weather') return storm ? [host(pick(G.weatherRain)), clip(STORM_CLIP)] : [host(pick(wet ? G.weatherRain : G.weatherSun))];
+  if (kind === 'traffic') { const t = fresh(KROLBRUG_FAULTS); return [host(fresh(G.traffic)), { speaker: 'Verkeersinformatie', text: t, voice: () => lineVoiceFor('Verkeersinformatie', t) }]; }
+  if (kind === 'weather') return storm ? [host(fresh(G.weatherRain)), clip(STORM_CLIP)] : [host(fresh(wet ? G.weatherRain : G.weatherSun))];
   if (kind === 'cows') {
-    const [cow, t] = pick(Object.values(COW_FEED).flat());
-    return [host(pick(G.cows)), { speaker: 'Koe ' + cow, text: t, voice: () => lineVoiceFor('Koe ' + cow, t) }];
+    const [cow, t] = fresh(Object.values(COW_FEED).flat());
+    return [host(fresh(G.cows)), { speaker: 'Koe ' + cow, text: t, voice: () => lineVoiceFor('Koe ' + cow, t) }];
   }
   // at night Rikus presents himself; by day Geesje passes him on
-  if (kind === 'rikus') return prog.id === 'nacht' ? [rikus()] : [host(pick(G.rikus)), rikus()];
-  return [host(pick(G.ident))];
+  if (kind === 'rikus') return prog.id === 'nacht' ? [rikus()] : [host(fresh(G.rikus)), rikus()];
+  return [host(fresh(G.ident))];
 }
 
 function talk(w) {

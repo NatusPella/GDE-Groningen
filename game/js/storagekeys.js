@@ -43,6 +43,7 @@ export const BASE_KEYS = {
   wijkenSeen: 'gde-wijken-seen',
   wijkLinesRecent: 'gde-wijk-lines-recent',
   radioHistory: 'gde-radio-history',
+  radioTalk: 'gde-radio-praat',
   fog: 'gde-fog',
   errorLog: 'gde-foutlog',
   snapshots: 'gde-snapshots',
