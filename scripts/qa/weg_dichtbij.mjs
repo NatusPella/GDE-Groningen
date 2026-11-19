@@ -18,10 +18,12 @@ const profile = `gde-test-wd-${process.pid}`;
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, `window.__wd = ${JSON.stringify({ plekken, settle: Number(arg('settle', 9000)), R: Number(arg('R', 30)), brug: process.argv.includes('--brug') })};\n` + fs.readFileSync(path.join(HERE, 'weg_dichtbij.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-const env = { ...process.env, GDE_TEST_PROFILE: profile };
+fs.mkdirSync(path.join(os.tmpdir(), profile), { recursive: true });
+const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
 delete env.ELECTRON_RUN_AS_NODE;
 const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+  ...(process.env.GDE_WD_NOFLAGS ? [] : ['--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion']),
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(arg('url-flags') ? [`--url-flags=${arg('url-flags')}`] : [])],
 { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 30 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt:', r.error.message);

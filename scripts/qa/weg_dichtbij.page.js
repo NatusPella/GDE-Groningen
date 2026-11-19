@@ -47,7 +47,7 @@ function snapRoad(x, y, Rr, road) {
     if (rd.bridge && !CFG.brug) continue;
     for (let i = 0; i < rd.pts.length - 1; i++) {
       const a = rd.pts[i], b = rd.pts[i + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (len < 6) continue;
+      if (len < (CFG.minSeg || 20)) continue; // lang genoeg: de camera staat 8 m achter het midden en blijft op deze weg
       const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = Math.hypot(mx - x, my - y);
       if (!best || d < best.d) best = { d, x: mx, y: my, a: Math.atan2(b[1] - a[1], b[0] - a[0]), name: rd.name || rd.ref || '', cat: rd.cat, width: rd.width, bridge: !!rd.bridge, nPts: rd.pts.length };
     }
@@ -79,13 +79,17 @@ function measure(px, py) {
   });
   return rows;
 }
-const out = { dpr: devicePixelRatio, plekken: [] };
+// rAF-tempo: een gethrottled venster (afgedekt, achtergrond) haalt ~0 fps en geeft mist of een leeg beeld
+const fps = async (ms = 3000) => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < ms) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); });
+const out = { dpr: devicePixelRatio, plekken: [], fps0: await fps() };
+console.log('[fps] ' + out.fps0 + ' visibility=' + document.visibilityState);
 await sleep(2000);
 for (const q of CFG.plekken) {
   const rep = { naam: q.naam };
   out.plekken.push(rep);
   try {
     fix();
+    CFG.minSeg = q.minSeg || 20;
     hold = { x: q.x, y: q.y };
     await sleep(SETTLE * 0.7);
     // de tegels rond een ver punt stromen binnen: wacht tot er een weg is (hoogstens 90 s)
@@ -125,9 +129,33 @@ for (const q of CFG.plekken) {
     // straatbeeld: 1,7 m boven de weg, 8 m achter het punt, vooruit kijkend
     const straat = { position: { x: sn.x - cx * 8, y: sn.y - cy * 8, z: gz + 1.7 }, lookAt: { x: sn.x + cx * 40, y: sn.y + cy * 40, z: gz } };
     cur = straat;
+    rep.fps = await fps(2000);
     await sleep(1500); await grab(tag + '-straat');
     cur = { position: { x: sn.x - cx * 30, y: sn.y - cy * 30, z: gz + 18 }, lookAt: { x: sn.x + cx * 20, y: sn.y + cy * 20, z: gz } };
     await sleep(1500); await grab(tag + '-hoog');
+    // rit (#883): rij q.rij m langs de weg (stapjes, de wereld streamt mee) en neem daar opnieuw een straatbeeld; de weg moet meekomen
+    if (q.rij) {
+      const stap = 10, n = Math.round(q.rij / stap), rr = [];
+      let hx = sn.x, hy = sn.y, ha = sn.a;
+      for (let k = 1; k <= n; k++) {
+        // volg de weg: het volgende stuk van dezelfde weg vlak vooruit (een bocht blijft op de weg), nooit achteruit
+        const nx = hx + Math.cos(ha) * stap, ny = hy + Math.sin(ha) * stap;
+        const c = snapRoad(nx, ny, 25, q.road);
+        if (c) { const dot = Math.cos(c.a) * Math.cos(ha) + Math.sin(c.a) * Math.sin(ha); const a2 = dot >= 0 ? c.a : c.a + Math.PI; hx = nx; hy = ny; ha = a2; } else { hx = nx; hy = ny; }
+        hold = { x: hx, y: hy }; await sleep(600);
+        if (k % 5 === 0) rr.push({ m: k * stap, roads: SC.streamPending().roads, rdr: S3.dists().roadDetailR, opWeg: !!c });
+      }
+      rep.rit = { stappen: rr };
+      const x2 = hold.x, y2 = hold.y;
+      const gz2 = map.groundHeightAt ? map.groundHeightAt(x2, y2, 0) || 0 : 0;
+      rep.rit.direct = { roads: SC.streamPending().roads, zonderWegdek: (map.roadsNear(x2, y2, 140) || []).filter((r) => !r._geoRoad && !r.bridge).length, van: (map.roadsNear(x2, y2, 140) || []).length };
+      const c2 = Math.cos(ha), s2 = Math.sin(ha);
+      cur = { position: { x: x2 - c2 * 8, y: y2 - s2 * 8, z: gz2 + 1.7 }, lookAt: { x: x2 + c2 * 40, y: y2 + s2 * 40, z: gz2 } };
+      await sleep(1500); rep.rit.fps = await fps(1500); await grab(tag + '-straat-rit' + q.rij);
+      await sleep(8000);
+      rep.rit.na8s = { roads: SC.streamPending().roads, zonderWegdek: (map.roadsNear(x2, y2, 140) || []).filter((r) => !r._geoRoad && !r.bridge).length };
+      await grab(tag + '-straat-rit' + q.rij + '-later');
+    }
     // zonder far-LOD: laat zien wat het gedetailleerde wegdek alleen doet
     if (q.zonderLod && S3.farLod && S3.farLod.root) {
       S3.farLod.root.visible = false; cur = straat; await sleep(1200); await grab(tag + '-straat-zonderlod'); S3.farLod.root.visible = true;
