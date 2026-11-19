@@ -61,8 +61,10 @@ if (devtools && (devtools.isTestRun || (process.env.GDE_DEV === '1' && process.e
 }
 if (process.platform === 'win32') app.setAppUserModelId('nl.natuspella.gde-groningen');
 
+// codeCache: V8-codecache voor de ~1000 modules ook op het eigen schema (standaard alleen http(s); Electron 45, map 'Code Cache' in userData).
+// Winst nog niet gemeten: vergelijk de tijd tot het titelscherm bij een tweede start.
 protocol.registerSchemesAsPrivileged([
-  { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
+  { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true, codeCache: true } },
 ]);
 
 // the theme song starts on the title screen without waiting for a click

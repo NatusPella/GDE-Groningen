@@ -41,3 +41,12 @@ export function preloadStats(relFiles, sizeOf = () => 0) {
   }
   return { files, bytes };
 }
+
+// Zet de hints in een gestagede index.html, vlak vóór het module-script van main.js (desktop en web delen dit).
+// `replacement` is wat er voor het main-script in de plaats komt (web: ook web.js); standaard blijft het script staan.
+export function withModulePreload(page, relFiles, replacement = null) {
+  const main = '<script type="module" src="js/main.js"></script>';
+  if (!page.includes(main)) throw new Error('index.html: main.js script tag not found');
+  const tags = modulePreloadTags(relFiles).join('\n');
+  return page.replace(main, () => tags + '\n' + (replacement === null ? main : replacement));
+}

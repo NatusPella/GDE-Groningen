@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
 import { checkWorld, checkAudio, checkOffline, formatProblems } from '../scripts/lib/stagecheck.mjs';
+import { withModulePreload } from '../web/preload.mjs';
 import { assertStageOut } from '../scripts/lib/stageout.mjs';
 import { loadLock, lockProblem, serializeLock, sha256, LOCK_FILE } from '../scripts/lib/vendorlock.mjs';
 
@@ -295,6 +296,14 @@ async function main() {
 
   // 5. version stamp (shown in the main menu)
   fs.writeFileSync(path.join(OUT, 'js', 'version.js'), `export const VERSION = '${version}';\n`);
+
+  // 5a. modulepreload-hints voor de gewone modules (zoals web/build.mjs, #757): de ~1000 modules gaan in één
+  // parallelle golf i.p.v. via de ontdekkingswaterfall van losse imports
+  {
+    const html = path.join(OUT, 'index.html');
+    const rels = walk(OUT).map((f) => path.relative(OUT, f).split(path.sep).join('/'));
+    fs.writeFileSync(html, withModulePreload(fs.readFileSync(html, 'utf8'), rels));
+  }
 
   // 5b. the map as .gdt tiles (scripts/world/pack_tiles.mjs): a build artifact,
   // cached by the content of its inputs
