@@ -56,3 +56,23 @@ export function bewaakGastWereld(schaduw, host, slot, waarschuw = (k) => console
     },
   });
 }
+
+// Het lichaam van een gast, met één verschil: een gast is een figuur en zit in `inVeh` (coopbestuur.js, #502). De banen
+// vragen naar `inVehicle`; dit beeld geeft ze allebei.
+export function spelerBeeld(l) {
+  if (!l) return null;
+  const gebonden = new Map(); // methode -> { fn, bound }: één bind per methode in plaats van één per lezing (de banen lezen dit elk frame)
+  return new Proxy(l, {
+    get(t, k) {
+      if (k === 'inVehicle') return t.inVehicle || t.inVeh || null;
+      if (k === 'character') return t.character || t.char;
+      const v = t[k];
+      if (typeof v !== 'function') return v;
+      let e = gebonden.get(k);
+      if (!e || e.fn !== v) { e = { fn: v, bound: v.bind(t) }; gebonden.set(k, e); }
+      return e.bound;
+    },
+    set(t, k, v) { t[k] = v; return true; },
+    has(t, k) { return k in t; },
+  });
+}

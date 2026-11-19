@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Lading zit niet meer in andermans laadruimte (#847):** elk voertuig met een open laadklep of deur tekent zijn lading nu met een eigen markering, zodat de lading van het ene busje niet door de opening van het andere zichtbaar wordt. Heeft het beeld geen stencilbuffer, dan blijft de laadruimte liever dicht dan dat hij door de carrosserie heen tekent. Samen spelen: elke speler ziet dit lokaal, er wordt niets verstuurd.
+- **Een gast betaalt de ritkosten van de vrachtrit niet meer van het geld van wie het spel opende:** de baan van een gast schreef geld en sterren op een tussenlaag, waardoor die verdwenen of de verkeerde stand lazen. Nu staan de sterren van de tjalkerit op de eigen plek van de gast en blijft het geld van wie het spel opende onaangeroerd; de gast krijgt zijn loon per ronde zoals eerder. Bij wie het spel opende verandert er niets.
+- **Een nieuw spel erft geen missies van een vorig spel:** de opdrachtstand en de opdrachten van gastgroepen worden bij het opnieuw laden of starten van een wereld gewist.
+- **De eierrit zegt hoeveel eieren er nog heel zijn (#824):** mislukt de rit, dan staat er "nog maar 23 van de 60 heel" in plaats van "meer dan de helft is stuk", want de grens ligt bij 38 procent heel.
 - **De weg ligt weer onder je voeten (#883):** in dorpen als Usquert en Visvliet zag je vlak bij jezelf alleen gras of akker, terwijl de weg verderop wel klopte; auto's reden over het gras. De wegen binnen honderdveertig meter bleven wachten op een beurt die nooit kwam. Ze worden nu in volgorde van dichtbij naar ver opgebouwd, een per beeld, dus ook als er tientallen wegen in beeld zijn.
 
 ## [0.64.0] - 2026-11-17

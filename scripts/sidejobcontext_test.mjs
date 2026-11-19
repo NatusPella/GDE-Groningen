@@ -120,7 +120,7 @@ t('sidejobs.js: een register per eigenaar, een eigen wereld en invoer voor een g
   assert.match(sj, /owner, world: w, job, spot,/, 'de context kent zijn eigenaar en wereld');
   assert.match(sj, /function startJob\(job, takeover = null, owner = 0, cw = null\)/);
   assert.match(sj, /const cw = Object\.create\(w\)/);
-  assert.match(sj, /cw\.player = spelerBeeld\(lichaamVan\(w, slot\)\)/); assert.match(sj, /function spelerBeeld\(l\)/); assert.match(sj, /if \(k === 'inVehicle'\) return t\.inVehicle \|\| t\.inVeh \|\| null;/, 'een figuur (plek 2 en hoger) zit in inVeh; de baan vraagt naar inVehicle'); assert.match(sj, /cw\.input = invoerVoor\(w, slot\)/);
+  assert.match(sj, /cw\.player = spelerBeeld\(lichaamVan\(w, slot\)\)/); // het gedrag van spelerBeeld staat in sidejobwereld.js en wordt onderaan getest
   assert.match(sj, /startJob\(job, null, slot, gastWereld\(world, slot\)\)/, 'een gast start zijn eigen baan');
   assert.match(sj, /function updateContext\(dt, w, c\)/); assert.match(sj, /if \(!checkVehicle\(dt, c\)\) return;/);
   assert.match(sj, /c\.timeLeft -= dt;[\s\S]*c\.job\.round\(c\)[\s\S]*c\.job\.update\(dt, c\)/, 'timer, ronde en update per context');
@@ -334,6 +334,20 @@ t('dezelfde haken bij de host: ritkosten van zijn geld, sterren in world.wanted'
   assert.equal(WW.banenWanted(w), 1);
   WW.zetBanenWanted(w, 4);
   assert.equal(w.wanted, 4); assert.equal(w.wantedDecayTimer, 0);
+});
+
+t('het spelerbeeld van een gast: inVehicle uit inVeh, methoden gebonden en maar één keer', () => {
+  let aanroepen = 0;
+  const lichaam = { x: 1, char: 'anita', inVeh: { id: 'v' }, zegHoi() { aanroepen++; return this.x; } };
+  const beeld = WW.spelerBeeld(lichaam);
+  assert.equal(beeld.inVehicle, lichaam.inVeh); assert.equal(beeld.character, 'anita');
+  const f1 = beeld.zegHoi, f2 = beeld.zegHoi;
+  assert.equal(f1, f2, 'dezelfde gebonden functie bij elke lezing (geen bind per lezing)');
+  const los = beeld.zegHoi; assert.equal(los(), 1, 'this blijft het lichaam'); assert.equal(aanroepen, 1);
+  lichaam.zegHoi = function () { return 'nieuw'; };
+  assert.equal(beeld.zegHoi(), 'nieuw', 'een vervangen methode wordt weer opgepikt');
+  beeld.x = 5; assert.equal(lichaam.x, 5, 'schrijven gaat naar het lichaam');
+  assert.equal(WW.spelerBeeld(null), null);
 });
 
 console.log(`sidejobcontext_test: ${n} tests ok`);

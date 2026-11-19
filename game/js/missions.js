@@ -5,7 +5,7 @@ import { assistTime } from './assistlive.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, scaleTimeLimit } from './difficulty.js'; // #800: de stand schaalt missietijden en vensters
 import { missionStats, fmtTime, failureStats } from './missionstats.js';
-import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning } from './eggspeed.js';
+import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning, eggFailText } from './eggspeed.js';
 import { createMissionLanes } from './missionlanes.js';
 import { createMissionGates } from './missiongates.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
@@ -3148,7 +3148,7 @@ function updateEggs(dt, world, def) {
       world.addMessage(lvl > 70 ? `Krak. Achterin breekt een ei. ${eggText(def)}` : lvl > 50 ? `Nog een krat omgegooid en het is omelet. ${eggText(def)}` : `Nog één stoot en de missie mislukt. ${eggText(def)}`, 2.8);
     }
   }
-  if (chainState().eggs <= def.eggs.failAt) fail(world, def, def.eggs.fail);
+  if (chainState().eggs <= def.eggs.failAt) fail(world, def, eggFailText(def, chainState().eggs));
 }
 
 const MODE_HINT = {

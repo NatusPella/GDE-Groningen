@@ -60,7 +60,7 @@ import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
 import { sfeerVan } from './carrieresfeer.js'; // #631: de sfeer van het vak bij de baan (naam in de kaart)
 import { jobLevel as niveauVanRondes, titelVanNiveau, rondeWaarde, sidejobProfiel } from './sidejobprofiel.js'; // #631/#667/#668
-import { bewaakGastWereld } from './sidejobwereld.js';
+import { bewaakGastWereld, spelerBeeld } from './sidejobwereld.js';
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, bietenoogst, boerderij, snackoverlast];
@@ -119,21 +119,6 @@ function gastWereld(w, slot) {
   cw.sideJob = null; // een gast ziet zijn eigen baan via coopbijbaan.js, niet die van de host
   cw.coopHelpers = () => (w.coopBijbaanHelpers ? w.coopBijbaanHelpers(slot) : null);
   return bewaakGastWereld(cw, w, slot); // schrijfhaken voor gezocht en geld, en een waarschuwing bij een directe schrijfactie
-}
-// Het lichaam van een gast, met één verschil: een gast is een figuur en zit in `inVeh` (coopbestuur.js, #502). De banen
-// vragen naar `inVehicle`; dit beeld geeft ze allebei.
-function spelerBeeld(l) {
-  if (!l) return null;
-  return new Proxy(l, {
-    get(t, k) {
-      if (k === 'inVehicle') return t.inVehicle || t.inVeh || null;
-      if (k === 'character') return t.character || t.char;
-      const v = t[k];
-      return typeof v === 'function' ? v.bind(t) : v;
-    },
-    set(t, k, v) { t[k] = v; return true; },
-    has(t, k) { return k in t; },
-  });
 }
 function invoerVoor(w, slot) {
   const ruw = invoerVan(w, slot);
