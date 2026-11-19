@@ -35,7 +35,7 @@ import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel } from './boerderijui.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
-import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
+import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig, actieBevestiging } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
 import { radioIsOn, setRadio } from './radio.js';
@@ -1113,6 +1113,8 @@ export function initPauseMenu(w) {
     if (panel && tab === 'loopbaan' && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
+    const gv = e.target.closest('[data-garage-sell]');
+    if (gv) return garageSell(gv.dataset.garageSell);
     const gw = e.target.closest('[data-garage-koop]');
     if (gw) {
       const r = garageNaarWinkel(world, gw.dataset.garageKoop);
@@ -2116,7 +2118,28 @@ function status(text) {
 
 const garageEl = () => root.querySelector('[data-panel="garage"] .pm-inner');
 
+// QoL (#985): verkopen en dure bezorging vragen een tweede druk binnen 8 s; de vraag staat in het paneel.
+let garageArmed = null;
+function garageBevestigd(id, actie) {
+  const vraag = actieBevestiging(getGarageList(world).find((x) => x.id === id), actie);
+  const klaar = garageArmed && garageArmed.id === id && garageArmed.actie === actie && Date.now() < garageArmed.tot;
+  if (vraag && !klaar) {
+    garageArmed = { id, actie, tot: Date.now() + 8000 };
+    renderGaragePanel(garageEl(), world, vraag);
+    return false;
+  }
+  garageArmed = null;
+  return true;
+}
+
+function garageSell(id) {
+  if (!garageBevestigd(id, 'verkoop')) return;
+  const res = verkoopVoertuig(world, id);
+  renderGaragePanel(garageEl(), world, res.text);
+}
+
 function garageDeliver(id) {
+  if (!garageBevestigd(id, 'aflever')) return;
   const res = deliverOwnedVehicle(world, id);
   if (res.ok) { setOpen(false); return; }
   renderGaragePanel(garageEl(), world, res.text);

@@ -58,6 +58,7 @@ import {
   spawnOwnedEntry,
   spawnStockVehicle,
   replacementFee,
+  removeOwnedEntry,
   getShopsForRender,
   VEHICLE_UNLOCKS,
   unlockMet,
@@ -70,6 +71,8 @@ import { VEHICLE_STOCK } from './shopdata.js';
 import { HERO_REPLACE_FEE } from './economy.js';
 import { getHomeForRender, getHomeMooringForRender, getHomePad, homeWhereLabel } from './home.js';
 import { eigenTruckHook, isVrachtTruck } from './vrachtkosten.js';
+import { euro } from './geldtekst.js';
+import { noteMoney } from './finance.js';
 const DELIVERY_COOLDOWN = 30;
 const HELI_FERRY_FEE = 60;
 const NEAR_M = 200;
@@ -452,7 +455,7 @@ function nameOf(spec, v) {
 function statusOf(world, v, lost, kind, key) {
   if (lost) return { key: 'lost', label: 'Afgeschreven' };
   const speler = hoofdspeler(world);
-  if (speler && speler.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
+  if (speler && v && speler.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
   if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: homeWhereLabel(key) || (kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage') };
   const d = Math.hypot(v.x - (speler ? speler.x : 0), v.y - (speler ? speler.y : 0));
   return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: ommelandArea(v.x, v.y) ? 'In het Ommeland' : 'Ergens in Grunn', dist: d };
@@ -476,8 +479,63 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
     meme: MEMES[hero ? 'hero' : key] || spec.desc || '',
     price: hero ? 0 : spec.price,
     status: status.key, statusLabel: status.label, dist: status.dist ?? null, where,
-    fee, feeLabel: fee ? `€${fee}` : 'gratis',
+    fee, feeLabel: fee ? euro(fee) : 'gratis',
+    ...verkoopVelden({ hero, key, spec, v, lost, status: status.key }),
   };
+}
+
+// QoL (#985): een eigen voertuig kun je verkopen (heel) of slopen (afgeschreven). De Escapade en de
+// vrijgespeelde bijzondere voertuigen blijven: die komen vanzelf terug in de garage.
+const VERKOOP_MIN = 0.35;
+const VERKOOP_MAX = 0.6;
+const SLOOP_AANDEEL = 0.05;
+// De opbrengst: een heel voertuig tussen 35% en 60% van de nieuwprijs (naar zijn gezondheid), een
+// wrak 5% sloopwaarde. Op 5 euro afgerond en altijd ruim onder de aankoopprijs.
+export function verkoopWaarde(prijs, health = 100, lost = false) {
+  const p = Number(prijs) || 0;
+  if (p <= 0) return 0;
+  if (lost) return Math.max(5, Math.round(p * SLOOP_AANDEEL / 5) * 5);
+  const h = Math.max(0, Math.min(100, Number.isFinite(health) ? health : 100)) / 100;
+  return Math.max(5, Math.round(p * (VERKOOP_MIN + (VERKOOP_MAX - VERKOOP_MIN) * h) / 5) * 5);
+}
+function verkoopVelden({ hero, key, spec, v, lost, status }) {
+  if (hero || !spec || !(spec.price > 0) || spec.unlock) return { canSell: false, sellValue: 0, sellLabel: '' };
+  const entry = getOwnedEntries().find((o) => o.key === key);
+  const health = v ? v.health : entry ? entry.health : 100;
+  const waarde = verkoopWaarde(spec.price, health, !!lost);
+  const sloop = !!lost;
+  return {
+    canSell: status !== 'driving', sellValue: waarde, sellScrap: sloop,
+    sellLabel: `${sloop ? 'Slopen' : 'Verkopen'} · +${euro(waarde)}`,
+  };
+}
+
+// Verkopen of slopen: weg uit de garage, geld erbij. In de wereld van een ander (gast) kan het niet:
+// je collectie is van jouw eigen spel, daar regel je het zelf.
+export function verkoopVoertuig(world, id) {
+  const e = getGarageList(world).find((x) => x.id === id);
+  if (!e || !e.owned) return { ok: false, text: 'Dat voertuig heb je niet' };
+  if (e.hero) return { ok: false, text: 'De Escapade houd je: die is van de familie' };
+  if (world.coopRole === 'client') return { ok: false, text: 'Verkopen doe je in je eigen spel, niet in dat van een ander' };
+  if (e.status === 'driving') return { ok: false, text: `Stap eerst uit je ${e.model}` };
+  if (!e.canSell) return { ok: false, text: `Je ${e.model} kun je niet verkopen` };
+  const o = removeOwnedEntry(world, id);
+  if (!o) return { ok: false, text: `Je ${e.model} kun je nu niet verkopen` };
+  noteMoney('Verkoop');
+  world.money += e.sellValue;
+  const text = e.sellScrap ? `${e.model} gesloopt voor ${euro(e.sellValue)}` : `${e.model} verkocht voor ${euro(e.sellValue)}`;
+  world.addMessage(text, 4);
+  return { ok: true, text, bedrag: e.sellValue };
+}
+
+// QoL (#985): welke garage-acties eerst een tweede druk vragen. Verkopen altijd; afleveren als het
+// meer dan 100 euro kost (een wrak is 15% van de nieuwprijs, bij een maaidorser €5.700).
+export const AFLEVER_BEVESTIG_VANAF = 100;
+export function actieBevestiging(e, actie) {
+  if (!e || !e.owned) return '';
+  if (actie === 'verkoop') return e.canSell ? `${e.sellScrap ? 'Slopen' : 'Verkopen'}: ${e.model} voor ${euro(e.sellValue)}. Dat kun je niet terugdraaien. Druk nog een keer om te bevestigen` : '';
+  if (actie === 'aflever' && e.fee >= AFLEVER_BEVESTIG_VANAF) return `Afleveren van je ${e.model} kost ${euro(e.fee)}. Druk nog een keer om te bevestigen`;
+  return '';
 }
 
 export function getGarageList(world) {

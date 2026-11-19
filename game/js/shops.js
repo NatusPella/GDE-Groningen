@@ -567,6 +567,16 @@ export function replacementFee(o) {
   return Math.max(40, Math.round(o.spec.price * 0.15 / 5) * 5);
 }
 
+// QoL (#985): een gekocht voertuig weer kwijt. Weg uit de collectie en uit de wereld; de aanroeper
+// (ownedvehicles.js verkoopVoertuig) rekent af. Wie erin zit, blijft: dan geeft het niets terug.
+export function removeOwnedEntry(world, key) {
+  const i = state.vehicles.findIndex((o) => o.key === key);
+  if (i < 0 || (state.vehicles[i].v && state.vehicles[i].v.driver === 'player')) return null;
+  const [o] = state.vehicles.splice(i, 1);
+  removeFromWorld(world, o.v);
+  return o;
+}
+
 // --- interaction -------------------------------------------------------------
 
 export function nearestShop(world) {

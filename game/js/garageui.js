@@ -191,7 +191,8 @@ function detailsHtml(e, msg) {
   // anders schoof hij over de laatste regel van WAAR (review 0.62).
   const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
     (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
-    (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
+    (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') +
+    (e.canSell ? `<button type="button" class="m-bg" data-garage-sell="${esc(e.id)}">${esc(e.sellLabel)}</button>` : '') + '</div>';
   const waarHtml = waar && waar.trim() ? secHtml('Waar', '', `<p class="gar-where">${waar}</p>`) : '';
   // Eerst wie en wat (titel, status, sfeerregel), dan de feiten (waar, cijfers,
   // uitvoering) en pas daarna de actie: de knop hoort bij het besluit dat de
