@@ -298,6 +298,7 @@ const lanes = createMissionLanes(chainState);
 // verdeelt de frame-tijd over de groepen die echt lopen (en houdt de eigen keten ook in de gaten zolang
 // die nog niet gestart is). Met één sleutel is dit precies het oude beeld.
 const missieLus = maakMissielus();
+const lusSleutels = [];            // per frame hergebruikt door updateMissions
 // #492: een gastgroep die zijn eigen opdracht start, krijgt een eigen keten onder een groepssleutel.
 // Hier hoort bij welke gast (slot) hem speelt en welke invoer die groep heeft (de toetsen die de gast
 // stuurt; zijn lichaam komt uit world.coopPartners, want de gastheer simuleert dat figuur).
@@ -357,6 +358,14 @@ function startGroepMissie(world, i, van) {
 
 export function initMissions(world) {
   worldRef = world;
+  // De ketens, pubs, groepsplekken en de missielus staan op moduleniveau: een nieuwe wereld (of een opnieuw
+  // geladen spel) begint zonder wat de vorige achterliet, ook geen keten van een gastgroep.
+  chains.clear();
+  missionPubs.clear();
+  groepSlots.clear();
+  groepInvoer.clear();
+  missieLus.groepen.clear();
+  missieLus.volgorde.length = 0;
   const defs = buildDefs(world);
   // een def met een eigen `mid` (de zijmissies, #400) houdt die id; de verhaaldefs krijgen hun id uit MISSION_IDS
   defs.forEach((d, i) => { d.id = d.mid || MISSION_IDS[i]; });
@@ -1838,13 +1847,16 @@ export function updateMissions(dt, world) {
   updateMissionsAlgemeen(dt, world);
   if (!chainState()) return;
   const eigen = chainKey(world);
-  const sleutels = [...chains.keys()].filter((k) => {
-    const st = chains.get(k);
-    if (!st) return false;
-    return st.phase === 'active' || st.phase === 'cooldown' || k === eigen;
-  });
-  for (const k of sleutels) zetGroep(missieLus, k, true);
-  for (const k of actieveGroepen(missieLus)) if (!sleutels.includes(k)) zetGroep(missieLus, k, false);
+  // hergebruikte lijst (geen spread en filter-closure per frame); met één keten die al meedoet is er niets te syncen
+  const sleutels = lusSleutels;
+  sleutels.length = 0;
+  for (const [k, st] of chains) {
+    if (st && (st.phase === 'active' || st.phase === 'cooldown' || k === eigen)) sleutels.push(k);
+  }
+  if (!(sleutels.length === 1 && missieLus.volgorde.length === 1 && missieLus.volgorde[0] === sleutels[0])) {
+    for (const k of sleutels) zetGroep(missieLus, k, true);
+    for (const k of actieveGroepen(missieLus)) if (!sleutels.includes(k)) zetGroep(missieLus, k, false);
+  }
   const was = world.coopGroepSleutel;
   const wasInvoer = world.input;
   tikMissielus(missieLus, dt, (sleutel, deel) => {
