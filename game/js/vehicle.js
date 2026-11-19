@@ -2066,12 +2066,31 @@ const SUNK_Z = WATER_Y - 2.8;
 const sinkingVehicles = new Set();
 let sinkTickAt = -1;
 
+// True when the vehicle moved (or rose/fell) far enough since its last water test, or went
+// WATER_RETEST_FRAMES frames without one (water that changes under a parked car). Records the spot.
+const WATER_RETEST_M = 0.5;
+const WATER_RETEST_FRAMES = 30;
+export function vehicleWaterTestDue(v) {
+  const z = v.z || 0;
+  if (v._wx !== undefined && !v.airborne && v._wskip < WATER_RETEST_FRAMES
+    && Math.abs(v.x - v._wx) + Math.abs(v.y - v._wy) < WATER_RETEST_M && Math.abs(z - v._wz) < 0.1) {
+    v._wskip++;
+    return false;
+  }
+  v._wx = v.x; v._wy = v.y; v._wz = z; v._wskip = 0;
+  return true;
+}
+
 export function checkVehicleWater(v, map, world, wet = null) {
   tickSinkingVehicles(world);
   if (v.sinking && !v.wrecked) { v.x = v.sinking.x; v.y = v.sinking.y; v.speed = 0; return false; }
   if (v.isBoat || v.wrecked || v.sinking || (v.parked && !v.speed)) return false;
   // a helicopter only goes in once it is down on the canal
   if (v.isHeli && (v.z || 0) > 0.2) return false;
+  const player = v.driver === 'player';
+  // Efficiëntie: een AI-voertuig dat nauwelijks verschoof sinds de vorige (droge) toets hoeft niet
+  // opnieuw (waterPolyAt + onCarRoad zijn niet gratis). De speler en elke test met eigen `wet` altijd.
+  if (!wet && !player && vehicleWaterTestDue(v) === false) return false;
   const isWet = wet || ((x, y, z) => overOpenWater(map, x, y, z));
   // #936/#949: alleen de auto van de speler wordt bij een graskade of kade
   // tegengehouden. Rustig ertegenaan is een tik; hard eroverheen is een plons.
