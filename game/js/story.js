@@ -43,7 +43,7 @@ import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender, flatStage, homeSpawnPoint } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
-import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp } from './cinematics.js';
+import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp, setOpeningDueProbe } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
 import { roofAt } from './camerapath.js';
 import { isInWater } from './util.js';
@@ -62,6 +62,7 @@ import { REMEMBRANCE } from './beppe_texts.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
+import { openingBlockers, openingIsNext } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
@@ -242,14 +243,21 @@ const GOALS = {
     begin: (st, b) => { b.phase = 'wait'; },
     met: (st, b) => {
       if (b.phase === 'wait') {
-        const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started') && !gateOn() && world.coopRole !== 'client';
-        if (ready && storyDataReady()) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
-        else if (ready && world.time - rt.enteredAt > 40) {
+        // #986: de opening is de eerste film na het laadscherm; de vlucht-in van de spelstart houdt hem niet tegen
+        // (openingstart.js). De reden van het wachten staat in de waarschuwing, zodat een vastloper zegt waarop hij wacht.
+        const blockers = openingBlockers({
+          started: document.body.classList.contains('game-started'), client: world.coopRole === 'client', gate: gateOn(),
+          missionActive: isMissionActive(), cinematicActive: isCinematicActive(), startActive: isCinematicActive('start'), sinceCinematicS: sinceCinematic(),
+          narrativeBusy: narrativeBusy(), pigeon: !!world.pigeonMode, respawn: !!world.pendingRespawn, dataReady: storyDataReady(),
+        });
+        if (!blockers.length) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
+        else if (world.time - rt.enteredAt > 40) {
           // #718: niet meer definitief overslaan als de wereld even niet rustig wordt (laden, rijden bij de
           // start): de opening blijft klaarstaan en wordt later alsnog geprobeerd. Wel één regel in de
-          // console, zodat een vastloper niet stil blijft. Na tien minuten geeft de stap het op.
-          if (!b.warned) { b.warned = true; try { console.warn('Verhaal: de opening wacht op rust; nieuwe poging zodra de wereld stil is.'); } catch (e) { /* geen console */ } }
-          if (world.time - rt.enteredAt > 600) b.phase = 'done';
+          // console, zodat een vastloper niet stil blijft. Na tien minuten geeft de stap het op, maar alleen
+          // als alleen de verhaaldata ontbreekt (een drukke wereld wacht door).
+          if (!b.warned) { b.warned = true; try { console.warn('Verhaal: de opening wacht op: ' + blockers.join(', ') + '; nieuwe poging zodra de wereld stil is.'); } catch (e) { /* geen console */ } }
+          if (world.time - rt.enteredAt > 600 && blockers.every((x) => x === 'verhaaldata nog niet geladen')) b.phase = 'done';
         }
       }
       return b.phase === 'done';
@@ -1114,6 +1122,12 @@ export function initStory(w) {
   const busyNow = () => isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn;
   Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, makeReisGoals({ getWorld: () => world, busy: busyNow, playLines: (id, from) => playTalk(talkLines(id, { from }), { id: 'reis:' + id, delay: 1.5 }) }));
   setMeetHook(meet);
+  // #986: is de opening de eerstvolgende film, dan slaat de spelstart zijn vlucht-in over (cinematics.js)
+  setOpeningDueProbe(() => {
+    if (!world) return false;
+    const st = currentStep();
+    return openingIsNext({ stepIsOpening: !!st && !st.end && st.goal && st.goal.type === 'opening', client: world.coopRole === 'client', dataReady: storyDataReady() });
+  });
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
   initSkipUi();

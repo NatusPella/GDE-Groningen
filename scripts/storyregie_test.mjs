@@ -12,7 +12,7 @@ const story = lees('story.js'), msrc = lees('missionstory.js'), akte3 = lees('cu
 // #718: de opening ankert op het nieuwe thuis, niet op de spelerpositie; niet meer definitief overslaan na 40 s;
 // en de klok gaat van dageraad (C00.1/C00.2) naar de ochtend.
 ok(/const thuis = homeSpawnPoint\(\)/.test(story) && /homeSpawnPoint/.test(story), 'opening: ankert op homeSpawnPoint');
-ok(/if \(world\.time - rt\.enteredAt > 600\) b\.phase = 'done'/.test(story) && !/else if \(ready && world\.time - rt\.enteredAt > 40\) b\.phase = 'done'/.test(story),
+ok(/world\.time - rt\.enteredAt > 600 && blockers\.every\(\(x\) => x === 'verhaaldata nog niet geladen'\)\) b\.phase = 'done'/.test(story) && !/else if \((ready|!blockers\.length) && world\.time - rt\.enteredAt > 40\) b\.phase = 'done'/.test(story),
   'opening: geen definitieve 40 s-overslag meer, alleen een late noodrem');
 ok(/zetKlok\(5\.75\)/.test(story) && /zetKlok\(8\)/.test(story), 'opening: klok van dageraad naar de ochtend');
 

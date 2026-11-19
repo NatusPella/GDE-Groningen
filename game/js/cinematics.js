@@ -801,6 +801,11 @@ function skyFlyInShot(w) {
   return flyInShot(w, { pos: W(p.x - fx * 60 + fy * 70, 130, p.y - fy * 60 - fx * 70), look: W(p.x, 0, p.y) });
 }
 
+// #986: story.js meldt of de openingsscène (M00) de eerstvolgende film is; dan speelt de spelstart zijn vlucht-in niet
+// eerst (de opening mag niet pas na een eigen filmpje komen).
+let openingDue = () => false;
+export function setOpeningDueProbe(fn) { openingDue = typeof fn === 'function' ? fn : () => false; }
+
 function playGameStart(w) {
   markNearbyLandmarksVisited(w, 70);
   // a new save starts with its own empty list; a loaded save brought its list in through
@@ -813,6 +818,9 @@ function playGameStart(w) {
   const first = mp && mp.position && mp.lookAt
     ? { pos: V(mp.position.x, mp.position.y, mp.position.z), look: V(mp.lookAt.x, mp.lookAt.y, mp.lookAt.z) }
     : null;
+  let opening = false;
+  try { opening = !w.loadedFromSave && openingDue(); } catch (e) { /* de vlucht-in speelt dan gewoon */ }
+  if (opening) return;
   const where = w.loadedFromSave ? 'Welkom terug in Grunn' : w.spawnLandmarkName ? `Je begint bij ${w.spawnLandmarkName}` : 'Welkom in Grunn';
   playCinematic({
     id: 'start', priority: 3, duration: 5.5, pause: true,
