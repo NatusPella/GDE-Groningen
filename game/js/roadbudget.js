@@ -9,3 +9,14 @@ export function roadBuildAllowed(built, now, deadline, cap = ROAD_BUILD_MAX_PER_
   if (built === 0) return true;
   return now <= deadline;
 }
+
+// #883: een heavy weg (de hoofdthread bouwt hem zelf) wachtte tot er hoogstens twee wegen te streamen
+// waren, maar telde zichzelf mee: in een dorp waar alle wegen heavy zijn (provinciewereld) bleven er
+// tientallen over en bouwde er nooit een, zodat de wegen bij de speler ontbraken. Nu wacht hij
+// hoogstens HEAVY_ROAD_WAIT_FRAMES frames en bouwt daarna één per frame (de dichtstbijzijnde eerst).
+export const HEAVY_ROAD_WAIT_FRAMES = 12;
+
+export function heavyRoadAllowed(built, streamPending, waitedFrames) {
+  if (built > 0) return false;
+  return streamPending <= 2 || waitedFrames >= HEAVY_ROAD_WAIT_FRAMES;
+}

@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De weg ligt weer onder je voeten (#883):** in dorpen als Usquert en Visvliet zag je vlak bij jezelf alleen gras of akker, terwijl de weg verderop wel klopte; auto's reden over het gras. De wegen binnen honderdveertig meter bleven wachten op een beurt die nooit kwam. Ze worden nu in volgorde van dichtbij naar ver opgebouwd, een per beeld, dus ook als er tientallen wegen in beeld zijn.
+
 ## [0.64.0] - 2026-11-17
 
 - **Elk escape-menu heeft nu een kop die iets zegt (#980):** Loopbanen toont de ladder als een trap met het loon per niveau en de eerstvolgende stap in een eigen kader; Prestaties laat de elf categorieën als kaarten zien met hun icoon, balk en de eerstvolgende haalbare prestatie; Veroverd zet de taken open met een knop naar de kaart; Spullen legt uit wat een voorwerp is en waar het vandaan komt in plaats van de lijst te herhalen, met een kasboek bij je geld; Activiteiten opent met kaarten voor "Begin hier" en drie grote getallen in plaats van een muur van tellers; Garage knipt geen kaarten meer af en zet de feiten vóór de actie; Foto's is een galerij met een kop in plaats van een bestandslijst.

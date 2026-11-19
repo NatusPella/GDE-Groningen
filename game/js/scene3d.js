@@ -90,7 +90,7 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
-import { roadBuildAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
+import { roadBuildAllowed, heavyRoadAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -2157,7 +2157,7 @@ let bridgeViews = false;
 // ROAD_SYNC_IDLE_FRAMES really bounds the skip; ?perfoff=wegsync turns the guard
 // off for the A/B measurement. See docs/PERF-LAADHANG-0.56.1.md (#553).
 const ROAD_SYNC_IDLE_FRAMES = 6;
-let roadSyncIdle = null, roadSyncFrame = 0;
+let roadSyncIdle = null, roadSyncFrame = 0, roadHeavyWait = 0; // roadHeavyWait: frames waarin een heavy weg wachtte (#883)
 // #804: teller voor de wegopbouw (meetbaar in de perf-harness en tests)
 export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0, heavyBuilt: 0, heavyDeferred: 0 };
 function syncRoads(world, px, py) {
@@ -2198,7 +2198,7 @@ function syncRoads(world, px, py) {
     const boosted = t0 < streamBoostUntil;
     const deadline = t0 + (boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
     const cap = boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
-    let built = 0, waiting = false;
+    let built = 0, waiting = false, deferred = false;
     for (const [, r, , near] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
       // from the nearest of them on. The request goes out here (best first),
@@ -2216,7 +2216,7 @@ function syncRoads(world, px, py) {
       // frame: geen andere weg dit frame en bijna niets meer te streamen. Anders
       // schuift hij door naar een volgend frame (heavyDeferred).
       const heavy = !r._geoRoad || (r.z && r._geoStruct === undefined);
-      if (heavy && (built > 0 || streamStat.r > 2)) { roadSyncStats.heavyDeferred++; continue; }
+      if (heavy && !heavyRoadAllowed(built, streamStat.r, roadHeavyWait)) { roadSyncStats.heavyDeferred++; deferred = true; continue; }
       if (!roadBuildAllowed(built, performance.now(), deadline, cap)) { roadSyncStats.deadlineStops++; break; }
       if (heavy) roadSyncStats.heavyBuilt++;
       coldRoads.delete(r);
@@ -2231,6 +2231,7 @@ function syncRoads(world, px, py) {
       probe.mark('road-add');
       built++;
     }
+    roadHeavyWait = deferred ? roadHeavyWait + 1 : 0;
     // De detailring is een cirkel (de verre LOD tekent vanaf roadDetailR), dus
     // hij reikt tot de dichtstbijzijnde weg die nog mist; met de
     // vooruit-volgorde is dat niet per se de weg waar de lus stopte (#247).
