@@ -4,6 +4,8 @@
 // verliezen. Het logica-deel is puur (Node-test: scripts/bakeround_test.mjs); het paneel is een kleine
 // DOM-kaart die alleen in de browser bestaat.
 
+import { maakWidget } from './regelwidget.js'; // #987: het recept en de toetsen als iconen in plaats van een tekstlijst
+
 const INGREDIENTS = [
   { key: '1', id: 'ei', label: 'Gekookt ei' },
   { key: '2', id: 'zout', label: 'Zout' },
@@ -70,24 +72,41 @@ export function bakePanel(b, title = '') {
 
 // --- het paneel (alleen in de browser) -----------------------------------------
 let panel = null;
+let rwStappen = null, rwToetsen = null;
 
 function ensurePanel() {
   if (panel || typeof document === 'undefined') return panel;
   panel = document.createElement('div');
   panel.id = 'bakeround';
   panel.style.cssText = 'position:fixed;left:50%;bottom:18%;transform:translateX(-50%);z-index:30;background:rgba(32,24,16,.88);color:#fdf3dc;border:2px solid #e9b44c;border-radius:10px;padding:10px 16px;font:15px/1.4 Arial Narrow, Arial, sans-serif;text-align:center;pointer-events:none;min-width:280px';
+  panel.innerHTML = '<div class="bk-kop"></div><div class="bk-ronde"></div><div class="bk-regel"></div><div class="bk-toetsen"></div><div class="bk-mis"></div>';
   document.body.appendChild(panel);
+  // #987: de stappen van het recept (gedaan met icoon, de rest alleen genummerd, zodat Oma's volgorde niet wordt verklapt)
+  // en de zes ingrediënten met hun toets als legenda
+  const q = (s) => panel.querySelector(s);
+  q('.bk-kop').style.fontWeight = '700';
+  q('.bk-mis').style.cssText = 'color:#ffb199;margin-top:4px';
+  q('.bk-regel').style.margin = q('.bk-toetsen').style.margin = '6px 0 0';
+  rwStappen = maakWidget('stappen', q('.bk-regel'), { label: 'Recept' });
+  rwToetsen = maakWidget('stappen', q('.bk-toetsen'), { modus: 'legenda', label: 'Ingrediënten' });
+  if (rwToetsen) rwToetsen.inv.stappen = INGREDIENTS.map((i) => ({ icoon: i.id, label: i.label, waarde: i.key }));
   return panel;
 }
 
 function render(b, title) {
   const el = ensurePanel();
   if (!el) return;
-  const have = b.order.slice(0, b.step).map((id) => INGREDIENTS.find((q) => q.id === id).label);
-  const keys = INGREDIENTS.map((q) => `<b>${q.key}</b> ${q.label}`).join(' · ');
-  el.innerHTML = `<div style="font-weight:700">${title}</div><div>Eierbal ${Math.min(b.round + 1, b.rounds)} van ${b.rounds} · mislukt ${b.misses}/${b.maxMisses}</div>`
-    + `<div style="margin:4px 0">${have.length ? have.join(' → ') : 'Begin met het eerste ingrediënt'}</div><div style="font-size:12px;opacity:.85">${keys}</div>`
-    + (b.last ? `<div style="color:#ffb199;margin-top:4px">${b.last}</div>` : '');
+  const q = (s) => el.querySelector(s);
+  const set = (sel, t) => { const n = q(sel); if (n.textContent !== t) n.textContent = t; };
+  set('.bk-kop', title);
+  set('.bk-ronde', `Eierbal ${Math.min(b.round + 1, b.rounds)} van ${b.rounds} · mislukt ${b.misses}/${b.maxMisses}`);
+  set('.bk-mis', b.last || '');
+  if (rwStappen) {
+    rwStappen.inv.stappen = b.order.map((id, k) => (k < b.step ? { icoon: id, label: INGREDIENTS.find((x) => x.id === id).label } : { icoon: '', label: '?' }));
+    rwStappen.inv.klaar = b.step;
+    rwStappen.ververs();
+  }
+  if (rwToetsen) rwToetsen.ververs();
 }
 
 export function showBake(b, title = 'Oma\'s recept') {
@@ -96,7 +115,7 @@ export function showBake(b, title = 'Oma\'s recept') {
 
 export function hideBake() {
   if (panel && panel.parentNode) panel.parentNode.removeChild(panel);
-  panel = null;
+  panel = null; rwStappen = null; rwToetsen = null;
 }
 
 // Per beeld: leest de toetsen 1-6. Geeft het resultaat van de laatste toevoeging, of null.

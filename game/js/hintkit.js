@@ -62,7 +62,14 @@ export const HINTS = [
   { id: 'm-carbid', kind: 'minigame', match: 'carbid', title: 'Carbid schieten', body: 'Melkbus, deksel en een flinke knal. Blijf zelf op afstand.' },
   { id: 'm-kermis', kind: 'minigame', match: 'kermis', title: 'Kermis', body: 'Botsautootjes: botsen mag. Stuur en trap het gas in.' },
   { id: 'm-wandeling', kind: 'minigame', match: 'wandeling', title: 'Wandeling', body: 'Vijf stempelposten langs het Pieterpad, tegen de klok.' },
+  // #987: eerste-keer-uitleg als regelwidget (regelwidget.js): geen kaart, maar een toets met een korte lus op het bord van de
+  // minigame zelf. pickHint slaat kind 'widget' over; de minigame vraagt met widgetNodig() of de widget nog getoond moet worden
+  // en zet hem na de eerste echte handeling in de gezien-lijst, daarna blijft hij stil.
+  { id: 'w-klim-toets', kind: 'widget', match: 'klimtoren', title: 'Klimmen', body: 'Houd {A} en {D} allebei vast om te klimmen, {SPACE} is magnesium.' },
 ];
+
+// Moet de regelwidget van dit id nog getoond worden? Een onbekend id of een gezien id: nee.
+export const widgetNodig = (seen, id) => HINTS.some((h) => h.kind === 'widget' && h.id === id) && !seen.has(id);
 
 // What is going on now, from the world, as plain data (world-free for tests).
 export function situation(w) {

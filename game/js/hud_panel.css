@@ -707,3 +707,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
     max-width: min(56vw, calc(100vw - 2 * (46px + 250px))) !important;
   }
 }
+
+/* #987: regelwidgets (regelwidget.js) onder de doelregel, bijvoorbeeld de eierrit: snelheid tegen de limiet en de eieren */
+#hud .hud-obj-regel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; max-width: 100%; }
+#hud .hud-obj-regel[hidden] { display: none; }

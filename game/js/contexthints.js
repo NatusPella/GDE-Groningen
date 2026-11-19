@@ -11,7 +11,7 @@ import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
-import { pickHint, situation, parseSeen, serializeSeen } from './hintkit.js';
+import { pickHint, situation, parseSeen, serializeSeen, widgetNodig } from './hintkit.js';
 
 const KEY_TOKEN = /\{(\w+)\}/g;
 const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -31,6 +31,15 @@ function load() {
 export function resetContextHints() {
   seen = new Set();
   try { localStorage.removeItem(KEYS.hintsGezien); } catch (e) { /* ignore */ }
+}
+
+// #987: de eerste-keer-uitleg als regelwidget deelt de gezien-lijst met de kaarten: één regel tegelijk, pas als de speler
+// de handeling nodig heeft, en na de eerste echte handeling blijft hij stil (widgetUitlegKlaar).
+export const widgetUitlegNodig = (id) => widgetNodig(seen, id);
+export function widgetUitlegKlaar(id) {
+  if (!widgetNodig(seen, id)) return;
+  seen.add(id);
+  try { localStorage.setItem(KEYS.hintsGezien, serializeSeen(seen)); } catch (e) { /* memory only */ }
 }
 
 export function updateContextHints(dt, w) {

@@ -8,6 +8,8 @@ import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
+import { maakWidget } from './regelwidget.js'; // #987: de handeling als toets met een lus in plaats van een lap tekst
+import { widgetUitlegNodig, widgetUitlegKlaar } from './contexthints.js';
 import { onthullingScene } from './uitjescene.js';
 import { standActivity, recLine } from './standactivity.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
@@ -40,6 +42,8 @@ const INTRO_S = 1.6;
 let game = null;
 let built = null;
 let board = null;
+let rwKlim = null;
+const KLIM_UITLEG = 'w-klim-toets';
 let lodT = 0;
 let runs = 0;
 const seed = 7;
@@ -237,6 +241,10 @@ function camera(w) {
 
 function ensureBoard() {
   if (!board) board = createBoard('klimtoren');
+  if (!rwKlim) {
+    rwKlim = maakWidget('toets', board.root, { toetsen: ['A', 'D'], handeling: 'houd', label: 'Klimmen' });
+    if (rwKlim) board.root.insertBefore(rwKlim.root, board.root.querySelector('.mg-flash'));
+  }
   return board;
 }
 
@@ -251,8 +259,14 @@ function updateHud(w) {
   const stand = online.length ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Klimmer</th><th scope="col">Tijd</th><th scope="col">Stand</th></tr></thead><tbody>${online.map((r) => `<tr class="${r.weg ? 'weg' : ''}"><td>${online.indexOf(r) + 1}</td><th scope="row">${esc(r.naam)}</th><td>${r.banen === 1 ? fmtTime(r.slagen / 10) : '-'}</td><td>${r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'}</td></tr>`).join('')}</tbody></table>` : '';
   const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
-  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A en D allebei vast: je klimt omhoog' : '';
-  const help = `${key('A')} + ${key('D')} vasthouden · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
+  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' && !g.rwAan ? 'Houd A en D allebei vast: je klimt omhoog' : '';
+  // #987: de eerste keer toont het bord de handeling als toets met een lus (Houd A en D) en staat de zin er niet meer naast;
+  // na de eerste echte klim (4 s van de grond) is de widget klaar en staat de bekende regel er weer
+  const uitleg = !!rwKlim && widgetUitlegNodig(KLIM_UITLEG) && (g.phase === 'intro' || g.phase === 'run');
+  if (uitleg && !g.rwAan) { g.rwAan = true; rwKlim.ververs(); }
+  else if (!uitleg && g.rwAan) { g.rwAan = false; rwKlim.verberg(); }
+  if (g.rwAan && !s.ground) { if (g.klimVan == null) g.klimVan = g.t; else if (g.t - g.klimVan > 4) widgetUitlegKlaar(KLIM_UITLEG); }
+  const help = g.rwAan ? `${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen` : `${key('A')} + ${key('D')} vasthouden · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
   board.set({ row, extra: stand, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
@@ -304,12 +318,13 @@ function start(w, { online = null, revealed = false } = {}) {
   ensureBoard();
   board.show();
   runs++;
+  if (rwKlim) rwKlim.verberg();
   game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createClimb(holds), flash: null, cam: null, said: 0, online };
   ensureHolds(game.s.holds);
   const side = FR.toW(7, 3);
   w.companionHold = { x: side.x, y: side.y, face: Math.PI };
   if (online === 'gast') { place(w); return true; } // a guest reads the keys on the board; the host's invitation said what is played
-  showCard(w, { kind: 'tip', kicker: 'Klimtoren', title: 'Twaalf meter', body: 'Houd [A] en [D] allebei vast: je handen grijpen om de beurt een greep hoger. Laat je één hand los, dan hangt de klimmer aan de andere; laat je allebei los, dan val je. Grote grepen zijn rustplekken, [Spatie] is magnesium.', duration: 11, key: 'klimtoren-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Klimtoren', title: 'Twaalf meter', body: 'Houd [A] en [D] allebei vast: je klimt. Eén hand los: je hangt. Allebei los: je valt. Grote grepen zijn rustplekken.', duration: 8, key: 'klimtoren-help', voice: false });
   say(w, 'start', true);
   place(w);
   return true;

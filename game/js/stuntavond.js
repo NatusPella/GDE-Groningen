@@ -176,7 +176,7 @@ export function startStunt(w, { center, radius = 45, target = 1500, shield = 0 }
     mine.broken++;
     addPoints(w, s.pts, s.label);
   });
-  showStuntHud(run.target);
+  showStuntHud(run.target, [], { legenda: KINDS.slice(0, 3).map((k) => ({ icoon: k.kind, label: k.label, waarde: '+' + k.pts })) }); // #987: puntenlegenda in het paneel
   return true;
 }
 

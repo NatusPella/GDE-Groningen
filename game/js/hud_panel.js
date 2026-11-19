@@ -93,6 +93,7 @@ import { getPlaySeconds } from './savegame.js';
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
+import { maakWidget, zetAankondiger } from './regelwidget.js'; // #987: regel als icoon en meter (eierrit)
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = INK.greenLight;
@@ -209,7 +210,7 @@ export function initHud(world) {
   mission.className = 'hud-mission';
   mission.setAttribute('aria-live', 'polite');
   mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 10-9 10-9-10z"/></svg>' +
-    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-obj-keys" aria-label="Besturing" hidden></div></div><span class="hud-obj-dist"></span>';
+    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-obj-keys" aria-label="Besturing" hidden></div><div class="hud-obj-regel" hidden></div></div><span class="hud-obj-dist"></span>';
   root.appendChild(mission);
 
   // zone E: the radio station (an achievement goes first, hudcards.js)
@@ -340,6 +341,8 @@ export function initHud(world) {
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionProgress: mission.querySelector('.hud-mission-progress'),
     objKeys: mission.querySelector('.hud-obj-keys'), // #824
+    objRegel: mission.querySelector('.hud-obj-regel'), // #987: regelwidgets onder de doelregel
+    rwEgg: null, rwEggen: null, rwA: NaN, rwB: NaN, rwC: NaN, rwD: NaN,
     missionDist: mission.querySelector('.hud-obj-dist'),
     locationEl: location,
     district: location.querySelector('.hud-district'),
@@ -1559,6 +1562,34 @@ function updateMission(dt, world) {
     if (o.kind === 'goal') ring(els.mission);
   }
   updateObjectiveKeys(world, o.kind);
+  updateRegelwidgets(world, o.kind);
+}
+
+// #987: de eierrit als meter en icoontjes in plaats van alleen een zin: de snelheid tegen de limiet met een
+// waarschuwingszone, en de eieren die breken. Eén keer gebouwd, daarna alleen een schrijfbeurt als een getal
+// verandert (rwA..rwD zijn de laatst getoonde waarden). De tekstregel erboven blijft staan.
+function updateRegelwidgets(world, kind) {
+  const m = world.mission;
+  const egg = kind === 'mission' && m && m.phase === 'active' && m.eggLimit ? m : null;
+  if (!egg) {
+    if (els.rwEgg) { els.rwEgg.verberg(); els.rwEggen.verberg(); els.objRegel.hidden = true; }
+    return;
+  }
+  if (!els.rwEgg) {
+    zetAankondiger(announce);
+    els.rwEgg = maakWidget('limiet', els.objRegel, { marge: 2, eenheid: 'km/u', label: 'Snelheid', icoon: 'meter' });
+    els.rwEggen = maakWidget('voorraad', els.objRegel, { icoon: 'ei', label: 'Eieren' });
+  }
+  const kmh = egg.eggKmh | 0, heel = egg.eggsHeel | 0;
+  if (kmh === els.rwA && egg.eggLimit === els.rwB && heel === els.rwC && egg.eggsTotaal === els.rwD) return;
+  els.rwA = kmh; els.rwB = egg.eggLimit; els.rwC = heel; els.rwD = egg.eggsTotaal;
+  els.objRegel.hidden = false;
+  const l = els.rwEgg.inv;
+  l.waarde = kmh; l.limiet = egg.eggLimit;
+  const v = els.rwEggen.inv;
+  v.heel = heel; v.totaal = egg.eggsTotaal;
+  els.rwEgg.ververs();
+  els.rwEggen.ververs();
 }
 
 // #824: de compacte bedieningsregel hoort bij missies, bijbanen en achtervolgingen. Hij staat in

@@ -959,6 +959,9 @@ function syncPub(world) {
   pub.cargo = r && def.fragile ? Math.round(cargoLeft(def)) : null;
   pub.eggLimit = active && def.eggs && st.stageIndex >= def.eggs.from ? eggLimitKmh(def) : null;
   pub.eggKmh = pub.eggLimit ? Math.round(eggSpeedKmh(st.eggPrev)) : null;
+  // #987: het aantal heel gebleven eieren voor de regelwidget (de meter is een percentage; zonder eierental 100 stuks)
+  pub.eggsTotaal = pub.eggLimit ? (def.eggs.count || 100) : null;
+  pub.eggsHeel = pub.eggLimit && st.eggs != null ? Math.round(st.eggs / 100 * pub.eggsTotaal) : null;
   pub.progressText = rv ? (board ? 'Stap in de rondvaartboot' : boatProgressText(rv)) : active ? progressText(world, def, pub) : null;
   const race = st.race && active ? raceStandings(st.race) : null;
   world.race = race ? {

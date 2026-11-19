@@ -4,6 +4,9 @@
 // window running out, a "nog X punten" line near the end, and a popup per
 // action ("+120 parasol", "reeks x2", "-250 iemand geraakt"). Lives in #hud,
 // so it fades with the rest of the HUD during cutscenes.
+// #987: onder de score staat de puntenlegenda als regelwidget (parasol, kliko, reclamebord met hun punten),
+// zodat zonder zin duidelijk is wat punten oplevert.
+import { maakWidget } from './regelwidget.js';
 
 const CSS = `
 #hud .stunt-hud { position: absolute; top: calc(var(--hud-tr-bottom) + 8px); right: var(--hud-edge, 46px); width: 232px; box-sizing: border-box;
@@ -23,6 +26,7 @@ const CSS = `
 #hud .stunt-hud .sh-left { margin-top: 4px; font-size: 20px; letter-spacing: 0.5px; }
 #hud .stunt-hud .sh-left[data-urgent="1"] { color: #e8c93a; animation: sh-pulse 0.9s ease-in-out infinite alternate; }
 #hud .stunt-hud .sh-left[data-done="1"] { color: var(--gron-green-light); }
+#hud .stunt-hud .rw { background: none; box-shadow: none; padding: 6px 0 0; }
 @keyframes sh-pulse { to { opacity: 0.55; } }
 #hud .stunt-pops { position: absolute; top: calc(var(--hud-tr-bottom) + 12px); right: 292px; width: 220px; height: 150px; pointer-events: none; }
 #hud .stunt-pop { position: absolute; right: 0; top: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 28px;
@@ -69,7 +73,7 @@ function ensure() {
   panel.innerHTML = '<div class="sh-top"><span class="sh-label">Stuntavond · punten</span><span class="sh-combo" data-on="0"></span></div>' +
     '<div class="sh-score"><span class="sh-num">0</span> <small>/ <span class="sh-target"></span></small></div>' +
     '<div class="sh-bar" role="progressbar" aria-label="Punten naar het doel" aria-valuemin="0" aria-valuemax="100"><i></i></div>' +
-    '<div class="sh-cw" aria-hidden="true"><i></i></div><div class="sh-left"></div>';
+    '<div class="sh-cw" aria-hidden="true"><i></i></div><div class="sh-left"></div><div class="sh-legenda"></div>';
   const pops = document.createElement('div');
   pops.className = 'stunt-pops';
   pops.setAttribute('aria-hidden', 'true');
@@ -81,14 +85,17 @@ function ensure() {
     root, panel, pops, brief,
     num: panel.querySelector('.sh-num'), target: panel.querySelector('.sh-target'), combo: panel.querySelector('.sh-combo'),
     bar: panel.querySelector('.sh-bar'), fill: panel.querySelector('.sh-bar i'), cw: panel.querySelector('.sh-cw i'), left: panel.querySelector('.sh-left'),
+    legenda: maakWidget('stappen', panel.querySelector('.sh-legenda'), { modus: 'legenda', label: 'Punten per ding' }),
   };
   return els;
 }
 
 // (older callers still pass a rules list and options; the brief no longer lists them)
-export function showStuntHud(target) {
+export function showStuntHud(target, rules, opts) {
   const e = ensure();
   if (!e) return;
+  const lg = opts && Array.isArray(opts.legenda) ? opts.legenda : null;
+  if (e.legenda && lg) { e.legenda.inv.stappen = lg; e.legenda.ververs(); }
   state = { target, shown: -1, briefT: BRIEF_TIME, briefUp: false };
   e.target.textContent = String(target);
   e.brief.classList.remove('out');
