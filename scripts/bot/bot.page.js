@@ -70,10 +70,59 @@ let lastCine = false;
 let wedgeOut = false, wedgeDir = 1;
 let follower = null, followKey = '', planAt = -99, lastStep = null, lastPhase = '', shots = 0;
 const MAX_SHOTS = CFG.shots || 80;
-const shot = (name) => { if (shots < MAX_SHOTS) { shots++; B.shot(name); } };
-world.devInvuln = !!CFG.invulnerable;
+// --mens: de oogmomenten (oog()) vervangen de losse beelden bij begin, start, mislukken en filmpje; alleen de --watch-reeks (szene) en het eindbeeld blijven
+const shot = (name, eigen = false) => { if (CFG.mens && !eigen && !/szene|einde/.test(name)) return; if (shots < MAX_SHOTS) { shots++; B.shot(name); } };
+world.devInvuln = !!CFG.invulnerable && !CFG.mens;
 // --speed=N: N gameplay steps per frame (playerapi speed); waiting budgets and stuck windows are in game time, so they scale along
 if (CFG.speed > 1) B.speed(CFG.speed);
+
+// #186 --mens (opt-in, scripts/bot/mens.mjs als window.__botMens, docs/PROEFSPELER.md): de bot speelt als een mens: reactietijd, stuur- en richtruis,
+// de HUD-route in plaats van de eigen routeplanner, GEEN cheats (elke cheat wordt geweigerd en gelogd; vast blijven staan is opgeven na het wachtbudget),
+// een vast aantal pogingen per missie, en per doelwissel/falen/slagen/filmpje een 'oog'-moment (beeld plus momentopname in events.jsonl).
+// Zonder --mens verandert er niets aan deze bot.
+const Mens = window.__botMens || null;
+const MENS = !!(CFG.mens && Mens);
+if (CFG.mens && !Mens) B.log('mens', { what: 'window.__botMens ontbreekt: start via scripts/bot/run.mjs' });
+const mensP = MENS ? Mens.mensProfiel(CFG.seed || 1, { pogingen: CFG.pogingen || 3 }) : null;
+const oogRem = MENS ? new Mens.OogRem() : null, kaartDuur = MENS ? new Mens.TekstDuur() : null;
+const posTrail = [];
+let S3 = null, TP = null, oogN = 0;
+if (MENS) {
+  try { S3 = await imp('scene3d'); TP = await imp('tileplace'); } catch (e) { B.log('oog-fout', { wat: 'scene3d/tileplace niet geladen', msg: String(e && e.message || e).slice(0, 160) }); }
+  const stick0 = B.stick;
+  B.stick = (x, y) => { const q = mensP.stick(x, y, !!player.inVehicle); stick0(q[0], q[1]); };
+  for (const k of Object.keys(B.cheat)) B.cheat[k] = () => { B.log('cheat-geweigerd', { welke: k }); return false; };
+  B.log('mens', { seed: CFG.seed || 1, reactieMs: [Mens.MENS.reactieMin, Mens.MENS.reactieMax], pogingen: mensP.pogingen, wachtS: CFG.waitS || 45, cheats: 'geweigerd' });
+}
+// de camera als basis (three-ruimte: X = x, Y = hoogte, Z = y) en de dakhoogte van een gebouw (b.h verdiepingen van 3,1 m, scene3d.js)
+function camDesc() {
+  try { const c = S3 && S3.getCamera(); if (!c) return null; c.updateMatrixWorld(); return Mens.cameraUitMatrix(c.matrixWorld.elements, c.fov, c.aspect); } catch (e) { return null; }
+}
+function hoogteAt(x, y) { try { const b = TP.buildingAt(world.map, x, y); return b ? (b.h || 3) * 3.1 + (b.lift || 0) : null; } catch (e) { return null; } }
+// de uitleg- en contexthints die op dit moment in beeld staan (prompts.js)
+function kaartNu() {
+  try { return [...document.querySelectorAll('.hud-ctx .ctx-row, .hud-prompts .wp')].filter((el) => el.offsetParent !== null).map((el) => String(el.textContent || '').replace(/\s+/g, ' ').trim()).filter(Boolean).join(' | ').slice(0, 200); } catch (e) { return ''; }
+}
+// één oogmoment: de momentopname (doel, zichtbaarheid van het waypoint, ondertitel, kaart, schade, snelheid, frametijd, gezocht, stilstand) en het beeld
+function oog(reden, opts = {}) {
+  if (!MENS) return;
+  const s = B.status();
+  if (!oogRem.mag(reden, s.t, { dwing: !!opts.dwing })) return;
+  const naam = (s.story.id || 'x') + '-oog' + String(++oogN).padStart(2, '0') + '-' + reden;
+  let zicht = null;
+  if (s.target && !s.blocking.cinematic) zicht = Mens.doelZichtbaarheid(camDesc(), { x: s.target.x, y: s.target.y, z: Number.isFinite(s.target.z) ? s.target.z : 1.5 }, { hoogteAt: TP ? hoogteAt : null });
+  const kaart = kaartNu();
+  const fm = window.__debug && window.__debug.frameStats ? window.__debug.frameStats.frameMs : null;
+  B.log('oog', Mens.bouwOogMoment({ reden, naam: s.story.title || '', s, zicht, frameMs: fm, kaartTekst: kaart, kaartS: kaartDuur.zie(s.t, kaart), spreiding: Mens.bewegingsSpreiding(posTrail), stilS: meter ? Math.max(0, s.t - meter.lastAct) : 0, shot: naam }));
+  shot(naam, true);
+}
+// per tick: de positiereeks voor de spreiding, de duur van de kaart en een 'stil'-moment als de bot 8 s niets deed
+function mensTick(s) {
+  if (s.t - (mem.posT ?? -9) >= 0.5) { mem.posT = s.t; posTrail.push({ t: s.t, x: s.player.x, y: s.player.y }); if (posTrail.length > 60) posTrail.shift(); }
+  kaartDuur.zie(s.t, kaartNu());
+  const stilS = meter ? s.t - meter.lastAct : 0;
+  if (stilS >= 8 && !mem.stilGemeld) { mem.stilGemeld = true; oog('stil', { dwing: true }); } else if (stilS < 2) mem.stilGemeld = false;
+}
 
 // the game's own walking collision (player.js WALK_OPTS): a point is free when a walker standing there is not pushed out
 const WALK_OPTS = { byPlayer: true, noWalls: true };
@@ -113,7 +162,16 @@ function waterAhead(car) {
 function plan(s, mode, tgt) {
   const kind = mode === 'drive' ? 'drive' : 'walk';
   const me = { x: s.player.x, y: s.player.y };
-  let pts = null;
+  let pts = null, viaHud = false;
+  // --mens: de route die het spel de speler zelf toont (HUD-lijn en minimap) gaat voor de eigen routeplanner; zonder zo'n lijn valt hij terug op plan()
+  if (MENS && mode !== 'boat') {
+    try {
+      const gps = R.getActiveRoute();
+      const e = gps && gps.pts && gps.pts.length > 1 ? gps.pts[gps.pts.length - 1] : null;
+      const ahead = e && L.distance({ x: e[0], y: e[1] }, tgt) < 80 ? R.getRouteAhead(1e9) : null;
+      if (ahead && ahead.length) { pts = ahead; viaHud = true; }
+    } catch (e) { /* geen HUD-route */ }
+  }
   try {
     // a boat sails the waterway net (planBoatTrip), the land graph knows nothing of water
     // in a chase the player simply turns round in a one-way street, or drives out of a street that is closed to cars (the game lets him): the legal
@@ -121,15 +179,15 @@ function plan(s, mode, tgt) {
     // 'lost'. The walking graph runs both ways along every street: from the Gelkingestraat 488 m up the street, over the Grote Markt to the Oude
     // Boteringestraat (M26, #354)
     const chasing = kind === 'drive' && s.mission.active && s.mission.stage === 'chase';
-    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, chasing ? 'walk' : kind, [me.x, me.y], [tgt.x, tgt.y]);
-    pts = r && r.pts && r.pts.length ? r.pts : null;
+    const r = viaHud ? null : mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, chasing ? 'walk' : kind, [me.x, me.y], [tgt.x, tgt.y]);
+    if (!viaHud) pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
   // outside the city graph (the Ommeland) planLandRoute finds nothing, and where the own route ran into a wall (a detour was needed)
   // the line the game itself shows the player is the better one, when it leads to this goal
   // the planner starts a route on the nearest road it may use: a car that stands in a street closed to cars (the Gelkingestraat, where the M26 chase
   // starts) got a route that began on the Pelsterstraat, 130 m away, and drove straight at that first point through the houses (#354)
   if (mode !== 'boat' && L.routeStartsFar(me, pts)) { B.log('route-start-ver', { van: [Math.round(me.x), Math.round(me.y)], eerste: pts[0].map(Math.round) }); pts = null; }
-  let src = pts ? 'plan' : 'recht';
+  let src = viaHud && pts ? 'hud' : pts ? 'plan' : 'recht';
   if (!pts || (kind === 'walk' && detours[mem.stageKey] > 0)) {
     try {
       const gps = R.getActiveRoute();
@@ -489,10 +547,26 @@ async function rescue(s, stepKey, info) {
   if (!info.quiet) {
     B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
     shot(`${stepKey}-vast`);
+    oog('vast', { dwing: true });
   }
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
   if (s.player.vehicle && !s.player.vehicle.plane && !s.player.vehicle.heli && !s.blocking.cinematic && (vdetours[stepKey] = (vdetours[stepKey] || 0) + 1) <= 4) { await vdetour(s, vdetours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
+  // --mens: geen cheat. Vast blijven staan wordt gelogd; na het wachtbudget geeft de bot op (een mens typt geen code in)
+  if (MENS) {
+    const mv = mem.mensVast = mem.mensVast || {};
+    const q = mv[stepKey] = mv[stepKey] && s.t - mv[stepKey].laatst < 90 ? mv[stepKey] : { sinds: s.t, laatst: s.t };
+    q.laatst = s.t;
+    if (info.quiet) B.log('vast', { step: stepKey, x: s.player.x, y: s.player.y, stilS: Math.round(info.idleFor || 0), afstand: s.target ? s.target.distance : null });
+    if (s.t - q.sinds >= (CFG.waitS || 45) || (info.idleFor || 0) >= (CFG.waitS || 45)) {
+      mem.opgegeven = 'vast bij ' + stepKey + ' (' + Math.round(Math.max(s.t - q.sinds, info.idleFor || 0)) + ' s, geen cheat gebruikt)';
+      B.log('opgegeven', { reden: mem.opgegeven, step: stepKey, x: s.player.x, y: s.player.y, afstand: s.target ? s.target.distance : null });
+      oog('opgegeven', { dwing: true });
+      return;
+    }
+    await nudge(s); detector.acknowledge(s.t);
+    return;
+  }
   const m = s.mission.active;
   let ok = false;
   if (rung === 'teleport') ok = B.cheat.teleport();
@@ -666,7 +740,7 @@ function meterTick(s) {
   if (s.mission.active) { m.active += dt; if (Number.isFinite(s.mission.timeLeft)) { m.limit = Math.max(m.limit, s.mission.timeLeft); m.minLeft = m.minLeft == null ? s.mission.timeLeft : Math.min(m.minLeft, s.mission.timeLeft); } }
   const goal = [s.mission.stage || '', s.mission.label || '', s.target ? s.target.name || '' : ''].join('|');
   // every goal (also the first of a step) with the distance to it: the length of the route a player has to cover, whoever plays
-  if (goal !== m.goal) { if (m.goal) m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', eerste: !m.goal }); m.goal = goal; m.lastAct = s.t; }
+  if (goal !== m.goal) { if (m.goal) m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', eerste: !m.goal }); if (m.goal) oog('doel'); m.goal = goal; m.lastAct = s.t; }
   if (busy || d > 0.05 || (s.player.vehicle && s.player.vehicle.speed > 1)) m.lastAct = s.t;
   m.maxQuiet = Math.max(m.maxQuiet, s.t - m.lastAct);
 }
@@ -686,7 +760,7 @@ function track(s) {
   const id = s.story.end ? 'einde' : s.story.id;
   if (id === lastStep) meterTick(s);   // a new step starts its own meter below: its first goal belongs after its 'begin'
   if (id !== lastStep) {
-    if (lastStep) meterEnd(s, lastStep, 'klaar');
+    if (lastStep) { oog('slagen', { dwing: true }); meterEnd(s, lastStep, 'klaar'); }
     meter = newMeter(s);
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     meterTick(s);
@@ -694,12 +768,13 @@ function track(s) {
     mem.stepSince = s.t;
     mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
     shot(`${id}-begin`);
+    oog('begin', { dwing: true });
   }
   const ph = s.mission.active ? 'active' : 'idle';
   if (ph !== lastPhase && lastPhase) {
-    if (ph === 'active') { B.log('mission', { event: 'start', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-start`); }
+    if (ph === 'active') { B.log('mission', { event: 'start', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-start`); oog('start', { dwing: true }); }
     else {
-      fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-fail-${fails[id]}`);
+      fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-fail-${fails[id]}`); oog('mislukt', { dwing: true });
       // where the last 15 s went (x, y, speed, angle per 1.5 s): why a mission failed
       B.log('val-spoor', { stap: id, spoor: (mem.trail || []).slice(-10) });
     }
@@ -707,7 +782,7 @@ function track(s) {
   lastPhase = ph;
   // a scene change: the first moment of each cutscene (a few per step)
   const cine = !!s.blocking.cinematic;
-  if (cine && !lastCine && (scenes[id] = (scenes[id] || 0) + 1) <= 3) setTimeout(() => shot(`${id}-scene${scenes[id]}`), 1200);
+  if (cine && !lastCine && (scenes[id] = (scenes[id] || 0) + 1) <= 3) { setTimeout(() => shot(`${id}-scene${scenes[id]}`), 1200); if (MENS) setTimeout(() => oog('filmpje', { dwing: true }), 1200); }
   lastCine = cine;
 }
 
@@ -742,6 +817,20 @@ while (true) {
   await sleep(100);
   const s = B.status();
   if (performance.now() - wall0 > MAX_WALL || s.t > MAX_GAME) break;
+  if (mem.opgegeven) { result = 'OPGEGEVEN'; reason = mem.opgegeven; break; }
+  if (MENS) {
+    mensTick(s);
+    // een nieuwe situatie (ander doel, gesprek, einde filmpje): een mens kijkt eerst even (reactietijd in speltijd), de stick blijft zoals hij was
+    const sk = Mens.situatieSleutel(s);
+    if (sk !== mem.mensSk) { mem.mensSk = sk; await sleep(mensP.reactie() / (CFG.speed || 1)); continue; }
+    // het aantal pogingen is op: een mens geeft het op, hij gebruikt geen cheat
+    if (!s.story.end && s.story.id && Mens.pogingenOp(s.story.fails || 0, mensP.pogingen)) {
+      mem.opgegeven = (s.story.fails || 0) + 'x mislukt bij ' + s.story.id + ': een mens geeft het op';
+      B.log('opgegeven', { reden: mem.opgegeven, step: s.story.id, pogingen: mensP.pogingen });
+      oog('opgegeven', { dwing: true });
+      continue;
+    }
+  }
   if (CFG.until && s.story.id === CFG.until) { result = 'KLAAR'; reason = `tot stap ${CFG.until}`; break; } // bijv. de coöp-testbank: M01 t/m M08, stop zodra T1 begint
   if (s.story.end || (PART !== 'all' && s.story.part && s.story.part !== PART)) { result = 'KLAAR'; reason = s.story.end ? `einde van ${s.story.part}` : `stap ${s.story.id} hoort bij ${s.story.part}`; break; }
   if (stopFn && stopFn(s)) { result = 'KLAAR'; reason = 'stap uitgespeeld'; break; }
@@ -784,7 +873,7 @@ while (true) {
   // minutes that says nothing about act 1 and decided whether the 30 minutes of the test run were enough. Once, at the start of M01 and before the mission
   // runs, the bot is taken to the goal (logged as setup); the goal is where M01 starts, whatever the start spot was. The condition is no longer the
   // distance alone nor a game-time window: a slow opening (M00) used to push the step past it, and then the commute was played after all (#387).
-  if (!mem.startTp && s.story.id === 'M01' && !s.mission.active && s.target && !CFG.zonderStartplek && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk) {
+  if (!mem.startTp && s.story.id === 'M01' && !s.mission.active && s.target && !CFG.zonderStartplek && !MENS && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk) {
     const van = [Math.round(s.player.x), Math.round(s.player.y)], afstand = Math.round(s.target.distance);
     if (afstand > 60) {
       mem.startTries = (mem.startTries || 0) + 1;
@@ -900,7 +989,7 @@ while (true) {
   // M01: the evening's props are not placed on the square (a game bug, #312): the points come from drifting and the three attempts of 240 s took a quarter of
   // the hour the test run has for the whole of act 1; after one failed attempt it is a cheat, logged as such
   const failsMax = { M01: 1 }[s.story.id] || 3;
-  if (s.mission.active && (fails[s.story.id] || 0) >= failsMax && !(mem.failCheat || (mem.failCheat = {}))[s.story.id]) {
+  if (!MENS && s.mission.active && (fails[s.story.id] || 0) >= failsMax && !(mem.failCheat || (mem.failCheat = {}))[s.story.id]) {
     mem.failCheat[s.story.id] = true;
     const okw = B.cheat.win();
     B.log('cheat', { rung: 'win', ok: !!okw, step: stepKey, why: failsMax === 3 ? 'driemaal mislukt' : `${failsMax}x mislukt (bekende beperking van de bot of het spel)`, mission: { phase: s.mission.phase }, blocking: [] });
@@ -1214,8 +1303,10 @@ if (CFG.sweep && CFG.sweep.length) {
     mem.skipLeft = typeof CFG.skipStages === 'object' ? CFG.skipStages[id] || 0 : CFG.skipStages || 0;   // see loop1
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
     const se2 = B.status();
-    if (se2.story.id === id) B.log('timeout', { step: id, what: `stap ${id} niet uitgespeeld binnen ${CFG.perStepS || 600} s`, forS: Math.round(B.time() - t0), x: se2.player.x, y: se2.player.y, goalDist: se2.target ? se2.target.distance : null });
-    meterEnd(se2, id, se2.story.id === id ? 'tijd op' : 'klaar');
+    const gaf = mem.opgegeven; mem.opgegeven = null;
+    if (se2.story.id !== id) oog('slagen', { dwing: true });
+    if (se2.story.id === id && !gaf) B.log('timeout', { step: id, what: `stap ${id} niet uitgespeeld binnen ${CFG.perStepS || 600} s`, forS: Math.round(B.time() - t0), x: se2.player.x, y: se2.player.y, goalDist: se2.target ? se2.target.distance : null });
+    meterEnd(se2, id, gaf ? 'opgegeven' : se2.story.id === id ? 'tijd op' : 'klaar');
     result = 'TIMEOUT';
   }
   result = 'KLAAR'; reason = CFG.sweep.length + ' stappen';
