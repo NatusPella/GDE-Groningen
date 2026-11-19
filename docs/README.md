@@ -25,6 +25,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | Map | Wat erin staat |
 |---|---|
 | [verhaal/](verhaal/) | het verhaal, de scripts, de stijlgids, de TTS- en vertaaldocumenten (zie de eigen ingang) |
+| [missies/](missies/) | het AAA-upgradeplan voor alle missies: rubriek, scores, bouwstenen en uitvoeringsplan ([AAA-UPGRADEPLAN.md](missies/AAA-UPGRADEPLAN.md)) |
 | [steam/](steam/) | winkelpagina, trailer-cut en beelden voor Steam |
 | [youtube/](youtube/) | kanaalteksten, trailerscripts, thumbnails en beelden |
 | [showcase/](showcase/) | beelden en tekst voor presentatie en portfolio |
