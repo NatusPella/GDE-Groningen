@@ -1,6 +1,6 @@
 // Metingen voor #955 (M07 vluchtende tankwagen, M09 instappen naast een scooter, M15 vliegtuig en NaN): één Electron (wegwerpprofiel) start de missies met de debug-haak en
 // neemt beelden en metingen (meting955.page.js).
-//   node scripts/qa/meting955.mjs [--out=<map>] [--settle=9000] [--only=m07,m09,m15]
+//   node scripts/qa/meting955.mjs [--out=<map>] [--settle=9000] [--only=m07,m09,m15] [--m07s=170] [--m07vast=1]
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/shots-*.png, meting955.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -15,7 +15,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-meting955')))
 fs.mkdirSync(OUT, { recursive: true });
 const profile = path.join(OUT, `profiel-${process.pid}`); // absoluut: %TEMP% is soms niet schrijfbaar
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__m955 = ${JSON.stringify({ settle: Number(arg('settle', 9000)), only: arg('only', ''), m07s: Number(arg('m07s', 170)) })};\n` + fs.readFileSync(path.join(HERE, 'meting955.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__m955 = ${JSON.stringify({ settle: Number(arg('settle', 9000)), only: arg('only', ''), m07s: Number(arg('m07s', 170)), m07vast: arg('m07vast', '') === '1' })};\n` + fs.readFileSync(path.join(HERE, 'meting955.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(profile, { recursive: true });
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };

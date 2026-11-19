@@ -83,8 +83,16 @@ await sectie('m07', async () => {
   let stil = 0, laatst = null;
   for (let s = 0; s < (CFG.m07s || 170); s++) {
     const t = tr();
-    if (!t) { out.stand.m07.weg = s; break; }
+    if (!t) {
+      out.stand.m07.weg = s;
+      await sleep(800);
+      const sw = M.missionDebug.state();
+      out.stand.m07.naWeg = { stage: sw && sw.stage, phase: sw && sw.phase, melding: (document.querySelector('.hud-toast, .hud-msg, #hud-messages') || {}).innerText };
+      await grab('m07-gestopt');
+      break;
+    }
     p.x = t.x - 60; p.y = t.y; p.vx = p.vy = 0; // blijf achter hem staan, buiten bereik
+    if (CFG.m07vast && s === 15) { t.road = null; t.speed = 0; out.stand.m07.geforceerdOp = [s, r1(t.x), r1(t.y)]; } // de nagebootste vastloper: de AI laat hem los
     const rij = [s, r1(t.x), r1(t.y), r1(t.speed), Math.round(t.health), r1(t.stuckFor || 0), t.road ? 1 : 0];
     out.stand.m07.spoor.push(rij);
     if (Math.abs(t.speed) < 0.5 && t.road) stil++; else stil = 0;
@@ -96,6 +104,7 @@ await sectie('m07', async () => {
     }
     const st = M.missionDebug.state();
     if (!st || st.phase !== 'active') { out.stand.m07.eind = st && st.phase; break; }
+    if (st.stage >= 2) { out.stand.m07.gestopt = [s, st.stage, r1(t.x), r1(t.y), (w.messages || []).slice(-2).map((q) => q.text || q)]; await grab('m07-gestopt'); break; }
     laatst = rij;
     await sleep(1000);
   }
