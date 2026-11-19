@@ -11,6 +11,9 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { animateActor } from './actoranim.js';
 import { canvasTex, signBothSides } from './canvastex.js';
+import { hoofdspeler } from './players.js';
+import { crowdSpecToWorld, seedFromKey } from './crowdplan.js';
+import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 
 const H = 2.4; // a person's height, for scale only
 
@@ -58,6 +61,84 @@ const PLANS = {
       { look: { shirt: 0x3f6a4a, skin: 0xa9744a, seed: 8303, variant: 'female' }, along: 4.5, side: 5.6, a: -1.4, anim: 'idle' },
     ],
   },
+  // bouwsteen G0b: een plein met een jury en kramen (M26), de stuntarena (M01), de kade (M13/M15) en het perron (M19);
+  // het publiek komt uit crowd (crowdplan.js, lokale maten along/side) en staat nooit in water, gebouw of op de weg
+  plein: {
+    props: [
+      { kind: 'jurytafel', along: 10, side: 0, a: Math.PI },
+      { kind: 'kraam', along: 8, side: -9.5, a: -0.3 },
+      { kind: 'kraam', along: 11.5, side: -10.5, a: -0.1 },
+      { kind: 'kraam', along: 8, side: 9.5, a: 0.3 },
+      { kind: 'kraam', along: 11.5, side: 10.5, a: 0.1 },
+      { kind: 'vaandel', along: 14, side: -6, a: 0 },
+      { kind: 'vaandel', along: 14, side: 6, a: 0 },
+      { kind: 'banner', along: 17, side: 0, a: 0, title: 'FEEST OP HET PLEIN', sub: 'De zomermarkt' },
+    ],
+    people: [
+      { look: { shirt: 0x2f4a6a, skin: 0xf1c9a5, seed: 8401, variant: 'male' }, along: 11.3, side: -1.3, a: Math.PI, anim: 'talk' },
+      { look: { shirt: 0x7a3a4a, skin: 0xd9a06e, seed: 8402, variant: 'female' }, along: 11.3, side: 0, a: Math.PI, anim: 'nod' },
+      { look: { shirt: 0x3a5a3a, skin: 0xa9744a, seed: 8403, variant: 'male' }, along: 11.3, side: 1.3, a: Math.PI, anim: 'talk' },
+      { look: { shirt: 0xc8552e, skin: 0xf1c9a5, seed: 8404, variant: 'female' }, along: 9, side: -8.2, a: 1.4, anim: 'hips' },
+    ],
+    crowd: { shape: 'ring', x: 12, y: 0, radius: 7.5, depth: 4, count: 36, gapA: Math.PI, gapW: 0.9 },
+  },
+  stuntarena: {
+    props: [
+      { kind: 'hek', along: 14.00, side: 0.00, a: 1.57 },
+      { kind: 'hek', along: 12.12, side: 7.00, a: 2.09 },
+      { kind: 'hek', along: 7.00, side: 12.12, a: 2.62 },
+      { kind: 'hek', along: 0.00, side: 14.00, a: 3.14 },
+      { kind: 'hek', along: -7.00, side: 12.12, a: 3.67 },
+      { kind: 'hek', along: -12.12, side: 7.00, a: 4.19 },
+      { kind: 'hek', along: -14.00, side: 0.00, a: 4.71 },
+      { kind: 'hek', along: -12.12, side: -7.00, a: 5.24 },
+      { kind: 'hek', along: -7.00, side: -12.12, a: 5.76 },
+      { kind: 'hek', along: -0.00, side: -14.00, a: 6.28 },
+      { kind: 'hek', along: 7.00, side: -12.12, a: 6.81 },
+      { kind: 'hek', along: 12.12, side: -7.00, a: 7.33 },
+      { kind: 'banner', along: 0, side: -17, a: 0, title: 'STUNTAVOND', sub: 'Kom kijken, blijf achter het hek' },
+    ],
+    people: [
+      { look: { shirt: 0xe0b93a, skin: 0xf1c9a5, seed: 8501, variant: 'male' }, along: 0, side: -12.3, a: 1.57, anim: 'point' },
+      { look: { shirt: 0xe0b93a, skin: 0xa9744a, seed: 8502, variant: 'female' }, along: -10, side: 7.2, a: -0.9, anim: 'wave' },
+      { look: { shirt: 0xe0b93a, skin: 0xd9a06e, seed: 8503, variant: 'male' }, along: 9, side: 8.6, a: -2.2, anim: 'talk' },
+    ],
+    crowd: { shape: 'ring', x: 0, y: 0, radius: 15.5, depth: 2.5, count: 12 },
+  },
+  kade: {
+    props: [
+      { kind: 'kist', along: 6, side: -9, a: 0.2 },
+      { kind: 'kist', along: 7.4, side: -9.6, a: 0.7 },
+      { kind: 'kist', along: 9.5, side: -8.6, a: -0.2 },
+      { kind: 'ton', along: -6, side: 9, a: 0 },
+      { kind: 'ton', along: -4.8, side: 9.8, a: 0 },
+      { kind: 'ton', along: 8, side: 9.6, a: 0 },
+      { kind: 'vaandel', along: 12, side: -9, a: 0 },
+      { kind: 'vaandel', along: 12, side: 9, a: 0 },
+    ],
+    people: [
+      { look: { shirt: 0x3a6a8a, skin: 0xf1c9a5, seed: 8601, variant: 'male' }, along: 5, side: 7, a: -1.2, anim: 'hips' },
+      { look: { shirt: 0x6a4a2a, skin: 0xd9a06e, seed: 8602, variant: 'male' }, along: 6.2, side: 7.8, a: -1.0, anim: 'talk' },
+      { look: { shirt: 0x8a4a6a, skin: 0xa9744a, seed: 8603, variant: 'female' }, along: -5, side: -8, a: 1.3, anim: 'point' },
+    ],
+    crowd: { shape: 'line', pts: [[-12, 11], [16, 11]], count: 20, side: 2, spread: 3 },
+  },
+  perron: {
+    props: [
+      { kind: 'bank', along: 6, side: -8.5, a: 0 },
+      { kind: 'bank', along: 10, side: -8.5, a: 0 },
+      { kind: 'bank', along: 14, side: -8.5, a: 0 },
+      { kind: 'perronbord', along: 4.5, side: -9.6, a: 0 },
+      { kind: 'vaandel', along: 16, side: 9, a: 0 },
+      { kind: 'vaandel', along: 16, side: -9, a: 0 },
+    ],
+    people: [
+      { look: { shirt: 0x3a3a4a, skin: 0xf1c9a5, seed: 8701, variant: 'male' }, along: 8, side: 7.5, a: -1.6, anim: 'point' },
+      { look: { shirt: 0x2f4a8a, skin: 0xd9a06e, seed: 8702, variant: 'female' }, along: 12, side: 8.6, a: -1.4, anim: 'wave' },
+      { look: { shirt: 0x6a6a2a, skin: 0xa9744a, seed: 8703, variant: 'male' }, along: 3, side: -8, a: 1.4, anim: 'idle' },
+    ],
+    crowd: { shape: 'line', pts: [[-6, 9], [16, 9]], count: 24, side: 2.5, spread: 3 },
+  },
 };
 
 export const DRESSING_KINDS = Object.keys(PLANS);
@@ -70,6 +151,7 @@ export function dressingPlan(kind) {
   return {
     props: p.props.map((q) => ({ ...q })),
     people: p.people.map((q) => ({ ...q, look: { ...q.look } })),
+    crowd: p.crowd ? { ...p.crowd, pts: p.crowd.pts ? p.crowd.pts.map((q) => [...q]) : undefined } : null,
   };
 }
 
@@ -153,7 +235,43 @@ function tractor() {
   return g;
 }
 
+function hek() {
+  const g = new THREE.Group();
+  for (const x of [-1.4, 0, 1.4]) g.add(box(0.08, 1.05, 0.08, 0x9aa0a8, x, 0.52, 0));
+  g.add(box(3.1, 0.18, 0.06, 0xc8261e, 0, 0.6, 0), box(3.1, 0.18, 0.06, 0xd8d2c2, 0, 0.92, 0));
+  return g;
+}
+
+function jurytafel() {
+  const g = new THREE.Group();
+  g.add(box(3.2, 0.06, 0.9, 0x8a6238, 0, 0.78, 0), box(3.3, 0.02, 1.0, 0xf0ede4, 0, 0.82, 0));
+  for (const x of [-1.5, 1.5]) g.add(box(0.07, 0.76, 0.07, 0x6f4d2a, x, 0.38, 0.35), box(0.07, 0.76, 0.07, 0x6f4d2a, x, 0.38, -0.35));
+  for (const x of [-1.1, 0, 1.1]) g.add(box(0.2, 0.3, 0.14, 0xd9a03a, x, 0.99, 0.15));
+  return g;
+}
+
+function kraam() {
+  const g = new THREE.Group();
+  const cloth = new THREE.MeshLambertMaterial({ map: stripeTex(), side: THREE.DoubleSide });
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.6), cloth);
+  roof.position.set(0, 2.25, 0.1);
+  roof.rotation.x = -Math.PI / 2 + 0.35;
+  g.add(roof, box(2.2, 0.08, 1.0, 0x8a6238, 0, 0.95, 0.3), box(2.2, 0.9, 0.9, 0x9a7a4a, 0, 0.45, 0.3));
+  for (const x of [-1.1, 1.1]) g.add(box(0.07, 2.3, 0.07, 0x6b4a2a, x, 1.15, -0.55));
+  return g;
+}
+
+function perronbord() {
+  const g = new THREE.Group();
+  g.add(cyl(0.05, 2.6, 0x777d88, 0, 1.3, 0, 6), box(1.0, 0.5, 0.06, 0x2f6fb0, 0, 2.3, 0), box(0.8, 0.08, 0.07, 0xf0ede4, 0, 2.3, 0));
+  return g;
+}
+
 function simpleProp(kind) {
+  if (kind === 'hek') return hek();
+  if (kind === 'jurytafel') return jurytafel();
+  if (kind === 'kraam') return kraam();
+  if (kind === 'perronbord') return perronbord();
   if (kind === 'tent') return tent();
   if (kind === 'kanon') return kanon();
   if (kind === 'vaandel') return vaandel();
@@ -234,19 +352,38 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
     if (p.h) m.scale.y = p.h;
     people.push({ mesh: m, anim: p.anim || 'idle', t: (p.along || 0) * 0.3 });
   }
+  // het publiek (bouwsteen G0b): lokaal uit spec en seed, uit de buurt van de props en de stage-cirkel
+  let crowd = null;
+  if (plan.crowd) {
+    const key = `dress:${kind}:${Math.round(at.x)}:${Math.round(at.y)}`;
+    const clear = [{ x: at.x, y: at.y, r: 4.5 }];
+    for (const p of plan.props) {
+      if (p.kind === 'banner') continue;
+      clear.push({ x: at.x + ux * p.along + nx * p.side, y: at.y + uy * p.along + ny * p.side, r: p.kind === 'tent' || p.kind === 'kraam' || p.kind === 'jurytafel' ? 2.6 : 1.6 });
+    }
+    for (const p of plan.people) clear.push({ x: at.x + ux * p.along + nx * p.side, y: at.y + uy * p.along + ny * p.side, r: 1.0 });
+    crowd = buildCrowd(world, { ...crowdSpecToWorld(plan.crowd, { x: at.x, y: at.y, facing: a }), seed: seedFromKey(key), clear }, { key, scene: group });
+  }
   scene.add(group);
-  return { kind, group, props, people, t: 0, a };
+  return { kind, group, props, people, crowd, world, t: 0, a };
 }
 
 // Every frame: the actors breathe and talk; a tent or cannon does not move.
-export function updateMissionDressing(set, dt) {
-  if (!set || !set.people.length) return;
+export function updateMissionDressing(set, dt, focus = null) {
+  if (!set) return;
+  if (set.crowd) {
+    let f = focus;
+    if (!f && set.world) { try { f = hoofdspeler(set.world); } catch (e) { f = null; } }
+    updateCrowd(set.crowd, dt, f, f);
+  }
+  if (!set.people.length) return;
   set.t += dt;
   for (const p of set.people) animateActor(p.mesh, { anim: p.anim, speed: 0, gaze: 0, t: set.t, dt });
 }
 
 export function disposeMissionDressing(set) {
   if (!set) return;
+  if (set.crowd) { disposeCrowd(set.crowd); set.crowd = null; }
   for (const p of set.people) {
     const m = p.mesh;
     m.removeFromParent();

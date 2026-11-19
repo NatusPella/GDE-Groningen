@@ -1,5 +1,5 @@
 // #956: a mission stage that plays indoors gets a real room around the player instead of a
-// conversation in the open air. Four sets:
+// conversation in the open air. Four sets here, plus kroeg, woonkamer and garage (roomspec.js, rooms3d.js):
 //   kantoor      the intake at Wiebelwerk (M18): the player stands at the visitor's side,
 //                the account manager behind the desk, a colleague at work;
 //   serverkamer  the server room (M18): the same long hall that builds the scene of M18.3;
@@ -22,8 +22,13 @@ import { buildOmaKitchen, OMA_KEUKEN } from './omakeuken3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { animateActor } from './actoranim.js';
 import { NPC } from './missionstory.js';
+import { buildRoom } from './rooms3d.js';
+import { ROOMS, ROOM_KINDS, isRoomKind, roomLayout, roomBaseHeight } from './roomspec.js';
+import { isInsideBuilding } from './pedgeom.js';
+import { isInWater } from './util.js';
 
-export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken'];
+// kantoor, serverkamer, Loket en Oma's keuken, plus de kamers uit roomspec.js (kroeg, woonkamer, garage)
+export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken', ...ROOM_KINDS];
 
 // Where the room goes: in the office the player stands 0.55 m before the middle (between the
 // door and the visitor's chair, not on the table); the server room is centred on the player;
@@ -32,6 +37,7 @@ export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken'];
 // The player faces +x (the desk, the counter or the stove), as in the indoor scenes.
 export function stageSetLayout(kind, player) {
   if (!STAGE_SETS.includes(kind) || !player) return null;
+  if (isRoomKind(kind)) return roomLayout(kind, player);
   const x = Number.isFinite(player.x) ? player.x : 0;
   const y = Number.isFinite(player.y) ? player.y : 0;
   if (kind === 'kantoor') return { kind, x: x + 0.55, y, hold: { x, y, angle: 0 }, facing: 0 };
@@ -69,7 +75,18 @@ export function buildStageSet(world, kind, player, targetScene = null) {
   try {
     if (world && world.map && world.map.groundHeightAt) base = world.map.groundHeightAt(layout.x, layout.y, 50) || 0;
   } catch (e) { base = 0; }
-  const kit = kind === 'kantoor' ? buildOffice(layout.x, layout.y, base)
+  if (isRoomKind(kind)) {
+    // de nieuwe kamers: passen ze niet (grond onbekend, water of een gebouw in de voetafdruk),
+    // dan geen kamer en speelt de stap in de open lucht, zoals voor de sets bestonden
+    const m = world && world.map;
+    const fit = roomBaseHeight(kind, layout, {
+      groundAt: m && m.groundHeightAt ? (x, y) => m.groundHeightAt(x, y, 50) : () => 0,
+      blockedAt: m ? (x, y) => (typeof m.buildingsNear === 'function' && isInsideBuilding(m, x, y)) || isInWater(m, x, y) : null,
+    });
+    if (!fit) return null;
+    base = fit.z;
+  }
+  const kit = isRoomKind(kind) ? buildRoom(kind, layout.x, layout.y, base) : kind === 'kantoor' ? buildOffice(layout.x, layout.y, base)
     : kind === 'serverkamer' ? buildServerRoom(layout.x, layout.y, base)
       : kind === 'loket' ? buildLoket(layout.x, layout.y, base)
         : buildOmaKitchen(layout.x, layout.y, base);
@@ -88,6 +105,10 @@ export function buildStageSet(world, kind, player, targetScene = null) {
     // Oma at the stove (she keeps an eye on the pan), Mem at the table
     people.push({ mesh: buildPerson('trijntje', [OMA_KEUKEN.stoveU - 0.85, 0.5], 0), anim: () => 'talk', gaze: 0 });
     people.push({ mesh: buildPerson('mem', [OMA_KEUKEN.tableU + 0.2, -1.75], -0.7), anim: (t) => (Math.sin(t * 0.7) > 0.2 ? 'talk' : 'idle'), gaze: 0 });
+  }
+  if (isRoomKind(kind)) {
+    // figuren op hun plek in de kamer (roomspec.js houdt ze uit het meubilair)
+    ROOMS[kind].npcs.forEach((q, i) => people.push({ mesh: buildPerson(q.key, [q.u, q.v], q.face), anim: (t) => (i === 0 ? 'talk' : (Math.sin(t * 0.7 + i) > 0.2 ? 'talk' : 'idle')), gaze: 0 }));
   }
   for (const p of people) kit.group.add(p.mesh);
   scene.add(group);

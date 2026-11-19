@@ -6,6 +6,13 @@ import { buildKitchen } from './introkitchen3d.js';
 import { buildOffice, OFFICE, buildServerRoom, SERVER } from './office3d.js';
 import { buildLoket, LOKET } from './loket3d.js';
 import { buildOmaKitchen, OMA_KEUKEN } from './omakeuken3d.js';
+import { buildRoom } from './rooms3d.js';
+import { isRoomKind, roomBaseHeight, roomClamp } from './roomspec.js';
+import { isInsideBuilding } from './pedgeom.js';
+import { isInWater } from './util.js';
+import { crowdSpecToWorld, seedFromKey } from './crowdplan.js';
+import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
+import { roadPropPaths, pathClearCircles } from './cinetemplates.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { treeBlocksPoint } from './greenery.js';
@@ -39,6 +46,8 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 //   def.set 'serverkamer': de serverkamer van Wiebelwerk (#956, office3d.js), een lange hal met rekken en een terminal, camera binnen;
 //   def.set 'loket': de hal van het Loket in het Stadhuis (#956, loket3d.js), met de balie, de rij en het nummerscherm;
 //   def.set 'omakeuken': Oma Trijntje's keuken aan de Noorderhaven (#956, omakeuken3d.js), met het fornuis en de tafel;
+//   def.set 'kroeg' | 'woonkamer' | 'garage': de kamers van roomspec.js/rooms3d.js (bouwsteen G0b); op de vloerhoogte van de kaart, of 40 m boven de straat als de grond water of een gebouw is;
+//   def.crowd: een publiek (crowdplan.js, lokale maten f/s) of een lijst daarvan; buildCrowd tekent het, het kijkt en juicht mee met het eerste voertuig (anders de eerste acteur) en gaat met de scène weg
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
 //   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
@@ -199,7 +208,24 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     // #956: Oma Trijntje's keuken (M25)
     kit = buildOmaKitchen(anchor.x, anchor.y, anchor.z || 0);
     group.add(kit.group);
+  } else if (isRoomKind(def.set)) {
+    // bouwsteen G0b: kroeg, woonkamer of garage
+    kit = buildRoom(def.set, anchor.x, anchor.y, anchor.z || 0);
+    group.add(kit.group);
   }
+  // het publiek (def.crowd): een per sleutel per apparaat (een gast die de scène naspeelt krijgt het niet dubbel), nooit binnen,
+  // en uit de buurt van het pad van de voertuigen (dat is hier al op de echte weg gezet, roadPathDef)
+  const crowds = [];
+  if (!def.set && def.crowd) {
+    const c0 = Math.cos(anchor.facing || 0), s0 = Math.sin(anchor.facing || 0);
+    const clear = pathClearCircles(roadPropPaths(def).map((p) => p.map(([f, s]) => [anchor.x + f * c0 - s * s0, anchor.y + f * s0 + s * c0])), 3.2);
+    (Array.isArray(def.crowd) ? def.crowd : [def.crowd]).forEach((cs, i) => {
+      const key = cs.key || ('cut:' + def.id + ':' + i);
+      const c = buildCrowd(w, { ...crowdSpecToWorld(cs, anchor), seed: seedFromKey(key), clear: [...clear, ...(cs.clear || [])] }, { key, scene: group });
+      if (c) crowds.push(c);
+    });
+  }
+  const focusId = Object.keys(def.props || {}).find((id) => { const s = propSource(def.props[id].kind); return s && s.vehicle; });
   const doorFx = fx.filter((f) => f.fx === 'door');
   const sfx = (kind, name) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(name ? { kind, name, x: anchor.x, y: anchor.y } : { kind, x: anchor.x, y: anchor.y }); };
   // De effecten van de set (en de sfx van elke set); de keuken heeft daarnaast
@@ -238,6 +264,11 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
       setFrame(t);
       // #956: de serverkamer heeft eigen beweging (knipperende ledjes, koel licht)
       if (kit && typeof kit.frame === 'function') kit.frame(t);
+      if (crowds.length) {
+        const fm = (focusId && props[focusId]) || Object.values(actors)[0];
+        const focus = fm ? { x: fm.position.x, y: fm.position.z } : null;
+        for (const c of crowds) updateCrowd(c, dt, focus, focus);
+      }
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
         if (verberg.has(id)) { m.visible = false; continue; } // (#434) een dubbele kopie van een rol danst niet mee
@@ -273,6 +304,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
       // #734 (F13): de keukenset heeft eigen materialen en canvas-textures (introkitchen3d.js `own`);
       // die gingen nooit mee de deur uit. `kit.dispose()` ruimt ze op, zoals intromontage.js al doet.
       if (kit && typeof kit.dispose === 'function') kit.dispose();
+      for (const c of crowds) disposeCrowd(c);
       group.removeFromParent();
       disposeTree(group);
     },
@@ -431,6 +463,19 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   if ((def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken') && !a.z && w && w.map && w.map.groundHeightAt) {
     try { a.z = w.map.groundHeightAt(a.x, a.y, 50) || 0; } catch (e) { a.z = 0; }
   }
+  // de nieuwe kamers: op de grond, of hoog boven de straat als daar water of een gebouw is (roomspec.js roomBaseHeight)
+  if (isRoomKind(def.set) && !a.z) {
+    const m = w && w.map;
+    let fit = null;
+    try {
+      fit = roomBaseHeight(def.set, { x: a.x, y: a.y }, {
+        groundAt: m && m.groundHeightAt ? (x, y) => m.groundHeightAt(x, y, 50) : () => 0,
+        blockedAt: m ? (x, y) => (typeof m.buildingsNear === 'function' && isInsideBuilding(m, x, y)) || isInWater(m, x, y) : null,
+        allowLift: true,
+      });
+    } catch (e) { fit = null; }
+    a.z = fit ? fit.z : 0;
+  }
   // (#731) De stemmen plannen vóór het compileren: shots, cues en L-tijden horen dezelfde
   // (opgerekte) duur te hebben als de stemmen. Anders lopen beeld en stem aan het eind uit
   // elkaar en vuren deuren/props op de oude tijd. attachVoices in cinematics.js doet
@@ -445,8 +490,10 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     return false;
   }
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
-  const indoors = def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken';
-  const env = envIn ? { ...envIn, tree: envIn.tree || (def.set ? null : treeEnv(w && w.map)) } : (def.set === 'keuken'
+  const indoors = isRoomKind(def.set) || def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken';
+  const env = envIn ? { ...envIn, tree: envIn.tree || (def.set ? null : treeEnv(w && w.map)) } : (isRoomKind(def.set)
+    ? { solid: () => false, clamp: (x, y, z, kind) => (kind === 'camera' ? roomClamp(def.set, { x: a.x, y: a.y, z: a.z || 0 }, x, y, z) : null) }
+    : def.set === 'keuken'
     ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 })
     : def.set === 'kantoor'
       ? officeEnv({ x: a.x, y: a.y, z: a.z || 0 })

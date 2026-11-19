@@ -8,7 +8,8 @@
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m, road: '<prop>' } }
-//   set: 'keuken' | 'kantoor' | 'serverkamer' (a built set: the opening's kitchen, the office and the server room of #950/#956), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
+//   crowd: a spectator crowd or a list of them ({ shape: 'line' | 'ring', count, seed, ... }, crowdplan.js; local f/s metres), drawn by cutscenehost.js, never indoors
+//   set: 'keuken' | 'kantoor' | 'serverkamer' | 'loket' | 'omakeuken' | 'kroeg' | 'woonkamer' | 'garage' (a built set: the opening's kitchen, the office and the server room of #950/#956), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
 //   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden, road: true | 'cycle', follows: '<prop>' } }
 //           road: het voertuig/de fiets volgt bij de start de echte weg (roadPathDef hieronder; true = berijdbaar,
 //           'cycle' = ook fietspad); follows: rijdt met dat voertuig mee op zijn eigen hoogte (de matras op het dak)
@@ -23,6 +24,7 @@
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 import { propKindIssue, propFoot } from './cutscenemodels.js';
+import { crowdSpecIssue } from './crowdplan.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld'];
@@ -77,6 +79,10 @@ export function validateScene(def, opts = {}) {
     if (!isVec(p.at, 2)) err(`prop ${id}: at moet [f, s, h?] zijn`);
     if (p.road !== undefined && ![true, 'road', 'cycle', 'foot'].includes(p.road)) err(`prop ${id}: road is true, 'cycle' of 'foot'`);
     if (p.follows !== undefined && !props[p.follows]) err(`prop ${id}: follows verwijst naar een onbekende prop`);
+  }
+  if (def.crowd !== undefined) {
+    if (def.set) err('crowd hoort buiten, niet in een binnenset');
+    for (const c of Array.isArray(def.crowd) ? def.crowd : [def.crowd]) { const bad = crowdSpecIssue(c); if (bad) err(bad); }
   }
   const timeOf = (spec, what) => {
     const t = resolveTime(spec, lines, duration);

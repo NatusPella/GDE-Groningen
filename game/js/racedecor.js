@@ -8,6 +8,9 @@ import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { signBothSides, fitText } from './canvastex.js';
+import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
+import { seedFromKey } from './crowdplan.js';
+import { raceDressingPlan, routeInfo, pathClearCircles, startSignalState } from './cinetemplates.js';
 
 const SHIRTS = [0xc8552e, 0x2f6fb0, 0xe0b93a, 0x3f8a52, 0x8a4a8a, 0xd8d2c2, 0x555f6e];
 const SKINS = [0xf1c9a5, 0xd9a06e, 0xa9744a, 0x7a4e2e];
@@ -68,8 +71,8 @@ function barrier() {
 }
 
 // at: { x, y, a? } van de finish; y is de map-coördinaat, de hoogte komt van de kaart.
-export function buildRaceDecor(world, at, { title = 'FINISH', count = 6 } = {}) {
-  const scene = getScene();
+export function buildRaceDecor(world, at, { title = 'FINISH', count = 6, scene: target = null } = {}) {
+  const scene = target || getScene();
   if (!scene || !at || !Number.isFinite(at.x) || !Number.isFinite(at.y)) return null;
   const a = Number.isFinite(at.a) ? at.a : 0;
   const ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
@@ -107,6 +110,71 @@ export function buildRaceDecor(world, at, { title = 'FINISH', count = 6 } = {}) 
   });
   scene.add(group);
   return group;
+}
+
+// Bouwsteen G0b: aankleding voor een `checkpoint`-race (M05) die zelf geen start of finish heeft.
+// route: [x, y]-punten van de start naar de finish. Een startboog, een finishboog (buildRaceDecor),
+// twee groepen publiek langs het begin en het eind (uit het parcours gehouden) en een startlicht.
+// Samen spelen: lokaal opgebouwd uit route en sleutel, geen netwerkstaat; een tweede aanroep met
+// dezelfde sleutel (een gast die dezelfde stap draait) bouwt het publiek niet nog eens.
+export function buildCheckpointRaceDecor(world, route, { key = null, startCount = 24, finishCount = 40, title = 'FINISH', scene = null } = {}) {
+  const info = routeInfo(route);
+  if (!info) return null;
+  const k = key || `race:${Math.round(info.start.x)}:${Math.round(info.start.y)}`;
+  const plan = raceDressingPlan(info, { startCount, finishCount, title });
+  const groups = [buildRaceDecor(world, plan.start, { title: plan.start.title, count: 4, scene }), buildRaceDecor(world, plan.finish, { title: plan.finish.title, scene })].filter(Boolean);
+  const clear = pathClearCircles([route], 3.5);
+  const crowds = plan.crowds.map((c) => buildCrowd(world, { ...c.spec, seed: seedFromKey(k + ':' + c.id), clear }, { key: k + ':' + c.id, scene })).filter(Boolean);
+  const lights = buildStartLights(world, plan.start, { scene });
+  return { key: k, plan, groups, crowds, lights };
+}
+
+export function updateCheckpointRaceDecor(h, dt, focus = null, t = null) {
+  if (!h) return;
+  for (const c of h.crowds) updateCrowd(c, dt, focus, focus);
+  if (h.lights && t != null) setStartLights(h.lights, t);
+}
+
+export function disposeCheckpointRaceDecor(h) {
+  if (!h) return;
+  for (const c of h.crowds) disposeCrowd(c);
+  for (const g of h.groups) disposeRaceDecor(g);
+  disposeRaceDecor(h.lights && h.lights.group);
+  h.crowds.length = 0; h.groups.length = 0; h.lights = null;
+}
+
+// Het startlicht: een portaal met drie lampen bij de startboog. setStartLights(h, t) zet ze
+// volgens startSignalState (cinetemplates.js): rood, rood, rood, dan groen.
+export function buildStartLights(world, at, { scene = null } = {}) {
+  const target = scene || getScene();
+  if (!target || !at || !Number.isFinite(at.x) || !Number.isFinite(at.y)) return null;
+  const a = Number.isFinite(at.a) ? at.a : 0;
+  const ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
+  const group = new THREE.Group();
+  group.name = 'start-lights';
+  const gz = (x, y) => (world && world.map && world.map.groundHeightAt ? world.map.groundHeightAt(x, y, 0) || 0 : 0);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 2.2), new THREE.MeshLambertMaterial({ color: 0x222222 }));
+  const px = at.x + ux * 3 + nx * 7.4, py = at.y + uy * 3 + ny * 7.4;
+  bar.position.set(px, gz(px, py) + 3.6, py);
+  bar.rotation.y = -a;
+  group.add(bar);
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.6, 8), new THREE.MeshLambertMaterial({ color: 0x9aa0a8 }));
+  post.position.set(px, gz(px, py) + 1.8, py);
+  group.add(post);
+  const lamps = [-0.7, 0, 0.7].map((o) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ color: 0x331111 }));
+    m.position.set(px + nx * o - ux * 0.2, bar.position.y, py + ny * o - uy * 0.2);
+    group.add(m);
+    return m;
+  });
+  target.add(group);
+  return { group, lamps };
+}
+
+export function setStartLights(h, t) {
+  if (!h) return;
+  const s = startSignalState(t);
+  h.lamps.forEach((m, i) => m.material.color.setHex(s.go ? 0x22cc44 : i < s.lit ? 0xff2a1a : 0x331111));
 }
 
 export function disposeRaceDecor(group) {
