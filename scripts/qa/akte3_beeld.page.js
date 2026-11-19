@@ -94,6 +94,7 @@ await sectie('m15', async () => {
   if (!M.missionDebug.start(w, idx)) throw new Error('M15 startte niet');
   await sleep(3500);
   out.stand.m15 = { stage: M.missionDebug.state().stage };
+  { const vl = (w.vehicles || []).filter((v) => v.isPlane); out.stand.m15.vliegtuigen = vl.map((v) => ({ naam: v.name, x: Math.round(v.x), y: Math.round(v.y), z: +(v.z || 0).toFixed(1), afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), mesh: (() => { const mm = SC.getVehicleMesh(v.id); if (!mm) return null; let nan = 0, n = 0; mm.traverse((o) => { if (o.isMesh) { n++; const g = o.geometry; if (g) { g.computeBoundingSphere(); if (!Number.isFinite(g.boundingSphere && g.boundingSphere.radius)) nan++; } } }); return { vis: mm.visible, delen: n, nanBol: nan, pos: [mm.position.x, mm.position.y, mm.position.z].map((q) => +q.toFixed(1)), ouder: !!mm.parent, schaal: mm.scale.x }; })() })); }
   await grab('m15-strook-kaart');
   const a = def.stages[0].dressingAt;
   await zet(a.x - Math.cos(sp.heading) * 14, a.y - Math.sin(sp.heading) * 14, sp.heading, 3500);
