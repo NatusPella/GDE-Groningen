@@ -117,6 +117,14 @@ t('veel voertuigen en een trein: de trein past erbij en het maximum blijft gelde
   const e = W.verzamelEntiteiten(world, [{ x: 0, y: 0 }], { treinen: [{ id: 0, x: 10, y: 10, v: 3, halfLen: 30 }] });
   assert.equal(e.length, W.MAX_ENTITEITEN); assert.equal(e[0].kind, W.SOORT_TREIN);
 });
+t('opdracht-bericht: zonder leider is de tweede aanroep gelijk aan de eerste (coopnet.js hergebruikt hem)', () => {
+  const pub = { phase: 'active', id: 'm3', label: 'Krassen', type: 'delivery', index: 3, progressText: 'stap 1' };
+  for (const prev of [null, W.missieBericht(null, pub).huidig, W.missieBericht(null, pub, 2).huidig, W.missieBericht(null, { phase: 'active', id: 'm3', label: 'Oud', index: 1 }).huidig]) {
+    assert.deepEqual(W.missieBericht(prev, pub), W.missieBericht(prev, pub, null));
+    assert.deepEqual(W.missieBericht(prev, pub, undefined), W.missieBericht(prev, pub, null));
+    assert.deepEqual(W.missieBericht(prev, { phase: 'idle' }), W.missieBericht(prev, { phase: 'idle' }, null));
+  }
+});
 t('opdracht-bericht: alleen bij verandering; begin en einde; gast controleert wat binnenkomt', () => {
   let huidig = null;
   const pub = { phase: 'active', label: 'Berend telt de krassen', type: 'delivery', index: 3 };

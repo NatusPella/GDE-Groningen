@@ -1196,9 +1196,12 @@ export function tickCoopNet(world, dt) {
   }
   meldVoertuig(world, n); // de gastheer stapt in: Tessa leest hoe ze meerijdt (#388)
   // Wat de host speelt, voor de gasten (#452). De leider van de groep gaat mee (#492), dus eerst werkt de groep bij: die stand is
-  // dezelfde als wat het bericht verstuurt (missieBericht is puur en doet hetzelfde werk nog eens met de leider erbij).
-  werkGroepenBij(world, n, missieBericht(n.missie || null, world.mission).huidig);
-  const mb = missieBericht(n.missie || null, world.mission, n.groepId ? groepLeider(n.groepen, n.groepId) : null);
+  // dezelfde als wat het bericht verstuurt. Zonder leider geeft missieBericht(…, null) precies de eerste uitkomst (puur),
+  // dus alleen met een leider is een tweede aanroep nodig.
+  const mb0 = missieBericht(n.missie || null, world.mission);
+  werkGroepenBij(world, n, mb0.huidig);
+  const leider = n.groepId ? groepLeider(n.groepen, n.groepId) : null;
+  const mb = Number.isInteger(leider) ? missieBericht(n.missie || null, world.mission, leider) : mb0;
   if (mb.event) { n.hub.announce(mb.event); }
   nodigUit(world, n, mb.huidig); n.missie = mb.huidig;
   // #492: de eigen opdracht van een gastgroep gaat alleen naar die groep, met een eigen laatste stand per
@@ -1225,7 +1228,8 @@ export function tickCoopNet(world, dt) {
   for (const slot of meedoenTik(n.meedoen, dt)) world.coopMeld && world.coopMeld(slot, 'Je doet mee.');
   if (n.stem) stemTikHost(world, n, dt);
   // de computermetgezel hoort bij geen plek (#502); alleen de gasten staan in de lijst
-  const players = Object.values(figures(world)).filter((f) => f && f.slot >= 1).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, down: ligtNeer(f) || !!f.coopDown, inVeh: !!f.inVeh, naam: f.naam }));
+  const players = [];
+  for (const f of Object.values(figures(world))) if (f && f.slot >= 1) players.push({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, down: ligtNeer(f) || !!f.coopDown, inVeh: !!f.inVeh, naam: f.naam });
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []); ververs(world, 0); // register world.players (#446)
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
