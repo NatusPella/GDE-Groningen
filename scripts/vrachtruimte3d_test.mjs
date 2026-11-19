@@ -79,9 +79,11 @@ for (const [naam, model, open, eigenschap = {}] of GEVALLEN) {
   const matMasker = mas.material;
   const matGat = ga.material;
   const matCargo = cargo.material;
-  check(`${naam}: masker schrijft stencil 2`, matMasker.stencilWrite === true && matMasker.stencilRef === 2 && matMasker.colorWrite === false && matMasker.depthTest === true);
-  check(`${naam}: gat binnen het masker`, matGat.stencilWrite === true && matGat.stencilRef === 2 && matGat.depthTest === false && matGat.depthWrite === false);
-  check(`${naam}: lading binnen het masker zonder dieptetest`, matCargo.stencilWrite === true && matCargo.stencilRef === 2 && matCargo.depthTest === false && matCargo.depthWrite === false);
+  const ref = matMasker.stencilRef;
+  check(`${naam}: eigen ref, niet die van de cabine`, Number.isInteger(ref) && ref >= 2 && ref === mesh.userData.vrachtruimteRef, String(ref));
+  check(`${naam}: masker schrijft zijn stencil`, matMasker.stencilWrite === true && matMasker.colorWrite === false && matMasker.depthTest === true);
+  check(`${naam}: gat binnen het masker`, matGat.stencilWrite === true && matGat.stencilRef === ref && matGat.depthTest === false && matGat.depthWrite === false);
+  check(`${naam}: lading binnen het masker zonder dieptetest`, matCargo.stencilWrite === true && matCargo.stencilRef === ref && matCargo.depthTest === false && matCargo.depthWrite === false);
   check(`${naam}: gedeeld ladingmateriaal met vertexkleuren`, matCargo.isMeshLambertMaterial === true && matCargo.vertexColors === true && matCargo.userData.shared === true);
   check(`${naam}: lading is enkelzijdig`, matCargo.side === THREE.FrontSide, String(matCargo.side));
   check(`${naam}: masker- en gatmateriaal gedeeld`, matMasker.userData.shared === true && matGat.userData.shared === true);
@@ -128,7 +130,10 @@ for (const [naam, model, open, eigenschap = {}] of GEVALLEN) {
   V3.syncVrachtruimtes(world);
   const cargo2 = tweede.mesh.userData.vrachtruimte;
   check(`${naam}: ladinggeometrie gedeeld met een tweede voertuig`, !!cargo2 && cargo2.geometry === g0);
-  check(`${naam}: gat- en ladingmateriaal gedeeld met een tweede voertuig`, !!cargo2 && cargo2.material === cargo.material && tweede.mesh.userData.vrachtruimteMasker.material === matMasker && tweede.mesh.userData.vrachtruimteMasker.geometry === gatGeo0);
+  check(`${naam}: gat- en ladingmateriaal gedeeld met een tweede voertuig`, !!cargo2 && tweede.mesh.userData.vrachtruimteMasker.geometry === gatGeo0);
+  // elk voertuig een eigen stencilwaarde: de lading van het ene mag niet door de opening van het andere
+  const mat2 = tweede.mesh.userData.vrachtruimteMasker.material;
+  check(`${naam}: een tweede voertuig heeft een andere ref (geen lading door andermans opening)`, mat2.stencilRef !== matMasker.stencilRef && cargo2.material.stencilRef === mat2.stencilRef && tweede.mesh.userData.vrachtruimteGatMesh.material.stencilRef === mat2.stencilRef && cargo2.material !== cargo.material);
   // dichte deuren (en geen wrak): de laadruimte hoort verborgen te zijn, behalve bij de foodtruck
   // (het luik is een vaste opening in het model en staat altijd open)
   const dicht = maak(model, { flags: eigenschap.flags || {} });
@@ -228,6 +233,43 @@ for (const [naam, model, open, eigenschap = {}] of GEVALLEN) {
     const mesh = [...root.children].find((o) => o.userData && o.userData.vehicleId === t.id);
     return !!mesh && !!mesh.userData.vrachtruimte;
   })());
+  // stencilrefs over alle voertuigen in de wereld: uniek per zichtbaar voertuig, hergebruik na verbergen
+  {
+    world.vehicles.length = 0;
+    const rij = [];
+    for (let i = 0; i < 6; i++) rij.push(maak({ name: 'van', len: 5.0, wid: 2.0, color: '#d9d9d9' }, { open: ['klep'] }));
+    V3.syncVrachtruimtes(world);
+    const refs = rij.map((r) => r.mesh.userData.vrachtruimteMasker.material.stencilRef);
+    check('refs: zes zichtbare busjes, zes verschillende refs', new Set(refs).size === 6, refs.join(','));
+    check('refs: masker, gat en lading van een voertuig delen één ref', rij.every((r) => { const u = r.mesh.userData; return u.vrachtruimteMasker.material.stencilRef === u.vrachtruimteGatMesh.material.stencilRef && u.vrachtruimte.material.stencilRef === u.vrachtruimteMasker.material.stencilRef; }));
+    // een voertuig dat uit beeld gaat geeft zijn ref vrij; komt het terug, dan botst het niet met wie hem nam
+    const a = rij[0];
+    a.v.x = 500;
+    V3.syncVrachtruimtes(world);
+    check('refs: voertuig buiten bereik is verborgen', a.mesh.userData.vrachtruimte.visible === false);
+    const nieuw = [];
+    for (let i = 0; i < 260; i++) { const n = maak({ name: 'van', len: 5.0, wid: 2.0, color: '#d9d9d9' }, { open: ['klep'] }); nieuw.push(n); }
+    V3.syncVrachtruimtes(world, 1000);
+    a.v.x = 0;
+    V3.syncVrachtruimtes(world, 1000);
+    const zichtbaar = [...rij.slice(1), a, ...nieuw].filter((r) => r.mesh.userData.vrachtruimte && r.mesh.userData.vrachtruimte.visible);
+    const botsingen = new Map();
+    for (const r of zichtbaar) { const k = r.mesh.userData.vrachtruimteMasker.material.stencilRef; botsingen.set(k, (botsingen.get(k) || 0) + 1); }
+    check('refs: de ref-pool is groot genoeg voor honderden zichtbare voertuigen', zichtbaar.length > 240, String(zichtbaar.length));
+    const teruggekomen = a.mesh.userData.vrachtruimteMasker.material.stencilRef;
+    check('refs: een weer zichtbaar voertuig deelt zijn ref met niemand die ook zichtbaar is (zolang er ruimte is)', zichtbaar.length > 249 || botsingen.get(teruggekomen) === 1, `n=${botsingen.get(teruggekomen)}`);
+    for (const r of [...nieuw]) { root.remove(r.mesh); const i = world.vehicles.indexOf(r.v); if (i >= 0) world.vehicles.splice(i, 1); }
+    // geen stencilbuffer: de laadruimte blijft verborgen in plaats van ongemaskerd door elke carrosserie te tekenen
+    world.vehicles.length = 0;
+    const solo = maak({ name: 'van', len: 5.0, wid: 2.0, color: '#d9d9d9' }, { open: ['klep'] });
+    V3.zetVrachtStencilProbe(() => false);
+    V3.syncVrachtruimtes(world);
+    check('stencil: zonder stencilbuffer geen laadruimte', !solo.mesh.userData.vrachtruimte || solo.mesh.userData.vrachtruimte.visible === false);
+    V3.zetVrachtStencilProbe(() => true);
+    V3.syncVrachtruimtes(world);
+    check('stencil: met stencilbuffer wel', !!solo.mesh.userData.vrachtruimte && solo.mesh.userData.vrachtruimte.visible === true);
+    V3.zetVrachtStencilProbe(null);
+  }
   // de diagnose voor de beeldronde
   world.vehicles.length = 0;
   const diag = maak({ name: 'van', len: 5.2, wid: 2.0, color: '#d9d9d9' }, { open: ['klep'] });

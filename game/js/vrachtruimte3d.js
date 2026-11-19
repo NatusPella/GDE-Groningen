@@ -8,15 +8,18 @@
 // De laadruimte ligt achter het plaatwerk van een gesloten modeldoos en is dus alleen te zien waar de
 // carrosserie open is. Daarom hoort bij elk voertuig een klein "openingsdrieluik" met elk een eigen
 // renderOrder (geen materiaal-sortering die kan verschuiven):
-//   9. masker: zet met een gewone dieptetest stencil = 2 waar de opening het dichtstbijzijnde vlak is
+//   9. masker: zet met een gewone dieptetest stencil = ref waar de opening het dichtstbijzijnde vlak is
 //      (een open deurblad of een voorwerp ervoor houdt het masker tegen);
-//  10. gat: de donkere binnenkant, alleen binnen stencil = 2;
-//  12. lading: de gedeelde laadruimtegeometrie, alleen binnen stencil = 2, zonder dieptetest maar van
+//  10. gat: de donkere binnenkant, alleen binnen stencil = ref;
+//  12. lading: de gedeelde laadruimtegeometrie, alleen binnen stencil = ref, zonder dieptetest maar van
 //      achter naar voren gesorteerd op de kijkrichting van de opening (schilder-volgorde).
 // Zo komt de lading tevoorschijn zonder de fragmentele diepte-truc (gl_FragDepth) die in de praktijk
 // niet betrouwbaar bleek, en blijft hij achter het plaatwerk: door een dichte carrosserie is niets te
 // zien. De masker- en gatmesh zijn elk twee driehoeken per opening en delen hun geometrie met alle
 // voertuigen van dezelfde soort en maat; de ladingmesh is de enige met een eigen, gedeelde LOD-geometrie.
+// Elk voertuig heeft een eigen stencilwaarde (ref): het stencil wordt tussen voertuigen niet gewist, dus met
+// één gedeelde waarde zou de lading van voertuig A door de opening van voertuig B getekend worden. De
+// materialen delen zich per ref (niet per voertuig).
 import * as THREE from 'three';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
@@ -33,7 +36,15 @@ import {
 export const VRACHT_LOD_R = [20, 50, 80];   // m: tot 20 lod 0, tot 50 lod 1, tot 80 lod 2; verder niets
 export const VRACHT_R = VRACHT_LOD_R[2];
 const VRACHT_BUILD_BUDGET = 2;              // nieuwe geometrieën per tick: geen hapering bij een rij busjes
-const STENCIL_REF = 2;                      // ref 2, zodat de cabine-opening (ref 1) ongemoeid blijft
+const REF_MIN = 2;                          // ref 1 is van de cabine-opening en de portieropening
+const REF_MAX = 250;                        // 8 bit stencil: ruim genoeg voor alle laadruimtes in beeld
+
+// Waar kan de scène een stencil tekenen? scene3d.js meldt hier de postfx-stand; zonder melding (tests,
+// beeldronde) gaan we ervan uit dat het kan. Zonder stencilbuffer zou de lading ongemaskerd door elke
+// carrosserie heen getekend worden, dus dan blijft de laadruimte verborgen (veilige terugval).
+let stencilProbe = null;
+export function zetVrachtStencilProbe(fn) { stencilProbe = typeof fn === 'function' ? fn : null; }
+const stencilBeschikbaar = () => !stencilProbe || !!stencilProbe();
 
 export function vrachtruimteLodAt(afstand) {
   if (!(afstand >= 0)) return -1;           // NaN of oneindig: geen laadruimte
@@ -44,47 +55,56 @@ export function vrachtruimteLodAt(afstand) {
 }
 
 const geoCache = new Map();
-let maskMaterial = null;
-let gatMaterial = null;
-let cargoMaterial = null;
+const materialenPerRef = new Map();         // ref -> { masker, gat, cargo }
+const refEigenaar = new Array(REF_MAX + 1).fill(null);   // ref -> de voertuigmesh die hem gebruikt
+let volgendeRef = REF_MIN;
 
-// Het masker: zet stencil = 2 waar de opening het dichtstbijzijnde vlak is (gewone dieptetest).
-function maskerMateriaal() {
-  if (!maskMaterial) {
-    maskMaterial = new THREE.MeshBasicMaterial({
-      colorWrite: false, depthWrite: false, side: THREE.DoubleSide,
-      stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp,
-    });
-    maskMaterial.userData.shared = true;
-  }
-  return maskMaterial;
+function materialen(ref) {
+  let m = materialenPerRef.get(ref);
+  if (m) return m;
+  // Het masker: zet stencil = ref waar de opening het dichtstbijzijnde vlak is (gewone dieptetest).
+  const masker = new THREE.MeshBasicMaterial({
+    colorWrite: false, depthWrite: false, side: THREE.DoubleSide,
+    stencilWrite: true, stencilRef: ref, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp,
+  });
+  // De donkere binnenkant van de opening: alleen binnen het masker, over het plaatwerk heen.
+  const gat = new THREE.MeshBasicMaterial({
+    color: 0x141518, depthTest: false, depthWrite: false, side: THREE.DoubleSide,
+    stencilWrite: true, stencilRef: ref, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
+  });
+  // Eén Lambert-materiaal met vertexkleuren voor alle lading van deze ref (zoals cabin3d.js). Een flinke
+  // emissive-basis houdt de lading leesbaar in een donkere laadruimte. Geen dieptetest: de
+  // schilder-volgorde in de geometrie bepaalt wat voor wat ligt; het masker begrenst alles tot de opening.
+  const cargo = new THREE.MeshLambertMaterial({
+    vertexColors: true, side: THREE.FrontSide, emissive: 0x565c63,
+    depthTest: false, depthWrite: false,
+    stencilWrite: true, stencilRef: ref, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
+  });
+  masker.userData.shared = gat.userData.shared = cargo.userData.shared = true;
+  m = { masker, gat, cargo };
+  materialenPerRef.set(ref, m);
+  return m;
 }
 
-// De donkere binnenkant van de opening: alleen binnen het masker, over het plaatwerk heen.
-function gatMateriaal() {
-  if (!gatMaterial) {
-    gatMaterial = new THREE.MeshBasicMaterial({
-      color: 0x141518, depthTest: false, depthWrite: false, side: THREE.DoubleSide,
-      stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
-    });
-    gatMaterial.userData.shared = true;
+// Een stencilwaarde die geen ander zichtbaar voertuig gebruikt. Een ref is vrij als zijn mesh weg is
+// (losgekoppeld) of zijn laadruimte verborgen is; zijn alles bezet (meer dan REF_MAX tegelijk in beeld),
+// dan delen twee voertuigen een ref en dat is hooguit het oude gedrag voor dat paar.
+function kiesRef(mesh) {
+  const n = REF_MAX - REF_MIN + 1;
+  for (let i = 0; i < n; i++) {
+    const ref = REF_MIN + ((volgendeRef - REF_MIN + i) % n);
+    const e = refEigenaar[ref];
+    const vrij = !e || e === mesh || !e.parent || !(e.userData.vrachtruimte && e.userData.vrachtruimte.visible);
+    if (vrij) {
+      refEigenaar[ref] = mesh;
+      volgendeRef = REF_MIN + ((ref - REF_MIN + 1) % n);
+      return ref;
+    }
   }
-  return gatMaterial;
-}
-
-// Eén gedeeld Lambert-materiaal met vertexkleuren voor alle lading (zoals cabin3d.js). Een flinke
-// emissive-basis houdt de lading leesbaar in een donkere laadruimte. Geen dieptetest: de
-// schilder-volgorde in de geometrie bepaalt wat voor wat ligt; het masker begrenst alles tot de opening.
-function laadruimteMateriaal() {
-  if (!cargoMaterial) {
-    cargoMaterial = new THREE.MeshLambertMaterial({
-      vertexColors: true, side: THREE.FrontSide, emissive: 0x565c63,
-      depthTest: false, depthWrite: false,
-      stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
-    });
-    cargoMaterial.userData.shared = true;
-  }
-  return cargoMaterial;
+  const ref = volgendeRef;
+  volgendeRef = REF_MIN + ((ref - REF_MIN + 1) % n);
+  refEigenaar[ref] = mesh;
+  return ref;
 }
 
 // --- het gat per open deur/klep ---------------------------------------------------------------
@@ -158,16 +178,19 @@ function gatQuads(v) {
 // Goedkope signatuur van de open laadopeningen (geen allocaties), om per frame te zien of de mesh een
 // andere geometrie nodig heeft. Bit i hoort bij de i-de deur van doorsFor; de vaste openingen hebben
 // een eigen hoog bit.
+// Staat deur `id` open of los? Een gewone functie (geen closure per aanroep): dit loopt per voertuig per frame.
+function deurOpen(st, id) {
+  return !!(st && ((st.loose && st.loose[id]) || (st.open && (st.open[id] || 0) > LAADRUIMTE_OPEN_VANAF)));
+}
 function gatSignatuur(v) {
   const soort = vrachtruimteSoort(v);
   if (!soort) return 0;
   if (soort === 'foodtruck') return 1 << 16;
-  const st = v.doors || {};
-  const open = (id) => !!((st.loose && st.loose[id]) || (st.open && (st.open[id] || 0) > LAADRUIMTE_OPEN_VANAF));
-  if (soort === 'vrachtwagen' || soort === 'oplegger' || soort === 'cashvan') return open(VIRTUELE_LAADDEUR) ? 1 << 17 : 0;
+  const st = v.doors;
+  if (soort === 'vrachtwagen' || soort === 'oplegger' || soort === 'cashvan') return deurOpen(st, VIRTUELE_LAADDEUR) ? 1 << 17 : 0;
   let sig = 0, i = 0;
   for (const d of doorsFor(v)) {
-    if ((d.id === 'klep' || d.soort === 'achterdeur' || d.soort === 'schuif') && open(d.id)) sig |= 1 << i;
+    if ((d.id === 'klep' || d.soort === 'achterdeur' || d.soort === 'schuif') && deurOpen(st, d.id)) sig |= 1 << i;
     i++;
   }
   return sig;
@@ -233,6 +256,19 @@ function gatSleutel(v, sig) {
   return ['gat', soort, kb, v.model.len, v.model.wid, sig].join('|');
 }
 
+// Een voertuig dat uit beeld was kan zijn ref aan een ander kwijt zijn: kies bij het weer tonen een
+// nieuwe en hang de materialen om (de materialen zelf zijn gedeeld per ref, dus dit kost niets).
+function houdRef(mesh) {
+  const ref = mesh.userData.vrachtruimteRef;
+  if (refEigenaar[ref] === mesh) return;
+  const nieuw = kiesRef(mesh);
+  const mat = materialen(nieuw);
+  mesh.userData.vrachtruimteRef = nieuw;
+  mesh.userData.vrachtruimteMasker.material = mat.masker;
+  mesh.userData.vrachtruimteGatMesh.material = mat.gat;
+  mesh.userData.vrachtruimte.material = mat.cargo;
+}
+
 // Gedeelde geometrie opzoeken of (binnen het budget) bouwen. Geeft null als het budget op is.
 function cacheOf(sleutel, maak, magBouwen) {
   let g = geoCache.get(sleutel);
@@ -251,15 +287,27 @@ export function syncVrachtruimtes(world, budget = VRACHT_BUILD_BUDGET) {
   const p = hoofdspeler(world);
   if (!p) return;
   const px = p.x, py = p.y;
+  const stencilOk = stencilBeschikbaar();
   let teBouwen = budget;
   for (const v of world.vehicles) {
     const mesh = getVehicleMesh(v.id);
     if (!mesh) continue;                     // mesh nog niet gebouwd of opgeruimd: de lading hangt eraan
     const cargo = mesh.userData.vrachtruimte || null;
+    if (!stencilOk) {                        // geen stencilbuffer: de lading zou ongemaskerd door de carrosserie tekenen
+      if (cargo) {
+        cargo.visible = false;
+        mesh.userData.vrachtruimteMasker.visible = false;
+        mesh.userData.vrachtruimteGatMesh.visible = false;
+      }
+      continue;
+    }
     // eerst de afstand (Chebyshev, zonder Math.hypot; Math.max maakt een NaN-positie meteen onzichtbaar)
     const dx = Math.abs(v.x - px), dy = Math.abs(v.y - py);
     const lod = vrachtruimteLodAt(Math.max(dx, dy));
-    if (lod < 0 || !vrachtruimteZichtbaar(v)) {
+    // de signatuur één keer per voertuig: nul = geen open opening, en dan is er alleen een wrak dat de
+    // laadruimte nog toont (dezelfde regel als vrachtruimteZichtbaar, zonder de deuren twee keer te lopen)
+    const sig = lod < 0 ? 0 : gatSignatuur(v);
+    if (lod < 0 || !(sig !== 0 || (v.wrecked && vrachtruimteSoort(v)))) {
       if (cargo) {
         cargo.visible = false;
         mesh.userData.vrachtruimteMasker.visible = false;
@@ -268,7 +316,6 @@ export function syncVrachtruimtes(world, budget = VRACHT_BUILD_BUDGET) {
       continue;
     }
     const kapot = !!v.wrecked;
-    const sig = gatSignatuur(v);
     if (!cargo || mesh.userData.vrachtruimteLod !== lod || mesh.userData.vrachtruimteSig !== sig || mesh.userData.vrachtruimteKapot !== kapot) {
       const gaten = gatQuads(v);
       const voor = geoCache.size;
@@ -297,9 +344,12 @@ export function syncVrachtruimtes(world, budget = VRACHT_BUILD_BUDGET) {
         };
         // masker (9) → gat (10) → lading (12): elk met een eigen renderOrder, dus de volgorde ligt
         // vast en hangt niet van de materiaal-sortering af.
-        const mas = maak(gatGeo || new THREE.BufferGeometry(), maskerMateriaal(), 'vrachtruimte-masker', 9);
-        const ga = maak(gatGeo || new THREE.BufferGeometry(), gatMateriaal(), 'vrachtruimte-gat', 10);
-        const m = maak(lading, laadruimteMateriaal(), 'vrachtruimte', 12);
+        const ref = kiesRef(mesh);
+        const mat = materialen(ref);
+        const mas = maak(gatGeo || new THREE.BufferGeometry(), mat.masker, 'vrachtruimte-masker', 9);
+        const ga = maak(gatGeo || new THREE.BufferGeometry(), mat.gat, 'vrachtruimte-gat', 10);
+        const m = maak(lading, mat.cargo, 'vrachtruimte', 12);
+        mesh.userData.vrachtruimteRef = ref;
         m.userData.soort = vrachtruimteSoort(v); // voor de beeldronde: welk laadruimtetype hier hangt
         mesh.userData.vrachtruimte = m;
         mesh.userData.vrachtruimteMasker = mas;
@@ -315,11 +365,13 @@ export function syncVrachtruimtes(world, budget = VRACHT_BUILD_BUDGET) {
         mesh.userData.vrachtruimteSig = sig;
         mesh.userData.vrachtruimteKapot = kapot;
       }
+      if (cargo) houdRef(mesh);
       mesh.userData.vrachtruimte.visible = true;
       mesh.userData.vrachtruimteMasker.visible = gatZichtbaar;
       mesh.userData.vrachtruimteGatMesh.visible = gatZichtbaar;
     }
     const cargoNu = mesh.userData.vrachtruimte;
+    houdRef(mesh);
     cargoNu.visible = true;
     mesh.userData.vrachtruimteMasker.visible = !!mesh.userData.vrachtruimteSig;
     mesh.userData.vrachtruimteGatMesh.visible = !!mesh.userData.vrachtruimteSig;
