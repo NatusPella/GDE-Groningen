@@ -118,6 +118,15 @@ const pitchPutt = async (repo) => {
   return m ? { waarden: [m.PP_HOLES.length] } : { skip: 'game/js/puttinglogic.js ontbreekt' };
 };
 
+// De leesnorm in ui-taal.md ("Leesnorm"): 13 px norm (READABLE_MIN van hudlook.js, `--hud-min`) en 12 px
+// harde ondergrens (design_rules.mjs, bewaakt door release_designrules_test, hud_layout_test en steam_test).
+const leesnorm = async (repo) => {
+  const hud = await moduleAt(repo, 'game/js/hudlook.js');
+  const regels = await moduleAt(repo, 'scripts/release/design_rules.mjs');
+  if (!hud || !regels) return { skip: 'hudlook.js of design_rules.mjs laadt niet' };
+  return { waarden: [hud.READABLE_MIN, regels.TEXT_FLOOR_PX] };
+};
+
 // ---------------------------------------------------------------- de tellers
 
 // Per teller: de spec, het patroon met één groep per getal, de namen van die getallen en de bron.
@@ -136,6 +145,7 @@ export const TELLERS = [
   { file: 'mechanica.md', pattern: /([\w.]+) lessen bij Eelde/g, labels: ['lessen'], source: flying },
   { file: 'mechanica.md', pattern: /([\w.]+) vliegtuig- en ([\w.]+) helikopterlessen/g, labels: ['vliegtuiglessen', 'helikopterlessen'], source: flyingPerKit },
   { file: 'mechanica.md', pattern: /Discgolf: ([\w.]+) holes/g, labels: ['holes'], source: discgolf },
+  { file: 'ui-taal.md', pattern: /Leesnorm: ([\w.]+) px voor menu's en HUD, harde ondergrens ([\w.]+) px/g, labels: ['norm (px)', 'ondergrens (px)'], source: leesnorm },
   { file: 'mechanica.md', pattern: /Pitch en putt: ([\w.]+) holes/g, labels: ['holes'], source: pitchPutt },
 ];
 

@@ -209,6 +209,10 @@ try {
   is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '  font-size: 12px;' }).map((f) => f.ernst), ['belangrijk'], 'design: 12 px in een menu is belangrijk');
   is(checkDesignLine({ file: 'game/js/hud_panel.css', line: 1, text: '  font-size: 12px;' }).length, 0, 'design: 12 px buiten een menu mag');
   is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '.m-kc { font-size: 10px; }' }).length, 0, 'design: toetsplaatje-inhoud mag kleiner');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '#foto-ui .foto-lbl { font-size: .78em; }' }).map((f) => f.ernst), ['belangrijk'], 'design: krimpende em zonder vloer is belangrijk');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '#foto-ui .foto-lbl { font-size: max(13px, .78em); }' }).length, 0, 'design: max(13px, em) is veilig');
+  is(checkDesignLine({ file: 'game/js/hud_panel.css', line: 1, text: '.x { font-size: 85%; }' }).length, 1, 'design: krimpende procenten zonder vloer vallen op');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '.x { font-size: 1.2em; }' }).length, 0, 'design: groeiende em mag');
 
   const belangrijk = checkDesignLine({ file: 'game/js/menu.css', line: 15, text: '  background: #17301f !important;' });
   is(belangrijk.map((f) => f.ernst), ['nit'], 'design: nieuwe !important is een nit');

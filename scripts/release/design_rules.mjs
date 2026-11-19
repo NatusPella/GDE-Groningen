@@ -57,6 +57,11 @@ export const ALLOWED_FONTS = new Set([
   'sans-serif', 'inherit', 'initial', 'unset', 'revert', 'revert-layer',
 ]);
 
+// De leesnorm (ui-taal.md, "Leesnorm"): 13 px voor menu's en HUD, 12 px is de harde ondergrens voor een
+// zin; alleen de binnenkant van een toetsplaatje mag kleiner. spec_check.mjs houdt de spec hierop vast.
+export const TEXT_NORM_PX = 13;
+export const TEXT_FLOOR_PX = 12;
+
 const UI_ROOTS = /^(?:game|web)\//;
 const MENU_FILE = /(?:^|\/)(?:menu\.css|[^/]*menu[^/]*\.(?:css|js|mjs|html)|pausemenu\.js|shopui\.js|spullen\.js|hudcards\.css|prompts\.css)$/i;
 const KEYCAP_CONTEXT = /keycap|toetsplaatje|keyspot|m-kc|\bkbd\b|key-chip/i;
@@ -199,6 +204,22 @@ function fontSizeValues(text, file) {
   return [...new Set(sizes)];
 }
 
+// Een relatieve lettergrootte die krimpt (.78em, 85%) zonder vloer landt in een kleine ouder onder
+// de 13 px (menu.css .foto-lbl, hud_panel.css .nl-gloss). Alleen `max(13px, ...)` of een px-waarde is veilig.
+function shrinkingRelativeSizes(text, file) {
+  const clean = stripComments(text, file);
+  const out = [];
+  for (const m of clean.matchAll(/font-size\s*:\s*([^;}]{1,80})/gi)) {
+    const v = m[1];
+    if (/max\(/i.test(v)) continue;
+    for (const r of v.matchAll(/(?<![\w.])(\d*\.?\d+)\s*(r?em|%)/gi)) {
+      const n = Number(r[1]);
+      if (r[2] === '%' ? n < 100 : n < 1) out.push(r[0].replace(/\s+/g, ''));
+    }
+  }
+  return [...new Set(out)];
+}
+
 /**
  * Keurt één toegevoegde regel. Geeft een array bevindingen volgens $defs.bevinding
  * (bron 'design', aspect 'design') en verder niets.
@@ -249,6 +270,8 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
         ernst = 'blokkerend';
         problems.push(`lettergrootte onder 12 px: ${tiny.map((s) => `${s}px`).join(', ')}`);
       }
+      const rel = keycap ? [] : shrinkingRelativeSizes(raw, filePath);
+      if (rel.length) problems.push(`relatieve lettergrootte onder 1 (${rel.join(', ')}) zonder vloer; gebruik max(${TEXT_NORM_PX}px, ...)`);
       if (sizes.includes(12) && MENU_FILE.test(filePath) && !keycap) {
         problems.push('menu-tekst op 12 px; menu\'s zijn 13 px en hoger');
       }

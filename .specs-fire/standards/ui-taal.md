@@ -52,14 +52,17 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
 - Logo is HTML/CSS, nooit een beeld: `logoHtml()` (`logo.js`) en `.gde-logo`
   (`index.html:26`). GDE in Big Shoulders Display 900 van `#f0ede4` naar `#3fc97a`,
   de plaatsnaam op een plaat `#1e9e56`. Big Shoulders is alleen voor het logo.
-- Minimum 12 px voor elke zin, menu's 13 px en hoger; alleen de binnenkant van een
-  toetsplaatje mag kleiner. De HUD zet `--hud-min` op 13 px gedeeld door `--ui`
+- **Leesnorm: 13 px voor menu's en HUD, harde ondergrens 12 px** voor elke zin; alleen de
+  binnenkant van een toetsplaatje mag kleiner. Relatieve groottes (`em`, `%`) die krimpen
+  krijgen een vloer: `max(13px, .8em)`, nooit kaal `.8em`. `spec_check.mjs` vergelijkt deze
+  twee getallen met `READABLE_MIN` (`hudlook.js`) en `TEXT_FLOOR_PX`
+  (`scripts/release/design_rules.mjs`); die regelcontrole keurt nieuwe regels in de gate
+  (`release_designrules_test.mjs`), en `hud_layout_test.mjs` en `steam_test.mjs` keuren de
+  bestaande CSS. De HUD zet `--hud-min` op 13 px gedeeld door `--ui`
   (`hud_panel.css:13`); `READABLE_MIN` is 13 (`hudlook.js:109`).
-- Conflict 12 tegen 13 px: `DESIGN_SYSTEM.md:93` noemt 12 als vloer met menu's op
-  13+, `:263` zegt "geen tekst onder 13 px" en `:326` ("no sentence under 12 px,
-menus 13 px and up") noemt 12 als vloer voor een zin en 13 voor menu's, en
-  `DESIGN-COMPONENTEN.md:41-43` noemt 12 als vloer met 13 in de HUD. De code doet 13
-  in de HUD en 20/18 in de menu's; 12 is de ondergrens voor een zin, niet het doel.
+- Geen conflict meer tussen 12 en 13 px: de docs (`DESIGN_SYSTEM.md`,
+  `DESIGN-COMPONENTEN.md`) lezen als de Leesnorm hierboven (13 als doel, 12 als harde
+  ondergrens waar de poort op blokkeert). De code doet 13 in de HUD en 20/18 in de menu's.
 - De 11 px in de kaartbalk is weg sinds #602: `kaartactieui.js` gebruikt 26 px Bebas
   labels en 18 px uitleg, met de kleuren uit de tokens (`DESIGN-SCHULD.md` rij 1 is
   daarmee bijgewerkt; de balk is nog niet door een mens in het spel gezien).
