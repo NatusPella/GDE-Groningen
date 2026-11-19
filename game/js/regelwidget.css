@@ -1,0 +1,127 @@
+/* De regelwidget (regelwidget.js): een regel van een missie of minigame als icoon, meter en korte beweging.
+   Donker glas, dus het contrast hangt niet van de wereld erachter af (crème op glas ruim boven 4,5:1).
+   Kleur is nooit de enige drager: een waarschuwing krijgt ook een gearceerde zone, een woord en een ander icoon-gedrag.
+   Beweging is alleen transform en opacity; met html.reduce-motion (of de OS-instelling) staat alles stil en staat
+   het tekstalternatief (.rw-alt) in beeld. De kleuren komen uit de HUD-tokens (--mk-*, --hud-*). */
+.rw {
+  position: relative;
+  --rw-fg: var(--hud-fg, #f0ede4);
+  --rw-ok: var(--mk-ok, #3fc97a);
+  --rw-let: var(--mk-job, #ff9a3c);
+  --rw-fout: var(--mk-danger, #d93f3f);
+  --rw-fouttx: var(--hud-redtx, #f08a8a);
+  --rw-gat: #0c140e;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 5px 10px 5px 8px;
+  border-radius: 8px;
+  color: var(--rw-fg);
+  background: rgba(12, 20, 14, 0.86);
+  box-shadow: 0 0 0 1px rgba(63, 201, 122, 0.28);
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.rw[hidden] { display: none; }
+.rw .rw-tekst { font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rw .rw-woord { min-width: 0; }
+.rw .rw-woord:empty { display: none; }
+.rw .rw-ic { width: 24px; height: 24px; fill: currentColor; flex: 0 0 24px; }
+.rw .rw-icoon { display: grid; }
+/* het tekstalternatief is er alleen voor 'reduce motion'; de aria-gegevens staan op het element zelf */
+.rw .rw-alt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.rw.rw-statisch { flex-wrap: wrap; }
+.rw.rw-statisch .rw-alt { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; flex: 1 0 100%; font-size: 13px; }
+.rw[data-stand="let-op"], .rw[data-stand="laag"] { --rw-kleur: var(--rw-let); }
+.rw[data-stand="over"], .rw[data-stand="kritiek"], .rw[data-stand="leeg"] { --rw-kleur: var(--rw-fout); }
+.rw[data-stand="over"] .rw-tekst, .rw[data-stand="kritiek"] .rw-tekst, .rw[data-stand="over"] .rw-woord { color: var(--rw-fouttx); }
+
+/* a. limietmeter: vulling, gearceerde waarschuwingszone en een streep op de limiet */
+.rw-limiet .rw-balk { position: relative; width: 120px; height: 12px; border-radius: 3px; background: rgba(240, 237, 228, 0.16); overflow: hidden; }
+.rw-limiet .rw-vul { position: absolute; inset: 0; background: var(--rw-ok); transform-origin: left; transform: scaleX(var(--rw-p, 0)); transition: transform 0.18s linear; }
+.rw-limiet[data-stand="let-op"] .rw-vul { background: var(--rw-let); }
+.rw-limiet[data-stand="over"] .rw-vul { background: var(--rw-fout); }
+.rw-limiet .rw-warn { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(240, 237, 228, 0.55) 0 2px, transparent 2px 5px); }
+.rw-limiet .rw-lim { position: absolute; top: -1px; bottom: -1px; width: 3px; margin-left: -1px; background: var(--rw-fg); }
+.rw-limiet[data-anim="knipper"] .rw-icoon { animation: rw-knipper 0.7s ease-in-out infinite; }
+.rw-limiet[data-anim="schud"] .rw-icoon { animation: rw-schud 0.3s linear infinite; }
+
+/* b. tellerring */
+.rw-teller .rw-ring { width: 40px; height: 40px; flex: 0 0 40px; transform: rotate(-90deg); }
+.rw-teller .rw-ring circle { fill: none; stroke-width: 5; }
+.rw-teller .rw-ring-bg { stroke: rgba(240, 237, 228, 0.18); }
+.rw-teller .rw-ring-vul { stroke: var(--rw-ok); stroke-linecap: butt; }
+.rw-teller[data-stand="laag"] .rw-ring-vul { stroke: var(--rw-let); stroke-dasharray: 8 2; }
+.rw-teller[data-stand="kritiek"] .rw-ring-vul { stroke: var(--rw-fout); }
+.rw-teller[data-anim="knipper"] .rw-ring { animation: rw-knipper 0.6s ease-in-out infinite; }
+
+/* c. voorraad: een rij icoontjes; een gebroken icoon is dof, heeft een barst en een gestippelde rand */
+.rw-voorraad .rw-rij { display: inline-flex; gap: 2px; }
+.rw-voorraad .rw-stuk { display: inline-grid; color: var(--rw-ok); }
+.rw-voorraad .rw-stuk .rw-ic { width: 22px; height: 22px; flex-basis: 22px; }
+.rw-voorraad .rw-stuk .rw-barst { display: none; }
+.rw-voorraad .rw-stuk[data-s="stuk"] { color: rgba(240, 237, 228, 0.35); }
+.rw-voorraad .rw-stuk[data-s="stuk"] .rw-barst { display: inline; }
+.rw-voorraad .rw-stuk[data-s="stuk"] .rw-ic { transform: rotate(14deg) scale(0.85); }
+.rw-voorraad[data-stand="laag"] .rw-stuk[data-s="heel"] { color: var(--rw-let); }
+.rw-voorraad[data-stand="kritiek"] .rw-stuk[data-s="heel"] { color: var(--rw-fout); }
+.rw-voorraad .rw-breekt .rw-ic { animation: rw-breek 0.5s ease-out; }
+
+/* d. richtingwijzer met afstandsringen */
+.rw-wijzer .rw-rozet { position: relative; display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; }
+.rw-wijzer .rw-ringen { position: absolute; inset: 0; width: 40px; height: 40px; }
+.rw-wijzer .rw-ringen circle { fill: none; stroke: rgba(240, 237, 228, 0.3); stroke-width: 1.2; }
+.rw-wijzer .rw-pijl .rw-ic { width: 22px; height: 22px; flex-basis: 22px; fill: var(--rw-ok); transform: rotate(var(--rw-hoek, 0deg)); transition: transform 0.2s linear; }
+.rw-wijzer[data-stand="dichtbij"] .rw-pijl .rw-ic { fill: var(--rw-let); }
+.rw-wijzer[data-anim="knipper"] .rw-rozet { animation: rw-knipper 0.8s ease-in-out infinite; }
+
+/* e. timingbalk: de raakzone is een brede, gearceerde band met een rand; de naald is een streep */
+.rw-timing .rw-spoor { position: relative; width: 160px; height: 16px; border-radius: 3px; background: rgba(240, 237, 228, 0.16); overflow: hidden; }
+.rw-timing .rw-zone { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, var(--rw-ok) 0 3px, rgba(63, 201, 122, 0.45) 3px 6px); box-shadow: inset 0 0 0 2px var(--rw-ok); }
+.rw-timing .rw-naald { position: absolute; top: 0; bottom: 0; left: 0; width: 100%; transform: translateX(calc((var(--rw-p, 0) - 1) * 100%)); background: linear-gradient(90deg, transparent calc(100% - 4px), var(--rw-fg) 0); }
+.rw-timing[data-stand="raak"] .rw-tekst { color: var(--rw-ok); }
+
+/* f. toets met een lus van de handeling */
+.rw-toets .rw-toetsen { display: inline-flex; gap: 4px; }
+.rw-toets .rw-key, .rw-toets kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; box-sizing: border-box; border-radius: 5px; background: var(--rw-fg); color: var(--rw-gat); font: bold 13px 'Arial Narrow', Arial, sans-serif; box-shadow: 0 3px 0 rgba(240, 237, 228, 0.45); }
+.rw-toets .rw-draai { display: none; width: 22px; height: 22px; fill: none; stroke: var(--rw-fg); stroke-width: 2; stroke-linecap: round; }
+.rw-toets[data-handeling="draai"] .rw-draai, .rw-toets[data-anim="draai"] .rw-draai { display: block; }
+.rw-toets[data-anim="houd"] kbd, .rw-toets[data-anim="houd"] .rw-key { animation: rw-houd 1.8s ease-in-out infinite; }
+.rw-toets[data-anim="tik"] kbd, .rw-toets[data-anim="tik"] .rw-key { animation: rw-tik 0.9s ease-in-out infinite; }
+.rw-toets[data-anim="draai"] .rw-draai { animation: rw-draai 1.6s linear infinite; }
+/* zonder beweging blijft de handeling leesbaar: een ingedrukte toets bij vasthouden */
+.rw-toets.rw-statisch[data-handeling="houd"] kbd { transform: translateY(2px); box-shadow: 0 1px 0 rgba(240, 237, 228, 0.45); }
+
+/* g. stappen: iconen met een lijn ertussen; klaar = vinkje-rand, nu = dikke rand, straks = gestippeld */
+.rw-stappen .rw-lijst { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 0; margin: 0; padding: 0; list-style: none; }
+.rw-stappen li { position: relative; display: grid; justify-items: center; min-width: 40px; padding: 2px 6px; border-radius: 6px; color: var(--rw-fg); }
+.rw-stappen li + li { margin-left: 16px; }
+.rw-stappen li + li::before { content: ''; position: absolute; left: -16px; top: 17px; width: 16px; height: 2px; background: var(--rw-fg); opacity: 0.6; }
+.rw-stappen li[data-s="klaar"] { color: var(--rw-ok); }
+.rw-stappen li[data-s="klaar"] .rw-l::before { content: '\2713\00a0'; }
+.rw-stappen li[data-s="nu"] { box-shadow: inset 0 0 0 2px var(--rw-fg); }
+.rw-stappen li[data-s="straks"] { opacity: 0.7; outline: 1px dashed rgba(240, 237, 228, 0.6); outline-offset: -1px; }
+.rw-stappen .rw-nr { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 2px currentColor; font-weight: bold; }
+.rw-stappen .rw-l, .rw-stappen .rw-w { font-size: 13px; white-space: nowrap; }
+.rw-stappen .rw-w { font-variant-numeric: tabular-nums; }
+.rw-stappen .rw-w:empty, .rw-stappen .rw-l:empty { display: none; }
+.rw-stappen[data-anim="volg"] li[data-s="nu"] .rw-ic, .rw-stappen[data-anim="volg"] li[data-s="nu"] .rw-nr { animation: rw-tik 1.2s ease-in-out infinite; }
+/* de legenda (wat levert punten op) heeft geen volgorde: geen lijnen en geen markering van een actieve stap */
+.rw-stappen[data-modus="legenda"] li { box-shadow: none; opacity: 1; outline: 0; }
+.rw-stappen[data-modus="legenda"] li + li::before { display: none; }
+.rw-stappen[data-modus="legenda"] li + li { margin-left: 8px; }
+
+@keyframes rw-knipper { 50% { opacity: 0.45; } }
+@keyframes rw-schud { 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+@keyframes rw-breek { 0% { transform: scale(1.35) rotate(-18deg); } 100% { transform: rotate(14deg) scale(0.85); } }
+@keyframes rw-houd { 0%, 15% { transform: none; } 30%, 75% { transform: translateY(2px); box-shadow: 0 1px 0 rgba(240, 237, 228, 0.45); } 90%, 100% { transform: none; } }
+@keyframes rw-tik { 0%, 100% { transform: none; } 35% { transform: translateY(2px) scale(0.94); } }
+@keyframes rw-draai { to { transform: rotate(360deg); } }
+
+html.reduce-motion .rw, html.reduce-motion .rw * { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { .rw, .rw * { animation: none !important; transition: none !important; } }

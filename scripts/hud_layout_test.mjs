@@ -44,7 +44,7 @@ ok(uiScaleFor(10, 10, 0.1) >= 0.8 && uiScaleFor(99999, 99999, 9) <= 4, 'schaal b
 const FLOOR = /max\(\s*[\d.]+px\s*,\s*var\(--hud-min\)\s*\)/;
 const ALLOW = [/hud-wasd .hud-key/]; // the key caps of the WASD cluster are glyphs, not words
 let small = 0;
-for (const f of ['hud_panel.css', 'hudcards.css', 'prompts.css', 'phonefeed.css']) {
+for (const f of ['hud_panel.css', 'hudcards.css', 'prompts.css', 'phonefeed.css', 'regelwidget.css']) {
   const lines = css(f).split(/\r?\n/);
   lines.forEach((line, i) => {
     const m = /font-size:\s*([\d.]+)px/.exec(line);

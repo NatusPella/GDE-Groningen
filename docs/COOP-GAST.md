@@ -323,6 +323,16 @@ Valt de gastheer weg, dan neemt de **langst verbonden speler** over (`rangschik`
 
 **Wat er bewust níet is gebouwd (#450).** De route van de openbare lijst naar een koploze host (WebRTC in Node of een relay/ontmoetingspunt) en de Electron-variant van de host blijven eigenaarsbeslissingen: de eerste raakt constitutie 4/10 en een native dependency per platform, de tweede de releasebouw. De CLI, de wereldstaat, het wachtwoord, de aankondiging en het beheer blijven binnen deze repo en zijn gedocumenteerd in dit hoofdstuk.
 
+## Uitleg met iconen: de regelwidget (#987)
+
+Code: `regelwidget.js` en `regelwidget.css`; naslag en lijst van plekken in [UITLEG-MET-ICONEN.md](UITLEG-MET-ICONEN.md).
+
+- **Van wie en wie ziet het.** Elke speler ziet zijn eigen widget, gevoed door zijn eigen staat (eigen snelheid bij de eierrit, eigen klim, eigen puntenpaneel). De widget schrijft nooit naar de wereld; voortgang en beloning zijn ongewijzigd.
+- **Eerste-keer-uitleg per speler.** De gezien-lijst (`gde-hints-gezien`) is van het apparaat, dus een gast die de klimtoren nog niet kent krijgt de toets-lus, ook als de gastheer hem al kent.
+- **Bakronde.** De widgets staan in het paneel van de gastheer. Een gast krijgt nog het tekstpaneel uit de momentopname (`coopworld.js`); een gastpaneel met widgets is een vervolg.
+- **Wegvallen en later aansluiten.** Er is geen gedeelde staat: een speler die later aansluit bouwt zijn widgets op uit zijn eigen staat.
+- **Test.** `scripts/regelwidget_test.mjs` (pure vormen, sleutelvergelijking, reduce motion). Niet in beeld bekeken: `scripts/qa/regelwidget_beeld.mjs` is nog niet gedraaid.
+
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
