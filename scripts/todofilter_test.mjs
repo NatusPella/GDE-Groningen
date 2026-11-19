@@ -18,13 +18,14 @@ const items = [
   { key: 'job:koerier', group: 'diensten', x: sx, y: sy },
   { key: 'om:dorp:Veendam', group: 'ommeland', x: sx, y: sy },
   { key: 'om:uitkijk', group: 'ommeland', x: sx, y: sy },
+  { key: 'om:beppe', group: 'ommeland', x: sx, y: sy },
   { key: 'col:hogelandrit', group: 'ommeland', x: sx, y: sy },
   { key: 'mg:padel', group: '', x: 0, y: 0 },
   { key: 'col:eieren', group: 'verzamelen' },
 ];
 const sleutels = (l) => l.map((i) => i.key);
 const nu = sleutels(hideUnknownAreas(items, verborgen));
-assert.deepEqual(nu, ['m:3', 'st:a', 'om:dorp:Veendam', 'om:uitkijk', 'mg:padel', 'col:eieren']);
+assert.deepEqual(nu, ['m:3', 'st:a', 'om:dorp:Veendam', 'om:uitkijk', 'om:beppe', 'mg:padel', 'col:eieren']);
 
 revealArea(profiel, streek.id);
 assert.equal(verborgen(sx, sy), false);
