@@ -385,7 +385,11 @@ function waitForStart(world, ready) {
     // plekken in de stad. Laad en pin hun tegels nu, bouw de gebouwen daar voor
     // (die worden meteen gecompileerd) en compileer daarna de shaders nog eens:
     // de film betaalt dat niet meer met frames van seconden (#804).
-    if (!world.loadedFromSave) {
+    // Gemeten 19-11 (docs/PERF-TREND-0.54-NAAR-NU.md): dit voorrijden van de openingsfilm maakte van een start van
+    // ~18 s een start van 36 tot 112 s, bracht het aantal shaderprogramma's van ~100 naar ~480-580 en de heap van
+    // 0,8 naar 2-2,8 GB, en is een pleister op de eerste-draw-links van de film, niet de oorzaak. Standaard uit;
+    // ?warmfilm zet het terug voor een A/B-meting. De film bouwt zijn plekken zelf gespreid (cine-batches).
+    if (FLAGS.warmfilm && !world.loadedFromSave) {
       try {
         const opening = await import('./intromontage.js');
         // #738/#804: de vaste opening-assets (acteurs, keuken, props) één keer via de
