@@ -10,6 +10,7 @@ import { ROOSTER } from './heliplan.js';
 import { makeStrip } from './planecontrol.js';
 import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT } from './containerplan.js';
 import { applyAkte3 } from './missions_akte3.js'; // AAA akte 3: kaarten, wachtfiguren, aankleding
+import { applyAkte45 } from './missions_akte45.js'; // AAA akte 4 en 5: kaarten, wachtfiguren, aankleding
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
@@ -356,5 +357,6 @@ export function applyNieuw(list) {
     esc.talk = { ids: ['M06.3'], from: 9, to: 17, delay: 5 };
   }
   applyAkte3(list);
+  applyAkte45(list);
 }
 
