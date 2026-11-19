@@ -707,7 +707,7 @@ export function updateBeppeGarden(dt, w) {
   if (birds && d < ANIM_R) updateBirds(birds, dt, w.time);
   // on the way (#916): the road-sign card, once per session and not for someone who has been here
   if (hintDue(d, { arrived: hasUnique(TRIBUTE.set, TRIBUTE.arrival), shown: !!sessionMarks.hint }) && once(sessionMarks, 'hint')) {
-    showCard(w, { kind: 'tip', kicker: ROAD_SIGN, title: SIGN_HINT.title, body: SIGN_HINT.body, duration: 7, key: 'beppe-wegwijzer', voice: false });
+    showCard(w, { kind: 'tip', kicker: ROAD_SIGN, title: SIGN_HINT.title, body: SIGN_HINT.body, duration: 9, key: 'beppe-wegwijzer', voice: false });
   }
   // arrival: the card, the hidden achievement and the doves are in place
   if (d < LAYOUT.arrivalR) showArrivalCard(w);

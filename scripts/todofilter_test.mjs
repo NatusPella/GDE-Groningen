@@ -3,6 +3,7 @@ import { hideUnknownAreas } from '../game/js/todofilter.js';
 import { newExplorationProfile, isHiddenOnMap, revealArea } from '../game/js/verkenpunten.js';
 import { STREKEN } from '../game/js/regioleven.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
+import { TODO_KEY } from '../game/js/beppe_rules.js';
 
 // Een echte streek met zijn hart als plek: onbekend verbergt, na ontdekken niet meer.
 const streek = STREKEN[0];
@@ -18,7 +19,7 @@ const items = [
   { key: 'job:koerier', group: 'diensten', x: sx, y: sy },
   { key: 'om:dorp:Veendam', group: 'ommeland', x: sx, y: sy },
   { key: 'om:uitkijk', group: 'ommeland', x: sx, y: sy },
-  { key: 'om:beppe', group: 'ommeland', x: sx, y: sy },
+  { key: TODO_KEY, group: 'ommeland', x: sx, y: sy },
   { key: 'col:hogelandrit', group: 'ommeland', x: sx, y: sy },
   { key: 'mg:padel', group: '', x: 0, y: 0 },
   { key: 'col:eieren', group: 'verzamelen' },

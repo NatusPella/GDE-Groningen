@@ -32,7 +32,15 @@ S3.renderer.render = (sc, c) => {
   if (cur && c === S3.cam) { c.position.set(cur.position.x, cur.position.z, cur.position.y); c.lookAt(cur.lookAt.x, cur.lookAt.z, cur.lookAt.y); c.updateMatrixWorld(true); }
   origRender(sc, c);
 };
-for (const el of document.querySelectorAll('body > *')) if (!el.contains(S3.renderer.domElement) && el.tagName !== 'SCRIPT') el.style.display = 'none';
+// alleen de wereld en de kaartjes (hud-cards) in beeld: verberg de rest van de HUD, ook binnen de wortel van de kaartjes
+const keep = [S3.renderer.domElement, document.querySelector('.hud-cards'), document.querySelector('.hud-cards-e')].filter(Boolean);
+const toon = (el) => keep.some((k) => el.contains(k));
+for (const el of document.querySelectorAll('body *')) {
+  if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || toon(el) || keep.some((k) => k.contains(el))) continue;
+  if (el.parentElement && (el.parentElement === document.body || toon(el.parentElement))) el.style.display = 'none';
+}
+let hintGezien = false;
+setInterval(() => { if (/Richting Kollum/.test(document.body.textContent || '')) hintGezien = true; }, 150);
 const st = document.head.appendChild(document.createElement('style'));
 st.textContent = '#loading,#load-screen{display:none !important}';
 w.cinematicHidePlayers = true;
@@ -46,7 +54,12 @@ console.log('[fps] ' + out.fps0 + ' visibility=' + document.visibilityState);
 let spots = null;
 for (let i = 0; i < 60 && !spots; i++) { if (window.__beppe) { window.__beppe.place(); spots = window.__beppe.spots(); } if (!spots) await sleep(1000); }
 if (!spots) { clearInterval(skipper); done = true; return JSON.stringify({ fout: 'geen plek bepaald' }); }
+// de plek is eerst voorlopig en wordt definitief als de tegels rond de grens er zijn (#916): wacht daarop
+const eerste = window.__beppe.site();
+let wacht = 0;
+for (; wacht < 90 && window.__beppe.site() && window.__beppe.site().provisional; wacht++) { window.__beppe.place(); await sleep(1000); }
 const site = window.__beppe.site();
+out.voorlopig = { eersteHuis: eerste && { x: Math.round(eerste.house.x), y: Math.round(eerste.house.y) }, wachtS: wacht, nuVoorlopig: !!site.provisional };
 const o = site.out, ox = o.x, oy = o.y;
 out.spots = { border: site.border, bench: site.bench, sign: site.sign, house: site.house, gardenBench: site.gardenBench, out: o, side: site.side, shift: site.shift };
 const meet = (px, py) => {
@@ -72,13 +85,18 @@ const shot = async (naam, px, py, cx, cy, dz, lx, ly, ldz) => {
   hold = { x: px, y: py };
   cur = { position: { x: cx, y: cy, z: gh(cx, cy) + dz }, lookAt: { x: lx, y: ly, z: gh(lx, ly) + ldz } };
   await sleep(2500);
-  const rep = { naam, fps: await fps(1500), ...meet(px, py), stream: SC.streamPending(), laadscherm: !!document.getElementById('load-screen') };
+  const rep = { naam, fps: await fps(1500), ...meet(px, py), stream: SC.streamPending(), laadscherm: !!document.getElementById('load-screen'), wegwijzerKaart: hintGezien };
   out.stappen.push(rep);
   await grab(naam);
 };
 
 const B = site.bench, G = site.gardenBench, H = site.house, bd = site.border;
 const front = { x: Math.cos(H.a), y: Math.sin(H.a) };
+// 2. vanaf 150 m op de weg (de speler komt uit Groningen) en vanaf 150 m bij het huis
+const f150 = { x: bd.x - ox * 150, y: bd.y - oy * 150 };
+await zetOp(f150.x, f150.y, 2500);
+await shot('150m-weg', f150.x, f150.y, f150.x, f150.y, 1.7, bd.x + ox * 30, bd.y + oy * 30, 1.5);
+await shot('150m-hoog', f150.x, f150.y, f150.x - ox * 6, f150.y - oy * 6, 14, bd.x + ox * 22, bd.y + oy * 22, 1.0);
 // 1. dichtbij, op straathoogte: de speler komt uit Groningen en loopt naar de grens
 await zetOp(B.x - ox * 8, B.y - oy * 8);
 await shot('bankje', B.x - ox * 8, B.y - oy * 8, B.x - ox * 8, B.y - oy * 8, 1.7, B.x, B.y, 0.6);
@@ -89,11 +107,6 @@ await zetOp(H.x + front.x * 14, H.y + front.y * 14);
 await shot('huis-hoog', H.x + front.x * 14, H.y + front.y * 14, H.x + front.x * 22 + lat.x * 8, H.y + front.y * 22 + lat.y * 8, 20, H.x, H.y, 0);
 await shot('huis-voor', H.x + front.x * 14, H.y + front.y * 14, H.x + front.x * 14 + lat.x * 7, H.y + front.y * 14 + lat.y * 7, 1.7, H.x, H.y, 1.8);
 await shot('tuinbankje', G.x + front.x * 3, G.y + front.y * 3, G.x + front.x * 3 + 0.5, G.y + front.y * 3, 1.7, H.x, H.y, 1.5);
-// 2. vanaf 150 m op de weg (de speler komt uit Groningen) en vanaf 150 m bij het huis
-const f150 = { x: bd.x - ox * 150, y: bd.y - oy * 150 };
-await zetOp(f150.x, f150.y);
-await shot('150m-weg', f150.x, f150.y, f150.x, f150.y, 1.7, bd.x + ox * 30, bd.y + oy * 30, 1.5);
-await shot('150m-hoog', f150.x, f150.y, f150.x - ox * 6, f150.y - oy * 6, 14, bd.x + ox * 22, bd.y + oy * 22, 1.0);
 const h150 = { x: H.x + front.x * 150, y: H.y + front.y * 150 };
 await zetOp(h150.x, h150.y);
 await shot('150m-huis', h150.x, h150.y, h150.x, h150.y, 1.7, H.x, H.y, 3);
@@ -114,6 +127,7 @@ for (let k = 1; k <= n; k++) {
 route.eind = [Math.round(p.x), Math.round(p.y)];
 route.bereikt = Math.hypot(p.x - H.x, p.y - H.y) < 6;
 out.route = route;
+out.hintGezien = hintGezien;
 out.kaart = { marker: window.__beppe.spots().marker };
 hold = null; done = true; clearInterval(skipper);
 return JSON.stringify(out);
