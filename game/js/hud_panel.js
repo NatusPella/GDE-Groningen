@@ -51,6 +51,8 @@ import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
+import { singleEntryCache } from './hudcache.js';
+import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
 import { policeBadge, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
@@ -691,8 +693,13 @@ export function updateHud(dt, world) {
   // Op een dure kaart de cadans echt kostenproportioneel maken: een redraw van
   // 5-12 ms mag hooguit ~10% van het frame kosten, anders zakt de kaart naar
   // 10-15 fps in plaats van de vaste 20 fps-vloer. (#804, P7)
-  const mmInterval = mmCostMs > MM_HEAVY_COST_MS ? MM_HEAVY_INTERVAL_MS : MM_MIN_INTERVAL_MS;
-  if (mmNow - mmLastAt < Math.max(mmInterval, mmCostMs * 16)) return;
+  // De cadans hangt ook af van beweging: een stilstaande kaart (speler staat, geen rotatie of
+  // zoom-easing) tekent op een rustige cadans (minimapcadence.js), een bewegende houdt zijn tempo.
+  const mmP = hoofdspeler(world);
+  const mmCur = { x: mmP.x, y: mmP.y, yaw: world.pigeonMode ? mmP.angle : world.camYaw ?? mmP.angle };
+  const mmMoved = minimapMoved(mmPrev, mmCur, mmSettling);
+  if (!minimapRedrawDue(mmNow, mmLastAt, mmCostMs, mmMoved)) return;
+  mmPrev = mmCur;
   mmSkip = simLevel() >= 2 ? 1 : 0;
   if (els.vis.minimap !== false) { drawMinimap(mmDt, world); mmCostMs = mmCostMs * 0.7 + (performance.now() - mmNow) * 0.3; }
   if (hm) probe.mark('hud:minimap');
@@ -977,6 +984,8 @@ function updatePlace(dt, world) {
 // --- zone B: the GPS card ---------------------------------------------------------
 
 const gpsState = { turn: null, card: null, timer: '', t: 0 };
+const gpsAfter = singleEntryCache((map, p) => map.nearestRoadPoint(p[0], p[1], 25, false));
+let gpsMapSeen = null;
 function updateGps(dt, world) {
   if ((gpsState.t -= dt) > 0) return;
   gpsState.t = 0.2;
@@ -997,7 +1006,9 @@ function updateGps(dt, world) {
   if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
   if (turn) {
-    const after = turn.after ? world.map.nearestRoadPoint(turn.after[0], turn.after[1], 25, false) : null;
+    // de opzoeking per afslag onthouden; dezelfde afslag komt elke 0,2 s terug
+    if (gpsMapSeen !== world.map) { gpsAfter.clear(); gpsMapSeen = world.map; }
+    const after = turn.after ? gpsAfter(turn.after[0] + ',' + turn.after[1], world.map, turn.after) : null;
     const street = after && after.road && after.road.name ? after.road.name : '';
     // where it goes is on the objective card below; the turn card says the street
     const sub = street;
@@ -2673,13 +2684,8 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   ctx.restore();
 }
 
-const MM_MIN_INTERVAL_MS = 33;
-// #804: op een dure kaart (spoor/uitgezoomd: ~6 ms per tekenbeurt) is 30 fps
-// verversen te veel werk; zo'n kaart ververst op 20 fps. Lichte kaarten houden
-// hun 30 fps, zodat de kaart op de fiets/te voet niet zichtbaar gaat stotteren.
-const MM_HEAVY_INTERVAL_MS = 50;
-const MM_HEAVY_COST_MS = 4;
-let mmLastAt = 0, mmCostMs = 0;
+// De cadans (#804: dure kaart 20 fps, lichte 30 fps, stilstaand rustig) staat in minimapcadence.js.
+let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true;
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);
@@ -2714,6 +2720,7 @@ function drawMinimap(dt, world) {
   let dr = rotTarget - mmRot;
   dr -= Math.round(dr / (Math.PI * 2)) * Math.PI * 2;
   mmRot += Math.abs(dr) < 0.02 ? dr : dr * Math.min(1, dt * 8);
+  mmSettling = Math.abs(dr) >= 0.02 || Math.abs(targetScale - mmScale) > targetScale * 0.002;
   const mapRotation = mmRot;
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
   const dimLand = mode.dimLand;
