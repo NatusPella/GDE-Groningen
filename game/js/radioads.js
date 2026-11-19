@@ -78,9 +78,11 @@ export function commitAdBlock(state, block, now) {
   state.blocks++;
 }
 
-// Hoe lang een regel in beeld blijft (s): leestempo van zo'n 14 tekens per seconde, ten minste 3,5 s.
+// Hoe lang een regel in beeld blijft (s): leestempo van zo'n 18 tekens per seconde, ten minste 3,5 en hoogstens 6,5 s
+// (#985: een reclame van 120 tekens bleef 9 s staan, langer dan ze te horen was).
+export const READ_MAX_S = 6.5;
 export function readSeconds(text) {
-  return Math.max(3.5, Math.min(9, String(text).length / 14 + 1));
+  return Math.max(3.5, Math.min(READ_MAX_S, String(text).length / 18 + 1));
 }
 
 // De wachtrij van het radiolijntje voor een blok: een openingsjingle, per reclame de ondertitel(s), een slotjingle.

@@ -67,7 +67,8 @@ ok(A.blockLines({ ads: [A.RADIO_ADS.find((a) => a.id === 'bieten')] }).every((l)
 ok(q.filter((l) => l.jingle === 'tussen').length === 1, 'a jingle between two adverts');
 ok(q.every((l) => l.textOnly && l.dur > 0), 'every line is text only with a duration');
 ok(q.filter((l) => l.text).length === 2 && q.filter((l) => l.text).every((l) => l.dur >= 3.5), 'a subtitle stays at least 3,5 s');
-ok(A.readSeconds('x'.repeat(2000)) === 9, 'reading time is capped');
+ok(A.readSeconds('x'.repeat(2000)) === 6.5, 'reading time is capped');
+ok(A.RADIO_ADS.flatMap((a) => a.lines).every((t) => A.readSeconds(t) <= 6.5), 'no advert stays up longer than 6,5 s (#985)');
 
 // the programmes: the advert block is in the day programmes, not in the night one
 for (const p of PROGRAMMES) {
