@@ -67,9 +67,27 @@ Het spel had stad, wind, regen, dak, menigte, terras, krekels en water. Wat ontb
 
 De lagen volgen de bestaande regels van `ambience.js`: kruisend in en uit, zachter in een afgesloten voertuig, in de pauze en bij regen.
 
+### e. Missie-stings, kassa en ov-bel (bouwsteen G0c, zie [missies/BOUWSTENEN.md](missies/BOUWSTENEN.md))
+
+Eén familie in dezelfde toonladder als de UI-taal (C-groot pentatonisch) en één motief, C-E-G-C: omhoog bij een begin of winst, omlaag in mineur bij mislukken.
+Alles procedureel (`sfx/missiebank.js`), de regie en de API in `sfx/stingen.js` (`stingen.speel(naam)` en `stingen.push(world, naam)`), op de sting-bus onder de Effecten-schuif,
+met de categorie `sting` van het mixplan (spraakdemping tot 60 procent), een afkoeltijd per naam en een rangorde; elke sting duurt hooguit 2,5 s.
+
+| Gebeurtenis | Nu | Gat | Gebouwd | Prioriteit |
+| --- | --- | --- | --- | --- |
+| Missie gestart | een stem en een vierstemmig akkoord op de standaardbus | de opmaat naar een missie, de bank had geen sting | `missie_start` (twee varianten), automatisch bij de overgang naar active (audio.js) | midden |
+| Stap voltooid | stil | een tussenstap gaf geen terugkoppeling | `missie_stap` (drie varianten), via `stingen.push(world, 'stap')` door de runner | midden |
+| Bijna mislukt | de piep van de klok bij 30 en 10 s | geen sting bij argwaan of schade | `missie_bijna` (twee varianten), via de runner | laag |
+| Missie mislukt | een zaagtand-trapje (`missionFail`) | past niet in de familie | `missie_mislukt`, op de melding met mislukt (ui.js); het oude geluid blijft als terugval | midden |
+| Missie gelukt | `playMissionJingle` (vier tonen, hard, op de standaardbus) | overstemde en paste niet in de UI-taal | `missie_geslaagd` (twee varianten, automatisch) en `missie_geslaagd_groot` (het slot van een akte, via de runner) | midden |
+| Medaille per soort | `prestatie` en `achievement` (zilver klonk als goud) | het verschil tussen brons en goud was klein | `medaille_brons`, `medaille_zilver`, `medaille_goud`: dezelfde klank in drie lengtes, voor elke minigame en uitdaging | laag |
+| Cutscene begint en eindigt | stil | geen overgang | `scene_in` en `scene_uit` (licht), via de cutscene-runner | laag |
+| Winkelen: iets kopen | de winkelbel bij binnengaan en `ui_uitgave` (muntjes) | geen "gekocht" bij een kassa | `winkel_kassa` (twee varianten): shops.js zet `world.kassaKlik` in `pay`, ui.js speelt hem in plaats van de muntjes | midden |
+| Tram- en busbel | de busdeur sist (`bus_door_hiss`) | geen tramgeluid bij het vertrek | `tram_bel` (twee varianten) en `bus_bel`, bij het wegrijden na een halte met open deuren (linkup `ov-vertrek`); de tramrem en een bushalte-aankondiging blijven open | midden |
+
 ## Nog niet gebouwd
 
-Open gaten, op volgorde van hoe vaak de speler ze hoort. Het voorstel past in de bestaande bank; het wacht op een luisterronde, zodat niet nog meer
+Open gaten (de missie-stings, de kassa en de tram- en busbel zijn gebouwd, zie e), op volgorde van hoe vaak de speler ze hoort. Het voorstel past in de bestaande bank; het wacht op een luisterronde, zodat niet nog meer
 ongehoord geluid in het spel komt.
 
 | Gebeurtenis | Nu | Gat | Voorstel | Prioriteit |
@@ -77,15 +95,10 @@ ongehoord geluid in het spel komt.
 | Voertuig over zand, grind, gras en klinkers (rollend) | alleen een bonk bij een wissel van ondergrond en `remmen_grind` op gras | de rijsound verandert niet met de ondergrond | een korte rolruis per ondergrond uit `vehiclevoices.js` (de bestaande `buildRumbleVoice`) met het toerental als niveau | hoog |
 | Regen op water, op blad en op een tent | `bed_rain` en `bed_roof` | alleen regen en dak | een laag `bed_regenwater` naast `bed_lap` en regen op blad onder bomen | midden |
 | Wind door bomen | `bed_wind` | geen ritselend blad | een bladlaag met `place.trees` als niveau | midden |
-| Tram- en busbel, tramrem, bushalte-aankondiging | de busdeur sist (`bus_door_hiss`), lucht remt | geen tramgeluid | een tramtik en een bel bij vertrek, aan `isTram` hangen | midden |
 | Slagboom, garagedeur en rolluik | stil | parkeergarage en garagedeur openen zonder geluid | `slagboom_op` en `deur_rol` bij `parkeergarage.js` en `home.js` | laag |
 | Kermis: draaimolen, reuzenrad draait, loterij | `kermis_ding` (kop van Jut), het reuzenrad in- en uitstappen | de attracties zelf draaien stil | een lus per attractie op afstand, met muziekdoos-getik | midden |
 | Zwemmen, watertrappelen | de plons bij het erin vallen, natte stappen | geen slagen | `water_slag` per slag, gekoppeld aan `p.swimming` | midden |
 | Klimmen op ladder of steiger | stil (klimtoren heeft eigen foley) | geen hand-voet-klank | `ladder_stap` per sport | laag |
-| Missie gestart | een stem, geen eigen sting | de opmaat naar een missie | een korte `ui_missie_start` uit de stings | midden |
-| Missie gelukt | `playMissionJingle` (vier tonen, hard, op de standaardbus) | past niet in de UI-taal en overstemt | de jingle in dezelfde toonladder op de sting-bus | midden |
-| Medaille per soort (brons, zilver, goud) | `prestatie` en `achievement` | het verschil tussen brons en goud is klein | drie lengtes van dezelfde klank | laag |
-| Winkelen: iets kopen of verkopen | de winkelbel bij binnengaan, nu ook `ui_uitgave` | geen "gekocht" bij een kassa | een kassa-klik per aankoop in `shops.js` | midden |
 | Telefoon: bellen, ophangen, sms-toon per afzender | `buzz` en `ping` | alles klinkt gelijk | een rinkel en een ophang-tik | laag |
 | Vliegtuig overhead, havenschepen, de verre trein | helikopter, scheepshoorn en `train_pass` | geen vliegtuig | een drone-passage met Doppler uit `sky.js` | laag |
 | Dieren in groep: schapen, koeien, vee langs een weg | losse roepjes op een timer | geen kudde-geblaat bij een grote groep | roepfrequentie naar groepsgrootte | laag |
@@ -93,6 +106,7 @@ ongehoord geluid in het spel komt.
 
 ## Beperkingen van deze ronde
 
+- **Rolgeluid per ondergrond niet gebouwd (G0c).** Het blijft de eerste open rij: het raakt de voertuigmixer (`vehiclevoices.js`, de motor- en rolstemmen) en is niet klein en veilig genoeg om zonder luisterronde bij te zetten.
 - **Niet gehoord.** Alles is gerekend en getest, niets is beluisterd. De volgorde van de gaten is een schatting op de code, geen gemeten luisterervaring.
 - **Geen aparte "verminderd geluid"-stand.** De instellingen kennen alleen de vier schuiven (Hoofd, Muziek, Effecten, Stemmen) en de dempknop; de nieuwe
   geluiden vallen onder Effecten en de dempknop (UI op de UI-bus, wereld op de wereldbus). Een eigen "rustig"-stand bestaat niet.
@@ -107,4 +121,5 @@ ongehoord geluid in het spel komt.
 `node scripts/sfx_uitaal_test.mjs` rendert elk nieuw geluid twee keer en vergelijkt (zaad), controleert NaN en Infinity, de piek, de duur, de
 varianten en de gelijkmatigheid van de lagen; draait `ui.js` met een nagemaakte kit (juiste melding, juist geluid, afkoeltijd, stil, pauze,
 aantal gelijktijdige stemmen in een scenario van twee minuten); test de streekregels en eist dat elk nieuw geluid hier genoemd wordt.
+`node scripts/sfx_stingen_test.mjs` doet hetzelfde voor de missie-stings, de kassa en de ov-bel (plus toonladder, rangorde, afkoeltijd, spraakdemping en stemmen).
 `sfx_test.mjs`, `sfx_audit_test.mjs` en `sfx_linkups_test.mjs` nemen ze mee via `FX_INFO` en `SELF_PUSHED`.

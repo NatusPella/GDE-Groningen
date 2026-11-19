@@ -638,7 +638,7 @@ export function recordChallengeResult(w, id, { value, medal = 0, lower = false }
   if (w) world = w;
   markDirty(true);
   // the end of a minigame has a cue: a medal gets its sting, a plain finish a soft ping (the UI tones of audio.js)
-  if (w && Array.isArray(w.audioEvents) && w.audioEvents.length < 32) w.audioEvents.push({ kind: medal >= 2 ? 'achievement' : medal > 0 ? 'prestatie' : 'notify' });
+  if (w && Array.isArray(w.audioEvents) && w.audioEvents.length < 32) w.audioEvents.push({ kind: medal >= 2 ? 'achievement' : medal > 0 ? 'prestatie' : 'notify', medal });
   return { newBest: newBest && prev.best != null, prevBest: prev.best, medal: rec.medal };
 }
 

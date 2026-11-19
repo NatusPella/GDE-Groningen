@@ -7,6 +7,7 @@ import { setMenuSoundSink } from '../menusound.js';
 import { variantsOf } from './dsp.js';
 import { FX_INFO } from './fxbank.js';
 import { categoryLevel } from './mixplan.js';
+import { initStingen, speel as speelSting } from './stingen.js';
 import { UI_NIVEAU, toastGeluid, magKlinken, wordtGesmoord, kiesVariant, toonSpreiding } from './uitaal.js';
 
 // Menu/phone/map interface sounds, pickup chimes, mission/wanted stingers.
@@ -86,6 +87,7 @@ function ping() {
 
 export function initUiSfx(kit) {
   K = kit;
+  initStingen(kit);
   K.bank.warm(['cashreg', 'rack', 'spray', ...Object.keys(FX_INFO).filter((n) => /^ui_/.test(n))]);
   setMenuSoundSink(menuApi);
 }
@@ -267,14 +269,15 @@ export function updateUiSfx(dt, world) {
     if (s.startsWith('+ €')) K.buf('cashreg', { bus: ui(), gain: 0.22, prio: 2 });
     else if (s.endsWith('munitie')) K.buf('rack', { bus: ui(), gain: 0.3, prio: 2 });
     else if (s.startsWith('Spuit & Klaar')) K.buf('spray', { bus: ui(), gain: 0.25, prio: 2 });
-    else if (s.indexOf('mislukt') !== -1 && s !== 'Opslaan mislukt' && now - st.busyAt > 3) missionFail();
+    else if (s.indexOf('mislukt') !== -1 && s !== 'Opslaan mislukt' && now - st.busyAt > 3) { if (!speelSting('mislukt')) missionFail(); }
     else if (/^Opgelapt|^Pleister|^Pijnstillers|^Gezondheid/.test(s)) healthChime();
     else if (/^Kogelwerend|^Pantser/.test(s)) strap();
     else { const g = toastGeluid(m); if (g) uiFx(g); }
   }
 
   if (st.money !== null && world.money - st.money >= 40 && !muted) moneyTicks(world.money - st.money);
-  else if (st.money !== null && st.money - world.money >= 2 && !muted && !world.paused && !world.pendingRespawn) uiFx('ui_uitgave');
+  else if (st.money !== null && st.money - world.money >= 2 && !muted && !world.paused && !world.pendingRespawn) uiFx(world.kassaKlik ? 'winkel_kassa' : 'ui_uitgave');
+  world.kassaKlik = false;
   st.money = world.money;
 
   if (world.wanted !== st.wanted) {

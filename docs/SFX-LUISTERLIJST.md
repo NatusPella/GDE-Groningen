@@ -28,6 +28,25 @@ Instellingen > Geluid maakt ze zachter en op nul zwijgen ze; de dempknop zet ze 
 
 Letten op de rij: meldingen stapelen niet (een lichtere melding blijft weg als er net een zwaardere klonk); bij veel meldingen na elkaar hoor je dus minder dan je ziet.
 
+## Missie-stings en ov (sting-bus en wereld)
+
+De stings zijn één familie in dezelfde toonladder als de UI-geluiden (C-groot pentatonisch) met één motief, C-E-G-C. Snelste route: `?sfxtest`, F8, groep **Stings**, of
+`node scripts/qa/bouwsteen_stings_beeld.mjs` (Electron, speelt ze achter elkaar af en meet het niveau). Let er vooral op of ze als één familie klinken, niet harder zijn dan een stem en
+of een stem eroverheen verstaanbaar blijft (een sting wordt dan tot 60 procent gedempt).
+
+| Geluid | Waar je het hoort | Wat het moet zijn | Wat niet goed mag klinken |
+| --- | --- | --- | --- |
+| `missie_start` | een missie begint (de gele cirkel in, of een missie via de telefoon) | een lage grondtoon, het motief omhoog, een hangende klok: "daar gaan we" | te plechtig of te lang; harder dan de stem van het gesprek |
+| `missie_stap` | een tussenstap van een missie voltooid (zodra de runner-haak er is) | twee zachte noten omhoog | opdringerig bij snelle stappen; botst met de stem |
+| `missie_bijna` | bijna mislukt (zodra de runner-haak er is) | drie korte pulsen met een spanningsnoot | een sirene of alarm; schrikken |
+| `missie_mislukt` | een missie mislukt (de melding "mislukt") | het motief omlaag in mineur, teleurgesteld | treurig of straffend; hetzelfde als het oude zaagtandje |
+| `missie_geslaagd` | een missie gelukt (de melding "geklaard!") | een snelle trap en een slotakkoord | harder dan de prestatiesting (#840); verwant aan `ui_loopbaan` zonder erop te lijken |
+| `missie_geslaagd_groot` | het slot van een akte (zodra de runner-haak er is) | breed akkoord met lage grondtoon en een sprankeling | langer dan twee en een halve seconde; metalen na-ring |
+| `medaille_brons`, `medaille_zilver`, `medaille_goud` | een medaille bij een minigame of uitdaging (discgolf, skatepark, klimtoren, kart) | dezelfde klank in drie lengtes; goud het langste en het blijste | brons en zilver niet te onderscheiden; goud te schel |
+| `scene_in`, `scene_uit` | begin en einde van een cutscene (zodra de cutscene-runner ze aanroept) | een zacht aanzwellend en een uitdovend akkoord | opvallender dan de scène zelf |
+| `winkel_kassa` | iets kopen in een winkel (het geld daalt) | klik, lade en een bel: een vriendelijke kassa | te lang; samen met de muntjes van een boete te verwarren |
+| `tram_bel`, `bus_bel` | een tram of bus rijdt na een halte met open deuren weg, dichtbij | twee heldere tikken (tram), een zacht ding-dong (bus) | bij elke bus in het verkeer; een fietsbel |
+
 ## Wereld (`fx`-gebeurtenissen op de plek)
 
 | Geluid | Waar je het hoort | Wat het moet zijn | Wat niet goed mag klinken |

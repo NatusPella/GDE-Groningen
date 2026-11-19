@@ -32,6 +32,19 @@ export const SELF_PUSHED = [
   { fx: 'ui_loopbaan', where: 'sfx/ui.js (loopbaan: een niveau omhoog)' },
   { fx: 'ui_uitgave', where: 'sfx/ui.js (het geld daalt met 2 euro of meer)' },
   { fx: 'ui_gevaar', where: 'sfx/ui.js (melding van soort politie of gevaar)' },
+  // de missie-stings (sfx/stingen.js, soort 'missiesting' in world.audioEvents) en de kassa van een aankoop (shops.js zet world.kassaKlik, ui.js speelt hem)
+  { fx: 'missie_start', where: 'audio.js (de missiefase wordt active) en stingen.push(world, "start")' },
+  { fx: 'missie_stap', where: 'stingen.push(world, "stap"): de missie-runner bij een voltooide tussenstap' },
+  { fx: 'missie_bijna', where: 'stingen.push(world, "bijna"): de runner bij bijna mislukken (argwaan, schade, de klok)' },
+  { fx: 'missie_mislukt', where: 'sfx/ui.js (een melding met mislukt) en stingen.push(world, "mislukt")' },
+  { fx: 'missie_geslaagd', where: 'audio.js (de melding geklaard) en stingen.push(world, "geslaagd")' },
+  { fx: 'missie_geslaagd_groot', where: 'stingen.push(world, "geslaagd_groot"): het slot van een akte' },
+  { fx: 'medaille_brons', where: 'audio.js (recordChallengeResult geeft medaille 1 mee)' },
+  { fx: 'medaille_zilver', where: 'audio.js (recordChallengeResult geeft medaille 2 mee)' },
+  { fx: 'medaille_goud', where: 'audio.js (recordChallengeResult geeft medaille 3 mee)' },
+  { fx: 'scene_in', where: 'stingen.push(world, "scene_in"): de cutscene-runner bij het begin van een scene' },
+  { fx: 'scene_uit', where: 'stingen.push(world, "scene_uit"): de cutscene-runner bij het einde van een scene' },
+  { fx: 'winkel_kassa', where: 'shops.js (pay: world.kassaKlik) en sfx/ui.js (het geld daalt na een aankoop)' },
   { fx: 'shop_bell', where: 'shops.js (interact: de winkel gaat open)' },
   { fx: 'kermis_ding', where: 'kermis.js (botsauto raakt een ander)' },
 ];
@@ -154,6 +167,28 @@ export const LINK_RULES = [
         if (was === undefined || was === k.state) continue;
         if (k.state === 'closing' || k.state === 'opening') out.push(ev('sluis_poort', k.x, k.y));
         else if (k.state === 'levelling') out.push(ev('sluis_stroom', k.x, k.y));
+      }
+    },
+  },
+  {
+    id: 'ov-vertrek',
+    fx: 'tram_bel',
+    also: ['bus_bel'],
+    source: 'vehicledoors.js: een tram of bus waarvan de deuren open waren, rijdt weer weg (de bel bij het vertrek van een halte)',
+    init: () => new WeakMap(),
+    step(seen, world, env, out) {
+      if (!env.vehicles) return;
+      const L = env.listener();
+      for (const v of env.vehicles()) {
+        if (!v || !(v.isTram || v.isBus) || dist(v.x, v.y, L.x, L.y) > 100) continue;
+        const o = (v.doors && v.doors.open) || {};
+        const deurOpen = Object.keys(o).some((id) => /^d[0-9]a$/.test(id) && o[id] > 0.5);
+        const snel = Math.abs(v.speed || 0);
+        let s = seen.get(v);
+        if (!s) { s = { stil: snel < 0.3, deur: deurOpen }; seen.set(v, s); continue; }
+        if (snel < 0.3) { s.stil = true; if (deurOpen) s.deur = true; }
+        else if (snel > 1.2 && s.stil && s.deur) { s.stil = false; s.deur = false; out.push(ev(v.isTram ? 'tram_bel' : 'bus_bel', v.x, v.y)); }
+        else if (snel > 1.2) { s.stil = false; s.deur = false; }
       }
     },
   },

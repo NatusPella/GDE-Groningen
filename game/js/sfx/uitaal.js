@@ -9,13 +9,13 @@
 // minimale tijd (s) tussen twee keer hetzelfde geluid; de lange en betekenisvolle zijn ruimer dan de tikjes
 export const UI_COOLDOWN = {
   ui_tab: 0.08, ui_weiger: 0.6, ui_toast: 1.2, ui_kaart_open: 0.4, ui_kaart_dicht: 0.4, ui_ontdek: 2.5,
-  ui_uitkijk: 4, ui_verzameld: 0.5, ui_loopbaan: 4, ui_uitgave: 1.0, ui_gevaar: 3,
+  ui_uitkijk: 4, ui_verzameld: 0.5, ui_loopbaan: 4, ui_uitgave: 1.0, ui_gevaar: 3, winkel_kassa: 0.5,
 };
 
 // het geluid dat zachter moet zijn dan het niveau van de categorie (1 = gelijk); de lange, vrolijke zijn al vol
 export const UI_NIVEAU = {
   ui_tab: 0.9, ui_weiger: 1, ui_toast: 0.8, ui_kaart_open: 0.9, ui_kaart_dicht: 0.8, ui_ontdek: 1, ui_uitkijk: 1,
-  ui_verzameld: 0.9, ui_loopbaan: 1, ui_uitgave: 0.9, ui_gevaar: 0.9,
+  ui_verzameld: 0.9, ui_loopbaan: 1, ui_uitgave: 0.9, ui_gevaar: 0.9, winkel_kassa: 0.9,
 };
 
 // De meldingsgeluiden stapelen niet: een geluid met een lager of gelijk gewicht dan een ander meldingsgeluid dat

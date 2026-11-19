@@ -6,6 +6,7 @@
 import { defSample, dspKit } from './dsp.js';
 import { UI_FX } from './uibank.js';
 import { WORLD_FX, BED_FX } from './worldbank.js';
+import { MISSIE_FX } from './missiebank.js';
 
 const { addNoiseBurst: nb, addPartials, addTone, thump, click, bq } = dspKit;
 
@@ -495,7 +496,7 @@ defSample('klim_val', 0.8, (c, sr, R) => {
 
 // De UI-geluidstaal en de wereld-foley van docs/SFX-GAPS.md (uibank.js, worldbank.js) en de lagen per
 // streek (BED_FX): dezelfde registratie als hierboven, zodat sfx_test en sfx_audit ze ook meenemen.
-for (const [name, d] of Object.entries({ ...UI_FX, ...WORLD_FX })) {
+for (const [name, d] of Object.entries({ ...UI_FX, ...WORLD_FX, ...MISSIE_FX })) {
   FX_INFO[name] = d.info;
   defSample(name, d.dur, d.gen, { rate: 22050, peak: 0.9, ...d.opts });
 }

@@ -39,8 +39,9 @@ t('#840: audio.js speelt het register op de sting-bus, dus met Effecten-volume e
   assert.match(a, /function playPrestatieSting\(\{ goud = false \} = \{\}\)/);
   assert.match(a, /for \(const n of notenVoor\(goud\)\) playTone\(\{ \.\.\.n, bus: stingBus, prio: 2 \}\)/);
   assert.match(a, /playNoiseBurst\(\{ \.\.\.r, bus: stingBus, prio: 2 \}\)/);
-  assert.match(a, /case 'prestatie':\s*\n\s*playPrestatieSting\(\{ goud: !!e\.goud \}\)/);
-  assert.match(a, /case 'achievement':\s*\n\s*playPrestatieSting\(\{ goud: true \}\)/);
+  // een medaille krijgt eerst zijn eigen sting (sfx/stingen.js); zonder medaille of zonder bank blijft het register
+  assert.match(a, /case 'prestatie':[^]*?playPrestatieSting\(\{ goud: !!e\.goud \}\)/);
+  assert.match(a, /case 'achievement':[^]*?playPrestatieSting\(\{ goud: true \}\)/);
   // volume en mute: de sting-bus hangt aan de gewone master/mute-keten
   assert.match(a, /function masterLevel\(\)/);
   assert.match(a, /if \(master && !muted\)/);

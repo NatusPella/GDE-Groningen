@@ -695,6 +695,7 @@ function pay(world, price) {
   if (world.money < price) return false;
   noteMoney('Winkels');
   world.money -= price;
+  world.kassaKlik = true;   // sfx/ui.js: een aankoop klinkt als een kassa, geen muntjes (SFX-GAPS)
   recordStat(world, 'purchases');
   recordStat(world, 'spent', price);
   return true;

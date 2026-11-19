@@ -26,6 +26,8 @@ export const CATEGORIES = {
   dier: { level: 0.6, speech: 0.4 },
   omgeving: { level: 0.6, speech: 0.45 },
   ui: { level: 0.8, speech: 1 },
+  // de missie-stings (stingen.js): een stem eroverheen dempt ze tot 60 procent, zodat een regel verstaanbaar blijft
+  sting: { level: 0.8, speech: 0.6 },
 };
 
 export function categoryLevel(cat) {

@@ -11,6 +11,7 @@ import { createLinkups } from './sfx/linkups.js';
 import { createSamples, SAMPLE_INFO, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
+import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
@@ -1755,7 +1756,7 @@ function buildGraph() {
     buses: { sfx: sfxBus, amb: ambBus, ui: uiBus, sting: stingBus, world: worldBus },
     tone: playTone, noise: playNoiseBurst, buf: playBuf, spatial: spatialOut,
     dist: distToListener, listener: listenerPos, makePanner, setPannerPos,
-    duckAmb: duckAmbience, setReverb, muted: () => muted,
+    duckAmb: duckAmbience, setReverb, muted: () => muted, speech: () => speechLevel,
     engineSynth: () => !!synth.traffic,
   };
   initUiSfx(kit);
@@ -2431,12 +2432,14 @@ function playAudioEvents(world) {
         playTone({ freq: 1568, type: 'sine', duration: 0.3, gain: 0.12, bus: uiBus, prio: 2 });
         playTone({ freq: 2093, type: 'sine', duration: 0.25, gain: 0.09, delay: 0.08, bus: uiBus, prio: 2 });
         break;
+      // een medaille van een minigame (achievements.js geeft e.medal mee) krijgt zijn eigen sting; zonder medaille of zonder bank het oude geluid
       case 'prestatie':
-        playPrestatieSting({ goud: !!e.goud }); // #840: eigen prestatiegeluid (gewoon of goud)
+        if (!(medailleSting(e.medal) && speelMissieSting(medailleSting(e.medal)))) playPrestatieSting({ goud: !!e.goud }); // #840: eigen prestatiegeluid (gewoon of goud)
         break;
       case 'achievement':
-        playPrestatieSting({ goud: true }); // medailles en uitdagingen: de gouden variant
+        if (!(medailleSting(e.medal) && speelMissieSting(medailleSting(e.medal)))) playPrestatieSting({ goud: true }); // medailles en uitdagingen: de gouden variant
         break;
+      case 'missiesting': { const naam = stingVanEvent(e); if (naam && !(world.paused || world.menuMuffle)) speelMissieSting(naam); break; }   // de missie-agents: stingen.push(world, 'stap')
       default: break;
     }
   }
@@ -2879,7 +2882,7 @@ function updateWorldAudio(dt, world) {
 
   const missionPhase = world.mission ? world.mission.phase : null;
   if (missionPhase === 'active' && prev.missionPhase !== 'active') {
-    playMissionJingle();
+    if (!speelMissieSting('start')) playMissionJingle();   // sfx/stingen.js; het oude akkoord als de bank nog rendert
     playVoiceline(hoofdspeler(world).character, 'missie_gestart');
   }
 
@@ -2896,7 +2899,7 @@ function updateWorldAudio(dt, world) {
         else playPoliceBark('aangehouden');
       }
     } else if (m.text.indexOf('geklaard!') !== -1) {
-      playMissionJingle();
+      if (!speelMissieSting('geslaagd')) playMissionJingle();
       playVoiceline(hoofdspeler(world).character, 'missie_gelukt');
     } else if (m.text.indexOf('mislukt') !== -1) {
       // a mission failed by dying/arrest already got the death voiceline
