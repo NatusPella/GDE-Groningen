@@ -4,6 +4,7 @@
 // { group, frame(t), dispose() } zoals de andere sets en wordt door stagesets.js (missiestap)
 // en cutscenehost.js (def.set) gebouwd.
 import * as THREE from 'three';
+import { adoptSetLight } from './setlights.js';
 import { canvasTex } from './canvastex.js';
 import { ROOMS } from './roomspec.js';
 
@@ -144,10 +145,10 @@ export function buildRoom(kind, x, y, z) {
   }
 
   // verlichting: warm in de kroeg en de woonkamer, koud in de garage
-  const lamp = new THREE.PointLight(look.tint, kind === 'garage' ? 2.8 : 2.4, 9, 1.8);
+  const lamp = adoptSetLight(new THREE.PointLight(look.tint, kind === 'garage' ? 2.8 : 2.4, 9, 1.8));
   lamp.position.set(-0.5, H - 0.4, 0);
   group.add(lamp);
-  const lamp2 = new THREE.PointLight(look.tint, 1.2, 7, 1.9);
+  const lamp2 = adoptSetLight(new THREE.PointLight(look.tint, 1.2, 7, 1.9));
   lamp2.position.set(W / 4, H - 0.5, -D / 4);
   group.add(lamp2);
   group.add(new THREE.AmbientLight(look.tint, 0.55));

@@ -1,12 +1,12 @@
 // Shader programs per moment on the player path (desktop --perf-script, scripts/perf/programs.mjs reads the result):
-// after the game started, at fixed moments (PROG_AT seconds, default 0,25,70,120) a snapshot of renderer.info.programs
+// after the game started, at fixed moments (PROG_AT seconds, default 0,15,17,19,24,27,40,70,100) a snapshot of renderer.info.programs
 // (cacheKey, name, linked) with the materials that own each program, and the frames over 50/100 ms per window.
 // Run on the player path: --url-flags=noattract,warm (without --stil for load time).
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 for (let i = 0; i < 1800 && !document.body.classList.contains('game-started'); i++) await sleep(100);
 const t0 = performance.now();
 const marks = JSON.parse(JSON.stringify(window.__loadMarks || {}));
-const AT = (window.__progAt || [0, 25, 70, 120]).map((s) => s * 1000);
+const AT = (window.__progAt || [0, 15, 17, 19, 24, 27, 40, 70, 100]).map((s) => s * 1000);
 const frames = []; // [t since start, dt]
 let prev = performance.now();
 const tick = () => { const n = performance.now(); frames.push([Math.round(n - t0), Math.round(n - prev)]); prev = n; requestAnimationFrame(tick); };

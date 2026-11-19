@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { adoptSetLight } from './setlights.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 
 // #950: het kantoor van Wiebelwerk, voor het gesprek met de accountmanager (M18).
@@ -125,10 +126,10 @@ export function buildOffice(x, y, z) {
   // #955: het kantoor is een kamer, geen decorstuk: warm licht van boven, een schemerige
   // hoek bij het glas en de spullen die je op een intake ziet. Zonder licht bleef het
   // interieur een donker blok naast de zon van de wereld.
-  const lampWarm = new THREE.PointLight(0xffe6c4, 2.8, 8.5, 1.7);
+  const lampWarm = adoptSetLight(new THREE.PointLight(0xffe6c4, 2.8, 8.5, 1.7));
   lampWarm.position.set(-1.2, H - 0.4, 0.2);
   group.add(lampWarm);
-  const lampKoel = new THREE.PointLight(0xdce9f2, 1.5, 7, 1.9);
+  const lampKoel = adoptSetLight(new THREE.PointLight(0xdce9f2, 1.5, 7, 1.9));
   lampKoel.position.set(2.6, 2.1, -0.4);
   group.add(lampKoel);
   group.add(new THREE.AmbientLight(0xfff2e2, 0.55));
@@ -266,13 +267,13 @@ export function buildServerRoom(x, y, z) {
   box(0.9, 1.5, 0.55, std(0xbec7cd, { roughness: 0.5, metalness: 0.2 }), -W / 2 + 0.5, 0.75, -D / 2 + 0.6);
   for (let k = 0; k < 6; k++) box(0.7, 0.03, 0.02, std(0x7f8a92), -W / 2 + 0.5, 0.25 + k * 0.18, -D / 2 + 0.9);
   // koel, groenachtig licht en de gloed van het scherm
-  const koel = new THREE.PointLight(0xbfe3ff, 3.2, 9, 1.8);
+  const koel = adoptSetLight(new THREE.PointLight(0xbfe3ff, 3.2, 9, 1.8));
   koel.position.set(-1.2, H - 0.5, 0);
   group.add(koel);
-  const koel2 = new THREE.PointLight(0x9fd8c0, 2.2, 8, 1.9);
+  const koel2 = adoptSetLight(new THREE.PointLight(0x9fd8c0, 2.2, 8, 1.9));
   koel2.position.set(2.6, H - 0.6, 0.4);
   group.add(koel2);
-  const schermGloed = new THREE.PointLight(0x7fe0b0, 1.2, 4, 2);
+  const schermGloed = adoptSetLight(new THREE.PointLight(0x7fe0b0, 1.2, 4, 2));
   schermGloed.position.set(SERVER.deskU - 0.2, SERVER.deskH + 0.6, 0);
   group.add(schermGloed);
   group.add(new THREE.AmbientLight(0xcfe2ee, 0.42));

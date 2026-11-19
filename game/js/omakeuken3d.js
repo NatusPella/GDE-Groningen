@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { adoptSetLight } from './setlights.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 
 // #956: Oma Trijntje's kitchen at the Noorderhaven as a room for M25, where the
@@ -141,7 +142,7 @@ export function buildOmaKitchen(x, y, z) {
   box(0.04, 0.04, 0.62, std(0x8a6238), OMA_KEUKEN.stoveU - 0.55, OMA_KEUKEN.counterH + 0.3, 0.05);
   // the oven door and its warm light
   box(0.04, 0.6, 0.8, std(0x2a2d30, { roughness: 0.35 }), OMA_KEUKEN.stoveU - 0.82, 0.32, 0.5);
-  const ovenGlow = new THREE.PointLight(0xff9a3a, 1.6, 3.2, 2);
+  const ovenGlow = adoptSetLight(new THREE.PointLight(0xff9a3a, 1.6, 3.2, 2));
   ovenGlow.position.set(OMA_KEUKEN.stoveU - 0.9, 0.4, 0.5);
   group.add(ovenGlow);
   // upper cupboards, a shelf with jars and hanging pans
@@ -199,10 +200,10 @@ export function buildOmaKitchen(x, y, z) {
   }
   box(0.7, 0.18, 0.55, std(0x8a6a4a), 1.2, 0.09, 2.2);
   // a bulb over the table, warm as an old kitchen
-  const lamp = new THREE.PointLight(0xffd9a0, 2.6, 8.0, 1.8);
+  const lamp = adoptSetLight(new THREE.PointLight(0xffd9a0, 2.6, 8.0, 1.8));
   lamp.position.set(-0.9, H - 0.35, 0.0);
   group.add(lamp);
-  const lamp2 = new THREE.PointLight(0xffe6c4, 1.3, 6.0, 1.9);
+  const lamp2 = adoptSetLight(new THREE.PointLight(0xffe6c4, 1.3, 6.0, 1.9));
   lamp2.position.set(2.0, 2.1, 0.6);
   group.add(lamp2);
   group.add(new THREE.AmbientLight(0xfff2df, 0.55));

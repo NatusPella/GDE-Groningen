@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { adoptSetLight } from './setlights.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 
 // #956: the Loket of the Stadhuis on the Grote Markt as a real waiting room, for
@@ -174,10 +175,10 @@ export function buildLoket(x, y, z) {
   for (const u of [-3.4, -0.4, 2.6]) box(1.5, 0.08, 0.3, std(0xf2f0e2, { emissive: 0xffe9bd, emissiveIntensity: 1.2 }), u, H - 0.12, 0);
 
   // the light of a public hall: warm from above, cooler from the glass and the screen
-  const lampWarm = new THREE.PointLight(0xffe2b8, 3.0, 9.5, 1.7);
+  const lampWarm = adoptSetLight(new THREE.PointLight(0xffe2b8, 3.0, 9.5, 1.7));
   lampWarm.position.set(-1.4, H - 0.45, 0.3);
   group.add(lampWarm);
-  const lampKoel = new THREE.PointLight(0xdce9f2, 1.6, 8, 1.9);
+  const lampKoel = adoptSetLight(new THREE.PointLight(0xdce9f2, 1.6, 8, 1.9));
   lampKoel.position.set(3.0, 2.2, -0.6);
   group.add(lampKoel);
   group.add(new THREE.AmbientLight(0xfff1df, 0.58));

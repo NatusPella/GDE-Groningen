@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { adoptSetLight } from './setlights.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 
 // Tessa's kitchen in the Oosterparkwijk at dawn, for the opening of a new
@@ -243,10 +244,10 @@ export function buildKitchen(x, y, z) {
   box(0.01, 0.6, 0.01, std(0x222222), 0, 2.3, 0);
   const shade = add(keep(new THREE.ConeGeometry(0.26, 0.2, 18, 1, true)), keep(new THREE.MeshStandardMaterial({ color: 0x1e9e56, side: THREE.DoubleSide, emissive: 0x0f3a20, emissiveIntensity: 0.5 })), 0, 1.98, 0);
   shade.rotation.x = 0;
-  const lamp = new THREE.PointLight(0xffd6a0, 3.2, 6, 1.6);
+  const lamp = adoptSetLight(new THREE.PointLight(0xffd6a0, 3.2, 6, 1.6));
   lamp.position.set(0, 1.85, 0);
   group.add(lamp);
-  const dawn = new THREE.PointLight(0xffb27a, 5, 7, 1.4);
+  const dawn = adoptSetLight(new THREE.PointLight(0xffb27a, 5, 7, 1.4));
   dawn.position.set(-1.9, 1.7, 0.2);
   group.add(dawn);
   group.add(new THREE.AmbientLight(0xffe6cc, 0.75));

@@ -7,6 +7,7 @@ import { lampRule, lampSpot, LAMP_AWNING } from './streetfurniture.js';
 import { hash2 as hash } from './rng.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { koplampenFactor } from './weerlook.js';
+import { syncSetLights } from './setlights.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -613,6 +614,7 @@ export function updateNightLights(world, vehicleMeshes, px, py, night, wet, dt =
     updateLampColors(night, wet);
   }
   updateRealLampLights(px, py);
+  syncSetLights(scene, pointLights);
   const wr = world.weather;
   updateVehicleLights(world, vehicleMeshes, px, py, koplampenFactor(night, wr && wr.active ? wr.intensity || 0 : 0, wr ? wr.mist || 0 : 0));
   updatePoliceLights(world, vehicleMeshes, px, py, night);
