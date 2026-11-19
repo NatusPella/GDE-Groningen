@@ -21,7 +21,8 @@ import { getOverzicht } from './gebiedenlive.js';
 import { samenvatting as gebiedenSamenvatting } from './gebieden.js';
 import { fillBars, countTo } from './motion.js';
 import { placeShot } from './placeshot.js';
-import { todayInfo, todaySpecial, upcoming } from './calendarday.js';
+import { todayInfo, todaySpecial, upcoming, today as calendarToday } from './calendarday.js';
+import { agendaRegels } from './agendaregels.js'; // #985: evenementen staan ook vooruit in de agenda
 import { calIcon } from './calendar.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -241,10 +242,10 @@ function heroHtml(world) {
 // Today and the coming special days (calendarday.js)
 function agendaHtml(world) {
   const t = todayInfo(world), sp = todaySpecial(world);
-  const list = upcoming(world, 4).filter((u) => !sp || u.s.id !== sp.id);
+  const list = agendaRegels(calendarToday(world), { special: sp, specials: upcoming(world, 4), count: 6 });
   const item = (icon, name, when, on) => `<li${on ? ' data-on' : ''}>${calIcon(icon, 'ov-ag-ic')}<b>${esc(name)}</b><span class="mut">${esc(when)}</span></li>`;
-  const inner = `<ul class="ov-agenda">` + (sp ? item(sp.icon, sp.name, 'vandaag', true) : '') + list.map((u) => item(u.s.icon, u.s.name, u.label, false)).join('') +
-    (!sp && !list.length ? '<li><span class="mut">Geen bijzondere dagen meer. Het blijft zomer.</span></li>' : '') + '</ul>';
+  const inner = `<ul class="ov-agenda">` + list.map((r) => item(r.icon, r.name, r.when, r.on)).join('') +
+    (!list.length ? '<li><span class="mut">Geen bijzondere dagen meer. Het blijft zomer.</span></li>' : '') + '</ul>';
   return disc('agenda', 'Agenda', `${t.long} · ${t.nazomer ? 'de nazomer houdt aan' : `zomerdag ${t.n}`}`, inner);
 }
 
