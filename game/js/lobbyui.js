@@ -14,7 +14,7 @@
 // Het wachtwoord van een sessie (#450) hoort bij de hub: de gastheer zet het hier, een gast geeft het mee aan de kennismaking.
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
-import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN } from './lobby.js';
+import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN, VERBIND_TIK_MS } from './lobby.js';
 import { consentOnthoudenHtml } from './onlineconsentui.js';
 import { getSettings, setSetting } from './settings.js';
 import { ipcTransport, listenForGuests, onlineSupported } from './net/ipctransport.js';
@@ -112,9 +112,13 @@ export function mountLobby(root, hooks, opts = {}) {
       if (state.step !== 'verbonden') planAuto(AUTO_TUSSEN);
     }, ms);
   }
+  let verbindTimer = null, verbindN = 0; // #985: zolang het scherm Verbinden… toont, telt hij mee zodat de tekst kan zeggen dat er nog niets terugkwam
+  const stopVerbindTik = () => { if (verbindTimer) { clearInterval(verbindTimer); verbindTimer = null; } };
   const set = (ev) => {
     const was = state.step;
     state = reduce(state, ev);
+    if (state.step === 'verbinden' && !verbindTimer) { verbindN = 0; state = { ...state, wachtTik: 0 }; verbindTimer = setInterval(() => set({ t: 'verbind-tik', n: ++verbindN }), VERBIND_TIK_MS); }
+    else if (state.step !== 'verbinden') stopVerbindTik();
     if (luis && state.step !== 'lijst') stopLuisteren(); // de lijst wordt alleen opgehaald zolang je hem bekijkt
     if (aankondiger && !state.openbaar) stopAankondiging(); // en een sessie staat alleen in de lijst zolang dit scherm hem openbaar houdt
     if (state.step === 'verbroken' && was !== 'verbroken') planAuto(AUTO_EERSTE);
@@ -634,6 +638,7 @@ export function mountLobby(root, hooks, opts = {}) {
   function cleanup() {
     hervatGen++;
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+    stopVerbindTik();
     autoTries = AUTO_MAX; // na sluiten geen pogingen meer
     if (handle && handle.cancel) handle.cancel();
     handle = null; wacht = false;

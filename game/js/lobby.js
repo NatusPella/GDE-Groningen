@@ -310,6 +310,9 @@ export function reduce(s, ev) {
       return n;
     }
     case 'verbinden': n.step = 'verbinden'; return n;
+    case 'verbind-tik': // de tijd die het verbinden al duurt, in tikken van een paar seconden (lobbyui.js): de tekst zegt dan wat er aan de hand kan zijn (#985)
+      if (s.step !== 'verbinden') return s;
+      n.wachtTik = Math.max(0, ev.n | 0); return n;
     case 'status': {
       n.status = ev.status; n.reason = ev.reason || null; if (ev.ander) n.andereVersie = String(ev.ander); if (ev.partner) n.partner = ev.partner;
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
@@ -382,6 +385,18 @@ export function jijRegel(s, lijst, ik) {
 // Het kamercodeveld toont wat je zelf typte (invoerDraft), ook na een nieuwe tekening; zonder eigen
 // invoer valt het terug op de laatst gebruikte code.
 const invoerWaarde = (s) => (s.invoerDraft != null ? s.invoerDraft : (s.caps.laatsteCode || ''));
+// Wat het verbindscherm zegt: eerst naar welke kamer er gezocht wordt, daarna dat er nog niets terugkwam, en na ruim 20 seconden dat een
+// typefout in de code geen foutmelding geeft maar gewoon een kamer die niet bestaat (#985). Een tik is 4 seconden.
+export const VERBIND_TIK_MS = 4000;
+export function verbindenRegels(s) {
+  const tik = s.wachtTik | 0;
+  const room = s.invoer && s.invoer.room && /^[A-Z0-9]{10}$/.test(s.invoer.room) ? `${s.invoer.room.slice(0, 5)}-${s.invoer.room.slice(5)}` : '';
+  const zoek = room ? `Er wordt gezocht naar kamer ${room}.` : 'Er wordt gezocht naar de kamer.';
+  if (tik < 2) return [`${zoek} Even geduld, dit duurt een paar seconden.`];
+  if (tik < 5) return [`${zoek} De ander heeft nog niet geantwoord; dat kan even duren.`];
+  return [`${zoek} Er kwam nog geen antwoord. Klopt de code? Een typefout geeft geen foutmelding: die kamer bestaat dan gewoon niet.`, 'Annuleer en vraag de code nog eens aan de ander, of wacht nog even.'];
+}
+
 export function view(s) {
   // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
   const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
@@ -453,7 +468,7 @@ export function view(s) {
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
       });
     case 'verbinden':
-      return V({ title: 'Verbinden…', lines: ['Even geduld. Dit duurt een paar seconden.'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
+      return V({ title: 'Verbinden…', lines: verbindenRegels(s), buttons: [{ act: 'terug', label: 'Annuleren' }] });
     case 'verbonden': {
       const lag = s.status === 'lag';
       const host = s.rol === ROLES.HOST;
@@ -519,7 +534,7 @@ export function view(s) {
       return V({
         title: 'Verbinding weg',
         lines: [
-          `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.`,
+          host ? `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.` : `${wie} is niet meer bereikbaar. De wereld van ${wie} staat stil tot jij weer verbonden bent; zolang je wegblijft gebeurt er niets in jullie spel.`,
           host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : s.bron ? 'Kies Opnieuw verbinden: het spel zoekt de sessie weer op in de lijst. Of stop met samen spelen; je komt terug waar je was.' : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }, { act: 'diag', label: 'Verbinding testen' }],

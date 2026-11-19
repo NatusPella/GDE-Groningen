@@ -172,6 +172,24 @@ t('de laatste code staat alvast ingevuld; geweigerd toont de reden en terug gaat
   assert.equal(L.view(s).lines[0], REASON_TEXT.versie);
   assert.equal(L.reduce(s, { t: 'terug' }).step, 'start');
 });
+t('Verbinden… toont de kamer en zegt na een halve minuut wat er aan de hand kan zijn (#985)', () => {
+  let s = run(WEB, { t: 'kies', rol: 'gast' });
+  s = L.reduce(L.reduce(s, { t: 'invoer', text: 'K3J9D-8F2MN' }), { t: 'akkoord' });
+  assert.equal(s.step, 'verbinden');
+  assert.match(L.view(s).lines[0], /kamer K3J9D-8F2MN/);
+  assert.doesNotMatch(L.view(s).lines.join(' '), /typefout/);
+  s = L.reduce(s, { t: 'verbind-tik', n: 3 });
+  assert.match(L.view(s).lines[0], /nog niet geantwoord/);
+  s = L.reduce(s, { t: 'verbind-tik', n: 6 });
+  assert.match(L.view(s).lines.join(' '), /typefout/);
+  assert.equal(L.reduce(L.reduce(s, { t: 'status', status: 'ok' }), { t: 'verbind-tik', n: 9 }).wachtTik, 6, 'een tik na het verbinden verandert niets');
+});
+t('wachtscherm van de gast: de wereld van de ander staat stil tot je terug bent (#985)', () => {
+  const g = run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'lost' });
+  assert.match(L.view(g).lines[0], /wereld van .* staat stil tot jij weer verbonden bent/);
+  const h = run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }, { t: 'status', status: 'lost' });
+  assert.match(L.view(h).lines[0], /Het spel staat stil/);
+});
 t('wegvallen: spel pauzeert en wacht; host kan Alleen verder, gast Stoppen; hervatten per rol', () => {
   let h = run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }, { t: 'status', status: 'lag' });
   assert.match(L.view(h).lines.join(' '), /haperde/);
