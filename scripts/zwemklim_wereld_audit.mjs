@@ -28,7 +28,7 @@ for (const w of map.water) {
   }
 }
 const stride = Math.max(1, Math.floor(edges.length / N));
-let total = 0, found = 0, none = 0, bad = 0, oldBad = 0;
+let total = 0, found = 0, none = 0, bad = 0, oldBad = 0, oldNone = 0;
 const fouten = [];
 for (let k = 0; k < edges.length; k += stride) {
   const [ex, ey, ux, uy] = edges[k];
@@ -46,13 +46,15 @@ for (let k = 0; k < edges.length; k += stride) {
     const px = sx - nx * d, py = sy - ny * d;
     if (!inMapWater(map, px, py)) { old = { ex: px, ey: py, x: sx - nx * (d + 0.4), y: sy - ny * (d + 0.4) }; break; }
   }
-  if (old && !inMapWater(map, old.x, old.y) && !buildingAt(map, old.x, old.y) && !climbPathClear(map, old.ex, old.ey, old.x, old.y)) oldBad++;
+  const oldOk = old && !inMapWater(map, old.x, old.y) && !buildingAt(map, old.x, old.y);
+  if (!oldOk) oldNone++;
+  else if (!climbPathClear(map, old.ex, old.ey, old.x, old.y)) oldBad++;
   if (!spot) { none++; continue; }
   found++;
   const [rx, ry] = resolveWalker(spot.x, spot.y, 0.3, map, 0, 0, null, 0, 0);
   const slecht = inMapWater(map, spot.x, spot.y) || !!buildingAt(map, spot.x, spot.y) || insideWaterObstacle(map, spot.x, spot.y) || Math.hypot(rx - spot.x, ry - spot.y) > 0.04;
   if (slecht) { bad++; if (fouten.length < 5) fouten.push(`(${spot.x.toFixed(1)}, ${spot.y.toFixed(1)}) vanaf (${sx.toFixed(1)}, ${sy.toFixed(1)})`); }
 }
-console.log(`zwemklim_wereld_audit: ${total} zwempunten, ${found} met klimplek, ${none} zonder, ${bad} slechte plekken; de oude regel zette er ${oldBad} in een muur, hek of voorwerp`);
+console.log(`zwemklim_wereld_audit: ${total} zwempunten, ${found} met klimplek, ${none} zonder (de oude regel vond er ${total - oldNone}), ${bad} slechte plekken; de oude regel zette er ${oldBad} in een muur, hek of voorwerp`);
 for (const f of fouten) console.log('  slecht:', f);
 process.exit(bad ? 1 : 0);
