@@ -6,6 +6,7 @@
 // Tijd loopt in speluren (een speldag is 24 minuten). Altijd zomer: geen vorst die de motor niet start, geen modder die het werk stopt.
 
 import { MACHINE_CATALOGUS, MAX_ACHTERSTAND, DAG_UREN, stal } from './percelen.js';
+import { euro } from './geldtekst.js';
 
 export const DIESEL_ERF = 1.6;               // euro per liter uit het dieselvat op je erf
 export const DIESEL_POMP = 2.05;             // euro per liter bij de pomp (Pomp & Poets en andere pompen in de wereld)
@@ -84,7 +85,7 @@ export function onderhoudKosten(m) {
 export function onderhoud(m, geld) {
   const k = onderhoudKosten(m);
   if (!(k > 0)) return { ok: false, reden: 'Er is niets aan te doen: het is nog in goede staat.' };
-  if (!(geld >= k)) return { ok: false, reden: `Een onderhoudsbeurt kost €${k}.` };
+  if (!(geld >= k)) return { ok: false, reden: `Een onderhoudsbeurt kost ${euro(k)}.` };
   m.slijtage = 0;
   return { ok: true, kosten: k };
 }
@@ -98,7 +99,7 @@ function neem(bd, type, erfId, geld, huur, nu) {
   if (!c) return { ok: false, reden: 'Dat staat niet in de catalogus.' };
   if (!SPEC[type] && c.soort === 'machine') return { ok: false, reden: 'Dat is nog niet te koop.' };
   const prijs = huur ? c.huurDag : c.koop;
-  if (!(geld >= prijs)) return { ok: false, reden: `Je hebt €${prijs} nodig.` };
+  if (!(geld >= prijs)) return { ok: false, reden: `Je hebt ${euro(prijs)} nodig.` };
   const r = stal(bd, type, erfId);
   if (!r.ok) return r;
   const m = vind(bd, r.uid);

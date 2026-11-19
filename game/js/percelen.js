@@ -205,7 +205,7 @@ export function koop(bd, soort, id, geld) {
   if (!s) return { ok: false, reden: 'Dat bestaat niet.' };
   if (s.van === 'jou') return { ok: false, reden: `${naam(s.def)} is al van jou${s.status === 'gehuurd' ? ' (gehuurd): zeg de huur eerst op' : ''}.` };
   if (!s.kunKopen) return { ok: false, reden: `${naam(s.def)} is alleen te huur.` };
-  if (!(geld >= s.def.koop)) return { ok: false, reden: `Je hebt €${s.def.koop} nodig.` };
+  if (!(geld >= s.def.koop)) return { ok: false, reden: `Je hebt ${euro(s.def.koop)} nodig.` };
   bezit(bd, soort)[id] = { status: 'gekocht', sinds: 0 };
   if (soort === 'erf') bd.opslag[id] = {};
   bd.totaal.gekocht += s.def.koop;
@@ -220,7 +220,7 @@ export function huur(bd, soort, id, betaling, nu, geld) {
   if (s.van === 'jou') return { ok: false, reden: `${naam(s.def)} is al van jou.` };
   if (!s.kunHuren) return { ok: false, reden: `${naam(s.def)} is alleen te koop.` };
   const bedrag = huurBedrag(s.def, betaling);
-  if (!(geld >= bedrag)) return { ok: false, reden: `Je hebt €${bedrag} nodig voor de eerste ${betaling === 'week' ? 'week' : 'dag'}.` };
+  if (!(geld >= bedrag)) return { ok: false, reden: `Je hebt ${euro(bedrag)} nodig voor de eerste ${betaling === 'week' ? 'week' : 'dag'}.` };
   const t = getal(nu, 0, 1e7);
   bezit(bd, soort)[id] = { status: 'gehuurd', sinds: t, betaling, volgende: t + PERIODE_UREN[betaling], schuld: 0, achterstand: 0 };
   if (soort === 'erf') bd.opslag[id] = {};
@@ -319,7 +319,7 @@ export function verwerkHuur(bd, nu, geld = Infinity) {
 export function betaalSchuld(bd, soort, id, geld) {
   const x = bezit(bd, soort)[id];
   if (!x || x.status !== 'gehuurd' || !(x.schuld > 0)) return { ok: false, reden: 'Er staat niets open.' };
-  if (!(geld >= x.schuld)) return { ok: false, reden: `Je hebt €${x.schuld} nodig.` };
+  if (!(geld >= x.schuld)) return { ok: false, reden: `Je hebt ${euro(x.schuld)} nodig.` };
   const bedrag = x.schuld;
   x.schuld = 0; x.achterstand = 0;
   bd.totaal.huur += bedrag;

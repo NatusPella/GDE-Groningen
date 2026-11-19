@@ -13,6 +13,7 @@
 import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, perceelDef, bodemFactor, START_PERCEEL, PERCEEL_IDS } from './percelen.js';
 import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
 import * as CT from './boerderijcontracten.js';
+import { euro } from './geldtekst.js';
 
 export const VERSIE = 1;
 export const MAX_UREN = 1e7;
@@ -258,7 +259,7 @@ export function magTaak(b, taak, geld = Infinity, { vrij = false } = {}) {
     return { ok: false, reden: w ? `Het gewas groeit nog ${Math.ceil(w.uren)} uur.` : 'Dat kan nu niet.' };
   }
   const k = kosten(b, taak, actiefGewas(b), { vrij });
-  if (k.totaal > geld) return { ok: false, reden: `Je hebt €${k.totaal} nodig.` };
+  if (k.totaal > geld) return { ok: false, reden: `Je hebt ${euro(k.totaal)} nodig.` };
   return { ok: true, kosten: k };
 }
 
@@ -298,7 +299,7 @@ export const leenRuimte = (b) => Math.max(0, LENING.max - b.boek.lening.schuld);
 export function leen(b, bedrag) {
   const n = Math.round(bedrag);
   if (!(n >= 100)) return { ok: false, reden: 'De bank leent vanaf €100.' };
-  if (n > leenRuimte(b)) return { ok: false, reden: `Je kunt nog €${leenRuimte(b)} lenen bij ${LENING.bank}.` };
+  if (n > leenRuimte(b)) return { ok: false, reden: `Je kunt nog ${euro(leenRuimte(b))} lenen bij ${LENING.bank}.` };
   const l = b.boek.lening;
   if (l.schuld <= 0) l.tot = b.uren;
   l.schuld += n; l.opgenomen += n;
@@ -415,7 +416,7 @@ export function koop(b, machine, geld) {
   const m = MACHINES[machine];
   if (!m) return { ok: false, reden: 'Die machine bestaat niet.' };
   if (b.machines[machine] === 'eigen') return { ok: false, reden: 'Die machine is al van jou.' };
-  if (!(geld >= m.koop)) return { ok: false, reden: `Je hebt €${m.koop} nodig.` };
+  if (!(geld >= m.koop)) return { ok: false, reden: `Je hebt ${euro(m.koop)} nodig.` };
   b.machines[machine] = 'eigen';
   b.totaal.uitgaven += m.koop;
   boek(b, { kosten: m.koop, post: 'machines' });

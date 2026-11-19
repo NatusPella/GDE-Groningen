@@ -1,4 +1,5 @@
 import { saveGame } from './savehook.js';
+import { euro } from './geldtekst.js';
 import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shopicon.js';
 import { hudPixelRatio } from './uiscale.js';
@@ -191,7 +192,7 @@ function rowHtml(it, secTitle) {
 }
 
 function priceOnly(it) {
-  return it.income > 0 ? `<span class="v free">+€${it.income}</span>` : it.price > 0 ? `<span class="v">€${it.price.toLocaleString('nl-NL')}</span>` : '';
+  return it.income > 0 ? `<span class="v free">+${euro(it.income)}</span>` : it.price > 0 ? `<span class="v">${euro(it.price)}</span>` : '';
 }
 
 function renderTabs(tabs) {
@@ -263,7 +264,7 @@ function renderDetail() {
       `<span class="sm-rt">${esc(r.text)}</span>${r.teaser ? `<span class="sm-rt">${esc(r.teaser)}</span>` : ''}<span class="sm-rt mut">Bord: ${esc(r.board.toLowerCase())}. De rit is over te slaan.</span>`;
   } else dd.textContent = it.desc || '';
   bar.querySelector('.sm-effect').textContent = it.effect || '';
-  bar.querySelector('.sm-pricebig').textContent = it.plain ? '' : it.income > 0 ? `+€${it.income}` : it.price > 0 ? `€${it.price.toLocaleString('nl-NL')}` : '';
+  bar.querySelector('.sm-pricebig').textContent = it.plain ? '' : it.income > 0 ? `+${euro(it.income)}` : it.price > 0 ? `${euro(it.price)}` : '';
   const btn = bar.querySelector('.sm-buy');
   btn.textContent = buyLabel(it);
   btn.setAttribute('aria-disabled', it.disabled ? 'true' : 'false');
@@ -317,7 +318,7 @@ function activate(id) {
   }
   if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
     armed = { id, until: Date.now() + ARM_TIME };
-    setStatus(it.confirmText || `${it.label}: €${it.price}. Druk nog een keer om te kopen`, it.confirmText ? 'no' : 'win');
+    setStatus(it.confirmText || `${it.label}: ${euro(it.price)}. Druk nog een keer om te kopen`, it.confirmText ? 'no' : 'win');
     renderDetail();
     setTimeout(() => { if (open && armed && armed.id === id && Date.now() >= armed.until) { armed = null; renderDetail(); } }, ARM_TIME + 50);
     return;
@@ -459,7 +460,7 @@ function playScratch(look, res, onDone) {
     g.fillRect(win.x, win.y, win.w, win.h);
     g.fillStyle = prize ? (big ? '#c8261e' : '#1e7a44') : '#6a6f66';
     g.font = `${big ? 44 : 38}px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif`;
-    g.fillText(prize ? `€${prize}` : 'HELAAS', win.x + win.w / 2, win.y + win.h / 2 + 2);
+    g.fillText(prize ? `${euro(prize)}` : 'HELAAS', win.x + win.w / 2, win.y + win.h / 2 + 2);
     g.drawImage(coat, 0, 0, W, H);
     if (sc.u < 1) {
       const [cx, cy] = pathAt(sc.u);

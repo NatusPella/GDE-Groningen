@@ -4,6 +4,8 @@
 // shopui.js only draws what this returns; scripts/shoplist_test.mjs covers it.
 // Items are the objects shops.js builds: { id, label, desc, price, income, disabled, tag, plain, ... }.
 
+import { euro } from './geldtekst.js';
+
 // First matching rule wins; the text is the item's id, label and section title, lower case.
 const ICON_RULES = [
   ['kras', /kraskaart|krasloot|\bkras|loterij|lot\b|jackpot/],
@@ -74,7 +76,6 @@ export function shortfall(it, money = 0) {
   return Math.max(0, Math.ceil(it.price - money));
 }
 
-const euro = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
 export function brokeMessage(it, money = 0) {
   const k = shortfall(it, money);
   return k > 0 ? `Te weinig geld: je mist nog ${euro(k)}. Bijverdienen? Kijk in het menu onder Loopbanen of Activiteiten` : 'Te weinig geld. Bijverdienen? Kijk in het menu onder Loopbanen of Activiteiten';
@@ -103,9 +104,9 @@ export function needsConfirm(it, money = 0) {
 export function buyLabel(it, shopType, armed = false) {
   if (it.disabled) return it.disabled;
   const verb = it.verb || (shopType === 'tuning' ? 'Betalen' : 'Kopen voor');
-  if (armed) return it.income > 0 ? `Zeker? Nog eens: +€${it.income}` : `Zeker? Nog eens: €${it.price}`;
-  if (it.income > 0) return `Verkopen voor €${it.income}`;
-  if (it.price > 0) return `${verb} €${it.price}`;
+  if (armed) return it.income > 0 ? `Zeker? Nog eens: +${euro(it.income)}` : `Zeker? Nog eens: ${euro(it.price)}`;
+  if (it.income > 0) return `Verkopen voor ${euro(it.income)}`;
+  if (it.price > 0) return `${verb} ${euro(it.price)}`;
   return it.verb || 'Kiezen';
 }
 

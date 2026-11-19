@@ -17,6 +17,7 @@ import { akkerRijen, rijPositie, RIJ_AFSTAND } from './bietenrules.js';
 import { RIJEN, RIJ_LEN } from './werkgang.js';
 import { DAY_LENGTH_S } from './daynight.js';
 import { isInWater } from './util.js';
+import { euro } from './geldtekst.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -773,7 +774,7 @@ export function interactBoerderijWereld(w) {
             eat();
             const vracht = WT.ledig(rig);
             const r = leverLading(w, vracht, 1);
-            bericht(w, `${B.GEWASSEN[r.gewas] ? B.GEWASSEN[r.gewas].afnemer : 'De afnemer'}: ${r.kg} kg afgeleverd, +€${r.betaald}.`, 6);
+            bericht(w, `${B.GEWASSEN[r.gewas] ? B.GEWASSEN[r.gewas].afnemer : 'De afnemer'}: ${r.kg} kg afgeleverd, +${euro(r.betaald)}.`, 6);
             return true;
           }
         } else if (b.schuur.kg > 0 && loadPlek(w, v)) {

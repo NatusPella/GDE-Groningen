@@ -13,6 +13,7 @@ import { setUserWaypoint } from './routing.js';
 import { wgsToWorld } from './rdnew.js';
 import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
+import { koopVraag, tweedeDruk } from './tweedruk.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -329,6 +330,23 @@ function detail(b, geld) {
   return band() + inhoud;
 }
 
+// QoL (#985): een aankoop van €1.000 of meer vraagt een tweede druk, zoals de gewone winkel.
+let geWapend = null;
+function koopBevestiging(data) {
+  let item = null;
+  if (data.mc === 'koop-cat') item = PC.MACHINE_CATALOGUS[data.type];
+  else if (data.pc === 'koop') item = PC.perceelOfErf(data.soort, data.id);
+  else if (data.bdKoop) item = B.MACHINES[data.bdKoop];
+  return item ? koopVraag(item.naam, item.koop) : '';
+}
+function tweedeDrukStap(data) {
+  const vraag = koopBevestiging(data);
+  const stap = tweedeDruk(geWapend, JSON.stringify(data), vraag, Date.now());
+  geWapend = stap.armed;
+  if (!stap.uitvoeren) melding = vraag;
+  return stap.uitvoeren;
+}
+
 // Een knop in Percelen of Erf: doe het en geef de melding terug. Alles gaat via boerderijlive.js (geld en opslag).
 function percelenActie(d, world) {
   const soort = d.soort, id = d.id, naamVan = (PC.perceelOfErf(soort, id) || {}).naam;
@@ -414,11 +432,14 @@ export function renderBoerderijPanel(el, world) {
       const w = e.target.closest('[data-bd-weg]');
       const pc = e.target.closest('[data-pc]');
       const mc = e.target.closest('[data-mc]');
-      if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      if (mc && !tweedeDrukStap(mc.dataset)) opnieuw();
+      else if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      else if (pc && !tweedeDrukStap(pc.dataset)) opnieuw();
       else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
       else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      else if (k && !tweedeDrukStap(k.dataset)) opnieuw();
       else if (k) {
         const r = koopMachine(world, k.dataset.bdKoop);
         melding = r.ok ? `${B.MACHINES[k.dataset.bdKoop].naam} gekocht voor ${euro(r.prijs)}.` : r.reden;

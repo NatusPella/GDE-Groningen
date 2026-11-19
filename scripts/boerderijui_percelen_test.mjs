@@ -33,6 +33,7 @@ t('Percelen toont het aanbod met kopen, huren en kaart', () => {
 
 t('kopen en huren via het scherm: geld, melding en knoppen veranderen', () => {
   klik({ pc: 'koop', soort: 'perceel', id: 'wierdeakker' });
+  klik({ pc: 'koop', soort: 'perceel', id: 'wierdeakker' }); // tweede druk (#985)
   assert.match(el.innerHTML, /Wierdeakker gekocht voor/);
   assert.match(el.innerHTML, /data-pc="verkoop" data-soort="perceel" data-id="wierdeakker"/);
   assert.ok(world.money < 50000);
@@ -46,6 +47,7 @@ t('kopen en huren via het scherm: geld, melding en knoppen veranderen', () => {
 
 t('Erf: thuis kiezen en opslag van de oogst', () => {
   klik({ pc: 'koop', soort: 'erf', id: 'kleiplaats' });
+  klik({ pc: 'koop', soort: 'erf', id: 'kleiplaats' }); // tweede druk (#985)
   klik({ bd: 'erf' });
   klik({ pc: 'thuis', soort: 'erf', id: 'kleiplaats' });
   assert.match(el.innerHTML, /Je thuis is Kleiplaats/);
@@ -62,7 +64,8 @@ t('te weinig geld: de knop is uit en de reden komt als melding', () => {
   klik({ bd: 'percelen' });
   assert.match(el.innerHTML, /data-pc="koop" data-soort="perceel" data-id="bedumer-klei" disabled/);
   klik({ pc: 'koop', soort: 'perceel', id: 'bedumer-klei' });
-  assert.match(el.innerHTML, /Je hebt €\d+ nodig/);
+  klik({ pc: 'koop', soort: 'perceel', id: 'bedumer-klei' }); // tweede druk (#985)
+  assert.match(el.innerHTML, /Je hebt €\d{1,3}(\.\d{3})* nodig/);
   assert.ok(PC.PERCEEL_IDS.length > 5);
 });
 

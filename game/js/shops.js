@@ -33,6 +33,7 @@ import { productKey } from './shopmodels3d.js';
 import { makeHeli, registerHelipad } from './heliflight.js';
 import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
 import { noteMoney } from './finance.js';
+import { euro } from './geldtekst.js';
 import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
@@ -632,7 +633,7 @@ function storyHere(world, s) {
 
 export function shopPrimaryPrompt(world) {
   const g = garageForPaint(world);
-  if (g) return { id: 'paint-' + g.x, x: g.x, y: g.y, h: 2.6, key: 'R', label: 'Nieuwe lak', sub: `Spuit & Klaar: kies een kleur, €${PAINT_PRICE}`, ring: true };
+  if (g) return { id: 'paint-' + g.x, x: g.x, y: g.y, h: 2.6, key: 'R', label: 'Nieuwe lak', sub: `Spuit & Klaar: kies een kleur, ${euro(PAINT_PRICE)}`, ring: true };
   const ws = workshopFor(world);
   if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : ws.type === 'boot' ? 'Boot tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || (ws.type === 'boot' ? `${ws.name}: de werf` : ws.name), ring: true };
   const s = nearestShop(world);
@@ -1042,14 +1043,14 @@ function pandSections(world, shop) {
         if (world.weapon === w.key) world.weapon = 'fists';
         noteMoney('Verkoop');
         world.money += income;
-        return `+€${income}. Nooit gezien, dat ding`;
+        return `+${euro(income)}. Nooit gezien, dat ding`;
       },
     });
   }
   if (world.armor >= 10) {
     const income = Math.round(world.armor * 0.6);
     sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, 0, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
-      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; return `+€${income} voor je vest`; } });
+      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; return `+${euro(income)} voor je vest`; } });
   }
   for (const v of world.vehicles) {
     if (!v.stolenByPlayer || v.playerOwned || v.isHeroCar || v.missionCar || v.wrecked || v.isBoat || v.driver) continue;
@@ -1061,7 +1062,7 @@ function pandSections(world, shop) {
         removeFromWorld(world, v);
         world.money += income;
         if (v.isPolice) world.wanted = Math.max(world.wanted, 2);
-        return `+€${income}. Die zie je nooit meer terug`;
+        return `+${euro(income)}. Die zie je nooit meer terug`;
       },
     });
   }
@@ -1415,16 +1416,16 @@ function stampCardItem(world) {
   const full = state.stamps >= STAMP_CARD;
   return {
     id: 'spaarkaart', preview: productPreview('spaarkaart'), label: 'Volle spaarkaart inleveren',
-    desc: `Elke aankoop hier is een stempel. Bij ${STAMP_CARD} stempels krijg je €${STAMP_PRIZE}`, price: 0, plain: true, verb: `Inleveren voor €${STAMP_PRIZE}`, keepFocus: true,
+    desc: `Elke aankoop hier is een stempel. Bij ${STAMP_CARD} stempels krijg je ${euro(STAMP_PRIZE)}`, price: 0, plain: true, verb: `Inleveren voor ${euro(STAMP_PRIZE)}`, keepFocus: true,
     stats: [{ label: 'Stempels', v: state.stamps / STAMP_CARD, to: null, text: `${state.stamps}/${STAMP_CARD}` }],
-    effect: `€${STAMP_PRIZE} bij een volle kaart`,
+    effect: `${euro(STAMP_PRIZE)} bij een volle kaart`,
     disabled: full ? '' : `Nog ${STAMP_CARD - state.stamps} stempels tot een volle kaart`,
     buy() {
       if (state.stamps < STAMP_CARD) return null;
       state.stamps = 0;
       world.money += STAMP_PRIZE;
       recordStat(world, 'stampCards');
-      return { text: `Kaart vol, €${STAMP_PRIZE} voor jou. Hier is een nieuwe`, tone: 'win' };
+      return { text: `Kaart vol, ${euro(STAMP_PRIZE)} voor jou. Hier is een nieuwe`, tone: 'win' };
     },
   };
 }
@@ -1432,13 +1433,13 @@ function stampCardItem(world) {
 function tabakSections(world) {
   const gamble = (id, label, desc, price, table, big, look) => ({
     id, label, desc, price, disabled: broke(world, price), keepFocus: true,
-    preview: productPreview(id), effect: `Hoofdprijs €${big}`, reveal: look,
+    preview: productPreview(id), effect: `Hoofdprijs ${euro(big)}`, reveal: look,
     buy() {
       if (!pay(world, price)) return null;
       const prize = draw(table);
       world.money += prize;
       if (!prize) return { text: 'Niks. Volgende keer beter, jong', tone: 'lose', prize };
-      return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
+      return { text: prize >= big ? `JACKPOT! ${euro(prize)} gewonnen!` : `Joa! ${euro(prize)} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
     },
   });
   const snack = (id, label, desc, price, hp) => foodItem(world, id, label, desc, price, hp, id, () => `${label} naar binnen gewerkt`);
@@ -1863,7 +1864,7 @@ export function updateShops(dt, world) {
       o.v = null;
       o.lost = true;
       o.upgrades = [...(v.upgrades || o.upgrades || [])];
-      world.addMessage(`${o.spec.label} is afgeschreven. Nieuwe via je telefoon (eigen risico €${replacementFee(o)})`, 5);
+      world.addMessage(`${o.spec.label} is afgeschreven. Nieuwe via je telefoon (eigen risico ${euro(replacementFee(o))})`, 5);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an

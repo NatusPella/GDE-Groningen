@@ -33,6 +33,9 @@ t('Machines toont het machinepark, de catalogus met kopen en huren, en de machin
 
 t('kopen en huren: geld, plek, melding en de rij in het machinepark; verkopen en terugbrengen', () => {
   klik({ mc: 'koop-cat', type: 'trekker-klein' });
+  assert.match(el.innerHTML, /Wierdetrekker W60 kopen voor €9\.000\? Druk nog een keer/);
+  assert.equal(world.money, 100000, 'de eerste druk koopt nog niets');
+  klik({ mc: 'koop-cat', type: 'trekker-klein' });
   assert.match(el.innerHTML, /Wierdetrekker W60 gekocht voor €9\.000/);
   assert.equal(world.money, 91000);
   assert.match(el.innerHTML, /diesel 100%/);
@@ -57,8 +60,8 @@ t('kopen en huren: geld, plek, melding en de rij in het machinepark; verkopen en
   klik({ mc: 'verkoop', uid: tr.uid });
   assert.match(el.innerHTML, /verkocht voor/); assert.equal(bd.machinepark.machines.length, 0);
   world.money = 10;
-  klik({ mc: 'koop-cat', type: 'maaidorser' });
-  assert.match(el.innerHTML, /Je hebt €38000 nodig/);
+  klik({ mc: 'koop-cat', type: 'maaidorser' }); klik({ mc: 'koop-cat', type: 'maaidorser' });
+  assert.match(el.innerHTML, /Je hebt €38\.000 nodig/);
 });
 
 t('de loonwerker bij Perceel: knoppen met de prijs, de klus wordt gedaan, een lege schuur heeft geen aflever-knop', () => {

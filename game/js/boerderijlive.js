@@ -11,6 +11,7 @@
 
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
+import { euro } from './geldtekst.js';
 import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
@@ -189,7 +190,7 @@ function verwerkLevering(w, b, r) {
   }
   if (uit.kg > 0 || uit.afgerond.length || oud.verlopen.length) markeer();
   if (w && typeof w.addMessage === 'function') {
-    for (const c of uit.afgerond) w.addMessage(`Contract voldaan: ${contractTekst(c)} geleverd, bonus €${betaald}.`, 5, { kind: 'geld', key: 'contract-klaar-' + c.id });
+    for (const c of uit.afgerond) w.addMessage(`Contract voldaan: ${contractTekst(c)} geleverd, bonus ${euro(betaald)}.`, 5, { kind: 'geld', key: 'contract-klaar-' + c.id });
   }
   meldVerlopen(w, oud.verlopen);
   return { ...uit, verlopen: oud.verlopen, betaald };
@@ -234,8 +235,8 @@ export function zetBoerderijVoorTest(raw, st) {
 export const getBedrijf = () => getBoerderij().bedrijf;
 
 const HUUR_TEKST = {
-  betaald: (e) => `Huur betaald: €${e.bedrag}.`,
-  achterstand: (e) => `Je loopt achter met de huur van ${PC.perceelOfErf(e.soort, e.id).naam} (€${e.schuld} open). Betaal snel, anders gaat hij terug naar de verhuurder.`,
+  betaald: (e) => `Huur betaald: ${euro(e.bedrag)}.`,
+  achterstand: (e) => `Je loopt achter met de huur van ${PC.perceelOfErf(e.soort, e.id).naam} (${euro(e.schuld)} open). Betaal snel, anders gaat hij terug naar de verhuurder.`,
   terug: (e) => `${PC.perceelOfErf(e.soort, e.id).naam} is terug naar de verhuurder: te laat betaald.`,
 };
 
@@ -381,7 +382,7 @@ export function loonwerk(w, taak) {
   if (!m.ok) return m;
   const loon = M.loonwerkKosten(taak, PC.actiefPerceel(b.bedrijf).ha);
   const totaal = loon + m.kosten.totaal;
-  if ((w.money || 0) < totaal) return { ok: false, reden: `Je hebt €${totaal} nodig (loon €${loon}${m.kosten.totaal ? `, materiaal €${m.kosten.totaal}` : ''}).` };
+  if ((w.money || 0) < totaal) return { ok: false, reden: `Je hebt ${euro(totaal)} nodig (loon ${euro(loon)}${m.kosten.totaal ? `, materiaal ${euro(m.kosten.totaal)}` : ''}).` };
   noteMoney('Winkels'); w.money -= totaal;
   B.uitgaven(b, loon, 'loonwerk', b.veldVan);
   const uit = B.rondTaakAf(b, taak, M.LOONWERKER.kwaliteit, { vrij: true });
