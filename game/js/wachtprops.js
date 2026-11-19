@@ -8,6 +8,8 @@
 // heeft three.js en de scène nodig.
 import * as THREE from 'three';
 import { getScene } from './scene3d.js';
+import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
+import { neutralPose, applyPose, makeRng } from './actoranim.js';
 
 const KINDS = [
   [/loket|wachtrij|balie|rij\b|nummer/i, 'plant'],
@@ -16,8 +18,11 @@ const KINDS = [
   [/boot|kade|haven|veer|brug|sluis/i, 'kist'],
   [/perron|station|halte|bushok/i, 'bank'],
 ];
+// De spullen die een stap met `wacht: { prop }` zelf mag kiezen; de vijf eerste volgen anders de tekst.
+export const PROP_KINDS = ['bank', 'kist', 'baal', 'ton', 'plant', 'koffie', 'krant', 'hengel'];
 export function waitDressingFor(st = {}) {
   st = st || {};
+  if (st.wacht && PROP_KINDS.includes(st.wacht.prop)) return st.wacht.prop;
   const text = `${st.label || ''} ${st.say || ''}`;
   for (const [re, kind] of KINDS) if (re.test(text)) return kind;
   return 'bank';
@@ -56,6 +61,17 @@ function buildProp(kind) {
   } else if (kind === 'ton') {
     g.add(cyl(0.42, 0.95, COL.ton, 0, 0.48, 0, 8));
     for (const y of [0.2, 0.75]) g.add(cyl(0.44, 0.06, COL.grijs, 0, y, 0, 8));
+  } else if (kind === 'koffie') { // statafel met een kop en een thermoskan
+    g.add(cyl(0.45, 0.06, COL.hout, 0, 0.98, 0, 10), cyl(0.06, 0.95, COL.grijs, 0, 0.48, 0, 6), cyl(0.3, 0.05, COL.grijs, 0, 0.03, 0, 10));
+    g.add(cyl(0.09, 0.12, 0xf2efe6, -0.12, 1.07, 0.05, 8), cyl(0.07, 0.26, COL.stof, 0.18, 1.14, -0.08, 8));
+  } else if (kind === 'krant') { // leesstandaard met een opengeslagen krant
+    g.add(cyl(0.05, 1.3, COL.grijs, 0, 0.65, 0, 6), cyl(0.3, 0.05, COL.grijs, 0, 0.03, 0, 8));
+    const blad = box(0.9, 0.6, 0.04, 0xe8e4d6, 0, 1.3, 0); blad.rotation.x = -0.2;
+    g.add(blad);
+  } else if (kind === 'hengel') { // hengel in een steun, emmer ernaast
+    g.add(box(0.08, 0.7, 0.08, COL.hout2, 0, 0.35, 0));
+    const stok = box(0.04, 0.04, 2.2, COL.hout, 0, 0.95, 0.5); stok.rotation.x = 0.35;
+    g.add(stok, cyl(0.2, 0.3, COL.stof, 0.7, 0.15, 0.1, 8));
   } else { // plant
     g.add(cyl(0.34, 0.5, COL.pot, 0, 0.25, 0, 6));
     const blad = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), mat(COL.blad));
@@ -63,6 +79,104 @@ function buildProp(kind) {
     g.add(blad);
   }
   return g;
+}
+
+// ---- de wachtfiguur ------------------------------------------------------------------------------------------
+// Een stap met `wacht: { figuur: true }` (of een object met `prop`, `seed`, `rol`) krijgt naast de kring een
+// wachtende persoon die rondkijkt, op zijn horloge kijkt, wipt, koffie drinkt of leest. Wachten blijft gewoon
+// wachten: de figuur is alleen beeld, de klok, de cirkel en het slagen veranderen niet. Zonder `wacht` geen figuur.
+// Samen spelen: elke speler bouwt de figuur bij zijn eigen stap; er wordt niets gedeeld of verstuurd.
+export const IDLE_CLIPS = ['rondkijken', 'horloge', 'wippen', 'koffie', 'lezen'];
+// Per soort plek de voorkeur voor de clips (de volgorde draait met de seed).
+const CLIPS_PER_PLEK = {
+  bank: ['horloge', 'rondkijken', 'wippen'],
+  plant: ['horloge', 'wippen', 'rondkijken'],
+  ton: ['rondkijken', 'wippen', 'horloge'],
+  baal: ['rondkijken', 'wippen', 'koffie'],
+  kist: ['rondkijken', 'horloge', 'wippen'],
+  koffie: ['koffie', 'rondkijken', 'koffie', 'horloge'],
+  krant: ['lezen', 'rondkijken', 'lezen', 'horloge'],
+  hengel: ['rondkijken', 'wippen', 'rondkijken'],
+};
+const SHIRTS = [0xc8552e, 0x2f6fb0, 0xe0b93a, 0x3f8a52, 0x8a4a8a, 0x555f6e];
+const SKINS = [0xf1c9a5, 0xd9a06e, 0xa9744a, 0x7a4e2e];
+
+const hashText = (str) => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); return (h >>> 0) / 4294967296; };
+// De seed van een stap: `wacht.seed` als die er is, anders een vaste waarde uit het label (dezelfde stap, dezelfde figuur).
+export function waitSeed(st) {
+  const w = st && st.wacht;
+  if (w && Number.isFinite(w.seed)) return w.seed;
+  return hashText(`${(st && st.label) || ''}|${(st && st.say) || ''}`);
+}
+
+// De figuur van een stap, puur: null zonder `wacht` (of met `figuur: false`), anders het plan met de plek, de
+// kleren en een rooster van clips (elk 3 tot 6 s) dat doorloopt zolang de stap duurt.
+export function waitFigureFor(st, seed = waitSeed(st)) {
+  const w = st && st.wacht;
+  if (!w || typeof w !== 'object' || w.figuur === false) return null;
+  const prop = waitDressingFor(st);
+  const rng = makeRng(seed);
+  const voorkeur = CLIPS_PER_PLEK[prop] || CLIPS_PER_PLEK.bank;
+  const draai = Math.floor(rng() * voorkeur.length);
+  const rooster = [];
+  for (let i = 0; i < voorkeur.length; i++) rooster.push({ clip: voorkeur[(i + draai) % voorkeur.length], dur: 3 + rng() * 3 });
+  let totaal = 0;
+  for (const r of rooster) totaal += r.dur;
+  return {
+    prop, seed, rol: typeof w.rol === 'string' ? w.rol : 'wachter',
+    plek: Math.floor(rng() * 3), // welke van de drie plekken om de kring (propSpots)
+    shirt: SHIRTS[Math.floor(rng() * SHIRTS.length)], skin: SKINS[Math.floor(rng() * SKINS.length)],
+    rooster, totaal, fase: rng() * totaal, // elke figuur begint ergens anders in zijn rooster
+  };
+}
+
+// Welke clip er op tijd t loopt, en hoe ver daarin (tl) en hoe lang hij duurt; schrijft in `uit`, maakt niets aan.
+export function figureClipAt(plan, t, uit = { clip: '', tl: 0, dur: 1 }) {
+  let tt = (((t + plan.fase) % plan.totaal) + plan.totaal) % plan.totaal;
+  for (let i = 0; i < plan.rooster.length; i++) {
+    const r = plan.rooster[i];
+    if (tt < r.dur || i === plan.rooster.length - 1) { uit.clip = r.clip; uit.tl = Math.min(tt, r.dur); uit.dur = r.dur; return uit; }
+    tt -= r.dur;
+  }
+  return uit;
+}
+
+function zetNeutraal(p) {
+  p.pelvisDrop = 0; p.pelvisZ = 0; p.pelvisRX = 0; p.pelvisRY = 0;
+  p.chest.x = 0; p.chest.y = 0; p.chest.z = 0;
+  p.head.x = 0; p.head.y = 0; p.head.z = 0;
+  p.armL.x = 0; p.armL.z = 0.08; p.armL.e = 0.15;
+  p.armR.x = 0; p.armR.z = 0.08; p.armR.e = 0.15;
+  p.legL.z = 0; p.legL.k = -0.06; p.legR.z = 0; p.legR.k = -0.06;
+}
+const naar = (a, b, k) => a + (b - a) * k;
+const gladde = (k) => { k = k < 0 ? 0 : k > 1 ? 1 : k; return k * k * (3 - 2 * k); };
+
+// Schrijft de pose van één clip op tijd tl in `p` (een neutralPose), zonder iets aan te maken. Het begin en het
+// einde van elke clip lopen vanuit de neutrale stand (envelop), dus de overgang tussen clips is zacht.
+export function idlePose(p, clip, tl, dur) {
+  zetNeutraal(p);
+  const env = gladde(Math.min(tl / 0.6, (dur - tl) / 0.6, 1));
+  p.chest.x = Math.sin(tl * 1.8) * 0.012; // ademen
+  if (clip === 'rondkijken') {
+    const k = Math.sin(tl * 0.9) * 0.75 * env;
+    p.head.y = k; p.chest.y = k * 0.25;
+  } else if (clip === 'horloge') { // linkerarm omhoog, kijkt naar beneden
+    p.armL.z = naar(0.08, 1.35, env); p.armL.e = naar(0.15, 2.0, env);
+    p.head.x = 0.35 * env; p.head.y = -0.2 * env;
+  } else if (clip === 'wippen') {
+    const w = Math.max(0, Math.sin(tl * 4.2)) * env;
+    p.pelvisDrop = -0.03 * w; p.legL.k = -0.06 - 0.1 * w; p.legR.k = -0.06 - 0.1 * w;
+  } else if (clip === 'koffie') { // rechterhand met het kopje naar de mond, af en toe een slokje
+    const slok = 0.5 + 0.5 * Math.sin(tl * 1.5);
+    p.armR.z = naar(0.08, 1.3, env); p.armR.e = naar(0.15, 1.95 + 0.15 * slok, env);
+    p.head.x = -0.12 * slok * env;
+  } else if (clip === 'lezen') {
+    p.armL.z = naar(0.08, 0.7, env); p.armL.e = naar(0.15, 1.7, env);
+    p.armR.z = naar(0.08, 0.7, env); p.armR.e = naar(0.15, 1.7, env);
+    p.head.x = 0.28 * env; p.head.y = Math.sin(tl * 0.7) * 0.08 * env;
+  }
+  return p;
 }
 
 // De kring met zestien streepjes; samen de voortgang van de wachttijd.
@@ -93,8 +207,31 @@ export function buildWaitDressing(st, target, radius = 3.5, world = null) {
     prop.rotation.y = -p.a - Math.PI / 2;
     group.add(prop);
   }
+  // de wachtfiguur (alleen op verzoek van de stap): staat tussen twee spullen, kijkt naar het midden
+  const plan = waitFigureFor(st);
+  if (plan) {
+    try {
+      const mesh = buildPersonMesh(plan.shirt, plan.skin, { seed: Math.floor(plan.seed * 1e6) });
+      const a = spots[plan.plek].a + 0.5;
+      mesh.position.set(Math.cos(a) * (r + 1.6), 0, Math.sin(a) * (r + 1.6));
+      mesh.rotation.y = -a - Math.PI / 2;
+      group.add(mesh);
+      group.userData.figuur = { mesh, plan, pose: neutralPose(), t: 0, uit: { clip: '', tl: 0, dur: 1 } };
+    } catch (e) { /* een figuur die niet bouwt, is geen reden voor een kapotte stap */ }
+  }
   scene.add(group);
   return group;
+}
+
+// Elk beeld: de wachtfiguur doorspelen. Geen allocaties: de pose en het tijdsvak worden hergebruikt.
+export function tickWaitFigure(group, dt) {
+  const f = group && group.userData && group.userData.figuur;
+  if (!f) return false;
+  f.t += Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.25) : 0;
+  const c = figureClipAt(f.plan, f.t, f.uit);
+  idlePose(f.pose, c.clip, c.tl, c.dur);
+  applyPose(f.mesh.userData, f.pose);
+  return true;
 }
 
 // k: 0..1 van de wachttijd
@@ -108,8 +245,14 @@ export function updateWaitDressing(group, k) {
 export function disposeWaitDressing(group) {
   if (!group) return;
   group.removeFromParent();
+  const fig = group.userData && group.userData.figuur;
   group.traverse((o) => {
-    if (o.geometry) o.geometry.dispose();
-    if (o.material) o.material.dispose();
+    if (!o.geometry && !o.material) return;
+    // de persoon deelt zijn geometrie met andere mensen: die telt af in plaats van weg te gaan (#796)
+    if (fig && o.geometry && typeof o.geometry.userData.personRefs === 'number') releasePersonGeometry(o);
+    else if (o.geometry) o.geometry.dispose();
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of mats) if (m && m.dispose) m.dispose();
   });
+  if (fig) group.userData.figuur = null;
 }

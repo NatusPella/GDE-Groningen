@@ -66,7 +66,8 @@ import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
-import { buildWaitDressing, updateWaitDressing, disposeWaitDressing } from './wachtprops.js';
+import { buildWaitDressing, updateWaitDressing, disposeWaitDressing, tickWaitFigure } from './wachtprops.js';
+import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
 import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } from './missiedecor.js';
@@ -2564,6 +2565,8 @@ function enterStage(world, def, k) {
   // licht op terwijl de klok loopt, zodat het wachten iets te zien geeft.
   // (#956) In een binnenset staat de kamer zelf al om de speler: geen kring op de vloer.
   if (st.kind === 'hold' && S.target && !S.set) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
+  // De regelkaart (step.kaart) is lokaal en alleen beeld; een stap zonder kaart krijgt niets (startKaart geeft null).
+  S.kaart = st.kaart ? startKaart(st, `${def.id || def.label || 'm'}:${k}`) : null;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chainState().timeLeft += st.bonus;
@@ -2764,6 +2767,12 @@ function disposeLight() {
   if (!chainState().light) return;
   if (chainState().light.ctl) chainState().light.ctl.dispose();
   chainState().light = null;
+}
+
+// De runner of een missiemodule meldt dat er iets gebeurde waarvoor een regel van de kaart (`bij`) wacht.
+export function meldRegelkaart(sleutel) {
+  const S = chainState().stage;
+  if (S && S.kaart) meldKaart(S.kaart, sleutel);
 }
 
 // #963: de aankleding van een wachtstap (de kring met spullen) gaat mee met de
@@ -3318,6 +3327,8 @@ function updateStages(dt, world, def) {
     }
   }
   if (S.dressing) updateMissionDressing(S.dressing, dt);
+  if (S.kaart) toonRegelkaart(world, S.kaart, dt); // alleen beeld: geen invloed op de stap, de beloning of de voortgang
+  if (S.wait) tickWaitFigure(S.wait, dt); // de wachtfiguur (wacht.figuur): idle-animatie, ook alleen beeld
   if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
     chainState().windowT += dt;
     const W = def.window;
