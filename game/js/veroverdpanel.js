@@ -9,7 +9,7 @@ import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
 import { hoofdspeler } from './players.js';
-import { beleidOffers, koopBeleid } from './beleidswinkel.js';
+import { beleidPaneelHtml, koopBeleid } from './beleidswinkel.js';
 
 const bars = new Map();
 let cssAan = false;
@@ -56,7 +56,9 @@ const CSS = `${GEBIEDEN_CSS}
 .vo-beleid .vo-rij .mut { flex: none; color: var(--g); }
 .vo-beleid .vo-rij button { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.04em; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--c-line, rgba(240, 237, 228, 0.3)); background: rgba(240, 237, 228, 0.08); color: inherit; cursor: pointer; }
 .vo-beleid .vo-rij button:hover, .vo-beleid .vo-rij button:focus-visible { background: rgba(63, 201, 122, 0.18); border-color: var(--g); outline: none; }
-.vo-beleid .vo-rij button:disabled { opacity: 0.55; cursor: default; }`;
+.vo-beleid .vo-rij button:disabled { opacity: 0.55; cursor: default; }
+.vo-beleid .vo-beleid-saldo { margin: 0 0 6px; }
+.vo-beleid .vo-beleid-melding { margin: 4px 0 6px; color: var(--ink, #f0ede4); }`;
 
 function zetCss() {
   if (cssAan || typeof document === 'undefined') return;
@@ -67,13 +69,10 @@ function zetCss() {
   document.head.appendChild(el);
 }
 
-// De rijen van de Beleidswinkel: één maatregel per rij, met prijs of "aangenomen".
-function beleidHtml() {
-  const offers = beleidOffers();
-  const rijen = offers.map((b) => `<div class="vo-rij"><b>${esc(b.naam)}</b><span>${esc(b.tekst)}</span>` +
-    (b.gekocht ? '<span class="mut">Aangenomen</span>' : `<button type="button" data-beleid="${esc(b.id)}">€${b.prijs} kopen</button>`) + '</div>').join('');
-  return `<section class="vo-beleid" aria-label="Beleidswinkel"><h3>Beleidswinkel</h3><p>Koop één keer een gemeentelijke maatregel die blijft: van lagere boetes tot een drukkere markt. Het is van jou, in je eigen opslag.</p>${rijen}</section>`;
-}
+// De Beleidswinkel (beleidswinkel.js): saldo, knoppen die uitgaan bij te weinig geld en de laatste melding.
+let beleidMelding = '';
+let beleidWereld = null;
+const beleidHtml = () => beleidPaneelHtml(beleidWereld ? beleidWereld.money || 0 : 0, beleidMelding);
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -91,6 +90,7 @@ function taakKaart(t, world) {
 export function renderVeroverdPanel(el, sluit = null, world = null) {
   if (!el) return;
   if (sluit) sluitMenu = sluit;
+  beleidWereld = world;
   zetCss();
   const teken = () => {
     const g = gebiedenHtml();
@@ -146,6 +146,7 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     const b = e.target.closest('[data-beleid]');
     if (b) {
       const melding = koopBeleid(world, b.dataset.beleid);
+      beleidMelding = melding;
       if (world && world.addMessage) world.addMessage(melding, 3);
       teken();
       return;

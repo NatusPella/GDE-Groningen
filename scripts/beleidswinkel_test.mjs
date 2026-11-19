@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import {
   BELEID, beleidVan, normaliseerBeleid, heeftBeleid, koopBeleidRegel,
   resetBeleidVoorTest, getBeleid, initBeleid, beleidActief, beleidBoetekorting, beleidBijbaanfactor, beleidMarktdag,
-  beleidOffers, koopBeleid, getBeleidSave, applyBeleidSave, BELEID_OPSLAG,
+  beleidOffers, beleidPaneelHtml, koopBeleid, getBeleidSave, applyBeleidSave, BELEID_OPSLAG,
 } from '../game/js/beleidswinkel.js';
 import { KEYS } from '../game/js/storagekeys.js';
 
@@ -77,7 +77,7 @@ t('de effecten zijn echt en pas actief na de aankoop', () => {
   assert.equal(beleidBijbaanfactor(), 1.05);
   assert.equal(beleidMarktdag(), true);
   assert.equal(w.money, 2000 - 250 - 350 - 300);
-  const offers = beleidOffers();
+  const offers = beleidOffers(5000);
   assert.ok(offers.every((o) => o.gekocht), 'de winkel toont alles als aangenomen');
 });
 
@@ -107,9 +107,30 @@ t('de haken zitten in verkeer, bijbanen, de Fjord en de Veroverd-tab', () => {
   assert.match(verkeer, /Math\.round\(amount \* \(1 - beleidBoetekorting\(\)\)\)/);
   assert.match(baantjes, /beleidBijbaanfactor\(\)/);
   assert.match(fjord, /isToday\('markt', w\) \|\| beleidMarktdag\(\)/);
-  assert.match(veroverd, /beleidOffers\(\)/);
+  assert.match(veroverd, /beleidPaneelHtml\(/);
   assert.match(veroverd, /koopBeleid\(world/);
-  assert.match(veroverd, /data-beleid=/);
+  assert.match(veroverd, /[data-beleid]/);
+});
+
+t('betaalbaar volgt het saldo: te weinig geld zet de knop uit, genoeg zet hem aan', () => {
+  resetBeleidVoorTest(mem());
+  assert.deepEqual(beleidOffers(100).map((o) => o.betaalbaar), [false, false, false]);
+  assert.deepEqual(beleidOffers(300).map((o) => o.betaalbaar), [true, false, true]);
+  assert.deepEqual(beleidOffers(5000).map((o) => o.betaalbaar), [true, true, true]);
+  assert.equal(beleidOffers().every((o) => !o.betaalbaar), true, 'zonder saldo is niets betaalbaar');
+});
+
+t('het paneel toont saldo met duizendscheiding, een uitgezette knop met het tekort en de melding', () => {
+  resetBeleidVoorTest(mem());
+  const arm = beleidPaneelHtml(100, 'Te weinig geld: €250');
+  assert.match(arm, /Je saldo: <b>€100<\/b>/);
+  assert.match(arm, /data-beleid="flits" disabled/);
+  assert.match(arm, /nog €150 nodig/);
+  assert.match(arm, /Te weinig geld: €250/);
+  const rijk = beleidPaneelHtml(12500);
+  assert.match(rijk, /€12\.500/);
+  assert.doesNotMatch(rijk, /disabled/);
+  assert.doesNotMatch(rijk, /vo-beleid-melding/);
 });
 
 console.log(`${n - fails}/${n} ok`);

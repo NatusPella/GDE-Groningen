@@ -10,6 +10,7 @@
 // parameter zodat de tests geen echte localStorage nodig hebben.
 import { KEYS } from './storagekeys.js';
 import { betaal } from './economy.js';
+import { euro } from './geldtekst.js';
 
 export const BELEID = [
   { id: 'flits', naam: 'Soepel flitsbeleid', prijs: 250, tekst: 'Verkeersboetes zijn 25% lager.', effect: 'boete' },
@@ -62,9 +63,25 @@ export const beleidBijbaanfactor = () => (beleidActief('subsidie') ? 1.05 : 1);
 export const beleidMarktdag = () => beleidActief('markt');
 
 // De rijen voor de winkel (Veroverd > Beleidswinkel).
-export function beleidOffers() {
+// `geld` is het saldo van de speler: een maatregel is alleen betaalbaar als dat genoeg is (nooit vast true).
+export function beleidOffers(geld = 0) {
   const st = getBeleid();
-  return BELEID.map((b) => ({ ...b, gekocht: heeftBeleid(st, b.id), betaalbaar: true }));
+  const saldo = Number(geld) || 0;
+  return BELEID.map((b) => ({ ...b, gekocht: heeftBeleid(st, b.id), betaalbaar: saldo >= b.prijs }));
+}
+const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// De tekst van het paneel: saldo bovenaan, per rij een knop die uit staat als je het niet kunt betalen
+// (met het bedrag dat nog mist), en de laatste melding in het paneel zelf (de HUD zit achter het menu).
+export function beleidPaneelHtml(geld = 0, melding = '') {
+  const rijen = beleidOffers(geld).map((b) => {
+    const actie = b.gekocht ? '<span class="mut">Aangenomen</span>'
+      : b.betaalbaar ? `<button type="button" data-beleid="${escHtml(b.id)}">${euro(b.prijs)} kopen</button>`
+        : `<button type="button" data-beleid="${escHtml(b.id)}" disabled>${euro(b.prijs)} kopen</button><span class="mut">nog ${euro(b.prijs - (Number(geld) || 0))} nodig</span>`;
+    return `<div class="vo-rij"><b>${escHtml(b.naam)}</b><span>${escHtml(b.tekst)}</span>${actie}</div>`;
+  }).join('');
+  const meld = melding ? `<p class="vo-beleid-melding" role="status">${escHtml(melding)}</p>` : '';
+  return `<section class="vo-beleid" aria-label="Beleidswinkel"><h3>Beleidswinkel</h3><p>Koop één keer een gemeentelijke maatregel die blijft: van lagere boetes tot een drukkere markt. Het is van jou, in je eigen opslag.</p>` +
+    `<p class="vo-beleid-saldo">Je saldo: <b>${euro(geld)}</b></p>${meld}${rijen}</section>`;
 }
 // Koopt in de wereld: geld eraf en de stand erbij. De melding doet de aanroeper (het paneel), zodat
 // de winkel en een eventuele andere plek dezelfde tekst niet dubbel tonen.
@@ -73,8 +90,8 @@ export function koopBeleid(world, id) {
   if (!b) return 'Onbekend beleid';
   const st = getBeleid();
   if (heeftBeleid(st, id)) return 'Dat heb je al';
-  if (!world || (world.money || 0) < b.prijs) return `Te weinig geld: €${b.prijs}`;
-  if (!betaal(world, b.prijs)) return `Te weinig geld: €${b.prijs}`;
+  if (!world || (world.money || 0) < b.prijs) return `Te weinig geld: ${euro(b.prijs)}`;
+  if (!betaal(world, b.prijs)) return `Te weinig geld: ${euro(b.prijs)}`;
   staat = koopBeleidRegel(st, id).staat;
   bewaar();
   return `${b.naam} aangenomen! ${b.tekst}`;
