@@ -68,6 +68,8 @@ import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { buildWaitDressing, updateWaitDressing, disposeWaitDressing, tickWaitFigure } from './wachtprops.js';
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
+import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
+import { stingen } from './sfx/stingen.js';
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
@@ -157,6 +159,7 @@ function buildDefs(world) {
       outro: 'De vitrine was leeg: Jelle was jullie voor, en de camera\'s hebben jullie gefilmd. Nieuw doel: Jelle stoppen.',
       timeLimit: null,
       reward: 400,
+      aaa: true, // AAA akte 1: een voltooide stap klinkt (stings)
       requires: ['heist', 'night'],
       // midnight: three minutes without cameras, from the fuse box until the case is open
       // once over time: 90 s more (the companion resets the fuse box), then it fails
@@ -186,15 +189,24 @@ function buildDefs(world) {
           kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 5,
           label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken helpt.',
         },
-        { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.' },
+        {
+          // AAA akte 1 (#962): een korte handeling, geen tikspel: houd E ingedrukt, het kan niet misgaan (akte1_plan.js)
+          kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, kort: { time: 3.2, ring: true }, label: 'Camera\'s op herhaling',
+          kaart: { doel: 'Zet de camera\'s op herhaling: drie minuten zonder beeld', regels: [{ type: 'toets', inv: { toetsen: ['E'], handeling: 'houd', label: 'Stroomkast' }, na: 3, duur: 7 }] },
+        },
         { kind: 'goto', only: 'sluip', target: { heistSpot: 'achterdeur' }, mode: 'foot', radius: 1.6, label: 'Naar de achterdeur', say: 'Camera\'s op herhaling. Nu de achterdeur, in de fietspassage.' },
-        { kind: 'lock', only: 'sluip', target: { heistSpot: 'achterdeur' }, opens: 'achterdeur', label: 'Peuter het slot open', say: 'Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.' },
+        {
+          kind: 'lock', only: 'sluip', target: { heistSpot: 'achterdeur' }, kort: { time: 3, ring: true }, opens: 'achterdeur', label: 'Peuter het slot open',
+          kaart: { doel: 'Peuter het slot open, Tammo houdt de wacht', regels: [{ type: 'toets', inv: { toetsen: ['E'], handeling: 'houd', label: 'Slot' }, na: 3, duur: 7 }] },
+        },
         { kind: 'goto', only: 'sluip', post: 'zaal1', target: { heistSpot: 'deur1' }, mode: 'foot', radius: 1.4, label: 'Sluip door zaal 1', say: 'Zaal 1. Die bewaker loopt rondjes. Wacht tot hij je zijn rug toekeert, en dan bukken.' },
         { kind: 'pickpocket', only: 'vermomd', post: 'rookplek', target: { heistSpot: 'rookplek' }, label: 'Rol het pasje van de bewaker', say: 'Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.' },
         { kind: 'goto', only: 'vermomd', target: { heistSpot: 'glasdeur' }, opens: 'glasdeur', mode: 'foot', radius: 1.4, label: 'Door de glazen deur', say: 'Pasje erlangs en door de glazen deur. Gewoon doen alsof je hier werkt.' },
         { kind: 'goto', post: 'entreehal', distract: true, target: { heistSpot: 'deur3' }, mode: 'foot', radius: 1.3, label: 'Door de Entreehal', say: 'De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.' },
         { kind: 'laser', checkpoint: true, iedereen: true, target: { heistSpot: 'stand' }, label: 'Door de lasers van zaal 3', say: 'Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.' },
-        { kind: 'crack', iedereen: true, target: { heistSpot: 'stand' }, label: 'Kraak de vitrine', say: 'De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.' },
+        { kind: 'crack', iedereen: true, target: { heistSpot: 'stand' }, kort: { time: 4.2 }, label: 'Kraak de vitrine',
+          kaart: { doel: 'Open de vitrine: de code is 1953', regels: [{ type: 'toets', inv: { toetsen: ['E'], handeling: 'houd', label: 'Vitrine' }, na: 3, duur: 7 }] },
+        },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3',
@@ -2571,7 +2583,7 @@ function enterStage(world, def, k) {
   // #963: een wachtstap krijgt een echte kring met passende spullen; de ring
   // licht op terwijl de klok loopt, zodat het wachten iets te zien geeft.
   // (#956) In een binnenset staat de kamer zelf al om de speler: geen kring op de vloer.
-  if (st.kind === 'hold' && S.target && !S.set) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
+  if ((st.kind === 'hold' || (st.kort && st.kort.ring)) && S.target && !S.set) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
   // De regelkaart (step.kaart) is lokaal en alleen beeld; een stap zonder kaart krijgt niets (startKaart geeft null).
   S.kaart = st.kaart ? startKaart(st, `${def.id || def.label || 'm'}:${k}`) : null;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
@@ -2624,8 +2636,26 @@ function resumeFromCheckpoint(world, def) {
   world.addMessage('Je begint opnieuw bij het laatste hervatpunt.', 3.5);
 }
 
+// M06 (AAA akte 1, #962): stroomkast, slot en vitrine als korte handeling. Houd E ingedrukt bij de prop; de voortgang
+// loopt in de ring boven de prop (en in de kring op de grond als de stap die heeft), loslaten of weglopen zakt hooguit
+// terug en mislukken kan niet. Alleen beeld en lokale stapstand: de rolstap van Samen spelen (heistRolStap) gaat eraan vooraf.
+const KORT_STRAAL = { fuse: 3.2, lock: 2.2, crack: 1.8 };
+function kortStap(world, st, S, dt) {
+  if (!S.kort) S.kort = maakKort(st);
+  const k = S.kort, t = S.target, p = hoofdspeler(world);
+  if (!k) return true;
+  const binnen = !!t && !p.inVehicle && dist(p.x, p.y, t.x, t.y) < (KORT_STRAAL[st.kind] || 2);
+  tikKort(k, dt, { binnen, vast: !!(world.input && world.input.isDown('e')) });
+  world.missionPrompt = binnen && !k.klaar ? kortPrompt(st, k, t) : null;
+  if (S.wait) updateWaitDressing(S.wait, k.voortgang);
+  if (!k.klaar) return false;
+  world.missionPrompt = null;
+  return true;
+}
+
 function nextStage(world, def) {
   const cur = def.stages[chainState().stageIndex];
+  if (def.aaa && cur && cur.kind !== 'plan' && cur.kind !== 'scene' && cur.kind !== 'board') stingen.push(world, 'stap'); // AAA akte 1: een tussenstap klinkt
   // #962: een verhaalstap die geen QTE meer is, kan zijn gevolg als tag meegeven
   // (de windvlaag van M24, de duiven en de straten van M26). De tag telt gewoon
   // mee in de uitslag (def.tagAdjust/def.tagRows), net als een keuze of een timing.
@@ -3416,6 +3446,7 @@ function updateStages(dt, world, def) {
       if (rf === 'klaar') { nextStage(world, def); break; }
       if (rf === 'wacht') break;
       if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
+      if (st.kort) { if (kortStap(world, st, S, dt)) nextStage(world, def); break; }
       if (updateFuse(dt, world, S.target, world.input)) nextStage(world, def);
       break;
     }
@@ -3427,6 +3458,7 @@ function updateStages(dt, world, def) {
       if (r === 'klaar') { nextStage(world, def); break; }
       if (r === 'wacht') break;
       if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
+      if (st.kort) { if (kortStap(world, st, S, dt)) nextStage(world, def); break; }
       if (updateLock(dt, world, S.target)) nextStage(world, def);
       break;
     }
@@ -3448,6 +3480,7 @@ function updateStages(dt, world, def) {
       const r = heistRolStap(world, st, S); // Samen spelen (#438): de kluisrol draait de kluis open
       if (r === 'klaar') { nextStage(world, def); break; }
       if (r === 'wacht') break;
+      if (st.kort) { if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; } if (kortStap(world, st, S, dt)) nextStage(world, def); break; }
       if (updateCrack(dt, world, S.target)) nextStage(world, def);
       break;
     }
