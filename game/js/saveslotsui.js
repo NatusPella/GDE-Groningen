@@ -199,7 +199,7 @@ export function openSaveSlots(opts = {}) {
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     const part = bad ? S.stateText(s.state) : story ? (story.ended ? 'Het verhaal is uit' : story.part) : sm ? 'Het begin' : '';
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
-    const meta = sm ? `${S.formatPlaytime(sm.playSeconds)} · ${ago}` : '';
+    const meta = sm ? [sm.plek, S.formatPlaytime(sm.playSeconds), ago].filter(Boolean).join(' · ') : '';
     // #898: hoe ver het verhaal van dít spel is, ook op de kaarten (niet alleen op de grote
     // knop bovenaan): één balk en het percentage, dezelfde maat als op het Overzicht. Het
     // label "verhaal" staat er zichtbaar bij, want dit cijfer telt alleen het verhaal van deze
@@ -250,7 +250,7 @@ export function openSaveSlots(opts = {}) {
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     return `<button type="button" class="ssl-hero" data-grp="hero" data-do="load" data-slot="${s.n}" aria-label="Doorgaan: ${esc(s.name)}">` +
       `<span class="ssl-hero-pic">${pic}</span><span class="ssl-hero-body"><span class="ssl-hero-lab">${svg(IC.resume, 'ssl-hero-ic')}Doorgaan</span>` +
-      `<span class="ssl-hero-nm one">${esc(s.name)} · ${esc(part)}</span><span class="ssl-hero-meta one mut">${esc(S.formatPlaytime(s.summary.playSeconds))} · ${esc(ago)}${nog ? ` · ${esc(nog)}` : ''}</span>` +
+      `<span class="ssl-hero-nm one">${esc(s.name)} · ${esc(part)}</span><span class="ssl-hero-meta one mut">${s.summary.plek ? esc(s.summary.plek) + ' · ' : ''}${esc(S.formatPlaytime(s.summary.playSeconds))} · ${esc(ago)}${nog ? ` · ${esc(nog)}` : ''}</span>` +
       (prog != null ? `<span class="ssl-hero-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}% verhaal</span></span>` : '') + '</span></button>';
   };
 
@@ -333,7 +333,7 @@ export function openSaveSlots(opts = {}) {
       // schrijfplek omdat zijn eigen save al bestaat.
       if (gastInSessie()) { say(GAST_LEGE_PLEK_TEKST); return; }
       const was = S.activeSlot();
-      const m = S.freeSlot() ? S.createSlot(null, '', want) : 0;
+      const m = S.freeSlot() ? S.createSlot(null, S.newSlotName(S.takenNames(null)), want) : 0;
       if (!m) { say('Alle plekken zijn in gebruik.'); return; }
       bindSlot();
       if (!saveGame(world, { toast: false, manual: true })) {

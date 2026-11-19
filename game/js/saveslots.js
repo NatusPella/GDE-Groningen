@@ -42,6 +42,19 @@ export function cleanName(s, fallback = '') {
 
 export const defaultName = (n) => `Opgeslagen spel ${n}`;
 
+// #985: een nieuw spel krijgt een naam waaraan je het herkent ("Spel van 19 nov"), geen "Opgeslagen
+// spel 3" naast zeven andere. Bestaat die naam al (twee nieuwe spellen op één dag), dan komt er
+// een (2), (3) achter. `taken` zijn de namen die al in gebruik zijn.
+export function newSlotName(taken = [], now = new Date()) {
+  const d = now instanceof Date && !Number.isNaN(now.getTime()) ? now : new Date();
+  const dag = d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }).replace(/\.$/, '');
+  const base = `Spel van ${dag}`;
+  const used = new Set(taken);
+  if (!used.has(base)) return base;
+  for (let i = 2; i < 100; i++) if (!used.has(`${base} (${i})`)) return `${base} (${i})`;
+  return base;
+}
+
 // 3725 -> '1 u 02 min', 540 -> '9 min', 0 -> 'net begonnen'
 export function formatPlaytime(sec) {
   const m = Math.floor(num(sec) / 60);
@@ -177,6 +190,7 @@ export function summarize(d) {
     missionsDone: done,
     playSeconds: Math.max(0, num(d.speeltijd)),
     character: d.character === 'anita' ? 'Tessa' : 'Tammo',
+    plek: typeof d.plek === 'string' ? cleanName(d.plek, '') : '',
     goal: isObj(d.doel) && typeof d.doel.name === 'string' ? cleanName(d.doel.name, '') : '',
     storyDone: isObj(d.story) && Array.isArray(d.story.done) ? d.story.done.length : 0,
   };
@@ -308,6 +322,13 @@ export function writeSlot(ls, n, save) {
   let text;
   try { text = JSON.stringify(save); saveStats.stringify++; } catch (e) { return false; }
   return writeSlotRaw(ls, n, text);
+}
+
+export function takenNames(ls) {
+  const idx = readIndex(ls);
+  const out = [];
+  for (let n = 1; n <= MAX_SLOTS; n++) out.push(idx.names[n] || defaultName(n));
+  return out;
 }
 
 // A new empty slot (named), made the active one. Returns its number or 0 when all are in use.

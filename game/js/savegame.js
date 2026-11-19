@@ -32,7 +32,10 @@ import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './co
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
-import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf } from './saveslots.js';
+import { plekNaam } from './saveplek.js';
+import { ommelandArea } from './ommelandplace.js';
+import { areaNameAt } from './regions.js';
+import { newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf } from './saveslots.js';
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
@@ -185,7 +188,7 @@ export function getSaveSummary() {
 // boot respecteert die keuze (#562, saveslots.js isFresh). Zijn alle plekken in gebruik, dan gebeurt er
 // niets en zegt de aanroeper het: de save van het spel dat je speelt wordt niet stil gewist.
 export function startNewSlot(name) {
-  if (!createSlot(null, name, 0, true)) return false;
+  if (!createSlot(null, name || newSlotName(takenNames(null)), 0, true)) return false;
   bindSlot();
   return true;
 }
@@ -243,6 +246,9 @@ function serialize(w) {
   const pos = p.inVehicle && p.inVehicle.isBoat ? null : { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 };
   // de beloningen die deze speler al kreeg (#429): een gast bewaart ze in zijn eigen save, zodat een herhaald bericht na
   // een herstart of een nieuwe verbinding niets dubbel geeft (coopbeloning.js, startClient in coopnet.js)
+  // waar je was, voor de savekaart (#985); in een boot is er geen positie, dus ook geen plek
+  let plek = '';
+  try { plek = pos ? plekNaam(pos.x, pos.y, { meta: w.map && w.map.meta, ommelandArea, areaNameAt }) : ''; } catch (e) { plek = ''; }
   const coopIds = w.coopBoek ? w.coopBoek.ids() : [];
   return {
     v: VERSION,
@@ -260,6 +266,7 @@ function serialize(w) {
     stats: { ...w.stats },
     character: p.character,
     pos,
+    plek,
     // 'busy' (a mission, bijbaan or challenge running): loading keeps pos;
     // otherwise the game continues at home (home.js)
     ctx: homeSaveContext(w),
@@ -668,15 +675,15 @@ function markSaveBroken(reason) {
   if (toastEl) {
     toastEl.innerHTML = BROKEN_SVG + '<span>Niet opgeslagen</span>';
     toastEl.classList.add('visible', 'hud-saved-broken');
-    toastEl.title = reason;
+    // De tooltip draagt de geruststelling, zodat de melding zelf binnen het HUD-tekstbudget blijft.
+    toastEl.title = `${reason}. Je spel blijft staan zolang dit venster open is.`;
   }
   // Het chipje blijft staan: geen aflopende timer zolang de opslag stuk is.
   toastTimer = 0;
   if (saveBroken) return;
   saveBroken = true;
   if (world && world.addMessage) {
-    world.addMessage(`Opslaan lukt niet (${reason}). Je spel blijft staan zolang je dit venster openhoudt; `
-      + 'maak ruimte vrij in je browseropslag en het gaat vanzelf weer.', 8, { key: 'save-broken', exact: true });
+    world.addMessage(`Opslaan lukt niet: ${reason}. Maak ruimte vrij in je browseropslag.`, 8, { key: 'save-broken', exact: true });
   }
 }
 const BROKEN_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 8v5M12 16.5v.5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 3.6 21 20H3z"/></svg>';
