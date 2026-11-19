@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Samen spelen: geen dubbele namen of kleuren meer (#985):** wie dezelfde naam of kleur kiest als een medespeler krijgt een nummer achter de naam ("Femke 2") of de eerste vrije kleur, zodat de spelerslijst en de naamlabels uit elkaar te houden zijn. Dit regelt de lijst die wie het spel opende aan iedereen doorgeeft, dus iedereen ziet dezelfde namen.
+- **Samen spelen: Verbinden… zegt wat er gebeurt (#985):** het scherm noemt de kamer waarnaar gezocht wordt en zegt na ruim 20 seconden dat een typefout in de code geen foutmelding geeft maar een kamer die niet bestaat. Het wachtscherm van een gast zegt dat de wereld van de ander stilstaat tot jij weer verbonden bent.
+- **De radio herhaalt zich minder (#985):** een regel van Geesje komt niet meteen terug zolang er een andere is, en de rotatie van de praatblokken en de gespeelde reclames blijven bewaard tussen twee keer spelen. Reclames blijven hoogstens 6,5 seconden in beeld, en een motor overstemt een gesprek in de auto niet meer.
+- **Geluidsondertitels voor meer geluiden (#985):** met "Geluiden beschrijven" aan staat er nu ook een tekst bij treinen, de brug, deuren, de kermisbel, voetstappen en voertuiggeluiden (motor start, banden gieren).
 - **Opslaan:** een mislukte poging om op te slaan meldt één keer wat er aan de hand is (bijvoorbeeld "de opslag van je browser is vol") en laat een blijvend chipje "Niet opgeslagen" staan tot opslaan weer lukt, in plaats van elke twintig seconden dezelfde regel; F5 slaat meteen op; opslaan in een boot zegt dat je boot aan de steiger blijft; Afsluiten zegt hoeveel er niet bewaard is (#985).
 - **Nieuwe spellen en opgeslagen spellen:** een nieuw spel heet "Spel van 19 nov" in plaats van "Opgeslagen spel 3", en de kaart van een opgeslagen spel toont de plek waar je was (wijk of dorp) bij speeltijd en datum. Samen spelen: een gast bewaart alleen zijn eigen verdiensten, dus voor hem verandert hier niets (#985).
 - **Het laadscherm is te onderbreken:** na een paar seconden verschijnt Verder (ook Enter of Escape); de wereld bouwt daarna door (#985).
