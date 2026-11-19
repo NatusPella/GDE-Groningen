@@ -13,7 +13,7 @@ ok(openingReady(met({ cinematicActive: true, startActive: true })), 'de vlucht-i
 ok(!openingReady(met({ cinematicActive: true, startActive: false })), 'een andere film houdt de opening wel tegen');
 ok(!openingReady(met({ sinceCinematicS: 0.4 })), 'een film die net klaar is, geeft eerst een korte adempauze');
 ok(openingReady(met({ sinceCinematicS: 1.2 })), 'na een seconde mag de opening');
-for (const [k, v, naam] of [['started', false, 'spel nog niet gestart'], ['client', true, 'gast'], ['gate', true, 'wachtkamer'], ['missionActive', true, 'missie'], ['narrativeBusy', true, 'vertelling'], ['pigeon', true, 'duif'], ['respawn', true, 'respawn'], ['dataReady', false, 'verhaaldata']]) {
+for (const [k, v, naam] of [['started', false, 'spel nog niet gestart'], ['client', true, 'meespeler'], ['gate', true, 'wachtkamer'], ['missionActive', true, 'missie'], ['narrativeBusy', true, 'vertelling'], ['pigeon', true, 'duif'], ['respawn', true, 'terugzetten'], ['dataReady', false, 'verhaaldata']]) {
   const b = openingBlockers(met({ [k]: v }));
   ok(b.length === 1 && b[0].includes(naam), `blokkeerder ${k} wordt bij naam genoemd`, b.join('|'));
 }
