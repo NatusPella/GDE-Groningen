@@ -252,7 +252,29 @@ export const PLAN_PROEFBELEG = {
     { look: { shirt: 0x7a3a2a, skin: 0xd9a06e, seed: 8821, variant: 'male' }, along: 5.6, side: 3, a: -0.6, anim: 'cheer' },
   ],
 };
-export const PLANNEN_AKTE6 = { wisselwoning: PLAN_WISSELWONING, erf: PLAN_ERF, proefbeleg: PLAN_PROEFBELEG };
+// Het slot van het verhaal (M30, #955): de Fjord Frituur staat open op de wal bij de poort. De vrienden van Oma eten eierballen, Jelle
+// zit natgeregend in een deken, Berend telt nog steeds en niemand staat stil. Een warm, rustig feest: geen publiek, geen jury,
+// alleen de mensen die de hele zomer meededen. Lichter van toon dan het plein van M26: hier wordt niets beoordeeld.
+export const PLAN_SLOTFEEST = {
+  props: [
+    { kind: 'bank', along: 4.5, side: -4, a: 1.2 },
+    { kind: 'bank', along: 6.2, side: 4.4, a: -1.2 },
+    { kind: 'ton', along: 5, side: 1.6, a: 0 },
+    { kind: 'kist', along: 7.4, side: -1.2, a: 0.3 },
+    { kind: 'vaandel', along: 9, side: -6.4, a: 0 },
+    { kind: 'vaandel', along: 9, side: 6.4, a: 0 },
+    { kind: 'banner', along: 11, side: 0, a: 0, title: 'EIERBALLEN OP DE WAL', sub: 'De vesting is genomen, de frituur is open' },
+  ],
+  people: [
+    { look: { shirt: 0x7a3a2a, skin: 0xd9a06e, seed: 8831, variant: 'male' }, along: 5.2, side: -2.4, a: Math.PI * 0.8, anim: 'cheer' },
+    { look: { shirt: 0x3f8a52, skin: 0xa9744a, seed: 8832, variant: 'female' }, along: 6.6, side: 3, a: -2.4, anim: 'talk' },
+    { look: { shirt: 0x2f6fb0, skin: 0xf1c9a5, seed: 8833, variant: 'male' }, along: 7.6, side: -4.8, a: 0.6, anim: 'wave' },
+    { look: { shirt: 0x8a4a8a, skin: 0xf1c9a5, seed: 8834, variant: 'female', hairStyle: 'bun', extra: { age: 'old' } }, along: 4.2, side: 3.4, a: -2.6, anim: 'talk' },
+    { look: { shirt: 0xe0b93a, skin: 0xd9a06e, seed: 8835, variant: 'male' }, along: 8.4, side: 2.2, a: -3, anim: 'point' },
+    { look: { shirt: 0x555f6e, skin: 0xa9744a, seed: 8836, variant: 'female' }, along: 6, side: -6, a: 1.2, anim: 'idle' },
+  ],
+};
+export const PLANNEN_AKTE6 = { wisselwoning: PLAN_WISSELWONING, erf: PLAN_ERF, proefbeleg: PLAN_PROEFBELEG, slotfeest: PLAN_SLOTFEEST };
 for (const [kind, plan] of Object.entries(PLANNEN_AKTE6)) registreerAankleding(kind, plan);
 
 // Zet de aankleding van akte 6 op de defs. `list` is de lijst van missions.js (na applyNieuw); een missie of stap die er niet
@@ -307,7 +329,9 @@ export function applyAkte6(list) {
     lichter(vind(m30, 'hold', /vlag op het derde/));
     zet(vind(m30, 'hold', /vlag op het derde/), { kaart: K.M30.vlag3, wacht: { ...W.M30.vlag3 } });
     zet(vind(m30, 'goto', /poort: Berend/), { kaart: K.M30.poort });
-    zet(vind(m30, 'goto', /Fjord Frituur/), { kaart: K.M30.plein });
+    zet(vind(m30, 'goto', /Fjord Frituur/), { kaart: K.M30.plein, dressing: 'slotfeest' }); // het slot: de vrienden op de wal, de frituur open
+    // de poort: na de scène blijft een groot beeld hangen met de slotgedachte van Berend (alleen tekst, orbitcamera van missions.js)
+    zet(vind(m30, 'scene', /^De poort$/), { big: 'Gewonnen. Het voelt verkeerd.' });
     for (const re of [/^De gracht$/, /^De ophaalbrug$/, /^De poort$/]) lichter(vind(m30, 'scene', re));
   }
 }
