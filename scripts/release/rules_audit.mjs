@@ -250,7 +250,7 @@ export function storageKeySeverity(key) {
  */
 // Canvastexturen en 3D-decor zijn beeld, geen HUD-chroom: hun kleuren mogen
 // vrij zijn (zelfde grens als hud_kleuren_test se BUITEN-lijst).
-export const ART_FILES = new Set(['office3d.js', 'loket3d.js', 'omakeuken3d.js', 'missiedecor.js', 'coopfigures3d.js', 'cooppings3d.js', 'racedecor.js', 'wachtprops.js', 'pg_koe.js', 'trainride.js', 'containerterminal.js']);
+export const ART_FILES = new Set(['office3d.js', 'loket3d.js', 'omakeuken3d.js', 'missiedecor.js', 'coopfigures3d.js', 'cooppings3d.js', 'racedecor.js', 'wachtprops.js', 'pg_koe.js', 'trainride.js', 'containerterminal.js', 'penalty.js', 'kissheart3d.js', 'gpudiag.js']); // penalty.js en kissheart3d.js: canvastexturen; gpudiag.js: diagnosevenster (hud_kleuren_test BUITEN)
 
 export function auditLines(addedLines = [], addedFiles = [], options = {}) {
   const findings = [];
