@@ -4,9 +4,11 @@
 // tones and timing from here, so the province's water cannot drift away from
 // the city's. Pure data, no THREE.
 
+import { dsWereld } from './worldpalette.js';
+
 export const WATER_TONES = {
-  deep: 0x0b2420,       // the middle of wide water
-  shallow: 0x2c4a38,    // by the bank
+  deep: dsWereld(0x0b2420, 'water'),       // the middle of wide water
+  shallow: dsWereld(0x2c4a38, 'water'),    // by the bank
   duckweed: 0x5d7f2c,   // kroos
   foam: 0xb9c2b0,       // the line at the bank
   opacity: 0.88,        // of the mesh; the fresnel adds up to 0.1

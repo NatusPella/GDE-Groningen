@@ -106,7 +106,7 @@ afleveren.
 (`game/js/boerderij.js:23`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
 (binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
 `leverVracht` verkoopt daartegen. Elk perceel heeft een eigen teeltplan (`b.plan`); oude opslag
-met alleen `keuze` migreert naar het actieve perceel. Een speldag is 24 minuten (`game/js/daynight.js:13`). Groei telt in
+met alleen `keuze` migreert naar het actieve perceel. Een speldag is 24 minuten (`game/js/daynight.js:14`). Groei telt in
 speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
 (`:34`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
 `loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op

@@ -6,6 +6,7 @@
 // pyramid, a dark calm land) and "mini" (the minimap, lighter so it reads
 // at 150 px). Both share the same keys.
 import { kaartInk } from './kaartkleuren.js';
+import { dsWereldCss } from './worldpalette.js';
 
 export const MAP_PALETTE = {
   meadow: '#243528', park: '#2f5c36', ditch: '#2d6a86', water: '#2d6a86', waterEdge: '#4a8fae',
@@ -25,6 +26,17 @@ export const MINI_PALETTE = {
   forest: '#34562c',
   roadMin: 3, majorMin: 3,
 };
+
+// 21-11: het land van beide kaarten volgt de wereld (worldpalette.js, dezelfde menging): gras en bos naar bordgroen, water inktblauwgroen,
+// gebouwen en wegen een warme papiertoon. Alleen het land; de inkt van de kaart (INK) komt uit het designsysteem zelf.
+const KAART_ROL = {
+  meadow: 'groen', park: 'groen', forest: 'groen', tree: 'groen', allot: 'groen', sports: 'groen', village: 'groen', ditch: 'water', water: 'water', waterEdge: 'water',
+  road: 'steen', minor: 'steen', foot: 'steen', building: 'bouw', church: 'bouw', business: 'steen',
+};
+for (const pal of [MAP_PALETTE, MINI_PALETTE]) {
+  for (const [k, rol] of Object.entries(KAART_ROL)) if (typeof pal[k] === 'string') pal[k] = dsWereldCss(pal[k], rol);
+}
+MINI_PALETTE.buildings = MINI_PALETTE.buildings.map((c) => dsWereldCss(c, 'bouw'));
 
 // travel-mode highlights, the same on every map (the two that draw them)
 export const EMPHASIS = { foot: '#d9d4c4', cycle: '#ff8a5c', bridgeCasing: '#0c140e' };
