@@ -29,7 +29,7 @@ for (const id of Object.keys(UITJES)) {
     assert.match(html, /class="uitje-kicker"[\s\S]*Uitje/, `${id}: kicker "Uitje"`);
     assert.match(html, /class="uitje-titel"/, `${id}: titel`);
     assert.match(html, /class="uitje-regel"/, `${id}: één voortgangsregel`);
-    assert.match(html, /class="hud-key"[^>]*>E</, `${id}: hint via .hud-key`);
+    assert.match(html, /class="hud-key[^"]*"[^>]*data-gk="E"/, `${id}: hint via .hud-key`);
     assert.doesNotMatch(html, /system-ui/, `${id}: geen eigen font`);
   });
 }
