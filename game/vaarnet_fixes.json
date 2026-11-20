@@ -3610,7 +3610,6 @@
     [41985.9,22607.8,36.8,27.2,1.005,3],
     [41987,17508.6,29.8,23.1,-1.137,3],
     [42020,3427.5,181.1,11.7,-0.606,3],
-    [42287.5,22655,25,20,0,3],
     [42315,22802.5,10,5,0,3],
     [42317.5,22810,10,5,1.571,3],
     [42322.5,22800,10,5,1.571,3],
@@ -3667,8 +3666,6 @@
     [42471.6,22712.3,26.6,20.7,-1.372,3],
     [42472.2,3530.2,37,29.3,-0.683,2],
     [42493.4,22662.2,25.6,16.6,-1.396,3],
-    [42493.7,23061.2,33.5,19.3,-0.331,3],
-    [42504.7,23084.2,29.7,18.2,-0.494,3],
     [42507.3,22879.3,16.1,11.3,-0.322,3],
     [42507.9,22928.9,27.1,17.5,-0.299,3],
     [42508.5,22727,16.1,9.7,-1.249,3],
@@ -3697,8 +3694,6 @@
     [42556.3,22843.8,12.1,8.5,0.785,3],
     [42557.2,22721.6,37.1,18.2,0.17,3],
     [42558.8,22763.8,12.1,8.5,-0.785,3],
-    [42562.5,22842.5,15,5,1.571,3],
-    [42562.5,22855,10,5,1.571,3],
     [42574.3,22775.8,30.4,21.1,0.125,3],
     [42574.6,22895.3,30.8,21.3,1.482,3],
     [42575.3,22851.2,57.1,30.5,1.327,3],
@@ -3919,7 +3914,10 @@
   "dammenUitleg": "dammen: [x, y, straal m, naam]; land waar closeGaps (scripts/world/vaarnet.mjs) geen water van mag maken: een dijk met een weg zonder sluis of brug, waar het raster twee stukken hoofdvaarweg anders aan elkaar zet en het vaarnet een route dwars door de dijk legt (#349)",
   "dammen": [
     [-23982,-20337,40,"Lauwersoog: dijkweg tussen het havenwater en de kolk"],
-    [-23845,-20470,50,"Lauwersoog: dijk tussen de kolk en het Lauwersmeer"]
+    [-23845,-20470,50,"Lauwersoog: dijk tussen de kolk en het Lauwersmeer"],
+    [42287,22655,25,"Bourtange: wal buiten de vesting, geen water (#953)"],
+    [42499,23072,35,"Bourtange: wal en weg ten zuiden van de vesting, geen water (#953)"],
+    [42562,22849,12,"Bourtange: wal aan de oostkant, geen water (#953)"]
   ],
   "zeeUitleg": "zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.",
   "zee": [

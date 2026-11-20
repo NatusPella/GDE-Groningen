@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Bourtange: vijf waterstukken van het vaarnet die op droge wal en weg lagen (bij de vesting) zijn weggehaald, zodat de wal daar niet meer onder water staat (#953).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
