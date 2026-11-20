@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- Plaatsnaamborden en wegwijzers zijn niet meer onverwoestbaar: vanaf ongeveer 13 km/u rijd je ze omver (de paal klapt om met een metalen tik, kleine schade die met de snelheid meegroeit); langzamer stop je er gewoon tegen. Een omgevallen bord is ook omver bij je medespelers (bestaande kapotmelding) en komt na een tijd en afstand terug, zoals een kapotte bank. Ook een omgereden bank, prullenbak of fietsenrek verdwijnt nu uit het beeld in plaats van als spookobject te blijven staan.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

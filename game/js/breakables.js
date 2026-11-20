@@ -39,6 +39,8 @@ export const PROP_DEFAULTS = {
   bike: { r: 0.26, half: 0.42, h: 1.05, mass: 18, material: 'metal', breakSpeed: 0.3, breakCost: 0.1 },
   rail: { r: 0.14, half: 1, h: 0.45, mass: 35, material: 'metal', breakSpeed: 3, breakCost: 0.6 },
   stall: { r: 0.95, half: 0.55, h: 2.3, mass: 110, material: 'wood', breakSpeed: 3, breakCost: 1.5, burst: 'produce' },
+  // plaatsnaamborden en wegwijzers (streetfurniture.js): een dunne stalen paal met een bord; vanaf ~13 km/u klapt hij om
+  bord: { r: 0.1, h: 2.2, mass: 30, material: 'metal', breakSpeed: 3.6, breakCost: 0.3, topple: true },
   lamp: { r: 0.17, h: 5.6, mass: 320, material: 'metal', breakSpeed: 5.5, breakCost: 3, topple: true, burst: 'glass' },
   trafficlight: { r: 0.16, h: 3.7, mass: 260, material: 'metal', breakSpeed: 5, breakCost: 2.5, topple: true, burst: 'signal' },
   flitspaal: { r: 0.3, h: 3.5, mass: 420, material: 'metal', breakSpeed: 6.5, breakCost: 3.5, topple: true, burst: 'sparks', wanted: true },
