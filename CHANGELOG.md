@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Stations (o.a. Veendam) zien er niet meer uit als een kerk: een laag stationsgebouw met plat dak, luifel en een klokpaal in plaats van een puntdak met zadeldaktoren (#1026).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
