@@ -222,26 +222,27 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
 // De legenda linksonder: welke laag je ziet en wat de drie toestanden zijn.
 export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = '#f0ede4') {
   if (!hoofd) return;
-  const x = 16, rij = 20, h = 30 + rij * 3 + 8, y = ch - 56 - h;
+  const x = 16, rij = 22, h = 34 + rij * 3 + 8, y = ch - 56 - h;
   ctx.save();
   ctx.globalAlpha = 1;
-  ctx.fillStyle = 'rgba(10,18,13,0.92)';
-  ctx.strokeStyle = 'rgba(242,234,216,0.45)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(x, y, 176, h, 8); ctx.fill(); ctx.stroke();
+  const inkt = '#1d1b17';
+  ctx.fillStyle = '#f3ead3';
+  ctx.strokeStyle = inkt;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(x, y, 196, h, 8); ctx.fill(); ctx.stroke();
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
-  ctx.fillStyle = kleurTekst;
-  ctx.font = '600 12px sans-serif';
+  ctx.fillStyle = inkt;
+  ctx.font = '700 13px sans-serif';
   ctx.fillText(`Veroverd · ${laagNaam(hoofd).toLowerCase()}`, x + 10, y + 16);
   const rijen = [['Nog niet begonnen', null], ['Bezig', 'rgb(150,184,70)'], ['Veroverd', G.niveauInfo(hoofd).vlag]];
   rijen.forEach(([tekst, kleur], i) => {
-    const cy = y + 38 + i * rij;
+    const cy = y + 42 + i * rij;
     ctx.beginPath(); ctx.roundRect(x + 10, cy - 7, 24, 14, 3);
     if (kleur) { ctx.globalAlpha = i === 2 ? 0.55 : 0.45; ctx.fillStyle = kleur; ctx.fill(); ctx.globalAlpha = 1; }
     ctx.setLineDash(kleur ? [] : [4, 3]);
-    ctx.strokeStyle = kleur || kleurTekst; ctx.lineWidth = 1.6; ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = kleurTekst; ctx.font = '12px sans-serif';
+    ctx.strokeStyle = kleur || inkt; ctx.lineWidth = 1.6; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = inkt; ctx.font = '13px sans-serif';
     ctx.fillText(tekst, x + 44, cy);
   });
   ctx.restore();
