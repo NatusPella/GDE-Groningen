@@ -91,11 +91,12 @@ function playerSurface(world, p) {
 }
 
 // Tries the other variants (and then klinkers) when one is still rendering.
+const stepMemory = {}; // the last variant per surface: no two equal steps in a row
 function playStep(surface, x, y, gain, rate, prio, rain) {
   const out = K.spatial(x, y, { h: 0.05, ref: 3, rolloff: 1.5, range: 30, model: 'equalpower', prio });
   if (!out) return;
   const r = rate * rnd(0.95, 1.05);
-  for (const name of stepNames(surface)) if (K.buf(name, { out, gain, rate: r, prio })) break;
+  for (const name of stepNames(surface, Math.random(), stepMemory)) if (K.buf(name, { out, gain, rate: r, prio })) break;
   if (rain > 0.35 && surface !== 'gras' && surface !== 'wet') {
     for (const name of stepNames('wet')) if (K.buf(name, { out, gain: gain * rain * 0.5, rate, prio })) break;
   }

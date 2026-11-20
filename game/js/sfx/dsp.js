@@ -331,6 +331,22 @@ function step(surface) {
         addNoiseBurst(d, sr, toe, R, { f: m * 1.1, q: 9, tau: 0.04, amp: 1.1 });
         break;
       }
+      case 'grind': // knarsend: een bos kleine korrels die verschuiven
+        thump(d, sr, 0, f * 0.9, 0.02, 0.4);
+        addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 2000, q: 0.7, tau: 0.05, amp: 0.45, attack: 0.004 });
+        for (let k = 0; k < 14; k++) addNoiseBurst(d, sr, R() * 0.1, R, { f: 2000 + R() * 4500, q: 2.5, tau: 0.003, amp: 0.3 + R() * 0.3 });
+        break;
+      case 'zand': // zacht en dof: de voet zakt weg, een fluistering van korrels
+        thump(d, sr, 0, f * 0.8, 0.025, 0.3);
+        addNoiseBurst(d, sr, 0, R, { type: 'lp', f: 950, q: 0.7, tau: 0.07, amp: 0.8, attack: 0.015 });
+        addNoiseBurst(d, sr, 0.01, R, { type: 'hp', f: 3500, q: 0.7, tau: 0.05, amp: 0.15, attack: 0.02 });
+        break;
+      case 'metaal': // een rooster of brugdek: een harde tik met een korte metalen ring
+        thump(d, sr, 0, f, 0.02, 0.5);
+        addNoiseBurst(d, sr, 0, R, { f: 2600, q: 1, tau: 0.005, amp: 0.6 });
+        addPartials(d, sr, 0, 520 + R() * 220, [[1, 1, 0.06], [2.76, 0.45, 0.03], [5.4, 0.2, 0.015]], 0.5, R);
+        addNoiseBurst(d, sr, toe, R, { f: 3000, q: 1.4, tau: 0.005, amp: 0.4 });
+        break;
       case 'wet':
         thump(d, sr, 0, f, 0.02, 0.4);
         addNoiseBurst(d, sr, 0, R, { f: 1200, q: 0.7, tau: 0.06, amp: 0.8, attack: 0.004 });
@@ -481,7 +497,7 @@ def('bed_terrace', 7, (c, sr, R, l) => babble(c, sr, R, l, 4, 2600, true), { ch:
 def('bed_crickets', 6, bedCrickets, { ch: 2, loop: 0.05 });
 def('bed_lap', 6, bedLap, { rate: 22050, loop: 0.4 });
 
-for (const s of ['klinkers', 'asfalt', 'gras', 'wood', 'wet']) for (let v = 0; v < 4; v++) def(`step_${s}_${v}`, 0.22, step(s));
+for (const s of ['klinkers', 'asfalt', 'gras', 'wood', 'wet', 'grind', 'zand', 'metaal']) for (let v = 0; v < 4; v++) def(`step_${s}_${v}`, 0.22, step(s));
 def('land', 0.3, (c, sr, R) => { thump(c[0], sr, 0, 62, 0.06, 1); addNoiseBurst(c[0], sr, 0, R, { type: 'lp', f: 800, q: 0.7, tau: 0.04, amp: 0.8 }); step('klinkers')([c[0].subarray(Math.floor(0.06 * sr))], sr, R); });
 def('whoosh', 0.24, (c, sr, R) => {
   const d = c[0], f = bq('bp', 500, 1.4, sr), n = d.length;

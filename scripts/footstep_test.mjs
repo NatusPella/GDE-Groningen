@@ -22,6 +22,8 @@ for (const surf of ['klinkers', 'asfalt', 'fietspad', 'gras', 'wood', 'wet', 'za
 }
 check('every surface maps onto a sample set', STEP_SURFACES.every((s) => stepSurface(s) === s) && stepSurface('fietspad') === 'asfalt' && stepSurface('?') === 'klinkers');
 check('all four variants are reachable', new Set([0, 0.26, 0.51, 0.76].map((r) => stepNames('gras', r)[0])).size === STEP_VARIANTS);
+check('zand, grind and metaal have their own sample sets', ['zand', 'grind', 'metaal'].every((x) => stepSurface(x) === x && stepNames(x, 0.1)[0].startsWith(`step_${x}_`)) && stepSurface('metal') === 'metaal');
+{ const mem = {}; let prev = -1, same = 0; for (let i = 0; i < 400; i++) { const v = stepNames('gras', (i * 0.37) % 1 < 0.5 ? 0.1 : 0.12, mem)[0]; if (v === prev) same++; prev = v; } check('with memory one foot never sounds twice in a row', same === 0, String(same)); }
 check('a variant still rendering falls back to the others, then klinkers', stepNames('wood', 0).length === STEP_VARIANTS + 1 && stepNames('wood', 0).at(-1).startsWith('step_klinkers_'));
 
 const run = (p, secs, dt = 1 / 60, each = null) => {

@@ -1,11 +1,11 @@
 // The player's footstep rhythm and the step-sample names, kept free of
 // Web Audio so node scripts/footstep_test.mjs can check them.
 
-export const STEP_SURFACES = ['klinkers', 'asfalt', 'gras', 'wood', 'wet'];
+export const STEP_SURFACES = ['klinkers', 'asfalt', 'gras', 'wood', 'wet', 'grind', 'zand', 'metaal'];
 export const STEP_VARIANTS = 4;
 const KNOWN = new Set(STEP_SURFACES);
 // what the map / countryside / interiors can report, folded onto a sample set
-const ALIAS = { fietspad: 'asfalt', weg: 'asfalt', zand: 'gras', grind: 'klinkers', aarde: 'gras', akker: 'gras', tegel: 'klinkers', vloer: 'wood', deck: 'wood', steiger: 'wood', metal: 'klinkers', water: 'wet' };
+const ALIAS = { fietspad: 'asfalt', weg: 'asfalt', aarde: 'gras', akker: 'gras', tegel: 'klinkers', vloer: 'wood', deck: 'wood', steiger: 'wood', metal: 'metaal', rooster: 'metaal', water: 'wet' };
 
 export function stepSurface(s) {
   if (KNOWN.has(s)) return s;
@@ -14,9 +14,11 @@ export function stepSurface(s) {
 
 // Sample names to try for one step, in order: a random variant of the
 // surface, its other variants (one may still be rendering), then klinkers.
-export function stepNames(surface, r = Math.random()) {
+// memory (optional, { surface: variant }): the variant played last on this surface is skipped, so one foot never sounds twice in a row.
+export function stepNames(surface, r = Math.random(), memory = null) {
   const s = stepSurface(surface);
-  const v0 = Math.floor(r * STEP_VARIANTS) % STEP_VARIANTS;
+  let v0 = Math.floor(r * STEP_VARIANTS) % STEP_VARIANTS;
+  if (memory) { if (memory[s] === v0) v0 = (v0 + 1) % STEP_VARIANTS; memory[s] = v0; }
   const out = [];
   for (let i = 0; i < STEP_VARIANTS; i++) out.push(`step_${s}_${(v0 + i) % STEP_VARIANTS}`);
   if (s !== 'klinkers') out.push(`step_klinkers_${v0}`);
