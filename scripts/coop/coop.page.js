@@ -1261,6 +1261,7 @@ const PHASES = {
       log('gate-wacht', { cine: cineOn(), paused: !!W().paused, cam: !!W().cameraOverride, knop: !!panel().querySelector('[data-act="start-spel"]') });
       shot('gate-host');
       panel().querySelector('[data-act="start-spel"]').click(); log('spel-gestart', {});
+      setTimeout(async () => { try { await until(() => W().coopStartMeting && W().coopStartMeting.klaar, 90000, 'start-meting'); const m = W().coopStartMeting; log('start-meting', { samenvatting: m.samenvatting, stappen: m.stappen, events: m.events.slice(0, 40) }); } catch (e) { /* geen meting */ } }, 0); // #1011: wat zet de gastheer stil na Spel starten
     } else {
       await closeMenu(); // de gast kijkt vanuit het spel mee; hij wacht tot de gastheer start (hij begint niet zelf)
       log('gate-gast', { cine: cineOn(), cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null });
