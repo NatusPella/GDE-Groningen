@@ -168,6 +168,18 @@ export function iconFor(label) {
 
 export const TOUCH_ICONS = ICONS;
 
+// Phosphor (icons.js, ADR 0041): waar een knoplabel een duidelijke betekenis heeft staat die hier; de overige
+// knoppen houden hun eigen tekening hierboven. Betekenisnamen, geen bestanden.
+const PH_TOUCH = {
+  Spring: 'pijl_omhoog', Omhoog: 'pijl_omhoog', Omlaag: 'pijl_omlaag', Hoger: 'pijl_omhoog', Lager: 'pijl_omlaag', Vlieg: 'vliegtuig',
+  Stop: 'stop', Start: 'afspelen', Overslaan: 'vooruit', Volgend: 'vooruit', Vuur: 'doel', Doel: 'doel', Richt: 'oog', Gebruik: 'hand',
+  Rennen: 'rennen', Kusje: 'hart', Kaart: 'kaart', Radio: 'muziek', Tanken: 'brandstof', Hengelen: 'vis', Sirene: 'politie',
+  Pauze: 'pauze', Meer: 'rooster', Alarm: 'waarschuwing', Noodrem: 'waarschuwing', Toeter: 'geluid', Gas: 'toerental', Film: 'camera',
+  OK: 'vinkje', Ja: 'vinkje', Kies: 'vinkje', Nee: 'kruis', Dienst: 'schild', Links: 'pijl_links', Rechts: 'pijl_rechts',
+  Linkerhand: 'pijl_links', Rechterhand: 'pijl_rechts', Mens: 'speler', 'Zeil vieren': 'zeilboot',
+};
+export const phIconFor = (label) => PH_TOUCH[label] || '';
+
 // The right thumb gets the actions, the left thumb (next to the stick) the
 // sprint and brake extras.
 const RIGHT = ['a', 'b', 'x', 'y', 'rt'];

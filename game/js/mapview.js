@@ -2945,7 +2945,7 @@ export function initMapView(world) {
   // a controller has no pointer: A picks what is under this crosshair (a11y.css shows it)
   const reticle = document.createElement('div');
   reticle.className = 'map-pad-reticle';
-  reticle.innerHTML = '<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="9"/><path d="M17 2v8M17 24v8M2 17h8M24 17h8"/></svg>';
+  reticle.innerHTML = icoon('doel');
   state.canvas.parentElement.appendChild(reticle);
   state.searchIndex = buildSearchIndex(world);
   initDiscovery(world);
