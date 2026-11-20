@@ -46,7 +46,8 @@ let failed = 0;
 for (const run of RUNS) {
   const out = RUNS.length > 1 || run.label !== 'run' ? path.join(OUT, run.label) : OUT;
   fs.mkdirSync(out, { recursive: true });
-  const profile = `gde-test-ks-${process.pid}-${run.label}`;
+  const profile = path.join(out, `profiel-${process.pid}`); // onder de uitvoermap: de tijdelijke map van het systeem is soms niet te schrijven
+  fs.mkdirSync(profile, { recursive: true });
   const script = path.join(out, '_page.js');
   fs.writeFileSync(script, `window.__ksCfg = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'kaartstijl_shots.page.js'), 'utf8'));
   const env = { ...process.env, GDE_TEST_PROFILE: profile };
@@ -61,7 +62,7 @@ for (const run of RUNS) {
   const code = await new Promise((res) => child.on('close', res));
   clearTimeout(killer);
   fs.writeFileSync(path.join(out, 'run.log'), `${stdout}\n${stderr}`);
-  fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+  fs.rmSync(profile, { recursive: true, force: true });
   let res = {};
   for (const l of stdout.split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]); } catch { /* geen JSON */ } }
   fs.writeFileSync(path.join(out, 'result.json'), JSON.stringify(res, null, 1));
