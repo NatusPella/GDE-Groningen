@@ -43,13 +43,14 @@ const meet = () => {
     const e = n.parentElement; if (!e) continue;
     const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) < 0.2) continue;
     const r = e.getBoundingClientRect(); if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
-    const fs = parseFloat(cs.fontSize); const { base, unknown } = bgOf(e);
+    let zoom = 1; for (let z = e; z; z = z.parentElement) zoom *= Number(getComputedStyle(z).zoom) || 1;
+    const fs = parseFloat(cs.fontSize) * zoom; const { base, unknown } = bgOf(e);
     const fg = over(parse(cs.color), base);
     const L1 = lum(fg), L2 = lum(base); const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
     const big = fs >= 24 || (fs >= 18.66 && Number(cs.fontWeight) >= 700);
     const key = (typeof e.className === 'string' && e.className.trim()) ? '.' + e.className.trim().split(/\s+/).join('.') : e.tagName;
     if (ratio < (big ? 3 : 4.5) && !unknown && !bad.has(key)) bad.set(key, `${key} "${t.slice(0, 24)}" ${ratio.toFixed(2)}:1 ${fs}px`);
-    if (fs < 13 && !bad.has('F' + key)) bad.set('F' + key, `${key} "${t.slice(0, 24)}" KLEIN ${fs}px`);
+    if (fs < 13 && !bad.has('F' + key)) bad.set('F' + key, `${key} "${t.slice(0, 24)}" KLEIN ${fs.toFixed(1)}px`);
   }
   return [...bad.values()];
 };
