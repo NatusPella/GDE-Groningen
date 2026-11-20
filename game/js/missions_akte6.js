@@ -316,6 +316,8 @@ export function applyAkte6(list) {
   const m30 = by('Het proefbeleg');
   if (m30 && m30.stages) {
     m30.aaa = true;
+    m30.slotSting = 'geslaagd_groot'; // het slot van het verhaal: een groot slotakkoord en een nasleep na de afloop (missions.js)
+    m30.nasleep = ['De zon zakt achter de wal van Bourtange. De vesting is genomen, door een leger van karton.', 'Thuis is waar de kar staat.'];
     const lichter = (s) => zet(s, { dressing: 'proefbeleg' });
     zet(vind(m30, 'goto', /gracht van de vesting/), { kaart: K.M30.gracht });
     zet(vind(m30, 'goto', /ophaalbrug/), { kaart: K.M30.brug });

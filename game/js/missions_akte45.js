@@ -224,10 +224,12 @@ export function applyAkte45(list) {
   }
 
   // M26 Ontzet (de finale): het plein met jurytafel, kramen en publiek rond de kraam, bij het bakken, het vuurwerk en de drie
-  // slotscènes (jury, stemming, uitslag). De finishcamera bij de uitslag en de sting 'geslaagd_groot' zijn niet gebouwd.
+  // slotscènes (jury, stemming, uitslag). De sting 'geslaagd_groot' en een nasleep staan op de afloop (`slotSting`, `nasleep`); de finishcamera bij de uitslag is niet gebouwd.
   const m26 = by('Ontzet, net als in 1672');
   if (m26 && m26.stages) {
     m26.aaa = true;
+    m26.slotSting = 'geslaagd_groot'; // de finale van het ontzet: een groot slotakkoord en een nasleep na de afloop (missions.js)
+    m26.nasleep = ['Het plein ruimt op. De vlaggen gaan in de doos, de laatste eierbal gaat rond.'];
     zet(vind(m26, 'bake', /eierbal: drie rondes/), { kaart: KAARTEN.M26.bakken, dressing: 'plein' });
     zet(vind(m26, 'hold', /kraam heel/), { kaart: KAARTEN.M26.vuurwerk, wacht: { ...WACHT.M26.vuurwerk }, dressing: 'plein' });
     zet(vind(m26, 'chase', /dwars voor Jelles limo/), { kaart: KAARTEN.M26.limo });

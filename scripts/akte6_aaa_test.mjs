@@ -229,6 +229,10 @@ t('M30 heeft een slot: het slotfeest bij de frituur en een groot beeld na de poo
   assert.equal(stap('M30', 'goto', /Fjord Frituur/).dressing, 'slotfeest');
   assert.equal(stap('M30', 'scene', /^De poort$/).big, 'Gewonnen. Het voelt verkeerd.');
   assert.equal(def(NAMEN.M30).stages.length, 13, 'het aantal stappen blijft (saves)');
+  assert.equal(def(NAMEN.M30).slotSting, 'geslaagd_groot');
+  assert.ok(def(NAMEN.M30).nasleep.length >= 2, 'een nasleep van een paar regels');
+  const mj = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  assert.ok(mj.includes('def.slotSting') && mj.includes('def.nasleep'), 'missions.js speelt het slotakkoord en de nasleep');
   assert.equal(def(NAMEN.M30).reward, 1500);
 });
 console.log(`akte6_aaa_test: ${n - fails}/${n}`);
