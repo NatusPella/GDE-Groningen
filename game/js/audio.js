@@ -15,7 +15,8 @@ import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/s
 import { initUiSfx, uiFx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { keysReady, PLANE_KEYS, BOAT_KEYS } from './sfx/aircraft.js';
-import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
+import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey, scenarioBytes } from './audio/scenario.js';
+import { registerMemSource } from './memwatch.js';
 import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
 import { createParamMemo } from './audio/paramwrite.js';
 import { audioDiag, kiesLatencyHint, leesVorige } from './audiodiag.js';
@@ -1787,6 +1788,7 @@ function buildGraph() {
   });
   bank = createBank(ctx);
   samples = createSamples(ctx);
+  registerMemSource('audio', () => (samples ? { buffers: samples.stats.geladen - samples.stats.uit, bytes: samples.bytes(), uit: samples.stats.uit, scenarioBytes: scenarioBytes() } : null));
   engine = buildEngine();
   sirenVoices = Array.from({ length: SIREN_VOICES }, buildSirenVoice);
   engineVoices = Array.from({ length: ENGINE_VOICES }, buildEngineVoice);

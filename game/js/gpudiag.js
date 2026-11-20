@@ -9,6 +9,7 @@ import { VERSION } from './version.js';
 import { classifyGpu, currentPreset, presetLabel, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { readLastRun } from './benchstats.js';
 import { audioBlokTekst } from './audiodiag.js';
+import { createHeapTracker, memSources, formatMemBlock } from './memwatch.js';
 
 const SOFTWARE_RE = /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic|warp\b/i;
 // A GPU that shares the processor's memory: Intel UHD/Iris/HD, the AMD "Radeon(TM) Graphics" and the 3-digit-M Radeons
@@ -110,6 +111,7 @@ export function formatReport(info) {
   }
   if (i.render) add('De stad per beeld', `${f1(i.render.calls)} drawcalls, ${Math.round(i.render.triangles || 0)} driehoeken, ${i.render.geometries || '-'} geometrieën, ${i.render.textures || '-'} texturen, ${i.render.programs || '-'} shaders`);
   if (i.bench) add('Laatste benchmark', `${i.bench.avg} fps gemiddeld, p95 ${i.bench.p95} ms, laagste 1% ${i.bench.low1} fps, stand ${i.bench.preset || 'eigen'}${i.bench.cats ? '; per categorie ' + Object.entries(i.bench.cats).map(([c, v]) => `${c} ${v}`).join(', ') : ''}`);
+  if (i.mem) out.push('', formatMemBlock(i.mem));
   if (i.audioBlok) out.push('', i.audioBlok);
   const w = gpuWarning(g.renderer, { windows: /win/i.test(i.platform || ''), softwareProbe: !!i.softwareProbe });
   if (w) out.push('', `Let op: ${w.text}`);
@@ -124,6 +126,7 @@ let bootTimes = null;
 // than one cheap callback per frame.
 const HITCH_MS = 50, HITCH_KEEP_S = 60, HITCH_MAX = 60;
 const hitchLog = [];
+const heapTracker = createHeapTracker();
 let longTasks = [];
 export const hitchEntries = () => hitchLog.slice();
 
@@ -156,7 +159,7 @@ export function startRestSampler(ms = 5000) {
       noteHitch((now - t0) / 1000, dt, { programs: p - progs, longest: tasks.reduce((m, x) => Math.max(m, x.d), 0), heapDrop: heap && h && heap - h > 2 ? heap - h : 0 });
     }
     if (typeof window !== 'undefined' && window.__scene3d && window.__scene3d.renderer && window.__scene3d.renderer.info.programs) progs = window.__scene3d.renderer.info.programs.length;
-    if (performance && performance.memory) heap = performance.memory.usedJSHeapSize / 1048576;
+    if (performance && performance.memory) { heap = performance.memory.usedJSHeapSize / 1048576; heapTracker.note(now, heap); }
     last = now;
     requestAnimationFrame(step);
   };
@@ -269,6 +272,10 @@ export async function collectTechInfo({ nowMs = 3000 } = {}) {
   info.hitches = hitchEntries().filter((x) => x.t >= 0);
   const last = readLastRun();
   if (last) info.bench = { avg: last.avg, p95: last.p95, low1: last.low1, preset: last.preset, cats: last.cats };
+  try {
+    const pm = typeof performance !== 'undefined' ? performance.memory : null;
+    info.mem = { heap: { usedMB: pm ? pm.usedJSHeapSize / 1048576 : NaN, totalMB: pm ? pm.totalJSHeapSize / 1048576 : NaN, limitMB: pm ? pm.jsHeapSizeLimit / 1048576 : NaN, tracker: heapTracker.snapshot() }, render: info.render || {}, src: memSources() };
+  } catch (e) { /* geen geheugenblok */ }
   try { info.audioBlok = audioBlokTekst(); } catch (e) { /* geen audiodiagnose */ }
   if (D && D.gpuInfo) { try { info.electron = await D.gpuInfo(); } catch (e) { /* older shell */ } }
   return info;

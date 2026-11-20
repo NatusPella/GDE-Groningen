@@ -102,7 +102,6 @@ import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio, setSfxLinks, setAudioCamera, sampleStats } from './audio.js';
-import { SAMPLE_KEYS } from './sfx/samples.js';
 import { updateBanter } from './banter.js';
 import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
@@ -298,7 +297,7 @@ const START_WARM_MAX_FRAME_MS = 50;
 // gespreid (tegels vastgehouden, gebouwen en gras per frame begroot) en kost geen laadscherm.
 const WARM_BOOT_MS = 15000;
 const INTRO_WARM_MS = 8000;
-const FILM_LICHT_MS = 12000; // hoogstens zo lang wachten tot de programma's van de filmlichtstand gelinkt zijn
+const FILM_LICHT_MS = 6000; // hoogstens zo lang wachten tot de programma's van de filmlichtstand gelinkt zijn; de rest linkt tijdens de eerste beelden (was 12 s, #1004)
 const INTRO_TOUR_MS = 4500;
 const INTRO_TOUR_SPOT_MS = 700;
 
@@ -555,9 +554,11 @@ function waitForStart(world, ready) {
     if (sampleStats()) {
       const tGeluid = performance.now();
       setBootStep('geluid', 0);
-      const klaarN = () => { const st = sampleStats(); return st ? st.geladen + st.mislukt : SAMPLE_KEYS.length; };
-      while (performance.now() - tGeluid < AUDIO_WARM_MS && klaarN() < SAMPLE_KEYS.length) {
-        setBootStep('geluid', Math.min(0.95, klaarN() / SAMPLE_KEYS.length));
+      // alleen de eager-klanken (de rest decodeert lui, #804): wachten op alle sleutels liep elke start de volle AUDIO_WARM_MS leeg
+      const klaar = () => { const st = sampleStats(); return !st || st.ready; };
+      const voortgang = () => { const st = sampleStats(); return st && st.eagerGoal ? st.eagerDone / st.eagerGoal : 0; };
+      while (performance.now() - tGeluid < AUDIO_WARM_MS && !klaar()) {
+        setBootStep('geluid', Math.min(0.95, voortgang()));
         await yieldToPaint();
       }
       if (window.__loadMarks) window.__loadMarks.geluid = Math.round(performance.now() - tGeluid);

@@ -189,12 +189,22 @@ export function grindNodig(v) {
 // Alles bij de start decoderen kostte ca. 100 MB PCM (154 klanken); nu start het met ca. 7 MB (mono, 48 kHz; berekend uit manifest.json).
 export const EAGER_CATS = new Set(['ui', 'deur', 'voetstap', 'winkel']);
 export const DECODE_GAP_MS = 12;
+// Geheugenbewaking (#1004): een lui geladen klank (lus van het weer, vliegtuig, dieren) die LAZY_IDLE_MS niet gevraagd is, of die
+// boven LAZY_MAX_BYTES uitkomt (oudste gebruik eerst), gaat uit de map; has() laadt hem later opnieuw. De eager-klanken blijven.
+// Een klinkende bron houdt zijn eigen buffer vast, dus uitzetten onderbreekt niets.
+export const LAZY_IDLE_MS = 5 * 60 * 1000;
+export const LAZY_MAX_BYTES = 48 * 1048576;
+export const TRIM_EVERY_MS = 20000;
+export const bufferBytes = (b) => (b && b.length && b.numberOfChannels ? b.length * b.numberOfChannels * 4 : 0);
 export function eagerKeys(keys = SAMPLE_KEYS) { return keys.filter((k) => SAMPLE_INFO[k] && EAGER_CATS.has(SAMPLE_INFO[k].cat)); }
 // fetchFn en ctx komen mee (testbaar); een mislukking is stil: buffer() blijft null en de synth neemt het over.
-export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fetch : null, base = SAMPLE_BASE, keys = SAMPLE_KEYS, eager = eagerKeys(keys), gapMs = DECODE_GAP_MS } = {}) {
+export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fetch : null, base = SAMPLE_BASE, keys = SAMPLE_KEYS, eager = eagerKeys(keys), gapMs = DECODE_GAP_MS, clock = () => Date.now(), idleMs = LAZY_IDLE_MS, maxBytes = LAZY_MAX_BYTES } = {}) {
   const buffers = new Map();
+  const used = new Map();   // sleutel naar tijd van het laatste gebruik (voor het opruimen van lui geladen klanken)
+  const eagerSet = new Set(eager);
+  let lastTrim = 0;
   const last = new Map();
-  const stats = { geladen: 0, mislukt: 0, lui: 0 };
+  const stats = { geladen: 0, mislukt: 0, lui: 0, uit: 0, eagerGoal: 0, eagerDone: 0, ready: false };
   const known = new Set(keys);
   const tried = new Set();   // sleutels waarvan het laden gestart is (gelukt of mislukt): nooit twee keer
   const queue = [];
@@ -207,9 +217,28 @@ export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fet
       const res = await fetchFn(base + m.bestand);
       if (!res || !res.ok) { stats.mislukt++; return; }
       const buf = await ctx.decodeAudioData(await res.arrayBuffer());
-      if (buf) { buffers.set(key, buf); stats.geladen++; } else stats.mislukt++;
+      if (buf) { buffers.set(key, buf); used.set(key, clock()); stats.geladen++; } else stats.mislukt++;
     } catch (e) { stats.mislukt++; /* stil: de synth blijft de terugval */ }
+    finally { if (eagerSet.has(key)) stats.eagerDone++; }
   }
+  // lui geladen klanken opruimen: te lang ongebruikt, of samen boven de grens (oudste gebruik eerst); geeft het aantal terug
+  function trim(now = clock()) {
+    lastTrim = now;
+    let n = 0, bytes = 0;
+    const lazy = [];
+    for (const [k, b] of [...buffers]) {
+      if (eagerSet.has(k)) continue;
+      const t = used.get(k) || 0;
+      if (now - t > idleMs) { drop(k); n++; continue; }
+      bytes += bufferBytes(b);
+      lazy.push([t, k, b]);
+    }
+    lazy.sort((a, c) => a[0] - c[0]);
+    for (const [, k, b] of lazy) { if (bytes <= maxBytes) break; drop(k); bytes -= bufferBytes(b); n++; }
+    return n;
+  }
+  function drop(k) { buffers.delete(k); used.delete(k); tried.delete(k); stats.uit++; }
+  const touch = (k) => { const now = clock(); used.set(k, now); if (now - lastTrim > TRIM_EVERY_MS) trim(now); };
   function enqueue(key) {
     if (tried.has(key) || !known.has(key)) return;
     tried.add(key);
@@ -233,18 +262,22 @@ export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fet
           const res = await fetchFn(base + 'manifest.json');
           if (!res || !res.ok) return;
           manifest = await res.json();
+          stats.eagerGoal = eager.length;
           for (const k of eager) enqueue(k);
           if (!draining && queue.length) draining = drain();
           while (draining) await draining;
         } catch (e) { /* geen manifest of geen toegang: geen samples */ }
+        finally { stats.ready = true; }
       })();
       return started;
     },
     // alles laden (testen en meetscripts): de lui-sleutels erbij
     async laadAlles() { await this.start(); for (const k of keys) enqueue(k); while (draining) await draining; },
-    buffer(key) { const b = buffers.get(key); if (b) return b; if (!tried.has(key)) { stats.lui++; want(key); } return null; },
-    has(key) { if (buffers.has(key)) return true; if (!tried.has(key)) { stats.lui++; want(key); } return false; },
+    buffer(key) { const b = buffers.get(key); if (b) { touch(key); return b; } if (!tried.has(key)) { stats.lui++; want(key); } return null; },
+    has(key) { if (buffers.has(key)) { touch(key); return true; } if (!tried.has(key)) { stats.lui++; want(key); } return false; },
     isLoop(key) { return !!(manifest && manifest.geluiden && manifest.geluiden[key] && manifest.geluiden[key].loop); },
+    trim,
+    bytes() { let n = 0; for (const b of buffers.values()) n += bufferBytes(b); return n; },
     cool(key, now) { return afkoelingOk(last, key, now); },
     stats,
   };

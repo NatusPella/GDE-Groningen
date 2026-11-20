@@ -189,5 +189,11 @@ export function updateScenarioMusic(dt, world) {
 }
 
 export const scenarioPlaying = () => !!scenarioNow;
+// geheugenbewaking (#1004, memwatch.js): bytes van de gedecodeerde scenariotracks die nu vastgehouden worden
+export function scenarioBytes() {
+  let n = 0;
+  for (const e of Object.values(scenarioBuffers)) if (e && e.buf) n += (e.buf.length || 0) * (e.buf.numberOfChannels || 0) * 4;
+  return n;
+}
 export const scenarioKey = () => (scenarioNow ? scenarioNow.key : null);
 
