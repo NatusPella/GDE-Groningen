@@ -140,6 +140,22 @@ const PH_GLYPHS = {
   'act-pannenkoek': 'kookpot', 'act-hengelen': 'vis', 'act-snackketen': 'kroon', 'act-evenementen': 'tent',
   'pg-jelle': 'hart_vol', 'pg-fjord': 'eten', dorp: 'veroverd', onderdeel: 'tandwiel', wrakduik: 'anker', streekuitdaging: 'route',
 };
+// De rest van de markers (20-11): winkels, bijbanen, haltes en andere plekken tekenen hun betekenis ook uit Phosphor, zodat kaart
+// en minikaart één iconenstijl hebben. De sleutels zijn de soorten die de eigen tekenfuncties kennen (shops.js, sidejobs.js, ...).
+export const PH_KIND = {
+  station: 'trein', livebus: 'bus', 'ov-halte': 'bus', pigeon: 'duif', heli: 'helikopter', padel: 'padel', wereldeinde: 'wereldbol',
+};
+export const PH_SHOP = {
+  wapens: 'doel', pand: 'gebouw', kleding: 'kleding', kapper: 'schaar', tabak: 'sigaret', super: 'kar', snack: 'burger', fietsen: 'fiets',
+  fietsenmaker: 'gereedschap', auto: 'auto', tuning: 'tandwiel', boot: 'boot', spuit: 'spuit', eikea: 'stoel', heli: 'helikopter',
+};
+export const PH_JOB = {
+  bezorger: 'pakket', taxi: 'taxi', bus: 'bus', rondvaart: 'boot', fietsdepot: 'fiets', vracht: 'oplegger', verhuizing: 'vrachtwagen',
+  boa: 'schild', rechtbank: 'rechter', cabaret: 'podium', museumbus: 'bus', suikerbieten: 'gewas', herstelploeg: 'gereedschap', oogtv: 'camera',
+  schouwburg: 'kaartje', bernardrit: 'auto', vandermeden: 'gebouw', telefoonrave: 'telefoon', loket: 'stempel', studiestaat: 'studie',
+  vigilantia: 'verrekijker', promotie: 'promotie', kamerkoning: 'kroon', wolkenhal: 'wolk', helix: 'gebouw', niemeyer: 'gebouw',
+  energielabel: 'energie', tjalke: 'boot', bernard: 'auto', krant: 'krant', snackbar: 'eten',
+};
 const phPaths = new Map();
 function phGlyph(g, naam) {
   if (typeof Path2D === 'undefined') return false;
@@ -154,9 +170,30 @@ function phGlyph(g, naam) {
   return true;
 }
 
+// Een Phosphor-icoon (bold, crème) in een vierkant van `box` eenheden rond de oorsprong. Geeft false zonder Path2D (node) of onbekende naam.
+export function phosphorInBox(g, naam, box) {
+  if (typeof Path2D === 'undefined' || !naam) return false;
+  let lijst = phPaths.get(naam);
+  if (!lijst) { lijst = [...iconInner(naam, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); phPaths.set(naam, lijst); }
+  if (!lijst.length) return false;
+  g.save();
+  g.translate(-box / 2, -box / 2); g.scale(box / 256, box / 256);
+  g.fillStyle = CREAM;
+  for (const p of lijst) g.fill(p);
+  g.restore();
+  return true;
+}
+// De Phosphor-naam van een marker die geen eigen glyph heeft, of null.
+export function phosphorNaamVan(kind) {
+  if (PH_KIND[kind]) return PH_KIND[kind];
+  if (kind.startsWith('shop-')) return PH_SHOP[kind.slice(5)] || null;
+  return null;
+}
+
 export function drawMapGlyph(ctx, kind, s) {
   const glyph = GLYPHS[kind];
-  if (!glyph) return false;
+  const extra = glyph ? null : phosphorNaamVan(kind);
+  if (!glyph && !extra) return false;
   ctx.beginPath();
   ctx.arc(0, 0, 4.6 * s, 0, Math.PI * 2);
   ctx.fillStyle = DISC;
@@ -166,7 +203,7 @@ export function drawMapGlyph(ctx, kind, s) {
   ctx.stroke();
   ctx.save();
   ctx.scale(s, s);
-  if (!(PH_GLYPHS[kind] && phGlyph(ctx, PH_GLYPHS[kind]))) glyph(ctx);
+  if (extra) { if (!phGlyph(ctx, extra)) { /* node zonder Path2D: alleen de schijf */ } } else if (!(PH_GLYPHS[kind] && phGlyph(ctx, PH_GLYPHS[kind]))) glyph(ctx);
   ctx.restore();
   return true;
 }

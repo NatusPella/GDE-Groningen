@@ -10,7 +10,7 @@
 // Drie niveaus. 'open': de plek is bekend (een streek die je kent, of een buurt die je bezocht).
 // 'onbekend': in een streek die je nog niet kent: de zwaarste mist. 'buurt': buiten de streken (de
 // stad en de randen), in een buurt die je nog niet bezocht: een lichtere waas.
-export const MIST_ALPHA = { open: 0, buurt: 0.42, onbekend: 0.74 };
+export const MIST_ALPHA = { open: 0, buurt: 0.66, onbekend: 0.78 };
 
 // Het mistniveau van één plek. area: de streek op die plek ({ id } of null), areaKnown: kent de speler
 // hem, buurtId: de buurt op die plek (of null), buurtSeen: bezocht. Een gekende streek is helemaal

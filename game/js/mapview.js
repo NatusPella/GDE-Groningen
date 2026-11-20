@@ -15,7 +15,7 @@ import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, statusRegels } from './gebiedenkaart.js';
 import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
-import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
+import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -1170,13 +1170,13 @@ function isVoortgangsregel(tekst) {
   return tekst === 'veroverd' || /^\d+ van \d+ · \d+%$/.test(tekst);
 }
 
-// De strook: rechtsboven onder het kompas. Daar zit geen kaartchrome (de uitleg
+// De strook: links onder het zoekveld (eerst rechtsboven, maar daar lagen de knop Lagen en het paneel overheen). Daar zit geen kaartchrome (de uitleg
 // staat linksboven, de legenda, de zoomknoppen en de schaalbalk linksonder) en
 // de pins wijken ervoor, dus de chip valt nooit over een icoon (#463).
 function voortgangsStrook(cw, ch, breedte, hoogte) {
   const w = Math.min(Math.max(120, Math.round(breedte)), Math.max(120, cw - 24));
   const h = Math.max(18, Math.round(hoogte));
-  return [cw - 12 - w, 56, cw - 12, Math.min(ch - 12, 56 + h)];
+  return [52, 196, 52 + w, Math.min(ch - 12, 196 + h)]; // links onder het zoekveld: rechtsboven liggen de knop Lagen en het paneel Op de kaart
 }
 
 // Een pin onder de strook is onleesbaar en niet aanwijsbaar; hij wijkt, tenzij
@@ -1300,6 +1300,7 @@ function drawStreetNames(ctx, boxes, bezet = []) {
     if (!best) continue;
     const mx = (best.a[0] + best.b[0]) / 2, my = (best.a[1] + best.b[1]) / 2;
     if (mx < x0 || mx > x1 || my < y0 || my > y1) continue;
+    if (discoveryHidden(mx, my)) continue; // 20-11: geen straatnamen in onbezocht gebied
     const chord = Math.hypot(best.b[0] - best.a[0], best.b[1] - best.a[1]) * state.scale;
     cands.push({ r, mx, my, chord, a: best.a, b: best.b, pri: ROAD_ORDER[r.cat] });
   }
@@ -1351,9 +1352,10 @@ function drawStaticOverlay(ctx) {
   // horen onder de andere labels, de namen gaan mee in dezelfde botsingsregel.
   const gebiedLabels = [];
   const onthoudLabel = (c, tekst, x, y, kleur, uitlijning) => gebiedLabels.push({ font: c.font, tekst, x, y, kleur, uitlijning });
+  state.legendLaag = null;
   if (layerOn('veroverd')) {
     const laagId = tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, onthoudLabel, inkA('cream', 0.9));
-    tekenLegenda(ctx, state.cw, state.ch, laagId, inkA('cream', 0.92));
+    state.legendLaag = laagId; // de legenda wordt in drawChrome getekend, boven de pins en volledig dekkend
   }
 
   // de voortgangsstrook meteen zijn plek laten reserveren (#463): hij is even
@@ -1706,6 +1708,7 @@ function drawDynamicMarkers(ctx, world) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return; // een laag zonder echte plek mag geen pin of toFixed-crash geven
     if (layer && !layerOn(layer)) return;
     if (!mapKindVisible(kind, z)) return;
+    if (!pinBlijftInMist(kind, pick) && discoveryHidden(x, y)) return; // 20-11: in nog onbezocht gebied geen pins, alleen de bewust getoonde doelen
     const [sx, sy] = toScreen(x, y);
     if (sx < -20 || sy < -20 || sx > state.cw + 20 || sy > state.ch + 20) return;
     if (samen) pick = { ...pick, samen };
@@ -2035,6 +2038,8 @@ function niceScale(maxPx) {
 }
 
 function drawChrome(ctx) {
+  // de legenda van Veroverd staat boven de pins en volledig dekkend (gezet in drawStaticOverlay)
+  if (state.legendLaag) tekenLegenda(ctx, state.cw, state.ch, state.legendLaag);
   const x = 22, y = 24;
   ctx.save();
   ctx.translate(state.cw - 30, y + 6);

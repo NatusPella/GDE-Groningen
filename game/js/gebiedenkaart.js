@@ -44,6 +44,18 @@ export function kaartLaag(nu = (typeof performance !== 'undefined' ? performance
 }
 export const vernieuwKaartLaag = () => { laag = null; };
 
+// Ligt deze plek in een buurt waar de speler nog nooit was? Voor het verminderde detail van de minikaart (de grote kaart gebruikt het masker
+// van mapview.js). De bezochte buurten staan in een Set die meeloopt met het profiel; zonder indeling is niets onbezocht.
+let bezochtSet = null, bezochtLen = -1, bezochtBron = null;
+export function plekOnbezocht(x, y) {
+  const o = getOverzicht();
+  if (!o || !o.profiel || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+  const lijst = o.profiel.bezocht || [];
+  if (bezochtBron !== lijst || bezochtLen !== lijst.length) { bezochtSet = new Set(lijst); bezochtBron = lijst; bezochtLen = lijst.length; }
+  const buurt = G.gebiedenVan(o.ind, x, y).buurt;
+  return !!buurt && !bezochtSet.has(buurt);
+}
+
 // Een vlaggetje: paal, wimpel met donkere rand. (x, y) is de voet van de paal; s de grootte in px.
 export function tekenVlag(ctx, x, y, s, kleur) {
   ctx.save();
@@ -122,8 +134,8 @@ function rasterPatroon(ctx) {
     rasterTegel = document.createElement('canvas');
     rasterTegel.width = rasterTegel.height = 6;
     const t = rasterTegel.getContext('2d');
-    t.fillStyle = hexA(dsKleur('ink-inkt'), 0.7);
-    t.beginPath(); t.arc(3, 3, 1.15, 0, Math.PI * 2); t.fill();
+    t.fillStyle = hexA(dsKleur('ink-inkt'), 0.95);
+    t.beginPath(); t.arc(3, 3, 1.45, 0, Math.PI * 2); t.fill();
   }
   const p = ctx.createPattern(rasterTegel, 'repeat');
   return p;
@@ -214,7 +226,7 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     const s = stijl(r, kleurTekst);
     pad(ctx, r.gebied.grens, toScreen);
     if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }
-    if (s.raster && raster) { ctx.globalAlpha = 0.8; ctx.fillStyle = raster; ctx.fill('evenodd'); }
+    if (s.raster && raster) { ctx.globalAlpha = 1; ctx.fillStyle = raster; ctx.fill('evenodd'); }
     if (s.toestand === 'veroverd') lijn(ctx, { lijn: s.rand, lijnAlpha: 0.9 }, s.breed + 1.2, dikte, false); // de dikke rand: donkere band onder de gekleurde lijn
     lijn(ctx, s, s.breed, dikte, s.streep);
   }
@@ -365,7 +377,7 @@ export function tekenVeroverdMini(ctx, scale, px, py, straal) {
     if (r.niveau.id === kader) { const ks = stijl(r); if (ks.vul && ks.toestand !== 'onzichtbaar') { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); } }
     if (r.niveau.id === hoofd) {
       const s = stijl(r);
-      if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }
+      if (s.vul) { ctx.globalAlpha = s.toestand === 'onzichtbaar' ? 0.7 : s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); } // onzichtbaar: een zware waas, zodat de minikaart er grof uitziet
       if (s.raster && patroon) { ctx.globalAlpha = 0.8; ctx.fillStyle = patroon; ctx.fill('evenodd'); }
       if (s.toestand === 'veroverd') { ctx.setLineDash([]); ctx.globalAlpha = 0.9; ctx.strokeStyle = s.rand; ctx.lineWidth = dikte * (s.breed + 1.2); ctx.stroke(); }
       ctx.setLineDash(s.streep ? [dikte * 4, dikte * 3] : []);

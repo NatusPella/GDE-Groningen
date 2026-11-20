@@ -130,7 +130,7 @@ t('zonder gebieden (de wereld is er nog niet) tekent de laag niets en gaat er ni
 });
 t('de haken: de grote kaart tekent laag en legenda, de minikaart de laag, de legenda houdt het laagjes-tabblad kloppend', () => {
   const src = (f) => fs.readFileSync(fileURLToPath(new URL('../game/js/' + f, import.meta.url)), 'utf8');
-  assert.ok(src('mapview.js').includes('tekenLegenda(ctx, state.cw, state.ch, laagId'));
+  assert.ok(src('mapview.js').includes('tekenLegenda(ctx, state.cw, state.ch, state.legendLaag)'));
   const hud = src('hud_panel.js');
   assert.ok(hud.includes("minimapShows('veroverd')") && hud.includes('tekenVeroverdMini'));
   assert.ok(hud.indexOf('tekenVeroverdMini(ctx') > hud.indexOf('fillPolys(ctx, view.water)') && hud.indexOf('tekenVeroverdMini(ctx') < hud.indexOf('for (const r of view.roads)'), 'boven groen en water, onder de wegen');
@@ -189,6 +189,18 @@ t('#900: de grote kaart opent hetzelfde gebied en toont de strook op elk zoomniv
   assert.ok(view.includes('statusRegels(kaartLaag().lijst)'), 'de voortgangsstrook komt uit alle lagen');
   assert.ok(view.includes('if (strookRegels.length) tekenVoortgangsStrook('), 'de strook staat er ook als de getekende laag geen naam kwijt kan');
   assert.ok(!view.includes('const hoofd = kiesLaag(typisch, state.scale)'), 'de hover hangt niet meer aan de zoomlaag');
+});
+
+t('plekOnbezocht (minikaart): een bezochte buurt is bekend, een andere niet, rommel is nooit onbezocht', () => {
+  assert.equal(K.plekOnbezocht(NaN, 0), false);
+  const o = Live.getOverzicht();
+  const buurt = o.ind.gebieden.find((g) => g.niveau === 'buurt');
+  const was = o.profiel.bezocht.slice();
+  o.profiel.bezocht.length = 0;
+  assert.equal(K.plekOnbezocht(buurt.x, buurt.y), true, 'zonder bezoek is de buurt onbezocht');
+  o.profiel.bezocht.push(buurt.id);
+  assert.equal(K.plekOnbezocht(buurt.x, buurt.y), false, 'na een bezoek niet meer');
+  o.profiel.bezocht.length = 0; o.profiel.bezocht.push(...was);
 });
 
 console.log(`${n - fails}/${n} geslaagd`);

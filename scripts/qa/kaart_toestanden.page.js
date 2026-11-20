@@ -61,10 +61,34 @@ for (const b of document.querySelectorAll('button')) if (/begrepen/i.test(b.text
 for (const [z, naam] of [[3, 'kaart-toestanden-z3'], [2, 'kaart-toestanden-z2'], [1, 'kaart-toestanden-z1']]) {
   MV.setMapView(mx, my, z); await sleep(3500); await cap(naam); results.shots.push(naam);
 }
+// de framekosten van de kaart op z2 (bestaande meting getMapViewStats), na een paar seconden tekenen
+MV.setMapView(mx, my, 2); await sleep(6000);
+results.kaartKosten = MV.getMapViewStats();
 PM.closePauseMenu(); await sleep(2500);
-// de minikaart: de speler midden tussen de wijken
-hold = { x: mx, y: my }; p.x = mx; p.y = my; await sleep(4000);
-await cap('minikaart-toestanden'); results.shots.push('minikaart-toestanden');
+// de minikaart: op de rand van een bezochte buurt (stippellijn) en een onbezochte buurt (waas en raster), zonder teleport door een laadscherm te wachten
+const buurten = ind.gebieden.filter((g) => g.niveau === 'buurt' && g.grens);
+const bezocht = new Set(profiel.bezocht);
+let rand = null;
+for (const V of buurten.filter((g) => bezocht.has(g.id))) {
+  for (const pt of V.grens.p[0][0]) {
+    for (const [dx, dy] of [[60, 0], [-60, 0], [0, 60], [0, -60]]) {
+      const W = G.gebiedenVan(ind, pt[0] + dx, pt[1] + dy).buurt;
+      if (W && W !== V.id && !bezocht.has(W)) { rand = { x: pt[0], y: pt[1], dx, dy, V: V.naam, W }; break; }
+    }
+    if (rand) break;
+  }
+  if (rand) break;
+}
+results.rand = rand;
+if (rand) {
+  const stappen = [['mini-rand', 0], ['mini-onbezocht', 140]];
+  for (const [naam, af] of stappen) {
+    const nx = rand.x + Math.sign(rand.dx) * af, ny = rand.y + Math.sign(rand.dy) * af;
+    hold = { x: nx, y: ny }; p.x = nx; p.y = ny;
+    await sleep(naam === 'mini-rand' ? 40000 : 6000);
+    await cap(naam + '-0'); await cap(naam); results.shots.push(naam);
+  }
+}
 const mm = document.querySelector('#minimap, canvas#minimap, .minimap canvas');
 results.minimap = mm ? [mm.width, mm.height] : null;
 done = true;
