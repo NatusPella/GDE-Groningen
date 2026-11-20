@@ -130,9 +130,10 @@ for (const [id, lijst] of Object.entries(sims)) {
   const maten = [...blok.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1]);
   ok(maten.every((m) => /max\(13px|var\(--ds-t-label\)/.test(m)), 'tekst nooit onder 13 px', maten.join(' | '));
   ok(/prefers-reduced-motion[^}]*\.ds-uitleg/.test(blok) && /html\.reduce-motion \.ds-uitleg/.test(blok) && /html\.rustig-drukwerk \.ds-uitleg/.test(blok), 'uit bij verminderde beweging en Rustig drukwerk');
-  const duur = [...blok.matchAll(/animation:\s*ds-uitleg-\w+\s+([\d.]+)s/g)].map((m) => Number(m[1]));
-  ok(duur.length >= 6 && duur.every((d) => d <= 1), 'elke lus is hooguit 1 s', duur.join(','));
-  ok(/infinite/.test(blok) && !/animation:[^;]*(forwards|both)/.test(blok), 'een lus, geen eindstand');
+  // de ronde is vier keer --ds-m-max (1 s, en 0 bij Beweging beperken); het designsysteem kent geen lus: de animatie speelt drie keer en stopt
+  const duur = [...blok.matchAll(/animation:\s*ds-uitleg-\w+\s+calc\(var\(--ds-m-max\) \* (\d+)\)[^;]*? (\d+);/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  ok(duur.length >= 6 && duur.every(([k, n]) => k <= 4 && n === 3), 'elke ronde is hooguit vier keer --ds-m-max (1 s) en speelt drie keer', JSON.stringify(duur));
+  ok(!/animation:[^;]*(infinite|forwards|both)/.test(blok), 'geen eindeloze lus en geen eindstand');
 }
 
 console.log(`uitleg_test: ${n - fails}/${n} ok`);

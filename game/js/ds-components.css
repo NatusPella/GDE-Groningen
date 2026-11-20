@@ -369,19 +369,19 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 .ds-uitleg--compact .ds-uitleg__tekst { font-size: max(13px, var(--ds-t-kaart-hulp)); }
 .ds-uitleg__balk { position: absolute; left: 0; right: 0; bottom: 0; height: var(--ds-s-1); border-radius: var(--ds-r-pil); background: var(--ds-bg-2, var(--ds-c-papier-2)); overflow: hidden; }
 .ds-uitleg__balk > i { display: block; height: 100%; background: var(--ds-selectie, var(--ds-c-bord)); transform-origin: left center; transform: scaleX(1); }
-.ds-uitleg__rimpel { position: absolute; inset: 50% auto auto 50%; width: var(--ds-s-6); height: var(--ds-s-6); margin: calc(var(--ds-s-6) / -2) 0 0 calc(var(--ds-s-6) / -2); border: var(--ds-lijn) solid var(--ds-selectie, var(--ds-c-bord)); border-radius: 50%; opacity: 0; }
+.ds-uitleg__rimpel { position: absolute; inset: 50% auto auto 50%; width: var(--ds-s-6); height: var(--ds-s-6); margin: calc(var(--ds-s-6) / -2) 0 0 calc(var(--ds-s-6) / -2); border: var(--ds-lijn) solid var(--ds-selectie, var(--ds-c-bord)); border-radius: var(--ds-r-pil); opacity: 0; }
 .ds-uitleg__pijl { width: 0; height: 0; border-block: var(--ds-s-2) solid transparent; border-inline-start: var(--ds-s-3) solid var(--ds-selectie, var(--ds-c-bord)); }
 .ds-uitleg__meer { font-size: max(13px, var(--ds-t-kaart-hulp)); color: var(--ds-tx-zacht, var(--ds-c-inkt-zacht)); }
 .ds-uitleg__meer > summary { cursor: pointer; text-decoration: underline; text-underline-offset: var(--ds-s-1); }
 .ds-uitleg__meer > p { margin: var(--ds-s-1) 0 0; }
 .ds-uitleg__weg { align-self: flex-start; }
-.ds-uitleg__stap[data-anim="druk"] :is(.hud-key, .pad-g, .hud-wasd) { animation: ds-uitleg-druk 1s var(--ds-ease) infinite; }
-.ds-uitleg__stap[data-anim="houd"] :is(.hud-key, .pad-g, .hud-wasd) { animation: ds-uitleg-houd 1s var(--ds-ease) infinite; }
-.ds-uitleg__stap[data-anim="houd"] .ds-uitleg__balk > i, .ds-uitleg__stap[data-anim="vul"] .ds-uitleg__balk > i { animation: ds-uitleg-vul 1s linear infinite; }
-.ds-uitleg__stap[data-anim="klik"] .ds-uitleg__rimpel { animation: ds-uitleg-rimpel 1s ease-out infinite; }
-.ds-uitleg__stap[data-anim="beweeg"] .ds-uitleg__icoon { animation: ds-uitleg-beweeg 1s var(--ds-ease) infinite; }
-.ds-uitleg__stap[data-anim="beweeg"] .ds-uitleg__pijl { animation: ds-uitleg-pijl 1s var(--ds-ease) infinite; }
-.ds-uitleg__stap[data-anim="stick"] .ds-uitleg__beeld > :first-child { animation: ds-uitleg-stick 1s var(--ds-ease) infinite; }
+.ds-uitleg__stap[data-anim="druk"] :is(.hud-key, .pad-g, .hud-wasd) { animation: ds-uitleg-druk calc(var(--ds-m-max) * 4) var(--ds-ease) 3; }
+.ds-uitleg__stap[data-anim="houd"] :is(.hud-key, .pad-g, .hud-wasd) { animation: ds-uitleg-houd calc(var(--ds-m-max) * 4) var(--ds-ease) 3; }
+.ds-uitleg__stap[data-anim="houd"] .ds-uitleg__balk > i, .ds-uitleg__stap[data-anim="vul"] .ds-uitleg__balk > i { animation: ds-uitleg-vul calc(var(--ds-m-max) * 4) linear 3; }
+.ds-uitleg__stap[data-anim="klik"] .ds-uitleg__rimpel { animation: ds-uitleg-rimpel calc(var(--ds-m-max) * 4) ease-out 3; }
+.ds-uitleg__stap[data-anim="beweeg"] .ds-uitleg__icoon { animation: ds-uitleg-beweeg calc(var(--ds-m-max) * 4) var(--ds-ease) 3; }
+.ds-uitleg__stap[data-anim="beweeg"] .ds-uitleg__pijl { animation: ds-uitleg-pijl calc(var(--ds-m-max) * 4) var(--ds-ease) 3; }
+.ds-uitleg__stap[data-anim="stick"] .ds-uitleg__beeld > :first-child { animation: ds-uitleg-stick calc(var(--ds-m-max) * 4) var(--ds-ease) 3; }
 .ds-uitleg__stap[data-anim="stick"] .ds-uitleg__pijl, .ds-uitleg__stap[data-anim="vul"] .ds-uitleg__pijl { display: none; }
 @keyframes ds-uitleg-druk { 0%, 55%, 100% { transform: none; } 20%, 40% { transform: translateY(3px) scale(0.94); } }
 @keyframes ds-uitleg-houd { 0%, 100% { transform: none; } 12%, 88% { transform: translateY(3px) scale(0.94); } }
@@ -390,5 +390,5 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 @keyframes ds-uitleg-beweeg { 0%, 100% { transform: translateX(-3px); } 50% { transform: translateX(3px); } }
 @keyframes ds-uitleg-pijl { 0%, 100% { transform: translateX(0); opacity: 0.4; } 50% { transform: translateX(var(--ds-s-2)); opacity: 1; } }
 @keyframes ds-uitleg-stick { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
-@media (prefers-reduced-motion: reduce) { .ds-uitleg *, .ds-uitleg *::before, .ds-uitleg *::after { animation: none !important; } }
-html.reduce-motion .ds-uitleg *, html.rustig-drukwerk .ds-uitleg *, html.reduce-motion .ds-uitleg *::before, html.rustig-drukwerk .ds-uitleg *::before { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .ds-uitleg .ds-uitleg__stap[data-anim] * { animation: none; } }
+html.reduce-motion .ds-uitleg .ds-uitleg__stap[data-anim] *, html.rustig-drukwerk .ds-uitleg .ds-uitleg__stap[data-anim] * { animation: none; }

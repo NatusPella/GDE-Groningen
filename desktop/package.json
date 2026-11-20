@@ -37,6 +37,7 @@
       "coopcore.cjs",
       "livebussen.cjs",
       "gpuinfo.cjs",
+      "gpuevents.cjs",
       "externurl.cjs",
       "httpcache.cjs",
       "guards.cjs",
