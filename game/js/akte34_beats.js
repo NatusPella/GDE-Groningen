@@ -223,7 +223,19 @@ export const BEATS = {
     papieren: [{ na: 2.5, tekst: 'Het slot piept bij elke draai. Houd vol.' }, { na: 5, tekst: 'Voetstappen op de stapel. Blijf staan.', sting: 'bijna' }],
   },
   M14: { chase: [{ na: 14, tekst: 'Een kudde schapen steekt de dijk over. De deurwaarder remt niet.', sting: 'stap' }, { na: 55, tekst: 'Uit het raam van de limo zwaait een dossiermap: "Beslag!"' }] },
-  M15: { poorten: [{ na: 22, tekst: 'Onder je zwaaien kermisgangers met suikerspinnen.', sting: 'stap', fx: 'publiek_gejuich' }] },
+  M15: {
+    // Kist Kees-lijn (AAA, #955): de opening bij het toestel, de radio in de lucht, een sleutelmoment en de landing met Roelfien op de radio
+    instap: [{ na: 5, tekst: 'Roelfien: Het is een gewasspuiter, geen taxi. Zachtjes aan met {W}.', sting: 'stap' }],
+    poorten: [
+      { na: 8, tekst: 'Roelfien (radio): Daar is de paal. Laag, maar niet door het graan.', sting: 'bijna' },
+      { na: 22, tekst: 'Onder je zwaaien kermisgangers met suikerspinnen.', sting: 'stap', fx: 'publiek_gejuich' },
+      { na: 34, tekst: 'Roelfien (radio): Neus omhoog met {SPACE}, omlaag met {CTRL}. Kleine tikjes.', sting: 'stap' },
+    ],
+    landing: [
+      { na: 2, tekst: 'Roelfien (radio): Gas terug, neus iets omlaag. Rem met {SHIFT} als je staat.', sting: 'bijna' },
+      { na: 16, tekst: 'Roelfien (radio): Recht op de strook. Niet op de trekker.', sting: 'stap' },
+    ],
+  },
   M17: {
     fluit: [{ na: 9, tekst: 'Wubbo fluit twee keer. Dicht. Hij lacht erbij.', sting: 'stap' }],
     drie: [{ na: 12, tekst: 'Een eend gaat voor je langs. Hij heeft voorrang.' }],
@@ -247,7 +259,7 @@ export const NASLEEP = {
   M12: ['Dijkstra\'s lunch is warm aangekomen. Het ziekenhuis wil volgende week hetzelfde.'],
   M13: ['Lammert telt de kisten twee keer en kijkt je niet aan: "Ik heb niets gezien. Ik zie nooit wat."'],
   M14: ['Aan de sluis staat de deurwaarder met een leeg dossier. De schapen hebben zijn beslag opgegeten.'],
-  M15: ['Roelfien deelt suikerspinnen uit onder de vleugel. Het spandoek blijft tot zondag hangen.'],
+  M15: ['Roelfien deelt suikerspinnen uit onder de vleugel. Het spandoek blijft tot zondag hangen.', 'Kist Kees tikt af in de zon. Op de romp zit een suikerspin.'],
   M16: ['De botsauto\'s staan stil. Durk en Douwe vragen om een revanche.'],
   M17: ['Wubbo sluit de bruggen een voor een. Het mosterdschip ligt vast midden in de diep. Een eend zwemt er trots omheen.'],
   M18: ['Het printje rolt uit de printer als een diploma. Wiebelwerk stuurt nog een offerte voor een chatbot.'],
@@ -293,7 +305,12 @@ export function applyAkte34(list) {
 
   // M15: een beat bij de poorten (de kermis zwaait); de landing houdt zijn publiek van tien.
   const m15 = by('M15');
-  if (m15 && m15.stages) beats(m15.stages[1], BEATS.M15.poorten);
+  if (m15 && m15.stages) {
+    zet(m15.stages[0], { openCam: {} }); // een korte camera op het toestel op de strook, voor je zelf instapt
+    beats(m15.stages[0], BEATS.M15.instap);
+    beats(m15.stages[1], BEATS.M15.poorten);
+    beats(m15.stages[2], BEATS.M15.landing);
+  }
 
   // M17 Open, dicht: Wubbo en de fanfare aan de kade bij de start, beats bij de fluit, de brugreeks en de laatste brug.
   const m17 = by('M17');
