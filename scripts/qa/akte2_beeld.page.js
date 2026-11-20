@@ -146,7 +146,40 @@ await sectie('a1', async () => {
   await grab('a1-kaart');
   const c = SJ.ctx();
   const hoop = c && c.data && c.data.hoop;
-  if (hoop) { const v = c.vehicle; if (v) { v.x = hoop.x - 18; v.y = hoop.y; p.x = v.x; p.y = v.y; } await sleep(3000); await grab('a1-hoop-publiek'); }
+  if (hoop) {
+    // de hoop ligt ver van de akker: de speler (en zijn trekker) staat na het starten niet bij de hoop, dus een vrije camera erheen
+    const v = c.vehicle; if (v) { v.x = hoop.x - 30; v.y = hoop.y; p.x = v.x; p.y = v.y; } else { p.x = hoop.x - 30; p.y = hoop.y; }
+    await sleep(5000);
+    let hal = null; SC.getScene().traverse((o) => { if (o.name === 'bietenhal') hal = o; });
+    out.stand.a1.hal = hal ? { kinderen: hal.children.length } : null;
+    await grab('a1-hoop-publiek');
+    for (const [ch, cd, chh, naam] of [[3.4, 22, 7, 'a1-hoop-ver'], [2.2, 12, 4, 'a1-hoop-dichtbij']]) {
+      const gz = (() => { try { return w.map.groundHeightAt(hoop.x, hoop.y, 40) || 0; } catch (e) { return 0; } })();
+      const pose = { position: { x: hoop.x + Math.cos(ch) * cd, y: hoop.y + Math.sin(ch) * cd, z: gz + chh }, lookAt: { x: hoop.x, y: hoop.y, z: gz + 1.5 }, fov: 60, cut: true };
+      cine.startCameraTake('qa-vrij', () => pose, { letterbox: false, hideHud: false });
+      await sleep(2500); await grab(naam);
+    }
+    cine.stopCameraTake('qa-vrij');
+  }
+  // M28 (de wisselwoning): waarom verscheen de aankleding niet en waarom toont de navigatie 22 km? Gegevens van de stap, de groepen en de afstand.
+  try {
+    try { SJ.stop && SJ.stop(); } catch (e) { /* weg */ }
+    await sleep(1500);
+    const defs = M.getMissionDefs(); const i28 = defs.findIndex((d) => d.label === 'De wisselwoning'); const d28 = defs[i28];
+    const R = { start: d28.start, stap1: d28.stages[1] && { dressing: d28.stages[1].dressing, target: d28.stages[1].target } };
+    await zet(d28.start.x, d28.start.y, 0, 9000);
+    R.gestart = !!M.missionDebug.start(w, i28); await sleep(3000);
+    const veh = (w.vehicles || []).filter((q) => q && Number.isFinite(q.x)).sort((q, r) => Math.hypot(q.x - p.x, q.y - p.y) - Math.hypot(r.x - p.x, r.y - p.y))[0];
+    if (veh) { try { p.enterVehicle(veh, w); } catch (e) { R.enterFout = e.message; } }
+    await sleep(2000);
+    M.missionDebug.complete(w); await sleep(3500);
+    const st = M.missionDebug.state(); R.state = st;
+    const gr = []; SC.getScene().traverse((o) => { if (o.name && /^mission-dressing|^wait-/.test(o.name)) { const V = o.position.constructor; const q = o.getWorldPosition(new V()); gr.push({ n: o.name, k: o.children.length, x: Math.round(q.x), z: Math.round(q.z) }); } });
+    R.groepen = gr;
+    R.afstandTotDoel = st && st.stageInfo && st.stageInfo.target ? Math.round(Math.hypot(st.stageInfo.target.x - (p.inVehicle || p).x, st.stageInfo.target.y - (p.inVehicle || p).y)) : null;
+    out.stand.m28dbg = R;
+    try { if (M.isMissionActive()) M.cancelActiveMission(w); } catch (e) { /* weg */ }
+  } catch (e) { out.stand.m28dbg = { fout: String(e && e.message || e) }; }
 });
 
 clearInterval(skipper); clearInterval(clockTik);
