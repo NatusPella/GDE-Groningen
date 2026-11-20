@@ -25,10 +25,14 @@ Voor wie de nieuwe versie speelt. Eerlijk wat niet getest of niet af is. Niets h
 - Het beeldherstel na een verloren beeldcontext (donkere sluier in plaats van wit) is alleen met pure tests en een nagebootste context-verlies bewezen, niet op een echte stuurprogramma-reset.
 
 ## Niet samengevoegd (golf 4)
-- **TTS-branch (worktree-agent-a55db64d6906bccb1):** niet samengevoegd; `voice_coverage` blijft rood tot de opnames er zijn.
+- **TTS-branch (worktree-agent-a55db64d6906bccb1):** niet samengevoegd: de ronde is niet afgerond (gateway in cooldown, 28 clips). `voice_coverage` is groen op de integratie zelf.
 - **`escmenu-panelen-van-kaartlagen-agent`:** niet samengevoegd (botst met de nieuwere menu-ronde).
 - **Oude golfbranch (worktree-agent-a3a022888096e6905, 24-10) en toetsplaatjesbranch (worktree-agent-a9487c892e88511e2, #1003):** overgeslagen; hun werk zit al in een nieuwere vorm in de integratie (golf: `golfphysics.js`, `golfhud.js`; toetsplaatjes: `keycap.js`, `inputglyphs.js`, `key_literals_test`), de merge gaf alleen add/add-botsingen.
 - **Wereldaudit en containerplan M13:** de wereldaudit-branch had een eigen, kleinere verschuiving van de M13-kraan; de nieuwere ankerversie (#1035) blijft staan. De audit `mission_prop_audit` is die van #1035.
 
 ## Releasegate
-De licht-gate is gedraaid op een schone checkout van `integratie-21-11-c`. Tests die wereldgegevens nodig hebben (`data/cache/province`, `game/world`) slaan zichzelf over en zijn niet gedraaid. De fasen zwaar, Electron, perf en visual en de AI-review draait de coördinator.
+De licht-gate is gedraaid op een schone checkout van `integratie-21-11-d` (met junctions naar de provincie uit de hoofdmap). De rode tests die de samenvoeging opleverde zijn hersteld (activiteitenteller 27 met de penaltyserie, uitleg met toetsplaatjes en `.ds-z-knop`, veldeigenaren, docs-index, tekstaudit, regelaudit). Wat open is:
+- **`verkeer_wereld_test` (3 van 6):** met de provincie uit de hoofdmap rijden AI-auto's op het zuidelijke ringstuk (rond 204, -2752) in het water of 3,6 m naast het wegdek en schaven ze langs een gevel. De test hoort bij de verkeersronde; de wereld in de hoofdmap is mogelijk ouder dan die van de verkeerstak. Eerst met een verse wereld (`npm run stage`) nameten.
+- **Vier tests over de tijdslimiet (180 s) met de grote wereld:** `akte1_doelen_test`, `akte2_doelen_test`, `akte3_test`, `boat_waypoint_test`; niet opnieuw met een langere limiet gedraaid.
+- **Onder belasting wisselend:** `country_vehicles_test` faalde in de volle run en slaagde los.
+- `missietempo_test` slaat over zonder gevendorde three; zwaar, Electron, perf, visual en de AI-review draait de coördinator. Geen Electron-rooktest gedraaid.
