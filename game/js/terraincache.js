@@ -19,7 +19,7 @@
 import { gridItems } from './spatialgrid.js';
 
 export const TERRAIN_FILE = 'terrain.bin';
-export const TERRAIN_CACHE_VERSION = 1;
+export const TERRAIN_CACHE_VERSION = 2; // 2: narrow water (ditches) cut at 1.25 m leaves
 const MAGIC = 'GTERR'; // 5 bytes
 const HEADER = 112;
 // header: 0 magic, 5 version, 6 reserved u16, 8 bounds f64 x4, 40 grid minX/minY/

@@ -92,6 +92,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - De kaart en de minikaart staan nu ook met het land in de nieuwe kleuren: glasgroen land, bordgroen voor parken en bos, een rustig blauw voor water, crème wegen en papieren gebouwen. De markers (diensten, winkels, politie, vervoer) gebruiken vijf kleurrollen met een crème rand; geel blijft voor je doel en je route. De oude kaartplaat wordt bij het laden herkleurd, dus er is geen nieuwe wereld nodig.
 - Je kunt Zo werkt de kaart altijd sluiten: met Begrepen, Enter, Escape (of B op de controller) of door ernaast te klikken, en hij komt niet terug na heropenen.
 - De wereld heeft een stap gezet richting het designsysteem, subtiel: gevels, straatstenen en stoepen een warmere papiertoon, gras en bomen gedempter en consistenter richting bordgroen, het water een rustiger inktblauwgroen en bijna zwart wordt inkt. Wegen, stoepen en gevaren houden hun contrast en herkenbare plekken blijven herkenbaar. Het verschil is te vergelijken met `?dswereld=0` (oud) en `?dswereld=1` (volledig).
+### Opgelost
+
+- **Een sloot houdt de auto tegen:** een auto die er te snel overheen reed, kwam er soms zonder rem overheen. De auto wordt nu over het hele stuk dat hij reed, en over zijn hele breedte, getoetst. Een sloot ingaan of oversteken remt hard af (tot kruiptempo, met een plons) en dat geldt voor iedereen gelijk, ook bij Samen spelen. Een brug of weg over de sloot blijft gewoon droog.
+- **Slootranden minder kartelig:** het gat dat een sloot of beek in de grond maakt volgt de oever nu op een meter nauwkeurig in plaats van op 2,5 m (tot 3,3 m breed voor een sloot van 1,5 m, was tot 5 m). Een bestaand gebakken terrein wordt daarvoor opnieuw gebouwd.
 
 ## [0.64.0] - 2026-11-20
 
