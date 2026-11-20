@@ -1,7 +1,7 @@
 // POP-IN in het echte spel meten (#1004): één Electron (wegwerpprofiel) loopt vaste routes (Binnenstad te voet,
 // provinciale weg per auto, korte vlucht), de pagina-probe (popin.page.js) meldt per frame wat nieuw getekend wordt,
 // en een reeks stills (1280x720) van dezelfde route gaat naar <out>/shots-<tag>-<route>-<n>.png.
-//   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,a7,heli] [--dur=30000] [--shots=6]
+//   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,a7,heli] [--dur=30000] [--shots=6] [--view=kort|normaal|ver]
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/popin-<tag>.json, run-<tag>.log.
 // Neem een Electron-slot via desktop/build/slots/slot.mjs (run popin -- node scripts/qa/popin.mjs ...).
 import fs from 'node:fs';
@@ -18,7 +18,7 @@ const TAG = arg('tag', 'voor');
 fs.mkdirSync(OUT, { recursive: true });
 const profile = path.join(OUT, `profiel-${TAG}-${process.pid}`); // absoluut: %TEMP% is soms niet schrijfbaar
 const script = path.join(OUT, `_page-${TAG}.js`);
-const cfg = { only: arg('only', ''), dur: Number(arg('dur', 0)) || undefined, shots: arg('shots', '') === '' ? undefined : Number(arg('shots', 6)), tag: TAG };
+const cfg = { only: arg('only', ''), dur: Number(arg('dur', 0)) || undefined, shots: arg('shots', '') === '' ? undefined : Number(arg('shots', 6)), tag: TAG, view: arg('view', 'kort') };
 fs.writeFileSync(script, `window.__popin = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'popin.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(profile, { recursive: true });

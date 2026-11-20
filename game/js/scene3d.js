@@ -669,7 +669,7 @@ function buildVehicleActor(v) {
 // Traffic spawns 70+ m out, so a new car's mesh can wait a frame or two:
 // beyond VEH_NEAR only one is built per frame once VEH_BUILD_MS is spent.
 const VEH_BUILD_MS = 3;
-const VEH_NEAR = 45;
+const VEH_NEAR = 45, VEH_KEEP_EXTRA = 15;
 const _vehSeen = new Set();
 function syncVehicleMeshes(world, player) {
   _vehSeen.clear();
@@ -686,7 +686,7 @@ function syncVehicleMeshes(world, player) {
   }
   for (const v of world.vehicles) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d >= DRAW_DIST) continue;
+    if (d >= DRAW_DIST + (vehicleMeshes.has(v.id) ? VEH_KEEP_EXTRA : 0)) continue; // #1016: hysterese, geen bouwen en slopen op de rand
     if (!vehicleMeshes.has(v.id)) {
       if (cine ? built >= 2 : (built > 0 && d > VEH_NEAR && performance.now() > deadline)) continue;
       const mesh = enableShadows(buildVehicleActor(v), false);

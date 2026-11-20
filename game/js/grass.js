@@ -996,6 +996,7 @@ function buildGrassChunks() {
   chunksGreenVer = greenVerOf(map);
 }
 
+const GRASS_PREBUILD = 30;
 function syncChunks(px, py, dist) {
   if (map && chunksGreenVer !== greenVerOf(map) && !holdGrass) buildGrassChunks(); // groenlaag veranderd (#314 C2); tijdens de film wacht de rebuild
   // Na de film komen de vastgehouden tour-chunks terug in de gewone sync. Het
@@ -1007,13 +1008,17 @@ function syncChunks(px, py, dist) {
   const t0 = performance.now();
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);
-    if (d < dist) {
+    // #1016: een chunk wordt GRASS_PREBUILD m voor zijn tekenstraal verborgen gebouwd en pas op de straal getoond,
+    // zodat het bouwbudget (2 per frame) niet bepaalt wanneer hij verschijnt
+    if (d < dist + GRASS_PREBUILD) {
       if (!c.group && gebouwd < 2 && performance.now() - t0 < 3) {
         c.group = buildChunk(c);
+        c.group.visible = d < dist;
         scene.add(c.group);
         gebouwd++;
       }
-    } else if (c.group && d > dist + 30 && !holdGrass && opgeruimd < 4) {
+      if (c.group) c.group.visible = d < dist;
+    } else if (c.group && d > dist + GRASS_PREBUILD + 30 && !holdGrass && opgeruimd < 4) {
       disposeChunk(c);
       opgeruimd++;
     }

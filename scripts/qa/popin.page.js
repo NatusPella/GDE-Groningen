@@ -6,7 +6,7 @@
 // groter dan 2 px is en minder dan 90% in de mist staat, telt als zichtbare pop-in. Daarnaast: welke tegel wanneer
 // is geladen (store 'tile'-gebeurtenis) en een reeks stills van dezelfde route (console.log '[capture]').
 // Routes: foot (Binnenstad te voet), a7 (provinciale weg per auto), heli (korte vlucht), jump (sneltransport 600 m).
-// window.__popin = { only, dur, settle, shots, tag }. Raakt geen opslag. De pure afstandsregels staan in popinrules.js.
+// window.__popin = { only, dur, shots, tag, view (kort|normaal|ver|heelver) }. Raakt geen opslag. De pure afstandsregels staan in popinrules.js.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const tapKey = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
 for (let i = 0; i < 300 && !document.body.classList.contains('game-started'); i++) await sleep(500);
@@ -25,6 +25,11 @@ const RR = await imp('ringroute');
 const SP = await imp('scene3d');
 const { P = (x, y) => [x, y], PL = (l) => l } = await imp('worldframe').catch(() => ({}));
 const WPL = await imp('worldplaces');
+// vaste kwaliteit: geen adaptieve afbouw (een drukke machine zette cpuLevel 3 en de detailstraal op 100 m); zichtafstand uit --view
+const SETm = await imp('settings');
+const GFX = await imp('gfxprofile');
+SETm.withTempSettings({ autoResolution: false, quality: 'hoog', drawDistance: CFG.view || 'kort' });
+GFX.resetDynamic();
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 D.input.canLock = () => false;
