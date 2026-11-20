@@ -16,42 +16,49 @@ import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCa
 
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
+const CHIP_ICOON = {
+  ok: '<path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/>',
+  ster: '<path d="M8 1l1.8 4.2L14 6l-3.2 2.8L11.7 13 8 10.8 4.3 13l.9-4.2L2 6l4.2-.8z"/>',
+};
+const chip = (toon, icoon, tekst) => `<span class="ds-chip${toon ? ' ds-chip--' + toon : ''}"><svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true">${CHIP_ICOON[icoon]}</svg>${tekst}</span>`;
+const streep = (pct, label, dik) => `<div class="ds-streep${dik ? ' ds-streep--dik' : ''}" style="--ds-streep-w:${Math.max(0, Math.min(100, pct))}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${label}</span></div>`;
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 
 // de categorieën zijn kaarten met een icoon, een balk en de eerstvolgende
 // prestatie. De vormgeving woont hier bij de module, niet in pausemenu.css; alleen
 // de bestaande tokens en lettertypen van het menu.
 const CSS = `
-#pause-menu .pa-cats { display: flex; flex-direction: column; gap: 14px; padding: 0 0 10px 24px; }
-#pause-menu .pa-tile { position: relative; flex: none; border-radius: 12px; background: rgba(240, 237, 228, 0.045); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
-#pause-menu .pa-tile.near { background: rgba(63, 201, 122, 0.09); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.38); }
-#pause-menu .pa-tile.open { background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px var(--line2); }
-#pause-menu .pa-tile.open::before, #pause-menu .pa-tile.near::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--g); }
-#pause-menu .pa-tile-top { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "ico head end" "ico next next" ". bar bar"; align-items: center; column-gap: 14px; row-gap: 2px; width: 100%; padding: 14px 16px 12px 18px; text-align: left; }
-#pause-menu .pa-tile-top:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 12px; }
-#pause-menu .pa-tile-ico { grid-area: ico; align-self: center; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; color: var(--g); background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.3); }
+#pause-menu .pa-cats { display: flex; flex-direction: column; gap: 12px; padding: 0 0 10px 24px; }
+#pause-menu .pa-tile { flex: none; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+#pause-menu .pa-card { padding: var(--ds-s-3) var(--ds-s-4); gap: var(--ds-s-2); }
+#pause-menu .pa-card:has(.pa-tile-top[aria-expanded="true"]) { border-color: var(--ds-selectie); outline: var(--ds-lijn-dik) solid var(--ds-selectie); outline-offset: -1px; }
+#pause-menu .pa-tile-top { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "ico head end" "ico next next"; align-items: center; column-gap: var(--ds-s-3); row-gap: 2px; width: 100%; min-height: 48px; padding: 0; text-align: left; color: inherit; }
+#pause-menu .pa-tile-top:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); border-radius: var(--ds-r); }
+#pause-menu .pa-tile-ico { grid-area: ico; align-self: center; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--ds-r-pil); color: var(--ds-selectie); background: var(--ds-selectie-vlak); box-shadow: inset 0 0 0 var(--ds-lijn) var(--ds-selectie); }
 #pause-menu .pa-tile-ico svg { width: 24px; height: 24px; }
-#pause-menu .pa-tile-h { grid-area: head; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 12px; min-width: 0; }
-#pause-menu .pa-tile-h b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.05em; color: var(--ink); }
-#pause-menu .pa-tile-end { grid-area: end; align-self: center; display: flex; align-items: center; gap: 8px; }
-#pause-menu .pa-tile-chev { display: grid; place-items: center; width: 20px; height: 20px; color: var(--mut); transition: transform 0.2s; }
+#pause-menu .pa-tile-h { grid-area: head; display: flex; align-items: center; flex-wrap: wrap; gap: 2px var(--ds-s-3); min-width: 0; }
+#pause-menu .pa-tile-h b { font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .pa-tile-h .ds-chip { min-height: 28px; padding: 0 var(--ds-s-3); }
+#pause-menu .pa-tile-end { grid-area: end; align-self: center; display: flex; align-items: center; gap: var(--ds-s-2); }
+#pause-menu .pa-tile-chev { display: grid; place-items: center; width: 20px; height: 20px; color: var(--ds-tx-zacht); transition: transform 0.2s; }
 #pause-menu .pa-tile-chev svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#pause-menu .pa-tile.open .pa-tile-chev { transform: rotate(90deg); color: var(--g); }
-#pause-menu .pa-tile-pct { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 30px; letter-spacing: 0.03em; color: var(--mut); }
-#pause-menu .pa-tile.open .pa-tile-pct, #pause-menu .pa-tile.near .pa-tile-pct { color: var(--g); }
-#pause-menu .pa-cat-note { font-size: max(15px, var(--menu-min)); color: var(--mut); white-space: nowrap; }
-#pause-menu .pa-tile-next { grid-area: next; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0; font-size: max(16px, var(--menu-min)); line-height: 1.3; color: rgba(240, 237, 228, 0.86); }
+#pause-menu .pa-tile-top[aria-expanded="true"] .pa-tile-chev { transform: rotate(90deg); color: var(--ds-selectie); }
+#pause-menu .pa-tile-pct { font-family: var(--ds-font-kop); font-size: var(--ds-t-cijfer); line-height: 1; letter-spacing: var(--ds-ls-kop); }
+#pause-menu .pa-tile-next { grid-area: next; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px var(--ds-s-2); min-width: 0; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); color: var(--ds-tx-zacht); }
 #pause-menu .pa-tile-next-t { min-width: 0; overflow-wrap: anywhere; }
-#pause-menu .pa-tile.near .pa-tile-next-t { color: var(--ink); }
-#pause-menu .pa-tile-fig { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; color: var(--g); white-space: nowrap; }
-#pause-menu .pa-tile-bar { grid-area: bar; display: block; width: 100%; height: 5px; margin-top: 7px; }
-#pause-menu .pa-tile .m-fold { padding: 2px 8px 8px; }
+#pause-menu .pa-tile-fig { font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); color: var(--ds-tx); white-space: nowrap; }
+#pause-menu .pa-tile .m-fold { padding: 2px 8px 8px; border-radius: 12px; background: rgba(240, 237, 228, 0.045); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .pa-tile .m-li { min-height: 50px; padding: 0 16px; }
 #pause-menu .pa-row-end { display: inline-flex; align-items: baseline; gap: 8px; flex: none; }
 #pause-menu .pa-row-pct { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.04em; color: var(--g); }
 #pause-menu .m-li.near { color: rgba(240, 237, 228, 0.92); }
 #pause-menu .pa-empty-pane { display: flex; flex-direction: column; gap: 16px; }
-#pause-menu .pa-next-go { align-self: flex-start; height: 48px; padding: 0 22px; font-size: 22px; }
+#pause-menu .pa-next-acts { align-self: flex-start; }
+#pause-menu .pa-next-acts .ds-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+#pause-menu .pa-hero { margin: 0 24px 14px; flex: none; }
+#pause-menu .pa-hero .ds-kaart__tekst { max-width: 640px; }
+#pause-menu .pa-hero-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-6); }
+#pause-menu .pa-hero-cijfers .ds-cijfer__waarde { font-size: var(--ds-t-subkop); }
 `;
 let cssAan = false;
 function zetCss() {
@@ -124,15 +131,16 @@ function catTile(c) {
   const nextLine = next
     ? `<span class="pa-tile-next-t">${started ? 'Bijna binnen: ' : 'Volgende: '}${dualHtml(next.title)}</span>${fig ? `<span class="pa-tile-fig">${fig}</span>` : ''}`
     : `<span class="pa-tile-next-t">${teGaan === 0 ? 'Alles in deze categorie gehaald.' : 'De rest is nog geheim.'}</span>`;
-  const note = teGaan === 0 ? 'alles gehaald' : `${c.done} van ${c.items.length} · nog ${teGaan}`;
+  const note = teGaan === 0 ? chip('succes', 'ok', 'Alles gehaald') : started ? chip('selectie', 'ster', 'Bijna binnen') : '';
   return `<div class="pa-tile${open ? ' open' : ''}${started ? ' near' : ''}">` +
+    `<div class="ds-papier ds-kaart pa-card">` +
     `<button type="button" class="pa-tile-top" data-achcat="${esc(c.cat)}" aria-expanded="${open}">` +
       `<span class="pa-tile-ico" aria-hidden="true">${iconSvg({ id: '', cat: c.cat, hidden: false })}</span>` +
-      `<span class="pa-tile-h"><b>${esc(c.label)}</b><span class="pa-cat-note">${note}</span></span>` +
+      `<span class="pa-tile-h"><b>${esc(c.label)}</b>${note}</span>` +
       `<span class="pa-tile-next">${nextLine}</span>` +
-      `<span class="m-bar pa-tile-bar${pct > 0 ? ' on' : ''}"><i data-bar="cat-${c.cat}" data-w="${pct}"></i></span>` +
       `<span class="pa-tile-end"><span class="pa-tile-pct">${pct}%</span><span class="pa-tile-chev" aria-hidden="true">${CHEV}</span></span>` +
     `</button>` +
+    streep(pct, `${c.done} van ${c.items.length}`) + `</div>` +
     `<div class="m-fold" ${open ? '' : 'hidden'}>${items.map((a) => row(a, c.label)).join('')}</div></div>`;
 }
 
@@ -209,7 +217,7 @@ function detailHtml(it, catLabel, next) {
     return '<div class="pa-empty-pane">' +
       '<div class="pm-pane-top"><span class="m-eb">Eerstvolgende</span><h2 class="m-h2 td-h2"><span class="pa-ico big">' + iconSvg(next) + '</span>' + nt + '</h2></div>' +
       `<p>${next.hidden ? 'Geheim. Blijf rondkijken in Grunn.' : esc(next.desc)}</p>${np}` +
-      `<button type="button" class="m-bg pa-next-go" data-ach-next="${esc(next.id)}">Bekijk in de lijst</button></div>`;
+      `<div class="m-acts pa-next-acts ds-glas"><button type="button" class="ds-knop" data-ach-next="${esc(next.id)}">Bekijk in de lijst</button></div></div>`;
   }
   const title = it.hidden ? '???' : dualHtml(it.title);
   const desc = it.hidden ? 'Geheim. Blijf rondkijken in Grunn.' : esc(it.desc);
@@ -233,16 +241,12 @@ function heroHtml(sum, near, verborgen) {
   const lead = klaar
     ? 'Alles gehaald. Grunn is van jou.'
     : `${teGaan} ${teGaan === 1 ? 'prestatie' : 'prestaties'} te gaan${near.length ? `, ${near.length} ${near.length === 1 ? 'is' : 'zijn'} dichtbij` : ''}. Prestaties blijven bewaard, ook bij een nieuw spel.`;
-  return '<section class="pm-hero pa-hero" aria-label="Prestaties">' +
-    `<div class="pm-hero-h"><span class="m-eb">Prestaties</span><span class="pm-badge" data-tone="${klaar ? 'ok' : 'warn'}">${Math.round(pct)}%</span></div>` +
-    `<p class="pm-hero-lead">${esc(lead)}</p>` +
-    `<div class="pa-hero-bar"><span class="m-bar on"><i style="width:${pct.toFixed(1)}%"></i></span><span class="mut">${sum.done} van ${sum.total} behaald</span></div>` +
-    '<div class="pm-stats pa-stats">' +
-      `<span class="pm-stat" data-tone="accent"><b>${sum.done}</b><span>behaald</span></span>` +
-      `<span class="pm-stat"><b>${teGaan}</b><span>nog te gaan</span></span>` +
-      `<span class="pm-stat"><b>${near.length}</b><span>bijna binnen</span></span>` +
-      `<span class="pm-stat"><b>${verborgen}</b><span>nog geheim</span></span>` +
-    '</div></section>';
+  const cijfer = (n, woord) => `<span class="ds-cijfer"><span class="ds-cijfer__waarde">${n}</span><span class="ds-cijfer__eenheid">${woord}</span></span>`;
+  return '<section class="ds-papier ds-kaart ds-kaart--kop pa-hero" aria-label="Prestaties">' +
+    `<div class="ds-kaart__kop"><span class="ds-kaart__titel">Prestaties</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${Math.round(pct)}%`)}</div>` +
+    `<p class="ds-kaart__tekst">${esc(lead)}</p>` +
+    streep(pct, `${sum.done} van ${sum.total} behaald`, true) +
+    '<div class="pa-hero-cijfers">' + cijfer(sum.done, 'behaald') + cijfer(teGaan, 'nog te gaan') + cijfer(near.length, 'bijna binnen') + cijfer(verborgen, 'nog geheim') + '</div></section>';
 }
 
 export function renderAchievementsPanel(el, { keepFresh = false } = {}) {

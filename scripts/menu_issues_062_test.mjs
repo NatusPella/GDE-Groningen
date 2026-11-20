@@ -137,10 +137,10 @@ const html = leesHtml();
 {
   const au = lees('achievementsui.js');
   ok(/function heroHtml\(sum, near, verborgen\)/.test(au), '#909: Prestaties heeft een kop met de stand van nu');
-  ok(/pm-hero|pm-stat/.test(au), '#909: die kop gebruikt dezelfde taal als de andere vernieuwde schermen');
-  ok(/pa-hero-bar/.test(au) && /pa-rowbar/.test(au), '#909: een balk bovenaan en een balk per rij die bijna is');
+  ok(/ds-kaart--kop pa-hero/.test(au) && /ds-cijfer/.test(au), '#909/#980: die kop is een papieren kaart met cijfers, dezelfde taal als de andere vernieuwde schermen');
+  ok(/const streep = /.test(au) && /pa-rowbar/.test(au), '#909/#980: een streep bovenaan en een balk per rij die bijna is');
   ok(/bijna binnen/.test(au) && /nog te gaan/.test(au) && /nog geheim/.test(au), '#909: de getallen betekenen iets (bijna, te gaan, geheim)');
-  ok(/pa-cat-note/.test(au), '#909: een categorie zegt in woorden hoe ver hij is');
+  ok(/Alles gehaald/.test(au) && /Bijna binnen/.test(au) && /van \$\{c\.items\.length\}/.test(au), '#909/#980: een categorie zegt in woorden hoe ver hij is (chip en n van m)');
   ok(/pa-leeg/.test(au), '#909: een lege lijst nodigt uit in plaats van alleen "niks"');
   ok(!/export const (ACHIEVEMENTS|MEDALS|CATEGORIES)/.test(au), '#909: geen definitie of doel aangepast, alleen de weergave');
   ok(/#pause-menu \.pa-hero/.test(css) && /#pause-menu \.pa-rowbar/.test(css), '#909: de nieuwe onderdelen hebben hun eigen stijl');
@@ -154,7 +154,7 @@ const html = leesHtml();
   ok(/foto-tips/.test(fu) && /foto-tip/.test(fu), '#910: de drie toetsen staan er meteen bij');
   ok(/data-foto-start/.test(fu), '#910: er is één duidelijke actie om te beginnen');
   ok(/\(leeg \? '' : `<button type="button" class="m-disc"/.test(fu) || /leeg \? '' :/.test(fu), '#910: het kale "Meer opties"-blok staat niet meer bij een lege galerij');
-  ok(/#pause-menu \.foto-leegstaat \{/.test(css), '#910: de lege staat heeft een eigen, uitnodigende stijl');
+  ok(/#pause-menu \.foto-leegstaat \{/.test(fu), '#910/#980: de lege staat heeft een eigen, uitnodigende stijl (ds-leeg, in fotomodusui.js)');
 }
 
 // --- #911: de rail vertelt waar je bent ---------------------------------------------------

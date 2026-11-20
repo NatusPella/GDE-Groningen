@@ -93,12 +93,12 @@ const panel = fu.slice(fu.indexOf('export function renderFotoPanel'), fu.indexOf
 const gezicht = fu.slice(fu.indexOf('function heroHtml'));
 const sectie = fu.slice(fu.indexOf('function heroHtml'), fu.indexOf('// true als de klik van de fotomodus was'));
 check('de galerij staat vóór de uitleg in het paneel', panel.indexOf('foto-gal') >= 0 && panel.indexOf('foto-gal') < panel.indexOf('+ voet)'));
-check('de hero staat bovenaan met de stand als badge', /class="pm-hero foto-hero"/.test(gezicht) && /\$\{n\} van \$\{F\.GALLERY\.max\} foto's/.test(gezicht));
-check('de hero zegt met één zin wat je hier doet', /pm-hero-lead/.test(gezicht) && /nieuwste eerst/.test(gezicht));
+check('de hero staat bovenaan met de stand als badge', /ds-kaart--kop foto-hero/.test(gezicht) && /\$\{n\} van \$\{F\.GALLERY\.max\} foto's/.test(gezicht));
+check('de hero zegt met één zin wat je hier doet', /ds-kaart__tekst/.test(gezicht) && /nieuwste eerst/.test(gezicht));
 const kaart = fu.slice(fu.indexOf('function kaartHtml'), fu.indexOf('function voetHtml'));
 const bijschrift = kaart.slice(kaart.indexOf('<figcaption'), kaart.indexOf('</figcaption>'));
 check('het bijschrift staat in lagen: plek, dag en uur, bestand', /foto-plek/.test(bijschrift) && /foto-wanneer/.test(bijschrift) && /foto-bestand/.test(bijschrift));
-check('Weghalen is een kleine actie per foto, niet een blok eronder', /class="foto-weg" data-foto-del=/.test(kaart) && !/Weghalen/.test(bijschrift));
+check('Weghalen is een kleine actie per foto, niet een blok eronder', /foto-weg" data-foto-del=/.test(kaart) && !/Weghalen/.test(bijschrift));
 check('de knop om te starten staat in het eerste beeld, vóór de uitleg', sectie.indexOf('data-foto-start') < sectie.indexOf('foto-noot'));
 check('de telling staat in de hero, niet als losse regel', !/foto-count/.test(fu) && /\$\{n\} van/.test(gezicht));
 check('geen "Meer opties"-vouw meer bij Foto\'s', !/data-fold="foto-uitleg"/.test(fu) && !/data-fold-body="foto-uitleg"/.test(fu));
