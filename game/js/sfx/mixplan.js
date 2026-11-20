@@ -81,3 +81,21 @@ export function plan(info, d, seed = 0) {
     lp: d > 25 ? airLowpassHz(d) : 0,
   };
 }
+
+// --- muziek onder dialoog en ondertitels (#988, mix 21-11) -------------------------------------------------------------
+// speech.musicDuck() (0 tot 1: 0,4 voor een bubbel of radioregel, 1 voor een gesprek of ondertitelde scène) dempt de radio
+// (audio/radio.js); de scenariomuziek (race, achtervolging, missie, thuis) deed dat nog niet en liep dus door onder een gesprek.
+// Beide volgen nu dezelfde regel: de muziek zakt tot MUSIC_DUCK_KEEP van haar niveau, zacht in (0,25 s) en trager uit (1,2 s).
+export const MUSIC_DUCK_KEEP = 0.5;
+export function musicDuckGain(level) {
+  const l = Math.max(0, Math.min(1, Number.isFinite(level) ? level : 0));
+  return 1 - (1 - MUSIC_DUCK_KEEP) * l;
+}
+// één stap van de glijdende dempstand; dt in s, geeft het nieuwe niveau 0..1 (NaN-vrij)
+export function musicDuckStep(level, target, dt) {
+  const cur = Number.isFinite(level) ? level : 0;
+  const tg = Math.max(0, Math.min(1, Number.isFinite(target) ? target : 0));
+  const d = Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.25) : 0;
+  const tau = tg > cur ? 0.25 : 1.2;
+  return cur + (tg - cur) * (1 - Math.exp(-d / tau));
+}

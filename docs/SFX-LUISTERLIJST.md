@@ -172,3 +172,21 @@ Gemeten zonder oor: geen klip, geen NaN, geen lusklik in de 154 opnames en de pr
 | De ruime geluidsbuffer | na een sessie met veel glitches: de volgende sessie draait op `playback` (zie het blok Geluid in de diagnose) | geen gaten of tikken meer; geluiden komen ca. 30 ms later (schot en knal) | het geluid loopt merkbaar achter op het beeld |
 | Hapering en geluid | rijden door de dichtste stad terwijl de fps laag is | het geluid loopt door zonder gaten | tikken, krakjes of een kort ruisgeluid op het moment dat het beeld hapert |
 | Het blok Geluid | Ctrl+Shift+G (zodra de diagnose gemerged is) | glitches per minuut 0, limiter 0 keer ingegrepen | glitches > 0 terwijl het beeld soepel is: dan ligt het aan het apparaat, niet aan het spel |
+
+## Mix en nieuwe lagen (21-11, #988, #1021): wat nog beluisterd moet worden
+
+Alles is gemeten met pure tests (`node scripts/audio_mix_test.mjs`: 289 controles; plus `audio_ruis_test`, `audio_peaks_test`, `sfx_test`), **niets is beluisterd** en er is geen Electron-run gedaan. Er zijn geen nieuwe opnames: de lagen gebruiken bestaande klanken (`boot_motor_stat`, `scheepshoorn_op`, `trein_hoorn_kort/lang`, `stad_nacht_nl`). Plekken zijn spelcoördinaten (x, y in meters); snelste route: reis met de trein naar het genoemde station (reizen via het station of de kaart) en loop dan naar het water of het spoor, of zet in een testbank `world.player.x/y`. Alles hieronder hoort zacht te zijn: je mist het pas als je weggaat.
+
+| Laag of regel | Waar | Wat je hoort als het goed is | Wat een fout is |
+| --- | --- | --- | --- |
+| `haven`: verre scheepsbrom (`boot_motor_stat`, dof tot 650 Hz) | Delfzijl, aan de kade bij de loodsen: station Delfzijl (23687, -13163) en loop naar het water; ook Eemshaven (17218, -26931) | een lage, verre brom die in een paar seconden inkomt en uitfaadt als je wegloopt; geen sprong op de overgang kade, straat | hoorbaar in een woonwijk of bij een gracht zonder loodsen; klinkt als een draaiende boot vlakbij; een hoorbare lus van het bestand |
+| `scheepshoorn_op` als zeldzame hoorn in de haven | zelfde plekken, wacht tot twee minuten (kan tot vijf) | een dof signaal van ver weg, hooguit eens per paar minuten | te hard of te dichtbij; vaker dan elke minuut; ook in een gewone stad |
+| verre treinhoorn langs het spoor | naast het spoor, bijvoorbeeld station Appingedam (19593, -12190) of langs de lijn; wacht een paar minuten | een verre hoorn (kort of lang) uit de richting van het spoor, dof | bij onweer of regenbui (hoort er dan niet te zijn); elke halve minuut; schel |
+| verkeer overdag (`stad_nacht_nl` zacht) | de Grote Markt en de straten ernaast met verkeer, overdag | een zacht, gelijkmatig verkeer op afstand onder de stadsbrom | hoorbaar op het platteland; te veel bovenop het gemurmel; een hoorbare naad (30 s) |
+| occlusie binnen | de flat (binnen) en een gesloten auto of bus | buitengeluid (stad, wind, vogels) wordt dof en in de flat zachter; kamertoon en regen op het dak blijven helder | alles weg of juist ongedempt; een hoorbaar knipje bij het binnengaan |
+| kleine variatie van de lagen | een minuut stilstaan in de polder (Hogeland) of aan de kust | de laag ademt een heel klein beetje; geen pompen | een duidelijk pompen of zwevende toon |
+| muziek onder een gesprek | een missie met scenariomuziek (race, missie, thuis) en een gesprek of een ondertitelde scène | de muziek zakt tot de helft, zacht in en trager uit; de regel blijft verstaanbaar | de muziek zakt niet; zakt met een klap; komt na het gesprek te abrupt terug |
+| declick en stemlimiet | een drukke straat met veel voetgangers, deuren en dieren tegelijk; een schot in de drukte | geen tikken aan begin of eind van losse klanken; het schot klinkt altijd | een korte tik vooraan een klank; een schot dat wegvalt (zou niet mogen: wapen heeft ruim 14 stemmen) |
+| zacht opstarten na een tabwissel | wissel van tab en kom terug (zowel web als Electron) | de uitvoer komt in een kwart seconde omhoog; geen stoot of tik | een krak bij het terugkomen; het geluid blijft weg (dan: `resumeCtx`) |
+
+Meten zonder oor: het blok Geluid (Ctrl+Shift+G, zodra de diagnose gemerged is) toont stemmen, limiter en glitches; `stemTeller.stats.geweigerd` laat zien welke categorie de cap raakte (nog niet in het blok opgenomen).
