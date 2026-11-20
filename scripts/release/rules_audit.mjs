@@ -336,7 +336,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     // Netwerk: geen nieuwe externe verbindingen in game/js (constitutie 4/5).
     if (GAME_JS.test(file)) {
       perRegel.netwerk += 1;
-      const clean = stripComments(text, file);
+      const clean = stripComments(text, file).replace(/from\s+(['"])https:\/\/cdn\.jsdelivr\.net\/npm\/three@[\w.]+\/build\/three\.module\.js\1/, "from 'three'"); // het bouwen zet dit om naar de eigen vendormap (desktop/vendor-cache)
       if (FETCH_CODE.test(clean) || URL_ANY.test(clean)) {
         voegToe(finding({
           file, line, text, ernst: 'blokkerend', categorie: 'privacy',

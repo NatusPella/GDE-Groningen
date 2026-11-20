@@ -165,7 +165,7 @@ const CSS = `
 #trailer .tr-title.tr-tagline { margin-top: 10px; font-size: clamp(30px, 4.4vw, 64px); letter-spacing: 0.08em; }
 #trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: rgba(243,234,211, 0.9); letter-spacing: 0.06em; }
 /* name cards over a freeze frame: lower left, like a character intro */
-#trailer .tr-freeze { inset: 0; opacity: 0; background: radial-gradient(ellipse at 30% 60%, rgba(255, 196, 120, 0.08), rgba(29,27,23, 0.42) 85%); }
+#trailer .tr-freeze { inset: 0; opacity: 0; background: radial-gradient(ellipse at 30% 60%, color-mix(in srgb, var(--ds-c-geel, #f9c80e) 8%, transparent), color-mix(in srgb, var(--ds-c-ink-inkt, #1d1b17) 42%, transparent) 85%); }
 #trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(72vw, 1500px); opacity: 0; text-shadow: 3px 3px 0 #e8505b; }
 #trailer .tr-name b { display: block; font-weight: normal; font-size: clamp(64px, 10vw, 160px); line-height: 0.88; text-transform: uppercase; letter-spacing: 0.02em; }
 #trailer .tr-name b .amp { color: #e8505b; }
