@@ -156,6 +156,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De strook ook in de wedstrijd met meer spelers, een eigen sting voor een gewonnen game.
 
+## 9. Discgolf (Stadspark)
+
+**Wat kan de speler.** Negen banen (of een korte ronde, of dichtst bij de mand) in het Stadspark (E bij de eerste tee): richten met A en D, de hoek met W en S, E voor de release, F voor de disc, Spatie vasthouden en loslaten om te gooien. Wind, bomen, water, par en medailles.
+
+**De lus.** Richten, laden en gooien, de disc vliegt, een volgende worp of de mand.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst laadt (`gde-sim-uitleg-v1`) |
+| HUD | bord met een rij tekst, een scorekaart en een laadbalk met streepje | solo en dichtst bij de mand: strook (`simhud.js`) met stappen, laadmeter met het doel (`powerForBasket`), baan, par, worp, afstand, wind, totaal en één zin wat nu; het bord blijft alleen in de wedstrijd |
+| Wereld | richtlijn, landingsmarkering, vlag | plus een gele lichtkolom boven de mand van de baan (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een getal springt op per baan ("Birdie: 2 worpen") en per worp bij dichtst bij de mand, met het bestaande UI-geluid (geen geluid boven par) |
+
+**Samen spelen.** Een solo-ronde is van de speler zelf (lokaal, ook bij een gast). De wedstrijd tegen elkaar (`multiplayerwedstrijd.js`, host telt) houdt het bord met de scorekaart en de stand van de anderen; de strook en de lichtkolom zijn daar niet getoond. Valt een speler weg, dan verdwijnt zijn strook met zijn ronde. Test: `discgolfhud_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** De scorekaart per baan in de strook (die staat alleen in de wedstrijd op het bord), de strook ook in de wedstrijd, een kaartmarkering voor de volgende mand.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
