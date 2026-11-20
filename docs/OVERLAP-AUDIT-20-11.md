@@ -28,7 +28,7 @@ Een **vlak** is een zichtbaar kind van `#hud` of `body` met verf (achtergrond, r
 | na eerste fixes | 1280x720 | 33 | 6 | 0 | 5 (watermerk) | 0 |
 | na eerste fixes | 1920x1080 (venster 1904x993) | 33 | 4 | 0 | 5 (watermerk) | 0 |
 | na eerste fixes | 1024x600 | 33 | 14 klassen | 0 | 5 + 4 | 0 |
-| na de laatste fixes (deelmeting, zie "Niet gezien") | 1280x720 | 35 | 3 (alleen kaart tegen doelkaart, later opgelost) | 0 | 0 | 0 |
+| na de laatste fixes (deelmeting van 7 scènes: voet-doelkaart, auto-politie, geld-politie-kaart, toast-activiteit, bord-discgolf-met-kaarten, karakter-anita, gezocht-5-zoeken) | 1280x720, 1920x1080, 1024x600 | 7 per formaat | **0** op alle drie | 0 | 0 | 0, en 0 console-fouten |
 
 Van de 188 meldingen op 1280x720 waren de meeste: het wereldlabel "Fluit een duif" met zijn stip en streep over de HUD (ca. 60), de plaatsnaam-tekst tegen zichzelf (ca. 50, een artefact van de detector: tekstvakken met een strakke regelafstand), het doel dat onderin onder de ondertitel lag (7) en de plaatskaart over de onderrij (6).
 
@@ -51,6 +51,7 @@ Van de 188 meldingen op 1280x720 waren de meeste: het wereldlabel "Fluit een dui
 | auto-politie 1024x600 | in de afslagkaart ligt "990 m / ± 2 min" over "Over 40 m linksaf"; de doelregel steekt uit de kaart ("bij Spuit & Klaar") | de strook van zone B is hier 240 px; `white-space: nowrap` en geen ellips | onder 1100 px breekt de routekaart om en laat het doel de bedieningsregel weg; de doelregel kapt met `…` af | gefixt (niet opnieuw gemeten) |
 | doel, 1024x600 | de titel "Nul krassen, vijftienhond…" afgekapt | zone B was gecentreerd met twee keer de grootste reserve (240 px) | `.hud-zone-b` vult nu de strook van 12 px na de berichtkolom (`min(30vw, 350 px)`) tot zone C: 463 px op 1280, ca. 290 px op 1024x600 | gefixt (niet opnieuw gemeten) |
 | gezocht-5-zoeken | de politie-/achtervolgingskaart links raakt de doelkaart rond x = 380 | zone B begon op een vaste `edge + 330` terwijl de kaartkolom 350 px is | zone B begint 12 px rechts van `min(30vw, 350 px)` | gefixt (niet opnieuw gemeten) |
+| rijden | twee balken onder de naam zonder te zeggen wat ze zijn (de tweede is de voertuigstaat) | geen icoon | 16 px-icoon voor elke balk: hartje, schild, voertuigicoon dat het soort volgt (auto, fiets, boot, vliegtuig, scooter, bus), tooltip en `aria-label` (Gezondheid, Pantser, Voertuig); de balken lijnen uit (159 px) | gefixt (`na-ic-1280x720-voet.png`, `-auto.png`) |
 | alle HUD-beelden | het kaartje "Tammo [portret] N% klaar": een tweede portret (de metgezel) naast de naam | `.hud-mate-pic` met het portret van de metgezel; het voortgangschipje `hud-done` | het metgezel-portret is weg (de metgezel blijft voor schermlezers); het kaartje toont het personage van `hoofdspeler(world)` (ook een gast ziet zijn eigen figuur); **het voortgangschipje en het welkom-terugbericht met het cijfer zijn weg** (besluit eigenaar), de voortgang staat nog in Spel > Overzicht en in het savegame-overzicht | gefixt |
 
 ### Het doel naar zone B (besluit eigenaar)
@@ -70,7 +71,7 @@ De doelkaart ("Nul krassen, vijftienhonderd punten", afstand, hulpregel) hangt b
 
 ## Niet gezien
 
-- **Beelden na de laatste commits:** na de laatste wijzigingen (zone B vanaf `min(30vw, 350 px)`, voortgangschip weg, ResizeObserver in een frame) is alleen een beeldronde van zeven scènes op de drie formaten gedraaid (`docs/beeld-20-11/overlap/na-*`); de volledige scènelijst is niet opnieuw gemeten. De tabel "Meting" noemt dat.
+- **Beelden na de laatste commits:** na de laatste wijzigingen (zone B vanaf `min(30vw, 350 px)`, voortgangschip weg, ResizeObserver in een frame) is alleen een beeldronde van zeven scènes op de drie formaten gedraaid (`docs/beeld-20-11/overlap/na-<formaat>-*`); de balkiconen zijn alleen op 1280x720 te voet en rijdend bekeken (`na-ic-*`). De volledige scènelijst (35) is na de laatste wijzigingen niet opnieuw gemeten; de rij "na eerste fixes" is de laatste volledige meting.
 - **Scènes die ontbreken:** boot (geen water op de teststek), vliegtuig, helikopter, trein, boerderij-HUD, wijkkaart met controller en Samen spelen (host en gast naast elkaar). Daar is niets gemeten.
 - **Cinekaart/titelkaart (naamchip, minikaart en telefoon zichtbaar achter de filmlaag):** mijn scène zet `cine-hide-hud` zoals de echte filmlaag; het geval van de eigenaar (een titelkaart zonder `hideHud`) is dus **niet** gereproduceerd. De overige-UI-agent heeft dat.
 - Geen mens heeft de beelden beoordeeld; alles is gemeten en door de coördinator en mij bekeken.

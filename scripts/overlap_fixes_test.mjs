@@ -89,5 +89,11 @@ ok(/const ch = hoofdspeler\(world\)\.character === 'anita' \? 'anita' : 'tammo';
 ok(!/hud-done/.test(hp) && !/from '\.\/progresslive\.js'/.test(hp), 'de totale voortgang (N% klaar) staat niet meer op het karakterkaartje (eigenaar 20-11)');
 ok((hp.match(/setPortrait\(/g) || []).length === 2, 'setPortrait: alleen de definitie en het portret van de speler');
 
+// klasse 11: elke balk op het karakterkaartje heeft een icoon van 16 px (hart, schild, voertuig) met een naam voor schermlezers
+ok(/aria-label="Gezondheid"[^']*'\s*\+\s*icoon\('hart_vol', \{ maat: 16/.test(hp), 'de gezondheidsbalk heeft een hartje');
+ok(/aria-label="Pantser"[^']*'\s*\+\s*icoon\('schild', \{ maat: 16/.test(hp), 'de pantserbalk heeft een schild');
+ok(/aria-label="Voertuig"[^']*'\s*\+\s*icoon\('auto', \{ maat: 16/.test(hp) && /function setVehMeterIcon/.test(hp), 'de voertuigbalk heeft een voertuigicoon dat het soort volgt');
+ok(/#hud \.hud-meter \.hud-meter-ic \{ flex: 0 0 16px; width: 16px; height: 16px;/.test(src('game/js/hud_panel.css')) && /#hud \.hud-meter \.hud-bar \{ width: 159px; \}/.test(src('game/js/hud_panel.css')), 'de iconen zijn 16 px en de balken lijnen uit (159 px)');
+
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

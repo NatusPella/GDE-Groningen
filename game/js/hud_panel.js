@@ -276,10 +276,10 @@ export function initHud(world) {
           '<span class="hud-chip drunk" role="status" hidden>' + icoon('dorst') + 'Aangeschoten</span>' +
           '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
         '</div></div>' +
-        '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
-        '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
-        '<div class="hud-meter st" hidden role="meter" aria-label="Uithoudingsvermogen" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-fill stamina"></div></div></div>' +
-        '<div class="hud-meter veh" hidden role="meter" aria-label="Staat van het voertuig" aria-valuemin="0" aria-valuemax="100"><span class="veh-name"></span><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill vehicle"></div></div></div>' +
+        '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100">' + icoon('hart_vol', { maat: 16, cls: 'hud-meter-ic' }) + '<div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
+        '<div class="hud-meter ar" hidden role="meter" aria-label="Pantser" aria-valuemin="0" aria-valuemax="100">' + icoon('schild', { maat: 16, cls: 'hud-meter-ic' }) + '<div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
+        '<div class="hud-meter st" hidden role="meter" aria-label="Uithoudingsvermogen" aria-valuemin="0" aria-valuemax="100"><span class="hud-meter-ic" aria-hidden="true"></span><div class="hud-bar"><div class="hud-bar-fill stamina"></div></div></div>' +
+        '<div class="hud-meter veh" hidden role="meter" aria-label="Voertuig" aria-valuemin="0" aria-valuemax="100">' + icoon('auto', { maat: 16, cls: 'hud-meter-ic veh-ic' }) + '<span class="veh-name"></span><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill vehicle"></div></div></div>' +
       '</div>' +
     '</div>';
   fcol.appendChild(topLeft);
@@ -593,6 +593,7 @@ function updateVehicleName(dt, world) {
       vehNameTimer = 0;
     }
   }
+  setVehMeterIcon(v);
   els.vehRow.classList.toggle('no-label', vehicleLabelOwner({ nameCardVisible: vehNameTimer > 0 }) === 'card');
   if (vehNameTimer > 0) {
     vehNameTimer -= dt;
@@ -1075,6 +1076,15 @@ function setPortrait(img, ch, keyField) {
     img.src = url;
     img.classList.add('on');
   }, { angle: PORTRAIT_ANGLE, keep: true });
+}
+
+// #985: the vehicle meter's icon follows the kind of vehicle (car, bike, boat, plane, scooter), like the name card on the right
+function setVehMeterIcon(v) {
+  const naam = !v ? 'auto' : v.isPlane || v.isHeli ? 'vliegtuig' : v.isBoat ? 'boot' : v._mount === 'horse' ? 'auto' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'auto';
+  if (els.vehIcKey === naam) return;
+  els.vehIcKey = naam;
+  const el = els.vehRow.querySelector('.veh-ic');
+  if (el) el.outerHTML = icoon(naam, { maat: 16, cls: 'hud-meter-ic veh-ic' });
 }
 
 // "Tessa rijdt mee": the companion for screen readers only (hud-mate-txt is visually hidden). The card shows one character, the one you play

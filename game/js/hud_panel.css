@@ -268,6 +268,10 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-meter { display: flex; align-items: center; gap: 8px; margin: 0; }
 #hud .hud-meter[hidden] { display: none; }
 #hud .hud-meter b { display: none; }
+/* #985: elke balk heeft een icoon van 16 px ervoor (hart, schild, voertuig; de uithoudingsbalk een lege plek), zodat de balken uitlijnen */
+#hud .hud-meter .hud-meter-ic { flex: 0 0 16px; width: 16px; height: 16px; color: var(--hud-inkt-zacht, rgba(240, 237, 228, 0.75)); }
+#hud .hud-meter .hud-bar { width: 159px; }
+#hud .hud-meter.veh .veh-name { display: none; }
 #hud .hud-bar { position: relative; width: 183px; height: 7px; background: rgba(255, 255, 255, 0.14); border-radius: 4px; overflow: hidden; }
 #hud .hud-bar-fill { position: relative; height: 100%; transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
 #hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255, 255, 255, 0.4); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
@@ -278,7 +282,6 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-meter.st .hud-bar { height: 3px; }
 #hud .hud-bar-fill.stamina { background: #f0ede4; opacity: 0.7; width: 100%; }
 #hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-meter.veh .hud-bar { width: 121px; }
 #hud .hud-meter.veh.no-label .veh-name { visibility: hidden; }
 #hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, #d93f3f, #f07a5a); }
 #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
