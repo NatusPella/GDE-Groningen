@@ -6,6 +6,7 @@ const B = await import('../game/js/boerderij.js');
 const PC = await import('../game/js/percelen.js');
 const S = await import('../game/js/farmstatus.js');
 const K = await import('../game/js/farmcards.js');
+const BM = await import('../game/js/boerderijmodel.js');
 const H = await import('../game/js/farmhud.js');
 const Live = await import('../game/js/boerderijlive.js');
 const PM = await import('../game/js/perceelmap.js');
@@ -100,12 +101,12 @@ t('veldkaarten: status, voortgang en de ene knop; de uitleg verdwijnt na Begrepe
   const b2 = B.nieuweBoerderij();
   B.rondTaakAf(b2, 'ploegen', 1, { vrij: true }); B.rondTaakAf(b2, 'zaaien', 1, { gewas: 'aardappelen', vrij: true }); B.tikUren(b2, 5);
   const html = K.kaartenBlok(b2);
-  assert.doesNotMatch(html, /class="ds-kaart bd-veld"/, 'één veld: geen tweede kaart met dezelfde gegevens'); assert.match(html, /bd-nu/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
+  assert.match(html, /class="ds-kaart bd-veld"/, 'elk veld is een kaart (#1013)'); assert.match(html, /bd-nu/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
   assert.equal((html.match(/class="ds-knop"/g) || []).length, 1, 'één gele hoofdknop');
   assert.match(html, /data-bd-naar=/);
   assert.match(html, /<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary/); assert.doesNotMatch(html, /data-bd-uitleg/, 'geen losse Begrepen-knop meer');
-  const st = S.veldStatus(b2, b2.bedrijf.actief);
-  assert.match(K.veldKaartHtml(st), /class="ds-kaart bd-veld"/, 'de veldkaart zelf blijft voor meerdere velden');
+  const kk = BM.veldKaart(b2, b2.bedrijf.actief);
+  assert.match(K.veldKaartHtml(kk), /class="ds-kaart bd-veld"/, 'de veldkaart zelf');
 });
 
 t('HUD-model: voortgang, snelheid in de band, diesel laag en wat nu', () => {
