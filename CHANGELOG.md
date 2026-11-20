@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De wereld heeft een stap gezet richting het designsysteem, subtiel: gevels, straatstenen en stoepen een warmere papiertoon, gras en bomen gedempter en consistenter richting bordgroen, het water een rustiger inktblauwgroen en bijna zwart wordt inkt. Wegen, stoepen en gevaren houden hun contrast en herkenbare plekken blijven herkenbaar. De minikaart en de kaart volgen de wereld. Het verschil is te vergelijken met `?dswereld=0` (oud) en `?dswereld=1` (volledig).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
