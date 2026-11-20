@@ -21,6 +21,7 @@ const KEEP = {
   'cutpreviewui.js': 'game/cutpreview.html is een meegeleverde ontwikkelpagina',
   'routeribbon.js': 'wordt via game/js/scene3d/routeribbon3d.js gebruikt sinds de splitsing (#497)',
   'musicwatch.js': 'wordt via game/js/audio/radio.js gebruikt sinds de splitsing (#497)',
+  'routeribbonwatch.js': 'wordt via game/js/scene3d/routeribbon3d.js gebruikt (de route-waakhond)',
 };
 
 // Het rapport gaat via een tijdelijk bestand, niet via stdout: op de Linux-runner kwam de pijp
