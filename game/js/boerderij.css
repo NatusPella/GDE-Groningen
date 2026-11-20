@@ -1,0 +1,41 @@
+/* De boerderij (#985): HUD-strook, veldkaarten, lus en legenda. Dun en makkelijk te herstylen: alleen ds-tokens (var(--ds-...)), geen eigen kleuren of maten,
+   klassen met het voorvoegsel bd-. Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. */
+
+/* ---- HUD-strook tijdens het werk (zone C, net als het paneel van een activiteit) ---- */
+.bd-hud { position: fixed; left: 50%; bottom: max(13vh, calc(var(--ds-s-8) + var(--ds-s-4))); transform: translateX(-50%); z-index: 6; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6)));
+  gap: var(--ds-s-2); pointer-events: none; }
+.bd-hud[hidden] { display: none; }
+.bd-hud__kop { display: flex; align-items: center; gap: var(--ds-s-3); }
+.bd-hud__taak { flex: 1; }
+.bd-hud__rij { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); align-items: center; }
+.bd-hud__snel { display: flex; flex-direction: column; gap: var(--ds-s-1); }
+.bd-hud__baan { position: relative; display: block; height: var(--ds-s-2); border-radius: var(--ds-r-pil); background: var(--ds-bg-2); overflow: hidden; }
+.bd-hud__zone { position: absolute; top: 0; bottom: 0; left: var(--a, 0%); width: calc(var(--b, 0%) - var(--a, 0%)); background: var(--ds-succes); }
+.bd-hud__naald { position: absolute; top: 0; bottom: 0; left: var(--n, 0%); width: var(--ds-s-1); background: var(--ds-tx); transition: left var(--ds-m-snel) var(--ds-ease); }
+.bd-hud[data-snelheid="te"] .bd-hud__naald { background: var(--ds-probleem); }
+.bd-hud[data-snelheid="lang"] .bd-hud__naald { background: var(--ds-waarschuwing); }
+.bd-hud__lading { grid-column: 1 / -1; }
+.bd-hud__nu { margin: 0; }
+.bd-hud__pop { position: absolute; right: var(--ds-s-5); top: calc(-1 * var(--ds-s-6)); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
+.bd-hud__pop:empty { display: none; }
+.bd-pop { animation: bd-pop calc(var(--ds-m-max) * 3) var(--ds-ease) both; }
+.bd-pop-stil { opacity: 1; }
+@keyframes bd-pop { 0% { opacity: 0; transform: translateY(var(--ds-s-3)); } 15% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--ds-s-4))); } }
+@media (prefers-reduced-motion: reduce) { .bd-pop { animation: none; opacity: 1; } .bd-hud__naald { transition: none; } }
+
+/* ---- Paneel: veldkaarten, lus en legenda ---- */
+.bd-velden { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 4), 1fr)); gap: var(--ds-s-3); }
+.bd-veld { gap: var(--ds-s-2); }
+.bd-veld[data-status="rijp"] { --ds-kaart-rand: var(--ds-primair); }
+.bd-veld[data-status="braak"], .bd-veld[data-status="stoppel"] { --ds-kaart-rand: var(--ds-rand); }
+.bd-veld[data-status="zaailing"], .bd-veld[data-status="groeiend"], .bd-veld[data-status="bijna"] { --ds-kaart-rand: var(--ds-succes); }
+.bd-veld[data-status="geploegd"] { --ds-kaart-rand: var(--ds-waarschuwing); }
+.bd-veld__nu { margin: 0; }
+.bd-lus { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); list-style: none; margin: 0; padding: 0; }
+.bd-lus > li { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.bd-lus > li[data-stand="klaar"] .ds-chip { --ds-chip-bg: var(--ds-succes-vlak); --ds-chip-tx: var(--ds-succes-tx); }
+.bd-lus > li[data-stand="nu"] .ds-chip { --ds-chip-bg: var(--ds-primair); --ds-chip-tx: var(--ds-primair-tx); }
+.bd-legenda { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; }
+.bd-legenda > li { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.bd-uitleg { display: flex; gap: var(--ds-s-4); align-items: flex-start; }
+.bd-uitleg ol { margin: 0; padding-left: var(--ds-s-5); }

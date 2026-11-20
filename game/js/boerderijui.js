@@ -14,6 +14,7 @@ import { wgsToWorld } from './rdnew.js';
 import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 import { koopVraag, tweedeDruk } from './tweedruk.js';
+import { kaartenBlok, zetUitlegGezien } from './boerderijkaarten.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -94,20 +95,17 @@ function perceel(b, geld) {
     `<p class="mut">${waar}</p></div>` +
     (gast ? `<p class="mut">Je speelt mee in het spel van een ander: de klussen op het land doe je in je eigen spel. Je gewas groeit ondertussen door, en gewassen kiezen en machines kopen kan hier wel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
       : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen, of start de bijbaan Eigen boerderij bij Hoogkerk voor loonwerk met een gehuurde machine.</p>`) +
-    veldenBlok(b) + loonwerkBlok(b, geld, gast);
+    kaartenBlok(b) + loonwerkBlok(b, geld, gast);
 }
 
-// Alle percelen van jou met hun stand, en wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).
-const FASE_KORT = { braak: 'braak', geploegd: 'geploegd', groeit: 'groeit', rijp: 'rijp' };
-function veldenBlok(b) {
-  const rijen = B.veldenOverzicht(b).map((v) => {
-    const d = PC.perceelDef(v.id), actief = v.id === b.bedrijf.actief;
-    const g = B.GEWASSEN[v.gewas];
-    const bk = b.boek.velden[v.id];
-    const feiten = [esc(FASE_KORT[v.fase] || v.fase), g ? `${esc(g.naam.toLowerCase())}${v.fase === 'groeit' ? ` ${Math.round(v.groei * 100)}%` : ''}` : '', B.uitputting(b, v.id) > 0.01 ? `grond ${Math.round((1 - B.uitputting(b, v.id)) * 100)}%` : '', bk ? `${nl(bk.kg)} kg geoogst` : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${actief ? ' · werkt hier' : ''}<span class="bd-feiten">${feiten}</span></span></div>`;
-  }).join('');
-  return `<div><p class="lb-titel"><b>Je percelen</b></p>${rijen}</div>`;
+// De velden van jou staan als kaarten (boerderijkaarten.js). Hieronder wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).
+// De plek van een veld: de gevonden rijen als ze er zijn, anders de plek van het perceel op de kaart.
+function veldPlek(id) {
+  const p = B.veldPositie(getBoerderij(), id);
+  if (p && Number.isFinite(p.x)) return { x: p.x, y: p.y };
+  const d = PC.perceelDef(id);
+  const [x, y] = wgsToWorld(d.lat, d.lon);
+  return { x, y };
 }
 
 function loonwerkBlok(b, geld, gast) {
@@ -430,12 +428,16 @@ export function renderBoerderijPanel(el, world) {
       const g = e.target.closest('[data-bd-gewas]');
       const k = e.target.closest('[data-bd-koop]');
       const w = e.target.closest('[data-bd-weg]');
+      const naar = e.target.closest('[data-bd-naar]');
+      const uitleg = e.target.closest('[data-bd-uitleg]');
       const pc = e.target.closest('[data-pc]');
       const mc = e.target.closest('[data-mc]');
       if (mc && !tweedeDrukStap(mc.dataset)) opnieuw();
       else if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (pc && !tweedeDrukStap(pc.dataset)) opnieuw();
       else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      else if (uitleg) { zetUitlegGezien(); opnieuw(); }
+      else if (naar) { const q = veldPlek(naar.dataset.bdNaar); setUserWaypoint(q.x, q.y, PC.perceelDef(naar.dataset.bdNaar).naam); if (world && world.addMessage) world.addMessage('Het veld staat op je kaart.', 3); }
       else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
       else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }

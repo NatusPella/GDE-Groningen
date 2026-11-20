@@ -59,6 +59,9 @@ export const MISC_REKWISIETEN = 8, MISC_REKWISIETEN2 = 9, MISC_DOELEN = 10;
 // #525: de duif van de gastheer. Waar de duif van de duifmodus vliegt of staat, zodat een gast hem ziet vliegen;
 // ook dit is een nieuwe tag, dus een oudere gast slaat hem over (zelfde formaat, geen nieuwe versie).
 export const MISC_DUIF = 11;
+// #985: de velden van de boerderij van de gastheer (status, gewas en groei per veld, 12 bytes per veld): een gast ziet hetzelfde veld. Nieuwe tag, dus
+// een oudere gast slaat hem over (zelfde formaat, geen nieuwe versie). Het veld is van wie het spel opende; wat de gast doet is zijn eigen spel (#429).
+export const MISC_VELDEN = 12;
 
 const u8 = (v, lo = 0, hi = 255) => Math.min(hi, Math.max(lo, Math.round(v) | 0));
 const hexNaarRgb = (h, d) => {
@@ -159,6 +162,9 @@ export function verzamelExtra(world, bij, geheugen, deps = {}) {
   const dd = verzamelDoelen(bij, deps.doelen); st(MISC_DOELEN, codeerDoelen(dd), !dd.length);
   // de duif van de gastheer (#525): zolang hij vliegt of staat; anders een leeg stukje, dat hem bij de gast opruimt
   if (deps.duif) { const db = codeerDuif(deps.duif(bij)); st(MISC_DUIF, db || new Uint8Array(0), !db); }
+  // de velden van de boerderij van de gastheer (#985): een leeg stukje ruimt ze bij de gast op
+  const vl = verzamelVelden(bij);
+  st(MISC_VELDEN, codeerVelden(vl), !vl.length);
   geheugen.n++;
   return uit;
 }
@@ -548,7 +554,9 @@ const REKW_KOP = 9, REKW_ITEM = 11, REKW_MAX_BYTES = 255;
 const rekwBronnen = new Map(), doelBronnen = new Map();
 export function registreerRekwisieten(naam, fn) { if (typeof fn === 'function') rekwBronnen.set(naam, fn); else rekwBronnen.delete(naam); }
 export function registreerDoelen(naam, fn) { if (typeof fn === 'function') doelBronnen.set(naam, fn); else doelBronnen.delete(naam); }
-export const wisRegistratie = () => { rekwBronnen.clear(); doelBronnen.clear(); };
+const veldBronnen = new Map();
+export function registreerVelden(naam, fn) { if (typeof fn === 'function') veldBronnen.set(naam, fn); else veldBronnen.delete(naam); }
+export const wisRegistratie = () => { rekwBronnen.clear(); doelBronnen.clear(); veldBronnen.clear(); };
 
 // bronnen: functie, Map of object naam -> fn (standaard het register); een bron die faalt, telt niet mee
 export function verzamelRekwisieten(bij, bronnen = null) {
@@ -663,6 +671,35 @@ export function leesDuif(b) {
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) return null;
   return { x, y, z, hoek: byteHoek(v.getUint8(12)), soort: DUIF_SOORTEN[v.getUint8(13)] || 'fly' };
 }
+
+// ---- #985: de velden van de boerderij. Per veld 12 bytes: x en y (float32), hoek (byte), status, gewas en groei (byte, 0..255). Hoogstens MAX_VELDEN.
+export const MAX_VELDEN = 6, VELD_BYTES = 12, VELD_RADIUS = 320;
+export function verzamelVelden(bij) {
+  const uit = [];
+  for (const fn of veldBronnen.values()) { try { for (const v of fn(bij) || []) if (v && Number.isFinite(v.x) && Number.isFinite(v.y) && dichtbij(bij, v.x, v.y) <= VELD_RADIUS) uit.push(v); } catch (e) { /* een bron die faalt telt niet mee */ } }
+  return uit.slice(0, MAX_VELDEN);
+}
+export function codeerVelden(lijst) {
+  const l = (lijst || []).slice(0, MAX_VELDEN);
+  const b = new Uint8Array(l.length * VELD_BYTES); const v = new DataView(b.buffer);
+  l.forEach((q, i) => {
+    const o = i * VELD_BYTES;
+    v.setFloat32(o, q.x); v.setFloat32(o + 4, q.y); v.setUint8(o + 8, hoekByte(q.a || 0));
+    v.setUint8(o + 9, Math.max(0, Math.min(255, q.s | 0))); v.setUint8(o + 10, Math.max(0, Math.min(255, q.g | 0))); v.setUint8(o + 11, Math.max(0, Math.min(255, q.f | 0)));
+  });
+  return b;
+}
+export function leesVelden(b) {
+  if (!(b instanceof Uint8Array) || b.length % VELD_BYTES !== 0 || b.length > MAX_VELDEN * VELD_BYTES) return [];
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength), uit = [];
+  for (let o = 0; o < b.length; o += VELD_BYTES) {
+    const x = v.getFloat32(o), y = v.getFloat32(o + 4);
+    if (Number.isFinite(x) && Number.isFinite(y)) uit.push({ x, y, a: byteHoek(v.getUint8(o + 8)), s: v.getUint8(o + 9), g: v.getUint8(o + 10), f: v.getUint8(o + 11) });
+  }
+  return uit;
+}
+// De velden van de gastheer zoals de gast ze nu kent (leeg zonder vers stukje)
+export function standVelden(stand, nu) { const m = versStuk(stand, MISC_VELDEN, nu); return m ? (m.velden || (m.velden = leesVelden(m.data))) : []; }
 
 // De doelen van de lopende opdracht (world.mission): het doel zelf en de controlepunten die nog te gaan zijn
 export function doelenVan(m) {

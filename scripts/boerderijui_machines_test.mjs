@@ -73,7 +73,7 @@ t('de loonwerker bij Perceel: knoppen met de prijs, de klus wordt gedaan, een le
   klik({ mc: 'loon', taak: 'ploegen' });
   assert.match(el.innerHTML, /ploegen gedaan \(85%\)/);
   assert.match(el.innerHTML, /data-mc="loon" data-taak="cultiveren"/); assert.match(el.innerHTML, /data-mc="loon" data-taak="zaaien"/);
-  assert.match(el.innerHTML, /Je percelen/); assert.match(el.innerHTML, /Akker De Zonnehoek/);
+  assert.match(el.innerHTML, /Legenda van de kaart/); assert.match(el.innerHTML, /Akker De Zonnehoek/);
   klik({ mc: 'loon', taak: 'zaaien' });
   assert.equal(B.fase(Live.getBoerderij()), 'groeit');
   B.tikUren(Live.getBoerderij(), 100);

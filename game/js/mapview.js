@@ -1661,11 +1661,15 @@ function drawDynamicMarkers(ctx, world) {
     ctx.beginPath();
     v.punten.forEach(([x, y], i) => { const [sx, sy] = toScreen(x, y); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
     ctx.closePath();
-    ctx.fillStyle = inkA('greenLight', hoverVeld ? 0.3 : 0.14);
+    // #985: de kleur, het lijnpatroon en de letter volgen de status van het veld (perceelmap.js: veldStijl); zonder stijl blijft het groen
+    const st = v.stijl || { vul: 'greenLight', rand: 'greenLight', dash: [], letter: '' };
+    ctx.fillStyle = inkA(st.vul, hoverVeld ? 0.3 : 0.18);
     ctx.fill();
     ctx.lineWidth = (hoverVeld ? 3.4 : 2.2) * Math.min(2, Math.max(1, state.zoom || 1));
-    ctx.strokeStyle = inkA('greenLight', hoverVeld ? 1 : 0.8);
+    ctx.strokeStyle = inkA(st.rand, hoverVeld ? 1 : 0.85);
+    ctx.setLineDash(st.dash);
     ctx.stroke();
+    ctx.setLineDash([]);
     // akkerstrepen, zodat het vlak als land leest en niet als een gekleurd blok
     const [a, b, c, d] = v.punten.map(([x, y]) => toScreen(x, y));
     ctx.beginPath();
@@ -1675,8 +1679,9 @@ function drawDynamicMarkers(ctx, world) {
       ctx.lineTo(d[0] + (c[0] - d[0]) * f - (a[0] - d[0]) * 0.08, d[1] + (c[1] - d[1]) * f - (a[1] - d[1]) * 0.08);
     }
     ctx.lineWidth = 1 * Math.min(2, Math.max(1, state.zoom || 1));
-    ctx.strokeStyle = inkA('greenLight', hoverVeld ? 0.75 : 0.45);
+    ctx.strokeStyle = inkA(st.rand, hoverVeld ? 0.75 : 0.45);
     ctx.stroke();
+    if (st.letter) tekenVeldLabel(ctx, v, st, a, c, toScreen);
     ctx.restore();
   }
   // de OV-lijnen van de bestemming waar de kaartkaart open voor staat (#97)
@@ -1900,6 +1905,17 @@ function drawDynamicMarkers(ctx, world) {
 // A GPS line over the whole route, thick enough to read at every
 // zoom level; without a road route (boat, off the network) a dashed line
 // points straight at the destination instead.
+// #985: de statusletter en het woord in het midden van je veld, zodat kleur nooit de enige betekenis is.
+function tekenVeldLabel(ctx, v, st, a, c, toScreen) {
+  const mx = (a[0] + c[0]) / 2, my = (a[1] + c[1]) / 2;
+  const px = 11 * Math.min(1.6, Math.max(1, state.zoom || 1));
+  ctx.font = `700 ${px}px 'Bebas Neue', sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 3; ctx.strokeStyle = inkA('dark', 0.85); ctx.strokeText(st.letter, mx, my);
+  ctx.fillStyle = inkA(st.vul, 1); ctx.fillText(st.letter, mx, my);
+  if (v.statusNaam && (state.zoom || 1) >= 1.2) { ctx.font = `600 ${Math.round(px * 0.8)}px sans-serif`; ctx.strokeText(v.statusNaam, mx, my + px); ctx.fillStyle = inkA('cream', 1); ctx.fillText(v.statusNaam, mx, my + px); }
+}
+
 function drawFullRoute(ctx, world, t, route) {
   if (!route) return;
   const ik = hoofdspeler(world);
@@ -2525,6 +2541,7 @@ const LEGEND = [
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
     { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou (met omtrek en hover); klik voor een doel', layers: ['percelen'] },
+    { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (geel: dat is je doel)', layers: ['percelen'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
   ] },
   { group: 'Diensten', folded: true, rows: [

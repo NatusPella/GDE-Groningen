@@ -25,6 +25,12 @@ import * as WT from './werktuigen.js';
 import * as W3 from './werktuigen3d.js';
 import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, zetActief, leverLading } from './boerderijlive.js';
 import { loopbaanDeel } from './loopbaanlive.js';
+import { reducedMotion } from './motion.js';
+import { registreerVelden, standVelden } from './coopextra.js';
+import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX } from './boerderijstatus.js';
+import { plantGeometrie, plantMateriaal, stoppelGeometrie, voorGeometrie } from './boerderijgewas3d.js';
+import { maakVeldMarker, tikVeldMarker } from './boerderijmarker3d.js';
+import { boerderijHudKlaar, boerderijHudTik } from './boerderijhud.js';
 
 export const SPAWN_R = 230;            // zo dichtbij worden erf, machines en velden gebouwd
 export const DESPAWN_R = 330;          // zo ver weg gaan ze weer weg
@@ -48,6 +54,8 @@ export function resetBoerderijWereld() {
   for (const e of S.erfMeshes.values()) ruimGroep(e);
   for (const v of S.velden.values()) ruimVeld(v);
   for (const w of S.werktuigen.values()) W3.ruimWerktuig(w.group);
+  for (const e of gastVelden.values()) ruimVeld(e.veld);
+  gastVelden.clear();
   S = nieuweStaat();
 }
 
@@ -451,16 +459,17 @@ function streepTextuur() {
   return streepTex;
 }
 
-const sleutelVan = (b, id) => { const v = B.veldStand(b, id); return [v.fase, v.gewas, Math.round(Math.min(1, v.gezaaidOp == null ? 0 : (b.uren - v.gezaaidOp) / (B.GEWASSEN[v.gewas] ? B.GEWASSEN[v.gewas].groeiUren : 1)) * 10), v.cult > 0 ? 1 : 0, v.spuit > 0 ? 1 : 0, v.mest > 0 ? 1 : 0].join('|'); };
+const sleutelVan = (b, id) => { const v = B.veldStand(b, id); return [v.fase, v.gewas, Math.round(Math.min(1, v.gezaaidOp == null ? 0 : (b.uren - v.gezaaidOp) / (B.GEWASSEN[v.gewas] ? B.GEWASSEN[v.gewas].groeiUren : 1)) * 10), v.cult > 0 ? 1 : 0, v.spuit > 0 ? 1 : 0, v.mest > 0 ? 1 : 0, v.stoppel || ''].join('|'); };
 
-function bouwVeldMesh(w, id, pos, b) {
+function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld van de gastheer bij een gast (uren en stand), anders uit je eigen boerderij
   wisGrasBijVeld(id, pos);
   const rijen = akkerRijen({ x: pos.x, y: pos.y }, pos.a);
-  const stand = B.veldStand(b, id);
+  const stand = sv ? sv.stand : B.veldStand(b, id);
+  const uren = sv ? sv.uren : b.uren;
   const group = new THREE.Group();
   group.name = 'boerderijveld-' + id;
   const werk = S.werk && S.werk.id === id ? S.werk.werk : null;
-  const cellen = new THREE.InstancedMesh(new THREE.PlaneGeometry(WT.CEL, RIJ_AFSTAND), new THREE.MeshLambertMaterial({ map: streepTextuur() }), RIJEN * WT.CELLEN);
+  const cellen = new THREE.InstancedMesh(new THREE.PlaneGeometry(WT.CEL, RIJ_AFSTAND), new THREE.MeshLambertMaterial({ map: streepTextuur(), polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), RIJEN * WT.CELLEN);
   const q = new THREE.Quaternion(), m = new THREE.Matrix4(), sc = new THREE.Vector3(1, 1, 1), p3 = new THREE.Vector3();
   rijen.forEach((r, ri) => {
     q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, -Math.atan2(r.uy, r.ux)));
@@ -480,26 +489,55 @@ function bouwVeldMesh(w, id, pos, b) {
   for (const [x, y] of [[rijen[0].ax, rijen[0].ay], [rijen[RIJEN - 1].ax, rijen[RIJEN - 1].ay], [rijen[0].bx, rijen[0].by], [rijen[RIJEN - 1].bx, rijen[RIJEN - 1].by]]) {
     const pm = new THREE.Mesh(paal, palenMat); pm.position.set(x, grond(w, x, y) + 0.85, y); group.add(pm);
   }
-  // het gewas
-  let planten = null;
+  // de voren (geploegd en cultiveren), het gewas per stadium en het stoppelveld: allemaal InstancedMesh, per cel te tonen of te verbergen (#985)
   const g = B.GEWASSEN[stand.gewas];
+  const statusId = statusIdVan(stand, uren);
+  const lijnen = g && g.vorm === 'halm' && stand.gewas !== 'gras' ? [-2.6, -0.9, 0.9, 2.6] : [-2.2, 0, 2.2];
+  const per = Math.floor(RIJ_LEN / 2.5);
+  const yaw = new THREE.Quaternion(), asY = new THREE.Vector3(0, 1, 0);
+  const hash = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
+  // voren: vijf lage ruggen per cel in elke rij; zichtbaar op een geploegd veld en terwijl je ploegt, kleiner onder een jong gewas
+  const vBanen = 5;
+  const voren = new THREE.InstancedMesh(voorGeometrie(WT.CEL), new THREE.MeshLambertMaterial({ vertexColors: true, color: 0x4a321b, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }), RIJEN * WT.CELLEN * vBanen);
+  const vorenItems = [];
+  {
+    const toon = stand.fase === 'geploegd' || (stand.fase === 'gezaaid' && stadiumVan(Math.min(1, Math.max(0, (uren - stand.gezaaidOp) / (g ? g.groeiUren : 1)))) === 0);
+    const hoogS = stand.fase === 'geploegd' ? 1 : 0.55;
+    rijen.forEach((r, ri) => {
+      const nx = -r.uy, ny = r.ux, hoek = Math.atan2(r.uy, r.ux);
+      q.setFromEuler(new THREE.Euler(0, -hoek, 0));
+      for (let c = 0; c < WT.CELLEN; c++) {
+        const along = (c + 0.5) * WT.CEL;
+        for (let k = 0; k < vBanen; k++) {
+          const off = (k - 2) * 1.35, x = r.ax + r.ux * along + nx * off, y = r.ay + r.uy * along + ny * off;
+          const n = (ri * WT.CELLEN + c) * vBanen + k;
+          vorenItems.push({ n, ri, cel: c, x, y, q: q.clone() });
+          if (toon) { p3.set(x, grond(w, x, y), y); m.compose(p3, q, sc.set(1, hoogS, 1)); voren.setMatrixAt(n, m); } else voren.setMatrixAt(n, NUL);
+        }
+      }
+    });
+    sc.set(1, 1, 1);
+  }
+  voren.instanceMatrix.needsUpdate = true;
+  group.add(voren);
+  // het gewas: de vorm hangt van gewas en stadium af (boerderijgewas3d.js); de plantjes staan op vaste plekken in de rij
+  let planten = null;
   if (stand.fase === 'gezaaid' && g) {
-    const gr = Math.min(1, Math.max(0, (b.uren - stand.gezaaidOp) / g.groeiUren));
-    const geo = g.vorm === 'kegel' ? new THREE.ConeGeometry(0.34, 0.55, 6) : g.vorm === 'halm' ? new THREE.ConeGeometry(0.16, 0.8, 5) : new THREE.IcosahedronGeometry(0.4, 0);
-    const hoogte = g.vorm === 'kegel' ? 0.5 : g.vorm === 'halm' ? 0.8 : 0.55;
-    const per = Math.floor(RIJ_LEN / 2.5), lijnen = [-2.2, 0, 2.2];
-    const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: tmpKleur.setHex(g.jong).lerp(new THREE.Color(g.rijp), gr).getHex() }), RIJEN * per * lijnen.length);
+    const gr = Math.min(1, Math.max(0, (uren - stand.gezaaidOp) / g.groeiUren));
+    const stad = stadiumVan(gr);
+    const frac = stad === 3 ? 1 : (gr - stad / 3) * 3;
+    const mesh = new THREE.InstancedMesh(plantGeometrie(stand.gewas, g, stad), plantMateriaal(), RIJEN * per * lijnen.length);
     const items = [];
     let n = 0;
-    const s = 0.25 + 0.75 * gr;
-    const qq = new THREE.Quaternion();
+    const s = 0.85 + 0.15 * Math.max(0, Math.min(1, frac));
     rijen.forEach((r, ri) => {
       const nx = -r.uy, ny = r.ux;
       for (const off of lijnen) {
         for (let i = 0; i < per; i++) {
           const along = (i + 0.5) * 2.5, x = r.ax + r.ux * along + nx * off, y = r.ay + r.uy * along + ny * off;
-          p3.set(x, grond(w, x, y) + hoogte * s * 0.5 + 0.05, y);
-          m.compose(p3, qq, sc.set(s, s, s));
+          yaw.setFromAxisAngle(asY, hash(n + 1) * 6.28);
+          p3.set(x, grond(w, x, y) + 0.05, y);
+          m.compose(p3, yaw, sc.set(s, s * (0.9 + 0.2 * hash(n + 7)), s));
           mesh.setMatrixAt(n, m);
           items.push({ n, ri, cel: Math.min(WT.CELLEN - 1, Math.floor(along / WT.CEL)), x, y, weg: false });
           n++;
@@ -511,13 +549,41 @@ function bouwVeldMesh(w, id, pos, b) {
     planten = { mesh, items };
     group.add(mesh);
   }
+  // het stoppelveld: na het oogsten blijft het staan tot je ploegt; tijdens het oogsten verschijnt het per cel achter de maaidorser
+  const stopItems = [];
+  const stopMesh = new THREE.InstancedMesh(stoppelGeometrie(), plantMateriaal(), RIJEN * per * 3);
+  {
+    let n = 0;
+    rijen.forEach((r, ri) => {
+      const nx = -r.uy, ny = r.ux;
+      for (const off of [-2.2, 0, 2.2]) {
+        for (let i = 0; i < per; i++) {
+          const along = (i + 0.5) * 2.5, x = r.ax + r.ux * along + nx * off, y = r.ay + r.uy * along + ny * off;
+          yaw.setFromAxisAngle(asY, hash(n + 3) * 6.28);
+          p3.set(x, grond(w, x, y) + 0.05, y);
+          m.compose(p3, yaw, sc.set(1.4, 1, 1.4));
+          stopItems.push({ n, ri, cel: Math.min(WT.CELLEN - 1, Math.floor(along / WT.CEL)), mat: m.clone() });
+          stopMesh.setMatrixAt(n, statusId === 'stoppel' ? m : NUL);
+          n++;
+        }
+      }
+    });
+    sc.set(1, 1, 1);
+  }
+  stopMesh.instanceMatrix.needsUpdate = true;
+  group.add(stopMesh);
+  // de markering op de hoek van het veld: vlag in de kleur van de status, vorm bovenop, een lichtkolom bij oogstklaar
+  const hoekPunt = { x: rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, y: rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4 };
+  const marker = maakVeldMarker(statusId, hoekPunt.x, hoekPunt.y, grond(w, hoekPunt.x, hoekPunt.y));
+  group.add(marker.group);
   sceneAdd(group);
-  return { id, pos, rijen, group, cellen, planten, sleutel: sleutelVan(b, id), werkRef: werk, vuil: false };
+  return { id, w, pos, rijen, group, cellen, planten, voren, vorenItems, stopMesh, stopItems, marker, sleutel: sv ? sv.sleutel : sleutelVan(b, id), werkRef: werk, vuil: false };
 }
 
 function ruimVeld(v) { if (v) ruimGroep(v.group); }
 
 const NUL = new THREE.Matrix4().makeScale(0, 0, 0);
+const m4 = new THREE.Matrix4(), p4 = new THREE.Vector3(), sc1 = new THREE.Vector3(1, 1, 1);
 
 function syncVelden(w) {
   const b = getBoerderij(), bd = b.bedrijf, p = hoofdspeler(w);
@@ -546,6 +612,8 @@ function celKlaar(veld, ri, c, b) {
   const werk = S.werk && S.werk.id === veld.id ? S.werk.werk : null;
   veld.cellen.setColorAt(ri * WT.CELLEN + c, tmpKleur.setHex(kleurVan(B.veldStand(b, veld.id), werk, ri, c)));
   veld.vuil = true;
+  if (werk && werk.taak === 'ploegen') { for (const it of veld.vorenItems) if (it.ri === ri && it.cel === c) { p4.set(it.x, grond(veld.w, it.x, it.y), it.y); m4.compose(p4, it.q, sc1.set(1, 1, 1)); veld.voren.setMatrixAt(it.n, m4); } veld.voren.instanceMatrix.needsUpdate = true; }
+  if (werk && werk.taak === 'oogsten') { for (const it of veld.stopItems) if (it.ri === ri && it.cel === c) veld.stopMesh.setMatrixAt(it.n, it.mat); veld.stopMesh.instanceMatrix.needsUpdate = true; }
   if (veld.planten && werk && werk.taak === 'oogsten') {
     for (const it of veld.planten.items) if (!it.weg && it.ri === ri && it.cel === c) { veld.planten.mesh.setMatrixAt(it.n, NUL); it.weg = true; }
     veld.planten.mesh.instanceMatrix.needsUpdate = true;
@@ -642,6 +710,7 @@ function werkStapWereld(dt, w, v, rig, m, imp, gast = false) {
       if (gast && w.coopDeel) w.coopDeel(M.loonwerkKosten(taak, PC.perceelDef(id).ha), loopbaanDeel('landbouw', M.loonwerkKosten(taak, PC.perceelDef(id).ha), 8));
       S.werk = null;
       bericht(w, (WERK_TEKST[taak] || (() => 'Klaar.'))(f, uit), 6);
+      boerderijHudKlaar(taak, f, uit);
       if (veld) veld.sleutel = null;
       return;
     }
@@ -683,6 +752,8 @@ export function updateBoerderijWereld(dt, w) {
     lading(dt, w, v, rig, m);
     S.huidig = null;
   }
+  for (const veld of S.velden.values()) if (veld.marker) tikVeldMarker(veld.marker, S.t, reducedMotion());
+  boerderijHudTik(dt, boerderijHudStand(w));
   S.prompt = bepaalPrompt(w);
 }
 
@@ -899,11 +970,73 @@ export function boerderijPrompt(w) {
 }
 
 // Voor tests en de stand van de boerderij in de wereld.
+// Voor de HUD-strook (boerderijhud.js): wat je nu doet met je machine, of null als je niet in een machine van je boerderij zit.
+// taak, voortgang (0..1), snelheid met de band van de taak, diesel, lading en wat er nog nodig is.
+export function boerderijHudStand(w) {
+  if (!w || w.coopRole === 'client') return null;
+  const p = hoofdspeler(w), v = p && p.inVehicle && p.inVehicle.farm ? p.inVehicle : null;
+  if (!v) return null;
+  const bd = getBedrijf(), rig = S.rigs.get(v.farm), m = recFrom(bd, v.farm);
+  if (!rig || !m) return null;
+  const imp = rig.werktuig ? S.werktuigen.get(rig.werktuig) : null;
+  const impRec = imp ? recFrom(bd, imp.uid) : null;
+  const set = WT.werkSet(rig, m, impRec);
+  const werk = S.werk && set && S.werk.taak === set.taak ? S.werk.werk : null;
+  const band = set && set.taak ? WT.BANDEN[set.taak] || null : null;
+  const lading = rig.lading && rig.lading.kg > 0 ? { kg: Math.round(rig.lading.kg), gewas: rig.lading.gewas } : null;
+  const veldId = S.werk ? S.werk.id : bd.actief;
+  return {
+    machine: PC.MACHINE_CATALOGUS[m.type] ? PC.MACHINE_CATALOGUS[m.type].naam : m.type,
+    taak: set && set.taak ? set.taak : null, veldId, veld: PC.perceelDef(veldId) ? PC.perceelDef(veldId).naam : '',
+    bezig: !!werk, voortgang: werk ? Math.min(1, werk.gedaan / (WT.KLAAR_AANDEEL * WT.totaalCellen())) : 0, netjes: werk ? WT.fractieWerk(werk) : 0,
+    snelheid: Math.abs(v.speed), band, diesel: M.brandstofPct(m), slijtage: m.slijtage || 0,
+    nodig: set ? WT.ontbreekt(set, rig, TOETS) : [], hef: rig.hef, pto: !!rig.pto, lading, laadMax: imp && WT.WERKTUIG[imp.type] && WT.WERKTUIG[imp.type].vervoer ? 8000 : 0,
+  };
+}
 export function boerderijWereldStand() {
   return { voertuigen: [...S.voertuigen.keys()], werktuigen: [...S.werktuigen.keys()], rigs: Object.fromEntries([...S.rigs].map(([k, r]) => [k, { ...r }])), erven: [...S.erven.keys()], velden: [...S.velden.keys()], werk: S.werk ? { taak: S.werk.taak, id: S.werk.id, aandeel: WT.aandeelKlaar(S.werk.werk) } : null };
 }
 export const _staat = () => S;
 
 // Eén kind voor activityhub.js: init, E-toetsen (slot 'pre') en tick (fase 'late').
-export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => updateBoerderijWereld(dt, w) };
+// --- Samen spelen (#985): de velden van de gastheer zijn van wie het spel opende; een gast ziet ze via de EXTRA-tag MISC_VELDEN ------------------------
+// De host meldt per veld in de buurt van een speler: plek, hoek, status, gewas en groei (coopextra.js codeert 12 bytes per veld). De gast bouwt dezelfde
+// veldmesh (voren, gewas per stadium, stoppel, markering) uit die stand; hij werkt er niet: zijn eigen boerderij is zijn eigen spel (#429).
+registreerVelden('boerderij', () => {
+  const b = getBoerderij(), uit = [];
+  for (const id of Object.keys(b.bedrijf.percelen)) {
+    const pos = B.veldPositie(b, id);
+    if (!pos) continue;
+    const st = veldStatus(b, id);
+    uit.push({ x: pos.x, y: pos.y, a: pos.a || 0, s: Math.max(0, STATUS_IDS.indexOf(st.statusId)), g: st.gewas ? Math.max(0, GEWAS_INDEX.indexOf(st.gewas)) : 0, f: Math.round(st.groei * 255) });
+  }
+  return uit;
+});
+const gastVelden = new Map();      // sleutel plek -> { veld, sleutel }
+// De stand van een veld bij de gast, teruggerekend naar iets wat bouwVeldMesh begrijpt: dezelfde statussen, een gezaaidOp die de groei geeft.
+export function gastStand(c) {
+  const statusId = STATUS_IDS[c.s] || 'braak', gewas = GEWAS_INDEX[c.g] || null, g = B.GEWASSEN[gewas];
+  const groei = Math.max(0, Math.min(1, c.f / 255));
+  const stand = { ...B.nieuwVeld() };
+  if (statusId === 'stoppel') stand.stoppel = gewas;
+  else if (statusId === 'geploegd') stand.fase = 'geploegd';
+  else if (['zaailing', 'groeiend', 'bijna', 'rijp'].includes(statusId) && g) { stand.fase = 'gezaaid'; stand.gewas = gewas; stand.gezaaidOp = 1000 - groei * g.groeiUren; }
+  return { stand, uren: 1000, sleutel: [statusId, gewas || '', Math.round(groei * 10)].join('|') };
+}
+function syncGastVelden(w) {
+  const lijst = w.coopRole === 'client' ? standVelden(w.coopExtra, w.time || 0) : [];
+  const nu = new Set();
+  for (const c of lijst) {
+    const sl = Math.round(c.x) + ',' + Math.round(c.y), sv = gastStand(c);
+    nu.add(sl);
+    const was = gastVelden.get(sl);
+    if (was && was.sleutel === sv.sleutel) { if (was.veld.marker) tikVeldMarker(was.veld.marker, w.time || 0, reducedMotion()); continue; }
+    if (was) ruimVeld(was.veld);
+    gastVelden.set(sl, { veld: bouwVeldMesh(w, 'gast-' + sl, { x: c.x, y: c.y, a: c.a }, null, sv), sleutel: sv.sleutel });
+  }
+  for (const [sl, e] of [...gastVelden]) if (!nu.has(sl)) { ruimVeld(e.veld); gastVelden.delete(sl); }
+}
+export const _gastVelden = () => gastVelden;
+
+export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', gastTick: true, interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => { if (w && w.coopRole === 'client') syncGastVelden(w); else updateBoerderijWereld(dt, w); } };
 
