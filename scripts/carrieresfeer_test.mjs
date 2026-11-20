@@ -62,7 +62,7 @@ t('de boerenzakdoek is geblokt cream/groen met een vouw', () => {
 t('de loopbaan-UI gebruikt de sfeer in de lijst en boven het vak', () => {
   const ui = lees('game/js/loopbaanui.js');
   assert.match(ui, /from '\.\/carrieresfeer\.js'/);
-  assert.match(ui, /lb-sfeer-chip/);
+  // de lijstregel (panelmodel .ds-lijst) toont geen sfeerchipje meer; de sfeer zit in de band boven het vak
   assert.match(ui, /sfeerBandHtml\(id, \{ icoon: loopbaanIcoon/, 'de band komt uit carrieresfeer.js');
   assert.match(ui, /SFEER_BAND_CSS/);
   assert.match(ui, /lb-sfeer-ico/);
