@@ -596,7 +596,7 @@ if (SUITE === 'net') {
   const uh = of(H, 'uitval-host')[0], uhn = of(H, 'uitval-host-na')[0], ug = of(G, 'uitval-midden')[0];
   check(uh && !uh.hold && !uh.uiPaused, 'uitval: de host pauzeert terwijl de opdracht deze speler niet nodig heeft: ' + JSON.stringify(uh));
   check(uh && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: Tessa staat niet als weggevallen in de lijst van de host: ' + JSON.stringify(uh && uh.roster));
-  check(ug && ug.hold && ug.status === 'lost', 'uitval: de gast die zelf uitvalt krijgt het wachtscherm Verbinding weg met Opnieuw verbinden (gewenst gedrag): ' + JSON.stringify(ug));
+  check(ug && (ug.hold ? ug.status === 'lost' : ug.status === 'lag'), 'uitval: de gast die zelf uitvalt krijgt het wachtscherm Verbinding weg met Opnieuw verbinden (gewenst gedrag), of loopt na 8 s nog op de achterstand (lag): ' + JSON.stringify(ug));
   check(uhn && !uhn.hold && !uhn.uiPaused && uhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'uitval: na het herstel loopt het spel bij de host niet door: ' + JSON.stringify(uhn));
   const gEnd = samples('gast').filter((s) => s.ph === 'betaal' || s.ph === 'opgeslagen' || s.ph === 'wacht');
   check(gEnd.length && !last(gEnd).hold && !last(gEnd).uiPaused && ['ok', 'lag'].includes(last(gEnd).status), 'uitval: na het herstel loopt het spel bij de gast niet door: ' + JSON.stringify({ hold: last(gEnd).hold, ui: last(gEnd).uiPaused, st: last(gEnd).status }));

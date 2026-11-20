@@ -12,6 +12,7 @@ import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { animateActor } from './actoranim.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { hoofdspeler } from './players.js';
+import { isInWater, pointInPolygon } from './util.js';
 import { crowdSpecToWorld, seedFromKey } from './crowdplan.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 
@@ -347,9 +348,31 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
   const group = new THREE.Group();
   group.name = 'mission-dressing-' + kind;
   const ground = (x, y, fallback = 0) => (world && world.map && world.map.groundHeightAt ? (world.map.groundHeightAt(x, y, 50) || 0) : fallback);
+  // #955: een onderdeel op water of in een gebouw schuift naar het doel toe (75, 50, 25 procent van de afstand) en vervalt anders
+  // (M30: twee van de vijf onderdelen stonden in een gracht, twee in een huis)
+  const map = world && world.map;
+  const droog = (x, y) => {
+    if (!map) return true;
+    try {
+      if (isInWater(map, x, y)) return false;
+      if (typeof map.buildingsNear === 'function' && map.buildingsNear(x, y, 0.4).some((b) => b.pts && pointInPolygon(x, y, b.pts))) return false;
+    } catch (e) { /* geen kaartgegevens: gewoon plaatsen */ }
+    return true;
+  };
+  // de plek van een onderdeel (null: geen droge plek)
+  const spot = (along, side) => {
+    let x = at.x + ux * along + nx * side, y = at.y + uy * along + ny * side;
+    if (droog(x, y)) return { x, y };
+    for (const k of [0.75, 0.5, 0.25]) {
+      x = at.x + (ux * along + nx * side) * k; y = at.y + (uy * along + ny * side) * k;
+      if (droog(x, y)) return { x, y };
+    }
+    return null;
+  };
   const place = (o, along, side, fallbackZ = 0) => {
-    const x = at.x + ux * along + nx * side, y = at.y + uy * along + ny * side;
-    o.position.set(x, ground(x, y, fallbackZ), y);
+    const q = spot(along, side);
+    if (!q) return null;
+    o.position.set(q.x, ground(q.x, q.y, fallbackZ), q.y);
     group.add(o);
     return o;
   };
@@ -358,13 +381,15 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
     if (p.kind === 'banner') {
       const tex = bannerTex(p.title, p.sub);
       const b = signBothSides(4.2, 1.55, new THREE.MeshBasicMaterial({ map: tex }));
-      const x = at.x + ux * p.along + nx * p.side, y = at.y + uy * p.along + ny * p.side;
+      const q = spot(p.along, p.side) || { x: at.x + ux * p.along + nx * p.side, y: at.y + uy * p.along + ny * p.side }; // het bord blijft altijd staan
+      const x = q.x, y = q.y;
       b.position.set(x, ground(x, y) + 2.9, y);
       b.rotation.y = -a + Math.PI / 2;
       group.add(b);
       props.push({ mesh: b, tex });
       continue;
     }
+    if (!spot(p.along, p.side)) continue;
     const o = simpleProp(p.kind);
     if (!o) continue;
     place(o, p.along, p.side);
@@ -376,6 +401,7 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
   // again on dispose (#796).
   const people = [];
   for (const p of plan.people) {
+    if (!spot(p.along, p.side)) continue;
     // look.hairStyle en look.extra (zoals { age: 'old' }) laten een vaste figuur herkenbaar zijn (Oma Trijntje, M08)
     const m = buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant, ...(p.look.hairStyle ? { hairStyle: p.look.hairStyle } : {}), ...(p.look.extra ? { look: p.look.extra } : {}) });
     place(m, p.along, p.side);
