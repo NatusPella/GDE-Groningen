@@ -6,9 +6,9 @@
 import { SIMICOON as I } from './simicoon.js';
 
 export const ICOON = {
-  richten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
-  bal: '<circle cx="10" cy="14" r="4"/><path d="M15 9l5-5"/>',
-  vlag: '<path d="M8 21V3"/><path d="M8 4l9 3-9 3"/><path d="M5 21h6"/>',
+  richten: 'doel',
+  bal: 'golf',
+  vlag: 'vlag',
 };
 
 export const STAPPEN = [

@@ -91,6 +91,7 @@ async function rit(soort, naam) {
     const zwart = document.querySelector('.rr3-zwart');
     const co = w.cameraOverride;
     const rij = {
+      camNaam: (document.querySelector('.rr3-camnaam') || {}).textContent || null,
       s: +s.toFixed(1), actief: R3.isRit3dActive(), cine: cine.isCinematicActive('reisrit'), oudeScene: !!document.querySelector('.reisrit'),
       meter: w.ritMeter, kader: w.ritKader || null,
       zwart: zwart ? +(+zwart.style.opacity || 0).toFixed(2) : null, tekst: (document.querySelector('.rr3-tekst') || {}).textContent || '',
@@ -103,7 +104,7 @@ async function rit(soort, naam) {
     if (rij.oudeScene) oud = true;
     rep.samples.push(rij);
     if (soort === 'taxi' && s >= 6.2 && !rep.kosten && w.ritTaxi) await kostenCabine(rep);
-    if (volgende.length && s >= volgende[0]) { console.log('[capture] tr-' + soort + '-' + String(volgende.shift()).replace('.', '_')); await sleep(900); } else await sleep(250);
+    if (volgende.length && s >= volgende[0]) { if (CFG.cams && volgende.length < MOMENTEN.length) for (const t of [document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', code: 'KeyC', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'c', code: 'KeyC', bubbles: true })); } await sleep(400); console.log('[capture] tr-' + soort + '-' + String(volgende.shift()).replace('.', '_')); await sleep(900); } else await sleep(250);
   }
   rep.frames = frameStats(opname || []); opname = null;
   rep.echteRit = echt; rep.oudeSceneGezien = oud;

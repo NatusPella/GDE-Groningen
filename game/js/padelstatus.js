@@ -6,11 +6,11 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bal met veer (serveren), twee bogen (rally), vinkje (punt), racket (uitleg).
 export const ICOON = {
-  serve: '<circle cx="12" cy="8" r="3"/><path d="M12 11v5M9 20h6"/>',
-  rally: '<path d="M4 15c3-9 13-9 16 0"/><path d="M4 9c3 9 13 9 16 0"/>',
-  punt: '<path d="M5 12l4 4 10-10"/>',
-  racket: '<ellipse cx="10" cy="9" rx="5" ry="6"/><path d="M13.5 13.5L20 20"/>',
-  ring: '<circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  serve: 'padel',
+  rally: 'rally',
+  punt: 'punt',
+  racket: 'padel',
+  ring: 'doel',
 };
 
 export const STAPPEN = [

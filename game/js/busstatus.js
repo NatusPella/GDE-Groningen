@@ -5,9 +5,9 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bus (voorkant), halte (paal met bord), vertrek (pijl).
 export const ICOON = {
-  bus: '<rect x="5" y="4" width="14" height="13" rx="2"/><path d="M5 11h14M8 20v-3M16 20v-3"/><circle cx="8.5" cy="14" r=".8"/><circle cx="15.5" cy="14" r=".8"/>',
-  halte: '<path d="M8 21V4"/><rect x="8" y="4" width="8" height="5" rx="1"/><path d="M5 21h6"/>',
-  vertrek: '<path d="M4 12h14"/><path d="M13 7l5 5-5 5"/>',
+  bus: 'bus',
+  halte: 'bord',
+  vertrek: 'pijl_rechts',
 };
 
 export const STAPPEN = [

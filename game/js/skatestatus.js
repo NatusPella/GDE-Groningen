@@ -5,10 +5,10 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): board met wielen (duwen), pijl omhoog met bocht (truc), rail met streepjes (grind), balans.
 export const ICOON = {
-  duw: '<path d="M3 14h18"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/><path d="M12 4v7M9 7l3-3 3 3"/>',
-  truc: '<path d="M5 18c2-8 6-12 14-12"/><path d="M15 3l4 3-3 4"/>',
-  grind: '<path d="M3 12h18"/><path d="M6 12v6M12 12v6M18 12v6"/><path d="M9 7l3-3 3 3"/>',
-  keten: '<path d="M10 14a4 4 0 0 1 0-6l2-2a4 4 0 0 1 6 6l-1 1"/><path d="M14 10a4 4 0 0 1 0 6l-2 2a4 4 0 0 1-6-6l1-1"/>',
+  duw: 'skate',
+  truc: 'pijl_omhoog',
+  grind: 'skate',
+  keten: 'route',
 };
 
 export const STAPPEN = [

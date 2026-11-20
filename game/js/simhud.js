@@ -4,9 +4,11 @@
 // dit bestand is alleen DOM en bepaalt niets over het spel. Kleur is nooit de enige betekenis: elke stand heeft een woord en een icoon.
 import { sfxLinks } from './latehooks.js';
 import { reducedMotion } from './motion.js';
+import { icoon } from './icons.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const svg = (pad, cls = 'ds-icoon') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`;
+// Een pictogram is een betekenisnaam uit iconmap.js (Phosphor, ADR 0041); een ruw lijnpad (<path ...>) blijft werken voor de modellen van ronde 1.
+const svg = (pad, cls = 'ds-icoon') => (typeof pad === 'string' && pad && !pad.includes('<') ? icoon(pad, { cls }) : `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`);
 
 // De sleutel voor de eerste-keer-uitleg per sim: een keer gezien blijft weg (alleen dit apparaat, geen savegame).
 export const UITLEG_SLEUTEL = 'gde-sim-uitleg-v1';

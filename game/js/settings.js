@@ -26,6 +26,7 @@ export const QUALITY_PRESETS = {
 };
 
 const BASE_DEFAULTS = {
+  ritCamera: 'cabine', // de camera van de taxi- en treinrit (C of Y tijdens de rit): cabine, achter, zij of boven; lokaal per speler (ritpad.js)
   masterVolume: 1,
   musicVolume: 1,
   sfxVolume: 0.75,
@@ -68,6 +69,8 @@ const BASE_DEFAULTS = {
   stapAnimatie: true,
   showFog: true,
   cinematicMoments: true,
+  // terugkeerscène (#986 #987): na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); standaard aan
+  terugkeerScene: true,
   gore: true,
   // Zichtafstand (viewdist.js): 'kort' hoort bij de voorinstelling die de speler als Hoog ziet
   // (de sleutel heet nog 'vlot': de look van de zwaarste stand met de afstand van Laag, #893).
@@ -200,6 +203,7 @@ function load() {
     if (!RAGE_CHOICES.includes(out.ruzie)) out.ruzie = DEFAULTS.ruzie;
     for (const k of ['helpTime', 'helpDamage', 'helpGates']) out[k] = cleanHelpSetting(k, out[k]);
     out.difficulty = cleanDifficulty(out.difficulty); // #800: onbekend of kapot valt terug op standaard
+    if (!['cabine', 'achter', 'zij', 'boven'].includes(out.ritCamera)) out.ritCamera = DEFAULTS.ritCamera;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;

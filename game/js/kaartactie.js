@@ -12,13 +12,8 @@ export const WAYPOINT_NEAR_M = 30;
 export const UITLEG_ID = 'kaart:uitleg';
 
 // iconen (24 px raster), als pad voor een inline svg
-export const ICONEN = {
-  waypoint: 'M12 2a6 6 0 0 0-6 6c0 4.5 6 12 6 12s6-7.5 6-12a6 6 0 0 0-6-6zm0 8.2a2.2 2.2 0 1 1 0-4.4 2.2 2.2 0 0 1 0 4.4z',
-  haalweg: 'M5 5l14 14M19 5L5 19',
-  reis: 'M3 15l2-6h14l2 6v3h-2.5a2 2 0 0 1-4 0h-5a2 2 0 0 1-4 0H3zm4-5.5L6 13h12l-1-3.5z',
-  info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm-1 4h2v2h-2zm0 4h2v6h-2z',
-  verhaal: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zm3 3v2h8V7z',
-};
+// Betekenisnamen (icons.js, Phosphor, ADR 0041).
+export const ICONEN = { waypoint: 'plek', haalweg: 'kruis', reis: 'auto', info: 'info', verhaal: 'verhaal' };
 
 export const GAST_REIS_MELDING = 'Reizen kan alleen in je eigen spel: je gaat niet mee naar de plek van wie het spel opende. Zet wel een waypoint en ga zelf.';
 

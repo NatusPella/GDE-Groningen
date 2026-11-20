@@ -6,10 +6,10 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): startlicht, kart, finishvlag, drift (bocht met pijl).
 export const ICOON = {
-  licht: '<circle cx="12" cy="12" r="5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>',
-  kart: '<circle cx="7" cy="16" r="3"/><circle cx="17" cy="16" r="3"/><path d="M4 13V9h8l3 4h5"/>',
-  vlag: '<path d="M6 21V4"/><path d="M6 5h12l-2 4 2 4H6"/>',
-  drift: '<path d="M5 19c0-7 4-11 14-11"/><path d="M15 4l4 4-4 4"/>',
+  licht: 'doel',
+  kart: 'kart',
+  vlag: 'vlag',
+  drift: 'afslag_rechts',
 };
 
 export const STAPPEN = [

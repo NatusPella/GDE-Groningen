@@ -1,3 +1,4 @@
+import { icoon } from './icons.js';
 import { dualHtml, dutchFor } from './subtitles.js';
 import { fitCard, phoneCard, splitNewsCard } from './hudtext.js';
 import { isStale } from './validity.js';
@@ -47,13 +48,8 @@ const HANGUP_TIME = 1.1;
 const CALL_WAIT_MAX = 90;
 const VOICE_DELAY = 0.45;
 const VOICE_TAIL = 1.2;
-const APP_ICON = {
-  sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
-  bericht: '<path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>',
-  geld: '<path d="M3 6h18v12H3zm9 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5 8v2a2 2 0 0 0 2-2zm12 0a2 2 0 0 0 2 2V8zM5 14v2h2a2 2 0 0 0-2-2zm14 0a2 2 0 0 0-2 2h2z"/>',
-  bel: '<path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/>',
-  live: '<circle cx="12" cy="12" r="3.2"/><path d="M7.1 7.1a7 7 0 0 0 0 9.8M16.9 7.1a7 7 0 0 1 0 9.8M4.2 4.2a11 11 0 0 0 0 15.6M19.8 4.2a11 11 0 0 1 0 15.6" fill="none" stroke="currentColor" stroke-width="1.8"/>',
-};
+// Betekenisnamen (icons.js, Phosphor): het appje bovenaan een belletje of bericht.
+const APP_ICON = { sikkom: 'bel', bericht: 'bericht', geld: 'geld', bel: 'telefoon', live: 'wifi' };
 
 let root = null;
 let stack = null;
@@ -66,7 +62,7 @@ let notes = [];
 let nextCallId = 1;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">${APP_ICON[k] || APP_ICON.bericht}</g></svg>`;
+const icon = (k) => icoon(APP_ICON[k] || APP_ICON.bericht);
 const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 const clockNow = (w) => getClockText(w) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 

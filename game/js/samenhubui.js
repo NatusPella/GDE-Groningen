@@ -5,6 +5,7 @@
 // stap terug (hubTerug) en beëindigt nooit een sessie: dat is de knop Ontsnappen naar besloten (#527).
 // #903: de hub heeft een eigen kop, genummerde stappen met een verbindingslijn en keuzekaarten met een duidelijke
 // stand. De gegevens blijven die van samenhub.js; dit bestand voegt geen regel toe aan het netwerk of de opslag.
+import { icoon } from './icons.js';
 import { STAP, STAPPEN, hubView, escapeStap, isStap, volgendeStap, vorigeStap, ACT } from './samenhub.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -43,8 +44,8 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
   const tree = (root.classList && root.classList.contains('pm-samen-inner')) ? root : (root.querySelector && root.querySelector('.pm-samen-inner')) || root;
   let nu = isStap(stap) ? stap : STAP.WAAR;
 
-  const kanChip = '<span class="ds-chip ds-chip--primair pm-hub-staat"><svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5l10 5.5-10 5.5z"/></svg>Kan nu</span>';
-  const nietChip = '<span class="ds-chip pm-hub-staat"><svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5a4 4 0 0 1 8 0v2h1v7H3V7zm1.6 0h4.8V5a2.4 2.4 0 0 0-4.8 0z"/></svg>Kan nu niet</span>';
+  const kanChip = '<span class="ds-chip ds-chip--primair pm-hub-staat">' + icoon('afspelen', { cls: 'ds-chip__icoon', maat: 's' }) + 'Kan nu</span>';
+  const nietChip = '<span class="ds-chip pm-hub-staat">' + icoon('slot', { cls: 'ds-chip__icoon', maat: 's' }) + 'Kan nu niet</span>';
   const keuzes = (v) => `<div class="pm-hub-keuzes" role="group" aria-label="Waar speel je">${v.keuzes.map((k) => `
     <button type="button" class="ds-papier ds-kaart ${k.kan ? 'ds-kaart--klik' : 'ds-kaart--uit pm-hub-uit'} pm-hub-keuze" data-hub-keuze="${k.act}" data-act="${ACT_NAAM[k.act] || k.act}" data-keuze="${k.act}"${k.kan ? '' : ' aria-disabled="true"'}>
       <span class="pm-hub-ico" aria-hidden="true">${KEUZE_TEKEN[k.act] || '·'}</span>

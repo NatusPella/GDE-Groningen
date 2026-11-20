@@ -251,4 +251,59 @@ t('ook een rare invoer geeft een geldig plan (geen NaN, geen nul)', () => {
   }
 });
 
+t('rijdynamiek: een bocht draait het stuur, remmen knikt de camera, een tijdsprong telt niet, stilstaan trilt niet', () => {
+  const d = P.maakDynamiek();
+  let r;
+  for (let i = 0; i < 40; i++) r = d.stap(i * 0.02, 12, 0.05); // koers draait 0,4 rad/s naar rechts
+  assert.ok(r.bocht > 0.2 && r.stuur > 0.3 && r.stuur <= 1.1, `bocht ${r.bocht}`);
+  const links = P.maakDynamiek(); let l;
+  for (let i = 0; i < 40; i++) l = links.stap(-i * 0.02, 12, 0.05);
+  assert.ok(l.stuur < -0.3, 'naar links: negatief');
+  const oog = P.taxiOog({ x: 0, y: 0, z: 0, angle: 0 });
+  const recht = P.taxiCamera(oog, 5, 30, { bocht: 0, versnelling: 0, v: 15 });
+  const rem = P.taxiCamera(oog, 5, 30, { bocht: 0, versnelling: -6, v: 15 });
+  assert.ok(rem.lookAt.z < recht.lookAt.z, 'remmen: het hoofd knikt naar voren');
+  assert.ok(P.taxiCamera(oog, 5, 30, { bocht: 1, versnelling: 0, v: 15 }).lookAt.y > recht.lookAt.y, 'in een bocht naar rechts kijkt hij mee');
+  assert.ok(Math.abs(P.taxiCamera(oog, 5, 30, { bocht: 1, versnelling: 0, v: 15 }).position.y - oog.y) <= 0.0501, 'de lean is klein');
+  const stil = P.taxiCamera(oog, 5.31, 30, { bocht: 0, versnelling: 0, v: 0 }), stil0 = P.taxiCamera(oog, 5.31, 30);
+  assert.equal(stil.lookAt.z, stil0.lookAt.z, 'stilstaand geen wegdektrilling');
+  const x = P.maakDynamiek(); x.stap(0, 10, 0.05);
+  assert.ok(Number.isFinite(x.stap(NaN, 10, 0.05).stuur) && Number.isFinite(x.stap(1, 10, 0).stuur), 'rare invoer geeft een geldig stuur');
+  const sprong = P.maakDynamiek(); sprong.stap(0, 10, 0.05); const na = sprong.stap(3.0, 10, 0.05);
+  assert.ok(Math.abs(na.stuur) <= 1.1, 'een koerssprong blijft begrensd');
+});
+
+t('de treincoupé rammelt zacht met de snelheid en staat stil bij stilstand; de buitenopname trilt niet', () => {
+  const car = { x: 0, y: 0, angle: 0, z: 0 };
+  const still = P.treinCamera(car, 1, 'raam', 3.3, 0), oud = P.treinCamera(car, 1, 'raam');
+  assert.deepEqual(still, oud, 'stilstaan: geen trilling');
+  let max = 0;
+  for (let x = 0; x < 20; x += 0.05) { const c = P.treinCamera(car, 1, 'raam', x, 22); max = Math.max(max, Math.abs(c.position.z - 2.5), Math.abs(c.lookAt.z - 1.6)); }
+  assert.ok(max > 0.01 && max < 0.6, `de trilling is klein maar er: ${max}`);
+  assert.deepEqual(P.treinCamera(car, 1, 'zij', 3, 22), P.treinCamera(car, 1, 'zij'), 'naast de trein geen trilling');
+});
+
+t('de camerakeuze van de rit: vier camera\'s, rondgaand wisselen, onbekend wordt cabine, buiten staat om het voertuig', () => {
+  assert.deepEqual(P.RIT_CAMERAS, ['cabine', 'achter', 'zij', 'boven']);
+  let k = 'cabine'; const rij = [];
+  for (let i = 0; i < 5; i++) { k = P.volgendeRitCamera(k); rij.push(k); }
+  assert.deepEqual(rij, ['achter', 'zij', 'boven', 'cabine', 'achter']);
+  for (const kapot of [undefined, null, 'x', 3, {}]) assert.equal(P.geldigeRitCamera(kapot), 'cabine');
+  assert.equal(P.volgendeRitCamera('rommel'), 'achter');
+  for (const n of P.RIT_CAMERAS) assert.ok(P.RIT_CAMERA_NAMEN[n], 'elke camera heeft een Nederlandse naam');
+  const v = { x: 100, y: 50, z: 2, angle: Math.PI / 2 };
+  assert.equal(P.ritBuitenCamera(v, 'cabine'), null);
+  const achter = P.ritBuitenCamera(v, 'achter'), zij = P.ritBuitenCamera(v, 'zij'), boven = P.ritBuitenCamera(v, 'boven');
+  assert.ok(achter.position.y < v.y - 5 && Math.abs(achter.position.x - v.x) < 0.01, 'achter: tegen de rijrichting in (+y)');
+  assert.ok(zij.position.y > v.y && zij.position.x < v.x - 3, 'zij: voor het voertuig en rechts (rechts van +y is -x)');
+  assert.ok(boven.position.z > v.z + 20, 'boven: hoog');
+  for (const c of [achter, zij, boven]) {
+    assert.ok(Object.values(c.position).every(Number.isFinite) && Object.values(c.lookAt).every(Number.isFinite) && c.fov > 30 && c.fov < 90);
+    assert.ok(Math.hypot(c.lookAt.x - v.x, c.lookAt.y - v.y) < 8, 'het kijkpunt ligt bij het voertuig');
+  }
+  const car = { x: 0, y: 0, angle: 0, z: 0 };
+  for (const view of ['achter', 'boven']) { const c = P.treinCamera(car, 1, view); assert.ok(Object.values(c.position).every(Number.isFinite)); }
+  assert.ok(P.treinCamera(car, 1, 'boven').position.z > 30 && P.treinCamera(car, 1, 'achter').position.x < -20, 'trein: boven is hoog, achter ligt achter de trein');
+});
+
 console.log(`ritpad_test: ${n}/${n} ok`);

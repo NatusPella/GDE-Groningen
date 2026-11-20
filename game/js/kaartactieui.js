@@ -5,10 +5,11 @@
 // #602: de actiebalk staat op menuformaat (.m-bp/.m-bg-maten: 26 px Bebas, 18 px uitleg,
 // 56 px hoge rijen), alle kleuren komen uit de tokens met een terugval (--ink, --g,
 // --redtx, --line2, --mk-*), en er staat geen tekst meer onder 13 px in.
+import { icoon } from './icons.js';
 import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels } from './kaartactie.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+const svg = (naam) => icoon(naam, { maat: 'l' });
 
 // de drie knoppen; stap: de actie die nu is uitgeklapt (reis of info)
 export function actiesHtml(model, stap) {
@@ -41,7 +42,7 @@ export function uitlegHtml({ gast = false } = {}) {
   const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
   return '<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t">' +
     '<div class="ds-papier ds-kaart ds-kaart--kop mv-help-box"><div class="ds-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-kaart__titel">Zo werkt de kaart</h2>' +
-    '<button type="button" class="mv-help-x" data-act="uitleg-sluit" aria-label="Sluiten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<button type="button" class="mv-help-x" data-act="uitleg-sluit" aria-label="Sluiten">' + icoon('kruis', { maat: 'm' }) + '</button></div>' +
     '<ul class="ds-kaart__tekst">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
     '<div class="mv-help-foot"><button type="button" class="ds-knop mv-help-ok" data-act="uitleg-sluit">Begrepen</button>' +
     '<small>Terug te vinden onder Instellingen › Besturing › Hulp.</small></div></div></div>';
@@ -64,8 +65,8 @@ export function hierHtml(plek = '') {
 export const KAART_ACTIE_CSS = `
 .mapview-card .mv-acties { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 2px; }
 .mapview-card .mv-actie { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 6px 14px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line2, rgba(240,237,228,0.16)); cursor: pointer; font: 18px/1.3 'Arial Narrow', Arial, sans-serif; }
-.mapview-card .mv-actie svg { width: 24px; height: 24px; flex: none; fill: var(--g, #3fc97a); stroke: var(--g, #3fc97a); stroke-width: 0; }
-.mapview-card .mv-actie[data-card="haalweg"] svg { fill: none; stroke: var(--redtx, #f08a8a); stroke-width: 2.4; stroke-linecap: round; }
+.mapview-card .mv-actie svg { width: 24px; height: 24px; flex: none; color: var(--g, #3fc97a); }
+.mapview-card .mv-actie[data-card="haalweg"] svg { color: var(--redtx, #f08a8a); }
 .mapview-card .mv-at { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mapview-card .mv-actie .mv-al { font: normal 26px/1.05 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-actie small { font: 18px/1.2 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.7)); }

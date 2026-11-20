@@ -34,7 +34,7 @@ ok(VOOR.length === 58, 'de lijst van vóór de wijziging heeft 58 opties (53 + #
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 // #985: nieuwe opties staan hier met hun issuenummer. VOOR blijft de bevroren lijst van main,
 // zodat een optie die zonder uitleg verdwijnt of verschijnt nog steeds opvalt.
-const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk
+const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk
 ok(NU.every((k) => VOOR.includes(k) || NIEUW.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k) && !NIEUW.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
@@ -78,7 +78,7 @@ ok(!/data-goto-sub="spel:camera"/.test(pm) && !/data-goto-sub="spel:hints"/.test
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
-ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
+ok(/ICONS = {[^}]*spel: 'spel'/.test(pm), 'Spel heeft een icoon in de Phosphor-set (icons.js)');
 ok(/data-panel="spel" class="pm-panel pm-col pm-tabbed"/.test(pm) && /\$\{spelHtml\(\)\}/.test(pm), 'het paneel van Spel staat in het blad');
 ok(pm.includes("if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }"),'Spel laat zijn tabblad, de waarden van de regelaars en de opslagknoppen zien');
 ok(/tab === 'settings' \|\| tab === 'spel'\) syncControls\(\)/.test(pm), 'Q en E tussen de tabbladen van Spel vullen de regelaars');

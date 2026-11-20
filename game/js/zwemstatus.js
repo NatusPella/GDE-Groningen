@@ -5,10 +5,10 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): duiker (pijl omlaag in golf), zwemmer (golven), finish (vlag), keerpunt (U-bocht), arm.
 export const ICOON = {
-  duik: '<path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M3 18c3-2 6 2 9 0s6 2 9 0"/>',
-  zwem: '<circle cx="8" cy="7" r="2"/><path d="M10 9l5 3h5"/><path d="M3 18c3-2 6 2 9 0s6 2 9 0"/>',
-  vlag: '<path d="M6 21V4"/><path d="M6 5h12l-2 4 2 4H6"/>',
-  keer: '<path d="M5 6h9a5 5 0 0 1 0 10H8"/><path d="M11 13l-3 3 3 3"/>',
+  duik: 'pijl_omlaag',
+  zwem: 'zwemmen',
+  vlag: 'vlag',
+  keer: 'afslag_links',
 };
 
 export const STAPPEN = [

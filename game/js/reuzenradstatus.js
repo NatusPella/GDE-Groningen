@@ -6,10 +6,10 @@ import { LAPS } from './reuzenradrules.js';
 
 // Icoonpaden voor de chips (24x24, lijn): pijl omhoog, uitzicht (oog), pijl omlaag, uitstappen (deur).
 export const ICOON = {
-  omhoog: '<path d="M12 20V6"/><path d="M6 11l6-6 6 6"/>',
-  top: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
-  omlaag: '<path d="M12 4v14"/><path d="M6 13l6 6 6-6"/>',
-  uit: '<path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/>',
+  omhoog: 'pijl_omhoog',
+  top: 'oog',
+  omlaag: 'pijl_omlaag',
+  uit: 'uitgang',
 };
 
 export const STAPPEN = [

@@ -677,6 +677,11 @@ function syncVehicleMeshes(world, player) {
   // (86 ms in 3d:vehicles in de hitchprobe). De rest volgt een paar frames later.
   const cine = !!world.cinemaLean || (world.cineQuiet && performance.now() < world.cineQuiet);
   let built = 0;
+  const ritV = world.ritTaxi; // #882: de taxi van de rit gaat voor, zonder zijn mesh ontbreekt de cabine
+  if (ritV && !vehicleMeshes.has(ritV.id) && Math.hypot(ritV.x - player.x, ritV.y - player.y) < DRAW_DIST) {
+    const mesh = enableShadows(buildVehicleActor(ritV), false); scene.add(mesh);
+    vehicleMeshes.set(ritV.id, mesh); built++;
+  }
   for (const v of world.vehicles) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d >= DRAW_DIST) continue;
@@ -3103,7 +3108,7 @@ export function update3D(dt, world) {
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const fpBits = fpSync(world, player, pv, pvMesh, hidePlayers, !!(world.cameraOverride && world.cameraOverride.interior));
-  if (world.ritTaxi) updateRitCabine(vehicleMeshes.get(world.ritTaxi.id), world.ritMeter || 0); // #882: de passagier zit in de cabine van de taxi van de rit (ritcabine3d.js, reisrit3d.js)
+  if (world.ritTaxi) updateRitCabine(vehicleMeshes.get(world.ritTaxi.id), world.ritMeter || 0, world.ritStuur || 0, lightBase.daylight, !!world.ritBuiten); // #882: de passagier zit in de cabine van de taxi van de rit (ritcabine3d.js, reisrit3d.js)
   syncTreinKader(scene, world.ritKader === 'trein'); // #926: het raam van de coupé voor de lens van de treinrit
   const firstPersonView = (fpBits & FP_VIEW) !== 0;
   const hideFigure = (fpBits & FP_HIDE) !== 0;

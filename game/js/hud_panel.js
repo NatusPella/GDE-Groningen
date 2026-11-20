@@ -1,4 +1,5 @@
 import { probe } from './hitchprobe.js';
+import { iconInner, icoon } from './icons.js';
 import { wantedPhase } from './wantedstate.js';
 import { levelOf, zoekBalkVulling } from './wantedlevels.js';
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
@@ -125,11 +126,9 @@ const narrator = createNarrator();
 let narrationUntil = 0;
 
 const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z';
-const TURN_ICON = {
-  rechts: '<path d="M7 20V10a3 3 0 0 1 3-3h8"/><path d="M14 3l4 4-4 4"/>',
-  links: '<path d="M17 20V10a3 3 0 0 0-3-3H6"/><path d="M10 3L6 7l4 4"/>',
-  recht: '<path d="M12 20V6"/><path d="M8 10l4-4 4 4"/>',
-};
+// Phosphor (icons.js): een bestaand <svg> krijgt viewBox 256 en de paden van een betekenisnaam.
+const setIc = (svg, naam) => { svg.setAttribute('viewBox', '0 0 256 256'); svg.style.fill = 'currentColor'; svg.style.stroke = 'none'; svg.innerHTML = iconInner(naam); };
+const TURN_ICON = { rechts: 'afslag_rechts', links: 'afslag_links', recht: 'pijl_omhoog' };
 
 // The GPS card where there is no turn to give: the train (where to get off,
 // where to change) and the air (altitude advice, the landing spot).
@@ -209,7 +208,7 @@ export function initHud(world) {
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
   mission.setAttribute('aria-live', 'polite');
-  mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 10-9 10-9-10z"/></svg>' +
+  mission.innerHTML = icoon('doel', { cls: 'hud-obj-icon' }) +
     '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-obj-keys" aria-label="Besturing" hidden></div><div class="hud-obj-regel" hidden></div></div><span class="hud-obj-dist"></span>';
   root.appendChild(mission);
 
@@ -217,7 +216,7 @@ export function initHud(world) {
   const nowPlaying = document.createElement('div');
   nowPlaying.className = 'hud-nowplaying';
   nowPlaying.setAttribute('aria-live', 'polite');
-  nowPlaying.innerHTML = '<span class="np-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M5 12a7 7 0 0 1 14 0M2 12a10 10 0 0 1 20 0"/></svg></span>' +
+  nowPlaying.innerHTML = '<span class="np-ic">' + icoon('muziek') + '</span>' +
     '<div><small>G-Music</small><b class="np-title"></b><span class="np-artist"></span></div>';
   root.appendChild(nowPlaying);
 
@@ -271,7 +270,7 @@ export function initHud(world) {
       '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg><img alt=""></div>' +
       '<div class="hud-id-main">' +
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
-          '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
+          '<span class="hud-chip drunk" role="status" hidden>' + icoon('dorst') + 'Aangeschoten</span>' +
           '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
           // #898: hoe ver je bent, als één stil chipje naast je naam (zelfde cijfer als het Overzicht)
           '<span class="hud-chip hud-done" role="status" hidden><b></b></span>' +
@@ -559,17 +558,8 @@ function restartClass(el, cls, still = () => true) {
 
 const setText = (el, t) => { if (el.textContent !== t) el.textContent = t; };
 
-const VEH_ICONS = {
-  car: '<path d="M3.5 15.5v-3l2-4.6A2 2 0 0 1 7.3 6.7h9.4a2 2 0 0 1 1.8 1.2l2 4.6v3z"/><path d="M6 11.5h12" class="ln"/><circle cx="7.3" cy="16.3" r="1.9"/><circle cx="16.7" cy="16.3" r="1.9"/>',
-  bus: '<rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M3.5 10h17" class="ln"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
-  bike: '<circle cx="6" cy="15.5" r="3.6" class="ln"/><circle cx="18" cy="15.5" r="3.6" class="ln"/><path d="M6 15.5l4-6.5h5.5L18 15.5M10 9l2.8 6.5h2.2M13.5 6.5h2.5" class="ln"/>',
-  scooter: '<circle cx="6" cy="16.5" r="2.6" class="ln"/><circle cx="18" cy="16.5" r="2.6" class="ln"/><path d="M6 16.5h7.5l2-9.5h2.5M9 13h6" class="ln"/>',
-  boat: '<path d="M2.5 14.5h19l-3 5h-13z"/><path d="M11.5 3v10M11.5 4.5l6 8h-6" class="ln"/>',
-  horse: '<path d="M5 19v-5.5l1.5-3.5h7l2.5-4 1.5-1.5 1 1.5 1.5 2.5-1 1.2-2-.7-1.5 2.5V19M8 14v5M14 14v5" class="ln"/><path d="M6.5 10l-2.5 2.5" class="ln"/>',
-  heli: '<path d="M3 6h16M11 6v3" class="ln"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9z"/><path d="M14.5 12.5h6.5M20 10v4.5M6 19h8M8 16v3M12 16v3" class="ln"/>',
-  // #857: the plane has its own icon, just like the heli.
-  plane: '<path d="M12 2.6c.7 0 1.2.6 1.2 1.4v5.6l7.2 4.1v2l-7.2-2.1v3.4l2.5 1.9v1.3L12 19.3l-3.7.9v-1.3l2.5-1.9v-3.4l-7.2 2.1v-2l7.2-4.1V4c0-.8.5-1.4 1.2-1.4z"/>',
-};
+// Betekenisnamen (icons.js) per voertuigsoort.
+const VEH_ICONS = { car: 'auto', bus: 'bus', bike: 'fiets', scooter: 'scooter', boat: 'boot', horse: 'paard', heli: 'helikopter', plane: 'vliegtuig' };
 
 // Genre convention: the model name shows for a moment when you get into a vehicle
 let vehNameFor = null;
@@ -582,7 +572,7 @@ function updateVehicleName(dt, world) {
       const { make, model } = vehicleDisplayName(v);
       els.vehName.querySelector('small').textContent = make;
       els.vehName.querySelector('b').textContent = model;
-      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isPlane ? 'plane' : v.isHeli ? 'heli' : v.isBoat ? 'boat' : v._mount === 'horse' ? 'horse' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
+      setIc(els.vehName.querySelector('.vn-ic'), VEH_ICONS[v.isPlane ? 'plane' : v.isHeli ? 'heli' : v.isBoat ? 'boat' : v._mount === 'horse' ? 'horse' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car']);
       vehNameTimer = 4.5;
       restartClass(els.vehName, 'on', () => vehNameFor === v);
     } else {
@@ -1036,7 +1026,7 @@ function updateGps(dt, world) {
     const title = turnText(turn);
     key += '|' + title + '|' + sub + '|' + formatDistance(route.remaining);
     if (key === els.gpsKey) return;
-    els.gpsArrow.innerHTML = TURN_ICON[turn.side];
+    setIc(els.gpsArrow, TURN_ICON[turn.side]);
     setText(els.gpsTitle, title);
     setText(els.gpsSub, sub);
     setText(els.gpsDist, formatDistance(route.remaining));
@@ -1044,7 +1034,7 @@ function updateGps(dt, world) {
   } else if (card) {
     key += `|${card.title}|${card.sub}|${formatDistance(route.remaining)}`;
     if (key === els.gpsKey) return;
-    els.gpsArrow.innerHTML = TURN_ICON.recht;
+    setIc(els.gpsArrow, TURN_ICON.recht);
     setText(els.gpsTitle, card.title);
     setText(els.gpsSub, card.sub);
     setText(els.gpsDist, formatDistance(route.remaining));

@@ -6,11 +6,11 @@ import { WALL } from './climbrules.js';
 
 // Icoonpaden voor de chips (24x24, lijn): grond (mat), klimmer (hand aan greep), top (vlag), magnesium (zakje), hart voor pogingen.
 export const ICOON = {
-  start: '<path d="M3 19h18"/><path d="M7 19v-4h10v4"/>',
-  klim: '<path d="M8 21V9"/><path d="M16 21V5"/><path d="M8 13h8M8 17h8"/>',
-  top: '<path d="M6 21V4"/><path d="M6 5h12l-2 4 2 4H6"/>',
-  magnesium: '<path d="M8 8h8l1 12H7z"/><path d="M9 8c0-2 1-4 3-4s3 2 3 4"/>',
-  kans: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  start: 'plek',
+  klim: 'klimmen',
+  top: 'vlag',
+  magnesium: 'pakket',
+  kans: 'hart',
 };
 
 export const STAPPEN = [

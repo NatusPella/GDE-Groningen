@@ -5,9 +5,9 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): klant (poppetje met arm omhoog), taxi (auto met bordje), afzetten (vlag).
 export const ICOON = {
-  klant: '<circle cx="12" cy="6" r="2.5"/><path d="M12 9v6M8 12l4-1 4-3M9 21l3-6 3 6"/>',
-  taxi: '<path d="M4 16V12l2-4h12l2 4v4z"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/><path d="M10 6V4h4v2"/>',
-  vlag: '<path d="M6 21V4"/><path d="M6 5h12l-2 4 2 4H6"/>',
+  klant: 'speler',
+  taxi: 'taxi',
+  vlag: 'vlag',
 };
 
 export const STAPPEN = [

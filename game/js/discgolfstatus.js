@@ -6,10 +6,10 @@
 import { SIMICOON as I } from './simicoon.js';
 
 export const ICOON = {
-  richten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
-  disc: '<ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M6 12.5c3 1.5 9 1.5 12 0"/>',
-  mand: '<path d="M12 3v8"/><path d="M5 11h14l-2 9H7z"/><path d="M9 11l1 9M15 11l-1 9"/>',
-  vlag: '<path d="M6 21V4"/><path d="M6 5h12l-2 4 2 4H6"/>',
+  richten: 'doel',
+  disc: 'worp',
+  mand: 'mand',
+  vlag: 'vlag',
 };
 
 export const STAPPEN = [

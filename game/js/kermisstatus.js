@@ -5,10 +5,10 @@ import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bel, botsauto (auto met paal), afstappen (deur).
 export const ICOON = {
-  bel: '<path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5z"/><path d="M10 20h4"/>',
-  auto: '<path d="M4 17v-4l2-3h12l2 3v4z"/><circle cx="8" cy="18" r="1.5"/><circle cx="16" cy="18" r="1.5"/><path d="M12 10V4"/>',
-  uit: '<path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/>',
-  reeks: '<path d="M10 14a4 4 0 0 1 0-6l2-2a4 4 0 0 1 6 6l-1 1"/><path d="M14 10a4 4 0 0 1 0 6l-2 2a4 4 0 0 1-6-6l1-1"/>',
+  bel: 'bel',
+  auto: 'auto',
+  uit: 'uitgang',
+  reeks: 'route',
 };
 
 export const STAPPEN = [

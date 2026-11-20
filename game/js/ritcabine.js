@@ -13,9 +13,11 @@ export const TAXI_TARIEF = { start: 3.4, perKm: 2.2 };
 export const TAXI_OOG = { x: -0.4, y: 1.26, z: 0.36 };   // het oog van de passagier
 export const TAXI_VOORRUIT = { x0: 1.0, x1: 0.32 };       // onderkant (de bak) en bovenkant (de kop) van de voorruit
 
-const FLOOR = 0x2b2e33, PANEEL = 0x3b4048, DASH = 0x2d3036, DASH_TOP = 0x3a3f46, STOEL = 0x6a707a, STOEL_RUG = 0x5a606a;
-const HEMEL = 0xe8e4d8, STIJL = 0x2a2d33, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
-const HUID = 0xf0bf9a, TRUI = 0x4f86c6, BROEK = 0x2c303a, PET = 0xf2f0e8;
+// Lichter dan eerst (beeldcheck 20-11: de cabine las als één donkere massa): een warm grijs dashboard en paneel, lichte stoelen;
+// de stijlen blijven donkerder dan het paneel, zodat ze als lijst tegen de straat leesbaar blijven.
+const FLOOR = 0x4a4d52, PANEEL = 0x7c786f, DASH = 0x6a675f, DASH_TOP = 0x8a867b, STOEL = 0x8a7f6e, STOEL_RUG = 0x786d5e;
+const HEMEL = 0xe0dccf, STIJL = 0x3e4148, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
+const HUID = 0xf0bf9a, TRUI = 0x5c94d6, BROEK = 0x424856, PET = 0xf2f0e8;
 export const METER_AAN = 0xffb02e, METER_UIT = 0x2e2412;
 
 // Een stuk dat van punt p naar q loopt (arm, stijl, stang), als doos met de lengte langs x gedraaid.
@@ -95,8 +97,11 @@ export function meterDelen() {
 }
 
 // Het stuur: een achthoek van staafjes met een naaf en een stuurkolom, gekanteld naar de chauffeur.
+export const STUUR = { x: 0.4, y: 0.98, z: -0.42, tilt: 1.0 };
+// de as waar het stuur omheen draait (de normaal van het vlak van de ring): ritcabine3d.js draait het stuur en de handen mee met de bocht
+export const stuurAs = () => [Math.cos(STUUR.tilt), -Math.sin(STUUR.tilt), 0];
 function stuurDelen(cx, cy, cz) {
-  const r = 0.19, tilt = 1.0; // tilt: hoeveel de ring achterover helt (rad vanaf verticaal)
+  const r = 0.19, tilt = STUUR.tilt; // tilt: hoeveel de ring achterover helt (rad vanaf verticaal)
   const punten = [];
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
@@ -113,7 +118,7 @@ function stuurDelen(cx, cy, cz) {
 }
 
 // De chauffeur: een eenvoudige figuur in een donkerblauwe trui en een pet, met zijn handen aan het stuur. Alles dozen.
-function chauffeurDelen(sx, sz, stuur) {
+function chauffeurDelen(sx, sz, stuur, handen) {
   const out = [];
   const zit = 0.5;
   out.push(doos([sx, zit, sz], [0.5, 0.12, 0.5], STOEL), doos([sx - 0.3, zit + 0.3, sz], [0.1, 0.62, 0.5], STOEL_RUG), doos([sx - 0.34, zit + 0.7, sz], [0.08, 0.2, 0.28], STOEL));
@@ -131,14 +136,14 @@ function chauffeurDelen(sx, sz, stuur) {
     const schouder = [sx + 0.0, zit + 0.62, sz + s * 0.22], hand = [stuur[0] + 0.01, stuur[1] + 0.02, sz + s * 0.16];
     out.push(staaf(schouder, [(schouder[0] + hand[0]) / 2 + 0.02, (schouder[1] + hand[1]) / 2 - 0.08, (schouder[2] + hand[2]) / 2], 0.075, TRUI));
     out.push(staaf([(schouder[0] + hand[0]) / 2 + 0.02, (schouder[1] + hand[1]) / 2 - 0.08, (schouder[2] + hand[2]) / 2], hand, 0.07, TRUI));
-    out.push(doos(hand, [0.07, 0.07, 0.07], HUID));
+    handen.push(doos(hand, [0.07, 0.07, 0.07], HUID)); // de handen draaien met het stuur mee
     out.push(staaf([sx + 0.1, zit + 0.12, sz + s * 0.12], [sx + 0.5, zit + 0.08, sz + s * 0.14], 0.14, BROEK)); // dijen en onderbenen
     out.push(staaf([sx + 0.5, zit + 0.08, sz + s * 0.14], [sx + 0.55, zit - 0.22, sz + s * 0.14], 0.11, BROEK));
   }
   return out;
 }
 
-// De hele cabine van de taxi. Geeft { vast, cijfers, oog }: vast zijn dozen voor het gewone materiaal (groep 0) en
+// De hele cabine van de taxi. Geeft { vast, cijfers, oog, stuur }: stuur zijn de ring, de spaken en de handen die met de bocht meedraaien; vast zijn dozen voor het gewone materiaal (groep 0) en
 // voor het scherm van de meter (groep 1, de donkere en lichte segmenten staan apart in cijfers).
 export function taxiCabine() {
   const D = [];
@@ -156,9 +161,9 @@ export function taxiCabine() {
   // instrumentenkap voor de chauffeur
   D.push(doos([0.74, 1.0, -0.42], [0.22, 0.14, 0.42], STIJL));
   // het stuur en de chauffeur
-  const stuur = [0.4, 0.98, -0.42];
-  D.push(...stuurDelen(stuur[0], stuur[1], stuur[2]));
-  D.push(...chauffeurDelen(-0.2, -0.42, stuur));
+  const stuur = [STUUR.x, STUUR.y, STUUR.z], draaiend = stuurDelen(stuur[0], stuur[1], stuur[2]);
+  D.push(draaiend.pop()); // de stuurkolom (laatste onderdeel) blijft staan
+  D.push(...chauffeurDelen(-0.2, -0.42, stuur, draaiend));
   // het midden: tunnel, versnellingspook en de handrem
   D.push(doos([-0.1, 0.46, 0], [1.4, 0.26, 0.26], DASH), doos([0.15, 0.7, 0.0], [0.05, 0.3, 0.05], STIJL), doos([0.15, 0.86, 0.0], [0.09, 0.07, 0.07], RUBBER));
   // stoel van de passagier: alleen de zijkant en de rug achter het oog (de camera zit er net voor)
@@ -193,7 +198,7 @@ export function taxiCabine() {
   for (const s of [-1, 1]) D.push(staaf([0.5, 0.98, s * 0.88], [0.56, 1.03, s * 1.0], 0.03, STIJL), doos([0.56, 1.06, s * 1.06], [0.05, 0.14, 0.2], TAXI_GEEL));
   const m = meterDelen();
   D.push(...m.vast);
-  return { vast: D, cijfers: m.cijfers, oog: o };
+  return { vast: D, cijfers: m.cijfers, oog: o, stuur: draaiend };
 }
 
 // ---- zichtlijnen: vult de straat het beeld? ---------------------------------------------------------------

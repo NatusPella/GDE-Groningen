@@ -68,4 +68,4 @@ for (const s of sims) {
   } catch (e) { check(s.naam + ': uitzondering', false, e && e.stack ? e.stack : String(e)); try { if (a.quit) a.quit(); } catch (e2) { /* niets */ } }
 }
 clearInterval(skipper);
-console.log('[perf-script] ' + JSON.stringify(uit));
+return JSON.stringify({ ...uit, mislukt: uit.controles.filter((c) => !c.ok).map((c) => c.naam) });

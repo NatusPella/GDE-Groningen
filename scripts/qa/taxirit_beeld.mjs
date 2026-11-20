@@ -1,7 +1,7 @@
 // Echte taxirit en treinrit in beeld (#882, #926): één Electron (wegwerpprofiel) start via de kaartopties een rit naar een
 // plaats en neemt beelden op vaste momenten (taxirit_beeld.page.js). De rit moet de echte scène zijn (geen oude DOM-laag),
 // de speler moet bij het doel landen en alles moet opgeruimd zijn.
-//   node scripts/qa/taxirit_beeld.mjs [--van=Groningen] [--taxi=Winsum] [--trein=Delfzijl] [--momenten=1.5,5,8.5,10.4,12.5,17,21] [--out=<map>]
+//   node scripts/qa/taxirit_beeld.mjs [--van=Groningen] [--taxi=Winsum] [--trein=Delfzijl] [--momenten=1.5,5,8.5,10.4,12.5,17,21] [--cams: C voor elk moment na het eerste, zo komt elke camera in beeld] [--out=<map>]
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/shots-tr-*.png, taxirit_beeld.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -17,7 +17,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-taxirit')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = profileDirFor(`gde-test-tr-${process.pid}`, OUT); // %TEMP% is voor Electron soms niet schrijfbaar
 const script = path.join(OUT, '_page.js');
-const cfg = { vanNaam: arg('van', 'Groningen'), naar: [arg('taxi', 'Winsum'), arg('trein', 'Delfzijl')], momenten: arg('momenten', '2.8,5,9.3,12.5,15,17,21').split(',').map(Number) };
+const cfg = { vanNaam: arg('van', 'Groningen'), naar: [arg('taxi', 'Winsum'), arg('trein', 'Delfzijl')], momenten: arg('momenten', '2.8,5,9.3,12.5,15,17,21').split(',').map(Number), cams: process.argv.includes('--cams') };
 fs.writeFileSync(script, `window.__tr = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'taxirit_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };

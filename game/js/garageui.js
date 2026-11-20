@@ -5,6 +5,7 @@
 // on it, or it has keyboard or controller focus, or (touch) it was tapped.
 // Stills, turntable and viewer all come from vehiclepreview.js's one shared
 // renderer, so the garage never opens a WebGL context of its own.
+import { icoon } from './icons.js';
 import { getGarageCatalog, whereText, actieBevestiging } from './ownedvehicles.js';
 import { garageToestand, statusToon, vraagSoort, chipHtml, TOESTAND_ICOON } from './garagetoestand.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclepreview.js';
@@ -108,8 +109,8 @@ export function initGarageStyles() {
   document.head.appendChild(st);
 }
 
-const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>';
+const LOCK = icoon('slot', { maat: 'm' });
+const PIN = icoon('plek', { maat: 'm' });
 
 const GROUP_LABEL = { owned: 'van jou', sale: 'te koop', locked: 'op slot' };
 const GROUP_HEAD = { owned: 'Van jou', sale: 'Te koop', locked: 'Op slot' };
@@ -451,7 +452,7 @@ function tabsHtml(list) {
 function listHtml(list) {
   const shown = shownList(list);
   if (!shown.length) {
-    return '<div class="gar-leeg ds-leeg ds-glas"><span class="ds-leeg__beeld"><svg class="gar-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg></span>' +
+    return '<div class="gar-leeg ds-leeg ds-glas"><span class="ds-leeg__beeld">' + icoon('zoek', { cls: 'gar-ic' }) + '</span>' +
       '<h3 class="ds-leeg__kop">Niks in deze selectie</h3><div class="ds-leeg__tekst">Kies een andere soort of toon alles.</div>' +
       '<button type="button" class="ds-knop ds-knop--secundair" data-garage-cat="all">Alle soorten</button></div>';
   }
