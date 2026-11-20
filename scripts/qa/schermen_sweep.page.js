@@ -53,7 +53,7 @@ const heeftEigenTekst = (el) => [...el.childNodes].some((c) => c.nodeType === 3 
 
 function scan(root, opties = {}) {
   const vw = window.innerWidth, vh = window.innerHeight;
-  const uit = { buitenBeeld: [], afgekapt: [], afgekaptEllips: [], bedekt: [], contrast: [], klein: [], geenFocus: [], geenControllerFocus: [], geenFocusring: [], kleinDoel: [], teller: {} };
+  const uit = { buitenBeeld: [], afgekapt: [], afgekaptEllips: [], bedekt: [], contrast: [], klein: [], geenFocus: [], geenControllerFocus: [], geenFocusring: [], kleinDoel: [], hoeken: [], teller: {} };
   const alle = [...root.querySelectorAll('*')].filter((e) => !['SCRIPT', 'STYLE', 'SVG', 'PATH', 'CANVAS'].includes(e.tagName.toUpperCase()) && echtZichtbaar(e));
   const doelen = alle.filter((e) => e.matches(KLIKBAAR) && !e.disabled && stijl(e).pointerEvents !== 'none');
   uit.teller = { elementen: alle.length, klikdoelen: doelen.length };
@@ -106,6 +106,7 @@ function scan(root, opties = {}) {
     el.style.transition = oudeTr;
     if (!ring && naStijl === voor) eenmaal('geenFocusring', label(el), { el: label(el) });
   }
+  try { uit.hoeken = hoekScan(root); } catch (e) { uit.teller.hoekFout = e.message; } // vierkante vlakken in afgeronde hoeken (hoeken.page.js)
   if (vorige && vorige.focus) try { vorige.focus({ preventScroll: true }); } catch { /* */ } else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   return uit;
 }
@@ -116,7 +117,7 @@ const aanbevolen = (naam, r) => { uit.schermen[naam] = r; console.log('[capture]
 const wachtOp = async (f, n = 120) => { for (let i = 0; i < n; i++) { if (f()) return true; await sleep(250); } return false; };
 // het laadscherm (#loading, #load-screen) en het startscherm liggen soms nog over het spel: een klikdoel daaronder is geen fout, en we melden het per scherm
 const OVERLAY = '#loading, #load-screen, #start-screen';
-const meet = async (naam, root, touch) => { await sleep(900); try { const r = scan(root || document.body, { touch }); r.overlay = [...document.querySelectorAll(OVERLAY)].filter(echtZichtbaar).map((e) => e.id || e.className); aanbevolen(naam, r); } catch (e) { uit.overgeslagen.push(naam + ': ' + e.message); } };
+const meet = async (naam, root, touch) => { await sleep(900); try { const r = scan(root || document.body, { touch }); r.overlay = [...document.querySelectorAll(OVERLAY)].filter(echtZichtbaar).map((e) => e.id || e.className); aanbevolen(naam, r); if (SW.beeld && r.hoeken.length) { const weg = hoekMarkeer(r.hoeken); await sleep(400); console.log('[capture] hoeken-' + naam + '-' + SW.naam); await sleep(900); weg(); } } catch (e) { uit.overgeslagen.push(naam + ': ' + e.message); } };
 
 // het startscherm (GDE_MENU_TEST=1 laat het staan)
 const start = document.querySelector('#start-screen');
@@ -148,7 +149,7 @@ const MENU = [
   ['pauze-spel', ['spel', { sub: 'overzicht' }]], ['spel-rail-acties', ['spel', { sub: 'acties' }]], ['samen-hub', ['samen']],
   ['te-doen', ['todo']], ['kaart', ['map']], ['prestaties', ['prestaties']], ['instellingen', ['settings']],
   ['spullen', ['spullen']], ['garage', ['garage']], ['verhaal-telefoon', ['telefoon']], ['loopbaan', ['loopbaan']], ['besturing', ['controls']],
-  ['veroverd', ['veroverd']], ['foto-s', ['fotos']],
+  ['veroverd', ['veroverd']], ['foto-s', ['fotos']], ['over-credits', ['over']],
 ];
 for (const [naam, args] of MENU) {
   if (!wil(naam)) continue;
@@ -165,6 +166,60 @@ if (wil('winkel')) {
     for (let i = 0; i < 12 && !SU.isShopOpen(); i++) { if (p.inVehicle) p.exitVehicle(map, w); p.x = s.x; p.y = s.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; await sleep(250); tap('e', 'KeyE'); await sleep(700); }
     if (SU.isShopOpen()) { await sleep(900); await meet('winkel', document.querySelector('#shop-menu'), SW.touch); SU.closeShopMenu({ save: false }); await sleep(500); } else uit.overgeslagen.push('winkel: ging niet open');
   } catch (e) { uit.overgeslagen.push('winkel: ' + e.message); }
+}
+// kaart: legenda, zoekresultaten, plekkaartje, reisstap, route, hoverbalkje en het ontdekkaartje (mapview.js; de kaart zelf staat al in MENU)
+const klikOp = (cv, x, y) => { cv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0, clientX: x, clientY: y })); window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0, clientX: x, clientY: y })); };
+if (wil('kaart-extra')) {
+  try {
+    PM.openPauseMenu('map'); await sleep(4000);
+    const ov = document.querySelector('.mapview-overlay'); const cv = ov && ov.querySelector('canvas');
+    if (!ov || !cv) throw new Error('geen kaart');
+    const lagen = ov.querySelector('.mv-layers');
+    if (lagen) { lagen.click(); await meet('kaart-legenda', ov, SW.touch); lagen.click(); await sleep(300); }
+    const si = ov.querySelector('.mapview-search input');
+    if (si) { si.focus(); si.value = 'Groningen'; si.dispatchEvent(new Event('input', { bubbles: true })); await meet('kaart-zoek', ov, SW.touch); si.value = ''; si.dispatchEvent(new Event('input', { bubbles: true })); si.blur(); }
+    const nk = ov.querySelector('.mv-naamkaart');
+    if (nk) { nk.innerHTML = '<span class="mv-nk-k">Nieuw ontdekt</span><b class="mv-nk-n">Oosterpoort</b><span class="mv-nk-r">3 van 8 streken verkend</span>'; nk.hidden = false; nk.classList.add('show'); await meet('kaart-ontdekt', ov, SW.touch); nk.classList.remove('show'); nk.hidden = true; }
+    const rc = cv.getBoundingClientRect(); const px = rc.left + rc.width / 2 + 90, py = rc.top + rc.height / 2 + 70;
+    cv.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: rc.left + rc.width / 2, clientY: rc.top + rc.height / 2 })); await sleep(300);
+    const tip = ov.querySelector('.mapview-tooltip'); if (tip && getComputedStyle(tip).display !== 'none' && tip.textContent.trim()) await meet('kaart-hover', ov, SW.touch);
+    klikOp(cv, px, py); await sleep(800);
+    const kaart = ov.querySelector('.mapview-card');
+    if (kaart && !kaart.hidden) {
+      await meet('kaart-plekkaartje', ov, SW.touch);
+      const reis = kaart.querySelector('[data-card="reis"]'); if (reis) { reis.click(); await sleep(500); await meet('kaart-reisstap', ov, SW.touch); }
+      const wp = kaart.querySelector('[data-card="waypoint"]'); if (wp) { wp.click(); await sleep(600); await meet('kaart-route', ov, SW.touch); }
+    } else uit.overgeslagen.push('kaart-plekkaartje: geen kaartje na een klik');
+    klikOp(cv, rc.left + rc.width / 2, rc.top + rc.height / 2); await sleep(600);
+    if (kaart && !kaart.hidden) await meet('kaart-ikzelf', ov, SW.touch);
+    const wis = ov.querySelector('[data-act="clear"]'); if (wis && !wis.hidden) wis.click();
+  } catch (e) { uit.overgeslagen.push('kaart-extra: ' + e.message); }
+  try { PM.closePauseMenu(); } catch { /* */ }
+  await sleep(500);
+}
+// regelkaarten (regelkaart.js + regelwidget.js), toast en fotomodus
+if (wil('regelkaart')) {
+  try {
+    const K = await imp('regelkaart');
+    const stap = { kaart: { doel: 'Breng de eieren heel naar de bakker', druk: 'drie minuten', afloop: 'alle eieren stuk: opnieuw', regels: [
+      { type: 'limiet', inv: { waarde: 38, limiet: 40, label: 'Snelheid' } }, { type: 'voorraad', inv: { heel: 42, totaal: 60, icoon: 'ei', label: 'Eieren' } },
+      { type: 'toets', inv: { toetsen: ['A', 'D'], handeling: 'houd', label: 'Klimmen' } }, { type: 'wijzer', inv: { afstand: 120, hoek: -1.2, label: 'Doel' } } ] } };
+    const staat = K.startKaart(stap, 'qa:hoeken');
+    let n = 0;
+    for (let i = 0; staat && i < 40 && !staat.klaar && n < 3; i++) { const spec = K.toonRegelkaart(w, staat, 0.5); if (spec) { n++; await meet('regelkaart-' + n, document.body, SW.touch); } staat.t += 0.5; }
+    if (!n) uit.overgeslagen.push('regelkaart: geen kaartje getoond');
+  } catch (e) { uit.overgeslagen.push('regelkaart: ' + e.message); }
+}
+if (wil('toast')) {
+  try {
+    w.addMessage('Pas op: de brug gaat open', 6); w.addMessage('Je hebt een nieuwe app op je telefoon', 6); await sleep(700);
+    await meet('toast', document.body, SW.touch);
+    const A = await imp('achievements'); const a = (A.ACHIEVEMENTS || []).find((x) => !A.isUnlocked(x.id));
+    if (a) { A.unlockAchievement(w, a.id); await sleep(900); await meet('toast-prestatie', document.body, SW.touch); }
+  } catch (e) { uit.overgeslagen.push('toast: ' + e.message); }
+}
+if (wil('fotomodus')) {
+  try { tap('F8', 'F8'); await sleep(1800); if (document.querySelector('.foto-bar')) await meet('fotomodus', document.body, SW.touch); else uit.overgeslagen.push('fotomodus: geen paneel na F8 (uiPaused ' + !!w.uiPaused + ', cameraOverride ' + !!w.cameraOverride + ')'); tap('Escape', 'Escape'); await sleep(600); tap('F8', 'F8'); await sleep(500); } catch (e) { uit.overgeslagen.push('fotomodus: ' + e.message); }
 }
 // dialoog: een melding en het wachtscherm zijn geen dialoog; een dialoogscherm openen vraagt een NPC en blijft handwerk
 uit.overgeslagen.push('dialoog: geen vaste ingang zonder NPC (niet gemeten)');

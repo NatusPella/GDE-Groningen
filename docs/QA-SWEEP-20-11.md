@@ -49,6 +49,18 @@ geen bedekte klikdoelen in de menu's en geen contrastfout** (het contrast is all
 Eerder gemelde artefacten van de sweep zelf (verholpen in het script): het laadscherm of startscherm dat nog over de HUD en de winkel lag telde als "bedekt";
 screenreader-teksten van 1 px telden als afgekapt; de focusring is alleen te beoordelen als `:focus-visible` geldt (anders telt het script het als "onbepaald").
 
+## Hoekdetector (20-11, #985 #980)
+
+`scripts/qa/hoeken.page.js` (bibliotheek, door `schermen_sweep.mjs` voor het paginascript gezet) meet per zichtbaar element met `border-radius` >= 2 px en per hoek een raster van punten tussen de box-hoek en de boog (het stukje dat transparant hoort te zijn):
+
+- **kind**: een afstammeling of absoluut gepositioneerde `::before`/`::after` met verf (achtergrond, afbeelding, rand langs die zijde, inset-schaduw, img/video) bedekt >= 40% van dat stukje, zonder dat een ouder met overflow/clip-path/mask het wegknipt of het kind zelf rond genoeg is;
+- **ouder**: een voorouder met een echte achtergrond heeft zijn vierkante hoek op dezelfde plek (achtergrond buiten de rand, binnen de afronding van de ouder, telt niet);
+- **media**: img/video/canvas in de hoek (canvassen met een transparante renderer staan in `HOEK_NEGEER`).
+
+Het meet in schermpixels (de CSS-`zoom` van de UI-schaal wordt uit de verhouding rect/breedte gehaald). `--beeld=1` maakt per scherm met een bevinding een beeld met een magenta markering (`shots-hoeken-<scherm>-<formaat>.png`); de samenvatting heeft een kolom `hoeken`.
+Schermen: alle hierboven plus Over/credits, kaart (legenda, zoekresultaten, ontdekkaartje, hoverbalkje, plekkaartje, reisstap, route, eigen plek), regelkaarten, toasts (HUD en prestatie) en de start. De pure meetkunde staat in `scripts/hoeken_test.mjs`.
+Niet gemeten: een pixelverschil met en zonder het element (de pagina kan zichzelf niet fotograferen; het beeld met markering is de controle), hover- en selectievlakken die pas na een muisbeweging ontstaan, niet-absolute pseudo's, SVG-vormen, de fotomodus (opent niet vanuit de sweep), dialogen en het wachtscherm.
+
 ## Niet gemeten of niet gezien
 
 - Dialogen met een personage: geen vaste ingang zonder NPC; handwerk blijft nodig. Ook het startscherm en de Samen spelen-hub met een tweede speler zijn niet apart gemeten.

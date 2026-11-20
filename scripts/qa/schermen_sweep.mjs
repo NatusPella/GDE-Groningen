@@ -3,7 +3,7 @@
 // Loopbaan, Besturing, winkel. Meet buiten beeld, afgekapte tekst, bedekte klikdoelen, contrast, tekst onder 13 px, focus
 // (toets, controller, focusring), console-errors en NaN-waarschuwingen (schermen_sweep.page.js).
 //   node scripts/qa/schermen_sweep.mjs [--out=<map>] [--formaten=1280x720,1920x1080,800x360t,1024x768,2560x1080] [--schermen=kaart,winkel]
-//                                       [--settle=6000] [--slot=2]   (--slot: wacht tot er hooguit zoveel game-Electrons draaien)
+//                                       [--beeld=1 (beeld met markering per scherm met een hoekfout)] [--settle=6000] [--slot=2]   (--slot: wacht tot er hooguit zoveel game-Electrons draaien)
 // Elk formaat is een eigen Electron-start met een wegwerpprofiel (GDE_TEST_PROFILE onder <out>), een "t" achter het formaat zet de raakbediening aan.
 // GDE_GAME_DIR=<gestagede game-map> (backslashes), ELECTRON_EXE=<pad>, GDE_ELECTRON_FLAGS="--no-sandbox --in-process-gpu" zoals bij de spelbot.
 // Uitvoer: <out>/sweep-<formaat>.json en <out>/sweep.json (alles samen); exit 0 als elk formaat een resultaat gaf.
@@ -21,7 +21,7 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 // Een tabel van een eerder resultaat: per formaat en scherm het aantal bevindingen per detector.
 if (arg('samenvatting', '')) {
   const j = JSON.parse(fs.readFileSync(arg('samenvatting'), 'utf8'));
-  const KOLOM = ['buitenBeeld', 'afgekapt', 'bedekt', 'contrast', 'klein', 'geenFocus', 'geenControllerFocus', 'geenFocusring', 'kleinDoel'];
+  const KOLOM = ['buitenBeeld', 'afgekapt', 'bedekt', 'contrast', 'klein', 'geenFocus', 'geenControllerFocus', 'geenFocusring', 'kleinDoel', 'hoeken'];
   console.log(['formaat', 'scherm', ...KOLOM].join('\t'));
   for (const [f, r] of Object.entries(j)) for (const [s, m] of Object.entries(r.schermen || {})) console.log([f, s, ...KOLOM.map((k) => (m[k] || []).length)].join('\t'));
   process.exit(0);
@@ -32,7 +32,8 @@ const FORMATEN = arg('formaten', '1280x720,1920x1080,800x360t,1024x768,2560x1080
 const SLOT = Number(arg('slot', 0));
 fs.mkdirSync(OUT, { recursive: true });
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-const body = fs.readFileSync(path.join(HERE, 'schermen_sweep.page.js'), 'utf8');
+// hoeken.page.js (de hoekdetector, alleen functiedeclaraties) gaat vóór het paginascript; --beeld=1 maakt van elk scherm met een hoekfout een [capture]-beeld met markering
+const body = fs.readFileSync(path.join(HERE, 'hoeken.page.js'), 'utf8') + '\n' + fs.readFileSync(path.join(HERE, 'schermen_sweep.page.js'), 'utf8');
 
 // Hoeveel game-Electrons draaien er al (alleen de hoofdprocessen; Windows)? Zonder PowerShell: 0.
 function draaiend() {
@@ -54,7 +55,7 @@ for (const f of FORMATEN) {
   const profile = path.join(dir, `profiel-${process.pid}`);
   fs.mkdirSync(profile, { recursive: true });
   const script = path.join(dir, '_page.js');
-  fs.writeFileSync(script, `window.__sw = ${JSON.stringify({ naam: f, touch: !!t, settle: Number(arg('settle', 6000)), schermen: arg('schermen', '').split(',').filter(Boolean) })};\n` + body);
+  fs.writeFileSync(script, `window.__sw = ${JSON.stringify({ naam: f, touch: !!t, beeld: arg('beeld', '') === '1', settle: Number(arg('settle', 6000)), schermen: arg('schermen', '').split(',').filter(Boolean) })};\n` + body);
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_MENU_TEST: '1', GDE_NO_THROTTLE: '1' };
   if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
   delete env.ELECTRON_RUN_AS_NODE;
