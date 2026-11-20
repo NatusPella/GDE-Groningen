@@ -49,7 +49,7 @@ check('de cijfercellen hebben een eigen icoon per regel', /pa-fig-k/.test(ui) &&
 check('de medaille noemt zijn naam als tekst, niet alleen als kleur', /MEDALS\[m\] : 'Geen medaille'/.test(ui) && /m-medal m\$\{m\}" aria-hidden="true"/.test(ui));
 // #840: een grotere, visuelere prestatiekaart met eigen geluid, zonder de HUD-budgetten te breken
 check('de prestatiekaart heeft een badge, stralen en vonken', /ach-badge/.test(ach) && /ach-rays/.test(ach) && /ach-spark s1/.test(ach));
-check('de titel komt oplopen en het geheel zweeft binnen', /@keyframes ach-rise/.test(ach) && /@keyframes ach-in/.test(ach) && /ach-shimmer/.test(ach));
+check('de kaart schuift 8 px in via ds-mi-in (microinteractions) en de glans loopt één keer', /ach-toast ds-mi-in/.test(ach) && /--ds-mi-x: -8px/.test(ach) && !/@keyframes ach-(rise|in)/.test(ach) && /ach-shimmer 1.6s 0.15s ease-out 1;/.test(ach));
 check('de decoratie is aria-hidden en de Nederlandse tekst blijft', /ach-badge" aria-hidden="true"/.test(ach) && ach.includes('PRESTATIE ONTGRENDELD') && ach.includes('dualHtml(a.title)'));
 check('de kaart respecteert beweging beperken en prefers-reduced-motion', /html\.reduce-motion #hud \.ach-toast/.test(ach) && /prefers-reduced-motion: reduce/.test(ach) && /animation: none !important/.test(ach));
 check('reduce-motion houdt de verborgen toast verborgen (geen ghost)', /html\.reduce-motion #hud \.ach-toast\.on \{ opacity: 1;/.test(ach) && !/html\.reduce-motion #hud \.ach-toast, html\.reduce-motion #hud \.ach-toast\.on[^}]*opacity: 1/.test(ach));
