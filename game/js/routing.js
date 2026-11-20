@@ -207,6 +207,35 @@ export function targetLeadAllowed(map, ax, ay, bx, by) {
   return !lineHitsCemetery(map, ax, ay, bx, by);
 }
 
+// De gebouwtoets per wegsegment (drie steekproeven per segment, de hoofdkost van een herbouw) wordt per weg onthouden
+// (road._tb) zolang er geen gebouw bij of af kwam binnen het omhullende vlak van de weg: tileworld.js legt de gebouwen
+// van elke tegelwissel vast in map._buildingDelta, home.js zet map._tbEpoch op bij een gewijzigd gebouw. Zelfde uitkomst
+// als altijd opnieuw toetsen; de eerste bouw vult de cache. Zie docs/PERF-WEGINDEX-21-11.md.
+export const throughStats = { hit: 0, miss: 0, invalidated: 0 };
+function syncThroughCache(map) {
+  const epoch = map._tbEpoch || 0;
+  const d = map._buildingDelta;
+  map._buildingDelta = [];
+  if (!d || map._tbMapEpoch !== epoch) { map._tbMapEpoch = epoch; map._tbStamp = (map._tbStamp || 0) + 1; return; } // niets onthouden dat nog klopt: alles opnieuw
+  for (const b of d) {
+    if (!b.bounds) continue;
+    const [x0, y0, x1, y1] = b.bounds;
+    for (const r of map.roadsNear((x0 + x1) / 2, (y0 + y1) / 2, Math.hypot(x1 - x0, y1 - y0) / 2 + 12)) {
+      if (r._tb) { r._tb = null; throughStats.invalidated++; }
+    }
+  }
+}
+function throughOf(map, road, i, ax, ay, bx, by) {
+  let c = road._tb;
+  if (!c || c.stamp !== map._tbStamp || c.map !== map || c.f.length !== road.pts.length - 1) c = road._tb = { map, stamp: map._tbStamp, f: new Int8Array(road.pts.length - 1) };
+  const v = c.f[i];
+  if (v) { throughStats.hit++; return v === 1; }
+  throughStats.miss++;
+  const t = throughBuilding(map, ax, ay, bx, by);
+  c.f[i] = t ? 1 : 2;
+  return t;
+}
+
 function buildGraph(map) {
   const t0 = performance.now();
   const ids = new Map();
@@ -226,6 +255,7 @@ function buildGraph(map) {
   };
   // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
   const graphRoads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
+  syncThroughCache(map);
   for (let ri = 0; ri < graphRoads.length; ri++) {
     const road = graphRoads[ri];
     const n = road.pts.length;
@@ -241,7 +271,7 @@ function buildGraph(map) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-      const len = !road.bridge && throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
+      const len = !road.bridge && throughOf(map, road, i, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
       if (canWalk) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);

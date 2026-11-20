@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { probe } from './hitchprobe.js';
-import { gridItems } from './spatialgrid.js';
+import { roadIndexOf, nodeKey } from './roadindex.js';
 import { applyWetGround } from './terrain3d.js';
 import { buildRoadStructure, buildOverpassDeck, structureGroup, jointAway, jointMiter, flatBridgeCoreArrays } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
@@ -392,74 +392,21 @@ function buildAtlas() {
 // ---------------------------------------------------------------- network
 
 let netMap = null;
-let nodeIndex = new Map();
+let nodeIndex = null;
 let lights = [];
-// één getal per punt (0,1 m): geen string per hoekpunt bij het bouwen van de knooppuntindex (bereik ruim 3000 km, zie scripts/perf/nodekey_bench.mjs)
-const nodeKey = (p) => (Math.round(p[0] * 10) + 33554432) * 67108864 + (Math.round(p[1] * 10) + 33554432);
 
 // Junction index and signals per road network: the city map, and any other
 // map whose roads carry it as r.net; a road
 // is always built against its own network.
 const nets = new WeakMap();
-// (#754) De tegelwereld verandert het wegraster bij elke tegel-add/drop
-// (map.geoVer): een eenmalig gebouwde knooppuntindex mist dan de aansluitingen
-// van net gestroomde wegen en houdt gedropte wegen vast. Daarom hangt de cache
-// aan de kaartstand. De herbouw gaat in stukken van NET_CHUNK wegen per frame
-// (18.454 wegen in één keer is ~28 ms); tot hij klaar is blijft de oude index
-// staan, zodat geen frame erop wacht. Een gewone GameMap heeft geen geoVer en
-// bouwt de index één keer.
-const NET_CHUNK = 1200;
-function fillNodes(nodeIndex, roads, from, to) {
-  const end = Math.min(to, roads.length);
-  for (let ri = from; ri < end; ri++) {
-    const r = roads[ri];
-    for (let i = 0; i < r.pts.length; i++) {
-      const k = nodeKey(r.pts[i]);
-      let a = nodeIndex.get(k);
-      if (!a) nodeIndex.set(k, a = []);
-      a.push(r, i);
-    }
-  }
-}
-let netBuild = null; // { map, geoVer, roads, k, nodeIndex } zolang een herbouw loopt
+// Sinds de gedeelde index (roadindex.js, docs/PERF-WEGINDEX-21-11.md) bouwt dit niets meer op: de index staat op de
+// kaart en een tegel erbij of eraf past hem zelf bij. Alleen de lichtenlijst volgt allSignals (junctionVer).
 function netState(map) {
   probe.mark('roadnet-entry');
   let s = nets.get(map);
-  const ver = map.geoVer;
-  if (!s) {
-    s = { nodeIndex: new Map(), lights: allSignals(map).filter((l) => !l.bike), geoVer: ver };
-    fillNodes(s.nodeIndex, gridItems(map.roadGrid), 0, Infinity);
-    nets.set(map, s);
-    return s;
-  }
-  if (s.geoVer === ver) return s;
-  // Tijdens de openingsfilm (en andere cinematics) springt de camera van plek
-  // naar plek; elke wijkwissel zou de hele knooppuntindex opnieuw laten
-  // beginnen. De oude index is voor het beeld goed genoeg; na de film haalt de
-  // gewone (gespreide) herbouw hem in.
-  if (typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return s;
-  if (!netBuild || netBuild.map !== map || netBuild.geoVer !== ver) {
-    netBuild = { map, geoVer: ver, roads: gridItems(map.roadGrid), k: 0, nodeIndex: new Map() };
-    probe.mark('roadnet-grid');
-  }
-  const B = netBuild;
-  // Tijdens een tegelburst (de openingsfilm springt van wijk naar wijk) worden
-  // veel wegdeksels in één frame gebouwd; elke aanroep vulde dan meteen 1200
-  // wegen en fillNodes liep op tot honderden ms (#4). Ten hoogste één blok per
-  // frame: de oude knooppuntindex blijft intussen bruikbaar.
-  const nu = performance.now();
-  if (B.last && nu - B.last < 8) return s;
-  B.last = nu;
-  fillNodes(B.nodeIndex, B.roads, B.k, Math.min(B.roads.length, B.k + NET_CHUNK));
-  probe.mark('roadnet-chunk');
-  B.k = Math.min(B.roads.length, B.k + NET_CHUNK);
-  if (B.k >= B.roads.length) {
-    s.nodeIndex = B.nodeIndex;
-    s.lights = allSignals(map).filter((l) => !l.bike);
-    probe.mark('roadnet-lights');
-    s.geoVer = B.geoVer;
-    netBuild = null;
-  }
+  if (!s) { s = { nodeIndex: roadIndexOf(map), lights: null, signals: null }; nets.set(map, s); }
+  const all = allSignals(map);
+  if (s.signals !== all) { s.signals = all; s.lights = all.filter((l) => !l.bike); }
   return s;
 }
 function useNet(map) {
@@ -476,10 +423,7 @@ function restoreNet(prev) {
 }
 
 export function setRoadNetwork(map) {
-  // (#754) een tegel-add/drop verandert map.geoVer: dan moet de knooppuntindex
-  // verversen, ook als dit dezelfde map is. De check is goedkoop.
-  const s = nets.get(map);
-  if (netMap === map && s && s.geoVer === map.geoVer) return;
+  // de index is altijd bij; alleen de lichtenlijst kan veranderen (junctionVer)
   useNet(map);
 }
 

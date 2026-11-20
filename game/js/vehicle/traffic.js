@@ -3,7 +3,7 @@
 // verkeerslichten) en het voertuig als staatje daarop; de voertuigfysica blijft in vehicle.js.
 
 import { normalizeAngle, clamp, lerp, closestPointOnSegment } from '../util.js';
-import { gridItems } from '../spatialgrid.js';
+import { roadIndexOf } from '../roadindex.js';
 import { busMagWeg, stepRunner, pointAt as linePointAt } from '../busroutes.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from '../trafficlights.js';
 import { roadPriority, junctionArm } from '../junctions.js';
@@ -53,7 +53,7 @@ class LazyNodeMap extends Map {
     super.set(r, r.pts.map((p, idx) => {
       const k = nodeKey(p);
       let n = this.nodes.get(k);
-      if (!n) { n = []; this.nodes.set(k, n); }
+      if (!n) { n = []; n.k = k; this.nodes.set(k, n); } // n.k: de sleutel, voor het opruimen van een lege lijst
       n.push({ road: r, idx });
       return n;
     }));
@@ -71,45 +71,138 @@ class LazyNodeMap extends Map {
   }
 }
 
+// OSM ways that should meet sometimes stop a metre or two short: a loose end joins the nearest vertex of another road
+// within 4 m. Every join is recorded (g.stitchOf / g.stitchedTo) so a road that leaves can take its joins with it.
+function stitchEnds(map, g, r) {
+  const { nodeOf } = g;
+  const arr = nodeOf.get(r);
+  for (const idx of [0, r.pts.length - 1]) {
+    if (arr[idx].length > 1) continue;
+    const p = r.pts[idx];
+    let best = null, bestD2 = 16, bestRoad = null;
+    for (const o of map.roadsNear(p[0], p[1], 4)) {
+      const on = nodeOf.get(o);
+      if (o === r || !on) continue;
+      o.pts.forEach((q, j) => {
+        const d2 = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2;
+        if (d2 < bestD2) { bestD2 = d2; best = on[j]; bestRoad = o; }
+      });
+    }
+    if (best) {
+      best.push({ road: r, idx });
+      arr[idx] = best;
+      let rec = g.stitchOf.get(r);
+      if (!rec) g.stitchOf.set(r, rec = []);
+      rec.push({ idx, best, target: bestRoad });
+      let to = g.stitchedTo.get(bestRoad);
+      if (!to) g.stitchedTo.set(bestRoad, to = new Set());
+      to.add(r);
+    }
+  }
+}
+
+// Een weg uit de graaf halen: zijn eigen hoekpunten en de aansluitingen die hij zelf legde.
+function unregisterRoad(g, r) {
+  const { nodeOf, nodes } = g;
+  const mine = (n) => { let w = 0; for (let q = 0; q < n.length; q++) if (n[q].road !== r) n[w++] = n[q]; n.length = w; };
+  const rec = g.stitchOf.get(r);
+  if (rec) {
+    for (const s of rec) {
+      mine(s.best);
+      if (!s.best.length && g.nodes.get(s.best.k) === s.best) g.nodes.delete(s.best.k);
+      const to = g.stitchedTo.get(s.target);
+      if (to) { to.delete(r); if (!to.size) g.stitchedTo.delete(s.target); }
+    }
+    g.stitchOf.delete(r);
+  }
+  for (const p of r.pts) {
+    const k = nodeKey(p), n = nodes.get(k);
+    if (!n) continue;
+    mine(n);
+    if (!n.length) nodes.delete(k);
+  }
+  g.stitchedTo.delete(r);
+  Map.prototype.delete.call(nodeOf, r);
+  nodeOf.expanded.delete(r);
+}
+
+const drivableRoad = (r) => r.cat !== 'foot' && r.pts.length > 1;
+
+// Een tegel erbij of eraf: alleen de gewijzigde wegen en hun buurt (een weg met een hoekpunt binnen 5 m, en wie eraan
+// vastzat) gaan er opnieuw in, in de volgorde van de vorige bouw (_ord). Zelfde uitkomst als een volledige herbouw,
+// op de volgorde binnen een knooppuntlijst na (zie docs/PERF-WEGINDEX-21-11.md).
+const GRAPH_DELTA_MAX = 600;
+function applyRoadDelta(map, g, delta) {
+  const last = new Map();
+  for (const d of delta) last.set(d.road, d.op);
+  const added = [], removed = [];
+  for (const [r, op] of last) {
+    const known = Map.prototype.has.call(g.nodeOf, r);
+    if (op < 0) { if (known) removed.push(r); }
+    else if (!known && drivableRoad(r)) added.push(r);
+  }
+  if (!added.length && !removed.length) return;
+  const redo = new Set();
+  const near = (r) => {
+    for (const p of r.pts) for (const o of map.roadsNear(p[0], p[1], 5)) {
+      if (o === r || last.has(o) || redo.has(o) || !Map.prototype.has.call(g.nodeOf, o)) continue;
+      if (o.pts.some((q) => (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2 < 25)) redo.add(o);
+    }
+  };
+  for (const r of added) near(r);
+  for (const r of removed) near(r);
+  // wie aan een vertrekkende of opnieuw te bouwen weg vastzat, moet zelf opnieuw aansluiten
+  const todo = [...removed, ...redo];
+  const pull = (o) => { if (!last.has(o) && !redo.has(o) && Map.prototype.has.call(g.nodeOf, o)) { redo.add(o); todo.push(o); } };
+  for (let q = 0; q < todo.length; q++) {
+    const to = g.stitchedTo.get(todo[q]);
+    if (to) for (const o of to) pull(o);
+    const rec = g.stitchOf.get(todo[q]);
+    if (rec) for (const s of rec) pull(s.target); // ook waar hij zelf aan vastzat: de volgorde van de aansluitingen telt
+  }
+  for (const r of removed) unregisterRoad(g, r);
+  for (const r of redo) unregisterRoad(g, r);
+  const again = [...redo, ...added].sort((a, b) => (a._ord ?? 0) - (b._ord ?? 0));
+  for (const r of again) { g.nodeOf.register(r); g.nodeOf.expanded.add(r); }
+  for (const r of again) stitchEnds(map, g, r);
+}
+
 function roadGraph(map) {
   let g = graphCache.get(map);
   // Alleen een wegwijziging hoeft de graaf opnieuw; niet elke tegel-add (geoVer).
   const ver = map._roadVer !== undefined ? map._roadVer : map.geoVer;
   if (g && g.ver === ver) return g;
-  // Een gestroomde tegel voegt hooguit een paar wegen toe en de LazyNodeMap kent
-  // ze bij het eerste gebruik al. De dure herbouw (alle wegen plus de
-  // korte-einden-lus) wacht daarom tot de tegelwachtrij leeg is: geen halve
-  // seconde hapering per tegel midden in het spel of de opening (#4).
-  if (g && typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return g; // film/cutscene: oude graaf is goed genoeg
+  // film/cutscene: oude graaf is goed genoeg
+  if (g && typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return g;
+  // Met de gedeelde hoekpuntindex (roadindex.js) volgt de graaf de tegelwissels per weg: de kosten gaan met de wijziging,
+  // niet met het aantal geladen wegen. Zonder log of bij een groot pakket (de eerste tegels) bouwt hij helemaal opnieuw.
+  if (g && g.idxVer !== undefined && map.roadGrid) {
+    const idx = roadIndexOf(map);
+    const delta = idx.since(g.idxVer);
+    if (delta && delta.length <= GRAPH_DELTA_MAX) {
+      applyRoadDelta(map, g, delta);
+      g.ver = ver; g.idxVer = idx.version; g.geoVer = map.geoVer;
+      return g;
+    }
+  }
+  // Een volledige herbouw (alle wegen plus de korte-einden-lus) wacht tot de tegelwachtrij leeg is:
+  // geen halve seconde hapering per tegel midden in het spel of de opening (#4).
   if (g && map.tileQueue && map.tileQueue.items && map.tileQueue.items.length) return g;
   const nodes = new Map();
   const nodeOf = new LazyNodeMap(map, nodes);
+  const idxVer = map.roadGrid ? roadIndexOf(map).version : undefined;
   // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
-  const drivable = (map.orderedRoads ? map.orderedRoads() : map['roads'] || []).filter((r) => r.cat !== 'foot' && r.pts.length > 1);
+  const drivable = (map.orderedRoads ? map.orderedRoads() : map['roads'] || []).filter(drivableRoad);
   for (const r of drivable) nodeOf.register(r);
   nodeOf.expanded = new Set(drivable);
-  // OSM ways that should meet sometimes stop a metre or two short
-  for (const r of drivable) {
-    const arr = nodeOf.get(r);
-    for (const idx of [0, r.pts.length - 1]) {
-      if (arr[idx].length > 1) continue;
-      const p = r.pts[idx];
-      let best = null, bestD2 = 16;
-      for (const o of map.roadsNear(p[0], p[1], 4)) {
-        const on = nodeOf.get(o);
-        if (o === r || !on) continue;
-        o.pts.forEach((q, j) => {
-          const d2 = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2;
-          if (d2 < bestD2) { bestD2 = d2; best = on[j]; }
-        });
-      }
-      if (best) { best.push({ road: r, idx }); arr[idx] = best; }
-    }
-  }
-  g = { nodeOf, ver, geoVer: map.geoVer };
+  g = { nodeOf, nodes, ver, geoVer: map.geoVer, idxVer, stitchOf: new Map(), stitchedTo: new Map() };
+  for (const r of drivable) stitchEnds(map, g, r);
   graphCache.set(map, g);
   return g;
 }
+
+// voor scripts/roadindex_test.mjs: de graaf van een kaart, incrementeel bijgewerkt
+export { roadGraph as trafficRoadGraph };
 
 function roadNode(map, road, i) {
   const arr = roadGraph(map).nodeOf.get(road);

@@ -870,6 +870,7 @@ export function initGrass(sc, mp, opts) {
   scene = sc;
   map = mp;
   polyGeometry = opts.polyGeometry;
+  chunksMap = null; // een nieuwe init bouwt de chunks helemaal opnieuw
   buildGrassChunks();
 
   const mat = tuftMaterial(0.82, grassFade);
@@ -914,10 +915,11 @@ function polysOverlap(a, b) {
 // (dat was in het opstartprofiel de grootste hapering: pointInPolygon ~0,8 s per
 // tegel-add, #4). Een vlak dat door een tegel-drop verdwijnt, laat zijn sublaag
 // achter; hooguit kan daar heel lokaal een z-fight ontstaan.
-function assignSubLayers(map) {
-  const list = map.greenGrid ? gridItems(map.greenGrid) : [];
-  const seen = new Set();
-  for (const g of list) if (g._gSub !== undefined && g.bounds && g.pts.length >= 3) seen.add(g);
+function assignSubLayers(map, only = null) {
+  // `only`: alleen de nieuwe vlakken (de incrementele chunkupdate); een vlak dat al een sublaag heeft telt als gezien
+  const list = only || (map.greenGrid ? gridItems(map.greenGrid) : []);
+  const seen = only ? { has: (o) => o._gSub !== undefined && !!o.bounds && o.pts.length >= 3, add() {} } : new Set();
+  if (!only) for (const g of list) if (g._gSub !== undefined && g.bounds && g.pts.length >= 3) seen.add(g);
   for (const g of list) {
     if (g._gSub !== undefined || !g.bounds || g.pts.length < 3) continue;
     const b = g.bounds;
@@ -985,7 +987,53 @@ const samePolys = (a, b) => {
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
 };
+const chunkKeyOf = (g) => {
+  const i = Math.floor((g.bounds[0] + g.bounds[2]) / 2 / CHUNK), j = Math.floor((g.bounds[1] + g.bounds[3]) / 2 / CHUNK);
+  return (i + 32768) * 65536 + (j + 32768); // getal, geen string per vlak
+};
+const chunkBounds = (c) => {
+  const b = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const g of c.polys) { b[0] = Math.min(b[0], g.bounds[0]); b[1] = Math.min(b[1], g.bounds[1]); b[2] = Math.max(b[2], g.bounds[2]); b[3] = Math.max(b[3], g.bounds[3]); }
+  return b;
+};
+// Een tegel erbij of eraf: alleen de chunks waar een vlak in bijkomt of uit gaat worden bijgewerkt (tileworld.js legt de
+// wijzigingen vast in map._greenDelta). Vroeger liep elke wissel over alle groenvlakken van de wereld.
+let chunksMap = null;
+function applyGreenDelta() {
+  const d = map._greenDelta;
+  map._greenDelta = [];
+  const dirty = new Set(), fresh = [];
+  for (let q = 0; q < d.length; q += 2) {
+    const op = d[q], g = d[q + 1];
+    if (!g.bounds || g.pts.length < 3) continue;
+    const key = chunkKeyOf(g);
+    let c = chunks.get(key);
+    if (op > 0) {
+      if (!c) chunks.set(key, c = { key, polys: [], bounds: null, group: null });
+      c.polys.push(g);
+      fresh.push(g);
+      dirty.add(c);
+    } else if (c) {
+      const at = c.polys.indexOf(g);
+      if (at < 0) continue;
+      c.polys.splice(at, 1);
+      dirty.add(c);
+    }
+  }
+  assignSubLayers(map, fresh);
+  for (const c of dirty) {
+    if (c.group) { disposeChunk(c); chunkStats.disposed++; }
+    if (!c.polys.length) { chunks.delete(c.key); continue; }
+    c.polys.sort((a, b) => kindOf(a).prio - kindOf(b).prio);
+    c.bounds = chunkBounds(c);
+  }
+  chunkStats.incremental = (chunkStats.incremental || 0) + 1;
+  chunksGreenVer = greenVerOf(map);
+}
 function buildGrassChunks() {
+  if (chunks && chunksMap === map && map._greenDelta) return applyGreenDelta();
+  chunksMap = map;
+  map._greenDelta = [];
   const old = chunks;
   chunks = new Map();
   for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
@@ -993,7 +1041,7 @@ function buildGrassChunks() {
     const i = Math.floor((g.bounds[0] + g.bounds[2]) / 2 / CHUNK), j = Math.floor((g.bounds[1] + g.bounds[3]) / 2 / CHUNK);
     const key = (i + 32768) * 65536 + (j + 32768); // getal, geen string per vlak
     let c = chunks.get(key);
-    if (!c) chunks.set(key, c = { polys: [], bounds: [Infinity, Infinity, -Infinity, -Infinity], group: null });
+    if (!c) chunks.set(key, c = { key, polys: [], bounds: [Infinity, Infinity, -Infinity, -Infinity], group: null });
     c.polys.push(g);
     c.bounds[0] = Math.min(c.bounds[0], g.bounds[0]); c.bounds[1] = Math.min(c.bounds[1], g.bounds[1]);
     c.bounds[2] = Math.max(c.bounds[2], g.bounds[2]); c.bounds[3] = Math.max(c.bounds[3], g.bounds[3]);

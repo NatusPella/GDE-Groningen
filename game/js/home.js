@@ -296,6 +296,7 @@ export function prepareHomeMap(map) {
     t._geo3dParts = null;
     t._ring = null;
     regrid(map.buildingGrid, t, t.bounds);
+    map._tbEpoch = (map._tbEpoch || 0) + 1; // routing.js: de onthouden gebouwtoetsen per weg zijn niet meer te vertrouwen
     home.towerBuilding = t;
     // geen safehouse in het huis van Tammo en Tessa (#458)
     t.safehuisVerboden = true;
