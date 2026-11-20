@@ -30,6 +30,8 @@ ok(V.detailDistanceFor('hoog', 150) === V.DETAIL_BASE, 'a short view keeps 140 m
 ok(V.detailDistanceFor('laag', 900) === V.DETAIL_BASE, 'laag keeps 140 m');
 ok(V.detailDistanceFor('middel', 600) > V.DETAIL_BASE && V.detailDistanceFor('hoog', 600) > V.detailDistanceFor('middel', 600), 'middel < hoog');
 for (const q of Object.keys(V.DETAIL_DIST)) ok((V.DETAIL_DIST[q] / V.DETAIL_BASE) ** 2 <= V.DETAIL_AREA_MAX, `detail area ratio ${q}`);
+// #1039: Ultra (hoog, heel ver) heeft een ring van 170 m: hoogstens 1,5x de meshes van de ring van 140 m (was 1,84x)
+ok(V.detailDistanceFor('hoog', 900) === 170 && (170 / V.DETAIL_BASE) ** 2 <= 1.5, '#1039 de ring van Ultra is 170 m, hoogstens 1,5x de oppervlakte van 140 m');
 ok(V.detailDistanceFor('onbekend', 900) === V.DETAIL_BASE, 'unknown profile falls back');
 ok(V.detailDistanceFor('hoog', 900, 3) === V.DETAIL_WEAK && V.DETAIL_WEAK < V.DETAIL_BASE, 'cpuLevel 3 shrinks the ring');
 ok(V.detailDistanceFor('hoog', 900, 2) === V.detailDistanceFor('hoog', 900), 'cpuLevel 2 does not');

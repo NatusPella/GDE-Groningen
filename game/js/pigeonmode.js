@@ -16,6 +16,7 @@ import { waterNearby } from './waterlevels.js';
 import { poiLayerPlace } from './facilities.js';
 import { clearPigeonGuide } from './pigeonguide.js';
 import { glyphHtml } from './keycap.js';
+import { bakeBird } from './birdbake.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -377,8 +378,10 @@ function buildBird(kind = 'pigeon', tint = null) {
   const scale = kind === 'gull' ? 2.1 : PIGEON_SCALE;
   root.scale.setScalar(scale);
   root.rotation.order = 'YZX';
-  root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   root.userData = { body, head, tail, wingL, wingR, legs, legParts, flap: Math.random() * 6 };
+  // #1039: ~28 meshes become 11 (one per moving group); the groups stay for poseBird
+  bakeBird(root);
+  root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   return root;
 }
 

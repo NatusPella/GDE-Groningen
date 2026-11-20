@@ -110,6 +110,14 @@ ok('no storage is fine', readLastRun({ getItem() { throw new Error('x'); } }) ==
   ok('een matige ruimte op Hoog blijft Hoog (Ultra eist meer)', r.stand === 'vlot' && r.change === 'same', JSON.stringify(r));
   r = recommendStand(run(80, 50, 20), 'middel');
   ok('ruimte op Midden: Hoog', r.stand === 'vlot' && r.change === 'up');
+  r = recommendStand(run(59.6, 57, 17.2), 'middel');
+  ok('vergrendelde 60 fps op een 60 Hz-scherm: Midden mag naar Hoog (de monitor begrenst de fps)', r.stand === 'vlot' && r.change === 'up', JSON.stringify(r));
+  r = recommendStand(run(59.6, 57, 17.2), 'vlot');
+  ok('vergrendelde 60 fps met ruime marge op Hoog: Ultra mag', r.stand === 'hoog' && r.change === 'up', JSON.stringify(r));
+  r = recommendStand(run(58, 53, 18), 'vlot');
+  ok('60 fps met een krappe marge op Hoog blijft Hoog', r.stand === 'vlot' && r.change === 'same', JSON.stringify(r));
+  r = recommendStand(run(52, 40, 24), 'middel');
+  ok('50 fps met uitschieters is geen vergrendelde 60', r.change === 'same', JSON.stringify(r));
   r = recommendStand(run(120, 80, 10), null);
   ok('eigen instellingen: gelden als Hoog', r.stand === 'hoog' || r.stand === 'vlot');
   ok('drukke meting wordt herkend', benchLooksBusy({ p95: 250, low1: 4 }) && benchLooksBusy({ p95: 60, low1: 5 }) && !benchLooksBusy({ p95: 30, low1: 40 }) && !benchLooksBusy(null));

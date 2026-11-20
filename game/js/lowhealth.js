@@ -47,10 +47,13 @@ export function tickLowHealth(dt, world) {
   if (k < 0.01 && !target && flash <= 0.01) {
     k = 0;
     if (el && el.style.opacity !== '0') el.style.opacity = '0';
+    // #1039: een scherm vol backdrop-filter kost de compositor elk beeld een kopie van het canvas, ook bij opacity 0
+    if (el && el.style.visibility !== 'hidden') el.style.visibility = 'hidden';
     beat = 0;
     return;
   }
   if (!ensure()) return;
+  if (el.style.visibility) el.style.visibility = '';
   const calm = document.documentElement.classList.contains('reduce-motion');
   // the closer to death, the faster the heart
   const period = 1 - 0.45 * k;

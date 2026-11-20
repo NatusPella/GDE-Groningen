@@ -1107,9 +1107,9 @@ function applyViewSettings(st, key) {
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
-  const levelChanged = shadowBaseLevel !== level; // #792: een keuze in Instellingen telt meteen
+  const levelChanged = shadowBaseLevel !== level || key === 'drawDistance'; // #792: een keuze in Instellingen telt meteen (#1039: ook de zichtafstand, die de kaartmaat kiest)
   shadowBaseLevel = level;
-  applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel()), levelChanged);
+  applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel(), st.drawDistance), levelChanged);
   applyViewDistance(st);
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
@@ -1140,7 +1140,7 @@ export function refreshRenderScale() {
   if (viewDist !== wasView) { cam.updateProjectionMatrix(); noteGfxEvent(`zichtafstand ${wasView}->${viewDist} m`); }
   // #658: een lagere adaptieve schaal maakt de schaduwkaart ook zuiniger; #792: met hysterese,
   // zodat een enkele terugval de kaart niet meteen weer laat opstappen
-  applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel()));
+  applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel(), getSettings().drawDistance));
   if (ratio === wantRatio) return;
   noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
   wantRatio = ratio;
@@ -1165,7 +1165,7 @@ function applyShadowLevel(level, force = false) {
       // niet alleen op de volgende gfx-stap wachten: na de wachttijd zelf opnieuw kijken
       shadowUpgradeTimer = setTimeout(() => {
         shadowUpgradeTimer = 0;
-        if (renderer) applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel()));
+        if (renderer) applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel(), getSettings().drawDistance));
       }, SHADOW_UPGRADE_MS + 250);
     }
     return;

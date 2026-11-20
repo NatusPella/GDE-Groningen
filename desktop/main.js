@@ -9,6 +9,7 @@ const fs = require('fs/promises');
 const fsSync = require('fs');
 const { argValue, hasFlag } = require('./args.cjs');
 const { steamSwitches } = require('./steamflags.cjs');
+const { gpuSwitches } = require('./gpuflags.cjs');
 const { isGameUrl, safeExternalUrl } = require('./externurl.cjs');
 const { devtoolsShortcut, insideDir } = require('./guards.cjs');
 const { describeGone, reloadAllowed } = require('./gpuevents.cjs');
@@ -72,6 +73,8 @@ protocol.registerSchemesAsPrivileged([
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 // laptops with an integrated and a separate GPU: render on the separate one
 app.commandLine.appendSwitch('force_high_performance_gpu');
+// the GPU path (#1039, gpuflags.cjs): no software fallback on a new GPU, no occlusion tracking; ANGLE/D3D11 and vsync stay as they are
+for (const [name, value] of gpuSwitches()) app.commandLine.appendSwitch(name, value);
 // the Steam overlay (only with --steam-overlay in the launch option, steamflags.cjs)
 for (const [name, value] of steamSwitches()) app.commandLine.appendSwitch(name, value);
 

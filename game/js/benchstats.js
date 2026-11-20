@@ -191,8 +191,11 @@ export function recommendStand(stats, current) {
   const i = STAND_ORDER.indexOf(current);
   const base = i < 0 ? 2 : i;
   const rough = stats.avg < 40 || stats.low1 < 22 || stats.p95 > 40;
-  const roomy = stats.avg >= 75 && stats.low1 >= 45 && stats.p95 <= 22;
-  const roomyUltra = stats.avg >= 90 && stats.low1 >= 55 && stats.p95 <= 18;
+  // a locked 60 on a 60 Hz screen (avg just under 60, every frame in time): the display caps the fps, so avg can never reach 75 and a
+  // fast GPU (Nikky, RX 9070 XT) would never be offered more. The frame times show the room: nearly all frames within ~16.7 ms.
+  const locked60 = stats.avg >= 57 && stats.low1 >= 52 && stats.p95 <= 18;
+  const roomy = (stats.avg >= 75 && stats.low1 >= 45 && stats.p95 <= 22) || locked60;
+  const roomyUltra = (stats.avg >= 90 && stats.low1 >= 55 && stats.p95 <= 18) || (locked60 && stats.low1 >= 56 && stats.p95 <= 17.4);
   let to = base;
   if (rough) to = Math.max(0, base - 1);
   else if (roomy && (base + 1 < 3 || roomyUltra)) to = Math.min(STAND_ORDER.length - 1, base + 1);
