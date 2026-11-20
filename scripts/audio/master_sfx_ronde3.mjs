@@ -56,7 +56,7 @@ export const GELUIDEN = {
 
 const lees = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 
-function decodeer(bestand, g, extra = 0) {
+export function decodeer(bestand, g, extra = 0) {
   const f = [];
   if (g.knip) f.push(`atrim=start=${g.knip[0]}:duration=${g.knip[1] + extra}`, 'asetpts=PTS-STARTPTS');
   f.push(`highpass=f=${g.hp || 40}`, `lowpass=f=${g.lp || 14000}`);
@@ -77,7 +77,7 @@ export function trimStilte(x, db = 45) {
   return x.slice(Math.max(0, a - Math.round(0.002 * SR)), Math.min(x.length, b + Math.round(0.06 * SR)));
 }
 
-function beste(bestand, g) {
+export function beste(bestand, g) {
   const vol = decodeer(bestand, { hp: g.hp, lp: g.lp });
   const kr = Math.round(g.kruis * SR), n = Math.round((g.knip[1] + g.kruis) * SR), stap = Math.round(0.25 * SR);
   const lo = Math.round(g.knip[0] * SR), hi = vol.length - n;
@@ -90,7 +90,7 @@ function beste(bestand, g) {
   return best ? best.st / SR : g.knip[0];
 }
 
-function normaliseer(x, doelDb, piekDb = -1.5) {
+export function normaliseer(x, doelDb, piekDb = -1.5) {
   let e = 0, pk = 0;
   for (const s of x) { e += s * s; pk = Math.max(pk, Math.abs(s)); }
   const rms = Math.sqrt(e / x.length) + 1e-12;
