@@ -1688,7 +1688,7 @@ function syncBuildings(world, px, py) {
   syncBuildingsPass(world, px, py);
 }
 
-function syncBuildingsPass(world, px, py) {
+const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, py) {
   // #314 C1: een landmark van een weggevallen tegel uit de lijst en de scène halen; een
   // teruggekomen tegel heeft zijn landmark al via onTiles toegevoegd.
   if (landmarkDirty) {
@@ -1709,14 +1709,13 @@ function syncBuildingsPass(world, px, py) {
   // one frame); until the ring is complete, detailR shrinks to the nearest
   // building still missing and the far LOD covers everything past it.
   const view = world.map.buildingsNear(px, py, DRAW_DIST);
-  const seen = new Set();
-  const centreX = (b) => (b.bounds[0] + b.bounds[2]) / 2;
-  const centreY = (b) => (b.bounds[1] + b.bounds[3]) / 2;
+  const seen = _bSeen; seen.clear(); const centreX = (b) => (b.bounds[0] + b.bounds[2]) / 2; const centreY = (b) => (b.bounds[1] + b.bounds[3]) / 2;
   const centreDist = (b) => Math.hypot(centreX(b) - px, centreY(b) - py);
-  const missing = [];
+  const missing = _bMissing; missing.length = 0;
   const want = (b, r, lod) => {
-    const d = centreDist(b);
-    if (d > r) return;
+    const dx = centreX(b) - px, dy = centreY(b) - py, d2 = dx * dx + dy * dy;
+    if (d2 > r * r) return; // kwadraten: Math.hypot per gebouw per frame was de duurste regel
+    const d = Math.sqrt(d2);
     seen.add(b);
     // [afstand voor de detailring, gebouw, detail?, rang in de rijrichting]
     if (!buildingMeshes.has(b)) missing.push([d, b, lod, streamRank(streamAhead, centreX(b), centreY(b))]);
@@ -2376,7 +2375,7 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // Peds never pop: they spawn out of sight (pedestrians.js asks world.pedView),
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
-const _wildlifeNear = [], _wildlifeSeen = new Set();
+const _wildlifeNear = [], _wildlifeSeen = new Set(), _pedSeen = new Set(), _bubbleSeen = new Set(), _fireSeen = new Set();
 const FADE_STEPS = 16;
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
@@ -2511,11 +2510,10 @@ function syncPedestrianMeshes(world, player, animDt) {
   // fast travel (a car on the A7, the heli, a train): people beyond ~90 m go by in a second and their meshes (~3 ms
   // each to build) were a turnover of dozens a second; the range closes from 14 m/s on and opens again when it slows
   const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
-  const seen = new Set();
-  const deadline = performance.now() + PED_BUILD_BUDGET_MS;
+  const seen = _pedSeen; seen.clear(); const deadline = performance.now() + PED_BUILD_BUDGET_MS;
   let built = 0;
   for (const p of world.pedestrians) {
-    if (Math.hypot(p.x - player.x, p.y - player.y) >= pedRange) continue;
+    { const dx = p.x - player.x, dy = p.y - player.y; if (dx * dx + dy * dy >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; } // #985: kwadraten, Math.hypot is ~12x trager
     seen.add(p);
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
@@ -2636,15 +2634,19 @@ function speechBubbleEl() {
 }
 
 function syncSpeechBubbles(world) {
-  const seen = new Set();
+  const seen = _bubbleSeen; seen.clear();
   // world.extraSpeakers: short-lived lines from boat crews and swimmers,
   // { x, y, h, speechText, speechUntil, follow? } (follow: a moving vehicle)
   const extra = world.extraSpeakers;
   if (extra) for (let i = extra.length - 1; i >= 0; i--) if (world.time >= extra[i].speechUntil) extra.splice(i, 1);
   // the viewport in HUD px once per frame (not per bubble: a style write in between forced a layout for every read)
+  const peds = world.pedestrians, nPeds = peds.length, nExtra = extra ? extra.length : 0;
+  if (!speechBubbleEls.size) { let any = false; // #985: zonder bel in beeld geen clientWidth-lezing (dwingt een layout af)
+    for (let n = 0; n < nPeds + nExtra && !any; n++) { const q = n < nPeds ? peds[n] : extra[n - nPeds]; any = !!q.speechText && world.time < q.speechUntil; }
+    if (!any) { for (let n = 0; n < nPeds; n++) if (peds[n]._voicedText) peds[n]._voicedText = null; return; }
+  }
   const ui = getUiScale();
   const vw = renderer.domElement.clientWidth / ui, vh = renderer.domElement.clientHeight / ui;
-  const peds = world.pedestrians, nPeds = peds.length, nExtra = extra ? extra.length : 0;
   for (let n = 0; n < nPeds + nExtra; n++) {
     const p = n < nPeds ? peds[n] : extra[n - nPeds];
     if (!p.speechText || world.time >= p.speechUntil) { if (p._voicedText) p._voicedText = null; continue; }
@@ -2763,7 +2765,7 @@ export function update3D(dt, world) {
 
   if (!world.cinemaLean) syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
   syncVehicleMeshes(world, player);
-  const fireSeenIds = new Set();
+  const fireSeenIds = _fireSeen; fireSeenIds.clear();
   const policeChasing = world.wanted > 0;
   const driverDeadline = performance.now() + DRIVER_BUILD_BUDGET_MS;
   const pBoat = player.inVehicle && player.inVehicle.isBoat ? player.inVehicle : null;
@@ -2883,7 +2885,7 @@ export function update3D(dt, world) {
     disposeObject(fire);
     vehicleFireMeshes.delete(id);
   }
-  impactSparkEffects = impactSparkEffects.filter((mesh) => {
+  if (impactSparkEffects.length) impactSparkEffects = impactSparkEffects.filter((mesh) => {
     const alive = updateVehicleImpactSparkMesh3D(mesh, animDt);
     if (!alive) {
       scene.remove(mesh);
@@ -2891,7 +2893,7 @@ export function update3D(dt, world) {
     }
     return alive;
   });
-  vehicleExplosionEffects = vehicleExplosionEffects.filter((mesh) => {
+  if (vehicleExplosionEffects.length) vehicleExplosionEffects = vehicleExplosionEffects.filter((mesh) => {
     const alive = updateVehicleExplosionMesh3D(mesh, animDt);
     if (!alive) {
       scene.remove(mesh);
@@ -2940,7 +2942,7 @@ export function update3D(dt, world) {
   if (world.wildlife) {
     // geen filter-array per frame (#588): dezelfde lijst en Set, elke frame geleegd
     _wildlifeNear.length = 0;
-    for (const a of world.wildlife) if (Math.hypot(a.x - focus.x, a.y - focus.y) < DRAW_DIST) _wildlifeNear.push(a);
+    for (const a of world.wildlife) { const dx = a.x - focus.x, dy = a.y - focus.y; if (dx * dx + dy * dy < DRAW_DIST * DRAW_DIST) _wildlifeNear.push(a); }
     syncActors(_wildlifeNear, wildlifeMeshes, buildWildlifeActor, (a) => a, _wildlifeSeen);
     for (const a of world.wildlife) {
       const mesh = wildlifeMeshes.get(a);
