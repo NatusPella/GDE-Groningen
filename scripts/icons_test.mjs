@@ -50,7 +50,7 @@ ok(iconInner(undefined) === iconInner('vraag'), 'undefined geeft ook de terugval
 // Geen verwijzing naar een ontbrekende betekenisnaam: icoon('naam') in elk bronbestand, en de
 // naamtabellen van de schermen die een tabel gebruiken.
 const jsDir = path.join(root, 'game/js');
-const TABELLEN = { 'pausemenu.js': ['ICONS', 'GROUP_ICONS'], 'todoui.js': ['ICON', 'CHIP_ICOON'], 'hud_panel.js': ['VEH_ICONS', 'TURN_ICON'], 'kaartactie.js': ['ICONEN'], 'phonefeed.js': ['APP_ICON'], 'boerderijui.js': ['ICOON'], 'achievementsui.js': ['CHIP_ICOON'], 'prompts.js': ['PIC_BETEKENIS'] };
+const TABELLEN = { 'pausemenu.js': ['ICONS', 'GROUP_ICONS'], 'todoui.js': ['ICON', 'CHIP_ICOON'], 'hud_panel.js': ['VEH_ICONS', 'TURN_ICON'], 'kaartactie.js': ['ICONEN'], 'phonefeed.js': ['APP_ICON'], 'boerderijui.js': ['ICOON'], 'achievementsui.js': ['CHIP_ICOON'], 'prompts.js': ['PIC_BETEKENIS'], 'hudcards.js': ['ICON'] };
 let literals = 0;
 for (const f of fs.readdirSync(jsDir).filter((x) => x.endsWith('.js') && x !== 'icons.js' && x !== 'iconmap.js' && x !== 'phosphordata.js')) {
   const src = fs.readFileSync(path.join(jsDir, f), 'utf8');

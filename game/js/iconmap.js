@@ -51,6 +51,11 @@ export const ICON_MAP = {
   schilderij: 'palette', kleding: 't-shirt', bril: 'sunglasses', laars: 'boot', zwemmen: 'waves',
   // Gevulde varianten (Phosphor 'fill') voor een aangezette toestand, zoals een favoriet.
   ster_vol: 'star-fill', hart_vol: 'heart-fill',
+  // Voor de sim-strook en de minigames (sim-agent): worp, golf, kart, zwembad, klimmen, wandeling, reuzenrad, skate, padel, krant, bezorger, taart, bak.
+  worp: 'person-simple-throw', golf: 'golf', kart: 'car-simple', zwembad: 'swimming-pool', klimmen: 'person-simple-hike',
+  wandeling: 'person-simple-hike', reuzenrad: 'aperture', skate: 'person-simple-snowboard', padel: 'racquet',
+  krant: 'newspaper-clipping', bezorger: 'moped-front', taart: 'cake', bak: 'bread',
+  idee: 'lightbulb', kookpot: 'cooking-pot',
   lopen: 'person-simple-walk', rennen: 'person-simple-run', bagage: 'backpack', hand: 'hand',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.
