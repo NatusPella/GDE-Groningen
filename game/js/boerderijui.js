@@ -24,7 +24,9 @@ const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 
 // Betekenisnamen (icons.js, Phosphor, ADR 0041).
 const ICOON = { perceel: 'oogst', gewas: 'gewas', machines: 'tractor', percelen: 'rooster', erf: 'boerderij', kas: 'bon', bank: 'bank' };
-const ONDERDELEN = [['perceel', 'Perceel'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
+// Heeft de speler al op het land gewerkt? Zo nee, heet het rail-item "Begin je boerderij" en toont het eerste scherm hoe je begint (21-11).
+export const boerderijBegonnen = (b) => !!(b && (b.perceel || b.uren > 0));
+const ONDERDELEN = [['perceel', 'Overzicht'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
 const icoon = (n, cls = 'pa-ico') => `<span class="${cls}">${fIcoon(ICOON[n])}</span>`;
 
 // De boerderij hoort bij het vak Landbouw en draagt dezelfde sfeerband als Loopbanen (#492, #609).
@@ -78,8 +80,9 @@ function perceel(b, geld) {
   const blok = kaartenBlok(b); // de kaart toont al de volgende klus en wat in de schuur ligt (21-11)
   const waar = b.perceel ? 'Je akker ligt bij Hoogkerk, in de buurt van Suikerhal Hoogkerk.' : 'Je akker wordt gekozen als je voor het eerst gaat werken.';
   // #985: eerst wat nu te doen valt (kaart met de lus en de velden), daarna de kosten, de schuur en het uitbesteden
-  return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('perceel', 'pa-ico big')}Perceel</h2></div>` +
-    blok +
+  const begin = boerderijBegonnen(b) ? '' : `<article class="ds-kaart ds-kaart--selectie bd-begin"><header class="ds-kaart__kop"><h3 class="ds-kaart__titel">Begin je boerderij</h3></header><p class="ds-kaart__tekst">Je akker ligt bij Hoogkerk. Ga erheen, pak de trekker en ploeg het veld; daarna kies je een gewas en zaai je.</p><footer class="ds-kaart__voet"><button type="button" class="ds-knop" data-bd-weg="1">Zet de akker op de kaart</button></footer></article>`;
+  return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('perceel', 'pa-ico big')}Overzicht</h2></div>` +
+    begin + blok +
     `<div>${blok ? '' : `<p>${volgende ? `Volgende klus op het actieve perceel: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` + (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '')}` +
     `<p class="mut">${waar}</p></div>` +
     (gast ? `<p class="mut">Je speelt mee in het spel van een ander: de klussen op het land doe je in je eigen spel. Je gewas groeit ondertussen door, en gewassen kiezen en machines kopen kan hier wel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
@@ -401,13 +404,12 @@ export function renderBoerderijPanel(el, world) {
   gast = !!(world && world.coopRole === 'client');
   const geld = (world && world.money) || 0;
   const s = B.samenvatting(b);
-  const rijen = ONDERDELEN.map(([id, naam]) => {
-    const sub = id === 'perceel' ? (s.volgende ? B.TAKEN[s.volgende].naam : B.fase(b) === 'groeit' ? 'Groeit' : '-') : id === 'percelen' ? `${Object.keys(b.bedrijf.percelen).length} van jou` : id === 'erf' ? PC.erfDef(b.bedrijf.thuis).naam : id === 'gewas' ? B.GEWASSEN[B.actiefGewas(b)].naam : id === 'machines' ? `${b.bedrijf.machinepark.machines.length} machines, ${b.bedrijf.machinepark.werktuigen.length} werktuigen` : id === 'bank' ? (b.boek.lening.schuld > 0 ? `schuld ${euro(b.boek.lening.schuld)}` : 'geen schuld') : euro(s.winst);
-    return `<button type="button" class="m-li lb-li${gekozen === id ? ' sel' : ''}" data-bd="${id}"${gekozen === id ? ' aria-current="true"' : ''}>${icoon(id)}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(sub)}</span></span></button>`;
-  }).join('');
-  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
+  // de onderdelen als tabs in het paneel zelf (panelmodel, DESIGN_SYSTEM.md > Panels): Q en E wisselen, de tab zegt het aantal waar dat helpt
+  const tel = { percelen: Object.keys(b.bedrijf.percelen).length, machines: b.bedrijf.machinepark.machines.length + b.bedrijf.machinepark.werktuigen.length };
+  const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="tab" class="m-tab" data-bd="${id}" aria-selected="${gekozen === id}">${esc(naam)}${tel[id] != null ? `<small>${tel[id]}</small>` : ''}</button>`).join('');
+  el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Boerderij">${tabs}</nav><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
     dagKaart() +
-    `<div class="m-main"><div class="m-list pa-list lb-list">${rijen}</div><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
+    `<div class="m-main bd-main"><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
@@ -441,7 +443,7 @@ export function renderBoerderijPanel(el, world) {
       const o = e.target.closest && e.target.closest('[data-bd]');
       if (!o || o.dataset.bd === gekozen) return;
       gekozen = o.dataset.bd; melding = '';
-      for (const bt of el.querySelectorAll('[data-bd]')) { const aan = bt.dataset.bd === gekozen; bt.classList.toggle('sel', aan); bt.toggleAttribute('aria-current', aan); }
+      for (const bt of el.querySelectorAll('[data-bd]')) { const aan = bt.dataset.bd === gekozen; bt.classList.toggle('sel', aan); bt.setAttribute('aria-selected', String(aan)); }
       el.querySelector('.bd-pane').innerHTML = detail(getBoerderij(), (world && world.money) || 0);
       queueMicrotask(() => fillBars(el, bars));
     });

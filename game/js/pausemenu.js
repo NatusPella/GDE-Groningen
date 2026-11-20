@@ -33,7 +33,8 @@ import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
-import { renderBoerderijPanel } from './boerderijui.js';
+import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
+import { getBoerderij } from './boerderijlive.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig, actieBevestiging } from './ownedvehicles.js';
@@ -372,14 +373,14 @@ const SECTIONS = [
 // naast Instellingen: het was te verstopt onder Instellingen > Cheats.
 const RAIL_GROUPS = [
   ['spel', 'Spel', ['spel']],
-  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'map']],
+  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'boerderij', 'map']],
   ['bezit', 'Bezit', ['spullen', 'garage']],
   ['voortgang', 'Voortgang', ['veroverd', 'prestaties', 'fotos']],
   ['systeem', 'Systeem', ['settings', 'streken']],
 ];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
+const CHILD = { visboek: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
@@ -881,6 +882,7 @@ function spelHtml() {
     </div>
     ${tab('acties', `
       ${saveFactsHtml()}
+      <div class="m-li pm-row">${rowName('Naar mijn boerderij', 'Je akker, gewassen en machines')}<button type="button" class="m-bg" data-goto="boerderij">Boerderij</button></div>
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
       <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden begint buiten je flat')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
@@ -1441,6 +1443,7 @@ function bouwFindRegels() {
     regels.push(maakRegel({ id: 'a-save', soort: 'actie', label: 'Spel opslaan', plek: 'Bewaart je voortgang', zoek: 'bewaren', ic: 'save', act: 'save' }));
     regels.push(maakRegel({ id: 'a-saves', soort: 'actie', label: 'Opgeslagen spellen', plek: 'Laden of verwijderen', zoek: 'kiezen hernoemen exporteren savegame', ic: 'load', act: 'saves' }));
   }
+  if (!prestart) regels.push(maakRegel({ id: 'a-farm', soort: 'actie', label: 'Naar mijn boerderij', plek: 'Je akker en gewassen', zoek: 'akker perceel gewas landbouw', ic: 'boerderij', act: 'farm' }));
   if (DESKTOP) regels.push(maakRegel({ id: 'a-exit', soort: 'actie', label: 'Afsluiten', plek: 'Slaat je voortgang op', zoek: 'stoppen sluiten spel verlaten', ic: 'exit', act: 'exit' }));
   for (const id of sectionIds()) {
     const [, label, hint] = sectionOf(id);
@@ -1499,6 +1502,7 @@ function runFind(i) {
   const r = findHits[i];
   if (!r) return;
   showQuestion(root.querySelector('[data-find]'), false);
+  if (r.act === 'farm') { enterSection('boerderij'); return; }
   if (r.act) { runAction(r.act); return; }
   if (r.sub) pref.sub[r.sec] = r.sub;
   enterSection(r.sec);
@@ -2635,6 +2639,9 @@ function showTab(name, how) {
     b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
   }
+  // de boerderij is een eigen item: zonder begonnen akker heet het "Begin je boerderij" (21-11)
+  const bdLabel = root.querySelector('.pm-game [data-goto="boerderij"] .ra-t');
+  if (bdLabel) { let begonnen = true; try { begonnen = boerderijBegonnen(getBoerderij()); } catch (e) { /* boerderij niet klaar */ } bdLabel.textContent = begonnen ? 'Boerderij' : 'Begin je boerderij'; }
   // #911: de kop van een groep telt wat er in de rail staat; een lege groep (het hoofdmenu
   // toont alleen Spel, Instellingen en Besturing) verdwijnt met zijn kop.
   for (const g of root.querySelectorAll('.pm-rail-group')) {

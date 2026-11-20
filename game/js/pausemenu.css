@@ -1379,4 +1379,15 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 /* de rij waar een zoekresultaat je heen bracht */
 #pause-menu .pm-flash { animation: pm-flash 1.8s ease both; }
 @keyframes pm-flash { 0%, 60% { background: color-mix(in srgb, var(--g) 30%, transparent); } 100% { background: transparent; } }
+/* dertien rijen (Boerderij is een eigen item sinds 21-11): op lage schermen een compactere rail, zonder logo en versie */
+@media (max-height: 780px) {
+  #pause-menu .pm-rail { --ra-h: 34px; }
+  #pause-menu .ra { font-size: 20px; }
+  #pause-menu .pm-q-head, #pause-menu .pm-ver, #pause-menu .pm-rail-sp { display: none; }
+  #pause-menu .pm-rail-go { padding-top: 4px; }
+}
+/* Boerderij: de onderdelen zijn tabs, dus het detail heeft de hele breedte */
+#pause-menu .pm-boerderij .bd-main { display: block; padding-top: 12px; }
+#pause-menu .pm-boerderij .bd-main > .bd-pane { width: auto; max-width: none; }
+#pause-menu .bd-begin { margin-bottom: 12px; }
 @media (prefers-reduced-motion: reduce) { #pause-menu .pm-flash { animation: none; background: color-mix(in srgb, var(--g) 30%, transparent); } }

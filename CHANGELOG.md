@@ -15,6 +15,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Pauzemenu: Spullen toont de groepskoppen helemaal en het zoekveld raakt de titel niet meer; Boerderij herhaalt de volgende klus niet meer en heeft uitleg en legenda in één opklapregel.
 - Samen spelen: het zoekvenster werkt alleen in je eigen menu; er gaat niets over het net.
 
+- Pauzemenu: Boerderij heeft een eigen plek in de zijbalk onder Doen ("Begin je boerderij" zolang je nog niet op het land hebt gewerkt). Percelen, Erf, Gewas, Machines, Kasboek en Bank staan als tabs in het scherm zelf, en Spel heeft een regel "Naar mijn boerderij".
+- Boerderij: je velden staan als één rustige lijst, met per veld een icoon, de stand, de oppervlakte en de knop "Zet op de kaart".
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

@@ -102,7 +102,8 @@ t('het kasboek toont per veld en per boekjaar met posten; de bank leent en lost 
   klik({ mc: 'los', bedrag: '1000' });
   assert.match(el.innerHTML, /te weinig geld/);
   renderBoerderijPanel(el, world);
-  assert.match(el.innerHTML, /schuld €/);
+  assert.match(el.innerHTML, /Schuld<\/span><span>€/, 'de bank toont de schuld');
+  assert.match(el.innerHTML, /role="tab"[^>]*data-bd="bank"|data-bd="bank"[^>]*role="tab"/, 'de onderdelen zijn tabs in het paneel (21-11)');
 });
 
 t('Gewas noemt graan en gras met hun soort', () => {
