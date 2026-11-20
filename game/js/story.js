@@ -11,8 +11,7 @@ import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailab
 import { makeTick } from './tickbudget.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
-import { markeerStartStap } from './coopstartmeting.js';
-import { gateOn } from './coopgate.js';
+import { gateOn } from './coopgate.js'; import { markeerStartStap } from './coopstartmeting.js';
 import { startMeerijden } from './reisrit.js';
 import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
