@@ -49,6 +49,12 @@ html.touch-device #hud .cw-panel .cw-opt { min-height: 44px; box-sizing: border-
 #hud .cw-panel .cw-flash { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-groen-tx); }
 #hud .cw-panel .cw-flash.bad { color: var(--ds-c-rood-tx); }
 #hud .cw-panel .cw-help { font-family: var(--ds-font-zeef-tekst); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
+/* #962: voortgang van een quicktime-stap als stippen: gedaan = vol, nu = dikke rand, nog te gaan = leeg (vorm, niet alleen kleur) */
+#hud .cw-panel .cw-pips { display: inline-flex; gap: 6px; margin-left: 10px; vertical-align: middle; }
+#hud .cw-panel .cw-pip { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--ds-c-ink-inkt); background: transparent; box-sizing: border-box; }
+#hud .cw-panel .cw-pip.is-klaar { background: var(--ds-c-ink-bord); }
+#hud .cw-panel .cw-pip.is-nu { border-width: 4px; }
+#hud .cw-panel .ds-uitleg { --ds-tx: var(--ds-c-ink-inkt); --ds-tx-zacht: var(--ds-c-inkt-zacht); --ds-selectie: var(--ds-c-ink-bord); display: inline-flex; vertical-align: middle; }
 `;
 
 let cssDone = false;

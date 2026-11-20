@@ -3742,7 +3742,7 @@ function updateStages(dt, world, def) {
       if (r === 'done') {
         const tag = timingTag(st, S);
         if (tag) (chainState().tags = chainState().tags || new Set()).add(tag);
-        const jump = st.vaultJump ? playDuelJump(world, { at: S.target || { x: p.x, y: p.y }, fail: S.hits < (st.goodAt ?? st.rounds.length) }) : null;
+        const jump = st.vaultJump ? playDuelJump(world, { at: S.target || { x: p.x, y: p.y }, fail: S.hits < (S.goodAt ?? st.goodAt ?? st.rounds.length) }) : null;
         if (jump) { S.duelJump = jump; S.duelT = 0; jump.done.then(() => { jump.over = true; }); } else nextStage(world, def);
       } else if (r && r.fail) fail(world, def, r.fail);
       break;
