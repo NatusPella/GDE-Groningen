@@ -67,7 +67,7 @@ for (let i = 0; i < g1.n; i++) {
   if (!opWater(x, z)) allesOpWater = false;
   if (afstandTotLijn(r1.pts, x, z) > 0.01) volgt = false;
   if (Math.abs(buf.pos[i * 6 + 1] - (BOEZEM_Y + V.VAARLIJN.LIFT)) > 1e-5) opHoogte = false;
-  // ook de randen blijven in de gracht (halve breedte 1,7 m in een gracht van 12 m)
+  // ook de randen blijven in de gracht (halve breedte 2 m in een gracht van 12 m)
   for (const k of [0, 1]) if (!opWater(buf.pos[i * 6 + k * 3], buf.pos[i * 6 + k * 3 + 2])) allesOpWater = false;
 }
 ok(allesOpWater, 'de strook ligt overal op het water (midden en randen)');

@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Varen: je vaarroute is nu een doorlopende lijn op het water (gele chevrons met donkere rand, in vaarrichting) in plaats van een rij boeien. De lijn volgt de berekende vaarroute, loopt zacht uit na 240 m en staat stil bij verminderde beweging. Is er geen vaarroute, dan zie je een gestippelde lijn en de melding 'Geen vaarroute gevonden'. Boeien blijven alleen echte markeringen. Samen spelen: lokaal per speler.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

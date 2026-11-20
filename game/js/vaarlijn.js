@@ -7,7 +7,7 @@
 
 export const VAARLIJN = {
   AHEAD_M: 240,        // zoveel meter vooruit, daarna zachte uitfade
-  HALF_W: 1.7,         // 3,4 m breed: leesbaar op afstand vanaf de boot
+  HALF_W: 2.0,         // 4 m breed: leesbaar op afstand vanaf de boot
   STEP_M: 3,           // herbemonstering van de route (bochten blijven rond)
   FADE_IN_M: 8,        // onder de romp onzichtbaar, daarna in
   FADE_OUT_M: 60,      // zachte uitfade aan het eind van het getoonde stuk
