@@ -19,7 +19,8 @@
 .sh-uitleg > li { display: flex; align-items: center; gap: var(--ds-s-2); }
 .sh-nu { margin: 0; }
 .sh-nu--slecht { color: var(--ds-probleem); }
-.sh-pop { position: absolute; right: var(--ds-s-5); top: calc(-1 * var(--ds-s-6)); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
+.sh-pop { position: fixed; left: 0; right: 0; margin-inline: auto; width: max-content; max-width: calc(100vw - var(--ds-s-6)); z-index: 7; pointer-events: none;
+  bottom: calc(max(19vh, calc(var(--ds-s-8) * 2.5)) + var(--ds-s-8) * 3.5); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
 .sh-pop:empty { display: none; }
 .sh-pop--aan { animation: sh-pop calc(var(--ds-m-max) * 3) var(--ds-ease) both; }
 .sh-pop--stil { opacity: 1; }

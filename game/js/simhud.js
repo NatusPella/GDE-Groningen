@@ -52,8 +52,8 @@ function bouw() {
   pop = document.createElement('span');
   pop.className = 'sh-pop ds-t-cijfer';
   pop.setAttribute('aria-hidden', 'true');
-  el.append(inhoud, pop);
-  document.body.appendChild(el);
+  el.append(inhoud);
+  document.body.append(el, pop); // het getal staat los van de kaart: het blijft ook staan als de strook net verdwijnt (einde van een ronde)
 }
 
 // Elk beeld van de sim: toont of verbergt de strook en schrijft alleen bij een verschil. null verbergt hem.
