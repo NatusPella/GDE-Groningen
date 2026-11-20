@@ -1033,6 +1033,8 @@ while (true) {
       continue;
     }
   }
+  // M17 (Open, dicht): in de sloep toetert een speler bij een gesloten brug (H, de prompt zegt het); de bot toetert om de drie seconden
+  if (s.story.id === 'M17' && s.mission.active && s.player.vehicle && s.player.vehicle.boat && s.t - (mem.hoornT ?? -9) > 3) { mem.hoornT = s.t; await keyTap('h', 160); }
   const act = L.decide(s, mem);
   if (s.mission.active && s.mission.stage === 'choice' && act.type !== 'choose' && s.t - (mem.choiceDbgT || -99) > 10) {
     mem.choiceDbgT = s.t;
