@@ -119,8 +119,8 @@ function updateRain(dt, world, px, py, cam) {
     const o = i * 12;
     let f = 1;
     if (cam) {
-      const d = Math.hypot(mx + x - cx, my + y - cy, mz + z - cz);
-      if (d < RAIN_NEAR) f = d <= RAIN_NEAR_MIN ? 0 : (d - RAIN_NEAR_MIN) / (RAIN_NEAR - RAIN_NEAR_MIN);
+      const ddx = mx + x - cx, ddy = my + y - cy, ddz = mz + z - cz, d2 = ddx * ddx + ddy * ddy + ddz * ddz;
+      if (d2 < RAIN_NEAR * RAIN_NEAR) { const d = Math.sqrt(d2); f = d <= RAIN_NEAR_MIN ? 0 : (d - RAIN_NEAR_MIN) / (RAIN_NEAR - RAIN_NEAR_MIN); }
     }
     const fx = hx * f, fz = hz * f, fsx = sx * f, fsy = sy * f, fsz = sz * f;
     out[o] = x - fx; out[o + 1] = y; out[o + 2] = z - fz;
