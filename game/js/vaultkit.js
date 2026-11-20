@@ -10,6 +10,11 @@ export const CLIMB_MAX_H = 1.95; // a car or estate roof; vans, buses and walls 
 export const LEDGE_MAX_H = 2.2;
 export const MAX_DROP = 2.5; // m: a vault never lands you further down than this (viaduct edge, cutting)
 export const PERCH_SLIP_SPEED = 6; // m/s: a car going faster than this throws you off its roof
+// #1019: een rijdende auto voert je mee. Tot PERCH_RIDE_MAX (m/s) blijf je op het dak staan, een abrupte vertraging
+// (meer dan PERCH_BRAKE_LIMIT m/s2) of een snelle bocht gooit je eraf. PERCH_SLIP_SPEED geldt nog voor wie erop klimt.
+export const PERCH_RIDE_MAX = 18; // m/s (65 km/u)
+export const PERCH_BRAKE_LIMIT = 7; // m/s2: harder remmen dan dit en je glijdt van het dak
+export const PERCH_TURN_LIMIT = 0.9; // rad/s bij meer dan 8 m/s
 
 // Roof height of a vehicle above its wheels, metres. `model.h` overrides.
 const ROOF_H = {
@@ -164,4 +169,23 @@ export function bridgeWithin(map, x, y, r) {
     }
   }
   return false;
+}
+
+// Gooit het voertuig je van het dak? prevSpeed is zijn snelheid een beeld eerder, dt de beeldtijd.
+export function perchThrown(v, prevSpeed, dt) {
+  const sp = Math.abs(v.speed || 0);
+  if (sp > PERCH_RIDE_MAX) return true;
+  const decel = dt > 0 ? (Math.abs(prevSpeed || 0) - sp) / dt : 0;
+  if (decel > PERCH_BRAKE_LIMIT) return true;
+  if (sp > 8 && Math.abs(v.yawRate || 0) > PERCH_TURN_LIMIT) return true;
+  return false;
+}
+
+// De wereldsnelheid van het punt (lx, ly) op het voertuig: wat je meekrijgt als je van het dak stapt.
+export function perchCarryVelocity(v, lx, ly) {
+  const sp = v.speed || 0, w = v.yawRate || 0;
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  // rotatie om het midden: snelheid = w x r (r in wereldcoordinaten)
+  const rx = lx * c - ly * s, ry = lx * s + ly * c;
+  return { x: c * sp - w * ry, y: s * sp + w * rx };
 }

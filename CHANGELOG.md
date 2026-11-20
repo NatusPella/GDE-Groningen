@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Een rijdende auto voert je mee: sta je op het dak van een auto, bus of vrachtwagen die rijdt (ook een auto met een NPC-bestuurder), dan ga je mee tot ongeveer 65 km/u, ook door bochten. Een harde rem, een scherpe bocht op snelheid of een te hoge snelheid gooit je eraf, en stap je af dan houd je een deel van de snelheid (#1019).
+
 - Een fiets uit een stalling pakken lukt altijd: een fiets tegen een gevel start buiten het gebouw, een fiets die niet te pakken is geeft de volgende vrije en anders de melding "Deze fiets staat vast, probeer een andere." (#1018).
 - Een beschadigde fiets of scooter rijdt trager (hoe meer schade, hoe lager de topsnelheid). Een fiets zonder rijder die een flinke klap krijgt valt om en ligt op de grond tot je hem met E rechtzet (#1018).
 
