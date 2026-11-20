@@ -14,9 +14,12 @@ export function levelShadow(sh, mesh, drop) {
 // kwaliteit alleen renderschaal en zichtafstand verlaagde. Op een machine die
 // zichzelf terugschroeft (dynamicScale < 1) of een hoge cpuLevel heeft, gebruiken
 // we de zuinige 'hoog'-variant: 2048² is nog 3,1 cm per texel en scheelt 50 MB.
-export function adaptedShadowLevel(level, dynamicScale = 1, cpuLvl = 0) {
+// #1039: de kaart van 4096 is voor de stand met de verste zichtafstand (Ultra). Hoog (zichtafstand kort of normaal, de 60-fps-stand)
+// krijgt 2048: dezelfde 3,1 cm per texel, een kwart van de texels om te wissen en te vullen (-50 MB).
+export function adaptedShadowLevel(level, dynamicScale = 1, cpuLvl = 0, drawDistance = 'heelver') {
   if (level !== 'hoog') return level; // laag en middel blijven zoals ze zijn
   if (cpuLvl > 0 || dynamicScale < 1) return 'hoog2048';
+  if (drawDistance === 'kort' || drawDistance === 'normaal') return 'hoog2048';
   return 'hoog';
 }
 
