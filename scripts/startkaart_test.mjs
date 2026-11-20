@@ -47,7 +47,7 @@ t('de kaart noemt doel, medailles, beloning en samen; het record komt erbij als 
   assert.match(spec.bodyHtml, /Beloning: /);
   assert.match(spec.bodyHtml, /Samen: /);
   assert.match(spec.bodyHtml, /Record: 2 onder par/);
-  assert.match(spec.bodyHtml, /<kbd class="hud-key">SPATIE<\/kbd>/, 'de toetsen staan als toetsplaatjes');
+  assert.match(spec.bodyHtml, /<span class="hud-key[^"]*" data-gk="SPACE">/, 'de toetsen staan als toetsplaatjes');
   assert.equal(spec.key, 'startkaart-discgolf');
   assert.equal(startkaartSpec('onbestaand'), null, 'een onbekende activiteit geeft geen kaart');
 });
