@@ -29,7 +29,7 @@ factor (`loopbaanDeel`, `:192`), de gast past zijn eigen factor toe (`loopbaanGa
 teller > 0 in het vak, nooit de menuknop (`eersteKlusGedaan`, `game/js/loopbaan.js:244`; een uit de
 prestaties gezaaid profiel telt mee). De telling gaat als levensduur-teller `careerFirstJobs` naar de
 prestaties; bij negentien ontgrendelt de prestatie "De Duizendpoot" (categorie bijbaan) en betaalt
-`loopbaanlive.js` eenmalig €750 lokaal, zonder loonfactor en zonder coopDeel (per speler/apparaat). De
+`loopbaanlive.js` eenmalig €2.000 lokaal, zonder loonfactor en zonder coopDeel (per speler/apparaat). De
 titel "De Duizendpoot" blijft afgeleid zichtbaar in het Loopbanen-scherm. Een verhaalstap die een
 loopbaan noemt geeft eenmalig een stil kaartje met de eerste klus en de startplek
 (`game/js/loopbaankaarten.js`, profielveld `kaarten`). In Te doen staat één rij Loopbanen met de stand en

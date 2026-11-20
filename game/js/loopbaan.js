@@ -23,11 +23,11 @@ const MAX_XP = 100000;
 const MAX_N = 1e7;
 
 // #846: de blijvende beloning voor wie alle negentien loopbanen met een echte eerste klus begint: de titel
-// "De Duizendpoot" (afgeleid uit het profiel, dus altijd terug te zien) en eenmalig €750. Het bedrag staat
+// "De Duizendpoot" (afgeleid uit het profiel, dus altijd terug te zien) en eenmalig €2.000. Het bedrag staat
 // hier als regel, niet in de UI of de haak; het gaat nooit door de loonfactor en wordt nooit met gasten gedeeld
 // (het is een prestatie van deze speler op dit apparaat). Zie docs/LOOPBAAN.md en loopbaanlive.js.
 export const DUIZENDPOOT_TITEL = 'De Duizendpoot';
-export const DUIZENDPOOT_EURO = 750;
+export const DUIZENDPOOT_EURO = 2000;
 
 export const GROEPEN = [
   { id: 'vervoer', naam: 'Vervoer' },

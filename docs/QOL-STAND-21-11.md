@@ -42,7 +42,7 @@ gloed op de minimap · 49 eigen voertuig buiten beeld: randpijl · 50 Q-hint (al
 | 12 (deel) | Tweede laadscherm na een reis | Hoort bij `loadscreen.js`/`loadlogic.js` waar een andere agent aan werkt. Eerst meten in een draaiend spel welk tweede scherm het is. |
 | 32 (deel) | Radiopools zijn piepklein | Alleen de volgorde is verbeterd (nooit direct dezelfde regel). Grotere pools vragen nieuwe opnames (`voice_coverage` eist een stem per regel; AGENTS.md: audio is van de eigenaar). Voorstel: per pool minstens vier regels in de volgende opnameronde. |
 | 43 | "De hele kaart verkend" zonder tussenstap | Een tussenprestatie (bijvoorbeeld `kaart_75`) verandert het aantal prestaties (221), dat in vijf documenten en de Steam-checklist staat. Bundelen met de volgende prestatieronde, met `spec_check --write`. |
-| 45 | De Duizendpoot betaalt weinig | Economiebalans: eigenaarsbeslissing over het bedrag (nu 750 euro voor 19 loopbanen). |
+| 45 | De Duizendpoot betaalt weinig | Gedaan op balans-21-11 (#1050): €750 wordt €2.000, onderbouwing in docs/BALANS-21-11.md. |
 | 47 | Afgeleverde eigen auto slaapt nooit in | Een slaapstand haalt het voertuig uit `world.vehicles`; kaartmarker, `statusOf`, opruimen, bezorgen en de gastweergave lezen die lijst. Raakt `vehicle.js` (andere agent) en vraagt een meting. Voorstel: een slaapset naast `parkedcars.js`. |
 
 Eerder bewust niet gebouwd en niet in deze lijst: F9 (snelladen) vraagt eerst een besluit over de bevestiging, want laden overschrijft je stand.

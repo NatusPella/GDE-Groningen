@@ -71,7 +71,7 @@ t('geld uit missies, winkels, vondsten en reparaties loopt niet via de loopbaan'
 // betaalt niets uit. Dat het geen geld laat lopen, blijkt uit de volgende test: story.js staat niet in de haken-lijst.
 t('wat de loopbaan uitbetaalt loopt alleen via loopbaanVerdien of de loonfactor van het vak', () => {
   // elke haak die geld uitbetaalt staat hier; een nieuwe haak moet bewust worden toegevoegd (en hier verantwoord)
-  // #846: loopbaanlive.js betaalt daarnaast de eenmalige Duizendpoot-uitbetaling (€750, één keer per profiel, nooit
+  // #846: loopbaanlive.js betaalt daarnaast de eenmalige Duizendpoot-uitbetaling (€2.000, één keer per profiel, nooit
   // gedeeld; zie de test onderaan). Dat is dezelfde module, dus geen nieuwe haak in deze lijst.
   const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'pg_bruggenrace.js', 'ringrace.js', 'stationtravel.js', 'coopnet.js', 'hengelen.js', 'vliegschool.js', 'loopbaanlive.js', 'boerderijlive.js', 'kaartjescontrole.js', 'pitchputt.js', 'discgolf.js', 'klimtoren.js', 'skatepark.js', 'penalty.js', 'activities.js', 'cooptrein.js', 'streekuitdaginglive.js', 'pannenkoek.js']; // pannenkoek.js: de prijs van een online pannenkoekenwedstrijd loopt via loopbaanVerdien('horeca') (#983); discgolf.js en klimtoren.js: idem voor een online ronde of klim (#443); pitchputt.js: de prijs van een online pitch-and-putt-ronde loopt via loopbaanVerdien('golf') (#443); skatepark.js: de prijs van een online skatewedstrijd via loopbaanVerdien('buiten') (#443); kaartjescontrole.js: EUR 45 per volle perronronde, per station hooguit eens per 15 spelminuten (#437); pg_bruggenrace.js: de prijs van een gezamenlijke Elf Bruggenrace via loopbaanVerdien('boot') (#443); ringrace.js: de ringrace als vrije activiteit betaalt via het vak race (#443); activities.js: de rondvlucht betaalt per medaille (#492); cooptrein.js: de conducteur betaalt zijn kaartjesronde (#492)
   const gevonden = fs.readdirSync(JS).filter((f) => f.endsWith('.js') && !/^loopbaan/.test(f) && /loopbaan(Verdien|Loon|Prijs|Gast)\(/.test(fs.readFileSync(JS + f, 'utf8')));
@@ -145,8 +145,8 @@ t('#668: de eerste ronde van een baan telt dubbel voor het niveau, de drempels b
 // bedrag is begrensd, het groeit niet mee met een niveau en het is niet te herhalen (het profiel onthoudt het).
 t('#846: de Duizendpoot is eenmalig, begrensd en nooit met gasten gedeeld', () => {
   assert.equal(L.DUIZENDPOOT_TITEL, 'De Duizendpoot');
-  assert.equal(L.DUIZENDPOOT_EURO, 750, 'de eigenaar koos €750');
-  assert.ok(L.DUIZENDPOOT_EURO <= 1000, 'het blijft onder duizend euro');
+  assert.equal(L.DUIZENDPOOT_EURO, 2000, 'balansbesluit 21-11: twee uur netto inkomen (docs/BALANS-21-11.md)');
+  assert.ok(L.DUIZENDPOOT_EURO < 2400, 'het blijft onder de prijs van het goedkoopste perceel (docs/BALANS-21-11.md)');
   // geen loonfactor: het bedrag staat als vaste regel in loopbaan.js, niet als premie per ronde in STAT_VAK
   assert.ok(!Object.values(L.STAT_VAK).some((r) => r.premie >= L.DUIZENDPOOT_EURO), 'geen premie van die orde per gebeurtenis');
   const live = fs.readFileSync(JS + 'loopbaanlive.js', 'utf8');

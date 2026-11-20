@@ -102,7 +102,7 @@ bevat de vracht-bijbaan, de melkrit en Suikerbieten naar de fabriek. Ploegen en 
 ## Alle 19 loopbanen een keer beginnen (#846)
 
 - Maatstaf is de **eerste klus echt gedaan** (`loopbaan.js` `eersteKlusGedaan`: xp of teller > 0; de knop "Loopbaan starten" in het scherm telt niet, een gezaaid profiel met eerdere voortgang wel).
-- Het Loopbanen-scherm toont **"x van 19 eerste klussen"**; bij 19 komt de blijvende titel **De Duizendpoot** en eenmalig **€750** (lokaal, nooit gedeeld). In Prestaties staat daarnaast **Van alle markten thuis** (de bestaande prestatie "Duizendpoot" gaat over de zes bijbaantjes).
+- Het Loopbanen-scherm toont **"x van 19 eerste klussen"**; bij 19 komt de blijvende titel **De Duizendpoot** en eenmalig **€2.000** (lokaal, nooit gedeeld). In Prestaties staat daarnaast **Van alle markten thuis** (de bestaande prestatie "Duizendpoot" gaat over de zes bijbaantjes).
 - Bij een verhaalstap die een loopbaan noemt (M10, M16, T1, T2, ...) verschijnt eenmalig een stil kaartje **"Loopbaan in zicht: ..."** met de eerste klus en de startplek (`loopbaankaarten.js`); per speler en per apparaat eenmalig.
 - Te doen heeft een rij **Loopbanen** met de stand en een route naar de dichtstbijzijnde nog open eerste klus; die rij komt daardoor ook in Begin hier.
 - Tests: `scripts/loopbaankaarten_test.mjs`, `loopbaan_test.mjs` en `loopbaan_balans_test.mjs`.

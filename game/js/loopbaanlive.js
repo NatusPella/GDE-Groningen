@@ -158,7 +158,7 @@ export function loopbaanTel(w, vak, opties = {}) {
   // de eerste punten in een vak beginnen die loopbaan (#431): de verhaalstap die erbij hoort telt daarna als gedaan
   const begonnen = r.xp > 0 || (opties.n || 0) > 0 ? L.startVak(getProfiel(), vak).nieuw : false;
   if (r.xp > 0 || (opties.n || 0) > 0 || begonnen) markeer();
-  if (r.xp > 0 || (opties.n || 0) > 0) eersteKlussenBijwerken(w); // #846: de teller, de prestatie en eenmalig €750
+  if (r.xp > 0 || (opties.n || 0) > 0) eersteKlussenBijwerken(w); // #846: de teller, de prestatie en eenmalig €2.000
   if (r.omhoog) meldOmhoog(w, r.omhoog);
   if (typeof opties.uniek === 'string' && opties.uniek) gebiedenOpUniek(w, opties.uniek); // gebieden veroveren (#414)
   return r;

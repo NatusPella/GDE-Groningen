@@ -54,7 +54,7 @@ t('eersteKlussen en eersteKlusStand: de overkoepelende teller van negentien', ()
   assert.equal(klaar.klaar, true);
   assert.equal(klaar.titel, L.DUIZENDPOOT_TITEL);
   assert.equal(L.DUIZENDPOOT_TITEL, 'De Duizendpoot');
-  assert.equal(L.DUIZENDPOOT_EURO, 750);
+  assert.equal(L.DUIZENDPOOT_EURO, 2000);
 });
 
 // ------------------------------------------------------------------ het profiel
