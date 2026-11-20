@@ -1,6 +1,8 @@
 // AudioParam-events only when something changes (prestatie): setTargetAtTime every frame for a value that did not move
 // floods the audio thread with automation events. The decision logic is pure so it can be tested without a context.
 
+import { veiligWaarde } from '../audiodiag.js';
+
 export const PARAM_EPS = 1e-4;
 
 // last: the value written before (undefined: never), next: the wanted one. A real zero is always written (a fade-out
@@ -19,6 +21,9 @@ export function createParamMemo() {
   return {
     stats,
     set(param, value, t, tau, eps = PARAM_EPS) {
+      // a NaN or Infinity would throw in setTargetAtTime and skip the rest of the frame update (audiodiag.js)
+      value = veiligWaarde(value, last.get(param));
+      if (value === null) { stats.skipped++; return false; }
       if (!shouldWriteParam(last.get(param), value, eps)) { stats.skipped++; return false; }
       last.set(param, value);
       param.setTargetAtTime(value, t, tau);

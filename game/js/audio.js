@@ -18,6 +18,7 @@ import { keysReady, PLANE_KEYS, BOAT_KEYS } from './sfx/aircraft.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
 import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
 import { createParamMemo } from './audio/paramwrite.js';
+import { audioDiag, kiesLatencyHint, leesVorige } from './audiodiag.js';
 import { setSpatialHost, makePanner, setPannerPos, distToListener, inverseGain, spatialOut, updateListener, MAX_DISTANCE, SOURCE_HEIGHT, HRTF_NEAR } from './audio/spatial.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
@@ -1651,12 +1652,48 @@ function buildSoftClip() {
 }
 
 let meter = null;
+let limiter = null;
+let clipStage = null;
+let meterOut = null;
+let latencyHint = 'balanced';
+
+function readPrevGlitches() {
+  try { return typeof localStorage !== 'undefined' && !FLAGS.dev && !FLAGS.stil ? leesVorige(localStorage) : null; } catch (e) { return null; }
+}
+
+// Last stage: the soft-clipped SFX and the music (which bypasses the soft-clip) are summed at the destination, where a sum
+// above 1.0 would clip hard (a crack). A fast limiter (threshold -2 dB, ratio 20, no knee) only acts on those peaks.
+// ?geenlimiter skips it (A/B test). A NaN would poison its detector, so the watchdog rebuilds it (rebuildLimiter).
+function buildLimiter() {
+  const l = ctx.createDynamicsCompressor();
+  l.threshold.value = -2;
+  l.knee.value = 0;
+  l.ratio.value = 20;
+  l.attack.value = 0.002;
+  l.release.value = 0.12;
+  return l;
+}
+
+function rebuildLimiter() {
+  if (!limiter) return;
+  const old = limiter;
+  limiter = buildLimiter();
+  try { old.disconnect(); } catch (e) { /* already loose */ }
+  clipStage.connect(limiter);
+  musicLp.connect(limiter);
+  limiter.connect(output());
+  if (meterOut) limiter.connect(meterOut);
+  audioDiag.setLimiter(limiter);
+  audioDiag.note('nan', 'limiter opnieuw gebouwd');
+}
 
 function buildGraph() {
   master = ctx.createGain();
   master.gain.value = muted ? 0 : masterLevel();
   const clip = buildSoftClip();
-  master.connect(clip).connect(output());
+  clipStage = clip;
+  limiter = FLAGS.geenlimiter ? null : buildLimiter();
+  if (limiter) { master.connect(clip); clip.connect(limiter); limiter.connect(output()); } else master.connect(clip).connect(output());
   // the watchdog listens here for a NaN that silences the whole mix
   meter = ctx.createAnalyser();
   meter.fftSize = 256;
@@ -1697,7 +1734,9 @@ function buildGraph() {
   musicLp = ctx.createBiquadFilter();
   musicLp.type = 'lowpass';
   musicLp.frequency.value = 20000;
-  musicOut.connect(musicLp).connect(output());
+  musicOut.connect(musicLp);
+  musicLp.connect(limiter || output());
+  if (limiter) { meterOut = ctx.createAnalyser(); meterOut.fftSize = 2048; limiter.connect(meterOut); }
   musicBus = ctx.createGain();
   // from the saved music slider, not just the bare base level: the very first
   // record already plays at the volume the player chose (#461)
@@ -1757,6 +1796,8 @@ function buildGraph() {
   hornVoice = buildHornVoice();
   scrapeVoice = buildScrapeVoice();
   loadEngineWorklet();
+  audioDiag.attach({ ctx, master, limiter, meter, meterOut, latencyHint, voices: () => activeVoices, engineVoices: () => engineVoices.filter((v) => v && v.target).length, vorige: readPrevGlitches() });
+  setInterval(() => { try { if (!FLAGS.dev && !FLAGS.stil) audioDiag.bewaar(localStorage); } catch (e) { /* no storage */ } }, 30000);
 
   kit = {
     ctx, bank,
@@ -1778,8 +1819,11 @@ function ensureCtx() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return false;
   // 'balanced' gives the audio thread a few quanta of headroom: a busy CPU
-  // (shader compiles, a heavy frame) then no longer starves the output
-  try { ctx = new AC({ latencyHint: 'balanced' }); } catch (e) { ctx = new AC(); }
+  // (shader compiles, a heavy frame) then no longer starves the output. A machine that glitched last session
+  // (audiodiag.js counted audio-clock underruns) gets 'playback': bigger buffers, ~30 ms more delay, no gaps.
+  // No sampleRate is passed: the browser takes the device's own rate, so nothing is resampled twice.
+  latencyHint = kiesLatencyHint(readPrevGlitches());
+  try { ctx = new AC({ latencyHint }); } catch (e) { ctx = new AC(); latencyHint = 'interactive'; }
   speech.setSpeechClock(() => ctx.currentTime);
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   window.addEventListener('pointerdown', unlockAudio, true);
@@ -2946,6 +2990,7 @@ export function updateAudio(dt, world) {
   if (ctx.state !== 'running') resumeCtx('frame');
 
   speech.tick();
+  guarded('diag', () => audioDiag.tick());
   guarded('watchdog', () => watchdog(world));
   if (worldIn) {
     const hz = world.menuMuffle ? MENU_MUFFLE_HZ : 20000;
@@ -3122,7 +3167,7 @@ function watchdog(world, force = false) {
   if (meter) {
     if (!meterBuf) meterBuf = new Float32Array(meter.fftSize);
     meter.getFloatTimeDomainData(meterBuf);
-    if (meterBuf.some((x) => !Number.isFinite(x))) { watch.nan++; fix('nan'); resetSynth(); }
+    if (meterBuf.some((x) => !Number.isFinite(x))) { watch.nan++; fix('nan'); resetSynth(); rebuildLimiter(); audioDiag.note('nan', 'NaN in de mix'); }
   }
 }
 
@@ -3148,7 +3193,7 @@ function audioState() {
     gmusic: radioState(),
     bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
     scenario: scenarioKey(), storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
-    synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
+    diag: audioDiag.snapshot(), synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
   };
 }
 
