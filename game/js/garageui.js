@@ -368,18 +368,29 @@ const aim = { hover: null, touch: false, latest: 'hover', downAt: -1e9, byPointe
 // The pictures are drawn one by one in idle time, in list order; until a
 // card's picture is there it shows a quiet placeholder, and without WebGL the
 // old silhouette.
-function fillPics(el) {
-  for (const card of el.querySelectorAll('.gar-list .gar-card')) {
+// #999: wat in beeld staat (met wat marge) komt eerst, in lijstvolgorde; de rest volgt. Zo blijft "Te koop" onderaan de lijst niet
+// als silhouet staan terwijl de wachtrij nog bij de bovenste kaarten bezig is; bij het scrollen komt het nieuwe beeld vooraan.
+const inBeeld = (lijst, card) => {
+  const r = lijst.getBoundingClientRect(); const c = card.getBoundingClientRect();
+  return c.bottom > r.top - 120 && c.top < r.bottom + 120;
+};
+function fillPics(el, alleenZichtbaar = false) {
+  const lijst = el.querySelector('.gar-list');
+  const kaarten = [...el.querySelectorAll('.gar-list .gar-card')].map((card) => ({ card, prio: !!lijst && inBeeld(lijst, card) }));
+  // eerst de rest in volgorde (achteraan de wachtrij), dan het zichtbare in omgekeerde volgorde vooraan: samen blijft de lijstvolgorde
+  const volgorde = [...kaarten.filter((k) => !k.prio), ...kaarten.filter((k) => k.prio).reverse()];
+  for (const { card, prio } of volgorde) {
     const e = lastList.find((x) => x.id === card.dataset.garageSelect);
     const ph = card.querySelector('.gar-ph');
     const spec = e && previewSpec(e);
     if (!ph) continue;
+    if (alleenZichtbaar && (!prio || ph.querySelector('img'))) continue; // bij het scrollen: geen kaart opnieuw tekenen die al een beeld heeft
     const put = (url) => {
       if (!ph.isConnected) return;
       ph.innerHTML = url ? `<img alt="" draggable="false" src="${url}">` : vehicleGlyph(e.kind, e.locked ? 'var(--ds-c-inkt-zacht)' : e.color);
     };
-    if (!spec) { put(''); continue; }
-    renderSnapshot(spec, GARAGE_PIC_W, GARAGE_PIC_H, put, { angle: GARAGE_3Q_ANGLE, zoom: garagePicZoom(spec), group: PIC_GROUP });
+    if (!spec) { if (!alleenZichtbaar) put(''); continue; }
+    renderSnapshot(spec, GARAGE_PIC_W, GARAGE_PIC_H, put, { angle: GARAGE_3Q_ANGLE, zoom: garagePicZoom(spec), group: PIC_GROUP, prio });
   }
 }
 
@@ -491,6 +502,13 @@ function bindToolbar(el) {
   if (el.dataset.garBound) return;
   el.dataset.garBound = '1';
   bindTurntable(el);
+  // #999: scrolt de lijst naar kaarten zonder beeld, dan komen die vooraan de wachtrij
+  let scrolT = 0;
+  el.addEventListener('scroll', (ev) => {
+    if (!ev.target || !ev.target.classList || !ev.target.classList.contains('gar-list')) return;
+    clearTimeout(scrolT);
+    scrolT = setTimeout(() => fillPics(el, true), 120);
+  }, true);
   el.addEventListener('click', (ev) => {
     const c = ev.target.closest('[data-garage-cat]');
     const s = ev.target.closest('[data-garage-sort]');
