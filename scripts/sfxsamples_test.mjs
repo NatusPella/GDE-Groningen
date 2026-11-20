@@ -26,7 +26,7 @@ for (const k of SAMPLE_KEYS) {
   ok(fs.existsSync(f), `${k}: bestand ${g[k].bestand} bestaat`);
   if (fs.existsSync(f)) ok(fs.readFileSync(f).subarray(0, 4).toString() === 'OggS', `${k} is een ogg-bestand`);
   ok(g[k].herkomst && g[k].herkomst.url && /CC0|Creative Commons (0|Attribution)/.test(g[k].herkomst.licentie), `${k}: bron en CC0- of CC-BY-licentie in het manifest (ADR 0039)`);
-  ok(g[k].duur_s > 0.2 && (g[k].loop ? g[k].duur_s <= 20 : g[k].duur_s < 6), `${k}: duur ${g[k].duur_s} s is kort genoeg`);   // een lus hooguit 20 s, een eenmalige klank hooguit 6 s
+  ok(g[k].duur_s > 0.2 && (g[k].loop ? g[k].duur_s <= 32 : g[k].duur_s < (k.startsWith('donder_') ? 14 : 6)), `${k}: duur ${g[k].duur_s} s is kort genoeg`);   // een lus hooguit 32 s (weer en zomer), een eenmalige klank hooguit 6 s, een donderslag hooguit 14 s
 }
 for (const k of Object.keys(g)) ok(SAMPLE_KEYS.includes(k), `manifest-sleutel ${k} heeft een regel in SAMPLE_INFO`);
 ok(!g.trein_deur && !fs.existsSync(path.join(SFX, 'trein_deur.ogg')), 'de oude hele treindeur-opname is weg');
@@ -38,7 +38,7 @@ for (const k of SAMPLE_KEYS) ok(CATEGORIES[SAMPLE_INFO[k].cat], `${k}: categorie
 // -- sleutels in de code komen voor in het manifest -----------------------------------------
 const JS = path.join(ROOT, 'game', 'js');
 const used = new Set();
-const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*)['"`]/g;
+const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_auto_stationair)['"`]/g;
 for (const f of fs.readdirSync(JS, { recursive: true }).filter((x) => x.endsWith('.js'))) {
   const t = fs.readFileSync(path.join(JS, f), 'utf8');
   for (const m of t.matchAll(re)) used.add(m[1]);

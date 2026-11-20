@@ -92,3 +92,24 @@ In een afgesloten voertuig (auto, bus) zijn de lagen zachter; bij regen wijkt vo
 | `vliegtuig_gestel` | G in de lucht | één mechanische klank per wissel | klinkt ook op de grond; dubbel |
 | `boot_motor_stat`, `boot_motor_vol` | een motorboot in de haven of op het water | stationair gaat zacht over in vol gas op snelheid | de oude synth die er nog bij klinkt; te hard tegen het water |
 
+
+## Voetstappen, weer, zomer en autolussen met opnames (zie [AUDIO-STAPPEN-WEER.md](AUDIO-STAPPEN-WEER.md))
+
+Alles hieronder is gemeten (niveau, naad, clipping), niets is beluisterd: de bronnen en de knipvensters zijn gekozen op meting. Luisteren is aan de eigenaar.
+
+| Geluid | Waar je het hoort | Wat het moet zijn | Wat niet goed mag klinken |
+| --- | --- | --- | --- |
+| `stap_klinkers_*`, `stap_asfalt_*`, `stap_ren_*` | lopen en rennen op stoep, plein en weg | zes stappen op steen of asfalt, geen klik, rennen met korter ritme | een stap die halverwege wordt afgekapt; een andere schoen bij rennen dan bij lopen; te hard onder muziek of stemmen |
+| `stap_gras_*`, `stap_grind_*`, `stap_zand_*` | park, weide, erf van een boer | zacht en dof op gras, knarsend op grind | `stap_zand_*` (een opname zonder ondergrond in de titel en een zandopname) kan ook op grind of aarde lijken; de staart van `stap_gras_5` is kort |
+| `stap_wood_*` | houten bruggen | holle plank | de bron is een kettingbrug: rinkelt er ketting mee? |
+| `stap_metaal_*` | autodak, trap, rooster | scherp metaal | te schel of dubbel |
+| `stap_wet_*` | plassen en water | gespetter | te hard of te lang (0,35 tot 0,42 s) |
+| `stap_binnen_*` | in de flat | dof, kamerachtig | klinkt als buiten |
+| links en rechts, afstand | lopen in een menigte | voeten wisselen, een menigte klinkt niet gelijk en dof op afstand | een ritme dat in de maat loopt; een menigte die te hard of te druk klinkt |
+| `regen_motregen`, `regen_bui`, `regen_plens` | tijdens het weer, kruisend op de intensiteit | zachte kruisfade, geen sprong in toon; de plensbui is de hardste | een hoorbare herhaling elke 12 tot 14 s; te scherp of schurend (`regen_plens` is begrensd op de piek); regen die luider is dan een gesprek |
+| `regen_dak`, `regen_auto` | in de flat, in een gesloten auto | gedempt van binnen, geen pomp of sprong | `regen_auto` heeft de grootste naadstap (2,8 dB): hoor je de lus? |
+| `wind_gras` | open land, polder, onweer | steady suizen door gras | pompen; klinkt als ruis in plaats van wind |
+| `donder_dichtbij_*`, `donder_ver_*` | onweer, na de flits | klap met rommel dichtbij, gerommel ver weg, vertraagd met de afstand | te hard; dichtbij zonder flits; de duur (8 tot 12 s) botst met een volgende flits |
+| `zomer_vogels`, `zomer_stadsvogels`, `zomer_insecten` | droge dagen in het groen, in de stad, op de weide | zacht op de achtergrond, geen herhaling die opvalt | de lus van 30 s of 18 s herhaalt hoorbaar; een vogel die niet in Nederland past; te luid bij een gesprek |
+| `band_drift` | een lange slide (slip boven 0,62) | schurende band die met de slip stijgt en meezakt | een klik bij het in- en uitvaden; dubbel met de bandenpiep; stampend |
+| `motor_auto_stationair` | personenauto op stationair en lage toeren | extra lichaam onder de synth, zakt weg bij opschroeven | klinkt als een tweede motor naast de synth (zet `ENGINE_LAYER_ON` uit in `audio.js`) |

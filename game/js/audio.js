@@ -8,7 +8,7 @@ import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js'
 import { FX_INFO } from './sfx/fxbank.js';
 import { plan as mixPlan, speechDuckFactor, categoryLevel } from './sfx/mixplan.js';
 import { createLinkups } from './sfx/linkups.js';
-import { createSamples, SAMPLE_INFO, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
+import { createSamples, SAMPLE_INFO, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
@@ -1918,6 +1918,34 @@ const SURFACE_CODE = { asfalt: 0, klinkers: 1, gras: 2, fietspad: 3 };
 const planeSamplesReady = () => keysReady(kit, PLANE_KEYS);
 const boatSamplesReady = () => keysReady(kit, BOAT_KEYS);
 
+// A recorded idle loop under the engine synth of a passenger car (#988, sfx/samples.js motor_auto_stationair): the body of a real engine at idle
+// and low revs, pitched with the rpm and faded out as the revs climb, so the worklet carries the rest. ENGINE_LAYER_ON switches it off.
+const ENGINE_LAYER_ON = true, ENGINE_LAYER_KINDS = new Set([0, 1, 5, 6, 10]);
+let engineLayer = null;
+function updateEngineLayer(dt, on, rpm, spec, muffle) {
+  const t = ctx.currentTime;
+  const buf = ENGINE_LAYER_ON && samples && samples.buffer('motor_auto_stationair');
+  if (on && buf && !engineLayer) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(gain).connect(sfxBus);
+    src.start();
+    engineLayer = { src, gain };
+  }
+  if (!engineLayer) return;
+  if (on && buf) {
+    const k = clamp((rpm - spec.idle) / Math.max(1, (spec.red - spec.idle) * 0.5), 0, 1);
+    engineLayer.src.playbackRate.setTargetAtTime(0.85 + 0.9 * k, t, 0.06);
+    engineLayer.gain.gain.setTargetAtTime(SAMPLE_INFO.motor_auto_stationair.gain * categoryLevel('voertuig') * (1 - 0.85 * k) * (muffle < 16000 ? 0.5 : 1), t, 0.1);
+  } else {
+    engineLayer.gain.gain.setTargetAtTime(0, t, 0.12);
+    const l = engineLayer; engineLayer = null;
+    try { l.src.stop(t + 0.6); } catch (e) { /* already stopped */ }
+  }
+}
+
 function updateEngineSynth(dt, world) {
   const S = engineState;
   const v = hoofdspeler(world).inVehicle;
@@ -1956,6 +1984,7 @@ function updateEngineSynth(dt, world) {
   }
 
   if (!S.vehicle) {
+    updateEngineLayer(dt, false, 0, ENGINE_SPECS[0], 16000);
     S.gain += (0 - S.gain) * Math.min(1, dt * 4);
     synthPost(synth.player, { type: 'p', v: [], road });
     return;
@@ -1995,6 +2024,7 @@ function updateEngineSynth(dt, world) {
     const place = getPlace();
     engineEarly.level.gain.setTargetAtTime(v.isBoat ? 0 : 0.05 + 0.13 * clamp(place.density || 0, 0, 1), ctx.currentTime, 0.5);
   }
+  updateEngineLayer(dt, ENGINE_LAYER_KINDS.has(S.kind) && !v.isBoat && !v.isPlane && !world.paused && !(t < S.startAt), rpm, spec, muffle);
   synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1, muffle }], road });
 }
 
@@ -2145,6 +2175,17 @@ function startSquealSample(voice, buffer) {
   src.start();
   return { src, gain };
 }
+// A seamless loop of tyres sliding in a real drift (band_drift): under the squeal once the slide is wide, level and pitch follow the slip.
+function startPlainLoop(voice, buffer) {
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.loop = true;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  src.connect(gain).connect(voice.panner);
+  src.start();
+  return { src, gain };
+}
 function stopSquealSample(l, t) {
   l.gain.gain.cancelScheduledValues(t);
   l.gain.gain.setTargetAtTime(0, t, 0.05);
@@ -2188,11 +2229,19 @@ function updateSqueal(dt, world) {
     if (on) { sl.run += dt; sl.rest = 0; } else { sl.rest += dt; if (sl.rest > SQUEAL_HOLD_S) sl.run = 0; }
     if (!sl.cur && on && sl.run >= SQUEAL_MIN_S) sl.cur = startSquealSample(voice, buf);
     if (sl.cur) {
+      const dbuf = samples.buffer('band_drift');
+      if (dbuf && on && best.slip >= DRIFT_SLIP && !sl.drift) sl.drift = startPlainLoop(voice, dbuf);
+      if (sl.drift) {
+        const dl = on ? driftLoopNiveau(best.slip) * SAMPLE_INFO.band_drift.gain * categoryLevel('voertuig') : 0;
+        sl.drift.gain.gain.setTargetAtTime(dl, t, 0.06);
+        if (on) sl.drift.src.playbackRate.setTargetAtTime(driftLoopRate(best.slip, Math.abs(best.speed)), t, 0.1);
+        if (!on || best.slip < DRIFT_SLIP - 0.12) { stopSquealSample(sl.drift, t); sl.drift = null; }
+      }
       if (on) {
         const lvl = slipLoopNiveau(best.slip) * SAMPLE_INFO.band_piep_bocht.gain * categoryLevel('voertuig');
         sl.cur.gain.gain.setTargetAtTime(lvl, t, 0.04);
         sl.cur.src.playbackRate.setTargetAtTime(slipLoopRate(best.slip), t, 0.08);
-      } else if (sl.rest > SQUEAL_HOLD_S) { stopSquealSample(sl.cur, t); sl.cur = null; }
+      } else if (sl.rest > SQUEAL_HOLD_S) { stopSquealSample(sl.cur, t); sl.cur = null; if (sl.drift) { stopSquealSample(sl.drift, t); sl.drift = null; } }
     }
   } else if (voice.slide && voice.slide.cur) { stopSquealSample(voice.slide.cur, t); voice.slide.cur = null; }
 }

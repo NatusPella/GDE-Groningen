@@ -35,6 +35,11 @@ export const SAMPLE_INFO = {
   boot_motor_stat: { cat: 'voertuig', gain: 0.7, ref: 12, range: 400, gap: 0 },
   boot_motor_vol: { cat: 'voertuig', gain: 0.7, ref: 12, range: 400, gap: 0 },
 };
+// weer, zomer en onweer (sfx/weermap.js, ambience.js): lussen voor de lagen van de omgeving en donderslagen; auto-lussen (audio.js)
+for (const k of ['regen_motregen', 'regen_bui', 'regen_plens', 'regen_dak', 'regen_auto', 'wind_gras', 'zomer_insecten', 'zomer_vogels', 'zomer_stadsvogels']) SAMPLE_INFO[k] = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };
+for (const k of ['donder_dichtbij_0', 'donder_dichtbij_1', 'donder_dichtbij_2', 'donder_ver_0', 'donder_ver_1']) SAMPLE_INFO[k] = { cat: 'omgeving', gain: 1, ref: 100, range: 6000, gap: 0 };
+SAMPLE_INFO.band_drift = { cat: 'voertuig', gain: 0.5, ref: 6, range: 60, gap: 0 };
+SAMPLE_INFO.motor_auto_stationair = { cat: 'voertuig', gain: 0.5, ref: 8, range: 70, gap: 0 };
 // voetstappen (sfx/steps.js, foley.js): stap_<ondergrond>_<n>; de sturing (variant, links en rechts, afstand) zit in steps.js en foley.js
 for (const k of FILE_STEP_KEYS) SAMPLE_INFO[k] = { cat: 'voetstap', gain: 1, ref: 3, range: 30, gap: 0 };
 export const SAMPLE_KEYS = Object.keys(SAMPLE_INFO);
@@ -75,6 +80,10 @@ export const HANDREM_MIN_V = 7;          // zo'n 25 km/u
 export const SLIPSTOOT_SLIP = 0.7;       // slip boven dit getal na een rustig stuk telt als een slipstoot
 export function slipLoopNiveau(slip) { return Math.max(0, Math.min(1, (slip - 0.3) / 0.6)); }
 export function slipLoopRate(slip) { return 0.88 + 0.3 * Math.max(0, Math.min(1, slip)); }
+// De drift (band_drift): een echte driftlus onder de piep zodra de slip groot is; niveau en toonhoogte volgen slip en snelheid.
+export const DRIFT_SLIP = 0.62;
+export function driftLoopNiveau(slip) { return Math.max(0, Math.min(1, (slip - DRIFT_SLIP) / 0.3)); }
+export function driftLoopRate(slip, speed) { return Math.max(0.8, Math.min(1.3, 0.85 + 0.25 * Math.max(0, Math.min(1, slip)) + Math.max(0, Math.min(30, speed)) * 0.006)); }
 export function grindNodig(v) {
   return !!v && v.surface === 'gras' && Math.abs(v.speed || 0) > 6 && (v._fxDec || 0) > 9 && !v.isBoat && !v.isHeli;
 }

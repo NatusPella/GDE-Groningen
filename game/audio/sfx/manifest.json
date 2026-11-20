@@ -74,6 +74,37 @@
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "band_drift": {
+      "bestand": "band_drift.ogg",
+      "gebruik": "auto: banden die slippen tijdens een drift (lus, toonhoogte volgt de slip)",
+      "loop": true,
+      "duur_s": 2.4,
+      "grootte_kb": 22.2,
+      "herkomst": {
+        "titel": "Nissan Maxima handbrake turn (04-25-2009).wav",
+        "auteur": "audible-edge",
+        "freesound_id": 71741,
+        "url": "https://freesound.org/people/audible-edge/sounds/71741/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "f4b8569dc724c884474e22079ce511a4f800a7ae2323592b8207bb12f6b8b1d0"
+      },
+      "knip_s": {
+        "start": 5,
+        "duur": 2.4
+      },
+      "naad": {
+        "sprong_ratio": 0.03,
+        "niveaustap_db": -0.53,
+        "kruisfade_ms": 150
+      },
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -5.7
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 300 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 150 ms), niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
     "band_piep_bocht": {
       "bestand": "band_piep_bocht.ogg",
       "gebruik": "één piep van banden in een bocht (loop, volume en toonhoogte naar slip)",
@@ -157,6 +188,136 @@
         "piek_db": -9.5
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "donder_dichtbij_0": {
+      "bestand": "donder_dichtbij_0.ogg",
+      "gebruik": "onweer: donderslag dichtbij met rommel",
+      "loop": false,
+      "duur_s": 10,
+      "grootte_kb": 68.6,
+      "herkomst": {
+        "titel": "Thunder, Close",
+        "auteur": "Fission9",
+        "freesound_id": 505113,
+        "url": "https://freesound.org/people/Fission9/sounds/505113/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "850c4bf83a258a53909208aa2d516c9d6520edd06a5d6ee74335122282877a7a"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 10
+      },
+      "niveau": {
+        "rms_db": -29.9,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, fade-in en cosinus-fade-uit, niveau RMS -18 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "donder_dichtbij_1": {
+      "bestand": "donder_dichtbij_1.ogg",
+      "gebruik": "onweer: donderslag dichtbij, scherp",
+      "loop": false,
+      "duur_s": 9,
+      "grootte_kb": 65.2,
+      "herkomst": {
+        "titel": "Thunderclap",
+        "auteur": "Fission9",
+        "freesound_id": 534023,
+        "url": "https://freesound.org/people/Fission9/sounds/534023/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "dc51be848c14328a99936097690e4aaf10fa55a180a672d126496a231c125ad4"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 9
+      },
+      "niveau": {
+        "rms_db": -31.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, fade-in en cosinus-fade-uit, niveau RMS -18 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "donder_dichtbij_2": {
+      "bestand": "donder_dichtbij_2.ogg",
+      "gebruik": "onweer: harde donderslag dichtbij",
+      "loop": false,
+      "duur_s": 12,
+      "grootte_kb": 90.2,
+      "herkomst": {
+        "titel": "th_loud.wav",
+        "auteur": "Pingel",
+        "freesound_id": 2689,
+        "url": "https://freesound.org/people/Pingel/sounds/2689/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "f09dc48cf6dfcd80627c8572b5870af5e3a834ab6b5b4f3f9861168d08551003"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 12
+      },
+      "niveau": {
+        "rms_db": -27.6,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, fade-in en cosinus-fade-uit, niveau RMS -18 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "donder_ver_0": {
+      "bestand": "donder_ver_0.ogg",
+      "gebruik": "onweer: gerommel ver weg",
+      "loop": false,
+      "duur_s": 8,
+      "grootte_kb": 38.9,
+      "herkomst": {
+        "titel": "Distant Thunder 3",
+        "auteur": "Fission9",
+        "freesound_id": 581124,
+        "url": "https://freesound.org/people/Fission9/sounds/581124/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "22672aa62ae3da98ad334dcc5136c3ee2e7244e9d03068343619a7aa4c0ee436"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 8
+      },
+      "niveau": {
+        "rms_db": -26.4,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 6 kHz, mono 44,1 kHz, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "donder_ver_1": {
+      "bestand": "donder_ver_1.ogg",
+      "gebruik": "onweer: gerommel ver weg (tweede)",
+      "loop": false,
+      "duur_s": 8.4,
+      "grootte_kb": 54.6,
+      "herkomst": {
+        "titel": "Binaural Thunder A - Short.wav",
+        "auteur": "digifishmusic",
+        "freesound_id": 34777,
+        "url": "https://freesound.org/people/digifishmusic/sounds/34777/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "ea985db194694621574a29af9df019d5133dc6c658165171493c2dbebd85a7f4"
+      },
+      "knip_s": {
+        "start": 0.8,
+        "duur": 8.4
+      },
+      "niveau": {
+        "rms_db": -22.6,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 6 kHz, mono 44,1 kHz, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
     "handrem_bocht": {
       "bestand": "handrem_bocht.ogg",
@@ -242,6 +403,192 @@
         "piek_db": -2
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "motor_auto_stationair": {
+      "bestand": "motor_auto_stationair.ogg",
+      "gebruik": "auto: motor stationair onder de motorsynth (lus, toonhoogte volgt het toerental)",
+      "loop": true,
+      "duur_s": 6.5,
+      "grootte_kb": 50.1,
+      "herkomst": {
+        "titel": "car_idle_loop.wav",
+        "auteur": "AndrewAlexander",
+        "freesound_id": 369053,
+        "url": "https://freesound.org/people/AndrewAlexander/sounds/369053/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e92ce90fb6c02d045433a698958dd544335c0e3dd4c61f650bea314474b99172"
+      },
+      "knip_s": {
+        "start": 3.25,
+        "duur": 6.5
+      },
+      "naad": {
+        "sprong_ratio": 0.14,
+        "niveaustap_db": -0.77,
+        "kruisfade_ms": 300
+      },
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -13.4
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 300 ms), niveau RMS -24 dB, ogg (Vorbis q2)"
+    },
+    "regen_auto": {
+      "bestand": "regen_auto.ogg",
+      "gebruik": "weer: regen op de auto, van binnen gehoord (lus)",
+      "loop": true,
+      "duur_s": 15.99,
+      "grootte_kb": 129.3,
+      "herkomst": {
+        "titel": "Rain From Car Interior Loop 1.wav",
+        "auteur": "mirkosukovic",
+        "freesound_id": 435665,
+        "url": "https://freesound.org/people/mirkosukovic/sounds/435665/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "eac4808352a86c59eb6634724595b875048d0e2d01673bfc66048251eed15db3"
+      },
+      "knip_s": {
+        "start": 0.75,
+        "duur": 16
+      },
+      "naad": {
+        "sprong_ratio": 0.74,
+        "niveaustap_db": 2.67,
+        "kruisfade_ms": 400
+      },
+      "niveau": {
+        "rms_db": -21.8,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 60 Hz, laagdoorlaat 7 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 400 ms), niveau RMS -18 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "regen_bui": {
+      "bestand": "regen_bui.ogg",
+      "gebruik": "weer: gewone bui, regen buiten (lus)",
+      "loop": true,
+      "duur_s": 12.01,
+      "grootte_kb": 88.9,
+      "herkomst": {
+        "titel": "AMBIENT - Rain on Forest Canopy - Light (LOOP).mp3",
+        "auteur": "Arctura",
+        "freesound_id": 34073,
+        "url": "https://freesound.org/people/Arctura/sounds/34073/",
+        "licentie": "Creative Commons Attribution 3.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/3.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "92ddfad90cc3e8628e5dbdada3604fb7df3556e959db413f0cb955c0447dd572"
+      },
+      "knip_s": {
+        "start": 0.5,
+        "duur": 12
+      },
+      "naad": {
+        "sprong_ratio": 0.2,
+        "niveaustap_db": -0.11,
+        "kruisfade_ms": 400
+      },
+      "niveau": {
+        "rms_db": -25,
+        "piek_db": -7.1
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 100 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 400 ms), niveau RMS -25 dB, ogg (Vorbis q2)"
+    },
+    "regen_dak": {
+      "bestand": "regen_dak.ogg",
+      "gebruik": "weer: regen op een dak, gedempt van binnen (lus)",
+      "loop": true,
+      "duur_s": 14,
+      "grootte_kb": 114.1,
+      "herkomst": {
+        "titel": "Rain Indoor Cabin (loop)",
+        "auteur": "PhilllChabbb",
+        "freesound_id": 232731,
+        "url": "https://freesound.org/people/PhilllChabbb/sounds/232731/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "6f206a8c62c8138e76acc60abe88ca3b940ffeab3ba3203b148b22c14d7594d6"
+      },
+      "knip_s": {
+        "start": 1.5,
+        "duur": 14
+      },
+      "naad": {
+        "sprong_ratio": 0.02,
+        "niveaustap_db": 0.22,
+        "kruisfade_ms": 400
+      },
+      "niveau": {
+        "rms_db": -17,
+        "piek_db": -1.7
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 80 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 400 ms), niveau RMS -17 dB, ogg (Vorbis q2)"
+    },
+    "regen_motregen": {
+      "bestand": "regen_motregen.ogg",
+      "gebruik": "weer: motregen, lichte regen buiten (lus)",
+      "loop": true,
+      "duur_s": 14,
+      "grootte_kb": 118.4,
+      "herkomst": {
+        "titel": "Light Rain",
+        "auteur": "soundrecorder7",
+        "freesound_id": 167034,
+        "url": "https://freesound.org/people/soundrecorder7/sounds/167034/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "0de833d7ed60ff1ab2446198bf65ec7ec5e91e21c70ab9e5f28a96ff1bbfa01d"
+      },
+      "knip_s": {
+        "start": 11.5,
+        "duur": 14
+      },
+      "naad": {
+        "sprong_ratio": 0.1,
+        "niveaustap_db": 0.25,
+        "kruisfade_ms": 400
+      },
+      "niveau": {
+        "rms_db": -28,
+        "piek_db": -5.3
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 120 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 400 ms), niveau RMS -28 dB, ogg (Vorbis q2)"
+    },
+    "regen_plens": {
+      "bestand": "regen_plens.ogg",
+      "gebruik": "weer: plensbui, harde regen buiten (lus)",
+      "loop": true,
+      "duur_s": 14,
+      "grootte_kb": 114.7,
+      "herkomst": {
+        "titel": "Rain.wav",
+        "auteur": "TiesWijnen",
+        "freesound_id": 341802,
+        "url": "https://freesound.org/people/TiesWijnen/sounds/341802/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "7a795c873d2ae34ca2ce8f6c6f85126a30cd07aa969b97b76db2c729fb926a3d"
+      },
+      "knip_s": {
+        "start": 5,
+        "duur": 14
+      },
+      "naad": {
+        "sprong_ratio": 0.64,
+        "niveaustap_db": -0.33,
+        "kruisfade_ms": 400
+      },
+      "niveau": {
+        "rms_db": -23.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 80 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 400 ms), niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
     "remmen_grind": {
       "bestand": "remmen_grind.ogg",
@@ -2124,6 +2471,130 @@
         "piek_db": -4.4
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 6 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "wind_gras": {
+      "bestand": "wind_gras.ogg",
+      "gebruik": "weer: wind door gras, riet en open land (lus)",
+      "loop": true,
+      "duur_s": 20,
+      "grootte_kb": 158.5,
+      "herkomst": {
+        "titel": "Ranch_Ambiance_Wind_Field_Grass 01.wav",
+        "auteur": "n_audioman",
+        "freesound_id": 321962,
+        "url": "https://freesound.org/people/n_audioman/sounds/321962/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "96862a56f07cab1f93fe762987dc94d0d76ce1212fe18b7cbad6af317436f5f6"
+      },
+      "knip_s": {
+        "start": 9.75,
+        "duur": 20
+      },
+      "naad": {
+        "sprong_ratio": 0.02,
+        "niveaustap_db": -0.08,
+        "kruisfade_ms": 500
+      },
+      "niveau": {
+        "rms_db": -18.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 50 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 500 ms), niveau RMS -17 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "zomer_insecten": {
+      "bestand": "zomer_insecten.ogg",
+      "gebruik": "zomer: weide met insecten, een warme dag (lus)",
+      "loop": true,
+      "duur_s": 20,
+      "grootte_kb": 163.2,
+      "herkomst": {
+        "titel": "Meadow with many insects chirps atmo field recording",
+        "auteur": "Garuda1982",
+        "freesound_id": 529573,
+        "url": "https://freesound.org/people/Garuda1982/sounds/529573/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "036cb0d703c8cba4178460f87e134a7d5d0ab6337aa08f99ffbd9ed0cf479570"
+      },
+      "knip_s": {
+        "start": 5,
+        "duur": 20
+      },
+      "naad": {
+        "sprong_ratio": 0.01,
+        "niveaustap_db": 0,
+        "kruisfade_ms": 500
+      },
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -3.6
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 500 ms), niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
+    "zomer_stadsvogels": {
+      "bestand": "zomer_stadsvogels.ogg",
+      "gebruik": "zomer: vogels in de stad, overdag (lus)",
+      "loop": true,
+      "duur_s": 18,
+      "grootte_kb": 141.8,
+      "herkomst": {
+        "titel": "city birds March NL EU 8.26 AM 220326_0571",
+        "auteur": "klankbeeld",
+        "freesound_id": 712294,
+        "url": "https://freesound.org/people/klankbeeld/sounds/712294/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d0c6257566fa72683ad976d5873df064abd994d8909b0f3cee9797e4d2a1994d"
+      },
+      "knip_s": {
+        "start": 4.25,
+        "duur": 18
+      },
+      "naad": {
+        "sprong_ratio": 0.05,
+        "niveaustap_db": -0.02,
+        "kruisfade_ms": 500
+      },
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -7.9
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 500 ms), niveau RMS -24 dB, ogg (Vorbis q2)"
+    },
+    "zomer_vogels": {
+      "bestand": "zomer_vogels.ogg",
+      "gebruik": "zomer: vogels in het bos, overdag (lus)",
+      "loop": true,
+      "duur_s": 30,
+      "grootte_kb": 241.7,
+      "herkomst": {
+        "titel": "calm forest April NL Kampina 09 DeNoise 200401_0141.wav",
+        "auteur": "klankbeeld",
+        "freesound_id": 618493,
+        "url": "https://freesound.org/people/klankbeeld/sounds/618493/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "1505c8e90b3a90239ef1e1207d16328f22468e4e8ee15a91d7fd665d7597206a"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 30
+      },
+      "naad": {
+        "sprong_ratio": 0.16,
+        "niveaustap_db": -0.22,
+        "kruisfade_ms": 500
+      },
+      "niveau": {
+        "rms_db": -29.9,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 500 ms), niveau RMS -24 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     }
   }
 }

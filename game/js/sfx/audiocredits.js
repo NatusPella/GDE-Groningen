@@ -23,8 +23,29 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 369053,
+    "titel": "car_idle_loop.wav",
+    "auteur": "AndrewAlexander",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 34073,
+    "titel": "AMBIENT - Rain on Forest Canopy - Light (LOOP).mp3",
+    "auteur": "Arctura",
+    "licentie": "CC BY 3.0",
+    "by": true
+  },
+  {
     "id": 71738,
     "titel": "Chrysler LHS tire squeal 03 (04-25-2009).wav",
+    "auteur": "audible-edge",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 71741,
+    "titel": "Nissan Maxima handbrake turn (04-25-2009).wav",
     "auteur": "audible-edge",
     "licentie": "CC0 1.0",
     "by": false
@@ -93,9 +114,44 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 34777,
+    "titel": "Binaural Thunder A - Short.wav",
+    "auteur": "digifishmusic",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
+    "id": 505113,
+    "titel": "Thunder, Close",
+    "auteur": "Fission9",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 521590,
     "titel": "Hiking Boot Footsteps on Stone",
     "auteur": "Fission9",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 534023,
+    "titel": "Thunderclap",
+    "auteur": "Fission9",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 581124,
+    "titel": "Distant Thunder 3",
+    "auteur": "Fission9",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 529573,
+    "titel": "Meadow with many insects chirps atmo field recording",
+    "auteur": "Garuda1982",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -149,6 +205,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 618493,
+    "titel": "calm forest April NL Kampina 09 DeNoise 200401_0141.wav",
+    "auteur": "klankbeeld",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
+    "id": 712294,
+    "titel": "city birds March NL EU 8.26 AM 220326_0571",
+    "auteur": "klankbeeld",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 454199,
     "titel": "speed boat outboard motor medium high gear +waves splash.flac",
     "auteur": "kyles",
@@ -170,6 +240,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 435665,
+    "titel": "Rain From Car Interior Loop 1.wav",
+    "auteur": "mirkosukovic",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 789390,
     "titel": "Airplane Propeller Loop",
     "auteur": "modusmogulus",
@@ -182,6 +259,13 @@ export const AUDIO_CREDITS = [
     "auteur": "monte32",
     "licentie": "CC0 1.0",
     "by": false
+  },
+  {
+    "id": 321962,
+    "titel": "Ranch_Ambiance_Wind_Field_Grass 01.wav",
+    "auteur": "n_audioman",
+    "licentie": "CC BY 4.0",
+    "by": true
   },
   {
     "id": 172492,
@@ -215,6 +299,20 @@ export const AUDIO_CREDITS = [
     "id": 531566,
     "titel": "puddle footsteps.wav",
     "auteur": "patchytherat",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 232731,
+    "titel": "Rain Indoor Cabin (loop)",
+    "auteur": "PhilllChabbb",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 2689,
+    "titel": "th_loud.wav",
+    "auteur": "Pingel",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -254,6 +352,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 167034,
+    "titel": "Light Rain",
+    "auteur": "soundrecorder7",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 535220,
     "titel": "Grass Step Left",
     "auteur": "spycrah",
@@ -266,6 +371,13 @@ export const AUDIO_CREDITS = [
     "auteur": "thomasanthony321",
     "licentie": "CC0 1.0",
     "by": false
+  },
+  {
+    "id": 341802,
+    "titel": "Rain.wav",
+    "auteur": "TiesWijnen",
+    "licentie": "CC BY 4.0",
+    "by": true
   },
   {
     "id": 415301,

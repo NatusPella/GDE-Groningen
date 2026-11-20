@@ -8,6 +8,8 @@ import { rand as rnd } from '../rng.js';
 import { seaAt } from '../regions.js';
 import { streekAt } from '../regioleven.js';
 import { streekNiveaus } from './streekklank.js';
+import { stepContext } from './steps.js';
+import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
 // is, scheduled ambient events (birds, gulls, clinks, thunder), the
@@ -31,9 +33,17 @@ const beds = {};
 const skIn = {}, skOut = {};   // hergebruikt: setTargets draait elk beeld
 const BED_DEFS = {
   city: { buf: 'bed_city' },
-  wind: { buf: 'bed_wind', filter: true },
+  // file: de opname van game/audio/sfx (weermap.js, #988); is die er niet (of nog niet geladen), dan klinkt de procedurele buf
+  wind: { buf: 'bed_wind', file: 'wind_gras', filter: true },
   rain: { buf: 'bed_rain', filter: true },
-  roof: { buf: 'bed_roof' },
+  roof: { buf: 'bed_roof', file: 'regen_dak' },
+  regenLicht: { file: 'regen_motregen', filter: true },
+  regenBui: { file: 'regen_bui', filter: true },
+  regenPlens: { file: 'regen_plens', filter: true },
+  regenAuto: { file: 'regen_auto' },
+  vogels: { file: 'zomer_vogels' },
+  stadsvogels: { file: 'zomer_stadsvogels' },
+  insecten: { file: 'zomer_insecten' },
   crowd: { buf: 'bed_crowd' },
   terrace: { buf: 'bed_terrace' },
   crickets: { buf: 'bed_crickets' },
@@ -97,7 +107,7 @@ export function initAmbience(kit, world) {
     }
     beds[key] = { ...d, gain, filter, panner, src: null, level: 0, target: 0, quietFor: 0, fresh: true };
   }
-  K.bank.warm(Object.values(BED_DEFS).map((d) => d.buf));
+  K.bank.warm(Object.values(BED_DEFS).map((d) => d.buf).filter(Boolean));
 
   const meta = world.map.meta || {};
   const find = (name) => (meta.landmarks || []).find((l) => l.name === name) || null;
@@ -119,7 +129,7 @@ export function initAmbience(kit, world) {
 }
 
 function startBed(b) {
-  const buffer = K.bank.get(b.buf);
+  const buffer = (b.file && K.samples && K.samples.buffer(b.file)) || (b.buf ? K.bank.get(b.buf) : null);
   if (!buffer) return;
   const src = K.ctx.createBufferSource();
   src.buffer = buffer;
@@ -311,6 +321,7 @@ function smooth01(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
+const rainOut = {}, sumOut = {};
 function setTargets(world) {
   const dn = world.dayNight || { hour: 12, night: 0 };
   const night = dn.night || 0, day = 1 - night, hour = dn.hour;
@@ -323,8 +334,22 @@ function setTargets(world) {
 
   beds.city.target = (0.07 + place.traffic * 0.1 + place.density * 0.04 - place.green * 0.04) * (0.55 + 0.45 * day) * (1 - 0.9 * place.rural) * cabin * paused;
   beds.wind.target = (0.03 + place.open * 0.04 + place.green * 0.015 + rain * 0.26) * (closed ? 0.35 : 1) * paused;
-  beds.rain.target = rain * (closed ? 0.1 : 0.28) * paused;
-  beds.roof.target = closed ? rain * 0.32 * paused : 0;
+  // regen: de opnames (motregen, bui, plensbui, kruisend op de intensiteit; dak en auto binnen) zodra ze geladen zijn, anders de procedurele lagen
+  const S = K.samples, recRain = !!S && RAIN_KEYS.every((k) => S.has(k)) && S.has('regen_dak') && S.has('regen_auto');
+  const indoors = stepContext.indoors && !closed;
+  if (recRain) {
+    const rt = rainTargets(rain, { closed, indoors }, paused, rainOut);
+    beds.rain.target = 0;
+    beds.regenLicht.target = rt.licht; beds.regenBui.target = rt.bui; beds.regenPlens.target = rt.plens;
+    beds.regenAuto.target = rt.auto; beds.roof.target = rt.dak;
+  } else {
+    beds.rain.target = rain * (closed ? 0.1 : 0.28) * paused;
+    beds.roof.target = closed ? rain * 0.32 * paused : 0;
+    beds.regenLicht.target = beds.regenBui.target = beds.regenPlens.target = beds.regenAuto.target = 0;
+  }
+  // zomer: vogels, stadsvogels en insecten overdag (opnames; de losse vogelroepen van ambientEvents blijven)
+  const zt = summerTargets(hour, rain, place, cabin, paused, sumOut);
+  beds.vogels.target = zt.vogels; beds.stadsvogels.target = zt.stadsvogels; beds.insecten.target = zt.insecten;
   beds.crowd.target = Math.max(place.square * (0.2 * day + 0.08 * night), place.peds * 0.08, (world.coopRole !== 'client' && world.eventSound ? world.eventSound.gain * 0.22 : 0)) * (1 - rain * 0.7) * cabin * paused;
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
@@ -343,6 +368,7 @@ function setTargets(world) {
   const t = now();
   if (beds.wind.filter) beds.wind.filter.frequency.setTargetAtTime(closed ? 700 : 2500 + rain * 6000, t, 0.3);
   if (beds.rain.filter) beds.rain.filter.frequency.setTargetAtTime(closed ? 1400 : 12000, t, 0.3);
+  for (const k of ['regenLicht', 'regenBui', 'regenPlens']) if (beds[k].filter) beds[k].filter.frequency.setTargetAtTime(closed || indoors ? 1400 : 12000, t, 0.3);
   if (beds.lap.panner && place.waterD < 60) {
     K.setPannerPos(beds.lap.panner, place.waterX, place.waterY, 0.2, !beds.lap.fresh);
     beds.lap.fresh = false;
@@ -462,16 +488,23 @@ const BELL_EVERY_HOURS = 3;
 // --- thunder ------------------------------------------------------------
 
 function thunder(distance) {
+  const v = rijdtIn(weatherWorld);
+  const th = thunderPick(distance, Math.random(), Math.random(), { closed: !!v && !v.isBike && !v.isScooter && !v.isBoat, indoors: stepContext.indoors });
+  const S = K.samples, rec = S && S.buffer(th.key);
   const variant = distance < 700 ? 'thunder_0' : Math.random() < 0.5 ? 'thunder_1' : 'thunder_2';
-  const delay = clamp(distance / 343, 0.3, 7);
+  const delay = th.delay;
   const gain = clamp(0.75 - distance / 5000, 0.25, 0.7);
   later(delay, () => {
-    K.buf(variant, { bus: K.buses.sfx, gain, rate: 0.9 + Math.random() * 0.15, prio: 2, lp: clamp(6000 - distance * 1.5, 900, 6000) });
+    // the recorded clap when it is loaded (weermap.js), else the synthesised one
+    if (rec) K.buf(th.key, { bus: K.buses.sfx, gain: th.gain, rate: th.rate, prio: 2, lp: th.lp, buffer: rec });
+    else K.buf(variant, { bus: K.buses.sfx, gain, rate: 0.9 + Math.random() * 0.15, prio: 2, lp: clamp(6000 - distance * 1.5, 900, 6000) });
     K.duckAmb(0.35, 2.5);
   });
 }
 
+let weatherWorld = null;
 function weatherEvents(world) {
+  weatherWorld = world;
   const sc = sfxLinks.getScene();
   const flash = sc && sc.userData ? sc.userData.lightningFlash || 0 : 0;
   const t = now();
