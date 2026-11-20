@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Opgelost
 
+- **De kruitkelder van Bourtange (M20) bouwt nu ook tussen de huizen:** de kamer werd afgekeurd als er een gebouw in de voetafdruk stond, en dan speelden de drie deurstappen toch buiten.
 - **De bietenoogst bij Hoogkerk (A1) wijst nu naar Hoogkerk:** de marker liep eerst naar een tijdelijke plek in de stad, waar geen akker is, zodat de klus nooit startte. Nu rijd je naar de suikerhal, laden de tegels en komt het startpunt daar.
 
 ### Nieuw

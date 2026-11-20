@@ -105,6 +105,9 @@ ok(buildRoom('kelder', 0, 0, 0) === null, 'een onbekende kamer bouwt niets');
   // de terugval: een gebouw in de voetafdruk, onbekende grond
   const inBuilding = { map: { groundHeightAt: () => 0, buildingsNear: () => [{ bounds: [-100, -100, 100, 100], pts: [[-100, -100], [100, -100], [100, 100], [-100, 100]] }] } };
   ok(buildStageSet(inBuilding, 'woonkamer', player, scene) === null && scene.children.length === 0, 'in een gebouw bouwt de stap geen kamer (terugval op de open lucht)');
+  const kel = buildStageSet(inBuilding, 'kruitkelder', player, scene);
+  ok(kel !== null, 'de kruitkelder mag in een gebouw staan (onder de vesting), net als de kroeg');
+  if (kel) disposeStageSet(kel);
   ok(buildStageSet({ map: { groundHeightAt: () => NaN } }, 'garage', player, scene) === null, 'zonder bekende grond bouwt de stap geen kamer');
   const inWater = { map: { groundHeightAt: () => 0, waterNear: () => [{ bounds: [-100, -100, 100, 100], pts: [[-100, -100], [100, -100], [100, 100], [-100, 100]] }] } };
   ok(buildStageSet(inWater, 'kroeg', player, scene) === null, 'in het water bouwt de stap geen kamer');
