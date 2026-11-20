@@ -30,11 +30,33 @@ export function parseSession(text) {
   if (!r) return null;
   return { v: SESSION_VERSION, laatsteCode: typeof r.data.laatsteCode === 'string' && CODE_RE.test(r.data.laatsteCode) ? r.data.laatsteCode : '' };
 }
+// Een directe code (GDE2-...) bevat het IP-adres van de gastheer. Dat wordt nooit opgeslagen of getoond (constitutie 10, #1011):
+// het blijft alleen in het geheugen van deze run, zodat Opnieuw verbinden werkt zonder dat het adres op schijf of in een lijst komt.
+// Wat een eerdere versie al bewaarde, wordt bij het lezen weggehaald.
+const IP_CODE = /^GDE2-/;
+let ipGeheugen = '';
+export const isIpCode = (c) => typeof c === 'string' && IP_CODE.test(c);
 export function readSession(storage) {
-  try { const t = storage.getItem(KEYS.coopSession); return t == null ? newSession() : (parseSession(t) || newSession()); } catch (e) { return newSession(); }
+  try {
+    const t = storage.getItem(KEYS.coopSession);
+    const raw = t == null ? null : (() => { try { return JSON.parse(t); } catch (e) { return null; } })();
+    if (raw && isIpCode(raw.laatsteCode)) { storage.setItem(KEYS.coopSession, JSON.stringify({ ...raw, laatsteCode: '' })); } // oude installatie: het adres van schijf
+    const s = t == null ? newSession() : (parseSession(t) || newSession());
+    if (isIpCode(s.laatsteCode)) s.laatsteCode = '';
+    if (!s.laatsteCode && ipGeheugen) s.laatsteCode = ipGeheugen;
+    return s;
+  } catch (e) { return newSession(); }
 }
-export function writeSession(storage, s) { try { storage.setItem(KEYS.coopSession, JSON.stringify(s)); return true; } catch (e) { return false; } }
-export function clearSession(storage) { try { storage.removeItem(KEYS.coopSession); return true; } catch (e) { return false; } }
+export function writeSession(storage, s) {
+  try {
+    let uit = s;
+    if (s && isIpCode(s.laatsteCode)) { ipGeheugen = s.laatsteCode; uit = { ...s, laatsteCode: '' }; }
+    else if (s && s.laatsteCode) ipGeheugen = ''; // een nieuwe kamercode vervangt het directe adres
+    storage.setItem(KEYS.coopSession, JSON.stringify(uit));
+    return true;
+  } catch (e) { return false; }
+}
+export function clearSession(storage) { ipGeheugen = ''; try { storage.removeItem(KEYS.coopSession); return true; } catch (e) { return false; } }
 
 // Eigen voortgang van een gast: het verhaal van de host bewaart hij niet, maar wat hij in
 // de wereld van de host verdiende (coöp-beloningen) komt in zijn eigen save, in de
