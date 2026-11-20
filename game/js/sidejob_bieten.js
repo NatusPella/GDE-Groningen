@@ -22,6 +22,7 @@ import { startKaart, toonRegelkaart } from './regelkaart.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 import { stingen } from './sfx/stingen.js';
 import { kaartA1, hoopPubliek } from './akte2_plan.js'; // AAA akte 2: regelkaart en het publiek bij de hoop
+import { weegPlan, vrijOpKaart, buildBietenhal, updateBietenhal, disposeBietenhal } from './bietenhal.js'; // AAA A1: weegbrug en kippende oplegger
 
 // Suikerhal Hoogkerk: de bietenhoop. Pas bij gebruik berekend: wgsToWorld kent zijn kader pas als de wereld er is.
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
@@ -116,6 +117,7 @@ function ruim(c) {
   const d = c.data;
   if (d.pub) { try { disposeCrowd(d.pub); } catch (e) { /* aankleding mag de bijbaan nooit raken */ } d.pub = null; }
   d.kaart = null;
+  if (d.hal) { try { disposeBietenhal(d.hal); } catch (e) { /* idem */ } d.hal = null; }
   if (d.akker) {
     c.removeMesh(d.akker.group);
     d.akker.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
@@ -172,9 +174,12 @@ export default {
     // AAA akte 2: een regelkaart bij elke ronde en een klein publiek (wegers en collega's) bij de hoop, met een opening naar het land
     try {
       d.kaart = startKaart({ kaart: kaartA1(V_MIN, d.ronde.vMax) }, 'A1:' + Math.round(c.world.time || 0));
-      const spec = hoopPubliek(d.hoop, Math.atan2(akker.center.y - d.hoop.y, akker.center.x - d.hoop.x));
+      const hoek = Math.atan2(akker.center.y - d.hoop.y, akker.center.x - d.hoop.x);
+      const hal = weegPlan(d.hoop, hoek, vrijOpKaart(c.world.map));
+      d.hal = hal ? buildBietenhal(c.world, hal) : null;
+      const spec = hoopPubliek(d.hoop, hoek, hal ? hal.clear : []);
       d.pub = spec ? buildCrowd(c.world, spec, { key: 'A1.hoop' }) : null;
-    } catch (e) { d.kaart = null; d.pub = null; }
+    } catch (e) { d.kaart = null; d.pub = null; d.hal = null; }
     d.prev = null;
     d.melT = 0;
     c.timeLeft = d.ronde.limit;
@@ -188,6 +193,7 @@ export default {
     if (!d.ronde || !d.akker || dt <= 0) return;
     if (d.kaart) toonRegelkaart(c.world, d.kaart, dt);
     if (d.pub) { try { updateCrowd(d.pub, dt, v, v); } catch (e) { d.pub = null; } }
+    if (d.hal) { try { updateBietenhal(d.hal, dt, v, d.hoop); } catch (e) { d.hal = null; } }
     const s = d.ronde;
     const speed = vehicleSpeed(v);
     const prev = d.prev || { speed, angle: v.angle };
