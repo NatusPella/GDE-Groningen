@@ -42,7 +42,7 @@ function banner(text, w = 6.4) {
   fitText(g, text, 470, 46, 'bold', 'Arial', 22); g.fillText(text, 256, 48);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  return signBothSides(w, 1.1, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  return signBothSides(w, 1.1, new THREE.MeshBasicMaterial({ map: tex }));
 }
 
 function cone() {

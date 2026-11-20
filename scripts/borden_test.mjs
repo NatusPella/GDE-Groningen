@@ -41,5 +41,13 @@ for (const [file, needles] of borden) {
   ok(!regels.length, `${file}: geen dubbelzijdig tekstvlak meer` + (regels.length ? ' -> ' + regels[0].trim().slice(0, 90) : ''));
 }
 
+// #987: pg_koe.js (bord bij de schuur) en racedecor.js hadden dezelfde fout als het plein-spandoek (#955): signBothSides met een
+// dubbelzijdig materiaal toonde de tekst van achteren gespiegeld. Geen enkele aanroep in game/js mag dat nog doen.
+{
+  const dir = path.join(ROOT, 'game/js');
+  const fout = fs.readdirSync(dir).filter((f) => f.endsWith('.js')).filter((f) => /signBothSides\([^;]*DoubleSide/.test(fs.readFileSync(path.join(dir, f), 'utf8')));
+  ok(!fout.length, 'geen signBothSides met DoubleSide in game/js' + (fout.length ? ' -> ' + fout.join(', ') : ''));
+}
+
 console.log(`borden_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

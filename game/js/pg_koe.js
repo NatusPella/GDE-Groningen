@@ -119,7 +119,7 @@ function buildBarnSign(S) {
   fitText(g, 'GEERTJE', 460, 42, 'bold', 'Arial', 24); g.fillText('GEERTJE', 256, 114);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const board = signBothSides(3.4, 1.06, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  const board = signBothSides(3.4, 1.06, new THREE.MeshBasicMaterial({ map: tex }));
   board.position.y = 3.3;
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 3.3, 6), new THREE.MeshBasicMaterial({ color: 0x6b4a2a }));
   pole.position.y = 1.65;
