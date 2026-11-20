@@ -141,6 +141,14 @@
     "_containerTerminal": {
       "eigenaar": "game/js/containerterminal.js",
       "notitie": "containerstapel op de missieplek (#928)"
+    },
+    "kassaKlik": {
+      "eigenaar": "game/js/sfx/ui.js",
+      "notitie": "sfx/ui.js leest de vlag na een aankoop en wist hem; shops.js zet hem (SFX-GAPS)."
+    },
+    "ritBezig": {
+      "eigenaar": "game/js/reisrit3d.js",
+      "notitie": "reisrit3d.js zet de vlag tijdens een taxi- of treinrit en wist hem erna; savegame.js hoort hem te lezen om niet halverwege een rit te bewaren."
     }
   },
   "uitzonderingen": [
@@ -798,7 +806,7 @@
     {
       "veld": "money",
       "bestand": "game/js/ownedvehicles.js",
-      "max": 3,
+      "max": 4,
       "reden": "past het saldo aan buiten economy.js om",
       "issue": "#498"
     },
@@ -820,13 +828,6 @@
       "veld": "money",
       "bestand": "game/js/shops.js",
       "max": 9,
-      "reden": "past het saldo aan buiten economy.js om",
-      "issue": "#498"
-    },
-    {
-      "veld": "money",
-      "bestand": "game/js/sidejob_vracht.js",
-      "max": 1,
       "reden": "past het saldo aan buiten economy.js om",
       "issue": "#498"
     },
@@ -1603,7 +1604,7 @@
     {
       "veld": "clock",
       "bestand": "game/js/story.js",
-      "max": 3,
+      "max": 4,
       "reden": "opening/finale zetten de klok of dagdeel-timers (#665, #744)",
       "issue": "#665"
     },
@@ -1662,6 +1663,62 @@
       "max": 3,
       "reden": "missionlanes.js zet fietsen voor de fatbike-straat in de voertuiglijst (#497)",
       "issue": "#497"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/sfx/haken.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst (SFX-haken van ronde 4: gebeurtenissen van missies en bijbanen)",
+      "issue": "#988"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/sfx/stingen.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst (de missiesting voor de missie-agents)",
+      "issue": "#988"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/stagerit.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst (geluid bij de stagerit)",
+      "issue": "#985"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/reisrit3d.js",
+      "max": 1,
+      "reden": "zet de klok terug naar het vertrekmoment als een taxi- of treinrit wordt afgebroken; reisrit.js zet de aankomsttijd er na de landing bij",
+      "issue": "#882"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/sidejobwereld.js",
+      "max": 1,
+      "reden": "bijbaan-haak: betaalt een boete of schade aan het saldo van de host (bij een gast naar zijn eigen saldo) via de wereldhaken, buiten economy.js om",
+      "issue": "#985"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/sidejobwereld.js",
+      "max": 1,
+      "reden": "bijbaan-haak: zet het opsporingsniveau van de host (bij een gast het eigen niveau) na een misdrijf in een bijbaan",
+      "issue": "#985"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/sidejobwereld.js",
+      "max": 1,
+      "reden": "bijbaan-haak: zet het verval van het opsporingsniveau terug bij een nieuw niveau, hoort bij de wanted-haak",
+      "issue": "#985"
+    },
+    {
+      "veld": "kassaKlik",
+      "bestand": "game/js/shops.js",
+      "max": 1,
+      "reden": "meldt na een aankoop dat de uitgave een kassaklik is; sfx/ui.js leest en wist de vlag",
+      "issue": "#988"
     }
   ]
 }
