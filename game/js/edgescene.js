@@ -107,6 +107,34 @@ export function snapSceneToRoad(map, plan, mode = 'foot') {
   };
 }
 
+// Waar de speler terug wordt gezet moet zelf binnen de grens liggen (#988). Anders trapt de
+// terugzetting de volgende (de weg-snap vond een weg aan de overkant, de berekende plek lag
+// nog in de bufferstrook) en volgt na COOL_S een nieuwe scène: een lus. Eerst de op de weg
+// gesnapte plek, dan de berekende plek, dan stap voor stap verder naar binnen, dan de laatste
+// veilige plek van de speler; blijft alles buiten, dan de eerste kandidaat.
+// edgeRule: (x, y) -> regel | null (de regel op die plek, met de modus van de speler).
+export const BACK_STEP_M = 60;
+export const BACK_MAX_M = 3000;
+export function chooseBackSpot({ planned, snapped = null, face, edgeRule, lastSafe = null, step = BACK_STEP_M, maxM = BACK_MAX_M }) {
+  const inside = (s) => !edgeRule(s.x, s.y);
+  const angle = planned.angle !== undefined ? planned.angle : face;
+  if (snapped && inside(snapped)) return { spot: snapped, how: 'weg' };
+  if (inside(planned)) return { spot: planned, how: 'gepland' };
+  for (let k = 1; k * step <= maxM; k++) {
+    const s = { x: planned.x + Math.cos(face) * k * step, y: planned.y + Math.sin(face) * k * step, angle };
+    if (inside(s)) return { spot: s, how: 'binnen' };
+  }
+  if (lastSafe && inside(lastSafe)) return { spot: lastSafe, how: 'laatste' };
+  return { spot: snapped || planned, how: 'niets' };
+}
+
+// De speler draait zelf om of is al binnen (loopt terug, reist, laadt): de scène vervalt zonder
+// terugzetting en de grens blijft even stil.
+export const CANCEL_COOL_S = 3;
+export function cancelEdgeWatch(st) {
+  st.phase = 'idle'; st.plan = null; st.t = 0; st.cool = Math.max(st.cool || 0, CANCEL_COOL_S);
+}
+
 export function createEdgeWatch() {
   return { phase: 'idle', t: 0, cool: 0, plan: null, warnAt: {} };
 }

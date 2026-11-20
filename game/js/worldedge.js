@@ -40,21 +40,49 @@ function segInfo(px, py, a, b) {
   const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
   const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / L2));
   const qx = a[0] + dx * t, qy = a[1] + dy * t;
-  return { d: Math.hypot(px - qx, py - qy), qx, qy, side: Math.sign(dx * (py - a[1]) - dy * (px - a[0])) };
+  return { d: Math.hypot(px - qx, py - qy), qx, qy, t, side: Math.sign(dx * (py - a[1]) - dy * (px - a[0])) };
+}
+
+// Unit left normal of a segment (the side segInfo calls +1)
+function leftNormal(a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+  return [-dy / l, dx / l];
 }
 
 // Signed distance to a line set: > 0 on its outer side (`out`: +1 when the
 // outside is to the left of the line's direction, -1 to the right).
+// Where the nearest spot is a vertex of the line (t at 0 or 1) the side of ONE of the
+// two segments is no answer: next to a sharp bend that gave the wrong side for a whole
+// wedge of the province (Haren, Hoornsemeer: a car turned back 2,5 km inside the
+// province, over and over). There the side is the one of the pseudo-normal, the sum of
+// both unit normals (#988).
 export function outsideDist(px, py, lines) {
   let best = null;
   for (const L of lines || []) {
     for (let i = 0; i < L.pts.length - 1; i++) {
       const s = segInfo(px, py, L.pts[i], L.pts[i + 1]);
-      if (!best || s.d < best.d) best = { ...s, line: L };
+      if (!best || s.d < best.d) best = { ...s, line: L, i };
     }
   }
   if (!best) return null;
-  const outside = best.side === (best.line.out || 1);
+  let side = best.side;
+  if (best.t === 0 || best.t === 1) {
+    // a piece of a cut line (borderByData) knows the vertex before and after it: `pre`, `post`
+    const P = best.line.pts, i = best.i, n = P.length;
+    const v = best.t === 0 ? P[i] : P[i + 1];
+    const a = P[i], b = P[i + 1];
+    let c = null, d2 = null; // the other segment of this vertex: c -> d2
+    if (best.t === 0) { c = i > 0 ? P[i - 1] : best.line.pre; d2 = a; } else { c = b; d2 = i + 2 < n ? P[i + 2] : best.line.post; }
+    if (c && d2) {
+      const n1 = leftNormal(a, b), n2 = leftNormal(c, d2);
+      const dot = (px - v[0]) * (n1[0] + n2[0]) + (py - v[1]) * (n1[1] + n2[1]);
+      if (dot !== 0) side = Math.sign(dot);
+    } else {
+      // beyond the free end of a line there is no border: not outside (Rottum, 20 km off the line's end, was turned back)
+      side = -(best.line.out || 1);
+    }
+  }
+  const outside = side === (best.line.out || 1);
   return { d: outside ? best.d : -best.d, x: best.qx, y: best.qy, line: best.line };
 }
 
@@ -75,7 +103,8 @@ export function edgeRule(x, y, edge, ctx = {}) {
     if (q.d > lim - WARN_M * 2) return { action: 'warn', edge: 'lucht', text: EDGE_GAGS.lucht.warn, face: face(q), at: { x: q.x, y: q.y }, d: q.d, warnAt: lim - WARN_M * 2 };
     return null;
   }
-  if (mode === 'boat' || mode === 'swim') {
+  // ctx.inland: the Dollard, a bay of the province itself - the coast chain along it is no open sea to turn back from
+  if ((mode === 'boat' || mode === 'swim') && !ctx.inland) {
     const sea = outsideDist(x, y, edge.coast);
     if (sea && sea.d > 0) {
       const kind = sea.line.kind || 'wad';
@@ -151,24 +180,25 @@ export function borderByData(edge, tileHas, { pieceM = 1000, probeM = 100, margi
   for (const L of edge.border) {
     const cap = L.bufferM !== undefined ? L.bufferM : 300;
     const out = L.out === -1 ? -1 : 1;
-    let piece = [L.pts[0]], len = 0;
-    const flush = () => {
+    let piece = [L.pts[0]], len = 0, first = 0;
+    const flush = (last) => {
       if (piece.length < 2) return;
+      const pre = first > 0 ? L.pts[first - 1] : L.pre, post = last < L.pts.length - 1 ? L.pts[last + 1] : L.post;
       const a = piece[0], b = piece[piece.length - 1];
       const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
       const nx = out * -dy / l, ny = out * dx / l; // to the outside
       const at = (d) => [0, 0.25, 0.5, 0.75, 1].every((f) => tileHas(a[0] + dx * f + nx * d, a[1] + dy * f + ny * d));
       let reach = 0;
       while (reach < cap && at(reach + probeM)) reach += probeM;
-      border.push({ ...L, bufferM: Math.max(minM, Math.min(cap, reach - marginM)), pts: piece });
+      border.push({ ...L, bufferM: Math.max(minM, Math.min(cap, reach - marginM)), pts: piece, pre, post });
     };
     for (let i = 1; i < L.pts.length; i++) {
       const p = L.pts[i];
       len += Math.hypot(p[0] - L.pts[i - 1][0], p[1] - L.pts[i - 1][1]);
       piece.push(p);
-      if (len >= pieceM) { flush(); piece = [p]; len = 0; }
+      if (len >= pieceM) { flush(i); piece = [p]; len = 0; first = i; }
     }
-    flush();
+    flush(L.pts.length - 1);
   }
   return { ...edge, border };
 }
