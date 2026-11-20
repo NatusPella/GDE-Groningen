@@ -399,6 +399,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .td-begin, #pause-menu .td-passport { margin-bottom: 10px; padding: 10px 12px 4px; }
   #pause-menu .pm-hub { gap: 10px; }
   #pause-menu .pm-hub-hero { padding: 12px 16px 12px 20px; }
+  #pause-menu .pm-hub-hero > .ds-kaart__kop:first-child { margin: -12px -16px 0 -20px; } /* de kop loopt tot de rand van de kaart: de marge volgt de padding hierboven, anders steekt hij erbuiten */
   #pause-menu .pm-hub-hero-t { font-size: 32px; }
   #pause-menu .pm-hub-hero-hint { font-size: 16px; }
   #pause-menu .pm-hub-stap { height: 42px; padding: 0 12px; }

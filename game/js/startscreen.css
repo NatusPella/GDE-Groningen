@@ -26,7 +26,7 @@
 #start-screen .ss-item[data-act="exit"] { height: 48px; font-size: 28px; margin-top: 24px; }
 #start-screen .ss-item.ss-hero { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; height: auto; padding: 14px 32px 18px; margin-bottom: 8px; color: var(--ink); }
 #start-screen .ss-item.ss-hero + .ss-item:not(.ss-hero) { margin-top: 16px; }
-#start-screen .ss-item.ss-hero.sel { background: rgba(63, 201, 122, 0.12); }
+#start-screen .ss-item.ss-hero.sel { background: rgba(63, 201, 122, 0.12); overflow: hidden; } /* het groene balkje volgt de afgeronde hoeken */
 #start-screen .ss-item.ss-hero.sel::before { top: 0; bottom: 0; border-radius: 8px 0 0 8px; }
 #start-screen .ss-hero .ss-label { font-size: 60px; line-height: 0.9; }
 #start-screen .ss-hero:not(.sel) .ss-label { color: rgba(240, 237, 228, 0.88); }

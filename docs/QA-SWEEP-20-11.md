@@ -59,6 +59,17 @@ screenreader-teksten van 1 px telden als afgekapt; de focusring is alleen te beo
 
 Het meet in schermpixels (de CSS-`zoom` van de UI-schaal wordt uit de verhouding rect/breedte gehaald). `--beeld=1` maakt per scherm met een bevinding een beeld met een magenta markering (`shots-hoeken-<scherm>-<formaat>.png`); de samenvatting heeft een kolom `hoeken`.
 Schermen: alle hierboven plus Over/credits, kaart (legenda, zoekresultaten, ontdekkaartje, hoverbalkje, plekkaartje, reisstap, route, eigen plek), regelkaarten, toasts (HUD en prestatie) en de start. De pure meetkunde staat in `scripts/hoeken_test.mjs`.
+Bevindingen per scherm en selector (1280x720, 1920x1080, 1024x768 en 800x360 met raakbediening; voor en na de fix: `docs/img/qa/hoeken-voor-*.png` en `hoeken-na-*.png`). Na de fixes geeft de detector op alle vier de formaten en 30 schermen 0 bevindingen. Het nieuwe systeem kan ze vermijden:
+
+| Scherm | Selector (hoek) | Oorzaak | Fix |
+| --- | --- | --- | --- |
+| Samen spelen-hub (Spel) | `.pm-hub-hero.ds-kaart--kop > .ds-kaart__kop` (rechtsboven, links, boven) | `.ds-kaart--kop` laat de kop met een negatieve marge tot de kaartrand lopen (`-s-4 -s-5`); `pausemenu.css` verkleint de padding van de kaart onder 820 px hoogte (12/16/12/20) en de marge bleef 16/24: de kop stak 4 px buiten de afgeronde kaart | marge van de kop gelijk aan de padding in `pausemenu.css` |
+| Startscherm | `button.ss-item.ss-hero.sel::before` (linksboven, linksonder) | het groene balkje is 3 px breed en kan zijn `border-radius: 8px 0 0 8px` niet waarmaken (CSS schaalt hem naar 3 px), dus het liep recht door de ronde hoek van de knop | `overflow: hidden` op `.ss-hero.sel` in `startscreen.css` |
+| HUD-kaartjes (doel, regel) | `.hud-card > i.hc-timer` (linksonder, alleen bij 1920x1080 op schaal 1,5) | de tijdbalk onderaan loopt tot in de hoek van een kaartje met `border-radius: 10px` | `overflow: hidden` op `.hud-cards .hud-card` en `.hud-cards-e .hud-card` in `hudcards.css` |
+| Garage | `.gar-stage canvas` (boven) | geen fout: de 3D-viewer rendert transparant (`alpha: true`); staat in `HOEK_NEGEER` | geen |
+
+Les voor een ontwerp met een kop of balk in een afgeronde kaart: koppel de marge van het kind aan dezelfde token als de padding van de ouder, of zet `overflow: hidden` (of `overflow: clip`) op de ouder; zet een rand of accentstreep op de ouder (`border-left`, `box-shadow: inset`) in plaats van op een kind of pseudo-element. Draai na een UI-wijziging `node scripts/qa/schermen_sweep.mjs --beeld=1` en kijk naar de kolom `hoeken`.
+
 Niet gemeten: een pixelverschil met en zonder het element (de pagina kan zichzelf niet fotograferen; het beeld met markering is de controle), hover- en selectievlakken die pas na een muisbeweging ontstaan, niet-absolute pseudo's, SVG-vormen, de fotomodus (opent niet vanuit de sweep), dialogen en het wachtscherm.
 
 ## Niet gemeten of niet gezien
