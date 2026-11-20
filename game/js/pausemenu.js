@@ -10,6 +10,7 @@ import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './setti
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
+import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
@@ -431,6 +432,15 @@ function railPosition(id) {
 // Every hint names what Q/E (and [ ]) really do on that screen: the visible tab
 // row, or the previous/next section on a screen without tabs (#601).
 const BACK = '\u0000';
+// #989: de basis in stappen met een groot toetsplaatje en een korte lus; de volledige tekst blijft eronder in Hulp en in 'Meer uitleg'.
+const BASIS_UITLEG = ['basis-lopen', 'basis-pakken', 'basis-rijden', 'basis-vechten', 'basis-kaart', 'basis-telefoon', 'boerderij-zaaien'];
+function basisUitlegHtml() {
+  zetUitlegGlyph((t) => glyphHtml(t));
+  startUitleg();
+  const blokken = BASIS_UITLEG.map((id) => uitlegBlok(id, { nietMeer: true })).filter(Boolean);
+  return blokken.length ? `<section class="pm-cgroup pm-help" data-help="uitleg"><h3>Zo werkt het</h3>${blokken.join('')}</section>` : '';
+}
+
 const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
@@ -811,6 +821,8 @@ ${keyReuseHtml()}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       <div class="m-gh"><span>Uitleg</span></div>
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de kaart en Activiteiten')}
+      ${toggle('uitlegIconen', 'Uitleg met iconen en animatie', 'Korte stappen met een toets of icoon en een kleine animatie in plaats van een lap tekst; uit is de oude tekstuitleg')}
+      ${picker('qteStand', 'Quicktime-events', [['makkelijk', 'Makkelijk'], ['normaal', 'Normaal'], ['overslaan', 'Overslaan']], 'Makkelijk: langere tijd, minder drukken en een poging extra. Overslaan: het verhaal gaat meteen door. Per speler')}
       ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of {ENTER}')}
       <div class="m-gh"><span>Terugkijken</span></div>
       <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
@@ -1012,7 +1024,7 @@ export function initPauseMenu(w) {
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
             </div>
-            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="pm-cgrid"><section class="pm-cgroup pm-help" data-help="oefenronde"><h3>Oefenronde</h3><p class="pm-hline">Zeven korte stappen: lopen, rennen, de kaart, in- en uitstappen en het menu. Zonder missie en zonder gevolgen.</p><button type="button" class="m-bt" data-practice-start>Oefenen</button></section>${helpHtml((t) => glyphHtml(t), esc)}${controlsHelpHtml()}</div></div></div></div>
+            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="pm-cgrid"><section class="pm-cgroup pm-help" data-help="oefenronde"><h3>Oefenronde</h3><p class="pm-hline">Zeven korte stappen: lopen, rennen, de kaart, in- en uitstappen en het menu. Zonder missie en zonder gevolgen.</p><button type="button" class="m-bt" data-practice-start>Oefenen</button></section>${basisUitlegHtml()}${helpHtml((t) => glyphHtml(t), esc)}${controlsHelpHtml()}</div></div></div></div>
             <div data-of="controls" data-sub="aanraken" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><p class="m-note pm-hline">De knoppen op het scherm doen hetzelfde als de controller. Wat je hier ziet, staat ook op je scherm tijdens het spelen.</p><p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="pm-cgrid">${touchOverviewHtml()}</div></div></div></div>
             <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
             <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
@@ -1057,7 +1069,7 @@ export function initPauseMenu(w) {
     // "Uitleg opnieuw tonen": de drie eigen sleutels wissen (uitlegkaarten, contexthints,
     // geleerde toetsen), zodat een speler die de kaarten wegklikte ze terug kan krijgen
     if (e.target.closest('[data-hints-reset]')) {
-      resetOnboarding(); resetContextHints(); resetHintUses();
+      resetOnboarding(); resetContextHints(); resetHintUses(); resetUitlegNietMeer();
       menuMelding('De uitleg begint opnieuw; de eerstvolgende kaarten en hints komen vanzelf.');
       return;
     }
