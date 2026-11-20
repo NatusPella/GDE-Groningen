@@ -38,7 +38,7 @@ ok(pauseBack.back && !pauseBtn.back && sliderI.ownSound && sliderI.range && boxI
 // elke menuwortel in de code is een van de ROOTS: het pauzemenu, het startscherm, de telefoon of een gm
 {
   const gm = ['pausemenu.js', 'samenkeuze.js', 'saveslotsui.js', 'shopui.js', 'padtest.js'];
-  for (const f of gm) ok(/className = 'gm'/.test(read('game/js/' + f)), `${f} is een gm-menu`);
+  for (const f of gm) ok(/className = 'gm[ ']/.test(read('game/js/' + f)), `${f} is een gm-menu`);
   ok(/\.gm \{/.test(read('game/js/menu.css')), 'menu.css kent .gm');
   ok(ROOTS.split(',').map((x) => x.trim()).join() === '#start-screen,#pause-menu,.phone,.gm,#foto-ui,#heist-ui', 'de wortels staan op één plek', ROOTS);
   ok(/data-back|cancel|resume/.test(BACKS) && /button/.test(ITEMS) && /\.ss-item/.test(ITEMS), 'items en terugknoppen');
