@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Sneller
+
+- **Minder haperen tijdens het lopen en rijden (CPU-profiel):** de routegraaf en de wegen- en verkeersindex worden na elke nieuwe tegel opnieuw opgebouwd; die herbouw is nu goedkoper (gebouwtoets zonder kopieën, knooppunten als getal), en het gras gooit niet meer al zijn stukken weg zodra een tegel met groen binnenkomt.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

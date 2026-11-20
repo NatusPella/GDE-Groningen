@@ -991,7 +991,7 @@ function buildGrassChunks() {
   for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
     if (!g.bounds || g.pts.length < 3) continue;
     const i = Math.floor((g.bounds[0] + g.bounds[2]) / 2 / CHUNK), j = Math.floor((g.bounds[1] + g.bounds[3]) / 2 / CHUNK);
-    const key = i + ',' + j;
+    const key = (i + 32768) * 65536 + (j + 32768); // getal, geen string per vlak
     let c = chunks.get(key);
     if (!c) chunks.set(key, c = { polys: [], bounds: [Infinity, Infinity, -Infinity, -Infinity], group: null });
     c.polys.push(g);

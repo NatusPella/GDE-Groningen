@@ -193,7 +193,7 @@ async function run(name, setup, move, teardown, opts = {}) {
   console.error('[perf-mark] start ' + name + ' ' + Date.now());
   if (window.__hitch) window.__hitch.reset();
   if ((window.__perfProfile || '').split(',').includes(name)) console.log('[profile] ' + Math.min(DURR - 2000, 15000));
-  if ((window.__perfHeapProf || '').split(',').includes(name)) console.log('[heapprof] ' + Math.min(DURR - 2000, 15000) + ' live');
+  if ((window.__perfHeapProf || '').split(',').includes(name)) console.log('[heapprof] ' + Math.min(DURR - 2000, 15000) + (window.__perfHeapAll ? '' : ' live'));
   const canvasFrames0 = SP && SP.canvasFrameCount ? SP.canvasFrameCount() : null;
   const probe = streamProbe();
   await sleep(DURR);
