@@ -1,6 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, markShared, tubeGeometry } from './pixelart3d.js';
 import { hash2 } from './rng.js';
+import { footContact, turnLean, approachTo, wrapPi, fidgetAt } from './gait.js';
+import { idlePose } from './idleclips.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
@@ -364,13 +366,25 @@ function headTilt(tilt) {
 
 // Hair/cap shell over the scalp; its lower rim is pulled onto the head so
 // the shell never reads as a hat floating above it.
-function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52) {
+// innerColor (hats): the shell gets a second wall below it with its faces turned inwards, so seen from below (a low camera, the underside of a
+// cap on a bent head) it has an inside instead of being see-through; the wall thins to nothing at the rim, where the shell meets the head.
+function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52, innerColor = null) {
   const rimNy = Math.cos(thLen);
-  const g = ell(10, 4, (nx, ny, nz) => {
+  const shell = (kk) => ell(10, 4, (nx, ny, nz) => {
     const t = Math.min(1, Math.max(0, (ny - rimNy) / 0.45));
-    return headShape(0.99 + (k - 0.99) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
+    return headShape(0.99 + (kk - 0.99) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
   }, 0, Math.PI * 2, 0, thLen);
-  B.geo(g, composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(0, -HEAD_Y, 0)), color);
+  const m = composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(0, -HEAD_Y, 0));
+  B.geo(shell(k), m, color);
+  if (innerColor !== null) B.geo(flipWinding(shell(0.99 + (k - 0.99) * 0.4).toNonIndexed()), m, innerColor);
+}
+
+// The hood of a hoodie or jacket, hanging at the back of the neck: an open bowl, so it gets an inner wall (faces turned in, a bit smaller) and reads as cloth
+// with a lining instead of a see-through fin seen from the side or from above.
+function hoodBowl(B, top) {
+  const bowl = (k) => ell(8, 4, (x, y, z) => [x * 0.11 * k - 0.1, y * 0.09 * k + 1.47, z * 0.13 * k], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62);
+  B.geo(bowl(1), null, shade(top, 0.9));
+  B.geo(flipWinding(bowl(0.88).toNonIndexed()), null, shade(top, 0.68));
 }
 
 function lumpyCap(B, k, color, seed, lift = 0) {
@@ -440,6 +454,21 @@ function buildHair(B, L) {
 // surface joined along the face opening and the tips, hugging the scalp at
 // the top and falling straight onto the back and shoulders. Alternate
 // columns are shaded a touch so it reads as tidy strands, not a helmet.
+// Pushes a head-local point sideways out of the head ellipsoid (to m times its size), so the inner wall of a hair shell never sinks into the face
+// at the temples where the opening of the curtain meets the head (#985).
+export function outsideHead(pt, m = 1.03) {
+  const ny = (pt[1] - HEAD_Y) / 0.118;
+  if (Math.abs(ny) >= 0.99) return pt;
+  let hx = 0.097, hz = 0.086;
+  if (ny < 0) { hz *= 1 - 0.3 * Math.pow(-ny, 1.4); hx *= pt[0] > 0 ? 1 - 0.1 * -ny : 1 - 0.3 * -ny; }
+  if (pt[0] < 0 && ny > -0.3) hx *= 1.07;
+  const w = Math.sqrt(1 - ny * ny);
+  const q = Math.hypot(pt[0] / (hx * w), pt[2] / (hz * w));
+  if (!(q < m)) return pt;
+  const s = m / Math.max(q, 1e-3);
+  return [pt[0] * s, pt[1], pt[2] * s];
+}
+
 function hairCurtain(B, c, len) {
   const COLS = 12, ROWS = 4, T = 0.016;
   const open = 0.34 * Math.PI;
@@ -456,7 +485,8 @@ function hairCurtain(B, c, len) {
     const ca = Math.cos(a), sa = Math.sin(a);
     const front = Math.max(0, ca);
     const rx = r.rx + off, rz = r.rz + off;
-    return [ca * rx * (1 - 0.25 * front) + r.dx, r.y, sa * rz];
+    const pt = [ca * rx * (1 - 0.25 * front) + r.dx, r.y, sa * rz];
+    return outsideHead(pt, off < 0 ? 1.02 : 1.06); // the inner wall stays outside the head, the outer wall a little further out
   };
   for (let k = 0; k < ROWS; k++) {
     const r0 = rows[k], r1 = rows[k + 1];
@@ -494,11 +524,11 @@ function buildHat(B, L) {
     return;
   }
   if (hat === 'beanie') {
-    hairCap(B, L, 1.14, 0.22, L.hatColor, Math.PI * 0.5);
+    hairCap(B, L, 1.14, 0.22, L.hatColor, Math.PI * 0.5, shade(L.hatColor, 0.62));
     B.geo(loftGeometry([{ y: HEAD_Y + 0.02, d: 0.113, w: 0.1 }, { y: HEAD_Y + 0.055, d: 0.114, w: 0.101 }], 10), headTilt(0.12), shade(L.hatColor, 0.85));
   } else if (hat === 'cap' || hat === 'tammo') {
     const c = hat === 'tammo' ? L.capColor : L.hatColor;
-    hairCap(B, L, 1.12, 0.12, c, Math.PI * 0.5);
+    hairCap(B, L, 1.12, 0.12, c, Math.PI * 0.5, shade(c, 0.62));
     const brim = new THREE.CylinderGeometry(1, 1, 0.014, 8, 1, false, 0, Math.PI);
     B.geo(brim, composeMatrix(0.075, HEAD_Y + 0.045, 0, 0, 0, -0.16, 0.095, 1, 0.098), shade(c, 0.82));
     B.geo(new THREE.SphereGeometry(1, 5, 2, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(-0.01, HEAD_Y + 0.13, 0, 0, 0, 0.12, 0.014, 0.01, 0.014), shade(c, 0.8));
@@ -507,7 +537,7 @@ function buildHat(B, L) {
       B.box(0.094, HEAD_Y + 0.078, 0, 0.01, 0.032, 0.044, 0xe6e1d6, 0, 0, 0, -0.5);
     }
   } else if (hat === 'flatcap') {
-    hairCap(B, L, 1.1, 0.25, L.hatColor, Math.PI * 0.42);
+    hairCap(B, L, 1.1, 0.25, L.hatColor, Math.PI * 0.42, shade(L.hatColor, 0.62));
     B.box(0.075, HEAD_Y + 0.058, 0, 0.1, 0.018, 0.18, shade(L.hatColor, 0.9), 0, 0, 0, -0.28);
   } else if (hat === 'police') {
     const crown = loftGeometry([
@@ -607,7 +637,7 @@ function buildTorso(B, L, skin) {
       for (const s of [1, -1]) B.box(front(1.33) + 0.01, 1.29, s * 0.03, 0.006, 0.12, 0.008, 0xd8d4cc);
       if (!L.hoodUp) {
         B.bone = BONE.chest;
-        B.geo(ell(8, 4, (x, y, z) => [x * 0.11 - 0.1, y * 0.09 + 1.47, z * 0.13], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62), null, shade(top, 0.9));
+        hoodBowl(B, top);
         B.bone = W_TORSO;
       }
       collarRing(shade(top, 0.95), 1.1, 0.045);
@@ -624,7 +654,7 @@ function buildTorso(B, L, skin) {
       for (const s of [1, -1]) B.box(front(1.02) * 1.05, 1.02, s * 0.085, 0.012, 0.018, 0.06, shade(top, 0.75));
       if (L.hood) {
         B.bone = BONE.chest;
-        B.geo(ell(8, 4, (x, y, z) => [x * 0.11 - 0.1, y * 0.09 + 1.47, z * 0.13], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62), null, shade(top, 0.9));
+        hoodBowl(B, top);
         B.bone = W_TORSO;
       }
       collarRing(shade(top, 0.9), 1.12, 0.05);
@@ -1828,8 +1858,23 @@ export function animatePersonWalk(mesh, speed, dt) {
   const crouch = cb * cb * (3 - 2 * cb);
   const cadence = Math.min(2.1, (0.42 + 0.3 * s) * gait) * (1 - crouch) + Math.min(1.6, 0.35 + s / 1.1) * crouch;
   const moving = Math.min(1, s / 0.25);
-  const phase = ((ud.walkPhase || 0) + TAU * cadence * step * moving) % TAU;
+  const prevPhase = ud.walkPhase || 0;
+  const phase = (prevPhase + TAU * cadence * step * moving) % TAU;
   ud.walkPhase = phase;
+  // hielcontact (gait.js): sfx/foley.js speelt de stap bij deze voet, niet bij een eigen teller
+  if (s > 0.3 && step > 0) { const fc = footContact(prevPhase, phase); if (fc) { ud.footN = (ud.footN || 0) + 1; ud.footSide = fc - 1; } }
+  // bocht en blik (gait.js): de heading verandert per seconde, de romp helt mee en de blik loopt de bocht vooruit
+  let yawRate = 0;
+  if (step > 0) {
+    const yaw = mesh.rotation.y;
+    if (ud.prevYaw !== undefined) yawRate = -wrapPi(yaw - ud.prevYaw) / step;
+    ud.prevYaw = yaw;
+  }
+  const tl = turnLean(yawRate, s);
+  ud.turnLean = approachTo(ud.turnLean || 0, tl.lean, 1.2, step);
+  ud.turnHead = approachTo(ud.turnHead || 0, tl.head, 2.5, step);
+  const gz = ud.gazeT;
+  ud.gazeS = approachTo(ud.gazeS || 0, gz === undefined || gz !== gz ? 0 : gz, 3.2, step);
 
   const ease = Math.min(1, step * 8);
   const w = (ud.walkBlend || 0) + (Math.min(1, s / 1.0) - (ud.walkBlend || 0)) * ease;
@@ -1857,7 +1902,9 @@ export function animatePersonWalk(mesh, speed, dt) {
   const lean = -(ud.stoop || 0) - 0.03 * w - 0.2 * r * w;
   chest.position.set(0, CHEST_Y - HIP_Y + 0.004 * breath * idle, 0);
   chest.rotation.set(-0.03 * shift, -0.2 * w * Math.sin(phase), lean - 0.012 * breath * idle);
-  head.rotation.set(0.02 * shift, look * (1 - 0.6 * w) - chest.rotation.y - pelvis.rotation.y, -lean * 0.6 + 0.02 * w * Math.cos(2 * phase));
+  const gazeW = Math.min(1, Math.abs(ud.gazeS) * 4);
+  head.rotation.set(0.02 * shift, look * (1 - 0.6 * w) * (1 - gazeW) - chest.rotation.y - pelvis.rotation.y - ud.turnHead - ud.gazeS, -lean * 0.6 + 0.02 * w * Math.cos(2 * phase));
+  chest.rotation.x += ud.turnLean;
 
   const legRoll = -pelvis.rotation.x + pelvis.position.z / (HIP_Y - ANKLE_Y);
   const legs = [[ud.legL, ud.kneeL, phase, 1], [ud.legR, ud.kneeR, phase + Math.PI, -1]];
@@ -1887,10 +1934,27 @@ export function animatePersonWalk(mesh, speed, dt) {
     arm.rotation.set(-side * (0.03 + 0.1 * r * w), 0, swing + 0.08 * r * w + 0.02 * breath * idle);
     elbow.rotation.z = elbowBase + 0.35 * w * Math.max(0, Math.sin(-ph)) * (1 - r) + 0.06 * idle;
   }
+  // wie lang stilstaat kijkt rond, op zijn horloge of wipt (gait.js fidgetAt, idleclips.js); als overlay op de rustpose
+  if (w < 0.05 && crouch === 0 && !ud.umbrella && !leash && !ud.posed && !(ud.air > 0) && !dead) {
+    ud.stillT = (ud.stillT || 0) + step;
+    if (ud.stillT > 5 && fidgetAt(ud.stillT, ud.animOffset * 0.01, _fid)) fidgetOverlay(ud);
+  } else ud.stillT = 0;
   if (crouch > 0) applyCrouch(ud, crouch, phase, w, s, cadence);
   const air = ud.airBlend = approach(ud.airBlend || 0, Math.max(0, Math.min(1, ud.air || 0)), step / 0.08);
   if (air > 0) applyAirPose(ud, air);
   updatePose(mesh);
+}
+
+const _fid = { clip: '', tl: 0, dur: 1 };
+const _fp = { pelvisDrop: 0, pelvisZ: 0, pelvisRX: 0, pelvisRY: 0, chest: { x: 0, y: 0, z: 0 }, head: { x: 0, y: 0, z: 0 }, armL: { x: 0, z: 0.08, e: 0.15 }, armR: { x: 0, z: 0.08, e: 0.15 }, legL: { z: 0, k: -0.06 }, legR: { z: 0, k: -0.06 } };
+// The idle clip of _fid on top of the resting pose, as differences from the neutral stand (zero at the start and end of the clip).
+function fidgetOverlay(ud) {
+  idlePose(_fp, _fid.clip, _fid.tl, _fid.dur);
+  ud.head.rotation.x += _fp.head.x; ud.head.rotation.y += _fp.head.y;
+  ud.chest.rotation.y += _fp.chest.y;
+  ud.armL.rotation.z += _fp.armL.z - 0.08; ud.elbowL.rotation.z += _fp.armL.e - 0.15;
+  ud.pelvis.position.y -= _fp.pelvisDrop;
+  ud.kneeL.rotation.z += _fp.legL.k + 0.06; ud.kneeR.rotation.z += _fp.legR.k + 0.06;
 }
 
 // Jump / vault tuck: knees pulled up, arms reaching forward and down onto

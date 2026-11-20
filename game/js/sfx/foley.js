@@ -4,7 +4,8 @@ import { getCombatEffect } from '../combateffect.js';
 import { isGunWeapon, isRangedWeapon } from '../weapons.js';
 import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
-import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS, fileStepNames, footSide, gainJitter, npcStep, PROC_STAND_IN, stepContext } from './steps.js';
+import { contactGain } from '../gait.js';
+import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS, fileStepNames, footSide, gainJitter, npcStep, grounded, PROC_STAND_IN, stepContext } from './steps.js';
 import { countryWeight } from '../countryfield.js';
 import { onFarmPaving } from '../countryplan.js';
 import { rand as rnd } from '../rng.js';
@@ -19,6 +20,7 @@ let frame = 0;
 const foot = { phase: 0, air: false, maxRise: 0, baseZ: 0 };
 const footOut = [];
 const comp = { phase: 0, x: 0, y: 0, init: false };
+let footSeen; // the last heel contact of the player taken from the walk cycle (gait.js)
 let pedList = [];
 let pedTimer = 0;
 const pedState = new WeakMap();
@@ -133,12 +135,23 @@ function footsteps(dt, world) {
   const rain = world.weather ? world.weather.intensity : 0;
   // the player's own feet are never dropped for ambience (prio 1, not 0)
   if (!p.inVehicle && !world.paused && !p.ragdoll) {
+    // the steps follow the heel contacts of the figure's own walk cycle (gait.js, set by scene3d.js on the player); without that feed (no mesh drawn,
+    // a stalled frame) tickFoot's own stride counter is the fall-back
+    const live = p.footT !== undefined && world.time - p.footT < 0.3;
     for (const e of tickFoot(foot, p, dt, footOut)) {
       const s = playerSurface(world, p);
+      if (e.kind === 'step' && live) continue;
       if (e.kind === 'land') {
         at('land', p.x, p.y, { h: 0.05, gain: e.gain, rate: rnd(0.95, 1.05), prio: 1 });
         playStep(s, p.x, p.y, 0.2 * e.k, 0.9, 1, rain, { side: footSide_.side ^= 1 });
       } else playStep(s, p.x, p.y, e.gain, e.rate, 1, rain, { run: e.run, crouch: e.crouch, side: footSide_.side ^= 1, vx: p.vx, vy: p.vy });
+    }
+    if (live && p.footN !== footSeen) {
+      footSeen = p.footN;
+      if (grounded(p) && !p.vault) {
+        const sp = Math.hypot(p.vx || 0, p.vy || 0), run = sp > 4.5, crouch = !!p.crouching;
+        playStep(playerSurface(world, p), p.x, p.y, contactGain(sp, crouch), run ? 0.88 : crouch ? 1.12 : 1, 1, rain, { run, crouch, side: p.footSide ? 1 : 0, vx: p.vx, vy: p.vy });
+      }
     }
   } else { foot.air = false; foot.maxRise = 0; }
 
@@ -184,14 +197,33 @@ function footsteps(dt, world) {
     const sp = ped.speed || 0;
     const run = sp > 3;
     const stride = run ? 1.0 : 0.72;
-    st.phase += sp * dt;
-    if (st.phase >= stride) {
-      st.phase -= stride;
+    // near walkers follow the heel contacts of their drawn walk cycle (scene3d.js sets ped.footN/footSide/footT); the stride counter is the fall-back
+    let hit = false, side = st.side;
+    if (ped.footT !== undefined && world.time - ped.footT < 0.3) {
+      if (st.n === undefined) st.n = ped.footN;
+      if (ped.footN !== st.n) { st.n = ped.footN; hit = true; side = ped.footSide ? 1 : 0; }
+    } else { st.n = undefined; st.phase += sp * dt; if (st.phase >= stride) { st.phase -= stride; hit = true; side = st.side ^ 1; } }
+    if (hit) {
       // other people: far softer than you, softer and duller with distance, each on their own foot
       const L = K.listener, n = npcStep(Math.hypot(ped.x - L.x, ped.y - L.z), run, ped.isCop);
-      st.side ^= 1;
+      st.side = side;
       playStep(st.surface, ped.x, ped.y, n.gain, run ? 0.9 : 1.03, 0, rain, { run, lp: n.lp, side: st.side, vx: Math.cos(ped.angle || 0), vy: Math.sin(ped.angle || 0) });
     }
+  }
+  // the other players (Samen spelen): their figures set footN/footSide/footT/footRun from the drawn walk cycle (coopfigures3d.js, gait.js shareFeet);
+  // you hear their feet like a walker's, and only a few metres off (the figure is drawn from the snapshot, so this is local sound, nothing on the net)
+  const cf = world.coopFigures;
+  if (cf && !world.paused) for (const k in cf) {
+    const f = cf[k];
+    if (!f || f.footT === undefined || world.time - f.footT > 0.3) continue;
+    let st = pedState.get(f);
+    if (!st) { st = { n: f.footN }; pedState.set(f, st); }
+    if (f.footN === st.n) continue;
+    st.n = f.footN;
+    const L = K.listener, d = Math.hypot(f.x - L.x, f.y - L.z);
+    if (d > 20) continue;
+    const n = npcStep(d, !!f.footRun, false);
+    playStep(surfaceAt(world.map, f.x, f.y), f.x, f.y, n.gain, f.footRun ? 0.9 : 1.03, 0, rain, { run: !!f.footRun, lp: n.lp, side: f.footSide ? 1 : 0, vx: Math.cos(f.angle || 0), vy: Math.sin(f.angle || 0) });
   }
 }
 
