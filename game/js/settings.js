@@ -100,6 +100,8 @@ const BASE_DEFAULTS = {
   padLayout: 'auto',
   padLookSensitivity: 1,
   rumble: true,
+  // sterkte van het trillen (haptics.js): 0.5 zacht, 1 normaal, 1.4 sterk
+  rumbleStrength: 1,
   subtitleSize: 'normaal',
   subtitleBox: false,
   // #985: gesproken ondertitels aan of uit. De geluidscaptions ([sirene], [claxon]) hebben hun
