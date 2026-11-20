@@ -16,6 +16,8 @@ import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { rand } from './rng.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { padelHudModel, puntPop, UITLEG_ID } from './padelstatus.js';
 import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault, wallKind, judgeWall } from './padelrules.js';
 import { mgThema, sfeerVlakHtml } from './minigamekit.js';
 import { sfeerVan } from './activiteitensfeer.js';
@@ -582,7 +584,7 @@ function startMatch(w, s, { force = false } = {}) {
   document.body.classList.add('padel-on');
   ensureHud();
   hud.root.hidden = false;
-  showCard(w, { kind: 'tip', kicker: 'Padel', title: twins ? 'Tegen Durk en Douwe' : 'Potje padel', body: '[A] [D] [W] [S] lopen, [Spatie] slaan als de ring groen is. Eerst naar 2 games.', duration: 7, key: 'padel-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Padel', title: twins ? 'Tegen Durk en Douwe' : 'Potje padel', body: '[A] [D] [W] [S] lopen, [Spatie] slaan als de ring groen is. Eerst naar 4 games.', duration: 7, key: 'padel-help', voice: false });
   oppSay(w, 0, 'start', true);
   placeActors(w, 0);
   return true;
@@ -655,6 +657,7 @@ function pointTo(w, team, why = '') {
   const gameWon = r.gameWon;
   g.points = r.points;
   g.games = r.games;
+  { const pp = puntPop({ team, gameWon, over: r.over || g.capped, rally: g.rally, punten: [pointCall(r.points, 0), pointCall(r.points, 1)] }); if (pp) simHudPop(pp.tekst, pp.geluid); } // #985: het punt springt op in de strook
   g.faults = 0;
   if (gameWon) g.serveSide = -g.serveSide;
   const over = r.over || g.capped;
@@ -893,7 +896,7 @@ function updateMatch(w, dt) {
           g.buffer = 0;
           const ut = -Math.sign(me.u || 1) * 2.6 + ((input.isDown('a') ? -1 : 0) + (input.isDown('d') ? 1 : 0)) * 3.0;
           hitBall(g, me, 0, ut, rand(3.5, 6.4), 1.2);
-          g.ball.serve = true; g.ball.serveU = me.u; g.phase = 'rally';
+          g.ball.serve = true; g.ball.serveU = me.u; g.phase = 'rally'; zetUitlegGezien(UITLEG_ID);
         }
       } else if (ready && g.phaseT <= 0) {
         const slip = Math.random() < 0.04;
@@ -983,6 +986,7 @@ function placeActors(w, dt) {
     g.shadow.scale.setScalar(clamp(1 - b.z / 6, 0.4, 1));
   } else { g.ballMesh.visible = false; g.shadow.visible = false; }
   const hot = b && b.live && b.hitter === 1 && b.crossed && inReach(g.me, b);
+  g.hot = !!hot;
   g.ring.visible = g.phase === 'rally' || (g.phase === 'serve' && g.server === 0);
   g.ring.position.set(mp.x, FLOOR_Y + 0.02, mp.y);
   materials().ring.color.set(hot ? 0x5dff7a : 0xffffff);
@@ -1047,6 +1051,7 @@ function endMatch(w, { quit = false } = {}) {
   for (const a of [g.me, g.mate, ...g.opp]) getScene().remove(a.mesh);
   for (const m of [g.ballMesh, g.shadow, g.ring, g.land]) { getScene().remove(m); m.geometry.dispose(); }
   if (hud) hud.root.hidden = true;
+  simHudTik(0, null);
   const p = hoofdspeler(w);
   p.x = g.exitX; p.y = g.exitY; p.angle = g.f.rot + Math.PI;
   if (w.extraSpeakers) w.extraSpeakers = w.extraSpeakers.filter((e) => !g.opp.some((o) => e.speechName === o.name));
@@ -1365,6 +1370,8 @@ function updateHud(w) {
   // #599: "GP" staat voor de gouden punt; leg hem één keer op het bord uit als hij in beeld staat.
   const gp = (callOf(g, 0) === 'GP' || callOf(g, 1) === 'GP') && g.phase !== 'intro' ? ' · GP = gouden punt: de volgende punt is de game' : '';
   const help = `${clock} · ${k('A')}${k('D')}${k('W')}${k('S')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven${gp}`;
+  // #985: de strook (simhud.js) onderin zegt wat je nu doet; het bord bovenin houdt de stand
+  simHudTik(0, padelHudModel({ fase: g.phase, serveer: g.server === 0, phaseT: g.phaseT, games: g.games, punten: [callOf(g, 0), callOf(g, 1)], rally: g.rally, beste: g.bestRally, winnaar: g.lastWinner, capped: g.capped, gp: gp !== '', inBereik: !!g.hot, uitleg: !uitlegGezien(UITLEG_ID) }));
   const key = [us, them, g.games, g.points, g.server, g.phase === 'intro', flash, help, g.lastWinner].join('|');
   if (key === hud.key) return;
   hud.key = key;

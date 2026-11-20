@@ -139,6 +139,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** Een sector-voor-sector vergelijking met je beste ronde, een eigen sting voor een persoonlijk record.
 
+## 8. Padel
+
+**Wat kan de speler.** Een potje padel tegen Hinderk en Grietje (of Durk en Douwe) bij een baan (E): A D W S lopen, Spatie slaat als de ring onder je groen is, de serve gaat met Spatie of vanzelf na zes seconden. Eerst naar vier games; geld bij winst. Met meer spelers een wedstrijd tegen elkaar (`padelmatch.js`).
+
+**De lus.** Serveren, rally, punt, volgende serve, tot de set uit is.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | een kaart bij de start (met een fout aantal games: 2 in plaats van 4) | kaart gecorrigeerd, plus vier iconen met een zin in de strook tot je voor het eerst serveert (`gde-sim-uitleg-v1`) |
+| HUD | een bord bovenin in eigen kleuren met stand, flits en toetsen | het bord blijft voor de stand; onderin de strook (`simhud.js`): stappen Serveren, Rally, Punt, servemeter, games, punt, rally, langste rally en één zin wat nu |
+| Wereld | ring onder je die groen wordt, landingsmarkering van de bal, schaduw | ongewijzigd; de ring en de landingsplek zijn al het wereldteken (geen extra lichtkolom op het veld) |
+| Feedback | een flits op het bord en een regel | een getal springt op per punt van jullie ("Punt: 30-15", "Punt na 9 slagen", "Game voor jullie!") met het bestaande UI-geluid |
+
+**Samen spelen.** Het potje tegen de AI is van de speler zelf en draait lokaal. De wedstrijd met meer spelers (`padelmatch.js`, host rekent) houdt zijn eigen bord; de strook is daar niet getoond. Valt een speler weg, dan verdwijnt zijn strook met zijn potje. Test: `padelhud_test`, `padelrules_test`, `coopwedstrijd_padel_test`.
+
+**Niet gedaan.** De strook ook in de wedstrijd met meer spelers, een eigen sting voor een gewonnen game.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
