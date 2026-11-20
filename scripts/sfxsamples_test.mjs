@@ -38,7 +38,7 @@ for (const k of SAMPLE_KEYS) ok(CATEGORIES[SAMPLE_INFO[k].cat], `${k}: categorie
 // -- sleutels in de code komen voor in het manifest -----------------------------------------
 const JS = path.join(ROOT, 'game', 'js');
 const used = new Set();
-const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_(?:auto|diesel)_stationair|ui_klik|tram_bel_op_[0-9]|bus_halte_ding|bus_deur_sis|kermis_lawaai|kassa_koop|winkelbel_deur|deur_(?:hout|huis)_[a-z_]+_op|plons_groot|scheepshoorn_op|camera_sluiter|alarm_loeit|vuurwerk_knal_[0-9]|trein_remmen_piep|dier_[a-z_0-9]+|golfjes_oever|menigte_gemurmel|kikkers_nacht|stad_nacht_nl|ruimte_binnen)['"`]/g;
+const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_(?:auto|diesel)_stationair|ui_klik|tram_bel_op_[0-9]|bus_halte_ding|bus_deur_sis|kermis_lawaai|kassa_koop|winkelbel_deur|deur_(?:hout|huis)_[a-z_]+_op|plons_groot|scheepshoorn_op|camera_sluiter|alarm_loeit|vuurwerk_knal_[0-9]|trein_remmen_piep|trein_hoorn_[a-z]+|dier_[a-z_0-9]+|golfjes_oever|menigte_gemurmel|kikkers_nacht|stad_nacht_nl|ruimte_binnen)['"`]/g;
 for (const f of fs.readdirSync(JS, { recursive: true }).filter((x) => x.endsWith('.js'))) {
   const t = fs.readFileSync(path.join(JS, f), 'utf8');
   for (const m of t.matchAll(re)) used.add(m[1]);
@@ -152,7 +152,7 @@ const fakeFetch = (files) => async (url) => {
 {
   const { FX_INFO } = await import('../game/js/sfx/fxbank.js');
   for (const [naam, sleutels] of Object.entries(FX_VERVANG)) {
-    ok(FX_INFO[naam] || FX_INFO[`${naam}_0`], `FX_VERVANG: ${naam} is een effect van fxbank.js`);
+    ok(FX_INFO[naam] || FX_INFO[`${naam}_0`] || naam === 'train_horn', `FX_VERVANG: ${naam} is een effect van fxbank.js`);
     for (const k of sleutels) ok(SAMPLE_INFO[k] && g[k], `FX_VERVANG: ${naam} -> ${k} staat in SAMPLE_INFO en in het manifest`);
   }
   ok(vervangSleutel('winkel_kassa_1', () => true) === 'kassa_koop', 'een variant (_1) vindt de vervanging van de basisnaam');

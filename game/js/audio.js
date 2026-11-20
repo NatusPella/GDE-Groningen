@@ -806,6 +806,7 @@ function playCrossingBell(x, y) {
 }
 
 function playTrainHorn(x, y) {
+  if (playFx('train_horn', x, y)) return;   // de opname (samples.js FX_VERVANG), anders de synth hieronder
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.8, range: 260, h: 3 });
   if (!out) return;
   playTone({ freq: 370, type: 'sawtooth', duration: 0.55, gain: 0.16, filterFreq: 1400, out });

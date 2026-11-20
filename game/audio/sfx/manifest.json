@@ -2880,6 +2880,52 @@
       "meting": "bron: piepsignaal 1,9 kHz van 9,0 tot 13,8 s (silencedetect boven 1,2 kHz: stilte tot 8,997 s), met de brom eronder weggefilterd (hoogdoorlaat 1,2 kHz); hier 9,0 tot 11,4 s",
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 1200 Hz, laagdoorlaat 8 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "trein_hoorn_kort": {
+      "bestand": "trein_hoorn_kort.ogg",
+      "gebruik": "trein: hoorn, twee korte stoten",
+      "loop": false,
+      "duur_s": 1.18,
+      "grootte_kb": 10.2,
+      "herkomst": {
+        "titel": "Train Horn passenger - 2 Toots (Electric Multiple Unit).wav",
+        "auteur": "JotrainG",
+        "freesound_id": 647666,
+        "url": "https://freesound.org/people/JotrainG/sounds/647666/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "755753740166548484418f99bc378292827df87de5e534df31e18838917939d2"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -20,
+        "piek_db": -3.4
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 100 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -20 dB, ogg (Vorbis q2)"
+    },
+    "trein_hoorn_lang": {
+      "bestand": "trein_hoorn_lang.ogg",
+      "gebruik": "trein: hoorn, een lange stoot",
+      "loop": false,
+      "duur_s": 2.43,
+      "grootte_kb": 19.7,
+      "herkomst": {
+        "titel": "Train Horn passenger - long blast (InterCity Express).wav",
+        "auteur": "JotrainG",
+        "freesound_id": 647668,
+        "url": "https://freesound.org/people/JotrainG/sounds/647668/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "ddc97c100cbf395e7207f43af9c1faad5d5399cea71f536e6c00db469179534b"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -20,
+        "piek_db": -5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 100 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -20 dB, ogg (Vorbis q2)"
+    },
     "trein_remmen_piep": {
       "bestand": "trein_remmen_piep.ogg",
       "gebruik": "trein die remt (piepende wielen)",

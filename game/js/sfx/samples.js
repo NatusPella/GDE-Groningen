@@ -58,6 +58,8 @@ const RONDE3_FX = {
   trein_remmen_piep: { cat: 'spoor', gain: 0.7, ref: 12, range: 300 },
 };
 Object.assign(RONDE3_FX, {
+  trein_hoorn_kort: { cat: 'spoor', gain: 0.8, ref: 14, range: 500 },
+  trein_hoorn_lang: { cat: 'spoor', gain: 0.8, ref: 14, range: 500 },
   tram_bel_op_0: { cat: 'voertuig', gain: 0.8, ref: 8, range: 120 },
   tram_bel_op_1: { cat: 'voertuig', gain: 0.8, ref: 8, range: 120 },
   bus_halte_ding: { cat: 'voertuig', gain: 0.7, ref: 6, range: 80 },
@@ -86,6 +88,7 @@ export const FX_VERVANG = {
   alarm_ring: ['alarm_loeit'],
   firework_burst: ['vuurwerk_knal_0', 'vuurwerk_knal_1'],
   rail_squeal: ['trein_remmen_piep'],
+  train_horn: ['trein_hoorn_kort', 'trein_hoorn_lang'],   // een audio-event (audio.js playTrainHorn), geen effect van fxbank.js
   tram_bel: ['tram_bel_op_0', 'tram_bel_op_1'],
   bus_bel: ['bus_halte_ding'],
   bus_door_hiss: ['bus_deur_sis'],

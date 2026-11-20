@@ -38,6 +38,8 @@ export const GELUIDEN = {
   dier_eend: { id: 418509, rms: -21, hp: 200, lp: 10000, fade: [0.005, 0.1], gebruik: 'eend die kwaakt' },
   dier_meeuw_0: { id: 463034, knip: [0, 1.6], rms: -21, hp: 500, lp: 12000, fade: [0.01, 0.2], gebruik: 'meeuw die roept' },
   dier_meeuw_1: { id: 463034, knip: [4.4, 2.0], rms: -21, hp: 500, lp: 12000, fade: [0.01, 0.25], gebruik: 'meeuw die roept (tweede)' },
+  trein_hoorn_kort: { id: 647666, rms: -20, hp: 100, lp: 9000, fade: [0.01, 0.25], gebruik: 'trein: hoorn, twee korte stoten' },
+  trein_hoorn_lang: { id: 647668, rms: -20, hp: 100, lp: 9000, fade: [0.01, 0.4], gebruik: 'trein: hoorn, een lange stoot' },
   tram_bel_op_0: { id: 497557, rms: -22, hp: 300, lp: 14000, fade: [0.004, 0.2], gebruik: 'tram die belt (kort)' },
   tram_bel_op_1: { id: 497561, rms: -22, hp: 300, lp: 14000, fade: [0.004, 0.3], gebruik: 'tram die belt (lang)' },
   bus_halte_ding: { id: 419491, rms: -23, hp: 200, lp: 14000, fade: [0.004, 0.3], gebruik: 'ding van een halte (de bus stopt)' },
