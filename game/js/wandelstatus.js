@@ -58,7 +58,7 @@ export function watNu(g) {
   if (g.flash) return g.flash;
   if (g.opvoertuig) return 'Stap uit: in een voertuig telt niets';
   if (g.fase === 'done') return 'Alle stempels: goed gelopen';
-  if (g.afstand != null && g.afstand < NABIJ) return `Bijna bij ${g.post}: nog ${Math.max(0, Math.round(g.afstand - STAMP_R))} m voor de stempel`;
+  if (g.afstand != null && g.afstand < NABIJ) return `Bijna bij ${g.post}: nog ${Math.max(0, Math.round(g.afstand - STAMP_R))} m`;
   return `Loop naar ${g.post}${g.richting == null ? '' : ` (${strek(g.richting)})`}`;
 }
 

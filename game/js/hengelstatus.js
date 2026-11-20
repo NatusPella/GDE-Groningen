@@ -36,7 +36,7 @@ const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 export function watNu(fase, haal, flashSlecht) {
   if (haal) return 'Je haalt de vis binnen';
   if (fase === 'bite') return 'Nu {SPATIE}: haal binnen!';
-  if (fase === 'wait') return 'Wacht tot het dobbertje zakt. Nog niet trekken';
+  if (fase === 'wait') return 'Wacht. Nog niet trekken';
   if (fase === 'cast') return 'De lijn zoeft uit';
   if (fase === 'scare') return 'De vissen zijn gevlucht: even wachten';
   return flashSlecht ? 'Gooi opnieuw uit met {SPATIE}' : 'Gooi uit met {SPATIE}';

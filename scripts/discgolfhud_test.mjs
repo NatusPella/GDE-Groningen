@@ -13,7 +13,7 @@ assert.ok(aim.meter && aim.meter.pct === 0 && aim.meter.label === 'Doel 62%', 'd
 assert.deepEqual(aim.cijfers.map((c) => c.label), ['Mand', 'Worp', 'Par', 'Wind']); assert.equal(aim.cijfers[0].waarde, '61 m'); assert.equal(aim.plek, 'Baan 2/9');
 assert.ok(aim.cijfers.every((c) => c.icoon) && aim.cijfers.filter((c) => c.primair).length === 1, 'elk getal een pictogram, één primaire waarde');
 
-assert.equal(aim.uitleg.length, UITLEG.length); assert.match(aim.nu, /gele kolom/); assert.match(aim.hulp, /hoek 9°/);
+assert.equal(aim.uitleg.length, UITLEG.length); assert.match(aim.nu, /kolom/); assert.match(aim.hulp, /hoek 9°/);
 const laden = discgolfHudModel({ ...basis, laden: true, lading: 0.4 });
 assert.equal(laden.stappen[1].stand, 'nu'); assert.equal(laden.meter.pct, 40); assert.match(laden.nu, /62%/);
 assert.equal(discgolfHudModel({ ...basis, lading: 3 }).meter.pct, 100, 'meter nooit boven 100'); assert.equal(discgolfHudModel({ ...basis, doel: null }).meter.label, 'Kracht');

@@ -48,8 +48,8 @@ export function kermisHudModel(g) {
 export function watNu(g) {
   if (g.fase === 'intro') return 'Wacht op de bel';
   if (g.fase === 'outro') return 'Afstappen!';
-  if ((g.reeks || 0) > 1) return `Reeks ${g.reeks}: bots door voor meer punten`;
-  return 'Bots de auto met de gele kolom: in de flank of van achteren';
+  if ((g.reeks || 0) > 1) return `Reeks ${g.reeks}: bots door`;
+  return 'Bots de auto in de gele kolom';
 }
 
 // Wat opspringt: de punten van een botsing met waar je hem raakte (en je reeks).

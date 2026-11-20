@@ -55,8 +55,8 @@ export function watNu(g) {
   if (g.fase === 'wacht') return g.klimFase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen';
   if (g.fase === 'intro') return 'Pak de eerste grepen';
   if (g.fase === 'outro') return g.klimFase === 'top' ? 'Boven!' : 'Klaar';
-  if (g.grond) return 'Houd {A} en {D} allebei vast: je klimt omhoog';
-  if ((g.armen || 0) < ARMEN_LAAG) return 'Armen bijna leeg: rust op een grote greep of {SPATIE} voor magnesium';
+  if (g.grond) return 'Houd {A} en {D} vast: omhoog';
+  if ((g.armen || 0) < ARMEN_LAAG) return 'Armen leeg: rust of {SPATIE} magnesium';
   return 'Pak de volgende greep met de ring';
 }
 

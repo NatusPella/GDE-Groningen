@@ -12,7 +12,7 @@ assert.equal(aim.titel, 'Pitch & putt'); assert.ok(aim.meter && aim.meter.label 
 assert.deepEqual(aim.cijfers.map((c) => c.label), ['Vlag', 'Slag', 'Par']); assert.equal(aim.cijfers[0].waarde, '42 m'); assert.equal(aim.plek, 'Baan 3/6 · Wedge');
 assert.ok(aim.cijfers.every((c) => c.icoon) && aim.cijfers.filter((c) => c.primair).length === 1, 'elk getal een pictogram, één primaire waarde');
 
-assert.equal(aim.uitleg.length, UITLEG.length); assert.match(aim.nu, /gele kolom/);
+assert.equal(aim.uitleg.length, UITLEG.length); assert.match(aim.nu, /kolom/);
 assert.equal(pitchHudModel({ ...basis, vlag: 3.46 }).cijfers[0].waarde, '3,5 m', 'dichtbij met een decimaal');
 const laden = pitchHudModel({ ...basis, laden: true, lading: 0.3 });
 assert.equal(laden.stappen[1].stand, 'nu'); assert.equal(laden.meter.pct, 30); assert.match(laden.nu, /55%/); assert.equal(laden.meter.staat, '');

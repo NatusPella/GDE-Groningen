@@ -54,10 +54,10 @@ export function kartHudModel(g) {
 export function watNu(g) {
   if (g.fase === 'grid') return g.lichten ? `Startlichten: ${Math.min(3, g.lichten)} van 3` : 'Rijders, op uw plaatsen';
   if (g.fase === 'finish' || g.fase === 'outro') return `Gefinisht als ${g.plek || 1}e`;
-  if (g.gras) return 'Je zit in het gras: terug naar het asfalt';
+  if (g.gras) return 'Gras: terug naar het asfalt';
   if (g.drift) return g.drift.t >= KART.charge1 ? 'Laat {SPATIE} los voor de versnelling' : 'Houd {SPATIE} vast door de bocht';
   if (g.boost) return 'Boost!';
-  return 'Gas en een bocht in met {SPATIE} voor een drift';
+  return 'Bocht in: {SPATIE} voor een drift';
 }
 
 // Wat opspringt: een ronde (de tijd) of een boost.

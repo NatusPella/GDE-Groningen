@@ -18,7 +18,7 @@ const laag = klimHudModel({ ...basis, armen: ARMEN_LAAG - 0.05 });
 assert.equal(laag.meter.staat, 'laag'); assert.equal(laag.meter.label, 'Bijna leeg'); assert.ok(laag.slecht); assert.match(laag.nu, /magnesium/);
 assert.equal(klimHudModel({ ...basis, armen: 9 }).meter.pct, 100, 'meter nooit boven 100'); assert.equal(klimHudModel({ ...basis, armen: -1 }).meter.pct, 0);
 const grond = klimHudModel({ ...basis, grond: true, hoogte: 0 });
-assert.equal(grond.stappen[0].stand, 'nu'); assert.match(grond.nu, /{A} en {D} allebei/); assert.equal(grond.cijfers[0].waarde, `0,0 m van ${WALL.height}`);
+assert.equal(grond.stappen[0].stand, 'nu'); assert.match(grond.nu, /{A} en {D} vast/); assert.equal(grond.cijfers[0].waarde, `0,0 m van ${WALL.height}`);
 const intro = klimHudModel({ ...basis, fase: 'intro', grond: true, uitleg: true });
 assert.equal(intro.uitleg.length, UITLEG.length); assert.match(intro.nu, /eerste grepen/); assert.equal(klimHudModel({ ...basis, uitleg: true }).uitleg.length, 0, 'uitleg alleen voor de start');
 const boven = klimHudModel({ ...basis, fase: 'outro', klimFase: 'top' });

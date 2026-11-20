@@ -17,7 +17,7 @@ assert.equal(race.cijfers[2].waarde, '1:01,23'); assert.equal(race.cijfers[3].wa
 const drift = kartHudModel({ fase: 'race', ronde: 1, plek: 2, drift: { t: KART.charge1 + 0.05 }, uitleg: false });
 assert.ok(drift.meter && drift.meter.pct > 40 && drift.meter.pct < 100); assert.match(drift.nu, /Laat {SPATIE} los/);
 assert.equal(kartHudModel({ fase: 'race', ronde: 1, drift: { t: 99 } }).meter.pct, 100, 'meter nooit boven 100');
-assert.match(watNu({ fase: 'race', gras: true }), /gras/); assert.ok(kartHudModel({ fase: 'race', gras: true }).slecht);
+assert.match(watNu({ fase: 'race', gras: true }), /[Gg]ras/); assert.ok(kartHudModel({ fase: 'race', gras: true }).slecht);
 assert.match(watNu({ fase: 'finish', plek: 2 }), /2e/);
 assert.equal(kartHudModel({ fase: 'outro', ronde: 3 }).stappen[2].stand, 'nu');
 assert.equal(tijdTekst(NaN), '-:--.--'); assert.match(rondePop(1, 32.4).tekst, /Ronde 1: 0:32,40/); assert.equal(boostPop(2).tekst, 'Superboost!');

@@ -53,8 +53,8 @@ export function watNu(g) {
   if (g.fase === 'intro') return 'Daar gaan we: duw met W';
   if (g.fase === 'outro') return 'Tijd!';
   if (g.grind) return g.grind.bal > 0.1 ? 'Je leunt rechts: stuur links' : g.grind.bal < -0.1 ? 'Je leunt links: stuur rechts' : 'Grind! Houd het midden';
-  if (g.grond === false) return 'In de lucht: draai met {A} of {D} en land netjes';
-  return g.ketenAan ? 'Land en blijf rijden: de keten telt dan' : 'Duw met {W} en spring met {SPATIE} bij een helling of rail';
+  if (g.grond === false) return 'In de lucht: draai en land netjes';
+  return g.ketenAan ? 'Land en rij door: dan telt de keten' : '{W} duwt, {SPATIE} springt bij een rail';
 }
 
 // Wat opspringt: een truc met zijn punten en een opgeslagen keten. Een val springt niet op (de zin staat in de strook).

@@ -54,7 +54,7 @@ export function watNu(g) {
   if (g.fase === 'intro') return 'Maak je klaar: het potje begint zo';
   if (g.fase === 'serve') return g.serveer ? 'Jij serveert: druk {SPATIE}' : 'Zij serveren: sta klaar';
   if (g.fase === 'point' || g.fase === 'outro') return g.winnaar === 0 ? 'Punt voor jullie' : 'Punt voor hen';
-  if (g.gp) return 'Gouden punt: de volgende punt is de game';
+  if (g.gp) return 'Gouden punt: beslist de game';
   return g.inBereik ? 'Nu {SPATIE}: de ring is groen' : 'Loop naar de bal tot de ring groen is';
 }
 

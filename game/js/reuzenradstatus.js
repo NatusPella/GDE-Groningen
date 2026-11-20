@@ -52,9 +52,9 @@ export function reuzenradHudModel(g) {
 
 export function watNu(g) {
   if (g.uitstap) return g.mag ? 'Je stapt nu uit' : 'Je stapt uit zodra je beneden bent';
-  if (stapVan(g) === 'top') return 'Op de top: wat een uitzicht! Kijk rond';
-  if (g.stijgt) return 'Je gaat omhoog: kijk rond met de muis of de pijltjes';
-  return g.mag ? 'Je bent beneden: {BACKSPACE} om uit te stappen' : 'Je gaat weer omlaag';
+  if (stapVan(g) === 'top') return 'Op de top: wat een uitzicht!';
+  if (g.stijgt) return 'Omhoog: kijk rond met de muis';
+  return g.mag ? 'Beneden: {BACKSPACE} om uit te stappen' : 'Je gaat weer omlaag';
 }
 
 // Wat opspringt: de top van elke ronde met zijn hoogte.

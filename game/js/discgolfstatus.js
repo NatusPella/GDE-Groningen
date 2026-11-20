@@ -55,7 +55,7 @@ export function watNu(g) {
   if (g.fase === 'wacht') return 'Alle banen af: wachten op de anderen';
   if (g.fase === 'flight') return 'De disc vliegt';
   if (g.fase === 'aim' && g.laden) return g.doel ? `Laat {SPATIE} los rond ${meterTekst(g.doel)}` : 'Laat {SPATIE} los om te gooien';
-  if (g.fase === 'aim') return g.cirkel ? 'In de cirkel: zacht en vlak richting de mand' : 'Richt op de gele kolom en houd {SPATIE}';
+  if (g.fase === 'aim') return g.cirkel ? 'In de cirkel: zacht en vlak' : 'Richt op de kolom, houd {SPATIE}';
   return 'Volgende worp komt zo';
 }
 

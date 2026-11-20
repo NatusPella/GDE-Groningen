@@ -17,7 +17,7 @@ assert.ok(lopen.cijfers.every((c) => c.icoon) && lopen.cijfers.filter((c) => c.p
 assert.equal(lopen.uitleg.length, UITLEG.length); assert.match(lopen.nu, /Loop naar Station Winsum \(oost\)/); assert.ok(!lopen.slecht);
 assert.equal(wandelHudModel({ ...basis, stempels: 1 }).uitleg.length, 0, 'uitleg alleen voor de eerste stempel'); assert.equal(wandelHudModel({ ...basis, afstand: 2400 }).cijfers[0].waarde, '2,4 km');
 const dichtbij = wandelHudModel({ ...basis, stempels: 2, afstand: NABIJ - 20, post: 'Op de dijk' });
-assert.equal(dichtbij.stappen[1].stand, 'nu'); assert.equal(dichtbij.stappen[0].stand, 'klaar'); assert.equal(dichtbij.meter.pct, 40); assert.match(dichtbij.nu, /Bijna bij Op de dijk: nog 38 m voor de stempel/);
+assert.equal(dichtbij.stappen[1].stand, 'nu'); assert.equal(dichtbij.stappen[0].stand, 'klaar'); assert.equal(dichtbij.meter.pct, 40); assert.match(dichtbij.nu, /Bijna bij Op de dijk: nog 38 m/);
 const klaar = wandelHudModel({ ...basis, fase: 'done', stempels: STAMPS.length, afstand: null });
 assert.equal(klaar.stappen[2].stand, 'nu'); assert.equal(klaar.meter.pct, 100); assert.equal(klaar.cijfers[0].waarde, '-'); assert.match(klaar.nu, /Alle stempels/); assert.equal(klaar.plek, '');
 const voertuig = wandelHudModel({ ...basis, opvoertuig: true });
