@@ -43,6 +43,7 @@ import { isMuted, toggleMute } from './audio.js';
 import { glyphHtml, resetHintUses } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
+import { mapControlList, stepMapControls, toggleMapControls } from './padmapnav.js';
 import { padGlyphInner } from './glyphs.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
@@ -1358,14 +1359,22 @@ function onKey(e) {
     cycleSection(dir);
   } else if (k === 'Tab') {
     consume(e);
-    if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
+    // controller (#985): L3 (Tab) gaat op de kaart naar de knoppen op de kaart zelf (zoeken, lagen, zoom, de kaartkaart) en weer terug
+    if (tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls(root, t);
+    else if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
     else tabFocus(e.shiftKey ? -1 : 1);
   } else if (dir) {
     // de draaitafel van de Garage: links en rechts draaien het model als de
     // focus op het model staat (#610); omhoog/omlaag blijven focus verplaatsen
     if (tab === 'garage' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('.gar-stage') && turnGarageViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
-    // the map pans with the arrows (and WASD) unless the rail has focus
-    if (tab === 'map' && !inRail) return;
+    // the map pans with the arrows (and WASD) unless the rail has focus; staat de focus van een controller op een knop van
+    // de kaart zelf (de kaartkaart na A, Lagen, zoomen), dan lopen de pijlen langs die knoppen en pant de kaart niet (#985)
+    if (tab === 'map' && !inRail) {
+      if (!(e.__gde === 'pad' && mapControlList(root).includes(t))) return;
+      consume(e);
+      stepMapControls(root, t, dir);
+      return;
+    }
     if (t && t.tagName === 'SELECT') return;
     consume(e);
     if (t && t.type === 'range' && (dir === 'left' || dir === 'right')) stepRange(t, dir === 'right' ? 1 : -1);

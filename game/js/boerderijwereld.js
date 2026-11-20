@@ -26,6 +26,7 @@ import * as W3 from './werktuigen3d.js';
 import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, zetActief, leverLading } from './boerderijlive.js';
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
+import { sfxLinks } from './latehooks.js';
 import { registreerVelden, standVelden } from './coopextra.js';
 import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken } from './boerderijstatus.js';
 import { plantGeometrie, plantMateriaal, plantLayout, stoppelGeometrie, voorGeometrie } from './boerderijgewas3d.js';
@@ -754,7 +755,22 @@ export function updateBoerderijWereld(dt, w) {
   }
   for (const veld of S.velden.values()) if (veld.marker) tikVeldMarker(veld.marker, S.t, reducedMotion());
   boerderijHudTik(dt, boerderijHudStand(w));
+  meldOogstklaar(w, b);
   S.prompt = bepaalPrompt(w);
+}
+
+// Een veld dat net oogstklaar werd: één melding en het geluid, waar je ook bent (de gewassen groeien in speltijd, ook als je wegrijdt of slaapt).
+const vorigeStand = new Map();
+function meldOogstklaar(w, b) {
+  for (const id of Object.keys(b.bedrijf.percelen)) {
+    const nu = statusIdVan(B.veldStand(b, id), b.uren), was = vorigeStand.get(id);
+    vorigeStand.set(id, nu);
+    if (nu === 'rijp' && was && was !== 'rijp') {
+      const v = B.veldStand(b, id), g = B.GEWASSEN[v.gewas];
+      bericht(w, `${g ? g.naam : 'Je gewas'} op ${PC.perceelDef(id).naam} is oogstklaar. Zoek de gele lichtkolom en oogst met de maaidorser.`, 6);
+      try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ }
+    }
+  }
 }
 
 // Een gast kan alleen sturen en remmen (zijn toetsen gaan niet naar jouw wereld): koppelen, de hef en de aftakas gaan voor hem vanzelf. Een werktuig dat

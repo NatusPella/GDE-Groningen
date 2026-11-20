@@ -33,7 +33,7 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 const stijl = (el) => getComputedStyle(el);
 const echtZichtbaar = (el) => { if (!el.getClientRects().length) return false; for (let a = el; a && a.nodeType === 1; a = a.parentElement) { const s = stijl(a); if (s.display === 'none' || s.visibility === 'hidden' || a.hidden || a.inert) return false; } const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
 const label = (el) => { if (!el) return 'null'; if (el === document.body) return 'body'; const id = el.id ? '#' + el.id : ''; const c = typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''; return el.tagName.toLowerCase() + id + c + ' "' + (el.textContent || el.getAttribute('aria-label') || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 24) + '"'; };
-const klikbaar = (root) => [...root.querySelectorAll(FOCUSABLE)].filter((e) => echtZichtbaar(e) && !e.closest('.t-btn, #touch-controls') && !e.matches('input[type="hidden"]') && stijl(e).pointerEvents !== 'none');
+const klikbaar = (root) => [...root.querySelectorAll(FOCUSABLE)].filter((e) => echtZichtbaar(e) && !e.closest('.t-btn, #touch-controls') && !e.matches('input[type="hidden"], .m-hint') && stijl(e).pointerEvents !== 'none');
 const scrollerVan = (el) => { for (let a = el; a && a !== document.body; a = a.parentElement) if (a.scrollHeight > a.clientHeight + 4 && /auto|scroll/.test(stijl(a).overflowY)) return a; return null; };
 const handtekening = (root) => { const sel = [...root.querySelectorAll('[aria-selected="true"], .on, .active, .sel, [aria-current]')].filter(echtZichtbaar).slice(0, 12).map(label).join('|'); return sel + '#' + (root.innerText || '').length + '#' + (root.innerText || '').slice(0, 200); };
 
@@ -55,7 +55,7 @@ async function loop(dir, bezocht, max = 70) {
     if (lijst.includes(a)) break;
     lijst.push(a); bezocht.add(a);
   }
-  return { n: lijst.length, body };
+  return { n: lijst.length, body, namen: lijst.map(label) };
 }
 
 // ---------- het meten van één scherm ----------
@@ -74,30 +74,41 @@ async function meetScherm(naam, root, opties = {}) {
   r.woordHint = [...new Set(tekstNodes)].slice(0, 8);
   // focus bij openen
   let a = document.activeElement;
+  r.startFocus = a && root.contains(a) ? label(a) : null;
   if (!a || a === document.body || !root.contains(a)) {
     r.geenStartFocus = true;
     await druk('down'); a = document.activeElement;
     if (!a || a === document.body || !root.contains(a)) { r.opm.push('ook na D-pad omlaag geen focus in het scherm'); }
   }
+  // de kaart: L3 gaat van het doek naar de knoppen op de kaart (padmapnav.js)
+  if (opties.l3) { await druk('ls'); a = document.activeElement; r.l3Focus = label(a); if (a && a !== document.body) bezocht.add(a); }
   // loop in alle vier de richtingen
   if (a && a !== document.body) bezocht.add(a);
   const dubbel = () => { const ring = klikbaar(root).filter((e) => { if (e === document.activeElement) return false; const s = stijl(e); return (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 && s.outlineColor !== 'rgba(0, 0, 0, 0)'); }); return ring.length; };
   const lopen = [];
-  for (const d of ['down', 'right', 'up', 'left']) { const t = await loop(d, bezocht); lopen.push(d + ':' + t.n); r.focusVal += t.body ? 1 : 0; r.dubbeleRing = Math.max(r.dubbeleRing, dubbel()); }
-  // wat de lopen niet bereikt hebben: nog een ronde vanaf de laatste onbereikte buur (D-pad vanaf een bereikt element in de richting van het onbereikte)
+  for (const d of ['down', 'right', 'up', 'left']) { const t = await loop(d, bezocht); lopen.push(d + ':' + t.n); (r.spoor = r.spoor || {})[d] = t.namen.slice(0, 80); r.focusVal += t.body ? 1 : 0; r.dubbeleRing = Math.max(r.dubbeleRing, dubbel()); }
+  // wat de lopen niet bereikt hebben: vanaf de drie dichtstbijzijnde bereikte elementen elke richting proberen (D-pad zoals een speler)
   let rest = alle.filter((e) => !bezocht.has(e) && echtZichtbaar(e));
-  for (let ronde = 0; ronde < 2 && rest.length; ronde++) {
-    for (const e of rest.slice(0, 12)) {
+  const DIRS = ['down', 'up', 'right', 'left'];
+  for (let ronde = 0; ronde < 3 && rest.length; ronde++) {
+    let voortgang = false;
+    for (const e of rest.slice(0, opties.max || 14)) {
       if (bezocht.has(e)) continue;
-      // de buur: het dichtstbijzijnde bereikte element; focus erop en loop met de richting naar het onbereikte element
-      const rb = e.getBoundingClientRect(); let beste = null, bd = Infinity;
-      for (const o of bezocht) { if (!o.isConnected) continue; const ro = o.getBoundingClientRect(); const d = Math.hypot(ro.x - rb.x, ro.y - rb.y); if (d < bd) { bd = d; beste = o; } }
-      if (!beste) continue;
-      const ro = beste.getBoundingClientRect(); const dx = rb.x - ro.x, dy = rb.y - ro.y; const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-      beste.focus({ preventScroll: true }); await druk(dir);
-      if (document.activeElement === e) bezocht.add(e); else if (document.activeElement && root.contains(document.activeElement)) bezocht.add(document.activeElement);
+      const rb = e.getBoundingClientRect();
+      const buren = [...bezocht].filter((o) => o.isConnected && echtZichtbaar(o)).map((o) => { const ro = o.getBoundingClientRect(); return { o, d: Math.hypot(ro.x - rb.x, ro.y - rb.y) }; }).sort((x, y) => x.d - y.d).slice(0, 3);
+      for (const { o } of buren) {
+        let gevonden = false;
+        for (const d of DIRS) {
+          o.focus({ preventScroll: true }); await druk(d);
+          const nu = document.activeElement;
+          if (nu && nu !== o && root.contains(nu)) { if (!bezocht.has(nu)) { bezocht.add(nu); voortgang = true; } }
+          if (nu === e) { gevonden = true; break; }
+        }
+        if (gevonden) break;
+      }
     }
     rest = alle.filter((e) => !bezocht.has(e) && echtZichtbaar(e));
+    if (!voortgang) break;
   }
   r.bereikt = alle.length - rest.length;
   r.onbereikbaar = rest.slice(0, 14).map(label);
@@ -165,15 +176,13 @@ for (const [naam, args] of MENU) {
   if (!wil(naam)) continue;
   try {
     PM.openPauseMenu(...args); await sleep(1600);
-    if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
     // de onderdelen (subtabs) van dit scherm: elk een eigen meting, geopend via openPauseMenu({ sub })
     const subs = pm() ? [...pm().querySelectorAll('[role="tab"][data-subtab]')].filter(echtZichtbaar).map((b) => b.dataset.subtab) : [];
-    await meetScherm(naam, pm());
+    await meetScherm(naam, pm(), naam === 'kaart' ? { l3: true } : {});
     if (!CS.zonderSubs) for (const id of [...new Set(subs)].slice(0, 10)) {
       try { PM.closePauseMenu(); } catch { /* */ } await sleep(400);
       PM.openPauseMenu(args[0], { sub: id }); await sleep(1300);
-      if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
-      await meetScherm(naam + '/' + id, pm());
+        await meetScherm(naam + '/' + id, pm());
     }
   } catch (e) { uit.overgeslagen.push(naam + ': ' + e.message); }
   try { PM.closePauseMenu(); } catch { /* */ }
@@ -221,6 +230,8 @@ if (wil('tekstveld')) {
     PM.openPauseMenu('spel', { sub: 'overzicht' }); await sleep(1200);
     const knop = document.querySelector('#pause-menu [data-action="saves"]');
     if (knop) { knop.click(); await sleep(1000); }
+    const hern = [...document.querySelectorAll('button')].find((b) => /hernoem/i.test(b.textContent + (b.getAttribute('aria-label') || '')) && echtZichtbaar(b));
+    if (hern) { hern.click(); await sleep(600); }
     const veld = [...document.querySelectorAll('input[type="text"], input:not([type]), input[type="search"], textarea')].find(echtZichtbaar);
     const r = { veld: veld ? label(veld) : null };
     if (veld) {

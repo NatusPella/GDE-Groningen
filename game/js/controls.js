@@ -258,7 +258,7 @@ export const PAD_MAPS = {
   // de vliegschool (#397): het lesmenu bij de balie; A kiest, B gaat terug, de pijlen (en de stick) bladeren. In de lucht
   // kiest gamepad.js de gewone vliegindeling zodra je in het lesvliegtuig zit.
   vliegschool: { a: 'enter', b: 'backspace', x: null, y: null, lb: null, rb: null, lt: null, rt: null, ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'arrows' },
-  menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
+  menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: 'tab', rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
 };
 
 // Samen spelen: in een voertuig is D-pad omhoog het stuur geven, terugnemen of erom vragen (Y op het toetsenbord, #291);

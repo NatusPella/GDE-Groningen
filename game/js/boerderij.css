@@ -2,7 +2,8 @@
    klassen met het voorvoegsel bd-. Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. */
 
 /* ---- HUD-strook tijdens het werk (zone C, net als het paneel van een activiteit) ---- */
-.bd-hud { position: fixed; left: 50%; bottom: max(13vh, calc(var(--ds-s-8) + var(--ds-s-4))); transform: translateX(-50%); z-index: 6; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6)));
+.bd-hud.ds-kaart { position: fixed;   /* twee klassen: wint van .ds-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
+  left: 50%; bottom: max(13vh, calc(var(--ds-s-8) + var(--ds-s-4))); transform: translateX(-50%); z-index: 6; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6)));
   gap: var(--ds-s-2); pointer-events: none; }
 .bd-hud[hidden] { display: none; }
 .bd-hud__kop { display: flex; align-items: center; gap: var(--ds-s-3); }

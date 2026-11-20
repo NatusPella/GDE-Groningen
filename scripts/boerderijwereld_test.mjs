@@ -331,5 +331,21 @@ await t('elk gewas heeft een afnemerplek', () => {
   for (const id of B.GEWAS_IDS) assert.ok(WW.afnemerPlek(w, id), `geen afnemerplek voor ${id}`);
 });
 
+await t('een veld dat oogstklaar wordt geeft één melding (#985); de HUD-stand kent machine, taak en diesel', () => {
+  const b = Live.getBoerderij();
+  b.veld = { ...B.nieuweBoerderij().veld, fase: 'gezaaid', gewas: 'graan', gezaaidOp: b.uren, zaai: 1 };
+  b.veldVan = b.bedrijf.actief;
+  const voor = msgs.length;
+  tik(1);
+  assert.equal(msgs.length, voor, 'groeien is stil');
+  B.tikUren(b, 40);
+  tik(1);
+  const nieuw = msgs.slice(voor).filter((x) => /oogstklaar/.test(x));
+  assert.equal(nieuw.length, 1, 'precies één melding');
+  tik(2);
+  assert.equal(msgs.slice(voor).filter((x) => /oogstklaar/.test(x)).length, 1, 'niet nog een keer');
+  assert.equal(WW.boerderijHudStand(w), null, 'te voet: geen strook');
+});
+
 console.log(`boerderijwereld_test: ${n - fails}/${n}`);
 if (fails) process.exit(1);

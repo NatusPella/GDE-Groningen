@@ -41,6 +41,7 @@ ok(PAD_BUTTONS.length === 16, 'zestien knoppen in de standaardmapping');
 
 // ---------- 3. de lijst schermen in de QA-controllersweep dekt elk tabblad van het pauzemenu ----------
 const pm = read('game/js/pausemenu.js');
+const nav = read('game/js/padmapnav.js');
 const sweep = read('scripts/qa/controller_sweep.page.js');
 const schermen = [...sweep.matchAll(/\['([a-z0-9-]+)', \['([a-z]+)'/g)].map((m) => m[2]);
 const tabs = new Set([...pm.matchAll(/data-panel="([a-z]+)"/g)].map((m) => m[1]));
@@ -56,6 +57,16 @@ ok(/el\.scrollBy\(0, ry/.test(pad), 'de rechterstick scrolt de lijst met focus')
 ok(/slot === 'b' && open\) return 'backspace'/.test(pad), 'B is Backspace in de telefoon');
 ok(/(lt|rt)' \|\| slot === 'rt'\) && hooks\.mapOpen/.test(pad.replace(/\s+/g, ' ')) || /hooks\.mapOpen/.test(pad), 'de triggers zoomen de kaart');
 ok(/padkeyboard/.test(read('game/js/main.js')), 'het schermtoetsenbord is aangesloten');
+
+// ---------- 4b. de kaart: pijlen panen, L3 gaat naar de knoppen op de kaart en de D-pad loopt er doorheen (#985) ----------
+ok(M.ls === 'tab', 'menu: L3 is Tab (op de kaart: naar de kaartknoppen)');
+ok(/export function stepMapControls/.test(nav) && /export function toggleMapControls/.test(nav) && /export function mapControlList/.test(nav), 'padmapnav.js heeft de kaartknoppen voor de controller');
+ok(pm.includes("from './padmapnav.js'"), 'pausemenu.js haakt er dun op aan');
+ok(pm.includes("e.__gde === 'pad' && mapControlList(root).includes(t)"), 'alleen een controller met focus op een kaartknop loopt langs de knoppen (de muis en het toetsenbord panen zoals eerst)');
+ok(pm.includes("tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls"), 'Tab van de controller op de kaart wisselt tussen doek en knoppen; die van het toetsenbord wisselt van onderdeel');
+// de kaartkaart: een kolom knoppen onder elkaar, de D-pad loopt er van boven naar beneden doorheen en niet eruit
+const kaartkaart = [0, 1, 2, 3].map((i) => ({ x: 600, y: 300 + i * 44, w: 220, h: 36 }));
+ok([0, 1, 2].every((i) => spatialNext(kaartkaart, i, 'down') === i + 1) && spatialNext(kaartkaart, 3, 'down') === -1, 'de kaartkaart: omlaag door Zet waypoint, Reis erheen, Info en Sluiten');
 
 // ---------- 5. de beoordeling van een sweepresultaat ----------
 ok(bevindingen({ onbereikbaar: [], aKlik: 'ok', bTerug: 'sluit', kbHint: [], woordHint: [] }).length === 0, 'een gaaf scherm heeft geen bevindingen');
