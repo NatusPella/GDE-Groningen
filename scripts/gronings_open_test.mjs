@@ -1,6 +1,7 @@
-// #735: de open lijst van verhaalregels zonder Groningse spreektekst blijft kloppen met de bronnen:
-// twintig regels, de juiste sprekers/stappen, geen enkele in de goedgekeurde tabel of het concept, en
-// de lijst/CAST/runbook wijzen naar dezelfde plek. Geen dialect: deze test schrijft niets.
+// #735: de lijst van de twintig verhaalregels (Geesje en Rotor Roelf) blijft kloppen met de bronnen:
+// twintig regels, de juiste sprekers/stappen, elk met een spreektekst in de tabel (sinds 20-11 door een
+// agent geschreven met vrije hand van de eigenaar; een kenner moet nog luisteren), en de
+// lijst/CAST/runbook wijzen naar dezelfde plek. Deze test schrijft niets.
 //   node scripts/gronings_open_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,15 +10,18 @@ import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lees = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
-const jsonl = lees('docs/verhaal/TTS-OPNAMELIJST-735.jsonl').trim().split('\n').map((r) => JSON.parse(r));
-const open = jsonl.filter((r) => r.reason === 'spreektekst');
+const doc = lees('docs/verhaal/GRONINGS-20-SPREEKTEKSTEN.md');
+// de twintig regels uit de tabel van de lijst: | # | stap | spreker | stem | “regel” | ...
+const open = doc.split(/\r?\n/).filter((l) => /^\| \d+ \|/.test(l)).map((l) => {
+  const c = l.split('|').map((x) => x.trim());
+  return { source: c[2], step: c[2].split('.')[0], speaker: c[3], voice: c[4], text: c[5].replace(/^“|”$/g, '') };
+});
 const spoken = JSON.parse(lees('scripts/gronings_spoken.json'));
 const draft = JSON.parse(lees('scripts/gronings_spoken_draft.json'));
-const doc = lees('docs/verhaal/GRONINGS-20-SPREEKTEKSTEN.md');
 let n = 0, fails = 0;
 const t = (name, f) => { n++; try { f(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', e.message.split('\n')[0]); } };
 
-t('#735: precies twintig regels wachten op een Groningse spreektekst', () => {
+t('#735: de lijst heeft precies twintig regels, van Geesje en Rotor Roelf', () => {
   assert.equal(open.length, 20);
   const perStap = {};
   for (const r of open) perStap[r.step] = (perStap[r.step] || 0) + 1;
@@ -26,13 +30,14 @@ t('#735: precies twintig regels wachten op een Groningse spreektekst', () => {
   assert.deepEqual(sprekers, ['Geesje', 'Rotor Roelf']);
   assert.equal(open.filter((r) => r.speaker === 'Geesje').length, 18);
   assert.equal(open.filter((r) => r.speaker === 'Rotor Roelf').length, 2);
-  for (const r of open) { assert.ok(r.voice && r.file, r.source + ': stem en bestand'); assert.equal(r.reason, 'spreektekst'); }
+  for (const r of open) { assert.ok(r.voice, r.source + ': stem'); }
 });
 
-t('#735: geen van de twintig heeft al een spreektekst (ook niet als concept)', () => {
+t('#735: elke van de twintig heeft een spreektekst, gelijk in tabel en concept, zonder "de Grunn"', () => {
   for (const r of open) {
-    assert.equal(Object.prototype.hasOwnProperty.call(spoken, r.text), false, 'staat al in gronings_spoken.json: ' + r.source);
-    assert.equal(Object.prototype.hasOwnProperty.call(draft, r.text), false, 'staat al in het concept: ' + r.source);
+    assert.equal(Object.prototype.hasOwnProperty.call(spoken, r.text), true, 'mist in gronings_spoken.json: ' + r.source);
+    assert.equal(spoken[r.text], draft[r.text], 'tabel en concept verschillen: ' + r.source);
+    assert.ok(!/de Grunn/i.test(spoken[r.text]), 'de Grunn: ' + r.source);
   }
 });
 

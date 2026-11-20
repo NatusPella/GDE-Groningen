@@ -5,6 +5,10 @@ Er staat **geen gegenereerd dialect** in: de citaten hieronder zijn bestaande, g
 `scripts/gronings_spoken.json` en dienen alleen als voorbeeld van woordkeuze. De Groningse tekst zelf
 schrijft of keurt een **kenner**; een agent vult die niet in.
 
+## Stand 20-11-2026: spreektekst geschreven en opgenomen (zonder kenner)
+
+De eigenaar gaf vrije hand: alle twintig regels hebben nu een lichte Groningse spreektekst in `scripts/gronings_spoken_draft.json` en `scripts/gronings_spoken.json` (Refs #735 #987). Ze gebruiken alleen woorden die al in `scripts/dialect_woorden.json` staan, plus twee afgeleide vormen (`kerkelk`, `allebaai`, status `afgeleid`, niet in een woordenboek nagezocht). Eigennamen, plaatsnamen en de grap blijven Nederlands. De clips zijn opgenomen via de LiteLLM-gateway en technisch gecontroleerd (duur, niveau, stilte); **geen mens heeft ze beluisterd en geen kenner heeft de spreektekst gekeurd**. De beslisformulieren hieronder blijven bedoeld voor die controle; de tabel hieronder is verder de lijst zoals hij was voor de opname (niet opnieuw te genereren: de bron heeft geen wachtende regels meer).
+
 **Stand:** 20 regels, 0 op een stemkeuze, 20 op een spreektekst. Alle regels zijn van **Geesje** (18) en **Rotor Roelf** (2);
 hun stem staat vast in `CAST` (`Pulcherrima` en `Achird`), dus dit is een tekstknoop, geen stemknoop.
 Verdeling per stap: M09 10, M12 2, M21 1, M23 3, M26 2, M30 2.

@@ -3515,6 +3515,16 @@
       "n": 1,
       "opm": "eigennaam De Widde Meuln / Olle Widde; Gronings bijvoeglijk naamwoord \"wijde\", als eigennaam ongewijzigd",
       "handmatig": true
+    },
+    "kerkelk": {
+      "nl": "kerkelijk",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "allebaai": {
+      "nl": "allebei",
+      "status": "afgeleid",
+      "n": 1
     }
   },
   "fries": {
