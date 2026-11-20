@@ -5,6 +5,10 @@ de planning** van de laatste opnameronde: welke regels nog moeten, in welke volg
 welke commando's, en wat alleen de eigenaar kan doen. Er is in deze sessie **niets
 opgenomen** en er is **geen sleutel gebruikt**.
 
+## Stand 20-11-2026: de ronde is opgenomen
+
+Met vrije hand van de eigenaar zijn de 20 regels van Geesje (18) en Rotor Roelf (2) van een lichte Groningse spreektekst voorzien (`scripts/gronings_spoken.json`, zie [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md)) en samen met de 10 herschreven Tessa-regels (#987) opgenomen via de LiteLLM-gateway: 30 clips, ca. $0,03 (zes zijn opnieuw genomen om stilte en niveau). `voice_coverage` staat op 2677/2677, 37 stille appjes vrijgesteld; er wachten 0 regels op een stem of spreektekst. Technisch gecontroleerd (duur, niveau rond -18 LUFS, geen lange stilte); drie korte Geesje-clips liggen op -21 tot -23 LUFS. **Niemand heeft het geluid beluisterd** en geen kenner heeft de spreektekst gekeurd: dat blijft de luisterchecklist in de lijst. De tabel hieronder beschrijft de stand van 10-11.
+
 ## Stand, gecontroleerd na v0.60.3 (10-11-2026)
 
 Na de release v0.60.3 zijn de bronnen opnieuw gecontroleerd; de stand is ongewijzigd:

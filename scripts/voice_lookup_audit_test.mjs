@@ -31,7 +31,7 @@ const keyOf = (l) => (l.voice || l.speaker) + '|' + l.text;
 
 t('#924 data: elke opgenomen verhaalregel resolvet in zijn eigen manifest', () => {
   const recorded = data.scenes.flatMap((s) => s.lines).filter((l) => l.channel !== 'app-stil' && !l.textOnly);
-  assert.equal(recorded.length, 1365);
+  assert.equal(recorded.length, 1394);
   for (const l of recorded) {
     assert.ok(['story', 'lines', 'banter'].includes(l.rec), `${l.text.slice(0, 40)}: rec`);
     assert.ok(manifests[l.rec][keyOf(l)], `${l.text.slice(0, 40)}: opname in ${l.rec}`);
@@ -52,8 +52,8 @@ t('#924 autorit: alle 86 exchange-regels resolven via de rec-aware resolver', ()
 
 t('#924 dekking: elke verzamelde gesproken regel heeft een opname', () => {
   const lines = collect();
-  // 1286 regels uit de tabellen; de 1365 verhaalregels controleert de data-test hierboven
-  assert.equal(lines.length, 1286, `verzamelaar levert ${lines.length} regels`);
+  // 1283 regels uit de tabellen (3 minder dan 1286: de drie M06-hintregels van stroomkast, slot en vitrine zijn in c627d5419 bewust vervangen door een regelkaart zonder stem); de 1394 verhaalregels controleert de data-test hierboven
+  assert.equal(lines.length, 1283, `verzamelaar levert ${lines.length} regels`);
   const missing = lines.filter((e) => !isVoiced(e));
   assert.deepEqual(missing.map((e) => `${e.area}: ${e.text}`), [], 'geen ongemelde stille regel');
 });

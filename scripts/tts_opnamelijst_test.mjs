@@ -16,7 +16,7 @@ const t = (naam, fn) => { n++; try { fn(); } catch (e) { bad++; console.log('FAI
 
 const jobs = JSON.parse(lees('scripts/tts_lines.json'));
 const wacht = JSON.parse(lees('scripts/tts_waiting.json'));
-const rijen = lees('docs/verhaal/TTS-OPNAMELIJST-735.jsonl').trim().split('\n').map((l) => JSON.parse(l));
+const rijen = lees('docs/verhaal/TTS-OPNAMELIJST-735.jsonl').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
 const md = lees('docs/verhaal/TTS-OPNAMELIJST-735.md');
 
 t('de lijst dekt de wachtrij en de wachtende regels precies', () => {
