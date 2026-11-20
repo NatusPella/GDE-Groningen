@@ -677,13 +677,10 @@ function syncVehicleMeshes(world, player) {
   // (86 ms in 3d:vehicles in de hitchprobe). De rest volgt een paar frames later.
   const cine = !!world.cinemaLean || (world.cineQuiet && performance.now() < world.cineQuiet);
   let built = 0;
-  // de taxi van de rit (#882) gaat voor: de passagier zit erin, zonder zijn mesh ontbreekt de cabine (na de tijdsprong stond er een seconde lang niets)
-  const ritV = world.ritTaxi;
+  const ritV = world.ritTaxi; // #882: de taxi van de rit gaat voor, zonder zijn mesh ontbreekt de cabine
   if (ritV && !vehicleMeshes.has(ritV.id) && Math.hypot(ritV.x - player.x, ritV.y - player.y) < DRAW_DIST) {
-    const mesh = enableShadows(buildVehicleActor(ritV), false);
-    scene.add(mesh);
-    vehicleMeshes.set(ritV.id, mesh);
-    built++;
+    const mesh = enableShadows(buildVehicleActor(ritV), false); scene.add(mesh);
+    vehicleMeshes.set(ritV.id, mesh); built++;
   }
   for (const v of world.vehicles) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
