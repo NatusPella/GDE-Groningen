@@ -373,8 +373,8 @@ const SECTIONS = [
 // naast Instellingen: het was te verstopt onder Instellingen > Cheats.
 const RAIL_GROUPS = [
   ['spel', 'Spel', ['spel']],
-  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'boerderij', 'map']],
-  ['bezit', 'Bezit', ['spullen', 'garage']],
+  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'map']],
+  ['bezit', 'Bezit', ['spullen', 'garage', 'boerderij']],
   ['voortgang', 'Voortgang', ['veroverd', 'prestaties', 'fotos']],
   ['systeem', 'Systeem', ['settings', 'streken']],
 ];
@@ -2727,7 +2727,7 @@ function showTab(name, how) {
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
   if (name === 'veroverd') renderVeroverdPanel(root.querySelector('[data-panel="veroverd"] .pm-inner'), closePauseMenu, world);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
-  if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world);
+  if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world, closePauseMenu);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || defaultControlsSubtab(document.documentElement.classList.contains('touch-device'))); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
