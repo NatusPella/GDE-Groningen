@@ -15,6 +15,14 @@ const klem = (v, a, b) => Math.min(b, Math.max(a, v));
 export const PODIUM_PLEKKEN = 3;
 export const FINISHCAM_SECS = 3.6;
 
+// Mag het finishbeeld van het skûtsje (camera en publiek) weg? Na de tijd, als het skûtsje weg is, en als de wereld een andere is
+// of de klok terugliep: een opslag laden of naar het menu stoppen gooit de scène weg, waar het beeld nog naar wijst (review 20-11 #3).
+export function finishBeeldWeg(beeld, wereld, nu, heeftSkutsje) {
+  if (!beeld) return false;
+  if (beeld.wereld !== wereld || !eindig(nu) || nu < beeld.t0) return true;
+  return nu - beeld.t0 > FINISHCAM_SECS + 1 || !heeftSkutsje;
+}
+
 // De sting bij de plek waarop je binnenkomt: de winnaar goud, de tweede zilver, de derde brons; daarna niets
 // (de missie mislukt toch al, de sting van mislukken komt vanzelf).
 export function finishSting(plek) {

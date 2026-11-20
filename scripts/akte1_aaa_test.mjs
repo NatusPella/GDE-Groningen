@@ -20,6 +20,16 @@ const eindig = (v) => typeof v === 'number' && Number.isFinite(v);
 ok(P.finishSting(1) === 'goud' && P.finishSting(2) === 'zilver' && P.finishSting(3) === 'brons', 'het podium krijgt goud, zilver, brons');
 ok(P.finishSting(4) === null && P.finishSting(0) === null && P.finishSting(NaN) === null && P.finishSting(undefined) === null, 'buiten het podium en bij rommel geen medaillesting');
 ok(P.bijnaMoment(7, false) && !P.bijnaMoment(7, true) && !P.bijnaMoment(20, false) && !P.bijnaMoment(0, false) && !P.bijnaMoment(null, false) && !P.bijnaMoment(NaN, false), 'bijna: één keer, alleen tussen 0 en 8 seconden');
+// review 20-11 #3: het finishbeeld verdwijnt ook als de wereld wisselt of de klok terugloopt (opslag laden, naar het menu)
+{
+  const w1 = {}, w2 = {}, b = { t0: 100, wereld: w1 };
+  ok(P.finishBeeldWeg(null, w1, 100, true) === false, 'geen beeld: niets te ruimen');
+  ok(P.finishBeeldWeg(b, w1, 101, true) === false, 'binnen de finishcamera blijft het beeld');
+  ok(P.finishBeeldWeg(b, w1, 100 + P.FINISHCAM_SECS + 1.1, true) === true, 'na de tijd weg');
+  ok(P.finishBeeldWeg(b, w1, 101, false) === true, 'zonder skûtsje weg');
+  ok(P.finishBeeldWeg(b, w2, 101, true) === true, 'een andere wereld (opslag geladen): weg');
+  ok(P.finishBeeldWeg(b, w1, 50, true) === true && P.finishBeeldWeg(b, w1, NaN, true) === true, 'klok terug of kapot: weg');
+}
 {
   const fin = { x: 100, y: 50, a: 0 };
   const pose = P.finishPose(fin, { x: 80, y: 50 }, 0);

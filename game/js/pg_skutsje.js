@@ -14,7 +14,7 @@ import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 import { skutsjePubliek, sprintBijna, brugSeinNodig } from './akte2_plan.js';
 import { stingen } from './sfx/stingen.js';
 import { startCameraTake, stopCameraTake } from './cinematics.js';
-import { finishPose, FINISHCAM_SECS } from './akte1_plan.js';
+import { finishPose, finishBeeldWeg } from './akte1_plan.js';
 import { getMovableBridges, requestOpening, boatNeedsOpening, boatFrame, openingLead } from './movablebridges.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
@@ -41,12 +41,13 @@ const GOLD_MARGIN = 12;
 // lokaal beeld en geluid bij wie de sprint draait; niets gaat over het net.
 const zeg = (fn) => { try { return fn(); } catch (e) { return null; } }; // aankleding mag de sprint nooit raken
 const FIN_CAM = 'skutsje-finish';
-let finishBeeld = null; // { crowd, cam, t0, pos }: blijft na de finish nog even staan voor de camera
+let finishBeeld = null; // { crowd, cam, t0, pos, wereld }: blijft na de finish nog even staan voor de camera
 function ruimFinishBeeld() {
   if (!finishBeeld) return;
-  if (finishBeeld.cam) stopCameraTake(FIN_CAM);
-  if (finishBeeld.crowd) disposeCrowd(finishBeeld.crowd);
-  finishBeeld = null;
+  const b = finishBeeld;
+  finishBeeld = null; // eerst los: een gooiende dispose in een weggegooide scène mag het beeld niet laten hangen
+  if (b.cam) zeg(() => stopCameraTake(FIN_CAM));
+  if (b.crowd) zeg(() => disposeCrowd(b.crowd));
 }
 
 let leftover = null;
@@ -396,7 +397,7 @@ export const SKUTSJE = {
   },
   idle(world) {
     idleMoored(world);
-    if (finishBeeld && (world.time - finishBeeld.t0 > FINISHCAM_SECS + 1 || !leftover)) ruimFinishBeeld();
+    if (finishBeeld && finishBeeldWeg(finishBeeld, world, world.time, !!leftover)) zeg(ruimFinishBeeld);
     else if (finishBeeld && finishBeeld.crowd) zeg(() => updateCrowd(finishBeeld.crowd, world.dt || 0.016, leftover, leftover));
     if (!leftover) return;
     if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, underBridgeAhead(world.map, leftover) ? 1 : 0, world.time);
@@ -481,7 +482,7 @@ function end(run) {
     const q = routeAt(d.s1), w = run.world;
     const pos = { x: q.x, y: q.y, a: q.a };
     ruimFinishBeeld();
-    finishBeeld = { crowd: d.pubFinish || null, t0: w.time, pos, cam: false };
+    finishBeeld = { crowd: d.pubFinish || null, t0: w.time, pos, cam: false, wereld: w };
     if (zeg(() => startCameraTake(FIN_CAM, (t) => finishPose(pos, { x: d.boat.x, y: d.boat.y }, t), { letterbox: true, hideHud: false }))) finishBeeld.cam = true;
   }
   finish(run, {
