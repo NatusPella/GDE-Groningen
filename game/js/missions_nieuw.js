@@ -253,10 +253,10 @@ export function applyNieuw(list) {
     pin.aaa = true;
     pin.stages[1].kaart = {
       doel: 'Schud de politie af: rij een garage in',
-      afloop: 'één ster is genoeg: Spuit & Klaar spuit je om en de politie kent je auto niet meer',
+      afloop: 'één ster is genoeg: een Garage Knalpot spuit je om (Spuit & Klaar) en de politie kent je auto niet meer',
       regels: [
         { type: 'stappen', inv: { label: 'Drie delen', klaar: 0, stappen: [{ icoon: 'auto', label: 'Garage in' }, { icoon: 'pakje', label: 'Nieuwe kleur' }, { icoon: 'hart', label: 'Naar Sjabbe' }] }, na: 8, duur: 7 },
-        { type: 'wijzer', inv: { afstand: 300, hoek: 0, label: 'Garage' }, tekst: 'Sjabbe belt: Spuit & Klaar staat op je kaart, rij er gewoon in. Ik heb de poort al open.', na: 50, duur: 8 },
+        { type: 'wijzer', inv: { afstand: 300, hoek: 0, label: 'Garage' }, tekst: 'Sjabbe belt: Garage Knalpot staat op je kaart, daar zit Spuit & Klaar. Rij er gewoon in. Ik heb de poort al open.', na: 50, duur: 8 },
       ],
     };
   }
