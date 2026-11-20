@@ -1,4 +1,4 @@
-// Ontwikkelpad voor het designsysteem v2 en v3 (#980, #992): game/ds-galerij.html. Zet elke demosectie op papier en
+// Ontwikkelpad voor het designsysteem (#980, #992): game/ds-galerij.html. Zet elke demosectie op papier en
 // op glas naast elkaar, wisselt het oppervlak en "Beweging beperken", en tekent het palet uit
 // ds-tokens.css. Geen spelstaat, geen opslag, geen netwerk.
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -14,7 +14,7 @@ function bouwPanelen() {
       const p = document.createElement('div');
       p.className = `g-paneel ${klasse}`;
       p.dataset.oppervlak = klasse.replace('ds-', '');
-      p.dataset.v2 = '';
+      p.dataset.paneel = '';
       for (const n of nodes) p.appendChild(n);
       return p;
     };
@@ -25,10 +25,10 @@ function bouwPanelen() {
   }
 }
 
-// v3 (#992): elke sectie met data-demo-v3 staat één keer in de HTML en wordt in gewone druk en in
+// Zeefdruk (#992): elke sectie met data-demo-zeef staat één keer in de HTML en wordt in gewone druk en in
 // Rustig drukwerk getoond; .ds-rustig scopet de tokens van html.rustig-drukwerk op één paneel.
 function bouwZeefPanelen() {
-  for (const sec of $$('section[data-demo-v3]')) {
+  for (const sec of $$('section[data-demo-zeef]')) {
     const kop = sec.querySelector(':scope > h2');
     const uitleg = sec.querySelector(':scope > p.g-uitleg');
     const inhoud = [...sec.childNodes].filter((n) => n !== kop && n !== uitleg);
@@ -51,7 +51,7 @@ function bouwZeefPanelen() {
 }
 
 function zetOppervlak(waarde) {
-  for (const p of $$('.g-paneel[data-v2]')) p.hidden = waarde !== 'beide' && p.dataset.oppervlak !== waarde;
+  for (const p of $$('.g-paneel[data-paneel]')) p.hidden = waarde !== 'beide' && p.dataset.oppervlak !== waarde;
   for (const b of $$('[data-oppervlak]', document.querySelector('.g-wissel'))) b.setAttribute('aria-selected', String(b.dataset.oppervlak === waarde));
 }
 

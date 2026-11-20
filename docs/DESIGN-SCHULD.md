@@ -49,75 +49,14 @@ When you fix one, remove the row in the same commit.
 - Samen spelen: no real session over the internet was joined for this page (see the notes in [COOP-OVERDRAGEN.md](COOP-OVERDRAGEN.md)).
 
 
-## Schermmigratie designsysteem v2, fase 2 (#980): stand na Winkel, Beleidswinkel en Garage
+## Open punten van het designsysteem (20-11, ADR 0040)
 
-Gemigreerd in deze ronde: de winkel (`shopui.js`, `shopui.css`, `shopbon.js`), de Beleidswinkel (`beleidswinkel.js`) en de Garage (`garageui.js`, `garagetoestand.js`). `game/index.html` laadt nu `ds-tokens.css` en `ds-components.css`; `a11y.css` heeft één focusring voor papieren kaarten (inkt in plaats van crème). Beeldbewijs staat in `docs/img/qa/` en in het issue.
-
-Wat nog niet gemigreerd is (blijft schuld, een regel weghalen zodra het klaar is):
+Het designsysteem is de zomerse zeefdruk (zie `DESIGN_SYSTEM.md`). De eerdere schermrondes met het papieren oppervlak zijn hier vervangen door wat nu nog niet op het systeem staat; een regel weghalen zodra hij klaar is. Niets hieronder is op het scherm bekeken.
 
 | Wat | Waar | Waarom nog niet |
 |---|---|---|
-| De lijst links in de winkel en de garage zijn nog `.m-li`-rijen met eigen focus en selectiestijl, geen `.ds-rij` | `shopui.js` `rowHtml`, `garageui.js` `row` | de rijen delen toetsenbord-, controller- en scrollgedrag met het pauzemenu; alleen de statuschip is `ds-chip` geworden |
-| De winkelkop, de tabbladen en de voetregel met toetsen zijn nog het glazen menu (`.m-head`, `.m-tab`, `.m-kc`) | `shopui.js` | glas voor navigatie is bedoeld; tabs naar `.ds-tab` vraagt een besluit over het actieve tabblad |
-| De winkelstages (3D-voorbeeld, kraslot) zijn geen `.ds-hero` met een eigen kader | `shopui.css` `.sm-stage` | de renderer en het kraslot-canvas hebben een vaste plek; alleen de garage heeft nu een omlijnde hero |
-| Terugverdientijd ("verdiend in 6 dagen") op de gele knop ontbreekt | `shopbon.js` | het spel heeft geen inkomstenmodel per artikel; zonder echte cijfers tonen we niets |
-| De gele knop en de bevestiging staan in de garage onder de feiten: bij een kort paneel moet je scrollen om ze te zien (de vraag scrolt zelf in beeld) | `garageui.js` | het paneel is 440 px hoog op 900p; een compactere kaart of een tweede kolom vraagt een besluit |
-| Reparatiekosten en brandstof in de garage ontbreken als chip of kaart | `garageui.js` | de reparatie loopt via de werkplaatswinkel, niet via de garage; de chips tonen alleen schade en banden |
-| Kleine tekst in de bonregels van de winkel volgt `--ds-t-*`, maar de lijst links houdt de oude maten van `menu.css` | `shopui.css` | menu-brede maten, niet per scherm te wijzigen |
-| `scripts/hud_kleuren_test.mjs` faalt al vóór deze ronde op `reisrit3d.js` (niet als surface geauditeerd) | `scripts/hud_kleuren_test.mjs` | buiten het domein; hoort bij de eigenaar van dat bestand |
-| Niet met een controller of op touch bekeken in het spel | alle drie | alleen muis en synthetische toetsen in Electron (1600x900) gezien; 720p en 4K niet; de focusring met `pad-active` is bedoeld maar niet gezien |
-
-
-## Schermmigratie designsysteem v2, fase 3 (#980): stand na Te doen, Loopbanen, Verhaal en Veroverd
-
-Gemigreerd in deze ronde: Te doen/Activiteiten (`todoui.js`, `todotijd.js`, de kop en de Begin-hier-kaarten), Loopbanen (`loopbaanui.js`: lege hero en de ladder als papieren trap), Verhaal (`verhaalui.js`: personagekaart als hero, aanwijzingen zonder muur van lege blokken; `todoui.js` voor Opdrachten) en Veroverd (`veroverdpanel.js`: twee tabbladen, taakkaarten als papier). De Beleidswinkel is bereikbaar op een eigen tabblad (Q en E wisselen). Voor-en-nabeelden op 1280x720 en 1920x1080 staan in `docs/img/qa/ds3-*` en in het issue.
-
-Wat nog niet gemigreerd is (een regel weghalen zodra het klaar is):
-
-| Wat | Waar | Waarom nog niet |
-|---|---|---|
-| De lijst in Te doen en in Verhaal > Opdrachten zijn nog `.m-li`-rijen (alleen de statuschip is `ds-chip`), geen `.ds-rij` of aanbod-kaarten | `todoui.js` `row`, `stepRow` | de rijen delen toetsenbord-, controller- en scrolgedrag met het pauzemenu, en elke soort telt tientallen rijen; alleen de drie dichtstbijzijnde (Begin hier) zijn kaarten |
-| Een tijdstreepje bestaat alleen voor het evenement van vandaag; andere dingen (kermis, nachtdienst) hebben geen eindtijd in de brondata | `todo.js` `evenementItem` | geen brondata; zonder echte tijd tonen we geen streep |
-| "Kan nu" volgt `status === 'nu'` uit todo.js; een controle op saldo, voertuig of afstand ("Te ver") zit er niet in | `todoui.js` `beginCard` | todo.js kent die voorwaarden niet per rij |
-| Het detail rechts in Te doen is nog het glazen `m-pane`: kpi-blokjes (`td-kpi`) en `pm-pane-top`, geen papieren kaart met een kaartfragment als hero | `todoui.js` `detailHtml` | een kaartfragment per plek vraagt `placeshot.js`-werk buiten dit domein |
-| Loopbanen: de lijst links (`lb-li`) en de bezigheden zijn nog glas; het sfeervlak en het koppelstuk met de hero (`lb-hero-sfeer`) blijven zoals ze waren | `loopbaanui.js` | de sfeerband (`carrieresfeer.js`) is een eigen onderdeel met een eigen test |
-| Verhaal: Opdrachten (hoofdstukken, `td-chapter`) en Personages-lijst zijn nog glas; de aanwijzingen zijn tekstregels, geen `.ds-kaart` per aanwijzing | `todoui.js` `storyHtml`, `verhaalui.js` | het hoofdstukkenmodel (#912) en de personagetegels (#608) zijn recent en hebben eigen tests |
-| Veroverd: de gebiedenlijst en het gebiedsdetail (`gebiedenui.js`) zijn nog glas met eigen `gb-*`-CSS; de hero (`pm-hero`) en de stats zijn nog de oude gedeelde opmaak | `gebiedenui.js`, `veroverdpanel.js` | `gebiedenui.js` is niet in dit domein |
-| Niet met een controller of op touch bekeken in het spel; 4K niet; "Beweging beperken" niet | alle vier | alleen muis en synthetische toetsen in Electron (1280x720 en een venster van 1904x993) gezien |
-
-
-## Schermmigratie designsysteem v2, fase 4 (#980): stand na Prestaties, Foto's, de kaartuitleg en de hub van Samen spelen
-
-Besluiten van de eigenaar op 20-11 die hierin verwerkt zijn: de selectiekleur is bordgroen (niet blauw; `DESIGN_SYSTEM.md`, bewaakt door `ds_tokens_test`) en er is **één gele hoofdknop per scherm**. Daarom zijn de "Zet als doel"-knoppen in de Begin-hier-kaarten en in "Waar je nu bent" van Te doen omlijnd (de gele knop staat in het detail), de oplossing in de winkelcallout is omlijnd naast de gele koopknop, en de beeldscripts (`ds_schermen*_beeld.page.js`) tellen per beeld de zichtbare gele knoppen (`geel` in het resultaat). Controle van de andere gemigreerde schermen met `geel` in de beeldscripts (1280x720): in de winkel (zes beelden), Te doen, Loopbanen, Verhaal (drie tabs), Veroverd (taken en het tabblad Beleidswinkel apart) en in Prestaties, Foto's en de kaartuitleg staat per beeld hooguit één gele knop (Veroverd: de eerste taakkaart geel, de rest omlijnd). Garage en Beleidswinkel zijn niet schoon geteld: `ds_schermen_beeld.page.js` isoleert panelen (`isoleer`) waardoor het beleidspaneel in het garagebeeld blijft staan; uit de code volgt één gele knop per garage-item (Kopen of Laten afleveren, de rest omlijnd) en één per beleidsregel-lijst (de eerste koopbare).
-
-Gemigreerd in deze ronde: Prestaties (`achievementsui.js`: kop en categorietegels als papieren kaart met chip en streep; de lege detailkolom heeft één gele knop), Foto's (`fotomodusui.js`: hero, galerijkaarten, lege staat, voetstrook), de eenmalige uitleg van de Kaart (`kaartactieui.js`) en de hub "Waar speel je" van Samen spelen (`samenhubui.js`). Beelden op 1280x720 en 1920x1080 staan in `docs/img/qa/ds4-*`.
-
-| Wat | Waar | Waarom nog niet |
-|---|---|---|
-| De rijen binnen een opgeklapte categorie, "Bijna binnen" en "Behaald" zijn nog `.m-li`-rijen op glas; de losse blokken Gebieden, Cijfers, Medailles en Records zijn nog vouwen met `pa-grid` | `achievementsui.js` `row`, `extras` | de rijen delen toetsenbord- en scrolgedrag met het pauzemenu; een prestatiedetail als papieren kaart vraagt een besluit over de lege kolom |
-| De kaartkaart bij een geklikte plek (`mv-acties`, `mv-keuze`, "Reis nu", "Sluiten") gebruikt nog de glazen set en `mapview-btn`; de plek heeft geen kaartfragment als hero | `kaartactieui.js` `actiesHtml`/`reisHtml`, `mapview.js` regel 2326 en 2354 | `mapview.js` tekent de kaart in een eigen laag met eigen toetsen en focus; de plekkaart is niet in beeld gezien in deze ronde |
-| De lobby, de wachtkamer, de sessielijst en de spelerslijst van Samen spelen zijn nog glas met `.coop-*`-opmaak en `m-bp`/`m-bg`-knoppen; alleen de hub (stap 1 tot 3) is papier | `lobbyui.js`, `coopspelersui.js`, `samenhubui.js` stap 2 en 3 (`pm-hub-rijen`) | de lobby deelt zijn knoppen met `coopoverlay.js` en de testbank (`coop-btn`-selectors); een tweede-instantie-test is nodig voor elke wijziging |
-| De drie "Kan nu"-chips in de hub zijn alle drie geel (`ds-chip--primair`): het zijn chips, geen knoppen, maar op één scherm leest dat als veel geel | `samenhubui.js` `kanChip` | de chiprol "Kan nu" is het ontwerp; een besluit of de hub er één chip van maakt (alleen "Aanbevolen") is aan de eigenaar |
-| Niet met een controller of op touch bekeken in het spel; 4K niet | alle vier | alleen muis en synthetische toetsen in Electron (1280x720 en 1920x1080) gezien |
-
-
-## Overzicht voor het nieuwe designsysteem: wat gemigreerd is, wat niet, en wat elk scherm gebruikt (20-11)
-
-Bedoeld voor wie een nieuw designsysteem over deze schermen legt (de eigenaar laat dat in een andere chat ontwerpen). Stand: er zijn geen nieuwe migraties meer gestart na deze tabel; alleen bugfixes (focus, raakdoelen, leesbaarheid) gaan door. Alle schermen die hieronder "gemigreerd" heten, lezen hun kleuren, maten en lettertypen uit `game/js/ds-tokens.css` (rollen: `--ds-bg`, `--ds-tx`, `--ds-rand`, `--ds-primair*` = de ene gele knop, `--ds-selectie*` = bordgroen, `--ds-probleem*`, `--ds-succes*`, `--ds-waarschuwing*`, `--ds-kop-bg`/`--ds-kop-tx` = de bordgroene kopband; maten `--ds-s-*`, `--ds-t-*`, `--ds-r*`, `--ds-lijn*`, `--ds-doel-aanraken`) en gebruiken de componenten uit `game/js/ds-components.css`. Oppervlak: papier (`.ds-papier`) voor kaarten, glas (`.ds-glas`) voor wat op het donkere menu blijft staan (omlijnde knoppen, lege staten, voetstroken).
-
-| Scherm (bestand) | Gemigreerd | Componenten en tokens (aantal gebruiken in de bron) | Nog oud (glas, `.m-*`) |
-|---|---|---|---|
-| Winkel (`shopui.js`, `shopui.css`, `shopbon.js`) | ja (fase 2) | `ds-kaart` (bon), `ds-knop` (koop, oplossing omlijnd), `ds-cijfer`, `ds-chip`, `ds-callout`, `ds-leeg`, `ds-icoon`, `ds-badge` | lijst links (`.m-li`), kop en tabs (`.m-head`, `.m-tab`), 3D-stage |
-| Beleidswinkel (`beleidswinkel.js`) | ja (fase 2) | `ds-kaart--kop` per beleid, `ds-chip`, `ds-callout`, `ds-knop`, `--ds-selectie`, `--ds-probleem` | de lijst als tab onder Veroverd |
-| Garage (`garageui.js`, `garagetoestand.js`) | ja (fase 2) | `ds-kaart`, `ds-knop` (Kopen of Laten afleveren geel; Verkopen en Waar staat hij omlijnd of `--gevaar`), `ds-streep`, `ds-cijfer`, `ds-callout`, `ds-leeg`, `ds-chip` | lijst links (`.m-li`) |
-| Te doen / Activiteiten (`todoui.js`, `todotijd.js`) | ja (fase 3) | `ds-kaart` (Begin hier, omlijnde knoppen), `ds-chip`, `ds-streep--tijd`, `ds-knop` (de gele staat in het detail), `ds-leeg`, `ds-badge`, `--ds-selectie` | lijsten (`.m-li`), detailkolom (`m-pane`, `td-kpi`) |
-| Loopbanen (`loopbaanui.js`) | ja (fase 3) | `ds-kaart` (ladder als papieren trap), `ds-chip`, `ds-streep`, `ds-knop`, `--ds-selectie` | lijst links, bezigheden, sfeerband (`carrieresfeer.js`) |
-| Verhaal (`verhaalui.js`, `todoui.js` Opdrachten) | ja (fase 3) | `ds-kaart` (personagekaart), `ds-chip`, `ds-leeg`, `ds-knop`, `ds-kop-*` | hoofdstukken en personagelijst, aanwijzingen als tekst |
-| Veroverd (`veroverdpanel.js`) | ja (fase 3) | `ds-kaart`, `ds-streep`, `ds-chip`, `ds-tabs`/`ds-tab`, `ds-knop` (eerste taak geel) | gebiedenlijst en gebiedsdetail (`gebiedenui.js`) |
-| Prestaties (`achievementsui.js`) | ja (fase 4) | `ds-kaart--kop` (kop), `ds-kaart` (categorietegel), `ds-streep`, `ds-cijfer`, `ds-chip` (Bijna binnen, Alles gehaald), `ds-knop` (Bekijk in de lijst), `--ds-selectie` | rijen in een categorie en in Bijna binnen en Behaald (`.m-li`), Gebieden, Cijfers, Medailles, Records (vouwen) |
-| Foto's (`fotomodusui.js`) | ja (fase 4) | `ds-kaart--kop` (kop), `ds-kaart` (foto), `ds-leeg`, `ds-chip`, `ds-knop` (Fotomodus starten of Nog een foto maken geel, Weghalen omlijnd), `--ds-selectie` | de voetstrook met toetsen is glas (`ds-glas`) |
-| Kaart (`kaartactieui.js`, `mapview.js`) | alleen de eenmalige uitleg (fase 4) | `ds-kaart--kop`, `ds-knop` (Begrepen geel), `ds-kop-*`, `ds-focus` | de kaartkaart bij een plek (`mv-acties`, `mv-keuze`, `mapview-btn`), de legenda, lagen, de zoekbalk en de kaart zelf |
-| Samen spelen (`samenhubui.js`, rest `lobbyui.js`, `coopspelersui.js`) | alleen de hub, stap Waar speel je (fase 4) | `ds-kaart--kop`, `ds-kaart--klik` en `--uit` (keuzekaarten), `ds-chip--primair` (Kan nu), `ds-knop` (geel of omlijnd) | stap Met wie en Start, lobby, wachtkamer, sessielijst, spelerslijst (`.coop-*`, `m-bp`, `m-bg`) |
-| Spel (Overzicht, Opslaan & stoppen), Instellingen, Spullen, Besturing, Cheats, HUD, minikaart, prompts, minigames | nee | zijn glas met `.m-*`/`.hud-*`; `ds-tokens.css` staat er wel op de pagina | alles |
-
-Waar het nieuwe systeem op kan aansluiten zonder schermen te herschrijven: (1) de rollen in `ds-tokens.css` zijn de enige plek voor kleur, een nieuw systeem vervangt daar waarden of voegt rollen toe (`ds_tokens_test` bewaakt contrast en dat `--ds-selectie` groen blijft); (2) de componenten zijn klassen met een vaste naam (`ds-kaart`, `ds-knop`, `ds-chip`, `ds-streep`, `ds-cijfer`, `ds-callout`, `ds-leeg`, `ds-tabs`, `ds-hero`, `ds-rij`), de schermen noemen alleen die klassen en hun modifiers; (3) alle schermen volgen "één gele hoofdknop per scherm, de rest omlijnd", gemeten door het `geel`-veld van de beeldscripts (`scripts/qa/ds_schermen*_beeld.page.js`); (4) geen scherm schrijft een eigen kleur: de uitzonderingen zijn de glazen resten uit de laatste kolom, die nog `--line`, `--ink`, `--g` en vaste `rgba()`-waarden van `menu.css` gebruiken.
+| De oudere papieren componenten (`.ds-kaart`, `.ds-knop`, `.ds-chip`, `.ds-streep`, `.ds-icoon`, `.ds-papier`, `.ds-glas`) zijn nog in gebruik naast de zeefdrukcomponenten (`.ds-z-*`) | `farmcards.js`, `farmhud.js`, `farm.css`, `kaartactieui.js`, `samenhubui.js`, `pausemenu.css`, `a11y.css` | die schermen zijn nog niet omgebouwd; daarna gaan deze klassen weg en krijgen de `.ds-z-*`-klassen de gewone naam `.ds-*` (aparte stap) |
+| Het glas-op-donker (`--gron-green`, `.gm`, de radiale achtergrond, gloed en verlopen) staat nog in de CSS van de pauze, de koppen en een deel van de HUD | onder meer `index.html`, `hud_panel.css`, `hudcards.css`, `prompts.css`, `heist.css`, `achievements.js`, `coopscene.js`, `stunthud.js`, `treincabine.js` | de ombouw per scherm loopt; zolang die code er is, beschrijft `DESIGN_SYSTEM.md` ("Glass chrome") die als wat de code doet |
+| De tokens `--ds-c-glas*`, `--ds-c-creme` en de glasvarianten van de rollen horen bij dat glas | `ds-tokens.css` | gaan weg met het laatste glasscherm |
+| Twee geeltinten (`#e8c93a` van wanted en missie, `#f9c80e` van het papier) | HUD en papieren schermen | de zeefdruk kent één geel (`#f9c80e`); gaat op in de HUD-ombouw |
+| Niet met een controller of op touch bekeken; 4K niet | alle omgebouwde schermen | alleen muis en synthetische toetsen in Electron gezien |

@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designsysteem-galerij</title>
-<!-- Ontwikkelpad (#980, fase 1): toont de tokens en componenten van ds-tokens.css en ds-components.css in
+<!-- Ontwikkelpad (#980): toont de tokens en componenten van ds-tokens.css en ds-components.css in
      alle toestanden, op papier en op glas, met Nederlandse voorbeeldteksten en zonder spelstaat.
-     Open het via de dev-server of file://; het spel laadt deze bestanden nog niet. Schermafbeeldingen:
-     node scripts/qa/ds_galerij.mjs (Electron, nog niet gedraaid). Alleen var(--ds-...) in de stijl hieronder. -->
+     Open het via de dev-server of file://. Schermafbeeldingen:
+     node scripts/qa/ds_galerij.mjs (Electron). Alleen var(--ds-...) in de stijl hieronder. -->
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="js/ds-tokens.css">
 <link rel="stylesheet" href="js/ds-components.css">
@@ -56,14 +56,14 @@
 </svg>
 
 <header class="g-kop">
-  <h1>Designsysteem v2 en v3: galerij</h1>
+  <h1>Designsysteem: galerij</h1>
   <span class="g-wissel" role="group" aria-label="Oppervlak">
-    <button class="ds-tab ds-glas" type="button" data-oppervlak="beide" aria-selected="true">Beide</button>
-    <button class="ds-tab ds-glas" type="button" data-oppervlak="papier" aria-selected="false">Papier</button>
-    <button class="ds-tab ds-glas" type="button" data-oppervlak="glas" aria-selected="false">Glas</button>
+    <button class="ds-z-tab ds-zeef" type="button" data-oppervlak="beide" aria-selected="true">Beide</button>
+    <button class="ds-z-tab ds-zeef" type="button" data-oppervlak="papier" aria-selected="false">Papier</button>
+    <button class="ds-z-tab ds-zeef" type="button" data-oppervlak="glas" aria-selected="false">Glas</button>
   </span>
-  <button class="ds-tab ds-glas" type="button" id="g-beweging" aria-pressed="false">Beweging beperken</button>
-  <button class="ds-tab ds-glas" type="button" id="g-rustig" aria-pressed="false">Rustig drukwerk</button>
+  <button class="ds-z-tab ds-zeef" type="button" id="g-beweging" aria-pressed="false">Beweging beperken</button>
+  <button class="ds-z-tab ds-zeef" type="button" id="g-rustig" aria-pressed="false">Rustig drukwerk</button>
 </header>
 
 <main id="g-main">
@@ -84,7 +84,6 @@
     <div class="ds-t-body">Body: lopende tekst in Arial Narrow, regelafstand 1,4, rustig en kort.</div>
     <div class="ds-t-label">Label: klein en rustig</div>
     <div class="ds-t-hulp">Hulptekst: nooit kleiner dan 13 px, ook niet op een kleine kaart.</div>
-    <div class="g-rij"><span class="ds-badge">E</span><span class="g-naam">Toetsplaatje: de enige plek voor 12 px</span></div>
   </div>
   <div class="g-ruimte" aria-label="Ruimteschaal">
     <i style="width:var(--ds-s-1);height:var(--ds-s-1)"></i><i style="width:var(--ds-s-2);height:var(--ds-s-2)"></i><i style="width:var(--ds-s-3);height:var(--ds-s-3)"></i><i style="width:var(--ds-s-4);height:var(--ds-s-4)"></i><i style="width:var(--ds-s-5);height:var(--ds-s-5)"></i><i style="width:var(--ds-s-6);height:var(--ds-s-6)"></i><i style="width:var(--ds-s-7);height:var(--ds-s-7)"></i><i style="width:var(--ds-s-8);height:var(--ds-s-8)"></i>
@@ -98,7 +97,6 @@
     <article class="ds-kaart ds-kaart--klik" tabindex="0">
       <div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Pakketje voor Tessa</h3><span class="ds-chip ds-chip--primair"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Kan nu</span></div>
       <div class="ds-kaart__label">Aanbod</div>
-      <div class="ds-cijfer"><span class="ds-cijfer__waarde">€120</span><span class="ds-cijfer__delta ds-cijfer__delta--op">+€20 bonus</span></div>
       <p class="ds-kaart__tekst">Breng het pakket naar de Grote Markt voordat de koffie koud is.</p>
       <div class="ds-streep ds-streep--tijd" role="progressbar" aria-valuemin="0" aria-valuemax="120" aria-valuenow="70" aria-label="Tijd over"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:58%"></span></span><span class="ds-streep__label">70 van 120 min</span></div>
     </article>
@@ -111,7 +109,7 @@
     <article class="ds-kaart ds-kaart--succes"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Rit afgerond</h3><span class="ds-chip ds-chip--succes"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Klaar</span></div></article>
     <article class="ds-kaart ds-kaart--waarschuwing"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Tank bijna leeg</h3><span class="ds-chip ds-chip--waarschuwing"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-let-op"/></svg>Let op</span></div></article>
     <article class="ds-kaart ds-kaart--uit" aria-disabled="true"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Nachtrit</h3></div><p class="ds-kaart__tekst">Niet beschikbaar: pas na 20:00 uur.</p></article>
-    <article class="ds-kaart ds-kaart--kop"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Bon met bordgroene kop</h3><span class="ds-badge">Q</span></div><p class="ds-kaart__tekst">Voor winkel, aanbod en loopbanen.</p></article>
+    <article class="ds-kaart ds-kaart--kop"><div class="ds-kaart__kop"><h3 class="ds-kaart__titel">Bon met bordgroene kop</h3></div><p class="ds-kaart__tekst">Voor winkel, aanbod en loopbanen.</p></article>
   </div>
 </section>
 
@@ -137,95 +135,23 @@
 </section>
 
 <section class="g-sectie" id="s-tab" data-shot="tab-streep" data-demo>
-  <h2>Tabs, streepjes en cijfers</h2>
-  <div class="ds-tabs" role="tablist" aria-label="Voorbeeld">
-    <button class="ds-tab" role="tab" aria-selected="true" type="button">Alles</button>
-    <button class="ds-tab" role="tab" aria-selected="false" type="button">Dichtbij</button>
-    <button class="ds-tab" role="tab" aria-selected="false" type="button">Verhaal</button>
-    <button class="ds-tab" role="tab" aria-selected="false" type="button" disabled>Nacht</button>
-  </div>
+  <h2>Streepjes</h2>
   <div class="g-kolom">
     <div class="ds-streep"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:60%"></span></span><span class="ds-streep__label">3 van 5</span></div>
     <div class="ds-streep ds-streep--tijd"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:35%"></span></span><span class="ds-streep__label">Nog 12 min</span></div>
     <div class="ds-streep ds-streep--laag ds-streep--dik"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:12%"></span></span><span class="ds-streep__label">Tank 12%</span></div>
   </div>
-  <div class="g-rij">
-    <span class="ds-cijfer"><span class="ds-cijfer__waarde">€1.240</span><span class="ds-cijfer__delta ds-cijfer__delta--op">+€45</span></span>
-    <span class="ds-cijfer"><span class="ds-cijfer__waarde">7</span><span class="ds-cijfer__eenheid">van 12</span></span>
-    <span class="ds-cijfer"><span class="ds-cijfer__waarde">3,2</span><span class="ds-cijfer__eenheid">km</span><span class="ds-cijfer__delta ds-cijfer__delta--neer">−0,4 km</span></span>
-  </div>
 </section>
 
-<section class="g-sectie" id="s-callout" data-shot="callout" data-demo>
-  <h2>Probleem-callout: het gevolg vóór de keuze</h2>
-  <div class="ds-callout">
-    <div class="ds-callout__kop"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-let-op"/></svg>Je boot lekt</div>
-    <p class="ds-callout__tekst">Het water staat al op de bodem. Zonder reparatie zinkt hij binnen vier minuten.</p>
-    <div class="ds-callout__cijfers">
-      <span class="ds-cijfer"><span class="ds-cijfer__waarde">4</span><span class="ds-cijfer__eenheid">min over</span></span>
-      <span class="ds-cijfer"><span class="ds-cijfer__waarde">€200</span><span class="ds-cijfer__eenheid">lading</span><span class="ds-cijfer__delta ds-cijfer__delta--neer">−€200 bij zinken</span></span>
-    </div>
-    <div class="ds-callout__oplossing">
-      <button class="ds-knop" type="button">Repareren<span class="ds-knop__sub">€60, terugverdiend in 5 min</span></button>
-      <button class="ds-knop ds-knop--secundair" type="button">Doorvaren</button>
-    </div>
-    <p class="ds-callout__risico">Risico bij doorvaren: de boot zinkt en je raakt de lading kwijt.</p>
-  </div>
-  <div class="ds-callout ds-callout--waarschuwing"><div class="ds-callout__kop"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-klok"/></svg>Winkel sluit bijna</div><p class="ds-callout__tekst">Nog 15 minuten tot sluitingstijd.</p></div>
-</section>
-
-<section class="g-sectie" id="s-tip" data-shot="tip-leeg" data-demo>
-  <h2>Uitleg, toetsplaatje en lege toestand</h2>
-  <div class="g-rij"><span class="ds-tip">Tanken kost €45 en duurt 20 seconden.</span><span class="ds-badge">E</span><span class="ds-badge">Esc</span><span class="ds-badge">Q</span></div>
-  <div class="ds-leeg">
-    <div class="ds-leeg__beeld"><svg class="ds-icoon ds-icoon--groot" aria-hidden="true"><use href="#ic-tas"/></svg></div>
-    <h3 class="ds-leeg__kop">Je tas is nog leeg</h3>
-    <p class="ds-leeg__tekst">Pak onderweg iets mee, bijvoorbeeld bij de markt op de Grote Markt.</p>
-    <button class="ds-knop" type="button">Naar de markt<span class="ds-knop__sub">Zet een waypoint</span></button>
-  </div>
-</section>
-
-<section class="g-sectie" id="s-hero" data-shot="hero-rij" data-demo>
-  <h2>Hero-slot en lijst-rij</h2>
-  <div class="ds-hero">
-    <div class="ds-hero__beeld"><div class="g-beeld-leeg">Hier komt het voertuig, de kaart of het personage</div></div>
-    <div class="ds-hero__tekst">
-      <div class="ds-hero__oog">Garage</div>
-      <h3 class="ds-hero__kop">De rode gezinsauto</h3>
-      <p class="ds-hero__lead">Zuinig, kantig en betrouwbaar. Je hoort hem al van ver.</p>
-      <div class="ds-hero__feiten"><span class="ds-chip">Snelheid 140 km/u</span><span class="ds-chip ds-chip--succes"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-vink"/></svg>Ingesteld</span></div>
-    </div>
-  </div>
-  <div>
-    <div class="ds-rij ds-rij--selectie" aria-current="true"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-auto"/></svg><span class="ds-rij__naam">De rode gezinsauto<span class="ds-rij__sub">In de garage</span></span><span class="ds-rij__waarde">€0</span><span class="ds-badge">E</span></div>
-    <div class="ds-rij" tabindex="0"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-auto"/></svg><span class="ds-rij__naam">Bestelbusje<span class="ds-rij__sub">Tank 40%</span></span><span class="ds-rij__waarde">€850</span><span class="ds-chip ds-chip--waarschuwing">Let op</span></div>
-    <div class="ds-rij ds-rij--probleem"><svg class="ds-icoon ds-icoon--probleem" aria-hidden="true"><use href="#ic-let-op"/></svg><span class="ds-rij__naam">Oude scooter<span class="ds-rij__sub">Kapot, repareren €60</span></span><span class="ds-rij__waarde">€0</span><span class="ds-chip ds-chip--probleem">Kapot</span></div>
-    <div class="ds-rij ds-rij--uit" aria-disabled="true"><svg class="ds-icoon ds-icoon--zacht" aria-hidden="true"><use href="#ic-ster"/></svg><span class="ds-rij__naam">Raceauto<span class="ds-rij__sub">Pas vanaf niveau 5</span></span><span class="ds-rij__waarde">€4.000</span><span class="ds-chip">Op slot</span></div>
-  </div>
-</section>
-
-<section class="g-sectie" id="s-hud" data-shot="hud" data-demo>
-  <h2>HUD-hoeken</h2>
-  <div class="g-hud">
-    <div class="ds-hud ds-glas">
-      <div class="ds-hud__links"><article class="ds-kaart ds-kaart--plat"><div class="ds-kaart__titel">Tessa belt</div><div class="ds-kaart__voet">Nieuw werk: pakketje</div></article></div>
-      <div class="ds-hud__boven"><span class="ds-chip">14:20 Zo, snelheid x1</span><span class="ds-chip ds-chip--primair"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-pin"/></svg>Naar de Grote Markt, 840 m</span></div>
-      <div class="ds-hud__rechts"><span class="ds-chip"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-munt"/></svg>€1.240</span><span class="ds-chip ds-chip--waarschuwing"><svg class="ds-chip__icoon" aria-hidden="true"><use href="#ic-ster"/></svg>Gezocht 1</span></div>
-      <div class="ds-hud__minimap"><div class="g-minimap" role="img" aria-label="Minimap"></div><span class="ds-chip">Binnenstad</span></div>
-      <div class="ds-hud__toetsen"><span class="ds-badge">E</span><span class="g-scherm-hoek">Instappen</span><span class="ds-badge">M</span><span class="g-scherm-hoek">Kaart</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- Designsysteem v3 (#992): zomerse zeefdruk. Elke sectie hieronder staat één keer in de bron en wordt door
+<!-- Zomerse zeefdruk (#992, ADR 0040). Elke sectie hieronder staat één keer in de bron en wordt door
      ds-galerij.js getoond op papier (normaal) en op papier met Rustig drukwerk. Ingedrukt en focus zijn
      vastgezet met g-druk en g-focus, omdat :active en :focus-visible zich niet laten forceren. -->
-<section class="g-sectie" id="s-v3-intro" data-shot="v3-intro">
-  <h2>Zeefdruk v3: inkten en effecten</h2>
-  <p class="g-uitleg">Eén materiaal voor alle schermen: papier, harde inkt, een harde schaduw in plaats van een gloed, misdruk als handtekening en een raster voor leeg of onbeschikbaar. Elke v3-sectie staat links in gewone druk en rechts in Rustig drukwerk (geen misdruk, schuinte of raster, tekst minstens 7:1). De schakelaar bovenin zet Rustig drukwerk voor de hele pagina.</p>
+<section class="g-sectie" id="s-zeef-intro" data-shot="zeef-intro">
+  <h2>Zeefdruk: inkten en effecten</h2>
+  <p class="g-uitleg">Eén materiaal voor alle schermen: papier, harde inkt, een harde schaduw in plaats van een gloed, misdruk als handtekening en een raster voor leeg of onbeschikbaar. Elke sectie staat links in gewone druk en rechts in Rustig drukwerk (geen misdruk, schuinte of raster, tekst minstens 7:1). De schakelaar bovenin zet Rustig drukwerk voor de hele pagina.</p>
 </section>
 
-<section class="g-sectie" id="s-v3-knop" data-shot="v3-knop" data-demo-v3>
+<section class="g-sectie" id="s-zeef-knop" data-shot="zeef-knop" data-demo-zeef>
   <h2>Zeefdruk: knop</h2>
   <p class="g-uitleg">Primair (geel, één per scherm), secundair, ghost en gevaar. Ingedrukt: de schaduw is weg en de knop is er even ver naartoe geschoven.</p>
   <div class="g-rij"><span class="g-naam">Normaal</span>
@@ -251,7 +177,7 @@
   </div>
 </section>
 
-<section class="g-sectie" id="s-v3-kaart" data-shot="v3-kaart" data-demo-v3>
+<section class="g-sectie" id="s-zeef-kaart" data-shot="zeef-kaart" data-demo-zeef>
   <h2>Zeefdruk: kaart met misdruk-kop</h2>
   <p class="g-uitleg">De kop is bordgroen met de misdruk onder de titel; de kaart staat licht schuin en richt zich op bij hover en focus. Een geselecteerde kaart heeft de bordgroene rand, een vinkje en aria-current.</p>
   <div class="g-rij">
@@ -266,7 +192,7 @@
   </div>
 </section>
 
-<section class="g-sectie" id="s-v3-chip" data-shot="v3-chip" data-demo-v3>
+<section class="g-sectie" id="s-zeef-chip" data-shot="zeef-chip" data-demo-zeef>
   <h2>Zeefdruk: chip en tab</h2>
   <p class="g-uitleg">Een chip noemt een status of gevolg met een icoon of vorm plus een woord. De actieve tab is gevuld; Q en E schakelen, zoals in de menu's.</p>
   <div class="g-rij">
@@ -285,7 +211,7 @@
   </div>
 </section>
 
-<section class="g-sectie" id="s-v3-rij" data-shot="v3-rij" data-demo-v3>
+<section class="g-sectie" id="s-zeef-rij" data-shot="zeef-rij" data-demo-zeef>
   <h2>Zeefdruk: rij en toetsplaatje</h2>
   <div class="g-kolom">
     <div class="ds-z-rij" tabindex="0"><svg class="ds-icoon" aria-hidden="true"><use href="#ic-auto"/></svg><span><span class="ds-z-rij__naam">Bestelbusje</span><span class="ds-z-rij__sub">Tank 40%</span></span><span class="ds-z-rij__waarde">€180</span></div>
@@ -298,7 +224,7 @@
   </div>
 </section>
 
-<section class="g-sectie" id="s-v3-stempel" data-shot="v3-stempel" data-demo-v3>
+<section class="g-sectie" id="s-zeef-stempel" data-shot="zeef-stempel" data-demo-zeef>
   <h2>Zeefdruk: stempel en kassabonregel</h2>
   <p class="g-uitleg">Een stempel valt in met een korte beweging (hooguit 250 ms; bij Rustig drukwerk staat hij er meteen). De bon rekent altijd uit wat iets kost.</p>
   <div class="g-rij">
@@ -314,7 +240,7 @@
   </div>
 </section>
 
-<section class="g-sectie" id="s-v3-leeg" data-shot="v3-leeg" data-demo-v3>
+<section class="g-sectie" id="s-zeef-leeg" data-shot="zeef-leeg" data-demo-zeef>
   <h2>Zeefdruk: raster-leegstaat en voortgangsbalk</h2>
   <p class="g-uitleg">Leeg is een rasterblok met stippelrand, een woord en één actie. De balk noemt altijd de getallen; de lege baan is raster, bij Rustig drukwerk een gewone baan met rand.</p>
   <div class="ds-z-leeg"><div class="ds-z-leeg__beeld" aria-hidden="true"></div><h3 class="ds-z-leeg__kop">Nog niets in je tas</h3><p class="ds-z-leeg__tekst">Hier komt wat je oppakt. Ga naar de markt voor je eerste aankoop.</p><button class="ds-z-knop ds-z-knop--secundair" type="button">Naar de markt</button></div>
@@ -326,7 +252,7 @@
   </div>
 </section>
 
-<section class="g-sectie" id="s-v3-waarde" data-shot="v3-waarde" data-demo-v3>
+<section class="g-sectie" id="s-zeef-waarde" data-shot="zeef-waarde" data-demo-zeef>
   <h2>Zeefdruk: plaatje voor HUD-waarden</h2>
   <p class="g-uitleg">De waarde staat op een papieren plaatje met inktrand, zodat de druk boven elke scène leesbaar blijft. Misdruk komt alleen mee als de waarde verandert; in gevaar kleurt de rand.</p>
   <div class="g-rij">
