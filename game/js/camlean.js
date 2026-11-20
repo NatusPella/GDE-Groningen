@@ -3,6 +3,8 @@
 // `fx` is effectsFor() uit a11ylogic.js: bij Beweging beperken is alles 0. Geen allocaties per frame:
 // stepLean hergebruikt zijn toestandsobject.
 
+import { stepFov } from './gamefeel.js';
+
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 export const LEAN_MAX = { car: 0.03, bike: 0.07, other: 0.02 }; // rad (ca. 1,7, 4 en 1,1 graden)
@@ -39,4 +41,14 @@ export function stepLean(l, kind, angle, speed, slip, dt, fx = { cameraSway: 1 }
   if (Math.abs(l.roll) < 1e-5) l.roll = 0;
   if (l.fov < 1e-3) l.fov = 0;
   return l;
+}
+
+// Alles van de camera-feel in één aanroep voor scene3d.js: snelheids-FOV (gamefeel.js), lean en drift-FOV.
+// Rolt de camera mee (cam.rotateZ) en geeft de extra FOV in graden. Niet in cutscenes (valid), niet te voet.
+export function stepCamFeel(l, cam, pv, valid, dt, fx) {
+  l.speedFov = stepFov(l.speedFov || 0, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, fx);
+  const kind = valid || !pv || pv.isBoat || pv.isHeli || pv.isPlane ? '' : pv.isBike || pv.isScooter ? 'bike' : 'car';
+  stepLean(l, kind, pv ? pv.angle : 0, pv ? pv.speed || 0 : 0, pv ? pv.slipAngle || 0 : 0, dt, fx);
+  if (l.roll) cam.rotateZ(-l.roll);
+  return l.speedFov + l.fov;
 }
