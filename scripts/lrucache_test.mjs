@@ -1,21 +1,32 @@
-// #658: de voertuig-geoCache is begrensd (LRU) i.p.v. onbegrensd.
-import fs from 'node:fs';
-import { LRUCache } from '../game/js/lrucache.js';
+// De LRU-cache met bovengrens en dispose-teller (#1040), zuiver.
+//   node scripts/lrucache_test.mjs
+import { createLru } from '../game/js/lrucache.js';
 
-let n = 0, fails = 0;
-const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
+let fails = 0, n = 0;
+const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log('FAIL', name, info); } };
 
-const c = new LRUCache(180);
-for (let i = 0; i < 500; i++) c.set('k' + i, { geo: i });
-ok(c.size === 180, 'cache blijft op 180 entries', c.size);
-ok(c.evictions === 320, 'de 320 oudste zijn eruit', c.evictions);
-ok(c.get('k0') === undefined && c.get('k499'), 'oudste weg, nieuwste erin');
-// recency: k100 opvragen houdt hem in leven
-const c2 = new LRUCache(3);
-c2.set('a', 1); c2.set('b', 2); c2.set('c', 3); c2.get('a'); c2.set('d', 4);
-ok(c2.get('b') === undefined && c2.get('a') === 1 && c2.get('d') === 4, 'recency klopt');
-console.log(`#658 meting geoCache: 500 unieke bodygeometrieën -> 180 in de cache (320 geëvict; was onbegrensd)`);
-const src = fs.readFileSync(new URL('../game/js/models3d_vehicles.js', import.meta.url), 'utf8');
-ok(/geoCache = new LRUCache\(180\)/.test(src), 'models3d_vehicles gebruikt de LRU');
-console.log(`${n - fails}/${n} lrucache`);
+{
+  const disposed = [];
+  const c = createLru(3, (v, k) => disposed.push(k));
+  for (const k of ['a', 'b', 'c']) c.set(k, { k });
+  ok(c.size === 3 && disposed.length === 0, 'tot de grens geen dispose');
+  c.get('a');   // a is nu het jongste, b het oudste
+  c.set('d', { k: 'd' });
+  ok(c.size === 3 && disposed.join() === 'b' && !c.has('b') && c.has('a'), 'het oudst gebruikte gaat eruit en krijgt een dispose', disposed.join());
+  c.set('a', { k: 'a2' });   // overschrijven telt niet als nieuw item
+  ok(c.size === 3 && disposed.length === 1 && c.get('a').k === 'a2', 'overschrijven verdringt niets');
+  for (let i = 0; i < 100; i++) c.set('x' + i, i);
+  ok(c.size === 3 && disposed.length === 101, 'na honderd inserts blijft de grootte op de grens', String(c.size));
+  ok(c.stats.evicted === disposed.length, 'de teller klopt met de dispose-aanroepen', `${c.stats.evicted} ${disposed.length}`);
+  const before = disposed.length;
+  c.clear();
+  ok(c.size === 0 && disposed.length === before + 3, 'clear dispoost wat nog in de cache stond');
+}
+{
+  const c = createLru(2, () => { throw new Error('kapot'); });
+  c.set(1, 1); c.set(2, 2); c.set(3, 3);
+  ok(c.size === 2 && c.stats.evicted === 1, 'een falende dispose breekt de cache niet');
+  ok(createLru(0).set('a', 1) === 1 && createLru(NaN).size === 0, 'een onzinnige grens wordt 1, geen fout');
+}
+console.log(fails ? `lrucache_test: ${fails} van ${n} mislukt` : `lrucache_test: ok (${n} controles)`);
 process.exit(fails ? 1 : 0);

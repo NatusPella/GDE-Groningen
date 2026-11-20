@@ -70,6 +70,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Sneller
 
+- **Minder geheugen (#1040):** de geluiden van het weer, vliegtuig en dieren worden na vijf minuten ongebruikt (of boven 48 MB samen) weer losgelaten en komen terug als je ze weer hoort; het spel laat tegels buiten het beeld eerder los en houdt minder tegels vast bij een lange rit; de borden van de bussen en de dorpen onthouden niet meer onbeperkt. Bewezen met pure tests (geheugengrenzen en terugladen); de uitkomst in MB staat in docs/PERF-HEAP-21-11.md.
+- **Korter laden bij een nieuw spel (#1040):** het laadscherm wachtte bij de stap Geluid steeds de volle vijf seconden, ook als de korte geluiden al klaarstonden; nu stopt het zodra ze geladen zijn. De filmlicht-shaders krijgen hoogstens 6 in plaats van 12 seconden; wat dan nog niet gelinkt is, linkt tijdens de eerste beelden.
+- **Geheugen in de technische info (#1040):** Ctrl+Shift+G toont nu ook de heap (nu, piek, bodem en trend per minuut), de geladen tegels, de gedecodeerde geluiden en het aantal texturen en geometrieën, zodat je een hoog geheugengebruik met cijfers kunt melden.
 - **Minder haperen tijdens het lopen en rijden (CPU-profiel):** de routegraaf en de wegen- en verkeersindex worden na elke nieuwe tegel opnieuw opgebouwd; die herbouw is nu goedkoper (gebouwtoets zonder kopieën, knooppunten als getal), en het gras gooit niet meer al zijn stukken weg zodra een tegel met groen binnenkomt.
 
 ### Opgelost

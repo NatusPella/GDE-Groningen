@@ -13,18 +13,19 @@ import { mountCockpitCss, COCKPIT_CLASS } from './cockpit.js';
 import { startBusShift } from './sidejobs.js';
 import { nearestLine, project } from './busroutes.js';
 import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopCard, roundDist, OPERATOR } from './busboard.js';
+import { createLru } from './lrucache.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
 // (hw + 0,02 = 1,295 m): dat was het flikkerende bord (#382). De buitenste deurlijst ligt op 1,301 m.
 const SIDE_OFF = 0.04;
 const FRONT_OFF = 0.07;         // voor de ruit (0,041 m) en de lampenstrook (0,051 m) van de voorkant
-const textures = new Map();
-const BOARD_TEX_MAX = 64;
+// begrensd (#1040): een rit door de provincie maakt een bord per lijn en bestemming; het oudste gaat eruit en wordt zo nodig opnieuw getekend
+const textures = createLru(64, (t) => t.dispose());
 
 function boardTexture(b) {
   let t = textures.get(b.key);
-  if (t) { textures.delete(b.key); textures.set(b.key, t); return t; }   // LRU: het laatst gebruikte bord achteraan
+  if (t) return t;
   const c = document.createElement('canvas');
   c.width = 128; c.height = 20;
   const g = c.getContext('2d');
@@ -45,8 +46,6 @@ function boardTexture(b) {
   t.minFilter = THREE.NearestFilter;
   t.colorSpace = THREE.SRGBColorSpace;
   textures.set(b.key, t);
-  // begrensd (#1040): een rit door de provincie maakt een bord per lijn en bestemming; het oudste gaat eruit en wordt zo nodig opnieuw getekend
-  if (textures.size > BOARD_TEX_MAX) { const k = textures.keys().next().value; textures.get(k).dispose(); textures.delete(k); }
   return t;
 }
 
