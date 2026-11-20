@@ -3,6 +3,7 @@
 // Dun gehouden: semantische markup, alle stijl in farm.css met alleen ds-tokens. De gegevens komen van boerderijHudStand (boerderijwereld.js);
 // dit bestand is alleen DOM en bepaalt niets over het spel. Afronden geeft een opspringend getal en het bestaande UI-geluid (sfxLinks.uiFx).
 import { sfxLinks } from './latehooks.js';
+import { icoon } from './icons.js';
 import { reducedMotion } from './motion.js';
 import { STATUS } from './farmstatus.js';
 
@@ -21,7 +22,7 @@ function bouw() {
   el.className = 'bd-hud ds-kaart';
   el.setAttribute('aria-label', 'Werk op het land');
   el.hidden = true;
-  el.innerHTML = '<header class="bd-hud__kop"><svg class="ds-icoon bd-hud__icoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>' +
+  el.innerHTML = '<header class="bd-hud__kop"><span class="bd-hud__icoon"></span>' +
     '<span class="bd-hud__taak ds-t-subkop"></span><span class="ds-chip bd-hud__veld"></span></header>' +
     '<div class="ds-streep bd-hud__voortgang" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Voortgang van de klus"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label"></span></div>' +
     '<div class="bd-hud__rij"><div class="bd-hud__snel"><span class="bd-hud__baan" aria-hidden="true"><span class="bd-hud__zone"></span><span class="bd-hud__naald"></span></span><span class="ds-t-hulp bd-hud__snelte"></span></div>' +
@@ -70,7 +71,7 @@ export function boerderijHudTik(dt, stand) {
   if (sl === sleutel) return;
   sleutel = sl;
   const st = STATUS[TAAK_STATUS[m.taakId]] || STATUS.braak;
-  refs.icoon.innerHTML = st.icoon;
+  refs.icoon.innerHTML = icoon(st.icoon, { cls: 'ds-icoon' });
   refs.taak.textContent = m.taak;
   refs.veld.textContent = m.veld || 'Geen veld';
   refs.veld.hidden = !m.veld;

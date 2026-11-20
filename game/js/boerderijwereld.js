@@ -23,7 +23,7 @@ import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as WT from './werktuigen.js';
 import * as W3 from './werktuigen3d.js';
-import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, zetActief, leverLading } from './boerderijlive.js';
+import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, wisVeldPositie, zetActief, leverLading } from './boerderijlive.js';
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
 import { sfxLinks } from './latehooks.js';
@@ -412,6 +412,29 @@ async function zoekVeld(w, id) {
   S.zoek.delete(id);
 }
 
+// Het veld wordt gezocht zodra je in de buurt komt, maar het water rond het veld staat dan soms nog niet in de kaart (beeldrun 20-11: de trekker zonk
+// in een sloot midden op de rijen). Daarom wordt de plek opnieuw gekeurd zodra je er echt bent: ligt er water op de rijen en is het veld nog onbewerkt,
+// dan vervalt de plek en zoekt het spel een andere (hoogstens HERZOEK_MAX keer per veld).
+const HERZOEK_MAX = 4, herzoek = new Map(), gekeurd = new Set();
+export function veldNatOpRijen(map, pos) {
+  try {
+    for (const r of akkerRijen({ x: pos.x, y: pos.y }, pos.a)) {
+      for (let l = -8; l <= r.len + 8; l += 3) if (isInWater(map, r.ax + r.ux * l, r.ay + r.uy * l)) return true;
+    }
+  } catch (e) { /* geen waterlaag: dan is het droog */ }
+  return false;
+}
+export function _herkeurVeld(w, id, pos) {
+  const sl = id + ':' + Math.round(pos.x) + ',' + Math.round(pos.y);
+  if (gekeurd.has(sl)) return false;
+  gekeurd.add(sl);
+  const b = getBoerderij();
+  if (!B.veldOnbewerkt(b, id) || (herzoek.get(id) || 0) >= HERZOEK_MAX || !veldNatOpRijen(w.map, pos)) return false;
+  herzoek.set(id, (herzoek.get(id) || 0) + 1);
+  wisVeldPositie(id);
+  return true;
+}
+
 // Het gras blijft van je akkers af: map.reservedAt (zoals bij het padel- en kermisterrein) houdt gras en rekwisieten weg van de rijen van je percelen, en de al
 // gemaakte gras-cellen eronder worden eenmalig weggegooid zodra het veld voor het eerst in beeld komt.
 function opEenVeld(x, y) {
@@ -575,7 +598,8 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
   if (stopMesh) { stopMesh.instanceMatrix.needsUpdate = true; group.add(stopMesh); }
   // de markering op de hoek van het veld: vlag in de kleur van de status, vorm bovenop, een lichtkolom bij oogstklaar
   const hoekPunt = { x: rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, y: rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4 };
-  const marker = maakVeldMarker(statusId, hoekPunt.x, hoekPunt.y, grond(w, hoekPunt.x, hoekPunt.y));
+  const groei = stand.fase === 'gezaaid' && g && Number.isFinite(stand.gezaaidOp) ? (uren - stand.gezaaidOp) / g.groeiUren : null;
+  const marker = maakVeldMarker(statusId, hoekPunt.x, hoekPunt.y, grond(w, hoekPunt.x, hoekPunt.y), groei);
   group.add(marker.group);
   sceneAdd(group);
   return { id, w, pos, rijen, group, cellen, planten, voren, vorenItems, stopMesh, stopItems, marker, sleutel: sv ? sv.sleutel : sleutelVan(b, id), werkRef: werk, vuil: false };
@@ -597,6 +621,7 @@ function syncVelden(w) {
       if (dist(p.x, p.y, x, y) < SPAWN_R + 150) zoekVeld(w, id);
       continue;
     }
+    if (dist(p.x, p.y, pos.x, pos.y) < SPAWN_R && !(S.werk && S.werk.id === id) && _herkeurVeld(w, id, pos)) continue;   // volgende beeld zoekt hij een droge plek
     const v = S.velden.get(id);
     const dichtbij = dist(p.x, p.y, pos.x, pos.y) < SPAWN_R;
     const key = sleutelVan(b, id);
@@ -767,7 +792,7 @@ function meldOogstklaar(w, b) {
     vorigeStand.set(id, nu);
     if (nu === 'rijp' && was && was !== 'rijp') {
       const v = B.veldStand(b, id), g = B.GEWASSEN[v.gewas];
-      bericht(w, `${g ? g.naam : 'Je gewas'} op ${PC.perceelDef(id).naam} is oogstklaar. Zoek de gele lichtkolom en oogst met de maaidorser.`, 6);
+      bericht(w, `${g ? g.naam : 'Je gewas'} op ${PC.perceelDef(id).naam} is oogstklaar. Zoek de lichtkolom en oogst met de maaidorser.`, 6);
       try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ }
     }
   }

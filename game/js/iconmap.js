@@ -57,6 +57,8 @@ export const ICON_MAP = {
   reuzenrad: 'circle-notch', krant: 'newspaper', bezorger: 'moped', bak: 'chef-hat', stempel: 'stamp',
   taart: 'cake', tandwiel: 'gear-six', anker: 'anchor-simple', idee: 'lightbulb', kookpot: 'cooking-pot',
   lopen: 'person-simple-walk', rennen: 'person-simple-run', bagage: 'backpack', hand: 'hand',
+  // Boerderij (#985): de zeven veldstanden (farmstatus.js), dezelfde taal als de gebiedstoestanden op de kaart
+  veld_braak: 'minus', veld_stoppel: 'hourglass', veld_geploegd: 'waves', veld_zaailing: 'plant', veld_groeiend: 'leaf', veld_bijna: 'grains', veld_rijp: 'flag-checkered',
   // Kaart en minikaart (20-11): de markers tekenen hun betekenis uit Phosphor (mapglyphs.js)
   schaar: 'scissors', burger: 'hamburger', stoel: 'armchair', spuit: 'spray-bottle', oplegger: 'truck-trailer', rechter: 'gavel',
   lagen: 'stack', podium: 'microphone-stage', studie: 'graduation-cap', promotie: 'megaphone', kaartje: 'ticket',

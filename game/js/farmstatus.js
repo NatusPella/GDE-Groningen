@@ -6,15 +6,15 @@ import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 
 // De statussen van een veld, in de volgorde van de lus: braak of stoppel, geploegd, zaailing, groeiend, bijna rijp, rijp.
-// icoon: pad in een 24x24-vak (lijnicoon). patroon: wat de kaart naast de kleur tekent (kleur is nooit de enige betekenis).
+// icoon: betekenisnaam uit iconmap.js (Phosphor, via icons.js). patroon: wat de kaart naast de kleur tekent (kleur is nooit de enige betekenis).
 export const STATUS = {
-  braak: { naam: 'Braak', kort: 'braak', volgende: 'ploegen', patroon: 'leeg', stap: 0, icoon: '<path d="M3 17h18M5 13h14M8 9h8"/>' },
-  stoppel: { naam: 'Stoppel', kort: 'gemaaid', volgende: 'ploegen', patroon: 'streep', stap: 0, icoon: '<path d="M4 20h16M6 20v-5M10 20v-6M14 20v-5M18 20v-6"/>' },
-  geploegd: { naam: 'Geploegd', kort: 'geploegd', volgende: 'zaaien', patroon: 'golf', stap: 1, icoon: '<path d="M3 8c3-2 6 2 9 0s6 2 9 0M3 13c3-2 6 2 9 0s6 2 9 0M3 18c3-2 6 2 9 0s6 2 9 0"/>' },
-  zaailing: { naam: 'Zaailing', kort: 'net gezaaid', volgende: null, patroon: 'stip', stap: 2, icoon: '<path d="M12 21v-6M12 15c0-3-2-5-5-5 0 3 2 5 5 5zM12 15c0-3 2-5 5-5 0 3-2 5-5 5z"/>' },
-  groeiend: { naam: 'Groeit', kort: 'groeit', volgende: null, patroon: 'stip', stap: 3, icoon: '<path d="M12 21v-9M12 12c0-3-2-5-5-5 0 3 2 5 5 5zM12 12c0-3 2-5 5-5 0 3-2 5-5 5zM12 7c0-2 1-4 3-5-1 2-1 4-3 5z"/>' },
-  bijna: { naam: 'Bijna rijp', kort: 'bijna rijp', volgende: null, patroon: 'stip', stap: 4, icoon: '<path d="M12 21V8M12 8l-3-3M12 8l3-3M12 13l-3-3M12 13l3-3M12 18l-3-3M12 18l3-3"/>' },
-  rijp: { naam: 'Oogstklaar', kort: 'oogstklaar', volgende: 'oogsten', patroon: 'ster', stap: 5, icoon: '<path d="M12 21V6M12 6l-3 3M12 6l3 3M12 11l-3 3M12 11l3 3M12 16l-3 3M12 16l3 3M7 3h10"/>' },
+  braak: { naam: 'Braak', kort: 'braak', volgende: 'ploegen', patroon: 'leeg', stap: 0, icoon: 'veld_braak' },
+  stoppel: { naam: 'Stoppel', kort: 'gemaaid', volgende: 'ploegen', patroon: 'streep', stap: 0, icoon: 'veld_stoppel' },
+  geploegd: { naam: 'Geploegd', kort: 'geploegd', volgende: 'zaaien', patroon: 'golf', stap: 1, icoon: 'veld_geploegd' },
+  zaailing: { naam: 'Zaailing', kort: 'net gezaaid', volgende: null, patroon: 'stip', stap: 2, icoon: 'veld_zaailing' },
+  groeiend: { naam: 'Groeit', kort: 'groeit', volgende: null, patroon: 'stip', stap: 3, icoon: 'veld_groeiend' },
+  bijna: { naam: 'Bijna rijp', kort: 'bijna rijp', volgende: null, patroon: 'stip', stap: 4, icoon: 'veld_bijna' },
+  rijp: { naam: 'Oogstklaar', kort: 'oogstklaar', volgende: 'oogsten', patroon: 'ster', stap: 5, icoon: 'veld_rijp' },
 };
 export const STATUS_IDS = Object.keys(STATUS);
 
@@ -70,11 +70,11 @@ export function veldenStatus(b) {
 
 // De lus als stappen voor de regelwidget (type 'stappen') en het paneel: braak/stoppel, ploegen, zaaien, groeien, oogsten, afleveren.
 export const LUS = [
-  { id: 'ploegen', label: 'Ploegen', icoon: 'pakje', stap: 0 },
-  { id: 'zaaien', label: 'Zaaien', icoon: 'pakje', stap: 1 },
-  { id: 'groeien', label: 'Groeien', icoon: 'pakje', stap: 2 },
-  { id: 'oogsten', label: 'Oogsten', icoon: 'pakje', stap: 4 },
-  { id: 'afleveren', label: 'Afleveren', icoon: 'pakje', stap: 5 },
+  { id: 'ploegen', label: 'Ploegen', icoon: 'veld_geploegd', stap: 0 },
+  { id: 'zaaien', label: 'Zaaien', icoon: 'veld_zaailing', stap: 1 },
+  { id: 'groeien', label: 'Groeien', icoon: 'veld_groeiend', stap: 2 },
+  { id: 'oogsten', label: 'Oogsten', icoon: 'oogst', stap: 4 },
+  { id: 'afleveren', label: 'Afleveren', icoon: 'tractor', stap: 5 },
 ];
 // Hoeveel stappen van de lus zijn gedaan voor dit veld (0 braak .. 4 geoogst, nog niet afgeleverd).
 export function lusKlaar(s, schuurKg = 0) {
@@ -94,19 +94,23 @@ export function watNu(s, schuurKg = 0) {
 }
 
 // De kaartstijl van een status: een naam uit INK (mapstyle.js), een lijnpatroon en een letter, zodat kleur nooit de enige betekenis is.
-// Eén accent: geel is alleen voor oogstklaar (het doel); de rest is groen, grijs of amber.
+// Dezelfde kleurtaal als de gebieden (eigenaar, 20-11): groen is klaar en in orde (oogstklaar, met een vlag), geel is bezig met een voortgang (het gewas groeit),
+// dof grijs is leeg (braak, stoppel) en room is geploegd. Kleur is nooit de enige betekenis: elke stand heeft ook een letter, een lijnpatroon en een icoon.
 export const KAART_STIJL = {
   braak: { vul: 'grey', rand: 'grey', letter: 'B', dash: [6, 5] },
-  stoppel: { vul: 'amber', rand: 'amber', letter: 'S', dash: [6, 5] },
+  stoppel: { vul: 'grey', rand: 'grey', letter: 'S', dash: [2, 4] },
   geploegd: { vul: 'cream', rand: 'cream', letter: 'P', dash: [] },
-  zaailing: { vul: 'greenLight', rand: 'greenLight', letter: 'Z', dash: [] },
-  groeiend: { vul: 'greenLight', rand: 'greenLight', letter: 'G', dash: [] },
-  bijna: { vul: 'green', rand: 'greenLight', letter: 'G', dash: [] },
-  rijp: { vul: 'yellow', rand: 'yellow', letter: 'O', dash: [] },
+  zaailing: { vul: 'yellow', rand: 'yellow', letter: 'Z', dash: [] },
+  groeiend: { vul: 'yellow', rand: 'yellow', letter: 'G', dash: [] },
+  bijna: { vul: 'yellow', rand: 'yellow', letter: 'G', dash: [] },
+  rijp: { vul: 'green', rand: 'greenLight', letter: 'O', dash: [] },
 };
 
+// Welke standen een groeibalk of voortgangsring krijgen (kaart, wereldmarkering): het gewas staat er (zaailing tot oogstklaar).
+export const GROEI_STANDEN = ['zaailing', 'groeiend', 'bijna', 'rijp'];
+
 // De kleur van de wereldmarkering per status (hex), dezelfde taal als de kaart.
-export const WERELD_KLEUR = { braak: 0x9a9488, stoppel: 0xc9a24f, geploegd: 0xe6dcc2, zaailing: 0x7fd99c, groeiend: 0x3fc97a, bijna: 0x1e9e56, rijp: 0xe8c93a };
+export const WERELD_KLEUR = { braak: 0x9a9488, stoppel: 0xb8ad8e, geploegd: 0xe6dcc2, zaailing: 0xf3e07a, groeiend: 0xe8c93a, bijna: 0xd2a72c, rijp: 0x2fb36a };
 
 // Compact voor Samen spelen: één byte per veld (statusindex 0..6 in de bovenste drie bits, gewasindex in de onderste vijf) en de groei in 1/255.
 export const GEWAS_INDEX = B.GEWAS_IDS;

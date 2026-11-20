@@ -129,6 +129,13 @@ export function zetVeldPositie(id, q) {
   return true;
 }
 
+// Een onbewerkt veld dat op water bleek te liggen (het water stond bij het zoeken nog niet in de kaart) krijgt een nieuwe plek: de oude vervalt.
+export function wisVeldPositie(id) {
+  const b = getBoerderij();
+  if (id === PC.START_PERCEEL) b.perceel = null; else delete b.posities[id];
+  markeer();
+}
+
 export function kiesGewas(gewas) {
   const ok = B.kiesGewas(getBoerderij(), gewas);
   if (ok) markeer();

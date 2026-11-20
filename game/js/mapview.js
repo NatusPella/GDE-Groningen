@@ -41,7 +41,7 @@ import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
-import { perceelMapSpots, eigenPerceelVlakken } from './perceelmap.js';
+import { perceelMapSpots, eigenPerceelVlakken, tekenVeldBadge } from './perceelmap.js';
 import { veldBij } from './percelen.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
@@ -1731,7 +1731,7 @@ function drawDynamicMarkers(ctx, world) {
     ctx.closePath();
     // #985: de kleur, het lijnpatroon en de letter volgen de status van het veld (perceelmap.js: veldStijl); zonder stijl blijft het groen
     const st = v.stijl || { vul: 'greenLight', rand: 'greenLight', dash: [], letter: '' };
-    ctx.fillStyle = inkA(st.vul, hoverVeld ? 0.3 : 0.18);
+    ctx.fillStyle = inkA(st.vul, hoverVeld ? 0.3 : (v.alpha || 0.18));
     ctx.fill();
     ctx.lineWidth = (hoverVeld ? 3.4 : 2.2) * Math.min(2, Math.max(1, state.zoom || 1));
     ctx.strokeStyle = inkA(st.rand, hoverVeld ? 1 : 0.85);
@@ -1882,7 +1882,7 @@ function drawDynamicMarkers(ctx, world) {
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
   const beppe = beppeMapSpot();
   if (beppe) icon(null, beppe.kind, beppe.x, beppe.y, beppe.name, {}, beppe.sub, { goal: beppe.goal, todo: beppe.todo });
-  for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y)) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
+  for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y) && !q.kind.startsWith('perceel-eigen')) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
   for (const e of getEierbalTips()) { if (onbekend(e.x, e.y)) continue; icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt'); }
 
   const c = world.companion;
@@ -1939,6 +1939,7 @@ function drawDynamicMarkers(ctx, world) {
   const strook = state.strook;
   const zichtbaar = strook ? queue.filter((q) => !pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)) : queue;
   const geplaatst = placeIcons(zichtbaar, iconGapPx(sc));
+  const scBasis = sc;
   // onthoud waar de pins staan (wereldcoördinaten, zodat de vaste laag ze bij elke
   // zoom opnieuw naar schermpunten kan omrekenen). #759: alleen de set pins (soort en
   // naam) maakt die laag vuil, niet de positie. In Samen spelen loopt de wereld achter
@@ -1952,7 +1953,11 @@ function drawDynamicMarkers(ctx, world) {
   else if (state.pinsPositieGebruikt !== state.pinsPosities && t * 1000 - state.pinsDirtyAt >= PIN_RECOMPOSE_MS) {
     state.dirty = true; state.pinsDirtyAt = t * 1000;
   }
+  // je eigen velden liggen bovenop alle andere pins en zijn ver uitgezoomd groter (circa 34 px), zodat je boerderij op de provinciekaart te vinden is (20-11)
+  const eigenPin = (q) => q.kind.startsWith('perceel-eigen');
+  geplaatst.sort((a, b) => eigenPin(a) - eigenPin(b));
   for (const q of geplaatst) {
+    const sc = eigenPin(q) && z < 2 ? scBasis * 1.65 : scBasis;
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     if (q.samen && q.samen.grijs) drawGrijs(ctx, () => drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts, alpha: ((q.opts && q.opts.alpha) ?? mapIconAlpha(q.kind, z)) * 0.6 })); // samen spelen: dit werkt nog niet samen (uitgegrijsd)
     else drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
@@ -1977,12 +1982,14 @@ function drawDynamicMarkers(ctx, world) {
 // points straight at the destination instead.
 // #985: de statusletter en het woord in het midden van je veld, zodat kleur nooit de enige betekenis is.
 function tekenVeldLabel(ctx, v, st, a, c, toScreen) {
-  const mx = (a[0] + c[0]) / 2, my = (a[1] + c[1]) / 2;
+  // de label staat bij de hoek met de vlag (het eerste punt), want in het midden liggen vaak je machines
+  const mx = a[0] + (c[0] - a[0]) * 0.34, my = a[1] + (c[1] - a[1]) * 0.34;
   const px = 11 * Math.min(1.6, Math.max(1, state.zoom || 1));
   ctx.font = `700 ${px}px 'Bebas Neue', sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.lineWidth = 3; ctx.strokeStyle = inkA('dark', 0.85); ctx.strokeText(st.letter, mx, my);
   ctx.fillStyle = inkA(st.vul, 1); ctx.fillText(st.letter, mx, my);
+  tekenVeldBadge(ctx, mx, my - px * 1.35, px * 0.95, v);   // het icoon van de stand, met een ring voor de groei (20-11)
   if (v.statusNaam && (state.zoom || 1) >= 1.2) { ctx.font = `600 ${Math.round(px * 0.8)}px sans-serif`; ctx.strokeText(v.statusNaam, mx, my + px); ctx.fillStyle = inkA('cream', 1); ctx.fillText(v.statusNaam, mx, my + px); }
 }
 
@@ -2613,7 +2620,7 @@ const LEGEND = [
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
     { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou (met omtrek en hover); klik voor een doel', layers: ['percelen'] },
-    { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (geel: dat is je doel); T is een machine van jou' },
+    { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (groen met een vlag: dat is je doel; geel: het gewas groeit); T is een machine van jou', layers: ['percelen'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
   ] },
   { group: 'Diensten', folded: true, rows: [

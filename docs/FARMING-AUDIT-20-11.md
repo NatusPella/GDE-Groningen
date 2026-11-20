@@ -49,7 +49,7 @@ veldstanden overal (`farmstatus.js`): *braak, stoppel, geploegd, zaailing, groei
 **Consequentie eerst.** Het paneel opent met "Nu: Oogsten" of "Nu: Ploegen" (wat moet er, en waar), dan pas de details. Een klus zonder werktuig zegt wat er mist
 ("Nog nodig: hef omlaag (T)"). Geld en opbrengst zijn per speler (#429): de boerderij leeft in de opslag van de speler zelf.
 
-**Eén accent.** Geel is alleen oogstklaar (het doel): in de wereld de lichtkolom, op de kaart het geel vlak met letter O, in het paneel de ene hoofdknop. Selectie is bordgroen
+**Kleurtaal (herzien 20-11, zelfde palet als de gebieden).** Groen is oogstklaar (het doel, met een vlag): in de wereld de lichtkolom, op de kaart het groene vlak met letter O; geel is bezig (zaailing, groeit, bijna rijp, met voortgang); dof grijs is leeg (braak, stoppel). In het paneel blijft de ene hoofdknop geel (de knop van het designsysteem). Selectie is bordgroen
 (designbesluit 20-11). Kleur is nooit de enige betekenis: elke stand heeft een icoon, een woord, een letter op de kaart, een lijnpatroon (streepjes voor braak en stoppel) en
 een eigen vorm bovenop de veldmarkering.
 

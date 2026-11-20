@@ -56,6 +56,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [DIALECT-CONTROLE.md](<DIALECT-CONTROLE.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [EIGENAAR-ACTIELIJST.md](<EIGENAAR-ACTIELIJST.md>) | Eén blok per eigenaar-issue: wat de eigenaar doet, wat er in de repo klaarstaat en wat een agent niet mag of kan. |
 | [FARMING-AUDIT-20-11.md](<FARMING-AUDIT-20-11.md>) | Werkdocument bij de feedback van de eigenaar: audit van de boerderij (schermen, HUD, kaart, wereld), het ontwerp van de lus en de veldstanden, wat er is gebouwd en wat niet (#985, #980). |
+| [FARMING-SPEELRONDE-20-11.md](<FARMING-SPEELRONDE-20-11.md>) | Verslag van een speelronde over de hele boerderijlus (beeldbank, 1280x720): wat is gefixt (water op de rijen, dubbele kaart, HUD-overlap, toestand per veld, pin ver uitgezoomd), wat niet en wat niet gezien is (#985, #980). |
 | [LIGHT-SIMS-AUDIT-20-11.md](<LIGHT-SIMS-AUDIT-20-11.md>) | Werkdocument bij de feedback van de eigenaar over de light sims: inventaris en keuze van vijf (hengelen eerst), per sim de audit, wat er is gebouwd (gedeelde HUD-strook, wereldfeedback, uitleg) en wat niet (#985, #980). |
 | [GEBIEDEN.md](<GEBIEDEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/w… |
 | [GELUID.md](<GELUID.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
@@ -84,6 +85,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-LAADHANG-0.56.1.md](<PERF-LAADHANG-0.56.1.md>) | Onderzoek naar de melding dat 0.56.1 op sommige machines in het laadscherm bleef |
 | [LAAD-STREAMING-LOD.md](<LAAD-STREAMING-LOD.md>) | Wat er tijdens laadschermen en daarbuiten gebeurt: fasen, streaming, LOD-ringen, vergelijking met 0.54.0 en bevindingen. |
 | [PERF-TREND-0.54-NAAR-NU.md](<PERF-TREND-0.54-NAAR-NU.md>) | Prestatietrend sinds 0.54.0: tijdlijn per tag, statische maten en vaste opwarmbudgetten. |
+| [UI-INVENTARIS-OUD-20-11.md](<UI-INVENTARIS-OUD-20-11.md>) | Naslag (#985, 20-11). Welke schermen buiten het menu nog donker glas en oude lettertypen droegen, wat is omgezet naar de zeefdruk en wat bewust blijft. |
 | [ZFIGHT-METING.md](<ZFIGHT-METING.md>) | Meting van z-fighting (#917, #919): dieptestap per afstand en near, positieve controle, wisselpixels per plek bij near 0,5, 1,5 en 2,5, en het besluit over het dynamische near. |
 | [PERF-PLEISTERS.md](<PERF-PLEISTERS.md>) | Inventaris van prestatie-pleisters sinds 0.54.0 (schadelijk, maskerend, legitiem) met oorzaken en een schrapvolgorde. |
 | [PERF-METING-2026-10-19.md](<PERF-METING-2026-10-19.md>) | Dit is de actuele meetbron voor prestaties (zie `.specs-fire/standards/mechanica.md`, |

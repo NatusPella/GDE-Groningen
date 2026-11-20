@@ -3,12 +3,14 @@
 
 /* ---- HUD-strook tijdens het werk (zone C, net als het paneel van een activiteit) ---- */
 .bd-hud.ds-kaart { position: fixed;   /* twee klassen: wint van .ds-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
-  left: 50%; bottom: max(19vh, calc(var(--ds-s-8) * 2.5)); font-family: var(--ds-font-tekst); transform: translateX(-50%); z-index: 6; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6)));
+  /* de vrije band onderin tussen de straatnaamkaart (links) en de snelheidsmeter (rechts); het doel van de missie boven het scherm blijft zichtbaar (beeldrun 20-11: de strook lag erover) */
+  left: 43.8vw; bottom: max(2vh, var(--ds-s-4)); font-family: var(--ds-font-tekst); z-index: 6; box-sizing: border-box; width: clamp(calc(var(--ds-s-8) * 4.5), 28vw, calc(var(--ds-s-8) * 8)); max-width: calc(100vw - var(--ds-s-6));
   gap: var(--ds-s-2); pointer-events: none; }
 .bd-hud[hidden], .bd-hud [hidden] { display: none; }   /* ds-streep is flex en zou het hidden-attribuut anders overrulen */
 .bd-hud__kop { display: flex; align-items: center; gap: var(--ds-s-3); }
 .bd-hud__taak { flex: 1; }
 .bd-hud__rij { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); align-items: center; }
+@media (max-width: 1500px) { .bd-hud__rij { grid-template-columns: 1fr; } }   /* in de smalle band onderin staan snelheid en diesel onder elkaar */
 .bd-hud__snel { display: flex; flex-direction: column; gap: var(--ds-s-1); }
 .bd-hud__baan { position: relative; display: block; height: var(--ds-s-2); border-radius: var(--ds-r-pil); background: var(--ds-bg-2); overflow: hidden; }
 .bd-hud__zone { position: absolute; top: 0; bottom: 0; left: var(--a, 0%); width: calc(var(--b, 0%) - var(--a, 0%)); background: var(--ds-succes); }
@@ -31,9 +33,9 @@
 .bd-pane .ds-kaart .bd-veld__nu { color: var(--ds-tx); }
 .bd-velden { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 4), 1fr)); gap: var(--ds-s-3); }
 .bd-veld { gap: var(--ds-s-2); }
-.bd-veld[data-status="rijp"] { --ds-kaart-rand: var(--ds-primair); }
+.bd-veld[data-status="rijp"] { --ds-kaart-rand: var(--ds-succes); }
 .bd-veld[data-status="braak"], .bd-veld[data-status="stoppel"] { --ds-kaart-rand: var(--ds-rand); }
-.bd-veld[data-status="zaailing"], .bd-veld[data-status="groeiend"], .bd-veld[data-status="bijna"] { --ds-kaart-rand: var(--ds-succes); }
+.bd-veld[data-status="zaailing"], .bd-veld[data-status="groeiend"], .bd-veld[data-status="bijna"] { --ds-kaart-rand: var(--ds-primair); }
 .bd-veld[data-status="geploegd"] { --ds-kaart-rand: var(--ds-waarschuwing); }
 .bd-veld__nu { margin: 0; }
 .bd-lus { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); list-style: none; margin: 0; padding: 0; }

@@ -3,8 +3,9 @@
 import { getBoerderij } from './boerderijlive.js';
 import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
-import { INK } from './mapstyle.js';
-import { veldStatus, KAART_STIJL, watNu, machinePlekken } from './farmstatus.js';
+import { INK, inkA } from './mapstyle.js';
+import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken } from './farmstatus.js';
+import { iconInner } from './icons.js';
 
 const pos = new Map();
 const wereld = (p) => { let q = pos.get(p.id); if (!q) { q = wgsToWorld(p.lat, p.lon); pos.set(p.id, q); } return q; };
@@ -28,6 +29,43 @@ const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'per
 const STATUS_KIND = /^perceel-eigen-([a-z]+)$/;
 const MACHINE_KIND = 'perceel-machine';
 
+// De vulling van een veld op de kaart: een leeg veld rustig, een groeiend gewas steeds voller, oogstklaar het volst (het doel).
+export function vulAlpha(st) {
+  if (!GROEI_STANDEN.includes(st.statusId)) return 0.14;
+  return st.statusId === 'rijp' ? 0.36 : 0.16 + 0.16 * Math.max(0, Math.min(1, st.groei || 0));
+}
+
+const ikonPaden = new Map();
+// Een Phosphor-icoon (icons.js, bold) gecentreerd op (x, y) met zijde `maat` in canvaspixels; zonder Path2D (node, tests) gebeurt er niets.
+function tekenPhosphor(ctx, naam, x, y, maat, kleur) {
+  if (typeof Path2D === 'undefined' || !naam) return;
+  let lijst = ikonPaden.get(naam);
+  if (!lijst) { lijst = [...iconInner(naam, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); ikonPaden.set(naam, lijst); }
+  const k = maat / 256;
+  ctx.save();
+  ctx.translate(x - 128 * k, y - 128 * k); ctx.scale(k, k);
+  ctx.fillStyle = kleur;
+  for (const q of lijst) ctx.fill(q);
+  ctx.restore();
+}
+// Het statusicoon (Phosphor, icons.js) in een schijf met, bij een gewas dat groeit, een voortgangsring: ring vol = oogstklaar. Alleen canvas;
+// zonder Path2D (node, tests) blijft het bij de schijf en de ring. r is de straal in schermpixels, groei 0..1 of null.
+export function tekenVeldBadge(ctx, x, y, r, v) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = INK.dark; ctx.globalAlpha = 0.82; ctx.fill(); ctx.globalAlpha = 1;
+  const stijl = v.stijl || {};
+  if (v.groei != null) {
+    ctx.lineWidth = Math.max(2, r * 0.28); ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = INK.cream; ctx.globalAlpha = 0.3; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.03, Math.min(1, v.groei))); ctx.strokeStyle = INK[stijl.vul] || INK.greenLight; ctx.stroke();
+  } else {
+    ctx.lineWidth = Math.max(1.5, r * 0.16); ctx.setLineDash(stijl.dash || []); ctx.strokeStyle = INK[stijl.rand] || INK.cream;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  }
+  tekenPhosphor(ctx, v.icoon, x, y, r * 1.15, INK.cream);
+  ctx.restore();
+}
+
 // #972: de percelen die van jou zijn, als vlak met een duidelijke omtrek op de grote kaart.
 // Alleen eigen grond: aangeboden akkers blijven een pictogram, anders wordt de kaart vol.
 export function eigenPerceelVlakken() {
@@ -43,6 +81,8 @@ export function eigenPerceelVlakken() {
     out.push({
       id: p.id, naam: p.naam, soort: p.soort, ha: p.ha, bodem: p.bodem, punten, x, y,
       stijl: KAART_STIJL[st.statusId], statusNaam: st.klaar ? 'Oogstklaar' : st.status, statusId: st.statusId,
+      // de vulling groeit met het gewas mee (zoals bij een gebied dat je aan het veroveren bent); ring en icoon staan in tekenVeldBadge
+      icoon: st.icoon, groei: GROEI_STANDEN.includes(st.statusId) ? st.groei : null, alpha: vulAlpha(st),
       sub: `${p.soort === 'weiland' ? 'Weiland' : 'Akker'} · ${p.ha} ha · ${st.klaar ? 'oogstklaar' : st.kort} · nu: ${watNu(st, b.schuur.kg || 0).toLowerCase()}`,
     });
   }
@@ -59,6 +99,17 @@ export function drawPerceelMapIcon(ctx, kind, s) {
   }
   const m = STATUS_KIND.exec(kind);
   const stijl = m ? KAART_STIJL[m[1]] : null;
+  if (stijl) {   // je veld: een schijf met een schuur (Phosphor) in de kleur van de stand, de rand in het lijnpatroon van de stand en de letter van de stand (20-11)
+    const r = 5 * s;
+    ctx.save(); ctx.shadowColor = inkA('dark', 0.6); ctx.shadowBlur = 3 * s; ctx.shadowOffsetY = 0.8 * s;   // witte rand en schaduw: de pin valt op tussen andere pictogrammen
+    ctx.beginPath(); ctx.arc(0, 0, r + 1.3 * s, 0, Math.PI * 2); ctx.fillStyle = INK.white; ctx.fill(); ctx.restore();
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = INK[stijl.vul] || INK.greenLight; ctx.fill();
+    ctx.lineWidth = 1.5 * s; ctx.strokeStyle = INK.dark; ctx.setLineDash((stijl.dash || []).map((d) => d * s * 0.45)); ctx.stroke(); ctx.setLineDash([]);
+    tekenPhosphor(ctx, 'boerderij', 0, -0.4 * s, 6.6 * s, stijl.vul === 'green' ? INK.cream : INK.dark);
+    ctx.beginPath(); ctx.arc(3.7 * s, 3.7 * s, 2.5 * s, 0, Math.PI * 2); ctx.fillStyle = INK.dark; ctx.fill();
+    ctx.font = `700 ${3.8 * s}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = INK.cream; ctx.fillText(stijl.letter, 3.7 * s, 3.9 * s);
+    return true;
+  }
   const kleur = stijl ? INK[stijl.vul] : KLEUR[m ? 'perceel-eigen' : kind];
   if (!kleur) return false;
   ctx.beginPath();
