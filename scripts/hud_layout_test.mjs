@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { uiScaleFor, hudViewport, hudEdge, READABLE_MIN, contrast, HUD_CARD_BG, TEXT_CONTRAST, GRAPHIC_CONTRAST, EDGE_MIN, EDGE_MAX } from '../game/js/hudlook.js';
+import { uiScaleFor, hudViewport, hudEdge, READABLE_MIN, contrast, HUD_CARD_BG, HUD_PLAAT_BG, HUD_PLAAT_INKT, RUSTIG_CONTRAST, TEXT_CONTRAST, GRAPHIC_CONTRAST, EDGE_MIN, EDGE_MAX } from '../game/js/hudlook.js';
 import { PALETTES } from '../game/js/a11y.js';
 
 let fails = 0;
@@ -71,6 +71,7 @@ ok(/\.ach-toast \{[^}]*top: auto; bottom: calc\(var\(--mm-bottom, 46px\) \+ var\
 
 // contrast on the HUD card for every palette: signal colours are graphics (3:1), the text colour is text (4.5:1)
 ok(contrast('#f0ede4', HUD_CARD_BG) >= TEXT_CONTRAST, 'HUD-tekst op de kaart');
+ok(contrast(HUD_PLAAT_INKT, HUD_PLAAT_BG) >= RUSTIG_CONTRAST, 'HUD-inkt op het papieren plaatje haalt de Rustig-drukwerknorm');
 for (const [mode, p] of Object.entries(PALETTES)) {
   for (const k of ['ok', 'danger', 'mission', 'missionActive']) ok(contrast(p[k], HUD_CARD_BG) >= GRAPHIC_CONTRAST, `${mode}: ${k} op de HUD-kaart`, contrast(p[k], HUD_CARD_BG));
 }

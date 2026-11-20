@@ -92,3 +92,20 @@ export function buildLines(kind, lead, tips) {
   for (const t of tips) lines.push(['Wist je dat', t]);
   return lines;
 }
+
+// The load screen's real steps in words (#1002), like BOOT_PHASES for the boot bar: the bar
+// (0..1, from stepProgress) says how far, the step says what the wait is for. Pure.
+export const LOAD_STEPS = [
+  { from: 0, id: 'plek', label: 'De plek wordt klaargezet' },
+  { from: 0.25, id: 'gebouwen', label: 'Gebouwen en straten komen binnen' },
+  { from: 0.6, id: 'tegels', label: 'De tegels rond je worden gelegd' },
+  { from: 0.9, id: 'bijna', label: 'Bijna klaar: de buurt wordt gladgestreken' },
+];
+export const SNEL_STEP = { id: 'snel', label: 'De buurt wordt ingeladen' };
+export function loadStepAt(bar, kind = 'travel') {
+  if (kind === 'snel') return SNEL_STEP;
+  const p = Math.max(0, Math.min(1, Number.isFinite(bar) ? bar : 0));
+  let step = LOAD_STEPS[0];
+  for (const s of LOAD_STEPS) if (p >= s.from) step = s;
+  return step;
+}

@@ -98,7 +98,7 @@ function polyline(pts) {
 // --- styling -----------------------------------------------------------------
 
 const CSS = `
-#intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; opacity: 0; transition: opacity 0.3s; }
+#intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: #f3ead3; opacity: 0; transition: opacity 0.3s; }
 #intro-montage.on { opacity: 1; }
 #intro-montage > div { position: absolute; inset: 0; }
 #intro-montage .im-grade { background: linear-gradient(160deg, rgba(0, 150, 170, 0.22) 0%, rgba(0, 0, 0, 0) 45%, rgba(255, 128, 40, 0.2) 100%); mix-blend-mode: soft-light; }
@@ -115,27 +115,27 @@ const CSS = `
 #intro-montage .im-flash { background: #fff6e6; opacity: 0; }
 #intro-montage .im-flash.go { animation: im-flash 0.28s ease-out; }
 @keyframes im-flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
-#intro-montage .im-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 0 3px 24px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.8); }
+#intro-montage .im-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 3px 3px 0 #e8505b; }
 #intro-montage .im-card .im-tagline { margin-top: 14px; font-size: clamp(22px, 2.8vw, 38px); letter-spacing: 1px; }
 #intro-montage .im-card .im-tagline + .im-kicker { margin-top: 10px; }
 #intro-montage .im-card.on { animation: im-card-in 2.4s cubic-bezier(0.15, 0.7, 0.2, 1) forwards; }
 @keyframes im-card-in { 0% { opacity: 0; transform: scale(1.18); letter-spacing: 0.02em; } 18% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; transform: scale(1); letter-spacing: 0.12em; } }
-#intro-montage .im-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: #3fc97a; text-transform: uppercase; margin-bottom: 6px; }
-#intro-montage .im-title { font-size: clamp(56px, 11vw, 160px); line-height: 0.9; text-transform: uppercase; text-shadow: 0 0 40px rgba(63, 201, 122, 0.25); }
-#intro-montage .im-title .amp { color: #3fc97a; }
+#intro-montage .im-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: #f3ead3; text-transform: uppercase; margin-bottom: 6px; }
+#intro-montage .im-title { font-size: clamp(56px, 11vw, 160px); line-height: 0.9; text-transform: uppercase; text-shadow: 3px 3px 0 #e8505b; }
+#intro-montage .im-title .amp { color: #e8505b; }
 #intro-montage .im-card .gde-logo { font-size: clamp(110px, 19vw, 230px); text-shadow: none; }
-#intro-montage .im-lower { top: auto; bottom: calc(11vh + 6vh); left: 6vw; right: auto; opacity: 0; transform: translateX(-30px); transition: opacity 0.5s, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8); }
+#intro-montage .im-lower { top: auto; bottom: calc(11vh + 6vh); left: 6vw; right: auto; opacity: 0; transform: translateX(-30px); transition: opacity 0.5s, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 2px 2px 0 #1d1b17; }
 #intro-montage .im-lower.on { opacity: 1; transform: none; }
 #intro-montage .im-lower .im-title { font-size: clamp(48px, 8vw, 110px); }
-#intro-montage .im-lower .im-title::after { content: ''; display: block; width: 130px; height: 4px; margin-top: 10px; background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 14px rgba(63, 201, 122, 0.45); }
-#intro-montage .im-cap { top: calc(11vh + 3.5vh); left: 6vw; right: auto; bottom: auto; max-width: min(70vw, 760px); opacity: 0; transform: translateY(-10px); transition: opacity 0.6s, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85); }
+#intro-montage .im-lower .im-title::after { content: ''; display: block; width: 130px; height: 4px; margin-top: 10px; background: #f9c80e; border: 2px solid #1d1b17; box-shadow: 3px 3px 0 #e8505b; }
+#intro-montage .im-cap { top: calc(11vh + 3.5vh); left: 6vw; right: auto; bottom: auto; max-width: min(70vw, 760px); opacity: 0; transform: translateY(-10px); transition: opacity 0.6s, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 2px 2px 0 #1d1b17; }
 #intro-montage .im-cap.on { opacity: 1; transform: none; }
-#intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: #3fc97a; }
+#intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: #f3ead3; }
 #intro-montage .im-cap span { display: block; margin-top: 2px; font-size: clamp(26px, 3.2vw, 44px); line-height: 1; letter-spacing: 1px; }
-#intro-montage .im-lower .im-role { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(18px, 2vw, 28px); letter-spacing: 0.4px; margin-top: 8px; max-width: min(70vw, 640px); color: rgba(240, 237, 228, 0.92); }
-#intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+#intro-montage .im-lower .im-role { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(18px, 2vw, 28px); letter-spacing: 0.4px; margin-top: 8px; max-width: min(70vw, 640px); color: rgba(243,234,211, 0.92); }
+#intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 2px 2px 0 #1d1b17; }
 #intro-montage .im-sub.on { opacity: 1; }
-#intro-montage .im-sub b { color: #3fc97a; margin-right: 6px; }
+#intro-montage .im-sub b { color: #f3ead3; margin-right: 6px; }
 /* De kleurcorrectie van de montage zit in de im-grade-overlay; een CSS-filter op het WebGL-canvas kost op de echte GPU meetbaar fps (intro 5->11 fps bij 0 s, 11->28 fps bij 25 s). */
 
 `;
