@@ -4,7 +4,8 @@
 // Run on the player path: --url-flags=noattract,warm (without --stil for load time).
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 for (let i = 0; i < 1800 && !document.body.classList.contains('game-started'); i++) await sleep(100);
-const t0 = performance.now();
+const t0 = performance.now(); // laadtijd tot game-started (ms sinds navigatie)
+const bootMs = Math.round(t0);
 const marks = JSON.parse(JSON.stringify(window.__loadMarks || {}));
 const AT = (window.__progAt || [0, 15, 17, 19, 24, 27, 40, 70, 100]).map((s) => s * 1000);
 const frames = []; // [t since start, dt]
@@ -38,7 +39,7 @@ const snap = () => {
   });
   return { count: progs.length, linked: list.filter((l) => l.ok).length, heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, parallel: r.extensions.has('KHR_parallel_shader_compile'), list };
 };
-const out = { marks, snaps: [] };
+const out = { marks, bootMs, snaps: [] };
 for (const a of AT) {
   const wait = t0 + a - performance.now();
   if (wait > 0) await sleep(wait);

@@ -133,7 +133,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, programsPending, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { setHoldGrass } from './grass.js';
@@ -286,6 +286,7 @@ const START_WARM_MAX_FRAME_MS = 50;
 // gespreid (tegels vastgehouden, gebouwen en gras per frame begroot) en kost geen laadscherm.
 const WARM_BOOT_MS = 15000;
 const INTRO_WARM_MS = 8000;
+const FILM_LICHT_MS = 12000; // hoogstens zo lang wachten tot de programma's van de filmlichtstand gelinkt zijn
 const INTRO_TOUR_MS = 4500;
 const INTRO_TOUR_SPOT_MS = 700;
 
@@ -517,7 +518,17 @@ function waitForStart(world, ready) {
     }
     if (window.__loadMarks) window.__loadMarks.startWarm = Math.round(performance.now() - t0);
     setLoadingStatus('De shaders worden klaargezet');
-    const compiled = precompilePrograms();
+    // Nieuw spel: de film volgt meteen. Zijn nacht- en dageraadlicht (de lichtset aan) linkte tot nu toe pas bij de cuts,
+    // synchroon (40 tot 132 programma's, haperingen van 360 tot 1133 ms). Liever langer laden dan haperen (besluit eigenaar
+    // 20-11, #985): compileer de scène ook in de andere lichtstand en wacht tot alles gelinkt is, hoogstens FILM_LICHT_MS.
+    // Een opgeslagen spel heeft geen film en betaalt dit niet; ?perfoff=filmlicht zet het uit voor een A/B-meting.
+    const metFilm = !world.loadedFromSave;
+    const compiled = precompilePrograms({ filmLicht: metFilm });
+    if (metFilm) {
+      const tLicht = performance.now();
+      while (performance.now() - tLicht < FILM_LICHT_MS && programsPending() > 0) await yieldToPaint();
+      if (window.__loadMarks) window.__loadMarks.filmLicht = Math.round(performance.now() - tLicht);
+    }
     if (window.__loadMarks) {
       window.__loadMarks.shaders = Math.round(compiled);
       window.__loadMarks.warmWorstFrame = Math.round(worst);
