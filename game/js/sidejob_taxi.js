@@ -279,7 +279,8 @@ function groundAt(map, x, y) {
 // De strook onderin en de lichtkolom boven het doel (#985): elke beeld de stand van de rit naar het pure model (taxistatus.js). Alleen voor de eigen dienst.
 function zetTaxiStrook(c, inTaxi, speed) {
   const d = c.data, v = c.vehicle;
-  if (c.owner || !d.fare || !v || !d.from || !d.to) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!d.fare || !v || !d.from || !d.to) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const ophalen = d.phase === 'pickup';
   const doel = ophalen ? (d.ped && pedAlive(c.world, d.ped) ? d.ped : d.from.walk) : d.to.road;
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('taxikolom'));

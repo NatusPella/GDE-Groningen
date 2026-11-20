@@ -229,7 +229,8 @@ export default {
 // De strook onderin en de lichtkolom boven het volgende doel (#985): elke beeld de stand uit de tocht naar het pure model (rondvaartstatus.js). Alleen voor de eigen dienst.
 function zetRondvaartStrook(c, onBoat, speed) {
   const d = c.data, leg = d.legInfo, v = c.vehicle;
-  if (c.owner || !leg || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!leg || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const next = d.boarded ? d.sights.find((s) => !s.done && !s.missed) : null;
   const doelPunt = !d.boarded ? LINE[leg.from.i] : next ? LINE[next.i] : LINE[leg.to.i];
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('rondvaartkolom'));

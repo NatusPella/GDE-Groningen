@@ -323,7 +323,8 @@ function groundAt(map, x, y) {
 // De strook onderin en de lichtkolom boven de volgende halte (#985): elke beeld de stand van het rondje naar het pure model (busstatus.js). Alleen voor de eigen dienst.
 function zetBusStrook(c, stop, late, speed) {
   const d = c.data, v = c.vehicle;
-  if (c.owner || !stop || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!stop || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('buskolom'));
   zetSimKolom(d.kolom, { x: stop.x, y: stop.y }, groundAt(c.world.map, stop.x, stop.y), c.world.time || 0, reducedMotion());
   const n = d.stops.length;

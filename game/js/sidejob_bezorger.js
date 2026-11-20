@@ -325,7 +325,8 @@ export default {
 // De strook onderin en de lichtkolom boven het volgende doel (#985): elke beeld de stand uit de bestelling naar het pure model (bezorgstatus.js). Alleen voor de eigen dienst.
 function zetBezorgStrook(c, p) {
   const d = c.data, o = d.order;
-  if (c.owner || !o || !d.phase) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!o || !d.phase) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const doel = d.phase === 'pickup' ? o.zaak.door : o.door;
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('bezorgkolom'));
   const grond = c.world.map.elev && c.world.map.elev.has ? c.world.map.groundHeightAt(doel.x, doel.y, 0) : 0;

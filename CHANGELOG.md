@@ -17,7 +17,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Opgelost
 
-- **Samen spelen: een bijbaan van een medespeler stoort jouw scherm niet meer.** Rijdt, vaart of bezorgt een medespeler in jouw spel, dan blijven jouw lichte strook onderin en je uitlegvlag ongemoeid.
+- **Samen spelen: een bijbaan van een medespeler stoort jouw scherm niet meer.** Rijdt, vaart of bezorgt een medespeler in jouw spel, dan blijven jouw lichte strook onderin en je uitlegvlag ongemoeid, ook als je zelf tegelijk een baan rijdt: de baan van de ander maakt jouw strook niet meer leeg.
 - **Samen spelen: geen spookvelden meer na afloop.** Zodra een sessie voorbij is, verdwijnen de velden van de ander uit jouw wereld.
 
 ## [0.64.0] - 2026-11-20
