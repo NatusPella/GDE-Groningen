@@ -56,7 +56,9 @@ const CSS = `
 #pause-menu .pa-next-acts { align-self: flex-start; }
 #pause-menu .pa-next-acts .ds-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 #pause-menu .pa-hero { margin: 0 24px 14px; flex: none; }
-#pause-menu .pa-hero .ds-kaart__tekst { max-width: 640px; }
+#pause-menu .pa-hero { gap: var(--ds-s-2); }
+#pause-menu .pa-hero-rij { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-6); }
+#pause-menu .pa-hero .ds-kaart__tekst { flex: 1 1 320px; max-width: 640px; margin: 0; }
 #pause-menu .pa-hero-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-6); }
 #pause-menu .pa-hero-cijfers .ds-cijfer__waarde { font-size: var(--ds-t-subkop); }
 `;
@@ -244,9 +246,9 @@ function heroHtml(sum, near, verborgen) {
   const cijfer = (n, woord) => `<span class="ds-cijfer"><span class="ds-cijfer__waarde">${n}</span><span class="ds-cijfer__eenheid">${woord}</span></span>`;
   return '<section class="ds-papier ds-kaart ds-kaart--kop pa-hero" aria-label="Prestaties">' +
     `<div class="ds-kaart__kop"><span class="ds-kaart__titel">Prestaties</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${Math.round(pct)}%`)}</div>` +
-    `<p class="ds-kaart__tekst">${esc(lead)}</p>` +
-    streep(pct, `${sum.done} van ${sum.total} behaald`, true) +
-    '<div class="pa-hero-cijfers">' + cijfer(sum.done, 'behaald') + cijfer(teGaan, 'nog te gaan') + cijfer(near.length, 'bijna binnen') + cijfer(verborgen, 'nog geheim') + '</div></section>';
+    '<div class="pa-hero-rij">' + `<p class="ds-kaart__tekst">${esc(lead)}</p>` +
+    '<div class="pa-hero-cijfers">' + cijfer(sum.done, 'behaald') + cijfer(teGaan, 'nog te gaan') + cijfer(near.length, 'bijna binnen') + cijfer(verborgen, 'nog geheim') + '</div></div>' +
+    streep(pct, `${sum.done} van ${sum.total} behaald`, true) + '</section>';
 }
 
 export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
