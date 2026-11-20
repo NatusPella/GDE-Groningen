@@ -94,6 +94,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
 | [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |
 | [PERF-RONDE-20-11.md](<PERF-RONDE-20-11.md>) | Prestatieronde 20-11 (#985, #937, #921): statische audit van de per-frame-paden, microbenchmarks, kleine fixes, Samen-spelen-kosten per speler en wat open staat. |
+| [POPIN-21-11.md](<POPIN-21-11.md>) | Pop-in (#1016): meting per categorie met `scripts/qa/popin.mjs`, oorzaken (tekenstraal tegen mist, de detailring die krimpt, harde randen), fixes voor bomen, voertuigen, grasvlakken en voorladen, voor/na en wat niet bewezen is. |
 | [WEER-LICHT-AUDIT-20-11.md](<WEER-LICHT-AUDIT-20-11.md>) | Audit van weer, licht en dag-nacht (#985): wat er staat, wat springt of veel kost, welke zachte overgangen er zijn bijgekomen en wat nog niet in beeld is gezien. |
 | [PERSKIT.md](<PERSKIT.md>) | Perskit voor de openbare playtest: pitch, quote-waardige regels, feiten, beeld en een concept-persbericht (nog niet verstuurd). |
 | [PLAYTESTPLAN.md](<PLAYTESTPLAN.md>) | Doel: zien of een speler die de game niet kent het verhaal volgt, steeds weet wat het doel is en tot het ei… |

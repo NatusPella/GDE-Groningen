@@ -11,6 +11,9 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const tapKey = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
 for (let i = 0; i < 300 && !document.body.classList.contains('game-started'); i++) await sleep(500);
 for (let i = 0; i < 25 && window.__debug && window.__debug.world && window.__debug.world.paused; i++) { tapKey(' ', 'Space'); await sleep(700); }
+// fouten tijdens de run (een ReferenceError in de bouwlus liet een vorige poging bijna ongemerkt)
+const errs = []; const ce = console.error; console.error = (...a) => { if (errs.length < 5) errs.push(a.map(String).join(' ').slice(0, 200)); ce.apply(console, a); };
+window.addEventListener('error', (e) => { if (errs.length < 5) errs.push(String(e.message)); });
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sc = window.__scene3d; const THREE = sc.THREE; const scene = sc.scene; const cam = sc.cam;
 const imp = (f) => import('/js/' + f + '.js');
@@ -227,7 +230,7 @@ async function run(name, setup, move, teardown, dur = DUR) {
   return res;
 }
 
-const results = { tag: TAG, viewport: [innerWidth, innerHeight], routes: {} };
+const results = { errors: errs, tag: TAG, viewport: [innerWidth, innerHeight], routes: {} };
 const FOOT = PL([[167, 283], [121, 193], [105, 161], [100, 77], [124, 7], [134, 36]]);
 results.routes.foot = await run('foot', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, (c, t) => {
   const q = at(FOOT, Math.max(0, t) * 5);
