@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Samen spelen: opnieuw verbinden na een hostwissel (#983, #982):** een gast die bij een nieuwe host aansluit (na overdragen of overname) bewaart de kamer van die host als laatste code. Valt hij daarna even weg, dan kan hij met Opnieuw verbinden weer bij dezelfde sessie, ook als hij oorspronkelijk via de openbare lijst binnenkwam. Samen spelen: geldt voor iedere gast; de wereld blijft van wie het spel opende, beloning en voortgang per speler, zelfde plek terug binnen 2 minuten. Getest met de pure coöptests (hostwissel_test, coop_scenarios_test); niet over echt internet geprobeerd.
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
