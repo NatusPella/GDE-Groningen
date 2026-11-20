@@ -21,10 +21,12 @@ export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
 // furniture, walkers) per quality profile. It was one 140 m for everyone; a
 // better profile with a view distance of 350 m or more gets a bigger ring.
 // The cost grows with the area: DETAIL_DIST[q]^2 / 140^2 times the meshes of
-// the ring (hoog 1.84x), which stays inside the Hoog budget (GPU <= 1.2 GB):
+// the ring (hoog 1.47x since #1039 (170 m)), which stays inside the Hoog budget (GPU <= 1.2 GB):
 // scripts/viewdist_test.mjs keeps that ratio under DETAIL_AREA_MAX.
 export const DETAIL_BASE = 140;
-export const DETAIL_DIST = { laag: 140, middel: 160, hoog: 190 };
+// #1039: hoog 190 -> 170 m: de ring kost met het kwadraat van de straal (190 m = 1,84x de meshes van 140 m, 170 m = 1,47x); de verre laag neemt de gebouwen
+// tussen 170 en 190 m over (zelfde palet en vensterraster). Ultra tekent daardoor ca. een vijfde minder losse gebouwen, wegen en gevels.
+export const DETAIL_DIST = { laag: 140, middel: 160, hoog: 170 };
 export const DETAIL_AREA_MAX = 2;
 // cpuLevel 3 (viewdist.js viewDistanceFor) also shrinks the ring to DETAIL_WEAK m: a third of the meshes
 export const DETAIL_WEAK = 100;
