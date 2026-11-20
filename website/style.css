@@ -1946,3 +1946,13 @@ main > section + section {
 #delen .share-row {
   margin-top: 0.4rem;
 }
+
+.card-grid--vier {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 34rem) {
+  .card-grid--vier {
+    grid-template-columns: 1fr;
+  }
+}
