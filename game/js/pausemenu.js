@@ -821,7 +821,7 @@ ${keyReuseHtml()}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}
       ${toggle('helpOffer', 'Hulp aanbieden', 'Na twee keer mislukken van dezelfde stap vraagt het spel of je hulp wilt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', `<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p>
 <div class="pm-a11yprev" role="img" aria-label="Proef: markerkleuren, routelijnen en tekst op deze stand">
-  <div class="pm-a11y-marks">${['ok', 'danger', 'mission', 'user', 'job', 'care', 'police'].map((r) => `<span class="pm-a11y-mk" data-mk="${r}">${r === 'user' ? 'doel' : r}</span>`).join('')}</div>
+  <div class="pm-a11y-marks">${['ok', 'danger', 'mission', 'user', 'job', 'care', 'police'].map((r) => `<span class="pm-a11y-mk" data-mk="${r}">${({ ok: 'goed', danger: 'gevaar', mission: 'missie', user: 'doel', job: 'baan', care: 'zorg', police: 'politie' })[r]}</span>`).join('')}</div>
   <div class="pm-a11y-routes"><span class="pm-a11y-route" data-route="verhaal"></span><span class="pm-a11y-route" data-route="doel"></span><span class="pm-a11y-route" data-route="klus"></span></div>
   <div class="pm-a11y-text"><span class="pm-a11y-13">13 px: een bericht op het scherm</span><span class="pm-a11y-20">20 px: een regel in het menu</span></div>
 </div>

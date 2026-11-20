@@ -1262,3 +1262,9 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 /* de uitleg "Zo werkt de kaart": een papieren kaart op een gedimde kaart, zonder vervaging */
 #pause-menu.gm .mapview-overlay .mv-help { background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
 #pause-menu.gm .mapview-overlay .mv-help-box { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); transform: none; font-size: max(16px, var(--menu-min)); }
+
+/* Zeefdruk-menu: groepskoppen en toetsplaatjes leesbaar op papier (contrastmeting scripts/ui/menucontrast_scenes.js) */
+#pause-menu.gm .m-gh, #pause-menu.gm .m-gh span, #pause-menu.gm .sp-gh { color: var(--ds-tx-zacht); }
+#pause-menu.gm .pm-ckeys .hud-wasd .hud-key { font-size: 13px; }
+#pause-menu.gm :not(.pm-ckeys):not(.pm-bindbtn) > .hud-key, #pause-menu.gm .ds-z-knop kbd { font-size: 13px; }
+#pause-menu.gm .pm-a11y-mk[data-mk="danger"] { color: #fff; background: color-mix(in srgb, var(--mk-danger, #d93f3f) 88%, #000); }
