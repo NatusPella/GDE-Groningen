@@ -28,4 +28,7 @@ De wereld, de haltes, de automaten en de treinen zijn van wie het spel opende. D
 
 ## Gezien en niet gezien
 
-Zie de sectie hieronder; die wordt na de beeldrun bijgewerkt.
+
+**Gezien in Electron (20-11, beelden in desktop/build/ovtest3-uit en ovtest4-uit, scripts/qa/ov_beeld.mjs):** de halte Molenlaan met paal, bord, naam en abri (met glazen wand), de prompt "Halte Molenlaan" met E, het menu met vier diensten, een bus 3 m van de halte met bus-HUD ("Naar Veenkade"), instappen en de dienst; het station Groningen Noord met prompt, menu en het tabblad "Zelf de trein besturen", een dienst naar Eemshaven met de trein klaar op het perron (geen sterren), de cabine met het bord "Dienst 1/6" (Sauwerd, Winsum, Baflo, Warffum, Usquert, Uithuizen) en een trein die na gas geven rijdt (c 4100 naar 4129, 9,4 m/s). Geen fouten in de run.
+
+**Niet gezien:** de regelkaart van de treindienst (in de cabine-beelden komt hij niet in beeld, mogelijk onderdrukt door de cabine-HUD of de lopende missiekaart); het busicoon op de kaart; de halteprompt en het menu voor een gast; Samen spelen met twee echte spelers; een halte buiten de stad; de prestaties van de pool in een dichte stad (alleen het aantal instanced meshes is gemeten). Twee richtingen op een station kunnen dezelfde eindhalte hebben (spoor verschilt); dat is geen fout.
