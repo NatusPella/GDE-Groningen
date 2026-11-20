@@ -16,11 +16,13 @@ export const RIBBON_ALPHA_FLOOR = 0.45;
 // Zoveel meter mag de grond onder de strook afwijken voordat hij als verschoven telt.
 export const RIBBON_GROUND_TOLERANCE = 0.35;
 
-// s: { wanted, meshExists, inScene, visible, opacity, indexCount, finite, maxAlpha, buildFailed, groundDelta }
+// s: { wanted, flying, meshExists, inScene, visible, opacity, indexCount, finite, maxAlpha, buildFailed, groundDelta }
 // wanted = er is een actieve route met een stuk vooruit en de navigatie hoort zichtbaar te zijn.
 // Geeft de eerste fout, of null als de strook is zoals hij hoort.
 export function ribbonFault(s) {
   if (!s || !s.wanted) return null;
+  // Vliegen: de route is een luchtlijn (airguide.js, airLineFault); een ontbrekende grondstrook is dan geen fout.
+  if (s.flying) return null;
   if (!s.meshExists) return 'geen-mesh';
   if (s.buildFailed) return 'bouw-mislukt';
   if (!s.inScene) return 'niet-in-scene';

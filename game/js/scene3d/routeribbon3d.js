@@ -15,6 +15,8 @@ import { ribbonAlpha, routeOffRoad } from '../routeribbon.js';
 import { ribbonFault, needsAlphaFloor, noteRibbonRepair, RIBBON_ALPHA_FLOOR } from '../routeribbonwatch.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from '../worldmarker3d.js';
 import { updateWaymarkers3D, routeColor } from '../waymarkers3d.js';
+import { isAirCraft } from '../airguide.js';
+import { updateAirLine3D, hideAirLine3D } from './airline3d.js';
 
 // scene en camera van scene3d.js; null tot init3D ze doorgeeft
 let scene = null;
@@ -24,6 +26,7 @@ export function setRouteRibbonScene(s, c) { scene = s; cam = c; }
 // de titelkaart, het duivenveld en de cutscenes verbergen de navigatiehulp
 export function hideRouteRibbon3D() {
   navHidden = true;
+  hideAirLine3D();
   if (waypointBeacon) waypointBeacon.visible = false;
   if (routeRibbonMesh) routeRibbonMesh.visible = false;
 }
@@ -255,6 +258,14 @@ export function updateRouteRibbon3D(dt, world) {
   try {
     updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
   } catch (e) { reportRibbonError('waymarkers', e); }
+  // In een luchtvaartuig is de route een rechte lijn door de lucht (airline3d.js) en bouwen we geen grondstrook:
+  // geen wegroute-herberekening in de scene en de waakhond hieronder verwacht dan geen strook.
+  const pl0 = hoofdspeler(world);
+  const flying = isAirCraft(world, pl0);
+  try {
+    const v0 = pl0 && pl0.inVehicle;
+    updateAirLine3D(scene, dt, flying, route, flying && pl0 ? { x: v0 ? v0.x : pl0.x, y: v0 ? v0.y : pl0.y, z: v0 ? v0.z || 0 : pl0.gz || 0, angle: v0 ? v0.angle : pl0.angle, speed: v0 ? v0.speed : 0 } : null);
+  } catch (e) { reportRibbonError('luchtlijn', e); }
   if (!routeRibbonMesh) {
     routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({
       map: buildChevronTexture(), vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
@@ -265,7 +276,7 @@ export function updateRouteRibbon3D(dt, world) {
     routeRibbonMesh.frustumCulled = false;
     scene.add(routeRibbonMesh);
   }
-  const ahead = route && route.remaining > 10 && route.mode !== 'boat' && route.mode !== 'fly' ? routeLinks.getRouteAhead(RIBBON_AHEAD_M) : null;
+  const ahead = route && route.remaining > 10 && route.mode !== 'boat' && route.mode !== 'fly' && !flying ? routeLinks.getRouteAhead(RIBBON_AHEAD_M) : null;
   if (!ahead || ahead.length < 2) {
     routeRibbonMesh.visible = false;
     routeRibbonKey = '';

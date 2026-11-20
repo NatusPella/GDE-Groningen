@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- In een vliegtuig (en helikopter of als duif) loopt de route nu als een rechte lijn door de lucht naar het doel, niet meer langs de wegen: een zachte gele lijn met chevrons vanaf de neus, een kolom en ring op het doel en een pijl omhoog of omlaag als je moet stijgen of dalen. De navigatiekaart zegt "Rechtdoor naar ..." of "Draai naar rechts", met koers, links of rechts voor je, afstand, tijd en hoogteadvies; de minimap toont de rechte lijn; je krijgt een melding bij aankomst; bij landen en uitstappen is de wegroute er meteen weer. Elke speler ziet zijn eigen lijn.
 - De gele routelijn in de wereld verdwijnt niet meer ineens terwijl de minimap de route nog toont: een strook die helemaal van de verharding af ligt (route over gras, wegen nog niet geladen) kreeg overal doorzichtigheid 0 en krijgt nu een bodem; een mislukte bouw liet een lege strook staan tot je 2 m verder was en wordt nu na een seconde opnieuw geprobeerd; en een waakhond controleert een paar keer per seconde of de lijn bestaat, in de scene staat, zichtbaar is en op de grond ligt, herstelt hem anders en telt de herstelacties.
 
 ## [0.64.0] - 2026-11-20

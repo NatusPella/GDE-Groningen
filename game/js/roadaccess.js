@@ -25,7 +25,7 @@ export function travelModeOf(world) {
   if (world.pigeonMode || world.heliRun) return 'lucht';
   const v = hoofdspeler(world).inVehicle;
   if (!v) return 'lopen';
-  if (v.isHeli) return 'lucht';
+  if (v.isHeli || v.isPlane) return 'lucht';
   if (v.isBoat) return 'boot';
   if (v.isBike || v._mount) return 'fiets';
   // een e-step is geen brommer: fietspad mag, dus geen fietspadwaarschuwing (#17)
