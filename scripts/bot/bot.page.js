@@ -417,7 +417,7 @@ async function flyStep(s) {
   if (o.mode === 'land') mem.landPhase = want.phase || null;
   if (ticks % 20 === 0) {
     const rel = o.strip ? (() => { const c = Math.cos(o.strip.heading), sn = Math.sin(o.strip.heading), dx = pl.x - o.strip.x, dy = pl.y - o.strip.y; return { along: Math.round(dx * c + dy * sn), across: Math.round(-dx * sn + dy * c), hdg: Math.round(L.normAngle(pl.heading - o.strip.heading) * 100) / 100 }; })() : null;
-    B.log('vlucht', { mode: o.mode, fase: o.mode === 'land' ? mem.landPhase : null, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], poort: o.mode === 'fly' && st && st.gates ? (L.gateAim(st.gates, s.target) || {}).i : null, rel, keys: [...want].join('') });
+    B.log('vlucht', { wind: o.wind ? [Math.round(o.wind.x * 10) / 10, Math.round(o.wind.y * 10) / 10] : null, hoek: Math.round(pl.heading * 100) / 100, mode: o.mode, fase: o.mode === 'land' ? mem.landPhase : null, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], poort: o.mode === 'fly' && st && st.gates ? (L.gateAim(st.gates, s.target) || {}).i : null, rel, keys: [...want].join('') });
   }
 }
 
