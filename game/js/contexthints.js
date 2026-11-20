@@ -13,11 +13,24 @@ import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
 import { pickHint, pickSamenHint, situation, parseSeen, serializeSeen, widgetNodig } from './hintkit.js';
 import { openerNaam } from './coopplayers.js';
+import { uitlegBlok, zetUitlegGlyph, startUitleg } from './uitleg.js';
+import { HINT_UITLEG, uitlegDef } from './uitlegdata.js';
 
 const KEY_TOKEN = /\{(\w+)\}/g;
 const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plainKeys = (t) => t.replace(KEY_TOKEN, (m, k) => keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 const htmlKeys = (t) => t.split(KEY_TOKEN).map((part, i) => (i % 2 ? glyphHtml(part) : escHtml(part))).join('');
+
+// #989: de kaart van een voertuig of minigame met uitleg in iconen en een korte lus; de oude tekst blijft als 'Meer uitleg' staan.
+// Zonder uitleg-data voor dit hint-id, of met Instellingen › Uitleg met iconen uit, is het de gewone tekstkaart.
+function iconenBody(h) {
+  const ref = HINT_UITLEG[h.id];
+  const def = typeof ref === 'string' ? uitlegDef(ref) : ref ? { id: h.id, ...ref } : null;
+  if (!def) return '';
+  zetUitlegGlyph(glyphHtml);
+  startUitleg();
+  return uitlegBlok({ ...def, titel: '', meer: h.body }, { compact: true, titel: false });
+}
 
 let seen = load();
 let playT = 0;
@@ -55,7 +68,8 @@ export function updateContextHints(dt, w) {
   const busy = !st.minigame && playerBusy(w, ['sideJob', 'challenge', 'race', 'padel', 'activityGame', 'heliRun', 'pigeon']).busy;
   const h = pickHint(st, seen, { playT, lastAt, inT }, { enabled: getSettings().onboardingTips !== false, busy });
   if (!h || cardsBusy() || !mayStart('card')) return;
-  showCard(w, { kind: 'tip', kicker: 'Uitleg', title: h.title, body: plainKeys(h.body), bodyHtml: htmlKeys(h.body), key: 'hint-' + h.id, important: true, voice: false, duration: 8 });
+  const iconen = iconenBody(h);
+  showCard(w, { kind: 'tip', kicker: 'Uitleg', title: h.title, body: plainKeys(h.body), bodyHtml: iconen || htmlKeys(h.body), key: 'hint-' + h.id, important: true, voice: false, duration: iconen ? 11 : 8 });
   seen.add(h.id);
   try { localStorage.setItem(KEYS.hintsGezien, serializeSeen(seen)); } catch (e) { /* memory only */ }
   lastAt = playT;

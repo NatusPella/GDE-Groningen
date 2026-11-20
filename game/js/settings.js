@@ -56,6 +56,10 @@ const BASE_DEFAULTS = {
   minimapNorth: 'lucht',
   // short tip cards for new players (onboarding.js)
   onboardingTips: true,
+  // uitleg met iconen en animatie (uitleg.js, #989): uit = de oude tekstregels; per uitleg een 'niet meer tonen'-vlag in gde-uitleg-niet-meer
+  uitlegIconen: true,
+  // quicktime-events (qte.js, #962): 'normaal', 'makkelijk' (standaard: langere tijd, minder drukken, een poging extra) of 'overslaan'; per speler, dus per apparaat
+  qteStand: 'makkelijk',
   // leestijd van tip- en uitlegkaarten (#801): 'normaal', 'ruim' of 'geen'
   // (bij 'geen' wacht een belangrijke kaart op een klik of Enter; zie cardtime.js)
   readingTime: 'normaal',
@@ -209,6 +213,7 @@ function load() {
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;
     if (!TOUCH_CONTROLS_CHOICES.includes(out.touchControls)) out.touchControls = DEFAULTS.touchControls;
     if (!READING_TIME_CHOICES.includes(out.readingTime)) out.readingTime = DEFAULTS.readingTime;
+    if (!['normaal', 'makkelijk', 'overslaan'].includes(out.qteStand)) out.qteStand = DEFAULTS.qteStand;
     if (!(out.steerSensitivity >= 0.5 && out.steerSensitivity <= 1.5)) out.steerSensitivity = DEFAULTS.steerSensitivity;
     // de schuiven in het pauzemenu (pausemenu.js): een getal ver daarbuiten (een handmatig aangepast bestand) valt terug op de standaard
     for (const [k, lo, hi] of [['brightness', 0.6, 1.6], ['uiScale', 0.8, 1.5], ['fov', 50, 90], ['cameraDistance', 0.8, 1.6], ['mouseSensitivity', 0.3, 2.5]]) {

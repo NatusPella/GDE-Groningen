@@ -4,6 +4,7 @@
 // data-bd-uitleg). Geen eigen kleuren: de stand zit in data-status, de betekenis in woorden en een icoon (kleur is nooit de enige betekenis).
 import * as B from './boerderij.js';
 import { icoon } from './icons.js';
+import { uitlegBlok } from './uitleg.js';
 import { STATUS, STATUS_IDS, KAART_STIJL, LUS, veldenStatus, lusKlaar, watNu } from './farmstatus.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -64,9 +65,11 @@ export function legendaHtml() {
 // De regelkaart bij de eerste keer: vier stappen met icoon en een zin; wegklikken onthoudt dit apparaat.
 export function uitlegKaartHtml(metLegenda = false) {
   const stap = (id, tekst) => `<li>${chip(id)} ${esc(tekst)}</li>`;
+  // #989: eerst de stappen met icoon en lus; de volledige zinnen staan eronder in 'Meer uitleg' (uit in Instellingen = alleen de zinnen)
+  const iconenUitleg = uitlegBlok('boerderij-zaaien', { compact: true, nietMeer: true, zonderMeer: true });
   // compact en dicht: één regel die je openklapt, geen losse knop in het scrollgebied (oogtest 20-11)
   return `<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary class="ds-kaart__titel">Zo werkt je boerderij</summary>` +
-    `<ol class="bd-uitleg-lijst">${stap('geploegd', 'Ploegen: rij rustig rechte rijen, niet te hard.')}${stap('zaailing', 'Zaaien: kies eerst je gewas bij Gewas.')}${stap('groeiend', 'Groeien: het gewas groeit in speltijd, in de zomer.')}${stap('rijp', 'Oogsten als het veld oogstklaar is (de vlag is groen), daarna afleveren.')}</ol>` +
+    iconenUitleg + `<ol class="bd-uitleg-lijst">${stap('geploegd', 'Ploegen: rij rustig rechte rijen, niet te hard.')}${stap('zaailing', 'Zaaien: kies eerst je gewas bij Gewas.')}${stap('groeiend', 'Groeien: het gewas groeit in speltijd, in de zomer.')}${stap('rijp', 'Oogsten als het veld oogstklaar is (de vlag is groen), daarna afleveren.')}</ol>` +
     (metLegenda ? `<p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}` : '') +
     '</details>';
 }

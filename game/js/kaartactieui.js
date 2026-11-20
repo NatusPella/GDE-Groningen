@@ -8,6 +8,7 @@
 import { icoon } from './icons.js';
 import { keyTextHtml } from './keycap.js';
 import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels } from './kaartactie.js';
+import { uitlegBlok as iconenBlok } from './uitleg.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const svg = (naam) => icoon(naam, { maat: 'l' });
@@ -41,9 +42,13 @@ export function infoHtml(regels) {
 // mapview.js bepaalt wanneer hij opengaat en onthoudt dat hij gezien is.
 export function uitlegHtml({ gast = false } = {}) {
   const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
+  const iconen = iconenBlok('kaart-actie', { compact: true, titel: false, zonderMeer: true });
   return '<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t">' +
     '<div class="ds-papier ds-kaart ds-kaart--kop mv-help-box"><div class="ds-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-kaart__titel">Zo werkt de kaart</h2></div>' +
+    // #989: eerst drie stappen met icoon en lus; de volledige regels blijven in 'Meer uitleg' staan (uit in Instellingen = alleen de regels)
+    (iconen ? iconen + '<details class="ds-uitleg__meer"><summary>Meer uitleg</summary>' : '') +
     '<ul class="ds-kaart__tekst">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
+    (iconen ? '</details>' : '') +
     '<div class="mv-help-foot"><button type="button" class="ds-knop mv-help-ok" data-act="uitleg-sluit">Begrepen ' + keyTextHtml('{ENTER}') + '</button>' +
     '<small>Terug te vinden onder Instellingen › Besturing › Hulp.</small></div></div></div>';
 }

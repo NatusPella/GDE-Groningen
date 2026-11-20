@@ -40,12 +40,15 @@ import {
 import { gastheerMee, opdrachtId, deelnemers } from './coopmissie.js';import * as UI from './heistui.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
+import { qteStandVan, heistHulp, heistBreedte } from './qte.js'; // #962: Normaal / Makkelijk / Overslaan: ruimere zone en eerder hulp van de metgezel
 import { timingGrace } from './timingassist.js'; // #957: de zekering- en slotbalk zijn ruimer per stand en hulp
 
 const SPOTS_BEFORE_HELP = 3;
 const MISSES_BEFORE_HELP = 5;
 const PICK_MISSES = 6;
 const FUSES = 3;
+// de quicktime-stand van deze speler (Instellingen); in een test zonder instellingen blijft het Normaal
+const qteNu = () => { try { return qteStandVan(getSettings()); } catch (e) { return 'normaal'; } };
 const SEEN_DELAY = 0.9;
 const ZAP_DELAY = 0.7;
 const LASER_HELP = 2;
@@ -1072,10 +1075,11 @@ export function closeFuse() {
 export function updateFuse(dt, world, target, input) {
   if (!H) return true;
   const p = hoofdspeler(world);
-  const F = H.fuse || (H.fuse = { x: 0, dir: 1, hits: 0, misses: 0, width: Math.min(0.4, 0.16 * timingGrace(getSettings().difficulty, getSettings())), center: 0.5 });
+  const F = H.fuse || (H.fuse = { x: 0, dir: 1, hits: 0, misses: 0, width: Math.min(0.5, heistBreedte(qteNu(), Math.min(0.4, 0.16 * timingGrace(getSettings().difficulty, getSettings())))), center: 0.5 });
   const near = target && dist(p.x, p.y, target.x, target.y) < 3.2 && !p.inVehicle;
   if (!near) { closeFuse(); return false; }
   H.fuseOpen = true;
+  if (qteNu() === 'overslaan' && F.hits < FUSES) { F.hits = FUSES; world.addMessage('Laat mij maar. Alle zekeringen tegelijk eruit.', 2.2); }
   // the minigame owns Space: no jumping while you pull fuses
   world.minigameUntil = world.time + 0.25;
   F.x += F.dir * dt * (0.85 + F.hits * 0.12);
@@ -1093,8 +1097,8 @@ export function updateFuse(dt, world, target, input) {
       F.width = Math.min(0.34, F.width + 0.05);
       UI.shakePanel();
       for (let k = 0; k < 10; k++) spawnFxSpark(target.x, 1.5, target.y, (Math.random() - 0.5) * 4, 2 + Math.random() * 3, (Math.random() - 0.5) * 4, 0.5);
-      world.addMessage(F.misses >= MISSES_BEFORE_HELP ? 'Laat mij maar. Alle zekeringen tegelijk eruit.' : 'Au, vonken! Nog een keer, rustig.', 2.2);
-      if (F.misses >= MISSES_BEFORE_HELP) F.hits = FUSES;
+      world.addMessage(F.misses >= heistHulp(qteNu(), MISSES_BEFORE_HELP) ? 'Laat mij maar. Alle zekeringen tegelijk eruit.' : 'Au, vonken! Nog een keer, rustig.', 2.2);
+      if (F.misses >= heistHulp(qteNu(), MISSES_BEFORE_HELP)) F.hits = FUSES;
     }
   }
   UI.fusePanel(F, FUSES);
@@ -1107,10 +1111,11 @@ export function updateFuse(dt, world, target, input) {
 export function updateLock(dt, world, target) {
   if (!H) return true;
   const p = hoofdspeler(world);
-  const L = H.lock || (H.lock = { pins: [1.25, 0.95, 1.4, 1.1].map((P, i) => ({ P, ph: i * 1.7, y: 0 })), cur: 0, zone: Math.min(0.5, 0.18 * timingGrace(getSettings().difficulty, getSettings())), misses: 0, t: 0 });
+  const L = H.lock || (H.lock = { pins: [1.25, 0.95, 1.4, 1.1].map((P, i) => ({ P, ph: i * 1.7, y: 0 })), cur: 0, zone: Math.min(0.6, heistBreedte(qteNu(), Math.min(0.5, 0.18 * timingGrace(getSettings().difficulty, getSettings())))), misses: 0, t: 0 });
   if (!target || p.inVehicle || dist(p.x, p.y, target.x, target.y) > 2.2) { UI.closePanel(); return false; }
   world.minigameUntil = world.time + 0.25;
   L.t += dt;
+  if (qteNu() === 'overslaan' && L.cur < L.pins.length) { world.addMessage('Geef maar. Ik doe het met mijn bibliotheekpasje.', 3.5); L.cur = L.pins.length; }
   L.pins.forEach((q, i) => { if (i >= L.cur) q.y = 0.5 + 0.5 * Math.sin((L.t / q.P) * Math.PI * 2 + q.ph); });
   if (world.input.wasPressed(' ')) {
     const q = L.pins[L.cur];
@@ -1122,7 +1127,7 @@ export function updateLock(dt, world, target) {
       H.trouble++;
       L.zone = Math.min(0.42, L.zone + 0.05);
       UI.shakePanel();
-      if (L.misses >= PICK_MISSES) {
+      if (L.misses >= heistHulp(qteNu(), PICK_MISSES)) {
         world.addMessage('Geef maar. Ik doe het met mijn bibliotheekpasje.', 3.5);
         L.cur = L.pins.length;
       }
@@ -1285,6 +1290,7 @@ export function updateCrack(dt, world, target) {
   if (!target || p.inVehicle || dist(p.x, p.y, target.x, target.y) > 1.8) { UI.closePanel(); releaseHold(world); return false; }
   const C = H.crack || (H.crack = maakDraai(CODE));
   holdPlayer(world, true);
+  if (qteNu() === 'overslaan') C.cur = C.code.length; // de kluis gaat vanzelf open (draaiKluis meldt klaar)
   world.minigameUntil = world.time + 0.25;
   p.angle = Math.atan2(MUSEUM_CASE.y - p.y, MUSEUM_CASE.x - p.x);
   const inp = world.input;

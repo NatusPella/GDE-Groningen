@@ -54,6 +54,8 @@ export const BASE_KEYS = {
   snackChain: 'gde-snackketen-v1',
   // context hints for new vehicles and minigames, each shown once (contexthints.js, #201): new, no legacy name
   hintsGezien: 'gde-hints-gezien',
+  // uitleg met iconen (uitleg.js, #989): per uitleg een 'niet meer tonen'-vlag, alleen dit apparaat: new, no legacy name
+  uitlegNietMeer: 'gde-uitleg-niet-meer',
   // the practice walk-through in Hulp is done (practice.js, #201): new, no legacy name
   oefenronde: 'gde-oefenronde',
   // photo mode gallery (fotomodus.js, #199): metadata and small thumbnails only, local
