@@ -5,6 +5,7 @@
 // op 0 blijft (zelfde naad als vehicle/traffic.js en vehicle/boatwater.js).
 import { linesNear, project as projectOnLine, makeRunner, startAt, busMagWeg } from '../busroutes.js';
 import { closestPointOnSegment, normalizeAngle } from '../util.js';
+import { stuckClearable } from './trafficstuck.js';
 
 let host = null;
 export function setBusPopHost(h) { host = h; }
@@ -60,7 +61,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     // buses spawned before the line data had loaded (or before the player came near a line) have no line:
     // out of sight they make room for the line's own buses (#160), else they fill the quota for ever
     if (line && !v.busRun && !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) > spawnMin * 0.7) { vehicles.splice(i, 1); continue; }
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || host.focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || host.focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
     // de bron kent deze bus niet meer (bron weg of lang verouderd): gewone spelbus (#922)
     else if (v.isBus && v.liveId != null && liveBussen && !liveBussen.positie(v.liveId)) detachLiveBus(v);
   }

@@ -16,6 +16,7 @@ export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle, restWreck } from
 // canUseRoad woont bij de verkeers-AI (die beslist welke weg een voertuig mag gebruiken) en wordt
 // door de spawnteller hier ook gebruikt; vandaar de import naast de host-wissel.
 import { setTrafficHost, canUseRoad } from './vehicle/traffic.js';
+import { stuckClearable } from './vehicle/trafficstuck.js';
 import { setBusPopHost, manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, busSpawnPoint, getLiveBussen, detachLiveBus } from './vehicle/buspop.js';
 export { manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, detachLiveBus };
 import { playerTune, playerTopSpeed, speedCap, coastDrag, lateralGrip, maxYawRate, maxCurvature } from './vehicle/tuning.js';
@@ -876,7 +877,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     // real connection) is cleared the same way rather than left oscillating.
     // een bus die ver van zijn lijn is geraakt (een omweg zonder einde) verdwijnt als niemand kijkt (#322)
     const verdwaald = !!v.busRun && Math.hypot(v.x - player.x, v.y - player.y) > 60 && projectOnLine(v.busRun.line, v.x, v.y).d > BUS_VERDWAALD_M;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || verdwaald || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -899,7 +900,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
-    if (!canUseRoad({ model: pick.model }, road)) continue;
+    if (!canUseRoad({ model: pick.model }, road, map)) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
@@ -919,7 +920,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -950,7 +951,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.isMotor || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -978,7 +979,7 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isMotor || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
   const prof = wijkProfileAt(map, player.x, player.y).key;
   const want = target ?? motorTarget(prof, hourOf(world));
