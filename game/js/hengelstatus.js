@@ -2,6 +2,8 @@
 // gedeelde strook (simhud.js): de stappen (uitgooien, wachten, beet, binnenhalen), de beetmeter, de cijfers van de sessie en één zin "wat nu".
 // De regels van het hengelen zelf staan in hengelrules.js; dit bestand leest ze alleen.
 
+import { IC } from './simicons.js';
+
 // Icoonpaden voor de chips (24x24, lijn): lijn met haak, dobber, uitroep, vis.
 export const ICOON = {
   hengel: '<path d="M4 20L15 5"/><path d="M15 5c4 0 5 4 5 8"/><circle cx="20" cy="15" r="1.4"/>',
@@ -59,13 +61,15 @@ export function hengelHudModel(g) {
   const bijt = g.fase === 'bite' && g.beetTotaal > 0 ? Math.max(0, Math.min(1, g.bijt / g.beetTotaal)) : null;
   const meter = bijt === null ? null : { pct: bijt * 100, naam: 'Tijd om binnen te halen', label: `${(Math.max(0, g.bijt)).toFixed(1).replace('.', ',')} s`, staat: bijt < 0.35 ? 'laag' : '' };
   const wed = g.mode === 'wedstrijd';
+  // één primaire waarde: het gewicht (daar gaat het om); de rest klein met pictogram, en alleen wat nu relevant is
+  const primair = { icoon: IC.gewicht, waarde: kgTekst(g.kg || 0), naam: wed ? 'Gewicht' : 'Gewicht gevangen' };
   const cijfers = wed
-    ? [{ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.left || 0))} s` }, { label: 'Gewicht', waarde: kgTekst(g.kg || 0) }, { label: 'Gevangen', waarde: String(g.vangsten || 0) }]
-    : [{ label: 'Vangsten', waarde: String(g.vangsten || 0) }, { label: 'Soorten', waarde: String(g.soorten || 0) }, { label: 'Gewicht', waarde: kgTekst(g.kg || 0) }, { label: 'Visboer', waarde: euro(g.kas || 0) }];
+    ? [{ icoon: IC.klok, label: 'Tijd over', waarde: `${Math.max(0, Math.ceil(g.left || 0))} s`, staat: (g.left || 0) <= 15 ? 'let-op' : '' }, { icoon: IC.vis, label: 'Gevangen', waarde: String(g.vangsten || 0) }]
+    : [{ icoon: IC.vis, label: 'Vangsten', waarde: `${g.vangsten || 0}` }, { icoon: IC.euro, label: 'Visboer', waarde: euro(g.kas || 0) }];
   const flash = g.flash && !g.flash.bad ? g.flash.text : '';
   return {
     id: 'hengelen', titel: wed ? 'Hengelwedstrijd' : 'Hengelen', icoon: ICOON.hengel, plek: g.plek || '',
-    stappen, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
+    stappen, primair, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
     nu: (flash && stap !== 'beet' ? flash + ' · ' : '') + watNu(g.fase, g.haal, !!(g.flash && g.flash.bad)),
     hulp: [...(!wed && g.tuig ? [`Hengel: ${g.tuig.hengel} · aas: ${g.tuig.aas}`] : []), 'Spatie uitgooien en binnenhalen · Backspace stoppen'],
     slecht: !!(g.flash && g.flash.bad) || g.fase === 'scare',

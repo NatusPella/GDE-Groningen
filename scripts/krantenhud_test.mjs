@@ -12,13 +12,13 @@ const m = krantHudModel(basis);
 assert.equal(m.stappen.length, STAPPEN.length); assert.equal(m.stappen.filter((s) => s.stand === 'nu').length, 1);
 assert.equal(m.stappen[0].stand, 'klaar'); assert.equal(m.stappen[1].stand, 'nu'); assert.equal(m.stappen[2].stand, 'straks');
 assert.equal(m.meter.label, '2 van 6'); assert.equal(Math.round(m.meter.pct), 33);
-assert.deepEqual(m.cijfers.map((c) => c.label), ['Stapel', 'In de bus', 'Op de mat', 'Mis', 'Tijd']);
-assert.equal(m.cijfers[4].waarde, '72 s'); assert.equal(m.plek, 'Helpman'); assert.equal(m.uitleg.length, 0);
+assert.deepEqual(m.cijfers.map((c) => c.label), ['Stapel kranten', 'Tijd over']); assert.equal(m.primair.waarde, '2/6'); assert.ok(m.cijfers.every((c) => c.icoon));
+assert.equal(m.cijfers[0].waarde, '7'); assert.equal(m.cijfers[1].waarde, '72 s'); assert.equal(m.plek, 'Helpman'); assert.equal(m.uitleg.length, 0);
 assert.match(m.nu, /gele kolom/);
 
 const naar = krantHudModel({ ...basis, fase: 'naarwijk', gedaan: 0 });
 assert.equal(naar.meter, null); assert.equal(naar.stappen[0].stand, 'nu'); assert.match(naar.nu, /Naar de Helpman/);
-assert.equal(krantHudModel({ ...basis, fase: 'naarwijk', tijd: null }).cijfers.length, 4, 'zonder klok geen tijdcijfer');
+assert.equal(krantHudModel({ ...basis, fase: 'naarwijk', tijd: null }).cijfers.length, 1, 'zonder klok geen tijdcijfer');
 
 // de zin onderin volgt de afstand en de snelheid van de speler
 assert.match(watNu({ ...basis, afstand: WORP_BEREIK }), /Nu E/);

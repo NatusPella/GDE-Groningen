@@ -117,7 +117,7 @@ const schiet = (frames) => { keys.add(' '); frame(1 / 60, frames); keys.delete('
   ok(Math.hypot(st.lie.x - van.x, st.lie.y - van.y) < 1e-6, 'de bal ligt weer waar je sloeg');
   ok(/Plons/.test(strook()), 'de strook zegt het');
   wachtOp(() => dbg.state().phase === 'aim', 600);
-  ok(dbg.state().phase === 'aim' && /Slag<\/dt><dd class="sh-waarde">3</.test(strook()), 'daarna slag 3');
+  ok(dbg.state().phase === 'aim' && /aria-label="Slag: 3"/.test(strook()), 'daarna slag 3');
   dbg.quit();
 }
 

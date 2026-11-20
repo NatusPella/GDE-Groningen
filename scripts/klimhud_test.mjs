@@ -28,5 +28,5 @@ assert.equal(klimHudModel({ ...basis, flash: 'Gevallen! +4 s (1/3)', slecht: tru
 assert.ok(WALL.height - 9 >= 0 && WALL.height - 9 < WALL.height, 'de kolom staat op een hoogte onder de top'); assert.ok(TOP_HOLD.top, 'de topgreep bestaat'); assert.equal(createClimb().falls, 0);
 assert.equal(magnesiumPop().tekst, 'Frisse armen'); assert.equal(topPop().geluid, 'ui_loopbaan');
 const html = simHudHtml(laag);
-assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-primair__badge/);
 console.log('klimhud_test ok');

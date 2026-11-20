@@ -29,5 +29,5 @@ assert.equal(klaar.meter, null); assert.equal(klaar.stappen[2].stand, 'nu'); ass
 assert.equal(zwemHudModel({ ...basis, flash: 'Buikschuiver!', slecht: true }).nu, 'Buikschuiver!');
 assert.equal(duikPop(0.5), null); assert.equal(duikPop(0.97).tekst, 'Mooie duik!'); assert.equal(keerPop(false), null); assert.match(keerPop(true).tekst, /keerpunt/);
 const html = simHudHtml(blok);
-assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-primair__badge/);
 console.log('zwemhud_test ok');

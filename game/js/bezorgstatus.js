@@ -2,6 +2,8 @@
 // gedeelde strook (simhud.js): de stappen (ophalen, bezorgen, klaar), de warmte van het eten als meter, de afstand tot het doel, de tijd en één zin wat nu.
 // De regels (warmte, fooi, wind) staan in sidejob_bezorger.js; dit bestand leest ze alleen.
 
+import { IC } from './simicons.js';
+
 // Icoonpaden voor de chips (24x24, lijn): zaak (dak), fiets met doos, vinkje, vlam (warm).
 export const ICOON = {
   zaak: '<path d="M4 10l2-5h12l2 5"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
@@ -36,12 +38,13 @@ export function bezorgHudModel(g) {
   const warmte = Math.max(0, Math.min(100, g.warmte == null ? 100 : g.warmte));
   const bezorgen = g.fase === 'deliver';
   const meter = bezorgen ? { pct: warmte, naam: 'Warmte van het eten', label: `${Math.round(warmte)}% warm`, staat: warmte < KOUD ? 'laag' : '' } : null;
-  const wind = !g.wind ? 'geen' : g.wind.along < -0.5 ? `tegen ${g.wind.bft}` : g.wind.along > 0.5 ? 'mee' : 'zij';
-  const cijfers = [{ label: 'Bestelling', waarde: String(g.bestelling || 1) }, { label: 'Afstand', waarde: g.afstand == null ? '-' : `${Math.round(g.afstand)} m` }];
-  if (g.tijd != null) cijfers.push({ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.tijd))} s` });
-  cijfers.push({ label: 'Wind', waarde: wind });
+  const primair = bezorgen ? { icoon: IC.vlam, waarde: `${Math.round(warmte)}%`, naam: 'warm' } : { icoon: IC.afstand, waarde: g.afstand == null ? '-' : `${Math.round(g.afstand)} m`, naam: 'naar de zaak' };
+  const cijfers = [];
+  if (bezorgen) cijfers.push({ icoon: IC.afstand, label: 'Afstand naar de klant', waarde: g.afstand == null ? '-' : `${Math.round(g.afstand)} m` });
+  if (g.tijd != null) cijfers.push({ icoon: IC.klok, label: 'Tijd over', waarde: `${Math.max(0, Math.ceil(g.tijd))} s`, staat: g.tijd < 20 ? 'let-op' : '' });
+  if (g.wind && g.wind.along < -0.5) cijfers.push({ icoon: IC.wind, label: 'Tegenwind', waarde: String(g.wind.bft), staat: 'let-op' });
   return {
-    id: 'bezorger', titel: 'Bezorger', icoon: ICOON.fiets, plek: bezorgen ? `${g.straat || ''} ${g.nr || ''}`.trim() : (g.zaak || ''), stappen, meter, cijfers,
+    id: 'bezorger', titel: 'Bezorger', icoon: ICOON.fiets, plek: bezorgen ? `${g.straat || ''} ${g.nr || ''}`.trim() : (g.zaak || ''), stappen, primair, meter, cijfers,
     uitleg: g.uitleg ? UITLEG : [], nu: watNu(g, warmte), hulp: 'Eten koelt af tijdens het rijden · botsen en regen maken het sneller koud', slecht: bezorgen && warmte < KOUD,
   };
 }

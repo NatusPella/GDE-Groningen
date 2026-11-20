@@ -26,5 +26,5 @@ const baan = fs.readFileSync(new URL('../game/js/kermis.js', import.meta.url), '
 assert.ok(new RegExp(`g\\.t - g\\.comboT < ${REEKS_TIJD}`).test(baan), 'REEKS_TIJD komt overeen met kermis.js');
 assert.ok(/simHudTik\(0, kermisHudModel/.test(baan) && /simHudPop\(pp\.tekst, pp\.geluid\)/.test(baan) && /zetSimKolom\(built\.kolom/.test(baan), 'de kermis roept de strook, de pop en de lichtkolom aan');
 const html = simHudHtml(reeks);
-assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-primair__badge/);
 console.log('kermishud_test ok');

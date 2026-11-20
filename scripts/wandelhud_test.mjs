@@ -28,5 +28,5 @@ assert.equal(createWalk(routePoints()).next, 0);
 const baan = fs.readFileSync(new URL('../game/js/wandeling.js', import.meta.url), 'utf8');
 assert.ok(/simHudTik\(0, wandelHudModel/.test(baan) && /simHudPop\(pp\.tekst, pp\.geluid\)/.test(baan) && /zetSimKolom\(kolom/.test(baan), 'de wandeling roept de strook, de pop en de lichtkolom aan');
 const html = simHudHtml(dichtbij);
-assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-primair__badge/);
 console.log('wandelhud_test ok');

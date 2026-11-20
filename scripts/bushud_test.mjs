@@ -29,5 +29,5 @@ const baan = fs.readFileSync(new URL('../game/js/sidejob_bus.js', import.meta.ur
 assert.ok(new RegExp(`export const EARLY_OK = ${EARLY_OK};`).test(baan) && new RegExp(`export const LATE_OK = ${LATE_OK};`).test(baan), 'EARLY_OK en LATE_OK komen overeen met de baan');
 assert.ok(/simHudTik\(0, busHudModel/.test(baan) && /simHudPop\(pp\.tekst, pp\.geluid\)/.test(baan) && /c\.owner/.test(baan), 'de baan roept de strook, de pop en de eigen-dienst-controle aan');
 const html = simHudHtml(halte);
-assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-primair__badge/);
 console.log('bushud_test ok');

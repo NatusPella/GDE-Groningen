@@ -20,21 +20,31 @@ export function zetUitlegGezien(id) {
   } catch (e) { /* geen opslag is geen ramp */ }
 }
 
-// De markup van de strook uit een model: puur, zodat een test hem zonder DOM kan nakijken.
-// model: { id, titel, icoon, plek, stappen: [{ label, icoon, stand: 'klaar'|'nu'|'straks' }], meter: { pct, label, naam, staat }, cijfers: [{ label, waarde, icoon?, primair? }] (één primair: groter, met pictogram),
-//          nu, hulp, slecht, uitleg: [{ icoon, tekst }] }
+// De markup van de strook uit een model: puur, zodat een test hem zonder DOM kan nakijken. Volgorde en gewicht: de kop (klein, gedempt), de stappen (alleen de huidige met
+// woord), de ene primaire waarde (groot, met pictogram), de meter, één zin "wat nu" (de enige tekst die opvalt), dan de secundaire waarden (klein, gedempt, met pictogram).
+// model: { id, titel, icoon, plek, stappen: [{ label, icoon, stand: 'klaar'|'nu'|'straks' }], primair: { icoon, waarde, naam }, meter: { pct, label, naam, staat: 'laag'|'goed' },
+//          cijfers: [{ icoon, label, waarde, staat: 'goed'|'let-op'|'actie' }], nu, hulp, slecht, uitleg: [{ icoon, tekst }] }
+// Een model mag de primaire waarde ook als cijfer met `primair: true` aanleveren; hij wordt hier de ene grote waarde en dan blijft het label van de meter staan.
 export function simHudHtml(m) {
   if (!m) return '';
+  let metLabel = !m.primair;
+  if (!m.primair && (m.cijfers || []).some((c) => c.primair)) {
+    const p = m.cijfers.find((c) => c.primair);
+    m = { ...m, primair: { icoon: p.icoon, waarde: p.waarde, naam: p.label }, cijfers: m.cijfers.filter((c) => c !== p) };
+    metLabel = true;
+  }
   const stappen = (m.stappen || []).length
-    ? `<ol class="sh-stappen" aria-label="De stappen">${m.stappen.map((s) => `<li data-stand="${esc(s.stand || 'straks')}"${s.stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-chip">${svg(s.icoon || '', 'ds-chip__icoon')}${esc(s.label)}</span></li>`).join('')}</ol>` : '';
+    ? `<ol class="sh-stappen" aria-label="De stappen">${m.stappen.map((s) => `<li data-stand="${esc(s.stand || 'straks')}"${s.stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-chip">${svg(s.icoon || '', 'ds-chip__icoon')}<span class="sh-stap">${esc(s.label)}</span></span></li>`).join('')}</ol>` : '';
+  const primair = m.primair
+    ? `<div class="sh-primair" role="group" aria-label="${esc(m.primair.naam || '')}: ${esc(m.primair.waarde)}"><span class="sh-primair__badge">${svg(m.primair.icoon || '', 'ds-icoon sh-primair__icoon')}</span><span class="sh-primair__tekst"><span class="ds-t-label sh-primair__naam">${esc(m.primair.naam || '')}</span><span class="sh-groot${String(m.primair.waarde).length > 7 ? ' sh-groot--lang' : ''}">${esc(m.primair.waarde)}</span></span></div>` : '';
   const meter = m.meter
-    ? `<div class="ds-streep sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${esc(m.meter.label || '')}</span></div>` : '';
+    ? `<div class="ds-streep ds-streep--dik sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span>${m.meter.label && (metLabel || m.meter.toon) ? `<span class="ds-streep__label">${esc(m.meter.label)}</span>` : ''}</div>` : '';
   const cijfers = (m.cijfers || []).length
-    ? `<dl class="sh-cijfers">${m.cijfers.map((c) => `<div${c.primair ? ' class="sh-cijfer--primair"' : ''}><dt class="ds-t-hulp">${c.icoon ? svg(c.icoon, 'ds-icoon sh-cijfer__icoon') : ''}${esc(c.label)}</dt><dd class="sh-waarde">${esc(c.waarde)}</dd></div>`).join('')}</dl>` : '';
+    ? `<ul class="sh-cijfers" aria-label="Details">${m.cijfers.map((c) => `<li${c.staat ? ' data-staat="' + esc(c.staat) + '"' : ''} title="${esc(c.label)}" aria-label="${esc(c.label)}: ${esc(c.waarde)}">${svg(c.icoon || '', 'ds-icoon ds-icoon--klein sh-cijfer__icoon')}<span class="sh-waarde">${esc(c.waarde)}</span></li>`).join('')}</ul>` : '';
   const uitleg = (m.uitleg || []).length
     ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${esc(u.tekst)}</span></li>`).join('')}</ul>` : '';
-  return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon sh-icoon')}<span class="sh-titel ds-t-subkop">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
-    stappen + meter + cijfers + uitleg + `<p class="ds-t-hulp sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` +
+  return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon ds-icoon--klein sh-icoon')}<span class="sh-titel ds-t-label">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
+    stappen + primair + meter + `<p class="sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` + cijfers + uitleg +
     (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
 }
 
