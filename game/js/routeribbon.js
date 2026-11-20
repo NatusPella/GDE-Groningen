@@ -34,15 +34,15 @@ export function routeOffRoad(map, x, y) {
 export const RIBBON_FADE_FROM = 2.5;
 export const RIBBON_FADE_TO = 5;
 
-export function ribbonFade(offRoad) {
+export function ribbonFade(offRoad, floor = 0) {
   if (!(offRoad > RIBBON_FADE_FROM)) return 1;
-  if (offRoad >= RIBBON_FADE_TO) return 0;
-  return 1 - (offRoad - RIBBON_FADE_FROM) / (RIBBON_FADE_TO - RIBBON_FADE_FROM);
+  if (offRoad >= RIBBON_FADE_TO) return floor;
+  return Math.max(floor, 1 - (offRoad - RIBBON_FADE_FROM) / (RIBBON_FADE_TO - RIBBON_FADE_FROM));
 }
 
 // De alpha van een punt op de strook: aan beide uiteinden uitfaden, en uitdoven zodra de route de
 // verharding verlaat.
-export function ribbonAlpha(dist, total, offRoad = 0) {
+export function ribbonAlpha(dist, total, offRoad = 0, floor = 0) {
   const ends = Math.min(1, dist / 3, (total - dist) / 15 + 0.05);
-  return Math.max(0, Math.min(1, ends)) * ribbonFade(offRoad);
+  return Math.max(0, Math.min(1, ends)) * ribbonFade(offRoad, floor);
 }
