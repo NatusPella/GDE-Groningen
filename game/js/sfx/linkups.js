@@ -32,6 +32,9 @@ export const SELF_PUSHED = [
   { fx: 'ui_loopbaan', where: 'sfx/ui.js (loopbaan: een niveau omhoog)' },
   { fx: 'ui_uitgave', where: 'sfx/ui.js (het geld daalt met 2 euro of meer)' },
   { fx: 'ui_gevaar', where: 'sfx/ui.js (melding van soort politie of gevaar)' },
+  { fx: 'ui_speler_binnen', where: 'sfx/ui.js (melding "<naam> doet mee." van coopnet.js: een speler komt binnen)' },
+  { fx: 'ui_speler_weg', where: 'sfx/ui.js (melding "heeft het spel verlaten" of "is weggevallen" van coopnet.js)' },
+  { fx: 'ui_uitnodiging', where: 'sfx/ui.js (melding van een uitnodiging voor een opdracht, coopmeedoen.js uitnodigingTekst)' },
   // de missie-stings (sfx/stingen.js, soort 'missiesting' in world.audioEvents) en de kassa van een aankoop (shops.js zet world.kassaKlik, ui.js speelt hem)
   { fx: 'missie_start', where: 'audio.js (de missiefase wordt active) en stingen.push(world, "start")' },
   { fx: 'missie_stap', where: 'stingen.push(world, "stap"): de missie-runner bij een voltooide tussenstap' },

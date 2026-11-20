@@ -132,6 +132,24 @@ varianten('ui_gevaar', 'Melding: gevaar', 0.5, 0.45, [0, -0.7, 0.6], (d, sr, R, 
   for (let i = 0; i < d.length; i++) d[i] = lp.run(d[i]);
 });
 
+// Samen spelen: een speler komt binnen, twee zachte glazen klanken omhoog (welkom), zacht genoeg om een gesprek niet te storen
+varianten('ui_speler_binnen', 'Samen spelen: speler komt binnen', 0.4, 0.7, [0, 0.5], (d, sr, R, k) => {
+  glas(d, sr, 0, st(PENTA[3]) * k, 0.7, R, 0.1);
+  glas(d, sr, 0.11, st(PENTA[5]) * k, 0.75, R, 0.2);
+});
+
+// Samen spelen: een speler vertrekt, twee zachte houten klanken omlaag (tot ziens), zonder mineur en zonder schrik
+varianten('ui_speler_weg', 'Samen spelen: speler vertrekt', 0.4, 0.7, [0, -0.5], (d, sr, R, k) => {
+  rond(d, sr, 0, st(PENTA[5]) * k, 0.7, R, 0.1);
+  rond(d, sr, 0.12, st(PENTA[3]) * k, 0.7, R, 0.22);
+});
+
+// Samen spelen: een uitnodiging (meedoen met een opdracht), drie klokjes als een vraag: omhoog, omhoog, en de laatste open
+add('ui_uitnodiging', 'Samen spelen: uitnodiging', 0.45, 1.0, (c, sr, R) => {
+  const d = c[0];
+  [PENTA[2], PENTA[4], PENTA[6]].forEach((n, i) => glas(d, sr, i * 0.13, st(n), 0.7, R, i === 2 ? 0.3 : 0.1));
+});
+
 export const UI_FX = defs;
 // de basisnamen (zonder _0): wat ui.js speelt
 export const UI_SOUNDS = [...new Set(Object.keys(defs).map((n) => n.replace(/_\d$/, '')))];

@@ -21,6 +21,7 @@ Instellingen > Geluid maakt ze zachter en op nul zwijgen ze; de dempknop zet ze 
 | `ui_uitgave` | geld uitgeven: winkel, hapje, boete | twee muntjes die op elkaar vallen | verward met de kassa bij geld erbij (dat is een ander geluid) |
 | `ui_kaart_open`, `ui_kaart_dicht` | de minikaart aanklikken of de kaart in het pauzemenu: open en weer dicht | papier dat opengevouwen en dichtgevouwen wordt | ruis die blijft hangen; samen met het inklappen van de telefoon een rommeltje |
 | `ui_gevaar` | een politie- of gevaarmelding (bijvoorbeeld een brommerwaarschuwing) | twee zachte lage pulsen | een sirene; schrikken |
+| `ui_speler_binnen`, `ui_speler_weg`, `ui_uitnodiging` | Samen spelen: een speler doet mee, vertrekt of valt weg; een uitnodiging voor een opdracht | twee klokjes omhoog, twee houten tonen omlaag, drie klokjes als een vraag | harder dan de missiesting; verward met `ui_toast` |
 | `ui_ontdek` | een nieuwe streek verkennen of een nieuwe vissoort vangen | drie klokjes omhoog | te lang of te vrolijk voor een kleine vondst |
 | `ui_uitkijk` | E bij een uitkijkpunt (te voet) | een wijd uitwaaierend akkoord met wat lucht | langer dan twee seconden; een metalen na-ring |
 | `ui_verzameld` | een verzamelobject in Verzamelen | vier snelle pingeltjes omhoog | piepjes die op een alarm lijken |

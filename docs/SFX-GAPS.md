@@ -29,6 +29,7 @@ Alles hieronder is procedureel (de bouwstenen van `sfx/dsp.js`), zonder opname e
 | Kaart open | het uitvouwen van de telefoon | de kaart zelf had geen geluid | `ui_kaart_open`, vlak na het openen | midden |
 | Kaart dicht | het inklappen van de telefoon | idem | `ui_kaart_dicht` | midden |
 | Waarschuwing (politie, gevaar) | de stings voor wanted en wegversperring | een gewone waarschuwingsmelding was stil | `ui_gevaar` (drie varianten) | midden |
+| Samen spelen: speler komt binnen, vertrekt, uitnodiging | alleen een melding (`ui_toast` voor tips, hier stil) | een nieuwe of vertrekkende speler en een uitnodiging klonken niet | `ui_speler_binnen` en `ui_speler_weg` (twee varianten, glas omhoog en hout omlaag) en `ui_uitnodiging` (drie klokjes), op de tekst van de melding van `coopnet.js` en `coopmeedoen.js`; lokaal, elke speler hoort ze van zijn eigen scherm | hoog |
 
 ### b. Beloning en voortgang
 

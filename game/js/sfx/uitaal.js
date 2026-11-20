@@ -10,21 +10,27 @@
 export const UI_COOLDOWN = {
   ui_tab: 0.08, ui_weiger: 0.6, ui_toast: 1.2, ui_kaart_open: 0.4, ui_kaart_dicht: 0.4, ui_ontdek: 2.5,
   ui_uitkijk: 4, ui_verzameld: 0.5, ui_loopbaan: 4, ui_uitgave: 1.0, ui_gevaar: 3, winkel_kassa: 0.5,
+  ui_speler_binnen: 1.5, ui_speler_weg: 1.5, ui_uitnodiging: 3,
 };
 
 // het geluid dat zachter moet zijn dan het niveau van de categorie (1 = gelijk); de lange, vrolijke zijn al vol
 export const UI_NIVEAU = {
   ui_tab: 0.9, ui_weiger: 1, ui_toast: 0.8, ui_kaart_open: 0.9, ui_kaart_dicht: 0.8, ui_ontdek: 1, ui_uitkijk: 1,
   ui_verzameld: 0.9, ui_loopbaan: 1, ui_uitgave: 0.9, ui_gevaar: 0.9, winkel_kassa: 0.9,
+  ui_speler_binnen: 0.8, ui_speler_weg: 0.8, ui_uitnodiging: 0.85,
 };
 
 // De meldingsgeluiden stapelen niet: een geluid met een lager of gelijk gewicht dan een ander meldingsgeluid dat
 // minder dan MELDING_STIL seconden geleden begon, blijft weg. Een zwaarder geluid (een trap omhoog) speelt wel.
 // Tab, kaart en uitgave horen er niet bij: dat zijn handelingen van de speler zelf, geen meldingen.
 export const MELDING_STIL = 0.5;
-export const MELDING_RANG = { ui_toast: 0, ui_verzameld: 1, ui_gevaar: 1, ui_weiger: 1, ui_ontdek: 2, ui_uitkijk: 3, ui_loopbaan: 3 };
+export const MELDING_RANG = { ui_toast: 0, ui_verzameld: 1, ui_gevaar: 1, ui_weiger: 1, ui_ontdek: 2, ui_uitkijk: 3, ui_loopbaan: 3, ui_speler_binnen: 1, ui_speler_weg: 1, ui_uitnodiging: 1 };
 
 const WEIGER = /^(Te weinig|Niet genoeg|Geen geld|Je hebt niet genoeg|Je kunt dit nog niet|Dat kan niet|Kan niet)/i;
+// Samen spelen (coopnet.js, coopmeedoen.js): de teksten van een nieuwe speler, een vertrekkende speler en een uitnodiging
+const SPELER_WEG = /(heeft het spel verlaten|is weggevallen|heeft het spel gestopt)\.?/i;
+const UITNODIGING = /(is begonnen: je doet mee\.$|Het verhaal heeft jou nodig|^Meedoen met .+J = ja)/;
+const SPELER_BINNEN = /^(?!Je )[^.]{1,40} doet mee\.$/;
 const VERKEND = /^(Verkend|Streek verkend|Ommeland . verkennen|Nieuwe streek)/i;
 
 // Welk geluid hoort bij deze melding, of null (geen eigen geluid)? kind: de categorie van het HUD-kaartje.
@@ -34,6 +40,9 @@ export function toastGeluid(m) {
   const kind = m.kind || null;
   const kicker = String(m.kicker || '');
   if (WEIGER.test(text)) return 'ui_weiger';
+  if (SPELER_WEG.test(text)) return 'ui_speler_weg';
+  if (UITNODIGING.test(text)) return 'ui_uitnodiging';
+  if (SPELER_BINNEN.test(text)) return 'ui_speler_binnen';
   if (kicker === 'Loopbaan' && kind === 'prestatie') return 'ui_loopbaan';
   if (kicker === 'Uitkijkpunt') return 'ui_uitkijk';
   if (VERKEND.test(kicker) || VERKEND.test(text)) return 'ui_ontdek';

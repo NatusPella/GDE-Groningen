@@ -98,6 +98,14 @@ ok(toastGeluid(msg('Nu 3 van 12', 'tip', 'Verzamelen · dieren')) === 'ui_verzam
 ok(toastGeluid(msg('Let op de politie', 'politie')) === 'ui_gevaar' && toastGeluid(msg('Dun ijs', 'gevaar')) === 'ui_gevaar', 'politie en gevaar');
 ok(toastGeluid(msg('Een tip', 'tip')) === 'ui_toast' && toastGeluid(msg('Missie', 'missie')) === 'ui_toast', 'tip en missie krijgen de zachte toast');
 ok(toastGeluid(msg('3')) === null && toastGeluid(msg('Hengelen klaar', 'prestatie', 'Hengelen')) === null && toastGeluid(null) === null, 'tellers, prestaties en niets blijven stil');
+ok(toastGeluid(msg('Tessa doet mee.')) === 'ui_speler_binnen' && toastGeluid(msg('Je doet mee.')) === null, 'Samen spelen: een speler komt binnen, je eigen bevestiging blijft stil');
+ok(toastGeluid(msg('Tessa heeft het spel verlaten.')) === 'ui_speler_weg' && toastGeluid(msg('Tammo is weggevallen. Het spel wacht.')) === 'ui_speler_weg', 'Samen spelen: een speler vertrekt of valt weg');
+ok(toastGeluid(msg('Meedoen met de klus? J = ja, N = nee.')) === 'ui_uitnodiging' && toastGeluid(msg('De klus is begonnen: je doet mee.')) === 'ui_uitnodiging', 'Samen spelen: een uitnodiging');
+{ // de nieuwe Samen-spelen-geluiden zijn zachter dan de missie-stings (docs/SFX-GAPS.md, e)
+  const niv = (n) => FX_INFO[n].gain * categoryLevel(FX_INFO[n].cat) * (UI_NIVEAU[n.replace(/_\d$/, '')] ?? 1);
+  const stap = Math.min(niv('missie_stap_0'), niv('missie_geslaagd_0'));
+  for (const n of ['ui_speler_binnen_0', 'ui_speler_binnen_1', 'ui_speler_weg_0', 'ui_speler_weg_1', 'ui_uitnodiging']) ok(niv(n) < stap, `${n}: zachter dan een missiesting`, niv(n).toFixed(3));
+}
 ok(UI_SOUNDS.every((s) => UI_COOLDOWN[s] > 0 && UI_NIVEAU[s] > 0), 'elk UI-geluid heeft een afkoeltijd en een niveau');
 const last = new Map();
 ok(magKlinken(last, 'ui_toast', 10) && !magKlinken(last, 'ui_toast', 10.5) && magKlinken(last, 'ui_toast', 11.3), 'afkoeltijd: net gespeeld mag niet, daarna weer wel');
