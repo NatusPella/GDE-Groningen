@@ -25,7 +25,7 @@ export const SFEER_BESTAND = {
 export const SFEER_KEYS = Object.keys(SFEER_BESTAND);
 
 // De lijst die de eigenaar bijhoudt: alleen sferen waarvan het bestand echt in game/audio/scenario/ staat.
-export const BESCHIKBARE_SFEREN = ['missie_komisch', 'missie_sluipen', 'missie_feest'];
+export const BESCHIKBARE_SFEREN = ['missie_komisch', 'missie_sluipen', 'missie_feest', 'missie_warm'];
 
 // DE LIJST VAN DE EIGENAAR: de verhaalmomenten met eigen muziek. Alles wat hier niet staat, is radio.
 // code = de missiecode (world.mission.code, M01 tot M30); sfeer = een sleutel uit SFEER_BESTAND;
