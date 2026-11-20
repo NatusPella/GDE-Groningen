@@ -49,6 +49,8 @@ export const SLOW = new Set([
   'import_cycles_test.mjs', 'stad_test.mjs', 'overlap_test.mjs', 'road_route_test.mjs', 'water_look_test.mjs', 'route_quality_test.mjs',
   'grass_water_paved_test.mjs', // leest de echte tegels (±20 s: groen tegen water en verharding)
   'coop_licht_test.mjs', // start alle coop-tests als eigen Node-processen (samen ±1 min)
+  // vragen de stadsbouw-cache (os.tmpdir()/gde-stad-cache, sleutel op bestandstijden): op een schone checkout of na een wijziging bouwt de eerste ca. 280 s, daarna 14 s
+  'akte1_doelen_test.mjs', 'akte2_doelen_test.mjs', 'akte3_test.mjs', 'boat_waypoint_test.mjs',
 
 ]);
 // Waar een test op stukloopt als de wereld ontbreekt.
