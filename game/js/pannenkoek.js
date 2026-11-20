@@ -7,7 +7,9 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo, makeRng } from './minigamekit.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js'; // Samen spelen (#983): de pannenkoekenwedstrijd
 import { getPancakeBoatSpot } from './cityprops.js';
 import { PANNENKOEK_LINES } from './minigamelines3.js';
 import { PAN, TOPPINGS, MEDAL_AT, scaledMedalAt, createPan, usePan, serve, stepPan, goldenNow, pannenkoekMedal } from './pannenkoekrules.js';
@@ -34,13 +36,18 @@ function say(w, kind, ttl = 0) {
   if (list) bubble(w, { x: place().x, y: place().y, name: PANNENKOEK_LINES.who, text: pick(list), h: 2.3, tag: 'pannenkoek', ttl });
 }
 
-function end(w, { quit = false } = {}) {
+function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
+  if (g.online && !quit && !g.gemeld) { // Samen spelen (#983): je punten gaan naar wie het spel opende; die houdt het scorebord
+    g.gemeld = true;
+    if (g.online === 'host') wedHostPunt(w, 0, Math.max(0, Math.round(g.s.points))); else wedGastPunt(w, 0, Math.max(0, Math.round(g.s.points)));
+  }
   game = null;
   w.cameraOverride = null;
   if (board) board.hide();
   clearBubbles(w, 'pannenkoek');
+  if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { w.addMessage('Pannenkoeken bakken gestopt', 2.5); return; }
   const s = g.s;
   const mode = cleanDifficulty(getSettings().difficulty);
@@ -58,8 +65,32 @@ function end(w, { quit = false } = {}) {
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
 }
 
+// Online (#983): wie stopt laat de anderen doorbakken; de uitslag en de beloning komen van wie het spel opende (multiplayerwedstrijd.js).
+function eindeOnline(w, g, quit, extern, res) {
+  if (quit) {
+    if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // de host stopt het voor iedereen, een gast alleen voor zichzelf
+    w.addMessage('Pannenkoeken bakken gestopt', 2.5);
+    return;
+  }
+  // je eigen record, je dienst en je prestatie tellen gewoon mee
+  const mode = cleanDifficulty(getSettings().difficulty);
+  recordChallengeResult(w, difficultyRecordKey(mode, 'pannenkoek'), { value: g.s.points, medal: pannenkoekMedal(g.s.points, mode) });
+  recordStat(w, 'pannenkoekShifts');
+  setStatMax(w, 'pannenkoekBest', g.s.points);
+  unlockAchievement(w, 'pannenkoek_klaar');
+  if (g.online === 'gast' || !res) return; // een gast: de uitslagkaart en het geld komen van de host
+  beloonOnline(w, res);
+}
+// De beloning van een plek in het eigen geld en de eigen loopbaan (de gasten krijgen de hunne van de host).
+function beloonOnline(w, res) {
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  loopbaanVerdien(w, 'horeca', jij.geld, { xp: jij.xp, n: 1, uniek: 'pannenkoekenschip', deel: false });
+  if (jij.geld > 0) w.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4);
+}
+
 function updateGame(w, dt) {
   const g = game, input = w.input, p = hoofdspeler(w);
+  if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // de verbinding is weg
   p.vx = p.vy = 0; p.speed = 0; p.moving = false;
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   const s = g.s;
@@ -97,7 +128,7 @@ function updateGame(w, dt) {
   if (s.phase === 'done') end(w);
 }
 
-function updateHud() {
+function updateHud(w) {
   const g = game;
   if (!g || !board) return;
   const s = g.s;
@@ -111,7 +142,9 @@ function updateHud() {
     return { t, cls };
   });
   const want = s.guests.map((q) => `${TOPPINGS.find((x) => x.id === q.topping).name} ${Math.ceil(q.patience)}`).join(' · ') || 'niemand';
-  const row = `<span>Punten <b>${s.points}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Bord <b>${s.plate.length}</b></span><span>Gasten: ${want}</span>`;
+  const online = g.online ? wedScoreRijen(w) : [];
+  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const row = `${stand}<span>Punten <b>${s.points}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Bord <b>${s.plate.length}</b></span><span>Gasten: ${want}</span>`;
   board.set({ row, cells, flash: g.flash ? g.flash.text : '', bad: !!(g.flash && g.flash.bad), help: `${key('1')}${key('2')}${key('3')} pan · ${key('Q')} stroop ${key('W')} spek ${key('E')} appel ${key('R')} kaas · ${key('BACKSPACE')} stoppen` });
 }
 
@@ -122,20 +155,53 @@ function glyph(ctx) {
   ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, Math.PI * 2); ctx.fill();
 }
 
-function start(w) {
+function start(w, { online = null } = {}) {
   if (game) return false;
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('pannenkoek');
   board.show();
   const mode = cleanDifficulty(getSettings().difficulty);
-  const s0 = createPan(Math.random);
-  s0.left = scaleTimeLimit(PAN.duration, mode); // #800: de stand schaalt de twee minuten
-  game = { s: s0, flash: null, said: false };
+  // Samen spelen (#983): dezelfde bestellingen en dezelfde twee minuten voor iedereen (vaste zaadwaarde, geen stand-schaal)
+  const s0 = createPan(online ? makeRng(983 + 17) : Math.random);
+  s0.left = online ? PAN.duration : scaleTimeLimit(PAN.duration, mode); // #800: de stand schaalt de twee minuten
+  game = { s: s0, flash: null, said: false, online };
   showCard(w, { kind: 'tip', kicker: 'Pannenkoekenschip', title: 'Twee minuten bakken', body: '[1] [2] [3]: beslag in de pan, en draai als hij goudbruin is. Serveer met [Q] stroop, [W] spek, [E] appel, [R] kaas aan de gast die dat wil.', duration: 11, key: 'pannenkoek-help', voice: false });
   say(w, 'start');
   return true;
 }
+
+// Met gasten in de sessie is het Pannenkoekenschip een wedstrijd tegen elkaar (Meedoen? J/N); nog eens E start meteen (#983).
+function startOfUitnodigen(w) {
+  const uit = wedNodigUit(w, 'pannenkoek');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
+  return start(w);
+}
+
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateGame(w, dt);
+  if (game) updateHud(w);
+  return true;
+}
+registreerWedstrijd('pannenkoek', {
+  naam: 'Pannenkoekenschip De Gouden Pan', soort: 'punt', vak: 'horeca',
+  opties: () => ({ beurten: 1, naEerste: 60, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten` }), // 60 s: wie nog bakt mag afmaken
+  start: (w) => start(w, { online: 'host' }),
+  plek: () => ({ ...place() }),
+  gastPlek: (w, x, y) => !game && !hoofdspeler(w).inVehicle && Math.hypot(x - place().x, y - place().y) < 4.5, // een gast vraagt het bij de loopplank
+  eind: (w, res) => {
+    if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true });
+    else if (res) beloonOnline(w, res); // de host was al klaar: alleen zijn beloning miste nog
+  },
+  solo: (w) => start(w),
+});
+zetWedGastHaken('pannenkoek', {
+  dichtbij: (w) => !game && !hoofdspeler(w).inVehicle && Math.hypot(hoofdspeler(w).x - place().x, hoofdspeler(w).y - place().y) < 3,
+  start: (w) => start(w, { online: 'gast' }),
+  eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
+  tik: gastTik,
+});
 
 function recText() {
   return recLine(getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'pannenkoek')), (v) => `${Math.round(v)} punten`, MEDALS);
@@ -158,10 +224,10 @@ export const PANNENKOEK = standActivity({
   recText,
   glyph,
   isActive: () => !!game,
-  start,
+  start: (w) => startOfUitnodigen(w),
   quit: (w) => end(w, { quit: true }),
   update: (dt, w) => updateGame(w, dt),
-  tick: () => updateHud(),
+  tick: (dt, w) => updateHud(w),
   camera: () => {},
   debug: (w) => ({
     spot: () => ({ ...place() }),

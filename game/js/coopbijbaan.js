@@ -30,7 +30,7 @@ const tekst = (s, n) => (typeof s === 'string' ? s.replace(/[\u0000-\u001f<>]/g,
 // actie: E doet iets in de baan (de host rekent het uit vanaf jouw plek).
 export const BIJBAAN_REGELS = {
   taxi: { rol: 'passagier', hulp: 'Stap met E in de taxi en rijd mee. Elke rit levert jou ook het volle loon op.', positie: false, actie: false },
-  bezorger: { rol: 'tweede bezorger', hulp: 'Loop zelf naar de zaak en naar de klant: wie het eerst bij de deur staat, haalt op en geeft af.', positie: true, actie: false },
+  bezorger: { rol: 'tweede bezorger', hulp: 'Loop naar de zaak en haal samen op. Met meer bezorgers zijn er meer adressen: wie er het eerst staat geeft af.', positie: true, actie: false },
   krantenwijk: { rol: 'helper', hulp: 'Loop mee en gooi kranten met E naar de brievenbussen. De stapel is gedeeld.', positie: true, actie: true },
   vracht: { rol: 'bijrijder', hulp: 'Rijd mee in de truck van de chauffeur en help met E bij laden en lossen. De chauffeur rijdt.', positie: false, actie: true },
   // #683: drie banen waar een meespeler als passagier of tweede jurylid meedoet en de volle beloning deelt.
@@ -176,7 +176,9 @@ export const eindEvent = (kind, owner = 0) => ({ k: 'bijbaan', f: 'eind', kind: 
 export function doelEvent(pub, owner = 0) {
   if (!pub || !pub.active) return null;
   const m = pub.marker && fin(pub.marker.x) && fin(pub.marker.y) ? [Math.round(pub.marker.x * 10) / 10, Math.round(pub.marker.y * 10) / 10] : null;
-  return { k: 'bijbaan', f: 'doel', owner: owner | 0, id: tekst(pub.id, 20), label: tekst(pub.label, 60), m, p: tekst(pub.progress, 80), g: pub.goal ? [tekst(pub.goal.label, 80), tekst(pub.goal.desc || '', 100)] : null, t: fin(pub.timeLeft) ? Math.round(pub.timeLeft) : null, c: tekst(pub.color, 9), h: pub.help ? 1 : 0 };
+  // Samen spelen (#983): bij de bezorgronde met verdeelde adressen gaan de andere open adressen als puntjes mee (hoogstens drie)
+  const o = pub.id === 'bezorger' && Array.isArray(pub.dots) ? pub.dots.slice(0, 3).filter((d) => d && fin(d.x) && fin(d.y)).map((d) => [Math.round(d.x * 10) / 10, Math.round(d.y * 10) / 10]) : [];
+  return { k: 'bijbaan', f: 'doel', owner: owner | 0, id: tekst(pub.id, 20), label: tekst(pub.label, 60), m, p: tekst(pub.progress, 80), g: pub.goal ? [tekst(pub.goal.label, 80), tekst(pub.goal.desc || '', 100)] : null, t: fin(pub.timeLeft) ? Math.round(pub.timeLeft) : null, c: tekst(pub.color, 9), h: pub.help ? 1 : 0, ...(o.length ? { o } : null) };
 }
 
 // De kortste afstand van een punt tot wie de baan speelt: de host en, bij een baan met een tweede bezorger of helper, de meespelende gasten
@@ -201,7 +203,7 @@ export function leesBijbaan(b) {
   if (b.f === 'doel') {
     const m = Array.isArray(b.m) && b.m.length === 2 && fin(b.m[0]) && fin(b.m[1]) ? { x: b.m[0], y: b.m[1] } : null;
     const g = Array.isArray(b.g) && typeof b.g[0] === 'string' ? { label: tekst(b.g[0], 80), desc: tekst(b.g[1], 100) } : null;
-    return { f: 'doel', owner: eigenaar(b), id: tekst(b.id, 20), label: tekst(b.label, 60), marker: m, progress: tekst(b.p, 80), goal: g, timeLeft: fin(b.t) ? Math.max(0, b.t) : null, color: /^#[0-9a-f]{3,8}$/i.test(b.c) ? b.c : '#ff9a3c', help: b.h === 1 };
+    return { f: 'doel', owner: eigenaar(b), id: tekst(b.id, 20), label: tekst(b.label, 60), marker: m, progress: tekst(b.p, 80), goal: g, timeLeft: fin(b.t) ? Math.max(0, b.t) : null, color: /^#[0-9a-f]{3,8}$/i.test(b.c) ? b.c : '#ff9a3c', help: b.h === 1, dots: Array.isArray(b.o) ? b.o.slice(0, 3).filter((a) => Array.isArray(a) && a.length === 2 && fin(a[0]) && fin(a[1])).map((a) => ({ x: a[0], y: a[1] })) : [] };
   }
   return null;
 }
@@ -438,7 +440,7 @@ export function bijbaanHandleHost(world, body) {
     case 'laat': G.uitn = null; G.deelt = false; G.laat = b.label; if (world.addMessage) world.addMessage(BIJBAAN_TEKST.laat(b.label), 5); return true;
     case 'doel': {
       const sj = world.sideJob || (world.sideJob = {});
-      Object.assign(sj, { active: true, id: b.id, label: b.label, color: b.color, marker: b.marker, dots: [], progress: b.progress, timeLeft: b.timeLeft, goal: b.goal, bus: null, help: !!b.help });
+      Object.assign(sj, { active: true, id: b.id, label: b.label, color: b.color, marker: b.marker, dots: b.dots || [], progress: b.progress, timeLeft: b.timeLeft, goal: b.goal, bus: null, help: !!b.help });
       G.id = b.id; G.owner = b.owner; if (!G.label) G.label = b.label;
       return true;
     }
