@@ -39,11 +39,13 @@ export const ALLOWED_COLORS = new Set([
   // Gedocumenteerde paneelgradiënt (DESIGN_SYSTEM.md:80) en hooglichten (#fff is de
   // 3-cijferige vorm van #ffffff).
   '#14281b', '#ffffff', '#fff',
-  // Designsysteem v2 (game/js/ds-tokens.css, #980): papier, inkt, bordgroen, kentekengeel en de
+  // Designsysteem (game/js/ds-tokens.css, #980): papier, inkt, bordgroen, kentekengeel en de
   // rolkleuren op papier en glas. Alleen de tokens zelf mogen deze hex dragen (zie checkDsLine).
   '#f5efe0', '#ebe2cb', '#1d1b17', '#4d483c', '#0e6b3c', '#f9c80e', '#ffd633', '#e0b000',
   '#fbe1dc', '#8c1d18', '#b3261e', '#dcefdc', '#14582f', '#dcebdd', '#fdebc8', '#7a4a00', '#a15c00',
   '#1f3a28', '#b9b7ad', '#3a1816', '#f5b5ad', '#3a2a0c',
+  // Zomerse zeefdruk (ADR 0040): papier, roze en de Rustig-drukwerk-varianten; de rest staat hierboven.
+  '#f3ead3', '#e8505b', '#9d1f2a', '#0b5530',
 ]);
 
 // Dezelfde kleuren als RGB-triples, voor rgb()/rgba()-notatie.
@@ -58,7 +60,7 @@ for (const triple of ['160,156,146', '214,205,180']) ALLOWED_RGB.add(triple);
 
 // Lettertypen uit ui-taal.md/Typography: de vaste stack plus Big Shoulders voor het logo.
 export const ALLOWED_FONTS = new Set([
-  'bebas neue', 'arial narrow', 'arial', 'big shoulders display', 'big shoulders',
+  'bebas neue', 'arial narrow', 'arial', 'big shoulders display', 'big shoulders', 'barlow condensed', 'atkinson hyperlegible',
   'sans-serif', 'inherit', 'initial', 'unset', 'revert', 'revert-layer',
 ]);
 
@@ -67,11 +69,11 @@ export const ALLOWED_FONTS = new Set([
 export const TEXT_NORM_PX = 13;
 export const TEXT_FLOOR_PX = 12;
 
-// Designsysteem v2 (#980): de twee CSS-bestanden hebben strengere regels dan de rest van de UI.
+// Designsysteem (#980): de twee CSS-bestanden hebben strengere regels dan de rest van de UI.
 const DS_COMPONENTS = /(?:^|\/)game\/js\/ds-components\.css$/;
 const DS_TOKENS = /(?:^|\/)game\/js\/ds-tokens\.css$/;
 export const DS_MAX_MOTION_MS = 250;
-export const DS_TOETS_SELECTOR = '.ds-badge';
+export const DS_TOETS_SELECTOR = '.ds-z-toets';
 
 const UI_ROOTS = /^(?:game|web)\//;
 const MENU_FILE = /(?:^|\/)(?:menu\.css|[^/]*menu[^/]*\.(?:css|js|mjs|html)|pausemenu\.js|shopui\.js|spullen\.js|hudcards\.css|prompts\.css)$/i;

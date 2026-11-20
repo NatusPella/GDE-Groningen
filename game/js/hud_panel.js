@@ -243,6 +243,13 @@ export function initHud(world) {
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
   root.appendChild(mmWrap);
+  // v3 (#993): de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
+  const mmLabel = document.createElement('div');
+  mmLabel.className = 'hud-mm-label';
+  root.appendChild(mmLabel);
+  const defsWrap = document.createElement('div');
+  defsWrap.innerHTML = '<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs></svg>';
+  root.appendChild(defsWrap.firstChild);
   // #985: een tik op de minikaart opent de kaart (op een telefoon stond die achter "Meer")
   mmWrap.setAttribute('role', 'button');
   mmWrap.setAttribute('aria-label', 'Kaart openen');
@@ -346,6 +353,7 @@ export function initHud(world) {
     missionDist: mission.querySelector('.hud-obj-dist'),
     locationEl: location,
     district: location.querySelector('.hud-district'),
+    mmLabel,
     street: location.querySelector('.hud-street'),
     fcol,
     cards,
@@ -721,7 +729,7 @@ export function updateHud(dt, world) {
 
 const S = {
   lastInput: 0, wantedOff: -Infinity, moneyAt: -Infinity, moneySign: 0, moneyHeld: null,
-  hpAt: -Infinity, stAt: -Infinity, vehAt: -Infinity, hurtAt: -Infinity, fightAt: -Infinity,
+  weaponAt: -Infinity, hpAt: -Infinity, stAt: -Infinity, vehAt: -Infinity, hurtAt: -Infinity, fightAt: -Infinity,
   nearShop: false, shopT: 0, wasPause: false, lastHp: null, lastSt: null, lastVeh: null, now: 0,
 };
 const nowS = () => performance.now() / 1000;
@@ -806,7 +814,7 @@ function updateVisibility(dt, world) {
     idle: now - S.lastInput,
     wanted: world.wanted, wantedAgo: S.wantedOff === Infinity ? 0 : now - S.wantedOff,
     moneyAgo: now - S.moneyAt, moneySign: S.moneySign, nearShop: S.nearShop, moneyHeld: S.moneyHeld != null,
-    armed: !!world.weapon && world.weapon !== 'fists', fighting: now - S.fightAt < 5,
+    armed: !!world.weapon && world.weapon !== 'fists', fighting: now - S.fightAt < 5, weaponAgo: now - S.weaponAt,
     hpFull: hp >= 99.5 && !(world.armor > 0 && world.armor < 100), hpAgo: now - S.hpAt, hpLow: hp < 30,
     stamFull: st == null || st >= 0.995, stamAgo: now - S.stAt,
     inVehicle: !!v, vehFull: vehHp == null || vehHp >= 99.5, vehAgo: now - S.vehAt,
@@ -927,6 +935,7 @@ function updateLocation(dt, world) {
   // plaats + wijk: a district of a town out in the province names its town
   const aname = area ? areaNameAt(h.x, h.y) : null;
   const region = aname ? (aname.near ? aname.name : aname.sub || (aname.region === 'groningen' ? 'Ommeland' : aname.name)) : 'Ommeland';
+  setText(els.mmLabel, district || (country ? (aname && aname.name) || '' : 'Grunn'));
   setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Grunn'].filter(Boolean).join(' · ') : (country ? region : 'Grunn'));
 }
 
@@ -953,7 +962,8 @@ function placeCandidate(world) {
     if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : townTeaser(d) };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
-  return { key: 'w:' + d, kick: 'Grunn', name: d, line: wijkBlurb(d) };
+  // v3 (#993): een stadswijk staat al als label onder de minimap; een eigen kaart ernaast zou de naam dubbel tonen
+  return null;
 }
 
 function updatePlace(dt, world) {
@@ -1177,6 +1187,7 @@ function updateBars(world) {
 const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>`;
 let wantedKey = '';
 let wantedShown = 0;
+let wantedChangedT = 0;
 // the police icons on the maps flash only while you are wanted; otherwise they sit still (blue)
 let policeAlert = false;
 function updateWanted(world) {
@@ -1202,6 +1213,10 @@ function updateWanted(world) {
   if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
   const stars = [...els.wanted.children];
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
+  // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (v3, #993)
+  els.wanted.classList.add('changed');
+  clearTimeout(wantedChangedT);
+  wantedChangedT = setTimeout(() => els.wanted.classList.remove('changed'), 1400);
   // a new star pops in, one at a time
   for (let i = wantedShown; i < ster; i++) pop(stars[i]);
   wantedShown = ster;
@@ -1424,16 +1439,19 @@ function updateMoneyWeapon(dt, world) {
   const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
   const sub = weaponKey === 'fists' ? 'geen wapen' : ammo === undefined || NO_COUNT.has(world.weapon) ? 'slaan' : ammo === Infinity ? '∞' : String(ammo);
   if (els.weapon.dataset.key !== weaponKey) {
+    const eerste = els.weapon.dataset.key === undefined;
     els.weapon.dataset.key = weaponKey;
     els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-col"><span class="hud-weapon-text"></span><small class="hud-weapon-ammo"></small></span>`;
     weaponTextEl = weaponAmmoEl = null; // nieuwe kinderen
     restartClass(els.weapon, 'switched');
+    if (!eerste) S.weaponAt = nowS(); // het wapen wisselde: het plaatje komt even in beeld (v3, #995)
   }
   const label = WEAPON_LABELS[world.weapon] || 'VUISTEN';
   const textEl = weaponTextEl || (weaponTextEl = els.weapon.querySelector('.hud-weapon-text'));
   if (textEl.textContent !== label) textEl.textContent = label;
   const ammoEl = weaponAmmoEl || (weaponAmmoEl = els.weapon.querySelector('.hud-weapon-ammo'));
   if (ammoEl.textContent !== sub) {
+    if (ammoEl.textContent) S.weaponAt = nowS();
     ammoEl.textContent = sub;
     ammoEl.dataset.num = /^\d+$/.test(sub) ? '1' : '';
   }

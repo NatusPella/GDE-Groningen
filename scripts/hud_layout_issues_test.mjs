@@ -68,7 +68,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   ok(/\.gps-dist span \{ font-size: max\(13px, var\(--hud-min\)\)/.test(read('hud_panel.css')), '#868: de reistijd in de routekaart op de HUD-vloer');
   ok(/#hud \.hc-text span \{ font-size: max\(16px, var\(--hud-min\)\); \}/.test(read('hudcards.css')), '#868: de kaarttekst op een korte telefoon op de HUD-vloer');
   ok(/\.hud-special \{[^}]*font-size: max\(16px, var\(--hud-min\)\)/.test(read('hud_panel.css')), '#868: de kalenderbadge op de HUD-vloer');
-  ok(/\.pf-callwho small \{ font-size: max\(13px, var\(--hud-min\)\)/.test(read('phonefeed.css')), '#868: telefoonkop op de HUD-vloer');
+  ok(/\.pf-callwho small \{[^}]*font-size: (?:max\(13px, var\(--hud-min\)\)|var\(--ds-t-hulp\))/.test(read('phonefeed.css')), '#868: telefoonkop op de HUD-vloer');
   ok(/\.mg-board \.mg-sfeer \{ font: max\(12px, calc\(12px \/ var\(--ui/.test(read('minigamekit.js')), '#868: minigame-sfeer deelt door de HUD-zoom');
   ok(/\.mg-board \.mg-help \{ display: flex;[\s\S]*?max\(14px, calc\(14px \/ var\(--ui/.test(read('minigamekit.js')), '#868: minigame-hulp deelt door de HUD-zoom');
   ok(!/\.vo-beleid \.vo-rij/.test(read('veroverdpanel.js')), '#868: de oude Beleidswinkel-rijen zijn weg; de bonnen lezen de ds-tokens');

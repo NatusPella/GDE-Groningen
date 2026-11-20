@@ -1,27 +1,41 @@
-/* GDE Groningen – marketingpagina (website/style.css).
-   Merkenpalet uit DESIGN_SYSTEM.md: alleen de drie groenen, de donkergroene radial,
-   cream-wit, de ene rode voor gevaar/18+ en de gele wanted-sterren. Geen extra hexen.
-   Statisch zonder externe bronnen: systeemlettertypen met zware weight, geen @import,
-   geen url() naar buiten. Alle paden zijn relatief, zodat de pagina onder
+/* GDE Groningen – marketingpagina (website/style.css), zomerse zeefdruk (ADR 0040, issue 1003).
+   Vijf inkten uit DESIGN_SYSTEM.md "The design system: summer screen print" (papier, inkt, bordgroen, zomergeel, roze)
+   plus de ene gevaarrood. Misdruk = roze offset onder koppen, harde schaduw zonder blur.
+   Statisch zonder externe bronnen: de lettertypen staan in fonts/ (OFL, zie fonts/LICENSE.md),
+   geen @import, geen url() naar buiten. Alle paden zijn relatief, zodat de pagina onder
    /GDE-Groningen/ werkt. */
 
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 400; font-display: swap; src: url(fonts/AtkinsonHyperlegible-Regular.ttf) format('truetype'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 700; font-display: swap; src: url(fonts/AtkinsonHyperlegible-Bold.ttf) format('truetype'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 600; font-display: swap; src: url(fonts/BarlowCondensed-SemiBold.ttf) format('truetype'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 800; font-display: swap; src: url(fonts/BarlowCondensed-ExtraBold.ttf) format('truetype'); }
+
 :root {
-  --green: #1e9e56;          /* primair: knoppen, actieve stand, randen */
-  --green-light: #3fc97a;    /* koppen, labels, hover en glow */
-  --green-dark: #0f5c30;     /* ingedrukt / actief */
-  --bg: #0c140e;             /* onderkant van de radial */
-  --bg-glow: #17301f;        /* hart van de radial */
-  --ink: #f0ede4;            /* tekst; muted is dezelfde op 68% */
-  --ink-bright: #f2f2f2;     /* koppen */
-  --mut: rgba(240, 237, 228, 0.68);
-  --line: rgba(240, 237, 228, 0.08);
-  --line2: rgba(240, 237, 228, 0.16);
-  --green-line: rgba(63, 201, 122, 0.35);
-  --green-line-strong: rgba(63, 201, 122, 0.6);
-  --glow: rgba(63, 201, 122, 0.35);
-  --red: #d93f3f;            /* de één toegestane rood: gevaar en 18+ */
-  --radius: 10px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --papier: #f3ead3;         /* elk vlak */
+  --inkt: #1d1b17;           /* tekst, randen, harde schaduw */
+  --bordgroen: #0e6b3c;      /* koppen, navigatie, selectierand */
+  --zomergeel: #f9c80e;      /* het ene wat je nu kunt doen: knoppen */
+  --roze: #e8505b;           /* misdruk, de tweede drukgang */
+  --red: #d93f3f;            /* gevaar en 18+ */
+  /* Oude namen, nu op de vijf inkten gezet zodat de bestaande regels blijven werken. */
+  --green: var(--zomergeel);       /* vulling van knoppen en borden */
+  --green-light: var(--bordgroen); /* koppen, labels, links op papier */
+  --green-dark: var(--bordgroen);  /* ingedrukt */
+  --bg: var(--inkt);               /* tekst op een gele vulling */
+  --bg-glow: var(--papier);
+  --ink: var(--inkt);
+  --ink-bright: var(--inkt);
+  --mut: rgba(29, 27, 23, 0.78);
+  --line: rgba(29, 27, 23, 0.14);
+  --line2: rgba(29, 27, 23, 0.3);
+  --green-line: var(--inkt);
+  --green-line-strong: var(--inkt);
+  --glow: transparent;
+  --schaduw: 4px 4px 0 var(--inkt);
+  --misdruk: 3px 3px 0 var(--roze);
+  --radius: 6px;
+  --font: 'Atkinson Hyperlegible', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-kop: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
   --wrap: 72rem;
 }
 
@@ -32,7 +46,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   scroll-padding-top: 5.5rem;
 }
 
@@ -49,8 +63,8 @@ body {
   line-height: 1.65;
   color: var(--ink);
   background:
-    radial-gradient(1100px 620px at 78% -12%, rgba(63, 201, 122, 0.16), transparent 62%),
-    radial-gradient(900px 680px at 8% 108%, rgba(30, 158, 86, 0.14), transparent 60%),
+    radial-gradient(1100px 620px at 78% -12%, rgba(14, 107, 60, 0.16), transparent 62%),
+    radial-gradient(900px 680px at 8% 108%, rgba(14, 107, 60, 0.14), transparent 60%),
     radial-gradient(1250px 760px at 50% 0%, var(--bg-glow), var(--bg) 74%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
@@ -131,9 +145,7 @@ p:last-child {
   top: 0;
   z-index: 20;
   border-bottom: 1px solid var(--line2);
-  background: rgba(12, 20, 14, 0.92);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: rgba(243, 234, 211, 0.92);
 }
 
 .header-inner {
@@ -164,7 +176,6 @@ p:last-child {
   padding: 0.08rem 0.42rem;
   border-radius: 4px;
   background: var(--green);
-  box-shadow: inset 0 0 0 2px var(--ink), 0 0 14px var(--glow);
   color: var(--ink-bright);
   font-weight: 900;
   font-size: 1.15rem;
@@ -208,7 +219,7 @@ p:last-child {
 
 .site-nav a:hover {
   color: var(--green-light);
-  background: rgba(63, 201, 122, 0.12);
+  background: rgba(14, 107, 60, 0.12);
 }
 
 .site-nav .nav-cta {
@@ -307,8 +318,8 @@ main > .hero {
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(90deg, rgba(12, 20, 14, 0.95) 0%, rgba(12, 20, 14, 0.78) 38%, rgba(12, 20, 14, 0.2) 72%, rgba(12, 20, 14, 0.45) 100%),
-    linear-gradient(180deg, rgba(12, 20, 14, 0.55) 0%, rgba(12, 20, 14, 0.08) 44%, rgba(12, 20, 14, 0.92) 100%);
+    linear-gradient(90deg, rgba(243, 234, 211, 0.95) 0%, rgba(243, 234, 211, 0.78) 38%, rgba(243, 234, 211, 0.2) 72%, rgba(243, 234, 211, 0.45) 100%),
+    linear-gradient(180deg, rgba(243, 234, 211, 0.55) 0%, rgba(243, 234, 211, 0.08) 44%, rgba(243, 234, 211, 0.92) 100%);
   pointer-events: none;
 }
 
@@ -355,7 +366,7 @@ main > .hero {
   }
 
   .hero::after {
-    background: linear-gradient(180deg, rgba(12, 20, 14, 0.9) 0%, rgba(12, 20, 14, 0.52) 44%, rgba(12, 20, 14, 0.96) 100%);
+    background: linear-gradient(180deg, rgba(243, 234, 211, 0.9) 0%, rgba(243, 234, 211, 0.52) 44%, rgba(243, 234, 211, 0.96) 100%);
   }
 
   .hero-caption {
@@ -377,7 +388,7 @@ main > .hero {
   padding: 0.3rem 0.8rem;
   border: 1px solid var(--green-line-strong);
   border-radius: 999px;
-  background: rgba(30, 158, 86, 0.16);
+  background: rgba(14, 107, 60, 0.16);
   color: var(--green-light);
   font-size: 0.78rem;
   font-weight: 800;
@@ -409,7 +420,7 @@ main > .hero {
 }
 
 .trust-strip {
-  background: radial-gradient(700px 260px at 85% 0%, rgba(63, 201, 122, 0.1), transparent 70%);
+  background: radial-gradient(700px 260px at 85% 0%, rgba(14, 107, 60, 0.1), transparent 70%);
 }
 
 .trust-strip .stats {
@@ -431,7 +442,6 @@ main > .hero {
   height: 0.55rem;
   border-radius: 50%;
   background: var(--green-light);
-  box-shadow: 0 0 0 3px rgba(63, 201, 122, 0.22), 0 0 10px var(--glow);
 }
 
 .hero h1 {
@@ -440,7 +450,6 @@ main > .hero {
   font-size: clamp(2.3rem, 6.4vw, 4.4rem);
   letter-spacing: -0.035em;
   line-height: 0.98;
-  text-shadow: 0 0 28px rgba(63, 201, 122, 0.28);
 }
 
 .h1-sub {
@@ -472,7 +481,7 @@ main > .hero {
   padding: 0.28rem 0.8rem;
   border: 1px solid var(--line2);
   border-radius: 999px;
-  background: rgba(23, 48, 31, 0.6);
+  background: var(--papier);
   color: var(--green-light);
   font-size: 0.83rem;
   font-weight: 800;
@@ -530,7 +539,7 @@ main > .hero {
 
 .btn-secondary:hover {
   border-color: var(--green-light);
-  background: rgba(63, 201, 122, 0.12);
+  background: rgba(14, 107, 60, 0.12);
   color: var(--ink-bright);
 }
 
@@ -553,7 +562,6 @@ main > .hero {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-glow);
-  box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.85);
 }
 
 .hero-figure img {
@@ -580,7 +588,6 @@ main > .hero {
   padding: 0.2rem 0.75rem;
   border-radius: 6px;
   background: var(--green);
-  box-shadow: inset 0 0 0 3px var(--ink), 0 0 20px var(--glow);
   color: var(--ink-bright);
   font-size: 0.95rem;
   font-weight: 900;
@@ -671,7 +678,7 @@ h2 {
   padding: 1rem 1.1rem;
   border: 1px solid var(--green-line);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  background: var(--papier);
 }
 
 .stats strong {
@@ -716,7 +723,7 @@ h2 {
   padding: 1.35rem 1.4rem 1.45rem;
   border: 1px solid var(--green-line);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  background: var(--papier);
 }
 
 .card h3 {
@@ -749,13 +756,12 @@ h2 {
   border: 1px solid var(--green-line);
   border-radius: var(--radius);
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  background: var(--papier);
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .gallery figure:hover {
   border-color: var(--green-line-strong);
-  box-shadow: 0 0 22px rgba(63, 201, 122, 0.18);
 }
 
 .gallery img {
@@ -794,7 +800,7 @@ h2 {
   padding: 1.3rem 1.2rem 1.2rem;
   border: 1px solid var(--green-line);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  background: var(--papier);
   counter-increment: stap;
 }
 
@@ -828,8 +834,8 @@ h2 {
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   background:
-    radial-gradient(700px 300px at 15% 0%, rgba(63, 201, 122, 0.18), transparent 65%),
-    linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.96));
+    radial-gradient(700px 300px at 15% 0%, rgba(14, 107, 60, 0.18), transparent 65%),
+    linear-gradient(180deg, var(--papier), rgba(243, 234, 211, 0.96));
 }
 
 .cta-band h2 {
@@ -947,7 +953,7 @@ h2 {
   flex-direction: column;
   gap: 0.2rem;
   padding: clamp(1rem, 3vw, 2rem);
-  background: linear-gradient(180deg, rgba(12, 20, 14, 0) 0%, rgba(12, 20, 14, 0.55) 45%, rgba(12, 20, 14, 0.94) 100%);
+  background: linear-gradient(180deg, rgba(243, 234, 211, 0) 0%, rgba(243, 234, 211, 0.55) 45%, rgba(243, 234, 211, 0.94) 100%);
   color: var(--ink);
 }
 
@@ -1031,13 +1037,12 @@ h2 {
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 50%;
-  background: rgba(240, 237, 228, 0.62);
+  background: rgba(29, 27, 23, 0.62);
   transform: translate(-50%, -50%);
 }
 
 .slider-dot[aria-current="true"]::before {
   background: var(--green-light);
-  box-shadow: 0 0 8px var(--green-light);
 }
 
 @media (max-width: 34rem) {
@@ -1082,7 +1087,7 @@ h2 {
   gap: 0.25rem;
   max-width: 52rem;
   padding: clamp(1.2rem, 4vw, 2.6rem) clamp(1rem, 4vw, 2.5rem);
-  background: linear-gradient(180deg, rgba(12, 20, 14, 0) 0%, rgba(12, 20, 14, 0.78) 60%, rgba(12, 20, 14, 0.94) 100%);
+  background: linear-gradient(180deg, rgba(243, 234, 211, 0) 0%, rgba(243, 234, 211, 0.78) 60%, rgba(243, 234, 211, 0.94) 100%);
 }
 
 .visual-kicker {
@@ -1166,7 +1171,6 @@ h2 {
   background: var(--green);
   color: var(--ink-bright);
   font-size: 1.7rem;
-  box-shadow: 0 0 40px rgba(63, 201, 122, 0.55);
 }
 
 .video-note {
@@ -1175,7 +1179,7 @@ h2 {
   bottom: 1rem;
   padding: 0.3rem 0.7rem;
   border-radius: 4px;
-  background: rgba(12, 20, 14, 0.84);
+  background: rgba(243, 234, 211, 0.84);
   color: var(--ink);
   font-size: 0.78rem;
 }
@@ -1229,7 +1233,7 @@ h2 {
 .share-btn:hover,
 .share-btn:focus-visible {
   border-color: var(--green-light);
-  background: rgba(63, 201, 122, 0.12);
+  background: rgba(14, 107, 60, 0.12);
   color: var(--ink-bright);
 }
 
@@ -1255,7 +1259,7 @@ h2 {
   margin: 0 0 0.7rem;
   border: 1px solid var(--green-line);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  background: var(--papier);
 }
 
 .faq summary {
@@ -1351,14 +1355,14 @@ h2 {
 }
 
 .help-content th {
-  background: rgba(23, 48, 31, 0.82);
+  background: var(--papier);
   color: var(--ink-bright);
 }
 
 .help-content code {
   padding: 0.08rem 0.35rem;
   border-radius: 4px;
-  background: rgba(23, 48, 31, 0.82);
+  background: var(--papier);
   font-size: 0.9em;
   overflow-wrap: anywhere;
 }
@@ -1383,7 +1387,7 @@ h2 {
   padding: 1.2rem 1.2rem 1.3rem;
   border: 1px solid var(--green-line);
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  background: var(--papier);
   color: var(--ink);
   text-decoration: none;
 }
@@ -1391,7 +1395,7 @@ h2 {
 .help-card:hover,
 .help-card:focus-visible {
   border-color: var(--green-line-strong);
-  background: linear-gradient(180deg, rgba(30, 158, 86, 0.24), rgba(12, 20, 14, 0.9));
+  background: linear-gradient(180deg, rgba(14, 107, 60, 0.24), rgba(243, 234, 211, 0.9));
 }
 
 .help-card strong {
@@ -1485,7 +1489,7 @@ h2 {
   padding-top: clamp(2.2rem, 5vw, 3.2rem);
   padding-bottom: 1.2rem;
   border-top: 1px solid var(--line2);
-  background: rgba(12, 20, 14, 0.72);
+  background: rgba(243, 234, 211, 0.72);
 }
 
 .footer-grid {
@@ -1587,5 +1591,368 @@ h2 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- zeefdruk-laag (ADR 0040, issue 1003): papier, inkt, misdruk, harde schaduw ---------- */
+
+body {
+  background: var(--papier);
+}
+
+h1,
+h2,
+h3,
+.brand-text,
+.stats strong,
+.kicker,
+.btn,
+.nav-cta,
+.status,
+.badges li,
+.plaatsbord,
+.slide-tag,
+.showcase-tab,
+.age-badge,
+.footer-heading,
+.help-card strong {
+  font-family: var(--font-kop);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+h2 {
+  color: var(--bordgroen);
+  text-shadow: 2px 2px 0 var(--roze);
+}
+
+.hero h1 {
+  color: var(--inkt);
+  text-shadow: var(--misdruk);
+  letter-spacing: 0;
+}
+
+.h1-sub {
+  color: var(--bordgroen);
+  text-shadow: 2px 2px 0 var(--roze);
+}
+
+.help-content h1 {
+  letter-spacing: 0;
+  text-shadow: var(--misdruk);
+}
+
+.site-header {
+  background: var(--papier);
+  border-bottom: 3px solid var(--inkt);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.brand-mark,
+.plaatsbord {
+  border: 2px solid var(--inkt);
+  border-radius: 4px;
+  background: var(--bordgroen);
+  box-shadow: 3px 3px 0 var(--roze);
+  color: var(--papier);
+}
+
+.brand-mark {
+  font-family: var(--font-kop);
+  font-weight: 800;
+}
+
+.brand-text small {
+  font-family: var(--font);
+  color: var(--bordgroen);
+}
+
+.site-nav a {
+  font-weight: 700;
+}
+
+.site-nav a:hover {
+  color: var(--inkt);
+  background: var(--zomergeel);
+}
+
+/* Knoppen: zomergeel met inktrand en harde schaduw; ingedrukt = schaduw weg, knop verschoven. */
+.btn,
+.site-nav .nav-cta,
+.nav-cta-mobiel,
+.nav-toggle {
+  border: 2px solid var(--inkt);
+  border-radius: 4px;
+  box-shadow: var(--schaduw);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary,
+.site-nav .nav-cta,
+.nav-cta-mobiel {
+  background: var(--zomergeel);
+  color: var(--inkt);
+}
+
+.btn-primary:hover,
+.site-nav .nav-cta:hover {
+  background: var(--papier);
+  color: var(--inkt);
+}
+
+.btn-secondary,
+.nav-toggle {
+  background: var(--papier);
+  color: var(--inkt);
+}
+
+.btn-secondary:hover {
+  background: var(--zomergeel);
+  border-color: var(--inkt);
+  color: var(--inkt);
+}
+
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.site-nav .nav-cta:active {
+  border-color: var(--inkt);
+  background: var(--zomergeel);
+  color: var(--inkt);
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+
+:focus-visible {
+  outline: 3px solid var(--bordgroen);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--zomergeel);
+  color: var(--inkt);
+}
+
+.skip-link {
+  border: 2px solid var(--inkt);
+  background: var(--zomergeel);
+  color: var(--inkt);
+}
+
+/* Kaarten en vlakken: papier met inktrand en harde schaduw, zonder gloed. */
+.stats li,
+.card,
+.steps li,
+.gallery figure,
+.hero-figure,
+.slider-viewport,
+.faq details,
+.help-card,
+.video-play {
+  border: 2px solid var(--inkt);
+  border-radius: var(--radius);
+  background: var(--papier);
+  box-shadow: var(--schaduw);
+}
+
+.badges li,
+.status {
+  border: 2px solid var(--inkt);
+  border-radius: 4px;
+  background: var(--papier);
+  box-shadow: 2px 2px 0 var(--inkt);
+  color: var(--bordgroen);
+}
+
+.status-dot {
+  background: var(--roze);
+  box-shadow: none;
+}
+
+.gallery figure:hover,
+.help-card:hover,
+.help-card:focus-visible {
+  border-color: var(--inkt);
+  box-shadow: 4px 4px 0 var(--bordgroen);
+}
+
+.hero-figure {
+  box-shadow: 6px 6px 0 var(--inkt);
+}
+
+.trust-strip,
+.cta-band {
+  border-top: 3px solid var(--inkt);
+  border-bottom: 3px solid var(--inkt);
+  background: var(--zomergeel);
+  color: var(--inkt);
+}
+
+.cta-band h2 {
+  color: var(--inkt);
+  text-shadow: 2px 2px 0 var(--roze);
+}
+
+.cta-band .section-lead,
+.trust-links,
+.trust-links a {
+  color: var(--inkt);
+}
+
+.cta-band .btn-primary {
+  background: var(--papier);
+}
+
+.stats strong {
+  color: var(--bordgroen);
+  text-shadow: 2px 2px 0 var(--roze);
+}
+
+.stats span {
+  color: var(--inkt);
+}
+
+.quotes li::before {
+  border-radius: 0;
+  background: var(--roze);
+}
+
+main > section + section {
+  border-top: 2px solid var(--inkt);
+}
+
+.hero {
+  border-bottom: 3px solid var(--inkt);
+}
+
+.steps li::before {
+  border: 2px solid var(--inkt);
+  background: var(--zomergeel);
+  box-shadow: 2px 2px 0 var(--roze);
+  color: var(--inkt);
+  font-family: var(--font-kop);
+}
+
+.showcase-tab {
+  border: 2px solid var(--inkt);
+  background: var(--papier);
+  color: var(--inkt);
+}
+
+.showcase-tab:hover,
+.showcase-tab:focus-visible {
+  background: var(--zomergeel);
+  color: var(--inkt);
+}
+
+.showcase-tab[aria-selected="true"] {
+  background: var(--bordgroen);
+  color: var(--papier);
+  box-shadow: 3px 3px 0 var(--roze);
+}
+
+.slide-tag {
+  border: 2px solid var(--inkt);
+  background: var(--zomergeel);
+  color: var(--inkt);
+}
+
+.slider-dot[aria-current="true"]::before {
+  background: var(--bordgroen);
+  box-shadow: none;
+}
+
+.video-play-btn {
+  border: 3px solid var(--inkt);
+  border-radius: 4px;
+  background: var(--zomergeel);
+  box-shadow: 4px 4px 0 var(--inkt);
+  color: var(--inkt);
+}
+
+.site-footer {
+  border-top: 4px solid var(--inkt);
+  background: var(--papier);
+}
+
+.footer-heading {
+  color: var(--bordgroen);
+}
+
+/* 18+: gevaarrood, op papier met de donkerder rand en tekst uit het designsysteem. */
+.age-block {
+  border-top: 3px solid #b3261e !important;
+  background: var(--papier);
+}
+
+.age-badge {
+  border-color: #b3261e;
+  color: #8c1d18;
+}
+
+.card h3,
+.steps h3 {
+  font-size: 1.4rem;
+}
+
+/* ---------- opbouw v2: kaarten met beeld, kamercode, team ---------- */
+
+.card--beeld {
+  padding: 0;
+  overflow: hidden;
+}
+
+.card--beeld img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: 2px solid var(--inkt);
+}
+
+.card-tekst {
+  padding: 1.1rem 1.3rem 1.3rem;
+}
+
+.card:not(.card--beeld) > .card-tekst {
+  padding: 0;
+}
+
+.kamer-stappen {
+  max-width: 60rem;
+}
+
+.team-eerlijk,
+.team-uitnodiging {
+  max-width: 46rem;
+  margin: 1.4rem 0 0;
+  color: var(--inkt);
+}
+
+.team-eerlijk {
+  padding-left: 0.9rem;
+  border-left: 4px solid var(--bordgroen);
+  font-size: 0.96rem;
+}
+
+#delen .share-row {
+  margin-top: 0.4rem;
+}
+
+.card-grid--vier {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 34rem) {
+  .card-grid--vier {
+    grid-template-columns: 1fr;
   }
 }

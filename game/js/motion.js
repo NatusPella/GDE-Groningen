@@ -14,13 +14,15 @@ let mq = null;
 function apply() {
   const on = !!getSettings().reduceMotion || !!(mq && mq.matches);
   document.documentElement.classList.toggle('reduce-motion', on);
+  // Rustig drukwerk (#992): ds-tokens.css zet misdruk, schuinte en raster uit onder deze klasse
+  document.documentElement.classList.toggle('rustig-drukwerk', !!getSettings().rustigDrukwerk);
 }
 
 export function initMotion() {
   if (typeof window === 'undefined') return;
   mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   if (mq && mq.addEventListener) mq.addEventListener('change', apply);
-  onSettingsChange((s, key) => { if (key === 'reduceMotion' || !key) apply(); });
+  onSettingsChange((s, key) => { if (key === 'reduceMotion' || key === 'rustigDrukwerk' || !key) apply(); });
   apply();
 }
 

@@ -72,33 +72,29 @@ export function beleidOffers(geld = 0) {
 const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const heel = (n) => Math.max(0, Math.floor(Number(n) || 0));
 
-// Designsysteem v2 (#980): elke maatregel is een papieren bon op het glas van het menu, met het gevolg
-// (prijs, saldo, saldo erna) vóór de knop, een statuschip met pictogram en bij te weinig geld een
-// probleem-callout met de oplossing. De opmaak staat hier, naast de tekst die ze beschrijft; de
-// tokens en bouwstenen komen uit ds-tokens.css en ds-components.css.
+// Designsysteem v3 (ADR 0040, #999): elke maatregel is een zeefdrukkaart op papier, met het gevolg
+// (prijs, saldo, saldo erna) als kassabonregels vóór de knop, een statuschip met pictogram en bij te weinig
+// geld een probleemkaart met de oplossing. De opmaak staat hier, naast de tekst die ze beschrijft; de
+// tokens en bouwstenen komen uit ds-tokens.css en ds-components.css (.ds-z-*).
 const ICOON = {
-  ok: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>',
-  nee: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z"/></svg>',
-  kan: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5l10 5.5-10 5.5z"/></svg>',
+  ok: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>',
+  nee: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z"/></svg>',
+  kan: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5l10 5.5-10 5.5z"/></svg>',
 };
 export const BELEID_CSS = `
-.bw-beleid { margin: 12px 0 4px; display: flex; flex-direction: column; gap: var(--ds-s-3); }
-.bw-beleid h3 { font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-.bw-beleid p { margin: 0; color: var(--ds-tx); max-width: 60ch; }
+.bw-beleid { margin: var(--ds-s-3) 0 var(--ds-s-1); display: flex; flex-direction: column; gap: var(--ds-s-3); font-family: var(--ds-font-tekst-v3); }
+.bw-beleid h3 { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.bw-beleid p { margin: 0; color: var(--ds-zeef-tx); max-width: 60ch; }
 .bw-beleid .bw-saldo { display: flex; align-items: baseline; gap: var(--ds-s-2); }
-.bw-beleid .bw-saldo b { font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); }
-.bw-beleid .bw-melding { padding: var(--ds-s-2) var(--ds-s-3); border-left: var(--ds-status-rand) solid var(--ds-selectie); background: var(--ds-selectie-vlak); color: var(--ds-selectie-tx); border-radius: var(--ds-r); }
+.bw-beleid .bw-saldo b { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.bw-beleid .bw-melding { padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-bord); background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); }
 .bw-beleid .bw-rij { gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); }
-.bw-beleid .bw-bon { display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) 0; border-top: var(--ds-lijn-dik) dashed var(--ds-tx-zacht); }
-.bw-beleid .bw-bon > div { display: flex; align-items: baseline; gap: var(--ds-s-3); }
-.bw-beleid .bw-bon > div > span { flex: 1; color: var(--ds-tx-zacht); }
-.bw-beleid .bw-bon b { font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); }
-.bw-beleid .bw-bon .bw-na { padding-top: var(--ds-s-1); border-top: var(--ds-lijn) solid var(--ds-tx-zacht); }
-.bw-beleid .bw-bon .bw-na > span { color: var(--ds-tx); font-weight: var(--ds-gewicht-vet); }
-.bw-beleid .bw-bon .bw-mist b { color: var(--ds-probleem-tx); }
+.bw-beleid .bw-rij .ds-z-kaart__kop { margin: calc(-1 * var(--ds-s-3)) calc(-1 * var(--ds-s-4)) 0; }
 .bw-beleid .bw-acties { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
-.bw-beleid .ds-callout { padding: var(--ds-s-3) var(--ds-s-4); gap: var(--ds-s-2); }
-.bw-beleid .ds-callout .ds-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+.bw-beleid .bw-mist b { color: var(--ds-c-rood-tx); }
+.bw-beleid .bw-probleem { padding: var(--ds-s-3) var(--ds-s-4); gap: var(--ds-s-2); }
+.bw-beleid .bw-probleem-kop { display: flex; align-items: center; gap: var(--ds-s-2); }
+.bw-beleid .bw-probleem .ds-z-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 `;
 let cssAan = false;
 function zetBeleidCss() {
@@ -133,27 +129,28 @@ export function beleidPaneelHtml(geld = 0, melding = '') {
   const eerste = offers.find((b) => !b.gekocht && b.betaalbaar);
   const rijen = offers.map((b) => {
     const bon = beleidBon(b.prijs, geld);
-    const klasse = b.gekocht ? 'ds-kaart--succes' : b.betaalbaar ? '' : 'ds-kaart--probleem';
-    const chip = b.gekocht ? `<span class="ds-chip ds-chip--succes">${ICOON.ok}Aangenomen</span>`
-      : b.betaalbaar ? `<span class="ds-chip ds-chip--primair">${ICOON.kan}Kan nu</span>`
-        : `<span class="ds-chip ds-chip--probleem">${ICOON.nee}Te duur</span>`;
+    const klasse = b.gekocht ? 'ds-z-kaart--selectie' : b.betaalbaar ? '' : 'ds-z-kaart--probleem';
+    const chip = b.gekocht ? `<span class="ds-z-chip ds-z-chip--succes">${ICOON.ok}Aangenomen</span>`
+      : b.betaalbaar ? `<span class="ds-z-chip ds-z-chip--primair">${ICOON.kan}Kan nu</span>`
+        : `<span class="ds-z-chip ds-z-chip--probleem">${ICOON.nee}Te duur</span>`;
+    const regel = (naam, bedrag) => `<div class="ds-z-bon__regel"><span>${naam}</span><span class="ds-z-bon__stippen"></span><span class="ds-z-bon__bedrag">${bedrag}</span></div>`;
     const bonHtml = b.gekocht ? ''
-      : `<div class="bw-bon"><div><span>Prijs</span><b>${euro(bon.prijs)}</b></div><div><span>Op zak</span><b>${euro(bon.saldo)}</b></div>` +
-        (bon.mist > 0 ? `<div class="bw-na bw-mist"><span>Je mist</span><b>${euro(bon.mist)}</b></div>` : `<div class="bw-na"><span>Na aankoop</span><b>${euro(bon.na)}</b></div>`) + '</div>';
+      : `<div class="ds-z-bon bw-bon">${regel('Prijs', euro(bon.prijs))}${regel('Op zak', euro(bon.saldo))}` +
+        (bon.mist > 0 ? `<div class="ds-z-bon__totaal bw-mist"><span>Je mist</span><span class="ds-z-bon__stippen"></span><b>${euro(bon.mist)}</b></div>` : `<div class="ds-z-bon__totaal"><span>Na aankoop</span><span class="ds-z-bon__stippen"></span><b>${euro(bon.na)}</b></div>`) + '</div>';
     let onder = '';
     if (!b.gekocht && !b.betaalbaar) {
       const alt = offers.find((x) => !x.gekocht && x.betaalbaar);
-      onder = `<div class="ds-callout" role="group"><div class="ds-callout__kop">${ICOON.nee.replace('ds-chip__icoon', 'ds-icoon ds-icoon--probleem')}<span>Te weinig geld</span></div>` +
-        `<div class="ds-callout__tekst">Je hebt nog ${euro(bon.mist)} nodig. Bijverdienen kan met een bijbaan: kijk in het menu onder Loopbanen of Activiteiten.</div>` +
-        (alt ? `<div class="ds-callout__oplossing"><button type="button" class="ds-knop ds-knop--secundair" data-beleid-ga="${escHtml(alt.id)}">Bekijk ${escHtml(alt.naam)} (${euro(alt.prijs)})</button></div>` : '') + '</div>';
+      onder = `<div class="ds-z-kaart ds-z-kaart--probleem ds-z-kaart--recht bw-probleem" role="group"><div class="ds-z-kaart__tekst bw-probleem-kop">${ICOON.nee}<b>Te weinig geld</b></div>` +
+        `<div class="ds-z-kaart__tekst">Je hebt nog ${euro(bon.mist)} nodig. Bijverdienen kan met een bijbaan: kijk in het menu onder Loopbanen of Activiteiten.</div>` +
+        (alt ? `<div class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-beleid-ga="${escHtml(alt.id)}">Bekijk ${escHtml(alt.naam)} (${euro(alt.prijs)})</button></div>` : '') + '</div>';
     }
     const knop = b.gekocht ? ''
-      : `<div class="bw-acties"><button type="button" class="ds-knop${b === eerste ? '' : ' ds-knop--secundair'}" data-beleid="${escHtml(b.id)}"${b.betaalbaar ? '' : ' disabled'}>${euro(b.prijs)} kopen</button></div>`;
-    return `<div class="bw-rij ds-papier ds-kaart ds-kaart--kop ${klasse}" data-beleid-rij="${escHtml(b.id)}"><div class="ds-kaart__kop"><span class="ds-kaart__titel">${escHtml(b.naam)}</span>${chip}</div>` +
-      `<div class="ds-kaart__tekst">${escHtml(b.tekst)}</div>${bonHtml}${onder}${knop}</div>`;
+      : `<div class="bw-acties"><button type="button" class="ds-z-knop${b === eerste ? '' : ' ds-z-knop--secundair'}" data-beleid="${escHtml(b.id)}"${b.betaalbaar ? '' : ' disabled'}>${euro(b.prijs)} kopen</button></div>`;
+    return `<div class="bw-rij ds-zeef ds-z-kaart ${klasse}" data-beleid-rij="${escHtml(b.id)}"><div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${escHtml(b.naam)}</span>${chip}</div>` +
+      `<div class="ds-z-kaart__tekst">${escHtml(b.tekst)}</div>${bonHtml}${onder}${knop}</div>`;
   }).join('');
   const meld = melding ? `<p class="vo-beleid-melding bw-melding" role="status">${escHtml(melding)}</p>` : '';
-  return `<section class="bw-beleid ds-glas" aria-label="Beleidswinkel"><h3>Beleidswinkel</h3><p>Koop één keer een gemeentelijke maatregel die blijft: van lagere boetes tot een drukkere markt. Het is van jou, in je eigen opslag.</p>` +
+  return `<section class="bw-beleid ds-zeef" aria-label="Beleidswinkel"><h3>Beleidswinkel</h3><p>Koop één keer een gemeentelijke maatregel die blijft: van lagere boetes tot een drukkere markt. Het is van jou, in je eigen opslag.</p>` +
     `<p class="bw-saldo">Je saldo: <b>${euro(geld)}</b></p>${meld}${rijen}</section>`;
 }
 // Koopt in de wereld: geld eraf en de stand erbij. De melding doet de aanroeper (het paneel), zodat

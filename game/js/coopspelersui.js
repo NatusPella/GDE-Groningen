@@ -24,9 +24,9 @@ const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
 const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 
 function rijHtml(r, acties, rol = null, bevestig = null) {
-  const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="m-bg cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
-  const geef = acties && kanOverdragen(rol, r) ? `<button type="button" class="m-bg cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
-  const naar = acties && !r.jij && r.x != null ? `<button type="button" class="m-bg cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
+  const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
+  const geef = acties && kanOverdragen(rol, r) ? `<button type="button" class="cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
+  const naar = acties && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
   // de groep (#492): "leidt <label>" bij de leider, de groepsnaam bij de andere deelnemers, niets bij wie niet meedoet
   const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
   const actiesHtml = naar || geef || eruit ? `<span class="cs-acties">${naar}${geef}${eruit}</span>` : '';
@@ -41,109 +41,99 @@ function rijHtml(r, acties, rol = null, bevestig = null) {
 function pvpHtml(world) {
   if (!kanPassiefKiezen(world)) return '';
   const passief = passiefStandVan(world);
-  return `<div class="cs-pvp"><button type="button" class="m-bg cs-pvp-knop" data-passief="${passief ? '0' : '1'}" aria-pressed="${passief ? 'true' : 'false'}">${passief ? PVP_TEKST.knopAan : PVP_TEKST.knopUit}</button><p>${esc(PVP_TEKST.uitleg)}</p></div>`;
+  return `<div class="cs-pvp"><button type="button" class="cs-pvp-knop" data-passief="${passief ? '0' : '1'}" aria-pressed="${passief ? 'true' : 'false'}">${passief ? PVP_TEKST.knopAan : PVP_TEKST.knopUit}</button><p>${esc(PVP_TEKST.uitleg)}</p></div>`;
 }
 const roepHint =() => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
 
 const CSS = `
-/* De lijst staat buiten het .gm-paneel; deze variabelen komen uit de HUD-tokens. */
-#coop-spelers { --ink: var(--hud-fg); --g: var(--gron-green-light); --gd: var(--gron-green); --mut: rgba(240,237,228,0.68); --red: var(--hud-red); --redtx: var(--hud-redtx); }
-.cs-lijst { font: 18px "Arial Narrow", Arial, sans-serif; color: var(--ink); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.cs-rij { display: grid; grid-template-columns: 44px minmax(110px, auto) minmax(0, 1fr) auto; gap: 3px 12px; align-items: center; padding: 8px 12px; border-radius: 10px; background: rgba(240,237,228,0.05); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.1); }
-.cs-avatar { grid-row: 1 / span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(63,201,122,0.1); box-shadow: inset 0 0 0 1.5px rgba(63,201,122,0.35); }
-.cs-vorm { font-size: 22px; line-height: 1; text-align: center; }
-.cs-naam { font-weight: bold; } .cs-naam small, .cs-net small { font-weight: normal; opacity: 0.7; }
-.cs-naam .cs-jij { color: var(--g); }
-.cs-doet { display: flex; flex-direction: column; gap: 1px; opacity: 0.9; }
-.cs-doet small { font-size: 15px; opacity: 0.7; }
-.cs-groep { display: inline-block; padding: 0 5px; border-radius: 3px; background: rgba(240,237,228,0.14); }
-.cs-naam .cs-groep { opacity: 0.9; }
-.cs-naam .cs-groep.cs-leidt { background: rgba(63,201,122,0.28); opacity: 1; }
-.cs-net { white-space: nowrap; opacity: 0.9; } .cs-net i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
-.cs-stip-ok { background: var(--g); } .cs-stip-lag { background: var(--mut); } .cs-stip-lost { background: var(--red); }
-.cs-acties { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+/* Zeefdruk (#1001): alleen ds-tokens en de .ds-z-* stijl; de identiteitskleur van een speler komt als inline color (data) en de vorm staat er altijd naast.
+   De lijst staat buiten het .gm-paneel en gebruikt dus de papiertokens, niet de glasvariabelen. */
+#coop-spelers, .pm-spelers { color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); }
+.cs-lijst { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+.cs-rij { display: grid; grid-template-columns: var(--ds-s-7) minmax(110px, auto) minmax(0, 1fr) auto; gap: var(--ds-s-1) var(--ds-s-3); align-items: center; padding: var(--ds-s-2) var(--ds-s-3); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+.cs-avatar { grid-row: 1 / span 2; display: grid; place-items: center; width: var(--ds-s-7); height: var(--ds-s-7); border-radius: var(--ds-r-pil); background: var(--ds-c-ink-inkt); }
+.cs-vorm { font-size: var(--ds-t-subkop); line-height: 1; text-align: center; }
+.cs-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.cs-naam small, .cs-net small, .cs-doet small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; }
+.cs-naam .cs-jij { color: var(--ds-c-groen-tx); }
+.cs-doet { display: flex; flex-direction: column; gap: 1px; }
+.cs-groep { display: inline-block; padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); }
+.cs-naam .cs-groep.cs-leidt { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
+/* de netstand is een vorm en een woord: rond = goed, ruit = haperd, vierkant = weg */
+.cs-net { display: inline-flex; align-items: center; gap: var(--ds-s-2); white-space: nowrap; }
+.cs-net i { display: inline-block; width: var(--ds-s-3); height: var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.cs-stip-ok { background: var(--ds-c-bord); border-radius: var(--ds-r-pil); }
+.cs-stip-lag { background: var(--ds-c-geel); transform: rotate(45deg); }
+.cs-stip-lost { background: var(--ds-c-rood); }
+.cs-acties { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 /* #636: dezelfde lijst ook op aanraking (44 px-knop), zonder muis of Tab */
-.cs-open { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--hud-card, rgba(12,20,14,0.9)); color: var(--hud-fg, var(--ink)); box-shadow: var(--hud-card-ring, 0 0 0 1px var(--line2, rgba(240,237,228,0.2))); font: 600 15px "Arial Narrow", Arial, sans-serif; cursor: pointer; }
-.cs-open[aria-expanded="true"] { background: var(--g); color: var(--hud-panel-ink, var(--gd)); }
-.cs-open:hover, .cs-open:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.cs-eruit { justify-self: start; margin: 0; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(217,63,63,0.28); color: inherit; font: inherit; cursor: pointer; }
-.cs-naar { justify-self: start; margin: 0; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: inherit; font: inherit; cursor: pointer; }
-.cs-naar:hover, .cs-naar:focus-visible { background: rgba(63,201,122,0.35); outline: none; }
-#coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; box-sizing: border-box; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: 12px 16px 10px; background: rgba(12,20,14,0.88); color: var(--ink); border-radius: 8px; box-shadow: 0 0 0 1px rgba(240,237,228,0.14); pointer-events: none; }
+.cs-open { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: grid; place-items: center; min-width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
+.cs-open[aria-expanded="true"] { background: var(--ds-zeef-primair); }
+.cs-open:hover { background: var(--ds-c-sel-vlak); }
+.cs-open:focus-visible, .pm-spelers :is(button, input):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+.cs-eruit, .cs-naar, .pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .cs-kleuren button { display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); justify-self: start; margin: 0; min-height: var(--ds-doel-aanraken); padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
+.cs-naar:hover, .cs-naar:focus-visible, .pm-spelers .cs-roep button:hover { background: var(--ds-c-sel-vlak); }
+.cs-eruit { border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
+#coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; box-sizing: border-box; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); pointer-events: none; }
 /* #873: de lijst zelf scrolt (de overlay kapte hem af) en alleen de lijst vangt de muis,
    zodat de rest van het scherm doorklikbaar blijft naar het spel. */
-#coop-spelers .cs-lijst { max-height: calc(100vh - 204px); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.32) transparent; padding-right: 4px; }
+#coop-spelers .cs-lijst { max-height: calc(100vh - 204px); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; padding-right: var(--ds-s-1); }
 #coop-spelers .cs-lijst::-webkit-scrollbar { width: 8px; }
-#coop-spelers .cs-lijst::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240,237,228,0.32); }
+#coop-spelers .cs-lijst::-webkit-scrollbar-thumb { border-radius: var(--ds-r); background: var(--ds-c-ink-inkt); }
 #coop-spelers .cs-lijst::-webkit-scrollbar-track { background: transparent; }
-#coop-spelers h3 { margin: 0 0 4px; font: normal 22px "Bebas Neue", "Arial Narrow", Arial, sans-serif; letter-spacing: 0.06em; }
-#coop-spelers .cs-voet { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(240,237,228,0.16); font: 14px "Arial Narrow", Arial, sans-serif; opacity: 0.8; }
-#coop-spelers .cs-voet b { padding: 0 5px; border-radius: 3px; background: rgba(240,237,228,0.18); }
-#coop-spelers .cs-rij { padding: 6px 8px; grid-template-columns: 32px minmax(80px, auto) minmax(0, 1fr) auto; }
-#coop-spelers .cs-avatar { width: 32px; height: 32px; }
-#coop-spelers .cs-vorm { font-size: 18px; }
-.pm-spelers { display: flex; flex-direction: column; gap: 16px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.32) transparent; font-family: "Arial Narrow", Arial, sans-serif; color: var(--ink); }
-.pm-spelers .cs-lijst { font-size: 22px; gap: 8px; } .pm-spelers .cs-rij { padding: 12px 16px; grid-template-columns: 52px minmax(140px, auto) minmax(0, 1fr) auto; } .pm-spelers .cs-avatar { width: 52px; height: 52px; } .pm-spelers .cs-vorm { font-size: 26px; }
-.pm-spelers p { margin: 0; max-width: 680px; font-size: 20px; line-height: 1.35; opacity: 0.85; }
-.pm-spelers .cs-kop { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; border-radius: 12px; background: linear-gradient(180deg, rgba(23,48,31,0.9), rgba(12,20,14,0.86)); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.14); }
-.pm-spelers .cs-kop-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 36px; line-height: 1; letter-spacing: 0.03em; }
-.pm-spelers .cs-kop-leeg .cs-kop-t { color: var(--mut); }
-.pm-spelers .cs-sectie { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
-.pm-spelers .cs-sectie h4 { margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 24px; letter-spacing: 0.04em; }
-.pm-spelers .cs-pvp { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 12px 16px; border-radius: 10px; background: rgba(240,237,228,0.04); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.1); }
-.pm-spelers .cs-pvp button { padding: 10px 18px; border: 0; border-radius: 8px; background: rgba(240,237,228,0.18); color: var(--ink); font: bold 20px "Arial Narrow", Arial, sans-serif; cursor: pointer; }
-.pm-spelers .cs-pvp button, .pm-spelers .cs-roep button { min-height: 44px; }
-/* #636: de knoppen van het Spelers-paneel op de menu-set (Bebas) in plaats van bold Arial Narrow */
-.pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .pm-spelers .cs-eruit, .pm-spelers .cs-naar {
-  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.06em; font-weight: normal; }
-.pm-spelers .cs-eruit, .pm-spelers .cs-naar { min-height: 44px; padding: 0 14px; }
-.pm-spelers .cs-pvp button[aria-pressed="false"] { background: var(--red); color: var(--gd); }
-.pm-spelers .cs-pvp button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.pm-spelers .cs-roep { display: flex; flex-wrap: wrap; gap: 10px; }
-.pm-spelers .cs-roep button { padding: 10px 18px; border: 0; border-radius: 8px; background: var(--g); color: var(--gd); font: bold 20px "Arial Narrow", Arial, sans-serif; cursor: pointer; }
-.pm-spelers .cs-roep button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.cs-profiel { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 12px; background: rgba(240,237,228,0.04); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.1); }
-.cs-profiel h4 { margin: 0; font: normal 24px "Bebas Neue", "Arial Narrow", Arial, sans-serif; letter-spacing: 0.04em; }
-.cs-profiel p { max-width: 680px; }
-.cs-profiel-label { display: flex; gap: 10px; align-items: center; font-size: 20px; }
-.cs-profiel-naam { min-width: 0; max-width: 260px; padding: 4px 8px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: var(--ink); font: inherit; }
-.cs-kleuren { display: flex; flex-wrap: wrap; gap: 6px; }
-.cs-kleuren button { padding: 4px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: var(--ink); font: inherit; cursor: pointer; }
-.cs-kleuren button[aria-pressed="true"] { background: rgba(63,201,122,0.4); }
-.cs-kleuren button:focus-visible, .cs-profiel-naam:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.cs-profiel-fout { color: var(--redtx); }
-.cs-profiel-hint { font-size: 16px; opacity: 0.75; }
+#coop-spelers h3 { margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+#coop-spelers .cs-voet { margin-top: var(--ds-s-2); padding-top: var(--ds-s-2); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); }
+#coop-spelers .cs-voet b { padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); background: var(--ds-zeef-bg); }
+#coop-spelers .cs-rij { padding: var(--ds-s-2); grid-template-columns: var(--ds-s-6) minmax(80px, auto) minmax(0, 1fr) auto; }
+#coop-spelers .cs-avatar { width: var(--ds-s-6); height: var(--ds-s-6); }
+#coop-spelers .cs-vorm { font-size: var(--ds-t-body); }
+.pm-spelers { display: flex; flex-direction: column; gap: var(--ds-s-4); max-width: 952px; padding: var(--ds-s-6) var(--ds-s-8) var(--ds-s-7); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
+.pm-spelers .cs-kop, .pm-spelers .cs-pvp, .cs-profiel { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+.pm-spelers .cs-pvp { align-items: flex-start; }
+.pm-spelers .cs-kop-t, .pm-spelers .cs-sectie h4, .cs-profiel h4 { margin: 0; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+.pm-spelers .cs-kop-t { font-size: var(--ds-t-kop); }
+.pm-spelers .cs-kop-leeg .cs-kop-t { color: var(--ds-tx-zacht); }
+.pm-spelers .cs-sectie { display: flex; flex-direction: column; gap: var(--ds-s-2); padding-top: var(--ds-s-1); }
+.pm-spelers .cs-lijst { gap: var(--ds-s-2); }
+.pm-spelers .cs-rij { padding: var(--ds-s-2) var(--ds-s-3); grid-template-columns: var(--ds-s-7) minmax(140px, auto) minmax(0, 1fr) auto; }
+.pm-spelers p, .cs-profiel p { margin: 0; max-width: 680px; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
+/* Passief is de gewone stand (groen met vinkje); actief is de bewuste, riskante keuze (rood met een woord) */
+.pm-spelers .cs-pvp button[aria-pressed="false"] { background: var(--ds-c-rood-vlak); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
+.pm-spelers .cs-pvp button[aria-pressed="true"], .cs-kleuren button[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
+.cs-kleuren button[aria-pressed="true"]::after { content: "\\2713"; }
+.pm-spelers .cs-roep { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); }
+.cs-profiel-label { display: flex; gap: var(--ds-s-3); align-items: center; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
+.cs-profiel-naam { min-width: 0; min-height: var(--ds-doel-aanraken); max-width: 260px; padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); }
+.cs-kleuren { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+.cs-profiel-fout { color: var(--ds-c-rood-tx); }
+.cs-profiel-hint { font-size: var(--ds-t-hulp); }
 /* #873: de Spelers-lijst in het pauzemenu op een smal scherm: minder kolommen, de
    netstatus onder de naam en kortere actieknoppen. */
 @media (max-width: 760px) {
-  .pm-spelers { padding: 12px; }
-  .pm-spelers .cs-lijst { font-size: 18px; gap: 6px; }
-  .pm-spelers .cs-rij { padding: 4px 0; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 2px 8px; }
-  .pm-spelers .cs-doet { font-size: 16px; }
-  .pm-spelers .cs-net { grid-column: 2 / -1; justify-self: start; font-size: 14px; }
-  .pm-spelers .cs-eruit, .pm-spelers .cs-naar { min-height: 38px; font-size: 20px; padding: 0 10px; }
+  .pm-spelers { padding: var(--ds-s-3); }
+  .pm-spelers .cs-lijst { gap: var(--ds-s-2); }
+  .pm-spelers .cs-rij { grid-template-columns: var(--ds-s-6) minmax(0, 1fr) auto; gap: 2px var(--ds-s-2); }
+  .pm-spelers .cs-net { grid-column: 2 / -1; justify-self: start; }
 }
 /* #873: op smalle schermen is er geen breedte voor vier kolommen: de netstatus zakt
    onder de naam en de avatar wordt smaller. */
 @media (max-width: 520px) {
-  #coop-spelers { width: calc(100vw - 16px); }
-  #coop-spelers .cs-rij { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 2px 8px; padding: 4px 0; }
-  #coop-spelers .cs-doet { font-size: 14px; }
-  #coop-spelers .cs-net { grid-column: 2 / -1; justify-self: start; font-size: 13px; }
+  #coop-spelers { width: calc(100vw - var(--ds-s-4)); }
+  #coop-spelers .cs-rij { grid-template-columns: var(--ds-s-6) minmax(0, 1fr) auto; gap: 2px var(--ds-s-2); }
+  #coop-spelers .cs-net { grid-column: 2 / -1; justify-self: start; }
 }
 /* #873: op een lage viewport (telefoon op zijn kant) is elke rij kostbaar: compacte
    kop, rijen en geen voet; de lijst houdt een zichtbare scrollbalk. */
 @media (max-height: 460px) {
-  #coop-spelers { top: 48px; max-height: calc(100vh - 56px); padding: 8px 12px 6px; }
-  #coop-spelers h3 { font-size: 18px; margin-bottom: 2px; }
-  #coop-spelers .cs-lijst { max-height: calc(100vh - 108px); font-size: 14px; }
-  #coop-spelers .cs-rij { padding: 2px 0; }
+  #coop-spelers { top: 48px; max-height: calc(100vh - 56px); padding: var(--ds-s-2) var(--ds-s-3); }
+  #coop-spelers h3 { margin-bottom: 2px; }
+  #coop-spelers .cs-lijst { max-height: calc(100vh - 108px); }
+  #coop-spelers .cs-rij { padding: 2px var(--ds-s-2); }
   #coop-spelers .cs-voet { display: none; }
-  .pm-spelers { padding: 10px 14px 14px; }
-  .pm-spelers .cs-lijst { font-size: 18px; }
-  .pm-spelers .cs-rij { padding: 3px 0; grid-template-columns: 24px minmax(90px, auto) 1fr auto; }
-  .pm-spelers .cs-eruit, .pm-spelers .cs-naar { min-height: 34px; font-size: 19px; padding: 0 10px; margin-bottom: 2px; }
+  .pm-spelers { padding: var(--ds-s-3); }
+  .pm-spelers .cs-rij { padding: 3px var(--ds-s-2); }
 }
+:is(html.rustig-drukwerk, .ds-rustig) .cs-stip-lag { transform: none; }
 `;
 let stijl = false;
 function zorgVoorStijl() {
@@ -233,13 +223,13 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
     const naamInvoer = schermNaam && document.activeElement === schermNaam ? schermNaam.value : prof.onlineNaam;
     root.dataset.key = key; root.dataset.klaar = '1';
     const kop = rijen.length
-      ? `<div class="cs-kop"><span class="m-eb">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b><p>De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
-      : `<div class="cs-kop cs-kop-leeg"><span class="m-eb">Samen spelen</span><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Samen spelen. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
+      ? `<div class="cs-kop"><span class="ds-z-chip ds-z-chip--selectie">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b><p>De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
+      : `<div class="cs-kop cs-kop-leeg"><span class="ds-z-chip ds-z-chip--selectie">Samen spelen</span><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Samen spelen. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
     root.innerHTML = kop + (rijen.length
       ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
         pvpHtml(world) +
         `<div class="cs-sectie"><h4>Roepen en route</h4><p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen doe je op het tabblad Samen spelen.</p>` +
-        `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" class="m-bp cs-roep-knop" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div></div>`
+        `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" class="cs-roep-knop" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div></div>`
       : '') +
       profielHtml(world);
     const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;

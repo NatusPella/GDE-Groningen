@@ -108,4 +108,4 @@ zodat Oma's volgorde een geheugenspel blijft.
 1. Skûtsje-brug en timing-minigames (hoge prioriteit): dezelfde module, één aanroep per scherm.
 2. De opdrachttekst van M01 gelijktrekken met de echte score.
 3. Beeldcontrole met `scripts/qa/regelwidget_beeld.mjs` zodra de Electron-instantie vrij is, en op een telefoon (touch).
-4. Het designsysteem v2 (#980) kan de kleuren en de vorm van `.rw` overnemen zodra de componenten in het spel geladen zijn.
+4. Het designsysteem (#980) kan de kleuren en de vorm van `.rw` overnemen zodra de componenten in het spel geladen zijn.

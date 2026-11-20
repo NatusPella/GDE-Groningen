@@ -172,7 +172,7 @@ function createWindow() {
     ...(rec && rec[0] > 0 && rec[1] > 0
       ? { width: Math.round(rec[0] / recScale), height: Math.round(rec[1] / recScale), useContentSize: true, enableLargerThanScreen: true, resizable: false }
       : { width: 1600, height: 900, minWidth: 960, minHeight: 600 }),
-    backgroundColor: '#0c140e',
+    backgroundColor: '#f3ead3',
     title: APP_NAME,
     // Windows/Linux window and taskbar icon (macOS takes the .icns from the bundle); both files are inside the asar when packaged.
     // The .ico carries hand-tuned 16-48 px images for the taskbar and title bar.
