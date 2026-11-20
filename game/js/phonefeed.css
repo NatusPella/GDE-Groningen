@@ -54,7 +54,7 @@
 #hud .pf-more { min-height: var(--ds-s-5); padding: 0 var(--ds-s-2); font-size: var(--ds-t-hulp); }
 #hud .pf-more[hidden] { display: none; }
 #hud .pf-time { margin-left: auto; font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); font-variant-numeric: tabular-nums; }
-#hud .pf-title { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; } /* #985: een lang woord breekt, een lange kop houdt vier regels */
+#hud .pf-title { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; } /* #985: een lang woord breekt, een lange kop houdt vier regels */
 #hud .pf-body { font-size: max(var(--ds-t-body, 14px), var(--hud-min, 13px)); }
 
 /* calls and livestreams */
