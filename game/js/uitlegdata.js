@@ -17,7 +17,7 @@ export const UITLEG_DATA = Object.freeze({
       { toets: 'SPACE', animatie: 'druk', tekst: 'Springen en klimmen over hekjes' },
       { toets: 'CTRL', animatie: 'houd', tekst: 'Vasthouden: bukken' },
     ],
-    meer: 'De muis draait de camera. Springen helpt ook om uit het water te klimmen.',
+    meer: '{MOUSE} draait de camera. Springen helpt ook om uit het water te klimmen.',
   },
   'basis-pakken': {
     titel: 'Pakken en gebruiken', controller: 'foot',
@@ -35,7 +35,7 @@ export const UITLEG_DATA = Object.freeze({
       { toets: 'H', animatie: 'druk', tekst: 'Toeteren' },
       { toets: 'E', animatie: 'druk', tekst: 'Uitstappen' },
     ],
-    meer: 'Achterom kijken kan met Q. Met C kijk je vanuit de cabine mee.',
+    meer: 'Achterom kijken kan met {Q}. Met {C} kijk je vanuit de cabine mee.',
   },
   'basis-vechten': {
     titel: 'Vechten', controller: 'foot',
