@@ -39,6 +39,8 @@ bestaat uit drie bedrijven). Zo loopt er geen dubbel persoon "gek mee" door de s
 
 De opening van een nieuw spel is van de wereld (#986): wie het spel opende speelt hem en slaat hem over voor iedereen (spatie of A vasthouden); een gast ziet hem mee en kan zijn eigen weergave overslaan zonder dat het de gastheer raakt. Een gast die later aansluit, ziet het bedrijf dat dan loopt of niets meer. "Opening opnieuw bekijken" (Verhaal > Personages) werkt alleen in je eigen spel, niet in een sessie met anderen. Test: `scripts/openingstart_test.mjs`, `coopcut_test` en `cutgast_test`.
 
+De terugkeerscène (#986 #987: een korte flatscène van Tammo en Tessa na Doorgaan, `game/js/terugkeer*.js`) is van de wereld, dus van wie het spel opende. Een spel laden kan niet in een sessie (`savegame.js coopSessieLoopt`), dus de scène speelt alleen alleen-spelen; een lopende sessie, een gast (`coopRole === 'client'`) en de wachtkamer slaan hem over. Een gast die zelf Doorgaan kiest, krijgt hem dus niet, en de gastheer speelt hem of slaat hem over zonder dat iemand anders iets mist. Zou hij ooit toch in een sessie spelen, dan loopt hij via `playScript` mee naar de gasten (coopcut.js) en kan elke gast zijn eigen weergave overslaan. De laatst gespeelde staat per apparaat (`gde-terugkeer-v1`), niet per speler en niet in de save. Test: `scripts/terugkeer_test.mjs`.
+
 Iedereen begint op **passief**: medespelers doen je geen schade en jij doet hun niets, tot jullie allebei de passieve
 stand uitzetten (zie "Passieve stand en spelers tegen elkaar", #447). Wie meedoet krijgt de stap in zijn eigen verhaal en
 de volledige beloning (#429).

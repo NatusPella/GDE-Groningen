@@ -827,7 +827,8 @@ ${keyReuseHtml()}
       <div class="m-gh"><span>Richten</span></div>
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
       <div class="m-gh"><span>Sfeer</span></div>
-      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
+      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
+      ${toggle('terugkeerScene', 'Terugkeerscène', 'Een korte scène in de flat als je een opgeslagen spel laadt')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd tonen'], ['minimaal', 'Minimaal']], 'Slim toont geld, gezondheid, wapen en sterren alleen als het telt')}
       ${toggle('showMinimap', 'Minimap')}
