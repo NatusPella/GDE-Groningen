@@ -91,7 +91,9 @@ try {
   const trek = w.vehicles.find((v) => v.farm && v.model.name === 'tractor');
   check('trekker in de wereld', !!trek, '');
   hold = null;
-  for (let poging = 0; poging < 6 && p.inVehicle !== trek; poging++) { teleport(trek.x + 2.0 + 0.2 * poging, trek.y + 0.8, Math.PI); await sleep(poging ? 2500 : 6000); await tap('e', 'KeyE'); await sleep(1500); }
+  // instappen mag alleen bij een deur (#459): de testbank stapt direct in, zoals de spelbot
+  teleport(trek.x + 2.0, trek.y + 0.8, Math.PI); await sleep(1500);
+  if (p.inVehicle !== trek) { p.enterVehicle(trek, w); await sleep(1200); }
   check('in de trekker', p.inVehicle === trek, '');
   const ploegRec = Live.getBedrijf().machinepark.werktuigen.find((m) => m.type === 'ploeg-3');
   const ploegImp = WW._staat().werktuigen.get(ploegRec.uid);
@@ -110,7 +112,7 @@ try {
   if (pos) {
     const rijen = akkerRijen({ x: pos.x, y: pos.y }, pos.a);
     const v = trek;
-    if (!p.inVehicle) { teleport(v.x + 2.0, v.y + 0.8, 0); await sleep(800); await tap('e', 'KeyE'); await sleep(800); }
+    if (!p.inVehicle) { teleport(v.x + 2.0, v.y + 0.8, 0); await sleep(800); p.enterVehicle(v, w); await sleep(800); }
     const d = WT.WERKTUIG.ploeg;
     const af = v.model.len / 2 + d.achter;
     const zet = (r, l, speed) => { const ang = Math.atan2(r.uy, r.ux); const px = r.ax + r.ux * l, py = r.ay + r.uy * l; v.angle = ang; v.x = px + Math.cos(ang) * af; v.y = py + Math.sin(ang) * af; v.speed = speed; v.vx = 0; };

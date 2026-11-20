@@ -63,7 +63,7 @@ export function kaartenBlok(b) {
     `<p class="ds-kaart__tekst">${esc(eerste.naam)}${eerste.gewasNaam ? ` · ${esc(eerste.gewasNaam)}` : ''}${eerste.volgendeNaam ? ` · volgende klus: ${esc(eerste.volgendeNaam)}` : ''}${schuurKg ? ` · in de schuur: ${nl(schuurKg)} kg` : ''}</p>` +
     lusHtml(eerste, schuurKg) +
     `<footer class="ds-kaart__voet"><button type="button" class="ds-knop" data-bd-naar="${esc(eerste.id)}">Zet op de kaart</button></footer></article>`;
-  return uitlegKaartHtml() + hoofd + `<div class="bd-velden">${velden.map((v) => veldKaartHtml(v, schuurKg)).join('')}</div>` + `<div><p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}</div>`;
+  return hoofd + `<div class="bd-velden">${velden.map((v) => veldKaartHtml(v, schuurKg)).join('')}</div>` + uitlegKaartHtml() + `<div><p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}</div>`;
 }
 
 export const _gewasNaam = (id) => (B.GEWASSEN[id] ? B.GEWASSEN[id].naam : '');
