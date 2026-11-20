@@ -46,3 +46,20 @@ Eén run per kant, andere agents draaiden mee (een testsuite liep tijdens de twe
 - `compileAsync` zelf niet gebruikt: `renderer.compile` start de link al parallel (`KHR_parallel_shader_compile`); het wachten gaat via
   `programsPending`.
 - PMREM, post-processing-setup en texture-uploads niet apart gemeten.
+
+## Vervolg (21-11, tweede ronde)
+
+- **Diagnose** (`scripts/perf/startdiag.page.js`, `GDE_DIAG=1 node scripts/perf/filmwarm.mjs`): wikkelt `renderer.render` en een rAF-lus; legt aanroepen
+  > 25 ms, nieuwe programma's met hun eigenaar, tex/geo-groei en beeldgaten > 100 ms (met `frameStats.workMs`) vast, plus de gfx-gebeurtenissen
+  (`noteGfxEvent`). Bevindingen: een `render()` met 6 nieuwe programma's kost maar 3 ms op de hoofdthread; de beeldgaten van 560 tot 860 ms in
+  de eerste 3 s hebben 20 tot 140 ms eigen werk en **geen** setSize-, schaduwkaart- of renderschaalgebeurtenis. De stilstand zit dus niet in het script
+  en niet in een hergrootte van targets; de heap groeit in die tijd van 1,3 naar 2,1 GB (GC-pauzes zijn de waarschijnlijkste verdachte, niet bewezen; zie
+  `PERF-HEAP-21-11.md`) en er komen 150 tot 280 geometrieën en 30 tot 70 textures bij (eerste uploads). Niet verder uitgesplitst.
+- **Late programma's:** de nieuwe programma's na de start horen bij de hemelkit (`landmarkkits:sky`), `pool-statisch`, `skyprops`, het huis van de speler
+  (`homeGarageShell`, `homeDressing`) en `paddepoel`: groepen die er bij het voorcompileren nog niet waren of verborgen waren. `renderer.compile` loopt
+  alleen over zichtbare objecten. Gebouwd: `withAllVisible` (verborgen objecten gaan er even voor aan), `scanLate` (nieuwe groepen en nieuwe kinderen
+  van groeiende groepen krijgen een portie van 2 ms per frame in het spel). Tests: `compileplanner_test` (7).
+- **Resultaat: niet aantoonbaar.** Run na deze ronde: bootMs 37,5 s, frames > 50 ms in 60 s: 311, > 100 ms: 26, langste frame 722 ms, programma's 256 / 315 / 323
+  (voor de ronde 259 / 313 / 317). De run-op-run-spreiding (bootMs 31 tot 39 s bij dezelfde code, belaste machine) is groter dan het effect; het
+  aantal programma's na de start daalt niet. Mogelijke oorzaak: de programma's die `compile` maakt hebben een andere sleutel dan die van de echte draw
+  (doel, schaduw, lichtstand). Volgende stap: per nieuw programma de cacheKey van de compile en van de draw vergelijken (`programs.mjs`).

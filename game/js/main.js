@@ -1074,7 +1074,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   let samenSince = null, gateMenu = false;
   function frameBody(dt) {
-    stepIdleCompile(); // #1046: de rest van de laadscherm-compilatie, 2 ms per frame
+    stepIdleCompile(2, precompileKit); // #1046: de rest van de laadscherm-compilatie, 2 ms per frame
     // Alleen spelen is een sessie van één (#554): start die zodra het spel loopt en er
     // geen Samen-scherm open staat. Zo lopen alle functies door hetzelfde multiplayer-pad.
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of

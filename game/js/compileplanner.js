@@ -5,7 +5,9 @@
 export const COMPILE_BUDGET_MS = 4;
 
 export class CompilePlanner {
-  constructor() {
+  // forget: een gedraaide sleutel mag later opnieuw (voor een lange sessie: de sleutelverzameling groeit anders zonder grens)
+  constructor({ forget = false } = {}) {
+    this.forget = forget;
     this.queue = [];        // { key, prio, order, run }
     this.seen = new Set();  // sleutels die in de wachtrij staan of al gedraaid hebben
     this.order = 0;
@@ -36,6 +38,7 @@ export class CompilePlanner {
     let n = 0;
     while (this.queue.length) {
       const it = this.queue.shift();
+      if (this.forget) this.seen.delete(it.key);
       try { it.run(); } catch (e) { this.errors.push({ key: it.key, e }); }
       this.done++; n++;
       if (now() - t0 >= budgetMs) break;

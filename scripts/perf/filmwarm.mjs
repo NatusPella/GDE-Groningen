@@ -21,7 +21,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const profile = path.join(OUT, `profiel-${LABEL}-${process.pid}`);
 fs.mkdirSync(profile, { recursive: true });
 const script = path.join(OUT, `_${LABEL}.js`);
-fs.writeFileSync(script, `window.__progAt = [0, 25, 60];\n` + fs.readFileSync(path.join(HERE, 'programs.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__progAt = [0, 25, 60];\n` + (process.env.GDE_DIAG ? fs.readFileSync(path.join(HERE, 'startdiag.page.js'), 'utf8') + '\n' : '') + fs.readFileSync(path.join(HERE, 'programs.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', 'electron.exe');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1', ELECTRON_DISABLE_SANDBOX: '1', GDE_DEV: '1' };
 if (process.env.GDE_TMP) { fs.mkdirSync(process.env.GDE_TMP, { recursive: true }); env.TEMP = env.TMP = path.resolve(process.env.GDE_TMP); } // %TEMP% is niet overal schrijfbaar
@@ -37,6 +37,7 @@ const l = (r.stdout || '').split('\n').find((x) => x.startsWith('[perf-script] '
 if (!l) { console.log('geen [perf-script]-resultaat, exit', r.status); process.exit(1); }
 const j = JSON.parse(l.slice(14));
 fs.writeFileSync(path.join(OUT, `${LABEL}.json`), JSON.stringify(j));
+if (j.diag) fs.writeFileSync(path.join(OUT, `${LABEL}-diag.json`), JSON.stringify(j.diag, null, 1));
 const m = j.marks || {};
 console.log(JSON.stringify({
   label: LABEL, bootMs: j.bootMs, startWarm: m.startWarm, shaders: m.shaders, warmWorst: m.warmWorstFrame, introWarm: m.introWarm,
