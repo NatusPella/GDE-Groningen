@@ -22,6 +22,7 @@
 //        --weer=regenbui|onweer|mist, --scherm=<B>x<H> (venstergrootte), --invoer=controller (prompts), --chaos=<sterf|voertuig-uit|gebied-uit|save-load|snelreis>:<s>, --flikker=<n> (a/b/c-beelden bij stilstand)
 //   --stage-vehicle=<naam>   kies bij een board-stage dat voertuig (quad, limo, frituur) in plaats van de dichtstbijzijnde
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
+// GDE_ELECTRON_FLAGS="--no-sandbox --in-process-gpu" geeft extra Electron-vlaggen mee (nodig na een pc-herstart).
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
 // `cd desktop && npm run stage` (game/world; stage opnieuw na elke wijziging aan game/js, de app draait de gestagede kopie). Geen netwerkpoorten: de pagina wordt
 // aangestuurd via --perf-script (executeJavaScript) en de uitvoer loopt via
@@ -184,7 +185,7 @@ const t0 = Date.now();
 let r;
 for (let poging = 1; poging <= 2; poging++) {
   const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
-  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${/^\d{3,4}x\d{3,4}$/.test(arg('scherm', '')) ? arg('scherm') : '1280x720'}`, '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
+  r = spawnSync(electron, ['.', ...(process.env.GDE_ELECTRON_FLAGS ? process.env.GDE_ELECTRON_FLAGS.split(' ').filter(Boolean) : []), '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${/^\d{3,4}x\d{3,4}$/.test(arg('scherm', '')) ? arg('scherm') : '1280x720'}`, '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
   { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
   fs.closeSync(logFd);
