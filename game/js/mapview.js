@@ -2003,7 +2003,8 @@ function drawFullRoute(ctx, world, t, route) {
   const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
   const width = Math.max(4, Math.min(9, 3 + state.zoom * 0.7)) * (route === getActiveRoute() ? 1 : 0.8);
   const ahead = getRouteAhead(Infinity, route);
-  if (ahead && ahead.length > 1) {
+  const vaarLuchtlijn = route.noRoute && route.mode === 'boat'; // geen vaarroute: gestippelde luchtlijn
+  if (ahead && ahead.length > 1 && !vaarLuchtlijn) {
     const pts = [[ik.x, ik.y], ...ahead].map(([x, y]) => toScreen(x, y));
     drawRoadRoute(ctx, pts, color, width);
     ctx.save();
@@ -2026,7 +2027,7 @@ function drawFullRoute(ctx, world, t, route) {
   // stippellijn van hier naar het doel, want die loopt dwars door de gevels en de
   // speler leest hem als "hij wil me door dat gebouw heen" (#502). Liever geen
   // lijn met de eerlijke afstand erbij dan een lijn die liegt over de route.
-  if (route.noRoute || lineHitsBuilding(state.map, ik.x, ik.y, tg.x, tg.y)) return;
+  if ((route.noRoute && !vaarLuchtlijn) || (!vaarLuchtlijn && lineHitsBuilding(state.map, ik.x, ik.y, tg.x, tg.y))) return;
   const [ax, ay] = toScreen(ik.x, ik.y);
   const [bx, by] = toScreen(tg.x, tg.y);
   ctx.save();

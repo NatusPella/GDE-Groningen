@@ -2,7 +2,12 @@
 // nooit 9000), laadt scripts/depth_shots.page.html in een wegwerpprofiel, wacht op window.__done en schrijft de PNG's.
 // Alles buiten 127.0.0.1 wordt geblokkeerd: er gaat niets over het net.
 //   electron scripts/depth_shots.main.cjs --game=<map met js/> --vendor=<map met npm/> --out=<map> --tag=voor|na [--only=a,b]
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow, session, dialog } = require('electron');
+// geen blokkerende foutdialoog (EPIPE als de ouder de pipe sluit): fouten loggen en afsluiten
+process.stdout.on('error', () => {});
+process.stderr.on('error', () => {});
+dialog.showErrorBox = () => {};
+process.on('uncaughtException', (e) => { try { process.stderr.write(`[depth_shots] ${e && e.stack}\n`); } catch (x) { /* pipe dicht */ } app.exit(4); });
 const http = require('node:http');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -14,10 +19,10 @@ const VENDOR = path.resolve(arg('vendor'));
 const OUT = path.resolve(arg('out'));
 const TAG = arg('tag', 'beeld');
 const ONLY = arg('only', '');
-const PAGE = path.join(__dirname, 'depth_shots.page.html');
+const PAGE = arg('page') ? path.resolve(arg('page')) : path.join(__dirname, 'depth_shots.page.html');
 const MIME = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.html': 'text/html', '.json': 'application/json', '.css': 'text/css' };
 
-app.setPath('userData', fs.mkdtempSync(path.join(os.tmpdir(), `gde-test-depthshots-${TAG}-`)));
+app.setPath('userData', fs.mkdtempSync(path.join(arg('tmp') ? path.resolve(arg('tmp')) : os.tmpdir(), `gde-test-depthshots-${TAG}-`)));
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 

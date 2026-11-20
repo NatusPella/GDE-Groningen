@@ -111,6 +111,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Opgelost
 
 - Het containerlabyrint (M13): de kraan staat nu op de kade van de Eemshaven en de container op open terrein achter de kaderweg, niet meer in een weiland of op de weg. De plekken hangen aan één anker en vallen terug op de dichtstbijzijnde vrije plek; voor iedereen in Samen spelen is dat dezelfde plek.
+- Varen: je vaarroute is nu een doorlopende lijn op het water (gele chevrons met donkere rand, in vaarrichting) in plaats van een rij boeien. De lijn volgt de berekende vaarroute, loopt zacht uit na 240 m en staat stil bij verminderde beweging. Is er geen vaarroute, dan zie je een gestippelde lijn en de melding 'Geen vaarroute gevonden'. Boeien blijven alleen echte markeringen. Samen spelen: lokaal per speler.
 
 ## [0.64.0] - 2026-11-20
 

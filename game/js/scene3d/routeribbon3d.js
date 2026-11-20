@@ -17,6 +17,7 @@ import { buildWorldMarker3D, updateWorldMarker3D } from '../worldmarker3d.js';
 import { updateWaymarkers3D, routeColor } from '../waymarkers3d.js';
 import { isAirCraft } from '../airguide.js';
 import { updateAirLine3D, hideAirLine3D } from './airline3d.js';
+import { updateVaarlijn3D, hideVaarlijn3D } from './vaarlijn3d.js';
 
 // scene en camera van scene3d.js; null tot init3D ze doorgeeft
 let scene = null;
@@ -29,6 +30,7 @@ export function hideRouteRibbon3D() {
   hideAirLine3D();
   if (waypointBeacon) waypointBeacon.visible = false;
   if (routeRibbonMesh) routeRibbonMesh.visible = false;
+  hideVaarlijn3D();
 }
 
 // Route ribbon: flat chevron strip on the road for the next stretch of the
@@ -253,11 +255,15 @@ export function updateRouteRibbon3D(dt, world) {
   }
 
   const route = routeLinks.getActiveRoute();
-  // buoys, station signs, air rings: the markers of the boat, the train and the air
+  // station signs, air rings: the markers of the train and the air (the boat has its own line, vaarlijn3d.js)
   // (in een try: een fout hier mocht de strook hieronder niet meer laten bijwerken)
   try {
-    updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
+    updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.mode !== 'boat' && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
   } catch (e) { reportRibbonError('waymarkers', e); }
+  // op het water: een doorlopende vaarlijn (vaarlijn3d.js) in plaats van boeien
+  try {
+    updateVaarlijn3D(dt, scene, route, routeLinks.getRouteAhead, world, routeColor(route, markerColors()[route && route.kind] || markerColors().mission));
+  } catch (e) { reportRibbonError('vaarlijn', e); }
   // In een luchtvaartuig is de route een rechte lijn door de lucht (airline3d.js) en bouwen we geen grondstrook:
   // geen wegroute-herberekening in de scene en de waakhond hieronder verwacht dan geen strook.
   const pl0 = hoofdspeler(world);
