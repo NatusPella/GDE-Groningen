@@ -348,12 +348,12 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 const SECTIONS = [
   ['spel', 'Spel', 'Doorgaan, samen spelen en je spel opslaan'],
   ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
-  ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
-  ['veroverd', 'Veroverd', 'Je gebieden en wat meetelt'],
   ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
+  ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
+  ['veroverd', 'Veroverd', 'Je gebieden en wat meetelt'],
   ['prestaties', 'Prestaties', 'Wat je gehaald hebt en nog kunt halen'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['settings', 'Instellingen', 'Alles wat je ziet, hoort en bestuurt'],
@@ -364,14 +364,15 @@ const SECTIONS = [
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
-// #911: de rail heeft drie zichtbare groepen met een eigen kop en het aantal onderdelen
-// erachter, zodat je ziet hoeveel er is, waar het staat en waar het bij hoort: wat je nu
-// doet, wat van jou is, en het systeem eromheen. Over hangt onder Instellingen (een rij in
+// #911: de rail heeft zichtbare groepen met een eigen kop (sinds 20-11: Spel, Doen, Bezit, Voortgang, Systeem)
+// en het aantal onderdelen erachter, zodat je ziet hoeveel er is, waar het staat en waar het bij hoort. Over hangt onder Instellingen (een rij in
 // dat blad), want de rail houdt zijn vaste, scanbare vorm (#601). Cheats staat sinds #435
 // naast Instellingen: het was te verstopt onder Instellingen > Cheats.
 const RAIL_GROUPS = [
-  ['spelen', 'Spelen', ['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo']],
-  ['jij', 'Jij', ['map', 'spullen', 'garage', 'prestaties', 'fotos']],
+  ['spel', 'Spel', ['spel']],
+  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'map']],
+  ['bezit', 'Bezit', ['spullen', 'garage']],
+  ['voortgang', 'Voortgang', ['veroverd', 'prestaties', 'fotos']],
   ['systeem', 'Systeem', ['settings', 'streken']],
 ];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
@@ -418,7 +419,7 @@ function railPosition(id) {
   for (const [, label, members] of RAIL_GROUPS) {
     const zichtbaar = members.filter((m) => railIds.includes(m));
     const i = zichtbaar.indexOf(want);
-    if (i >= 0) return `${label} · ${i + 1} van ${zichtbaar.length}`;
+    if (i >= 0) return zichtbaar.length > 1 ? `${label} · ${i + 1} van ${zichtbaar.length}` : label;
   }
   return '';
 }
@@ -2521,7 +2522,7 @@ function showTab(name, how) {
     const shown = [...g.querySelectorAll('[data-goto]')].filter((b) => !b.hidden).length;
     g.hidden = shown === 0;
     const cnt = g.querySelector('[data-gcount]');
-    if (cnt) cnt.textContent = String(shown);
+    if (cnt) cnt.textContent = shown > 1 ? String(shown) : '';
   }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');

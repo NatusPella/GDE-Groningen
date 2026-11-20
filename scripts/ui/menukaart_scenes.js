@@ -23,7 +23,7 @@ PM.openPauseMenu('map'); await sleep(2500);
 const ok = document.querySelector('#pause-menu button[data-act="begrepen"], #pause-menu .mapview-card button, #pause-menu [data-mv-uitleg-ok]');
 const knoppen = [...document.querySelectorAll('#pause-menu button')].filter((b) => b.getClientRects().length && /begrepen/i.test(b.textContent));
 if (knoppen[0]) { knoppen[0].click(); await sleep(800); }
-await shot('kaart-voor', 800);
+await shot('kaart-na', 800);
 const boven = (sel) => {
   const el = document.querySelector(sel); if (!el) return sel + ': niet gevonden';
   const r = el.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + Math.min(r.height / 2, 40);

@@ -13,6 +13,7 @@ import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, statusRegels } from './gebiedenkaart.js';
+import { dsKleur } from './kaartkleuren.js';
 import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
 import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
@@ -2047,6 +2048,26 @@ function niceScale(maxPx) {
   return best;
 }
 
+// De vignette van de kaart in het zeefdruk-pauzemenu (pausemenu.css, .gm): ze zit in het canvas, onder de legenda, de schaalbalk
+// en het kompas, en niet als laag van de pagina boven alle kaart-UI. Zo wordt niets van de kaart-UI gedimd.
+function drawVignette(ctx) {
+  const gm = state.overlay && state.overlay.classList.contains('embedded') && state.overlay.closest('.gm');
+  if (!gm) return;
+  const w = state.cw, h = state.ch, cx = w * 0.55, cy = h * 0.5;
+  const rx = Math.SQRT2 * Math.max(cx, w - cx), ry = Math.SQRT2 * Math.max(cy, h - cy);
+  const ink = dsKleur('ink-inkt');
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(rx, ry);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, ink + '00');
+  g.addColorStop(0.55, ink + '00');
+  g.addColorStop(1, ink + 'b3');
+  ctx.fillStyle = g;
+  ctx.fillRect(-cx / rx, -cy / ry, w / rx, h / ry);
+  ctx.restore();
+}
+
 function drawChrome(ctx) {
   // de legenda van Veroverd staat boven de pins en volledig dekkend (gezet in drawStaticOverlay)
   if (state.legendLaag) tekenLegenda(ctx, state.cw, state.ch, state.legendLaag);
@@ -2915,6 +2936,7 @@ function render(world) {
   ctx.drawImage(state.compose, 0, 0);
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
   drawDynamicMarkers(ctx, world);
+  drawVignette(ctx);
   drawChrome(ctx);
   updateHeader();
   if (state.frame % 20 === 0) refreshLegend(world);

@@ -178,7 +178,7 @@ const panels = [...pm.matchAll(/data-panel="(\w+)" class/g)].map((x) => x[1]);
 ok(new Set(panels).size === panels.length && panels.length === 16, 'elk paneel staat één keer in het blad', String(panels.length));
 // --- #430 definitief: Spel (met Overzicht), Verhaal (met de telefoon), Loopbanen, Activiteiten, Samen spelen (met Spelers), Instellingen (met Cheats)
 const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
-ok(secties.map((x) => x[0]).slice(0, 11).join() === 'spel,verhaal,loopbaan,veroverd,todo,map,spullen,garage,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar', secties.map((x) => x[0]).join());
+ok(secties.map((x) => x[0]).slice(0, 11).join() === 'spel,verhaal,todo,loopbaan,map,spullen,garage,veroverd,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar (20-11: Spel | Doen | Bezit | Voortgang | Systeem)', secties.map((x) => x[0]).join());
 ok(!panels.includes('overzicht') && !panels.includes('telefoon'), 'Overzicht en Telefoon zijn geen eigen paneel meer');
 for (const [id, titel, zin] of secties) ok(zin.split(/\s+/).length <= 8 && zin.length > 3, `onder ${titel} staat één korte zin (max 8 woorden)`, zin);
 ok(secties.find((x) => x[0] === 'loopbaan')[1] === 'Loopbanen' && secties.find((x) => x[0] === 'todo')[1] === 'Activiteiten', 'Loopbaan heet Loopbanen en Te doen heet Activiteiten');
@@ -296,9 +296,9 @@ ok(exitBranch.includes('cancelRebind(true)'), 'Afsluiten geeft de wachtstand vri
 // #911: drie zichtbare groepen met een kop en een telling, in dezelfde volgorde als de secties
 const railGroepen = (pm.match(/const RAIL_GROUPS = \[([\s\S]*?)\];/) || [])[1] || '';
 const railDelen = [...railGroepen.matchAll(/\['(\w+)', '([^']+)', \[([^\]]+)\]\]/g)].map((m) => [m[1], m[2], [...m[3].matchAll(/'(\w+)'/g)].map((x) => x[1])]);
-ok(railDelen.length === 3 && !railDelen.flatMap((d) => d[2]).includes('over'), 'de rail heeft drie groepen en geen Over-rij (#601)', JSON.stringify(railDelen.map((d) => d[0])));
-ok(railDelen.map((d) => d[0]).join() === 'spelen,jij,systeem' && railDelen.map((d) => d[1]).join() === 'Spelen,Jij,Systeem', 'de groepen heten Spelen, Jij en Systeem (#911)');
-ok(railDelen[0][2].join() === 'spel,verhaal,loopbaan,veroverd,todo' && railDelen[1][2].join() === 'map,spullen,garage,prestaties,fotos' && railDelen[2][2].join() === 'settings,streken', 'de rail: Spel, Verhaal, Loopbanen, Veroverd, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676, #911)');
+ok(railDelen.length === 5 && !railDelen.flatMap((d) => d[2]).includes('over'), 'de rail heeft vijf groepen en geen Over-rij (#601)', JSON.stringify(railDelen.map((d) => d[0])));
+ok(railDelen.map((d) => d[0]).join() === 'spel,doen,bezit,voortgang,systeem' && railDelen.map((d) => d[1]).join() === 'Spel,Doen,Bezit,Voortgang,Systeem', 'de groepen heten Spel, Doen, Bezit, Voortgang en Systeem (#911, 20-11)');
+ok(railDelen[0][2].join() === 'spel' && railDelen[1][2].join() === 'verhaal,todo,loopbaan,map' && railDelen[2][2].join() === 'spullen,garage' && railDelen[3][2].join() === 'veroverd,prestaties,fotos' && railDelen[4][2].join() === 'settings,streken', 'de rail: Spel | Verhaal, Activiteiten, Loopbanen, Kaart | Spullen, Garage | Veroverd, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676, #911, 20-11)');
 ok(/pm-rail-h/.test(pm) && /data-gcount/.test(pm) && /function railPosition\(/.test(pm), 'de kop van een groep telt zijn onderdelen en de bladkop zegt waar je bent (#911)');
 ok(/'over',\s*'Over'/.test(pm) && /data-goto="over"|data-goto-sub="[a-z]+:over"/.test(pm), 'Over bestaat nog als onderdeel met een ingang (#601)');
 ok(/rowName\('Over GDE'.*?data-goto="over"/.test(pm), 'Instellingen > Interface heeft een rij naar Over (#601)');
