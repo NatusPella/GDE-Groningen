@@ -79,7 +79,20 @@ body.plane-flying #hud .hud-speedo{display:none}
 #hud .hud-instr .hi-lamp.on{background:color-mix(in srgb, var(--mk-ok, #3fc97a) 30%, transparent);border-color:var(--mk-ok, #3fc97a)}
 #hud .hud-instr .hi-lamp.warn{background:color-mix(in srgb, var(--mk-job, #ff9a3c) 30%, transparent);border-color:var(--mk-job, #ff9a3c)}
 #hud .hud-instr .hi-st{margin-top:5px;font-size:14px;min-height:18px}
-#hud .hud-instr .hi-keys{margin-top:4px;font-size:12px;line-height:15px;color:rgba(240,237,228,.62)}`;
+#hud .hud-instr .hi-keys{margin-top:4px;font-size:12px;line-height:15px;color:rgba(240,237,228,.62)}
+/* Zomerse zeefdruk (ADR 0040): de instrumentenkaart als papier met inktrand en harde schaduw. */
+#hud .hud-instr{color:var(--ds-c-ink-inkt);text-shadow:none;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-left:8px solid var(--ds-c-ink-bord);border-radius:8px;box-shadow:var(--ds-schaduw-hard);font-family:var(--ds-font-kop-v3);font-weight:600}
+#hud .hud-instr small{font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--ds-c-ink-bord)}
+#hud .hud-instr .hi-num b{font-weight:800}
+#hud .hud-instr .hi-num span{font-size:13px;color:var(--ds-c-inkt-zacht)}
+#hud .hud-instr .hi-row{font-size:14px}
+#hud .hud-instr .hi-bar{height:10px;background:var(--ds-c-ink-papier);border:2px solid var(--ds-c-ink-inkt)}
+#hud .hud-instr .hi-bar i{background:var(--ds-c-ink-bord)}
+#hud .hud-instr .hi-lamp{font-size:13px;border:2px dashed var(--ds-c-ink-inkt)}
+#hud .hud-instr .hi-lamp.on{background:var(--ds-c-groen-vlak);color:var(--ds-c-groen-tx);border:2px solid var(--ds-c-ink-inkt)}
+#hud .hud-instr .hi-lamp.warn{background:var(--ds-c-rood-vlak);color:var(--ds-c-rood-tx);border:2px solid var(--ds-c-rood)}
+#hud .hud-instr .hi-st{font-family:var(--ds-font-tekst-v3)}
+#hud .hud-instr .hi-keys{font-family:var(--ds-font-tekst-v3);font-size:13px;color:var(--ds-c-inkt-zacht)}`;
 
 function tekenHorizon(ctx, d) {
   const S = 96, c = S / 2, r = c - 3;

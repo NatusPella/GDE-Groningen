@@ -174,15 +174,15 @@ function routePunt(route, at) {
 function bouwHud(titel, bestemming) {
   const el = document.createElement('div');
   el.className = 'reisrit3d';
-  el.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:auto;font:20px Arial,sans-serif;color:#f0ede4';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:auto;font:20px var(--ds-font-tekst-v3);color:var(--ds-c-ink-inkt)';
   el.innerHTML = '<div class="rr3-zwart" style="position:absolute;inset:0;background:#0c140e;opacity:1;pointer-events:none"></div>'
-    + '<div class="rr3-sprong" style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:34px Arial,sans-serif;pointer-events:none;opacity:0"><div><div class="rr3-tekst"></div><div class="rr3-klok" style="font-size:22px;margin-top:10px;opacity:.8"></div></div></div>'
-    + '<div class="rr3-balk" style="position:absolute;left:0;right:0;bottom:7%;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.7)">'
-    + '<div class="rr3-lijn" style="font:bold 14px Arial,sans-serif;letter-spacing:3px"></div>'
-    + '<div class="rr3-rest" style="font:22px Arial,sans-serif"></div>'
-    + '<div style="width:260px;height:3px;background:rgba(240,237,228,.25)"><div class="rr3-vul" style="height:100%;width:0;background:#3fc97a"></div></div>'
-    + '<span class="rr3-cam" style="font:14px Arial,sans-serif;opacity:.85"><span style="background:rgba(240,237,228,.9);color:#0f5c30;border-radius:4px;padding:1px 8px;font:bold 13px Arial,sans-serif;margin-right:8px">C of Y</span>camera: <b class="rr3-camnaam"></b></span>'
-    + '<span class="rr3-hint" style="display:none;font:15px Arial,sans-serif"><span class="hud-key" data-gk="SPATIE" style="background:#f0ede4;color:#0f5c30;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
+    + '<div class="rr3-sprong" style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:800 34px var(--ds-font-kop-v3);color:var(--ds-c-ink-papier);pointer-events:none;opacity:0"><div><div class="rr3-tekst"></div><div class="rr3-klok" style="font-size:22px;margin-top:10px;opacity:.8"></div></div></div>'
+    + '<div class="rr3-balk" style="position:absolute;left:0;right:0;bottom:7%;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:90vw;padding:10px 24px 12px;box-sizing:border-box;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard)">'
+    + '<div class="rr3-lijn" style="font:800 16px var(--ds-font-kop-v3);letter-spacing:0.12em;color:var(--ds-c-ink-bord)"></div>'
+    + '<div class="rr3-rest" style="font:800 24px var(--ds-font-kop-v3)"></div>'
+    + '<div style="width:260px;height:12px;box-sizing:border-box;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:4px;overflow:hidden;background:var(--ds-c-ink-papier)"><div class="rr3-vul" style="height:100%;width:0;background:var(--ds-c-ink-geel)"></div></div>'
+    + '<span class="rr3-cam" style="font:14px var(--ds-font-tekst-v3)"><span style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:1px 8px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">C of Y</span>camera: <b class="rr3-camnaam"></b></span>'
+    + '<span class="rr3-hint" style="display:none;font:15px var(--ds-font-tekst-v3)"><span class="hud-key" data-gk="SPATIE" style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:2px 9px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
   el.querySelector('.rr3-lijn').textContent = String(titel || '').toUpperCase();
   el.querySelector('.rr3-rest').textContent = bestemming ? `Naar ${bestemming}` : '';
   return el;

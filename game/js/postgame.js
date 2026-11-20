@@ -481,6 +481,24 @@ const CSS = `
   font: clamp(15px, 1.5vw, 20px) 'Arial Narrow', Arial, sans-serif; color: #fff; letter-spacing: .3px; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }
 #pg-sub b { margin-right: 6px; }
 @media (max-width: 480px) { #pg-panel { top: auto; bottom: 30vh; } }
+/* Zomerse zeefdruk (ADR 0040): het paneel als papier met inktrand en harde schaduw; de ondertitel (#pg-sub) komt uit hud_panel.css. */
+#pg-panel { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--ds-c-ink-bord); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
+#pg-panel[data-kind="fjord"] { border-left-color: var(--ds-c-ink-geel); }
+#pg-panel .pg-title, #pg-panel[data-kind="fjord"] .pg-title { font-weight: 800; color: var(--ds-c-ink-bord); }
+#pg-panel .pg-rows div { color: var(--ds-c-inkt-zacht); }
+#pg-panel .pg-rows b { font-weight: 800; color: var(--ds-c-ink-inkt); }
+#pg-panel .pg-slot { font-family: var(--ds-font-tekst-v3); font-weight: 400; }
+#pg-panel .pg-help { font-family: var(--ds-font-tekst-v3); color: var(--ds-c-inkt-zacht); }
+#pg-panel .pg-bar { background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 4px; }
+#pg-panel .pg-bar i { background: var(--ds-c-ink-bord); opacity: 0.6; }
+#pg-panel .pg-bar i.gold { background: var(--ds-c-ink-geel); opacity: 1; }
+#pg-panel .pg-bar u { background: var(--ds-c-ink-inkt); box-shadow: none; }
+#pg-panel .pg-order span { background: var(--ds-c-ink-papier); border: 2px dashed var(--ds-c-ink-inkt); }
+#pg-panel .pg-order span.ok { background: var(--ds-c-groen-vlak); border: 2px solid var(--ds-c-ink-inkt); color: var(--ds-c-groen-tx); }
+#pg-panel .pg-order span.bad { background: var(--ds-c-rood-vlak); border: 2px solid var(--ds-c-rood); color: var(--ds-c-rood-tx); }
+#pg-panel .pg-menu { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); }
+#pg-panel .pg-menu kbd, #pg-panel .pg-slot > div:not(.pg-menu) kbd { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border: 0; border-radius: 4px; box-shadow: none; font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pg-panel .pg-patience { height: 9px; border: 2px solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-bord); }
 `;
 
 function ensureUi() {
