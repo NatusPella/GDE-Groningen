@@ -1,0 +1,130 @@
+/* Samen spelen in zeefdruk (#1001): de wachtkamer en het wachtscherm (lobbyui.js), de spelerslijst bij Tab en in het pauzemenu
+   en de uitnodiging Meedoen? (coophud.js); de spelerslijst zelf (coopspelersui.js) draagt zijn eigen tokenstijl. Alleen ds-tokens (var(--ds-...)) en .ds-z-* componenten; dit bestand regelt
+   de plaats en de indeling van wat lobbyui.js tekent en wint van de oude glasregels in pausemenu.css en menu.css doordat het later laadt.
+   Spelers hebben een identiteitskleur plus een vorm: de kleur komt als `color` mee (data van de speler, coopidentiteit.js), de vorm en
+   de naam staan er altijd naast. Rustig drukwerk (html.rustig-drukwerk) komt uit de tokens: geen schuinte, geen misdruk. */
+
+/* ---- het vel: de wachtkamer in het pauzemenu en het wachtscherm zijn papier met een harde rand ---- */
+#pause-menu .pm-samen .pm-samen-inner, .coop-hold {
+  box-sizing: border-box; display: flex; flex-direction: column; gap: var(--ds-s-3); padding: var(--ds-s-5);
+  background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard);
+}
+:is(#pause-menu .pm-samen, .coop-hold) :is(.coop-title, h3) {
+  margin: 0; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop);
+  letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx);
+}
+:is(#pause-menu .pm-samen, .coop-hold) p {
+  margin: 0; max-width: none; font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); color: var(--ds-zeef-tx);
+}
+:is(#pause-menu .pm-samen, .coop-hold) :is(.mut, .coop-beheer-hint, .coop-profiel-hint, .coop-wachtwoord-hint) {
+  font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); opacity: 1;
+}
+
+/* ---- de kamercode is een bon: gestippelde rand, grote cijfers, met één klik te selecteren ---- */
+:is(#pause-menu .pm-samen, .coop-hold) .coop-code {
+  position: static; width: fit-content; max-width: 100%; margin: 0; padding: var(--ds-s-3) var(--ds-s-4); box-shadow: none;
+  border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx);
+  font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); font-variant-numeric: tabular-nums;
+  user-select: all; overflow-wrap: anywhere; white-space: pre-wrap;
+}
+
+/* ---- invoer: papier met een inktrand; de focus is een dikke ring ---- */
+:is(#pause-menu .pm-samen, .coop-hold) :is(.coop-input, .coop-profiel-naam, .coop-wachtwoord, .coop-lijst-zoek) {
+  box-sizing: border-box; min-height: var(--ds-doel-aanraken); height: auto; width: 100%; max-width: calc(var(--ds-s-8) * 8); padding: 0 var(--ds-s-3);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx);
+  font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); outline: none;
+}
+:is(#pause-menu .pm-samen, .coop-hold) .coop-input { font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: var(--ds-ls-label); font-variant-numeric: tabular-nums; }
+:is(#pause-menu .pm-samen, .coop-hold) :is(.coop-input, .coop-profiel-naam, .coop-wachtwoord, .coop-lijst-zoek, .coop-code):focus-visible {
+  outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand);
+}
+:is(#pause-menu .pm-samen, .coop-hold) :is(.m-inp, .coop-profiel-label, .coop-wachtwoord-label) {
+  display: flex; flex-wrap: wrap; gap: var(--ds-s-2); align-items: center; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none;
+  font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx);
+}
+:is(#pause-menu .pm-samen, .coop-hold) .m-inp:focus-within { box-shadow: none; }
+:is(#pause-menu .pm-samen, .coop-hold) .m-inp .ss-label { font-size: var(--ds-t-label); }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-consent { color: var(--ds-zeef-tx); font-size: var(--ds-t-body); }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-consent input { accent-color: var(--ds-c-bord); width: var(--ds-s-5); height: var(--ds-s-5); }
+
+/* ---- fout: een rode regel met een woord erbij, nooit kleur alleen ---- */
+:is(#pause-menu .pm-samen, .coop-hold) .coop-error {
+  padding: var(--ds-s-2) var(--ds-s-3); border-left: var(--ds-status-rand) solid var(--ds-c-rood); background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx);
+}
+
+/* ---- knoppen: de bekende .ds-z-knop; hier alleen de rij en de vaste knoprij onderaan ---- */
+:is(#pause-menu .pm-samen, .coop-hold) :is(.coop-btns, .coop-wensen, .coop-kleuren) { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); margin: 0; }
+#pause-menu .pm-samen .coop-btns {
+  position: sticky; bottom: 0; z-index: 3; margin-top: var(--ds-s-2); padding: var(--ds-s-3) 0 var(--ds-s-1); background: var(--ds-zeef-bg); border-radius: 0; box-shadow: none;
+  border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt);
+}
+:is(#pause-menu .pm-samen, .coop-hold) .ds-z-knop { height: auto; white-space: normal; text-transform: none; }
+:is(#pause-menu .pm-samen, .coop-hold) .ds-z-knop .ss-label { font: inherit; letter-spacing: inherit; }
+:is(#pause-menu .pm-samen, .coop-hold) :is(.coop-wens, .coop-kleur)[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
+:is(#pause-menu .pm-samen, .coop-hold) :is(.ds-z-knop, .coop-chip):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+
+/* ---- identiteit: een inktschijf met de vorm in de kleur van de speler; de naam staat er altijd naast ---- */
+:root .coop-id {
+  display: inline-grid; place-items: center; flex: none; width: var(--ds-s-5); height: var(--ds-s-5);
+  border-radius: var(--ds-r-pil); background: var(--ds-c-ink-inkt); line-height: 1; font-size: var(--ds-t-label);
+}
+:root .coop-kleur-stip { font-size: var(--ds-t-body); line-height: 1; }
+
+/* ---- spelers in de wachtkamer: chips met identiteit, naam en een woord voor de stand ---- */
+:root .coop-spelers-chips { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin: 0; padding: 0; list-style: none; max-width: none; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-speler {
+  display: inline-flex; align-items: center; gap: var(--ds-s-2); max-width: 100%; min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-3) var(--ds-s-1) var(--ds-s-1);
+  border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein);
+  font: 800 var(--ds-t-label) / var(--ds-lh-kop) var(--ds-font-kop-v3); letter-spacing: var(--ds-ls-label); overflow-wrap: anywhere;
+}
+:root .coop-speler small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; opacity: 1; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-speler[data-host="1"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-speler-lag { border-style: dashed; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-speler-weg { border-style: dashed; border-color: var(--ds-c-rood); background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx); text-decoration: line-through; box-shadow: none; }
+
+/* ---- de lijst met openbare sessies ---- */
+:root .coop-lijst { display: flex; flex-direction: column; gap: var(--ds-s-2); }
+:root .coop-lijst-balk, :root .coop-lijst-filters, :root .coop-lijst-sorteren { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); align-items: center; margin: 0; }
+:root .coop-sessies { display: flex; flex-direction: column; }
+:root .coop-sessie { display: flex; gap: var(--ds-s-2); align-items: stretch; margin: 0; padding: var(--ds-s-2) 0; border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+:root .coop-sessie[data-dim] { opacity: 1; }
+:root .coop-sessie[data-dim] .coop-sessie-knop { border-style: dashed; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-sessie-knop { flex: 1; justify-content: flex-start; text-align: left; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-ster[aria-pressed="true"] { background: var(--ds-zeef-primair); border-color: var(--ds-c-ink-inkt); }
+:root .coop-meer { margin: var(--ds-s-2) 0; }
+:root .coop-leeftijd { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-chip { cursor: pointer; min-height: var(--ds-doel-aanraken); text-transform: none; }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-chip:hover { background: var(--ds-c-sel-vlak); }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-chip[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
+:is(#pause-menu .pm-samen, .coop-hold) .coop-chip[aria-pressed="true"]::before { content: "\2713"; }
+
+/* ---- online-avatar ---- */
+:root .coop-profiel, :root .coop-wachtwoord-veld { display: flex; flex-direction: column; gap: var(--ds-s-2); margin: 0; }
+:root .coop-profiel-vouw > summary { cursor: pointer; min-height: var(--ds-doel-aanraken); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+:root .coop-profiel-vouw > summary:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+
+/* ---- Meedoen? (coophud.js): een bon onderaan met de toetsen J en N ---- */
+:root .cp-meedoen {
+  box-sizing: border-box; padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-zeef) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard);
+  font-family: var(--ds-font-tekst-v3); font-weight: 400; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); text-align: center;
+}
+
+/* De spelerslijst bij Tab en in het pauzemenu (.cs-*) staat in coopspelersui.js; hier alleen de kop-chip. */
+.pm-spelers .cs-kop .ds-z-chip { align-self: flex-start; }
+
+@media (max-width: 760px) {
+  #pause-menu .pm-samen .pm-samen-inner, .coop-hold { padding: var(--ds-s-3); }
+}
+
+/* Oogtest 20-11 (#1001): het vak van Samen spelen vult de breedte van het blad, en de stapchips zijn papier met inkt
+   (alle drie leesbaar, nooit gedimd): gekozen = bordgroen met inkttekst, straks = gestippelde rand. */
+#pause-menu.gm .pm-samen { max-width: none; width: 100%; box-sizing: border-box; padding-left: var(--ds-s-5); padding-right: var(--ds-s-5); }
+#pause-menu.gm .pm-samen .pm-samen-inner { width: 100%; max-width: none; }
+#pause-menu.gm .pm-hub-stap { height: auto; min-height: var(--ds-doel-aanraken); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); opacity: 1; font-size: max(var(--ds-t-label), var(--menu-min)); box-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#pause-menu.gm .pm-hub-stap[data-staat="klaar"] { color: var(--ds-c-groen-tx); background: var(--ds-c-groen-vlak); opacity: 1; }
+#pause-menu.gm .pm-hub-stap[data-staat="straks"] { color: var(--ds-tx-zacht); border-style: dashed; opacity: 1; }
+#pause-menu.gm .pm-hub-stap[aria-current="step"] { color: var(--ds-zeef-tx); background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); opacity: 1; }
+#pause-menu.gm .pm-hub-nr { width: var(--ds-s-5); height: var(--ds-s-5); background: var(--ds-c-papier-2); color: var(--ds-zeef-tx); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(var(--ds-t-hulp), var(--menu-min)); }
+#pause-menu.gm .pm-hub-uitleg, #pause-menu.gm .pm-hub-veilig, #pause-menu.gm .pm-hub-keuze small { font-size: max(var(--ds-t-hulp), var(--menu-min)); color: var(--ds-tx-zacht); }
