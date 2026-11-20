@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Nieuw
+
+- **Inpakken bij Willemien speelt binnen (M27):** boeken, servies en de kat pak je nu in haar woonkamer in, met Willemien erbij, in plaats van in de open lucht (#956). Past de kamer niet op die plek, dan speel je buiten zoals eerst. Samen spelen: de missie is van wie het spel opende; wie meedoet ziet de kamer lokaal.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

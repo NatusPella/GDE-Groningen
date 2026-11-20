@@ -51,6 +51,10 @@ export const ROOMS = {
       { key: 'mem', u: 1.1, v: 1.55, face: -2.3 },
       { key: 'berend', u: -1.6, v: 1.6, face: -1.2 },
     ],
+    // M27 Inpakken: Willemien bij de kast, geen Mem en Berend (stap.setVariant)
+    varianten: {
+      inpakken: [{ key: 'willemien', u: 1.1, v: 1.55, face: -2.3 }],
+    },
   },
   garage: {
     w: 9, d: 6.5, h: 3.4,

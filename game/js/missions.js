@@ -2603,7 +2603,7 @@ function enterStage(world, def, k) {
   // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer,
   // het Loket, Oma's keuken). In een auto slaan we hem over: dan blijft de stap in de open
   // lucht, zoals eerst. Twee dezelfde sets achter elkaar houden dezelfde kamer.
-  if (st.set && !p.inVehicle) S.set = reuse ? prev.set : buildStageSet(world, st.set, p);
+  if (st.set && !p.inVehicle) S.set = reuse ? prev.set : buildStageSet(world, st.set, p, null, { variant: st.setVariant });
   else if (reuse && prev && prev.set) { disposeStageSet(prev.set); prev.set = null; }
   // #955: de aankleding van een missie (de naspeling in Bourtange, het erf van
   // Tinus) staat om het doel van deze stap, met de kijkrichting van de speler.

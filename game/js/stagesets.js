@@ -117,7 +117,7 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
   }
   if (isRoomKind(kind)) {
     // figuren op hun plek in de kamer (roomspec.js houdt ze uit het meubilair)
-    ROOMS[kind].npcs.forEach((q, i) => people.push({ mesh: buildPerson(q.key, [q.u, q.v], q.face), anim: (t) => (i === 0 ? 'talk' : (Math.sin(t * 0.7 + i) > 0.2 ? 'talk' : 'idle')), gaze: 0 }));
+    ((opts.variant && ROOMS[kind].varianten && ROOMS[kind].varianten[opts.variant]) || ROOMS[kind].npcs).forEach((q, i) => people.push({ mesh: buildPerson(q.key, [q.u, q.v], q.face), anim: (t) => (i === 0 ? 'talk' : (Math.sin(t * 0.7 + i) > 0.2 ? 'talk' : 'idle')), gaze: 0 }));
   }
   for (const p of people) kit.group.add(p.mesh);
   scene.add(group);

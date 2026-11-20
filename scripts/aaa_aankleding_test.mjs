@@ -28,6 +28,7 @@ const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 const { STAGE_SETS } = await import('../game/js/stagesets.js');
 const { crowdPlan } = await import('../game/js/crowdplan.js');
 const { applyAkte45 } = await import('../game/js/missions_akte45.js');
+const { applyAkte6 } = await import('../game/js/missions_akte6.js');
 document.body = document.createElement('div');
 
 let n = 0, fails = 0;
@@ -156,6 +157,23 @@ t('M20: de drie deurstappen spelen in de kruitkelder, de wal en de scène niet',
   applyAkte45(lijst);
   const sets = lijst[0].stages.map((s) => s.set || null);
   assert.deepEqual(sets, [null, null, 'kruitkelder', 'kruitkelder', null, 'kruitkelder']);
+});
+
+// ---- M27: de woonkamer ---------------------------------------------------------------------------------------------------------------
+t('M27: de drie inpakstappen spelen in de woonkamer met Willemien; de bus en de scène niet', () => {
+  const lijst = [{ label: 'Inpakken', stages: [
+    { kind: 'hold', label: 'Pak de boeken in kleine dozen' },
+    { kind: 'hold', label: 'Pak het servies in de krant' },
+    { kind: 'scene', label: 'Een foto in de la' },
+    { kind: 'hold', label: 'Zet de kat in de mand' },
+    { kind: 'goto', label: 'Draag de laatste doos naar de verhuisbus' },
+  ] }];
+  applyAkte6(lijst);
+  assert.deepEqual(lijst[0].stages.map((s) => s.set || null), ['woonkamer', 'woonkamer', null, 'woonkamer', null]);
+  assert.ok(lijst[0].stages.filter((s) => s.set).every((s) => s.setVariant === 'inpakken'));
+  const v = R.ROOMS.woonkamer.varianten.inpakken;
+  assert.deepEqual(v.map((q) => q.key), ['willemien']);
+  assert.deepEqual(R.roomFit('woonkamer', [{ ...R.ROOMS.woonkamer.player, id: 'speler' }, ...v.map((q) => ({ u: q.u, v: q.v, id: q.key }))]), [], 'speler en Willemien passen');
 });
 
 // ---- M19: de aankomst ----------------------------------------------------------------------------------------------------------------
