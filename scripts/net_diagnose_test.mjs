@@ -96,8 +96,8 @@ await t('lobby: Verbinding testen vraagt eerst toestemming, meet, toont de uitsl
 await t('versiecontrole: de gast ziet welke versies er zijn en wat te doen', () => {
   let s = L.createLobby({ direct: false, rtc: true, versie: '0.38.0' });
   s = L.reduce(s, { t: 'status', status: 'geweigerd', reason: 'versie', ander: '0.37.1' });
-  const tekst = L.view(s).lines[0];
-  assert.match(tekst, /Andere versie/); assert.match(tekst, /0\.37\.1/); assert.match(tekst, /0\.38\.0/); assert.match(tekst, /Installeer allebei dezelfde versie/);
+  const v = L.view(s); const tekst = v.lines.join(' '); // playerstatus.js: de titel is "Andere versie", de uitleg en wat te doen staan in de regels
+  assert.equal(v.title, 'Andere versie'); assert.match(tekst, /0\.37\.1/); assert.match(tekst, /0\.38\.0/); assert.match(tekst, /Installeer allebei de nieuwste versie/);
   assert.ok(!/host|gast(?!heer)/i.test(tekst.replace(/gastheer/g, '')) || true);
 });
 
