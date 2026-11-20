@@ -62,6 +62,11 @@ if (process.argv.includes('--list')) for (const c of caps) console.log('kap ' + 
 ok(caps.length === 0, `${caps.length} tekstkeycap(s) met een toetsnaam in HTML: gebruik glyphHtml, keyLabelHtml of een {TOKEN}`);
 for (const c of caps.slice(0, 12)) console.log('  ' + c);
 
+// de benchmark (opdracht 21-11): het overlay en het resultaatscherm tonen toetsen als icoon, niet als tekst in een eigen .key
+const tr = readFileSync(JS + 'trailer.js', 'utf8');
+ok(!/class="key">[A-Za-z]+<\/span>/.test(tr), 'trailer.js: een toets als tekst in een eigen .key (gebruik glyphHtml)');
+ok(/tr-keys/.test(tr) && /Terug \{ESC\}/.test(tr), 'trailer.js: het resultaatscherm heeft toetshints met tokens');
+
 // de renderer zelf
 const html = keyTextHtml('Houd {SPACE} of druk op E. Klik met {LMB}. Daarna {F8}, {ALT} en {ARROWUP}.');
 ok((html.match(/hud-key/g) || []).length >= 2, 'keyTextHtml maakt toetsplaatjes van {SPACE} en "druk op E"');
