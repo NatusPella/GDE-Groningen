@@ -43,8 +43,18 @@ let scenarioNow = null; // { key, src, fade }
 let parkedMenu = null;  // de menu-loop die net zweeg en nog even zijn plek houdt
 let parkTimer = null;
 
+// Een gedecodeerde track van enkele minuten is ca. 60 MB: bewaar alleen wat speelt of net zweeg (de menu-loop), geef de rest vrij (review: perf).
+function evictScenarioBuffers(houd) {
+  for (const k of Object.keys(scenarioBuffers)) {
+    if (k === houd || (scenarioNow && scenarioNow.key === k) || (parkedMenu && parkedMenu.key === k)) continue;
+    const e = scenarioBuffers[k];
+    if (e && e.buf) delete scenarioBuffers[k];
+  }
+}
+
 function loadScenarioBuffer(key) {
   if (scenarioBuffers[key]) return;
+  evictScenarioBuffers(key);
   scenarioBuffers[key] = { loading: true };
   const ctx = host.ctx();
   fetch(SCENARIO_TRACKS[key])
