@@ -34,7 +34,7 @@ export const CAPS = {
   missionPropsOnRoad: 0, missionPropsInBuilding: 0, missionCraneAwayFromWater: 0,
   landmarkMisclassified: 0, stationAwayFromRail: 0, perronAwayFromRail: 13, landmarkInWater: 1, stationFootprintOnRailAfter: 0, stationFootprintOnRoadAfter: 0, stationFootprintInBuildingAfter: 0,
   // geen kit maar een gegeven: wat een herbouw van de tegels vraagt (rapport)
-  buildingsInWater: 7, buildingsOnRoad: 146, buildingsOnRail: 0, bridgesOverNothing: 161,
+  buildingsInWater: 7, buildingsOnRoad: 146, buildingsOnRail: 0, bridgesOverNothing: 145, bridgesRaisedOverNothing: 16,
   treesInWater: 83, treesInBuilding: 36, furnitureInWater: 80, furnitureInBuilding: 44,
 };
 
@@ -96,7 +96,7 @@ const segsCross = (a, b, c, d) => {
 
 export function loadWorld(out) {
   const index = JSON.parse(fs.readFileSync(path.join(out, 'index-provincie.json'), 'utf8'));
-  const W = { roads: new SegGrid(), rails: new SegGrid(), water: new PolyGrid(), builds: new PolyGrid(), bridges: [], trees: [], furn: [], buildingRows: [], roadRows: [], tiles: 0 };
+  const W = { roads: new SegGrid(), rails: new SegGrid(), water: new PolyGrid(), builds: new PolyGrid(), bridges: [], trees: [], furn: [], buildingRows: [], roadRows: [], heights: new Map(), tiles: 0 };
   const fds = new Map();
   for (const k of Object.keys(index.tiles)) {
     const t = index.tiles[k], f = index.packs[t.pack].file;
@@ -115,6 +115,7 @@ export function loadWorld(out) {
       else if (s.type === G.SECTION.WATER) for (const r of s.rows) { if (r.pts && r.pts.length > 2) W.water.add(r, r.pts); }
       else if (s.type === G.SECTION.BUILDINGS) for (const r of s.rows) { if (r.pts && r.pts.length > 2) { W.builds.add(r, r.pts); W.buildingRows.push(r); } }
       else if (s.type === G.SECTION.TREES) for (const r of s.rows) for (const p of r.p || []) W.trees.push([p[0], p[1], r.s]);
+      else if (s.type === G.SECTION.HEIGHTS) for (const r of s.rows) { if (r.z && r.z.length) W.heights.set(r.gid, r.z); }
       else if (s.type === G.SECTION.FURNITURE) for (const r of s.rows) if (r.pts && r.pts.length) W.furn.push(r);
     }
   }
@@ -214,21 +215,31 @@ export async function runAudit(out, { list = false } = {}) {
     const r = J.onRoad(cx, cy); if (r) add('buildingsOnRoad', [b.type, b.name, Math.round(cx), Math.round(cy), r.name || r.type]);
     if (J.onRail(cx, cy)) add('buildingsOnRail', [b.type, b.name, Math.round(cx), Math.round(cy)]);
   }
-  // 4. brugdekken zonder iets eronder: water, spoor of een andere weg
-  for (const r of W.bridges) {
-    if (r.pts.length < 2) continue;
-    tot('bridges');
-    let ok = false;
-    for (let i = 0; i < r.pts.length - 1 && !ok; i++) {
+  // 4. brugdekken zonder iets eronder: water, spoor of een andere weg. Per OSM-weg beoordeeld (een weg is aan de
+  //    tegelgrenzen in rijen geknipt; steun in een van de rijen telt voor de hele weg). Vlak (z <= 2,2 m: een brug over
+  //    een sloot of pad, het dek ligt op de grond) is onschuldig; verhoogd zonder iets eronder vraagt pijlers
+  //    (roadstructures3d + bridge_support_test).
+  const byWay = new Map();
+  for (const r of W.bridges) { if (r.pts.length < 2) continue; const k = r.osm || 'g' + r.gid; const l = byWay.get(k); if (l) l.push(r); else byWay.set(k, [r]); }
+  const supported = (r) => {
+    for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
       const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 4));
-      for (let k = 0; k <= n && !ok; k++) {
+      for (let k = 0; k <= n; k++) {
         const x = a[0] + ((b[0] - a[0]) * k) / n, y = a[1] + ((b[1] - a[1]) * k) / n;
-        if (J.waterDist(x, y, 6) < 6 || J.railDist(x, y, 8) < 8) ok = true;
+        if (J.waterDist(x, y, 6) < 6 || J.railDist(x, y, 8) < 8) return true;
       }
-      if (!ok) for (const o of W.roads.near((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 40)) { for (let j = 0; j < o.pts.length - 1 && !ok; j++) if (segsCross(a, b, o.pts[j], o.pts[j + 1])) ok = true; if (ok) break; }
+      for (const o of W.roads.near((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 40)) for (let j = 0; j < o.pts.length - 1; j++) if (segsCross(a, b, o.pts[j], o.pts[j + 1])) return true;
     }
-    if (!ok) { const [mx, my] = r.pts[Math.floor(r.pts.length / 2)]; add('bridgesOverNothing', [r.cat, r.name, Math.round(mx), Math.round(my), Math.round(r.pts.length)]); }
+    return false;
+  };
+  for (const rows of byWay.values()) {
+    tot('bridges');
+    if (rows.some(supported)) continue;
+    const r = rows[0], [mx, my] = r.pts[Math.floor(r.pts.length / 2)];
+    const zmax = Math.max(0, ...rows.map((q) => Math.max(0, ...(W.heights.get(q.gid) || [0]))));
+    add('bridgesOverNothing', [r.cat, r.name, Math.round(mx), Math.round(my), Math.round(r.pts.length)]);
+    if (zmax > 2.2) add('bridgesRaisedOverNothing', [r.cat, r.name, Math.round(mx), Math.round(my), +zmax.toFixed(1)]);
   }
   // 5. streekplekken: de onderdelen (partsToWorld) voor en na dropStreekParts; parken eerst door dropOnRoad (zoals het spel)
   const sp = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/streekplekken.json'), 'utf8')).plekken;

@@ -424,7 +424,11 @@ export function structureArrays(r, map) {
 
   // piers, lights and portals by arc length
   let s = 0;
-  let nextPier = PIER_EVERY / 2, nextLight = LIGHT_EVERY / 2;
+  // (a short span, under 24 m, gets its one pier in the middle, not 12 m along: a 6 to 15 m deck between two
+  // viaduct ways otherwise hung with nothing under it, #919)
+  let total = 0;
+  for (let i = 0; i < n - 1; i++) total += Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+  let nextPier = total >= 5 ? Math.min(PIER_EVERY / 2, total / 2) : PIER_EVERY / 2, nextLight = LIGHT_EVERY / 2;
   for (let i = 0; i < n - 1; i++) {
     const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
     const L = Math.hypot(bx - ax, by - ay);
