@@ -480,6 +480,11 @@ export function decide(s, mem = {}) {
     if (onFootOnly) return { type: 'press', key: 'e', why: 'uitstappen' };
     return { type: 'goto', mode: veh.boat ? 'boat' : veh.heli ? 'fly' : 'drive', ...(stunt ? { stunt: true, top: 30 } : {}) };
   }
+  // a race that wants your own bike (M05, 'Het is een fietsrace. Kom op je eigen fiets.'): the bot takes a free bike close by, like a player who reads the line
+  if (!veh && s.mission && !s.mission.active && ((s.hud && s.hud.messages) || []).some((m) => /Kom op je eigen fiets/i.test(m)) && (mem.bikeTries || 0) < 6) {
+    const fiets = (s.nearby && s.nearby.vehicles || []).find((c) => c.kind === 'fiets' && c.free && !c.occupied && c.distance < 60);
+    if (fiets) { mem.bikeTries = (mem.bikeTries || 0) + 1; return { type: 'enter', vehicle: fiets }; }
+  }
   // on foot: a vehicle close by is worth it for a long way
   if (t.distance > 140 && !onFootOnly && (mem.boardTries || 0) < 3) {
     // 60 m round us for a trip of a few hundred metres, a walk of 250 m for a trip of kilometres (the bot walked 33 km to M13 on foot)
