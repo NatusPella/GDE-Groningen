@@ -7,6 +7,8 @@
 // st { kind: 'timing', kicker, help, rounds: [round], failAt, failText, goodAt, tagGood, tagLow }
 //   round { text, speed (sweeps per second), zone: [from, to] (0-1 on the bar), ok, bad (replies shown after the press) }
 //   failAt: this many misses end the mission with failText; omitted: a miss only costs (the story goes on)
+//   gebaar: true (#962): geen naald en geen zone, een druk (of na GEBAAR_AUTO seconden vanzelf) is altijd raak: het stuk is een gebaar in de
+//           scène (de sprong, de aanloop) en geen proef; de teksten van `ok` komen als vertelling, de tags blijven de goede
 //   goodAt: hits needed for tagGood, fewer give tagLow (tags land in chain.tags, see missions.js consequenceAdjust)
 // Space, E or F press. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
 import { createChoicePanel, keycap } from './choicepanel.js';
@@ -14,6 +16,7 @@ import { neemTimingDruk } from './coopgast.js'; // de toets van een gast bij de 
 import { timingGrace, widenZone, graceHint } from './timingassist.js'; // #957: ruimere zone per stand en hulp
 
 const REPLY_S = 1.5;
+export const GEBAAR_AUTO = 5; // s: een gebaar loopt vanzelf door als er niet gedrukt wordt
 let panel = null;
 const ensure = () => panel || (panel = createChoicePanel('#7fb6e6'));
 
@@ -34,6 +37,7 @@ export function enterTiming(S, st, on, opts = {}) {
         : { ...r, zone };
     })
     : null;
+  S.gebaar = !!(st && st.gebaar);
   S.ti = 0;
   S.hits = 0;
   S.miss = 0;
@@ -54,8 +58,9 @@ export function stepTiming(st, S, press, dt) {
   const round = (S.rounds || st.rounds)[Math.min(S.ti, st.rounds.length - 1)];
   if (S.tphase === 'ask') {
     S.needleT += dt;
-    if (!press) return null;
-    const hit = typeof press === 'object' ? !!press.hit : inZone(round, needleAt(round, S.needleT));
+    const gebaar = !!st.gebaar;
+    if (!press && !(gebaar && S.needleT >= GEBAAR_AUTO)) return null;
+    const hit = gebaar ? true : typeof press === 'object' ? !!press.hit : inZone(round, needleAt(round, S.needleT));
     if (hit) S.hits++;
     else {
       S.miss++;
@@ -95,11 +100,11 @@ function paint(st, S, round) {
     text: round.text,
     rule: '',
     options: [],
-    meter: { v: needleAt(round, S.needleT), from: round.zone[0], to: round.zone[1] },
+    meter: st.gebaar ? null : { v: needleAt(round, S.needleT), from: round.zone[0], to: round.zone[1] },
     nr: Math.min(S.ti + 1, st.rounds.length),
     flash: reply ? reply.text : '',
     bad: !!reply && reply.bad,
-    help: reply ? '' : `${keycap('SPATIE')} ${st.help || 'druk als de streep in het groen is'}${graceHint(S.grace) ? ` · ${graceHint(S.grace).toLowerCase()}` : ''}`,
+    help: reply ? '' : `${keycap('SPATIE')} ${st.help || 'druk als de streep in het groen is'}${!st.gebaar && graceHint(S.grace) ? ` · ${graceHint(S.grace).toLowerCase()}` : ''}`,
   });
 }
 
@@ -116,7 +121,8 @@ export function updateTiming(dt, world, st, S) {
     // de gastheer niet kan laten mislukken (failAt).
     const round = (S.rounds || st.rounds)[Math.min(S.ti, st.rounds.length - 1)];
     const vanGast = neemTimingDruk(world, S.ti + 1);
-    if (vanGast.length) press = { hit: vanGast.some((d) => inZone(round, Number.isFinite(d.v) ? d.v : needleAt(round, S.needleT))) };
+    if (vanGast.length && st.gebaar) press = { hit: true };
+    else if (vanGast.length) press = { hit: vanGast.some((d) => inZone(round, Number.isFinite(d.v) ? d.v : needleAt(round, S.needleT))) };
     else for (const k of [' ', 'e', 'f']) if (world.input.wasPressed(k)) { world.input.consume(k); press = true; }
   }
   const r = stepTiming(st, S, press, dt);

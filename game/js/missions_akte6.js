@@ -263,14 +263,14 @@ export function applyAkte6(list) {
   const zet = (s, veld) => { if (s) Object.assign(s, veld); return !!s; };
   const K = KAARTEN_AKTE6, W = WACHT_AKTE6;
 
-  // M27 Inpakken: een kaart en een wachtfiguur bij elke inpakstap (de kat, het servies in de krant). Een binnenset `woonkamer`
-  // is niet gebouwd: het blijft buiten bij het huis.
+  // M27 Inpakken: een kaart en een wachtfiguur bij elke inpakstap (de kat, het servies in de krant). De drie inpakstappen spelen in de
+  // binnenset `woonkamer` met Willemien (variant `inpakken`); past de kamer niet op die plek, dan blijft het buiten bij het huis.
   const m27 = by('Inpakken');
   if (m27 && m27.stages) {
     m27.aaa = true;
-    zet(vind(m27, 'hold', /boeken in kleine dozen/), { kaart: K.M27.boeken, wacht: { ...W.M27.boeken } });
-    zet(vind(m27, 'hold', /servies in de krant/), { kaart: K.M27.servies, wacht: { ...W.M27.servies } });
-    zet(vind(m27, 'hold', /kat in de mand/), { kaart: K.M27.kat, wacht: { ...W.M27.kat } });
+    zet(vind(m27, 'hold', /boeken in kleine dozen/), { kaart: K.M27.boeken, wacht: { ...W.M27.boeken }, set: 'woonkamer', setVariant: 'inpakken' });
+    zet(vind(m27, 'hold', /servies in de krant/), { kaart: K.M27.servies, wacht: { ...W.M27.servies }, set: 'woonkamer', setVariant: 'inpakken' });
+    zet(vind(m27, 'hold', /kat in de mand/), { kaart: K.M27.kat, wacht: { ...W.M27.kat }, set: 'woonkamer', setVariant: 'inpakken' });
     zet(vind(m27, 'goto', /verhuisbus/), { kaart: K.M27.bus });
   }
 

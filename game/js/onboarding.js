@@ -46,7 +46,7 @@ const LESSONS = [
   {
     id: 'doel',
     when: (w) => !!w.storyGuide && w.stats.missionsDone === 0 && !busy(w),
-    card: () => ({ title: 'Je eerste klus', body: `Je doel staat bovenin. Volg de gele route. ${SKIP_NOTE}` }),
+    card: () => ({ title: 'Je eerste klus', body: `Je doel staat bovenin. Volg de gele route.` }),
   },
   {
     id: 'geld',
@@ -57,7 +57,7 @@ const LESSONS = [
     id: 'kaart',
     known: () => hintUses('map') > 0,
     when: (w, s) => s.has('doel') && !busy(w),
-    card: () => ({ title: 'Zelf kiezen', body: 'Liever iets anders? Kies op de kaart ({M}) een plek of missie.' }),
+    card: () => ({ title: 'Zelf kiezen', body: `Liever iets anders? Kies op de kaart ({M}). ${SKIP_NOTE}` }),
   },
   {
     id: 'tedoen',

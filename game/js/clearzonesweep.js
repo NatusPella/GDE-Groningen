@@ -9,6 +9,9 @@ import { clearZones, clearZoneAt, pushOutOfClearZone } from './clearzone.js';
 let timer = 0;
 let propTimer = 0;
 
+// Meteen opruimen (een binnenset die net is neergezet): de volgende update doet de voetgangers, het verkeer en de props.
+export function forceClearSweep() { timer = 0; propTimer = 0; }
+
 export function updateClearZones(dt, world) {
   if (!dt || world.paused || !hoofdspeler(world)) return;
   timer -= dt;

@@ -26,6 +26,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Nieuwe videokaarten:** de nieuwe losse kaarten van de Arc B-serie worden als sterk herkend.
 - **Samen spelen: een bijbaan van een medespeler stoort jouw scherm niet meer.** Rijdt, vaart of bezorgt een medespeler in jouw spel, dan blijven jouw lichte strook onderin en je uitlegvlag ongemoeid.
 - **Samen spelen: geen spookvelden meer na afloop.** Zodra een sessie voorbij is, verdwijnen de velden van de ander uit jouw wereld.
+- **De kruitkelder van Bourtange (M20) bouwt nu ook tussen de huizen:** de kamer werd afgekeurd als er een gebouw in de voetafdruk stond, en dan speelden de drie deurstappen toch buiten.
+- **De bietenoogst bij Hoogkerk (A1) wijst nu naar Hoogkerk:** de marker liep eerst naar een tijdelijke plek in de stad, waar geen akker is, zodat de klus nooit startte. Nu rijd je naar de suikerhal, laden de tegels en komt het startpunt daar.
 
 ### Nieuw
 
@@ -56,6 +58,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Onder de balk staat "Stap 5 van 7", de streepjes in de balk markeren de stappen, en elke stap zegt in gewone taal wat er gebeurt (onder andere "De shaders worden klaargezet (dit duurt even)" en "Het geluid wordt klaargemaakt").
 - Tijdens een lange stap beweegt de balk rustig door, en bij de shaders telt hij de klaar gelinkte programma's mee.
 - Het laadscherm bij laden en snel reizen telt zijn stappen ook ("Stap 2 van 4").
+- **Eerste kaart zegt één ding (#987):** de eerste uitlegkaart zegt alleen nog je doel; waar je de uitleg uitzet staat op de tweede kaart (Zelf kiezen).
+- **Minder quicktime-events (#962):** de fierljep in Bourtange (M20) en de sprong over de wagons (M21) hebben geen naald en geen vak meer: je drukt op spatie voor de volgende stap (of ze lopen vanzelf door) en het gaat altijd goed. De korte timing van de gang in M18 en het loswippen in de modder (M22) blijven. Samen spelen: de druk van een gast telt ook mee.
+- **Inpakken bij Willemien speelt binnen (M27):** boeken, servies en de kat pak je nu in haar woonkamer in, met Willemien erbij, in plaats van in de open lucht (#956). Past de kamer niet op die plek, dan speel je buiten zoals eerst. Samen spelen: de missie is van wie het spel opende; wie meedoet ziet de kamer lokaal.
+
+### Binnenmissies spelen echt binnen (#956)
+
+- **De kamer is echt binnen:** in een binnenstap (het Loket, het kantoor, de woonkamer, de kruitkelder en de andere kamers) staan geen voetgangers, auto's, fietsenstallingen of andere losse spullen meer in de kamer, de camera blijft in de kamer onder het plafond (geen dak of buitenwereld meer in beeld) en de speler staat altijd binnen: past de kamer niet op die plek, dan zoekt het spel de dichtstbijzijnde plek die wel past, en wie in een voertuig zit stapt eerst uit. Samen spelen: het is lokaal bij wie de stap speelt; een gast ziet de kamer van de stap niet, zoals eerst.
+- **Rustiger camera in scènes:** hooguit één zichtbare pan per scène (nooit twee achter elkaar); de andere schuivers zijn een bijna-vaste drift. Camera's in een kamer blijven 0,3 m onder het plafond. Dit geldt voor alle scènes (100 van de 115 hadden meer dan één pan).
 
 ## [0.64.0] - 2026-11-20
 

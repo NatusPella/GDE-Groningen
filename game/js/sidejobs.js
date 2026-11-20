@@ -163,7 +163,7 @@ export function getSideJobList() {
     const r = rec(s.job.id);
     const lvl = jobLevel(s.job.id);
     const pr = sidejobProfiel(s.job.id);
-    return { id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl), rounds: r.rounds, earned: r.earned, bestStreak: r.bestStreak, active: !!ctx && ctx.job === s.job, familie: pr.familie, familieNaam: pr.familieNaam, sfeer: pr.sfeer };
+    return { id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, fallback: !!s.fallback, regio: s.regio || null, level: lvl, title: levelTitle(lvl), rounds: r.rounds, earned: r.earned, bestStreak: r.bestStreak, active: !!ctx && ctx.job === s.job, familie: pr.familie, familieNaam: pr.familieNaam, sfeer: pr.sfeer };
   });
 }
 
@@ -222,7 +222,7 @@ function reanchor(w, dt) {
     if (!open) continue;
     const free = spreadSpot(w.map, open.x, open.y, spots.filter((o) => o !== s));
     const [x, y] = w.map.escapeBuilding(free.x, free.y, 0.5);
-    s.x = x; s.y = y; s.fallback = false;
+    s.x = x; s.y = y; s.fallback = false; s.regio = null;
     if (s.mesh) s.mesh.position.set(x, 0, y);
   }
 }
@@ -239,7 +239,7 @@ export function initSideJobs(w) {
     if (!open) continue;
     const free = spreadSpot(w.map, open.x, open.y, spots);
     const [x, y] = w.map.escapeBuilding(free.x, free.y, 0.5);
-    const spot = { job, x, y, mesh: null, fallback: !!at.fallback };
+    const spot = { job, x, y, mesh: null, fallback: !!at.fallback, regio: at.fallback ? at.regio || null : null };
     if (scene) { spot.mesh = buildBadge3D(job, x, y); scene.add(spot.mesh); }
     spots.push(spot);
   }

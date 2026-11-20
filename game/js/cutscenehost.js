@@ -377,7 +377,7 @@ function officeEnv(at) {
       return {
         x: Math.max(at.x - (OFFICE.w / 2 - 0.45), Math.min(at.x + (OFFICE.w / 2 - 0.45), x)),
         y: Math.max(at.y - (OFFICE.d / 2 - 0.45), Math.min(at.y + (OFFICE.d / 2 - 0.45), y)),
-        z: Math.max(base + 0.3, Math.min(base + OFFICE.h - 0.25, z)),
+        z: Math.max(base + 0.3, Math.min(base + OFFICE.h - 0.3, z)),
       };
     },
   };
@@ -393,7 +393,7 @@ function serverEnv(at) {
       return {
         x: Math.max(at.x - (SERVER.w / 2 - 0.45), Math.min(at.x + (SERVER.w / 2 - 0.45), x)),
         y: Math.max(at.y - (SERVER.d / 2 - 0.45), Math.min(at.y + (SERVER.d / 2 - 0.45), y)),
-        z: Math.max(base + 0.3, Math.min(base + SERVER.h - 0.25, z)),
+        z: Math.max(base + 0.3, Math.min(base + SERVER.h - 0.3, z)),
       };
     },
   };
@@ -409,7 +409,7 @@ function loketEnv(at) {
       return {
         x: Math.max(at.x - (LOKET.w / 2 - 0.45), Math.min(at.x + (LOKET.w / 2 - 0.45), x)),
         y: Math.max(at.y - (LOKET.d / 2 - 0.45), Math.min(at.y + (LOKET.d / 2 - 0.45), y)),
-        z: Math.max(base + 0.3, Math.min(base + LOKET.h - 0.25, z)),
+        z: Math.max(base + 0.3, Math.min(base + LOKET.h - 0.3, z)),
       };
     },
   };
@@ -425,7 +425,7 @@ function omaKeukenEnv(at) {
       return {
         x: Math.max(at.x - (OMA_KEUKEN.w / 2 - 0.45), Math.min(at.x + (OMA_KEUKEN.w / 2 - 0.45), x)),
         y: Math.max(at.y - (OMA_KEUKEN.d / 2 - 0.45), Math.min(at.y + (OMA_KEUKEN.d / 2 - 0.45), y)),
-        z: Math.max(base + 0.3, Math.min(base + OMA_KEUKEN.h - 0.25, z)),
+        z: Math.max(base + 0.3, Math.min(base + OMA_KEUKEN.h - 0.3, z)),
       };
     },
   };
