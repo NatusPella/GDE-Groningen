@@ -347,6 +347,57 @@ await sectie('m19board', async () => {
   skipAan = true;
 });
 
+// ---- M20 noordwal: kan een mens van de westwal naar de noordwal lopen zonder de gracht in te gaan? --------------------
+await sectie('m20wal', async () => {
+  const idx = idxVan('Het beleg van Bourtange');
+  const def = M.getMissionDefs()[idx];
+  const RT = await imp('routing');
+  const UT = await imp('util');
+  await zet(def.start.x, def.start.y, 0, SETTLE + 8000);
+  skipAan = false;
+  if (!window.__story.jump('M20')) throw new Error('M20-sprong mislukt');
+  await sleep(1500);
+  if (!M.isMissionActive() && !M.missionDebug.start(w, idx)) throw new Error('M20 startte niet');
+  for (let i = 0; i < 40 && cine.isCinematicActive(); i++) { cine.skipCinematic(); await sleep(400); }
+  for (let i = 0; i < 12 && !(M.missionDebug.state() && M.missionDebug.state().stage >= 2); i++) { M.missionDebug.complete(w); await sleep(1500); }
+  for (let i = 0; i < 40 && cine.isCinematicActive(); i++) { cine.skipCinematic(); await sleep(400); }
+  await sleep(4000);
+  const st = M.activeStage();
+  const m = { stand: M.missionDebug.state(), stap: st && st.label, speler: [r1(p.x), r1(p.y)] };
+  out.stand.m20wal = m;
+  const doel = M.missionDebug.state().stageInfo && M.missionDebug.state().stageInfo.target;
+  m.doel = doel;
+  const inWater = (x, y) => { try { return !!UT.isInWater(map, x, y); } catch (e) { return null; } };
+  const lengte = (pts) => { let t = 0; for (let i = 1; i < pts.length; i++) t += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return Math.round(t); };
+  const nat = (pts) => { let n = 0, tot = 0; for (let i = 1; i < pts.length; i++) { const L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); const k = Math.max(1, Math.floor(L / 2)); for (let j = 0; j <= k; j++) { tot++; if (inWater(pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * j / k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * j / k)) n++; } } return { monsters: tot, water: n }; };
+  const gps = RT.getActiveRoute();
+  m.hudRoute = gps && gps.pts ? { punten: gps.pts.length, lengte: lengte(gps.pts), ...nat(gps.pts), eind: gps.pts[gps.pts.length - 1].map(r1) } : null;
+  if (doel) {
+    const wp = RT.findWalkPath(map, p.x, p.y, doel.x, doel.y);
+    m.loopRoute = wp ? { punten: wp.pts.length, lengte: lengte(wp.pts), ...nat(wp.pts) } : null;
+    m.rechteLijn = { afstand: r1(Math.hypot(doel.x - p.x, doel.y - p.y)), ...nat([[p.x, p.y], [doel.x, doel.y]]) };
+  }
+  m.speler_inWater = inWater(p.x, p.y);
+  // een kaartje van water (W) en land (.) om het doel (4 m per vakje, noord boven): D = doel, S = speler, R = einde van de looproute
+  if (doel) {
+    const rij = [];
+    const eind = m.hudRoute && m.hudRoute.eind;
+    for (let dy = -22; dy <= 22; dy++) {
+      let r = '';
+      for (let dx = -22; dx <= 40; dx++) {
+        const x = doel.x + dx * 4, y = doel.y + dy * 4;
+        const isD = dx === 0 && dy === 0, isS = Math.abs(p.x - x) < 2 && Math.abs(p.y - y) < 2, isR = eind && Math.abs(eind[0] - x) < 2 && Math.abs(eind[1] - y) < 2;
+        r += isD ? 'D' : isS ? 'S' : isR ? 'R' : inWater(x, y) ? 'W' : '.';
+      }
+      rij.push(r);
+    }
+    m.kaartje = rij;
+    m.doelInWater = inWater(doel.x, doel.y);
+  }
+  await grab('m20wal-start');
+  skipAan = true;
+});
+
 clearInterval(skipper); clearInterval(clockTik);
 console.log(`[meting955] beelden ${out.beelden.length}, fouten ${out.fouten.length}`);
 return JSON.stringify({ results: out });
