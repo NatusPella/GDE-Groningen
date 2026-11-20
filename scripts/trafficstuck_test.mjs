@@ -1,4 +1,4 @@
-// Pure test van de opruimregel voor vastzittende AI-voertuigen (game/js/vehicle/trafficstuck.js, #1050):
+// Pure test van de opruimregel voor vastzittende AI-voertuigen (game/js/vehicle/trafficstuck.js, #1047):
 // uit beeld en ver weg gaat een vastzitter weg, voor de ogen van de speler pas na lange tijd.
 //   node scripts/trafficstuck_test.mjs
 import { stuckClearable, STUCK_S, HARD_S } from '../game/js/vehicle/trafficstuck.js';

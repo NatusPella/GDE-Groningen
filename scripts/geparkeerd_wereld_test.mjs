@@ -1,4 +1,4 @@
-// Geparkeerde auto's op de echte tegels (#1050): de stoepparkeerplekken en parkeervakken die parkedcars.js maakt
+// Geparkeerde auto's op de echte tegels (#1047): de stoepparkeerplekken en parkeervakken die parkedcars.js maakt
 // staan niet in elkaar, niet in een gebouw, niet in het water en niet in een rijbaan.
 //   node scripts/geparkeerd_wereld_test.mjs [--verbose]
 // Slaat over zonder game/world (desktop stage).

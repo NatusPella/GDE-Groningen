@@ -62,7 +62,7 @@ for (const s of ['auto', 'voetganger']) {
   check('ver weg denkt toch af en toe', [...Array(12).keys()].some((f) => !stapSlaOver('voetganger', 2000, 0, f)));
 }
 
-// #1050: spits, avond en regen
+// #1047: spits, avond en regen
 check('spits drukker dan middag (stad)', tijdFactor('auto', 8, 'stad') > tijdFactor('auto', 12, 'stad'));
 check('spits in een dorp niet drukker', tijdFactor('auto', 8, 'dorp') === tijdFactor('auto', 12, 'dorp'));
 check('avond rustiger dan middag', tijdFactor('auto', 20, 'stad') < tijdFactor('auto', 12, 'stad'));

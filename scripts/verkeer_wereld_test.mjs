@@ -1,4 +1,4 @@
-// Verkeersaudit op de echte tegels (#1050): de AI-auto's van het spel (updateTrafficAI, populatiebeheer, stoplichten)
+// Verkeersaudit op de echte tegels (#1047): de AI-auto's van het spel (updateTrafficAI, populatiebeheer, stoplichten)
 // rijden op een virtuele klok door een paar echte plekken; strikte controles per auto en per stap:
 //   - geen AI-auto met het lichaam in een gebouw (resolveVehicleBuildingCollision raakt een voetafdruk),
 //   - geen AI-auto in het water (midden of een hoek op open water, behalve op een brug/dek),
@@ -117,7 +117,7 @@ for (const [name, sx, sy] of SPOTS) {
   console.log(`${name}: ${world.vehicles.length} voertuigen aan het eind; in gebouw ${seen.inside.size}, schaaf ${seen.wall.size}, water ${seen.water.size}, naast weg ${seen.offroad.size}, vast ${seen.stuck.size}, blijvende overlap ${longOverlap}`);
 }
 for (const r of report) console.log('  ' + r);
-// De streefwaarde is overal 0 (STRICT=1); de standaardgrenzen zijn de gemeten stand na de wegtoets van #1050 (zie docs/VERKEER-AUDIT-21-11.md),
+// De streefwaarde is overal 0 (STRICT=1); de standaardgrenzen zijn de gemeten stand na de wegtoets van #1047 (zie docs/VERKEER-AUDIT-21-11.md),
 // zodat een verslechtering de test laat falen terwijl de restpunten (hoekensnijden bij kruispunten, doodlopende landpaden aan de sloot) open staan.
 const strict = !!process.env.STRICT;
 const lim = (k, v) => (strict ? 0 : v);

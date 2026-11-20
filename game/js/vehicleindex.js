@@ -61,7 +61,13 @@ export function vehiclesNear(world, x, y, r, out) {
       }
     }
   }
-  if (out.length > 1) out.sort((a, b) => a._vi - b._vi);
+  // in de volgorde van world.vehicles; een invoegsortering op de paar buren (geen comparator-sluiting en geen sorteerbuffer per vraag, #1048)
+  for (let i = 1; i < out.length; i++) {
+    const v = out[i], vi = v._vi;
+    let j = i - 1;
+    while (j >= 0 && out[j]._vi > vi) { out[j + 1] = out[j]; j--; }
+    out[j + 1] = v;
+  }
   vehicleIndexStats.queries++;
   vehicleIndexStats.candidates += out.length;
   return out;

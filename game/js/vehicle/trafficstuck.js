@@ -1,4 +1,4 @@
-// Wanneer mag een vastzittend AI-voertuig uit de wereld (#1050, docs/VERKEER-AUDIT-21-11.md)?
+// Wanneer mag een vastzittend AI-voertuig uit de wereld (#1047, docs/VERKEER-AUDIT-21-11.md)?
 // Een auto die lang tegen een obstakel staat, steeds op een doodlopend einde terugkaatst of eindeloos op een kruispunt wacht,
 // vult het verkeersquotum voor niets. Hij verdwijnt dan, maar niet voor de ogen van de speler: een auto die in beeld
 // opeens weg is, breekt de illusie. Pure regel, geen DOM, geen three.

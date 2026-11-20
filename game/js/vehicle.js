@@ -1393,11 +1393,16 @@ function resolveTrailerContacts(a, vehicles, world) {
 const PROBES_LONG = [[1, 1], [1, -1], [0, -1], [-1, -1], [-1, 1], [0, 1]];
 const PROBES_SHORT = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 const probeCount = (v) => (v.halfLen > 3 ? 6 : 4);
+// #1048: een hergebruikte uit-array (de beller leest hem meteen en bewaart hem niet): geen array per hoekpunt per auto per frame
+const _probeOut = [0, 0];
 function collisionProbe(v, k) {
-  const m = (v.halfLen > 3 ? PROBES_LONG : PROBES_SHORT)[k];
-  const lx = m[0] * v.halfLen, ly = m[1] * v.halfWid;
+  const hl = v.halfLen;
+  const m = (hl > 3 ? PROBES_LONG : PROBES_SHORT)[k];
+  const lx = m[0] * hl, ly = m[1] * v.halfWid;
   const cos = Math.cos(v.angle), sin = Math.sin(v.angle);
-  return [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos];
+  _probeOut[0] = v.x + lx * cos - ly * sin;
+  _probeOut[1] = v.y + lx * sin + ly * cos;
+  return _probeOut;
 }
 
 const FALL_G = 9.8;
@@ -1588,8 +1593,9 @@ function buildingsAroundBody(v, map) {
   if (map !== bodyNearMap) { bodyNearMap = map; bodyNearEpoch++; }
   const c = v._bodyNear;
   if (c && c.epoch === bodyNearEpoch && c.r === v.halfLen && Math.abs(v.x - c.x) < BODY_NEAR_MOVE && Math.abs(v.y - c.y) < BODY_NEAR_MOVE) return c.list;
-  const list = map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
-  v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
+  // #1048: de lijst per voertuig wordt ter plekke bijgewerkt (queryInto), niet elke keer opnieuw gemaakt
+  const list = map.buildingsNearInto ? map.buildingsNearInto(c ? c.list : [], v.x, v.y, v.halfLen + BODY_NEAR_SLACK) : map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
+  if (c && c.list === list) { c.epoch = bodyNearEpoch; c.x = v.x; c.y = v.y; c.r = v.halfLen; } else v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
   return list;
 }
 

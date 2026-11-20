@@ -1,4 +1,4 @@
-// Past een auto tussen de gebouwen en door het water? (#1050, docs/VERKEER-AUDIT-21-11.md)
+// Past een auto tussen de gebouwen en door het water? (#1047, docs/VERKEER-AUDIT-21-11.md)
 // De verkeers-AI mocht elke weg op die breed genoeg was (canUseRoad). In de echte tegels lopen smalle straten en
 // serviceweggetjes soms op 1 m van een voetafdruk of dwars door een sloot: de auto schaafde dan elke ronde langs de gevel
 // of reed het water in. Deze toets loopt een keer langs de hartlijn en onthoudt het resultaat op de weg

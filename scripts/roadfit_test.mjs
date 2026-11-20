@@ -1,4 +1,4 @@
-// Pure test van de wegtoets voor auto's (game/js/vehicle/roadfit.js, #1050): een straat langs een gevel, door een
+// Pure test van de wegtoets voor auto's (game/js/vehicle/roadfit.js, #1047): een straat langs een gevel, door een
 // voetafdruk of naar een sloot past niet voor een auto; een brede weg en een brug altijd.
 //   node scripts/roadfit_test.mjs
 import './node3d.mjs';

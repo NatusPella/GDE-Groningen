@@ -38,7 +38,7 @@ export const streekVanProfiel = (key) => PROFIEL_STREEK[key] || 'stad';
 
 // 's Nachts rustiger, behalve voor voetgangers in het centrum. Auto's: spits ('s ochtends 7 tot 9, 's middags 16 tot 18,30) drukker in
 // stad, centrum en industrie, de avond rustiger, de nacht leeg; regen (nat 0..1, world.weather.wet) haalt tot 15% van het verkeer en
-// de helft van de voetgangers van straat (in het centrum minder: terrassen en winkels). (#1050)
+// de helft van de voetgangers van straat (in het centrum minder: terrassen en winkels). (#1047)
 const SPITS = [[7, 9], [16, 18.5]];
 export function tijdFactor(soort, uur, streek, nat = 0) {
   const h = ((uur % 24) + 24) % 24;
