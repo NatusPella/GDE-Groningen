@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De kaart en de minikaart staan nu ook met het land in de nieuwe kleuren: glasgroen land, bordgroen voor parken en bos, een rustig blauw voor water, crème wegen en papieren gebouwen. De markers (diensten, winkels, politie, vervoer) gebruiken vijf kleurrollen met een crème rand; geel blijft voor je doel en je route. De oude kaartplaat wordt bij het laden herkleurd, dus er is geen nieuwe wereld nodig.
+- Je kunt Zo werkt de kaart altijd sluiten: met Begrepen, Enter, Escape (of B op de controller) of door ernaast te klikken, en hij komt niet terug na heropenen.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
