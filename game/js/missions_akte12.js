@@ -71,6 +71,41 @@ export const PLANNEN_AKTE12 = {
       { look: kijk(0x8a6a3a, 0xa9744a, 8742, 'female'), along: 10, side: -7.3, a: 1.2, anim: 'wave' },
     ],
   },
+  // M04: op het Stationsplein geeft Bert de duif: een paar kooien, een bank en een gebroken broodje voor de meeuwen
+  duivenhok: {
+    props: [
+      { kind: 'kist', along: 6, side: -7, a: 0.2 }, { kind: 'kist', along: 6, side: -8.4, a: -0.1 }, { kind: 'kist', along: 7.4, side: -7.6, a: 0.4 },
+      { kind: 'bank', along: 6.5, side: 8, a: 0 }, { kind: 'vaandel', along: 10, side: -5, a: 0 },
+      { kind: 'banner', along: 13, side: 0, a: 0, title: 'DUIVENVERENIGING', sub: 'Bert en zijn vleugelvolk' },
+    ],
+    people: [
+      { look: kijk(0x4a5a3a, 0xf1c9a5, 8751, 'male'), along: 7, side: -5.8, a: 1.3, anim: 'point' }, // Bert wijst naar het museum
+      { look: kijk(0x8a4a6a, 0xd9a06e, 8752, 'female'), along: 6.6, side: 6.4, a: -1.2, anim: 'talk' },
+    ],
+  },
+  // M10: het erf waar de quad klaarstaat: de trekker-limo komt zo, Geesjes neef zwaait al
+  quaderf: {
+    props: [
+      { kind: 'tractor', along: 9, side: -8, a: 0.3 }, { kind: 'baal', along: 7, side: 8.6, a: 0 }, { kind: 'baal', along: 8.3, side: 9.4, a: 0 },
+      { kind: 'kist', along: 10, side: 7.6, a: 0.3 }, { kind: 'vaandel', along: 12, side: -4, a: 0 },
+    ],
+    people: [
+      { look: kijk(0x3f6a4a, 0xf1c9a5, 8761, 'male'), along: 7.5, side: -5.4, a: 1.3, anim: 'wave' },
+      { look: kijk(0x6a4a2a, 0xa9744a, 8762, 'male'), along: 9.4, side: 6.2, a: -1.4, anim: 'hips' },
+    ],
+  },
+  // M11: de steiger van Klaas: kisten, een emmer en twee hengelaars die precies niets gezien hebben
+  klaassteiger: {
+    props: [
+      { kind: 'kist', along: 7, side: -8, a: 0.2 }, { kind: 'kist', along: 8.4, side: -8.8, a: 0.6 }, { kind: 'ton', along: 6.4, side: 8.6, a: 0 },
+      { kind: 'ton', along: 7.6, side: 9.4, a: 0 }, { kind: 'vaandel', along: 11, side: -5, a: 0 },
+    ],
+    people: [
+      { look: kijk(0x2f4a6a, 0xd9a06e, 8771, 'male'), along: 8, side: -5.8, a: 1.3, anim: 'wave' }, // Klaas
+      { look: kijk(0x8a6a3a, 0xf1c9a5, 8772, 'female'), along: 8.2, side: 6.6, a: -1.3, anim: 'idle' },
+      { look: kijk(0x555f6e, 0xa9744a, 8773, 'male'), along: 9.6, side: 7.4, a: -1.1, anim: 'idle' },
+    ],
+  },
 };
 
 // Koppelt de plannen aan de stappen van akte 1 en 2 (list: de defs van missions.js, zoals applyNieuw ze krijgt).
@@ -85,5 +120,8 @@ export function applyAkte12(list) {
   zet(by('Al het vet van Grunn'), (q) => q.kind === 'chase', 'groothandel');
   zet(by('Heel aankomen is ook een kunst'), (q) => q.kind === 'goto' && q.target && q.target.label === 'Tussenstop op de wierde', 'wierdemarkt');
   zet(by('Heel aankomen is ook een kunst'), (q) => q.kind === 'goto' && q.target && q.target.label === 'De kerkkelder in Usquert', 'kerkkelder');
+  zet(by('Kieken van boven'), (q) => q.kind === 'pigeon', 'duivenhok');
+  zet(by('Een trekker-limo op de wierde'), (q) => q.kind === 'board', 'quaderf');
+  zet(by('Geleend van de Friezen'), (q) => q.kind === 'goto' && q.target && q.target.label === 'De steiger bij Noordpolderzijl', 'klaassteiger');
   zet(by('Een trekker-limo op de wierde'), (q) => q.kind === 'goto' && q.target && q.target.label === 'De sloot bij Uithuizen', 'slootkant');
 }

@@ -64,12 +64,16 @@ const defs = [
   { label: 'Al het vet van Grunn', stages: [{ kind: 'board' }, { kind: 'chase' }, { kind: 'goto', target: { label: 'De Oosterpoort' }, dressing: 'plein' }] },
   { label: 'Heel aankomen is ook een kunst', stages: [{ kind: 'board' }, { kind: 'goto', target: { label: 'Westerhornseweg' } }, { kind: 'goto', target: { label: 'Tussenstop op de wierde' } }, { kind: 'goto', target: { label: 'De kerkkelder in Usquert' } }] },
   { label: 'Een trekker-limo op de wierde', stages: [{ kind: 'board' }, { kind: 'goto', target: { label: 'De sloot bij Uithuizen' } }] },
+  { label: 'Kieken van boven', stages: [{ kind: 'pigeon' }] },
+  { label: 'Geleend van de Friezen', stages: [{ kind: 'goto', target: { storyBoat: true } }, { kind: 'goto', target: { label: 'De steiger bij Noordpolderzijl' } }] },
 ];
 applyAkte12(defs);
 ok(defs[0].stages[2].dressing === 'pandenpoen', 'M02: Pand & Poen aangekleed');
 ok(defs[1].stages[1].dressing === 'groothandel' && defs[1].stages[2].dressing === 'plein', 'M07: groothandel erbij, plein blijft');
 ok(defs[2].stages[2].dressing === 'wierdemarkt' && defs[2].stages[3].dressing === 'kerkkelder' && !defs[2].stages[1].dressing, 'M09: markt en kelder, de weg niet');
-ok(defs[3].stages[1].dressing === 'slootkant', 'M10: sloot aangekleed');
+ok(defs[3].stages[1].dressing === 'slootkant' && defs[3].stages[0].dressing === 'quaderf', 'M10: erf en sloot aangekleed');
+ok(defs[4].stages[0].dressing === 'duivenhok', 'M04: Bert met zijn duiven');
+ok(defs[5].stages[1].dressing === 'klaassteiger' && !defs[5].stages[0].dressing, 'M11: Klaas wacht op de steiger, niet op het water');
 applyAkte12(defs); // twee keer is niet erger
 for (const kind of Object.keys(PLANNEN_AKTE12)) {
   const p = dressingPlan(kind);
