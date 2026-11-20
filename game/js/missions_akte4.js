@@ -38,7 +38,7 @@ export const PLACES = {
   // waardoor er geen trein in de buurt was en de rit zichzelf afspeelde).
   veendamPerron: [53.10501, 6.88635],   // the Veendam stop; the ride goes on along the line to the next platform
   veendamPerronStart: [53.10503, 6.88631],
-  bourtangeWalB: [53.00693, 7.1892],
+  bourtangeWalB: [53.00691, 7.19064], // #955: op de oever aan de kant van de westwal (49 m, 76 m lopen); het oude punt lag 790 m lopen om, over de gracht
   bourtangeKruitB: [53.0074, 7.19305],
   bourtangeKruitC: [53.0070, 7.1934],
   bourtangeWal: [53.00669, 7.1900],
