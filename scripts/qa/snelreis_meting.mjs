@@ -14,7 +14,7 @@ const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-snelreis')));
 fs.mkdirSync(OUT, { recursive: true });
-const profile = `gde-test-sr-${process.pid}`;
+const profile = process.env.GDE_PROFILE_DIR || `gde-test-sr-${process.pid}`; // GDE_PROFILE_DIR: absoluut pad als %TEMP% niet schrijfbaar is
 const script = path.join(OUT, '_page.js');
 const cfg = { van: arg('van', 'Groningen'), naar: arg('naar', 'Delfzijl,Ter Apel').split(','), na: Number(arg('na', 25)) };
 fs.writeFileSync(script, `window.__sr = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'snelreis_meting.page.js'), 'utf8'));
