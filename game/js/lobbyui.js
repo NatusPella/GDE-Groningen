@@ -26,6 +26,7 @@ import { LIJST, Serverlijst, maakAankondiger } from './net/serverlijst.js';
 import { JOIN, bedienKamer, vraagKamer, onthoudBron, bronVan } from './net/joingate.js';
 import { PROTO } from './net/protocol.js';
 import { lijst as rosterLijst, charInfo } from './coopplayers.js';
+import { VORM_TEKEN } from './coopspelers.js';
 import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js';
 import { maakEnv } from './net/diagnoseenv.js';
 import { VERSION } from './version.js';
@@ -153,8 +154,8 @@ export function mountLobby(root, hooks, opts = {}) {
       start: typeof actief.selectionStart === 'number' ? actief.selectionStart : null,
       eind: typeof actief.selectionEnd === 'number' ? actief.selectionEnd : null,
     } : null;
-    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span class="coop-kleur-stip ${kleurKlasse(w.kleur)}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
-    const chip = (act, label, aan) => `<button type="button" class="m-chip coop-chip" data-act="${act}" aria-pressed="${aan}">${esc(label)}</button>`;
+    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="ds-z-knop ds-z-knop--secundair coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span class="coop-id coop-kleur-stip ${kleurKlasse(w.kleur)}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
+    const chip = (act, label, aan) => `<button type="button" class="ds-z-chip coop-chip" data-act="${act}" aria-pressed="${aan}">${esc(label)}</button>`;
     const li = v.lijstInfo;
     const sessies = li ? `<div class="coop-lijst" role="region" aria-label="Openbare sessies">
       <div class="coop-lijst-balk">
@@ -172,11 +173,11 @@ export function mountLobby(root, hooks, opts = {}) {
         <span class="mut">Sorteren:</span>${li.sorteringen.map((x) => chip('lijst-sorteer-' + x.id, x.label, x.gekozen)).join('')}
       </div>
       <p class="coop-lijst-teller mut" role="status"${li.telling ? '' : ' hidden'}>${esc(li.telling)}</p>
-      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem"${x.dim ? ' data-dim="1"' : ''}><button type="button" class="m-bt coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${x.favoriet ? '★' : '☆'}</span></button><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn coop-sessie-knop" data-act="${x.act}"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
-      ${li.meer ? `<div class="coop-meer"><button type="button" class="m-bg coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
+      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem"${x.dim ? ' data-dim="1"' : ''}><button type="button" class="ds-z-knop ds-z-knop--ghost coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${x.favoriet ? '★' : '☆'}</span></button><button type="button" class="ds-z-knop ds-z-knop--secundair coop-btn coop-sessie-knop" data-act="${x.act}"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="ds-z-knop ds-z-knop--ghost coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
+      ${li.meer ? `<div class="coop-meer"><button type="button" class="ds-z-knop ds-z-knop--secundair coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
     </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
-    const prof = v.profiel ? `<div class="coop-profiel"><label class="coop-profiel-label"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}"></label><div class="coop-kleuren" role="group" aria-label="Kleur">${v.profiel.kleuren.map((c, i) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span class="coop-kleur-stip coop-kleur-${i}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
+    const prof = v.profiel ? `<div class="coop-profiel"><label class="coop-profiel-label"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}"></label><div class="coop-kleuren" role="group" aria-label="Kleur">${v.profiel.kleuren.map((c, i) => `<button type="button" class="ds-z-knop ds-z-knop--secundair coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span class="coop-id coop-kleur-stip coop-kleur-${i}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
     // het vinkje op het toestemmingsscherm (#526): "Niet meer vragen" geldt per apparaat en wordt pas bewaard
     // als de speler daarna akkoord gaat (settings.js: multiplayerConsentRemembered)
     const toestemming = v.consent ? consentOnthoudenHtml(v.consent) : '';
@@ -188,13 +189,16 @@ export function mountLobby(root, hooks, opts = {}) {
     const klein = typeof innerWidth === 'number' && typeof innerHeight === 'number' && (innerHeight <= 560 || (innerWidth <= 760 && innerHeight > innerWidth));
     // (#874) de spelers als chips in plaats van één lange namenzin. De telling blijft als regel
     // staan; de chips maken de namen scanbaar en kunnen met 16 spelers gewoon doorlopen.
+    // zeefdruk (#1001): identiteit is kleur plus vorm in een inktschijf; de naam en het woord ernaast zeggen de rest
+    const vormTekens = Object.values(VORM_TEKEN);
+    const vormSchijf = (p) => `<span class="coop-id ${kleurKlasse(p.kleur)}" aria-hidden="true">${VORM_TEKEN[p.vorm] || vormTekens[(Number.isInteger(p.slot) ? p.slot : 0) % vormTekens.length] || '●'}</span>`;
     const chipSpeler = (p) => {
       if (!p) return '';
       const weg = p.verbinding === 'lost', hapert = p.verbinding === 'lag', host = p.slot === 0;
       // Geen rolnaam bij de speler (docs/WOORDENLIJST.md: "geen rolnaam bij samen spelen", eigenaar
       // 20-10). Wie het spel opende is te zien aan de groene rand én aan het woord "opent": kleur
       // alleen is voor een voorlezer en voor wie kleuren slecht onderscheidt geen informatie.
-      return `<li class="coop-speler${weg ? ' coop-speler-weg' : hapert ? ' coop-speler-lag' : ''}"${host ? ' data-host="1"' : ''}>${esc(p.naam || '?')}${host ? '<small class="coop-speler-rol">· opent</small>' : ''}${weg ? ' <small>· weg</small>' : hapert ? ' <small>· hapert</small>' : ''}</li>`;
+      return `<li class="coop-speler${weg ? ' coop-speler-weg' : hapert ? ' coop-speler-lag' : ''}"${host ? ' data-host="1"' : ''}>${vormSchijf(p)}${esc(p.naam || '?')}${host ? '<small class="coop-speler-rol">· opent</small>' : ''}${weg ? ' <small>· weg</small>' : hapert ? ' <small>· hapert</small>' : ''}</li>`;
     };
     const chips = Array.isArray(v.spelers) && v.spelers.length
       ? `<ul class="coop-spelers-chips" aria-label="Spelers in deze sessie">${v.spelers.map(chipSpeler).join('')}</ul>` : '';
@@ -227,7 +231,7 @@ export function mountLobby(root, hooks, opts = {}) {
       (klein ? '' : invoer) +
       (klein ? '' : wensen) +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
-      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>` +
+      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ds-z-knop${b.primary ? '' : ' ds-z-knop--secundair'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>` +
       (klein ? wensen : '');
     if (veldStand && root.querySelector) {
       const veld = root.querySelector('.' + veldStand.klasse);
