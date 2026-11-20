@@ -92,4 +92,10 @@ t('een melding zonder tekst komt niet in de rij (geen globale foutmelding)', () 
   assert.ok(f.indexOf('return;') < f.indexOf('phoneNotifications.push'), 'het overslaan komt voor het toevoegen');
 });
 
+t('de naam staat niet dubbel op een telefoonkaart (20-11)', () => {
+  assert.match(pf, /const meerdere = new Set\(c\.lines\.map\(\(x\) => x\.speaker \|\| c\.from\)\)\.size > 1;\s*paintSpeaker\(sp, meerdere \?/, 'het sprekerlabel vóór een regel komt er alleen bij als er meer sprekers zijn');
+  assert.match(pf, /naamGelijk\(p\) \? '' : `<small class="pf-appnaam">/, 'afzender gelijk aan de app: alleen de naam, geen tweede kopregel');
+  assert.match(pf, /export const naamGelijk = \(p\) =>/, 'naamGelijk is één plek voor die vraag');
+});
+
 console.log(`OK telefoon_berichten_test: ${n} controles`);

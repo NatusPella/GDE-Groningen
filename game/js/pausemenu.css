@@ -1276,7 +1276,7 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 /* Eén linkermarge in alle panelen en vaste kolommen in Besturing (oogtest 20-11): kop, zoekveld, lijsttekst en het kaartje van
    Boerderij beginnen op dezelfde x; de toets- of knopkolom staat rechts, even breed, rechts uitgelijnd; elke regel even hoog. */
 #pause-menu .pm-csearch { margin-left: 40px; }
-html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 36px !important; }
+html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-height: 1; }
 #pause-menu .pm-cempty { padding-left: 0; }
 #pause-menu .pm-bind { min-height: 64px; }
 #pause-menu .pm-bind > .nm { align-self: center; }
@@ -1313,3 +1313,6 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 36px !important; }
 @media (max-height: 820px) { #pause-menu .pm-csearch { margin-left: 40px; } }
 /* 720p: de grijze hulpregels (.mut, small) en notities op minstens 13 schermpixels; op 1080p blijft alles zoals het was */
 @media (max-height: 900px) { #pause-menu.gm :is(.mut, small, .m-note, .t) { font-size: max(18px, var(--menu-min)); } }
+/* het zoekveld in Besturing krijgt lucht boven (tegen de onderlijn van de tabs) en onder (voor de lijst) */
+#pause-menu .pm-cinner > .pm-csearch, #pause-menu .pm-csub > .pm-csearch, #pause-menu [data-sub] > .pm-csearch { margin-top: 16px; margin-bottom: 20px; }
+#pause-menu .pm-spulbar .pm-csearch { margin-top: 0; margin-bottom: 0; }
