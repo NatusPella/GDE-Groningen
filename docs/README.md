@@ -155,6 +155,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BUSSEN-LIVE-21-11.md](<BUSSEN-LIVE-21-11.md>) | Naslag bij #395 en #922: live buslocaties als USP, de bron en de kaartlaag (stand 21-11). |
 | [PERF-START-21-11.md](<PERF-START-21-11.md>) | Spel starten: stilstand in de opening (#1046), meting en aanpak. |
 | [QOL-STAND-21-11.md](<QOL-STAND-21-11.md>) | QoL-stand van epic #985: de 52 bevindingen van 17-11 en wat ervan af is. |
+| [BALANS-21-11.md](<BALANS-21-11.md>) | Naslag. Economiebalans met een sim van 10 uur: verdienste per uur, de Duizendpoot (#1050) en de voor/na-tabel. |
 | [VERKEER-AUDIT-21-11.md](<VERKEER-AUDIT-21-11.md>) | Verkeers- en wereldleven-audit (#1047 tot #1049): AI-verkeer, parkeren, voetgangers, fietsers. |
 | [WERELD-AUDIT-21-11.md](<WERELD-AUDIT-21-11.md>) | Wereldaudit: props en gebouwen op verkeerde plekken over de hele provincie (#1044, #1045). |
 | [SAMEN-MISSIES-20-11.md](<SAMEN-MISSIES-20-11.md>) | Audit en voorstel. Wat een gast nu doet in elke missie, bijbaan en wedstrijd, welke onderdelen van nature gezamenlijk zijn en per onderdeel een rol per speler, beloning per speler, wegvallen en later aansluiten en schaal van 1 tot 4 spelers; plus wat in ronde #983 is gebouwd (M30 bolwerken, pannenkoekenwedstrijd, bezorgen met verdeelde adressen) en wat niet is gezien. Regels: [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md). |
