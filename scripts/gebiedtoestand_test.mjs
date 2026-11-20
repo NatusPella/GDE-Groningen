@@ -49,7 +49,7 @@ t('elke toestand ziet er anders uit, ook zonder kleur: lijnsoort, raster, ring o
   assert.ok(bezig.ring === 0.5 && bezig.lijnAlpha === 1 && bezig.streep === false);
   assert.ok(ver.breed > bezig.breed && ver.breed > zicht.breed && ver.alpha > bezig.alpha && ver.alpha > zicht.alpha, 'veroverd is de zwaarste');
   assert.ok(onz.lijnAlpha < zicht.lijnAlpha && onz.breed < zicht.breed, 'onzichtbaar is de zachtste');
-  assert.equal(ver.vul, '#4fb3a6', 'veroverd: de inkt van het gebied');
+  assert.equal(ver.vul, '#4fb3a6', 'een meegegeven kleur wint'); assert.equal(toestandStijl({ toestand: 'veroverd' }).vul, dsKleur('licht-groen'), 'veroverd is lichtgroen uit de ds-tokens'); assert.notEqual(toestandStijl({ toestand: 'veroverd' }).vul, bezig.vul, 'veroverd (groen) en bezig (geel) verschillen');
 });
 t('de accentkleur van bezig is het geel van de zeefdruk en verschilt van de rest', () => {
   const g = toestandStijl({ toestand: 'bezig', deel: 0.3 });

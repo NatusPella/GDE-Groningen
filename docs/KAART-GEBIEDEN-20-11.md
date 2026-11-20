@@ -26,7 +26,7 @@ Het land zelf (`MAP_PALETTE`, `MINI_PALETTE`) is bewust niet veranderd: de grote
 | Nog onzichtbaar | nooit bezocht | donker vlak met fijn puntraster (6 px halftone) | zacht en dun | oog doorgestreept (`oog_uit`) |
 | Zichtbaar | bezocht, nog niets gedaan | gedempte papiervulling | stippellijn | geen |
 | Aan het veroveren | al iets gedaan | gele vulling die met de voortgang meegroeit | effen gele rand | voortgangsring (en `ronde` in de legenda) |
-| Veroverd | alles gedaan | volle vulling in de kleur van het gebied | dikke rand met donkere band | vlag (`vlag`) |
+| Veroverd | alles gedaan | volle vulling in lichtgroen (`--ds-c-licht-groen`) | dikke rand met donkere band | vlag (`vlag`) |
 
 Nooit alleen kleur: elke toestand heeft een eigen lijnsoort, vlak en icoon. Een onzichtbaar gebied heeft geen naam op de kaart. Een bezochte buurt maakt zijn wijk, woonplaats en gemeente zichtbaar (`zichtbareGebieden`). Wat je gedaan hebt gaat voor: bezig en veroverd tellen ook als de bezoeklijst het gebied niet kent. De legenda toont de vier toestanden met hetzelfde patroon als op de kaart en met woorden. De minikaart tekent dezelfde toestanden kleiner en zonder tekst (raster, stippellijn, gele rand met ring, vulling met vlag).
 
@@ -39,3 +39,12 @@ De veroverde voortgang is per speler (#429) en de kaart is lokaal: de toestanden
 ## Tests
 
 `scripts/kaartkleuren_test.mjs` (tokens gelijk aan `ds-tokens.css`, rollen van `INK`, contrast), `scripts/gebiedtoestand_test.mjs` (toestand per gebied, uiterlijk, legenda, iconen, puur) en de bijgewerkte `scripts/gebieden_kaart_test.mjs` en `scripts/mapstyle_test.mjs`. Beelden: `scripts/qa/kaart_toestanden.page.js` met `scripts/qa/gebieden_shots.mjs --page=...`; de beelden staan in `docs/beeld-20-11/kaart/`.
+
+## Latere aanpassingen (20-11)
+
+- **Kleur van veroverd/klaar is lichtgroen** (`--ds-c-licht-groen`, via `gebiedKleuren().veroverd` in `kaartkleuren.js`), met dikke inkt-rand en vlagicoon. Aan het veroveren blijft geel (`--ds-c-ink-geel`). Voor de percelen (farming) geldt dezelfde taal: klaar is lichtgroen, bezig is geel; neem de kleur uit `gebiedKleuren()`, geen eigen hex.
+- **Minder detail in onbezocht gebied:** zwaardere waas (`MIST_ALPHA.buurt` 0,66), geen straatnamen en geen pins behalve jij, medespelers, het gekozen doel en je waypoint (`pinBlijftInMist` in `kaartontdekking.js`). De minikaart doet hetzelfde met `plekOnbezocht()` en een zware waas met raster.
+- **Markers uit Phosphor:** winkels, bijbanen en haltes tekenen hun glyph uit de iconenset (`PH_SHOP`, `PH_JOB`, `PH_KIND` in `mapglyphs.js`). Missie-, ommeland- en perceelmarkers hebben nog hun eigen glyph.
+- **Compacte kaart-UI:** de kop is een chip met icoon en percentage, de voortgangsstrook één regel (aantal veroverd en bezig), de knop Lagen heeft een eigen icoon. Volledige tekst staat in aria-label en tooltip.
+- **Framekosten** (`getMapViewStats`, z2, echt spel): gemiddeld 2,6 ms per frame, samenstellen 2,5 ms, overlay 2,2 ms. Geen extra tekenpas.
+- **Niet gedaan:** de vignette boven de kaart-UI en de zeefdrukkleuren van de kaartpanelen staan in `pausemenu.css` (menu-werk) en zijn hier niet aangeraakt.

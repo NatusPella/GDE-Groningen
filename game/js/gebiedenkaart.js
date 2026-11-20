@@ -28,7 +28,7 @@ export function kaartLaag(nu = (typeof performance !== 'undefined' ? performance
       const n = G.niveauInfo(g.niveau);
       const v = G.voortgang(o.profiel, o.ind, g.id);
       const k = G.kaartKleur(v, n.vlag);
-      const r = { gebied: g, niveau: n, ...v, pct: Math.floor(v.deel * 100), kleur: k ? k.kleur : null, alpha: k ? k.alpha : 0, vlag: n.vlag, titel: v.voltooid ? G.beloningVan(o.ind, g.id).titel : null };
+      const r = { gebied: g, niveau: n, ...v, pct: Math.floor(v.deel * 100), kleur: k ? k.kleur : null, alpha: k ? k.alpha : 0, vlag: dsKleur('licht-groen'), titel: v.voltooid ? G.beloningVan(o.ind, g.id).titel : null };
       r.toestand = toestandVan(r, gezien);
       lijst.push(r);
       const b = g.grens.b;
@@ -304,7 +304,7 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
 }
 
 // Een klein vlakje met de toestand erin getekend zoals op de kaart (de legenda): raster, stippellijn, effen geel met ring of vulling met vlag.
-export function tekenToestandVlak(ctx, id, x, y, w, h, vlagKleur = G.NIVEAUS[3].vlag) {
+export function tekenToestandVlak(ctx, id, x, y, w, h, vlagKleur = dsKleur('licht-groen')) {
   const s = toestandStijl({ toestand: id, vlag: vlagKleur, deel: 0.6 }, dsKleur('ink-inkt'));
   ctx.save();
   ctx.beginPath(); ctx.roundRect(x, y, w, h, 3);
@@ -347,7 +347,7 @@ export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = dsKleur('creme')) 
   ctx.fillText(`Veroverd · ${laagNaam(hoofd).toLowerCase()}`, x + 10, y + 16);
   rijen.forEach((r, i) => {
     const cy = y + 42 + i * rij;
-    tekenToestandVlak(ctx, r.id, x + 10, cy - 10, 34, 20, G.niveauInfo(hoofd).vlag);
+    tekenToestandVlak(ctx, r.id, x + 10, cy - 10, 34, 20, dsKleur('licht-groen'));
     ctx.fillStyle = inkt; ctx.font = '13px sans-serif';
     ctx.fillText(r.naam, x + 54, cy);
   });

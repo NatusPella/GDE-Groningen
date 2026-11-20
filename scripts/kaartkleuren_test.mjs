@@ -35,6 +35,8 @@ const g = gebiedKleuren();
 for (const t of ['zichtbaar', 'bezig']) for (const l of land.slice(0, 3).concat(INK.dark)) ok(contrast(g[t].lijn, l) >= 3, `lijn ${t} op ${l}`);
 ok(contrast(g.onzichtbaar.lijn, g.onzichtbaar.vul) >= 3, 'lijn van onzichtbaar op zijn vlak');
 ok(contrast(g.veroverd.lijn, g.veroverd.rand) >= 7, 'veroverd: lichte lijn op donkere rand');
+ok(g.veroverd.vul === dsKleur('licht-groen') && g.veroverd.vul !== g.bezig.vul, 'veroverd is groen, bezig geel');
+for (const l of land.slice(0, 3)) ok(contrast(g.veroverd.lijn, l) >= 3, 'groene lijn op ' + l);
 ok(new Set([g.zichtbaar.lijn, g.bezig.lijn, g.onzichtbaar.lijn]).size === 3, 'drie lijnkleuren verschillen');
 
 console.log(fails ? `kaartkleuren_test: ${fails} van ${n} mislukt` : `kaartkleuren_test: ${n}/${n} ok`);
