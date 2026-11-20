@@ -169,7 +169,7 @@ t('de laatste code staat alvast ingevuld; geweigerd toont de reden en terug gaat
   let s = run({ ...APP, laatsteCode: 'K3J9D-8F2MN' }, { t: 'kies', rol: 'gast' });
   assert.equal(L.view(s).input.value, 'K3J9D-8F2MN');
   s = L.reduce(L.reduce(s, { t: 'verbinden' }), { t: 'status', status: 'geweigerd', reason: 'versie' });
-  assert.equal(L.view(s).lines[0], REASON_TEXT.versie);
+  assert.equal(L.view(s).title, 'Andere versie'); assert.match(L.view(s).lines[0], /niet dezelfde versie/); assert.match(L.view(s).lines[1], /nieuwste versie/);
   assert.equal(L.reduce(s, { t: 'terug' }).step, 'start');
 });
 t('Verbinden… toont de kamer en zegt na een halve minuut wat er aan de hand kan zijn (#985)', () => {

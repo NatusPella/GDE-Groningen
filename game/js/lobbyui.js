@@ -15,6 +15,8 @@
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { icoon } from './icons.js';
+import { keyTextHtml } from './keycap.js';
+import { KOPIEER, magStarten, startKnop } from './playerstatus.js';
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN, VERBIND_TIK_MS } from './lobby.js';
 import { consentOnthoudenHtml } from './onlineconsentui.js';
 import { getSettings, setSetting } from './settings.js';
@@ -205,11 +207,16 @@ export function mountLobby(root, hooks, opts = {}) {
       ? `<ul class="coop-spelers-chips" aria-label="Spelers in deze sessie">${v.spelers.map(chipSpeler).join('')}</ul>` : '';
     const regels = [];
     let chipsGeplaatst = false;
-    for (const l of v.lines) {
+    const kern = Number.isInteger(v.kern) ? v.kern : v.lines.length; const uitleg = [];
+    for (const [li, l] of v.lines.entries()) {
+      if (li >= kern) { uitleg.push(l); continue; } // wat niet nodig is om verder te komen, staat in een vouw (docs/SPELERSMENU-UX-21-11.md)
       regels.push(`<p>${esc(l)}</p>`);
       if (chips && !chipsGeplaatst && /^Spelers \(\d+ van \d+\)/.test(l)) { regels.push(chips); chipsGeplaatst = true; }
     }
     if (chips && !chipsGeplaatst) regels.push(chips);
+    const uitlegOpen = !!(root.querySelector && root.querySelector('.coop-uitleg[open]'));
+    const uitlegHtml = uitleg.length ? `<details class="coop-uitleg"${uitlegOpen ? ' open' : ''}><summary>Meer uitleg</summary>${uitleg.map((l) => `<p>${esc(l)}</p>`).join('')}</details>` : '';
+    const startHint = v.startInfo && v.startInfo.hint ? `<p class="coop-starthint" role="status"${v.startInfo.busy ? ' aria-busy="true"' : ''}>${v.startInfo.busy ? icoon('zandloper', { maat: 's' }) + ' ' : ''}${esc(v.startInfo.hint)}</p>` : '';
     // (#874) eruit zetten en overdragen horen bij de speler op het tabblad Spelers; de
     // wachtkamer zegt waar je dat vindt in plaats van vijftien knoppen te tonen.
     const beheerHint = state.rol === ROLES.HOST && v.spelers && v.spelers.length > 1
@@ -224,6 +231,8 @@ export function mountLobby(root, hooks, opts = {}) {
       (klein ? invoer : '') +
       code +
       regels.join('') +
+      startHint +
+      uitlegHtml +
       beheerHint +
       profielBlok +
       toestemming +
@@ -232,7 +241,7 @@ export function mountLobby(root, hooks, opts = {}) {
       (klein ? '' : invoer) +
       (klein ? '' : wensen) +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
-      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ds-z-knop${b.primary ? '' : ' ds-z-knop--secundair'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>` +
+      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ds-z-knop${b.primary ? '' : ' ds-z-knop--secundair'} coop-btn" data-act="${b.act}"${b.primary ? ' data-primary="1"' : ''}${b.disabled ? ' disabled aria-disabled="true"' : ''}${b.busy ? ' aria-busy="true"' : ''}><span class="ss-label">${b.busy ? icoon('zandloper', { maat: 's' }) + ' ' : ''}${esc(b.label)}${b.primary && !b.disabled ? ` <span class="coop-toets">${keyTextHtml('{ENTER}')}</span>` : ''}</span></button>`).join('')}</div>` +
       (klein ? wensen : '');
     if (veldStand && root.querySelector) {
       const veld = root.querySelector('.' + veldStand.klasse);
@@ -678,8 +687,17 @@ export function mountLobby(root, hooks, opts = {}) {
     try {
       if (a === 'start-spel') {
         // #642: de gastheer start het spel; een gast vraagt het hem (de knop in de wachtkamer)
-        if (state.rol === ROLES.GAST) { if (hooks.vraagStart) hooks.vraagStart(); }
-        else { if (hooks.startSpel) hooks.startSpel(); set({ t: 'gate', aan: false }); }
+        if (state.rol === ROLES.GAST) { if (state.startGevraagd) return; if (hooks.vraagStart) hooks.vraagStart(); set({ t: 'start-gevraagd' }); }
+        else {
+          // het starten kan de gastheer 10 tot 57 s stilzetten: eerst de voortgang tekenen, dan pas starten, en een tweede klik doet niets
+          const sk = startKnop({ rol: 'host', spelers: state.spelers || [], bezig: !!state.startBezig });
+          if (!magStarten(sk, !!state.startBezig)) return;
+          set({ t: 'start-bezig' });
+          const t0 = Date.now(); const tik = setInterval(() => { if (!state.startBezig) { clearInterval(tik); return; } set({ t: 'start-tik', s: Math.floor((Date.now() - t0) / 1000) }); }, 1000);
+          await new Promise((res) => setTimeout(res, 80)); // één beeld met de voortgang
+          if (hooks.startSpel) hooks.startSpel();
+          set({ t: 'gate', aan: false });
+        }
       }
       else if (a === 'stop-iedereen') { if (hooks.stopIedereen) hooks.stopIedereen(); } // #642: gast vraagt de groep om akkoord
       else if (a === 'openbaar') set({ t: 'openbaar-vraag' });
@@ -732,7 +750,10 @@ export function mountLobby(root, hooks, opts = {}) {
         if (state.step === 'host-maakt-code') await hostStart();
         else if (state.step === 'verbinden') await guestStart();
       } else if (a === 'kopieer') {
-        if (state.code && navigator.clipboard) await navigator.clipboard.writeText(state.code);
+        let gelukt = false;
+        try { if (state.code && navigator.clipboard) { await navigator.clipboard.writeText(state.code); gelukt = true; } } catch (e) { /* geen toegang tot het klembord */ }
+        const kb = root.querySelector && root.querySelector('[data-act="kopieer"] .ss-label');
+        if (kb) { kb.textContent = gelukt ? KOPIEER.klaar : KOPIEER.mislukt; setTimeout(() => { if (kb.isConnected) kb.textContent = KOPIEER.knop; }, 2500); }
       } else if (a.startsWith('kick-')) {
         if (hooks.kick) hooks.kick(+a.slice(5));
       } else if (a === 'overdragen') {
@@ -789,6 +810,11 @@ export function mountLobby(root, hooks, opts = {}) {
     }
     // de lijst (#464): de waarde staat in de state, draw() zet de focus en de cursor terug
     else if (e.target && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) { state = reduce(state, { t: 'lijst-zoek', tekst: e.target.value }); draw(); }
+  });
+  root.addEventListener('keydown', (e) => { // Enter drukt de gele hoofdknop als de focus niet op een knop of veld staat (de toetshint op de knop)
+    if (e && e.key === 'Enter' && e.target && e.target.closest && !e.target.closest('button, input, textarea, select, summary, a')) {
+      const b = root.querySelector('.coop-btn[data-primary="1"]:not([disabled])'); if (b) { e.preventDefault(); b.click(); }
+    }
   });
   root.addEventListener('keydown', (e) => { // Escape wist het zoekveld; pijltjes gaan langs de sessies
     if (!e || !e.target) return;

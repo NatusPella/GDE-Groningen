@@ -129,7 +129,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     // #642: een gast kan het ook vragen; de gastheer opent dan het hek en de gast start bij het hek-bericht.
     startSpel: () => {
       const n = world.coopNet;
-      if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; openHek(world); } // alleen met minstens twee spelers
+      if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; openHek(world); if (world.addMessage) world.addMessage('Spel wordt gestart… even geduld, de wereld wordt geladen.', 8); } // alleen met minstens twee spelers; de melding blijft staan als het menu dicht is
       else setGate(false); // een gast: de ander startte
       sluit();
     },
