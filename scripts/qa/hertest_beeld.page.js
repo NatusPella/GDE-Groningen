@@ -354,6 +354,44 @@ try {
     const sp = (map.lookouts || map.uitkijk || null);
     note('bourtange', { kandidaten: Object.keys(map).filter((k) => /uitkijk|lookout|view/i.test(k)) });
   }
+  // ---- #969 de koeienmissie: is de schuur te zien en herkenbaar? ----------------------------------------------
+  if (ON('koe')) {
+    const K = await imp('pg_koe');
+    const PGm = window.__postgame;
+    PGm.unlock();
+    const tbX = 0, tbY = 0;
+    let S = K.getKoeSites(map);
+    if (!S) { const t0 = Date.now(); S = await Promise.race([K.prepareKoeSites(map), sleep(40000).then(() => null)]); note('koe', { sitesMs: Date.now() - t0 }); }
+    note('koe', { sites: !!S });
+    if (S) {
+      await jump(S.farm.x, S.farm.y, 6000);
+      let gestart = false;
+      for (let i = 0; i < 8 && !gestart; i++) { PGm.unlock(); await sleep(2500); note('koe', { spots: PGm.spots().map((q) => q.id) }); gestart = PGm.start('koe'); }
+      await sleep(5000);
+      const doel = K.koeBarnTarget(S);
+      note('koe', { gestart, state: PGm.state(), farm: [Math.round(S.farm.x), Math.round(S.farm.y)], schuur: doel && [Math.round(doel.x), Math.round(doel.y)], afstand: Math.round(S.dist) });
+      await cap('ht969-erf-start', 500);
+      // van de weg af, 70 m en 25 m van de schuur, dan een luchtbeeld
+      const a = S.hide.a + Math.PI; // van het erf af gekeken? de schuur kijkt naar de boerderij: de weg ligt aan die kant
+      await jump(S.hide.x + Math.cos(S.hide.a) * 80, S.hide.y + Math.sin(S.hide.a) * 80, 8000);
+      const z = gh(S.hide.x, S.hide.y);
+      cam(S.hide.x + Math.cos(S.hide.a) * 70, S.hide.y + Math.sin(S.hide.a) * 70, z + 3, S.hide.x, S.hide.y, z + 3, 60); await cap('ht969-schuur-70m');
+      cam(S.hide.x + Math.cos(S.hide.a) * 22, S.hide.y + Math.sin(S.hide.a) * 22, z + 2.5, S.hide.x, S.hide.y, z + 2, 65); await cap('ht969-schuur-22m');
+      cam(S.hide.x + 120, S.hide.y - 120, z + 90, S.hide.x, S.hide.y, z, 55); await cap('ht969-schuur-lucht');
+      camOff(); await cap('ht969-schuur-speler', 600);
+      try { PGm.abort(); } catch (e) { /* weg */ }
+    }
+  }
+  // ---- #933 politie buiten de stad: gaat er spontaan politie rijden bij 0 sterren? -----------------------------
+  if (ON('politie')) {
+    const [cx, cy] = pts.usquert;
+    await jump(cx + 1500, cy + 500, 6000);
+    w.wanted = 0;
+    const tel = []; let max = 0;
+    for (let i = 0; i < 18; i++) { await sleep(5000); const n = (w.vehicles || []).filter((v) => v.isPolice && !v.isBoat && Math.hypot(v.x - p.x, v.y - p.y) < 500).length; tel.push(n); max = Math.max(max, n); }
+    note('politie', { wanted: w.wanted, tellingElke5s: tel, max });
+    await cap('ht933-platteland-90s', 300);
+  }
 } catch (e) { out.fout = String(e && e.stack || e).slice(0, 700); }
 releaseAll();
 camOff();

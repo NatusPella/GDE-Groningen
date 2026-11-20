@@ -18,10 +18,10 @@ const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, `window.__a3 = ${JSON.stringify({ settle: Number(arg('settle', 9000)), only: arg('only', '') })};\n` + fs.readFileSync(path.join(HERE, 'akte3_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(profile, { recursive: true });
-const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
+const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_PROFILE_DIR: profile, GDE_NO_THROTTLE: '1' };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
 delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+const r = spawnSync(electron, ['.', '--no-sandbox', '--in-process-gpu', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
 { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 30 * 60 * 1000, killSignal: 'SIGKILL' });
