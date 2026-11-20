@@ -61,7 +61,10 @@ assert.equal(missieMuziekKey('M26'), 'missie_feest');
 assert.equal(missieMuziekKey('M17'), null, 'feest alleen voor de feestmomenten');
 assert.equal(bijbaanMuziekKey('bruggen'), 'missie_feest', 'de bruggenrace als wedstrijd');
 assert.equal(bijbaanMuziekKey('cabaret'), null);
-assert.equal(missieMuziekKey('M30'), null, 'finale ligt er nog niet: radio');
+assert.equal(missieMuziekKey('M30'), 'missie_finale', 'finale is goedgekeurd en beschikbaar');
+assert.equal(missieMuziekKey('M27'), 'missie_warm', 'warm is goedgekeurd en beschikbaar');
+assert.equal(missieMuziekKey('M11'), 'missie_water', 'water is goedgekeurd en beschikbaar');
+assert.equal(bijbaanMuziekKey('skutsje'), 'missie_water', 'de skûtsje-sprint als wedstrijd');
 // sluipen alleen voor de sluipmomenten, niet als algemene missiemuziek
 assert.equal(missieMuziekKey('M07'), null);
 assert.equal(missieMuziekKey('M22'), null);
