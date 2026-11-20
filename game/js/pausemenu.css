@@ -1316,3 +1316,23 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 /* het zoekveld in Besturing krijgt lucht boven (tegen de onderlijn van de tabs) en onder (voor de lijst) */
 #pause-menu .pm-cinner > .pm-csearch, #pause-menu .pm-csub > .pm-csearch, #pause-menu [data-sub] > .pm-csearch { margin-top: 16px; margin-bottom: 20px; }
 #pause-menu .pm-spulbar .pm-csearch { margin-top: 0; margin-bottom: 0; }
+
+/* Spel > Overzicht zonder scrollen (oogtest 20-11): het verhaaldoel met de knoppen bovenaan, één compacte voortgangsregel,
+   de vijf tegels in één kleine rij; Dichtbij, Bijna binnen, de drie lussen en de agenda staan niet meer op dit scherm
+   (ze staan bij Activiteiten, Prestaties en Veroverd). Vastgelopen? blijft als één dichte knop onderaan. */
+#pause-menu .pm-spelov .ov-title, #pause-menu .pm-spelov .ov-title.long { font-size: 44px; line-height: 1; }
+#pause-menu .pm-spelov .ov-cols, #pause-menu .pm-spelov [data-fold="voortgang"], #pause-menu .pm-spelov [data-fold-body="voortgang"],
+#pause-menu .pm-spelov [data-fold="agenda"], #pause-menu .pm-spelov [data-fold-body="agenda"], #pause-menu .pm-spelov .ov-folds .m-rule,
+#pause-menu .pm-spelov .pm-progress-parts li > span:first-child + span.mut:empty { display: none; }
+#pause-menu .pm-spelov .ov-scroll { overflow: visible; padding: 0 0 8px; }
+#pause-menu .pm-spelov .pm-progress { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 8px 24px 8px; padding: 8px 14px; }
+#pause-menu .pm-spelov .pm-progress-head { gap: 12px; }
+#pause-menu .pm-spelov .pm-progress-pct b { font-size: 28px; }
+#pause-menu .pm-spelov .pm-progress .m-bar { flex: 1 1 120px; }
+#pause-menu .pm-spelov .pm-progress-parts { flex: 1 1 100%; gap: 2px 16px; margin: 0; }
+#pause-menu .pm-spelov .ov-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+#pause-menu .pm-spelov .ov-tile { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 2px 8px; padding: 6px 10px; }
+#pause-menu .pm-spelov .ov-tile svg { width: 18px; height: 18px; }
+#pause-menu .pm-spelov .ov-tv, #pause-menu .pm-spelov .ov-tv.long { font-size: 24px; }
+#pause-menu .pm-spelov .ov-tile .m-bar { display: none; }
+#pause-menu .pm-spelov .ov-folds { margin: 4px 0 0 -24px; }
