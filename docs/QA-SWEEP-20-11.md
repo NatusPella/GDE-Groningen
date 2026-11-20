@@ -37,9 +37,9 @@ geen bedekte klikdoelen in de menu's en geen contrastfout** (het contrast is all
 
 | Bevinding | Waar | Ernst | Wie |
 | --- | --- | --- | --- |
-| Rail-knoppen (Spel, Verhaal, Loopbanen, Veroverd, Activiteiten, Kaart) zijn 101 x 24 px op 800x360 met raakbediening: onder de 36 px die een vinger nodig heeft | `pausemenu.css`, `button.ra` | midden (raakbediening) | design-agent, alleen genoteerd |
-| Zoekveld op de kaart krijgt focus maar geen zichtbare ring (1024x768) | `mapview.js` | laag | design-agent, alleen genoteerd |
-| Schuifregelaar `input.m-sl` onder Instellingen krijgt focus maar geen zichtbare ring (1024x768) | pauzemenu, Instellingen | laag | design-agent, alleen genoteerd |
+| Rail-knoppen (Spel, Verhaal, Loopbanen, Veroverd, Activiteiten, Kaart) zijn 101 x 24 px op 800x360 met raakbediening: onder de 36 px die een vinger nodig heeft | `pausemenu.css`, `button.ra` | midden (raakbediening) | **opgelost 20-11**: 44 schermpixels (gedeeld door `--mz`) onder `html.touch-device` en `pointer: coarse`; gemeten 101 x 44 px op 800x360 met `--touch`, was 101 x 24 |
+| Zoekveld op de kaart krijgt focus maar geen zichtbare ring (1024x768) | `mapview.js` | laag | **regel toegevoegd 20-11** (`:focus-visible` met crème ring), in a11y_test bewaakt; niet in beeld gezien |
+| Schuifregelaar `input.m-sl` onder Instellingen krijgt focus maar geen zichtbare ring (1024x768) | pauzemenu, Instellingen | laag | **regel toegevoegd 20-11** (`menu.css`: ring om de schuif en op de knop), in a11y_test bewaakt; niet in beeld gezien |
 | `.ds-badge` met "Enter" in Te doen is 12 px | `todoui.js` met `ds-components.css` | laag: `.ds-badge` mag 12 px volgens het designsysteem | geen actie |
 | De minikaart in de HUD (`.hud-minimap-wrap`, rol knop) is niet met Tab of de controller te bereiken | `hud_panel.js` | laag, bewust: tijdens het spelen staat de HUD buiten de focusvolgorde en M opent de kaart | geen actie |
 | Op 800x360 met raakbediening ligt de minikaart onder de linker bedieningszone (`.t-zone.t-left`) | `hud_panel.js`, raaklaag | laag: de zone vangt de tik op | uitzoeken met een vinger |
