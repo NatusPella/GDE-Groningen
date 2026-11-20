@@ -141,6 +141,7 @@ export function haltesVoorKaart(p) {
 
 // De halte waar de speler te voet bij staat, of null.
 function halteBijSpeler(world) {
+  if (world.coopRole === 'client') return null; // een gast draait de wereld niet: de halte is van wie het spel opende
   const p = hoofdspeler(world);
   if (p.inVehicle || world.pigeonMode || world.trainDriving || p.swimming || p.water) return null;
   const lines = getBusLines();

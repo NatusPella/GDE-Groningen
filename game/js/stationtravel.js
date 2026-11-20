@@ -510,7 +510,8 @@ let dienstStarter = null;
 export function zetDienstStarter(f) { dienstStarter = f; }
 
 function dienstItems(w, here) {
-  const items = stationOpties(here).map((o) => ({
+  // een gast draait de wereld niet (coopRole 'client'): de trein is van wie het spel opende, dus geen dienst starten
+  const items = (w.coopRole === 'client' ? [] : stationOpties(here)).map((o) => ({
     id: 'dienst-' + o.key, label: o.tekst, desc: stationRegel(o),
     cols: [`${o.haltes} haltes`], verb: 'Rijden ·', price: 0, swatch: ['#ffc917'],
     buy() {
