@@ -14,6 +14,7 @@ import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
 import { zones, P1, P2, hudNow } from './hudrules.js';
 import { appForNote, senderForNote, senderOf, appNaam } from './phoneapp.js';
+import { opschuiven } from './microinteractions.js';
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -157,7 +158,7 @@ function showNote(w, n) {
   noticeFrom(p.from || 'Kiekdoar');
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');
-  el.className = 'pf-card ds-zeef ds-z-kaart';
+  el.className = 'pf-card ds-zeef ds-z-kaart ds-mi-in';
   el.dataset.app = p.app;
   // #645: een dynamische kaart (naam, bedrag, missietitel) blijft op het kaartbudget
   const titel = fitCard(p.title), lichaam = fitCard(p.body);
@@ -411,7 +412,7 @@ export function updatePhoneFeed(dt, w) {
     for (const c of cards) { c.t += dt; voiceCard(c); if (c.speaking && c.t > 40) c.speaking = false; if (!c.speaking) c.left -= dt; }
     for (const c of cards.filter((k) => k.left <= 0)) {
       if (!c.leaving) dropCard(c);
-      else { c.el.remove(); cards.splice(cards.indexOf(c), 1); }
+      else { opschuiven(c.el.parentNode, () => c.el.remove()); cards.splice(cards.indexOf(c), 1); }
     }
   }
   if (!w.paused) updateCall(dt, w, visible);

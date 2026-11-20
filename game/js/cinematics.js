@@ -28,7 +28,7 @@ import { interiorEyePose } from './carinterior.js';
 import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler, isGast } from './players.js';
-import { showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied } from './bigmoment.js';
+import { showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, rijdendVan } from './bigmoment.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
@@ -649,7 +649,7 @@ function checkTriggers(dt, w) {
   const wantedMoment = momentVanWanted(prevWanted, w.wanted);
   prevWanted = w.wanted;
   // #996: a short tag at the edge; never over a cutscene or a respawn, and the host's wanted level is not a guest's moment
-  if (wantedMoment && !active && !w.pendingRespawn && momentsOn()) showBigMoment({ ...wantedMoment, gast: isGast(w), eigen: !isGast(w) });
+  if (wantedMoment && !active && !w.pendingRespawn && momentsOn()) showBigMoment({ ...wantedMoment, rijdend: rijdendVan(w), gast: isGast(w), eigen: !isGast(w) });
   if (wantedUp && momentsOn() && !active && !aloft(w) && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
 
   const imp = w.lastImpact;
@@ -706,7 +706,7 @@ function checkOmmelanden(w) {
   if (aloft(w) || !mayInterrupt('ommelanden', w)) return;
   noteMoment('ommelanden');
   seen.add(OMMELANDEN);
-  showBigMoment({ ...momentVanGebied('Ommelanden', 'Koeien, sloten en een horizon. Heerlijk.'), gast: isGast(w), eigen: true });
+  showBigMoment({ ...momentVanGebied('Ommelanden', 'Koeien, sloten en een horizon. Heerlijk.'), rijdend: rijdendVan(w), gast: isGast(w), eigen: true });
   playOmmelanden(w);
 }
 
@@ -1062,7 +1062,7 @@ function showWijkCard(w, wijk, left = 30) {
   void wijkCardEl.offsetWidth;
   wijkCardEl.classList.add('on');
   // #996: a first visit is a place-name stamp; the old card stays for its timing and the overlay hold, unseen
-  wijkCardEl.classList.toggle('bm-vervangen', !!showBigMoment({ ...momentVanGebied(wijk.name, text), gast: isGast(w), eigen: true }));
+  wijkCardEl.classList.toggle('bm-vervangen', !!showBigMoment({ ...momentVanGebied(wijk.name, text), rijdend: rijdendVan(w), gast: isGast(w), eigen: true }));
   const v = lineVoiceFor('', text);
   if (v) playStoryVoice(v.src, {});
   clearTimeout(wijkCardT);

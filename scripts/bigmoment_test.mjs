@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import {
   SOORTEN, STANDAARD, MAX_WOORDEN, MAX_FLITS_PER_S, MAX_WACHTRIJ,
-  bouwMoment, mayMomentTonen, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, klemWoorden, formatBeloning, formatTijd, momentStijl, toelatenFlits, maakPlanner, showBigMoment,
+  bouwMoment, mayMomentTonen, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, klemWoorden, formatBeloning, formatTijd, momentStijl, toelatenFlits, maakPlanner, showBigMoment, isRijdend, RIJDEN_MS, COMPACT_VORMEN,
 } from '../game/js/bigmoment.js';
 
 let n = 0, fails = 0;
@@ -118,12 +118,29 @@ ok(!/rgba\((?!29,27,23,)/.test(code), 'rgba only in the ink tone');
 ok(/rotate\(var\(--ds-schuin\)\)/.test(code) && !/rotate\(-?\d/.test(code), 'the tilt comes from the --ds-schuin token');
 ok(/html\.rustig-drukwerk/.test(code) && /html\.reduce-motion/.test(code) && /prefers-reduced-motion/.test(code), 'Rustig drukwerk, Beweging beperken and the OS preference are covered');
 ok(!/infinite/.test(code), 'nothing loops (no flashing)');
-const durations = [...code.matchAll(/animation:[^;]*?\s(\d*\.?\d+)s/g)].map((m) => Number(m[1]));
-ok(durations.length >= 4 && durations.every((d) => d >= 0.25), 'every animation lasts at least 0.25 s', durations.join());
+// microinteracties: de beweging komt uit ds-motion.css (.ds-mi-in .ds-mi-landing, hooguit 250 ms); hier geen eigen animatie meer
+ok(!/animation\s*:\s*bm-/.test(code) && !/@keyframes/.test(code), 'no own animation or keyframes (ds-motion.css moves the moments)');
+ok(/--ds-m\b/.test(code) && !/transition[^;]*\d\.\d+s/.test(code), 'the fade uses the --ds-m token, no literal seconds');
 ok(!/\.bm-wanted\s*\{[^}]*inset\s*:/.test(code) && /\.bm-wanted\s*\{[^}]*right:\s*(?:0|var\(--ds-rand-hud\))/.test(code), 'the wanted tag sits at the edge, not full screen');
 ok(/\.bm-geslaagd, \.bm-mislukt, \.bm-opgepakt \{ inset: 0/.test(code), 'passed, failed and busted cover the screen');
 ok(/font: 800 clamp\(56px, 9vw/.test(code) && /Barlow Condensed|--ds-font-kop-v3/.test(code), 'the big print is Barlow Condensed');
 ok(!/pointer-events:\s*auto/.test(code) && /pointer-events: none/.test(code), 'a moment never takes input');
+
+// Compact tijdens het rijden: kleiner, korter, dezelfde woorden; opgepakt en de band blijven vol
+ok(isRijdend({ snelheid: 3.5 }) && !isRijdend({ snelheid: 2.9 }) && isRijdend({ inVehicle: true, snelheid: 0 }) && !isRijdend({}), 'rijdend: een voertuig, of sneller dan 3 m/s');
+ok(RIJDEN_MS === 3, 'de drempel is 3 m/s');
+{
+  const voet = bouwMoment({ ...momentVanGebied('Selwerd', 'Je bent hier voor het eerst.'), rijdend: false });
+  const rij = bouwMoment({ ...momentVanGebied('Selwerd', 'Je bent hier voor het eerst.'), rijdend: true });
+  ok(!voet.compact && rij.compact, 'een nieuw gebied is compact tijdens het rijden');
+  ok(rij.ms < voet.ms && rij.aria === voet.aria && rij.kop === voet.kop && rij.regelNl === voet.regelNl, 'compact: kortere verblijftijd, dezelfde woorden');
+  const w = bouwMoment({ ...momentVanWanted(0, 2), rijdend: true });
+  ok(w.compact && w.ms < STANDAARD.wanted.ms, 'wanted is ook compact tijdens het rijden');
+  ok(!bouwMoment({ ...momentVanOpgepakt({ busted: true }), rijdend: true }).compact, 'opgepakt blijft vol');
+  ok(!bouwMoment({ ...momentVanBanner({ kind: 'pass', title: 'X' }), rijdend: true }).compact, 'de einde-missie-band blijft vol');
+  ok(COMPACT_VORMEN.join() === 'plaats,rand', 'alleen nieuw gebied en wanted kennen een compacte vorm');
+}
+ok(/\.bm-gebied\.bm-compact \{ bottom: auto; top: 15vh; \}/.test(code) && /\.bm-compact \.bm-kaart \{ min-width: min\(384px/.test(code), 'de compacte kaart staat boven in beeld en is 40% smaller (384 tegen 640 px)');
 
 console.log(`${n - fails}/${n} bigmoment`);
 process.exit(fails ? 1 : 0);

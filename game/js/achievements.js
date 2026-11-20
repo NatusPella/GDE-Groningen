@@ -712,8 +712,8 @@ const CSS = `
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, rgba(12,20,14,0.94) 0%, rgba(12,20,14,0.86) 70%, rgba(12,20,14,0.6) 100%);
   border-left: 4px solid var(--mk-ok, #3fc97a); box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
-  opacity: 0; transform: translateY(-14px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
-#hud .ach-toast.on { opacity: 1; transform: none; }
+  opacity: 0; --ds-mi-x: -8px; pointer-events: none; } /* ds-motion.css (.ds-mi-in): 8 px vanaf de linkerrand, 200 ms in en uit */
+#hud .ach-toast.on { opacity: 1; }
 /* Tijdens een minigame staat het bord met de toetshulp bovenaan rechts: de prestatiekaart zakt dan naar
    de onderkant in plaats van eroverheen te vallen (#504). */
 body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 104px); }
@@ -739,8 +739,6 @@ const CSS_EXTRA = `
 #hud .ach-toast { min-width: 340px; padding: 14px 26px 14px 14px; gap: 16px; border-radius: 12px; border-left-width: 5px;
   background: var(--hud-card);
   box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 30px rgba(63,201,122,0.22), inset 0 0 0 1px rgba(240,237,228,0.08); }
-#hud .ach-toast.on { animation: ach-in 0.42s cubic-bezier(0.2, 0.9, 0.25, 1.15); }
-@keyframes ach-in { from { opacity: 0; transform: translateY(-18px) scale(0.94); } 70% { opacity: 1; transform: translateY(2px) scale(1.012); } to { transform: none; } }
 #hud .ach-toast .ach-badge { position: relative; flex: none; width: 64px; height: 64px; display: grid; place-items: center; }
 #hud .ach-toast .ach-ico { position: relative; z-index: 2; width: 56px; height: 56px; }
 #hud .ach-toast .ach-ico .ach-pic { width: 32px; height: 32px; }
@@ -755,8 +753,7 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-spark.s3 { left: 12px; bottom: 0; --dx: -4px; animation-delay: 0.26s; }
 #hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
-#hud .ach-toast .ach-title { font-size: 31px; letter-spacing: 1.6px; text-shadow: 0 1px 0 rgba(0,0,0,0.4); animation: ach-rise 0.5s 0.06s both; }
-@keyframes ach-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+#hud .ach-toast .ach-title { font-size: 31px; letter-spacing: 1.6px; text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
 #hud .ach-toast .ach-kicker { font-size: 13px; }
 #hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
   background: linear-gradient(115deg, transparent 30%, rgba(240,237,228,0.14) 45%, transparent 60%); background-size: 220% 100%;
@@ -789,7 +786,7 @@ function ensureToast() {
   style.textContent = CSS + CSS_EXTRA;
   document.head.appendChild(style);
   toastEl = document.createElement('div');
-  toastEl.className = 'ach-toast';
+  toastEl.className = 'ach-toast ds-mi-in';
   toastEl.setAttribute('role', 'status');
   toastEl.setAttribute('aria-live', 'polite');
   hud.appendChild(toastEl);
@@ -847,7 +844,11 @@ function showNextToast() {
     toastTimer = setTimeout(showNextToast, 500);
     return;
   }
+  // ds-motion.css: eerst zonder overgang terug naar de startplek (de vorige toast faadde uit zonder te bewegen), dan inschuiven
+  el.style.transition = 'none';
+  el.classList.remove('out');
   void el.offsetWidth;
+  el.style.transition = '';
   el.classList.add('on');
   if (world) {
     const q = world.audioEvents || (world.audioEvents = []);
@@ -863,6 +864,7 @@ function showNextToast() {
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     el.classList.remove('on');
+    el.classList.add('out');
     zones.vacate('E', 'ach');
     toastTimer = setTimeout(showNextToast, 450);
   }, toastDuur(a.title, a.desc) * 1000);
