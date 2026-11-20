@@ -127,7 +127,7 @@ export function speel(naam, { gain = 1, delay = 0 } = {}) {
   vorige.set(naam, kies);
   const praat = K.speech ? K.speech() : 0;
   const level = info.gain * categoryLevel('sting') * regel.niveau * speechDuckFactor('sting', praat) * gain;
-  const src = K.buf(kies, { bus: K.buses.sting, gain: level, rate: spreiding(Math.random()), delay, prio: 2 });
+  const src = K.buf(kies, { bus: K.buses.sting, gain: level, rate: spreiding(Math.random()), delay, prio: 2, cat: 'sting' });
   if (!src) return false;
   if (regel.duck > 0 && K.duckAmb) K.duckAmb(regel.duck, stingDuur(naam));
   return true;

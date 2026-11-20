@@ -8,6 +8,7 @@ import { rand as rnd } from '../rng.js';
 import { seaAt } from '../regions.js';
 import { streekAt } from '../regioleven.js';
 import { streekNiveaus } from './streekklank.js';import { stepContext } from './steps.js';
+import { havenNiveau, HAVEN_PEAK, HAVEN_LP, spoorNiveau, treinHoornPauze, verkeerDagNiveau, scheepshoornPauze, occlusie, bedWobble, bedStartRate } from './lagenplan.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
@@ -25,6 +26,8 @@ const place = {
   square: 0, horeca: 0, horecaPts: [], density: 0, open: 0, traffic: 0, peds: 0, rural: 0,
   // de streek (streekklank.js): op zee, zee in de buurt, de streek, loodsen en fabrieken dichtbij
   sea: false, coast: 0, streek: null, industrial: 0,
+  // het spoor: afstand tot het dichtstbijzijnde spoor (m) en dat punt (lagenplan.js, de verre treinhoorn)
+  railD: Infinity, railX: 0, railY: 0,
 };
 export function getPlace() { return place; }
 
@@ -56,6 +59,8 @@ const BED_DEFS = {
   polder: { buf: 'bed_polder' },
   riet: { buf: 'bed_riet' },
   industrie: { buf: 'bed_industrie' },
+  // de haven: een verre scheepsbrom (opname boot_motor_stat) onder de industrie en het water; alleen als de opname geladen is
+  haven: { file: 'boot_motor_stat', filter: true },
 };
 
 let scanTimer = 0;
@@ -102,13 +107,13 @@ export function initAmbience(kit, world) {
       tail = panner;
     }
     tail.connect(K.buses.amb);
-    if (d.filter) {
+    if (d.filter !== false) {   // elke laag krijgt een laagdoorlaat: de occlusie binnen en buiten (lagenplan.js occlusie) dempt de hoge tonen
       filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.value = 12000;
+      filter.frequency.value = 20000;
       filter.connect(gain);
     }
-    beds[key] = { ...d, gain, filter, panner, src: null, level: 0, target: 0, quietFor: 0, fresh: true };
+    beds[key] = { ...d, gain, filter, panner, src: null, level: 0, target: 0, quietFor: 0, fresh: true, occGain: 1 };
   }
   K.bank.warm(Object.values(BED_DEFS).map((d) => d.buf).filter(Boolean));
 
@@ -127,7 +132,7 @@ export function initAmbience(kit, world) {
     if (!arr) { arr = []; horecaGrid.set(k, arr); }
     arr.push(h);
   }
-  timers = { bird: rnd(1, 4), gull: rnd(4, 10), clink: rnd(2, 6), animals: 0 };
+  timers = { bird: rnd(1, 4), gull: rnd(4, 10), clink: rnd(2, 6), animals: 0, trein: rnd(30, 90), hoorn: rnd(60, 200) };
   lastHour = world.dayNight ? world.dayNight.hour : null;
 }
 
@@ -137,6 +142,7 @@ function startBed(b) {
   const src = K.ctx.createBufferSource();
   src.buffer = buffer;
   src.loop = true;
+  src.playbackRate.value = bedStartRate(Math.random());   // een lus start elke keer met een iets andere toonhoogte (+-1,5 procent)
   src.connect(b.filter || b.gain);
   src.start(now(), Math.random() * buffer.duration);
   b.src = src;
@@ -161,7 +167,7 @@ function driveBeds(dt) {
       b.quietFor += dt;
       if (b.quietFor > BED_STOP_AFTER) stopBed(b);
     } else b.quietFor = 0;
-    b.gain.gain.setTargetAtTime(b.src ? b.level : 0, t, 0.08);
+    b.gain.gain.setTargetAtTime(b.src ? b.level * b.occGain * bedWobble(t, key, b.wobble ?? 0.08) : 0, t, 0.08);
   }
 }
 
@@ -271,6 +277,7 @@ function scan(world) {
 
   countryPlace(x, y);
   coastPlace(x, y);
+  railPlace(map, x, y);
 
   const v = rijdtIn(world);
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;
@@ -302,6 +309,22 @@ function countryPlace(x, y) {
   if (pm < place.waterD) { place.waterD = Math.max(0, pm); place.waterX = x; place.waterY = y; }
 }
 
+// Het spoor: afstand tot het dichtstbijzijnde spoorstuk binnen 100 m (Infinity als er geen is) en het punt erop.
+function railPlace(map, x, y) {
+  place.railD = Infinity;
+  if (!map.railNear) return;
+  for (const r of map.railNear(x, y, 100)) {
+    const P = r.pts;
+    if (!P) continue;
+    for (let k = 0; k < P.length - 1; k++) {
+      const ax = P[k][0], ay = P[k][1], dx = P[k + 1][0] - ax, dy = P[k + 1][1] - ay, L2 = dx * dx + dy * dy || 1;
+      const u = clamp(((x - ax) * dx + (y - ay) * dy) / L2, 0, 1);
+      const px = ax + dx * u, py = ay + dy * u, d = Math.hypot(px - x, py - y);
+      if (d < place.railD) { place.railD = d; place.railX = px; place.railY = py; }
+    }
+  }
+}
+
 // De zee: staat de luisteraar op zee, en hoeveel zee ligt er binnen 150 m (0 tot 1). De zee heeft geen
 // waterpolygoon (alleen de kustlijn), dus dit is de enige manier om een dijk of strand te herkennen.
 const COAST_R = 150;
@@ -325,6 +348,7 @@ function smooth01(a, b, x) {
 }
 
 const rainOut = {}, sumOut = {};
+const EIGEN_FILTER = new Set(['wind', 'rain', 'regenLicht', 'regenBui', 'regenPlens']);
 function setTargets(world) {
   const dn = world.dayNight || { hour: 12, night: 0 };
   const night = dn.night || 0, day = 1 - night, hour = dn.hour;
@@ -380,10 +404,27 @@ function setTargets(world) {
   beds.riet.target = sk.riet * (1 - rain * 0.6) * paused;
   beds.industrie.target = sk.industrie * paused;
 
+  // de haven (verre scheepsbrom) en verkeer overdag (dezelfde opname als 's nachts, zachter): nieuwe lagen van de audit van 21-11
+  const havenF = { industrial: place.industrial, waterD: place.waterD, streek: place.streek, sea: place.sea, closed };
+  beds.haven.target = havenNiveau(havenF) * HAVEN_PEAK * (1 - rain * 0.3) * paused;
+  beds.stadNacht.target += verkeerDagNiveau(place.traffic, place.density, day, place.rural, cabin) * paused * (K.samples && K.samples.has('stad_nacht_nl') ? 1 : 0);
+  // occlusie: in de flat of een gesloten voertuig klinkt het buitengeluid dof (en in de flat zachter); het binnengeluid blijft
   const t = now();
+  const occCtx = { closed, indoors };
+  for (const key in beds) {
+    const b = beds[key], o = occlusie(occCtx, key);
+    b.occGain = o.gain;
+    b.occLp = o.lp;
+  }
+  if (beds.haven.filter) beds.haven.occLp = Math.min(beds.haven.occLp, HAVEN_LP);
   if (beds.wind.filter) beds.wind.filter.frequency.setTargetAtTime(closed ? 700 : 2500 + rain * 6000, t, 0.3);
   if (beds.rain.filter) beds.rain.filter.frequency.setTargetAtTime(closed ? 1400 : 12000, t, 0.3);
   for (const k of ['regenLicht', 'regenBui', 'regenPlens']) if (beds[k].filter) beds[k].filter.frequency.setTargetAtTime(closed || indoors ? 1400 : 12000, t, 0.3);
+  // alle andere lagen: de laagdoorlaat van de occlusie (de weerlagen hierboven hebben hun eigen stand)
+  for (const key in beds) {
+    const b = beds[key];
+    if (b.filter && !EIGEN_FILTER.has(key)) b.filter.frequency.setTargetAtTime(b.occLp, t, 0.3);
+  }
   if (beds.lap.panner && place.waterD < 60) {
     K.setPannerPos(beds.lap.panner, place.waterX, place.waterY, 0.2, !beds.lap.fresh);
     beds.lap.fresh = false;
@@ -395,7 +436,7 @@ function setTargets(world) {
 function playAt(buf, x, y, h, o) {
   const out = K.spatial(x, y, { ref: o.ref ?? 6, rolloff: o.rolloff ?? 1.2, range: o.range ?? 80, h, model: 'equalpower', bus: K.buses.amb, prio: 0 });
   if (!out) return;
-  K.buf(buf, { out, gain: o.gain, rate: o.rate ?? 1, prio: 0, lp: o.lp || 0, buffer: o.buffer || null });
+  K.buf(buf, { out, gain: o.gain, rate: o.rate ?? 1, prio: 0, lp: o.lp || 0, buffer: o.buffer || null, cat: o.cat || 'omgeving' });
 }
 
 function ambientEvents(dt, world) {
@@ -426,6 +467,27 @@ function ambientEvents(dt, world) {
     if (act > 0.05 && !world.paused) {
       const a = Math.random() * Math.PI * 2, r = rnd(15, 45);
       playAt('gull_' + (Math.random() < 0.5 ? 0 : 1), lx + Math.cos(a) * r, ly + Math.sin(a) * r, rnd(12, 25), { gain: rnd(0.12, 0.22), rate: rnd(0.9, 1.1), ref: 10, rolloff: 1, range: 120 });
+    }
+  }
+
+  // een verre treinhoorn langs het spoor, een scheepshoorn in de haven (opnames van sfx/samples.js, dof en zacht: ver weg)
+  timers.trein -= dt;
+  if (timers.trein <= 0) {
+    timers.trein = treinHoornPauze(place.railD, dn.night || 0, rain, Math.random());
+    const S = K.samples, key = Math.random() < 0.7 ? 'trein_hoorn_kort' : 'trein_hoorn_lang';
+    if (S && spoorNiveau(place.railD) > 0.1 && rain < 0.7 && !world.paused && S.has(key)) {
+      const a = Math.random() * Math.PI * 2, r = rnd(60, 200);
+      playAt(key, place.railX + Math.cos(a) * r, place.railY + Math.sin(a) * r, 2, { gain: rnd(0.07, 0.12), rate: rnd(0.97, 1.03), ref: 20, rolloff: 1, range: 400, lp: 2200, buffer: S.buffer(key), cat: 'spoor' });
+    }
+  }
+  timers.hoorn -= dt;
+  if (timers.hoorn <= 0) {
+    const hv = havenNiveau({ industrial: place.industrial, waterD: place.waterD, streek: place.streek, sea: place.sea, closed: false });
+    timers.hoorn = scheepshoornPauze(hv, Math.random());
+    const S = K.samples;
+    if (S && hv >= 0.3 && !world.paused && S.has('scheepshoorn_op')) {
+      const a = Math.random() * Math.PI * 2, r = rnd(120, 300);
+      playAt('scheepshoorn_op', place.waterX + Math.cos(a) * r, place.waterY + Math.sin(a) * r, 3, { gain: rnd(0.1, 0.16), rate: rnd(0.96, 1.04), ref: 30, rolloff: 1, range: 600, lp: 1600, buffer: S.buffer('scheepshoorn_op'), cat: 'water' });
     }
   }
 
@@ -600,8 +662,8 @@ function animals(dt, world) {
     const rec = K.samples && def.rec ? dierOpname(def.rec, K.samples) : null;
     if (rec) { playAt(rec.key, a.x, a.y, h, { gain: def.gain * 0.8, rate, ref: 4, rolloff: 1.2, range: def.range, buffer: rec.buffer }); continue; }
     if (!buf) continue;   // een dier zonder procedurele roep (paard) zwijgt zolang de opname er niet is
-    playAt(buf, a.x, a.y, h, { gain: def.gain, rate, ref: 4, rolloff: 1.2, range: def.range });
-    if (def.double && Math.random() < 0.5) later(rnd(0.25, 0.4), () => playAt(buf, a.x, a.y, h, { gain: def.gain * 0.9, rate: rate * 1.03, ref: 4, rolloff: 1.2, range: def.range }));
+    playAt(buf, a.x, a.y, h, { gain: def.gain, rate, ref: 4, rolloff: 1.2, range: def.range, cat: 'dier' });
+    if (def.double && Math.random() < 0.5) later(rnd(0.25, 0.4), () => playAt(buf, a.x, a.y, h, { gain: def.gain * 0.9, rate: rate * 1.03, ref: 4, rolloff: 1.2, range: def.range, cat: 'dier' }));
   }
 }
 

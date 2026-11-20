@@ -3,6 +3,8 @@
 // context, de muziekbus en de instellingen komen via setScenarioHost binnen,
 // zodat deze module niets uit audio.js hoeft te importeren en de cyclus 0 blijft.
 import { sfeerTracks } from '../missiesfeer.js';
+import * as speech from '../speech.js';
+import { musicDuckGain, musicDuckStep } from '../sfx/mixplan.js';
 import { createScenarioDirector, activityMusicKey, createLoopScan } from '../scenariomusic.js';
 
 // Instrumental loops that replace G-Music while something big happens
@@ -39,6 +41,7 @@ export function setScenarioHost(h) { host = h; }
 const scenarioDirector = createScenarioDirector();
 const scenarioBuffers = {};
 let scenarioVol = null;
+let scenarioDuck = 0;   // glijdende dempstand onder een gesprek of ondertitelde scène (mixplan.js musicDuckStep)
 let scenarioNow = null; // { key, src, fade }
 let parkedMenu = null;  // de menu-loop die net zweeg en nog even zijn plek houdt
 let parkTimer = null;
@@ -184,7 +187,8 @@ export function updateScenarioMusic(dt, world) {
     else if (scenarioBuffers[want].loop) { stopScenarioTrack(); startScenarioTrack(want); }
     else if (scenarioBuffers[want].failed) want = null;
   }
-  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * host.musicVolume(host.getSettings()) * (1 - 0.45 * host.stingDuck.level);
+  scenarioDuck = musicDuckStep(scenarioDuck, speech.musicDuck(), dt);
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * host.musicVolume(host.getSettings()) * (1 - 0.45 * host.stingDuck.level) * musicDuckGain(scenarioDuck);
   return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 

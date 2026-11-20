@@ -6,6 +6,7 @@ import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
 import { FX_INFO } from './sfx/fxbank.js';
+import { createStemTeller, declick } from './sfx/stemlimiet.js';
 import { plan as mixPlan, speechDuckFactor, categoryLevel } from './sfx/mixplan.js';
 import { createLinkups } from './sfx/linkups.js';
 import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
@@ -127,6 +128,7 @@ let worldReady = false;
 // One-shot voice budget by priority: 0 ambience/foley, 1 normal, 2 must-play.
 const VOICE_CAPS = [26, 54, 76];
 let activeVoices = 0;
+const stemTeller = createStemTeller();   // per categorie (sfx/stemlimiet.js)
 function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
 
 const AMB_LEVEL = 0.9;
@@ -439,16 +441,29 @@ function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0
 
 // One-shot from the procedural sample bank (sfx/dsp.js); silently skipped
 // while the buffer is still being rendered or the voice budget is spent.
-function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0, prio = 1, lp = 0, buffer: own = null } = {}) {
+function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0, prio = 1, lp = 0, buffer: own = null, cat = null } = {}) {
   if (!ctx || (!bank && !own) || !voiceOk(prio)) return null;
   const buffer = own || bank.get(name);
   if (!buffer) return null;
+  // per categorie een grens (sfx/stemlimiet.js): een menigte stappen of dieren eet de stemmen van een knal niet op
+  if (!stemTeller.neem(cat, prio)) return null;
   activeVoices++;
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = rate;
   const g = ctx.createGain();
-  g.gain.value = gain;
+  // declick: een korte fade in en uit, zodat een opname die niet op nul begint of eindigt niet tikt
+  const dk = declick(buffer.duration / Math.max(0.05, rate));
+  const t0 = ctx.currentTime + delay;
+  const level = Number.isFinite(gain) ? gain : 0;
+  if (dk.fadeIn > 0 && level > 0) {
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(level, t0 + dk.fadeIn);
+    if (dk.fadeUit > 0) {
+      g.gain.setValueAtTime(level, t0 + dk.uitStart);
+      g.gain.linearRampToValueAtTime(0, t0 + dk.uitStart + dk.fadeUit);
+    }
+  } else g.gain.value = level;
   let filter = null;
   if (lp) {
     filter = ctx.createBiquadFilter();
@@ -458,9 +473,10 @@ function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0
   } else src.connect(g);
   g.connect(out ? out.node : bus || sfxBus);
   if (out) out.hold();
-  src.start(ctx.currentTime + delay);
+  src.start(t0);
   src.onended = () => {
     activeVoices--;
+    stemTeller.geef(cat);
     src.disconnect();
     g.disconnect();
     if (filter) filter.disconnect();
@@ -563,7 +579,7 @@ function playFx(name, x, y, opts = {}) {
   if (!out) { fxStats.noOut++; return true; }
   const p = mixPlan(info, d, Math.floor(Math.random() * 1e9));
   const speaking = voiceBusy() ? speechDuckFactor(info.cat, 1) : 1;
-  const src = playBuf(buf, { out, gain: info.gain * p.gain * (opts.gain ?? 1) * speaking, rate: p.rate * (opts.rate ?? 1), delay: p.delay, lp: p.lp, prio: 2 });
+  const src = playBuf(buf, { out, gain: info.gain * p.gain * (opts.gain ?? 1) * speaking, rate: p.rate * (opts.rate ?? 1), delay: p.delay, lp: p.lp, prio: 2, cat: info.cat });
   if (src) fxStats.played++; else fxStats.notReady++;
   return !!src;
 }
@@ -585,7 +601,7 @@ function playSample(key, x, y, opts = {}) {
   const p = mixPlan(info, d, 0);   // vertraging en luchtfilter; niveau en variatie hieronder
   const v = variatie();
   const speaking = voiceBusy() ? speechDuckFactor(info.cat, 1) : 1;
-  playBuf(null, { buffer, out, gain: info.gain * categoryLevel(info.cat) * v.gain * (opts.gain ?? 1) * speaking, rate: v.rate * (opts.rate ?? 1), delay: p.delay + (opts.delay ?? 0), lp: p.lp, prio: 2 });
+  playBuf(null, { buffer, out, gain: info.gain * categoryLevel(info.cat) * v.gain * (opts.gain ?? 1) * speaking, rate: v.rate * (opts.rate ?? 1), delay: p.delay + (opts.delay ?? 0), lp: p.lp, prio: 2, cat: info.cat });
   return true;
 }
 
@@ -1600,6 +1616,21 @@ function resumeCtx(why) {
   ctx.resume().catch(() => {});
 }
 
+// Na een tabwissel of een hersteld apparaat start de uitvoer op nul en komt in ca. 0,25 s omhoog: de buffers die vlak voor het
+// suspend liepen, klinken anders met een tik of een stoot door (#1021). De wachter slaat de gaincontrole over zolang dit loopt.
+let softUntil = 0;
+function softResume() {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  softUntil = t + 0.5;
+  for (const node of [master, musicOut]) {
+    if (!node) continue;
+    node.gain.cancelScheduledValues(t);
+    node.gain.setValueAtTime(0, t);
+    node.gain.setTargetAtTime(muted ? 0 : masterLevel(), t + 0.03, 0.07);
+  }
+}
+
 function onVisibilityChange() {
   if (!ctx) return;
   if (document.hidden) {
@@ -1608,6 +1639,7 @@ function onVisibilityChange() {
     ctx.suspend().catch(() => {});
   } else {
     radioWake();
+    softResume();
     // a resume() racing the suspend() above can lose: the watchdog retries
     resumeCtx('visible');
   }
@@ -3153,7 +3185,7 @@ function watchdog(world, force = false) {
   if (!document.hidden && ctx.state !== 'running') { radioCtxStalled(); resumeCtx('watchdog'); }
   if (!document.hidden && radioWasSuspended()) fix('gmusic-suspended');
   const want = muted ? 0 : masterLevel();
-  if (master && Math.abs(master.gain.value - want) > 0.02 && ctx.state === 'running') { applyOutputGains(0.1); fix('master-gain'); }
+  if (master && Math.abs(master.gain.value - want) > 0.02 && ctx.state === 'running' && ctx.currentTime > softUntil) { applyOutputGains(0.1); fix('master-gain'); }
   else if (musicOut && Math.abs(musicOut.gain.value - want) > 0.02 && ctx.state === 'running') { applyOutputGains(0.1); fix('music-gain'); }
   if (!Number.isFinite(musicState.gain)) { musicState.gain = 0; fix('music-nan'); }
   if (musicLp && musicLowpassHz(world) >= 19999 && musicLp.frequency.value < 15000 && !(world.drunk > 0)) {
@@ -3192,7 +3224,7 @@ function audioState() {
     ambDuck: r3(duckState.level), musicDuck: speech.musicDuck(),
     gmusic: radioState(),
     bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
-    scenario: scenarioKey(), storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
+    scenario: scenarioKey(), storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices, capGeweigerd: stemTeller.stats.geweigerd,
     diag: audioDiag.snapshot(), synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
   };
 }
