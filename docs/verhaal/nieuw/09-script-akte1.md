@@ -58,7 +58,7 @@ TESSA: Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we 
 (regie: Tessa's telefoon gaat. Een streamer van Kiekdoar filmt zichzelf, ergens op een terras.)
 STREAMER (telefoon): Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt. [NIEUW]
 STREAMER (telefoon): Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro. [NIEUW]
-TESSA: Honderdvijftig euro. Dat is precies de inschrijving voor het Loket. [NIEUW]
+TESSA: Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket. [NIEUW]
 TESSA: Zonder krassen, want het is Berends bakkie. [NIEUW]
 STREAMER (telefoon): Niemand raken! Alleen spullen. Spullen zijn content. [BEHOUDEN]
 TESSA: Eerst de stunts op de Grote Markt, dan brengen we het bakkie naar Berends zus. [NIEUW]

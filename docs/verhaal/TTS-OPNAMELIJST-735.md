@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.json`, `scripts/tts_lines.json`, `scripts/gronings_spoken.json` en `scripts/tts_cast.mjs`. Niet met de hand aanpassen; draai `node scripts/tts_opnamelijst.mjs --check` om te zien of deze lijst achterloopt.
 
-**Stand van deze bronnen:** 9 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 20 verhaalregels wachten nog (0 op een stemkeuze, 20 op een Groningse spreektekst). Samen **29 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
+**Stand van deze bronnen:** 10 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 20 verhaalregels wachten nog (0 op een stemkeuze, 20 op een Groningse spreektekst). Samen **30 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
 
 > Het issue #735 noemt 670 regels/671 clips (stand 6-11-2026). De scripts zijn de bron: inmiddels zijn er regels bijgekomen of opgenomen, dus deze lijst telt wat de code nu zegt. Zie "Verschil met #735" onderaan.
 
@@ -21,13 +21,14 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 2 | C00.3 | Anita (Callirrhoe) | `lines/anita/eerst_geld_meedoen_aan_die_wedst_37697d43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #2 |
 | 3 | M01.1 | Anita (Callirrhoe) | `lines/anita/gronings_ontzet_tammo_elk_jaar_s_a2eee016.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #3 |
 | 4 | M01.1 | Anita (Callirrhoe) | `lines/anita/vijftig_euro_van_berend_en_honde_945aef08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #4 |
-| 5 | M01.2 | Anita (Callirrhoe) | `lines/anita/zonder_krassen_want_het_is_beren_d45e6d6f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #5 |
-| 6 | M01.2 | Anita (Callirrhoe) | `lines/anita/eerst_de_stunts_op_de_grote_mark_89f3ba03.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #6 |
-| 7 | M01.6 | Anita (Callirrhoe) | `lines/anita/goud_tammo_van_berend_is_dat_een_45a474d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #7 |
-| 8 | M02.1 | Anita (Callirrhoe) | `lines/anita/ik_ken_iemand_die_opent_wat_niem_9d6d0b5c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #8 |
-| 9 | M02.3 | Anita (Callirrhoe) | `lines/anita/het_museum_daar_staat_de_gouden__de7781d9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #9 |
+| 5 | M01.2 | Anita (Callirrhoe) | `lines/anita/honderdvijftig_euro_dat_is_preci_64087414.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #5 |
+| 6 | M01.2 | Anita (Callirrhoe) | `lines/anita/zonder_krassen_want_het_is_beren_d45e6d6f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #6 |
+| 7 | M01.2 | Anita (Callirrhoe) | `lines/anita/eerst_de_stunts_op_de_grote_mark_89f3ba03.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #7 |
+| 8 | M01.6 | Anita (Callirrhoe) | `lines/anita/goud_tammo_van_berend_is_dat_een_45a474d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #8 |
+| 9 | M02.1 | Anita (Callirrhoe) | `lines/anita/ik_ken_iemand_die_opent_wat_niem_9d6d0b5c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #9 |
+| 10 | M02.3 | Anita (Callirrhoe) | `lines/anita/het_museum_daar_staat_de_gouden__de7781d9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #10 |
 
-De wachtrij heeft 9 clips (1 manifest(en): lines).
+De wachtrij heeft 10 clips (1 manifest(en): lines).
 
 ## 2. Wacht op een Groningse spreektekst of stemkeuze
 
@@ -55,4 +56,4 @@ De nieuwe laadhint `"De weg hier wordt nog geladen. Even wachten…"` staat bewu
 
 ## 5. Verschil met #735
 
-Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 29 regels/clips: 9 klaar + 20 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.
+Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 30 regels/clips: 10 klaar + 20 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.

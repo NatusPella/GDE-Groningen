@@ -72,6 +72,7 @@ Zie `docs/verhaal/nieuw/09-script-akte1.md` (bron) en de commit. Samengevat:
 - **Trailer (C00.1):** de slotkaart noemt de haak ("Twee Stadjers. Eén frietwagen. Geen plek."). De Rikus-regels van C00.1 in het script blijven ongewijzigd: ze zijn de terugvalact en worden normaal niet gespeeld.
 - **Keuken (C00.2):** de vijf geschrapte regels (#662) zijn uit het script gehaald zodat meting, script en spel gelijk zijn (18 gespeelde regels; `ACT_SPLIT` in `cutscenes.js` volgt). Tessa zegt nu "een wedstrijd" met een standplaats als prijs ("een plek voor een frietwagen"), niet meer meteen de naam.
 - **Verhuisdag (C00.3):** de Noordelijke Snackprijs krijgt hier zijn naam, bij het geld; het Loket noemt Tessa nog niet.
+- **M01.2:** "Dat is precies de inschrijving voor het Loket" wordt "Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket." (het Loket krijgt een omschrijving waar het eerst valt).
 - **M01:** Tessa legt het Ontzet uit (1672, de bisschop), zegt waarom de klus de inschrijving betaalt ("Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we ons inschrijven"), geeft "Zonder krassen" een reden, en de complimentenladder is vervangen door "Goud, Tammo. Van Berend is dat een medaille."
 - **M02:** Tessa noemt Sjabbe niet meer in haar eerste regels ("Ik ken iemand die opent wat niemand kan"); de Gouden Eierbal wordt als wisselprijs van de Snackprijs genoemd.
 - **M03:** ongewijzigd in tekst; valt binnen de norm doordat het Ontzet en de bal al zijn uitgelegd.
@@ -82,7 +83,7 @@ Staging: de cues op regels in `cutscenes_akte1.js` (`on:`) volgen de nieuwe rege
 
 `node scripts/voice_coverage.mjs --quiet` meldt dat elke gespeelde regel van de opening en M01-M03 vóór deze ronde een opname had (alle manifestregels bestaan, alle mp3's zijn hoorbaar: gemiddeld rond -18 dB). Het ontbrekende personage zit dus niet in die scènes. De bekende gaten elders (#924): **Geesje** (18 regels in M09, M21, M23, M26 en M30) en **Rotor Roelf** (2 regels in M12) wachten op een Groningse spreektekst van een kenner (`scripts/tts_waiting.json`); dat is geen code of koppeling. De trailermontage zelf heeft geen stem (de naamkaarten zijn tekst); dat is ontwerp, geen gat. Welk personage de eigenaar precies niet hoorde, is uit de data niet af te leiden: vraag het hem als het Geesje niet is.
 
-Nieuw in deze ronde, voor de TTS-ronde (`docs/verhaal/TTS-OPNAMELIJST-735.md`): negen herschreven regels van Tessa (Nederlands, `lang: own`) zonder opname, klaar in `scripts/tts_lines.json`: C00.2 (1), C00.3 (1), M01.1 (2), M01.2 (2), M01.6 (1), M02.1 (1), M02.3 (1). Er is geen nieuwe Groningse spreektekst nodig.
+Nieuw in deze ronde, voor de TTS-ronde (`docs/verhaal/TTS-OPNAMELIJST-735.md`): tien herschreven regels van Tessa (Nederlands, `lang: own`) zonder opname, klaar in `scripts/tts_lines.json`: C00.2 (1), C00.3 (1), M01.1 (2), M01.2 (3), M01.6 (1), M02.1 (1), M02.3 (1). Er is geen nieuwe Groningse spreektekst nodig.
 
 ## 7. Samen spelen
 

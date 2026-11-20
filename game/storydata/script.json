@@ -607,11 +607,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Honderdvijftig euro. Dat is precies de inschrijving voor het Loket.",
+     "text": "Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
