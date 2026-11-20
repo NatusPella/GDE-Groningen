@@ -9,25 +9,25 @@ Status: **omgezet en gezien** (beeld in `docs/beeld-20-11/ui/`), **omgezet, nog 
 
 | Bestand | Scherm | Oude stijl | Omzetting | Status |
 |---|---|---|---|---|
-| `loadscreen.css`, `logo.js` | laadscherm en boot | al papier, raster, gele balk | geen werk nodig | al zeefdruk, gezien |
-| `startscreen.css` | hoofdmenu (titelscherm), nieuwsvenster | glasverloop over de stad, cream op glas, groene balk | papieren kaart met raster, gele selectie, nieuwsvenster als papier | zie rapport |
+| `loadscreen.css`, `logo.js` | laadscherm en boot | al papier, raster, gele balk | geen werk nodig | al zeefdruk, gezien: `laadscherm-buurt.png` |
+| `startscreen.css` | hoofdmenu (titelscherm), nieuwsvenster | glasverloop over de stad, cream op glas, groene balk | papieren kaart met raster, gele selectie, nieuwsvenster als papier | omgezet, nog niet bekeken (het titelscherm is niet te beelden: de testrun start het spel zelf) |
 | `bigmoment.css` | missie geslaagd of mislukt | al zeefdruk | geen werk nodig | al zeefdruk |
 | `hud_panel.css` (HUD) | geld, klok, wapen, doel, minimap, prestatietoast, tips | al een zeefdruklaag onderaan | geen werk nodig | al zeefdruk |
-| `hud_panel.css` (`#cine`) | filmlaag: titelkaart, naam, chip, overslaan | cream op zwart en glas, Bebas | papieren plaatjes met inktrand, balken in inkt | zie rapport |
-| `hud_panel.css`, `a11y.css`, `banter.js`, `radiosub.js`, `postgame.js` | ondertitels (cutscene, auto, radio, rondvaart) en geluidsondertitels | wit op beeld met schaduw, bij "Ondertitelvak" donker glas | papieren plaatje met inktrand; sprekernaam in bordgroen | zie rapport |
-| `story.js` + `hud_panel.css` | "Sla deze missie over" | groen glas, groene rand | gele hoofdknop met inktrand (CSS verhuisd naar `hud_panel.css`) | zie rapport |
+| `hud_panel.css` (`#cine`) | filmlaag: titelkaart, naam, chip, overslaan | cream op zwart en glas, Bebas | papieren plaatjes met inktrand, balken in inkt | omgezet en gezien: `cinekaart.png`, `cutscene-ondertitel.png` |
+| `hud_panel.css`, `a11y.css`, `banter.js`, `radiosub.js`, `postgame.js` | ondertitels (cutscene, auto, radio, rondvaart) en geluidsondertitels | wit op beeld met schaduw, bij "Ondertitelvak" donker glas | papieren plaatje met inktrand; sprekernaam in bordgroen | omgezet en gezien: `cutscene-ondertitel.png`, `ondertitel-spel.png`; de varianten Ondertitelvak en Hoog contrast niet bekeken |
+| `story.js` + `hud_panel.css` | "Sla deze missie over" | groen glas, groene rand | gele hoofdknop met inktrand (CSS verhuisd naar `hud_panel.css`) | omgezet en gezien: `verhaal-overslaan.png` |
 | `namecard.js` | naamkaart bij een personage | cream op beeld met schaduw | papieren kaart, naam met misdruk | omgezet, nog niet bekeken |
-| `minigamekit.js` | minigamebord, stopvenster | glasverloop, Bebas, Arial Narrow | papier, accent als dikke linkerrand, stopvenster met één gele knop | zie rapport |
-| `choicepanel.js` | keuzepaneel van tekstklusjes | glasverloop | papier, gele gekozen optie | zie rapport |
+| `minigamekit.js` | minigamebord, stopvenster | glasverloop, Bebas, Arial Narrow | papier, accent als dikke linkerrand, stopvenster met één gele knop | omgezet en gezien: `bord-discgolf.png`, `bord-stand.png`, `stopvenster.png` |
+| `choicepanel.js` | keuzepaneel van tekstklusjes | glasverloop | papier, gele gekozen optie | omgezet en gezien: `keuzepaneel.png` |
 | `regelwidget.css` | regelmeters (eierrit e.d.) | al een zeefdruklaag | geen werk nodig | al zeefdruk |
-| `uitjepaneel.js` | uitjekaart bij een activiteit | glasverloop | papier met accentrand | omgezet, nog niet bekeken |
-| `treincabine.js` | treincabine: bord, uitleg, eindstand | glasverloop, groene rand | papier, hendel met gele actieve stand | zie rapport |
-| `reisrit.js`, `reisrit3d.js`, `stationtravel.js` | ritoverlay taxi en trein, rit-HUD, ritbord | `#0f5c30` vlak, cream tekst, `rgba(12,20,14,.62)` | bordgroen vlak, papieren plaat, gele voortgangsbalk | zie rapport |
+| `uitjepaneel.js` | uitjekaart bij een activiteit | glasverloop | papier met accentrand | omgezet en gezien: `uitjekaart.png` |
+| `treincabine.js` | treincabine: bord, uitleg, eindstand | glasverloop, groene rand | papier, hendel met gele actieve stand | omgezet en gezien: `treincabine.png`, `treincabine-eind.png` |
+| `reisrit.js`, `reisrit3d.js`, `stationtravel.js` | ritoverlay taxi en trein, rit-HUD, ritbord | `#0f5c30` vlak, cream tekst, `rgba(12,20,14,.62)` | bordgroen vlak, papieren plaat, gele voortgangsbalk | omgezet; treinrit gezien (`rit-trein.png`), taxirit, rit-HUD en ritbord niet bekeken |
 | `heliflight.js`, `helirun.js` | helikopter: vluchtkaart en opdracht-HUD | glasverloop, bruin glas | papier met inktrand | omgezet, nog niet bekeken |
 | `instrumenten.js` | vliegtuiginstrumenten | glasverloop | papier met inktrand | omgezet, nog niet bekeken |
-| `heist.css` | museumklus: panelen, bouwtekening, kaarten, chips | groen glas, radiaal verloop | papieren panelen; de bouwtekening blijft een donker getekend canvas in een inktlijst | omgezet, nog niet bekeken |
-| `pigeonmode.js` | duivenmodus-HUD | donker glas | papier met inktrand | omgezet, nog niet bekeken |
-| `stunthud.js` | stuntscore en stuntbord | donker glas | papier met inktrand | omgezet, nog niet bekeken |
+| `heist.css` | museumklus: panelen, bouwtekening, kaarten, chips | groen glas, radiaal verloop | papieren panelen; de bouwtekening blijft een donker getekend canvas in een inktlijst | omgezet en gezien: `heist-zekering.png`, `heist-slot.png`, `heist-briefje.png`, `heist-chips.png`; de bouwtekening niet bekeken |
+| `pigeonmode.js` | duivenmodus-HUD | donker glas | papier met inktrand | omgezet en gezien: `duivenmodus.png` |
+| `stunthud.js` | stuntscore en stuntbord | donker glas | papier met inktrand | omgezet en gezien: `stunthud.png` |
 | `postgame.js` | paneel van de aflevermissies (blauw glas) | blauw glas, eigen blauwe rand | papier, bordgroene rand | omgezet, nog niet bekeken |
 | `dorpsuitjes.js` | minibalk van het dorpsuitje | inline blauw glas | papier met inktrand | omgezet, nog niet bekeken |
 | `storycontact.js` | verhaaltelefoon in de HUD | zwart scherm met groene rand | scherm op papier, toestel in inkt | omgezet, nog niet bekeken |
@@ -50,4 +50,4 @@ Status: **omgezet en gezien** (beeld in `docs/beeld-20-11/ui/`), **omgezet, nog 
 
 ## Aan de andere agent (menuschermen, niet aangeraakt)
 
-`pausemenu*`, `menu.css`, `shopui.css`, `phonefeed.css`, `spullen.js`, `verhaalui.js`, `kaartactieui.js`, `carrieresfeer.js` (loopbaanbanden), `coopspelersui.js`, `onlineconsent.css`, `saveslots.css`, `samenkeuze.js`, `menumelding.js`, `furniture.js` (tv-overlay).
+`pausemenu*`, `menu.css`, `shopui.css`, `phonefeed.css` (de telefoonkaarten in de HUD, nog donker: `a11y.css` noemt dit al #998, dus telefoon), `spullen.js`, `verhaalui.js`, `kaartactieui.js`, `carrieresfeer.js` (loopbaanbanden), `coopspelersui.js`, `onlineconsent.css`, `saveslots.css`, `samenkeuze.js`, `menumelding.js`, `furniture.js` (tv-overlay).

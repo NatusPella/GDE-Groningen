@@ -548,6 +548,7 @@ html.reduce-motion #pigeon-hud .ph-card, html.reduce-motion #pigeon-hud .ph-sikk
 #pigeon-hud .ph-tag { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); color: var(--ds-c-ink-inkt); font: 600 13px/18px var(--ds-font-kop-v3); }
 #pigeon-hud .ph-boost { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); height: 9px; border-radius: 4px; }
 #pigeon-hud .ph-boost i { background: var(--ds-c-ink-bord); }
+#pigeon-hud .ph-hints { font-family: var(--ds-font-tekst-v3); font-size: 14px; letter-spacing: 0; }
 #pigeon-hud .ph-hints span { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); font-size: 14px; }
 #pigeon-hud .ph-hints .hot { color: var(--ds-c-ink-bord); font-weight: 700; }
 #pigeon-hud .ph-hints .ph-gast, #pigeon-hud .ph-hints .ph-touch { color: var(--ds-c-inkt-zacht); }
