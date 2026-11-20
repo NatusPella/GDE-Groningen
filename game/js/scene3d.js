@@ -93,6 +93,8 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
+import { applyEdgeFade, edgeFadeClone } from './edgefade3d.js';
+import { fadeBand, loadRadius } from './popinrules.js';
 import { roadBuildAllowed, heavyRoadAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
@@ -1572,13 +1574,14 @@ const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0,
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 // a conifer: a cone of radius 1 from y -1 to 1
 const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
-SHARED_MATERIALS.add(TREE_TRUNK_MAT);
-SHARED_MATERIALS.add(TREE_CANOPY_MAT);
-SHARED_GEOMETRIES.add(TREE_TRUNK_GEO);
-SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
-SHARED_GEOMETRIES.add(TREE_CONE_GEO);
+for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETRIES.add(g);
 // a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
 const TREE_FAR = 260;
+const TREE_NEAR_R = loadRadius(TREE_DIST);
+// #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST));
+const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24));
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();
 function tumbleMat(hex) {
@@ -1672,7 +1675,7 @@ function ensureTreeCapacity(n) {
   make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
   make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity * 2);
   make(TREE_CONE_GEO, TREE_CANOPY_MAT, treeCapacity);
-  make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity, false);
+  make(TREE_CANOPY_GEO, TREE_FAR_MAT, treeCapacity, false);
 }
 
 // --- per-frame sync ------------------------------------------------------
@@ -2298,12 +2301,12 @@ function syncTrees(world, px, py) {
   if (!treeSyncDue(px, py, treeSyncX, treeSyncY, hiddenChanged, map.geoVer, treeSyncGeoVer)) return;
   // the trees round the player, and further out the crowns of the woods
   // #760: dezelfde query in een herbruikbuffer i.p.v. een nieuwe array per aanroep
-  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, TREE_FAR);
+  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, loadRadius(TREE_FAR));
   const trees = [];
   for (let i = 0; i < n; i++) {
     const t = _treeQuery[i];
     if (t._broken) continue;
-    if (Math.abs(t[0] - px) <= TREE_DIST && Math.abs(t[1] - py) <= TREE_DIST && Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST) trees.push(t);
+    if (Math.abs(t[0] - px) <= TREE_NEAR_R && Math.abs(t[1] - py) <= TREE_NEAR_R && Math.hypot(t[0] - px, t[1] - py) <= TREE_NEAR_R) trees.push(t);
     else if (t[4] & TREE_FLAG.fill) trees.push(t);
   }
   if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) {
@@ -2329,12 +2332,9 @@ function syncTrees(world, px, py) {
     _treeGroup.updateMatrix();
     const d = layoutTree(t, trunk, canopy, lobe);
     treeColor(t, _leaf);
-    const near = Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST;
-    if (!near) {
-      // far: the crown only, no shadow
-      put(far, canopy, _leaf);
-      continue;
-    }
+    const dd = Math.hypot(t[0] - px, t[1] - py), near = dd <= TREE_NEAR_R;
+    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) put(far, canopy, _leaf); // far crown: no shadow; woods overlap it in the fade band
+    if (!near) continue;
     _bark.setHex(SPECIES[d.sp].trunk);
     put(trunks, trunk, _bark);
     const hideCrown = camTreeHidden.includes(t) && crownShadowOnly.count < CROWN_SHADOW_CAP - 1;
@@ -4352,7 +4352,7 @@ function applyTimeOfDay(dt, world) {
   setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   // the leaves' emissive fill fades with the same night as the windows (#463)
-  TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  TREE_FAR_MAT.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
