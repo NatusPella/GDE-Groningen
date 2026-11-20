@@ -1,0 +1,32 @@
+// Pure test van de wandel-HUD (#985): scripts/wandelhud_test.mjs
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { wandelHudModel, watNu, strek, STAPPEN, UITLEG, NABIJ, STAMP_R, stempelPop } from '../game/js/wandelstatus.js';
+import { STAMPS, STAMP_R as REGEL_R, createWalk, routePoints } from '../game/js/wandelrules.js';
+import { simHudHtml } from '../game/js/simhud.js';
+
+assert.equal(wandelHudModel(null), null);
+assert.equal(STAMP_R, REGEL_R, 'de stempelstraal staat gelijk aan de regels');
+assert.equal(strek(0), 'oost'); assert.equal(strek(Math.PI / 2), 'zuid'); assert.equal(strek(Math.PI), 'west'); assert.equal(strek(-Math.PI / 2), 'noord');
+const basis = { fase: 'walk', stempels: 0, totaal: STAMPS.length, post: 'Station Winsum', afstand: 640, richting: 0, tempo: 1.84, tijd: 75.4, opvoertuig: false, flash: '', uitleg: true };
+const lopen = wandelHudModel(basis);
+assert.equal(lopen.stappen.length, STAPPEN.length); assert.equal(lopen.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(lopen.stappen[0].stand, 'nu');
+assert.equal(lopen.meter.naam, 'Stempels'); assert.equal(lopen.meter.pct, 0); assert.equal(lopen.meter.label, `0 van ${STAMPS.length}`); assert.equal(lopen.plek, 'Station Winsum');
+assert.deepEqual(lopen.cijfers.map((c) => c.label), ['Volgende post', 'Tempo', 'Tijd']); assert.equal(lopen.cijfers[0].waarde, '640 m'); assert.equal(lopen.cijfers[1].waarde, '1,8 m/s'); assert.equal(lopen.cijfers[2].waarde, '1:15');
+assert.ok(lopen.cijfers.every((c) => c.icoon) && lopen.cijfers.filter((c) => c.primair).length === 1 && lopen.cijfers[0].primair, 'elk getal een pictogram, de afstand is primair');
+assert.equal(lopen.uitleg.length, UITLEG.length); assert.match(lopen.nu, /Loop naar Station Winsum \(oost\)/); assert.ok(!lopen.slecht);
+assert.equal(wandelHudModel({ ...basis, stempels: 1 }).uitleg.length, 0, 'uitleg alleen voor de eerste stempel'); assert.equal(wandelHudModel({ ...basis, afstand: 2400 }).cijfers[0].waarde, '2,4 km');
+const dichtbij = wandelHudModel({ ...basis, stempels: 2, afstand: NABIJ - 20, post: 'Op de dijk' });
+assert.equal(dichtbij.stappen[1].stand, 'nu'); assert.equal(dichtbij.stappen[0].stand, 'klaar'); assert.equal(dichtbij.meter.pct, 40); assert.match(dichtbij.nu, /Bijna bij Op de dijk: nog 38 m voor de stempel/);
+const klaar = wandelHudModel({ ...basis, fase: 'done', stempels: STAMPS.length, afstand: null });
+assert.equal(klaar.stappen[2].stand, 'nu'); assert.equal(klaar.meter.pct, 100); assert.equal(klaar.cijfers[0].waarde, '-'); assert.match(klaar.nu, /Alle stempels/); assert.equal(klaar.plek, '');
+const voertuig = wandelHudModel({ ...basis, opvoertuig: true });
+assert.ok(voertuig.slecht); assert.match(voertuig.nu, /Stap uit/);
+assert.equal(wandelHudModel({ ...basis, stempels: 99 }).meter.pct, 100, 'meter nooit boven 100'); assert.equal(watNu({ ...basis, flash: 'Stempel 1/5' }), 'Stempel 1/5');
+assert.equal(stempelPop(2, 5, 'De molen').tekst, 'Stempel 2/5: De molen'); assert.equal(stempelPop(2, 5, 'x').geluid, 'ui_verzameld'); assert.equal(stempelPop(5, 5, 'x').tekst, 'Alle 5 stempels!'); assert.equal(stempelPop(5, 5, 'x').geluid, 'ui_loopbaan');
+assert.equal(createWalk(routePoints()).next, 0);
+const baan = fs.readFileSync(new URL('../game/js/wandeling.js', import.meta.url), 'utf8');
+assert.ok(/simHudTik\(0, wandelHudModel/.test(baan) && /simHudPop\(pp\.tekst, pp\.geluid\)/.test(baan) && /zetSimKolom\(kolom/.test(baan), 'de wandeling roept de strook, de pop en de lichtkolom aan');
+const html = simHudHtml(dichtbij);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+console.log('wandelhud_test ok');

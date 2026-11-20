@@ -275,6 +275,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De lijndienst op een echte buslijn (`sidejob_lijn.js`, eigen bestuurspaneel) en de treinbijbaan (de station- en halte-starts worden apart gebouwd), een kaartlaag met de dienstregeling.
 
+## 16. Wandeling Winsum
+
+**Wat kan de speler.** Een wandeling langs de dijk bij Winsum (E bij de eerste paal): vijf stempelposten in vaste volgorde, tegen de klok; het gemiddelde tempo bepaalt de medaille, in een voertuig telt niets. De wandeling neemt je niet over: je loopt zelf.
+
+**De lus.** Naar de volgende post lopen, stempelen, de volgende, de laatste.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je je eerste stempel haalt (`gde-sim-uitleg-v1`) |
+| HUD | bord met tijd, afstand, tempo en de volgende post in een rij en cellen met de stempels | strook (`simhud.js`): stappen Lopen, Stempelen, Klaar, een meter met de stempels, de afstand tot de volgende post groot met tempo en tijd en pictogram, één zin wat nu (met windrichting, vlak voor de post de afstand tot de stempel) |
+| Wereld | alleen de eerste paal met een ring | plus een gele lichtkolom boven de volgende post (`simkolom3d.js`) |
+| Feedback | een regel op het bord | een getal springt op per stempel ("Stempel 2/5: De molen") met het bestaande UI-geluid |
+
+**Samen spelen.** De wandeling zet je lichaam en de camera in de wereld en is daarom van wie het spel opende (`coopstatus.js`: deels, host-only). De strook en de lichtkolom zijn lokaal voor wie loopt. Valt de wandelaar weg, dan verdwijnt de strook met de wandeling. Test: `wandelhud_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** Een pijl op de grond naar de post, een kaartlaag met de route, een eigen sting voor de laatste stempel.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
