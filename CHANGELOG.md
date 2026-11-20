@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Eerste persoon: niet meer door dingen heen kijken:** het near-vlak van de camera is in de eerste persoon (te voet, in een auto en in de helikopter) 0,08 m in plaats van 0,5 m, zodat muren, kozijnen, dashboard en voorruit, armen en wapens vlak bij je ogen niet meer wegvallen. De derde persoon en de luchtbeelden houden hun near.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

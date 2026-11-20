@@ -8,6 +8,7 @@
 // Samen spelen: de camera is per speler lokaal; een gast stelt zijn eigen near in, zonder netwerkbericht.
 export const NEAR_MIN = 0.5;
 export const NEAR_MAX = 2.5;
+export const NEAR_FIRST_PERSON = 0.08; // eerste persoon: ogen, handen, wapen, dashboard, kozijn en muur zitten tot ~0,1 m voor de lens (#1024)
 export const CLEARANCE_FROM = 10; // onder deze vrije hoogte (m) blijft near 0,5
 export const CLEARANCE_TO = 60; // vanaf deze vrije hoogte (m) is near NEAR_MAX
 const NEAR_RISE_PER_S = 3; // near stijgt zacht (1 - e^(-3 dt)); hij zakt direct, want een te groot near knipt de omgeving weg
@@ -31,7 +32,8 @@ export function nearForClearance(clearance) {
 // behalve een vliegend voertuig (`flying`: de helikopter, waar de camera boven de stad hangt).
 export function cameraNearTarget({ clearance = 0, forced = null, firstPerson = false, override = false, indoors = false, inVehicle = false, flying = false } = {}) {
   if (forced != null) return forced;
-  if (firstPerson || override || indoors) return NEAR_MIN;
+  if (firstPerson) return NEAR_FIRST_PERSON; // ook in een voertuig en in de helikopter: het interieur zit vlak voor de lens
+  if (override || indoors) return NEAR_MIN;
   if (inVehicle && !flying) return NEAR_MIN;
   return nearForClearance(clearance);
 }
