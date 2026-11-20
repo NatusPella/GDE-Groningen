@@ -91,8 +91,6 @@ import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen, openPauseMenu } from './pausestate.js';
 import { bindMinimapOpen } from './minimaptap.js'; // #985
-import { gameProgress, progressText } from './progresslive.js';
-import { getPlaySeconds } from './savegame.js';
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
@@ -280,8 +278,6 @@ export function initHud(world) {
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden>' + icoon('dorst') + 'Aangeschoten</span>' +
           '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
-          // #898: hoe ver je bent, als één stil chipje naast je naam (zelfde cijfer als het Overzicht)
-          '<span class="hud-chip hud-done" role="status" hidden><b></b></span>' +
         '</div></div>' +
         '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
         '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
@@ -317,7 +313,6 @@ export function initHud(world) {
     drunk: topLeft.querySelector('.hud-chip.drunk'),
     idKey: '', hpKey: '', arKey: '', stKey: '', vehKey: '',
     mute: topLeft.querySelector('.hud-mute'),
-    done: topLeft.querySelector('.hud-done'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
     search: topRight.querySelector('.hud-search'),
@@ -412,7 +407,7 @@ function fitEdge(root) {
 function watchZoneB(root, zoneB) {
   if (typeof ResizeObserver === 'undefined') return;
   const place = () => root.style.setProperty('--hud-b-bottom', `${Math.ceil(zoneB.offsetTop + zoneB.offsetHeight)}px`);
-  const ro = new ResizeObserver(place);
+  const ro = new ResizeObserver(() => requestAnimationFrame(place)); // not in the observer callback itself: "ResizeObserver loop" errors
   ro.observe(zoneB);
   place();
 }
@@ -485,7 +480,7 @@ function watchRightStack(root, topRight, race, vehName, cards) {
     else root.style.removeProperty('--hud-vehname-ctx');
   };
   let ctxGezien = false;
-  const ro = new ResizeObserver(place);
+  const ro = new ResizeObserver(() => requestAnimationFrame(place));
   ro.observe(topRight);
   ro.observe(race);
   if (vehName) ro.observe(vehName);
@@ -625,39 +620,8 @@ function updateMute() {
   els.mute.setAttribute('aria-label', label);
 }
 
-// #898: hoe ver de speler is, in één stil chipje naast de naam. Het cijfer komt uit
-// progress.js — dezelfde bron als het Overzicht en het savegame-overzicht — en wordt elke
-// tien seconden opnieuw gevraagd: een verhaalstap of een prestatie is geen haastwerk, en de
-// HUD mag er niets van merken. In de minimale HUD-stand blijft het weg (#638: rust is rust).
-const PROGRESS_EVERY = 10;
-let progT = PROGRESS_EVERY, progText = '', hervatGemeld = false;
-function updateProgress(dt, world) {
-  if (!els.done) return;
-  progT += dt;
-  if (progT < PROGRESS_EVERY) return;
-  progT = 0;
-  if (getSettings().hudMode === 'minimaal') { els.done.hidden = true; return; }
-  let info;
-  try { info = gameProgress(); } catch (e) { return; }
-  if (!info.parts.length) { els.done.hidden = true; return; }
-  els.done.hidden = false;
-  const tekst = progressText(info.pct);
-  if (tekst === progText) return;
-  progText = tekst;
-  els.done.querySelector('b').textContent = tekst;
-  els.done.title = `Voortgang van de game: ${info.parts.map((p) => `${p.label.toLowerCase()} ${p.pct}%`).join(' · ')}`;
-  els.done.setAttribute('aria-label', `Voortgang: ${tekst}`);
-  // #898: bij het hervatten van een spel dat al liep één keer zeggen hoe ver je bent. Een
-  // nieuw spel begint op nul en heeft niets te hervatten, dus die krijgt de melding niet.
-  if (hervatGemeld) return;
-  hervatGemeld = true;
-  // getPlaySeconds is de speeltijd uit de save (of van deze sessie): nul bij een nieuw spel,
-  // en een paar minuten bij een spel dat je opnieuw oppakt.
-  let eerder = 0;
-  try { eerder = getPlaySeconds(); } catch (e) { eerder = 0; }
-  if (!(eerder > 60) || !(info.pct > 0)) return;
-  if (world && world.addMessage) world.addMessage(`Welkom terug in Grunn · ${tekst}`, 4, { kind: 'tip' });
-}
+// #898 / #985 (eigenaar, 20-11): de totale voortgang ("N% klaar") staat niet meer in de HUD; hij staat in Spel > Overzicht en in het savegame-overzicht
+// (progresslive.js, dezelfde bron). Het welkom-terugbericht met het cijfer is daarmee ook weg.
 
 // #802: statusaankondigingen voor de schermnarratie. Alleen als de instelling
 // aan staat, en begrensd door de wachtrij in narration.js.
@@ -692,7 +656,6 @@ export function updateHud(dt, world) {
   updateCharacter(dt, world);
   updateBars(world);
   updateMute();
-  updateProgress(dt, world);
   updateWanted(world);
   updateMoneyWeapon(dt, world);
   updateClock(world);

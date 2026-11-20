@@ -86,6 +86,7 @@ const hp = src('game/js/hud_panel.js');
 ok(!/hud-mate-pic/.test(hp) && !/mateImg/.test(hp) && !/setPortrait\(els\.mateImg/.test(hp), 'geen tweede portret meer naast de naam (hud-mate-pic weg)');
 ok(/hud-mate-txt/.test(hp), 'de metgezel blijft voor schermlezers (visueel verborgen tekst)');
 ok(/const ch = hoofdspeler\(world\)\.character === 'anita' \? 'anita' : 'tammo';/.test(hp), 'de naam en het portret komen van de hoofdspeler (de eigen figuur, ook bij een gast)');
+ok(!/hud-done/.test(hp) && !/from '\.\/progresslive\.js'/.test(hp), 'de totale voortgang (N% klaar) staat niet meer op het karakterkaartje (eigenaar 20-11)');
 ok((hp.match(/setPortrait\(/g) || []).length === 2, 'setPortrait: alleen de definitie en het portret van de speler');
 
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
