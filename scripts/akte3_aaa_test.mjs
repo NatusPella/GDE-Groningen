@@ -120,12 +120,12 @@ t('M16: de tentenkaart telt mee bij punt2 en punt4 (na de eerste en tweede tent)
 });
 
 // ---- wachtfiguur, stings, aankleding op de defs --------------------------------------------------------------------
-t('M13: de twee wachtstappen krijgen een figuur (koffie bij de kooi, krant bij de container), de andere niet', () => {
+t('M13: de twee wachtstappen krijgen een figuur (radio bij de kooi, landkaart bij de container; akte34_beats.js), de andere niet', () => {
   const d = def(NAMEN.M13);
   const f1 = waitFigureFor(d.stages[1], 0), f3 = waitFigureFor(d.stages[3], 0);
   assert.ok(f1 && f3, 'beide wachtstappen hebben een figuur');
-  assert.equal(d.stages[1].wacht.prop, 'koffie');
-  assert.equal(d.stages[3].wacht.prop, 'krant');
+  assert.equal(d.stages[1].wacht.prop, 'radio');
+  assert.equal(d.stages[3].wacht.prop, 'landkaart');
   assert.equal(waitFigureFor(d.stages[0], 0), null, 'een goto krijgt geen wachtfiguur');
   assert.ok(d.stages.every((s) => s.kind !== 'hold' || s.ticks.length >= 2), 'de ticks (bubbels) staan er nog');
 });

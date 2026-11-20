@@ -73,6 +73,7 @@ import { haakFx } from './sfx/haken.js'; // ronde 4: kleine geluidshaken van de 
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
+import { beatStart, beatTik, beatStop, toonNasleep } from './akte34_beats.js'; // AAA akte 3 en 4: openingsbeeld, tussenbeats, nasleep
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
 import { forceClearSweep } from './clearzonesweep.js';
@@ -1304,6 +1305,7 @@ function succeed(world, def) {
     world.stats.missionsDone++;
     if (def.heist) world.stats.heistsDone++; // #818: Kiekdoar ziet een geslaagde overval
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
+    toonNasleep(world, def); // AAA akte 3 en 4: wat er daarna gebeurt (alleen tekst)
     if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? ' — de grootste buit was van jou.' : '.'}`, 4);
     if (bonus > 0) {
       // #685: dezelfde basis en factor als de gast ziet, met het totaal erbij; de uitleg van 1+1=3
@@ -2635,6 +2637,7 @@ function enterStage(world, def, k) {
   if ((st.kind === 'hold' || (st.kort && st.kort.ring)) && S.target && !S.set) S.wait = buildWaitDressing(st, S.target, st.radius || HOLD_RADIUS, world);
   // De regelkaart (step.kaart) is lokaal en alleen beeld; een stap zonder kaart krijgt niets (startKaart geeft null).
   S.kaart = st.kaart ? startKaart(st, `${def.id || def.label || 'm'}:${k}`) : null;
+  if (st.openCam || st.beats) beatStart(world, st, S, st.dressingAt || S.target || S.here); // AAA akte 3 en 4: alleen beeld
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chainState().timeLeft += st.bonus;
@@ -2896,6 +2899,7 @@ function disposeEindAankleding() {
 function disposeStageDressing(keepSet = false) {
   disposeEindAankleding();
   const S = chainState().stage;
+  if (S && S.aaa34) beatStop(S);
   if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
   if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; chainState().binnen = null; const cw = S.camWorld; if (cw && cw.cameraOverride && cw.cameraOverride.bron === 'binnenset') cw.cameraOverride = null; } // #956: de kamer gaat mee met de stap
   if (S && S.dressing) { disposeMissionDressing(S.dressing); S.dressing = null; } // #955: de aankleding gaat mee met de stap
@@ -3459,6 +3463,7 @@ function updateStages(dt, world, def) {
     }
   }
   if (S.dressing) updateMissionDressing(S.dressing, dt);
+  if (S.aaa34) beatTik(world, st, S, dt); // AAA akte 3 en 4: openingsbeeld en tussenbeats (alleen beeld)
   if (S.kaart) toonRegelkaart(world, S.kaart, dt); // alleen beeld: geen invloed op de stap, de beloning of de voortgang
   if (S.wait) tickWaitFigure(S.wait, dt); // de wachtfiguur (wacht.figuur): idle-animatie, ook alleen beeld
   if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {

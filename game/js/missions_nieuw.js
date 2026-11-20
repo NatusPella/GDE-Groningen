@@ -12,6 +12,7 @@ import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13
 import { tileIndexOf } from './gdt.js';
 import { applyPlekFix } from './missionplace.js';
 import { applyAkte3 } from './missions_akte3.js'; // AAA akte 3: kaarten, wachtfiguren, aankleding
+import { applyAkte34 } from './akte34_beats.js'; // AAA akte 3 en 4, tweede laag: openingsbeeld, beats, nasleep
 import { applyAkte45 } from './missions_akte45.js'; // AAA akte 4 en 5: kaarten, wachtfiguren, aankleding
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
@@ -379,6 +380,7 @@ export function applyNieuw(list) {
   }
   applyAkte3(list);
   applyAkte45(list);
+  applyAkte34(list); // na akte 3 en 4: kiest de nieuwe wachtspullen en voegt beats toe
   applyAkte6(list); // AAA akte 6: kaarten, wachtfiguren, aankleding
 }
 

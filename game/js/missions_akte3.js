@@ -99,7 +99,7 @@ export const KAARTEN = {
   ],
   M15: [
     { doel: 'Stap in het vliegtuig van Roelfien',
-      regels: [stappen('Zo vlieg je', 0, [stap('pijl', 'Gas met W'), stap('meter', 'Trek op bij 30 m/s'), stap('hart', 'Laag door de poorten')], { na: 6, duur: 9 })] },
+      regels: [stappen('Zo vlieg je', 0, [stap('pijl', 'Gas met {W}'), stap('meter', 'Trek op bij 30 m/s'), stap('hart', 'Laag door de poorten')], { na: 6, duur: 9 })] },
     { doel: 'Laag over het graan, het spandoek over de kermis', afloop: 'te hoog, te laag of een poort gemist: het spandoek hangt er niet',
       regels: [{ type: 'limiet', inv: { waarde: 12, limiet: 24, marge: 6, max: 30, eenheid: 'm', label: 'Hoogte' }, tekst: 'Eerste poort: tussen 3 en 24 meter. Laag over het graan.', na: 8, duur: 9 },
         { type: 'wijzer', inv: { afstand: 3000, hoek: 0, label: 'De molen' }, tekst: 'Spandoek mee. Nu de molen rechts houden en naar de kermis.', bij: 'poort1', duur: 7 },
@@ -110,7 +110,7 @@ export const KAARTEN = {
   M12: [
     { doel: 'Vlieg Dijkstra\'s lunch naar het UMCG', afloop: 'de ballon ontsnapt over de Dollard: opnieuw proberen',
       regels: [stappen('Het plan', 0, [stap('pakje', 'Lunch naar het UMCG'), stap('pijl', 'Achter de ballon aan'), stap('hand', 'Stil naast de mand')], { na: 8, duur: 8 }),
-        { type: 'toets', inv: { label: 'Heli', toetsen: ['Spatie', 'W', 'A', 'D'], handeling: 'tik' }, tekst: 'Spatie omhoog, W vooruit, A en D draaien. Dijkstra vliegt de lange stukken.', na: 17, duur: 8 }] },
+        { type: 'toets', inv: { label: 'Heli', toetsen: ['Spatie', 'W', 'A', 'D'], handeling: 'tik' }, tekst: '{SPATIE} omhoog, {W} vooruit, {A} en {D} draaien. Dijkstra vliegt de lange stukken.', na: 17, duur: 8 }] },
   ],
   M16: {
     doel: 'Volg Durk en Douwe langs drie tenten', druk: 'honderd seconden', afloop: 'de menigte duwt: blijf overeind',

@@ -287,7 +287,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
       start: { x: 1767.87, y: 9950.93, road: null },
       startSpot: 'eelde',
       stages: [
-        { kind: 'heli', variant: 'traumaduif', target: { helipad: 'eelde', label: 'Rotor Roelf, Eelde' }, label: 'Vlieg naar het UMCG, dan achter de ballon aan', say: 'Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
+        { kind: 'heli', variant: 'traumaduif', target: { helipad: 'eelde', label: 'Rotor Roelf, Eelde' }, label: 'Vlieg naar het UMCG, dan achter de ballon aan', say: 'Instappen bij Roelf. {SPATIE} omhoog, {W} vooruit, {A}/{D} draaien. De rest staat in beeld.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
       ],
     },
     {
