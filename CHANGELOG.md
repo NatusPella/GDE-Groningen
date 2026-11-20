@@ -70,6 +70,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Sneller
 
+- **Minder drawcalls in de stad (#1039, GPU-kant):** duiven en meeuwen waren 31 aparte meshes per vogel en bij een voerplek ruim honderd drawcalls; ze zijn nu 11 (één per bewegende groep, poses ongewijzigd). De paaltjes en masten van de perrons zijn één InstancedMesh in plaats van een mesh per stuk (ruim 50 drawcalls bij een station). De detailring van Ultra gaat van 190 naar 170 m: een vijfde minder losse gebouwen, wegen en gevels; de verre laag neemt het over. Hoog (zichtafstand kort) gebruikt een schaduwkaart van 2048 in plaats van 4096 (dezelfde 3,1 cm per texel, 50 MB minder, een kwart van de texels); alleen Ultra houdt 4096.
+- **Videokaart-schakelaars voor Windows, ook voor AMD (#1039):** het spel negeert de blokkadelijst van Chromium (een nieuwe Radeon of driver viel daardoor terug op software) en zet de vensterbedekkingscontrole uit. ANGLE/D3D11 en vsync blijven zoals ze waren. `GDE_GPU_FLAGS=0` zet het uit; wat je zelf kunt proberen staat in docs/PERF-GPU-21-11.md.
+- **Benchmarkadvies voor snelle videokaarten op een 60 Hz-scherm (#1039):** een vergrendelde 60 fps met alle beelden op tijd telt nu als ruimte, zodat het advies een hogere stand voorstelt. Eerder haalde het gemiddelde nooit 75 fps op zo'n scherm en kreeg een snelle GPU nooit een hoger advies.
 - **Minder haperen tijdens het lopen en rijden (CPU-profiel):** de routegraaf en de wegen- en verkeersindex worden na elke nieuwe tegel opnieuw opgebouwd; die herbouw is nu goedkoper (gebouwtoets zonder kopieën, knooppunten als getal), en het gras gooit niet meer al zijn stukken weg zodra een tegel met groen binnenkomt.
 
 ### Opgelost
