@@ -42,7 +42,7 @@ import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { vehicleHeight } from './vaultkit.js';
 // #497: de pure camera-meetkunde (volgcam buiten de wagen, prop- en boomray, ellipsoïde) staat in cammath.js.
-import { camClearOfVehicle, rayCylinder, segHitsEllipsoid } from './cammath.js';
+import { camClearOfVehicle, rayCylinder, segHitsEllipsoid, vehicleCamRig } from './cammath.js';
 // De publieke naam blijft in scene3d.js staan voor bestaande lezers.
 export { camClearOfVehicle };
 import { updateSwimmers3D } from './swimmers3d.js';
@@ -3308,11 +3308,11 @@ export function update3D(dt, world) {
     // de baan groeit mee met de lengte van het voertuig (bus verder), zodat de auto het onderste
     // deel van het beeld niet vult en je over het dak heen de weg vooruit ziet
     const veh = camVeh;
-    const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : veh.isBus ? (veh.model.trailer ? 5.2 : Math.min(4.4, Math.max(3.2, veh.model.len / 2.5))) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
+    const rig = vehicleCamRig(veh), camScale = rig.scale;
     // samen spelen (#95): de eerste twee spelers delen één camera op het midden tussen hen (coop.js sharedCamera)
     const share = !camVeh && world.coopCam ? world.coopCam : null;
     const radius = orbitRadius * camScale * (share ? share.zoom : 1);
-    const eyeX = share ? share.x : player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = share ? share.y : player.y;
+    const eyeX = share ? share.x : player.x, eyeY = baseH + rig.eye, eyeZ = share ? share.y : player.y;
     // de volgplek uit cameraplan.js: achter de speler en sin(pitch) x radius erboven (#463)
     const pose = followCameraPose({ x: player.x, y: player.y, eye: eyeY, angle: camAngle, pitch: followPitch, radius });
     let desiredX = pose.x;
@@ -3435,7 +3435,7 @@ export function update3D(dt, world) {
     lastPx = player.x; lastPy = player.y;
     cam.position.copy(camBase);
     const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
-    lookX = player.x; lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp; lookZ = player.y;
+    lookX = player.x + Math.cos(camAngle) * rig.ahead; lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp; lookZ = player.y + Math.sin(camAngle) * rig.ahead;
     followPose.position.x = camBase.x; followPose.position.y = camBase.z; followPose.position.z = camBase.y;
     followPose.lookAt.x = lookX; followPose.lookAt.y = lookZ; followPose.lookAt.z = lookY;
     followPose.at = performance.now();

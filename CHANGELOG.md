@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- In de derde persoon zie je in de trekker weer wat: de camera hangt boven het cabinedak, kijkt een stukje vooruit en de bestuurder, de motorkap en de weg zijn in beeld. Hetzelfde geldt voor de maaidorser, vrachtwagen en ambulance; gewone auto's veranderen niet (#1029).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
