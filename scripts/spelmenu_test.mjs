@@ -300,7 +300,7 @@ const railDelen = [...railGroepen.matchAll(/\['(\w+)', '([^']+)', \[([^\]]+)\]\]
 ok(railDelen.length === 5 && !railDelen.flatMap((d) => d[2]).includes('over'), 'de rail heeft vijf groepen en geen Over-rij (#601)', JSON.stringify(railDelen.map((d) => d[0])));
 ok(railDelen.map((d) => d[0]).join() === 'spel,doen,bezit,voortgang,systeem' && railDelen.map((d) => d[1]).join() === 'Spel,Doen,Bezit,Voortgang,Systeem', 'de groepen heten Spel, Doen, Bezit, Voortgang en Systeem (#911, 20-11)');
 ok(railDelen[0][2].join() === 'spel' && railDelen[1][2].join() === 'verhaal,todo,loopbaan,boerderij,map' && railDelen[2][2].join() === 'spullen,garage' && railDelen[3][2].join() === 'veroverd,prestaties,fotos' && railDelen[4][2].join() === 'settings,streken', 'de rail: Spel | Verhaal, Activiteiten, Loopbanen, Boerderij, Kaart | Spullen, Garage | Veroverd, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676, #911, 20-11)');
-ok(/pm-rail-h/.test(pm) && /data-gcount/.test(pm) && /function railPosition\(/.test(pm), 'de kop van een groep telt zijn onderdelen en de bladkop zegt waar je bent (#911)');
+ok(/pm-rail-h/.test(pm) && !/data-gcount/.test(pm) && /function railPosition\(/.test(pm), 'de kop van een groep toont geen aantal en de bladkop zegt waar je bent (#911, 21-11)');
 ok(/'over',\s*'Over'/.test(pm) && /data-goto="over"|data-goto-sub="[a-z]+:over"/.test(pm), 'Over bestaat nog als onderdeel met een ingang (#601)');
 ok(/rowName\('Over GDE'.*?data-goto="over"/.test(pm), 'Instellingen > Interface heeft een rij naar Over (#601)');
 // de rail past op de stage: 48 px per rij op 1080p, 40 px op 1280x720 (QA #911), en nooit

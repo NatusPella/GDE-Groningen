@@ -21,6 +21,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Spullen: pictogrammen uit de vaste set, de hoofdactie toont de toets (Enter) en Q en E wisselen tussen Alles, Uitrusting, Thuis en Verzamelingen.
 - Loopbanen: de stand staat op één regel en elke loopbaan in de lijst heeft twee regels met het niveau rechts, zonder balk per rij.
 
+- Pauzemenu: de groepskoppen in de zijbalk (Doen, Bezit, Voortgang, Systeem) tonen geen aantallen meer; alleen een melding laat nog een badge zien.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

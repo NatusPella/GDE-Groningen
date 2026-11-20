@@ -951,7 +951,7 @@ export function initPauseMenu(w) {
   const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
   // #911: elke groep met een eigen kop en het aantal onderdelen erachter; de telling volgt in
   // showTab wat er echt in de rail staat (het hoofdmenu toont er maar drie).
-  const railGroup = ([id, label, members]) => `<div class="pm-rail-group" data-group="${id}"><span class="pm-rail-h"><span>${esc(label)}</span><span class="cnt" data-gcount="${id}"></span></span>` +
+  const railGroup = ([id, label, members]) => `<div class="pm-rail-group" data-group="${id}"><span class="pm-rail-h"><span>${esc(label)}</span></span>` +
     members.map(railBtn).join('') + '</div>';
   root.innerHTML = `
     <div class="pm-fold gm-stage">
@@ -2657,8 +2657,6 @@ function showTab(name, how) {
   for (const g of root.querySelectorAll('.pm-rail-group')) {
     const shown = [...g.querySelectorAll('[data-goto]')].filter((b) => !b.hidden).length;
     g.hidden = shown === 0;
-    const cnt = g.querySelector('[data-gcount]');
-    if (cnt) cnt.textContent = shown > 1 ? String(shown) : '';
   }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');

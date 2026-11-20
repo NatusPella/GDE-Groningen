@@ -161,7 +161,7 @@ const html = leesHtml();
 {
   ok(/pm-rail-h/.test(pm) && /pm-rail-group/.test(pm), '#911: de rail heeft groepen met een kop');
   ok(/function railPosition/.test(pm) && /pm-sheet-pos/.test(pm), '#911: de bladkop zegt in welke groep en op welke plek je bent');
-  ok(/data-gcount/.test(pm) && /cnt\.textContent = shown > 1 \? String\(shown\) : ''/.test(pm), '#911: de kop telt wat er echt in de rail staat');
+  ok(!/data-gcount/.test(pm) && !/class="cnt"/.test(pm), 'de groepskoppen tonen geen aantallen (eigenaar 21-11): getallen zijn voor meldingen');
   ok(/#pause-menu \.pm-rail-h \{/.test(css), '#911: de groepskop is klein en stil');
   ok(/pm-sheet-pos:empty/.test(css), '#911: zonder plek (het hoofdmenu) blijft de regel weg');
   // elke sectie heeft één korte zin, en die zegt wat je er doet
@@ -221,9 +221,8 @@ const html = leesHtml();
 {
   const kleur = (re) => { const m = css.match(re); return m ? m[1].trim() : ''; };
   const railH = kleur(/#pause-menu \.pm-rail-h \{[^}]*color: ([^;]+);/);
-  const cnt = kleur(/#pause-menu \.pm-rail-h \.cnt \{[^}]*color: ([^;]+);/);
   const pos = kleur(/#pause-menu \.pm-sheet-pos \{[^}]*color: ([^;]+);/);
-  ok(railH === 'var(--mut)' && cnt === 'var(--mut)' && pos === 'var(--mut)', 'review: de drie navigatielabels gebruiken de leesbare mut-token', `${railH}|${cnt}|${pos}`);
+  ok(railH === 'var(--mut)' && pos === 'var(--mut)', 'review: de navigatielabels gebruiken de leesbare mut-token', `${railH}|${pos}`);
   // de token echt doorrekenen op de donkerste en de lichtste menukaart
   const m = menuCss.match(/--mut: rgba\(([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\)/);
   ok(!!m, 'review: --mut is een rgba-token');
