@@ -780,11 +780,12 @@ export function updateBoerderijWereld(dt, w) {
   }
   for (const veld of S.velden.values()) if (veld.marker) tikVeldMarker(veld.marker, S.t, reducedMotion());
   boerderijHudTik(dt, boerderijHudStand(w));
-  meldOogstklaar(w, b);
+  if (S.t - (S.oogstT || 0) >= MELD_OOGST_S) { S.oogstT = S.t; meldOogstklaar(w, b); }   // #804: Object.keys en veldStand per perceel hoeven niet elk beeld; een oogstklaar veld mag een halve seconde later gemeld worden
   S.prompt = bepaalPrompt(w);
 }
 
 // Een veld dat net oogstklaar werd: één melding en het geluid, waar je ook bent (de gewassen groeien in speltijd, ook als je wegrijdt of slaapt).
+export const MELD_OOGST_S = 0.5;
 const vorigeStand = new Map();
 function meldOogstklaar(w, b) {
   for (const id of Object.keys(b.bedrijf.percelen)) {
