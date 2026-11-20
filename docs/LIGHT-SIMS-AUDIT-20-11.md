@@ -190,6 +190,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De strook met meer spelers, de scorekaart per baan in de strook.
 
+## 11. Zwembad (honderd meter)
+
+**Wat kan de speler.** Honderd meter in vier banen van 25 m (E bij de kassa): Spatie voor een duik als de balk bij het streepje is, A en D om en om om te zwemmen, Spatie vlak voor de muur voor een keerpunt. Je armen raken moe als je te hard gaat. Medailles en records.
+
+**De lus.** Startblok, duik, vier banen met keerpunten, aantikken.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst duikt (`gde-sim-uitleg-v1`) |
+| HUD | bord met tijd, baan en afstand in een rij en een balk met een woord | strook (`simhud.js`): stappen Duiken, Zwemmen, Finish, de duikbalk (woord "Nu!" bij het streepje) en daarna je armen ("Moe"), de tijd groot met baan en afstand en pictogram, één zin wat nu |
+| Wereld | bad, blokken, badmeester, spetters | plus een gele lichtkolom op de keerwand waar je naartoe zwemt (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een mooie duik en een mooi keerpunt springen op met het bestaande UI-geluid; een mislukte duik staat als zin in de strook |
+
+**Samen spelen.** Het zwembad zet je lichaam in de wereld en is daarom van wie het spel opende (een gast krijgt "Alleen bij wie het spel opende"). De strook en de lichtkolom zijn lokaal voor wie zwemt. Valt de speler weg, dan verdwijnt de strook met de race. Test: `zwemhud_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** Een kaartmarkering voor de keerwand, een eigen sting voor een record.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.

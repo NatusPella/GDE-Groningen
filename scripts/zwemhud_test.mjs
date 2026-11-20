@@ -1,0 +1,33 @@
+// Pure test van de zwembad-HUD (#985): scripts/zwemhud_test.mjs
+import assert from 'node:assert/strict';
+import { zwemHudModel, watNu, stapVan, STAPPEN, UITLEG, DUIK_DOEL, KEER_AFSTAND, duikPop, keerPop } from '../game/js/zwemstatus.js';
+import { POOL, diveMarker, SWIM } from '../game/js/swimrules.js';
+import { simHudHtml } from '../game/js/simhud.js';
+
+assert.equal(zwemHudModel(null), null);
+assert.equal(stapVan({ swimFase: 'block' }), 'duik'); assert.equal(stapVan({ swimFase: 'swim' }), 'zwem'); assert.equal(stapVan({ swimFase: 'done' }), 'finish');
+const basis = { fase: 'run', swimFase: 'block', tijd: '0:00.00', baan: 1, banen: POOL.lengths, afstand: 0, duik: 0.2, stamina: 1, moe: false, muur: null, flash: '', slecht: false, uitleg: false };
+const blok = zwemHudModel(basis);
+assert.equal(blok.stappen.length, STAPPEN.length); assert.equal(blok.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(blok.stappen[0].stand, 'nu');
+assert.ok(blok.meter && blok.meter.naam === 'Duikbalk' && blok.meter.pct === 20 && blok.meter.staat === '');
+assert.equal(zwemHudModel({ ...basis, duik: DUIK_DOEL }).meter.staat, 'goed'); assert.equal(zwemHudModel({ ...basis, duik: DUIK_DOEL }).meter.label, 'Nu!');
+assert.ok(diveMarker(0) >= 0 && diveMarker(0) <= 1, 'de balk is een getal tussen 0 en 1');
+assert.deepEqual(blok.cijfers.map((c) => c.label), ['Tijd', 'Baan', 'Afstand']);
+assert.ok(blok.cijfers.every((c) => c.icoon) && blok.cijfers.filter((c) => c.primair).length === 1 && blok.cijfers[0].primair, 'elk getal een pictogram, de tijd is primair');
+assert.match(blok.nu, /streepje/);
+const intro = zwemHudModel({ ...basis, fase: 'intro', uitleg: true });
+assert.equal(intro.uitleg.length, UITLEG.length); assert.match(intro.nu, /startblok/); assert.equal(zwemHudModel({ ...basis, uitleg: true }).uitleg.length, 0, 'uitleg alleen voor de start');
+const zwem = zwemHudModel({ ...basis, swimFase: 'swim', stamina: 0.6, muur: 12, afstand: 12.4, baan: 2, tijd: '0:14.20' });
+assert.equal(zwem.stappen[1].stand, 'nu'); assert.equal(zwem.stappen[0].stand, 'klaar'); assert.equal(zwem.meter.naam, 'Je armen'); assert.equal(zwem.meter.pct, 60);
+assert.equal(zwem.cijfers[1].waarde, '2/4'); assert.equal(zwem.cijfers[2].waarde, '12 m'); assert.match(zwem.nu, /om en om/);
+assert.match(watNu({ ...basis, swimFase: 'swim', muur: KEER_AFSTAND - 0.5 }), /keerpunt/); assert.match(watNu({ ...basis, swimFase: 'swim', muur: 10 }), /om en om/);
+const moe = zwemHudModel({ ...basis, swimFase: 'swim', stamina: SWIM.tired - 0.05, moe: true, muur: 20 });
+assert.equal(moe.meter.staat, 'laag'); assert.equal(moe.meter.label, 'Moe'); assert.ok(moe.slecht); assert.match(moe.nu, /Moe/);
+assert.equal(zwemHudModel({ ...basis, swimFase: 'swim', stamina: 7 }).meter.pct, 100, 'meter nooit boven 100');
+const klaar = zwemHudModel({ ...basis, swimFase: 'done' });
+assert.equal(klaar.meter, null); assert.equal(klaar.stappen[2].stand, 'nu'); assert.match(klaar.nu, /Aangetikt/);
+assert.equal(zwemHudModel({ ...basis, flash: 'Buikschuiver!', slecht: true }).nu, 'Buikschuiver!');
+assert.equal(duikPop(0.5), null); assert.equal(duikPop(0.97).tekst, 'Mooie duik!'); assert.equal(keerPop(false), null); assert.match(keerPop(true).tekst, /keerpunt/);
+const html = simHudHtml(blok);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html, /sh-cijfer--primair/);
+console.log('zwemhud_test ok');

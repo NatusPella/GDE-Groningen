@@ -11,6 +11,7 @@
 .sh-stappen > li[data-stand="klaar"] .ds-chip { --ds-chip-bg: var(--ds-succes-vlak); --ds-chip-tx: var(--ds-succes-tx); }
 .sh-stappen > li[data-stand="nu"] .ds-chip { --ds-chip-bg: var(--ds-primair); --ds-chip-tx: var(--ds-primair-tx); }
 .sh-meter--laag .ds-streep__vul { background: var(--ds-probleem); }
+.sh-meter--goed .ds-streep__vul { background: var(--ds-succes); }
 .sh-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; }
 .sh-cijfers > div { display: flex; flex-direction: column; }
 .sh-cijfers dd { margin: 0; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }

@@ -116,9 +116,11 @@ ok(/\.hx-rolechip \{[\s\S]*?min-height: 44px/.test(heistCss) && !/roleEl\.style\
 // De per-bord issues (#596/#614/#615/#617/#619/#620): de statuskleuren komen uit de tokens en de
 // borden dragen hun eigen vorm (boeiencellen, duikstreep, startlichten, balansmidden, klimvlag).
 const waterski = read('waterski.js');
-ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /text: 'arm'/.test(read('zwembad.js')), 'waterski/zwembad: baan als vorm en laatste kans');
+ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /Armen/.test(read('zwemstatus.js')), 'waterski/zwembad: baan als vorm en laatste kans');
 const zwembad = read('zwembad.js');
-ok(/var\(--mk-ok/.test(zwembad) && /var\(--mk-job/.test(zwembad) && /Spatie bij het streepje/.test(zwembad), 'zwembad: duik- en vermoeidheidsmeter via tokens en vorm');
+// #985: de strook (simhud.js, zwemstatus.js) vervangt het bord: duikbalk en armen als meter, staat in een woord (Nu!, Moe)
+const zwemst = read('zwemstatus.js');
+ok(/simHudTik\(0, zwemHudModel/.test(zwembad) && !/var\(--mk-/.test(zwembad) && /Spatie als de balk bij het streepje is/.test(zwemst) && /'Moe'/.test(zwemst), 'zwembad: duik- en vermoeidheidsmeter in de strook, staat in een woord');
 const kart = read('kartbaan.js');
 // #985: de strook (simhud.js, kartstatus.js) vervangt het bord; het bord blijft alleen voor de tussenstand bij een race tegen anderen
 ok(/mg-stand/.test(kart) && /simHudTik\(0, kartHudModel/.test(kart) && !/var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, de strook uit simhud.js zonder eigen kleuren');
