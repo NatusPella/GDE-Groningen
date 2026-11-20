@@ -366,11 +366,13 @@ try {
     if (S) {
       await jump(S.farm.x, S.farm.y, 6000);
       let gestart = false;
-      for (let i = 0; i < 8 && !gestart; i++) { PGm.unlock(); await sleep(2500); note('koe', { spots: PGm.spots().map((q) => q.id) }); gestart = PGm.start('koe'); }
+      // zoals een speler: bij het erf staan en E drukken (de koe staat niet in de lijst van `start` voor het harnas; PGm.start('koe') gaf false)
+      for (let i = 0; i < 6 && !gestart; i++) { PGm.unlock(); await sleep(2500); note('koe', { spots: PGm.spots().map((q) => q.id) }); p.x = S.farm.x + 0.5; p.y = S.farm.y + 0.5; await tap('e', 'KeyE', 200); await sleep(2000); gestart = !!PGm.state(); }
       await sleep(5000);
       const doel = K.koeBarnTarget(S);
       note('koe', { gestart, state: PGm.state(), farm: [Math.round(S.farm.x), Math.round(S.farm.y)], schuur: doel && [Math.round(doel.x), Math.round(doel.y)], afstand: Math.round(S.dist) });
       await cap('ht969-erf-start', 500);
+      note('koe', { doelmarker: w.challengeTarget ? { x: Math.round(w.challengeTarget.x), y: Math.round(w.challengeTarget.y) } : null, berichten: (w.hud && w.hud.messages ? w.hud.messages : []).slice(-3) });
       // van de weg af, 70 m en 25 m van de schuur, dan een luchtbeeld
       const a = S.hide.a + Math.PI; // van het erf af gekeken? de schuur kijkt naar de boerderij: de weg ligt aan die kant
       await jump(S.hide.x + Math.cos(S.hide.a) * 80, S.hide.y + Math.sin(S.hide.a) * 80, 8000);
@@ -423,7 +425,7 @@ try {
       let rt = null;
       for (const kind of ['walk', 'drive']) {
         RT.setUserWaypoint(kerk.x, kerk.y, kerk.naam);
-        for (let i = 0; i < 60 && !(rt = RT.getActiveRoute()); i++) await sleep(250);
+        for (let i = 0; i < 80; i++) { const rs = RT.getRoutes(); rt = rs.length ? rs[rs.length - 1] : null; const e = rt && rt.pts && rt.pts[rt.pts.length - 1]; if (e && Math.hypot(e[0] - kerk.x, e[1] - kerk.y) < 150) break; rt = null; await sleep(250); }
         const pts2 = rt && (rt.pts || rt.points) || [];
         let kerkhof = 0, gebouw = 0;
         for (let i = 0; i < pts2.length - 1; i++) {
