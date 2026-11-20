@@ -25,13 +25,13 @@ Iedereen dezelfde versie, en wel een build **met de #983-reparatie** (commit "de
 2. Kies **Iemand uitnodigen** en daarna **Kamercode** (de standaard; de IP-route is alleen een noodoplossing).
 3. Lees het toestemmingsscherm en kies **Akkoord**. Je IP-adres gaat dan naar je medespelers en naar openbare servers die jullie helpen elkaar te vinden.
 4. Er staat een code als `K3J9D-8F2MN`. Stuur die naar de drie anderen. Dezelfde code werkt voor iedereen; hij blijft zichtbaar zolang er plekken vrij zijn.
-5. Wacht tot de spelerslijst drie gasten toont (standaard maximaal 8 spelers). Daarna **Spel starten**. De opening zien jullie samen; alleen de host kan hem overslaan.
+5. Wacht tot de spelerslijst **alle drie de gasten** toont (standaard maximaal 8 spelers). Pas daarna **Spel starten**. De opening zien jullie samen; alleen de host kan hem overslaan. Na **Spel starten** laadt de opening: dat duurt op een drukke computer tot ongeveer anderhalve minuut met hapering, en in die tijd kan niemand meer aansluiten (de host antwoordt dan niet). Wie te laat is, probeert het daarna gewoon opnieuw; later bijkomen kan altijd.
 
 Liever een lijst dan een code? Kies in de wachtkamer **Maak deze sessie openbaar**, geef een naam (geen echte persoonsnaam) en lees de melding. De sessie staat dan in de lijst Openbare sessies voor iedereen met dit spel. Standaard is een sessie privé. Voor vier vrienden is de code veiliger.
 
 ## Meedoen (de drie anderen)
 
-Sluit **één voor één** aan: wacht tot de naam van de vorige in de spelerslijst van de host staat. Kiezen er twee op hetzelfde moment, dan kan de tweede na 30 seconden "Er kwam geen verbinding tot stand" zien; kies dan gewoon opnieuw **Verder** met dezelfde code.
+Aansluiten met de kamercode mag ook tegelijk: kiezen twee gasten op hetzelfde moment **Verder**, dan wint er een en doet de ander na ongeveer 30 seconden zelf een tweede (en zo nodig derde) poging; je hoeft niet opnieuw Verder te kiezen. Sneller gaat het als je één voor één aansluit: wacht tot de naam van de vorige in de spelerslijst van de host staat.
 
 1. Hoofdmenu: **Samen spelen**, dan **Meedoen**.
 2. Typ of plak de kamercode en kies **Verder**, of kies **Openbare sessies** en klik op de sessie van de host.
@@ -62,8 +62,8 @@ Probeer in deze volgorde:
 ## Bekende beperkingen
 
 - Vier instanties op **één** computer (16 logische kernen, geen aparte videokaart per speler) gaven ongeveer 20 beelden per seconde per instantie, elk met zo'n 85% van een processorkern en 1,9 GB werkgeheugen (samen 7,8 GB). Op vier eigen computers is dat per speler gunstiger; het verkeer tussen de spelers is klein (een headless gast ontving ongeveer 24 pakketten per seconde). Plan voor een middenklasse-pc ruim 2 GB vrij werkgeheugen voor het spel.
-- Een gast die wegvalt ziet "Verbinding weg" en het spel van die gast staat stil tot hij terug is; de testbank verwachtte iets anders (open vraag in #983).
-- Aanraakbediening van een gast bewoog zijn figuur niet bij de host in de test; op een computer met toetsenbord en muis speelt dat niet.
+- Een gast die wegvalt ziet "Verbinding weg" met **Opnieuw verbinden** en **Stoppen**; zijn spel staat stil tot hij terug is. Dat is zo bedoeld.
+- Een taxi- of treinrit via de kaart is een eigen scène van wie rijdt. Rijdt de host, dan zien de gasten hem naar de bestemming gaan en blijft de verbinding heel (getest met een taxirit naar Winsum). Een gast kan geen rit via de kaart nemen ("Dat kan alleen in je eigen spel"): de wereld is van de host.
 - Drie van de vier spelers zijn gast: de wereld (tijd, weer, politie) draait bij de host. Valt de host weg, dan staat de wereld stil tot een overname of tot de host terug is.
 - Een ander netwerkprobleem (pakketverlies, hoge vertraging) merk je als haperende figuren; het spel meldt "Verbinding weg" pas na enkele seconden.
 - De sessie wordt niet opgeslagen door de gasten voor de host: elke speler bewaart zijn eigen spel.
