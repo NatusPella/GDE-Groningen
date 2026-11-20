@@ -30,12 +30,12 @@ export function simHudHtml(m) {
   const meter = m.meter
     ? `<div class="ds-streep sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${esc(m.meter.label || '')}</span></div>` : '';
   const cijfers = (m.cijfers || []).length
-    ? `<dl class="sh-cijfers">${m.cijfers.map((c) => `<div><dt class="ds-t-hulp">${esc(c.label)}</dt><dd class="ds-t-cijfer">${esc(c.waarde)}</dd></div>`).join('')}</dl>` : '';
+    ? `<dl class="sh-cijfers">${m.cijfers.map((c) => `<div><dt class="ds-t-hulp">${esc(c.label)}</dt><dd class="sh-waarde">${esc(c.waarde)}</dd></div>`).join('')}</dl>` : '';
   const uitleg = (m.uitleg || []).length
     ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${esc(u.tekst)}</span></li>`).join('')}</ul>` : '';
   return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon sh-icoon')}<span class="sh-titel ds-t-subkop">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
     stappen + meter + cijfers + uitleg + `<p class="ds-t-hulp sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` +
-    (m.hulp ? `<p class="ds-t-hulp sh-hulp">${esc(m.hulp)}</p>` : '');
+    [].concat(m.hulp || []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
 }
 
 let el = null, inhoud = null, pop = null, sleutel = '', popT = 0;

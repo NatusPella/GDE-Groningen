@@ -64,3 +64,7 @@ zijn er voor de eigen dienst (`c.owner` leeg). De vlaggetjes en de kolom staan i
 Test: `krantenhud_test` (model, markup, bedrading).
 
 **Niet gedaan.** Het vlaggetje bij de gast, een kaartlaag met de route als lijn, een eigen sting bij een foutloze ronde.
+
+## Beeldbewijs en eerlijkheid
+
+`docs/img/qa/lichtsims-strook-na.jpg`: de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.

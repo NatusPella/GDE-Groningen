@@ -13,7 +13,8 @@
 .sh-meter--laag .ds-streep__vul { background: var(--ds-probleem); }
 .sh-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; }
 .sh-cijfers > div { display: flex; flex-direction: column; }
-.sh-cijfers dd { margin: 0; }
+.sh-cijfers dd { margin: 0; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
+.sh-hulp { margin: 0; }
 .sh-uitleg { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; }
 .sh-uitleg > li { display: flex; align-items: center; gap: var(--ds-s-2); }
 .sh-nu { margin: 0; }

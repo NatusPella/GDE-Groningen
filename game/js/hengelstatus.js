@@ -61,13 +61,13 @@ export function hengelHudModel(g) {
   const wed = g.mode === 'wedstrijd';
   const cijfers = wed
     ? [{ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.left || 0))} s` }, { label: 'Gewicht', waarde: kgTekst(g.kg || 0) }, { label: 'Gevangen', waarde: String(g.vangsten || 0) }]
-    : [{ label: 'Vangsten', waarde: String(g.vangsten || 0) }, { label: 'Soorten', waarde: String(g.soorten || 0) }, { label: 'Gewicht', waarde: kgTekst(g.kg || 0) }, { label: 'Visboer', waarde: euro(g.kas || 0) }, ...(g.tuig ? [{ label: 'Hengel', waarde: g.tuig.hengel }, { label: 'Aas', waarde: g.tuig.aas }] : [])];
+    : [{ label: 'Vangsten', waarde: String(g.vangsten || 0) }, { label: 'Soorten', waarde: String(g.soorten || 0) }, { label: 'Gewicht', waarde: kgTekst(g.kg || 0) }, { label: 'Visboer', waarde: euro(g.kas || 0) }];
   const flash = g.flash && !g.flash.bad ? g.flash.text : '';
   return {
     id: 'hengelen', titel: wed ? 'Hengelwedstrijd' : 'Hengelen', icoon: ICOON.hengel, plek: g.plek || '',
     stappen, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
     nu: (flash && stap !== 'beet' ? flash + ' · ' : '') + watNu(g.fase, g.haal, !!(g.flash && g.flash.bad)),
-    hulp: 'Spatie uitgooien en binnenhalen · Backspace stoppen',
+    hulp: [...(!wed && g.tuig ? [`Hengel: ${g.tuig.hengel} · aas: ${g.tuig.aas}`] : []), 'Spatie uitgooien en binnenhalen · Backspace stoppen'],
     slecht: !!(g.flash && g.flash.bad) || g.fase === 'scare',
   };
 }
