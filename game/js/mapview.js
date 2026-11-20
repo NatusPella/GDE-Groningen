@@ -2582,6 +2582,7 @@ function cardAction(world, act) {
     const o = opts.find((x) => x.id === gekozen);
     hideCard();
     if (!o || !o.ride) return;
+    if (!o.afford) { if (o.blokkade && world.addMessage) world.addMessage(o.blokkade, 3); return; } // uitgeschakeld met een reden (ovopties.js taxiBlokkade)
     if (world.coopRole === 'client' && world.coopNet) { world.addMessage(ALLEEN_EIGEN_SPEL, 3); return; } // een rit verplaatst alleen zijn eigen figuur, de wereld is van de ander (#388)
     if (closeHandler) closeHandler();
     else closeMap();

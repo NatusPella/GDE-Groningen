@@ -11,9 +11,10 @@ import { playCinematic, skipCinematic } from './cinematics.js';
 import { cinematicLinks } from './latehooks.js';
 import { Vehicle } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
-import { smoothPath, cineDrive } from './cinedrive.js';
+import { cineDrive } from './cinedrive.js';
 import { taxiBedrag, perronPlek } from './ritcabine.js';
-import { planDriveRoute } from './routing.js';
+import { planDriveRoute, insideBuilding } from './routing.js';
+import { ritRoute } from './ritroute.js';
 import { getRoutes as getSpoorRoutes, addMissionTrain, removeMissionTrain, placeTrain, clearTrackFor } from './railway.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { klokSprongMag } from './coopgroep.js';
@@ -44,7 +45,10 @@ function bouwTaxi(world, optie, dest) {
   const r = planDriveRoute(world, dest, p);
   const pts = schoon(r && !r.noRoute ? r.pts : null);
   if (!P.ritKanEcht('taxi', { pad: pts })) return null;
-  const pad = smoothPath(pts, 1);
+  // het pad volgt de weg en snijdt geen gebouw; de taxi start en stopt aan de straatkant (ritroute.js, #882)
+  const rr = ritRoute(pts, { start: { x: p.x, y: p.y }, doel: dest, binnen: (x, y) => insideBuilding(world.map, x, y) });
+  const pad = rr.pad;
+  if (rr.schendingen > 0) console.warn(`reisrit3d: ${rr.schendingen} punten van het ritpad liggen in een gebouw (data)`);
   const plan = P.ritTijdplan(pad.len, { mode: 'taxi', etaS: optie.etaS });
   const baan = (s) => P.rechterBaan(pad.at(s));
   const meter = (s) => taxiBedrag(s, { totaalM: plan.lengthM, prijs: optie.price });
@@ -52,7 +56,7 @@ function bouwTaxi(world, optie, dest) {
   const dyn = P.maakDynamiek();
   const sluitStart = () => baan(Math.max(0, pad.len - plan.dcM));
   return {
-    plan,
+    plan, padInfo: { schendingen: rr.schendingen, mix: rr.mix, beginBinnen: rr.begin, eindBinnen: rr.eind },
     prewarm: plan.kort ? [pad.at(0), pad.at(pad.len)] : [pad.at(0), pad.at(pad.len - plan.dcM), pad.at(pad.len)],
     begin(w) {
       const q = baan(0);

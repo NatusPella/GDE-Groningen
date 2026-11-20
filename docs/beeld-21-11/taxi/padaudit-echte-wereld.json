@@ -1,0 +1,72 @@
+[
+ {
+  "naar": "Winsum",
+  "lengteM": 15438,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 2
+ },
+ {
+  "naar": "Delfzijl",
+  "lengteM": 28850,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 2
+ },
+ {
+  "naar": "Haren",
+  "lengteM": 6711,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 2
+ },
+ {
+  "naar": "Zuidhorn",
+  "lengteM": 13980,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 2
+ },
+ {
+  "naar": "Appingedam",
+  "lengteM": 26258,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 2
+ },
+ {
+  "naar": "Bedum",
+  "lengteM": 10535,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 1
+ },
+ {
+  "naar": "Leek",
+  "lengteM": 18169,
+  "oudSchendingen": 0,
+  "nieuwSchendingen": 0,
+  "mix": 1,
+  "beginBinnen": false,
+  "eindBinnen": false,
+  "bijgesneden": 1
+ }
+]

@@ -17,7 +17,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-taxirit')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = profileDirFor(`gde-test-tr-${process.pid}`, OUT); // %TEMP% is voor Electron soms niet schrijfbaar
 const script = path.join(OUT, '_page.js');
-const cfg = { vanNaam: arg('van', 'Groningen'), naar: [arg('taxi', 'Winsum'), arg('trein', 'Delfzijl')], momenten: arg('momenten', '2.8,5,9.3,12.5,15,17,21').split(',').map(Number), cams: process.argv.includes('--cams') };
+const cfg = { vanNaam: arg('van', 'Groningen'), naar: [arg('taxi', 'Winsum'), arg('trein', 'Delfzijl')], momenten: arg('momenten', '2.8,5,9.3,12.5,15,17,21').split(',').map(Number), cams: process.argv.includes('--cams'), padAudit: arg('padaudit', '') ? arg('padaudit', '').split(',') : null };
 fs.writeFileSync(script, `window.__tr = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'taxirit_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
