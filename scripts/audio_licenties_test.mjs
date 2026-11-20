@@ -36,9 +36,11 @@ for (const [k, g] of Object.entries(man.geluiden)) {
 ok(doc === bouwDoc(man), 'docs/AUDIO-LICENTIES.md is gelijk aan de uitvoer van het manifest (node scripts/audio/licenties_bouw.mjs --write)');
 ok(mod === bouwModule(man), 'audiocredits.js is gelijk aan de uitvoer van het manifest');
 ok(AUDIO_CREDITS.length === bronnen(man).length, 'elke bron staat precies één keer in de credits');
+// geen merken of modellen in speltekst (constitutie 2): de credits tonen een eigen omschrijving, niet de bronnaam
+ok(!/Chrysler|Nissan|Volvo|Maxima|Rover|Aston|Martin/i.test(mod), 'audiocredits.js bevat geen merknamen');
 // de credits van het spel noemen elke CC-BY-auteur met titel en licentie
 const html = geluidenHtml();
-for (const c of AUDIO_CREDITS) ok(html.includes(c.auteur) && html.includes(c.licentie) && html.includes(c.titel.replace(/&/g, '&amp;')), `credits noemen ${c.auteur} (${c.id})`);
+for (const c of AUDIO_CREDITS) ok(html.includes(c.auteur) && html.includes(c.licentie) && html.includes(String(c.id)) && c.beschrijving, `credits noemen ${c.auteur} (${c.id})`);
 ok(CREDITS_HTML.includes('<h4>Geluiden</h4>'), 'de creditspagina heeft een sectie Geluiden');
 ok(html.includes('Freesound'), 'Freesound staat als bron genoemd');
 

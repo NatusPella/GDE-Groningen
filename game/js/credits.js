@@ -48,7 +48,7 @@ export const AI_ASSISTENTS = [
 // De opnames van Freesound (ADR 0039): per bron titel, auteurshandle en licentie, uit game/audio/sfx/manifest.json (via audiocredits.js).
 export function geluidenHtml(lijst = AUDIO_CREDITS) {
   const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const li = (c) => `<li>${esc(c.titel)} van ${esc(c.auteur)}, ${c.licentie}</li>`;
+  const li = (c) => `<li>${esc(c.beschrijving)}: ${esc(c.auteur)}, ${c.licentie}, Freesound ${c.id}</li>`;
   const by = lijst.filter((c) => c.by), cc0 = lijst.filter((c) => !c.by);
   return ['<h4>Geluiden</h4>',
     '<p>Voetstappen, weer, motoren, deuren en ander geluid zijn opnames van Freesound (freesound.org), bewerkt voor dit spel (ingekort, in niveau gelijkgetrokken, tot lussen gemaakt). Dank aan de makers.</p>',

@@ -34,7 +34,7 @@ export function bronnen(man) {
   const per = new Map();
   for (const [k, g] of Object.entries(man.geluiden)) {
     const h = g.herkomst;
-    if (!per.has(h.freesound_id)) per.set(h.freesound_id, { id: h.freesound_id, titel: h.titel, auteur: h.auteur, licentie: h.licentie, url: h.url, sha256: h.bron_sha256 || null, datum: h.datum || null, sleutels: [] });
+    if (!per.has(h.freesound_id)) per.set(h.freesound_id, { id: h.freesound_id, titel: h.titel, auteur: h.auteur, licentie: h.licentie, url: h.url, sha256: h.bron_sha256 || null, datum: h.datum || null, sleutels: [], gebruik: g.gebruik });
     per.get(h.freesound_id).sleutels.push(k);
   }
   return [...per.values()].sort((a, b) => a.auteur.toLowerCase().localeCompare(b.auteur.toLowerCase()) || a.id - b.id);
@@ -65,8 +65,15 @@ ${rijen.join('\n')}
 `;
 }
 
+export function omschrijving(gebruik) {
+  const t = String(gebruik || 'geluid').split(/[:(]/)[0].trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
 export function bouwModule(man) {
-  const lijst = bronnen(man).map((b) => ({ id: b.id, titel: b.titel, auteur: b.auteur, licentie: LICENTIES[b.licentie].kort, by: LICENTIES[b.licentie].by }));
+  // De bronnaam van Freesound kan een merk of model bevatten (constitutie 2): het spel toont onze eigen Nederlandse omschrijving (het gebruik),
+  // met auteurshandle, licentie en het Freesound-id; de originele titel blijft in het manifest en in docs/AUDIO-LICENTIES.md.
+  const lijst = bronnen(man).map((b) => ({ id: b.id, beschrijving: omschrijving(b.gebruik), auteur: b.auteur, licentie: LICENTIES[b.licentie].kort, by: LICENTIES[b.licentie].by }));
   return `// Gegenereerd door scripts/audio/licenties_bouw.mjs uit game/audio/sfx/manifest.json: niet met de hand aanpassen.
 // De bronnen van de geluidsopnames (Freesound) voor de sectie "Geluiden" in de credits (credits.js). ADR 0039.
 export const AUDIO_CREDITS = ${JSON.stringify(lijst, null, 2)};

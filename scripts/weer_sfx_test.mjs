@@ -2,12 +2,13 @@
 // binnen en buiten, zomerlagen overdag, donder op afstand), de drift- en motorlus (sfx/samples.js, audio.js) en de bestanden (naad, niveau, lengte,
 // altijd zomer). Pure logica, zonder Web Audio.
 //   node scripts/weer_sfx_test.mjs
-import './node3d.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { rainLayers, rainTargets, summerTargets, thunderPick, RAIN_KEYS, THUNDER_NEAR, THUNDER_FAR, RAIN_PEAKS } from '../game/js/sfx/weermap.js';
-const { initAmbience, updateAmbience } = await import('../game/js/sfx/ambience.js');
+// ambience.js laadt three.js: zonder gestagede vendor-map (cd desktop && npm run stage) slaan we alleen de scenario's met de nagemaakte kit over
+let initAmbience = null, updateAmbience = null;
+try { await import('./node3d.mjs'); ({ initAmbience, updateAmbience } = await import('../game/js/sfx/ambience.js')); } catch (e) { console.log('overgeslagen: ambience-scenarios (' + String(e.message).slice(0, 60) + ')'); }
 import { SAMPLE_INFO, DRIFT_SLIP, driftLoopNiveau, driftLoopRate } from '../game/js/sfx/samples.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -119,7 +120,7 @@ function scenario({ rain = 0, hour = 13, vehicle = null, have = true, secs = 14 
   for (let i = 0; i < secs * 20; i++) { ctx.currentTime += 0.05; updateAmbience(0.05, world); }
   return names;
 }
-{
+if (initAmbience) {
   const licht = scenario({ rain: 0.15 }), bui = scenario({ rain: 0.5 }), plens = scenario({ rain: 0.95 }), droog = scenario({ rain: 0 });
   ok(licht.has('regen_motregen') && !licht.has('regen_plens') && !licht.has('bank:bed_rain'), 'ambience: lichte regen klinkt met de motregenlus, niet met de synth');
   ok(bui.has('regen_bui'), 'ambience: een bui met de builus');
