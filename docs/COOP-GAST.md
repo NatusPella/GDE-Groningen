@@ -421,6 +421,10 @@ Het spelersmenu (pauzemenu > Spel > Samen spelen > Spelers, de Tab-lijst en de w
 
 Bewezen zonder Electron met `scripts/coop/viersp_hostwissel_test.mjs` (host en drie gasten over de echte netlaag en een geheugentransport): drie overdrachten achter elkaar met steeds één host en vier unieke plekken; beloningen per gebeurtenis-id blijven per speler en nooit dubbel, ook niet als dezelfde gebeurtenis na de overdracht via de nieuwe host opnieuw wordt aangeboden (de boekhouding `coopBoek` staat bij de ontvanger, niet bij de host); overname na wegvallen van wie het spel opende; een gast die wegvalt krijgt niets en een late speler sluit bij de nieuwe host aan en krijgt vanaf dan zijn eigen beloning. De baan van een gast (`c.owner > 0`) raakt de lichte strook van de eigenaar niet: geen pop-up, geen uitlegvlag en ook geen leegmaken per beeld (`scripts/coop/simhudgast_test.mjs`). Open: een gast ziet voor zijn eigen baan geen strook (de baan draait bij de host).
 
+## Boerderij, Spullen en Loopbanen in het menu (#1010, #1013, #980, 22-11)
+
+Alle drie zijn per speler (#429): het menu toont de eigen boerderij, de eigen spullen en de eigen loopbaanprofielen van wie het opent; er gaat niets over het net en er is geen snapshot of EXTRA-bericht. Een gast ziet dus zijn eigen velden, voorraad en niveaus, en wat hij daar doet (een veld op de kaart zetten, eten opeten of weggooien, een loopbaan starten) raakt alleen zijn eigen spel. Weggooien haalt eten uit de eigen voorraad en vraagt eerst "Weggooien? Dit kan niet terug."; wapens, kleding, meubels en upgrades zijn niet weg te gooien. Valt iemand weg of sluit hij later aan, dan verandert er niets aan wat een ander in zijn eigen menu ziet. Gedekt door pure tests (`farmmodel_test`, `spullenmodel_test`, `careermodel_test`); een gastbaan is er niet bij nodig omdat er niets gedeeld wordt.
+
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.

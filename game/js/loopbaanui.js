@@ -14,7 +14,7 @@ import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
 import { sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
-import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './loopbaanmodel.js';
+import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './careermodel.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -166,7 +166,7 @@ function zetCss() {
 let gekozen = 'trein';
 const bars = new Map();
 
-// Een loopbaan als kaart (loopbaanmodel.js, #1010): icoon, naam, titel en niveau, een voortgangsbalk naar het volgende niveau, de
+// Een loopbaan als kaart (careermodel.js, #1010): icoon, naam, titel en niveau, een voortgangsbalk naar het volgende niveau, de
 // volgende beloning en wat de hoofdactie van deze loopbaan is (Doorgaan of Nu starten; de knop zelf staat in het detail, zodat
 // er per kaart één focusstop is). De kaart is één knop: kiezen toont het detail rechts.
 function kaart(k) {
@@ -270,7 +270,7 @@ function trapHtml(id, d, v) {
 }
 
 // De hoofdactie van het gekozen vak (de ene gele knop), de voortgang naar het volgende niveau en de drie feiten: eis, wat het nu betaalt en
-// de volgende beloning. Alles komt uit loopbaanmodel.js.
+// de volgende beloning. Alles komt uit careermodel.js.
 function actieHtml(profiel, id) {
   const a = hoofdActie(profiel, id, doelen);
   if (!a) return '';

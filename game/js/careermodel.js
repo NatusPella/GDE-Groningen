@@ -1,7 +1,7 @@
 // Het model achter het Loopbanen-overzicht (menu-ronde 21-11, #1010): elke loopbaan als kaart met niveau, voortgang, de volgende beloning en
 // een duidelijke hoofdactie (Doorgaan of Nu starten), en per gekozen loopbaan de hoofdknop, de eis en wat het betaalt. Puur: geen DOM, geen
 // wereld; het profiel en de lijst van nu te kiezen bijbanen komen van de aanroeper. loopbaanui.js tekent wat dit geeft;
-// test: scripts/loopbaanmodel_test.mjs.
+// test: scripts/careermodel_test.mjs.
 // Samen spelen: een loopbaan is van de speler zelf (eigen profiel, gde-loopbaan-v1); een gast ziet in dit scherm zijn eigen voortgang.
 import * as L from './loopbaan.js';
 

@@ -23,7 +23,7 @@ export const LEEG = {
   kleding: 'Nog geen extra kleding. Stoer & Stads heeft een paar setjes.',
   voedsel: 'Nog niets te eten. De toonbank verkoopt snacks; wat je vangt, gaat mee naar huis.',
   upgrades: 'Nog geen upgrades. Knal & Kolder Tuning en Spaak & Band helpen je graag.',
-  thuis: 'Nog geen meubels. EIKEA heeft ze; thuis zet je ze neer.',
+  thuis: 'Nog geen meubels. Het meubelhuis heeft ze; thuis zet je ze neer.',
   verzameling: 'Nog niets verzameld.',
 };
 

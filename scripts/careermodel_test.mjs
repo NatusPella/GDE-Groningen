@@ -1,9 +1,9 @@
-// Het Loopbanen-overzicht (loopbaanmodel.js, #1010): kaarten met niveau, voortgang en volgende beloning, de hoofdactie
-// (Doorgaan of Nu starten), eis en verdiensten, en de leeg-staat.   node scripts/loopbaanmodel_test.mjs
+// Het Loopbanen-overzicht (careermodel.js, #1010): kaarten met niveau, voortgang en volgende beloning, de hoofdactie
+// (Doorgaan of Nu starten), eis en verdiensten, en de leeg-staat.   node scripts/careermodel_test.mjs
 import assert from 'node:assert/strict';
 import './node3d.mjs';
 const L = await import('../game/js/loopbaan.js');
-const M = await import('../game/js/loopbaanmodel.js');
+const M = await import('../game/js/careermodel.js');
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -106,5 +106,5 @@ t('de bron: kaarten zonder tellers achter de kop, één gele hoofdknop in het de
 import fs from 'node:fs';
 function fs_lees(f) { return fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'); }
 
-console.log(`loopbaanmodel_test: ${n - fails}/${n}`);
+console.log(`careermodel_test: ${n - fails}/${n}`);
 if (fails) process.exit(1);

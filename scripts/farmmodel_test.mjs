@@ -1,10 +1,10 @@
-// Het boerderijmodel (boerderijmodel.js, #1013): velden als kaarten met stand en verwachting, machinestatus, toegang tot percelen.
-//   node scripts/boerderijmodel_test.mjs
+// Het farmmodel (farmmodel.js, #1013): velden als kaarten met stand en verwachting, machinestatus, toegang tot percelen.
+//   node scripts/farmmodel_test.mjs
 import assert from 'node:assert/strict';
 import './node3d.mjs';
 const B = await import('../game/js/boerderij.js');
 const PC = await import('../game/js/percelen.js');
-const M = await import('../game/js/boerderijmodel.js');
+const M = await import('../game/js/farmmodel.js');
 const Live = await import('../game/js/boerderijlive.js');
 
 let n = 0, fails = 0;
@@ -82,5 +82,5 @@ t('zonder velden is het overzicht leeg en heeft het geen hoofdknop', () => {
   assert.equal(o.hoofd, null);
 });
 
-console.log(`boerderijmodel_test: ${n - fails}/${n}`);
+console.log(`farmmodel_test: ${n - fails}/${n}`);
 if (fails) process.exit(1);

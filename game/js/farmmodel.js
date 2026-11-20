@@ -1,7 +1,7 @@
 // Het model achter het overzicht van de eigen boerderij (menu-ronde 21-11, #1013): per veld één kaart met de stand in het
 // woord van de speler (kaal, bewerkt, gezaaid, groeit, rijp, geoogst), het gewas, de volgende stap en een verwachting van de
 // opbrengst; de machines met hun status; en de toegang tot huren en kopen van percelen. Puur: geen DOM, geen three. Het scherm
-// (farmcards.js, boerderijui.js) tekent alleen wat dit geeft; test: scripts/boerderijmodel_test.mjs.
+// (farmcards.js, boerderijui.js) tekent alleen wat dit geeft; test: scripts/farmmodel_test.mjs.
 // Samen spelen: de boerderij is per speler (#429), dit model leest dus alleen de eigen boerderij van wie het menu opent.
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';

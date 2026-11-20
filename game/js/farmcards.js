@@ -5,7 +5,7 @@
 import * as B from './boerderij.js';
 import { icoon } from './icons.js';
 import { STATUS, STATUS_IDS, KAART_STIJL, LUS, lusKlaar } from './farmstatus.js';
-import { overzicht } from './boerderijmodel.js';
+import { overzicht } from './farmmodel.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -37,7 +37,7 @@ export function groeiHtml(s) {
 
 export const euroTekst = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
 
-// Eén veld als kaart (boerderijmodel.js, #1013): naam en stand met icoon, gewas en oppervlakte, de groeibalk, de volgende stap, wat het
+// Eén veld als kaart (farmmodel.js, #1013): naam en stand met icoon, gewas en oppervlakte, de groeibalk, de volgende stap, wat het
 // naar verwachting oplevert en twee knoppen: Naar veld (zet de route en sluit het menu) en Markeer op kaart (zet het doel en toont de kaart).
 // Beide zijn secundair: de ene gele hoofdknop is van het scherm. Kleur is nooit de enige betekenis: de stand heeft icoon en woord.
 export function veldKaartHtml(k) {
