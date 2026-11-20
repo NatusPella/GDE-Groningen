@@ -22,6 +22,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Het benchmarkadvies noemde Ultra "Hoog":** het advies sprak van "Hoog" en paste daarmee de stand Ultra toe, de zwaarste. Het advies kent nu dezelfde vier standen als de knoppen (Laag, Midden, Hoog, Ultra), stapt pas naar Ultra met veel ruimte en legt uit dat Ultra onder 60 fps een zware stand is.
 - **Geen stellig advies na een drukke meting:** bij zeer lange beelden (de pc was druk) vraagt de benchmark om opnieuw te meten in plaats van een stand aan te raden.
 - **Nieuwe videokaarten:** de nieuwe losse kaarten van de Arc B-serie worden als sterk herkend.
+- **Samen spelen: een bijbaan van een medespeler stoort jouw scherm niet meer.** Rijdt, vaart of bezorgt een medespeler in jouw spel, dan blijven jouw lichte strook onderin en je uitlegvlag ongemoeid.
+- **Samen spelen: geen spookvelden meer na afloop.** Zodra een sessie voorbij is, verdwijnen de velden van de ander uit jouw wereld.
 
 ### Nieuw
 

@@ -233,7 +233,7 @@ export default {
       d.arriveLate = late;
       d.lateMax = Math.max(d.lateMax, late);
       if (late <= LATE_OK) d.onTime++;
-      { const pp = haltePop(stop.name, late); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
+      if (!c.owner) { const pp = haltePop(stop.name, late); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
       c.msg(`${stop.line}${late > LATE_OK ? ` (${Math.round(late)} s te laat)` : ''}`, 3.6);
       const door = { x: v.x + Math.cos(v.angle) * (v.model.len / 2 - 1.2) - Math.sin(v.angle) * 1.6, y: v.y + Math.sin(v.angle) * (v.model.len / 2 - 1.2) + Math.cos(v.angle) * 1.6 };
       d.door = door;
@@ -311,7 +311,7 @@ export default {
 
   stop(c) {
     for (const ped of c.data.waiting || []) freePed(ped);
-    simHudTik(0, null);
+    if (!c.owner) simHudTik(0, null);
     if (c.data.kolom) { c.removeMesh(c.data.kolom); c.data.kolom = null; }
   },
 };

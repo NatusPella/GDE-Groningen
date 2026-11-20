@@ -186,8 +186,7 @@ export default {
       if (d.cook && pedAlive(world, d.cook)) holdPed(d.cook, p.x, p.y);
       if (dd < PICKUP_R) {
         d.phase = 'deliver';
-        zetUitlegGezien(UITLEG_ID);
-        const pk = pickupPop(); simHudPop(pk.tekst, pk.geluid);
+        if (!c.owner) { zetUitlegGezien(UITLEG_ID); const pk = pickupPop(); simHudPop(pk.tekst, pk.geluid); }
         if (d.cook) { say(world, d.cook, pick(COOK_LINES), 3); freePed(d.cook); d.cook = null; }
         const budget = (o.dist * 1.45) / 7 + 22;
         const tight = (1 - 0.035 * Math.min(c.streak, 8)) * (1 - 0.03 * (c.level - 1));
@@ -222,7 +221,7 @@ export default {
       if (cu) { say(world, cu, pick(warm > 55 ? WARM_LINES : LUKE_LINES), 3.2); freePed(cu); }
       d.customer = null;
       d.last = { x: door.x, y: door.y };
-      const ap = afleverPop(warm, tip); simHudPop(ap.tekst, ap.geluid);
+      if (!c.owner) { const ap = afleverPop(warm, tip); simHudPop(ap.tekst, ap.geluid); }
       c.complete({ base: 16 + o.dist / 22 + o.n * 3, tip, text: warm > 70 ? 'Warm bezorgd!' : 'Bezorgd.', flawless: !d.bumped });
     }
   },
@@ -248,7 +247,7 @@ export default {
 
   stop(c) {
     const d = c.data;
-    simHudTik(0, null);
+    if (!c.owner) simHudTik(0, null);
     if (d.kolom) { c.removeMesh(d.kolom); d.kolom = null; }
     if (d.cook) freePed(d.cook);
     if (d.customer) freePed(d.customer);

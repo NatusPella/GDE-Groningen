@@ -55,8 +55,7 @@ export function resetBoerderijWereld() {
   for (const e of S.erfMeshes.values()) ruimGroep(e);
   for (const v of S.velden.values()) ruimVeld(v);
   for (const w of S.werktuigen.values()) W3.ruimWerktuig(w.group);
-  for (const e of gastVelden.values()) ruimVeld(e.veld);
-  gastVelden.clear();
+  ruimGastVelden();
   S = nieuweStaat();
 }
 
@@ -1084,7 +1083,12 @@ function syncGastVelden(w) {
   }
   for (const [sl, e] of [...gastVelden]) if (!nu.has(sl)) { ruimVeld(e.veld); gastVelden.delete(sl); }
 }
+// Na het einde van een sessie (de rol is niet meer gast) blijven de velden van de ander niet in de eigen wereld staan.
+function ruimGastVelden() {
+  for (const e of gastVelden.values()) ruimVeld(e.veld);
+  gastVelden.clear();
+}
 export const _gastVelden = () => gastVelden;
 
-export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', gastTick: true, interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => { if (w && w.coopRole === 'client') syncGastVelden(w); else updateBoerderijWereld(dt, w); } };
+export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', gastTick: true, interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => { if (w && w.coopRole === 'client') syncGastVelden(w); else { if (gastVelden.size) ruimGastVelden(); updateBoerderijWereld(dt, w); } } };
 
