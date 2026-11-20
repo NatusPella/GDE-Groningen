@@ -130,7 +130,7 @@ t('zonder gebieden (de wereld is er nog niet) tekent de laag niets en gaat er ni
 });
 t('de haken: de grote kaart tekent laag en legenda, de minikaart de laag, de legenda houdt het laagjes-tabblad kloppend', () => {
   const src = (f) => fs.readFileSync(fileURLToPath(new URL('../game/js/' + f, import.meta.url)), 'utf8');
-  assert.ok(src('mapview.js').includes('tekenLegenda(ctx, state.cw, state.ch, laagId'));
+  assert.ok(src('mapview.js').includes('tekenLegenda(ctx, state.cw, state.ch, state.legendLaag)'));
   const hud = src('hud_panel.js');
   assert.ok(hud.includes("minimapShows('veroverd')") && hud.includes('tekenVeroverdMini'));
   assert.ok(hud.indexOf('tekenVeroverdMini(ctx') > hud.indexOf('fillPolys(ctx, view.water)') && hud.indexOf('tekenVeroverdMini(ctx') < hud.indexOf('for (const r of view.roads)'), 'boven groen en water, onder de wegen');

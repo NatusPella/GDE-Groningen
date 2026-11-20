@@ -1111,13 +1111,13 @@ function isVoortgangsregel(tekst) {
   return tekst === 'veroverd' || /^\d+ van \d+ · \d+%$/.test(tekst);
 }
 
-// De strook: rechtsboven onder het kompas. Daar zit geen kaartchrome (de uitleg
+// De strook: links onder het zoekveld (eerst rechtsboven, maar daar lagen de knop Lagen en het paneel overheen). Daar zit geen kaartchrome (de uitleg
 // staat linksboven, de legenda, de zoomknoppen en de schaalbalk linksonder) en
 // de pins wijken ervoor, dus de chip valt nooit over een icoon (#463).
 function voortgangsStrook(cw, ch, breedte, hoogte) {
   const w = Math.min(Math.max(120, Math.round(breedte)), Math.max(120, cw - 24));
   const h = Math.max(18, Math.round(hoogte));
-  return [cw - 12 - w, 56, cw - 12, Math.min(ch - 12, 56 + h)];
+  return [52, 196, 52 + w, Math.min(ch - 12, 196 + h)]; // links onder het zoekveld: rechtsboven liggen de knop Lagen en het paneel Op de kaart
 }
 
 // Een pin onder de strook is onleesbaar en niet aanwijsbaar; hij wijkt, tenzij
@@ -1292,9 +1292,10 @@ function drawStaticOverlay(ctx) {
   // horen onder de andere labels, de namen gaan mee in dezelfde botsingsregel.
   const gebiedLabels = [];
   const onthoudLabel = (c, tekst, x, y, kleur, uitlijning) => gebiedLabels.push({ font: c.font, tekst, x, y, kleur, uitlijning });
+  state.legendLaag = null;
   if (layerOn('veroverd')) {
     const laagId = tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, onthoudLabel, inkA('cream', 0.9));
-    tekenLegenda(ctx, state.cw, state.ch, laagId, inkA('cream', 0.92));
+    state.legendLaag = laagId; // de legenda wordt in drawChrome getekend, boven de pins en volledig dekkend
   }
 
   // de voortgangsstrook meteen zijn plek laten reserveren (#463): hij is even
@@ -1976,6 +1977,8 @@ function niceScale(maxPx) {
 }
 
 function drawChrome(ctx) {
+  // de legenda van Veroverd staat boven de pins en volledig dekkend (gezet in drawStaticOverlay)
+  if (state.legendLaag) tekenLegenda(ctx, state.cw, state.ch, state.legendLaag);
   const x = 22, y = 24;
   ctx.save();
   ctx.translate(state.cw - 30, y + 6);

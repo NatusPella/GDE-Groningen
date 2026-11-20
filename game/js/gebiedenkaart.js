@@ -122,8 +122,8 @@ function rasterPatroon(ctx) {
     rasterTegel = document.createElement('canvas');
     rasterTegel.width = rasterTegel.height = 6;
     const t = rasterTegel.getContext('2d');
-    t.fillStyle = hexA(dsKleur('ink-inkt'), 0.7);
-    t.beginPath(); t.arc(3, 3, 1.15, 0, Math.PI * 2); t.fill();
+    t.fillStyle = hexA(dsKleur('ink-inkt'), 0.95);
+    t.beginPath(); t.arc(3, 3, 1.45, 0, Math.PI * 2); t.fill();
   }
   const p = ctx.createPattern(rasterTegel, 'repeat');
   return p;
@@ -214,7 +214,7 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     const s = stijl(r, kleurTekst);
     pad(ctx, r.gebied.grens, toScreen);
     if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }
-    if (s.raster && raster) { ctx.globalAlpha = 0.8; ctx.fillStyle = raster; ctx.fill('evenodd'); }
+    if (s.raster && raster) { ctx.globalAlpha = 1; ctx.fillStyle = raster; ctx.fill('evenodd'); }
     if (s.toestand === 'veroverd') lijn(ctx, { lijn: s.rand, lijnAlpha: 0.9 }, s.breed + 1.2, dikte, false); // de dikke rand: donkere band onder de gekleurde lijn
     lijn(ctx, s, s.breed, dikte, s.streep);
   }
