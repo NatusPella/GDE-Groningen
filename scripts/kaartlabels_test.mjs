@@ -117,12 +117,12 @@ const PRIO = { missie: 0, wijk: 1, poi: 2 }; // dezelfde volgorde als LABEL_PRIO
 }
 
 // --- 4. de voortgangsstrook -------------------------------------------------
-// "0 van 5 · 0%" hoort in een eigen strook: rechtsboven onder het kompas, dus
+// "0 van 5 · 0%" hoort in een eigen strook: links onder het zoekveld (was rechtsboven; daar liggen Lagen en het paneel), dus
 // nooit midden op de kaart tussen de pins.
 {
   for (const [cw, ch] of [[1920, 1080], [1280, 720], [360, 800]]) {
     const box = voortgangsStrook(cw, ch, 150, 44);
-    ok(box[2] === cw - 12 && box[0] >= 12, `strook ${cw}x${ch}: rechts uitgelijnd met een rand van 12`, box.join());
+    ok(box[0] === 52 && box[2] <= cw - 12, `strook ${cw}x${ch}: links onder het zoekveld, binnen een rand van 12`, box.join());
     ok(box[1] >= 56 && box[3] <= ch - 12, `strook ${cw}x${ch}: onder het kompas en binnen het scherm`, box.join());
     ok(box[2] - box[0] >= 120 && box[3] - box[1] >= 18, `strook ${cw}x${ch}: leesbaar formaat`, box.join());
     ok(voortgangsStrook(cw, ch, 9999, 44)[0] >= 12, `strook ${cw}x${ch}: nooit breder dan het scherm`);
