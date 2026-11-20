@@ -28,7 +28,7 @@ ok(!/roleEl\.style\.cssText/.test(js), 'de rolchip heeft geen inline stijl meer'
 // De aanpakkeuze heeft een zichtbare terugweg: Esc of B, met de hint erbij.
 ok(/inp\.wasPressed\('escape'\) \|\| inp\.wasPressed\('b'\)/.test(heist), 'Esc of B gaat terug uit de aanpakkeuze');
 ok(/planChoosing\(false\)/.test(heist) && /planFocus\('island'\)/.test(heist), 'terug naar de bouwtekening');
-ok(/Esc of B: terug naar de tekening/.test(js), 'de hint noemt de terugweg');
+ok(/{ESC} of {B}: terug naar de tekening/.test(js), 'de hint noemt de terugweg');
 
 console.log(fails ? `${fails} of ${n} heist-HUD checks failed` : `heist_hud_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
