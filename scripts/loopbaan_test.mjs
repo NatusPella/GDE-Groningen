@@ -481,7 +481,7 @@ t('#846: wat het scherm en Te doen tonen komt uit dezelfde teller', () => {
 t('#905: het Loopbanen-scherm heeft een kop, een standenrij en een KPI-strook', () => {
   const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
   assert.match(ui, /pm-hero lb-hero/, 'de kop gebruikt de gedeelde hero-opmaak');
-  assert.match(ui, /pm-stats lb-stats/, 'de stand staat in drie staten naast elkaar');
+  assert.match(ui, /pm-stats lb-stats/, 'de stand staat op één regel (21-11)');
   assert.match(ui, /lb-kpis/, 'het detail heeft een KPI-strook');
   assert.match(ui, /lb-gn/, 'elke groep noemt hoeveel vakken er begonnen zijn');
   assert.match(ui, /lb-kpi/, 'de KPI heeft een eigen opmaak');

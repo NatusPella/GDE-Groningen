@@ -43,6 +43,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Samen spelen: de kamercode staat groot in beeld met een knop die meldt "Gekopieerd"; de uitleg staat in een vouw en de gele hoofdknop heeft een toetshint (Enter).
 - Samen spelen: foutmeldingen zeggen in gewone taal wat er mis is en wat je doet (andere versie, kamer vol, verbinden mislukt, verbinding verbroken met Opnieuw verbinden). Een speler eruit zetten vraagt eerst "… eruit zetten?" met Annuleren.
 - Samen spelen: de Tab-lijst in het spel is compact (naam, kleur, ping, afstand met richting, klaar), met pictogrammen voor dempen en blokkeren die later werken. Samen-spelen-regel: dit is een weergave; wie het spel opende ziet Overdragen en Eruit zetten, elke speler ziet dezelfde lijst, zie docs/COOP-GAST.md.
+- Pauzemenu: Doorgaan staat nu in elk tabblad bovenaan de rail, met een zoekknop ernaast.
+- Pauzemenu: typ / (of kies de zoekknop) om een scherm, onderdeel, instelling of actie te vinden, zoals Geluid, Opslaan of Afsluiten. Enter springt erheen en laat de rij even oplichten; zonder woord staat er een beginlijst, ook voor de controller.
+- Pauzemenu: Opslaan staat nu ook in het Overzicht, met een melding in beeld.
+- Pauzemenu: Spullen toont de groepskoppen helemaal en het zoekveld raakt de titel niet meer; Boerderij herhaalt de volgende klus niet meer en heeft uitleg en legenda in één opklapregel.
+- Samen spelen: het zoekvenster werkt alleen in je eigen menu; er gaat niets over het net.
+- Pauzemenu: Boerderij heeft een eigen plek in de zijbalk onder Doen ("Begin je boerderij" zolang je nog niet op het land hebt gewerkt). Percelen, Erf, Gewas, Machines, Kasboek en Bank staan als tabs in het scherm zelf, en Spel heeft een regel "Naar mijn boerderij".
+- Boerderij: je velden staan als één rustige lijst, met per veld een icoon, de stand, de oppervlakte en de knop "Zet op de kaart".
+- Spullen: pictogrammen uit de vaste set, de hoofdactie toont de toets (Enter) en Q en E wisselen tussen Alles, Uitrusting, Thuis en Verzamelingen.
+- Loopbanen: de stand staat op één regel en elke loopbaan in de lijst heeft twee regels met het niveau rechts, zonder balk per rij.
 
 ## [0.64.0] - 2026-11-20
 

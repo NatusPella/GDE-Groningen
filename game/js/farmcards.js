@@ -45,17 +45,29 @@ export function veldKaartHtml(s, schuurKg = 0) {
     `<footer class="ds-kaart__voet"><button type="button" class="ds-knop ds-knop--secundair" data-bd-naar="${esc(s.id)}">Zet op de kaart</button></footer></article>`;
 }
 
+// Eén veld als compacte regel (panelmodel, DESIGN_SYSTEM.md > Panels): toestandsicoon, naam en status op twee regels, de oppervlakte rechts
+// en de knop naar de kaart. Zo is het overzicht van meerdere velden één rustige lijst en geen stapel kaarten.
+export function veldRegelHtml(s, schuurKg = 0) {
+  const stand = s.klaar ? 'Oogstklaar' : s.status;
+  return `<li class="ds-lijst__rij bd-veldregel" data-status="${s.statusId}" data-veld="${esc(s.id)}">` +
+    `<span class="bd-veldregel__ic">${icoon(STATUS[s.statusId].icoon, { cls: 'ds-icoon' })}</span>` +
+    `<span class="bd-veldregel__t"><b>${esc(s.naam)}${s.actief ? ' <span class="ds-t-hulp">werkt hier</span>' : ''}</b><span class="ds-t-hulp">${esc(stand)}${s.gewasNaam ? ' · ' + esc(s.gewasNaam) : ''} · ${esc(watNu(s, schuurKg))}</span></span>` +
+    `<span class="bd-veldregel__w">${esc(String(s.ha).replace('.', ','))} ha</span>` +
+    `<button type="button" class="ds-knop ds-knop--secundair" data-bd-naar="${esc(s.id)}">Zet op de kaart</button></li>`;
+}
+
 // De legenda van de kaartstatussen: icoon, woord en de letter op de kaart (kleur is nooit de enige betekenis).
 export function legendaHtml() {
   return `<ul class="bd-legenda" aria-label="Wat de kleuren op de kaart betekenen">` + STATUS_IDS.map((id) => `<li>${chip(id)}<span class="ds-t-hulp">kaartletter ${esc(KAART_STIJL[id].letter)}</span></li>`).join('') + '</ul>';
 }
 
 // De regelkaart bij de eerste keer: vier stappen met icoon en een zin; wegklikken onthoudt dit apparaat.
-export function uitlegKaartHtml() {
+export function uitlegKaartHtml(metLegenda = false) {
   const stap = (id, tekst) => `<li>${chip(id)} ${esc(tekst)}</li>`;
   // compact en dicht: één regel die je openklapt, geen losse knop in het scrollgebied (oogtest 20-11)
   return `<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary class="ds-kaart__titel">Zo werkt je boerderij</summary>` +
     `<ol class="bd-uitleg-lijst">${stap('geploegd', 'Ploegen: rij rustig rechte rijen, niet te hard.')}${stap('zaailing', 'Zaaien: kies eerst je gewas bij Gewas.')}${stap('groeiend', 'Groeien: het gewas groeit in speltijd, in de zomer.')}${stap('rijp', 'Oogsten als het veld oogstklaar is (de vlag is groen), daarna afleveren.')}</ol>` +
+    (metLegenda ? `<p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}` : '') +
     '</details>';
 }
 
@@ -70,8 +82,9 @@ export function kaartenBlok(b) {
     lusHtml(eerste, schuurKg) + groeiHtml(eerste) +
     `<footer class="ds-kaart__voet"><button type="button" class="ds-knop" data-bd-naar="${esc(eerste.id)}">Zet op de kaart</button></footer></article>`;
   // één veld staat al in de hoofdkaart: geen tweede kaart met dezelfde gegevens en dezelfde knop
-  const lijst = velden.length > 1 ? `<div class="bd-velden">${velden.map((v) => veldKaartHtml(v, schuurKg)).join('')}</div>` : '';
-  return hoofd + lijst + uitlegKaartHtml() + `<div><p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}</div>`;
+  const lijst = velden.length > 1 ? `<ul class="ds-lijst bd-veldlijst" aria-label="Je velden">${velden.map((v) => veldRegelHtml(v, schuurKg)).join('')}</ul>` : '';
+  // uitleg en legenda in één opklapbare regel: het perceel blijft rustig (21-11)
+  return hoofd + lijst + uitlegKaartHtml(true);
 }
 
 export const _gewasNaam = (id) => (B.GEWASSEN[id] ? B.GEWASSEN[id].naam : '');

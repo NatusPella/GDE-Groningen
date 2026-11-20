@@ -1350,3 +1350,47 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 @media (min-height: 821px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 24px; } }
 #pause-menu .bd-uitleg-kaart > summary { cursor: pointer; list-style-position: inside; padding: 8px 12px; }
 #pause-menu .bd-uitleg-kaart[open] > summary { border-bottom: var(--ds-lijn-dik, 2px) solid var(--ds-c-ink-inkt); }
+
+/* Pauzemenu 21-11 (docs/ESCAPEMENU-UX-21-11.md): Doorgaan en Zoeken staan altijd bovenaan de rail */
+#pause-menu .pm-rail-go { display: flex; gap: 8px; padding: 0 16px 8px 24px; }
+#pause-menu .pm-rail-go .pm-go { flex: 1; min-width: 0; height: 38px; padding: 0 12px; gap: 8px; font-size: 22px; }
+#pause-menu .pm-rail-go .pm-findbtn { flex: none; width: 38px; height: 38px; padding: 0; }
+#pause-menu .pm-rail-go .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu.prestart .pm-rail-go .pm-go { display: none; }
+@media (max-width: 760px) and (orientation: portrait) { #pause-menu .pm-rail-go { display: none; } }
+/* het zoekvenster: een rij per treffer, de soort rechts als stille tekst */
+#pause-menu .pm-findpane { width: min(720px, 100%); gap: 12px; }
+#pause-menu .pm-findpane .pm-csearch { margin: 0; width: 100%; }
+#pause-menu .pm-find-list { list-style: none; margin: 0; padding: 0; width: 100%; max-height: min(52vh, 420px); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+#pause-menu .pm-find-r { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 6px 12px; border-radius: 8px; text-align: left; color: inherit; font-size: 20px; }
+#pause-menu .pm-find-r .pm-ic { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .pm-find-t { flex: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
+#pause-menu .pm-find-p { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pause-menu .pm-find-k { flex: none; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+#pause-menu .pm-find-r:hover, #pause-menu .pm-find-r:focus-visible { background: color-mix(in srgb, var(--g) 22%, transparent); outline: 2px solid currentColor; outline-offset: -2px; }
+#pause-menu .pm-find-leeg, #pause-menu .pm-find-hint { margin: 0; padding: 6px 12px; font-size: 16px; }
+#pause-menu .pm-find-hint:empty { display: none; }
+/* Spullen: de groepskop mag over twee regels (Werpspul, Kaarten & verzamelingen werden afgekapt), het balkje per groep
+   vervalt (de telling staat erbij, het totaal staat in het blok erboven) en het zoekveld raakt de titel niet meer */
+#pause-menu .sp-cat { flex-wrap: wrap; row-gap: 0; }
+#pause-menu .sp-cat .sp-gh { flex: 1 1 auto; overflow: visible; white-space: normal; }
+#pause-menu .sp-cat .sp-cbar { display: none; }
+#pause-menu .pm-spulbar { padding-top: 12px; }
+/* de rij waar een zoekresultaat je heen bracht */
+#pause-menu .pm-flash { animation: pm-flash 1.8s ease both; }
+@keyframes pm-flash { 0%, 60% { background: color-mix(in srgb, var(--g) 30%, transparent); } 100% { background: transparent; } }
+/* dertien rijen (Boerderij is een eigen item sinds 21-11): op lage schermen een compactere rail, zonder logo en versie */
+@media (max-height: 780px) {
+  #pause-menu .pm-rail { --ra-h: 34px; }
+  #pause-menu .ra { font-size: 20px; }
+  #pause-menu .pm-q-head, #pause-menu .pm-ver, #pause-menu .pm-rail-sp { display: none; }
+  #pause-menu .pm-rail-go { padding-top: 4px; }
+}
+/* Loopbanen: de stand op één regel */
+#pause-menu .lb-stand { display: flex; flex-wrap: wrap; gap: 4px 24px; padding: 6px 24px; font-size: 18px; }
+#pause-menu .lb-stand b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; font-weight: normal; }
+/* Boerderij: de onderdelen zijn tabs, dus het detail heeft de hele breedte */
+#pause-menu .pm-boerderij .bd-main { display: block; padding-top: 12px; }
+#pause-menu .pm-boerderij .bd-main > .bd-pane { width: auto; max-width: none; }
+#pause-menu .bd-begin { margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { #pause-menu .pm-flash { animation: none; background: color-mix(in srgb, var(--g) 30%, transparent); } }

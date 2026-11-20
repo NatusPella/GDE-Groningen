@@ -539,6 +539,11 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-chip` | status or consequence: icon or shape plus word | `__icoon` | `--primair` (Kan nu), `--selectie`, `--probleem`, `--succes`, `--waarschuwing` |
 | `.ds-knop` | button; yellow is the one primary, outlined is the risky choice | `__sub` (cost, payback) | `--secundair`, `--gevaar` (outlined, risk colour), `--tekst`, `--vol`; hover, active, `:focus-visible`, `:disabled` and `[aria-disabled]` (dashed, says why), `[aria-busy]` |
 | `.ds-streep` | micro progress for time or count, always with a number beside it | `__baan`, `__vul`, `__label` | `--tijd` (amber), `--laag` (red), `--dik`; set `--ds-streep-w` |
+| `.ds-paneel` | the panel model: a list left and a detail right, fixed widths and margins as tokens of the panel | `--enkel` (detail only) | `--ds-paneel-lijst-b`, `--ds-paneel-rij-h`, `--ds-paneel-rand` |
+| `.ds-lijst` | the list of a panel: rows with one title line, one status line and one right-aligned value | `__rij`, `__t`, `__w` | `aria-current` marks the chosen row |
+| `.ds-detail` | the detail of a panel: head, hero with the one yellow action, three or four facts, a fold "meer" | `__kop`, `__hero`, `__feiten`, `__meer` | |
+| `.ds-feit` | one key fact: icon, number, label; no frame | `__n`, `__l` | |
+| `.ds-leeg` | an empty, locked or reached state that says something useful and offers an action | | |
 | `.ds-zeef`, `.ds-rustig` | surface scope: cream paper, ink text; `.ds-rustig` scopes Rustig drukwerk to one panel (the game sets `html.rustig-drukwerk`) | none | see "Screen-print components" |
 | `.ds-z-knop` | button: yellow primary with ink edge and hard shadow; pressed = shadow gone and the button moved by the offset | none | `--secundair`, `--ghost`, `--gevaar`; hover, `:focus-visible`, `:disabled`, `[aria-disabled]`, `[aria-busy]` |
 | `.ds-z-kaart` | card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
@@ -619,6 +624,18 @@ One small library, `game/js/ds-motion.css` (the `.ds-mi-*` classes, loaded after
 11. **Checks.** `scripts/release/design_rules.mjs` (`checkDsLine`, `checkDsFiles`) enforces rules 1, 2 and 9 on the two files and the contrast, motion and focus checks in `scripts/ds_tokens_test.mjs`; the rest is review and the checklist below.
 
 Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions.
+
+## Panels
+
+One model for every tab of the pause menu (21 November; audit in `docs/ESCAPEMENU-UX-21-11.md`). Components: `.ds-paneel`, `.ds-lijst`, `.ds-detail`, `.ds-feit`, `.ds-chip`, `.ds-leeg` (`ds-components.css`).
+
+- **List (left).** Selectable rows, one line of title and one line of status, one value right-aligned (an amount, "3 van 8", a price). No third line, no bar per row. The chosen row is `aria-current`; the focus ring is the one of the design system.
+- **Detail (right), fixed build, top to bottom.** (1) Head: name plus a status chip. (2) Hero: the next step in one sentence, with the one yellow main button and its key hint (the controller glyph when the pad is the last input). (3) Three or four key facts: icon, number, label, without frames. (4) "Meer" as a fold, closed; everything else goes in there. The same sentence never appears twice in one panel.
+- **Hierarchy by type, not by frames.** Size and weight make the order; one accent per panel (the yellow button). No frame in a frame: a fact is not a card.
+- **States.** Empty (nothing yet), locked (not yet, and why) and reached (done) say something useful and offer an action: "Nog geen meubels. EIKEA heeft ze" with a button to the map, not "Leeg".
+- **Focus and keys.** One order: list, then the detail action. Q and E switch tabs or groups, the arrows move in the list, Enter is the main action, Esc goes back. A tab that has its own sub-sections (Boerderij: Percelen, Erf, Gewas, Machines, Kasboek, Bank) shows them as a tab row in the panel itself, so Q and E work there too.
+- **Size.** Widths and margins are tokens of `.ds-paneel` (list 320 px, 256 px under 1100 px wide or 640 px high; row 56 px; side margin 24 px, 16 px when small). The hero does not scroll from 1024x600 up to 1920x1080; the "meer" fold and the list scroll.
+- **Applied so far.** Boerderij (hero plus a compact line per field, `veldRegelHtml` in `farmcards.js`). Spullen and Loopbanen follow the same build in their own markup; moving the old `.m-li` lists over completely is open debt.
 
 ## Known deviations and open UX debt
 

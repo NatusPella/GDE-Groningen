@@ -320,3 +320,38 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 .ds-z-glyph[data-set="deck"] { font-family: var(--ds-font-knoppen-deck); }
 .ds-z-glyph[data-set="generic"] { font-family: var(--ds-font-knoppen-algemeen); }
 .ds-z-glyph[data-set="touch"] { font-family: var(--ds-font-aanraking); }
+
+/* ---- Panelmodel (21-11, DESIGN_SYSTEM.md > Panels): één model voor elk tabblad van het pauzemenu ----
+   Links een lijst (.ds-lijst), rechts een detail (.ds-detail): kop, hero met de hoofdactie, drie tot vier kernfeiten
+   (.ds-feit) en een inklapbaar "meer". Eén accent per paneel (de hoofdknop), hiërarchie via lettergrootte, geen kader in kader.
+   De maten staan hier als tokens van het paneel; de rest komt uit ds-tokens.css. */
+.ds-paneel {
+  --ds-paneel-lijst-b: calc(var(--ds-s-8) * 5);
+  --ds-paneel-rij-h: calc(var(--ds-s-7) + var(--ds-s-2));
+  --ds-paneel-rand: var(--ds-s-5);
+  display: grid; grid-template-columns: var(--ds-paneel-lijst-b) minmax(0, 1fr); gap: var(--ds-s-5);
+  min-height: 0; padding: var(--ds-s-3) var(--ds-paneel-rand) 0;
+}
+.ds-paneel--enkel { grid-template-columns: minmax(0, 1fr); }
+@media (max-height: 640px), (max-width: 1100px) { .ds-paneel { --ds-paneel-lijst-b: calc(var(--ds-s-8) * 4); --ds-paneel-rand: var(--ds-s-4); gap: var(--ds-s-4); } }
+.ds-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+.ds-lijst__rij { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--ds-s-3); min-height: var(--ds-paneel-rij-h); padding: var(--ds-s-2) var(--ds-s-3); border-bottom: var(--ds-lijn) solid var(--ds-rand); color: var(--ds-tx); text-align: left; }
+.ds-lijst__rij[aria-current="true"], .ds-lijst__rij[aria-selected="true"] { background: var(--ds-succes-vlak); box-shadow: inset var(--ds-s-1) 0 0 var(--ds-succes-tx); }
+.ds-lijst__rij:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: calc(var(--ds-focus-dikte) * -1); }
+.ds-lijst__t { display: flex; flex-direction: column; min-width: 0; }
+.ds-lijst__t > b { font-weight: normal; font-size: var(--ds-t-body); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-lijst__t > span { font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-lijst__w { font-family: var(--ds-font-kop); font-size: var(--ds-t-label); white-space: nowrap; text-align: right; }
+.ds-detail { display: flex; flex-direction: column; gap: var(--ds-s-4); min-width: 0; min-height: 0; overflow-y: auto; }
+.ds-detail__kop { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-3); }
+.ds-detail__kop > h2 { font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); line-height: 1; }
+.ds-detail__hero { display: flex; flex-direction: column; gap: var(--ds-s-3); align-items: flex-start; }
+.ds-detail__hero > p { font-size: var(--ds-t-body); max-width: 36em; }
+.ds-detail__feiten { display: flex; flex-wrap: wrap; gap: var(--ds-s-3) var(--ds-s-5); margin: 0; padding: 0; list-style: none; }
+.ds-detail__meer > summary { cursor: pointer; font-size: var(--ds-t-label); color: var(--ds-tx-zacht); padding: var(--ds-s-2) 0; }
+.ds-feit { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.ds-feit .ds-icoon { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; }
+.ds-feit__n { font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); line-height: 1; }
+.ds-feit__l { font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+/* lege, vergrendelde en bereikte toestanden zeggen iets nuttigs en bieden een actie */
+.ds-leeg { display: flex; flex-direction: column; gap: var(--ds-s-2); align-items: flex-start; padding: var(--ds-s-4) var(--ds-s-3); color: var(--ds-tx-zacht); font-size: var(--ds-t-body); }
