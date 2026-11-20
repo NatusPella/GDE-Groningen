@@ -7,10 +7,13 @@
 Getest met echte Electron-instanties op één computer (127.0.0.1, wegwerpprofielen, een lokale nep-tracker en nep-broker, dus niets verliet de machine):
 
 - Vier spelers (een host en drie gasten) verbinden via de **kamercode** (WebRTC) en via de **openbare sessielijst**, zien elkaar en blijven verbonden. Beelden van host en gast staan in `docs/img/qa/983-*`.
+- Een gast die even wegvalt komt binnen vijf seconden terug (met 3 Electron-gasten en een headless gast, IP-route), betalen, opslaan, een rit, een filmpje, een gast die vertrekt en een nieuwe gast die zijn plek neemt, en de host die stopt gingen goed.
+- De kamercode-route met **twee** instanties over de echte openbare brokers en STUN-servers (de enige proef die echt buiten de computer langs kwam) lukte ook. Een controle vanaf deze computer (`preflight`, zonder UPnP) vond 4 van 4 STUN-servers en 6 van 6 signaleringsservers bereikbaar.
+- Een opdracht (M01) speelde de host uit met twee gasten die meededen ("Sanne doet mee. Bram doet mee.").
 - De spelerslijst klopt bij allen, er gaat geen IP-adres of kamercode over de lijn van de lijstberichten, en vóór **Akkoord** gaat er niets naar buiten.
 - Een fout is gevonden en gerepareerd: sinds #589 viel elke gast van de kamercode-route enkele seconden na het binnenkomen weg, zodra de host het volgende aanbod klaarzette. Zorg dus dat **iedereen de build heeft met die reparatie** (zie "Versie").
 
-Niet te testen zonder echt internet, dus **niet bewezen**: of jullie routers elkaar via STUN vinden (NAT, firewall, mobiel netwerk). Zie "Als het niet lukt".
+Niet te testen zonder echt internet, dus **niet bewezen**: of jullie routers elkaar via STUN vinden (NAT, firewall, mobiel netwerk). Ook niet getest: de openbare sessielijst over de echte brokers (dat zou een openbare regel plaatsen), twee gasten die op exact hetzelfde moment de code invoeren, en het overnemen van het spel door een andere speler (alleen in code getest). Zie "Als het niet lukt".
 
 ## Versie
 
@@ -27,6 +30,8 @@ Iedereen dezelfde versie, en wel een build **met de #983-reparatie** (commit "de
 Liever een lijst dan een code? Kies in de wachtkamer **Maak deze sessie openbaar**, geef een naam (geen echte persoonsnaam) en lees de melding. De sessie staat dan in de lijst Openbare sessies voor iedereen met dit spel. Standaard is een sessie privé. Voor vier vrienden is de code veiliger.
 
 ## Meedoen (de drie anderen)
+
+Sluit **één voor één** aan: wacht tot de naam van de vorige in de spelerslijst van de host staat. Kiezen er twee op hetzelfde moment, dan kan de tweede na 30 seconden "Er kwam geen verbinding tot stand" zien; kies dan gewoon opnieuw **Verder** met dezelfde code.
 
 1. Hoofdmenu: **Samen spelen**, dan **Meedoen**.
 2. Typ of plak de kamercode en kies **Verder**, of kies **Openbare sessies** en klik op de sessie van de host.
@@ -56,7 +61,9 @@ Probeer in deze volgorde:
 
 ## Bekende beperkingen
 
-- Vier instanties op **één** computer geven ongeveer 20 beelden per seconde (meting hieronder). Op vier eigen computers is dat per speler gunstiger; de netwerklast is klein.
+- Vier instanties op **één** computer (16 logische kernen, geen aparte videokaart per speler) gaven ongeveer 20 beelden per seconde per instantie, elk met zo'n 85% van een processorkern en 1,9 GB werkgeheugen (samen 7,8 GB). Op vier eigen computers is dat per speler gunstiger; het verkeer tussen de spelers is klein (een headless gast ontving ongeveer 24 pakketten per seconde). Plan voor een middenklasse-pc ruim 2 GB vrij werkgeheugen voor het spel.
+- Een gast die wegvalt ziet "Verbinding weg" en het spel van die gast staat stil tot hij terug is; de testbank verwachtte iets anders (open vraag in #983).
+- Aanraakbediening van een gast bewoog zijn figuur niet bij de host in de test; op een computer met toetsenbord en muis speelt dat niet.
 - Drie van de vier spelers zijn gast: de wereld (tijd, weer, politie) draait bij de host. Valt de host weg, dan staat de wereld stil tot een overname of tot de host terug is.
 - Een ander netwerkprobleem (pakketverlies, hoge vertraging) merk je als haperende figuren; het spel meldt "Verbinding weg" pas na enkele seconden.
 - De sessie wordt niet opgeslagen door de gasten voor de host: elke speler bewaart zijn eigen spel.
