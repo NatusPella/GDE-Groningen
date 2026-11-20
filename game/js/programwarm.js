@@ -25,3 +25,11 @@ export function programsPending() {
     return n;
   } catch (e) { return 0; }
 }
+
+// Het aantal programma's dat de renderer nu kent (de noemer van programsPending() voor de voortgang van het laadscherm).
+export function programsTotal() {
+  try {
+    const renderer = getRenderer();
+    return renderer && renderer.info.programs ? renderer.info.programs.length : 0;
+  } catch (e) { return 0; }
+}
