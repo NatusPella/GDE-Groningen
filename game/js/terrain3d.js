@@ -247,6 +247,17 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 // and stays meaningful regardless of how big the map is.
 const TARGET_CELL_SIZE_M = 10;
 const TERRAIN_TILE_M = 400;
+const NARROW_WATER_M = 6; // m: a water whose mean width (2 A / P) is under this is a ditch or a brook
+
+// Is this outline a narrow water (a ditch ribbon)? Mean width 2 A / P, the measure waterlevels.js meanWidth uses.
+export function isNarrowWater(pts) {
+  let a = 0, p = 0;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    a += pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1];
+    p += Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]);
+  }
+  return (2 * Math.abs(a / 2)) / (p || 1) < NARROW_WATER_M;
+}
 
 export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   setCountryBounds(bounds);
@@ -297,6 +308,7 @@ export function terrainArrays(bounds, waterPolys = [], opts = {}) {
   const indices = [];
   let droppedTriangles = 0;
   const index = waterList.length ? createWaterIndex(waterList) : null;
+  const narrow = waterList.map((w) => isNarrowWater(w.pts));
 
   // Triangles crossed by a water edge are subdivided down to ~2.5 m and
   // every leaf still touching an edge is dropped, so ground never overhangs
@@ -323,7 +335,9 @@ export function terrainArrays(bounds, waterPolys = [], opts = {}) {
       else indices.push(a, b, c);
       return;
     }
-    if (depth >= 2) { droppedTriangles++; return; }
+    // (a narrow water, a ditch, goes one halving deeper: 1.25 m leaves, so its hole follows the bank
+    // in steps of a metre, not of 2.5 m: the edge was jagged)
+    if (depth >= 2 && !(depth < 3 && hit.some((i) => narrow[index.poly[i]]))) { droppedTriangles++; return; }
     const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a);
     emit(a, ab, ca, hit, depth + 1);
     emit(ab, b, bc, hit, depth + 1);
