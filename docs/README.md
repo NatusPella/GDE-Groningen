@@ -98,6 +98,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [RELEASEGATE.md](<RELEASEGATE.md>) | Het releasegate-rapport en draaiboek: elke release bewijsbaar zonder regressie (ADR 0034). |
 | [REVIEW-20-11.md](<REVIEW-20-11.md>) | AI-codereview van de wijzigingen van 20-11 voor de releasegate (ADR 0034): bevindingen op ernst en testgaten. |
 | [RELEASEN.md](<RELEASEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [QA-SWEEP-20-11.md](<QA-SWEEP-20-11.md>) | Meetronde van de schermen op vijf vensterformaten zonder menselijk oog (buiten beeld, afgekapte tekst, bedekte doelen, contrast, focus), met bevindingen en wat niet gemeten is. |
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SFX-GAPS.md](<SFX-GAPS.md>) | Inventaris van spelgebeurtenissen zonder eigen geluid of met een te algemeen geluid (UI, beloning, wereld-foley, omgeving per streek), met wat is gebouwd en wat nog open staat. |
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
