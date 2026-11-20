@@ -1,4 +1,5 @@
 import { gridItems } from './spatialgrid.js';
+import { keyTextHtml } from './keycap.js';
 import { setMapOpenState } from './pausestate.js';
 import { sfxLinks } from './latehooks.js';
 import { onPaletteChange } from './a11y.js';
@@ -2865,7 +2866,7 @@ export function initMapView(world) {
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen">' + icoon('plus') + '</button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen">' + icoon('min') + '</button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf">' + icoon('doel') + '</button></div>' +
     '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal waypoint weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
-    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><div class="mv-naamkaart" hidden aria-live="polite"></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
+    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · ' + keyTextHtml('{ESC}') + ' stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><div class="mv-naamkaart" hidden aria-live="polite"></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
   document.body.appendChild(overlay);
   initKaartUitleg(overlay);
 

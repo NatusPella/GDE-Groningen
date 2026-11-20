@@ -11,6 +11,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
+import { padSlotGlyph } from './inputglyphs.js';
 
 const SEL = '[data-gk], kbd, .hud-key';
 const orig = new WeakMap();
@@ -56,6 +57,13 @@ export function playerPad() {
 export function padGlyphInner(slot, family = padState().family) {
   const L = PAD_LAYOUTS[family] || PAD_LAYOUTS.xbox;
   const label = SLOT_WORDS[slot] || slot;
+  // the glyph font (Kenney Input Prompts, game/fonts/input) draws the same button per controller family; slots it lacks keep the cap below
+  const kn = padSlotGlyph(slot, family, ['a', 'b', 'x', 'y'].includes(slot) ? L[glyphFaceSlot(slot, family)] : '');
+  if (kn) {
+    const kind = ['a', 'b', 'x', 'y'].includes(slot) ? 'pad-face' : ['up', 'down', 'left', 'right', 'dpad'].includes(slot) ? 'pad-dp' : /^[lr]?s(tick)?$/.test(slot) ? 'pad-stick' : 'pad-sh';
+    const word = SLOT_WORDS[['a', 'b', 'x', 'y'].includes(slot) ? glyphFaceSlot(slot, family) : slot] || label;
+    return `<span class="pad-g pad-kn ${kind}" data-set="${kn.set}" data-slot="${slot}" role="img" aria-label="${word}">${kn.char}</span>`;
+  }
   if (['a', 'b', 'x', 'y'].includes(slot)) {
     const t = L[glyphFaceSlot(slot, family)];
     const inner = PS_SHAPES[t] ? `<svg viewBox="0 0 20 20" aria-hidden="true">${PS_SHAPES[t]}</svg>` : t;

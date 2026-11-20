@@ -101,7 +101,7 @@ export function trainPrompt(world) {
     const slow = t.v < EXIT_MAX_SPEED;
     return {
       id: 'trein-rijden', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'E', label: 'Uitstappen',
-      sub: slow ? 'W/S hendel, O deuren, G dienst rijden' : 'Eerst stoppen: S remt, Spatie is de noodrem', ring: true, dim: !slow,
+      sub: slow ? 'W/S hendel, O deuren, G dienst rijden' : 'Eerst stoppen: {S} remt, {SPACE} is de noodrem', ring: true, dim: !slow,
     };
   }
   const b = boardable(world);
@@ -283,7 +283,7 @@ function startWalk(world, t) {
   const i = cabIndex(t), cl = trainLayout(t.cfg)[i], spot = cabDoorSpot(cl);
   world.trainWalk = { car: i, lx: spot.x, lz: spot.z, yaw: t.cab > 0 ? Math.PI : 0, pitch: 0 };
   cab.dm = 0; cab.warn = false;
-  world.addMessage('Je staat op: lopen met WASD, T naar de cabine, E bij open deur', 3.5);
+  world.addMessage('Je staat op: lopen met {WASD}, {T} naar de cabine, {E} bij open deur', 3.5);
 }
 
 function stopWalk(world) {

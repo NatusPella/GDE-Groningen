@@ -1965,7 +1965,7 @@ function updateMissionKern(dt, world) {
       // a running bijbaantje (sidejobs.js) first has to be finished or stopped
       if (world.sideJob && world.sideJob.active) {
         chainState().armed = false;
-        world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
+        world.addMessage('Eerst je bijbaantje afmaken of stoppen ({ESC} > Spel)', 3);
       } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chainState().armed = false; else if (!checkRequirement(world, def, true)) chainState().armed = false;
       else if (!checkRide(world, def)) chainState().armed = false;
       else if (hooks.canStart(world, chainState().index)) startMission(world, def);

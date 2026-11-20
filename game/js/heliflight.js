@@ -268,7 +268,7 @@ export function flyHeli(v, dt, w) {
   v.rotor = clamp((v.rotor || 0) + (dead ? -dt / SPOOL_DOWN : dt / SPOOL_UP), 0, 1);
   const ready = v.rotor >= LIFT_SPOOL;
   if (!ready && !dead && up > 0 && v.onGround) say('spool', 'De rotor draait op, nog even...', 1.6, 'tip', 4);
-  else if (v.onGround && ready && !dead && fwd !== 0 && up <= 0) say('takeoff', 'Eerst opstijgen: Spatie', 2.2, 'tip', 8);
+  else if (v.onGround && ready && !dead && fwd !== 0 && up <= 0) say('takeoff', 'Eerst opstijgen: {SPACE}', 2.2, 'tip', 8);
 
   // heading: keys build a turn rate, the mouse turns straight
   const want = yaw * YAW_RATE * (v.onGround && !ready ? 0 : 1);

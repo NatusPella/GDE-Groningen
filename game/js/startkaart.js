@@ -5,6 +5,7 @@
 // het spel zelf, hier alleen de kern van twee of drie toetsen (#688).
 // Puur: geen three.js en geen DOM; hudcards.js tekent de kaart.
 import { showCard } from './hudcards.js';
+import { keyTextHtml } from './keycap.js';
 import { samenStatus, toelichtingVan } from './coopstatus.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, DIFFICULTY } from './difficulty.js';
@@ -15,9 +16,7 @@ import { GROEPSBONUS_KORT } from './groepsbonus.js'; // (#811) dezelfde 1+1=3-re
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Toetsen als dezelfde toetsplaatjes als de HUD ([E] wordt een kbd.hud-key).
-const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|Spatie|Enter|Tab|Shift|Backspace|Esc|1|2|3|4';
-const KEY_RE = new RegExp(`\\[(${KEYS})\\]`, 'g');
-const keysHtml = (s) => esc(s).replace(KEY_RE, (m, k) => `<kbd class="hud-key">${k === 'Spatie' ? 'SPATIE' : k.toUpperCase()}</kbd>`);
+const keysHtml = (s) => keyTextHtml(esc(s)); // [E], {E}, {MOUSE}: glyphs follow rebinding (keycap.js)
 
 // Per activiteit (activities.js ACTIVITEIT_IDS): titel, doel (één zin), medailles (brons, zilver,
 // goud of null), beloning en de kernbesturing.
@@ -35,7 +34,7 @@ export const STARTKAART = {
   hoogvlieger: {
     titel: 'Reuzenrad', doel: 'Draai mee in het rad en kijk over de stad uit',
     medailles: ['1 ritje', '3 ritjes', '5 ritjes'], beloning: '€2 per ritje; je teller staat in Te doen',
-    kern: '[E] instappen · muis of pijltjes om je heen kijken',
+    kern: '[E] instappen · {MOUSE} of {ARROWS} om je heen kijken',
   },
   geheimen: {
     titel: 'Geheimpjes', doel: 'Vind de kleine dingen die niemand je aanwijst',

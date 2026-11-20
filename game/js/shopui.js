@@ -1,5 +1,6 @@
 import { icoon } from './icons.js';
 import { saveGame } from './savehook.js';
+import { keyTextHtml } from './keycap.js';
 import { euro } from './geldtekst.js';
 import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shopicon.js';
@@ -271,7 +272,7 @@ function shortOfMoney(it) {
 }
 
 // De toets die de knop bedient, als toetsplaatje (toetsenbord) of als de A-knop (controller).
-const toetsHint = () => (isPadActive() ? PG('a') : '<span class="ds-badge">Enter</span>');
+const toetsHint = () => (isPadActive() ? PG('a') : keyTextHtml('{ENTER}'));
 
 // De bon: prijs, wat je op zak hebt en wat er na afloop overblijft, vóór je kiest.
 function bonHtml(it) {
