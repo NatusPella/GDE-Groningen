@@ -652,10 +652,10 @@ function miniUi(title) {
     el = document.createElement('div');
     el.id = 'om-mini';
     el.style.cssText = 'position:fixed;left:50%;bottom:24vh;transform:translateX(-50%);width:min(360px,calc(100vw - 32px));padding:10px 14px;z-index:6;pointer-events:none;'
-      + 'font:15px "Arial Narrow",Arial,sans-serif;color:#f0ede4;background:rgba(10,18,34,0.78);border-left:4px solid #3fc97a;border-radius:0 6px 6px 0;';
-    el.innerHTML = '<div class="t" style="font:22px \'Bebas Neue\',\'Arial Narrow\',sans-serif;letter-spacing:2px;color:#8fd8a8"></div>'
-      + '<div class="b" style="position:relative;height:16px;margin-top:6px;background:rgba(240,237,228,.14);border-radius:8px;overflow:hidden">'
-      + '<i style="position:absolute;top:0;bottom:0;left:78%;width:20%;background:rgba(93,255,122,.45)"></i><u style="position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff"></u></div>'
+      + 'font:15px var(--ds-font-tekst-v3);color:var(--ds-c-ink-inkt);background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-left:8px solid var(--ds-c-ink-bord);border-radius:8px;box-shadow:var(--ds-schaduw-hard);';
+    el.innerHTML = '<div class="t" style="font:800 22px var(--ds-font-kop-v3);letter-spacing:2px;color:var(--ds-c-ink-bord)"></div>'
+      + '<div class="b" style="position:relative;height:16px;margin-top:6px;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);box-sizing:border-box;border-radius:4px;overflow:hidden">'
+      + '<i style="position:absolute;top:0;bottom:0;left:78%;width:20%;background:var(--ds-c-ink-bord);opacity:.6"></i><u style="position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:var(--ds-c-ink-inkt)"></u></div>'
       + '<div class="s" style="margin-top:6px"></div><div style="margin-top:4px;font-size:13px;opacity:.75">Druk E als de bal in het groene vak is</div>';
     document.body.appendChild(el);
   }

@@ -17,7 +17,7 @@ export const isRitActive = () => !!active;
 function build(taxi = false, label = '', trein = false) {
   const el = document.createElement('div');
   el.className = 'reisrit' + (taxi ? ' reisrit-taxi' : '') + (trein ? ' reisrit-trein' : '');
-  el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#0f5c30;color:#f0ede4;font:20px Arial,sans-serif;display:grid;grid-template-rows:12% 1fr 12%;pointer-events:none';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:var(--ds-c-ink-bord);color:var(--ds-c-ink-inkt);font:20px var(--ds-font-tekst-v3);display:grid;grid-template-rows:12% 1fr 12%;pointer-events:none';
   // #926: de treinreis is een echte scène: een trein op het spoor, het perron
   // met zijn bord en de polder die voorbijschuift. Het canvas ligt onder de
   // tekst; de rest van de laag (voortgang, skip) blijft hetzelfde.
@@ -38,8 +38,8 @@ function build(taxi = false, label = '', trein = false) {
       + '<div style="position:absolute;right:14px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:#0f5c30;border:2px solid #f0ede4"></div>'
       + '</div></div>'
     : '';
-  el.innerHTML = treinLayer + '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%;position:relative"><div' + (trein ? ' class="rr-plaat" style="background:rgba(12,20,14,.62);padding:14px 26px 18px;border-radius:10px"' : '') + '><div class="rr-lijn" style="font:14px Arial,sans-serif;letter-spacing:3px;color:#f0ede4"></div><div class="rr-tekst" style="font-size:34px;margin-top:10px"></div><div class="rr-balk" style="margin:26px auto 0;width:280px;height:4px;background:#0f5c30"><div class="rr-vul" style="height:100%;width:0;background:#3fc97a"></div></div>' + taxiLayer + '</div></div>' +
-    '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px Arial,sans-serif"><span class="hud-key" data-gk="SPATIE" style="background:#f0ede4;color:#0f5c30;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
+  el.innerHTML = treinLayer + '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%;position:relative"><div class="rr-plaat" style="background:var(--ds-c-ink-papier);padding:14px 26px 18px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard)"><div class="rr-lijn" style="font:800 16px var(--ds-font-kop-v3);letter-spacing:0.12em;color:var(--ds-c-ink-bord)"></div><div class="rr-tekst" style="font:800 34px var(--ds-font-kop-v3);margin-top:10px"></div><div class="rr-balk" style="margin:22px auto 0;width:280px;height:14px;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);box-sizing:border-box;border-radius:4px;overflow:hidden"><div class="rr-vul" style="height:100%;width:0;background:var(--ds-c-ink-geel)"></div></div>' + taxiLayer + '</div></div>' +
+    '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px var(--ds-font-tekst-v3);background:var(--ds-c-ink-papier);color:var(--ds-c-ink-inkt);padding:5px 12px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard-klein)"><span class="hud-key" data-gk="SPATIE" style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:2px 9px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
   // de eerste frame is nooit leeg: de scène vult zichzelf meteen met de rit
   el.querySelector('.rr-lijn').textContent = String(label || '').toUpperCase();
   el.querySelector('.rr-tekst').textContent = taxi ? 'Instappen' : '';

@@ -84,6 +84,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-LAADHANG-0.56.1.md](<PERF-LAADHANG-0.56.1.md>) | Onderzoek naar de melding dat 0.56.1 op sommige machines in het laadscherm bleef |
 | [LAAD-STREAMING-LOD.md](<LAAD-STREAMING-LOD.md>) | Wat er tijdens laadschermen en daarbuiten gebeurt: fasen, streaming, LOD-ringen, vergelijking met 0.54.0 en bevindingen. |
 | [PERF-TREND-0.54-NAAR-NU.md](<PERF-TREND-0.54-NAAR-NU.md>) | Prestatietrend sinds 0.54.0: tijdlijn per tag, statische maten en vaste opwarmbudgetten. |
+| [UI-INVENTARIS-OUD-20-11.md](<UI-INVENTARIS-OUD-20-11.md>) | Naslag (#985, 20-11). Welke schermen buiten het menu nog donker glas en oude lettertypen droegen, wat is omgezet naar de zeefdruk en wat bewust blijft. |
 | [ZFIGHT-METING.md](<ZFIGHT-METING.md>) | Meting van z-fighting (#917, #919): dieptestap per afstand en near, positieve controle, wisselpixels per plek bij near 0,5, 1,5 en 2,5, en het besluit over het dynamische near. |
 | [PERF-PLEISTERS.md](<PERF-PLEISTERS.md>) | Inventaris van prestatie-pleisters sinds 0.54.0 (schadelijk, maskerend, legitiem) met oorzaken en een schrapvolgorde. |
 | [PERF-METING-2026-10-19.md](<PERF-METING-2026-10-19.md>) | Dit is de actuele meetbron voor prestaties (zie `.specs-fire/standards/mechanica.md`, |

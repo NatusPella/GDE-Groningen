@@ -22,12 +22,13 @@ function ensure() {
   if (el || typeof document === 'undefined') return el;
   const st = document.createElement('style');
   st.textContent = `
-#name-card { position: fixed; left: max(6vw, calc(340px * var(--ui, 1) + 24px)); bottom: calc(11vh + 24vh); z-index: 17; pointer-events: none; color: #f0ede4;
-  opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
+#name-card { position: fixed; left: max(6vw, calc(340px * var(--ui, 1) + 24px)); bottom: calc(11vh + 24vh); z-index: 17; pointer-events: none; color: var(--ds-c-ink-inkt);
+  padding: 10px 22px 14px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
+  opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); }
 #name-card.on { opacity: 1; transform: none; }
-#name-card .nc-name { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
-#name-card .nc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 14px rgba(63,201,122,.45); }
-#name-card .nc-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(16px, 1.6vw, 22px); margin-top: 6px; max-width: 36ch; color: rgba(240,237,228,.92); }
+#name-card .nc-name { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
+#name-card .nc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: var(--ds-c-ink-geel); border: 2px solid var(--ds-c-ink-inkt); box-sizing: border-box; }
+#name-card .nc-line { font-family: var(--ds-font-tekst-v3); font-size: clamp(16px, 1.6vw, 22px); margin-top: 6px; max-width: 36ch; color: var(--ds-c-ink-inkt); }
 /* #870: op een smalle telefoon schoof de kaart met zijn vaste 340px-reserve
    buiten beeld; hij houdt daar de breedte tussen de randen en een kleinere titel. */
 @media (max-width: 700px) {

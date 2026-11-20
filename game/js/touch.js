@@ -55,6 +55,13 @@ html.touch-portrait body:has(#pause-menu.visible) #touch-ui .t-turn { display: n
   #touch-ui .t-btn.t-num { font-size: 21px; }
 }
 
+/* Zomerse zeefdruk (ADR 0040): de aanraakknoppen als papieren toetsen met inktrand en harde schaduw. */
+#touch-ui .t-ring { border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: transparent; box-shadow: 0 0 0 2px var(--ds-c-ink-papier), inset 0 0 0 2px var(--ds-c-ink-papier); }
+#touch-ui .t-knob { background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-sizing: border-box; box-shadow: var(--ds-schaduw-hard-klein); }
+#touch-ui .t-btn { border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 16px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); font: 800 17px var(--ds-font-kop-v3); }
+#touch-ui .t-btn.on { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); box-shadow: none; }
+#touch-ui .t-pause { border-radius: 16px; }
+#touch-ui .t-turn { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-tekst-v3); }
 html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 html.touch-device body { touch-action: manipulation; }
 html.touch-device button, html.touch-device [role="button"], html.touch-device select { min-height: 44px; }
