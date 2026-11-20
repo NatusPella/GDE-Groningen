@@ -374,3 +374,7 @@ Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als 
 ## Camera van de taxi- en treinrit (#882, #926)
 
 De camera tijdens een rit (cabine, achter, filmisch, van boven; C of Y) is **lokaal per speler**: de rit zelf is al een eigen scène van wie hem rijdt en de keuze staat in de eigen instellingen (`ritCamera` in `gde-settings`, standaard cabine). Er gaat niets over het netwerk: een gast of host ziet niet welke camera een ander kiest, en een andere speler ziet de taxi gewoon in de wereld. Wegvallen of later aansluiten verandert niets. Test: `scripts/ritpad_test.mjs` (pure keuze en camerastanden). Niet in beeld bekeken met een echte gast.
+
+## De kaart en de vier gebiedstoestanden (20-11)
+
+**Doet iedereen het lokaal in zijn eigen spel:** de kaart en de minikaart zijn lokaal. De toestand van een gebied (nog onzichtbaar, zichtbaar, aan het veroveren, veroverd) komt uit het eigen profiel van de speler (`gde-gebieden-v1`: `bezocht` en `gedaan`), dus de veroverde voortgang is per speler (#429). Een gast ziet op zijn eigen kaart wat hij zelf bezocht en gedaan heeft, niet wat de wereld van wie het spel opende heeft. Er is geen nieuw netwerkveld, geen snapshot en geen EXTRA-bericht; wie wegvalt of later aansluit houdt zijn eigen kaart. Dekking: `scripts/gebiedtoestand_test.mjs` (pure toestand per gebied, zonder netwerkcode). Zie [KAART-GEBIEDEN-20-11.md](KAART-GEBIEDEN-20-11.md).

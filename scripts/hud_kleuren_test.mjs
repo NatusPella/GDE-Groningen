@@ -242,6 +242,8 @@ ok(!/\[W\] \[S\]|\[A\] \[D\]/.test(kermisSrc + carbidSrc), 'kermis en carbid: ge
 ok(strayHexes('pigeonmode.js').length === 0 && /const thema = mgThema\('duivenmelker'\)/.test(pigeonSrc), 'duif: geen losse hex, titel en accent uit MG_THEMA');
 ok(/font: 12px\/18px/.test(pigeonSrc) && /prefers-reduced-motion/.test(pigeonSrc) && /class="hud-key"/.test(pigeonSrc), 'duif: chips 12 px, keycaps via .hud-key en reduce-motion');
 
+// De kaart en de minikaart (20-11): de kleuren van de gebiedstoestanden komen uit kaartkleuren.js (ds-tokens), geen eigen hex in het tekenen of de toestandsregels.
+for (const f of ['gebiedenkaart.js', 'gebiedtoestand.js']) { const s = strayHexes(f); ok(s.length === 0, f + ': kleuren buiten de ds-tokens: ' + (s.join(', ') || 'geen')); }
 console.log((fails ? 'FAIL ' : '') + 'hud_kleuren_test: ' + (fails ? fails + ' fout' : 'ok — de HUD-kleuren komen uit de tokens, de accenten uit één tabel'));
 process.exit(fails ? 1 : 0);
 
