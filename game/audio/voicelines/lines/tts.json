@@ -14930,6 +14930,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Rikus|Krak. Iemand lette even niet op.": {
+"src": "rikus/krak_iemand_lette_even_niet_op_fc5cefe1.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Schedar",
+"input": "Krak. Iemand lette eefkes nait op.",
+"style": "warm, vertellend",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Rikus|Laanhuizen. Rijtjes, hofjes, en het Stadspark om de hoek.": {
 "src": "rikus/laanhuizen_rijtjes_hofjes_en_het_c2387912.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -15419,6 +15430,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Rikus|Vijf sterren. Nu even rustig aan doen.": {
+"src": "rikus/vijf_sterren_nu_even_rustig_aan__b24ba19b.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Schedar",
+"input": "Vieve sterren. Nou eefkes rustig aan doun.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: plagend, laconiek.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Rikus|Villa's aan de Hereweg. Hier heeft de heg een eigen tuinman.": {
 "src": "rikus/villa_s_aan_de_hereweg_hier_heef_7db4ee5d.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -15508,6 +15530,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Rikus|Weer een stukje Grunn dat je nu kent.": {
+"src": "rikus/weer_een_stukje_grunn_dat_je_nu__353b4c36.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Schedar",
+"input": "Weer n stukje Grunn dat je nou kent.",
+"style": "plagend, laconiek",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Rikus|Welke twee, Trijntje?": {
 "src": "rikus/welke_twee_trijntje_37b66714.mp3",
