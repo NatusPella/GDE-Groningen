@@ -27,16 +27,13 @@
   @keyframes grain { 0% { background-position: 0 0; } 25% { background-position: -40px 30px; } 50% { background-position: 30px -50px; } 75% { background-position: -60px -20px; } 100% { background-position: 0 0; } }
 
   /* the GDE wordmark (logo.js): GDE, the place on a place-name sign, the subtitle */
-  .gde-logo { --plate: #1e9e56; display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: 900; line-height: 1; color: #f0ede4; }
-  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.015em; margin-right: -0.015em;
-    background: linear-gradient(180deg, #f0ede4 0%, #f0ede4 52%, #3fc97a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 0.025em 0.05em rgba(0,0,0,0.7)) drop-shadow(0 0 0.1em rgba(63,201,122,0.3)); }
-  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #fff; background: var(--plate); border-radius: 0.2em;
-    box-shadow: inset 0 0 0 0.08em var(--plate), inset 0 0 0 0.17em #fff, 0 0.08em 0.3em rgba(0,0,0,0.55); }
-  .gde-logo .gde-sub { margin-top: 0.5em; font: italic 700 0.13em/1.1 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.03em; color: #3fc97a; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+  .gde-logo { display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; font-weight: 800; line-height: 1; color: #1d1b17;
+    padding: 0.07em 0.13em 0.1em; background: #f3ead3; border: 0.035em solid #1d1b17; border-radius: 0.07em; box-shadow: 0.045em 0.045em 0 #1d1b17; }
+  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.01em; color: #0e6b3c; text-shadow: 0.03em 0.03em 0 #e8505b; }
+  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #1d1b17; background: #f9c80e; border: 0.14em solid #1d1b17; border-radius: 0.2em; }
+  .gde-logo .gde-sub { margin-top: 0.5em; font: 700 0.13em/1.1 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.02em; color: #0e6b3c; }
+  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: #1d1b17; }
   #cine .cine-big .gde-logo { position: relative; isolation: isolate; font-size: clamp(100px, 16vw, 210px); letter-spacing: 0; text-shadow: none; }
-  #cine .cine-big .gde-logo::before { content: ''; position: absolute; inset: -35% -60%; z-index: -1; background: radial-gradient(ellipse at center, rgba(6,11,8,0.9) 0%, rgba(6,11,8,0.75) 40%, rgba(6,11,8,0) 72%); }
-  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: rgba(240,237,228,0.55); }
 
   /* the boot screen (startscreen.js): the first thing the window shows, dark
      green from the first paint, then the logo builds up while the game loads */
