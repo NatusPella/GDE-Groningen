@@ -67,7 +67,7 @@ In de eerste versie van dit document stond een verdachte plek op de Hogelandster
 
 ## Audit wegen zonder brug
 
-AUDIT_PLAATSHOUDER
+Gedeeltelijk gedraaid (1300 van 2978 tegels, 44%, op de tegels van de werkwereld; gestopt wegens tijd, niet in git): wegen met de hartlijn door water, zonder bridge-vlag, droog aan beide kanten, 3 tot 40 m nat, hoogte tussen -1 en 1,5 m. 285 treffers, waarvan 281 voet- en fietspaden (118 en 163; een voetganger zwemt daar door) en 4 autowegen: Mernaweg (twee keer, 9 en 18 m, hoogte 1,4 tot 1,5 m, waarschijnlijk een laag brugdek), Thesingerweg (tegel 238_590, bij (5121, -8481), 18 m, hoogte 0) en Westerhornseweg (tegel 235_601, bij (2290, -19122), 3 m, hoogte 0). Niets is in het spel bevestigd; de Thesingerweg is de enige met hoogte 0 over een flinke breedte. Met de hand controleren, of de audit afmaken (zelfde script, `.scr/brugaudit.mjs`, niet in git). Bij Atalanta (M20) kwam geen treffer uit de tegels die tot nu toe gedaan zijn.
 
 ## Open punten voor een mens (13:00)
 
@@ -75,7 +75,8 @@ AUDIT_PLAATSHOUDER
 2. M26: de bakstap op de Grote Markt met een fiets (loop met je fiets).
 3. M16: de menigte van de tenten (te voet; de race-HUD met "Controlepunt 1/3" staat erbij).
 4. M30: loop van de ophaalbrug naar bolwerk 1 (339 m, geen routelijn in het HUD).
-5. M20: de oversteek van het fietspad bij Atalanta (west van het fort), mogelijk een brug zonder dek.
+5. M20: de oversteek van het fietspad bij Atalanta (west van het fort): de bot weigerde door het water; onbekend of er een brug ontbreekt.
+6. De Thesingerweg bij (5121, -8481): 18 m nat op hoogte 0 volgens de gedeeltelijke audit.
 
 ## Niet bekeken
 
