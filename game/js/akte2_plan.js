@@ -88,6 +88,21 @@ export function kaartA1(vMin, vMax) {
   };
 }
 
+// --- Oma Trijntje aan de Noorderhaven (M08) ---------------------------------------------------------------------------------
+// De aankleding aan het eind van de fatbike-wandeling (missiedecor.js, registreerAankleding): Oma Trijntje zelf, met haar bun en
+// haar blauwe jasje (hetzelfde uiterlijk als in de scènes, missionstory.js), zwaaiend naast een bank met een pan krentjebrij
+// (een ton en een kist als tafeltje). Lokale maten: along is de looprichting van de speler, side naar rechts.
+export const PLAN_TRIJNTJE = {
+  props: [
+    { kind: 'bank', along: 4.5, side: 4.2, a: -1.2 },
+    { kind: 'kist', along: 3.0, side: 3.2, a: 0.3 },
+    { kind: 'ton', along: 6.2, side: 5.6, a: 0 },
+  ],
+  people: [
+    { look: { shirt: 0x5c6f8a, skin: 0xf1c9a5, seed: 195, variant: 'female', hairStyle: 'bun', extra: { age: 'old' } }, along: 3.8, side: 1.4, a: Math.PI, anim: 'wave' },
+  ],
+};
+
 // --- Wachtfiguren (step.wacht, zie wachtprops.js) -----------------------------------------------------------------------
 
 // M11: de drie zoutkuipen op de kwelder. Klaas wacht bij de eerste met zijn kist, bij de laatste staat hij rustig te kijken.
@@ -137,7 +152,8 @@ export function brugSeinNodig(bekend, brug, staat) {
 
 // De aankomst bij de bietenhoop: twee wegers en een paar collega's (een klein publiek) in een ring rond de hoop, met een opening
 // naar waar de trekker komt. `hoop` is { x, y }; `hoek` is de richting waar de trekker vandaan komt (radialen).
-export function hoopPubliek(hoop, hoek = 0) {
+// `clear` houdt cirkels leeg (de weegbrug en de oplegger van bietenhal.js).
+export function hoopPubliek(hoop, hoek = 0, clear = []) {
   if (!hoop || !eindig(hoop.x) || !eindig(hoop.y)) return null;
-  return { shape: 'ring', x: hoop.x, y: hoop.y, radius: 11, depth: 3, count: 8, seed: seedFromKey('A1.hoop'), gapA: eindig(hoek) ? hoek : 0, gapW: 1.0 };
+  return { shape: 'ring', x: hoop.x, y: hoop.y, radius: 11, depth: 3, count: 8, seed: seedFromKey('A1.hoop'), gapA: eindig(hoek) ? hoek : 0, gapW: 1.0, clear: Array.isArray(clear) ? clear : [] };
 }

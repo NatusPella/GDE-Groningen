@@ -1571,8 +1571,11 @@ function updateMission(dt, world) {
 function updateRegelwidgets(world, kind) {
   const m = world.mission;
   const egg = kind === 'mission' && m && m.phase === 'active' && m.eggLimit ? m : null;
+  const limo = kind === 'mission' && m && m.phase === 'active' && Number.isFinite(m.limoAfstand) ? m : null;
+  updateLimoMeter(limo);
   if (!egg) {
-    if (els.rwEgg) { els.rwEgg.verberg(); els.rwEggen.verberg(); els.objRegel.hidden = true; }
+    if (els.rwEgg) { els.rwEgg.verberg(); els.rwEggen.verberg(); }
+    if (!limo) els.objRegel.hidden = true;
     return;
   }
   if (!els.rwEgg) {
@@ -1590,6 +1593,24 @@ function updateRegelwidgets(world, kind) {
   v.heel = heel; v.totaal = egg.eggsTotaal;
   els.rwEgg.ververs();
   els.rwEggen.ververs();
+}
+
+// AAA M10: de afstand tot de limo als wijzer (richting en afstandsringen), zodat "hij zit op je bumper" te zien is voor het te laat is.
+// Binnen de eerste ring (12 m) knippert hij; de missie vangt je pas na drie seconden op 7 m.
+function updateLimoMeter(limo) {
+  if (!limo) {
+    if (els.rwLimo) els.rwLimo.verberg();
+    els.rwLimoA = els.rwLimoB = undefined;
+    return;
+  }
+  if (!els.rwLimo) els.rwLimo = maakWidget('wijzer', els.objRegel, { ringen: [12, 30, 80], label: 'Limo achter je' });
+  const afstand = limo.limoAfstand, hoek = limo.limoHoek || 0;
+  if (afstand === els.rwLimoA && hoek === els.rwLimoB) return;
+  els.rwLimoA = afstand; els.rwLimoB = hoek;
+  els.objRegel.hidden = false;
+  els.rwLimo.inv.afstand = afstand;
+  els.rwLimo.inv.hoek = hoek;
+  els.rwLimo.ververs();
 }
 
 // #824: de compacte bedieningsregel hoort bij missies, bijbanen en achtervolgingen. Hij staat in

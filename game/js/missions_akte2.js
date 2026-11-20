@@ -6,7 +6,8 @@
 // A start there has no road data until the player is there (the tiles stream in): `lazyStart` makes
 // missions.js look for the road when the mission begins. `models` are the vehicle models of vehicle.js.
 
-import { KAART_M07, KAART_M08, KAART_M09, KAART_M10, KAART_M11_VAREN, KAART_M11_ZOUT, WACHT_M11 } from './akte2_plan.js'; // AAA akte 2: kaarten en wachtfiguren
+import { KAART_M07, KAART_M08, KAART_M09, KAART_M10, KAART_M11_VAREN, KAART_M11_ZOUT, WACHT_M11, PLAN_TRIJNTJE } from './akte2_plan.js'; // AAA akte 2: kaarten en wachtfiguren
+import { registreerAankleding } from './missiedecor.js';
 
 // M11 Geleend van de Friezen, the coast mission (Zoutkamp, Lauwersmeer, Noordpolderzijl): replaces the old arc's def of the
 // same label (the Diepenring chase) in the new arc. World metres from the OSM extract:
@@ -80,7 +81,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       costRow: ['Gered', 'Plakje drie: de eieren van Geesje'],
       vehicle: 'car',
       vehicleName: 'Geesjes trekker',
-      vehicleModel: models.tractor || null,
+      vehicleModel: models.tractor ? { ...models.tractor, kratten: 6 } : null, // AAA: de zes kratten achterop (models3d_vehicles.js addEggCrates)
       vehicleFail: { gone: 'Geesjes trekker is foetsie, met alle eieren', wrecked: 'de trekker ligt in de sloot, de eieren drijven', left: 'je liet de trekker met de eieren staan' },
       // #663: de rit is in twee stukken geknipt met een tussenstop, en de missie
       // faalt pas onder 38% (was 50%): eerst komt er nog een waarschuwing.
@@ -156,6 +157,9 @@ export function applyAkte2(list) {
     fat.timeUp = 'tijd op. Oma Trijntje heeft de krentjebrij alleen opgegeten';
     fat.costRow = ['Gekregen', "Oma's lijstje: vijf vrienden, vijf ingrediënten"];
     fat.kaart = KAART_M08; // AAA akte 2: de regel (loop, wijk uit, niet remmen) staat nu op een kaart
+    // AAA M08: Oma Trijntje wacht als figuur aan de Noorderhaven (missions.js bouwt `eindDressing` bij het doel van de wandeling)
+    registreerAankleding('trijntje', PLAN_TRIJNTJE);
+    fat.eindDressing = 'trijntje';
   }
   // AAA akte 2 (M07): de tankwagen kapen krijgt een kaart, een voltooide stap klinkt en de Oosterpoort een plein met publiek
   const vet = by('Al het vet van Grunn');

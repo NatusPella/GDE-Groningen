@@ -376,7 +376,8 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
   // again on dispose (#796).
   const people = [];
   for (const p of plan.people) {
-    const m = buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant });
+    // look.hairStyle en look.extra (zoals { age: 'old' }) laten een vaste figuur herkenbaar zijn (Oma Trijntje, M08)
+    const m = buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant, ...(p.look.hairStyle ? { hairStyle: p.look.hairStyle } : {}), ...(p.look.extra ? { look: p.look.extra } : {}) });
     place(m, p.along, p.side);
     m.rotation.y = -a + (p.a || 0);
     if (p.h) m.scale.y = p.h;

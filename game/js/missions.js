@@ -977,6 +977,10 @@ function syncPub(world) {
   // #987: het aantal heel gebleven eieren voor de regelwidget (de meter is een percentage; zonder eierental 100 stuks)
   pub.eggsTotaal = pub.eggLimit ? (def.eggs.count || 100) : null;
   pub.eggsHeel = pub.eggLimit && st.eggs != null ? Math.round(st.eggs / 100 * pub.eggsTotaal) : null;
+  // AAA M10: hoever de achtervolgende limo achter je zit (de afstandsmeter van de HUD); null zonder limo
+  const limoS = active && st.stage && st.stage.limo && !st.stage.lost && Number.isFinite(st.stage.limoD) ? st.stage : null;
+  pub.limoAfstand = limoS ? Math.round(limoS.limoD) : null;
+  pub.limoHoek = limoS && Number.isFinite(limoS.limoHoek) ? limoS.limoHoek : 0;
   pub.progressText = rv ? (board ? 'Stap in de rondvaartboot' : boatProgressText(rv)) : active ? progressText(world, def, pub) : null;
   const race = st.race && active ? raceStandings(st.race) : null;
   world.race = race ? {
@@ -1566,6 +1570,7 @@ function startMission(world, def) {
     startRondvaart(world, chainState().vehicle);
   } else if (def.type === 'fatbike') {
     lanes.startLane(world, def);
+    startEindAankleding(world, def);
   } else if (def.type === 'stages') {
     if (def.vehicle === 'car' && def.snapStart && !def.start.road) {
       const rs = roadSpot(world.map, def.start.x, def.start.y, true);
@@ -2069,6 +2074,7 @@ function updateMissionKern(dt, world) {
   } else if (def.type === 'fatbike') {
     lanes.updateLaneBikes(dt, world, def);
     lanes.checkLaneHits(world);
+    if (chainState().eindDressing) updateMissionDressing(chainState().eindDressing, dt);
     // Samen spelen (#525): the group walks the lane, so whoever of them passes a sign reads it
     // and whoever of them reaches Oma Trijntje on foot finishes the mission.
     const groep = groepsActeurs(world);
@@ -2852,7 +2858,23 @@ export function meldRegelkaart(sleutel) {
 
 // #963: de aankleding van een wachtstap (de kring met spullen) gaat mee met de
 // stap: bij de volgende stap, bij slagen en bij mislukken.
+// AAA M08: een missie zonder stappen (de fatbike-wandeling) kan aan het eind een figuur en spullen krijgen (`def.eindDressing`, een
+// naam uit missiedecor.js): Oma Trijntje aan de Noorderhaven. Lokaal beeld; gaat weg bij slagen, mislukken en het volgende begin.
+function startEindAankleding(world, def) {
+  disposeEindAankleding();
+  if (!def.eindDressing || !def.dest || !def.start) return;
+  try {
+    const a = Math.atan2(def.dest.y - def.start.y, def.dest.x - def.start.x);
+    chainState().eindDressing = buildMissionDressing(world, def.eindDressing, { x: def.dest.x, y: def.dest.y, a });
+  } catch (e) { chainState().eindDressing = null; }
+}
+function disposeEindAankleding() {
+  const k = chainState().eindDressing;
+  if (k) { try { disposeMissionDressing(k); } catch (e) { /* aankleding mag de missie nooit raken */ } chainState().eindDressing = null; }
+}
+
 function disposeStageDressing(keepSet = false) {
+  disposeEindAankleding();
   const S = chainState().stage;
   if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
   if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; } // #956: de kamer gaat mee met de stap
@@ -2911,6 +2933,8 @@ function updatePursuer(dt, world, def, st, S) {
   if (!world.vehicles.includes(v) || v.wrecked) { S.lost = true; S.limo = null; return false; }
   const eigen = hoofdspeler(world), ref = eigen.inVehicle || eigen;
   const d = dist(ref.x, ref.y, v.x, v.y);
+  S.limoD = d; // AAA M10: de afstandsmeter in de HUD (pub.limoAfstand), alleen beeld
+  S.limoHoek = hoekTot(ref.angle || 0, Math.atan2(v.y - ref.y, v.x - ref.x));
   if ((S.goalT = (S.goalT || 0) - dt) <= 0) {
     S.goalT = 0.8;
     v.aiOpts = { goal: { x: ref.x, y: ref.y }, chase: true, cruise: P.cruise || 14 };
@@ -2930,6 +2954,14 @@ function updatePursuer(dt, world, def, st, S) {
     S.limo = null;
   }
   return false;
+}
+
+// De hoek van een punt t.o.v. waar je naar kijkt, in (-pi, pi]: 0 is recht voor je, pi is recht achter je.
+function hoekTot(kijk, naar) {
+  let h = naar - kijk;
+  while (h > Math.PI) h -= Math.PI * 2;
+  while (h <= -Math.PI) h += Math.PI * 2;
+  return h;
 }
 
 function dropPursuer(world) {

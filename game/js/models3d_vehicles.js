@@ -873,11 +873,25 @@ export function tractorCab(L) {
   return { x0: rearX - 0.62, x1: rearX + 0.78, floor: 1.0, belt: 1.8, roof: 2.72, rearX, frontX: hl - 0.75 };
 }
 const TRACTOR_WB = 2.45, TRACTOR_RR = 0.88, TRACTOR_FR = 0.58;
+// M09 Heel aankomen (AAA-upgradeplan): de kratten staan op een plank aan de hef, drie naast elkaar en twee hoog (de zes kratten van
+// Geesje). Zonder nieuw asset: dozen in de eigen geometrie van de trekker. `x` is het midden van de plank achter de trekker.
+function addEggCrates(B, x, n) {
+  const KRAT = 0x9a7a4a, LAT = 0x6f4d2a, EI = 0xf0e6c8;
+  B.box(x, 0.86, 0, 0.62, 0.06, 1.3, LAT); // de plank op de hef
+  for (let i = 0; i < n; i++) {
+    const laag = (i / 3) | 0, kolom = i % 3;
+    const z = (kolom - 1) * 0.4, y = 0.92 + laag * 0.3 + 0.13;
+    B.box(x, y, z, 0.5, 0.26, 0.38, KRAT);
+    B.box(x, y + 0.14, z, 0.42, 0.02, 0.3, EI); // de eieren bovenin, licht
+    B.box(x - 0.26, y, z, 0.02, 0.2, 0.3, LAT); // de lat langs de achterkant
+  }
+}
 function buildTractorMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x3f7d3a);
   const C = tractorCab(L);
-  const geo = cached(`tractor|${L}|${W}|${paint}`, () => {
+  const kratten = v.model.kratten ? Math.min(6, v.model.kratten | 0) : 0; // M09 (AAA): Geesjes eierkratten achterop, zichtbaar op de hef
+  const geo = cached(`tractor|${L}|${W}|${paint}|${kratten}`, () => {
     const B = new GeoBuilder(3);
     const cz = W * 0.43, cl = C.x1 - C.x0, cx = (C.x0 + C.x1) / 2;
     const gh = C.roof - C.belt, gy = (C.roof + C.belt) / 2;
@@ -908,6 +922,7 @@ function buildTractorMesh(v) {
     // exhaust up the front corner of the cab
     B.box(C.x1 + 0.12, C.belt + 0.35, W * 0.22, 0.1, 1.5, 0.1, TRIM);
     B.box(-hl + 0.12, 0.68, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
+    if (kratten) addEggCrates(B, -hl - 0.12, kratten);
     return B.build();
   });
   const mats = vehicleMaterials(v.wrecked);
