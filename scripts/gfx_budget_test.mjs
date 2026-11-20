@@ -1,6 +1,7 @@
 // #1039: het renderbudget per preset (puur, geen GPU): zichtafstand, detailring, schaduwkaart, MSAA, pixelratio. De tabel in
 // docs/PERF-GPU-21-11.md komt hieruit (`node scripts/gfx_budget_test.mjs --tabel`); de controles houden de volgorde
 // Laag < Midden < Hoog < Ultra vast, zodat een preset niet stil zwaarder wordt.
+import fs from 'node:fs';
 import { GFX_PRESETS, PRESET_ORDER, presetLabel } from '../game/js/gfxprofile.js';
 import { QUALITY_PRESETS } from '../game/js/settings.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE, DETAIL_AREA_MAX } from '../game/js/viewdist.js';
@@ -47,6 +48,12 @@ ok(laag.pixelRatioCap < 1 && vlot.pixelRatioCap <= 1.5, 'pixelratio per preset b
 ok(viewDistanceFor('heelver', 0.85, 0) === VIEW_DISTANCES.ver && adaptedShadowLevel('hoog', 0.85, 0, 'heelver') === 'hoog2048', 'adaptief: kijkafstand en schaduwkaart eerst, geen presetwissel');
 ok(detailDistanceFor('hoog', 900, 3) < DETAIL_BASE, 'cpuLevel 3 verkleint de ring');
 
+// de schaduwhaak (16 aanroepen per frame van de postketen, 2 tot 5 ms) blijft: render() zonder scène, zonder licht of zonder nieuwe kaart gaat meteen naar three
+const src = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+const hook = "if ((sc !== scene || !lights.length || !shadowMap.enabled || (!shadowMap.autoUpdate && !shadowMap.needsUpdate)) && !perfOff('schaduwhaak')) { run(lights, sc, camera); return; }";
+ok(src.includes(hook), 'de schaduwhaak slaat de postketen-aanroepen over');
+const nl = (src.match(/\n/g) || []).length + 1;
+ok(nl < 4500, 'scene3d.js blijft onder 4500 regels (' + nl + ')');
 if (process.argv.includes('--tabel')) {
   console.log('| Preset | Zichtafstand | Detailring | Ring (opp. t.o.v. 140 m) | Schaduwkaart | MSAA | Bloom | Pixelratio (max) |');
   console.log('|---|---|---|---|---|---|---|---|');
