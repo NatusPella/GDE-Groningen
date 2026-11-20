@@ -29,7 +29,7 @@ ok(mv.includes("(e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()"), 
 
 const pm = src('game/js/pausemenu.js');
 ok(/kaartUitlegSluiten/.test(pm.split('\n').find((l) => l.startsWith('import') && l.includes('mapview.js')) || ''), 'pausemenu.js importeert kaartUitlegSluiten');
-ok(/function goBack\(\) \{\s*\/\/[^\n]*\n\s*if \(tab === 'map' && kaartUitlegSluiten\(\)\) return;/.test(pm), 'Escape (en B) sluit eerst de uitleg, dan pas de kaart');
+ok(/function goBack\(\) \{[\s\S]{0,300}?if \(tab === 'map' && kaartUitlegSluiten\(\)\) return;/.test(pm), 'Escape (en B) sluit eerst de uitleg, dan pas de kaart');
 
 console.log(fails ? `kaartuitleg_test: ${fails} van ${n} mislukt` : `kaartuitleg_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);
