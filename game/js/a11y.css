@@ -168,14 +168,17 @@ html.dev-pad, html.dev-pad * { cursor: none !important; }
 /* The glyph draws its own key outline: no extra plate, edge or shadow around it, so the border is not doubled and the glyph does not disappear inside it. */
 /* Controller glyphs from the glyph font (inputglyphs.js, game/fonts/input): the outline glyph on the white keycap, same size as the cap it replaces. */
 html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; background: transparent; box-shadow: none; border: 0; color: inherit; font-size: 26px !important; line-height: 1; letter-spacing: 0; border-radius: 5px; font-weight: normal; }
-html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), 'Arial Narrow', Arial, sans-serif !important; font-size: 48px !important; line-height: 24px; height: 24px; display: inline-block; vertical-align: middle; overflow: visible; }
+html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), 'Arial Narrow', Arial, sans-serif !important; font-size: 60px !important; line-height: 30px; height: 30px; display: inline-block; vertical-align: middle; overflow: visible; }
 html .pad-g.pad-kn[data-set="xbox"] { font-family: var(--ds-font-knoppen-a, 'GDE Knoppen A'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE Knoppen B'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pm-pad-g .pad-g.pad-kn { font-size: 26px !important; }
 html .m-hint .pm-pad-g .pad-g.pad-kn { font-size: 30px !important; }
+/* toetsen uit de glyphfont (Esc, Enter, Spatie): de kap is een tekstglyph, dus een grotere kap geeft ook leesbare letters erin (feedback 20-11: kap 20-26 px, tekst piepklein) */
+html .pm-pad-g .pad-g.pad-kn[data-set="keys"] { font-size: 64px !important; line-height: 32px; height: 32px; }
+html .m-hint .pm-pad-g .pad-g.pad-kn[data-set="keys"] { font-size: 72px !important; line-height: 36px; height: 36px; }
 html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
 
 /* #985: op een laag venster hangen de ondertitels boven de locatiekaart (F-kolom), niet erin; het toetsglyph in het stopvenster is 28 px */
-@media (max-height: 720px) { #banter-sub, #radio-sub, #story-talk { bottom: 200px !important; } }
+@media (max-height: 720px) { html body :is(#banter-sub, #radio-sub, #story-talk) { bottom: 200px !important; } } /* specificiteit (1,0,2): wint van hud_panel.css (1,0,0) ongeacht de laadvolgorde van de twee stylesheets */
 .mg-stopask .pad-g.pad-kn, html .mg-stopask .pad-g.pad-kn { font-size: 28px !important; }

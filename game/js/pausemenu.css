@@ -824,7 +824,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .m-li .pm-ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: var(--g); flex: none; }
 #pause-menu .sp-leeg { margin: 4px 24px 16px; font-size: 18px; line-height: 1.4; }
 /* Spullen (#435): zoeken en de delen bovenaan, zodat je snel vindt wat je hebt */
-#pause-menu .pm-spulbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 24px 12px; flex: none; }
+#pause-menu .pm-spulbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 24px 14px; flex: none; } /* lucht boven het zoekveld: de kop Spullen met zijn schaduw mag er niet onder staan */
 #pause-menu .pm-spulbar .pm-csearch { margin: 0; flex: 1 1 260px; max-width: 520px; }
 #pause-menu .pm-spulchips { justify-content: flex-start; }
 /* #908: Spullen begint met wat je hebt en houdt per categorie de stand bij; de pictogrammen
@@ -836,11 +836,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .sp-cat-sec { display: flex; flex-direction: column; }
 /* De lijstkolom is 320 px breed, dus "0 van 11" en het balkje mogen daar niet over twee
    regels vallen. Ze houden hun breedte; de categorienaam krimpt in als het krap wordt. */
-#pause-menu .sp-cat { min-width: 0; }
+#pause-menu .sp-cat { min-width: 0; flex-wrap: wrap; row-gap: 2px; } /* een groepskop wrapt in plaats van afgekapt te worden (WERPSPU...) */
 #pause-menu .sp-cat .sp-cat-r { display: inline-flex; align-items: center; gap: 10px; flex: none; white-space: nowrap; }
 #pause-menu .sp-cat .sp-cat-n { font-size: 16px; color: var(--mut); white-space: nowrap; }
-#pause-menu .sp-cat .sp-cbar { width: 56px; flex: none; }
-#pause-menu .sp-cat .sp-gh { min-width: 0; overflow: hidden; }
+#pause-menu .sp-cat .sp-cbar { width: 40px; flex: none; }
+#pause-menu .sp-cat .sp-gh { min-width: 0; overflow: visible; flex: 0 1 auto; }
 #pause-menu .sp-cat .sp-gh > svg { flex: none; }
 #pause-menu .sp-empty { padding: 2px 24px 14px; margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
 #pause-menu .sp-detail-cat { display: inline-flex; align-items: center; gap: 10px; }
