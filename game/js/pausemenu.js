@@ -826,7 +826,7 @@ ${keyReuseHtml()}
       <div class="m-gh"><span>Sfeer</span></div>
       ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
     ${tab('display', `
-      ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
+      ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd tonen'], ['minimaal', 'Minimaal']], 'Slim toont geld, gezondheid, wapen en sterren alleen als het telt')}
       ${toggle('showMinimap', 'Minimap')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
