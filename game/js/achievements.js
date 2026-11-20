@@ -723,13 +723,13 @@ body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 1
 #hud .ach-toast.gold { border-left-color: var(--mk-mission, #e8c93a); }
 #hud .ach-toast.gold .ach-ico { background: radial-gradient(circle at 35% 30%, var(--mk-mission, #fff0a8) 0%, var(--mk-mission, #d9a91e) 70%); box-shadow: 0 0 16px rgba(232,201,58,0.55); }
 #hud .ach-toast .ach-txt { display: flex; flex-direction: column; min-width: 0; }
-#hud .ach-toast .ach-kicker { font-size: 13px; letter-spacing: 3px; color: var(--mk-ok, #3fc97a); }
+#hud .ach-toast .ach-kicker { font-size: var(--ds-t-kaart-eyebrow); letter-spacing: var(--ds-ls-kaart-eyebrow); color: var(--mk-ok, #3fc97a); }
 #hud .ach-toast.gold .ach-kicker { color: var(--mk-mission, #e8c93a); }
-#hud .ach-toast .ach-title { font-size: 27px; letter-spacing: 1.5px; line-height: 1; color: #f0ede4; }
+#hud .ach-toast .ach-title { font-size: var(--ds-t-kaart-titel); letter-spacing: var(--ds-ls-label); line-height: var(--ds-lh-kaart-kop); color: #f0ede4; }
 #hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
-#hud .ach-toast .ach-desc { font: 14px/1.3 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.75); }
-#hud .ach-toast .ach-pct { font-size: 15px; color: rgba(240,237,228,0.5); margin-left: 8px; letter-spacing: 1px; }
-@media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
+#hud .ach-toast .ach-desc { font: var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0; color: rgba(240,237,228,0.75); }
+#hud .ach-toast .ach-pct { font-size: var(--ds-t-kaart-hulp); color: rgba(240,237,228,0.5); margin-left: 8px; letter-spacing: 1px; }
+@media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } }
 `;
 
 // #840: de grotere presentatie: badge met stralen, vonken, een gloed en een oplopende titel. Alles
@@ -753,8 +753,7 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-spark.s3 { left: 12px; bottom: 0; --dx: -4px; animation-delay: 0.26s; }
 #hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
-#hud .ach-toast .ach-title { font-size: 31px; letter-spacing: 1.6px; text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
-#hud .ach-toast .ach-kicker { font-size: 13px; }
+#hud .ach-toast .ach-title { text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
 #hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
   background: linear-gradient(115deg, transparent 30%, rgba(240,237,228,0.14) 45%, transparent 60%); background-size: 220% 100%;
   animation: ach-shimmer 1.6s 0.15s ease-out 1; }
@@ -773,7 +772,7 @@ html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toas
   #hud .ach-toast.on { opacity: 1; transform: none; }
   #hud .ach-toast .ach-spark, #hud .ach-toast::after { display: none; }
 }
-@media (max-width: 480px) { #hud .ach-toast { min-width: 0; padding: 12px 18px 12px 10px; gap: 10px; } #hud .ach-toast .ach-badge { width: 54px; height: 54px; } #hud .ach-toast .ach-ico { width: 46px; height: 46px; } #hud .ach-toast .ach-title { font-size: 24px; } }
+@media (max-width: 480px) { #hud .ach-toast { min-width: 0; padding: 12px 18px 12px 10px; gap: 10px; } #hud .ach-toast .ach-badge { width: 54px; height: 54px; } #hud .ach-toast .ach-ico { width: 46px; height: 46px; } }
 `;
 
 export const TROPHY_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3zm0 4H6v1a2 2 0 0 0 1 1.7V7zm10 0v2.7A2 2 0 0 0 18 8V7h-1z"/></svg>';

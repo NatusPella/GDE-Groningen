@@ -102,6 +102,30 @@ t('wegvallen en terugkomen: pauze voor Tessa, hervatten met hetzelfde token op d
   return `terug na ${(s.nu - 10).toFixed(1)} s van herstel`;
 });
 
+t('#982: een filmpje dat eindigt terwijl de gast kort weg is: na het herstel loopt de gast weer (geen blijvend filmpje, zelfde plek)', () => {
+  const sc = { filmpje: false, pauze: false, regel: null, keuze: null };
+  const hw = mkWorld(), holds = [];
+  N.startHost(hw, INFO, { seed: 5, onHold: (r, slot) => holds.push([r, slot]), scene: () => sc });
+  const link = createLink({ latency: 0.03, jitter: 0.01, seed: 11 });
+  N.addGuest(hw, link.a);
+  const gw = mkWorld({ input: { axis: () => [1, 0], isDown: () => false } });
+  N.startClient(gw, link.b, INFO, { onHold: () => {} });
+  let nu = 0;
+  const step = (secs) => { for (let k = 0; k < Math.round(60 * secs); k++) { N.tickCoopNet(hw, 1 / 60); if (gw.coopNet) N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); gw.time += 1 / 60; hw.time += 1 / 60; nu += 1 / 60; } };
+  step(3);
+  sc.filmpje = true; step(2); // de host speelt een filmpje en de gast weet het
+  assert.ok(gw.coopScene && gw.coopScene.filmpje, 'de gast ziet het filmpje');
+  link.cut(); step(1); for (let i = 0; i < 40; i++) hw.coopNet.hub.announce({ k: 'test', i }); sc.filmpje = false; step(7); // het filmpje eindigt terwijl de gast 8 s weg is (de wachtrij loopt vol)
+  assert.equal(hw.coopRoster.find((r) => r.slot === 1).verbinding, 'lost', 'de gast is als weggevallen herkend, niet verwijderd');
+  assert.equal(hw.coopNet.hub.sessions.size, 1, 'de sessie blijft staan binnen de hersteltijd');
+  link.restore(); step(10);
+  assert.equal(hw.coopRoster.find((r) => r.slot === 1).verbinding, 'ok', 'de gast is terug');
+  assert.equal(hw.coopRoster.length, 2, 'geen dubbele speler');
+  assert.equal(gw.coopNet.session.slot, 1, 'zelfde plek');
+  assert.ok(!gw.coopScene || !gw.coopScene.filmpje, 'het filmpje staat niet meer aan bij de gast: zijn invoer blijft niet op nul');
+  assert.ok(hw.coopFigures[1].input, 'de gast stuurt zijn eigen figuur weer');
+});
+
 t('een gast komt terug met een nieuwe verbinding (ander transport) en zijn token: zelfde plek, geen nieuwe speler', () => {
   const s = sessie(2); s.step(3);
   const g = s.gs[0];

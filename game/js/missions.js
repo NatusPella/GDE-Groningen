@@ -37,6 +37,8 @@ import { getGaragesForRender, garageInside } from './garages.js';
 import { getHomeGarageForRender } from './home.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
+import { tickPigeonGuide } from './pigeonguide.js';
+import { progressText as spotProgress } from './pigeonguidelogic.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode, STEPS, missionIndexOf } from './storyarc.js';
 import { requestRespawn } from './world.js';
 import { getMissionRecord, recordStat } from './achievements.js';
@@ -72,7 +74,8 @@ import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouw
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
-import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
+import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
+import { forceClearSweep } from './clearzonesweep.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
 import { buildMissionDressing, updateMissionDressing, disposeMissionDressing, spoorHoek } from './missiedecor.js';
 import { getRoutes } from './railway.js';
@@ -81,6 +84,7 @@ import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
 import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
+import { postenBegin, postenTik, postenWaypoints } from './missieposten.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)
@@ -937,7 +941,7 @@ function syncPub(world) {
   if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
   else if (def.type === 'deliver') target = chainState().stuntPhase ? def.stunt.center : nextStop(def) || def.dest;
-  else if (def.type === 'fatbike') target = def.dest;
+  else if (def.type === 'fatbike') target = lanes.laneTarget(def, chainState().notesSaid);
   else if (def.type === 'stages') target = stageMarker(world, def);
   // past the last waypoint (the last pub's toast plays before the outro): the last one
   else target = def.waypoints[Math.min(st.wpIndex, def.waypoints.length - 1)];
@@ -997,7 +1001,7 @@ function syncPub(world) {
     pub.remainingWaypoints =
       (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
         ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))
-        : [];
+        : (active && st.posten ? postenWaypoints(st, st.stageIndex) : []); // Samen spelen (#983): de andere open posten
   }
   world.mission = pub;
 }
@@ -1512,6 +1516,7 @@ let forceStart = false;
 function startMission(world, def) {
   removeLeftover(world);
   chainState().tags = new Set();
+  chainState().posten = null; // Samen spelen (#983): de posten van een vorige poging tellen niet mee
   chainState().bakeTier = null;
   // #591: a new attempt starts without a skip from an earlier one
   chainState().heistSkip = false;
@@ -2483,7 +2488,7 @@ function stageProgressBase(world, def) {
   if (!S || !st) return null;
   const list = def.heist ? def.stages.filter((q) => !q.only || q.only === heistApproach()) : def.stages;
   const n = `${list.indexOf(st) + 1}/${list.length}`;
-  if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
+  if (st.kind === 'pigeon' && S.flying) return `${st.label} · ${spotProgress(S.spotted.size, S.targets.filter(Boolean).length)}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
   if (st.kind === 'bake' && S.bake) return `${st.label} · eierbal ${bakeProgress(S.bake).round}/${S.bake.rounds}`;
   if (st.kind === 'convoy' && chainState().convoy) { const sc = convoyStatus(world, chainState().convoy); return `${st.label} · ${sc.near}/${sc.total} bij elkaar`; }
@@ -2542,6 +2547,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'pigeon') {
     S.targets = st.targets.map((t) => resolveTarget(world, t, from));
     S.target = resolveTarget(world, { pigeonSpot: st.spot }, from);
+    S.place = st.place ? resolveTarget(world, st.place, from) : null; // de naam van het gebouw, boven het gebouw in de wereld
     S.gullT = st.gulls ? st.gulls[1] : 0;
     if (st.flag && !hasTowerFlag()) showMissionFlag(world, def, from);
   }
@@ -2603,7 +2609,14 @@ function enterStage(world, def, k) {
   // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer,
   // het Loket, Oma's keuken). In een auto slaan we hem over: dan blijft de stap in de open
   // lucht, zoals eerst. Twee dezelfde sets achter elkaar houden dezelfde kamer.
-  if (st.set && !p.inVehicle) S.set = reuse ? prev.set : buildStageSet(world, st.set, p);
+  // echt binnen (docs/BINNENSETS-21-11.md): een stap die binnen hoort stapt eerst uit het voertuig, zodat de kamer er altijd staat
+  if (st.set && p.inVehicle && !reuse) { try { p.exitVehicle(world.map, world); } catch (e) { /* de stap speelt dan buiten, zoals eerst */ } }
+  if (st.set && !p.inVehicle) {
+    S.set = reuse ? prev.set : buildStageSet(world, st.set, p, null, { variant: st.setVariant });
+    S.camWorld = world;
+    if (S.set && !reuse) forceClearSweep();
+    chainState().binnen = S.set ? stageSetBinnen(S.set) : null; // de plek 'binnen' (missiestaat; de hold van de set houdt de speler erop)
+  }
   else if (reuse && prev && prev.set) { disposeStageSet(prev.set); prev.set = null; }
   // #955: de aankleding van een missie (de naspeling in Bourtange, het erf van
   // Tinus) staat om het doel van deze stap, met de kijkrichting van de speler.
@@ -2635,6 +2648,7 @@ function enterStage(world, def, k) {
   }
   if (st.talk && storyDataReady()) playTalk(talkLines(st.talk.ids, st.talk), { id: `${def.id || def.label}:${k}`, delay: st.talk.delay || 1 });
   if (st.clock) { chainState().clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
+  if (st.posten) { try { postenBegin(world, def, k, chainState(), (t) => resolveTarget(world, t, from)); } catch (e) { chainState().posten = null; } } // Samen spelen (#983)
   saveCheckpoint(world, def, k);
 }
 
@@ -2882,7 +2896,7 @@ function disposeStageDressing(keepSet = false) {
   disposeEindAankleding();
   const S = chainState().stage;
   if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
-  if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; } // #956: de kamer gaat mee met de stap
+  if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; chainState().binnen = null; const cw = S.camWorld; if (cw && cw.cameraOverride && cw.cameraOverride.bron === 'binnenset') cw.cameraOverride = null; } // #956: de kamer gaat mee met de stap
   if (S && S.dressing) { disposeMissionDressing(S.dressing); S.dressing = null; } // #955: de aankleding gaat mee met de stap
   if (S && S.raceDecor) { for (const g of S.raceDecor) disposeRaceDecor(g); S.raceDecor = null; }
 }
@@ -3436,6 +3450,8 @@ function updateStages(dt, world, def) {
   // houdt hij de speler bij zijn stoel (anders loopt hij door de muur naar buiten).
   if (S.set) {
     updateStageSet(S.set, dt);
+    // echt binnen: de kamercamera blijft in de kamer, onder het plafond, zonder pan (binnenset.js); een cutscene gaat voor
+    if (!isCinematicActive()) { const cp = stageSetCamera(S.set); if (cp && (!world.cameraOverride || world.cameraOverride.bron === 'binnenset')) world.cameraOverride = cp; }
     if (S.set.hold) {
       p.x = S.set.hold.x; p.y = S.set.hold.y; p.angle = S.set.hold.angle;
       p.vx = 0; p.vy = 0; p.vz = 0;
@@ -3472,6 +3488,8 @@ function updateStages(dt, world, def) {
   if (st.light && updateLightStage(dt, world, def, st, S)) return;
   const v = chainState().vehicle;
   const inCar = !!v && p.inVehicle === v;
+  // Samen spelen (#983): met meer spelers lopen de posten van een groep stappen tegelijk (alleen verandert er niets)
+  if (st.posten) { let pr = null; try { pr = postenTik(world, def, chainState().stageIndex, chainState(), dt, modeOk, S); } catch (e) { chainState().posten = null; } if (pr === 'volgende') { nextStage(world, def); return; } }
   // samen spelen (#452): een stap met de vlag iedereen wacht op elke meespeler bij het doel (goto, hold en escape lezen de vlag zelf)
   if (st.iedereen && !GROEPSTAPPEN.has(st.kind) && !groepKlaar(world, st, S.target)) { hint(world, WACHT_OP_ANDEREN); return; }
   switch (st.kind) {
@@ -3844,7 +3862,12 @@ function updatePigeonStage(dt, world, def, st, S) {
       meldRegelkaart('foto' + S.spotted.size); // de regelkaart van M04 telt mee (AAA akte 1)
     }
   });
+  tickPigeonGuide(dt, world, { targets: S.targets, spotted: S.spotted, holds: S.holds, spotTime: st.spotTime || SPOT_TIME, radius: SPOT_RADIUS, place: S.place, world3d: !st.flag }, f);
   if (S.spotted.size >= S.targets.filter(Boolean).length) {
+    // een eindmoment: de ring en het belletje van het laatste ding krijgen even de ruimte voor de duif landt
+    if (!S.endT) world.addMessage(`${spotProgress(S.spotted.size, S.spotted.size)}. Goed gevlogen!`, 3);
+    S.endT = (S.endT || 0) + dt;
+    if (S.endT < 1.6) return;
     stopPigeonMode(world);
     nextStage(world, def);
   }

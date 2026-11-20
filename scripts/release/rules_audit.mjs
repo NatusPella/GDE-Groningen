@@ -24,7 +24,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { checkDesignLine, designCandidates, stripComments } from './design_rules.mjs';
+import { checkDesignLine, checkKeyLine, designCandidates, stripComments } from './design_rules.mjs';
 import { nederlandseNaam } from '../naamtaal_check.mjs';
 import { parseRegister } from '../merkenregister_check.mjs';
 
@@ -281,6 +281,9 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     if (kandidaten.kleur || kandidaten.typografie || kandidaten.fontgrootte || kandidaten.important) {
       for (const f of checkDesignLine({ file, line, text })) voegToe(f, `design-${f.titel}`);
     }
+
+    // Toetsen en knoppen in spelertekst: een token, nooit een woord of een tekstkeycap (DESIGN_SYSTEM.md "Controls and key hints").
+    for (const f of checkKeyLine({ file, line, text })) voegToe(f, `toets-${f.titel}`);
 
     // Tekstregels: alleen op spelinhoud (geen tooling, tests of documentatie).
     if (CONTENT.test(file)) {

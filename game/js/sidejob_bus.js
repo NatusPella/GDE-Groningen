@@ -233,7 +233,7 @@ export default {
       d.arriveLate = late;
       d.lateMax = Math.max(d.lateMax, late);
       if (late <= LATE_OK) d.onTime++;
-      { const pp = haltePop(stop.name, late); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
+      if (!c.owner) { const pp = haltePop(stop.name, late); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
       c.msg(`${stop.line}${late > LATE_OK ? ` (${Math.round(late)} s te laat)` : ''}`, 3.6);
       const door = { x: v.x + Math.cos(v.angle) * (v.model.len / 2 - 1.2) - Math.sin(v.angle) * 1.6, y: v.y + Math.sin(v.angle) * (v.model.len / 2 - 1.2) + Math.cos(v.angle) * 1.6 };
       d.door = door;
@@ -311,7 +311,7 @@ export default {
 
   stop(c) {
     for (const ped of c.data.waiting || []) freePed(ped);
-    simHudTik(0, null);
+    if (!c.owner) simHudTik(0, null);
     if (c.data.kolom) { c.removeMesh(c.data.kolom); c.data.kolom = null; }
   },
 };
@@ -323,7 +323,8 @@ function groundAt(map, x, y) {
 // De strook onderin en de lichtkolom boven de volgende halte (#985): elke beeld de stand van het rondje naar het pure model (busstatus.js). Alleen voor de eigen dienst.
 function zetBusStrook(c, stop, late, speed) {
   const d = c.data, v = c.vehicle;
-  if (c.owner || !stop || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!stop || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('buskolom'));
   zetSimKolom(d.kolom, { x: stop.x, y: stop.y }, groundAt(c.world.map, stop.x, stop.y), c.world.time || 0, reducedMotion());
   const n = d.stops.length;

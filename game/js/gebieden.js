@@ -277,6 +277,49 @@ export function bezoek(p, ind, x, y) {
   return id;
 }
 
+// #990: de bezoeken tussen twee metingen. De tracker meet eens per seconde; een auto (30 m/s) of een vliegtuig slaat dan
+// een smalle buurt over, en de kaart bleef grijs in een buurt waar je doorheen reed. Hier lopen we het rechte stuk van de
+// vorige naar de nieuwe plek langs (elke `stap` meter) en tellen elke buurt onderweg. Een sprong van meer dan `max` meter
+// (reizen, een load, een teleport) telt alleen het eindpunt: daar ben je niet langsgekomen. Geeft de nieuwe buurt-id's.
+export function bezoekRoute(p, ind, van, x, y, stap = 60, max = 400) {
+  const uit = [];
+  if (!ind || !ind.grenzen || !getal(x) || !getal(y)) return uit;
+  const d = van && getal(van.x) && getal(van.y) ? Math.hypot(x - van.x, y - van.y) : Infinity;
+  if (d <= max && d > stap) {
+    const n = Math.floor(d / stap);
+    for (let i = 1; i <= n; i++) {
+      const t = (i * stap) / d;
+      const id = bezoek(p, ind, van.x + (x - van.x) * t, van.y + (y - van.y) * t);
+      if (id) uit.push(id);
+    }
+  }
+  const eind = bezoek(p, ind, x, y);
+  if (eind) uit.push(eind);
+  return uit;
+}
+
+// #990: wat er door nieuwe buurten op de kaart verschijnt, voor een rustige melding (geen melding per buurt: dat zijn er
+// honderden). Het hoogste NIEUWE gebied tussen gemeente en woonplaats, of null. `voor` is de bezoeklijst van vóór de
+// nieuwe buurten, `nieuw` de id's die erbij kwamen.
+export function nieuwGebied(ind, voor, nieuw) {
+  if (!ind || !ind.gebied || !Array.isArray(voor) || !Array.isArray(nieuw) || !nieuw.length) return null;
+  const boven = (ids) => { // de bezochte buurten met al hun ouders (zoals zichtbareGebieden in gebiedtoestand.js)
+    const uit = new Set();
+    for (const id of ids) for (let g = ind.gebied.get(id), n = 0; g && !uit.has(g.id) && n < 8; g = g.ouder ? ind.gebied.get(g.ouder) : null, n++) uit.add(g.id);
+    return uit;
+  };
+  const was = boven(voor);
+  const nu = boven([...voor, ...nieuw]);
+  let beste = null;
+  for (const id of nu) {
+    if (was.has(id)) continue;
+    const g = ind.gebied.get(id);
+    if (!g || (g.niveau !== 'gemeente' && g.niveau !== 'woonplaats')) continue;
+    if (!beste || (g.niveau === 'gemeente' && beste.niveau !== 'gemeente')) beste = g;
+  }
+  return beste;
+}
+
 // Hoeveel van de kaart je gezien hebt: de bezochte buurten van de provincie. pct naar beneden afgerond, zodat 100 pas
 // bij de laatste buurt valt (en niet bij 643 van de 644).
 export function kaartVerkend(p, ind) {

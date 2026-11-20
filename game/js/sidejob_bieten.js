@@ -152,6 +152,8 @@ export default {
 
   start(c) {
     if (!bietenoogstBeschikbaar(heeftEigenAkker(), currentStep()?.id)) return 'Je eigen akker ligt vast: oogst je bieten daar (Eigen boerderij).';
+    // Nog op de terugvalplek in de stad (de tegels bij Hoogkerk zijn niet geladen): daar is geen akker, rij eerst naar de suikerhal
+    if (c.spot && c.spot.fallback) return 'Deze klus ligt bij Hoogkerk. Rij eerst naar de suikerhal, dan staat het startpunt daar.';
     const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } });
     if (!v) return 'Geen trekker beschikbaar';
     c.vehicle = v;

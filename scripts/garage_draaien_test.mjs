@@ -17,11 +17,11 @@ const sp = read('spullen.js');
 ok(/export function turnGarageViewer\(dir\)/.test(gu), 'garageui.js heeft turnGarageViewer (de draairichting)');
 ok(/viewer\.turn\(dir \* TURN_STEP\)/.test(gu), 'turnGarageViewer draait de gedeelde preview een stap');
 ok(/canvas tabindex="0"/.test(gu), 'de canvas van het model is met de toetsen en de pad te bereiken');
-ok(/aria-label="3D-model van \$\{model\}: sleep of gebruik de pijltjes om te draaien"/.test(gu), 'de canvas vertelt dat hij te draaien is');
+ok(/aria-label="3D-model van \$\{model\}: \$\{plainKeyText\('sleep of gebruik \{ARROWS\} om te draaien'\)\}"/.test(gu), 'de canvas vertelt dat hij te draaien is');
 // de hint noemt niet alleen slepen: de pijltjes (of de D-pad) staan er als toetsplaatje bij,
 // en glyphs.js (data-gk) wisselt dat plaatje naar de controller als die het laatst gebruikt is
-ok(/Sleep of gebruik <kbd class="m-kc" data-gk="arrowleft">/.test(gu), 'de hint noemt de pijltjes als toetsplaatje');
-ok(/data-gk="arrowright"/.test(gu), 'en de andere richting ook');
+ok(/Sleep of gebruik ' \+ glyphHtml\('ARROWLEFT'\)/.test(gu), 'de hint noemt de pijltjes als toetsplaatje (keycap.js: glyphHtml)');
+ok(/glyphHtml\('ARROWRIGHT'\)/.test(gu), 'en de andere richting ook');
 ok(!/Sleep om te draaien/.test(gu), 'de oude hint die alleen slepen beloofde is weg');
 // een toets of pad op de draaitafel draait het model; de rest van het menu blijft werken
 ok(/tab === 'garage' && \(dir === 'left' \|\| dir === 'right'\).*t\.closest\('\.gar-stage'\)/.test(pm), 'pausemenu.js laat links/rechts op de draaitafel het model draaien');

@@ -27,6 +27,8 @@ import { buildRoom } from './rooms3d.js';
 import { ROOMS, ROOM_KINDS, isRoomKind, roomLayout, roomBaseHeight } from './roomspec.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { isInWater } from './util.js';
+import { addClearZone, removeClearZone } from './clearzone.js';
+import { findSetSpot, setClearZone, roomCameraPose, hasRoomCamera, binnenStaat } from './binnenset.js';
 
 // kantoor, serverkamer, Loket en Oma's keuken, plus de kamers uit roomspec.js (kroeg, woonkamer, garage)
 export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken', ...ROOM_KINDS];
@@ -68,9 +70,9 @@ function disposePerson(m) {
 
 // The room for this stage, or null when the scene or the map is not there. `targetScene` is
 // for the test: without a running game there is no scene to put the room in yet.
-// opts.gebouwOk (en altijd bij de kroeg): een kamer die een kroeg voorstelt mag in een gebouw staan (de kroeg zit in dat gebouw); alleen water keurt hem af.
+// opts.gebouwOk (en altijd bij de kroeg en de kruitkelder): een kamer die een kroeg of een kelder voorstelt mag in een gebouw staan (de kroeg zit in dat gebouw, de kruitkelder onder de vesting); alleen water keurt hem af.
 export function buildStageSet(world, kind, player, targetScene = null, opts = {}) {
-  const layout = stageSetLayout(kind, player);
+  let layout = stageSetLayout(kind, player);
   const scene = targetScene || getScene();
   if (!layout || !scene) return null;
   let base = 0;
@@ -81,11 +83,19 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
     // de nieuwe kamers: passen ze niet (grond onbekend, water of een gebouw in de voetafdruk),
     // dan geen kamer en speelt de stap in de open lucht, zoals voor de sets bestonden
     const m = world && world.map;
-    const fit = roomBaseHeight(kind, layout, {
+    const fitAt = (lay) => roomBaseHeight(kind, lay, {
       groundAt: m && m.groundHeightAt ? (x, y) => m.groundHeightAt(x, y, 50) : () => 0,
-      blockedAt: m ? (x, y) => (!(opts.gebouwOk || kind === 'kroeg') && typeof m.buildingsNear === 'function' && isInsideBuilding(m, x, y)) || isInWater(m, x, y) : null,
+      blockedAt: m ? (x, y) => (!(opts.gebouwOk || kind === 'kroeg' || kind === 'kruitkelder') && typeof m.buildingsNear === 'function' && isInsideBuilding(m, x, y)) || isInWater(m, x, y) : null,
     });
-    if (!fit) return null;
+    let fit = fitAt(layout);
+    if (!fit) {
+      // echt binnen: past de kamer hier niet, dan op de dichtstbijzijnde plek eromheen die wel past; de speler wordt daarheen gezet
+      // (de hold van de set houdt hem er) in plaats van de stap buiten te laten spelen (binnenset.js findSetSpot)
+      const spot = opts.noSearch ? null : findSetSpot(player.x, player.y, (x, y) => !!fitAt(stageSetLayout(kind, { x, y, angle: player.angle })));
+      if (!spot) return null;
+      layout = stageSetLayout(kind, { x: spot.x, y: spot.y, angle: player.angle });
+      fit = fitAt(layout);
+    }
     base = fit.z;
   }
   const kit = isRoomKind(kind) ? buildRoom(kind, layout.x, layout.y, base) : kind === 'kantoor' ? buildOffice(layout.x, layout.y, base)
@@ -117,12 +127,15 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
   }
   if (isRoomKind(kind)) {
     // figuren op hun plek in de kamer (roomspec.js houdt ze uit het meubilair)
-    ROOMS[kind].npcs.forEach((q, i) => people.push({ mesh: buildPerson(q.key, [q.u, q.v], q.face), anim: (t) => (i === 0 ? 'talk' : (Math.sin(t * 0.7 + i) > 0.2 ? 'talk' : 'idle')), gaze: 0 }));
+    ((opts.variant && ROOMS[kind].varianten && ROOMS[kind].varianten[opts.variant]) || ROOMS[kind].npcs).forEach((q, i) => people.push({ mesh: buildPerson(q.key, [q.u, q.v], q.face), anim: (t) => (i === 0 ? 'talk' : (Math.sin(t * 0.7 + i) > 0.2 ? 'talk' : 'idle')), gaze: 0 }));
   }
   for (const p of people) kit.group.add(p.mesh);
   scene.add(group);
   fadeIntoSet();
-  return { kind, layout, group, kit, people, t: 0, hold: layout.hold };
+  // echt binnen: de wereld blijft buiten de kamer (voetgangers, verkeer en losse props wijken; de sweep ruimt ze op)
+  const zone = setClearZone(kind, layout);
+  if (zone) addClearZone(zone.id, zone.pts, zone.r, zone.closed);
+  return { kind, layout, base, variant: opts.variant || null, group, kit, people, t: 0, hold: layout.hold, zone: !!zone };
 }
 
 // Every frame: the server room's leds and the people in the room live.
@@ -133,8 +146,20 @@ export function updateStageSet(set, dt) {
   for (const p of set.people) animateActor(p.mesh, { anim: p.anim(set.t), speed: 0, gaze: p.gaze, t: set.t, dt });
 }
 
+// De kamercamera van deze set op dit moment (binnenset.js), of null (geen hold: de speler loopt vrij rond).
+export function stageSetCamera(set) {
+  if (!set || !hasRoomCamera(set.kind, set.layout)) return null;
+  return roomCameraPose(set.kind, set.layout, set.base || 0, set.t);
+}
+
+// De plek 'binnen' voor missiestaat en save.
+export function stageSetBinnen(set) {
+  return set ? binnenStaat(set.kind, set.variant, set.layout) : null;
+}
+
 export function disposeStageSet(set) {
   if (!set) return;
+  if (set.zone) { removeClearZone('binnenset'); set.zone = false; }
   if (set.kit && typeof set.kit.dispose === 'function') set.kit.dispose();
   for (const p of set.people) disposePerson(p.mesh);
   set.group.removeFromParent();

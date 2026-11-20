@@ -577,9 +577,9 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #hud .np-ic { width: 47px; height: 47px; border-radius: 8px; background: #1e9e56; display: grid; place-items: center; flex: none; }
 #hud .np-ic svg { width: 25px; height: 25px; fill: none; stroke: #0c140e; stroke-width: 2; stroke-linecap: round; }
 #hud .hud-nowplaying div { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
-#hud .hud-nowplaying small { font-size: 14px; color: var(--gron-green-light); }
-#hud .hud-nowplaying b { font-weight: normal; font-size: 20px; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-nowplaying span:not(.np-ic) { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: rgba(240, 237, 228, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-nowplaying small { font-size: var(--ds-t-kaart-eyebrow); color: var(--gron-green-light); }
+#hud .hud-nowplaying b { font-weight: normal; font-size: var(--ds-t-kaart-titel); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-nowplaying span:not(.np-ic) { font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--ds-t-kaart-hulp); color: rgba(240, 237, 228, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-nowplaying { transition: opacity 0.2s; transform: none; } }
 
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
@@ -694,7 +694,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-obj-regel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; max-width: 100%; }
 #hud .hud-obj-regel[hidden] { display: none; }
 
-/* ===== Designsysteem v3: de HUD als zeefdruk (ADR 0040, #993, #995) =====
+/* ===== Designsysteem: de HUD als zeefdruk (ADR 0040, #993, #995) =====
    Papieren plaatjes met inktrand en harde schaduw, Barlow Condensed voor cijfers, Atkinson
    Hyperlegible voor zinnen. Alleen var(--ds-...) uit ds-tokens.css. Misdruk (--ds-misdruk) staat
    alleen op een waarde die net veranderde en valt na 1,4 s weg. Rustig drukwerk
@@ -706,8 +706,8 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
   --hud-inkt-zacht: var(--ds-c-inkt-zacht);
   --hud-rand: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);
   --hud-schaduw: var(--ds-schaduw-hard);
-  --hud-zinnen: var(--ds-font-tekst-v3);
-  font-family: var(--ds-font-kop-v3);
+  --hud-zinnen: var(--ds-font-zeef-tekst);
+  font-family: var(--ds-font-zeef-kop);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -805,7 +805,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 
 /* plaatsnaam en prestaties blijven grote letters op het beeld, nu met misdruk op de naam bij het binnenkomen */
 #hud .hud-place { color: var(--ds-c-ink-papier); text-shadow: 3px 3px 0 var(--ds-c-ink-inkt); }
-#hud .pl-name { font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk), 4px 4px 0 var(--ds-c-ink-inkt); -webkit-text-stroke: 2px var(--ds-c-ink-inkt); paint-order: stroke fill; }
+#hud .pl-name { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: var(--ds-misdruk), 4px 4px 0 var(--ds-c-ink-inkt); -webkit-text-stroke: 2px var(--ds-c-ink-inkt); paint-order: stroke fill; }
 #hud .pl-kick { color: var(--ds-c-ink-geel); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 #hud .pl-kick i { background: var(--ds-c-ink-geel); }
 #hud .pl-line { font-family: var(--hud-zinnen); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
@@ -829,6 +829,19 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
 #hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }
 
+/* #952: icoon plus getal bij de politie: schild = eenheden in beeld, ster = gezocht (x van 5). Minstens 13 px, papier met inktrand */
+#hud .hud-mm-heat {
+  position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; align-items: center; z-index: 2;
+  padding: 2px 7px; background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); border-radius: 10px;
+  font: 800 max(13px, 1em) var(--ds-font-kop-v3); line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
+}
+#hud .hud-mm-heat[hidden] { display: none; }
+#hud .hud-mm-heat span { display: inline-flex; align-items: center; gap: 3px; }
+#hud .hud-mm-heat svg { width: 15px; height: 15px; flex: 0 0 15px; fill: var(--ds-c-ink-papier); stroke: var(--hud-inkt); stroke-width: 1.8; stroke-linejoin: round; }
+#hud .hud-mm-heat .mmh-eenh svg { fill: var(--ds-c-ink-inkt); stroke: var(--ds-c-ink-inkt); }
+#hud .hud-mm-heat.warm .mmh-ster svg { fill: var(--ds-c-ink-roze); }
+#hud .hud-mm-heat.warm .mmh-ster b { color: var(--ds-c-rood-tx); }
+
 /* Rustig drukwerk: de tokens nullen misdruk, schuinte en raster; hier nog de beweging en de lege ster als omtrek */
 html.rustig-drukwerk #hud .hud-money-delta.visible, html.rustig-drukwerk #hud .hud-mission.pop .hud-obj-text,
 html.rustig-drukwerk #hud .hud-weapon.switched .hud-weapon-icon, html.rustig-drukwerk html.rustig-drukwerk #hud .hud-wanted svg:not(.on) { fill: none; }
@@ -838,11 +851,11 @@ html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt)
   #hud .hud-money-delta.visible, #hud .hud-mission.pop .hud-obj-text, #hud .hud-weapon.switched .hud-weapon-icon { animation: none; }
 }
 
-/* v3 (#993): het metgezel-ronde bolletje zonder portret was een los groen rondje; het portret staat pas als het er is */
+/* #993: het metgezel-ronde bolletje zonder portret was een los groen rondje; het portret staat pas als het er is */
 #hud .hud-mate-pic { border-radius: 6px; background: var(--ds-c-ink-papier); }
 #hud .hud-mate-pic:not(:has(img.on)) { display: none; }
 
-/* v3 (#993): de prestatietoast (achievements.js) als papier met inktrand en harde schaduw, zonder glas, gloed of blur */
+/* #993: de prestatietoast (achievements.js) als papier met inktrand en harde schaduw, zonder glas, gloed of blur */
 body #hud .ach-toast {
   background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 10px solid var(--ds-c-ink-bord); border-radius: 8px;
@@ -852,9 +865,9 @@ body #hud .ach-toast.gold { border-left-color: var(--ds-c-ink-geel); box-shadow:
 body #hud .ach-toast::after, body #hud .ach-toast .ach-rays, body #hud .ach-toast .ach-spark { display: none; }
 body #hud .ach-toast .ach-ico, body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: none; }
 body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
-body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--hud-min); }
-body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: none; }
-body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 15px/1.3 var(--ds-font-tekst-v3); letter-spacing: 0; }
+body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); }
+body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: none; }
+body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-zeef-tekst); letter-spacing: 0; }
 body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 
 
@@ -862,44 +875,44 @@ body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 /* Ondertitels op een papieren plaatje met inktrand: leesbaar op elk beeld, ook zonder de instelling "Ondertitelvak".
    Inline stijl van de dragers (banter.js, radiosub.js, rondvaartchase.js, postgame.js) wint niet van !important. */
 :is(#banter-sub, #radio-sub, #rv-sub, #pg-sub) {
-  font-family: var(--ds-font-tekst-v3) !important; font-size: clamp(15px, 1.5vw, 20px); color: var(--ds-c-ink-inkt) !important; text-shadow: none !important;
+  font-family: var(--ds-font-zeef-tekst) !important; font-size: clamp(15px, 1.5vw, 20px); color: var(--ds-c-ink-inkt) !important; text-shadow: none !important;
   background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
   padding: 0.35em 0.8em 0.4em !important; box-sizing: border-box; letter-spacing: 0 !important; line-height: 1.3;
 }
 #cine .cine-sub {
   width: fit-content; max-width: min(86vw, calc(820px * var(--ui, 1))); box-sizing: border-box; padding: 0.35em 0.8em 0.4em; line-height: 1.3;
-  font-family: var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); text-shadow: none; letter-spacing: 0;
+  font-family: var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none; letter-spacing: 0;
   background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
 }
 :is(#banter-sub, #radio-sub, #rv-sub, #pg-sub) :is(.bt-speaker, .rv-speaker, .rs-firma), #cine .cine-speaker, :is(#banter-sub, #radio-sub, #rv-sub, #pg-sub) b {
-  font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord) !important; text-shadow: none; letter-spacing: 0.03em;
+  font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-bord) !important; text-shadow: none; letter-spacing: 0.03em;
 }
 #cine.sub-clue .cine-line { color: var(--ds-c-ink-inkt); font-weight: 700; }
-#cine.sub-clue .cine-sub::before { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px * var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+#cine.sub-clue .cine-sub::before { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px * var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
 /* Overslaan: houd de toets ingedrukt; een papieren plaatje met een ring in zomergeel */
 #cine .cine-skip {
-  padding: 5px 12px 5px 8px; font-family: var(--ds-font-tekst-v3); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0; color: var(--ds-c-ink-inkt);
+  padding: 5px 12px 5px 8px; font-family: var(--ds-font-zeef-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0; color: var(--ds-c-ink-inkt);
   background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
 }
 #cine .cine-skip.holding { color: var(--ds-c-ink-inkt); }
-#cine .cine-skip .hud-key { font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: 0.04em; background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+#cine .cine-skip .hud-key { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: 0.04em; background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
 #cine .cine-skip-ring circle { stroke: var(--ds-c-ink-inkt); opacity: 0.3; }
 #cine .cine-skip-ring .fill { stroke: var(--ds-c-ink-bord); opacity: 1; }
 /* Verhaal overslaan (story.js): de ene "kan nu"-knop van dat moment is geel */
 #story-skip { position: fixed; left: 60%; bottom: 17%; transform: translateX(-50%); z-index: 40; pointer-events: auto; }
 #story-skip button {
   zoom: var(--ui, 1); display: flex; gap: 10px; align-items: center; min-height: 44px; padding: 6px 16px 6px 10px; cursor: pointer;
-  font: 800 18px/1.1 var(--ds-font-kop-v3); letter-spacing: 0.04em; color: var(--ds-c-ink-inkt);
+  font: 800 18px/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.04em; color: var(--ds-c-ink-inkt);
   background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
 }
 #story-skip button:hover { background: var(--ds-c-geel-hover); }
 #story-skip button:active { background: var(--ds-c-geel-druk); transform: translate(var(--ds-hard-x), var(--ds-hard-y)); box-shadow: none; }
 #story-skip button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
-#story-skip .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; font: 800 14px/1 var(--ds-font-kop-v3); background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; }
+#story-skip .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; font: 800 14px/1 var(--ds-font-zeef-kop); background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; }
 body.cine-hide-hud #story-skip { display: none; }
 /* Filmlaag (#cine): de balken zijn inkt, de titelkaart, de naam en het kleine chipje zijn papier met inktrand. De grote filmtitel
    (.cine-big) blijft een titel in beeld, zonder vlak. */
-#cine { font-family: var(--ds-font-kop-v3); }
+#cine { font-family: var(--ds-font-zeef-kop); }
 #cine .cine-bar { background: var(--ds-c-ink-inkt); }
 #cine .cine-card {
   padding: 12px 26px 16px; color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier);
@@ -935,3 +948,17 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; vertical-align: middle; }
 /* #985: op een laag venster (1024x600) laat het keuzepaneel of het minigamebord geen ruimte voor de toetshintstapel rechtsonder: de hints staan al in het paneel */
 @media (max-width: 1100px) and (max-height: 700px) { #hud:has(.cw-panel:not([hidden])) .hud-ctx, #hud:has(.mg-board:not([hidden])) .hud-ctx { opacity: 0; } }
+
+/* #985 (eigenaar 20-11): de snelheidsmeter is één compact blok: de snelheid als hoofdgetal, de versnelling als klein getal rechts, de toeren als dunne balk eronder */
+#hud .hud-speedo { align-items: flex-end; gap: 0; }
+#hud .sp-main { display: grid; grid-template-columns: auto auto 1fr; align-items: end; column-gap: 6px; row-gap: 6px; padding: 7px 12px 8px; min-width: 150px; }
+#hud .sp-val { grid-column: 1; grid-row: 1; font-size: 40px; line-height: 0.9; min-width: 2ch; }
+#hud .sp-unit { grid-column: 2; grid-row: 1; font-size: max(13px, var(--hud-min, 13px)); line-height: 1.2; }
+#hud .sp-gears { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; gap: 4px; font-size: max(14px, var(--hud-min, 13px)); min-height: 0; line-height: 1; }
+#hud .sp-gears .warn { font-size: max(13px, var(--hud-min, 13px)); }
+#hud .sp-rpm { grid-column: 1 / -1; grid-row: 2; width: 100%; height: 7px; }
+#hud .sp-rpm path { stroke-width: 12; stroke-linecap: butt; }
+#hud .rpm-bg { stroke: rgba(12, 20, 14, 0.16); }
+#hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
+#hud .hud-speedo.no-rpm .sp-main { grid-template-columns: auto 1fr; }
+#hud .hud-speedo.no-rpm.no-gears .sp-main { min-width: 0; }

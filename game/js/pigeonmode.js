@@ -14,6 +14,8 @@ import { mgThema } from './minigamekit.js';
 import { quitRunningActivities } from './busy.js';
 import { waterNearby } from './waterlevels.js';
 import { poiLayerPlace } from './facilities.js';
+import { clearPigeonGuide } from './pigeonguide.js';
+import { glyphHtml } from './keycap.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -534,29 +536,29 @@ html.reduce-motion #pigeon-hud .ph-pop, html.reduce-motion #pigeon-hud .ph-warn 
 html.reduce-motion #pigeon-hud .ph-card, html.reduce-motion #pigeon-hud .ph-sikkom { transition: none; }
 @media (max-width: 700px) { #pigeon-hud .ph-hints { max-width: calc(100vw / var(--ui, 1) - 32px); bottom: 190px; } #pigeon-hud .ph-sikkom { width: 220px; } }
 /* Zomerse zeefdruk (ADR 0040): de duivenmodus als papieren plaatjes met inktrand en harde schaduw. */
-#pigeon-hud { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-ink-inkt); --ph-acc: var(--ds-c-ink-bord); }
+#pigeon-hud { font-family: var(--ds-font-zeef-kop); font-weight: 600; color: var(--ds-c-ink-inkt); --ph-acc: var(--ds-c-ink-bord); }
 #pigeon-hud :is(.ph-panel, .ph-card, .ph-sikkom, .ph-hints) { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
 #pigeon-hud .ph-panel, #pigeon-hud .ph-card { border-left: 8px solid var(--ds-c-ink-bord); }
 #pigeon-hud .ph-badge { background: var(--ds-c-ink-geel); box-shadow: 0 0 0 var(--ds-lijn-zeef) var(--ds-c-ink-inkt); }
 #pigeon-hud .ph-badge svg { fill: var(--ds-c-ink-inkt); }
 #pigeon-hud .ph-title { font-weight: 800; color: var(--ds-c-ink-bord); }
-#pigeon-hud .ph-kicker, #pigeon-hud .ph-score span, #pigeon-hud .ph-best { font-family: var(--ds-font-tekst-v3); font-size: 13px; color: var(--ds-c-inkt-zacht); }
+#pigeon-hud .ph-kicker, #pigeon-hud .ph-score span, #pigeon-hud .ph-best { font-family: var(--ds-font-zeef-tekst); font-size: 13px; color: var(--ds-c-inkt-zacht); }
 #pigeon-hud .ph-score b { font-weight: 800; color: var(--ds-c-ink-inkt); }
-#pigeon-hud .ph-meters { font-family: var(--ds-font-kop-v3); font-weight: 600; font-size: 15px; }
+#pigeon-hud .ph-meters { font-family: var(--ds-font-zeef-kop); font-weight: 600; font-size: 15px; }
 #pigeon-hud .ph-meters svg { stroke: var(--ds-c-ink-bord); }
-#pigeon-hud .ph-combo { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); border: 2px solid var(--ds-c-ink-inkt); font: 800 13px/18px var(--ds-font-kop-v3); }
-#pigeon-hud .ph-tag { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); color: var(--ds-c-ink-inkt); font: 600 13px/18px var(--ds-font-kop-v3); }
+#pigeon-hud .ph-combo { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); border: 2px solid var(--ds-c-ink-inkt); font: 800 13px/18px var(--ds-font-zeef-kop); }
+#pigeon-hud .ph-tag { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); color: var(--ds-c-ink-inkt); font: 600 13px/18px var(--ds-font-zeef-kop); }
 #pigeon-hud .ph-boost { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); height: 9px; border-radius: 4px; }
 #pigeon-hud .ph-boost i { background: var(--ds-c-ink-bord); }
-#pigeon-hud .ph-hints { font-family: var(--ds-font-tekst-v3); font-size: 14px; letter-spacing: 0; }
-#pigeon-hud .ph-hints span { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); font-size: 14px; }
+#pigeon-hud .ph-hints { font-family: var(--ds-font-zeef-tekst); font-size: 14px; letter-spacing: 0; }
+#pigeon-hud .ph-hints span { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); font-size: 14px; }
 #pigeon-hud .ph-hints .hot { color: var(--ds-c-ink-bord); font-weight: 700; }
 #pigeon-hud .ph-hints .ph-gast, #pigeon-hud .ph-hints .ph-touch { color: var(--ds-c-inkt-zacht); }
 #pigeon-hud .ph-pop { color: var(--ds-c-ink-inkt); font-weight: 800; text-shadow: var(--ds-misdruk); background: var(--ds-c-ink-papier); padding: 0 12px; border: 2px solid var(--ds-c-ink-inkt); border-radius: 6px; }
 #pigeon-hud .ph-pop em { color: var(--ds-c-ink-bord); }
 #pigeon-hud .ph-card small { font-weight: 800; letter-spacing: 0.12em; }
 #pigeon-hud .ph-card b { font-weight: 800; }
-#pigeon-hud .ph-card i { font-family: var(--ds-font-tekst-v3); font-size: 16px; color: var(--ds-c-ink-inkt); }
+#pigeon-hud .ph-card i { font-family: var(--ds-font-zeef-tekst); font-size: 16px; color: var(--ds-c-ink-inkt); }
 #pigeon-hud .ph-sikkom { border-left: 8px solid var(--ds-c-rood); }
 #pigeon-hud .ph-sikkom b { font-weight: 800; color: var(--ds-c-rood-tx); }
 #pigeon-hud .ph-warn { color: var(--ds-c-rood-tx); font-weight: 800; background: var(--ds-c-rood-vlak); padding: 0 16px; border: var(--ds-lijn-zeef) solid var(--ds-c-rood); border-radius: 8px; }
@@ -631,7 +633,9 @@ function sikkom(text) {
   sfx('notify', P.x, P.y, 0.5);
 }
 
-const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}><kbd class="hud-key">${k}</kbd>${label}</span>`;
+// De toetsen als toetsplaatje (keycap.js): ze lopen mee met herbinden en pad; een toets zonder token (A / D) blijft een gewoon plaatje.
+const K_TOKEN = { WASD: 'WASD', Spatie: 'SPACE', Shift: 'SHIFT', E: 'E', F: 'F', Q: 'Q', X: 'X', C: 'C' };
+const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}>${K_TOKEN[k] ? glyphHtml(K_TOKEN[k]) : `<kbd class="hud-key">${k}</kbd>`}${label}</span>`;
 
 function updateHud(dt) {
   if (!hud) return;
@@ -1714,6 +1718,7 @@ export function stopPigeonMode(w = world) {
   w.pigeonMode = false;
   w.pigeonIntro = false;
   document.body.classList.remove('pigeon-mode');
+  clearPigeonGuide();
   hud.root.hidden = true;
   hud.card.classList.remove('on');
   hud.sikkom.classList.remove('on');

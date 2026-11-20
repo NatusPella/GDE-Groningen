@@ -112,7 +112,7 @@ export function stap(baan, st, c, dt, ev, h, o = {}) {
       if (c.onGround && !st.los) {
         st.maxDwars = Math.max(st.maxDwars || 0, Math.abs(across));
         if (c.speed > 1 && !st.gas) { st.gas = true; ev.push(h.info('Gas erbij met W')); }
-        if (c.speed >= 30 && !st.optrek) { st.optrek = true; ev.push(h.info('Nu optrekken met Spatie')); }
+        if (c.speed >= 30 && !st.optrek) { st.optrek = true; ev.push(h.info('Nu optrekken met {SPACE}')); }
         if (Math.abs(across) > s.width / 2 + 6) { h.mislukt(st, ev, 'Van de baan af'); return true; }
       }
       if (!c.onGround && !st.los) { st.los = true; st.losSnelheid = c.speed; ev.push(h.info('Los van de baan: klim naar ' + baan.hoogte + ' m')); }

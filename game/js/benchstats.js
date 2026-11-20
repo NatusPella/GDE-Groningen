@@ -23,6 +23,12 @@ export const BENCH_CATEGORIES = { stad: 'Stad', provincie: 'Provincie', water: '
 export const benchRouteSeconds = () => BENCH_ROUTE.reduce((a, [, d]) => a + d, 0);
 export const benchCategoryOf = (id) => { const e = BENCH_ROUTE.find(([i]) => i === id); return e ? e[2] : null; };
 
+// 0.64.1 (Nikky, RX 9070 XT, 24 fps): the first shot also carries the shader compiles and the last streaming of the
+// run, so its first seconds are not measured; every later shot skips only its cut (the camera jump).
+export const BENCH_CUT_SKIP_S = 0.3;
+export const BENCH_FIRST_SHOT_SKIP_S = 1.5;
+export const benchMeasureAfter = (shotIdx) => (shotIdx === 0 ? BENCH_FIRST_SHOT_SKIP_S : BENCH_CUT_SKIP_S);
+
 const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
 
 // Statistics over frame times in ms: average fps, 95th percentile frame time,
@@ -55,6 +61,39 @@ export function categoryStats(shots) {
     if (st) out[c] = st;
   }
   return out;
+}
+
+// What a player really plays: the city, the countryside, the rail, the water and the crowded scenes, without the
+// cutscene shots (their film light is rare in the game). `shots` is [{ id, ms: [..] }]; null without enough frames.
+export function playStats(shots) {
+  const ms = [];
+  for (const s of shots || []) if (s && s.ms && benchCategoryOf(s.id) && benchCategoryOf(s.id) !== 'cutscene') ms.push(...s.ms);
+  return ms.length >= 60 ? frameStats(ms) : null;
+}
+
+// A low first result is measured once more (shader compiles, a streaming burst or another program can hold one run
+// back); the better of the two counts. -> true when the run is worth repeating.
+export const BENCH_REMEASURE_BELOW_FPS = 45;
+export function shouldRemeasure(stats, attempt = 0) {
+  return !!stats && attempt < 1 && stats.avg > 0 && stats.avg < BENCH_REMEASURE_BELOW_FPS;
+}
+export function betterRun(a, b) {
+  if (!a || !a.stats) return b || a;
+  if (!b || !b.stats) return a;
+  return b.stats.avg > a.stats.avg ? b : a;
+}
+
+// A run with very long frames (p95 from 100 ms, a 1%-low under 8 fps) says more about the computer being busy (other
+// programs, a browser with many tabs) than about the settings: no firm advice then, measure again.
+export const BENCH_BUSY_NOTE = 'Je pc was misschien druk tijdens de meting. Sluit andere programma’s en meet opnieuw voordat je een stand kiest.';
+export const benchLooksBusy = (stats) => !!stats && (stats.p95 >= 100 || stats.low1 < 8);
+
+// Ultra is the heaviest setting (the longest view: far terrain, countryside and ~400 draw calls more in the
+// city). A run on Ultra under 60 fps gets one honest sentence with the safe advice; '' otherwise.
+export function ultraNote(preset, avg, fps = {}) {
+  if (preset !== 'hoog' || !(avg > 0) || avg >= 60) return '';
+  const vlot = fps.vlot > 0 ? ` (Hoog haalt hier ongeveer ${Math.round(fps.vlot)} fps)` : '';
+  return `Ultra is de zwaarste stand: de verste zichtafstand kost veel tekenwerk, ook bij een sterke videokaart. Kies Hoog voor soepeler spelen${vlot}.`;
 }
 
 // Frames over HITCH_FRAME_MS per shot of the route: [{ id, frames, slow33, share }], worst first.
@@ -134,6 +173,35 @@ export function recommendProfile(stats, current) {
   if (rough && change === 'same') text = 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.';
   else if (change === 'same' && i >= 0) text = `${profileWord(profile)} draait prima. ${EXPLAIN[profile]}`;
   return { profile, change, text };
+}
+
+// 0.64.1: the advice over the four settings the player sees (Laag, Midden, Hoog, Ultra). recommendProfile above knows
+// three names and called the preset 'hoog' "Hoog", while that key is Ultra since #893: Nikky was advised "Hoog" and
+// got Ultra. Same thresholds; a step up to Ultra needs more room, because Ultra is the heaviest setting.
+export const STAND_ORDER = ['laag', 'middel', 'vlot', 'hoog'];
+export const STAND_LABEL = { laag: 'Laag', middel: 'Midden', vlot: 'Hoog', hoog: 'Ultra' };
+const STAND_EXPLAIN = {
+  laag: 'Laag houdt het spel soepel op deze computer: kortere zichtafstand, geen schaduwen en een lagere resolutie.',
+  middel: 'Midden is de balans: schaduwen aan en normale zichtafstand, met genoeg ruimte voor drukke scènes.',
+  vlot: 'Hoog heeft de look van Ultra met een korte zichtafstand: soepel op de meeste computers.',
+  hoog: 'Ultra laat Grunn zien zoals bedoeld, met de verste zichtafstand. Deze computer houdt dat bij.',
+};
+export function recommendStand(stats, current) {
+  if (!stats) return { stand: current || 'vlot', change: 'same', text: 'Er is niets gemeten. Probeer het nog een keer.' };
+  const i = STAND_ORDER.indexOf(current);
+  const base = i < 0 ? 2 : i;
+  const rough = stats.avg < 40 || stats.low1 < 22 || stats.p95 > 40;
+  const roomy = stats.avg >= 75 && stats.low1 >= 45 && stats.p95 <= 22;
+  const roomyUltra = stats.avg >= 90 && stats.low1 >= 55 && stats.p95 <= 18;
+  let to = base;
+  if (rough) to = Math.max(0, base - 1);
+  else if (roomy && (base + 1 < 3 || roomyUltra)) to = Math.min(STAND_ORDER.length - 1, base + 1);
+  const stand = STAND_ORDER[to];
+  const change = to > base ? 'up' : to < base ? 'down' : 'same';
+  let text = STAND_EXPLAIN[stand];
+  if (rough && change === 'same') text = 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.';
+  else if (change === 'same' && i >= 0) text = `${STAND_LABEL[stand]} draait prima. ${STAND_EXPLAIN[stand]}`;
+  return { stand, change, text };
 }
 
 // Difference with the previous run: positive fps/low1 = better, positive p95 = worse.

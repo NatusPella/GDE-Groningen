@@ -123,7 +123,7 @@ export default {
         d.boardT += dt;
         if (d.boardT > 1.5) {
           d.boarded = true;
-          zetUitlegGezien(UITLEG_ID);
+          if (!c.owner) zetUitlegGezien(UITLEG_ID);
           c.timeLeft = d.budget;
           c.msg(`Iedereen aan boord! Op naar ${leg.to.name}.`, 3);
         }
@@ -170,7 +170,7 @@ export default {
               s.nextAt = s.t + Math.max(TALK_S / s.lines.length, v ? v.dur + 0.3 : 0);
             }
           }
-          if (s.said >= s.lines.length && s.t >= Math.max(TALK_S, s.nextAt || 0)) { s.done = true; c.msg(`Toeristen fotograferen ${s.name}. Klik klik.`, 2.2); const vp = verhaalPop(s.name); simHudPop(vp.tekst, vp.geluid); }
+          if (s.said >= s.lines.length && s.t >= Math.max(TALK_S, s.nextAt || 0)) { s.done = true; c.msg(`Toeristen fotograferen ${s.name}. Klik klik.`, 2.2); if (!c.owner) { const vp = verhaalPop(s.name); simHudPop(vp.tekst, vp.geluid); } }
         } else if (world.time - (d.slowHintAt || -99) > 4) {
           d.slowHintAt = world.time;
           c.msg('Gas eraf! De toeristen willen het verhaal horen.', 2.2);
@@ -178,7 +178,7 @@ export default {
       } else if (passed || (dd > SIGHT_R + 6 && s.t > 0)) {
         s.missed = true;
         d.rating = Math.max(0, d.rating - 20);
-        const gp = gemistPop(s.name); simHudPop(gp.tekst, gp.geluid);
+        if (!c.owner) { const gp = gemistPop(s.name); simHudPop(gp.tekst, gp.geluid); }
         c.msg(`De toeristen hebben ${s.name} gemist. Ze fotograferen nu maar een eend.`, 3);
       }
       break;
@@ -190,7 +190,7 @@ export default {
       if (all) unlockAchievement(world, 'sj_rondvaart');
       const told = d.sights.filter((s) => s.done).length;
       const tip = d.rating >= 85 && all ? rand(14, 24) : d.rating >= 60 ? rand(4, 9) : 0;
-      const tp = tochtPop(all, told, d.sights.length); simHudPop(tp.tekst, tp.geluid);
+      if (!c.owner) { const tp = tochtPop(all, told, d.sights.length); simHudPop(tp.tekst, tp.geluid); }
       c.complete({ base: 30 + Math.abs(leg.to.i - leg.from.i) * 1.1 + told * 6, tip, text: all ? 'Applaus aan boord!' : `Tocht klaar (${told}/${d.sights.length} verhalen).`, flawless: all });
     }
   },
@@ -221,7 +221,7 @@ export default {
   },
 
   stop(c) {
-    simHudTik(0, null);
+    if (!c || !c.owner) simHudTik(0, null);
     if (c && c.data && c.data.kolom) { c.removeMesh(c.data.kolom); c.data.kolom = null; }
   },
 };
@@ -229,7 +229,8 @@ export default {
 // De strook onderin en de lichtkolom boven het volgende doel (#985): elke beeld de stand uit de tocht naar het pure model (rondvaartstatus.js). Alleen voor de eigen dienst.
 function zetRondvaartStrook(c, onBoat, speed) {
   const d = c.data, leg = d.legInfo, v = c.vehicle;
-  if (c.owner || !leg || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!leg || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const next = d.boarded ? d.sights.find((s) => !s.done && !s.missed) : null;
   const doelPunt = !d.boarded ? LINE[leg.from.i] : next ? LINE[next.i] : LINE[leg.to.i];
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('rondvaartkolom'));

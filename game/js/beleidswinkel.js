@@ -72,7 +72,7 @@ export function beleidOffers(geld = 0) {
 const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const heel = (n) => Math.max(0, Math.floor(Number(n) || 0));
 
-// Designsysteem v3 (ADR 0040, #999): elke maatregel is een zeefdrukkaart op papier, met het gevolg
+// Designsysteem (ADR 0040, #999): elke maatregel is een zeefdrukkaart op papier, met het gevolg
 // (prijs, saldo, saldo erna) als kassabonregels vóór de knop, een statuschip met pictogram en bij te weinig
 // geld een probleemkaart met de oplossing. De opmaak staat hier, naast de tekst die ze beschrijft; de
 // tokens en bouwstenen komen uit ds-tokens.css en ds-components.css (.ds-z-*).
@@ -82,11 +82,11 @@ const ICOON = {
   kan: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5l10 5.5-10 5.5z"/></svg>',
 };
 export const BELEID_CSS = `
-.bw-beleid { margin: var(--ds-s-3) 0 var(--ds-s-1); display: flex; flex-direction: column; gap: var(--ds-s-3); font-family: var(--ds-font-tekst-v3); }
-.bw-beleid h3 { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.bw-beleid { margin: var(--ds-s-3) 0 var(--ds-s-1); display: flex; flex-direction: column; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); }
+.bw-beleid h3 { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
 .bw-beleid p { margin: 0; color: var(--ds-zeef-tx); max-width: 60ch; }
 .bw-beleid .bw-saldo { display: flex; align-items: baseline; gap: var(--ds-s-2); }
-.bw-beleid .bw-saldo b { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.bw-beleid .bw-saldo b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
 .bw-beleid .bw-melding { padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-bord); background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); }
 .bw-beleid .bw-rij { gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); }
 .bw-beleid .bw-rij .ds-z-kaart__kop { margin: calc(-1 * var(--ds-s-3)) calc(-1 * var(--ds-s-4)) 0; }

@@ -79,9 +79,9 @@ t('spelerslijst: tokens, 44px-aanraakknop en een controllerweg in het voertuig (
   const controls = fs.readFileSync(new URL('../game/js/controls.js', import.meta.url), 'utf8');
   const hud = fs.readFileSync(new URL('../game/js/coophud.js', import.meta.url), 'utf8');
   assert.ok(!/#[0-9a-f]{6}/i.test(ui), 'geen losse hex meer in de spelerslijst');
-  assert.match(ui, /cs-open/);
-  assert.match(ui, /min-width: (?:44px|var\(--ds-doel-aanraken\)); min-height: (?:44px|var\(--ds-doel-aanraken\))/);
-  assert.match(ui, /cs-stip-ok/);
+  assert.match(ui, /cs-hint/);
+  assert.match(ui, /cs-klik \{[^}]*min-height: var\(--ds-doel-aanraken\); min-width: var\(--ds-doel-aanraken\)/);
+  assert.match(ui, /cs-chip--goed/);
   assert.match(controls, /vehicle: \{[^}]*rs: 'tab'[^}]*\}/, 'rs opent de lijst ook in een voertuig');
   assert.ok(!/cssText/.test(hud) && !/#[0-9a-f]{6}/i.test(hud), 'de Meedoen-chip en de fade hebben geen eigen inline stijl meer');
   const scene = fs.readFileSync(new URL('../game/js/coopscene.js', import.meta.url), 'utf8');

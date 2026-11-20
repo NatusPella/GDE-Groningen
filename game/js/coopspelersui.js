@@ -1,4 +1,9 @@
 import { hoofdspeler } from './players.js';
+import { icoon } from './icons.js';
+import { statusVan, tabRegel, versieRegel, LATER_ACTIES, hintStand, hintTekst, volgHint } from './playerstatus.js';
+import { gateOn } from './coopgate.js';
+import { VERSION } from './version.js';
+import { keyTextHtml } from './keycap.js';
 // Samen spelen (#95, #377, #434): de spelerslijst in beeld. Twee plekken, nooit permanent: een compacte lijst boven in het scherm zolang je
 // Tab ingedrukt houdt (of met de 44px-knop op aanraking), en het tabblad Spelers onder Spel > Samen spelen (alleen in een sessie) met dezelfde gegevens en de roepjes.
 // In het pauzemenu stel je ook je online-avatar in (#455): de naam en kleur die anderen van je zien.
@@ -8,7 +13,7 @@ import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from 
 import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur, SPELERS_KNOP, spelersKnopTekst } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur, SPELERS_KNOP } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
 import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
@@ -17,25 +22,43 @@ import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTek
 import { meedoenSchakelaarHtml } from './onlineconsentui.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const STIP = { ok: 'cs-stip-ok', lag: 'cs-stip-lag', lost: 'cs-stip-lost' };
 const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
 // Een sessie van één (#554, coopsolo.js) is geen samen-sessie: geen spelerslijst, geen "1 speler"-badge
 // en geen avatar-hint alsof je meedoet. In een echte sessie verandert er niets.
 const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 
-function rijHtml(r, acties, rol = null, bevestig = null) {
-  const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
-  const geef = acties && kanOverdragen(rol, r) ? `<button type="button" class="cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
-  const naar = acties && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
+const chipHtml = (c) => `<span class="cs-chip cs-chip--${c.soort}" data-chip="${c.id}">${icoon(c.icoon, { maat: 's' })}<span>${esc(c.tekst)}</span></span>`;
+// dempen en blokkeren komen later (#451): de knoppen staan er al, uitgeschakeld met uitleg
+const laterHtml = () => LATER_ACTIES.map((a) => `<button type="button" class="cs-later" disabled aria-disabled="true" title="${esc(a.uitleg)}" aria-label="${esc(a.label + ': ' + a.uitleg)}">${icoon(a.icoon, { maat: 's' })}</button>`).join('');
+
+function rijHtml(r, acties, rol = null, bevestig = null, ctx = {}) {
+  const vraagt = acties && bevestig === r.slot && kanEruitZetten(rol, r);
+  const eruit = acties && kanEruitZetten(rol, r)
+    ? (vraagt ? `<span class="cs-vraag">${esc(r.naam)} eruit zetten?</span><button type="button" class="cs-eruit" data-eruit="${r.slot}">Ja, eruit zetten</button><button type="button" class="cs-naar" data-eruit-nee="1">Annuleren</button>`
+      : `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(false)}</button>`) : '';
+  const geef = acties && !vraagt && kanOverdragen(rol, r) ? `<button type="button" class="cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
+  const naar = acties && !vraagt && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
   // de groep (#492): "leidt <label>" bij de leider, de groepsnaam bij de andere deelnemers, niets bij wie niet meedoet
   const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
-  const actiesHtml = naar || geef || eruit ? `<span class="cs-acties">${naar}${geef}${eruit}</span>` : '';
-  // #903: de speler is een kaart met een avatar in zijn eigen kleur en vorm, wat die doet en hoe de
-  // verbinding is. Kleur is nooit het enige signaal: de vorm en het woord staan ernaast.
-  return `<li class="cs-rij" data-slot="${r.slot}"><span class="cs-avatar" aria-hidden="true"><span class="cs-vorm" style="color:${esc(veiligeKleur(r.kleur))}">${VORM_TEKEN[r.vorm] || '●'}</span></span>` +
+  const later = acties && !r.jij && !vraagt ? `<span class="cs-laterrij">${laterHtml()}</span>` : '';
+  const actiesHtml = naar || geef || eruit || later ? `<span class="cs-acties">${naar}${geef}${eruit}${later}</span>` : '';
+  // #903: de speler is een kaart met een avatar in zijn eigen kleur en vorm; de status staat als woorden met een icoon (playerstatus.js statusVan).
+  // Kleur is nooit het enige signaal: de vorm en het woord staan ernaast.
+  const afstand = !r.jij && r.afstandTekst ? `${r.afstandTekst}${r.richting ? ` ${r.richting.pijl} ${r.richting.woord}` : ''}` : '';
+  return `<li class="cs-rij${r.verbinding === 'lost' ? ' cs-rij-weg' : ''}" data-slot="${r.slot}"><span class="cs-avatar" aria-hidden="true"><span class="cs-vorm" style="color:${esc(veiligeKleur(r.kleur))}">${VORM_TEKEN[r.vorm] || '●'}</span></span>` +
     `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small class="cs-jij">(jij)</small>' : ''}${groep}</span>` +
-    `<span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? `<small>${esc(r.afstandTekst)}</small>` : ''}</span>` +
-    `<span class="cs-net" title="Verbinding"><i class="cs-stip ${STIP[netStand(r.verbinding)]}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${actiesHtml}</li>`;
+    `<span class="cs-status">${statusVan(r, ctx).map(chipHtml).join('')}</span>` +
+    `<span class="cs-doet">${esc(r.doet)}${afstand ? `<small>${esc(afstand)}</small>` : ''}</span>${actiesHtml}</li>`;
+}
+// De compacte regel van de Tab-lijst in het spel: naam, kleur, ping, afstand en richting, klaar (playerstatus.js tabRegel)
+function tabRijHtml(r, ctx = {}) {
+  const t = tabRegel(r, ctx);
+  const klaar = t.klaar === null ? '' : `<span class="cs-tab-klaar">${icoon(t.klaar ? 'vinkje' : 'zandloper', { maat: 's' })}${t.klaar ? 'Klaar' : 'Weg'}</span>`;
+  return `<li class="cs-tabrij${t.verbinding === 'lost' ? ' cs-rij-weg' : ''}" data-slot="${t.slot}"><span class="cs-vorm" style="color:${esc(veiligeKleur(t.kleur))}" aria-hidden="true">${VORM_TEKEN[t.vorm] || '●'}</span>` +
+    `<span class="cs-tab-naam">${esc(t.naam)}${t.jij ? ' <small class="cs-jij">(jij)</small>' : ''}${t.passief === false ? ' <small class="cs-tab-actief">actief</small>' : ''}</span>` +
+    `<span class="cs-tab-ping cs-net-${netStand(t.verbinding)}">${icoon(t.verbinding === 'lost' ? 'wifi_uit' : 'wifi', { maat: 's' })}${esc(t.ping || 'goed')}</span>` +
+    `<span class="cs-tab-afstand"${t.afstandWoord ? ` title="${esc(t.afstandWoord)}"` : ''}>${esc(t.afstand)}</span>${klaar}` +
+    `<span class="cs-tab-later">${t.jij ? '' : laterHtml()}</span></li>`;
 }
 // De passieve stand (#447): een knop met uitleg, alleen als de host het kent
 function pvpHtml(world) {
@@ -48,30 +71,31 @@ const roepHint =() => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}
 const CSS = `
 /* Zeefdruk (#1001): alleen ds-tokens en de .ds-z-* stijl; de identiteitskleur van een speler komt als inline color (data) en de vorm staat er altijd naast.
    De lijst staat buiten het .gm-paneel en gebruikt dus de papiertokens, niet de glasvariabelen. */
-#coop-spelers, .pm-spelers { color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); }
-.cs-lijst { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+#coop-spelers, .pm-spelers { color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); }
+.cs-lijst { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ds-s-2); }
 .cs-rij { display: grid; grid-template-columns: var(--ds-s-7) minmax(110px, auto) minmax(0, 1fr) auto; gap: var(--ds-s-1) var(--ds-s-3); align-items: center; padding: var(--ds-s-2) var(--ds-s-3); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 .cs-avatar { grid-row: 1 / span 2; display: grid; place-items: center; width: var(--ds-s-7); height: var(--ds-s-7); border-radius: var(--ds-r-pil); background: var(--ds-c-ink-inkt); }
 .cs-vorm { font-size: var(--ds-t-subkop); line-height: 1; text-align: center; }
-.cs-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
-.cs-naam small, .cs-net small, .cs-doet small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; }
+.cs-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.cs-naam small, .cs-net small, .cs-doet small { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; }
 .cs-naam .cs-jij { color: var(--ds-c-groen-tx); }
 .cs-doet { display: flex; flex-direction: column; gap: 1px; }
 .cs-groep { display: inline-block; padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); }
 .cs-naam .cs-groep.cs-leidt { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
-/* de netstand is een vorm en een woord: rond = goed, ruit = haperd, vierkant = weg */
-.cs-net { display: inline-flex; align-items: center; gap: var(--ds-s-2); white-space: nowrap; }
-.cs-net i { display: inline-block; width: var(--ds-s-3); height: var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
-.cs-stip-ok { background: var(--ds-c-bord); border-radius: var(--ds-r-pil); }
-.cs-stip-lag { background: var(--ds-c-geel); transform: rotate(45deg); }
-.cs-stip-lost { background: var(--ds-c-rood); }
 .cs-acties { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 /* #636: dezelfde lijst ook op aanraking (44 px-knop), zonder muis of Tab */
-.cs-open { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: grid; place-items: center; min-width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
-.cs-open[aria-expanded="true"] { background: var(--ds-zeef-primair); }
-.cs-open:hover { background: var(--ds-c-sel-vlak); }
-.cs-open:focus-visible, .pm-spelers :is(button, input):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
-.cs-eruit, .cs-naar, .pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .cs-kleuren button { display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); justify-self: start; margin: 0; min-height: var(--ds-doel-aanraken); padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
+/* De hint (geen knop): kleine chip met het Tab-toetsicoon en "Spelers · n"; na een tijd alleen pictogram en aantal. Klikbaar (cs-klik) alleen als de muis vrij is. */
+.cs-hint { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: inline-flex; align-items: center; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); min-height: var(--ds-s-6); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: 1; opacity: .92; pointer-events: none; cursor: default; transition: opacity .6s ease; }
+/* boven de minimap links: rechtsonder staan de snelheidsmeter, de voertuignaam en de toetshints (uitstappen, E, M) */
+.cs-hint.cs-in-hud { position: absolute; right: auto; left: var(--hud-edge, 14px); bottom: calc(var(--mm-bottom, 14px) + var(--mm-size, 160px) + 8px); }
+.cs-hint.cs-dim { opacity: .55; padding: 0 var(--ds-s-2); }
+.cs-hint .ic { width: 1.1em; height: 1.1em; }
+.cs-hint-toets { display: inline-flex; }
+.cs-hint.cs-klik { pointer-events: auto; cursor: pointer; min-height: var(--ds-doel-aanraken); min-width: var(--ds-doel-aanraken); justify-content: center; padding: 0 var(--ds-s-4); opacity: 1; }
+.cs-hint.cs-klik[aria-expanded="true"] { background: var(--ds-zeef-primair); }
+.cs-hint.cs-klik:hover { background: var(--ds-c-sel-vlak); }
+.cs-hint:focus-visible, .pm-spelers :is(button, input):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+.cs-eruit, .cs-naar, .pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .cs-kleuren button { display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); justify-self: start; margin: 0; min-height: var(--ds-doel-aanraken); padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
 .cs-naar:hover, .cs-naar:focus-visible, .pm-spelers .cs-roep button:hover { background: var(--ds-c-sel-vlak); }
 .cs-eruit { border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
 #coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; box-sizing: border-box; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); pointer-events: none; }
@@ -81,8 +105,8 @@ const CSS = `
 #coop-spelers .cs-lijst::-webkit-scrollbar { width: 8px; }
 #coop-spelers .cs-lijst::-webkit-scrollbar-thumb { border-radius: var(--ds-r); background: var(--ds-c-ink-inkt); }
 #coop-spelers .cs-lijst::-webkit-scrollbar-track { background: transparent; }
-#coop-spelers h3 { margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
-#coop-spelers .cs-voet { margin-top: var(--ds-s-2); padding-top: var(--ds-s-2); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); }
+#coop-spelers h3 { margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+#coop-spelers .cs-voet { margin-top: var(--ds-s-2); padding-top: var(--ds-s-2); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); }
 #coop-spelers .cs-voet b { padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); background: var(--ds-zeef-bg); }
 #coop-spelers .cs-rij { padding: var(--ds-s-2); grid-template-columns: var(--ds-s-6) minmax(80px, auto) minmax(0, 1fr) auto; }
 #coop-spelers .cs-avatar { width: var(--ds-s-6); height: var(--ds-s-6); }
@@ -90,7 +114,7 @@ const CSS = `
 .pm-spelers { display: flex; flex-direction: column; gap: var(--ds-s-4); max-width: 952px; padding: var(--ds-s-6) var(--ds-s-8) var(--ds-s-7); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
 .pm-spelers .cs-kop, .pm-spelers .cs-pvp, .cs-profiel { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
 .pm-spelers .cs-pvp { align-items: flex-start; }
-.pm-spelers .cs-kop-t, .pm-spelers .cs-sectie h4, .cs-profiel h4 { margin: 0; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+.pm-spelers .cs-kop-t, .pm-spelers .cs-sectie h4, .cs-profiel h4 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
 .pm-spelers .cs-kop-t { font-size: var(--ds-t-kop); }
 .pm-spelers .cs-kop-leeg .cs-kop-t { color: var(--ds-tx-zacht); }
 .pm-spelers .cs-sectie { display: flex; flex-direction: column; gap: var(--ds-s-2); padding-top: var(--ds-s-1); }
@@ -102,8 +126,8 @@ const CSS = `
 .pm-spelers .cs-pvp button[aria-pressed="true"], .cs-kleuren button[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
 .cs-kleuren button[aria-pressed="true"]::after { content: "\\2713"; }
 .pm-spelers .cs-roep { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); }
-.cs-profiel-label { display: flex; gap: var(--ds-s-3); align-items: center; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
-.cs-profiel-naam { min-width: 0; min-height: var(--ds-doel-aanraken); max-width: 260px; padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); }
+.cs-profiel-label { display: flex; gap: var(--ds-s-3); align-items: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
+.cs-profiel-naam { min-width: 0; min-height: var(--ds-doel-aanraken); max-width: 260px; padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); }
 .cs-kleuren { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 .cs-profiel-fout { color: var(--ds-c-rood-tx); }
 .cs-profiel-hint { font-size: var(--ds-t-hulp); }
@@ -113,14 +137,12 @@ const CSS = `
   .pm-spelers { padding: var(--ds-s-3); }
   .pm-spelers .cs-lijst { gap: var(--ds-s-2); }
   .pm-spelers .cs-rij { grid-template-columns: var(--ds-s-6) minmax(0, 1fr) auto; gap: 2px var(--ds-s-2); }
-  .pm-spelers .cs-net { grid-column: 2 / -1; justify-self: start; }
 }
 /* #873: op smalle schermen is er geen breedte voor vier kolommen: de netstatus zakt
    onder de naam en de avatar wordt smaller. */
 @media (max-width: 520px) {
   #coop-spelers { width: calc(100vw - var(--ds-s-4)); }
   #coop-spelers .cs-rij { grid-template-columns: var(--ds-s-6) minmax(0, 1fr) auto; gap: 2px var(--ds-s-2); }
-  #coop-spelers .cs-net { grid-column: 2 / -1; justify-self: start; }
 }
 /* #873: op een lage viewport (telefoon op zijn kant) is elke rij kostbaar: compacte
    kop, rijen en geen voet; de lijst houdt een zichtbare scrollbalk. */
@@ -133,7 +155,32 @@ const CSS = `
   .pm-spelers { padding: var(--ds-s-3); }
   .pm-spelers .cs-rij { padding: 3px var(--ds-s-2); }
 }
-:is(html.rustig-drukwerk, .ds-rustig) .cs-stip-lag { transform: none; }
+/* Spelersmenu 21-11: status als woorden met een icoon, de compacte Tab-lijst, dempen en blokkeren (later) */
+.cs-rij { grid-template-columns: var(--ds-s-7) minmax(0, 1fr) auto; }
+.cs-rij .cs-status { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+.cs-rij .cs-doet { grid-column: 2 / -1; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: var(--ds-s-2); }
+.cs-rij .cs-acties { grid-column: 2 / -1; align-items: center; }
+.pm-spelers .cs-rij, #coop-spelers .cs-rij { grid-template-columns: var(--ds-s-7) minmax(0, 1fr) auto; }
+.cs-rij-weg { opacity: .8; border-style: dashed; }
+.cs-chip { display: inline-flex; align-items: center; gap: var(--ds-s-1); padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); font-size: var(--ds-t-hulp); white-space: nowrap; }
+.cs-chip .ic { width: 1em; height: 1em; }
+.cs-chip--goed { background: var(--ds-c-sel-vlak); }
+.cs-chip--let-op { border-color: var(--ds-c-geel); border-style: dashed; }
+.cs-chip--slecht { border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); border-style: dotted; }
+.cs-vraag { font-weight: 800; color: var(--ds-c-rood-tx); align-self: center; }
+.cs-laterrij { display: inline-flex; gap: var(--ds-s-1); margin-left: auto; }
+.cs-later { display: inline-grid; place-items: center; width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0; border: var(--ds-lijn) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: transparent; color: var(--ds-tx-zacht); cursor: not-allowed; opacity: .6; }
+.pm-spelers .cs-kop-klein { font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+#coop-spelers h3 small { font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-hulp); }
+#coop-spelers .cs-tabrij { display: grid; grid-template-columns: var(--ds-s-5) minmax(90px, 1fr) auto auto auto auto; gap: var(--ds-s-3); align-items: center; padding: var(--ds-s-1) var(--ds-s-2); background: var(--ds-zeef-bg); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: var(--ds-t-hulp); }
+#coop-spelers .cs-tabrij .cs-vorm { font-size: var(--ds-t-subkop); }
+#coop-spelers .cs-tab-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-body); letter-spacing: var(--ds-ls-label); }
+#coop-spelers .cs-tab-ping, #coop-spelers .cs-tab-klaar { display: inline-flex; align-items: center; gap: var(--ds-s-1); white-space: nowrap; }
+#coop-spelers .cs-tab-ping .ic, #coop-spelers .cs-tab-klaar .ic { width: 1.1em; height: 1.1em; }
+#coop-spelers .cs-net-lost { color: var(--ds-c-rood-tx); }
+#coop-spelers .cs-tab-afstand { min-width: 5.5em; text-align: right; white-space: nowrap; }
+#coop-spelers .cs-tab-later { display: inline-flex; gap: var(--ds-s-1); }
+#coop-spelers .cs-later { width: var(--ds-s-6); min-height: var(--ds-s-6); }
 `;
 let stijl = false;
 function zorgVoorStijl() {
@@ -143,25 +190,39 @@ function zorgVoorStijl() {
 }
 
 // ---- de lijst bij Tab (elke frame vanuit main.js via coophud.js) en op aanraking (#636)
-let overlay = null, laatste = '', knop = null, vast = false;
+let overlay = null, laatste = '', knop = null, vast = false, hintVolg = null, hintKey = '', viaKlik = false;
+// De hint rechtsonder (geen knop): in het spel is de muis vergrendeld en doet een klik niets, de lijst opent met Tab (of de
+// controllerknop). Is de muis vrij (menu, kaart, aanraken) of staat de lijst open, dan is hij wel klikbaar (playerstatus.js hintStand).
 function zorgVoorKnop(world, zichtbaar, aantal = 0) {
   if (typeof document === 'undefined') return;
-  if (!zichtbaar) { if (knop) knop.style.display = 'none'; return; }
+  if (!zichtbaar) { if (knop) knop.style.display = 'none'; hintVolg = null; return; }
   zorgVoorStijl();
+  const nu = Date.now();
+  hintVolg = volgHint(hintVolg, aantal, nu);
+  const h = hintStand({ aantal, sinds: hintVolg.sinds, nu, vergrendeld: !!document.pointerLockElement, open: vast });
   if (!knop) {
-    knop = document.createElement('button');
-    knop.type = 'button'; knop.id = 'coop-spelers-knop'; knop.className = 'cs-open';
-    knop.setAttribute('aria-controls', 'coop-spelers');
-    knop.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); vast = !vast; updateSpelersOverlay(world); });
-    document.body.appendChild(knop);
+    knop = document.createElement('div');
+    knop.id = 'coop-spelers-knop'; knop.className = 'cs-hint';
+    knop.addEventListener('click', (e) => { if (!knop.classList.contains('cs-klik')) return; e.preventDefault(); e.stopPropagation(); vast = !vast; viaKlik = vast; updateSpelersOverlay(world); });
+    knop.addEventListener('keydown', (e) => { if (knop.classList.contains('cs-klik') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); knop.click(); } });
+    const hud = document.getElementById('hud');
+    (hud || document.body).appendChild(knop);
+    if (hud) knop.classList.add('cs-in-hud');
   }
-  // #971: een grijze knop met alleen "Spelers" zei niet wat hij deed. Nu staat er
-  // "Spelerslijst" (met het aantal) en leggen title en aria-label de knop uit.
-  knop.textContent = spelersKnopTekst(aantal);
-  knop.title = SPELERS_KNOP.title;
-  knop.setAttribute('aria-label', `${SPELERS_KNOP.title}${aantal ? `, ${aantal} spelers` : ''}`);
+  const key = [h.stand, h.klikbaar, aantal, vast].join('|');
+  if (key !== hintKey) { // alleen bij een verandering opnieuw tekenen: de HUD tikt elke frame
+    hintKey = key;
+    knop.classList.toggle('cs-dim', h.stand === 'dim');
+    knop.classList.toggle('cs-klik', h.klikbaar);
+    knop.innerHTML = h.stand === 'dim'
+      ? `${icoon('spelers', { maat: 's' })}<span class="cs-hint-n">${aantal}</span>`
+      : `<span class="cs-hint-toets">${keyTextHtml('{TAB}')}</span><span class="cs-hint-t">${esc(hintTekst(aantal))}</span>`;
+    if (h.klikbaar) { knop.setAttribute('role', 'button'); knop.tabIndex = 0; knop.setAttribute('aria-controls', 'coop-spelers'); knop.setAttribute('aria-expanded', vast ? 'true' : 'false'); }
+    else { knop.setAttribute('role', 'status'); knop.removeAttribute('tabindex'); knop.removeAttribute('aria-controls'); knop.removeAttribute('aria-expanded'); }
+    knop.title = SPELERS_KNOP.title;
+    knop.setAttribute('aria-label', `${SPELERS_KNOP.title}${aantal ? `, ${aantal} spelers` : ''}`);
+  }
   knop.style.display = '';
-  knop.setAttribute('aria-expanded', vast ? 'true' : 'false');
 }
 export function updateSpelersOverlay(world) {
   if (typeof document === 'undefined') return;
@@ -178,10 +239,12 @@ export function updateSpelersOverlay(world) {
     document.body.appendChild(overlay);
   }
   overlay.style.display = '';
-  const key = rijen.map((r) => `${r.slot}|${r.doet}|${r.verbinding}|${r.ms}|${r.afstandTekst}|${r.naam}|${r.groep}|${r.leidt}`).join(';');
+  if (viaKlik) { viaKlik = false; overlay.tabIndex = -1; try { overlay.focus({ preventScroll: true }); } catch (e) { /* geen focus */ } } // geopend met de muis: de focus gaat mee naar de lijst
+  const ctx = { wachtkamer: gateOn() };
+  const key = ctx.wachtkamer + rijen.map((r) => `${r.slot}|${r.doet}|${r.verbinding}|${r.ms}|${r.afstandTekst}|${r.richting && r.richting.woord}|${r.naam}|${r.groep}|${r.passief}`).join(';');
   if (key === laatste) return;
   laatste = key;
-  overlay.innerHTML = `<h3>Spelers</h3><ul class="cs-lijst">${rijen.map((r) => rijHtml(r, false)).join('')}</ul><div class="cs-voet">${roepHint()}</div>`;
+  overlay.innerHTML = `<h3>Spelers <small>${rijen.length}</small></h3><ul class="cs-lijst cs-tablijst">${rijen.map((r) => tabRijHtml(r, ctx)).join('')}</ul><div class="cs-voet">${keyTextHtml('{TAB}')} lijst · ${roepHint()}</div>`;
 }
 export const spelersOverlayZichtbaar = () => !!overlay && overlay.style.display !== 'none';
 
@@ -217,18 +280,23 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button, input');
     const rol = echteSessie(world) && world.coopNet.role;
     const prof = getSettings();
-    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, prof.onlineMeedoen, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel, r.groep, r.leidt])]);
+    const ctx0 = { wachtkamer: gateOn() };
+    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, prof.onlineMeedoen, profielFout, ctx0.wachtkamer, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.richting && r.richting.woord, r.passief, r.pvpInSpel, r.groep, r.leidt])]);
     if (root.dataset.key === key && root.dataset.klaar) return;
     if (zittend && root.dataset.klaar) return; // de focus op een knop of in het naamveld blijft staan
     const naamInvoer = schermNaam && document.activeElement === schermNaam ? schermNaam.value : prof.onlineNaam;
     root.dataset.key = key; root.dataset.klaar = '1';
+    const ctx = { wachtkamer: gateOn() };
+    const opener = (rijen.find((r) => r.slot === 0) || {}).naam || 'De ander';
     const kop = rijen.length
-      ? `<div class="cs-kop"><span class="ds-z-chip ds-z-chip--selectie">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b><p>De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
-      : `<div class="cs-kop cs-kop-leeg"><span class="ds-z-chip ds-z-chip--selectie">Samen spelen</span><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Samen spelen. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
+      ? `<div class="cs-kop"><span class="ds-z-chip ds-z-chip--selectie">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b>` +
+        `<p>${rol === 'host' ? 'Jij opende het spel: jij kunt spelers eruit zetten of het spel overdragen.' : `${esc(opener)} opende het spel. Valt je verbinding weg, dan kun je opnieuw verbinden of stoppen; je komt terug waar je was.`}</p>` +
+        `<p class="cs-kop-klein">${esc(versieRegel(VERSION))} De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
+      : `<div class="cs-kop cs-kop-leeg"><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Sessie. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
     root.innerHTML = kop + (rijen.length
-      ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
+      ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig, ctx)).join('')}</ul>` +
         pvpHtml(world) +
-        `<div class="cs-sectie"><h4>Roepen en route</h4><p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen doe je op het tabblad Samen spelen.</p>` +
+        `<div class="cs-sectie"><h4>Roepen</h4><p>${roepHint()}</p>` +
         `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" class="cs-roep-knop" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div></div>`
       : '') +
       profielHtml(world);
@@ -251,6 +319,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       if (p && hoofdspeler(world)) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
       const ps = e.target.closest('[data-passief]');
       if (ps) { zetPassiefGebaar(world, ps.getAttribute('data-passief') === '1'); root.dataset.klaar = ''; teken(); return; } // omschakelen met afkoeling; de gast ziet de stand zodra de host antwoordt (#447)
+      if (e.target.closest('[data-eruit-nee]')) { bevestig = null; root.dataset.klaar = ''; teken(); return; }
       const k = e.target.closest('[data-eruit]');
       if (k) { // twee keer klikken: eerst vragen, dan eruit zetten (#434)
         const slot = +k.getAttribute('data-eruit'), r = (world.coopSpelers || []).find((x) => x.slot === slot);

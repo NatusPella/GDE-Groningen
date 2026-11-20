@@ -1,6 +1,6 @@
 // The rules of the `timing` stage (game/js/stagetiming.js) and of the timed answer of the `choice` stage:
 //   node scripts/stagetiming_test.mjs
-import { enterTiming, stepTiming, timingTag, needleAt, inZone } from '../game/js/stagetiming.js';
+import { enterTiming, stepTiming, timingTag, needleAt, inZone, GEBAAR_AUTO } from '../game/js/stagetiming.js';
 import { timingGrace, widenZone, widenWindow } from '../game/js/timingassist.js';
 import { enterChoice, stepChoice } from '../game/js/stagechoice.js';
 import { buildAkte4Defs } from '../game/js/missions_akte4.js';
@@ -110,6 +110,28 @@ ok(beleg.stages.some((q) => q.kind === 'timing' && q.tagGood === 'duel-won' && q
   ok(Math.abs((widenZone([0.4, 0.6], 1)[0] + widenZone([0.4, 0.6], 1)[1]) / 2 - 0.5) < 1e-9, 'verbreden houdt het midden');
   const win = widenWindow([1.2, 1.0], 4, 2);
   ok(win[0] >= 0 && win[1] <= 4 && win[1] > 1, 'een venster in seconden wordt ruimer en blijft in de ronde', JSON.stringify(win));
+}
+// #962: een gebaar (st.gebaar) is geen proef: elke druk is raak, en zonder druk loopt het vanzelf door
+{
+  const st = { kind: 'timing', gebaar: true, tagGood: 'goed', tagLow: 'slecht', goodAt: 3, rounds: [1, 2, 3].map(() => ({ text: 't', speed: 1.25, zone: [0.43, 0.57], ok: 'ja', bad: 'nee' })) };
+  const S = {}; enterTiming(S, st, null);
+  let r = null, stappen = 0;
+  while (r !== 'done' && stappen++ < 500) {
+    r = stepTiming(st, S, S.tphase === 'ask' && S.needleT > 0.1, 0.1); // druk meteen, ook buiten de zone
+  }
+  ok(r === 'done' && S.hits === 3 && S.miss === 0, 'een gebaar met drukken is drie keer raak, zonder misser', JSON.stringify({ r, hits: S.hits, miss: S.miss }));
+  ok(timingTag(st, S) === 'goed', 'een gebaar geeft de goede tag');
+  const A = {}; enterTiming(A, st, null);
+  let r2 = null, t = 0;
+  while (r2 !== 'done' && t < 60) { r2 = stepTiming(st, A, false, 0.1); t += 0.1; }
+  ok(r2 === 'done' && A.hits === 3 && t <= 3 * (GEBAAR_AUTO + 1.6) + 1, 'zonder druk loopt een gebaar vanzelf door en is raak', String(t));
+  const alle = buildAkte4Defs().flatMap((d) => d.stages || []).filter((s) => s.kind === 'timing');
+  ok(alle.filter((s) => s.vaultJump || /wagons/.test(s.kicker || '')).every((s) => s.gebaar), 'de fierljep (M20) en de wagons (M21) zijn een gebaar');
+  ok(alle.some((s) => !s.gebaar), 'de gang van M18 blijft een korte timing');
+  const echt = { kind: 'timing', rounds: st.rounds };
+  const E = {}; enterTiming(E, echt, null);
+  let e = null; for (let i = 0; i < 200 && !e; i++) e = stepTiming(echt, E, false, 0.1);
+  ok(e === null && E.hits === 0, 'een gewone timing loopt niet vanzelf door');
 }
 console.log(fails ? `${fails} of ${n} failed` : `stagetiming_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

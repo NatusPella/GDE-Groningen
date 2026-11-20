@@ -29,6 +29,10 @@ meer: de deterministische checks doen het meetwerk, een AI met beeldherkenning b
 beelden, en AI-reviewers beoordelen de diff. De eigenaar houdt alleen het publicatierecht
 (constitutie 8); de agent doet meten, reviewen en fixen.
 
+## Toetshints in de regelaudit
+
+`rules_audit.mjs` keurt elke toegevoegde regel in `game/js` met `checkKeyLine` (`scripts/release/design_rules.mjs`): een toetsnaam als woord in spelertekst of een tekstkeycap zonder icoon is een bevinding van ernst belangrijk. Zie DESIGN_SYSTEM.md, hoofdstuk Controls and key hints.
+
 ## Eén commando, vijf fasen
 
 ```

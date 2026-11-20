@@ -64,7 +64,7 @@ ok(armDestination(0, 0, 0, 1, [{ n: 'Verweg', x: 0, y: 90000, kind: 'city' }]) =
 const fur = furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd], opts: { towns } });
 const fb = fur.items.filter((i) => i.k === 'placesign' && !i.end);
 ok(fb.length === 1 && fb[0].x < 5000, 'furnitureForTile only adds them with the places', fb.length);
-ok(fur.colliders.some((c) => c.kind === 'paal'), 'the post is solid');
+ok(fur.colliders.some((c) => c.kind === 'bord' && !c.static), 'the post is solid below the break speed and falls above it (breakables.js bord)');
 ok(furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd] }).items.every((i) => i.k !== 'placesign'), 'without places no boards');
 const again = furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd], opts: { towns } });
 ok(again.items.map((i) => i.key).join() === fur.items.map((i) => i.key).join(), 'deterministic');

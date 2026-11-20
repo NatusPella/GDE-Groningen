@@ -29,7 +29,7 @@ const CSS = `${GEBIEDEN_CSS}
 /* #980 fase 3: twee tabbladen (Gebieden, Beleidswinkel). De Beleidswinkel stond onder een gebiedenpaneel van 5000 px en was op 900p niet
    te bereiken; nu heeft hij een eigen tabblad dat zelf scrolt. Gebieden is één scrolvlak: kop, taken, uitleg en dan de lijst. */
 .vo-tabs { flex: none; margin: 24px 24px 12px; }
-.vo-tabs .ds-z-tab small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+.vo-tabs .ds-z-tab small { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
 .vo-gebieden { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 24px; }
 .vo-gebieden[hidden], .vo-beleidtab[hidden] { display: none; }
 .vo-gebieden > .m-main { flex: none; height: clamp(360px, 62vh, 640px); padding: 0 24px; }
@@ -45,13 +45,13 @@ const CSS = `${GEBIEDEN_CSS}
 .vo-kop { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; }
 .vo-kop .m-num { font-size: 30px; }
 .vo-uitleg { flex: none; margin: 0 24px 14px; padding: 10px 16px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
-.vo-uitleg > b, .vo-volgende > b { display: block; margin-bottom: 2px; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; letter-spacing: 0.04em; }
+.vo-uitleg > b, .vo-volgende > b { display: block; margin-bottom: 2px; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; letter-spacing: 0.04em; }
 .vo-soort-kop { margin-top: 4px; }
 .vo-soorten { list-style: none; margin: 6px 0 2px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px 18px; }
-.vo-soorten li { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-family: var(--ds-font-tekst-v3); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.35; }
+.vo-soorten li { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-family: var(--ds-font-zeef-tekst); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.35; }
 .vo-soorten li .one { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vo-soorten .vo-soort-tel { margin-left: auto; white-space: nowrap; font-family: var(--ds-font-kop-v3); font-size: 18px; letter-spacing: 0.03em; color: var(--g); }
-.vo-regel { margin: 6px 0 0; padding: 0; font-family: var(--ds-font-tekst-v3); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.4; color: var(--mut); max-width: 760px; }
+.vo-soorten .vo-soort-tel { margin-left: auto; white-space: nowrap; font-family: var(--ds-font-zeef-kop); font-size: 18px; letter-spacing: 0.03em; color: var(--g); }
+.vo-regel { margin: 6px 0 0; padding: 0; font-family: var(--ds-font-zeef-tekst); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.4; color: var(--mut); max-width: 760px; }
 .vo-regel b { font-weight: normal; color: var(--ink); }
 .vo-stats { margin: 0 24px 14px; }
 .vo-volgende { margin: 0 24px 16px; padding: 10px 16px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }

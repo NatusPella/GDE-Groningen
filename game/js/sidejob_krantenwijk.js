@@ -341,7 +341,7 @@ export default {
 
   stop(c) {
     wis(c);
-    simHudTik(0, null);
+    if (!c.owner) simHudTik(0, null);
   },
 };
 
@@ -384,7 +384,7 @@ function nieuwsteDoel(c, p = hoofdspeler(c.world)) {
 
 function gooiKrant(c, huis, afstand, p = hoofdspeler(c.world)) {
   const d = c.data, w = c.world;
-  zetUitlegGezien(UITLEG_ID);
+  if (!c.owner) zetUitlegGezien(UITLEG_ID);
   const sp = windSnelheid(w, p);
   const fout = R.worpFout(afstand, sp, R.ruisUit(rnd));
   const uitkomst = R.worpUitkomst(fout);
@@ -433,7 +433,7 @@ function stapelBeelden(c, dt) {
     d.worpen[f.uitkomst] += 1;
     if (f.uitkomst === 'bus' && f.huis.mesh && f.huis.mesh.userData.vlag) f.huis.mesh.userData.vlag.visible = true;
     const pop = worpPop(f.uitkomst);
-    simHudPop(pop.tekst, pop.geluid);
+    if (!c.owner) simHudPop(pop.tekst, pop.geluid);
     c.msg(pick(f.uitkomst === 'bus' ? R.BUS_LINES : f.uitkomst === 'mat' ? R.MAT_LINES : R.MIS_LINES), 2);
   }
 }
@@ -460,7 +460,8 @@ function klaar(c) {
 // De strook onderin en de lichtkolom (#985): elke beeld de stand uit de ronde naar het pure model (krantenstatus.js). Alleen voor de eigen dienst.
 function zetStrook(c) {
   const d = c.data;
-  if (c.owner || !d.huizen || !d.huizen.length || d.phase === 'klaar' && !d.flying.length) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!d.huizen || !d.huizen.length || d.phase === 'klaar' && !d.flying.length) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const p = hoofdspeler(c.world);
   const open = d.huizen.filter((h) => !h.status);
   open.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));

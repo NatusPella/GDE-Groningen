@@ -6,7 +6,7 @@ import * as X from '../game/js/coopextra.js';
 const B = await import('../game/js/boerderij.js');
 const S = await import('../game/js/farmstatus.js');
 const Live = await import('../game/js/boerderijlive.js');
-const { gastStand } = await import('../game/js/boerderijwereld.js');   // meldt de bron van de velden aan bij coopextra.js
+const { gastStand, BOERDERIJ_WERELD_KIND, _gastVelden } = await import('../game/js/boerderijwereld.js');   // meldt de bron van de velden aan bij coopextra.js
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -71,6 +71,17 @@ t('elke status komt heel terug bij de gast, ook stoppel en oogstklaar', () => {
     const terug = S.statusIdVan(sv.stand, sv.uren);
     assert.equal(terug, sid === 'braak' ? 'braak' : sid, sid);
   }
+});
+
+t('na het einde van een sessie staan er geen velden van de ander meer in de eigen wereld (spookvelden)', () => {
+  const g = X.nieuwGeheugen(), gast = X.nieuweStand();
+  X.pasExtraToe(gast, X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, g, DEPS), BIJ[0])), 100);
+  const wg = { time: 100, coopRole: 'client', coopExtra: gast, pedestrians: [], wildlife: [] };
+  try { BOERDERIJ_WERELD_KIND.tick(0.1, wg); } catch (e) { /* de scene is hier een stub: het gaat om de kaart met velden */ }
+  assert.equal(_gastVelden().size, 1, 'als gast staat het veld van de ander er');
+  wg.coopRole = null;
+  try { BOERDERIJ_WERELD_KIND.tick(0.1, wg); } catch (e) { /* idem */ }
+  assert.equal(_gastVelden().size, 0, 'na de sessie is het veld opgeruimd');
 });
 
 console.log(`farmfieldguest_test: ${n - fails}/${n}`);

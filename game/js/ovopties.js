@@ -129,6 +129,18 @@ export const TAXI_WAIT_S = 120;
 export const taxiPrice = (lengthM) => Math.max(5, Math.round(5 + (+lengthM || 0) / 700));
 export const MODE_LABEL = { taxi: 'Met de taxi', auto: 'Zelf rijden', trein: 'Met de trein', bus: 'Met de bus', boot: 'Per boot' };
 
+// Waarom een taxi nu niet kan (#882, playtest 0.64.0: "soms zie ik de taxi niet, soms wel"). De taxi staat er ALTIJD bij een bestemming; kan hij
+// niet, dan blijft hij zichtbaar maar uitgeschakeld met een reden in gewone taal. Alle voorwaarden staan hier (tabeltest in taxi_en_waypoint_test):
+// te dichtbij (< TAXI_MIN_M hemelsbreed), een achtervolging (wanted) en te weinig geld; de eerste die geldt, wint. Een gast in Samen spelen
+// krijgt zijn eigen reden bij de kaartkeuze (kaartactie.js).
+export const TAXI_MIN_M = 300;
+export function taxiBlokkade({ directM = 0, money = Infinity, price = 0, wanted = 0 } = {}) {
+  if (directM < TAXI_MIN_M) return 'Te dichtbij: loop of rij zelf';
+  if (wanted > 0) return 'Niet tijdens een achtervolging: wacht tot de politie weg is';
+  if (money < price) return `Je hebt € ${Math.ceil(price - money)} te weinig`;
+  return null;
+}
+
 // Eén optie uit een route. route: { length, etaS, legs?, stops?, changes?, lines? }.
 function optionFrom(id, route, extra = {}) {
   if (!route || !(route.length > 0)) return null;
@@ -146,7 +158,7 @@ function trainRideLength(r) { return (r.legs || []).filter((l) => l.kind === 'tr
 // Alle opties voor een bestemming. routes: { auto?, trein?, bus?, boot? }, elk
 // een route zoals hierboven of null. Zelf rijden is er altijd, ook zonder route
 // (dan rekent het met `directM`). Precies één meerijden-optie is aanbevolen.
-export function reisOpties(routes, { directM = 0, money = Infinity } = {}) {
+export function reisOpties(routes, { directM = 0, money = Infinity, wanted = 0, hemelsM = directM / 1.25 } = {}) {
   const out = [];
   const auto = routes.auto || (directM > 0 ? { length: directM, etaS: travelSeconds(directM, 'auto') } : null);
   const a = optionFrom('auto', auto);
@@ -159,7 +171,11 @@ export function reisOpties(routes, { directM = 0, money = Infinity } = {}) {
   if (o) out.push(o);
   const tx = optionFrom('taxi', routes.taxi, { price: routes.taxi ? taxiPrice(routes.taxi.length) : 0 });
   if (tx) out.push(tx);
-  for (const x of out) { x.afford = money >= x.price; x.eta = etaText(x.etaS); }
+  for (const x of out) {
+    x.afford = money >= x.price; x.eta = etaText(x.etaS);
+    x.blokkade = x.afford ? null : `Je hebt € ${Math.ceil(x.price - money)} te weinig`;
+    if (x.id === 'taxi') { x.blokkade = taxiBlokkade({ directM: hemelsM, money, price: x.price, wanted }); x.afford = !x.blokkade; }
+  }
   // aanbevolen: de snelste meerijden-optie die je kunt betalen, als hij niet
   // veel trager is dan zelf rijden (of als het een sprong is)
   const rides = out.filter((x) => x.ride && x.afford).sort((p, q) => p.etaS - q.etaS);

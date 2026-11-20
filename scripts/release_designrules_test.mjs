@@ -324,7 +324,7 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-// ---------------------------------------------------------------- designsysteem v2 (#980)
+// ---------------------------------------------------------------- designsysteem (#980)
 // De strengere regels voor game/js/ds-components.css en ds-tokens.css; de rest staat in scripts/ds_tokens_test.mjs.
 {
   const comp = (text) => checkDesignLine({ file: 'game/js/ds-components.css', line: 3, text });

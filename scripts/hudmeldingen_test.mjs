@@ -25,7 +25,7 @@ ok(SPELERS_KNOP.label === 'Spelerslijst' && /Tab/.test(SPELERS_KNOP.title), 'de 
 ok(spelersKnopTekst(0) === 'Spelerslijst' && spelersKnopTekst(3) === 'Spelerslijst · 3', 'de knop telt de spelers mee');
 ok(spelersKnopTekst(-2) === 'Spelerslijst' && spelersKnopTekst(NaN) === 'Spelerslijst', 'kapotte aantallen vallen terug op de naam');
 const ui = read('game/js/coopspelersui.js');
-ok(ui.includes('spelersKnopTekst(aantal)') && ui.includes('SPELERS_KNOP.title') && !ui.includes("textContent = 'Spelers'"), 'de spelerslijstknop gebruikt de nieuwe naam en uitleg');
+ok(ui.includes('hintTekst(aantal)') && ui.includes('SPELERS_KNOP.title') && !ui.includes('spelersKnopTekst'), 'de spelerslijst is een hint (Spelers · n) met de uitleg als title, geen knop meer');
 
 // #966: geen radio- of demptoets in de HUD
 const prompts = read('game/js/prompts.js');

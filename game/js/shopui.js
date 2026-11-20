@@ -29,7 +29,7 @@ let armed = null;
 let tab = 'alles';
 const ARM_TIME = 4000;
 
-// Statuschips met een pictogram en een woord: nooit alleen kleur (designsysteem v2).
+// Statuschips met een pictogram en een woord: nooit alleen kleur (designsysteem).
 const CHIP_ICOON = {
   ok: icoon('vinkje', { cls: 'ds-z-chip__icoon', maat: 's' }),
   no: icoon('waarschuwing', { cls: 'ds-z-chip__icoon', maat: 's' }),

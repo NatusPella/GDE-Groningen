@@ -3,7 +3,7 @@
 Opdracht van de eigenaar (20-11): "overal de nieuwe UI". Dit bestand is de lijst van wat buiten de menuschermen (pauze, zijbalk en subtabs, winkel, telefoon en Te doen, kaartpanelen, Samen-hub) nog donker glas, eigen hexkleuren, Bebas Neue of Arial Narrow droeg, en wat ermee gedaan is. De regels staan in [ui-taal.md](../.specs-fire/standards/ui-taal.md) en ADR 0040. Gevonden met `grep` op `rgba(12, 20, 14`, `#0c140e`, `#17301f`, `backdrop-filter` en losse `font-family`.
 
 Oude stijl: donker glas (`rgba(12,20,14,..)`, verlopen naar groen), cream tekst op glas, groene gloed, `Bebas Neue` en `Arial Narrow`.
-Nieuwe stijl: papier (`--ds-c-ink-papier`), inkt (`--ds-c-ink-inkt`), bordgroen als kop, één gele hoofdknop, harde schaduw, misdruk alleen op titels en cijfers, Barlow Condensed (`--ds-font-kop-v3`) en Atkinson Hyperlegible (`--ds-font-tekst-v3`), tekst vanaf 13 px.
+Nieuwe stijl: papier (`--ds-c-ink-papier`), inkt (`--ds-c-ink-inkt`), bordgroen als kop, één gele hoofdknop, harde schaduw, misdruk alleen op titels en cijfers, Barlow Condensed (`--ds-font-zeef-kop`) en Atkinson Hyperlegible (`--ds-font-zeef-tekst`), tekst vanaf 13 px.
 
 Status: **omgezet en gezien** (beeld in `docs/beeld-20-11/ui/`), **omgezet, nog niet bekeken** (CSS gelezen en gecontroleerd door de tests, geen beeld), **al zeefdruk** (stond al op het systeem), **blijft** (met reden).
 

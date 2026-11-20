@@ -576,11 +576,11 @@ body.hide-minimap #hud .hud-heli { right: 16px; bottom: 50px; }
 #hud .hud-heli .hh2-st { margin-top: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.2px; }
 #hud .hud-heli .hh2-bar { margin-top: 5px; height: 4px; background: rgba(240,237,228,0.15); }
 #hud .hud-heli .hh2-bar i { display: block; height: 100%; background: var(--hh, var(--mk-ok, #3fc97a)); }/* Zomerse zeefdruk (ADR 0040): de vluchtkaart als papier met inktrand en harde schaduw. */
-#hud .hud-heli { color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--hh, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-kop-v3); font-weight: 600; }
+#hud .hud-heli { color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--hh, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-kop); font-weight: 600; }
 #hud .hud-heli small { font-weight: 800; color: var(--ds-c-ink-bord); letter-spacing: 0.12em; }
 #hud .hud-heli .hh2-row b { font-weight: 800; }
 #hud .hud-heli .hh2-row span { font-size: 13px; color: var(--ds-c-inkt-zacht); }
-#hud .hud-heli .hh2-st { font-family: var(--ds-font-tekst-v3); }
+#hud .hud-heli .hh2-st { font-family: var(--ds-font-zeef-tekst); }
 #hud .hud-heli .hh2-bar { background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 2px var(--ds-c-ink-inkt); height: 10px; }
 #hud .hud-heli .hh2-bar i { background: var(--ds-c-ink-bord); }
 
@@ -615,7 +615,7 @@ function landingStatus(v) {
     if (v.rotor < LIFT_SPOOL) return ['Rotor draait op...', '#e8c93a'];
     const why = heliExitBlock(v);
     if (v.landKind === 'pad' && v.landPad && v.landPad.label) return [v.landPad.label, '#3fc97a'];
-    return why ? ['Geland op een dak · Spatie om op te stijgen', '#e8c93a'] : ['Geland · E uitstappen, Spatie opstijgen', '#3fc97a'];
+    return why ? ['Geland op een dak · {SPACE} om op te stijgen', '#e8c93a'] : ['Geland · {E} uitstappen, {SPACE} opstijgen', '#3fc97a'];
   }
   const alt = v.z - (v.groundZ ?? 0);
   const hs = Math.hypot(v.vx || 0, v.vy || 0);

@@ -11,8 +11,13 @@ export function ankerMetWeg(map, p, drivable = true, stralen = ANKER_STRALEN) {
   }
   const stad = map.nearestRoadPoint(STAD.x, STAD.y, 400, drivable);
   // fallback: the caller (sidejobs.js) looks again once the region's tiles are in
-  return stad ? { x: stad.x, y: stad.y, fallback: true } : p;
+  // `regio`: waar de baan echt hoort; de verhaalmarker wijst daarheen, zodat de tegels laden en de baan thuiskomt
+  return stad ? { x: stad.x, y: stad.y, fallback: true, regio: { x: p.x, y: p.y } } : p;
 }
+
+// Staat de baan nog op de terugvalplek in de stad (de tegels van zijn streek zijn niet geladen), dan wijst de verhaalmarker naar de
+// streek zelf: anders loopt de speler naar de stad en komt de baan nooit thuis (A1, bietenoogst bij Hoogkerk).
+export const sideJobPlek = (j) => (j.fallback && j.regio ? { x: j.regio.x, y: j.regio.y, name: j.name } : { x: j.x, y: j.y, name: j.name });
 
 // De brugpost van de brugwachter (#341): de wegkant van een echte beweegbare brug, niet het streekhart. De
 // brug is Midscheeps in Delfzijl (OSM bridge:movable=bascule, dek van (23136, -12170) naar (23094, -12212),

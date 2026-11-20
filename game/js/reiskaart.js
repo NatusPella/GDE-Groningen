@@ -23,7 +23,7 @@ const VOORDEEL_LABEL = 'streekvoordeel';
 export function reisOptiesVoor(world, target) {
   const p = hoofdspeler(world);
   const voordeel = travelFactorFor(target.x, target.y);
-  const key = `${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(target.x)}|${Math.round(target.y)}|${world.money | 0}|${voordeel}`;
+  const key = `${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(target.x)}|${Math.round(target.y)}|${world.money | 0}|${world.wanted | 0}|${voordeel}`;
   if (cache.key === key) return cache.opts;
   const a = [p.x, p.y], b = [target.x, target.y];
   const direct = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -36,9 +36,10 @@ export function reisOptiesVoor(world, target) {
     routes.bus = guard(() => busTrip(getBusLines(), a, b));
     routes.boot = guard(() => planBoatTrip(world.map, a, b, 'sloep'));
   }
-  // #836: een taxi kan ook korte ritten doen: hij komt erbij en wacht even.
-  if (direct >= 300) routes.taxi = { length: direct * 1.25, etaS: travelSeconds(direct * 1.25, 'auto') + TAXI_WAIT_S };
-  const opts = reisOpties(routes, { directM: direct * 1.25, money: world.money });
+  // #836: een taxi kan ook korte ritten doen: hij komt erbij en wacht even. De optie staat er altijd; kan hij niet (te dichtbij, een
+  // achtervolging, te weinig geld), dan blijft hij zichtbaar maar uitgeschakeld met de reden (ovopties.js taxiBlokkade).
+  routes.taxi = { length: Math.max(1, direct * 1.25), etaS: travelSeconds(Math.max(1, direct * 1.25), 'auto') + TAXI_WAIT_S };
+  const opts = reisOpties(routes, { directM: direct * 1.25, hemelsM: direct, money: world.money, wanted: world.wanted | 0 });
   if (voordeel < 1) {
     for (const o of opts) {
       o.etaS = Math.round(o.etaS * voordeel);

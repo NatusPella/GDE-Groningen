@@ -55,8 +55,7 @@ export function resetBoerderijWereld() {
   for (const e of S.erfMeshes.values()) ruimGroep(e);
   for (const v of S.velden.values()) ruimVeld(v);
   for (const w of S.werktuigen.values()) W3.ruimWerktuig(w.group);
-  for (const e of gastVelden.values()) ruimVeld(e.veld);
-  gastVelden.clear();
+  ruimGastVelden();
   S = nieuweStaat();
 }
 
@@ -780,11 +779,12 @@ export function updateBoerderijWereld(dt, w) {
   }
   for (const veld of S.velden.values()) if (veld.marker) tikVeldMarker(veld.marker, S.t, reducedMotion());
   boerderijHudTik(dt, boerderijHudStand(w));
-  meldOogstklaar(w, b);
+  if (S.t - (S.oogstT || 0) >= MELD_OOGST_S) { S.oogstT = S.t; meldOogstklaar(w, b); }   // #804: Object.keys en veldStand per perceel hoeven niet elk beeld; een oogstklaar veld mag een halve seconde later gemeld worden
   S.prompt = bepaalPrompt(w);
 }
 
 // Een veld dat net oogstklaar werd: één melding en het geluid, waar je ook bent (de gewassen groeien in speltijd, ook als je wegrijdt of slaapt).
+export const MELD_OOGST_S = 0.5;
 const vorigeStand = new Map();
 function meldOogstklaar(w, b) {
   for (const id of Object.keys(b.bedrijf.percelen)) {
@@ -1083,7 +1083,12 @@ function syncGastVelden(w) {
   }
   for (const [sl, e] of [...gastVelden]) if (!nu.has(sl)) { ruimVeld(e.veld); gastVelden.delete(sl); }
 }
+// Na het einde van een sessie (de rol is niet meer gast) blijven de velden van de ander niet in de eigen wereld staan.
+function ruimGastVelden() {
+  for (const e of gastVelden.values()) ruimVeld(e.veld);
+  gastVelden.clear();
+}
 export const _gastVelden = () => gastVelden;
 
-export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', gastTick: true, interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => { if (w && w.coopRole === 'client') syncGastVelden(w); else updateBoerderijWereld(dt, w); } };
+export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', gastTick: true, interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => { if (w && w.coopRole === 'client') syncGastVelden(w); else { if (gastVelden.size) ruimGastVelden(); updateBoerderijWereld(dt, w); } } };
 

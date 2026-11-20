@@ -168,7 +168,7 @@ const TODO = (world) => {
   title: 'Reuzenrad',
   meta: `Grote Markt · €${W.PRICE} per ritje · vanavond 19:00-01:00`,
   kicker: 'Attractie · Grote Markt',
-  text: `Kermisbaas Jan laat je ${W.LAPS} rondes meedraaien in het reuzenrad ${NAME}. Loop naar de instap en druk E als er een gondel onderaan hangt; met de muis of de pijltjes kijk je rond en met Backspace stap je weer uit.`,
+  text: `Kermisbaas Jan laat je ${W.LAPS} rondes meedraaien in het reuzenrad ${NAME}. Loop naar de instap en druk {E} als er een gondel onderaan hangt; met {MOUSE} of {ARROWS} kijk je rond en met {BACKSPACE} stap je weer uit.`,
   rows: [['Prijs', `€${W.PRICE} per ritje`], ['Wanneer', "elke avond 19:00-01:00, en de hele dag als de kermis op de markt staat"], ['Doel', `${ritten} van 5 ritjes · haal de titel`]],
   open,
   };

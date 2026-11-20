@@ -4,7 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export const STAGE_INDEX = ['desktop', 'build', 'game', 'index.html'];
-export function stageReady(root, exists = fs.existsSync) {
+export function stageReady(root, exists = fs.existsSync, env = process.env) {
+  // GDE_GAME_DIR: een andere gestagede kopie (zie desktop/main.js)
+  if (env.GDE_GAME_DIR) return exists(path.join(env.GDE_GAME_DIR, 'index.html'));
   return exists(path.join(root, ...STAGE_INDEX));
 }
 export function stageError() {

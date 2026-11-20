@@ -1,4 +1,4 @@
-// Winkel, beleidswinkel en garage in beeld (designsysteem v2, fase 2, #980): één Electron (wegwerpprofiel, sluit af)
+// Winkel, beleidswinkel en garage in beeld (designsysteem, fase 2, #980): één Electron (wegwerpprofiel, sluit af)
 // opent de schermen zoals een speler ze opent en neemt beelden en metingen (ds_schermen_beeld.page.js).
 //   node scripts/qa/ds_schermen_beeld.mjs [--out=<map>] [--settle=9000] [--stap=winkel,beleid,garage]
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/shots-*.png, ds_schermen.json, run.log.

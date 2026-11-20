@@ -407,6 +407,23 @@ Layouts are designed at couch distance and on the Steam Deck: large targets, d-p
 3. **Visual regression per screen:** Electron screenshots of every screen at 1280x800, 1920x1080 and 4K, in both modes, against approved references.
 4. **Migration as one epic:** HUD trial first, then pause and map, phone, shops and offers, minigames, Samen spelen, load and boot screens. No release ships a half-migrated screen.
 
+## HUD-kaarten: typografische rollen
+
+Every HUD card (tip, music card, phone and news card, achievement toast, activity and wait card, goal, chase and police card) takes its text size from five roles, never from its own pixel value. The same role is the same size on every card kind. Tokens in `ds-tokens.css`, audit and the before-and-after sizes in [docs/HUD-TYPO-21-11.md](docs/HUD-TYPO-21-11.md), enforced by `scripts/hud_typo_test.mjs`.
+
+| Role | Token | Size | Use |
+|---|---|---|---|
+| eyebrow | `--ds-t-kaart-eyebrow` | 13 px, Barlow 800, caps, 0.12em | kind or sender above a title |
+| title | `--ds-t-kaart-titel` | 21 px, Barlow 800, line 1.1 | the card's headline |
+| body | `--ds-t-kaart-body` | 16 px, Atkinson, line 1.3 | the text of the card |
+| help | `--ds-t-kaart-hulp` | 13 px | time, source, key line, small explanation |
+| number | `--ds-t-kaart-getal` | 28 px | a big number on a card |
+
+- A long text (news, phone) is not set bigger: it uses the body role and the card gets a fitting width and grows with the text (up to the news budget of 30 words).
+- The roles are declared on `:root` and again on `#hud`, because `--hud-min` (13 px divided by `--ui`) only exists there: after the HUD zoom (`--ui`) the floor stays 13 px. Text size in Accessibility (`.text-groot`) zooms the card text, so the roles scale with it.
+- The moment size (`--ds-t-moment-getal`, the on-screen countdown) and the full-screen moments (`bigmoment.css`, the name card) are not cards and keep their own clamp values; they do not use the card roles.
+- `hud_typo_test` fails on a loose `font-size` in px in the card CSS (`hudcards.css`, the HUD part of `phonefeed.css`, `regelwidget.css`, the achievement toast, the music card) and on a card part that uses another role than the table above.
+
 ## Tokens and components in use
 
 The glass look above is still the HUD, the pause menu's rail and the map layer. The roles, tokens and components below are what the shop, offers, missions, careers and the Samen spelen hub already use, so they read as *one* system with the world instead of a template repeated per screen. The screen-print components (`.ds-z-*`) in the chapter above replace them as screens move over (open point in docs/DESIGN-SCHULD.md).
@@ -522,6 +539,11 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-chip` | status or consequence: icon or shape plus word | `__icoon` | `--primair` (Kan nu), `--selectie`, `--probleem`, `--succes`, `--waarschuwing` |
 | `.ds-knop` | button; yellow is the one primary, outlined is the risky choice | `__sub` (cost, payback) | `--secundair`, `--gevaar` (outlined, risk colour), `--tekst`, `--vol`; hover, active, `:focus-visible`, `:disabled` and `[aria-disabled]` (dashed, says why), `[aria-busy]` |
 | `.ds-streep` | micro progress for time or count, always with a number beside it | `__baan`, `__vul`, `__label` | `--tijd` (amber), `--laag` (red), `--dik`; set `--ds-streep-w` |
+| `.ds-paneel` | the panel model: a list left and a detail right, fixed widths and margins as tokens of the panel | `--enkel` (detail only) | `--ds-paneel-lijst-b`, `--ds-paneel-rij-h`, `--ds-paneel-rand` |
+| `.ds-lijst` | the list of a panel: rows with one title line, one status line and one right-aligned value | `__rij`, `__t`, `__w` | `aria-current` marks the chosen row |
+| `.ds-detail` | the detail of a panel: head, hero with the one yellow action, three or four facts, a fold "meer" | `__kop`, `__hero`, `__feiten`, `__meer` | |
+| `.ds-feit` | one key fact: icon, number, label; no frame | `__n`, `__l` | |
+| `.ds-leeg` | an empty, locked or reached state that says something useful and offers an action | | |
 | `.ds-zeef`, `.ds-rustig` | surface scope: cream paper, ink text; `.ds-rustig` scopes Rustig drukwerk to one panel (the game sets `html.rustig-drukwerk`) | none | see "Screen-print components" |
 | `.ds-z-knop` | button: yellow primary with ink edge and hard shadow; pressed = shadow gone and the button moved by the offset | none | `--secundair`, `--ghost`, `--gevaar`; hover, `:focus-visible`, `:disabled`, `[aria-disabled]`, `[aria-busy]` |
 | `.ds-z-kaart` | card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
@@ -603,6 +625,18 @@ One small library, `game/js/ds-motion.css` (the `.ds-mi-*` classes, loaded after
 
 Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions.
 
+## Panels
+
+One model for every tab of the pause menu (21 November; audit in `docs/ESCAPEMENU-UX-21-11.md`). Components: `.ds-paneel`, `.ds-lijst`, `.ds-detail`, `.ds-feit`, `.ds-chip`, `.ds-leeg` (`ds-components.css`).
+
+- **List (left).** Selectable rows, one line of title and one line of status, one value right-aligned (an amount, "3 van 8", a price). No third line, no bar per row. The chosen row is `aria-current`; the focus ring is the one of the design system.
+- **Detail (right), fixed build, top to bottom.** (1) Head: name plus a status chip. (2) Hero: the next step in one sentence, with the one yellow main button and its key hint (the controller glyph when the pad is the last input). (3) Three or four key facts: icon, number, label, without frames. (4) "Meer" as a fold, closed; everything else goes in there. The same sentence never appears twice in one panel.
+- **Hierarchy by type, not by frames.** Size and weight make the order; one accent per panel (the yellow button). No frame in a frame: a fact is not a card.
+- **States.** Empty (nothing yet), locked (not yet, and why) and reached (done) say something useful and offer an action: "Nog geen meubels. EIKEA heeft ze" with a button to the map, not "Leeg".
+- **Focus and keys.** One order: list, then the detail action. Q and E switch tabs or groups, the arrows move in the list, Enter is the main action, Esc goes back. A tab that has its own sub-sections (Boerderij: Percelen, Erf, Gewas, Machines, Kasboek, Bank) shows them as a tab row in the panel itself, so Q and E work there too.
+- **Size.** Widths and margins are tokens of `.ds-paneel` (list 320 px, 256 px under 1100 px wide or 640 px high; row 56 px; side margin 24 px, 16 px when small). The hero does not scroll from 1024x600 up to 1920x1080; the "meer" fold and the list scroll.
+- **Applied so far.** Boerderij (hero plus a compact line per field, `veldRegelHtml` in `farmcards.js`). Spullen and Loopbanen follow the same build in their own markup; moving the old `.m-li` lists over completely is open debt.
+
 ## Known deviations and open UX debt
 
 The honest list (24 October) is [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md). The ones that matter most: the map's rebuilt action bar follows the menu set since #602 but has not been seen in the game by a human;
@@ -660,3 +694,18 @@ before merging - don't let one-off styling drift back in.
 Keys, mouse and controller buttons are one character of a CC0 font (Kenney Input Prompts 1.5, `game/fonts/input`, licence next to it), always on the white `.ds-z-glyph` plate. `game/js/inputglyphs.js` maps a key code (`KeyW`, `Escape`) or a controller button (0 to 15, or `a`, `lt`, `dpad_up`) to the glyph of the set in use (`keys`, `xbox`, `ps`, `deck`, `generic`, `touch`); the table `inputglyphs_data.js` is generated by `node scripts/input_glyph_map.mjs`. The hint shows the set of the device used last. No brand name appears in a text: a controller button is a shape or a letter. A steering wheel is not in this set and needs a separate icon.
 
 Controller hints (`padGlyphInner` in `glyphs.js`) draw the face buttons, shoulders, triggers, sticks and d-pad with this font per controller family (`padSlotGlyph`): Xbox, shapes (PlayStation), Steam Deck, and Switch (Xbox glyphs with the Switch letters). A slot the font lacks (Switch shoulders, PlayStation view) keeps the earlier cap. Keyboard keys stay the white text cap `.hud-key`; mouse, scroll wheel and arrows use the glyph font. A key named in a player-visible text is written as a token (`{E}`, `{SPACE}`, `[E]`, "druk op E"), which `game/js/keycap.js` turns into the keycap, so it follows rebinding and the controller; `scripts/key_literals_test.mjs` fails a new literal key name.
+
+## Controls and key hints
+
+Every key, mouse or controller reference in a player-visible text is an icon, never a word (assignment of 21 November, #1003; the audit is `docs/KEYS-AUDIT-20-11.md`). The rules below are checked by `scripts/key_literals_test.mjs`, `scripts/key_tokens_test.mjs` and the release gate (`checkKeyLine` in `scripts/release/design_rules.mjs`, run by `rules_audit.mjs` on every added line of `game/js`).
+
+1. **A token, nothing else.** A key or button in a player text is a `{TOKEN}`: `{E}`, `{SPACE}`, `{ESC}`, `{ENTER}`, `{SHIFT}`, `{CTRL}`, `{ALT}`, `{TAB}`, `{BACKSPACE}`, `{F8}`, `{WASD}`, `{ARROWS}`, `{ARROWUP}`/`{ARROWDOWN}`/`{ARROWLEFT}`/`{ARROWRIGHT}`, `{LMB}`, `{RMB}`, `{MOUSE}`, `{WHEEL}` (the spoken form "druk op E" and "[E]" still work). Never a key name as a word ("Spatie", "Esc", "Enter", "Shift", "WASD", "pijltjes", "LMB"), never an arrow as text (↑ ↓ ← →), never "de muisknop" for a hint. A token follows rebinding and the controller.
+2. **One display path.** HTML goes through `keyTextHtml(html)` (running text), `glyphHtml(token)` (one key) or `keyLabelHtml(label)` (a hint-row label such as 'Klik', 'Pijltjes', 'F8'); labels that cannot show an icon (aria-label, title, document.title, canvas text, a log line) go through `plainKeyText(text)`, which writes the key name of the active device. A `{TOKEN}` that still reaches the screen through textContent is turned into an icon by `sweepTokens` (glyphs.js), a plain text keycap (`.hud-key`, `.m-kc`, `kbd` with a key name) is turned into its icon by `render` in the same file; do not rely on that for new code.
+3. **Size.** The key glyph is at least 26 px high in the HUD and 28 px in menus, with the text inside the key readable (the Kenney outline glyph, not a 12 px letter). A larger icon never pushes the layout: the row grows, the text wraps, no hint is clipped at 1280x720.
+4. **Controller families.** In pad mode every hint shows the button of the active family (Xbox, PlayStation shapes, Steam Deck, Switch letters) and switches live when another controller or the keyboard is used (`onPadChange`, `onDeviceChange`, the MutationObserver in glyphs.js). A world label and a canvas label ask `plainKeyText` again when the device changes. Mouse and wheel are icons (`.hud-mouse`), not words. A step the controller cannot do is hidden, not left as a key.
+5. **Fallback.** A key without a Kenney glyph (a bracket, a punctuation mark, a key of a set that lacks it) is a neat text keycap in the same style (`.hud-key`, same height and plate), never bare text and never an empty box.
+6. **Accessibility.** An icon carries an `aria-label` with the name ("Spatie", "Pijl links", "onderste knop"); the plate and the icon are not the only carrier of the meaning: the hint always says what the key does ("{E} instappen"), and the state is never colour alone.
+7. **Rustig drukwerk.** The key is a flat plate in the paper and ink tokens, without gloss or glow; calm print (ADR 0040) switches the key animation off. The plate steps back (`.is-kbg`) around a glyph that draws its own key.
+8. **Mouse.** The mouse is the Kenney mouse set in the same font and look as the keys (`mouseGlyph` in inputglyphs.js): `{LMB}` left button, `{RMB}` right button, `{MMB}` middle button, `{WHEEL}` scroll wheel, `{MOUSE}` movement (aim, look), `{DRAG}` drag side to side. 'Klik' on a menu button or in the map footer is the `{LMB}` icon (`keyLabelHtml('Klik')`); with a controller the icon becomes the matching stick or button (`padSlotFor`). The words 'muisknop', 'linkermuis', 'rechtermuis', 'muiswiel', 'scrollwiel', 'LMB', 'RMB' in a game text are findings like any key name.
+9. **Findings.** A new hint without a token (a key name as a word in a game text, or a text keycap in HTML without an icon) is an important finding of the release gate. Only spoken lines and subtitles (the text must follow the clip), files that render tokens themselves, and a line marked `keywords-ok` (search words) are exempt, each with a reason in `scripts/key_literals_test.mjs`.
+

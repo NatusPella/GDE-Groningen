@@ -15,7 +15,7 @@ import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
 import { skipReady, isSkipKey } from './loadskip.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt } from './loadlogic.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt, loadStepNr } from './loadlogic.js';
 
 let tips = [];
 export const setLoadTips = (list) => { tips = [...list]; };
@@ -103,7 +103,7 @@ export function startLoadScreen(world, opts = {}) {
         '<div class="ls-tip" aria-live="polite"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
         '<div class="ls-prog"><div class="ls-step" aria-hidden="true"></div><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div>' +
       '</div>' +
-      '<button type="button" class="ls-skip" hidden title="Verder zonder te wachten (Enter)">Verder <kbd>Enter</kbd></button>' +
+      '<button type="button" class="ls-skip" hidden title="Verder zonder te wachten ({ENTER})">Verder {ENTER}</button>' +
     '</div>';
   document.body.appendChild(el);
   // the boot screen may still be fading underneath: one bar at a time
@@ -176,7 +176,13 @@ export function startLoadScreen(world, opts = {}) {
     fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
     barEl.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
     const stepNow = loadStepAt(prog.bar, kind);
-    if (stepEl.dataset.id !== stepNow.id) { stepEl.dataset.id = stepNow.id; stepEl.textContent = stepNow.label; barEl.setAttribute('aria-valuetext', stepNow.label); }
+    if (stepEl.dataset.id !== stepNow.id) {
+      stepEl.dataset.id = stepNow.id;
+      const nr = loadStepNr(prog.bar, kind);
+      const tekst = nr.total > 1 ? `Stap ${nr.nr} van ${nr.total}: ${stepNow.label}` : stepNow.label;
+      stepEl.textContent = tekst;
+      barEl.setAttribute('aria-valuetext', tekst);
+    }
     if (skipBtn.hidden && skipReady(kind, (now - t0) / 1000)) skipBtn.hidden = false;
     if (now - lineAt >= lineS * 1000) nextLine(now);
     if (prog.done) { finish(); return; }

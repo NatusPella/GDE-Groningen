@@ -19,7 +19,7 @@ import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { bootPhaseAt } from './loadlogic.js';
+import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, bootStepText, BOOT_DONE_LABEL } from './loadlogic.js';
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
 import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
@@ -54,25 +54,23 @@ COW_LOADING.forEach((t, i) => TIPS.splice(i * 3 + 1, 0, t));
 setLoadTips(TIPS);
 const TIP_MS = 3800;
 
-let tipTimer = 0;
 let fakeTimer = 0;
 let progress = 0;
 let shown = 0;
 let bootStatusLocked = false;
+// The plan of the boot bar (opdracht 21-11): every step of the start with its weight, set by main.js
+// (setBootPlan) before the boot begins. The bar is full only when the last step is done.
+let plan = bootPlan();
+let stepId = '';
+let lastStatusStep = '';
 
-// The status line of the boot screen: Groningse flavour while the real steps
-// run, and a plain sentence when the last step waits (#600). Locked once
+// The status line of the boot screen: the step the boot is in, in plain words. Locked once
 // another part (the first-run measurement, an error, "klaar") owns the line.
-function bootStatus(text, swap = false) {
+function bootStatus(text) {
   const status = document.querySelector('#loading .ld-status');
   if (!status || bootStatusLocked) return;
-  if (swap && !reducedMotion()) {
-    status.classList.add('swap');
-    setTimeout(() => { if (!status.isConnected) return; status.textContent = text; status.classList.remove('swap'); }, 250);
-  } else {
-    status.classList.remove('swap');
-    status.textContent = text;
-  }
+  status.classList.remove('swap');
+  if (status.textContent !== text) status.textContent = text;
 }
 
 function el(id) {
@@ -86,37 +84,41 @@ function showVersion() {
   if (b) b.textContent = (VERSION && VERSION !== 'dev' ? 'v' + VERSION : 'dev') + ' · NatusPella';
 }
 
-// What the boot screen says while the game loads, in Gronings; the phase of
-// the actual work decides the first words, the rest rotate.
-const BOOT_LINES = [
-  'Grunn wordt wakker',
-  'De Martini wordt opgepoetst',
-  'Eierballen in het vet',
-  'Lichten aan, bruggen dicht',
-  'De fietsen worden in het gelid gezet',
-  'Het Reitdiep wordt even gespoeld',
-  'Een bakkie kovvie voor de politie',
-];
-
 export function initLoading() {
   showVersion();
   // the self-hosted fonts load now, so the logo never swaps typefaces mid-stamp
   try { if (document.fonts && document.fonts.load) { document.fonts.load('800 40px "Barlow Condensed"'); document.fonts.load('400 20px "Atkinson Hyperlegible"'); } } catch (e) { /* ignore */ }
-  const status = document.querySelector('#loading .ld-status');
-  if (status) {
-    let i = 0;
-    tipTimer = setInterval(() => {
-      const phase = bootPhaseAt(progress);
-      // the last step is a real wait: say what it waits for instead of rotating flavour
-      if (phase.final) { bootStatus(phase.label); return; }
-      i = (i + 1) % BOOT_LINES.length;
-      bootStatus(BOOT_LINES[i], true);
-    }, 2400);
-  }
+  buildTicks();
+  // between the real moments the bar creeps towards the end of the step it is in, so a long
+  // step (the shaders) still shows life; a real report always wins (setBootStep)
   fakeTimer = setInterval(() => {
-    shown += (Math.max(progress, Math.min(0.92, shown + 0.02)) - shown) * 0.25;
+    if (progress > shown) shown += (progress - shown) * 0.25;
+    else {
+      const cap = bootCreepCap(plan, progress);
+      if (shown < cap) shown += (cap - shown) * 0.012;
+    }
     paint();
   }, 80);
+}
+
+// The boot plan: which steps this start has (main.js knows whether the warm-up runs).
+export function setBootPlan(opts) {
+  plan = bootPlan(opts);
+  buildTicks();
+}
+
+// The thin ink lines in the bar at the end of every step but the last: the bar reads as a
+// row of steps (screen print: paper, ink, yellow), the widths follow the weights.
+function buildTicks() {
+  const bar = document.querySelector('#loading .ld-bar');
+  if (!bar) return;
+  bar.querySelectorAll('.ld-tick').forEach((t) => t.remove());
+  for (const st of plan.steps.slice(0, -1)) {
+    const t = document.createElement('i');
+    t.className = 'ld-tick';
+    t.style.left = (st.to * 100).toFixed(2) + '%';
+    bar.appendChild(t);
+  }
 }
 
 function reducedMotion() {
@@ -127,17 +129,31 @@ function paint() {
   const fill = document.querySelector('#loading .ld-fill');
   if (fill) fill.style.transform = `scaleX(${Math.min(1, shown).toFixed(3)})`;
   const bar = document.querySelector('#loading .ld-bar');
-  const phase = bootPhaseAt(progress);
+  const phase = bootPhaseAt(progress, plan);
+  const stap = bootStepText(phase, plan.total);
   if (bar) {
     bar.setAttribute('aria-valuenow', String(Math.round(Math.min(1, shown) * 100)));
     // the real step as text, so a screen reader hears what the bar is doing
-    bar.setAttribute('aria-valuetext', phase.label);
+    bar.setAttribute('aria-valuetext', stap + ': ' + phase.label);
   }
-  if (phase.final) bootStatus(phase.label);
+  const nr = document.querySelector('#loading .ld-step');
+  if (nr && stepId !== 'klaar' && nr.textContent !== stap) nr.textContent = stap;
+  // only when the step changes: another part (the first-run measurement, the save choice) may own the line in between
+  if (stepId && stepId !== 'klaar' && phase.id !== lastStatusStep) { lastStatusStep = phase.id; bootStatus(phase.label); }
 }
 
-export function setLoadProgress(p) {
-  progress = Math.max(progress, Math.min(1, p));
+// A real moment of the boot: this step is frac (0..1) of the way. The bar never goes back,
+// and a step that is skipped in this plan is ignored. Returns the bar value (0..1).
+export function setBootStep(id, frac = 0) {
+  const p = bootProgress(plan, id, frac);
+  if (!plan.steps.some((st) => st.id === id)) return progress;
+  progress = Math.max(progress, p);
+  stepId = id;
+  // the measurement of the start (?laadstappen, the perf scripts): when every step was reported
+  const marks = window.__loadMarks;
+  if (marks) (marks.stappen || (marks.stappen = [])).push([id, Math.round(frac * 100) / 100, Math.round(performance.now())]);
+  paint();
+  return progress;
 }
 
 // Lets the browser paint the bar between heavy synchronous boot steps.
@@ -179,22 +195,37 @@ function clearBootError() {
   if (knop && knop.parentNode) knop.parentNode.removeChild(knop);
 }
 
+// What the start measured per step (window.__loadMarks.stappen); with ?laadstappen also as a console table.
+function reportStepTimes() {
+  const marks = window.__loadMarks;
+  if (!marks || !marks.stappen) return;
+  marks.stappenKlaar = Math.round(performance.now());
+  if (!FLAGS.laadstappen) return;
+  const tabel = stepDurations(marks.stappen, marks.stappenKlaar).map((o) => ({ stap: o.id, ms: o.ms, procent: Math.round(o.aandeel * 100) }));
+  console.table(tabel);
+  console.log('[laadstappen] ' + JSON.stringify(tabel));
+}
+
 // Fills the bar to 100% and goes straight on (#226): no key to press. The boot screen stays up until
 // the world is there (dismissLoading here, or the menu gate in the QA/trailer route), so there is no
 // black gap. The sound starts at the first real key or click (audio.js unlockAudio), the browsers
 // allow nothing earlier.
 export async function finishLoading() {
+  if (stepId === 'klaar') return;
+  reportStepTimes();
   progress = 1;
   shown = 1;
+  stepId = 'klaar';
   clearInterval(fakeTimer);
-  clearInterval(tipTimer);
   bootStatusLocked = true;
   clearBootError();
   paint();
   const l = el('loading');
   if (!l) return;
   const status = l.querySelector('.ld-status');
-  if (status) status.textContent = 'Klaar, Grunn staat te wachten';
+  if (status) status.textContent = BOOT_DONE_LABEL;
+  const nr = l.querySelector('.ld-step');
+  if (nr) nr.textContent = `Stap ${plan.total} van ${plan.total} klaar`;
   await new Promise((r) => setTimeout(r, 380));
 }
 
@@ -221,7 +252,6 @@ export function setLoadingStatus(text) {
 
 export function showLoadError(msg) {
   clearInterval(fakeTimer);
-  clearInterval(tipTimer);
   bootStatusLocked = true;
   document.querySelector('#loading .ld-status') && document.querySelector('#loading .ld-status').classList.remove('swap');
   const status = document.querySelector('#loading .ld-status');
@@ -499,7 +529,6 @@ async function benchmarkFromBoot(world, opts) {
 // this runs for a new game AND for a save, those are the same first minutes.
 function warmBeforeFinish(opts, finish) {
   if (opts && typeof opts.warm === 'function') {
-    setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
     Promise.resolve().then(() => opts.warm()).catch((e) => console.warn('startgebied voorladen', e)).then(finish);
   } else finish();
 }
@@ -528,10 +557,12 @@ function runBootScreen(world, opts, pending = null) {
       // Draw one frame before the boot screen goes: the main frame loop starts only after this
       // promise resolves, so without it the first new game would show a black canvas.
       try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
-      afterPaint(() => {
+      afterPaint(async () => {
         // the menu's first viewpoint was planned during the boot; the normal start never shows
         // the menu, so release those tiles instead of keeping them pinned behind the game
         try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+        // opdracht 21-11: the bar reaches 100% only now, with the last step (the first frames) done
+        await finishLoading();
         dismissLoading();
         resolve('game');
       });
@@ -572,6 +603,7 @@ function runBootScreen(world, opts, pending = null) {
 // valt weg (saveslotsui.js noBack); de speler kiest een spel of begint opnieuw.
 const BOOT_SAVE_TEKST = 'We konden je opgeslagen spel niet automatisch openen. Kies een opgeslagen spel om verder te gaan of begin een nieuw spel.';
 function runBootSaveScreen(world, opts) {
+  bootStatusLocked = true;
   const status = document.querySelector('#loading .ld-status');
   if (status) status.textContent = 'Kies een opgeslagen spel';
   return new Promise((resolve) => {
@@ -581,8 +613,9 @@ function runBootSaveScreen(world, opts) {
       done = true;
       // net als bij de gewone boot: eerst één frame tekenen voordat het laadscherm weggaat
       try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
-      afterPaint(() => {
+      afterPaint(async () => {
         try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+        await finishLoading();
         dismissLoading();
         resolve('game');
       });

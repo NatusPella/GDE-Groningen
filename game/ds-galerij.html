@@ -23,7 +23,7 @@
   .g-paneel[hidden] { display: none; }
   .g-paneel.ds-papier { background: var(--ds-c-papier-2); }
   .g-paneel.ds-zeef { background: var(--ds-c-ink-papier); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
-  .g-paneel-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
+  .g-paneel-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
   .g-druk { transform: translate(var(--ds-hard-x), var(--ds-hard-y)); box-shadow: none; }
   .g-focus { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
   .g-paneel.ds-glas { background: var(--ds-c-glas); border: var(--ds-lijn) solid var(--ds-c-glas-3); }
@@ -140,6 +140,22 @@
     <div class="ds-streep"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:60%"></span></span><span class="ds-streep__label">3 van 5</span></div>
     <div class="ds-streep ds-streep--tijd"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:35%"></span></span><span class="ds-streep__label">Nog 12 min</span></div>
     <div class="ds-streep ds-streep--laag ds-streep--dik"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:12%"></span></span><span class="ds-streep__label">Tank 12%</span></div>
+  </div>
+</section>
+
+<section class="g-sectie" id="s-paneel" data-shot="paneel" data-demo>
+  <h2>Panelmodel</h2>
+  <div class="ds-paneel ds-papier">
+    <ul class="ds-lijst">
+      <li class="ds-lijst__rij" aria-current="true"><span class="ds-icoon" aria-hidden="true"></span><span class="ds-lijst__t"><b>Akker De Zonnehoek</b><span>Groeit · volgende klus: oogsten</span></span><span class="ds-lijst__w">2 ha</span></li>
+      <li class="ds-lijst__rij"><span class="ds-icoon" aria-hidden="true"></span><span class="ds-lijst__t"><b>Weiland Noord</b><span>Braak · plan: aardappelen</span></span><span class="ds-lijst__w">1,5 ha</span></li>
+    </ul>
+    <div class="ds-detail">
+      <div class="ds-detail__kop"><h2>Akker De Zonnehoek</h2><span class="ds-chip ds-chip--selectie">Groeit</span></div>
+      <div class="ds-detail__hero"><p>Het gewas groeit nog twee speldagen. Daarna oogsten.</p><button type="button" class="ds-knop">Zet op de kaart</button></div>
+      <ul class="ds-detail__feiten"><li class="ds-feit"><span class="ds-feit__n">62%</span><span class="ds-feit__l">gegroeid</span></li><li class="ds-feit"><span class="ds-feit__n">2 ha</span><span class="ds-feit__l">oppervlakte</span></li></ul>
+      <details class="ds-detail__meer"><summary>Meer</summary><p class="ds-leeg">Nog geen machines. Kies er een bij Machines.</p></details>
+    </div>
   </div>
 </section>
 

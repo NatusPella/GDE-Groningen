@@ -21,18 +21,12 @@ import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getLedger, summary } from './finance.js';
 import { woordenVan, past } from './zoektekst.js';
+import { icoon } from './icons.js';
+import { deviceText } from './touchui.js';
+import { glyphHtml } from './keycap.js';
 
-const ICON = {
-  geld: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
-  wapens: '<path d="M3 9h13l2 2h3v3h-6l-1.5 1.5V19h-3v-4l-1-1H3z"/>',
-  melee: '<path d="M5 19l9-9M14 10l2-6 4 4-6 2M4 20l2-2"/>',
-  werp: '<path d="M8 8h8l1 12H7zM9 8V5h6v3M12 5V3"/>',
-  kleding: '<path d="M8 3l4 2 4-2 5 4-3 3-2-1v12H8V9l-2 1-3-3z"/>',
-  eten: '<path d="M6 3v7a3 3 0 0 0 6 0V3M9 3v18M17 3v6c0 2 3 2 3 4v3M17 16h3"/>',
-  thuis: '<path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/>',
-  kaart: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h4"/>',
-  upgrade: '<path d="M12 4l6 7h-4v8h-4v-8H6z"/>',
-};
+// Phosphor-pictogrammen via icons.js (21-11), per categorie van deze lijst
+const ICOON = { geld: 'geld', wapens: 'zwaard', melee: 'mes', werp: 'pakket', kleding: 'kleding', eten: 'eten', thuis: 'thuis', kaart: 'kaart', upgrade: 'gereedschap' };
 const SECTIONS = [
   ['geld', 'Geld'],
   ['wapens', 'Wapens'],
@@ -94,7 +88,7 @@ let deel = 'alles';
 let note = '';
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
-const svg = (id) => `<svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[id] || ICON.kaart}</svg>`;
+const svg = (id) => icoon(ICOON[id] || 'kaart', { cls: 'pm-ic' });
 
 // Kasboek bij het geld (#206): wat er werkelijk in en uit ging, met een strip van de
 // laatste zeven dagen. Is het kasboek nog leeg, dan zegt het detail dat eerlijk in
@@ -317,7 +311,7 @@ function detailHtml() {
     : '';
   const ledger = it.ledger ? moneyLedgerHtml() : '';
   let btns = '';
-  if (it.act) btns += `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
+  if (it.act) btns += deviceText(`<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)} ${glyphHtml('ENTER')}</button>`, `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`);
   if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
   const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
   // Het geldkaartje links zegt het bedrag en "Contant" al; daar staat de kop gewoon

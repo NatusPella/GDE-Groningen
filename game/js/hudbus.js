@@ -273,6 +273,16 @@ export function leftColumnLines(viewH = 720) {
 
 // a: the spec of the A card, e: the spec of the E card (either may be null).
 // opts.viewH: the window height in HUD px; opts.extraLines: lines a phone card (phonefeed.js, also zone A) takes at the top of the column.
+// #804: een dure lezing (layout: offsetHeight) hooguit eens per ms milliseconden hergebruiken. Een klok die terugspringt leest opnieuw.
+export const COLUMN_OPTS_MS = 250;
+export function throttledRead(read, ms, clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())) {
+  let cache, at = -Infinity, has = false;
+  return (now = clock()) => {
+    if (has && now >= at && now - at < ms) return cache;
+    cache = read(); at = now; has = true;
+    return cache;
+  };
+}
 export function leftColumnFits(a, e, { viewH = 720, extraLines = 0 } = {}) {
   if (!e || (!a && !extraLines)) return true;
   return (a ? cardLines(a) : 0) + cardLines(e) + Math.max(0, extraLines) <= leftColumnLines(viewH);
@@ -315,12 +325,13 @@ export const SURFACES = {
   binnenset: { files: ['stagesets.js'], own: 'de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956)' },
   duikscene: { files: ['wrakduikenlive.js'], zone: 'G', p: P3, own: 'de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat' },
   toetsen: { files: ['prompts.js', 'hudtext.js'], zone: 'H', p: P2, own: 'de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg' },
-  activiteit: { files: ['stunthud.js', 'heistui.js', 'casework.js', 'bakeround.js', 'carbid.js', 'dorpsuitjes.js', 'kermis.js', 'padel.js', 'pigeonmode.js', 'postgame.js', 'uitjepaneel.js', 'reuzenrad.js', 'rondvaartchase.js', 'stationtravel.js'], zone: 'C', p: P1, own: 'het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg' },
+  activiteit: { files: ['stunthud.js', 'heistui.js', 'casework.js', 'bakeround.js', 'carbid.js', 'dorpsuitjes.js', 'kermis.js', 'padel.js', 'pigeonmode.js', 'pigeonguide.js', 'postgame.js', 'uitjepaneel.js', 'reuzenrad.js', 'rondvaartchase.js', 'stationtravel.js'], zone: 'C', p: P1, own: 'het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg' },
   boerderijhud: { files: ['farmhud.js'], zone: 'C', p: P2, own: 'de strook onderin tijdens het werk met je trekker of maaidorser (klus, voortgang, snelheid, diesel, lading); alleen zolang je in een machine van je boerderij zit, geen eigen planner (#985)' },
   simhud: { files: ['simhud.js'], zone: 'C', p: P2, own: 'de strook onderin tijdens een light sim (hengelen, krantenwijk): stappen, meter, cijfers, wat nu en een opspringend getal; alleen zolang de sim loopt, geen eigen planner (#985, #980)' },
   voertuighud: { files: ['heliflight.js', 'helirun.js', 'planeflight.js', 'instrumenten.js', 'busboard3d.js', 'busbestuurhud.js', 'cockpit.js', 'treincabine.js'], zone: 'H', p: P2, own: 'vervangt de snelheidsmeter zolang je vliegt (body.heli-flying) of een trein bestuurt (body.tc-on)' },
   samen: { files: ['coophud.js', 'coophold.js', 'coopscene.js', 'partnerhud.js', 'coopspelersui.js', 'multiplayerhostwisselui.js', 'coopwedstrijd3d.js'], p: P2, own: 'de uitnodiging Meedoen? en de uitslag van een race of golfronde tegen elkaar (coopwedstrijd3d.js, alleen zolang er een wedstrijd is), de spelerslijst (alleen bij Tab en in het pauzemenu, nooit permanent) en de fade bij samen spelen, en het meekijklaagje van een gast op de scene van de host (coopscene.js, volgt wat de host toont); geen eigen planner' },
   menu: { files: ['pausemenu.js', 'menumelding.js', 'veroverdpanel.js', 'beleidswinkel.js', 'mapview.js', 'phone.js', 'todoui.js', 'garageui.js', 'spullen.js', 'shopui.js', 'verhaalui.js', 'profileoverlay.js', 'loopbaanui.js', 'boerderijui.js', 'farmcards.js', 'visboekui.js', 'startscreen.js', 'furniture.js', 'gfxprofile.js', 'samenkeuze.js', 'textfield.js', 'achievementsui.js', 'cheatsui.js', 'fotomodusui.js'], own: 'de speler opent het zelf; het is modaal en de rest wacht. Prestaties, Cheats en de fotomodus zetten hun eigen opmaak op (zetCss in elk bestand) maar zijn panelen van ditzelfde menu, dus ze staan hier en niet als eigen surface' },
+  diagnose: { files: ['gpudiag.js'], zone: 'B', p: P1, own: 'het venster Technische info (Instellingen > Beeld): de speler opent het zelf en sluit het weer' },
   invoer: { files: ['input.js', 'touch.js', 'aimassist.js'], own: 'invoer en richtkruis; vragen de aandacht niet' },
   dev: { files: ['storydev.js', 'storytest.js', 'testmenu.js', 'padtest.js', 'trailer.js'], own: 'ontwikkel- en promohulpen; niet voor de speler' },
   effect: { files: ['postfx3d.js', 'drunk.js'], own: 'schermeffect zonder tekst (flits, kleur); geen informatie' },

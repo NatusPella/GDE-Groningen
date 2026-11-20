@@ -36,7 +36,7 @@ export const KEY_ACTIONS = [
   ['r', 'Lak of garagemenu', 'actie'],
   ['c', 'Eerste persoon aan of uit (in de browser G); duif: koeren', 'actie'],
   ['x', 'Duif: weer mens worden; trekker: aftakas aan of uit', 'actie'],
-  ['tab', 'Volgend doelwit tijdens het richten', 'wapens'],
+  ['tab', 'Volgend doelwit tijdens het richten; in een sessie: de spelerslijst (controller: rechterstick indrukken)', 'wapens'],
   ['1', 'Slaan', 'wapens'],
   ['2', 'Pistool', 'wapens'],
   ['3', 'Geweer', 'wapens'],
@@ -308,7 +308,7 @@ export function padSlotFor(token, ctx = 'foot') {
   if (/^[↑↓←→]{2,}$/.test(t)) t = 'ARROWS';
   else if (ARROW[t]) token = ARROW[t];
   if (t === '⌫') token = 'backspace';
-  if (t === 'MOUSE') return 'rstick';
+  if (t === 'MOUSE' || t === 'DRAG') return 'rstick';
   if (t === 'WASD' || t === 'ARROWS') return map.stick === 'nav' ? 'dpad' : 'lstick';
   if (t === 'LMB') return find(map, '@fire') || find(map, '@gas');
   if (t === 'RMB') return find(map, '@aim');

@@ -26,9 +26,9 @@ function ensure() {
   padding: 10px 22px 14px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
   opacity: 0; --ds-mi-x: -8px; } /* ds-motion.css (.ds-mi-in) */
 #name-card.on { opacity: 1; }
-#name-card .nc-name { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
+#name-card .nc-name { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
 #name-card .nc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: var(--ds-c-ink-geel); border: 2px solid var(--ds-c-ink-inkt); box-sizing: border-box; }
-#name-card .nc-line { font-family: var(--ds-font-tekst-v3); font-size: clamp(16px, 1.6vw, 22px); margin-top: 6px; max-width: 36ch; color: var(--ds-c-ink-inkt); }
+#name-card .nc-line { font-family: var(--ds-font-zeef-tekst); font-size: clamp(16px, 1.6vw, 22px); margin-top: 6px; max-width: 36ch; color: var(--ds-c-ink-inkt); }
 /* #870: op een smalle telefoon schoof de kaart met zijn vaste 340px-reserve
    buiten beeld; hij houdt daar de breedte tussen de randen en een kleinere titel. */
 @media (max-width: 700px) {

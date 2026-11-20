@@ -249,6 +249,7 @@ if (!app.requestSingleInstanceLock()) {
   ipcMain.handle('gde:coop-diagnose', (e) => coopFor(e.sender).diagnose());
   ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
   app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
+  require('./gpuinfo.cjs').registerGpuInfo({ ipcMain, app, screen: require('electron').screen }); // 0.64.1: Technische info (gpudiag.js)
   ipcMain.handle('gde:live-bussen', () => haalLiveBussen()); // #395: zonder argumenten: de vaste url, niets van de speler
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);

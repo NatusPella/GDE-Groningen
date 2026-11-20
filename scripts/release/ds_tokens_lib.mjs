@@ -1,4 +1,4 @@
-// Puur hulpmodule voor het designsysteem v2 (game/js/ds-tokens.css, ds-components.css):
+// Puur hulpmodule voor het designsysteem (game/js/ds-tokens.css, ds-components.css):
 // tokens uit de CSS lezen, var()-ketens oplossen per oppervlak (papier of glas) en het
 // WCAG-contrast rekenen. Geen fs, geen git, geen netwerk; de test en de lint voeden het met tekst.
 

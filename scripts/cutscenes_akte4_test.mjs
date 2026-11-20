@@ -127,5 +127,12 @@ for (const key of KEYS) {
   }
 }
 
+// #950: de accountmanager van Wiebelwerk praat altijd in een kantoor (het binnenset), nooit in het weiland voor de deur
+for (const [k, spec] of Object.entries(SPECS)) {
+  if (!/^M18\./.test(k) || !spec.cast || !Object.values(spec.cast).some((c) => c && c.key === 'accountmanager')) continue;
+  ok(spec.set === 'kantoor', `${k}: de accountmanager staat in het kantoorset`, String(spec.set));
+}
+ok(Object.entries(SPECS).filter(([k, s]) => /^M18\./.test(k) && s.cast && Object.values(s.cast).some((c) => c && c.key === 'accountmanager')).length >= 5, '#950: de vijf M18-scenes met de accountmanager zijn gevonden');
+
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte4_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

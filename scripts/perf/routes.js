@@ -140,6 +140,8 @@ const fixWorld = () => {
 // as a share of DRAW_DIST (it shrinks to the nearest thing still missing, scene3d.js dists()), what still waits to be built
 // (streamPending), the tile store's queue and the longest wait of a frame's tile work. Lower share = more pop-in at the rim.
 const SP = await imp('scene3d').catch(() => null);
+const GR = await imp('grass').catch(() => null); // chunkStats: cumulative counts, diff them per route
+const RT = await imp('routing').catch(() => null);
 function streamProbe() {
   const rows = [];
   let on = true;
@@ -191,6 +193,7 @@ async function run(name, setup, move, teardown, opts = {}) {
   console.error('[perf-mark] start ' + name + ' ' + Date.now());
   if (window.__hitch) window.__hitch.reset();
   if ((window.__perfProfile || '').split(',').includes(name)) console.log('[profile] ' + Math.min(DURR - 2000, 15000));
+  if ((window.__perfHeapProf || '').split(',').includes(name)) console.log('[heapprof] ' + Math.min(DURR - 2000, 15000) + (window.__perfHeapAll ? '' : ' live'));
   const canvasFrames0 = SP && SP.canvasFrameCount ? SP.canvasFrameCount() : null;
   const probe = streamProbe();
   await sleep(DURR);
@@ -200,7 +203,11 @@ async function run(name, setup, move, teardown, opts = {}) {
   console.error('[perf-mark] end ' + name + ' ' + Date.now() + ' ' + res.frames);
   const frames = Math.max(1, res.frames);
   mover = null;
-  const out = { ...res, cold: opts.cold === true, callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), rendersPerFrame: +(renders / frames).toFixed(2),
+  // heap before and after a forced GC (only with --js-flags=--expose-gc): used is live plus not-yet-collected garbage
+  const heapUsed = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null;
+  let heapLive = null;
+  if (typeof window.gc === 'function') { window.gc(); heapLive = Math.round(performance.memory.usedJSHeapSize / 1e6); }
+  const out = { graphStats: RT && RT.getRoutingStats ? { ...RT.getRoutingStats() } : null, grassChunks: GR && GR.chunkStats ? { ...GR.chunkStats } : null, heapLiveMB: heapLive, heapUsedMB: heapUsed, ...res, cold: opts.cold === true, callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), rendersPerFrame: +(renders / frames).toFixed(2),
     programs: r.info.programs.length, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
     heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, at: [Math.round((p.inVehicle || p).x), Math.round((p.inVehicle || p).y)],
     ejects: EJECTS, vehicles: w.vehicles.length, peds: w.pedestrians.length, simLevel: window.__simLoad ? window.__simLoad.level() : null, dyn: window.__gfxDyn || null,

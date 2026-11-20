@@ -193,7 +193,9 @@ for (const [t, inv] of [['limiet', { waarde: 41, limiet: 40 }], ['teller', { res
 {
   const css = fs.readFileSync(path.join(ROOT, 'game/js/regelwidget.css'), 'utf8');
   const sizes = [...css.matchAll(/font(?:-size)?:\s*(?:bold\s+)?([\d.]+)px/g)].map((m) => Number(m[1]));
-  ok(sizes.length > 3 && sizes.every((s) => s >= 13), 'alle tekst is minstens 13 px', sizes.join());
+  // designsysteem v3: de tekstmaat komt uit --ds-t-kaart-hulp (max(13px, HUD-vloer), bewaakt door ds_tokens_test)
+  const tokens = (css.match(/font-size:\s*var\(--ds-t-kaart-hulp\)/g) || []).length;
+  ok(sizes.length + tokens > 3 && sizes.every((s) => s >= 13), 'alle tekst is minstens 13 px', sizes.join());
   ok(/html\.reduce-motion \.rw/.test(css) && /prefers-reduced-motion: reduce/.test(css), 'reduce motion in CSS (klasse en OS-instelling)');
   ok(/\.rw\.rw-statisch \.rw-alt \{[^}]*position: static/.test(css), 'bij reduce motion staat het tekstalternatief in beeld');
   const strays = css.split(/\r?\n/).filter((l) => /#[0-9a-f]{3,8}\b/i.test(l) && !/var\(--[\w-]+,\s*#[0-9a-f]{3,8}\)/i.test(l) && !/--rw-gat:/.test(l));

@@ -29,6 +29,7 @@
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'clap', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 import { propKindIssue, propFoot } from './cutscenemodels.js';
+import { calmShots } from './cineshots.js';
 import { crowdSpecIssue } from './crowdplan.js';
 import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './poseclips.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe'];
@@ -195,7 +196,8 @@ export function compileScene(def, opts = {}) {
   const T = (spec) => resolveTime(spec, lines, duration);
   const actors = def.actors || {}, props = def.props || {};
   const cues = (def.cues || []).map((c) => ({ ...c, t: T(c.t) })).sort((a, b) => a.t - b.t);
-  const shots = (def.shots || []).map((s) => ({ ...s, t: T(s.t) })).sort((a, b) => a.t - b.t);
+  // pan-budget (cineshots.js): hooguit één zichtbare pan per scène, de rest een rustige drift
+  const shots = calmShots((def.shots || []).map((s) => ({ ...s, t: T(s.t) })).sort((a, b) => a.t - b.t), duration);
 
   // per actor: movement segments [{t0, t1, pts}], anim/gaze/face/carry events
   const track = {};

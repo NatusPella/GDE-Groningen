@@ -150,10 +150,12 @@ export function classifyGpu({ renderer = '', maxTexture = 0, cores = 0, memory =
   if (/swiftshader|llvmpipe|softpipe|software|basic render/.test(r)) { tier = 'laag'; why = 'software'; }
   else if (/mali|adreno|powervr|videocore|vivante|tegra|immortalis/.test(r)) { tier = 'laag'; why = 'mobiel'; }
   else if (/intel/.test(r)) {
-    if (/arc\(tm\) a\d|arc a\d/.test(r)) { tier = 'hoog'; why = 'intel arc'; }
+    // 0.64.1: Arc B-series (B570, B580) is a discrete card like the A-series
+    if (/arc\(tm\) [ab]\d|arc [ab]\d/.test(r)) { tier = 'hoog'; why = 'intel arc'; }
     else if (/arc/.test(r)) { tier = 'middel'; why = 'intel arc igpu'; }
     else { tier = 'laag'; why = 'intel igpu'; }
   } else if (/radeon|amd/.test(r)) {
+    // RX 5000 to 9000 (0.64.1: the RX 9070 XT is strong; a new generation needs no new rule), Radeon Pro, Vega VII, R9
     if (/rx\s?\d|radeon pro|vii|r9 /.test(r)) { tier = 'hoog'; why = 'radeon'; }
     else { tier = 'middel'; why = 'radeon igpu'; }
   } else if (/nvidia|geforce|quadro|rtx|gtx/.test(r)) {

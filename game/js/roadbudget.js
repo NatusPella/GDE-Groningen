@@ -20,3 +20,26 @@ export function heavyRoadAllowed(built, streamPending, waitedFrames) {
   if (built > 0) return false;
   return streamPending <= 2 || waitedFrames >= HEAVY_ROAD_WAIT_FRAMES;
 }
+
+// #804 (ronde 21-11): na die 12 frames bouwde de hoofdthread één heavy weg per frame, zonder tijdsbegrenzing: een
+// hitchreeks van honderden ms achter elkaar (de AI-review van 0.64.0). De bouw zelf is niet in stukken te knippen
+// (buildRoadGroup is één blok), dus de ruimte ertussen wordt begrensd: na een heavy bouw van `cost` ms komt de
+// volgende pas na max(HEAVY_ROAD_GAP_MS, HEAVY_ROAD_COOL x cost) ms. Zo kost de heavy bouw hooguit 1/(1+COOL) van de tijd
+// (een hitch met rust ertussen, in plaats van een reeks), en blijft #883 (de wegen komen er wel) gelden: er wacht niets voor altijd.
+export const HEAVY_ROAD_GAP_MS = 250;
+export const HEAVY_ROAD_COOL = 4;
+
+export function createHeavyRoadGate() {
+  let waited = 0, lastEnd = -Infinity, lastCost = 0;
+  return {
+    // mag er nu een heavy weg gebouwd worden? (built: wegen die dit frame al klaar zijn; now: performance.now())
+    allowed(built, streamPending, now) {
+      if (now - lastEnd < Math.max(HEAVY_ROAD_GAP_MS, HEAVY_ROAD_COOL * lastCost)) return false;
+      return heavyRoadAllowed(built, streamPending, waited);
+    },
+    built(now, cost) { lastEnd = now; lastCost = cost; },
+    // aan het eind van de wegsync: wachtte een heavy weg dit frame (vooruitgeschoven) of niet
+    endFrame(deferred) { waited = deferred ? waited + 1 : 0; },
+    get waited() { return waited; },
+  };
+}

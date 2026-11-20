@@ -771,7 +771,8 @@ function hallParams(item, t, box, h) {
   return {
     kit: 'hall', type, len: clamp(box ? box.len : dims[0], 14, 70), wid: clamp(box ? box.wid : dims[1], 8, 28),
     floors: clamp(Number(t['building:levels']) || dims[2], 1, 4), brick: type === 'museum' && h > 0.5 ? 'white' : h < 0.55 ? 'red' : 'yellow',
-    roof: type === 'school' ? 'flat' : h < 0.5 ? 'slate' : 'tile',
+    // a station is low with a flat roof and a canopy: a gable with a saddle-roof tower on the end reads as a church (Veendam)
+    roof: type === 'school' || type === 'station' ? 'flat' : h < 0.5 ? 'slate' : 'tile',
   };
 }
 
@@ -784,22 +785,24 @@ function hall(B, p, lod) {
     B.box(0, he + 0.2, 0, L + 0.4, 0.4, W + 0.4, 0xb8b4aa);
     top = he + 0.4;
   } else {
-    // a gable for a station, a low hipped roof (a pyramid squashed onto the box) for a hall
+    // a low hipped roof (a pyramid squashed onto the box) for a hall
     const rh = Math.min(5, W * 0.4);
-    if (p.type === 'station') gableRoof(B, -L / 2, L / 2, W / 2, he, he + rh, roof, wall);
-    else {
+    {
       const cone = new THREE.ConeGeometry(0.5 * Math.SQRT2, rh, 4, 1, true).rotateY(Math.PI / 4);
       cone.scale(L * 1.04, 1, W * 1.04);
       B.geo(cone, composeMatrix(0, he + rh / 2, 0), roof);
     }
     top = he + rh;
   }
-  // the clock tower: a town hall's centre, a station's end
-  if (p.type === 'townhall' || p.type === 'station') {
-    const tw = clamp(W * 0.3, 3, 5), tx = p.type === 'station' ? L / 2 - tw : 0, th = he + 7 + tw;
-    const crown = p.type === 'townhall' ? 'spire' : 'saddle';
-    towerBody(B, tx, 0, tw, th, crown, wall, roof, lod);
-    top = crownTop(crown, th, tw);
+  // the clock tower: a town hall's centre. A station has none: that, with a gable, made every station a church.
+  if (p.type === 'townhall') {
+    const tw = clamp(W * 0.3, 3, 5), th = he + 7 + tw;
+    towerBody(B, 0, 0, tw, th, 'spire', wall, roof, lod);
+    top = crownTop('spire', th, tw);
+  } else if (p.type === 'station') {
+    B.box(L / 2 - 3, he + 1.6, W / 2 - 0.4, 0.3, 3.2, 0.3, 0x4a5258); // a clock post on the platform side
+    B.box(L / 2 - 3, he + 3.4, W / 2 - 0.4, 1.4, 1.4, 0.3, 0xe8e4da);
+    top = he + 4.1;
   } else if (p.type === 'museum') {
     for (let i = 0; i < 4; i++) B.box(-L * 0.18 + i * L * 0.12, he / 2, W / 2 + 0.6, 0.7, he, 0.7, 0xe6e0d4);
     B.box(0, he + 0.4, W / 2 + 0.6, L * 0.5, 0.8, 1.2, 0xe6e0d4);

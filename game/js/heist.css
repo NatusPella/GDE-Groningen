@@ -137,13 +137,13 @@ body.cine-hide-hud #heist-ui .hx-skipchip, body.cine-hide-hud #heist-ui .hx-pane
 }
 
 /* ===== Zomerse zeefdruk (ADR 0040, #985): panelen, kaarten en chips als papier met inktrand en harde schaduw ===== */
-#heist-ui { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-ink-inkt); }
-#heist-ui .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; box-shadow: none; font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#heist-ui { font-family: var(--ds-font-zeef-kop); font-weight: 600; color: var(--ds-c-ink-inkt); }
+#heist-ui .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; box-shadow: none; font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #heist-ui :is(.hx-panel, .hx-plan, .hx-rolechip, .hx-skipchip) { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
 #heist-ui .hx-panel { border-radius: 8px; }
 #heist-ui .hx-panel::before, #heist-ui .hx-plan::before { background: repeating-linear-gradient(90deg, var(--ds-c-ink-inkt) 0 12px, transparent 12px 16px); opacity: 0.25; }
 #heist-ui .hx-title { font-weight: 800; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
-#heist-ui .hx-sub, #heist-ui .hx-keys, #heist-ui .hx-side, #heist-ui .hx-skip, #heist-ui .hx-choice-note { font-family: var(--ds-font-tekst-v3); font-size: 13px; opacity: 1; color: var(--ds-c-ink-inkt); }
+#heist-ui .hx-sub, #heist-ui .hx-keys, #heist-ui .hx-side, #heist-ui .hx-skip, #heist-ui .hx-choice-note { font-family: var(--ds-font-zeef-tekst); font-size: 13px; opacity: 1; color: var(--ds-c-ink-inkt); }
 #heist-ui .hx-keys .sep { opacity: 0.6; }
 #heist-ui .hx-bar { background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 4px; }
 #heist-ui .hx-zone { background: var(--ds-c-ink-bord); box-shadow: none; }
@@ -154,7 +154,7 @@ body.cine-hide-hud #heist-ui .hx-skipchip, body.cine-hide-hud #heist-ui .hx-pane
 #heist-ui .hx-dial .face { fill: var(--ds-c-ink-papier); stroke: var(--ds-c-ink-inkt); stroke-width: 3; }
 #heist-ui .hx-dial .tick { stroke: var(--ds-c-inkt-zacht); }
 #heist-ui .hx-dial .tick.big { stroke: var(--ds-c-ink-inkt); }
-#heist-ui .hx-dial .num { fill: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#heist-ui .hx-dial .num { fill: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #heist-ui .hx-dial .hintmark { stroke: var(--ds-c-ink-geel); }
 #heist-ui .hx-dial .mark { fill: var(--ds-c-rood); }
 #heist-ui .hx-dial .hub { fill: var(--ds-c-ink-inkt); stroke: var(--ds-c-ink-inkt); }
@@ -167,19 +167,19 @@ body.cine-hide-hud #heist-ui .hx-skipchip, body.cine-hide-hud #heist-ui .hx-pane
 #heist-ui .hx-panel, #heist-ui .hx-plan { border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 #heist-ui .hx-plan { border-radius: 8px; }
 #heist-ui .hx-plan-head { font-weight: 800; color: var(--ds-c-ink-bord); }
-#heist-ui .hx-plan-head small { font-family: var(--ds-font-tekst-v3); font-size: 13px; color: var(--ds-c-inkt-zacht); }
+#heist-ui .hx-plan-head small { font-family: var(--ds-font-zeef-tekst); font-size: 13px; color: var(--ds-c-inkt-zacht); }
 #heist-ui .hx-plan canvas { border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 4px; box-sizing: border-box; }
 #heist-ui .hx-card { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 6px; box-shadow: var(--ds-schaduw-hard-klein); }
 #heist-ui .hx-card:hover, #heist-ui .hx-card.sel { background: var(--ds-c-ink-geel); border-color: var(--ds-c-ink-inkt); transform: none; }
 #heist-ui .hx-card b { font-weight: 800; color: var(--ds-c-ink-inkt); }
-#heist-ui .hx-card span, #heist-ui .hx-card em { font-family: var(--ds-font-tekst-v3); font-size: 14px; opacity: 1; color: var(--ds-c-ink-inkt); }
+#heist-ui .hx-card span, #heist-ui .hx-card em { font-family: var(--ds-font-zeef-tekst); font-size: 14px; opacity: 1; color: var(--ds-c-ink-inkt); }
 #heist-ui .hx-card em { font-size: 13px; color: var(--ds-c-inkt-zacht); }
 #heist-ui .hx-pad { font-size: 13px; opacity: 1; }
 #heist-ui .hx-rolechip { border-radius: 8px; }
 #heist-ui .hx-rolechip b { color: var(--ds-c-ink-bord); font-weight: 800; }
-#heist-ui .hx-samen { font-family: var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); }
-#heist-ui .hx-samen b { color: var(--ds-c-ink-bord); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#heist-ui .hx-samen { font-family: var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); }
+#heist-ui .hx-samen b { color: var(--ds-c-ink-bord); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #heist-ui .hx-note .kick { font-size: 13px; }
-#heist-ui .hx-skipchip { border-radius: 8px; font-family: var(--ds-font-tekst-v3); box-shadow: var(--ds-schaduw-hard-klein); }
+#heist-ui .hx-skipchip { border-radius: 8px; font-family: var(--ds-font-zeef-tekst); box-shadow: var(--ds-schaduw-hard-klein); }
 #heist-ui .hx-skipchip .bg { stroke: var(--ds-c-ink-inkt); opacity: 0.3; }
 #heist-ui .hx-skipchip .fg { stroke: var(--ds-c-ink-bord); }

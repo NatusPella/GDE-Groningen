@@ -7,6 +7,7 @@
 // , en . tijd, [ en ] zoom, C en V kantelen, H terug bij Tammo, Z en X
 // scherptediepte, Enter/klik foto, Esc of F8 terug.
 import * as F from './fotomodus.js';
+import { glyphHtml, keyLabelHtml } from './keycap.js';
 import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
@@ -152,7 +153,10 @@ function wireTouch(el) {
   });
 }
 
-const KEYBTN = (k, label) => `<span class="foto-key"><kbd>${k}</kbd> ${label}</span>`;
+// Every key of a photo-mode hint is an icon (keycap.js): a label with spaces is several keys, 'Muis slepen' and 'Pijlen' are icons of their own.
+const FOTO_ICONS = { 'Muis slepen': 'MOUSE', Pijlen: 'ARROWS', 'W A S D': 'WASD' };
+const fotoKeys = (k) => (FOTO_ICONS[k] ? glyphHtml(FOTO_ICONS[k]) : k.split(' ').map(keyLabelHtml).join(''));
+const KEYBTN = (k, label) => `<span class="foto-key"><span class="foto-kc" style="display:inline-flex;gap:2px;vertical-align:middle">${fotoKeys(k)}</span> ${label}</span>`;
 
 // De knoppenbalk onderin (#435): een infostrook, twee rijen toetsen (bewegen, instellen) en twee knoppen.
 // Staat één keer in de overlay: alleen de infostrook wisselt per frame, zodat een klik op een knop niet onder de muis wegvalt.
@@ -160,7 +164,7 @@ const BAR_HTML =
   '<div class="foto-info" aria-live="off"></div>' +
   '<div class="foto-row foto-row-move"><span class="foto-lbl">Vrije camera</span>' + KEYBTN('W A S D', 'Lopen') + KEYBTN('Muis slepen', 'Kijken') + KEYBTN('Pijlen', 'Kijken') + KEYBTN('Spatie', 'Omhoog') + KEYBTN('Ctrl', 'Omlaag') + KEYBTN('Shift', 'Sneller') + KEYBTN('H', 'Bij Tammo') + '</div>' +
   '<div class="foto-row"><span class="foto-lbl">Beeld</span>' + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherpte') + KEYBTN('G', 'Raster') + '</div>' +
-  '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <kbd>Enter</kbd></button><button type="button" class="foto-btn" data-foto-stop>Terug <kbd>Esc</kbd></button></div>';
+  '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <span class="foto-kc" style="display:inline-flex;vertical-align:middle">' + keyLabelHtml('Enter') + '</span></button><button type="button" class="foto-btn" data-foto-stop>Terug <span class="foto-kc" style="display:inline-flex;vertical-align:middle">' + keyLabelHtml('Esc') + '</span></button></div>';
 
 let barInfo = '';
 function renderBar() {
@@ -298,7 +302,7 @@ const FOTO_CSS = `
 #pause-menu .foto-beeld .foto-leeg { width: 100%; aspect-ratio: 16 / 9; border-radius: 0; color: var(--ds-c-inkt-zacht); }
 #pause-menu .foto-gal figcaption.foto-tekst { display: flex; flex-direction: column; gap: 1px; min-width: 0; margin-top: 0; padding: var(--ds-s-2) var(--ds-s-3) var(--ds-s-3); font-size: inherit; }
 #pause-menu .foto-kop { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-#pause-menu .foto-plek { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .foto-plek { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .foto-weer { flex: none; margin-left: auto; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); white-space: nowrap; }
 #pause-menu .foto-wanneer { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
 #pause-menu .foto-bestand { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); color: var(--ds-c-inkt-zacht); }
@@ -329,9 +333,9 @@ function zetFotoCss() {
 
 // De drie toetsen die je in de fotomodus meteen nodig hebt: in de lege staat en in de strook.
 const FOTO_TIPS = '<div class="foto-tips">' +
-  '<span class="foto-tip"><kbd class="m-kc">F8</kbd> fotomodus</span>' +
-  '<span class="foto-tip"><kbd class="m-kc">Enter</kbd> foto maken</span>' +
-  '<span class="foto-tip"><kbd class="m-kc">F</kbd> filter · <kbd class="m-kc">T</kbd> weer</span>' +
+  '<span class="foto-tip">{F8} fotomodus</span>' +
+  '<span class="foto-tip">{ENTER} foto maken</span>' +
+  '<span class="foto-tip">{F} filter · {T} weer</span>' +
   '</div>';
 
 // #980: dezelfde hero-taal als de andere schermen: een kop met de stand als badge en één zin

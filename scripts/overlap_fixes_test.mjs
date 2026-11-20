@@ -69,7 +69,7 @@ ok(/@media \(max-width: 1100px\) \{ #hud \.mg-board \{ left: auto; right: var\(-
 ok(/max\(330px, var\(--hud-c-right, 0px\) \+ 12px\)/.test(mgjs), 'mg-board tot 1500 px: de reserve rechts is de gemeten zone C, niet vast 330 px');
 // de bordcellen zijn getallen (discgolf.js: worpen of het nummer), geen "Hole 1": ze breken niet af
 ok(/t: c\.done \? String\(c\.strokes\)/.test(src('game/js/discgolf.js')), 'discgolf-cellen zijn worpen of nummers');
-ok(/line-clamp: 4/.test(src('game/js/phonefeed.css')) && /overflow-wrap: anywhere/.test(src('game/js/phonefeed.css')), 'phonefeed: een lange kop breekt en houdt vier regels');
+ok(/line-clamp: 6/.test(src('game/js/phonefeed.css')) && /overflow-wrap: anywhere/.test(src('game/js/phonefeed.css')), 'phonefeed: een lange kop breekt en houdt zes regels (nieuws past helemaal)');
 
 // klasse 9: lage vensters (1024x600): de strook van zone B is smal, de routekaart breekt om, de doelregel kapt af met "…", de naamkaart hangt boven de hintstapel
 const css985 = src('game/js/hud_panel.css');
@@ -78,7 +78,7 @@ ok(/#hud \.hud-mission-progress \{ max-width: 100%; overflow: hidden; text-overf
 ok(/#hud \.hud-mission \.hud-obj-keys \{ display: none; \}/.test(css985), 'smalle strook: de bedieningsregel van het doel valt weg');
 ok(/--hud-vehname-ctx/.test(src('game/js/hud_panel.js')) && /var\(--hud-vehname-ctx, 0px\)/.test(css985), 'de naamkaart hangt boven de toetshintstapel (--hud-vehname-ctx)');
 ok(/display: none; \/\* #985/.test(src('game/js/minigamekit.js')), 'het watermerk van het minigamebord ligt niet meer achter de laatste regels');
-ok(/columnOpts\(\)/.test(src('game/js/hudcards.js')) && /leftColumnFits\(upA \? upA\.spec : null, q\.spec, col\)/.test(src('game/js/hudcards.js')), 'hudcards: een E-kaart telt het venster en de telefoonkaart mee');
+ok(/columnOpts\(\)/.test(src('game/js/hudcards.js')) && /leftColumnFits\(upA \? upA\.spec : null, q\.spec, columnOpts\(\)\)/.test(src('game/js/hudcards.js')), 'hudcards: een E-kaart telt het venster en de telefoonkaart mee');
 ok(/left: calc\(var\(--hud-edge\) \+ min\(calc\(30vw \/ var\(--ui, 1\)\), 350px\) \+ 12px\); right: max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(css985), 'zone B vult de strook tussen berichtkolom en zone C');
 
 // klasse 10: het karakterkaartje toont één personage, dat van de speler (hoofdspeler: ook een gast ziet zijn eigen figuur)
@@ -97,8 +97,19 @@ ok(/#hud \.hud-meter \.hud-meter-ic \{ flex: 0 0 16px; width: 16px; height: 16px
 
 // klasse 12 (1024x600): keuzepaneel onder zone C, ondertitel boven de F-kolom, spraakbel buiten de HUD
 ok(/@media \(max-width: 1100px\) and \(min-width: 481px\) \{ #hud \.cw-panel \{ left: auto; right: var\(--hud-edge, 46px\)/.test(src('game/js/choicepanel.js')), 'keuzepaneel onder 1100 px: rechts onder zone C');
-ok(/max-height: 720px\) \{ #banter-sub, #radio-sub, #story-talk \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
+ok(/max-height: 720px\) \{ html body :is\(#banter-sub, #radio-sub, #story-talk\) \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
 ok(/setBubbleObstacles\(list\)/.test(src('game/js/prompts.js')) && /labelDy\(/.test(src('game/js/hudrules.js')), 'een spraakbel schuift uit de HUD-onderdelen (hudrules bubblePlace)');
+
+// klasse 13: de snelheidsmeter is één compact blok (snelheid 40 px, versnelling klein, toeren als dunne balk binnen de kaart)
+const hcss = src('game/js/hud_panel.css'), hj = src('game/js/hud_panel.js');
+ok(/<div class="sp-main"><b class="sp-val">0<\/b><span class="sp-unit">km\/u<\/span><div class="sp-gears"[^>]*aria-label="Versnelling"><\/div>/.test(hj) && /class="sp-rpm" viewBox="0 0 200 14"/.test(hj) && /<\/svg><\/div>`;/.test(hj), 'de toerenbalk zit binnen sp-main, de aria-labels blijven (Versnelling, Toerental)');
+ok(/aria-label="Toerental"/.test(hj), 'aria-label Toerental blijft');
+ok(/#hud \.sp-val \{ grid-column: 1; grid-row: 1; font-size: 40px;/.test(hcss) && /#hud \.sp-rpm \{ grid-column: 1 \/ -1; grid-row: 2; width: 100%; height: 7px; \}/.test(hcss), 'snelheid 40 px, toerenbalk 7 px onder de kaart');
+// de maat: kaart ca. 150 x 66 px = 9900 px2, tegen de oude 8000 px2 kaart + 166 x 166 boog (ca. 36000 px2): minstens 60% kleiner
+const oud = 14 * 0 + (100 * 0.85 + 18 + 3 + 18 + 10) * 160 + 166 * 166, nieuw = 150 * 66;
+ok(nieuw <= oud * 0.4, 'het blok is minstens 60% kleiner qua oppervlak (' + nieuw + ' tegen ' + oud + ')');
+ok(/body\.hud-in-vehicle #hud \.hud-ctx \{ bottom: calc\(var\(--hud-edge, 46px\) \+ 80px\)/.test(src('game/js/prompts.css')), 'de toetshintstapel hangt direct boven het blok');
+ok(/no-rpm/.test(hcss) && /no-gears/.test(hcss), 'fiets, scooter en boot tonen alleen wat ze hebben (geen toeren, geen versnelling)');
 
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

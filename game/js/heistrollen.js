@@ -122,7 +122,7 @@ export const STAPPLEK = { fuse: 'de stroomkast', laser: 'de lasers in zaal 3', c
 export const STAPTEKST = {
   fuse: 'zet de stroom af bij de kast (druk op E).',
   laser: 'ga door de lasers (druk op E bij de vitrine).',
-  crack: 'draai de kluis open: A en D draaien, Spatie zet vast.',
+  crack: 'draai de kluis open: {A} en {D} draaien, {SPACE} zet vast.',
   lock: 'peuter de achterdeur open (druk op E bij de deur).',
   pickpocket: 'rol het pasje (druk op E achter de bewaker).',
 };

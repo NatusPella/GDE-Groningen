@@ -761,7 +761,7 @@ function rideBoard(text) {
     rideEl.id = 'train-ride-board';
     rideEl.style.cssText = 'position:fixed;left:50%;bottom:13%;transform:translateX(-50%);z-index:15;pointer-events:none;'
       + 'padding:7px 16px;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard);color:var(--ds-c-ink-inkt);'
-      + "font:800 20px var(--ds-font-kop-v3);letter-spacing:1px;text-align:center;white-space:nowrap;";
+      + "font:800 20px var(--ds-font-zeef-kop);letter-spacing:1px;text-align:center;white-space:nowrap;";
     document.body.appendChild(rideEl);
   }
   rideEl.style.display = text ? '' : 'none';
@@ -815,7 +815,7 @@ function rideShot(w, tt) {
   }
   const next = stops[Math.max(0, Math.min(stops.length - 1, atStop ? t.target + r.dir : t.target))];
   const left = Math.max(1, Math.round(r.minutes - (w.time - r.start) / 60));
-  rideBoard(`Volgende halte: ${shortName(next.name)}  ·  ${r.dest.short} over ${left} min  ·  Spatie ingedrukt houden: uitstappen bij ${r.dest.short}`);
+  rideBoard(`Volgende halte: ${shortName(next.name)}  ·  ${r.dest.short} over ${left} min  ·  {SPACE} ingedrukt houden: uitstappen bij ${r.dest.short}`);
   // the camera: a car in the middle of the train, cycling three views
   const car = t.cars[Math.floor(t.cars.length / 2)] || t.cars[0];
   const fx = Math.cos(car.angle) * t.dir, fy = Math.sin(car.angle) * t.dir;

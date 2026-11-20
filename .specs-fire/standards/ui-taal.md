@@ -89,6 +89,17 @@ roepen.
   uitkomst ("tabblad", "spelers-tab", "onderdeel") en de Besturing-tabel zegt hetzelfde
   (#601; het oude conflict met de tabel is daarmee weg).
 
+## Bediening en toetshints (opdracht 21-11, #1003)
+
+Het hoofdstuk "Controls and key hints" in `DESIGN_SYSTEM.md` is de uitwerking; dit is de samenvatting als spelregel:
+
+- Elke toets- of knopverwijzing in spelertekst is een `{TOKEN}` (`{E}`, `{SPACE}`, `{ESC}`, `{ENTER}`, `{SHIFT}`, `{CTRL}`, `{ALT}`, `{F8}`, `{WASD}`, `{ARROWS}`, `{LMB}`, `{RMB}`, `{MOUSE}`, `{WHEEL}`). Nooit een toetsnaam als woord ("Spatie", "Esc", "Enter", "pijltjes") en nooit een pijltje als tekst. Het token volgt herbinden en de controller.
+- Eén weergavepad: `keyTextHtml`, `glyphHtml` of `keyLabelHtml` voor HTML; `plainKeyText` voor aria-label, title, canvas en logregels.
+- Maat: het toetsicoon is minstens 26 px hoog in de HUD en 28 px in menu's, met leesbare tekst erin, zonder dat de layout breekt.
+- Controller: in padmodus staat de knop van de actieve familie (Xbox, PlayStation, Steam Deck, Switch) en wisselt live met een ander apparaat. Een toets zonder glyph is een nette tekstkeycap in dezelfde stijl.
+- Toegankelijkheid: elk icoon heeft een aria-label met de naam; de hint zegt wat de toets doet; nooit alleen kleur. Rustig drukwerk: een vlakke plaat zonder glans.
+- Handhaving: `key_literals_test`, `key_tokens_test` en de releasegate (`checkKeyLine`): een nieuwe hint zonder token is een belangrijke bevinding. Uitgezonderd zijn alleen ingesproken regels en ondertitels (de tekst volgt de clip, ADR 0041), bestanden die de tokens zelf renderen en een regel met `keywords-ok`.
+
 ## Menu's
 
 De structuur staat op één plek: `SECTIONS` (`pausemenu.js:235`), `RAIL_GROUPS`
@@ -210,6 +221,23 @@ Het doel voor alle UI; het werk is de ombouw-epic van ADR 0040 (#991 tot en met 
 - **Controller eerst:** ontworpen op bank-afstand en de Deck, d-pad-focus, bumpers voor tabs, vasthouden om iets onomkeerbaars te bevestigen. Muis, toetsenbord en touch bedienen dezelfde plekken.
 - **Microinteracties** (hoofdstuk "Microinteractions" in DESIGN_SYSTEM.md, `game/js/ds-motion.css`, `game/js/microinteractions.js`): een kleine bibliotheek binnen de schaal 120/200/250 ms. Inschuiven (opacity plus 8 px vanaf de rand waar de melding hoort, 200 ms), verblijven (de duur komt van de component: `cardtime.js`, `toastDuur()`, `m.ms`; geen animatie; een melding met klik of focus pauzeert bij hover en focus), uitfaden (200 ms, geen beweging), opschuiven (de volgende melding schuift soepel naar de vrije plek), teller oplopen (hooguit 250 ms, dan vast), voortgang vullen (eenmalig), aantikken (druk-state 120 ms) en einde-missie (één landing van 250 ms, een stempel 200 ms later, daarna stilstand). Nooit een lus, alleen opacity, `translate` (1 tot 8 px) en fills, geen flits boven drie per seconde, betekenis nooit alleen door beweging. Bij "Beweging beperken" en Rustig drukwerk staat alles op 0 ms: dezelfde woorden, dezelfde plek. Toegepast op HUD-kaarten, telefoonmelding, prestatietoast, de grote momenten en de geldteller; meldingen zijn lokaal per speler bij Samen spelen. Bewaakt door `scripts/microinteracties_test.mjs`.
 - **Handhaving:** token- en componenttest, de galerij als enige bron (elk component in elke staat, ook Rustig drukwerk en Samen spelen), beeldregressie per scherm in drie resoluties en beide standen, en de ombouw als één epic: eerst de HUD-proef, dan pauze en kaart, telefoon, winkels, minigames, Samen spelen, laad- en bootscherm. Geen release met een half omgebouwd scherm.
+
+## HUD-kaarten: typografische rollen
+
+Elke HUD-kaart (tip, muziekkaart, telefoon- en nieuwskaart, prestatietoast, activiteit- en wachtkaart, doel, achtervolging en politie) haalt zijn lettergrootte uit vijf rollen en nooit uit een eigen px-waarde. Dezelfde rol is op elke kaartsoort dezelfde maat.
+
+| Rol | Token | Maat | Gebruik |
+|---|---|---|---|
+| eyebrow | `--ds-t-kaart-eyebrow` | 13 px, Barlow 800, hoofdletters | soort of afzender boven de kop |
+| titel | `--ds-t-kaart-titel` | 21 px, Barlow 800, regel 1,1 | de kop van de kaart |
+| body | `--ds-t-kaart-body` | 16 px, Atkinson, regel 1,3 | de tekst |
+| hulp | `--ds-t-kaart-hulp` | 13 px | tijd, bron, toetsregel, kleine uitleg |
+| getal | `--ds-t-kaart-getal` | 28 px | een groot getal op een kaart |
+
+- Een lange tekst (nieuws, telefoon) wordt niet groter gezet: hij gebruikt de body-rol en de kaart groeit mee (nieuwsbudget 30 woorden).
+- De rollen staan op `:root` en op `#hud` (daar bestaat `--hud-min`); na het zoomen met `--ui` blijft de vloer 13 px, en Tekstgrootte (a11y) schaalt de kaarttekst mee.
+- Grote momenten (`bigmoment.css`, naamkaart, aftellen) zijn geen kaarten en houden hun eigen maat.
+- Bewaakt door `scripts/hud_typo_test.mjs`. Audit en maten voor en na: [docs/HUD-TYPO-21-11.md](../../docs/HUD-TYPO-21-11.md).
 
 ## Regels voor een nieuw scherm of nieuwe tekst
 

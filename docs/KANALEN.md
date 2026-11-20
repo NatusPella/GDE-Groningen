@@ -22,8 +22,8 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 171 modules, 696 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
-| prestatie | achievements.js | 33 modules, 96 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
+| kaart | hudcards.js | 173 modules, 706 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| prestatie | achievements.js | 33 modules, 97 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
 | radio | storycontact.js | 1 module, 2 aanroepen | P1 | - | ja: narrative (contact) | Samen met bel (zie daar). Het portret en de ondertitelregel zijn het enige dat de speler echt nodig heeft. |
@@ -46,12 +46,13 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | binnenset | stagesets.js | beslist zelf | n.v.t. | - | nee: de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956) |  |
 | duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
 | toetsen | prompts.js, hudtext.js | 31 modules, 31 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
-| activiteit | stunthud.js, heistui.js, casework.js en 11 andere | beslist zelf | P1 | C | nee: het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg | Samen met keuze en bord: een gedeeld activiteitenpaneel (createBoard) voor titel, stand en toetsen. Veel eigen CSS-strings verdwijnen. |
+| activiteit | stunthud.js, heistui.js, casework.js en 12 andere | beslist zelf | P1 | C | nee: het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg | Samen met keuze en bord: een gedeeld activiteitenpaneel (createBoard) voor titel, stand en toetsen. Veel eigen CSS-strings verdwijnen. |
 | boerderijhud | farmhud.js | beslist zelf | P2 | C | nee: de strook onderin tijdens het werk met je trekker of maaidorser (klus, voortgang, snelheid, diesel, lading); alleen zolang je in een machine van je boerderij zit, geen eigen planner (#985) |  |
 | simhud | simhud.js | beslist zelf | P2 | C | nee: de strook onderin tijdens een light sim (hengelen, krantenwijk): stappen, meter, cijfers, wat nu en een opspringend getal; alleen zolang de sim loopt, geen eigen planner (#985, #980) |  |
 | voertuighud | heliflight.js, helirun.js, planeflight.js en 5 andere | beslist zelf | P2 | H | nee: vervangt de snelheidsmeter zolang je vliegt (body.heli-flying) of een trein bestuurt (body.tc-on) | Samen: een voertuigblok per voertuigsoort via hudlook (welke meters per voertuig staat er al). |
 | samen | coophud.js, coophold.js, coopscene.js en 4 andere | beslist zelf | P2 | - | nee: de uitnodiging Meedoen? en de uitslag van een race of golfronde tegen elkaar (coopwedstrijd3d.js, alleen zolang er een wedstrijd is), de spelerslijst (alleen bij Tab en in het pauzemenu, nooit permanent) en de fade bij samen spelen, en het meekijklaagje van een gast op de scene van de host (coopscene.js, volgt wat de host toont); geen eigen planner | Blijft; klein en alleen op verzoek van de speler. |
 | menu | pausemenu.js, menumelding.js, veroverdpanel.js en 21 andere | beslist zelf | n.v.t. | - | nee: de speler opent het zelf; het is modaal en de rest wacht. Prestaties, Cheats en de fotomodus zetten hun eigen opmaak op (zetCss in elk bestand) maar zijn panelen van ditzelfde menu, dus ze staan hier en niet als eigen surface | Blijft; buiten dit probleem (de speler vraagt erom). |
+| diagnose | gpudiag.js | beslist zelf | P1 | B | nee: het venster Technische info (Instellingen > Beeld): de speler opent het zelf en sluit het weer |  |
 | invoer | input.js, touch.js, aimassist.js | beslist zelf | n.v.t. | - | nee: invoer en richtkruis; vragen de aandacht niet | Blijft; vraagt geen aandacht. |
 | dev | storydev.js, storytest.js, testmenu.js en 2 andere | beslist zelf | n.v.t. | - | nee: ontwikkel- en promohulpen; niet voor de speler | Blijft; hoort niet in het kritieke pad (zie #109). |
 | effect | postfx3d.js, drunk.js | 3 modules, 3 aanroepen | n.v.t. | - | nee: schermeffect zonder tekst (flits, kleur); geen informatie | Blijft; geen informatie, geen kanaal. |
@@ -88,6 +89,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **voertuighud**: Voertuig-HUD buiten de auto: de heli-HUD (vervangt de snelheidsmeter), de vliegtuigkaart en het busbord.
 - **samen**: Samen spelen: de fade bij binnenkomst en de spelerslijst bij Tab (nooit permanent in beeld; de lijst met acties staat in het pauzemenu).
 - **menu**: Pauzemenu, kaart, telefoon, overzicht, garage, winkel, startscherm, profiel: de speler opent ze zelf; modaal.
+- **diagnose**: 
 - **invoer**: Invoer en richtkruis: aanraakknoppen, toetsenbordhulp, het richtkruis.
 - **dev**: Ontwikkel- en promohulpen (testmenu, trailer, verhaaltest): niet voor de speler.
 - **effect**: Schermeffecten zonder tekst: flits (trailer, dorpsuitje, verhaal), kleur van de dronken speler.

@@ -28,4 +28,14 @@ t('de host-naad levert alle methoden', () => {
   assert.deepEqual(state().bikes, []);
 });
 
+t('de fatbike-marker leidt eerst langs de Ebbingebrug, dan naar Oma Trijntje', () => {
+  const { laneTarget } = createMissionLanes(() => ({}));
+  const brug = { x: 25, y: -260, text: 'brug' };
+  const def = { notes: [brug], dest: { x: -289, y: -107 } };
+  assert.equal(laneTarget(def, null), brug, 'nog niet gelezen: de route gaat via de brug (dus door de fatbike-baan)');
+  assert.equal(laneTarget(def, new Set()), brug);
+  assert.equal(laneTarget(def, new Set([brug])), def.dest, 'na de brug: naar het einde');
+  assert.equal(laneTarget({ dest: def.dest }, null), def.dest, 'zonder notes: direct naar het einde');
+});
+
 console.log(`missionlanes_test: ${n}/${n} ok`);

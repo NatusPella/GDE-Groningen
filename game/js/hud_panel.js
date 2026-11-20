@@ -59,7 +59,7 @@ import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
-import { policeBadge, heatTooltip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
+import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -142,7 +142,8 @@ function modeCard(route, mode) {
   if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };
   return null;
 }
-const RPM_ARC = 'M30 160 A85 85 0 1 1 170 160';
+// #985 (eigenaar 20-11): the revs are a thin bar inside the speed card, not a separate big arc
+const RPM_ARC = 'M7 7H193';
 // the red zone starts at this share of the arc
 const RPM_RED_AT = 85;
 
@@ -180,9 +181,9 @@ export function initHud(world) {
   // zone H: speed, gear, revs (the vehicle's damage is in F)
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<div class="sp-main"><div class="sp-gears" role="img" aria-label="Versnelling"></div><b class="sp-val">0</b><span class="sp-unit">km/u</span></div>' +
-    `<svg class="sp-rpm" viewBox="0 0 200 200" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
-    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg>`;
+  speedo.innerHTML = '<div class="sp-main"><b class="sp-val">0</b><span class="sp-unit">km/u</span><div class="sp-gears" role="img" aria-label="Versnelling"></div>' +
+    `<svg class="sp-rpm" viewBox="0 0 200 14" preserveAspectRatio="none" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
+    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg></div>`;
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -248,8 +249,16 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
+  // #952: icoon plus getal bij de politie (schild = eenheden in beeld, ster = gezochtniveau van 5); verborgen zonder politie
+  const mmHeat = document.createElement('div');
+  mmHeat.className = 'hud-mm-heat';
+  mmHeat.hidden = true;
+  mmHeat.setAttribute('role', 'img');
+  mmHeat.innerHTML = '<span class="mmh-eenh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 4.5 5.4v6c0 4.7 3.1 8.5 7.5 10.1 4.4-1.6 7.5-5.4 7.5-10.1v-6z"/></svg><b class="mmh-n"></b></span>'
+    + `<span class="mmh-ster">${STAR}<b class="mmh-w"></b></span>`;
+  mmWrap.appendChild(mmHeat);
   root.appendChild(mmWrap);
-  // v3 (#993): de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
+  // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
   defsWrap.innerHTML = '<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs></svg>';
   root.appendChild(defsWrap.firstChild);
@@ -364,6 +373,9 @@ export function initHud(world) {
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
     mmWrap,
+    mmHeat,
+    mmHeatN: mmHeat.querySelector('.mmh-n'),
+    mmHeatW: mmHeat.querySelector('.mmh-w'),
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
@@ -935,7 +947,7 @@ function placeCandidate(world) {
     if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : townTeaser(d) };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
-  // v3 (#993): een stadswijk staat al als label onder de minimap; een eigen kaart ernaast zou de naam dubbel tonen
+  // #993: een stadswijk staat al als label onder de minimap; een eigen kaart ernaast zou de naam dubbel tonen
   return null;
 }
 
@@ -1195,7 +1207,7 @@ function updateWanted(world) {
   if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
   const stars = [...els.wanted.children];
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
-  // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (v3, #993)
+  // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)
   els.wanted.classList.add('changed');
   clearTimeout(wantedChangedT);
   wantedChangedT = setTimeout(() => els.wanted.classList.remove('changed'), 1400);
@@ -1427,7 +1439,7 @@ function updateMoneyWeapon(dt, world) {
     els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-col"><span class="hud-weapon-text"></span><small class="hud-weapon-ammo"></small></span>`;
     weaponTextEl = weaponAmmoEl = null; // nieuwe kinderen
     restartClass(els.weapon, 'switched');
-    if (!eerste) S.weaponAt = nowS(); // het wapen wisselde: het plaatje komt even in beeld (v3, #995)
+    if (!eerste) S.weaponAt = nowS(); // het wapen wisselde: het plaatje komt even in beeld (#995)
   }
   const label = WEAPON_LABELS[world.weapon] || 'VUISTEN';
   const textEl = weaponTextEl || (weaponTextEl = els.weapon.querySelector('.hud-weapon-text'));
@@ -3025,6 +3037,15 @@ function drawMinimap(dt, world) {
     mmHeatTip = heatTip;
     if (heatTip) { els.mmWrap.title = heatTip; els.mmWrap.setAttribute('aria-label', heatTip); }
     else { els.mmWrap.removeAttribute('title'); els.mmWrap.removeAttribute('aria-label'); }
+    const chip = heatChip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
+    els.mmHeat.hidden = !chip;
+    if (chip) {
+      els.mmHeatN.textContent = chip.eenhedenTekst;
+      els.mmHeatW.textContent = chip.sterTekst;
+      els.mmHeat.classList.toggle('warm', chip.sterren > 0);
+      els.mmHeat.title = chip.uitleg;
+      els.mmHeat.setAttribute('aria-label', chip.uitleg);
+    }
   }
   if (badge) {
     let best = polities[0];

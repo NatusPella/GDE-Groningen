@@ -455,6 +455,13 @@
     },
     {
       "veld": "cameraOverride",
+      "bestand": "game/js/missions.js",
+      "max": 1,
+      "reden": "zet de camera van een binnenset (kantoor, serverkamer, woonkamer) zolang de missie er speelt en geeft hem weer vrij; de binnenset zelf (stagesets.js) levert alleen de camerapositie",
+      "issue": "#956"
+    },
+    {
+      "veld": "cameraOverride",
       "bestand": "game/js/samenpanel.js",
       "max": 1,
       "reden": "neemt de camera over",

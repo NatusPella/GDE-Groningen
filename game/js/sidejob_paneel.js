@@ -87,7 +87,7 @@ export const strandpost = {
     return {
       marker: d.call ? { x: d.call.x, y: d.call.y } : null,
       progress: `${sb.regel.bedrijf} · ${s.answered}/${s.calls} geholpen${s.active ? ` · nog ${left} s` : ''}`,
-      goal: { label: d.call ? 'Naar de zwemmer, Spatie = fluiten' : 'Patrouilleer langs het strand', desc: sb.regel.blurb },
+      goal: { label: d.call ? 'Naar de zwemmer, {SPACE} = fluiten' : 'Patrouilleer langs het strand', desc: sb.regel.blurb },
     };
   },
   stop() {},
@@ -145,7 +145,7 @@ function paneelBaan(id, kleur, baas, glyph, anker, teken, melding) {
       return {
         marker: null,
         progress: `${b.regel.bedrijf}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}`,
-        goal: { label: b.regel.naam, desc: 'Spatie is je knop · Backspace stopt' },
+        goal: { label: b.regel.naam, desc: '{SPACE} is je knop · {BACKSPACE} stopt' },
       };
     },
     stop(c) { sluit(c); },

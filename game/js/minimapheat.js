@@ -62,3 +62,21 @@ export function heatTooltip(wanted, units = 0, opts = {}) {
   const stand = heatUitleg(wanted, units, opts);
   return stand ? `${stand}. ${HEAT_LEGENDA}` : '';
 }
+
+// De chip op de minimap (#952): een icoon met een getal erbij, zodat het niet bij een kaal cijfer blijft.
+// Schild + aantal eenheden in beeld; ster + sterren van het gezochtniveau (x van 5). Leeg zonder politie in beeld.
+// De tekst is groot genoeg om te lezen (CHIP_MIN_PX); de uitleg staat als title en aria-label op de chip.
+export const CHIP_MIN_PX = 13;
+export function heatChip(wanted, units = 0, opts = {}) {
+  const n = geheel(units);
+  if (n <= 0) return null;
+  const sterren = clamp(geheel(wanted), 0, HEAT_MAX);
+  return {
+    eenheden: n,
+    sterren,
+    eenhedenTekst: String(n),
+    sterTekst: `${sterren}/${HEAT_MAX}`,
+    uitleg: heatTooltip(wanted, n, opts),
+    searching: !!opts.searching && sterren > 0,
+  };
+}

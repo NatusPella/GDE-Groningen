@@ -331,22 +331,22 @@ function injectStyles() {
     .mapview-card .mv-pip[data-on] { color: ink(dark); border-color: transparent; }
     .mapview-card .mv-pip[data-m="1"][data-on] { background: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"][data-on] { background: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"][data-on] { background: ink(yellow); }
     .mapview-card .mv-btns { display: flex; gap: 6px; margin-top: 4px; }
-    /* Designsysteem v3 (issue 997, ADR 0040): de kaartchroom is een papieren plaatje met inktrand en harde
+    /* Designsysteem (issue 997, ADR 0040): de kaartchroom is een papieren plaatje met inktrand en harde
        schaduw op de donkere kaart; alleen tokens, geen eigen kleur. De kaart zelf (MAP_PALETTE) blijft
        donker tot de provinciepiramide opnieuw is gebakken. */
-    .mapview-overlay { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-tekst-v3); }
-    .mapview-header { color: var(--ds-zeef-kop); text-shadow: none; border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); font-family: var(--ds-font-kop-v3); font-weight: 800; }
-    .mapview-title { font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk); }
+    .mapview-overlay { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-tekst); }
+    .mapview-header { color: var(--ds-zeef-kop); text-shadow: none; border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+    .mapview-title { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: var(--ds-misdruk); }
     .mv-modenote { color: var(--ds-zeef-tx) !important; }
-    .mapview-search input { color: var(--ds-zeef-tx); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-family: var(--ds-font-tekst-v3); font-size: max(15px, var(--menu-min, 15px)); }
+    .mapview-search input { color: var(--ds-zeef-tx); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-family: var(--ds-font-zeef-tekst); font-size: max(15px, var(--menu-min, 15px)); }
     .mapview-search input:focus, .mapview-search input:focus-visible { border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-klein); outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
     .mapview-search input::placeholder { color: var(--ds-tx-zacht); }
     .mapview-results { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
-    .mapview-results li { color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); }
+    .mapview-results li { color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); }
     .mapview-results li[aria-selected="true"], .mapview-results li:hover { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); }
     .mapview-results .kind { color: var(--ds-tx-zacht); }
     .mapview-results .empty { color: var(--ds-tx-zacht); }
-    .mapview-btn { color: var(--ds-primair-tx); background: var(--ds-zeef-primair); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; min-height: var(--ds-doel-aanraken); }
+    .mapview-btn { color: var(--ds-primair-tx); background: var(--ds-zeef-primair); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; min-height: var(--ds-doel-aanraken); }
     .mapview-btn:hover { background: var(--ds-c-geel-hover); }
     .mapview-btn:active { background: var(--ds-c-geel-druk); box-shadow: none; transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); }
     .mapview-btn.ghost { color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
@@ -360,32 +360,32 @@ function injectStyles() {
     .mapview-route .care { border-bottom-color: var(--mk-care, ${ROUTE_COLORS.care}); }
     .mapview-footer b { color: var(--ds-zeef-kop); }
     .mapview-canvas { box-shadow: none; }
-    .mapview-zoom button { color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-zoom button { color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
     .mapview-zoom button:hover { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-inkt); }
     .mapview-zoom button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
     .mapview-osm { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border-radius: 0; }
-    .mapview-tp { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; }
-    .mapview-tooltip { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-tekst-v3); }
+    .mapview-tp { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+    .mapview-tooltip { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-tekst); }
     .mapview-tooltip .sub { color: var(--ds-zeef-kop); }
     .mapview-legend { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
-    .mapview-legend h3 { color: var(--ds-zeef-kop); font-family: var(--ds-font-kop-v3); font-weight: 800; }
-    .mapview-legend .hint, .mapview-legend .note, .mapview-legend .always { color: var(--ds-tx-zacht); font-family: var(--ds-font-tekst-v3); }
+    .mapview-legend h3 { color: var(--ds-zeef-kop); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+    .mapview-legend .hint, .mapview-legend .note, .mapview-legend .always { color: var(--ds-tx-zacht); font-family: var(--ds-font-zeef-tekst); }
     .mapview-legend .mv-grp { background: var(--ds-c-papier-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
-    .mapview-legend .mv-grp-head { color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-legend .mv-grp-head { color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
     .mapview-legend .mv-grp-head:focus-visible, .mapview-legend li[role="switch"]:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: calc(var(--ds-focus-dikte) * -1); }
-    .mapview-legend li { font-family: var(--ds-font-tekst-v3); font-size: max(16px, var(--menu-min, 16px)); }
+    .mapview-legend li { font-family: var(--ds-font-zeef-tekst); font-size: max(16px, var(--menu-min, 16px)); }
     .mapview-legend li[role="switch"]:hover { background: var(--ds-c-sel-vlak); }
     .mapview-legend .chk { background: var(--ds-c-papier-2); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-sizing: border-box; }
     .mapview-legend .chk::after { background: var(--ds-c-ink-inkt); top: 1px; left: 1px; }
     .mapview-legend li[aria-checked="true"] .chk { background: var(--ds-c-ink-bord); }
     .mapview-legend li[aria-checked="true"] .chk::after { background: var(--ds-c-ink-papier); }
     .mv-naamkaart { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
-    .mv-nk-k { color: var(--ds-zeef-kop); font-family: var(--ds-font-kop-v3); font-weight: 800; }
-    .mv-nk-n { color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk); }
-    .mv-nk-r { color: var(--ds-tx-zacht); font-family: var(--ds-font-tekst-v3); }
-    .mapview-card { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-tekst-v3); }
+    .mv-nk-k { color: var(--ds-zeef-kop); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+    .mv-nk-n { color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: var(--ds-misdruk); }
+    .mv-nk-r { color: var(--ds-tx-zacht); font-family: var(--ds-font-zeef-tekst); }
+    .mapview-card { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-tekst); }
     .mapview-card .mv-ico { background: var(--ds-c-papier-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
-    .mapview-card b { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-card b { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
     .mapview-card small, .mapview-card .mv-rec { color: var(--ds-tx-zacht); }
     .mapview-card .mv-reisrij { color: var(--ds-zeef-tx); background: var(--ds-c-papier-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
     .mapview-card .mv-reisrij.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); }
@@ -1924,7 +1924,7 @@ function drawDynamicMarkers(ctx, world) {
       ctx.lineWidth = 2.5;
       ctx.stroke();
     }
-    icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, 'klik voor Haal weg · rechtsklik of Del om te wissen', { isGoal: true });
+    icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, '{LMB} voor Haal weg · {RMB} of {DELETE} om te wissen', { isGoal: true });
   }
 
   // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent. #674: met de
@@ -2582,6 +2582,7 @@ function cardAction(world, act) {
     const o = opts.find((x) => x.id === gekozen);
     hideCard();
     if (!o || !o.ride) return;
+    if (!o.afford) { if (o.blokkade && world.addMessage) world.addMessage(o.blokkade, 3); return; } // uitgeschakeld met een reden (ovopties.js taxiBlokkade)
     if (world.coopRole === 'client' && world.coopNet) { world.addMessage(ALLEEN_EIGEN_SPEL, 3); return; } // een rit verplaatst alleen zijn eigen figuur, de wereld is van de ander (#388)
     if (closeHandler) closeHandler();
     else closeMap();

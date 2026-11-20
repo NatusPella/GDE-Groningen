@@ -203,7 +203,7 @@ export function pigeonSpotPrompt(w) {
     if (tammoNearby(w)) return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Laat Tammo fluiten', sub: why || 'De duiven luisteren alleen naar hem', ring: true, dim: !!why };
     return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Duiven', sub: 'Die luisteren alleen naar Tammo', ring: true, dim: true };
   }
-  return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Fluit een duif', sub: why || s.host, ring: true, dim: !!why };
+  return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Fluit een duif', sub: why || `${s.host}. Je vliegt dan zelf als duif.`, ring: true, dim: !!why };
 }
 
 export function pigeonSpotSecondary(w) {

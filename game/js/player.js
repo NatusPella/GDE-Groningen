@@ -1,6 +1,7 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMapWater, WATER_Y, clamp } from './util.js';
 import { heeftAutoPortier } from './sfx/samples.js';
 import { wallAhead, solidAhead } from './countrywalls.js';
+import { planBaleAhead } from './countryplan.js';
 import { countryRailAhead } from './countryrails.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap, detachLiveBus } from './vehicle.js';
@@ -8,7 +9,8 @@ import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
 import { waterAt, surfaceLiftAt, boatDeck } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
-import { findRideableProp, rideProp } from './rideprops.js';
+import { findRideableProp, rideFirstFree } from './rideprops.js';
+import { zetRecht } from './vehicledamage.js'; // #1018: een omgevallen fiets rechtzetten
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
@@ -24,7 +26,7 @@ import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
 import { lowWallAhead } from './elevation.js';
 import { drunkMove, drunkSteer } from './drunk.js';
-import { vaultDecision, vehicleHeight, roofSpot, onRoof, ledgeOfSolid, ledgeOfProp, ledgeSpot, onLedge, localToWorld, worldToLocal as worldToLocalV, standable, PERCH_SLIP_SPEED } from './vaultkit.js';
+import { vaultDecision, vehicleHeight, roofSpot, onRoof, ledgeOfSolid, ledgeOfProp, ledgeSpot, onLedge, localToWorld, worldToLocal as worldToLocalV, standable, PERCH_SLIP_SPEED, PERCH_RIDE_MAX, perchThrown, perchCarryVelocity } from './vaultkit.js';
 
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
@@ -297,7 +299,8 @@ export class Player {
     const lowWall = map.elev && map.elev.has ? lowWallAhead(map.elev, this.x, this.y, dx, dy, reach, this.gz + this.z) : null;
     if (lowWall && (!ob || lowWall.dist < ob.dist)) ob = lowWall;
     // (#959) hooibalen: 1,5 m hoog en rond; te hoog om over te stappen, wel om op te klimmen
-    const bale = this.gz < 0.5 ? solidAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
+    // (the bales on the farm yards: countryplan circles with a height)
+    const bale = this.gz < 0.5 ? solidAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) || planBaleAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
     if (bale && (!ob || bale.dist < ob.dist)) { ob = bale; ob.ledge = ledgeOfSolid(bale.cx, bale.cy, bale.rad, bale.h); }
     const car = this.vehicleAhead(world, dx, dy, reach);
     if (car && (!ob || car.dist < ob.dist)) ob = car;
@@ -416,7 +419,7 @@ export class Player {
     const feet0 = this.gz + z0, feet = this.gz + this.z;
     for (const v of world.vehicles || []) {
       const p = standPlek(v, world.map);
-      if (!p || v.driver === 'player' || Math.abs(v.speed) > PERCH_SLIP_SPEED) continue;
+      if (!p || v.driver === 'player' || Math.abs(v.speed) > PERCH_RIDE_MAX) continue; // #1023: een rijdende auto voert je mee
       if (Math.abs(v.x - this.x) > v.halfLen + 0.5 || Math.abs(v.y - this.y) > v.halfLen + 0.5) continue;
       if (feet0 < p.top - 0.05 || feet > p.top + 0.02) continue;
       const [lx, ly] = worldToLocalV(v, this.x, this.y);
@@ -498,8 +501,11 @@ export class Player {
     // teleported (respawn, cutscene, mission start), the car or boat is gone, or
     // someone else took the wheel
     if (!p || v.driver === 'player' || !world.vehicles.includes(v) || Math.hypot(ex - this.x, ey - this.y) > 1.5) { this.leavePerch(world); return false; }
-    if (Math.abs(v.speed) > PERCH_SLIP_SPEED) {
-      // thrown off sideways by a car (or a boat) pulling away
+    // #1023: de snelheid van een beeld eerder en de draaisnelheid voor de worprregel
+    const prevSp = P.prevSpeed ?? v.speed; P.prevSpeed = v.speed;
+    const yawRate = normalizeAngle(v.angle - (P.prevAngle ?? v.angle)) / Math.max(1e-3, dt); P.prevAngle = v.angle;
+    if (perchThrown({ speed: v.speed, yawRate }, prevSp, dt)) {
+      // thrown off sideways by a car (or a boat) pulling away or braking hard
       const side = P.ly >= 0 ? 1 : -1;
       const [ox, oy] = localToWorld(v, Math.max(-v.halfLen, Math.min(v.halfLen, P.lx)), side * (v.halfWid + this.radius + 0.15));
       this.perch = null;
@@ -510,6 +516,8 @@ export class Player {
       return false;
     }
     if (input.wasPressed(' ') && !(world.minigameUntil > world.time)) {
+      const cv = perchCarryVelocity({ speed: v.speed, angle: v.angle, yawRate: 0 }, P.lx, P.ly); // #1023: je houdt de snelheid van de auto bij het afstappen
+      this.shoveX = cv.x * 0.6; this.shoveY = cv.y * 0.6;
       this.vz = PERCH_HOP_SPEED; // een afstapje, geen sprong van een halve meter extra (#434)
       this.jumpAt = world.time;
       this.leavePerch(world);
@@ -1003,12 +1011,15 @@ export class Player {
   }
 
   takeProp(world, prop) {
-    const v = rideProp(world, prop);
+    const v = rideFirstFree(world, prop, this.x, this.y);
     if (v) this.enterVehicle(v, world);
+    else world.addMessage('Deze fiets staat vast, probeer een andere.', 2.5); // #1018: geen stille mislukking meer
   }
 
   enterVehicle(v, world) {
     if (!canEnterVehicle(v)) return;
+    // #1018: een omgevallen fiets ligt op de grond: E zet hem eerst rechtop, daarna stap je op
+    if (v.fallen) { zetRecht(v); if (world) world.addMessage('Fiets rechtgezet.', 2, { kind: 'tip' }); return; }
     const driven = !!v.road || !!v.countryDrive; // an AI driver: city traffic or an Ommeland road user
     // iemand achter het stuur (occupants.js): ook een wachtende in een geparkeerde auto
     // wordt er bij een autokraak uitgetrokken (#459), met de reacties van pedestrians.js

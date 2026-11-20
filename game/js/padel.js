@@ -584,7 +584,7 @@ function startMatch(w, s, { force = false } = {}) {
   document.body.classList.add('padel-on');
   ensureHud();
   hud.root.hidden = false;
-  showCard(w, { kind: 'tip', kicker: 'Padel', title: twins ? 'Tegen Durk en Douwe' : 'Potje padel', body: '[A] [D] [W] [S] lopen, [Spatie] slaan als de ring groen is. Eerst naar 4 games.', duration: 7, key: 'padel-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Padel', title: twins ? 'Tegen Durk en Douwe' : 'Potje padel', body: '{A} {D} {W} {S} lopen, {SPACE} slaan als de ring groen is. Eerst naar 4 games.', duration: 7, key: 'padel-help', voice: false });
   oppSay(w, 0, 'start', true);
   placeActors(w, 0);
   return true;
@@ -1151,7 +1151,7 @@ function startOnline(w, sim, site, online) {
   hud.root.hidden = false;
   matches++;
   placeOnline(w, 0);
-  if (online === 'host') showCard(w, { kind: 'tip', kicker: 'Padel', title: 'Padel tegen elkaar', body: '[A] [D] [W] [S] lopen, [Spatie] slaan als de ring groen is, [Spatie] ook voor de serve. Een stoel zonder speler speelt de computer. [Backspace] stopt voor iedereen.', duration: 7, key: 'padel-help', voice: false });
+  if (online === 'host') showCard(w, { kind: 'tip', kicker: 'Padel', title: 'Padel tegen elkaar', body: '{A} {D} {W} {S} lopen, {SPACE} slaan als de ring groen is, {SPACE} ook voor de serve. Een stoel zonder speler speelt de computer. {BACKSPACE} stopt voor iedereen.', duration: 7, key: 'padel-help', voice: false });
   return true;
 }
 
@@ -1364,7 +1364,7 @@ function updateHud(w) {
   const them = `${g.names[0]} & ${g.names[1]}`;
   const serve = (t) => (g.server === t && g.phase !== 'intro' ? ' •' : '');
   const left = Math.max(0, Math.ceil(MATCH_CAP - g.t));
-  const flash = g.flash ? g.flash.text : g.phase === 'serve' && g.server === 0 ? 'Jij serveert: Spatie' : '';
+  const flash = g.flash ? g.flash.text : g.phase === 'serve' && g.server === 0 ? 'Jij serveert: {SPACE}' : '';
   const clock = g.capped ? 'Laatste punt' : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
   const k = (t) => `<span class="hud-key">${t}</span>`;
   // #599: "GP" staat voor de gouden punt; leg hem één keer op het bord uit als hij in beeld staat.

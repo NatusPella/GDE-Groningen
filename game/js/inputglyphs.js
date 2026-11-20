@@ -63,6 +63,16 @@ export function keyGlyph(code) {
   return n ? glyph('keys', n) : null;
 }
 
+// Mouse tokens -> glyph of the Kenney mouse set (it lives in the 'keys' font): left, right and middle button, wheel, movement, side-to-side drag.
+const MOUSE_GLYPHS = Object.freeze({ LMB: ['mouse_left', 'linkermuisknop'], RMB: ['mouse_right', 'rechtermuisknop'], MMB: ['mouse_scroll', 'middelste muisknop'], WHEEL: ['mouse_scroll_vertical', 'muiswiel'], MOUSE: ['mouse_move', 'muis'], DRAG: ['mouse_horizontal', 'muis slepen'] });
+/** { set, name, char, family, outline, word } of a mouse token (LMB, RMB, MMB, WHEEL, MOUSE, DRAG), or null. */
+export function mouseGlyph(token) {
+  const m = MOUSE_GLYPHS[String(token).toUpperCase()];
+  const g = m ? glyph('keys', m[0]) : null;
+  return g ? { ...g, word: m[1] } : null;
+}
+export const MOUSE_TOKENS = Object.freeze(Object.keys(MOUSE_GLYPHS));
+
 /** Glyph names of a set, for the gallery and the tests. */
 export function glyphNames(set) { return INPUT_GLYPHS[set] ? Object.keys(INPUT_GLYPHS[set]).filter((k) => !k.endsWith('_outline')) : []; }
 

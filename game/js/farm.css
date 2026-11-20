@@ -46,3 +46,13 @@
 .bd-legenda > li { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
 .bd-uitleg { display: flex; gap: var(--ds-s-4); align-items: flex-start; }
 .bd-uitleg ol { margin: 0; padding-left: var(--ds-s-5); }
+
+/* Velden als compacte regels (panelmodel, DESIGN_SYSTEM.md > Panels) */
+.bd-veldlijst { max-width: none; }
+.bd-veldregel { grid-template-columns: var(--ds-s-5) minmax(0, 1fr) auto auto; }
+.bd-veldregel__ic .ds-icoon { width: var(--ds-s-5); height: var(--ds-s-5); }
+.bd-veldregel__t { display: flex; flex-direction: column; min-width: 0; }
+.bd-veldregel__t > b { font-weight: normal; font-size: var(--ds-t-body); }
+.bd-veldregel__t > span { color: var(--ds-tx-zacht); }
+.bd-veldregel__w { font-family: var(--ds-font-kop); font-size: var(--ds-t-label); white-space: nowrap; }
+.bd-pane .bd-veldregel { color: var(--ds-tx); }

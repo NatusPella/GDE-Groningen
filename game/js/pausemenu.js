@@ -5,7 +5,7 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
-import { keyLabelGlyph } from './keycap.js';
+import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
@@ -33,7 +33,8 @@ import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
-import { renderBoerderijPanel } from './boerderijui.js';
+import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
+import { getBoerderij } from './boerderijlive.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig, actieBevestiging } from './ownedvehicles.js';
@@ -60,6 +61,7 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
+import { maakRegel, zoekRegels, SOORTEN } from './menuzoek.js';
 import { renderSpullen, spullenClick, spullenFocus, spullenEnter, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
@@ -139,7 +141,7 @@ const CONTROL_GROUPS = [
     // #985 punt 1: toets 5 stond wel in KEY_ACTIONS (en werkt), maar niet in dit overzicht: een
     // speler kon hem dus niet vinden. Hij staat bij de kaart, want hij zet een doel op de kaart.
     [['5'], 'Eigen doel op de kaart'],
-    [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
+    [['ARROWS'], 'In het menu: kiezen, {ENTER}: ok'],
     [['Q', 'E'], 'Volgend tabblad of onderdeel'],
     [['[', ']'], 'Zelfde als Q en E'],
     [['N'], 'Radio aan of uit'],
@@ -147,7 +149,7 @@ const CONTROL_GROUPS = [
     [['O'], 'Verhaalstap overslaan'],
     [['C'], 'Taxi of trein: andere camera (Y)'],
     [['BACKSPACE'], 'Minigame of dienst stoppen'],
-    ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
+    ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook {ALT}+{ENTER})']] : []),
   ]],
 ];
 
@@ -173,7 +175,7 @@ const CONTROL_LONG = [
     ['Wheelie of stoppie', 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen), een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen); heli: omlaag; vliegtuig: neus omlaag.'],
     ['Schakelen', 'Handmatig schakelen: hoger en lager (Instellingen › Schakelen).'],
     ['Koppeling', 'Handmatig met koppeling: de koppeling indrukken bij het schakelen.'],
-    ['Achterom kijken', 'Achterom kijken: houd {Q} vast, of de middelste muisknop.'],
+    ['Achterom kijken', 'Achterom kijken: houd {Q} vast, of druk op {WHEEL}.'],
     ['Sirene', 'Zwaailicht en sirene (politieauto, ambulance).'],
     ['Richting aangeven', 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit).'],
     ['Eerste persoon', 'Eerste persoon aan of uit: de camera op de ogen van je figuur, met een vrije blik. De BINNENIN-filmcamera blijft via {V} bereikbaar.'],
@@ -217,7 +219,7 @@ const CONTROL_LONG = [
 const GROUP_ICONS = { voet: 'lopen', vervoer: 'auto', vechten: 'doel', duif: 'duif', samen: 'samen', menu: 'telefoon' };
 // the controller table (controls.js PAD_MAPS) each group shows when a pad is in use
 const GROUP_CTX = { voet: 'foot', vervoer: 'vehicle', vechten: 'foot', duif: 'pigeon', samen: 'foot', menu: 'menu' };
-const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
+const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' }; // keywords-ok: zoekwoorden, geen weergave
 
 const altKeys = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
 // #605: de lange uitleg van een situatie, per korte actie. Stond vroeger onder elke toets in het
@@ -371,14 +373,14 @@ const SECTIONS = [
 // naast Instellingen: het was te verstopt onder Instellingen > Cheats.
 const RAIL_GROUPS = [
   ['spel', 'Spel', ['spel']],
-  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'map']],
+  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'boerderij', 'map']],
   ['bezit', 'Bezit', ['spullen', 'garage']],
   ['voortgang', 'Voortgang', ['veroverd', 'prestaties', 'fotos']],
   ['systeem', 'Systeem', ['settings', 'streken']],
 ];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
+const CHILD = { visboek: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
@@ -434,7 +436,7 @@ const HINTS = {
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
   map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'onderdeel'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
-  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'groep'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   loopbaan: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -598,10 +600,10 @@ function fixedKeysHtml() {
     ['Enter', 'Bevestigen en in het menu ok'],
     ['Pijltjes', 'Kiezen in het menu'],
     ['F8', 'Fotomodus'],
-    ['F11', 'Volledig scherm (ook Alt+Enter)'],
+    ['F11', 'Volledig scherm (ook {ALT}+{ENTER})'],
     ['Muis', 'Kijken, richten en schieten'],
   ];
-  return '<div class="pm-fixed">' + rows.map(([k, v]) => `<div class="pm-fixed-row"><span class="m-kc">${esc(k)}</span><span>${esc(v)}</span></div>`).join('') + '</div>';
+  return '<div class="pm-fixed">' + rows.map(([k, v]) => `<div class="pm-fixed-row"><span class="m-kc is-kbg">${keyLabelHtml(k)}</span><span>${keyText(v)}</span></div>`).join('') + '</div>';
 }
 
 // #894: dezelfde toets doet in verschillende situaties iets anders (E is gebruiken, instappen,
@@ -622,7 +624,7 @@ function keyReuseHtml() {
     .sort((a, b) => b[1].length - a[1].length).slice(0, 4);
   if (!dubbel.length) return '';
   return '<div class="pm-keyreuse"><b>Dezelfde toets, meer taken</b>' +
-    dubbel.map(([k, lijst]) => `<div class="pm-keyreuse-row"><span class="m-kc">${esc(keyLabel(k))}</span><span>${esc(lijst.join(' · '))}</span></div>`).join('') + '</div>';
+    dubbel.map(([k, lijst]) => `<div class="pm-keyreuse-row"><span class="m-kc is-kbg">${glyphHtml(k)}</span><span>${esc(lijst.join(' · '))}</span></div>`).join('') + '</div>';
 }
 
 // #980: Instellingen > Camera opent met wat er nu staat, in één blik: de stand, de beeldhoek en
@@ -639,7 +641,7 @@ function camNowHtml() {
 function hintsNowHtml() {
   return '<div class="pm-hintprev" data-hintprev role="group" aria-label="Zo zien hints eruit">' +
     '<span class="m-eb">Zo zien hints eruit</span>' +
-    '<span class="pm-hintprev-row" data-hintprev-row aria-live="polite"><span class="m-kc">E</span><span>Instappen</span></span></div>';
+    '<span class="pm-hintprev-row" data-hintprev-row aria-live="polite"><span class="m-kc is-kbg">' + glyphHtml('E') + '</span><span>Instappen</span></span></div>';
 }
 
 // De feiten bovenaan Camera en het hintvoorbeeld onder Hints volgen elke wijziging meteen (#980).
@@ -671,7 +673,7 @@ function syncNowFacts(st = getSettings()) {
       voorbeeld.dataset.stand = sig;
       voorbeeld.innerHTML = stand === 'uit' ? '<span class="mut">Hints staan uit.</span>'
         : stand === 'pad' ? `${pg('y')}<span>Instappen</span>`
-          : `<span class="m-kc">${esc(instap)}</span><span>Instappen</span>`;
+          : `<span class="m-kc is-kbg">${glyphHtml('E')}</span><span>Instappen</span>`;
     }
   }
   // zonder hints heeft "Hints tonen voor" geen gevolg: de kiezer gaat opzij in plaats van dood te lopen
@@ -705,7 +707,7 @@ function settingsHtml() {
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen', 'Schaduwen geven de wereld diepte; uit is soepeler op een lichte computer')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
-      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
+      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">{F11} of {ALT}+{ENTER}</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
            beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
@@ -713,6 +715,12 @@ function settingsHtml() {
       <div class="pm-confirm" data-bench-confirm hidden>
         <p data-bench-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
+      </div>
+      <div class="m-li pm-row">${rowName('Diagnose', keyText('Videokaart, schermverversing en snelheid in één blok om te kopiëren of door te sturen ({CTRL}+{SHIFT}+{G})'))}<button type="button" class="m-bg" data-action="gpuinfo">Kopieer technische info</button></div>
+      <div class="pm-confirm" data-gpu-warn hidden>
+        <p data-gpu-warn-text></p>
+        <p data-gpu-help hidden>Zo kies je de snelle videokaart in Windows: open Instellingen › Systeem › Beeldscherm › Graphics, kies GDE Groningen in de lijst (of voeg de app toe met Bladeren), klik op Opties en kies Hoge prestaties. Start het spel daarna opnieuw. Zit je beeldscherm aan het moederbord in plaats van aan de videokaart, steek de kabel dan in de videokaart.</p>
+        <div class="m-acts"><button type="button" class="m-bt" data-action="gpu-help">Uitleg</button></div>
       </div>
       ${disclosure('video', 'Meer opties', 'Licht, gloed en kleuren', `
         ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}`)}`, `
@@ -749,7 +757,7 @@ function settingsHtml() {
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
+      ${toggle('mapShiftTeleport','{SHIFT}+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
@@ -759,7 +767,7 @@ function settingsHtml() {
       <div class="m-li pm-row">${rowName('Toetsen aanpassen', 'Elke toets een andere functie geven; zit een toets al op iets anders, dan ruilen ze')}<button type="button" class="m-bg" data-goto-sub="controls:toetsen">Aanpassen</button></div>
       ${keyChangedRow()}
       <div class="m-li pm-row">${rowName('Toetsenoverzicht', 'Alle toetsen per situatie, om na te lezen')}<button type="button" class="m-bg" data-goto-sub="controls:overzicht">Bekijken</button></div>
-      ${disclosure('keys-fixed', 'Deze toetsen liggen vast', 'Esc, Enter, de pijltjes en de functietoetsen', fixedKeysHtml())}
+      ${disclosure('keys-fixed', 'Deze toetsen liggen vast', '{ESC}, {ENTER}, {ARROWS} en de functietoetsen', fixedKeysHtml())}
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via een koppelprogramma), kies dan zelf; knoppen en hints volgen je keuze')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05, '', 'keer')}
@@ -803,7 +811,7 @@ ${keyReuseHtml()}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       <div class="m-gh"><span>Uitleg</span></div>
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de kaart en Activiteiten')}
-      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
+      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of {ENTER}')}
       <div class="m-gh"><span>Terugkijken</span></div>
       <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
       <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
@@ -880,9 +888,10 @@ function spelHtml() {
     </div>
     ${tab('acties', `
       ${saveFactsHtml()}
+      <div class="m-li pm-row">${rowName('Naar mijn boerderij', 'Je akker, gewassen en machines')}<button type="button" class="m-bg" data-goto="boerderij">Boerderij</button></div>
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
-      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden begint buiten je flat')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
+      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden zet je terug waar je was, of bij je flat als je daar opsloeg')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
@@ -948,13 +957,14 @@ export function initPauseMenu(w) {
   const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
   // #911: elke groep met een eigen kop en het aantal onderdelen erachter; de telling volgt in
   // showTab wat er echt in de rail staat (het hoofdmenu toont er maar drie).
-  const railGroup = ([id, label, members]) => `<div class="pm-rail-group" data-group="${id}"><span class="pm-rail-h"><span>${esc(label)}</span><span class="cnt" data-gcount="${id}"></span></span>` +
+  const railGroup = ([id, label, members]) => `<div class="pm-rail-group" data-group="${id}"><span class="pm-rail-h"><span>${esc(label)}</span></span>` +
     members.map(railBtn).join('') + '</div>';
   root.innerHTML = `
     <div class="pm-fold gm-stage">
       <nav class="pm-rail" aria-label="Pauzemenu">
         <div class="pm-inner pm-game">
           <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title" class="pm-sr">Pauze</b><span class="mut pm-q-info" data-info="when"></span></div>
+          <div class="pm-rail-go"><button type="button" class="m-bp pm-go pm-ingame" data-action="resume" title="Terug naar het spel">${icon('resume', 'pm-ic')}<span>Doorgaan</span></button><button type="button" class="m-bg pm-findbtn" data-find-open title="Zoek in het menu (/)" aria-label="Zoek in het menu">${icon('search', 'pm-ic')}</button></div>
           ${RAIL_GROUPS.map(railGroup).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
           ${DESKTOP ? `<button type="button" class="ra pm-exit" data-action="exit" title="Vraagt eerst of je het zeker weet; je voortgang wordt opgeslagen">${icon('exit', 'pm-ic ra-ic')}<span class="ra-t">Afsluiten</span></button>` : ''}
@@ -1025,6 +1035,13 @@ export function initPauseMenu(w) {
           <div class="m-acts"><button type="button" class="m-bp" data-action="exit-retry">Opnieuw proberen</button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten</button><button type="button" class="m-bt" data-action="exit-cancel">Annuleren</button></div>
         </div>
       </div>
+      <div class="pm-quitbox pm-findbox" data-find hidden role="dialog" aria-modal="true" aria-label="Zoek in het menu">
+        <div class="pm-quitpane pm-findpane">
+          <label class="m-inp pm-csearch">${icon('search')}<input type="search" class="pm-find-inp" data-find-input placeholder="Zoek een scherm, instelling of actie" aria-label="Zoek in het menu" autocomplete="off" spellcheck="false"></label>
+          <ul class="pm-find-list" data-find-list></ul>
+          <p class="pm-find-hint" data-find-hint></p>
+        </div>
+      </div>
       <footer class="pm-footer m-foot"></footer>
     </div>`;
   document.body.appendChild(root);
@@ -1045,6 +1062,10 @@ export function initPauseMenu(w) {
       return;
     }
     if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }
+    if (e.target.closest('[data-find-open]')) { openFind(); return; }
+    if (e.target.matches('[data-find]')) { closeFind(); return; }
+    const fr = e.target.closest('[data-find-go]');
+    if (fr) { runFind(Number(fr.dataset.findGo)); return; }
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
     const hint = e.target.closest('[data-hint]');
@@ -1143,6 +1164,19 @@ export function initPauseMenu(w) {
     });
   }
   search.addEventListener('input', () => filterControls(search.value));
+
+  // het zoekvenster van het menu (21-11): dezelfde afscherming, plus pijl omlaag naar de lijst en Enter op de beste
+  const findInp = root.querySelector('[data-find-input]');
+  for (const type of ['keydown', 'keyup', 'keypress']) {
+    findInp.addEventListener(type, (e) => {
+      e.stopPropagation();
+      if (type !== 'keydown') return;
+      if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); focusEl(root.querySelector('[data-find] .pm-find-r')); }
+      else if (e.key === 'Enter') { e.preventDefault(); runFind(0); }
+    });
+  }
+  findInp.addEventListener('input', () => renderFind(findInp.value));
 
   // het zoekveld van Spullen (#435): dezelfde afscherming, zodat typen niet in het spel belandt
   const spulZoek = root.querySelector('[data-spul-search]');
@@ -1303,6 +1337,7 @@ function onKey(e) {
     return;
   }
   const inRail = !!(t && t.closest && t.closest('.pm-rail'));
+  if (k === '/' && !e.repeat) { consume(e); openFind(); return; }
   if (k === 'Escape' || k === 'Backspace') {
     consume(e);
     goBack();
@@ -1317,6 +1352,7 @@ function onKey(e) {
     // Q/E and [ ] do what the footer says (DESIGN_SYSTEM.md, "Menus"): the visible tab
     // row first, the innermost one on a screen with a second row (Spel > Samen spelen),
     // then the section's own tabs, then the previous or next section (#601).
+    if (tab === 'spullen' && cycleSpullenDelen(dir)) return;
     if (SUBTABS[tab] && cycleVisibleTabs(dir)) return;
     if (cycleOwnTabs(dir)) return;
     cycleSection(dir);
@@ -1380,7 +1416,7 @@ function onKey(e) {
 // een toetsenbordgebruiker achter de dialoog langs naar de rail.
 function visibleQuestion() {
   if (!root) return null;
-  return root.querySelector('[data-quit-confirm]:not([hidden])') || root.querySelector('[data-exit-confirm]:not([hidden])');
+  return root.querySelector('[data-quit-confirm]:not([hidden])') || root.querySelector('[data-exit-confirm]:not([hidden])') || root.querySelector('[data-find]:not([hidden])');
 }
 
 function syncQuestionLayers() {
@@ -1399,8 +1435,98 @@ function showQuestion(box, on) {
   syncQuestionLayers();
 }
 
+// Zoeken in het menu (21-11): "/" of de knop bovenaan de rail. Typ een woord, kies met de pijlen of de muis en Enter
+// gaat erheen: een scherm, een onderdeel, een instelling (de rij licht even op) of een actie (opslaan, afsluiten).
+// Zonder woord staat er een beginlijst, zodat het met een controller ook werkt zonder te typen.
+let findRegels = [];
+let findHits = [];
+const findOpen = () => !!(root && root.querySelector('[data-find]:not([hidden])'));
+
+function bouwFindRegels() {
+  const regels = [];
+  const plekVan = (id) => { const g = RAIL_GROUPS.find(([, , m]) => m.includes(CHILD[id] || id)); return g ? g[1] : ''; };
+  if (!prestart) {
+    regels.push(maakRegel({ id: 'a-resume', soort: 'actie', label: 'Doorgaan', plek: 'Terug naar het spel', zoek: 'verder spelen sluiten', ic: 'resume', act: 'resume' }));
+    regels.push(maakRegel({ id: 'a-save', soort: 'actie', label: 'Spel opslaan', plek: 'Bewaart je voortgang', zoek: 'bewaren', ic: 'save', act: 'save' }));
+    regels.push(maakRegel({ id: 'a-saves', soort: 'actie', label: 'Opgeslagen spellen', plek: 'Laden of verwijderen', zoek: 'kiezen hernoemen exporteren savegame', ic: 'load', act: 'saves' }));
+  }
+  if (!prestart) regels.push(maakRegel({ id: 'a-farm', soort: 'actie', label: 'Naar mijn boerderij', plek: 'Je akker en gewassen', zoek: 'akker perceel gewas landbouw', ic: 'boerderij', act: 'farm' }));
+  if (DESKTOP) regels.push(maakRegel({ id: 'a-exit', soort: 'actie', label: 'Afsluiten', plek: 'Slaat je voortgang op', zoek: 'stoppen sluiten spel verlaten', ic: 'exit', act: 'exit' }));
+  for (const id of sectionIds()) {
+    const [, label, hint] = sectionOf(id);
+    regels.push(maakRegel({ id: 's-' + id, soort: 'scherm', label, plek: plekVan(id), zoek: hint, ic: id, sec: id }));
+  }
+  for (const of of Object.keys(SUBTABS)) {
+    if (of === 'samen' || !sectionIds().includes(of)) continue;
+    const [, sl] = sectionOf(of);
+    for (const [id, tekst] of subsOf(of)) regels.push(maakRegel({ id: `o-${of}-${id}`, soort: 'onderdeel', label: tekst, plek: sl, ic: of, sec: of, sub: id }));
+  }
+  let n = 0;
+  for (const row of root.querySelectorAll('[data-of="settings"][data-sub] .m-li, [data-of="spel"][data-sub] .m-li')) {
+    const nm = row.querySelector('.nm');
+    const label = nm && nm.firstChild ? String(nm.firstChild.textContent || '').trim() : '';
+    const holder = row.closest('[data-of][data-sub]');
+    if (!label || !holder || !sectionIds().includes(holder.dataset.of)) continue;
+    const [, sl] = sectionOf(holder.dataset.of);
+    const sub = (SUBTABS[holder.dataset.of].find(([id]) => id === holder.dataset.sub) || [])[1] || '';
+    row.dataset.findId = String(n++);
+    const mut = row.querySelector('.nm .mut');
+    regels.push(maakRegel({ id: 'i-' + row.dataset.findId, soort: 'instelling', label, plek: sub ? sl + ' > ' + sub : sl, zoek: mut ? mut.textContent : '', ic: holder.dataset.of, sec: holder.dataset.of, sub: holder.dataset.sub, rij: row.dataset.findId }));
+  }
+  return regels;
+}
+
+function renderFind(q = '') {
+  const lijst = root.querySelector('[data-find-list]');
+  findHits = zoekRegels(findRegels, q, 8);
+  lijst.innerHTML = findHits.length
+    ? findHits.map((r, i) => `<li><button type="button" class="pm-find-r" data-find-go="${i}">${icon(r.ic, 'pm-ic')}<span class="pm-find-t">${esc(r.label)}</span><span class="pm-find-p">${esc(r.plek || SOORTEN[r.soort])}</span><span class="pm-find-k">${SOORTEN[r.soort]}</span></button></li>`).join('')
+    : '<li class="pm-find-leeg">Niks gevonden. Probeer een ander woord, bijvoorbeeld "geluid" of "opslaan".</li>';
+  root.querySelector('[data-find-hint]').textContent = q.trim() ? '' : 'Typ een woord, of kies hieronder een scherm of actie.';
+}
+
+function openFind() {
+  if (!root || !open || findOpen()) return;
+  cancelRebind(true);
+  findRegels = bouwFindRegels();
+  const box = root.querySelector('[data-find]');
+  const inp = box.querySelector('[data-find-input]');
+  inp.value = '';
+  renderFind('');
+  showQuestion(box, true);
+  if (isPadActive()) focusEl(box.querySelector('.pm-find-r'));
+  else inp.focus();
+}
+
+function closeFind() {
+  const box = root && root.querySelector('[data-find]');
+  if (!box || box.hidden) return;
+  showQuestion(box, false);
+  focusEl(root.querySelector('[data-find-open]'));
+}
+
+function runFind(i) {
+  const r = findHits[i];
+  if (!r) return;
+  showQuestion(root.querySelector('[data-find]'), false);
+  if (r.act === 'farm') { enterSection('boerderij'); return; }
+  if (r.act) { runAction(r.act); return; }
+  if (r.sub) pref.sub[r.sec] = r.sub;
+  enterSection(r.sec);
+  if (r.rij == null) return;
+  const row = root.querySelector(`[data-find-id="${r.rij}"]`);
+  if (!row) return;
+  const body = row.closest('[data-fold-body]');
+  if (body && body.hidden) { const kop = root.querySelector(`[data-fold="${body.dataset.foldBody}"]`); if (kop) toggleFold(kop, true); }
+  focusEl(row.querySelector('input, select, button') || row);
+  row.classList.add('pm-flash');
+  setTimeout(() => row.classList.remove('pm-flash'), 1800);
+}
+
 // Esc/Backspace: close an open confirm, then back to Overzicht, then close.
 function goBack() {
+  // het zoekvenster (21-11) gaat voor alles met Escape dicht
+  if (findOpen()) { closeFind(); return; }
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
@@ -1525,6 +1651,15 @@ function cycleVisibleTabs(dir) {
   return true;
 }
 
+// Spullen: Q en E wisselen tussen de groepen (Alles, Uitrusting, Thuis, Verzamelingen), zoals de footer zegt
+function cycleSpullenDelen(dir) {
+  const chips = [...root.querySelectorAll('[data-panel="spullen"] [data-spul-deel]')];
+  if (!chips.length) return false;
+  const i = Math.max(0, chips.findIndex((c) => c.getAttribute('aria-pressed') === 'true'));
+  chips[(i + dir + chips.length) % chips.length].click();
+  return true;
+}
+
 function cycleOwnTabs(dir) {
   const p = activePanel();
   const tabs = p ? [...p.querySelectorAll('[role="tab"]')].filter((t) => t.getClientRects().length) : [];
@@ -1579,7 +1714,7 @@ function bindRowsKeys() {
     return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen">` +
       `<span class="nm"><span class="one">${esc(hoofd)}</span>${ook}${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
-  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}`;
+  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. {ESC}, {ENTER}, {ARROWS} en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: {CTRL}+{W} sluit daar het tabblad.' : ''}`;
   return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
 }
 
@@ -1626,7 +1761,7 @@ function startKeyRebind(btn) {
   // #605: de wachtstand houdt de actienaam in beeld, zodat je weet wat je aan het indelen bent
   btn.classList.add('pm-waiting');
   btn.innerHTML = `<span class="nm"><span class="one">${esc(actionWords(canon))}</span><span class="mut">Druk een toets…</span></span><span class="m-kc">…</span>`;
-  setBindMsg('Druk de nieuwe toets. Esc annuleert.');
+  setBindMsg('Druk de nieuwe toets. {ESC} annuleert.');
   rebinding = { kind: 'key', canon };
   input.captureKey = (raw) => {
     rebinding = null;
@@ -1647,7 +1782,7 @@ function startPadRebind(btn) {
   // #605: ook hier blijft de actienaam staan terwijl je op een knop wacht
   btn.classList.add('pm-waiting');
   btn.innerHTML = `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">Druk een knop…</span></span><span class="pm-padcap">…</span>`;
-  setBindMsg('Druk op de controller de nieuwe knop. Menu/Start of Esc annuleert.');
+  setBindMsg('Druk op de controller de nieuwe knop. Menu/Start of {ESC} annuleert.');
   rebinding = { kind: 'pad', slot };
   rebinding.cancel = capturePadButton((phys) => {
     rebinding = null;
@@ -2012,12 +2147,17 @@ function runAction(a) {
     if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
     preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
     location.reload();
+  } else if (a === 'gpuinfo') {
+    import('./gpudiag.js').then((G) => G.showTechInfo());
+  } else if (a === 'gpu-help') {
+    const h = root.querySelector('[data-gpu-help]');
+    h.hidden = !h.hidden;
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').textContent = prestart
-      ? 'Benchmark starten? Duurt ongeveer een minuut. Esc stopt.'
-      : 'Benchmark starten? Je spel wordt eerst opgeslagen. Esc stopt.';
+      ? 'Benchmark starten? Duurt ongeveer een minuut. {ESC} stopt.'
+      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.';
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
   } else if (a === 'bench-go') {
@@ -2086,6 +2226,8 @@ function runAction(a) {
 
 function status(text) {
   root.querySelector('[data-game-status]').textContent = text;
+  // vanaf een ander scherm (Overzicht, het zoekvenster) staat de statusregel niet in beeld: dan als melding
+  if (text && !(tab === 'spel' && pref.sub.spel === 'acties')) menuMelding(text);
 }
 
 const garageEl = () => root.querySelector('[data-panel="garage"] .pm-inner');
@@ -2194,6 +2336,7 @@ function syncControls() {
   if (demp) demp.checked = isMuted();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
   syncPresets(st);
+  syncGpuWarning();
   for (const el of root.querySelectorAll('[data-setting]')) {
     const v = st[el.dataset.setting];
     if (el.classList.contains('m-pk')) {
@@ -2222,6 +2365,19 @@ function syncControls() {
   if (diffBox) for (const row of diffBox.querySelectorAll('[data-diff]')) row.toggleAttribute('data-on', row.dataset.diff === st.difficulty);
   syncKeyChanged();
   syncNowFacts(st);
+}
+
+// 0.64.1: a line under the diagnose row when the game draws in software or on the integrated GPU
+function syncGpuWarning() {
+  const box = root.querySelector('[data-gpu-warn]');
+  if (!box) return;
+  import('./gpudiag.js').then((G) => {
+    const w = G.currentGpuWarning();
+    box.hidden = !w;
+    if (!w) return;
+    box.querySelector('[data-gpu-warn-text]').textContent = w.text;
+    box.querySelector('[data-action="gpu-help"]').hidden = !w.help;
+  }, () => {});
 }
 
 // The preset buttons, the explanation beside them and, after a benchmark, one
@@ -2432,7 +2588,7 @@ function syncRail() {
   root.querySelector('[data-restart-confirm]').hidden = true;
   root.querySelector('[data-coop-load-confirm]').hidden = true;
   root.querySelector('[data-coop-new-confirm]').hidden = true;
-  for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm]')) box.hidden = true;
+  for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm], [data-find]')) box.hidden = true;
   syncQuestionLayers();
   closeAction = null;
   root.querySelector('[data-game-status]').textContent = '';
@@ -2467,8 +2623,8 @@ function hintHtml([keys, label, action], pad, back) {
   if (pad && keys.every((k) => k in PAD_KEYS && PAD_KEYS[k] === null)) return '';
   const caps = keys.map((k) => {
     if (pad && k in PAD_KEYS) { const slot = PAD_KEYS[k]; return slot ? pg(slot) : ''; }
-    const kg = k.length > 1 && /^[↑↓←→]/.test(k) ? null : keyLabelGlyph(k);
-    return kg ? `<span class="m-kc is-kbg">${kg}</span>` : `<span class="m-kc">${esc(k)}</span>`;
+    const kg = keyLabelGlyph(k);
+    return kg ? `<span class="m-kc is-kbg">${kg}</span>` : `<span class="m-kc is-kbg">${keyLabelHtml(k)}</span>`;
   }).join('');
   const text = label === BACK ? back : (pad && PAD_LABEL[label]) || label;
   return `<button type="button" class="m-hint" tabindex="-1"${action ? ` data-hint="${action}"` : ''}>${caps}<span>${esc(text)}</span></button>`;
@@ -2518,13 +2674,14 @@ function showTab(name, how) {
     b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
   }
+  // de boerderij is een eigen item: zonder begonnen akker heet het "Begin je boerderij" (21-11)
+  const bdLabel = root.querySelector('.pm-game [data-goto="boerderij"] .ra-t');
+  if (bdLabel) { let begonnen = true; try { begonnen = boerderijBegonnen(getBoerderij()); } catch (e) { /* boerderij niet klaar */ } bdLabel.textContent = begonnen ? 'Boerderij' : 'Begin je boerderij'; }
   // #911: de kop van een groep telt wat er in de rail staat; een lege groep (het hoofdmenu
   // toont alleen Spel, Instellingen en Besturing) verdwijnt met zijn kop.
   for (const g of root.querySelectorAll('.pm-rail-group')) {
     const shown = [...g.querySelectorAll('[data-goto]')].filter((b) => !b.hidden).length;
     g.hidden = shown === 0;
-    const cnt = g.querySelector('[data-gcount]');
-    if (cnt) cnt.textContent = shown > 1 ? String(shown) : '';
   }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');

@@ -56,11 +56,11 @@ export function instrumentData(v, wind = null) {
 // De toetsen en knoppen, voor de balk onderin en voor de uitleg bij het instappen. Shift remt
 // alleen op de baan (arcadeplane.js telt de rem daar op); in de lucht belooft de balk dat ook,
 // anders zoek je een luchtrem die er niet is.
-export const BEDIENING = 'W en S gas · A en D rollen · ↑/Spatie neus omhoog · ↓/Ctrl neus omlaag · Q en E roer · Shift remmen op de baan · K kleppen · G landingsgestel';
+export const BEDIENING = '{W} en {S} gas · {A} en {D} rollen · {ARROWUP}/{SPACE} neus omhoog · {ARROWDOWN}/{CTRL} neus omlaag · {Q} en {E} roer · {SHIFT} remmen op de baan · {K} kleppen · {G} landingsgestel';
 export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B of LT omlaag · LB kleppen · X landingsgestel';
 // #632: het instaptip blijft binnen het kaartbudget; de lange uitleg staat in Besturing > Hulp.
-export const UITLEG_INSTAPPEN = 'Gas: W. Stijgen: Spatie. Rollen: A/D. Kleppen: K. Gestel: G. Landen: zacht.';
-export const BEDIENING_KORT = 'W/S gas · A/D rollen · Q/E roer · K kleppen · G landingsgestel';
+export const UITLEG_INSTAPPEN = 'Gas: {W}. Stijgen: {SPACE}. Rollen: {A}/{D}. Kleppen: {K}. Gestel: {G}. Landen: zacht.';
+export const BEDIENING_KORT = '{W}/{S} gas · {A}/{D} rollen · {Q}/{E} roer · {K} kleppen · {G} landingsgestel';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
 const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid var(--mk-ok, #3fc97a)}
@@ -81,7 +81,7 @@ body.plane-flying #hud .hud-speedo{display:none}
 #hud .hud-instr .hi-st{margin-top:5px;font-size:14px;min-height:18px}
 #hud .hud-instr .hi-keys{margin-top:4px;font-size:12px;line-height:15px;color:rgba(240,237,228,.62)}
 /* Zomerse zeefdruk (ADR 0040): de instrumentenkaart als papier met inktrand en harde schaduw. */
-#hud .hud-instr{color:var(--ds-c-ink-inkt);text-shadow:none;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-left:8px solid var(--ds-c-ink-bord);border-radius:8px;box-shadow:var(--ds-schaduw-hard);font-family:var(--ds-font-kop-v3);font-weight:600}
+#hud .hud-instr{color:var(--ds-c-ink-inkt);text-shadow:none;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-left:8px solid var(--ds-c-ink-bord);border-radius:8px;box-shadow:var(--ds-schaduw-hard);font-family:var(--ds-font-zeef-kop);font-weight:600}
 #hud .hud-instr small{font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--ds-c-ink-bord)}
 #hud .hud-instr .hi-num b{font-weight:800}
 #hud .hud-instr .hi-num span{font-size:13px;color:var(--ds-c-inkt-zacht)}
@@ -91,8 +91,8 @@ body.plane-flying #hud .hud-speedo{display:none}
 #hud .hud-instr .hi-lamp{font-size:13px;border:2px dashed var(--ds-c-ink-inkt)}
 #hud .hud-instr .hi-lamp.on{background:var(--ds-c-groen-vlak);color:var(--ds-c-groen-tx);border:2px solid var(--ds-c-ink-inkt)}
 #hud .hud-instr .hi-lamp.warn{background:var(--ds-c-rood-vlak);color:var(--ds-c-rood-tx);border:2px solid var(--ds-c-rood)}
-#hud .hud-instr .hi-st{font-family:var(--ds-font-tekst-v3)}
-#hud .hud-instr .hi-keys{font-family:var(--ds-font-tekst-v3);font-size:13px;color:var(--ds-c-inkt-zacht)}`;
+#hud .hud-instr .hi-st{font-family:var(--ds-font-zeef-tekst)}
+#hud .hud-instr .hi-keys{font-family:var(--ds-font-zeef-tekst);font-size:13px;color:var(--ds-c-inkt-zacht)}`;
 
 function tekenHorizon(ctx, d) {
   const S = 96, c = S / 2, r = c - 3;

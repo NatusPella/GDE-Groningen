@@ -75,7 +75,7 @@ export function reisKeuzes(opts, afstandM, { gast = false } = {}) {
     rijen.push({
       id: o.id, soort: 'snel', label: `Snel reizen · ${o.label.toLowerCase()}`,
       uitleg: UITLEG.meerijden, kosten: euro(o.price), duur: o.eta || `± ${mins(o.etaS)} min`,
-      aanbevolen: !!rit && rit.id === o.id, disabled: gast ? GAST_REIS_MELDING : (o.afford ? null : 'Te weinig geld'),
+      aanbevolen: !!rit && rit.id === o.id, disabled: gast ? GAST_REIS_MELDING : (o.afford ? null : (o.blokkade || 'Te weinig geld')),
     });
   }
   rijen.push({

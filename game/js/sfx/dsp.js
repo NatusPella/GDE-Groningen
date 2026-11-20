@@ -132,6 +132,18 @@ function normalize(chs, peak) {
   for (const d of chs) for (let i = 0; i < d.length; i++) d[i] *= k;
 }
 
+// Brown-noise and low-passed beds drift off zero (up to 0.02 in bed_city): a constant offset that steps in and out with every
+// gain ramp and shifts the soft-clip knee. The mean is removed before the loop crossfade, so the loop stays seamless.
+function removeDc(chs) {
+  for (const d of chs) {
+    let m = 0;
+    for (let i = 0; i < d.length; i++) m += d[i];
+    m /= d.length || 1;
+    if (Math.abs(m) < 1e-6) continue;
+    for (let i = 0; i < d.length; i++) d[i] -= m;
+  }
+}
+
 function fadeEdges(chs, sr, fadeOut = 0.02) {
   const n = Math.floor(fadeOut * sr);
   for (const d of chs) {
@@ -775,6 +787,7 @@ export function renderData(name, ctxRate) {
   const R = mulberry(hash(name));
   let chs = Array.from({ length: s.ch }, () => new Float32Array(n + xf));
   s.gen(chs, sr, R, s.dur);
+  removeDc(chs);
   if (xf) chs = loopify(chs, n, xf);
   else fadeEdges(chs, sr);
   normalize(chs, s.peak);

@@ -49,7 +49,7 @@ const EEND_VARIANTEN = ['drake', 'hen', 'swan', 'goose'];
 // eigen wereld en de modelbouwer (de zwaan en de reiger zijn de grootste). Een ongeldige of te grote schaal gaf een
 // reuzenvogel (#433); alleen de Reuzenduif-cheat van de speler zelf maakt een duif groter, en dat doet de gast niet
 // bij andermans dieren.
-export const KAPOT_SOORTEN = ['bench', 'bin', 'chair', 'table', 'parasol', 'bike', 'rail', 'stall', 'lamp', 'trafficlight', 'flitspaal', 'tree', 'vangrail', 'hek'];
+export const KAPOT_SOORTEN = ['bench', 'bin', 'chair', 'table', 'parasol', 'bike', 'rail', 'stall', 'lamp', 'trafficlight', 'flitspaal', 'tree', 'vangrail', 'hek', 'placesign', 'wegwijzer']; // (achteraan toevoegen: de index gaat over de draad; plaatsnaamborden en wegwijzers komen van streetfurniture.js)
 
 // tags voor misc
 export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_PUNTEN = 3, MISC_PEDS = 4, MISC_DEUREN = 5, MISC_WERELD = 6, MISC_SPREKERS = 7;

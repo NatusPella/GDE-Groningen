@@ -117,6 +117,8 @@ function postGeo() { return mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.
 function bollardGeo() { return mergeGeometries([tint(new THREE.CylinderGeometry(0.08, 0.1, 0.9, 6).translate(0, 0.45, 0), 0x8c2a2a)]); }
 
 const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
+// kinds whose instance is hidden once the collider is knocked out (breakables.js owns the tumbling copy)
+const BREAKABLE_DRAWN = new Set(['guardrail', 'fence', 'bench', 'bin', 'bikerack', 'placesign', 'wegwijzer']);
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.15 });
 
 function meshOf(kind) {
@@ -354,7 +356,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
   for (const it of near) {
     const lod = LOD[it.k];
     if (!lod || Math.abs(it.x - px) > lod || Math.abs(it.y - py) > lod) continue;
-    if ((it.k === 'guardrail' || it.k === 'fence') && isPropBroken(it.key)) continue;
+    if (BREAKABLE_DRAWN.has(it.k) && isPropBroken(it.key)) continue;
     const z = ground(it);
     switch (it.k) {
       case 'guardrail': put('guardrail', it.x, z, it.y, it.a, it.s, 1, 1); break;
@@ -418,12 +420,19 @@ function streamFurnitureProps(world, px, py) {
   for (const [k, p] of liveProps) if (!want.has(k)) { removeProp(p); liveProps.delete(k); }
 }
 
-// the tumbling copy of a knocked-out section
+// the tumbling copy of a knocked-out piece (null: nothing drawn here for that kind)
+const PIECE_GEO = { hek: 'fence', vangrail: 'guardrail', bench: 'bench', bin: 'bin', rail: 'bikerack' };
+let bordPieceGeo = null;
 function furniturePiece(c) {
-  const geo = c.kind === 'hek' ? GEOS.fence() : GEOS.guardrail();
+  let geo;
+  if (c.kind === 'bord') {
+    // the post with a small board on top (the textured panel itself is drawn by rebuildBoards and goes with the instance)
+    geo = bordPieceGeo || (bordPieceGeo = mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.2, 0.08).translate(0, 1.1, 0), 0x8a9196), tint(new THREE.BoxGeometry(0.9, 0.5, 0.05).translate(0, 1.9, 0), 0xdfe3e6)]));
+  } else if (PIECE_GEO[c.kind]) geo = GEOS[PIECE_GEO[c.kind]]();
+  else return null;
   const m = new THREE.Mesh(geo, MAT);
-  m.scale.set((c.half || 0.5) * 2, 1, 1);
-  m.rotation.y = -(c.angle || 0);
+  if (c.kind === 'hek' || c.kind === 'vangrail') m.scale.set((c.half || 0.5) * 2, 1, 1);
+  if (c.half) m.rotation.y = -(c.angle || 0);
   const g = new THREE.Group();
   g.add(m);
   return g;

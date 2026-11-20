@@ -60,23 +60,25 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 @keyframes hc-pulse { 50% { transform: scale(1.12); } }
 
 #hud .hc-text { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
-#hud .hc-text small { font-size: max(14px, var(--hud-min)); letter-spacing: 3px; text-transform: uppercase; color: var(--hc); }
+#hud .hc-text small { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); line-height: var(--ds-lh-kaart-kop); letter-spacing: var(--ds-ls-kaart-eyebrow); text-transform: uppercase; color: var(--hc); }
 #hud .hc-text b {
   margin-top: 3px;
   font-weight: normal;
-  font-size: 28px;
-  letter-spacing: 1px;
+  font-family: var(--ds-font-zeef-kop);
+  font-size: var(--ds-t-kaart-titel);
+  line-height: var(--ds-lh-kaart-kop);
+  letter-spacing: var(--ds-ls-label);
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 #hud .hc-text span {
   margin-top: 3px;
-  font-family: 'Arial Narrow', Arial, sans-serif;
-  font-size: 18px;
-  line-height: 1.2;
-  letter-spacing: 0.2px;
+  font-family: var(--ds-font-zeef-tekst);
+  font-size: var(--ds-t-kaart-body);
+  line-height: var(--ds-lh-kaart-tekst);
+  letter-spacing: 0;
 }
-#hud .hc-text span.solo { font-size: 20px; margin-top: 4px; }
+#hud .hc-text span.solo { margin-top: 4px; } /* dezelfde rol als elke body */
 #hud .hc-timer {
   position: absolute;
   left: 0;
@@ -96,7 +98,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   left: 50%;
   top: 34%;
   transform: translate(-50%, -50%);
-  font-size: 150px;
+  font-size: var(--ds-t-moment-getal);
   line-height: 1;
   letter-spacing: 4px;
   color: #f0ede4;
@@ -105,12 +107,10 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   pointer-events: none;
 }
 #hud .hud-count.on { animation: hc-count 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-#hud .hud-count[data-go="1"] { color: var(--gron-green-light); font-size: 120px; }
+#hud .hud-count[data-go="1"] { color: var(--gron-green-light); font-size: calc(var(--ds-t-moment-getal) * 0.8); }
 @keyframes hc-count { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }
 
 @media (max-height: 640px) {
-  #hud .hc-text b { font-size: 23px; }
-  #hud .hc-text span { font-size: max(16px, var(--hud-min)); }
 }
 @media (prefers-reduced-motion: reduce) {
   #hud .hud-cards { transition: none; transform: none; }
@@ -137,9 +137,9 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
    deze regel kwam de klik nooit bij de kaart aan. Alleen de blijvende kaart is klikbaar;
    de gewone kaarten blijven doorklikbaar naar de wereld. */
 #hud .hud-card.sticky { pointer-events: auto; cursor: pointer; }
-#hud .hud-card .hc-close { display: block; margin-top: 3px; font: 700 var(--hud-min)/1.2 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; font-style: normal; opacity: 0.72; }
+#hud .hud-card .hc-close { display: block; margin-top: 3px; font: 700 var(--ds-t-kaart-hulp)/var(--ds-lh-kaart-tekst) var(--ds-font-zeef-tekst); letter-spacing: 0.06em; text-transform: uppercase; font-style: normal; opacity: 0.72; }
 
-/* ===== Designsysteem v3: de HUD-kaarten als papieren plaatjes (ADR 0040, #993) =====
+/* ===== Designsysteem: de HUD-kaarten als papieren plaatjes (ADR 0040, #993) =====
    Papier, inktrand, harde schaduw, een lichte schuinte (token, nul bij Rustig drukwerk). De kleur van
    een soort (--hc, uit --mk-*) staat als blokje en als balk met inktrand, nooit als tekst op papier.
    Misdruk staat alleen op de kop terwijl de kaart binnenkomt. */
@@ -156,11 +156,11 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text small::before { content: ''; display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.5em; background: var(--hc); border: 1.5px solid var(--ds-c-ink-inkt); vertical-align: -0.02em; }
 #hud .hc-text b { font-weight: 800; letter-spacing: 0.02em; text-transform: none; }
 #hud .hud-card.on .hc-text b { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; }
-#hud .hc-text span { font-family: var(--ds-font-tekst-v3); font-weight: 400; letter-spacing: 0; color: var(--ds-c-ink-inkt); }
+#hud .hc-text span { font-family: var(--ds-font-zeef-tekst); font-weight: 400; letter-spacing: 0; color: var(--ds-c-ink-inkt); }
 #hud .hc-timer { height: 4px; background: var(--ds-c-ink-inkt); opacity: 0.85; }
-#hud .hud-card .hc-close { font-family: var(--ds-font-tekst-v3); }
-#hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { font-family: var(--ds-font-kop-v3); font-weight: 800; }
-#hud .hud-count { color: var(--ds-c-ink-papier); font-family: var(--ds-font-kop-v3); font-weight: 800; -webkit-text-stroke: 4px var(--ds-c-ink-inkt); paint-order: stroke fill; text-shadow: var(--ds-misdruk), 6px 6px 0 var(--ds-c-ink-inkt); }
+#hud .hud-card .hc-close { font-family: var(--ds-font-zeef-tekst); }
+#hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+#hud .hud-count { color: var(--ds-c-ink-papier); font-family: var(--ds-font-zeef-kop); font-weight: 800; -webkit-text-stroke: 4px var(--ds-c-ink-inkt); paint-order: stroke fill; text-shadow: var(--ds-misdruk), 6px 6px 0 var(--ds-c-ink-inkt); }
 #hud .hud-count[data-go="1"] { color: var(--ds-c-ink-geel); }
 html.rustig-drukwerk #hud .hud-card.on .hc-text b { animation: none; text-shadow: none; }
 html.rustig-drukwerk #hud .hud-card.on, html.rustig-drukwerk #hud .hud-cards .hud-card:nth-child(even).on { transform: none; }
@@ -169,7 +169,7 @@ html.rustig-drukwerk #hud .hud-card.on, html.rustig-drukwerk #hud .hud-cards .hu
   #hud .hud-card.on, #hud .hud-cards .hud-card:nth-child(even).on { transform: none; }
 }
 
-/* v3 (#993): tijdens een gesprek (body.hud-call-on) hoort de gespreksbalk van phonefeed.js bovenaan; de politie- en gevaarkaart
+/* #993: tijdens een gesprek (body.hud-call-on) hoort de gespreksbalk van phonefeed.js bovenaan; de politie- en gevaarkaart
    schuift eronder (een gesprekskaart is minstens 132 px hoog) en het gesprek houdt de bovenste laag. */
 body.hud-call-on #hud .hud-cards { top: calc(var(--hud-top, 34px) + 132px + 4 * var(--ds-s-3, 12px)); }
 body.hud-call-on #hud .phonefeed { z-index: 8; }

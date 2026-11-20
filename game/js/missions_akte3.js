@@ -105,7 +105,7 @@ export const KAARTEN = {
         { type: 'wijzer', inv: { afstand: 3000, hoek: 0, label: 'De molen' }, tekst: 'Spandoek mee. Nu de molen rechts houden en naar de kermis.', bij: 'poort1', duur: 7 },
         stappen('De rest', 2, [stap('hart', 'Spandoek'), stap('hart', 'Molen'), stap('hart', 'Kermis'), stap('pijl', 'Terug')], { tekst: 'De kermis ligt onder je: door de rij kramen, daarna omhoog.', bij: 'poort3', duur: 7 })] },
     { doel: 'Land op de strook bij Roelfien',
-      regels: [stappen('Zo land je', 0, [stap('pijl', 'Gas terug, niet eraf'), stap('meter', 'Neus iets omlaag'), stap('hand', 'Rem met Shift')], { na: 6, duur: 9 })] },
+      regels: [stappen('Zo land je', 0, [stap('pijl', 'Gas terug, niet eraf'), stap('meter', 'Neus iets omlaag'), stap('hand', 'Rem met {SHIFT}')], { na: 6, duur: 9 })] },
   ],
   M12: [
     { doel: 'Vlieg Dijkstra\'s lunch naar het UMCG', afloop: 'de ballon ontsnapt over de Dollard: opnieuw proberen',

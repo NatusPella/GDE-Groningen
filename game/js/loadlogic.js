@@ -51,23 +51,74 @@ export const startProgress = () => ({ total: 0, shown: 0, calm: 0, frames: 0 });
 export const BAR_PHASES = ['boot', 'save', 'travel', 'snel'];
 export const barsFor = (phase) => (BAR_PHASES.includes(phase) ? 1 : 0);
 
-// The boot bar's real steps (#600). main.js reports six measured moments
-// (setLoadProgress 0.05-0.92); each step says what the boot is doing, and the
-// last one explains the wait at the end instead of leaving the bar at one
-// percentage without words. Pure, so scripts/loadlogic_test.mjs can walk it.
-export const BOOT_PHASES = [
-  { from: 0, id: 'kaart', label: 'De kaart van Grunn komt binnen' },
-  { from: 0.3, id: 'wereld', label: 'De wereld wordt opgebouwd' },
-  { from: 0.55, id: 'straten', label: 'Straten, huizen en bruggen komen erbij' },
-  { from: 0.8, id: 'systemen', label: 'De laatste systemen worden gestart' },
-  { from: 0.9, id: 'tegels', label: 'Nog even: de buurt rond je startpunt wordt klaargezet' },
+// The boot bar's real steps (#600, opdracht 21-11). main.js reports the measured moments of the start
+// (setBootStep with the step and how far it is); every step says in plain words what is
+// happening and has a weight that follows the measured duration (docs/LAAD-STREAMING-LOD.md), so the
+// bar is only full when the very last step is done: the game is really ready. The steps
+// that do not apply (no warm-up in a test run, no opening shots, no sound) drop out of the
+// plan and the weights are scaled to add up to 1 again. Pure, so scripts/loadlogic_test.mjs
+// can walk it.
+export const BOOT_STEPS = [
+  { id: 'kaart', weight: 0.12, label: 'De kaart van Grunn komt binnen' },
+  { id: 'wereld', weight: 0.06, label: 'De wereld wordt opgebouwd' },
+  { id: 'systemen', weight: 0.13, label: 'Straten, verkeer en spelsystemen worden gestart' },
+  { id: 'buurt', weight: 0.18, label: 'Je buurt wordt ingeladen', when: 'warm' },
+  { id: 'openingsbeelden', weight: 0.12, label: 'De openingsbeelden worden klaargezet', when: 'openings' },
+  { id: 'shaders', weight: 0.33, weightEenLicht: 0.16, label: 'De shaders worden klaargezet (dit duurt even)', when: 'warm' },
+  { id: 'geluid', weight: 0.04, label: 'Het geluid wordt klaargemaakt', when: 'geluid' },
+  { id: 'beeld', weight: 0.06, label: 'De eerste beelden worden getekend', when: 'warm' },
 ];
-export function bootPhaseAt(progress) {
-  const p = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
-  let phase = BOOT_PHASES[0];
-  for (const step of BOOT_PHASES) if (p >= step.from) phase = step;
-  return { ...phase, final: phase.id === 'tegels' };
+export const BOOT_DONE_LABEL = 'Klaar, Grunn staat te wachten';
+// opts: warm (the start area and shader warm-up run), openings (the opening shots are ridden ahead),
+// film (a new game: the shaders are also compiled in the film's light setting), geluid (wait for the samples)
+export function bootPlan({ warm = true, openings = false, film = true, geluid = true } = {}) {
+  const on = { warm, openings: warm && openings, geluid: warm && geluid };
+  const kept = BOOT_STEPS.filter((s) => !s.when || on[s.when]);
+  const w = (s) => (!film && s.weightEenLicht ? s.weightEenLicht : s.weight);
+  const sum = kept.reduce((t, s) => t + w(s), 0);
+  let from = 0;
+  const steps = kept.map((s, i) => {
+    const to = i === kept.length - 1 ? 1 : from + w(s) / sum;
+    const step = { id: s.id, label: s.label, weight: w(s) / sum, from, to, nr: i + 1, total: kept.length };
+    from = to;
+    return step;
+  });
+  return { steps, total: steps.length };
 }
+const clamp01 = (v) => Math.max(0, Math.min(1, Number.isFinite(v) ? v : 0));
+// The bar (0..1) for "this step is frac of the way"; an unknown step is 0. Never 1 before the last step is done.
+export function bootProgress(plan, id, frac = 0) {
+  const s = plan.steps.find((x) => x.id === id);
+  if (!s) return 0;
+  return s.from + (s.to - s.from) * clamp01(frac);
+}
+// The step a bar value belongs to (clamped); 'final' is the last step. A bar of 1 is "klaar".
+export function bootPhaseAt(progress, plan = bootPlan()) {
+  const p = clamp01(progress);
+  let step = plan.steps[0];
+  for (const s of plan.steps) if (p >= s.from) step = s;
+  return { ...step, final: step.nr === plan.total, klaar: p >= 1 };
+}
+// The slow creep inside a long step (the bar keeps moving while one step has nothing to report):
+// the bar may drift towards the step's end but never into the last tenth of it, so a step that
+// reports real progress is never overtaken and the end of a step is only reached when it is done.
+export function bootCreepCap(plan, progress) {
+  const s = bootPhaseAt(progress, plan);
+  if (s.klaar) return 1;
+  return s.to - (s.to - s.from) * 0.1;
+}
+// What a run measured per step: entries are [id, frac, ms since navigation] in the order they were reported
+// (startscreen.js setBootStep, window.__loadMarks.stappen); a step lasts from its first report to the first report
+// of the next one, the last one until endMs. Returns [{ id, ms, aandeel }] (aandeel: share of the total, 0..1), for
+// choosing the weights of BOOT_STEPS from a measurement (?laadstappen).
+export function stepDurations(entries, endMs) {
+  const first = [];
+  for (const [id, , ms] of entries) if (!first.some((f) => f.id === id)) first.push({ id, ms });
+  const out = first.map((f, i) => ({ id: f.id, ms: Math.max(0, (i + 1 < first.length ? first[i + 1].ms : endMs) - f.ms) }));
+  const total = out.reduce((t, o) => t + o.ms, 0) || 1;
+  return out.map((o) => ({ ...o, aandeel: o.ms / total }));
+}
+export const bootStepText = (step, total) => `Stap ${step.nr} van ${total}`;
 
 const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
 export const tipText = (t) => firstSentence(String(t).replace(/^Tip: /, '')).replace(/^./, (c) => c.toUpperCase());
@@ -102,6 +153,13 @@ export const LOAD_STEPS = [
   { from: 0.9, id: 'bijna', label: 'Bijna klaar: de buurt wordt gladgestreken' },
 ];
 export const SNEL_STEP = { id: 'snel', label: 'De buurt wordt ingeladen' };
+// The same principle as the boot bar (opdracht 21-11): the step counter of the load screen. The thresholds
+// above are the weights (25%, 35%, 30%, 10% of the bar); the bar is only 1 when stepProgress says done.
+export function loadStepNr(bar, kind = 'travel') {
+  if (kind === 'snel') return { nr: 1, total: 1 };
+  const id = loadStepAt(bar, kind).id;
+  return { nr: LOAD_STEPS.findIndex((s) => s.id === id) + 1, total: LOAD_STEPS.length };
+}
 export function loadStepAt(bar, kind = 'travel') {
   if (kind === 'snel') return SNEL_STEP;
   const p = Math.max(0, Math.min(1, Number.isFinite(bar) ? bar : 0));

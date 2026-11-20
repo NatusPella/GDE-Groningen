@@ -1,4 +1,4 @@
-// De bon van de winkel (designsysteem v2, #980): wat een keuze kost vóór je kiest. Pure regels, zonder DOM:
+// De bon van de winkel (designsysteem, #980): wat een keuze kost vóór je kiest. Pure regels, zonder DOM:
 // shopui.js tekent ze als papieren bon en probleem-callout. Alle bedragen komen uit hetzelfde saldo als de
 // knop (world.money), dus de bon liegt nooit over wat er na het kopen overblijft.
 import { itemStatus, needsConfirm, shortfall, brokeMessage } from './shoplist.js';

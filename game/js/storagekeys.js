@@ -35,6 +35,7 @@ export const BASE_KEYS = {
   banter: 'gde-banter-v1',
   lastVersion: 'gde-last-version',
   gfxAdvice: 'gde-gfx-advice',
+  audioGlitch: 'gde-audioglitch-v1', // audiodiag.js: hoeveel geluidsonderbrekingen de vorige sessie had
   muted: 'gde-muted',
   introSeen: 'gde-intro-seen',
   onboarding: 'gde-uitleg',

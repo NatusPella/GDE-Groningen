@@ -156,8 +156,8 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
 #saveslots.gm-zeef .ssl-over, #saveslots.gm-zeef .ssl-modal .ssl-box { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
 #saveslots.gm-zeef .ssl-modal { background: color-mix(in srgb, var(--ds-c-ink-inkt) 62%, transparent); }
 #saveslots.gm-zeef .ssl-modal .ssl-box { border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
-#saveslots.gm-zeef .ssl-mi, #saveslots.gm-zeef .ssl-fb, #saveslots.gm-zeef .ssl-q p, #saveslots.gm-zeef .ssl-modal .ssl-box p { color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); }
-#saveslots.gm-zeef .ssl-q p, #saveslots.gm-zeef .ssl-modal .ssl-box p { font-family: var(--ds-font-tekst-v3); }
+#saveslots.gm-zeef .ssl-mi, #saveslots.gm-zeef .ssl-fb, #saveslots.gm-zeef .ssl-q p, #saveslots.gm-zeef .ssl-modal .ssl-box p { color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-kop); }
+#saveslots.gm-zeef .ssl-q p, #saveslots.gm-zeef .ssl-modal .ssl-box p { font-family: var(--ds-font-zeef-tekst); }
 #saveslots.gm-zeef .ssl-mi:hover, #saveslots.gm-zeef .ssl-mi:focus-visible, #saveslots.gm-zeef .ssl-fb:hover:not(:disabled), #saveslots.gm-zeef .ssl-fb:focus-visible, #saveslots.gm-zeef .ssl-chipbtn:hover, #saveslots.gm-zeef .ssl-chipbtn:focus-visible { background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); }
 #saveslots.gm-zeef .ssl-input { background: var(--ds-c-wit); color: var(--ds-zeef-tx); box-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 #saveslots.gm-zeef .ssl-input:focus { border-color: var(--ds-c-ink-bord); }

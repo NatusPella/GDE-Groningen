@@ -259,6 +259,7 @@ function trackUsage(dt, world) {
 function vehicleVerb(v) {
   const moving = Math.abs(v.speed || 0) > 0.3;
   const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
+  if (v.fallen) return { label: 'Fiets rechtzetten' }; // #1018: eerst overeind, dan opstappen
   // your own ride (hero car, bought, rented, job vehicle) is never theft
   if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isHeli ? 'Instappen en vliegen' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
   if (v.isPolice) return { label: 'Jatten', steal: true };
@@ -499,7 +500,7 @@ function findSecondary(world, primary) {
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {
       // a new player's first ride wins over the place labels around it
-      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place', boost: 0.2 }, 40);
+      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan {E}', kind: 'place', boost: 0.2 }, 40);
     }
   }
   out.sort((a, b) => a.score - b.score);

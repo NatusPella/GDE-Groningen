@@ -101,7 +101,8 @@ import { updateStreekplekken3D } from './streekplekken3d.js';
 import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
-import { initAudio, updateAudio, setMenuAudio, setSfxLinks, setAudioCamera } from './audio.js';
+import { initAudio, updateAudio, setMenuAudio, setSfxLinks, setAudioCamera, sampleStats } from './audio.js';
+import { SAMPLE_KEYS } from './sfx/samples.js';
 import { updateBanter } from './banter.js';
 import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
@@ -135,7 +136,7 @@ import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCr
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
-import { programsPending } from './programwarm.js';
+import { programsPending, programsTotal } from './programwarm.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { setHoldGrass } from './grass.js';
@@ -172,7 +173,7 @@ import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
-import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart, setLoadingStatus } from './startscreen.js';
+import { initLoading, setBootPlan, setBootStep, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart, setLoadingStatus } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow, getPigeonPosition } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
@@ -230,6 +231,7 @@ import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
+import { installGpuDiag } from './gpudiag.js'; // 0.64.1: Technische info (Ctrl+Shift+G)
 import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
 
@@ -277,6 +279,10 @@ initLoading();
 // thread. A longer boot is the price the owner chose for a smooth start. A test
 // or QA run skips it: those start from a script and their timing must stay put.
 const WARM_START = FLAGS.warm || !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
+// opdracht 21-11: the warm-up runs behind the boot screen's bar (the route of a normal start); the menu route of the QA
+// and trailer tools has no warm-up, so its bar finishes at the end of the boot as before
+const BOOT_WARM_ROUTE = WARM_START && !(FLAGS.attract || FLAGS.menutest || FLAGS.trailer || FLAGS.preview);
+const AUDIO_WARM_MS = 5000; // hoogstens zo lang wachten op het decoderen van de geluiden
 // the start area's prewarm radius (the cutscene prewarm uses 110 m), the longest
 // the boot screen may spend on it before it goes on anyway, and the frame time
 // and calm run that count as "warm": a worker result or shader link that lands
@@ -362,7 +368,7 @@ function waitForStart(world, ready) {
     if (!WARM_START) return;
     const x = world.player.x, y = world.player.y;
     const t0 = performance.now();
-    setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
+    setBootStep('buurt', 0);
     prewarmStreamAt(x, y, 240, START_WARM_R);
     // the Ommeland placement and the map images run next to this; while they are
     // not done the warm-up keeps going (the frames keep running, so this is not
@@ -374,7 +380,7 @@ function waitForStart(world, ready) {
       if (window.__loadMarks) window.__loadMarks.background = Math.round(performance.now() - t0);
     }, () => { readyDone = true; });
     else readyDone = true;
-    let calm = 0, frames = 0, slowRun = 0, worst = 0;
+    let calm = 0, frames = 0, slowRun = 0, worst = 0, openStart = 0;
     while (performance.now() - t0 < START_WARM_MS) {
       const f0 = performance.now();
       try { tick(1 / 60); render(1 / 60); } catch (e) { console.warn('startgebied voorladen', e); break; }
@@ -385,6 +391,9 @@ function waitForStart(world, ready) {
       const sp = streamPending();
       const open = sp.buildings + sp.roads + prewarmPending() + (readyDone ? 0 : 1);
       calm = open === 0 && slowRun === 0 ? calm + 1 : 0;
+      // the real progress of the step: what is still to build against what there was, and the calm run at the end
+      openStart = Math.max(openStart, open);
+      setBootStep('buurt', Math.min(0.95, (openStart ? 0.85 * (1 - open / openStart) : 0.85) + 0.1 * Math.min(1, calm / START_WARM_CALM)));
       if (calm >= START_WARM_CALM) break;
       await yieldToPaint();
     }
@@ -404,7 +413,7 @@ function waitForStart(world, ready) {
         if (opening.prepareOpeningWarm) queueWarmupObject(() => opening.prepareOpeningWarm());
         const spots = opening.introShotPoints(world);
         if (spots.length) {
-          setLoadingStatus('De openingsbeelden worden klaargezet');
+          setBootStep('openingsbeelden', 0);
           const tIntro = performance.now();
           let tilesIn = !(world.map && world.map.registerShots);
           if (!tilesIn) {
@@ -515,6 +524,7 @@ function waitForStart(world, ready) {
                 world.__warmSamples = ok ? warmSamples : null;
               }
             }
+          setBootStep('openingsbeelden', 0.95);
           if (window.__loadMarks) {
             window.__loadMarks.introTiles = spots.length;
             window.__loadMarks.introWarm = Math.round(performance.now() - tIntro);
@@ -523,18 +533,37 @@ function waitForStart(world, ready) {
       } catch (e) { console.warn('openingsbeelden voorladen', e); }
     }
     if (window.__loadMarks) window.__loadMarks.startWarm = Math.round(performance.now() - t0);
-    setLoadingStatus('De shaders worden klaargezet');
+    setBootStep('shaders', 0);
     // Nieuw spel: de film volgt meteen. Zijn nacht- en dageraadlicht (de lichtset aan) linkte tot nu toe pas bij de cuts,
     // synchroon (40 tot 132 programma's, haperingen van 360 tot 1133 ms). Liever langer laden dan haperen (besluit eigenaar
     // 20-11, #985): compileer de scène ook in de andere lichtstand en wacht tot alles gelinkt is, hoogstens FILM_LICHT_MS.
     // Een opgeslagen spel heeft geen film en betaalt dit niet; ?perfoff=filmlicht zet het uit voor een A/B-meting.
     const metFilm = !world.loadedFromSave;
     const compiled = precompilePrograms({ filmLicht: metFilm });
+    // the compile call above is one blocking call (about a sixth of the step); the rest is the link wait, where the
+    // programs that are ready against all of them are the real progress (opdracht 21-11)
+    setBootStep('shaders', 0.2);
+    const shaderTotal = programsTotal();
+    const shaderVoortgang = () => { const n = programsPending(); setBootStep('shaders', Math.min(0.97, 0.2 + 0.77 * (shaderTotal ? 1 - n / shaderTotal : 1))); return n; };
     if (metFilm) {
       const tLicht = performance.now();
-      while (performance.now() - tLicht < FILM_LICHT_MS && programsPending() > 0) await yieldToPaint();
+      while (performance.now() - tLicht < FILM_LICHT_MS && shaderVoortgang() > 0) await yieldToPaint();
       if (window.__loadMarks) window.__loadMarks.filmLicht = Math.round(performance.now() - tLicht);
     }
+    else shaderVoortgang();
+    // the sounds decode in the background since initAudio; wait for them here (the sound is part of the start), within a bound
+    if (sampleStats()) {
+      const tGeluid = performance.now();
+      setBootStep('geluid', 0);
+      const klaarN = () => { const st = sampleStats(); return st ? st.geladen + st.mislukt : SAMPLE_KEYS.length; };
+      while (performance.now() - tGeluid < AUDIO_WARM_MS && klaarN() < SAMPLE_KEYS.length) {
+        setBootStep('geluid', Math.min(0.95, klaarN() / SAMPLE_KEYS.length));
+        await yieldToPaint();
+      }
+      if (window.__loadMarks) window.__loadMarks.geluid = Math.round(performance.now() - tGeluid);
+    }
+    // the last step: the first frames are drawn by the start screen, which then fills the bar
+    setBootStep('beeld', 0);
     if (window.__loadMarks) {
       window.__loadMarks.shaders = Math.round(compiled);
       window.__loadMarks.warmWorstFrame = Math.round(worst);
@@ -702,17 +731,21 @@ function withDeadline(p, ms, wat, onTimeout = null) {
 
 async function boot() {
   markLoad('boot');
+  // opdracht 21-11: the bar knows every step of the start from the first moment; it is full only when the last one is done
+  setBootPlan({ warm: BOOT_WARM_ROUTE, openings: !!FLAGS.warmfilm, geluid: !(FLAGS.stil && !FLAGS.audiograf) });
+  setBootStep('kaart', 0);
   // #749: de boot als geheel heeft een uiterste grens (zie armBootWatchdog)
   armBootWatchdog();
   // the geometry worker loads its modules while the map downloads
   geoWorkerActive();
   preloadRoadWorker();
+  installGpuDiag();
   initA11y();
   initGlyphs();
   initTheme();
   // the map comes from .gdt tiles (world/, js/tileworld.js); a build without
   // them (the dev server) gets stad.json alone: roads, rails, the hand-made buildings
-  const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
+  const onMapProgress = (f) => setBootStep('kaart', Math.min(0.95, f));
   // the province's layer (index-provincie.json, F2) and the proefstrook's
   // (index-corridor.json) name the places and stream their tiles in
   // (provinceworld.js). The province's tiles win.
@@ -755,20 +788,22 @@ async function boot() {
   initShopPlaces(map, await shopPlaces);
   setShopSpots(spotsFrom(FAC.all)); // a building's shopfront follows the real shop in it (#156)
   markLoad('ommeland');
+  setBootStep('kaart', 1);
   prepareHomeMap(map);
   planMenuStart(map); // the menu's first viewpoint and its tiles load next to the rest of the boot (#380)
-  setLoadProgress(0.55);
+  setBootStep('wereld', 0.3);
   await yieldToPaint();
   markLoad('prepared');
   init3D(map);
   resize3D();
   markLoad('init3D');
+  setBootStep('wereld', 0.8);
   // the map-edge layout (~0.3 s) during loading, not on the first trip out;
   // after init3D, which sets the country bounds it measures from
   ensureCountryEdge(map);
   setGroundMap(map);
   markLoad('countryEdge');
-  setLoadProgress(0.8);
+  setBootStep('systemen', 0);
   await yieldToPaint();
   window.addEventListener('resize', resize3D);
 
@@ -780,6 +815,7 @@ async function boot() {
   player.angle = spawn.angle;
 
   const world = new World(map, input, player);
+  setBootStep('systemen', 0.05);
   initCompanion(world);
   if (FLAGS.coop) bindCoop(world, input);
   const hero = spawnHeroCarNear(map, sx, sy);
@@ -805,6 +841,7 @@ async function boot() {
   initTrafficLights(world);
   world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu), wereld: (bij) => maakWereldLijst(getMovableBridges(), getSluizen(), bij, garagePoortToestand()), sprekers: (bij, nu) => maakSprekersLijst(world.extraSpeakers, nu, bij), duif: () => getPigeonPosition() }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
   registreerHostBronnen(world); // tijdelijke rekwisieten en doelen voor de gasten (#452)
+  setBootStep('systemen', 0.25);
   initRailway(world);
   setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
   zetTreinBron(() => ({ treinen: getTrains(), routes: getRoutes() })); // de gast zoekt de trein van de gastheer op (#492)
@@ -840,6 +877,7 @@ async function boot() {
   initActivityKinds(world, 'main');
   initRadio(world);
   initActivityKinds(world, 'late');
+  setBootStep('systemen', 0.5);
   initStory(world);
   let gpuClass = '';
   setErrorContext(() => {
@@ -859,7 +897,7 @@ async function boot() {
   initMapView(world);
   initPauseMenu(world);
   markLoad('world');
-  setLoadProgress(0.92);
+  setBootStep('systemen', 0.7);
   await yieldToPaint();
   // mouse-look: clicking the game captures the mouse; Esc releases it (the
   // browser swallows that Esc keypress), which opens the pause menu instead
@@ -908,6 +946,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     console.warn('terrein: de geometry-worker antwoordde niet binnen 60 s; de wereld start zonder terrein');
   });
   markLoad('terrain');
+  setBootStep('systemen', 1);
   // Samen spelen (#530, ADR 0022): de eerste-startvraag (naam en alleen/samen)
   // verschijnt nu al boven het laadscherm terwijl de boot gewoon doorlaadt; pas
   // vlak voor de start wachten we op het antwoord (#751: time-out en Escape).
@@ -915,7 +954,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // het laden niet stil te leggen.
   const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
   if (vraagOnline) beginOnlineStartQuestion();
-  await finishLoading();
+  // opdracht 21-11: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
+  if (!BOOT_WARM_ROUTE) await finishLoading();
   if (vraagOnline) {
     // Een verborgen venster telt niet als antwoord: wacht tot de speler het spel ziet en
     // vraag dan alsnog om de verplichte naam.

@@ -11,9 +11,10 @@ import { playCinematic, skipCinematic } from './cinematics.js';
 import { cinematicLinks } from './latehooks.js';
 import { Vehicle } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
-import { smoothPath, cineDrive } from './cinedrive.js';
+import { cineDrive } from './cinedrive.js';
 import { taxiBedrag, perronPlek } from './ritcabine.js';
-import { planDriveRoute } from './routing.js';
+import { planDriveRoute, insideBuilding } from './routing.js';
+import { ritRoute } from './ritroute.js';
 import { getRoutes as getSpoorRoutes, addMissionTrain, removeMissionTrain, placeTrain, clearTrackFor } from './railway.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { klokSprongMag } from './coopgroep.js';
@@ -44,7 +45,10 @@ function bouwTaxi(world, optie, dest) {
   const r = planDriveRoute(world, dest, p);
   const pts = schoon(r && !r.noRoute ? r.pts : null);
   if (!P.ritKanEcht('taxi', { pad: pts })) return null;
-  const pad = smoothPath(pts, 1);
+  // het pad volgt de weg en snijdt geen gebouw; de taxi start en stopt aan de straatkant (ritroute.js, #882)
+  const rr = ritRoute(pts, { start: { x: p.x, y: p.y }, doel: dest, binnen: (x, y) => insideBuilding(world.map, x, y) });
+  const pad = rr.pad;
+  if (rr.schendingen > 0) console.warn(`reisrit3d: ${rr.schendingen} punten van het ritpad liggen in een gebouw (data)`);
   const plan = P.ritTijdplan(pad.len, { mode: 'taxi', etaS: optie.etaS });
   const baan = (s) => P.rechterBaan(pad.at(s));
   const meter = (s) => taxiBedrag(s, { totaalM: plan.lengthM, prijs: optie.price });
@@ -52,7 +56,7 @@ function bouwTaxi(world, optie, dest) {
   const dyn = P.maakDynamiek();
   const sluitStart = () => baan(Math.max(0, pad.len - plan.dcM));
   return {
-    plan,
+    plan, padInfo: { schendingen: rr.schendingen, mix: rr.mix, beginBinnen: rr.begin, eindBinnen: rr.eind },
     prewarm: plan.kort ? [pad.at(0), pad.at(pad.len)] : [pad.at(0), pad.at(pad.len - plan.dcM), pad.at(pad.len)],
     begin(w) {
       const q = baan(0);
@@ -174,15 +178,15 @@ function routePunt(route, at) {
 function bouwHud(titel, bestemming) {
   const el = document.createElement('div');
   el.className = 'reisrit3d';
-  el.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:auto;font:20px var(--ds-font-tekst-v3);color:var(--ds-c-ink-inkt)';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:auto;font:20px var(--ds-font-zeef-tekst);color:var(--ds-c-ink-inkt)';
   el.innerHTML = '<div class="rr3-zwart" style="position:absolute;inset:0;background:#0c140e;opacity:1;pointer-events:none"></div>'
-    + '<div class="rr3-sprong" style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:800 34px var(--ds-font-kop-v3);color:var(--ds-c-ink-papier);pointer-events:none;opacity:0"><div><div class="rr3-tekst"></div><div class="rr3-klok" style="font-size:22px;margin-top:10px;opacity:.8"></div></div></div>'
+    + '<div class="rr3-sprong" style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:800 34px var(--ds-font-zeef-kop);color:var(--ds-c-ink-papier);pointer-events:none;opacity:0"><div><div class="rr3-tekst"></div><div class="rr3-klok" style="font-size:22px;margin-top:10px;opacity:.8"></div></div></div>'
     + '<div class="rr3-balk" style="position:absolute;left:0;right:0;bottom:7%;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:90vw;padding:10px 24px 12px;box-sizing:border-box;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard)">'
-    + '<div class="rr3-lijn" style="font:800 16px var(--ds-font-kop-v3);letter-spacing:0.12em;color:var(--ds-c-ink-bord)"></div>'
-    + '<div class="rr3-rest" style="font:800 24px var(--ds-font-kop-v3)"></div>'
+    + '<div class="rr3-lijn" style="font:800 16px var(--ds-font-zeef-kop);letter-spacing:0.12em;color:var(--ds-c-ink-bord)"></div>'
+    + '<div class="rr3-rest" style="font:800 24px var(--ds-font-zeef-kop)"></div>'
     + '<div style="width:260px;height:12px;box-sizing:border-box;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:4px;overflow:hidden;background:var(--ds-c-ink-papier)"><div class="rr3-vul" style="height:100%;width:0;background:var(--ds-c-ink-geel)"></div></div>'
-    + '<span class="rr3-cam" style="font:14px var(--ds-font-tekst-v3)"><span style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:1px 8px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">C of Y</span>camera: <b class="rr3-camnaam"></b></span>'
-    + '<span class="rr3-hint" style="display:none;font:15px var(--ds-font-tekst-v3)"><span class="hud-key" data-gk="SPATIE" style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:2px 9px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
+    + '<span class="rr3-cam" style="font:14px var(--ds-font-zeef-tekst)"><span style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:1px 8px;font:800 14px var(--ds-font-zeef-kop);margin-right:8px">C of Y</span>camera: <b class="rr3-camnaam"></b></span>'
+    + '<span class="rr3-hint" style="display:none;font:15px var(--ds-font-zeef-tekst)">{SPACE}overslaan (of tik op het scherm)</span></div>';
   el.querySelector('.rr3-lijn').textContent = String(titel || '').toUpperCase();
   el.querySelector('.rr3-rest').textContent = bestemming ? `Naar ${bestemming}` : '';
   return el;
