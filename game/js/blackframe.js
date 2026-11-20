@@ -42,6 +42,7 @@ export function watchContext(canvas, name, hooks) {
 // Renderer-side events worth knowing about when a frame turns out black.
 export function noteGfxEvent(what) {
   events.push([performance.now(), what]);
+  if (typeof window !== 'undefined' && window.__startDiag) window.__startDiag.steps.push([Math.round(performance.now()), what]); // #1046: meting (startdiag.page.js)
   if (events.length > 24) events.shift();
 }
 

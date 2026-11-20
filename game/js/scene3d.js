@@ -158,6 +158,7 @@ import { lookBackActive, chaseFollowLerp } from './controls.js';
 import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, camPushRaysNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
 import { compileTarget } from './compiletarget.js';
+import { withParkedMaterials } from './startcompile.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -2008,24 +2009,20 @@ export function warmWaterIndex(worldMap) {
 // het laadscherm wacht daarna met programwarm.js programsPending() tot alles gelinkt is.
 export function precompilePrograms(opts = {}) {
   const t0 = performance.now();
-  // Een object met een `material` maar zonder geometry (zoals een Group met een
-  // handmatig gezette materiaal) laat renderer.compile() crashen; dan werden
-  // alle shaders overgeslagen en linkte de film ze alsnog per shot (#804).
-  // Zulke velden zijn geen draw-objecten: even opzij zetten en daarna terug.
-  const parked = [];
   try {
     if (renderer && scene && cam) {
-      scene.traverse((o) => {
-        if (o.material && !o.geometry) { parked.push([o, o.material]); o.material = null; }
+      // materiaal zonder geometry laat renderer.compile() crashen (#804): startcompile.js parkeert het even
+      const n = withParkedMaterials(scene, () => {
+        precompile(scene);
+        if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompile(scene));
       });
-      if (parked.length) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', parked.length);
-      precompile(scene);
-      if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompile(scene));
+      if (n) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', n);
     }
   } catch (e) { console.warn('shaders voorcompileren', e); }
-  finally { for (const [o, m] of parked) o.material = m; }
   return performance.now() - t0;
 }
+// #1046: de onderdelen voor startcompile.js planPrecompile (porties met tijdbudget i.p.v. één blokkerende aanroep)
+export const precompileKit = () => ({ scene, compile: precompile, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
 
 const BUILDING_PREFETCH = 30;
 const BUILDING_PREFETCH_MS = 1.5;
