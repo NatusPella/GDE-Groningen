@@ -59,7 +59,7 @@ export const ICON_MAP = {
   lopen: 'person-simple-walk', rennen: 'person-simple-run', bagage: 'backpack', hand: 'hand',
   // Kaart en minikaart (20-11): de markers tekenen hun betekenis uit Phosphor (mapglyphs.js)
   schaar: 'scissors', burger: 'hamburger', stoel: 'armchair', spuit: 'spray-bottle', oplegger: 'truck-trailer', rechter: 'gavel',
-  podium: 'microphone-stage', studie: 'graduation-cap', promotie: 'megaphone', kaartje: 'ticket',
+  lagen: 'stack', podium: 'microphone-stage', studie: 'graduation-cap', promotie: 'megaphone', kaartje: 'ticket',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.
 export const ICON_SIZES = { s: 16, m: 20, l: 24, xl: 32 };

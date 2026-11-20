@@ -64,6 +64,6 @@ export function gebiedKleuren() {
     onzichtbaar: { vul: dsKleur('glas-3'), lijn: dsKleur('creme-zacht'), raster: dsKleur('ink-inkt') },
     zichtbaar: { vul: dsKleur('ink-papier'), lijn: dsKleur('ink-papier') },
     bezig: { vul: dsKleur('ink-geel'), lijn: dsKleur('ink-geel') },
-    veroverd: { lijn: dsKleur('ink-papier'), rand: dsKleur('ink-inkt') },
+    veroverd: { vul: dsKleur('licht-groen'), lijn: dsKleur('licht-groen'), rand: dsKleur('ink-inkt') }, // 20-11: veroverd is groen (lichtgroen uit de ds-tokens), aan het veroveren blijft geel
   };
 }

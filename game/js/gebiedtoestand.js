@@ -2,7 +2,7 @@
 //   onzichtbaar  nooit bezocht: een vlak met een fijn raster, geen naam, geen details
 //   zichtbaar    bezocht, nog niets gedaan: omlijnd met een stippelrand en een gedempte vulling
 //   bezig        al iets gedaan: effen gele rand, een vulling die met de voortgang meegroeit en een voortgangsring
-//   veroverd     alles gedaan: volle vulling in de kleur van het gebied, een dikke rand en een vlag
+//   veroverd     alles gedaan: volle vulling in lichtgroen (ds-tokens), een dikke rand en een vlag
 // Nooit alleen met kleur: elke toestand heeft ook een eigen lijnsoort en een eigen icoon (Phosphor, icons.js).
 // De veroverde voortgang is per speler (#429, het eigen profiel van gebieden.js) en de kaart is lokaal: de toestand komt
 // uit het profiel van deze speler en gaat nooit over het netwerk. Het tekenen staat in gebiedenkaart.js.
@@ -51,7 +51,7 @@ export function toestandStijl(r, kleurTekst) {
   const k = gebiedKleuren();
   switch (r.toestand) {
     case 'veroverd':
-      return { toestand: 'veroverd', vul: r.vlag, alpha: 0.5, lijn: r.vlag, lijnAlpha: 1, breed: 2.4, streep: false, raster: false, ring: null, icoon: 'vlag', rand: k.veroverd.rand };
+      return { toestand: 'veroverd', vul: r.vlag || k.veroverd.vul, alpha: 0.5, lijn: r.vlag || k.veroverd.lijn, lijnAlpha: 1, breed: 2.4, streep: false, raster: false, ring: null, icoon: 'vlag', rand: k.veroverd.rand };
     case 'bezig':
       return { toestand: 'bezig', vul: k.bezig.vul, alpha: 0.12 + 0.2 * Math.min(1, r.deel || 0), lijn: k.bezig.lijn, lijnAlpha: 1, breed: 1.6, streep: false, raster: false, ring: Math.min(1, r.deel || 0), icoon: 'ronde', rand: k.veroverd.rand };
     case 'zichtbaar':
