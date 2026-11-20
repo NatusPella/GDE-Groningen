@@ -2,7 +2,8 @@
 // door de wereld rijdt naar het doel dat op de kaart staat. De rekenkant staat in ritpad.js (het tijdsplan met
 // echt begin, tijdsprong en echt einde, de klok, de camera); hier staan de wereldkoppelingen: het voertuig, de
 // camera via cinematics.js (de wereld loopt door en streamt mee met de camera, zoals bij een filmpje), een kleine
-// rit-HUD en het opruimen. Lukt er iets niet, dan geeft start3dRit null of { terugval: true } en speelt reisrit.js
+// rit-HUD en het opruimen. De binnenkant (de cabine van de taxi met chauffeur en meter, het raam van de treincoupé) staat in
+// ritcabine.js (maten) en ritcabine3d.js (beeld); scene3d.js tekent hem aan de hand van world.ritTaxi, world.ritMeter en world.ritKader. Lukt er iets niet, dan geeft start3dRit null of { terugval: true } en speelt reisrit.js
 // de oude korte scène. Samen spelen: de rit is een eigen scène van wie hem rijdt (geen netwerkbericht, de wereld
 // van de anderen loopt door); de klok springt alleen als je alleen speelt (klokSprongMag).
 import { hoofdspeler } from './players.js';
@@ -11,7 +12,7 @@ import { cinematicLinks } from './latehooks.js';
 import { Vehicle } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
 import { smoothPath, cineDrive } from './cinedrive.js';
-import { interiorEyePose } from './carinterior.js';
+import { taxiBedrag, perronPlek } from './ritcabine.js';
 import { planDriveRoute } from './routing.js';
 import { getRoutes as getSpoorRoutes, addMissionTrain, removeMissionTrain, placeTrain, clearTrackFor } from './railway.js';
 import { klokSprongMag } from './coopgroep.js';
@@ -44,6 +45,7 @@ function bouwTaxi(world, optie, dest) {
   const pad = smoothPath(pts, 1);
   const plan = P.ritTijdplan(pad.len, { mode: 'taxi', etaS: optie.etaS });
   const baan = (s) => P.rechterBaan(pad.at(s));
+  const meter = (s) => taxiBedrag(s, { totaalM: plan.lengthM, prijs: optie.price });
   let v = null, lastS = 0, lastT = 0, gezien = '';
   const sluitStart = () => baan(Math.max(0, pad.len - plan.dcM));
   return {
@@ -55,7 +57,8 @@ function bouwTaxi(world, optie, dest) {
       applyFleetFlags(v, 'taxi');
       Object.assign(v, { road: null, plan: [], driver: 'cine', cineTemp: true, missionCar: true, z: zHoogte(w.map, q.x, q.y) });
       w.vehicles.push(v);
-      w.ritTaxi = v; // scene3d tekent het interieur voor de passagier
+      w.ritTaxi = v; // scene3d tekent de cabine van Gele Gans voor de passagier (ritcabine3d.js)
+      w.ritMeter = meter(0);
       cineDrive(v, w.map, q, 0, 0, v.z);
     },
     stap(w, stand, t) {
@@ -67,14 +70,14 @@ function bouwTaxi(world, optie, dest) {
       if (spring) voorspel(q.x, q.y);
       cineDrive(v, w.map, q, stand.v, dt, spring ? zHoogte(w.map, q.x, q.y) : null);
       if (stand.fase === 'sprong' && gezien !== 'sprong') { gezien = 'sprong'; const c = sluitStart(); voorspel(c.x, c.y, 10); }
-      const eye = interiorEyePose(v);
-      const oog = eye ? P.bijrijdersOog(eye, v) : { x: v.x - Math.cos(v.angle) * 0.6, y: v.y - Math.sin(v.angle) * 0.6, z: (v.z || 0) + 1.15, fx: Math.cos(v.angle), fy: Math.sin(v.angle) };
-      return { ...P.taxiCamera(oog, t), cut: true };
+      w.ritMeter = meter(stand.s);
+      return { ...P.taxiCamera(P.taxiOog(v), t), cut: true };
     },
     einde(w) {
       if (v) { const i = w.vehicles.indexOf(v); if (i >= 0) w.vehicles.splice(i, 1); }
       v = null;
       if (w.ritTaxi) w.ritTaxi = null;
+      w.ritMeter = 0;
     },
   };
 }
@@ -114,17 +117,26 @@ function bouwTrein(world, optie) {
     plan,
     prewarm: plan.kort ? [punt(0), punt(plan.lengthM)] : [punt(0), punt(plan.lengthM - plan.dcM), punt(plan.lengthM)],
     begin(w) { const k = plek({ s: 0 }); zet(w, k.stuk, k.c); },
+    // het perron van de aankomst: waar de trein stopt, de plek langs het spoor (#926); null: dan de gewone landing
+    landing(w) {
+      const k = plek({ s: plan.lengthM }), [x, y] = routePunt(k.stuk.route, k.c);
+      const legs = (optie.legs || []).filter((l) => l && l.kind === 'train');
+      return perronPlek(w.map && w.map.perrons, [x, y], { naam: legs.length ? legs[legs.length - 1].to : '' });
+    },
     stap(w, stand) {
       const k = plek(stand);
       const t = zet(w, k.stuk, k.c);
       if (Math.abs(stand.s - lastS) > 40) { const q = punt(stand.s); voorspel(q.x, q.y); }
       lastS = stand.s;
       const car = t.cars[Math.floor(t.cars.length / 2)] || t.cars[0];
-      return { ...P.treinCamera(car, t.dir, P.treinBeeld(plan, stand)), cut: true };
+      const beeld = P.treinBeeld(plan, stand);
+      w.ritKader = beeld === 'raam' ? 'trein' : null; // bij het raam zit je in de coupé; naast de trein kijk je van buiten
+      return { ...P.treinCamera(car, t.dir, beeld), cut: true };
     },
-    einde() {
+    einde(w) {
       if (trein) removeMissionTrain(trein);
       trein = null; stuk = null;
+      if (w) w.ritKader = null;
     },
   };
 }
@@ -205,9 +217,11 @@ export function start3dRit(world, optie, plan, dest) {
     };
     const eind = (skipped) => {
       const fout = staat.fout;
+      let landing = null;
+      try { landing = !fout && regie.landing ? regie.landing(world) : null; } catch (e) { console.warn('reisrit3d: perron', e); }
       opruimen();
       hudWeg();
-      resolve(fout ? { terugval: true, skipped: false } : { terugval: false, skipped: !!skipped });
+      resolve(fout ? { terugval: true, skipped: false } : { terugval: false, skipped: !!skipped, landing });
     };
     const spec = {
       id: 'reisrit', priority: 6, duration: tp.totaalS + 0.6, letterbox: true, hideHud: true, pause: false, skippable: false,

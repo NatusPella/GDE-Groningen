@@ -134,19 +134,29 @@ t('rechts rijden: de taxi rijdt een stukje rechts van de wegas', () => {
   assert.ok(Math.abs(r2.x - 9) < 1e-9 && Math.abs(r2.y - 10) < 1e-9);
 });
 
-t('de camera zit op de bijrijdersstoel: naast de bestuurder, zonder rugleuning voor de lens, kijkend langs de weg', () => {
-  const taxi = { x: 100, y: 50 };
-  // de bestuurder zit links (z = -0,35): oog 0,35 links van het midden en 0,3 voor het midden
-  const eye = { x: 100.3, y: 50 - 0.35, z: 1.2, fx: 1, fy: 0 };
-  const oog = P.bijrijdersOog(eye, taxi);
-  assert.ok(Math.abs(oog.x - eye.x) < 0.01, 'op dezelfde lengte als de bestuurder: geen voorstoel ervoor');
-  assert.ok(oog.y > taxi.y, 'aan de andere kant van het midden dan de bestuurder (de bijrijder)');
-  assert.equal(oog.z, eye.z, 'op ooghoogte');
+t('de camera zit op de bijrijdersstoel: rechts voorin, met de chauffeur links, kijkend langs de weg', () => {
+  const oog = P.taxiOog({ x: 100, y: 50, z: 0, angle: 0 });
+  assert.ok(oog.y > 50, 'rechts van het midden: de bijrijder (kaart-y wijst naar rechts bij rijrichting +x)');
+  assert.ok(oog.x < 100, 'achter het midden van de taxi: de voorruit is ver genoeg weg');
+  assert.ok(oog.z > 1 && oog.z < 1.6, 'op ooghoogte van een zittende');
   const cam = P.taxiCamera(oog, 3);
   assert.ok(cam.lookAt.x > oog.x + 20, 'kijkt vooruit');
   assert.ok(Math.abs(cam.lookAt.y - oog.y) < 30 * Math.sin(1), 'en niet dwars');
   assert.ok(cam.fov > 50 && cam.fov < 90);
-  assert.equal(P.bijrijdersOog(null, taxi), null);
+  assert.equal(P.taxiOog(null), null);
+  // draaien met de taxi: bij een koers van +y (a = 90 graden) zit rechts op de kaart links (-x)
+  const o2 = P.taxiOog({ x: 0, y: 0, z: 0, angle: Math.PI / 2 });
+  assert.ok(o2.x < -0.3 && o2.y < 0, 'de plek draait mee met de koers');
+  assert.ok(Math.abs(o2.fy - 1) < 1e-9 && Math.abs(o2.fx) < 1e-9);
+});
+
+t('de passagier kijkt af en toe naar de chauffeur (links) en uit het raam (rechts)', () => {
+  let min = 0, max = 0;
+  for (let x = 0; x < 20; x += 0.1) { const h = P.kijkHoek(x); min = Math.min(min, h.yaw); max = Math.max(max, h.yaw); }
+  assert.ok(min < -0.6, `een blik naar de chauffeur (${min.toFixed(2)})`);
+  assert.ok(max > 0.5, `een blik uit het raam (${max.toFixed(2)})`);
+  assert.ok(P.kijkHoek(3.0).yaw < -0.5, 'rond 3 s kijkt hij naar de chauffeur: dat valt in het echte begin van de rit');
+  assert.ok(Math.abs(P.kijkHoek(0.2).yaw) < 0.15, 'in het begin kijkt hij recht vooruit');
 });
 
 t('de blik beweegt zacht en zonder sprongen', () => {

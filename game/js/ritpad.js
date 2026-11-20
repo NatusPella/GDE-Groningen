@@ -5,6 +5,8 @@
 // tekst van de sprong, de camera op de achterbank en het spoor van de trein. Geen DOM, geen THREE: de wereldlaag
 // (reisrit3d.js) tekent het en scripts/ritpad_test.mjs speelt het na.
 
+import { TAXI_OOG } from './ritcabine.js';
+
 export const RIT = {
   openS: 9,          // het echte begin, in seconden
   sluitS: 9,         // het echte einde
@@ -116,26 +118,23 @@ export function rechterBaan(q, afstand = 1.3) {
   return { x: q.x - Math.sin(q.a) * afstand, y: q.y + Math.cos(q.a) * afstand, a: q.a };
 }
 
-// Het oog van de passagier: op de bijrijdersstoel, naast de bestuurder. eye = interiorEyePose(taxi): het oog van de
-// bestuurder in kaartcoördinaten { x, y, z, fx, fy } (z is de hoogte); taxi = { x, y }. Het oog zit op dezelfde hoogte en
-// lengte, aan de andere kant van het midden. Op de achterbank (eerst 1,05 m achter de bestuurder) stond de rugleuning van
-// de voorstoel 0,56 m voor de lens en vulde het hele beeld (beeldcheck #882): voorin kijk je door de voorruit.
-export function bijrijdersOog(eye, taxi, { zijwaarts = 0.4 } = {}) {
-  if (!eye || !taxi) return null;
-  const rx = -eye.fy, ry = eye.fx;
-  const dz = (eye.x - taxi.x) * rx + (eye.y - taxi.y) * ry; // zijwaarts van het midden; de bestuurder zit links of rechts
-  const zij = Math.abs(dz) < 0.2 ? zijwaarts : -dz;
-  return { x: eye.x + rx * (zij - dz), y: eye.y + ry * (zij - dz), z: eye.z, fx: eye.fx, fy: eye.fy };
+// Het oog van de passagier in kaartcoördinaten: de bijrijdersstoel van de cabine van Gele Gans (ritcabine.js, TAXI_OOG in
+// voertuigmaten) bij de stand van de taxi. taxi = { x, y, z, angle }. Op de achterbank (eerst 1,05 m achter de bestuurder)
+// stond de rugleuning van de voorstoel 0,56 m voor de lens en vulde het hele beeld (beeldcheck #882): voorin kijk je door de voorruit.
+export function taxiOog(taxi) {
+  if (!taxi) return null;
+  const a = taxi.angle || 0, c = Math.cos(a), s = Math.sin(a), o = TAXI_OOG;
+  return { x: taxi.x + o.x * c - o.z * s, y: taxi.y + o.x * s + o.z * c, z: (taxi.z || 0) + o.y, fx: c, fy: s };
 }
 
-// Zachte hoofdbeweging van een passagier: een lichte deining en af en toe een blik uit het raam rechts.
-// yaw > 0 is naar rechts, pitch < 0 omlaag (radialen).
+// Zachte hoofdbeweging van een passagier: een lichte deining, een blik naar de chauffeur (links, rond 3 s en 13,5 s) en af en toe
+// een blik uit het raam rechts (rond 7 s en 17 s). yaw > 0 is naar rechts, pitch < 0 omlaag (radialen).
+const glans = (t, w, piek) => { const x = Math.max(0, Math.sin(w * t - (w * piek - Math.PI / 2))); return x * x * x; };
 export function kijkHoek(t) {
-  const blik = Math.max(0, Math.sin(t * 0.33 - 0.6));
-  const raam = blik * blik * blik * 0.75;
+  const raam = glans(t, 0.63, 7.2) * 0.7, chauffeur = glans(t, 0.6, 3.0) * 0.8;
   return {
-    yaw: 0.07 * Math.sin(t * 0.9) + 0.05 * Math.sin(t * 0.37 + 1) + raam,
-    pitch: -0.06 + 0.02 * Math.sin(t * 0.7 + 0.5) - raam * 0.05,
+    yaw: 0.05 * Math.sin(t * 0.9) + 0.04 * Math.sin(t * 0.37 + 1) + raam - chauffeur,
+    pitch: -0.03 + 0.015 * Math.sin(t * 0.7 + 0.5) - raam * 0.05,
   };
 }
 
@@ -147,7 +146,7 @@ export function taxiCamera(oog, t, kijkAfstand = 30) {
   return {
     position: { x: oog.x, y: oog.y, z: oog.z },
     lookAt: { x: oog.x + dx * kijkAfstand, y: oog.y + dy * kijkAfstand, z: oog.z + Math.tan(pitch) * kijkAfstand },
-    fov: 68,
+    fov: 70,
   };
 }
 

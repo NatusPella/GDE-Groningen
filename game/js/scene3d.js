@@ -33,6 +33,7 @@ import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
+import { updateRitCabine, syncTreinKader } from './ritcabine3d.js';
 import { zetVrachtStencilProbe } from './vrachtruimte3d.js';
 import { syncAutoStuur } from './autointerieur.js';
 import { syncVoertuigBediening } from './voertuigbediening.js';
@@ -145,7 +146,6 @@ import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 // #833: de eerste-persoonstand, de camera en het interieur staan in firstpersoncam.js
 import { fpSync, fpCamera, FP_VIEW, FP_HIDE, FP_CUT, FP_INCABIN, FP_TOGGLE } from './firstpersoncam.js';
-import { updateCarInterior } from './carinterior.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 // route-ribbon, waypoint-beacon en setRouteLinks: eigen module onder scene3d/ (#502)
 import { updateRouteRibbon3D, hideRouteRibbon3D, setRouteRibbonScene } from './scene3d/routeribbon3d.js';
@@ -3098,7 +3098,8 @@ export function update3D(dt, world) {
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const fpBits = fpSync(world, player, pv, pvMesh, hidePlayers, !!(world.cameraOverride && world.cameraOverride.interior));
-  if (world.ritTaxi) updateCarInterior(vehicleMeshes.get(world.ritTaxi.id), world.ritTaxi, true); // #882: de passagier zit in het interieur van de taxi van de rit (reisrit3d.js)
+  if (world.ritTaxi) updateRitCabine(vehicleMeshes.get(world.ritTaxi.id), world.ritMeter || 0); // #882: de passagier zit in de cabine van de taxi van de rit (ritcabine3d.js, reisrit3d.js)
+  syncTreinKader(scene, world.ritKader === 'trein'); // #926: het raam van de coupé voor de lens van de treinrit
   const firstPersonView = (fpBits & FP_VIEW) !== 0;
   const hideFigure = (fpBits & FP_HIDE) !== 0;
   const inCabin = (fpBits & FP_INCABIN) !== 0;

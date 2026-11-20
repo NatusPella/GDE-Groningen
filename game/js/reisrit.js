@@ -8,6 +8,7 @@ import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, 
 import { padButtonIndex, playerPad } from './glyphs.js';
 import { treinReis } from './trainride.js';
 import { start3dRit } from './reisrit3d.js';
+import { perronZAt } from './perrons.js';
 
 let active = null;
 
@@ -252,7 +253,8 @@ export function drawTrein(canvas, plan, rit) {
 }
 
 // De landing na een rit (de echte of de oude scène): betalen, de klok, en de speler op de landingsplek bij het doel.
-function landNaRit(world, rit, a) {
+// perron: de plek op het perron van het aankomststation (reisrit3d.js, treinrit): { x, y, z, rail: [x, y] }; dan staat de speler daar.
+function landNaRit(world, rit, a, perron = null) {
   world.money -= a.prijs;
   if (typeof world.clock === 'number' && klokSprongMag(world)) world.clock = (world.clock + a.klokMinuten / 60) % 24; // met meer spelers springt de klok niet: de tijd is van iedereen (#452)
   // #932: de bestemming is het doel, niet een weg honderden meters verderop. Eerst de
@@ -266,10 +268,17 @@ function landNaRit(world, rit, a) {
   if (world.map.findOpenSpawn) {
     try { const s = world.map.findOpenSpawn(a.x, a.y, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M); if (s) kandidaten.push(s); } catch (e) { /* idem */ }
   }
-  const spot = landingsplek(a, kandidaten, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M) || { x: a.x, y: a.y };
+  const spot = perron ? { x: perron.x, y: perron.y } : landingsplek(a, kandidaten, boot ? BOAT_DRIFT_M : LANDING_DRIFT_M) || { x: a.x, y: a.y };
   const p = hoofdspeler(world);
   if (p.inVehicle) { p.inVehicle.speed = 0; p.inVehicle.x = spot.x; p.inVehicle.y = spot.y; }
   p.x = spot.x; p.y = spot.y;
+  if (perron) {
+    // #926: je stapt uit op het perron (de vloer van perrons.js), met je rug naar de trein
+    const P = world.map && world.map.elev && world.map.elev.perrons, z = P ? perronZAt(P, spot.x, spot.y) : null;
+    p.z = 0; p.vz = 0; p.vx = 0; p.vy = 0;
+    p.gz = Number.isFinite(z) ? z : Number.isFinite(perron.z) ? perron.z : 0;
+    if (perron.rail) p.angle = Math.atan2(spot.y - perron.rail[1], spot.x - perron.rail[0]);
+  }
   const c = world.companion;
   if (c && c.state !== 'dead' && !meerSpelers(world)) { c.x = spot.x + 1.5; c.y = spot.y; c.vx = 0; c.vy = 0; }
   world.addMessage(a.bericht, 4, { kind: 'reis' });
@@ -298,7 +307,7 @@ export function startMeerijden(world, optie, dest) {
         rit.skipped = !!res.skipped; rit.done = true;
         const a = aankomst(rit, dest, world.money);
         if (!a) return { aangekomen: false };
-        landNaRit(world, rit, a);
+        landNaRit(world, rit, a, res.landing || null);
         return { aangekomen: true, skipped: rit.skipped };
       });
     }
