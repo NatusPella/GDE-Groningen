@@ -136,12 +136,18 @@ try {
       teleport(px, py, hoek); hold = { x: px, y: py, a: hoek };
       await sleep(wacht); await shot(naam, 300); hold = null;
     };
-    const kaartShot = async (naam) => {
-      hold = null; teleport(pos.x + 260, pos.y + 40, 0);
+    const kaartShot = async (naam, zoom = 24) => {
+      hold = null; teleport(pos.x + (zoom < 1 ? 1500 : 260), pos.y + 40, 0);
       PM.openPauseMenu('map'); await sleep(2000); begrepen(); await sleep(400);
-      if (mv.setMapView) { mv.setMapView(pos.x, pos.y, 24); await sleep(1500); }
+      if (mv.setMapView) { mv.setMapView(pos.x, pos.y, zoom); await sleep(1500); }
       await shot(naam, 400);
       PM.closePauseMenu(); await sleep(500);
+    };
+    // de veldpaal op de hoek (vlag, vorm, meetlat, lichtkolom bij oogstklaar) van dichtbij
+    const markeerShot = async (naam) => {
+      const ux = Math.cos(pos.a), uy = Math.sin(pos.a), hx = rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, hy = rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4;
+      const px = hx - ux * 12, py = hy - uy * 12, hoek = Math.atan2(hy - py, hx - px);
+      teleport(px, py, hoek); hold = { x: px, y: py, a: hoek }; await sleep(3500); await shot(naam, 300); hold = null;
     };
     await vantage('veld-geploegd', 4000);
     await kaartShot('kaart-geploegd');
@@ -152,17 +158,16 @@ try {
     B.tikUren(b, 18);
     await vantage('veld-groeit');
     await kaartShot('kaart-groeit');
+    await markeerShot('markering-groeit');
     B.tikUren(b, 40);
     await vantage('veld-rijp');
-    {
-      const ux = Math.cos(pos.a), uy = Math.sin(pos.a), hx = rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, hy = rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4;
-      const px = hx - ux * 12, py = hy - uy * 12, hoek = Math.atan2(hy - py, hx - px);
-      teleport(px, py, hoek); hold = { x: px, y: py, a: hoek }; await sleep(3500); await shot('markering-rijp', 300); hold = null;
-    }
+    await markeerShot('markering-rijp');
     PM.openPauseMenu('boerderij'); await sleep(1200);
     await shot('paneel-perceel-rijp', 300);
     PM.closePauseMenu(); await sleep(500);
     await kaartShot('kaart-rijp');
+    await kaartShot('kaart-midden', 3);
+    await kaartShot('kaart-ver', 0.3);   // ver uitgezoomd: je veld blijft als pin staan
     PM.closePauseMenu(); await sleep(400);
     Live.rondAf(w, 'oogsten', 0.9, { vrij: true });
     await vantage('veld-stoppel', 3500);

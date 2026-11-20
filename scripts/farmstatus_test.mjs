@@ -188,6 +188,9 @@ t('je velden blijven op de kaart staan, ook ver uitgezoomd; aangeboden akkers vo
   }
   assert.equal(MI.mapKindVisible('perceel-machine', 0), true);
   assert.equal(MI.mapCategory('perceel-koop'), 'ommeland');
+  const geplaatst = MI.placeIcons([{ kind: 'mission', sx: 10, sy: 10 }, { kind: 'perceel-eigen-rijp', sx: 12, sy: 12 }, { kind: 'perceel-koop', sx: 11, sy: 11 }], 20);
+  assert.ok(geplaatst.some((q) => q.kind === 'perceel-eigen-rijp'), 'je veld wordt niet weggedrukt door een naburig pictogram');
+  assert.ok(!geplaatst.some((q) => q.kind === 'perceel-koop'), 'een aangeboden akker wijkt wel');
   const calls = []; const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : (...a) => { calls.push(k); }), set: (o, k, w) => { o[k] = w; return true; } });
   for (const sid of S.STATUS_IDS) assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-eigen-' + sid, 2.1), true);
   assert.ok(calls.includes('fillText'), 'de letter van de stand staat op de pin');

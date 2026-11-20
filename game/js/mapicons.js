@@ -124,7 +124,7 @@ export function placeIcons(items, gap) {
         for (const o of row) if ((o.sx - it.sx) ** 2 + (o.sy - it.sy) ** 2 < gap * gap) { clash = true; break; }
       }
     }
-    if (clash && !CATS[mapCategory(it.kind)].keep) continue;
+    if (clash && !CATS[mapCategory(it.kind)].keep && !it.kind.startsWith('perceel-eigen')) continue;   // je eigen velden worden nooit weggedrukt (20-11)
     const key = gx * 65537 + gy;
     if (!grid.has(key)) grid.set(key, []);
     grid.get(key).push(it);
