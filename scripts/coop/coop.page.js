@@ -896,6 +896,18 @@ const PHASES = {
       const V = await imp('vehicle'), fa = { x: a.x, y: a.y }, nabij = () => w.vehicles.filter((v) => Math.hypot(v.x - fa.x, v.y - fa.y) <= 170).length;
       const v0 = nabij(); V.manageTrafficPopulation(w, { target: 12, spawnMin: 12, focus: fa });
       const kand = map.roadsNear(fa.x, fa.y, 170).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly); const cats = {}; for (const r of map.roadsNear(fa.x, fa.y, 170)) cats[r.cat + ':' + (r.width >= 3 ? 'w' : 'n')] = (cats[r.cat + ':' + (r.width >= 3 ? 'w' : 'n')] || 0) + 1;
+      try { // waarom spawnt er niets? dezelfde stappen als manageTrafficPopulation, met een teller per afwijzing
+        const TF = await imp('trafficfleet'), TR = await imp('vehicle/traffic'); const t = { poging: 0, geenModel: 0, nietBruikbaar: 0, teDichtbij: 0, teVer: 0, bezet: 0, ok: 0, nan: 0 }; const ds = [];
+        for (let q = 0; q < 48 && kand.length; q++) {
+          t.poging++; const road = kand[Math.floor(Math.random() * kand.length)]; const mid = road.pts[Math.floor(road.pts.length / 2)];
+          const pick = TF.pickTrafficCar(map, mid[0], mid[1], Math.random, { hour: 8 }); if (!pick || !pick.model) { t.geenModel++; continue; }
+          if (!TR.canUseRoad({ model: pick.model }, road)) { t.nietBruikbaar++; continue; }
+          const v = V.spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model); const d = Math.hypot(v.x - fa.x, v.y - fa.y);
+          if (!Number.isFinite(d)) { t.nan++; continue; } if (ds.length < 8) ds.push(Math.round(d));
+          if (d < 12) t.teDichtbij++; else if (d > 170) t.teVer++; else t.ok++;
+        }
+        log('uitelkaar-dbg-spawn', { ...t, ds });
+      } catch (e) { log('uitelkaar-dbg-spawn', { fout: String(e && e.stack || e).slice(0, 300) }); }
       log('uitelkaar-dbg-kand', { kand: kand.length, cats, tijd: w.time, hoofd: [Math.round(p.x), Math.round(p.y)], fa: [Math.round(fa.x), Math.round(fa.y)], pedView: !!w.pedView });
       log('uitelkaar-dbg-verkeer', { voor: v0, na: nabij(), wegen: map.roadsNear(fa.x, fa.y, 170).length, foci: w.coopFoci ? w.coopFoci.length : 1 });
     } catch (e) { log('uitelkaar-dbg-verkeer', { fout: String(e && e.stack || e) }); }
@@ -905,7 +917,7 @@ const PHASES = {
       await sleep(1000);
       if (Math.hypot(a.x - p.x, a.y - p.y) < 60 || Math.hypot(b.x - p.x, b.y - p.y) < 60) teruggezet = true;
       const ra = rondom(a), rb = rondom(b);
-      minA = i ? Math.min(minA, ra.voertuigen + ra.voetgangers) : ra.voertuigen + ra.voetgangers; minB = i ? Math.min(minB, rb.voertuigen + rb.voetgangers) : rb.voertuigen + rb.voetgangers;
+      minA = Math.max(minA, ra.voertuigen + ra.voetgangers); minB = Math.max(minB, rb.voertuigen + rb.voetgangers); // het meeste dat rond de speler werd gezien (de naam minA bleef): verkeer rond een losse speler is dun en schommelt
       if (i % 5 === 4) log('uitelkaar-sample', { t: Math.round((performance.now() - t0) / 1000), a: ra, b: rb, ...stand(), wachtA: !!a.wacht, wachtB: !!b.wacht });
     }
     const ents = Wd.verzamelEntiteiten(w, [p, a, b]);
@@ -1468,6 +1480,33 @@ const PHASES = {
       const r = await window.__botMain();
       log('verhaal-einde', { r });
     } else await PHASES.volg({ s, tot: 'weg' });
+  },
+  // #983: een taxi- of treinrit (lokale scène van wie rijdt, reisrit.js) terwijl anderen meespelen. wie = 'host' of 'gast': die instantie
+  // start de rit via de kaartopties (reiskaart -> reisrit.startMeerijden, de gast direct: de kaart weigert hem met ALLEEN_EIGEN_SPEL);
+  // alle anderen kijken en loggen elke 2 s de figuur van de rijder, de verbinding en de beeldsnelheid.
+  async ritreis({ wie = 'host', soort = 'taxi', naar = 'Winsum', s = 100 }) {
+    const w0 = W(); const t0 = performance.now(); const jezelf = CFG.name === wie;
+    const rijderSlot = wie === 'host' ? 0 : 1;
+    const figuurVan = () => { // de figuur van de rijder in dit spel
+      const x = W();
+      if (rijderSlot === 0) return x.coopRole === 'client' ? (x.companion || null) : null;
+      return x.coopFigures && x.coopFigures[1] ? x.coopFigures[1] : null;
+    };
+    const waarneem = (tag) => { const x = W(), f = figuurVan(), ses = net() && net().session; log('rit-zie', { tag, wie, f: f ? [Math.round(f.x), Math.round(f.y), Number.isFinite(f.x) && Number.isFinite(f.y)] : null, partners: (x.coopPartners || []).map((p) => [p.slot, p.status, Math.round(p.x), Math.round(p.y)]), status: ses ? ses.status : 'host', fps: FPS.fps, gap: FPS.gapLast, paused: !!x.paused, ui: !!x.uiPaused, cine: !!x.cameraOverride }); };
+    if (!jezelf) { while (performance.now() - t0 < s * 1000) { waarneem('kijk'); await sleep(2000); } return; }
+    const RK = await imp('reiskaart'), RR = await imp('reisrit');
+    const index = await fetch('/world/index-provincie.json').then((r) => r.json()).then((j) => j.global);
+    const dest = index.places.find((q) => q.name === naar);
+    if (!dest) { log('rit-eigen', { fout: 'plaats niet gevonden: ' + naar }); await sleep(s * 1000); return; }
+    w0.money = Math.max(w0.money, 900);
+    const opts = RK.reisOptiesVoor(w0, { x: dest.x, y: dest.y, name: dest.name }); const o = opts.find((q) => q.id === soort);
+    if (!o) { log('rit-eigen', { fout: 'geen optie ' + soort }); await sleep(s * 1000); return; }
+    const voor = { x: Math.round(w0.player.x), y: Math.round(w0.player.y) };
+    let res = null; const t1 = performance.now();
+    RR.startMeerijden(w0, o, { x: dest.x, y: dest.y, name: dest.name }).then((r) => { res = r; });
+    while (!res && performance.now() - t1 < 80000) { waarneem('rij'); await sleep(2000); }
+    log('rit-eigen', { soort, naar, res, duurS: Math.round((performance.now() - t1) / 100) / 10, voor, na: { x: Math.round(w0.player.x), y: Math.round(w0.player.y) }, afstandDoel: Math.round(Math.hypot(w0.player.x - dest.x, w0.player.y - dest.y)) });
+    while (performance.now() - t0 < s * 1000) { waarneem('na'); await sleep(2000); }
   },
   // een gast loopt achter Tammo aan (de metgezel op deze client), zoals een speler die meespeelt
   async volg({ s = 600, tot = 'tijd' }) {

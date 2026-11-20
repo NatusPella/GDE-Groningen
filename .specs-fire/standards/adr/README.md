@@ -88,4 +88,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0037](0037-perf-norm-30fps.md) | Perf-norm v2: 30 fps-p95, werktijd en een 1 s-hitchbudget | besloten |
 | [0038](0038-altijd-online-met-instemming.md) | Altijd online met een verplichte naam en expliciete instemming | besloten |
 | [0032](0032-opening-terug-naar-gescripte-scene.md) | De standaardopening is weer de gescripte scène | besloten |
-
+| [0039](0039-licentievrije-audio-met-credits.md) | Licentievrije audio (CC0/CC-BY) van Freesound met credits | besloten |

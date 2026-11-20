@@ -28,8 +28,8 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(0, Math.min(3, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' || SUITE === 'meerijden' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'meerijden' ? 1 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const GASTEN = Math.max(0, Math.min(3, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'ritreis' ? 1 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' || SUITE === 'meerijden' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'ritreis' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'meerijden' ? 1 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const TEGELIJK = flag('tegelijk'); // alle gasten starten meteen na de host en voeren de code tegelijk in (zoals vrienden in een groepsapp), niet één voor één
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
@@ -68,6 +68,7 @@ const P = {
   meerijden: { host: [[0, 'wacht', { s: 6 }], [8, 'meerijden', { s: Number(arg('meerijden-s', 55)) }], [8 + Number(arg('meerijden-s', 55)) + 6, 'stopHost', {}]] }, // #525: een headless gast stapt in bij de auto van de gastheer, rijdt en stapt naast de deur weer uit
   wedstrijd: { host: [[0, 'wacht', { s: 6 }], [8, 'wedhost', { s: 260 }], [280, 'stopHost', {}]] }, // #443: de host rijdt een race tegen twee headless gasten (de een stopt halverwege), uitslag, beloning en rematch
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
+  ritreis: { host: [[0, 'wacht', { s: 8 }], [10, 'ritreis', { wie: 'host', soort: 'taxi', naar: 'Winsum', s: 100 }], [112, 'ritreis', { wie: 'gast', soort: 'taxi', naar: 'Winsum', s: 100 }], [214, 'stopHost', {}]], gast: [[0, 'wacht', { s: 8 }], [10, 'ritreis', { wie: 'host', soort: 'taxi', naar: 'Winsum', s: 100 }], [112, 'ritreis', { wie: 'gast', soort: 'taxi', naar: 'Winsum', s: 100 }]] }, // #983: een lokale taxirit van de host en daarna van een gast (de kaart weigert dat een gast; hier direct), host + gast + twee headless gasten
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
@@ -465,7 +466,7 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(b && b.geladenNa != null, 'uitelkaar: de wereld rond de tweede groep (Delfzijl) werd niet geladen: ' + JSON.stringify(b));
     check(m && !m.teruggezet, 'uitelkaar: een speler werd bij de groep gezet terwijl hij los mocht lopen: ' + JSON.stringify(m));
     check(m && m.fociN === 3, 'uitelkaar: verwacht drie foci (gastheer en twee groepen): ' + (m && m.fociN));
-    check(m && m.minA >= 1 && m.minB >= 1, 'uitelkaar: rond een speler is de wereld niet levend (verkeer of voetgangers): ' + JSON.stringify(m));
+    check(m && m.minA >= 1 && m.minB >= 1, 'uitelkaar: rond een speler is in 20 s nooit verkeer of een voetganger gezien (de wereld is niet levend): ' + JSON.stringify(m));
     check(m && m.snapshotRondA >= 1 && m.snapshotRondB >= 1, 'uitelkaar: het snapshot bevat niets rond een van de spelers: ' + JSON.stringify(m));
     const bt = e1('uitelkaar-bijgroep'); check(bt && bt.gelukt && bt.afstand < 4, 'uitelkaar: B zette de speler niet bij de groep: ' + JSON.stringify(bt));
     const ui = e1('uitelkaar-uit'); check(ui && ui.bTerugNa != null && ui.fociN === 1, 'uitelkaar: de extra foci verdwenen niet: ' + JSON.stringify(ui));
@@ -677,6 +678,27 @@ if (SUITE === 'net') {
   const leaverSlot = SECOND === 'gast2' ? 2 : 1;
   if (mockLate) check(mockLate.session.slot === leaverSlot, `late mockgast kreeg plek ${mockLate.session.slot} (verwacht de vrijgekomen plek ${leaverSlot})`);
   else problems.push('de late mockgast is niet verbonden');
+}
+
+// ----- een taxirit terwijl anderen meespelen (#983)
+if (SUITE === 'ritreis') {
+  const eh = of(H, 'rit-eigen')[0], eg = of(G, 'rit-eigen')[0];
+  check(eh && eh.res && eh.res.aangekomen, 'ritreis: de taxirit van de host kwam niet aan: ' + JSON.stringify(eh));
+  check(eg && eg.res && eg.res.aangekomen, 'ritreis: de taxirit van de gast kwam niet aan: ' + JSON.stringify(eg));
+  note('ritreis host: ' + JSON.stringify(eh)); note('ritreis gast: ' + JSON.stringify(eg));
+  const zie = (E_, tag) => of(E_, 'rit-zie').filter((x) => x.tag === tag);
+  for (const [wie, kijker, rijder] of [['host', G, 'gast ziet de host'], ['gast', H, 'host ziet de gast']]) {
+    const rij = of(kijker, 'rit-zie').filter((x) => x.wie === wie && x.tag === 'kijk' || x.wie === wie && x.tag === 'rij' || x.wie === wie && x.tag === 'na');
+    const kijk = rij.filter((x) => x.tag === 'kijk');
+    check(kijk.length >= 10, `ritreis: ${rijder}: te weinig waarnemingen tijdens de rit (${kijk.length})`);
+    check(kijk.every((x) => x.f && x.f[2]), `ritreis: ${rijder}: de figuur van de rijder was weg of NaN: ` + JSON.stringify(kijk.find((x) => !(x.f && x.f[2]))));
+    check(kijk.every((x) => !/lost|verbroken/.test(String(x.status))), `ritreis: ${rijder}: de verbinding viel weg tijdens de rit: ` + JSON.stringify([...new Set(kijk.map((x) => x.status))]));
+    const gaps = kijk.map((x) => x.gap).sort((a, b) => a - b);
+    check(gaps.length && gaps[gaps.length - 1] < 5000, `ritreis: ${rijder}: de kijker stond ${gaps[gaps.length - 1]} ms stil`);
+    const f0 = kijk.find((x) => x.f), f1 = [...kijk].reverse().find((x) => x.f);
+    note(`ritreis: ${rijder}: figuur van ${f0 && f0.f.slice(0, 2)} naar ${f1 && f1.f.slice(0, 2)}, ${kijk.length} waarnemingen, fps mediaan ${gaps.length ? kijk.map((x) => x.fps).sort((a, b) => a - b)[kijk.length >> 1] : '-'}`);
+  }
+  check(!of(H, 'jserror').length && !of(G, 'jserror').length, 'ritreis: een jserror: ' + JSON.stringify(of(H, 'jserror')[0] || of(G, 'jserror')[0]));
 }
 
 // ----- aanraakbediening (suite 'touch' en de gast van 'net')
