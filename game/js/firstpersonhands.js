@@ -11,16 +11,17 @@
 import * as THREE from 'three';
 import { buildWeaponMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getCombatEffect } from './combateffect.js';
-import { isRangedWeapon } from './weapons.js';
+import { isRangedWeapon, WEAPONS } from './weapons.js';
 import { blokActief } from './blockregels.js';
 
 // De camera kijkt in three.js langs -z; x is rechts, y omhoog. Alles hier is in die
 // cameraruimte, in meters. De ruststand houdt de vuisten onder in beeld, net als bij het
 // derde-persoonfiguur de armen langs het lijf hangen.
 export const HANDS_REST = { rx: 0.2, ry: -0.3, rz: -0.72, lx: -0.24, ly: -0.33, lz: -0.8 };
-// De camera heeft een near-plane van 0,5 m (scene3d.js): alles dichterbij wordt opengeknipt.
-// De mouw is het dichtst bij de camera (ongeveer 0,11 m achter de vuist), dus de vuisten staan
-// ruim voor die grens en geen enkel deel van de arm valt weg.
+// De eerstepersoonscamera heeft near 0,08 m (cameranear.js NEAR_FIRST_PERSON); de vuisten blijven
+// toch zo ver weg dat ook de mouw (ongeveer 0,11 m achter de vuist) ruim vóór de lens staat.
+// Muren knippen de handen niet meer af: de materialen testen de diepte niet (zie buildArm),
+// zoals een viewmodel in een overlay.
 export const HANDS_MIN_DIST = 0.62;
 // Duur van een uithaal per slagsoort; dezelfde namen als de derde-persoonstanden
 // (models3d_people.js SWING_S), zodat beeld en stand gelijk lopen.
@@ -49,6 +50,46 @@ export function gunKick(dt) {
   return dt < 0.03 ? dt / 0.03 : Math.exp(-(dt - 0.03) * 14);
 }
 
+// Houdingsklasse per wapen (#943): elk wapen uit weapons.js valt in een klasse en elke klasse heeft
+// zijn eigen kleine houding in handsPose. 'tool' is het gereedschap (bezem, fietspomp).
+export const HAND_CLASSES = ['fists', 'melee', 'tool', 'pistol', 'long', 'throw', 'rocket'];
+const TOOL_KEYS = { bezem: 1, fietspomp: 1 };
+export function weaponClass(key) {
+  const w = key ? WEAPONS[key] : null;
+  if (!w || key === 'fists') return 'fists';
+  if (TOOL_KEYS[key]) return 'tool';
+  switch (w.kind) {
+    case 'melee': return 'melee';
+    case 'throw': return 'throw';
+    case 'rocket': return 'rocket';
+    case 'water': return 'pistol';
+    case 'gun': return w.slot === 3 ? 'long' : 'pistol';
+    default: return 'melee';
+  }
+}
+
+// Muzzle flash: een kort, rustig lichtje (geen vuur- of bloedeffect). dt = seconden sinds het
+// schot; geeft 1 (vol) .. 0 (uit), in 0,07 s weg.
+export function muzzleFlash(dt) {
+  if (!(dt >= 0) || dt >= 0.07) return 0;
+  return 1 - dt / 0.07;
+}
+
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const fin = (v, d = 0) => (Number.isFinite(v) ? v : d);
+
+// De greep per klasse: een verschuiving van de rustpositie van de rechter- en linkerhand en een
+// kanteling van het wapen. [rx, ry, rz, rax, lx, ly, lz, wax]
+const CLASS_GRIP = {
+  fists: [0, 0, 0, 0, 0, 0, 0, 0],
+  melee: [-0.02, 0.06, -0.04, 0.1, 0, 0, 0, 0.45],
+  tool: [-0.04, 0.03, -0.06, 0.1, 0.1, 0.1, -0.16, 0.6],
+  pistol: [-0.08, 0.05, -0.05, 0.2, 0.1, 0.06, -0.02, 0.05],
+  long: [-0.1, 0.05, -0.06, 0.12, 0.26, 0.12, -0.3, 0.02],
+  throw: [-0.05, 0.1, -0.02, 0.4, 0, 0, 0, 0.1],
+  rocket: [-0.1, 0.06, -0.05, 0.3, 0.2, 0.1, -0.14, 0.05],
+};
+
 // De stand van de twee vuisten en het wapen voor dit beeld. `out` is een module-tijdelijk
 // object, zodat een frame niets alloceert. state: { swing, u, aiming, kick, bob, side, weapon }.
 // swing = null of de slagsoort; u = 0..1 door de uithaal; side = 1 rechts, -1 links (vuisten
@@ -65,6 +106,27 @@ export function handsPose(out, state = {}) {
   l.x = HANDS_REST.lx; l.y = HANDS_REST.ly + bob * 0.02; l.z = HANDS_REST.lz;
   l.ax = -0.18; l.ay = 0; l.az = 0.05;
   w.ax = 0; w.ay = 0; w.az = 0;
+  const cls = state.cls || (state.weapon ? weaponClass(state.weapon) : 'fists');
+  const grip = CLASS_GRIP[cls] || CLASS_GRIP.fists;
+  r.x += grip[0]; r.y += grip[1]; r.z += grip[2]; r.ax += grip[3];
+  l.x += grip[4]; l.y += grip[5]; l.z += grip[6];
+  w.ax = grip[7];
+  // stilstaan: een trage deining (alleen als de tijd meegegeven is; in beweging neemt de bob het over)
+  if (Number.isFinite(state.t)) {
+    const calm = 1 - clamp(fin(state.move), 0, 1);
+    r.y += Math.sin(state.t * 1.4) * 0.006 * calm;
+    l.y += Math.sin(state.t * 1.4 + 0.8) * 0.006 * calm;
+    r.x += Math.sin(state.t * 0.7) * 0.004 * calm;
+    l.x += Math.sin(state.t * 0.7 + 0.8) * 0.004 * calm;
+  }
+  // lopen en rennen: zijwaartse bob; bij rennen de handen lager en naar voren gekanteld
+  const bobX = fin(state.bobX), run = clamp(fin(state.sprint), 0, 1);
+  r.x += bobX * 0.012; l.x += bobX * 0.012;
+  r.y -= 0.03 * run; l.y -= 0.03 * run;
+  r.ax -= 0.15 * run; l.ax -= 0.15 * run;
+  // springen: stijgend zakken de handen in beeld, vallend komen ze omhoog
+  const jump = clamp(fin(state.jump), -1, 1);
+  r.y -= 0.035 * jump; l.y -= 0.035 * jump;
   // wie slaat: met een wapen altijd de rechterhand, met blote vuisten om en om
   const striking = state.weapon ? 1 : (state.side > 0 ? 1 : -1);
   const f = state.swing ? swingAmount(state.u, state.swing === 'overhead' ? 0.33 : state.swing === 'thrust' ? 0.38 : 0.26) : 0;
@@ -125,6 +187,13 @@ export function handsPose(out, state = {}) {
     l.ax = -0.15; l.ay = 0; l.az = 0.5;
     w.ax = 0.15; w.ay = 0.35; w.az = -0.5;
   }
+  // pakken en deur of ander gebruik (E): de rechterhand reikt naar voren en omhoog en komt terug
+  const reach = clamp(fin(state.reach), 0, 1);
+  if (reach > 0 && !state.swing && !aiming && !state.block) {
+    const bell = Math.sin(Math.PI * reach);
+    r.x -= 0.08 * bell; r.y += 0.14 * bell; r.z -= 0.3 * bell;
+    r.ax += 0.35 * bell;
+  }
   // de terugslag van een schot: het wapen en de handen een tik naar achteren
   const kick = Number.isFinite(state.kick) ? state.kick : 0;
   if (kick > 0) {
@@ -151,20 +220,21 @@ function buildArm(mats, mirror) {
   fist.position.set(0, 0, -0.15);
   const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.04, 0.07), mats.skin);
   thumb.position.set(-0.06 * s, 0.03, -0.14);
-  for (const m of [sleeve, arm, fist, thumb]) {
+  // overlay: geen dieptetest, dus volgorde via renderOrder (mouw, arm, [wapen 32], vuist, duim)
+  [sleeve, arm, fist, thumb].forEach((m, i) => {
     m.castShadow = false;
     m.receiveShadow = false;
     m.frustumCulled = false;
-    m.renderOrder = 30;
+    m.renderOrder = [30, 31, 33, 34][i];
     g.add(m);
-  }
+  });
   return g;
 }
 
 function handsMaterials(character) {
   const app = character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-  const skin = new THREE.MeshLambertMaterial({ color: app.skin, emissive: 0x1c1a18, flatShading: true });
-  const shirt = new THREE.MeshLambertMaterial({ color: app.shirt, emissive: 0x14161a, flatShading: true });
+  const skin = new THREE.MeshLambertMaterial({ color: app.skin, emissive: 0x1c1a18, flatShading: true, depthTest: false, depthWrite: false });
+  const shirt = new THREE.MeshLambertMaterial({ color: app.shirt, emissive: 0x14161a, flatShading: true, depthTest: false, depthWrite: false });
   return { skin, shirt };
 }
 
@@ -180,6 +250,11 @@ function buildFirstPersonHands(character = 'tammo') {
   const weaponPivot = new THREE.Group();
   weaponPivot.position.set(0, 0, -0.15);
   right.add(weaponPivot);
+  // de muzzle flash: een klein laag-poly lichtje aan de loop, zonder dieptetest (overlay)
+  const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshBasicMaterial({ color: 0xffe9a8, depthTest: false, depthWrite: false }));
+  flash.renderOrder = 40; flash.frustumCulled = false; flash.visible = false;
+  weaponPivot.add(flash);
+  root.userData.flash = flash;
   root.add(right, left);
   root.userData.right = right;
   root.userData.left = left;
@@ -203,9 +278,20 @@ export function showFirstPersonWeapon(hands, key) {
     if (!mesh) { ud.weapons[ud.weaponKey] = null; ud.weaponKey = null; return null; }
     // buildWeaponMesh legt de loop langs +x; in de camera is vooruit -z
     mesh.rotation.y = Math.PI / 2;
-    mesh.traverse((o) => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false; o.renderOrder = 31; } });
+    // de materialen zijn gedeeld met het derde-persoonfiguur: kopieer ze voor de overlay
+    let i = 0;
+    mesh.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false;
+      o.renderOrder = 32 + 0.01 * i++;
+      o.material = o.material.clone();
+      o.material.depthTest = false; o.material.depthWrite = false;
+    });
     g = new THREE.Group();
     g.add(mesh);
+    // het uiteinde van de loop (voor de muzzle flash): de verste -z van het model
+    mesh.updateMatrixWorld(true);
+    g.userData.tipZ = new THREE.Box3().setFromObject(mesh).min.z;
     ud.weaponPivot.add(g);
     ud.weapons[ud.weaponKey] = g;
   }
@@ -230,6 +316,8 @@ export function firstPersonWeaponKey(world, inVehicle = false) {
 
 let hands = null;
 const _pose = { r: {}, l: {}, w: {} };
+let wasE = false, reachAt = -9;
+const REACH_S = 0.4;
 const _state = { swing: null, u: 0, aiming: false, block: false, kick: 0, bob: 0, side: 0, weapon: null };
 
 // Per beeld, vlak bij de camera: hang de handen aan de camera (en de camera aan de scène, anders
@@ -252,7 +340,7 @@ export function syncFirstPersonHands(scene, cam, world, player) {
     if (scene && cam.parent !== scene) scene.add(cam);
   }
   const inVehicle = !!(player && player.inVehicle);
-  const hidden = !player || inVehicle || !!player.swimming || !!player.carrying || !!(world && world.pigeonMode) || !!(world && world.scoped);
+  const hidden = !player || inVehicle || !!player.swimming || !!player.carrying || !!player.ragdoll || !!(world && (world.pigeonMode || world.scoped || world.menuCam || world.cinematicHidePlayers || world.cameraOverride || world.trainCam || world.trainDriving));
   hands.visible = !hidden;
   if (hidden) return hands;
   const key = firstPersonWeaponKey(world, inVehicle);
@@ -265,9 +353,15 @@ export function syncFirstPersonHands(scene, cam, world, player) {
     u = (now - fx.start) / dur;
     if (u >= 0 && u < 1) swing = SWING_S[fx.swing] ? fx.swing : 'jab';
   }
+  // werpwapens (carbidbus): een gooibeweging met de rechterhand
+  if (fx && fx.type === 'throw' && fx.start !== undefined && now >= fx.start) {
+    u = (now - fx.start) / SWING_S.throw;
+    if (u >= 0 && u < 1) swing = 'throw';
+  }
   let kick = 0;
   if (fx && (fx.type === 'muzzle' || fx.type === 'squirt') && fx.start !== undefined) kick = gunKick(now - fx.start);
-  const mouse = world && world.input && world.input.mouse;
+  const inp = world && world.input;
+  const mouse = inp && inp.mouse;
   const aiming = !!key && isRangedWeapon(key) && !!(mouse && mouse.rightDown) && !(world && world.scoped);
   // blokkeren met rechts (#492): de handen gaan omhoog, ook met blote vuisten
   const block = !!(world && world.blok && blokActief(world.blok, now)) && !aiming;
@@ -281,6 +375,19 @@ export function syncFirstPersonHands(scene, cam, world, player) {
   _state.bob = Math.sin(now * 9) * Math.min(1, speed / 4);
   _state.side = fx && fx.type === 'melee' ? fx.side : 0;
   _state.weapon = key;
+  _state.cls = weaponClass(key);
+  _state.t = now;
+  _state.move = Math.min(1, speed / 2);
+  _state.bobX = Math.cos(now * 4.5) * Math.min(1, speed / 4);
+  _state.sprint = speed > 4.5 && inp && typeof inp.isDown === 'function' && inp.isDown('shift') ? 1 : 0;
+  const vz = player.vz || 0;
+  _state.jump = (player.z || 0) > 0.05 ? Math.max(-1, Math.min(1, vz / 6)) : 0;
+  // E of F: de hand reikt naar voren (pakken, deur, praten), 0,4 s
+  const eDown = !!(inp && typeof inp.isDown === 'function' && (inp.isDown('e') || inp.isDown('f')));
+  if (eDown && !wasE) reachAt = now;
+  wasE = eDown;
+  const ru = (now - reachAt) / REACH_S;
+  _state.reach = ru >= 0 && ru < 1 ? ru : 0;
   handsPose(_pose, _state);
   const r = hands.userData.right, l = hands.userData.left, wp = hands.userData.weaponPivot;
   r.position.set(_pose.r.x, _pose.r.y, _pose.r.z);
@@ -288,6 +395,12 @@ export function syncFirstPersonHands(scene, cam, world, player) {
   l.position.set(_pose.l.x, _pose.l.y, _pose.l.z);
   l.rotation.set(_pose.l.ax, _pose.l.ay, _pose.l.az);
   wp.rotation.set(_pose.w.ax, _pose.w.ay, _pose.w.az);
+  // de muzzle flash: alleen bij een vuurwapenschot, aan het eind van de loop
+  const fl = hands.userData.flash;
+  const wg = key ? hands.userData.weapons[key] : null;
+  const fa = fx && fx.type === 'muzzle' && wg && WEAPONS[key] && WEAPONS[key].kind === 'gun' ? muzzleFlash(now - fx.start) : 0;
+  fl.visible = fa > 0;
+  if (fa > 0) { fl.position.set(0, 0, wg.userData.tipZ - 0.04); fl.scale.setScalar(0.5 + fa); }
   return hands;
 }
 

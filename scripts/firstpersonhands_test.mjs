@@ -9,6 +9,7 @@ const {
   HANDS_REST, HANDS_MIN_DIST, AIM_Z, SWING_S,
   swingAmount, gunKick, handsPose, showFirstPersonWeapon, firstPersonWeaponKey,
   syncFirstPersonHands, hideFirstPersonHands, currentFirstPersonHands,
+  weaponClass, HAND_CLASSES, muzzleFlash,
 } = await import('../game/js/firstpersonhands.js');
 const { buildWeaponMesh } = await import('../game/js/models3d_people.js');
 const { WEAPON_KEYS } = await import('../game/js/weapons.js');
@@ -254,6 +255,89 @@ t('geen enkel deel van de armen valt binnen de near-plane van 0,5 m', () => {
   assert.ok(box.min.z <= -0.5 + 1e-6, 'bij het richten', box.min.z);
   world.input.mouse.rightDown = false;
   world.weapon = 'fists';
+});
+
+
+t('elk wapen uit de wapenlijst valt in een houdingsklasse, en elke klasse geeft een eindige stand', () => {
+  const { WEAPONS } = { WEAPONS: null };
+  for (const k of WEAPON_KEYS) {
+    const c = weaponClass(k);
+    assert.ok(HAND_CLASSES.includes(c), k + ' -> ' + c);
+    for (const st of [{}, { swing: 'jab', u: 0.4, side: -1 }, { aiming: true }, { block: true }, { kick: 1 }, { reach: 0.5 }, { jump: 1 }, { jump: -1 }, { sprint: 1, bobX: 1, bob: 1, move: 1, t: 3.3 }]) {
+      const p = handsPose({}, { ...st, weapon: k === 'fists' ? null : k });
+      for (const h of [p.r, p.l, p.w]) for (const v of Object.values(h)) assert.ok(Number.isFinite(v), k + ' NaN');
+    }
+  }
+  assert.equal(weaponClass('pistol'), 'pistol');
+  assert.equal(weaponClass('shotgun'), 'long');
+  assert.equal(weaponClass('jachtgeweer'), 'long');
+  assert.equal(weaponClass('knuppel'), 'melee');
+  assert.equal(weaponClass('bezem'), 'tool');
+  assert.equal(weaponClass('carbidbus'), 'throw');
+  assert.equal(weaponClass('vuurwerk'), 'rocket');
+  assert.equal(weaponClass('fists'), 'fists');
+  assert.equal(weaponClass('bestaatniet'), 'fists');
+});
+
+t('elke klasse heeft een eigen houding (rechterhand of wapen wijkt af van de lege vuist)', () => {
+  const base = handsPose({}, {});
+  for (const k of ['knuppel', 'bezem', 'pistol', 'jachtgeweer', 'carbidbus', 'vuurwerk']) {
+    const p = handsPose({}, { weapon: k });
+    assert.ok(Math.abs(p.r.y - base.r.y) + Math.abs(p.w.ax) + Math.abs(p.l.z - base.l.z) > 0.01, k);
+  }
+  const a = handsPose({}, { weapon: 'pistol' }), b = handsPose({}, { weapon: 'jachtgeweer' });
+  assert.ok(b.l.z < a.l.z, 'het lange geweer wordt met de linkerhand verder voor ondersteund');
+});
+
+t('idle sway beweegt rustig en staat stil in beweging; lopen en springen verschuiven de handen', () => {
+  const a = handsPose({}, { t: 0 }), b = handsPose({}, { t: 1.1 });
+  assert.ok(a.r.y !== b.r.y && Math.abs(a.r.y - b.r.y) < 0.02, 'zachte deining');
+  const m = handsPose({}, { t: 1.1, move: 1 }), m2 = handsPose({}, { t: 0, move: 1 });
+  assert.equal(m.r.y, m2.r.y, 'in beweging doet de deining niet mee');
+  assert.ok(handsPose({}, { sprint: 1 }).r.y < handsPose({}, {}).r.y, 'rennen: lager');
+  assert.ok(handsPose({}, { jump: 1 }).r.y < handsPose({}, { jump: -1 }).r.y, 'stijgen: lager dan vallen');
+});
+
+t('pakken: de rechterhand reikt naar voren en komt terug (u 0 en 1 = rust)', () => {
+  const r0 = handsPose({}, { reach: 0 }).r.z, rm = handsPose({}, { reach: 0.5 }).r.z, r1 = handsPose({}, { reach: 1 }).r.z;
+  assert.ok(rm < r0 - 0.2 && Math.abs(r1 - r0) < 1e-9);
+  assert.ok(handsPose({}, { reach: 0.5, block: true }).r.z === handsPose({}, { block: true }).r.z, 'blokkeren wint');
+});
+
+t('muzzle flash: vol bij het schot, weg na 0,07 s, NaN geeft uit', () => {
+  assert.equal(muzzleFlash(0), 1);
+  assert.equal(muzzleFlash(0.07), 0);
+  assert.equal(muzzleFlash(-1), 0);
+  assert.equal(muzzleFlash(NaN), 0);
+});
+
+t('overlay: de materialen van armen en wapens testen de diepte niet (nooit in muren); gedeelde wapenmaterialen blijven heel', () => {
+  world.weapon = 'jachtgeweer';
+  setCombatEffect({ type: 'muzzle', start: world.time, until: world.time + 0.06, weapon: 'jachtgeweer' });
+  syncFirstPersonHands(scene, cam, world, player);
+  const h = currentFirstPersonHands();
+  let meshes = 0;
+  h.traverse((o) => { if (o.isMesh) { meshes++; assert.equal(o.material.depthTest, false); assert.ok(o.renderOrder >= 30); } });
+  assert.ok(meshes > 8);
+  assert.equal(h.userData.flash.visible, true, 'flash bij een vuurwapenschot');
+  const orig = buildWeaponMesh('jachtgeweer');
+  orig.traverse((o) => { if (o.isMesh) assert.notEqual(o.material.depthTest, false, 'derde-persoonmateriaal onaangeroerd'); });
+  setCombatEffect({ type: 'squirt', start: world.time, until: world.time + 0.06, weapon: 'jachtgeweer' });
+  syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(h.userData.flash.visible, false, 'geen flash bij water of melee');
+  setCombatEffect(null);
+  world.weapon = 'fists';
+});
+
+t('verborgen in cutscene, filmcamera, treincamera, duif en menucamera', () => {
+  for (const f of ['cameraOverride', 'cinematicHidePlayers', 'trainCam', 'trainDriving', 'pigeonMode', 'menuCam', 'scoped']) {
+    world[f] = true;
+    syncFirstPersonHands(scene, cam, world, player);
+    assert.equal(currentFirstPersonHands().visible, false, f);
+    world[f] = false;
+  }
+  syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(currentFirstPersonHands().visible, true);
 });
 
 console.log(`firstpersonhands_test: ${n}/${n} ok`);
