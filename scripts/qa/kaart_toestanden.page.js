@@ -63,8 +63,11 @@ for (const [z, naam] of [[3, 'kaart-toestanden-z3'], [2, 'kaart-toestanden-z2'],
 }
 PM.closePauseMenu(); await sleep(2500);
 // de minikaart: de speler midden tussen de wijken
-hold = { x: mx, y: my }; p.x = mx; p.y = my; await sleep(4000);
-await cap('minikaart-toestanden'); results.shots.push('minikaart-toestanden');
+for (const [g, naam] of [[B, 'mini-bezig']]) {
+  hold = { x: g.x, y: g.y }; p.x = g.x; p.y = g.y; await sleep(38000);
+  { const L = GK.kaartLaag(); const nabij = L.lijst.filter((r) => r.niveau.id === 'buurt' && Math.abs(r.gebied.x - p.x) < 300 && Math.abs(r.gebied.y - p.y) < 300); (results.miniDebug = results.miniDebug || []).push({ naam, hoofd: GK.kiesLaag(L.typisch, 1.45), typisch: L.typisch, buurtenNabij: nabij.length, toestanden: nabij.map((r) => r.toestand), px: [Math.round(p.x), Math.round(p.y)] }); }
+  await cap(naam + '-0'); await cap(naam); results.shots.push(naam); // de eerste opname loopt een stap achter, de tweede is de goede
+}
 const mm = document.querySelector('#minimap, canvas#minimap, .minimap canvas');
 results.minimap = mm ? [mm.width, mm.height] : null;
 done = true;
