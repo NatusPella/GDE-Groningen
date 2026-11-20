@@ -36,6 +36,23 @@ tussen de stappen) is dus niet gespeeld. De beelden staan in `docs/beeld-20-11/f
   wegdrukken), `perceelmap.js` en `iconmap.js` (zeven betekenisnamen). De kaartagent (branch `worktree-agent-a0c3f2e69c3e6be02`) is erin gemerged; het enige conflict was
   het einde van `iconmap.js` en de changelog.
 
+## Beelden (Electron, 1280x720, `docs/beeld-20-11/farming/`)
+
+| Wat | Bestand |
+|---|---|
+| Drie standen naast elkaar: wereld boven (geploegd, groeit met meetlat, oogstklaar met lichtkolom), kaart onder (dezelfde drie) | `farming-toestanden-naast-elkaar.jpg` |
+| Veld geploegd, groeit, oogstklaar, stoppel (wereld) | `farming-veld-geploegd.jpg`, `-groeit`, `-rijp`, `-stoppel` |
+| De veldpaal van dichtbij (groeit en oogstklaar) | `farming-markering-groeit.jpg`, `farming-markering-rijp.jpg` |
+| HUD-strook, trekker met werktuig en tijdens het ploegen (met de minikaart en de pin van je veld) | `farming-trekker-gekoppeld.jpg`, `farming-hud-tijdens-ploegen.jpg` |
+| Paneel Perceel, één kaart met lus en groeibalk | `farming-paneel-perceel-rijp.jpg` |
+| Kaart dichtbij in vier standen (zoom 24) | `farming-kaart-geploegd.jpg`, `-groeit`, `-rijp`, `-stoppel` |
+| Kaart op middenzoom (zoom 3) en ver uitgezoomd (de provincie): de pin blijft staan | `farming-kaart-midden.jpg`, `farming-kaart-ver.jpg` |
+
+Kritisch nagekeken: de HUD-strook staat nu vrij van het doel en de straatkaart (eerst erover); de meetlat naast de paal is op de paalbeelden klein en alleen goed te zien als je er dichtbij
+staat; de pin bij het veld ligt op middenzoom boven je machines (T) en op de provinciekaart tussen andere pictogrammen (een bushalte en de munt van een bijbaan), maar valt niet weg; de
+veldnaam (het woord Oogstklaar) wordt op de kaart soms door een machine afgedekt; in het middelste beeld van een eerdere ronde lag een wijkkaart ("Metalenkwartier") over het veld, wat
+een gewone melding is. Op de provinciekaart is de pin 20 px: een speler die niet weet waar hij moet zoeken moet nog steeds op het vlak van Hoogkerk inzoomen.
+
 ## Gezien en goed
 
 Het veld in elke stand (geploegd met voren, zaailing, groeiend, rijp, stoppel), de veldpaal met vlag, vorm en lichtkolom, het paneel met de lus (vijf chips, "Nu: Oogsten",
