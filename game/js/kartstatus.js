@@ -20,8 +20,8 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'kartbaan';
 export const UITLEG = [
-  { icoon: ICOON.licht, tekst: 'Bij groen: gas met W' },
-  { icoon: ICOON.kart, tekst: '{A} en {D} sturen, S remt' },
+  { icoon: ICOON.licht, tekst: 'Bij groen: gas met {W}' },
+  { icoon: ICOON.kart, tekst: '{A} en {D} sturen, {S} remt' },
   { icoon: ICOON.drift, tekst: '{SPATIE} in een bocht: drift' },
   { icoon: ICOON.vlag, tekst: `${LAPS} ronden, eerste wint goud` },
 ];

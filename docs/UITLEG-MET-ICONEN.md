@@ -71,6 +71,10 @@ vervolg.
 **Galerij voor een volgende Electron-run:** `node scripts/qa/regelwidget_beeld.mjs` toont elke widget in elke stand, met en
 zonder beweging, en maakt screenshots. Dit is nog niet gedraaid.
 
+## Het uitleg-component (.ds-uitleg, #989)
+
+Naast de regelwidget (een regel die tijdens het spel meeloopt) is er het component voor **eerste-keer-uitleg**: `game/js/uitleg.js` (pure model en markup), `game/js/uitlegdata.js` (de stappen als data) en `.ds-uitleg` in `ds-components.css`. Twee tot vier stappen, elk een groot toetsplaatje of Phosphor-icoon, een lus van hooguit 1 s (druk, houd, beweeg, vul, klik, stick) en hooguit acht woorden tekst. De langere tekst staat onder Meer uitleg. Toegepast op de light sims (via `simhud.js`: elk UITLEG-lijstje wordt het model, de animatie volgt uit de tekst), de hint-kaarten van voertuigen en minigames (`HINT_UITLEG`), Hulp (Zo werkt het), de boerderijkaart en Zo werkt de kaart. Uit te zetten in Instellingen › Hints & uitleg; Niet meer tonen per uitleg in `gde-uitleg-niet-meer`. Test: `node scripts/uitleg_test.mjs`. Niet in beeld gezien (alleen pure tests).
+
 ## Wat de speler nu moet raden
 
 Bron: een leesronde door `missions*.js`, `minigamekit.js`, `pg_*.js`, `hintkit.js`, `contexthints.js` en de eigenaarfeedback. Prioriteit

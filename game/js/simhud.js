@@ -5,6 +5,7 @@
 import { sfxLinks } from './latehooks.js';
 import { reducedMotion } from './motion.js';
 import { icoon } from './icons.js';
+import { uitlegModel, uitlegHtml, uitlegIconenAan, zetUitlegGlyph, startUitleg } from './uitleg.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // Een pictogram is een betekenisnaam uit iconmap.js (Phosphor, ADR 0041); een ruw lijnpad (<path ...>) blijft werken voor de modellen van ronde 1.
@@ -31,7 +32,7 @@ export function zetUitlegGezien(id) {
 // in het spel nagelaadd; zonder die (een test) valt het terug op het canonieke .hud-key-plaatje.
 let glyph = (token) => `<span class="hud-key" data-gk="${esc(token)}">${esc(token)}</span>`;
 let glyphVer = 0;
-export const zetGlyph = (fn) => { if (typeof fn === 'function') { glyph = fn; glyphVer++; } };
+export const zetGlyph = (fn) => { if (typeof fn === 'function') { glyph = fn; glyphVer++; zetUitlegGlyph(fn); } };
 export const tekstHtml = (t) => esc(t == null ? '' : t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyph(k));
 
 export function simHudHtml(m) {
@@ -50,7 +51,11 @@ export function simHudHtml(m) {
     ? `<div class="ds-streep ds-streep--dik sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span>${m.meter.label && (metLabel || m.meter.toon) ? `<span class="ds-streep__label">${esc(m.meter.label)}</span>` : ''}</div>` : '';
   const cijfers = (m.cijfers || []).length
     ? `<ul class="sh-cijfers" aria-label="Details">${m.cijfers.map((c) => `<li${c.staat ? ' data-staat="' + esc(c.staat) + '"' : ''} title="${esc(c.label)}" aria-label="${esc(c.label)}: ${esc(c.waarde)}">${svg(c.icoon || '', 'ds-icoon ds-icoon--klein sh-cijfer__icoon')}<span class="sh-cijfer__naam">${esc(c.label)}</span> <span class="sh-waarde">${esc(c.waarde)}</span></li>`).join('')}</ul>` : '';
-  const uitleg = (m.uitleg || []).length
+  // #989: de eerste-keer-uitleg als stappen met een groot icoon of toetsplaatje en een korte lus (uitleg.js); uit in Instellingen = de oude regels
+  const iconen = (m.uitleg || []).length && uitlegIconenAan() ? uitlegModel(m.uitleg, { id: m.id, titel: 'Zo werkt het', controller: m.controller }) : null;
+  if (iconen) startUitleg();
+  const uitleg = iconen ? uitlegHtml(iconen, { compact: true })
+    : (m.uitleg || []).length
     ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${tekstHtml(u.tekst)}</span></li>`).join('')}</ul>` : '';
   return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon ds-icoon--klein sh-icoon')}<span class="sh-titel ds-t-label">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
     stappen + primair + meter + `<p class="sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${tekstHtml(m.nu || '')}</p>` + cijfers + uitleg +
