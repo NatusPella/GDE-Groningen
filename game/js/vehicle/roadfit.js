@@ -47,6 +47,8 @@ export function roadClearance(map, road) {
       const a = e ? P[P.length - 1] : P[0], b = e ? P[P.length - 2] : P[1];
       const hd = Math.atan2(a[1] - b[1], a[0] - b[0]);
       for (const d of [0, 1.5, 3, 4.5]) if (map.inWaterRaw(a[0] + Math.cos(hd) * d, a[1] + Math.sin(hd) * d)) { out.endWet |= 1 << e; break; }
+      // ook water opzij van het einde (een keerbeweging zwaait de neus de sloot in): acht richtingen op 3 m
+      if (!(out.endWet & (1 << e))) for (let k = 0; k < 8; k++) if (map.inWaterRaw(a[0] + Math.cos(k * Math.PI / 4) * 3, a[1] + Math.sin(k * Math.PI / 4) * 3)) { out.endWet |= 1 << e; break; }
     }
   }
   for (let i = 0; i < P.length - 1; i++) {
