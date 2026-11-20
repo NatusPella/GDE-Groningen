@@ -174,12 +174,12 @@ function badPositions(group) {
   const huis = { pts: [[-50, -50], [50, -50], [50, 50], [-50, 50]], bounds: [-50, -50, 50, 50] };
   const world = { map: { groundHeightAt: () => 0, buildingsNear: () => [huis] } };
   const player = { x: 0, y: 0, angle: 0 };
-  ok(buildStageSet(world, 'kroeg', player, scene) === null, 'een kroegkamer in een gebouw valt terug op de open lucht');
-  const kroeg = buildStageSet(world, 'kroeg', player, scene, { gebouwOk: true });
-  ok(!!kroeg, 'een kroegtoast mag in het gebouw van de kroeg staan (gebouwOk)');
+  ok(buildStageSet(world, 'garage', player, scene) === null, 'een garagekamer in een gebouw valt terug op de open lucht');
+  const kroeg = buildStageSet(world, 'kroeg', player, scene);
+  ok(!!kroeg, 'een kroegkamer mag in het gebouw van de kroeg staan');
   if (kroeg) disposeStageSet(kroeg);
   const water = { map: { groundHeightAt: () => 0, buildingsNear: () => [], isWater: () => true } };
-  ok(buildStageSet(water, 'kroeg', player, scene, { gebouwOk: true }) !== undefined, 'water blijft een reden om geen kamer te bouwen (geen crash)');
+  ok(buildStageSet(water, 'kroeg', player, scene) !== undefined, 'water blijft een reden om geen kamer te bouwen (geen crash)');
 }
 
 // --- de missies die de sets gebruiken ---------------------------------------
