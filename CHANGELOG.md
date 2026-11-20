@@ -102,6 +102,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Opgelost
 
 - **De duivenmissie "Kieken van boven" is nu in de wereld te volgen:** bij elk ding dat je moet spotten staat een gele lichtkolom met een naamplaat en de afstand, op de grond ligt de zone waarin je moet hangen, en boven het gebouw staat de naam ("Het Groninger Museum", "De Martinitoren"). Bovenin staat een kaart met "Gespot 2 van 6", het dichtstbijzijnde doel met afstand en richting in woorden, en een balk terwijl je erboven hangt. Een pijl aan de rand van het scherm wijst erheen. De eerste vlucht begint met een korte uitleg met toetsplaatjes. Een gespot ding krijgt een ring om de duif, een flits van de kolom en een belletje, en na het laatste ding is er een eindmoment. De duif-opdracht is van de speler die het spel opende; wie meedoet ziet de duif vliegen. De toetsen onderin beeld zijn nu toetsplaatjes, en "Fluit een duif" zegt dat je zelf als duif vliegt.
+- Fatbikes ontwijken: de routelijn en de marker wijzen nu eerst naar de Ebbingebrug en dan naar Oma Trijntje, dus de route die het spel voorstelt loopt door de fatbikes in plaats van er omheen.
 
 ## [0.64.0] - 2026-11-20
 
