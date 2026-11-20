@@ -200,6 +200,10 @@ function load() {
     if (!TOUCH_CONTROLS_CHOICES.includes(out.touchControls)) out.touchControls = DEFAULTS.touchControls;
     if (!READING_TIME_CHOICES.includes(out.readingTime)) out.readingTime = DEFAULTS.readingTime;
     if (!(out.steerSensitivity >= 0.5 && out.steerSensitivity <= 1.5)) out.steerSensitivity = DEFAULTS.steerSensitivity;
+    // de schuiven in het pauzemenu (pausemenu.js): een getal ver daarbuiten (een handmatig aangepast bestand) valt terug op de standaard
+    for (const [k, lo, hi] of [['brightness', 0.6, 1.6], ['uiScale', 0.8, 1.5], ['fov', 50, 90], ['cameraDistance', 0.8, 1.6], ['mouseSensitivity', 0.3, 2.5]]) {
+      if (!(out[k] >= lo && out[k] <= hi)) out[k] = DEFAULTS[k];
+    }
     // de online-avatar (#455): een kleur blijft een kleur, anders de standaard
     if (!/^#[0-9a-f]{6}$/i.test(out.onlineKleur)) out.onlineKleur = DEFAULTS.onlineKleur;
     out.onlineNaam = String(out.onlineNaam || '').slice(0, 16);
