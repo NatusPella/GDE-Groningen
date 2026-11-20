@@ -9,6 +9,10 @@ import {
   pick, rand, nearestOnStreet, kerbSide, spawnJobVehicle, pointAlongRoad, decorateVehicle,
   spawnPed, pedAlive, holdPed, freePed, walkPed, say, removePed, vehicleSpeed,
 } from './sidejobkit.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { taxiHudModel, ritPop, UITLEG_ID } from './taxistatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { reducedMotion } from './motion.js';
 
 const TAXI_MODEL = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#1b1c1f' };
 const SHOW_R = 90;
@@ -168,6 +172,7 @@ export default {
     decorateVehicle(v, 'sign', roofSign);
     const inTaxi = p.inVehicle === v;
     const speed = vehicleSpeed(v);
+    zetTaxiStrook(c, inTaxi, speed);
 
     if (d.phase === 'pickup') {
       const kerb = d.from.walk;
@@ -203,6 +208,7 @@ export default {
       if (inTaxi && speed < STOP_SPEED && Math.hypot(v.x - ped.x, v.y - ped.y) < PICKUP_R) {
         d.walking = true;
         d.walkT = 0;
+        zetUitlegGezien(UITLEG_ID);
       }
       return;
     }
@@ -235,6 +241,7 @@ export default {
       freePed(ped);
       const tip = d.comfort >= 80 ? rand(8, 16) : d.comfort >= 50 ? rand(2, 6) : 0;
       const base = 12 + d.dist / 35 + (d.fare.rush ? 10 : 0) - (d.vomited ? 25 : 0);
+      { const pp = ritPop(tip); simHudPop(pp.tekst, pp.geluid); } // #985
       c.complete({ base: Math.max(5, base), tip, text: d.comfort >= 80 ? 'Tevreden klant!' : d.comfort < 40 ? 'Klant stapt bleek uit.' : 'Rit afgerond.' });
     }
   },
@@ -260,7 +267,27 @@ export default {
   stop(c) {
     const d = c.data;
     if (d.ped) freePed(d.ped);
+    simHudTik(0, null);
+    if (d.kolom) { c.removeMesh(d.kolom); d.kolom = null; }
   },
 };
+
+function groundAt(map, x, y) {
+  return map.elev && map.elev.has ? map.groundHeightAt(x, y, 0) : 0;
+}
+
+// De strook onderin en de lichtkolom boven het doel (#985): elke beeld de stand van de rit naar het pure model (taxistatus.js). Alleen voor de eigen dienst.
+function zetTaxiStrook(c, inTaxi, speed) {
+  const d = c.data, v = c.vehicle;
+  if (c.owner || !d.fare || !v || !d.from || !d.to) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  const ophalen = d.phase === 'pickup';
+  const doel = ophalen ? (d.ped && pedAlive(c.world, d.ped) ? d.ped : d.from.walk) : d.to.road;
+  if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('taxikolom'));
+  zetSimKolom(d.kolom, { x: doel.x, y: doel.y }, groundAt(c.world.map, doel.x, doel.y), c.world.time || 0, reducedMotion());
+  simHudTik(0, taxiHudModel({
+    fase: ophalen ? 'ophalen' : 'meerijden', rit: c.streak + 1, klant: d.fare.who, naar: ophalen ? d.from.name : d.to.name, afstand: Math.hypot(doel.x - v.x, doel.y - v.y), snelheid: speed,
+    limiet: ophalen ? null : (d.fare.careful ? 14 : d.fare.rush ? 30 : 22), comfort: d.comfort, tijd: c.timeLeft, instap: !!d.walking, inTaxi, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}
 
 

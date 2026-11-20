@@ -241,6 +241,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De strook in de wedstrijd, een tweede meter voor de hoogte (de strook kent er één), een kaartmarkering.
 
+## 14. Taxi-bijbaan (Grunn Taxi)
+
+**Wat kan de speler.** Klanten ophalen en afzetten met een taxi (bijbaan bij de standplaats): studenten na het stappen, toeristen, een Ommelander, een oma, een zakenreiziger met haast. Stop naast de klant, rijd rustig (botsen en racen kost comfort, een dronken klant kan overgeven), stil bij de bestemming, fooi bij een tevreden klant. Reeksen en niveaus maken de tijd krapper.
+
+**De lus.** Naar de klant, de klant stapt in, rijden, afzetten, een volgende rit.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de intro van de centrale | plus vier iconen met een zin in de strook tot de eerste klant instapt (`gde-sim-uitleg-v1`) |
+| HUD | de bijbaankaart met "Rit 3 · comfort 74%" en het doel | strook (`simhud.js`): stappen Ophalen, Meerijden, Afzetten, een comfortmeter ("Klant is boos"), de afstand tot het doel groot met rit en tijd en pictogram, één zin wat nu |
+| Wereld | marker op de kaart, dakbord, de klant langs de stoep | plus een gele lichtkolom boven de klant en later boven de bestemming (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | de fooi ("Fooi €12,50") springt op met het bestaande UI-geluid |
+
+**Samen spelen.** De bijbaan is van wie het spel opende (de taxi en de rit). Een gast doet mee via `coopbijbaan.js` (J of N bij Meedoen?) als passagier en houdt de bijbaankaart; de strook en de lichtkolom zijn alleen voor de eigen dienst (`c.owner` leeg). Beloning en voortgang per speler zoals eerder (#429). Valt de bestuurder weg, dan verdwijnt de strook met de rit. Test: `taxihud_test`, `taxi_en_waypoint_test`.
+
+**Niet gedaan.** Een kaartlaag met de route, een eigen sting voor een grote fooi, de strook voor een gast als passagier.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
