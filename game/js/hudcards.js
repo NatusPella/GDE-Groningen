@@ -28,7 +28,7 @@ import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
-import { enqueueCard, leftColumnFits, LINE_PX } from './hudbus.js';
+import { enqueueCard, leftColumnFits, LINE_PX, throttledRead, COLUMN_OPTS_MS } from './hudbus.js';
 import { getUiScale } from './uiscale.js';
 import { CAL_ICONS } from './calendar.js';
 import { menuMelding } from './menumelding.js';
@@ -165,7 +165,10 @@ function split(text) {
 
 // A card is up or waiting (onboarding.js waits for an empty HUD).
 // #985: what the left column holds right now: the window height in HUD px and the lines a phone card (phonefeed.js) already takes
-function columnOpts() {
+// #804: offsetHeight dwingt een layoutberekening af; hij werd elk frame gelezen zolang er een kaart in de wachtrij stond.
+// Nu hooguit vier keer per seconde (COLUMN_OPTS_MS), en alleen als een E-kaart of een A-kaart het antwoord nodig heeft.
+const columnOpts = throttledRead(() => columnOptsRead(), COLUMN_OPTS_MS);
+function columnOptsRead() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return {};
   const pf = document.querySelector('#hud .phonefeed');
   const extra = pf && pf.offsetHeight > 0 ? Math.ceil(pf.offsetHeight / LINE_PX) : 0;
@@ -405,8 +408,7 @@ export function updateCards(dt, w) {
   const isFree = (q) => !up.some((c) => zoneOf(c) === zoneOf(q)) && zones.free(zoneOf(q), 'card');
   // zone A and zone E share the left column: an E card waits until it fits under the A card that is up (hudbus.js, leftColumnFits)
   const upA = up.find((c) => zoneOf(c) === 'A');
-  const col = columnOpts();
-  const fitsColumn = (q) => zoneOf(q) !== 'E' || leftColumnFits(upA ? upA.spec : null, q.spec, col);
+  const fitsColumn = (q) => zoneOf(q) !== 'E' || leftColumnFits(upA ? upA.spec : null, q.spec, columnOpts());
   // one card per zone; P3 waits out a chase or a call; tips are rationed (attention.js)
   const i = queue.findIndex((q) => isFree(q) && fitsColumn(q)
     && !(calling && rankOf(q) < CARD_PRIORITY.politie)
@@ -424,7 +426,7 @@ export function updateCards(dt, w) {
     noteToast();
     mount(next);
     // an A card never waits for an E card: an E card it would run into steps aside and comes back after it
-    if (zoneOf(next) === 'A') for (const e of up) if (zoneOf(e) === 'E' && !leftColumnFits(next.spec, e.spec, col)) {
+    if (zoneOf(next) === 'A') for (const e of up) if (zoneOf(e) === 'E' && !leftColumnFits(next.spec, e.spec, columnOpts())) {
       queue = enqueueCard(queue, { spec: { ...e.spec, noLog: true }, secs: e.secs, key: e.key, at: e.at, age: 0, text: e.text, important: e.important, sticky: e.sticky, rank: e.rank }, MAX_QUEUE);
       leave(e);
     }

@@ -273,6 +273,16 @@ export function leftColumnLines(viewH = 720) {
 
 // a: the spec of the A card, e: the spec of the E card (either may be null).
 // opts.viewH: the window height in HUD px; opts.extraLines: lines a phone card (phonefeed.js, also zone A) takes at the top of the column.
+// #804: een dure lezing (layout: offsetHeight) hooguit eens per ms milliseconden hergebruiken. Een klok die terugspringt leest opnieuw.
+export const COLUMN_OPTS_MS = 250;
+export function throttledRead(read, ms, clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())) {
+  let cache, at = -Infinity, has = false;
+  return (now = clock()) => {
+    if (has && now >= at && now - at < ms) return cache;
+    cache = read(); at = now; has = true;
+    return cache;
+  };
+}
 export function leftColumnFits(a, e, { viewH = 720, extraLines = 0 } = {}) {
   if (!e || (!a && !extraLines)) return true;
   return (a ? cardLines(a) : 0) + cardLines(e) + Math.max(0, extraLines) <= leftColumnLines(viewH);
