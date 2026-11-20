@@ -6,6 +6,7 @@
 //   node scripts/businterieur3d_test.mjs   (once: cd desktop && npm run stage)
 import './node3d.mjs';
 const THREE = await import('three');
+(await import('../game/js/worldpalette.js')).setWereldMeng(0); // de test vergelijkt ruwe kleurwaarden: zonder de wereldmenging
 const { buildVehicleMesh, setBusRearAngle } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle } = await import('../game/js/vehicle.js');
 const B = await import('../game/js/businterieur.js');

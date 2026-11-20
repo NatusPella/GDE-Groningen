@@ -8,6 +8,7 @@
 // ondubbelzinnig. Deze test bewaakt dat merkteken en de draairichting van beide wielen.
 import './node3d.mjs';
 const THREE = await import('three');
+(await import('../game/js/worldpalette.js')).setWereldMeng(0); // de test vergelijkt ruwe kleurwaarden: zonder de wereldmenging
 await import('../game/js/player.js');
 const { buildVehicleMesh, updateVehicleWheelSpin } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
