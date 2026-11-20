@@ -23,11 +23,11 @@ const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[cap
 const probeer = async (naam, fn) => { try { await fn(); } catch (e) { done.push(naam + ' FOUT ' + (e && e.message)); } };
 await probeer('samenkeuze', async () => { const M = await imp('samenkeuze'); M.openSamenKeuze({}); await shot('samenkeuze', 1500); tap('Escape', 'Escape'); await sleep(500); });
 await probeer('saveslots', async () => { const M = await imp('saveslotsui'); M.openSaveSlots({}); await shot('opgeslagen-spellen', 2500); tap('Escape', 'Escape'); await sleep(600); });
-await probeer('onlinestart', async () => { const M = await imp('onlineconsentui'); M.openOnlineStart({ naam: '' }); await shot('samen-starten', 1500); tap('Escape', 'Escape'); await sleep(500); });
+await probeer('onlinestart', async () => { const M = await imp('onlineconsentui'); M.openOnlineStart({ naam: '' }); await shot('samen-starten', 1500); tap('Escape', 'Escape'); await sleep(500); const o = document.querySelector('.os-overlay'); if (o) o.remove(); });
 await probeer('menumelding', async () => { const PM = await imp('pausemenu'); const M = await imp('menumelding'); PM.openPauseMenu('spel'); await sleep(1200); M.menuMelding('Opgeslagen: Spel van 20 nov'); await shot('menumelding', 800); PM.closePauseMenu(); await sleep(400); });
 await probeer('telefoonkaart', async () => {
   const P = await imp('phonefeed');
-  P.notifyPhone(w, { from: 'Tammo', app: 'bericht', title: 'Tammo', body: 'Kom je zo naar de Grote Markt? Ik heb een plan.' });
+  P.notifyPhone(w, { from: 'Tammo', app: 'bericht', title: 'Tammo', text: 'Kom je zo naar de Grote Markt? Ik heb een plan.' });
   await shot('telefoonkaart-bericht', 2500);
   P.startCall(w, { from: 'Tessa', lines: [{ text: 'Moi! Heb je even?' }], live: false });
   await shot('telefoonkaart-gesprek', 2500);

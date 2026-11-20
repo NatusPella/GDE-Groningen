@@ -129,6 +129,8 @@ function parse(n) {
 }
 
 export function notifyPhone(w, spec) {
+  // een melding zonder tekst heeft niets om te tonen: geen globale foutmelding bij de speler (oogtest 20-11)
+  if (!spec || typeof spec.text !== 'string' || !spec.text.trim()) return;
   if (!w.phoneNotifications) w.phoneNotifications = [];
   w.phoneNotifications.push(spec);
 }
