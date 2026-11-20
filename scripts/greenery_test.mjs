@@ -30,7 +30,7 @@ ok(forest.has(S.beuk) && forest.has(S.eik) && forest.has(S.den) && !forest.has(S
 const street = new Set(); for (let i = 0; i < 400; i++) street.add(GR.speciesFor({ place: 'street', water: 99 }, i / 400));
 ok(street.size >= 6 && street.has(S.kers), 'street trees vary, a cherry among them', [...street].map((i) => GR.SPECIES[i].id).join(','));
 ok(GR.speciesFor({ water: 99, rowSeed: 0.42 }, 0.1) === GR.speciesFor({ water: 99, rowSeed: 0.42 }, 0.9), 'a row is one species');
-ok(GR.SPECIES[S.kers].color === 0xe58fb4, 'the cherry blooms pink');
+ok((() => { const c = GR.SPECIES[S.kers].color; return ((c >> 16) & 255) > ((c >> 8) & 255) + 20 && (c & 255) > ((c >> 8) & 255); })(), 'the cherry blooms pink (also after the world colours of the design system)');
 
 // heights and shapes
 for (const sp of [S.linde, S.plataan, S.esdoorn, S.eik]) {

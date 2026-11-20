@@ -57,13 +57,15 @@ const gauss = (rng) => (rng() + rng() + rng() + rng() - 2) / 0.58;
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const THEMABORDEN = {
     discgolf: 'discgolf', pitchputt: 'pitchputt', skatepark: 'skatepark', kartbaan: 'kartbaan',
-    klimtoren: 'klimtoren', zwembad: 'zwembad', waterski: 'waterski', hengelen: 'hengelen', regatta: 'regatta',
-    pannenkoek: 'pannenkoek', wandeling: 'wandeling', carillon: 'carillon', vliegschool: 'vliegschool', machinist: 'machinist',
+    klimtoren: 'klimtoren', waterski: 'waterski', hengelen: 'hengelen', regatta: 'regatta',
+    pannenkoek: 'pannenkoek', carillon: 'carillon', vliegschool: 'vliegschool', machinist: 'machinist',
   };
   for (const [id, file] of Object.entries(THEMABORDEN)) {
     const src = fs.readFileSync(path.join(root, 'game/js', file + '.js'), 'utf8');
     check(`${id} uses its theme`, src.includes(`mgThema('${id}')`) && src.includes(`createBoard('${id}')`), file);
   }
+  // #985: het zwembad en de wandeling hebben een HUD-strook (simhud.js) in plaats van een bord; het thema levert alleen de accentkleur
+  for (const f of ['zwembad', 'wandeling']) check(`${f} haalt zijn accent uit het thema`, fs.readFileSync(path.join(root, 'game/js', f + '.js'), 'utf8').includes(`mgThema('${f}')`), f);
   // de PvP-arena (#454) en de twee diensten (#444) halen hun bord ook uit de tabel
   const pvp = fs.readFileSync(path.join(root, 'game/js/multiplayerpvpwereld.js'), 'utf8');
   check('pvparena uses its theme', pvp.includes("createBoard('pvparena'") && MG_THEMA.pvparena.titel === 'PVP-ARENA');
