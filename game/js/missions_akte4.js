@@ -179,7 +179,7 @@ export function buildAkte4Defs() {
         { kind: 'goto', target: ll('veendamPerron', { label: 'Het perron' }), mode: 'foot', radius: 14, label: 'Ga naar de stilstaande stoomtrein', say: 'De trein staat stil, de machinist zit op een bank. Naar de kop van de trein.' },
         {
           kind: 'rit', target: ll('veendamPerron', { label: 'De kop van de trein' }), length: 2300, radius: 45, train: 'stoom',
-          label: 'Rij de museumtrein naar het volgende perron: {W} gas, {S} rem', say: 'Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.',
+          label: 'Rij de museumtrein naar het volgende perron: {W} gas, {S} rem', say: 'Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.',
           exit: true, late: 'de trein reed door het perron. De juryleden zitten nog vast',
           fallbackSay: 'De trein is hier niet gevonden: de conducteur zet hem zelf op het volgende spoor.',
           talk: { ids: ['M19.2'], delay: 6 },

@@ -10,7 +10,9 @@ import { ROOSTER } from './heliplan.js';
 import { makeStrip } from './planecontrol.js';
 import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift } from './containerplan.js';
 import { tileIndexOf } from './gdt.js';
+import { applyPlekFix } from './missionplace.js';
 import { applyAkte3 } from './missions_akte3.js'; // AAA akte 3: kaarten, wachtfiguren, aankleding
+import { applyAkte34 } from './akte34_beats.js'; // AAA akte 3 en 4, tweede laag: openingsbeeld, beats, nasleep
 import { applyAkte45 } from './missions_akte45.js'; // AAA akte 4 en 5: kaarten, wachtfiguren, aankleding
 import { applyAkte12 } from './missions_akte12.js'; // AAA akte 1 en 2: aankleding bij start en doel
 
@@ -34,7 +36,7 @@ function snapM13Spots(map, def) {
 }
 
 // M14: the finish at the sluis of Delfzijl and the start 8 km back along the line to the Eemshaven
-const DIJK_SLUIS = spotAt(53.3245, 6.9270);
+const DIJK_SLUIS = spotAt(53.3245, 6.9270, -2.5, -1.6); // #1035: de plek stond in het sluiswater; 3 m naar de kant (missieprop-audit)
 const DIJK_START = (() => { const e = spotAt(53.4395, 6.8350), L = Math.hypot(e.x - DIJK_SLUIS.x, e.y - DIJK_SLUIS.y), k = 8000 / L; return { x: DIJK_SLUIS.x + (e.x - DIJK_SLUIS.x) * k, y: DIJK_SLUIS.y + (e.y - DIJK_SLUIS.y) * k, road: null }; })();
 
 // M15: the grass strip of Roelfien near Midwolda (Oldambt), pointing at the kermis of Winschoten, and a spot relative to that kermis
@@ -251,6 +253,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   list.push(...buildAkte2Defs({ models }));
   // Deel 4 (missions_akte6.js): inpakken, wisselwoning, terug, proefbeleg, after the ids of act 2
   list.push(...buildAkte6Defs());
+  applyPlekFix(list); // #1035: grensgevallen van de missieprop-audit
   return list;
 }
 
@@ -379,6 +382,7 @@ export function applyNieuw(list) {
   }
   applyAkte3(list);
   applyAkte45(list);
+  applyAkte34(list); // na akte 3 en 4: kiest de nieuwe wachtspullen en voegt beats toe
   applyAkte6(list); // AAA akte 6: kaarten, wachtfiguren, aankleding
 }
 

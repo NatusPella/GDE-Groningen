@@ -22,7 +22,7 @@ const KINDS = [
   [/perron|station|halte|bushok/i, 'bank'],
 ];
 // De spullen die een stap met `wacht: { prop }` zelf mag kiezen; de vijf eerste volgen anders de tekst.
-export const PROP_KINDS = ['bank', 'kist', 'baal', 'ton', 'plant', 'koffie', 'krant', 'hengel', 'bordje'];
+export const PROP_KINDS = ['bank', 'kist', 'baal', 'ton', 'plant', 'koffie', 'krant', 'hengel', 'bordje', 'kaartspel', 'radio', 'landkaart'];
 export function waitDressingFor(st = {}) {
   st = st || {};
   if (st.wacht && PROP_KINDS.includes(st.wacht.prop)) return st.wacht.prop;
@@ -79,6 +79,16 @@ function buildProp(kind) {
   } else if (kind === 'bordje') { // A-bord "even geduld": twee schuine planken, een kegel ernaast (zonder tekst: die zou onvertaald in beeld staan)
     for (const s of [-1, 1]) { const pl = box(0.7, 0.9, 0.05, 0xf2efe6, s * 0.18, 0.46, 0); pl.rotation.z = s * -0.2; g.add(pl); }
     g.add(box(0.5, 0.12, 0.05, COL.geel, 0, 0.78, 0.04), cyl(0.12, 0.45, 0xe8742a, 0.7, 0.23, 0.2, 8));
+  } else if (kind === 'kaartspel') { // klaptafel met een uitgespeeld spel kaarten, twee krukjes en een bierkratje
+    g.add(box(0.9, 0.05, 0.9, COL.hout, 0, 0.72, 0), ...[[-0.38, -0.38], [0.38, -0.38], [-0.38, 0.38], [0.38, 0.38]].map(([x, z]) => box(0.05, 0.7, 0.05, COL.hout2, x, 0.35, z)));
+    for (let i = 0; i < 5; i++) { const k = box(0.16, 0.01, 0.11, i % 2 ? 0xf2efe6 : 0xc83a3a, -0.25 + i * 0.12, 0.76, (i % 3 - 1) * 0.12); k.rotation.y = i * 0.7; g.add(k); }
+    g.add(cyl(0.2, 0.3, COL.hout2, -0.85, 0.15, 0, 6), cyl(0.2, 0.3, COL.hout2, 0.85, 0.15, 0.1, 6), box(0.4, 0.3, 0.3, COL.geel, 0.1, 0.15, 0.85));
+  } else if (kind === 'radio') { // transistorradio op een kist, antenne omhoog
+    g.add(box(0.8, 0.5, 0.6, COL.kist, 0, 0.25, 0), box(0.46, 0.26, 0.16, COL.stof, 0, 0.63, 0), cyl(0.07, 0.03, COL.geel, 0.1, 0.66, 0.1, 8));
+    const ant = box(0.02, 0.6, 0.02, COL.grijs, -0.18, 0.95, 0); ant.rotation.z = 0.3; g.add(ant);
+  } else if (kind === 'landkaart') { // landkaart op een statief met een rood speldje
+    for (const x of [-0.45, 0.45]) { const poot = box(0.05, 1.5, 0.05, COL.hout2, x, 0.75, 0); poot.rotation.z = x > 0 ? 0.12 : -0.12; g.add(poot); }
+    g.add(box(1.1, 0.8, 0.04, 0xe6dcb0, 0, 1.3, 0), box(0.12, 0.12, 0.05, 0xc83a3a, 0.2, 1.4, 0.03));
   } else { // plant
     g.add(cyl(0.34, 0.5, COL.pot, 0, 0.25, 0, 6));
     const blad = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), mat(COL.blad));
@@ -105,6 +115,9 @@ const CLIPS_PER_PLEK = {
   krant: ['lezen', 'rondkijken', 'lezen', 'horloge'],
   hengel: ['rondkijken', 'wippen', 'rondkijken'],
   bordje: ['telefoon', 'horloge', 'rondkijken'],
+  kaartspel: ['rondkijken', 'koffie', 'wippen'],
+  radio: ['wippen', 'rondkijken', 'wippen', 'horloge'],
+  landkaart: ['lezen', 'rondkijken', 'lezen'],
 };
 const SHIRTS = [0xc8552e, 0x2f6fb0, 0xe0b93a, 0x3f8a52, 0x8a4a8a, 0x555f6e];
 const SKINS = [0xf1c9a5, 0xd9a06e, 0xa9744a, 0x7a4e2e];

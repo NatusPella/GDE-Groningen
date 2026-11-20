@@ -39,6 +39,17 @@ ok('de rit maakt de museumtrein (st.train) aan', /st\.train \|\| route\.train/.t
 ok('zonder lijn speelt de rit zichzelf niet meer af', !/S\.t > FALLBACK_S \? 'done'/.test(ritSrc) && /wasPressed\('e'\)/.test(ritSrc));
 ok('de museumtrein bestaat als treintype', /stoom: \{/.test(fs.readFileSync(new URL('../game/js/railway.js', import.meta.url), 'utf8')));
 
+// --- #1035: de grensgevallen van de missieprop-audit schuiven naar de vrije plek ---------------------------------------
+{
+  const { applyPlekFix, PLEK_FIX } = await import('../game/js/missionplace.js');
+  const f = PLEK_FIX[0];
+  const def = { start: { x: f.van[0] + 0.5, y: f.van[1], road: null }, stages: [{ target: { x: 1, y: 1 } }] };
+  ok('applyPlekFix verschuift een punt op de grensplek', applyPlekFix([def]) === 1 && def.start.x === f.naar[0] && def.start.y === f.naar[1]);
+  const snap = { start: { x: f.van[0], y: f.van[1], road: 'snap' } };
+  ok('een punt dat de runner snapt blijft staan', applyPlekFix([snap]) === 0 && snap.start.x === f.van[0]);
+  ok('elke fix is een kleine, eindige verschuiving', PLEK_FIX.every((q) => Math.hypot(q.naar[0] - q.van[0], q.naar[1] - q.van[1]) <= 15));
+}
+
 // --- de echte wereld ---------------------------------------------------------
 const { loadGameWorld, loadArea } = await import('./worldload.mjs');
 const T = await loadGameWorld();

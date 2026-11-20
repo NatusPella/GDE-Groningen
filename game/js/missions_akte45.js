@@ -33,7 +33,7 @@ export const KAARTEN = {
     { doel: 'Brug 8, 9 en 10: een dichte brug is dicht',
       regels: [toets('Bij een dichte brug', ['H'], 'tik', { na: 5, duur: 8 })] },
     { doel: 'Vaar tot brug elf: de limo staat aan de overkant',
-      regels: [stappen('De laatste brug', 0, [stap('pijl', 'Rustig erheen'), stap('hand', 'Toeter, wacht'), stap('hart', 'Mosterdschip blijft vast')], { na: 5, duur: 9 })] },
+      regels: [stappen('De laatste brug', 0, [stap('pijl', 'Rustig erheen'), stap('hand', 'Toeter met {H}, wacht'), stap('hart', 'Mosterdschip blijft vast')], { na: 5, duur: 9 })] },
   ],
   // M18: de kaarten staan op de loopstappen en de serverkamer; de QTE's en het gesprek hebben hun eigen paneel.
   M18: {
