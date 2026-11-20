@@ -6,7 +6,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { withEllipsisAliases } from '../game/js/voicebank.js';
+import { withEllipsisAliases, voiceSpeaker } from '../game/js/voicebank.js';
+import { VIGNETTEN } from '../game/js/terugkeerscenes.js';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS, SPEAKERS } from '../game/js/storyarc.js';
@@ -83,11 +84,8 @@ export function manifest(name) {
 // speakers). cast = casting hint for the generator.
 // Nieuwe vertellersregels wachten nog op de TTS-opnameronde (#735); ze tellen niet als
 // ontbrekende opname tot die ronde ze opneemt, zodat de coverage-teller eerlijk blijft.
-const PENDING_TTS = new Set([
-  'Weer een stukje Grunn dat je nu kent.',
-  'Krak. Iemand lette even niet op.',
-  'Vijf sterren. Nu even rustig aan doen.',
-]);
+// Leeg sinds 21-11: de drie Rikus-regels die hier stonden zijn opgenomen (#735).
+const PENDING_TTS = new Set([]);
 
 export function collect() {
   const out = [];
@@ -415,6 +413,28 @@ export function collect() {
     if (!gameSrc.includes(t.replace(/'/g, '\\\'')) && !gameSrc.includes(t)) throw new Error(`cardlines.js COMPANION_CARDS: not in the game any more: ${t}`);
     hint(t);
   }
+
+  // --- de nieuwe missiebestanden (missions_nieuw.js, missions_akte2/4/5/6.js): de doelregels (`say:`) die de partner
+  // voorleest (hints-bank, zoals de regels van missions.js) en de vragen van de keuzegesprekken (lines-bank; de
+  // spreker 'Tessa', 'Berend' of 'Jelle' staat in de bank onder de stemnaam, zie SPEAKER_ALIAS in voicebank.js).
+  const SAY_RE = /\bsay(?:Hijacked)?: ('(?:[^'\\]|\\.)*')|\.say = ('(?:[^'\\]|\\.)*')/g;
+  const ASK_RE = /\bwho: ('(?:[^'\\]|\\.)*'), text: ('(?:[^'\\]|\\.)*')/;
+  for (const f of fs.readdirSync(JS).filter((q) => /^missions_(nieuw|akte\d)\.js$/.test(q)).sort()) {
+    const seen = new Set();
+    for (const ln of src(f).split(/\r?\n/)) {
+      for (const m of ln.matchAll(SAY_RE)) {
+        const t = evalLit(m[1] || m[2]);
+        if (seen.has(t) || t.split(' ').length < 3) continue;
+        seen.add(t);
+        hint(t);
+      }
+      const q = ASK_RE.exec(ln);
+      if (q) add('Keuzegesprekken', 'lines', [voiceSpeaker(evalLit(q[1]))], evalLit(q[2]));
+    }
+  }
+  // --- de terugkeerscène (terugkeerscenes.js): de flatvignetten van Tammo en Tessa; de scène zegt 'Tessa', de bank
+  // heeft haar opnames onder 'Anita' (SPEAKER_ALIAS)
+  for (const v of VIGNETTEN) for (const [who, t] of v.regels) add('Terugkeer (vignetten)', 'lines', [who === 'tammo' ? 'Tammo' : 'Anita'], t);
 
   // Regels die bewust geen opname meer hebben (inclusieve taal, docs/INCLUSIEVE-TAAL.md): ze verschijnen als
   // ondertitel of tekstballon en worden niet opnieuw gegenereerd. Zie scripts/voice_stil.json.
