@@ -310,3 +310,13 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 :is(html.rustig-drukwerk, .ds-rustig) :is(.ds-z-stempel--in, .ds-z-waarde--wijzig) { animation: none; }
 :is(html.rustig-drukwerk, .ds-rustig) :is(.ds-z-knop:disabled, .ds-z-knop[aria-disabled="true"], .ds-z-kaart--uit, .ds-z-rij--uit, .ds-z-chip--uit, .ds-z-tab:disabled) { border-style: dashed; }
 :is(html.rustig-drukwerk, .ds-rustig) .ds-z-kaart__titel { text-shadow: none; }
+
+/* Toets- en knopglyphs (game/js/inputglyphs.js, fonts in game/fonts/input): één teken per toets of knop.
+   De toets blijft een duidelijk wit plaatje met inktrand; het glyph zit erin, nooit los op de scène. */
+.ds-z-glyph { display: inline-block; padding: 0; font-size: var(--ds-t-cijfer); line-height: 1; color: var(--ds-zeef-tx); background: var(--ds-c-wit); border-radius: var(--ds-r-toets); box-shadow: var(--ds-schaduw-hard-klein); vertical-align: middle; }
+.ds-z-glyph[data-set="keys"] { font-family: var(--ds-font-toetsen); }
+.ds-z-glyph[data-set="xbox"] { font-family: var(--ds-font-knoppen-a); }
+.ds-z-glyph[data-set="ps"] { font-family: var(--ds-font-knoppen-b); }
+.ds-z-glyph[data-set="deck"] { font-family: var(--ds-font-knoppen-deck); }
+.ds-z-glyph[data-set="generic"] { font-family: var(--ds-font-knoppen-algemeen); }
+.ds-z-glyph[data-set="touch"] { font-family: var(--ds-font-aanraking); }
