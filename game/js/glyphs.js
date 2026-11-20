@@ -12,6 +12,7 @@ import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
 import { padSlotGlyph } from './inputglyphs.js';
+import { glyphHtml, BRACE_KEY_RE, plainKeyText } from './keycap.js';
 
 const SEL = '[data-gk], kbd, .hud-key';
 const orig = new WeakMap();
@@ -132,6 +133,40 @@ function stripTags(s) {
   return String(s).replace(/<[^>]*>/g, '');
 }
 
+// Safety net: a {TOKEN} that reaches the screen through textContent, aria-label or title still becomes a key icon (text) or the key name (attribute).
+// What goes through keyTextHtml has no braces left; this catches the rest and leaves code, inputs and [data-g-raw] alone.
+const SKIP_TAG = /^(SCRIPT|STYLE|TEXTAREA|INPUT|CODE|PRE|SELECT|OPTION)$/;
+const HAS_BRACE = /\{[A-Z0-9]+\}/;
+export function sweepTokens(root) {
+  if (typeof document === 'undefined' || !root || root.nodeType === undefined) return 0;
+  let n = 0;
+  const base = root.nodeType === 1 ? root : root.parentElement;
+  if (base && (SKIP_TAG.test(base.tagName) || (base.closest && base.closest('[data-g-raw]')))) return 0;
+  if (root.nodeType === 3) return sweepText(root);
+  if (root.nodeType !== 1) return 0;
+  const w = document.createTreeWalker(root, 4, { acceptNode: (t) => (HAS_BRACE.test(t.nodeValue) && t.parentElement && !SKIP_TAG.test(t.parentElement.tagName) && !t.parentElement.closest('[data-g-raw]') ? 1 : 2) });
+  const list = [];
+  while (w.nextNode()) list.push(w.currentNode);
+  for (const t of list) n += sweepText(t);
+  for (const el of [root, ...root.querySelectorAll('[aria-label],[title]')]) {
+    for (const a of ['aria-label', 'title']) {
+      const v = el.getAttribute && el.getAttribute(a);
+      if (v && HAS_BRACE.test(v)) { const p = plainKeyText(v); if (p !== v) { el.setAttribute(a, p); n++; } }
+    }
+  }
+  return n;
+}
+function sweepText(t) {
+  const v = t.nodeValue;
+  BRACE_KEY_RE.lastIndex = 0;
+  if (!BRACE_KEY_RE.test(v)) return 0;
+  BRACE_KEY_RE.lastIndex = 0;
+  const span = document.createElement('span');
+  span.innerHTML = v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(BRACE_KEY_RE, (m, k) => glyphHtml(k));
+  t.replaceWith(...span.childNodes);
+  return 1;
+}
+
 export function refreshGlyphs(scope = document) {
   if (typeof document === 'undefined') return;
   for (const el of scope.querySelectorAll(SEL)) render(el);
@@ -140,6 +175,11 @@ export function refreshGlyphs(scope = document) {
 export function initGlyphs() {
   if (started || typeof document === 'undefined') return;
   started = true;
+  // Het glyph-font laden vóór de eerste weergave en daarna elk glyph opnieuw tekenen: een toets is nooit een leeg of zwart vakje (font-display: block in fonts.css).
+  if (document.fonts && document.fonts.load) {
+    Promise.all(['GDE Toetsen', 'GDE Knoppen A', 'GDE Knoppen B', 'GDE Knoppen Deck', 'GDE Knoppen Algemeen', 'GDE Aanraking'].map((f) => document.fonts.load('24px "' + f + '"').catch(() => null)))
+      .then(() => { document.documentElement.classList.add('glyph-font-ready'); refreshGlyphs(); }).catch(() => {});
+  }
   let queued = new Set();
   let timer = 0;
   const flush = () => {
@@ -150,6 +190,7 @@ export function initGlyphs() {
   };
   const mo = new MutationObserver((recs) => {
     for (const r of recs) {
+      if (r.type === 'characterData') sweepTokens(r.target); else for (const n of r.addedNodes) sweepTokens(n);
       const t = r.target.nodeType === 1 ? r.target : r.target.parentElement;
       if (t) {
         const own = t.closest(SEL);
@@ -164,6 +205,8 @@ export function initGlyphs() {
     if (queued.size && !timer) timer = requestAnimationFrame(flush);
   });
   mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+  sweepTokens(document.body);
+  if (document.title) document.title = plainKeyText(document.title);
   onPadChange(() => refreshGlyphs());
   onDeviceChange(() => refreshGlyphs());
   onSettingsChange((s, key) => { if (key === 'keyBinds') refreshGlyphs(); });

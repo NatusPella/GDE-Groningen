@@ -51,3 +51,9 @@ Status: **omgezet en gezien** (beeld in `docs/beeld-20-11/ui/`), **omgezet, nog 
 ## Aan de andere agent (menuschermen, niet aangeraakt)
 
 `pausemenu*`, `menu.css`, `shopui.css`, `phonefeed.css` (de telefoonkaarten in de HUD, nog donker: `a11y.css` noemt dit al #998, dus telefoon), `spullen.js`, `verhaalui.js`, `kaartactieui.js`, `carrieresfeer.js` (loopbaanbanden), `coopspelersui.js`, `onlineconsent.css`, `saveslots.css`, `samenkeuze.js`, `menumelding.js`, `furniture.js` (tv-overlay).
+
+## Vervolg (20-11)
+
+- **Gezien erbij:** de ondertitelvarianten Ondertitelvak en Hoog contrast (`ondertitel-vak.png`, `ondertitel-hoog.png`), de voetregel van het pauzemenu met toets-iconen (`menu-voetregel.png`), het stopvenster met toets-iconen (`stopvenster.png`, voor: `stopvenster-voor.png`), het minigamebord met zacht watermerk (`bord-discgolf.png`, voor: `bord-discgolf-voor.png`), de filmtitelkaart met de naamchip erboven (`cinekaart.png`, voor: `cinekaart-voor.png`) en de ene locatie bij de minimap (`locatie-na.png`, voor: `locatie-voor.png`).
+- **Niet te beelden in de testrun (blijven zoals ze zijn, niet bekeken):** de naamkaart (`namecard.js`, verscheen niet), de helikopter-HUD en vluchtkaart (vragen een echte vlucht), het paneel van de aflevermissies en de dorpsuitje-minibalk (vragen hun missie), de taxirit-overlay en rit-HUD (de taxirit toonde zijn laag niet), de aanraakbesturing (de run draait zonder aanraakmodus), de bouwtekening van de museumklus, het titelscherm.
+- **Controller:** het stopvenster en de voetregel zijn alleen met toetsenbord beeld gemaakt; met een controller vervangt `glyphs.js` het icoon door de knop van de familie (niet in beeld bekeken).
