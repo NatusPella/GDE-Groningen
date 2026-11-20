@@ -12,9 +12,9 @@ const plek = (dx, dy) => ({ x: BX + dx, y: BY + dy, road: null });
 // De kade waar Lammert wacht (het startpunt van de missie).
 export const M13_QUAY = plek(0, 0);
 // De kraankooi waar je stil moet blijven staan.
-export const M13_CRANE = plek(120, -55);
+export const M13_CRANE = plek(26, 66);
 // Container 4471: het doel van de zoekstap en van het verwisselen van de papieren.
-export const M13_CONTAINER = plek(260, 40);
+export const M13_CONTAINER = plek(98, 120);
 // Lammert, aan de kade, voor de terugweg.
 export const M13_LAMMERT = plek(10, 5);
 

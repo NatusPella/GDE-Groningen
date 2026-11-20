@@ -15,10 +15,10 @@ const lees = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url),
 t('de container staat op de plek uit de missie, niet verder het land in', () => {
   const [bx, by] = wgsToWorld(53.4440, 6.8560);
   assert.ok(Math.abs(M13_QUAY.x - bx) < 1e-9 && Math.abs(M13_QUAY.y - by) < 1e-9, 'de kade is het startpunt');
-  assert.equal(M13_CONTAINER.x, bx + 260);
-  assert.equal(M13_CONTAINER.y, by + 40);
-  assert.equal(M13_CRANE.x, bx + 120);
-  assert.equal(M13_CRANE.y, by - 55);
+  assert.equal(M13_CONTAINER.x, bx + 98);
+  assert.equal(M13_CONTAINER.y, by + 120);
+  assert.equal(M13_CRANE.x, bx + 26);
+  assert.equal(M13_CRANE.y, by + 66);
   assert.equal(M13_LAMMERT.x, bx + 10);
   assert.equal(M13_LAMMERT.y, by + 5);
 });
