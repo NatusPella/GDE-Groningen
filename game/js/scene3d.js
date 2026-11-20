@@ -87,8 +87,7 @@ import { buildingAt } from './tileplace.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { VOLUME_KEYS } from './sfx/volume.js';
-import { stepFov } from './gamefeel.js';
-import { makeLean, stepLean } from './camlean.js';
+import { makeLean, stepCamFeel } from './camlean.js';
 import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
@@ -4260,20 +4259,11 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     // De camera zelf stapt er al uit (cutscript.js clearOfTrees); dit dekt de kroon die
     // precies op de lens hangt.
     if (world && world.map) updateCamTreeHiding(world.map, cam.position.x, cam.position.y, cam.position.z, cam.position.x, cam.position.y, cam.position.z);
-  } else {
-    guardLift = 0;
-  }
+  } else guardLift = 0;
   cam.lookAt(_camLook);
   if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
-  // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
-  const pv = world && hoofdspeler(world) && hoofdspeler(world).inVehicle;
-  const feelFx = effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false });
-  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, feelFx);
-  // lean in bochten en een lichte FOV-opening bij driften (camlean.js, #985); niet in cutscenes en niet te voet
-  stepLean(camLean, valid || !pv || pv.isBoat || pv.isHeli || pv.isPlane ? '' : pv.isBike || pv.isScooter ? 'bike' : 'car', pv ? pv.angle : 0, pv ? pv.speed || 0 : 0, pv ? pv.slipAngle || 0 : 0, dt, feelFx);
-  if (camLean.roll) cam.rotateZ(-camLean.roll);
-  const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov + camLean.fov) * (1 - 0.72 * scopeBlend);
+  const targetFov = valid && o.fov ? o.fov : (baseFov + stepCamFeel(camLean, cam, world && hoofdspeler(world) && hoofdspeler(world).inVehicle, valid, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }))) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
@@ -4284,7 +4274,6 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
 // Gun recoil (world.camKick from combat.js): the view snaps up and a little
 // sideways, the FOV punches out, and both settle within ~0.3 s.
 let fovPunch = 0;
-let speedFov = 0;
 const camLean = makeLean();
 function applyRecoil(dt, world, cinematic) {
   const k = world.camKick;
