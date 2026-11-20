@@ -116,4 +116,4 @@ meting van het aantal wegen in `view.roads` bij een redraw op spoor.
   én na. De ruis is groter dan de gemeten winst (zie boven).
 - De stille-stand van de host bij Spel starten (oorzaak), het gedrag van de aangepaste voertuigbotsingen in een echte rit
   (de uitkomst is in de microbenchmark gelijk en de botsingstests zijn groen).
-- `simbench`-uitslag van het verkeer (zie de laatste sectie hieronder, als die er staat).
+- Een `simbench`-voor/na van het verkeer (`scripts/perf/simbench.mjs`, met `GDE_PROVINCE_SRC` en `--cache`): het inladen van de stad duurde langer dan de beschikbare tijd (de run kwam na ruim 10 minuten nog niet voorbij het inladen van de pakketten). Te herhalen als de stad al in de `--cache` staat.
