@@ -140,6 +140,11 @@ export function vehicleLabelOwner({ nameCardVisible = false } = {}) {
 export const TEXT_CONTRAST = 4.5;
 export const GRAPHIC_CONTRAST = 3;
 export const HUD_CARD_BG = '#0c140e';
+// v3 (#993): the plate under HUD values is paper with ink (ds-tokens.css --ds-c-ink-papier / --ds-c-ink-inkt).
+// Ink on it must reach the Rustig drukwerk norm; a status colour on it needs an ink edge (shape, never colour alone).
+export const HUD_PLAAT_BG = '#f3ead3';
+export const HUD_PLAAT_INKT = '#1d1b17';
+export const RUSTIG_CONTRAST = 7;
 const lum = (hex) => {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
     .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));

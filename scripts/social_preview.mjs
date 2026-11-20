@@ -25,12 +25,12 @@ const CHROME = process.env.CHROME || [
 export function html(bgFile) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTS}<style>
 ${LOGO_CSS}
-html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; background: #0c140e; }
+html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; background: #1d1b17; }
 .bg { position: absolute; inset: 0; background: url('${pathToFileURL(bgFile).href}') 62% 58% / cover no-repeat; }
-.shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,16,11,0.88) 0%, rgba(8,16,11,0.62) 40%, rgba(8,16,11,0) 72%); }
+.shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(29,27,23,0.88) 0%, rgba(29,27,23,0.62) 40%, rgba(29,27,23,0) 72%); }
 .wrap { position: absolute; left: 64px; top: 40px; bottom: 40px; width: 640px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .gde-logo { font-size: 250px; }
-.tag { margin-top: 34px; font: 700 27px/1.25 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.02em; color: #f0ede4; text-shadow: 0 2px 8px rgba(0,0,0,0.85); }
+.tag { margin-top: 34px; font: 700 27px/1.25 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.02em; color: #f3ead3; text-shadow: 0 2px 8px rgba(0,0,0,0.85); }
 </style></head><body><div class="bg"></div><div class="shade"></div>
 <div class="wrap">${logo('big-sub', true)}<div class="tag">Gratis open-wereldkomedie in een low-poly Groningen</div></div></body></html>`;
 }

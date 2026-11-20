@@ -13,19 +13,15 @@ const { packIco, packIcns } = require('./iconpack.cjs');
 
 const RES = path.join(__dirname, '..', 'resources');
 const WEB = path.join(__dirname, '..', '..', 'game', 'img', 'icons');
+// The icon is the zeefdruk design (ADR 0040): flat papier/inkt/bordgroen/zomergeel/roze fills
+// with paths, no blur, no gradient. make-icon-svg.cjs writes icon.svg and builds the small variant.
+const { build } = require('./make-icon-svg.cjs');
 const SRC = fs.readFileSync(path.join(RES, 'icon.svg'), 'utf8');
 
-// small-size variant: no plate, a larger mark, a slightly larger tile
-const SMALL = SRC
-  .replace(/<g filter="url\(#plate\)"[\s\S]*?<\/g>\s*/, '')
-  .replace(/x="100" y="100" width="824" height="824" rx="186"/g, 'x="48" y="48" width="928" height="928" rx="200"')
-  .replace(/<text x="512" y="600" font-size="460"([^>]*?)letter-spacing="8"/, '<text x="512" y="684" font-size="600"$1letter-spacing="0"');
-// full-bleed square tile for the iOS home screen (iOS rounds it itself)
-const FULL = SRC
-  .replace(/x="100" y="100" width="824" height="824" rx="186"/g, 'x="0" y="0" width="1024" height="1024" rx="0"')
-  .replace(/<filter id="drop"[\s\S]*?<\/filter>/, '')
-  .replace(/ filter="url\(#drop\)"/, '')
-  .replace(/transform="translate\(0 -22\)"/, 'transform="translate(0 -22)"');
+// small-size variant (16 to 48 px): no plate, a larger mark, a heavier edge
+const SMALL = build('small');
+// full-bleed square tile for the iOS home screen (iOS rounds it itself): paper to the edge
+const FULL = SRC.replace(/(<svg[^>]*>)/, '$1<rect width="1024" height="1024" fill="#f3ead3"/>');
 
 app.disableHardwareAcceleration();
 async function render(win, svg) {
