@@ -6,6 +6,7 @@
 // 56 px hoge rijen), alle kleuren komen uit de tokens met een terugval (--ink, --g,
 // --redtx, --line2, --mk-*), en er staat geen tekst meer onder 13 px in.
 import { icoon } from './icons.js';
+import { keyTextHtml } from './keycap.js';
 import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels } from './kaartactie.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -36,15 +37,14 @@ export function infoHtml(regels) {
 }
 
 // De uitleg bij de kaart, als eenmalige popup over de kaart (#445, herzien): hij verschijnt
-// één keer, dimt de kaart erachter en gaat weg met "Begrepen", Escape of een klik ernaast.
+// één keer, dimt de kaart erachter en gaat weg met "Begrepen" (met de Enter-hint erin, of A op een controller), Escape of een klik ernaast; geen kruisje naast de knop.
 // mapview.js bepaalt wanneer hij opengaat en onthoudt dat hij gezien is.
 export function uitlegHtml({ gast = false } = {}) {
   const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
   return '<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t">' +
-    '<div class="ds-papier ds-kaart ds-kaart--kop mv-help-box"><div class="ds-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-kaart__titel">Zo werkt de kaart</h2>' +
-    '<button type="button" class="mv-help-x" data-act="uitleg-sluit" aria-label="Sluiten">' + icoon('kruis', { maat: 'm' }) + '</button></div>' +
+    '<div class="ds-papier ds-kaart ds-kaart--kop mv-help-box"><div class="ds-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-kaart__titel">Zo werkt de kaart</h2></div>' +
     '<ul class="ds-kaart__tekst">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
-    '<div class="mv-help-foot"><button type="button" class="ds-knop mv-help-ok" data-act="uitleg-sluit">Begrepen</button>' +
+    '<div class="mv-help-foot"><button type="button" class="ds-knop mv-help-ok" data-act="uitleg-sluit">Begrepen ' + keyTextHtml('{ENTER}') + '</button>' +
     '<small>Terug te vinden onder Instellingen › Besturing › Hulp.</small></div></div></div>';
 }
 

@@ -21,8 +21,8 @@ if (document.pointerLockElement) document.exitPointerLock();
 const TABS = [['spel'], ['verhaal'], ['todo'], ['loopbaan'], ['map'], ['spullen'], ['garage'], ['veroverd'], ['prestaties'], ['fotos'], ['settings'], ['streken'], ['boerderij'], ['controls']];
 const SUBS = { spel: ['overzicht', 'samen', 'acties'], verhaal: ['opdrachten', 'personages', 'aanwijzingen'], settings: ['video', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'aanraken', 'hulp'] };
 const info = [];
-await document.fonts.ready;
-for (const fam of ['GDE Knoppen A', 'GDE Knoppen B', 'GDE Toetsen', 'GDE Knoppen Algemeen']) info.push(fam + ' geladen: ' + document.fonts.check('20px "' + fam + '"'));
+await document.fonts.ready; info.push('klaar ' + innerWidth + 'x' + innerHeight);
+
 const meet = () => {
   const root = document.querySelector('#pause-menu .pm-sheet') || document.querySelector('#pause-menu');
   const rail = root.querySelector('.pm-rail');
@@ -48,7 +48,7 @@ for (const [tab] of TABS) {
     try { PM.openPauseMenu(tab, sub ? { sub } : {}); } catch (e) { info.push(tab + ' FOUT ' + e.message); continue; }
     await sleep(1300);
     const m = meet(); const kad = tabKaders();
-    console.log('[marge] ' + `${tab}${sub ? '/' + sub : ''}: kop x=${m.h1x} tab x=${m.tabx} zoek x=${m.zoekx}` + (m.uit.length ? ' LINKS VAN DE KOP: ' + m.uit.join(' | ') : '') + (kad.length ? ' TAB MET KADER: ' + kad.join(',') : ''));
+    if (m.uit.length || kad.length || (m.zoekx != null && m.zoekx !== m.h1x)) info.push(`${tab}${sub ? '/' + sub : ''} kop=${m.h1x} zoek=${m.zoekx}` + (m.uit.length ? ' LINKS:' + m.uit.map((x) => x.replace(/ "[^"]*"/, '')).join('|') : '') + (kad.length ? ' KADER:' + kad.join(',') : ''));
     PM.closePauseMenu();
   }
 }

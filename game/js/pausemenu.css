@@ -1311,3 +1311,5 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 36px !important; }
 #pause-menu .pm-ver { padding-top: 6px; }
 #pause-menu .pm-csearch { margin-left: 64px; }
 @media (max-height: 820px) { #pause-menu .pm-csearch { margin-left: 40px; } }
+/* 720p: de grijze hulpregels (.mut, small) en notities op minstens 13 schermpixels; op 1080p blijft alles zoals het was */
+@media (max-height: 900px) { #pause-menu.gm :is(.mut, small, .m-note, .t) { font-size: max(18px, var(--menu-min)); } }
