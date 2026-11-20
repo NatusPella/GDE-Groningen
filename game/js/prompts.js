@@ -46,6 +46,7 @@ import { onderdeelPrompt } from './onderdelenlive.js'; // #837
 import { streekuitdagingPrompt } from './streekuitdaginglive.js'; // #835
 import { makePromptClock } from './prompttick.js';
 import { labelDy, anchorCovered } from './promptclear.js';
+import { setBubbleObstacles } from './hudrules.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -635,6 +636,7 @@ function hudObstacles() {
     if (o > 0.3) { const q = { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; list.push(q); if (el.matches(BOARD_SEL)) boards.push(q); }
   }
   obstacleCache = { at: now, list, boards };
+  setBubbleObstacles(list); // #985: speech bubbles keep clear of the same HUD parts
   return list;
 }
 

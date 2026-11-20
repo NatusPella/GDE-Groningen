@@ -32,6 +32,7 @@
 // Never: cutscenes, photo mode, the big map. "Minimaal": stars, objective,
 // subtitles and P0 only, plus the navigational minimum (the minimap and the
 // speedometer in a vehicle): a mode that promises calm must not take the wheel away (#638).
+import { labelDy } from './promptclear.js';
 
 import { P0, P1, P2, P3, CARD_P, cardPrio, cardZone, mayShow as busMayShow } from './hudbus.js';
 
@@ -138,7 +139,16 @@ export function cardYields(card, hints = []) {
 // verbergt een bel die helemaal buiten beeld valt en houdt een half zichtbare
 // bel met zijn echte maat binnen de randen. `size` en `view` zijn in dezelfde
 // eenheid als het anker (HUD-px binnen #hud).
+// #985: the HUD parts a speech bubble stays clear of (prompts.js measures them); empty without a HUD
+let bubbleObstacles = [];
+export function setBubbleObstacles(list) { bubbleObstacles = Array.isArray(list) ? list : []; }
 export function bubblePlace(anchor, size, view, pad = 4) {
+  const p = bubblePlace0(anchor, size, view, pad);
+  if (!p || !bubbleObstacles.length) return p;
+  const dy = labelDy({ left: p.x - size.w / 2, right: p.x + size.w / 2, top: p.y - size.h, bottom: p.y }, bubbleObstacles, view);
+  return dy ? { x: p.x, y: p.y + dy } : p;
+}
+function bubblePlace0(anchor, size, view, pad = 4) {
   const ax = anchor && Number(anchor.x), ay = anchor && Number(anchor.y);
   const bw = size && Number(size.w), bh = size && Number(size.h);
   const vw = view && Number(view.w), vh = view && Number(view.h);

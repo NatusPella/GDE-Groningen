@@ -173,3 +173,7 @@ html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, '
 html .pm-pad-g .pad-g.pad-kn { font-size: 26px !important; }
 html .m-hint .pm-pad-g .pad-g.pad-kn { font-size: 30px !important; }
 html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
+
+/* #985: op een laag venster hangen de ondertitels boven de locatiekaart (F-kolom), niet erin; het toetsglyph in het stopvenster is 28 px */
+@media (max-height: 720px) { #banter-sub, #radio-sub, #story-talk { bottom: 200px !important; } }
+.mg-stopask .pad-g.pad-kn, html .mg-stopask .pad-g.pad-kn { font-size: 28px !important; }

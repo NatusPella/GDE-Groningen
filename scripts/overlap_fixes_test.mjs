@@ -95,5 +95,10 @@ ok(/aria-label="Pantser"[^']*'\s*\+\s*icoon\('schild', \{ maat: 16/.test(hp), 'd
 ok(/aria-label="Voertuig"[^']*'\s*\+\s*icoon\('auto', \{ maat: 16/.test(hp) && /function setVehMeterIcon/.test(hp), 'de voertuigbalk heeft een voertuigicoon dat het soort volgt');
 ok(/#hud \.hud-meter \.hud-meter-ic \{ flex: 0 0 16px; width: 16px; height: 16px;/.test(src('game/js/hud_panel.css')) && /#hud \.hud-meter \.hud-bar \{ width: 159px; \}/.test(src('game/js/hud_panel.css')), 'de iconen zijn 16 px en de balken lijnen uit (159 px)');
 
+// klasse 12 (1024x600): keuzepaneel onder zone C, ondertitel boven de F-kolom, spraakbel buiten de HUD
+ok(/@media \(max-width: 1100px\) and \(min-width: 481px\) \{ #hud \.cw-panel \{ left: auto; right: var\(--hud-edge, 46px\)/.test(src('game/js/choicepanel.js')), 'keuzepaneel onder 1100 px: rechts onder zone C');
+ok(/max-height: 720px\) \{ #banter-sub, #radio-sub, #story-talk \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
+ok(/setBubbleObstacles\(list\)/.test(src('game/js/prompts.js')) && /labelDy\(/.test(src('game/js/hudrules.js')), 'een spraakbel schuift uit de HUD-onderdelen (hudrules bubblePlace)');
+
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
