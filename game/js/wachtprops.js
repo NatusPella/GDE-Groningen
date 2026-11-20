@@ -183,7 +183,11 @@ export function idlePose(p, clip, tl, dur) {
 export function buildWaitDressing(st, target, radius = 3.5, world = null) {
   const scene = getScene();
   if (!scene || !target) return null;
-  const base = world && world.map && world.map.groundHeightAt ? (world.map.groundHeightAt(target.x, target.y, 0) || 0) : (target.z || 0);
+  // een doel op een brugdek (M20: deur twee en drie in Bourtange): met de hoogte van de speler die er al staat als hint pakt de kring het dek,
+  // met hint 0 lag hij op het water eronder
+  const pl = world && world.player;
+  const hint = pl && Number.isFinite(pl.z) && Math.hypot(pl.x - target.x, pl.y - target.y) < Math.max(12, radius + 4) ? pl.z : 0;
+  const base = world && world.map && world.map.groundHeightAt ? (world.map.groundHeightAt(target.x, target.y, hint) || 0) : (target.z || 0);
   const group = new THREE.Group();
   group.name = 'wait-circle';
   group.position.set(target.x, base + 0.04, target.y);
