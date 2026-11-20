@@ -1880,6 +1880,7 @@ function drawDynamicMarkers(ctx, world) {
   const strook = state.strook;
   const zichtbaar = strook ? queue.filter((q) => !pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)) : queue;
   const geplaatst = placeIcons(zichtbaar, iconGapPx(sc));
+  const scBasis = sc;
   // onthoud waar de pins staan (wereldcoördinaten, zodat de vaste laag ze bij elke
   // zoom opnieuw naar schermpunten kan omrekenen). #759: alleen de set pins (soort en
   // naam) maakt die laag vuil, niet de positie. In Samen spelen loopt de wereld achter
@@ -1893,7 +1894,11 @@ function drawDynamicMarkers(ctx, world) {
   else if (state.pinsPositieGebruikt !== state.pinsPosities && t * 1000 - state.pinsDirtyAt >= PIN_RECOMPOSE_MS) {
     state.dirty = true; state.pinsDirtyAt = t * 1000;
   }
+  // je eigen velden liggen bovenop alle andere pins en zijn ver uitgezoomd groter (circa 34 px), zodat je boerderij op de provinciekaart te vinden is (20-11)
+  const eigenPin = (q) => q.kind.startsWith('perceel-eigen');
+  geplaatst.sort((a, b) => eigenPin(a) - eigenPin(b));
   for (const q of geplaatst) {
+    const sc = eigenPin(q) && z < 2 ? scBasis * 1.65 : scBasis;
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     if (q.samen && q.samen.grijs) drawGrijs(ctx, () => drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts, alpha: ((q.opts && q.opts.alpha) ?? mapIconAlpha(q.kind, z)) * 0.6 })); // samen spelen: dit werkt nog niet samen (uitgegrijsd)
     else drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
