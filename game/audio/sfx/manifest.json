@@ -28,6 +28,29 @@
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 200 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
     },
+    "applaus_klein": {
+      "bestand": "applaus_klein.ogg",
+      "gebruik": "klein applaus van een publiek",
+      "loop": false,
+      "duur_s": 3.61,
+      "grootte_kb": 30.4,
+      "herkomst": {
+        "titel": "Burst of a short clap.mp3",
+        "auteur": "mrrap4food",
+        "freesound_id": 619035,
+        "url": "https://freesound.org/people/mrrap4food/sounds/619035/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "4bbbb3e53b4b7000b660db040a78b5a21fbd98206beb7cac7e317960eba18e67"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -4.6
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB, ogg (Vorbis q2)"
+    },
     "auto_deur_dicht_1": {
       "bestand": "auto_deur_dicht_1.ogg",
       "gebruik": "autodeur dicht",
@@ -153,6 +176,29 @@
       "meting": "bron 13,8 s, losse piep 6,0 tot 7,15 s (98% van de energie tussen 300 Hz en 3 kHz, onder 300 Hz 2 tot 10%, piek rond 1 kHz)",
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 250 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "bel_uitslag": {
+      "bestand": "bel_uitslag.ogg",
+      "gebruik": "belletje van de balie: de bestelling is klaar",
+      "loop": false,
+      "duur_s": 1.55,
+      "grootte_kb": 10.9,
+      "herkomst": {
+        "titel": "Service Bell Ding",
+        "auteur": "Qvantor",
+        "freesound_id": 879808,
+        "url": "https://freesound.org/people/Qvantor/sounds/879808/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "67ce8e99d35fdbe45961034e0e497b83eedf7f431808e77cefa6e775fce28076"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
     "boot_motor_stat": {
       "bestand": "boot_motor_stat.ogg",
       "gebruik": "motorboot: buitenboordmotor stationair of langzaam",
@@ -214,6 +260,29 @@
         "piek_db": -9.5
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "brievenbus_klep": {
+      "bestand": "brievenbus_klep.ogg",
+      "gebruik": "brievenbusklep",
+      "loop": false,
+      "duur_s": 0.69,
+      "grootte_kb": 8.8,
+      "herkomst": {
+        "titel": "Letter from a house letterbox",
+        "auteur": "Caitlin_100",
+        "freesound_id": 398403,
+        "url": "https://freesound.org/people/Caitlin_100/sounds/398403/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "4de1a7959300bac4ca2b4943d7f9c11a83c5dae26c024b0741f63f909b82930a"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -25.9,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
     "bus_deur_sis": {
       "bestand": "bus_deur_sis.ogg",
@@ -500,6 +569,32 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 150 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB, ogg (Vorbis q2)"
     },
+    "dobber_plons": {
+      "bestand": "dobber_plons.ogg",
+      "gebruik": "kleine plons van een dobber of een worp in het water",
+      "loop": false,
+      "duur_s": 0.8,
+      "grootte_kb": 10.4,
+      "herkomst": {
+        "titel": "Water splash",
+        "auteur": "nilbul",
+        "freesound_id": 404829,
+        "url": "https://freesound.org/people/nilbul/sounds/404829/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "1dc647af950f944eafe693b8030ae19c906cebaf64b60177a3abe2c262ed8fc2"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 0.8
+      },
+      "niveau": {
+        "rms_db": -28.5,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
     "donder_dichtbij_0": {
       "bestand": "donder_dichtbij_0.ogg",
       "gebruik": "onweer: donderslag dichtbij met rommel",
@@ -630,6 +725,130 @@
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 6 kHz, mono 44,1 kHz, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
+    "ei_breuk_0": {
+      "bestand": "ei_breuk_0.ogg",
+      "gebruik": "een ei dat breekt",
+      "loop": false,
+      "duur_s": 0.37,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "Egg Crack",
+        "auteur": "davdud101",
+        "freesound_id": 150479,
+        "url": "https://freesound.org/people/davdud101/sounds/150479/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "745cd7d60e8a6e0f5b1560a3a1e6eea781097408610b73f38255a25eb1d47ddf"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -22.5,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "ei_breuk_1": {
+      "bestand": "ei_breuk_1.ogg",
+      "gebruik": "een ei dat kraakt en breekt (tweede)",
+      "loop": false,
+      "duur_s": 1.02,
+      "grootte_kb": 13.9,
+      "herkomst": {
+        "titel": "egg - crack 01.wav",
+        "auteur": "Anthousai",
+        "freesound_id": 336613,
+        "url": "https://freesound.org/people/Anthousai/sounds/336613/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "f018a104ded6be1ed8b92706900701969d951020b399fb3f85d74a1139ee89c0"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 1.1
+      },
+      "niveau": {
+        "rms_db": -32.5,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "fluitje": {
+      "bestand": "fluitje.ogg",
+      "gebruik": "fluitje als startsein of waarschuwing",
+      "loop": false,
+      "duur_s": 1.13,
+      "grootte_kb": 11,
+      "herkomst": {
+        "titel": "Innocent Whistle",
+        "auteur": "elle-trudgett",
+        "freesound_id": 146887,
+        "url": "https://freesound.org/people/elle-trudgett/sounds/146887/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d5b11e6724a277b766a41c0c0c60f13ac1262dcc81b1aebbc61a461ad9c99b02"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 1.2
+      },
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -6.8
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 500 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
+    "gejuich_0": {
+      "bestand": "gejuich_0.ogg",
+      "gebruik": "publiek juicht kort (start of finish)",
+      "loop": false,
+      "duur_s": 2.93,
+      "grootte_kb": 27.4,
+      "herkomst": {
+        "titel": "CRWDCheer_Short Affirmative Cheer_ShaneVincent_GSC24_FUMA-AmbeoVR.wav",
+        "auteur": "ShangusBurger",
+        "freesound_id": 764056,
+        "url": "https://freesound.org/people/ShangusBurger/sounds/764056/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "6c7d6a13123df13233362aaaae6957a6e7d321965a4e3e7bb2f28496c0ce3887"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -23.7,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 150 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "gejuich_1": {
+      "bestand": "gejuich_1.ogg",
+      "gebruik": "publiek juicht (finish, uitslag)",
+      "loop": false,
+      "duur_s": 3.19,
+      "grootte_kb": 31.2,
+      "herkomst": {
+        "titel": "Cheer 1 short.wav",
+        "auteur": "jayfrosting",
+        "freesound_id": 333405,
+        "url": "https://freesound.org/people/jayfrosting/sounds/333405/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c2131dbec4a4d010243685244de8f940b19d35692717a2dc3160389e11c43360"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 3.2
+      },
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -9.9
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
     "golfjes_oever": {
       "bestand": "golfjes_oever.ogg",
       "gebruik": "kleine golfjes tegen de oever en de kade (lus)",
@@ -683,6 +902,32 @@
       },
       "meting": "bron 10,4 s, aanloop (auto, motor) 0 tot 7,4 s met 30 tot 75% onder 300 Hz weggeknipt, slip 7,5 tot 9,5 s (92 tot 100% tussen 300 Hz en 3 kHz, 0 tot 3% onder 300 Hz, piek rond 1 kHz), staart na 9,5 s weg",
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "haspel_draai": {
+      "bestand": "haspel_draai.ogg",
+      "gebruik": "hengelhaspel die draait (vis binnenhalen)",
+      "loop": false,
+      "duur_s": 2.2,
+      "grootte_kb": 27.7,
+      "herkomst": {
+        "titel": "Fishing reel winding",
+        "auteur": "1bob",
+        "freesound_id": 831928,
+        "url": "https://freesound.org/people/1bob/sounds/831928/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "927a2a721c41355df53de09579756faacd8a639b75925eeee73de4ee4ca58f41"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 2.2
+      },
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -3.2
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "heli_rotor_stat": {
       "bestand": "heli_rotor_stat.ogg",
@@ -745,6 +990,55 @@
         "piek_db": -2
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "hydrauliek_sis": {
+      "bestand": "hydrauliek_sis.ogg",
+      "gebruik": "hydraulische sis van een kantelende oplegger",
+      "loop": false,
+      "duur_s": 2.38,
+      "grootte_kb": 22.5,
+      "herkomst": {
+        "titel": "Air release",
+        "auteur": "davidlay1",
+        "freesound_id": 416080,
+        "url": "https://freesound.org/people/davidlay1/sounds/416080/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "4bcd60babfc8d3e7db1460baff95e148f6109f620ae955ad1b3245e0faec2511"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 2.4
+      },
+      "niveau": {
+        "rms_db": -25.6,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 100 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "kaartje_schuif": {
+      "bestand": "kaartje_schuif.ogg",
+      "gebruik": "kaartje of papier dat verschijnt (regelkaart)",
+      "loop": false,
+      "duur_s": 0.19,
+      "grootte_kb": 4.5,
+      "herkomst": {
+        "titel": "Deal.ogg",
+        "auteur": "egomassive",
+        "freesound_id": 536784,
+        "url": "https://freesound.org/people/egomassive/sounds/536784/",
+        "licentie": "Creative Commons Attribution 3.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/3.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "51e48a8dee84bbc64689bbedd88acfc1cb54967d9c8ff98421443f72bc57b5ec"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -26,
+        "piek_db": -8.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
     },
     "kassa_koop": {
       "bestand": "kassa_koop.ogg",
@@ -830,6 +1124,98 @@
         "piek_db": -8.7
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 300 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 600 ms), niveau RMS -28 dB, ogg (Vorbis q2)"
+    },
+    "klok_tik": {
+      "bestand": "klok_tik.ogg",
+      "gebruik": "tik van een klok (de laatste minuut)",
+      "loop": false,
+      "duur_s": 0.12,
+      "grootte_kb": 4.2,
+      "herkomst": {
+        "titel": "clock_tickC2",
+        "auteur": "Mohagged",
+        "freesound_id": 810938,
+        "url": "https://freesound.org/people/Mohagged/sounds/810938/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d60369c51800a3c339cc74fa6f88860442897f9f5c2d5dbd53dfa5de9adc0e13"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -5.2
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+    },
+    "kopje_klink_0": {
+      "bestand": "kopje_klink_0.ogg",
+      "gebruik": "kopje op een schotel",
+      "loop": false,
+      "duur_s": 0.33,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "Cup and Saucer",
+        "auteur": "bowlingballout",
+        "freesound_id": 568757,
+        "url": "https://freesound.org/people/bowlingballout/sounds/568757/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c3f1b3e48184fb50bb8f48ccac0684d5d28640e1e7c2a093e25a7b89270ae91c"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -25.7,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "kopje_klink_1": {
+      "bestand": "kopje_klink_1.ogg",
+      "gebruik": "kopje op een schotel (tweede)",
+      "loop": false,
+      "duur_s": 0.47,
+      "grootte_kb": 6.7,
+      "herkomst": {
+        "titel": "Cup and Saucer 2.wav",
+        "auteur": "bowlingballout",
+        "freesound_id": 568758,
+        "url": "https://freesound.org/people/bowlingballout/sounds/568758/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "2c54b425cba15f54ede2784b70ecb14c4cc7118ff7847f4ca930d626d9976e27"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -25.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "kratten_klets": {
+      "bestand": "kratten_klets.ogg",
+      "gebruik": "houten krat dat kletterend breekt (eierkratten)",
+      "loop": false,
+      "duur_s": 0.77,
+      "grootte_kb": 10.1,
+      "herkomst": {
+        "titel": "Crate Break 3.wav",
+        "auteur": "kevinkace",
+        "freesound_id": 66779,
+        "url": "https://freesound.org/people/kevinkace/sounds/66779/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "0b09eecfb1889388de762b3e479232bf8e74daec342383344e965a80cbbfaf5a"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -25.6,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 80 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
     "menigte_gemurmel": {
       "bestand": "menigte_gemurmel.ogg",
@@ -923,6 +1309,75 @@
         "piek_db": -9.5
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 300 ms), niveau RMS -24 dB, ogg (Vorbis q2)"
+    },
+    "munten_0": {
+      "bestand": "munten_0.ogg",
+      "gebruik": "muntjes die vallen",
+      "loop": false,
+      "duur_s": 0.76,
+      "grootte_kb": 9.8,
+      "herkomst": {
+        "titel": "coindrop1.wav",
+        "auteur": "jmaimarc",
+        "freesound_id": 19778,
+        "url": "https://freesound.org/people/jmaimarc/sounds/19778/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "878c522ccde2db067018d29ba06faf839b3e0a7a81e86dd65da62ffee44c78f2"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -2.3
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB, ogg (Vorbis q2)"
+    },
+    "munten_1": {
+      "bestand": "munten_1.ogg",
+      "gebruik": "een munt die valt",
+      "loop": false,
+      "duur_s": 0.4,
+      "grootte_kb": 7.4,
+      "herkomst": {
+        "titel": "Coin_Drop_26",
+        "auteur": "Valenspire",
+        "freesound_id": 699521,
+        "url": "https://freesound.org/people/Valenspire/sounds/699521/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "a4647fcd39bb606339b6170f00afac2cd514fce62018f5110b0aca5f99672673"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -23.2,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
+    "omroep_ding": {
+      "bestand": "omroep_ding.ogg",
+      "gebruik": "omroepbel op het perron (ding-dong)",
+      "loop": false,
+      "duur_s": 1.43,
+      "grootte_kb": 10.6,
+      "herkomst": {
+        "titel": "Prague Metro Line B Chime",
+        "auteur": "chungus43A",
+        "freesound_id": 724059,
+        "url": "https://freesound.org/people/chungus43A/sounds/724059/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d9b42255976c9b15e0ba364d4397034f0ba8eca3b36fdc373fda91b9520e1407"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -8.3
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
     },
     "plons_groot": {
       "bestand": "plons_groot.ogg",
@@ -2768,6 +3223,52 @@
       },
       "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
     },
+    "stoomfluit": {
+      "bestand": "stoomfluit.ogg",
+      "gebruik": "stoomfluit van een trein",
+      "loop": false,
+      "duur_s": 3.16,
+      "grootte_kb": 25.3,
+      "herkomst": {
+        "titel": "Steam Whistle.mp3",
+        "auteur": "Bidone",
+        "freesound_id": 71778,
+        "url": "https://freesound.org/people/Bidone/sounds/71778/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "8adf3d0e469857602470f7167227b3a22791871b577f2f56839879a9121f5c58"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -8
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB, ogg (Vorbis q2)"
+    },
+    "toeter_start": {
+      "bestand": "toeter_start.ogg",
+      "gebruik": "toeter als startsein of eindsignaal",
+      "loop": false,
+      "duur_s": 1.61,
+      "grootte_kb": 13.7,
+      "herkomst": {
+        "titel": "Airhorn",
+        "auteur": "jacksonacademyashmore",
+        "freesound_id": 414208,
+        "url": "https://freesound.org/people/jacksonacademyashmore/sounds/414208/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d9c7dce966e5a156cc67285f24504feb7bb2d482eadcbf2d285a7df56e047d1a"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -20,
+        "piek_db": -6.3
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -20 dB, ogg (Vorbis q2)"
+    },
     "tram_bel_op_0": {
       "bestand": "tram_bel_op_0.ogg",
       "gebruik": "tram die belt (kort)",
@@ -2951,6 +3452,29 @@
         "piek_db": -4.1
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
+    "ui_fout": {
+      "bestand": "ui_fout.ogg",
+      "gebruik": "zachte fout-klank in het menu",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 4.9,
+      "herkomst": {
+        "titel": "ui-mistake.wav",
+        "auteur": "StavSounds",
+        "freesound_id": 701703,
+        "url": "https://freesound.org/people/StavSounds/sounds/701703/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "1bf1bdeed467722b5100fb210ba1835f52900622398b925945e5dfe2ef2dfffb"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -26,
+        "piek_db": -5.2
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
     },
     "ui_klik": {
       "bestand": "ui_klik.ogg",
@@ -3262,6 +3786,29 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 60 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
+    "weegbrug_klik": {
+      "bestand": "weegbrug_klik.ogg",
+      "gebruik": "mechanische klik van een weegbrug",
+      "loop": false,
+      "duur_s": 0.22,
+      "grootte_kb": 5.2,
+      "herkomst": {
+        "titel": "Relay 2",
+        "auteur": "JoontheFloof",
+        "freesound_id": 740252,
+        "url": "https://freesound.org/people/JoontheFloof/sounds/740252/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d82f55a5b7c51835b32999ea1f7eb7ef38a1617c4d2c4c5de1b6cdca5f8a12bc"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -27.9,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    },
     "wind_gras": {
       "bestand": "wind_gras.ogg",
       "gebruik": "weer: wind door gras, riet en open land (lus)",
@@ -3315,6 +3862,29 @@
         "piek_db": -2.8
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
+    "worp_lucht": {
+      "bestand": "worp_lucht.ogg",
+      "gebruik": "worp door de lucht (krant, pakketje)",
+      "loop": false,
+      "duur_s": 0.31,
+      "grootte_kb": 5.4,
+      "herkomst": {
+        "titel": "Swinging staff whoosh (low) 03.wav",
+        "auteur": "Nightflame",
+        "freesound_id": 422495,
+        "url": "https://freesound.org/people/Nightflame/sounds/422495/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "28d52f30e6ddf578fc4d9378592f50272c76f088dcc5ac3d6925eda05969cbf9"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -7.8
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "zomer_insecten": {
       "bestand": "zomer_insecten.ogg",

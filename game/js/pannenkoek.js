@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: balie-bel bij een geserveerde pannenkoek
 import { volgendeTredeRij } from './medalrules.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
@@ -80,6 +81,7 @@ function updateGame(w, dt) {
     const r = serve(s, gi, top);
     if (r.type === 'serve') {
       pushAudioEvent(w, { kind: 'sizzle', strength: 0.7 });
+      haakFx(w, 'bel_uitslag');
       g.flash = { text: r.fast ? 'Snel geserveerd! Bonus' : 'Geserveerd', bad: false, t: 0 };
     }
   });

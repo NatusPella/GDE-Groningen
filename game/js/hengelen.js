@@ -6,6 +6,7 @@ import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, recordUnique, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: de plons van een binnengehaalde vis
 import { standActivity, recLine } from './standactivity.js';
 import { activityBlock } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
@@ -211,6 +212,7 @@ function updateGame(w, dt) {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
       pushAudioEvent(w, { kind: 'fx', name: 'hengel_vangst', x: at.x, y: at.y });
+      haakFx(w, 'dobber_plons', at.x, at.y);
       g.haalT = 0.9; // de ruk is voorbij: even binnenhalen voordat je weer klaarstaat
       const naam = (s && (s.naam || s.name)) || e.fish;
       g.flash = { text: `${r && r.nieuweSoort ? 'Nieuw: ' : ''}${naam} van ${kgTekst(e.kg)}!`, bad: false, t: 0 };

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   SAMPLE_KEYS, SAMPLE_INFO, SAMPLE_BASE, VARIATIE, variatie, afkoelingOk, heeftAutoPortier, autoDeurPlan, createSamples,
-  slipLoopNiveau, slipLoopRate, grindNodig, FX_VERVANG, vervangSleutel,
+  slipLoopNiveau, slipLoopRate, grindNodig, FX_VERVANG, FX_OPNAME_ALLEEN, vervangSleutel,
 } from '../game/js/sfx/samples.js';
 import { CATEGORIES } from '../game/js/sfx/mixplan.js';
 
@@ -43,6 +43,8 @@ for (const f of fs.readdirSync(JS, { recursive: true }).filter((x) => x.endsWith
   const t = fs.readFileSync(path.join(JS, f), 'utf8');
   for (const m of t.matchAll(re)) used.add(m[1]);
 }
+// ronde 4: de sleutels die FX_VERVANG en FX_OPNAME_ALLEEN koppelen tellen als gebruikt (de haken zelf bewaakt sfx_haken_test.mjs)
+for (const l of [...Object.values(FX_VERVANG), ...Object.values(FX_OPNAME_ALLEEN)]) for (const k of l) used.add(k);
 for (const k of used) ok(g[k], `sleutel ${k} uit de code staat in het manifest`);
 // de voetstappen (stap_<ondergrond>_<n>) worden in sfx/steps.js samengesteld; stappen_test.mjs bewaakt ze
 for (const k of SAMPLE_KEYS) ok(k.startsWith('stap_') || used.has(k), `${k} wordt in de code gebruikt`);
@@ -163,6 +165,26 @@ const fakeFetch = (files) => async (url) => {
     ok(m.naad.sprong_ratio < 1 && Math.abs(m.naad.niveaustap_db) < 2, `${k}: naad gemeten (sprong x${m.naad.sprong_ratio}, stap ${m.naad.niveaustap_db} dB)`);
     ok(m.niveau.piek_db <= -1, `${k}: piek ${m.niveau.piek_db} dB onder -1`);
   }
+  // ronde 4: opname-only effecten (geen synth in fxbank.js) en de manifest-eigenschappen van de nieuwe opnames
+  const { GELUIDEN: RONDE4 } = await import('./audio/master_sfx_ronde4.mjs');
+  for (const [naam, sleutels] of Object.entries(FX_OPNAME_ALLEEN)) {
+    ok(!FX_INFO[naam] && !FX_VERVANG[naam], `FX_OPNAME_ALLEEN: ${naam} heeft geen synth (anders hoort hij in FX_VERVANG)`);
+    for (const k of sleutels) ok(SAMPLE_INFO[k] && g[k], `FX_OPNAME_ALLEEN: ${naam} -> ${k} staat in SAMPLE_INFO en in het manifest`);
+  }
+  let kb4 = 0;
+  for (const k of Object.keys(RONDE4)) {
+    const m = g[k];
+    ok(m && SAMPLE_INFO[k], `ronde 4: ${k} staat in manifest en SAMPLE_INFO`);
+    if (!m) continue;
+    kb4 += m.grootte_kb;
+    ok(m.herkomst && /^Creative Commons (0|Attribution (3|4).0)/.test(m.herkomst.licentie), `ronde 4: ${k} heeft een toegestane licentie`);
+    ok(m.duur_s > 0.05 && m.duur_s < 4, `ronde 4: ${k} is kort (${m.duur_s} s)`);
+    ok(m.niveau.piek_db <= -1, `ronde 4: ${k} piek ${m.niveau.piek_db} dB onder -1`);
+    ok(!m.loop, `ronde 4: ${k} is geen lus`);
+  }
+  ok(kb4 < 1500, `ronde 4: samen ${Math.round(kb4)} kB, onder de 1,5 MB`);
+  ok(vervangSleutel('ei_breuk', (k) => k === 'ei_breuk_1', () => 0) === 'ei_breuk_1', 'een opname-only effect vindt zijn sleutel');
+  ok(vervangSleutel('kratten_klets', () => false) === null, 'opname-only zonder geladen opname: null (stil)');
   ok(vervangSleutel('winkel_kassa_1', () => true) === 'kassa_koop', 'een variant (_1) vindt de vervanging van de basisnaam');
   ok(vervangSleutel('winkel_kassa_0', () => false) === null, 'niet geladen: null (de synth blijft)');
   ok(vervangSleutel('bestaat_niet', () => true) === null, 'onbekende naam: null');

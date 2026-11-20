@@ -16,6 +16,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 831928,
+    "beschrijving": "Hengelhaspel die draait",
+    "auteur": "1bob",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 425272,
     "beschrijving": "Vliegtuig",
     "auteur": "77Pacer",
@@ -47,6 +54,13 @@ export const AUDIO_CREDITS = [
     "id": 369053,
     "beschrijving": "Auto",
     "auteur": "AndrewAlexander",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 336613,
+    "beschrijving": "Een ei dat kraakt en breekt",
+    "auteur": "Anthousai",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -100,6 +114,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 71778,
+    "beschrijving": "Stoomfluit van een trein",
+    "auteur": "Bidone",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 778421,
     "beschrijving": "Autodeur dicht",
     "auteur": "BlondPanda",
@@ -107,9 +128,30 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 568757,
+    "beschrijving": "Kopje op een schotel",
+    "auteur": "bowlingballout",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 568758,
+    "beschrijving": "Kopje op een schotel",
+    "auteur": "bowlingballout",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 457043,
     "beschrijving": "Gemurmel van een menigte",
     "auteur": "Breviceps",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 398403,
+    "beschrijving": "Brievenbusklep",
+    "auteur": "Caitlin_100",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -142,6 +184,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 724059,
+    "beschrijving": "Omroepbel op het perron",
+    "auteur": "chungus43A",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 636075,
     "beschrijving": "Scheepshoorn van een groot schip",
     "auteur": "coalcon",
@@ -170,6 +219,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 150479,
+    "beschrijving": "Een ei dat breekt",
+    "auteur": "davdud101",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 416080,
+    "beschrijving": "Hydraulische sis van een kantelende oplegger",
+    "auteur": "davidlay1",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 445790,
     "beschrijving": "Voetstap op houten brug, steiger en dek",
     "auteur": "DDT197",
@@ -182,6 +245,20 @@ export const AUDIO_CREDITS = [
     "auteur": "digifishmusic",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 536784,
+    "beschrijving": "Kaartje of papier dat verschijnt",
+    "auteur": "egomassive",
+    "licentie": "CC BY 3.0",
+    "by": true
+  },
+  {
+    "id": 146887,
+    "beschrijving": "Fluitje als startsein of waarschuwing",
+    "auteur": "elle-trudgett",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 505113,
@@ -268,6 +345,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 414208,
+    "beschrijving": "Toeter als startsein of eindsignaal",
+    "auteur": "jacksonacademyashmore",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 333405,
+    "beschrijving": "Publiek juicht",
+    "auteur": "jayfrosting",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 505833,
     "beschrijving": "Voetstap op gras en aarde",
     "auteur": "jedg",
@@ -275,9 +366,23 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 19778,
+    "beschrijving": "Muntjes die vallen",
+    "auteur": "jmaimarc",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 473723,
     "beschrijving": "Kamertoon binnen",
     "auteur": "Joao_Janz",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 740252,
+    "beschrijving": "Mechanische klik van een weegbrug",
+    "auteur": "JoontheFloof",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -313,6 +418,13 @@ export const AUDIO_CREDITS = [
     "id": 528561,
     "beschrijving": "Zachte klik van een knop in het menu",
     "auteur": "Jummit",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 66779,
+    "beschrijving": "Houten krat dat kletterend breekt",
+    "auteur": "kevinkace",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -408,9 +520,23 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 810938,
+    "beschrijving": "Tik van een klok",
+    "auteur": "Mohagged",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 353799,
     "beschrijving": "Voetstap op grind, split en zandpad",
     "auteur": "monte32",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 619035,
+    "beschrijving": "Klein applaus van een publiek",
+    "auteur": "mrrap4food",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -420,6 +546,20 @@ export const AUDIO_CREDITS = [
     "auteur": "n_audioman",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 422495,
+    "beschrijving": "Worp door de lucht",
+    "auteur": "Nightflame",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 404829,
+    "beschrijving": "Kleine plons van een dobber of een worp in het water",
+    "auteur": "nilbul",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 172492,
@@ -513,6 +653,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 879808,
+    "beschrijving": "Belletje van de balie",
+    "auteur": "Qvantor",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 50697,
     "beschrijving": "Portiergreep",
     "auteur": "RutgerMuller",
@@ -541,6 +688,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 764056,
+    "beschrijving": "Publiek juicht kort",
+    "auteur": "ShangusBurger",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 167034,
     "beschrijving": "Weer",
     "auteur": "soundrecorder7",
@@ -553,6 +707,13 @@ export const AUDIO_CREDITS = [
     "auteur": "spycrah",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 701703,
+    "beschrijving": "Zachte fout-klank in het menu",
+    "auteur": "StavSounds",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 537737,
@@ -588,6 +749,13 @@ export const AUDIO_CREDITS = [
     "auteur": "TiesWijnen",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 699521,
+    "beschrijving": "Een munt die valt",
+    "auteur": "Valenspire",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 149193,

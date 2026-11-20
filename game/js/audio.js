@@ -12,7 +12,7 @@ import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, sli
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
-import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
+import { initUiSfx, uiFx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { keysReady, PLANE_KEYS, BOAT_KEYS } from './sfx/aircraft.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
@@ -805,7 +805,8 @@ function playCrossingBell(x, y) {
   playNoiseBurst({ duration: 0.015, freq: 4200, q: 2, gain: 0.24, type: 'bandpass', out });
 }
 
-function playTrainHorn(x, y) {
+function playTrainHorn(x, y, steam = false) {
+  if (steam && playFx('stoomfluit', x, y)) return;   // ronde 4: de stoomfluit van de museumtrein (M19), anders de gewone hoorn
   if (playFx('train_horn', x, y)) return;   // de opname (samples.js FX_VERVANG), anders de synth hieronder
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.8, range: 260, h: 3 });
   if (!out) return;
@@ -1531,6 +1532,7 @@ export function playTimeWarning(urgent = false) {
   if (!ctx || muted || !uiBus) return;
   const n = urgent ? 3 : 2, f = urgent ? 1318.5 : 987.8;
   for (let i = 0; i < n; i++) playTone({ freq: f, type: 'sine', duration: 0.08, gain: 0.035, delay: i * 0.14, bus: uiBus, prio: 2 });
+  if (urgent) uiFx('klok_tik'); // ronde 4: een echte klok-tik onder de piepjes (alleen bij de laatste 10 s)
 }
 
 // One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
@@ -2406,7 +2408,7 @@ function playAudioEvents(world) {
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;
-      case 'train_horn': playTrainHorn(x, y); break;
+      case 'train_horn': playTrainHorn(x, y, !!e.steam); break;
       case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4, e.low || 1); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
