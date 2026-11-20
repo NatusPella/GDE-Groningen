@@ -38,5 +38,5 @@ assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html), 'geen eigen kleuren in de marku
 
 // de wereld en de bedrading: lichtkolom zonder diepteschrijven, vlag op de brievenbus, strook alleen voor de eigen dienst
 const bron = readFileSync(new URL('../game/js/sidejob_krantenwijk.js', import.meta.url), 'utf8');
-assert.match(bron, /depthWrite: false/); assert.match(bron, /userData\.vlag/); assert.match(bron, /if \(c\.owner \|\|/); assert.match(bron, /simHudTik\(0, null\);\r?\n  \},/);
+assert.match(readFileSync(new URL('../game/js/simkolom3d.js', import.meta.url), 'utf8'), /depthWrite: false/); assert.match(bron, /zetSimKolom\(/); assert.match(bron, /userData\.vlag/); assert.match(bron, /if \(c\.owner \|\|/); assert.match(bron, /simHudTik\(0, null\);\r?\n  \},/);
 console.log('krantenhud_test ok');

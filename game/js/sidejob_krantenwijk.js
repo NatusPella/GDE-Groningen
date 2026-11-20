@@ -16,6 +16,8 @@ import * as R from './krantenrules.js';
 import { hoofdspeler } from './spelersregister.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
 import { krantHudModel, worpPop, UITLEG_ID } from './krantenstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { reducedMotion } from './motion.js';
 
 const BIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 4.2, brake: 6, turnRate: 3.8, color: '#2e6f9e' };
 const OVERNAME_R = 45;       // m van het eerste huis: vanaf hier telt de ronde als begonnen
@@ -67,14 +69,6 @@ function brievenbusMesh() {
   g.add(vlag);
   g.userData.vlag = vlag;
   return g;
-}
-
-// De lichtkolom boven de volgende brievenbus (#985): MeshBasic zonder licht of nieuwe shader, depthWrite uit, zodat hij niet met de grond vecht.
-function kolomMesh() {
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 9, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xf4c430, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
-  m.name = 'krantkolom';
-  m.visible = false;
-  return m;
 }
 
 function containerMesh() {
@@ -231,7 +225,7 @@ export default {
       h.mesh = m;
       c.addMesh(m); d.mesh.push(m);
     }
-    d.kolom = kolomMesh();
+    d.kolom = maakSimKolom('krantkolom');
     c.addMesh(d.kolom); d.mesh.push(d.kolom);
     const mx = d.huizen.reduce((s, h) => s + h.x, 0) / d.huizen.length, my = d.huizen.reduce((s, h) => s + h.y, 0) / d.huizen.length;
     const vijver = zoekVijver(map, mx, my);
@@ -469,10 +463,7 @@ function zetStrook(c) {
   const open = d.huizen.filter((h) => !h.status);
   open.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
   const volgende = d.phase === 'naarwijk' ? d.huizen[0] : open[0];
-  if (d.kolom) {
-    d.kolom.visible = !!volgende && d.phase !== 'klaar';
-    if (volgende) d.kolom.position.set(volgende.x, groundAt(c.world.map, volgende.x, volgende.y) + 4.5, volgende.y);
-  }
+  if (d.kolom) zetSimKolom(d.kolom, volgende && d.phase !== 'klaar' ? volgende : null, volgende ? groundAt(c.world.map, volgende.x, volgende.y) : 0, c.world.time || 0, reducedMotion());
   simHudTik(0, krantHudModel({
     fase: d.phase, wijk: d.wijk ? d.wijk.name : '', straat: d.straat, totaal: d.huizen.length, gedaan: d.huizen.length - open.length, stapel: d.stapel, worpen: d.worpen,
     vijver: d.vijver, lui: d.lui, afstand: volgende ? Math.hypot(volgende.x - p.x, volgende.y - p.y) : null, snelheid: windSnelheid(c.world, p), tijd: c.timeLeft, uitleg: !uitlegGezien(UITLEG_ID),

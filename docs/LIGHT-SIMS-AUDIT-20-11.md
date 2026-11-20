@@ -16,7 +16,7 @@ de lus nu zichtbaar of uitgelegd is.
 |---|---|---|---|
 | 1. Hengelen | hoog: overal aan het water met I, plus de Meerstad-wedstrijd | wereld goed (hengel, lijn, dobber, vis), maar HUD was een tekstbord in eigen kleuren, geen uitleg, geen beetteken, vangst alleen als regel | gebouwd, zie 2 |
 | 2. Krantenwijk | hoog: een van de eerste bijbanen | wereld al redelijk (brievenbussen, vliegende kranten, liggende kranten), maar elke brievenbus zag er na de worp hetzelfde uit, geen duidelijk volgend doel in de straat, de stapel en de uitkomst alleen als meldingen, geen uitleg | gebouwd, zie 3 |
-| 3. Bezorger | hoog | zie 3 | zie 3 |
+| 3. Bezorger (Hap & Rap) | hoog | tekstregel "warm 82%" in de bijbaankaart; eten dat afkoelt was onzichtbaar; geen doel in de straat; geen uitleg | gebouwd, zie 4 |
 | 4. Kartbaan | midden | zie 3 | zie 3 |
 | 5. Rondvaart | midden | zie 3 | zie 3 |
 
@@ -65,6 +65,26 @@ Test: `krantenhud_test` (model, markup, bedrading).
 
 **Niet gedaan.** Het vlaggetje bij de gast, een kaartlaag met de route als lijn, een eigen sting bij een foutloze ronde.
 
+## 4. Bezorger (Hap & Rap, maaltijden op de e-fatbike)
+
+**Wat kan de speler.** Bijbaan: een bestelling ophalen bij een zaak (zes verzonnen zaken in de stad), naar de klant fietsen voor het eten koud is. Ophalen en afleveren gaan vanzelf bij aankomst (geen toets). Tegenwind, regen en botsen laten het eten sneller afkoelen;
+warm geeft fooi (boven 70%), lauw weinig, koud niets. De klok is de warmte.
+
+**De lus.** Ophalen, bezorgen, klaar, volgende bestelling; de afstand en de tijd worden strakker met je reeks en niveau.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de intro van de baas | plus vier iconen met een zin in de strook tot je voor het eerst iets ophaalt (`gde-sim-uitleg-v1`) |
+| HUD | de bijbaankaart: "Bestelling 3 · warm 82% · tegenwind 5" | strook: stappen als chips (ophalen, bezorgen, klaar), een warmtemeter die leegloopt en onder 40% rood wordt met het woord "Snel, het eten wordt koud!", cijfers bestelling, afstand, tijd en wind, en één zin wat nu (waar, wat en voor wie) |
+| Wereld | thermobox op de fiets, kok en klant die wachten | een gele lichtkolom boven de zaak en daarna boven de deur van de klant (dezelfde kolom als de krantenwijk, `simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een getal springt op: "Opgehaald" en "Warm bezorgd · fooi €8" met het bestaande UI-geluid |
+| Kaart | de markering van het doel (bestond al, uit `view()`) | ongewijzigd |
+
+**Samen spelen.** De bijbaan is van wie het spel opende. Een meespelende gast kan ophalen en afleveren als hij bij de plek staat (`afstandNaast`, bestond al, #452). De strook en de lichtkolom zijn er voor de eigen dienst (`c.owner` leeg) en worden niet aan gasten gestuurd.
+Test: `bezorghud_test` (model, markup, bedrading, gedeelde kolom).
+
+**Niet gedaan.** Een zichtbaar pakketje op de stoep na het afleveren, stoom boven de thermobox, een kaartlaag met de route.
+
 ## Beeldbewijs en eerlijkheid
 
-`docs/img/qa/lichtsims-strook-na.jpg`: de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
+`docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
