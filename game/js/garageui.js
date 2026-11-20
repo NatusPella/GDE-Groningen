@@ -6,6 +6,7 @@
 // Stills, turntable and viewer all come from vehiclepreview.js's one shared
 // renderer, so the garage never opens a WebGL context of its own.
 import { icoon } from './icons.js';
+import { glyphHtml, plainKeyText } from './keycap.js';
 import { getGarageCatalog, whereText, actieBevestiging } from './ownedvehicles.js';
 import { garageToestand, statusToon, vraagSoort, chipHtml, TOESTAND_ICOON } from './garagetoestand.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclepreview.js';
@@ -164,8 +165,8 @@ function stageHtml(e) {
   // over "Sleep of draai met ← →" heen, waardoor de hint onleesbaar werd.
   return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? 'var(--ds-c-inkt-zacht)' : e.color)}` +
     '<img class="gar-still" alt="" draggable="false" hidden>' +
-    `<canvas tabindex="0" role="img" aria-label="3D-model van ${model}: sleep of gebruik de pijltjes om te draaien"></canvas>` +
-    '<span class="gar-hint">Sleep of gebruik <kbd class="m-kc" data-gk="arrowleft">←</kbd><kbd class="m-kc" data-gk="arrowright">→</kbd></span></div>';
+    `<canvas tabindex="0" role="img" aria-label="3D-model van ${model}: ${plainKeyText('sleep of gebruik {ARROWS} om te draaien')}"></canvas>` +
+    '<span class="gar-hint">Sleep of gebruik ' + glyphHtml('ARROWLEFT') + glyphHtml('ARROWRIGHT') + '</span></div>';
 }
 
 // Everything beside the stage: name, facts, the message and the buttons.

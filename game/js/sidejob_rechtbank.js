@@ -53,7 +53,7 @@ export default {
   tagline: 'Lees de feiten, loop naar de balie en beantwoord drie vragen. Geen haast, geen straf.',
   intro: [
     'Een dossier. Dun, maar het moet vandaag nog aankomen.',
-    'Lees de feiten goed: aan de balie stelt de griffier er drie vragen over. Met Tab lees je ze nog eens.',
+    'Lees de feiten goed: aan de balie stelt de griffier er drie vragen over. Met {TAB} lees je ze nog eens.',
   ],
 
   anchor(map) {
@@ -94,12 +94,12 @@ export default {
     if (d.phase === 'read' || d.phase === 'reread' || d.phase === 'ask' || d.phase === 'result') world.minigameUntil = world.time + 0.25;
     if (d.phase === 'read') {
       d.readT -= dt;
-      paintFacts(c, d.readT > 0 ? '' : 'Spatie: op weg');
+      paintFacts(c, d.readT > 0 ? '' : '{SPACE}: op weg');
       if (d.readT <= 0 && (input.wasPressed(' ') || input.wasPressed('e'))) { input.consume(' '); input.consume('e'); closePanel(c); d.phase = 'carry'; }
       return;
     }
     if (d.phase === 'reread') {
-      paintFacts(c, 'Spatie: verder');
+      paintFacts(c, '{SPACE}: verder');
       if (input.wasPressed(' ') || input.wasPressed('tab') || input.wasPressed('backspace')) { input.consume(' '); input.consume('tab'); input.consume('backspace'); closePanel(c); d.phase = 'carry'; }
       return;
     }
@@ -169,7 +169,7 @@ export default {
     return {
       marker: carrying ? { x: d.dest.x, y: d.dest.y } : null,
       progress: `Dossier ${c.streak + 1}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}${d.jury > 1 ? ' · met tweede jurylid' : ''}`,
-      goal: { label: d.dest.name, desc: d.phase === 'ask' || d.phase === 'answered' ? 'Beantwoord de vragen van de griffier' : 'Breng het dossier naar de balie (Tab: feiten lezen)' },
+      goal: { label: d.dest.name, desc: d.phase === 'ask' || d.phase === 'answered' ? 'Beantwoord de vragen van de griffier' : 'Breng het dossier naar de balie ({TAB}: feiten lezen)' },
     };
   },
 

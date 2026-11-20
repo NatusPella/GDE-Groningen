@@ -41,7 +41,7 @@ const geenHerhaling = (id) => !!(WEDSTRIJDEN.get(id) || {}).geenHerhaling;
 function kijkModel(G) {
   const k = G.kijk;
   const regels = k.rijen.length ? k.rijen.map(([naam, tekst]) => (tekst ? `${naam}: ${tekst}` : naam)) : ['Je kijkt mee. Het bord komt zo.'];
-  return { soort: 'kijk', titel: `${k.titel}: je kijkt mee`, regels, voet: k.klaar ? 'N of Enter = bord weg' : 'Je kijkt mee. N = bord weg.' };
+  return { soort: 'kijk', titel: `${k.titel}: je kijkt mee`, regels, voet: k.klaar ? '{N} of {ENTER} = bord weg' : 'Je kijkt mee. {N} = bord weg.' };
 }
 // De gast ziet in een baanwedstrijd (bruggenrace, regatta) de stand van de host: plek, naam, punten of tijd.
 function baanModel(G) {
@@ -51,7 +51,7 @@ function baanModel(G) {
   const regels = rijen.length
     ? rijen.map((r, i) => `${i + 1}. ${naam(r.slot)}${r.weg ? ': gestopt' : r.slagen ? `: ${fmtTime(r.slagen / 100)}` : `: ${r.banen} van ${b.cps}`}`)
     : ['Je doet mee. Bij het aftellen gaat iedereen samen weg.'];
-  return { soort: 'baan', titel: regel ? regel.naam : 'Wedstrijd', regels, voet: 'Backspace = stoppen' };
+  return { soort: 'baan', titel: regel ? regel.naam : 'Wedstrijd', regels, voet: '{BACKSPACE} = stoppen' };
 }
 function uitslagModel(rijen, jij, rol, wie, kanOpnieuw, gevraagd = false) {
   const regels = rijen.map((x) => `${ORDINAAL[x.plek] || x.plek + 'e'}  ${x.naam}${x.ai ? ' (AI)' : ''}  ${x.tekst ? x.tekst : x.fin ? fmtTime(x.tijd) : x.weg ? 'niet meer erbij' : 'niet gefinisht'}${x.beste != null ? `  beste ronde ${fmtTime(x.beste)}` : ''}`); // x.tekst: de score van een golfronde

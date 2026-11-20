@@ -161,7 +161,7 @@ export function showPlan(data) {
       <button type="button" class="hx-card" data-pick="sluip"><b>${key('A')}${pad()} Achterdeur</b><span>Sluipen: slotje openpeuteren, langs de bewaker in zaal 1.</span><em>Spannend en stil.</em></button>
       <button type="button" class="hx-card" data-pick="vermomd"><b>${key('S')}${pad()} Schoonmakers</b><span>Vermomd in een overall: pasje rollen, gewoon door de glazen deur.</span><em>De bewakers zien je pas van dichtbij.</em></button>
     </div>
-    <div class="hx-choice-note">Kies met A of S (of klik) &middot; Esc of B: terug naar de tekening. Allebei eindigen ze in zaal 3.</div>`;
+    <div class="hx-choice-note">Kies met {A} of {S} (of klik) &middot; {ESC} of {B}: terug naar de tekening. Allebei eindigen ze in zaal 3.</div>`;
   root.appendChild(el);
   const cv = el.querySelector('canvas');
   plan = { el, cv, g: cv.getContext('2d'), data, focus: 'island', since: performance.now(), raf: 0, sel: null, onPick: null, seen: new Set(['island']) };

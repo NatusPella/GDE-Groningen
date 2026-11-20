@@ -182,7 +182,7 @@ function bouwHud(titel, bestemming) {
     + '<div class="rr3-rest" style="font:800 24px var(--ds-font-kop-v3)"></div>'
     + '<div style="width:260px;height:12px;box-sizing:border-box;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:4px;overflow:hidden;background:var(--ds-c-ink-papier)"><div class="rr3-vul" style="height:100%;width:0;background:var(--ds-c-ink-geel)"></div></div>'
     + '<span class="rr3-cam" style="font:14px var(--ds-font-tekst-v3)"><span style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:1px 8px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">C of Y</span>camera: <b class="rr3-camnaam"></b></span>'
-    + '<span class="rr3-hint" style="display:none;font:15px var(--ds-font-tekst-v3)"><span class="hud-key" data-gk="SPATIE" style="background:var(--ds-c-ink-inkt);color:var(--ds-c-ink-papier);border-radius:4px;padding:2px 9px;font:800 14px var(--ds-font-kop-v3);margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
+    + '<span class="rr3-hint" style="display:none;font:15px var(--ds-font-tekst-v3)">{SPACE}overslaan (of tik op het scherm)</span></div>';
   el.querySelector('.rr3-lijn').textContent = String(titel || '').toUpperCase();
   el.querySelector('.rr3-rest').textContent = bestemming ? `Naar ${bestemming}` : '';
   return el;

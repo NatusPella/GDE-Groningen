@@ -34,7 +34,7 @@ export const TREIN_TEKST = {
   wacht: 'Wacht tot de trein stilstaat.',
   dienst: 'De dienst is al bezig: halverwege stapt niemand meer in.',
   geenRol: 'Alleen de machinist en de conducteur bedienen de deuren en de waakzaamheid.', // een passagier mag het niet (#492)
-  lopen: 'Je loopt door de trein: WASD lopen, E bij een zittende reiziger, T terug naar je plek.', // de conducteur (#492)
+  lopen: 'Je loopt door de trein: {WASD} lopen, {E} bij een zittende reiziger, {T} terug naar je plek.', // de conducteur (#492)
   stoppen: 'Je staat weer op je plek.',
   geenConducteur: 'Alleen de conducteur loopt door de trein en controleert kaartjes.',
   geenReiziger: 'Loop naar een zittende reiziger om een kaartje te controleren.',

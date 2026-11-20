@@ -56,12 +56,29 @@ export function keyGlyphInner(phys) {
   if (!g) return null;
   return '<span class="pad-g pad-kn pad-key" data-set="keys" role="img" aria-label="' + esc(KEY_LABEL[k] || k.toUpperCase()) + '">' + g.char + '</span>';
 }
-// A key as it is written on a hint label ('Enter', 'Esc', 'Spatie', 'Tab', 'Q', '↑'): its glyph, or null (a word like 'Muis' keeps its text).
-const LABEL_KEYS = { enter: 'enter', esc: 'escape', spatie: ' ', tab: 'tab', shift: 'shift', ctrl: 'control', backspace: 'backspace', '↑': 'arrowup', '↓': 'arrowdown', '←': 'arrowleft', '→': 'arrowright' };
+// A key as it is written on a hint label ('Enter', 'Esc', 'Spatie', 'Tab', 'Q', '↑', 'F8'): its glyph, or null (a word like 'Muis' keeps its text).
+const LABEL_KEYS = { enter: 'enter', esc: 'escape', spatie: ' ', tab: 'tab', shift: 'shift', ctrl: 'control', alt: 'alt', backspace: 'backspace', del: 'delete', delete: 'delete', '↑': 'arrowup', '↓': 'arrowdown', '←': 'arrowleft', '→': 'arrowright' };
 export function keyLabelGlyph(label) {
   const l = String(label).trim();
-  const k = LABEL_KEYS[l.toLowerCase()] || (/^[A-Za-z0-9]$/.test(l) ? l.toLowerCase() : null);
+  const k = LABEL_KEYS[l.toLowerCase()] || (/^[A-Za-z0-9]$/.test(l) || /^F([1-9]|1[0-2])$/i.test(l) ? l.toLowerCase() : null);
   return k ? keyGlyphInner(k) : null;
+}
+// Labels of a hint row that name a token (a mouse button, the wheel, the arrow cluster): shown as that icon, never as a word.
+const LABEL_TOKENS = { klik: 'LMB', linkermuisknop: 'LMB', rechtsklik: 'RMB', rechtermuisknop: 'RMB', scroll: 'WHEEL', scrollwiel: 'WHEEL', muiswiel: 'WHEEL', muis: 'MOUSE', pijltjes: 'ARROWS', pijltoetsen: 'ARROWS', wasd: 'WASD' };
+// One hint-row key label as markup, one path for every footer, table and card: a glyph or mouse icon, or a neat text keycap
+// (`.hud-key` + data-gk) for a key without a glyph ('[', ']'). The glyph carries its own aria-label.
+export const labelToken = (label) => LABEL_TOKENS[String(label).trim().toLowerCase()] || null;
+// Icon markup for one hint-row key label, or null when there is no icon (a word, a symbol like '[').
+export function keyLabelIcon(label) {
+  const l = String(label).trim();
+  const t = labelToken(l);
+  return t ? glyphHtml(t) : keyLabelGlyph(l);
+}
+export function keyLabelHtml(label) {
+  const l = String(label).trim();
+  const g = keyLabelIcon(l);
+  if (g) return labelToken(l) ? g : `<span class="hud-key is-kbg" data-gk="${esc(l.toUpperCase())}">${g}</span>`;
+  return `<span class="hud-key" data-gk="${esc(l.toUpperCase())}">${esc(l)}</span>`;
 }
 const keyInner = (phys) => keyGlyphInner(phys) || esc(keyName(phys));
 
@@ -69,7 +86,7 @@ const keyInner = (phys) => keyGlyphInner(phys) || esc(keyName(phys));
 // spoken forms "druk (op) E", "houd E". New texts use {TOKEN}: it follows rebinding and the pad.
 const WORD_KEYS = 'Spatie|Enter|Tab|Shift|Ctrl|Backspace|Esc';
 const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|I|' + WORD_KEYS;
-export const TEXT_KEY_RE = new RegExp(String.raw`\{([A-Z0-9]+)\}|\[(${KEYS}|[1-4])\]|\((${KEYS})\)|(\b(?:[Dd]ruk|[Hh]oud) (?:op )?)(${KEYS})\b`, 'g');
+export const TEXT_KEY_RE = new RegExp(String.raw`\{([A-Z0-9]+)\}|\[(${KEYS}|[1-4])\]|\((${KEYS})\)|(\b(?:[Dd]ruk|[Hh]oud|[Dd]an) (?:op )?)(${KEYS})\b(?!-)`, 'g');
 export function keyTextHtml(html) {
   return String(html).replace(TEXT_KEY_RE, (m, tok, a, b, pre, c) => {
     const k = tok || a || b || c;
@@ -79,10 +96,10 @@ export function keyTextHtml(html) {
 export const hasKeyText = (text) => { TEXT_KEY_RE.lastIndex = 0; return TEXT_KEY_RE.test(String(text)); };
 
 // Brace tokens of known keys only ({E}, {SPACE}, {ESC}, {WASD}, ...): a placeholder like {NAME} is never a key.
-export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|TAB|BACKSPACE|DELETE|WASD|ARROWS|LMB|RMB|MOUSE|WHEEL|[A-Z0-9])\}/g;
+export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|ALT|TAB|BACKSPACE|DELETE|WASD|ARROWS|ARROWUP|ARROWDOWN|ARROWLEFT|ARROWRIGHT|LMB|RMB|MOUSE|WHEEL|F(?:[1-9]|1[0-2])|[A-Z0-9])\}/g;
 
 // The same text for a place that cannot show a glyph (aria-label, title, document.title, a canvas, a log): the key name, never braces.
-const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };
+const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', ARROWUP: 'pijl omhoog', ARROWDOWN: 'pijl omlaag', ARROWLEFT: 'pijl links', ARROWRIGHT: 'pijl rechts', ALT: 'Alt', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };
 export function plainKeyText(text) {
   return String(text).replace(BRACE_KEY_RE, (m, k) => PLAIN_NAMES[k] || keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 }

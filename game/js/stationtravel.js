@@ -815,7 +815,7 @@ function rideShot(w, tt) {
   }
   const next = stops[Math.max(0, Math.min(stops.length - 1, atStop ? t.target + r.dir : t.target))];
   const left = Math.max(1, Math.round(r.minutes - (w.time - r.start) / 60));
-  rideBoard(`Volgende halte: ${shortName(next.name)}  ·  ${r.dest.short} over ${left} min  ·  Spatie ingedrukt houden: uitstappen bij ${r.dest.short}`);
+  rideBoard(`Volgende halte: ${shortName(next.name)}  ·  ${r.dest.short} over ${left} min  ·  {SPACE} ingedrukt houden: uitstappen bij ${r.dest.short}`);
   // the camera: a car in the middle of the train, cycling three views
   const car = t.cars[Math.floor(t.cars.length / 2)] || t.cars[0];
   const fx = Math.cos(car.angle) * t.dir, fy = Math.sin(car.angle) * t.dir;

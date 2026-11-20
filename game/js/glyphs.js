@@ -12,9 +12,9 @@ import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
 import { padSlotGlyph } from './inputglyphs.js';
-import { glyphHtml, BRACE_KEY_RE, plainKeyText } from './keycap.js';
+import { glyphHtml, BRACE_KEY_RE, plainKeyText, keyLabelIcon, labelToken } from './keycap.js';
 
-const SEL = '[data-gk], kbd, .hud-key';
+const SEL = '[data-gk], kbd, .hud-key, .m-kc';
 const orig = new WeakMap();
 let started = false;
 
@@ -97,11 +97,12 @@ function render(el) {
   if (el.__gHtml !== undefined && el.innerHTML !== el.__gHtml) orig.delete(el); // someone rewrote it
   if (!orig.has(el)) orig.set(el, el.innerHTML);
   const base = orig.get(el);
-  const token = el.dataset.gk || stripTags(base).trim();
+  const token = el.dataset.gk || labelToken(stripTags(base)) || stripTags(base).trim();
   const pad = padState();
   let html = base;
   let hide = false;
   let slot = '';
+  let glyphed = false;
   if (token && document.documentElement.classList.contains('touch-play') && !pad.active && getDevice() !== 'kb') {
     // touch: say which on-screen button does it (no label: no button, hide)
     const label = touchLabelForToken(token, document.documentElement.dataset.touchCtx || 'foot');
@@ -115,13 +116,23 @@ function render(el) {
     else hide = true;
     // driving: WASD is the triggers plus the stick
     if (token === 'WASD' && PAD_MAPS[ctx] && PAD_MAPS[ctx].stick === 'steer') html = ['rt', 'lt', 'lstick'].map((s) => padGlyphInner(physicalButton(getSettings().padBinds, s), pad.family)).join('');
-  } else if (token && !el.dataset.gk) {
-    const canon = tokenKey(token);
-    const phys = physicalKey(getSettings().keyBinds, canon);
-    if (phys !== canon) html = keyName(phys);
+  } else if (token) {
+    // keyboard: a rebound key shows the key it is on now; a plain text label ('Esc', 'Klik', '←') becomes its icon
+    let label = null;
+    if (!el.dataset.gk) {
+      const canon = tokenKey(token);
+      const phys = physicalKey(getSettings().keyBinds, canon);
+      if (phys !== canon) { label = keyName(phys); html = label; }
+    }
+    if (!/</.test(base)) {
+      const g = keyLabelIcon(label !== null ? label : stripTags(base));
+      if (g) { html = g; glyphed = true; }
+    }
   }
   if (el.innerHTML !== html) el.innerHTML = html;
   el.__gHtml = el.innerHTML;
+  if (glyphed) el.classList.add('is-kbg'); else if (el.__kbg) el.classList.remove('is-kbg');
+  el.__kbg = glyphed;
   el.classList.toggle('is-pad', !!slot);
   el.classList.toggle('pad-none', hide);
   el.dataset.gslot = slot;

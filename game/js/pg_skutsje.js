@@ -374,7 +374,7 @@ export const SKUTSJE = {
     run.ui.setRows([['Jelle', d.jfin != null ? 'is al binnen' : `${Math.round(Math.abs(gap))} m ${gap > 0 ? 'voor' : 'achter'}`], ['Zeil', trimTxt], ['Vaart', `${Math.round(d.eff * 100)}%`]]);
     const idealPct = (ideal / (85 * DEG)) * 100, curPct = (d.trim / (85 * DEG)) * 100;
     run.ui.setSlot(`<div class="pg-bar"><i style="left:${Math.max(0, idealPct - 9).toFixed(1)}%;width:18%"></i><i class="gold" style="left:${Math.max(0, idealPct - 3).toFixed(1)}%;width:6%"></i><u style="left:${curPct.toFixed(1)}%"></u></div>` +
-      `<div class="pg-help"><kbd>Q</kbd> zeil aanhalen · <kbd>Z</kbd> zeil vieren${d.strike ? ' · mast gestreken voor de brug' : ''}${theta < 35 * DEG ? ' · je vaart pal tegen de wind in' : ''}</div>`);
+      `<div class="pg-help">{Q} zeil aanhalen · {Z} zeil vieren${d.strike ? ' · mast gestreken voor de brug' : ''}${theta < 35 * DEG ? ' · je vaart pal tegen de wind in' : ''}</div>`);
     if (d.elapsed > LIMIT) finish(run, { success: false, medal: 0, reason: 'Windstil? Te laat aan de Hoge der A.', stats: [] });
   },
   hud(run) {

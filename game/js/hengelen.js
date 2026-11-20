@@ -210,7 +210,7 @@ function updateGame(w, dt) {
   for (const e of evs) {
     if (e.type === 'cast') { zetUitlegGezien(UITLEG_ID); if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'fx', name: 'hengel_uitwerp', x: at.x, y: at.y }); }
     else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y, gain: 0.6 }); }
-    else if (e.type === 'bite') { hapticEvent('bite'); g.beetTotaal = Math.max(0.2, g.s.bite || 0); g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
+    else if (e.type === 'bite') { hapticEvent('bite'); g.beetTotaal = Math.max(0.2, g.s.bite || 0); g.flash = { text: 'BEET! Nu {SPACE}!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
     else if (e.type === 'catch') {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
@@ -227,9 +227,9 @@ function updateGame(w, dt) {
   if (g.haalT > 0) g.haalT = Math.max(0, g.haalT - dt);
   const pose = g.haalT > 0 ? 'hengel-haal' : (HENGEL_POSE[g.s.phase] || 'hengel');
   if (p.inVehicle || gastBoot(w)) stopHouding(); else zetHouding(w, pose);
-  if (g.flash && g.flash.text !== 'BEET! Nu Spatie!' && (g.flash.t += dt) > 1.8) g.flash = null;
+  if (g.flash && g.flash.text !== 'BEET! Nu {SPACE}!' && (g.flash.t += dt) > 1.8) g.flash = null;
   if (g.s.phase === 'done') { einde(w); return; }
-  if (g.s.phase !== 'bite' && g.flash && g.flash.text === 'BEET! Nu Spatie!') g.flash = null;
+  if (g.s.phase !== 'bite' && g.flash && g.flash.text === 'BEET! Nu {SPACE}!') g.flash = null;
 }
 
 

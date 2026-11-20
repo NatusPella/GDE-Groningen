@@ -411,4 +411,54 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
   return [...findings, ...dsFindings];
 }
 
-export default { ALLOWED_COLORS, ALLOWED_FONTS, isUiFile, looksLikeStyleLine, stripComments, designCandidates, checkDesignLine, checkDsLine, checkDsFiles, isDsComponentsFile, isDsTokensFile };
+// ---------------------------------------------------------------------------------------------
+// Toetsen en knoppen in spelertekst (DESIGN_SYSTEM.md "Controls and key hints", ui-taal.md, #1003 en
+// de opdracht van 21-11): elke toets- of knopverwijzing is een {TOKEN} die keycap.js als icoon toont.
+// Een toetsnaam als woord ('Spatie', 'Esc', 'WASD', 'pijltjes', 'LMB' ...) in een spelerstekst is een
+// belangrijke bevinding, net als een hint in HTML met een tekstkeycap (<kbd>Esc</kbd>, class="m-kc"
+// met een toetsnaam) zonder glyph. scripts/key_literals_test.mjs gebruikt dezelfde regex en bestandslijst.
+export const KEY_WORD_RE = /\b(Spatie|Spatiebalk|Esc|Enter|Shift|Tab|Ctrl|WASD|LMB|RMB|F(?:[1-9]|1[0-2])|pijltjes(?! op de green)|pijltoetsen|muiswiel|scrollwiel|linkermuis|rechtermuis|muisknop|Del|Backspace)\b/g;
+// Bestanden waarvan de tekst nooit door de speler wordt gelezen (dev, tools, protocol) of die de tokens zelf renderen.
+export const KEY_SKIP_FILES = /(^|\/)(devflags|storydev|gdt|botlogic|trailer|input|loadskip|assistlive|controls|inputglyphs|inputglyphs_data|keycap|glyphs|testmenu|storytest)\.js$/;
+// Ingesproken regels en ondertitels: de tekst op het scherm volgt de clip (geen nieuwe TTS, ADR 0041).
+export const KEY_SPOKEN_FILES = /(^|\/)(minigamelines2?3?|subtitles|missions_defs|missions_nieuw|missions_akte3|heistrollen|banterlines\w*)\.js$/;
+const KEY_TOKEN_RE = /\{[A-Z0-9]+\}/g;
+// Een tekstkeycap met een toetsnaam erin: <kbd>Esc</kbd>, class="hud-key">Spatie<, class="m-kc">Klik<
+const KEY_CAP_TEXT_RE = /<(?:kbd|span)\b[^>]*(?:\bkbd\b|class="[^"]*\b(?:m-kc|hud-key)\b[^"]*")[^>]*>\s*(?:Spatie|Esc|Enter|Shift|Tab|Ctrl|Alt|Klik|Backspace|F\d{1,2}|[A-Za-z0-9]|[\u2190-\u2193])\s*</g;
+const KEY_CAP_TEXT_KBD_RE = /<kbd\b[^>]*>\s*(?:Spatie|Esc|Enter|Shift|Tab|Ctrl|Alt|Klik|Backspace|F\d{1,2}|[A-Za-z0-9]|[\u2190-\u2193])\s*<\/kbd>/g;
+
+/**
+ * Keurt één toegevoegde regel in game/js op een toets als woord of een tekstkeycap zonder icoon.
+ * @param {{file: string, line: number, text: string}} regel
+ * @returns {object[]} bevindingen (belangrijk), bron 'design'
+ */
+export function checkKeyLine({ file, line, text } = {}) {
+  const filePath = String(file ?? '').replaceAll('\\', '/');
+  const raw = String(text ?? '');
+  if (!/^game\/js\/[\w-]+\.js$/.test(filePath) || KEY_SKIP_FILES.test(filePath) || KEY_SPOKEN_FILES.test(filePath)) return [];
+  if (!raw.trim() || FULL_LINE_COMMENT.test(raw)) return [];
+  if (raw.includes('keywords-ok')) return []; // zoekwoorden voor het pauzemenu-zoekveld
+  // alleen de tekst tussen aanhalingstekens telt; commentaar achter de code niet
+  const code = raw.replace(/\s\/\/ .*$/, '');
+  const out = [];
+  const add = (titel, beschrijving) => out.push(finding({
+    file: filePath, line, text: raw, ernst: 'belangrijk', categorie: 'design-system', titel, beschrijving,
+    fix: 'Schrijf de toets als {TOKEN} ({SPACE}, {ESC}, {ENTER}, {SHIFT}, {WASD}, {ARROWS}, {LMB}, {WHEEL} of een letter) en laat keycap.js (keyTextHtml, glyphHtml of plainKeyText) het icoon of de naam maken.',
+  }));
+  const strings = [...code.matchAll(/(['"`])((?:\\.|(?!\1)[^\\])*)\1/g)].map((m) => m[2]);
+  for (const s of strings) {
+    if (/^[\w./-]+$/.test(s) && !/\s/.test(s)) continue; // een id, pad of sleutel, geen zin
+    const rest = s.replace(KEY_TOKEN_RE, ' ');
+    const m = rest.match(KEY_WORD_RE);
+    if (!m) continue;
+    // een los woord is een token voor key()/glyphHtml, geen zin
+    if (new RegExp('^(?:' + KEY_WORD_RE.source + ')$').test(s.trim())) continue;
+    add('Toetsnaam als woord in spelertekst', `De spelertekst noemt een toets als woord (${[...new Set(m)].join(', ')}). Een toets is een {TOKEN}, nooit een woord of pijltje; zie DESIGN_SYSTEM.md "Controls and key hints".`);
+    break;
+  }
+  if (!out.length && (KEY_CAP_TEXT_RE.test(code) || KEY_CAP_TEXT_KBD_RE.test(code))) add('Toetshint zonder icoon', 'Een hint in HTML toont een toets als tekst in een keycap (<kbd>Esc</kbd>, m-kc, hud-key met een toetsnaam). Gebruik glyphHtml(token), keyLabelHtml(label) of een {TOKEN} in de tekst.');
+  KEY_CAP_TEXT_RE.lastIndex = 0; KEY_CAP_TEXT_KBD_RE.lastIndex = 0;
+  return out;
+}
+
+export default { checkKeyLine, KEY_WORD_RE, KEY_SKIP_FILES, KEY_SPOKEN_FILES, ALLOWED_COLORS, ALLOWED_FONTS, isUiFile, looksLikeStyleLine, stripComments, designCandidates, checkDesignLine, checkDsLine, checkDsFiles, isDsComponentsFile, isDsTokensFile };

@@ -56,11 +56,11 @@ export function instrumentData(v, wind = null) {
 // De toetsen en knoppen, voor de balk onderin en voor de uitleg bij het instappen. Shift remt
 // alleen op de baan (arcadeplane.js telt de rem daar op); in de lucht belooft de balk dat ook,
 // anders zoek je een luchtrem die er niet is.
-export const BEDIENING = 'W en S gas · A en D rollen · ↑/Spatie neus omhoog · ↓/Ctrl neus omlaag · Q en E roer · Shift remmen op de baan · K kleppen · G landingsgestel';
+export const BEDIENING = '{W} en {S} gas · {A} en {D} rollen · {ARROWUP}/{SPACE} neus omhoog · {ARROWDOWN}/{CTRL} neus omlaag · {Q} en {E} roer · {SHIFT} remmen op de baan · {K} kleppen · {G} landingsgestel';
 export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B of LT omlaag · LB kleppen · X landingsgestel';
 // #632: het instaptip blijft binnen het kaartbudget; de lange uitleg staat in Besturing > Hulp.
-export const UITLEG_INSTAPPEN = 'Gas: W. Stijgen: Spatie. Rollen: A/D. Kleppen: K. Gestel: G. Landen: zacht.';
-export const BEDIENING_KORT = 'W/S gas · A/D rollen · Q/E roer · K kleppen · G landingsgestel';
+export const UITLEG_INSTAPPEN = 'Gas: {W}. Stijgen: {SPACE}. Rollen: {A}/{D}. Kleppen: {K}. Gestel: {G}. Landen: zacht.';
+export const BEDIENING_KORT = '{W}/{S} gas · {A}/{D} rollen · {Q}/{E} roer · {K} kleppen · {G} landingsgestel';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
 const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid var(--mk-ok, #3fc97a)}
