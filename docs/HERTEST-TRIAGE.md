@@ -760,3 +760,22 @@ Geen enkel issue is gesloten: voor niets daarvan weerlegt een beeld de klacht du
 | #951 | deels | `955-m19-locomotief-bij-perron`: de trein staat zichtbaar bij het perron, dus "geen trein te zien" klopt niet meer. Het tweede deel (stilstaan telt als geslaagd) niet bekeken: de rit-stap vraagt 2300 m en het harnas rijdt niet. Open. |
 | #850 | niet gezien | Aanraakbediening met vliegtuigpaneel op 800x360: het harnas heeft een vast venster van 1280x720. |
 | #533 | niet gezien | De plekken (loket Middenstad-Oost, sluis) niet opgezocht. |
+
+## Derde ronde: Garage met de D-pad, M05, M06, M15 en de overige niet-bekeken issues (20-11)
+
+Tooling: `scripts/qa/hertest_beeld.mjs` (nieuw: `--only=kerk,politie2,touchvlieg`, `--formaat=800x360 --touch=1`), `scripts/qa/garage_pad_probe.mjs`, `scripts/bot_landing_mens_test.mjs`. Electron via het gedeelde slot, werkboom-stage met de wereld van 19-11. Beelden onder `docs/img/qa/`. Wat een beeld niet toont, staat als "niet gezien".
+
+| Punt | Stand | Opmerking |
+|---|---|---|
+| Garage, tab Alles, D-pad (#985) | **meetartefact, geen spelbug** | De graaf van wat de D-pad doet (`garage_pad_probe`, echte D-pad-druk vanaf de startfocus) bereikt alle 56 kaarten en 81 klikdoelen; de linkerkolom onderaan bereik je met links vanuit de rechterkolom. De sweep miste 8 kaarten door een te klein probeerbudget (14 doelen per ronde, de tabknoppen gebruikten het op); met budget 70 en de tab Alles geselecteerd: 81 van 81. Niet in beeld bekeken. |
+| M05 fietsrace | te halen, hint toegevoegd | Zie `PROEFSPELER-DOORLOOP-20-11.md` punt 6: rivalen 203 tot 217 s, fiets 7 m/s (7,8 met sprint); zonder sprint nauwelijks podium. De regelkaart noemt de sprint nu. Niet door een mens gespeeld. |
+| M06 sluipstap | te halen, niet door een mens gespeeld | Terugsturen, na drie keer kijken alle bewakers weg, O houden om over te slaan. De bot haalde hem niet omdat hij de kegels niet leest. |
+| M15 landing | te halen, hint gefixt | `bot_landing_mens_test`: geoefend 295/300, rommelig 147/300, geen tijdslimiet; "Gas eraf" liet de kist voor de strook vallen, nu "Gas terug, niet eraf". |
+| #850 | **bug gefixt**, deels gezien | `850-hertest-vliegtuigpaneel-touch` (800x360, aanraak): paneel ligt niet over de knoppen (0 px overlap met negen knoppen), labels 12 px of groter. Wel: Roer links stond rechts van Roer rechts (SLOT_ORDER); gefixt met test. Staand 360x800 niet gemeten. Issue blijft open. |
+| #930 | deels | Route te voet van 160 m naar de Petrus en Pauluskerk (Usquert): 19 punten, 0 segmenten over het kerkhof, einde 10 m van de kerk, 1 segment door een gebouw (de laatste meters naar de kerk). `930-hertest-kerk-lucht`: de kerk staat op een ronde wierde met kerkhof; de routelijn zelf is in het luchtbeeld niet te zien. |
+| #933 | gemeten | 0 sterren: Grote Markt 1 tot 2 politieauto's binnen 500 m, platteland (Usquert) 0 in 90 s (eerdere meting); 2 sterren op het platteland 3 tot 4. Dat past bij "gekoppeld aan gezocht". Geen beeld bekeken. |
+| #969 | open | `969-hertest-erf-prompt`: bij het erf staat "De Koe van Ome Jan" met E; de schuur is een molen met rode voet (`969-hertest-schuur-22m`), op 22 m herkenbaar. De start met E lukte in het harnas niet (twee pogingen), dus de markering op de kaart is niet gezien. |
+| #947, #945, #934, #932, #914, #533 | niet gezien | Alleen code en tests: `storytravel_test` 30/30, `impactbalance_test` 25/25, `vehicledamage_test`, `taxi_en_waypoint_test`, `reiskeuze_test`, `reklametaxi_test`. #914: `stuntavond.js` heeft een schadevloer en een doel van hooguit 55% van wat het plein biedt; de stunt startte niet in het harnas. #945: "Wonschoten" staat niet in de data. Geen beeld. |
+| #948, #937, #921 | niet gezien | Geen Electron-run meer gedaan (slot werd vrijgegeven voor de UI-sessie). |
+
+Geen enkel issue is gesloten: geen beeld weerlegt een klacht duidelijk.

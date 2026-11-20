@@ -159,6 +159,9 @@ ok(btn('plane', 'left').side === 'right' && btn('plane', 'right').side === 'righ
 {
   const roer = touchPlacement('plane').filter((p) => p.b.action === 'q' || p.b.action === 'e');
   ok(roer.length === 2 && roer[0].spot.join() !== roer[1].spot.join(), 'vliegtuig: roer links en rechts op een eigen plek', roer.map((p) => [p.b.label, p.spot]));
+  // #850: spot[0] is de afstand tot de rechterrand; Roer links hoort verder van die rand (dus links) te staan dan Roer rechts
+  const links = roer.find((p) => p.b.action === 'q'), rechts = roer.find((p) => p.b.action === 'e');
+  ok(links && rechts && links.spot[0] > rechts.spot[0], 'vliegtuig: Roer links staat links van Roer rechts (niet gespiegeld)', roer.map((p) => [p.b.label, p.spot]));
 }
 ok(!touchMore('plane').some((m) => m.action === 'q' || m.action === 'e'), 'vliegtuig: het roer zit niet ook nog eens achter Meer', touchMore('plane'));
 // Wat de D-pad eerst droeg, blijft bereikbaar: Overslaan en Stop staan nu op de rechtopstaande D-pad en dus achter
