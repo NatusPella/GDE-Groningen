@@ -4,7 +4,7 @@
 //   node scripts/controlhint_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { controlHint, hintActive, hintContext, hintText, HINT_MAX_GROUPS, HINT_TOKENS } from '../game/js/controlhint.js';
+import { controlHint, eersteDoelActief, hintActive, hintContext, hintText, HINT_MAX_GROUPS, HINT_TOKENS } from '../game/js/controlhint.js';
 
 const ROOT = new URL('../', import.meta.url);
 const lees = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
@@ -83,6 +83,21 @@ t('de HUD zet de regel in de bestaande doellijn, zonder eigen vak of absolute po
   assert.match(css, /#hud \.hud-obj-key \.hud-key \{/, 'de toetskappen zijn compacter binnen de regel');
   // "Toetshints uit" hoort deze regel net zo goed te verbergen als .hud-prompts
   assert.match(css, /body\.hide-hints #hud \.hud-obj-keys/, 'de instelling Toetshints verbergt de regel');
+});
+
+t('de eerste wandeling van een nieuw spel krijgt de lopen-regel (#986 #987), alleen als de HUD erom vraagt', () => {
+  const eerste = { storyGuide: { name: 'Naar Berend' }, stats: { missionsDone: 0 } };
+  assert.equal(eersteDoelActief(eerste), true);
+  assert.equal(controlHint(eerste, voetganger), null, 'zonder vlag blijft het gedrag van #824');
+  const h = controlHint(eerste, voetganger, { eerstedoel: true });
+  assert.ok(h && h.context === 'foot');
+  assert.match(hintText(h), /lopen/);
+  assert.equal(eersteDoelActief({ ...eerste, stats: { missionsDone: 1 } }), false, 'na de eerste missie niet meer');
+  assert.equal(eersteDoelActief({ ...eerste, storyFreePlay: true }), false);
+  assert.equal(eersteDoelActief({ ...eerste, mission: { phase: 'active' } }), false, 'tijdens een missie geldt de gewone regel');
+  assert.equal(eersteDoelActief({ stats: { missionsDone: 0 } }), false, 'zonder verhaaldoel niets');
+  assert.equal(eersteDoelActief(null), false);
+  assert.match(lees('game/js/hud_panel.js'), /kind === 'story' ? { eerstedoel: true|eerstedoel: kind === 'story'/, 'de HUD geeft de vlag mee voor het verhaaldoel');
 });
 
 console.log(bad ? `controlhint_test: ${n - bad}/${n} ok` : `controlhint_test: ${n}/${n} ok`);
