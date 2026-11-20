@@ -21,6 +21,7 @@ export function cloudState(weather, daylight = 1, night = 0) {
   const tint = base.map((c, i) => clamp01(c * dark + night * [0.02, 0.03, 0.06][i]));
   return {
     count,
+    fill: 4 + over * (CLOUD_COUNT - 4), // hetzelfde als count, zonder afronden (cloud3d.js laat het zacht groeien)
     spread: 0.6 + over * 0.4, // 1 = ook laag bij de horizon, tot boven je hoofd
     opacity: clamp01(0.55 + over * 0.4 - mist * 0.2) * (0.35 + 0.65 * day + night * 0.2),
     tint,
