@@ -73,7 +73,8 @@ import { stingen } from './sfx/stingen.js';
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
-import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } from './missiedecor.js';
+import { buildMissionDressing, updateMissionDressing, disposeMissionDressing, spoorHoek } from './missiedecor.js';
+import { getRoutes } from './railway.js';
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
@@ -2599,7 +2600,9 @@ function enterStage(world, def, k) {
     // AAA akte 3: `dressingAt` zet de aankleding op een eigen plek (naast een landingsstrook), niet om het doel van de stap
     const eigen = st.dressingAt && Number.isFinite(st.dressingAt.x) && Number.isFinite(st.dressingAt.y) ? st.dressingAt : null;
     const at = eigen || S.target || S.here || from;
-    S.dressing = buildMissionDressing(world, st.dressing, { x: at.x, y: at.y, a: p.angle });
+    // #955 (M19): `dressingAlongRail` zet het perron langs het spoor bij het doel, niet met de kijkrichting van de speler mee
+    const spoor = st.dressingAlongRail ? spoorHoek(getRoutes(), at.x, at.y) : null;
+    S.dressing = buildMissionDressing(world, st.dressing, { x: at.x, y: at.y, a: spoor !== null ? spoor : p.angle });
   }
   // #963: een wachtstap krijgt een echte kring met passende spullen; de ring
   // licht op terwijl de klok loopt, zodat het wachten iets te zien geeft.

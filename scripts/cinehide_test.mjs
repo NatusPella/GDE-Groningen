@@ -56,5 +56,8 @@ ok(/markVehiclesInShot\(w\.vehicles/.test(cine), 'cinematics.js verbergt het ver
 ok(/clearVehicleHiding\(shotVehicles\)/.test(cine), 'en zet het aan het einde van de scène terug');
 ok(/mesh\.visible = !v\.hideInScene/.test(scene), 'scene3d.js laat het verborgen voertuig ook echt weg');
 
+const host = fs.readFileSync(new URL('../game/js/cutscenehost.js', import.meta.url), 'utf8');
+ok(/duplicateOfProps\(w\.vehicles/.test(host) && /v\.hideInScene = false/.test(host), 'cutscenehost.js verbergt het dubbele missievoertuig en zet het terug');
+
 console.log(`${n - fails}/${n} cinehide`);
 process.exit(fails ? 1 : 0);

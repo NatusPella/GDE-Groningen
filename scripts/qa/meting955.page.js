@@ -227,8 +227,8 @@ await sectie('m19perron', async () => {
   const m = { speler: [r1(p.x), r1(p.y)], hoekSpeler: r1(p.angle), mensen: [], kinderen: [] };
   out.stand.m19perron = m;
   let groep = null;
-  getScene().traverse((o) => { if (o.name === 'mission-dressing-perron') groep = o; });
-  if (!groep) throw new Error('geen perron-aankleding in de scene');
+  for (let i = 0; i < 20 && !groep; i++) { getScene().traverse((o) => { if (o.name === 'mission-dressing-perron') groep = o; }); if (!groep) { if (cine.isCinematicActive()) cine.skipCinematic(); await sleep(1000); } }
+  if (!groep) { const st = M.activeStage(); throw new Error('geen perron-aankleding in de scene; stand ' + JSON.stringify(M.missionDebug.state()) + ' stap ' + (st && (st.kind + ' ' + st.label + ' ' + st.dressing))); }
   groep.updateMatrixWorld(true);
   const wp = new (groep.position.constructor)();
   for (const c of groep.children) { c.getWorldPosition(wp); const sp = afstandTotSpoor(wp.x, wp.z); m.kinderen.push({ n: c.name || c.type, k: c.children.length, x: r1(wp.x), y: r1(wp.z), spoor: r1(sp.d) }); }
@@ -238,9 +238,70 @@ await sectie('m19perron', async () => {
   m.spelerSpoor = { d: r1(sp0.d), naam: sp0.naam, hoek: r1(sp0.hoek) };
   // de trein: waar staat hij
   m.treinen = RW.getTrains().filter((t) => t.state === 'mission' || (t.c !== undefined && Math.hypot((t.x || 0) - p.x, (t.y || 0) - p.y) < 200)).slice(0, 4).map((t) => ({ state: t.state, route: t.route && t.route.name, c: r1(t.c || 0) }));
-  await grab('m19perron-a');
-  p.angle = sp0.hoek; await sleep(900); await grab('m19perron-langs');
-  p.angle = sp0.hoek + Math.PI / 2; await sleep(900); await grab('m19perron-dwars');
+  // de speler staat 15 m van het midden, kijkend naar het perron, op vrije grond (geen gebouw, niet op het spoor)
+  const mid = m.kinderen.filter((q) => q.k > 0 && q.spoor < 900).reduce((t, q, i, l) => ({ x: t.x + q.x / l.length, y: t.y + q.y / l.length }), { x: 0, y: 0 });
+  m.midden = { x: r1(mid.x), y: r1(mid.y) };
+  const PG = await imp('pedgeom');
+  const kijk = async (naam, hoeken, afstand) => {
+    for (const h of hoeken) {
+      const x = mid.x + Math.cos(h) * afstand, y = mid.y + Math.sin(h) * afstand;
+      if (PG.isInsideBuilding(map, x, y) || afstandTotSpoor(x, y).d < 3) continue;
+      await zet(x, y, Math.atan2(mid.y - y, mid.x - x), 2500);
+      await grab(naam + '-' + Math.round(h * 100));
+      return h;
+    }
+    return null;
+  };
+  const hs = [sp0.hoek + Math.PI / 2, sp0.hoek - Math.PI / 2, sp0.hoek + Math.PI, sp0.hoek];
+  m.kijk = [await kijk('m19perron', hs, 15), await kijk('m19perron-ver', hs, 26)];
+  skipAan = true;
+});
+
+// ---- M26 plein: staan de jurytafel, kramen en het publiek op het plein, of in een gebouw? ----------------------------
+await sectie('m26plein', async () => {
+  const idx = idxVan('Ontzet, net als in 1672');
+  const def = M.getMissionDefs()[idx];
+  const PG = await imp('pedgeom');
+  await zet(def.start.x, def.start.y, 0, SETTLE + 8000);
+  skipAan = false;
+  if (!window.__story.jump('M26')) throw new Error('M26-sprong mislukt');
+  await sleep(1500);
+  if (!M.isMissionActive() && !M.missionDebug.start(w, idx)) throw new Error('M26 startte niet');
+  const m = { staptijd: [] };
+  out.stand.m26plein = m;
+  let groep = null;
+  const vind = () => { groep = null; getScene().traverse((o) => { if (o.name === 'mission-dressing-plein') groep = o; }); return groep; };
+  for (let i = 0; i < 14 && !vind(); i++) {
+    for (let j = 0; j < 30 && cine.isCinematicActive(); j++) { cine.skipCinematic(); await sleep(400); }
+    const st = M.activeStage();
+    m.staptijd.push({ i, kind: st && st.kind, label: st && st.label, dressing: st && st.dressing });
+    if (st && st.dressing === 'plein') { await sleep(1500); if (vind()) break; }
+    M.missionDebug.complete(w); await sleep(1800);
+  }
+  for (let j = 0; j < 30 && cine.isCinematicActive(); j++) { cine.skipCinematic(); await sleep(400); }
+  await sleep(2500);
+  if (!vind()) throw new Error('geen plein-aankleding in de scene');
+  groep.updateMatrixWorld(true);
+  const wp = new (groep.position.constructor)();
+  m.speler = [r1(p.x), r1(p.y)];
+  m.kinderen = [];
+  for (const c of groep.children) { c.getWorldPosition(wp); m.kinderen.push({ n: c.name || c.type, k: c.children.length, x: r1(wp.x), y: r1(wp.z), inGebouw: PG.isInsideBuilding(map, wp.x, wp.z) }); }
+  const vast = m.kinderen.filter((q) => q.k > 0 || q.n);
+  m.inGebouw = m.kinderen.filter((q) => q.inGebouw).length;
+  const mid = m.kinderen.filter((q) => q.k > 0 && Math.abs(q.x) > 1).reduce((t, q, i, l) => ({ x: t.x + q.x / l.length, y: t.y + q.y / l.length }), { x: 0, y: 0 });
+  m.midden = { x: r1(mid.x), y: r1(mid.y) };
+  const kijk = async (naam, afstand) => {
+    for (let k = 0; k < 8; k++) {
+      const h = k * Math.PI / 4;
+      const x = mid.x + Math.cos(h) * afstand, y = mid.y + Math.sin(h) * afstand;
+      if (PG.isInsideBuilding(map, x, y)) continue;
+      await zet(x, y, Math.atan2(mid.y - y, mid.x - x), 2500);
+      await grab(naam + '-' + k);
+      return k;
+    }
+    return null;
+  };
+  m.kijk = [await kijk('m26plein', 16), await kijk('m26plein-ver', 30)];
   skipAan = true;
 });
 

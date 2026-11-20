@@ -152,6 +152,27 @@ export function registreerAankleding(kind, plan) {
   return true;
 }
 
+// #955 (M19): de richting van het dichtstbijzijnde spoor bij (x, y), in radialen (0 tot pi), of null als er binnen maxD geen
+// spoor ligt. Het perron staat zo langs het spoor in plaats van dwars erop (de aankleding kijkt anders met de speler mee en
+// zette een bank, een bord en een reiziger op de rails). routes: [{ pts: [[x, y], ...] }], zoals railway.getRoutes().
+export function spoorHoek(routes, x, y, maxD = 40) {
+  let beste = null, bestD = maxD;
+  for (const r of routes || []) {
+    const pts = r && r.pts;
+    if (!pts) continue;
+    for (let i = 1; i < pts.length; i++) {
+      const ax = pts[i - 1][0], ay = pts[i - 1][1], dx = pts[i][0] - ax, dy = pts[i][1] - ay;
+      const L2 = dx * dx + dy * dy;
+      if (!L2) continue;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+      const d = Math.hypot(ax + dx * t - x, ay + dy * t - y);
+      if (d < bestD) { bestD = d; beste = Math.atan2(dy, dx); }
+    }
+  }
+  if (beste === null) return null;
+  return ((beste % Math.PI) + Math.PI) % Math.PI;
+}
+
 // The props and people of a kind, relative to the anchor. Pure; a copy, so a
 // caller cannot change the shared plan.
 export function dressingPlan(kind) {
@@ -336,7 +357,7 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
   for (const p of plan.props) {
     if (p.kind === 'banner') {
       const tex = bannerTex(p.title, p.sub);
-      const b = signBothSides(4.2, 1.55, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+      const b = signBothSides(4.2, 1.55, new THREE.MeshBasicMaterial({ map: tex }));
       const x = at.x + ux * p.along + nx * p.side, y = at.y + uy * p.along + ny * p.side;
       b.position.set(x, ground(x, y) + 2.9, y);
       b.rotation.y = -a + Math.PI / 2;

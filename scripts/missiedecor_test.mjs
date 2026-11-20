@@ -6,10 +6,30 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 const THREE = await import('three');
-const { dressingPlan, buildMissionDressing, updateMissionDressing, disposeMissionDressing, DRESSING_KINDS } = await import('../game/js/missiedecor.js');
+const { dressingPlan, buildMissionDressing, updateMissionDressing, disposeMissionDressing, DRESSING_KINDS, spoorHoek } = await import('../game/js/missiedecor.js');
 
 let n = 0, fails = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
+
+// --- #955 (M19): het perron staat langs het spoor, niet erop ----------------------------------
+const rails = [{ pts: [[0, 0], [100, 0]] }, { pts: [[0, 40], [60, 100]] }];
+ok(spoorHoek(rails, 30, 3) === 0, 'het spoor langs de x-as geeft hoek 0', String(spoorHoek(rails, 30, 3)));
+ok(Math.abs(spoorHoek([{ pts: [[0, 0], [0, 100]] }], 2, 50) - Math.PI / 2) < 1e-9, 'een spoor langs de y-as geeft een kwartslag');
+ok(Math.abs(spoorHoek([{ pts: [[50, 0], [0, 0]] }], 25, 1)) < 1e-9, 'de rijrichting maakt niet uit (hoek mod pi)');
+ok(spoorHoek(rails, 30, 200) === null && spoorHoek([], 0, 0) === null && spoorHoek(null, 0, 0) === null, 'geen spoor in de buurt: null');
+ok(Math.abs(spoorHoek(rails, 40, 80) - Math.atan2(60, 60)) < 1e-9, 'het dichtstbijzijnde van twee sporen wint');
+{
+  // het perron met de hoek van het spoor: geen prop of persoon binnen 2,2 m van de rails (met de kijkrichting van de speler wel)
+  const a = spoorHoek([{ pts: [[0, 0], [100, 0]] }], 30, 0);
+  const plan = dressingPlan('perron');
+  const afstand = (q, hoek) => Math.abs(-Math.sin(hoek) * q.along + Math.cos(hoek) * q.side);
+  const items = [...plan.props, ...plan.people];
+  ok(items.every((q) => afstand(q, a) > 2.2), 'langs het spoor staat niets op de rails', items.map((q) => afstand(q, a).toFixed(1)).join(' '));
+}
+ok(fs.readFileSync(new URL('../game/js/missions_akte45.js', import.meta.url), 'utf8').includes('dressingAlongRail: true'), 'M19 zet het perron langs het spoor');
+
+// #503/#955: het spandoek (signBothSides) heeft geen dubbelzijdig materiaal: dat liet de tekst van achteren gespiegeld zien
+ok(!/signBothSides\([^;]*DoubleSide/.test(fs.readFileSync(new URL('../game/js/missiedecor.js', import.meta.url), 'utf8')), 'het spandoek van het plein staat niet gespiegeld');
 
 // --- de plannen --------------------------------------------------------------
 ok(DRESSING_KINDS.includes('naspeling') && DRESSING_KINDS.includes('schuur'), 'twee soorten aankleding');

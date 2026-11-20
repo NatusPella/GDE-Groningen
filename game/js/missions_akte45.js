@@ -162,7 +162,7 @@ export function applyAkte45(list) {
   const m19 = by('Stoom');
   if (m19 && m19.stages) {
     m19.aaa = true;
-    zet(vind(m19, 'goto', /stilstaande stoomtrein/), { kaart: KAARTEN.M19.perron, dressing: 'perron' });
+    zet(vind(m19, 'goto', /stilstaande stoomtrein/), { kaart: KAARTEN.M19.perron, dressing: 'perron', dressingAlongRail: true });
     zet(m19.stages.find((s) => s.kind === 'rit'), { kaart: KAARTEN.M19.rit });
   }
 
