@@ -25,6 +25,7 @@
 
 import { SPECS_AKTE2 } from './cutscenes_akte2.js';
 import { placeTemplate, expandTemplate } from './cineshots.js';
+import { autoClip } from './cuegestures.js';
 
 const DUO = {
   tammo: { look: 'tammo', at: [0, 0.6], face: 0, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
@@ -640,6 +641,22 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   for (const b of beats) {
     const { on, dt, idx, ...cue } = b;
     cues.push({ t: idx == null ? 'end' : tspec(idx, dt || 0), ...cue });
+  }
+
+  // pose clips (cuegestures.js, #955): the speaker and the listeners get a gesture that fits the line instead of a plain nod; a beat the
+  // author wrote for that actor around that line wins (nothing is added within 2 s of it)
+  if (!spec.noClips) {
+    const authored = {};
+    for (const b of beats) if (b.actor && (b.anim || b.walk || b.sit !== undefined) && b.idx != null && lines[b.idx]) (authored[b.actor] = authored[b.actor] || []).push(lines[b.idx].at + (b.dt || 0));
+    lines.forEach((l, i) => {
+      const me = speakerActor(l.speaker);
+      for (const id of primary) {
+        const role = id === me ? 'speaker' : 'listener';
+        if ((authored[id] || []).some((q) => Math.abs(q - l.at) < 2)) continue;
+        const c = autoClip(l.text, role, id, i, l.dur);
+        if (c) cues.push({ t: tspec(i, c.delay), actor: id, anim: c.anim, dur: c.dur, ...(c.mirror ? { mirror: true } : {}) });
+      }
+    });
   }
 
   // bystanders are never statues: now and then a glance, a shrug, a nod
