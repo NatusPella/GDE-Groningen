@@ -1336,3 +1336,6 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 #pause-menu .pm-spelov .ov-tv, #pause-menu .pm-spelov .ov-tv.long { font-size: 24px; }
 #pause-menu .pm-spelov .ov-tile .m-bar { display: none; }
 #pause-menu .pm-spelov .ov-folds { margin: 4px 0 0 -24px; }
+/* Garage: het previewvak is hoger (260 px); Boerderij: smalle lijst links, de rest voor de informatie rechts (oogtest 20-11) */
+#pause-menu .gar-stage { height: 260px; }
+#pause-menu [data-panel="boerderij"] .m-list.pa-list { width: clamp(180px, 24%, 360px); padding-right: 24px; }
