@@ -14,7 +14,7 @@ const sat = (h) => { const [r, g, b] = rgb(h); const mx = Math.max(r, g, b); ret
 // de inkten zijn de tokens van het designsysteem
 const hexNum = (s) => parseInt(s.slice(1), 16);
 for (const k of ['papier', 'inkt', 'bord', 'geel', 'roze']) ok(WERELD_INKTEN[k] === hexNum(dsKleur('ink-' + k)), 'inkt ' + k + ' gelijk aan het token');
-ok(WERELD_DS_MENG >= 0.25 && WERELD_DS_MENG <= 0.35, 'standaardmenging is subtiel (0,25 tot 0,35)');
+ok(WERELD_DS_MENG >= 0.25 && WERELD_DS_MENG <= 0.5, 'standaardmenging is subtiel (0,25 tot 0,5; besluit 21-11: 0,4)');
 ok(wereldMeng() === WERELD_DS_MENG, 'zonder URL is de menging de constante');
 
 const alle = [];

@@ -17,8 +17,8 @@ export const WERELD_INKTEN = Object.freeze({
   water: 0x1f4654, // inktblauwgroen: tussen bordgroen en een rustig blauw; het designsysteem kent geen blauw, de wereld heeft water nodig
 });
 
-// Standaard subtiel (0,25 tot 0,35 volgens de opdracht van de eigenaar). Vergelijken: ?dswereld=0 (oud) en ?dswereld=1 (volledig).
-export const WERELD_DS_MENG = 0.3;
+// Standaard subtiel (besluit 21-11: 0,4, zie docs/WERELDKLEUREN-21-11.md). Vergelijken: ?dswereld=0 (oud) en ?dswereld=1 (volledig).
+export const WERELD_DS_MENG = 0.4;
 
 // Per rol: het doel, de maximale menging bij meng 1, en of de helderheid behouden blijft.
 export const WERELD_ROLLEN = Object.freeze({

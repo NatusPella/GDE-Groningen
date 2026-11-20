@@ -3,6 +3,8 @@
 // en is gelijk aan de tokens (kaartkleuren_test.mjs vergelijkt ze met ds-tokens.css). Een canvas kan geen var() lezen, dus
 // dsKleur() vraagt de token aan de pagina als die er is en valt anders op de tabel terug.
 //
+import { dsWereldCss } from './worldpalette.js';
+
 // Het land zelf (MAP_PALETTE in mapstyle.js) hoort bij de voorgerenderde provinciepiramide en verandert mee met de wereldbouw.
 export const DS_TERUGVAL = {
   // de vijf inkten van de zeefdruk (ADR 0040)
@@ -73,6 +75,22 @@ export function gebiedKleuren() {
 // bordgroen, de wegen uit crème, het water uit het grachtwater van DESIGN_SYSTEM.md. Geel is alleen voor route en doel, rood
 // voor politie en gevaar. Alles hieronder is gemengd uit tokens (meng), behalve het water: het designsysteem heeft geen
 // blauwe token, dus het water is één benoemde waarde (DESIGN_SYSTEM.md, 'grachtwater groenblauw').
+// De wereldmenging (worldpalette.js WERELD_DS_MENG, ?dswereld=) werkt ook op de kaart (21-11): het land en de gebouwen gaan door dezelfde
+// rollen als in de 3D-wereld (groen naar bordgroen gedempt, steen en bouw naar papier), met behoud van helderheid. Daardoor blijft het
+// contrast met de wegen en het glas zoals de test het meet, en ziet de speler op de kaart dezelfde warme, gedempte toon als in het beeld.
+// Bewust NIET gemengd: het water (de ene benoemde waarde hieronder, vastgelegd in DESIGN_SYSTEM.md), de wegen die op het glas moeten
+// oplichten (major, turbine) en de fietspaden (al een roze menging).
+const LAND_ROL = {
+  meadow: 'groen', park: 'groen', tree: 'groen', forest: 'groen', allot: 'groen', sports: 'groen', village: 'groen',
+  road: 'steen', minor: 'steen', foot: 'steen', rail: 'steen', business: 'steen', building: 'bouw', church: 'bouw',
+};
+function volgWereld(palet) {
+  const uit = { ...palet };
+  for (const [naam, rol] of Object.entries(LAND_ROL)) if (typeof uit[naam] === 'string') uit[naam] = dsWereldCss(uit[naam], rol);
+  if (Array.isArray(uit.buildings)) uit.buildings = uit.buildings.map((h) => dsWereldCss(h, 'bouw'));
+  return uit;
+}
+
 export const WATER_BLAUW = '#2c7790';
 export const KAART_PALET_VERSIE = 'zeef-1';
 
@@ -104,7 +122,7 @@ export function kaartLand() {
     allot: meng(bord, licht, 0.1), sports: meng(bord, licht, 0.22), business: meng(zacht, glas3, 0.45), rail: meng(zacht, glas, 0.12), railTie: papier, turbine: creme,
     forest: meng(bord, glas, 0.2),
   };
-  return { kaart, mini };
+  return { kaart: volgWereld(kaart), mini: volgWereld(mini) };
 }
 
 // De kleuren van de oude provinciepiramide (de PNG's die vóór 21-11 zijn gebakken: de oude MAP_PALETTE) en waar ze in de nieuwe

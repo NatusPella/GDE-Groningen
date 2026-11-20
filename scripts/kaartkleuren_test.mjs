@@ -2,6 +2,7 @@
 // de rollen van INK (mapstyle.js) zijn die tokens, en de tekenkleuren van de kaart blijven leesbaar.
 import fs from 'node:fs';
 import { DS_TERUGVAL, dsKleur, hexA, contrast, meng, KAART_ROLLEN, kaartInk, gebiedKleuren, kaartLand, WATER_BLAUW, KAART_PALET_VERSIE, PIRAMIDE_OUD, piramideNieuw, herkleurRaster, markerRollen, markerKleuren, MARKER_ROL, glyphOp } from '../game/js/kaartkleuren.js';
+import { dsWereldCss, setWereldMeng } from '../game/js/worldpalette.js';
 import { INK, MAP_PALETTE, MINI_PALETTE, ICON_FILL, ICON_RIM } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
@@ -44,7 +45,14 @@ const L = kaartLand();
 ok(MAP_PALETTE.meadow === L.kaart.meadow && MINI_PALETTE.meadow === L.mini.meadow && MAP_PALETTE.water === WATER_BLAUW, 'MAP_PALETTE en MINI_PALETTE komen uit kaartLand()');
 ok(fs.readFileSync(new URL('../DESIGN_SYSTEM.md', import.meta.url), 'utf8').includes('grachtwater groenblauw `' + WATER_BLAUW + '`'), 'het water is het grachtwater van DESIGN_SYSTEM.md');
 ok(meng('#000000', '#ffffff', 0.5) === '#808080' && meng('#102030', '#102030', 0.7) === '#102030', 'meng');
-ok(L.kaart.park === meng(dsKleur('ink-bord'), dsKleur('glas-3'), 0.12) && L.kaart.major === dsKleur('creme') && L.kaart.road === dsKleur('creme-zacht') && L.kaart.railTie === dsKleur('ink-papier'), 'groen, wegen en bielzen uit bord, crème en papier');
+ok(L.kaart.park === dsWereldCss(meng(dsKleur('ink-bord'), dsKleur('glas-3'), 0.12), 'groen') && L.kaart.major === dsKleur('creme') && L.kaart.road === dsWereldCss(dsKleur('creme-zacht'), 'steen') && L.kaart.railTie === dsKleur('ink-papier'), 'groen, wegen en bielzen uit bord, crème en papier (land en steen door de wereldmenging)');
+// 21-11: de kaart volgt de wereldmenging; bij menging 0 is het land het ongemengde tokenpalet, het water en major blijven altijd gelijk
+setWereldMeng(0);
+const L0 = kaartLand();
+ok(L0.kaart.park === meng(dsKleur('ink-bord'), dsKleur('glas-3'), 0.12) && L0.kaart.road === dsKleur('creme-zacht') && L0.mini.meadow === meng(dsKleur('glas-3'), dsKleur('ink-bord'), 0.3), 'menging 0: het land van de kaart is het tokenpalet');
+setWereldMeng(null);
+ok(L.kaart.water === L0.kaart.water && L.kaart.major === L0.kaart.major && L.mini.water === L0.mini.water, 'water en hoofdwegen volgen de menging niet');
+ok(['meadow', 'park', 'forest', 'tree'].every((n) => L.kaart[n] !== L0.kaart[n] || L.mini[n] !== L0.mini[n]), 'bij de standaardmenging verschilt het land van het ongemengde palet');
 // de kleur van een gebouw met alfa, over het land gelegd
 const over = (c, bg) => {
   const m = /rgba\((\d+), (\d+), (\d+), ([\d.]+)\)/.exec(c);
