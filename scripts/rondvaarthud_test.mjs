@@ -41,5 +41,5 @@ assert.equal((html.match(/<li data-stand/g) || []).length, 3); assert.match(html
 assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html), 'geen eigen kleuren in de markup');
 
 // bedrading: de strook alleen voor de eigen dienst, de kolom op het waterniveau, opruimen bij het einde
-assert.match(bron, /zetRondvaartStrook\(c, onBoat, speed\)/); assert.match(bron, /if \(c\.owner \|\|/); assert.match(bron, /maakSimKolom\('rondvaartkolom'\)/); assert.match(bron, /WATER_Y/); assert.match(bron, /simHudTik\(0, null\)/);
+assert.match(bron, /zetRondvaartStrook\(c, onBoat, speed\)/); assert.match(bron, /if \(c\.owner\) \{/); assert.match(bron, /maakSimKolom\('rondvaartkolom'\)/); assert.match(bron, /WATER_Y/); assert.match(bron, /simHudTik\(0, null\)/);
 console.log('rondvaarthud_test ok');

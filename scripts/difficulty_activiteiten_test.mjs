@@ -139,7 +139,7 @@ t('de activiteiten gebruiken de stand bij medaille, record en volgende trede', (
     assert.match(src, /cleanDifficulty\(getSettings\(\)\.difficulty\)/, `${f}: leest de stand`);
   }
   assert.match(lees('game/js/hengelen.js'), /duur: scaleTimeLimit\(HENGEL\.duration, mode\)/, 'hengelen: de 90 s schaalt');
-  assert.match(lees('game/js/pannenkoek.js'), /s0\.left = scaleTimeLimit\(PAN\.duration, mode\)/, 'pannenkoek: de twee minuten schalen');
+  assert.match(lees('game/js/pannenkoek.js'), /s0\.left = online \? PAN\.duration : scaleTimeLimit\(PAN\.duration, mode\)/, 'pannenkoek: de twee minuten schalen');
 });
 
 console.log(bad ? `difficulty_activiteiten_test: ${n - bad}/${n} ok` : `difficulty_activiteiten_test: ${n}/${n} ok`);
