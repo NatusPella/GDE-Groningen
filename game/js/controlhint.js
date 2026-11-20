@@ -58,9 +58,17 @@ export function hintActive(world) {
   return !!((m && m.phase === 'active') || (job && job.active) || (world.wanted | 0) > 0);
 }
 
-// { context, groepen: [{ keys, werk }] } of null als er niets loopt.
-export function controlHint(world, player = null) {
-  if (!hintActive(world)) return null;
+// De eerste wandeling van een nieuw spel (#986 #987): het verhaaldoel staat er al, maar nog geen missie is klaar en er loopt geen
+// missie. Een speler zonder voorkennis ziet dan ook de lopen-toetsen; de onboarding-kaarten leren die bewust niet (doelen, geen toetsen).
+export function eersteDoelActief(world) {
+  if (!world || !world.storyGuide || world.storyFreePlay) return false;
+  if (world.mission && world.mission.phase === 'active') return false;
+  return !!world.stats && (world.stats.missionsDone | 0) === 0;
+}
+
+// { context, groepen: [{ keys, werk }] } of null als er niets loopt. `eerstedoel`: ook zonder missie (de HUD geeft het mee voor het verhaaldoel).
+export function controlHint(world, player = null, { eerstedoel = false } = {}) {
+  if (!hintActive(world) && !(eerstedoel && eersteDoelActief(world))) return null;
   const context = hintContext(player || hoofdspeler(world));
   return { context, groepen: HINTS[context].map((g) => ({ keys: [...g.keys], werk: g.werk })) };
 }

@@ -33,6 +33,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { detectPrelude } from './detect/prelude.mjs';
+import { profileDirFor } from '../lib/testprofile.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -110,7 +111,7 @@ if (flag('slot')) {
 fs.mkdirSync(OUT, { recursive: true });
 const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
-const profile = `gde-test-spelbot-${process.pid}`;
+const profile = profileDirFor(`gde-test-spelbot-${process.pid}`, OUT); // absoluut: %TEMP% is op deze machine voor Electron soms niet schrijfbaar
 const script = path.join(OUT, '_page.js');
 const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), stageVehicle: arg('stage-vehicle', ''), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln'), mens: flag('mens'), detect: (flag('mens') || flag('detect')) && !flag('geen-detect'), klok: arg('klok', '') === '' ? null : Number(arg('klok')), weer: arg('weer', ''), invoer: arg('invoer', ''), flikker: Number(arg('flikker', 0)) || 0, chaos: /^[\w-]+(:\d+)?$/.test(arg('chaos', '')) ? { soort: arg('chaos').split(':')[0], na: Number(arg('chaos').split(':')[1]) || 20 } : null, seed, pogingen: Number(arg('pogingen', 3)) || 3 };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
@@ -192,7 +193,7 @@ for (let poging = 1; poging <= 2; poging++) {
   const boot = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
   if (poging === 1 && /Failed to fetch dynamically imported module/.test(boot) && !/\[perf-script\]/.test(boot)) {
     console.error('het spel startte niet (overvolle machine?): nog een poging');
-    fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+    fs.rmSync(profile, { recursive: true, force: true });
     fs.writeFileSync(events, JSON.stringify({ type: 'meta', replay: L.REPLAY_VERSION, seed, ...cfg, started: new Date().toISOString(), poging: 2 }) + '\n');
     continue;
   }
@@ -200,7 +201,7 @@ for (let poging = 1; poging <= 2; poging++) {
 }
 if (r.error && r.error.code !== 'ETIMEDOUT') console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);
 r.stdout = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
-fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+fs.rmSync(profile, { recursive: true, force: true });
 const timedOut = !!(r.error && r.error.code === 'ETIMEDOUT');
 
 let res = { result: timedOut ? 'ONDERBROKEN' : r.status === 0 ? 'ONBEKEND' : 'ELECTRON-FOUT', reason: timedOut ? `Electron na ${Math.round((Date.now() - t0) / 1000)} s gestopt (time-out)` : `exit ${r.status}${r.signal ? ' ' + r.signal : ''}` };
