@@ -437,7 +437,7 @@ t('#671: volgendeStap zegt in gewone taal wat de eerstvolgende stap is en waar',
 
 // (#846) de overkoepelende teller, de prestatie en de eenmalige beloning: het bedrag is één keer, lokaal en zonder
 // coopDeel. De maatstaf is de eerste klus die echt gedaan is (punten of teller), niet de knop in het menu.
-t('#846: bij de negentiende eerste klus eenmalig €750, de teller en de prestatie De Duizendpoot', () => {
+t('#846: bij de negentiende eerste klus eenmalig €2.000, de teller en de prestatie De Duizendpoot', () => {
   const st = nepOpslag();
   Live.initLoopbaan({ opslag: st });
   const p = Live.getProfiel();
@@ -445,9 +445,9 @@ t('#846: bij de negentiende eerste klus eenmalig €750, de teller en de prestat
   const w = nepWereld();
   Live.loopbaanTel(w, L.VAK_IDS[L.VAK_IDS.length - 1], { xp: 10 });
   assert.equal(L.eersteKlussen(Live.getProfiel()), L.VAKKEN.length, 'alle negentien geteld');
-  assert.equal(w.money, L.DUIZENDPOOT_EURO, 'eenmalig €750');
+  assert.equal(w.money, L.DUIZENDPOOT_EURO, 'eenmalig €2.000');
   assert.equal(w.gedeeld.length, 0, 'niet met gasten gedeeld: het is een prestatie van deze speler');
-  assert.ok(w.msgs.some((m) => /De Duizendpoot/.test(m.text) && /€750/.test(m.text)), 'een melding met de titel en het bedrag');
+  assert.ok(w.msgs.some((m) => /De Duizendpoot/.test(m.text) && /€2.000/.test(m.text)), 'een melding met de titel en het bedrag');
   assert.equal(getStat(Live.EERSTE_KLUS_STAT), L.VAKKEN.length, 'de levensduur-teller staat op negentien');
   assert.ok(isUnlocked('duizendpoot'), 'de prestatie is ontgrendeld');
   const a = ACHIEVEMENTS.find((x) => x.id === 'duizendpoot');
