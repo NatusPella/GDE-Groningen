@@ -300,7 +300,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const hudjs = panel;
   ok(R.vehnameBottom({ raceTop: 173, viewH: 720 }) === 555, 'de naamkaart staat boven het racepaneel (720 - 173 + 8)', String(R.vehnameBottom({ raceTop: 173, viewH: 720 })));
   ok(R.vehnameBottom({}) === null && R.vehnameBottom({ raceTop: NaN, viewH: 720 }) === null, 'zonder racepaneel geen meting');
-  ok(/bottom: var\(--hud-vehname-bottom/.test(css), 'de naamkaart gebruikt de gemeten onderkant');
+  ok(/bottom: max\(var\(--hud-vehname-bottom/.test(css) && /var\(--hud-vehname-ctx/.test(css), 'de naamkaart gebruikt de gemeten onderkant (en hangt boven de toetshintstapel, #985)');
   ok(/html\.touch-play \.hud-chip\.hud-mute \{ min-height: 44px/.test(css), 'de dempknop haalt 44 px op touch');
   ok(/hud-money-delta\[data-sign="min"\] \{ color: var\(--mk-danger/.test(css), 'geld eraf is het ene gevaar-rood via de tokens');
   ok(/MM_ICON_BUDGET = 10/.test(panel), 'de minimap heeft een totaalbudget');

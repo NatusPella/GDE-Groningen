@@ -102,13 +102,14 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 }
 
 /* --- zone B: the GPS card and the place name ------------------------------ */
-/* Zone B is één kolom: het doel bovenaan, de routekaart eronder (hud_panel.js zet ze in .hud-zone-b). Ze stapelen, dus ze raken elkaar niet. De kolom is zo breed als de vrije
-   strook tussen de linkerkolom (berichten, ca. 25%) en zone C (klok, sterren, geld; --hud-c-right is gemeten) en hangt aan dezelfde bovenrand als zone A (#985). */
+/* Zone B is één kolom: het doel bovenaan, de routekaart eronder (hud_panel.js zet ze in .hud-zone-b). Ze stapelen, dus ze raken elkaar niet. De kolom vult de vrije
+   strook tussen de linkerkolom (berichten, 330 px) en zone C (klok, sterren, geld; --hud-c-right is gemeten) en centreert daarin; hij hangt aan dezelfde bovenrand als zone A (#985). */
 #hud .hud-zone-b {
-  position: absolute; top: max(calc(var(--hud-top) + 2px), var(--hud-gps-top, 0px)); left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; pointer-events: none;
-  max-width: max(240px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge) + 330px, var(--hud-c-right, 0px) + 12px)));
+  position: absolute; top: max(calc(var(--hud-top) + 2px), var(--hud-gps-top, 0px));
+  left: calc(var(--hud-edge) + 330px); right: max(var(--hud-edge), calc(var(--hud-c-right, 0px) + 12px));
+  display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
 }
+@media (max-width: 900px) { #hud .hud-zone-b { left: var(--hud-edge); right: var(--hud-edge); } }
 #hud .hud-zone-b > * { max-width: 100%; box-sizing: border-box; }
 #hud .hud-gps {
   position: relative;
@@ -193,7 +194,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 /* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
 #hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 #hud .hud-mission-label:empty { display: none; }
-#hud .hud-mission-progress { margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
+#hud .hud-mission-progress { max-width: 100%; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }
 /* #824: de altijd zichtbare bedieningsregel, binnen de doellijn (zone G) en nooit als eigen vak.
    Klein, één regel die mag wrappen; de toetskappen blijven de canonieke .hud-key. */
@@ -548,7 +549,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 #hud .hud-vehname {
   /* the model name for a moment on getting in, above the key hints */
-  position: absolute; right: var(--hud-edge); bottom: var(--hud-vehname-bottom, calc(var(--hud-edge) + var(--mm-size) + 50px)); display: flex; align-items: center; gap: 12px;
+  position: absolute; right: var(--hud-edge); bottom: max(var(--hud-vehname-bottom, calc(var(--hud-edge) + var(--mm-size) + 50px)), var(--hud-vehname-ctx, 0px)); display: flex; align-items: center; gap: 12px;
   max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: #f0ede4;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
   background: linear-gradient(270deg, rgba(12, 20, 14, 0.82), rgba(23, 48, 31, 0.4) 80%, rgba(23, 48, 31, 0));
@@ -925,4 +926,12 @@ body.cine-hide-hud #story-skip { display: none; }
 #cine .cine-chip {
   font-weight: 800; letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier);
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
+}
+/* #985: in een smalle strook (onder 1100 px) breekt de routekaart om (de afstand onder de afslag) en laat het doel de bedieningsregel weg: de strook is 240 px */
+@media (max-width: 1100px) {
+  #hud .hud-gps { flex-wrap: wrap; justify-content: center; white-space: normal; row-gap: 2px; padding: 7px 14px; }
+  #hud .hud-gps .gps-sep { display: none; }
+  #hud .gps-txt b { font-size: 24px; }
+  #hud .gps-dist { flex-direction: row; align-items: baseline; gap: 6px; }
+  #hud .hud-mission .hud-obj-keys { display: none; }
 }

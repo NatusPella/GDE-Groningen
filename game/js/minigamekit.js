@@ -104,7 +104,7 @@ const CSS = `
 #hud .mg-board .mg-ic { flex: none; }
 /* de sfeernaam klein naast de titel en één watermark in de marge (#595): geen tweede balk */
 #hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) var(--ds-font-tekst-v3); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
-#hud .mg-board .mg-watermark { position: absolute; right: 10px; bottom: -4px; font: 800 54px/1 var(--ds-font-kop-v3); letter-spacing: 4px; text-transform: uppercase; color: var(--ds-c-ink-inkt); opacity: 0.08; pointer-events: none; white-space: nowrap; }
+#hud .mg-board .mg-watermark { display: none; /* #985: dubbel met de sfeernaam in de kop en lag achter de laatste regels */ position: absolute; right: 10px; bottom: -4px; font: 800 54px/1 var(--ds-font-kop-v3); letter-spacing: 4px; text-transform: uppercase; color: var(--ds-c-ink-inkt); opacity: 0.08; pointer-events: none; white-space: nowrap; }
 #hud .mg-board[data-sfeerbord="scorekaart"], #hud .mg-board[data-sfeerbord="meetlat"] { border-radius: 0 10px 10px 0; }
 #hud .mg-board[data-sfeerbord="clubschild"], #hud .mg-board[data-sfeerbord="entreekaartje"] { border-radius: 14px 4px 4px 14px; }
 #hud .mg-board[data-sfeerbord="cockpitstrip"], #hud .mg-board[data-sfeerbord="startbord"], #hud .mg-board[data-sfeerbord="routebord"] { border-radius: 4px; }

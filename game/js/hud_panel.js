@@ -277,7 +277,7 @@ export function initHud(world) {
     '<div class="hud-id">' +
       '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg><img alt=""></div>' +
       '<div class="hud-id-main">' +
-        '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
+        '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden>' + icoon('dorst') + 'Aangeschoten</span>' +
           '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
           // #898: hoe ver je bent, als één stil chipje naast je naam (zelfde cijfer als het Overzicht)
@@ -312,7 +312,6 @@ export function initHud(world) {
     portraitImg: topLeft.querySelector('.hud-portrait img'),
     you: topLeft,
     mate: topLeft.querySelector('.hud-mate'),
-    mateImg: topLeft.querySelector('.hud-mate img'),
     mateTxt: topLeft.querySelector('.hud-mate-txt'),
     mateKey: '', portraitKey: '', portraitT: 0,
     drunk: topLeft.querySelector('.hud-chip.drunk'),
@@ -477,7 +476,15 @@ function watchRightStack(root, topRight, race, vehName, cards) {
     const bottom = race.hidden ? null : vehnameBottom({ raceTop: race.getBoundingClientRect().top, viewH: window.innerHeight, gap: GAP });
     if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${bottom}px`);
     else root.style.removeProperty('--hud-vehname-bottom');
+    // #985: op een laag venster (1024x600) lag de toetshintstapel (.hud-ctx) over de naamkaart: de naamkaart hangt erboven
+    const ctx = root.querySelector('.hud-ctx');
+    if (ctx && !ctxGezien) { ro.observe(ctx); ctxGezien = true; }
+    const cr = ctx ? ctx.getBoundingClientRect() : null;
+    const boven = cr && cr.height > 0 ? vehnameBottom({ raceTop: cr.top, viewH: window.innerHeight, gap: GAP }) : null;
+    if (boven != null) root.style.setProperty('--hud-vehname-ctx', `${Math.round(boven / scale)}px`);
+    else root.style.removeProperty('--hud-vehname-ctx');
   };
+  let ctxGezien = false;
   const ro = new ResizeObserver(place);
   ro.observe(topRight);
   ro.observe(race);
@@ -1112,7 +1119,8 @@ function setPortrait(img, ch, keyField) {
   }, { angle: PORTRAIT_ANGLE, keep: true });
 }
 
-// "· Tessa rijdt mee": the companion, next to your name, while they are with you.
+// "Tessa rijdt mee": the companion for screen readers only (hud-mate-txt is visually hidden). The card shows one character, the one you play
+// (hoofdspeler: a Samen spelen guest sees their own figure); a second portrait next to the name was removed on 20-11 (#985).
 function updateMate(world) {
   const c = world.companion;
   const p = hoofdspeler(world);
@@ -1129,7 +1137,6 @@ function updateMate(world) {
   els.mate.hidden = !text;
   if (!text) return;
   els.mateTxt.textContent = '· ' + text;
-  setPortrait(els.mateImg, c.character === 'anita' ? 'anita' : 'tammo', 'mateLookKey');
   if (!was) restartClass(els.mate, 'in');
 }
 

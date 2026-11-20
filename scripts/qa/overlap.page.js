@@ -136,23 +136,23 @@ function ovScan(opties = {}) {
   const min = opties.min || 4;
   const insluit = (a, b) => a.el.contains(b.el);
   const rnd = (v) => [Math.round(v.l), Math.round(v.t), Math.round(v.r), Math.round(v.b)];
-  // een vlak dat (bijna) niet te zien is (opacity < 0,1: een kaart die wegfadet) telt niet; tekst naast tekst in dezelfde HUD-groep ook niet
+  // een vlak dat (bijna) niet te zien is (opacity < 0,15: een kaart die wegfadet of de HUD die onder een schermvullend moment op 0,12 wegdimt) telt niet; tekst naast tekst in dezelfde HUD-groep ook niet
   // (de tekstvakken van een strakke regelafstand raken elkaar zonder dat het beeld dat doet)
-  const telt = (a, b) => a.dekking >= 0.1 && b.dekking >= 0.1 && !(a.groep === b.groep && !a.verf && !b.verf);
+  const telt = (a, b) => a.dekking >= 0.15 && b.dekking >= 0.15 && !(a.groep === b.groep && !a.verf && !b.verf);
   for (const p of ovParen(vlakken, min, insluit)) {
     if (!telt(p.a, p.b)) continue;
     const boven = ovBoven(p.a, p.b) ? p.a : p.b, onder = boven === p.a ? p.b : p.a;
     uit.overlap.push({ boven: boven.naam + ' "' + boven.tekst + '"', onder: onder.naam + ' "' + onder.tekst + '"', snijding: [p.w, p.h], bovenRect: rnd(boven), onderRect: rnd(onder), dekking: [boven.dekking, onder.dekking] });
   }
   for (const v of vlakken) {
-    if (v.r > vw + 2 || v.b > vh + 2 || v.l < -2 || v.t < -2) uit.buitenBeeld.push({ el: v.naam + ' "' + v.tekst + '"', rect: rnd(v), venster: [vw, vh] });
+    if ((v.r > vw + 2 || v.b > vh + 2 || v.l < -2 || v.t < -2) && !v.el.closest('.bm-v-band, .bm-v-stempel, [aria-hidden="true"]')) uit.buitenBeeld.push({ el: v.naam + ' "' + v.tekst + '"', rect: rnd(v), venster: [vw, vh] });
   }
   // tekst die wordt afgekapt of uit zijn vlak steekt: alle zichtbare tekstelementen binnen de vlakken
   const gezien = new Set();
   for (const v of vlakken) {
     const lijst = [v.el, ...v.el.querySelectorAll('*')];
     for (const el of lijst) {
-      if (gezien.has(el) || !ovEigenTekst(el) || !ovZichtbaar(el) || !el.getClientRects().length) continue;
+      if (gezien.has(el) || !ovEigenTekst(el) || !ovZichtbaar(el) || !el.getClientRects().length || el.closest('[aria-hidden="true"], .mg-watermark')) continue;
       gezien.add(el);
       const s = getComputedStyle(el);
       const knipX = s.overflowX === 'hidden' || s.overflowX === 'clip', knipY = s.overflowY === 'hidden' || s.overflowY === 'clip';

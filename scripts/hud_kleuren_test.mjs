@@ -218,7 +218,7 @@ for (const [naam, s] of Object.entries(SURFACES)) {
 
 // #645: geen vaste magische maten meer voor voertuignaam en prestatie-toast, en één font-stack.
 const panelCss = read('hud_panel.css');
-ok(!/bottom:\s*calc\(var\(--hud-edge\) \+ 300px\)/.test(panelCss) && /bottom:\s*(?:var\(--hud-vehname-bottom,\s*)?calc\(var\(--hud-edge\) \+ var\(--mm-size\) \+ 50px\)/.test(panelCss), 'hud_panel.css: voertuignaam op de gemeten kolom');
+ok(!/bottom:\s*calc\(var\(--hud-edge\) \+ 300px\)/.test(panelCss) && /bottom:\s*(?:max\(\s*)?(?:var\(--hud-vehname-bottom,\s*)?calc\(var\(--hud-edge\) \+ var\(--mm-size\) \+ 50px\)/.test(panelCss), 'hud_panel.css: voertuignaam op de gemeten kolom');
 ok(!/top:\s*330px/.test(panelCss) && /top:\s*calc\(var\(--hud-top\) \+ var\(--mm-size\) \+ 46px\)/.test(panelCss), 'hud_panel.css: nowplaying op de gemeten kolom');
 ok(!/left:\s*max\(50%,\s*700px\)/.test(read('achievements.js')), 'achievements.js: prestatie-toast zonder vaste 700px');
 const a11yCss = read('a11y.css');

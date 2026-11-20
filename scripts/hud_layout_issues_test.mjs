@@ -22,8 +22,8 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
 {
   const hud = read('hud_panel.css');
   const zb = (/#hud \.hud-zone-b \{([^}]*)\}/.exec(hud) || [])[1] || '';
-  ok(/top:\s*max\(calc\(var\(--hud-top\) \+ 2px\)/.test(zb) && /left:\s*50%/.test(zb), '#985: zone B hangt bovenin, gecentreerd');
-  ok(/max-width:\s*max\(240px, calc\(100vw \/ var\(--ui, 1\) - 2 \* max\(var\(--hud-edge\) \+ 330px, var\(--hud-c-right, 0px\) \+ 12px\)\)\)/.test(zb), '#985: zone B krijgt de breedte tussen de linkerkolom (330 px) en zone C (gemeten)');
+  ok(/top:\s*max\(calc\(var\(--hud-top\) \+ 2px\)/.test(zb) && /left:\s*calc\(var\(--hud-edge\) \+ 330px\)/.test(zb), '#985: zone B hangt bovenin, rechts van de berichtkolom (330 px)');
+  ok(/right:\s*max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(zb), '#985: zone B eindigt links van zone C (gemeten --hud-c-right), dus de titel krijgt de hele vrije strook');
   const mission = (/#hud \.hud-mission \{([^}]*)\}/.exec(hud) || [])[1] || '';
   ok(/position:\s*relative/.test(mission) && !/bottom:/.test(mission), '#985: het doel zit in de kolom (relative), niet meer onderin (geen bottom)');
   ok(!/#hud \.hud-mission \{[^}]*bottom:/.test(hud.replace(/#hud \.hud-mission \{[^}]*\}/, '')), '#985: geen enkele regel zet het doel nog op een bottom');
@@ -31,8 +31,8 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   for (const [vw, vh, cRight] of [[1024, 768, 400], [1280, 720, 400], [1920, 1080, 400]]) {
     const vp = hudViewport(vw, vh), e = hudEdge(vw, vh, uiScaleFor(vw, vh));
     const w = Math.max(240, vp.w - 2 * Math.max(e + 330, cRight + 12));
-    ok(w >= 240, `#985: ${vw}x${vh} geeft ${Math.round(w)} px kolombreedte voor het doel`);
-    ok(vp.w / 2 - w / 2 >= e + 330 - 1 || w === 240, `#985: ${vw}x${vh}: de kolom begint rechts van de berichtkolom`);
+    const strook = vp.w - (e + 330) - Math.max(e, cRight + 12); // de band tussen de berichtkolom en zone C
+    ok(strook >= 240, `#985: ${vw}x${vh} geeft ${Math.round(strook)} px strook voor het doel (was 2 x de grootste reserve)`);
   }
 }
 

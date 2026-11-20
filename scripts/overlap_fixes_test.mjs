@@ -71,5 +71,22 @@ ok(/max\(330px, var\(--hud-c-right, 0px\) \+ 12px\)/.test(mgjs), 'mg-board tot 1
 ok(/t: c\.done \? String\(c\.strokes\)/.test(src('game/js/discgolf.js')), 'discgolf-cellen zijn worpen of nummers');
 ok(/line-clamp: 4/.test(src('game/js/phonefeed.css')) && /overflow-wrap: anywhere/.test(src('game/js/phonefeed.css')), 'phonefeed: een lange kop breekt en houdt vier regels');
 
+// klasse 9: lage vensters (1024x600): de strook van zone B is smal, de routekaart breekt om, de doelregel kapt af met "…", de naamkaart hangt boven de hintstapel
+const css985 = src('game/js/hud_panel.css');
+ok(/@media \(max-width: 1100px\) \{[^}]*#hud \.hud-gps \{ flex-wrap: wrap;[^}]*white-space: normal/.test(css985), 'smalle strook: de routekaart breekt om (afstand onder de afslag)');
+ok(/#hud \.hud-mission-progress \{ max-width: 100%; overflow: hidden; text-overflow: ellipsis;/.test(css985), 'de doelregel kapt af met een ellips in plaats van uit de kaart te steken');
+ok(/#hud \.hud-mission \.hud-obj-keys \{ display: none; \}/.test(css985), 'smalle strook: de bedieningsregel van het doel valt weg');
+ok(/--hud-vehname-ctx/.test(src('game/js/hud_panel.js')) && /var\(--hud-vehname-ctx, 0px\)/.test(css985), 'de naamkaart hangt boven de toetshintstapel (--hud-vehname-ctx)');
+ok(/display: none; \/\* #985/.test(src('game/js/minigamekit.js')), 'het watermerk van het minigamebord ligt niet meer achter de laatste regels');
+ok(/columnOpts\(\)/.test(src('game/js/hudcards.js')) && /leftColumnFits\(upA \? upA\.spec : null, q\.spec, col\)/.test(src('game/js/hudcards.js')), 'hudcards: een E-kaart telt het venster en de telefoonkaart mee');
+ok(/left: calc\(var\(--hud-edge\) \+ 330px\); right: max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(css985), 'zone B vult de strook tussen berichtkolom en zone C');
+
+// klasse 10: het karakterkaartje toont één personage, dat van de speler (hoofdspeler: ook een gast ziet zijn eigen figuur)
+const hp = src('game/js/hud_panel.js');
+ok(!/hud-mate-pic/.test(hp) && !/mateImg/.test(hp) && !/setPortrait\(els\.mateImg/.test(hp), 'geen tweede portret meer naast de naam (hud-mate-pic weg)');
+ok(/hud-mate-txt/.test(hp), 'de metgezel blijft voor schermlezers (visueel verborgen tekst)');
+ok(/const ch = hoofdspeler\(world\)\.character === 'anita' \? 'anita' : 'tammo';/.test(hp), 'de naam en het portret komen van de hoofdspeler (de eigen figuur, ook bij een gast)');
+ok((hp.match(/setPortrait\(/g) || []).length === 2, 'setPortrait: alleen de definitie en het portret van de speler');
+
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

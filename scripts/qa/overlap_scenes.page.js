@@ -58,7 +58,7 @@ const opruim = async () => {
   window.__ovFilm = false;
   for (let i = 0; i < 40 && HC.cardsBusy(); i++) { await sleep(500); if (i === 6) break; }
 };
-const scene = async (naam, zet, { wacht = 1800, schoon, formaat } = {}) => {
+const scene = async (naam, zet, { wacht = 1800, schoon, altijdBeeld = false } = {}) => {
   if (!want(naam)) return;
   try {
     if (p.inVehicle || Math.hypot(p.x - x0, p.y - y0) > 30) { teleport(x0, y0); await settle(); }
@@ -67,7 +67,7 @@ const scene = async (naam, zet, { wacht = 1800, schoon, formaat } = {}) => {
     const r = ovScan();
     uit.scenes[naam] = r;
     const fout = r.overlap.length + r.buitenBeeld.length + r.afgekapt.length + r.tekstUit.length + r.filmHud.length;
-    if (OV.beeld === 'alles' || (OV.beeld !== '' && fout)) {
+    if (OV.beeld === 'alles' || altijdBeeld || (OV.beeld !== '' && fout)) {
       const af = ovMarkeer(r.overlap);
       await sleep(200); console.log('[capture] ov-' + PRE + '-' + naam); await sleep(700);
       af();
@@ -115,6 +115,17 @@ await scene('regelkaart', async () => {
   for (let i = 0; i < 3; i++) { K.toonRegelkaart(w, staat, 0.5); staat.t += 0.5; }
   await sleep(1500);
 });
+
+// het karakterkaartje: één personage, dat van de speler (beide speelbare figuren; altijd een beeld)
+for (const [ch, mate] of [['tammo', 'anita'], ['anita', 'tammo']]) {
+  let oud = null;
+  await scene('karakter-' + ch, async () => {
+    oud = { ch: p.character, c: w.companion };
+    p.character = ch;
+    w.companion = { character: mate, x: p.x + 3, y: p.y + 1, inVehicle: null, hidden: false };
+    await sleep(2500);
+  }, { wacht: 1500, altijdBeeld: true, schoon: async () => { p.character = oud.ch; w.companion = oud.c; await sleep(500); } });
+}
 
 // ---- voertuigen
 const MOTO = await imp('motomodels');
