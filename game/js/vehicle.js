@@ -16,6 +16,7 @@ export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle, restWreck } from
 // canUseRoad woont bij de verkeers-AI (die beslist welke weg een voertuig mag gebruiken) en wordt
 // door de spawnteller hier ook gebruikt; vandaar de import naast de host-wissel.
 import { setTrafficHost, canUseRoad } from './vehicle/traffic.js';
+import { stuckClearable } from './vehicle/trafficstuck.js';
 import { setBusPopHost, manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, busSpawnPoint, getLiveBussen, detachLiveBus } from './vehicle/buspop.js';
 export { manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, detachLiveBus };
 import { playerTune, playerTopSpeed, speedCap, coastDrag, lateralGrip, maxYawRate, maxCurvature } from './vehicle/tuning.js';
@@ -875,7 +876,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   const player = opts.focus || (world.cameraOverride && world.streamFocus ? world.streamFocus : hoofdspeler(world)); // in a cutscene the traffic fills round the camera's view (#157)
   if (!opts.focus) dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
-  const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
+  const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world), world.weather && world.weather.wet) : null;
   const { target: targetOpt = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   if (!opts.focus) { pruneWrecks(world); vehicleHooks.manageParkedCars(world); }
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -891,7 +892,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     // real connection) is cleared the same way rather than left oscillating.
     // een bus die ver van zijn lijn is geraakt (een omweg zonder einde) verdwijnt als niemand kijkt (#322)
     const verdwaald = !!v.busRun && Math.hypot(v.x - player.x, v.y - player.y) > 60 && projectOnLine(v.busRun.line, v.x, v.y).d > BUS_VERDWAALD_M;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || verdwaald || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -914,7 +915,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
-    if (!canUseRoad({ model: pick.model }, road)) continue;
+    if (!canUseRoad({ model: pick.model }, road, map)) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
@@ -934,7 +935,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -965,7 +966,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.isMotor || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -993,7 +994,7 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isMotor || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
+    if (stuckClearable(world, v, Math.hypot(v.x - player.x, v.y - player.y)) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
   const prof = wijkProfileAt(map, player.x, player.y).key;
   const want = target ?? motorTarget(prof, hourOf(world));
@@ -1407,11 +1408,16 @@ function resolveTrailerContacts(a, vehicles, world) {
 const PROBES_LONG = [[1, 1], [1, -1], [0, -1], [-1, -1], [-1, 1], [0, 1]];
 const PROBES_SHORT = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 const probeCount = (v) => (v.halfLen > 3 ? 6 : 4);
+// #1048: een hergebruikte uit-array (de beller leest hem meteen en bewaart hem niet): geen array per hoekpunt per auto per frame
+const _probeOut = [0, 0];
 function collisionProbe(v, k) {
-  const m = (v.halfLen > 3 ? PROBES_LONG : PROBES_SHORT)[k];
-  const lx = m[0] * v.halfLen, ly = m[1] * v.halfWid;
+  const hl = v.halfLen;
+  const m = (hl > 3 ? PROBES_LONG : PROBES_SHORT)[k];
+  const lx = m[0] * hl, ly = m[1] * v.halfWid;
   const cos = Math.cos(v.angle), sin = Math.sin(v.angle);
-  return [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos];
+  _probeOut[0] = v.x + lx * cos - ly * sin;
+  _probeOut[1] = v.y + lx * sin + ly * cos;
+  return _probeOut;
 }
 
 const FALL_G = 9.8;
@@ -1602,8 +1608,9 @@ function buildingsAroundBody(v, map) {
   if (map !== bodyNearMap) { bodyNearMap = map; bodyNearEpoch++; }
   const c = v._bodyNear;
   if (c && c.epoch === bodyNearEpoch && c.r === v.halfLen && Math.abs(v.x - c.x) < BODY_NEAR_MOVE && Math.abs(v.y - c.y) < BODY_NEAR_MOVE) return c.list;
-  const list = map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
-  v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
+  // #1048: de lijst per voertuig wordt ter plekke bijgewerkt (queryInto), niet elke keer opnieuw gemaakt
+  const list = map.buildingsNearInto ? map.buildingsNearInto(c ? c.list : [], v.x, v.y, v.halfLen + BODY_NEAR_SLACK) : map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
+  if (c && c.list === list) { c.epoch = bodyNearEpoch; c.x = v.x; c.y = v.y; c.r = v.halfLen; } else v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
   return list;
 }
 

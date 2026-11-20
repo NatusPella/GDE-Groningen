@@ -19,6 +19,7 @@ import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews,
 import { waterNearby } from './waterlevels.js';
 import { hoofdspeler } from './players.js';
 import { countryRoadPoint, dryLine, solidAt, countryCopPed, countryFollow, countryPatrol, FIELD_RUN_DIST, COP_PED_MIN_DIST } from './police/ommeland.js';
+import { stuckClearable } from './vehicle/trafficstuck.js';
 
 // search area, cooldown and roadblock timing per star: wantedlevels.js
 const SEE_RANGE_CAR = 55;
@@ -286,7 +287,7 @@ function despawnFarPolice(world, state) {
     // uit zicht en ver genoeg is ruimt op, zodat er geen politieauto met je mee blijft
     // rijden. Een auto met agenten te voet, een wegblokkade of een motor blijft staan.
     const klaar = world.wanted === 0 && isPatrolCar(v) && d > AMBIENT_DESPAWN_DIST && isSpawnHidden(world, v.x, v.y);
-    if (behind || klaar || (!v.wrecked && ((v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40))) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
+    if (behind || klaar || stuckClearable(world, v, d) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
   }
 }
 

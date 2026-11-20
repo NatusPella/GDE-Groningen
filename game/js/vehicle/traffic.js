@@ -14,6 +14,7 @@ import { hoofdspeler } from '../players.js';
 import { motorRoadAllowed } from '../motortraffic.js';
 import { vehiclesNear } from '../vehicleindex.js';
 import { consumePathBudget } from '../pathbudget.js';
+import { roadFitsBody } from './roadfit.js';
 
 // Wat dit blok uit vehicle.js nodig heeft, komt van buiten: vehicle.js geeft het hier bij het laden
 // door met setTrafficHost. Zo importeert deze module niets terug en blijft de modulecyclus op 0.
@@ -167,7 +168,10 @@ function applyRoadDelta(map, g, delta) {
   for (const r of again) stitchEnds(map, g, r);
 }
 
+// de kaart waarop de AI rijdt: canUseRoad toetst smalle wegen tegen de voetafdrukken (roadfit.js, #1047)
+let fitMap = null;
 function roadGraph(map) {
+  fitMap = map;
   let g = graphCache.get(map);
   // Alleen een wegwijziging hoeft de graaf opnieuw; niet elke tegel-add (geoVer).
   const ver = map._roadVer !== undefined ? map._roadVer : map.geoVer;
@@ -215,14 +219,24 @@ function isJunction(map, road, i) {
   return !!node && node.length > 1;
 }
 
-export function canUseRoad(v, r) {
+export function canUseRoad(v, r, map = fitMap) {
   if (r.cat === 'foot') return false;
   const small = v.isBike || v.isScooter;
   if (r.cat === 'cycle' && !small) return false;
   if (v.isMotor && !motorRoadAllowed(v.model, r)) return false; // brommers and motors keep off the fietspad
   if (r.busOnly && !busLaneUser(v)) return false;
   if (v.isBus && !busMagWeg(r, v.busRun ? v.busRun.line : null, v.model.wid)) return false;   // #322: een bus blijft op zijn lijn of het busnet
-  return small || r.width >= v.model.wid + 1.1;
+  if (small) return true;
+  // #1047: een straat waar de gevel op minder dan een halve autobreedte van de hartlijn staat (of die door open water loopt) is niets voor een auto
+  if (r.width < v.model.wid + 1.1 || !roadFitsBody(map, r, v.model.wid)) return false;
+  // een doodlopend einde aan open water (de sloot achter het landpad): daar keren is erin rijden
+  const f = r._fit;
+  if (f && f.endWet && map && (r.width || 0) <= 7.5) {
+    // (isJunction telt een weguiteinde zelf altijd mee; hier gaat het om aansluitende wegen: meer dan een weg op het hoekpunt)
+    if ((f.endWet & 1) && !(roadNode(map, r, 0) || []).some((e) => e.road !== r)) return false;
+    if ((f.endWet & 2) && !(roadNode(map, r, r.pts.length - 1) || []).some((e) => e.road !== r)) return false;
+  }
+  return true;
 }
 
 function segHeading(road, i, j) {
@@ -580,6 +594,9 @@ function walkerAheadLimit(v, path, world, decel) {
 // Car-following: keep a stopping distance plus a time gap to whatever sits
 // on our path ahead - same-direction traffic, crossing traffic at a
 // junction, or something oncoming in our own lane.
+// #1047: een hergebruikt resultaat (de beller leest het in dezelfde stap en bewaart het niet)
+const _follow = { vmax: Infinity, leader: null, leaderS: Infinity };
+const _hitFront = { s: 0, lat: 0, tx: 0, ty: 0 };
 function followSpeedLimit(v, path, world, decel, chase) {
   let vmax = Infinity, leader = null, leaderS = Infinity;
   const ignoring = world.time < (v.ignoreUntil || 0) ? v.ignoreId : -1;
@@ -611,7 +628,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
       if (pr && pr.lat < reach && (!hit || pr.s < hit.s)) hit = pr;
       // right in front of the bumper counts even where the path bends away
       const side = Math.abs((qy - v.y) * fx - (qx - v.x) * fy);
-      if (!passing && fwd < corridor && side < reach - 0.2 && (!hit || fwd < hit.s)) hit = { s: fwd, lat: side, tx: fx, ty: fy };
+      if (!passing && fwd < corridor && side < reach - 0.2 && (!hit || fwd < hit.s)) { hit = _hitFront; hit.s = fwd; hit.lat = side; hit.tx = fx; hit.ty = fy; }
     }
     if (!hit) continue;
     let along = (ofx * o.speed + o.driftX) * hit.tx + (ofy * o.speed + o.driftY) * hit.ty;
@@ -628,7 +645,8 @@ function followSpeedLimit(v, path, world, decel, chase) {
     ));
     if (vf < vmax) { vmax = vf; leader = o; leaderS = hit.s; }
   }
-  return { vmax, leader, leaderS };
+  _follow.vmax = vmax; _follow.leader = leader; _follow.leaderS = leaderS;
+  return _follow;
 }
 
 // Speed that brings the vehicle to a halt at the stop line of a red (or a

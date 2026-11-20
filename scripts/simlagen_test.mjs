@@ -51,8 +51,7 @@ for (const s of ['auto', 'voetganger']) {
   check('verkeeropties', o.target > 0 && o.spawnMin < o.spawnMax && o.despawnDist > o.spawnMax);
   check('profiel -> streek', streekVanProfiel('centrum') === 'centrum' && streekVanProfiel('x') === 'stad');
 }
-console.log(bad ? bad + ' mislukt' : 'simlagen_test: alles goed');
-process.exit(bad ? 1 : 0);{
+{
   const o = voetgangerOpties('centrum', 14), l = voetgangerOpties('standaard', 14);
   check('voetgangerdoel centrum > stad', o.target > l.target, JSON.stringify([o, l]));
   check('voetganger volTarget <= target', o.volTarget <= o.target);
@@ -63,3 +62,15 @@ process.exit(bad ? 1 : 0);{
   check('ver weg denkt toch af en toe', [...Array(12).keys()].some((f) => !stapSlaOver('voetganger', 2000, 0, f)));
 }
 
+// #1047: spits, avond en regen
+check('spits drukker dan middag (stad)', tijdFactor('auto', 8, 'stad') > tijdFactor('auto', 12, 'stad'));
+check('spits in een dorp niet drukker', tijdFactor('auto', 8, 'dorp') === tijdFactor('auto', 12, 'dorp'));
+check('avond rustiger dan middag', tijdFactor('auto', 20, 'stad') < tijdFactor('auto', 12, 'stad'));
+check('nacht rustiger dan avond', tijdFactor('auto', 3, 'stad') < tijdFactor('auto', 23, 'stad'));
+check('regen haalt verkeer weg', tijdFactor('auto', 12, 'stad', 1) < tijdFactor('auto', 12, 'stad', 0));
+check('regen haalt meer voetgangers dan auto weg', tijdFactor('voetganger', 12, 'stad', 1) / tijdFactor('voetganger', 12, 'stad', 0) < tijdFactor('auto', 12, 'stad', 1) / tijdFactor('auto', 12, 'stad', 0));
+check('regen in het centrum minder dan elders voor voetgangers', tijdFactor('voetganger', 12, 'centrum', 1) > tijdFactor('voetganger', 12, 'stad', 1));
+check('nat buiten 0..1 wordt begrensd', tijdFactor('auto', 12, 'stad', 5) === tijdFactor('auto', 12, 'stad', 1));
+check('verkeerOpties met regen is niet drukker', verkeerOpties('centrum', 8, 1).target <= verkeerOpties('centrum', 8, 0).target);
+console.log(bad ? bad + ' mislukt' : 'simlagen_test: alles goed');
+process.exit(bad ? 1 : 0);

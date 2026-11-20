@@ -490,6 +490,11 @@ export class GameMap {
   buildingsNear(x, y, r) {
     return this.buildingGrid.query(x - r, y - r, x + r, y + r);
   }
+  // dezelfde vraag in een bestaande array (geen nieuwe array of Set per aanroep; #1048, voor het lichaam van elke rijdende auto)
+  buildingsNearInto(out, x, y, r) {
+    this.buildingGrid.queryInto(out, x - r, y - r, x + r, y + r);
+    return out;
+  }
   roadsNear(x, y, r) {
     return this.roadGrid.query(x - r, y - r, x + r, y + r);
   }
