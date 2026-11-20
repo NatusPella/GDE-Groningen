@@ -4,7 +4,7 @@
 import './node3d.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-const { CHASE_STUCK_S, CHASE_STUCK_RADIUS, chaseStuckStep } = await import('../game/js/missions.js');
+const { CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep } = await import('../game/js/missions.js');
 const bron = (p) => fs.readFileSync(new URL('../game/js/' + p, import.meta.url), 'utf8');
 let n = 0;
 const t = (naam, f) => { n++; try { f(); } catch (e) { console.log('FAIL', naam, '\n  ', e.message.split('\n')[0]); process.exitCode = 1; } };
@@ -39,11 +39,21 @@ t('een stop van korter dan de tijd wordt vergeven: bij nieuwe beweging begint de
   assert.equal(loop(S, { x: 100 + CHASE_STUCK_RADIUS + 1, y: 100 }, CHASE_STUCK_S - 2), false);
 });
 
+t('review 20-11 #2: een wagen voor een rood licht telt niet als vast zolang de speler ver weg is, wel zodra hij dichtbij komt', () => {
+  const S = {}, v = { x: 50, y: 50 };
+  let klaar = false;
+  for (let s = 0; s < CHASE_STUCK_S * 3; s += 0.5) klaar = chaseStuckStep(S, v, 0.5, CHASE_STUCK_NEAR + 100) || klaar;
+  assert.equal(klaar, false, 'ver weg: wachten is geen vastlopen');
+  for (let s = 0; s < CHASE_STUCK_S - 1; s += 0.5) klaar = chaseStuckStep(S, v, 0.5, CHASE_STUCK_NEAR - 10) || klaar;
+  assert.equal(klaar, false, 'de klok begon pas bij de nadering');
+  assert.equal(chaseStuckStep(S, v, 2, CHASE_STUCK_NEAR - 10), true);
+});
+
 t('M07 (de tankwagen) heeft een vast-tekst, en de missielus gebruikt hem alleen op aanvraag', () => {
   const defs = bron('missions_defs.js');
   assert.match(defs, /Kaap de tankwagen of schiet zijn banden plat[\s\S]{0,1200}vast: 'De tankwagen zit klem\./);
   const m = bron('missions.js');
-  assert.match(m, /if \(st\.vast && chaseStuckStep\(S, t, dt\)\) \{ stopChaseVehicle\(world, def, st, st\.vast\); break; \}/);
+  assert.match(m, /if \(st\.vast && chaseStuckStep\(S, t, dt, d\)\) \{ stopChaseVehicle\(world, def, st, st\.vast\); break; \}/);
 });
 
 console.log(`chasestuck_test: ${n} checks`);

@@ -2272,8 +2272,12 @@ export function chaseWaitMax(d0, st) {
 // CHASE_STUCK_S seconds. Kept pure so a test can prove the timing; S holds the anchor and the clock.
 export const CHASE_STUCK_S = 12;
 export const CHASE_STUCK_RADIUS = 6;
-export function chaseStuckStep(S, v, dt) {
+// Only counts while a player is close (d metres, given): a tanker at a red light or in a queue while you are still far away is
+// waiting, not stuck, and ending the chase then would hand the stage over for free. The clock stands still while you are far.
+export const CHASE_STUCK_NEAR = 80;
+export function chaseStuckStep(S, v, dt, d) {
   if (!S.stuckAt || Math.hypot(v.x - S.stuckAt.x, v.y - S.stuckAt.y) > CHASE_STUCK_RADIUS) { S.stuckAt = { x: v.x, y: v.y }; S.stuckT = 0; return false; }
+  if (Number.isFinite(d) && d > CHASE_STUCK_NEAR) { S.stuckT = 0; return false; }
   S.stuckT = (S.stuckT || 0) + dt;
   return S.stuckT >= CHASE_STUCK_S;
 }
@@ -3633,7 +3637,7 @@ function updateStages(dt, world, def) {
         if (st.go) world.addMessage(st.go, 4);
       }
       // #955: stuck for good (a dead end, a wall): the crew bails out, like with flat tyres, and the run goes on to the board stage
-      if (st.vast && chaseStuckStep(S, t, dt)) { stopChaseVehicle(world, def, st, st.vast); break; }
+      if (st.vast && chaseStuckStep(S, t, dt, d)) { stopChaseVehicle(world, def, st, st.vast); break; }
       // boxed in: it stands still with you right on it for a moment, and that is a stop as well
       if (st.block) {
         S.blockT = Math.abs(t.speed) < 1 && d < 10 ? (S.blockT || 0) + dt : 0;
