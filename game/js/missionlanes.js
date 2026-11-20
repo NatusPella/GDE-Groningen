@@ -8,6 +8,7 @@ import { knockDown, isKnockedDown } from './ragdoll.js';
 import { requestRespawn } from './world.js';
 import { hoofdspeler } from './players.js';
 import { teamActor, groepsActeurs } from './stagegroep.js';
+import { createDodge, wavesDue, waveBikes, passTick, noteDodge, noteHit, segmentStart, tempoTick, extraWave, halfwayDue, hudLine, DODGE_HINT, DODGE } from './fatbikedodge.js';
 
 const BIKE_TOUCH_RADIUS = 1.15;
 const BIKE_HIT_GRACE = 2.5;
@@ -58,19 +59,19 @@ function laneProject(g, x, y) {
   return { s: best.s, lat: (x - q.x) * q.nx + (y - q.y) * q.ny };
 }
 
-function spawnLaneBike(world, def, dir, s0 = null) {
+function spawnLaneBike(world, def, dir, s0 = null, spec = null) {
   const g = laneGeom(def);
   const eigen = hoofdspeler(world); // de speler van dit apparaat: de baan voedt zich rond hem
-  const fat = Math.random() < LANE_FAT_SHARE;
+  const fat = spec ? spec.fat : Math.random() < LANE_FAT_SHARE;
   // a long lane (H12) feeds bikes in around the player instead of only at its ends
   const pl = s0 == null && g.len > 220 ? laneProject(g, eigen.x, eigen.y).s : null;
   const s = s0 ?? (pl != null ? clamp(pl + dir * -(45 + Math.random() * 30), 0, g.len) : dir > 0 ? 0 : g.len);
   const q = laneAt(g, s);
   // never out of thin air on top of the player
-  if (dist(q.x, q.y, eigen.x, eigen.y) < 12) return;
-  const lat = (Math.random() * 2 - 1) * LANE_HALF;
+  if (dist(q.x, q.y, eigen.x, eigen.y) < 12) return null;
+  const lat = spec ? spec.lat : (Math.random() * 2 - 1) * LANE_HALF;
   const x = q.x + q.nx * lat, y = q.y + q.ny * lat;
-  if (isInsideBuilding(world.map, x, y)) return;
+  if (isInsideBuilding(world.map, x, y)) return null;
   const ang = q.a + (dir < 0 ? Math.PI : 0);
   const rider = RIDER_COLORS[Math.floor(Math.random() * RIDER_COLORS.length)];
   let v;
@@ -84,9 +85,11 @@ function spawnLaneBike(world, def, dir, s0 = null) {
   v.driver = 'mission';
   v.road = null;
   v.missionFatbike = true;
-  v.speed = fat ? 6.5 + Math.random() * 2 : 4.2 + Math.random() * 1.8;
+  v.speed = spec ? spec.speed : fat ? 6.5 + Math.random() * 2 : 4.2 + Math.random() * 1.8;
   world.vehicles.push(v);
-  state().bikes.push({ v, s, dir, lat, latT: lat, speed: v.speed, fat, decided: false, weaveAt: world.time + 1 + Math.random() * 2 });
+  const b = { v, s, dir, lat, latT: spec && spec.latT != null ? spec.latT : lat, speed: v.speed, fat, decided: !!spec, weaveAt: world.time + 1 + Math.random() * 2, rec: {}, cross: !!(spec && spec.cross) };
+  state().bikes.push(b);
+  return b;
 }
 
 function startLane(world, def) {
@@ -97,6 +100,10 @@ function startLane(world, def) {
   state().laneT = 0.4;
   state().laneDir = 1;
   const p = hoofdspeler(world);
+  // AAA M08: de ontwijk-uitdaging (golven, teller, raakgrens); zonder def.dodge blijft de baan zoals hij was
+  state().dodge = def.dodge ? createDodge(g.len, def.dodgeSeed || 808) : null;
+  state().dodgeDef = def.dodge ? def : null;
+  if (state().dodge) world.addMessage(DODGE_HINT, 5, { key: 'fat-uitleg' });
   for (let s = 10, dir = -1; s < Math.min(g.len, 120); s += 11 + Math.random() * 6, dir = -dir) {
     const q = laneAt(g, s);
     if (dist(q.x, q.y, p.x, p.y) > 12) spawnLaneBike(world, def, dir, s);
@@ -122,13 +129,55 @@ function fatbikersAnswerHonk(world, p) {
   (world.extraSpeakers || (world.extraSpeakers = [])).push({ x: b.v.x, y: b.v.y, h: 2.2, follow: b.v, speechText: text, speechUntil: world.time + 2.8 });
 }
 
+// Sleutel van een meespeler voor de tellers: de host (dit apparaat) of de slot van een gast.
+const dodgeKey = (a) => (a && a.gast ? 'g' + a.slot : 'host');
+
+// AAA M08: golven, ontweek-teller en tempo. De voortgang is die van de verste meespeler te voet (de groep loopt de baan samen).
+function updateDodge(dt, world, def, g) {
+  const d = state().dodge;
+  const groep = groepsActeurs(world).filter((a) => !a.inVehicle);
+  if (!groep.length) return;
+  let sMax = 0;
+  for (const a of groep) {
+    const pl = laneProject(g, a.x, a.y);
+    sMax = Math.max(sMax, pl.s);
+    if (tempoTick(d, dodgeKey(a), dt, pl.s) === 'prikkel') {
+      world.addMessage('De colonne loopt door. Niet blijven staan!', 2.6, { key: 'fat-tempo' });
+      for (const sp of waveBikes(d, extraWave(d))) spawnLaneBike(world, def, sp.dir, clamp(pl.s + sp.sOffset, 0, g.len), sp);
+    }
+  }
+  for (const w of wavesDue(d, sMax)) {
+    for (const sp of waveBikes(d, w, LANE_HALF)) spawnLaneBike(world, def, sp.dir, clamp(sMax + sp.sOffset, 0, g.len), sp);
+  }
+  const beat = halfwayDue(d, sMax);
+  if (beat) {
+    const kop = spawnLaneBike(world, def, -1, clamp(sMax + 40, 0, g.len), { fat: true, lat: 0, latT: null, speed: 7, cross: false });
+    const wie = kop ? kop.v : null;
+    if (wie) (world.extraSpeakers || (world.extraSpeakers = [])).push({ x: wie.x, y: wie.y, h: 2.2, follow: wie, speechText: beat.tekst, speechUntil: world.time + beat.secs });
+    world.addMessage(`${beat.wie}: ${beat.tekst}`, beat.secs, { kind: 'missie' });
+  }
+  // ontweken: een fiets die dichtbij kwam en weer weg is zonder raak
+  for (const b of state().bikes) {
+    for (const a of groep) {
+      const k = dodgeKey(a);
+      const rec = b.rec[k] || (b.rec[k] = {});
+      if (passTick(rec, dist(b.v.x, b.v.y, a.x, a.y)) === 'ontweken') {
+        const n = noteDodge(d, k);
+        if (!a.gast) world.addMessage(`Ontweken: ${n}`, 1.1, { key: 'fat-ontweken' });
+      }
+    }
+  }
+}
+
 function updateLaneBikes(dt, world, def) {
   const g = laneGeom(def);
   const p = hoofdspeler(world);
   fatbikersAnswerHonk(world, p);
+  const dodge = state().dodge;
+  if (dodge) updateDodge(dt, world, def, g);
   state().laneT -= dt;
   if (state().laneT <= 0 && state().bikes.length < LANE_MAX_BIKES) {
-    state().laneT = LANE_SPAWN_EVERY * (0.6 + Math.random() * 0.8);
+    state().laneT = LANE_SPAWN_EVERY * (dodge ? 2.4 : 1) * (0.6 + Math.random() * 0.8); // met golven is de losse stroom rustiger
     spawnLaneBike(world, def, state().laneDir);
     state().laneDir = -state().laneDir;
   }
@@ -149,7 +198,7 @@ function updateLaneBikes(dt, world, def) {
       b.weaveAt = world.time + 1.2 + Math.random() * 2.2;
       b.latT = clamp(b.lat + (Math.random() - 0.5) * 2.4, -LANE_HALF, LANE_HALF);
     }
-    const rate = b.fat ? 1.3 : 1.2;
+    const rate = b.cross ? 1.9 : b.fat ? 1.3 : 1.2;
     const dl = clamp(b.latT - b.lat, -rate * dt, rate * dt);
     b.lat += dl;
     b.speed = Math.min(b.speed + dt * 1.5, v.model.fat ? 8.5 : 6.2);
@@ -181,8 +230,10 @@ function checkLaneHits(world) {
       const v = b.v;
       if (Math.abs(v.x - p.x) > 2 || Math.abs(v.y - p.y) > 2 || dist(v.x, v.y, p.x, p.y) > BIKE_TOUCH_RADIUS) continue;
       state().fatbikeHits++;
+      const dodge = state().dodge;
+      if (dodge) { const rec = b.rec[dodgeKey(p)] || (b.rec[dodgeKey(p)] = {}); rec.klaar = true; }
       state().hitGraceUntil = world.time + BIKE_HIT_GRACE;
-      let dmg = Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3);
+      let dmg = dodge ? 0 : Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3); // M08: omvallen zonder letsel
       if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
       const isHost = p === host;
       if (isHost) world.health = Math.max(0, world.health - dmg);
@@ -191,13 +242,24 @@ function checkLaneHits(world) {
         if (p.health <= 0) p.coopDown = true;
       }
       const vx = Math.cos(v.angle) * b.speed, vy = Math.sin(v.angle) * b.speed;
-      const dead = isHost ? world.health <= 0 : p.health <= 0;
+      const dead = dodge ? false : isHost ? world.health <= 0 : p.health <= 0;
       world.lastImpact = { strength: b.fat ? 0.6 : 0.3, time: world.time, x: p.x, y: p.y };
       if (b.fat || dead) knockDown(p, world, { kind: 'hit', dead, vx: vx * 0.8, vy: vy * 0.8, vz: 1.2 + b.speed * 0.15, lieFor: 1.1 });
       else { p.shoveX = (p.shoveX || 0) + vx * 0.7; p.shoveY = (p.shoveY || 0) + vy * 0.7; }
       b.speed *= 0.4;
       world.addMessage(b.fat ? `Au! Geschept door een fatbike (${state().fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${state().fatbikeHits}x)`, 2);
       if (dead && isHost) requestRespawn(world);
+      if (dodge) {
+        const res = noteHit(dodge, dodgeKey(p));
+        world.addMessage(res.restart ? 'Twee keer geraakt: je valt om en staat weer op. Het stuk begint opnieuw.' : `Geraakt ${res.hits}/2. Nog een keer en je begint het stuk opnieuw.`, 3, { key: 'fat-raak' });
+        if (res.restart && !p.gast) {
+          const g = laneGeom(state().dodgeDef);
+          const q = laneAt(g, segmentStart(dodge, laneProject(g, p.x, p.y).s));
+          p.x = q.x; p.y = q.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
+          state().hitGraceUntil = world.time + 3;
+          if (Number.isFinite(state().timeLeft)) state().timeLeft += DODGE.restartBonus;
+        }
+      }
       break;
     }
   }
@@ -337,5 +399,6 @@ function releaseCrowd() {
     return def.dest;
   }
 
-  return { laneTarget, startLane, updateLaneBikes, checkLaneHits, releaseLaneBikes, spawnCrowds, updateCrowd, releaseCrowd, laneGeom, laneAt, laneProject };
+  const dodgeStatus = (key = 'host') => (state().dodge ? hudLine(state().dodge, key) : null);
+  return { dodgeStatus, laneTarget, startLane, updateLaneBikes, checkLaneHits, releaseLaneBikes, spawnCrowds, updateCrowd, releaseCrowd, laneGeom, laneAt, laneProject };
 }

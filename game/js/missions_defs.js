@@ -105,6 +105,7 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
       timeLimit: 160,
       reward: 500,
       onFoot: true,
+      dodge: true, // AAA M08: golven, ontweek-teller, twee keer geraakt = het stuk opnieuw (fatbikedodge.js)
       lane: lanePts,
       // passed on the way: a toast, once
       notes: [{ ...fatBridge, text: 'De Ebbingebrug. Nu langs het water, naar de Noorderhaven. Daar rijden ze nog harder.' }],
