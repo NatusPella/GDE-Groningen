@@ -19,6 +19,19 @@ export const SAMPLE_INFO = {
   trein_deur_open: { cat: 'spoor', gain: 0.45, ref: 6, range: 40, gap: 4 },
   trein_deur_piep: { cat: 'spoor', gain: 0.35, ref: 6, range: 40, gap: 6 },
   trein_deur_dicht: { cat: 'spoor', gain: 0.5, ref: 6, range: 40, gap: 3 },
+  // voertuigen (sfx/aircraft.js): naadloze lussen en een paar eenmalige klanken, de sturing staat in sfx/aircraftmap.js
+  heli_rotor_stat: { cat: 'voertuig', gain: 0.85, ref: 30, range: 1400, gap: 0 },
+  heli_rotor_vlucht: { cat: 'voertuig', gain: 0.85, ref: 30, range: 1400, gap: 0 },
+  vliegtuig_start: { cat: 'voertuig', gain: 0.9, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_stationair: { cat: 'voertuig', gain: 0.8, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_toeren: { cat: 'voertuig', gain: 0.8, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_wind: { cat: 'voertuig', gain: 0.8, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_overtrek: { cat: 'voertuig', gain: 0.5, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_gestel: { cat: 'voertuig', gain: 0.8, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_rol_asfalt: { cat: 'voertuig', gain: 0.8, ref: 25, range: 1400, gap: 0 },
+  vliegtuig_rol_gras: { cat: 'voertuig', gain: 0.8, ref: 25, range: 1400, gap: 0 },
+  boot_motor_stat: { cat: 'voertuig', gain: 0.7, ref: 12, range: 400, gap: 0 },
+  boot_motor_vol: { cat: 'voertuig', gain: 0.7, ref: 12, range: 400, gap: 0 },
 };
 export const SAMPLE_KEYS = Object.keys(SAMPLE_INFO);
 

@@ -14,6 +14,7 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
+import { keysReady, PLANE_KEYS, BOAT_KEYS } from './sfx/aircraft.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
 import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
 import { createParamMemo } from './audio/paramwrite.js';
@@ -1758,6 +1759,7 @@ function buildGraph() {
     dist: distToListener, listener: listenerPos, makePanner, setPannerPos,
     duckAmb: duckAmbience, setReverb, muted: () => muted, speech: () => speechLevel,
     engineSynth: () => !!synth.traffic,
+    samples,   // de opnames (sfx/samples.js), voor sfx/aircraft.js
   };
   initUiSfx(kit);
 }
@@ -1912,12 +1914,16 @@ function synthPost(node, msg) {
 
 const SURFACE_CODE = { asfalt: 0, klinkers: 1, gras: 2, fietspad: 3 };
 
+// een vliegtuig klinkt met zijn eigen opnames (sfx/aircraft.js); zonder die opnames blijft de motorsynth
+const planeSamplesReady = () => keysReady(kit, PLANE_KEYS);
+const boatSamplesReady = () => keysReady(kit, BOAT_KEYS);
+
 function updateEngineSynth(dt, world) {
   const S = engineState;
   const v = hoofdspeler(world).inVehicle;
   const t = ctx.currentTime;
   // a helicopter's rotor is sfx/sky.js, not a car engine
-  const motor = !!(v && !v.isBike && !v.isHeli && !v.wrecked && !v.shiftParked && !noMotor(v));
+  const motor = !!(v && !v.isBike && !v.isHeli && !(v.isPlane && planeSamplesReady()) && !(v.isBoat && boatSamplesReady()) && !v.wrecked && !v.shiftParked && !noMotor(v));
   if (motor && v !== S.vehicle) {
     S.vehicle = v;
     S.kind = engineKind(v);
@@ -1934,7 +1940,7 @@ function updateEngineSynth(dt, world) {
 
   const rain = clamp(world.weather ? world.weather.intensity || 0 : 0, 0, 1);
   let road = { gain: 0 };
-  if (v && !v.wrecked && !v.isHeli && !world.paused) {
+  if (v && !v.wrecked && !v.isHeli && !(v.isPlane && planeSamplesReady()) && !world.paused) {
     const speed = Math.abs(v.speed);
     const small = v.isBike || v.isScooter;
     const surface = v.isBoat ? 4 : SURFACE_CODE[v.surface] ?? 0;

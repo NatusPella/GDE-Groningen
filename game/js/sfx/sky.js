@@ -2,6 +2,9 @@
 // player's own helicopters (heliflight.js) and the hot-air balloon burners. Deliberately soft: a rounded low blade thump
 // rather than a buzzy chop, air absorption with distance and Doppler.
 
+import { hoofdspeler } from '../players.js';
+import { HELI_KEYS, keysReady, buildHeliSampleVoice, driveHeliSampleVoice, disposeHeliVoice, updateAircraftSfx } from './aircraft.js';
+
 const SOUND_C = 343;
 const HELI_RANGE = 1400;
 const HELI_LEVEL = 0.24;
@@ -102,7 +105,7 @@ function doppler(x, y, h, vx, vy, vz) {
 }
 
 function updateHeli(world) {
-  heli = rotorVoice(heli, world.skyHeli, HELI_LEVEL);
+  heli = rotorVoice(heli, world.skyHeli, HELI_LEVEL, false);
   // the nearest own helicopter with its rotor turning
   const L = kit.listener;
   let best = null, bd = HELI_RANGE;
@@ -111,20 +114,24 @@ function updateHeli(world) {
     const d = Math.hypot(v.x - L.x, v.y - L.z);
     if (d < bd) { bd = d; best = v; }
   }
-  own = rotorVoice(own, best, OWN_LEVEL);
+  const me = hoofdspeler(world);
+  own = rotorVoice(own, best, OWN_LEVEL, !!best && !!me && me.inVehicle === best);
 }
 
-function rotorVoice(voice, h, levelMax) {
+function rotorVoice(voice, h, levelMax, inside) {
   const src = h ? doppler(h.x, h.y, h.z + 2, h.vx || 0, h.vy || 0, h.vz || 0) : null;
   const audible = h && h.rotor > 0.02 && src.d < HELI_RANGE;
   if (!audible) {
     if (voice && voice.active) { setT(voice.level.gain, 0, 0.3); voice.active = false; }
     return voice;
   }
-  if (!voice) voice = buildHeliVoice();
+  // echte opnames (sfx/aircraft.js) als ze geladen zijn, anders de procedurele rotor
+  if (voice && !voice.sample && keysReady(kit, HELI_KEYS)) { disposeHeliVoice(voice); voice = null; }
+  if (!voice) voice = keysReady(kit, HELI_KEYS) ? buildHeliSampleVoice(kit) : buildHeliVoice();
   const heli = voice;
   heli.active = true;
   kit.setPannerPos(heli.panner, h.x, h.y, h.z + 2, true);
+  if (heli.sample) { driveHeliSampleVoice(kit, heli, h, { f: src.f, d: src.d, range: HELI_RANGE, levelMax, inside }); return voice; }
   const rpm = h.rotor, f = src.f;
   const edge = Math.min(1, (HELI_RANGE - src.d) / 300);
   setT(heli.level.gain, levelMax * Math.pow(rpm, 1.5) * edge, 0.2);
@@ -182,4 +189,5 @@ export function updateSkySfx(dt, world, k) {
   if (!kit) { kit = k; ctx = k.ctx; noise = brownNoise(3); }
   updateHeli(world);
   updateBurners(world);
+  updateAircraftSfx(dt, world, k);
 }
