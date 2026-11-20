@@ -294,7 +294,8 @@
      "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -422,7 +423,8 @@
      "text": "Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -520,7 +522,8 @@
      "text": "Gronings Ontzet, Tammo. Elk jaar spelen ze na hoe Grunn in 1672 de bisschop buiten hield.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -567,7 +570,8 @@
      "text": "Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we ons inschrijven, Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -610,7 +614,8 @@
      "text": "Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -619,7 +624,8 @@
      "text": "Zonder krassen, want het is Berends bakkie.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -638,7 +644,8 @@
      "text": "Eerst de stunts op de Grote Markt, dan brengen we het bakkie naar Berends zus.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -971,7 +978,8 @@
      "text": "Goud, Tammo. Van Berend is dat een medaille.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -1377,7 +1385,8 @@
      "text": "Ik ken iemand die opent wat niemand kan. Wij brengen de automaat naar hem.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -1548,7 +1557,8 @@
      "text": "Het museum. Daar staat de Gouden Eierbal, de wisselprijs van de Snackprijs.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -4692,7 +4702,8 @@
      "text": "Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -4710,7 +4721,8 @@
      "text": "Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Geesje",
@@ -4718,7 +4730,8 @@
      "text": "Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Geesje",
@@ -4726,7 +4739,8 @@
      "text": "Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -4772,7 +4786,8 @@
      "text": "De trekker staat bij de schuur. Hij trekt hard.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -4970,7 +4985,8 @@
      "text": "De kratten staan heel. Dat is een kerkelijk wonder.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -4988,7 +5004,8 @@
      "text": "Dat is meer dan de dominee ooit haalde.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Durk",
@@ -5014,7 +5031,8 @@
      "text": "Ze staan in de kerkkelder. Jullie komen te laat.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Durk",
@@ -5031,7 +5049,8 @@
      "text": "Dan koopt u een eierkoek.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -5060,7 +5079,8 @@
      "text": "Weer eieren? De kippen sturen een kaartje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -6588,7 +6608,8 @@
      "text": "Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Rotor Roelf",
@@ -6596,7 +6617,8 @@
      "text": "De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Dokter Dijkstra",
@@ -11354,7 +11376,8 @@
      "text": "Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -12221,7 +12244,8 @@
      "text": "Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Wubbo",
@@ -12663,7 +12687,8 @@
      "text": "Ik rij naast jullie, op mijn scooter. Dit is een bedevaart. Ik ken elk steegje van hier tot de Grote Markt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -12681,7 +12706,8 @@
      "text": "Een limo past niet in een steegje, jong.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -14088,7 +14114,8 @@
      "text": "De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -14106,7 +14133,8 @@
      "text": "Wie blijft staan, mag breien.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -15874,7 +15902,8 @@
      "text": "Ik zie alles vanaf mijn toren. Dit is geen toren. Het is een hooiberg. Ik zie alles toch.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Duivenmelker Bert",
@@ -16164,7 +16193,8 @@
      "text": "Links. Het derde bolwerk. Ze kijken niet. Ze eten.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",

@@ -2533,6 +2533,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Eerst de stunts op de Grote Markt, dan brengen we het bakkie naar Berends zus.": {
+"src": "anita/eerst_de_stunts_op_de_grote_mark_89f3ba03.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Eerst de stunts op de Grote Markt, dan brengen we het bakkie naar Berends zus.",
+"style": "warm, grinnikend",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Anita|Eerst geld. Inschrijven voor de Snackprijs kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur, bij Het Loket.": {
 "src": "anita/eerst_geld_inschrijven_voor_de_s_44c658ba.mp3",
 "model": "gemini-3.8-flash-lite-tts",
@@ -2543,6 +2554,17 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
+},
+"Anita|Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur.": {
+"src": "anita/eerst_geld_meedoen_aan_die_wedst_37697d43.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Anita|Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.": {
 "src": "anita/eerst_het_umcg_dan_jelles_ballon_9df04da3.mp3",
@@ -3067,6 +3089,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
+"Anita|Goud, Tammo. Van Berend is dat een medaille.": {
+"src": "anita/goud_tammo_van_berend_is_dat_een_45a474d5.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Goud, Tammo. Van Berend is dat een medaille.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Anita|Gronings Ontzet, Tammo. Elk jaar spelen ze na hoe Grunn in 1672 de bisschop buiten hield.": {
+"src": "anita/gronings_ontzet_tammo_elk_jaar_s_a2eee016.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Gronings Ontzet, Tammo. Elk jaar spelen ze na hoe Grunn in 1672 de bisschop buiten hield.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Anita|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.": {
 "src": "anita/gronings_ontzet_de_noordelijke_s_7dfa54e0.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -3383,6 +3427,17 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-26"
+},
+"Anita|Het museum. Daar staat de Gouden Eierbal, de wisselprijs van de Snackprijs.": {
+"src": "anita/het_museum_daar_staat_de_gouden__de7781d9.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Het museum. Daar staat de Gouden Eierbal, de wisselprijs van de Snackprijs.",
+"style": "enthousiast, snel",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Anita|Het museum. De Gouden Eierbal.": {
 "src": "anita/het_museum_de_gouden_eierbal_70526a93.mp3",
@@ -3788,6 +3843,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
 },
+"Anita|Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket.": {
+"src": "anita/honderdvijftig_euro_dat_is_preci_64087414.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Anita|Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.": {
 "src": "anita/hou_de_kraam_heel_tegen_het_vuur_be5c5200.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -4001,6 +4067,17 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, reagerend op wat er net gebeurde.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
+},
+"Anita|Ik ken iemand die opent wat niemand kan. Wij brengen de automaat naar hem.": {
+"src": "anita/ik_ken_iemand_die_opent_wat_niem_9d6d0b5c.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Ik ken iemand die opent wat niemand kan. Wij brengen de automaat naar hem.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Anita|Ik kies waar we heen gaan. Jij kijkt veel te schuldig om te kiezen.": {
 "src": "anita/ik_kies_waar_we_heen_gaan_jij_ki_6b2910bf.mp3",
@@ -6364,6 +6441,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
+"Anita|Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we ons inschrijven, Tammo.": {
+"src": "anita/vijftig_euro_van_berend_en_honde_945aef08.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we ons inschrijven, Tammo.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Anita|Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo.": {
 "src": "anita/vijftig_euro_van_berend_met_de_s_fd4f24dc.mp3",
 "model": "gemini-3.8-flash-lite-tts",
@@ -7172,6 +7260,28 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
+},
+"Anita|Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen.": {
+"src": "anita/zonder_bank_blijft_er_e_e_n_weg__708a9e71.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Anita|Zonder krassen, want het is Berends bakkie.": {
+"src": "anita/zonder_krassen_want_het_is_beren_d45e6d6f.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Zonder krassen, want het is Berends bakkie.",
+"style": "plagend, zelfverzekerd",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Anita|Zonder krassen.": {
 "src": "anita/zonder_krassen_483b8ad1.mp3",
@@ -9645,6 +9755,204 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: vlot en opgewekt, als radiopresentatrice.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Geesje|Dan koopt u een eierkoek.": {
+"src": "geesje/dan_koopt_u_een_eierkoek_b46628c6.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Dan koopt u n eierkoek.",
+"style": "warm, ontspannen, als radiopresentatrice",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Dat is meer dan de dominee ooit haalde.": {
+"src": "geesje/dat_is_meer_dan_de_dominee_ooit__8125541c.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Dat is meer as de dominee ooit haald.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|De kratten staan heel. Dat is een kerkelijk wonder.": {
+"src": "geesje/de_kratten_staan_heel_dat_is_een_d111d030.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "De kratten stoan hiel. Dat is n kerkelk wonder.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien.": {
+"src": "geesje/de_steeg_bij_de_notaris_is_dicht_3cfcb1dd.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "De steeg bie de notaris is dicht. Scooter dwars. Ik zit der op te breien.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|De trekker staat bij de schuur. Hij trekt hard.": {
+"src": "geesje/de_trekker_staat_bij_de_schuur_h_74f1f08a.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "De trekker stait bie de schuur. Hai trekt hard.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Een limo past niet in een steegje, jong.": {
+"src": "geesje/een_limo_past_niet_in_een_steegj_b65487a0.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "N limo past nait in n steegje, jong.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Ik rij naast jullie, op mijn scooter. Dit is een bedevaart. Ik ken elk steegje van hier tot de Grote Markt.": {
+"src": "geesje/ik_rij_naast_jullie_op_mijn_scoo_8e1cc8b7.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Ik ried naast jim, op mien scooter. Dit is n bedevaart. Ik ken elk steegje van hier tot de Grote Markt.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt.": {
+"src": "geesje/ik_rij_op_mijn_scooter_een_bedev_e5adb45b.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Ik ried op mien scooter. N bedevaart op twij wielen. Hai is gaauwer as hai schient.",
+"style": "droog, met een knipoog, als radiopresentatrice",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Ik zie alles vanaf mijn toren. Dit is geen toren. Het is een hooiberg. Ik zie alles toch.": {
+"src": "geesje/ik_zie_alles_vanaf_mijn_toren_di_55010d87.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Ik zie aals vanof mien toren. Dit is gain toren. t Is n hooiberg. Ik zie aals toch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract.": {
+"src": "geesje/jelle_terpstra_heeft_alle_eieren_c58ce0a7.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Jelle Terpstra het aal de aaien van t Hogeland opkocht, behalve dij van mie. Mien kippen hebben gain contract.",
+"style": "droog, met een knipoog, als radiopresentatrice",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet.": {
+"src": "geesje/jullie_brengen_ze_heel_naar_de_k_7912a188.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Jim brengen ze hiel noar de kerkkelder in Usquert. Doar is t koel, en doar komt Jelle nait.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo.": {
+"src": "geesje/jullie_zijn_van_trijntje_het_zij_50a9fdca.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Jim binnen van Trijntje. t Binnen aaien, gain relikwieën. Mor ik ben kosteres, dus ik behandel ze zo.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Links. Het derde bolwerk. Ze kijken niet. Ze eten.": {
+"src": "geesje/links_het_derde_bolwerk_ze_kijke_74714841.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Links. t Derde bolwerk. Zai kieken nait. Zai eten.",
+"style": "droog, met een knipoog, als radiopresentatrice",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong.": {
+"src": "geesje/mijn_kerkvoogdij_is_gebeld_de_ke_4df0eb55.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Mien kerkvoogdij is belt. De kerkkelder is verhuurd. t Spiet mie, jong.",
+"style": "droog, met een knipoog, als radiopresentatrice",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Weer eieren? De kippen sturen een kaartje.": {
+"src": "geesje/weer_eieren_de_kippen_sturen_een_7286c593.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Weer aaien? De kippen sturen n kaartje.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Wie blijft staan, mag breien.": {
+"src": "geesje/wie_blijft_staan_mag_breien_a771e557.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Wel bliedt stoan, mag breien.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Ze staan in de kerkkelder. Jullie komen te laat.": {
+"src": "geesje/ze_staan_in_de_kerkkelder_jullie_fdb977fe.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Zai stoan in de kerkkelder. Jim komen te loat.",
+"style": "warm, ontspannen, als radiopresentatrice",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
+"Geesje|Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.": {
+"src": "geesje/zijn_moeder_gerda_belt_trijntje__19d448d2.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Pulcherrima",
+"input": "Zien moeke, Gerda, belt Trijntje elk joar op heur verjoardag. Zai zeggen dan allebaai niks.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Harm|De laatste fase. Weer. Ik kom elke keer kijken.": {
 "src": "harm/de_laatste_fase_weer_ik_kom_elke_2b679eaf.mp3",
@@ -15427,6 +15735,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Rotor Roelf|De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?": {
+"src": "rotor_roelf/de_lunch_is_van_dijkstra_nait_te_863a6851.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Achird",
+"input": "De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings. Tone: vragend, nieuwsgierig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
+},
 "Rotor Roelf|Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?": {
 "src": "rotor_roelf/moi_rotor_roelf_van_eelde_de_pro_ca056fe5.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -15436,6 +15755,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings. Tone: joviaal, verkoperig, waarschuwend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Rotor Roelf|Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak.": {
+"src": "rotor_roelf/moi_rotor_roelf_die_heli_is_van__f8a1479b.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Achird",
+"input": "Moi! Rotor Roelf. Dij heli is van mie, ik zette hem gisteren op t UMCG-dak.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings. Tone: gemoedelijk, waarschuwend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-20"
 },
 "Rotor Roelf|Volgetankt. Rechtdoor naar het noorden, dan zie je Stad vanzelf.": {
 "src": "rotor_roelf/volgetankt_rechtdoor_naar_het_no_b76815a5.mp3",
