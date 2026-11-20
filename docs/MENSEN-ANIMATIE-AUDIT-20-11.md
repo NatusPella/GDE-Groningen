@@ -93,3 +93,7 @@ Elke run draaide op een machine met bijna geen vrij geheugen en een volle CPU (d
 
 Gezien: de wandel- en rencyclus in beeld, de speler die staat (geen NaN, geen scheve romp), de run zonder fouten in de console van het script. Zie hierboven voor de beelden die zijn opgeslagen.
 Niet gezien, nog niet bekeken: een scherpe bocht van een rennende voetganger; de blik van een voetganger in beeld bij een echte passage (er is een glimp gemeten, `blikFrames`, maar de hoek is niet beoordeeld); de claxon in beeld; het geluid van de stappen op de getekende voet (alleen de code en de pure test: niet beluisterd); medespelers lopen horen (niet getest met twee instanties); zwemmen, klimmen, in- en uitstappen zijn vandaag niet opnieuw bekeken; fietsers, picknickers en haltefiguren zijn niet beoordeeld.
+
+### Na-beelden van de modelfixes (gezien)
+
+[Tammo schuin, na](beeld-20-11/mensen/na-tammo-stand-schuin.png): de capuchon heeft nu een donkere binnenwand (voering) en is geen losse vin meer; de pet is ongewijzigd goed. [Tessa voor, na](beeld-20-11/mensen/na-tessa-stand-voor.png): **de zwarte punten over voorhoofd en slapen zijn er nog**; de slaapfix is in beeld niet te onderscheiden en dit probleem is niet opgelost. Waarschijnlijk komen ze uit de rand van `hairCap` (front van de haarschil, 10 segmenten, helling 0,3 rad) en niet uit `hairCurtain`; niet verder onderzocht. Open voor een vervolgronde.
