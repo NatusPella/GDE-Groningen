@@ -245,6 +245,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?storytest` | Geautomatiseerde verhaaltest; opslag alleen in het geheugen |
 | `?autoplay` | Spelbot (#186; `window.__bot.speed(1..8)` of `run.mjs --speed=N` versnelt de speltijd; `run.mjs --reizen` zet de reisbeats aan, de bot kiest dan Meerijden): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen |
 | `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
+| `?geenlimiter` | Geen limiter op het geluid (A/B-test bij knallen of ruis, zie docs/AUDIO-GLITCHES-21-11.md) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Sla het aantrekkingsfilmpje en de eerste-start-meting over; een testrun start meteen in de wereld |
 | `?menutest` | Houd het oude startscherm voor de QA-harnassen (`GDE_MENU_TEST=1`, devtools zet deze vlag); elke gewone start en elke testrun begint meteen in de wereld |
