@@ -15,13 +15,13 @@ const PREFIX = arg('prefix', 'x');
 fs.mkdirSync(OUT, { recursive: true });
 const profile = path.join(OUT, `profiel-${process.pid}`);
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__bd = ${JSON.stringify({ prefix: PREFIX, settle: Number(arg('settle', 8000)) })};\n` + fs.readFileSync(path.join(HERE, 'boerderij_beeld.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__bd = ${JSON.stringify({ prefix: PREFIX, settle: Number(arg('settle', 8000)) })};\n` + fs.readFileSync(path.join(HERE, arg('page', 'boerderij_beeld.page.js')), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(profile, { recursive: true });
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_PROFILE_DIR: profile, GDE_NO_THROTTLE: '1' };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
 delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--no-sandbox', '--in-process-gpu', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+const r = spawnSync(electron, ['.', '--no-sandbox', '--in-process-gpu', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${arg('size', '1600x900')}`,
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
 { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 25 * 60 * 1000, killSignal: 'SIGKILL' });

@@ -96,10 +96,12 @@ t('veldkaarten: status, voortgang en de ene knop; de uitleg verdwijnt na Begrepe
   const b2 = B.nieuweBoerderij();
   B.rondTaakAf(b2, 'ploegen', 1, { vrij: true }); B.rondTaakAf(b2, 'zaaien', 1, { gewas: 'aardappelen', vrij: true }); B.tikUren(b2, 5);
   const html = K.kaartenBlok(b2);
-  assert.match(html, /bd-veld/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
+  assert.doesNotMatch(html, /class="ds-kaart bd-veld"/, 'één veld: geen tweede kaart met dezelfde gegevens'); assert.match(html, /bd-nu/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
   assert.equal((html.match(/class="ds-knop"/g) || []).length, 1, 'één gele hoofdknop');
   assert.match(html, /data-bd-naar=/);
   assert.match(html, /bd-uitleg-kaart/);
+  const st = S.veldStatus(b2, b2.bedrijf.actief);
+  assert.match(K.veldKaartHtml(st), /class="ds-kaart bd-veld"/, 'de veldkaart zelf blijft voor meerdere velden');
 });
 
 t('HUD-model: voortgang, snelheid in de band, diesel laag en wat nu', () => {
