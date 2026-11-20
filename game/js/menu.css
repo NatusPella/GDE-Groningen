@@ -152,8 +152,8 @@ button.m-li:hover, label.m-li:hover { background: rgba(240, 237, 228, 0.04); }
 .m-sl::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, rgba(240, 237, 228, 0.85) var(--fill), rgba(240, 237, 228, 0.18) var(--fill)); }
 .m-sl::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; background: var(--ink); border: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
 .m-li.sel .m-sl::-webkit-slider-runnable-track, .m-li:focus-within .m-sl::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--g) var(--fill), rgba(240, 237, 228, 0.18) var(--fill)); }
-.m-sl:focus-visible { outline: none; }
-.m-sl:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(63, 201, 122, 0.4); }
+.m-sl:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 14px; }
+.m-sl:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--g), 0 1px 4px rgba(0, 0, 0, 0.5); }
 .m-pk { display: inline-flex; align-items: center; gap: 4px; flex: none; }
 .m-pk button { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(240, 237, 228, 0.72); }
 .m-pk button:hover:not(:disabled) { background: rgba(240, 237, 228, 0.06); color: var(--ink); }

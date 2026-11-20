@@ -112,5 +112,15 @@ ok(/html\.sub-uit :is\(#cine \.cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-s
 ok(/html\.sub-uit #name-card \{ display: none !important; \}/.test(a11yCss), 'de naamkaart verdwijnt ook');
 ok(/toggle\('showSubtitles', 'Ondertitels aan'/.test(pmSrc), 'de schakelaar staat in de vouw Ondertitels');
 
+// QA-sweep 20-11: een railknop is op raakbediening minstens 44 px, en de schuif en het kaartzoekveld hebben een zichtbare focusring
+{
+  const pauseCss = readFileSync(new URL('../game/js/pausemenu.css', import.meta.url), 'utf8');
+  const menuCss = readFileSync(new URL('../game/js/menu.css', import.meta.url), 'utf8');
+  const mapSrc = readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  ok(/html\.touch-play #pause-menu \.ra \{ min-height: 44px; \}/.test(pauseCss) && /@media \(pointer: coarse\) \{[\s\S]*?#pause-menu \.ra \{ min-height: 44px; \}/.test(pauseCss), 'railknoppen zijn op raakbediening minstens 44 px hoog');
+  ok(/\.m-sl:focus-visible \{ outline: 2px solid var\(--ink\)/.test(menuCss), 'de schuifregelaar heeft een zichtbare focusring');
+  ok(/\.mapview-search input:focus-visible \{ outline: 3px solid/.test(mapSrc), 'het kaartzoekveld heeft een zichtbare focusring');
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `a11y_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

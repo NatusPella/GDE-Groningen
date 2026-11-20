@@ -1080,3 +1080,13 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .pm-settab > .m-pane { display: none; }
   #pause-menu .pm-settab .pm-slist { width: auto; flex: 1 1 auto; max-width: 100%; padding-right: 0; margin-left: 0; }
 }
+
+/* Raakbediening (QA-sweep 20-11): een railknop is minstens 44 px hoog, ook op een telefoon op zijn zij (800x360 mat
+   101 x 24 px). De rail schuift zelf als alle onderdelen niet passen; deze regels staan achteraan zodat ze de
+   --ra-h van de hoogtebreekpunten winnen. */
+html.touch-play #pause-menu .pm-rail { --ra-h: 44px; }
+html.touch-play #pause-menu .ra { min-height: 44px; }
+@media (pointer: coarse) {
+  #pause-menu .pm-rail { --ra-h: 44px; }
+  #pause-menu .ra { min-height: 44px; }
+}

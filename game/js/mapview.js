@@ -175,6 +175,7 @@ function injectStyles() {
       outline: none;
     }
     .mapview-search input:focus { border-color: ink(greenLight); box-shadow: 0 0 0 2px ink(greenLight 0.3); }
+    .mapview-search input:focus-visible { outline: 3px solid ink(cream); outline-offset: 2px; }
     .mapview-search input::placeholder { color: ink(cream 0.5); }
     .mapview-results {
       position: absolute;
