@@ -7,6 +7,8 @@ map view, phone notifications, future menus) should read as *one* system:
 fresh Gronings green, on dark crime-poster chrome, in a tall condensed
 poster font. If a screen doesn't match this, it's a bug.
 
+> **Direction change (20 November, ADR 0040).** The target is now one material for every surface, the summer screen print of "Design system v3" below; the glass and receipt chapters describe the code until each screen is migrated.
+
 This page holds the overview and the rules. The details live next to it, each read from the code with file names:
 
 | Page | What is in it |
@@ -335,6 +337,77 @@ For every new screen, mission, side job or minigame answer, in the issue or chan
 6. **Which test covers it?** A pure test in `scripts/coop/` or a test-bank step.
 
 The wording, the players list (hold Tab), passive mode, Meedoen?, host handover and the wait screens are in [docs/DESIGN-SAMEN-SPELEN.md](docs/DESIGN-SAMEN-SPELEN.md).
+
+## Design system v3: zomerse zeefdruk (decided 20 November, ADR 0040; not built yet)
+
+> **Status.** This chapter is the target. The owner chose it in three question rounds on 20 November; the work is milestone "Designsysteem v3: zomerse zeefdruk", #991 to #1002, starting with #991, #992 and the HUD trial #993 ([ADR 0040](.specs-fire/standards/adr/0040-zomerse-zeefdruk-als-designsysteem.md)). Nothing below is in the game yet; until a screen is migrated, the v1 and v2 chapters describe what the code does. When this chapter and an older one disagree about the *target*, this one wins. The hex values are provisional until the HUD trial (first issue of the epic) has been seen in the game and approved by the owner.
+
+**One material everywhere: a summer screen print.** HUD, menus, phone, map, load screens and big moments all read as one hand-pulled poster: cream paper, hard ink, a hard offset shadow instead of a glow, misregistration as the signature, a halftone for empty or unavailable. Dark glass and the v2 receipt are retired as surfaces; their mechanism (`ds-tokens.css`, `ds-components.css`, `ds-galerij.html`) stays and carries the v3 values.
+
+### Inks (the whole palette)
+
+| Ink | Provisional hex | Role | Never |
+|---|---|---|---|
+| `papier` | `#f3ead3` | every surface, also behind HUD numbers as a plate | flat white |
+| `inkt` | `#1d1b17` | text, outlines, hard shadows | pure black |
+| `bordgroen` | `#0e6b3c` | headers, navigation, selection edge, GPS-free map ink | a button fill |
+| `zomergeel` | `#f9c80e` | the one thing you can do now, the route line, the moment band | text, or anything without an ink edge |
+| `roze` | `#e8505b` | misregistration, wanted, the second print pass | status other than wanted |
+| `gevaar` | `#d93f3f` (on paper `#b3261e` edge, `#8c1d18` text) | danger only (ADR 0010) | decoration |
+| `--mk-*` | from `PALETTES` | world markers and the colour-blind modes | replaced by an ink |
+
+Five inks plus two status roles, nothing else: a hex outside this table fails the token test. `#e8c93a` merges into `zomergeel`; the wanted stars become `roze` stars with an ink edge and a halftone for an empty star (shape plus count, never colour alone).
+
+### Print effects (each one has a job)
+
+- **Misregistration:** a hard 2 to 3 px offset in `roze` under display type and numbers. It marks *change* and *identity*, not body text: never on a sentence, never on a keycap.
+- **Hard shadow:** 3 to 4 px offset in `inkt`, `bordgroen` or `roze`, no blur. It is the elevation scale (one shadow = raised, none = flat, pressed = shadow gone and the card moved by the same offset).
+- **Halftone raster:** a 6 px dot pattern in `inkt` at low opacity. It means empty, unavailable or locked; never a background decoration behind text.
+- **Tilt:** cards may sit at -1.5 to 1.5 degrees; text in a sentence is never rotated more than that, and a focused card straightens.
+
+### Type
+
+- **Barlow Condensed** (600, 800) for titles, numbers, HUD values, buttons and stamps; mixed case is allowed and preferred for words longer than a label.
+- **Atkinson Hyperlegible** (400, 700) for every sentence: messages, subtitles, descriptions, receipts.
+- Both are OFL and **self-hosted** under `game/fonts/`; the Google Fonts links in `game/index.html` go (constitution rule 4). Big Shoulders stays only for the logo, also self-hosted.
+- The reading norm stays: 13 px goal, 12 px hard floor, sized for the controller-first couch distance.
+
+### Rustig drukwerk (setting)
+
+One switch, next to "Beweging beperken" and high contrast: no misregistration, no tilt, no halftone (an empty state becomes a word plus an outline), no stamp animation, and every text pair at least 7:1. Same inks, same layout, same components: a component reads `html.rustig-drukwerk` through tokens, never a screen of its own. On by default on the Steam Deck. The visual regression runs every screen in both modes.
+
+### HUD
+
+- **Appears when needed.** The minimap and the objective line always show; money, health, weapon and wanted appear on a change, in danger or on a held button, and fade after 4 s. Setting "Altijd tonen" keeps them. The attention budget and `mayShow()` still decide *whether* something shows.
+- **HUD values sit on a paper plate** with an ink outline, so the print look holds over any scene; misregistration only pulses on a change.
+- **Minimap:** a rounded square on paper with an ink edge and a hard shadow, the route as a thick `zomergeel` line with ink chevrons, zoomed in on foot and by bike and out in a car, the neighbourhood name on an ink label underneath.
+- The corner roles of "HUD corners" stay.
+
+### Big moments
+
+Four moments get the full treatment; all respect Rustig drukwerk (no slow motion, no stamp motion, the same words):
+
+| Moment | Form |
+|---|---|
+| Mission passed or failed | full screen: a tilted `zomergeel` band, a Gronings exclamation in large print with the Dutch line under it, reward and time, a stinger |
+| Opgepakt (busted) or knocked out | a stamp on a fine or a receipt with what it cost; no violence shown (constitution rule 6) |
+| New area or village | a place-name stamp like a postcard on the first visit |
+| Wanted up or down | a short misregistration flash at the edge next to the stars, not full screen, no flash above three a second |
+
+### Voice
+
+Full personality in the UI itself: parody apps, stamps, Gronings exclamations, dry empty states. Labels on controls stay verbs and stay plain ("Kopen", "Terug"); the jokes live in titles, empty states, moments, receipts and apps. Every Gronings line has the Dutch with it, no real brands or persons, and the 14-word budget stays.
+
+### Controller first
+
+Layouts are designed at couch distance and on the Steam Deck: large targets, d-pad focus order, bumpers for tabs, hold to confirm for anything irreversible. Mouse, keyboard and touch drive the same slots (unchanged rule); a screen is never designed for hover.
+
+### Enforcement
+
+1. **Token and component test:** a hex, font size or font family outside `ds-tokens.css`, or a button outside `ds-components.css`, fails (extends `ds_tokens_test`, `hud_kleuren_test` and `design_rules.mjs`).
+2. **The gallery is the only source:** `ds-galerij.html` shows every component in every state (focus, disabled, error, empty, Samen spelen, Rustig drukwerk). A new screen uses existing components or extends the gallery first.
+3. **Visual regression per screen:** Electron screenshots of every screen at 1280x800, 1920x1080 and 4K, in both modes, against approved references.
+4. **Migration as one epic:** HUD trial first, then pause and map, phone, shops and offers, minigames, Samen spelen, load and boot screens. No release ships a half-migrated screen.
 
 ## Design system v2 (#980, phase 1: the system; phase 2 under way: Winkel, Beleidswinkel, Garage, Te doen, Loopbanen, Verhaal and Veroverd are migrated, see docs/DESIGN-SCHULD.md)
 
