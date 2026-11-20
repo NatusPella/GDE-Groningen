@@ -3,6 +3,7 @@
 // a bar and the prestatie that is next up, and a tile folds open to its
 // prestaties; the one you pick is explained beside the list. Lifetime
 // figures, medals per mission and the job records fold at the bottom.
+import { icoon } from './icons.js';
 import { dualHtml } from './subtitles.js';
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
@@ -14,15 +15,12 @@ import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
 import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
 
-const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
-const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
-const CHIP_ICOON = {
-  ok: '<path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/>',
-  ster: '<path d="M8 1l1.8 4.2L14 6l-3.2 2.8L11.7 13 8 10.8 4.3 13l.9-4.2L2 6l4.2-.8z"/>',
-};
-const chip = (toon, icoon, tekst) => `<span class="ds-z-chip${toon ? ' ds-z-chip--' + toon : ''}"><svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true">${CHIP_ICOON[icoon]}</svg>${tekst}</span>`;
+const CHEV = icoon('volgende');
+const LOCK = icoon('slot');
+const CHIP_ICOON = { ok: 'vinkje', ster: 'ster' };
+const chip = (toon, naam, tekst) => `<span class="ds-z-chip${toon ? ' ds-z-chip--' + toon : ''}">${icoon(CHIP_ICOON[naam], { cls: 'ds-z-chip__icoon', maat: 's' })}${tekst}</span>`;
 const streep = (pct, label, dik) => `<div class="ds-z-balk${dik ? ' ' : ''}" style="--ds-z-w:${Math.max(0, Math.min(100, pct))}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${label}</span></div>`;
-const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const CHECK = icoon('vinkje');
 
 // de categorieën zijn kaarten met een icoon, een balk en de eerstvolgende
 // prestatie. De vormgeving woont hier bij de module, niet in pausemenu.css; alleen
