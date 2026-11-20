@@ -45,6 +45,8 @@ latere commits veranderd.
 
 ### 1. Middel (voor de eerstvolgende release): de speler rijdt mee met de taxi, maar bij een rit zonder landing wordt hij niet teruggezet
 
+**Status: gefixt** in 31983aca6. `aankomstNaRit` (meerijden.js): de speler landt altijd op de bestemming en betaalt wat hij nog heeft; de opmerking in reisrit3d.js is gecorrigeerd. De rit is lokaal, dus Samen spelen verandert niet. De bijzaak (gast zonder voertuig, testbankstap) is niet bekeken.
+
 - **Waar:** `game/js/reisrit3d.js:74-75` (nieuw sinds f9c06ef03: de hoofdspeler krijgt elke stap de positie van de taxi),
   `game/js/reisrit.js:309` (`if (!a) return { aangekomen: false }` zonder verplaatsing).
 - **Wat:** het normale pad is goed: `landNaRit` zet de speler daarna op de bestemming. Maar bereikt de rit het einde terwijl het
@@ -60,6 +62,8 @@ latere commits veranderd.
 
 ### 2. Laag: `chaseStuckStep` telt een auto voor een stoplicht of in een file als "vastgelopen"
 
+**Status: gefixt** in 3e256cc7f. `chaseStuckStep` telt alleen als de speler binnen `CHASE_STUCK_NEAR` (80 m) is.
+
 - **Waar:** `game/js/missions.js:2275-2279`, aanroep op `:3636`.
 - **Wat:** een achtervolgd voertuig dat 12 s binnen 6 m blijft telt als gestopt en de bemanning stapt uit. Alleen stappen met
   `vast` (M07, de tankwagen) hebben dit, maar een rood licht of een file van 12 s is geen vastloper.
@@ -69,6 +73,8 @@ latere commits veranderd.
   `Math.abs(t.speed) > 0.3`.
 
 ### 3. Laag: de skûtsje-finishcamera en het finishpubliek leven in een moduleglobal zonder vangnet
+
+**Status: gefixt** in b0b804c76. `finishBeeldWeg` ruimt het beeld ook bij een andere wereld of een teruggelopen klok; ruimen is nu foutbestendig. Niet bevestigd dat `idle()` na een laadactie draait, daarom de wereldcontrole in het beeld zelf.
 
 - **Waar:** `game/js/pg_skutsje.js:44-50`, `:383-389`, `:399`.
 - **Wat:** `finishBeeld` blijft na `stop()` bestaan en wordt alleen door `idle()` opgeruimd (na `FINISHCAM_SECS + 1` of als
@@ -80,6 +86,8 @@ latere commits veranderd.
 
 ### 4. Laag: `cameranear.js` kent `indoors`, maar `scene3d.js` geeft het altijd `false`
 
+**Status: niet gefixt** (bewust laten liggen).
+
 - **Waar:** `game/js/scene3d.js:4217` tegenover de opmerking in `cameranear.js:5-8` ("binnen ... blijft near 0,5").
 - **Wat:** dat klopt nu alleen omdat de speler binnen niet hoger dan 10 m boven de grond komt, of omdat `pl.gz + pl.z` de vrije
   ruimte klein houdt, of omdat een film `cameraOverride` zet. Zet een toekomstige binnenset de speler hoog zonder `gz` mee te
@@ -89,6 +97,8 @@ latere commits veranderd.
 
 ### 5. Laag: de knop "Opening opnieuw bekijken" sluit het menu voor de reden bekend is
 
+**Status: gefixt** in 41d7c1f76. Het menu sluit pas als `openingReplayGate` geen blokkade meldt.
+
 - **Waar:** `game/js/verhaalui.js:347-350`.
 - **Wat:** `hooks.close()` draait vóór `replayOpening()`. Kan de opening nu niet (in een voertuig, missie actief, Samen spelen),
   dan sluit het menu en toont alleen een bericht van 4 s; de speler moet het menu opnieuw openen. De knop staat altijd zichtbaar.
@@ -96,6 +106,8 @@ latere commits veranderd.
   met de reden als hulptekst.
 
 ### 6. Laag: een object per beeld in de kermisreactie
+
+**Status: niet gefixt** (bewust laten liggen).
 
 - **Waar:** `game/js/kermis_uitslag.js` (`tikReactie`), gebruikt in `game/js/kermis.js:728`.
 - **Wat:** elk beeld een nieuw object en een sluiting in `crowd.forEach` zolang de reactie loopt (2 tot 7 s). Verwaarloosbaar,
