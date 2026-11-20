@@ -45,7 +45,7 @@ import { wrakduikPrompt } from './wrakduikenlive.js'; // #839
 import { onderdeelPrompt } from './onderdelenlive.js'; // #837
 import { streekuitdagingPrompt } from './streekuitdaginglive.js'; // #835
 import { makePromptClock } from './prompttick.js';
-import { labelDy } from './promptclear.js';
+import { labelDy, anchorCovered } from './promptclear.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -552,6 +552,8 @@ function placeWp(slot, c, primary, hold = null) {
     slot.w = 0;
   }
   slot.el.classList.toggle('dim', !!c.dim);
+  hudObstacles();
+  slot.el.classList.toggle('wp-weg', anchorCovered(pos.sx, pos.sy, obstacleCache.boards)); // #985: het anker ligt onder een bord
   // #826: de chip is een label boven/naast de stip; meet hem elke keer en houd hem met zijn
   // echte hoogte en breedte binnen het scherm (de stip mag dichter bij de rand).
   slot.w = slot.chip.offsetWidth + 40;
@@ -617,21 +619,22 @@ function renderWorldPrompts(world, primary) {
 }
 
 // the HUD parts a world label must stay clear of (rects in screen px, measured at most every 0.2 s)
-const OBSTACLE_SEL = '.hud-top-right, .hud-cards .hud-card, .hud-cards-e .hud-card, .hud-mission, .hud-location, .hud-minimap-wrap, .hud-gps, .hud-nowplaying, .hud-speedo, .hud-race, .pf-card';
-let obstacleCache = { at: 0, list: [] };
+const BOARD_SEL = '.mg-board, .cw-panel, .stunt-hud, .hud-instr';
+const OBSTACLE_SEL = BOARD_SEL + ', .hud-top-right, .hud-cards .hud-card, .hud-cards-e .hud-card, .hud-mission, .hud-location, .hud-minimap-wrap, .hud-gps, .hud-nowplaying, .hud-speedo, .hud-race, .pf-card';
+let obstacleCache = { at: 0, list: [], boards: [] };
 function hudObstacles() {
   const now = performance.now();
   if (now - obstacleCache.at < 200) return obstacleCache.list;
-  const list = [];
+  const list = [], boards = [];
   const hud = root && root.parentElement;
   if (hud) for (const el of hud.querySelectorAll(OBSTACLE_SEL)) {
     if (el.hidden) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 8 || r.height < 8) continue;
     let o = 1; for (let a = el; a && a !== hud.parentElement; a = a.parentElement) o *= parseFloat(getComputedStyle(a).opacity);
-    if (o > 0.3) list.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom });
+    if (o > 0.3) { const q = { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; list.push(q); if (el.matches(BOARD_SEL)) boards.push(q); }
   }
-  obstacleCache = { at: now, list };
+  obstacleCache = { at: now, list, boards };
   return list;
 }
 

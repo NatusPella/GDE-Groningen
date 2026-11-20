@@ -198,7 +198,9 @@ body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gp
 .mg-stopask button[data-do="stop"] { background: var(--ds-zeef-bg); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
 .mg-stopask small { display: block; margin-top: 8px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-c-inkt-zacht); }
 /* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
-@media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - 330px); } }
+@media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - max(330px, var(--hud-c-right, 0px) + 12px)); } }
+/* #985: onder 1100 px past het bord niet meer tussen de berichtkolom en zone C: het hangt rechts onder zone C (de gemeten kolom) */
+@media (max-width: 1100px) { #hud .mg-board { left: auto; right: var(--hud-edge, 46px); transform: none; top: calc(var(--hud-tr-bottom, 150px) + 8px); min-width: 0; max-width: min(460px, calc(100vw / var(--ui, 1) - 2 * var(--hud-edge, 46px))); } }
 @media (max-width: 480px) { #hud .mg-board { top: 64px; left: 50%; transform: translateX(-50%); min-width: 0; max-width: calc(100vw - 32px); } }
 /* Zomerse zeefdruk (ADR 0040): het bord en het stopvenster als papier met inktrand en harde schaduw; de accentkleur van de
    minigame blijft de dikke linkerrand (identiteit), de tekst is inkt. Geen glas, geen verloop. */

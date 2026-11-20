@@ -154,9 +154,10 @@ const bord = async (naam, titel, set) => scene(naam, async () => {
   b.set(set); b.show();
   await sleep(800);
 }, { wacht: 1500, schoon: async () => { const b = window.__ovBord; if (b) { b.hide(); b.root.remove(); } window.__ovBord = null; } });
-const CELLEN = [{ t: 'Hole 1', cls: 'good' }, { t: 'Hole 2', cls: 'bad' }, { t: 'Hole 3', cls: 'on' }, { t: 'Hole 4' }, { t: 'Hole 5' }, { t: 'Hole 6' }, { t: 'Hole 7' }, { t: 'Hole 8' }, { t: 'Hole 9' }];
+// zoals discgolf.js: het aantal worpen per hole, de huidige met een stip, de rest het nummer
+const CELLEN = [{ t: '3', cls: 'good' }, { t: '5', cls: 'bad' }, { t: '·', cls: 'on' }, { t: '4' }, { t: '5' }, { t: '6' }, { t: '7' }, { t: '8' }, { t: '9' }];
 await bord('bord-discgolf', 'discgolf', { row: 'Worp <b>3</b> van 9 &middot; Par 3', cells: CELLEN, meter: { v: 0.62, mark: 0.78, text: '62%' }, flash: 'Mooie worp!', help: K.key('SPATIE') + ' werpen &middot; ' + K.key('ESC') + ' stoppen' });
-await bord('bord-kart', 'kartbaan', { row: 'Ronde <b>2</b> van 3 &middot; Plek 2 van 4', cells: [{ t: 'Ronde 1', cls: 'good' }, { t: 'Ronde 2', cls: 'on' }, { t: 'Ronde 3' }], meter: { v: 0.4, text: '40%' }, flash: 'Nieuwe snelste ronde!', help: K.key('W') + ' gas &middot; ' + K.key('ESC') + ' stoppen' });
+await bord('bord-kart', 'kartbaan', { row: 'Ronde <b>2</b> van 3 &middot; Plek 2 van 4', cells: [{ t: '1', cls: 'good' }, { t: '2', cls: 'on' }, { t: '3' }], meter: { v: 0.4, text: '40%' }, flash: 'Nieuwe snelste ronde!', help: K.key('W') + ' gas &middot; ' + K.key('ESC') + ' stoppen' });
 await bord('bord-skatepark', 'skatepark', { row: 'Trucs <b>4</b> &middot; Combo x3', cells: null, flash: 'Mooie combo', help: K.key('SPATIE') + ' springen &middot; ' + K.key('ESC') + ' stoppen' });
 await bord('bord-lang', 'discgolf', { row: LANG, cells: CELLEN, meter: { v: 0.3, text: '30%' }, flash: 'Dit is een wel erg lange melding die over het hele bord loopt zonder dat iemand dat bedoeld had', help: K.key('SPATIE') + ' werpen &middot; ' + K.key('ESC') + ' stoppen &middot; ' + K.key('TAB') + ' tussenstand &middot; ' + K.key('H') + ' hulp' });
 await scene('bord-discgolf-met-kaarten', async () => {
@@ -199,6 +200,7 @@ await scene('cinekaart', async () => {
   window.__ovFilm = true;
   const c = document.getElementById('cine');
   c.classList.add('active', 'letterbox', 'has-card');
+  document.body.classList.add('cine-hide-hud'); // zoals de echte filmlaag (cinematics.js hideHud)
   c.querySelector('.cine-kicker').textContent = 'Woensdag 26 augustus'; c.querySelector('.cine-title').textContent = 'De schuur van Tinus';
   const n = c.querySelector('.cine-name'); n.textContent = 'Tammo'; n.classList.add('visible');
   const sk = c.querySelector('.cine-chip'); sk.textContent = 'Dag 3'; sk.classList.add('visible');

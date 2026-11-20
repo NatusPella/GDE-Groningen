@@ -22,6 +22,7 @@
 #hud .wp[data-kind="mission"] { --wp-accent: #e8c93a; --wp-line: rgba(232, 201, 58, 0.85); }
 #hud .wp.in { opacity: 1; transition: opacity 0.18s ease; }
 #hud .wp.dim { opacity: 0.55; }
+#hud .wp.in.wp-weg { opacity: 0; } /* #985: het anker ligt onder een bord of paneel */
 
 #hud .wp-dot {
   position: absolute;

@@ -22,3 +22,9 @@ export function labelDy(rect, obstacles, view, gap = CLEAR_GAP) {
   }
   return obstacles.some((q) => raakt(r, q)) ? 0 : dy; // still stuck after the last round: leave it
 }
+
+// A label whose anchor (the dot on the world target) lies under a board or panel (minigame board, choice panel) is hidden: the board speaks
+// for itself and a leader line ending under it points at nothing. obstacles: { left, top, right, bottom }.
+export function anchorCovered(x, y, boards, slack = 2) {
+  return boards.some((b) => x > b.left - slack && x < b.right + slack && y > b.top - slack && y < b.bottom + slack);
+}

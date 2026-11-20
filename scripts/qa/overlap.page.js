@@ -84,7 +84,8 @@ function ovVlakken(opties = {}) {
   const wortels = [];
   if (hud) wortels.push(...hud.children);
   for (const c of document.body.children) { if (c !== hud) wortels.push(c); }
-  const negeerSel = opties.negeer || '';
+  // de stip en de streep van een wereldlabel zijn aanwijzers, geen tekst: alleen de chip telt (de chip valt onder labelDy, de aanwijzer onder wp-weg)
+  const negeerSel = opties.negeer || '.wp-dot, .wp-line';
   const uit = [], lagen = [];
   const volg = (el, wortel, diepte) => {
     if (!el || el.nodeType !== 1 || ['SCRIPT', 'STYLE', 'LINK', 'META', 'TEMPLATE', 'NOSCRIPT', 'DEFS', 'TITLE'].includes(el.tagName.toUpperCase())) return;

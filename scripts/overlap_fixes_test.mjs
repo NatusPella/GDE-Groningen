@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randTop, plaatsTop } from '../game/js/bigmoment.js';
-import { labelDy, CLEAR_GAP } from '../game/js/promptclear.js';
+import { labelDy, anchorCovered, CLEAR_GAP } from '../game/js/promptclear.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
@@ -58,6 +58,18 @@ ok(/zoneB\.appendChild\(gps\)/.test(hudjs) && /zoneB\.insertBefore\(mission, gps
 ok(/watchZoneB\(root, zoneB\)/.test(hudjs) && /--hud-b-bottom/.test(hudjs), 'hud_panel.js meet de onderkant van zone B');
 ok(/body\.mg-on #hud \.hud-mission/.test(src('game/js/minigamekit.js')), 'het minigamebord (bovenin) verbergt het doel');
 ok(/body\.cine-hide-hud #hud > :not\(\.hud-damage\)/.test(src('game/js/hud_panel.css')), 'een filmlaag verbergt de kolom (kinderen van #hud)');
+
+// klasse 8: een wereldlabel waarvan het anker onder een bord of paneel ligt, verdwijnt; het minigamebord valt onder 1100 px onder zone C
+const boards = [chip(408, 34, 862, 217)];
+ok(anchorCovered(640, 150, boards) === true && anchorCovered(300, 150, boards) === false, 'anchorCovered: alleen een anker onder het bord');
+ok(anchorCovered(863, 100, boards) === true && anchorCovered(870, 100, boards) === false, 'anchorCovered: 2 px speling aan de rand');
+ok(/anchorCovered\(/.test(src('game/js/prompts.js')) && /wp-weg/.test(src('game/js/prompts.css')), 'prompts.js verbergt een label met een bedekt anker (wp-weg)');
+const mgjs = src('game/js/minigamekit.js');
+ok(/@media \(max-width: 1100px\) \{ #hud \.mg-board \{ left: auto; right: var\(--hud-edge, 46px\); transform: none; top: calc\(var\(--hud-tr-bottom, 150px\) \+ 8px\)/.test(mgjs), 'mg-board onder 1100 px: rechts onder zone C (gemeten --hud-tr-bottom)');
+ok(/max\(330px, var\(--hud-c-right, 0px\) \+ 12px\)/.test(mgjs), 'mg-board tot 1500 px: de reserve rechts is de gemeten zone C, niet vast 330 px');
+// de bordcellen zijn getallen (discgolf.js: worpen of het nummer), geen "Hole 1": ze breken niet af
+ok(/t: c\.done \? String\(c\.strokes\)/.test(src('game/js/discgolf.js')), 'discgolf-cellen zijn worpen of nummers');
+ok(/line-clamp: 4/.test(src('game/js/phonefeed.css')) && /overflow-wrap: anywhere/.test(src('game/js/phonefeed.css')), 'phonefeed: een lange kop breekt en houdt vier regels');
 
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
