@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
-import { taxiCabine, treinKaderDelen, METER_AAN, METER_UIT, SEGMENTEN, METER_CIJFERS, meterSegmenten } from './ritcabine.js';
+import { taxiCabine, STUUR, stuurAs, treinKaderDelen, METER_AAN, METER_UIT, SEGMENTEN, METER_CIJFERS, meterSegmenten } from './ritcabine.js';
 
 // De binnenkant van de rit in beeld (#882, #926): de taxicabine van "Gele Gans" en het raamkader van de trein. De maten en
 // de onderdelen staan in ritcabine.js (puur, getest); hier worden ze één geometrie met vertexkleuren per soort, dus één
@@ -10,8 +10,9 @@ import { taxiCabine, treinKaderDelen, METER_AAN, METER_UIT, SEGMENTEN, METER_CIJ
 let lambert = null, basic = null, kaderMat = null;
 function materialen() {
   if (!lambert) {
-    // zoals carinterior.js: één gedeeld materiaal dat de cabine uit de schaduw tilt
-    lambert = markShared(new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x30343c }));
+    // zoals carinterior.js: één gedeeld materiaal dat de cabine uit de schaduw tilt. Veel sterker dan daar (0x20232a): de interieurkant van
+    // de vlakken krijgt weinig zon en las als één donkere massa (beeldcheck 20-11); updateRitCabine dimt het mee met het daglicht.
+    lambert = markShared(new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x4a4a46 }));
     // het scherm van de meter brandt zelf: onverlicht, ook 's nachts leesbaar (zoals treininterieur.js)
     basic = markShared(new THREE.MeshBasicMaterial({ vertexColors: true }));
     // het treinkader staat voor de lens: geen diepte, als laatste getekend
@@ -40,6 +41,20 @@ function taxiGeometrie() {
   return taxiGeo;
 }
 
+// Het stuur met de handen als eigen kleine mesh (één tekenaanroep erbij, hetzelfde materiaal): de geometrie ligt om het middelpunt
+// van het stuur, zodat de mesh er in één quaternion omheen kan draaien met de bocht van de taxi.
+let stuurGeo = null;
+function stuurGeometrie() {
+  if (stuurGeo) return stuurGeo;
+  const B = new GeoBuilder(1);
+  vulBouwer(B, taxiCabine().stuur);
+  const g = B.build();
+  g.translate(-STUUR.x, -STUUR.y, -STUUR.z);
+  stuurGeo = markShared(g);
+  return stuurGeo;
+}
+const AS = new THREE.Vector3(...stuurAs());
+
 // Zet de segmenten van de meter op de kleur van aan of uit. Elk segment is één doos van 36 hoekpunten, in de volgorde
 // cijfer 0..3, segment a..g (meterDelen in ritcabine.js).
 function zetMeter(g, mesh, bedrag) {
@@ -58,11 +73,12 @@ function zetMeter(g, mesh, bedrag) {
 }
 
 // Per beeld voor de taxi van de rit (scene3d.js): hang de cabine aan het voertuig, verberg de buitenkant (de carrosserie, de
-// chauffeursfiguur en de spiegels die bij het model horen: de cabine heeft zijn eigen) en zet de meter op het bedrag.
+// chauffeursfiguur en de spiegels die bij het model horen: de cabine heeft zijn eigen) zet de meter op het bedrag en draai het stuur (stuurHoek, rad).
 // De cabine hangt aan de groep van het voertuig, niet aan de carrosserie: die is verborgen.
-export function updateRitCabine(mesh, bedrag) {
+export function updateRitCabine(mesh, bedrag, stuurHoek = 0, daglicht = 1) {
   if (!mesh) return false;
   materialen();
+  lambert.emissive.setHex(0x4a4a46).multiplyScalar(0.3 + 0.7 * Math.max(0, Math.min(1, Number.isFinite(daglicht) ? daglicht : 1)));
   let cab = mesh.userData.ritCabine;
   if (!cab) {
     const g = taxiGeometrie();
@@ -77,10 +93,17 @@ export function updateRitCabine(mesh, bedrag) {
     m.userData.noBatch = true;
     m.frustumCulled = false;
     mesh.add(m);
-    cab = mesh.userData.ritCabine = { mesh: m, g: { geometry, cijferStart: g.cijferStart } };
+    const st = new THREE.Mesh(stuurGeometrie(), lambert);
+    st.name = 'ritstuur';
+    st.position.set(STUUR.x, STUUR.y, STUUR.z);
+    st.castShadow = false; st.receiveShadow = false; st.renderOrder = 12;
+    st.userData.noBatch = true; st.frustumCulled = false;
+    m.add(st);
+    cab = mesh.userData.ritCabine = { mesh: m, stuur: st, g: { geometry, cijferStart: g.cijferStart } };
   }
   for (const c of mesh.children) if (c !== cab.mesh) c.visible = false;
   zetMeter(cab.g, cab.mesh, bedrag);
+  cab.stuur.quaternion.setFromAxisAngle(AS, Number.isFinite(stuurHoek) ? stuurHoek : 0);
   return true;
 }
 

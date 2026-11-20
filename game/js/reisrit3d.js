@@ -15,6 +15,7 @@ import { smoothPath, cineDrive } from './cinedrive.js';
 import { taxiBedrag, perronPlek } from './ritcabine.js';
 import { planDriveRoute } from './routing.js';
 import { getRoutes as getSpoorRoutes, addMissionTrain, removeMissionTrain, placeTrain, clearTrackFor } from './railway.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { klokSprongMag } from './coopgroep.js';
 import { refreshDayNight } from './daynight.js';
 import { padButtonIndex, playerPad } from './glyphs.js';
@@ -47,6 +48,7 @@ function bouwTaxi(world, optie, dest) {
   const baan = (s) => P.rechterBaan(pad.at(s));
   const meter = (s) => taxiBedrag(s, { totaalM: plan.lengthM, prijs: optie.price });
   let v = null, lastS = 0, lastT = 0, gezien = '';
+  const dyn = P.maakDynamiek();
   const sluitStart = () => baan(Math.max(0, pad.len - plan.dcM));
   return {
     plan,
@@ -57,6 +59,7 @@ function bouwTaxi(world, optie, dest) {
       applyFleetFlags(v, 'taxi');
       Object.assign(v, { road: null, plan: [], driver: 'cine', cineTemp: true, missionCar: true, z: zHoogte(w.map, q.x, q.y) });
       w.vehicles.push(v);
+      pushAudioEvent(w, { kind: 'door_close', x: q.x, y: q.y, auto: true }); // het portier gaat dicht (greep, deur): je zit
       w.ritTaxi = v; // scene3d tekent de cabine van Gele Gans voor de passagier (ritcabine3d.js)
       w.ritMeter = meter(0);
       cineDrive(v, w.map, q, 0, 0, v.z);
@@ -75,13 +78,17 @@ function bouwTaxi(world, optie, dest) {
       hp.x = v.x; hp.y = v.y; hp.gz = v.z || 0;
       if (stand.fase === 'sprong' && gezien !== 'sprong') { gezien = 'sprong'; const c = sluitStart(); voorspel(c.x, c.y, 10); }
       w.ritMeter = meter(stand.s);
-      return { ...P.taxiCamera(P.taxiOog(v), t), cut: true };
+      const d = spring ? dyn.stand() : dyn.stap(v.angle, stand.v, dt); // een tijdsprong telt niet als bocht of schok
+      w.ritStuur = d.stuur;
+      return { ...P.taxiCamera(P.taxiOog(v), t, 30, { ...d, v: stand.v }), cut: true };
     },
     einde(w) {
+      if (v && w) pushAudioEvent(w, { kind: 'door_open', x: v.x, y: v.y, auto: true }); // uitstappen
       if (v) { const i = w.vehicles.indexOf(v); if (i >= 0) w.vehicles.splice(i, 1); }
       v = null;
       if (w.ritTaxi) w.ritTaxi = null;
       w.ritMeter = 0;
+      w.ritStuur = 0;
     },
   };
 }
@@ -127,7 +134,7 @@ function bouwTrein(world, optie) {
       const legs = (optie.legs || []).filter((l) => l && l.kind === 'train');
       return perronPlek(w.map && w.map.perrons, [x, y], { naam: legs.length ? legs[legs.length - 1].to : '' });
     },
-    stap(w, stand) {
+    stap(w, stand, tijd) {
       const k = plek(stand);
       const t = zet(w, k.stuk, k.c);
       if (Math.abs(stand.s - lastS) > 40) { const q = punt(stand.s); voorspel(q.x, q.y); }
@@ -135,7 +142,7 @@ function bouwTrein(world, optie) {
       const car = t.cars[Math.floor(t.cars.length / 2)] || t.cars[0];
       const beeld = P.treinBeeld(plan, stand);
       w.ritKader = beeld === 'raam' ? 'trein' : null; // bij het raam zit je in de coupé; naast de trein kijk je van buiten
-      return { ...P.treinCamera(car, t.dir, beeld), cut: true };
+      return { ...P.treinCamera(car, t.dir, beeld, tijd, stand.v), cut: true };
     },
     einde(w) {
       if (trein) removeMissionTrain(trein);

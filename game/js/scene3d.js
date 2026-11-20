@@ -3101,7 +3101,7 @@ export function update3D(dt, world) {
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const fpBits = fpSync(world, player, pv, pvMesh, hidePlayers, !!(world.cameraOverride && world.cameraOverride.interior));
-  if (world.ritTaxi) updateRitCabine(vehicleMeshes.get(world.ritTaxi.id), world.ritMeter || 0); // #882: de passagier zit in de cabine van de taxi van de rit (ritcabine3d.js, reisrit3d.js)
+  if (world.ritTaxi) updateRitCabine(vehicleMeshes.get(world.ritTaxi.id), world.ritMeter || 0, world.ritStuur || 0, lightBase.daylight); // #882: de passagier zit in de cabine van de taxi van de rit (ritcabine3d.js, reisrit3d.js)
   syncTreinKader(scene, world.ritKader === 'trein'); // #926: het raam van de coupé voor de lens van de treinrit
   const firstPersonView = (fpBits & FP_VIEW) !== 0;
   const hideFigure = (fpBits & FP_HIDE) !== 0;

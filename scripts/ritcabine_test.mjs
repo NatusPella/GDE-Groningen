@@ -117,4 +117,14 @@ t('het perron van de aankomst: de plek op de middellijn van het dichtstbijzijnde
   assert.ok(Math.abs(lopend.z - 1.5) < 1e-9, 'de hoogte loopt mee met het perron');
 });
 
+t('het stuur en de handen zijn een eigen deel dat om het middelpunt kan draaien; de stuurkolom blijft staan', () => {
+  const c = C.taxiCabine();
+  assert.ok(c.stuur.length >= 10, 'ring, spaken, naaf en twee handen');
+  const dicht = c.stuur.filter((d) => Math.hypot(d.at[0] - C.STUUR.x, d.at[1] - C.STUUR.y, d.at[2] - C.STUUR.z) < 0.3);
+  assert.equal(dicht.length, c.stuur.length, 'alles ligt binnen 0,3 m van het stuur zelf');
+  const as = C.stuurAs();
+  assert.ok(Math.abs(Math.hypot(...as) - 1) < 1e-9 && as[2] === 0, 'de as is een eenheidsvector in het vlak x-y');
+  assert.ok(c.vast.some((d) => d.b[0] > 0.3 && Math.abs(d.at[1] - (C.STUUR.y - 0.13)) < 0.05), 'de stuurkolom zit bij de vaste delen');
+});
+
 console.log(`ritcabine_test: ${n}/${n} ok`);
