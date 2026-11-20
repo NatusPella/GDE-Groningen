@@ -103,6 +103,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [REVIEW-20-11.md](<REVIEW-20-11.md>) | AI-codereview van de wijzigingen van 20-11 voor de releasegate (ADR 0034): bevindingen op ernst en testgaten. |
 | [RELEASEN.md](<RELEASEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [QA-SWEEP-20-11.md](<QA-SWEEP-20-11.md>) | Meetronde van de schermen op vijf vensterformaten zonder menselijk oog (buiten beeld, afgekapte tekst, bedekte doelen, contrast, focus), met bevindingen en wat niet gemeten is. |
+| [MENSEN-ANIMATIE-AUDIT-20-11.md](<MENSEN-ANIMATIE-AUDIT-20-11.md>) | Doorlichting van hoe mensen bewegen (loop-, idle-, bochtgedrag, blik, publiek, stapgeluid, Samen spelen), de top-verbeteringen op impact en kosten, wat gebouwd is (voetcontact, bochthelling, blik, wachtclips, klappen) en wat niet gezien is. |
 | [QA-CONTROLLER-20-11.md](<QA-CONTROLLER-20-11.md>) | Meetronde van het bedienen met een controller (nagebootste gamepad): bereik, A/B, bumpers, scroll, hints per scherm, de fix voor de kaartknoppen (L3), de focusvolgorde per vlak en wat nog niet gezien is. |
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SFX-GAPS.md](<SFX-GAPS.md>) | Inventaris van spelgebeurtenissen zonder eigen geluid of met een te algemeen geluid (UI, beloning, wereld-foley, omgeving per streek), met wat is gebouwd en wat nog open staat. |

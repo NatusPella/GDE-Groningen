@@ -121,10 +121,55 @@ p.x = home.x; p.y = home.y; p.angle = home.a;
       await sleep(250);
       const pmesh = sc.actors().peds.get(q);
       const u = pmesh && pmesh.userData;
-      if (u && Math.abs(u.gazeS || 0) > 0.2) { seen++; if (seen === 3) await cap('voetganger-kijkt-op'); }
+      if (u && Math.abs(u.gazeS || 0) > 0.2) { seen++; if (seen === 2) await cap('voetganger-kijkt-op'); }
     }
     out.metingen.blikFrames = seen;
     camOff();
+  }
+}
+
+// de speler staat lang stil: na 5 tot 10 s komt er een wachtclip; opname zodra de arm omhoog is (horloge) of na 25 s
+{
+  p.x = home.x; p.y = home.y; p.angle = home.a; p.vx = p.vy = 0;
+  cam();
+  let got = null; const t0 = performance.now();
+  while (performance.now() - t0 < 25000 && !got) {
+    place(2.6, true);
+    await sleep(200);
+    const u = ud();
+    if (u && u.armL.rotation.z > 0.9) got = 'horloge';
+  }
+  out.metingen.stilstaan = { clip: got, stillT: ud() ? +(ud().stillT || 0).toFixed(1) : null };
+  if (got) await cap('stilstaan-horloge');
+  camOff();
+}
+
+// het publiek: klappen, juichen, zwaaien, telefoon en handen in de zij (missiedecor.js, zoals bouwsteen_publiek_beeld)
+{
+  const M = await import('/js/missiedecor.js');
+  const a = (d) => ({ x: p.x + Math.cos(p.angle) * d, y: p.y + Math.sin(p.angle) * d });
+  const c0 = a(12);
+  const set = M.buildMissionDressing(w, 'plein', { x: c0.x, y: c0.y, a: p.angle }, null);
+  if (!set || !set.crowd) out.fouten.push('geen publiek');
+  else {
+    const mem = set.crowd.members;
+    const near = mem.reduce((s, m) => (Math.hypot(m.x - p.x, m.y - p.y) < Math.hypot(s.x - p.x, s.y - p.y) ? m : s));
+    // eerst verder weg (wachtstand), dan er vlak naast (reactie)
+    let t = 0, last = performance.now();
+    const run = async (secs) => { let tt = 0; while (tt < secs) { await raf(); const nw = performance.now(), dt = Math.min(0.1, (nw - last) / 1000); last = nw; tt += dt; M.updateMissionDressing(set, dt); } };
+    cam();
+    pose = { position: { x: near.x - 6, y: near.y - 6, z: (p.gz || 0) + 2.2 }, lookAt: { x: near.x, y: near.y, z: (p.gz || 0) + 1.2 }, fov: 55, cut: true };
+    await run(2);
+    const idle = {}; for (const m of mem) idle[m.state ? m.state.anim : '-'] = (idle[m.state ? m.state.anim : '-'] || 0) + 1;
+    out.metingen.publiekWacht = idle;
+    await cap('publiek-wacht');
+    p.x = near.x + 1.5; p.y = near.y + 1.5; p.vx = p.vy = 0;
+    await run(3);
+    const react = {}; for (const m of mem) react[m.state ? m.state.anim : '-'] = (react[m.state ? m.state.anim : '-'] || 0) + 1;
+    out.metingen.publiekReactie = react;
+    await cap('publiek-reactie');
+    camOff();
+    M.disposeMissionDressing(set);
   }
 }
 p.x = home.x; p.y = home.y; p.angle = home.a; p.vx = p.vy = 0;
