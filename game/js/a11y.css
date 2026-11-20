@@ -71,6 +71,8 @@ html.sub-box :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #in
   background: var(--ds-c-ink-papier); text-shadow: none;
 }
 html.sub-box #hud .sc-bubble { background: var(--ds-c-ink-papier); }
+/* de introfilm en de trailer hebben lichte tekst: op het papieren vak moet die donker zijn (review: contrast 1:1) */
+html.sub-box :is(#intro-montage .im-sub, #trailer .tr-sub) { color: var(--ds-c-ink-inkt); }
 html.sub-box #name-card { padding: 10px 18px 12px; border-radius: 8px; background: var(--ds-c-ink-papier); }
 
 /* #985: gesproken ondertitels uit. De geluidscaptions ([sirene]) blijven staan: die hebben hun

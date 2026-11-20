@@ -79,7 +79,12 @@ function bouw() {
 }
 
 // Elk beeld van de sim: toont of verbergt de strook en schrijft alleen bij een verschil. null verbergt hem.
+let laatsteTik = 0;
 export function simHudTik(dt, m) {
+  // de sims geven dt = 0 mee: dan meten we zelf, zodat het opspringende getal na 2,6 s weggaat (ook bij verminderde beweging)
+  const nu = typeof performance !== 'undefined' ? performance.now() : 0;
+  if (!(dt > 0)) dt = laatsteTik ? Math.min(0.25, Math.max(0, (nu - laatsteTik) / 1000)) : 0;
+  laatsteTik = nu;
   if (popT > 0) { popT -= dt; if (popT <= 0 && pop) { pop.classList.remove('sh-pop--aan', 'sh-pop--stil'); pop.textContent = ''; } }
   if (!m) { if (el && !el.hidden) el.hidden = true; sleutel = ''; return; }
   bouw();

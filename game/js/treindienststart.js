@@ -31,7 +31,7 @@ export function startTreindienst(w, station, optie) {
   placeTrain(t);
   clearTrackFor(t, optie.s - 200, optie.s + 200, w, FREE_S);
   board(w, { t, cab: pl.cab });
-  startDienst(w, t, null);
+  if (startDienst(w, t, null) === false) return false; // de dienst startte niet: geen trein zonder dienst melden
   try { kaart = startKaart({ kaart: stationKaart(optie) }, 'trein:' + optie.key); } catch (e) { kaart = null; }
   return true;
 }
