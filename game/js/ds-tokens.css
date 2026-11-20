@@ -200,3 +200,57 @@
   :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
 }
 html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
+
+/* ===== Designsysteem v3: zomerse zeefdruk (ADR 0040, issue 991). Additief: v2 blijft werken tot
+   elk scherm is omgebouwd. De waarden zijn voorlopig tot de HUD-proef (issue 993) is gekeurd. ===== */
+:root {
+  /* Vijf inkten; gevaarrood en --mk-* komen uit ADR 0010. */
+  --ds-c-ink-papier: #f3ead3;
+  --ds-c-ink-inkt: #1d1b17;
+  --ds-c-ink-bord: #0e6b3c;
+  --ds-c-ink-geel: #f9c80e;
+  --ds-c-ink-roze: #e8505b;
+  /* Drukeffecten. Een component leest alleen deze tokens, nooit een eigen maat. */
+  --ds-misdruk-x: 3px;
+  --ds-misdruk-y: 2px;
+  --ds-misdruk: var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze);
+  --ds-hard-x: 4px; /* verschuiving van de harde schaduw; een ingedrukte knop schuift er evenveel op */
+  --ds-hard-y: 4px;
+  --ds-hard-klein: 2px; /* chips en toetsplaatjes */
+  --ds-schaduw-hard: var(--ds-hard-x) var(--ds-hard-y) 0 var(--ds-c-ink-inkt);
+  --ds-schaduw-hard-bord: var(--ds-hard-x) var(--ds-hard-y) 0 var(--ds-c-ink-bord);
+  --ds-schaduw-hard-roze: var(--ds-hard-x) var(--ds-hard-y) 0 var(--ds-c-ink-roze);
+  --ds-schaduw-hard-klein: var(--ds-hard-klein) var(--ds-hard-klein) 0 var(--ds-c-ink-inkt);
+  --ds-schuin: -1.2deg;
+  --ds-raster: radial-gradient(var(--ds-c-ink-inkt) 1.1px, transparent 1.3px);
+  --ds-raster-maat: 6px 6px;
+  --ds-raster-dekking: 0.55;
+  --ds-lijn-zeef: 2.5px;
+  /* Rollen v3 */
+  --ds-zeef-bg: var(--ds-c-ink-papier);
+  --ds-zeef-tx: var(--ds-c-ink-inkt);
+  --ds-zeef-kop: var(--ds-c-ink-bord);
+  --ds-zeef-primair: var(--ds-c-ink-geel);
+  --ds-zeef-accent: var(--ds-c-ink-roze);
+  --ds-font-kop-v3: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-tekst-v3: 'Atkinson Hyperlegible', Arial, sans-serif;
+}
+.ds-zeef { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); }
+.ds-zeef-kop { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+.ds-misdruk { text-shadow: var(--ds-misdruk); }
+.ds-raster { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
+
+/* Rustig drukwerk (html.rustig-drukwerk, of .ds-rustig op één paneel, zoals in de galerij): geen misdruk, schuinte, raster of stempelbeweging; alle tekst minstens 7:1. */
+html.rustig-drukwerk, .ds-rustig {
+  --ds-misdruk-x: 0px;
+  --ds-misdruk-y: 0px;
+  --ds-misdruk: 0 0 0 transparent;
+  --ds-schuin: 0deg;
+  --ds-raster: none;
+  --ds-raster-dekking: 0;
+  --ds-m-snel: 0ms;
+  --ds-m: 0ms;
+  --ds-m-max: 0ms;
+  --ds-c-ink-roze: #9d1f2a;
+  --ds-c-ink-bord: #0b5530;
+}

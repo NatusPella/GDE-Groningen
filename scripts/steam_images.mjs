@@ -8,7 +8,7 @@
 // shots. Output: docs/steam/beelden/ (screenshots as JPEG q90 at 1920x1080,
 // capsules as PNG; the in-game key-art renders in bron/ as JPEG). The capsule
 // layouts are HTML/CSS with the real wordmark (game/index.html .gde-logo) and
-// the game's fonts from Google Fonts, so Chrome needs the network.
+// the game's own fonts (game/fonts, OFL, zeefdruk ADR 0040), so no network is needed.
 import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -267,16 +267,15 @@ async function heliShot(c) {
 }
 
 // ---------- compositions ----------
-const FONTS = '<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">';
-// the wordmark as in game/index.html (.gde-logo), sized by font-size
+const FONT_FILES = [['Atkinson Hyperlegible', 400, 'AtkinsonHyperlegible-Regular.ttf'], ['Atkinson Hyperlegible', 700, 'AtkinsonHyperlegible-Bold.ttf'], ['Barlow Condensed', 600, 'BarlowCondensed-SemiBold.ttf'], ['Barlow Condensed', 800, 'BarlowCondensed-ExtraBold.ttf']];
+const FONTS = '<style>' + FONT_FILES.map(([fam, w, file]) => `@font-face { font-family: '${fam}'; font-weight: ${w}; src: url('${pathToFileURL(path.join(ROOT, 'game', 'fonts', file)).href}') format('truetype'); }`).join(' ') + '</style>';
+// the wordmark as in game/index.html (.gde-logo, zeefdruk sticker), sized by font-size
 const LOGO_CSS = `
-.gde-logo { --plate: #1e9e56; display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: 900; line-height: 1; color: #f0ede4; }
-.gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.015em; margin-right: -0.015em;
-  background: linear-gradient(180deg, #f0ede4 0%, #f0ede4 52%, #3fc97a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0.025em 0.05em rgba(0,0,0,0.7)) drop-shadow(0 0 0.1em rgba(63,201,122,0.3)); }
-.gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #fff; background: var(--plate); border-radius: 0.2em;
-  box-shadow: inset 0 0 0 0.08em var(--plate), inset 0 0 0 0.17em #fff, 0 0.08em 0.3em rgba(0,0,0,0.55); }
-.gde-logo .gde-sub { margin-top: 0.5em; font: italic 700 0.13em/1.1 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.03em; color: #3fc97a; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+.gde-logo { display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; font-weight: 800; line-height: 1; color: #1d1b17;
+  padding: 0.07em 0.13em 0.1em; background: #f3ead3; border: 0.035em solid #1d1b17; border-radius: 0.07em; box-shadow: 0.045em 0.045em 0 #1d1b17; }
+.gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.01em; color: #0e6b3c; text-shadow: 0.03em 0.03em 0 #e8505b; }
+.gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #1d1b17; background: #f9c80e; border: 0.14em solid #1d1b17; border-radius: 0.2em; }
+.gde-logo .gde-sub { margin-top: 0.5em; font: 700 0.13em/1.1 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.02em; color: #0e6b3c; }
 .gde-logo.big-sub .gde-sub { font-size: 0.16em; }
 `;
 const logo = (cls = '', sub = true) => `<div class="gde-logo ${cls}"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span>${sub ? '<span class="gde-sub">Zomer vol misdaad</span>' : ''}</div>`;
@@ -296,13 +295,13 @@ const CAPSULES = [
 ];
 
 function capsuleHtml(cap) {
-  const bgUrl = cap.bg ? 'file://' + path.join(OUT, cap.bg + '.jpg') : null;
+  const bgUrl = cap.bg ? pathToFileURL(path.join(OUT, cap.bg + '.jpg')).href : null;
   const L = cap.logo;
   const shades = {
-    left: 'linear-gradient(90deg, rgba(8,16,11,0.82) 0%, rgba(8,16,11,0.55) 38%, rgba(8,16,11,0) 70%)',
-    bottom: 'linear-gradient(0deg, rgba(8,16,11,0.88) 0%, rgba(8,16,11,0.55) 35%, rgba(8,16,11,0) 62%)',
-    full: 'radial-gradient(ellipse at center, rgba(8,16,11,0.72) 0%, rgba(8,16,11,0.45) 60%, rgba(8,16,11,0.2) 100%)',
-    ambient: 'linear-gradient(180deg, rgba(12,20,14,0.55), rgba(12,20,14,0.85))',
+    left: 'linear-gradient(90deg, rgba(29,27,23,0.82) 0%, rgba(29,27,23,0.55) 38%, rgba(29,27,23,0) 70%)',
+    bottom: 'linear-gradient(0deg, rgba(29,27,23,0.88) 0%, rgba(29,27,23,0.55) 35%, rgba(29,27,23,0) 62%)',
+    full: 'radial-gradient(ellipse at center, rgba(29,27,23,0.72) 0%, rgba(29,27,23,0.45) 60%, rgba(29,27,23,0.2) 100%)',
+    ambient: 'linear-gradient(180deg, rgba(29,27,23,0.55), rgba(29,27,23,0.85))',
     none: 'none',
   };
   let place = '';
@@ -314,16 +313,16 @@ function capsuleHtml(cap) {
   const icon = cap.icon ? `<div class="icon"><span>GDE</span></div>` : '';
   return `<!doctype html><html><head><meta charset="utf-8">${FONTS}<style>
 ${LOGO_CSS}
-html, body { margin: 0; width: ${cap.w}px; height: ${cap.h}px; overflow: hidden; background: ${cap.bg || cap.icon ? '#0c140e' : 'transparent'}; }
+html, body { margin: 0; width: ${cap.w}px; height: ${cap.h}px; overflow: hidden; background: ${cap.bg || cap.icon ? '#1d1b17' : 'transparent'}; }
 .bg { position: absolute; inset: 0; background: url('${bgUrl}') center / cover no-repeat; background-position: ${cap.pos || '50% 50%'}; ${cap.shade === 'ambient' ? 'filter: blur(3px) saturate(0.8); transform: scale(1.03);' : ''} }
 .shade { position: absolute; inset: 0; background: ${shades[cap.shade || 'none']}; }
 .logo-wrap { position: absolute; inset: 0; display: flex; box-sizing: border-box; }
 .gde-logo { font-size: ${L ? L.size : 100}px; }
 .gde-logo.row { flex-direction: row; align-items: center; gap: 0.12em; }
 .gde-logo.row .gde-sign { margin-top: 0; font-size: 0.3em; }
-.icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, #17301f, #0c140e); }
-.icon span { font: 900 104px/0.8 'Big Shoulders Display', sans-serif; padding-top: 10px; background: linear-gradient(180deg, #f0ede4 0%, #f0ede4 52%, #3fc97a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.icon::after { content: ''; position: absolute; left: 30px; right: 30px; bottom: 34px; height: 14px; border-radius: 4px; background: #1e9e56; box-shadow: inset 0 0 0 2px #1e9e56, inset 0 0 0 4px #fff; }
+.icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #f3ead3; box-shadow: inset 0 0 0 8px #1d1b17; }
+.icon span { font: 800 112px/0.8 'Barlow Condensed', sans-serif; padding-top: 10px; margin-bottom: 52px; color: #0e6b3c; text-shadow: 5px 5px 0 #e8505b; }
+.icon::after { content: ''; position: absolute; left: 32px; right: 32px; bottom: 34px; height: 22px; border-radius: 4px; background: #f9c80e; border: 4px solid #1d1b17; box-sizing: border-box; }
 </style></head><body>${bgUrl ? '<div class="bg"></div><div class="shade"></div>' : ''}${place}${icon}</body></html>`;
 }
 
@@ -339,7 +338,7 @@ async function compose(c) {
       fs.writeFileSync(f, capsuleHtml(cap));
       await viewport(c, cap.w, cap.h, 1);
       await c.send('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: cap.bg || cap.icon ? 1 : 0 } });
-      await goto(c, 'file://' + f);
+      await goto(c, pathToFileURL(f).href);
       await evaluate(c, 'document.fonts.ready.then(() => true)');
       await sleep(400);
       await shoot(c, path.join(OUT, cap.name + '.png'), { w: cap.w, h: cap.h });

@@ -1,5 +1,5 @@
 // Pure logic of the load screens (game/js/loadlogic.js):  node scripts/loadlogic_test.mjs
-import { loadKind, stepProgress, startProgress, pickTips, buildLines, tipText, barsFor, BAR_PHASES, TIP_MAX_CHARS, MAX_S, SNEL_M, loadPending } from '../game/js/loadlogic.js';
+import { loadKind, stepProgress, startProgress, pickTips, buildLines, tipText, barsFor, BAR_PHASES, TIP_MAX_CHARS, MAX_S, SNEL_M, loadPending, LOAD_STEPS, loadStepAt } from '../game/js/loadlogic.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
@@ -110,5 +110,10 @@ ok(boot.includes('bt-pegi') && boot.includes('>18<') && !/bt-desc|Geweld|verzonn
 ok(!/blur\(/.test(html.slice(html.indexOf('#loading .bt-bg'), html.indexOf('#loading .bt-veil'))), 'boot picture is not blurred');
 ok(!/blur\(/.test(fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8').split(/\r?\n/).filter((l) => /ls-bg/.test(l)).join('')), 'load picture is not blurred');
 ok(/pickImage\(world, place, mission\)\s*\{\s*if \(mission\) return missionPicture\(mission\)/.test(src), 'a mission picks its own picture');
+// the load screen's steps in words (#1002): in order, every bar value has one, snel has its own
+ok(loadStepAt(0).id === 'plek' && loadStepAt(0.3).id === 'gebouwen' && loadStepAt(0.7).id === 'tegels' && loadStepAt(1).id === 'bijna', 'load steps by bar');
+ok(loadStepAt(NaN).id === 'plek' && loadStepAt(-3).id === 'plek' && loadStepAt(9).id === 'bijna', 'load step clamps');
+ok(loadStepAt(0.5, 'snel').id === 'snel', 'snel has one step');
+ok(LOAD_STEPS.every((s, i) => s.label.length > 8 && (i === 0 || s.from > LOAD_STEPS[i - 1].from)), 'load steps are words in ascending order');
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

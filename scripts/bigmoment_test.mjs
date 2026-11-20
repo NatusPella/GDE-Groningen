@@ -1,0 +1,106 @@
+// Pure logic and CSS rules of the big moments (game/js/bigmoment.js, #996):  node scripts/bigmoment_test.mjs
+// No DOM, no Electron: the planner, the formatters, the shapes per kind and what the stylesheet may not do.
+import fs from 'node:fs';
+import {
+  SOORTEN, STANDAARD, MAX_WOORDEN, MAX_FLITS_PER_S, MAX_WACHTRIJ,
+  bouwMoment, klemWoorden, formatBeloning, formatTijd, momentStijl, toelatenFlits, maakPlanner, showBigMoment,
+} from '../game/js/bigmoment.js';
+
+let n = 0, fails = 0;
+const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
+const woorden = (s) => s.trim().split(/\s+/).filter(Boolean).length;
+
+// the five kinds and their forms
+ok(SOORTEN.length === 5 && SOORTEN.every((s) => STANDAARD[s]), 'five kinds, each with defaults');
+const vorm = (s) => bouwMoment({ soort: s }).vorm;
+ok(vorm('geslaagd') === 'band' && vorm('mislukt') === 'band', 'passed and failed are the full-screen band');
+ok(vorm('opgepakt') === 'stempel' && vorm('gebied') === 'plaats' && vorm('wanted') === 'rand', 'busted is a stamp, area a place stamp, wanted an edge tag');
+ok(bouwMoment({ soort: 'geslaagd' }).schermvullend && bouwMoment({ soort: 'opgepakt' }).schermvullend, 'band and stamp are full screen');
+ok(!bouwMoment({ soort: 'wanted' }).schermvullend && !bouwMoment({ soort: 'gebied' }).schermvullend, 'wanted and area are not full screen');
+ok(bouwMoment({ soort: 'onzin' }).soort === 'geslaagd', 'an unknown kind falls back');
+ok(bouwMoment().kop.length > 0 && bouwMoment().regelNl.length > 0, 'no options still gives words');
+
+// words: every default carries its Dutch line within the 14-word budget; "Grunn", never "de Grunn"
+for (const s of SOORTEN) {
+  const m = bouwMoment({ soort: s });
+  ok(woorden(m.regelNl) <= MAX_WOORDEN && m.regelNl.length > 10, `${s}: Dutch line within the budget`, m.regelNl);
+  ok(!/de Grunn/i.test(JSON.stringify(STANDAARD[s])), `${s}: never "de Grunn"`);
+  ok(!/winter|sneeuw/i.test(JSON.stringify(STANDAARD[s])), `${s}: always summer`);
+}
+ok(bouwMoment({ soort: 'geslaagd', titel: 'Dat gaait!', regelNl: 'Dat gaat goed.' }).kop === 'Dat gaait!', 'the caller sets the exclamation');
+ok(bouwMoment({ soort: 'gebied', titel: 'Haren' }).kop === 'Haren' && bouwMoment({ soort: 'gebied', titel: 'Haren' }).klein === 'Moi!', 'a new area: the place is the print, the greeting the label');
+ok(woorden(klemWoorden('een twee drie vier vijf zes zeven acht negen tien elf twaalf dertien veertien vijftien zestien')) === MAX_WOORDEN, 'long lines are clamped to 14 words');
+ok(klemWoorden('Kort genoeg.') === 'Kort genoeg.' && klemWoorden(null) === '', 'short lines and null stay');
+ok(bouwMoment({ titel: 'x'.repeat(200) }).kop.length <= 40, 'the title is clamped');
+
+// reward and time
+ok(formatBeloning(1250) === '€ 1.250' && formatBeloning(500) === '€ 500' && formatBeloning(1234567) === '€ 1.234.567', 'reward with the Dutch thousands dot');
+ok(formatBeloning(0) === '' && formatBeloning(NaN) === '' && formatBeloning(undefined) === '', 'no reward, no line');
+ok(formatBeloning(-250) === '− € 250' && formatBeloning('+ € 40 extra') === '+ € 40 extra', 'a loss and a ready-made text');
+ok(formatTijd(272) === '4:32' && formatTijd(59) === '0:59' && formatTijd(3725) === '1:02:05' && formatTijd(0) === '' && formatTijd('4 min') === '4 min', 'time as m:ss');
+const volledig = bouwMoment({ soort: 'geslaagd', beloning: 1250, tijd: 272 });
+ok(volledig.aria.includes('€ 1.250') && volledig.aria.includes('4:32') && volledig.aria.includes('Beloning'), 'the spoken text has reward and time');
+ok(bouwMoment({ soort: 'opgepakt', beloning: -250 }).beloningLabel === 'Boete', 'busted calls it a fine (no violence, no death)');
+ok(!/doodgeschoten|neergeschoten|bloed|gore|geweld/i.test(JSON.stringify(STANDAARD)), 'no violence in the default words');
+ok(bouwMoment({ soort: 'wanted', sterren: 9 }).sterren === 5 && bouwMoment({ soort: 'wanted', sterren: 2 }).aria.includes('2 van 5 sterren'), 'stars as a count in words too');
+
+// Rustig drukwerk: another presentation, the same words
+for (const s of SOORTEN) {
+  const m = bouwMoment({ soort: s, beloning: 300, tijd: 90 });
+  const a = momentStijl(m, false), b = momentStijl(m, true);
+  ok(a.woorden === b.woorden, `${s}: the same words in both modes`);
+  ok(b.schuin === 0 && b.beweging === 'geen' && !b.raster && !b.misdruk, `${s}: Rustig drukwerk has no tilt, motion, halftone or misregistration`);
+  ok(a.schuin === -1.2 && Math.abs(a.schuin) < 1.2000001, `${s}: the tilt stays at 1.2 degrees`);
+}
+
+// no flash above three a second
+ok(toelatenFlits([], 0) && toelatenFlits([0, 100], 200) && !toelatenFlits([0, 100, 200], 300), 'three starts in a second fill the gate');
+ok(toelatenFlits([0, 100, 200], 1050), 'the gate opens after a second');
+{
+  const p = maakPlanner();
+  const w = bouwMoment({ soort: 'wanted', titel: 'Pas op!' });
+  const out = [];
+  for (let i = 0; i < 10; i++) out.push(p.aanvraag(w, i * 50).actie);   // ten wanted flashes in half a second
+  ok(out.filter((a) => a === 'toon').length === MAX_FLITS_PER_S, 'ten wanted requests in 0.5 s show only three', out.join());
+  ok(p.aanvraag(w, 5000).actie === 'toon', 'later a wanted tag shows again');
+}
+{
+  // any starts count, also the full-screen ones, and the history is trimmed
+  const p = maakPlanner();
+  const a = p.aanvraag(bouwMoment({ soort: 'geslaagd', titel: 'A' }), 0);
+  ok(a.actie === 'toon', 'the first full-screen moment shows now');
+  ok(p.aanvraag(bouwMoment({ soort: 'wanted' }), 100).actie === 'laat-vallen', 'a wanted tag does not cover a full-screen moment');
+  ok(p.aanvraag(bouwMoment({ soort: 'mislukt', titel: 'B' }), 200).actie === 'wacht', 'a second full-screen moment waits');
+  ok(p.aanvraag(bouwMoment({ soort: 'mislukt', titel: 'B' }), 300).reden === 'dubbel', 'the same moment twice collapses');
+  ok(p.aanvraag(bouwMoment({ soort: 'geslaagd', titel: 'A' }), 400).reden === 'dubbel', 'the one on screen is not queued again');
+  ok(p.state.historie.length <= MAX_FLITS_PER_S, 'history never exceeds the gate');
+  const volgende = p.klaar(4000);
+  ok(volgende.actie === 'toon' && volgende.moment.kop === 'B', 'the queue plays after the first');
+  ok(p.klaar(8000).actie === 'leeg', 'then the planner is empty');
+  // queue limit
+  const q = maakPlanner();
+  q.aanvraag(bouwMoment({ soort: 'geslaagd', titel: 'X0' }), 0);
+  const res = [];
+  for (let i = 1; i <= MAX_WACHTRIJ + 2; i++) res.push(q.aanvraag(bouwMoment({ soort: 'gebied', titel: 'X' + i }), 2000 * i).actie);
+  ok(res.filter((r) => r === 'wacht').length === MAX_WACHTRIJ && res[res.length - 1] === 'laat-vallen', 'the queue holds at most three');
+}
+ok(showBigMoment({ soort: 'geslaagd' }) === null, 'without a document the DOM function does nothing');
+
+// the stylesheet: tokens only, no flashing, wanted is not full screen, Rustig drukwerk is covered
+const css = fs.readFileSync(new URL('../game/js/bigmoment.css', import.meta.url), 'utf8');
+const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
+ok(!/#[0-9a-fA-F]{3,8}\b/.test(code), 'no raw hex in the stylesheet');
+ok(!/!important/.test(code), 'no !important');
+ok(!/rgba\((?!29,27,23,)/.test(code), 'rgba only in the ink tone');
+ok(/rotate\(var\(--ds-schuin\)\)/.test(code) && !/rotate\(-?\d/.test(code), 'the tilt comes from the --ds-schuin token');
+ok(/html\.rustig-drukwerk/.test(code) && /html\.reduce-motion/.test(code) && /prefers-reduced-motion/.test(code), 'Rustig drukwerk, Beweging beperken and the OS preference are covered');
+ok(!/infinite/.test(code), 'nothing loops (no flashing)');
+const durations = [...code.matchAll(/animation:[^;]*?\s(\d*\.?\d+)s/g)].map((m) => Number(m[1]));
+ok(durations.length >= 4 && durations.every((d) => d >= 0.25), 'every animation lasts at least 0.25 s', durations.join());
+ok(!/\.bm-wanted\s*\{[^}]*inset\s*:/.test(code) && /\.bm-wanted\s*\{[^}]*right:\s*0/.test(code), 'the wanted tag sits at the edge, not full screen');
+ok(/\.bm-geslaagd, \.bm-mislukt, \.bm-opgepakt \{ inset: 0/.test(code), 'passed, failed and busted cover the screen');
+ok(/font: 800 clamp\(64px, 13vw/.test(code) && /Barlow Condensed|--ds-font-kop-v3/.test(code), 'the big print is Barlow Condensed');
+ok(!/pointer-events:\s*auto/.test(code) && /pointer-events: none/.test(code), 'a moment never takes input');
+
+console.log(`${n - fails}/${n} bigmoment`);
+process.exit(fails ? 1 : 0);
