@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Pauzemenu: Doorgaan staat nu in elk tabblad bovenaan de rail, met een zoekknop ernaast.
+- Pauzemenu: typ / (of kies de zoekknop) om een scherm, onderdeel, instelling of actie te vinden, zoals Geluid, Opslaan of Afsluiten. Enter springt erheen en laat de rij even oplichten; zonder woord staat er een beginlijst, ook voor de controller.
+- Pauzemenu: Opslaan staat nu ook in het Overzicht, met een melding in beeld.
+- Pauzemenu: Spullen toont de groepskoppen helemaal en het zoekveld raakt de titel niet meer; Boerderij herhaalt de volgende klus niet meer en heeft uitleg en legenda in één opklapregel.
+- Samen spelen: het zoekvenster is lokaal; elke speler bedient zijn eigen menu en er gaat niets over het net.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

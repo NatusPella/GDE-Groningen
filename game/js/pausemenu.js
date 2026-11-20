@@ -60,6 +60,7 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
+import { maakRegel, zoekRegels, SOORTEN } from './menuzoek.js';
 import { renderSpullen, spullenClick, spullenFocus, spullenEnter, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
@@ -955,6 +956,7 @@ export function initPauseMenu(w) {
       <nav class="pm-rail" aria-label="Pauzemenu">
         <div class="pm-inner pm-game">
           <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title" class="pm-sr">Pauze</b><span class="mut pm-q-info" data-info="when"></span></div>
+          <div class="pm-rail-go"><button type="button" class="m-bp pm-go pm-ingame" data-action="resume" title="Terug naar het spel">${icon('resume', 'pm-ic')}<span>Doorgaan</span></button><button type="button" class="m-bg pm-findbtn" data-find-open title="Zoek in het menu (/)" aria-label="Zoek in het menu">${icon('search', 'pm-ic')}</button></div>
           ${RAIL_GROUPS.map(railGroup).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
           ${DESKTOP ? `<button type="button" class="ra pm-exit" data-action="exit" title="Vraagt eerst of je het zeker weet; je voortgang wordt opgeslagen">${icon('exit', 'pm-ic ra-ic')}<span class="ra-t">Afsluiten</span></button>` : ''}
@@ -1025,6 +1027,13 @@ export function initPauseMenu(w) {
           <div class="m-acts"><button type="button" class="m-bp" data-action="exit-retry">Opnieuw proberen</button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten</button><button type="button" class="m-bt" data-action="exit-cancel">Annuleren</button></div>
         </div>
       </div>
+      <div class="pm-quitbox pm-findbox" data-find hidden role="dialog" aria-modal="true" aria-label="Zoek in het menu">
+        <div class="pm-quitpane pm-findpane">
+          <label class="m-inp pm-csearch">${icon('search')}<input type="search" class="pm-find-inp" data-find-input placeholder="Zoek een scherm, instelling of actie" aria-label="Zoek in het menu" autocomplete="off" spellcheck="false"></label>
+          <ul class="pm-find-list" data-find-list></ul>
+          <p class="pm-find-hint" data-find-hint></p>
+        </div>
+      </div>
       <footer class="pm-footer m-foot"></footer>
     </div>`;
   document.body.appendChild(root);
@@ -1045,6 +1054,10 @@ export function initPauseMenu(w) {
       return;
     }
     if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }
+    if (e.target.closest('[data-find-open]')) { openFind(); return; }
+    if (e.target.matches('[data-find]')) { closeFind(); return; }
+    const fr = e.target.closest('[data-find-go]');
+    if (fr) { runFind(Number(fr.dataset.findGo)); return; }
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
     const hint = e.target.closest('[data-hint]');
@@ -1143,6 +1156,19 @@ export function initPauseMenu(w) {
     });
   }
   search.addEventListener('input', () => filterControls(search.value));
+
+  // het zoekvenster van het menu (21-11): dezelfde afscherming, plus pijl omlaag naar de lijst en Enter op de beste
+  const findInp = root.querySelector('[data-find-input]');
+  for (const type of ['keydown', 'keyup', 'keypress']) {
+    findInp.addEventListener(type, (e) => {
+      e.stopPropagation();
+      if (type !== 'keydown') return;
+      if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); focusEl(root.querySelector('[data-find] .pm-find-r')); }
+      else if (e.key === 'Enter') { e.preventDefault(); runFind(0); }
+    });
+  }
+  findInp.addEventListener('input', () => renderFind(findInp.value));
 
   // het zoekveld van Spullen (#435): dezelfde afscherming, zodat typen niet in het spel belandt
   const spulZoek = root.querySelector('[data-spul-search]');
@@ -1303,6 +1329,7 @@ function onKey(e) {
     return;
   }
   const inRail = !!(t && t.closest && t.closest('.pm-rail'));
+  if (k === '/' && !e.repeat) { consume(e); openFind(); return; }
   if (k === 'Escape' || k === 'Backspace') {
     consume(e);
     goBack();
@@ -1380,7 +1407,7 @@ function onKey(e) {
 // een toetsenbordgebruiker achter de dialoog langs naar de rail.
 function visibleQuestion() {
   if (!root) return null;
-  return root.querySelector('[data-quit-confirm]:not([hidden])') || root.querySelector('[data-exit-confirm]:not([hidden])');
+  return root.querySelector('[data-quit-confirm]:not([hidden])') || root.querySelector('[data-exit-confirm]:not([hidden])') || root.querySelector('[data-find]:not([hidden])');
 }
 
 function syncQuestionLayers() {
@@ -1399,8 +1426,96 @@ function showQuestion(box, on) {
   syncQuestionLayers();
 }
 
+// Zoeken in het menu (21-11): "/" of de knop bovenaan de rail. Typ een woord, kies met de pijlen of de muis en Enter
+// gaat erheen: een scherm, een onderdeel, een instelling (de rij licht even op) of een actie (opslaan, afsluiten).
+// Zonder woord staat er een beginlijst, zodat het met een controller ook werkt zonder te typen.
+let findRegels = [];
+let findHits = [];
+const findOpen = () => !!(root && root.querySelector('[data-find]:not([hidden])'));
+
+function bouwFindRegels() {
+  const regels = [];
+  const plekVan = (id) => { const g = RAIL_GROUPS.find(([, , m]) => m.includes(CHILD[id] || id)); return g ? g[1] : ''; };
+  if (!prestart) {
+    regels.push(maakRegel({ id: 'a-resume', soort: 'actie', label: 'Doorgaan', plek: 'Terug naar het spel', zoek: 'verder spelen sluiten', ic: 'resume', act: 'resume' }));
+    regels.push(maakRegel({ id: 'a-save', soort: 'actie', label: 'Spel opslaan', plek: 'Bewaart je voortgang', zoek: 'bewaren', ic: 'save', act: 'save' }));
+    regels.push(maakRegel({ id: 'a-saves', soort: 'actie', label: 'Opgeslagen spellen', plek: 'Laden of verwijderen', zoek: 'kiezen hernoemen exporteren savegame', ic: 'load', act: 'saves' }));
+  }
+  if (DESKTOP) regels.push(maakRegel({ id: 'a-exit', soort: 'actie', label: 'Afsluiten', plek: 'Slaat je voortgang op', zoek: 'stoppen sluiten spel verlaten', ic: 'exit', act: 'exit' }));
+  for (const id of sectionIds()) {
+    const [, label, hint] = sectionOf(id);
+    regels.push(maakRegel({ id: 's-' + id, soort: 'scherm', label, plek: plekVan(id), zoek: hint, ic: id, sec: id }));
+  }
+  for (const of of Object.keys(SUBTABS)) {
+    if (of === 'samen' || !sectionIds().includes(of)) continue;
+    const [, sl] = sectionOf(of);
+    for (const [id, tekst] of subsOf(of)) regels.push(maakRegel({ id: `o-${of}-${id}`, soort: 'onderdeel', label: tekst, plek: sl, ic: of, sec: of, sub: id }));
+  }
+  let n = 0;
+  for (const row of root.querySelectorAll('[data-of="settings"][data-sub] .m-li, [data-of="spel"][data-sub] .m-li')) {
+    const nm = row.querySelector('.nm');
+    const label = nm && nm.firstChild ? String(nm.firstChild.textContent || '').trim() : '';
+    const holder = row.closest('[data-of][data-sub]');
+    if (!label || !holder || !sectionIds().includes(holder.dataset.of)) continue;
+    const [, sl] = sectionOf(holder.dataset.of);
+    const sub = (SUBTABS[holder.dataset.of].find(([id]) => id === holder.dataset.sub) || [])[1] || '';
+    row.dataset.findId = String(n++);
+    const mut = row.querySelector('.nm .mut');
+    regels.push(maakRegel({ id: 'i-' + row.dataset.findId, soort: 'instelling', label, plek: sub ? sl + ' > ' + sub : sl, zoek: mut ? mut.textContent : '', ic: holder.dataset.of, sec: holder.dataset.of, sub: holder.dataset.sub, rij: row.dataset.findId }));
+  }
+  return regels;
+}
+
+function renderFind(q = '') {
+  const lijst = root.querySelector('[data-find-list]');
+  findHits = zoekRegels(findRegels, q, 8);
+  lijst.innerHTML = findHits.length
+    ? findHits.map((r, i) => `<li><button type="button" class="pm-find-r" data-find-go="${i}">${icon(r.ic, 'pm-ic')}<span class="pm-find-t">${esc(r.label)}</span><span class="pm-find-p">${esc(r.plek || SOORTEN[r.soort])}</span><span class="pm-find-k">${SOORTEN[r.soort]}</span></button></li>`).join('')
+    : '<li class="pm-find-leeg">Niks gevonden. Probeer een ander woord, bijvoorbeeld "geluid" of "opslaan".</li>';
+  root.querySelector('[data-find-hint]').textContent = q.trim() ? '' : 'Typ een woord, of kies hieronder een scherm of actie.';
+}
+
+function openFind() {
+  if (!root || !open || findOpen()) return;
+  cancelRebind(true);
+  findRegels = bouwFindRegels();
+  const box = root.querySelector('[data-find]');
+  const inp = box.querySelector('[data-find-input]');
+  inp.value = '';
+  renderFind('');
+  showQuestion(box, true);
+  if (isPadActive()) focusEl(box.querySelector('.pm-find-r'));
+  else inp.focus();
+}
+
+function closeFind() {
+  const box = root && root.querySelector('[data-find]');
+  if (!box || box.hidden) return;
+  showQuestion(box, false);
+  focusEl(root.querySelector('[data-find-open]'));
+}
+
+function runFind(i) {
+  const r = findHits[i];
+  if (!r) return;
+  showQuestion(root.querySelector('[data-find]'), false);
+  if (r.act) { runAction(r.act); return; }
+  if (r.sub) pref.sub[r.sec] = r.sub;
+  enterSection(r.sec);
+  if (r.rij == null) return;
+  const row = root.querySelector(`[data-find-id="${r.rij}"]`);
+  if (!row) return;
+  const body = row.closest('[data-fold-body]');
+  if (body && body.hidden) { const kop = root.querySelector(`[data-fold="${body.dataset.foldBody}"]`); if (kop) toggleFold(kop, true); }
+  focusEl(row.querySelector('input, select, button') || row);
+  row.classList.add('pm-flash');
+  setTimeout(() => row.classList.remove('pm-flash'), 1800);
+}
+
 // Esc/Backspace: close an open confirm, then back to Overzicht, then close.
 function goBack() {
+  // het zoekvenster (21-11) gaat voor alles met Escape dicht
+  if (findOpen()) { closeFind(); return; }
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
@@ -2086,6 +2201,8 @@ function runAction(a) {
 
 function status(text) {
   root.querySelector('[data-game-status]').textContent = text;
+  // vanaf een ander scherm (Overzicht, het zoekvenster) staat de statusregel niet in beeld: dan als melding
+  if (text && !(tab === 'spel' && pref.sub.spel === 'acties')) menuMelding(text);
 }
 
 const garageEl = () => root.querySelector('[data-panel="garage"] .pm-inner');
@@ -2432,7 +2549,7 @@ function syncRail() {
   root.querySelector('[data-restart-confirm]').hidden = true;
   root.querySelector('[data-coop-load-confirm]').hidden = true;
   root.querySelector('[data-coop-new-confirm]').hidden = true;
-  for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm]')) box.hidden = true;
+  for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm], [data-find]')) box.hidden = true;
   syncQuestionLayers();
   closeAction = null;
   root.querySelector('[data-game-status]').textContent = '';

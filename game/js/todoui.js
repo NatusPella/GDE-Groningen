@@ -257,6 +257,7 @@ function heroHtml(world) {
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
     `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Kaart</button>` +
     `<button type="button" class="m-bg" data-todo-view="verhaal">Alle opdrachten</button>` +
+    `<button type="button" class="m-bt" data-action="save" title="Bewaart je voortgang">Opslaan</button>` +
     `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
 }
 

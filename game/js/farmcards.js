@@ -51,11 +51,12 @@ export function legendaHtml() {
 }
 
 // De regelkaart bij de eerste keer: vier stappen met icoon en een zin; wegklikken onthoudt dit apparaat.
-export function uitlegKaartHtml() {
+export function uitlegKaartHtml(metLegenda = false) {
   const stap = (id, tekst) => `<li>${chip(id)} ${esc(tekst)}</li>`;
   // compact en dicht: één regel die je openklapt, geen losse knop in het scrollgebied (oogtest 20-11)
   return `<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary class="ds-kaart__titel">Zo werkt je boerderij</summary>` +
     `<ol class="bd-uitleg-lijst">${stap('geploegd', 'Ploegen: rij rustig rechte rijen, niet te hard.')}${stap('zaailing', 'Zaaien: kies eerst je gewas bij Gewas.')}${stap('groeiend', 'Groeien: het gewas groeit in speltijd, in de zomer.')}${stap('rijp', 'Oogsten als het veld oogstklaar is (de vlag is groen), daarna afleveren.')}</ol>` +
+    (metLegenda ? `<p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}` : '') +
     '</details>';
 }
 
@@ -71,7 +72,8 @@ export function kaartenBlok(b) {
     `<footer class="ds-kaart__voet"><button type="button" class="ds-knop" data-bd-naar="${esc(eerste.id)}">Zet op de kaart</button></footer></article>`;
   // één veld staat al in de hoofdkaart: geen tweede kaart met dezelfde gegevens en dezelfde knop
   const lijst = velden.length > 1 ? `<div class="bd-velden">${velden.map((v) => veldKaartHtml(v, schuurKg)).join('')}</div>` : '';
-  return hoofd + lijst + uitlegKaartHtml() + `<div><p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}</div>`;
+  // uitleg en legenda in één opklapbare regel: het perceel blijft rustig (21-11)
+  return hoofd + lijst + uitlegKaartHtml(true);
 }
 
 export const _gewasNaam = (id) => (B.GEWASSEN[id] ? B.GEWASSEN[id].naam : '');
