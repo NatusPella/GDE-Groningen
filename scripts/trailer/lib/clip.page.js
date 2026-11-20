@@ -596,20 +596,20 @@ function overlay() {
   if (ovRoot) return ovRoot;
   const st = document.createElement('style');
   st.textContent = `
-  #clip-ov { position: fixed; inset: 0; z-index: 99990; pointer-events: none; overflow: hidden; font-family: 'Bebas Neue', 'Big Shoulders Display', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; }
-  #clip-ov .cl-scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 42vh; background: linear-gradient(to top, rgba(4,10,8,0.62), rgba(4,10,8,0)); animation: clFade 0.5s both; }
-  #clip-ov .cl-cap { position: absolute; left: 6vw; bottom: 9vh; font-size: min(12vh, 130px); line-height: 0.95; letter-spacing: 0.035em; text-shadow: 0 0.04em 0.14em rgba(0,0,0,0.7); animation: clUp 0.55s cubic-bezier(.2,.8,.2,1) both; }
+  #clip-ov { position: fixed; inset: 0; z-index: 99990; pointer-events: none; overflow: hidden; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: #f3ead3; }
+  #clip-ov .cl-scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 42vh; background: linear-gradient(to top, rgba(29,27,23,0.62), rgba(29,27,23,0)); animation: clFade 0.5s both; }
+  #clip-ov .cl-cap { position: absolute; left: 6vw; bottom: 9vh; font-size: min(12vh, 130px); line-height: 0.95; letter-spacing: 0.035em; text-shadow: 0.04em 0.04em 0 #e8505b; animation: clUp 0.55s cubic-bezier(.2,.8,.2,1) both; }
   #clip-ov .cl-cap.right { left: auto; right: 6vw; text-align: right; }
   #clip-ov .cl-cap.center { left: 0; right: 0; text-align: center; bottom: 40vh; }
-  #clip-ov .cl-cap small { display: block; font-size: 0.3em; letter-spacing: 0.26em; color: #3fc97a; margin-bottom: 0.25em; }
+  #clip-ov .cl-cap small { display: block; font-size: 0.3em; letter-spacing: 0.26em; color: #f3ead3; margin-bottom: 0.25em; }
   #clip-ov .cl-cap.out { animation: clDown 0.35s ease-in both; }
-  #clip-ov .cl-end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #10281a 0%, #07130c 70%); animation: clFade 0.6s both; }
+  #clip-ov .cl-end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0e6b3c; animation: clFade 0.6s both; }
   #clip-ov .cl-end .gde-logo { font-size: min(34vh, 380px); animation: clPop 0.8s cubic-bezier(.2,.9,.2,1) both; }
-  #clip-ov .cl-end .cl-line { margin-top: 5vh; font-size: min(4.2vh, 44px); letter-spacing: 0.28em; color: #cfe8d8; animation: clUp 0.7s 0.5s cubic-bezier(.2,.8,.2,1) both; }
-  #clip-ov .cl-end .cl-sub { margin-top: 2.2vh; font-size: min(3.2vh, 34px); letter-spacing: 0.2em; color: #3fc97a; text-transform: uppercase; animation: clUp 0.7s 1.0s cubic-bezier(.2,.8,.2,1) both; }
+  #clip-ov .cl-end .cl-line { margin-top: 5vh; font-size: min(4.2vh, 44px); letter-spacing: 0.28em; color: #f3ead3; animation: clUp 0.7s 0.5s cubic-bezier(.2,.8,.2,1) both; }
+  #clip-ov .cl-end .cl-sub { margin-top: 2.2vh; font-size: min(3.2vh, 34px); letter-spacing: 0.2em; color: #f3ead3; text-transform: uppercase; animation: clUp 0.7s 1.0s cubic-bezier(.2,.8,.2,1) both; }
   #clip-ov .cl-end .cl-age { position: absolute; left: 3.2vw; bottom: 5vh; display: flex; align-items: center; gap: 1.4vw; animation: clFade 0.6s 0.9s both; }
-  #clip-ov .cl-end .cl-pegi { width: 5vh; height: 6vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f0ede4; color: #fff; font-size: 3.2vh; line-height: 0.9; }
-  #clip-ov .cl-end .cl-age span { font-size: 2.4vh; letter-spacing: 0.12em; color: #a9c4b4; font-family: 'Arial Narrow', Arial, sans-serif; text-transform: uppercase; }
+  #clip-ov .cl-end .cl-pegi { width: 5vh; height: 6vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f3ead3; color: #fff; font-size: 3.2vh; line-height: 0.9; }
+  #clip-ov .cl-end .cl-age span { font-size: 2.4vh; letter-spacing: 0.12em; color: #f3ead3; font-family: 'Arial Narrow', Arial, sans-serif; text-transform: uppercase; }
   #clip-ov .cl-black { position: absolute; inset: 0; background: #000; }
   @keyframes clUp { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
   @keyframes clDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(0.2em); } }
@@ -657,12 +657,12 @@ async function thumbOverlay({ pos = 'links', line = '' } = {}) {
     st.id = 'clip-thumb-style';
     st.textContent = `
     #clip-ov .cl-thumb { position: absolute; inset: 0; display: flex; align-items: center; }
-    #clip-ov .cl-thumb.links { justify-content: flex-start; padding-left: 4.5vw; background: linear-gradient(to right, rgba(3,9,6,0.78) 0%, rgba(3,9,6,0.42) 38%, rgba(3,9,6,0) 62%); }
-    #clip-ov .cl-thumb.rechts { justify-content: flex-end; padding-right: 4.5vw; background: linear-gradient(to left, rgba(3,9,6,0.78) 0%, rgba(3,9,6,0.42) 38%, rgba(3,9,6,0) 62%); }
-    #clip-ov .cl-thumb.midden { justify-content: center; background: radial-gradient(ellipse at center, rgba(3,9,6,0.55) 0%, rgba(3,9,6,0) 70%); }
-    #clip-ov .cl-thumb .gde-logo { font-size: min(30vh, 330px); filter: drop-shadow(0 0.02em 0.06em rgba(0,0,0,0.7)); }
-    #clip-ov .cl-thumb .cl-tline { position: absolute; left: 4.5vw; bottom: 7vh; font-size: min(5vh, 54px); letter-spacing: 0.22em; color: #cfe8d8; text-shadow: 0 2px 6px rgba(0,0,0,0.7); }
-    #clip-ov .cl-thumb .cl-tage { position: absolute; right: 2.4vw; bottom: 4vh; width: 5.4vh; height: 6.4vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f0ede4; color: #fff; font-size: 3.6vh; line-height: 0.9; }`;
+    #clip-ov .cl-thumb.links { justify-content: flex-start; padding-left: 4.5vw; background: linear-gradient(to right, rgba(29,27,23,0.78) 0%, rgba(29,27,23,0.42) 38%, rgba(29,27,23,0) 62%); }
+    #clip-ov .cl-thumb.rechts { justify-content: flex-end; padding-right: 4.5vw; background: linear-gradient(to left, rgba(29,27,23,0.78) 0%, rgba(29,27,23,0.42) 38%, rgba(29,27,23,0) 62%); }
+    #clip-ov .cl-thumb.midden { justify-content: center; background: radial-gradient(ellipse at center, rgba(29,27,23,0.55) 0%, rgba(29,27,23,0) 70%); }
+    #clip-ov .cl-thumb .gde-logo { font-size: min(30vh, 330px); }
+    #clip-ov .cl-thumb .cl-tline { position: absolute; left: 4.5vw; bottom: 7vh; font-size: min(5vh, 54px); letter-spacing: 0.22em; color: #f3ead3; text-shadow: 2px 2px 0 #1d1b17; }
+    #clip-ov .cl-thumb .cl-tage { position: absolute; right: 2.4vw; bottom: 4vh; width: 5.4vh; height: 6.4vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f3ead3; color: #fff; font-size: 3.6vh; line-height: 0.9; }`;
     document.head.appendChild(st);
   }
   const { logoHtml } = await import('/js/logo.js');
