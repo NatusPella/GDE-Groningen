@@ -32,7 +32,8 @@ const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' 
 const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'meerijden' ? 1 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
-const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
+const LIJST = SUITE === 'lijst'; // #983: de gast komt binnen via de openbare sessielijst (nep-MQTT-broker op 127.0.0.1), zonder de kamercode in te typen
+const ROUTE = arg('route', SUITE === 'kamer' || LIJST ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 // Extra Chromium-vlaggen voor de Electron-instanties (komma-gescheiden). Op een machine waar de
@@ -57,6 +58,7 @@ const P = {
     me === SECOND ? [219, 'verlaat', { wie: SECOND }] : [219, 'wacht', { s: 22 }], [246, 'stopHost', {}],
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
+  lijst: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 3600)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
   opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
@@ -94,12 +96,12 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 // ---------------------------------------------------------------- Electron-instanties
 const kids = [];
 const botCode = fs.readFileSync(path.join(ROOT, 'scripts', 'bot', 'bot.page.js'), 'utf8');
-let trackerPort = 0;
+let trackerPort = 0, mqttPort = 0;
 function start(name, cfg, seed, extraArgs = []) {
   const dir = path.join(OUT, name); fs.mkdirSync(dir, { recursive: true });
   const events = path.join(dir, 'events.jsonl'); fs.writeFileSync(events, '');
   const script = path.join(dir, '_page.js');
-  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, maxSpelers: EXPECT > 8 ? 16 : 0, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save'), gateWachtMs: SUITE === 'gastacties' ? 7000 : 0 };
+  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, maxSpelers: EXPECT > 8 ? 16 : 0, trackerPort, mqttPort, lijst: LIJST, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save'), gateWachtMs: SUITE === 'gastacties' ? 7000 : 0 };
   // de spelbot (bot.page.js) als functie, voor de host die het verhaal speelt
   const bot = `window.__botMain = async () => {\n${botCode}\n};\n`;
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify(pcfg)};\n${bot}` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
@@ -131,11 +133,12 @@ process.on('exit', () => { for (const k of kids) { try { k.kill(); } catch (e) {
 
 // ---------------------------------------------------------------- start
 const T0 = Date.now();
-let tracker = null;
+let tracker = null, fakeMqtt = null;
 if (ROUTE === 'kamer' && !PUBLIEK) {
   const { startFakeTracker } = await import('./faketracker.mjs');
   tracker = await startFakeTracker(); trackerPort = tracker.port;
   console.log('nep-tracker op 127.0.0.1:' + trackerPort);
+  if (LIJST) { const { startFakeMqtt } = await import('./fakemqtt.mjs'); fakeMqtt = await startFakeMqtt(); mqttPort = fakeMqtt.port; console.log('nep-MQTT-broker op 127.0.0.1:' + mqttPort); }
 }
 await takeSlots(1 + GASTEN);
 console.log('uitvoer:', OUT);
@@ -304,6 +307,7 @@ for (const m of [...mocks, mockLate].filter(Boolean)) { try { await m.stop(); } 
 const trackerSeen = tracker ? tracker.seen.slice() : [];
 const trackerTrace = tracker ? tracker.trace.slice() : [];
 if (tracker) fs.writeFileSync(path.join(OUT, 'tracker.jsonl'), trackerSeen.map((t) => t.replace(/"sdp":"[^"]{40,}"/g, '"sdp":"…"').slice(0, 300)).join('\n'));
+if (fakeMqtt) fs.writeFileSync(path.join(OUT, 'mqtt.jsonl'), fakeMqtt.gezien.map((g) => JSON.stringify({ topic: g.topic, bytes: g.bytes, retain: g.retain })).join('\n'));
 if (tracker) tracker.close();
 
 // ---------------------------------------------------------------- beoordelen
@@ -509,6 +513,13 @@ if (ROUTE === 'kamer' && !PUBLIEK) {
   if (code) check(!wire.includes(guestCode.replace('-', '')), 'de tracker zag de kamercode');
   note(`nep-tracker: ${trackerSeen.length} berichten, geen IP-adres, geen kamercode`);
   for (const x of trackerTrace) note('tracker: ' + x);
+}
+if (fakeMqtt) { // #983: wat de lijst-broker zag: de aankondiging van de host, nooit een IP-adres of de kamercode
+  const lijstBerichten = fakeMqtt.gezien.filter((g) => g.topic.startsWith('gde/lijst/'));
+  check(lijstBerichten.some((g) => g.bytes > 0), 'de lijst: de host plaatste geen aankondiging');
+  for (const g of lijstBerichten) { check(!/(\d+\.\d+\.\d+\.\d+)/.test(g.tekst), 'de lijst: een IP-adres in de aankondiging'); if (code) check(!g.tekst.includes(guestCode.replace('-', '')), 'de lijst: de kamercode in de aankondiging'); }
+  note(`nep-MQTT-broker: ${fakeMqtt.gezien.length} berichten, ${lijstBerichten.length} lijstberichten, geen IP-adres, geen kamercode`);
+  fakeMqtt.close();
 }
 if (MENU) check(of(H, 'hoofdmenu').length && /samen/.test(of(H, 'hoofdmenu')[0].items) && of(G, 'hoofdmenu').length, 'het hoofdmenu heeft de ingang Samen spelen');
 check(of(H, 'verbonden').length && of(G, 'verbonden').length, 'beide kanten bereiken "Je speelt samen"');

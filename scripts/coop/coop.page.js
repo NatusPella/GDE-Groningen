@@ -143,7 +143,7 @@ async function configureRoute() {
   // de kamercode-route naar een lokale nep-tracker, zonder STUN (host-kandidaten op de loopback): niets verlaat deze machine
   const nc = await imp('net/netconfig');
   nc.TRACKERS.splice(0, nc.TRACKERS.length, `ws://127.0.0.1:${CFG.trackerPort}`);
-  nc.MQTT_BROKERS.splice(0, nc.MQTT_BROKERS.length);
+  nc.MQTT_BROKERS.splice(0, nc.MQTT_BROKERS.length, ...(CFG.mqttPort ? [`ws://127.0.0.1:${CFG.mqttPort}`] : [])); // de lijst-suite (#983): een nep-MQTT-broker voor de openbare sessielijst
   nc.ICE_SERVERS.splice(0, nc.ICE_SERVERS.length);
   nc.PEERJS.host = '127.0.0.1'; nc.PEERJS.port = 1; nc.PEERJS.secure = false;
   nc.TIMEOUTS.connect = 40000;
@@ -228,11 +228,27 @@ async function connect() {
     const code = await until(() => { const c = panel().querySelector('.coop-code'); return c && c.textContent.trim(); }, 40000, 'code van de host');
     log('code', { code, net: netNow() });
     shot('host-code');
+    if (CFG.lijst) { // #983: de sessie openbaar maken (alleen de naam, geen kamercode); gasten komen via de lijst
+      await act('openbaar'); const inv = await until(() => panel().querySelector('.coop-input'), 5000, 'naamveld van de openbare sessie');
+      inv.value = 'Testspel'; inv.dispatchEvent(new Event('input', { bubbles: true }));
+      await act('openbaar-ja'); log('openbaar', { titel: title(), tekst: panel().innerText.slice(0, 400), net: netNow() }); shot('host-openbaar');
+    }
     { const b0 = panel().querySelector('[data-act="start-spel"]'); log('start-alleen', { knop: !!b0, uit: !!(b0 && b0.disabled), tekst: panel().innerText.slice(0, 500) }); } // alleen jij: Spel starten staat uit
     await until(() => title() === 'Je speelt samen', CFG.waitS ? CFG.waitS * 1000 : 120000, 'een gast');
   } else {
     if (buttons().includes('kies-gast')) await act('kies-gast');
     log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 500) });
+    if (CFG.lijst) { // #983: via de openbare sessielijst in plaats van de kamercode in te typen
+      await act('lijst');
+      log('toestemming', { titel: title(), tekst: panel().innerText.slice(0, 600), knoppen: buttons(), net: netNow() });
+      await sleep(CFG.consentWaitMs || 2500);
+      log('toestemming-wacht', { net: netNow() });
+      await act('lijst-go');
+      await until(() => panel().querySelector('[data-act="sluit-0"]'), 60000, 'een rij in de openbare lijst');
+      log('lijst-rij', { tekst: panel().innerText.slice(0, 500), net: netNow() }); shot('gast-lijst');
+      await act('sluit-0');
+      if (panel().querySelector('[data-act="akkoord"]')) await act('akkoord');
+    } else {
     const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');
     if (CFG.tekstTest) await PHASES.tekstveld();
     input.value = CFG.code; input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -241,6 +257,7 @@ async function connect() {
     await sleep(CFG.consentWaitMs || 2500);
     log('toestemming-wacht', { net: netNow() });
     await act('akkoord');
+    }
     await until(() => title() === 'Je speelt samen', 90000, 'verbinding met de host');
   }
   log('verbonden', { titel: title(), tekst: panel().innerText.slice(0, 600), net: netNow() });
