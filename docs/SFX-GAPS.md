@@ -124,3 +124,14 @@ varianten en de gelijkmatigheid van de lagen; draait `ui.js` met een nagemaakte 
 aantal gelijktijdige stemmen in een scenario van twee minuten); test de streekregels en eist dat elk nieuw geluid hier genoemd wordt.
 `node scripts/sfx_stingen_test.mjs` doet hetzelfde voor de missie-stings, de kassa en de ov-bel (plus toonladder, rangorde, afkoeltijd, spraakdemping en stemmen).
 `sfx_test.mjs`, `sfx_audit_test.mjs` en `sfx_linkups_test.mjs` nemen ze mee via `FX_INFO` en `SELF_PUSHED`.
+
+## SFX ronde 3 (#988): opnames in de plaats van synth
+
+Van Freesound (CC0 en CC-BY, ADR 0039; bronnen in [AUDIO-LICENTIES.md](AUDIO-LICENTIES.md)), bewerkt met `scripts/audio/master_sfx_ronde3.mjs`. De koppeling loopt via `FX_VERVANG` in `sfx/samples.js`:
+`playFx` (audio.js) en `uiFx` (sfx/ui.js) nemen een geladen opname in plaats van het synthgeluid, zonder opname blijft de synth. Gekoppeld: winkelkassa, winkelbel, houten deuren en huisdeur dicht,
+grote plons, scheepshoorn, fototoestel, alarm, vuurwerkbom, remmende trein, treinhoorn, tram- en busbel, busdeur; dieren (koe, schaap, paard, eend, meeuw; overdag, 's nachts zwijgen ze meestal);
+lussen: golfjes langs de oever, menigtegemurmel, kikkers in de zomernacht, de kermis op de Grote Markt, de stad in de nacht en de kamertoon in de flat; een dieselmotor onder de synth van trekker en bus; de menuklik.
+
+Nog open (geen geschikte opname gevonden of geen koppelpunt): treinritme over de rails en optrekken, omroepbel in het station, halteknop, richtingaanwijzer, zwemslagen, ploegen en zaaien en de maaidorser,
+politiesirene met doppler (de procedurele blijft), kantoor en kroeg binnen (het spel kent alleen de flat als binnenruimte), applaus en gejuich van het publiek, draaiorgel, UI-fout en -hover.
+Niets is beluisterd: zie [SFX-LUISTERLIJST.md](SFX-LUISTERLIJST.md).

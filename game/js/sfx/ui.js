@@ -7,6 +7,7 @@ import { setMenuSoundSink } from '../menusound.js';
 import { variantsOf } from './dsp.js';
 import { FX_INFO } from './fxbank.js';
 import { categoryLevel } from './mixplan.js';
+import { SAMPLE_INFO, vervangSleutel } from './samples.js';
 import { initStingen, speel as speelSting } from './stingen.js';
 import { UI_NIVEAU, toastGeluid, magKlinken, wordtGesmoord, kiesVariant, toonSpreiding } from './uitaal.js';
 
@@ -37,6 +38,9 @@ export function uiFx(naam, { gain = 1, delay = 0 } = {}) {
   if (!K || K.muted()) return false;
   if (wordtGesmoord(st.uiLast, naam, t())) return true;   // een zwaarder meldingsgeluid klonk net
   if (!magKlinken(st.uiLast, naam, t())) return true;   // net gespeeld: stil, en geen terugval op een ander geluid
+  // een opname in plaats van de synth (samples.js FX_VERVANG, SFX ronde 3), zodra hij geladen is
+  const S = K.samples, rec = S ? vervangSleutel(naam, (k) => S.has(k)) : null;
+  if (rec) return !!K.buf(rec, { bus: ui(), buffer: S.buffer(rec), gain: (SAMPLE_INFO[rec].gain || 1) * categoryLevel('ui') * gain, rate: 1, delay, prio: 2 });
   const namen = variantsOf(naam);
   const kies = kiesVariant(namen.length ? namen : [naam], Math.random(), st.uiVorige.get(naam) || null);
   const info = FX_INFO[kies];
@@ -47,12 +51,21 @@ export function uiFx(naam, { gain = 1, delay = 0 } = {}) {
 
 sfxLinks.uiFx = (naam) => uiFx(naam); // mapview.js (latehooks.js): het ontdekkingsgeluid bij een nieuwe streek
 
+// De opname van een zachte knopklik (samples.js ui_klik, SFX ronde 3) in plaats van de synthpiepjes; false = nog niet geladen (de synth neemt het over).
+function klik(rate = 1, gain = 1) {
+  const S = K.samples, buffer = S && S.buffer('ui_klik');
+  if (!buffer) return false;
+  return !!K.buf('ui_klik', { bus: ui(), buffer, gain: SAMPLE_INFO.ui_klik.gain * categoryLevel('ui') * gain, rate, prio: 2 });
+}
+
 function tick(f = 1800, g = 0.035) {
+  if (klik(clamp(0.8 + (f / 1800) * 0.3, 0.7, 1.5), 0.6)) return;
   K.tone({ freq: f, freqEnd: f * 0.9, type: 'square', duration: 0.022, gain: g, filterFreq: 5000, bus: ui(), prio: 2 });
   K.noise({ duration: 0.012, freq: 4500, q: 2, gain: 0.05, type: 'bandpass', bus: ui(), prio: 2 });
 }
 
 function select() {
+  if (klik(1, 1)) return;
   K.tone({ freq: 880, type: 'triangle', duration: 0.07, gain: 0.07, bus: ui(), prio: 2 });
   K.tone({ freq: 1320, type: 'triangle', duration: 0.1, gain: 0.07, delay: 0.05, bus: ui(), prio: 2 });
 }
