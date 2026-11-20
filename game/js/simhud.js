@@ -44,7 +44,7 @@ export function simHudHtml(m) {
     metLabel = true;
   }
   const stappen = (m.stappen || []).length
-    ? `<ol class="sh-stappen" aria-label="De stappen">${m.stappen.map((s) => `<li data-stand="${esc(s.stand || 'straks')}"${s.stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-chip">${svg(s.icoon || '', 'ds-chip__icoon')}<span class="sh-stap">${esc(s.label)}</span></span></li>`).join('')}</ol>` : '';
+    ? `<ol class="sh-stappen" aria-label="De stappen">${m.stappen.map((s) => `<li data-stand="${esc(s.stand || 'straks')}"${s.stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-z-chip">${svg(s.icoon || '', 'ds-z-chip__icoon')}<span class="sh-stap">${esc(s.label)}</span></span></li>`).join('')}</ol>` : '';
   const primair = m.primair
     ? `<div class="sh-primair" role="group" aria-label="${esc(m.primair.naam || '')}: ${esc(m.primair.waarde)}"><span class="sh-primair__badge">${svg(m.primair.icoon || '', 'ds-icoon sh-primair__icoon')}</span><span class="sh-primair__tekst"><span class="ds-t-label sh-primair__naam">${esc(m.primair.naam || '')}</span><span class="sh-groot${String(m.primair.waarde).length > 7 ? ' sh-groot--lang' : ''}">${esc(m.primair.waarde)}</span></span></div>` : '';
   const meter = m.meter
@@ -56,8 +56,8 @@ export function simHudHtml(m) {
   if (iconen) startUitleg();
   const uitleg = iconen ? uitlegHtml(iconen, { compact: true })
     : (m.uitleg || []).length
-    ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${tekstHtml(u.tekst)}</span></li>`).join('')}</ul>` : '';
-  return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon ds-icoon--klein sh-icoon')}<span class="sh-titel ds-t-label">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
+    ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-z-chip">${svg(u.icoon || '', 'ds-z-chip__icoon')}</span><span class="ds-t-hulp">${tekstHtml(u.tekst)}</span></li>`).join('')}</ul>` : '';
+  return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon ds-icoon--klein sh-icoon')}<span class="sh-titel ds-t-label">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-z-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
     stappen + primair + meter + `<p class="sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${tekstHtml(m.nu || '')}</p>` + cijfers + uitleg +
     (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${tekstHtml(t)}</p>`).join('');
 }
@@ -70,7 +70,7 @@ function bouw() {
   if (el || typeof document === 'undefined' || !document.body || !document.createElement) return;
   el = document.createElement('section');
   el.id = 'sh-hud';
-  el.className = 'sh-hud ds-kaart';
+  el.className = 'sh-hud ds-z-kaart ds-z-kaart--recht';
   el.setAttribute('aria-label', 'Wat je nu doet');
   el.hidden = true;
   inhoud = document.createElement('div');

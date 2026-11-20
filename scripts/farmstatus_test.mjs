@@ -101,12 +101,12 @@ t('veldkaarten: status, voortgang en de ene knop; de uitleg verdwijnt na Begrepe
   const b2 = B.nieuweBoerderij();
   B.rondTaakAf(b2, 'ploegen', 1, { vrij: true }); B.rondTaakAf(b2, 'zaaien', 1, { gewas: 'aardappelen', vrij: true }); B.tikUren(b2, 5);
   const html = K.kaartenBlok(b2);
-  assert.match(html, /class="ds-kaart bd-veld"/, 'elk veld is een kaart (#1013)'); assert.match(html, /bd-nu/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
-  assert.equal((html.match(/class="ds-knop"/g) || []).length, 1, 'één gele hoofdknop');
+  assert.match(html, /class="ds-z-kaart ds-z-kaart--recht bd-veld"/, 'elk veld is een kaart (#1013)'); assert.match(html, /bd-nu/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
+  assert.equal((html.match(/class="ds-z-knop"/g) || []).length, 1, 'één gele hoofdknop');
   assert.match(html, /data-bd-naar=/);
-  assert.match(html, /<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary/); assert.doesNotMatch(html, /data-bd-uitleg/, 'geen losse Begrepen-knop meer');
+  assert.match(html, /<details class="ds-z-kaart ds-z-kaart--recht bd-uitleg-kaart"><summary/); assert.doesNotMatch(html, /data-bd-uitleg/, 'geen losse Begrepen-knop meer');
   const kk = BM.veldKaart(b2, b2.bedrijf.actief);
-  assert.match(K.veldKaartHtml(kk), /class="ds-kaart bd-veld"/, 'de veldkaart zelf');
+  assert.match(K.veldKaartHtml(kk), /class="ds-z-kaart ds-z-kaart--recht bd-veld"/, 'de veldkaart zelf');
 });
 
 t('HUD-model: voortgang, snelheid in de band, diesel laag en wat nu', () => {

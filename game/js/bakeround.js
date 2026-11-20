@@ -76,15 +76,15 @@ let panel = null;
 let rwStappen = null, rwToetsen = null;
 let goed = ''; // de melding bij een gelukte bal (de foutmelding staat in b.last)
 
-// Het paneel (#985): een ds-kaart in dezelfde plek en taal als de strook van de light sims (sim.css, alleen ds-tokens, klassen bk-), met een balk voor de
+// Het paneel (#985): een ds-z-kaart in dezelfde plek en taal als de strook van de light sims (sim.css, alleen ds-tokens, klassen bk-), met een balk voor de
 // eierballen, het recept als stappen (Oma's volgorde blijft verborgen) en de zes toetsen als legenda. Het element heet nog steeds #bakeround (de speelbot zoekt het).
 function ensurePanel() {
   if (panel || typeof document === 'undefined') return panel;
   panel = document.createElement('div');
   panel.id = 'bakeround';
-  panel.className = 'sh-hud bk-paneel ds-kaart';
+  panel.className = 'sh-hud bk-paneel ds-z-kaart ds-z-kaart--recht';
   panel.setAttribute('aria-label', "Oma's recept");
-  panel.innerHTML = '<header class="sh-kop"><span class="sh-titel ds-t-subkop bk-kop"></span><span class="ds-chip bk-ronde"></span></header>' +
+  panel.innerHTML = '<header class="sh-kop"><span class="sh-titel ds-t-subkop bk-kop"></span><span class="ds-z-chip bk-ronde"></span></header>' +
     '<div class="ds-streep bk-balk" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Eierballen klaar"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label bk-balklabel"></span></div>' +
     '<div class="bk-regel"></div><div class="bk-toetsen"></div><p class="ds-t-hulp sh-nu bk-mis" aria-live="polite"></p>';
   document.body.appendChild(panel);

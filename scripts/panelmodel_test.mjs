@@ -18,7 +18,7 @@ t('Boerderij is begonnen zodra er een akker is gekozen of er uren zijn gewerkt',
 
 t('een veld is een kaart: stand met woord, gewas, oppervlakte, volgende stap en twee knoppen (Naar veld, Markeer op kaart)', () => {
   const html = veldKaartHtml({ id: 'zonnehoek', naam: 'Akker De Zonnehoek', statusId: 'braak', stand: 'kaal', standNaam: 'Kaal', actief: true, ha: 2.5, gewasNaam: '', planNaam: 'Aardappelen', volgende: 'Ploegen', soort: 'akker', groeit: false, groei: 0, verwachting: { kg: 1800, euro: 900 } });
-  assert.match(html, /class="ds-kaart bd-veld"/);
+  assert.match(html, /class="ds-z-kaart ds-z-kaart--recht bd-veld"/);
   assert.match(html, /2,5 ha/);
   assert.match(html, /Kaal/);
   assert.match(html, /Volgende stap/);

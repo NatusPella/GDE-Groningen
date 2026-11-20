@@ -2,7 +2,7 @@
    klassen met het voorvoegsel bd-. Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. */
 
 /* ---- HUD-strook tijdens het werk (zone C, net als het paneel van een activiteit) ---- */
-.bd-hud.ds-kaart { position: fixed;   /* twee klassen: wint van .ds-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
+.bd-hud.ds-z-kaart { position: fixed;   /* twee klassen: wint van .ds-z-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
   /* de vrije band onderin tussen de straatnaamkaart (links) en de snelheidsmeter (rechts); het doel van de missie boven het scherm blijft zichtbaar (beeldrun 20-11: de strook lag erover) */
   left: 43.8vw; bottom: max(2vh, var(--ds-s-4)); font-family: var(--ds-font-tekst); z-index: 6; box-sizing: border-box; width: clamp(calc(var(--ds-s-8) * 4.5), 28vw, calc(var(--ds-s-8) * 8)); max-width: calc(100vw - var(--ds-s-6));
   gap: var(--ds-s-2); pointer-events: none; }
@@ -28,20 +28,20 @@
 
 /* ---- Paneel: veldkaarten, lus en legenda ---- */
 /* de menutekst (.m-pane p) is licht voor donkere vlakken; op een papieren kaart moet de tekst donker blijven (twee klassen winnen ervan) */
-.bd-pane .ds-kaart p, .bd-pane .ds-kaart li { color: var(--ds-tx); max-width: none; }
-.bd-pane .ds-kaart .ds-t-hulp, .bd-pane .ds-kaart .ds-kaart__voet { color: var(--ds-tx-zacht); }
-.bd-pane .ds-kaart .bd-veld__nu { color: var(--ds-tx); }
+.bd-pane .ds-z-kaart p, .bd-pane .ds-z-kaart li { color: var(--ds-tx); max-width: none; }
+.bd-pane .ds-z-kaart .ds-t-hulp, .bd-pane .ds-z-kaart .ds-z-kaart__voet { color: var(--ds-tx-zacht); }
+.bd-pane .ds-z-kaart .bd-veld__nu { color: var(--ds-tx); }
 .bd-velden { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 4), 1fr)); gap: var(--ds-s-3); }
-.bd-veld { gap: var(--ds-s-2); }
-.bd-veld[data-status="rijp"] { --ds-kaart-rand: var(--ds-succes); }
-.bd-veld[data-status="braak"], .bd-veld[data-status="stoppel"] { --ds-kaart-rand: var(--ds-rand); }
-.bd-veld[data-status="zaailing"], .bd-veld[data-status="groeiend"], .bd-veld[data-status="bijna"] { --ds-kaart-rand: var(--ds-primair); }
-.bd-veld[data-status="geploegd"] { --ds-kaart-rand: var(--ds-waarschuwing); }
+.bd-veld { gap: var(--ds-s-2); border-left-width: var(--ds-s-2); }   /* de statusrand links, zoals op de oude kaart */
+.bd-veld[data-status="rijp"] { border-left-color: var(--ds-succes); }
+.bd-veld[data-status="braak"], .bd-veld[data-status="stoppel"] { border-left-color: var(--ds-rand); }
+.bd-veld[data-status="zaailing"], .bd-veld[data-status="groeiend"], .bd-veld[data-status="bijna"] { border-left-color: var(--ds-primair); }
+.bd-veld[data-status="geploegd"] { border-left-color: var(--ds-waarschuwing); }
 .bd-veld__nu { margin: 0; }
 .bd-lus { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); list-style: none; margin: 0; padding: 0; }
 .bd-lus > li { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
-.bd-lus > li[data-stand="klaar"] .ds-chip { --ds-chip-bg: var(--ds-succes-vlak); --ds-chip-tx: var(--ds-succes-tx); }
-.bd-lus > li[data-stand="nu"] .ds-chip { --ds-chip-bg: var(--ds-primair); --ds-chip-tx: var(--ds-primair-tx); }
+.bd-lus > li[data-stand="klaar"] .ds-z-chip { background: var(--ds-succes-vlak); color: var(--ds-succes-tx); }
+.bd-lus > li[data-stand="nu"] .ds-z-chip { background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); }
 .bd-legenda { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; }
 .bd-legenda > li { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
 .bd-uitleg { display: flex; gap: var(--ds-s-4); align-items: flex-start; }
@@ -61,11 +61,11 @@
 .bd-veld__feiten { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); }
 .bd-veld__feiten > li { display: flex; flex-direction: column; min-width: 0; }
 .bd-veld__feiten b { font-weight: normal; font-size: var(--ds-t-body); }
-.bd-veld .ds-kaart__voet { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+.bd-veld .ds-z-kaart__voet { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 .bd-veld[data-stand="rijp"] { box-shadow: 0 0 0 var(--ds-s-1) var(--ds-succes-vlak); }
 .bd-machine { grid-template-columns: var(--ds-s-5) minmax(0, 1fr) auto; }
-.bd-machine[data-stand="brandstof"] .bd-chip, .bd-machine[data-stand="slijtage"] .bd-chip, .bd-machine[data-stand="achterstand"] .bd-chip { --ds-chip-bg: var(--ds-waarschuwing-vlak, var(--ds-chip-bg)); }
+.bd-machine[data-stand="brandstof"] .bd-chip, .bd-machine[data-stand="slijtage"] .bd-chip, .bd-machine[data-stand="achterstand"] .bd-chip { background: var(--ds-waarschuwing-vlak); color: var(--ds-waarschuwing-tx); }
 .bd-dieren { margin: 0; }
-.bd-veld .ds-knop { transition: transform 120ms ease-out, background-color 120ms ease-out; }
-.bd-veld .ds-knop:active { transform: translateY(1px); }
-@media (prefers-reduced-motion: reduce) { .bd-veld .ds-knop { transition: none; } }
+.bd-veld .ds-z-knop { transition: transform 120ms ease-out, background-color 120ms ease-out; }
+.bd-veld .ds-z-knop:active { transform: translateY(1px); }
+@media (prefers-reduced-motion: reduce) { .bd-veld .ds-z-knop { transition: none; } }

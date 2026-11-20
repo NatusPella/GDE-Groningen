@@ -20,12 +20,12 @@ function bouw() {
   if (el || typeof document === 'undefined' || !document.body || !document.createElement) return;
   el = document.createElement('section');
   el.id = 'bd-hud';
-  el.className = 'bd-hud ds-kaart';
+  el.className = 'bd-hud ds-z-kaart ds-z-kaart--recht';
   zetContext(el, 'farming'); // #1004
   el.setAttribute('aria-label', 'Werk op het land');
   el.hidden = true;
   el.innerHTML = '<header class="bd-hud__kop"><span class="bd-hud__icoon"></span>' +
-    '<span class="bd-hud__taak ds-t-subkop"></span><span class="ds-chip bd-hud__veld"></span></header>' +
+    '<span class="bd-hud__taak ds-t-subkop"></span><span class="ds-z-chip bd-hud__veld"></span></header>' +
     '<div class="ds-streep bd-hud__voortgang" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Voortgang van de klus"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label"></span></div>' +
     '<div class="bd-hud__rij"><div class="bd-hud__snel"><span class="bd-hud__baan" aria-hidden="true"><span class="bd-hud__zone"></span><span class="bd-hud__naald"></span></span><span class="ds-t-hulp bd-hud__snelte"></span></div>' +
     '<div class="ds-streep bd-hud__diesel" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Diesel"><span class="ds-streep__label">Diesel</span><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label bd-hud__dieselte"></span></div>' +

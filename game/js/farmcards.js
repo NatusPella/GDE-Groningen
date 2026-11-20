@@ -1,5 +1,5 @@
 // De veldkaarten van het boerderijpaneel (#985): wat nu, de lus (ploegen, zaaien, groeien, oogsten, afleveren), elk veld als kaart met status, voortgang en
-// volgende klus, de legenda van de kaartstatussen en de eerste-keer-uitleg. Dun: dit bestand maakt alleen markup (ds-kaart, ds-chip, ds-streep, ds-knop uit
+// volgende klus, de legenda van de kaartstatussen en de eerste-keer-uitleg. Dun: dit bestand maakt alleen markup (ds-z-kaart, ds-z-chip, ds-streep, ds-z-knop uit
 // ds-components.css; de indeling staat in farm.css) uit het model van farmstatus.js. Klikken en toetsen regelt boerderijui.js (data-bd-naar,
 // data-bd-uitleg). Geen eigen kleuren: de stand zit in data-status, de betekenis in woorden en een icoon (kleur is nooit de enige betekenis).
 import * as B from './boerderij.js';
@@ -11,7 +11,7 @@ import { STATUS, STATUS_IDS, KAART_STIJL, LUS, veldenStatus, lusKlaar, watNu } f
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const svg = (pad, cls = 'ds-icoon') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`;
-const chip = (statusId, tekst) => `<span class="ds-chip bd-chip" data-status="${statusId}">${icoon(STATUS[statusId].icoon, { cls: 'ds-chip__icoon' })}${esc(tekst || STATUS[statusId].naam)}</span>`;
+const chip = (statusId, tekst) => `<span class="ds-z-chip bd-chip" data-status="${statusId}">${icoon(STATUS[statusId].icoon, { cls: 'ds-z-chip__icoon' })}${esc(tekst || STATUS[statusId].naam)}</span>`;
 
 // De sleutel voor de eerste-keer-uitleg: een keer weggeklikt blijft weg (alleen dit apparaat, geen savegame).
 export const UITLEG_SLEUTEL = 'gde-boerderij-uitleg-v1';
@@ -25,7 +25,7 @@ export function lusHtml(s, schuurKg = 0) {
   return `<ol class="bd-lus" aria-label="De stappen van een teelt">` + LUS.map((l, i) => {
     const stand = i < klaar ? 'klaar' : i === nu ? 'nu' : 'straks';
     const teken = stand === 'klaar' ? '<path d="M5 12l4 4 10-10"/>' : `<text x="12" y="17" text-anchor="middle" font-size="14" fill="currentColor" stroke="none">${i + 1}</text>`;
-    return `<li data-stand="${stand}"${stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-chip">${svg(teken, 'ds-chip__icoon')}${esc(l.label)}</span></li>`;
+    return `<li data-stand="${stand}"${stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-z-chip">${svg(teken, 'ds-z-chip__icoon')}${esc(l.label)}</span></li>`;
   }).join('') + '</ol>';
 }
 
@@ -46,30 +46,30 @@ export function veldKaartHtml(k) {
   const gewas = k.gewasNaam ? esc(k.gewasNaam) : k.planNaam ? `plan: ${esc(k.planNaam)}` : 'nog geen gewas';
   const v = k.verwachting;
   const verwacht = v && v.kg > 0 ? `<li><span class="ds-t-hulp">Verwacht</span><b>${nl(v.kg)} kg</b><span class="ds-t-hulp">ca. ${euroTekst(v.euro)}</span></li>` : '';
-  return `<article class="ds-kaart bd-veld" data-status="${k.statusId}" data-stand="${k.stand}" data-veld="${esc(k.id)}">` +
-    `<header class="ds-kaart__kop"><h3 class="ds-kaart__titel">${esc(k.naam)}</h3>${chip(k.statusId, k.standNaam)}</header>` +
-    `<p class="ds-kaart__tekst">${gewas} · ${esc(String(k.ha).replace('.', ','))} ha · ${k.soort === 'weiland' ? 'weiland' : 'akker'}${k.actief ? ' · werkt hier' : ''}</p>` +
+  return `<article class="ds-z-kaart ds-z-kaart--recht bd-veld" data-status="${k.statusId}" data-stand="${k.stand}" data-veld="${esc(k.id)}">` +
+    `<header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">${esc(k.naam)}</h3>${chip(k.statusId, k.standNaam)}</header>` +
+    `<p class="ds-z-kaart__tekst">${gewas} · ${esc(String(k.ha).replace('.', ','))} ha · ${k.soort === 'weiland' ? 'weiland' : 'akker'}${k.actief ? ' · werkt hier' : ''}</p>` +
     voortgang +
     `<ul class="bd-veld__feiten"><li><span class="ds-t-hulp">Volgende stap</span><b>${esc(k.volgende)}</b></li>${verwacht}</ul>` +
-    `<footer class="ds-kaart__voet"><button type="button" class="ds-knop ds-knop--secundair" data-bd-naar="${esc(k.id)}" data-bd-sluit="1">Naar veld</button>` +
-    `<button type="button" class="ds-knop ds-knop--secundair" data-bd-naar="${esc(k.id)}" data-goto="map">Markeer op kaart</button></footer></article>`;
+    `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-bd-sluit="1">Naar veld</button>` +
+    `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-goto="map">Markeer op kaart</button></footer></article>`;
 }
 
 // De machines als compacte lijst met status; leeg is een eerlijke zin met de weg naar de winkel van het scherm (Machines).
 export function machinesKaartHtml(machines) {
   const rijen = machines.map((m) => `<li class="ds-lijst__rij bd-machine" data-stand="${esc(m.stand)}"><span class="bd-veldregel__ic">${icoon('tractor', { cls: 'ds-icoon' })}</span>` +
     `<span class="bd-veldregel__t"><b>${esc(m.naam)}</b><span class="ds-t-hulp">${esc(m.plek)} · ${m.bezit === 'gehuurd' ? 'gehuurd' : 'van jou'}</span></span>` +
-    `<span class="ds-chip bd-chip" data-machine="${esc(m.stand)}">${esc(m.tekst)}</span></li>`).join('');
-  return `<section class="ds-kaart bd-machines" aria-label="Machines"><header class="ds-kaart__kop"><h3 class="ds-kaart__titel">Machines</h3></header>` +
+    `<span class="ds-z-chip bd-chip" data-machine="${esc(m.stand)}">${esc(m.tekst)}</span></li>`).join('');
+  return `<section class="ds-z-kaart ds-z-kaart--recht bd-machines" aria-label="Machines"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Machines</h3></header>` +
     (rijen ? `<ul class="ds-lijst">${rijen}</ul>` : `<div class="ds-leeg"><p>Je hebt nog geen machines. Huur of koop een trekker en werktuigen om zelf te ploegen en te zaaien.</p></div>`) +
-    `<footer class="ds-kaart__voet"><button type="button" class="ds-knop ds-knop--secundair" data-bd="machines">Machines huren of kopen</button></footer></section>`;
+    `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd="machines">Machines huren of kopen</button></footer></section>`;
 }
 
 // De toegang tot meer land: altijd zichtbaar op het overzicht, niet verstopt in een tab.
 export function toegangKaartHtml(t) {
-  return `<section class="ds-kaart bd-toegang" aria-label="Meer land"><header class="ds-kaart__kop"><h3 class="ds-kaart__titel">Meer land</h3></header>` +
-    `<p class="ds-kaart__tekst">${esc(t.tekst)}</p>` +
-    (t.aanbod ? `<footer class="ds-kaart__voet"><button type="button" class="ds-knop ds-knop--secundair" data-bd="percelen">Percelen huren of kopen</button></footer>` : '') + '</section>';
+  return `<section class="ds-z-kaart ds-z-kaart--recht bd-toegang" aria-label="Meer land"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Meer land</h3></header>` +
+    `<p class="ds-z-kaart__tekst">${esc(t.tekst)}</p>` +
+    (t.aanbod ? `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd="percelen">Percelen huren of kopen</button></footer>` : '') + '</section>';
 }
 
 // De legenda van de kaartstatussen: icoon, woord en de letter op de kaart (kleur is nooit de enige betekenis).
@@ -83,9 +83,9 @@ export function uitlegKaartHtml(metLegenda = false) {
   // #989: eerst de stappen met icoon en lus; de volledige zinnen staan eronder in 'Meer uitleg' (uit in Instellingen = alleen de zinnen)
   const iconenUitleg = uitlegBlok('boerderij-zaaien', { compact: true, nietMeer: true, zonderMeer: true });
   // compact en dicht: één regel die je openklapt, geen losse knop in het scrollgebied (oogtest 20-11)
-  return `<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary class="ds-kaart__titel">Zo werkt je boerderij</summary>` +
+  return `<details class="ds-z-kaart ds-z-kaart--recht bd-uitleg-kaart"><summary class="ds-z-kaart__titel">Zo werkt je boerderij</summary>` +
     iconenUitleg + `<ol class="bd-uitleg-lijst">${stap('geploegd', 'Ploegen: rij rustig rechte rijen, niet te hard.')}${stap('zaailing', 'Zaaien: kies eerst je gewas bij Gewas.')}${stap('groeiend', 'Groeien: het gewas groeit in speltijd, in de zomer.')}${stap('rijp', 'Oogsten als het veld oogstklaar is (de vlag is groen), daarna afleveren.')}</ol>` +
-    (metLegenda ? `<p class="ds-kaart__label">Legenda van de kaart</p>${legendaHtml()}` : '') +
+    (metLegenda ? `<p class="ds-t-label">Legenda van de kaart</p>${legendaHtml()}` : '') +
     '</details>';
 }
 
@@ -96,10 +96,10 @@ export function kaartenBlok(b) {
   const schuurKg = o.schuurKg;
   const eerste = o.velden.find((v) => v.id === (o.hoofd && o.hoofd.veld)) || o.velden[0];
   const s = { statusId: eerste.statusId, klaar: eerste.klaar, status: eerste.standNaam };
-  const hoofd = `<article class="ds-kaart ds-kaart--selectie bd-nu" data-status="${eerste.statusId}"><header class="ds-kaart__kop"><h3 class="ds-kaart__titel">Nu: ${esc(eerste.volgende)}</h3>${chip(eerste.statusId, eerste.klaar ? 'Oogstklaar' : eerste.standNaam)}</header>` +
-    `<p class="ds-kaart__tekst">${esc(eerste.naam)}${eerste.gewasNaam ? ` · ${esc(eerste.gewasNaam)}` : ''}${schuurKg ? ` · in de schuur: ${nl(schuurKg)} kg` : ''}${o.verwachtKg ? ` · verwacht op het land: ${nl(o.verwachtKg)} kg` : ''}</p>` +
+  const hoofd = `<article class="ds-z-kaart ds-z-kaart--recht ds-z-kaart--selectie bd-nu" data-status="${eerste.statusId}"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Nu: ${esc(eerste.volgende)}</h3>${chip(eerste.statusId, eerste.klaar ? 'Oogstklaar' : eerste.standNaam)}</header>` +
+    `<p class="ds-z-kaart__tekst">${esc(eerste.naam)}${eerste.gewasNaam ? ` · ${esc(eerste.gewasNaam)}` : ''}${schuurKg ? ` · in de schuur: ${nl(schuurKg)} kg` : ''}${o.verwachtKg ? ` · verwacht op het land: ${nl(o.verwachtKg)} kg` : ''}</p>` +
     lusHtml({ ...s, ...{ statusId: eerste.statusId, klaar: eerste.klaar } }, schuurKg) + (eerste.groeit ? groeiHtml({ naam: eerste.naam, stadium: 0, groei: eerste.groei }) : '') +
-    `<footer class="ds-kaart__voet"><button type="button" class="ds-knop" data-bd-naar="${esc(eerste.id)}" data-bd-sluit="1">${esc(o.hoofd.label)}</button></footer></article>`;
+    `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop" data-bd-naar="${esc(eerste.id)}" data-bd-sluit="1">${esc(o.hoofd.label)}</button></footer></article>`;
   const velden = `<div class="bd-velden" role="list" aria-label="Je velden">${o.velden.map((k) => veldKaartHtml(k)).join('')}</div>`;
   const dieren = `<p class="ds-t-hulp bd-dieren">Dieren: er lopen nog geen dieren op je boerderij; je werkt met akkers en weiland.</p>`;
   return hoofd + velden + machinesKaartHtml(o.machines) + toegangKaartHtml(o.toegang) + dieren + uitlegKaartHtml(true);
