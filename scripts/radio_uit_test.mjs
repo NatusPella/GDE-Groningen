@@ -143,7 +143,13 @@ for (const k of vehicleKeys) {
   ok(scene(3, { wanted: 1 }) === 'chase', 'een achtervolging speelt ook met de radio uit');
   ok(scene(1, { padelGame: {} }) === 'padel', 'padel houdt zijn eigen muziek');
   ok(scene(1, { activityGame: 'kartbaan' }) === 'kart', 'de kartbaan houdt zijn eigen muziek');
-  ok(scene(1, { mission: { phase: 'active' } }) === 'missie', 'de missiespanning blijft');
+  // #988 (besluit 20-11): de radio is de standaard. Een gewone missie heeft geen eigen muziek: met de radio uit is het stil
+  // (de speler koos dat), met de radio aan speelt de radio. Alleen een verhaalmoment of een expliciete spanning speelt altijd.
+  ok(scene(1, { mission: { phase: 'active' } }) === null, 'een gewone missie is stil met de radio uit');
+  ok(scene(1, { mission: { phase: 'active', code: 'M09' } }) === null, 'een klusmissie geeft geen eigen muziek');
+  ok(scene(1, { mission: { phase: 'active', spanning: true } }) === 'missie', 'een expliciete spanning blijft ook met de radio uit');
+  ok(scene(1, { mission: { phase: 'active', code: 'M06' } }) === 'missie_sluipen', 'een verhaalmoment speelt ook met de radio uit');
+  ok(scene(1, { sideJob: { active: true, id: 'taxi' } }) === null, 'een bijbaan houdt de radio (stil als hij uit staat)');
   ok(scene(1, { trainDriving: {} }) !== 'bus', 'de trein is geen voertuigdeuntje van de radio');
 }
 

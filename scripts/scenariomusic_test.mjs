@@ -80,8 +80,12 @@ assert.equal(activityMusicKey({ player: { inVehicle: { model: { name: 'tractor' 
 assert.equal(activityMusicKey({ player: { inVehicle: { model: { name: 'sedan' } } } }), null);
 assert.equal(activityMusicKey({ player: { inVehicle: { isHeli: true } } }), 'vlucht');
 assert.equal(activityMusicKey({ player: { inVehicle: { model: { name: 'plane' } } } }), 'vlucht');
-assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: {} }), 'missie');
+// een gewone actieve missie is de radio (null); de spanningsloop alleen als de missie er expliciet om vraagt (#988, besluit 20-11)
+assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: {} }), null);
+assert.equal(activityMusicKey({ mission: { phase: 'active', spanning: true }, player: {} }), 'missie');
+assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M06' }, player: {} }), 'missie_sluipen', 'een verhaalmoment uit de lijst');
 assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: { inVehicle: { model: { name: 'tractor' } } } }), 'boerderij');
+assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M06' }, player: { inVehicle: { model: { name: 'tractor' } } } }), 'missie_sluipen', 'een verhaalmoment wint van het voertuigdeuntje');
 assert.equal(activityMusicKey({ player: { inVehicle: { isBike: true } } }), 'fiets');
 assert.equal(activityMusicKey({ activityGame: 'zwembad' }), null);
 assert.equal(activityMusicKey({ activityGame: null }), null);
@@ -143,9 +147,10 @@ console.log('scenariomusic_test: ok');
 {
   let foto = false, huis = false;
   registerMusicProbe('foto', () => foto); registerMusicProbe('thuis', () => huis);
-  assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: {} }), 'missie');
+  assert.equal(activityMusicKey({ mission: { phase: 'active', spanning: true }, player: {} }), 'missie');
   foto = true;
-  assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: { inVehicle: { isBike: true } } }), 'thuis');
+  assert.equal(activityMusicKey({ mission: { phase: 'active', spanning: true }, player: { inVehicle: { isBike: true } } }), 'thuis');
+  assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M06' }, player: {} }), 'thuis', 'thuis gaat voor een verhaalmoment');
   foto = false; huis = true;
   assert.equal(activityMusicKey({ player: {} }), 'thuis');
   assert.equal(activityMusicKey({ padelGame: {}, player: {} }), 'padel');
