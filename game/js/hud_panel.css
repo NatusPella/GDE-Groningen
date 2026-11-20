@@ -108,7 +108,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
   background: var(--hud-card); box-shadow: var(--hud-card-ring); color: #f0ede4; text-shadow: none; white-space: nowrap; max-width: calc(58vw / var(--ui, 1));
 }
 #hud .hud-gps[hidden] { display: none; }
-#hud .gps-arrow { width: 36px; height: 36px; fill: none; stroke: var(--gron-green-light); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+#hud .gps-arrow { width: 36px; height: 36px; color: var(--gron-green-light); fill: none; stroke: var(--gron-green-light); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #hud .gps-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 #hud .gps-txt b { font-weight: normal; font-size: 28px; line-height: 1; }
 #hud .gps-txt span { font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(15px, var(--hud-min)); color: rgba(240, 237, 228, 0.75); overflow: hidden; text-overflow: ellipsis; }
@@ -562,7 +562,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #hud .hud-vehname small { display: block; font-size: 16px; letter-spacing: 5px; color: #3fc97a; text-transform: uppercase; }
 #hud .hud-vehname small:empty { display: none; }
 #hud .hud-vehname b { display: block; font-weight: normal; font-size: 38px; line-height: 0.95; letter-spacing: 1.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-vehname .vn-ic { flex: 0 0 34px; width: 34px; height: 34px; fill: var(--gron-green-light); stroke: var(--gron-green-light); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 8px rgba(63, 201, 122, 0.35)); }
+#hud .hud-vehname .vn-ic { flex: 0 0 34px; width: 34px; height: 34px; color: var(--gron-green-light); fill: var(--gron-green-light); stroke: var(--gron-green-light); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 8px rgba(63, 201, 122, 0.35)); }
 #hud .hud-vehname .vn-ic .ln { fill: none; stroke-width: 2; }
 #hud .hud-vehname .vn-ic circle:not(.ln) { fill: #0c140e; stroke-width: 2; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-vehname { transition: opacity 0.2s; transform: none; } }
@@ -760,7 +760,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-mate, #hud .hud-chip { font-family: var(--hud-zinnen); font-weight: 400; letter-spacing: 0; }
 #hud .gps-txt span, #hud .hud-mission-progress, #hud .hud-obj-keys, #hud .hud-nowplaying span:not(.np-ic) { color: var(--hud-inkt-zacht); }
 #hud .hud-mission-label { color: var(--hud-inkt); font-weight: 700; font-size: 18px; }
-#hud .gps-arrow { stroke: var(--ds-c-ink-bord); }
+#hud .gps-arrow { stroke: var(--ds-c-ink-bord); color: var(--ds-c-ink-bord); }
 #hud .gps-sep { background: var(--hud-inkt); opacity: 0.35; }
 #hud .gps-timer b { color: var(--ds-probleem-tx); }
 #hud .hud-chip { background: var(--ds-c-ink-papier); color: var(--hud-inkt); border: 1.5px solid var(--hud-inkt); }
@@ -771,8 +771,8 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-saved.hud-saved-broken, #hud .hud-saved.hud-saved-broken svg { color: var(--ds-probleem-tx); }
 #hud .hud-weapon-icon { fill: var(--hud-inkt); color: var(--hud-inkt); filter: none; }
 #hud .np-ic { background: var(--ds-c-ink-geel); border: 2px solid var(--hud-inkt); }
-#hud .np-ic svg { stroke: var(--hud-inkt); }
-#hud .hud-vehname .vn-ic { fill: var(--hud-inkt); stroke: var(--hud-inkt); filter: none; }
+#hud .np-ic svg { stroke: var(--hud-inkt); color: var(--hud-inkt); }
+#hud .hud-vehname .vn-ic { fill: var(--hud-inkt); stroke: var(--hud-inkt); color: var(--hud-inkt); filter: none; }
 #hud .hud-vehname .vn-ic circle:not(.ln) { fill: var(--hud-plaat); }
 #hud .hud-vehname { border-right-width: 2.5px; border-right-color: var(--hud-inkt); }
 #hud .hud-nowplaying, #hud .hud-vehname { box-shadow: var(--hud-schaduw); }
@@ -815,7 +815,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-mission[data-kind="mission"] { --obj: var(--ds-c-ink-geel); }
 #hud .hud-mission[data-kind="job"] { --obj: var(--ds-c-ink-bord); }
 #hud .hud-mission[data-kind="police"] { --obj: var(--ds-probleem); }
-#hud .hud-obj-icon { fill: var(--obj); stroke: var(--hud-inkt); stroke-width: 1.4; filter: none; width: 22px; height: 22px; flex-basis: 22px; }
+#hud .hud-obj-icon { color: var(--obj); fill: var(--obj); stroke: var(--hud-inkt); stroke-width: 1.4; filter: none; width: 22px; height: 22px; flex-basis: 22px; }
 #hud .hud-mission.pop .hud-obj-text { animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); } /* geen misdruk op lopende tekst (doel, toetsregel) */
 
 /* toetsplaatje op papier: inkt met papieren letter, zonder misdruk */

@@ -45,6 +45,7 @@ import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindB
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { mapControlList, stepMapControls, toggleMapControls } from './padmapnav.js';
 import { padGlyphInner } from './glyphs.js';
+import { icoon } from './icons.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
@@ -211,14 +212,8 @@ const CONTROL_LONG = [
     ['Volledig scherm', 'Volledig scherm (ook Alt+{ENTER}).'],
   ]],
 ];
-const GROUP_ICONS = {
-  voet: '<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1M10 12l-3 2M13 15l3 6"/>',
-  vervoer: '<path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.6h9.2a2 2 0 0 1 1.9 1.4L20 16v3h-3M7 19H4v-3h16"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
-  vechten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
-  duif: '<path d="M3 13c3 0 5-2 7-5 1 3 3 4 6 4l5-3-2 5c-2 4-6 6-10 5l-4 2 1-4c-2-1-3-2-3-4z"/><circle cx="16.5" cy="10.5" r="0.4"/>',
-  samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
-  menu: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/>',
-};
+// Betekenisnamen (icons.js, Phosphor): de koppen van het Toetsenoverzicht.
+const GROUP_ICONS = { voet: 'lopen', vervoer: 'auto', vechten: 'doel', duif: 'duif', samen: 'samen', menu: 'telefoon' };
 // the controller table (controls.js PAD_MAPS) each group shows when a pad is in use
 const GROUP_CTX = { voet: 'foot', vervoer: 'vehicle', vechten: 'foot', duif: 'pigeon', samen: 'foot', menu: 'menu' };
 const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
@@ -236,7 +231,7 @@ const keyText = (t) => esc(t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyphHtml(k)
 // woordbudget van een naslagscherm (#605). De volledige uitleg staat in Hulp (controlsHelpHtml).
 function controlsHtml() {
   return CONTROL_GROUPS.map(([id, title, rows]) => `<section class="pm-cgroup" data-cgroup="${id}" data-pad-ctx="${GROUP_CTX[id] || 'foot'}" tabindex="0" aria-label="${esc(title)}">` +
-    `<h3><svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${GROUP_ICONS[id]}</svg>${esc(title)}</h3>` +
+    `<h3>${icoon(GROUP_ICONS[id], { cls: 'pm-ic' })}${esc(title)}</h3>` +
     rows.filter(([keys]) => keys[0] !== 'K' || (world && world.kissUnlocked)).map(([keys, desc]) => {
       const words = keys.flatMap((k) => k.split('+')).map((t) => MOUSE_WORDS[t] || t).join(' ');
       const lang = longTextFor(id, desc);
@@ -341,49 +336,11 @@ function filterBinds(words) {
   return out;
 }
 
-const ICONS = {
-  resume: '<path d="M8 5l11 7-11 7z"/>',
-  save: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
-  load: '<path d="M3 7h6l2 2h10v11H3z"/><path d="M12 17v-6M9 13l3-3 3 3"/>',
-  restart: '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5"/>',
-  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h0"/>',
-  home: '<path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/>',
-  abort: '<circle cx="12" cy="12" r="9"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/>',
-  bird: GROUP_ICONS.duif,
-  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
-  exit: '<path d="M14 4h6v16h-6M10 8l-4 4 4 4M6 12h10"/>',
-  back: '<path d="M15 5l-7 7 7 7"/>',
-  next: '<path d="M9 5l7 7-7 7"/>',
-  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>',
-  map: '<path d="M3 6.2l6-2.2 6 2.2 6-2.2v13.8l-6 2.2-6-2.2-6 2.2zM9 4v13.8M15 6.2V20"/>',
-  overzicht: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
-  todo: '<path d="M6 3v18M6 4h12l-2.5 4L18 12H6"/>',
-  verhaal: '<path d="M4 5.5C6.5 4 9.5 4 12 6c2.5-2 5.5-2 8-.5V19c-2.5-1.5-5.5-1.5-8 .5-2.5-2-5.5-2-8-.5zM12 6v13.5"/>',
-  garage: '<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>',
-  fotos: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
-  prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
-  loopbaan: '<path d="M3 20h5v-5h5v-5h5V5h3M3 20h18"/>',
-  visboek: '<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3zM16.5 11h.01"/>',
-  boerderij: '<path d="M3 20h18M5 20v-8l7-5 7 5v8M10 20v-5h4v5"/>',
-  streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
-  spel: '<rect x="3" y="7.5" width="18" height="10" rx="5"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15" cy="11.5" r="0.9"/><circle cx="17.5" cy="13.5" r="0.9"/>',
-  settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
-  controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
-  mute: '<path d="M4 9.5h3.2L11.5 6v12L7.2 14.5H4z"/><path d="M15 9.5l5 5M20 9.5l-5 5"/>',
-  spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
-  telefoon: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
-  // the main menu's items (startscreen.js), in the same line style
-  solo: '<circle cx="12" cy="8" r="3.8"/><path d="M5 20.5c.6-4.2 3.5-6.4 7-6.4s6.4 2.2 7 6.4"/>',
-  new: '<path d="M12 4v16M4 12h16"/>',
-  news: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 17h5"/>',
-  about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
-  spelers: '<circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10.5" r="2.1"/><circle cx="18.5" cy="10.5" r="2.1"/><path d="M6.5 20c0-3.4 2.4-5.6 5.5-5.6s5.5 2.2 5.5 5.6"/>',
-  veroverd: '<path d="M7 21V4M7 5l10 3.5L7 12"/>',
-  samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
-};
+// Menu-icoon-id naar betekenisnaam (icons.js, Phosphor, ADR 0041).
+const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen' };
 // An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
 export const menuIcon = (id, cls = 'ss-ic') => (ICONS[id] ? icon(id, cls) : '');
-const icon = (id, cls = 'pm-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ''}</svg>`;
+const icon = (id, cls = 'pm-ic') => icoon(ICONS[id] || 'vraag', { cls });
 const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
   `<button type="button" class="${cls}" data-action="${action}"${extra}>${icon(ic)}<span>${label}</span></button>`;
 
@@ -551,8 +508,8 @@ const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => 
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
-const CHEV_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>';
-const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+const CHEV_L = icoon('terug');
+const CHEV_R = icoon('volgende');
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)

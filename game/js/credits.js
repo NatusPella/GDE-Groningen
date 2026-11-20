@@ -66,6 +66,7 @@ export const THIRD_PARTY_CARDS = [
   ['AHN', 'terreinhoogte (CC0) · ahn.nl · pdok.nl'],
   ['Kadaster · CBS', 'gemeente-, woonplaats-, wijk- en buurtgrenzen (CC BY 4.0, Public Domain) · pdok.nl'],
   ['three.js · Bebas Neue · Big Shoulders Display', 'MIT-licentie · SIL Open Font License'],
+  ['Phosphor Icons', 'alle iconen (MIT-licentie) · phosphoricons.com'],
   ['Fanparodie', 'alles verzonnen'],
 ];
 
@@ -89,6 +90,7 @@ ${geluidenHtml()}
 <p>Gemaakt met hulp van AI-assistenten: ${AI_ASSISTENTS.map(([who, role]) => `${who} (${role})`).join('; ')}. Zij staan hier als tech-stack, niet als credits.</p>
 <ul>
 <li>three.js, © three.js authors, MIT-licentie</li>
+<li>Phosphor Icons (@phosphor-icons/core), © 2023 Phosphor Icons, MIT-licentie: alle iconen in het spel</li>
 <li>Bebas Neue, © 2010 Dharma Type, SIL Open Font License 1.1</li>
 <li>Big Shoulders Display (het logo), © 2019 The Big Shoulders Project Authors, SIL Open Font License 1.1</li>
 <li>Desktopversie: Electron en electron-builder (MIT), met Chromium (diverse open-sourcelicenties, zie LICENSES.chromium.html bij de app)</li>

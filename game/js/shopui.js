@@ -1,3 +1,4 @@
+import { icoon } from './icons.js';
 import { saveGame } from './savehook.js';
 import { euro } from './geldtekst.js';
 import { createVehiclePreview } from './vehiclepreview.js';
@@ -29,9 +30,9 @@ const ARM_TIME = 4000;
 
 // Statuschips met een pictogram en een woord: nooit alleen kleur (designsysteem v2).
 const CHIP_ICOON = {
-  ok: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>',
-  no: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z"/></svg>',
-  mut: '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM4.5 7.2h7v1.6h-7z"/></svg>',
+  ok: icoon('vinkje', { cls: 'ds-chip__icoon', maat: 's' }),
+  no: icoon('waarschuwing', { cls: 'ds-chip__icoon', maat: 's' }),
+  mut: icoon('min', { cls: 'ds-chip__icoon', maat: 's' }),
 };
 const CHIP_KLASSE = { ok: 'ds-chip--succes', no: 'ds-chip--probleem', mut: '' };
 const chipHtml = (st, extra = '') => `<span class="ds-chip ${CHIP_KLASSE[st.tone] || ''} sm-st ${st.tone}${extra}" data-st="${st.id}">${CHIP_ICOON[st.tone] || CHIP_ICOON.mut}${esc(st.label)}</span>`;

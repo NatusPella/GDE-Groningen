@@ -1,3 +1,4 @@
+import { icoon } from './icons.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
 import { getGaragesForRender, garagePrompt } from './garages.js';
@@ -682,7 +683,9 @@ const PIC = {
   heliBoost: '<path d="M4 6l7 6-7 6M12 6l7 6-7 6"/>',
   heliHover: '<path d="M5 9h14M5 15h14"/><circle cx="12" cy="12" r="1.5"/>',
 };
-const pic = (id) => (PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
+// Waar Phosphor een betekenis heeft (icons.js) gebruiken we die; de overige beelden (kijken, springen, bukken...) blijven eigen tekeningen.
+const PIC_BETEKENIS = { move: 'lopen', sprint: 'rennen', shoot: 'doel', map: 'kaart', phone: 'telefoon', drive: 'stuur' };
+const pic = (id) => (PIC_BETEKENIS[id] ? icoon(PIC_BETEKENIS[id], { cls: 'ctx-pic' }) : PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
 
 function tut(id, keys, label, desc, rare = false) {
   const pd = isPadActive() && PAD_DESC[id];

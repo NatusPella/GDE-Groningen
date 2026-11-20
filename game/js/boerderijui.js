@@ -2,6 +2,7 @@
 // er te zien en te doen is: de stand van het land en de volgende taak, het teeltplan per perceel (het gewas voor het volgende zaaien), de
 // machines die je huurt of koopt, en wat de boerderij tot nu toe opbracht. De gegevens komen uit boerderijlive.js (en boerderij.js); dit
 // bestand is alleen DOM. Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
+import { icoon as fIcoon } from './icons.js';
 import * as B from './boerderij.js';
 import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract } from './boerderijlive.js';
 import * as CT from './boerderijcontracten.js';
@@ -21,17 +22,10 @@ const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
 const cent = (n) => `€${n.toFixed(2).replace('.', ',')}`;   // een prijs per kilo: twee decimalen met een komma
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 
-const ICOON = {
-  perceel: '<path d="M3 17l5-9h10l3 9zM8 8l-2 9M13 8l-1 9M18 8l1 9"/>',
-  gewas: '<path d="M12 21v-8M12 13c0-3-2-5-5-5 0 3 2 5 5 5zM12 13c0-3 2-5 5-5 0 3-2 5-5 5zM12 8c0-2 1-4 3-5-1 2-1 4-3 5z"/>',
-  machines: '<circle cx="7" cy="16" r="3.4"/><circle cx="18" cy="17.5" r="2"/><path d="M7 12.6V7h6l2 5h3v3.5M10 7V4h2"/>',
-  percelen: '<path d="M3 6h8v6H3zM13 6h8v6h-8zM3 14h8v5H3zM13 14h8v5h-8z"/>',
-  erf: '<path d="M4 20v-9l8-6 8 6v9zM9 20v-6h6v6"/>',
-  kas: '<rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 11h18M16 15h2"/>',
-  bank: '<path d="M3 10l9-6 9 6zM5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
-};
+// Betekenisnamen (icons.js, Phosphor, ADR 0041).
+const ICOON = { perceel: 'oogst', gewas: 'gewas', machines: 'tractor', percelen: 'rooster', erf: 'boerderij', kas: 'bon', bank: 'bank' };
 const ONDERDELEN = [['perceel', 'Perceel'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
-const icoon = (n, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICOON[n]}</svg></span>`;
+const icoon = (n, cls = 'pa-ico') => `<span class="${cls}">${fIcoon(ICOON[n])}</span>`;
 
 // De boerderij hoort bij het vak Landbouw en draagt dezelfde sfeerband als Loopbanen (#492, #609).
 const SFEER = 'landbouw';

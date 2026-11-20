@@ -14,6 +14,7 @@
 // Het wachtwoord van een sessie (#450) hoort bij de hub: de gastheer zet het hier, een gast geeft het mee aan de kennismaking.
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
+import { icoon } from './icons.js';
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN, VERBIND_TIK_MS } from './lobby.js';
 import { consentOnthoudenHtml } from './onlineconsentui.js';
 import { getSettings, setSetting } from './settings.js';
@@ -153,7 +154,7 @@ export function mountLobby(root, hooks, opts = {}) {
       start: typeof actief.selectionStart === 'number' ? actief.selectionStart : null,
       eind: typeof actief.selectionEnd === 'number' ? actief.selectionEnd : null,
     } : null;
-    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span class="coop-kleur-stip ${kleurKlasse(w.kleur)}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
+    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span class="coop-kleur-stip ${kleurKlasse(w.kleur)}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ' + icoon('vinkje', { maat: 's' }) : ''}</span></button>`).join('')}</div>` : '';
     const chip = (act, label, aan) => `<button type="button" class="m-chip coop-chip" data-act="${act}" aria-pressed="${aan}">${esc(label)}</button>`;
     const li = v.lijstInfo;
     const sessies = li ? `<div class="coop-lijst" role="region" aria-label="Openbare sessies">
@@ -172,7 +173,7 @@ export function mountLobby(root, hooks, opts = {}) {
         <span class="mut">Sorteren:</span>${li.sorteringen.map((x) => chip('lijst-sorteer-' + x.id, x.label, x.gekozen)).join('')}
       </div>
       <p class="coop-lijst-teller mut" role="status"${li.telling ? '' : ' hidden'}>${esc(li.telling)}</p>
-      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem"${x.dim ? ' data-dim="1"' : ''}><button type="button" class="m-bt coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${x.favoriet ? '★' : '☆'}</span></button><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn coop-sessie-knop" data-act="${x.act}"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
+      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem"${x.dim ? ' data-dim="1"' : ''}><button type="button" class="m-bt coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${icoon(x.favoriet ? 'ster_vol' : 'ster', { maat: 'm' })}</span></button><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn coop-sessie-knop" data-act="${x.act}"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
       ${li.meer ? `<div class="coop-meer"><button type="button" class="m-bg coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
     </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
