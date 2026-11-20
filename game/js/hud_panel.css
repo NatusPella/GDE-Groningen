@@ -928,3 +928,8 @@ body.cine-hide-hud #story-skip { display: none; }
 }
 /* de naamchip staat boven de titelkaart, nooit over de titel */
 #cine.has-card .cine-name { bottom: auto; top: calc(var(--bar) + 4vh); }
+
+/* #985 (eigenaar 20-11): toetsplaatjes in de HUD-hints zijn minstens 26 px hoog en breed, met leesbare tekst (Esc, Enter, Spatie) */
+#hud .hud-key, #cine .hud-key { min-width: 26px; height: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; }
+#hud .hud-obj-key .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; }
+#hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; vertical-align: middle; }
