@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { dsWereld } from './worldpalette.js';
 
 // Shared materials/palette/geometry helpers for every procedural model, styled
 // to match the real Martinitoren GLB (game/models/): architectural low-poly,
@@ -46,7 +47,7 @@ export function randomHabboColor(rng = Math.random) {
 
 export function habboMaterial(color, opts = {}) {
   return new THREE.MeshStandardMaterial({
-    color,
+    color: dsWereld(color), // zacht naar het designsysteem (worldpalette.js); een niet-getal blijft zoals het is
     roughness: 0.85,
     metalness: 0,
     flatShading: true,
@@ -105,7 +106,7 @@ const _colorCache = new Map();
 function linearRGB(hex) {
   let c = _colorCache.get(hex);
   if (!c) {
-    const col = new THREE.Color(hex);
+    const col = new THREE.Color(dsWereld(hex)); // wereldkleur: zacht naar het designsysteem (worldpalette.js)
     c = [col.r, col.g, col.b];
     _colorCache.set(hex, c);
   }

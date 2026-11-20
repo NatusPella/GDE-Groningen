@@ -1,5 +1,6 @@
 import { hash2 } from './rng.js';
 import { pointInPolygon as inPoly } from './util.js';
+import { dsWereld } from './worldpalette.js';
 // Trees and green at their real place (docs/PROVINCIE-PLAN.md 2.15): species,
 // heights and crown shapes, the rules that pick a species where OSM names
 // none, and the trees a wood or a park gets where OSM maps only its outline.
@@ -29,6 +30,8 @@ export const SPECIES = [
   // Japanese ornamental cherry: late bloom in pink, kept all summer
   { id: 'kers', h: [6, 9], crown: 'round', r: [3.2, 4.4], stem: 0.3, color: 0xe58fb4, trunk: 0x4a3428 },
 ];
+// 21-11: de kleuren van het spel gaan zacht naar bordgroen (worldpalette.js); Node-scripts (de bouwer) lezen alleen soort en index en houden het oude palet
+if (typeof document !== 'undefined') for (const sp of SPECIES) { sp.color = dsWereld(sp.color, sp.id === 'kers' ? 'roze' : 'loof'); sp.trunk = dsWereld(sp.trunk, 'bouw'); }
 export const SPECIES_INDEX = Object.fromEntries(SPECIES.map((s, i) => [s.id, i]));
 export const TREE_FLAG = { fill: 1, row: 2 };
 

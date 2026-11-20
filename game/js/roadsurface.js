@@ -10,6 +10,7 @@ import { allSignals, yieldArms } from './junctions.js';
 import { groundHeightAt } from './elevation.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
 import { perfOff } from './devflags.js';
+import { dsWereld } from './worldpalette.js';
 import { geometryFromPlain } from './geoplain.js';
 import { planBlends, blendAttributes, linearOf } from './surfaceblend.js';
 import { laneLayout } from './lanes.js';
@@ -255,12 +256,12 @@ const SURF_SHADER = { key: 'roadsurf2', vertexCommon: VERTEX_COMMON, vertexMain:
 // ---------------------------------------------------------------- materials
 
 const SURFACES = {
-  asphalt: { define: 'SURF_ASPHALT', roughness: 0.88, rank: 3, colors: { major: 0x57595c, normal: 0x4b4d50, minor: 0x505255 } },
-  cycle: { define: 'SURF_CYCLE', roughness: 0.86, rank: 3, colors: { cycle: 0x823b2d } },
-  klinker_red: { define: 'SURF_KLINKER', extra: 'KLINKER_RED', roughness: 0.9, rank: 2, colors: { any: 0x6c4236 } },
-  klinker_grey: { define: 'SURF_KLINKER', roughness: 0.9, rank: 1, colors: { any: 0x7a766e } },
-  tiles: { define: 'SURF_TILES', roughness: 0.93, rank: 2, colors: { sidewalk: 0x7b776d, any: 0x837e74 } },
-  gravel: { define: 'SURF_GRAVEL', roughness: 0.97, rank: 0, colors: { any: 0x9a8f78 } },
+  asphalt: { define: 'SURF_ASPHALT', roughness: 0.88, rank: 3, colors: { major: dsWereld(0x57595c, 'weg'), normal: dsWereld(0x4b4d50, 'weg'), minor: dsWereld(0x505255, 'weg') } },
+  cycle: { define: 'SURF_CYCLE', roughness: 0.86, rank: 3, colors: { cycle: dsWereld(0x823b2d) } },
+  klinker_red: { define: 'SURF_KLINKER', extra: 'KLINKER_RED', roughness: 0.9, rank: 2, colors: { any: dsWereld(0x6c4236, 'bouw') } },
+  klinker_grey: { define: 'SURF_KLINKER', roughness: 0.9, rank: 1, colors: { any: dsWereld(0x7a766e, 'steen') } },
+  tiles: { define: 'SURF_TILES', roughness: 0.93, rank: 2, colors: { sidewalk: dsWereld(0x7b776d, 'steen'), any: dsWereld(0x837e74, 'steen') } },
+  gravel: { define: 'SURF_GRAVEL', roughness: 0.97, rank: 0, colors: { any: dsWereld(0x9a8f78, 'bouw') } },
 };
 
 let detail = true;
@@ -309,7 +310,7 @@ export function roadSurfaceMaterials(r) {
 let markingMaterial = null;
 export function getMarkingMaterial() {
   if (!markingMaterial) {
-    markingMaterial = makeMaterial(0xffffff, GROUND_LAYER.marking, 0.62, { SURF_MARKING: '' }, { map: buildAtlas(), alphaTest: 0.5 });
+    markingMaterial = makeMaterial(dsWereld(0xffffff, 'papier'), GROUND_LAYER.marking, 0.62, { SURF_MARKING: '' }, { map: buildAtlas(), alphaTest: 0.5 });
   }
   return markingMaterial;
 }
@@ -526,9 +527,9 @@ export function roadSurface(r) {
 // Far LOD tint matching the detailed surface (colour only).
 export function roadFarColor(r) {
   const s = roadSurface(r);
-  if (s === 'klinker_red') return 0x6c4236;
-  if (s === 'klinker_grey') return 0x77736b;
-  if (s === 'gravel') return 0x9a8f78;
+  if (s === 'klinker_red') return dsWereld(0x6c4236, 'bouw');
+  if (s === 'klinker_grey') return dsWereld(0x77736b, 'steen');
+  if (s === 'gravel') return dsWereld(0x9a8f78, 'bouw');
   return null;
 }
 

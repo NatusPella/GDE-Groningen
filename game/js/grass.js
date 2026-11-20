@@ -6,6 +6,7 @@ import { applyCutMask } from './cutmask3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, markInstancesDirty } from './util.js';
 import { dryPavedIndices, pavedTester, waterTester } from './greenwater.js';
+import { dsWereld } from './worldpalette.js';
 
 // Green areas: merged per-chunk lawn surfaces with a procedural world-space
 // grass shader, translucent kerb/path wear strips along their borders, and
@@ -20,25 +21,26 @@ const SIDEWALK_EXTRA = 1.8;
 // prio orders overlapping kinds (a pitch inside a park); layer gives every
 // kind its own polygonOffset step so no two kinds ever share a depth.
 const KINDS = {
-  park: { prio: 1, layer: 0, base: 0x4f7234, dry: 0.45, moss: 0.6, worn: 0.3, litter: 0, mow: 0.8, wild: 0.08, tuft: 1.3, flower: 0.05, shrub: 0, hedge: 0.3 },
-  meadow: { prio: 2, layer: 1, base: 0x557434, dry: 0.9, moss: 0.3, worn: 0.05, litter: 0, mow: 0, wild: 1, tuft: 3.6, flower: 0.5, shrub: 0.002, hedge: 0 },
-  forest: { prio: 3, layer: 2, base: 0x405e2c, dry: 0.1, moss: 1, worn: 0.15, litter: 1, mow: 0, wild: 0.15, tuft: 0.9, flower: 0, shrub: 0.05, hedge: 0 },
-  grass: { prio: 4, layer: 3, base: 0x4f7234, dry: 0.55, moss: 0.5, worn: 0.2, litter: 0, mow: 0.6, wild: 0.2, tuft: 1.8, flower: 0.08, shrub: 0, hedge: 0.08 },
-  garden: { prio: 5, layer: 4, base: 0x4f7234, dry: 0.35, moss: 0.5, worn: 0.15, litter: 0, mow: 0.7, wild: 0.15, tuft: 1.4, flower: 0.12, shrub: 0.01, hedge: 0.5 },
-  cemetery: { prio: 5, layer: 5, base: 0x4d7133, dry: 0.2, moss: 0.6, worn: 0.05, litter: 0.15, mow: 1, wild: 0, tuft: 0.7, flower: 0.02, shrub: 0.006, hedge: 0.6 },
-  playground: { prio: 6, layer: 6, base: 0x527334, dry: 0.8, moss: 0.3, worn: 0.85, litter: 0, mow: 0.3, wild: 0.05, tuft: 0.7, flower: 0.02, shrub: 0, hedge: 0.2 },
-  dog_park: { prio: 6, layer: 7, base: 0x517234, dry: 0.8, moss: 0.3, worn: 0.75, litter: 0, mow: 0.2, wild: 0.1, tuft: 1, flower: 0.03, shrub: 0, hedge: 0.2 },
-  outdoor_seating: { prio: 6, layer: 8, base: 0x4f7234, dry: 0.6, moss: 0.3, worn: 0.6, litter: 0, mow: 0.3, wild: 0, tuft: 0, flower: 0, shrub: 0, hedge: 0 },
-  pitch: { prio: 7, layer: 9, base: 0x4b7432, dry: 0.1, moss: 0.2, worn: 0.3, litter: 0, mow: 1, wild: 0, tuft: 0.25, flower: 0, shrub: 0, hedge: 0, stripe: 5 },
+  park: { prio: 1, layer: 0, base: dsWereld(0x4f7234, 'groen'), dry: 0.45, moss: 0.6, worn: 0.3, litter: 0, mow: 0.8, wild: 0.08, tuft: 1.3, flower: 0.05, shrub: 0, hedge: 0.3 },
+  meadow: { prio: 2, layer: 1, base: dsWereld(0x557434, 'groen'), dry: 0.9, moss: 0.3, worn: 0.05, litter: 0, mow: 0, wild: 1, tuft: 3.6, flower: 0.5, shrub: 0.002, hedge: 0 },
+  forest: { prio: 3, layer: 2, base: dsWereld(0x405e2c, 'groen'), dry: 0.1, moss: 1, worn: 0.15, litter: 1, mow: 0, wild: 0.15, tuft: 0.9, flower: 0, shrub: 0.05, hedge: 0 },
+  grass: { prio: 4, layer: 3, base: dsWereld(0x4f7234, 'groen'), dry: 0.55, moss: 0.5, worn: 0.2, litter: 0, mow: 0.6, wild: 0.2, tuft: 1.8, flower: 0.08, shrub: 0, hedge: 0.08 },
+  garden: { prio: 5, layer: 4, base: dsWereld(0x4f7234, 'groen'), dry: 0.35, moss: 0.5, worn: 0.15, litter: 0, mow: 0.7, wild: 0.15, tuft: 1.4, flower: 0.12, shrub: 0.01, hedge: 0.5 },
+  cemetery: { prio: 5, layer: 5, base: dsWereld(0x4d7133, 'groen'), dry: 0.2, moss: 0.6, worn: 0.05, litter: 0.15, mow: 1, wild: 0, tuft: 0.7, flower: 0.02, shrub: 0.006, hedge: 0.6 },
+  playground: { prio: 6, layer: 6, base: dsWereld(0x527334, 'groen'), dry: 0.8, moss: 0.3, worn: 0.85, litter: 0, mow: 0.3, wild: 0.05, tuft: 0.7, flower: 0.02, shrub: 0, hedge: 0.2 },
+  dog_park: { prio: 6, layer: 7, base: dsWereld(0x517234, 'groen'), dry: 0.8, moss: 0.3, worn: 0.75, litter: 0, mow: 0.2, wild: 0.1, tuft: 1, flower: 0.03, shrub: 0, hedge: 0.2 },
+  outdoor_seating: { prio: 6, layer: 8, base: dsWereld(0x4f7234, 'groen'), dry: 0.6, moss: 0.3, worn: 0.6, litter: 0, mow: 0.3, wild: 0, tuft: 0, flower: 0, shrub: 0, hedge: 0 },
+  pitch: { prio: 7, layer: 9, base: dsWereld(0x4b7432, 'groen'), dry: 0.1, moss: 0.2, worn: 0.3, litter: 0, mow: 1, wild: 0, tuft: 0.25, flower: 0, shrub: 0, hedge: 0, stripe: 5 },
 };
 const kindOf = (g) => KINDS[g.kind] || KINDS.grass;
 
-const DRY = new THREE.Color(0x9c9153);
-const MOSS = new THREE.Color(0x3b5a2c);
-const SOIL = new THREE.Color(0x6b5a44);
-const LITTER = new THREE.Color(0x4f4529);
-const LAWN = new THREE.Color(0x4a6c31);
-const EDGE = new THREE.Color(0x3b5529);
+const HEDGE_HEX = dsWereld(0x3e5f2c, 'groen');
+const DRY = new THREE.Color(dsWereld(0x9c9153, 'bouw'));
+const MOSS = new THREE.Color(dsWereld(0x3b5a2c, 'groen'));
+const SOIL = new THREE.Color(dsWereld(0x6b5a44, 'bouw'));
+const LITTER = new THREE.Color(dsWereld(0x4f4529, 'bouw'));
+const LAWN = new THREE.Color(dsWereld(0x4a6c31, 'groen'));
+const EDGE = new THREE.Color(dsWereld(0x3b5529, 'groen'));
 
 // ---------------------------------------------------------------- hashing
 
@@ -554,7 +556,7 @@ const tuftUniforms = {
   uGWind: { value: 0.2 },
   uGWindDir: { value: new THREE.Vector2(0.8, 0.6) },
   uGPush: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 0)) },
-  uGLeaf: { value: new THREE.Color(0x4d7236) },
+  uGLeaf: { value: new THREE.Color(dsWereld(0x4d7236, 'groen')) },
 };
 
 function tuftMaterial(roughness, fade) {
@@ -812,7 +814,7 @@ export function generateCell(map, ci, cj, Q, full) {
           const t = (0.5 + k * 0.8) / e.len;
           const px = e.a[0] + (e.b[0] - e.a[0]) * t + e.nx * 0.6, py = e.a[1] + (e.b[1] - e.a[1]) * t + e.ny * 0.6;
           if (!inCell(px, py) || classify(px, py) !== g || blocked(px, py, 0.45)) continue;
-          _c.setHex(0x3e5f2c).multiplyScalar(0.85 + R() * 0.25);
+          _c.setHex(HEDGE_HEX).multiplyScalar(0.85 + R() * 0.25);
           pushInstance(out.hedge, px, py, rot + (R() - 0.5) * 0.12, 0.95 + R() * 0.2, hh * (0.92 + R() * 0.16), 0.7 + R() * 0.12, _c);
         }
       }

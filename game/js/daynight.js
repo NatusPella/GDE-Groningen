@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GRID_CONVERGENCE } from './rdnew.js';
+import { dsWereld } from './worldpalette.js';
 import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle, wrapHour, solarHour } from './sunrules.js';
 
 // the sun and the night live in sunrules.js (one definition of night, #107);
@@ -61,7 +62,15 @@ const KEYS = [
 ];
 const COLOR_KEYS = ['sun', 'hemiSky', 'hemiGnd', 'zenith', 'horizon', 'fog', 'glow', 'shadowTint', 'hiTint'];
 const NUM_KEYS = ['sunI', 'hemiI', 'glowI', 'exp', 'bloomThr', 'bloomStr', 'sat', 'con', 'lift', 'vig'];
-const KEY_COLORS = KEYS.map((k) => Object.fromEntries(COLOR_KEYS.map((c) => [c, new THREE.Color(k[c])])));
+// 21-11 (worldpalette.js): de schaduwtint wordt zacht inktblauw, de grondweerkaatsing warm papier, en de dagmist en -horizon een crèmere
+// grijs; schemering en nacht (de zonstanden onder 14 graden) houden hun eigen kleur, dus geen afwijking in de sfeer van de avond.
+const KEY_ROLE = { shadowTint: 'blauw', hemiGnd: 'bouw' };
+const KEY_ROLE_DAG = { fog: 'steen', horizon: 'steen' };
+const keyColor = (k, c) => {
+  const role = KEY_ROLE[c] || (k.e >= 14 ? KEY_ROLE_DAG[c] : null);
+  return new THREE.Color(role ? dsWereld(k[c], role) : k[c]);
+};
+const KEY_COLORS = KEYS.map((k) => Object.fromEntries(COLOR_KEYS.map((c) => [c, keyColor(k, c)])));
 
 // Fills `out` (reused between frames) with the full lighting mood for a
 // clock hour. Colours are linear THREE.Colors.
