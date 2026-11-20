@@ -142,7 +142,8 @@ export function tryTrainInteract(world) {
   return true;
 }
 
-function board(world, { t, cab: cab_ }) {
+// Ook voor een dienst vanaf het station (treindienststart.js): de trein staat dan 'parked' klaar, dus geen kaping.
+export function board(world, { t, cab: cab_ }) {
   const fresh = t.state !== 'parked';
   hijackTrain(t, cab_);
   world.trainDriving = t;

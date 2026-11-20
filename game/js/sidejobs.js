@@ -370,7 +370,8 @@ function startJob(job, takeover = null, owner = 0, cw = null) {
   if (!job || contexts.van(owner)) return false;
   const w = cw || world;
   const p = hoofdspeler(w);
-  const spot = spots.find((s) => s.job === job) || { job, x: p.x, y: p.y };
+  // een dienst vanaf een halte begint bij de speler, niet bij de vaste plek van de baan (ovmissie.js)
+  const spot = (takeover && takeover.halte ? null : spots.find((s) => s.job === job)) || { job, x: p.x, y: p.y };
   const oud = owner ? leftoverGast.get(owner) : leftover;
   if (oud && !(takeover && oud === takeover.vehicle)) removeVehicle(world, oud);
   if (owner) leftoverGast.delete(owner); else leftover = null;
@@ -389,7 +390,7 @@ function startJob(job, takeover = null, owner = 0, cw = null) {
   if (owner === 0) rec(job.id).shifts++;
   // AAA bijbanen: een regelkaart (doel, regel, afloop) bij de eerste twee diensten van een baan; lokaal beeld, niets over het net
   c.aaaKaart = null;
-  if (owner === 0 && !takeover && kaartNodig(job.id, rec(job.id).shifts)) { try { c.aaaKaart = startKaart({ kaart: bijbaanKaart(job.id) }, 'bijbaan:' + job.id); } catch (e) { c.aaaKaart = null; } }
+  if (owner === 0 && (!takeover || takeover.halte) && kaartNodig(job.id, rec(job.id).shifts)) { try { c.aaaKaart = startKaart({ kaart: bijbaanKaart(job.id) }, 'bijbaan:' + job.id); } catch (e) { c.aaaKaart = null; } }
   if (owner === 0) waarschuwVoorStart(world, 'bijbaan', job.id); // samen spelen: een melding als deze bijbaan nog niet samen werkt; de start gaat door
   if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan, owner); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
   const lvl = c.level;
@@ -785,6 +786,16 @@ export function startBusShift(w, vehicle, line, dir) {
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return false; }
   return startJob(BY_ID.get('lijn'), { vehicle, line, dir });
+}
+
+// Een busdienst starten bij een halte (bushalte.js, ovmissie.js halteOpties): de bus staat bij de halte klaar en de
+// rit begint daar in de gekozen richting. Dezelfde bijbaan als de dienst overnemen, dus loon, tevredenheid en regels
+// zijn hetzelfde.
+export function startBusDienstBijHalte(w, optie) {
+  world = w;
+  const why = blockReason(w);
+  if (why) { w.addMessage(why, 2.5); return false; }
+  return startJob(BY_ID.get('lijn'), { halte: { line: optie.line, dir: optie.dir, index: optie.index, eerst: optie.eerst } });
 }
 
 export function sideJobPrompt(w) {
