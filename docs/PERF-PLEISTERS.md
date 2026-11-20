@@ -112,3 +112,20 @@ Oorzaak S is nu gemeten (zie [PERF-TREND-0.54-NAAR-NU.md](PERF-TREND-0.54-NAAR-N
 | `?warmfilm`, `setHold*`, `drainCineBatches`, vaste wachttijden | niet opnieuw gemeten | blijven staan |
 
 Volgende stap (oorzaak): het rig-aan-stel (10 punt- en 3 spotlichten in de shaderlus) linkt traag en wordt in de film bij dageraad gebruikt; alleen met minder lichten in de lus of met alle rig-aan-programma's klaar vóór de film is dat weg.
+
+
+## Update 20-11: de filmlichtstand tijdens het laadscherm (#985)
+
+Besluit van de eigenaar: liever langer laden dan haperen. `precompilePrograms({ filmLicht: true })` (scene3d.js) compileert na de gewone voorcompilatie de scène ook in de andere lichtstand (het nacht- en dageraadstel, rig aan: 10 punt- en 3 spotlichten) en `programsPending()` (programwarm.js) laat het laadscherm wachten tot alles gelinkt is, hoogstens `FILM_LICHT_MS` (12 s, main.js). Alleen bij een nieuw spel (`!world.loadedFromSave`); de automatische runs slaan de hele warm-up over (`?warm` zet hem aan). A/B-schakelaar: `?perfoff=filmlicht`.
+
+Gemeten met `scripts/perf/filmwarm.mjs` (spelerspad, `?noattract,warm`, 1280x720, zonder `--stil`; de eerste 25 s na `game-started`, voor = commit 6236ea122, na = de filmlichtstand):
+
+| run | laadtijd tot game-started | frames in 25 s | frames > 100 ms | frames > 250 ms | langste frame | programma's bij 0 / 25 s |
+|---|---|---|---|---|---|---|
+| voor 1 | 25,3 s | 173 | 71 | 15 | 2296 ms | 156 / 262 |
+| voor 2 | 19,3 s | 221 | 65 | 12 | 3130 ms | 177 / 292 |
+| voor 3 | 23,8 s | 336 | 43 | 7 | 3314 ms | 176 / 296 |
+| na 1 | 43,4 s | 444 | 55 | 6 | 537 ms | 233 / 300 |
+| na 2 | 35,6 s | 465 | 31 | 5 | 2478 ms | 246 / 305 |
+
+Lezing: de laadtijd stijgt met 16 tot 18 s per gepaarde run (43,4 tegen 25,3 en 35,6 tegen 19,3) (de tweede compilatie kost ~3 s op de hoofdthread, de rest is wachten op de link in het GPU-proces), het aantal frames in de eerste 25 s verdubbelt, de frames boven 250 ms halveren en de langste hapering wordt korter. Het is geen gladde film: er blijven tientallen frames tussen 100 en 250 ms. De programma's die de film nog zelf bouwt (+60 tot +70 in de eerste 25 s, was +106 tot +120) zijn de setlichten (keuken, loket, kantoor), de acteurs en de montage-assets: die bestaan bij het laadscherm nog niet. `na 1` en `na 2` draaiden met een eerdere `programsPending` die via de 25 ms-rem van `programLinked` ging (hoogstens één programma per 25 ms als gelinkt gemeld, dus de wachttijd liep tegen de 12 s aan); de huidige leest `COMPLETION_STATUS` zonder rem. De huidige `programsPending` (zonder rem) is daarna niet meer in een stille meting gedraaid: de machine zat vol met Electron-runs van andere agents (het wachten op een vrij slot duurde langer dan een half uur), dus laadtijd en haperingen van de uiteindelijke versie zijn **niet gemeten**; verwacht wordt een kortere wachttijd dan in `na 1` en `na 2`. Een run bij een zwaar belaste machine (`na 3`: zes andere Electron-instanties van andere agents, laadtijd 63,7 s, 104 frames) is niet bruikbaar en staat niet in de tabel.
