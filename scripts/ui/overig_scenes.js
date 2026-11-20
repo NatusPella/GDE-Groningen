@@ -28,6 +28,7 @@ const want = (n) => !ONLY.length || ONLY.includes(n);
 const shot = async (name, wait = 900) => { await sleep(wait); console.log('[capture] ' + name); await sleep(700); done.push(name); };
 const probeer = async (naam, fn) => { if (!want(naam)) return; try { await fn(); } catch (e) { console.log('[scene] ' + naam + ': ' + (e && e.message)); done.push(naam + ' FOUT ' + (e && e.message)); } };
 const hud = document.getElementById('hud') || document.body;
+await document.fonts.ready;
 
 await probeer('bord', async () => {
   const K = await imp('minigamekit');
@@ -47,7 +48,9 @@ await probeer('keuze', async () => {
 });
 await probeer('stop', async () => {
   const K = await imp('minigamekit');
+  K.createBoard('discgolf').root.remove(); // zet de bordstijl (en dus het stopvenster) in de pagina, zoals in een echte minigame
   K.stopPressed({ wasPressed: (k) => k === 'escape', consume() {} });
+  done.push('stopask: ' + !!document.querySelector('.mg-stopask'));
   await shot('stopvenster');
   document.querySelectorAll('.mg-stopask').forEach((e) => e.remove());
 });
@@ -98,12 +101,53 @@ await probeer('uitje', async () => {
 });
 await probeer('cinekaart', async () => {
   const c = document.getElementById('cine');
-  c.classList.add('active', 'letterbox', 'has-card');
+  c.classList.add('active', 'letterbox', 'has-card'); document.body.classList.add('cine-hide-hud');
   c.querySelector('.cine-kicker').textContent = 'Woensdag 26 augustus'; c.querySelector('.cine-title').textContent = "De schuur van Tinus";
   const n = c.querySelector('.cine-name'); n.textContent = 'Tammo'; n.classList.add('visible');
   const sk = c.querySelector('.cine-chip'); sk.textContent = 'Dag 3'; sk.classList.add('visible');
   await shot('cinekaart', 1300);
-  c.classList.remove('active', 'letterbox', 'has-card'); n.classList.remove('visible'); sk.classList.remove('visible');
+  document.body.classList.remove('cine-hide-hud'); c.classList.remove('active', 'letterbox', 'has-card'); n.classList.remove('visible'); sk.classList.remove('visible');
+});
+await probeer('locatie', async () => { await shot('locatie-na', 300); });
+await probeer('naamkaart', async () => {
+  const N = await imp('namecard');
+  N.showNameCard('tessa', { force: true });
+  await shot('naamkaart', 3200);
+});
+await probeer('ondertitelvarianten', async () => {
+  const s = document.getElementById('banter-sub'); s.style.opacity = '1';
+  document.documentElement.classList.add('sub-box'); await shot('ondertitel-vak', 600);
+  document.documentElement.classList.remove('sub-box'); document.documentElement.classList.add('subc-hoog'); await shot('ondertitel-hoog', 600);
+  document.documentElement.classList.remove('subc-hoog'); s.style.opacity = '0';
+});
+await probeer('aanraking', async () => {
+  const t = document.getElementById('touch-ui');
+  if (!t) throw new Error('geen #touch-ui (aanraakmodus staat uit in deze run)');
+  document.documentElement.classList.add('touch-play', 'touch-device'); await shot('aanraking', 800);
+  document.documentElement.classList.remove('touch-play', 'touch-device');
+});
+await probeer('menuvoet', async () => {
+  const PM = await imp('pausemenu');
+  PM.openPauseMenu('overzicht'); await shot('menu-voetregel', 2000); PM.closePauseMenu(); await sleep(600);
+});
+await probeer('glyphmaat', async () => {
+  const KC = await imp('keycap');
+  const d = document.createElement('div'); d.id = 'glyphmaat';
+  d.style.cssText = 'position:fixed;left:40px;top:40px;z-index:99999;background:#f3ead3;color:#1d1b17;padding:10px 16px;font:16px sans-serif';
+  d.innerHTML = [24, 32, 40, 52].map((px) => '<div style="margin:4px 0"><span style="display:inline-block;width:50px">' + px + '</span><span style="font-size:' + px + 'px">' + KC.keyTextHtml('{ESC} {ENTER} {SPACE} {E} {Q} {TAB} {SHIFT}') + '</span></div>').join('') + '<div>' + KC.keyTextHtml('{WASD} {ARROWS}') + '</div>';
+  document.body.appendChild(d);
+  await shot('glyphmaat', 800);
+  const g = d.querySelector('.pad-key'); const r = g.getBoundingClientRect();
+  done.push('glyph ' + getComputedStyle(g).fontSize + ' ' + getComputedStyle(g).fontFamily + ' ' + Math.round(r.width) + 'x' + Math.round(r.height) + ' ok:' + document.fonts.check('24px "GDE Toetsen"'));
+  d.remove();
+});
+await probeer('tokens', async () => {
+  w.addMessage('Druk op {E} om in te stappen, {SPATIE} om te remmen, {WASD} om te lopen', 6);
+  const d = document.createElement('div'); d.id = 'tok-test'; d.style.cssText = 'position:fixed;left:40px;top:300px;z-index:99999;background:#f3ead3;color:#1d1b17;padding:8px 12px;font:18px sans-serif';
+  d.textContent = 'Tip: {ESC} klapt je telefoon open, {ENTER} bevestigt, kies met {A} en {D}'; d.setAttribute('aria-label', 'Houd {SHIFT} ingedrukt'); document.body.appendChild(d);
+  await shot('tokens', 1200);
+  done.push('accolades in beeld: ' + JSON.stringify((document.body.innerText.match(/\{[A-Z0-9]+\}/g) || [])) + ' aria=' + d.getAttribute('aria-label'));
+  d.remove();
 });
 await probeer('stunt', async () => {
   const S = await imp('stunthud');

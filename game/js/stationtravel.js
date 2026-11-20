@@ -740,7 +740,7 @@ function rideItems(w, here) {
       id: 'rit-' + dest.short, label: dest.name,
       desc: `${lineLabel(leg)} · ${spoor(here, leg)} · de hele rit, ongeveer ${min} min`,
       cols: [`${min} min`], verb: 'Meegaan ·',
-      route: { from: here.short, to: dest.short, minutes: min, text: `${lineLabel(leg)}, ${spoor(here, leg)}. Houd Spatie ingedrukt om naar ${dest.short} te springen.`, teaser: '', board: '' },
+      route: { from: here.short, to: dest.short, minutes: min, text: `${lineLabel(leg)}, ${spoor(here, leg)}. Houd {SPATIE} ingedrukt om naar ${dest.short} te springen.`, teaser: '', board: '' },
       price: info.price, swatch: [leg.train.type === 'virm' ? '#ffc917' : '#00a3ad'],
       disabled: w.money < info.price ? 'Te weinig geld' : null,
       buy() {
