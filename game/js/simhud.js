@@ -35,7 +35,7 @@ export function simHudHtml(m) {
     ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${esc(u.tekst)}</span></li>`).join('')}</ul>` : '';
   return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon sh-icoon')}<span class="sh-titel ds-t-subkop">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
     stappen + meter + cijfers + uitleg + `<p class="ds-t-hulp sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` +
-    [].concat(m.hulp || []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
+    (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
 }
 
 let el = null, inhoud = null, pop = null, sleutel = '', popT = 0;
