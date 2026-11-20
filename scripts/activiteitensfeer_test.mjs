@@ -142,7 +142,7 @@ t('de module is puur: geen imports, geen DOM, geen THREE', () => {
   t('het vormvlak komt uit de patroontabel', () => {
     const bord = MK.createBoard('pitchputt');
     assert.match(bord.root.innerHTML, /class="mg-vorm"/, 'het vormvlak staat op het bord');
-    assert.match(bord.root.innerHTML, /background-image:/, 'met het patroon uit carrieresfeer.js');
+    assert.doesNotMatch(bord.root.innerHTML, /background-(image|color):/, 'zonder eigen kleur of patroon: het vormvlak leest de inkt uit de CSS (zeefdruk, #1000)');
     assert.match(lees('game/js/minigamekit.js'), /data-sfeerbord="clubschild"[\s\S]{0,200}clip-path/, 'de bordvorm heeft een eigen silhouet');
   });
   t('de bordmaat past op 1280x720, 1920x1080 en 390x844', () => {

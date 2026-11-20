@@ -69,8 +69,8 @@ t('een chip heeft altijd een pictogram en een woord, en de tekst wordt veilig ge
     assert.ok(TOESTAND_ICOON[toon], toon);
   }
   assert.ok(chipHtml('no', '<b>x</b>').includes('&lt;b&gt;'));
-  assert.ok(chipHtml('ok', 'Goed').includes('ds-chip--succes'));
-  assert.ok(chipHtml('no', 'Stuk').includes('ds-chip--probleem'));
+  assert.ok(chipHtml('ok', 'Goed').includes('ds-z-chip--succes'));
+  assert.ok(chipHtml('no', 'Stuk').includes('ds-z-chip--probleem'));
 });
 
 console.log(`${n - fails}/${n} ok`);
