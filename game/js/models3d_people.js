@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, markShared, tubeGeometry } from './pixelart3d.js';
 import { hash2 } from './rng.js';
+import { footContact, turnLean, approachTo, wrapPi } from './gait.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
@@ -1828,8 +1829,23 @@ export function animatePersonWalk(mesh, speed, dt) {
   const crouch = cb * cb * (3 - 2 * cb);
   const cadence = Math.min(2.1, (0.42 + 0.3 * s) * gait) * (1 - crouch) + Math.min(1.6, 0.35 + s / 1.1) * crouch;
   const moving = Math.min(1, s / 0.25);
-  const phase = ((ud.walkPhase || 0) + TAU * cadence * step * moving) % TAU;
+  const prevPhase = ud.walkPhase || 0;
+  const phase = (prevPhase + TAU * cadence * step * moving) % TAU;
   ud.walkPhase = phase;
+  // hielcontact (gait.js): sfx/foley.js speelt de stap bij deze voet, niet bij een eigen teller
+  if (s > 0.3 && step > 0) { const fc = footContact(prevPhase, phase); if (fc) { ud.footN = (ud.footN || 0) + 1; ud.footSide = fc - 1; } }
+  // bocht en blik (gait.js): de heading verandert per seconde, de romp helt mee en de blik loopt de bocht vooruit
+  let yawRate = 0;
+  if (step > 0) {
+    const yaw = mesh.rotation.y;
+    if (ud.prevYaw !== undefined) yawRate = -wrapPi(yaw - ud.prevYaw) / step;
+    ud.prevYaw = yaw;
+  }
+  const tl = turnLean(yawRate, s);
+  ud.turnLean = approachTo(ud.turnLean || 0, tl.lean, 1.2, step);
+  ud.turnHead = approachTo(ud.turnHead || 0, tl.head, 2.5, step);
+  const gz = ud.gazeT;
+  ud.gazeS = approachTo(ud.gazeS || 0, gz === undefined || gz !== gz ? 0 : gz, 3.2, step);
 
   const ease = Math.min(1, step * 8);
   const w = (ud.walkBlend || 0) + (Math.min(1, s / 1.0) - (ud.walkBlend || 0)) * ease;
@@ -1857,7 +1873,9 @@ export function animatePersonWalk(mesh, speed, dt) {
   const lean = -(ud.stoop || 0) - 0.03 * w - 0.2 * r * w;
   chest.position.set(0, CHEST_Y - HIP_Y + 0.004 * breath * idle, 0);
   chest.rotation.set(-0.03 * shift, -0.2 * w * Math.sin(phase), lean - 0.012 * breath * idle);
-  head.rotation.set(0.02 * shift, look * (1 - 0.6 * w) - chest.rotation.y - pelvis.rotation.y, -lean * 0.6 + 0.02 * w * Math.cos(2 * phase));
+  const gazeW = Math.min(1, Math.abs(ud.gazeS) * 4);
+  head.rotation.set(0.02 * shift, look * (1 - 0.6 * w) * (1 - gazeW) - chest.rotation.y - pelvis.rotation.y - ud.turnHead - ud.gazeS, -lean * 0.6 + 0.02 * w * Math.cos(2 * phase));
+  chest.rotation.x += ud.turnLean;
 
   const legRoll = -pelvis.rotation.x + pelvis.position.z / (HIP_Y - ANKLE_Y);
   const legs = [[ud.legL, ud.kneeL, phase, 1], [ud.legR, ud.kneeR, phase + Math.PI, -1]];

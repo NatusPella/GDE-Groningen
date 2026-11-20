@@ -95,6 +95,7 @@ import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, heavyRoadAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
+import { glanceAt, shareFeet } from './gait.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -2378,8 +2379,7 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
 const _wildlifeNear = [], _wildlifeSeen = new Set();
 const FADE_STEPS = 16;
-const PED_FADE_TIME = 0.6;
-const PED_EDGE_FADE = 14;
+const PED_FADE_TIME = 0.6;const PED_EDGE_FADE = 14;
 const PED_BUILD_BUDGET_MS = 2.5;
 // a jump builds the people round the player at once, up to this much more
 const PED_INSTANT_EXTRA_MS = 6;
@@ -2571,10 +2571,11 @@ function syncPedestrianMeshes(world, player, animDt) {
       ud.animTick = (ud.animTick || 0) + 1;
       if (ud.tickPhase === undefined) ud.tickPhase = Math.floor(ud.animOffset || 0) & 3;
       if ((ud.animTick + ud.tickPhase) % tier) { holdSkeleton(mesh, true); continue; }
-      holdSkeleton(mesh, false);
+      holdSkeleton(mesh, false); ud.gazeT = NaN;
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
-    } else { holdSkeleton(mesh, false); animatePersonWalk(mesh, p.speed || 0, animDt); }
+    } else { holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); } // gait.js: a walker near you glances at you now and then
+    shareFeet(p, ud, world.time); // the heel contact of the drawn walk cycle for sfx/foley.js (out of the frame or far off: its stride counter)
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
     // a road-rager (roadrage.js) holds what he brought and swings it
     if ((p.heldWeapon || null) !== (ud.pedHeld || null)) { ud.pedHeld = p.heldWeapon || null; setHeldWeapon(mesh, ud.pedHeld); }
@@ -3141,7 +3142,7 @@ export function update3D(dt, world) {
       playerMesh.userData.crouch = !!player.crouching;
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
-      animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
+      animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt); shareFeet(player, playerMesh.userData, world.time); // gait.js: the heel contact for sfx/foley.js
       if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
       else if (player.swimming && !player.inVehicle) {
         // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt; uit het water
