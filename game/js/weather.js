@@ -5,6 +5,7 @@ import { playSikkomLine } from './audio.js';
 import { getSettings } from './settings.js';
 import { regenDruppels } from './weerlook.js';
 import { streekZonHoogte } from './weerdag.js';
+import { easeTo, rainFade, flashGain } from './weersmooth.js';
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
 import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR } from './weatherlook.js';
 
@@ -81,7 +82,7 @@ function updateRain(dt, world, px, py, cam) {
   }
   rainMesh.visible = t > 0.02;
   if (!rainMesh.visible) return;
-  rainMesh.material.opacity = RAIN_OPACITY * Math.min(1, 0.5 + t);
+  rainMesh.material.opacity = RAIN_OPACITY * Math.min(1, 0.5 + t) * rainFade(t);
 
   // aantal druppels per kwaliteitsprofiel (weerlook.js), nooit meer dan de pool
   const count = Math.min(RAIN_COUNT, regenDruppels(t, getSettings().quality));
@@ -135,6 +136,8 @@ function updateRain(dt, world, px, py, cam) {
 // to push onto lights/background.
 let lightningAge = Infinity;
 let lightningFlashes = 1;
+let lightningGain = 1;
+let lightningStrikes = 0;
 const storm = createStormPlanner((Math.random() * 0x7fffffff) | 0);
 
 // weatherlook.js plans the strikes (distance, flickers); the thunder in
@@ -144,9 +147,12 @@ function updateLightning(dt, t, quality, scene) {
   for (const s of stepStorm(storm, dt, t, quality)) {
     lightningAge = 0;
     lightningFlashes = s.flashes;
+    lightningGain = flashGain(s.dist); // een inslag ver weg flitst zwakker
     scene.userData.lightningDistance = s.dist;
+    // een teller per inslag: de donder (ambience.js) rolt een keer per inslag, niet een keer per flikkering
+    scene.userData.lightningStrikes = ++lightningStrikes;
   }
-  return flashAt(lightningAge, lightningFlashes);
+  return flashAt(lightningAge, lightningFlashes) * lightningGain;
 }
 
 // world.weather fields (read by scene3d.js's 3D pass for fog/lighting mood,
@@ -220,8 +226,9 @@ function followRegionWeather(dt, world, w) {
   w.kind = r.kind;
   w.peak = r.rain;
   w.active = w.intensity > 0.02;
-  w.overcast = r.overcast;
-  w.mist = r.mist;
+  // bewolking en mist schuiven mee naar de regio waar je staat: een regiogrens of een gastheerbericht is geen sprong in de lucht
+  w.overcast = w.overcast === undefined ? r.overcast : easeTo(w.overcast, r.overcast, dt);
+  w.mist = w.mist === undefined ? r.mist : easeTo(w.mist, r.mist, dt);
   w.windAngle = r.windAngle;
   w.timer = 60;
   if (r.kind === 'onweer' && was !== 'onweer' && region === 'stad') world.addMessage('Onweer boven Grunn', 3);

@@ -62,7 +62,7 @@ let landmarks = null;
 let timers = null;
 const queue = [];
 let lastHour = null;
-let lastFlash = 0;
+let lastStrikes = 0; // de inslagteller van weather.js: een donderslag per inslag, niet per flikkering
 let lastFlashAt = -1e9;
 let nextRandomThunder = 0;
 const animalNext = new WeakMap();
@@ -506,13 +506,13 @@ let weatherWorld = null;
 function weatherEvents(world) {
   weatherWorld = world;
   const sc = sfxLinks.getScene();
-  const flash = sc && sc.userData ? sc.userData.lightningFlash || 0 : 0;
+  const strikes = sc && sc.userData ? sc.userData.lightningStrikes || 0 : 0;
   const t = now();
-  if (flash > 0.9 && lastFlash < 0.5) {
-    lastFlashAt = t;
-    thunder(sc.userData.lightningDistance || rnd(250, 3200));
+  if (strikes !== lastStrikes) {
+    // dezelfde gebeurtenis als de flits (weather.js updateLightning); de afstandsvertraging zit in thunderPick
+    if (strikes > lastStrikes) { lastFlashAt = t; thunder(sc.userData.lightningDistance || rnd(250, 3200)); }
+    lastStrikes = strikes;
   }
-  lastFlash = flash;
   const w = world.weather;
   if (w && w.active && w.intensity > 0.75 && t - lastFlashAt > 25) {
     if (!nextRandomThunder) nextRandomThunder = t + rnd(8, 20);
