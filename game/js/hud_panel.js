@@ -142,7 +142,8 @@ function modeCard(route, mode) {
   if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };
   return null;
 }
-const RPM_ARC = 'M30 160 A85 85 0 1 1 170 160';
+// #985 (eigenaar 20-11): the revs are a thin bar inside the speed card, not a separate big arc
+const RPM_ARC = 'M7 7H193';
 // the red zone starts at this share of the arc
 const RPM_RED_AT = 85;
 
@@ -180,9 +181,9 @@ export function initHud(world) {
   // zone H: speed, gear, revs (the vehicle's damage is in F)
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<div class="sp-main"><div class="sp-gears" role="img" aria-label="Versnelling"></div><b class="sp-val">0</b><span class="sp-unit">km/u</span></div>' +
-    `<svg class="sp-rpm" viewBox="0 0 200 200" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
-    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg>`;
+  speedo.innerHTML = '<div class="sp-main"><b class="sp-val">0</b><span class="sp-unit">km/u</span><div class="sp-gears" role="img" aria-label="Versnelling"></div>' +
+    `<svg class="sp-rpm" viewBox="0 0 200 14" preserveAspectRatio="none" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
+    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg></div>`;
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
