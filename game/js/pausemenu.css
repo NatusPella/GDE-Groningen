@@ -1348,3 +1348,5 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 #pause-menu.gm.gm .pm-ckeys .hud-key, #pause-menu.gm.gm .pm-ckeys .m-kc { font-size: max(16px, var(--menu-min)); }
 @media (max-height: 820px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 16px; } }
 @media (min-height: 821px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 24px; } }
+#pause-menu .bd-uitleg-kaart > summary { cursor: pointer; list-style-position: inside; padding: 8px 12px; }
+#pause-menu .bd-uitleg-kaart[open] > summary { border-bottom: var(--ds-lijn-dik, 2px) solid var(--ds-c-ink-inkt); }
