@@ -5,7 +5,7 @@
 // New spoken tables must be registered in scripts/voicelines_collect.mjs.
 import fs from 'node:fs';
 import path from 'node:path';
-import { collect, isVoiced, missingKeys, manifest, REPO } from './voicelines_collect.mjs';
+import { collect, isVoicedOrWaiting as isVoiced, missingKeys, manifest, REPO } from './voicelines_collect.mjs';
 import { dutchFor, looksFrisian } from '../game/js/subtitles.js';
 
 const quiet = process.argv.includes('--quiet');

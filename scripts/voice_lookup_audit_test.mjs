@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setStoryData, banterExchanges, banterLineVoice } from '../game/js/storytext.js';
-import { collect, isVoiced } from './voicelines_collect.mjs';
+import { collect, isVoicedOrWaiting as isVoiced } from './voicelines_collect.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lees = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');

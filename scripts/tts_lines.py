@@ -9,7 +9,7 @@
 #   python3 scripts/tts_lines.py [max_jobs] [--budget 2.5]
 #   python3 scripts/tts_lines.py --dry-run             (only show what a run would record)
 #   python3 scripts/tts_lines.py 12 --out proef        (a listen, no manifest of the game)
-import json, os, sys, subprocess, urllib.error, wave, time
+import json, os, re, sys, subprocess, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
 # the dry run prints whole story lines (with ... and accents): keep them readable on a Windows console
 if hasattr(sys.stdout, 'reconfigure'):
@@ -20,7 +20,7 @@ REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12'
 LUFS, TP = -18, -1.5
-BATCH = 24
+BATCH = int(os.environ.get('TTS_BATCH', '24'))  # kleiner = vaker loggen en het manifest wegschrijven
 # logged with every clip; the second loudnorm pass uses the first pass's measurements
 POST = f'ffmpeg -af {TRIM},loudnorm=I={LUFS}:TP={TP}:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3'
 
@@ -83,9 +83,12 @@ def job(l):
             take(style)
             return l, 'ok' if attempt == 0 else 'ok-fallback', probe(dst), style
         except urllib.error.HTTPError as e:
-            err = f'HTTP {e.code} {e.read()[:160]!r}'
+            body = e.read()
+            err = f'HTTP {e.code} {body[:160]!r}'
+            # de gateway zegt hoe lang de cooldown duurt ("Try again in 300 seconds"): wacht die tijd plus 10 s
+            cool = re.search(rb'in (\d+) seconds', body)
             # a rate limit is not a reason to change the style: wait and ask again
-            for wait in ([15, 30, 60, 90] if e.code == 429 else []):
+            for wait in (([int(cool.group(1)) + 10] * 2 if cool else [15, 30, 60, 90]) if e.code == 429 else []):
                 time.sleep(wait)
                 try:
                     take(style)

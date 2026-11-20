@@ -447,6 +447,13 @@ const hasKey = (e, s) => {
   const k = e.manifest === 'npc' ? s : s + '|' + e.text;
   return !!(manifest(e.manifest)[k] || (e.fallback && manifest(e.fallback)[k]));
 };
+// De expliciete allowlist 'wacht op opname' (scripts/voice_wacht.json, gemaakt door voice_wacht.mjs): precies de
+// sleutels '<spreker>|<tekst>' waarvan de opname nog in de wachtrij staat (tts_lines.json). Alleen voice_coverage en de
+// dekkingstest tellen ze als gedekt; de generator (isVoiced) blijft ze als opdracht zien. Leeg zodra de ronde klaar is.
+const waitFile = path.join(REPO, 'scripts', 'voice_wacht.json');
+export const WACHT = new Set(fs.existsSync(waitFile) ? JSON.parse(fs.readFileSync(waitFile, 'utf8')).keys : []);
+const hasKeyOrWait = (e, s) => hasKey(e, s) || WACHT.has(s + '|' + e.text);
+export const isVoicedOrWaiting = (e) => (e.need === 'any' ? e.speakers.some((s) => hasKeyOrWait(e, s)) : e.speakers.every((s) => hasKeyOrWait(e, s)));
 export const isVoiced = (e) => (e.need === 'any' ? e.speakers.some((s) => hasKey(e, s)) : e.speakers.every((s) => hasKey(e, s)));
 export const missingKeys = (e) => e.speakers.filter((s) => !hasKey(e, s));
 

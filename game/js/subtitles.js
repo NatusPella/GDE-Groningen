@@ -464,6 +464,6 @@ export function setDualText(el, text, { gloss = false } = {}) {
 // names aside, like the brands Us Mem and Snits Snel): a line with one needs a Dutch subtitle.
 const FY_WORDS = /\b(moaie?|grinzers?|jimme|jim|hjir|hjoed|dyn|myn|wy|binne|tige|gjin|gjinien|fertelle|oant|sjoch|sjen|fan|foar|efkes|wiet|neat|noait|hawwe|priuw|mjitte|wyn|seil|hiel|grutte|werom|j[ûu]n|[úu]s|hear|fleugels|wachtsje|oefenje|fuort|lear|sis|seit|nedich|fakmanskip|skamje|bytsje|betiid|teminsten|ferhip|wrachtich|jild|gen[ôo]ch|mem|stipkes|flagge|sûkelade|kij|klear|famke|dysels|middei|Ljouwert|Snits|Operaasje|Aaibal|hekweach|gatsje|trapfyts|derop|potsje|ek|mar|Frysk|Fryske|dinsdei|gelok)\b/i;
 export function looksFrisian(text) {
-  const s = String(text || '').replace(/sk[ûu]tsje\w*|Fryslân|JelleWâld|Us Mem|Mem Terpstra|Snits Snel/gi, '');
+  const s = String(text || '').replace(/sk[ûu]tsje\w*|Fryslân|JelleWâld|Us Mem|Mem Terpstra|Mem en Oma Trijntje|Mems appje|Snits Snel/gi, '');
   return /[ûêâôú]/.test(s) || FY_WORDS.test(s);
 }
