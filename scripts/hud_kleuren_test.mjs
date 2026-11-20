@@ -120,7 +120,10 @@ ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /t
 const zwembad = read('zwembad.js');
 ok(/var\(--mk-ok/.test(zwembad) && /var\(--mk-job/.test(zwembad) && /Spatie bij het streepje/.test(zwembad), 'zwembad: duik- en vermoeidheidsmeter via tokens en vorm');
 const kart = read('kartbaan.js');
-ok(/mg-stand/.test(kart) && /Startlichten\.\.\. \(\$\{Math\.min\(g\.lights, 3\)\}\/3\)/.test(kart) && /var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, startlichten in de HUD, driftkleur via token');
+// #985: de strook (simhud.js, kartstatus.js) vervangt het bord; het bord blijft alleen voor de tussenstand bij een race tegen anderen
+ok(/mg-stand/.test(kart) && /simHudTik\(0, kartHudModel/.test(kart) && !/var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, de strook uit simhud.js zonder eigen kleuren');
+const kartst = read('kartstatus.js');
+ok(/Startlichten: /.test(kartst) && /Driftlading/.test(kartst), 'kartbaan: startlichten en driftmeter in de strook');
 const skate = read('skatepark.js');
 ok(/mark: 0\.5/.test(skate) && /var\(--mk-danger, #d93f3f\)/.test(skate) && /text: 'balans'/.test(skate), 'skatepark: balansmeter via token met middenstreep');
 const klim = read('klimtoren.js');

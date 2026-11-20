@@ -122,6 +122,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** Toeristen aan boord in beeld (de boot heeft ze niet als figuren), een kaartlaag met de route en de bezienswaardigheden als lijst.
 
+## 7. Kartbaan (Ulrum)
+
+**Wat kan de speler.** Drie ronden karten tegen drie rijders op de echte baan van Ulrum (E bij de kassa): W gas, S rem, A en D sturen, Spatie in een bocht voor een drift en een boost. Goud, zilver en brons, records voor race en beste ronde.
+
+**De lus.** Startlichten, racen, finish, uitslag.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot de eerste start (`gde-sim-uitleg-v1`) |
+| HUD | bord (`minigamekit`) met een rij tekst en een driftbalkje in eigen kleuren | strook (`simhud.js`): stappen Start, Racen, Finish als chips, driftmeter met woord (laden, geladen, supergeladen), cijfers ronde, plaats, tijd, tempo en beste, één zin wat nu |
+| Wereld | karts, rook, vonken, startlichten | plus een gele lichtkolom boven de volgende poort van de baan (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een getal springt op per ronde ("Ronde 2: 0:31,40") en per boost, met het bestaande UI-geluid |
+
+**Samen spelen.** De race is van wie het spel opende, of een wedstrijd tegen elkaar (`multiplayerwedstrijd.js`, ongewijzigd). De strook en de lichtkolom zijn lokaal en tonen je eigen kart; het bord blijft alleen voor de tussenstand van de anderen. Valt een speler weg, dan verdwijnt zijn strook met zijn race. Test: `karthud_test`, `kartbaan_test`.
+
+**Niet gedaan.** Een sector-voor-sector vergelijking met je beste ronde, een eigen sting voor een persoonlijk record.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.

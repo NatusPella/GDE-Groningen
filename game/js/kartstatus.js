@@ -1,0 +1,64 @@
+// De HUD-stand van de kartbaan (#985): puur, geen DOM en geen THREE (scripts/karthud_test.mjs). Maakt uit de stand van de race het model voor de gedeelde strook
+// (simhud.js): de stappen (start, racen, finish), de driftmeter, de cijfers (ronde, plaats, tijd, snelheid, beste ronde) en één zin "wat nu".
+// De regels van de race staan in kartrace.js; dit bestand leest ze alleen.
+import { KART, LAPS } from './kartrace.js';
+
+// Icoonpaden voor de chips (24x24, lijn): startlicht, kart, finishvlag, drift (bocht met pijl).
+export const ICOON = {
+  licht: '<circle cx="12" cy="12" r="5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>',
+  kart: '<circle cx="7" cy="16" r="3"/><circle cx="17" cy="16" r="3"/><path d="M4 13V9h8l3 4h5"/>',
+  vlag: '<path d="M6 21V4"/><path d="M6 5h12l-2 4 2 4H6"/>',
+  drift: '<path d="M5 19c0-7 4-11 14-11"/><path d="M15 4l4 4-4 4"/>',
+};
+
+export const STAPPEN = [
+  { id: 'grid', label: 'Start', icoon: ICOON.licht },
+  { id: 'race', label: 'Racen', icoon: ICOON.kart },
+  { id: 'finish', label: 'Finish', icoon: ICOON.vlag },
+];
+
+export const UITLEG_ID = 'kartbaan';
+export const UITLEG = [
+  { icoon: ICOON.licht, tekst: 'Bij groen: gas met W' },
+  { icoon: ICOON.kart, tekst: 'A en D sturen, S remt' },
+  { icoon: ICOON.drift, tekst: 'Spatie in een bocht: drift' },
+  { icoon: ICOON.vlag, tekst: `${LAPS} ronden, eerste wint goud` },
+];
+
+export const tijdTekst = (s) => {
+  if (!Number.isFinite(s)) return '-:--.--';
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return `${m}:${r < 10 ? '0' : ''}${r.toFixed(2).replace('.', ',')}`;
+};
+
+// g: { fase: 'grid'|'race'|'finish'|'outro', lichten (0-3), ronde, plek, aantal, tijd (s), kmh, beste (s of null), drift: { t } of null, boost: bool, gras: bool, uitleg: bool }
+export function kartHudModel(g) {
+  if (!g) return null;
+  const idx = g.fase === 'grid' ? 0 : g.fase === 'race' ? 1 : 2;
+  const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
+  const meter = g.drift ? { pct: Math.min(100, (g.drift.t / KART.charge2) * 100), naam: 'Driftlading', label: g.drift.t >= KART.charge2 ? 'Supergeladen' : g.drift.t >= KART.charge1 ? 'Geladen' : 'Laden', staat: '' } : null;
+  const cijfers = [
+    { label: 'Ronde', waarde: `${Math.min(LAPS, Math.max(1, g.ronde || 1))}/${LAPS}` },
+    { label: 'Plaats', waarde: `${g.plek || 1}/${g.aantal || 4}` },
+    { label: 'Tijd', waarde: tijdTekst(g.tijd || 0) },
+    { label: 'Tempo', waarde: `${Math.max(0, Math.round(g.kmh || 0))} km/u` },
+  ];
+  if (g.beste != null) cijfers.push({ label: 'Beste', waarde: tijdTekst(g.beste) });
+  return {
+    id: 'kartbaan', titel: 'Kartbaan Ulrum', icoon: ICOON.kart, plek: g.fase === 'grid' ? '' : `Ronde ${Math.min(LAPS, Math.max(1, g.ronde || 1))}`, stappen, meter, cijfers,
+    uitleg: g.uitleg && g.fase === 'grid' ? UITLEG : [], nu: watNu(g), hulp: 'W gas · S rem · A D sturen · Spatie drift in een bocht', slecht: !!g.gras,
+  };
+}
+
+export function watNu(g) {
+  if (g.fase === 'grid') return g.lichten ? `Startlichten: ${Math.min(3, g.lichten)} van 3` : 'Rijders, op uw plaatsen';
+  if (g.fase === 'finish' || g.fase === 'outro') return `Gefinisht als ${g.plek || 1}e`;
+  if (g.gras) return 'Je zit in het gras: terug naar het asfalt';
+  if (g.drift) return g.drift.t >= KART.charge1 ? 'Laat Spatie los voor de versnelling' : 'Houd Spatie vast door de bocht';
+  if (g.boost) return 'Boost!';
+  return 'Gas en een bocht in met Spatie voor een drift';
+}
+
+// Wat opspringt: een ronde (de tijd) of een boost.
+export function rondePop(lap, tijd) { return { tekst: `Ronde ${lap}: ${tijdTekst(tijd)}`, geluid: 'ui_loopbaan' }; }
+export function boostPop(lvl) { return { tekst: lvl === 2 ? 'Superboost!' : 'Boost!', geluid: 'ui_verzameld' }; }
