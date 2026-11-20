@@ -120,7 +120,7 @@ function ensureVeil() {
   veilEl.setAttribute('aria-live', 'polite');
   veilEl.style.cssText = 'position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12vh;pointer-events:none;opacity:0;background:var(--ds-c-ink-inkt,#1d211f);transition:opacity 0.3s ease;';
   textEl = document.createElement('div');
-  textEl.style.cssText = 'max-width:min(720px,90vw);padding:10px 18px;border-radius:var(--ds-r,8px);background:var(--ds-zeef-bg,#f3ead2);color:var(--ds-zeef-tx,#1d1b17);border:var(--ds-lijn-zeef,3px) solid var(--ds-c-ink-inkt,#1d1b17);font:800 22px var(--ds-font-kop-v3,"Arial Narrow"),Arial,sans-serif;text-align:center;';
+  textEl.style.cssText = 'max-width:min(720px,90vw);padding:10px 18px;border-radius:var(--ds-r,8px);background:var(--ds-zeef-bg,#f3ead2);color:var(--ds-zeef-tx,#1d1b17);border:var(--ds-lijn-zeef,3px) solid var(--ds-c-ink-inkt,#1d1b17);font:800 22px var(--ds-font-kop,"Arial Narrow"),Arial,sans-serif;text-align:center;';
   veilEl.appendChild(textEl);
   document.body.appendChild(veilEl);
 }

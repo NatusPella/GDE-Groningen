@@ -55,7 +55,7 @@ export function stapModel(s, opts = {}) {
     try { kb = keyName(physicalKey(binds, tokenKey(t))) || t; pad = padSlotFor(t, ctx) || ''; } catch (e) { /* onbekende token: het token zelf */ }
     return { token: t, toetsenbord: kb, controller: pad };
   });
-  return { toetsen, varianten, icoon: ic, animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: tekst.trim() };
+  return { toetsen, varianten, icoon: ic, animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: tekst.replace(/\{([A-Z0-9]+)\}/g, '$1 ').replace(/\s{2,}/g, ' ').trim() };
 }
 function safeBinds() { try { return getSettings().keyBinds || {}; } catch (e) { return {}; } }
 
@@ -84,10 +84,10 @@ export function uitlegHtml(model, opts = {}) {
     const rimpel = s.animatie === 'klik' ? '<span class="ds-uitleg__rimpel" aria-hidden="true"></span>' : '';
     const pijl = s.animatie === 'beweeg' || s.animatie === 'stick' ? '<span class="ds-uitleg__pijl" aria-hidden="true"></span>' : '';
     return `<li class="ds-uitleg__stap" data-anim="${esc(s.animatie)}"><span class="ds-uitleg__beeld" data-n="${s.toetsen.length}">${beeld}${rimpel}${pijl}${balk}</span>` +
-      `<span class="ds-uitleg__tekst">${esc(s.tekst)}</span></li>`;
+      `<span class="ds-uitleg__tekst">${tekstMetToetsen(s.tekst)}</span></li>`;
   };
   const meer = model.meer && !opts.zonderMeer ?`<details class="ds-uitleg__meer"><summary>Meer uitleg</summary><p>${tekstMetToetsen(model.meer)}</p></details>` : '';
-  const weg = opts.nietMeer && model.id ? `<button type="button" class="ds-knop ds-knop--tekst ds-uitleg__weg" data-uitleg-niet-meer="${esc(model.id)}">Niet meer tonen</button>` : '';
+  const weg = opts.nietMeer && model.id ? `<button type="button" class="ds-z-knop ds-z-knop--secundair ds-uitleg__weg" data-uitleg-niet-meer="${esc(model.id)}">Niet meer tonen</button>` : '';
   return `<div class="ds-uitleg${opts.compact ? ' ds-uitleg--compact' : ''}" role="group" aria-label="${esc(model.alt)}">` +
     (model.titel && opts.titel !== false ? `<p class="ds-uitleg__titel">${esc(model.titel)}</p>` : '') +
     `<ol class="ds-uitleg__lijst">${model.stappen.map(rij).join('')}</ol>${meer}${weg}</div>`;

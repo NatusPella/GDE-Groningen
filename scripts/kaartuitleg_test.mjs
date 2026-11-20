@@ -9,7 +9,7 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
 const src = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
 const html = uitlegHtml({ gast: false });
-ok(/data-act="uitleg-sluit"/.test(html) && /class="ds-knop mv-help-ok"/.test(html) && /Begrepen/.test(html), 'één knop Begrepen met data-act uitleg-sluit');
+ok(/data-act="uitleg-sluit"/.test(html) && /class="ds-z-knop mv-help-ok"/.test(html) && /Begrepen/.test(html), 'één knop Begrepen met data-act uitleg-sluit');
 ok(/role="dialog"/.test(html) && /aria-modal="true"/.test(html), 'de uitleg is een dialoog');
 ok(uitlegHtml({ gast: true }).length > html.length, 'een gast leest er een regel bij');
 
