@@ -18,7 +18,7 @@ ok(vehicleDisplayName(plane).model === 'Kist Kees', 'vliegtuig heet Kist Kees', 
 ok(vehicleDisplayName(plane).make === '', 'vliegtuig heeft geen los merk');
 ok(vehicleDisplayLabel(plane) === 'Kist Kees', 'vliegtuiglabel is Kist Kees', vehicleDisplayLabel(plane));
 const hudPanel = read('hud_panel.js');
-ok(/^\s*plane: '<path d="M12 2\.6/m.test(hudPanel), 'HUD heeft een vliegtuigicoon');
+ok(/plane: 'vliegtuig'/.test(hudPanel), 'HUD heeft een vliegtuigicoon');
 ok(/VEH_ICONS\[v\.isPlane \? 'plane'/.test(hudPanel), 'HUD kiest het vliegtuigicoon voor een vliegtuig');
 
 // --- #880: M15-spandoek -------------------------------------------------------------

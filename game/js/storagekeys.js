@@ -89,6 +89,8 @@ export const BASE_KEYS = {
   boerderij: 'gde-boerderij-v1',
   // the one-time explanation card of the farm panel (farmcards.js, #985): new, no legacy name, per device, never part of a savegame
   boerderijUitleg: 'gde-boerderij-uitleg-v1',
+  simUitleg: 'gde-sim-uitleg-v1',
+  terugkeer: 'gde-terugkeer-v1',
   // what this player did per wijk, plaats and streek (gebieden.js, #414): new, no legacy name, never part of a savegame
   gebieden: 'gde-gebieden-v1',
   // what this player has discovered of the province (verkenpunten.js/explorationlive.js, #825): per player,

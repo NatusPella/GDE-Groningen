@@ -15,7 +15,8 @@ function nepEl() {
     querySelector: () => nepEl(), querySelectorAll: () => [], getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }),
   };
 }
-globalThis.document.createElement = () => nepEl();
+const echteCreate = globalThis.document.createElement;
+globalThis.document.createElement = (t) => (t === 'canvas' ? echteCreate.call(globalThis.document, t) : nepEl());
 globalThis.document.body = nepEl();
 globalThis.document.head = nepEl();
 globalThis.document.getElementById = () => null;

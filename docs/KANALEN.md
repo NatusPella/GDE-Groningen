@@ -38,7 +38,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | plaatsnaam | hud_panel.js | beslist zelf | P3 | B | ja: overlay (locatie) | Samen met moment (wijk, landmark) en opgeslagen: een plaatsblok. |
 | wijkkaart | cinematics.js | beslist zelf | P3 | B | ja: overlay (wijkkaart) |  |
 | keuze | choicepanel.js | 10 modules, 10 aanroepen | P1 | B | ja: overlay (keuze) | Samen met bord en activiteit: een activiteitenpaneel bovenaan (kop, regels, toetsen). Het keuzepaneel en het minigamebord zijn dezelfde familie. |
-| bord | minigamekit.js, golfhud.js | 21 modules, 24 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
+| bord | minigamekit.js, golfhud.js | 17 modules, 20 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
 | ballon | scene3d.js | 14 modules, 25 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
 | spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
