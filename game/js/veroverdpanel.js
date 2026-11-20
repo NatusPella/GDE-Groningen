@@ -29,7 +29,7 @@ const CSS = `${GEBIEDEN_CSS}
 /* #980 fase 3: twee tabbladen (Gebieden, Beleidswinkel). De Beleidswinkel stond onder een gebiedenpaneel van 5000 px en was op 900p niet
    te bereiken; nu heeft hij een eigen tabblad dat zelf scrolt. Gebieden is één scrolvlak: kop, taken, uitleg en dan de lijst. */
 .vo-tabs { flex: none; margin: 24px 24px 12px; }
-.vo-tabs .ds-tab small { font-family: var(--ds-font-tekst); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+.vo-tabs .ds-z-tab small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
 .vo-gebieden { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 24px; }
 .vo-gebieden[hidden], .vo-beleidtab[hidden] { display: none; }
 .vo-gebieden > .m-main { flex: none; height: clamp(360px, 62vh, 640px); padding: 0 24px; }
@@ -37,31 +37,31 @@ const CSS = `${GEBIEDEN_CSS}
 .vo-beleidtab .bw-beleid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); align-items: start; margin-top: 0; }
 .vo-beleidtab .bw-beleid > :not(.bw-rij) { grid-column: 1 / -1; }
 .vo-gebieden::-webkit-scrollbar, .vo-beleidtab::-webkit-scrollbar { width: 8px; }
-.vo-gebieden::-webkit-scrollbar-thumb, .vo-beleidtab::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240, 237, 228, 0.18); }
+.vo-gebieden::-webkit-scrollbar-thumb, .vo-beleidtab::-webkit-scrollbar-thumb { border-radius: 4px; background: color-mix(in srgb, var(--ink) 18%, transparent); }
 .vo-top { flex: none; padding-top: 0; }
 .vo-top .pm-hero { flex: none; }
 .vo-hero { margin: 0 24px 16px; }
 .vo-hero .pm-hero-t { font-size: 40px; }
 .vo-kop { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; }
 .vo-kop .m-num { font-size: 30px; }
-.vo-uitleg { flex: none; margin: 0 24px 14px; padding: 10px 16px 12px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
-.vo-uitleg > b, .vo-volgende > b { display: block; margin-bottom: 2px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 24px; letter-spacing: 0.04em; }
+.vo-uitleg { flex: none; margin: 0 24px 14px; padding: 10px 16px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
+.vo-uitleg > b, .vo-volgende > b { display: block; margin-bottom: 2px; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; letter-spacing: 0.04em; }
 .vo-soort-kop { margin-top: 4px; }
 .vo-soorten { list-style: none; margin: 6px 0 2px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px 18px; }
-.vo-soorten li { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); line-height: 1.35; }
+.vo-soorten li { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-family: var(--ds-font-tekst-v3); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.35; }
 .vo-soorten li .one { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vo-soorten .vo-soort-tel { margin-left: auto; white-space: nowrap; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0.03em; color: var(--g); }
-.vo-regel { margin: 6px 0 0; padding: 0; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); line-height: 1.4; color: var(--c-mut, rgba(240, 237, 228, 0.72)); max-width: 760px; }
-.vo-regel b { font-weight: normal; color: var(--ink, #f0ede4); }
+.vo-soorten .vo-soort-tel { margin-left: auto; white-space: nowrap; font-family: var(--ds-font-kop-v3); font-size: 18px; letter-spacing: 0.03em; color: var(--g); }
+.vo-regel { margin: 6px 0 0; padding: 0; font-family: var(--ds-font-tekst-v3); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.4; color: var(--mut); max-width: 760px; }
+.vo-regel b { font-weight: normal; color: var(--ink); }
 .vo-stats { margin: 0 24px 14px; }
-.vo-volgende { margin: 0 24px 16px; padding: 10px 16px 12px; border-radius: 12px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+.vo-volgende { margin: 0 24px 16px; padding: 10px 16px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 .vo-volgende > b { margin-bottom: 6px; }
 .vo-volgende ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
 .vo-volgende li { min-width: 0; align-self: start; }
-.vo-volgende li .ds-kaart__titel { font-size: var(--ds-t-subkop); overflow-wrap: anywhere; }
-.vo-volgende li .ds-chip { min-height: var(--ds-hoogte-chip); }
-.vo-volgende li .ds-knop { align-self: stretch; min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
-.vo-volgende .mut { color: var(--c-mut, rgba(240, 237, 228, 0.72)); }
+.vo-volgende li .ds-z-kaart__titel { font-size: var(--ds-t-subkop); overflow-wrap: anywhere; }
+.vo-volgende li .ds-z-chip { min-height: var(--ds-hoogte-chip); }
+.vo-volgende li .ds-z-knop { align-self: stretch; min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+.vo-volgende .mut { color: var(--mut); }
 @media (max-height: 820px) { .vo-hero .pm-hero-lead, .vo-hero .vo-kop { display: none; } }`;
 
 function zetCss() {
@@ -82,16 +82,16 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 
 // #906: één taak als kaart: het gebied en de soort boven, de taaknaam, de afstand vanaf hier en
 // één knop die het als doel op de kaart zet. Alleen wat volgendeTaken() al geeft, geen nieuwe data.
-const PIN = '<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1a5 5 0 0 0-5 5c0 3.6 5 9 5 9s5-5.4 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>';
+const PIN = '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1a5 5 0 0 0-5 5c0 3.6 5 9 5 9s5-5.4 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>';
 function taakKaart(t, world, eerste) {
   const p = world ? hoofdspeler(world) : null;
   const af = p && Number.isFinite(t.x) && Number.isFinite(t.y) ? formatDistance(Math.hypot(t.x - p.x, t.y - p.y)) : '';
   const soort = t.soortNaam ? `${esc(t.soortNaam)} · ` : '';
   const pct = t.totaal > 0 ? Math.min(100, Math.round((t.klaar / t.totaal) * 100)) : 0;
-  return `<li class="ds-papier ds-kaart"><div class="ds-kaart__kop"><span class="ds-kaart__label">${esc(t.gebied)}</span>${af ? `<span class="ds-chip">${PIN}${esc(af)}</span>` : ''}</div>` +
-    `<div class="ds-kaart__titel">${esc(t.naam)}</div><div class="ds-kaart__voet">${soort}in dit gebied</div>` +
-    `<div class="ds-streep" style="--ds-streep-w:${pct}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${t.klaar} van ${t.totaal}</span></div>` +
-    `<button type="button" class="ds-knop${eerste ? '' : ' ds-knop--secundair'}" data-doel="${esc(t.id)}" aria-label="Zet ${esc(t.naam)} als doel op de kaart">Zet als doel</button></li>`;
+  return `<li class="ds-zeef ds-z-kaart"><div class="ds-z-kaart__kop"><span class="ds-z-kaart__voet">${esc(t.gebied)}</span>${af ? `<span class="ds-z-chip">${PIN}${esc(af)}</span>` : ''}</div>` +
+    `<div class="ds-z-kaart__titel">${esc(t.naam)}</div><div class="ds-z-kaart__voet">${soort}in dit gebied</div>` +
+    `<div class="ds-z-balk" style="--ds-z-w:${pct}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${t.klaar} van ${t.totaal}</span></div>` +
+    `<button type="button" class="ds-z-knop${eerste ? '' : ' ds-z-knop--secundair'}" data-doel="${esc(t.id)}" aria-label="Zet ${esc(t.naam)} als doel op de kaart">Zet als doel</button></li>`;
 }
 
 export function renderVeroverdPanel(el, sluit = null, world = null) {
@@ -135,8 +135,8 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     // zodat de taken altijd in beeld beginnen (en op 720p niet onder de vouw verdwijnen).
     // #980 fase 3: Gebieden en de Beleidswinkel zijn twee tabbladen (Q en E wisselen ze, net als elders in het menu).
     const aangenomen = getBeleid().gekocht.length;
-    const tabKnop = (id, label, extra = '') => `<button type="button" role="tab" class="ds-tab" data-vo-tab="${id}" aria-selected="${tab === id}">${label}${extra}</button>`;
-    el.innerHTML = `<div class="vo-tabs ds-tabs ds-glas" role="tablist" aria-label="Veroverd">${tabKnop('gebieden', 'Gebieden')}${tabKnop('beleid', 'Beleidswinkel', aangenomen ? ` <small>${aangenomen} aangenomen</small>` : '')}</div>` +
+    const tabKnop = (id, label, extra = '') => `<button type="button" role="tab" class="ds-z-tab" data-vo-tab="${id}" aria-selected="${tab === id}">${label}${extra}</button>`;
+    el.innerHTML = `<div class="vo-tabs ds-z-tabs ds-zeef" role="tablist" aria-label="Veroverd">${tabKnop('gebieden', 'Gebieden')}${tabKnop('beleid', 'Beleidswinkel', aangenomen ? ` <small>${aangenomen} aangenomen</small>` : '')}</div>` +
       `<div class="vo-gebieden" data-vo-body="gebieden"${tab === 'gebieden' ? '' : ' hidden'}><div class="vo-top">${hero}${stats}${volgende}${regel}</div>` +
       `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div></div>` +
       `<div class="vo-beleidtab" data-vo-body="beleid"${tab === 'beleid' ? '' : ' hidden'}>${beleidHtml()}</div>`;

@@ -288,31 +288,31 @@ const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.5-2
 // compacte strook in plaats van achter een vouw (#980).
 const FOTO_CSS = `
 #pause-menu .foto-hero { margin: 0 24px 14px; flex: none; }
-#pause-menu .foto-hero .ds-kaart__tekst { max-width: 640px; }
+#pause-menu .foto-hero .ds-z-kaart__tekst { max-width: 640px; }
 #pause-menu .foto-inhoud { display: flex; flex: none; flex-direction: column; gap: 18px; min-width: 0; padding: 0 24px 36px; }
 #pause-menu .foto-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 14px; min-width: 0; }
 #pause-menu .foto-kaart { position: relative; display: flex; flex-direction: column; gap: 0; min-width: 0; padding: 0; overflow: hidden; margin: 0; }
-#pause-menu .foto-kaart:focus-within { border-color: var(--ds-selectie); outline: var(--ds-lijn-dik) solid var(--ds-selectie); outline-offset: -1px; }
-#pause-menu .foto-beeld { background: var(--ds-bg-2); border-bottom: var(--ds-lijn) solid var(--ds-rand); }
+#pause-menu .foto-kaart:focus-within { border-color: var(--ds-c-ink-bord); outline: var(--ds-lijn-dik) solid var(--ds-c-ink-bord); outline-offset: -1px; }
+#pause-menu .foto-beeld { background: var(--ds-zeef-bg); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
 #pause-menu .foto-beeld img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 0; }
-#pause-menu .foto-beeld .foto-leeg { width: 100%; aspect-ratio: 16 / 9; border-radius: 0; color: var(--ds-tx-zacht); }
+#pause-menu .foto-beeld .foto-leeg { width: 100%; aspect-ratio: 16 / 9; border-radius: 0; color: var(--ds-c-inkt-zacht); }
 #pause-menu .foto-gal figcaption.foto-tekst { display: flex; flex-direction: column; gap: 1px; min-width: 0; margin-top: 0; padding: var(--ds-s-2) var(--ds-s-3) var(--ds-s-3); font-size: inherit; }
 #pause-menu .foto-kop { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-#pause-menu .foto-plek { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-#pause-menu .foto-weer { flex: none; margin-left: auto; font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); white-space: nowrap; }
+#pause-menu .foto-plek { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .foto-weer { flex: none; margin-left: auto; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); white-space: nowrap; }
 #pause-menu .foto-wanneer { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
-#pause-menu .foto-bestand { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); color: var(--ds-tx-zacht); }
+#pause-menu .foto-bestand { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); color: var(--ds-c-inkt-zacht); }
 /* Weghalen is een omlijnde knop onderin de kaart (een lijst met kaarten heeft geen gele knoppen: de ene gele
    hoofdknop is "Nog een foto maken"). */
 #pause-menu .foto-kaart .foto-acts { padding: 0 var(--ds-s-3) var(--ds-s-3); }
 #pause-menu .foto-kaart .foto-weg { min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
 /* De lege staat is een rustige kaart onder de kop, geen tweede groen paneel. */
 #pause-menu .foto-leegstaat { width: min(760px, 100%); }
-#pause-menu .foto-leegstaat .ds-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+#pause-menu .foto-leegstaat .ds-z-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 #pause-menu .foto-leegstaat .foto-tips { justify-content: center; }
 #pause-menu .foto-leegstaat-ic svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
 /* De uitleg staat open in een compacte strook: de drie toetsen, één zin over de opslag en de actie. */
-#pause-menu .foto-voet { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding: 14px 16px 15px; border-radius: 10px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 0 0 0 1px var(--line); }
+#pause-menu .foto-voet { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding: 14px 16px 15px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .foto-voet .foto-tips { padding-top: 0; }
 #pause-menu .foto-voet .foto-start { margin-left: auto; }
 #pause-menu .foto-noot { flex: 1 0 100%; margin: 0; font-size: max(15px, var(--menu-min)); line-height: 1.4; color: var(--mut); }
@@ -342,20 +342,20 @@ function heroHtml(n) {
   const lead = leeg
     ? 'Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer, en maak een foto. Hij komt als bestand op je eigen schijf; er gaat niets het internet op.'
     : 'Elke foto die je maakte, nieuwste eerst. Wijs er een aan om hem weg te halen; het bestand op je eigen schijf blijft staan.';
-  const stand = `<span class="ds-chip${leeg ? '' : ' ds-chip--succes'}"><svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>${n} van ${F.GALLERY.max} foto's</span>`;
-  return '<section class="ds-papier ds-kaart ds-kaart--kop foto-hero" aria-label="Foto\'s">' +
-    `<div class="ds-kaart__kop"><span class="ds-kaart__titel">${titel}</span>${stand}</div>` +
-    `<p class="ds-kaart__tekst">${lead}</p></section>`;
+  const stand = `<span class="ds-z-chip${leeg ? '' : ' ds-z-chip--succes'}"><svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>${n} van ${F.GALLERY.max} foto's</span>`;
+  return '<section class="ds-zeef ds-z-kaart foto-hero" aria-label="Foto\'s">' +
+    `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${titel}</span>${stand}</div>` +
+    `<p class="ds-z-kaart__tekst">${lead}</p></section>`;
 }
 
 // #910: de lege staat blijft een uitnodiging: het pictogram, de drie toetsen en één duidelijke
 // actie om te beginnen. De uitleg staat in de kop erboven, niet nog eens in de kaart.
 function leegStateHtml() {
-  return '<div class="ds-glas ds-leeg foto-leegstaat">' +
-    `<span class="ds-leeg__beeld foto-leegstaat-ic">${CAM}</span>` +
-    '<div class="ds-leeg__kop">Maak je eerste foto</div>' +
+  return '<div class="ds-zeef ds-z-leeg foto-leegstaat">' +
+    `<span class="ds-z-leeg__beeld foto-leegstaat-ic">${CAM}</span>` +
+    '<div class="ds-z-leeg__kop">Maak je eerste foto</div>' +
     FOTO_TIPS +
-    '<div class="foto-start foto-start-big"><button type="button" class="ds-knop" data-foto-start>Fotomodus starten</button></div>' +
+    '<div class="foto-start foto-start-big"><button type="button" class="ds-z-knop" data-foto-start>Fotomodus starten</button></div>' +
     '</div>';
 }
 
@@ -365,7 +365,7 @@ function kaartHtml(s) {
   const plek = s.plaats || 'Groningen';
   const weer = s.weer ? (F.WEER_NAMEN[s.weer] || s.weer) : '';
   const wanneer = [s.dagLabel, s.uur].filter(Boolean).join(' · ');
-  return '<figure class="ds-papier ds-kaart foto-kaart">' +
+  return '<figure class="ds-zeef ds-z-kaart foto-kaart">' +
     '<div class="foto-beeld">' +
       (s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(plek)}" decoding="async">` : '<div class="foto-leeg">Geen voorbeeld</div>') +
     '</div>' +
@@ -374,15 +374,15 @@ function kaartHtml(s) {
       (wanneer ? `<span class="foto-wanneer">${esc(wanneer)}</span>` : '') +
       (s.file ? `<span class="foto-bestand" title="${esc(s.file)}">${esc(s.file)}</span>` : '') +
     '</figcaption>' +
-    `<div class="foto-acts"><button type="button" class="ds-knop ds-knop--secundair foto-weg" data-foto-del="${esc(s.id)}" aria-label="Foto van ${esc(plek)} weghalen">Weghalen</button></div>` +
+    `<div class="foto-acts"><button type="button" class="ds-z-knop ds-z-knop--secundair foto-weg" data-foto-del="${esc(s.id)}" aria-label="Foto van ${esc(plek)} weghalen">Weghalen</button></div>` +
     '</figure>';
 }
 
 // De compacte infostrook in plaats van "Meer opties": de drie toetsen, één eerlijke zin over
 // waar de foto blijft, en de actie om er nog een te maken. Niets om open te klikken.
 function voetHtml() {
-  return '<div class="ds-glas foto-voet">' + FOTO_TIPS +
-    '<div class="foto-start"><button type="button" class="ds-knop" data-foto-start>Nog een foto maken</button></div>' +
+  return '<div class="ds-zeef foto-voet">' + FOTO_TIPS +
+    '<div class="foto-start"><button type="button" class="ds-z-knop" data-foto-start>Nog een foto maken</button></div>' +
     '<p class="foto-noot">De foto zelf staat als bestand op je eigen schijf; Weghalen ruimt alleen deze galerij op. Er gaat niets het internet op.</p>' +
     '</div>';
 }
