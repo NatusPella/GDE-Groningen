@@ -28,8 +28,8 @@ ok(/body\.insertAdjacentHTML\('beforeend', uitlegHtml/.test(mv),
   'de uitleg wordt als popup over de kaart geplaatst');
 ok(/\.mapview-overlay \.mv-help \{ position: absolute; inset: 0;/.test(kau),
   'de uitleg dekt de kaart af als popup in plaats van in een kolom te staan');
-ok(/role="dialog" aria-modal="true"/.test(kau) && /aria-label="Sluiten"/.test(kau),
-  'de popup is een dialoog met een eigen sluitknop');
+ok(/role="dialog" aria-modal="true"/.test(kau) && /data-act="uitleg-sluit"/.test(kau) && !/aria-label="Sluiten"/.test(kau),
+  'de popup is een dialoog met één sluitknop (Begrepen), geen kruisje');
 ok(/knop\.focus\(\{ preventScroll: true \}\)/.test(mv), 'de popup zet de focus op Begrepen');
 
 // legenda en lagen: de knop Lagen en de legenda zijn weer bereikbaar, de reisbalk blijft weg
