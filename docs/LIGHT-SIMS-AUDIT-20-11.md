@@ -17,8 +17,8 @@ de lus nu zichtbaar of uitgelegd is.
 | 1. Hengelen | hoog: overal aan het water met I, plus de Meerstad-wedstrijd | wereld goed (hengel, lijn, dobber, vis), maar HUD was een tekstbord in eigen kleuren, geen uitleg, geen beetteken, vangst alleen als regel | gebouwd, zie 2 |
 | 2. Krantenwijk | hoog: een van de eerste bijbanen | wereld al redelijk (brievenbussen, vliegende kranten, liggende kranten), maar elke brievenbus zag er na de worp hetzelfde uit, geen duidelijk volgend doel in de straat, de stapel en de uitkomst alleen als meldingen, geen uitleg | gebouwd, zie 3 |
 | 3. Bezorger (Hap & Rap) | hoog | tekstregel "warm 82%" in de bijbaankaart; eten dat afkoelt was onzichtbaar; geen doel in de straat; geen uitleg | gebouwd, zie 4 |
-| 4. Kartbaan | midden | zie 3 | zie 3 |
-| 5. Rondvaart | midden | zie 3 | zie 3 |
+| 4. Bakronde (Oma's eierballen, akte 5) | middel: twee missies (M25, M26) en dus gegarandeerd gespeeld | paneel met harde kleuren en inline stijl in de code (eigen donkerbruin en oranje rand, Arial), geen voortgangsbalk, een bal die klaar is kreeg geen teken | gebouwd, zie 5 |
+| 5. Rondvaart | midden | niet gedaan in deze ronde (tijd), staat bovenaan het vervolg | open |
 
 ## 2. Hengelen
 
@@ -84,6 +84,23 @@ warm geeft fooi (boven 70%), lauw weinig, koud niets. De klok is de warmte.
 Test: `bezorghud_test` (model, markup, bedrading, gedeelde kolom).
 
 **Niet gedaan.** Een zichtbaar pakketje op de stoep na het afleveren, stoom boven de thermobox, een kaartlaag met de route.
+
+## 5. Bakronde (Oma's eierballen, M25 en M26)
+
+**Wat kan de speler.** Oma's recept is een volgorde: je drukt de ingrediënten in die volgorde in (1 tot 6); een verkeerd ingrediënt is een mislukte eierbal, te veel mislukte ballen is opnieuw bakken, zonder de missie te verliezen. De oefenronde heeft vijf ingrediënten, de wedstrijd vier en drie ballen.
+Oma's volgorde blijft verborgen: alleen wat je goed deed krijgt zijn icoon (de regelwidget, #987).
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Paneel | een eigen donkerbruin vlak met oranje rand en vaste kleuren in de code | een `ds-kaart` op dezelfde plek en in dezelfde taal als de strook van de andere sims (`sim.css`, klassen `bk-`, alleen ds-tokens); de speelbot vindt het nog als `#bakeround` |
+| Voortgang | de tekst "Eierbal 2 van 3 · mislukt 1/3" | dezelfde gegevens als chip, plus een balk met de klare ballen ("1 van 3 klaar") |
+| Feedback | een bal die klaar is zag je alleen aan de teller | de melding "Eierbal klaar! De volgende." en bij alles "Alle eierballen klaar!", met het bestaande UI-geluid; een fout blijft de rode foutmelding van Oma |
+| Wat nu | de lege regel | "Druk de ingrediënten in Oma's volgorde (1 tot 6)" of "Stap 2 van 4" |
+
+**Samen spelen.** De bakronde is van wie het spel opende (een missie). Een gast die meedoet drukt mee met zijn toets (`bakeKeyId`, #525) en ziet de stand via het bestaande paneel van de host (`bakePanel`); dat is hier niet veranderd. Het nieuwe paneel is voor wie de ronde draait.
+Test: `bakeround_test` (23, o.a. `bakeHudModel` en dat er geen eigen kleuren of inline stijl meer in de code staan). Beeld: `docs/img/qa/lichtsims-bakeronde-na.jpg` (het paneel in een browservenster met de echte stijlbladen, niet in het spel).
+
+**Niet gedaan.** Zichtbare eierballen of een pan in de keuken (de wereldkant van deze sim: de keuken is een binnenset van de missie), een eigen sting per bal.
 
 ## Beeldbewijs en eerlijkheid
 

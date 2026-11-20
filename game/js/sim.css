@@ -25,3 +25,8 @@
 .sh-pop--stil { opacity: 1; }
 @keyframes sh-pop { 0% { opacity: 0; transform: translateY(var(--ds-s-3)); } 15% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--ds-s-4))); } }
 @media (prefers-reduced-motion: reduce) { .sh-pop--aan { animation: none; opacity: 1; } }
+
+/* De bakronde (Oma's eierballen, #985): zelfde plek en taal als de strook; de regelwidgets (stappen en legenda) staan er als losse glazen onderdelen in. */
+.bk-paneel.ds-kaart { pointer-events: none; }
+.bk-regel, .bk-toetsen { display: flex; justify-content: center; }
+.bk-ronde { white-space: nowrap; }
