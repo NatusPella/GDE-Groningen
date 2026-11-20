@@ -28,7 +28,7 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' || SUITE === 'meerijden' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const GASTEN = Math.max(0, Math.min(3, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' || SUITE === 'meerijden' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
 const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'meerijden' ? 1 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
@@ -48,7 +48,7 @@ const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
 
 // ---------------------------------------------------------------- programma per instantie (seconden na "iedereen erbij")
 const P = {
-  basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
+  basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
   net: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [
     [0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: [SECOND] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }],
     me === 'gast' ? [88, 'touch', { s: 12 }] : [88, 'kijk', { s: 12 }],   // de Electron-gast 'gast' heeft aanraakbediening (touch=1)
@@ -57,8 +57,8 @@ const P = {
     [166, 'betaal', me === 'host' ? { geld: 250 } : {}], [172, 'opgeslagen', {}], [178, 'rit', { s: 30 }], [209, 'filmpje', { s: 8 }],
     me === SECOND ? [219, 'verlaat', { wie: SECOND }] : [219, 'wacht', { s: 22 }], [246, 'stopHost', {}],
   ]])),
-  kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
-  lijst: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
+  kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
+  lijst: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 3600)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
   opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
@@ -80,7 +80,7 @@ async function takeSlots(n) {
   for (;;) {
     const t0 = Date.now(), mine = [];
     while (Date.now() - t0 < 720000) {
-      for (const k of [1, 2, 3]) { if (mine.length >= n) break; const d = path.join(LOCKS, 'electron-' + k); try { fs.mkdirSync(d); mine.push(d); } catch (e) { /* bezet */ } }
+      for (const k of n > 3 ? [1, 2, 3, 4] : [1, 2, 3]) { /* vier Electron-instanties (vier spelers, #983) mogen op akkoord van de eigenaar */ if (mine.length >= n) break; const d = path.join(LOCKS, 'electron-' + k); try { fs.mkdirSync(d); mine.push(d); } catch (e) { /* bezet */ } }
       if (mine.length >= n) { held.push(...mine); return; }
       if (++wachtN % 10 === 1) console.log(`sloten bezet (${mine.length} van ${n}), wacht`);
       await new Promise((r) => setTimeout(r, 1000)); // elke seconde kijken: sloten die even vrij zijn pak je zo sneller
@@ -146,7 +146,7 @@ const host = start('host', { role: 'host', waitS: 300, joinWaitS: 400 }, 11);
 const code = await waitFor(host.events, 'code', 240000);
 const problems = [];
 const notes = [];
-let guest = null, guest2 = null;
+let guest = null, guest2 = null, guest3 = null;
 if (!code) problems.push('de host gaf geen code (zie host/events.jsonl)');
 else if (ROUTE === 'direct') {
   // is de poort van de host bereikbaar vanaf een gewone node-client? (onderscheidt "host luistert niet" van "Electron-gast verbindt niet")
@@ -160,7 +160,8 @@ else if (ROUTE === 'direct') {
 const guestCode = code ? code.code : '';
 const guestArgs = SUITE === 'touch' || SUITE === 'net' ? ['--url-flags=touch=1'] : []; // de eerste Electron-gast bedient met aanraking
 if (code && GASTEN >= 1) guest = start('gast', { role: 'gast', code: guestCode }, 22, guestArgs);
-if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, 15000)); guest2 = start('gast2', { role: 'gast', code: guestCode }, 33); } // pas als de eerste gast er is: zo is de plek voorspelbaar
+if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, 15000)); guest2 = start('gast2', { role: 'gast', code: guestCode }, 33); }
+if (code && GASTEN > 2) { await new Promise((r) => setTimeout(r, 15000)); guest3 = start('gast3', { role: 'gast', code: guestCode }, 44); } // de vierde speler (#983) // pas als de eerste gast er is: zo is de plek voorspelbaar
 
 // headless gasten (de vierde speler): komen erbij zodra de twee Electron-gasten er zijn; in de suite 'net' met een slecht netwerk
 const mocks = [];
@@ -170,6 +171,7 @@ if (code && MOCK && ROUTE === 'direct') {
   if (GASTEN > 0) await waitFor(host.events, 'verbonden', 240000);
   if (guest) await waitFor(guest.events, 'verbonden', 240000);
   if (guest2) await waitFor(guest2.events, 'verbonden', 240000);
+  if (guest3) await waitFor(guest3.events, 'verbonden', 240000);
   // #434 (suite 'bestuur'): een headless gast die zelf een voertuig neemt: E bij een voertuig dichtbij, rijden, stoppen met de handrem, E om uit te stappen
   const { leesEntiteiten } = await import(new URL('../../game/js/coopworld.js', import.meta.url).href);
   const bestuurBot = (m, i) => {
@@ -300,7 +302,7 @@ if (SUITE === 'net' && code && GASTEN > 0 && (guest2 || guest)) {
 
 const probeLog = [];
 const tp = code && ROUTE === 'direct' ? setInterval(() => { const m = /([0-9.]+):([0-9]+)-/.exec(guestCode); const t = Math.round((Date.now() - T0) / 1000); const k = net.connect({ host: m[1], port: +m[2], timeout: 2000 }); k.once('connect', () => { probeLog.push([t, 'open']); k.destroy(); }); k.once('error', (e) => probeLog.push([t, e.code])); k.once('timeout', () => { probeLog.push([t, 'time-out']); k.destroy(); }); }, 3000) : null;
-const res = await Promise.all([host.done, guest ? guest.done : Promise.resolve({ result: 'NIET GESTART' }), ...(GASTEN > 1 ? [guest2 ? guest2.done : Promise.resolve({ result: 'NIET GESTART' })] : [])]);
+const res = await Promise.all([host.done, guest ? guest.done : Promise.resolve({ result: 'NIET GESTART' }), ...(GASTEN > 1 ? [guest2 ? guest2.done : Promise.resolve({ result: 'NIET GESTART' })] : []), ...(GASTEN > 2 ? [guest3 ? guest3.done : Promise.resolve({ result: 'NIET GESTART' })] : [])]);
 release();
 if (tp) clearInterval(tp);
 for (const m of [...mocks, mockLate].filter(Boolean)) { try { await m.stop(); } catch (e) { /* al weg */ } }
@@ -311,12 +313,12 @@ if (fakeMqtt) fs.writeFileSync(path.join(OUT, 'mqtt.jsonl'), fakeMqtt.gezien.map
 if (tracker) tracker.close();
 
 // ---------------------------------------------------------------- beoordelen
-const H = readEvents(host.events), G = guest ? readEvents(guest.events) : [], G2 = guest2 ? readEvents(guest2.events) : [];
+const H = readEvents(host.events), G = guest ? readEvents(guest.events) : [], G2 = guest2 ? readEvents(guest2.events) : [], G3 = guest3 ? readEvents(guest3.events) : [];
 const of = (E, t) => E.filter((e) => e.type === t);
 const last = (a) => a[a.length - 1] || {};
 const check = (c, msg) => { if (!c) problems.push(msg); };
 const note = (msg) => notes.push(msg);
-const E = { host: H, gast: G, gast2: G2 };
+const E = { host: H, gast: G, gast2: G2, gast3: G3 };
 if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de host zelf zagen
   check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
   for (const [f, v] of Object.entries(res[0].fasen || {})) check(v === 'ok', `host: fase ${f} ${v}`);
@@ -480,7 +482,7 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
   console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
   process.exit(problems.length ? 1 : 0);
 }
-const NAMES = ['host', 'gast', ...(GASTEN > 1 ? ['gast2'] : [])];
+const NAMES = ['host', 'gast', ...(GASTEN > 1 ? ['gast2'] : []), ...(GASTEN > 2 ? ['gast3'] : [])];
 const samples = (n) => of(E[n], 'sample');
 const phase = (n, ph) => samples(n).filter((s) => s.ph === ph);
 // Het laatste sample waarin de sessie nog liep: na stopHost is roster/partners leeg,
@@ -491,6 +493,7 @@ const at = (E_, type, pred = () => true) => E_.find((e) => e.type === type && pr
 check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
 check(res[1].result === 'KLAAR', `gast: ${res[1].result} ${res[1].reason || ''}`);
 if (GASTEN > 1) check(res[2].result === 'KLAAR', `gast2: ${res[2].result} ${res[2].reason || ''}`);
+if (GASTEN > 2) check(res[3].result === 'KLAAR', `gast3: ${res[3].result} ${res[3].reason || ''}`);
 for (const n of NAMES) for (const [f, v] of Object.entries((res[NAMES.indexOf(n)] || {}).fasen || {})) check(v === 'ok', `${n}: fase ${f} ${v}`);
 
 // toestemming: voor "Akkoord" is er niets verstuurd; daarna alleen wat de route nodig heeft
@@ -810,7 +813,7 @@ if (SUITE === 'opening') {
 
 for (const [n, Ev] of Object.entries(E)) for (const e of Ev.filter((x) => x.type === 'console' && x.level === 'error')) problems.push(`${n} consolefout: ${String(e.msg).slice(0, 160)}`);
 for (const [n, Ev] of Object.entries(E)) for (const e of Ev.filter((x) => x.type === 'jserror')) problems.push(`${n} jserror: ${e.msg} ${e.file}:${e.line}`);
-fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ suite: SUITE, route: ROUTE, gasten: GASTEN, mock: MOCK, problems, notes, host: res[0], gast: res[1], gast2: res[2] || null, poort: probeLog.slice(-5) }, null, 1));
+fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ suite: SUITE, route: ROUTE, gasten: GASTEN, mock: MOCK, problems, notes, host: res[0], gast: res[1], gast2: res[2] || null, gast3: res[3] || null, poort: probeLog.slice(-5) }, null, 1));
 for (const x of notes) console.log('  - ' + x);
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);
