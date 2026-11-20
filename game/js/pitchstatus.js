@@ -19,7 +19,7 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'pitchputt';
 export const UITLEG = [
-  { icoon: ICOON.richten, tekst: '{A}{D} richten, Shift voor fijn' },
+  { icoon: ICOON.richten, tekst: '{A}{D} richten, {SHIFT} voor fijn' },
   { icoon: ICOON.bal, tekst: 'Houd {SPATIE}, laat los om te slaan' },
   { icoon: ICOON.vlag, tekst: 'De gele kolom staat boven de vlag' },
   { icoon: ICOON.vlag, tekst: 'Op de green: let op de helling' },
