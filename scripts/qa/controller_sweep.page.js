@@ -102,7 +102,7 @@ async function meetScherm(naam, root, opties = {}) {
           o.focus({ preventScroll: true }); await druk(d);
           const nu = document.activeElement;
           if (nu && nu !== o && root.contains(nu)) { if (!bezocht.has(nu)) { bezocht.add(nu); voortgang = true; } }
-          if (r.pogingen.length < 40) r.pogingen.push(label(e) + ' <- ' + label(o) + ' ' + d + ' = ' + label(nu));
+          if (r.pogingen.length < 160) r.pogingen.push(label(e) + ' <- ' + label(o) + ' ' + d + ' = ' + label(nu));
           if (nu === e) { gevonden = true; break; }
         }
         if (gevonden) break;
@@ -188,9 +188,11 @@ for (const [naam, args] of MENU) {
   if (!wil(naam)) continue;
   try {
     PM.openPauseMenu(...args); await sleep(1600);
+    // Garage: tab Alles, de lange lijst van 56 kaarten (#985)
+    if (naam === 'garage') { const alles = pm() && pm().querySelector('[data-garage-cat="all"]'); if (alles) { alles.click(); await sleep(700); } }
     // de onderdelen (subtabs) van dit scherm: elk een eigen meting, geopend via openPauseMenu({ sub })
     const subs = pm() ? [...pm().querySelectorAll('[role="tab"][data-subtab]')].filter(echtZichtbaar).map((b) => b.dataset.subtab) : [];
-    await meetScherm(naam, pm(), naam === 'kaart' ? { l3: true } : {});
+    await meetScherm(naam, pm(), naam === 'kaart' ? { l3: true } : naam === 'garage' ? { max: 70 } : {}); // garage: de lijst van 56 kaarten heeft een groter probeerbudget (#985)
     if (!CS.zonderSubs) for (const id of [...new Set(subs)].slice(0, 10)) {
       try { PM.closePauseMenu(); } catch { /* */ } await sleep(400);
       PM.openPauseMenu(args[0], { sub: id }); await sleep(1300);
