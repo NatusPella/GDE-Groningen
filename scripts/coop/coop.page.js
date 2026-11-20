@@ -446,7 +446,7 @@ const PHASES = {
     const ses = net() && net().session;
     if (!ses) { log('herverbind-geen-sessie', {}); return; }
     ses.link.close();
-    const hold = () => houdOpen();
+    const hold = () => document.querySelector(HOUD_SEL); // het element zelf: knop() zoekt er de knoppen in (houdOpen() geeft alleen een boolean)
     await until(hold, 20000, 'wachtscherm na het sluiten van de verbinding');
     log('herverbind-hold', { hold: true, paused: !!W().paused, coopHold: !!W().coopHold, status: ses.status });
     shot('herverbind-hold');
