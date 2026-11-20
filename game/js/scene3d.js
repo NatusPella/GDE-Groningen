@@ -88,6 +88,7 @@ import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.j
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { VOLUME_KEYS } from './sfx/volume.js';
 import { stepFov } from './gamefeel.js';
+import { makeLean, stepLean } from './camlean.js';
 import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
@@ -4267,8 +4268,12 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
   const pv = world && hoofdspeler(world) && hoofdspeler(world).inVehicle;
-  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
-  const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov) * (1 - 0.72 * scopeBlend);
+  const feelFx = effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false });
+  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, feelFx);
+  // lean in bochten en een lichte FOV-opening bij driften (camlean.js, #985); niet in cutscenes en niet te voet
+  stepLean(camLean, valid || !pv || pv.isBoat || pv.isHeli || pv.isPlane ? '' : pv.isBike || pv.isScooter ? 'bike' : 'car', pv ? pv.angle : 0, pv ? pv.speed || 0 : 0, pv ? pv.slipAngle || 0 : 0, dt, feelFx);
+  if (camLean.roll) cam.rotateZ(-camLean.roll);
+  const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov + camLean.fov) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
@@ -4280,6 +4285,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
 // sideways, the FOV punches out, and both settle within ~0.3 s.
 let fovPunch = 0;
 let speedFov = 0;
+const camLean = makeLean();
 function applyRecoil(dt, world, cinematic) {
   const k = world.camKick;
   if (!k || (k.pitch < 1e-4 && Math.abs(k.yaw) < 1e-4 && k.fov < 0.01)) return;
