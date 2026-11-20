@@ -94,5 +94,7 @@ ok(/disposeStageDressing\(\)/.test(src), 'de kring wordt opgeruimd');
 const wp = fs.readFileSync(new URL('../game/js/wachtprops.js', import.meta.url), 'utf8');
 ok(/export function buildWaitDressing/.test(wp) && /export function disposeWaitDressing/.test(wp), 'bouwen en opruimen staan in de module');
 
+ok(wp.includes('Math.min(WAIT_RING_MAX, Math.max(2.2, radius') && wp.includes('WAIT_RING_MAX = 7'), 'de getekende kring blijft klein bij een grote hold-straal (M27: 16 m)');
+
 console.log(`${n - fails}/${n} wachtprops`);
 process.exit(fails ? 1 : 0);

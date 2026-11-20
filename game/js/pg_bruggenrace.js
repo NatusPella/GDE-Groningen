@@ -37,6 +37,8 @@ const zeg = (fn) => { try { return fn(); } catch (e) { return null; } }; // aank
 const RACE_BOAT = { name: 'boat', kind: 'sloep', len: 4.4, wid: 1.7, maxSpeed: 10.8, accel: 3.4, brake: 3.6, turnRate: 1.8, color: '#e8e6e0', cabin: '#1c1c1c' };
 const JELLE_BOAT = { name: 'boat', kind: 'sloep', len: 4.6, wid: 1.75, maxSpeed: 11, accel: 2, brake: 3, turnRate: 1.6, color: '#1d4f9c', cabin: '#f4f2ec' };
 const COUNTDOWN = 3.5;
+// De naam zegt elf bruggen: de twaalfde controlepost is de finish bij de Spilsluizen en telt in de HUD niet als brug.
+const brugTotaal = (d) => Math.max(1, d.cps.length - 1);
 const LIMIT = 720;
 const JELLE_PACE = 8.3;
 const CP_REACH = 26;
@@ -229,14 +231,14 @@ export const BRUGGEN = {
       const rijen = wedBaanStandRijen(w);
       d.pos = (rijen.find((r) => r.slot === 0) || {}).plek || d.deeln.length;
       const klaar = d.deeln.filter((p) => p.klaar).length;
-      run.ui.setRows([['Jouw plek', `${d.pos}/${d.deeln.length}`], ['Bruggen', `${mijn ? Math.min(d.cps.length, mijn.cp) : 0}/${d.cps.length}`], ['Binnen', `${klaar}/${d.deeln.length}`], ['Tijd', fmt(d.elapsed)]]);
+      run.ui.setRows([['Jouw plek', `${d.pos}/${d.deeln.length}`], ['Bruggen', `${mijn ? Math.min(brugTotaal(d), mijn.cp) : 0}/${brugTotaal(d)}`], ['Binnen', `${klaar}/${d.deeln.length}`], ['Tijd', fmt(d.elapsed)]]);
       return;
     }
     d.pos = d.jfin != null || d.js > mijn.ps + 2 ? 2 : 1;
     if (d.pos !== d.lastPos) { jelle(run, d.pos === 1 ? 'behind' : 'lead', true); d.lastPos = d.pos; }
     else if (run.t - run.lastSay > 24) jelle(run, d.pos === 1 ? 'behind' : 'lead');
     const ahead = Math.round(Math.abs(d.js - mijn.ps));
-    run.ui.setRows([['Jelle', d.jfin != null ? 'is al binnen' : d.js - mijn.ps > 0 ? `${ahead} m voor` : `${ahead} m achter`], ['Bruggen', `${Math.min(d.cps.length, mijn.cp)}/${d.cps.length}`]]);
+    run.ui.setRows([['Jelle', d.jfin != null ? 'is al binnen' : d.js - mijn.ps > 0 ? `${ahead} m voor` : `${ahead} m achter`], ['Bruggen', `${Math.min(brugTotaal(d), mijn.cp)}/${brugTotaal(d)}`]]);
     if (sprintBijna(d.elapsed, LIMIT, d.bijna)) { d.bijna = true; zeg(() => stingen.push(w, 'bijna')); }
     if (d.elapsed > LIMIT) finish(run, { success: false, medal: 0, reason: 'Te lang onderweg. Jelle heeft al koffie op.', stats: [] });
   },
@@ -295,9 +297,9 @@ function vaarDeelnemer(w, d, p) {
       zeg(() => stingen.push(w, 'stap')); // een brug gehaald
       const last = p.cp >= d.cps.length;
       if (last) w.addMessage('De laatste brug: naar de finish!', 2, { key: 'pg-cp' });
-      else w.addMessage(`Brug ${p.cp}/${d.cps.length}: ${cp.bridge}`, 2, { key: 'pg-cp' });
+      else w.addMessage(`Brug ${Math.min(p.cp, brugTotaal(d))}/${brugTotaal(d)}: ${cp.bridge}`, 2, { key: 'pg-cp' });
       setTarget(p.cp < d.cps.length ? d.cps[p.cp] : cp); // de volgende brug voor de pijl (Jelle en de host zien hem)
-    } else if (w.coopMeld) w.coopMeld(p.slot, `Brug ${Math.min(p.cp, d.cps.length)}/${d.cps.length}`);
+    } else if (w.coopMeld) w.coopMeld(p.slot, `Brug ${Math.min(p.cp, brugTotaal(d))}/${brugTotaal(d)}`);
     if (p.cp < d.cps.length) setTarget(cp); // de volgende brug voor de pijl (Jelle en de host zien hem)
     if (p.cp >= d.cps.length) { p.klaar = true; p.tijd = d.elapsed; }
   }
