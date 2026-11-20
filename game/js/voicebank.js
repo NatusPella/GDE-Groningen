@@ -20,6 +20,13 @@ export const POGINGEN = RETRY_WACHT.length + 1;
 
 const voiceKey = (speaker, text) => speaker + '|' + text;
 
+// Eén alias-tabel voor sprekers die in de scènes onder een andere naam staan dan hun opnames (de opnames staan
+// onder de stemnaam): de terugkeerscène en de keuzegesprekken zeggen 'Tessa', 'Berend' en 'Jelle', de bank heeft
+// 'Anita', 'Berend Bos' en 'Jelle Terpstra'. Een exacte sleutel wint altijd; er wordt niets hernoemd. De generator
+// (scripts/voicelines_collect.mjs) gebruikt dezelfde tabel, zodat een nieuwe opname onder de stemnaam komt.
+export const SPEAKER_ALIAS = { Tessa: 'Anita', Berend: 'Berend Bos', Jelle: 'Jelle Terpstra' };
+export const voiceSpeaker = (speaker) => SPEAKER_ALIAS[speaker] || speaker;
+
 // A line recorded with a leading ellipsis ("…Er komt een politieauto aan.", the pause before it) is also found
 // under the text without it: the story's script drops that mark, the recording says the same words (#326).
 // Adds the extra keys to a manifest object; an exact key always wins.
@@ -46,10 +53,10 @@ function maakBank(dir) {
     geenBrowser: false, // Node/tests zonder fetch: de bank blijft leeg, dat is geen fout
     gemeld: false,      // de waarschuwing is één keer gedaan
     // ruwe manifestregel ({ src relatief aan de map, dur }) of null
-    entry: (speaker, text) => entries[voiceKey(speaker, text)] || null,
+    entry: (speaker, text) => entries[voiceKey(speaker, text)] || entries[voiceKey(voiceSpeaker(speaker), text)] || null,
     // { src (absoluut), dur } of null
     lookup(speaker, text) {
-      const v = entries[voiceKey(speaker, text)];
+      const v = entries[voiceKey(speaker, text)] || entries[voiceKey(voiceSpeaker(speaker), text)];
       return v ? { src: base + v.src, dur: v.dur } : null;
     },
     size: () => Object.keys(entries).length,

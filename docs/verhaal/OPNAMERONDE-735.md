@@ -21,10 +21,10 @@ Rotor Roelf (2); geen daarvan heeft al een spreektekst in `gronings_spoken.json`
 | Meting | Uitkomst |
 |---|---|
 | Verhaalregels zonder stem | **67** (waarvan **37** stille appjes, **10** herschreven Tessa-regels uit #987 die klaar staan en **20** die nog op een Groningse spreektekst wachten) |
-| Klaar in de wachtrij (`scripts/tts_lines.json`) | **0** jobs — de herschreven Tessa-regels van de opening en M01-M03 (#987) zijn opgenomen (commit 7277a5a9c, 30 clips); de ronde van #924 is eerder opgenomen (ca. $0,27) |
+| Klaar in de wachtrij (`scripts/tts_lines.json`) | **303** jobs: de doelregels, keuzevragen en terugkeervignetten van de nieuwe missies (batch 1 tot 3 van `docs/verhaal/TTS-ACHTERSTAND-21-11.md`; deze sleutels staan als "wacht op opname" in `scripts/voice_wacht.json`, zodat `voice_coverage` groen is zolang de gateway afremt; `node scripts/voice_wacht.mjs --write` ververst de lijst). Op 21-11 zijn 28 clips opgenomen; daarna remde de gateway af (429 "All deployments in cooldown", ca. 1 clip per minuut) en is de run gestopt. Hervatten kan met `node scripts/tts_lines_list.mjs` en `python scripts/tts_lines.py --budget 0.5`: wat is ingesproken wordt overgeslagen. Eerder: de herschreven Tessa-regels van de opening en M01-M03 (#987, commit 7277a5a9c, 30 clips) en de ronde van #924 (ca. $0,27) |
 | Wacht op een stemkeuze (`scripts/tts_lines_list.mjs` CAST) | **0** regels — de zeventien sprekers hebben sinds 7-11 een stem (`docs/verhaal/STEMKEUZE-VOORSTEL.md`) |
-| Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **20** regels |
-| `node scripts/voice_coverage.mjs --quiet` | **2651/2651 ok**, 66 regels alleen tekst (vrijgesteld) |
+| Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **0** regels: de 167 nieuwe spreekteksten van 21-11 staan er, door een agent geschreven en door een kenner na te lopen (`docs/verhaal/DIALECT-NALEZING.md`, #357) |
+| `node scripts/voice_coverage.mjs --quiet` | **2695/2905 ok** (de bronnen van de nieuwe missies zijn geregistreerd; 210 entries wachten op de opnameronde), 66 regels alleen tekst (vrijgesteld) |
 | Stille appjes/sms'en | 37, bewust geen stem |
 | Volledige lijst per scène | `docs/verhaal/OPNAMELIJST.md` (lokaal, gitignored; 20 regels zonder stem) |
 

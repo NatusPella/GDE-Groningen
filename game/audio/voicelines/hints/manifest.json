@@ -23,6 +23,10 @@
 "src": "anita/alles_binnen_naar_de_kraam_op_de_0feb8bbb.mp3",
 "dur": 4.0
 },
+"Anita|Als Jelle de koffer loslaat, pakken wij hem. Op de quad. Schud de limo af en haal de sloot bij Uithuizen.": {
+"src": "anita/als_jelle_de_koffer_loslaat_pakk_89b4fad8.mp3",
+"dur": 7.12
+},
 "Anita|Als we hem vinden, brengen we hem terug. Toch?": {
 "src": "anita/als_we_hem_vinden_brengen_we_hem_50d3d73a.mp3",
 "dur": 2.89
@@ -39,6 +43,10 @@
 "src": "anita/brand_geblust_dat_scheelt_n_boel_7b56e0ec.mp3",
 "dur": 2.32
 },
+"Anita|Breng Geesjes zestig eieren heel naar de kerkkelder in Usquert. Vol gas mag tot 40 km/u; rem rustig en ontwijk de gaten.": {
+"src": "anita/breng_geesjes_zestig_eieren_heel_7dec031d.mp3",
+"dur": 10.28
+},
 "Anita|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
 "src": "anita/camera_s_op_herhaling_nu_de_acht_5c076a9e.mp3",
 "dur": 3.55
@@ -51,9 +59,17 @@
 "src": "anita/daar_vaart_hij_zwart_sku_tsje_ro_7bfa4263.mp3",
 "dur": 4.98
 },
+"Anita|Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.": {
+"src": "anita/daar_vaart_hij_het_reitdiep_af_z_b269aa6d.mp3",
+"dur": 8.74
+},
 "Anita|Daarmee win je geen race. Haal je snelste auto, of laat hem opvoeren bij Knal & Kolder.": {
 "src": "anita/daarmee_win_je_geen_race_haal_je_558f5799.mp3",
 "dur": 5.87
+},
+"Anita|De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan.": {
+"src": "anita/de_dorpsweg_is_afgezet_via_de_wi_c7c42288.mp3",
+"dur": 5.89
 },
 "Anita|De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.": {
 "src": "anita/de_entreehal_ee_n_bewaker_loopt__60a24607.mp3",
@@ -71,6 +87,10 @@
 "src": "anita/de_navigatie_stuurt_je_om_via_de_db7edfb2.mp3",
 "dur": 8.17
 },
+"Anita|De quad van Geesjes neef staat klaar. Springen, Tammo, hij rijdt.": {
+"src": "anita/de_quad_van_geesjes_neef_staat_k_e514661f.mp3",
+"dur": 4.47
+},
 "Anita|De rondvaartboot blijft aan de kade. Wiebe haalt hem zelf wel op.": {
 "src": "anita/de_rondvaartboot_blijft_aan_de_k_0235f002.mp3",
 "dur": 3.34
@@ -83,6 +103,10 @@
 "src": "anita/de_tankwagen_blijft_bij_de_ooste_04cf0582.mp3",
 "dur": 4.27
 },
+"Anita|De trekker staat bij de schuur. Instappen, de kratten staan achterop.": {
+"src": "anita/de_trekker_staat_bij_de_schuur_i_3476d507.mp3",
+"dur": 4.09
+},
 "Anita|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
 "src": "anita/de_vitrine_draai_met_a_en_d_voel_2c510bb4.mp3",
 "dur": 5.94
@@ -90,6 +114,18 @@
 "Anita|Dit gaat over het water. Pak een boot.": {
 "src": "anita/dit_gaat_over_het_water_pak_een__ff5141fc.mp3",
 "dur": 2.36
+},
+"Anita|Door naar Usquert. De kerk staat op de wierde, de kelder is koel.": {
+"src": "anita/door_naar_usquert_de_kerk_staat__abd2a7cc.mp3",
+"dur": 5.0
+},
+"Anita|Drie kuipen zout. Rennen naar de steiger, Klaas wacht.": {
+"src": "anita/drie_kuipen_zout_rennen_naar_de__49418607.mp3",
+"dur": 4.24
+},
+"Anita|Drie zoutkuipen op de kwelder. Het water komt over een kleine vier minuten. Het licht van de kustwacht gaat heen en weer: bukken (Ctrl) als het komt.": {
+"src": "anita/drie_zoutkuipen_op_de_kwelder_he_0ba90726.mp3",
+"dur": 8.35
 },
 "Anita|Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
 "src": "anita/durk_en_douwe_steken_per_ongeluk_95319b7c.mp3",
@@ -163,6 +199,14 @@
 "src": "anita/gezien_de_bewaker_schijnt_je_rec_55f7f695.mp3",
 "dur": 3.93
 },
+"Anita|Haal Jelles skûtsje in en spring aan boord. Daarna het zout: blijf uit het licht van de kustwacht en wees terug voor het water komt.": {
+"src": "anita/haal_jelles_sku_tsje_in_en_sprin_372d7597.mp3",
+"dur": 9.17
+},
+"Anita|Halfweg. Even stil: de kratten zijn op de bulten verschoven. Achterin nog niets gebroken?": {
+"src": "anita/halfweg_even_stil_de_kratten_zij_edd17617.mp3",
+"dur": 6.57
+},
 "Anita|Handen vol: eerst neerzetten": {
 "src": "anita/handen_vol_eerst_neerzetten_3fa47397.mp3",
 "dur": 1.89
@@ -178,6 +222,10 @@
 "Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "anita/het_piepje_wordt_sneller_achter__fe9a4987.mp3",
 "dur": 4.28
+},
+"Anita|Het zout van Oma ligt bij Noordpolderzijl. Eerst de zandplaat: de wind duwt het water weg, daar wachten we.": {
+"src": "anita/het_zout_van_oma_ligt_bij_noordp_444b7b5b.mp3",
+"dur": 7.29
 },
 "Anita|Hij grist de Eierbal!": {
 "src": "anita/hij_grist_de_eierbal_0e0d3417.mp3",
@@ -250,6 +298,10 @@
 "Anita|Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.": {
 "src": "anita/jij_stuurt_ik_kijk_achterom_schu_d355fddb.mp3",
 "dur": 5.08
+},
+"Anita|Klaas zit bovenin en kijkt de andere kant op. Instappen, Tammo stuurt.": {
+"src": "anita/klaas_zit_bovenin_en_kijkt_de_an_dc509023.mp3",
+"dur": 5.44
 },
 "Anita|Laat mij maar. Alle zekeringen tegelijk eruit.": {
 "src": "anita/laat_mij_maar_alle_zekeringen_te_eb1f8867.mp3",
@@ -467,6 +519,10 @@
 "src": "tammo/alles_binnen_naar_de_kraam_op_de_4e91b079.mp3",
 "dur": 3.79
 },
+"Tammo|Als Jelle de koffer loslaat, pakken wij hem. Op de quad. Schud de limo af en haal de sloot bij Uithuizen.": {
+"src": "tammo/als_jelle_de_koffer_loslaat_pakk_e70a5784.mp3",
+"dur": 6.39
+},
 "Tammo|Als we hem vinden, brengen we hem terug. Toch?": {
 "src": "tammo/als_we_hem_vinden_brengen_we_hem_5765c82e.mp3",
 "dur": 2.39
@@ -487,6 +543,10 @@
 "src": "tammo/brand_geblust_dat_scheelt_n_boel_09071dc2.mp3",
 "dur": 2.01
 },
+"Tammo|Breng Geesjes zestig eieren heel naar de kerkkelder in Usquert. Vol gas mag tot 40 km/u; rem rustig en ontwijk de gaten.": {
+"src": "tammo/breng_geesjes_zestig_eieren_heel_4196b08a.mp3",
+"dur": 9.75
+},
 "Tammo|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
 "src": "tammo/camera_s_op_herhaling_nu_de_acht_be674738.mp3",
 "dur": 3.48
@@ -499,9 +559,17 @@
 "src": "tammo/daar_vaart_hij_zwart_sku_tsje_ro_e41cbb0f.mp3",
 "dur": 5.14
 },
+"Tammo|Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.": {
+"src": "tammo/daar_vaart_hij_het_reitdiep_af_z_fc508ddd.mp3",
+"dur": 9.83
+},
 "Tammo|Daarmee win je geen race. Haal je snelste auto, of laat hem opvoeren bij Knal & Kolder.": {
 "src": "tammo/daarmee_win_je_geen_race_haal_je_4d04456a.mp3",
 "dur": 4.8
+},
+"Tammo|De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan.": {
+"src": "tammo/de_dorpsweg_is_afgezet_via_de_wi_b5b77de8.mp3",
+"dur": 6.04
 },
 "Tammo|De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.": {
 "src": "tammo/de_entreehal_ee_n_bewaker_loopt__16b635cf.mp3",
@@ -531,6 +599,10 @@
 "src": "tammo/de_tankwagen_blijft_bij_de_ooste_b02dfdd3.mp3",
 "dur": 4.19
 },
+"Tammo|De trekker staat bij de schuur. Instappen, de kratten staan achterop.": {
+"src": "tammo/de_trekker_staat_bij_de_schuur_i_9fc0de96.mp3",
+"dur": 4.39
+},
 "Tammo|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
 "src": "tammo/de_vitrine_draai_met_a_en_d_voel_53067312.mp3",
 "dur": 4.21
@@ -538,6 +610,18 @@
 "Tammo|Dit gaat over het water. Pak een boot.": {
 "src": "tammo/dit_gaat_over_het_water_pak_een__43ff9072.mp3",
 "dur": 1.92
+},
+"Tammo|Door naar Usquert. De kerk staat op de wierde, de kelder is koel.": {
+"src": "tammo/door_naar_usquert_de_kerk_staat__0a263686.mp3",
+"dur": 6.21
+},
+"Tammo|Drie kuipen zout. Rennen naar de steiger, Klaas wacht.": {
+"src": "tammo/drie_kuipen_zout_rennen_naar_de__41380aff.mp3",
+"dur": 4.28
+},
+"Tammo|Drie zoutkuipen op de kwelder. Het water komt over een kleine vier minuten. Het licht van de kustwacht gaat heen en weer: bukken (Ctrl) als het komt.": {
+"src": "tammo/drie_zoutkuipen_op_de_kwelder_he_0a279425.mp3",
+"dur": 8.1
 },
 "Tammo|Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
 "src": "tammo/durk_en_douwe_steken_per_ongeluk_d25a3f74.mp3",
@@ -611,6 +695,14 @@
 "src": "tammo/gezien_de_bewaker_schijnt_je_rec_62405a68.mp3",
 "dur": 3.83
 },
+"Tammo|Haal Jelles skûtsje in en spring aan boord. Daarna het zout: blijf uit het licht van de kustwacht en wees terug voor het water komt.": {
+"src": "tammo/haal_jelles_sku_tsje_in_en_sprin_cd0b8279.mp3",
+"dur": 8.81
+},
+"Tammo|Halfweg. Even stil: de kratten zijn op de bulten verschoven. Achterin nog niets gebroken?": {
+"src": "tammo/halfweg_even_stil_de_kratten_zij_ab3a2ac5.mp3",
+"dur": 6.69
+},
 "Tammo|Handen vol: eerst neerzetten": {
 "src": "tammo/handen_vol_eerst_neerzetten_488b5b86.mp3",
 "dur": 1.64
@@ -626,6 +718,10 @@
 "Tammo|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "tammo/het_piepje_wordt_sneller_achter__783e2e79.mp3",
 "dur": 3.63
+},
+"Tammo|Het zout van Oma ligt bij Noordpolderzijl. Eerst de zandplaat: de wind duwt het water weg, daar wachten we.": {
+"src": "tammo/het_zout_van_oma_ligt_bij_noordp_8755ba1a.mp3",
+"dur": 7.38
 },
 "Tammo|Hij grist de Eierbal!": {
 "src": "tammo/hij_grist_de_eierbal_0d28be01.mp3",
@@ -782,6 +878,10 @@
 "Tammo|Op de ringweg win je niks op twee wielen. Haal je snelste auto.": {
 "src": "tammo/op_de_ringweg_win_je_niks_op_twe_d9e2a4e9.mp3",
 "dur": 3.56
+},
+"Tammo|Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.": {
+"src": "tammo/over_het_kerkenpad_door_de_kerkt_98401152.mp3",
+"dur": 6.12
 },
 "Tammo|Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.": {
 "src": "tammo/overall_aan_emmer_mee_die_bewake_548e6f3d.mp3",

@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { collect, isVoiced, manifest, REPO } from './voicelines_collect.mjs';
 import { DUO } from './tts_cast.mjs';
+import { cardSpoken } from '../game/js/smsvoice.js';
 
 const OUT = path.join(REPO, 'docs', 'verhaal', 'TTS-ACHTERSTAND-21-11.md');
 const JS = path.join(REPO, 'game', 'js');
@@ -34,6 +35,10 @@ for (const n of fs.readdirSync(path.join(REPO, 'game', 'audio', 'voicelines'))) 
 }
 const hasKey = (speaker, text) => keys.has(speaker + '|' + text) || keys.has(speaker + '|…' + text) || keys.has(speaker + '|… ' + text);
 const spoken = JSON.parse(rd('scripts/gronings_spoken.json'));
+// de sleutel van een doelregel in de hints-bank: de kaarttekst zonder het slot met cijfers tussen haakjes (cardSpoken in smsvoice.js)
+const spokenKey = (t) => cardSpoken(t);
+// wie een kaartregel voorleest: de partner (zelfde regel als hintWho in voicelines_collect.mjs)
+const hintWho = (t) => (/\bTessa\b/.test(t) ? ['Tammo'] : /\bTammo\b|mijn Fjord/.test(t) ? ['Anita'] : ['Tammo', 'Anita']);
 
 // --- stemprofielen (scripts/tts_cast.mjs en de CAST in scripts/tts_lines_list.mjs) ----------------------------
 const profile = new Map();
@@ -74,7 +79,7 @@ for (const s of stilFile.stil) push({ cat: 'stil', bron: 'voice_stil.json', miss
 const { VIGNETTEN } = await import(pathToFileURL(path.join(JS, 'terugkeerscenes.js')).href);
 for (const v of VIGNETTEN) for (const [who, tekst] of v.regels) {
   const stem = who === 'tammo' ? 'Tammo' : 'Anita';
-  if (!hasKey(who === 'tammo' ? 'Tammo' : 'Tessa', tekst)) push({ cat: 'terugkeer', bron: 'terugkeerscenes.js', missie: `Terugkeer fase ${v.fase}`, stem, tekst, manifest: 'lines', prio: 2 });
+  if (!hasKey(stem, tekst)) push({ cat: 'terugkeer', bron: 'terugkeerscenes.js', missie: `Terugkeer fase ${v.fase}`, stem, tekst, manifest: 'lines', prio: 2 });
 }
 
 // 2c. Doelregels (`say:`) en keuzegesprekken in de nieuwe missiebestanden
@@ -92,7 +97,7 @@ for (const f of missieBestanden) {
     for (const m of ln.matchAll(new RegExp(`\\bsay(?:Hijacked)?: ${STR}|\\.say = ${STR}`, 'g'))) {
       let t; try { t = eval(m[1] || m[2]); } catch { continue; }
       if (seen.has(t) || t.split(' ').length < 3) continue; seen.add(t);
-      for (const stem of ['Tammo', 'Anita']) if (!hasKey(stem, t)) push({ cat: 'doelregel', bron: f, missie: `${akteVan(f)}: ${missie}`, stem, tekst: t, manifest: 'hints', prio: prioVan(f) });
+      for (const stem of hintWho(t)) if (!hasKey(stem, t) && !hasKey(stem, spokenKey(t))) push({ cat: 'doelregel', bron: f, missie: `${akteVan(f)}: ${missie}`, stem, tekst: t, manifest: 'hints', prio: prioVan(f) });
     }
     const q = new RegExp(`\\bwho: ${STR}, text: ${STR}`).exec(ln);
     if (q) { const who = eval(q[1]), t = eval(q[2]); if (!hasKey(who, t)) push({ cat: 'vraag', bron: f, missie: `${akteVan(f)}: ${missie}`, stem: who, tekst: t, manifest: 'lines', prio: prioVan(f) }); }
@@ -134,9 +139,9 @@ w('Gegenereerd door `node scripts/voice_backlog.mjs --write`; niet met de hand a
 w();
 w('## Kern');
 w();
-w(`- **Wat het gereedschap meet is op nul:** \`voice_coverage.mjs\` meldt ${nl(registered.voiced)}/${nl(registered.total)} geregistreerde regels en ${nl(story.total - story.appStil - story.textOnly)}/${nl(story.total - story.appStil)} verhaalregels (\`script.json\`) ingesproken; ${story.appStil} stille appjes zijn bewust zonder stem. De regels die in de melding van de eigenaar en in oudere docs als "nog te doen" staan zijn al opgenomen: Geesje (18), Rotor Roelf (2) en Tessa (10) in commit 7277a5a9c van 20-11 (herkomst in \`tts.json\`). De docs \`EIGENAAR-ACTIELIJST.md\`, \`EERSTE-30-MINUTEN-20-11.md\` en \`.specs-fire/standards/verhaal.md\` ("37 hebben geen opname") lopen daarop achter.`);
-w(`- **Wat er wel ontbreekt** staat buiten het gereedschap: spreekbronnen in \`game/js\` die niet in \`scripts/voicelines_collect.mjs\` zijn geregistreerd. Daarom meldt \`voice_coverage\` groen terwijl een speler wel ondertitels zonder stem hoort: **${nl(alles.length)} regels, ${nl(chars(alles))} tekens, ca. ${usd(sum(alles).usd)}** (zonder gebabbel; met alles erbij ${usd(sum([...alles, ...batch3b]).usd)}).`);
-w(`- Zodra een bron is geregistreerd telt \`voice_coverage\` hem mee en maakt \`tts_lines_list.mjs\` er opdrachten van. Tot die code-stap (zie "Voorwaarden") kan geen enkele nieuwe regel worden opgenomen.`);
+w("- **Stand 21-11:** `voice_coverage.mjs` meldt " + nl(registered.voiced) + "/" + nl(registered.total) + " geregistreerde regels met opname en " + nl(story.total - story.appStil - story.textOnly) + "/" + nl(story.total - story.appStil) + " verhaalregels (`script.json`); " + story.appStil + " stille appjes zijn bewust zonder stem. Geesje (18), Rotor Roelf (2) en Tessa (10) zijn op 20-11 ingesproken (7277a5a9c, herkomst in `tts.json`).");
+w("- **Wat er nog ontbreekt** (de bronnen zijn op 21-11 geregistreerd, zie hieronder): **" + nl(alles.length) + " regels, " + nl(chars(alles)) + " tekens, ca. " + usd(sum(alles).usd) + "** (zonder gebabbel; met alles erbij " + usd(sum([...alles, ...batch3b]).usd) + "). De tabellen hieronder tellen wat nog geen opname heeft; zijn de batches klaar, dan staat hier nul.");
+w("- Een bron die is geregistreerd telt mee in `voice_coverage` en `tts_lines_list.mjs` maakt er opdrachten van; zolang er regels zonder opname zijn, is `voice_coverage` rood.");
 w();
 w('## 1. Wat al klopt (geen werk)');
 w();
@@ -207,9 +212,9 @@ w('- `missionsdata_zij.js` (de bijzaken van de snackbar, Fatbikes in de Herenstr
 w();
 w('## 7. Voorwaarden voor elk van de batches');
 w();
-w('1. **Registreren (code, geen TTS):** zet de bronnen in `scripts/voicelines_collect.mjs`, zodat `voice_coverage.mjs` ze meetelt en `tts_lines_list.mjs` er opdrachten van maakt (terugkeer: `VIGNETTEN` uit `terugkeerscenes.js`; doelregels: de `say:`-velden van `missions_nieuw.js` en `missions_akte2/4/5/6.js` naar de `hints`-bank met `hintWho`; vragen naar `lines`). Dit commit is klein en kost niets, maar `voice_coverage` wordt er rood van tot de opnames er zijn, dus alleen registreren per batch.');
-w('2. **Groningse spreektekst voor Tammo** in `scripts/gronings_spoken.json` (kenner of eigenaar), daarna `node scripts/gronings_merge_draft.mjs --write`.');
-w('3. **Besluit over de speaker "Tessa"** van de terugkeervignetten (zie punt 5).');
+w("1. **Registreren (klaar op 21-11):** de bronnen staan in `scripts/voicelines_collect.mjs` (doelregels van missions_nieuw.js en missions_akte2/4/5/6.js naar de hints-bank met `hintWho`, keuzevragen en terugkeervignetten naar de lines-bank, de drie Rikus-regels uit PENDING_TTS).");
+w("2. **Groningse spreektekst voor Tammo en de NPC's** (klaar op 21-11, 167 regels in `scripts/gronings_spoken.json`): door een agent geschreven zonder kenner; een kenner loopt ze na (#357). De woorden staan als twijfel in `scripts/dialect_woorden.json`.");
+w("3. **De spreker \"Tessa\" van de terugkeervignetten** (klaar op 21-11): een alias-tabel in `game/js/voicebank.js` (`SPEAKER_ALIAS`: Tessa naar Anita, Berend naar Berend Bos, Jelle naar Jelle Terpstra); de opnames blijven onder de stemnaam staan.");
 w('4. **Sleutel:** `LITELLM_API_KEY` in de omgeving of in de eigen `.env` van de eigenaar; een agent leest die niet. Route en model: `google/gemini-3.8-flash-lite-tts` via `litellm.natuspella.nl` (ADR 0019: nooit Flash).');
 w();
 w('## 8. Aanbevolen volgorde in drie batches');
@@ -226,7 +231,7 @@ w(`Alles samen ${bt(alles)}. Ter vergelijking: het hele nieuwe verhaal kostte op
 w();
 w('### Commando\'s per batch (niet uitgevoerd)');
 w();
-w('Draai ze in deze volgorde, op een schone werkboom, na stap 1 en 2 van "Voorwaarden". De droogloop vraagt geen sleutel en schrijft niets.');
+w("Draai ze in deze volgorde, op een schone werkboom. De droogloop vraagt geen sleutel en schrijft niets. Een run die door de gateway wordt afgeremd (429 'All deployments in cooldown') kan worden hervat: `tts_lines.py` slaat wat al is ingesproken over.");
 w();
 const budget = (rs) => Math.max(0.25, Math.ceil(sum(rs).usd * 2 * 4) / 4).toFixed(2);
 for (const n of [1, 2, 3]) {

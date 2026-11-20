@@ -33,8 +33,20 @@ export function enterChoice(S) {
   S.picks = [];
   S.replyT = 0;
   S.askT = 0;
+  S.askSpoken = -1; // #735: de ronde waarvan de vraag al is voorgelezen
   S.coopRonde = -1; // #686: de eerste ronde opent zijn eigen stemming
   S.coopStem = null;
+}
+
+// #735: de vraag van de gesprekspartner klinkt (lines-bank, de spreker via SPEAKER_ALIAS in voicebank.js); zonder opname
+// of zonder geluid (tests) blijft het stil en staat de tekst er toch. De module laadt lui: dit bestand importeert geen spelcode.
+function speakAsk(S, round) {
+  if (!round.who || S.askSpoken === S.ci) return;
+  S.askSpoken = S.ci;
+  import('./linevoice.js').then(({ lineVoiceFor }) => {
+    const v = lineVoiceFor(round.who, round.text);
+    return v && import('./audio.js').then(({ playLineVoice }) => playLineVoice(v.src, v.dur, 'job'));
+  }).catch(() => {});
 }
 
 function paint(st, S, round) {
@@ -118,6 +130,7 @@ export function updateChoice(dt, world, st, S) {
   if (S.cphase === 'ask') {
     const round = st.rounds[Math.min(S.ci, st.rounds.length - 1)];
     const geldig = (k) => round.options.some((o, i) => String(i + 1) === k);
+    speakAsk(S, round);
     // #686: met meer spelers kiest de groep via een stemming. Loopt die, dan leest niemand hier direct een
     // antwoord: de uitslag komt pas als de stemming klaar is. De eigen tijdslimiet van de ronde staat dan
     // stil; de stemming heeft zijn eigen tijd (coopgroep.js KEUZE_SEC) en valt daarna terug op timeoutPick.
