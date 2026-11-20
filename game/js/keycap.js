@@ -77,3 +77,12 @@ export function keyTextHtml(html) {
   });
 }
 export const hasKeyText = (text) => { TEXT_KEY_RE.lastIndex = 0; return TEXT_KEY_RE.test(String(text)); };
+
+// Brace tokens of known keys only ({E}, {SPACE}, {ESC}, {WASD}, ...): a placeholder like {NAME} is never a key.
+export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|TAB|BACKSPACE|DELETE|WASD|ARROWS|LMB|RMB|MOUSE|WHEEL|[A-Z0-9])\}/g;
+
+// The same text for a place that cannot show a glyph (aria-label, title, document.title, a canvas, a log): the key name, never braces.
+const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };
+export function plainKeyText(text) {
+  return String(text).replace(BRACE_KEY_RE, (m, k) => PLAIN_NAMES[k] || keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
+}

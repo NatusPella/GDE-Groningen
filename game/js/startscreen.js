@@ -43,7 +43,7 @@ export const TIPS = [
   'Tip: een eierbal eet je warm. Koud is een misdaad, ook in Grunn.',
   'Tip: “Moi” is goeiemorgen, goeiemiddag én goeienavond.',
   'Tip: fatbikes stoppen voor niemand. Echt niemand.',
-  'Tip: Esc klapt je telefoon open. Berend Bos heeft altijd wel een klusje.',
+  'Tip: {ESC} klapt je telefoon open. Berend Bos heeft altijd wel een klusje.',
   'Tip: regen in Grunn is geen weer, het is een levenshouding.',
   'Tip: V wisselt tijdens het rijden tussen filmcamera’s.',
   'Tip: M opent de kaart. Klik om een bestemming te zetten.',

@@ -141,6 +141,14 @@ await probeer('glyphmaat', async () => {
   done.push('glyph ' + getComputedStyle(g).fontSize + ' ' + getComputedStyle(g).fontFamily + ' ' + Math.round(r.width) + 'x' + Math.round(r.height) + ' ok:' + document.fonts.check('24px "GDE Toetsen"'));
   d.remove();
 });
+await probeer('tokens', async () => {
+  w.addMessage('Druk op {E} om in te stappen, {SPATIE} om te remmen, {WASD} om te lopen', 6);
+  const d = document.createElement('div'); d.id = 'tok-test'; d.style.cssText = 'position:fixed;left:40px;top:300px;z-index:99999;background:#f3ead3;color:#1d1b17;padding:8px 12px;font:18px sans-serif';
+  d.textContent = 'Tip: {ESC} klapt je telefoon open, {ENTER} bevestigt, kies met {A} en {D}'; d.setAttribute('aria-label', 'Houd {SHIFT} ingedrukt'); document.body.appendChild(d);
+  await shot('tokens', 1200);
+  done.push('accolades in beeld: ' + JSON.stringify((document.body.innerText.match(/\{[A-Z0-9]+\}/g) || [])) + ' aria=' + d.getAttribute('aria-label'));
+  d.remove();
+});
 await probeer('stunt', async () => {
   const S = await imp('stunthud');
   S.showStuntHud(1500, [], {});
