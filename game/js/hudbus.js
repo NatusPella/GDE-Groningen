@@ -232,6 +232,44 @@ export function enqueueCard(queue, card, max = 5) {
   return out.slice(0, max);
 }
 
+// --- the left column: zone A (from the top) and zone E (on the minimap) -------
+// Both card stacks sit in the same column, A grows down from the top and E
+// stands on the minimap, so a tall A card runs into an E card that is up at the
+// same time (kartbaan 20-11: the start card under "Nieuwe streek"). The height
+// is estimated in lines, without a DOM: two for the kicker and the title, then
+// every <br> part of the body wrapped at CARD_LINE_CHARS. LEFT_COLUMN_LINES is
+// what fits between the top edge and the minimap at 1280x720 (the HUD zooms
+// with the window, so the count holds at other sizes), with the padding of a
+// second card already taken off. hudcards.js asks leftColumnFits() before an E
+// card starts and before an A card goes up next to one.
+export const CARD_LINE_CHARS = 40;
+export const LEFT_COLUMN_LINES = 18;
+
+function wrappedLines(text) {
+  const words = String(text).split(/\s+/).filter(Boolean);
+  if (!words.length) return 0;
+  let lines = 1, len = 0;
+  for (const w of words) {
+    const add = len ? w.length + 1 : w.length;
+    if (len && len + add > CARD_LINE_CHARS) { lines++; len = w.length; } else len += add;
+  }
+  return lines;
+}
+
+export function cardLines(spec) {
+  if (!spec) return 0;
+  const html = spec.bodyHtml || String(spec.body || '').replace(/[&<>]/g, ' ');
+  const parts = String(html).split(/<br\s*\/?>/i).map((p) => p.replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, 'x'));
+  const head = 1 + (spec.title ? wrappedLines(spec.title) : 0);
+  return head + parts.reduce((n, p) => n + wrappedLines(p), 0);
+}
+
+// a: the spec of the A card, e: the spec of the E card (either may be null)
+export function leftColumnFits(a, e) {
+  if (!a || !e) return true;
+  return cardLines(a) + cardLines(e) <= LEFT_COLUMN_LINES;
+}
+
 // --- the surfaces: everything that asks for the player's eyes or ears -------------
 //
 // One row per surface (a thing the player sees or hears that the game put there

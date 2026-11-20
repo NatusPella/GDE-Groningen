@@ -27,7 +27,7 @@ import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
-import { enqueueCard } from './hudbus.js';
+import { enqueueCard, leftColumnFits } from './hudbus.js';
 import { CAL_ICONS } from './calendar.js';
 import { menuMelding } from './menumelding.js';
 import { hoofdspeler } from './players.js';
@@ -405,8 +405,11 @@ export function updateCards(dt, w) {
   const busy = hudNow.busy, dia = hudNow.dialogue || calling;
   const rankOf = (q) => CARD_KINDS[q.spec.kind].rank;
   const isFree = (q) => !up.some((c) => zoneOf(c) === zoneOf(q)) && zones.free(zoneOf(q), 'card');
+  // zone A and zone E share the left column: an E card waits until it fits under the A card that is up (hudbus.js, leftColumnFits)
+  const upA = up.find((c) => zoneOf(c) === 'A');
+  const fitsColumn = (q) => zoneOf(q) !== 'E' || !upA || leftColumnFits(upA.spec, q.spec);
   // one card per zone; P3 waits out a chase or a call; tips are rationed (attention.js)
-  const i = queue.findIndex((q) => isFree(q)
+  const i = queue.findIndex((q) => isFree(q) && fitsColumn(q)
     && !(calling && rankOf(q) < CARD_PRIORITY.politie)
     && mayShow(cardPrio(q.spec.kind), { busy, dialogue: dia, zone: zoneOf(q) })
     && (q.spec.kind !== 'tip' || mayShowTip())
@@ -421,6 +424,11 @@ export function updateCards(dt, w) {
     }
     noteToast();
     mount(next);
+    // an A card never waits for an E card: an E card it would run into steps aside and comes back after it
+    if (zoneOf(next) === 'A') for (const e of up) if (zoneOf(e) === 'E' && !leftColumnFits(next.spec, e.spec)) {
+      queue = enqueueCard(queue, { spec: { ...e.spec, noLog: true }, secs: e.secs, key: e.key, at: e.at, age: 0, text: e.text, important: e.important, sticky: e.sticky, rank: e.rank }, MAX_QUEUE);
+      leave(e);
+    }
     return;
   }
   // a danger or police card pushes the oldest less urgent one out early
