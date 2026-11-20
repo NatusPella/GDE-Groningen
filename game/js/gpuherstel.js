@@ -6,7 +6,6 @@
 // Pure kern (geen DOM, geen klok): de toestand, de tellers, de sluier en de
 // kijkafstandsramp. Daarna de koppeling aan de canvas (watchGpuRecovery) en
 // aan de technische info (gpudiag.js).
-import { noteGfxEvent } from './blackframe.js';
 import { logError } from './errorlog.js';
 
 export const HOLD_MS = 500;       // sluier blijft volledig na het terugkomen van de context
@@ -156,7 +155,7 @@ export function watchGpuRecovery(canvas, name, hooks = {}) {
   canvas.addEventListener('webglcontextlost', (e) => {
     const now = clock();
     noteLost(gpuState, now, e && e.statusMessage);
-    noteGfxEvent(`context verloren (${name})`);
+    if (hooks.note) hooks.note(`context verloren (${name})`);
     logError('error', `WebGL-context verloren (${name}); keer ${gpuState.lost}: ${gpuState.lastReason}`);
     try { hooks.ramp && hooks.ramp(); } catch (err) { /* ignore */ }
     paint(now);
@@ -165,7 +164,7 @@ export function watchGpuRecovery(canvas, name, hooks = {}) {
   canvas.addEventListener('webglcontextrestored', () => {
     const now = clock();
     noteRestored(gpuState, now);
-    noteGfxEvent(`context terug (${name})`);
+    if (hooks.note) hooks.note(`context terug (${name})`);
     logError('warn', `WebGL-context hersteld (${name}); keer ${gpuState.restored}`);
     try { hooks.reset && hooks.reset(); hooks.ramp && hooks.ramp(); } catch (err) { logError('warn', `herstel na contextverlies: ${err && err.message}`); }
     paint(now);

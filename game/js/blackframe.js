@@ -25,7 +25,7 @@ const enabled = () => enabledByUrl || (typeof window !== 'undefined' && !!window
 // them so a tester's report says so.
 export function watchContext(canvas, name, hooks) {
   // the main canvas recovers softly (gpuherstel.js); other canvases only log
-  if (hooks) return watchGpuRecovery(canvas, name, hooks);
+  if (hooks) return watchGpuRecovery(canvas, name, { ...hooks, note: noteGfxEvent }); // note: zo hoeft gpuherstel.js blackframe.js niet te importeren
   canvas.addEventListener('webglcontextlost', (e) => {
     noteGfxEvent(`context verloren (${name})`);
     logError('error', `WebGL-context verloren (${name})${e.statusMessage ? ': ' + e.statusMessage : ''}`);
