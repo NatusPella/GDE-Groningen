@@ -6,9 +6,13 @@ const listeners = new Set();
 const coopListeners = new Set();
 ipcRenderer.on('gde:coop-event', (e, kind, payload) => { for (const fn of coopListeners) fn(kind, payload); });
 ipcRenderer.on('gde:fullscreen', (e, on) => { for (const fn of listeners) fn(on); });
+const gpuListeners = new Set();
+ipcRenderer.on('gde:gpu-event', (e, text) => { for (const fn of gpuListeners) fn(String(text)); });
 
 contextBridge.exposeInMainWorld('gdeDesktop', {
   isDesktop: true,
+  // GPU- of renderproces weggevallen (main.js); fn(tekst)
+  onGpuEvent: (fn) => { if (typeof fn === 'function') gpuListeners.add(fn); },
   platform: process.platform,
   // Steam sets SteamDeck=1 for a game on the Deck (game/js/deck.js: the first-start defaults)
   isSteamDeck: process.env.SteamDeck === '1',

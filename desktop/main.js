@@ -11,6 +11,7 @@ const { argValue, hasFlag } = require('./args.cjs');
 const { steamSwitches } = require('./steamflags.cjs');
 const { isGameUrl, safeExternalUrl } = require('./externurl.cjs');
 const { devtoolsShortcut, insideDir } = require('./guards.cjs');
+const { describeGone, reloadAllowed } = require('./gpuevents.cjs');
 
 // window mode survives restarts; fullscreen unless the player chose windowed
 const STATE_FILE = () => path.join(app.getPath('userData'), 'window-state.json');
@@ -200,6 +201,22 @@ function createWindow() {
   // #587: see guardPage; cutpreview.html opens in its own window, http(s) in the
   // browser and every other scheme is refused
   guardPage(win.webContents);
+  // GPU- of renderproces weg: logregel in userData, melding naar de pagina (technische info) en
+  // bij een renderproces één zachte herlaadronde
+  const gone = (text) => {
+    try { fsSync.appendFileSync(path.join(app.getPath('userData'), 'gpu-events.log'), `${new Date().toISOString()} ${text}\n`); } catch (e) { /* ignore */ }
+    if (!win.isDestroyed()) win.webContents.send('gde:gpu-event', text);
+  };
+  app.on('child-process-gone', (e, d) => { const t = describeGone('child', d); if (t) gone(t); });
+  let reloads = [];
+  win.webContents.on('render-process-gone', (e, d) => {
+    const t = describeGone('render', d);
+    if (!t) return;
+    gone(t);
+    const r = reloadAllowed(reloads, Date.now());
+    reloads = r.history;
+    if (r.ok && !win.isDestroyed()) { reloads.push(Date.now()); win.webContents.reload(); }
+  });
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
     // F11, Alt+Enter (the Windows habit) and Ctrl+Cmd+F on the Mac toggle

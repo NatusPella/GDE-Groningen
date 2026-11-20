@@ -9,6 +9,8 @@
 // right after an event and otherwise one frame every 2 s.
 import { logError } from './errorlog.js';
 import { FLAGS } from './devflags.js';
+import { watchGpuRecovery } from './gpuherstel.js';
+export { gpuRamp } from './gpuherstel.js';
 
 const EVENT_WINDOW_MS = 1500;
 const EVERY = 120;
@@ -21,7 +23,9 @@ const enabled = () => enabledByUrl || (typeof window !== 'undefined' && !!window
 
 // Lost WebGL contexts show as a black or frozen view; the error log keeps
 // them so a tester's report says so.
-export function watchContext(canvas, name) {
+export function watchContext(canvas, name, hooks) {
+  // the main canvas recovers softly (gpuherstel.js); other canvases only log
+  if (hooks) return watchGpuRecovery(canvas, name, hooks);
   canvas.addEventListener('webglcontextlost', (e) => {
     noteGfxEvent(`context verloren (${name})`);
     logError('error', `WebGL-context verloren (${name})${e.statusMessage ? ': ' + e.statusMessage : ''}`);

@@ -115,7 +115,7 @@ import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
-import { noteGfxEvent, watchContext } from './blackframe.js';
+import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
@@ -870,7 +870,7 @@ export function init3D(map) {
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag', powerPreference: 'high-performance' });
   wantRatio = Math.min(2, window.devicePixelRatio || 1);
   renderer.setPixelRatio(wantRatio);
-  watchContext(canvas3, 'spel');
+  watchContext(canvas3, 'spel', { reset: () => { envUpdater && envUpdater.invalidate(); renderer.shadowMap.needsUpdate = true; }, ramp: refreshRenderScale }); // gpuherstel.js
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
@@ -1118,7 +1118,7 @@ function applyViewSettings(st, key) {
 
 // view distance, camera far plane and fog; 'heel ver' follows adaptive quality
 function applyViewDistance(st) {
-  viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
+  viewDist = Math.round(viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel()) * gpuRamp()); // gpuherstel.js: na contextverlies groeit de afstand terug
   DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
   cam.far = parseFarFlag(FLAGS.far) ?? Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1); // ?far=<m>: testvlag (#917)
   lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;

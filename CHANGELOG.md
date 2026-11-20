@@ -96,6 +96,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **Een sloot houdt de auto tegen:** een auto die er te snel overheen reed, kwam er soms zonder rem overheen. De auto wordt nu over het hele stuk dat hij reed, en over zijn hele breedte, getoetst. Een sloot ingaan of oversteken remt hard af (tot kruiptempo, met een plons) en dat geldt voor iedereen gelijk, ook bij Samen spelen. Een brug of weg over de sloot blijft gewoon droog.
 - **Slootranden minder kartelig:** het gat dat een sloot of beek in de grond maakt volgt de oever nu op een meter nauwkeurig in plaats van op 2,5 m (tot 3,3 m breed voor een sloot van 1,5 m, was tot 5 m). Een bestaand gebakken terrein wordt daarvoor opnieuw gebouwd.
+- **Geen flits meer als het beeld even wegvalt:** valt de beeldkaart even uit (stuurprogramma-reset, geheugendruk), dan kleurt het scherm rustig donker in plaats van wit. Er verschijnt een korte melding, het beeld komt terug met een kijkafstand die in een paar seconden groeit, en de lucht- en schaduwkaart worden opnieuw gemaakt. Een kwaliteitswissel midden in het spel krijgt dezelfde zachte overgang.
+- **Technische beeldinfo (Ctrl+Shift+G):** laat zien hoe vaak het beeld wegviel, hoe lang geleden de wereld voor het laatst opnieuw is opgebouwd en waarom. Dezelfde regels staan bovenaan het Foutrapport (Instellingen).
+- **Desktop:** een weggevallen GPU- of renderproces komt in het Foutrapport en in een logbestand; een weggevallen renderproces laadt de pagina hoogstens twee keer per minuut opnieuw.
 
 ## [0.64.0] - 2026-11-20
 
