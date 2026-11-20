@@ -1339,3 +1339,14 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 /* Garage: het previewvak is hoger (260 px); Boerderij: smalle lijst links, de rest voor de informatie rechts (oogtest 20-11) */
 #pause-menu .gar-stage { height: 260px; }
 #pause-menu [data-panel="boerderij"] .m-list.pa-list { width: clamp(180px, 24%, 360px); padding-right: 24px; }
+
+/* Ronde 20-11 (laat): garagepreview hoger, kaartuitleg zonder dimlaag over de kaart-UI, lettervloer ook voor alinea's en keycaps */
+#pause-menu .gar-stage { height: clamp(260px, 45vh, 340px); width: 100%; }
+#pause-menu.gm .mapview-overlay .mv-help { background: transparent; }
+#pause-menu.gm .mapview-overlay .mv-help-box { box-shadow: var(--ds-schaduw-hard), 0 0 0 9999px color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent); }
+@media (max-height: 900px) { #pause-menu.gm.gm.gm.gm.gm :is(p, .nm span, label span, .pm-progress-parts span) { font-size: max(18px, var(--menu-min)); } }
+#pause-menu.gm.gm .pm-ckeys .hud-key, #pause-menu.gm.gm .pm-ckeys .m-kc { font-size: max(16px, var(--menu-min)); }
+@media (max-height: 820px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 16px; } }
+@media (min-height: 821px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 24px; } }
+#pause-menu .bd-uitleg-kaart > summary { cursor: pointer; list-style-position: inside; padding: 8px 12px; }
+#pause-menu .bd-uitleg-kaart[open] > summary { border-bottom: var(--ds-lijn-dik, 2px) solid var(--ds-c-ink-inkt); }

@@ -52,11 +52,11 @@ export function legendaHtml() {
 
 // De regelkaart bij de eerste keer: vier stappen met icoon en een zin; wegklikken onthoudt dit apparaat.
 export function uitlegKaartHtml() {
-  if (uitlegGezien()) return '';
   const stap = (id, tekst) => `<li>${chip(id)} ${esc(tekst)}</li>`;
-  return `<article class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><header class="ds-kaart__kop"><h3 class="ds-kaart__titel">Zo werkt je boerderij</h3></header>` +
+  // compact en dicht: één regel die je openklapt, geen losse knop in het scrollgebied (oogtest 20-11)
+  return `<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary class="ds-kaart__titel">Zo werkt je boerderij</summary>` +
     `<ol class="bd-uitleg-lijst">${stap('geploegd', 'Ploegen: rij rustig rechte rijen, niet te hard.')}${stap('zaailing', 'Zaaien: kies eerst je gewas bij Gewas.')}${stap('groeiend', 'Groeien: het gewas groeit in speltijd, in de zomer.')}${stap('rijp', 'Oogsten als het veld oogstklaar is (de vlag is groen), daarna afleveren.')}</ol>` +
-    `<footer class="ds-kaart__voet"><button type="button" class="ds-knop ds-knop--secundair" data-bd-uitleg="1">Begrepen</button></footer></article>`;
+    '</details>';
 }
 
 // Het hele blok voor het onderdeel Perceel: wat nu (met de ene hoofdknop), de lus, de velden, de legenda en de uitleg.

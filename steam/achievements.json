@@ -1756,7 +1756,7 @@
     {
       "id": "opnieuw_3",
       "titel": "Nog een keertje",
-      "omschrijving": "Begin na een mislukte missie drie keer opnieuw met Enter",
+      "omschrijving": "Begin na een mislukte missie drie keer opnieuw met {ENTER}",
       "verborgen": false,
       "voorstelApiNaam": "ACH_OPNIEUW_3",
       "steamApiNaam": ""

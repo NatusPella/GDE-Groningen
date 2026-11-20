@@ -103,7 +103,7 @@ t('veldkaarten: status, voortgang en de ene knop; de uitleg verdwijnt na Begrepe
   assert.doesNotMatch(html, /class="ds-kaart bd-veld"/, 'één veld: geen tweede kaart met dezelfde gegevens'); assert.match(html, /bd-nu/); assert.match(html, /data-status="zaailing"/); assert.match(html, /role="progressbar"/); assert.match(html, /Legenda van de kaart/);
   assert.equal((html.match(/class="ds-knop"/g) || []).length, 1, 'één gele hoofdknop');
   assert.match(html, /data-bd-naar=/);
-  assert.match(html, /bd-uitleg-kaart/);
+  assert.match(html, /<details class="ds-kaart ds-kaart--kop bd-uitleg-kaart"><summary/); assert.doesNotMatch(html, /data-bd-uitleg/, 'geen losse Begrepen-knop meer');
   const st = S.veldStatus(b2, b2.bedrijf.actief);
   assert.match(K.veldKaartHtml(st), /class="ds-kaart bd-veld"/, 'de veldkaart zelf blijft voor meerdere velden');
 });

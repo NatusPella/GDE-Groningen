@@ -117,7 +117,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     ],
     shots: [],
     // direction templates (cineshots.js, #955)
-    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 4, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 5, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0] }, { on: 8, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
+    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 4, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 5, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
   };
 

@@ -64,7 +64,7 @@ const CSS = `
    titel en status, de toestand als chips, de feiten en pas dan de actie. Kleuren en maten komen uit
    ds-tokens.css; de glazen lijst links blijft zoals hij was. */
 #pause-menu .gar-viewer { gap: var(--ds-s-3); }
-#pause-menu .gar-stage { height: clamp(150px, 19vh, 220px); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); }
+#pause-menu .gar-stage { height: clamp(260px, 45vh, 340px); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu .gar-stage .gar-hint, #pause-menu .gar-stage:hover .gar-hint, #pause-menu .gar-stage:focus-within .gar-hint { color: var(--ds-zeef-tx); }
 #pause-menu .gar-stage .gar-hint { padding-left: var(--ds-s-3); }
 #pause-menu .gar-bon { flex: none; gap: var(--ds-s-3); padding-top: var(--ds-s-4); }
