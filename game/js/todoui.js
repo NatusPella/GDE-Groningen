@@ -2,6 +2,7 @@
 // shell, keys and focus; this renders their content and handles their
 // clicks). Data comes from todo.js; the look is menu.css (m-*) and
 // pausemenu.css (ov-*, td-*).
+import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
@@ -62,31 +63,15 @@ function animateChanges(scope) {
 let items = [];
 let byKey = new Map();
 
-const ICON = {
-  check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
-  lock: '<rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/>',
-  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
-  pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
-  chev: '<path d="M9.5 6l6 6-6 6"/>',
-  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
-  coin: '<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.8 0 2.5 5 1.2 5 3.8 0 1.1-1 1.9-2.6 1.9-1.2 0-2.1-.5-2.6-1.3M12 6.5V8M12 16v1.5"/>',
-  cup: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
-};
-const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+// Betekenisnamen (icons.js, Phosphor, ADR 0041).
+const ICON = { check: 'vinkje', lock: 'slot', flag: 'todo', pin: 'plek', chev: 'volgende', clock: 'tijd', coin: 'geld', cup: 'prestaties', stop: 'stop' };
+const svg = (naam) => icoon(naam);
 
 // Statuschips (designsysteem v2, #980): altijd een pictogram plus een woord, nooit alleen kleur. Op papier (in een kaart)
 // erft de chip de rol van de kaart; in de lijst op glas draagt hij zelf de glasrol.
-const CHIP_ICOON = {
-  ok: '<path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/>',
-  kan: '<path d="M3 2.5l10 5.5-10 5.5z"/>',
-  doel: '<path d="M3 15V2h9l-1.5 3L12 8H4.5V15z"/>',
-  later: '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.8 3v4l2.8 1.7-.8 1.3L7.2 9V4z"/>',
-  slot: '<path d="M4 7V5a4 4 0 0 1 8 0v2h1v7H3V7zm1.6 0h4.8V5a2.4 2.4 0 0 0-4.8 0z"/>',
-  pin: '<path fill-rule="evenodd" d="M8 1a5 5 0 0 0-5 5c0 3.6 5 9 5 9s5-5.4 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>',
-  nieuw: '<path d="M8 1l1.8 4.2L14 6l-3.2 2.8L11.7 13 8 10.8 4.3 13l.9-4.2L2 6l4.2-.8z"/>',
-  klok: '<path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.8 3v4l2.8 1.7-.8 1.3L7.2 9V4z"/>',
-};
-const chip = (toon, icoon, tekst, glas = false) => `<span class="${glas ? 'ds-glas ' : ''}ds-chip${toon ? ' ds-chip--' + toon : ''}">${icoon ? `<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true">${CHIP_ICOON[icoon]}</svg>` : ''}${esc(tekst)}</span>`;
+const CHIP_ICOON = { ok: 'vinkje', kan: 'afspelen', doel: 'todo', later: 'tijd', slot: 'slot', pin: 'plek', nieuw: 'ster', klok: 'tijd' };
+const icoonSvg = icoon;
+const chip = (toon, icoon, tekst, glas = false) => `<span class="${glas ? 'ds-glas ' : ''}ds-chip${toon ? ' ds-chip--' + toon : ''}">${icoon ? icoonSvg(CHIP_ICOON[icoon], { cls: 'ds-chip__icoon', maat: 's' }) : ''}${esc(tekst)}</span>`;
 
 const tijdStreepHtml = (tijd) => {
   const t = tijdStreep(tijd);
@@ -222,7 +207,7 @@ function nearlyThere() {
   return out.sort((a, b) => b.progress.cur / b.progress.goal - a.progress.cur / a.progress.goal).slice(0, 3);
 }
 
-const PIN_SVG = '<svg class="ov-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>';
+const PIN_SVG = icoon('plek', { cls: 'ov-pin' });
 const heroShotHtml = (url) => `<img class="ov-shot" src="${url}" alt="">`;
 
 // the still arrives a frame after the menu opened: swap it in

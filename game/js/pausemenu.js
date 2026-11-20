@@ -507,8 +507,8 @@ const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => 
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
-const CHEV_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>';
-const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+const CHEV_L = icoon('terug');
+const CHEV_R = icoon('volgende');
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)

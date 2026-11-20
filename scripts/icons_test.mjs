@@ -47,5 +47,22 @@ ok(!iconBekend('bestaat_niet') && icoon('bestaat_niet').includes('<path'), 'onbe
 ok(iconInner('bestaat_niet') === iconInner('vraag'), 'de terugval is het vraagteken');
 ok(iconInner(undefined) === iconInner('vraag'), 'undefined geeft ook de terugval');
 
+// Geen verwijzing naar een ontbrekende betekenisnaam: icoon('naam') in elk bronbestand, en de
+// naamtabellen van de schermen die een tabel gebruiken.
+const jsDir = path.join(root, 'game/js');
+const TABELLEN = { 'pausemenu.js': ['ICONS', 'GROUP_ICONS'], 'todoui.js': ['ICON', 'CHIP_ICOON'], 'hud_panel.js': ['VEH_ICONS', 'TURN_ICON'], 'kaartactie.js': ['ICONEN'], 'phonefeed.js': ['APP_ICON'] };
+let literals = 0;
+for (const f of fs.readdirSync(jsDir).filter((x) => x.endsWith('.js') && x !== 'icons.js' && x !== 'iconmap.js' && x !== 'phosphordata.js')) {
+  const src = fs.readFileSync(path.join(jsDir, f), 'utf8');
+  const gebruiktIcons = /import \{[^}]*\bicoon\b[^}]*\} from '\.\/icons\.js'/.test(src);
+  if (gebruiktIcons) for (const m of src.matchAll(/\bicoon\('([a-z_]+)'/g)) { literals++; ok(iconBekend(m[1]), `${f}: icoon('${m[1]}') bestaat niet in iconmap.js`); }
+  for (const t of TABELLEN[f] || []) {
+    const blok = src.match(new RegExp(`const ${t} = \\{([^}]*)\\}`));
+    ok(!!blok, `${f}: tabel ${t} gevonden`);
+    if (blok) for (const m of blok[1].matchAll(/:\s*'([a-z_]+)'/g)) ok(iconBekend(m[1]), `${f}: ${t} verwijst naar ${m[1]}, dat niet in iconmap.js staat`);
+  }
+}
+ok(literals >= 10, `icoon('...')-aanroepen gevonden (${literals})`);
+
 console.log(`icons_test: ${n} controles, ${fouten} fouten`);
 process.exit(fouten ? 1 : 0);
