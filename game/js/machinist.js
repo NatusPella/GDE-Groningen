@@ -53,6 +53,14 @@ export function getServiceMapState(world) {
   return { stops, route };
 }
 
+// De dienst beginnen zonder G te drukken (treindienststart.js: vanaf het station). False als er al een dienst loopt.
+export function startDienst(world, t, cab) {
+  if (svc && !svc.finished) return false;
+  begin(world, t);
+  if (cab) cab.introUntil = 0;
+  return !!svc;
+}
+
 // Alleen lezen, voor de spelbot en de tests.
 export const getService = () => svc;
 export const serviceRunning = () => !!svc && !svc.finished;

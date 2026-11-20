@@ -112,6 +112,7 @@ ok(m05.race === 'kei' && Array.isArray(m05.decorRoute) && m05.decorRoute.length 
 {
   const kv = kaartVan(m05);
   ok(kv && kv.doel && kv.druk && kv.afloop && kv.regels.length >= 2 && kv.regels.length <= 3, 'de kaart van M05 heeft doel, tijd, afloop en hoogstens drie regels');
+  ok(JSON.stringify(kv.regels).includes('sprint'), 'de kaart van M05 noemt de sprint met Shift (rivalen 6,4 tot 6,85 m/s tegen 7 m/s zonder sprint)');
   const s = startKaart(m05, 'M05');
   const eerste = tikKaart(s, 0.016);
   ok(eerste && /podium/.test(eerste.body), 'het eerste kaartje is het doel');

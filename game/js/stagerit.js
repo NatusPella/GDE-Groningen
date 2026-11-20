@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: omroepbel op het perron
 // The `rit` stage of a stages mission (missions.js): Tammo drives the stopped museum steam train a short
 // stretch to the next platform with gas and brake only (M19 Stoom, light version of docs/verhaal/nieuw
 // 08-IMPLEMENTATIE §3c). Tessa's walk through the carriages is the script's scene, not physics.
@@ -141,7 +142,8 @@ export function updateRit(dt, world, st, S, hint) {
     // alleen beeld en geluid, bij wie de rit rijdt: de stoomfluit (de bestaande treinhoorn) en het perron aan het eind
     try {
       const q = world.audioEvents || (world.audioEvents = []);
-      if (q.length < 64) q.push({ kind: 'train_horn', x: car.x, y: car.y });
+      if (q.length < 64) q.push({ kind: 'train_horn', x: car.x, y: car.y, steam: true });
+      haakFx(world, 'perron_ding', R.platform.x, R.platform.y); // ronde 4: de omroepbel van het perron
       if (!S.dressing) {
         const a = spoorHoek(getRoutes(), R.platform.x, R.platform.y);
         S.dressing = buildMissionDressing(world, 'perron', { x: R.platform.x, y: R.platform.y, a: a !== null ? a : 0 });

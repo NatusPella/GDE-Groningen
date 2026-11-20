@@ -125,3 +125,28 @@
 
 html.reduce-motion .rw, html.reduce-motion .rw * { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .rw, .rw * { animation: none !important; transition: none !important; } }
+
+/* ===== Designsysteem v3: de regelwidget als papieren plaatje (ADR 0040, #993) =====
+   Papier met inktrand en harde schaduw; kleur blijft nooit de enige drager (arcering, woord en icoon-gedrag blijven). */
+.rw {
+  --rw-fg: var(--ds-c-ink-inkt);
+  --rw-ok: var(--ds-c-ink-bord);
+  --rw-let: var(--ds-c-ink-geel);
+  --rw-fout: var(--ds-probleem);
+  --rw-fouttx: var(--ds-probleem-tx);
+  --rw-gat: var(--ds-c-ink-papier);
+  --rw-spoor: var(--ds-c-ink-papier);
+  color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 6px; box-shadow: var(--ds-schaduw-hard);
+  font-family: var(--ds-font-kop-v3); font-weight: 800;
+}
+.rw .rw-alt, .rw.rw-statisch .rw-alt { font-family: var(--ds-font-tekst-v3); font-weight: 400; }
+.rw-limiet .rw-balk, .rw-timing .rw-spoor { background: var(--ds-c-ink-papier); box-shadow: inset 0 0 0 var(--ds-lijn-zeef) var(--ds-c-ink-inkt); }
+.rw-limiet .rw-warn { background: repeating-linear-gradient(135deg, var(--ds-c-ink-inkt) 0 2px, transparent 2px 5px); }
+.rw-teller .rw-ring-bg { stroke: var(--ds-c-ink-inkt); opacity: 0.25; }
+.rw-voorraad .rw-stuk[data-s="stuk"] { color: var(--ds-c-inkt-zacht); }
+.rw-wijzer .rw-ringen circle { stroke: var(--ds-c-ink-inkt); opacity: 0.4; }
+.rw-timing .rw-zone { background: repeating-linear-gradient(135deg, var(--rw-ok) 0 3px, var(--ds-c-ink-papier) 3px 6px); box-shadow: inset 0 0 0 2px var(--rw-ok); }
+.rw-toets .rw-key, .rw-toets kbd { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 3px 0 var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+.rw-toets.rw-statisch[data-handeling="houd"] kbd { box-shadow: 0 1px 0 var(--ds-c-ink-inkt); }
+.rw-stappen li[data-s="straks"] { outline-color: var(--ds-c-ink-inkt); }

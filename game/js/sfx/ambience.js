@@ -7,8 +7,7 @@ import { trunksNear } from '../countrywalls.js';
 import { rand as rnd } from '../rng.js';
 import { seaAt } from '../regions.js';
 import { streekAt } from '../regioleven.js';
-import { streekNiveaus } from './streekklank.js';
-import { stepContext } from './steps.js';
+import { streekNiveaus } from './streekklank.js';import { stepContext } from './steps.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
@@ -44,10 +43,14 @@ const BED_DEFS = {
   vogels: { file: 'zomer_vogels' },
   stadsvogels: { file: 'zomer_stadsvogels' },
   insecten: { file: 'zomer_insecten' },
-  crowd: { buf: 'bed_crowd' },
+  crowd: { buf: 'bed_crowd', file: 'menigte_gemurmel' },
   terrace: { buf: 'bed_terrace' },
   crickets: { buf: 'bed_crickets' },
-  lap: { buf: 'bed_lap', positional: true },
+  kikkers: { file: 'kikkers_nacht' },
+  kermis: { file: 'kermis_lawaai' },
+  stadNacht: { file: 'stad_nacht_nl' },
+  binnen: { file: 'ruimte_binnen' },
+  lap: { buf: 'bed_lap', file: 'golfjes_oever', positional: true },
   // per streek (streekklank.js): zee en kust, open polder, riet, industrie
   kust: { buf: 'bed_kust' },
   polder: { buf: 'bed_polder' },
@@ -354,6 +357,18 @@ function setTargets(world) {
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
   beds.lap.target = clamp(1 - place.waterD / 28, 0, 1) * (v && v.isBoat ? 0.32 : 0.2) * paused;
+  // een Nederlandse stad 's nachts (opname, verkeer op afstand zonder gebeurtenissen) in de plaats van de helft van het procedurele stadsbed; in de flat een kamertoon
+  beds.stadNacht.target = (0.06 + place.traffic * 0.1 + place.density * 0.05) * night * (1 - 0.9 * place.rural) * cabin * paused;
+  beds.city.target *= 1 - 0.5 * night * (K.samples && K.samples.has('stad_nacht_nl') ? 1 : 0);
+  beds.binnen.target = indoors ? 0.25 * paused : 0;
+  // de kermis op de Grote Markt: drukte en attracties op afstand zolang hij open is (opname kermis_lawaai), zachter bij regen en in een voertuig
+  const kermisMid = sfxLinks.kermisPunt(world);
+  if (kermisMid) {
+    const kd = Math.hypot(K.listener.x - kermisMid.x, K.listener.z - kermisMid.y);
+    beds.kermis.target = Math.pow(clamp(1 - kd / 200, 0, 1), 1.5) * 0.4 * (1 - rain * 0.5) * cabin * paused;
+  } else beds.kermis.target = 0;
+  // kikkers aan het water op een zomernacht (opname), in het groen of op het platteland; regen en een gesloten voertuig dempen ze
+  beds.kikkers.target = night * clamp(1 - place.waterD / 45, 0, 1) * Math.max(place.green, place.trees * 0.6, place.rural * 0.8) * 0.2 * (1 - rain) * cabin * paused;
 
   // de lagen per streek: eerst de gemeten niveaus, dan het weer (regen overstemt de brandingwind) en de pauze
   skIn.sea = place.sea; skIn.coast = place.coast; skIn.streek = place.streek; skIn.rural = place.rural; skIn.open = place.open;
@@ -380,7 +395,7 @@ function setTargets(world) {
 function playAt(buf, x, y, h, o) {
   const out = K.spatial(x, y, { ref: o.ref ?? 6, rolloff: o.rolloff ?? 1.2, range: o.range ?? 80, h, model: 'equalpower', bus: K.buses.amb, prio: 0 });
   if (!out) return;
-  K.buf(buf, { out, gain: o.gain, rate: o.rate ?? 1, prio: 0, lp: o.lp || 0 });
+  K.buf(buf, { out, gain: o.gain, rate: o.rate ?? 1, prio: 0, lp: o.lp || 0, buffer: o.buffer || null });
 }
 
 function ambientEvents(dt, world) {
@@ -522,11 +537,13 @@ function weatherEvents(world) {
 
 // --- animals ------------------------------------------------------------
 
+// rec: sleutels van de opnames (samples.js) die de procedurele roep vervangen; dag: zwijgt meestal in de nacht
 const ANIMALS = {
-  cow: { buf: 'cow', gap: [9, 26], gain: 0.3, rate: [0.9, 1.08], h: 1.3, range: 80 },
-  sheep: { buf: 'sheep', gap: [6, 18], gain: 0.22, rate: [0.9, 1.15], h: 0.8, range: 60 },
-  seagull: { buf: 'gull', gap: [7, 20], gain: 0.18, rate: [0.92, 1.1], h: 8, range: 90 },
-  duck: { buf: 'duck', gap: [4, 12], gain: 0.16, rate: [0.9, 1.1], h: 0.2, range: 45 },
+  cow: { buf: 'cow', rec: ['dier_koe'], dag: true, gap: [9, 26], gain: 0.3, rate: [0.9, 1.08], h: 1.3, range: 80 },
+  sheep: { buf: 'sheep', rec: ['dier_schaap'], dag: true, gap: [6, 18], gain: 0.22, rate: [0.9, 1.15], h: 0.8, range: 60 },
+  horse: { buf: null, rec: ['dier_paard'], dag: true, gap: [14, 40], gain: 0.22, rate: [0.94, 1.06], h: 1.4, range: 70 },
+  seagull: { buf: 'gull', rec: ['dier_meeuw_0', 'dier_meeuw_1'], dag: true, gap: [7, 20], gain: 0.18, rate: [0.92, 1.1], h: 8, range: 90 },
+  duck: { buf: 'duck', rec: ['dier_eend'], dag: true, gap: [4, 12], gain: 0.16, rate: [0.9, 1.1], h: 0.2, range: 45 },
   heron: { buf: 'heron', gap: [14, 40], gain: 0.2, rate: [0.9, 1.1], h: 0.8, range: 70 },
   seal: { buf: 'seal', gap: [12, 30], gain: 0.2, rate: [0.9, 1.1], h: 0.2, range: 60 },
   fish: { buf: 'imp_water', gap: [8, 20], gain: 0.07, rate: [1.6, 2.1], h: 0, range: 18 },
@@ -534,7 +551,15 @@ const ANIMALS = {
   dog: { buf: 'dog', gap: [4, 14], gain: 0.22, rate: [0.8, 1.25], h: 0.5, range: 70, double: true },
   cat: { buf: 'cat', gap: [10, 30], gain: 0.14, rate: [0.9, 1.15], h: 0.3, range: 35 },
 };
-const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep', reiger: 'heron', zeehond: 'seal', vis: 'fish' };
+const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep', paard: 'horse', reiger: 'heron', zeehond: 'seal', vis: 'fish' };
+
+// een geladen opname uit de lijst sleutels (samples.js), of null
+function dierOpname(keys, S) {
+  const klaar = keys.filter((k) => S.has(k));
+  if (!klaar.length) return null;
+  const key = klaar[Math.floor(Math.random() * klaar.length)];
+  return { key, buffer: S.buffer(key) };
+}
 
 function animalDef(kind) {
   if (typeof kind !== 'string') return null;
@@ -567,8 +592,14 @@ function animals(dt, world) {
     if (t < next) continue;
     animalNext.set(a, t + rnd(def.gap[0], def.gap[1]));
     if (K.dist(a.x, a.y, h) > def.range) continue;
+    // dagdieren zwijgen meestal in de nacht (de kikkers en krekels nemen het over)
+    if (def.dag && (world.dayNight ? world.dayNight.night : 0) > 0.6 && Math.random() < 0.75) continue;
     const buf = def.buf === 'gull' ? 'gull_' + (Math.random() < 0.5 ? 0 : 1) : def.buf;
     const rate = rnd(def.rate[0], def.rate[1]);
+    // de opname van sfx/samples.js (SFX ronde 3) als hij geladen is, anders de procedurele roep
+    const rec = K.samples && def.rec ? dierOpname(def.rec, K.samples) : null;
+    if (rec) { playAt(rec.key, a.x, a.y, h, { gain: def.gain * 0.8, rate, ref: 4, rolloff: 1.2, range: def.range, buffer: rec.buffer }); continue; }
+    if (!buf) continue;   // een dier zonder procedurele roep (paard) zwijgt zolang de opname er niet is
     playAt(buf, a.x, a.y, h, { gain: def.gain, rate, ref: 4, rolloff: 1.2, range: def.range });
     if (def.double && Math.random() < 0.5) later(rnd(0.25, 0.4), () => playAt(buf, a.x, a.y, h, { gain: def.gain * 0.9, rate: rate * 1.03, ref: 4, rolloff: 1.2, range: def.range }));
   }

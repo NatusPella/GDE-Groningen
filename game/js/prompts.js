@@ -21,6 +21,7 @@ import { lineOfSight } from './pedgeom.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
+import { bushaltePrompt } from './bushalte.js';
 import { machinePrompt } from './snackautomaat.js';
 import { boerderijPrompt } from './boerderijwereld.js';
 import { streetLifePrompt } from './streetlife.js';
@@ -415,6 +416,8 @@ function findPrimary(world) {
   if (beppe) return beppe;
   const knip = kaartjesPrompt(world);
   if (knip) return knip;
+  const halte = bushaltePrompt(world);
+  if (halte) return halte;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);

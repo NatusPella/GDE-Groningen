@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { isInWater, pointInPolygon } from './util.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: hydrauliek en weegbrugklik
 
 const eindig = (v) => typeof v === 'number' && Number.isFinite(v);
 
@@ -117,7 +118,7 @@ export function buildBietenhal(world, plan) {
   if (plan.weegbrug) { weeg = maakWeegbrug(); zet(weeg.group, plan.weegbrug); }
   if (plan.oplegger) { op = maakOplegger(); zet(op.group, plan.oplegger); }
   scene.add(groep);
-  return { groep, weeg, op, stand: 0 };
+  return { groep, weeg, op, stand: 0, world, plan, hydro: false, klik: false };
 }
 
 // Elk beeld: de bak kantelt mee met hoe dicht de trekker bij de hoop is. `focus` is { x, y } van de trekker.
@@ -127,6 +128,16 @@ export function updateBietenhal(h, dt, focus, hoop) {
   const stap = Math.min(1, (dt || 0) * 0.8);
   h.stand += (doel - h.stand) * stap; // de bak komt langzaam omhoog en zakt weer
   h.op.bak.rotation.z = h.stand * KANTEL.hoek;
+  // ronde 4: de hydrauliek zodra de bak omhoog komt, de klik van de weegbrug als de trekker erop rijdt (elk een keer per nadering)
+  const pl = h.plan;
+  if (!h.world || !pl) return;
+  if (pl.oplegger && !h.hydro && h.stand > 0.15) { h.hydro = true; haakFx(h.world, 'oplegger_hydrauliek', pl.oplegger.x, pl.oplegger.y); }
+  else if (h.hydro && h.stand < 0.05) h.hydro = false;
+  if (pl.weegbrug) {
+    const af = Math.hypot(focus.x - pl.weegbrug.x, focus.y - pl.weegbrug.y);
+    if (!h.klik && af < 3.5) { h.klik = true; haakFx(h.world, 'weegbrug_klik', pl.weegbrug.x, pl.weegbrug.y); }
+    else if (h.klik && af > 9) h.klik = false;
+  }
 }
 
 export function disposeBietenhal(h) {

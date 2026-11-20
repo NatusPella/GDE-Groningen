@@ -13,6 +13,7 @@ import {
 } from './sidejobkit.js';
 import { isInWater } from './util.js';
 import * as R from './krantenrules.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: worp en brievenbusklep
 import { hoofdspeler } from './spelersregister.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
 import { krantHudModel, worpPop, UITLEG_ID } from './krantenstatus.js';
@@ -392,6 +393,7 @@ function gooiKrant(c, huis, afstand, p = hoofdspeler(c.world)) {
   const land = uitkomst === 'bus' ? { x: huis.x, y: huis.y } : { x: huis.x + Math.cos(a) * Math.min(fout, 7), y: huis.y + Math.sin(a) * Math.min(fout, 7) };
   d.stapel -= 1;
   huis.status = 'onderweg';
+  haakFx(w, 'worp_lucht', p.x, p.y);
   const mesh = krantMesh();
   const hoog = (p.inVehicle ? p.inVehicle.z || 0 : (p.gz || 0) + (p.z || 0)) + (p.inVehicle ? 1.2 : 1.35);
   c.addMesh(mesh);
@@ -426,7 +428,7 @@ function stapelBeelden(c, dt) {
     // geland: een rol blijft liggen waar hij viel (de brievenbus en de mat), tot het einde van de ronde
     f.mesh.rotation.set(0, rnd() * Math.PI, 0);
     f.mesh.position.set(f.naar.x, groundAt(map, f.naar.x, f.naar.y) + 0.07, f.naar.y);
-    if (f.uitkomst === 'bus') { c.removeMesh(f.mesh); } else d.mesh.push(f.mesh);
+    if (f.uitkomst === 'bus') { c.removeMesh(f.mesh); haakFx(c.world, 'brievenbus_klep', f.naar.x, f.naar.y); } else d.mesh.push(f.mesh);
     f.huis.status = f.uitkomst;
     d.worpen[f.uitkomst] += 1;
     if (f.uitkomst === 'bus' && f.huis.mesh && f.huis.mesh.userData.vlag) f.huis.mesh.userData.vlag.visible = true;

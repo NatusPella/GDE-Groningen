@@ -113,3 +113,50 @@ Alles hieronder is gemeten (niveau, naad, clipping), niets is beluisterd: de bro
 | `zomer_vogels`, `zomer_stadsvogels`, `zomer_insecten` | droge dagen in het groen, in de stad, op de weide | zacht op de achtergrond, geen herhaling die opvalt | de lus van 30 s of 18 s herhaalt hoorbaar; een vogel die niet in Nederland past; te luid bij een gesprek |
 | `band_drift` | een lange slide (slip boven 0,62) | schurende band die met de slip stijgt en meezakt | een klik bij het in- en uitvaden; dubbel met de bandenpiep; stampend |
 | `motor_auto_stationair` | personenauto op stationair en lage toeren | extra lichaam onder de synth, zakt weg bij opschroeven | klinkt als een tweede motor naast de synth (zet `ENGINE_LAYER_ON` uit in `audio.js`) |
+
+## SFX ronde 3: opnames in de plaats van synth (#988)
+
+Gekozen op titel, duur, niveau en spectrum (`scripts/audio/sfx_analyse.mjs`), **niet beluisterd**. Elke rij vervangt het synthgeluid zodra de opname geladen is
+(`FX_VERVANG` in `sfx/samples.js`); klinkt het slechter dan de synth, haal de sleutel uit `FX_VERVANG` en de synth neemt het weer over.
+
+| Geluid | Waar je het hoort | Wat het moet zijn | Wat niet goed mag klinken |
+| --- | --- | --- | --- |
+| `kassa_koop` | iets kopen in een winkel | een heldere ka-ching van een kassa | te lang of te schel; klinkt als een spelletje |
+| `winkelbel_deur` | een winkel binnengaan | deurbel boven de deur | te zacht; een tweede bel erachteraan |
+| `deur_hout_open_op`, `deur_hout_dicht_op`, `deur_huis_dicht_op` | houten deuren en huisdeuren | piepend open, droog dicht | een deur die klinkt als een poort; dichtvallen zonder klap |
+| `plons_groot` | in het water vallen of rijden | een grote plons met spatten | te lang (2,2 s) |
+| `scheepshoorn_op` | een schip in de haven | een lage scheepshoorn van 4,6 s | te hard op afstand; een brul in plaats van een hoorn |
+| `camera_sluiter` | foto maken | één droge klik (0,16 s) | te zacht om te horen |
+| `alarm_loeit` | een alarm in de stad | een alarmbel van 4 s | te hard, te schel |
+| `vuurwerk_knal_0`, `vuurwerk_knal_1` | een vuurwerkbom | knal met geknetter | `_1` (mortier) is zachter; knal zonder bas |
+| `trein_remmen_piep` | een remmende trein (vracht, station) | piepende wielen | pijnlijk schel; 5 s is lang |
+| `dier_koe`, `dier_schaap`, `dier_paard`, `dier_eend`, `dier_meeuw_0`, `dier_meeuw_1` | dieren in de wei, op de gracht en aan de kust; overdag, 's nachts zwijgen ze meestal | een herkenbare roep die op afstand dof wordt | `dier_meeuw_*` (bron met wind eronder, hoogdoorlaat 500 Hz): ruis; een paard dat nergens staat (het paard klinkt alleen met de opname) |
+| `golfjes_oever` | langs een kade, gracht of oever (naast het synth-water) | zacht klotsen, geen branding | een lus die hoorbaar herhaalt (16 s) |
+| `menigte_gemurmel` | plein, markt en drukke straat | gemurmel van een menigte, onverstaanbaar | verstaanbare woorden (Engels?) of een lach die steeds terugkomt |
+| `kikkers_nacht` | nacht, bij water in het groen of op het platteland | kikkerkoor in de verte | klinkt tropisch; te hard bij een stadsgracht |
+| `tram_bel_op_0`, `tram_bel_op_1`, `bus_halte_ding`, `bus_deur_sis` | een tram of bus rijdt na een halte weg; de busdeur gaat open | tramtikken (kort en lang), een ding van de halte, een deur die opengaat | `bus_halte_ding` komt uit een metro-opname (klinkt het niet Nederlands?); `bus_deur_sis` is stil en dof (bron is 3,6 s) |
+| `ui_klik` | elke klik en elke menuwissel (select en tick van `sfx/ui.js`) | een zachte knopklik, 0,14 s | te zacht naast de rest; de bevestigingsklank van vroeger (twee tonen) is weg: mis je die, haal `klik(` uit `select()` |
+| `motor_diesel_stationair` | de trekker en de bus (motorsoort 2), onder de motorsynth | dieselbrom op stationair, zakt weg als je opschroeft | een tweede motor naast de synth (zet `ENGINE_LAYER_KINDS` terug zonder 2); de naad bij 12 s |
+| `kermis_lawaai` | op de Grote Markt en tot 200 m erbij, zolang de kermis open is | drukte, attracties en muziek op afstand | muziek met een herkenbaar liedje; te hard in de straten ernaast |
+| `stad_nacht_nl` | 's nachts in de stad en langs drukke wegen (naast het synth-stadsbed, dat dan de helft zachter is) | verkeer op afstand in een Nederlandse stad, gelijkmatig | een hoorbare naad (30 s); te hard bij een rustige woonstraat; geen nacht (hij staat ook in een gesloten voertuig zachter) |
+| `ruimte_binnen` | in de flat | een rustige kamer met een zachte brom | een koelkastbrom die opvalt; te hard tegenover de stappen |
+| `trein_hoorn_kort`, `trein_hoorn_lang` | een trein die toetert (de eigen trein of die van het spoor) | twee korte stoten of een lange stoot van een elektrische trein | een tweetonige hoorn is Nederlands, dit is een opname van een buitenlands type: klinkt het te veel als een buitenlandse trein? |
+
+## SFX ronde 4: missie-polish (#988)
+
+Gekozen op titel, duur, niveau en spectrum (`scripts/audio/sfx_analyse.mjs`), **niet beluisterd**. Haal een sleutel uit `FX_VERVANG` of `FX_OPNAME_ALLEEN` (`sfx/samples.js`) als hij slechter klinkt; bij een vervanging neemt de synth het weer over, bij een opname-only haak wordt het stil.
+
+| Geluid | Waar je het hoort | Wat het moet zijn | Wat niet goed mag klinken |
+| --- | --- | --- | --- |
+| `kaartje_schuif` | elk nieuw regelkaartje (doel, regel) | een zacht kaartje of papier, 0,19 s | te kort om te horen; een klik in plaats van papier (bron is een kaartspel-opname) |
+| `omroep_ding` | wachtstap klaar; de stoomtrein M19 bij het perron | een ding-dong van een omroep, 1,4 s | de bron is een metro-chime uit het buitenland: te herkenbaar? |
+| `toeter_start`, `fluitje` | race en skutsje-sprint bij het startsein; het brugsein | een toeter van 1,6 s; een fluittoon van 1,1 s | te hard naast de start-sting; `fluitje` is een fluittoon en geen scheidsrechtersfluit |
+| `gejuich_0`, `gejuich_1`, `applaus_klein` | bij de finishboog van de race en bij een medaille | een publiek dat juicht en klapt, 3 s | verstaanbare woorden; een lach (`applaus_klein` komt uit een kort klapfragment); het klinkt te dichtbij |
+| `klok_tik` | de laatste 10 s van een klok, onder de piepjes | een droge klokstik, 0,12 s | te zacht om te horen; botst met de tonen |
+| `bel_uitslag` | pannenkoeken: een bord geserveerd | een balie-belletje van 1,5 s | te scherp; botst met de kassa |
+| `ei_breuk_0`, `ei_breuk_1`, `kratten_klets` | eierkratten (M07, M09): een ei dat breekt; bij een stoot van drie of meer eieren de krat | knappend ei, kletterend hout | `ei_breuk_1` is zacht en heeft een scherpe piek (een gelimiteerde bron); `kratten_klets` is een brekend krat en kan hard klinken |
+| `hydrauliek_sis`, `weegbrug_klik` | bietenhal: de oplegger kantelt, de weegbrug | een sis van 2,4 s; een korte relais-klik | de sis is lang en hoog (veel boven 2 kHz); te zacht op afstand |
+| `worp_lucht`, `brievenbus_klep` | krantenwijk: de worp, een krant in de brievenbus | een zwiep, een klepje | de worp klinkt als een zwaardzwaai (bron is een staf); te zacht |
+| `stoomfluit` | de stoomtrein M19 bij het perron | een stoomfluit van 3 s (komt in plaats van de elektrische treinhoorn) | klinkt als een fabrieksfluit; te hard |
+| `haspel_draai`, `dobber_plons`, `kopje_klink_0/1` | hengelen: een vis binnenhalen; de horecahap | een draaiende haspel, een kleine plons; een kopje op een schotel | `haspel_draai` heeft hoge rammel; `kopje_klink` als vervanging van de hap klinkt als porselein in plaats van eten |
+| `munten_0`, `munten_1`, `ui_fout` | geld uitgeven (bij 2 euro of meer); een geweigerde handeling | muntjes van 0,4 en 0,8 s; een zachte foutklank van 0,3 s | de munten klinken luider dan de kassa; `ui_fout` te scherp of te lang voor een melding die vaak komt |

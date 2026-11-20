@@ -46,9 +46,11 @@ export const HUD_MODES = ['slim', 'alles', 'minimaal'];
 
 // card categories on the P scale and their zones: the table is in hudbus.js
 
-export const STAR_AFTERGLOW = 6;
-export const MONEY_SHOW = 5;
-export const BAR_SHOW = 3;
+// v3 (#995): wat bij behoefte verschijnt, blijft 4 s staan na de laatste verandering
+export const STAR_AFTERGLOW = 4;
+export const MONEY_SHOW = 4;
+export const BAR_SHOW = 4;
+export const WEAPON_SHOW = 4;
 export const PLACE_SHOW = 4;
 // #975: een radiomelding met titel, artiest en zender was na vier seconden weg; te kort om
 // te lezen. De leestijd groeit mee met de tekst en heeft een ruime ondergrens.
@@ -158,7 +160,7 @@ export function bubbleTransform(x, y) {
 // What shows now. s: the situation (all optional):
 //   mode, hidden, banner, busy, dialogue, idle, wake,
 //   wanted, wantedAgo, moneyAgo, moneySign (+1/-1), nearShop, moneyHeld,
-//   armed, fighting, hpFull, hpAgo, hpLow, stamFull, stamAgo,
+//   armed, fighting, weaponAgo, hpFull, hpAgo, hpLow, stamFull, stamAgo,
 //   inVehicle, vehFull, vehAgo,
 //   timer, gps, place, specialDay, timeGoal,
 //   objective, subtitle, cardA (its P or null), cardE (P or null), keys (count)
@@ -209,11 +211,12 @@ export function decideHud(s = {}) {
   const moneyRecent = (s.moneyAgo ?? Infinity) < MONEY_SHOW;
   // money coming in is P3: it waits out a busy moment (the caller holds it)
   show.money = all || ((moneyRecent || !!s.nearShop) && !busy && !s.moneyHeld);
-  show.weapon = all || !!s.armed || !!s.fighting;
+  // v3: het wapen komt bij een wissel of nieuwe munitie, en zolang je de vuurknop vasthoudt (fighting)
+  show.weapon = all || (s.weaponAgo ?? Infinity) < WEAPON_SHOW || !!s.fighting;
   show.clock = all || !busy;
   out.big.clock = !!(s.specialDay || s.timeGoal);
   const barsMoving = (s.hpAgo ?? Infinity) < BAR_SHOW || (s.stamAgo ?? Infinity) < BAR_SHOW || (s.inVehicle && (s.vehAgo ?? Infinity) < BAR_SHOW);
-  show.bars = all || s.hpFull === false || s.stamFull === false || !!s.hpLow || (s.inVehicle && s.vehFull === false) || barsMoving;
+  show.bars = all || !!s.hpLow || s.stamFull === false || (s.inVehicle && s.vehFull === false) || barsMoving;
   show.vehicle = !!s.inVehicle;
   show.keys = (s.keys | 0) > 0;
 

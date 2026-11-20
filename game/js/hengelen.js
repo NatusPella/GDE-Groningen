@@ -6,6 +6,7 @@ import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, recordUnique, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: de plons van een binnengehaalde vis
 import { standActivity, recLine } from './standactivity.js';
 import { activityBlock } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
@@ -24,6 +25,7 @@ import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHos
 import { hoofdspeler } from './players.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
 import { hengelHudModel, UITLEG_ID } from './hengelstatus.js';
+import { hapticEvent } from './haptics.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
 // dobbertje zakt ("Beet!") druk je meteen weer [Spatie]; te vroeg trekken schrikt de vis af. Twee manieren:
@@ -208,11 +210,12 @@ function updateGame(w, dt) {
   for (const e of evs) {
     if (e.type === 'cast') { zetUitlegGezien(UITLEG_ID); if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'fx', name: 'hengel_uitwerp', x: at.x, y: at.y }); }
     else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y, gain: 0.6 }); }
-    else if (e.type === 'bite') { g.beetTotaal = Math.max(0.2, g.s.bite || 0); g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
+    else if (e.type === 'bite') { hapticEvent('bite'); g.beetTotaal = Math.max(0.2, g.s.bite || 0); g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
     else if (e.type === 'catch') {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
       pushAudioEvent(w, { kind: 'fx', name: 'hengel_vangst', x: at.x, y: at.y });
+      haakFx(w, 'dobber_plons', at.x, at.y);
       g.haalT = 0.9; // de ruk is voorbij: even binnenhalen voordat je weer klaarstaat
       const naam = (s && (s.naam || s.name)) || e.fish;
       g.flash = { text: `${r && r.nieuweSoort ? 'Nieuw: ' : ''}${naam} van ${kgTekst(e.kg)}!`, bad: false, t: 0 };

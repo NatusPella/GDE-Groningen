@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   SAMPLE_KEYS, SAMPLE_INFO, SAMPLE_BASE, VARIATIE, variatie, afkoelingOk, heeftAutoPortier, autoDeurPlan, createSamples,
-  slipLoopNiveau, slipLoopRate, grindNodig,
+  slipLoopNiveau, slipLoopRate, grindNodig, FX_VERVANG, FX_OPNAME_ALLEEN, vervangSleutel,
 } from '../game/js/sfx/samples.js';
 import { CATEGORIES } from '../game/js/sfx/mixplan.js';
 
@@ -26,7 +26,7 @@ for (const k of SAMPLE_KEYS) {
   ok(fs.existsSync(f), `${k}: bestand ${g[k].bestand} bestaat`);
   if (fs.existsSync(f)) ok(fs.readFileSync(f).subarray(0, 4).toString() === 'OggS', `${k} is een ogg-bestand`);
   ok(g[k].herkomst && g[k].herkomst.url && /CC0|Creative Commons (0|Attribution)/.test(g[k].herkomst.licentie), `${k}: bron en CC0- of CC-BY-licentie in het manifest (ADR 0039)`);
-  ok(g[k].duur_s > 0.2 && (g[k].loop ? g[k].duur_s <= 32 : g[k].duur_s < (k.startsWith('donder_') ? 14 : 6)), `${k}: duur ${g[k].duur_s} s is kort genoeg`);   // een lus hooguit 32 s (weer en zomer), een eenmalige klank hooguit 6 s, een donderslag hooguit 14 s
+  ok(g[k].duur_s > 0.1 && (g[k].loop ? g[k].duur_s <= 32 : g[k].duur_s < (k.startsWith('donder_') ? 14 : 6)), `${k}: duur ${g[k].duur_s} s is kort genoeg`);   // een lus hooguit 32 s (weer en zomer), een eenmalige klank hooguit 6 s, een donderslag hooguit 14 s
 }
 for (const k of Object.keys(g)) ok(SAMPLE_KEYS.includes(k), `manifest-sleutel ${k} heeft een regel in SAMPLE_INFO`);
 ok(!g.trein_deur && !fs.existsSync(path.join(SFX, 'trein_deur.ogg')), 'de oude hele treindeur-opname is weg');
@@ -38,11 +38,13 @@ for (const k of SAMPLE_KEYS) ok(CATEGORIES[SAMPLE_INFO[k].cat], `${k}: categorie
 // -- sleutels in de code komen voor in het manifest -----------------------------------------
 const JS = path.join(ROOT, 'game', 'js');
 const used = new Set();
-const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_auto_stationair)['"`]/g;
+const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_(?:auto|diesel)_stationair|ui_klik|tram_bel_op_[0-9]|bus_halte_ding|bus_deur_sis|kermis_lawaai|kassa_koop|winkelbel_deur|deur_(?:hout|huis)_[a-z_]+_op|plons_groot|scheepshoorn_op|camera_sluiter|alarm_loeit|vuurwerk_knal_[0-9]|trein_remmen_piep|trein_hoorn_[a-z]+|dier_[a-z_0-9]+|golfjes_oever|menigte_gemurmel|kikkers_nacht|stad_nacht_nl|ruimte_binnen)['"`]/g;
 for (const f of fs.readdirSync(JS, { recursive: true }).filter((x) => x.endsWith('.js'))) {
   const t = fs.readFileSync(path.join(JS, f), 'utf8');
   for (const m of t.matchAll(re)) used.add(m[1]);
 }
+// ronde 4: de sleutels die FX_VERVANG en FX_OPNAME_ALLEEN koppelen tellen als gebruikt (de haken zelf bewaakt sfx_haken_test.mjs)
+for (const l of [...Object.values(FX_VERVANG), ...Object.values(FX_OPNAME_ALLEEN)]) for (const k of l) used.add(k);
 for (const k of used) ok(g[k], `sleutel ${k} uit de code staat in het manifest`);
 // de voetstappen (stap_<ondergrond>_<n>) worden in sfx/steps.js samengesteld; stappen_test.mjs bewaakt ze
 for (const k of SAMPLE_KEYS) ok(k.startsWith('stap_') || used.has(k), `${k} wordt in de code gebruikt`);
@@ -146,6 +148,48 @@ const fakeFetch = (files) => async (url) => {
   const z = createSamples(null, { fetchFn: null });
   await z.start();
   ok(z.buffer('auto_deur_open') === null, 'zonder ctx en zonder fetch: geen fout');
+}
+
+// -- opnames in de plaats van synth (FX_VERVANG, SFX ronde 3) -------------------------------------
+{
+  const { FX_INFO } = await import('../game/js/sfx/fxbank.js');
+  for (const [naam, sleutels] of Object.entries(FX_VERVANG)) {
+    ok(FX_INFO[naam] || FX_INFO[`${naam}_0`] || naam === 'train_horn', `FX_VERVANG: ${naam} is een effect van fxbank.js`);
+    for (const k of sleutels) ok(SAMPLE_INFO[k] && g[k], `FX_VERVANG: ${naam} -> ${k} staat in SAMPLE_INFO en in het manifest`);
+  }
+  // lussen van deze ronde: naadloos gemeten (sprong over de naad klein, geen niveaustap) en een piek onder -1 dB
+  const { GELUIDEN: RONDE3 } = await import('./audio/master_sfx_ronde3.mjs');
+  for (const k of Object.keys(RONDE3)) {
+    const m = g[k];
+    if (!m || !m.naad || !m.niveau) continue;
+    ok(m.naad.sprong_ratio < 1 && Math.abs(m.naad.niveaustap_db) < 2, `${k}: naad gemeten (sprong x${m.naad.sprong_ratio}, stap ${m.naad.niveaustap_db} dB)`);
+    ok(m.niveau.piek_db <= -1, `${k}: piek ${m.niveau.piek_db} dB onder -1`);
+  }
+  // ronde 4: opname-only effecten (geen synth in fxbank.js) en de manifest-eigenschappen van de nieuwe opnames
+  const { GELUIDEN: RONDE4 } = await import('./audio/master_sfx_ronde4.mjs');
+  for (const [naam, sleutels] of Object.entries(FX_OPNAME_ALLEEN)) {
+    ok(!FX_INFO[naam] && !FX_VERVANG[naam], `FX_OPNAME_ALLEEN: ${naam} heeft geen synth (anders hoort hij in FX_VERVANG)`);
+    for (const k of sleutels) ok(SAMPLE_INFO[k] && g[k], `FX_OPNAME_ALLEEN: ${naam} -> ${k} staat in SAMPLE_INFO en in het manifest`);
+  }
+  let kb4 = 0;
+  for (const k of Object.keys(RONDE4)) {
+    const m = g[k];
+    ok(m && SAMPLE_INFO[k], `ronde 4: ${k} staat in manifest en SAMPLE_INFO`);
+    if (!m) continue;
+    kb4 += m.grootte_kb;
+    ok(m.herkomst && /^Creative Commons (0|Attribution (3|4).0)/.test(m.herkomst.licentie), `ronde 4: ${k} heeft een toegestane licentie`);
+    ok(m.duur_s > 0.05 && m.duur_s < 4, `ronde 4: ${k} is kort (${m.duur_s} s)`);
+    ok(m.niveau.piek_db <= -1, `ronde 4: ${k} piek ${m.niveau.piek_db} dB onder -1`);
+    ok(!m.loop, `ronde 4: ${k} is geen lus`);
+  }
+  ok(kb4 < 1500, `ronde 4: samen ${Math.round(kb4)} kB, onder de 1,5 MB`);
+  ok(vervangSleutel('ei_breuk', (k) => k === 'ei_breuk_1', () => 0) === 'ei_breuk_1', 'een opname-only effect vindt zijn sleutel');
+  ok(vervangSleutel('kratten_klets', () => false) === null, 'opname-only zonder geladen opname: null (stil)');
+  ok(vervangSleutel('winkel_kassa_1', () => true) === 'kassa_koop', 'een variant (_1) vindt de vervanging van de basisnaam');
+  ok(vervangSleutel('winkel_kassa_0', () => false) === null, 'niet geladen: null (de synth blijft)');
+  ok(vervangSleutel('bestaat_niet', () => true) === null, 'onbekende naam: null');
+  ok(vervangSleutel('firework_burst_2', (k) => k === 'vuurwerk_knal_1', () => 0) === 'vuurwerk_knal_1', 'alleen een geladen sleutel wordt gekozen');
+  ok(vervangSleutel('splash_big', null) === null, 'zonder has-functie: null');
 }
 
 console.log(fails ? `sfxsamples_test: ${fails} fouten van ${n}` : `sfxsamples_test: ok (${n} controles)`);

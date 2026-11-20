@@ -21,6 +21,9 @@ const STEAM = path.join(ROOT, 'docs', 'steam', 'beelden', 'screenshots');
 const BESTANDEN = [
   ['index.html', path.join(WEBSITE, 'index.html')],
   ['style.css', path.join(WEBSITE, 'style.css')],
+  // Zelf gehoste lettertypen (OFL, ADR 0040): geen Google Fonts, geen extern verzoek.
+  ...['AtkinsonHyperlegible-Regular.ttf', 'AtkinsonHyperlegible-Bold.ttf', 'BarlowCondensed-SemiBold.ttf', 'BarlowCondensed-ExtraBold.ttf', 'LICENSE.md']
+    .map((naam) => ['fonts/' + naam, path.join(WEBSITE, 'fonts', naam)]),
   ['favicon.svg', path.join(ROOT, 'desktop', 'resources', 'icon.svg')], // het eigen app-icoon uit de repo
   ['img/stad-nacht.webp', path.join(ROOT, 'docs', 'screenshots', 'stad-nacht.webp')],
   ['img/kaart-provincie.webp', path.join(ROOT, 'docs', 'screenshots', 'kaart-provincie.webp')],

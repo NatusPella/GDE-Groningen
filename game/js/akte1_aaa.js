@@ -21,6 +21,7 @@ import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } f
 import { startCameraTake, stopCameraTake } from './cinematics.js';
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js';
 import { stingen } from './sfx/stingen.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: startsein en publiek
 import { finishSting, bijnaMoment, finishPose, FINISHCAM_SECS } from './akte1_plan.js';
 
 const ARENA_BOUW_AFSTAND = 90; // m: dichterbij bouwen we de arena (de tegels staan er dan, zo staat hij op de grond)
@@ -34,7 +35,7 @@ const zeg = (fn) => { try { return fn(); } catch (e) { return null; } }; // aank
 export function aaaStart(world, def, opties = {}) {
   aaaOpruimen(world);
   if (!def) return null;
-  H = { scene: opties.scene || null, id: def.label || '', kaart: null, kei: null, arena: null, arenaKlaar: false, bijna: false, cam: null, camT: 0, finish: null };
+  H = { scene: opties.scene || null, id: def.label || '', kaart: null, kei: null, arena: null, arenaKlaar: false, bijna: false, startKlaar: false, cam: null, camT: 0, finish: null };
   if (def.kaart && def.type !== 'stages') H.kaart = zeg(() => startKaart(def, `${def.label || 'm'}:def`));
   const route = KEI_ROUTE_LIJST(def);
   if (route) {
@@ -56,6 +57,7 @@ export function aaaTik(world, def, dt, ctx = {}) {
   if (H.kaart) toonRegelkaart(world, H.kaart, dt);
   if (H.kei) {
     const race = ctx.race;
+    if (race && race.phase === 'race' && !H.startKlaar) { H.startKlaar = true; const s = H.kei.plan.start; haakFx(world, 'startsein_toeter', s && s.x, s && s.y); } // het groene licht
     zeg(() => updateCheckpointRaceDecor(H.kei, dt, focus, race ? raceLichtTijd(race.phase, race.timer) : -1));
   }
   if (def && def.stunt && ctx.stunt && !H.arenaKlaar) {
@@ -82,6 +84,7 @@ export function aaaCheckpoint(world, def, wp, info = {}) {
   if (!info.last) { stingen.push(world, 'stap'); return; }
   const medaille = finishSting(info.plek);
   if (medaille) stingen.push(world, medaille);
+  if (H.finish) { haakFx(world, 'publiek_gejuich', H.finish.x, H.finish.y); if (medaille) haakFx(world, 'publiek_applaus', H.finish.x, H.finish.y, { delay: 0.5 }); } // het publiek bij de finishboog
   if (H.finish && medaille) {
     const p = hoofdspeler(world);
     const fin = H.finish;

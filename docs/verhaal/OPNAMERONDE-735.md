@@ -21,7 +21,7 @@ Rotor Roelf (2); geen daarvan heeft al een spreektekst in `gronings_spoken.json`
 | Meting | Uitkomst |
 |---|---|
 | Verhaalregels zonder stem | **67** (waarvan **37** stille appjes, **10** herschreven Tessa-regels uit #987 die klaar staan en **20** die nog op een Groningse spreektekst wachten) |
-| Klaar in de wachtrij (`scripts/tts_lines.json`) | **10** jobs — de herschreven Tessa-regels van de opening en M01-M03 (#987, Nederlands, `lang: own`); de ronde van #924 is eerder opgenomen (ca. $0,27) |
+| Klaar in de wachtrij (`scripts/tts_lines.json`) | **0** jobs — de herschreven Tessa-regels van de opening en M01-M03 (#987) zijn opgenomen (commit 7277a5a9c, 30 clips); de ronde van #924 is eerder opgenomen (ca. $0,27) |
 | Wacht op een stemkeuze (`scripts/tts_lines_list.mjs` CAST) | **0** regels — de zeventien sprekers hebben sinds 7-11 een stem (`docs/verhaal/STEMKEUZE-VOORSTEL.md`) |
 | Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **20** regels |
 | `node scripts/voice_coverage.mjs --quiet` | **2651/2651 ok**, 66 regels alleen tekst (vrijgesteld) |
@@ -64,7 +64,7 @@ LITELLM_API_KEY=sk-...            # de virtuele sleutel van de LiteLLM-gateway
 `python scripts/gemini_tts.py` toont daarna gateway, pad en of het model in de lijst staat
 (zonder de sleutelwaarde te tonen). Zonder sleutel werkt alleen de droogloop.
 
-### 1. Nu opnemen: de wachtrij (nu 10 jobs)
+### 1. Nu opnemen: de wachtrij (nu 0 jobs: alles is opgenomen)
 
 Eén commando voor de hele ronde (dezelfde stappen, stopt bij de eerste fout; leest geen sleutel
 en print hem niet):

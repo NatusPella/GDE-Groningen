@@ -100,8 +100,8 @@ const BOOT_LINES = [
 
 export function initLoading() {
   showVersion();
-  // the fonts load now, so the logo never swaps typefaces mid-animation
-  try { if (document.fonts && document.fonts.load) { document.fonts.load('40px "Bebas Neue"'); document.fonts.load('900 40px "Big Shoulders Display"'); } } catch (e) { /* ignore */ }
+  // the self-hosted fonts load now, so the logo never swaps typefaces mid-stamp
+  try { if (document.fonts && document.fonts.load) { document.fonts.load('800 40px "Barlow Condensed"'); document.fonts.load('400 20px "Atkinson Hyperlegible"'); } } catch (e) { /* ignore */ }
   const status = document.querySelector('#loading .ld-status');
   if (status) {
     let i = 0;

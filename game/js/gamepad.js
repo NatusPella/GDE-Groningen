@@ -14,6 +14,8 @@ import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
 import { radialDeadzone, pickPad, spatialNext, DEAD } from './padlogic.js';
 import { noteDevice, onDeviceChange } from './inputdevice.js';
+import { hapticScale, hapticFrame, makeHapticState, eventProfile, drainHapticEvents, playHaptic } from './haptics.js';
+import { reducedMotion } from './motion.js';
 
 const TRIGGER_ON = 0.35;
 const TRIGGER_OFF = 0.2;
@@ -45,8 +47,8 @@ let captureBlock = new Set();
 let slotMap = buttonSlots({});
 const listeners = new Set();
 let sprintLatch = false;
-let lastHealth = null;
-let lastSpeed = null;
+
+
 let rumbleUntil = 0;
 
 export function onPadChange(cb) {
@@ -106,19 +108,14 @@ export function capturePadButton(cb) {
   return () => { if (capture === cb) capture = null; };
 }
 
-// Short vibration if the controller has a motor and the player wants it.
+// Vibration via haptics.js: the setting 'rumble' (on/off), 'rumbleStrength' and 'Beweging beperken' decide.
 function rumble(strong = 0.5, weak = 0.5, ms = 150) {
-  if (!active || !getSettings().rumble) return;
+  if (!active) return;
+  const scale = hapticScale({ ...getSettings(), reduceMotion: reducedMotion() });
+  if (!(scale > 0)) return;
   const now = performance.now();
   if (now < rumbleUntil - ms * 0.5) return;
-  const pad = currentPad();
-  const act = pad && pad.vibrationActuator;
-  if (!act || !act.playEffect) return;
-  rumbleUntil = now + ms;
-  try {
-    const p = act.playEffect('dual-rumble', { startDelay: 0, duration: ms, strongMagnitude: Math.min(1, strong), weakMagnitude: Math.min(1, weak) });
-    if (p && p.catch) p.catch(() => {});
-  } catch (e) { /* not supported */ }
+  if (playHaptic(currentPad(), strong * scale, weak * scale, ms)) rumbleUntil = now + ms;
 }
 
 function currentPad() {
@@ -351,22 +348,37 @@ function anyInput(pad) {
   return false;
 }
 
-function watchFeel() {
+const feelState = makeHapticState();
+const feelSnap = { hp: 0, speed: null, kind: '', ground: '', slip: 0, money: 0, wanted: 0, impact: null, melee: null, kickFov: 0, inVehicle: false };
+
+function vehicleKind(v) {
+  return v.isHeli ? 'heli' : v.isPlane ? 'plane' : v.isBoat ? 'boat' : v.isBus ? 'bus' : v.isBike || v.isScooter ? 'bike' : 'car';
+}
+
+function playQueued(name, k) {
+  const p = eventProfile(name, k, 1);
+  rumble(p.strong, p.weak, p.ms);
+}
+
+function watchFeel(dt) {
   const w = world;
-  if (!w || ctx === 'menu') { lastHealth = null; lastSpeed = null; return; }
-  const hp = (w.health || 0) + (w.armor || 0);
-  if (lastHealth != null && hp < lastHealth - 1.5) {
-    const k = Math.min(1, (lastHealth - hp) / 40);
-    rumble(0.35 + k * 0.6, 0.5 + k * 0.4, 120 + k * 220);
-  }
-  lastHealth = hp;
-  const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
-  const sp = v && Number.isFinite(v.speed) ? v.speed : null;
-  if (sp != null && lastSpeed != null && Math.abs(sp - lastSpeed) > 4.5) {
-    const k = Math.min(1, (Math.abs(sp - lastSpeed) - 4.5) / 12);
-    rumble(0.5 + k * 0.5, 0.4 + k * 0.4, 160 + k * 260);
-  }
-  lastSpeed = sp;
+  if (!w || ctx === 'menu' || !active) { feelState.hp = null; feelState.speed = null; feelState.money = null; return; }
+  const scale = hapticScale({ ...getSettings(), reduceMotion: reducedMotion() });
+  const sn = feelSnap, me = hoofdspeler(w), v = me && me.inVehicle;
+  sn.hp = (w.health || 0) + (w.armor || 0);
+  sn.speed = v && Number.isFinite(v.speed) ? v.speed : null;
+  sn.kind = v ? vehicleKind(v) : '';
+  sn.ground = v ? v.ground || '' : '';
+  sn.slip = v && Number.isFinite(v.slipAngle) ? v.slipAngle : 0;
+  sn.money = w.money || 0;
+  sn.wanted = w.wanted || 0;
+  sn.impact = w.lastImpact || null;
+  sn.melee = w.lastMeleeHit || null;
+  sn.kickFov = w.camKick ? w.camKick.fov || 0 : 0;
+  sn.inVehicle = !!v;
+  const o = hapticFrame(feelState, sn, dt, scale > 0 ? 1 : 0); // rumble() applies the scale
+  if (o.ms > 0) rumble(o.strong, o.weak, o.ms);
+  if (scale > 0) drainHapticEvents(playQueued);
 }
 
 // B (1) or Start (9) on any connected pad: the controller's way to stop the
@@ -448,7 +460,7 @@ function poll(now) {
     menuFallback(key, ev);
   }
   sticks(pad, dt);
-  watchFeel();
+  watchFeel(dt);
 }
 
 // hooks: { menuOpen, phoneOpen, pauseOpen, mapOpen } from main.js

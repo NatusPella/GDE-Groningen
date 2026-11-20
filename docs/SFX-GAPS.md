@@ -124,3 +124,42 @@ varianten en de gelijkmatigheid van de lagen; draait `ui.js` met een nagemaakte 
 aantal gelijktijdige stemmen in een scenario van twee minuten); test de streekregels en eist dat elk nieuw geluid hier genoemd wordt.
 `node scripts/sfx_stingen_test.mjs` doet hetzelfde voor de missie-stings, de kassa en de ov-bel (plus toonladder, rangorde, afkoeltijd, spraakdemping en stemmen).
 `sfx_test.mjs`, `sfx_audit_test.mjs` en `sfx_linkups_test.mjs` nemen ze mee via `FX_INFO` en `SELF_PUSHED`.
+
+## SFX ronde 3 (#988): opnames in de plaats van synth
+
+Van Freesound (CC0 en CC-BY, ADR 0039; bronnen in [AUDIO-LICENTIES.md](AUDIO-LICENTIES.md)), bewerkt met `scripts/audio/master_sfx_ronde3.mjs`. De koppeling loopt via `FX_VERVANG` in `sfx/samples.js`:
+`playFx` (audio.js) en `uiFx` (sfx/ui.js) nemen een geladen opname in plaats van het synthgeluid, zonder opname blijft de synth. Gekoppeld: winkelkassa, winkelbel, houten deuren en huisdeur dicht,
+grote plons, scheepshoorn, fototoestel, alarm, vuurwerkbom, remmende trein, treinhoorn, tram- en busbel, busdeur; dieren (koe, schaap, paard, eend, meeuw; overdag, 's nachts zwijgen ze meestal);
+lussen: golfjes langs de oever, menigtegemurmel, kikkers in de zomernacht, de kermis op de Grote Markt, de stad in de nacht en de kamertoon in de flat; een dieselmotor onder de synth van trekker en bus; de menuklik.
+
+Nog open (geen geschikte opname gevonden of geen koppelpunt): treinritme over de rails en optrekken, omroepbel in het station, halteknop, richtingaanwijzer, zwemslagen, ploegen en zaaien en de maaidorser,
+politiesirene met doppler (de procedurele blijft), kantoor en kroeg binnen (het spel kent alleen de flat als binnenruimte), applaus en gejuich van het publiek, draaiorgel, UI-fout en -hover.
+Niets is beluisterd: zie [SFX-LUISTERLIJST.md](SFX-LUISTERLIJST.md).
+
+## SFX ronde 4 (#988): opnames voor de missie-polish
+
+Vijfentwintig kleine opnames (CC0, op een na; `kaartje_schuif` is CC BY 3.0; bronnen in [AUDIO-LICENTIES.md](AUDIO-LICENTIES.md)), samen ca. 0,4 MB, bewerkt met `scripts/audio/master_sfx_ronde4.mjs`. Gekozen op titel en meting (`sfx_analyse.mjs`), **niet beluisterd**.
+Twee soorten koppeling, beide in `sfx/samples.js`:
+
+- **Naast een synthgeluid** (`FX_VERVANG`, de synth blijft de terugval): `ui_weiger` krijgt een zachte foutklank (`ui_fout`), `ui_uitgave` munten, `hengel_vangst` een draaiende haspel, `horeca_hap` een kopje op een schotel.
+- **Alleen opname** (`FX_OPNAME_ALLEEN`, zonder opname blijft het stil): een kleine haak in de spelcode (`sfx/haken.js`: `haakFx` voor een plek in de wereld, `haakUi` voor de UI-bus; een leaf, dus geen importcyclus) zegt waar het hoort.
+
+| Waar | Geluid | Haak |
+| --- | --- | --- |
+| Een regelkaart verschijnt (doel of regel) | `kaartje_schuif` (zacht papier) | `regelkaart.js` (`toonRegelkaart`) |
+| Wachtstap klaar (hold met wachtfiguur) | `omroep_ding` | `missions.js` (hold) |
+| Race M05: groen licht, finish | `toeter_start`, `gejuich_0/1`, `applaus_klein` bij een medaille | `akte1_aaa.js` |
+| Skutsje-sprint en bruggenrace: startsein; brugsein | `toeter_start`; `fluitje` | `pg_skutsje.js`, `pg_bruggenrace.js` |
+| Laatste 10 s van een klok | `klok_tik` onder de piepjes | `audio.js` (`playTimeWarning`) |
+| Pannenkoeken: een pannenkoek geserveerd | `bel_uitslag` | `pannenkoek.js` |
+| Eierkratten: een ei breekt, een zware stoot | `ei_breuk_0/1`, `kratten_klets` | `missions.js` (`updateEggs`) |
+| Bietenhal (A1): oplegger kantelt, weegbrug | `hydrauliek_sis`, `weegbrug_klik` | `bietenhal.js` |
+| Krantenwijk: worp, brievenbus raak | `worp_lucht`, `brievenbus_klep` | `sidejob_krantenwijk.js` |
+| Stoomtrein M19: nadert het perron | `stoomfluit` (via `train_horn` met `steam: true`), `omroep_ding` | `stagerit.js`, `audio.js` |
+| Hengelen: een vis binnengehaald | `haspel_draai` (naast `hengel_vangst`), `dobber_plons` | `hengelen.js` |
+
+Samen spelen: alle haken zijn lokaal (elke speler hoort ze van zijn eigen scherm, door de eigen wereldrij); er gaat niets over het net, en er is geen beloning of voortgang. De opener en de gast hoorden al hetzelfde van de missies zelf; een gast hoort de haak van een stap alleen als zijn eigen apparaat die stap draait. De test is `scripts/sfx_haken_test.mjs`.
+
+**Niet gelukt of niet gekoppeld (ronde 4).** Geen geschikte opname gevonden: zwemslagen (alleen sprongen en plonzen), kartonnen doos neerzetten, kauwgom en eten, een echte scheidsrechtersfluit (`fluitje` is een lichte fluittoon).
+Wel een opname gevonden en bewerkt, maar zonder koppelpunt en daarom weer uit het spel gehaald: deurbel, sleutelbos, sms-tik, glas en tegel die breken, druppels na het zwemmen, een val, een piepje voor een afstandsmeter en een hovergeluid (de menutik gebruikt al `ui_klik`).
+Ook open: omroepbel bij een gewone halte of station buiten M19, publiek bij start en finish van Samen-spelen-uitslagen (geen publiek-object daar), kermis en pannenkoeken bakken (sissen bestaat als synth), een eigen UI-fout bovenop `ui_weiger`.

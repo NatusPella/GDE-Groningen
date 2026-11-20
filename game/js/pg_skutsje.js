@@ -13,6 +13,7 @@ import { weerWindVan } from './zeilrules.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 import { skutsjePubliek, sprintBijna, brugSeinNodig } from './akte2_plan.js';
 import { stingen } from './sfx/stingen.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: startsein en brugsein
 import { startCameraTake, stopCameraTake } from './cinematics.js';
 import { finishPose, finishBeeldWeg } from './akte1_plan.js';
 import { getMovableBridges, requestOpening, boatNeedsOpening, boatFrame, openingLead } from './movablebridges.js';
@@ -320,7 +321,7 @@ export const SKUTSJE = {
     if (voor) {
       if (bridgeAsks(voor.b.state) && bridgeInTime(voor, boat.speed)) {
         requestOpening(voor.b, boat);
-        if (d.go && brugSeinNodig(d.bruggen, voor.b, voor.b.state)) stingen.push(w, 'stap'); // het brugsein: de brug gaat open, wacht even
+        if (d.go && brugSeinNodig(d.bruggen, voor.b, voor.b.state)) { stingen.push(w, 'stap'); haakFx(w, 'startsein_fluit'); } // het brugsein: de brug gaat open, wacht even
       }
       if (d.go && bridgeWaits(voor.b.state, voor.w) && run.t - (d.bridgeSaid || -99) > 8) {
         d.bridgeSaid = run.t;
@@ -346,7 +347,7 @@ export const SKUTSJE = {
       w.startLockUntil = d.count > 0 ? w.time + 0.25 : 0;
       if (d.count <= 1 && !d.said) { d.said = 1; jelle(run, 'go', true); }
       w.addMessage(d.count > 0.5 ? String(Math.ceil(d.count - 0.5)) : 'SEIL LOS!', 0.4, { key: 'pg-count', exact: true });
-      if (d.count <= 0) { d.go = true; stingen.push(w, 'start'); } // het startsein
+      if (d.count <= 0) { d.go = true; stingen.push(w, 'start'); haakFx(w, 'startsein_toeter'); } // het startsein
       placeJelle(run, 0, wf);
       setTarget(d.cps[0]);
       return;

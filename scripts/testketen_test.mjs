@@ -18,7 +18,7 @@ const ok = (c, m, info = '') => { n++; if (!c) { console.log('FAIL ' + m + (info
 // 1. de coop-tests: elk bestand wordt door de wrapper gedraaid, de bekende kapotte staan erin met reden
 const coop = fs.readdirSync(path.join(ROOT, 'scripts', 'coop')).filter((f) => /_test\.mjs$/.test(f)).sort();
 const wrapper = lees('scripts/coop_licht_test.mjs');
-ok(coop.length === 15, 'alle 15 coop-tests gevonden', String(coop.length));
+ok(coop.length >= 15, 'minstens de 15 bekende coop-tests gevonden (nieuwe tests mogen erbij)', String(coop.length));
 ok(/readdirSync\(COOP\)/.test(wrapper) && /_test\\?\.mjs\$/.test(wrapper.replace(/_test\\?\.mjs\$/, '_test\\.mjs$')), 'de wrapper scant de coop-map (geen vaste lijst die achterloopt)');
 ok(/BEKEND_KAPOT/.test(wrapper), 'de wrapper heeft een bekende-kapot-lijst');
 const bekend = [...wrapper.matchAll(/'([a-zA-Z0-9_]+_test\.mjs)':/g)].map((m) => m[1]);

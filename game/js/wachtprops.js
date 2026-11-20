@@ -8,6 +8,7 @@
 // heeft three.js en de scène nodig.
 import * as THREE from 'three';
 import { getScene } from './scene3d.js';
+import { hoofdspeler } from './players.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { neutralPose, applyPose, makeRng } from './actoranim.js';
 
@@ -185,7 +186,7 @@ export function buildWaitDressing(st, target, radius = 3.5, world = null) {
   if (!scene || !target) return null;
   // een doel op een brugdek (M20: deur twee en drie in Bourtange): met de hoogte van de speler die er al staat als hint pakt de kring het dek,
   // met hint 0 lag hij op het water eronder
-  const pl = world && world.player;
+  const pl = world && hoofdspeler(world);
   const hint = pl && Number.isFinite(pl.z) && Math.hypot(pl.x - target.x, pl.y - target.y) < Math.max(12, radius + 4) ? pl.z : 0;
   const base = world && world.map && world.map.groundHeightAt ? (world.map.groundHeightAt(target.x, target.y, hint) || 0) : (target.z || 0);
   const group = new THREE.Group();

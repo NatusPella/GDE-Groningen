@@ -220,7 +220,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
             { ...kermisAt(260, 260), r: 55, lo: 18, hi: 140, label: 'Trek op na de kermis', say: 'Voorbij de kermis. Nu terug naar de strook.' },
           ],
         },
-        { kind: 'landplane', label: 'Land op de strook bij Roelfien', say: 'Terug naar de strook. Gas eraf, neus iets omlaag, en rem met Shift als je staat.', crashed: 'het vliegtuig is neergestort. Roelfien is niet blij' },
+        { kind: 'landplane', label: 'Land op de strook bij Roelfien', say: 'Terug naar de strook. Gas terug maar niet helemaal eraf (houd ongeveer 90 km/u aan), neus iets omlaag, en rem met Shift als je staat.', crashed: 'het vliegtuig is neergestort. Roelfien is niet blij' },
       ],
     },
   );

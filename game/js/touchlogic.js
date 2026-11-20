@@ -179,7 +179,8 @@ const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 // de ruit van de rechterduim de plek van het roer: links en rechts het roer (Q en E, dezelfde toetsen als op het pad
 // en het toetsenbord), boven en onder de neus. Deze volgorde vult die ruit; de D-pad-plekken staan dus vóór de
 // gezichtsknoppen. Het gestel schuift naar de vijfde, hoge plek en blijft met één aanraking bereikbaar.
-const SLOT_ORDER = { plane: ['left', 'a', 'b', 'right', 'x'] };
+// #850: de eerste plek van de ruit (SPOTS_RIGHT) is de buitenste, dus Roer rechts komt eerst en Roer links staat links.
+const SLOT_ORDER = { plane: ['right', 'a', 'b', 'left', 'x'] };
 // En aan welke kant zo'n plek staat: de D-pad van de kist hoort bij de duim van de rechterhand, want die stuurt daar
 // het roer (de linkerduim houdt de stick).
 const SLOT_SIDE = { plane: { left: 'right', right: 'right' } };

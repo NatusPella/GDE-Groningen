@@ -61,7 +61,7 @@ ok(iStart !== -1 && /markLoad\('gameStart'\)/.test(main.slice(iStart, iStart + 2
 const scene = read('game/js/scene3d.js');
 ok(/prewarmStreamAt\(x, y, secs = 4, radius = PREWARM_R\)/.test(scene), 'de prewarm heeft een eigen radius');
 ok(/export function prewarmPending\(\)/.test(scene), 'scene3d kan zeggen hoeveel voorlaadwerk er nog openstaat');
-ok(/export function precompilePrograms\(\)/.test(scene) && /precompile\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren');
+ok(/export function precompilePrograms\(/.test(scene) && /precompile\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren');
 ok(/export function setCinematicBatches/.test(scene) && /function drainCineBatches/.test(read('game/js/scene3d.js')), 'scene3d kan batches tijdens de film gespreid compileren en tonen');
 ok(/setCinematicBatches\(true\)/.test(read('game/js/intromontage.js')) && /setCinematicBatches\(false\)/.test(read('game/js/intromontage.js')), 'de film zet de gespreide batches aan en na de film weer uit');
 ok(/for \(const p of programs\.values\(\)\) if \(!programLinked\(p\)\)/.test(scene) && /programLinked\(p\)/.test(read('game/js/scene3d.js')), 'batches wachten niet-blokkerend op shaderlinks (geen secondenfreeze in het eerste filmbeeld)');
@@ -77,7 +77,7 @@ ok(/START_WARM_MAX_FRAME_MS/.test(main) && /slowRun = frameMs > START_WARM_MAX_F
 ok(/calm = open === 0 && slowRun === 0/.test(warmBody), 'pas door als tellers én frametijd rustig zijn');
 ok(/\(readyDone \? 0 : 1\)/.test(warmBody) && /window\.__loadMarks\.background/.test(warmBody), 'de warm-stap wacht op de achtergrondstappen (plaatsing en kaartbeelden) en met de klok mee');
 ok(/function warmCountryMaps\(sliceMs = 4\)[\s\S]{0,120}return new Promise/.test(read('game/js/countrymap.js')), 'warmCountryMaps kan zijn klaar-zijn melden');
-ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
+ok(/precompilePrograms\(/.test(warmBody), 'de warm-stap compileert daarna de shaders');
 ok(/export function setHoldMaterials/.test(scene) && /heldMaterials\.add\(m\)/.test(read('game/js/scene3d.js')), 'scene3d houdt materialen vast tijdens het voorrijden');
 ok(/export function setHoldGrass/.test(read('game/js/grass.js')) && /setHoldGrass\(true\)/.test(warmBody), 'de graschunks van de montageplekken blijven staan tot de film klaar is');
 ok(/setHoldGrass\(false\)/.test(read('game/js/intromontage.js')), 'na de montage komen de graschunks weer vrij');

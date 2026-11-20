@@ -1,3 +1,4 @@
+import { hapticEvent } from './haptics.js';
 import { screenFx } from './postfx3d.js';
 import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
@@ -26,7 +27,8 @@ import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
 import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
-import { hoofdspeler } from './players.js';
+import { hoofdspeler, isGast } from './players.js';
+import { showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied } from './bigmoment.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
@@ -177,9 +179,10 @@ export function initCinematics(w) {
 
   w.onRespawn.push((wd, { busted }) => {
     if (respawnFromCine) return;
+    const moment = showBigMoment({ ...momentVanOpgepakt({ busted }), gast: isGast(wd), eigen: true });
     playCinematic({
       id: 'respawn-card', priority: 4, duration: 1.8, letterbox: false, skippable: true,
-      tint: busted ? 'bust' : 'death', big: busted ? 'OPGEPAKT' : 'DOOD', hideHud: false,
+      tint: busted ? 'bust' : 'death', big: moment ? '' : busted ? 'OPGEPAKT' : 'DOOD', hideHud: false,
     });
   });
 
@@ -643,7 +646,10 @@ function checkTriggers(dt, w) {
   if (w.pendingRespawn && !w.pendingRespawn.scene && !isCinematicActive('death')) playDeath(w, w.pendingRespawn);
 
   const wantedUp = w.wanted >= 5 && prevWanted < 5;
+  const wantedMoment = momentVanWanted(prevWanted, w.wanted);
   prevWanted = w.wanted;
+  // #996: a short tag at the edge; never over a cutscene or a respawn, and the host's wanted level is not a guest's moment
+  if (wantedMoment && !active && !w.pendingRespawn && momentsOn()) showBigMoment({ ...wantedMoment, gast: isGast(w), eigen: !isGast(w) });
   if (wantedUp && momentsOn() && !active && !aloft(w) && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
 
   const imp = w.lastImpact;
@@ -700,6 +706,7 @@ function checkOmmelanden(w) {
   if (aloft(w) || !mayInterrupt('ommelanden', w)) return;
   noteMoment('ommelanden');
   seen.add(OMMELANDEN);
+  showBigMoment({ ...momentVanGebied('Ommelanden', 'Koeien, sloten en een horizon. Heerlijk.'), gast: isGast(w), eigen: true });
   playOmmelanden(w);
 }
 
@@ -1054,6 +1061,8 @@ function showWijkCard(w, wijk, left = 30) {
   wijkCardEl.classList.remove('on');
   void wijkCardEl.offsetWidth;
   wijkCardEl.classList.add('on');
+  // #996: a first visit is a place-name stamp; the old card stays for its timing and the overlay hold, unseen
+  wijkCardEl.classList.toggle('bm-vervangen', !!showBigMoment({ ...momentVanGebied(wijk.name, text), gast: isGast(w), eigen: true }));
   const v = lineVoiceFor('', text);
   if (v) playStoryVoice(v.src, {});
   clearTimeout(wijkCardT);
@@ -1172,9 +1181,10 @@ function playDeath(w, pending) {
   ];
   const DUR = 3.2;
   const shot = pathShot(clearKeys(w, keys), easeOut);
+  const moment = showBigMoment({ ...momentVanOpgepakt({ busted: opts.busted, geld: opts.moneyPenalty }), gast: isGast(w), eigen: true });
   playCinematic({
     id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
-    tint: opts.busted ? 'bust' : 'death', big: opts.busted ? 'OPGEPAKT' : 'DOOD',
+    tint: opts.busted ? 'bust' : 'death', big: moment ? '' : opts.busted ? 'OPGEPAKT' : 'DOOD',
     shot: cameraFit(w, (u, t) => {
       if (t > DUR - 0.45) links.respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
       return shot(u);
@@ -1357,11 +1367,18 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stats = [] }) {
+// #996: the result is a big moment (bigmoment.js). eigen / gezamenlijk / deelnemer say whose result it is
+// for a guest (Samen spelen): a guest's own activity is eigen (the default), a result of a joint mission
+// is gezamenlijk and shows only to a guest who joined (deelnemer).
+export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stats = [], eigen = true, gezamenlijk = false, deelnemer = false }) {
   if (!els) return;
   const b = els.banner;
   // the same result already up (scene start, then a fallback): once is enough
   if (banner && !b.hidden && b.dataset.kind === kind && els.bTitle.textContent === title) return;
+  hapticEvent(kind === 'pass' ? 'pass' : 'fail');
+  const moment = showBigMoment({ ...momentVanBanner({ kind, title, reason, reward }), gast: isGast(world), eigen: eigen && !gezamenlijk, gezamenlijk, deelnemer });
+  b.classList.toggle('bm-vervangen', !!moment);
+  b.classList.toggle('bm-geen-cijfers', !!moment && !(stats && stats.length));
   b.dataset.kind = kind;
   els.bTitle.textContent = title;
   els.bReason.textContent = reason;

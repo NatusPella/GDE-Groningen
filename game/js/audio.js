@@ -8,11 +8,11 @@ import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js'
 import { FX_INFO } from './sfx/fxbank.js';
 import { plan as mixPlan, speechDuckFactor, categoryLevel } from './sfx/mixplan.js';
 import { createLinkups } from './sfx/linkups.js';
-import { createSamples, SAMPLE_INFO, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
+import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
-import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
+import { initUiSfx, uiFx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { keysReady, PLANE_KEYS, BOAT_KEYS } from './sfx/aircraft.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
@@ -546,6 +546,9 @@ const FX_MIN_GAP = 0.12;
 const fxStats = { played: 0, notReady: 0, far: 0, noOut: 0, gap: 0 };
 export function sfxStats() { return { ...fxStats, size: bank ? bank.size() : -1, pending: bank ? bank.pending() : -1, ready: bank ? Object.keys(FX_INFO).filter((n) => bank.has(n)).length : 0, total: Object.keys(FX_INFO).length }; }
 function playFx(name, x, y, opts = {}) {
+  // een opname in plaats van de synth (sfx/samples.js FX_VERVANG, SFX ronde 3): alleen als hij geladen is
+  const rec = samples ? vervangSleutel(name, (k) => samples.has(k)) : null;
+  if (rec && ctx) return playSample(rec, x, y, { gain: opts.gain });
   const info = FX_INFO[name] || FX_INFO[`${name}_0`];
   if (!ctx || !bank || !info) return false;
   // the same effect twice within a blink (two events for one thing) is one
@@ -802,7 +805,9 @@ function playCrossingBell(x, y) {
   playNoiseBurst({ duration: 0.015, freq: 4200, q: 2, gain: 0.24, type: 'bandpass', out });
 }
 
-function playTrainHorn(x, y) {
+function playTrainHorn(x, y, steam = false) {
+  if (steam && playFx('stoomfluit', x, y)) return;   // ronde 4: de stoomfluit van de museumtrein (M19), anders de gewone hoorn
+  if (playFx('train_horn', x, y)) return;   // de opname (samples.js FX_VERVANG), anders de synth hieronder
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.8, range: 260, h: 3 });
   if (!out) return;
   playTone({ freq: 370, type: 'sawtooth', duration: 0.55, gain: 0.16, filterFreq: 1400, out });
@@ -1527,6 +1532,7 @@ export function playTimeWarning(urgent = false) {
   if (!ctx || muted || !uiBus) return;
   const n = urgent ? 3 : 2, f = urgent ? 1318.5 : 987.8;
   for (let i = 0; i < n; i++) playTone({ freq: f, type: 'sine', duration: 0.08, gain: 0.035, delay: i * 0.14, bus: uiBus, prio: 2 });
+  if (urgent) uiFx('klok_tik'); // ronde 4: een echte klok-tik onder de piepjes (alleen bij de laatste 10 s)
 }
 
 // One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
@@ -1920,11 +1926,18 @@ const boatSamplesReady = () => keysReady(kit, BOAT_KEYS);
 
 // A recorded idle loop under the engine synth of a passenger car (#988, sfx/samples.js motor_auto_stationair): the body of a real engine at idle
 // and low revs, pitched with the rpm and faded out as the revs climb, so the worklet carries the rest. ENGINE_LAYER_ON switches it off.
-const ENGINE_LAYER_ON = true, ENGINE_LAYER_KINDS = new Set([0, 1, 5, 6, 10]);
+// Kind 2 (de bus en de trekker, een traag diesel) krijgt een eigen lus: motor_diesel_stationair (SFX ronde 3, de trekker op stationair).
+const ENGINE_LAYER_ON = true, ENGINE_LAYER_KINDS = new Set([0, 1, 2, 5, 6, 10]);
+const engineLayerKey = (kind) => (kind === 2 ? 'motor_diesel_stationair' : 'motor_auto_stationair');
 let engineLayer = null;
-function updateEngineLayer(dt, on, rpm, spec, muffle) {
+function updateEngineLayer(dt, on, rpm, spec, muffle, key = 'motor_auto_stationair') {
   const t = ctx.currentTime;
-  const buf = ENGINE_LAYER_ON && samples && samples.buffer('motor_auto_stationair');
+  const buf = ENGINE_LAYER_ON && samples && samples.buffer(key);
+  if (engineLayer && engineLayer.key !== key) {   // een ander voertuigtype: de oude lus loopt uit
+    engineLayer.gain.gain.setTargetAtTime(0, t, 0.08);
+    const l = engineLayer; engineLayer = null;
+    try { l.src.stop(t + 0.4); } catch (e) { /* already stopped */ }
+  }
   if (on && buf && !engineLayer) {
     const src = ctx.createBufferSource();
     src.buffer = buf; src.loop = true;
@@ -1932,13 +1945,13 @@ function updateEngineLayer(dt, on, rpm, spec, muffle) {
     gain.gain.value = 0;
     src.connect(gain).connect(sfxBus);
     src.start();
-    engineLayer = { src, gain };
+    engineLayer = { src, gain, key };
   }
   if (!engineLayer) return;
   if (on && buf) {
     const k = clamp((rpm - spec.idle) / Math.max(1, (spec.red - spec.idle) * 0.5), 0, 1);
     engineLayer.src.playbackRate.setTargetAtTime(0.85 + 0.9 * k, t, 0.06);
-    engineLayer.gain.gain.setTargetAtTime(SAMPLE_INFO.motor_auto_stationair.gain * categoryLevel('voertuig') * (1 - 0.85 * k) * (muffle < 16000 ? 0.5 : 1), t, 0.1);
+    engineLayer.gain.gain.setTargetAtTime(SAMPLE_INFO[key].gain * categoryLevel('voertuig') * (1 - 0.85 * k) * (muffle < 16000 ? 0.5 : 1), t, 0.1);
   } else {
     engineLayer.gain.gain.setTargetAtTime(0, t, 0.12);
     const l = engineLayer; engineLayer = null;
@@ -2024,7 +2037,7 @@ function updateEngineSynth(dt, world) {
     const place = getPlace();
     engineEarly.level.gain.setTargetAtTime(v.isBoat ? 0 : 0.05 + 0.13 * clamp(place.density || 0, 0, 1), ctx.currentTime, 0.5);
   }
-  updateEngineLayer(dt, ENGINE_LAYER_KINDS.has(S.kind) && !v.isBoat && !v.isPlane && !world.paused && !(t < S.startAt), rpm, spec, muffle);
+  updateEngineLayer(dt, ENGINE_LAYER_KINDS.has(S.kind) && !v.isBoat && !v.isPlane && !world.paused && !(t < S.startAt), rpm, spec, muffle, engineLayerKey(S.kind));
   synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1, muffle }], road });
 }
 
@@ -2395,7 +2408,7 @@ function playAudioEvents(world) {
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;
-      case 'train_horn': playTrainHorn(x, y); break;
+      case 'train_horn': playTrainHorn(x, y, !!e.steam); break;
       case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4, e.low || 1); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;

@@ -16,6 +16,7 @@ import { showBanner } from './cinematics.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 import { skutsjePubliek, sprintBijna } from './akte2_plan.js';
 import { stingen } from './sfx/stingen.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: startsein
 // AAA bijbanen (PG-bruggen): publiek langs de kade bij de start en de laatste brug, een startsein, een sting bij elke brug en een
 // waarschuwing in de laatste minuut. Lokaal beeld en geluid bij de host van de race; niets gaat over het net, de wedstrijdlaag en
 // de beloning per plek blijven zoals ze waren.
@@ -207,7 +208,7 @@ export const BRUGGEN = {
         const n = Math.max(0, Math.ceil(d.count - 0.5));
         for (const p of d.deeln) if (p.slot && p.aftel !== n) { p.aftel = n; if (w.coopMeld) w.coopMeld(p.slot, n > 0 ? String(n) : 'VAREN!'); }
       } else w.addMessage(d.count > 0.5 ? String(Math.ceil(d.count - 0.5)) : 'VAREN!', 0.4, { key: 'pg-count', exact: true });
-      if (d.count <= 0) { d.go = true; stingen.push(w, 'start'); if (d.online) w.addMessage('VAREN!', 1.4, { key: 'pg-count', exact: true }); }
+      if (d.count <= 0) { d.go = true; stingen.push(w, 'start'); haakFx(w, 'startsein_toeter'); if (d.online) w.addMessage('VAREN!', 1.4, { key: 'pg-count', exact: true }); }
       placeJelle(d, 0);
       setTarget(d.cps[0]);
       return;
