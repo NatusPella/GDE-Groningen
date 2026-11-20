@@ -155,6 +155,14 @@ const fakeFetch = (files) => async (url) => {
     ok(FX_INFO[naam] || FX_INFO[`${naam}_0`] || naam === 'train_horn', `FX_VERVANG: ${naam} is een effect van fxbank.js`);
     for (const k of sleutels) ok(SAMPLE_INFO[k] && g[k], `FX_VERVANG: ${naam} -> ${k} staat in SAMPLE_INFO en in het manifest`);
   }
+  // lussen van deze ronde: naadloos gemeten (sprong over de naad klein, geen niveaustap) en een piek onder -1 dB
+  const { GELUIDEN: RONDE3 } = await import('./audio/master_sfx_ronde3.mjs');
+  for (const k of Object.keys(RONDE3)) {
+    const m = g[k];
+    if (!m || !m.naad || !m.niveau) continue;
+    ok(m.naad.sprong_ratio < 1 && Math.abs(m.naad.niveaustap_db) < 2, `${k}: naad gemeten (sprong x${m.naad.sprong_ratio}, stap ${m.naad.niveaustap_db} dB)`);
+    ok(m.niveau.piek_db <= -1, `${k}: piek ${m.niveau.piek_db} dB onder -1`);
+  }
   ok(vervangSleutel('winkel_kassa_1', () => true) === 'kassa_koop', 'een variant (_1) vindt de vervanging van de basisnaam');
   ok(vervangSleutel('winkel_kassa_0', () => false) === null, 'niet geladen: null (de synth blijft)');
   ok(vervangSleutel('bestaat_niet', () => true) === null, 'onbekende naam: null');
