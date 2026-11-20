@@ -258,6 +258,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** Een kaartlaag met de route, een eigen sting voor een grote fooi, de strook voor een gast als passagier.
 
+## 15. Stadsbus lijn 3 (bus-bijbaan)
+
+**Wat kan de speler.** Een rondje langs de haltes van lijn 3 volgens de dienstregeling (bijbaan bij de standplaats): netjes stoppen, passagiers laten in- en uitstappen, niet te vroeg en niet te laat vertrekken, geen schokken (comfort), fooi bij een tevreden rondje.
+
+**De lus.** Naar de halte, stilstaan en passagiers laten in- en uitstappen, wachten op de dienstregeling als je voor ligt, vertrekken, de volgende halte.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de intro van de planner | plus vier iconen met een zin in de strook tot je voor het eerst bij een halte stopt (`gde-sim-uitleg-v1`) |
+| HUD | de bijbaankaart met "3/8 gehaald · gepland over 0:40" en de haltenaam | strook (`simhud.js`): stappen Rijden, Halte, Vertrek, een meter met de haltes die je gehaald hebt, het schema groot (op tijd, te laat, vroeg) met je comfort en pictogram, één zin wat nu (remmen, de aftelling bij de halte, wachten op de dienstregeling) |
+| Wereld | marker en stippen op de kaart, wachtende passagiers bij de halte | plus een gele lichtkolom boven de volgende halte (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een getal springt op per halte ("Forum: op tijd", "Forum: 25 s te laat") met het bestaande UI-geluid (geen geluid bij te laat) |
+
+**Samen spelen.** De bijbaan is van wie het spel opende (de bus en het rondje). Een gast doet mee via `coopbijbaan.js` (J of N bij Meedoen?) en houdt de bijbaankaart; de strook en de lichtkolom zijn alleen voor de eigen dienst (`c.owner` leeg). Beloning en voortgang per speler zoals eerder (#429). Valt de bestuurder weg, dan verdwijnt de strook met het rondje. Test: `bushud_test`, `busui_test`.
+
+**Niet gedaan.** De lijndienst op een echte buslijn (`sidejob_lijn.js`, eigen bestuurspaneel) en de treinbijbaan (de station- en halte-starts worden apart gebouwd), een kaartlaag met de dienstregeling.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
