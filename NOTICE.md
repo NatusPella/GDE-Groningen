@@ -93,6 +93,7 @@ het zijn dus geen officiële grenzen meer en ze zijn niet bruikbaar voor juridis
 | three.js r160 (CDN, in de desktopbuild meegeleverd) | MIT | © 2010-2023 three.js authors | [licenses/MIT-three.js.txt](licenses/MIT-three.js.txt) |
 | Bebas Neue (Google Fonts, in de desktop- en webbuild meegeleverd) | SIL Open Font License 1.1 | © 2010 Dharma Type | [licenses/OFL-BebasNeue.txt](licenses/OFL-BebasNeue.txt) |
 | Big Shoulders Display, het logo (Google Fonts, in de desktop- en webbuild meegeleverd, als subset ingebed in `desktop/resources/icon.svg`) | SIL Open Font License 1.1 | © 2019 The Big Shoulders Project Authors | [licenses/OFL-BigShouldersDisplay.txt](licenses/OFL-BigShouldersDisplay.txt) |
+| Phosphor Icons, `@phosphor-icons/core` 2.1.1 (alleen de gebruikte iconen, gebundeld in `game/js/phosphordata.js`, ADR 0041) | MIT | © 2023 Phosphor Icons | [licenses/MIT-phosphor-icons.txt](licenses/MIT-phosphor-icons.txt) |
 | Electron (alleen desktop) | MIT, met Chromium en Node.js onder hun eigen licenties | © Electron contributors, GitHub Inc. | `LICENSE.electron.txt` en `LICENSES.chromium.html` naast de app |
 | electron-builder (alleen bouwtool) | MIT | © Loopline Systems, Vladimir Krivosheev | wordt niet meegeleverd |
 
