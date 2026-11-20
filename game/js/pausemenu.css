@@ -46,8 +46,6 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
    0.62 staat de kop op --mut: navigatielabels halen 4,5:1 op de donkere kaart (was 0,42/0,32). */
 #pause-menu .pm-rail-group { display: flex; flex-direction: column; }
 #pause-menu .pm-rail-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 4px 16px 2px 24px; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mut); }
-#pause-menu .pm-rail-h .cnt { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.06em; color: var(--mut); }
-#pause-menu .pm-rail-h .cnt:empty { display: none; }
 #pause-menu .pm-rail-gap { flex: 1; min-height: 12px; }
 #pause-menu .pm-back { display: none; }
 #pause-menu.prestart .pm-back { display: flex; }
@@ -1036,7 +1034,6 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .pm-q-head { padding-bottom: 6px; }
   #pause-menu .pm-q-info { font-size: 15px; margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #pause-menu .pm-rail-h { padding: 2px 16px 1px 24px; font-size: 13px; }
-  #pause-menu .pm-rail-h .cnt { font-size: 13px; }
   #pause-menu .pm-rail-sp { height: 10px; }
   #pause-menu .pm-ver { font-size: 14px; padding-top: 6px; }
 
@@ -1234,7 +1231,6 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .m-hint { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-tx); }
 /* de groepskoppen van de rail en het voortgangsblok */
 #pause-menu.gm .pm-rail-h { font-size: max(15px, var(--menu-min)); letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx); }
-#pause-menu.gm .pm-rail-h .cnt { font-family: var(--ds-font-zeef-tekst); font-size: max(15px, var(--menu-min)); letter-spacing: 0; color: var(--ds-tx-zacht); }
 #pause-menu.gm .ov-scroll { -webkit-mask-image: none; mask-image: none; padding-top: var(--ds-s-3); scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
 #pause-menu.gm .pm-progress { flex: none; overflow: visible; margin: 0 var(--ds-s-4) var(--ds-s-4); padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu.gm .pm-progress-head { flex-wrap: wrap; }
