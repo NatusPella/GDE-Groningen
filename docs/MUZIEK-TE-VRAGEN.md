@@ -13,11 +13,12 @@ Er is geen ongekoppeld bestand in de repo. Er is daarom in deze ronde niets nieu
 
 ## Nog te vragen aan de eigenaar
 
-1. **Dagmuziek voor de radio:** 4 tot 6 nieuwe nummers in andere stijlen dan drill, punk en eurodance (de dagpool). Stijlomschrijvingen staan in MUZIEK.md onder "Voorstellen"; de eerdere prompts `dag_01` tot `dag_06` stonden alleen in een gesprek en zijn niet in de repo bewaard. Tracks gaan in `game/audio/gmusic/` en `manifest.json` (`"stations": ["gmusic"]`).
-2. **`Afternoon_Boulevard.mp3`** staat sinds 24-10 in de Downloads-map van de eigenaar (4,1 MB) en is nergens in de repo genoemd. Vraag: is dit een track voor de radio of een loop, en van welke bron (voor `docs/LICENTIES.md`)? Niet gekopieerd, omdat herkomst en licentie onbekend zijn.
-3. **Eigen loops** voor skatepark, botsauto, waterski, rondvaart, trekker en landbouw (de boerderijloop bestaat al voor de machines), vliegschool en helikopter; zie de tabel in MUZIEK.md (prompts staan er). Tot die er zijn, speelt de radio.
-4. **Echte opnames van de acht stings** alleen als de eigenaar de procedurele versie wil vervangen (prompts: MUZIEK.md, "Stings die nu synthetisch zijn"). Geen blokkade.
-5. **De opening** (trailer, keuken, verhuisdag) heeft alleen het titelnummer en stemmen. Wil de eigenaar een eigen track onder de keuken of de verhuisdag? Dan een loop van 1,5 tot 2 minuten, rustig en zomers.
+1. **Missiesferen (#988), in volgorde van impact:** negen loops die de koppeling in `game/js/missiesfeer.js` automatisch oppakt; nu speelt vrijwel elke missie dezelfde `missie_spanning_loop`. Volgorde: `missie_komisch` (de klusjes van akte 1 en 2), `missie_sluipen` (M06, M13, M14, M18, M20, M21, M23), `missie_feest` (M16, M17, M26, kermis), daarna `missie_ontdekken`, `missie_warm` (M27 tot M29), `missie_werk` (bijbanen), `missie_finale` (M30), `missie_nacht` en `missie_water` (M11, skûtsje). Kant-en-klare prompts en het stappenplan (bestand neerzetten en op de lijst zetten): [MUZIEK-OPDRACHT-GEMINI.md](MUZIEK-OPDRACHT-GEMINI.md). Tot dan valt een missie terug op `missie` en houdt een bijbaan de radio.
+2. **Dagmuziek voor de radio:** 4 tot 6 nieuwe nummers in andere stijlen dan drill, punk en eurodance (de dagpool). Stijlomschrijvingen staan in MUZIEK.md onder "Voorstellen"; de eerdere prompts `dag_01` tot `dag_06` stonden alleen in een gesprek en zijn niet in de repo bewaard. Tracks gaan in `game/audio/gmusic/` en `manifest.json` (`"stations": ["gmusic"]`).
+3. **`Afternoon_Boulevard.mp3`** staat sinds 24-10 in de Downloads-map van de eigenaar (4,1 MB) en is nergens in de repo genoemd. Vraag: is dit een track voor de radio of een loop, en van welke bron (voor `docs/LICENTIES.md`)? Niet gekopieerd, omdat herkomst en licentie onbekend zijn.
+4. **Eigen loops** voor skatepark, botsauto, waterski, rondvaart, trekker en landbouw (de boerderijloop bestaat al voor de machines), vliegschool en helikopter; zie de tabel in MUZIEK.md (prompts staan er). Tot die er zijn, speelt de radio.
+5. **Echte opnames van de acht stings** alleen als de eigenaar de procedurele versie wil vervangen (prompts: MUZIEK.md, "Stings die nu synthetisch zijn"). Geen blokkade.
+6. **De opening** (trailer, keuken, verhuisdag) heeft alleen het titelnummer en stemmen. Wil de eigenaar een eigen track onder de keuken of de verhuisdag? Dan een loop van 1,5 tot 2 minuten, rustig en zomers.
 
 ## Audiocontrole
 
