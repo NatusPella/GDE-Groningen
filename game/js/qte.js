@@ -43,3 +43,12 @@ export function heistHulp(stand, basis) {
 }
 // De breedte van de raakzone van een heistbalk per stand.
 export const heistBreedte = (stand, breedte) => breedte * QTE_REGELS[schoneQte(stand)].zone;
+
+// De bakronde (bakeround.js, M25 en M26): hoeveel mislukte ballen voor opnieuw beginnen en hoeveel rondes. Opnieuw beginnen kost nooit de missie;
+// Makkelijk geeft ruimte (vijf missers, een ronde minder bij drie), Overslaan één ronde zonder opnieuw beginnen (het volgende ingrediënt staat al in beeld).
+export function bakeRegels(stand, rondes = 3) {
+  const s = schoneQte(stand);
+  if (s === 'overslaan') return { rounds: 1, maxMisses: 99 };
+  if (s === 'makkelijk') return { rounds: rondes >= 3 ? rondes - 1 : rondes, maxMisses: 5 };
+  return { rounds: rondes, maxMisses: 3 };
+}

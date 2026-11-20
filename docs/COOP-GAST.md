@@ -421,6 +421,10 @@ Het spelersmenu (pauzemenu > Spel > Samen spelen > Spelers, de Tab-lijst en de w
 
 Bewezen zonder Electron met `scripts/coop/viersp_hostwissel_test.mjs` (host en drie gasten over de echte netlaag en een geheugentransport): drie overdrachten achter elkaar met steeds één host en vier unieke plekken; beloningen per gebeurtenis-id blijven per speler en nooit dubbel, ook niet als dezelfde gebeurtenis na de overdracht via de nieuwe host opnieuw wordt aangeboden (de boekhouding `coopBoek` staat bij de ontvanger, niet bij de host); overname na wegvallen van wie het spel opende; een gast die wegvalt krijgt niets en een late speler sluit bij de nieuwe host aan en krijgt vanaf dan zijn eigen beloning. De baan van een gast (`c.owner > 0`) raakt de lichte strook van de eigenaar niet: geen pop-up, geen uitlegvlag en ook geen leegmaken per beeld (`scripts/coop/simhudgast_test.mjs`). Open: een gast ziet voor zijn eigen baan geen strook (de baan draait bij de host).
 
+## Uitleg met iconen en quicktime-stand (#989, #962)
+
+Beide zijn instellingen van het apparaat (Instellingen, gde-settings) en doen dus **iedereen lokaal in zijn eigen spel**: wat een gast ziet is zijn eigen uitleg en zijn eigen Niet meer tonen-vlag (gde-uitleg-niet-meer); er gaat niets over het netwerk. De quicktime-stand is per speler, maar de stap draait bij wie het spel opende (de wereld is van de gastheer): rondes, zone, extra pogingen en het gevolg (de tags) komen uit de stand van de gastheer. Een gast ziet de balk van de gastheer en drukt mee; zijn eigen stand verandert de stap dus niet (dat is niet getest met een echte gast). Een missie wacht nooit op de druk van een gast. Test: scripts/qte_test.mjs en scripts/uitleg_test.mjs (puur, zonder testbank); een testbankstap voor een gast op Overslaan is niet gedaan.
+
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.

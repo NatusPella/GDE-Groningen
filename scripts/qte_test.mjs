@@ -98,6 +98,15 @@ ok(Q.qteStandVan(undefined) === 'normaal' && Q.qteStandVan({}) === 'makkelijk', 
   ok(Q.qteKanFalen('normaal') && !Q.qteKanFalen('makkelijk') && !Q.qteKanFalen('overslaan'), 'alleen Normaal kan nog falen');
 }
 
+// ---- de bakronde
+{
+  const a = Q.bakeRegels('normaal', 3), b = Q.bakeRegels('makkelijk', 3), c = Q.bakeRegels('overslaan', 3);
+  ok(a.rounds === 3 && a.maxMisses === 3, 'Normaal: de oude bakronde');
+  ok(b.rounds === 2 && b.maxMisses === 5, 'Makkelijk: een ronde minder en vijf missers');
+  ok(c.rounds === 1 && c.maxMisses >= 99, 'Overslaan: één ronde en nooit opnieuw beginnen');
+  ok(Q.bakeRegels('makkelijk', 1).rounds === 1, 'een oefenronde van één blijft één');
+}
+
 // ---- opslag: een gewone instelling van dit apparaat, geen onderdeel van de savegame
 {
   ok(!('qteStand' in JSON.parse(JSON.stringify({ missionsDone: 3 }))), 'de savegame kent geen QTE-stand (niets te migreren)');

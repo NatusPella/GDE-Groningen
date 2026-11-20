@@ -68,6 +68,7 @@ import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
+import { qteStandVan, bakeRegels } from './qte.js'; // #962: de quicktime-stand van deze speler
 import { buildWaitDressing, updateWaitDressing, disposeWaitDressing, tickWaitFigure } from './wachtprops.js';
 import { haakFx } from './sfx/haken.js'; // ronde 4: kleine geluidshaken van de missie-polish
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
@@ -3777,7 +3778,7 @@ function sinkInMud(world, dt, k) {
 // or at the stall: a guest at the stove counts too, and his ingredients count as the host's presses (#525).
 function updateBakeStage(dt, world, def, st, S) {
   const title = st.recipe === 'practice' ? "Oma's keuken: de oefenronde" : 'Gronings Ontzet: bak de eierbal';
-  if (!S.bake) S.bake = createBake({ order: st.recipe === 'practice' ? RECIPE_PRACTICE : RECIPE_CONTEST, rounds: st.rounds || 1 });
+  if (!S.bake) S.bake = createBake({ order: st.recipe === 'practice' ? RECIPE_PRACTICE : RECIPE_CONTEST, ...bakeRegels(qteStandVan(getSettings()), st.rounds || 1) }); // #962: Normaal / Makkelijk / Overslaan
   const stop = () => {
     hideBake(); S.shown = false;
     if (world.coopStagePanel) world.coopStagePanel = null;
