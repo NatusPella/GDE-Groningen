@@ -368,15 +368,27 @@ function headTilt(tilt) {
 // the shell never reads as a hat floating above it.
 // innerColor (hats): the shell gets a second wall below it with its faces turned inwards, so seen from below (a low camera, the underside of a
 // cap on a bent head) it has an inside instead of being see-through; the wall thins to nothing at the rim, where the shell meets the head.
+const RIM = 1.02; // the rim of a hair or hat shell sits just outside the head (at 0.99 the tilted front rim cut zigzag wedges through the forehead)
 function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52, innerColor = null) {
   const rimNy = Math.cos(thLen);
-  const shell = (kk) => ell(10, 4, (nx, ny, nz) => {
-    const t = Math.min(1, Math.max(0, (ny - rimNy) / 0.45));
-    return headShape(0.99 + (kk - 0.99) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
-  }, 0, Math.PI * 2, 0, thLen);
-  const m = composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(0, -HEAD_Y, 0));
-  B.geo(shell(k), m, color);
-  if (innerColor !== null) B.geo(flipWinding(shell(0.99 + (k - 0.99) * 0.4).toNonIndexed()), m, innerColor);
+  const shell = (kk) => {
+    const g = ell(14, 4, (nx, ny, nz) => {
+      const t = Math.min(1, Math.max(0, (ny - rimNy) / 0.45));
+      return headShape(RIM + (kk - RIM) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
+    }, 0, Math.PI * 2, 0, thLen);
+    // tilt about the head centre, then push every point back out of the head: the tilt sinks the front-top of the shell into the forehead (zigzag wedges)
+    const p = g.attributes.position, c = Math.cos(tilt), sn = Math.sin(tilt);
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i) - HEAD_Y, z = p.getZ(i);
+      let xr = x * c - y * sn, yr = x * sn + y * c, zr = z;
+      const q = Math.hypot(xr / 0.097, yr / 0.118, zr / 0.086);
+      if (q < RIM) { const u = RIM / Math.max(q, 1e-3); xr *= u; yr *= u; zr *= u; }
+      p.setXYZ(i, xr, yr + HEAD_Y, zr);
+    }
+    return g;
+  };
+  B.geo(shell(k), null, color);
+  if (innerColor !== null) B.geo(flipWinding(shell(RIM + (k - RIM) * 0.4).toNonIndexed()), null, innerColor);
 }
 
 // The hood of a hoodie or jacket, hanging at the back of the neck: an open bowl, so it gets an inner wall (faces turned in, a bit smaller) and reads as cloth
