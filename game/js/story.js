@@ -39,6 +39,7 @@ import { waterAt } from './waterlevels.js';
 import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
+import { sideJobPlek } from './bijbaananker.js';
 import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender, flatStage, homeSpawnPoint } from './home.js';
 import { isShopOpen } from './shopui.js';
@@ -216,7 +217,7 @@ const GOALS = {
   sideJob: {
     begin: (st, b) => { b.rounds = jobRounds(st); },
     met: (st, b) => jobRounds(st) > (b.rounds ?? Infinity),
-    place: (st) => { const j = nearest(getSideJobList().filter((x) => jobIds(st).includes(x.id)), hoofdspeler(world)); return j ? { x: j.x, y: j.y, name: j.name } : null; },
+    place: (st) => { const j = nearest(getSideJobList().filter((x) => jobIds(st).includes(x.id)), hoofdspeler(world)); return j ? sideJobPlek(j) : null; },
   },
   // waiting for the dark happens at home; a step with a homeScene (k-nacht) plays it first
   night: {

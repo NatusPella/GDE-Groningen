@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- **De bietenoogst bij Hoogkerk (A1) wijst nu naar Hoogkerk:** de marker liep eerst naar een tijdelijke plek in de stad, waar geen akker is, zodat de klus nooit startte. Nu rijd je naar de suikerhal, laden de tegels en komt het startpunt daar.
+
 ### Nieuw
 
 - **Inpakken bij Willemien speelt binnen (M27):** boeken, servies en de kat pak je nu in haar woonkamer in, met Willemien erbij, in plaats van in de open lucht (#956). Past de kamer niet op die plek, dan speel je buiten zoals eerst. Samen spelen: de missie is van wie het spel opende; wie meedoet ziet de kamer lokaal.

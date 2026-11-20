@@ -1,5 +1,5 @@
 // node scripts/bijbaananker_test.mjs
-import { ankerMetWeg, ankerBijBrug, brugpost, BRUG_DELFZIJL, STAD } from '../game/js/bijbaananker.js';
+import { sideJobPlek, ankerMetWeg, ankerBijBrug, brugpost, BRUG_DELFZIJL, STAD } from '../game/js/bijbaananker.js';
 let n = 0, bad = 0;
 const check = (name, c) => { n++; if (!c) { bad++; console.log('FAIL', name); } };
 const kaart = (wegen) => ({ nearestRoadPoint: (x, y, r) => wegen.find((w) => Math.hypot(w.x - x, w.y - y) <= r) || null });
@@ -20,6 +20,17 @@ check('helemaal niets: het punt zelf', niets.x === p.x && niets.y === p.y);
   const b = ankerBijBrug(kaart([{ x: STAD.x + 5, y: STAD.y }]));
   check('streek nog niet geladen: stad als tijdelijke plek, gemarkeerd', b.fallback === true && b.x === STAD.x + 5);
   check('de post ligt niet in het streekhart van Eemsdelta (21455, -12366)', Math.hypot(post.x - 21455, post.y + 12366) > 1000);
+}
+// A1: staat de baan op de terugvalplek, dan wijst de verhaalmarker naar de streek (Hoogkerk), niet naar de stad
+{
+  const fab = { x: 9000, y: -4000 };
+  const a = ankerMetWeg(kaart([{ x: STAD.x + 5, y: STAD.y }]), fab);
+  check('terugvalplek bewaart de streek als regio', a.fallback === true && a.regio.x === fab.x && a.regio.y === fab.y);
+  const thuis = sideJobPlek({ x: a.x, y: a.y, fallback: true, regio: a.regio, name: 'Bieten' });
+  check('marker bij een terugvalplek: de streek', thuis.x === fab.x && thuis.y === fab.y && thuis.name === 'Bieten');
+  const klaar = sideJobPlek({ x: 9100, y: -4050, fallback: false, regio: null, name: 'Bieten' });
+  check('marker bij een thuisgekomen baan: de baan zelf', klaar.x === 9100 && klaar.y === -4050);
+  check('zonder regio (oude spot): de plek zelf', sideJobPlek({ x: 1, y: 2, fallback: true, name: 'x' }).x === 1);
 }
 console.log(`bijbaananker_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

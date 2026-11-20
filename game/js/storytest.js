@@ -748,7 +748,8 @@ export async function runStoryTest(world) {
             const job = Array.isArray(step.goal.job) ? step.goal.job[0] : step.goal.job;
             const spot = window.__debug.sidejobs.spots().find((s) => s.job.id === job);
             const guide = world.storyGuide;
-            check(`${cur.id}: the guide points at the ${job} side job`, !!spot && !!guide && Math.hypot(guide.x - spot.x, guide.y - spot.y) < 5, JSON.stringify({ guide, spot: spot && [spot.x, spot.y] }));
+            const doel = spot && spot.fallback && spot.regio ? spot.regio : spot; // nog op de terugvalplek: de marker wijst naar de streek
+            check(`${cur.id}: the guide points at the ${job} side job`, !!doel && !!guide && Math.hypot(guide.x - doel.x, guide.y - doel.y) < 5, JSON.stringify({ guide, spot: spot && [spot.x, spot.y] }));
             S().complete();
           } else if (step.goal && step.goal.type === 'kermis' && window.__kermis && window.__activities) {
             // the story ride from the booth (E): free even when broke, Durk & Douwe in two of the cars
