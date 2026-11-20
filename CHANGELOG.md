@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Het laadscherm aan het begin laat alle stappen van het opstarten zien: de balk staat pas vol als het spel echt klaar is, niet meer op 92% terwijl er nog shaders, openingsbeelden en geluid volgen.
+- Onder de balk staat "Stap 5 van 7", de streepjes in de balk markeren de stappen, en elke stap zegt in gewone taal wat er gebeurt (onder andere "De shaders worden klaargezet (dit duurt even)" en "Het geluid wordt klaargemaakt").
+- Tijdens een lange stap beweegt de balk rustig door, en bij de shaders telt hij de klaar gelinkte programma's mee.
+- Het laadscherm bij laden en snel reizen telt zijn stappen ook ("Stap 2 van 4").
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

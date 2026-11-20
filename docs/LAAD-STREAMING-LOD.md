@@ -224,3 +224,33 @@ Niet geverifieerd in beeld.
   scripts/world/pack_tiles.mjs:309 afgeleid.
 - Facade-batcher, schaduwkaart, voertuig- en persoonsmodellen, rails en water-LOD niet nagelopen.
 - v0.54.0-vergelijking is op code en commits gedaan, niet door te draaien.
+
+## Laadstappen en de balk van het laadscherm (#1010)
+
+De balk van het eerste laadscherm kent sinds #1010 alle stappen van het opstarten (`BOOT_STEPS`, `bootPlan` in
+`game/js/loadlogic.js`) en staat pas vol als de laatste stap klaar is. `main.js` meldt elke stap met `setBootStep(id, deel)`;
+`startscreen.js` tekent balk, streepjes, "Stap n van m" en de zin van de stap. Stappen die een run niet heeft (testrun zonder
+warm-up, openingsbeelden alleen met `?warmfilm`, geen geluid met `?stil`) vallen uit het plan; de gewichten worden dan opnieuw tot 1 geschaald.
+
+| Stap | Wat er gebeurt | Voortgang binnen de stap |
+|---|---|---|
+| kaart | `loadTileWorld`, plekken, voorzieningen | aantal gelezen tegels |
+| wereld | `init3D`, kaartrand | vaste momenten |
+| systemen | World, verkeer, missies, HUD, terrein | vaste momenten door `boot()` |
+| buurt | startbuurt voorbouwen (`warm()`) | wat er nog te bouwen is tegenover het begin, plus de rustige reeks frames |
+| openingsbeelden | alleen `?warmfilm`: montageplekken | plek voor plek |
+| shaders | `precompilePrograms` (één blokkerende aanroep, ca. 1/6 van de stap) en daarna de linkwacht | geklaarde programma's tegenover alle (`programsTotal`, `programsPending`) |
+| geluid | decoderen van de samples (`sampleStats`), hoogstens 5 s | geladen tegenover alle samples |
+| beeld | het startscherm tekent de eerste beelden; daarna `finishLoading` = 100% | geen |
+
+**Meting (21-11, Electron, nieuw spel met `?warm`, drie andere Electron-runs tegelijk, dus trager dan normaal):** de modules laden
+8,8 s vóór `boot()` (de balk is dan nog statisch: geen JS die hem aanstuurt), kaart 5,7 s plus 0,7 s, wereld ca. 1,8 s, systemen 6,6 s
+(World en de init-functies 5,5 s), terrein ca. 0 s (de gebakken grond is er al), buurt 12,8 s (twee frames, het slechtste 8,1 s), shaders
+2,0 s blokkerend plus de linkwacht tot de grens van 12 s (`FILM_LICHT_MS`), gameStart 55,1 s. Op de machine van de eigenaar zijn de
+shaders +16 tot 18 s. De gewichten in `BOOT_STEPS` volgen die verhouding (kaart 12, wereld 6, systemen 13, buurt 18, shaders 33 (16
+zonder filmlicht), geluid 4, beeld 6, openingsbeelden 12) en zijn relatief. Meet opnieuw met `--url-flags=warm,laadstappen`: de
+console krijgt een tabel met ms en procent per stap (`window.__loadMarks.stappen` heeft elk gemeld moment, `stepDurations` rekent ze om).
+
+**Niet in de balk:** het laden van de ~1000 modules vóór `boot()` (8,8 s in deze meting) en het wachten op de naam bij Samen spelen
+(daar staat de balk stil en staat in de statusregel wat er gevraagd wordt). De shaderstap kan binnen de ene blokkerende compile-aanroep
+niet bijwerken; die aanroep zit in `scene3d.js` (grens 4500 regels), de linkwacht erna wel.
