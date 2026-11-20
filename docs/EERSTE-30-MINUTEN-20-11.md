@@ -4,7 +4,12 @@ Doel: beoordelen als een nieuwe speler zonder voorkennis (progressive disclosure
 
 ## Eerlijk over wat gezien is
 
-**Gezien in beeld: niets in deze ronde.** De machine had te weinig vrij geheugen: de gedeelde slot-wrapper (max 2 Electron-runs, minimaal 3,5 GB vrij) liet mijn run ruim een uur niet toe en de eerste start faalde op een niet-schrijfbare profielmap in `%TEMP%` (gerepareerd in `scripts/bot/run.mjs`: het wegwerpprofiel komt nu naast de uitvoer, zoals de andere harnassen). De beoordeling hieronder is dus **code- en datalezen** plus de eerdere beeldcheck van #986 (opening speelt als eerste, zie het issue). Alles wat een beeld, een gehoord geluid of een tempo vraagt, staat als "nog niet bekeken". Als de run nog volgt, komen de bevindingen als comment op #986 en #987.
+**Gezien in beeld: alleen het begin.** De machine had te weinig vrij geheugen: de slot-wrapper liet mijn run ruim een uur niet toe, de eerste start faalde op een niet-schrijfbare profielmap in `%TEMP%` (gerepareerd in `scripts/bot/run.mjs`), en op verzoek van de coördinator (slot nodig voor de release-gate) heb ik de run na 16 s speltijd gestopt. Er zijn 20 beelden van de opening en de start van M01 (`.scr/run-a`, niet in git; twee in `docs/img/qa/eerste30-*.png`). De rest van de beoordeling is code- en datalezen plus de eerdere beeldcheck van #986. De stage van deze run is van vóór de lopen-regel, dus de beelden tonen de situatie ervoor. Alles wat verder gaat (keuken, verhuisdag, M01 tot M03, telefoon, eerste voertuig, stem en ondertitel, tweespelersrun) is **nog niet bekeken**.
+
+### Gezien (run van 20-11, stage zonder lopen-regel)
+
+- **Opening, trailer** (`eerste30-opening-tammo.png`): naamkaart "TAMMO, Stadjer. Groot hart. Kleine portemonnee." met een duif in beeld, de ring en "Houd SPATIE ingedrukt om over te slaan" rechtsonder, goed leesbaar en niet over de ondertitel. De mist en lage contrast van de montage maken het beeld wat grauw (smaak, niet beoordeeld).
+- **Eerste doel na de opening** (`eerste30-m01-begin.png`): Tammo en Tessa staan bij de Privégarage, het HUD toont "Nul krassen, vijftienhonderd punten, 2,3 km, Volg de gele route naar de marker", de minimap heeft een gele route, en op de Escapade staat een markering "Jouw ouwe Escapade, Loop erheen, dan E". Goed: het doel, de route en het voertuig staan tegelijk in beeld. Verwarrend: het doel heet als de missietitel (jargon), niet "Naar Berend", en er staat nergens een lopen-toets in beeld; de radiokaart (G-Music) komt er tegelijk bij. De eerste frames hapern (783 ms, 300 ms bij het begin van de film).
 
 ## Wat goed is
 
