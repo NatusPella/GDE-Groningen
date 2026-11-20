@@ -65,7 +65,7 @@ Er zijn drie soorten geluid in het spel, met elk een eigen herkomst:
 Sinds 24 okt 2026 horen ook de korte stings (afteller, finish, winnaar, verliezer, Meedoen?, speler sluit aan, trein vertrekt,
 halte; `game/js/stings.js`) bij de geluidseffecten: procedureel in code gemaakt, geen opnames en geen AI-muziek.
 
-Sinds 24 okt 2026 zijn er acht CC0-opnames van Freesound (`game/audio/sfx/`, per bestand in `manifest.json`). Let op: "alles zelf gesynthetiseerd, geen samples" geldt dus **alleen voor de
+Sinds 24 okt 2026 zijn er opnames van Freesound (op 20 nov 2026: 110 bronnen, CC0 en CC BY 3.0/4.0 met naamsvermelding, zie docs/AUDIO-LICENTIES.md en ADR 0039) (`game/audio/sfx/`, per bestand in `manifest.json`). Let op: "alles zelf gesynthetiseerd, geen samples" geldt dus **alleen voor de
 geluidseffecten**, niet voor muziek en stemmen. README, NOTICE en de
 aftiteling zeggen dat ook zo. **Nog open voor de eigenaar:** welk muziekproduct
 precies is gebruikt (Gemini-app/Lyria of API, gratis of betaald abonnement),

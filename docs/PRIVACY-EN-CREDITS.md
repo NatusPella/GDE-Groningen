@@ -51,7 +51,7 @@ schrijft niemand een echte naam in credits: gebruik NatusPella.
 - **Techniek:** three.js (MIT), Electron (MIT)
 - **Lettertypen:** Bebas Neue en Big Shoulders Display (SIL OFL 1.1)
 - **Geluidseffecten:** zelf gesynthetiseerd in `game/js/sfx/*.js`, plus tien
-  opnames van acht Freesound-bronnen (CC0, publiek domein; zie
+  opnames van Freesound-bronnen (CC0 en CC BY met naamsvermelding; zie
   `game/audio/sfx/manifest.json`)
 - **Muziek en stemmen:** gemaakt met AI (Google Gemini), aangeboden voor zover er
   rechten op rusten

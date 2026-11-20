@@ -173,7 +173,7 @@ instelling "Bloed en ledematen" verlaagt de leeftijd niet.
 - Kaartdata ODbL (OpenStreetMap) en die bestanden blijven ODbL; 3DBAG CC BY 4.0;
   AHN CC0; three.js MIT; Bebas Neue en Big Shoulders Display SIL OFL 1.1;
   Electron MIT. Vermeldingen staan in `NOTICE.md`, `licenses/` en in het spel.
-- Effecten zijn in de code gesynthetiseerd, op acht CC0-opnames van Freesound na
+- Effecten zijn in de code gesynthetiseerd, op de CC0- en CC-BY-opnames van Freesound na (docs/AUDIO-LICENTIES.md)
   (`game/audio/sfx/`). Muziek en stemmen komen van Google Gemini, aangeboden
   "voor zover er rechten op rusten"; het muziekproduct staat nog niet vast.
 
@@ -235,7 +235,7 @@ Uit de docs:
    de eerste echte release moeten het bewijzen.
 2. **#484** — de drie bekende juridische feiten zijn op 25-10 rechtgezet
    (`docs/LICENTIES.md` noemt nu online samen spelen, 34 nummers en 15 loops;
-   `docs/PRIVACY-EN-CREDITS.md` noemt de acht CC0-opnames). Wat overblijft: de
+   `docs/PRIVACY-EN-CREDITS.md` noemt de Freesound-opnames). Wat overblijft: de
    aantallen staan in proza in plaats van te komen uit `scripts/audio_herkomst.mjs`,
    en de eigenaar moet de strekking nog bevestigen.
 3. **#481** — opgelost op 25-10: `test_all.mjs` is de standaard, `run_tests.mjs` de
