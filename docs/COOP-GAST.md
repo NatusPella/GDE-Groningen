@@ -344,6 +344,16 @@ Code: `regelwidget.js` en `regelwidget.css`; naslag en lijst van plekken in [UIT
 - **Wegvallen en later aansluiten.** Er is geen gedeelde staat: een speler die later aansluit bouwt zijn widgets op uit zijn eigen staat.
 - **Test.** `scripts/regelwidget_test.mjs` (pure vormen, sleutelvergelijking, reduce motion). Niet in beeld bekeken: `scripts/qa/regelwidget_beeld.mjs` is nog niet gedraaid.
 
+## Samen missies: posten tegelijk bezetten (#983)
+
+Een verhaalstap met meerdere plekken die je na elkaar doet, kan met meer spelers tegelijk. Code: `game/js/samenposten.js` (puur: de posten, de verdeling over spelers, de klok per post) en `game/js/missieposten.js` (de koppeling met de stappen van `missions.js`). Een stap draagt `posten: '<groep>'`; de hold-stappen van de groep zijn de posten. Eerste gebruiker: het proefbeleg bij Bourtange (M30, `missions_akte6.js`: de drie bolwerken).
+
+- **Alleen, of met iemand die niet meedoet:** er verandert niets. De zes stappen lopen als altijd (goto, hold, goto, hold, goto, hold) met dezelfde tijden.
+- **Met twee of meer spelers in de opdracht (`opdrachtSpelers`: wie J zei en nog verbonden is):** bij de eerste bolwerkstap krijgt elke speler een eigen post (de dichtstbijzijnde, bij gelijke afstand de laagste plek): de gastheer in beeld, een gast als melding (`coopMeld`): "Jij neemt het tweede bolwerk. Blijf staan tot de klok vol is." De klok van elke post loopt door zolang er iemand in de kring staat (te voet) en zakt half zo snel als hij loopt als er niemand staat (zoals bij `hold`). Een post die klaar is blijft klaar; de stap gaat verder zodra de post van die stap klaar is, dus de verhaalstemmen en de beloning blijven bij de gewone stappen. Drie spelers zijn dus in ongeveer één vlag klaar; een vierde helpt bij een bolwerk. De open posten staan als controlepunten (`remainingWaypoints`) op de kaart en bij de gasten.
+- **Wegvallen of later aansluiten:** valt iemand weg, dan blijft de groep aan met de overblijvers; wat klaar is blijft klaar en de overblijver loopt de rest zelf af. Wie later aansluit kijkt mee tot de volgende opdracht (`coopmeedoen.js`). Een nieuwe poging begint zonder de posten van de vorige.
+- **Beloning en voortgang:** per speler zoals bij elke opdracht (#429); er is geen extra bonus en niemand verliest iets.
+- **Test.** `scripts/samenposten_test.mjs` (de regels) en `scripts/coopmissie_posten_test.mjs` (de echte `missions.js` met één tot vier spelers, een toeschouwer, wegvallen en een nieuwe poging). Niet bekeken: echte instanties met de testbank en het beeld van de bolwerken met meer spelers.
+
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
