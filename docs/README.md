@@ -89,6 +89,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERSKIT.md](<PERSKIT.md>) | Perskit voor de openbare playtest: pitch, quote-waardige regels, feiten, beeld en een concept-persbericht (nog niet verstuurd). |
 | [PLAYTESTPLAN.md](<PLAYTESTPLAN.md>) | Doel: zien of een speler die de game niet kent het verhaal volgt, steeds weet wat het doel is en tot het ei… |
 | [PROEFSPELER.md](<PROEFSPELER.md>) | De proefspeler: de Spelbot met een menselijk profiel (`--mens`) en een playtestbundel per missie (beelden, samenvatting, reviewbrief) voor een vision-reviewer. |
+| [PROEFSPELER-DOORLOOP-20-11.md](<PROEFSPELER-DOORLOOP-20-11.md>) | Doorloop van het hele verhaal (M01 t/m M30) door de proefspeler op 20-11: per missie gehaald, geskipt of niet bereikt, de gefixte blokkades (M20, M18, M30, M13) en wat een mens handmatig moet controleren. |
 | [PRIVACY-EN-CREDITS.md](<PRIVACY-EN-CREDITS.md>) | Stand: 18 oktober 2026; bijgewerkt op 7 november 2026 voor de altijd-online start (#554, #583, #395, #690).… |
 | [PROVINCIE-PLAN.md](<PROVINCIE-PLAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/w… |
 | [PROVINCIE-VERHAAL.md](<PROVINCIE-VERHAAL.md>) | Ontwerpdocument, oktober 2026, bij [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md). |
