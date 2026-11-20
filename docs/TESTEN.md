@@ -259,3 +259,8 @@ Aandachtspunten:
 - `node scripts/perron_trein_test.mjs`: de echte stad (stadsbouw, ruim twee minuten): een trein raakt niemand op het perron van Europapark en Noord, wel wie op het spoor staat.
 - `node scripts/world/perron_audit.mjs [--strict]`: elk station een perron, vlak op de spoorvloer + 1,02 m, buiten de baan van de trein, een belopen trap of helling per strook.
 - `node scripts/qa/perron_shots.mjs --game=<gestagede game-map> [--slot] [--only=noord,europapark]`: in Electron de trap op lopen met W (hoogte gemeten), een trein langs het perron en langs de rand, op het spoor, met screenshots.
+
+## Compat: opslaan en laden (#983)
+
+- `node scripts/compat_saves_test.mjs`: oude en beschadigde saves, veldfuzz, opslag per speler bij Samen spelen en geen halve rit in een save, met de echte `savegame.js` en een nepwereld (zonder gevendorde three.js slaat hij zichzelf over).
+- `node scripts/compat_settings_test.mjs`: oude, halve en onmogelijke instellingenbestanden. Bevindingen: [QA-SAVES-20-11.md](QA-SAVES-20-11.md).
