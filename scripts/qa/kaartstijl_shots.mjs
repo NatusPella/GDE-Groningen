@@ -4,7 +4,7 @@
 //   node scripts/qa/kaartstijl_shots.mjs --game-dir=voor=<map>,na=<map> --out=<map> [--slot] [--spots=stad:Groningen:city,dorp:Winsum] [--zooms=1,3,6] [--settle=<ms>]
 // --game-dir: [<label>=]<gestagede game>, kommagescheiden; een map die `GDE_STAGE_OUT=<map> node desktop/build.mjs` maakte
 //   (standaard desktop/build/game). Elke run schrijft naar <out>/<label>/.
-// ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt.
+// ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt. GDE_KS_SIZE=1920x1080 voor een ander venster, GDE_EXTRA_FLAGS voor extra Electron-vlaggen.
 // --slot: neemt een Electron-slot volgens $GDE_LOCKS/README.txt (standaard ~/gde-locks) (mkdir electron-1..3) en geeft het vrij.
 // Uitvoer per run: shots-ks-<plek>-<dag|nacht>-<mini|kaart-zN>.png, result.json, run.log.
 import fs from 'node:fs';
@@ -46,14 +46,15 @@ let failed = 0;
 for (const run of RUNS) {
   const out = RUNS.length > 1 || run.label !== 'run' ? path.join(OUT, run.label) : OUT;
   fs.mkdirSync(out, { recursive: true });
-  const profile = `gde-test-ks-${process.pid}-${run.label}`;
+  const profile = path.join(out, `profiel-${process.pid}`); // onder de uitvoermap: de tijdelijke map van het systeem is soms niet te schrijven
+  fs.mkdirSync(profile, { recursive: true });
   const script = path.join(out, '_page.js');
   fs.writeFileSync(script, `window.__ksCfg = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'kaartstijl_shots.page.js'), 'utf8'));
   const env = { ...process.env, GDE_TEST_PROFILE: profile };
   if (run.game) env.GDE_GAME_DIR = run.game;
   delete env.ELECTRON_RUN_AS_NODE;
   let stdout = '', stderr = '';
-  const child = spawn(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1280x720', `--smoke-test=${path.join(out, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env });
+  const child = spawn(electron, ['.', ...(process.env.GDE_EXTRA_FLAGS ? process.env.GDE_EXTRA_FLAGS.split(' ') : []), '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', `--window-size=${process.env.GDE_KS_SIZE || '1280x720'}`, `--smoke-test=${path.join(out, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
   child.stdout.on('data', (d) => { stdout += d; });
   child.stderr.on('data', (d) => { stderr += d; });
@@ -61,7 +62,7 @@ for (const run of RUNS) {
   const code = await new Promise((res) => child.on('close', res));
   clearTimeout(killer);
   fs.writeFileSync(path.join(out, 'run.log'), `${stdout}\n${stderr}`);
-  fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+  fs.rmSync(profile, { recursive: true, force: true });
   let res = {};
   for (const l of stdout.split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]); } catch { /* geen JSON */ } }
   fs.writeFileSync(path.join(out, 'result.json'), JSON.stringify(res, null, 1));

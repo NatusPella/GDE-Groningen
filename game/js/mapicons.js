@@ -144,6 +144,7 @@ export function placeIcons(items, gap) {
 export const HALO_DARK = INK.dark;
 export const HALO_LIGHT = INK.cream;
 export const GRAPHIC_CONTRAST = 3;
+export const GLYPH_CONTRAST = 4.5; // the glyph on its badge is text-like (21-11)
 const chan = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
 // relative luminance of '#rrggbb'
 function hexLuminance(hex) {
@@ -175,14 +176,14 @@ export const FLAT_FILL = ICON_FILL;
 // a light glyph on a saturated fill, a darker rim, a soft shadow (hud_panel.js flatSprite).
 export const BADGE_SHAPE = {
   zorg: 'circle', politiebureau: 'shield', garage: 'hex', station: 'squircle', job: 'diamond',
-  shop: 'tile', fun: 'circle', horeca: 'circle', ommeland: 'circle', flitspaal: 'tile', tip: 'circle', other: 'circle',
+  shop: 'tile', fun: 'circle', horeca: 'squircle', ommeland: 'circle', flitspaal: 'tile', tip: 'circle', other: 'circle',
 };
 export const BADGE_UNITS = 11; // the badge's width in base units (the glyph is about 10)
 export const GLYPH_LIGHT = ICON_GLYPH_LIGHT;
 export function badgeShape(kind) { return BADGE_SHAPE[mapCategory(kind)] || 'circle'; }
 // the glyph colour on a fill: cream where it reaches 3:1 (blue, red, purple), else dark ink (yellow, lime)
 export function badgeGlyphColor(fill) {
-  return hexContrast(GLYPH_LIGHT, fill) >= GRAPHIC_CONTRAST ? GLYPH_LIGHT : HALO_DARK;
+  return hexContrast(GLYPH_LIGHT, fill) >= GLYPH_CONTRAST ? GLYPH_LIGHT : HALO_DARK;
 }
 // '#rrggbb' mixed towards white (k > 0) or black (k < 0), k in -1..1
 export function shadeHex(hex, k) {

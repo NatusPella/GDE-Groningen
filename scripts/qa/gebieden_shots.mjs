@@ -4,6 +4,7 @@
 // --game-dir: een map die `GDE_STAGE_OUT=<map> node desktop/build.mjs` maakte (standaard desktop/build/game).
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt.
 // --page=<bestand>: een ander page-script dan gebieden_shots.page.js (bijvoorbeeld een sonde).
+// GDE_GB_SIZE=1920x1080 voor een ander venster.
 // --slot: neemt een Electron-slot volgens $GDE_LOCKS/README.txt (standaard ~/gde-locks) en geeft het vrij.
 // Uitvoer: shots-gb-*.png, result.json, run.log.
 import fs from 'node:fs';
@@ -43,7 +44,7 @@ const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (GAME) env.GDE_GAME_DIR = GAME;
 delete env.ELECTRON_RUN_AS_NODE;
 let stdout = '', stderr = '';
-const child = spawn(electron, ['.', ...(process.env.GDE_EXTRA_FLAGS ? process.env.GDE_EXTRA_FLAGS.split(' ') : []), '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env });
+const child = spawn(electron, ['.', ...(process.env.GDE_EXTRA_FLAGS ? process.env.GDE_EXTRA_FLAGS.split(' ') : []), '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${process.env.GDE_GB_SIZE || '1280x720'}`, `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env });
 try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
 child.stdout.on('data', (d) => { stdout += d; });
 child.stderr.on('data', (d) => { stderr += d; });

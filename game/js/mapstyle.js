@@ -5,26 +5,14 @@
 // Node scripts can load it. Two palettes: "map" (the full map and the
 // pyramid, a dark calm land) and "mini" (the minimap, lighter so it reads
 // at 150 px). Both share the same keys.
-import { kaartInk } from './kaartkleuren.js';
+import { kaartInk, kaartLand, markerKleuren } from './kaartkleuren.js';
 
-export const MAP_PALETTE = {
-  meadow: '#243528', park: '#2f5c36', ditch: '#2d6a86', water: '#2d6a86', waterEdge: '#4a8fae',
-  road: '#c7c7c2', major: '#f0ede4', minor: '#8f9095', cycle: '#b8703a', foot: '#6d6f66',
-  building: 'rgba(160, 156, 146, 0.62)', church: 'rgba(214, 205, 180, 0.8)', tree: '#1d3a23', village: '#2b4230',
-  allot: '#2f4f33', sports: '#2f5c36', business: '#333a36', rail: '#55524c', railTie: '#d8d4c8', turbine: '#e8eae8',
-  forest: '#244a2c',
-  roadMin: 1.4, majorMin: 2.4,
-};
+// 21-11: het land komt uit de ds-tokens (kaartkleuren.js kaartLand, het glasoppervlak van het designsysteem); hier alleen de maten.
+const LAND = kaartLand();
+export const MAP_PALETTE = { ...LAND.kaart, roadMin: 1.4, majorMin: 2.4 };
 // the minimap matches the city minimap (hud_panel.js): its road colours and
-// widths (real width, 3 m at least), cycleways in red, buildings in a varied palette
-export const MINI_PALETTE = {
-  meadow: '#3e4c39', park: '#5a8445', ditch: '#3a86a8', water: '#3a86a8', waterEdge: '#5aa0c0',
-  road: '#a8ada2', major: '#f0ede4', minor: '#a8ada2', cycle: '#c9603f', foot: '#a8ada2',
-  building: '#b98a6a', buildings: ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'], roadMetres: 3, church: '#8a8474', tree: '#34562c', village: '#4b5c41',
-  allot: '#55733f', sports: '#5a8445', business: '#8a96a0', rail: '#55524c', railTie: '#d8d4c8', turbine: '#f0f0ee',
-  forest: '#34562c',
-  roadMin: 3, majorMin: 3,
-};
+// widths (real width, 3 m at least), cycleways in a warm tint, buildings in a varied palette
+export const MINI_PALETTE = { ...LAND.mini, roadMetres: 3, roadMin: 3, majorMin: 3 };
 
 // travel-mode highlights, the same on every map (the two that draw them)
 export const EMPHASIS = { foot: '#d9d4c4', cycle: '#ff8a5c', bridgeCasing: '#0c140e' };
@@ -78,16 +66,12 @@ export function inkCss(css) {
 // The icon colours of the maps (mapicons.js and hud_panel.js draw them): the
 // rim of a category's disc, the flat badge fill per category and the light
 // glyph on it. The icon design lives in mapicons.js, only the colours are here.
-export const ICON_RIM = {
-  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
-  shop: '#ff8ad0', gevaar: '#ff5a5a', rival: '#ffb23f', halte: '#ffd84a', subdoel: '#4fd6c4', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
-};
-export const ICON_FILL = {
-  zorg: '#ef4444', politiebureau: '#3b82f6', garage: '#f59e0b', station: '#8b5cf6', job: '#14b8a6',
-  shop: '#ec4899', fun: '#3fae49', horeca: '#f97316', ommeland: '#38bdf8',
-  flitspaal: '#facc15', tip: '#d6a05a', other: '#f5f0e6',
-};
-export const ICON_GLYPH_LIGHT = '#fff8ea';
+// 21-11: vijf rollen uit de ds-tokens (kaartkleuren.js markerKleuren): bordgroen diensten en winkels, geel doelen, rood politie en
+// gevaar, inktblauw vervoer en water, crème de rest; een crème rand en een glyph in crème of inkt, wat het best leest.
+const MARKERS = markerKleuren();
+export const ICON_RIM = MARKERS.rim;
+export const ICON_FILL = MARKERS.vul;
+export const ICON_GLYPH_LIGHT = MARKERS.glyph;
 
 // the sea outside the coast: the map's water, or the minimap's
 export function seaStyle(palette = MAP_PALETTE) { return { fill: palette.water, edge: palette.waterEdge }; }
