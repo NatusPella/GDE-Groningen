@@ -8,12 +8,29 @@ import { buildAkte5Defs, applyAkte5 } from './missions_akte5.js';
 import { wgsToWorld } from './rdnew.js';
 import { ROOSTER } from './heliplan.js';
 import { makeStrip } from './planecontrol.js';
-import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT } from './containerplan.js';
+import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift } from './containerplan.js';
+import { tileIndexOf } from './gdt.js';
 import { applyAkte3 } from './missions_akte3.js'; // AAA akte 3: kaarten, wachtfiguren, aankleding
 import { applyAkte45 } from './missions_akte45.js'; // AAA akte 4 en 5: kaarten, wachtfiguren, aankleding
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
+
+// M13 (#1035): staan de tegels rond het plan in het geheugen en is er een plek van het plan weg, water, gebouw of spoor,
+// dan gaat het hele plan naar de dichtstbijzijnde plek waar alles vrij is (de missiestappen delen die verschuiving).
+// Zonder tegels in het geheugen oordelen we niet, zodat een gast die later laadt niet anders kiest dan de host.
+function snapM13Spots(map, def) {
+  if (!map || !map.resident || !def) return;
+  const known = (p) => { const [i, j] = tileIndexOf(p.x, p.y); return map.resident.has(`${i},${j}`); };
+  const before = [M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT].map((p) => ({ x: p.x, y: p.y }));
+  if (!before.every((p) => known(p)) || ![-40, 40].every((d) => known({ x: M13_CONTAINER.x + d, y: M13_CONTAINER.y + d }))) return;
+  const shift = shiftM13Plan(map);
+  if (!shift) return;
+  applyM13Shift(shift);
+  const move = (t) => { if (t && before.some((b) => Math.abs(b.x - t.x) < 1e-6 && Math.abs(b.y - t.y) < 1e-6)) { t.x += shift.dx; t.y += shift.dy; } };
+  move(def.start);
+  for (const st of def.stages || []) move(st.target);
+}
 
 // M14: the finish at the sluis of Delfzijl and the start 8 km back along the line to the Eemshaven
 const DIJK_SLUIS = spotAt(53.3245, 6.9270);
@@ -138,7 +155,8 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
     },
     {
       // M13 Het containerlabyrint: a sneak between the wind blades, cable drums and containers of the Eemshaven quay on the heist watchers;
-      // the crane cabin is a place to keep still, no crane to drive. The places are guesses until the Eemshaven tiles are seen.
+      // the crane cabin is a place to keep still, no crane to drive. The places hang on one anchor (containerplan.js, #1035) and are
+      // measured against the tiles (scripts/world/mission_prop_audit.mjs); snapSpots moves the whole plan to the nearest clear spot if not.
       type: 'stages',
       label: 'Het containerlabyrint',
       intro: ["De Eemshaven, vannacht. Lammert, de havenmeester, wacht aan de kade, tussen de windmolenbladen en kabelrollen.", "Doel: zoek container 4471 onder de kabelrollen. Sluip langs de bewakers en camera's, verwissel de papieren en ga weg voordat het schip om zes uur vertrekt."],
@@ -149,6 +167,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       reward: 900,
       onFoot: true,
       heist: { bare: true },
+      snapSpots: snapM13Spots,
       start: { ...M13_QUAY },
       stages: [
         { kind: 'goto', watch: { guards: 1, cameras: 1 }, target: { ...M13_CRANE, label: 'De kraan aan de kade' }, mode: 'foot', radius: 7,

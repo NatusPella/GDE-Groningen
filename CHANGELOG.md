@@ -107,6 +107,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - De vlucht eindigt op de dichtstbijzijnde open plek (Eemshaven, Eelde) in plaats van op een vast punt dat in water of tegen een gebouw kon liggen.
 - M12: de hint en de melding noemen Dokter Dijkstra in plaats van Rotor Roelf.
 - **Je wordt niet meer ten onrechte teruggestuurd naar de grens (nog niet in beeld gezien, #1034):** bij scherpe knikken in de grenslijn rekende het spel een heel stuk Groningen (o.a. ten zuiden en oosten van de stad en bij Ter Apel) als "buiten", zodat je zonder waarschuwing een scène kreeg ("Drenthe is dicht") en daarna op een plek werd gezet die zelf nog in dat stuk lag, steeds opnieuw. De grens kijkt nu bij zo'n knik naar beide kanten, een lijneinde is geen grens, de Dollard telt niet als open zee, de terugzetplek ligt altijd binnen de grens (anders verder naar binnen of de laatste veilige plek) en een scène vervalt als je zelf omdraait. Tijdens een filmpje, sterven of treinrit grijpt de grens niet in; een duif telt als luchtruim. De waarschuwing zegt nu ook "Je verlaat het speelgebied: keer om." Samen spelen: lokaal per speler, niets wordt gesynchroniseerd. Test: `edge_grens_test`.
+### Opgelost
+
+- Het containerlabyrint (M13): de kraan staat nu op de kade van de Eemshaven en de container op open terrein achter de kaderweg, niet meer in een weiland of op de weg. De plekken hangen aan één anker en vallen terug op de dichtstbijzijnde vrije plek; voor iedereen in Samen spelen is dat dezelfde plek.
 
 ## [0.64.0] - 2026-11-20
 

@@ -6,21 +6,23 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
-import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, CONTAINER_STACKS, CABLE_REELS } from '../game/js/containerplan.js';
+import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, M13_ANCHOR_WGS, M13_MAX_ANCHOR_DIST, CONTAINER_STACKS, CABLE_REELS, m13Problems, m13Footprints, shiftM13Plan, applyM13Shift } from '../game/js/containerplan.js';
+import { spotProblems, spotClear, nearestClearSpot } from '../game/js/missionplace.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
 const lees = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
 
-t('de container staat op de plek uit de missie, niet verder het land in', () => {
-  const [bx, by] = wgsToWorld(53.4440, 6.8560);
-  assert.ok(Math.abs(M13_QUAY.x - bx) < 1e-9 && Math.abs(M13_QUAY.y - by) < 1e-9, 'de kade is het startpunt');
-  assert.equal(M13_CONTAINER.x, bx + 260);
-  assert.equal(M13_CONTAINER.y, by + 40);
-  assert.equal(M13_CRANE.x, bx + 120);
-  assert.equal(M13_CRANE.y, by - 55);
-  assert.equal(M13_LAMMERT.x, bx + 10);
-  assert.equal(M13_LAMMERT.y, by + 5);
+t('de plekken hangen aan één anker bij de oostkade, niet 260 m het land in', () => {
+  const [bx, by] = wgsToWorld(...M13_ANCHOR_WGS);
+  assert.deepEqual([...M13_ANCHOR_WGS], [53.4432, 6.8562]);
+  assert.equal(M13_CONTAINER.x, bx + 95);
+  assert.equal(M13_CONTAINER.y, by + 15);
+  assert.equal(M13_CRANE.x, bx + 11);
+  assert.equal(M13_CRANE.y, by + 18);
+  assert.equal(M13_QUAY.x, bx + 60);
+  assert.equal(M13_LAMMERT.x, bx + 66);
+  for (const p of [M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT]) assert.ok(Math.hypot(p.x - bx, p.y - by) <= M13_MAX_ANCHOR_DIST, 'binnen bereik van het anker');
 });
 
 t('er staat een blauwe en een rode container om 4471 te herkennen', () => {
@@ -39,7 +41,7 @@ t('er staat een blauwe en een rode container om 4471 te herkennen', () => {
 
 t('de missie gebruikt dezelfde plekken als de rekwisieten', () => {
   const missie = lees('missions_nieuw.js');
-  assert.match(missie, /import \{ M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT \} from '\.\/containerplan\.js'/);
+  assert.match(missie, /import \{ M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift \} from '\.\/containerplan\.js'/);
   assert.match(missie, /start: \{ \.\.\.M13_QUAY \}/);
   assert.match(missie, /target: \{ \.\.\.M13_CRANE, label: 'De kraan aan de kade' \}/);
   assert.match(missie, /target: \{ \.\.\.M13_CONTAINER, label: 'Container 4471' \}/);
@@ -60,6 +62,60 @@ t('de kabelrol krijgt zijn straal, niet het hele rolobject (NaN-geometrie bij de
   const bron = lees('containerterminal.js');
   assert.ok(bron.includes('new T.CylinderGeometry(r.r, r.r, 2.2, 14)'));
   assert.ok(!bron.includes('new T.CylinderGeometry(r, r,'));
+});
+
+// Een nagebootste map met dezelfde vragen als TileWorld: een weg, een gebouw en een waterstrook (NIET de echte wereld).
+const rechthoek = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]];
+const nepMap = (o = {}) => ({
+  roadsNear: () => o.roads || [], buildingsNear: () => o.buildings || [], waterNear: () => o.water || [], flatWaterNear: () => [], railNear: () => o.rails || [],
+});
+
+t('spotProblems herkent weg, gebouw, water en spoor, en spotClear houdt ruimte', () => {
+  const m = nepMap({
+    roads: [{ pts: [[0, 0], [100, 0]], width: 6 }], buildings: [{ pts: rechthoek(40, 20, 60, 30) }],
+    water: [{ pts: rechthoek(-50, -50, -10, 50) }], rails: [{ pts: [[0, 80], [100, 80]] }],
+  });
+  assert.deepEqual(spotProblems(m, 50, 1), ['weg']);
+  assert.deepEqual(spotProblems(m, 50, 25), ['gebouw']);
+  assert.deepEqual(spotProblems(m, -30, 10), ['water']);
+  assert.deepEqual(spotProblems(m, 50, 80.5), ['spoor']);
+  assert.deepEqual(spotProblems(m, 50, 50), []);
+  assert.ok(!spotClear(m, 50, 5, 3), 'te dicht bij de weg met ruimte');
+  assert.ok(spotClear(m, 50, 50, 5));
+});
+
+t('nearestClearSpot kiest de dichtstbijzijnde vrije plek, steeds dezelfde', () => {
+  const m = nepMap({ roads: [{ pts: [[-200, 0], [200, 0]], width: 6 }] });
+  const a = nearestClearSpot(m, 10, 0, { r: 4 }), b = nearestClearSpot(m, 10, 0, { r: 4 });
+  assert.deepEqual(a, b, 'deterministisch');
+  assert.ok(Math.abs(a.y) >= 3 + 4 - 1e-6 && a.moved <= 10, 'net naast de weg');
+  assert.equal(nearestClearSpot(m, 0, 40, { r: 4 }).moved, 0, 'een vrije plek blijft staan');
+  assert.equal(nearestClearSpot(nepMap({ water: [{ pts: rechthoek(-1e4, -1e4, 1e4, 1e4) }] }), 0, 0, { maxD: 30 }), null, 'niets vrij: null');
+});
+
+t('een plan op een weg wordt als groep verschoven en past daarna, met dezelfde uitkomst voor iedereen', () => {
+  // de container van het oude plan lag op een weg: dezelfde situatie nagebootst
+  const weg = { pts: [[M13_CONTAINER.x - 200, M13_CONTAINER.y], [M13_CONTAINER.x + 200, M13_CONTAINER.y]], width: 6 };
+  const m = nepMap({ roads: [weg] });
+  const voor = m13Problems(m);
+  assert.ok(voor.some(([naam]) => naam === 'container'), 'de container staat op de weg');
+  const s1 = shiftM13Plan(m), s2 = shiftM13Plan(m);
+  assert.ok(s1 && s2 && s1.dx === s2.dx && s1.dy === s2.dy, 'dezelfde verschuiving bij elke aanroep');
+  assert.ok(Math.hypot(s1.dx, s1.dy) <= 120);
+  const kopie = [M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, ...CONTAINER_STACKS, ...CABLE_REELS].map((p) => [p.x, p.y]);
+  try {
+    applyM13Shift(s1);
+    assert.deepEqual(m13Problems(m), [], 'na de verschuiving staat alles vrij');
+    assert.equal(shiftM13Plan(m), null, 'een geldig plan blijft staan');
+  } finally {
+    [M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, ...CONTAINER_STACKS, ...CABLE_REELS].forEach((p, i) => { p.x = kopie[i][0]; p.y = kopie[i][1]; });
+  }
+  assert.equal(shiftM13Plan(nepMap()), null, 'een lege map vraagt niets');
+});
+
+t('de voetafdrukken dekken kraan, rollen, stapel, pad en kadevloer', () => {
+  const namen = new Set(m13Footprints().map(([n]) => n));
+  for (const n of ['kade', 'Lammert', 'kraan', 'kabelrol', 'container', 'pad', 'kadevloer']) assert.ok(namen.has(n), n);
 });
 
 console.log(`containerplan_test: ${n}/${n} ok`);
