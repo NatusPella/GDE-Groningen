@@ -394,7 +394,8 @@ function buildAtlas() {
 let netMap = null;
 let nodeIndex = new Map();
 let lights = [];
-const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
+// één getal per punt (0,1 m): geen string per hoekpunt bij het bouwen van de knooppuntindex (bereik ruim 3000 km, zie scripts/perf/nodekey_bench.mjs)
+const nodeKey = (p) => (Math.round(p[0] * 10) + 33554432) * 67108864 + (Math.round(p[1] * 10) + 33554432);
 
 // Junction index and signals per road network: the city map, and any other
 // map whose roads carry it as r.net; a road
