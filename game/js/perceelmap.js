@@ -4,7 +4,8 @@ import { getBoerderij } from './boerderijlive.js';
 import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK } from './mapstyle.js';
-import { veldStatus, KAART_STIJL, watNu, machinePlekken } from './farmstatus.js';
+import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken } from './farmstatus.js';
+import { iconInner } from './icons.js';
 
 const pos = new Map();
 const wereld = (p) => { let q = pos.get(p.id); if (!q) { q = wgsToWorld(p.lat, p.lon); pos.set(p.id, q); } return q; };
@@ -28,6 +29,38 @@ const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'per
 const STATUS_KIND = /^perceel-eigen-([a-z]+)$/;
 const MACHINE_KIND = 'perceel-machine';
 
+// De vulling van een veld op de kaart: een leeg veld rustig, een groeiend gewas steeds voller, oogstklaar het volst (het doel).
+export function vulAlpha(st) {
+  if (!GROEI_STANDEN.includes(st.statusId)) return 0.14;
+  return st.statusId === 'rijp' ? 0.36 : 0.16 + 0.16 * Math.max(0, Math.min(1, st.groei || 0));
+}
+
+const ikonPaden = new Map();
+// Het statusicoon (Phosphor, icons.js) in een schijf met, bij een gewas dat groeit, een voortgangsring: ring vol = oogstklaar. Alleen canvas;
+// zonder Path2D (node, tests) blijft het bij de schijf en de ring. r is de straal in schermpixels, groei 0..1 of null.
+export function tekenVeldBadge(ctx, x, y, r, v) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = INK.dark; ctx.globalAlpha = 0.82; ctx.fill(); ctx.globalAlpha = 1;
+  const stijl = v.stijl || {};
+  if (v.groei != null) {
+    ctx.lineWidth = Math.max(2, r * 0.28); ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = INK.cream; ctx.globalAlpha = 0.3; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.03, Math.min(1, v.groei))); ctx.strokeStyle = INK[stijl.vul] || INK.greenLight; ctx.stroke();
+  } else {
+    ctx.lineWidth = Math.max(1.5, r * 0.16); ctx.setLineDash(stijl.dash || []); ctx.strokeStyle = INK[stijl.rand] || INK.cream;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  }
+  if (typeof Path2D !== 'undefined' && v.icoon) {
+    let lijst = ikonPaden.get(v.icoon);
+    if (!lijst) { lijst = [...iconInner(v.icoon, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); ikonPaden.set(v.icoon, lijst); }
+    const k = (r * 1.15) / 256;
+    ctx.translate(x - 128 * k, y - 128 * k); ctx.scale(k, k);
+    ctx.fillStyle = INK.cream;
+    for (const q of lijst) ctx.fill(q);
+  }
+  ctx.restore();
+}
+
 // #972: de percelen die van jou zijn, als vlak met een duidelijke omtrek op de grote kaart.
 // Alleen eigen grond: aangeboden akkers blijven een pictogram, anders wordt de kaart vol.
 export function eigenPerceelVlakken() {
@@ -43,6 +76,8 @@ export function eigenPerceelVlakken() {
     out.push({
       id: p.id, naam: p.naam, soort: p.soort, ha: p.ha, bodem: p.bodem, punten, x, y,
       stijl: KAART_STIJL[st.statusId], statusNaam: st.klaar ? 'Oogstklaar' : st.status, statusId: st.statusId,
+      // de vulling groeit met het gewas mee (zoals bij een gebied dat je aan het veroveren bent); ring en icoon staan in tekenVeldBadge
+      icoon: st.icoon, groei: GROEI_STANDEN.includes(st.statusId) ? st.groei : null, alpha: vulAlpha(st),
       sub: `${p.soort === 'weiland' ? 'Weiland' : 'Akker'} · ${p.ha} ha · ${st.klaar ? 'oogstklaar' : st.kort} · nu: ${watNu(st, b.schuur.kg || 0).toLowerCase()}`,
     });
   }

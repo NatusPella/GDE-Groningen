@@ -9,6 +9,7 @@ const K = await import('../game/js/farmcards.js');
 const H = await import('../game/js/farmhud.js');
 const Live = await import('../game/js/boerderijlive.js');
 const PM = await import('../game/js/perceelmap.js');
+const IC = await import('../game/js/icons.js');
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -59,7 +60,7 @@ t('stoppel overleeft opslaan en laden, een oude opslag zonder stoppel blijft bra
 
 t('elke status heeft icoon, kaartstijl met letter, wereldkleur en een verschillende letter of vorm', () => {
   for (const sid of S.STATUS_IDS) {
-    assert.ok(S.STATUS[sid].icoon.startsWith('<path'), sid);
+    assert.ok(IC.iconBekend(S.STATUS[sid].icoon), sid);
     assert.ok(S.KAART_STIJL[sid].letter, sid); assert.ok(Number.isInteger(S.WERELD_KLEUR[sid]), sid);
   }
   assert.equal(new Set(S.STATUS_IDS.map((x) => S.WERELD_KLEUR[x])).size, S.STATUS_IDS.length, 'elke stand een eigen wereldkleur');
@@ -139,6 +140,44 @@ t('kaart: je machines staan er met hun dieselstand, en zonder bron geen machines
   S.zetMachinePlekken(() => { throw new Error('kapot'); });
   assert.deepEqual(S.machinePlekken(), [], 'een kapotte bron telt niet mee');
   S.zetMachinePlekken(null);
+});
+
+t('toestanden per veld (20-11): elke stand heeft een eigen Phosphor-icoon, letter en patroon, nooit alleen kleur', () => {
+  const ids = S.STATUS_IDS;
+  assert.equal(ids.length, 7);
+  for (const sid of ids) assert.ok(IC.iconBekend(S.STATUS[sid].icoon), 'icoon van ' + sid + ' staat in iconmap.js');
+  assert.equal(new Set(ids.map((i) => S.STATUS[i].icoon)).size, 7, 'zeven verschillende pictogrammen');
+  assert.equal(new Set(ids.map((i) => S.KAART_STIJL[i].letter + S.STATUS[i].patroon)).size >= 6, true, 'letter en patroon onderscheiden de standen');
+  for (const sid of ids) assert.match(IC.icoon(S.STATUS[sid].icoon, { cls: 'x' }), /<svg class="ic x"/);
+  // alleen de standen met een gewas krijgen een groeibalk (wereld) en een voortgangsring (kaart)
+  assert.deepEqual(S.GROEI_STANDEN, ['zaailing', 'groeiend', 'bijna', 'rijp']);
+});
+
+t('kaartvlak: de vulling groeit met het gewas mee en oogstklaar is het volst', () => {
+  const al = (statusId, groei) => PM.vulAlpha({ statusId, groei });
+  assert.ok(al('braak', 0) < al('zaailing', 0.05), 'een leeg veld is rustiger dan een zaailing');
+  assert.ok(al('zaailing', 0.1) < al('groeiend', 0.5) && al('groeiend', 0.5) < al('bijna', 0.9), 'de vulling groeit');
+  assert.ok(al('bijna', 1) < al('rijp', 1), 'oogstklaar is het volst');
+  assert.equal(al('stoppel', 0.8), al('braak', 0));
+});
+
+t('kaartvlak van een veld in elke stand: icoon, ring alleen bij een groeiend gewas, per speler uit de eigen boerderij', () => {
+  Live.zetBoerderijVoorTest(null, nepOpslag());
+  const b = Live.getBoerderij(), id = b.bedrijf.actief;
+  const lees = () => PM.eigenPerceelVlakken().find((v) => v.id === id);
+  let v = lees();
+  assert.equal(v.statusId, 'braak'); assert.equal(v.groei, null); assert.equal(v.icoon, 'veld_braak');
+  B.rondTaakAf(b, 'ploegen', 1, { vrij: true });
+  v = lees(); assert.equal(v.statusId, 'geploegd'); assert.equal(v.groei, null); assert.equal(v.icoon, 'veld_geploegd');
+  B.rondTaakAf(b, 'zaaien', 1, { gewas: 'aardappelen', vrij: true }); B.tikUren(b, 20);
+  v = lees(); assert.ok(['zaailing', 'groeiend', 'bijna'].includes(v.statusId)); assert.ok(v.groei > 0 && v.groei < 1, 'ring met het deel'); assert.ok(v.alpha > 0.14);
+  B.tikUren(b, 400);
+  v = lees(); assert.equal(v.statusId, 'rijp'); assert.equal(v.groei, 1); assert.equal(v.icoon, 'veld_rijp');
+  // tekenen zonder Path2D (node): de schijf en de ring komen er zonder fout uit
+  const calls = []; const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : (...a) => { calls.push(k); }), set: (o, k, w) => { o[k] = w; return true; } });
+  PM.tekenVeldBadge(ctx, 10, 10, 8, v);
+  assert.ok(calls.filter((c) => c === 'arc').length >= 3, 'schijf, ring en voortgang');
+  B.rondTaakAf(b, 'oogsten', 1, { vrij: true });
 });
 
 console.log(`farmstatus_test: ${n - fails}/${n}`);

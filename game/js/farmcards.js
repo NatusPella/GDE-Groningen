@@ -3,12 +3,13 @@
 // ds-components.css; de indeling staat in farm.css) uit het model van farmstatus.js. Klikken en toetsen regelt boerderijui.js (data-bd-naar,
 // data-bd-uitleg). Geen eigen kleuren: de stand zit in data-status, de betekenis in woorden en een icoon (kleur is nooit de enige betekenis).
 import * as B from './boerderij.js';
+import { icoon } from './icons.js';
 import { STATUS, STATUS_IDS, KAART_STIJL, LUS, veldenStatus, lusKlaar, watNu } from './farmstatus.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const svg = (pad, cls = 'ds-icoon') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`;
-const chip = (statusId, tekst) => `<span class="ds-chip bd-chip" data-status="${statusId}">${svg(STATUS[statusId].icoon, 'ds-chip__icoon')}${esc(tekst || STATUS[statusId].naam)}</span>`;
+const chip = (statusId, tekst) => `<span class="ds-chip bd-chip" data-status="${statusId}">${icoon(STATUS[statusId].icoon, { cls: 'ds-chip__icoon' })}${esc(tekst || STATUS[statusId].naam)}</span>`;
 
 // De sleutel voor de eerste-keer-uitleg: een keer weggeklikt blijft weg (alleen dit apparaat, geen savegame).
 export const UITLEG_SLEUTEL = 'gde-boerderij-uitleg-v1';

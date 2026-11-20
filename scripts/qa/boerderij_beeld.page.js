@@ -24,6 +24,7 @@ const Live = await imp('boerderijlive');
 const WT = await imp('werktuigen');
 const { akkerRijen } = await imp('bietenrules');
 const MF = await imp('mapfilters');
+const VEH = await imp('vehicle');
 
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 for (let i = 0; i < 25 && w.paused; i++) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } await sleep(300); }
@@ -111,6 +112,9 @@ try {
   check('veld gevonden', !!pos, JSON.stringify(pos));
   if (pos) {
     const rijen = akkerRijen({ x: pos.x, y: pos.y }, pos.a);
+    // ligt er water op de ploegrijen? (een trekker die in de sloot zinkt middenin het werk is een bug, geen testartefact)
+    uit.natOpRijen = rijen.map((r, i) => { const nat = []; for (let l = -12; l <= 112; l += 2) { if (VEH.overOpenWater(map, r.ax + r.ux * l, r.ay + r.uy * l, 0)) nat.push(l); } return { i, nat }; });
+    check('geen water op de rijen', uit.natOpRijen.every((r) => !r.nat.length), JSON.stringify(uit.natOpRijen.filter((r) => r.nat.length)));
     const v = trek;
     if (!p.inVehicle) { teleport(v.x + 2.0, v.y + 0.8, 0); await sleep(800); p.enterVehicle(v, w); await sleep(800); }
     const d = WT.WERKTUIG.ploeg;
@@ -132,12 +136,22 @@ try {
       teleport(px, py, hoek); hold = { x: px, y: py, a: hoek };
       await sleep(wacht); await shot(naam, 300); hold = null;
     };
+    const kaartShot = async (naam) => {
+      hold = null; teleport(pos.x + 260, pos.y + 40, 0);
+      PM.openPauseMenu('map'); await sleep(2000); begrepen(); await sleep(400);
+      if (mv.setMapView) { mv.setMapView(pos.x, pos.y, 24); await sleep(1500); }
+      await shot(naam, 400);
+      PM.closePauseMenu(); await sleep(500);
+    };
     await vantage('veld-geploegd', 4000);
+    await kaartShot('kaart-geploegd');
     Live.rondAf(w, 'cultiveren', 0.9, { vrij: true });
     Live.rondAf(w, 'zaaien', 0.9, { vrij: true });
     await vantage('veld-gezaaid');
+    await kaartShot('kaart-gezaaid');
     B.tikUren(b, 18);
     await vantage('veld-groeit');
+    await kaartShot('kaart-groeit');
     B.tikUren(b, 40);
     await vantage('veld-rijp');
     {
@@ -148,13 +162,11 @@ try {
     PM.openPauseMenu('boerderij'); await sleep(1200);
     await shot('paneel-perceel-rijp', 300);
     PM.closePauseMenu(); await sleep(500);
-    PM.openPauseMenu('map'); await sleep(2000); begrepen(); await sleep(500);
-    if (mv.setMapView) { mv.setMapView(pos.x, pos.y, 4); await sleep(1500); }
-    await shot('kaart-rijp', 600);
-    PM.closePauseMenu(); await sleep(500);
+    await kaartShot('kaart-rijp');
     PM.closePauseMenu(); await sleep(400);
     Live.rondAf(w, 'oogsten', 0.9, { vrij: true });
     await vantage('veld-stoppel', 3500);
+    await kaartShot('kaart-stoppel');
     PM.openPauseMenu('boerderij'); await sleep(1200);
     await shot('paneel-perceel-stoppel', 300);
     PM.closePauseMenu(); await sleep(400);

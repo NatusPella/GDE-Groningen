@@ -575,7 +575,8 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
   if (stopMesh) { stopMesh.instanceMatrix.needsUpdate = true; group.add(stopMesh); }
   // de markering op de hoek van het veld: vlag in de kleur van de status, vorm bovenop, een lichtkolom bij oogstklaar
   const hoekPunt = { x: rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, y: rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4 };
-  const marker = maakVeldMarker(statusId, hoekPunt.x, hoekPunt.y, grond(w, hoekPunt.x, hoekPunt.y));
+  const groei = stand.fase === 'gezaaid' && g && Number.isFinite(stand.gezaaidOp) ? (uren - stand.gezaaidOp) / g.groeiUren : null;
+  const marker = maakVeldMarker(statusId, hoekPunt.x, hoekPunt.y, grond(w, hoekPunt.x, hoekPunt.y), groei);
   group.add(marker.group);
   sceneAdd(group);
   return { id, w, pos, rijen, group, cellen, planten, voren, vorenItems, stopMesh, stopItems, marker, sleutel: sv ? sv.sleutel : sleutelVan(b, id), werkRef: werk, vuil: false };

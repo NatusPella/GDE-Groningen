@@ -41,7 +41,7 @@ import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
-import { perceelMapSpots, eigenPerceelVlakken } from './perceelmap.js';
+import { perceelMapSpots, eigenPerceelVlakken, tekenVeldBadge } from './perceelmap.js';
 import { veldBij } from './percelen.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
@@ -1666,7 +1666,7 @@ function drawDynamicMarkers(ctx, world) {
     ctx.closePath();
     // #985: de kleur, het lijnpatroon en de letter volgen de status van het veld (perceelmap.js: veldStijl); zonder stijl blijft het groen
     const st = v.stijl || { vul: 'greenLight', rand: 'greenLight', dash: [], letter: '' };
-    ctx.fillStyle = inkA(st.vul, hoverVeld ? 0.3 : 0.18);
+    ctx.fillStyle = inkA(st.vul, hoverVeld ? 0.3 : (v.alpha || 0.18));
     ctx.fill();
     ctx.lineWidth = (hoverVeld ? 3.4 : 2.2) * Math.min(2, Math.max(1, state.zoom || 1));
     ctx.strokeStyle = inkA(st.rand, hoverVeld ? 1 : 0.85);
@@ -1912,12 +1912,14 @@ function drawDynamicMarkers(ctx, world) {
 // points straight at the destination instead.
 // #985: de statusletter en het woord in het midden van je veld, zodat kleur nooit de enige betekenis is.
 function tekenVeldLabel(ctx, v, st, a, c, toScreen) {
-  const mx = (a[0] + c[0]) / 2, my = (a[1] + c[1]) / 2;
+  // de label staat bij de hoek met de vlag (het eerste punt), want in het midden liggen vaak je machines
+  const mx = a[0] + (c[0] - a[0]) * 0.34, my = a[1] + (c[1] - a[1]) * 0.34;
   const px = 11 * Math.min(1.6, Math.max(1, state.zoom || 1));
   ctx.font = `700 ${px}px 'Bebas Neue', sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.lineWidth = 3; ctx.strokeStyle = inkA('dark', 0.85); ctx.strokeText(st.letter, mx, my);
   ctx.fillStyle = inkA(st.vul, 1); ctx.fillText(st.letter, mx, my);
+  tekenVeldBadge(ctx, mx, my - px * 1.35, px * 0.95, v);   // het icoon van de stand, met een ring voor de groei (20-11)
   if (v.statusNaam && (state.zoom || 1) >= 1.2) { ctx.font = `600 ${Math.round(px * 0.8)}px sans-serif`; ctx.strokeText(v.statusNaam, mx, my + px); ctx.fillStyle = inkA('cream', 1); ctx.fillText(v.statusNaam, mx, my + px); }
 }
 
@@ -2546,7 +2548,7 @@ const LEGEND = [
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
     { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou (met omtrek en hover); klik voor een doel', layers: ['percelen'] },
-    { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (geel: dat is je doel); T is een machine van jou' },
+    { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (geel: dat is je doel); T is een machine van jou', layers: ['percelen'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
   ] },
   { group: 'Diensten', folded: true, rows: [

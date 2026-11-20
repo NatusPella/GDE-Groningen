@@ -2,7 +2,7 @@
 // de enige betekenis) en, als het gewas oogstklaar is, een zachte gele lichtkolom die rustig pulseert. Alles MeshBasic zonder licht of nieuwe shader;
 // de kolom heeft depthWrite uit en een lichte lift, dus geen z-fighting met de grond. De kleuren komen uit farmstatus.js (zelfde taal als de kaart).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { WERELD_KLEUR } from './farmstatus.js';
+import { WERELD_KLEUR, GROEI_STANDEN } from './farmstatus.js';
 
 const TOP = {
   braak: () => new THREE.SphereGeometry(0.28, 6, 4),
@@ -14,8 +14,9 @@ const TOP = {
   rijp: () => new THREE.OctahedronGeometry(0.42, 0),
 };
 
-// De markering voor een status op plek (x, y, grondhoogte). Geeft { group, beam } (beam alleen bij oogstklaar).
-export function maakVeldMarker(statusId, x, z, grond) {
+// De markering voor een status op plek (x, y, grondhoogte). Geeft { group, beam } (beam alleen bij oogstklaar). groei (0..1): bij een gewas dat groeit een
+// meetlat naast de paal (donkere baan met een vulling in de kleur van de stand), zodat je van een afstand ziet hoever het is; het veld wordt elke 10% opnieuw gebouwd.
+export function maakVeldMarker(statusId, x, z, grond, groei = null) {
   const kleur = WERELD_KLEUR[statusId] || WERELD_KLEUR.braak;
   const group = new THREE.Group();
   group.name = 'veldmarker';
@@ -26,6 +27,14 @@ export function maakVeldMarker(statusId, x, z, grond) {
   const top = new THREE.Mesh((TOP[statusId] || TOP.braak)(), new THREE.MeshBasicMaterial({ color: kleur }));
   top.position.set(0, 3.5, 0);
   group.add(paal, vlag, top);
+  if (GROEI_STANDEN.includes(statusId) && Number.isFinite(groei)) {
+    const f = Math.max(0.04, Math.min(1, groei));
+    const baan = new THREE.Mesh(new THREE.BoxGeometry(0.34, 2.4, 0.12), new THREE.MeshBasicMaterial({ color: 0x2b2a26 }));
+    baan.position.set(-0.45, 1.5, 0);
+    const vul = new THREE.Mesh(new THREE.BoxGeometry(0.22, 2.4 * f, 0.16), new THREE.MeshBasicMaterial({ color: kleur }));
+    vul.position.set(-0.45, 0.3 + 1.2 * f, 0.01);
+    group.add(baan, vul);
+  }
   let beam = null;
   if (statusId === 'rijp') {
     beam = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 16, 10, 1, true), new THREE.MeshBasicMaterial({ color: kleur, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
