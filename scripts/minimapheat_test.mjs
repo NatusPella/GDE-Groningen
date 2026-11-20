@@ -37,5 +37,13 @@ const tip = H.heatTooltip(3, 2, { searching: true });
 ok(/3 van 5 sterren/.test(tip) && /2 politie-eenheden/.test(tip) && /segment is een ster/.test(tip) && /stippen/.test(tip), 'de tooltip noemt de stand en legt ring en stippen uit');
 ok(!/(police|wanted|heat)/i.test(tip), 'de tooltip is Nederlands, zonder Engelse rolwoorden');
 
+// de chip met icoon en getal (#952)
+ok(H.heatChip(3, 0) === null, 'zonder politie in beeld geen chip');
+const chip = H.heatChip(3, 2, { searching: true });
+ok(chip && chip.eenhedenTekst === '2' && chip.sterTekst === '3/5' && chip.searching, 'de chip toont eenheden en sterren als getal');
+ok(H.heatChip(0, 1).sterTekst === '0/5' && H.heatChip(9, 1).sterTekst === '5/5', 'sterren in de chip blijven binnen 0 tot 5');
+ok(chip.uitleg === H.heatTooltip(3, 2, { searching: true }) && /segment is een ster/.test(chip.uitleg), 'de chip heeft de uitleg als tooltip');
+ok(H.CHIP_MIN_PX >= 13, 'de chip is minstens 13 px');
+
 console.log(fails ? `${fails} of ${n} failed` : `minimapheat_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

@@ -829,6 +829,19 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
 #hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }
 
+/* #952: icoon plus getal bij de politie: schild = eenheden in beeld, ster = gezocht (x van 5). Minstens 13 px, papier met inktrand */
+#hud .hud-mm-heat {
+  position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; align-items: center; z-index: 2;
+  padding: 2px 7px; background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); border-radius: 10px;
+  font: 800 max(13px, 1em) var(--ds-font-kop-v3); line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
+}
+#hud .hud-mm-heat[hidden] { display: none; }
+#hud .hud-mm-heat span { display: inline-flex; align-items: center; gap: 3px; }
+#hud .hud-mm-heat svg { width: 15px; height: 15px; flex: 0 0 15px; fill: var(--ds-c-ink-papier); stroke: var(--hud-inkt); stroke-width: 1.8; stroke-linejoin: round; }
+#hud .hud-mm-heat .mmh-eenh svg { fill: var(--ds-c-ink-inkt); stroke: var(--ds-c-ink-inkt); }
+#hud .hud-mm-heat.warm .mmh-ster svg { fill: var(--ds-c-ink-roze); }
+#hud .hud-mm-heat.warm .mmh-ster b { color: var(--ds-c-rood-tx); }
+
 /* Rustig drukwerk: de tokens nullen misdruk, schuinte en raster; hier nog de beweging en de lege ster als omtrek */
 html.rustig-drukwerk #hud .hud-money-delta.visible, html.rustig-drukwerk #hud .hud-mission.pop .hud-obj-text,
 html.rustig-drukwerk #hud .hud-weapon.switched .hud-weapon-icon, html.rustig-drukwerk html.rustig-drukwerk #hud .hud-wanted svg:not(.on) { fill: none; }

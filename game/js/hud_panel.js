@@ -59,7 +59,7 @@ import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
-import { policeBadge, heatTooltip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, geen cijfer
+import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -248,6 +248,14 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
+  // #952: icoon plus getal bij de politie (schild = eenheden in beeld, ster = gezochtniveau van 5); verborgen zonder politie
+  const mmHeat = document.createElement('div');
+  mmHeat.className = 'hud-mm-heat';
+  mmHeat.hidden = true;
+  mmHeat.setAttribute('role', 'img');
+  mmHeat.innerHTML = '<span class="mmh-eenh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 4.5 5.4v6c0 4.7 3.1 8.5 7.5 10.1 4.4-1.6 7.5-5.4 7.5-10.1v-6z"/></svg><b class="mmh-n"></b></span>'
+    + `<span class="mmh-ster">${STAR}<b class="mmh-w"></b></span>`;
+  mmWrap.appendChild(mmHeat);
   root.appendChild(mmWrap);
   // v3 (#993): de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
@@ -364,6 +372,9 @@ export function initHud(world) {
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
     mmWrap,
+    mmHeat,
+    mmHeatN: mmHeat.querySelector('.mmh-n'),
+    mmHeatW: mmHeat.querySelector('.mmh-w'),
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
@@ -3025,6 +3036,15 @@ function drawMinimap(dt, world) {
     mmHeatTip = heatTip;
     if (heatTip) { els.mmWrap.title = heatTip; els.mmWrap.setAttribute('aria-label', heatTip); }
     else { els.mmWrap.removeAttribute('title'); els.mmWrap.removeAttribute('aria-label'); }
+    const chip = heatChip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
+    els.mmHeat.hidden = !chip;
+    if (chip) {
+      els.mmHeatN.textContent = chip.eenhedenTekst;
+      els.mmHeatW.textContent = chip.sterTekst;
+      els.mmHeat.classList.toggle('warm', chip.sterren > 0);
+      els.mmHeat.title = chip.uitleg;
+      els.mmHeat.setAttribute('aria-label', chip.uitleg);
+    }
   }
   if (badge) {
     let best = polities[0];

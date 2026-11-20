@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Politie op de minikaart is uitgelegd:** zodra er politie in beeld is, staat linksboven op de minikaart een label met een schild en het aantal eenheden, en een ster met je gezochtniveau (bijvoorbeeld 3/5). Houd de aanwijzer erop voor de uitleg. De tekst is minstens 13 px.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
