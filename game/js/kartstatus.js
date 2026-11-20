@@ -21,8 +21,8 @@ export const STAPPEN = [
 export const UITLEG_ID = 'kartbaan';
 export const UITLEG = [
   { icoon: ICOON.licht, tekst: 'Bij groen: gas met W' },
-  { icoon: ICOON.kart, tekst: 'A en D sturen, S remt' },
-  { icoon: ICOON.drift, tekst: 'Spatie in een bocht: drift' },
+  { icoon: ICOON.kart, tekst: '{A} en {D} sturen, S remt' },
+  { icoon: ICOON.drift, tekst: '{SPATIE} in een bocht: drift' },
   { icoon: ICOON.vlag, tekst: `${LAPS} ronden, eerste wint goud` },
 ];
 
@@ -47,7 +47,7 @@ export function kartHudModel(g) {
   ];
   return {
     id: 'kartbaan', titel: 'Kartbaan Ulrum', icoon: ICOON.kart, plek: g.fase === 'grid' ? '' : `Ronde ${Math.min(LAPS, Math.max(1, g.ronde || 1))}`, stappen, meter, cijfers,
-    uitleg: g.uitleg && g.fase === 'grid' ? UITLEG : [], nu: watNu(g), hulp: 'W gas · S rem · A D sturen · Spatie drift in een bocht', slecht: !!g.gras,
+    uitleg: g.uitleg && g.fase === 'grid' ? UITLEG : [], nu: watNu(g), hulp: '{W} gas · {S} rem · {A}{D} sturen · {SPATIE} drift in een bocht', slecht: !!g.gras,
   };
 }
 
@@ -55,9 +55,9 @@ export function watNu(g) {
   if (g.fase === 'grid') return g.lichten ? `Startlichten: ${Math.min(3, g.lichten)} van 3` : 'Rijders, op uw plaatsen';
   if (g.fase === 'finish' || g.fase === 'outro') return `Gefinisht als ${g.plek || 1}e`;
   if (g.gras) return 'Je zit in het gras: terug naar het asfalt';
-  if (g.drift) return g.drift.t >= KART.charge1 ? 'Laat Spatie los voor de versnelling' : 'Houd Spatie vast door de bocht';
+  if (g.drift) return g.drift.t >= KART.charge1 ? 'Laat {SPATIE} los voor de versnelling' : 'Houd {SPATIE} vast door de bocht';
   if (g.boost) return 'Boost!';
-  return 'Gas en een bocht in met Spatie voor een drift';
+  return 'Gas en een bocht in met {SPATIE} voor een drift';
 }
 
 // Wat opspringt: een ronde (de tijd) of een boost.

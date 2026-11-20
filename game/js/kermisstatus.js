@@ -20,10 +20,10 @@ export const STAPPEN = [
 // De uitleg voor de eerste keer: vier iconen met een zin. Wordt getoond tot je voor het eerst een auto raakt (dit apparaat).
 export const UITLEG_ID = 'botsauto';
 export const UITLEG = [
-  { icoon: ICOON.auto, tekst: 'W gas, S achteruit, A en D sturen' },
+  { icoon: ICOON.auto, tekst: '{W} gas, {S} achteruit, {A} en {D} sturen' },
   { icoon: ICOON.bel, tekst: 'Bots de auto in de gele kolom' },
   { icoon: ICOON.reeks, tekst: 'In de flank of van achteren geeft meer punten' },
-  { icoon: ICOON.uit, tekst: 'Backspace: uitstappen' },
+  { icoon: ICOON.uit, tekst: '{BACKSPACE}: uitstappen' },
 ];
 
 export const REEKS_TIJD = 2.2; // s: binnen zo lang na een botsing telt de volgende bij je reeks (kermis.js)
@@ -41,7 +41,7 @@ export function kermisHudModel(g) {
   if ((g.reeks || 0) > 1) cijfers.push({ label: 'Reeks', waarde: String(g.reeks), icoon: ICOON.reeks });
   return {
     id: 'botsauto', titel: 'Botsauto’s', icoon: ICOON.auto, plek: '', stappen, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
-    nu: watNu(g), hulp: 'W S gas · A D sturen · Backspace uitstappen', slecht: !!g.slecht,
+    nu: watNu(g), hulp: '{W}{S} gas · {A}{D} sturen · {BACKSPACE} uitstappen', slecht: !!g.slecht,
   };
 }
 

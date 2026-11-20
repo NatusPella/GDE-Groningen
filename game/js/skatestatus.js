@@ -19,8 +19,8 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'skatepark';
 export const UITLEG = [
-  { icoon: ICOON.duw, tekst: 'W duwt, S remt' },
-  { icoon: ICOON.truc, tekst: 'Spatie ollie, E kickflip, F heelflip' },
+  { icoon: ICOON.duw, tekst: '{W} duwt, {S} remt' },
+  { icoon: ICOON.truc, tekst: '{SPATIE} ollie, {E} kickflip, {F} heelflip' },
   { icoon: ICOON.grind, tekst: 'Spring op een rail en houd je balans' },
   { icoon: ICOON.keten, tekst: 'Een keten telt pas als je landt' },
 ];
@@ -44,7 +44,7 @@ export function skateHudModel(g) {
   if (g.ketenAan) cijfers.push({ label: 'Keten', waarde: `${getal(g.keten || 0)} x${g.mult || 1}`, icoon: ICOON.keten });
   return {
     id: 'skatepark', titel: 'Skatepark', icoon: ICOON.duw, plek: g.run || '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'intro' ? UITLEG : [],
-    nu: watNu(g), hulp: 'W duwen · A D sturen · Spatie ollie · E kickflip · F heelflip · S grab', slecht: !!g.slecht || (!!g.grind && Math.abs(g.grind.bal) > BALANS_GEVAAR),
+    nu: watNu(g), hulp: '{W} duwen · {A}{D} sturen · {SPATIE} ollie · {E} kickflip · {F} heelflip · {S} grab', slecht: !!g.slecht || (!!g.grind && Math.abs(g.grind.bal) > BALANS_GEVAAR),
   };
 }
 
@@ -53,8 +53,8 @@ export function watNu(g) {
   if (g.fase === 'intro') return 'Daar gaan we: duw met W';
   if (g.fase === 'outro') return 'Tijd!';
   if (g.grind) return g.grind.bal > 0.1 ? 'Je leunt rechts: stuur links' : g.grind.bal < -0.1 ? 'Je leunt links: stuur rechts' : 'Grind! Houd het midden';
-  if (g.grond === false) return 'In de lucht: draai met A of D en land netjes';
-  return g.ketenAan ? 'Land en blijf rijden: de keten telt dan' : 'Duw met W en spring met Spatie bij een helling of rail';
+  if (g.grond === false) return 'In de lucht: draai met {A} of {D} en land netjes';
+  return g.ketenAan ? 'Land en blijf rijden: de keten telt dan' : 'Duw met {W} en spring met {SPATIE} bij een helling of rail';
 }
 
 // Wat opspringt: een truc met zijn punten en een opgeslagen keten. Een val springt niet op (de zin staat in de strook).

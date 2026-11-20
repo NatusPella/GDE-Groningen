@@ -120,7 +120,7 @@ ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /A
 const zwembad = read('zwembad.js');
 // #985: de strook (simhud.js, zwemstatus.js) vervangt het bord: duikbalk en armen als meter, staat in een woord (Nu!, Moe)
 const zwemst = read('zwemstatus.js');
-ok(/simHudTik\(0, zwemHudModel/.test(zwembad) && !/var\(--mk-/.test(zwembad) && /Spatie als de balk bij het streepje is/.test(zwemst) && /'Moe'/.test(zwemst), 'zwembad: duik- en vermoeidheidsmeter in de strook, staat in een woord');
+ok(/simHudTik\(0, zwemHudModel/.test(zwembad) && !/var\(--mk-/.test(zwembad) && /{SPATIE} als de balk bij het streepje is/.test(zwemst) && /'Moe'/.test(zwemst), 'zwembad: duik- en vermoeidheidsmeter in de strook, staat in een woord');
 const kart = read('kartbaan.js');
 // #985: de strook (simhud.js, kartstatus.js) vervangt het bord; het bord blijft alleen voor de tussenstand bij een race tegen anderen
 ok(/mg-stand/.test(kart) && /simHudTik\(0, kartHudModel/.test(kart) && !/var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, de strook uit simhud.js zonder eigen kleuren');

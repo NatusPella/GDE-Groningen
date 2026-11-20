@@ -20,8 +20,8 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'discgolf';
 export const UITLEG = [
-  { icoon: ICOON.richten, tekst: 'A D richten, W S de hoek' },
-  { icoon: ICOON.disc, tekst: 'Houd Spatie, laat los om te gooien' },
+  { icoon: ICOON.richten, tekst: '{A}{D} richten, {W}{S} de hoek' },
+  { icoon: ICOON.disc, tekst: 'Houd {SPATIE}, laat los om te gooien' },
   { icoon: ICOON.mand, tekst: 'De gele kolom staat boven de mand' },
   { icoon: ICOON.vlag, tekst: 'Minder worpen dan par is goed' },
 ];
@@ -34,7 +34,7 @@ const meterTekst = (v) => `${Math.round(v * 100)}%`;
 //      cirkel (bool), totaal (tekst), flash, slecht, kiesNaam, kiesNote, ctpWorp, ctpTotaal, afstanden (tekst), uitleg }
 export function discgolfHudModel(g) {
   if (!g) return null;
-  if (g.modus === 'kies') return { id: 'discgolf', titel: 'Discgolf', icoon: ICOON.disc, plek: g.kiesNaam || '', stappen: [], meter: null, cijfers: [], uitleg: g.uitleg ? UITLEG : [], nu: g.kiesNote || 'Kies een ronde', hulp: 'A D kiezen · Spatie beginnen · Backspace stopt', slecht: false };
+  if (g.modus === 'kies') return { id: 'discgolf', titel: 'Discgolf', icoon: ICOON.disc, plek: g.kiesNaam || '', stappen: [], meter: null, cijfers: [], uitleg: g.uitleg ? UITLEG : [], nu: g.kiesNote || 'Kies een ronde', hulp: '{A}{D} kiezen · {SPATIE} beginnen · {BACKSPACE} stopt', slecht: false };
   const idx = STAPPEN.findIndex((s) => s.id === stapVan(g.fase, g.laden));
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
   const ctp = g.modus === 'ctp';
@@ -46,7 +46,7 @@ export function discgolfHudModel(g) {
     : [mand, { label: 'Worp', waarde: String(g.worp), icoon: I.worp }, { label: 'Par', waarde: String(g.par), icoon: I.par }, { label: 'Wind', waarde: g.wind, icoon: I.wind }];
   return {
     id: 'discgolf', titel: ctp ? 'Dichtst bij de mand' : 'Discgolf', icoon: ICOON.disc, plek: ctp ? (g.cirkel ? 'In de cirkel' : '') : `Baan ${g.baan}/${g.banen}${g.cirkel ? ' · in de cirkel' : ''}`, stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'aim' ? UITLEG : [],
-    nu: watNu(g), hulp: [g.schijf, g.release, g.hoek != null ? `hoek ${Math.round(g.hoek)}°` : '', 'E release', 'F disc'].filter(Boolean).join(' · '), slecht: !!g.slecht,
+    nu: watNu(g), hulp: [g.schijf, g.release, g.hoek != null ? `hoek ${Math.round(g.hoek)}°` : '', '{E} release', '{F} disc'].filter(Boolean).join(' · '), slecht: !!g.slecht,
   };
 }
 
@@ -54,8 +54,8 @@ export function watNu(g) {
   if (g.flash) return g.flash;
   if (g.fase === 'wacht') return 'Alle banen af: wachten op de anderen';
   if (g.fase === 'flight') return 'De disc vliegt';
-  if (g.fase === 'aim' && g.laden) return g.doel ? `Laat Spatie los rond ${meterTekst(g.doel)}` : 'Laat Spatie los om te gooien';
-  if (g.fase === 'aim') return g.cirkel ? 'In de cirkel: zacht en vlak richting de mand' : 'Richt op de gele kolom en houd Spatie';
+  if (g.fase === 'aim' && g.laden) return g.doel ? `Laat {SPATIE} los rond ${meterTekst(g.doel)}` : 'Laat {SPATIE} los om te gooien';
+  if (g.fase === 'aim') return g.cirkel ? 'In de cirkel: zacht en vlak richting de mand' : 'Richt op de gele kolom en houd {SPATIE}';
   return 'Volgende worp komt zo';
 }
 

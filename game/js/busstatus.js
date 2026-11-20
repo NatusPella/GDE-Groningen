@@ -49,7 +49,7 @@ export function busHudModel(g) {
   const cijfers = [{ label: 'Schema', waarde: schemaTekst(g.afwijking || 0), icoon: I.klok, primair: true }, { label: 'Comfort', waarde: `${Math.round(comfort)}%`, icoon: I.punt }];
   return {
     id: 'bus', titel: 'Stadsbus lijn 3', icoon: ICOON.bus, plek: g.halte || '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'rijden' && gedaan === 0 ? UITLEG : [],
-    nu: watNu(g), hulp: 'Stop bij de halte · O sluit de deuren', slecht: g.afwijking > LATE_OK || comfort < 50,
+    nu: watNu(g), hulp: 'Stop bij de halte · {O} sluit de deuren', slecht: g.afwijking > LATE_OK || comfort < 50,
   };
 }
 

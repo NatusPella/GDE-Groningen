@@ -16,11 +16,13 @@
 .sh-stappen > li[data-stand="klaar"] .ds-chip { --ds-chip-bg: var(--ds-succes-vlak); --ds-chip-tx: var(--ds-succes-tx); }
 .sh-stappen > li[data-stand="nu"] .ds-chip { --ds-chip-bg: var(--ds-primair); --ds-chip-tx: var(--ds-primair-tx); }
 .sh-stappen > li[data-stand="straks"] .ds-chip { --ds-chip-bg: transparent; --ds-chip-tx: var(--ds-tx-zacht); }
-.sh-stappen > li:not([data-stand="nu"]) .sh-stap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.sh-stappen .ds-chip { min-height: var(--ds-s-6); }
+/* elke stap houdt zijn korte woord (klein, geen hoofdletters): je ziet hoeveel stappen er zijn en welke aan de beurt is */
+.sh-stappen .ds-chip { min-height: var(--ds-s-6); padding: 0 var(--ds-s-2); gap: var(--ds-s-1); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+.sh-stappen .ds-chip__icoon { width: var(--ds-s-4); height: var(--ds-s-4); }
 /* 3. de ene primaire waarde: een pictogram in een badge en het getal groot, daaronder de meter */
 .sh-primair { display: flex; align-items: center; gap: var(--ds-s-3); }
-.sh-primair__badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-7); height: var(--ds-s-7); border-radius: var(--ds-r); background: var(--ds-primair); color: var(--ds-primair-tx); }
+/* rustig: kentekengeel is voor "kan nu" (de huidige stap), niet voor een getal */
+.sh-primair__badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-7); height: var(--ds-s-7); border-radius: var(--ds-r); background: var(--ds-bg-2); color: var(--ds-tx); border: var(--ds-lijn) solid var(--ds-rand); }
 .sh-primair__icoon { width: var(--ds-s-5); height: var(--ds-s-5); }
 .sh-primair__tekst { display: flex; flex-direction: column; min-width: 0; }
 .sh-primair__naam { line-height: var(--ds-lh-tekst); }
@@ -38,7 +40,9 @@
 .sh-cijfers > li[data-staat="goed"] { color: var(--ds-succes-tx); }
 .sh-cijfers > li[data-staat="let-op"] { color: var(--ds-waarschuwing-tx); }
 .sh-cijfers > li[data-staat="actie"] { color: var(--ds-probleem-tx); }
-.sh-waarde { font-weight: 600; }
+.sh-waarde { font-weight: 600; color: var(--ds-tx); }
+.sh-cijfer__naam { white-space: nowrap; }
+.sh-hud .hud-key { vertical-align: baseline; }
 .sh-hulp { margin: 0; }
 .sh-uitleg { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; }
 .sh-uitleg > li { display: flex; align-items: center; gap: var(--ds-s-2); }

@@ -22,7 +22,7 @@ export const STAPPEN = [
 export const UITLEG_ID = 'krantenwijk';
 export const UITLEG = [
   { icoon: ICOON.wijk, tekst: 'Rij of loop naar de wijk' },
-  { icoon: ICOON.krant, tekst: 'E: gooi een krant' },
+  { icoon: ICOON.krant, tekst: '{E}: gooi een krant' },
   { icoon: ICOON.bus, tekst: 'Dichtbij en langzaam is raak' },
   { icoon: ICOON.klaar, tekst: 'Alle brievenbussen: ronde klaar' },
 ];
@@ -44,7 +44,7 @@ export function krantHudModel(g) {
   if (g.tijd != null) cijfers.push({ icoon: IC.klok, label: 'Tijd over', waarde: `${Math.max(0, Math.ceil(g.tijd))} s`, staat: g.tijd < 20 ? 'let-op' : '' });
   return {
     id: 'krantenwijk', titel: 'Krantenwijk', icoon: ICOON.krant, plek: g.wijk || '', stappen, primair, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
-    nu: watNu(g), hulp: 'E gooit · dichtbij en langzaam is raak', slecht: g.fase === 'bezorgen' && (g.stapel || 0) <= 0 && gedaan < g.totaal,
+    nu: watNu(g), hulp: '{E} gooit · dichtbij en langzaam is raak', slecht: g.fase === 'bezorgen' && (g.stapel || 0) <= 0 && gedaan < g.totaal,
   };
 }
 
@@ -53,7 +53,7 @@ export function watNu(g) {
   if (g.fase === 'klaar') return 'Wijk bezorgd';
   if ((g.stapel || 0) <= 0) return 'De stapel is op';
   const lui = g.vijver && !g.lui ? ' · of de hele stapel in de container' : '';
-  if (g.afstand != null && g.afstand <= WORP_BEREIK) return ((g.snelheid || 0) > SNEL ? 'Rustig aan: dichtbij en langzaam is raak' : 'Nu E: gooi de krant') + lui;
+  if (g.afstand != null && g.afstand <= WORP_BEREIK) return ((g.snelheid || 0) > SNEL ? 'Rustig aan: dichtbij en langzaam is raak' : 'Nu {E}: gooi de krant') + lui;
   return 'Ga naar de brievenbus met de gele kolom' + lui;
 }
 

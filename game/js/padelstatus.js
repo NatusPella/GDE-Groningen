@@ -21,9 +21,9 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'padel';
 export const UITLEG = [
-  { icoon: ICOON.rally, tekst: 'A D W S: loop naar de bal' },
+  { icoon: ICOON.rally, tekst: '{WASD}: loop naar de bal' },
   { icoon: ICOON.ring, tekst: 'Ring groen: de bal is binnen bereik' },
-  { icoon: ICOON.racket, tekst: 'Spatie: sla de bal' },
+  { icoon: ICOON.racket, tekst: '{SPATIE}: sla de bal' },
   { icoon: ICOON.punt, tekst: `Eerst naar ${SET_GAMES} games wint` },
 ];
 
@@ -46,16 +46,16 @@ export function padelHudModel(g) {
   ];
   return {
     id: 'padel', titel: 'Padel', icoon: ICOON.racket, plek: g.capped ? 'Beslissend punt' : '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase !== 'rally' ? UITLEG : [],
-    nu: watNu(g), hulp: 'A D W S lopen · Spatie slaat · Backspace geeft op', slecht: g.fase === 'point' && g.winnaar === 1,
+    nu: watNu(g), hulp: '{WASD} lopen · {SPATIE} slaat · {BACKSPACE} geeft op', slecht: g.fase === 'point' && g.winnaar === 1,
   };
 }
 
 export function watNu(g) {
   if (g.fase === 'intro') return 'Maak je klaar: het potje begint zo';
-  if (g.fase === 'serve') return g.serveer ? 'Jij serveert: druk Spatie' : 'Zij serveren: sta klaar';
+  if (g.fase === 'serve') return g.serveer ? 'Jij serveert: druk {SPATIE}' : 'Zij serveren: sta klaar';
   if (g.fase === 'point' || g.fase === 'outro') return g.winnaar === 0 ? 'Punt voor jullie' : 'Punt voor hen';
   if (g.gp) return 'Gouden punt: de volgende punt is de game';
-  return g.inBereik ? 'Nu Spatie: de ring is groen' : 'Loop naar de bal tot de ring groen is';
+  return g.inBereik ? 'Nu {SPATIE}: de ring is groen' : 'Loop naar de bal tot de ring groen is';
 }
 
 // Wat opspringt: een punt van jullie, een lange rally of een game/set.

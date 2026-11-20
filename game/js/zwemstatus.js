@@ -19,9 +19,9 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'zwembad';
 export const UITLEG = [
-  { icoon: ICOON.duik, tekst: 'Spatie als de balk bij het streepje is' },
-  { icoon: ICOON.zwem, tekst: 'A en D om en om zwemmen' },
-  { icoon: ICOON.keer, tekst: 'Spatie vlak voor de muur: keerpunt' },
+  { icoon: ICOON.duik, tekst: '{SPATIE} als de balk bij het streepje is' },
+  { icoon: ICOON.zwem, tekst: '{A} en {D} om en om zwemmen' },
+  { icoon: ICOON.keer, tekst: '{SPATIE} vlak voor de muur: keerpunt' },
   { icoon: ICOON.vlag, tekst: 'Houd je armen fris: rustig ritme' },
 ];
 
@@ -47,18 +47,18 @@ export function zwemHudModel(g) {
   ];
   return {
     id: 'zwembad', titel: 'Honderd meter', icoon: ICOON.zwem, plek: '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'intro' ? UITLEG : [],
-    nu: watNu(g), hulp: 'A D om en om · Spatie duik en keerpunt · Backspace stopt', slecht: !!g.slecht || (!!g.moe && !opBlok),
+    nu: watNu(g), hulp: '{A}{D} om en om · {SPATIE} duik en keerpunt · {BACKSPACE} stopt', slecht: !!g.slecht || (!!g.moe && !opBlok),
   };
 }
 
 export function watNu(g) {
   if (g.flash) return g.flash;
   if (g.fase === 'intro') return 'Op het startblok: even wachten';
-  if (g.swimFase === 'block') return 'Spatie als de balk bij het streepje is';
+  if (g.swimFase === 'block') return '{SPATIE} als de balk bij het streepje is';
   if (g.swimFase === 'done') return 'Aangetikt!';
   if (g.moe) return 'Moe! Rustig aan, ritme vasthouden';
-  if (g.muur != null && g.muur <= KEER_AFSTAND) return 'Nu Spatie: keerpunt';
-  return 'A en D om en om, rustig ritme';
+  if (g.muur != null && g.muur <= KEER_AFSTAND) return 'Nu {SPATIE}: keerpunt';
+  return '{A} en {D} om en om, rustig ritme';
 }
 
 // Wat opspringt: een goede duik (alleen een mooie), een mooi keerpunt. Een mislukte duik of keerpunt springt niet op (de zin staat al in de strook).

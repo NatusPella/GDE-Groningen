@@ -21,9 +21,9 @@ export const STAPPEN = [
 
 export const UITLEG_ID = 'klimtoren';
 export const UITLEG = [
-  { icoon: ICOON.klim, tekst: 'Houd A en D allebei vast' },
+  { icoon: ICOON.klim, tekst: 'Houd {A} en {D} allebei vast' },
   { icoon: ICOON.start, tekst: 'Pak de grepen met een ring' },
-  { icoon: ICOON.magnesium, tekst: 'Spatie: magnesium voor frisse armen' },
+  { icoon: ICOON.magnesium, tekst: '{SPATIE}: magnesium voor frisse armen' },
   { icoon: ICOON.top, tekst: 'De gele kolom staat boven de top' },
 ];
 
@@ -46,7 +46,7 @@ export function klimHudModel(g) {
   ];
   return {
     id: 'klimtoren', titel: 'Klimtoren', icoon: ICOON.klim, plek: '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'intro' ? UITLEG : [],
-    nu: watNu(g), hulp: 'A + D vasthouden · Spatie magnesium · Backspace stopt', slecht: !!g.slecht || (laag && g.fase === 'run' && !g.grond),
+    nu: watNu(g), hulp: '{A} + {D} vasthouden · {SPATIE} magnesium · {BACKSPACE} stopt', slecht: !!g.slecht || (laag && g.fase === 'run' && !g.grond),
   };
 }
 
@@ -55,8 +55,8 @@ export function watNu(g) {
   if (g.fase === 'wacht') return g.klimFase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen';
   if (g.fase === 'intro') return 'Pak de eerste grepen';
   if (g.fase === 'outro') return g.klimFase === 'top' ? 'Boven!' : 'Klaar';
-  if (g.grond) return 'Houd A en D allebei vast: je klimt omhoog';
-  if ((g.armen || 0) < ARMEN_LAAG) return 'Armen bijna leeg: rust op een grote greep of Spatie voor magnesium';
+  if (g.grond) return 'Houd {A} en {D} allebei vast: je klimt omhoog';
+  if ((g.armen || 0) < ARMEN_LAAG) return 'Armen bijna leeg: rust op een grote greep of {SPATIE} voor magnesium';
   return 'Pak de volgende greep met de ring';
 }
 

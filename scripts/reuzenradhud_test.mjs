@@ -19,7 +19,7 @@ assert.equal(reuzenradHudModel({ ...basis, uitleg: false }).uitleg.length, 0);
 const top = reuzenradHudModel({ ...basis, hoogte: maxH });
 assert.equal(top.stappen[1].stand, 'nu'); assert.match(top.nu, /Op de top/);
 const omlaag = reuzenradHudModel({ ...basis, stijgt: false, hoogte: 5, voortgang: 0.9, ronde: 2, mag: true });
-assert.equal(omlaag.stappen[2].stand, 'nu'); assert.match(omlaag.nu, /Je bent beneden: Backspace/); assert.equal(omlaag.meter.label, `Ronde 2 van ${LAPS}`); assert.match(watNu({ ...basis, stijgt: false }), /weer omlaag/);
+assert.equal(omlaag.stappen[2].stand, 'nu'); assert.match(omlaag.nu, /Je bent beneden: {BACKSPACE}/); assert.equal(omlaag.meter.label, `Ronde 2 van ${LAPS}`); assert.match(watNu({ ...basis, stijgt: false }), /weer omlaag/);
 assert.match(watNu({ ...basis, uitstap: true }), /zodra je beneden bent/); assert.match(watNu({ ...basis, uitstap: true, mag: true }), /stapt nu uit/);
 assert.equal(reuzenradHudModel({ ...basis, voortgang: 7 }).meter.pct, 100, 'meter nooit boven 100'); assert.equal(reuzenradHudModel({ ...basis, ronde: 9 }).meter.label, `Ronde ${LAPS} van ${LAPS}`);
 assert.equal(topPop(17.4, 1).tekst, 'Op de top: 17 m'); assert.equal(topPop(17, 1).geluid, 'ui_verzameld'); assert.equal(topPop(17, LAPS).geluid, 'ui_loopbaan');

@@ -21,7 +21,7 @@ assert.equal(naar.meter, null); assert.equal(naar.stappen[0].stand, 'nu'); asser
 assert.equal(krantHudModel({ ...basis, fase: 'naarwijk', tijd: null }).cijfers.length, 1, 'zonder klok geen tijdcijfer');
 
 // de zin onderin volgt de afstand en de snelheid van de speler
-assert.match(watNu({ ...basis, afstand: WORP_BEREIK }), /Nu E/);
+assert.match(watNu({ ...basis, afstand: WORP_BEREIK }), /Nu {E}/);
 assert.match(watNu({ ...basis, afstand: WORP_BEREIK + 1 }), /gele kolom/);
 assert.match(watNu({ ...basis, afstand: 5, snelheid: SNEL + 1 }), /Rustig aan/);
 assert.match(watNu({ ...basis, stapel: 0 }), /stapel is op/); assert.ok(krantHudModel({ ...basis, stapel: 0 }).slecht);

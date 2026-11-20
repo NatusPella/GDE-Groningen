@@ -50,7 +50,7 @@ export function wandelHudModel(g) {
   ];
   return {
     id: 'wandeling', titel: 'Wandeling Winsum', icoon: ICOON.lopen, plek: klaar ? '' : (g.post || ''), stappen, meter, cijfers, uitleg: g.uitleg && n === 0 ? UITLEG : [],
-    nu: watNu(g), hulp: 'Loop naar de gele kolom · Backspace stopt', slecht: !!g.opvoertuig,
+    nu: watNu(g), hulp: 'Loop naar de gele kolom · {BACKSPACE} stopt', slecht: !!g.opvoertuig,
   };
 }
 

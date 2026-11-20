@@ -25,6 +25,12 @@ export function zetUitlegGezien(id) {
 // model: { id, titel, icoon, plek, stappen: [{ label, icoon, stand: 'klaar'|'nu'|'straks' }], primair: { icoon, waarde, naam }, meter: { pct, label, naam, staat: 'laag'|'goed' },
 //          cijfers: [{ icoon, label, waarde, staat: 'goed'|'let-op'|'actie' }], nu, hulp, slecht, uitleg: [{ icoon, tekst }] }
 // Een model mag de primaire waarde ook als cijfer met `primair: true` aanleveren; hij wordt hier de ene grote waarde en dan blijft het label van de meter staan.
+// Toetsen staan in de tekst als {SPATIE}, {E}, {WASD}: de strook toont ze als toetsplaatje (en een controller als zijn knop). De echte glyphHtml (prompts.js) wordt
+// in het spel nagelaadd; zonder die (een test) valt het terug op het canonieke .hud-key-plaatje.
+let glyph = (token) => `<span class="hud-key" data-gk="${esc(token)}">${esc(token)}</span>`;
+export const zetGlyph = (fn) => { if (typeof fn === 'function') glyph = fn; };
+export const tekstHtml = (t) => esc(t == null ? '' : t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyph(k));
+
 export function simHudHtml(m) {
   if (!m) return '';
   let metLabel = !m.primair;
@@ -40,12 +46,12 @@ export function simHudHtml(m) {
   const meter = m.meter
     ? `<div class="ds-streep ds-streep--dik sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span>${m.meter.label && (metLabel || m.meter.toon) ? `<span class="ds-streep__label">${esc(m.meter.label)}</span>` : ''}</div>` : '';
   const cijfers = (m.cijfers || []).length
-    ? `<ul class="sh-cijfers" aria-label="Details">${m.cijfers.map((c) => `<li${c.staat ? ' data-staat="' + esc(c.staat) + '"' : ''} title="${esc(c.label)}" aria-label="${esc(c.label)}: ${esc(c.waarde)}">${svg(c.icoon || '', 'ds-icoon ds-icoon--klein sh-cijfer__icoon')}<span class="sh-waarde">${esc(c.waarde)}</span></li>`).join('')}</ul>` : '';
+    ? `<ul class="sh-cijfers" aria-label="Details">${m.cijfers.map((c) => `<li${c.staat ? ' data-staat="' + esc(c.staat) + '"' : ''} title="${esc(c.label)}" aria-label="${esc(c.label)}: ${esc(c.waarde)}">${svg(c.icoon || '', 'ds-icoon ds-icoon--klein sh-cijfer__icoon')}<span class="sh-cijfer__naam">${esc(c.label)}</span> <span class="sh-waarde">${esc(c.waarde)}</span></li>`).join('')}</ul>` : '';
   const uitleg = (m.uitleg || []).length
-    ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${esc(u.tekst)}</span></li>`).join('')}</ul>` : '';
+    ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${tekstHtml(u.tekst)}</span></li>`).join('')}</ul>` : '';
   return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon ds-icoon--klein sh-icoon')}<span class="sh-titel ds-t-label">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
-    stappen + primair + meter + `<p class="sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` + cijfers + uitleg +
-    (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
+    stappen + primair + meter + `<p class="sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${tekstHtml(m.nu || '')}</p>` + cijfers + uitleg +
+    (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${tekstHtml(t)}</p>`).join('');
 }
 
 let el = null, inhoud = null, pop = null, sleutel = '', popT = 0;
@@ -63,8 +69,11 @@ function bouw() {
   pop.className = 'sh-pop ds-t-cijfer';
   pop.setAttribute('aria-hidden', 'true');
   el.appendChild(inhoud);
-  document.body.appendChild(el);
-  document.body.appendChild(pop); // het getal staat los van de kaart: het blijft ook staan als de strook net verdwijnt (einde van een ronde)
+  // in #hud: dan geldt de schaal (--ui, Tekstgrootte) ook voor de strook; zonder #hud (test, web zonder HUD) op de body
+  const hud = document.getElementById ? document.getElementById('hud') : null;
+  (hud || document.body).appendChild(el);
+  (hud || document.body).appendChild(pop);
+  try { import('./prompts.js').then((m) => zetGlyph(m.glyphHtml)).catch(() => {}); } catch (e) { /* geen toetsplaatje is geen ramp */ } // het getal staat los van de kaart: het blijft ook staan als de strook net verdwijnt (einde van een ronde)
 }
 
 // Elk beeld van de sim: toont of verbergt de strook en schrijft alleen bij een verschil. null verbergt hem.

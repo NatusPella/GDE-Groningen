@@ -60,3 +60,4 @@ Het designsysteem is de zomerse zeefdruk (zie `DESIGN_SYSTEM.md`). De eerdere sc
 | De tokens `--ds-c-glas*`, `--ds-c-creme` en de glasvarianten van de rollen horen bij dat glas | `ds-tokens.css` | gaan weg met het laatste glasscherm |
 | Twee geeltinten (`#e8c93a` van wanted en missie, `#f9c80e` van het papier) | HUD en papieren schermen | de zeefdruk kent één geel (`#f9c80e`); gaat op in de HUD-ombouw |
 | Niet met een controller of op touch bekeken; 4K niet | alle omgebouwde schermen | alleen muis en synthetische toetsen in Electron gezien |
+| De light-sim-strook (`simhud.js`, `sim.css`) is een papieren kaart in de HUD (schaalt mee met --ui en Tekstgrootte), geen donker glas; keuze van de eigenaar nog open | `simhud.js`, `sim.css` | papier laten of `ds-glas` zetten (dan ook de pop); beide kleurparen halen 4,5:1; in het spel boven de wereld nog niet bekeken (#985) |

@@ -35,19 +35,19 @@ const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 // De zin onderin: wat moet je nu doen? De beet is de enige waarbij haast is.
 export function watNu(fase, haal, flashSlecht) {
   if (haal) return 'Je haalt de vis binnen';
-  if (fase === 'bite') return 'Nu Spatie: haal binnen!';
+  if (fase === 'bite') return 'Nu {SPATIE}: haal binnen!';
   if (fase === 'wait') return 'Wacht tot het dobbertje zakt. Nog niet trekken';
   if (fase === 'cast') return 'De lijn zoeft uit';
   if (fase === 'scare') return 'De vissen zijn gevlucht: even wachten';
-  return flashSlecht ? 'Gooi opnieuw uit met Spatie' : 'Gooi uit met Spatie';
+  return flashSlecht ? 'Gooi opnieuw uit met {SPATIE}' : 'Gooi uit met {SPATIE}';
 }
 
 // De uitleg voor de eerste keer: vier iconen met een zin. Wordt getoond tot de eerste worp (hengelen.js zet hem daarna op gezien).
 export const UITLEG_ID = 'hengelen';
 export const UITLEG = [
-  { icoon: ICOON.uit, tekst: 'Spatie: gooi uit' },
+  { icoon: ICOON.uit, tekst: '{SPATIE}: gooi uit' },
   { icoon: ICOON.wacht, tekst: 'Wacht op het dobbertje' },
-  { icoon: ICOON.beet, tekst: 'Zakt hij? Meteen Spatie' },
+  { icoon: ICOON.beet, tekst: 'Zakt hij? Meteen {SPATIE}' },
   { icoon: ICOON.vis, tekst: 'Te vroeg trekken jaagt de vis weg' },
 ];
 
@@ -71,7 +71,7 @@ export function hengelHudModel(g) {
     id: 'hengelen', titel: wed ? 'Hengelwedstrijd' : 'Hengelen', icoon: ICOON.hengel, plek: g.plek || '',
     stappen, primair, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
     nu: (flash && stap !== 'beet' ? flash + ' · ' : '') + watNu(g.fase, g.haal, !!(g.flash && g.flash.bad)),
-    hulp: [...(!wed && g.tuig ? [`Hengel: ${g.tuig.hengel} · aas: ${g.tuig.aas}`] : []), 'Spatie uitgooien en binnenhalen · Backspace stoppen'],
+    hulp: [...(!wed && g.tuig ? [`Hengel: ${g.tuig.hengel} · aas: ${g.tuig.aas}`] : []), '{SPATIE} uitgooien en binnenhalen · {BACKSPACE} stoppen'],
     slecht: !!(g.flash && g.flash.bad) || g.fase === 'scare',
   };
 }

@@ -12,7 +12,7 @@ const idle = hengelHudModel(basis);
 assert.equal(idle.stappen.length, STAPPEN.length);
 assert.equal(idle.stappen.filter((s) => s.stand === 'nu').length, 1, 'precies één stap heeft nadruk');
 assert.equal(idle.stappen[0].stand, 'nu'); assert.equal(idle.meter, null);
-assert.match(idle.nu, /Spatie/); assert.equal(idle.uitleg.length, 0);
+assert.match(idle.nu, /{SPATIE}/); assert.equal(idle.uitleg.length, 0);
 assert.deepEqual(idle.cijfers.map((c) => c.label), ['Vangsten', 'Visboer'], 'minder getallen: twee secundaire waarden');
 assert.equal(idle.primair.waarde, '1,3 kg'); assert.ok(idle.primair.icoon, 'de primaire waarde heeft een pictogram'); assert.equal(idle.cijfers[1].waarde, '€3');
 assert.ok(idle.cijfers.every((c) => c.icoon), 'elk getal heeft een pictogram');
@@ -22,7 +22,7 @@ assert.equal(wacht.stappen[0].stand, 'klaar'); assert.equal(wacht.stappen[1].sta
 
 const beet = hengelHudModel({ ...basis, fase: 'bite', bijt: 0.3, beetTotaal: 1 });
 assert.equal(beet.stappen[2].stand, 'nu'); assert.ok(beet.meter && beet.meter.pct === 30 && beet.meter.staat === 'laag', 'de beetmeter loopt leeg en wordt laag');
-assert.match(beet.nu, /Nu Spatie/);
+assert.match(beet.nu, /Nu {SPATIE}/);
 assert.equal(hengelHudModel({ ...basis, fase: 'bite', bijt: 0.9, beetTotaal: 1 }).meter.staat, '');
 assert.equal(hengelHudModel({ ...basis, fase: 'bite', bijt: -1, beetTotaal: 1 }).meter.pct, 0, 'nooit onder nul');
 
