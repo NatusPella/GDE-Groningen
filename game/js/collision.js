@@ -106,7 +106,7 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
     // hoort daar niet tegenaan te botsen (#502).
     const atStreet = z > STREET_LEVEL_Z && z < STREET_LEVEL_TOP;
     const o = { x, y };
-    if (pushOutOfPlan(o, radius)) { x = o.x; y = o.y; }
+    if (pushOutOfPlan(o, radius, hop)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;
     if (pushOutOfTrunks(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;

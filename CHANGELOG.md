@@ -82,6 +82,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Een beschadigde fiets of scooter rijdt trager (hoe meer schade, hoe lager de topsnelheid). Een fiets zonder rijder die een flinke klap krijgt valt om en ligt op de grond tot je hem met E rechtzet (#1018).
 
 - Laden zet je terug waar je opsloeg: sloeg je ergens in de provincie op, dan sta je na het laden daar weer en niet meer buiten je flat. Sloeg je bij je flat op, dan begin je nog steeds in de flat (#984).
+- Hooibalen op de erven van boerderijen: je klimt er nu ook op (en staat erop zonder eraf geduwd te worden), net als op de balen in de velden (#959).
+- Bourtange: vijf waterstukken van het vaarnet die op droge wal en weg lagen (bij de vesting) zijn weggehaald, zodat de wal daar niet meer onder water staat (#953).
 
 ## [0.64.0] - 2026-11-20
 

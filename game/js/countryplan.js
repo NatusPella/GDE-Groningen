@@ -5,7 +5,7 @@ import {
 import { worldPlaceNames } from './worldplaces.js';
 import { EDGE, initCountryEdge, edgeBlocked, landOk } from './countryedge.js';
 import { farSolidsNear } from './farprops.js';
-import { baleRadius } from './bales.js';
+import { baleRadius, BALE_HEIGHT } from './bales.js';
 
 // Deterministic layout of everything built on the polder grid past the
 // province's tiles, per polder block: farmsteads along the polder roads and on
@@ -193,7 +193,7 @@ export function farmDetail(f) {
     if (!it.hit || it.kind === 'tractor') continue;
     // round silos collide as circles of their real radius, not boxes
     const round = ROUND_ITEMS[it.kind];
-    if (round) { f.circles.push({ x: wx, y: wy, r: round(it) }); continue; }
+    if (round) { f.circles.push(it.kind === 'bale' ? { x: wx, y: wy, r: round(it), h: BALE_HEIGHT } : { x: wx, y: wy, r: round(it) }); continue; }
     const r = it.kind === 'shed' ? null : it.kind === 'tractor' ? [2.2, 1.3] : it.kind === 'trailer' ? [3, 1.4] : it.kind === 'clamp' ? [16, 5.5] : it.kind === 'barrack' ? [2.7, 2.7] : [it.sx * (it.kind === 'mestsilo' ? 1 : 1.6), it.sz * (it.kind === 'mestsilo' ? 1 : 1.6)];
     if (it.kind === 'shed') f.boxes.push(localAabb(f, it.lx - it.sx / 2, it.lx + it.sx / 2, it.lz - it.sz / 2, it.lz + it.sz / 2));
     else {
@@ -551,8 +551,43 @@ export function planExtraSolids() {
   return extraSolids;
 }
 
+// (#959) The nearest yard bale (a circle with a height) along (dx, dy) within
+// reach, for a body of radius r: { dist, h, depth, cx, cy, rad } or null. Like
+// countrywalls.solidAhead for the bales in the fields: too tall to vault, but
+// a walker can climb on top.
+export function planBaleAhead(x, y, dx, dy, reach, r = 0.2) {
+  const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
+  let best = null;
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      const P = blockPlanCached(bx + ox, by + oy) || (ox === 0 && oy === 0 ? blockPlan(bx, by) : null);
+      if (!P) continue;
+      for (const f of P.farms) {
+        if (!inBox(f.yard, x, y, reach + 4)) continue;
+        const hit = baleAheadIn(farmDetail(f).circles, x, y, dx, dy, reach, r);
+        if (hit && (!best || hit.dist < best.dist)) best = hit;
+      }
+    }
+  }
+  return best;
+}
+
+// The same over one list of circles (pure, for the test).
+export function baleAheadIn(circles, x, y, dx, dy, reach, r = 0.2) {
+  let best = null;
+  for (const c of circles) {
+    if (!c.h) continue;
+    for (let s = 0; s <= reach; s += 0.1) {
+      if (Math.hypot(x + dx * s - c.x, y + dy * s - c.y) >= c.r + r) continue;
+      if (!best || s < best.dist) best = { dist: s, h: c.h, depth: c.r * 2 + 0.1, cx: c.x, cy: c.y, rad: c.r };
+      break;
+    }
+  }
+  return best;
+}
+
 // Keeps obj ({x, y}) out of every building, silo, mast and terp.
-export function pushOutOfPlan(obj, radius) {
+export function pushOutOfPlan(obj, radius, hop = 0) {
   const bx = Math.floor(obj.x / BLOCK), by = Math.floor(obj.y / BLOCK);
   let hit = false;
   for (let oy = -1; oy <= 1; oy++) {
@@ -563,7 +598,7 @@ export function pushOutOfPlan(obj, radius) {
         if (!inBox(f.yard, obj.x, obj.y, radius + 2)) continue;
         const fd = farmDetail(f);
         for (const b of fd.boxes) if (pushBox(obj, b, radius)) hit = true;
-        for (const c of fd.circles) if (pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
+        for (const c of fd.circles) if (!(hop > 0 && c.h && hop > c.h - 0.15) && pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
       }
       if (P.gas && pushBox(obj, [P.gas.box[0] + 2, P.gas.box[1], P.gas.box[2], P.gas.box[3]], radius)) hit = true;
       if (ox === 0 && oy === 0) {

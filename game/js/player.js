@@ -1,6 +1,7 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMapWater, WATER_Y, clamp } from './util.js';
 import { heeftAutoPortier } from './sfx/samples.js';
 import { wallAhead, solidAhead } from './countrywalls.js';
+import { planBaleAhead } from './countryplan.js';
 import { countryRailAhead } from './countryrails.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap, detachLiveBus } from './vehicle.js';
@@ -298,7 +299,8 @@ export class Player {
     const lowWall = map.elev && map.elev.has ? lowWallAhead(map.elev, this.x, this.y, dx, dy, reach, this.gz + this.z) : null;
     if (lowWall && (!ob || lowWall.dist < ob.dist)) ob = lowWall;
     // (#959) hooibalen: 1,5 m hoog en rond; te hoog om over te stappen, wel om op te klimmen
-    const bale = this.gz < 0.5 ? solidAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
+    // (the bales on the farm yards: countryplan circles with a height)
+    const bale = this.gz < 0.5 ? solidAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) || planBaleAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
     if (bale && (!ob || bale.dist < ob.dist)) { ob = bale; ob.ledge = ledgeOfSolid(bale.cx, bale.cy, bale.rad, bale.h); }
     const car = this.vehicleAhead(world, dx, dy, reach);
     if (car && (!ob || car.dist < ob.dist)) ob = car;
