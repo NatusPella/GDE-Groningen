@@ -562,7 +562,7 @@ export function furnitureColliders(items) {
         for (const s of [1, -1]) out.push({ kind: 'mast', x: it.x + nx * s * it.s / 2, y: it.y + ny * s * it.s / 2, r: 0.32, key: `${it.key}/${s}`, static: true, top: it.h + 2 });
         break;
       }
-      case 'placesign': case 'wegwijzer': out.push({ kind: 'paal', x: it.x, y: it.y, r: 0.1, key: it.key, static: true, top: 2.2 }); break;
+      case 'placesign': case 'wegwijzer': out.push({ kind: 'bord', x: it.x, y: it.y, r: 0.1, key: it.key }); break; // (#bord) klapt om boven ~3,6 m/s, anders een vaste paal
       case 'bench': out.push({ kind: 'bench', x: it.x, y: it.y, r: 0.32, half: 0.7, angle: it.a, key: it.key }); break;
       case 'bin': out.push({ kind: 'bin', x: it.x, y: it.y, r: 0.3, key: it.key }); break;
       case 'bikerack': out.push({ kind: 'rail', x: it.x, y: it.y, r: 0.14, half: 1, angle: it.a, key: it.key }); break;
