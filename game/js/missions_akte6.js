@@ -294,6 +294,11 @@ export function applyAkte6(list) {
     zet(vind(m27, 'hold', /servies in de krant/), { kaart: K.M27.servies, wacht: { ...W.M27.servies }, set: 'woonkamer', setVariant: 'inpakken' });
     zet(vind(m27, 'hold', /kat in de mand/), { kaart: K.M27.kat, wacht: { ...W.M27.kat }, set: 'woonkamer', setVariant: 'inpakken' });
     zet(vind(m27, 'goto', /verhuisbus/), { kaart: K.M27.bus });
+    // AAA (binnenmissies): een korte beat in elke inpakstap en een nasleep; alleen beeld, geen invloed op klok of beloning
+    zet(vind(m27, 'hold', /boeken in kleine dozen/), { beats: [{ na: 3, tekst: 'Willemien: Dit boek heb ik nooit gelezen. Het gaat toch mee.', sting: 'stap' }] });
+    zet(vind(m27, 'hold', /servies in de krant/), { beats: [{ na: 3, tekst: 'Een kop valt niet kapot. Willemien kijkt je dankbaar aan.', sting: 'stap' }] });
+    zet(vind(m27, 'hold', /kat in de mand/), { beats: [{ na: 2.5, tekst: 'De kat zit al in de mand. Ze kijkt alsof jij gaat verhuizen.', sting: 'bijna' }] });
+    m27.nasleep = ['De dozen staan in de bus. Willemien telt ze twee keer, de kat een keer.'];
   }
 
   // M28 De wisselwoning: een kaart bij de rit en de buren die bij de wisselwoning staan te zwaaien.
