@@ -1410,6 +1410,7 @@ function updateMoneyWeapon(dt, world) {
     els.moneyDelta.textContent = (deltaSum > 0 ? '+€' : '−€') + Math.abs(deltaSum).toLocaleString('nl-NL');
     els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
     els.moneyDelta.classList.add('visible');
+    if (S.moneySign > 0) pop(els.moneyDelta); // het bedrag springt even op bij geld binnen (#985); uit bij Beweging beperken
   }
   if (deltaTimer > 0 && (deltaTimer -= dt) <= 0) els.moneyDelta.classList.remove('visible');
   const diff = moneyTarget - moneyShown;

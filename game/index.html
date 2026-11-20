@@ -104,6 +104,8 @@
   @keyframes mo-shine { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
   @keyframes mo-in { from { opacity: 0; transform: translateY(6px); } }
   .mo-pop { animation: mo-pop var(--dur-base) var(--ease-pop); }
+  /* knop-tik (#985): een ingedrukte menuknop zakt in (alleen transform); geen eigen transition, zodat de bestaande hover niet wordt overschreven */
+  .m-bg:active:not(:disabled), .m-li button:active:not(:disabled) { transform: scale(0.96); }
   .mo-ring { animation: mo-ring 700ms var(--ease-out); }
   .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); animation: mo-shine 520ms var(--ease-out) forwards; pointer-events: none; }
 
