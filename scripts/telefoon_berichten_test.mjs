@@ -86,4 +86,16 @@ t('het telefoonblok krijgt de volle breedte; alleen het portret houdt zijn maat'
   assert.match(vu, /\.vh-left \{ flex: 1 1 46%/, 'de lijst en het detail delen de breedte');
 });
 
+t('een melding zonder tekst komt niet in de rij (geen globale foutmelding)', () => {
+  const f = pf.slice(pf.indexOf('export function notifyPhone'), pf.indexOf('// History entries'));
+  assert.match(f, /typeof spec\.text !== 'string' \|\| !spec\.text\.trim\(\)\) return;/, 'notifyPhone slaat een melding zonder tekst over');
+  assert.ok(f.indexOf('return;') < f.indexOf('phoneNotifications.push'), 'het overslaan komt voor het toevoegen');
+});
+
+t('de naam staat niet dubbel op een telefoonkaart (20-11)', () => {
+  assert.match(pf, /const meerdere = new Set\(c\.lines\.map\(\(x\) => x\.speaker \|\| c\.from\)\)\.size > 1;\s*paintSpeaker\(sp, meerdere \?/, 'het sprekerlabel vóór een regel komt er alleen bij als er meer sprekers zijn');
+  assert.match(pf, /naamGelijk\(p\) \? '' : `<small class="pf-appnaam">/, 'afzender gelijk aan de app: alleen de naam, geen tweede kopregel');
+  assert.match(pf, /export const naamGelijk = \(p\) =>/, 'naamGelijk is één plek voor die vraag');
+});
+
 console.log(`OK telefoon_berichten_test: ${n} controles`);

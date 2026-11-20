@@ -63,3 +63,6 @@ html.reduce-motion :is(.gm-zeef, #pause-menu :is([data-panel="todo"], [data-pane
 #pause-menu.gm :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"]) .m-tablist .m-tab[aria-selected="true"] { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
 #pause-menu.gm :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"]) .m-tablist .m-tab small { color: var(--ds-tx-zacht); font-size: max(14px, var(--menu-min)); }
 #pause-menu.gm :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"]) .m-tablist .m-tab[aria-selected="true"] small { color: var(--ds-c-ink-inkt); }
+
+/* idem voor de overige menuschermen op papier (winkel, Samen spelen, Opgeslagen spellen): de vloer van 13 schermpixels */
+.gm-zeef { --ds-t-label: max(16px, var(--menu-min)); --ds-t-hulp: max(14px, var(--menu-min)); }

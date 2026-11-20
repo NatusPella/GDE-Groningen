@@ -1265,8 +1265,8 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 
 /* Zeefdruk-menu: groepskoppen en toetsplaatjes leesbaar op papier (contrastmeting scripts/ui/menucontrast_scenes.js) */
 #pause-menu.gm .m-gh, #pause-menu.gm .m-gh span, #pause-menu.gm .sp-gh { color: var(--ds-tx-zacht); }
-#pause-menu.gm .pm-ckeys .hud-wasd .hud-key { font-size: 13px; }
-#pause-menu.gm :not(.pm-ckeys):not(.pm-bindbtn) > .hud-key, #pause-menu.gm .ds-z-knop kbd { font-size: 13px; }
+#pause-menu.gm .pm-ckeys .hud-wasd .hud-key { font-size: max(13px, var(--menu-min)); }
+#pause-menu.gm :not(.pm-ckeys):not(.pm-bindbtn) > .hud-key, #pause-menu.gm .ds-z-knop kbd { font-size: max(13px, var(--menu-min)); }
 #pause-menu.gm .pm-a11y-mk[data-mk="danger"] { color: #fff; background: color-mix(in srgb, var(--mk-danger, #d93f3f) 88%, #000); }
 
 /* Kaart: alle chroom (kop, zoekveld, statistiekchip, Lagen, legenda, zoom, kompas, voetregel, kaartje) ligt in een eigen laag BOVEN de vignette en wordt nooit gedimd */
@@ -1275,13 +1275,44 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 
 /* Eén linkermarge in alle panelen en vaste kolommen in Besturing (oogtest 20-11): kop, zoekveld, lijsttekst en het kaartje van
    Boerderij beginnen op dezelfde x; de toets- of knopkolom staat rechts, even breed, rechts uitgelijnd; elke regel even hoog. */
-#pause-menu .pm-csearch { margin-left: 0; }
+#pause-menu .pm-csearch { margin-left: 40px; }
+html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-height: 1; }
 #pause-menu .pm-cempty { padding-left: 0; }
 #pause-menu .pm-bind { min-height: 64px; }
 #pause-menu .pm-bind > .nm { align-self: center; }
 #pause-menu .pm-bind > .m-kc, #pause-menu .pm-bind > .pm-padcap { flex: none; width: 112px; display: inline-flex; align-items: center; justify-content: flex-end; text-align: right; box-sizing: border-box; }
 #pause-menu .pm-bind > .m-kc { justify-content: center; }
 #pause-menu .pm-bind > .pm-padcap .pm-pad-g, #pause-menu .pm-bind > .pm-padcap .pad-g { margin-left: auto; }
-#pause-menu .bd-dag { margin-left: 64px !important; margin-right: 64px !important; }
+#pause-menu .bd-dag { margin-left: 40px !important; margin-right: 40px !important; }
 #pause-menu .bd-pane { scrollbar-width: thin; scrollbar-color: var(--ink) transparent; padding-bottom: 32px; }
 #pause-menu .m-list.lb-list { scrollbar-width: thin; scrollbar-color: var(--ink) transparent; }
+
+/* Tekst minstens 13 px op het scherm, ook op 1280x720 waar het menu verkleind staat (--menu-min = 13px / zoom); gemeten met scripts/ui/menucontrast_scenes.js */
+#pause-menu.gm .mut.pm-sheet-pos { font-size: max(13px, var(--menu-min)); }
+#pause-menu.gm .lb-loon, #pause-menu.gm .m-note.td-begin-lead, #pause-menu.gm .mut.gar-meme, #pause-menu.gm .pm-hub-teller.mut, #pause-menu.gm .pm-ver, #pause-menu.gm .vh-hint { font-size: max(14px, var(--menu-min)); }
+#pause-menu.gm .mut.pm-q-info, #pause-menu.gm .mut.pm-sheet-sub, #pause-menu.gm .pm-badge { font-size: max(15px, var(--menu-min)); }
+#pause-menu.gm .foto-tip, #pause-menu.gm .m-eb, #pause-menu.gm .m-tab, #pause-menu.gm .mut.one.pm-ook, #pause-menu.gm .pa-tile-fig, #pause-menu.gm .pm-k-sep, #pause-menu.gm .pm-seg-hint.mut, #pause-menu.gm .sp-cat-n, #pause-menu.gm .td-acthero-lead { font-size: max(16px, var(--menu-min)); }
+#pause-menu.gm .ov-tl.mut, #pause-menu.gm .pm-cdesc { font-size: max(17px, var(--menu-min)); }
+#pause-menu.gm .m-chip, #pause-menu.gm .m-note.pm-hline, #pause-menu.gm .mut.sp-leeg.sp-empty, #pause-menu.gm .pm-errsum, #pause-menu.gm .pm-hero-lead, #pause-menu.gm .pm-note, #pause-menu.gm .vh-party { font-size: max(18px, var(--menu-min)); }
+#pause-menu.gm .m-kc:not(.dark) { font-size: max(15px, var(--menu-min)); }
+#pause-menu.gm .m-kc.dark { font-size: max(19px, var(--menu-min)); }
+/* een tab die niet gekozen is toont geen vaste focusrand: de ring hoort bij de gekozen tab (oogtest 20-11) */
+#pause-menu.gm .m-tab:not([aria-selected="true"]):focus-visible { outline: none; }
+/* de lettertokens met een vloer op het scherm: een var() op :root wordt daar al ingevuld, dus op de menuwortel opnieuw gezet */
+#pause-menu.gm { --ds-t-label: max(16px, var(--menu-min)); --ds-t-hulp: max(14px, var(--menu-min)); }
+/* de rail met vijf groepen past ook op 1080p: dezelfde compacte rijen als op 720p (oogtest 20-11) */
+#pause-menu .pm-rail { --ra-h: 40px; }
+#pause-menu .ra { font-size: 22px; gap: 12px; }
+#pause-menu .ra .ra-ic { width: 20px; height: 20px; }
+#pause-menu .pm-logo { font-size: 44px; }
+#pause-menu .pm-q-head { padding-bottom: 6px; }
+#pause-menu .pm-rail-h { padding: 2px 16px 1px 24px; }
+#pause-menu .pm-rail-sp { height: 8px; }
+#pause-menu .pm-ver { padding-top: 6px; }
+#pause-menu .pm-csearch { margin-left: 64px; }
+@media (max-height: 820px) { #pause-menu .pm-csearch { margin-left: 40px; } }
+/* 720p: de grijze hulpregels (.mut, small) en notities op minstens 13 schermpixels; op 1080p blijft alles zoals het was */
+@media (max-height: 900px) { #pause-menu.gm.gm.gm.gm.gm :is(.mut, small, .m-note, .t) { font-size: max(18px, var(--menu-min)); } } /* hoge specificiteit: de losse regels per paneel (.m-li .nm > .mut e.d.) winnen anders */
+/* het zoekveld in Besturing krijgt lucht boven (tegen de onderlijn van de tabs) en onder (voor de lijst) */
+#pause-menu .pm-cinner > .pm-csearch, #pause-menu .pm-csub > .pm-csearch, #pause-menu [data-sub] > .pm-csearch { margin-top: 16px; margin-bottom: 20px; }
+#pause-menu .pm-spulbar .pm-csearch { margin-top: 0; margin-bottom: 0; }

@@ -130,6 +130,8 @@ function parse(n) {
 }
 
 export function notifyPhone(w, spec) {
+  // een melding zonder tekst heeft niets om te tonen: geen globale foutmelding bij de speler (oogtest 20-11)
+  if (!spec || typeof spec.text !== 'string' || !spec.text.trim()) return;
   if (!w.phoneNotifications) w.phoneNotifications = [];
   w.phoneNotifications.push(spec);
 }
@@ -146,6 +148,9 @@ function alreadyShown(w, text) {
   return (w.messages || []).some((m) => m.text && m.text.length > 12 && text.includes(m.text) && m.until - w.time > 1);
 }
 
+// één keer de naam en één keer de app: heet de afzender net als de app (Kiekdoar), dan staat de naam er maar één keer
+export const naamGelijk = (p) => !!p.from && String(p.from).trim().toLowerCase() === String(appNaam(p.app)).trim().toLowerCase();
+
 function showNote(w, n) {
   const p = parse(n);
   const full = [p.title, p.body].filter(Boolean).join(': ');
@@ -158,7 +163,7 @@ function showNote(w, n) {
   // #645: een dynamische kaart (naam, bedrag, missietitel) blijft op het kaartbudget
   const titel = fitCard(p.title), lichaam = fitCard(p.body);
   el.innerHTML =
-    `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel"><small class="pf-appnaam">${esc(appNaam(p.app))}</small>${esc(p.from)}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
+    `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel">${naamGelijk(p) ? '' : `<small class="pf-appnaam">${esc(appNaam(p.app))}</small>`}${esc(p.from)}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (titel ? `<div class="pf-title">${dualHtml(titel)}</div>` : '') +
     (lichaam ? `<div class="pf-body ds-z-kaart__tekst">${dualHtml(lichaam)}</div>` : '');
   stack.appendChild(el);
@@ -289,7 +294,9 @@ function beginCall(w, c) {
 function showLine(c) {
   const l = c.lines[c.i];
   const sp = callEl.querySelector('.pf-speaker');
-  paintSpeaker(sp, l.speaker || c.from);
+  // de naam staat al in de kop: het label vóór de regel komt er alleen bij als er meer sprekers in het gesprek zijn
+  const meerdere = new Set(c.lines.map((x) => x.speaker || c.from)).size > 1;
+  paintSpeaker(sp, meerdere ? (l.speaker || c.from) : '');
   noteSpoken(world, l.speaker || c.from);
   callEl.querySelector('.pf-say').textContent = l.text;
   // the Dutch under a Frisian/Gronings line (subtitles.js), unless given

@@ -20,6 +20,7 @@ w.devInvuln = true; D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(700); };
 PM.openPauseMenu('map'); await sleep(2500);
+await shot('kaart-uitleg', 600);
 const ok = document.querySelector('#pause-menu button[data-act="begrepen"], #pause-menu .mapview-card button, #pause-menu [data-mv-uitleg-ok]');
 const knoppen = [...document.querySelectorAll('#pause-menu button')].filter((b) => b.getClientRects().length && /begrepen/i.test(b.textContent));
 if (knoppen[0]) { knoppen[0].click(); await sleep(800); }
