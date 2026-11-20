@@ -179,7 +179,7 @@ t('de gastheer stapt in: de gast gaat niet vanzelf mee en leest wat hij moet doe
   const g = s.gs[0].gw, c = s.hw.coopFigures[1];
   const auto = { id: 7, x: 3, y: 0, angle: 0, speed: 0, halfWid: 1, model: { len: 4 } };
   s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto; s.hw.player.x = 3; s.step(1);
-  assert.equal(aantal(g, /Tammo zit in een voertuig\. Druk bij het voertuig op E om mee te rijden\./), 1, 'één melding, voor de gast');
+  assert.equal(aantal(g, /Tammo zit in een voertuig\. Druk bij het voertuig op {E} om mee te rijden\./), 1, 'één melding, voor de gast');
   assert.equal(c.inVeh, undefined, 'hij zit er niet vanzelf in'); // (#516) de gast is een figuur met inVeh
   s.step(2); assert.equal(aantal(g, /zit in een voertuig/), 1, 'niet steeds opnieuw');
   s.hw.player.inVehicle = null; s.step(0.5); s.hw.player.inVehicle = auto; s.step(0.5);
