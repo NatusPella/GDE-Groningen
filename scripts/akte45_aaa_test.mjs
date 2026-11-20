@@ -153,6 +153,7 @@ t('M22 en M26: Tinus met koffie bij het luik, een figuur bij de kraam in het vuu
 t('M19 en M26: het perron en het plein bestaan als plan en zijn aangezet', () => {
   for (const kind of ['perron', 'plein']) assert.ok(DRESSING_KINDS.includes(kind) && dressingPlan(kind), kind);
   assert.equal(stap('M19', 'goto', /stoomtrein/).dressing, 'perron');
+  assert.equal(stap('M19', 'rit', /./).dressing, 'perron', 'het perron blijft staan tijdens de instapstap (de eerste stap is meteen klaar)');
   assert.ok(dressingPlan('perron').crowd, 'reizigers op het perron');
   const m26 = def(NAMEN.M26);
   assert.equal(stap('M26', 'bake', /eierbal/).dressing, 'plein');

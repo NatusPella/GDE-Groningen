@@ -163,7 +163,8 @@ export function applyAkte45(list) {
   if (m19 && m19.stages) {
     m19.aaa = true;
     zet(vind(m19, 'goto', /stilstaande stoomtrein/), { kaart: KAARTEN.M19.perron, dressing: 'perron', dressingAlongRail: true });
-    zet(m19.stages.find((s) => s.kind === 'rit'), { kaart: KAARTEN.M19.rit });
+    // de startplek ligt binnen de straal van de eerste stap: die is dus meteen klaar, en het perron hoort bij de trein tijdens de instapstap
+    zet(m19.stages.find((s) => s.kind === 'rit'), { kaart: KAARTEN.M19.rit, dressing: 'perron', dressingAlongRail: true });
   }
 
   // M20 Het beleg van Bourtange: kaart per soort stap, een wachtfiguur bij elke houd-stap. De drie deurstappen spelen in de binnenset
