@@ -97,6 +97,29 @@ for (const re of [/rel="icon"[^>]*favicon\.ico/, /rel="apple-touch-icon"[^>]*app
 const man = JSON.parse(rd('game/manifest.webmanifest'));
 for (const i of man.icons) ok(fs.existsSync(path.join(ROOT, 'game', i.src)), `manifest-icoon ${i.src} bestaat`);
 
+// ---- zeefdruk (ADR 0040): vlakke inkten in de bron, geen blur, geen verloop, geen lettertype nodig
+const svg = rd('desktop/resources/icon.svg').toString('utf8');
+ok(!/filter|Gradient|@font-face|<text|base64/i.test(svg), 'icon.svg is vlak: geen filter, verloop, lettertype of ingebedde data');
+const svgKleuren = [...new Set((svg.match(/#[0-9a-f]{6}\b/gi) || []).map((h) => h.toLowerCase()))].sort();
+ok(svgKleuren.join() === ['#0e6b3c', '#1d1b17', '#e8505b', '#f3ead3', '#f9c80e'].sort().join(), `icon.svg gebruikt precies de vijf inkten (${svgKleuren.join(' ')})`);
+ok(pngInfo(icon).width >= 512, 'Linux: build.linux.icon is minstens 512 px (electron-builder maakt de png-set eruit)');
+
+// ---- Android: launcher-mipmaps en opstartscherm
+const RESA = 'android/android/app/src/main/res/';
+const DENS = { mdpi: [48, 108], hdpi: [72, 162], xhdpi: [96, 216], xxhdpi: [144, 324], xxxhdpi: [192, 432] };
+for (const [d, [legacy, adaptive]] of Object.entries(DENS)) {
+  for (const n of ['ic_launcher.png', 'ic_launcher_round.png']) {
+    const i = pngInfo(rd(`${RESA}mipmap-${d}/${n}`));
+    ok(i.width === legacy && i.height === legacy, `Android mipmap-${d}/${n} is ${legacy}x${legacy}`);
+  }
+  const f = pngInfo(rd(`${RESA}mipmap-${d}/ic_launcher_foreground.png`));
+  ok(f.width === adaptive && f.height === adaptive, `Android mipmap-${d}/ic_launcher_foreground.png is ${adaptive}x${adaptive}`);
+}
+ok(/#F3EAD3/i.test(rd(`${RESA}values/ic_launcher_background.xml`).toString('utf8')), 'Android: de adaptieve achtergrond is papier');
+ok(/"backgroundColor":\s*"#f3ead3"/i.test(rd('android/capacitor.config.json').toString('utf8')), 'Android: de opstartkleur in capacitor.config.json is papier');
+const splash = pngInfo(rd(`${RESA}drawable-land-xhdpi/splash.png`));
+ok(splash.width === 1280 && splash.height === 720, 'Android: splash blijft 1280x720');
+
 // ---- a finished build, when there is one
 // RT_ICON (3) images inside a PE file's resource section, by walking the resource tree
 function peIconImages(buf) {
