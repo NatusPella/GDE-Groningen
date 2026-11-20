@@ -39,7 +39,7 @@ export function vraagSoort(msg, vragen = {}) {
 }
 
 import { icoon as fIcoon } from './icons.js';
-const SVG = (naam) => fIcoon(naam, { cls: 'ds-chip__icoon', maat: 's' });
+const SVG = (naam) => fIcoon(naam, { cls: 'ds-z-chip__icoon', maat: 's' });
 // Betekenisnamen (icons.js, Phosphor, ADR 0041).
 export const TOESTAND_ICOON = {
   ok: SVG('vinkje'),
@@ -48,10 +48,10 @@ export const TOESTAND_ICOON = {
   mut: SVG('min'),
   kan: SVG('afspelen'),
 };
-const KLASSE = { ok: ' ds-chip--succes', warn: ' ds-chip--waarschuwing', no: ' ds-chip--probleem', kan: ' ds-chip--primair', mut: '' };
+const KLASSE = { ok: ' ds-z-chip--succes', warn: '', no: ' ds-z-chip--probleem', kan: ' ds-z-chip--primair', mut: '' };
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Eén chip als HTML (icoon en woord).
 export function chipHtml(tone, label, extra = '') {
-  return `<span class="ds-chip${KLASSE[tone] || ''}${extra}">${TOESTAND_ICOON[tone] || TOESTAND_ICOON.mut}${esc(label)}</span>`;
+  return `<span class="ds-z-chip${KLASSE[tone] || ''}${extra}">${TOESTAND_ICOON[tone] || TOESTAND_ICOON.mut}${esc(label)}</span>`;
 }
