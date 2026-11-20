@@ -1109,7 +1109,7 @@ while (true) {
   // a stunt (M01) comes no closer to the square while it scores: the score counts as progress, or the ladder lifts the bot out mid-stunt
   const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey, score: s.mission.stunt ? s.mission.stunt.score : null });
   if (st.stuck) { await rescue(s, stepKey, st); continue; }
-  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await keyTap(act.key); await sleep(act.interact ? 900 : 0); continue; }
+  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await keyTap(act.key, act.interact && /ingedrukt/i.test(s.hud.prompt || '') ? 4500 : undefined); await sleep(act.interact ? 900 : 0); continue; }   // 'Houd E ingedrukt' (de stroomkast van M06): een speler houdt de toets vast, het tikken van de bot deed niets
   if (act.type === 'enter') {
     const v = act.vehicle;
     // the game lets you in when the body outline is within ENTER_REACH: a plane (5 m wide) is far from its centre by then
