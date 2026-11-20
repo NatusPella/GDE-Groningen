@@ -117,3 +117,14 @@
 @media (max-width: 760px) {
   #pause-menu .pm-samen .pm-samen-inner, .coop-hold { padding: var(--ds-s-3); }
 }
+
+/* Oogtest 20-11 (#1001): het vak van Samen spelen vult de breedte van het blad, en de stapchips zijn papier met inkt
+   (alle drie leesbaar, nooit gedimd): gekozen = bordgroen met inkttekst, straks = gestippelde rand. */
+#pause-menu.gm .pm-samen { max-width: none; width: 100%; box-sizing: border-box; padding-left: var(--ds-s-5); padding-right: var(--ds-s-5); }
+#pause-menu.gm .pm-samen .pm-samen-inner { width: 100%; max-width: none; }
+#pause-menu.gm .pm-hub-stap { height: auto; min-height: var(--ds-doel-aanraken); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); opacity: 1; font-size: max(var(--ds-t-label), var(--menu-min)); box-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#pause-menu.gm .pm-hub-stap[data-staat="klaar"] { color: var(--ds-c-groen-tx); background: var(--ds-c-groen-vlak); opacity: 1; }
+#pause-menu.gm .pm-hub-stap[data-staat="straks"] { color: var(--ds-tx-zacht); border-style: dashed; opacity: 1; }
+#pause-menu.gm .pm-hub-stap[aria-current="step"] { color: var(--ds-zeef-tx); background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); opacity: 1; }
+#pause-menu.gm .pm-hub-nr { width: var(--ds-s-5); height: var(--ds-s-5); background: var(--ds-c-papier-2); color: var(--ds-zeef-tx); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(var(--ds-t-hulp), var(--menu-min)); }
+#pause-menu.gm .pm-hub-uitleg, #pause-menu.gm .pm-hub-veilig, #pause-menu.gm .pm-hub-keuze small { font-size: max(var(--ds-t-hulp), var(--menu-min)); color: var(--ds-tx-zacht); }

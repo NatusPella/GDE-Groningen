@@ -1223,3 +1223,41 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn.ghost { background: var(--ds-zeef-bg); color: var(--ds-c-ink-inkt); box-shadow: none; }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn.ghost:hover { background: var(--ds-c-sel-vlak); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+
+/* Oogtest 20-11 (#997, #999): leesbaarheid op 1280x720. De menustage is met --mz ingezoomd, dus een vaste px-maat
+   wordt kleiner op het scherm; max(X, var(--menu-min)) houdt de maat op schermniveau minstens 13 px. Papier met
+   inkt, geen vervaging, geen schuinte op kaarten met knoppen. */
+#pause-menu.gm.visible:not(.prestart), #pause-menu.gm.prestart { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--ds-c-ink-inkt) 68%, transparent); }
+/* de toetsregel onderaan: een papieren plaatje met inktrand, nooit tekst direct op de wereld */
+#pause-menu.gm .m-foot { z-index: 6; height: auto; min-height: var(--ds-s-7); padding: var(--ds-s-1) var(--ds-s-4); gap: var(--ds-s-5); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
+#pause-menu.gm .m-hint { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-tx); }
+/* de groepskoppen van de rail en het voortgangsblok */
+#pause-menu.gm .pm-rail-h { font-size: max(15px, var(--menu-min)); letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx); }
+#pause-menu.gm .pm-rail-h .cnt { font-family: var(--ds-font-tekst-v3); font-size: max(15px, var(--menu-min)); letter-spacing: 0; color: var(--ds-tx-zacht); }
+#pause-menu.gm .ov-scroll { -webkit-mask-image: none; mask-image: none; padding-top: var(--ds-s-3); scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
+#pause-menu.gm .pm-progress { flex: none; overflow: visible; margin: 0 var(--ds-s-4) var(--ds-s-4); padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
+#pause-menu.gm .pm-progress-head { flex-wrap: wrap; }
+#pause-menu.gm .pm-progress-head .m-eb { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-kop); }
+#pause-menu.gm .pm-progress-pct b { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-zeef-tx); text-shadow: var(--ds-misdruk); }
+#pause-menu.gm .pm-progress-pct .mut, #pause-menu.gm .pm-progress-parts li { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-tx); }
+#pause-menu.gm .pm-progress-parts li > span:last-child { color: var(--ds-tx-zacht); }
+#pause-menu.gm .pm-progress .m-bar { height: var(--ds-s-3); }
+/* kaarten met knoppen staan recht (geen misdruk-schuinte onder klikbare dingen) */
+#pause-menu.gm .ds-z-kaart:has(button, .ds-z-knop), #pause-menu.gm .td-card { transform: none; }
+/* Te doen: het detailpaneel is een eigen kaart die bij zijn inhoud eindigt, geen lege kolom */
+#pause-menu.gm [data-panel="todo"] .td-detail { align-self: flex-start; max-height: 100%; overflow-y: auto; box-sizing: border-box; padding: var(--ds-s-4); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
+#pause-menu.gm [data-panel="todo"] .td-detail:empty { display: none; }
+/* Kaart: titel, legenda en kaartpaneel zijn papier met inkt, minstens 13 px op het scherm */
+#pause-menu.gm .mapview-overlay.embedded .mv-hl .mapview-title { width: fit-content; padding: 0 var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-size: 56px; line-height: 1.15; }
+#pause-menu.gm .mapview-overlay.embedded .mv-eb { width: fit-content; margin: 0; padding: 0 var(--ds-s-3); background: var(--ds-zeef-bg); color: var(--ds-zeef-kop); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: max(16px, var(--menu-min)); }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend h3 { font-size: max(20px, var(--menu-min)); letter-spacing: var(--ds-ls-label); text-transform: none; color: var(--ds-zeef-kop); }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-grp-head { font-size: max(20px, var(--menu-min)); letter-spacing: 0; }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend li { font-size: max(18px, var(--menu-min)); color: var(--ds-zeef-tx); }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend :is(.note, .always, .hint), #pause-menu.gm .mapview-overlay.embedded .mapview-card :is(small, .mv-rec), #pause-menu.gm .mapview-overlay.embedded .mapview-tooltip .sub { font-size: max(16px, var(--menu-min)); color: var(--ds-tx-zacht); }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-legend-body { -webkit-mask-image: none; mask-image: none; }
+#pause-menu.gm .mapview-overlay.embedded .mapview-route { font-size: max(20px, var(--menu-min)); }
+#pause-menu.gm .mapview-overlay.embedded .mapview-osm { font-size: max(14px, var(--menu-min)); }
+#pause-menu.gm .mv-layers-n { font-family: var(--ds-font-tekst-v3); font-size: max(16px, var(--menu-min)); color: var(--ds-tx-zacht); }
+/* de uitleg "Zo werkt de kaart": een papieren kaart op een gedimde kaart, zonder vervaging */
+#pause-menu.gm .mapview-overlay .mv-help { background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#pause-menu.gm .mapview-overlay .mv-help-box { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); transform: none; font-size: max(16px, var(--menu-min)); }

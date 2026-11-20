@@ -58,3 +58,8 @@ html.pad-active :is(.gm-zeef, #pause-menu :is([data-panel="todo"], [data-panel="
 @media (max-height: 820px) { .gm-zeef .m-head { padding-top: var(--ds-s-4); } .gm-zeef .m-main { padding-top: var(--ds-s-4); } }
 /* de v2-lettertokens wijzen hier naar de v3-letters, zodat lokale opmaak per scherm zelf niets hoeft te weten */
 html.reduce-motion :is(.gm-zeef, #pause-menu :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"])) * { transition: none; animation: none; }
+/* Oogtest 20-11 (#997): de gekozen pil is bordgroen op papier (selectie), nooit inkt op inkt; de basis van pausemenu.css
+   zette er een inktkleur op die de zwarte vulling onleesbaar maakte. Het getal in de pil houdt dezelfde inkt. */
+#pause-menu.gm :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"]) .m-tablist .m-tab[aria-selected="true"] { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
+#pause-menu.gm :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"]) .m-tablist .m-tab small { color: var(--ds-tx-zacht); font-size: max(14px, var(--menu-min)); }
+#pause-menu.gm :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"]) .m-tablist .m-tab[aria-selected="true"] small { color: var(--ds-c-ink-inkt); }
