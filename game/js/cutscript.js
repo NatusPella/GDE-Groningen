@@ -33,7 +33,7 @@ import { crowdSpecIssue } from './crowdplan.js';
 import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './poseclips.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
-export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld'];
+export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).
 let shakeFilter = (a) => a;
 export function setShakeFilter(fn) { shakeFilter = typeof fn === 'function' ? fn : (a) => a; }
@@ -140,6 +140,12 @@ export function validateScene(def, opts = {}) {
     if (s.shot === 'dolly' && !(isVec(s.from, 3) && isVec(s.to, 3))) err(`${what}: dolly heeft from en to [f, s, h] nodig`);
     if (s.shot === 'orbit' && !(isNum(s.radius) && s.radius > 0.3 && s.target !== undefined)) err(`${what}: orbit heeft target en radius > 0.3 nodig`);
     if (s.shot === 'follow' && !(typeof s.target === 'string' && actors[s.target.replace(/^actor:/, '')])) err(`${what}: follow heeft een acteur als target nodig`);
+    if (s.shot === 'push') {
+      if (!(typeof s.target === 'string')) err(`${what}: push heeft een target nodig`);
+      for (const k of ['d0', 'd1']) if (s[k] !== undefined && !(isNum(s[k]) && s[k] >= 0.5 && s[k] <= 40)) err(`${what}: ${k} is een afstand van 0,5 tot 40 m`);
+      for (const k of ['fov0', 'fov1']) if (s[k] !== undefined && !(isNum(s[k]) && s[k] >= 14 && s[k] <= 90)) err(`${what}: ${k} buiten 14-90`);
+      if (s.ease !== undefined && !['smooth', 'lin', 'in', 'out'].includes(s.ease)) err(`${what}: ease is smooth, lin, in of out`);
+    }
     if (s.fov !== undefined && !(isNum(s.fov) && s.fov >= 14 && s.fov <= 90)) err(`${what}: fov buiten 14-90`);
   });
   if (shots.length && st[0] !== 0) err('het eerste shot moet op t = 0 beginnen');
@@ -343,7 +349,7 @@ export function compileScene(def, opts = {}) {
     const sh = shots[i];
     const end = i + 1 < shots.length ? shots[i + 1].t : duration;
     const u = clamp01((t - sh.t) / Math.max(0.05, end - sh.t));
-    let pos, look;
+    let pos, look, fovNow = null;
     const tg = (spec) => pointOf(spec, t);
     switch (sh.shot) {
       case 'cut': {
@@ -419,6 +425,20 @@ export function compileScene(def, opts = {}) {
         const k = ease(u);
         pos = { f: lerp(sh.from[0], sh.to[0], k), s: lerp(sh.from[1], sh.to[1], k), h: lerp(sh.from[2], sh.to[2], k) };
         look = tg(sh.look ?? sh.target ?? 'speaker');
+        break;
+      }
+      // push: a move along the line to the target (a track-in, a slow zoom, a startled rush, a low angle). angle 0 = in front of the
+      // face (face: deg for a prop or a point), d0 -> d1 the distance, fov0 -> fov1 the lens, h0 -> h1 the height, lookH the height looked at
+      case 'push': {
+        const id = stripRef(String(sh.target).replace(/@[\d.]+$/, ''));
+        const c = tg(sh.target);
+        const base = actors[id] ? actorFacing(id, t) : rad(sh.face ?? 0);
+        const a = base + rad(sh.angle ?? 0);
+        const k = sh.ease === 'in' ? u * u : sh.ease === 'out' ? 1 - (1 - u) * (1 - u) : sh.ease === 'lin' ? u : ease(u);
+        const d = lerp(sh.d0 ?? 3, sh.d1 ?? sh.d0 ?? 3, k);
+        pos = { f: c.f + Math.cos(a) * d, s: c.s + Math.sin(a) * d, h: lerp(sh.h0 ?? 1.5, sh.h1 ?? sh.h0 ?? 1.5, k) };
+        look = { f: c.f, s: c.s, h: sh.lookH ?? c.h };
+        fovNow = lerp(sh.fov0 ?? sh.fov ?? 38, sh.fov1 ?? sh.fov0 ?? sh.fov ?? 38, k);
         break;
       }
       case 'handheld': {
@@ -584,7 +604,7 @@ export function compileScene(def, opts = {}) {
     return {
       position: clearOfTrees(cam, { x: L.x, y: L.y, z: z0 + look.h }, env),
       lookAt: { x: L.x, y: L.y, z: z0 + look.h },
-      fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
+      fov: fovNow ?? sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
     };
   }
 

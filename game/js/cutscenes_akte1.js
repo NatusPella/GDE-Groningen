@@ -24,6 +24,7 @@
 // looks: the NPC table of missionstory.js ({ name, shirt, skin, ... } per key).
 
 import { SPECS_AKTE2 } from './cutscenes_akte2.js';
+import { placeTemplate, expandTemplate } from './cineshots.js';
 
 const DUO = {
   tammo: { look: 'tammo', at: [0, 0.6], face: 0, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
@@ -680,10 +681,29 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     shots.push({ t, ...shot });
     lastT = l.at + dt; lastSpeaker = me; lastIdx = i;
   });
+  // direction templates (cineshots.js, #955): { on, dt, tpl, hold, ...params } lays the shots of a template on that line; they replace the
+  // automatic coverage inside their range (hold s, standard: the template plus 2.5 s), so a scene can cut shot-reverse-shot, push in on a
+  // face or rush at a startled one without a camera that fights it
+  for (const c of spec.cuts || []) {
+    const idx = resolveOn(c.on, lines);
+    if (idx == null || idx < 0) continue;
+    const { on, dt, tpl, hold, ...params } = c;
+    const t0 = lines[idx].at + (dt || 0);
+    const subs = expandTemplate(tpl, params);
+    const owned = hold ?? Math.max(...subs.map((q) => q.dt)) + 2.5;
+    const num = (t) => (typeof t === 'number' ? t : (m => (m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0))(/^L(\d+)([+-][\d.]+)?$/.exec(t)));
+    for (let i = shots.length - 1; i >= 0; i--) { const n = num(shots[i].t); if (n > 0.01 && n >= t0 - 0.05 && n < t0 + owned) shots.splice(i, 1); }
+    shots.push(...placeTemplate(tpl, params, tspec(idx, dt || 0)));
+  }
+  {
+    const num2 = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; };
+    shots.sort((a, b) => num2(a.t) - num2(b.t));
+  }
   // the closing frame: back out to the street
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
   if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  if (spec.cuts && spec.cuts.length) { const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; }; shots.sort((x, y) => tn(x.t) - tn(y.t)); for (let i = shots.length - 1; i > 0; i--) if (tn(shots[i].t) - tn(shots[i - 1].t) < 0.05) shots.splice(i - 1, 1); }
   drift(shots, lines, endT + 1);
   const fx = (spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
   return { id: 'story-' + key, actors, props, cues, shots, ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
