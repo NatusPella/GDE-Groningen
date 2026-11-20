@@ -1,3 +1,4 @@
+import { hapticEvent } from './haptics.js';
 import { screenFx } from './postfx3d.js';
 import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
@@ -1374,6 +1375,7 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   const b = els.banner;
   // the same result already up (scene start, then a fallback): once is enough
   if (banner && !b.hidden && b.dataset.kind === kind && els.bTitle.textContent === title) return;
+  hapticEvent(kind === 'pass' ? 'pass' : 'fail');
   const moment = showBigMoment({ ...momentVanBanner({ kind, title, reason, reward }), gast: isGast(world), eigen: eigen && !gezamenlijk, gezamenlijk, deelnemer });
   b.classList.toggle('bm-vervangen', !!moment);
   b.classList.toggle('bm-geen-cijfers', !!moment && !(stats && stats.length));

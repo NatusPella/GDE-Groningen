@@ -1425,6 +1425,7 @@ function updateMoneyWeapon(dt, world) {
     els.moneyDelta.textContent = (deltaSum > 0 ? '+€' : '−€') + Math.abs(deltaSum).toLocaleString('nl-NL');
     els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
     els.moneyDelta.classList.add('visible');
+    if (S.moneySign > 0) pop(els.moneyDelta); // het bedrag springt even op bij geld binnen (#985); uit bij Beweging beperken
   }
   if (deltaTimer > 0 && (deltaTimer -= dt) <= 0) els.moneyDelta.classList.remove('visible');
   const diff = moneyTarget - moneyShown;
@@ -2204,7 +2205,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind.startsWith('act-')) drawActivityMapIcon(ctx, kind, s);
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
-      else if (kind === 'livebus') drawLiveBusMapIcon(ctx, s, t);
+      else if (kind === 'livebus' || kind === 'ov-halte') drawLiveBusMapIcon(ctx, s, t);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
       else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
       else if (kind.startsWith('mm-')) drawMissionLayerIcon(ctx, kind, s);

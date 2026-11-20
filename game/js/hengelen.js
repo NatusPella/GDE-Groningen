@@ -22,6 +22,7 @@ import { maakHengelAnim } from './hengelanim.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
+import { hapticEvent } from './haptics.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
 // dobbertje zakt ("Beet!") druk je meteen weer [Spatie]; te vroeg trekken schrikt de vis af. Twee manieren:
@@ -205,7 +206,7 @@ function updateGame(w, dt) {
   for (const e of evs) {
     if (e.type === 'cast') { if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'fx', name: 'hengel_uitwerp', x: at.x, y: at.y }); }
     else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y, gain: 0.6 }); }
-    else if (e.type === 'bite') { g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
+    else if (e.type === 'bite') { hapticEvent('bite'); g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
     else if (e.type === 'catch') {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
