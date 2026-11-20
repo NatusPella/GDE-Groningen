@@ -11,7 +11,8 @@ import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
-import { pickHint, situation, parseSeen, serializeSeen, widgetNodig } from './hintkit.js';
+import { pickHint, pickSamenHint, situation, parseSeen, serializeSeen, widgetNodig } from './hintkit.js';
+import { openerNaam } from './coopplayers.js';
 
 const KEY_TOKEN = /\{(\w+)\}/g;
 const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -58,6 +59,31 @@ export function updateContextHints(dt, w) {
   seen.add(h.id);
   try { localStorage.setItem(KEYS.hintsGezien, serializeSeen(seen)); } catch (e) { /* memory only */ }
   lastAt = playT;
+}
+
+// Samen spelen: de rolkaart en daarna de roepjes, voor wie het spel opende én voor een gast (een gast draait updateContextHints
+// niet). Aangeroepen vanuit coophud.js, elke frame zolang er een sessie is. Eén kaart tegelijk, elk één keer per apparaat.
+let samenT = 0;
+let samenAt = -Infinity;
+let samenLast = 0;
+export function updateSamenHints(w) {
+  const nu = typeof performance !== 'undefined' ? performance.now() / 1000 : 0;
+  const dt = Math.min(1, Math.max(0, nu - samenLast));
+  samenLast = nu;
+  if (!w || !w.coopNet || w.coopSolo || !document.body.classList.contains('game-started') || isPauseMenuOpen()) return;
+  const rol = w.coopRole === 'client' ? (w.coopNet.joined ? 'gast' : null) : w.coopRole === 'host' ? 'host' : null;
+  const spelers = Array.isArray(w.coopRoster) ? w.coopRoster.length : 0;
+  if (!rol || spelers < 2) { samenT = 0; return; }
+  samenT += dt;
+  if (isCinematicActive() || w.cameraOverride) return;
+  const st = { rol, spelers, dead: !!(w.health <= 0 || w.pendingRespawn), paused: !!w.paused, wanted: w.wanted || 0 };
+  const h = pickSamenHint(st, seen, { sessieT: samenT, sinds: samenT - samenAt }, { enabled: getSettings().onboardingTips !== false });
+  if (!h || cardsBusy() || !mayStart('card')) return;
+  const body = h.body.replace('{OPENER}', openerNaam(w.coopRoster));
+  showCard(w, { kind: 'tip', kicker: 'Samen spelen', title: h.title, body: plainKeys(body), bodyHtml: htmlKeys(body), key: 'hint-' + h.id, important: true, voice: false, duration: 9 });
+  seen.add(h.id);
+  try { localStorage.setItem(KEYS.hintsGezien, serializeSeen(seen)); } catch (e) { /* memory only */ }
+  samenAt = samenT;
 }
 
 if (typeof window !== 'undefined') window.__contextHints = { seen: () => [...seen], reset: resetContextHints };

@@ -62,6 +62,11 @@ export const HINTS = [
   { id: 'm-carbid', kind: 'minigame', match: 'carbid', title: 'Carbid schieten', body: 'Melkbus, deksel en een flinke knal. Blijf zelf op afstand.' },
   { id: 'm-kermis', kind: 'minigame', match: 'kermis', title: 'Kermis', body: 'Botsautootjes: botsen mag. Stuur en trap het gas in.' },
   { id: 'm-wandeling', kind: 'minigame', match: 'wandeling', title: 'Wandeling', body: 'Vijf stempelposten langs het Pieterpad, tegen de klok.' },
+  // Samen spelen: één kaart per ding, pas als je echt met anderen speelt (pickSamenHint). Een gast draait de onboarding en de
+  // voertuighints niet (main.js geeft die alleen aan wie het spel opende), dus hij kreeg nergens te horen wat Tab en de roepjes doen.
+  { id: 'x-samen-gast', kind: 'samen', match: 'gast', title: 'Je speelt mee', body: 'Je speelt in het spel van {OPENER}. Wat je verdient en koopt blijft van jou. Houd {TAB} ingedrukt: wie er meespeelt.' },
+  { id: 'x-samen-host', kind: 'samen', match: 'host', title: 'Jullie spelen samen', body: 'Jullie spelen in jouw spel; ieders geld en voortgang blijft eigen. Houd {TAB} ingedrukt: wie er meespeelt.' },
+  { id: 'x-samen-roep', kind: 'samen', match: 'beide', title: 'Roep naar elkaar', body: 'Roepen: 7 is "Kom hier", 8 is "Help!" en 9 is "Kijk daar".' },
   // #987: eerste-keer-uitleg als regelwidget (regelwidget.js): geen kaart, maar een toets met een korte lus op het bord van de
   // minigame zelf. pickHint slaat kind 'widget' over; de minigame vraagt met widgetNodig() of de widget nog getoond moet worden
   // en zet hem na de eerste echte handeling in de gezien-lijst, daarna blijft hij stil.
@@ -114,3 +119,20 @@ export function parseSeen(raw) {
 }
 
 export const serializeSeen = (seen) => JSON.stringify([...seen]);
+
+// De Samen-spelen-kaarten (kind 'samen'), pure kant. st: { rol: 'host' | 'gast' | null, spelers (aantal in de sessie), dead, paused, wanted };
+// clock: { sessieT (s dat je met anderen speelt), sinds (s sinds de laatste kaart) }. Eerst de eigen rolkaart (na 8 s, zodat de
+// verbinding klaar is), daarna pas de roepjes (na 90 s en 45 s na de vorige kaart): nooit twee kaarten tegelijk.
+export const SAMEN_NA = 8;
+export const SAMEN_ROEP_NA = 90;
+export const SAMEN_GAP = 45;
+export function pickSamenHint(st, seen, clock, opts = {}) {
+  if (opts.enabled === false || opts.busy) return null;
+  if (!st || (st.rol !== 'host' && st.rol !== 'gast') || !(st.spelers >= 2)) return null;
+  if (st.paused || st.dead || st.wanted > 0) return null;
+  if (clock.sessieT < SAMEN_NA || clock.sinds < SAMEN_GAP) return null;
+  const eigen = HINTS.find((h) => h.kind === 'samen' && h.match === st.rol);
+  if (eigen && !seen.has(eigen.id)) return eigen;
+  const roep = HINTS.find((h) => h.kind === 'samen' && h.match === 'beide');
+  return roep && !seen.has(roep.id) && clock.sessieT >= SAMEN_ROEP_NA ? roep : null;
+}

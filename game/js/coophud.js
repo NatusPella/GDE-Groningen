@@ -3,6 +3,7 @@
 // Niet in beeld bekeken.
 import { updateSpelersOverlay } from './coopspelersui.js';
 import { uitnodigingTekst } from './coopmeedoen.js';
+import { updateSamenHints } from './contexthints.js';
 
 let fadeEl = null;
 
@@ -19,7 +20,7 @@ export function fadeFlash(richting = 'in') {
 }
 
 // Elke frame vanuit main.js, alleen als er een sessie is: de lijst met spelers zolang Tab wordt ingedrukt.
-export function updatePartnerChip(world) { updateSpelersOverlay(world); updateMeedoenChip(world); }
+export function updatePartnerChip(world) { updateSpelersOverlay(world); updateMeedoenChip(world); updateSamenHints(world); }
 
 // "Meedoen?" blijft in beeld tot de gast antwoordt of de opdracht voorbij is: geen antwoord is nee (#452)
 let meedoenEl = null;

@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Samen spelen legt zichzelf uit, ook voor een gast:** zodra je met anderen speelt komt er één kaart die zegt wie het spel opende en dat je eigen geld van jou blijft, met Tab voor wie er meespeelt; anderhalve minuut later volgt een kaart met de roepjes (7, 8 en 9). Elke kaart komt één keer, nooit tegelijk met een andere en niet bij politie of pauze; uit te zetten met "Uitleg voor nieuwe spelers". Eerst kreeg alleen wie het spel opende uitleg, dus de drie gasten kregen nergens te horen wat Tab doet. Samen spelen: voor wie het spel opende én voor gasten, per speler één keer per apparaat; wie wegvalt of later aansluit krijgt de kaart bij het eerste samen-moment; getest met een pure test (hintkit_test).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

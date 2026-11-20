@@ -80,5 +80,25 @@ ok(HELP_TOPICS.every((t) => t.lines.every((l) => !/\b(the|and|press)\b/i.test(l)
   const genoemd = [...plain.matchAll(/Spel › /g)].map((m) => spelTabs.slice().sort((a, b) => b.length - a.length).find((t) => plain.startsWith(t, m.index + m[0].length)));
   ok(genoemd.length > 0 && genoemd.every(Boolean), 'Hulp: elk genoemd Spel-tabblad bestaat', genoemd.join('|'));
 }
+// Samen-spelen-kaarten: een gast draait de onboarding niet, dus hij krijgt zijn eigen uitleg; één kaart tegelijk, elk één keer
+{
+  const gast = { rol: 'gast', spelers: 2, dead: false, paused: false, wanted: 0 };
+  const host = { ...gast, rol: 'host' };
+  const klok = { sessieT: 20, sinds: 100 };
+  ok(K.pickSamenHint(gast, new Set(), klok).id === 'x-samen-gast', 'een gast krijgt zijn rolkaart');
+  ok(K.pickSamenHint(host, new Set(), klok).id === 'x-samen-host', 'de host krijgt zijn rolkaart');
+  ok(K.pickSamenHint({ ...gast, spelers: 1 }, new Set(), klok) === null && K.pickSamenHint({ ...gast, rol: null }, new Set(), klok) === null, 'alleen met anderen en alleen als host of gast');
+  ok(K.pickSamenHint(gast, new Set(), { sessieT: 3, sinds: 100 }) === null, 'pas als de verbinding even staat');
+  ok(K.pickSamenHint(gast, new Set(), { sessieT: 20, sinds: 10 }) === null, 'niet vlak na een andere kaart');
+  ok(K.pickSamenHint(gast, new Set(['x-samen-gast']), { sessieT: 30, sinds: 100 }) === null, 'de roepjes pas na anderhalve minuut');
+  ok(K.pickSamenHint(gast, new Set(['x-samen-gast']), { sessieT: 95, sinds: 100 }).id === 'x-samen-roep', 'daarna de roepjes');
+  ok(K.pickSamenHint(gast, new Set(['x-samen-gast', 'x-samen-roep']), { sessieT: 999, sinds: 999 }) === null, 'elke kaart één keer');
+  ok(K.pickSamenHint({ ...gast, wanted: 2 }, new Set(), klok) === null && K.pickSamenHint({ ...gast, paused: true }, new Set(), klok) === null && K.pickSamenHint(gast, new Set(), klok, { enabled: false }) === null, 'niet bij politie, pauze of uitgezette uitleg');
+  ok(K.pickHint({ vehicle: 'auto', minigame: null, wanted: 0, dead: false, paused: false }, new Set(['v-auto']), late) === null, 'samen-kaarten komen niet via de voertuigroute');
+  ok(K.parseSeen(K.serializeSeen(new Set(['x-samen-gast']))).has('x-samen-gast'), 'de gezien-lijst bewaart een samen-kaart');
+  const fs = await import('node:fs');
+  const src = fs.readFileSync(new URL('../game/js/contexthints.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/coophud.js', import.meta.url), 'utf8');
+  ok(/updateSamenHints[(]world[)]/.test(src) && /pickSamenHint/.test(src), 'coophud roept de samen-kaarten aan, voor host én gast');
+}
 console.log(fails ? `${fails} of ${n} failed` : `hintkit_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
