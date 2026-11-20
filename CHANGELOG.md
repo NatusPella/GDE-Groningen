@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Verbeterd
+
+- **Elke toets- en knophint is een icoon:** menuvoetregels, het stopvenster, Doorgaan en Begrepen, de garage, de fotomodus, de Besturing-tabellen, de hulp, de bijbaan- en vliegregels en de hints in de wereld tonen toetsen, pijltjes, de muis en het muiswiel als icoon in plaats van als woord. Met een controller staat overal de knop van jouw controller en die wisselt meteen als je een ander apparaat pakt. De toetsen zijn groter (minstens 26 px in het beeld, 28 px in menu's).
+- **De muis heeft dezelfde iconen als de toetsen:** linker- en rechterknop, middelste knop, wiel, bewegen en slepen (`{LMB}`, `{RMB}`, `{MMB}`, `{WHEEL}`, `{MOUSE}`, `{DRAG}`).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

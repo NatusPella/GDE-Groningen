@@ -308,7 +308,7 @@ export function padSlotFor(token, ctx = 'foot') {
   if (/^[↑↓←→]{2,}$/.test(t)) t = 'ARROWS';
   else if (ARROW[t]) token = ARROW[t];
   if (t === '⌫') token = 'backspace';
-  if (t === 'MOUSE') return 'rstick';
+  if (t === 'MOUSE' || t === 'DRAG') return 'rstick';
   if (t === 'WASD' || t === 'ARROWS') return map.stick === 'nav' ? 'dpad' : 'lstick';
   if (t === 'LMB') return find(map, '@fire') || find(map, '@gas');
   if (t === 'RMB') return find(map, '@aim');

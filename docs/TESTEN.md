@@ -14,6 +14,10 @@ node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
 
 De `player_singleton_audit` (#500) telt per bestand hoe vaak code `world.player` of de vaste alias `w.player` rechtstreeks aanraakt en vergelijkt dat met `scripts/player_singleton_baseline.json`. Groei of een nieuw bestand is een fout; een daling is winst en werk je bij met `node scripts/player_singleton_audit.mjs --update`. Nieuwe code leest de eigen speler via `game/js/players.js` (zie ADR [0018](../.specs-fire/standards/adr/0018-een-ingang-voor-de-speler.md)).
 
+## Toetshints (opdracht 21-11)
+
+`node scripts/key_literals_test.mjs [--list]` keurt dat geen spelertekst in `game/js` een toets of muisknop als woord noemt (Spatie, Esc, Enter, Shift, WASD, pijltjes, LMB, muiswiel ...) en geen HTML-hint een toets als tekstkeycap toont; `node scripts/key_tokens_test.mjs` keurt dat elk `{TOKEN}` een Kenney-icoon of de toetsnaam wordt op beide weergavepaden. Uitzonderingen staan met reden in de test (ingesproken regels, commentaar, regels met `keywords-ok`). Beeld: `scripts/qa/keys.page.js` via `scripts/ui_shots.mjs --scenes=...`.
+
 ## De fasen
 
 Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkelmachine, niet gemeten op een volle run. De rapportage houdt per item de echte duur bij; kijk daar na de eerste run naar.

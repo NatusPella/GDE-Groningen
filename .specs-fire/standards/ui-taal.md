@@ -89,6 +89,17 @@ roepen.
   uitkomst ("tabblad", "spelers-tab", "onderdeel") en de Besturing-tabel zegt hetzelfde
   (#601; het oude conflict met de tabel is daarmee weg).
 
+## Bediening en toetshints (opdracht 21-11, #1003)
+
+Het hoofdstuk "Controls and key hints" in `DESIGN_SYSTEM.md` is de uitwerking; dit is de samenvatting als spelregel:
+
+- Elke toets- of knopverwijzing in spelertekst is een `{TOKEN}` (`{E}`, `{SPACE}`, `{ESC}`, `{ENTER}`, `{SHIFT}`, `{CTRL}`, `{ALT}`, `{F8}`, `{WASD}`, `{ARROWS}`, `{LMB}`, `{RMB}`, `{MOUSE}`, `{WHEEL}`). Nooit een toetsnaam als woord ("Spatie", "Esc", "Enter", "pijltjes") en nooit een pijltje als tekst. Het token volgt herbinden en de controller.
+- Eén weergavepad: `keyTextHtml`, `glyphHtml` of `keyLabelHtml` voor HTML; `plainKeyText` voor aria-label, title, canvas en logregels.
+- Maat: het toetsicoon is minstens 26 px hoog in de HUD en 28 px in menu's, met leesbare tekst erin, zonder dat de layout breekt.
+- Controller: in padmodus staat de knop van de actieve familie (Xbox, PlayStation, Steam Deck, Switch) en wisselt live met een ander apparaat. Een toets zonder glyph is een nette tekstkeycap in dezelfde stijl.
+- Toegankelijkheid: elk icoon heeft een aria-label met de naam; de hint zegt wat de toets doet; nooit alleen kleur. Rustig drukwerk: een vlakke plaat zonder glans.
+- Handhaving: `key_literals_test`, `key_tokens_test` en de releasegate (`checkKeyLine`): een nieuwe hint zonder token is een belangrijke bevinding. Uitgezonderd zijn alleen ingesproken regels en ondertitels (de tekst volgt de clip, ADR 0041), bestanden die de tokens zelf renderen en een regel met `keywords-ok`.
+
 ## Menu's
 
 De structuur staat op één plek: `SECTIONS` (`pausemenu.js:235`), `RAIL_GROUPS`

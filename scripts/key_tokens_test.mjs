@@ -11,7 +11,7 @@ const JS = fileURLToPath(new URL('../game/js/', import.meta.url));
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.log('FAIL ' + m); } };
 const PLACEHOLDERS = new Set(['OPENER']); // door de code vervangen voor de tekst op het scherm komt (hintkit.js)
-const KNOWN = ['SPATIE', 'SPACE', 'ESC', 'ENTER', 'SHIFT', 'CTRL', 'TAB', 'BACKSPACE', 'DELETE', 'ALT', 'WASD', 'ARROWS', 'ARROWUP', 'ARROWDOWN', 'ARROWLEFT', 'ARROWRIGHT', 'LMB', 'RMB', 'MOUSE', 'WHEEL', ...Array.from({ length: 12 }, (_, i) => 'F' + (i + 1)), ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'];
+const KNOWN = ['SPATIE', 'SPACE', 'ESC', 'ENTER', 'SHIFT', 'CTRL', 'TAB', 'BACKSPACE', 'DELETE', 'ALT', 'WASD', 'ARROWS', 'ARROWUP', 'ARROWDOWN', 'ARROWLEFT', 'ARROWRIGHT', 'LMB', 'RMB', 'MMB', 'MOUSE', 'WHEEL', 'DRAG', ...Array.from({ length: 12 }, (_, i) => 'F' + (i + 1)), ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'];
 
 // 1. elk bekend token, op beide weergavepaden
 for (const k of KNOWN) {
@@ -22,6 +22,8 @@ for (const k of KNOWN) {
   ok(/class="hud-(key|wasd|mouse-g)/.test(h), `{${k}} wordt een toets-icoon`);
 }
 ok(plainKeyText('{E} en {WASD}').includes('WASD'), 'plainKeyText noemt WASD');
+// de muis is de Kenney-muisset, hetzelfde beeld als de toetsen (mouse_left, mouse_right, mouse_scroll, mouse_move ...)
+for (const k of ['LMB', 'RMB', 'MMB', 'WHEEL', 'MOUSE', 'DRAG']) ok(/class="pad-g pad-kn pad-key pad-mouse"/.test(keyTextHtml('{' + k + '}')), `{${k}} is geen Kenney-muisicoon`);
 
 // 1b. een toets zonder Kenney-glyph valt terug op een nette tekstkeycap in dezelfde stijl, nooit op niets of op accolades
 for (const k of ['[', ']', '.', ',']) {

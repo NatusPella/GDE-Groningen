@@ -179,3 +179,11 @@ html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
 /* #985: op een laag venster hangen de ondertitels boven de locatiekaart (F-kolom), niet erin; het toetsglyph in het stopvenster is 28 px */
 @media (max-height: 720px) { #banter-sub, #radio-sub, #story-talk { bottom: 200px !important; } }
 .mg-stopask .pad-g.pad-kn, html .mg-stopask .pad-g.pad-kn { font-size: 28px !important; }
+
+/* Toets- en muisicoon (Kenney, set keys): de toets zit in het glyph op ongeveer de helft van de lettergrootte, dus 56 px lettergrootte is een toets van 28 px
+   in de HUD (minstens 26) en 60 px een toets van 30 px in menu's (minstens 28), met leesbare tekst erin (DESIGN_SYSTEM.md, Controls and key hints). */
+html .pad-g.pad-kn[data-set="keys"] { font-size: 56px !important; line-height: 28px; height: 28px; }
+html #pause-menu .pad-g.pad-kn[data-set="keys"], html .m-foot .pad-g.pad-kn[data-set="keys"], html .m-acts .pad-g.pad-kn[data-set="keys"], html .mg-stopask .pad-g.pad-kn[data-set="keys"],
+html .gar-hint .pad-g.pad-kn[data-set="keys"], html .pm-ckeys .pad-g.pad-kn[data-set="keys"], html .foto-key .pad-g.pad-kn[data-set="keys"], html .m-kc .pad-g.pad-kn[data-set="keys"] { font-size: 60px !important; line-height: 30px; height: 30px; }
+html .hud-mouse-g .pad-g.pad-kn { margin: 0; }
+

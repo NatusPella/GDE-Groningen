@@ -3,7 +3,7 @@
 // Split out of prompts.js so hudcards.js can use it without pulling in three.js.
 import { physicalKey, tokenKey, keyName } from './controls.js';
 import { getSettings } from './settings.js';
-import { keyGlyph } from './inputglyphs.js';
+import { keyGlyph, mouseGlyph, MOUSE_TOKENS } from './inputglyphs.js';
 
 function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -29,8 +29,10 @@ export function glyphHtml(token, opts = {}) {
     inner = `<span class="hud-wasd" data-gk="${gk}"><span class="hud-key is-kbg">${keyInner(physicalKey(getSettings().keyBinds, 'w'))}</span><span class="hud-key is-kbg">${keyInner(physicalKey(getSettings().keyBinds, 'a'))}</span><span class="hud-key is-kbg">${keyInner(physicalKey(getSettings().keyBinds, 's'))}</span><span class="hud-key is-kbg">${keyInner(physicalKey(getSettings().keyBinds, 'd'))}</span></span>`;
   } else if (token === 'ARROWS') {
     inner = `<span class="hud-wasd" data-gk="${gk}"><span class="hud-key is-kbg">${keyInner('arrowup')}</span><span class="hud-key is-kbg">${keyInner('arrowleft')}</span><span class="hud-key is-kbg">${keyInner('arrowdown')}</span><span class="hud-key is-kbg">${keyInner('arrowright')}</span></span>`;
-  } else if (token === 'LMB' || token === 'RMB' || token === 'MOUSE' || token === 'WHEEL') {
-    inner = `<span class="hud-mouse-g" data-gk="${gk}">` + MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w' }[token]) + '</span>';
+  } else if (MOUSE_TOKENS.includes(token)) {
+    // the Kenney mouse icons (same set and look as the keys); the drawn mouse stays as the fallback when the font has no glyph
+    const mg = mouseGlyph(token);
+    inner = `<span class="hud-mouse-g" data-gk="${gk}">` + (mg ? `<span class="pad-g pad-kn pad-key pad-mouse" data-set="keys" role="img" aria-label="${mg.word}">${mg.char}</span>` : MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w', MMB: 'w', DRAG: 'move' }[token])) + '</span>';
   } else {
     const canon = tokenKey(token);
     const phys = physicalKey(getSettings().keyBinds, canon);
@@ -64,7 +66,7 @@ export function keyLabelGlyph(label) {
   return k ? keyGlyphInner(k) : null;
 }
 // Labels of a hint row that name a token (a mouse button, the wheel, the arrow cluster): shown as that icon, never as a word.
-const LABEL_TOKENS = { klik: 'LMB', linkermuisknop: 'LMB', rechtsklik: 'RMB', rechtermuisknop: 'RMB', scroll: 'WHEEL', scrollwiel: 'WHEEL', muiswiel: 'WHEEL', muis: 'MOUSE', pijltjes: 'ARROWS', pijltoetsen: 'ARROWS', wasd: 'WASD' };
+const LABEL_TOKENS = { klik: 'LMB', linkerklik: 'LMB', linkermuisknop: 'LMB', rechtsklik: 'RMB', rechtermuisknop: 'RMB', middelklik: 'MMB', slepen: 'DRAG', scroll: 'WHEEL', scrollwiel: 'WHEEL', muiswiel: 'WHEEL', muis: 'MOUSE', pijltjes: 'ARROWS', pijltoetsen: 'ARROWS', wasd: 'WASD' };
 // One hint-row key label as markup, one path for every footer, table and card: a glyph or mouse icon, or a neat text keycap
 // (`.hud-key` + data-gk) for a key without a glyph ('[', ']'). The glyph carries its own aria-label.
 export const labelToken = (label) => LABEL_TOKENS[String(label).trim().toLowerCase()] || null;
@@ -96,10 +98,10 @@ export function keyTextHtml(html) {
 export const hasKeyText = (text) => { TEXT_KEY_RE.lastIndex = 0; return TEXT_KEY_RE.test(String(text)); };
 
 // Brace tokens of known keys only ({E}, {SPACE}, {ESC}, {WASD}, ...): a placeholder like {NAME} is never a key.
-export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|ALT|TAB|BACKSPACE|DELETE|WASD|ARROWS|ARROWUP|ARROWDOWN|ARROWLEFT|ARROWRIGHT|LMB|RMB|MOUSE|WHEEL|F(?:[1-9]|1[0-2])|[A-Z0-9])\}/g;
+export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|ALT|TAB|BACKSPACE|DELETE|WASD|ARROWS|ARROWUP|ARROWDOWN|ARROWLEFT|ARROWRIGHT|LMB|RMB|MMB|MOUSE|WHEEL|DRAG|F(?:[1-9]|1[0-2])|[A-Z0-9])\}/g;
 
 // The same text for a place that cannot show a glyph (aria-label, title, document.title, a canvas, a log): the key name, never braces.
-const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', ARROWUP: 'pijl omhoog', ARROWDOWN: 'pijl omlaag', ARROWLEFT: 'pijl links', ARROWRIGHT: 'pijl rechts', ALT: 'Alt', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };
+const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', MMB: 'middelste muisknop', DRAG: 'muis slepen', ARROWUP: 'pijl omhoog', ARROWDOWN: 'pijl omlaag', ARROWLEFT: 'pijl links', ARROWRIGHT: 'pijl rechts', ALT: 'Alt', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };
 export function plainKeyText(text) {
   return String(text).replace(BRACE_KEY_RE, (m, k) => PLAIN_NAMES[k] || keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 }
