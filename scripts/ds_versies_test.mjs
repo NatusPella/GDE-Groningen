@@ -71,7 +71,6 @@ console.log(`ds_versies_test: 0 verwijzingen naar designsysteem v1/v2/v3 buiten 
 // in de bestanden hieronder voorkomen; een nieuw bestand ermee faalt. Elke omzetting naar de .ds-z-set haalt een
 // bestand uit deze lijst (en uit ds-components.css zodra er geen gebruiker meer is). Zie docs/DESIGN-STAND-21-11.md.
 export const OUDE_SET_TOEGESTAAN = {
-  'game/js/samenhubui.js': 'pauzemenu Spel > Samen: de hub (#1001), omzetten samen met pausemenu.css',
   'game/js/simhud.js': 'HUD-strook van de light sims, leunt op de rolvariabelen',
   'game/js/sim.css': 'idem',
   'game/js/bakeround.js': 'idem (bakronde)',
@@ -90,5 +89,7 @@ export const OUDE_SET_TOEGESTAAN = {
   const gevonden = bestanden().filter((f) => /^game\/.*\.(js|css|html)$/.test(f) && fs.existsSync(path.join(ROOT, f)) && OUD.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
   const nieuw = gevonden.filter((f) => !OUDE_SET_TOEGESTAAN[f]);
   if (nieuw.length) { console.error('ds_versies_test: de oude componentenset staat in ' + nieuw.join(', ') + ' (gebruik de .ds-z-set)'); process.exit(1); }
+  const klaar = Object.keys(OUDE_SET_TOEGESTAAN).filter((f) => !gevonden.includes(f));
+  if (klaar.length) { console.error('ds_versies_test: omgezet, haal uit OUDE_SET_TOEGESTAAN: ' + klaar.join(', ')); process.exit(1); }
   console.log(`ds_versies_test: de oude componentenset staat nog in ${gevonden.length} bestanden (allowlist ${Object.keys(OUDE_SET_TOEGESTAAN).length}, krimpt per omzetting)`);
 }

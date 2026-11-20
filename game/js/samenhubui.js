@@ -44,17 +44,17 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
   const tree = (root.classList && root.classList.contains('pm-samen-inner')) ? root : (root.querySelector && root.querySelector('.pm-samen-inner')) || root;
   let nu = isStap(stap) ? stap : STAP.WAAR;
 
-  const kanChip = '<span class="ds-chip ds-chip--primair pm-hub-staat">' + icoon('afspelen', { cls: 'ds-chip__icoon', maat: 's' }) + 'Kan nu</span>';
-  const nietChip = '<span class="ds-chip pm-hub-staat">' + icoon('slot', { cls: 'ds-chip__icoon', maat: 's' }) + 'Kan nu niet</span>';
+  const kanChip = '<span class="ds-z-chip ds-z-chip--primair pm-hub-staat">' + icoon('afspelen', { cls: 'ds-z-chip__icoon', maat: 's' }) + 'Kan nu</span>';
+  const nietChip = '<span class="ds-z-chip ds-z-chip--uit pm-hub-staat">' + icoon('slot', { cls: 'ds-z-chip__icoon', maat: 's' }) + 'Kan nu niet</span>';
   const keuzes = (v) => `<div class="pm-hub-keuzes" role="group" aria-label="Waar speel je">${v.keuzes.map((k) => `
-    <button type="button" class="ds-papier ds-kaart ${k.kan ? 'ds-kaart--klik' : 'ds-kaart--uit pm-hub-uit'} pm-hub-keuze" data-hub-keuze="${k.act}" data-act="${ACT_NAAM[k.act] || k.act}" data-keuze="${k.act}"${k.kan ? '' : ' aria-disabled="true"'}>
+    <button type="button" class="ds-zeef ds-z-kaart ds-z-kaart--recht ${k.kan ? 'ds-z-kaart--klik' : 'ds-z-kaart--uit pm-hub-uit'} pm-hub-keuze" data-hub-keuze="${k.act}" data-act="${ACT_NAAM[k.act] || k.act}" data-keuze="${k.act}"${k.kan ? '' : ' aria-disabled="true"'}>
       <span class="pm-hub-ico" aria-hidden="true">${KEUZE_TEKEN[k.act] || '·'}</span>
       <span class="pm-hub-kt">${esc(k.label)}</span>
       ${k.kan ? kanChip : nietChip}
       <small>${esc(k.uitleg)}</small></button>`).join('')}</div>`;
   const rijen = (v) => `<ul class="pm-hub-rijen">${(v.rijen || []).map((r) => `<li data-hub-rij="${r.soort}"><span>${esc(r.tekst)}</span></li>`).join('')}</ul>`;
-  const knoppen = (v) => (v.knoppen || []).map((k) => `<button type="button" class="ds-knop${k.primary ? ' pm-hub-primary' : ' ds-knop--secundair'} pm-hub-knop" data-hub-act="${k.act}"${k.disabled ? ' disabled aria-disabled="true"' : ''}>${esc(k.label)}</button>`).join('')
-    + (nu === STAP.WAAR ? '' : '<button type="button" class="ds-knop ds-knop--secundair pm-hub-knop" data-hub-act="terug-stap">Vorige stap</button>');
+  const knoppen = (v) => (v.knoppen || []).map((k) => `<button type="button" class="ds-z-knop${k.primary ? ' pm-hub-primary' : ' ds-z-knop--secundair'} pm-hub-knop" data-hub-act="${k.act}"${k.disabled ? ' disabled aria-disabled="true"' : ''}>${esc(k.label)}</button>`).join('')
+    + (nu === STAP.WAAR ? '' : '<button type="button" class="ds-z-knop ds-z-knop--secundair pm-hub-knop" data-hub-act="terug-stap">Vorige stap</button>');
 
   const teken = () => {
     const v = hubView(nu, opts);
@@ -79,7 +79,7 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
     if (inhoud) {
       inhoud.innerHTML = `${nu === STAP.WAAR ? keuzes(v) : nu === STAP.METWIE ? rijen(v) : ''}
       <p class="pm-hub-uitleg">${esc(v.uitleg || '')}</p>
-      <div class="pm-hub-knoppen ds-glas">${knoppen(v)}</div>`;
+      <div class="pm-hub-knoppen">${knoppen(v)}</div>`;
     }
   };
 
@@ -89,9 +89,9 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
   const bouw = () => {
     tree.classList.add('pm-hub');
     tree.innerHTML = `
-      <div class="ds-papier ds-kaart ds-kaart--kop pm-hub-hero">
-        <div class="ds-kaart__kop"><span class="ds-kaart__titel pm-hub-hero-t">Waar speel je</span><span class="ds-kaart__label pm-hub-hero-oog">Samen spelen</span></div>
-        <p class="ds-kaart__tekst pm-hub-hero-hint"></p>
+      <div class="ds-zeef ds-z-kaart ds-z-kaart--recht pm-hub-hero">
+        <div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel pm-hub-hero-t">Waar speel je</span><span class="pm-hub-hero-oog">Samen spelen</span></div>
+        <p class="ds-z-kaart__tekst pm-hub-hero-hint"></p>
       </div>
       <div class="pm-hub-stappen" role="group" aria-label="Stappen van Samen spelen">
         ${STAPPEN.map((s, i) => `<button type="button" class="m-tab pm-hub-stap" data-hub-stap="${s.id}"${s.id === nu ? ' aria-current="step"' : ' aria-current="false"'}><span class="pm-hub-nr">${i + 1}</span>${esc(s.label)}</button>`).join('')}
