@@ -44,6 +44,13 @@ const a = M.aankomst(r, { x: 5, y: 6, name: 'Winsum' }, 50);
 ok(a && a.skipped && a.aankomstS === M.SKIPPED_S && a.klokMinuten === 25 && a.prijs === 8, 'arrival: same clock and price when skipped', JSON.stringify(a));
 ok(/Winsum/.test(a.bericht) && /€ 8/.test(a.bericht), 'arrival message');
 ok(M.aankomst(r, { x: 0, y: 0 }, 3) === null, 'no ride without money');
+// review 20-11 #1: na een echte rit (beroving onderweg) landt de speler toch, en betaalt wat hij nog heeft
+{
+  const b = M.aankomstNaRit(r, { x: 5, y: 6, name: 'Winsum' }, 3);
+  ok(b && b.x === 5 && b.y === 6 && b.prijs === 3 && b.klokMinuten === 25, 'robbed during the ride: still lands, pays what is left', JSON.stringify(b));
+  ok(M.aankomstNaRit(r, { x: 5, y: 6 }, -4).prijs === 0 && M.aankomstNaRit(r, { x: 5, y: 6 }, 0).prijs === 0, 'never a negative price');
+  ok(M.aankomstNaRit(r, { x: 5, y: 6, name: 'Winsum' }, 50).prijs === 8, 'enough money: the normal arrival');
+}
 const r2 = M.startRit(plan);
 while (!r2.done) M.stepRit(r2, 1, {});
 ok(!r2.skipped && M.aankomst(r2, { x: 0, y: 0 }, 99).aankomstS === M.PLAYED_ARRIVAL_S, 'plays out without skip');

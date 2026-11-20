@@ -4,7 +4,7 @@ import { hoofdspeler } from './players.js';
 // zitten in meerijden.js. Na de scène staat de speler op de bestemming (de interne
 // verplaatsing, zoals een respawn) en toont main.js het laadscherm voor de sprong.
 import { zachtePauze, klokSprongMag, meerSpelers } from './coopgroep.js';
-import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY, landingsplek, LANDING_DRIFT_M, BOAT_DRIFT_M } from './meerijden.js';
+import { ritPlan, startRit, stepRit, aankomst, aankomstNaRit, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY, landingsplek, LANDING_DRIFT_M, BOAT_DRIFT_M } from './meerijden.js';
 import { padButtonIndex, playerPad } from './glyphs.js';
 import { treinReis } from './trainride.js';
 import { start3dRit } from './reisrit3d.js';
@@ -305,8 +305,8 @@ export function startMeerijden(world, optie, dest) {
         active = null;
         if (res.terugval) return oudeScene(world, optie, dest, plan);
         rit.skipped = !!res.skipped; rit.done = true;
-        const a = aankomst(rit, dest, world.money);
-        if (!a) return { aangekomen: false };
+        // de speler reed mee en staat op de route: hij landt altijd op de bestemming en betaalt wat hij nog heeft (review 20-11 #1)
+        const a = aankomstNaRit(rit, dest, world.money);
         landNaRit(world, rit, a, res.landing || null);
         return { aangekomen: true, skipped: rit.skipped };
       });

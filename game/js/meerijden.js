@@ -92,6 +92,17 @@ export function aankomst(rit, dest, geld) {
   };
 }
 
+// Na een echte rit (reisrit3d.js) loopt de wereld door: een beroving tijdens de rit kan het geld onder de prijs brengen. De
+// speler rijdt dan al mee op de route en moet toch op de bestemming landen, dus hij betaalt wat hij nog heeft (nooit negatief).
+// Eerst bij de start afgerekend op te weinig geld: dat blijft aankomst() zelf (null).
+export function aankomstNaRit(rit, dest, geld) {
+  const a = aankomst(rit, dest, geld);
+  if (a) return a;
+  const rest = Math.max(0, Math.floor(Number.isFinite(geld) ? geld : 0));
+  const vol = aankomst(rit, dest, Infinity);
+  return { ...vol, prijs: rest, bericht: `Aangekomen${dest.name ? ` in ${dest.name}` : ''}. Reistijd ${vol.klokMinuten} minuten, je betaalde € ${rest} van € ${vol.prijs}.` };
+}
+
 // De witte toetsknop-hint voor de HUD (alleen als skippen kan)
 export function skipHint(rit) {
   return canSkip(rit) ? { toets: 'Spatie', tekst: 'overslaan' } : null;

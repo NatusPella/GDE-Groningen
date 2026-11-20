@@ -233,7 +233,7 @@ export function start3dRit(world, optie, plan, dest) {
       shot: (u, t, w) => {
         staat.t = t;
         try {
-          // jij bent onkwetsbaar en staat stil (verborgen op je plek): de wereld verandert niet door de rit
+          // jij bent onkwetsbaar en rijdt verborgen mee (stap() zet je op de taxi): de wereld loopt door, ook voor wie je beroofd; reisrit.js landt je altijd op de bestemming
           if (typeof staat.gezond0 === 'number' && w.health < staat.gezond0) w.health = staat.gezond0;
           const pad = playerPad();
           const b = pad && pad.buttons[padButtonIndex('a')];
