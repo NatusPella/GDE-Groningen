@@ -96,7 +96,7 @@ function strook(M, row) {
   M.zij.quad([L[e][0], L[e][1], L[e][2]], [R[e][0], R[e][1], R[e][2]], [R[e][0], R[e][1], bf], [L[e][0], L[e][1], be]);
 }
 
-function trap(M, grp, r, nm) {
+function trap(M, grp, r, nm, masts) {
   const [ax, ay] = r.a, [bx, by] = r.b;
   const len = Math.hypot(bx - ax, by - ay);
   const ux = (bx - ax) / len, uy = (by - ay) / len, nx = -uy, ny = ux, hw = r.hw;
@@ -124,7 +124,8 @@ function trap(M, grp, r, nm) {
     }
   }
   // het bord boven de voet, met de naam van het perron
-  const mast = (o) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.2, 6), MAT.mast); m.position.set(bx + nx * o, 1.6, by + ny * o); grp.add(m); };
+  // #1039: de masten van alle borden zijn één InstancedMesh (buildPerrons3D), niet een mesh per mast
+  const mast = (o) => { masts.push([bx + nx * o, 1.6, by + ny * o]); };
   mast(-hw - 0.1); mast(hw + 0.1);
   const tex = bordTexture(`Naar ${nm.toLowerCase()}`);
   const bord = new THREE.Mesh(new THREE.PlaneGeometry(hw * 2 + 0.6, 0.7), tex ? new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }) : new THREE.MeshBasicMaterial({ color: BORD_BLAUW, side: THREE.DoubleSide }));
@@ -139,10 +140,11 @@ export function buildPerrons3D(map) {
   if (!rows.length) return null;
   const grp = new THREE.Group();
   grp.name = 'perrons';
+  const masts = [];
   const M = { top: new Mesh(), rand: new Mesh(), zij: new Mesh(), onder: new Mesh(), trede: new Mesh(), stoot: new Mesh(), leuning: new Mesh() };
   for (const row of rows) {
     strook(M, row);
-    for (const r of row.r || []) trap(M, grp, r, row.nm || 'Perron');
+    for (const r of row.r || []) trap(M, grp, r, row.nm || 'Perron', masts);
   }
   for (const [k, m] of Object.entries(M)) {
     if (!m.v.length) continue;
@@ -154,12 +156,19 @@ export function buildPerrons3D(map) {
     grp.add(mesh);
   }
   const P = buildPerrons(rows);
-  const paal = new THREE.CylinderGeometry(0.11, 0.11, 0.9, 8);
-  for (const p of P.posts) {
-    const m = new THREE.Mesh(paal, MAT.paal);
-    m.position.set(p.x, 0.45, p.y);
-    grp.add(m);
-    addStaticCollider('post', p.x, p.y, p.r);
-  }
+  // #1039: één draw voor alle paaltjes en één voor alle masten (was een mesh per stuk: ruim 50 drawcalls bij een station)
+  for (const p of P.posts) addStaticCollider('post', p.x, p.y, p.r);
+  const inst = (geo, mat, spots, name) => {
+    if (!spots.length) return;
+    const im = new THREE.InstancedMesh(geo, mat, spots.length);
+    const m4 = new THREE.Matrix4();
+    spots.forEach((p, i) => im.setMatrixAt(i, m4.makeTranslation(p[0], p[1], p[2])));
+    im.instanceMatrix.needsUpdate = true;
+    im.name = name;
+    im.computeBoundingSphere();
+    grp.add(im);
+  };
+  inst(new THREE.CylinderGeometry(0.11, 0.11, 0.9, 8), MAT.paal, P.posts.map((p) => [p.x, 0.45, p.y]), 'perron-paaltjes');
+  inst(new THREE.CylinderGeometry(0.08, 0.08, 3.2, 6), MAT.mast, masts, 'perron-masten');
   return grp;
 }
