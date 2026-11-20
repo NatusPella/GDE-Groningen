@@ -588,17 +588,34 @@ export function mountLobby(root, hooks, opts = {}) {
       catch (e) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
       if (!kamer) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
     }
-    handle = await joinKamer(kamer, {
-      signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
-      onstate: (s, info) => { if (s === 'fout') { set({ t: 'kies', rol: ROLES.GAST }); set({ t: 'fout', msg: info }); } },
-    });
+    // #983: sluiten twee gasten tegelijk aan met dezelfde kamercode, dan krijgen ze hetzelfde aanbod en wint er één; de ander
+    // wacht tevergeefs. Een tweede en derde poging (met het dan nieuwe aanbod van de host) neemt hem zelf mee, zodat hij
+    // niet opnieuw Verder hoeft te kiezen. Alleen bij de kamercode (een eenmalige kamer uit de lijst is na één keer verbruikt).
+    const gen0 = hervatGen; let poging = 0;
+    const MAX_POGINGEN = 3;
+    const probeer = async () => {
+      const h = await joinKamer(kamer, {
+        signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
+        onstate: (s, info) => {
+          if (s !== 'fout') return;
+          if (!viaLijst && poging < MAX_POGINGEN - 1 && gen0 === hervatGen && /geen verbinding tot stand/.test(String(info))) {
+            poging++; verbindingslog.add('herstel', 'nieuwe poging met dezelfde kamercode (' + (poging + 1) + ' van ' + MAX_POGINGEN + ')');
+            probeer().catch((e) => set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' }));
+            return;
+          }
+          set({ t: 'kies', rol: ROLES.GAST }); set({ t: 'fout', msg: info });
+        },
+      });
+      handle = h;
+      h.opened.then((tr) => { if (gen0 === hervatGen) bind(tr); }).catch((e) => set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' }));
+    };
+    await probeer();
     if (viaLijst) {
       // Een eenmalige kamer is geen code om te bewaren: opnieuw aansluiten gaat via de lijst.
     } else {
       if (hooks.onCode) hooks.onCode(formatRoom(kamer));
       set({ t: 'laatste-code', code: formatRoom(kamer) }); // wordt de gast eruit gezet, dan staat de code klaar om opnieuw aan te sluiten
     }
-    handle.opened.then(bind).catch((e) => set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' }));
   }
 
   // #983: een gast die via de lijst binnenkwam heeft geen kamercode om opnieuw in te voeren (de eenmalige kamer is verbruikt).

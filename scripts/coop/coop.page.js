@@ -106,7 +106,7 @@ function sampleNow(n) {
     ids: net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + (v.link && v.link.id)).join(',') : null,
     rtt: ses ? Math.round(ses.rtt * 1000) : (net && net.hub ? Math.round(Math.max(0, ...[...net.hub.sessions.values()].map((v) => v.rtt)) * 1000) : null),
     desync: x.coopDesync ? x.coopDesync.velden : null, desyncN: x.coopDesync ? x.coopDesync.n : 0, money: x.money, wanted: x.wanted | 0, role: x.coopRole || null,
-    me: b(x.player), companion: b(x.companion), cam: x.coopCam ? 1 : 0,
+    me: b(x.player), companion: b(x.companion), f1: b(x.coopFigures && x.coopFigures[1]), /* f1: de figuur van de gast op de host (sinds #516 geen companion meer) */ cam: x.coopCam ? 1 : 0,
     partners: (x.coopPartners || []).map((p) => [p.slot, p.naam, p.status, Math.round(p.x), Math.round(p.y)]),
     roster: x.coopRoster ? x.coopRoster.map((s) => [s.slot, s.char, s.verbinding]) : null, figuren: Object.keys(x.coopFigures || {}).length,
     sc: x.coopScene ? [x.coopScene.filmpje ? 1 : 0, x.coopScene.pauze ? 1 : 0, x.coopScene.regel ? x.coopScene.regel.tekst.slice(0, 40) : '', x.coopScene.keuze ? x.coopScene.keuze.opties.length : 0] : null, sceneEl: !!document.getElementById('coop-scene'),
@@ -895,6 +895,8 @@ const PHASES = {
     try { // de bevolkingsroutines los aanroepen: ze horen verkeer rond de groep te zetten
       const V = await imp('vehicle'), fa = { x: a.x, y: a.y }, nabij = () => w.vehicles.filter((v) => Math.hypot(v.x - fa.x, v.y - fa.y) <= 170).length;
       const v0 = nabij(); V.manageTrafficPopulation(w, { target: 12, spawnMin: 12, focus: fa });
+      const kand = map.roadsNear(fa.x, fa.y, 170).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly); const cats = {}; for (const r of map.roadsNear(fa.x, fa.y, 170)) cats[r.cat + ':' + (r.width >= 3 ? 'w' : 'n')] = (cats[r.cat + ':' + (r.width >= 3 ? 'w' : 'n')] || 0) + 1;
+      log('uitelkaar-dbg-kand', { kand: kand.length, cats, tijd: w.time, hoofd: [Math.round(p.x), Math.round(p.y)], fa: [Math.round(fa.x), Math.round(fa.y)], pedView: !!w.pedView });
       log('uitelkaar-dbg-verkeer', { voor: v0, na: nabij(), wegen: map.roadsNear(fa.x, fa.y, 170).length, foci: w.coopFoci ? w.coopFoci.length : 1 });
     } catch (e) { log('uitelkaar-dbg-verkeer', { fout: String(e && e.stack || e) }); }
     const t0 = performance.now(); let minA = 0, minB = 0, teruggezet = false;
