@@ -187,7 +187,7 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-groen-tx); min-height: 1em; }
 #hud .mg-board .mg-flash.bad { color: var(--ds-c-rood-tx); }
-body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .hud-nowplaying, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
+body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-mission, body.mg-on #hud .hud-place, body.mg-on #hud .hud-nowplaying, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
 /* het stopvenster op zeefdrukpapier (#596, #1000): Barlow + Atkinson, toetsplaatjes en 44 px-knoppen; Doorgaan is de gele hoofdknop */
 .mg-stopask { position: fixed; left: 50%; top: 38%; transform: translateX(-50%) rotate(var(--ds-schuin)); z-index: 60; pointer-events: auto; padding: var(--ds-s-4) var(--ds-s-5); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); color: var(--ds-zeef-tx); text-align: center; }
 .mg-stopask b { display: block; font: 800 calc(26px * var(--ui, 1))/1.1 var(--ds-font-kop-v3); letter-spacing: 0.04em; text-shadow: var(--ds-misdruk); }

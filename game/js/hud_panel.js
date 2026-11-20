@@ -198,7 +198,12 @@ export function initHud(world) {
   gps.hidden = true;
   gps.innerHTML = '<svg class="gps-arrow" viewBox="0 0 24 24" aria-hidden="true"></svg><div class="gps-txt"><b></b><span></span></div>' +
     '<i class="gps-sep"></i><div class="gps-dist"><b></b><span></span></div><i class="gps-sep gps-tsep"></i><div class="gps-timer"><span>Tijd</span><b></b></div>';
-  root.appendChild(gps);
+  // zone B is one column: the objective (top), the route card under it; the place name hangs under the column (--hud-b-bottom).
+  // The objective used to sit bottom centre; the owner moved it up (#985, 20-11) so the bottom row stays for the minimap, street and speed.
+  const zoneB = document.createElement('div');
+  zoneB.className = 'hud-zone-b';
+  zoneB.appendChild(gps);
+  root.appendChild(zoneB);
 
   const place = document.createElement('div');
   place.className = 'hud-place';
@@ -212,7 +217,7 @@ export function initHud(world) {
   mission.setAttribute('aria-live', 'polite');
   mission.innerHTML = icoon('doel', { cls: 'hud-obj-icon' }) +
     '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-obj-keys" aria-label="Besturing" hidden></div><div class="hud-obj-regel" hidden></div></div><span class="hud-obj-dist"></span>';
-  root.appendChild(mission);
+  zoneB.insertBefore(mission, gps);
 
   // zone E: the radio station (an achievement goes first, hudcards.js)
   const nowPlaying = document.createElement('div');
@@ -237,6 +242,7 @@ export function initHud(world) {
   const cards = initCards(world, root);
   // De plaatsnaam en de routekaart van zone B wijken voor de berichten van zone A (#463)
   watchZoneA(root, cards);
+  watchZoneB(root, zoneB);
 
   // zone F: the minimap, the street, you (health, stamina, the vehicle's damage)
   const mmWrap = document.createElement('div');
@@ -403,6 +409,14 @@ function fitEdge(root) {
 // alles zoals het was. Zonder kaart is de kolom 0 px hoog en gaan de variabelen
 // weg. De plaatsnaam beslaat de volle breedte en schuift dus altijd op; de
 // routekaart staat in het midden en wijkt alleen als de kolom hem werkelijk raakt.
+// #985: de onderkant van zone B (doel + routekaart) in HUD px, voor de plaatsnaam (hud_panel.css) en de plaatskaart (bigmoment.js).
+function watchZoneB(root, zoneB) {
+  if (typeof ResizeObserver === 'undefined') return;
+  const place = () => root.style.setProperty('--hud-b-bottom', `${Math.ceil(zoneB.offsetTop + zoneB.offsetHeight)}px`);
+  const ro = new ResizeObserver(place);
+  ro.observe(zoneB);
+  place();
+}
 const NARROW = 1024;
 const TOP_GAP = 12;
 function watchZoneA(root, cards) {
@@ -411,7 +425,7 @@ function watchZoneA(root, cards) {
   // en de telefoonfeed met binnenkomende berichten (phonefeed.js, staat er al
   // voor initHud). De hoogste bepaalt waar zone B begint.
   const feed = root.querySelector('.phonefeed');
-  const gps = root.querySelector('.hud-gps');
+  const gps = root.querySelector('.hud-zone-b');
   const place = () => {
     if (window.innerWidth > NARROW) {
       root.style.removeProperty('--hud-a-bottom');
@@ -1554,6 +1568,7 @@ function updateMission(dt, world) {
   // a new objective first says how (the bijbaan's hint), then its counter
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
   // the route and the story speak for themselves after a moment: the card shrinks to the goal and the distance
+  els.mission.classList.toggle('obj-fresh', world.time - els.objAt < OBJ_HINT_TIME); // #985: de hulpregel alleen bij een nieuw doel
   els.mission.classList.toggle('obj-quiet', (o.kind === 'story' || o.kind === 'goal' || o.kind === 'police') && world.time - els.objAt >= QUIET_AFTER);
   if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
   if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;

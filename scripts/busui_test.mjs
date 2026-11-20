@@ -67,9 +67,9 @@ const lijn = prepareLine({
 {
   const bron = fs.readFileSync(new URL('../game/js/busboard3d.js', import.meta.url), 'utf8');
   const kaart = /#hud \.hud-busnext\{[^}]*bottom:calc\(var\(--hud-edge,46px\) \+ (\d+)px\)/.exec(bron);
-  const doel = /body\.bus-driving #hud \.hud-mission\{[^}]*bottom:calc\(var\(--hud-edge,46px\) \+ (\d+)px\)/.exec(bron);
-  assert.ok(kaart && doel, 'de plaats van het kaartje en het doel staan in busboard3d.js');
-  assert.ok(+doel[1] >= +kaart[1] + 100, `het doel (${doel[1]} px) staat boven het buskaartje (${kaart[1]} px + ~96 px hoog)`);
+  assert.ok(kaart, 'de plaats van het kaartje staat in busboard3d.js');
+  // #985: het doel hangt bovenin (zone B); het buskaartje onderin heeft de onderrand voor zich alleen
+  assert.ok(!/body\.bus-driving #hud \.hud-mission/.test(bron), 'het doel schuift niet meer boven het buskaartje (het hangt bovenin)');
   assert.ok(/stopCard\(/.test(bron), 'het HUD-kaartje komt uit stopCard (kopje + halte)');
   assert.ok(/kicker: kaart\.kicker/.test(bron), 'het kopje gaat mee met de melding');
 }

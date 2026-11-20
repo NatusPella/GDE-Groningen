@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { randTop } from '../game/js/bigmoment.js';
+import { randTop, plaatsTop } from '../game/js/bigmoment.js';
 import { labelDy, CLEAR_GAP } from '../game/js/promptclear.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -46,6 +46,18 @@ ok(bordMax(1280, 1, 46, 400) === 456 && 640 + 456 / 2 <= 1280 - 400, 'mg-board 7
 const css = src('game/js/bigmoment.css');
 ok(/\.bm-gebied \{[^}]*top: 24vh/.test(css) && !/\.bm-gebied \{[^}]*bottom/.test(css), 'bm-gebied: boven in de vrije zone (top), niet op bottom 14vh');
 ok(/min-width: min\(640px, max\(340px, calc\(100vw - 820px\)\)\)/.test(css), 'bm-kaart: breedte laat de linkerkolom (kaarten) en de rechterkolom vrij');
+
+// klasse 6: de plaatskaart hangt onder de kolom van zone B (doel en routekaart bovenin)
+ok(plaatsTop(173, 120) === 173, 'plaatsTop: genoeg ruimte onder de kolom, het eigen begin blijft');
+ok(plaatsTop(108, 150) === 162, 'plaatsTop: de compacte kaart (15vh) schuift onder een hoge kolom', plaatsTop(108, 150));
+ok(plaatsTop(NaN, NaN) === 0, 'plaatsTop: zonder meting 0');
+ok(/plaatsTop\(/.test(src('game/js/bigmoment.js')) && /hud-zone-b/.test(src('game/js/bigmoment.js')), 'showBigMoment meet zone B voor de plaatskaart');
+// klasse 7: het doel en de routekaart staan in één kolom (hud_panel.js zet ze in .hud-zone-b), dus ze overlappen niet
+const hudjs = src('game/js/hud_panel.js');
+ok(/zoneB\.appendChild\(gps\)/.test(hudjs) && /zoneB\.insertBefore\(mission, gps\)/.test(hudjs), 'doel en routekaart zitten in dezelfde kolom (doel eerst)');
+ok(/watchZoneB\(root, zoneB\)/.test(hudjs) && /--hud-b-bottom/.test(hudjs), 'hud_panel.js meet de onderkant van zone B');
+ok(/body\.mg-on #hud \.hud-mission/.test(src('game/js/minigamekit.js')), 'het minigamebord (bovenin) verbergt het doel');
+ok(/body\.cine-hide-hud #hud > :not\(\.hud-damage\)/.test(src('game/js/hud_panel.css')), 'een filmlaag verbergt de kolom (kinderen van #hud)');
 
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -194,6 +194,12 @@ export function randTop(trBottom, viewH = Infinity, hoogte = 0, gap = 12) {
   return Math.max(0, Math.min(top, Number.isFinite(viewH) ? Math.max(0, viewH - hoogte - gap) : top));
 }
 
+// The place card ('gebied') hangs in the free centre, but never over zone B (the objective and the route card, measured):
+// base is its own top (px), zoneBottom the bottom of that column.
+export function plaatsTop(base, zoneBottom, gap = 12) {
+  return Math.round(Math.max(Number.isFinite(base) ? base : 0, Number.isFinite(zoneBottom) ? zoneBottom + gap : 0));
+}
+
 // ---------------------------------------------------------------------------------------- DOM
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -244,6 +250,10 @@ function toonNu(m, klaarCb) {
   if (m.vorm === 'rand') { // under the HUD's right column, measured now: the zoom and the weapon chip decide how tall it is
     const tr = document.querySelector('#hud .hud-top-right');
     if (tr) el.style.top = randTop(tr.getBoundingClientRect().bottom, window.innerHeight, el.offsetHeight) + 'px';
+  }
+  if (m.vorm === 'plaats') { // under the objective column of zone B (the owner moved the objective to the top centre, 20-11)
+    const zb = document.querySelector('#hud .hud-zone-b');
+    if (zb) el.style.top = plaatsTop(parseFloat(getComputedStyle(el).top), zb.getBoundingClientRect().bottom) + 'px';
   }
   requestAnimationFrame(() => el.classList.add('aan'));
   if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;

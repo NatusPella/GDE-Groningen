@@ -100,7 +100,7 @@ The eight zones A to H and the rule "one thing per zone" are in ARCHITECTURE.md 
 | Achievement | zone E, waits for result card, choice panel and duel bar | `achievements.js` |
 | Phone call or message | zone A, `+N` counter for the rest, none during a call | `phonefeed.js` |
 | Menu message | at the bottom of the open pause menu or map, 3 at most, 3.5 s, `role="status"`; the same text is not repeated as a card | `menumelding.js` |
-| Subtitle | zone G, bottom centre; the objective dims beneath it. A Frisian or Gronings line shows as written with the Dutch under it in italic at 0.8 em (`.nl-sub`) | `subtitles.js`, `cinematics.js` |
+| Subtitle | zone G, bottom centre (the objective hangs in zone B at the top since 20-11, so nothing dims beneath it). A Frisian or Gronings line shows as written with the Dutch under it in italic at 0.8 em (`.nl-sub`) | `subtitles.js`, `cinematics.js` |
 | Sound caption | `[sirene]`, `[knal, in de verte]`: off by default, 3 at most, 2.2 s apart | `soundcaptions.js` |
 | Result card | one banner (`showBanner`), holds the small cards while it is up | `cinematics.js` |
 
