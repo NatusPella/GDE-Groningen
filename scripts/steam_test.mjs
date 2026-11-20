@@ -163,7 +163,7 @@ ok(ach.prestaties.every((a) => !BRANDS.test(a.titel + ' ' + a.omschrijving)), 'n
 // --- Deck ------------------------------------------------------------------
 ok(isSteamDeck({ isSteamDeck: true }) && isSteamDeck(null, { SteamDeck: '1' }) && !isSteamDeck(null, {}) && !isSteamDeck({}), 'Deck detection');
 ok(JSON.stringify(deckDefaults(false)) === '{}' && deckDefaults(true).hintSource === 'pad' && deckDefaults(true).textSize === 'groot', 'the Deck defaults, none elsewhere');
-ok(Object.keys(DECK_DEFAULTS).every((k) => ['textSize', 'hintSource', 'padLayout', 'touchControls'].includes(k)), 'the Deck only changes four settings');
+ok(Object.keys(DECK_DEFAULTS).every((k) => ['textSize', 'hintSource', 'padLayout', 'touchControls', 'rustigDrukwerk'].includes(k)) && deckDefaults(true).rustigDrukwerk === true && deckDefaults(false).rustigDrukwerk === undefined, 'the Deck only changes five settings, Rustig drukwerk (#992) is on there');
 ok(isDeckShape(1280, 800) && !isDeckShape(1280, 720) && !isDeckShape(1920, 1200), '16:10 and small');
 ok(uiScaleFor(1280, 800) === 1 && hudEdge(1280, 800, 1) >= 24 && hudEdge(1280, 800, 1) * 1 >= 800 * 0.035, 'the HUD on 1280x800: scale 1, title-safe edge');
 // small text on the 7-inch screen: nothing under 12 px except the keycaps (hidden with controller hints) and the dev tool
