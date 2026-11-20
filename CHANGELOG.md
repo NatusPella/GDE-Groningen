@@ -99,6 +99,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Geen flits meer als het beeld even wegvalt:** valt de beeldkaart even uit (stuurprogramma-reset, geheugendruk), dan kleurt het scherm rustig donker in plaats van wit. Er verschijnt een korte melding, het beeld komt terug met een kijkafstand die in een paar seconden groeit, en de lucht- en schaduwkaart worden opnieuw gemaakt. Een kwaliteitswissel midden in het spel krijgt dezelfde zachte overgang.
 - **Technische beeldinfo (Ctrl+Shift+G):** laat zien hoe vaak het beeld wegviel, hoe lang geleden de wereld voor het laatst opnieuw is opgebouwd en waarom. Dezelfde regels staan bovenaan het Foutrapport (Instellingen).
 - **Desktop:** een weggevallen GPU- of renderproces komt in het Foutrapport en in een logbestand; een weggevallen renderproces laadt de pagina hoogstens twee keer per minuut opnieuw.
+- In de derde persoon zie je in de trekker weer wat: de camera hangt boven het cabinedak, kijkt een stukje vooruit en de bestuurder, de motorkap en de weg zijn in beeld. Hetzelfde geldt voor de maaidorser, vrachtwagen en ambulance; gewone auto's veranderen niet (#1029).
 
 ## [0.64.0] - 2026-11-20
 
