@@ -8,7 +8,12 @@
 //  - M09 faalt pas onder 38% eieren (was 50%), met twee waarschuwingen
 //    (75% en 60%/45%) vóór die grens in de eierregel.
 import fs from 'node:fs';
-import { buildAkte2Defs } from '../game/js/missions_akte2.js';
+// missions_akte2.js haalt three.js binnen (missiedecor.js): zonder gevendorde three (npm run stage) is dit een SKIP, geen fout.
+let buildAkte2Defs;
+try { ({ buildAkte2Defs } = await import('../game/js/missions_akte2.js')); } catch (e) {
+  if (e && e.code === 'ERR_MODULE_NOT_FOUND' && /three/.test(String(e.message))) { console.log('SKIP missietempo_test: three is niet gevendord (draai eerst: cd desktop && npm run stage)'); process.exit(0); }
+  throw e;
+}
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
