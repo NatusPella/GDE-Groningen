@@ -1304,7 +1304,10 @@ function drawStaticOverlay(ctx) {
   // #900: de stand van alle gebieden waar je al iets deed, op elk zoomniveau. Niet alleen
   // de laag die de kaart nu tekent: een veroverd gebied of een half gedane wijk blijft zo
   // ook zichtbaar als je ver uit- of dicht inzoomt.
-  const strookRegels = layerOn('veroverd') ? statusRegels(kaartLaag().lijst).map((r) => ({ tekst: r.tekst, kleur: r.kleur })) : [];
+  // 20-11: één compacte regel (aantal veroverd en bezig) in plaats van drie regels; de details staan bij het aanwijzen van een gebied
+  const alleRegels = layerOn('veroverd') ? statusRegels(kaartLaag().lijst, 99) : [];
+  const nVer = alleRegels.filter((r) => r.tekst.endsWith('veroverd')).length, nBezig = alleRegels.length - nVer;
+  const strookRegels = alleRegels.length ? [{ tekst: [nVer ? `${nVer} veroverd` : '', nBezig ? `${nBezig} bezig` : ''].filter(Boolean).join(' · '), kleur: nVer ? alleRegels[0].kleur : null }] : [];
   if (strookRegels.length) {
     ctx.font = '600 12px sans-serif';
     let w = 0;
@@ -2443,7 +2446,7 @@ function layerCount() {
 
 function syncLayersButton() {
   const n = state.overlay.querySelector('.mv-layers-n');
-  if (n) { const [on, all] = layerCount(); n.textContent = `${on} van ${all} aan`; }
+  if (n) { const [on, all] = layerCount(); n.textContent = `${on}/${all}`; n.parentElement.setAttribute('aria-label', `Lagen: ${on} van ${all} aan`); n.parentElement.title = `Lagen: ${on} van ${all} aan`; }
 }
 
 function toggleLegend(open) {
@@ -2753,7 +2756,11 @@ function setHeaderEyebrow() {
   const chip = strekenChip();
   const delen = [chip, seen >= 0.01 ? `${Math.round(seen * 100)}% van Grunn verkend` : ''].filter(Boolean);
   eb.hidden = !delen.length;
-  eb.textContent = delen.join(' · ');
+  // 20-11: één compacte chip met icoon en getal; de volle zin staat in de aria-label en de tooltip
+  const vol = delen.join(' · ');
+  const kort = seen >= 0.01 ? `${Math.round(seen * 100)}%` : (chip || '');
+  eb.innerHTML = `${icoon('kaart', { maat: 'm' })} <span>${kort}</span>`;
+  eb.title = vol; eb.setAttribute('aria-label', vol);
 }
 
 // Streken > Overal en nergens: the next click (or A under the crosshair)
@@ -2867,7 +2874,7 @@ export function initMapView(world) {
     '<label class="mapview-search m-inp">' + icoon('zoek') + '<input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
     '<div class="mv-hr">' +
-    '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button>' +
+    '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend" aria-label="Lagen" title="Lagen">' + icoon('lagen', { maat: 'm' }) + ' Lagen <span class="mv-layers-n"></span></button>' +
     '<button type="button" class="m-bg mv-close" data-act="close" style="display:none">Sluiten</button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen">' + icoon('plus') + '</button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen">' + icoon('min') + '</button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf">' + icoon('doel') + '</button></div>' +
