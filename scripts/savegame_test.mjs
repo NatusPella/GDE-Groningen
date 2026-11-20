@@ -405,5 +405,17 @@ ok(() => {
   assert.match(pm, /\['F5'\], 'Snel opslaan'/, 'het staat in het Toetsenoverzicht');
 }, '#985: F5 is snelopslaan (#985)');
 
+// #985 punt 11: een donker kaartje wordt opgetild (de functie zelf is puur; de module heeft DOM-imports, dus we lezen de bron)
+ok(() => {
+  const from = sg.indexOf('export function thumbLift(');
+  assert.ok(from >= 0, 'thumbLift bestaat');
+  const body = sg.slice(from, sg.indexOf('\n}', from) + 2);
+  const thumbLift = new Function(body.replace('export ', '') + '; return thumbLift;')();
+  assert.equal(thumbLift(120), 1, 'een normaal beeld blijft zoals het is');
+  assert.ok(thumbLift(30) > 2 && thumbLift(30) <= 2.2, 'een donker beeld gaat omhoog, begrensd');
+  assert.equal(thumbLift(0), 1, 'een zwart vlak blijft zwart (geen ruis oprekken)');
+  assert.ok(sg.includes('g.filter = `brightness('),'het kaartje wordt lichter getekend');
+}, '#985: donkere savekaartjes worden lichter');
+
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

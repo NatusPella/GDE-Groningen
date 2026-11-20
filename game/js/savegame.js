@@ -377,6 +377,12 @@ let thumbListener = null;
 export function onThumbKept(fn) { thumbListener = fn; }
 // Whether a picture may be taken now: a manual save always, the autosave once per 45 s.
 export function thumbDue(force, now = Date.now()) { return !!force || now - thumbAt >= THUMB_EVERY_MS; }
+// De lichtfactor voor een te donker kaartje: gemiddeld kanaal (0 tot 255) onder 70 wordt opgetild naar
+// ongeveer 90, nooit meer dan 2,2 keer (daarboven wordt ruis zichtbaar). Puur, dus te testen.
+export function thumbLift(meanChannel) {
+  if (!(meanChannel > 0) || meanChannel >= 70) return 1;
+  return Math.min(2.2, 90 / meanChannel);
+}
 function keepThumb(n, force) {
   const now = Date.now();
   if (!thumbDue(force, now)) return;
@@ -399,6 +405,14 @@ function keepThumb(n, force) {
     let sum = 0, sum2 = 0, cnt = 0;
     for (let i = 0; i < px.length; i += 160) { const v = px[i] + px[i + 1] + px[i + 2]; sum += v; sum2 += v * v; cnt++; }
     if (!cnt || sum2 / cnt - (sum / cnt) ** 2 < 40) return;
+    // #985 punt 11: een nachtbeeld of een donkere hoek gaf een zwart kaartje. Is het gemiddelde te laag,
+    // dan tekenen we het kaartje lichter, zodat je ziet waar je was.
+    const lift = thumbLift(sum / cnt / 3);
+    if (lift > 1 && 'filter' in g) {
+      g.filter = `brightness(${lift.toFixed(2)})`;
+      g.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, c.width, c.height);
+      g.filter = 'none';
+    }
     if (writeThumb(null, n, c.toDataURL('image/jpeg', 0.6)) && thumbListener) thumbListener(n);
   });
 }

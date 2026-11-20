@@ -735,7 +735,12 @@ function sense(dt, world) {
   else if (S.wantedOff === Infinity) S.wantedOff = now;
   // the pause menu or a moving controller stick: everything back for a moment
   const pause = isPauseMenuOpen();
-  if (pause !== S.wasPause) { S.wasPause = pause; S.lastInput = now; }
+  if (pause !== S.wasPause) {
+    S.wasPause = pause; S.lastInput = now;
+    // #985 punt 18: Slim toont geld alleen vlak na een transactie; na het sluiten van het menu
+    // (waar je Overzicht en je saldo bekeek) blijft het saldo even staan, ook zonder transactie
+    if (!pause) S.moneyAt = now;
+  }
   const input = world.input;
   if (input && input.padKeys && input.padKeys.size) S.lastInput = now;
   if (input && input.mouse && input.mouse.down && world.weapon && world.weapon !== 'fists' && !p.inVehicle) S.fightAt = now;
