@@ -173,6 +173,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De scorekaart per baan in de strook (die staat alleen in de wedstrijd op het bord), de strook ook in de wedstrijd, een kaartmarkering voor de volgende mand.
 
+## 10. Pitch & putt
+
+**Wat kan de speler.** Zes korte banen bij een stand (E): een wedge naar de green, dan putten; A en D richten (Shift voor fijn), Spatie vasthouden en loslaten voor de kracht, de helling van de green en het zand maken het lastiger. Met 2 tot 4 spelers om de beurt op één scherm, of een wedstrijd tegen elkaar.
+
+**De lus.** Richten, slaan, de bal rolt, uitkomst, volgende slag of baan.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst laadt (`gde-sim-uitleg-v1`) |
+| HUD | bord met een rij tekst, scorecellen en een krachtbalk met streepje | één speler: strook (`simhud.js`) met stappen, krachtmeter met het doel (`powerForCarry`, `straightPower`), de afstand tot de vlag groot, slag en par met pictogram, baan en stok in het chipje, één zin wat nu (de helling op de green); met meer spelers en tegen elkaar blijft het bord |
+| Wereld | richtlijn, ring, vlag, de bal | plus een gele lichtkolom boven de vlag van de baan (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een getal springt op per baan ("Birdie: 2 slagen") met het bestaande UI-geluid (geen geluid boven par) |
+
+**Samen spelen.** Een solo-ronde is van de speler zelf (lokaal, ook bij een gast). Met meer spelers op één scherm en in de wedstrijd tegen elkaar (`multiplayerwedstrijd.js`, host telt) houdt het bord de scoretabel en de beurt; de lichtkolom blijft en de strook verdwijnt. Test: `pitchhud_test`, `pitchputt_run_test`, `golfhud_test`.
+
+**Niet gedaan.** De strook met meer spelers, de scorekaart per baan in de strook.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
