@@ -1,6 +1,6 @@
-/* Designsysteem v2 en v3, componenten (#980, #992). Nog niet geladen door het spel (fase 2); de galerij
+/* Designsysteem, componenten (#980, #992). De galerij
    game/ds-galerij.html toont ze in alle toestanden. Regels: alleen var(--ds-...) uit
-   ds-tokens.css (geen hex, geen rgb), tekst nooit onder 13 px (12 px alleen in .ds-badge),
+   ds-tokens.css (geen hex, geen rgb), tekst nooit onder 13 px,
    geen verloop, geen glans, alleen zachte schaduw, beweging hooguit 250 ms en uit bij
    "Beweging beperken". De anatomie en toestanden staan in DESIGN_SYSTEM.md.
 
@@ -12,12 +12,12 @@
 :where(.ds-papier, .ds-glas) :is(h1, h2, h3, h4, p, ul, ol, dl, dd) { margin: 0; padding: 0; font-weight: normal; }
 
 /* Eén focusring voor elk invoerapparaat, ook met een controller (html.pad-active). */
-:is(.ds-kaart, .ds-knop, .ds-tab, .ds-rij, .ds-tip)[tabindex]:focus-visible,
-.ds-knop:focus-visible, .ds-tab:focus-visible, .ds-rij:focus-visible, .ds-kaart:focus-visible {
+:is(.ds-kaart, .ds-knop)[tabindex]:focus-visible,
+.ds-knop:focus-visible, .ds-kaart:focus-visible {
   outline: var(--ds-focus-dikte) solid var(--ds-focus);
   outline-offset: var(--ds-focus-afstand);
 }
-html.pad-active :is(.ds-kaart, .ds-knop, .ds-tab, .ds-rij):focus { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+html.pad-active :is(.ds-kaart, .ds-knop):focus { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
 
 /* ---- Typografische rollen ---- */
 .ds-t-display { font-family: var(--ds-font-kop); font-size: var(--ds-t-display); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
@@ -104,18 +104,6 @@ html.pad-active :is(.ds-kaart, .ds-knop, .ds-tab, .ds-rij):focus { outline: var(
 .ds-knop:disabled, .ds-knop[aria-disabled="true"] { background: var(--ds-bg-2); color: var(--ds-tx-zacht); border-style: dashed; border-color: var(--ds-tx-zacht); box-shadow: none; cursor: not-allowed; transform: none; }
 .ds-knop[aria-busy="true"] { cursor: progress; }
 
-/* ---- Tab: witte pil, de actieve is gevuld ---- */
-.ds-tabs { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
-.ds-tab {
-  display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-hoogte-tab); padding: 0 var(--ds-s-4);
-  border: var(--ds-lijn) solid var(--ds-rand); border-radius: var(--ds-r-pil); background: var(--ds-tab-bg); color: var(--ds-tab-tx);
-  font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; cursor: pointer;
-  transition: background-color var(--ds-m-snel) var(--ds-ease), color var(--ds-m-snel) var(--ds-ease);
-}
-.ds-tab:hover { background: var(--ds-bg-2); }
-.ds-tab[aria-selected="true"], .ds-tab--actief { background: var(--ds-tab-actief-bg); color: var(--ds-tab-actief-tx); }
-.ds-tab:disabled, .ds-tab[aria-disabled="true"] { color: var(--ds-tx-zacht); border-style: dashed; cursor: not-allowed; }
-
 /* ---- Streep: tijd of aantal, dun, met altijd een getal ernaast ---- */
 .ds-streep { --ds-streep-w: 0%; --ds-streep-kleur: var(--ds-selectie); display: flex; align-items: center; gap: var(--ds-s-3); }
 .ds-streep__baan { position: relative; flex: 1; height: var(--ds-s-1); border-radius: var(--ds-r-pil); background: var(--ds-bg-2); overflow: hidden; }
@@ -126,113 +114,25 @@ html.pad-active :is(.ds-kaart, .ds-knop, .ds-tab, .ds-rij):focus { outline: var(
 .ds-streep--dik .ds-streep__baan { height: var(--ds-s-2); }
 .ds-kaart > .ds-streep:last-child { margin-top: calc(-1 * var(--ds-s-1)); }
 
-/* ---- Cijfer met context: delta en n/m ---- */
-.ds-cijfer { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: var(--ds-s-2); }
-.ds-cijfer__waarde { font-family: var(--ds-font-kop); font-size: var(--ds-t-cijfer); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }
-.ds-cijfer__eenheid { font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); color: var(--ds-tx-zacht); }
-.ds-cijfer__delta { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
-.ds-cijfer__delta::before { content: ""; width: var(--ds-s-3); height: var(--ds-s-3); background: currentColor; }
-.ds-cijfer__delta--op { color: var(--ds-succes-tx); }
-.ds-cijfer__delta--op::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-.ds-cijfer__delta--neer { color: var(--ds-probleem-tx); }
-.ds-cijfer__delta--neer::before { clip-path: polygon(0 0, 100% 0, 50% 100%); }
-
-/* ---- Probleem-callout: het gevolg vóór de keuze, met de oplossing eronder ---- */
-.ds-callout {
-  display: flex; flex-direction: column; gap: var(--ds-s-4); padding: var(--ds-s-4) var(--ds-s-5);
-  background: var(--ds-probleem-vlak); color: var(--ds-probleem-tx);
-  border: var(--ds-lijn) solid var(--ds-probleem); border-left: var(--ds-status-rand) solid var(--ds-probleem); border-radius: var(--ds-r);
-}
-.ds-callout__kop { display: flex; align-items: center; gap: var(--ds-s-3); font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-.ds-callout__tekst { font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
-.ds-callout__cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-5); }
-.ds-callout__cijfers .ds-cijfer__delta { color: var(--ds-probleem-tx); }
-.ds-callout__oplossing { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-3); }
-.ds-callout__terug { font-size: var(--ds-t-hulp); }
-.ds-callout__risico { font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
-.ds-callout--waarschuwing { background: var(--ds-waarschuwing-vlak); color: var(--ds-waarschuwing-tx); border-color: var(--ds-waarschuwing); border-left-color: var(--ds-waarschuwing); }
-.ds-callout .ds-knop--secundair { color: var(--ds-probleem-tx); border-color: var(--ds-probleem); }
-.ds-callout .ds-knop--secundair:hover { background: var(--ds-bg); }
-
-/* ---- Uitleg (tooltip): donkere bel op papier, lichte bel op glas; de plaats bepaalt de code ---- */
-.ds-tip {
-  display: inline-block; max-width: 36ch; padding: var(--ds-s-2) var(--ds-s-3);
-  background: var(--ds-toets-bg); color: var(--ds-toets-tx); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw);
-  font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst);
-}
-
-/* ---- Toetsplaatje: de enige plek voor 12 px ---- */
-.ds-badge {
-  display: inline-flex; align-items: center; justify-content: center; min-width: var(--ds-s-5); height: var(--ds-s-5); padding: 0 var(--ds-s-1);
-  background: var(--ds-toets-bg); color: var(--ds-toets-tx); border-radius: var(--ds-r-toets);
-  font-family: var(--ds-font-kop); font-size: var(--ds-t-toets); letter-spacing: var(--ds-ls-label); line-height: 1; vertical-align: middle;
-}
-
-/* ---- Lege toestand: een haak en een handeling, nooit alleen "niets" ---- */
-.ds-leeg {
-  display: flex; flex-direction: column; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-6) var(--ds-s-5); text-align: center;
-  background: var(--ds-bg); color: var(--ds-tx); border: var(--ds-lijn-dik) dashed var(--ds-tx-zacht); border-radius: var(--ds-r);
-}
-.ds-leeg__beeld { display: flex; align-items: center; justify-content: center; width: var(--ds-s-8); height: var(--ds-s-8); border-radius: var(--ds-r-pil); background: var(--ds-bg-2); color: var(--ds-tx-zacht); }
-.ds-leeg__kop { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-.ds-leeg__tekst { max-width: 44ch; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
-
-/* ---- Hero-slot: per scherm één beeld (3D, kaartfragment, personage, ladder); tekst ernaast, nooit eroverheen ---- */
-.ds-hero { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--ds-s-5); align-items: stretch; }
-.ds-hero__beeld { position: relative; min-height: calc(var(--ds-s-8) * 4); border: var(--ds-lijn) solid var(--ds-rand); border-radius: var(--ds-r); background: var(--ds-kop-bg); color: var(--ds-kop-tx); overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.ds-hero__beeld > :is(canvas, img, svg) { display: block; width: 100%; height: 100%; object-fit: cover; }
-.ds-hero__tekst { display: flex; flex-direction: column; justify-content: center; gap: var(--ds-s-3); min-width: 0; }
-.ds-hero__oog { font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-tx-zacht); }
-.ds-hero__kop { font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-.ds-hero__lead { font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
-.ds-hero__feiten { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
-.ds-hero--omgekeerd .ds-hero__beeld { order: 2; }
-.ds-hero--smal { grid-template-columns: minmax(0, 1fr); }
-.ds-hero--smal .ds-hero__beeld { min-height: calc(var(--ds-s-8) * 2); }
-
-/* ---- Lijst-rij: pictogram, naam met regel eronder, waarde, handeling ---- */
-.ds-rij {
-  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; column-gap: var(--ds-s-4);
-  min-height: var(--ds-hoogte-rij); padding: var(--ds-s-2) var(--ds-s-4); background: var(--ds-bg); color: var(--ds-tx);
-  border-bottom: var(--ds-lijn) solid var(--ds-bg-2); border-left: var(--ds-status-rand) solid transparent;
-}
-.ds-rij__naam { font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); font-weight: var(--ds-gewicht-vet); }
-.ds-rij__sub { display: block; font-size: var(--ds-t-hulp); font-weight: normal; color: var(--ds-tx-zacht); }
-.ds-rij__waarde { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); }
-button.ds-rij, a.ds-rij, .ds-rij[tabindex] { cursor: pointer; text-align: left; font: inherit; }
-.ds-rij:hover { background: var(--ds-bg-2); }
-.ds-rij--selectie, .ds-rij[aria-current="true"] { background: var(--ds-selectie-vlak); border-left-color: var(--ds-selectie); }
-.ds-rij--probleem { border-left-color: var(--ds-probleem); }
-.ds-rij--uit, .ds-rij[aria-disabled="true"] { color: var(--ds-tx-zacht); cursor: not-allowed; }
-.ds-rij--uit:hover, .ds-rij[aria-disabled="true"]:hover { background: var(--ds-bg); }
-
-/* ---- HUD-hoeken: vaste rol per hoek, het midden blijft de wereld ---- */
-.ds-hud { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; padding: var(--ds-rand-hud); pointer-events: none; }
-.ds-hud__links { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: var(--ds-s-3); align-items: flex-start; }
-.ds-hud__boven { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: var(--ds-s-2); align-items: center; }
-.ds-hud__rechts { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; gap: var(--ds-s-3); align-items: flex-end; }
-.ds-hud__minimap { grid-column: 1; grid-row: 3; align-self: end; display: flex; flex-direction: column; gap: var(--ds-s-2); align-items: flex-start; }
-.ds-hud__toetsen { grid-column: 3; grid-row: 3; align-self: end; display: flex; gap: var(--ds-s-2); justify-content: flex-end; }
-
 /* ---- Beweging ---- */
 @keyframes ds-in { from { opacity: 0; transform: translateY(var(--ds-s-2)); } to { opacity: 1; transform: none; } }
 
 /* Beweging beperken: de systeeminstelling en de instelling van het spel (html.reduce-motion). */
 @media (prefers-reduced-motion: reduce) {
-  .ds-kaart, .ds-knop, .ds-tab, .ds-streep__vul { transition: none; }
+  .ds-kaart, .ds-knop, .ds-streep__vul { transition: none; }
   .ds-kaart--in { animation: none; }
   .ds-kaart--klik:hover { transform: none; }
   .ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-toets, .ds-z-waarde, .ds-z-balk__vul { transition: none; }
   .ds-z-stempel--in, .ds-z-waarde--wijzig { animation: none; }
 }
-html.reduce-motion :is(.ds-kaart, .ds-knop, .ds-tab, .ds-streep__vul) { transition: none; }
+html.reduce-motion :is(.ds-kaart, .ds-knop, .ds-streep__vul) { transition: none; }
 html.reduce-motion .ds-kaart--in { animation: none; }
 html.reduce-motion .ds-kaart--klik:hover { transform: none; }
 html.reduce-motion :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-toets, .ds-z-waarde, .ds-z-balk__vul) { transition: none; }
 html.reduce-motion :is(.ds-z-stempel--in, .ds-z-waarde--wijzig) { animation: none; }
 
-/* ===== Designsysteem v3: zomerse zeefdruk (ADR 0040, issue 992) =====
-   Additief naast v2: klassen heten .ds-z-* en lezen alleen de v3-tokens (inkten, harde schaduw,
+/* ===== Zomerse zeefdruk (ADR 0040, issue 992) =====
+   Naast de oudere componenten: klassen heten .ds-z-* en lezen alleen de zeefdruktokens (inkten, harde schaduw,
    misdruk, schuinte, raster) uit ds-tokens.css. Eén oppervlak: zet `ds-zeef` op een scherm of kaart.
    Rustig drukwerk (html.rustig-drukwerk, of `ds-rustig` op één paneel) komt volledig uit de tokens:
    misdruk, schuinte en raster zijn dan nul of weg, de stempelbeweging staat uit, en een lege of
@@ -243,7 +143,7 @@ html.reduce-motion :is(.ds-z-stempel--in, .ds-z-waarde--wijzig) { animation: non
 :where(.ds-zeef) { font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
 :where(.ds-zeef) :is(h1, h2, h3, h4, p, ul, ol, dl, dd) { margin: 0; padding: 0; font-weight: normal; }
 
-/* Eén focusring voor alle v3-componenten. */
+/* Eén focusring voor alle zeefdrukcomponenten. */
 .ds-z-knop:focus-visible, .ds-z-kaart:focus-visible, .ds-z-tab:focus-visible, .ds-z-rij:focus-visible, .ds-z-toets:focus-visible {
   outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx);
   outline-offset: var(--ds-focus-afstand);

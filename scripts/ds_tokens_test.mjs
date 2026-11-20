@@ -1,5 +1,5 @@
-// Gedragstest voor het designsysteem v2 (#980): game/js/ds-tokens.css, game/js/ds-components.css,
-// game/ds-galerij.html en het hoofdstuk "Design system v2" in DESIGN_SYSTEM.md.
+// Gedragstest voor het designsysteem (#980): game/js/ds-tokens.css, game/js/ds-components.css,
+// game/ds-galerij.html en het hoofdstuk "Tokens and components in use" in DESIGN_SYSTEM.md.
 //
 //   node scripts/ds_tokens_test.mjs            controleren
 //   node scripts/ds_tokens_test.mjs --write    de contrasttabel in DESIGN_SYSTEM.md opnieuw uit de tokens schrijven
@@ -225,19 +225,18 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   const radii = [...componentsCss.matchAll(/border-radius\s*:\s*([^;}]+)/g)].map((m) => m[1].trim());
   for (const r of radii) ok(/^(?:var\(--ds-r(?:-pil|-toets)?\)|calc\(var\(--ds-r\) - var\(--ds-lijn\)\)(?: calc\(var\(--ds-r\) - var\(--ds-lijn\)\))* 0 0)$/.test(r), `border-radius ${r} komt uit de radiustokens`);
   ok(!/gradient\(/.test(componentsCss), 'geen verloop in de componenten');
-  // v3: alleen de harde misdruk (text-shadow: var(--ds-misdruk), zonder blur) mag een tekstschaduw zijn
+  // zeefdruk: alleen de harde misdruk (text-shadow: var(--ds-misdruk), zonder blur) mag een tekstschaduw zijn
   ok([...componentsCss.matchAll(/text-shadow\s*:\s*([^;}]+)/g)].every((m) => /^(?:var\(--ds-misdruk\)|none)$/.test(m[1].trim())) && !/filter\s*:/.test(componentsCss), 'geen glans (tekstschaduw buiten --ds-misdruk, of filter) in de componenten');
   ok(/prefers-reduced-motion/.test(tokensCss) && /html\.reduce-motion/.test(tokensCss), 'de beweging-tokens worden nul bij "Beweging beperken"');
   ok(/font-family:\s*'Bebas Neue', 'Arial Narrow', Arial, sans-serif/.test(tokensCss.replace('--ds-font-kop:', 'font-family:')), 'de kopletter is de vaste stack');
-  // de 12 px-regel: alleen .ds-badge gebruikt --ds-t-toets
+  // de 12 px-regel: hooguit één component gebruikt --ds-t-toets (het toetsplaatje)
   const toetsGebruik = [...componentsCss.replace(/\/\*[\s\S]*?\*\//g, ' ').matchAll(/([^{}]+)\{([^{}]*--ds-t-toets[^{}]*)\}/g)].map((m) => m[1].trim());
-  ok(toetsGebruik.length === 1 && toetsGebruik[0] === '.ds-badge', `alleen .ds-badge gebruikt --ds-t-toets (kreeg ${toetsGebruik.join(', ')})`);
-  // fase 2 (#980): het spel laadt de tokens vóór de componenten, met precies één link per bestand
+  ok(toetsGebruik.every((k) => /toets/.test(k)), `alleen een toetsplaatje gebruikt --ds-t-toets (kreeg ${toetsGebruik.join(', ')})`);
+  // het spel laadt de tokens vóór de componenten, met precies één link per bestand
   const indexHtml = rd('game/index.html');
   ok(/<link rel="stylesheet" href="js\/ds-tokens\.css">/.test(indexHtml) && /<link rel="stylesheet" href="js\/ds-components\.css">/.test(indexHtml) && indexHtml.indexOf('ds-tokens.css') < indexHtml.indexOf('ds-components.css') && indexHtml.split('ds-tokens.css').length === 2 && indexHtml.split('ds-components.css').length === 2, 'game/index.html laadt ds-tokens.css en daarna ds-components.css, elk één keer (fase 2)');
-  ok(/Design system v2/.test(doc) && /Migration cards/.test(doc), 'DESIGN_SYSTEM.md heeft het hoofdstuk en de migratiekaarten');
-  const migratie = doc.slice(doc.indexOf('### Migration cards'));
-  for (const scherm of ['Winkel', 'Te doen', 'Garage', 'Loopbanen', 'Verhaal', 'Kaart', 'Prestaties', 'Foto', 'Samen spelen', 'HUD']) ok(migratie.includes(scherm), `migratiekaart voor ${scherm}`);
+  ok(/## Tokens and components in use/.test(doc) && /## The design system: summer screen print/.test(doc), 'DESIGN_SYSTEM.md heeft de hoofdstukken over de zeefdruk en over de tokens en componenten');
+  ok(!/v[123]|Direction change/.test(doc), 'DESIGN_SYSTEM.md noemt geen versielabels meer: er is één designsysteem');
 }
 
 // ---------------------------------------------------------------- 4. besluit eigenaar 20-11: selectie is bordgroen, één gele knop per scherm
@@ -259,7 +258,7 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   ok(!/class="ds-knop sm-oplossing"/.test(rd('game/js/shopui.js')), 'de winkel: de oplossing in de callout is omlijnd naast de gele koopknop');
 }
 
-// ---------------------------------------------------------------- 7. v3-componenten (#992)
+// ---------------------------------------------------------------- 7. zeefdrukcomponenten (#992)
 
 {
   const root = parseDsBlocks(tokensCss);
@@ -269,28 +268,28 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   ok(Object.keys(root).includes(rustigSel), 'ds-tokens.css heeft het blok html.rustig-drukwerk, .ds-rustig');
   const comp = componentsCss.replace(/\/\*[\s\S]*?\*\//g, ' ');
   const blokken = ['knop', 'kaart', 'chip', 'tab', 'rij', 'toets', 'stempel', 'bon', 'leeg', 'balk', 'waarde'];
-  for (const b of blokken) ok(new RegExp(`\\.ds-z-${b}\\b`).test(comp), `v3-component .ds-z-${b} staat in ds-components.css`);
+  for (const b of blokken) ok(new RegExp(`\\.ds-z-${b}\\b`).test(comp), `component .ds-z-${b} staat in ds-components.css`);
   // de staten die het plan noemt
   for (const staat of ['.ds-z-knop--secundair', '.ds-z-knop--ghost', '.ds-z-knop:active', '.ds-z-knop:disabled', '.ds-z-kaart__kop', '.ds-z-kaart--selectie', '.ds-z-kaart--uit', '.ds-z-chip--probleem', '.ds-z-tab[aria-selected="true"]', '.ds-z-rij--selectie', '.ds-z-toets--druk', '.ds-z-stempel--in', '.ds-z-bon__totaal', '.ds-z-leeg__beeld', '.ds-z-balk__vul', '.ds-z-waarde--wijzig']) {
     ok(comp.includes(staat), `ds-components.css heeft ${staat}`);
   }
-  // alleen tokens: geen letterfamilie buiten var(--ds-font-*), geen losse hex, geen losse duur in het v3-deel
-  const v3 = comp.slice(comp.indexOf(':where(.ds-zeef) *'));
-  ok(v3.length > 500, 'het v3-deel is te vinden in ds-components.css');
-  ok(!/font-family\s*:\s*(?!\s|var\(--ds-font-)/.test(v3), 'v3: elke font-family komt uit een --ds-font-* token');
-  ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(v3.replace(/content:\s*"[^"]*"/g, '')), 'v3: geen losse kleur');
-  ok(!/\b\d+(?:\.\d+)?ms\b/.test(v3), 'v3: elke duur komt uit een --ds-m* token');
-  ok(/animation\s*:[^;]*var\(--ds-m(?:-max)?\)/.test(v3), 'v3: animaties lopen op een --ds-m* token');
+  // alleen tokens: geen letterfamilie buiten var(--ds-font-*), geen losse hex, geen losse duur in het zeefdrukdeel
+  const zeef = comp.slice(comp.indexOf(':where(.ds-zeef) *'));
+  ok(zeef.length > 500, 'het zeefdrukdeel is te vinden in ds-components.css');
+  ok(!/font-family\s*:\s*(?!\s|var\(--ds-font-)/.test(zeef), 'zeefdruk: elke font-family komt uit een --ds-font-* token');
+  ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(zeef.replace(/content:\s*"[^"]*"/g, '')), 'zeefdruk: geen losse kleur');
+  ok(!/\b\d+(?:\.\d+)?ms\b/.test(zeef), 'zeefdruk: elke duur komt uit een --ds-m* token');
+  ok(/animation\s*:[^;]*var\(--ds-m(?:-max)?\)/.test(zeef), 'zeefdruk: animaties lopen op een --ds-m* token');
   // een ingedrukte knop schuift precies de schaduwverschuiving op
-  ok(/\.ds-z-knop:active\s*\{[^}]*translate\(var\(--ds-hard-x\), var\(--ds-hard-y\)\)[^}]*box-shadow:\s*none/.test(v3), 'een ingedrukte knop schuift de schaduwverschuiving op en verliest de schaduw');
+  ok(/\.ds-z-knop:active\s*\{[^}]*translate\(var\(--ds-hard-x\), var\(--ds-hard-y\)\)[^}]*box-shadow:\s*none/.test(zeef), 'een ingedrukte knop schuift de schaduwverschuiving op en verliest de schaduw');
   ok(basis['--ds-hard-x'] === '4px' && basis['--ds-hard-y'] === '4px' && /var\(--ds-hard-x\) var\(--ds-hard-y\)/.test(basis['--ds-schaduw-hard'] || ''), 'de harde schaduw gebruikt dezelfde verschuiving als de ingedrukte staat');
   // Rustig drukwerk: misdruk, schuinte, raster en beweging nul
   ok(rustig['--ds-misdruk-x'] === '0px' && rustig['--ds-misdruk-y'] === '0px', 'Rustig drukwerk: geen misdruk');
   ok(rustig['--ds-schuin'] === '0deg', 'Rustig drukwerk: geen schuinte');
   ok(rustig['--ds-raster'] === 'none' && rustig['--ds-raster-dekking'] === '0', 'Rustig drukwerk: geen raster');
   ok(['--ds-m-snel', '--ds-m', '--ds-m-max'].every((k) => rustig[k] === '0ms'), 'Rustig drukwerk: geen beweging');
-  ok(/:is\(html\.rustig-drukwerk, \.ds-rustig\)/.test(comp), 'ds-components.css heeft de Rustig-drukwerk-regels voor de v3-componenten');
-  // de v3-tekstparen: 4,5 in gewone druk, 7 in Rustig drukwerk
+  ok(/:is\(html\.rustig-drukwerk, \.ds-rustig\)/.test(comp), 'ds-components.css heeft de Rustig-drukwerk-regels voor de zeefdrukcomponenten');
+  // de zeefdruktekstparen: 4,5 in gewone druk, 7 in Rustig drukwerk
   const tekstParen = [
     ['--ds-c-ink-inkt', '--ds-c-ink-papier', 'tekst op papier'],
     ['--ds-c-inkt-zacht', '--ds-c-ink-papier', 'zachte tekst op papier'],
@@ -308,22 +307,22 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   for (const [fg, bg, wat] of tekstParen) {
     const n = contrastRatio(resolveToken(basis, fg), resolveToken(basis, bg));
     const r = contrastRatio(resolveToken(rustig, fg), resolveToken(rustig, bg));
-    ok(n !== null && n >= 4.5, `v3 ${wat}: ${n && n.toFixed(2)}:1 haalt 4,5`);
-    ok(r !== null && r >= 7, `v3 Rustig drukwerk ${wat}: ${r && r.toFixed(2)}:1 haalt 7`);
+    ok(n !== null && n >= 4.5, `zeefdruk ${wat}: ${n && n.toFixed(2)}:1 haalt 4,5`);
+    ok(r !== null && r >= 7, `zeefdruk Rustig drukwerk ${wat}: ${r && r.toFixed(2)}:1 haalt 7`);
   }
   // randen en vullingen halen 3:1
   for (const [fg, bg, wat] of [['--ds-c-ink-inkt', '--ds-c-ink-papier', 'inktrand'], ['--ds-c-ink-bord', '--ds-c-ink-papier', 'bordgroene rand'], ['--ds-c-rood', '--ds-c-ink-papier', 'gevaarrand']]) {
     for (const [naam, map] of [['gewone druk', basis], ['Rustig drukwerk', rustig]]) {
       const r = contrastRatio(resolveToken(map, fg), resolveToken(map, bg));
-      ok(r !== null && r >= 3, `v3 ${naam} ${wat}: ${r && r.toFixed(2)}:1 haalt 3`);
+      ok(r !== null && r >= 3, `zeefdruk ${naam} ${wat}: ${r && r.toFixed(2)}:1 haalt 3`);
     }
   }
   // roze is nooit tekst (alleen misdruk en schaduw)
-  ok(!/[^-]color\s*:\s*var\(--ds-c-ink-roze\)/.test(v3), 'v3: roze is nooit een tekstkleur');
-  // de galerij toont elk v3-onderdeel in Rustig drukwerk
+  ok(!/[^-]color\s*:\s*var\(--ds-c-ink-roze\)/.test(zeef), 'zeefdruk: roze is nooit een tekstkleur');
+  // de galerij toont elk zeefdrukonderdeel in Rustig drukwerk
   const js = rd('game/js/ds-galerij.js');
-  ok(/data-demo-v3/.test(galerij) && /ds-rustig/.test(js) && /rustig-drukwerk/.test(js), 'de galerij toont elk v3-component ook in Rustig drukwerk');
-  for (const staat of ['g-druk', 'g-focus', 'disabled', 'aria-busy', 'ds-z-stempel--in', 'ds-z-kaart--uit', 'ds-z-waarde--wijzig']) ok(galerij.includes(staat), `de galerij toont de v3-staat ${staat}`);
+  ok(/data-demo-zeef/.test(galerij) && /ds-rustig/.test(js) && /rustig-drukwerk/.test(js), 'de galerij toont elk zeefdrukcomponent ook in Rustig drukwerk');
+  for (const staat of ['g-druk', 'g-focus', 'disabled', 'aria-busy', 'ds-z-stempel--in', 'ds-z-kaart--uit', 'ds-z-waarde--wijzig']) ok(galerij.includes(staat), `de galerij toont de zeefdrukstaat ${staat}`);
 }
 
 console.log(`\nds_tokens_test: ${controles} controles, ${fouten} fout${fouten === 1 ? '' : 'en'}`);

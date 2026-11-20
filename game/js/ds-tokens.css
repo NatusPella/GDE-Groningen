@@ -1,9 +1,8 @@
-/* Designsysteem v2, tokens (#980). Nog niet geladen door het spel: de ontwikkelgalerij
-   (game/ds-galerij.html) is de enige gebruiker tot fase 2 (migratie van de schermen).
+/* Designsysteem, tokens (#980). De ontwikkelgalerij (game/ds-galerij.html) toont ze allemaal.
 
    Eén bron voor kleur, letter, ruimte, vorm en beweging. Componenten (ds-components.css)
    gebruiken alleen var(--ds-...), nooit een hex. De regels staan in DESIGN_SYSTEM.md
-   ("Designsysteem v2"); de contrasttabel daar wordt door scripts/ds_tokens_test.mjs
+   ("Tokens and components in use"); de contrasttabel daar wordt door scripts/ds_tokens_test.mjs
    tegen deze waarden gerekend.
 
    Twee oppervlakken: PAPIER (een crème bon of kaartje, voor winkel, aanbod, missies en
@@ -201,7 +200,7 @@
 }
 html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
 
-/* ===== Designsysteem v3: zomerse zeefdruk (ADR 0040, issue 991). Additief: v2 blijft werken tot
+/* ===== Zomerse zeefdruk (ADR 0040, issue 991). Additief: de oudere rollen blijven werken tot
    elk scherm is omgebouwd. De waarden zijn voorlopig tot de HUD-proef (issue 993) is gekeurd. ===== */
 :root {
   /* Vijf inkten; gevaarrood en --mk-* komen uit ADR 0010. */
@@ -226,7 +225,7 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
   --ds-raster-maat: 6px 6px;
   --ds-raster-dekking: 0.55;
   --ds-lijn-zeef: 2.5px;
-  /* Rollen v3 */
+  /* Rollen zeefdruk */
   --ds-zeef-bg: var(--ds-c-ink-papier);
   --ds-zeef-tx: var(--ds-c-ink-inkt);
   --ds-zeef-kop: var(--ds-c-ink-bord);

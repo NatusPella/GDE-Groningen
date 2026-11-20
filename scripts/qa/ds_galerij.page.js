@@ -32,12 +32,12 @@ for (const opp of oppervlakken) {
   }
 }
 
-// de kleinste tekst: elke zichtbare tekstknoop, met zijn berekende lettergrootte (12 px alleen in .ds-badge)
+// de kleinste tekst: elke zichtbare tekstknoop, met zijn berekende lettergrootte (12 px alleen in .ds-z-toets)
 let min = { px: 1e9, waar: '' };
 for (const el of d.querySelectorAll('.g-paneel *')) {
   if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
   const px = parseFloat(w.getComputedStyle(el).fontSize);
-  if (el.closest('.ds-badge')) { if (px < 12) out.fouten.push(`toetsplaatje onder 12 px: ${px}`); continue; }
+  if (el.closest('.ds-z-toets')) { if (px < 12) out.fouten.push(`toetsplaatje onder 12 px: ${px}`); continue; }
   if (px < 13) out.fouten.push(`tekst onder 13 px (${px}): ${el.className} "${el.textContent.trim().slice(0, 30)}"`);
   if (px < min.px) min = { px, waar: `${el.className} "${el.textContent.trim().slice(0, 30)}"` };
 }
