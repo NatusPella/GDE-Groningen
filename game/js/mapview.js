@@ -1817,7 +1817,7 @@ function drawDynamicMarkers(ctx, world) {
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
   const beppe = beppeMapSpot();
   if (beppe) icon(null, beppe.kind, beppe.x, beppe.y, beppe.name, {}, beppe.sub, { goal: beppe.goal, todo: beppe.todo });
-  for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y)) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
+  for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y) && !q.kind.startsWith('perceel-eigen')) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
   for (const e of getEierbalTips()) { if (onbekend(e.x, e.y)) continue; icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt'); }
 
   const c = world.companion;

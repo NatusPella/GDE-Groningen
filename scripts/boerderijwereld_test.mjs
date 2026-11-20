@@ -347,5 +347,28 @@ await t('een veld dat oogstklaar wordt geeft één melding (#985); de HUD-stand 
   assert.equal(WW.boerderijHudStand(w), null, 'te voet: geen strook');
 });
 
+await t('een akker die op water bleek te liggen krijgt een andere plek zolang hij onbewerkt is (beeldrun 20-11: de trekker zonk)', () => {
+  Live.zetBoerderijVoorTest(null, nepOpslag());
+  const b = Live.getBoerderij();
+  const id = PC.START_PERCEEL;
+  Live.zetVeldPositie(id, { x: ex + 300, y: ey + 300, a: 0.2 });
+  const pos = B.veldPositie(b, id);
+  const rijen = akkerRijen({ x: pos.x, y: pos.y }, pos.a);
+  const droog = { ...map, waterNear: () => [] };
+  assert.equal(WW.veldNatOpRijen(droog, pos), false, 'droog land');
+  const dwars = { ...map, waterNear: () => [{ pts: [[pos.x - 500, pos.y - 500], [pos.x + 500, pos.y - 500], [pos.x + 500, pos.y + 500], [pos.x - 500, pos.y + 500]] }] };
+  assert.equal(WW.veldNatOpRijen(dwars, pos), true, 'water op de rijen');
+  // onbewerkt en nat: de plek vervalt; bewerkt of droog: de plek blijft
+  assert.equal(B.veldOnbewerkt(b, id), true);
+  assert.equal(WW._herkeurVeld({ map: droog }, id, pos), false); assert.ok(B.veldPositie(b, id), 'droog: de plek blijft');
+  Live.zetVeldPositie(id, { x: ex + 310, y: ey + 310, a: 0.2 });
+  const pos2 = B.veldPositie(b, id);
+  assert.equal(WW._herkeurVeld({ map: dwars }, id, pos2), true); assert.equal(B.veldPositie(b, id), null, 'nat en onbewerkt: de plek vervalt');
+  Live.zetVeldPositie(id, { x: ex + 320, y: ey + 320, a: 0.2 });
+  B.rondTaakAf(b, 'ploegen', 1, { vrij: true });
+  assert.equal(B.veldOnbewerkt(b, id), false);
+  assert.equal(WW._herkeurVeld({ map: dwars }, id, B.veldPositie(b, id)), false); assert.ok(B.veldPositie(b, id), 'bewerkt: de plek blijft');
+});
+
 console.log(`boerderijwereld_test: ${n - fails}/${n}`);
 if (fails) process.exit(1);

@@ -36,6 +36,18 @@ export function vulAlpha(st) {
 }
 
 const ikonPaden = new Map();
+// Een Phosphor-icoon (icons.js, bold) gecentreerd op (x, y) met zijde `maat` in canvaspixels; zonder Path2D (node, tests) gebeurt er niets.
+function tekenPhosphor(ctx, naam, x, y, maat, kleur) {
+  if (typeof Path2D === 'undefined' || !naam) return;
+  let lijst = ikonPaden.get(naam);
+  if (!lijst) { lijst = [...iconInner(naam, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); ikonPaden.set(naam, lijst); }
+  const k = maat / 256;
+  ctx.save();
+  ctx.translate(x - 128 * k, y - 128 * k); ctx.scale(k, k);
+  ctx.fillStyle = kleur;
+  for (const q of lijst) ctx.fill(q);
+  ctx.restore();
+}
 // Het statusicoon (Phosphor, icons.js) in een schijf met, bij een gewas dat groeit, een voortgangsring: ring vol = oogstklaar. Alleen canvas;
 // zonder Path2D (node, tests) blijft het bij de schijf en de ring. r is de straal in schermpixels, groei 0..1 of null.
 export function tekenVeldBadge(ctx, x, y, r, v) {
@@ -50,14 +62,7 @@ export function tekenVeldBadge(ctx, x, y, r, v) {
     ctx.lineWidth = Math.max(1.5, r * 0.16); ctx.setLineDash(stijl.dash || []); ctx.strokeStyle = INK[stijl.rand] || INK.cream;
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
   }
-  if (typeof Path2D !== 'undefined' && v.icoon) {
-    let lijst = ikonPaden.get(v.icoon);
-    if (!lijst) { lijst = [...iconInner(v.icoon, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); ikonPaden.set(v.icoon, lijst); }
-    const k = (r * 1.15) / 256;
-    ctx.translate(x - 128 * k, y - 128 * k); ctx.scale(k, k);
-    ctx.fillStyle = INK.cream;
-    for (const q of lijst) ctx.fill(q);
-  }
+  tekenPhosphor(ctx, v.icoon, x, y, r * 1.15, INK.cream);
   ctx.restore();
 }
 
@@ -94,6 +99,15 @@ export function drawPerceelMapIcon(ctx, kind, s) {
   }
   const m = STATUS_KIND.exec(kind);
   const stijl = m ? KAART_STIJL[m[1]] : null;
+  if (stijl) {   // je veld: een schijf met een schuur (Phosphor) in de kleur van de stand, de rand in het lijnpatroon van de stand en de letter van de stand (20-11)
+    const r = 5 * s;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = INK[stijl.vul] || INK.greenLight; ctx.fill();
+    ctx.lineWidth = 1.5 * s; ctx.strokeStyle = INK.dark; ctx.setLineDash((stijl.dash || []).map((d) => d * s * 0.45)); ctx.stroke(); ctx.setLineDash([]);
+    tekenPhosphor(ctx, 'boerderij', 0, -0.4 * s, 6.6 * s, stijl.vul === 'green' ? INK.cream : INK.dark);
+    ctx.beginPath(); ctx.arc(3.7 * s, 3.7 * s, 2.5 * s, 0, Math.PI * 2); ctx.fillStyle = INK.dark; ctx.fill();
+    ctx.font = `700 ${3.8 * s}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = INK.cream; ctx.fillText(stijl.letter, 3.7 * s, 3.9 * s);
+    return true;
+  }
   const kleur = stijl ? INK[stijl.vul] : KLEUR[m ? 'perceel-eigen' : kind];
   if (!kleur) return false;
   ctx.beginPath();

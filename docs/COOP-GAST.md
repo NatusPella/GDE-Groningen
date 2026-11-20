@@ -122,6 +122,7 @@ Een gast kiest per opdracht of hij meedoet (J of N). Wie niet meedoet is vrij en
 ## De velden van de boerderij bij een gast (#985)
 
 De boerderij is per speler (#429): wat je verdient en wat er in je schuur ligt blijft van jou. De **velden in de wereld** zijn van wie het spel opende. Voor de gast betekent dat:
+- **Toestand per veld (20-11):** de stand van een veld (icoon, ring, meetlat, kaartvlak) komt altijd uit het eigen bedrijf van die speler (`veldStatus`, #429) en wordt niet gedeeld; een gast ziet op zijn kaart zijn eigen velden en in de wereld de velden van de gastheer via de status uit MISC_VELDEN (dezelfde meetlat en markering, de groei in 1/255).
 - **Zien:** de host meldt zijn velden in de buurt van elke speler als EXTRA-stukje `MISC_VELDEN` (tag 12, 12 bytes per veld: plek, hoek, status, gewas, groei; hoogstens zes, binnen 320 m). De gast bouwt dezelfde veldmesh (voren, gewas per stadium, stoppel, markering) in `boerderijwereld.js` (`gastTick`). Een oudere gast kent de tag niet en slaat hem over; een leeg stukje of 4 s stilte ruimt de velden bij de gast op; wie later aansluit krijgt ze met het eerstvolgende stukje (elke 1,5 s).
 - **Meewerken:** een gast bestuurt een vrije machine van de host via de bestaande gast-bestuurderketen (`coopbestuur.js`, #434); zijn klus levert hem via `coopDeel` een deel op. Hij werkt de velden niet zelf bij.
 - **Zelf boeren:** de eigen akker van een gast is een lokale minigame (`boerderijgast.js`), met eigen geld, eigen opslag en eigen voortgang (#429); zijn gewassen groeien mee met de klok van de host.

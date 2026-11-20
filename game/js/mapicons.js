@@ -55,6 +55,7 @@ export function mapCategory(kind) {
   if (kind === 'garage') return 'garage';
   if (kind.startsWith('sj-')) return 'job';
   if (kind.startsWith('shop-')) return 'shop';
+  if (kind.startsWith('perceel-eigen') || kind === 'perceel-machine') return 'home'; // je eigen velden en machines blijven ook ver uitgezoomd staan (20-11)
   if (kind.startsWith('perceel-')) return 'ommeland';
   if (kind === 'beppe') return 'ommeland'; // het eerbetoonbankje (#832): altijd zichtbaar op de kaart
   if (kind === 'dorp' || kind === 'dorpKlaar' || kind === 'wereldeinde') return 'ommeland';

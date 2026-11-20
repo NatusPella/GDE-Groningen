@@ -10,6 +10,7 @@ const H = await import('../game/js/farmhud.js');
 const Live = await import('../game/js/boerderijlive.js');
 const PM = await import('../game/js/perceelmap.js');
 const IC = await import('../game/js/icons.js');
+const MI = await import('../game/js/mapicons.js');
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -180,5 +181,16 @@ t('kaartvlak van een veld in elke stand: icoon, ring alleen bij een groeiend gew
   B.rondTaakAf(b, 'oogsten', 1, { vrij: true });
 });
 
+t('je velden blijven op de kaart staan, ook ver uitgezoomd; aangeboden akkers volgen het gewone filter', () => {
+  for (const sid of S.STATUS_IDS) {
+    assert.equal(MI.mapCategory('perceel-eigen-' + sid), 'home');
+    assert.equal(MI.mapKindVisible('perceel-eigen-' + sid, 0), true, 'zichtbaar op de provinciekaart (zoom 0)');
+  }
+  assert.equal(MI.mapKindVisible('perceel-machine', 0), true);
+  assert.equal(MI.mapCategory('perceel-koop'), 'ommeland');
+  const calls = []; const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : (...a) => { calls.push(k); }), set: (o, k, w) => { o[k] = w; return true; } });
+  for (const sid of S.STATUS_IDS) assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-eigen-' + sid, 2.1), true);
+  assert.ok(calls.includes('fillText'), 'de letter van de stand staat op de pin');
+});
 console.log(`farmstatus_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

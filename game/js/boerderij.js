@@ -176,6 +176,8 @@ export function veldenOverzicht(b) {
 export const veldPositie = (b, id) => (id === START_PERCEEL ? b.perceel : b.posities[id] || null);
 
 // De stand van een perceel van jou, ook als het niet het actieve is.
+// Is dit veld nog helemaal onaangeroerd (braak, geen stoppel, niets gecultiveerd, bemest of gespoten)? Dan mag het nog een andere plek krijgen.
+export const veldOnbewerkt = (b, id) => { const v = veldStand(b, id); return v.fase === 'braak' && !v.stoppel && !(v.cult > 0) && !(v.mest > 0) && !(v.spuit > 0); };
 export const veldStand = (b, id) => (id === b.veldVan ? b.veld : b.velden[id] || nieuwVeld());
 
 export const actiefGewas = (b) => gewasVoor(b.plan[b.bedrijf.actief], actiefPerceel(b.bedrijf).soort);

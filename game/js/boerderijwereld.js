@@ -23,7 +23,7 @@ import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as WT from './werktuigen.js';
 import * as W3 from './werktuigen3d.js';
-import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, zetActief, leverLading } from './boerderijlive.js';
+import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, wisVeldPositie, zetActief, leverLading } from './boerderijlive.js';
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
 import { sfxLinks } from './latehooks.js';
@@ -412,6 +412,29 @@ async function zoekVeld(w, id) {
   S.zoek.delete(id);
 }
 
+// Het veld wordt gezocht zodra je in de buurt komt, maar het water rond het veld staat dan soms nog niet in de kaart (beeldrun 20-11: de trekker zonk
+// in een sloot midden op de rijen). Daarom wordt de plek opnieuw gekeurd zodra je er echt bent: ligt er water op de rijen en is het veld nog onbewerkt,
+// dan vervalt de plek en zoekt het spel een andere (hoogstens HERZOEK_MAX keer per veld).
+const HERZOEK_MAX = 4, herzoek = new Map(), gekeurd = new Set();
+export function veldNatOpRijen(map, pos) {
+  try {
+    for (const r of akkerRijen({ x: pos.x, y: pos.y }, pos.a)) {
+      for (let l = -8; l <= r.len + 8; l += 3) if (isInWater(map, r.ax + r.ux * l, r.ay + r.uy * l)) return true;
+    }
+  } catch (e) { /* geen waterlaag: dan is het droog */ }
+  return false;
+}
+export function _herkeurVeld(w, id, pos) {
+  const sl = id + ':' + Math.round(pos.x) + ',' + Math.round(pos.y);
+  if (gekeurd.has(sl)) return false;
+  gekeurd.add(sl);
+  const b = getBoerderij();
+  if (!B.veldOnbewerkt(b, id) || (herzoek.get(id) || 0) >= HERZOEK_MAX || !veldNatOpRijen(w.map, pos)) return false;
+  herzoek.set(id, (herzoek.get(id) || 0) + 1);
+  wisVeldPositie(id);
+  return true;
+}
+
 // Het gras blijft van je akkers af: map.reservedAt (zoals bij het padel- en kermisterrein) houdt gras en rekwisieten weg van de rijen van je percelen, en de al
 // gemaakte gras-cellen eronder worden eenmalig weggegooid zodra het veld voor het eerst in beeld komt.
 function opEenVeld(x, y) {
@@ -598,6 +621,7 @@ function syncVelden(w) {
       if (dist(p.x, p.y, x, y) < SPAWN_R + 150) zoekVeld(w, id);
       continue;
     }
+    if (dist(p.x, p.y, pos.x, pos.y) < SPAWN_R && !(S.werk && S.werk.id === id) && _herkeurVeld(w, id, pos)) continue;   // volgende beeld zoekt hij een droge plek
     const v = S.velden.get(id);
     const dichtbij = dist(p.x, p.y, pos.x, pos.y) < SPAWN_R;
     const key = sleutelVan(b, id);
