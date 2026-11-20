@@ -58,3 +58,9 @@ beeldregressie groen hebben. Het grootste risico is leesbaarheid van de HUD bove
 drukke scène; de HUD-proef (binnenstad en Hogeland, vol en rustig) komt daarom eerst
 en de eigenaar keurt hem voordat de rest omgaat. De leeftijds- en taalregels blijven:
 humor in de UI noemt geen echt merk of echte persoon.
+
+## Aanvulling 2026-11-20: eigen identiteit per context
+
+De eigenaar koos: eerst **minigames, bijbanen en missielijnen**; het thema mag **ook de schermachtergrond** raken; eerst een **proefset van twee** (golf en farming) die hij keurt; en **volledige themaiconen** op de kaart.
+Elke context is één regel in een tabel (motief, embleem, kopband, stempeltekst) met alleen de bestaande inkten, zonder hex of lettertype; de tabel vervangt de losse identiteitskleur per minigame. In Rustig drukwerk valt het motief weg of wordt effen.
+**Risico dat de eigenaar tegen ons advies koos:** volledige themaiconen (eigen vorm per thema) kunnen de soort op de kaart minder leesbaar maken. Voorwaarden: de soort blijft herkenbaar via een vaste rand of hoekmarkering plus `--mk-*`, en een achtergrondmotief blijft onder 4,5:1-contrast voor elke tekst, anders wordt het een effen vlak. De proefset toetst dit voordat de rest wordt getekend.
