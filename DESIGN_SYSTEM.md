@@ -533,7 +533,21 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-hero` | hero slot: one picture (3D, map fragment, character, ladder) and the text beside it, never over it | `__beeld`, `__tekst`, `__oog`, `__kop`, `__lead`, `__feiten` | `--omgekeerd`, `--smal` (stacked) |
 | `.ds-rij` | list row: icon, name with a line under it, value, action | `__naam`, `__sub`, `__waarde` | `--selectie` or `[aria-current]`, `--probleem`, `--uit`, hover, `:focus-visible` |
 | `.ds-hud` | frame with the four corner roles | `__links`, `__boven`, `__rechts`, `__minimap`, `__toetsen` | none |
+| `.ds-zeef`, `.ds-rustig` | v3 surface scope: cream paper, ink text; `.ds-rustig` scopes Rustig drukwerk to one panel (the game sets `html.rustig-drukwerk`) | none | see "Components v3" |
+| `.ds-z-knop` | v3 button: yellow primary with ink edge and hard shadow; pressed = shadow gone and the button moved by the offset | none | `--secundair`, `--ghost`, `--gevaar`; hover, `:focus-visible`, `:disabled`, `[aria-disabled]`, `[aria-busy]` |
+| `.ds-z-kaart` | v3 card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
+| `.ds-z-chip` | v3 status pill: icon or shape plus a word | `__icoon` | `--primair`, `--selectie`, `--probleem`, `--succes`, `--uit` |
+| `.ds-z-tabs`, `.ds-z-tab` | v3 tab pills, the active one filled ink | none | `[aria-selected="true"]` or `--actief`, `:disabled` |
+| `.ds-z-rij` | v3 list row: icon, name with sub line, value | `__naam`, `__sub`, `__waarde` | `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
+| `.ds-z-toets` | v3 keycap, never with misregistration | none | `--druk` or `[aria-pressed]` |
+| `.ds-z-stempel` | v3 stamp: a tilted print with an edge | none | `--geel`, `--gevaar`, `--in` (drops in within 250 ms; none in Rustig drukwerk) |
+| `.ds-z-bon` | v3 receipt line: name, dotted leader, amount, double rule above the total | `__regel`, `__stippen`, `__bedrag`, `__totaal` | none |
+| `.ds-z-leeg` | v3 halftone empty state: raster block with a dashed edge, a word and one action | `__beeld`, `__kop`, `__tekst` | none (Rustig drukwerk: no raster, the dashed edge and the word stay) |
+| `.ds-z-balk` | v3 progress bar: raster track, ink fill, a label with the numbers; set `--ds-z-w` | `__baan`, `__vul`, `__label` | `--tijd` (yellow), `--laag` (red) |
+| `.ds-z-waarde` | v3 plate for HUD values: paper with an ink edge | `__icoon`, `__getal`, `__eenheid` | `--wijzig` (misregistration pulse on change), `--gevaar`, `--weg` (faded out) |
 <!-- ds-componenten:end -->
+
+**Components v3 (#992).** The v3 set lives next to v2 in `ds-components.css` and is named `.ds-z-*`, so a screen migrates one component at a time. It reads only the v3 tokens in `ds-tokens.css` (inks, `--ds-schaduw-hard*`, `--ds-misdruk`, `--ds-schuin`, `--ds-raster`) and one surface, `.ds-zeef`. Rules: a hard shadow and its pressed state use the same offset (`--ds-hard-x`, `--ds-hard-y`); misregistration (`text-shadow: var(--ds-misdruk)`, the only text shadow allowed) sits on titles and HUD changes, never on a sentence or a keycap; the raster is never behind text (a strip or its own block); no animation over 250 ms. **Rustig drukwerk** (`html.rustig-drukwerk`, set by the setting of the same name; `.ds-rustig` scopes it to a gallery panel) zeroes misregistration, tilt, raster and motion through the tokens and swaps the bordgroen and roze inks for darker ones; every v3 text pair is at least 7:1 there, which `ds_tokens_test` computes. An empty or unavailable thing keeps a dashed edge and a word. `ds-galerij.html` shows every component in every state, left in normal print and right in Rustig drukwerk.
 
 **Anatomy and states, in one place.**
 
