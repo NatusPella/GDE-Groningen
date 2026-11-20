@@ -78,3 +78,17 @@ In een afgesloten voertuig (auto, bus) zijn de lagen zachter; bij regen wijkt vo
 - Klinken `ui_tab` en `ui_toast` samen met de bestaande knoppen en de tik bij het wisselen van de focus (de bestaande set) als één familie?
 - Is de volgorde van prioriteit in [SFX-GAPS.md](SFX-GAPS.md) de goede, vooral de open rij "voertuig over zand, grind, gras en klinkers"?
 - Past `ui_loopbaan` bij de prestatiesting (`#840`) of is hij te dichtbij zodat ze elkaar op dezelfde dag verstoren?
+
+## Voertuigen met opnames (helikopter, vliegtuig, motorboot; zie [AUDIO-VOERTUIGEN.md](AUDIO-VOERTUIGEN.md))
+
+| Geluid | Waar je het hoort | Wat het moet zijn | Wat niet goed mag klinken |
+| --- | --- | --- | --- |
+| `heli_rotor_stat`, `heli_rotor_vlucht` | instappen in een helikopter (Rotor Roelf op Eelde) en opstijgen, vliegen, dalen, landen en uitstappen | de rotor loopt hoorbaar op en na de landing weer uit; hoger toerental is hoger; bij snelheid en dalen krijgt de wop-wop meer slag; binnen dof | een hoorbare herhaling elke 6 s; toonhoogte die schokt bij het opstarten; te hard bij het dorp eronder |
+| `vliegtuig_start` | instappen in de Kist Kees op het grasveld | starter en aanslaan, dan valt de motor in; geen gat tussen start en stationair | de motor die al meeloopt tijdens de start; een klik bij het inzetten |
+| `vliegtuig_stationair`, `vliegtuig_toeren` | gas geven op de baan en vliegen | zachtjes kruisen van lage naar hoge toeren, toonhoogte volgt het gas | een hoorbare sprong bij de kruising; de lus die hoorbaar herhaalt; te schel op hoge toeren |
+| `vliegtuig_wind` | snelheid boven 40 km/u | stromende lucht die met de snelheid groeit | te luid boven de motor; ruis die pompt |
+| `vliegtuig_rol_asfalt`, `vliegtuig_rol_gras` | optrekken en uitrollen op de baan | rollende wielen die luider en hoger worden met de snelheid, op een grasbaan ruiger | klinkt nog als de baan in de lucht; te hard bij stapvoets |
+| `vliegtuig_overtrek` | te langzaam vliegen (de melding Overtrek) | een zoemer vlak voor en tijdens de overtrek | blijft hangen nadat je gas hebt gegeven; te schel |
+| `vliegtuig_gestel` | G in de lucht | één mechanische klank per wissel | klinkt ook op de grond; dubbel |
+| `boot_motor_stat`, `boot_motor_vol` | een motorboot in de haven of op het water | stationair gaat zacht over in vol gas op snelheid | de oude synth die er nog bij klinkt; te hard tegen het water |
+

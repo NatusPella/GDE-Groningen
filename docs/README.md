@@ -101,6 +101,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SFX-GAPS.md](<SFX-GAPS.md>) | Inventaris van spelgebeurtenissen zonder eigen geluid of met een te algemeen geluid (UI, beloning, wereld-foley, omgeving per streek), met wat is gebouwd en wat nog open staat. |
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
+| [AUDIO-VOERTUIGEN.md](<AUDIO-VOERTUIGEN.md>) | Helikopter, vliegtuig en motorboot met CC0-opnames: de bronnenlijst (Freesound-id, auteur, licentie), de koppeling van toeren, gas en snelheid aan toonhoogte en niveau en wat niet is beluisterd. |
 | [SERVER-HOSTING.md](<SERVER-HOSTING.md>) | Dedicated server (#450): beheerdersrunbook, CLI en de bewuste eigenaarsbeslissingen. |
 | [TESTGATEN-799.md](<TESTGATEN-799.md>) | Welke boot-/streamingpaden nu gedragstests hebben en welke een browser of Electron vragen. |
 | [SOCIAL-EN-WEBSITE.md](<SOCIAL-EN-WEBSITE.md>) | Stand: 20 oktober 2026. Het plaatje is gemaakt (`docs/social-preview.png`, hieronder) en de About-tekst en… |

@@ -86,6 +86,62 @@
       "meting": "bron 13,8 s, losse piep 6,0 tot 7,15 s (98% van de energie tussen 300 Hz en 3 kHz, onder 300 Hz 2 tot 10%, piek rond 1 kHz)",
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 250 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "boot_motor_stat": {
+      "bestand": "boot_motor_stat.ogg",
+      "gebruik": "motorboot: buitenboordmotor stationair of langzaam",
+      "loop": true,
+      "duur_s": 12,
+      "grootte_kb": 104,
+      "herkomst": {
+        "titel": "outboard motor boat idle or slow rattly3 quieter.flac",
+        "auteur": "kyles",
+        "freesound_id": 637742,
+        "url": "https://freesound.org/people/kyles/sounds/637742/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 3,
+        "duur": 12
+      },
+      "naad": {
+        "sprong_ratio": 0.77,
+        "niveaustap_db": -0.21,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -7.8
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "boot_motor_vol": {
+      "bestand": "boot_motor_vol.ogg",
+      "gebruik": "motorboot: buitenboordmotor op snelheid, met golfslag",
+      "loop": true,
+      "duur_s": 10.2,
+      "grootte_kb": 86.7,
+      "herkomst": {
+        "titel": "speed boat outboard motor medium high gear +waves splash.flac",
+        "auteur": "kyles",
+        "freesound_id": 454199,
+        "url": "https://freesound.org/people/kyles/sounds/454199/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 10.2
+      },
+      "naad": {
+        "sprong_ratio": 0.43,
+        "niveaustap_db": 2.73,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -9.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
     "handrem_bocht": {
       "bestand": "handrem_bocht.ogg",
       "gebruik": "handrembocht of driften (alleen de bandenslip)",
@@ -106,6 +162,62 @@
       "meting": "bron 10,4 s, aanloop (auto, motor) 0 tot 7,4 s met 30 tot 75% onder 300 Hz weggeknipt, slip 7,5 tot 9,5 s (92 tot 100% tussen 300 Hz en 3 kHz, 0 tot 3% onder 300 Hz, piek rond 1 kHz), staart na 9,5 s weg",
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "heli_rotor_stat": {
+      "bestand": "heli_rotor_stat.ogg",
+      "gebruik": "helikopter: rotor stationair en uitlopen (afspeelsnelheid volgt het rotortoerental)",
+      "loop": true,
+      "duur_s": 5.9,
+      "grootte_kb": 50.4,
+      "herkomst": {
+        "titel": "OH-58 Helicopter Loop",
+        "auteur": "qubodup",
+        "freesound_id": 184412,
+        "url": "https://freesound.org/people/qubodup/sounds/184412/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 6
+      },
+      "naad": {
+        "sprong_ratio": 1.79,
+        "niveaustap_db": -1.09,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -10.8
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "heli_rotor_vlucht": {
+      "bestand": "heli_rotor_vlucht.ogg",
+      "gebruik": "helikopter: rotor in vlucht (wop-wop, laag bij langzaam, krachtiger bij snelheid)",
+      "loop": true,
+      "duur_s": 6.22,
+      "grootte_kb": 51.7,
+      "herkomst": {
+        "titel": "Helicopter Rotor Loop.flac",
+        "auteur": "qubodup",
+        "freesound_id": 187681,
+        "url": "https://freesound.org/people/qubodup/sounds/187681/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 6.3
+      },
+      "naad": {
+        "sprong_ratio": 1.24,
+        "niveaustap_db": 1.59,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -24.1,
+        "piek_db": -2
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
     "remmen_grind": {
       "bestand": "remmen_grind.ogg",
       "gebruik": "remmen op grind",
@@ -121,6 +233,26 @@
       },
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "trein_deur_dicht": {
+      "bestand": "trein_deur_dicht.ogg",
+      "gebruik": "treindeuren gaan dicht",
+      "loop": false,
+      "duur_s": 0.7,
+      "grootte_kb": 9.7,
+      "herkomst": {
+        "titel": "Opening and closing the train door.flac",
+        "auteur": "jrosin",
+        "freesound_id": 209969,
+        "url": "https://freesound.org/people/jrosin/sounds/209969/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 13.85,
+        "duur": 0.7
+      },
+      "meting": "bron: deur dicht 13,85 tot 14,55 s (piek -12 dB rond 14,25 s, silencedetect: stilte vanaf 14,51 s); brom eronder weggefilterd (hoogdoorlaat 200 Hz) en het doorlopende piepsignaal weggefilterd (kerffilters op 1,9 en 3,8 kHz)",
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 200 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "trein_deur_open": {
       "bestand": "trein_deur_open.ogg",
@@ -162,25 +294,219 @@
       "meting": "bron: piepsignaal 1,9 kHz van 9,0 tot 13,8 s (silencedetect boven 1,2 kHz: stilte tot 8,997 s), met de brom eronder weggefilterd (hoogdoorlaat 1,2 kHz); hier 9,0 tot 11,4 s",
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 1200 Hz, laagdoorlaat 8 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
-    "trein_deur_dicht": {
-      "bestand": "trein_deur_dicht.ogg",
-      "gebruik": "treindeuren gaan dicht",
+    "vliegtuig_gestel": {
+      "bestand": "vliegtuig_gestel.ogg",
+      "gebruik": "vliegtuig: landingsgestel in of uit",
       "loop": false,
-      "duur_s": 0.7,
-      "grootte_kb": 9.7,
+      "duur_s": 4,
+      "grootte_kb": 22,
       "herkomst": {
-        "titel": "Opening and closing the train door.flac",
-        "auteur": "jrosin",
-        "freesound_id": 209969,
-        "url": "https://freesound.org/people/jrosin/sounds/209969/",
+        "titel": "Landing Gear",
+        "auteur": "77Pacer",
+        "freesound_id": 425273,
+        "url": "https://freesound.org/people/77Pacer/sounds/425273/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
       "knip_s": {
-        "start": 13.85,
-        "duur": 0.7
+        "start": 0,
+        "duur": 4
       },
-      "meting": "bron: deur dicht 13,85 tot 14,55 s (piek -12 dB rond 14,25 s, silencedetect: stilte vanaf 14,51 s); brom eronder weggefilterd (hoogdoorlaat 200 Hz) en het doorlopende piepsignaal weggefilterd (kerffilters op 1,9 en 3,8 kHz)",
-      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 200 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -9.3
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 60 Hz, laagdoorlaat 5 kHz, mono 44,1 kHz, fades, statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_overtrek": {
+      "bestand": "vliegtuig_overtrek.ogg",
+      "gebruik": "vliegtuig: overtrekwaarschuwing (zoemer)",
+      "loop": true,
+      "duur_s": 3.1,
+      "grootte_kb": 17.9,
+      "herkomst": {
+        "titel": "Airplane Stall Buzzer",
+        "auteur": "77Pacer",
+        "freesound_id": 425272,
+        "url": "https://freesound.org/people/77Pacer/sounds/425272/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 3.2
+      },
+      "naad": {
+        "sprong_ratio": 0.2,
+        "niveaustap_db": -2.05,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -11.6
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 300 Hz, laagdoorlaat 5 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_rol_asfalt": {
+      "bestand": "vliegtuig_rol_asfalt.ogg",
+      "gebruik": "vliegtuig: wielen rollend op een verharde baan",
+      "loop": true,
+      "duur_s": 5,
+      "grootte_kb": 40.7,
+      "herkomst": {
+        "titel": "Tire Roll.mp3",
+        "auteur": "JuandreSound",
+        "freesound_id": 490905,
+        "url": "https://freesound.org/people/JuandreSound/sounds/490905/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 19.9,
+        "duur": 5
+      },
+      "naad": {
+        "sprong_ratio": 1.28,
+        "niveaustap_db": 1.46,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -3.6
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 3 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_rol_gras": {
+      "bestand": "vliegtuig_rol_gras.ogg",
+      "gebruik": "vliegtuig: wielen rollend op gras of grind",
+      "loop": true,
+      "duur_s": 11,
+      "grootte_kb": 89.6,
+      "herkomst": {
+        "titel": "Tires on Gravel Road 1",
+        "auteur": "OBXJohn",
+        "freesound_id": 251661,
+        "url": "https://freesound.org/people/OBXJohn/sounds/251661/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0.5,
+        "duur": 11
+      },
+      "naad": {
+        "sprong_ratio": 0.28,
+        "niveaustap_db": -0.15,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -5.4
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 80 Hz, laagdoorlaat 7 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_start": {
+      "bestand": "vliegtuig_start.ogg",
+      "gebruik": "vliegtuig: motor aanslaan (starter, ontsteking, motor valt in)",
+      "loop": false,
+      "duur_s": 5.6,
+      "grootte_kb": 49.5,
+      "herkomst": {
+        "titel": "G07-07_4 Engine Prop Starts.wav",
+        "auteur": "craigsmith",
+        "freesound_id": 437851,
+        "url": "https://freesound.org/people/craigsmith/sounds/437851/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 5.6
+      },
+      "niveau": {
+        "rms_db": -23.4,
+        "piek_db": -2
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, fades, statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_stationair": {
+      "bestand": "vliegtuig_stationair.ogg",
+      "gebruik": "vliegtuig: motor stationair (lage toeren)",
+      "loop": true,
+      "duur_s": 9.49,
+      "grootte_kb": 77,
+      "herkomst": {
+        "titel": "G07-07_4 Engine Prop Starts.wav",
+        "auteur": "craigsmith",
+        "freesound_id": 437851,
+        "url": "https://freesound.org/people/craigsmith/sounds/437851/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 6,
+        "duur": 9.5
+      },
+      "naad": {
+        "sprong_ratio": 1.44,
+        "niveaustap_db": -2.88,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -9.5
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 30 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_toeren": {
+      "bestand": "vliegtuig_toeren.ogg",
+      "gebruik": "vliegtuig: propeller bij hoge toeren (laag erbovenop, volgt het gas)",
+      "loop": true,
+      "duur_s": 5.77,
+      "grootte_kb": 46.7,
+      "herkomst": {
+        "titel": "Airplane Propeller Loop",
+        "auteur": "modusmogulus",
+        "freesound_id": 789390,
+        "url": "https://freesound.org/people/modusmogulus/sounds/789390/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 0,
+        "duur": 5.8
+      },
+      "naad": {
+        "sprong_ratio": 0.07,
+        "niveaustap_db": -1.45,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -5.1
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 60 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
+    },
+    "vliegtuig_wind": {
+      "bestand": "vliegtuig_wind.ogg",
+      "gebruik": "vliegtuig: stromende lucht bij snelheid",
+      "loop": true,
+      "duur_s": 8.99,
+      "grootte_kb": 38.6,
+      "herkomst": {
+        "titel": "air_rush.wav",
+        "auteur": "ChemiCatz",
+        "freesound_id": 267899,
+        "url": "https://freesound.org/people/ChemiCatz/sounds/267899/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 20,
+        "duur": 9
+      },
+      "naad": {
+        "sprong_ratio": 0.04,
+        "niveaustap_db": 0.6,
+        "kruisfade_ms": 100
+      },
+      "niveau": {
+        "rms_db": -21,
+        "piek_db": -4.4
+      },
+      "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 6 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
     }
   }
 }
