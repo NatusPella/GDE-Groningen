@@ -68,7 +68,8 @@ t('#873: de spelerslijst bij Tab heeft een eigen scroller en een netstatus op ee
   assert.match(lijst, /overflow-y:\s*auto/);
   assert.match(lijst, /pointer-events:\s*auto/, 'de lijst zelf vangt de muis, de rest van de overlay blijft doorklikbaar');
   assert.match(spelersUi, /#coop-spelers \{[^}]*box-sizing: border-box;/, 'de overlay valt op 360 px niet buiten het scherm');
-  assert.match(spelersUi, /@media \(max-width: 520px\) \{[\s\S]*?\.cs-net \{ grid-column: 2 \/ -1; justify-self: start;/);
+  // spelersmenu 21-11: de netstatus is een eigen tabelkolom (cs-tab-ping); op een smal scherm krimpt de rij naar drie kolommen
+  assert.match(spelersUi, /@media \(max-width: 520px\) \{[\s\S]*?#coop-spelers \.cs-rij \{ grid-template-columns: var\(--ds-s-6\) minmax\(0, 1fr\) auto;/);
   assert.match(spelersUi, /@media \(max-height: 460px\) \{[\s\S]*?#coop-spelers \.cs-voet \{ display: none; \}/);
 });
 
