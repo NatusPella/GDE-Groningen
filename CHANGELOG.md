@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: het spelersmenu is rustiger en duidelijker. Elke speler heeft een status in woorden met een pictogram: wie het spel opende, verbinding en ping, in de wachtkamer, passief of actief, en bovenaan de versie.
+- Samen spelen: Spel starten is pas actief als er minstens twee spelers zijn en niemand is weggevallen, en zegt waarom het uit staat. Na een klik staat er "Spel wordt gestart…" en doet een tweede klik niets.
+- Samen spelen: de kamercode staat groot in beeld met een knop die meldt "Gekopieerd"; de uitleg staat in een vouw en de gele hoofdknop heeft een toetshint (Enter).
+- Samen spelen: foutmeldingen zeggen in gewone taal wat er mis is en wat je doet (andere versie, kamer vol, verbinden mislukt, verbinding verbroken met Opnieuw verbinden). Een speler eruit zetten vraagt eerst "… eruit zetten?" met Annuleren.
+- Samen spelen: de Tab-lijst in het spel is compact (naam, kleur, ping, afstand met richting, klaar), met pictogrammen voor dempen en blokkeren die later werken. Samen-spelen-regel: dit is een weergave; wie het spel opende ziet Overdragen en Eruit zetten, elke speler ziet dezelfde lijst, zie docs/COOP-GAST.md.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
