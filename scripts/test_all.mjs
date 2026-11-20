@@ -225,6 +225,8 @@ const ZWAAR = [
   ['prop_conflict_audit', 'scripts/world/prop_conflict_audit.mjs', ['--strict'], 900, true],
   ['prop_conflict_audit_test', 'scripts/prop_conflict_audit_test.mjs', [], 600, true],
   ['world_audit', 'scripts/world/world_audit.mjs', ['--strict'], 600, true],
+  ['bridge_support_test', 'scripts/bridge_support_test.mjs', [], 300, true],
+  ['world_misplaced_test', 'scripts/world_misplaced_test.mjs', [], 300, true],
   ['mission_prop_audit', 'scripts/world/mission_prop_audit.mjs', ['--strict'], 300, true],
   ['park_road_audit', 'scripts/world/park_road_audit.mjs', ['--strict'], 600, true],
   ['prop_water_audit', 'scripts/world/prop_water_audit.mjs', ['--strict'], 600, true],

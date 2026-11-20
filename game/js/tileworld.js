@@ -20,6 +20,7 @@ import { dropWaterDuplicates } from './waterdupes.js';
 import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
 import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
 import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
+import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
@@ -343,7 +344,7 @@ export class TileWorld extends GameMap {
     let greenAdded = false;
     // de bomen en heggen van deze tegel, voor de groenopruiming onderaan (#508), en of de tegel wegen meebrengt:
     // ook een rij die een buurtegel al invoegde, reikt met zijn zoom deze tegel in en moet de ring laten kijken
-    const ownTrees = [], ownHedges = [];
+    const ownTrees = [], ownHedges = [], ownBuildings = [];
     let hasRoads = false;
     // the rows this tile holds, [kind, gid, kind, gid, ...]: dropTile visits these instead of every row of the world (#379, #247)
     const held = [];
@@ -378,7 +379,7 @@ export class TileWorld extends GameMap {
           if (kind === 'roads') { obj._ord = 1e7 + (this._ordSeq = (this._ordSeq || 0) + 1); newRoads.push(obj); this._roadVer = (this._roadVer || 0) + 1; }
           // (#754) laagversies: de routinggraaf hangt aan wegen en gebouwen; een tegel
           // met alleen bomen, groen of water laat hem staan (routing.js ensureGraph)
-          if (kind === 'buildings') this._buildingVer = (this._buildingVer || 0) + 1;
+          if (kind === 'buildings') { this._buildingVer = (this._buildingVer || 0) + 1; ownBuildings.push(obj); }
           if (kind === 'green') greenAdded = true;
           if (kind === 'trees') ownTrees.push(obj);
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) ownHedges.push(obj);
@@ -414,13 +415,33 @@ export class TileWorld extends GameMap {
       const cx = (w.bounds[0] + w.bounds[2]) / 2, cy = (w.bounds[1] + w.bounds[3]) / 2;
       for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2)) markDryRoad(this, r);
     }
+    // een ongenaamd gebouw op een rijbaan of in water is een fout in de kaart (wereldaudit 21-11, #1045): het gaat
+    // niet de grids in, zodat het niet getekend wordt en niet blokkeert (propfilter.misplacedBuilding); `dropped` laat
+    // de verre laag het ook overslaan. Alleen kijken naar wat deze tegel zelf meebrengt, met de wegen en het water
+    // die er dan liggen.
+    const [bx0, by0] = tileOrigin(tile.i, tile.j);
+    const candidates = ownBuildings.slice();
+    if ((newRoads.length || newWater.length) && this.buildingGrid) {
+      // (de wegen en het water van deze tegel reiken ook de buurtegel in: de gebouwen binnen 12 m van de rand opnieuw toetsen)
+      const R = 12;
+      for (const q of [[bx0 - R, by0 - R, bx0 + TILE_M + R, by0], [bx0 - R, by0 + TILE_M, bx0 + TILE_M + R, by0 + TILE_M + R], [bx0 - R, by0, bx0, by0 + TILE_M], [bx0 + TILE_M, by0, bx0 + TILE_M + R, by0 + TILE_M]]) {
+        for (const b of this.buildingGrid.query(...q)) if (!b.dropped && !ownBuildings.includes(b)) candidates.push(b);
+      }
+    }
+    for (const b of candidates) {
+      if (b.dropped || !propfilter.misplacedBuilding(this, b)) continue;
+      b.dropped = true;
+      if (this.buildingGrid) this.buildingGrid.remove(b, b.bounds || boundsOfObj('buildings', b));
+      if (this._buildingDelta) this._buildingDelta.push(b);
+      this.droppedBuildings = (this.droppedBuildings || 0) + 1;
+    }
     yield; // de listeners (far-LOD, canopies) hoeven niet in hetzelfde stuk (#650)
     for (const fn of this._tileListeners || []) fn('add', tile, tk);
     // het groen van deze tegel naast de weg (#508): de vulbomen van bos en kerkhof kwamen per tegel op de weg te
     // staan waar de weg in de buurtegel ligt, en de gemapte heggen liepen over de rijbaan. Met deze tegel erbij zijn
     // de eigen bomen en heggen te beoordelen, en met zijn wegen ook die van de buren binnen 12 m.
     const [ox, oy] = tileOrigin(tile.i, tile.j);
-    const trimmed = trimTileGreenery(this, [ox, oy, ox + TILE_M, oy + TILE_M], { trees: ownTrees, hedges: ownHedges, roads: hasRoads });
+    const trimmed = trimTileGreenery(this, [ox, oy, ox + TILE_M, oy + TILE_M], { trees: ownTrees, hedges: ownHedges, roads: hasRoads || newWater.length > 0 || ownBuildings.length > 0 });
     const gs = this.greeneryStats || (this.greeneryStats = { removed: 0, moved: 0, hedges: 0 });
     gs.removed += trimmed.removed; gs.moved += trimmed.moved; gs.hedges += trimmed.hedges;
     // #314 C2 (stap 4): één geo-versie voor de caches die uit de rasters/arrays bouwen

@@ -46,23 +46,27 @@ De audit oordeelt op de ruwe tegelrijen, onafhankelijk van de filters van het sp
 Het vorige onderzoek van de weilandranden bleef schoon: `prop_conflict_audit --strict` geeft nul voor palen,
 draad, heggen en vee over spoor, weg, water en gebouw, en `park_road_audit --strict` nul na de filter.
 
-## Resterende gevallen (in de tegeldata zelf; herbouw nodig, #1045)
+## Resterende gevallen (in de tegeldata zelf) en wat het spel er bij het laden van overlaat (#1045)
 
-| Categorie | Aantal |
-|---|---:|
-| Gebouwen met middelpunt op een rijbaan | 146 |
-| Gebouwen in water (o.a. De Drie Delfzijlen, Gemaal Rozema, 5 zonder naam) | 7 |
-| Bomen in water | 83 |
-| Bomen in een gebouw | 36 |
-| Meubelrijen in water, ruw (het spel filtert bij het tekenen) | 80 |
-| Meubelrijen in een gebouw, ruw (idem) | 44 |
-| Brugdekken zonder water, spoor of weg eronder | 161 |
-| Stadsperrons zonder spoor in de provinciegegevens (vermoedelijk stad.json) | 13 |
-| Landmark in water (De Drie Delfzijlen) | 1 |
+Het spel laat bij het laden van een tegel weg wat de audit op de ruwe rijen telt (`propfilter.misplacedBuilding` in
+`tileworld.js addTileSteps`, `tilegreenery.js retrimTree`; test `scripts/world_misplaced_test.mjs`). De audit telt
+`...After` mee.
 
-Herbouwcommando (niet gedraaid, zoals gevraagd): `node scripts/world/build_province.mjs`, daarna
-`cd desktop && npm run stage`. Reden: gebouw- en boomrijen komen uit de pakketbouw (`tegel_schoon.mjs`,
-`treeclear.js`), niet uit de runtime.
+| Categorie | Ruw | Na het laden |
+|---|---:|---:|
+| Gebouwen met middelpunt op een rijbaan | 146 | 18 (groot of benoemd: poort- en tunnelpanden) |
+| Gebouwen in water (o.a. De Drie Delfzijlen, Gemaal Rozema) | 7 | 2 (de benoemde) |
+| Bomen in water | 83 | 0 |
+| Bomen in een gebouw | 36 | 0 |
+| Meubelrijen in water, ruw (het spel filtert bij het tekenen) | 80 | 0 |
+| Meubelrijen in een gebouw, ruw (idem) | 44 | 0 |
+| Brugdekken zonder water, spoor of weg eronder (per OSM-weg) | 145 (161 rijen) | 16 verhoogd (dek met pijlers, `bridge_support_test`), 129 vlak (brug over sloot of pad, dek op de grond: onschuldig) |
+| Stadsperrons zonder spoor in de provinciegegevens | 13 | 13 (meetartefact: 12 liggen in de stad, waarvan het spoor in `stad.json` staat en niet in de provinciegegevens; geen herbouw nodig) |
+| Landmark in water (De Drie Delfzijlen) | 1 | 1 (benoemd) |
+
+Een herbouw (`node scripts/world/build_province.mjs`, daarna `cd desktop && npm run stage`) is voor niets hiervan nog nodig. De
+gebouwen en bomen blijven in de tegels staan: het spel slaat ze bij het laden over. Wil de eigenaar ze ook uit de tegels, dan is de
+herbouw de plek (`tegel_schoon.mjs` doet dat al voor bomen op de weg); de filters blijven dan een vangnet.
 
 ## Niet gedaan of niet bewezen
 

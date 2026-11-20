@@ -9,6 +9,7 @@
 // world: het spel (TileWorld) of, in een audit, { roadsNear, buildingsNear, waterNear }.
 import { closestPointOnSegment, polygonBounds } from './util.js';
 import { treeBesideRoad } from './treeclear.js';
+import { inBuildingAt, waterDistance } from './propfilter.js';
 
 // Een heg stopt deze afstand vóór de rand van de rijbaan (m); de audits gunnen 0,2 m afronding.
 export const HEDGE_ROOM = 0.3;
@@ -125,7 +126,8 @@ function retrimHedge(world, h) {
 // Een boom naast de weg zetten of weghalen (treeclear.js), en het boomraster volgen: een verplaatste boom staat
 // in de cellen van zijn nieuwe plek, een verdwenen boom staat er niet meer in (het spel tekent wat hier staat).
 function retrimTree(world, t) {
-  const p = treeBesideRoad(world, t[0], t[1]);
+  // een boom in een watervlak of in een gebouw is een fout in de kaart (wereldaudit 21-11, #1045): weg
+  const p = inBuildingAt(world, t[0], t[1]) || waterDistance(world, t[0], t[1], 0.5) === 0 ? null : treeBesideRoad(world, t[0], t[1]);
   if (!p) {
     if (world.treeGrid) world.treeGrid.remove(t, [t[0], t[1], t[0], t[1]]);
     return 'weg';

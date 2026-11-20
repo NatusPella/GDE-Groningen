@@ -154,3 +154,29 @@ export function stationFit(map, item, len = 32, wid = 12) {
   }
   return pick && { x: pick.x, y: pick.y, len, wid, angle: pick.angle };
 }
+
+// Het oppervlak (m2) en het zwaartepunt van een gebouwomtrek (voor de wegcheck hieronder).
+function footprint(P) {
+  let a = 0, cx = 0, cy = 0;
+  const n = P.length - (P.length > 1 && P[0][0] === P[P.length - 1][0] && P[0][1] === P[P.length - 1][1] ? 1 : 0);
+  for (let i = 0; i < n; i++) { cx += P[i][0]; cy += P[i][1]; const j = (i + 1) % n; a += P[i][0] * P[j][1] - P[j][0] * P[i][1]; }
+  return { area: Math.abs(a) / 2, x: cx / n, y: cy / n };
+}
+
+// Hoogstens zo groot (m2) is een gebouw dat op een rijbaan vervalt: een schuur of garage op het asfalt is een
+// fout in de kaart (de weg loopt er in werkelijkheid langs); een groot gebouw met een weg door zijn midden is
+// een poort of tunnelpand en blijft.
+export const MISPLACED_MAX_AREA = 150;
+const MISPLACED_SKIP = new Set(['roof', 'houseboat', 'static_caravan', 'dock', 'train_station']);
+
+// Staat een gebouw op een verkeerde plek in de tegelkaart (wereldaudit 21-11, #1045): zonder naam of landmark en
+// 'weg' als het zwaartepunt op een rijbaan op maaiveld ligt (alleen een klein gebouw), 'water' als het in een
+// watervlak staat (de benoemde, zoals Gemaal Rozema, staan terecht op het water). Anders null.
+// Pure functie op de kaart (TileWorld of de auditvorm); de tegelwereld verwijdert zo'n gebouw bij het laden van de tegel.
+export function misplacedBuilding(map, b) {
+  if (!b || !b.pts || b.pts.length < 3 || b.landmark || b.name || MISPLACED_SKIP.has(b.type)) return null;
+  const f = footprint(b.pts);
+  if (waterDistance(map, f.x, f.y, 0.5) === 0) return 'water';
+  if (f.area <= MISPLACED_MAX_AREA && onGroundRoad(map, f.x, f.y, 0)) return 'weg';
+  return null;
+}
