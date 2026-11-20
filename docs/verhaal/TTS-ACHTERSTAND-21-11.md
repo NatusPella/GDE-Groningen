@@ -4,15 +4,15 @@ Gegenereerd door `node scripts/voice_backlog.mjs --write`; niet met de hand aanp
 
 ## Kern
 
-- **Stand 21-11:** `voice_coverage.mjs` meldt 1.301/1.511 geregistreerde regels met opname en 1.394/1.394 verhaalregels (`script.json`); 37 stille appjes zijn bewust zonder stem. Geesje (18), Rotor Roelf (2) en Tessa (10) zijn op 20-11 ingesproken (7277a5a9c, herkomst in `tts.json`).
-- **Wat er nog ontbreekt** (de bronnen zijn op 21-11 geregistreerd, zie hieronder): **345 regels, 19.521 tekens, ca. $0,24** (zonder gebabbel; met alles erbij $0,33). De tabellen hieronder tellen wat nog geen opname heeft; zijn de batches klaar, dan staat hier nul.
+- **Stand 21-11:** `voice_coverage.mjs` meldt 1.303/1.511 geregistreerde regels met opname en 1.394/1.394 verhaalregels (`script.json`); 37 stille appjes zijn bewust zonder stem. Geesje (18), Rotor Roelf (2) en Tessa (10) zijn op 20-11 ingesproken (7277a5a9c, herkomst in `tts.json`).
+- **Wat er nog ontbreekt** (de bronnen zijn op 21-11 geregistreerd, zie hieronder): **341 regels, 19.157 tekens, ca. $0,24** (zonder gebabbel; met alles erbij $0,33). De tabellen hieronder tellen wat nog geen opname heeft; zijn de batches klaar, dan staat hier nul.
 - Een bron die is geregistreerd telt mee in `voice_coverage` en `tts_lines_list.mjs` maakt er opdrachten van; zolang er regels zonder opname zijn, is `voice_coverage` rood.
 
 ## 1. Wat al klopt (geen werk)
 
 | Bron | Stand |
 |---|---|
-| `voice_coverage.mjs`, geregistreerde tabellen | 1.301/1.511 met stem |
+| `voice_coverage.mjs`, geregistreerde tabellen | 1.303/1.511 met stem |
 | `script.json` (verhaal), regels met opname | 1.394 van 1.394 (0 zonder) |
 | Stille appjes (`channel: app-stil`), bewust | 37 |
 | `TECH_HINTS` (technische wachtmelding, geen stem) | 1: "De weg hier wordt nog geladen. Even wachten…" |
@@ -25,12 +25,12 @@ Gegenereerd door `node scripts/voice_backlog.mjs --write`; niet met de hand aanp
 |---|---:|---:|---|---:|
 | Restpunten: vertellersregels die de teller uitsluit (PENDING_TTS) | 0 | 0 | 0 s audio | $0,00 |
 | Terugkeervignetten (flat, Tammo en Tessa) | 96 | 2.178 | 4 min audio | $0,03 |
-| Doelregels van de nieuwe missies (Tammo en Tessa zeggen ze om en om) | 202 | 14.802 | 20 min audio | $0,18 |
+| Doelregels van de nieuwe missies (Tammo en Tessa zeggen ze om en om) | 198 | 14.438 | 19 min audio | $0,17 |
 | Vragen in keuzegesprekken (Loket, Wiebelwerk, de bond) | 9 | 412 | 35 s audio | $0,01 |
 | Heropname na inclusieve taal (oude opname klinkt nog) | 10 | 489 | 41 s audio | $0,01 |
 | Reacties in keuzegesprekken (mix van spraak en verteltekst) | 26 | 1.503 | 2 min audio | $0,02 |
 | Bewust stil, tekst gewijzigd (voice_stil.json) | 2 | 137 | 11 s audio | $0,00 |
-| **Totaal ontbrekend (zonder gebabbel)** | 345 | 19.521 | 27 min audio | $0,24 |
+| **Totaal ontbrekend (zonder gebabbel)** | 341 | 19.157 | 26 min audio | $0,24 |
 | Opgevangen gebabbel (`gebabbel.js`, bewust alleen tekst) | 236 | 6.747 | 10 min audio | $0,09 |
 
 "Doelregels" tellen twee clips per tekst: het spel laat de partner (de ander dan jij) de kaart voorlezen, dus er zijn een Tammo- en een Tessa-opname nodig (zoals de 224 bestaande hints).
@@ -39,8 +39,8 @@ Gegenereerd door `node scripts/voice_backlog.mjs --write`; niet met de hand aanp
 
 | Stem (personage) | Gebruikte stemnaam | Taal | Regels | Tekens | Kosten | Wacht op Groningse spreektekst |
 |---|---|---|---:|---:|---:|---:|
-| Tessa (intern Anita) | Callirrhoe | Nederlands | 153 | 8.641 | $0,11 | 0 |
-| Tammo | Orus | Gronings (spreektekst nodig) | 151 | 8.671 | $0,11 | 5 |
+| Tessa (intern Anita) | Callirrhoe | Nederlands | 151 | 8.471 | $0,10 | 0 |
+| Tammo | Orus | Gronings (spreektekst nodig) | 149 | 8.477 | $0,10 | 5 |
 | Accountmanager | Zubenelgenubi | Gronings (spreektekst nodig) | 3 | 80 | $0,00 | 0 |
 | Rikus | Schedar | zie profiel | 2 | 105 | $0,00 | 0 |
 | Jelle Terpstra | Fenrir | Nederlands (met accent) | 2 | 106 | $0,00 | 0 |
@@ -61,7 +61,7 @@ Een stem met "Gronings (spreektekst nodig)" kan pas worden opgenomen als de rege
 | akte 1-3: Laag over het graan | hoog | 15 | 1.098 | $0,01 | 0 |
 | akte 1-3: Nul krassen, vijftienhonderd punten | hoog | 2 | 176 | $0,00 | 0 |
 | akte 1-3: Vlieg Dijkstra's lunch naar het UMCG, haal dan de… | hoog | 4 | 522 | $0,01 | 1 |
-| akte 2: Een trekker-limo op de wierde | hoog | 11 | 891 | $0,01 | 0 |
+| akte 2: Een trekker-limo op de wierde | hoog | 7 | 527 | $0,01 | 0 |
 | akte 4: Eerst de kras van de wagon: Tinus kijkt ernaar | middel | 4 | 348 | $0,00 | 0 |
 | akte 4: Het beleg van Bourtange | middel | 30 | 1.876 | $0,02 | 0 |
 | akte 4: Open, dicht | middel | 12 | 964 | $0,01 | 0 |
@@ -87,7 +87,7 @@ Een stem met "Gronings (spreektekst nodig)" kan pas worden opgenomen als de rege
 | Reacties in keuzegesprekken | 26 regels | Veel reacties zijn verteltekst ("Berend knikt langzaam. Hij schrijft niks op") of beginnen met een naam en een citaat. Eerst per regel bepalen: spreekregel van een NPC, of ondertitel van het scherm. Niet opnemen zonder die keuze. |
 | Terugkeervignetten: spreker "Tessa" | 50 regels | De scène zoekt de opname onder de spreker "Tessa" (`terugkeerRegels`, `NAME`), terwijl alle andere Tessa-opnames onder "Anita" staan en `linevoice.js` exact zoekt. Besluit eerst: de spreker in de vignetten op "Anita" zetten, of de opname onder "Tessa" bewaren. |
 | Terugkeervignetten: Tammo | 0 regels | Tammo spreekt Gronings; elke regel heeft een spreektekst nodig die een kenner schrijft of goedkeurt (een agent verzint geen Gronings, constitution 1). Tessa's regels zijn gewoon Nederlands. |
-| Doelregels van Tammo | 1 van 101 regels | Zelfde reden: Groningse spreektekst voor Tammo. Verwerk eerst `gronings_merge_draft.mjs`. |
+| Doelregels van Tammo | 1 van 99 regels | Zelfde reden: Groningse spreektekst voor Tammo. Verwerk eerst `gronings_merge_draft.mjs`. |
 | Doelregels met cijfers, plaatsnamen en bedrijfsnamen | (steekproef) | Een voorgelezen regel moet `node scripts/text_audit.mjs` en het merkenregister (`docs/MERKENREGISTER.md`) halen: Wiebelwerk, Spuit & Klaar, Delfstof Noord en EIKEA zijn verzonnen; alle namen opnieuw tegen het register leggen. |
 | Doelregels met toetsen en tekens | (steekproef) | "W/S", "{W}", "(E)" worden door `spoken()` in `voicelines_collect.mjs` omgezet; bij nieuwe doelregels hetzelfde doen, anders leest de stem "slash" voor. |
 | #987 M03.2 (Mevrouw Hoving, 1998, 1982, "sinds woensdag") | 5 regels van Mevrouw Hoving staan al op de band | De tekst is de dichtste van de eerste 30 minuten (`EERSTE-30-MINUTEN-20-11.md`, punt 6). Wordt de tekst herschreven, dan zijn die clips niet meer geldig (een andere letter maakt de regel stil): eerst tekst, dan eventueel opnieuw opnemen. Niet in een batch zetten. |
@@ -115,11 +115,11 @@ Echte namen of merken in de ontbrekende regels: een steekproef over de hoofdlett
 
 | Batch | Inhoud | Omvang | Looptijd | Wacht op |
 |---|---|---|---|---|
-| 1 | De restpunten en de doelregels en vragen van het begin van het verhaal (Het Loket, akte 1 tot 3: de regels die iedere speler hoort) | 54 clips, 4.095 tekens, 5 min audio, ca. $0,05 | ca. 3 tot 5 min (ruwe schatting, 3 tot 6 s per clip met normalisatie) | registreren; spreektekst voor Tammo (1 regels) |
+| 1 | De restpunten en de doelregels en vragen van het begin van het verhaal (Het Loket, akte 1 tot 3: de regels die iedere speler hoort) | 50 clips, 3.731 tekens, 5 min audio, ca. $0,04 | ca. 3 tot 5 min (ruwe schatting, 3 tot 6 s per clip met normalisatie) | registreren; spreektekst voor Tammo (1 regels) |
 | 2 | De terugkeervignetten en de doelregels en vragen van akte 4, 5 en 6 | 253 clips, 13.297 tekens, 18 min audio, ca. $0,17 | ca. 13 tot 25 min (ruwe schatting, 3 tot 6 s per clip met normalisatie) | registreren; besluit speaker "Tessa"; spreektekst voor Tammo (0 regels) |
 | 3 | Heropnames inclusieve taal, de stille Kiezelweek-regel en de reacties die na tekstcontrole een spreekregel blijken | 38 clips, 2.129 tekens, 3 min audio, ca. $0,03 | ca. 2 tot 4 min (ruwe schatting, 3 tot 6 s per clip met normalisatie) | tekstcontrole en akkoord van de eigenaar |
 
-Alles samen 345 clips, 19.521 tekens, 27 min audio, ca. $0,24. Ter vergelijking: het hele nieuwe verhaal kostte op flash-lite ca. $0,55 (ADR 0019). De schatting volgt het prijsmodel van `gemini_tts.py` (25 audiotokens per seconde, $6 per miljoen, tekens gedeeld door 14 plus 0,6 s per clip) en is een bovengrens: de echte kosten lagen bij de laatste rondes lager.
+Alles samen 341 clips, 19.157 tekens, 26 min audio, ca. $0,24. Ter vergelijking: het hele nieuwe verhaal kostte op flash-lite ca. $0,55 (ADR 0019). De schatting volgt het prijsmodel van `gemini_tts.py` (25 audiotokens per seconde, $6 per miljoen, tekens gedeeld door 14 plus 0,6 s per clip) en is een bovengrens: de echte kosten lagen bij de laatste rondes lager.
 
 ### Commando's per batch (niet uitgevoerd)
 
@@ -129,8 +129,8 @@ Draai ze in deze volgorde, op een schone werkboom. De droogloop vraagt geen sleu
 
 ```
 node scripts/tts_lines_list.mjs
-node scripts/tts_opnameronde.mjs --dry --budget 0.25 --max 64
-node scripts/tts_opnameronde.mjs --budget 0.25 --max 64
+node scripts/tts_opnameronde.mjs --dry --budget 0.25 --max 60
+node scripts/tts_opnameronde.mjs --budget 0.25 --max 60
 node scripts/voice_coverage.mjs --quiet
 node scripts/opnamelijst.mjs --check
 node scripts/voice_backlog.mjs --write
@@ -280,14 +280,10 @@ node scripts/voice_backlog.mjs --write
 | terugkeerscenes.js | Terugkeer fase 4 | Anita | Dat zegt hij zelf ook. |  |
 | terugkeerscenes.js | Terugkeer fase 4 | Tammo | Dan zal het wel kloppen. |  |
 
-### Doelregels van de nieuwe missies (Tammo en Tessa zeggen ze om en om) (202)
+### Doelregels van de nieuwe missies (Tammo en Tessa zeggen ze om en om) (198)
 
 | Bron | Missie of scène | Stem | Tekst | Opmerking |
 |---|---|---|---|---|
-| missions_akte2.js | akte 2: Een trekker-limo op de wierde | Tammo | Als Jelle de koffer loslaat, pakken wij hem. Op de quad. Schud de limo af en haal de sloo… |  |
-| missions_akte2.js | akte 2: Een trekker-limo op de wierde | Anita | Als Jelle de koffer loslaat, pakken wij hem. Op de quad. Schud de limo af en haal de sloo… |  |
-| missions_akte2.js | akte 2: Een trekker-limo op de wierde | Anita | De quad van Geesjes neef staat klaar. Springen, Tammo, hij rijdt. |  |
-| missions_akte2.js | akte 2: Een trekker-limo op de wierde | Tammo | Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen. |  |
 | missions_akte2.js | akte 2: Een trekker-limo op de wierde | Anita | Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen. |  |
 | missions_akte2.js | akte 2: Een trekker-limo op de wierde | Tammo | Bijna bij de sloot. Jelle zit er nog achter, dus blijf rijden. |  |
 | missions_akte2.js | akte 2: Een trekker-limo op de wierde | Anita | Bijna bij de sloot. Jelle zit er nog achter, dus blijf rijden. |  |
