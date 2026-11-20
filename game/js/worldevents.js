@@ -15,6 +15,7 @@ import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { GROTE_MARKT } from './flavour.js';
 import { showFor } from './evenementen.js';
+import { stepContext } from './sfx/steps.js';
 import { updateMarktSigns } from './marktfiets.js';
 import {
   QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, quakeDust, bikeWobble, QUAKE_BARKS, quakeNewsText,
@@ -62,6 +63,7 @@ export function initWorldEvents(w) {
 export function updateWorldEvents(dt, w) {
   if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
+  stepContext.indoors = inHomeFlat();   // the feet hear a floor indoors (sfx/foley.js)
   updateQuake(dt, w);
   updateAlgae(dt, w);
   updateFireworks(dt, w);

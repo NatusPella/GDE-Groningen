@@ -261,6 +261,1566 @@
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "stap_asfalt_0": {
+      "bestand": "stap_asfalt_0.ogg",
+      "gebruik": "voetstap op asfalt en beton: weg, fietspad",
+      "loop": false,
+      "duur_s": 0.294,
+      "grootte_kb": 6,
+      "herkomst": {
+        "titel": "Footsteps_Quick.wav",
+        "auteur": "georgisound",
+        "freesound_id": 368833,
+        "url": "https://freesound.org/people/georgisound/sounds/368833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "a5be1dbb568f737b5ff88012fe1302405863dbf370d9af4c5e8c4f47d80deccd"
+      },
+      "knip_s": {
+        "start": 10.619,
+        "duur": 0.294
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -4.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_asfalt_1": {
+      "bestand": "stap_asfalt_1.ogg",
+      "gebruik": "voetstap op asfalt en beton: weg, fietspad",
+      "loop": false,
+      "duur_s": 0.254,
+      "grootte_kb": 5.6,
+      "herkomst": {
+        "titel": "Running footsteps on pavement.WAV",
+        "auteur": "thomasanthony321",
+        "freesound_id": 682771,
+        "url": "https://freesound.org/people/thomasanthony321/sounds/682771/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9690e193c2675e73423273988ce527be52599b13269dd81ce750d21437a6367"
+      },
+      "knip_s": {
+        "start": 0.155,
+        "duur": 0.254
+      },
+      "niveau": {
+        "rms_db": -27.2,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_asfalt_2": {
+      "bestand": "stap_asfalt_2.ogg",
+      "gebruik": "voetstap op asfalt en beton: weg, fietspad",
+      "loop": false,
+      "duur_s": 0.272,
+      "grootte_kb": 5.7,
+      "herkomst": {
+        "titel": "Footsteps_Quick.wav",
+        "auteur": "georgisound",
+        "freesound_id": 368833,
+        "url": "https://freesound.org/people/georgisound/sounds/368833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "a5be1dbb568f737b5ff88012fe1302405863dbf370d9af4c5e8c4f47d80deccd"
+      },
+      "knip_s": {
+        "start": 3.444,
+        "duur": 0.272
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -9.9
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_asfalt_3": {
+      "bestand": "stap_asfalt_3.ogg",
+      "gebruik": "voetstap op asfalt en beton: weg, fietspad",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 6.2,
+      "herkomst": {
+        "titel": "Running footsteps on pavement.WAV",
+        "auteur": "thomasanthony321",
+        "freesound_id": 682771,
+        "url": "https://freesound.org/people/thomasanthony321/sounds/682771/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9690e193c2675e73423273988ce527be52599b13269dd81ce750d21437a6367"
+      },
+      "knip_s": {
+        "start": 3.71,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.3
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_asfalt_4": {
+      "bestand": "stap_asfalt_4.ogg",
+      "gebruik": "voetstap op asfalt en beton: weg, fietspad",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 6,
+      "herkomst": {
+        "titel": "Footsteps_Quick.wav",
+        "auteur": "georgisound",
+        "freesound_id": 368833,
+        "url": "https://freesound.org/people/georgisound/sounds/368833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "a5be1dbb568f737b5ff88012fe1302405863dbf370d9af4c5e8c4f47d80deccd"
+      },
+      "knip_s": {
+        "start": 8.132,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -25.9,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_asfalt_5": {
+      "bestand": "stap_asfalt_5.ogg",
+      "gebruik": "voetstap op asfalt en beton: weg, fietspad",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 6.1,
+      "herkomst": {
+        "titel": "Running footsteps on pavement.WAV",
+        "auteur": "thomasanthony321",
+        "freesound_id": 682771,
+        "url": "https://freesound.org/people/thomasanthony321/sounds/682771/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9690e193c2675e73423273988ce527be52599b13269dd81ce750d21437a6367"
+      },
+      "knip_s": {
+        "start": 2.471,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_binnen_0": {
+      "bestand": "stap_binnen_0.ogg",
+      "gebruik": "voetstap op binnen: vloer van een huis of kantoor",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.5,
+      "herkomst": {
+        "titel": "Indoor Footsteps.mp3",
+        "auteur": "Yin_Yang_Jake007",
+        "freesound_id": 415301,
+        "url": "https://freesound.org/people/Yin_Yang_Jake007/sounds/415301/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d510bfe818561483066161a78dabf6c141d16c5c86bfffab68c99cb05a0f5736"
+      },
+      "knip_s": {
+        "start": 7.466,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -4.4
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_binnen_1": {
+      "bestand": "stap_binnen_1.ogg",
+      "gebruik": "voetstap op binnen: vloer van een huis of kantoor",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "footsteps_approach.aiff",
+        "auteur": "nothayama",
+        "freesound_id": 172492,
+        "url": "https://freesound.org/people/nothayama/sounds/172492/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "354b00fc38d84f969db19cbc93f468e7627712540273f59fefedf3e45057e899"
+      },
+      "knip_s": {
+        "start": 3.424,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -10.4
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_binnen_2": {
+      "bestand": "stap_binnen_2.ogg",
+      "gebruik": "voetstap op binnen: vloer van een huis of kantoor",
+      "loop": false,
+      "duur_s": 0.244,
+      "grootte_kb": 5,
+      "herkomst": {
+        "titel": "Indoor Footsteps.mp3",
+        "auteur": "Yin_Yang_Jake007",
+        "freesound_id": 415301,
+        "url": "https://freesound.org/people/Yin_Yang_Jake007/sounds/415301/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d510bfe818561483066161a78dabf6c141d16c5c86bfffab68c99cb05a0f5736"
+      },
+      "knip_s": {
+        "start": 5.551,
+        "duur": 0.244
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -5.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_binnen_3": {
+      "bestand": "stap_binnen_3.ogg",
+      "gebruik": "voetstap op binnen: vloer van een huis of kantoor",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "footsteps_approach.aiff",
+        "auteur": "nothayama",
+        "freesound_id": 172492,
+        "url": "https://freesound.org/people/nothayama/sounds/172492/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "354b00fc38d84f969db19cbc93f468e7627712540273f59fefedf3e45057e899"
+      },
+      "knip_s": {
+        "start": 2.053,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -13
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_binnen_4": {
+      "bestand": "stap_binnen_4.ogg",
+      "gebruik": "voetstap op binnen: vloer van een huis of kantoor",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.3,
+      "herkomst": {
+        "titel": "Indoor Footsteps.mp3",
+        "auteur": "Yin_Yang_Jake007",
+        "freesound_id": 415301,
+        "url": "https://freesound.org/people/Yin_Yang_Jake007/sounds/415301/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d510bfe818561483066161a78dabf6c141d16c5c86bfffab68c99cb05a0f5736"
+      },
+      "knip_s": {
+        "start": 2.714,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -8.8
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_binnen_5": {
+      "bestand": "stap_binnen_5.ogg",
+      "gebruik": "voetstap op binnen: vloer van een huis of kantoor",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "footsteps_approach.aiff",
+        "auteur": "nothayama",
+        "freesound_id": 172492,
+        "url": "https://freesound.org/people/nothayama/sounds/172492/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "354b00fc38d84f969db19cbc93f468e7627712540273f59fefedf3e45057e899"
+      },
+      "knip_s": {
+        "start": 4.553,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -8.6
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_gras_0": {
+      "bestand": "stap_gras_0.ogg",
+      "gebruik": "voetstap op gras en aarde",
+      "loop": false,
+      "duur_s": 0.28,
+      "grootte_kb": 6,
+      "herkomst": {
+        "titel": "Footsteps grass.wav",
+        "auteur": "jedg",
+        "freesound_id": 505833,
+        "url": "https://freesound.org/people/jedg/sounds/505833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "70eb4aa8fa9f086dd5959b3fedbbc9b19ee81ffac3b80bebec3dac8ab0704bc2"
+      },
+      "knip_s": {
+        "start": 7.102,
+        "duur": 0.28
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -1.9
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_gras_1": {
+      "bestand": "stap_gras_1.ogg",
+      "gebruik": "voetstap op gras en aarde",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.3,
+      "herkomst": {
+        "titel": "Grass Step Left",
+        "auteur": "spycrah",
+        "freesound_id": 535220,
+        "url": "https://freesound.org/people/spycrah/sounds/535220/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "4c8050aebdbc0197a1873b948a5072ccdb48308c1e678008073f201e005bcc97"
+      },
+      "knip_s": {
+        "start": 0.236,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -7.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_gras_2": {
+      "bestand": "stap_gras_2.ogg",
+      "gebruik": "voetstap op gras en aarde",
+      "loop": false,
+      "duur_s": 0.298,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "Footsteps grass.wav",
+        "auteur": "jedg",
+        "freesound_id": 505833,
+        "url": "https://freesound.org/people/jedg/sounds/505833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "70eb4aa8fa9f086dd5959b3fedbbc9b19ee81ffac3b80bebec3dac8ab0704bc2"
+      },
+      "knip_s": {
+        "start": 2.79,
+        "duur": 0.298
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -7.1
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_gras_3": {
+      "bestand": "stap_gras_3.ogg",
+      "gebruik": "voetstap op gras en aarde",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.6,
+      "herkomst": {
+        "titel": "Footsteps grass.wav",
+        "auteur": "jedg",
+        "freesound_id": 505833,
+        "url": "https://freesound.org/people/jedg/sounds/505833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "70eb4aa8fa9f086dd5959b3fedbbc9b19ee81ffac3b80bebec3dac8ab0704bc2"
+      },
+      "knip_s": {
+        "start": 8.339,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -10.3
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_gras_4": {
+      "bestand": "stap_gras_4.ogg",
+      "gebruik": "voetstap op gras en aarde",
+      "loop": false,
+      "duur_s": 0.301,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "Footsteps grass.wav",
+        "auteur": "jedg",
+        "freesound_id": 505833,
+        "url": "https://freesound.org/people/jedg/sounds/505833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "70eb4aa8fa9f086dd5959b3fedbbc9b19ee81ffac3b80bebec3dac8ab0704bc2"
+      },
+      "knip_s": {
+        "start": 1.39,
+        "duur": 0.301
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -7.9
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_gras_5": {
+      "bestand": "stap_gras_5.ogg",
+      "gebruik": "voetstap op gras en aarde",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.4,
+      "herkomst": {
+        "titel": "Footsteps grass.wav",
+        "auteur": "jedg",
+        "freesound_id": 505833,
+        "url": "https://freesound.org/people/jedg/sounds/505833/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "70eb4aa8fa9f086dd5959b3fedbbc9b19ee81ffac3b80bebec3dac8ab0704bc2"
+      },
+      "knip_s": {
+        "start": 9.653,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -11.3
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_grind_0": {
+      "bestand": "stap_grind_0.ogg",
+      "gebruik": "voetstap op grind, split en zandpad",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 4.8,
+      "herkomst": {
+        "titel": "Footsteps_Boots_Gritty_Ground_(Gravel).wav",
+        "auteur": "Nox_Sound",
+        "freesound_id": 530589,
+        "url": "https://freesound.org/people/Nox_Sound/sounds/530589/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "92dcccbdbd15bb2c3548479fe554ebcc69755750f12247d96b54628d9e689c3d"
+      },
+      "knip_s": {
+        "start": 7.771,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -8.6
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_grind_1": {
+      "bestand": "stap_grind_1.ogg",
+      "gebruik": "voetstap op grind, split en zandpad",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.2,
+      "herkomst": {
+        "titel": "Footsteps_6_Dirt_shoe.wav",
+        "auteur": "monte32",
+        "freesound_id": 353799,
+        "url": "https://freesound.org/people/monte32/sounds/353799/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "3f9f4b505bd67d56b216ee444d9cfdde856116bcd21a9926b8febaeb5cc3ab93"
+      },
+      "knip_s": {
+        "start": 4.365,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -2.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_grind_2": {
+      "bestand": "stap_grind_2.ogg",
+      "gebruik": "voetstap op grind, split en zandpad",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.6,
+      "herkomst": {
+        "titel": "Left Gravel Footstep 2",
+        "auteur": "Ali_6868",
+        "freesound_id": 384871,
+        "url": "https://freesound.org/people/Ali_6868/sounds/384871/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "53b620e0a6ccaec36f3644a26bf96d6d293f4838937ab4cb6fb66c9a40058813"
+      },
+      "knip_s": {
+        "start": 0.229,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.4
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_grind_3": {
+      "bestand": "stap_grind_3.ogg",
+      "gebruik": "voetstap op grind, split en zandpad",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.9,
+      "herkomst": {
+        "titel": "Footsteps_Boots_Gritty_Ground_(Gravel).wav",
+        "auteur": "Nox_Sound",
+        "freesound_id": 530589,
+        "url": "https://freesound.org/people/Nox_Sound/sounds/530589/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "92dcccbdbd15bb2c3548479fe554ebcc69755750f12247d96b54628d9e689c3d"
+      },
+      "knip_s": {
+        "start": 3.329,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -7.6
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_grind_4": {
+      "bestand": "stap_grind_4.ogg",
+      "gebruik": "voetstap op grind, split en zandpad",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.6,
+      "herkomst": {
+        "titel": "Footsteps_6_Dirt_shoe.wav",
+        "auteur": "monte32",
+        "freesound_id": 353799,
+        "url": "https://freesound.org/people/monte32/sounds/353799/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "3f9f4b505bd67d56b216ee444d9cfdde856116bcd21a9926b8febaeb5cc3ab93"
+      },
+      "knip_s": {
+        "start": 0.537,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23.2,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_grind_5": {
+      "bestand": "stap_grind_5.ogg",
+      "gebruik": "voetstap op grind, split en zandpad",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 7,
+      "herkomst": {
+        "titel": "Footsteps_Boots_Gritty_Ground_(Gravel).wav",
+        "auteur": "Nox_Sound",
+        "freesound_id": 530589,
+        "url": "https://freesound.org/people/Nox_Sound/sounds/530589/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "92dcccbdbd15bb2c3548479fe554ebcc69755750f12247d96b54628d9e689c3d"
+      },
+      "knip_s": {
+        "start": 2.146,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -7.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_klinkers_0": {
+      "bestand": "stap_klinkers_0.ogg",
+      "gebruik": "voetstap op stenen of tegels: stoep, plein, klinkers",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.3,
+      "herkomst": {
+        "titel": "Hiking Boot Footsteps on Stone",
+        "auteur": "Fission9",
+        "freesound_id": 521590,
+        "url": "https://freesound.org/people/Fission9/sounds/521590/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "b0185b24490d7d59f7241bcc4e1cc581257c4f0781366d53585c71ab4d8751ec"
+      },
+      "knip_s": {
+        "start": 0.102,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -4.1
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_klinkers_1": {
+      "bestand": "stap_klinkers_1.ogg",
+      "gebruik": "voetstap op stenen of tegels: stoep, plein, klinkers",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "Footsteps - Stone, Rock, Concrete, Cement",
+        "auteur": "SecureSubset",
+        "freesound_id": 813622,
+        "url": "https://freesound.org/people/SecureSubset/sounds/813622/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d362a9f031471250a95c918605b46bc0735c4f06422de276fdadcf77414e0383"
+      },
+      "knip_s": {
+        "start": 3.463,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -4.4
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_klinkers_2": {
+      "bestand": "stap_klinkers_2.ogg",
+      "gebruik": "voetstap op stenen of tegels: stoep, plein, klinkers",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "FPS Footsteps Loop",
+        "auteur": "qubodup",
+        "freesound_id": 816019,
+        "url": "https://freesound.org/people/qubodup/sounds/816019/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "262ed14573c40160b3c06ecd90e3d8c8ed7676e5df7ed05757761d802a270600"
+      },
+      "knip_s": {
+        "start": 0.721,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.2
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_klinkers_3": {
+      "bestand": "stap_klinkers_3.ogg",
+      "gebruik": "voetstap op stenen of tegels: stoep, plein, klinkers",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.7,
+      "herkomst": {
+        "titel": "Hiking Boot Footsteps on Stone",
+        "auteur": "Fission9",
+        "freesound_id": 521590,
+        "url": "https://freesound.org/people/Fission9/sounds/521590/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "b0185b24490d7d59f7241bcc4e1cc581257c4f0781366d53585c71ab4d8751ec"
+      },
+      "knip_s": {
+        "start": 1.262,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_klinkers_4": {
+      "bestand": "stap_klinkers_4.ogg",
+      "gebruik": "voetstap op stenen of tegels: stoep, plein, klinkers",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "Footsteps - Stone, Rock, Concrete, Cement",
+        "auteur": "SecureSubset",
+        "freesound_id": 813622,
+        "url": "https://freesound.org/people/SecureSubset/sounds/813622/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d362a9f031471250a95c918605b46bc0735c4f06422de276fdadcf77414e0383"
+      },
+      "knip_s": {
+        "start": 0.04,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -2.1
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_klinkers_5": {
+      "bestand": "stap_klinkers_5.ogg",
+      "gebruik": "voetstap op stenen of tegels: stoep, plein, klinkers",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "FPS Footsteps Loop",
+        "auteur": "qubodup",
+        "freesound_id": 816019,
+        "url": "https://freesound.org/people/qubodup/sounds/816019/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "262ed14573c40160b3c06ecd90e3d8c8ed7676e5df7ed05757761d802a270600"
+      },
+      "knip_s": {
+        "start": 4.018,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -2.8
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_metaal_0": {
+      "bestand": "stap_metaal_0.ogg",
+      "gebruik": "voetstap op metaal: rooster, trap, autodak",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "Footsteps on Metal",
+        "auteur": "IENBA",
+        "freesound_id": 698697,
+        "url": "https://freesound.org/people/IENBA/sounds/698697/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "0977a615f000c3ebf42a432d306ef1db66e41176fd435c4a3b332d9e059c43ff"
+      },
+      "knip_s": {
+        "start": 1.512,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -5.9
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_metaal_1": {
+      "bestand": "stap_metaal_1.ogg",
+      "gebruik": "voetstap op metaal: rooster, trap, autodak",
+      "loop": false,
+      "duur_s": 0.288,
+      "grootte_kb": 6,
+      "herkomst": {
+        "titel": "Metal Grate Running",
+        "auteur": "Oilcan03",
+        "freesound_id": 786977,
+        "url": "https://freesound.org/people/Oilcan03/sounds/786977/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "9dd951bfb69a89a23d6d0de677cdd93c1e7c3c41cfe7b125a47958f7187ec166"
+      },
+      "knip_s": {
+        "start": 6.477,
+        "duur": 0.288
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -2.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_metaal_2": {
+      "bestand": "stap_metaal_2.ogg",
+      "gebruik": "voetstap op metaal: rooster, trap, autodak",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.7,
+      "herkomst": {
+        "titel": "Footsteps on Metal",
+        "auteur": "IENBA",
+        "freesound_id": 698697,
+        "url": "https://freesound.org/people/IENBA/sounds/698697/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "0977a615f000c3ebf42a432d306ef1db66e41176fd435c4a3b332d9e059c43ff"
+      },
+      "knip_s": {
+        "start": 9.247,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -11.3
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_metaal_3": {
+      "bestand": "stap_metaal_3.ogg",
+      "gebruik": "voetstap op metaal: rooster, trap, autodak",
+      "loop": false,
+      "duur_s": 0.247,
+      "grootte_kb": 5.5,
+      "herkomst": {
+        "titel": "Metal Grate Running",
+        "auteur": "Oilcan03",
+        "freesound_id": 786977,
+        "url": "https://freesound.org/people/Oilcan03/sounds/786977/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "9dd951bfb69a89a23d6d0de677cdd93c1e7c3c41cfe7b125a47958f7187ec166"
+      },
+      "knip_s": {
+        "start": 1.627,
+        "duur": 0.247
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_metaal_4": {
+      "bestand": "stap_metaal_4.ogg",
+      "gebruik": "voetstap op metaal: rooster, trap, autodak",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.6,
+      "herkomst": {
+        "titel": "Footsteps on Metal",
+        "auteur": "IENBA",
+        "freesound_id": 698697,
+        "url": "https://freesound.org/people/IENBA/sounds/698697/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "0977a615f000c3ebf42a432d306ef1db66e41176fd435c4a3b332d9e059c43ff"
+      },
+      "knip_s": {
+        "start": 6.197,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -11.6
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_metaal_5": {
+      "bestand": "stap_metaal_5.ogg",
+      "gebruik": "voetstap op metaal: rooster, trap, autodak",
+      "loop": false,
+      "duur_s": 0.3,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "Metal Grate Running",
+        "auteur": "Oilcan03",
+        "freesound_id": 786977,
+        "url": "https://freesound.org/people/Oilcan03/sounds/786977/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "9dd951bfb69a89a23d6d0de677cdd93c1e7c3c41cfe7b125a47958f7187ec166"
+      },
+      "knip_s": {
+        "start": 3.641,
+        "duur": 0.3
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -6.2
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_ren_0": {
+      "bestand": "stap_ren_0.ogg",
+      "gebruik": "voetstap op rennen op harde grond (stoep, weg)",
+      "loop": false,
+      "duur_s": 0.211,
+      "grootte_kb": 4.9,
+      "herkomst": {
+        "titel": "Running at night",
+        "auteur": "gmarchisio",
+        "freesound_id": 168013,
+        "url": "https://freesound.org/people/gmarchisio/sounds/168013/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "98613827d9eb60a69b2a2228d7abddb43c36677c66dd0b1b1ad46e8a46b59b2b"
+      },
+      "knip_s": {
+        "start": 0.106,
+        "duur": 0.211
+      },
+      "niveau": {
+        "rms_db": -24.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_ren_1": {
+      "bestand": "stap_ren_1.ogg",
+      "gebruik": "voetstap op rennen op harde grond (stoep, weg)",
+      "loop": false,
+      "duur_s": 0.26,
+      "grootte_kb": 5.5,
+      "herkomst": {
+        "titel": "Running footsteps on pavement.WAV",
+        "auteur": "thomasanthony321",
+        "freesound_id": 682771,
+        "url": "https://freesound.org/people/thomasanthony321/sounds/682771/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9690e193c2675e73423273988ce527be52599b13269dd81ce750d21437a6367"
+      },
+      "knip_s": {
+        "start": 5.551,
+        "duur": 0.26
+      },
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_ren_2": {
+      "bestand": "stap_ren_2.ogg",
+      "gebruik": "voetstap op rennen op harde grond (stoep, weg)",
+      "loop": false,
+      "duur_s": 0.228,
+      "grootte_kb": 5.4,
+      "herkomst": {
+        "titel": "Running at night",
+        "auteur": "gmarchisio",
+        "freesound_id": 168013,
+        "url": "https://freesound.org/people/gmarchisio/sounds/168013/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "98613827d9eb60a69b2a2228d7abddb43c36677c66dd0b1b1ad46e8a46b59b2b"
+      },
+      "knip_s": {
+        "start": 5.066,
+        "duur": 0.228
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -3.3
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_ren_3": {
+      "bestand": "stap_ren_3.ogg",
+      "gebruik": "voetstap op rennen op harde grond (stoep, weg)",
+      "loop": false,
+      "duur_s": 0.26,
+      "grootte_kb": 5.7,
+      "herkomst": {
+        "titel": "Running footsteps on pavement.WAV",
+        "auteur": "thomasanthony321",
+        "freesound_id": 682771,
+        "url": "https://freesound.org/people/thomasanthony321/sounds/682771/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9690e193c2675e73423273988ce527be52599b13269dd81ce750d21437a6367"
+      },
+      "knip_s": {
+        "start": 7.392,
+        "duur": 0.26
+      },
+      "niveau": {
+        "rms_db": -23.5,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_ren_4": {
+      "bestand": "stap_ren_4.ogg",
+      "gebruik": "voetstap op rennen op harde grond (stoep, weg)",
+      "loop": false,
+      "duur_s": 0.206,
+      "grootte_kb": 5,
+      "herkomst": {
+        "titel": "Running at night",
+        "auteur": "gmarchisio",
+        "freesound_id": 168013,
+        "url": "https://freesound.org/people/gmarchisio/sounds/168013/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "98613827d9eb60a69b2a2228d7abddb43c36677c66dd0b1b1ad46e8a46b59b2b"
+      },
+      "knip_s": {
+        "start": 2.087,
+        "duur": 0.206
+      },
+      "niveau": {
+        "rms_db": -23.7,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_ren_5": {
+      "bestand": "stap_ren_5.ogg",
+      "gebruik": "voetstap op rennen op harde grond (stoep, weg)",
+      "loop": false,
+      "duur_s": 0.26,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "Running footsteps on pavement.WAV",
+        "auteur": "thomasanthony321",
+        "freesound_id": 682771,
+        "url": "https://freesound.org/people/thomasanthony321/sounds/682771/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9690e193c2675e73423273988ce527be52599b13269dd81ce750d21437a6367"
+      },
+      "knip_s": {
+        "start": 8.605,
+        "duur": 0.26
+      },
+      "niveau": {
+        "rms_db": -25.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wet_0": {
+      "bestand": "stap_wet_0.ogg",
+      "gebruik": "voetstap op water en plassen",
+      "loop": false,
+      "duur_s": 0.366,
+      "grootte_kb": 7.6,
+      "herkomst": {
+        "titel": "puddle footsteps.wav",
+        "auteur": "patchytherat",
+        "freesound_id": 531566,
+        "url": "https://freesound.org/people/patchytherat/sounds/531566/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "00c502bf4ca51b813d5697fe5557a4ab485c31c173cb743d2a446ad534eb7147"
+      },
+      "knip_s": {
+        "start": 2.045,
+        "duur": 0.366
+      },
+      "niveau": {
+        "rms_db": -26.4,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wet_1": {
+      "bestand": "stap_wet_1.ogg",
+      "gebruik": "voetstap op water en plassen",
+      "loop": false,
+      "duur_s": 0.419,
+      "grootte_kb": 7.1,
+      "herkomst": {
+        "titel": "Splashing Footsteps Shallow Water",
+        "auteur": "ChristopherJngs",
+        "freesound_id": 861369,
+        "url": "https://freesound.org/people/ChristopherJngs/sounds/861369/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "288347c2d010347cc9774f04cca07e95e81eac486985fc66721bb61e6ff89929"
+      },
+      "knip_s": {
+        "start": 0.314,
+        "duur": 0.419
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -9.1
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wet_2": {
+      "bestand": "stap_wet_2.ogg",
+      "gebruik": "voetstap op water en plassen",
+      "loop": false,
+      "duur_s": 0.366,
+      "grootte_kb": 7.5,
+      "herkomst": {
+        "titel": "puddle footsteps.wav",
+        "auteur": "patchytherat",
+        "freesound_id": 531566,
+        "url": "https://freesound.org/people/patchytherat/sounds/531566/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "00c502bf4ca51b813d5697fe5557a4ab485c31c173cb743d2a446ad534eb7147"
+      },
+      "knip_s": {
+        "start": 3.747,
+        "duur": 0.366
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wet_3": {
+      "bestand": "stap_wet_3.ogg",
+      "gebruik": "voetstap op water en plassen",
+      "loop": false,
+      "duur_s": 0.403,
+      "grootte_kb": 7.8,
+      "herkomst": {
+        "titel": "Splashing Footsteps Shallow Water",
+        "auteur": "ChristopherJngs",
+        "freesound_id": 861369,
+        "url": "https://freesound.org/people/ChristopherJngs/sounds/861369/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "288347c2d010347cc9774f04cca07e95e81eac486985fc66721bb61e6ff89929"
+      },
+      "knip_s": {
+        "start": 2.454,
+        "duur": 0.403
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -4.4
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wet_4": {
+      "bestand": "stap_wet_4.ogg",
+      "gebruik": "voetstap op water en plassen",
+      "loop": false,
+      "duur_s": 0.42,
+      "grootte_kb": 8.3,
+      "herkomst": {
+        "titel": "puddle footsteps.wav",
+        "auteur": "patchytherat",
+        "freesound_id": 531566,
+        "url": "https://freesound.org/people/patchytherat/sounds/531566/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "00c502bf4ca51b813d5697fe5557a4ab485c31c173cb743d2a446ad534eb7147"
+      },
+      "knip_s": {
+        "start": 8.546,
+        "duur": 0.42
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -5.7
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wet_5": {
+      "bestand": "stap_wet_5.ogg",
+      "gebruik": "voetstap op water en plassen",
+      "loop": false,
+      "duur_s": 0.347,
+      "grootte_kb": 7.6,
+      "herkomst": {
+        "titel": "Splashing Footsteps Shallow Water",
+        "auteur": "ChristopherJngs",
+        "freesound_id": 861369,
+        "url": "https://freesound.org/people/ChristopherJngs/sounds/861369/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "288347c2d010347cc9774f04cca07e95e81eac486985fc66721bb61e6ff89929"
+      },
+      "knip_s": {
+        "start": 4.752,
+        "duur": 0.347
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -1.8
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wood_0": {
+      "bestand": "stap_wood_0.ogg",
+      "gebruik": "voetstap op houten brug, steiger en dek",
+      "loop": false,
+      "duur_s": 0.32,
+      "grootte_kb": 6.3,
+      "herkomst": {
+        "titel": "Wooden Chain bridge.WAV",
+        "auteur": "DDT197",
+        "freesound_id": 445790,
+        "url": "https://freesound.org/people/DDT197/sounds/445790/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c377bb568355dee3d04dfe21830ba400f20921817132b08e99ea653b5cf28e96"
+      },
+      "knip_s": {
+        "start": 8.164,
+        "duur": 0.32
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -11.4
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wood_1": {
+      "bestand": "stap_wood_1.ogg",
+      "gebruik": "voetstap op houten brug, steiger en dek",
+      "loop": false,
+      "duur_s": 0.251,
+      "grootte_kb": 5.3,
+      "herkomst": {
+        "titel": "Wooden Chain bridge.WAV",
+        "auteur": "DDT197",
+        "freesound_id": 445790,
+        "url": "https://freesound.org/people/DDT197/sounds/445790/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c377bb568355dee3d04dfe21830ba400f20921817132b08e99ea653b5cf28e96"
+      },
+      "knip_s": {
+        "start": 1.23,
+        "duur": 0.251
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -14.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wood_2": {
+      "bestand": "stap_wood_2.ogg",
+      "gebruik": "voetstap op houten brug, steiger en dek",
+      "loop": false,
+      "duur_s": 0.317,
+      "grootte_kb": 6,
+      "herkomst": {
+        "titel": "Wooden Chain bridge.WAV",
+        "auteur": "DDT197",
+        "freesound_id": 445790,
+        "url": "https://freesound.org/people/DDT197/sounds/445790/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c377bb568355dee3d04dfe21830ba400f20921817132b08e99ea653b5cf28e96"
+      },
+      "knip_s": {
+        "start": 0.026,
+        "duur": 0.317
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -10.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wood_3": {
+      "bestand": "stap_wood_3.ogg",
+      "gebruik": "voetstap op houten brug, steiger en dek",
+      "loop": false,
+      "duur_s": 0.299,
+      "grootte_kb": 5.8,
+      "herkomst": {
+        "titel": "Wooden Chain bridge.WAV",
+        "auteur": "DDT197",
+        "freesound_id": 445790,
+        "url": "https://freesound.org/people/DDT197/sounds/445790/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c377bb568355dee3d04dfe21830ba400f20921817132b08e99ea653b5cf28e96"
+      },
+      "knip_s": {
+        "start": 10.527,
+        "duur": 0.299
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -13.8
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wood_4": {
+      "bestand": "stap_wood_4.ogg",
+      "gebruik": "voetstap op houten brug, steiger en dek",
+      "loop": false,
+      "duur_s": 0.256,
+      "grootte_kb": 6,
+      "herkomst": {
+        "titel": "Wooden Chain bridge.WAV",
+        "auteur": "DDT197",
+        "freesound_id": 445790,
+        "url": "https://freesound.org/people/DDT197/sounds/445790/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c377bb568355dee3d04dfe21830ba400f20921817132b08e99ea653b5cf28e96"
+      },
+      "knip_s": {
+        "start": 4.592,
+        "duur": 0.256
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -14.1
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_wood_5": {
+      "bestand": "stap_wood_5.ogg",
+      "gebruik": "voetstap op houten brug, steiger en dek",
+      "loop": false,
+      "duur_s": 0.272,
+      "grootte_kb": 5.9,
+      "herkomst": {
+        "titel": "Wooden Chain bridge.WAV",
+        "auteur": "DDT197",
+        "freesound_id": 445790,
+        "url": "https://freesound.org/people/DDT197/sounds/445790/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c377bb568355dee3d04dfe21830ba400f20921817132b08e99ea653b5cf28e96"
+      },
+      "knip_s": {
+        "start": 9.214,
+        "duur": 0.272
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -12.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_zand_0": {
+      "bestand": "stap_zand_0.ogg",
+      "gebruik": "voetstap op zand en strand",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 4.7,
+      "herkomst": {
+        "titel": "01 Footsteps Sand.mp3",
+        "auteur": "Coral_Island_Studios",
+        "freesound_id": 459449,
+        "url": "https://freesound.org/people/Coral_Island_Studios/sounds/459449/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d63d2d785781f398705073d354d1e58581f6b8528447159701814ad4633573cb"
+      },
+      "knip_s": {
+        "start": 2.524,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -5.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_zand_1": {
+      "bestand": "stap_zand_1.ogg",
+      "gebruik": "voetstap op zand en strand",
+      "loop": false,
+      "duur_s": 0.311,
+      "grootte_kb": 6.6,
+      "herkomst": {
+        "titel": "Footsteps.wav",
+        "auteur": "HerbertBoland",
+        "freesound_id": 28238,
+        "url": "https://freesound.org/people/HerbertBoland/sounds/28238/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "26a9eaa67396010b18feb3bd2cd3838cc9f69d5785236afa090c8cf11a23e8ba"
+      },
+      "knip_s": {
+        "start": 11.389,
+        "duur": 0.311
+      },
+      "niveau": {
+        "rms_db": -27.1,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_zand_2": {
+      "bestand": "stap_zand_2.ogg",
+      "gebruik": "voetstap op zand en strand",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 5.7,
+      "herkomst": {
+        "titel": "01 Footsteps Sand.mp3",
+        "auteur": "Coral_Island_Studios",
+        "freesound_id": 459449,
+        "url": "https://freesound.org/people/Coral_Island_Studios/sounds/459449/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d63d2d785781f398705073d354d1e58581f6b8528447159701814ad4633573cb"
+      },
+      "knip_s": {
+        "start": 0.101,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -8
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_zand_3": {
+      "bestand": "stap_zand_3.ogg",
+      "gebruik": "voetstap op zand en strand",
+      "loop": false,
+      "duur_s": 0.29,
+      "grootte_kb": 6.6,
+      "herkomst": {
+        "titel": "Footsteps.wav",
+        "auteur": "HerbertBoland",
+        "freesound_id": 28238,
+        "url": "https://freesound.org/people/HerbertBoland/sounds/28238/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "26a9eaa67396010b18feb3bd2cd3838cc9f69d5785236afa090c8cf11a23e8ba"
+      },
+      "knip_s": {
+        "start": 8.495,
+        "duur": 0.29
+      },
+      "niveau": {
+        "rms_db": -24.5,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_zand_4": {
+      "bestand": "stap_zand_4.ogg",
+      "gebruik": "voetstap op zand en strand",
+      "loop": false,
+      "duur_s": 0.34,
+      "grootte_kb": 6.5,
+      "herkomst": {
+        "titel": "Footsteps.wav",
+        "auteur": "HerbertBoland",
+        "freesound_id": 28238,
+        "url": "https://freesound.org/people/HerbertBoland/sounds/28238/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "26a9eaa67396010b18feb3bd2cd3838cc9f69d5785236afa090c8cf11a23e8ba"
+      },
+      "knip_s": {
+        "start": 10.085,
+        "duur": 0.34
+      },
+      "niveau": {
+        "rms_db": -23.7,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
+    "stap_zand_5": {
+      "bestand": "stap_zand_5.ogg",
+      "gebruik": "voetstap op zand en strand",
+      "loop": false,
+      "duur_s": 0.306,
+      "grootte_kb": 6.7,
+      "herkomst": {
+        "titel": "Footsteps.wav",
+        "auteur": "HerbertBoland",
+        "freesound_id": 28238,
+        "url": "https://freesound.org/people/HerbertBoland/sounds/28238/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "26a9eaa67396010b18feb3bd2cd3838cc9f69d5785236afa090c8cf11a23e8ba"
+      },
+      "knip_s": {
+        "start": 3.065,
+        "duur": 0.306
+      },
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -1.5
+      },
+      "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
+    },
     "trein_deur_dicht": {
       "bestand": "trein_deur_dicht.ogg",
       "gebruik": "treindeuren gaan dicht",

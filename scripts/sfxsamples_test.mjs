@@ -25,7 +25,7 @@ for (const k of SAMPLE_KEYS) {
   const f = path.join(SFX, g[k].bestand || '');
   ok(fs.existsSync(f), `${k}: bestand ${g[k].bestand} bestaat`);
   if (fs.existsSync(f)) ok(fs.readFileSync(f).subarray(0, 4).toString() === 'OggS', `${k} is een ogg-bestand`);
-  ok(g[k].herkomst && g[k].herkomst.url && /CC0|Creative Commons 0/.test(g[k].herkomst.licentie), `${k}: bron en CC0-licentie in het manifest`);
+  ok(g[k].herkomst && g[k].herkomst.url && /CC0|Creative Commons (0|Attribution)/.test(g[k].herkomst.licentie), `${k}: bron en CC0- of CC-BY-licentie in het manifest (ADR 0039)`);
   ok(g[k].duur_s > 0.2 && (g[k].loop ? g[k].duur_s <= 20 : g[k].duur_s < 6), `${k}: duur ${g[k].duur_s} s is kort genoeg`);   // een lus hooguit 20 s, een eenmalige klank hooguit 6 s
 }
 for (const k of Object.keys(g)) ok(SAMPLE_KEYS.includes(k), `manifest-sleutel ${k} heeft een regel in SAMPLE_INFO`);
@@ -44,7 +44,8 @@ for (const f of fs.readdirSync(JS, { recursive: true }).filter((x) => x.endsWith
   for (const m of t.matchAll(re)) used.add(m[1]);
 }
 for (const k of used) ok(g[k], `sleutel ${k} uit de code staat in het manifest`);
-for (const k of SAMPLE_KEYS) ok(used.has(k), `${k} wordt in de code gebruikt`);
+// de voetstappen (stap_<ondergrond>_<n>) worden in sfx/steps.js samengesteld; stappen_test.mjs bewaakt ze
+for (const k of SAMPLE_KEYS) ok(k.startsWith('stap_') || used.has(k), `${k} wordt in de code gebruikt`);
 const audioSrc = fs.readFileSync(path.join(JS, 'audio.js'), 'utf8'), samplesSrc = fs.readFileSync(path.join(JS, 'sfx', 'samples.js'), 'utf8');
 ok(!/https?:\/\//.test(samplesSrc.replace(/\/\/.*$/gm, '')), 'samples.js heeft geen externe URL');
 ok(SAMPLE_BASE.startsWith('./audio/'), 'zelfde relatieve pad als de rest (./audio/...)');

@@ -7,6 +7,8 @@
 
 export const SAMPLE_BASE = './audio/sfx/';
 
+import { FILE_STEP_KEYS } from './steps.js';
+
 // cat: mixplan.js-categorie; gain: basisniveau; ref en range: afstandsdemping (m); gap: afkoeling in s tegen herhaling
 export const SAMPLE_INFO = {
   auto_portiergreep: { cat: 'deur', gain: 0.7, ref: 3, range: 45, gap: 0.3 },
@@ -33,6 +35,8 @@ export const SAMPLE_INFO = {
   boot_motor_stat: { cat: 'voertuig', gain: 0.7, ref: 12, range: 400, gap: 0 },
   boot_motor_vol: { cat: 'voertuig', gain: 0.7, ref: 12, range: 400, gap: 0 },
 };
+// voetstappen (sfx/steps.js, foley.js): stap_<ondergrond>_<n>; de sturing (variant, links en rechts, afstand) zit in steps.js en foley.js
+for (const k of FILE_STEP_KEYS) SAMPLE_INFO[k] = { cat: 'voetstap', gain: 1, ref: 3, range: 30, gap: 0 };
 export const SAMPLE_KEYS = Object.keys(SAMPLE_INFO);
 
 // kleine willekeurige variatie per keer: toonhoogte ±4% en volume ±1,5 dB

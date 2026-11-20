@@ -4,7 +4,9 @@ import { getCombatEffect } from '../combateffect.js';
 import { isGunWeapon, isRangedWeapon } from '../weapons.js';
 import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
-import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS } from './steps.js';
+import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS, fileStepNames, footSide, gainJitter, npcStep, PROC_STAND_IN, stepContext } from './steps.js';
+import { countryWeight } from '../countryfield.js';
+import { onFarmPaving } from '../countryplan.js';
 import { rand as rnd } from '../rng.js';
 
 // Footsteps, close-combat/weapon handling, vehicle detail sounds and police
@@ -80,28 +82,52 @@ function surfaceAt(map, x, y) {
   const pl = getPlace();
   if (pl.waterD < 1.6) return 'wet';
   if (map.isOnBridge(x, y)) return 'wood';
-  return stepSurface(surfaceUnder(map, x, y));
+  const s = surfaceUnder(map, x, y);
+  // a farm yard is gravel and hard-core, not asphalt (vehicle.js counts it as hard ground for the drag, the feet hear it)
+  if (s === 'asfalt' && countryWeight(x, y) > 0.99 && onFarmPaving(x, y)) return 'grind';
+  return stepSurface(s);
 }
 
 function playerSurface(world, p) {
   if (p.water || p.swimming) return 'wet';
   // a car roof: a hollow metal thud, closest to the boards
-  if (p.perch) return 'wood';
+  if (p.perch) return 'metaal';
+  if (stepContext.indoors) return 'binnen';
   return surfaceAt(world.map, p.x, p.y);
 }
 
-// Tries the other variants (and then klinkers) when one is still rendering.
-const stepMemory = {}; // the last variant per surface: no two equal steps in a row
-function playStep(surface, x, y, gain, rate, prio, rain) {
-  const out = K.spatial(x, y, { h: 0.05, ref: 3, rolloff: 1.5, range: 30, model: 'equalpower', prio });
-  if (!out) return;
-  const r = rate * rnd(0.95, 1.05);
-  for (const name of stepNames(surface, Math.random(), stepMemory)) if (K.buf(name, { out, gain, rate: r, prio })) break;
-  if (rain > 0.35 && surface !== 'gras' && surface !== 'wet') {
-    for (const name of stepNames('wet')) if (K.buf(name, { out, gain: gain * rain * 0.5, rate, prio })) break;
+// One recorded step (stap_<surface>_<n>, steps.js) when the files are loaded, else the procedural bank: the other variants first, then klinkers.
+// The variant played last on a surface is skipped (stepMemory), so one foot never sounds twice in a row.
+const stepMemory = {};
+function stepVoice(surface, out, gain, rate, prio, lp, run, rec) {
+  const smp = K.samples;
+  if (smp) {
+    for (const name of fileStepNames(surface, Math.random(), stepMemory, run)) {
+      const buffer = smp.buffer(name);
+      if (buffer) { K.buf(name, { out, gain: gain * FILE_GAIN, rate, prio, lp, buffer }); return true; }
+    }
   }
+  const ps = PROC_STAND_IN[surface] || surface;
+  for (const name of stepNames(ps, Math.random(), rec ? stepMemory : null)) if (K.buf(name, { out, gain, rate, prio, lp })) return true;
+  return false;
+}
+const FILE_GAIN = 0.8; // the recordings are levelled to RMS -23 dB, a little hotter than the procedural steps
+// o: { run, side (0 or 1: left or right foot), vx, vy (walking direction, for the sideways offset), lp, crouch }
+function playStep(surface, x, y, gain, rate, prio, rain, o = {}) {
+  let px = x, py = y, r = rate * rnd(0.95, 1.05), g = gain * gainJitter(Math.random());
+  if (o.side != null) {
+    const f = footSide(o.side), l = Math.hypot(o.vx || 0, o.vy || 0);
+    if (l > 0.05) { px = x - ((o.vy || 0) / l) * f.offset; py = y + ((o.vx || 0) / l) * f.offset; }
+    r *= f.rate;
+  }
+  const out = K.spatial(px, py, { h: 0.05, ref: 3, rolloff: 1.5, range: 30, model: 'equalpower', prio });
+  if (!out) return;
+  stepVoice(surface, out, g, r, prio, o.lp || (o.crouch ? 3200 : 0), !!o.run, true);
+  if (rain > 0.35 && surface !== 'gras' && surface !== 'wet') stepVoice('wet', out, g * rain * 0.5, rate, prio, 0, false, false);
 }
 
+const footSide_ = { side: 0 }; // which foot comes down next (the player's, then the companion's own below)
+const compSide = { side: 0 };
 function footsteps(dt, world) {
   const p = hoofdspeler(world);
   const rain = world.weather ? world.weather.intensity : 0;
@@ -111,8 +137,8 @@ function footsteps(dt, world) {
       const s = playerSurface(world, p);
       if (e.kind === 'land') {
         at('land', p.x, p.y, { h: 0.05, gain: e.gain, rate: rnd(0.95, 1.05), prio: 1 });
-        playStep(s, p.x, p.y, 0.2 * e.k, 0.9, 1, rain);
-      } else playStep(s, p.x, p.y, e.gain, e.rate, 1, rain);
+        playStep(s, p.x, p.y, 0.2 * e.k, 0.9, 1, rain, { side: footSide_.side ^= 1 });
+      } else playStep(s, p.x, p.y, e.gain, e.rate, 1, rain, { run: e.run, crouch: e.crouch, side: footSide_.side ^= 1, vx: p.vx, vy: p.vy });
     }
   } else { foot.air = false; foot.maxRise = 0; }
 
@@ -120,13 +146,14 @@ function footsteps(dt, world) {
   if (c && !c.inVehicle && c.state !== 'dead' && !c.ragdoll && !world.paused) {
     if (!comp.init) { comp.x = c.x; comp.y = c.y; comp.init = true; }
     const sp = dt > 0 ? Math.min(9, Math.hypot(c.x - comp.x, c.y - comp.y) / dt) : 0;
+    comp.dx = c.x - comp.x; comp.dy = c.y - comp.y;
     comp.x = c.x; comp.y = c.y;
     if (sp > 0.4) {
       const stride = sp > 6 ? 1.05 : 0.75;
       comp.phase += sp * dt;
       if (comp.phase >= stride) {
         comp.phase -= stride;
-        playStep(c.water || c.swimming ? 'wet' : surfaceAt(world.map, c.x, c.y), c.x, c.y, sp > 6 ? 0.24 : 0.16, sp > 6 ? 0.9 : 1.02, 1, rain);
+        playStep(c.water || c.swimming ? 'wet' : surfaceAt(world.map, c.x, c.y), c.x, c.y, sp > 6 ? 0.24 : 0.16, sp > 6 ? 0.9 : 1.02, 1, rain, { run: sp > 6, side: compSide.side ^= 1, vx: comp.dx, vy: comp.dy });
       }
     }
   } else if (c) { comp.x = c.x; comp.y = c.y; }
@@ -146,7 +173,7 @@ function footsteps(dt, world) {
     if (pedList.length > 6) pedList.length = 6;
     for (const ped of pedList) {
       let st = pedState.get(ped);
-      if (!st) { st = { phase: Math.random(), surface: 'klinkers' }; pedState.set(ped, st); }
+      if (!st) { st = { phase: Math.random(), surface: 'klinkers', side: Math.random() < 0.5 ? 1 : 0 }; pedState.set(ped, st); }
       st.surface = surfaceAt(world.map, ped.x, ped.y);
     }
   }
@@ -160,7 +187,10 @@ function footsteps(dt, world) {
     st.phase += sp * dt;
     if (st.phase >= stride) {
       st.phase -= stride;
-      playStep(st.surface, ped.x, ped.y, run ? (ped.isCop ? 0.2 : 0.15) : 0.09, run ? 0.9 : 1.03, 0, rain);
+      // other people: far softer than you, softer and duller with distance, each on their own foot
+      const L = K.listener, n = npcStep(Math.hypot(ped.x - L.x, ped.y - L.z), run, ped.isCop);
+      st.side ^= 1;
+      playStep(st.surface, ped.x, ped.y, n.gain, run ? 0.9 : 1.03, 0, rain, { run, lp: n.lp, side: st.side, vx: Math.cos(ped.angle || 0), vy: Math.sin(ped.angle || 0) });
     }
   }
 }
