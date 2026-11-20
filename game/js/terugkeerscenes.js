@@ -22,10 +22,10 @@ const WB = { tessa: { at: [1.95, 0.55], face: 180, sit: 0.46 }, tammo: { at: [1.
 
 export const VIGNETTEN = [
   // ===== fase 1: huisgenoten (ongemakkelijk, grappig) =====================================================
-  { id: 'f1-pan', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f1-pan', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[S, 'Die pan staat hier al sinds gisteren.', 'point'], [T, 'Dat is een pan met een verhaal.', 'shrug'], [S, 'Het verhaal heet: wie wast hem af.', 'talk'], [T, 'Ik. Morgen.', 'nod']],
     cues: [[0, T, { anim: 'look' }], ['L3+0.6', S, { anim: 'laugh' }]] },
-  { id: 'f1-badkamer', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f1-badkamer', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[T, 'Wie neemt de badkamer als eerste?', 'talk'], [S, 'Ik. Ik sta er al drie minuten voor.', 'point'], [T, 'Je zit hier aan tafel.', 'shrug'], [S, 'In gedachten.', 'lean']],
     cues: [[0, S, { anim: 'phone' }]] },
   { id: 'f1-yoghurt', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: KT.tammo },
@@ -38,12 +38,12 @@ export const VIGNETTEN = [
   { id: 'f1-rooster', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: KT.tammo },
     regels: [[S, 'Ik heb een schoonmaakrooster gemaakt.', 'point'], [T, 'Ik zie mijn naam. Zeven keer.', 'look'], [S, 'Ik zie jouw pan. Zeven keer.', 'talk'], [T, 'Dat is een eerlijke ruil.', 'shrug']],
     props: { rooster: { kind: 'briefje', at: [0, 0.1, 0.78], face: 90 } }, cues: [] },
-  { id: 'f1-wekker', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f1-wekker', fase: 1, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[T, 'Je wekker ging om zes uur af.', 'talk'], [S, 'Dat weet ik. Ik leg hem ver weg.', 'shrug'], [T, 'Dat wist de hele flat nu ook.', 'shake'], [S, 'Dan zijn we eerlijk tegen elkaar.', 'lean']],
     cues: [[0, S, { anim: 'lean' }]] },
 
   // ===== fase 2: vrienden (plagen, samen koken, een eerste vonk) =============================================
-  { id: 'f2-ontbijt', fase: 2, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f2-ontbijt', fase: 2, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[T, 'Roerei of spiegelei?', 'talk'], [S, 'Wat wordt het als jij er verstand van hebt?', 'point'], [T, 'Roerei. Dan zie je niet dat het mislukt is.', 'shrug'], [S, 'Ik eet het toch op.', 'laugh']],
     cues: [[0, T, { anim: 'hips' }]] },
   { id: 'f2-proeven', fase: 2, set: 'keuken', pos: { tessa: { at: [0.3, 0.9], face: 200 }, tammo: { at: [1.0, 0.9], face: 160 } },
@@ -55,7 +55,7 @@ export const VIGNETTEN = [
   { id: 'f2-dinsdag', fase: 2, set: 'keuken', pos: { tessa: KT.tessa, tammo: KT.tammo },
     regels: [[T, 'Je haar zit anders.', 'talk'], [S, 'Het is dinsdag.', 'shrug'], [T, 'Het staat je goed. Op dinsdag.', 'lean'], [S, 'Dank je. Eet je boterham.', 'look']],
     cues: [['L2+0.8', S, { gaze: [-2.2, 0, 1.4] }]] },
-  { id: 'f2-eierbal', fase: 2, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f2-eierbal', fase: 2, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[T, 'Ik heb een eierbal gebakken, voor de oefening.', 'carry'], [S, 'Hij is vierkant.', 'point'], [T, 'Hij is creatief.', 'shrug'], [S, 'Ik eet hem toch op. Voor de vriendschap.', 'nod']],
     cues: [] },
   { id: 'f2-plan', fase: 2, set: 'keuken', pos: { tessa: KT.tessa, tammo: KT.tammo },
@@ -66,10 +66,10 @@ export const VIGNETTEN = [
   { id: 'f3-bank', fase: 3, set: 'woonkamer', pos: WB,
     regels: [[S, 'Wat kijken we?', 'talk'], [T, 'Maakt niet uit.', 'shrug'], [S, 'Dat zeg je altijd.', 'point'], [T, 'Omdat jij naast me zit.', 'lean'], [S, 'Dat was aardig. Zet maar iets aan.', 'laugh']],
     cues: [] },
-  { id: 'f3-dansen', fase: 3, set: 'keuken', pos: { tessa: { at: [0.2, 0.7], face: 200 }, tammo: { at: [0.9, 0.7], face: 160 } },
+  { id: 'f3-dansen', fase: 3, set: 'keuken', pos: { tessa: { at: [0.2, 0.7], face: 200 }, tammo: { at: [0.6, 0.7], face: 160 } },
     regels: [[S, 'Dit nummer ken ik.', 'cheer'], [T, 'Dans je mee?', 'talk'], [S, 'In de keuken?', 'laugh'], [T, 'Overal waar jij staat.', 'cheer']],
     fx: [{ t: 0, fx: 'pulse', dur: 12 }],
-    cues: [[0.4, S, { walk: [[0.35, 0.5], [0.5, 0.9], [0.35, 0.7]], speed: 0.6 }], [0.4, T, { walk: [[0.8, 0.9], [0.65, 0.5], [0.8, 0.7]], speed: 0.6 }]] },
+    cues: [[0.4, S, { walk: [[0.35, 0.5], [0.5, 0.9], [0.35, 0.7]], speed: 0.6 }], [0.4, T, { walk: [[0.5, 0.9], [0.4, 0.5], [0.5, 0.7]], speed: 0.6 }]] },
   { id: 'f3-wang', fase: 3, set: 'keuken', pos: { tessa: { at: [1.2, 1.9], face: -150 }, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[S, 'Goedemorgen.', 'wave'], [T, 'Koffie staat klaar.', 'carry'], [S, 'Je bent de beste.', 'nod'], [T, 'Wacht. Ik moet even gaan zitten.', 'shake']],
     cues: [['L0', S, { walk: [[1.0, 1.1], [0.7, 0.9]], speed: 1.2 }], ['L2', S, { face: 'actor:tammo' }], ['L2+1.0', T, { anim: 'look' }]] },
@@ -88,13 +88,13 @@ export const VIGNETTEN = [
   { id: 'f4-stil', fase: 4, set: 'woonkamer', pos: WB,
     regels: [[S, 'Het is stil in de flat.', 'look'], [T, 'Niemand zoekt ons.', 'shrug'], [S, 'Dat is nieuw.', 'talk'], [T, 'Ik wen eraan.', 'lean']],
     cues: [] },
-  { id: 'f4-roerei', fase: 4, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f4-roerei', fase: 4, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[T, 'Roerei. Zoals jij het wilt.', 'carry'], [S, 'Zonder dat het mislukt is?', 'point'], [T, 'Dat was de oefening.', 'shrug'], [S, 'En dit is de les.', 'laugh']],
     cues: [] },
   { id: 'f4-vijf', fase: 4, set: 'woonkamer', pos: WB,
     regels: [[S, 'Hoeveel woorden waren het ook alweer?', 'talk'], [T, 'Vijf.', 'nod'], [S, 'Zeg ze nog eens.', 'lean'], [T, 'Ik wil bij jou blijven.', 'look'], [S, 'Dat bedoelde ik ook.', 'nod']],
     cues: [] },
-  { id: 'f4-afwas', fase: 4, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [1.0, 0.9], face: 200 } },
+  { id: 'f4-afwas', fase: 4, set: 'keuken', pos: { tessa: KT.tessa, tammo: { at: [0.3, 0.9], face: 200 } },
     regels: [[S, 'Je wast af.', 'look'], [T, 'Ik zei toch: morgen.', 'shrug'], [S, 'Dat was twee weken geleden.', 'point'], [T, 'Ik ben een man van mijn woord.', 'hips']],
     cues: [] },
   { id: 'f4-niks', fase: 4, set: 'woonkamer', pos: WB,
@@ -131,7 +131,7 @@ export function terugkeerRegels(v) {
 function shotsFor(v, n) {
   const kitchen = v.set === 'keuken';
   const out = [];
-  if (kitchen) out.push({ t: 0, shot: 'dolly', from: [1.9, 1.2, 1.7], to: [1.0, 0.9, 1.5], look: 'mid:tammo,tessa@1.2', fov: 50 });
+  if (kitchen) out.push({ t: 0, shot: 'dolly', from: [1.9, 1.2, 1.7], to: [1.2, 0.9, 1.5], look: [-1.2, 0.2, 1.2], fov: 50 });
   else out.push({ t: 0, shot: 'dolly', from: [-1.8, -1.9, 1.6], to: [-1.2, -1.5, 1.5], look: 'mid:tammo,tessa@0.9', fov: 46 });
   v.regels.forEach(([who], i) => {
     const t = `L${i}`;
