@@ -39,7 +39,7 @@ export function skateHudModel(g) {
   const links = Math.max(0, Math.ceil(g.links || 0));
   const meter = g.grind
     ? { pct: Math.max(0, Math.min(100, (0.5 + g.grind.bal / 2.4) * 100)), naam: 'Balans', label: Math.abs(g.grind.bal) > BALANS_GEVAAR ? 'Bijna gevallen' : 'Balans', staat: Math.abs(g.grind.bal) > BALANS_GEVAAR ? 'laag' : '' }
-    : { pct: Math.max(0, Math.min(100, ((g.links || 0) / (g.duur || 1)) * 100)), naam: 'Tijd van de run', label: tijdTekst(links), staat: links <= 10 && g.fase === 'run' ? 'laag' : '' };
+    : { pct: Math.max(0, Math.min(100, ((g.links || 0) / (g.duur || 1)) * 100)), naam: 'Tijd van de ronde', label: tijdTekst(links), staat: links <= 10 && g.fase === 'run' ? 'laag' : '' };
   const cijfers = [{ label: 'Score', waarde: getal(g.score || 0), icoon: I.plaats, primair: true }];
   if (g.ketenAan) cijfers.push({ label: 'Keten', waarde: `${getal(g.keten || 0)} x${g.mult || 1}`, icoon: ICOON.keten });
   return {

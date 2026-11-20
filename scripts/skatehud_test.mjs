@@ -9,7 +9,7 @@ assert.equal(stapVan({ grond: true, grind: null }), 'duw'); assert.equal(stapVan
 const basis = { fase: 'run', links: 61.2, duur: 90, score: 12400, keten: 0, mult: 1, ketenAan: false, grond: true, grind: null, flash: '', slecht: false, uitleg: false };
 const duw = skateHudModel(basis);
 assert.equal(duw.stappen.length, STAPPEN.length); assert.equal(duw.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(duw.stappen[0].stand, 'nu');
-assert.equal(duw.meter.naam, 'Tijd van de run'); assert.equal(duw.meter.label, '1:02'); assert.equal(Math.round(duw.meter.pct), 68);
+assert.equal(duw.meter.naam, 'Tijd van de ronde'); assert.equal(duw.meter.label, '1:02'); assert.equal(Math.round(duw.meter.pct), 68);
 assert.equal(duw.cijfers.length, 1, 'zonder keten alleen de score'); assert.equal(duw.cijfers[0].waarde, (12400).toLocaleString('nl-NL')); assert.ok(duw.cijfers[0].primair && duw.cijfers[0].icoon);
 assert.match(duw.nu, /Duw met W/); assert.equal(duw.uitleg.length, 0);
 const keten = skateHudModel({ ...basis, ketenAan: true, keten: 850, mult: 3, grond: false });
