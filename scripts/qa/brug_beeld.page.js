@@ -14,6 +14,7 @@ const CFG = window.__bb || { bruggen: [] };
 const SETTLE = CFG.settle || 4500;
 const DIST = CFG.afstanden || [25, 60, 150, 350];
 const DELTA = CFG.delta || 0.04;
+const KLOK = CFG.klok == null ? 14 : CFG.klok; // spelklok (uren): 14 = dag; 23 = nacht (#919)
 const issues = [];
 const origErr = console.error.bind(console);
 console.error = (...a) => { issues.push('console.error: ' + a.map(String).join(' ').slice(0, 200)); origErr(...a); };
@@ -30,11 +31,11 @@ const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinem
 w.devInvuln = true;
 D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
-w.clock = 14;
+w.clock = KLOK;
 w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
 if (DN.refreshDayNight) DN.refreshDayNight(w);
 let hold = null, done = false;
-const tick = () => { w.clock = 14; if (hold) { if (p.inVehicle) p.exitVehicle(map, w); p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; } if (!done) requestAnimationFrame(tick); };
+const tick = () => { w.clock = KLOK; if (hold) { if (p.inVehicle) p.exitVehicle(map, w); p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; } if (!done) requestAnimationFrame(tick); };
 requestAnimationFrame(tick);
 // De camera staat vast: renderer.render zet hem vlak voor elke tekenbeurt op `cur` (de cinematic-camera van het spel
 // tilt zichzelf over gebouwen en duwt zich van muren, dus die staat niet stil). De speler staat op de camerapositie en
