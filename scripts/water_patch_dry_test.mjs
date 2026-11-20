@@ -18,7 +18,8 @@ const fake = () => {
     road([[-60, 0], [60, 0]], { name: 'Over het stuk' }),
     road([[-60, 400], [60, 400]], { name: 'Ver weg' }),
     road([[-60, 20], [60, 20]], { name: 'Brug', bridge: true }),
-    road([[-60, -10], [60, -10]], { name: 'Profiel', z: [0, 5] }),
+    road([[-60, -10], [60, -10]], { name: 'Profiel', z: [4, 8] }),
+    road([[-60, -14], [60, -14]], { name: 'Vlak profiel', z: [0, 0.5] }),
   ];
   return {
     roads, water,
@@ -35,11 +36,12 @@ const fake = () => {
   ok(!waterPolyAt(map, 0, 0), 'zonder stuk geen water');
   map.addWaterPatches(rows);
   ok(!!waterPolyAt(map, 0, 0), 'het stuk ligt over de weg');
-  const [over, ver, brug, profiel] = map.roads;
+  const [over, ver, brug, profiel, vlak] = map.roads;
   ok(over.bridge && over.dryCrossing, 'de weg over het stuk is een droog dek');
   ok(!ver.bridge, 'een weg ver weg blijft zoals hij was');
   ok(brug.bridge && !brug.dryCrossing, 'een echte brug blijft een echte brug');
   ok(!profiel.bridge, 'een weg met hoogteprofiel wordt niet aangeraakt (die gaat er echt overheen)');
+  ok(vlak.bridge && vlak.dryCrossing, 'een weg met een profiel op maaiveld (Thesingerweg) is een ontbrekende brug en wordt een droog dek');
 }
 console.log(`${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

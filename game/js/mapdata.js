@@ -17,11 +17,13 @@ export { SpatialGrid };
 // without a height profile are culverts under an embankment: treat them as
 // a covered crossing, dry road with a deck, like a bridge - otherwise cars
 // sink there. (The Zuidelijke Ringweg's aqueduct under the Winschoterdiep
-// has real heights, see elevation.js.)
+// has real heights, see elevation.js.) A road whose height profile stays at ground level over
+// the water (-1 to 1.5 m: a ramp whose far end is flat, the Thesingerweg) is no aqueduct or
+// viaduct either: that is a missing bridge, so it counts as a crossing too (#917 bruggaten).
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
 export function markDryRoad(map, r) {
-  // roads with a height profile pass over/under the water for real
-  if (r.bridge || r.z || !DRY_CATS.has(r.cat)) return false;
+  // roads with a height profile pass over/under the water for real (unless it stays at ground level there)
+  if (r.bridge || !DRY_CATS.has(r.cat)) return false;
   const pts = r.pts;
   if (!map.waterNear) return false;
   // the water near the whole road, got once: most roads have none, the rest test only these
@@ -34,7 +36,13 @@ export function markDryRoad(map, r) {
     const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
     for (let k = 0; k <= steps; k++) {
       const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-      if (waterPolyIn(polys, x, y)) { r.bridge = true; r.dryCrossing = true; return true; }
+      if (waterPolyIn(polys, x, y)) {
+        if (r.z) { // the height here, between this segment's two profile points
+          const za = r.z[i] || 0, zb = r.z[i + 1] || 0, zh = za + (zb - za) * (k / steps);
+          if (zh < -1 || zh > 1.5) continue;
+        }
+        r.bridge = true; r.dryCrossing = true; return true;
+      }
     }
   }
   return false;
