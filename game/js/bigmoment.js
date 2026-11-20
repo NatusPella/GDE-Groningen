@@ -58,7 +58,7 @@ export function formatTijd(t) {
 }
 
 // Opts -> the one shape the DOM and the tests read. Always has the words, whatever the mode.
-// opts: { soort, titel, regelNl, beloning, tijd, sterren }  (all but soort optional)
+// opts: { soort, titel, regelNl, beloning, tijd, sterren, klein, beloningLabel }  (all but soort optional)
 export function bouwMoment(opts = {}) {
   const soort = SOORTEN.includes(opts.soort) ? opts.soort : 'geslaagd';
   const d = STANDAARD[soort];
@@ -69,13 +69,14 @@ export function bouwMoment(opts = {}) {
   const beloning = formatBeloning(opts.beloning);
   const tijd = formatTijd(opts.tijd);
   const sterren = Number.isFinite(opts.sterren) ? Math.max(0, Math.min(5, Math.round(opts.sterren))) : null;
-  const beloningLabel = soort === 'opgepakt' ? 'Boete' : 'Beloning';
-  const delen = [d.klein + '.', kop + '.', regelNl];
+  const beloningLabel = cut(opts.beloningLabel, 16) || (soort === 'opgepakt' ? 'Boete' : 'Beloning');
+  const klein = cut(opts.klein, 24) || d.klein;
+  const delen = [klein + '.', kop + '.', regelNl];
   if (beloning) delen.push(`${beloningLabel}: ${beloning}.`);
   if (tijd) delen.push(`Tijd: ${tijd}.`);
   if (sterren != null) delen.push(`${sterren} van 5 sterren.`);
   return {
-    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein: d.klein, kop, regelNl, beloning, beloningLabel, tijd, sterren, ms: d.ms,
+    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningLabel, tijd, sterren, ms: d.ms,
     aria: delen.join(' '),
   };
 }
@@ -89,6 +90,47 @@ export function momentStijl(moment, rustig = false) {
     misdruk: !rustig,
     woorden: moment.aria,
   };
+}
+
+// Samen spelen (#429, #996): does this moment belong on this screen? The host and a solo player see
+// everything about their own game. A guest sees a moment only when it happens to the guest himself
+// (eigen) or belongs to a joint mission the guest joined (gezamenlijk and deelnemer); world state
+// like the wanted level of the host's game is not the guest's moment.
+export function mayMomentTonen({ gast = false, eigen = false, gezamenlijk = false, deelnemer = false } = {}) {
+  if (!gast) return true;
+  return !!eigen || (!!gezamenlijk && !!deelnemer);
+}
+
+// A mission result banner (cinematics.js showBanner: kind pass|fail, title, reason, reward) as moment
+// options. A short title (the Gronings "Sikkom.") is the big print; a long mission title goes in the
+// line under it, so the band never has to wrap a whole sentence at 200 px.
+export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward = 0 } = {}) {
+  const soort = kind === 'fail' ? 'mislukt' : 'geslaagd';
+  const t = String(title || '').replace(/\s+/g, ' ').trim();
+  const kort = t.length > 0 && t.length <= 16;
+  const regel = kort ? reason : [t, reason].filter(Boolean).join('. ');
+  return { soort, titel: kort ? t : '', regelNl: regel || undefined, beloning: reward };
+}
+
+// Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the
+// options of the edge tag. Going to zero is "out of sight"; the tag carries the star count in words too.
+export function momentVanWanted(prev, nu) {
+  if (!Number.isFinite(prev) || !Number.isFinite(nu) || prev === nu) return null;
+  const omhoog = nu > prev;
+  if (omhoog) return { soort: 'wanted', klein: 'Gezocht', titel: 'Pas op!', regelNl: nu >= 5 ? 'Alle agenten zoeken je.' : 'De politie let op je.', sterren: nu };
+  if (nu === 0) return { soort: 'wanted', klein: 'Weg uit beeld', titel: 'Vrij', regelNl: 'De politie ziet je niet meer.', sterren: 0 };
+  return { soort: 'wanted', klein: 'Minder gezocht', titel: 'Rustiger', regelNl: 'De politie zoekt minder naar je.', sterren: nu };
+}
+
+// Opgepakt (busted: a fine) or buiten westen (down: a hospital bill); money is the amount lost.
+export function momentVanOpgepakt({ busted = false, geld = 0 } = {}) {
+  if (busted) return { soort: 'opgepakt', beloning: -Math.abs(geld || 0) };
+  return { soort: 'opgepakt', klein: 'Neergegaan', titel: 'Buiten westen', regelNl: 'Je bent opgelapt in het ziekenhuis.', beloningLabel: 'Rekening', beloning: -Math.abs(geld || 0) };
+}
+
+// A first visit to a district, village or the surrounding land: the place is the print.
+export function momentVanGebied(naam, regel = '') {
+  return { soort: 'gebied', titel: naam, regelNl: regel || undefined };
 }
 
 // Flash gate: how many appearances (anything that pops on screen) began in the last second.
@@ -189,6 +231,7 @@ function toonNu(m, klaarCb) {
 // the moment was dropped (a flash gate, a duplicate, a full queue) or there is no document.
 export function showBigMoment(opts = {}) {
   if (typeof document === 'undefined') return null;
+  if (!mayMomentTonen(opts)) return null;
   if (!planner) planner = maakPlanner();
   const m = bouwMoment(opts);
   const nu = performance.now();

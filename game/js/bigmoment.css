@@ -57,3 +57,10 @@ html.rustig-drukwerk .bm-mislukt .bm-band, html.rustig-drukwerk .bm-zegel { back
 html.rustig-drukwerk .bm-ster { background-image: none; }
 html.rustig-drukwerk .bm-ster:not(.aan) { background-color: var(--ds-c-ink-papier); }
 @media (prefers-reduced-motion: reduce) { .bm.aan .bm-band, .bm.aan .bm-stempel, .bm.aan .bm-kaart, .bm.aan .bm-tag { animation: none; } .bm { transition: none; } }
+
+/* The old result screen (cinematics.js showBanner) keeps its timing and its figures, the big moment
+   takes over the title, the reason and the reward: only the stats column stays (#996). Without
+   figures the whole old screen steps aside. The same for the district card of a first visit. */
+#cine .cine-banner.bm-vervangen::before, #cine .cine-banner.bm-vervangen .cb-bar, #cine .cine-banner.bm-vervangen .cb-title, #cine .cine-banner.bm-vervangen .cb-reason, #cine .cine-banner.bm-vervangen .cb-fact, #cine .cine-banner.bm-vervangen .cb-reward { display: none; }
+#cine .cine-banner.bm-vervangen.bm-geen-cijfers { visibility: hidden; }
+#wijk-card.bm-vervangen { visibility: hidden; }
