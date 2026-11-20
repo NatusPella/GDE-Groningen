@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Stoom (M19): in de museumtrein stappen lukt weer:** bij het perron van Veendam stond een kaartautomaat vlak naast de kop van de trein; zolang je missie loopt doet die automaat niets (hij zegt "Niet nu: maak eerst je missie af"), maar hij nam de E toch af, dus de rit begon nooit. Een geblokkeerde automaat laat de E nu aan het instappen. Samen spelen: de trein is van wie het spel opende, een gast rijdt mee als passagier zoals altijd.
+- **Geleend van de Friezen (M11): je moet echt in de rubberboot zitten:** de eerste stap telde al als je op de kade dichtbij stond, waarna het skûtsje na een halve minuut buiten bereik voer ("het skûtsje is weg"). De stap sluit nu pas als je in de boot zit; staat je te voet naast de boot, dan zegt de hint "Pak een boot".
 - **Heel aankomen is ook een kunst (M09): één trekker in de opening:** het filmpje zette een trekker neer terwijl Geesjes echte trekker er al stond, dus je zag er twee naast elkaar; een filmpje dat zelf een voertuig neerzet tekent het echte missievoertuig van dezelfde soort nu niet mee. Samen spelen: lokaal beeld, niets over het net, de rest van de missie blijft van wie het spel opende.
 - **Stoom (M19): het perron staat langs het spoor:** de bank, het perronbord en een reiziger konden op de rails staan, want de aankleding keek mee met de richting van de speler; ze volgt nu het dichtstbijzijnde spoor. De stilstaande stoomtrein zelf verschijnt nog pas bij de volgende stap (niet opgelost).
 - **Ontzet, net als in 1672 (M26): het spandoek leest goed:** "Feest op het plein" stond van achteren gespiegeld; het bord toont zijn tekst nu van beide kanten goed.
