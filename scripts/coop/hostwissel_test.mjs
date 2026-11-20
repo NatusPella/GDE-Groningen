@@ -17,13 +17,14 @@ const tekstIn = (w, re) => w.messages.some((m) => re.test(m));
 
 // één avond: de gastheer (Tammo, wereld 0) en drie gasten, met een register van kamers voor de overdracht
 function avond({ gasten = 3, weigerKamer = [], snel = null, zelfde = false, geenKamerBereik = [] } = {}) {
-  const links = [], kamers = new Map(); let teller = 0, opv = 0;
+  const links = [], kamers = new Map(), codes = {}; let teller = 0, opv = 0;
   const weer = createWeatherState(7); for (let i = 0; i < 40; i++) stepWeather(weer, 5);
   const hw = mkWorld({ money: 1234, clock: 17.5, wanted: 2, calendar: { day: 12 }, weatherState: weer, mission: { phase: 'active', label: 'Het Loket', index: 3, t: 41, deel: 2, timeLeft: 95 }, kapot: ['kliko@3', 'bord@9', 'stoel@14'] });
   N.startHost(hw, INFO, { seed: 5, max: 6 });
   const werelden = [hw], deps = [];
   const mkDeps = (w, i) => ({
     info: () => INFO,
+    onCode: (code) => { codes[i] = code; }, // #983: de laatste code die deze speler bewaart
     verbind: async (kamer) => { if (geenKamerBereik.includes(i) && kamer.startsWith('KAMER')) throw new Error('niet te bereiken'); const k = kamers.get(kamer); if (!k) throw new Error('geen kamer'); const l = createLink({ latency: 0.04, jitter: 0.01, seed: 31 + links.length }); links.push(l); k.aanvaard(l.a); return l.b; },
     maakKamer: () => 'OPVOLGER' + (++opv), // de kamercodes van de opvolgers (overname bij wegvallen)
     opKamer: async ({ aanvaard, kamer: gewenst }) => { if (weigerKamer.includes(i)) throw new Error('niet bereikbaar'); const kamer = gewenst || 'KAMER' + (++teller); kamers.set(kamer, { aanvaard, door: i }); return { kamer, stop() { kamers.delete(kamer); } }; },
@@ -46,7 +47,7 @@ function avond({ gasten = 3, weigerKamer = [], snel = null, zelfde = false, geen
   const step = async (secs, voorwaarde) => { const k = Math.round(60 * secs); for (let i = 0; i < k; i++) { tick(); if (i % 3 === 0) await new Promise((r) => setImmediate(r)); if (voorwaarde && voorwaarde()) return true; } return !voorwaarde; };
   // wie het spel opende valt weg zonder afscheid (geen BYE): zijn verbindingen vallen stil en hij tikt niet meer; `ook` valt tegelijk weg
   const valWeg = (ook = []) => { for (const l of links) l.cut(); for (const w of [hw, ...ook]) { const i = werelden.indexOf(w); if (i >= 0) werelden.splice(i, 1); } };
-  return { hw, werelden, gs: werelden.slice(1), links, kamers, step, valWeg };
+  return { hw, werelden, gs: werelden.slice(1), links, kamers, codes, step, valWeg };
 }
 const rol = (w) => (w.coopNet ? w.coopNet.role : null);
 const geen = (...ws) => ws.every((w) => !w.coopHold);
@@ -97,6 +98,16 @@ await t('overdracht aan gast 2: de nieuwe host draait de wereld, de anderen verb
   // de wereld van de nieuwe host draait: de klok loopt door voor de nieuwe gasten
   const k0 = s.hw.coopNet.klok.last && s.hw.coopNet.klok.last.t; await s.step(3);
   assert.ok(s.hw.coopNet.klok.last.t > k0, 'de klok van de nieuwe host komt aan');
+});
+
+await t('#983: na een hostwissel bewaart elke gast de kamer van de nieuwe host als laatste code (hervatten zonder lijstbron)', async () => {
+  const s = avond({ gasten: 2 }); const [g1, g2] = s.gs; await s.step(2);
+  assert.ok(W.biedOver(s.hw, 1).ok); await s.step(1.5, () => g1.coopWisselUi && g1.coopWisselUi.vraag); g1.input.s.add('j');
+  assert.ok(await s.step(25, () => rol(g1) === 'host' && rol(s.hw) === 'client' && s.hw.coopNet.joined && g2.coopNet && g2.coopNet.joined), 'overdracht klaar');
+  assert.ok(/^KAMER\d+$/.test(s.codes[0]), 'de oude host bewaart de kamer van de nieuwe host: ' + s.codes[0]);
+  assert.equal(s.codes[2], s.codes[0], 'de andere gast bewaart dezelfde kamer');
+  assert.equal(g2.coopNet.code, s.codes[2], 'de sessie kent de code ook zelf');
+  assert.equal(s.codes[1], undefined, 'de nieuwe host zelf hoeft niets te bewaren');
 });
 
 await t('overdracht kan twee keer achter elkaar (en weer terug)', async () => {
@@ -296,5 +307,5 @@ await t('een gast die host wordt blijft op zijn eigen plek staan (de momentopnam
   assert.equal(uc.plek, 'eigen'); assert.equal(plekken.length, 1, 'binnen 2 m: geen laadsprong');
 });
 
-console.log(`hostwissel_test: ${n}/18 ok`);
+console.log(`hostwissel_test: ${n}/19 ok`);
 process.exit(0);

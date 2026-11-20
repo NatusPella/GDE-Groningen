@@ -345,8 +345,11 @@ function valTik(world) {
     if (v.probe === probe) v.probe = null;
     if (!tr) return;
     if (w.val !== v || v.klaar) { try { tr.close(); } catch (e) { /* al dicht */ } return; } // intussen afgehandeld
-    try { N.startClient(world, tr, v.info, { ...(d.clientOpts ? d.clientOpts(v.wens) : {}), wens: v.wens }); }
+    try { N.startClient(world, tr, v.info, { ...(d.clientOpts ? d.clientOpts(v.wens) : {}), wens: v.wens, code: kand.kamer }); }
     catch (e) { try { tr.close(); } catch (er) { /* al dicht */ } v.volgende = w.nu + 5; return; }
+    // #983: na een hostwissel is de bron van de eerste route (lijstrij of oude kamer) van een andere host. De kamer van de nieuwe host
+    // wordt de laatste code, zodat een gast die hier wegvalt via Opnieuw verbinden dezelfde sessie terugvindt.
+    if (d.onCode) { try { d.onCode(kand.kamer); } catch (e) { /* geen opslag: dan typt de gast de code */ } }
     v.klaar = true; if (v.meldAan) w.meldAan = v.meldAan; // wie het spel opende meldt de nieuwe host dat hij is aangesloten (hw-aangesloten, zodra het welkom er is)
     valKlaar(world, v.tekst.aan(v.namen(kand.slot)));
   });

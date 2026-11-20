@@ -13,6 +13,7 @@ import { wisselWereldHaken } from './coophostwisselwereld.js';
 import { meet, beoordeel, verbindingslog } from './net/diagnose.js';
 import { maakEnv } from './net/diagnoseenv.js';
 import { mountOverlay } from './coopoverlay.js';
+import { readSession, writeSession, toSession } from './coopsave.js';
 
 const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } },
   { fallbackAfter: CONFIG.TIMEOUTS.fallbackAfter, brokerTimeout: CONFIG.TIMEOUTS.broker });
@@ -27,6 +28,7 @@ export function wisselRoute(world, opts = {}) {
     maakKamer: () => makeRoom(), // de kamercodes van de opvolgers (overname bij wegvallen)
     hostOpts: () => ({ fade: opts.fade, route: 'kamer', scene: opts.scene, onHold: opts.onHold }),
     clientOpts: () => ({ fade: opts.fade, route: 'kamer', onHold: opts.onHold }),
+    onCode: (code) => { let ls = null; try { ls = localStorage; } catch (e) { return; } if (ls) writeSession(ls, toSession(readSession(ls), { code })); }, // #983: de kamer van de nieuwe host als laatste code
     // de nieuwe host opent een kamer en blijft aanbiedingen klaarzetten, één per speler, zoals de wachtkamer doet
     opKamer: async ({ aanvaard, kamer }) => {
       const room = kamer || makeRoom(); // een opvolger gebruikt de code die de groep al kent
