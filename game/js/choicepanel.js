@@ -8,14 +8,14 @@ const CSS = `
 #hud .cw-panel[hidden] { display: none; }
 #hud .cw-panel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); box-sizing: border-box; width: min(640px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 370px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); min-width: min(400px, calc(100vw - 32px)); padding: 10px 18px 12px 14px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.92), rgba(24,34,28,0.74) 80%, rgba(24,34,28,0.3)); border-left: 3px solid var(--cw-acc, var(--mk-mission, #e8c93a)); }
-#hud .cw-panel small { display: block; font-size: 12px; letter-spacing: 3px; color: var(--cw-acc, var(--mk-mission, #e8c93a)); }
+#hud .cw-panel small { display: block; font-size: 13px; letter-spacing: 3px; color: var(--cw-acc, var(--mk-mission, #e8c93a)); }
 #hud .cw-panel .cw-text { font-size: 19px; line-height: 1.3; margin: 4px 0 2px; }
 #hud .cw-panel .cw-rule { font-size: 15px; color: rgba(240,237,228,0.78); font-style: italic; margin: 0 0 6px; }
 #hud .cw-panel .cw-opts { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
 #hud .cw-panel .cw-opt { display: flex; align-items: center; gap: 10px; font-size: 18px; padding: 3px 8px; background: rgba(240,237,228,0.08); }
 #hud .cw-panel .cw-opt .cw-body { display: flex; flex-direction: column; min-width: 0; }
 #hud .cw-panel .cw-opt .cw-note { font-size: 13px; color: rgba(240,237,228,0.72); }
-#hud .cw-panel .cw-opt .cw-badge { margin-left: auto; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #12200f; background: var(--mk-ok, #3fc97a); padding: 1px 7px; border-radius: 2px; }
+#hud .cw-panel .cw-opt .cw-badge { margin-left: auto; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #12200f; background: var(--mk-ok, #3fc97a); padding: 1px 7px; border-radius: 2px; }
 #hud .cw-panel .cw-opt.pick { background: color-mix(in srgb, var(--mk-mission, #e8c93a) 30%, transparent); }
 #hud .cw-panel .cw-opt.good { background: color-mix(in srgb, var(--mk-ok, #3fc97a) 22%, transparent); }
 #hud .cw-panel .cw-opt.bad { background: color-mix(in srgb, var(--mk-job, #ff9a3c) 22%, transparent); }

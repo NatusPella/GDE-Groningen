@@ -70,11 +70,11 @@ export function bordDrukte({ spelers = 4, banen = 6, ui = 1 } = {}) {
 export const GOLF_CSS = `
 #hud .mg-board .gf-ic { vertical-align: -3px; margin-right: 4px; }
 #hud .mg-board .gf-wie { display: inline-flex; align-items: baseline; }
-#hud .mg-board .gf-straf { font-size: 12px; color: var(--mk-job, #ff9a3c); letter-spacing: 0.5px; }
+#hud .mg-board .gf-straf { font-size: 13px; color: var(--mk-job, #ff9a3c); letter-spacing: 0.5px; }
 #hud .mg-board .gf-score { border-collapse: collapse; margin: 6px 0 2px; font-size: 14px; letter-spacing: 0.3px; color: rgba(240,237,228,0.85); }
 #hud .mg-board .gf-score th, #hud .mg-board .gf-score td { padding: 2px 7px; text-align: center; font-weight: normal; }
 #hud .mg-board .gf-score th[scope=row] { text-align: left; white-space: nowrap; }
-#hud .mg-board .gf-score thead th { font-size: 12px; letter-spacing: 1px; color: rgba(240,237,228,0.6); }
+#hud .mg-board .gf-score thead th { font-size: 13px; letter-spacing: 1px; color: rgba(240,237,228,0.6); }
 #hud .mg-board .gf-score thead th.on { color: var(--mk-mission, #e8c93a); }
 #hud .mg-board .gf-score tr.on { background: rgba(63,201,122,0.18); color: #f0ede4; }
 #hud .mg-board .gf-score tr.kijkt { opacity: 0.7; }
@@ -84,7 +84,7 @@ export const GOLF_CSS = `
 #hud .mg-board .gf-score td .gf-ic { margin-right: 3px; vertical-align: -2px; }
 #hud .mg-board .gf-score td.leeg { color: rgba(240,237,228,0.35); }
 #hud .mg-board .gf-score td.tot { color: var(--mk-mission, #e8c93a); font-size: 15px; border-left: 1px solid rgba(240,237,228,0.2); }
-@media (max-width: 480px) { #hud .mg-board .gf-score { font-size: 12px; } #hud .mg-board .gf-score th, #hud .mg-board .gf-score td { padding: 2px 4px; } }
+@media (max-width: 480px) { #hud .mg-board .gf-score { font-size: 13px; } #hud .mg-board .gf-score th, #hud .mg-board .gf-score td { padding: 2px 4px; } }
 `;
 
 let cssKlaar = false;
