@@ -707,3 +707,56 @@ Eén Electron per run, wegwerpprofiel, stage van de werkboom met de wereld van `
 | #859 | waarschijnlijk opgelost | Bestaand beeld `986-opening-keuken-tessa.png`: Tessa zit met de handen voor haar; code gebruikt `arms:'lap'`. Geen eigen run. |
 
 Niet in beeld bekeken (code en test staan groen, zie hierboven; geen beeldrun gedaan): #948 (boot onder grond), #937 en #921 (laadhapering: eigen meting op 55 m/s over 2,4 km gaf mediaan 39,7 ms en 12 frames van 100 ms of meer, maar op een belaste machine zonder referentie), #969 (koeienschuur: missie moet gestart worden), #947, #945, #934, #933, #932, #930, #914, #951, #850 (aanraakpaneel: venster 800x360 en aanraakmodus nodig), #533.
+
+## Beeldrun akte 4 t/m 6, Elf Bruggenrace en de rest van de top 30 (20-11, tweede ronde)
+
+Tooling: `scripts/qa/akte45_beeld.mjs` (een Electron, wegwerpprofiel, stage van de werkboom met de wereld van `desktop/build/game` van 17-11; missies met de debug-haak gestart en stap voor stap doorgelopen; vrije camera via `cinematics.startCameraTake`; per stap een meting van water en gebouwen onder de aankleding) en `hertest_beeld.mjs --only=koe,politie`. Elk beeld is door mij bekeken. Wat in een beeld niet te zien is, staat hieronder als "niet gezien". De camera is een kunstmatige vrije stand en de speler wordt per beeld neergezet: een beeld bewijst de plaatsing en het uiterlijk, niet het spelgevoel.
+
+### Akte 4 en 5
+
+| Missie | Gezien | Oordeel | Bewijs en opmerking |
+|---|---|---|---|
+| M19 Stoom, perron | ja | goed, 1 bug gefixt | `955-m19-perron-reizigers`, `955-m19-locomotief-bij-perron`: locomotief en rijtuig staan langs een echt perron, reizigers staan op het perron en niet op de rails. **Bug:** de startplek ligt 3 m van het doel van de eerste stap, dus die stap was meteen klaar en het perron (aangezet op die stap) bestond nul seconden. Nu staat het perron ook op de instapstap (`akte45_aaa_test`). Niet gezien: de aankomst van de trein bij het volgende perron en een fotograaf. |
+| M26 plein | ja | goed | `955-m26-plein-publiek-jurytafel`: toeschouwers die juichen, kramen, een jurytafel met bekers, niets in een gebouw (0 van 13 onderdelen). `955-m26-spandoek-voor` en `-achter`: "FEEST OP HET PLEIN" is van beide kanten leesbaar en niet gespiegeld (de eerdere fix klopt). Het spandoek staat op 17 m van het doel; vanaf de speler is het klein. |
+| M20 Bourtange, aankleding | ja | **bug gefixt** | `955-m20-aankleding-in-gracht-voor`: tenten, kanon en vlaggen stonden in de gracht (gemeten: 4, 15, 10 en 10 van 19 onderdelen in het water, per stap). `955-m20-aankleding-op-droog-na`: 0 in water, 0 in gebouw; onderdelen schuiven naar het doel toe of vervallen (`missiedecor.js`, `missiedecor_test`). |
+| M20 wachtkring deur twee en drie | ja | bug gefixt, in beeld bevestigd | De doelen liggen op een brugdek over de gracht. De kring lag op het water eronder; nu op het dek (`955-m20-deur3-ring-op-brugdek`: de gele streepjes liggen op het dek). Fix in `wachtprops.js`: de hoogte van de speler als hint. Alleen bevestigd met de speler op het dek; een mens die er echt aankomt is niet gezien. |
+| M20 kruitkelder (binnenset) | nee | niet gezien | De deurstappen (7 tot 15) spelen buiten met een wachtkring: de binnenset `kruitkelder` is in geen enkel beeld gebouwd (in de beelden bij stap 11 en 13 staat de speler buiten op het brugdek). Of de kamer op deze plek niet past (`buildStageSet` geeft dan null) of een andere oorzaak: niet uitgezocht. **Open.** |
+| M20 wachtfiguren (Jelles mannen) | deels | niet herkend | In de wachtstappen staan kring, tenten en publiek; een figuur die kloppend of wachtend op de kring staat heb ik niet herkend. |
+| M22 wachtfiguur bij het luik | nee | niet gezien | De doorloop van de stappen (zonder echt rijden) kwam niet bij de schuur-stap; het `schuur`-plan is niet in beeld. Open. |
+| M17 Open, dicht | ja, deels | goed | `955-m17-brug8-doel-op-water`: de doelen van de vier bootstappen liggen in het water (gemeten, `doel` waar voor alle vier), de regelkaart en Wubbo staan er, het tijdvak is zichtbaar. De vaart zelf (onder de grond, #948) niet gevaren. |
+| M09 eierkratten | ja | goed | `955-m09-eierkratten-achterop`: zes kratten zichtbaar achterop de trekker; `955-m09-hud-eierteller`: teller "60 van 60 eieren heel", snelheidsbalk met maximum 40 km/u en de richtingsbalk. |
+| M10 afstandsmeter | nee | niet gezien | Quad en regelkaart wel (geen beeld bewaard); een afstandsmeter tot de limo heb ik niet gezien, alleen "1,2 km" naar het doel. |
+| M08 Oma Trijntje | deels | niet herkend | Fatbikes op de kade, HUD "Geschept: 0, Gezondheid"; Oma Trijntje als wachtend figuur bij het doel zie ik niet (een boom en de kade). Open. |
+| M07 plein | ja | goed | `955-m07-plein-kramen-publiek`: kramen, tafel en toeschouwers bij de Oosterpoort, niets in water of gebouw (0 van 13). Twee kramen staan half op het fietspad. |
+| M23, M25 | ja, deels | geen klachten | Colonne: HUD "0/6 bij elkaar" en keuzekaart; M25: Oma's keuken met kraam bij de oefenronde. M13 en M15: aankleding 0 van 8 in water of gebouw. |
+| M15 landing met publiek, M16 kroegset | nee | niet gezien | De oude `akte3_beeld` zet de speler niet in het vliegtuig en M16 start als race; geen van beide stappen kwam in beeld. Open. |
+| A1 weegbrug en oplegger | nee | niet gezien | `akte2_beeld --only=a1`: de bietenspot laadt niet in deze stage (de terugvalplek in de stad); open. |
+
+### Akte 6 en de Elf Bruggenrace
+
+| Onderdeel | Gezien | Oordeel | Bewijs en opmerking |
+|---|---|---|---|
+| M27 Inpakken | ja | matig | `955-m27-inpakken-wachtring`: markering en wachtkring op een grasstrook, geen dozen of figuur herkend. |
+| M28 De wisselwoning | ja | goed | `955-m28-wisselwoning-buren`: buren met een kast en stoelen langs de straat, 0 van 8 onderdelen in water of gebouw. |
+| M29 Terug (erf) | ja, deels | goed | Tafels met kratten en figuren op het erf, 0 van 10 in water of gebouw; de camera stond in een boom, geen bewaard beeld. |
+| M30 Het proefbeleg | ja | **bug gefixt** | Voor de fix stonden bij stap 7 twee van vijf onderdelen in een huis en bij stap 9 twee in een gracht. Na de fix 0 en 0 (alle stappen). |
+| Elf Bruggenrace | ja | goed, 1 opmerking | `955-bruggenrace-start-hud`: regelkaart, "Jelle 8 m voor", "Bruggen 0/12", controlepuntkaart; `955-bruggenrace-finish-uitslag`: uitslagkaart na de winst. **Opmerking:** de HUD telt twaalf "bruggen" (elf bruggen plus de finish bij de Spilsluizen), de naam zegt elf. Niet gewijzigd (de tekst loopt ook via de Samen spelen-melding). Publiek bij de start niet herkend. |
+
+### De nog niet bekeken top-30-issues
+
+Geen enkel issue is gesloten: voor niets daarvan weerlegt een beeld de klacht duidelijk.
+
+| # | Stand | Opmerking |
+|---|---|---|
+| #948 | deels | M17: de doelen van de vier bootstappen liggen in water, `boat_land_test` groen; niet gevaren (de klacht gaat over onder de grond varen), dus open. |
+| #969 | niet gezien | De koe-uitdaging staat niet in de spotlijst van `__postgame` (alleen bruggen, fierljep, skutsje, fjord), dus niet te starten in het harnas; schuur en bord niet in beeld. De schuur ligt op (8772, -6000), 817 m van de boerderij (9494, -6396). Open. |
+| #947 | niet gezien | Code in `storytravel.js` met een eigen guard (#947); geen beeld gemaakt. |
+| #945 | niet gezien | De plaats "Wonschoten" staat nergens in de data; de klacht gaat over fictieve akkerranden; `countryside.js` maakt ze niet meer bij echte tegels. Geen beeld. |
+| #934 | niet gezien | `impactbalance.js` en `breakables.js` dragen de fix; een rit tegen straatmeubilair niet gedaan. |
+| #933 | gemeten | Op het platteland bij Usquert gaf 90 s (18 tellingen, straal 500 m) bij 0 sterren nul politieauto's (`933-hertest-platteland-90s`). Met sterren niet gemeten. Open voor de eigenaar. |
+| #932 | niet gezien | Taxi-aankomst is gezien bij #882 (`882-taxi-aangekomen-winsum`); de specifieke bestemming Noord-Bierum niet. |
+| #930 | niet gezien | De route langs het kerkhof van Usquert niet gereden. |
+| #914 | niet gezien | Stuntavond (M01) startte niet in het harnas (`m01 startte niet`). |
+| #951 | deels | `955-m19-locomotief-bij-perron`: de trein staat zichtbaar bij het perron, dus "geen trein te zien" klopt niet meer. Het tweede deel (stilstaan telt als geslaagd) niet bekeken: de rit-stap vraagt 2300 m en het harnas rijdt niet. Open. |
+| #850 | niet gezien | Aanraakbediening met vliegtuigpaneel op 800x360: het harnas heeft een vast venster van 1280x720. |
+| #533 | niet gezien | De plekken (loket Middenstad-Oost, sluis) niet opgezocht. |
