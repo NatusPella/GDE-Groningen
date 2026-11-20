@@ -142,7 +142,7 @@ t('de module is puur: geen imports, geen DOM, geen THREE', () => {
   t('het vormvlak komt uit de patroontabel', () => {
     const bord = MK.createBoard('pitchputt');
     assert.match(bord.root.innerHTML, /class="mg-vorm"/, 'het vormvlak staat op het bord');
-    assert.match(bord.root.innerHTML, /background-image:/, 'met het patroon uit carrieresfeer.js');
+    assert.doesNotMatch(bord.root.innerHTML, /background-(image|color):/, 'zonder eigen kleur of patroon: het vormvlak leest de inkt uit de CSS (zeefdruk)');
     assert.match(lees('game/js/minigamekit.js'), /data-sfeerbord="clubschild"[\s\S]{0,200}clip-path/, 'de bordvorm heeft een eigen silhouet');
   });
   t('de bordmaat past op 1280x720, 1920x1080 en 390x844', () => {
@@ -162,7 +162,7 @@ t('de module is puur: geen imports, geen DOM, geen THREE', () => {
     assert.match(html, /mg-stopbtns/, 'de knoppenrij');
     assert.match(html, /data-do="stop"/, 'een Stoppen-knop');
     assert.match(html, /data-do="door"/, 'een Doorgaan-knop');
-    assert.match(html, /hud-key[^>]*>[^<]*SPATIE[^<]*<[/]span> = doorgaan/i, 'de toetsuitleg blijft, met de toets als plaatje');
+    assert.match(html, /data-do="door"[sS]*?(hud-key|pad-key|pad-g)/i, 'de toets staat als plaatje in de Doorgaan-knop');
   });
 }
 
