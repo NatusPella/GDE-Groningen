@@ -412,16 +412,15 @@ const PHASES = {
   async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk' }) {
     const w = W(); const SJ = await import('./js/sidejobs.js');
     const spot = SJ.getSideJobSpotsForRender().find((x) => x.job && x.job.id === id);
-    const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false;
+    const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false; const slotVan = { gast: 1, gast2: 2, gast3: 3 }[wie] || 1;
     log('gastbijbaan-begin', { wie: CFG.name, spot: spot ? [Math.round(spot.x), Math.round(spot.y)] : null, geld: geld0 });
     if (!spot) { await sleep(s * 1000); return; }
     const t0 = performance.now(); let laatsteLog = 0;
     while (performance.now() - t0 < s * 1000) {
       const G = w.coopBijbaanGast;
-      if (CFG.name === wie && !verzoek && performance.now() - t0 > 1500) {
-        w.player.x = spot.x + 0.8; w.player.y = spot.y; // de gast staat bij het startpunt
-        await sleep(1200); key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name });
-      }
+      // de plek van een gast is van de gastheer: de host zet de figuur van de gast bij het startpunt (de gast loopt er zelf niet heen)
+      if (CFG.role === 'host' && performance.now() - t0 < 9000) { const f = (w.coopFigures || {})[slotVan]; if (f) { f.x = spot.x + 0.8; f.y = spot.y; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } }
+      if (CFG.name === wie && !verzoek && performance.now() - t0 > 6000) { key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name, pos: [Math.round(w.player.x), Math.round(w.player.y)], spot: [Math.round(spot.x), Math.round(spot.y)], msg: (w.messages || []).slice(-2).map((m) => m.text || m) }); }
       if (CFG.name !== wie && CFG.role !== 'host' && !jGestuurd && G && G.uitn) { key('j', 'KeyJ'); jGestuurd = true; log('gastbijbaan-j', { wie: CFG.name, uitn: G.uitn.label }); }
       if (G && G.deelt) deelde = true;
       if (performance.now() - laatsteLog > 3000) { laatsteLog = performance.now(); log('gastbijbaan-stand', { wie: CFG.name, deelt: !!(G && G.deelt), uitn: !!(G && G.uitn), baan: G && G.id, sideJob: w.sideJob ? { actief: !!w.sideJob.active, naam: w.sideJob.name || null } : null, geld: w.money | 0 }); }
