@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { allSignals } from './junctions.js';
 import { MODS } from './cheatmods.js';
-import { gridItems } from './spatialgrid.js';
+import { roadIndexOf } from './roadindex.js';
 
 // Conflict-free fixed-time controllers. Every car approach belongs to an
 // axis (streams that are parallel or opposite); each axis gets its own green
@@ -105,21 +105,21 @@ export function pedestriansMayCross(head) {
 
 // ---------------------------------------------------------------- network
 
-let nodes = null;
+// Het knooppuntennet komt uit de gedeelde hoekpuntindex (roadindex.js): geen eigen herbouw over alle wegen meer. De sleutels
+// hier blijven de tekstsleutels van junctions.js ('x,y' in 0,1 m); de index kent het getal van dezelfde punt.
+let nodeIdx = null;
+const nodeEntries = (k) => {
+  if (!nodeIdx) return EMPTY;
+  const c = k.indexOf(',');
+  return nodeIdx.get((+k.slice(0, c) + 33554432) * 67108864 + (+k.slice(c + 1) + 33554432)) || EMPTY;
+};
+// voetpaden en losse punten doen niet mee aan het wegennet van de lichten
+const usable = (r) => r.cat !== 'foot' && r.pts.length >= 2;
 
 function buildNodes(m) {
-  nodes = new Map();
   // #524: het verkeerslichtennet komt uit het wegraster, niet uit de hele wegenarray;
   // zo kan een gestroomde tegel zijn eigen wegen aanleveren.
-  for (const r of gridItems(m.roadGrid)) {
-    if (r.cat === 'foot' || r.pts.length < 2) continue;
-    r.pts.forEach((p, idx) => {
-      const k = nodeKey(p);
-      let a = nodes.get(k);
-      if (!a) nodes.set(k, a = []);
-      a.push({ road: r, idx });
-    });
-  }
+  nodeIdx = roadIndexOf(m);
 }
 
 const isCar = (r) => CAR_CATS.has(r.cat);
@@ -127,10 +127,12 @@ const isCar = (r) => CAR_CATS.has(r.cat);
 // Branches leaving a node; d is the road direction pointing away from it.
 function branches(k, carOnly) {
   const out = [];
-  for (const e of nodes.get(k) || EMPTY) {
-    if (carOnly && !isCar(e.road)) continue;
-    if (e.idx > 0) out.push({ road: e.road, idx: e.idx, d: -1 });
-    if (e.idx < e.road.pts.length - 1) out.push({ road: e.road, idx: e.idx, d: 1 });
+  const list = nodeEntries(k);
+  for (let q = 0; q < list.length; q += 2) {
+    const road = list[q], idx = list[q + 1];
+    if (!usable(road) || (carOnly && !isCar(road))) continue;
+    if (idx > 0) out.push({ road, idx, d: -1 });
+    if (idx < road.pts.length - 1) out.push({ road, idx, d: 1 });
   }
   return out;
 }
@@ -201,7 +203,8 @@ function alongRoad(road, idx, d, dist) {
 
 function junctionClearance(k) {
   let w = 0;
-  for (const e of nodes.get(k) || EMPTY) if (isCar(e.road)) w = Math.max(w, e.road.width || 6);
+  const list = nodeEntries(k);
+  for (let q = 0; q < list.length; q += 2) if (usable(list[q]) && isCar(list[q])) w = Math.max(w, list[q].width || 6);
   return Math.max(4, Math.min(14, w / 2 + 2.5));
 }
 

@@ -385,6 +385,9 @@ export class TileWorld extends GameMap {
           if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
+          if (kind === 'roads' && this._roadIndex) this._roadIndex.add(obj); // de gedeelde hoekpuntindex (roadindex.js)
+          if (kind === 'green' && this._greenDelta) this._greenDelta.push(1, obj); // grass.js werkt de chunks per vlak bij
+          if (kind === 'buildings' && this._buildingDelta) this._buildingDelta.push(obj); // routing.js: wegen onder dit gebouw opnieuw toetsen
           // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) {
             obj.bounds = polygonBounds(obj.pts);
@@ -517,6 +520,9 @@ export class TileWorld extends GameMap {
       if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
       const grid = gridOf(kind, e.obj);
       if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
+      if (kind === 'roads') { e.obj._tb = null; if (this._roadIndex) this._roadIndex.remove(e.obj); } // _tb: de onthouden gebouwtoetsen (routing.js)
+      if (kind === 'green' && this._greenDelta) this._greenDelta.push(-1, e.obj);
+      if (kind === 'buildings' && this._buildingDelta) this._buildingDelta.push(e.obj);
       if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, e.obj.bounds || polygonBounds(e.obj.pts));
     };
     const held = this._tileRows && this._tileRows.get(tk);
