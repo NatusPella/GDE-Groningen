@@ -68,7 +68,7 @@ export const streekOf = (x, y) => {
 
 const bounds = (P) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const p of P) { if (p[0] < a) a = p[0]; if (p[0] > c) c = p[0]; if (p[1] < b) b = p[1]; if (p[1] > d) d = p[1]; } return [a, b, c, d]; };
 
-function loadTiles(out, index, keys) {
+export function loadTiles(out, index, keys) {
   const fds = new Map(), res = new Map();
   for (const k of keys) {
     const t = index.tiles[k];
@@ -88,7 +88,7 @@ function loadTiles(out, index, keys) {
 const near = (list) => (x, y, r) => list.filter((o) => x >= o.bounds[0] - r && x <= o.bounds[2] + r && y >= o.bounds[1] - r && y <= o.bounds[3] + r);
 
 // a map shaped like TileWorld for realBlockedAt
-function mapOf(tiles) {
+export function mapOf(tiles) {
   const all = (kind) => { const seen = new Set(), out = []; for (const t of tiles.values()) for (const r of t[kind]) { const k = r.gid ?? r; if (r.gid !== undefined) { if (seen.has(k)) continue; seen.add(k); } out.push(r); } return out; };
   const water = all('water'), rails = all('rails');
   return {
@@ -110,7 +110,7 @@ const segDist = (x, y, ax, ay, bx, by) => {
 const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
 
 // de vragen van de audit, over de rijen van de tegels (los van realBlockedAt: een eigen oordeel)
-function judge(map) {
+export function judge(map) {
   const { roads, rails, water, buildings } = map.all;
   const np = near(map.parcels);
   const nr = near(roads), nl = near(rails), nw = near(water), nb = near(buildings);
