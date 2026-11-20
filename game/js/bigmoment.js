@@ -203,10 +203,10 @@ function binnenHtml(m) {
   const metaHtml = meta.length ? `<div class="bm-meta">${meta.join('')}</div>` : '';
   const kop = `<div class="bm-kop">${esc(m.kop)}</div>`;
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;
-  if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}</div>`;
-  if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel" aria-hidden="true">${esc(m.kop)}</div></div>`;
-  if (m.vorm === 'plaats') return `<div class="bm-kaart"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
-  return `<div class="bm-tag"><span class="bm-klein">${esc(m.klein)}</span>${sterrenHtml(m.sterren)}<span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
+  if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}</div>`;
+  if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;
+  if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
+  return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${sterrenHtml(m.sterren)}<span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
 }
 
 function toonNu(m, klaarCb) {

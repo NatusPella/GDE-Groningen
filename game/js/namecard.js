@@ -23,8 +23,8 @@ function ensure() {
   const st = document.createElement('style');
   st.textContent = `
 #name-card { position: fixed; left: max(6vw, calc(340px * var(--ui, 1) + 24px)); bottom: calc(11vh + 24vh); z-index: 17; pointer-events: none; color: #f0ede4;
-  opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
-#name-card.on { opacity: 1; transform: none; }
+  opacity: 0; --ds-mi-x: -8px; text-shadow: 0 2px 12px rgba(0,0,0,.85); } /* ds-motion.css (.ds-mi-in) */
+#name-card.on { opacity: 1; }
 #name-card .nc-name { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
 #name-card .nc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 14px rgba(63,201,122,.45); }
 #name-card .nc-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(16px, 1.6vw, 22px); margin-top: 6px; max-width: 36ch; color: rgba(240,237,228,.92); }
@@ -39,6 +39,7 @@ function ensure() {
   document.head.appendChild(st);
   el = document.createElement('div');
   el.id = 'name-card';
+  el.className = 'ds-mi-in';
   el.innerHTML = '<div class="nc-name"></div><div class="nc-line"></div>';
   document.body.appendChild(el);
   return el;
@@ -55,11 +56,13 @@ export function showNameCard(key, { quiet = false, force = false } = {}) {
   const display = () => {
     el.querySelector('.nc-name').textContent = c.name;
     el.querySelector('.nc-line').textContent = c.card;
-    el.classList.remove('on');
+    el.style.transition = 'none';
+    el.classList.remove('on', 'out');
     void el.offsetWidth;
+    el.style.transition = '';
     el.classList.add('on');
     clearTimeout(hideT);
-    hideT = setTimeout(() => el.classList.remove('on'), SHOW_S * 1000);
+    hideT = setTimeout(() => { el.classList.remove('on'); el.classList.add('out'); }, SHOW_S * 1000);
   };
   const tryShow = (left) => {
     if (left > 0 && isOverlayHeld('naamkaart')) { waitT = setTimeout(() => tryShow(left - 1), 300); return; }

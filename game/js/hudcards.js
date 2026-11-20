@@ -37,6 +37,7 @@ import { getSettings } from './settings.js';
 import { keyTextHtml, hasKeyText } from './keycap.js';
 import { cardSeconds, stickyCard } from './cardtime.js';
 import { addCardLog, cardLogText } from './cardlog.js';
+import { opschuiven } from './microinteractions.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -238,7 +239,7 @@ const zoneOf = (c) => cardZone(c.spec.kind);
 
 function mount(c) {
   const el = document.createElement('div');
-  el.className = 'hud-card';
+  el.className = 'hud-card ds-mi-in'; // ds-motion.css: inschuiven, staan, uitfaden
   el.dataset.kind = c.spec.kind;
   el.innerHTML = cardHtml(c);
   if (!c.sticky) el.style.setProperty('--hc-dur', `${c.secs}s`);
@@ -377,7 +378,7 @@ export function updateCards(dt, w) {
     if (c.sticky || c.left > 0) continue;
     if (!c.leaving) leave(c);
     else {
-      c.el.remove();
+      opschuiven(c.el.parentNode, () => c.el.remove()); // de volgende kaart schuift soepel op
       visible.splice(visible.indexOf(c), 1);
       if (!visible.some((v) => zoneOf(v) === zoneOf(c))) zones.vacate(zoneOf(c), 'card');
     }

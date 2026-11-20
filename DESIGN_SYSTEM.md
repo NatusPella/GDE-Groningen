@@ -566,6 +566,27 @@ No HUD element takes a click; a HUD value is a `.ds-z-waarde` plate and a HUD ca
 - **Reduced motion:** `prefers-reduced-motion: reduce` and `html.reduce-motion` (the game's "Beweging beperken") set the three durations to 0, so every component stops moving with no rule of its own. Meaning never depends on motion. No flash above three a second (`reduce-flash` stays).
 - **Sound hooks:** components make no sound themselves; the rules in `sfx/menunav.js` do (a tick, select, back, toggle, slider). A `.ds-knop` is a real button, so it is already an `ITEMS` entry; `.ds-papier, .ds-glas` are in `ROOTS`. No new sound.
 
+### Microinteractions
+
+One small library, `game/js/ds-motion.css` (the `.ds-mi-*` classes, loaded after `ds-components.css`) plus two helpers in `game/js/microinteractions.js`. It adds no new durations: everything runs on `--ds-m-snel` 120 ms, `--ds-m` 200 ms and `--ds-m-max` 250 ms and `--ds-ease`, so "Beweging beperken", Rustig drukwerk and `prefers-reduced-motion` set it all to 0 ms and the words stay exactly the same. The dwell time of a notification is **not** an animation and may be longer than 250 ms; everything that moves is not.
+
+**Rules.** Never a loop (no `infinite`, no iteration count above one). Only `opacity`, the individual `translate` property (1 to 8 px, never a scale or rotation; the tilt of a card stays on `transform`), fills and `scaleX` of a bar. No flash above three a second. Meaning never lives in the motion alone: the kicker, the icon and the words are there when nothing moves. Performance: transitions on state classes the component already has (`.on`, `.aan`, `.out`, `.uit`), `opacity` and `translate` only (no `width`, `top`, `filter`, `all`), no JS per frame for a notification (the one exception is a money counter that runs for at most 250 ms). `scripts/microinteracties_test.mjs` guards the lot.
+
+| Name | Class | What it does | Time |
+|---|---|---|---|
+| **Inschuiven** (slide in) | `.ds-mi-in` + `.on`/`.aan` | opacity 0 to 1 and 8 px from the edge where the notification belongs (`--ds-mi-x` / `--ds-mi-y`: left card `-8px 0`, phone card `0 -8px`, wanted tag `8px 0`), ease-out | `--ds-m` 200 ms |
+| **Verblijven** (dwell) | none (the component owns it) | HUD cards: `cardtime.js` (4 to 10 s by text length, longer in reading mode `ruim`, sticky for an important card in mode `geen`); achievements: `toastDuur()`; big moments: 1,8 s (wanted), 3,6 s (area), 4,2 s (mission, busted). A notification that can take a click or focus pauses its timer on hover and focus. Stays put under reduce-motion (only the fade and the move are off). | seconds |
+| **Uitfaden** (fade out) | `.ds-mi-in` + `.out`/`.uit` | opacity to 0, **no move** (it leaves where it stands) | `--ds-m` 200 ms |
+| **Stapelen / opschuiven** (stack) | `opschuiven(container, fn)` + `.ds-mi-schuift` | when a notification is removed the next one slides to the freed place (FLIP, one measure before and after, then a `translate` transition), no jump, no overlap; one notification per zone is still the attention budget | `--ds-m` 200 ms |
+| **Teller oplopen** (counter) | `telStap()`, `.ds-mi-teller` | a money value runs linear to its target, then stands still; the `+/-` delta next to it fades in with a 6 px step | at most `--ds-m-max` 250 ms |
+| **Voortgang vullen** (progress fill) | `.ds-mi-vul` + `--ds-mi-p` | a bar fills with `scaleX` once, no loop, no width animation | `--ds-m-max` 250 ms |
+| **Aantikken** (press) | `.ds-mi-druk` | the press state of a button: it moves the shadow offset and the shadow drops, the same offset as "pressed" in the elevation scale | `--ds-m-snel` 120 ms |
+| **Einde missie** (landing) | `.ds-mi-in .ds-mi-landing` (+ `.ds-mi-na`) | the big moments keep their form (band, stamp on a slip, place stamp, wanted tag). One landing: opacity plus 8 px from the side that belongs to the form (band from the left, slip and place stamp from below, wanted tag from the right, stamp from above, one step (200 ms) after the slip), then it stands still; the fade out is 200 ms with no move. Rustig drukwerk and reduce-motion: no motion at all, the same words and the same layout. | 250 ms, a stamp starts 200 ms later |
+
+**Where it is applied** (a class and a few lines of CSS per component, no new structure): HUD cards (`hudcards.js`: toasts, tips, "Geplaatst", "Nieuwe streek", money and mission cards; the name card of `namecard.js`), the phone card (`phonefeed.js`), the achievement toast (`achievements.js`), the five big-moment forms (`bigmoment.js`: mission passed and failed, busted, new area, wanted up and down) and the money counter of the HUD (`hud_panel.js`). Samen spelen: notifications and moments are local to each player (each plays their own HUD); nothing here is shared or synced.
+
+**Left alone, with the reason.** The ringing of an incoming call (`pf-ring`, `pf-buzz`) and the live dot are functional states, not decoration, and still loop; the rule "never a loop" applies to everything new and they are listed in the known deviations below for the phone pass. The old district card of `cinematics.js` (`#wijk-card`) is replaced by the big moment and stays as the fallback in the old style.
+
 ### Rules for components (additions to the checklist)
 
 1. **No loose hex.** `ds-components.css` has no hex, `rgb()` or `hsl()`; only `var(--ds-...)`. `ds-tokens.css` has hex only as palette (`--ds-c-*`) and `rgba()` only in a shadow. New screens use the roles, not the palette.
@@ -586,7 +607,7 @@ Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles onl
 
 The honest list (24 October) is [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md). The ones that matter most: the map's rebuilt action bar follows the menu set since #602 but has not been seen in the game by a human;
 the mouse and pointer lock on several monitors (#435); the Samen spelen screens do not use the shared menu set;
-messages that are longer than the 14-word budget; when the opener pauses, the world stops for the guests too; and the players list has no way on touch. Fix a row, delete the row.
+messages that are longer than the 14-word budget; loops that predate the microinteractions rule (the ringing of an incoming call, the live dot, the "knipper" and "schud" states of the rule widgets in `regelwidget.css`), which stay until their screen is moved over; when the opener pauses, the world stops for the guests too; and the players list has no way on touch. Fix a row, delete the row.
 
 ### Status colours and identity colours
 

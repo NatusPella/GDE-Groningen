@@ -2,6 +2,7 @@ import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
 import { wantedPhase } from './wantedstate.js';
 import { levelOf, zoekBalkVulling } from './wantedlevels.js';
+import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
@@ -1398,6 +1399,7 @@ const WEAPON_ICONS = {
 
 let moneyShown = null;
 let moneyTarget = 0;
+let moneyStart = 0; // microinteractions.js: de waarde waar de lopende teller van begon
 let deltaSum = 0;
 let deltaTimer = 0;
 // #661: cache de geformatteerde geldregel en de twee wapen-kind-elementen
@@ -1412,6 +1414,7 @@ function updateMoneyWeapon(dt, world) {
     if (target > moneyTarget && isBusy(world)) S.moneyHeld = nowS();
     else { S.moneyAt = nowS(); S.moneyHeld = null; }
     S.moneySign = target > moneyTarget ? 1 : -1;
+    moneyStart = moneyShown;
     moneyTarget = target;
     els.moneyDelta.textContent = (deltaSum > 0 ? '+€' : '−€') + Math.abs(deltaSum).toLocaleString('nl-NL');
     els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
@@ -1420,10 +1423,8 @@ function updateMoneyWeapon(dt, world) {
   }
   if (deltaTimer > 0 && (deltaTimer -= dt) <= 0) els.moneyDelta.classList.remove('visible');
   const diff = moneyTarget - moneyShown;
-  if (diff !== 0) {
-    const step = Math.max(1, Math.abs(diff) * Math.min(1, dt * 5));
-    moneyShown = Math.abs(diff) <= step ? moneyTarget : moneyShown + Math.sign(diff) * step;
-  }
+  // TELLER OPLOPEN (ds-motion.css, microinteractions.js): lineair in hooguit 250 ms, bij Beweging beperken meteen
+  if (diff !== 0) moneyShown = telStap(moneyShown, moneyTarget, moneyStart, dt, bewegingUit() ? 0 : MI.max / 1000);
   const rounded = Math.round(moneyShown);
   if (moneyNeedsUpdate(rounded, moneyRounded)) { moneyRounded = rounded; setText(els.money, moneyLabel(rounded)); }
   els.money.classList.toggle('rolling', diff !== 0);

@@ -80,7 +80,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-moneyrow { display: flex; gap: 10px; align-items: baseline; }
 #hud .hud-money { font-size: 38px; line-height: 1; letter-spacing: 0.04em; color: var(--gron-green-light); font-variant-numeric: tabular-nums; }
 #hud .hud-money.rolling { color: #f0ede4; }
-#hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.4s; }
+#hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity var(--ds-m) var(--ds-ease), transform var(--ds-m) var(--ds-ease); }
 #hud .hud-money-delta.visible { opacity: 1; transform: none; }
 #hud .hud-money-delta[data-sign="plus"] { color: var(--gron-green-light); }
 #hud .hud-money-delta[data-sign="min"] { color: var(--mk-danger, #d93f3f); } /* #638: één rood, via de tokens */

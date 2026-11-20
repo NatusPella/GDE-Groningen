@@ -118,8 +118,9 @@ ok(!/rgba\((?!29,27,23,)/.test(code), 'rgba only in the ink tone');
 ok(/rotate\(var\(--ds-schuin\)\)/.test(code) && !/rotate\(-?\d/.test(code), 'the tilt comes from the --ds-schuin token');
 ok(/html\.rustig-drukwerk/.test(code) && /html\.reduce-motion/.test(code) && /prefers-reduced-motion/.test(code), 'Rustig drukwerk, Beweging beperken and the OS preference are covered');
 ok(!/infinite/.test(code), 'nothing loops (no flashing)');
-const durations = [...code.matchAll(/animation:[^;]*?\s(\d*\.?\d+)s/g)].map((m) => Number(m[1]));
-ok(durations.length >= 4 && durations.every((d) => d >= 0.25), 'every animation lasts at least 0.25 s', durations.join());
+// microinteracties: de beweging komt uit ds-motion.css (.ds-mi-in .ds-mi-landing, hooguit 250 ms); hier geen eigen animatie meer
+ok(!/animation\s*:\s*bm-/.test(code) && !/@keyframes/.test(code), 'no own animation or keyframes (ds-motion.css moves the moments)');
+ok(/--ds-m\b/.test(code) && !/transition[^;]*\d\.\d+s/.test(code), 'the fade uses the --ds-m token, no literal seconds');
 ok(!/\.bm-wanted\s*\{[^}]*inset\s*:/.test(code) && /\.bm-wanted\s*\{[^}]*right:\s*(?:0|var\(--ds-rand-hud\))/.test(code), 'the wanted tag sits at the edge, not full screen');
 ok(/\.bm-geslaagd, \.bm-mislukt, \.bm-opgepakt \{ inset: 0/.test(code), 'passed, failed and busted cover the screen');
 ok(/font: 800 clamp\(56px, 9vw/.test(code) && /Barlow Condensed|--ds-font-kop-v3/.test(code), 'the big print is Barlow Condensed');
