@@ -15,6 +15,8 @@ const KEEP = {
   'treincoop.js': 'coop (#444): de rollen in de trein, wordt nog aangesloten op de coöp-laag',
   'cutpreview.js': 'game/cutpreview.html is een meegeleverde ontwikkelpagina',
   'ds-galerij.js': 'game/ds-galerij.html is een meegeleverde ontwikkelpagina (designsysteem, #980)',
+  'inputglyphs.js': 'toets- en knopglyphs (Kenney, CC0): wordt gebruikt door de designsysteemgalerij, de koppeling aan het spel volgt',
+  'inputglyphs_data.js': 'gegevens voor inputglyphs.js',
   'mapfog.js':'naslag van de oude stadsmist; de kaart gebruikt kaartontdekking.js (#899)',
   'cutpreviewui.js': 'game/cutpreview.html is een meegeleverde ontwikkelpagina',
   'routeribbon.js': 'wordt via game/js/scene3d/routeribbon3d.js gebruikt sinds de splitsing (#497)',
