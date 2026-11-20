@@ -33,6 +33,8 @@ const cut = (s, max) => {
 };
 
 // At most `max` words, the rest becomes an ellipsis: the same budget as the rest of the UI.
+import { isPauseMenuOpen } from './pausestate.js';
+
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
   return w.length > max ? w.slice(0, max).join(' ').replace(/[.,;:!?]+$/, '') + '…' : w.join(' ');
@@ -232,6 +234,7 @@ function toonNu(m, klaarCb) {
 export function showBigMoment(opts = {}) {
   if (typeof document === 'undefined') return null;
   if (!mayMomentTonen(opts)) return null;
+  if (isPauseMenuOpen()) return null; // a moment never sits over the pause menu; the old card stays as the fallback
   if (!planner) planner = maakPlanner();
   const m = bouwMoment(opts);
   const nu = performance.now();
