@@ -13,6 +13,10 @@ ok(/data-act="uitleg-sluit"/.test(html) && /class="ds-knop mv-help-ok"/.test(htm
 ok(/role="dialog"/.test(html) && /aria-modal="true"/.test(html), 'de uitleg is een dialoog');
 ok(uitlegHtml({ gast: true }).length > html.length, 'een gast leest er een regel bij');
 
+// de hoofdoorzaak: .mapview-overlay heeft pointer-events: none en alleen de kinderen die klikbaar moeten zijn zetten auto; .mv-help erfde none en liet elke klik door naar het doek
+const css = src('game/js/kaartactieui.js');
+ok(/.mapview-overlay .mv-help {[^}]*pointer-events: auto/.test(css), 'de uitleg zet pointer-events: auto (anders klikt alles door naar het doek)');
+
 const mv = src('game/js/mapview.js');
 ok(/let uitlegGezien = false;/.test(mv) && /if \(uitlegGezien\) return true;/.test(mv), 'kaartGezien onthoudt het ook in het geheugen');
 ok(/function sluitKaartUitleg\(btn\) \{\s*uitlegGezien = true;/.test(mv), 'sluiten zet eerst het geheugen, dan de opslag');

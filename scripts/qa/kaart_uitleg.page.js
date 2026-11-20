@@ -12,6 +12,7 @@ for (let i = 0; i < 25 && w.paused; i++) { for (const t of [window, document]) {
 const imp = (f) => import('/js/' + f + '.js');
 const cine = await imp('cinematics');
 const PM = await imp('pausemenu');
+const MV = await imp('mapview');
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 D.input.canLock = () => false;
@@ -22,7 +23,8 @@ const stap = (naam, extra = {}) => res.stappen.push({ naam, open: !!help(), ...e
 const midden = () => { const b = document.querySelector('.mv-help .mv-help-ok'); if (!b) return null; const r = b.getBoundingClientRect(); return { b, x: r.left + r.width / 2, y: r.top + r.height / 2, r }; };
 const klik = (el, x, y) => { for (const t of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) el.dispatchEvent(new MouseEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 })); };
 const toets = (k) => { const t = document.activeElement || document.body; t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: k, bubbles: true, cancelable: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code: k, bubbles: true, cancelable: true })); };
-const wis = () => { for (const k of Object.keys(localStorage)) if (/hud|seen/i.test(k) && k !== 'gde-save-v1') localStorage.removeItem(k); };
+const wis = () => { MV.vergeetKaartUitleg(); for (const k of Object.keys(localStorage)) if (/hud|seen/i.test(k) && k !== 'gde-save-v1') localStorage.removeItem(k); };
+const cap = async (name) => { await sleep(800); console.log('[capture] ' + name); await sleep(1500); };
 const open = async () => { PM.openPauseMenu('map'); await sleep(2500); };
 const sluit = async () => { PM.closePauseMenu(); await sleep(1200); };
 
@@ -37,6 +39,15 @@ const treffer = kandidaten.map(([x, y]) => { const e = document.elementFromPoint
 const raak = kandidaten.findIndex(([x, y]) => { const e = document.elementFromPoint(x, y); return e && (e === m.b || m.b.contains(e)); });
 const top = raak >= 0 ? document.elementFromPoint(kandidaten[raak][0], kandidaten[raak][1]) : document.elementFromPoint(m.x, m.y);
 stap('open', { rect: [m.r.left, m.r.top, m.r.width, m.r.height].map(Math.round), zoomF, treffer, raak, opPunt: top && (top.tagName + '.' + top.className).slice(0, 80), isKnop: !!top && (top === m.b || m.b.contains(top)), focus: document.activeElement && document.activeElement.className });
+{ // wat ligt waar: de lagen op een raster over het venster, en de stijl van de uitleg
+  const h = help(), cv = document.querySelector('.mapview-canvas');
+  const stijl = (e) => { if (!e) return null; const c = getComputedStyle(e), r = e.getBoundingClientRect(); return { z: c.zIndex, pos: c.position, pe: c.pointerEvents, op: c.opacity, disp: c.display, rect: [r.left, r.top, r.width, r.height].map(Math.round) }; };
+  res.lagen = { help: stijl(h), box: stijl(h && h.querySelector('.mv-help-box')), knop: stijl(m.b), canvas: stijl(cv), stage: stijl(document.querySelector('.gm-stage')) };
+  const raster = {};
+  for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const fy of [0.2, 0.5, 0.8]) { const e = document.elementFromPoint(innerWidth * fx, innerHeight * fy); raster[fx + ',' + fy] = e ? (e.tagName + '.' + String(e.className).slice(0, 30)) : null; }
+  res.raster = raster;
+  await cap('uitleg-open');
+}
 res.opslagSleutels = Object.keys(localStorage).filter((k) => /hud|seen/i.test(k));
 // 1. klik op het midden van Begrepen
 klik(top || m.b, m.x, m.y); await sleep(400); stap('na klik op Begrepen' + (raak >= 0 ? '' : ' (treft de knop niet: op het element zelf)'));
@@ -48,7 +59,7 @@ const focusNaOpen = document.activeElement && (document.activeElement.className 
 toets('Enter'); await sleep(400); stap('na Enter', { focusNaOpen });
 // 3. Escape: eerst de uitleg, de kaart blijft open
 wis(); await sluit(); await open();
-toets('Escape'); await sleep(500); stap('na Escape', { kaartOpen: !!document.querySelector('.mapview-overlay') && document.querySelector('.mapview-overlay').getClientRects().length > 0 });
+toets('Escape'); await sleep(500); stap('na Escape', { menuOpen: PM.isPauseMenuOpen(), tab: PM.pauseMenuTab() });
 // 4. klik naast het kader
 wis(); await sluit(); await open();
 const h = help(); if (h) { const r = h.getBoundingClientRect(); klik(h, r.left + 4, r.top + 4); await sleep(400); }

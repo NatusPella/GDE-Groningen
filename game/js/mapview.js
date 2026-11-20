@@ -2487,6 +2487,8 @@ function showCard(world, h, sx, sy) {
 // De uitleg bij de kaart (#445; de toetsen en knoppen staan in de voetregel van het pauzemenu): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
 // Ook in het geheugen onthouden (21-11): een opslag die niet schrijft (geblokkeerd, ander profiel) bracht de popup steeds terug.
 let uitlegGezien = false;
+// alleen voor de proefspeler (scripts/qa/kaart_uitleg.page.js): de uitleg weer als nieuw
+export function vergeetKaartUitleg() { uitlegGezien = false; }
 function kaartGezien() {
   if (uitlegGezien) return true;
   try { return !!parseSeen(localStorage.getItem(KEYS.hudSeen))[UITLEG_ID]; } catch (e) { return false; }
