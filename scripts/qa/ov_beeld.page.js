@@ -124,6 +124,10 @@ try {
   note('station menu open', document.body.classList.contains('shop-open'));
   note('station menu', (document.querySelector('.sm-panel') || { innerText: '' }).innerText.replace(/\s+/g, ' ').slice(0, 600));
   await grab('station-menu');
+  const tab = [...document.querySelectorAll('.sm-panel button, .sm-panel [role=tab]')].find((b) => /Zelf de trein/i.test(b.innerText));
+  note('tab', tab ? tab.innerText.replace(/s+/g, ' ') : null);
+  if (tab) { tab.click(); await sleep(600); }
+  await grab('station-menu-dienst');
   const items = [...document.querySelectorAll('.sm-item')];
   const dienst = items.find((i) => /Noorderspoor naar/.test(i.innerText));
   note('dienst-item', dienst ? dienst.innerText.replace(/\s+/g, ' ').slice(0, 120) : null);

@@ -26,7 +26,7 @@ const VERVERS_M = 25;       // m: of eerder, als de speler zo ver is gelopen
 const NAAM_R = 45;          // m: binnen deze afstand staat de haltenaam boven het bord
 const KLEUR = '#2e8b6a';    // de streekbus (sidejob_lijn COACH)
 
-let paal = null, bord = null, dak = null, naamMesh = null, naamTex = null, naamCtx = null;
+let paal = null, bord = null, dak = null, glas = null, naamMesh = null, naamTex = null, naamCtx = null;
 let laatst = { x: 1e9, y: 1e9, t: -1e9 };
 let nu = [];                // de haltes in beeld, met hun geplaatste paal
 const plek = new Map();     // halte-id -> { x, y, ang } (geplaatst naast de weg)
@@ -53,8 +53,9 @@ function bouw(scene) {
   const mat = (c) => new THREE.MeshLambertMaterial({ color: c });
   paal = new THREE.InstancedMesh(new THREE.BoxGeometry(0.09, 2.6, 0.09), mat(0x6a7078), POOL);
   bord = new THREE.InstancedMesh(new THREE.BoxGeometry(0.62, 0.62, 0.05), mat(0xe8c93a), POOL);
-  dak = new THREE.InstancedMesh(new THREE.BoxGeometry(2.6, 0.1, 1.3), mat(0x2d3a44), POOL);
-  for (const m of [paal, bord, dak]) { m.frustumCulled = false; m.count = 0; scene.add(m); }
+  dak = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 0.08, 1.2), mat(0x5a6670), POOL);
+  glas = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 1.7, 0.04), new THREE.MeshLambertMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.45 }), POOL);
+  for (const m of [paal, bord, dak, glas]) { m.frustumCulled = false; m.count = 0; scene.add(m); }
   const c = document.createElement('canvas');
   c.width = 256; c.height = 64;
   naamCtx = c.getContext('2d');
@@ -98,13 +99,14 @@ function ververs(world, p) {
     if (hash(h.id) % 2 === 0 && nd < POOL) {
       const dx = Math.cos(pl.ang), dy = Math.sin(pl.ang);
       dak.setMatrixAt(nd++, m4.compose(pos.set(pl.x - Math.sin(pl.ang) * 0.9 + dx * 1.4, zz + 2.4, pl.y + Math.cos(pl.ang) * 0.9 + dy * 1.4), q, sc));
+      glas.setMatrixAt(nd - 1, m4.compose(pos.set(pl.x - Math.sin(pl.ang) * 1.45 + dx * 1.4, zz + 1.6, pl.y + Math.cos(pl.ang) * 1.45 + dy * 1.4), q, sc));
     }
     const d = Math.hypot(pl.x - p.x, pl.y - p.y);
     if (d < bd) { bd = d; best = { h, pl, z: zz }; }
   }
   paal.count = bord.count = n;
-  dak.count = nd;
-  for (const m of [paal, bord, dak]) m.instanceMatrix.needsUpdate = true;
+  dak.count = glas.count = nd;
+  for (const m of [paal, bord, dak, glas]) m.instanceMatrix.needsUpdate = true;
   if (best) {
     zetNaam(best.h.naam);
     naamMesh.position.set(best.pl.x, best.z + 2.95, best.pl.y);
