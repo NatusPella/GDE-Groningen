@@ -186,7 +186,7 @@ export function grindNodig(v) {
 // Perf (#804): alleen de korte, vaak gebruikte klanken (EAGER_CATS) worden bij de start gedecodeerd; de rest (lussen van
 // het weer, vliegtuig, dieren, donder) pas bij de eerste vraag via has() of buffer(). Tot dan geeft buffer() null en speelt
 // de synth, zoals bij een ontbrekend bestand. Eén decodeerbeurt tegelijk met ruimte ertussen, zodat er geen hitchreeks komt.
-// Alles bij de start decoderen kostte ca. 100 MB PCM (154 klanken); nu start het met ca. 12 MB.
+// Alles bij de start decoderen kostte ca. 100 MB PCM (154 klanken); nu start het met ca. 7 MB (mono, 48 kHz; berekend uit manifest.json).
 export const EAGER_CATS = new Set(['ui', 'deur', 'voetstap', 'winkel']);
 export const DECODE_GAP_MS = 12;
 export function eagerKeys(keys = SAMPLE_KEYS) { return keys.filter((k) => SAMPLE_INFO[k] && EAGER_CATS.has(SAMPLE_INFO[k].cat)); }

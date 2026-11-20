@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Verbeterd
+
+- **Rustiger beeld in de stad (#804, #937):** het spel decodeert bij het starten alleen nog de korte, vaak gebruikte geluiden (ca. 7 MB in plaats van ca. 100 MB werkgeheugen); lussen van het weer, vliegtuigen en dieren laden pas als je ze nodig hebt, één tegelijk. Zware wegen die het spel zelf moet bouwen krijgen rust tussen twee bouwbeurten, zodat het niet meer meerdere beelden achter elkaar haperkt, en de kaartjes, de HUD van de bijbanen en de boerderij doen niet meer elk beeld werk dat alleen bij een wijziging nodig is
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
