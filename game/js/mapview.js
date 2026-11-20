@@ -2485,7 +2485,10 @@ function showCard(world, h, sx, sy) {
 }
 
 // De uitleg bij de kaart (#445; de toetsen en knoppen staan in de voetregel van het pauzemenu): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
+// Ook in het geheugen onthouden (21-11): een opslag die niet schrijft (geblokkeerd, ander profiel) bracht de popup steeds terug.
+let uitlegGezien = false;
 function kaartGezien() {
+  if (uitlegGezien) return true;
   try { return !!parseSeen(localStorage.getItem(KEYS.hudSeen))[UITLEG_ID]; } catch (e) { return false; }
 }
 function initKaartUitleg(overlay) {
@@ -2514,7 +2517,15 @@ function syncKaartUitleg(world) {
   const leg = state.overlay.querySelector('.mv-leg-hint');
   if (leg && (leg.dataset.gast === '1') !== gast) leg.outerHTML = legendaHintHtml({ gast });
 }
+// Escape en de B-knop van de controller sluiten eerst de uitleg, dan pas de kaart (pausemenu.js goBack): true als er een uitleg openstond.
+export function kaartUitlegSluiten() {
+  const box = state && state.overlay && state.overlay.querySelector('.mv-help');
+  if (!box) return false;
+  sluitKaartUitleg(box);
+  return true;
+}
 function sluitKaartUitleg(btn) {
+  uitlegGezien = true;
   const box = btn && btn.closest ? btn.closest('.mv-help') : state.overlay && state.overlay.querySelector('.mv-help');
   if (box) box.remove();
   try { localStorage.setItem(KEYS.hudSeen, JSON.stringify(markSeen(parseSeen(localStorage.getItem(KEYS.hudSeen)), UITLEG_ID))); } catch (e) { /* ignore */ }
