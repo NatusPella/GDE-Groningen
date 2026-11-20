@@ -1,5 +1,5 @@
 // Hertest-beeldrun (docs/HERTEST-TRIAGE.md): één Electron (wegwerpprofiel) loopt de scenario's van hertest_beeld.page.js af (brug, water, muur, knakker, station, bourtange).
-//   node scripts/qa/hertest_beeld.mjs --only=brug,water [--out=<map>]
+//   node scripts/qa/hertest_beeld.mjs --only=brug,water [--out=<map>] [--formaat=800x360 --touch=1]
 // GDE_GAME_DIR, ELECTRON_EXE, GDE_DESKTOP, GDE_ELECTRON_EXTRA_ARGS zoals plek_beeld.mjs. Uitvoer: <out>/shots-*.png, hertest_beeld.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -12,8 +12,9 @@ const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-hertest')));
 fs.mkdirSync(OUT, { recursive: true });
-const profile = process.env.GDE_PROFILE_DIR || `gde-test-ht-${process.pid}`;
+const profile = process.env.GDE_PROFILE_DIR ? `${process.env.GDE_PROFILE_DIR}-ht${process.pid}` : `gde-test-ht-${process.pid}`;
 const script = path.join(OUT, '_page.js');
+const fm = (arg('formaat', '1280x720').match(/^(\d{3,4})x(\d{3,4})$/) || [0, 1280, 720]);
 const cfg = { only: arg('only', '').split(',').filter(Boolean) };
 fs.writeFileSync(script, `window.__ht = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'hertest_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
@@ -21,7 +22,7 @@ const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
 delete env.ELECTRON_RUN_AS_NODE;
 const extra = (process.env.GDE_ELECTRON_EXTRA_ARGS || '').split(',').filter(Boolean); // bv. --no-sandbox als de omgeving Chromium's sandbox weigert
-const r = spawnSync(electron, ['.', ...extra, '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720',
+const r = spawnSync(electron, ['.', ...extra, '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${fm[1]}x${fm[2]}`, ...(arg('touch', '') ? ['--touch'] : []),
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
 { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 15 * 60 * 1000, killSignal: 'SIGKILL' });

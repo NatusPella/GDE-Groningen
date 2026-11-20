@@ -392,6 +392,72 @@ try {
     note('politie', { wanted: w.wanted, tellingElke5s: tel, max });
     await cap('ht933-platteland-90s', 300);
   }
+  // ---- #933 met sterren: komt er dan wel politie, en hoeveel in de stad bij 0 sterren? --------------------------
+  if (ON('politie2')) {
+    const [cx, cy] = pts.usquert;
+    const tel = (r) => (w.vehicles || []).filter((v) => v.isPolice && !v.isBoat && Math.hypot(v.x - p.x, v.y - p.y) < r).length;
+    // stad, 0 sterren: 60 s op de Grote Markt
+    await jump(0, 0, 6000);
+    w.wanted = 0;
+    const stad = [];
+    for (let i = 0; i < 12; i++) { await sleep(5000); stad.push(tel(500)); }
+    note('politie2', { stad0sterren: stad, stadMax: Math.max(...stad) });
+    await cap('ht933-stad-0-sterren', 300);
+    // platteland, 2 sterren
+    await jump(cx + 1500, cy + 500, 6000);
+    w.wanted = 2;
+    const land = [];
+    for (let i = 0; i < 12; i++) { await sleep(5000); w.wanted = Math.max(w.wanted, 2); land.push(tel(500)); }
+    note('politie2', { platteland2sterren: land, landMax: Math.max(...land) });
+    await cap('ht933-platteland-2-sterren', 300);
+    w.wanted = 0;
+  }
+  // ---- #930 route naar de kerk van Usquert: over de weg, niet over het kerkhof ----------------------------------
+  if (ON('kerk')) {
+    const RT = await imp('routing');
+    const HP = await imp('herkenningspunten');
+    const kerk = HP.HERKENNINGSPUNTEN.find((q) => /Usquert/.test(q.naam) && q.soort === 'church');
+    note('kerk', { kerk: kerk && { x: kerk.x, y: kerk.y, naam: kerk.naam } });
+    if (kerk) {
+      await jump(kerk.x - 160, kerk.y + 60, 7000);
+      let rt = null;
+      for (const kind of ['walk', 'drive']) {
+        RT.setUserWaypoint(kerk.x, kerk.y, kerk.naam);
+        for (let i = 0; i < 60 && !(rt = RT.getActiveRoute()); i++) await sleep(250);
+        const pts2 = rt && (rt.pts || rt.points) || [];
+        let kerkhof = 0, gebouw = 0;
+        for (let i = 0; i < pts2.length - 1; i++) {
+          const a = pts2[i], b = pts2[i + 1];
+          if (RT.lineHitsCemetery(map, a[0], a[1], b[0], b[1])) kerkhof++;
+          if (RT.lineHitsBuilding(map, a[0], a[1], b[0], b[1])) gebouw++;
+        }
+        note('kerk', { [kind]: { punten: pts2.length, segmentenOverKerkhof: kerkhof, segmentenDoorGebouw: gebouw, laatste: pts2.length ? pts2[pts2.length - 1].map((n) => Math.round(n)) : null } });
+        break;
+      }
+      const z = gh(kerk.x, kerk.y);
+      cam(kerk.x - 20, kerk.y + 10, z + 110, kerk.x - 20, kerk.y + 10, z, 55); await cap('ht930-kerk-route-lucht', 2500);
+      cam(kerk.x - 60, kerk.y + 25, z + 6, kerk.x, kerk.y, z + 3, 65); await cap('ht930-kerk-route-grond', 1500);
+      camOff();
+      RT.clearUserWaypoint();
+    }
+  }
+  // ---- #850 het vliegtuigpaneel bij aanraakbediening (start met --formaat=800x360 --touch) ------------------------
+  if (ON('touchvlieg')) {
+    await jump(1764 + 25, 9959 + 60, 6000);
+    const kist = (w.vehicles || []).filter((v) => v.isPlane).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    note('touchvlieg', { kist: !!kist, venster: [window.innerWidth, window.innerHeight], touchUi: !!document.querySelector('#touch-ui, #touch-controls') });
+    if (kist) {
+      p.x = kist.x + 4; p.y = kist.y + 4; p.enterVehicle(kist, w);
+      await sleep(3500);
+      const el = document.querySelector('.hud-instr');
+      const r = el && el.getBoundingClientRect();
+      const knoppen = [...document.querySelectorAll('.t-btn')].filter((b) => b.getClientRects().length).map((b) => { const q = b.getBoundingClientRect(); return { t: (b.textContent || b.getAttribute('aria-label') || '').trim().slice(0, 16), r: [Math.round(q.left), Math.round(q.top), Math.round(q.width), Math.round(q.height)] }; });
+      const over = (a, b) => Math.max(0, Math.min(a[0] + a[2], b[0] + b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]));
+      const pr = r ? [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] : null;
+      note('touchvlieg', { paneel: pr, plane: document.body.classList.contains('plane-flying'), knoppen: knoppen.slice(0, 24), overlap: pr ? knoppen.filter((k) => over(pr, k.r) > 0).map((k) => k.t + ':' + over(pr, k.r)) : [], labelPx: el ? [...el.querySelectorAll('*')].map((n) => parseFloat(getComputedStyle(n).fontSize)).filter((n) => n > 0).reduce((m, n) => Math.min(m, n), 99) : null });
+      await cap('ht850-vliegtuigpaneel-touch', 800);
+    }
+  }
 } catch (e) { out.fout = String(e && e.stack || e).slice(0, 700); }
 releaseAll();
 camOff();
