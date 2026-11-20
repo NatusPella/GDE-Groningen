@@ -301,10 +301,12 @@ export function mountLobby(root, hooks, opts = {}) {
     koppelAankondiging();
     return hub;
   }
+  // #983: alleen een aanbod waar nog niemand op antwoordde mag dicht; een open kanaal is een speler die al meespeelt (rtcroom cancel() sluit sinds #589 ook open kanalen)
+  function annuleerWachtend() { if (handle && handle.cancel && !(handle.transport && handle.transport.isOpen && handle.transport.isOpen())) handle.cancel(); }
   async function openRoom() { // een aanbod voor de eerstvolgende gast, onder dezelfde kamercode
     const gen = ++roomGen; // #779: ouder aanbod ongeldig zodra een kick/nieuwe kamer langskomt
     wacht = true;
-    if (handle && handle.cancel) handle.cancel();
+    annuleerWachtend();
     room = room || makeRoom();
     let volgende;
     try {
@@ -443,7 +445,7 @@ export function mountLobby(root, hooks, opts = {}) {
   async function nieuweKamer() {
     room = null; wacht = false;
     roomGen++; // #779: een aanbod dat nog onderweg is, is niet meer geldig
-    if (handle && handle.cancel) handle.cancel();
+    annuleerWachtend();
     handle = null;
     if (hub && hub.vrijePlekken) await openRoom();
   }
@@ -453,7 +455,7 @@ export function mountLobby(root, hooks, opts = {}) {
   async function rondeerKamer() {
     room = null; wacht = false;
     roomGen++; // #779: een aanbod dat nog onderweg is, is niet meer geldig
-    if (handle && handle.cancel) handle.cancel();
+    annuleerWachtend();
     handle = null;
     await openRoom();
   }

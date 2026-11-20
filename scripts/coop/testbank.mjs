@@ -103,7 +103,7 @@ function start(name, cfg, seed, extraArgs = []) {
   // de spelbot (bot.page.js) als functie, voor de host die het verhaal speelt
   const bot = `window.__botMain = async () => {\n${botCode}\n};\n`;
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify(pcfg)};\n${bot}` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
-  const profile = `gde-test-coop-${process.pid}-${name}`;
+  const profile = process.env.GDE_COOP_PROFILE_DIR ? path.join(path.resolve(process.env.GDE_COOP_PROFILE_DIR), `gde-test-coop-${process.pid}-${name}`) : `gde-test-coop-${process.pid}-${name}`; // GDE_COOP_PROFILE_DIR: wegwerpprofielen onder een eigen map (als %TEMP% niet schrijfbaar is)
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', ...(MENU ? { GDE_MENU_TEST: '1' } : {}) };
   delete env.ELECTRON_RUN_AS_NODE;
   const extra = [...EXTRA_ARGS, ...extraArgs];
@@ -116,7 +116,7 @@ function start(name, cfg, seed, extraArgs = []) {
   child.stderr.on('data', (d) => { out += d; });
   const done = new Promise((res) => child.on('exit', (code) => {
     fs.writeFileSync(path.join(dir, 'run.log'), out);
-    fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+    fs.rmSync(path.isAbsolute(profile) ? profile : path.join(os.tmpdir(), profile), { recursive: true, force: true });
     const m = out.split(/\r?\n/).reverse().find((l) => l.startsWith('[perf-script] '));
     let r = { result: 'ONBEKEND' };
     try { if (m) r = JSON.parse(m.slice(14)); } catch (e) { /* geen JSON */ }
