@@ -208,7 +208,10 @@ body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gp
 #hud .mg-board[data-sfeer] { box-shadow: var(--ds-schaduw-hard); }
 #hud .mg-board small { font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
 #hud .mg-board .mg-sfeer { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-inkt-zacht); }
-#hud .mg-board .mg-watermark { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); opacity: 0.07; }
+#hud .mg-board .mg-watermark { top: 6px; bottom: auto; right: 10px; max-width: 36%; overflow: hidden; font: 800 30px/1 var(--ds-font-kop-v3); letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); opacity: 0.08; z-index: 0; }
+#hud .mg-board > :not(.mg-watermark):not(.mg-vorm) { position: relative; z-index: 1; }
+#hud .mg-board small { flex-wrap: wrap; row-gap: 0; }
+#hud .mg-board .mg-sfeer { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; }
 #hud .mg-board .mg-vorm { opacity: 0.22; }
 #hud .mg-board[data-sfeer="vaardienst"] { border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 #hud .mg-board .mg-row { font-family: var(--ds-font-kop-v3); font-weight: 600; letter-spacing: 0.02em; }
@@ -233,6 +236,9 @@ body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gp
 .mg-stopask button:active { transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); box-shadow: none; }
 .mg-stopask button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
 .mg-stopask button[data-do="stop"] { background: var(--ds-c-ink-papier); color: var(--ds-c-rood-tx); border-color: var(--ds-c-rood); box-shadow: var(--ds-schaduw-hard-roze); }
+.mg-stopask button { display: inline-flex; align-items: center; gap: 8px; }
+.mg-stopask .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; box-shadow: none; font-family: var(--ds-font-kop-v3); font-weight: 800; }
+.mg-stopask small:empty { display: none; }
 .mg-stopask small { color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-tekst-v3); }
 `;
 
@@ -459,8 +465,9 @@ export function stopPressed(input) {
     el.setAttribute('aria-label', 'Stoppen?');
     // #596: het venster staat in de HUD-stijl, met echte knoppen zodat touch ook een uitweg heeft.
     el.innerHTML = '<b>Stoppen?</b><div class="mg-stopbtns" role="group" aria-label="Stoppen?">' +
-      '<button type="button" data-do="door">Doorgaan</button><button type="button" data-do="stop">Stoppen</button></div>' +
-      '<small>' + deviceText(keyTextHtml('{ESC} of {ENTER} = stoppen') + ' &middot; ' + keyTextHtml('{SPACE} = doorgaan'), 'Tik op Stoppen of Doorgaan') + '</small>';
+      '<button type="button" data-do="door"><span class="mg-bt">Doorgaan</span>' + keyTextHtml('{SPACE}') + '</button>' +
+      '<button type="button" data-do="stop"><span class="mg-bt">Stoppen</span>' + keyTextHtml('{ESC}') + '</button></div>' +
+      '<small>' + deviceText('', 'Tik op Stoppen of Doorgaan') + '</small>';
     const kies = (k) => {
       // dezelfde toetsweg als de rest van het spel: keydown + keyup via input.js
       inputMod = inputMod || import('./input.js');

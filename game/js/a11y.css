@@ -22,10 +22,11 @@
 .pad-dpad .pd-base { fill: var(--keycap-bg); stroke: var(--keycap-line); stroke-width: 1; }
 .pad-dpad .pd-on { fill: var(--keycap-ink); }
 /* the keycap around a controller glyph steps back */
-.hud-key.is-pad, kbd.is-pad, .hud-wasd.is-pad, .hud-mouse-g.is-pad {
+.hud-key.is-pad, kbd.is-pad, .hud-wasd.is-pad, .hud-mouse-g.is-pad, .hud-key.is-kbg, .m-kc.is-kbg {
   background: none !important; border: 0 !important; box-shadow: none !important;
   padding: 0 !important; min-width: 0 !important; width: auto !important; height: auto !important; margin: 0 2px !important;
 }
+.hud-key.is-kbg, .m-kc.is-kbg { color: inherit !important; } /* het toets-icoon tekent zijn eigen rand en leest in de tekstkleur van het vlak (inkt op papier, crème op donker) */
 .hud-wasd.is-pad { display: inline-flex !important; }
 .hud-mouse-g { display: inline-flex; align-items: center; }
 .pad-none { display: none !important; }
@@ -165,6 +166,7 @@ html.dev-pad, html.dev-pad * { cursor: none !important; }
 /* The glyph draws its own key outline: no extra plate, edge or shadow around it, so the border is not doubled and the glyph does not disappear inside it. */
 /* Controller glyphs from the glyph font (inputglyphs.js, game/fonts/input): the outline glyph on the white keycap, same size as the cap it replaces. */
 html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; background: transparent; box-shadow: none; border: 0; color: inherit; font-size: 26px !important; line-height: 1; letter-spacing: 0; border-radius: 5px; font-weight: normal; }
+html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), 'Arial Narrow', Arial, sans-serif !important; font-size: 48px !important; line-height: 24px; height: 24px; display: inline-block; vertical-align: middle; overflow: visible; }
 html .pad-g.pad-kn[data-set="xbox"] { font-family: var(--ds-font-knoppen-a, 'GDE Knoppen A'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE Knoppen B'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), 'Arial Narrow', Arial, sans-serif !important; }

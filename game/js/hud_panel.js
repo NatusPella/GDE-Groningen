@@ -244,9 +244,6 @@ export function initHud(world) {
   mmWrap.appendChild(mmCanvas);
   root.appendChild(mmWrap);
   // v3 (#993): de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
-  const mmLabel = document.createElement('div');
-  mmLabel.className = 'hud-mm-label';
-  root.appendChild(mmLabel);
   const defsWrap = document.createElement('div');
   defsWrap.innerHTML = '<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs></svg>';
   root.appendChild(defsWrap.firstChild);
@@ -353,7 +350,6 @@ export function initHud(world) {
     missionDist: mission.querySelector('.hud-obj-dist'),
     locationEl: location,
     district: location.querySelector('.hud-district'),
-    mmLabel,
     street: location.querySelector('.hud-street'),
     fcol,
     cards,
@@ -926,7 +922,6 @@ function updateLocation(dt, world) {
   // plaats + wijk: a district of a town out in the province names its town
   const aname = area ? areaNameAt(h.x, h.y) : null;
   const region = aname ? (aname.near ? aname.name : aname.sub || (aname.region === 'groningen' ? 'Ommeland' : aname.name)) : 'Ommeland';
-  setText(els.mmLabel, district || (country ? (aname && aname.name) || '' : 'Grunn'));
   setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Grunn'].filter(Boolean).join(' · ') : (country ? region : 'Grunn'));
 }
 

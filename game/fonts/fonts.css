@@ -8,9 +8,9 @@
 @font-face { font-family: 'Big Shoulders Display'; font-weight: 800; font-display: swap; src: url(BigShouldersDisplay-ExtraBold.ttf) format('truetype'); }
 @font-face { font-family: 'Big Shoulders Display'; font-weight: 900; font-display: swap; src: url(BigShouldersDisplay-Black.ttf) format('truetype'); }
 /* Toets- en knopglyphs (Kenney Input Prompts, CC0): één teken per toets of knop, zie game/js/inputglyphs.js */
-@font-face { font-family: 'GDE Toetsen'; font-display: swap; src: url(input/input-keys.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen A'; font-display: swap; src: url(input/input-xbox.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen B'; font-display: swap; src: url(input/input-ps.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen Deck'; font-display: swap; src: url(input/input-deck.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen Algemeen'; font-display: swap; src: url(input/input-generic.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Aanraking'; font-display: swap; src: url(input/input-touch.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Toetsen'; font-display: block; src: url(input/input-keys.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen A'; font-display: block; src: url(input/input-xbox.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen B'; font-display: block; src: url(input/input-ps.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen Deck'; font-display: block; src: url(input/input-deck.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen Algemeen'; font-display: block; src: url(input/input-generic.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Aanraking'; font-display: block; src: url(input/input-touch.ttf) format('truetype'); }

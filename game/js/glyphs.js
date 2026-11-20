@@ -140,6 +140,11 @@ export function refreshGlyphs(scope = document) {
 export function initGlyphs() {
   if (started || typeof document === 'undefined') return;
   started = true;
+  // Het glyph-font laden vóór de eerste weergave en daarna elk glyph opnieuw tekenen: een toets is nooit een leeg of zwart vakje (font-display: block in fonts.css).
+  if (document.fonts && document.fonts.load) {
+    Promise.all(['GDE Toetsen', 'GDE Knoppen A', 'GDE Knoppen B', 'GDE Knoppen Deck', 'GDE Knoppen Algemeen', 'GDE Aanraking'].map((f) => document.fonts.load('24px "' + f + '"').catch(() => null)))
+      .then(() => { document.documentElement.classList.add('glyph-font-ready'); refreshGlyphs(); }).catch(() => {});
+  }
   let queued = new Set();
   let timer = 0;
   const flush = () => {

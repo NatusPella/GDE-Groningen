@@ -5,6 +5,7 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
+import { keyLabelGlyph } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
@@ -2465,7 +2466,8 @@ function hintHtml([keys, label, action], pad, back) {
   if (pad && keys.every((k) => k in PAD_KEYS && PAD_KEYS[k] === null)) return '';
   const caps = keys.map((k) => {
     if (pad && k in PAD_KEYS) { const slot = PAD_KEYS[k]; return slot ? pg(slot) : ''; }
-    return `<span class="m-kc">${esc(k)}</span>`;
+    const kg = k.length > 1 && /^[↑↓←→]/.test(k) ? null : keyLabelGlyph(k);
+    return kg ? `<span class="m-kc is-kbg">${kg}</span>` : `<span class="m-kc">${esc(k)}</span>`;
   }).join('');
   const text = label === BACK ? back : (pad && PAD_LABEL[label]) || label;
   return `<button type="button" class="m-hint" tabindex="-1"${action ? ` data-hint="${action}"` : ''}>${caps}<span>${esc(text)}</span></button>`;
