@@ -1886,7 +1886,7 @@ let buildingDetailR = DRAW_DIST;
 const FACADE_DETAIL_DIST = { laag: 80 };
 let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
-const CPU_FACADE_DIST = [Infinity, 100, 70, 45];
+const CPU_FACADE_DIST = [Infinity, 140, 90, 60]; // #1016: was [Infinity, 100, 70, 45]: de raamkozijnen sprongen op een drukke machine al op 100 m aan
 let shadowFrame = 0;
 // no vehicle faster than 4 m/s in (or just next to) the area that casts shadows
 function shadowAreaCalm(world, fx, fy) {

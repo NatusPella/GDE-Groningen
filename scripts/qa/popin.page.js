@@ -1,4 +1,4 @@
-// Page half of scripts/qa/popin.mjs (desktop --perf-script body): meet POP-IN in het echte spel (#1004).
+// Page half of scripts/qa/popin.mjs (desktop --perf-script body): meet POP-IN in het echte spel (#1016).
 // Per frame (na de eigen render van het spel) loopt de probe door de zichtbare scenegraaf en meldt wat NIEUW
 // getekend wordt: een nieuwe mesh, een mesh waarvan de geometrie groeit (samengevoegde batch) of een InstancedMesh
 // met meer instanties. Per gebeurtenis: categorie, afstand tot de camera (dichtstbijzijnde rand van de bol),
@@ -82,6 +82,7 @@ function makeProbe() {
   const unsub = map.store && map.store.on ? map.store.on('tile', (key) => tiles.push([+(performance.now() - t0).toFixed(0), String(key)])) : null;
   void unsub;
   let walkMs = 0, walks = 0;
+  const ring = { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9, facade: 0, draw: 0 };
   const camDist = (cx, cy, cz, r) => Math.max(0, Math.hypot(cx - cam.position.x, cy - cam.position.y, cz - cam.position.z) - r);
   const note = (kind, o, d, rad, px, fog, inView, extra) => {
     const cat = labelOf(o);
@@ -141,6 +142,7 @@ function makeProbe() {
     cam.updateMatrixWorld();
     pv.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
     frustum.setFromProjectionMatrix(pv);
+    if (armed && sc.dists) { const dd = sc.dists(); ring.n++; const sh = dd.buildingDetailR / dd.DRAW_DIST; ring.sum += sh; ring.min = Math.min(ring.min, sh); if (sh < 0.9) ring.b90++; if (sh < 0.5) ring.b50++; ring.minR = Math.min(ring.minR, dd.buildingDetailR); ring.facade = dd.facadeDetailDist; ring.draw = dd.DRAW_DIST; }
     cur = new Map();
     visit(scene);
     prev = cur;
@@ -149,13 +151,14 @@ function makeProbe() {
   };
   requestAnimationFrame(tick);
   return {
-    arm() { armed = true; t0 = performance.now(); frame = 0; ev.length = 0; cats.clear(); tiles.length = 0; walkMs = 0; walks = 0; },
+    arm() { armed = true; Object.assign(ring, { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9 }); t0 = performance.now(); frame = 0; ev.length = 0; cats.clear(); tiles.length = 0; walkMs = 0; walks = 0; },
     stop() {
       on = false;
       const dur = (performance.now() - t0) / 1000;
       const out = { dur: +dur.toFixed(1), frames: frame, walkMs: +(walkMs / Math.max(1, walks)).toFixed(2), tiles, cats: {} , edges: EDGES };
       for (const [k, c] of cats) out.cats[k] = { n: c.n, vis: c.vis, near: c.near, perS: +(c.vis / dur).toFixed(2), b: c.b, kinds: c.kinds };
       // het eerste deel van de lijst met gebeurtenissen (zichtbaar, nabij) voor de steekproef
+      out.ring = { frames: ring.n, avgShare: +(ring.sum / Math.max(1, ring.n)).toFixed(3), minShare: +ring.min.toFixed(3), below90: +(ring.b90 / Math.max(1, ring.n)).toFixed(3), below50: +(ring.b50 / Math.max(1, ring.n)).toFixed(3), minR: Math.round(ring.minR), facadeDetailDist: ring.facade, draw: ring.draw, cpuLevel: window.__gfxDyn ? window.__gfxDyn.cpuLevel : null, scale: window.__gfxDyn ? window.__gfxDyn.scale : null };
       out.sample = ev.filter((e) => e[9] && e[4] < 90).slice(0, 120);
       out.visTotal = ev.filter((e) => e[9]).length;
       out.visNear60 = ev.filter((e) => e[9] && e[4] < 60 && e[7] < 0.5).length;

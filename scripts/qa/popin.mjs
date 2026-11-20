@@ -1,4 +1,4 @@
-// POP-IN in het echte spel meten (#1004): één Electron (wegwerpprofiel) loopt vaste routes (Binnenstad te voet,
+// POP-IN in het echte spel meten (#1016): één Electron (wegwerpprofiel) loopt vaste routes (Binnenstad te voet,
 // provinciale weg per auto, korte vlucht), de pagina-probe (popin.page.js) meldt per frame wat nieuw getekend wordt,
 // en een reeks stills (1280x720) van dezelfde route gaat naar <out>/shots-<tag>-<route>-<n>.png.
 //   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,a7,heli] [--dur=30000] [--shots=6] [--view=kort|normaal|ver]

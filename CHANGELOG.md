@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Verbeterd
+
+- **Minder pop-in van bomen, voertuigen en grasvlakken (#1016):** bomen doven in een korte band vóór hun tekenafstand uit (schermdeurpatroon) in plaats van in één keer te verdwijnen of te verschijnen, en de boomlijst wordt een herbouwstap verder geladen dan getekend. Auto's blijven iets langer staan op de rand van het zicht (geen bouwen en weghalen op dezelfde afstand), en grasvlakken worden net buiten het zicht alvast klaargezet en pas op hun afstand getoond. Meetscript: `scripts/qa/popin.mjs`; uitleg in docs/POPIN-21-11.md.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
