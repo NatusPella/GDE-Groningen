@@ -36,15 +36,23 @@ const PROFIEL_STREEK = {
 };
 export const streekVanProfiel = (key) => PROFIEL_STREEK[key] || 'stad';
 
-// 's Nachts rustiger, behalve voor voetgangers in het centrum.
-export function tijdFactor(soort, uur, streek) {
+// 's Nachts rustiger, behalve voor voetgangers in het centrum. Auto's: spits ('s ochtends 7 tot 9, 's middags 16 tot 18,30) drukker in
+// stad, centrum en industrie, de avond rustiger, de nacht leeg; regen (nat 0..1, world.weather.wet) haalt tot 15% van het verkeer en
+// de helft van de voetgangers van straat (in het centrum minder: terrassen en winkels). (#1050)
+const SPITS = [[7, 9], [16, 18.5]];
+export function tijdFactor(soort, uur, streek, nat = 0) {
   const h = ((uur % 24) + 24) % 24;
+  const w = Math.max(0, Math.min(1, nat || 0));
   if (soort === 'voetganger') {
-    if (h >= 8 && h < 22) return 1;
-    return streek === 'centrum' ? 0.7 : 0.25;
+    const basis = h >= 8 && h < 22 ? 1 : streek === 'centrum' ? 0.7 : 0.25;
+    return basis * (1 - w * (streek === 'centrum' ? 0.35 : 0.5));
   }
-  if (h >= 6 && h < 22) return 1;
-  return 0.3;
+  let basis;
+  if (h >= 6 && h < 22) {
+    const spits = streek !== 'dorp' && SPITS.some(([a, b]) => h >= a && h < b);
+    basis = spits ? 1.3 : h >= 18.5 ? 0.8 : 1;
+  } else basis = h >= 22 && h < 24 ? 0.45 : h < 5 ? 0.2 : 0.4;
+  return basis * (1 - w * 0.15);
 }
 
 export function randen(soort) {
@@ -68,9 +76,9 @@ function ringOppervlak(soort, laag) {
 }
 
 // Doelaantal per laag voor een streek: dichtheid x ringoppervlak x tijdfactor.
-export function doelPerLaag(soort, streek, uur = 12) {
+export function doelPerLaag(soort, streek, uur = 12, nat = 0) {
   const d = (DICHTHEID[streek] || DICHTHEID.stad)[soort] ?? 0;
-  const f = tijdFactor(soort, uur, streek);
+  const f = tijdFactor(soort, uur, streek, nat);
   const uit = {};
   for (const laag of ['vol', 'vereenvoudigd', 'abstract']) {
     uit[laag] = Math.max(0, Math.round((d * f * ringOppervlak(soort, laag)) / 1e6));
@@ -149,8 +157,8 @@ export class AbstractPool {
 
 // Dunne koppeling voor vehicle.js: opties voor
 // manageTrafficPopulation({ target, spawnMin, spawnMax, despawnDist }).
-export function verkeerOpties(profielKey, uur) {
-  const doel = doelPerLaag('auto', streekVanProfiel(profielKey), uur);
+export function verkeerOpties(profielKey, uur, nat = 0) {
+  const doel = doelPerLaag('auto', streekVanProfiel(profielKey), uur, nat);
   const ring = spawnRing('auto');
   return { target: doel.vol + doel.vereenvoudigd, spawnMin: ring.min, spawnMax: ring.max, despawnDist: despawnAfstand('auto') };
 }
@@ -158,8 +166,8 @@ export function verkeerOpties(profielKey, uur) {
 // Voetgangers: dezelfde koppeling als verkeerOpties. De vol-laag blijft de
 // echte kring; de vereenvoudigde laag telt mee voor het doel maar denkt
 // minder vaak (zie stapSlaOver).
-export function voetgangerOpties(profielKey, uur) {
-  const doel = doelPerLaag('voetganger', streekVanProfiel(profielKey), uur);
+export function voetgangerOpties(profielKey, uur, nat = 0) {
+  const doel = doelPerLaag('voetganger', streekVanProfiel(profielKey), uur, nat);
   return { target: doel.vol + doel.vereenvoudigd, volTarget: doel.vol, despawnDist: despawnAfstand('voetganger'), ring: spawnRing('voetganger') };
 }
 

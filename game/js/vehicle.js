@@ -861,7 +861,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   const player = opts.focus || (world.cameraOverride && world.streamFocus ? world.streamFocus : hoofdspeler(world)); // in a cutscene the traffic fills round the camera's view (#157)
   if (!opts.focus) dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
-  const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
+  const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world), world.weather && world.weather.wet) : null;
   const { target: targetOpt = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   if (!opts.focus) { pruneWrecks(world); vehicleHooks.manageParkedCars(world); }
   for (let i = vehicles.length - 1; i >= 0; i--) {

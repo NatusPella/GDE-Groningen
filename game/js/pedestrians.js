@@ -1012,7 +1012,7 @@ function managePopulation(world, focus = null, n = 1) {
     else walkers++;
   }
   // simlagen (issue #18): doel per streek en tijd van de dag uit simlagen.js
-  const desired = Math.round(aandeel(n) * scaledTarget(FLAGS.simlagen ? voetgangerOpties(wijkProfileAt(world.map, player.x, player.y).key, hourOf(world)).target : !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT));
+  const desired = Math.round(aandeel(n) * scaledTarget(FLAGS.simlagen ? voetgangerOpties(wijkProfileAt(world.map, player.x, player.y).key, hourOf(world), world.weather && world.weather.wet).target : !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT));
   spawnBudget = Math.max(0, desired - walkers);
 
   if (walkers > desired + 3) {
