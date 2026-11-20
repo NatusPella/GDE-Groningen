@@ -17,8 +17,8 @@ const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinem
 w.devInvuln = true;
 D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
-const TABS = [['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['loopbaan'], ['boerderij'], ['settings'], ['controls'], ['over'], ['fotos']];
-const SUBS = { todo: ['alles'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'hints', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'aanraken', 'hulp'] };
+const TABS = [['spel'], ['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['loopbaan'], ['boerderij'], ['settings'], ['controls'], ['over'], ['fotos']];
+const SUBS = { spel: ['samen', 'acties'], todo: ['alles'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'hints', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'aanraken', 'hulp'] };
 const parse = (c) => { const m = c.match(/[0-9.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m.length > 3 ? m[3] : 1 }; };
 const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
 const over = (fg, bg) => ({ r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1 });
