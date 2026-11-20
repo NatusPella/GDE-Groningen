@@ -205,6 +205,7 @@ export function start3dRit(world, optie, plan, dest) {
     document.removeEventListener('keyup', up, true);
     try { regie.einde(world); } catch (e) { console.warn('reisrit3d: opruimen', e); }
     world.challengeHoldPlayer = staat.hold0;
+    world.ritBezig = false;
     if (klokMag && typeof staat.klok0 === 'number') world.clock = staat.klok0; // reisrit.js zet de aankomsttijd er na de landing bij
     lopend = null;
   };
@@ -273,6 +274,7 @@ export function start3dRit(world, optie, plan, dest) {
       },
       onStart() {
         world.cinematicHidePlayers = true;
+        world.ritBezig = true; // savegame.js bewaart niet halverwege de rit
         world.challengeHoldPlayer = true;
         zwart.style.transition = 'none';
       },

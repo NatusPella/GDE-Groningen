@@ -297,12 +297,15 @@ export function startMeerijden(world, optie, dest) {
     return Promise.resolve({ aangekomen: false });
   }
   if (plan.mode === 'taxi' || plan.mode === 'trein') {
+    const laadTeller = world.loadCount || 0;
     let echt = null;
     try { echt = start3dRit(world, optie, plan, dest); } catch (e) { console.warn('reisrit: echte rit', e); }
     if (echt) {
       active = rit;
       return echt.then((res) => {
         active = null;
+        // een save laden tijdens de rit (applySave stopt de film) mag de geladen wereld niet nog naar de bestemming zetten en laten betalen
+        if ((world.loadCount || 0) !== laadTeller) return { aangekomen: false };
         if (res.terugval) return oudeScene(world, optie, dest, plan);
         rit.skipped = !!res.skipped; rit.done = true;
         // de speler reed mee en staat op de route: hij landt altijd op de bestemming en betaalt wat hij nog heeft (review 20-11 #1)

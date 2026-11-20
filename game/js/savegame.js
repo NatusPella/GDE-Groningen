@@ -89,6 +89,8 @@ let playSeconds = 0;
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MIN_RESTORE = 1500;
+// een bedrag boven dit plafond is geen spel maar een kapot of handmatig aangepast bestand (1e308 + beloning wordt Infinity)
+const MAX_MONEY = 1e12;
 const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
 
 // A save whose money got lost (the NaN-money bug stored null): its last good
@@ -299,6 +301,9 @@ export function saveGame(w = world, { toast = true, manual = false } = {}) {
   // coöp (#95): de host bewaart zoals altijd; een gast bewaart het verhaal van de host niet,
   // alleen wat hij zelf verdiende komt in zijn eigen save (saveGuestEarnings)
   if (w.coopRole === 'client') return saveGuestEarnings(w);
+  // een reisrit (reisrit3d.js) zet de speler elk beeld op de taxi of trein en rekent pas bij de aankomst af: een save halverwege
+  // schreef een plek langs de route zonder dat het kaartje betaald was. De vorige save (voor de rit) blijft dan staan.
+  if (w.ritBezig) return true;
   keepNewerSave();
   const target = saveTarget();
   // #784: stond er bij het begin van deze poging al een save op de plek? Alleen dan mag een latere
@@ -573,7 +578,7 @@ export function applySave(w, d) {
     w.cameraOverride = null;
     w.minigameUntil = 0;
     const lost = !(typeof d.money === 'number' && Number.isFinite(d.money)) && ('money' in d);
-    w.money = lost ? estimateLostMoney(d) : Math.max(0, num(d.money, 0));
+    w.money = lost ? estimateLostMoney(d) : clamp(num(d.money, 0), 0, MAX_MONEY);
     w._goodMoney = w.money;
     w.health = clamp(num(d.health, 100), 1, 100);
     w.armor = clamp(num(d.armor, 0), 0, 100);
