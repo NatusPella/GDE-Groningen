@@ -110,6 +110,7 @@ export default {
       return;
     }
     const plan = d.halte ? { dir: d.halte.dir, first: d.halte.eerst } : planRide(d.line, c.vehicle.x, c.vehicle.y);
+    d.halte = null; // alleen de eerste ronde begint op de gekozen halte; daarna plant de rit weer vanaf de plek van de bus
     d.ride = makeRide(d.line, { ...plan, max: MAX_STOPS });
     c.vehicle.busBediend = c.vehicle.busBediend || makeBediening(); // deuren (O) en kneel (K) bedien je zelf (#444)
     c.vehicle.rideLine = { line: d.line, dir: d.ride.dir }; // het bord en het HUD-kaartje volgen de rit (busboard3d.js, #386)
