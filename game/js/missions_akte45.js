@@ -166,8 +166,9 @@ export function applyAkte45(list) {
     zet(m19.stages.find((s) => s.kind === 'rit'), { kaart: KAARTEN.M19.rit });
   }
 
-  // M20 Het beleg van Bourtange: kaart per soort stap, een wachtfiguur bij elke houd-stap. De kruitkelder als binnenset is niet
-  // gebouwd (roomspec.js kent geen kruitkelder); de drie deuren spelen nog buiten.
+  // M20 Het beleg van Bourtange: kaart per soort stap, een wachtfiguur bij elke houd-stap. De drie deurstappen spelen in de binnenset
+  // `kruitkelder` (roomspec.js: deur, kruittonnen, de kist met de bal, Mem en Oma Trijntje); past de kamer niet op die plek, dan
+  // spelen ze buiten met de wachtfiguur zoals eerst (buildStageSet geeft dan null). De scène met Mem blijft een cutscene.
   const m20 = by('Het beleg van Bourtange');
   if (m20 && m20.stages) {
     m20.aaa = true;
@@ -175,9 +176,9 @@ export function applyAkte45(list) {
     zet(vind(m20, 'hold', /westwal/), { kaart: KAARTEN.M20.wal1, wacht: { ...WACHT.M20.wal1 } });
     zet(vind(m20, 'hold', /noordwal/), { kaart: KAARTEN.M20.wal2, wacht: { ...WACHT.M20.wal2 } });
     zet(vind(m20, 'goto', /Naar de kruitkelder/), { kaart: KAARTEN.M20.kruit });
-    zet(vind(m20, 'hold', /eerste deur/), { kaart: KAARTEN.M20.deur1, wacht: { ...WACHT.M20.deur1 } });
-    zet(vind(m20, 'hold', /tweede deur/), { kaart: KAARTEN.M20.deur2, wacht: { ...WACHT.M20.deur2 } });
-    zet(vind(m20, 'hold', /derde deur/), { kaart: KAARTEN.M20.deur3, wacht: { ...WACHT.M20.deur3 } });
+    zet(vind(m20, 'hold', /eerste deur/), { kaart: KAARTEN.M20.deur1, wacht: { ...WACHT.M20.deur1 }, set: 'kruitkelder' });
+    zet(vind(m20, 'hold', /tweede deur/), { kaart: KAARTEN.M20.deur2, wacht: { ...WACHT.M20.deur2 }, set: 'kruitkelder' });
+    zet(vind(m20, 'hold', /derde deur/), { kaart: KAARTEN.M20.deur3, wacht: { ...WACHT.M20.deur3 }, set: 'kruitkelder' });
     zet(vind(m20, 'goto', /bakkie bij de poort/), { kaart: KAARTEN.M20.poort });
     zet(vind(m20, 'hold', /naspeling: het publiek klapt/), { wacht: { ...WACHT.M20.einde } });
   }

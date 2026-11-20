@@ -5,7 +5,8 @@
 //
 //   kroeg      de bar met krukken, tafels, een dartbord en een jukebox (M16, #956);
 //   woonkamer  de bank, de salontafel en de tv, met de eettafel bij het raam;
-//   garage     de werkplaats met een auto op de hefbrug, werkbank en banden (M02).
+//   garage     de werkplaats met een auto op de hefbrug, werkbank en banden (M02);
+//   kruitkelder  het gewelf onder Bourtange met kruittonnen, de kist met de bal en de deur waar Jelles mannen op kloppen (M20).
 //
 // Plan: u langs wereld-x, v langs wereld-y, de oorsprong in het midden van de vloer. De speler
 // kijkt naar +u, zoals in alle binnensets. Een kamer is gesloten (alleen de binnenkant wordt
@@ -13,7 +14,7 @@
 // gebouw of is de hoogte onbekend, dan komt de kamer hoog boven de straat (roomBaseHeight) en
 // valt een kamer die nergens past terug op het spel in de open lucht (null).
 
-export const ROOM_KINDS = ['kroeg', 'woonkamer', 'garage'];
+export const ROOM_KINDS = ['kroeg', 'woonkamer', 'garage', 'kruitkelder'];
 export const ROOM_LIFT = 40; // m: een kamer hoog boven de straat, zoals de keuken van de opening
 
 export const ROOMS = {
@@ -63,6 +64,25 @@ export const ROOMS = {
     npcs: [
       { key: 'tinus', u: -2.8, v: 1.6, face: 0.5 },
       { key: 'berend', u: 0.2, v: 2.3, face: -1.1 },
+    ],
+  },
+  // M20 Het beleg van Bourtange (AAA): de drie deurstappen spelen in het gewelf. De deur staat voor de speler (+u), de kruittonnen
+  // en de kist met de bal staan achter hem langs de muur, Mem en Oma Trijntje staan naast hem bij het kaarslicht.
+  kruitkelder: {
+    w: 8, d: 5.6, h: 2.7,
+    player: { u: -1.4, v: 0.2 },
+    furniture: [
+      { id: 'deur', kind: 'deur', u: 3.85, v: 0, w: 0.3, d: 1.5, h: 2.1 },
+      { id: 'tonA', kind: 'kruitton', u: -3.2, v: -2.0, w: 0.9, d: 0.9, h: 0.95 },
+      { id: 'tonB', kind: 'kruitton', u: -3.2, v: -0.95, w: 0.9, d: 0.9, h: 0.95 },
+      { id: 'tonC', kind: 'kruitton', u: -3.2, v: 2.0, w: 0.9, d: 0.9, h: 0.95 },
+      { id: 'tonD', kind: 'kruitton', u: -2.15, v: 2.1, w: 0.9, d: 0.9, h: 0.95 },
+      { id: 'kist', kind: 'kist', u: -3.15, v: 0.55, w: 0.8, d: 0.9, h: 0.55 },
+      { id: 'kaarstafel', kind: 'kaarstafel', u: 0.9, v: -2.2, w: 0.8, d: 0.8, h: 0.8 },
+    ],
+    npcs: [
+      { key: 'mem', u: 1.5, v: 1.4, face: -2.3 },
+      { key: 'trijntje', u: 1.7, v: -1.2, face: 2.4 },
     ],
   },
 };

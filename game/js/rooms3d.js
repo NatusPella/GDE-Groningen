@@ -35,6 +35,7 @@ const LOOK = {
   kroeg: { wall: ['#6a4a34', '#4d3524', 0.5], floor: ['#6b5038', '#5c4430', [4, 3]], ceil: 0x3a2a20, sign: ['DE VERDWAALDE KOE', '#2a1a12', '#e8c36a'], tint: 0xffd49a },
   woonkamer: { wall: ['#d8d0bc', '#c5bba2', 0.85], floor: ['#a08060', '#957454', [3, 2]], ceil: 0xeeeae0, sign: null, tint: 0xfff0d8 },
   garage: { wall: ['#b8bcc0', '#8e949a', 0.55], floor: ['#7a7e82', '#6e7276', [4, 3]], ceil: 0xa8acb0, sign: ['WERKPLAATS', '#2a2f35', '#f2c230'], tint: 0xf2f6ff },
+  kruitkelder: { wall: ['#6e665a', '#5a5248', 0.4], floor: ['#4a443c', '#403a33', [4, 3]], ceil: 0x2a2622, sign: null, tint: 0xffc880 },
 };
 
 export function buildRoom(kind, x, y, z) {
@@ -117,6 +118,26 @@ export function buildRoom(kind, x, y, z) {
     } else if (f.kind === 'vaten') {
       cyl(0.36, h, std(0x2f5f8a, { roughness: 0.5 }), u, h / 2, v, 12);
       cyl(0.36, h, std(0x8a2f2f, { roughness: 0.5 }), u - 0.45, h / 2, v + 0.55, 12);
+    } else if (f.kind === 'kruitton') {
+      // een kruitton: hout met ijzeren banden en een zwart deksel
+      cyl(0.4, h, std(0x6b4a2a), u, h / 2, v, 10);
+      for (const hh of [0.2, h - 0.2]) cyl(0.42, 0.05, metal, u, hh, v, 10);
+      cyl(0.38, 0.04, dark, u, h + 0.01, v, 10);
+    } else if (f.kind === 'kist') {
+      // de kist met de gouden bal: een open deksel en een bal die zacht gloeit
+      box(w, h, d, wood, u, h / 2, v);
+      box(w + 0.05, 0.06, d + 0.05, metal, u, h + 0.03, v);
+      lights.push(add(new THREE.SphereGeometry(0.2, 10, 8), std(0xe8c14a, { emissive: 0xe8c14a, emissiveIntensity: 0.9, metalness: 0.4, roughness: 0.3 }), u, h + 0.2, v));
+    } else if (f.kind === 'kaarstafel') {
+      box(w, 0.05, d, wood, u, h, v);
+      for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.06, h, 0.06, dark, u + a * (w / 2 - 0.08), h / 2, v + b * (d / 2 - 0.08));
+      cyl(0.04, 0.22, std(0xeee6cc), u, h + 0.14, v, 8);
+      lights.push(box(0.04, 0.09, 0.04, glow, u, h + 0.29, v)); // de vlam knippert mee met de lampen
+    } else if (f.kind === 'deur') {
+      // de zware deur voor de speler: planken, ijzeren banden en een balk die erop rust
+      box(w, h, d, std(0x5a3d22), u, h / 2, v);
+      for (const hh of [0.5, 1.0, 1.6]) box(w + 0.04, 0.08, d, metal, u - 0.02, hh, v);
+      box(0.1, 0.16, d + 0.5, wood, u - 0.25, 1.2, v);
     }
   }
 
@@ -139,7 +160,7 @@ export function buildRoom(kind, x, y, z) {
     group.add(win);
     box(2.3, 0.07, 0.08, std(0xf4efe2), 0.2, 2.28, D / 2 - 0.08);
     box(0.07, 1.4, 0.08, std(0xf4efe2), 0.2, 1.6, D / 2 - 0.08);
-  } else {
+  } else if (kind === 'garage') {
     // de rolpoort aan de +u-muur
     box(0.06, 2.6, 3.6, std(0xc9ccd0, { metalness: 0.3, roughness: 0.5 }), W / 2 - 0.06, 1.3, 1.2);
   }

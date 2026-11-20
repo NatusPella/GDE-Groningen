@@ -12,10 +12,18 @@ import { hoofdspeler } from './players.js';
 // must walk to the platform and ask the conductor (E), so standing still at the start never passes (#951).
 import { getTrains, getRoutes, routePoint, addMissionTrain, parkTrain, clearTrackFor, placeTrain } from './railway.js';
 import { groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
+import { buildMissionDressing, spoorHoek } from './missiedecor.js'; // AAA M19: het perron wacht bij de aankomst
 
 const NEAR_LINE = 120;   // m: a route this close to the platform counts as the line
 const NEAR_TRAIN = 70;   // m: a parked or dwelling train this close is the train
 const SAMPLE = 5;
+export const AANKOMST_AFSTAND = 150; // m: zo dichtbij het volgende perron klinkt de stoomfluit en staat het perron met zijn publiek er
+
+// AAA M19: één keer per rit, als de trein het volgende perron nadert: de stoomfluit en het perron met reizigers en fotograaf.
+// Puur: R is de ritstaat, afstand de afstand van de kop van de trein tot dat perron.
+export function aankomstNodig(R, afstand, grens = AANKOMST_AFSTAND) {
+  return !!R && !R.aankomst && Number.isFinite(afstand) && afstand <= grens;
+}
 
 function nearestOnRoute(route, x, y) {
   let best = 0, bd = Infinity;
@@ -128,6 +136,18 @@ export function updateRit(dt, world, st, S, hint) {
   const car = driving.cars[driving.cab > 0 ? 0 : driving.cars.length - 1];
   const d = Math.hypot(car.x - R.platform.x, car.y - R.platform.y);
   const radius = st.radius || 40;
+  if (aankomstNodig(R, d)) {
+    R.aankomst = true;
+    // alleen beeld en geluid, bij wie de rit rijdt: de stoomfluit (de bestaande treinhoorn) en het perron aan het eind
+    try {
+      const q = world.audioEvents || (world.audioEvents = []);
+      if (q.length < 64) q.push({ kind: 'train_horn', x: car.x, y: car.y });
+      if (!S.dressing) {
+        const a = spoorHoek(getRoutes(), R.platform.x, R.platform.y);
+        S.dressing = buildMissionDressing(world, 'perron', { x: R.platform.x, y: R.platform.y, a: a !== null ? a : 0 });
+      }
+    } catch (e) { /* aankleding mag de rit nooit raken */ }
+  }
   if (d < radius) {
     R.reached = true;
     if (driving.v < 2) {

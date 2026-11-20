@@ -15,7 +15,7 @@ const host = window.__cutHost;
 
 let n = 0, fails = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
-const KINDS = ['kroeg', 'woonkamer', 'garage'];
+const KINDS = ['kroeg', 'woonkamer', 'garage', 'kruitkelder'];
 
 function nanCount(group) {
   let bad = 0;
@@ -30,7 +30,7 @@ function nanCount(group) {
 const lights = (g) => { let k = 0; g.traverse((o) => { if (o.isLight) k++; }); return k; };
 
 // --- de specs en de fit-regels --------------------------------------------------
-ok(R.ROOM_KINDS.join() === 'kroeg,woonkamer,garage' && KINDS.every((k) => STAGE_SETS.includes(k)), 'de drie kamers staan in de lijst van sets');
+ok(R.ROOM_KINDS.join() === 'kroeg,woonkamer,garage,kruitkelder' && KINDS.every((k) => STAGE_SETS.includes(k)), 'de vier kamers staan in de lijst van sets');
 ok(['kantoor', 'serverkamer', 'loket', 'omakeuken'].every((k) => STAGE_SETS.includes(k)), 'de bestaande sets staan er nog in');
 for (const kind of KINDS) {
   const spec = R.ROOMS[kind];
@@ -40,7 +40,7 @@ for (const kind of KINDS) {
   ok(bad.length === 0, kind + ': de speler en de figuren passen in de kamer', bad.join(' | '));
   ok(spec.furniture.every((f) => Math.abs(f.u) + f.w / 2 <= spec.w / 2 + 1e-9 && Math.abs(f.v) + f.d / 2 <= spec.d / 2 + 1e-9), kind + ': het meubilair staat binnen de muren');
   // de fit-regels zelf: een punt in de muur of in een meubel wordt afgekeurd
-  ok(R.roomFit(kind, [{ id: 'x', u: spec.w / 2 - 0.1, v: 0 }]).length === 1, kind + ': een punt tegen de muur past niet');
+  ok(R.roomFit(kind, [{ id: 'x', u: spec.w / 2 - 0.1, v: 0 }]).length >= 1, kind + ': een punt tegen de muur past niet'); // in de kruitkelder staat daar ook de deur
   const f = spec.furniture[0];
   ok(R.roomFit(kind, [{ id: 'y', u: f.u, v: f.v }]).length >= 1, kind + ': een punt in een meubel past niet');
   ok(R.roomFit(kind, [{ id: 'z', u: NaN, v: 0 }]).length === 1, kind + ': een kapot punt past niet');
