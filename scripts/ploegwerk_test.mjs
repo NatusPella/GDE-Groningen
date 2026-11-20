@@ -30,7 +30,7 @@ t('de uitleg bij rij 1 van 4 noemt de taak, de baan en hoe je stopt', () => {
   const tekst = rijUitleg('ploegen', 'Eigen boerderij');
   assert.match(tekst, /^Rij 1 van 4: /);
   assert.match(tekst, /De ploeg zakt vanzelf/);
-  assert.match(tekst, /Stoppen kan altijd: Esc en dan Stoppen met Eigen boerderij\./);
+  assert.match(tekst, /Stoppen kan altijd: {ESC} en dan Stoppen met Eigen boerderij\./);
   assert.match(rijUitleg('oogsten'), /Stoppen met deze dienst/, 'zonder baan een nette terugval');
 });
 
@@ -39,7 +39,7 @@ t('het doel in het HUD noemt de band in km/u en de stophint', () => {
   const kmh = (ms) => Math.round(ms * 3.6);
   assert.match(tekst, new RegExp(`${kmh(W.BAND.ploegen.vMin)} tot ${kmh(5)} km/u`));
   assert.match(tekst, /harder is slordig werk/);
-  assert.match(tekst, /Esc en dan Stoppen met Eigen boerderij/);
+  assert.match(tekst, /{ESC} en dan Stoppen met Eigen boerderij/);
 });
 
 t('de volgende klus staat als doel op de kaart, met de taak die nu moet (#437)', () => {
@@ -60,7 +60,7 @@ t('de adapter van de eigen boerderij hoort bij het vak Landbouw en noemt de take
   assert.equal(boerderij.kicker, 'Boerderij');
   assert.equal(boerderij.name, 'Eigen boerderij');
   assert.match(boerderij.blurb, /ploegen/);
-  assert.ok(boerderij.intro.join(' ').includes('Stoppen kan altijd via Esc'));
+  assert.ok(boerderij.intro.join(' ').includes('Stoppen kan altijd via {ESC}'));
 });
 
 console.log(`ploegwerk_test: ${n - fails}/${n} ok`);
