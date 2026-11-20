@@ -239,6 +239,8 @@ export const spoorBoog = (stuk, afstand) => clamp(stuk.s0 + stuk.dir * afstand, 
 // 'zij' (naast de trein, de hele trein in de polder).
 export function treinCamera(car, dir, view, t = 0, v = 0) {
   const fx = Math.cos(car.angle) * dir, fy = Math.sin(car.angle) * dir, nx = -fy, ny = fx, z0 = car.z || 0;
+  if (view === 'achter') return { position: { x: car.x - fx * 30 + nx * 3, y: car.y - fy * 30 + ny * 3, z: z0 + 6 }, lookAt: { x: car.x + fx * 6, y: car.y + fy * 6, z: z0 + 2 }, fov: 58 };
+  if (view === 'boven') return { position: { x: car.x - fx * 8, y: car.y - fy * 8, z: z0 + 48 }, lookAt: { x: car.x + fx * 4, y: car.y + fy * 4, z: z0 }, fov: 55 };
   if (view === 'zij') {
     return { position: { x: car.x + nx * 18 - fx * 16, y: car.y + ny * 18 - fy * 16, z: z0 + 6 }, lookAt: { x: car.x + fx * 10, y: car.y + fy * 10, z: z0 + 2 }, fov: 52 };
   }
@@ -258,6 +260,26 @@ export function treinBeeld(plan, stand) {
   }
   if (stand.fase === 'sluit') return stand.t > plan.openS + plan.houdS + plan.sluitS - ZIJ_S ? 'zij' : 'raam';
   return 'raam';
+}
+
+// ---- de camerakeuze (C of Y tijdens de rit) -------------------------------------------------------------------------------
+
+// De camera's van de rit: cabine (je zit er zelf in: de taxicabine, het raam van de coupé), achter (achter het voertuig), zij (filmisch,
+// voor-zijkant) en boven (hoog van boven). De keuze is lokaal per speler en staat in de instellingen (ritCamera, standaard cabine).
+export const RIT_CAMERAS = ['cabine', 'achter', 'zij', 'boven'];
+export const RIT_CAMERA_NAMEN = { cabine: 'Cabine', achter: 'Achter', zij: 'Filmisch', boven: 'Van boven' };
+export const geldigeRitCamera = (k) => (RIT_CAMERAS.includes(k) ? k : 'cabine');
+export const volgendeRitCamera = (k) => RIT_CAMERAS[(RIT_CAMERAS.indexOf(geldigeRitCamera(k)) + 1) % RIT_CAMERAS.length];
+
+// De buitencamera's om een voertuig { x, y, z, angle } (kaartcoördinaten, angle = rijrichting): positie en kijkpunt, met rechts als
+// (-sin a, cos a) zoals rechterBaan. De taxi is 4 m lang; de afstanden zijn daarop gekozen.
+export function ritBuitenCamera(v, kies) {
+  const a = v.angle || 0, fx = Math.cos(a), fy = Math.sin(a), rx = -fy, ry = fx, z = v.z || 0;
+  const bij = (u, r, h) => ({ x: v.x + fx * u + rx * r, y: v.y + fy * u + ry * r, z: z + h });
+  if (kies === 'achter') return { position: bij(-9, 0, 3.4), lookAt: bij(3, 0, 1.2), fov: 62 };
+  if (kies === 'zij') return { position: bij(6.5, 5.5, 1.5), lookAt: bij(0, 0, 1.1), fov: 50 };
+  if (kies === 'boven') return { position: bij(-5, 0, 26), lookAt: bij(2, 0, 0), fov: 55 };
+  return null;
 }
 
 // ---- terugval en samenspelen -----------------------------------------------------------------------------

@@ -19,6 +19,7 @@ import { pushAudioEvent } from './pedgeom.js';
 import { klokSprongMag } from './coopgroep.js';
 import { refreshDayNight } from './daynight.js';
 import { padButtonIndex, playerPad } from './glyphs.js';
+import { getSettings, setSetting } from './settings.js';
 import * as P from './ritpad.js';
 
 let lopend = null;
@@ -67,7 +68,7 @@ function bouwTaxi(world, optie, dest) {
       const hp = hoofdspeler(w);
       hp.x = v.x; hp.y = v.y; hp.gz = v.z || 0;
     },
-    stap(w, stand, t) {
+    stap(w, stand, t, cam = 'cabine') {
       const dt = Math.max(0, Math.min(0.1, t - lastT));
       lastT = t;
       const spring = Math.abs(stand.s - lastS) > 40;
@@ -83,6 +84,8 @@ function bouwTaxi(world, optie, dest) {
       w.ritMeter = meter(stand.s);
       const d = spring ? dyn.stand() : dyn.stap(v.angle, stand.v, dt); // een tijdsprong telt niet als bocht of schok
       w.ritStuur = d.stuur;
+      w.ritBuiten = cam !== 'cabine'; // een buitencamera toont het model van de taxi en niet de cabine (ritcabine3d.js)
+      if (w.ritBuiten) return { ...P.ritBuitenCamera(v, cam), cut: true };
       return { ...P.taxiCamera(P.taxiOog(v), t, 30, { ...d, v: stand.v }), cut: true };
     },
     einde(w) {
@@ -92,6 +95,7 @@ function bouwTaxi(world, optie, dest) {
       if (w.ritTaxi) w.ritTaxi = null;
       w.ritMeter = 0;
       w.ritStuur = 0;
+      w.ritBuiten = false;
     },
   };
 }
@@ -137,13 +141,13 @@ function bouwTrein(world, optie) {
       const legs = (optie.legs || []).filter((l) => l && l.kind === 'train');
       return perronPlek(w.map && w.map.perrons, [x, y], { naam: legs.length ? legs[legs.length - 1].to : '' });
     },
-    stap(w, stand, tijd) {
+    stap(w, stand, tijd, cam = 'cabine') {
       const k = plek(stand);
       const t = zet(w, k.stuk, k.c);
       if (Math.abs(stand.s - lastS) > 40) { const q = punt(stand.s); voorspel(q.x, q.y); }
       lastS = stand.s;
       const car = t.cars[Math.floor(t.cars.length / 2)] || t.cars[0];
-      const beeld = P.treinBeeld(plan, stand);
+      const beeld = cam === 'cabine' ? P.treinBeeld(plan, stand) : cam;
       w.ritKader = beeld === 'raam' ? 'trein' : null; // bij het raam zit je in de coupé; naast de trein kijk je van buiten
       return { ...P.treinCamera(car, t.dir, beeld, tijd, stand.v), cut: true };
     },
@@ -177,6 +181,7 @@ function bouwHud(titel, bestemming) {
     + '<div class="rr3-lijn" style="font:bold 14px Arial,sans-serif;letter-spacing:3px"></div>'
     + '<div class="rr3-rest" style="font:22px Arial,sans-serif"></div>'
     + '<div style="width:260px;height:3px;background:rgba(240,237,228,.25)"><div class="rr3-vul" style="height:100%;width:0;background:#3fc97a"></div></div>'
+    + '<span class="rr3-cam" style="font:14px Arial,sans-serif;opacity:.85"><span style="background:rgba(240,237,228,.9);color:#0f5c30;border-radius:4px;padding:1px 8px;font:bold 13px Arial,sans-serif;margin-right:8px">C of Y</span>camera: <b class="rr3-camnaam"></b></span>'
     + '<span class="rr3-hint" style="display:none;font:15px Arial,sans-serif"><span class="hud-key" data-gk="SPATIE" style="background:#f0ede4;color:#0f5c30;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
   el.querySelector('.rr3-lijn').textContent = String(titel || '').toUpperCase();
   el.querySelector('.rr3-rest').textContent = bestemming ? `Naar ${bestemming}` : '';
@@ -196,14 +201,19 @@ export function start3dRit(world, optie, plan, dest) {
   const klokMag = klokSprongMag(world);
   const staat = {
     fout: null, skip: false, klaar: false, t: 0, laatstePose: null,
-    klok0: world.clock, gezond0: world.health, hold0: !!world.challengeHoldPlayer,
+    cam: P.geldigeRitCamera(getSettings().ritCamera), klok0: world.clock, gezond0: world.health, hold0: !!world.challengeHoldPlayer,
   };
   const hud = bouwHud(optie.label || (plan.mode === 'trein' ? 'Met de trein' : 'Met de taxi'), dest && dest.name);
   const q = (s) => hud.querySelector(s);
   document.body.appendChild(hud);
   const zwart = q('.rr3-zwart');
   let skipKey = false;
-  const down = (e) => { if (e.key === ' ') { skipKey = true; e.preventDefault(); e.stopPropagation(); } };
+  const zetCam = (k) => { staat.cam = k; q('.rr3-camnaam').textContent = P.RIT_CAMERA_NAMEN[k]; try { setSetting('ritCamera', k); } catch (e) { /* de keuze blijft voor deze rit */ } };
+  zetCam(staat.cam);
+  const down = (e) => {
+    if (e.key === ' ') { skipKey = true; e.preventDefault(); e.stopPropagation(); }
+    else if ((e.key === 'c' || e.key === 'C') && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { zetCam(P.volgendeRitCamera(staat.cam)); e.preventDefault(); e.stopPropagation(); } // lokaal per speler; de eerstepersoonstoets C doet in de rit niets
+  };
   const up = (e) => { if (e.key === ' ') { skipKey = false; e.preventDefault(); e.stopPropagation(); } };
   const tap = () => { skipKey = true; setTimeout(() => { skipKey = false; }, 120); };
   hud.addEventListener('pointerdown', tap);
@@ -254,8 +264,11 @@ export function start3dRit(world, optie, plan, dest) {
             zwart.style.opacity = '1';
             queueMicrotask(() => skipCinematic());
           }
+          const camKnop = pad && pad.buttons[padButtonIndex('y')];
+          if (camKnop && camKnop.pressed && !staat.camGedrukt) zetCam(P.volgendeRitCamera(staat.cam));
+          staat.camGedrukt = !!(camKnop && camKnop.pressed);
           const stand = P.ritStand(tp, t);
-          const pose = regie.stap(w, stand, t);
+          const pose = regie.stap(w, stand, t, staat.cam);
           if (klokMag && typeof staat.klok0 === 'number') { w.clock = (staat.klok0 + stand.minuten / 60) % 24; refreshDayNight(w); }
           if (!staat.skip) {
             const intro = t < 0.6 ? 1 - t / 0.6 : 0;

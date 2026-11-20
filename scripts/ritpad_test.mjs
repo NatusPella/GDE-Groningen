@@ -283,4 +283,27 @@ t('de treincoupé rammelt zacht met de snelheid en staat stil bij stilstand; de 
   assert.deepEqual(P.treinCamera(car, 1, 'zij', 3, 22), P.treinCamera(car, 1, 'zij'), 'naast de trein geen trilling');
 });
 
+t('de camerakeuze van de rit: vier camera\'s, rondgaand wisselen, onbekend wordt cabine, buiten staat om het voertuig', () => {
+  assert.deepEqual(P.RIT_CAMERAS, ['cabine', 'achter', 'zij', 'boven']);
+  let k = 'cabine'; const rij = [];
+  for (let i = 0; i < 5; i++) { k = P.volgendeRitCamera(k); rij.push(k); }
+  assert.deepEqual(rij, ['achter', 'zij', 'boven', 'cabine', 'achter']);
+  for (const kapot of [undefined, null, 'x', 3, {}]) assert.equal(P.geldigeRitCamera(kapot), 'cabine');
+  assert.equal(P.volgendeRitCamera('rommel'), 'achter');
+  for (const n of P.RIT_CAMERAS) assert.ok(P.RIT_CAMERA_NAMEN[n], 'elke camera heeft een Nederlandse naam');
+  const v = { x: 100, y: 50, z: 2, angle: Math.PI / 2 };
+  assert.equal(P.ritBuitenCamera(v, 'cabine'), null);
+  const achter = P.ritBuitenCamera(v, 'achter'), zij = P.ritBuitenCamera(v, 'zij'), boven = P.ritBuitenCamera(v, 'boven');
+  assert.ok(achter.position.y < v.y - 5 && Math.abs(achter.position.x - v.x) < 0.01, 'achter: tegen de rijrichting in (+y)');
+  assert.ok(zij.position.y > v.y && zij.position.x < v.x - 3, 'zij: voor het voertuig en rechts (rechts van +y is -x)');
+  assert.ok(boven.position.z > v.z + 20, 'boven: hoog');
+  for (const c of [achter, zij, boven]) {
+    assert.ok(Object.values(c.position).every(Number.isFinite) && Object.values(c.lookAt).every(Number.isFinite) && c.fov > 30 && c.fov < 90);
+    assert.ok(Math.hypot(c.lookAt.x - v.x, c.lookAt.y - v.y) < 8, 'het kijkpunt ligt bij het voertuig');
+  }
+  const car = { x: 0, y: 0, angle: 0, z: 0 };
+  for (const view of ['achter', 'boven']) { const c = P.treinCamera(car, 1, view); assert.ok(Object.values(c.position).every(Number.isFinite)); }
+  assert.ok(P.treinCamera(car, 1, 'boven').position.z > 30 && P.treinCamera(car, 1, 'achter').position.x < -20, 'trein: boven is hoog, achter ligt achter de trein');
+});
+
 console.log(`ritpad_test: ${n}/${n} ok`);

@@ -75,7 +75,7 @@ function zetMeter(g, mesh, bedrag) {
 // Per beeld voor de taxi van de rit (scene3d.js): hang de cabine aan het voertuig, verberg de buitenkant (de carrosserie, de
 // chauffeursfiguur en de spiegels die bij het model horen: de cabine heeft zijn eigen) zet de meter op het bedrag en draai het stuur (stuurHoek, rad).
 // De cabine hangt aan de groep van het voertuig, niet aan de carrosserie: die is verborgen.
-export function updateRitCabine(mesh, bedrag, stuurHoek = 0, daglicht = 1) {
+export function updateRitCabine(mesh, bedrag, stuurHoek = 0, daglicht = 1, buiten = false) {
   if (!mesh) return false;
   materialen();
   lambert.emissive.setHex(0x4a4a46).multiplyScalar(0.3 + 0.7 * Math.max(0, Math.min(1, Number.isFinite(daglicht) ? daglicht : 1)));
@@ -101,7 +101,13 @@ export function updateRitCabine(mesh, bedrag, stuurHoek = 0, daglicht = 1) {
     m.add(st);
     cab = mesh.userData.ritCabine = { mesh: m, stuur: st, g: { geometry, cijferStart: g.cijferStart } };
   }
-  for (const c of mesh.children) if (c !== cab.mesh) c.visible = false;
+  // cabine: de buitenkant van het model is verborgen en de cabine zichtbaar; een buitencamera (C) wil juist het model zien en niet de cabine
+  for (const c of mesh.children) {
+    if (c === cab.mesh) continue;
+    if (c.userData.ritZicht === undefined) c.userData.ritZicht = c.visible;
+    c.visible = buiten ? c.userData.ritZicht : false;
+  }
+  cab.mesh.visible = !buiten;
   zetMeter(cab.g, cab.mesh, bedrag);
   cab.stuur.quaternion.setFromAxisAngle(AS, Number.isFinite(stuurHoek) ? stuurHoek : 0);
   return true;
