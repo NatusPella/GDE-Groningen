@@ -127,5 +127,17 @@ t('kaart: een veld van jou krijgt een kaartstijl en een statusicoon, aangeboden 
   assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-eigen-bestaatniet', 1), true, 'een onbekende stand valt terug op groen of faalt niet');
 });
 
+t('kaart: je machines staan er met hun dieselstand, en zonder bron geen machines', () => {
+  assert.deepEqual(S.machinePlekken(), []);
+  S.zetMachinePlekken(() => [{ uid: 'm1', x: 10, y: 20, naam: 'Kleine trekker', diesel: 0.1 }]);
+  const m = PM.perceelMapSpots().find((q) => q.kind === 'perceel-machine');
+  assert.ok(m && /diesel 10%/.test(m.sub) && /bijna leeg/.test(m.sub) && m.goal.x === 10);
+  const calls = []; const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : (...a) => { calls.push(k); }), set: (o, k, v) => { o[k] = v; return true; } });
+  assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-machine', 1), true); assert.ok(calls.includes('fillText'));
+  S.zetMachinePlekken(() => { throw new Error('kapot'); });
+  assert.deepEqual(S.machinePlekken(), [], 'een kapotte bron telt niet mee');
+  S.zetMachinePlekken(null);
+});
+
 console.log(`boerderijstatus_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

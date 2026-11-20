@@ -73,29 +73,24 @@ let gast = false; // samen spelen: de klussen op het land (de trekker) doe je in
 let melding = '';
 const bars = new Map();
 
-const FASE_TEKST = {
-  braak: 'Braak land: tijd om te ploegen.', geploegd: 'Geploegd: tijd om te zaaien.', groeit: 'Het gewas groeit.', rijp: 'Rijp: tijd om te oogsten.',
-};
 // De markt (gewasmarkt.js): de prijs van vandaag en of hij stijgt, daalt of gelijk blijft ten opzichte van gisteren.
 const TREND_TEKST = { op: 'prijs stijgt', neer: 'prijs daalt', gelijk: 'prijs gelijk' };
 
 function perceel(b, geld) {
-  const f = B.fase(b), s = B.samenvatting(b);
-  const g = B.GEWASSEN[b.veld.gewas];
+  const s = B.samenvatting(b);
   const volgende = s.volgende ? B.TAKEN[s.volgende].naam : null;
   const k = s.volgende ? B.kosten(b, s.volgende) : null;
   const wacht = B.wacht(b);
   const waar = b.perceel ? 'Je akker ligt bij Hoogkerk, in de buurt van Suikerhal Hoogkerk.' : 'Je akker wordt gekozen als je voor het eerst gaat werken.';
+  // #985: eerst wat nu te doen valt (kaart met de lus en de velden), daarna de kosten, de schuur en het uitbesteden
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('perceel', 'pa-ico big')}Perceel</h2></div>` +
-    `<div><p class="lb-titel"><b>${esc(FASE_TEKST[f] || '')}</b></p>` +
-    (g ? `<p class="mut">${esc(g.naam)}${f === 'groeit' ? ` · nog ${nl(s.urenTotRijp)} speluren` : ''}</p>` : '') +
-    (f === 'groeit' || f === 'rijp' ? `<div class="bd-voort"><span class="m-bar${s.groei > 0 ? ' on' : ''}"><i data-bar="bd-groei" data-w="${(s.groei * 100).toFixed(1)}"></i></span><span class="m-num">${Math.round(s.groei * 100)}%</span></div>` : '') + '</div>' +
-    `<div><p>${volgende ? `Volgende klus: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` +
+    kaartenBlok(b) +
+    `<div><p>${volgende ? `Volgende klus op het actieve perceel: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` +
     (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '') +
     `<p class="mut">${waar}</p></div>` +
     (gast ? `<p class="mut">Je speelt mee in het spel van een ander: de klussen op het land doe je in je eigen spel. Je gewas groeit ondertussen door, en gewassen kiezen en machines kopen kan hier wel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
       : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen, of start de bijbaan Eigen boerderij bij Hoogkerk voor loonwerk met een gehuurde machine.</p>`) +
-    kaartenBlok(b) + loonwerkBlok(b, geld, gast);
+    loonwerkBlok(b, geld, gast);
 }
 
 // De velden van jou staan als kaarten (boerderijkaarten.js). Hieronder wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).

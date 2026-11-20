@@ -4,7 +4,7 @@ import { getBoerderij } from './boerderijlive.js';
 import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK } from './mapstyle.js';
-import { veldStatus, KAART_STIJL, watNu } from './boerderijstatus.js';
+import { veldStatus, KAART_STIJL, watNu, machinePlekken } from './boerderijstatus.js';
 
 const pos = new Map();
 const wereld = (p) => { let q = pos.get(p.id); if (!q) { q = wgsToWorld(p.lat, p.lon); pos.set(p.id, q); } return q; };
@@ -19,11 +19,14 @@ export function perceelMapSpots() {
     const eigen = s.van === 'jou' ? veldStatus(b, p.id) : null;
     out.push({ kind: eigen ? `perceel-eigen-${eigen.statusId}` : kaartSoort(s), x, y, name: p.naam, sub: eigen ? `${eigen.klaar ? 'Oogstklaar' : eigen.status} · nu: ${watNu(eigen, b.schuur.kg || 0).toLowerCase()}` : kaartOnderschrift(s), id: p.id, goal: { kind: 'place', name: p.naam, sub: 'Perceel', x, y } });
   }
+  // #985: je machines in de wereld (trekker, maaidorser, laadmachine) met hun dieselstand
+  for (const m of machinePlekken()) out.push({ kind: 'perceel-machine', x: m.x, y: m.y, name: m.naam, sub: `Van jou · diesel ${Math.round(m.diesel * 100)}%${m.diesel <= 0.15 ? ' (bijna leeg)' : ''}`, id: m.uid, goal: { kind: 'place', name: m.naam, sub: 'Machine', x: m.x, y: m.y } });
   return out;
 }
 
 const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'perceel-eigen': INK.greenLight };
 const STATUS_KIND = /^perceel-eigen-([a-z]+)$/;
+const MACHINE_KIND = 'perceel-machine';
 
 // #972: de percelen die van jou zijn, als vlak met een duidelijke omtrek op de grote kaart.
 // Alleen eigen grond: aangeboden akkers blijven een pictogram, anders wordt de kaart vol.
@@ -48,6 +51,12 @@ export function eigenPerceelVlakken() {
 
 // Tekent het pictogram (hud_panel.js geeft de schaal s); geeft false voor een andere soort.
 export function drawPerceelMapIcon(ctx, kind, s) {
+  if (kind === MACHINE_KIND) {   // een ronde schijf met een T van trekker, zodat het geen veld lijkt
+    ctx.beginPath(); ctx.arc(0, 0, 4.4 * s, 0, Math.PI * 2); ctx.fillStyle = INK.cream; ctx.fill();
+    ctx.lineWidth = 1.2 * s; ctx.strokeStyle = INK.dark; ctx.stroke();
+    ctx.font = `700 ${6 * s}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = INK.dark; ctx.fillText('T', 0, 0.4 * s);
+    return true;
+  }
   const m = STATUS_KIND.exec(kind);
   const stijl = m ? KAART_STIJL[m[1]] : null;
   const kleur = stijl ? INK[stijl.vul] : KLEUR[m ? 'perceel-eigen' : kind];

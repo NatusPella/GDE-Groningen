@@ -56,7 +56,9 @@ const [ex, ey] = RD.wgsToWorld(PC.erfDef(PC.START_ERF).lat, PC.erfDef(PC.START_E
 w.money = 500000;
 await sleep(3000);
 
-try {
+const mv = await imp('mapview');
+const begrepen = () => { const bt = [...document.querySelectorAll('button')].find((x) => /^begrepen$/i.test(x.textContent.trim()) && x.getClientRects().length); if (bt) { bt.click(); return true; } return false; };
+const paneelEnKaart = async () => {
   // --- het paneel: elk onderdeel ------------------------------------------------------------------------------
   PM.openPauseMenu('boerderij'); await sleep(1500);
   const menu = document.querySelector('#pause-menu');
@@ -73,13 +75,13 @@ try {
   // --- de kaart met de percelen ----------------------------------------------------------------------------------
   try { MF.setLayer('percelen', true); } catch (e) { uit.fouten.push('laag: ' + e.message); }
   PM.openPauseMenu('map'); await sleep(2500);
-  const begrepen = () => { const bt = [...document.querySelectorAll('button')].find((x) => /^begrepen$/i.test(x.textContent.trim()) && x.getClientRects().length); if (bt) { bt.click(); return true; } return false; };
   begrepen(); await sleep(800);
   await shot('kaart', 800);
-  const mv = await imp('mapview');
   if (mv.setMapView) { mv.setMapView(ex, ey, 3); await sleep(1500); await shot('kaart-erf', 500); } else uit.kaartZoom = 'geen setMapView';
   PM.closePauseMenu(); await sleep(600);
 
+};
+try {
   // --- het erf, de trekker, het veld ----------------------------------------------------------------------------
   const kopen = ['trekker-klein', 'ploeg-3', 'zaaimachine', 'aanhanger', 'cultivator', 'maaidorser'].map((t) => Live.koopMachineCat(w, t, PC.START_ERF));
   check('alles gekocht', kopen.every((r) => r.ok), JSON.stringify(kopen.map((r) => r.ok || r.reden)));
@@ -136,6 +138,11 @@ try {
     await vantage('veld-groeit');
     B.tikUren(b, 40);
     await vantage('veld-rijp');
+    {
+      const ux = Math.cos(pos.a), uy = Math.sin(pos.a), hx = rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, hy = rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4;
+      const px = hx - ux * 12, py = hy - uy * 12, hoek = Math.atan2(hy - py, hx - px);
+      teleport(px, py, hoek); hold = { x: px, y: py, a: hoek }; await sleep(3500); await shot('markering-rijp', 300); hold = null;
+    }
     PM.openPauseMenu('boerderij'); await sleep(1200);
     await shot('paneel-perceel-rijp', 300);
     PM.closePauseMenu(); await sleep(500);
@@ -150,6 +157,7 @@ try {
     await shot('paneel-perceel-stoppel', 300);
     PM.closePauseMenu(); await sleep(400);
   }
+  await paneelEnKaart();
 } catch (e) { uit.fouten.push('script: ' + String((e && e.stack) || e).slice(0, 400)); }
 clearInterval(skipper);
 hold = null;

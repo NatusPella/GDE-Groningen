@@ -37,7 +37,7 @@ function voeg(lijst) {
   return uit;
 }
 
-const KEGEL = (r, h, n = 5) => new THREE.ConeGeometry(r, h, n).translate(0, h / 2, 0);   // staat met de voet op y = 0
+const KEGEL = (r, h, n = 5) => new THREE.ConeGeometry(r, h, n, 1, true).translate(0, h / 2, 0);   // zonder bodem: de voet zit in de grond   // staat met de voet op y = 0
 const BOL = (r) => new THREE.IcosahedronGeometry(r, 0);
 const lerpHex = (a, b, t) => new THREE.Color(a).lerp(new THREE.Color(b), Math.max(0, Math.min(1, t))).getHex();
 
@@ -111,6 +111,16 @@ export function voorGeometrie(lengte = 5) {
   }
   return vorenGeo;
 }
+
+// Hoe dicht en hoe groot de plantjes staan: lijnen (dwars op de rij, in m), stap (langs de rij, in m) en schaal; per gewas, zodat een veld er als dat gewas uitziet.
+const LAYOUT = {
+  aardappelen: { lijnen: [-2.6, -1.3, 0, 1.3, 2.6], stap: 1.8, schaal: 1.35 },
+  bieten: { lijnen: [-2.6, -1.3, 0, 1.3, 2.6], stap: 1.8, schaal: 1.3 },
+  uien: { lijnen: [-2.6, -1.3, 0, 1.3, 2.6], stap: 1.8, schaal: 1.3 },
+  graan: { lijnen: [-2.8, -1.4, 0, 1.4, 2.8], stap: 1.6, schaal: 1.15 },
+  gras: { lijnen: [-2.8, -1.4, 0, 1.4, 2.8], stap: 1.6, schaal: 1.2 },
+};
+export const plantLayout = (id) => LAYOUT[id] || { lijnen: [-2.2, 0, 2.2], stap: 2.5, schaal: 1 };
 
 export const plantMateriaal = () => new THREE.MeshLambertMaterial({ vertexColors: true });
 export const STADIUM_NAMEN = STADIA;

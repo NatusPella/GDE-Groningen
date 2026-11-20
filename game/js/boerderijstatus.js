@@ -121,3 +121,8 @@ export function decodeerVeld(c) {
   if (!statusId) return null;
   return { statusId, gewas: GEWAS_INDEX[c.g | 0] || null, groei: Math.max(0, Math.min(1, (Number(c.f) || 0) / 255)) };
 }
+
+// De plekken van je machines in de wereld voor de kaart: boerderijwereld.js meldt de bron aan (geen import van de wereld hier: geen kring).
+let machineBron = null;
+export function zetMachinePlekken(fn) { machineBron = typeof fn === 'function' ? fn : null; }
+export function machinePlekken() { try { return machineBron ? machineBron() || [] : []; } catch (e) { return []; } }

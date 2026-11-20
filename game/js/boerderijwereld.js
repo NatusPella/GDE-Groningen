@@ -27,8 +27,8 @@ import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, 
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
 import { registreerVelden, standVelden } from './coopextra.js';
-import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX } from './boerderijstatus.js';
-import { plantGeometrie, plantMateriaal, stoppelGeometrie, voorGeometrie } from './boerderijgewas3d.js';
+import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken } from './boerderijstatus.js';
+import { plantGeometrie, plantMateriaal, plantLayout, stoppelGeometrie, voorGeometrie } from './boerderijgewas3d.js';
 import { maakVeldMarker, tikVeldMarker } from './boerderijmarker3d.js';
 import { boerderijHudKlaar, boerderijHudTik } from './boerderijhud.js';
 
@@ -40,7 +40,7 @@ export const VEL_R = 75;               // m van het midden van het perceel: daar
 export const AFLEVER_R = 22;           // m van de afnemer
 export const TOETS = { pto: 'G', hef: 'T', los: 'X', tank: 'R' };
 const UREN_PER_S = 24 / DAY_LENGTH_S;  // een speluur is een minuut
-const GROND = { braak: 0x9aa05a, geploegd: 0x5b3e22, cult: 0x7a5a36, gezaaid: 0x6d4c2c, mest: 0x4f3a24, spuit: 0x6a5f38 };
+const GROND = { braak: 0x9aa05a, geploegd: 0x5b3e22, cult: 0x7a5a36, gezaaid: 0x6d4c2c, mest: 0x4f3a24, spuit: 0x6a5f38, stoppel: 0xcdb061 };
 // De afnemers staan bij Hoogkerk, op een weg vlakbij (de plek wordt bij de eerste rit op de dichtstbijzijnde weg gelegd). Verzonnen bedrijven.
 const AFNEMER_PLEK = { aardappelen: [53.2388, 6.5106], bieten: [53.2301, 6.4923], graan: [53.2419, 6.4808], gras: [53.2262, 6.5019], uien: [53.2350, 6.5005] };
 
@@ -444,7 +444,7 @@ function kleurVan(stand, werk, ri, c) {
   if (werk && werk.cellen[ri][c] > 0) {
     return { ploegen: GROND.geploegd, cultiveren: GROND.cult, zaaien: GROND.gezaaid, bemesten: GROND.mest, spuiten: GROND.spuit, oogsten: GROND.braak }[werk.taak] || GROND.gezaaid;
   }
-  if (stand.fase === 'braak') return GROND.braak;
+  if (stand.fase === 'braak') return stand.stoppel ? GROND.stoppel : GROND.braak;
   if (stand.fase === 'geploegd') return stand.cult > 0 ? GROND.cult : GROND.geploegd;
   return stand.mest > 0 ? GROND.mest : stand.spuit > 0 ? GROND.spuit : GROND.gezaaid;
 }
@@ -492,8 +492,8 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
   // de voren (geploegd en cultiveren), het gewas per stadium en het stoppelveld: allemaal InstancedMesh, per cel te tonen of te verbergen (#985)
   const g = B.GEWASSEN[stand.gewas];
   const statusId = statusIdVan(stand, uren);
-  const lijnen = g && g.vorm === 'halm' && stand.gewas !== 'gras' ? [-2.6, -0.9, 0.9, 2.6] : [-2.2, 0, 2.2];
-  const per = Math.floor(RIJ_LEN / 2.5);
+  const lay = plantLayout(stand.gewas), lijnen = lay.lijnen, stap = lay.stap;
+  const per = Math.floor(RIJ_LEN / stap);
   const yaw = new THREE.Quaternion(), asY = new THREE.Vector3(0, 1, 0);
   const hash = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
   // voren: vijf lage ruggen per cel in elke rij; zichtbaar op een geploegd veld en terwijl je ploegt, kleiner onder een jong gewas
@@ -534,10 +534,10 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
       const nx = -r.uy, ny = r.ux;
       for (const off of lijnen) {
         for (let i = 0; i < per; i++) {
-          const along = (i + 0.5) * 2.5, x = r.ax + r.ux * along + nx * off, y = r.ay + r.uy * along + ny * off;
+          const along = (i + 0.5) * stap, x = r.ax + r.ux * along + nx * off, y = r.ay + r.uy * along + ny * off;
           yaw.setFromAxisAngle(asY, hash(n + 1) * 6.28);
           p3.set(x, grond(w, x, y) + 0.05, y);
-          m.compose(p3, yaw, sc.set(s, s * (0.9 + 0.2 * hash(n + 7)), s));
+          m.compose(p3, yaw, sc.set(s * lay.schaal, s * lay.schaal * (0.9 + 0.2 * hash(n + 7)), s * lay.schaal));
           mesh.setMatrixAt(n, m);
           items.push({ n, ri, cel: Math.min(WT.CELLEN - 1, Math.floor(along / WT.CEL)), x, y, weg: false });
           n++;
@@ -551,17 +551,18 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
   }
   // het stoppelveld: na het oogsten blijft het staan tot je ploegt; tijdens het oogsten verschijnt het per cel achter de maaidorser
   const stopItems = [];
-  const stopMesh = new THREE.InstancedMesh(stoppelGeometrie(), plantMateriaal(), RIJEN * per * 3);
-  {
+  const stopPer = Math.floor(RIJ_LEN / 2.5);
+  const stopMesh = statusId === 'stoppel' || statusId === 'rijp' ? new THREE.InstancedMesh(stoppelGeometrie(), plantMateriaal(), RIJEN * stopPer * 5) : null;   // alleen waar stoppel is of komt
+  if (stopMesh) {
     let n = 0;
     rijen.forEach((r, ri) => {
       const nx = -r.uy, ny = r.ux;
-      for (const off of [-2.2, 0, 2.2]) {
-        for (let i = 0; i < per; i++) {
+      for (const off of [-2.8, -1.4, 0, 1.4, 2.8]) {
+        for (let i = 0; i < stopPer; i++) {
           const along = (i + 0.5) * 2.5, x = r.ax + r.ux * along + nx * off, y = r.ay + r.uy * along + ny * off;
           yaw.setFromAxisAngle(asY, hash(n + 3) * 6.28);
           p3.set(x, grond(w, x, y) + 0.05, y);
-          m.compose(p3, yaw, sc.set(1.4, 1, 1.4));
+          m.compose(p3, yaw, sc.set(2.2, 1.6, 2.2));
           stopItems.push({ n, ri, cel: Math.min(WT.CELLEN - 1, Math.floor(along / WT.CEL)), mat: m.clone() });
           stopMesh.setMatrixAt(n, statusId === 'stoppel' ? m : NUL);
           n++;
@@ -570,8 +571,7 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
     });
     sc.set(1, 1, 1);
   }
-  stopMesh.instanceMatrix.needsUpdate = true;
-  group.add(stopMesh);
+  if (stopMesh) { stopMesh.instanceMatrix.needsUpdate = true; group.add(stopMesh); }
   // de markering op de hoek van het veld: vlag in de kleur van de status, vorm bovenop, een lichtkolom bij oogstklaar
   const hoekPunt = { x: rijen[0].ax - rijen[0].ux * 3 + rijen[0].uy * 4, y: rijen[0].ay - rijen[0].uy * 3 - rijen[0].ux * 4 };
   const marker = maakVeldMarker(statusId, hoekPunt.x, hoekPunt.y, grond(w, hoekPunt.x, hoekPunt.y));
@@ -613,7 +613,7 @@ function celKlaar(veld, ri, c, b) {
   veld.cellen.setColorAt(ri * WT.CELLEN + c, tmpKleur.setHex(kleurVan(B.veldStand(b, veld.id), werk, ri, c)));
   veld.vuil = true;
   if (werk && werk.taak === 'ploegen') { for (const it of veld.vorenItems) if (it.ri === ri && it.cel === c) { p4.set(it.x, grond(veld.w, it.x, it.y), it.y); m4.compose(p4, it.q, sc1.set(1, 1, 1)); veld.voren.setMatrixAt(it.n, m4); } veld.voren.instanceMatrix.needsUpdate = true; }
-  if (werk && werk.taak === 'oogsten') { for (const it of veld.stopItems) if (it.ri === ri && it.cel === c) veld.stopMesh.setMatrixAt(it.n, it.mat); veld.stopMesh.instanceMatrix.needsUpdate = true; }
+  if (werk && werk.taak === 'oogsten' && veld.stopMesh) { for (const it of veld.stopItems) if (it.ri === ri && it.cel === c) veld.stopMesh.setMatrixAt(it.n, it.mat); veld.stopMesh.instanceMatrix.needsUpdate = true; }
   if (veld.planten && werk && werk.taak === 'oogsten') {
     for (const it of veld.planten.items) if (!it.weg && it.ri === ri && it.cel === c) { veld.planten.mesh.setMatrixAt(it.n, NUL); it.weg = true; }
     veld.planten.mesh.instanceMatrix.needsUpdate = true;
@@ -1010,6 +1010,12 @@ registreerVelden('boerderij', () => {
     const st = veldStatus(b, id);
     uit.push({ x: pos.x, y: pos.y, a: pos.a || 0, s: Math.max(0, STATUS_IDS.indexOf(st.statusId)), g: st.gewas ? Math.max(0, GEWAS_INDEX.indexOf(st.gewas)) : 0, f: Math.round(st.groei * 255) });
   }
+  return uit;
+});
+// je machines op de kaart (perceelmap.js): plek en dieselstand van wat nu in de wereld staat
+zetMachinePlekken(() => {
+  const bd = getBedrijf(), uit = [];
+  for (const [uid, v] of S.voertuigen) { const m = recFrom(bd, uid); if (m && Number.isFinite(v.x) && Number.isFinite(v.y)) uit.push({ uid, x: v.x, y: v.y, naam: PC.MACHINE_CATALOGUS[m.type] ? PC.MACHINE_CATALOGUS[m.type].naam : m.type, diesel: M.brandstofPct(m) }); }
   return uit;
 });
 const gastVelden = new Map();      // sleutel plek -> { veld, sleutel }
