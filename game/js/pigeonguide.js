@@ -18,7 +18,7 @@ import { guideModel, edgeIndicator, distText, GUIDE_INTRO } from './pigeonguidel
 const COLUMN_SCALE = 8; // 9 m x 8: de kolom reikt tot 72 m, ruim boven de vlieghoogte
 const LABEL_H = 26;
 const PLACE_H = 78;
-const PLAAT_W = 512, PLAAT_H = 144;
+const PLAAT_W = 640, PLAAT_H = 144;
 const INTRO_S = 14;
 const FX_S = 1.3;
 
@@ -33,7 +33,7 @@ const kleurGeel = () => new THREE.Color(tok('--ds-c-geel', 'gold'));
 const CSS = `
 #pigeon-guide { position: fixed; inset: 0; pointer-events: none; z-index: 6; zoom: var(--ui, 1); font-family: var(--ds-font-tekst-v3, Arial, sans-serif); color: var(--ds-c-ink-inkt, #1d1b17); }
 #pigeon-guide[hidden] { display: none; }
-#pigeon-guide .pg-card { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); min-width: 320px; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
+#pigeon-guide .pg-card { position: absolute; top: 204px; left: 50%; transform: translateX(-50%); min-width: 320px; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-card small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
 #pigeon-guide .pg-card b { display: block; font-family: var(--ds-font-kop-v3, Arial, sans-serif); font-size: 28px; font-weight: 800; line-height: 1.1; }
 #pigeon-guide .pg-card i { display: block; font-style: normal; font-size: 16px; font-weight: 700; margin-top: 2px; }
@@ -45,7 +45,7 @@ const CSS = `
 #pigeon-guide .pg-arrow svg { display: block; width: 52px; height: 52px; margin: 0 auto; filter: drop-shadow(2px 2px 0 var(--ds-c-ink-inkt, #1d1b17)); }
 #pigeon-guide .pg-arrow svg path { fill: var(--ds-c-geel, #f9c80e); stroke: var(--ds-c-ink-inkt, #1d1b17); stroke-width: 2.5; stroke-linejoin: round; }
 #pigeon-guide .pg-arrow span { display: inline-block; margin-top: 2px; padding: 1px 8px; font-size: 15px; font-weight: 800; background: var(--ds-c-ink-papier, #f3ead3); border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; white-space: nowrap; }
-#pigeon-guide .pg-intro { position: absolute; top: 136px; left: 50%; transform: translateX(-50%); max-width: min(520px, calc(100vw / var(--ui, 1) - 32px)); padding: 10px 18px 12px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
+#pigeon-guide .pg-intro { position: absolute; top: 330px; left: 50%; transform: translateX(-50%); max-width: min(520px, calc(100vw / var(--ui, 1) - 32px)); padding: 10px 18px 12px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-intro[hidden] { display: none; }
 #pigeon-guide .pg-intro b { display: block; font-family: var(--ds-font-kop-v3, Arial, sans-serif); font-size: 20px; font-weight: 800; }
 #pigeon-guide .pg-intro p { margin: 4px 0 8px; font-size: 16px; font-weight: 600; line-height: 1.3; }
@@ -107,13 +107,13 @@ function tekenPlaat(sprite, { label, dist, spotted, nearest, place }) {
   if (nearest) { g.strokeStyle = inkt; g.lineWidth = 4; g.beginPath(); g.roundRect(4, 4, c.width - 8, c.height - 8, 22); g.stroke(); }
   g.fillStyle = place ? papier : inkt;
   g.textBaseline = 'middle';
-  g.font = '800 44px Arial, sans-serif';
+  g.font = '800 40px Arial, sans-serif';
   let tekst = label;
   while (g.measureText(tekst).width > c.width - (spotted ? 150 : 60) && tekst.length > 4) tekst = tekst.slice(0, -2);
   if (tekst !== label) tekst += '…';
   g.textAlign = 'left';
   const x0 = spotted ? 104 : 32;
-  g.fillText(tekst, x0, 52);
+  g.fillText(tekst, x0, 50);
   g.font = '700 36px Arial, sans-serif';
   g.fillText(spotted ? 'Gespot' : distText(dist), x0, 100);
   if (spotted) {
