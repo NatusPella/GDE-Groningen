@@ -48,6 +48,8 @@ const BED_DEFS = {
   crickets: { buf: 'bed_crickets' },
   kikkers: { file: 'kikkers_nacht' },
   kermis: { file: 'kermis_lawaai' },
+  stadNacht: { file: 'stad_nacht_nl' },
+  binnen: { file: 'ruimte_binnen' },
   lap: { buf: 'bed_lap', file: 'golfjes_oever', positional: true },
   // per streek (streekklank.js): zee en kust, open polder, riet, industrie
   kust: { buf: 'bed_kust' },
@@ -355,6 +357,10 @@ function setTargets(world) {
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
   beds.lap.target = clamp(1 - place.waterD / 28, 0, 1) * (v && v.isBoat ? 0.32 : 0.2) * paused;
+  // een Nederlandse stad 's nachts (opname, verkeer op afstand zonder gebeurtenissen) in de plaats van de helft van het procedurele stadsbed; in de flat een kamertoon
+  beds.stadNacht.target = (0.06 + place.traffic * 0.1 + place.density * 0.05) * night * (1 - 0.9 * place.rural) * cabin * paused;
+  beds.city.target *= 1 - 0.5 * night * (K.samples && K.samples.has('stad_nacht_nl') ? 1 : 0);
+  beds.binnen.target = indoors ? 0.25 * paused : 0;
   // de kermis op de Grote Markt: drukte en attracties op afstand zolang hij open is (opname kermis_lawaai), zachter bij regen en in een voertuig
   const kermisMid = sfxLinks.kermisPunt(world);
   if (kermisMid) {

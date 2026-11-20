@@ -45,6 +45,8 @@ export const GELUIDEN = {
   ui_klik: { id: 528561, rms: -26, hp: 300, lp: 14000, fade: [0.002, 0.03], gebruik: 'zachte klik van een knop in het menu' },
   motor_diesel_stationair: { id: 149193, knip: [0, 12], loop: true, kruis: 0.3, rms: -24, hp: 40, lp: 8000, gebruik: 'trekker of bus: dieselmotor op stationair onder de motorsynth (lus, toonhoogte volgt het toerental)' },
   kermis_lawaai: { id: 353221, knip: [0, 10], loop: true, kruis: 0.6, rms: -26, hp: 100, lp: 10000, gebruik: 'kermis: drukte, attracties en muziek op afstand (lus)' },
+  stad_nacht_nl: { id: 815527, knip: [0, 30], loop: true, kruis: 1.0, rms: -24, hp: 40, lp: 6000, gebruik: 'Nederlandse stad in de nacht: verkeer op afstand (lus)' },
+  ruimte_binnen: { id: 473723, knip: [0, 20], loop: true, kruis: 1.0, rms: -26, hp: 40, lp: 8000, gebruik: 'kamertoon binnen: keuken overdag (lus)' },
   golfjes_oever: { id: 376796, knip: [0, 16], loop: true, kruis: 0.6, rms: -26, hp: 100, lp: 9000, gebruik: 'kleine golfjes tegen de oever en de kade (lus)' },
   menigte_gemurmel: { id: 457043, knip: [0, 12], loop: true, kruis: 0.5, rms: -26, hp: 120, lp: 8000, gebruik: 'gemurmel van een menigte (lus)' },
   kikkers_nacht: { id: 586934, knip: [0, 18], loop: true, kruis: 0.6, rms: -28, hp: 300, lp: 10000, gebruik: 'kikkers aan het water in de zomernacht (lus)' },

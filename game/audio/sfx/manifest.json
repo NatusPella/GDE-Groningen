@@ -1120,6 +1120,37 @@
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
+    "ruimte_binnen": {
+      "bestand": "ruimte_binnen.ogg",
+      "gebruik": "kamertoon binnen: keuken overdag (lus)",
+      "loop": true,
+      "duur_s": 20,
+      "grootte_kb": 156.6,
+      "herkomst": {
+        "titel": "Kitchen Ambience During Daytime .wav",
+        "auteur": "Joao_Janz",
+        "freesound_id": 473723,
+        "url": "https://freesound.org/people/Joao_Janz/sounds/473723/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d7fade9010d0447e0ace48abf7af95e84449b32f43c8f48ce59a8387a2fa3aff"
+      },
+      "knip_s": {
+        "start": 3.25,
+        "duur": 20
+      },
+      "naad": {
+        "sprong_ratio": 0.21,
+        "niveaustap_db": -0.06,
+        "kruisfade_ms": 1000
+      },
+      "niveau": {
+        "rms_db": -26,
+        "piek_db": -11.6
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 1000 ms), niveau RMS -26 dB, ogg (Vorbis q2)"
+    },
     "scheepshoorn_op": {
       "bestand": "scheepshoorn_op.ogg",
       "gebruik": "scheepshoorn van een groot schip",
@@ -1145,6 +1176,37 @@
         "piek_db": -8.4
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 50 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -20 dB, ogg (Vorbis q2)"
+    },
+    "stad_nacht_nl": {
+      "bestand": "stad_nacht_nl.ogg",
+      "gebruik": "Nederlandse stad in de nacht: verkeer op afstand (lus)",
+      "loop": true,
+      "duur_s": 30,
+      "grootte_kb": 235,
+      "herkomst": {
+        "titel": "city night s-Hertogenbosch Netherlands 0339 AM 230821_0616",
+        "auteur": "klankbeeld",
+        "freesound_id": 815527,
+        "url": "https://freesound.org/people/klankbeeld/sounds/815527/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "8c98ec432486ed48b6bc10286e9a64d71fe5ebb5938bb49903bc9e3a4d96f139"
+      },
+      "knip_s": {
+        "start": 14.25,
+        "duur": 30
+      },
+      "naad": {
+        "sprong_ratio": 0,
+        "niveaustap_db": 0.4,
+        "kruisfade_ms": 1000
+      },
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -10.7
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 6 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 1000 ms), niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "stap_asfalt_0": {
       "bestand": "stap_asfalt_0.ogg",

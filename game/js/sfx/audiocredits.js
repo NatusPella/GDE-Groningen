@@ -275,6 +275,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 473723,
+    "beschrijving": "Kamertoon binnen",
+    "auteur": "Joao_Janz",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 209969,
     "beschrijving": "Treindeuren gaan dicht",
     "auteur": "jrosin",
@@ -312,6 +319,13 @@ export const AUDIO_CREDITS = [
   {
     "id": 712294,
     "beschrijving": "Zomer",
+    "auteur": "klankbeeld",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
+    "id": 815527,
+    "beschrijving": "Nederlandse stad in de nacht",
     "auteur": "klankbeeld",
     "licentie": "CC BY 4.0",
     "by": true

@@ -69,7 +69,7 @@ SAMPLE_INFO.motor_diesel_stationair = { cat: 'voertuig', gain: 0.5, ref: 8, rang
 SAMPLE_INFO.kermis_lawaai = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };   // lus voor de kermis (sfx/ambience.js)
 // dierengeluiden en de lussen van de omgeving: de sturing (afstand, tijdstip, plek) staat in sfx/ambience.js
 for (const k of ['dier_koe', 'dier_schaap', 'dier_paard', 'dier_eend', 'dier_meeuw_0', 'dier_meeuw_1']) SAMPLE_INFO[k] = { cat: 'dier', gain: 1, ref: 4, range: 120, gap: 0 };
-for (const k of ['golfjes_oever', 'menigte_gemurmel', 'kikkers_nacht']) SAMPLE_INFO[k] = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };
+for (const k of ['golfjes_oever', 'menigte_gemurmel', 'kikkers_nacht', 'stad_nacht_nl', 'ruimte_binnen']) SAMPLE_INFO[k] = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };
 export const SAMPLE_KEYS = Object.keys(SAMPLE_INFO);
 
 // Opnames in de plaats van een synthgeluid: fx-naam van sfx/fxbank.js (met of zonder _n) naar de sleutels die hem vervangen.
