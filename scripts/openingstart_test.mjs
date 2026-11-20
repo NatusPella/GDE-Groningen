@@ -1,7 +1,7 @@
 // #986: de openingsscène van een nieuw spel speelt als eerste film na het laadscherm.
 // node scripts/openingstart_test.mjs
 import fs from 'node:fs';
-import { openingBlockers, openingReady, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, OPENING_END_HOUR } from '../game/js/openingstart.js';
+import { openingBlockers, openingReady, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate, OPENING_END_HOUR } from '../game/js/openingstart.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
 
 let n = 0, fails = 0;
@@ -64,8 +64,18 @@ for (const [k, naam] of [['started', 'gestart'], ['client', 'meespeler'], ['sess
 }
 ok(['export function replayOpening(', 'openingReplayBlockers({', 'openingActEnd({', 'openingFinish(b)'].every((t) => story.includes(t)), 'story.js gebruikt de zuivere regels voor einde en herbekijken');
 const vui = fs.readFileSync(new URL('../game/js/verhaalui.js', import.meta.url), 'utf8');
-ok(vui.includes('data-replay-opening') && vui.includes('replayOpening()'), 'Verhaal > Personages heeft de knop Opening opnieuw bekijken');
+ok(vui.includes('data-replay-opening') && vui.includes('replayOpening(hooks.close)'), 'Verhaal > Personages heeft de knop Opening opnieuw bekijken');
 ok(cine.includes('<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span>'), 'de overslaan-hint noemt de toets (glyphs.js zet er de knop van de controller voor in)');
+
+// review 20-11 #5: het menu sluit pas als de opening kan starten
+{
+  let dicht = 0;
+  const sluit = () => { dicht++; };
+  const reden = openingReplayGate(['in een voertuig'], sluit);
+  ok(dicht === 0 && /in een voertuig/.test(reden), 'geblokkeerd: het menu blijft open en de reden komt terug', reden);
+  ok(openingReplayGate([], sluit) === '' && dicht === 1, 'vrij: het menu sluit en er is geen reden');
+  ok(openingReplayGate([], undefined) === '', 'zonder sluit-haak geen fout');
+}
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

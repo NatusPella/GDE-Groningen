@@ -23,6 +23,13 @@ export function openingBlockers(s) {
   return out;
 }
 
+// De poort van de knop "Opening opnieuw bekijken": `vooraf` (het menu sluiten) draait pas als niets de opening tegenhoudt, anders
+// blijft het menu open en staat de reden erbij (review 20-11 #5). Geeft de reden terug, of '' als `vooraf` gedraaid heeft.
+export function openingReplayGate(blockers, vooraf) {
+  if (blockers && blockers.length) return 'De opening kan nu niet: ' + blockers[0] + '.';
+  if (typeof vooraf === 'function') vooraf();
+  return '';
+}
 export const openingReady = (s) => openingBlockers(s).length === 0;
 
 // Speelt de opening als eerste, dan slaat cinematics.js de vlucht-in van de spelstart over.

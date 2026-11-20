@@ -345,8 +345,7 @@ export function renderVerhaal(panel, view, w = null) {
 export function verhaalClick(e, panel, hooks = {}) {
   // de opening opnieuw bekijken (#986): het menu gaat dicht, de film speelt over het nieuwe thuis en geeft de speler zijn plek terug
   if (e.target.closest('[data-replay-opening]') && panel.contains(e.target)) {
-    if (hooks.close) hooks.close();
-    const reden = replayOpening();
+    const reden = replayOpening(hooks.close); // het menu sluit alleen als de opening echt kan starten
     if (reden && worldRef) worldRef.addMessage(reden, 4);
     return true;
   }

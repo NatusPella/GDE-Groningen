@@ -62,7 +62,7 @@ import { REMEMBRANCE } from './beppe_texts.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
-import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers } from './openingstart.js';
+import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
@@ -608,7 +608,7 @@ function playOpening(b) {
 
 // Verhaal > Personages: de opening opnieuw bekijken (#986). De stap M00 blijft zoals hij was; de speler staat daarna
 // weer waar hij stond en de klok loopt weer op zijn tijd. Geeft een reden terug als het nu niet kan, anders ''.
-export function replayOpening() {
+export function replayOpening(vooraf) { // vooraf: draait pas als de opening kan starten (het menu sluiten, #986)
   if (!world) return 'Het spel is nog niet klaar.';
   const p = hoofdspeler(world);
   const st = currentStep();
@@ -618,7 +618,8 @@ export function replayOpening() {
     missionActive: isMissionActive(), cinematicActive: isCinematicActive(), narrativeBusy: narrativeBusy(), pigeon: !!world.pigeonMode, respawn: !!world.pendingRespawn,
     inVehicle: !!(p && p.inVehicle), dataReady: storyDataReady(),
   });
-  if (blockers.length || !p) return 'De opening kan nu niet: ' + (blockers[0] || 'geen speler') + '.';
+  const reden = openingReplayGate(!p && !blockers.length ? ['geen speler'] : blockers, vooraf);
+  if (reden) return reden;
   const c = world.companion;
   const keep = { x: p.x, y: p.y, clock: world.clock, cx: c ? c.x : null, cy: c ? c.y : null };
   const terug = () => {
