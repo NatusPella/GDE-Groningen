@@ -10,7 +10,9 @@ const basis = { modus: 'ronde', fase: 'aim', laden: false, baan: 2, banen: 9, pa
 const aim = discgolfHudModel(basis);
 assert.equal(aim.stappen.length, STAPPEN.length); assert.equal(aim.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(aim.stappen[0].stand, 'nu');
 assert.ok(aim.meter && aim.meter.pct === 0 && aim.meter.label === 'Doel 62%', 'de laadmeter noemt de kracht die de mand haalt');
-assert.deepEqual(aim.cijfers.map((c) => c.label), ['Baan', 'Par', 'Worp', 'Mand', 'Wind', 'Totaal']); assert.equal(aim.cijfers[3].waarde, '61 m');
+assert.deepEqual(aim.cijfers.map((c) => c.label), ['Mand', 'Worp', 'Par', 'Wind']); assert.equal(aim.cijfers[0].waarde, '61 m'); assert.equal(aim.plek, 'Baan 2/9');
+assert.ok(aim.cijfers.every((c) => c.icoon) && aim.cijfers.filter((c) => c.primair).length === 1, 'elk getal een pictogram, één primaire waarde');
+
 assert.equal(aim.uitleg.length, UITLEG.length); assert.match(aim.nu, /gele kolom/); assert.match(aim.hulp, /hoek 9°/);
 const laden = discgolfHudModel({ ...basis, laden: true, lading: 0.4 });
 assert.equal(laden.stappen[1].stand, 'nu'); assert.equal(laden.meter.pct, 40); assert.match(laden.nu, /62%/);
@@ -19,9 +21,11 @@ const vlucht = discgolfHudModel({ ...basis, fase: 'flight' });
 assert.equal(vlucht.meter, null); assert.equal(vlucht.uitleg.length, 0); assert.match(vlucht.nu, /vliegt/); assert.equal(vlucht.stappen[0].stand, 'klaar');
 const uit = discgolfHudModel({ ...basis, fase: 'landed', flash: 'Tegen de boom', slecht: true });
 assert.equal(uit.nu, 'Tegen de boom'); assert.ok(uit.slecht); assert.equal(uit.stappen[2].stand, 'nu');
-assert.equal(discgolfHudModel({ ...basis, cirkel: true }).plek, 'In de cirkel'); assert.match(watNu({ fase: 'aim', cirkel: true }), /cirkel/); assert.match(watNu({ fase: 'wacht' }), /wachten/);
+assert.match(discgolfHudModel({ ...basis, cirkel: true }).plek, /in de cirkel/); assert.match(watNu({ fase: 'aim', cirkel: true }), /cirkel/); assert.match(watNu({ fase: 'wacht' }), /wachten/);
 const ctp = discgolfHudModel({ ...basis, modus: 'ctp', ctpWorp: 2, ctpTotaal: 3, afstanden: '4,2 m' });
-assert.equal(ctp.titel, 'Dichtst bij de mand'); assert.deepEqual(ctp.cijfers.map((c) => c.label), ['Worp', 'Mand', 'Wind', 'Afstanden']); assert.equal(ctp.cijfers[0].waarde, '2/3');
+assert.equal(ctp.titel, 'Dichtst bij de mand'); assert.deepEqual(ctp.cijfers.map((c) => c.label), ['Mand', 'Worp', 'Wind']); assert.equal(ctp.cijfers[1].waarde, '2/3');
+assert.ok(ctp.cijfers.every((c) => c.icoon) && ctp.cijfers.filter((c) => c.primair).length === 1, 'elk getal een pictogram, één primaire waarde');
+
 const kies = discgolfHudModel({ modus: 'kies', kiesNaam: 'Negen banen', kiesNote: 'Negen banen: een hele ronde', uitleg: true });
 assert.equal(kies.stappen.length, 0); assert.match(kies.nu, /Negen banen/); assert.equal(kies.uitleg.length, UITLEG.length);
 // wat opspringt

@@ -131,7 +131,7 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 | Onderdeel | Voor | Na |
 |---|---|---|
 | Uitleg | de startkaart | plus vier iconen met een zin in de strook tot de eerste start (`gde-sim-uitleg-v1`) |
-| HUD | bord (`minigamekit`) met een rij tekst en een driftbalkje in eigen kleuren | strook (`simhud.js`): stappen Start, Racen, Finish als chips, driftmeter met woord (laden, geladen, supergeladen), cijfers ronde, plaats, tijd, tempo en beste, één zin wat nu |
+| HUD | bord (`minigamekit`) met een rij tekst en een driftbalkje in eigen kleuren | strook (`simhud.js`): stappen Start, Racen, Finish als chips, driftmeter met woord (laden, geladen, supergeladen), vier cijfers met pictogram (je plaats groot, dan ronde, tijd en tempo), één zin wat nu |
 | Wereld | karts, rook, vonken, startlichten | plus een gele lichtkolom boven de volgende poort van de baan (`simkolom3d.js`) |
 | Feedback | een regel in de berichtenkaart | een getal springt op per ronde ("Ronde 2: 0:31,40") en per boost, met het bestaande UI-geluid |
 
@@ -148,7 +148,7 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 | Onderdeel | Voor | Na |
 |---|---|---|
 | Uitleg | een kaart bij de start (met een fout aantal games: 2 in plaats van 4) | kaart gecorrigeerd, plus vier iconen met een zin in de strook tot je voor het eerst serveert (`gde-sim-uitleg-v1`) |
-| HUD | een bord bovenin in eigen kleuren met stand, flits en toetsen | het bord blijft voor de stand; onderin de strook (`simhud.js`): stappen Serveren, Rally, Punt, servemeter, games, punt, rally, langste rally en één zin wat nu |
+| HUD | een bord bovenin in eigen kleuren met stand, flits en toetsen | het bord blijft voor de stand; onderin de strook (`simhud.js`): stappen Serveren, Rally, Punt, servemeter, games (primair), punt en rally met pictogram en één zin wat nu |
 | Wereld | ring onder je die groen wordt, landingsmarkering van de bal, schaduw | ongewijzigd; de ring en de landingsplek zijn al het wereldteken (geen extra lichtkolom op het veld) |
 | Feedback | een flits op het bord en een regel | een getal springt op per punt van jullie ("Punt: 30-15", "Punt na 9 slagen", "Game voor jullie!") met het bestaande UI-geluid |
 
@@ -165,7 +165,7 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 | Onderdeel | Voor | Na |
 |---|---|---|
 | Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst laadt (`gde-sim-uitleg-v1`) |
-| HUD | bord met een rij tekst, een scorekaart en een laadbalk met streepje | solo en dichtst bij de mand: strook (`simhud.js`) met stappen, laadmeter met het doel (`powerForBasket`), baan, par, worp, afstand, wind, totaal en één zin wat nu; het bord blijft alleen in de wedstrijd |
+| HUD | bord met een rij tekst, een scorekaart en een laadbalk met streepje | solo en dichtst bij de mand: strook (`simhud.js`) met stappen, laadmeter met het doel (`powerForBasket`), afstand tot de mand (groot), worp, par en wind met pictogram, de baan in het chipje en één zin wat nu; het bord blijft alleen in de wedstrijd |
 | Wereld | richtlijn, landingsmarkering, vlag | plus een gele lichtkolom boven de mand van de baan (`simkolom3d.js`) |
 | Feedback | een regel in de berichtenkaart | een getal springt op per baan ("Birdie: 2 worpen") en per worp bij dichtst bij de mand, met het bestaande UI-geluid (geen geluid boven par) |
 

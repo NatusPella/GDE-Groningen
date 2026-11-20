@@ -1,8 +1,10 @@
 // De HUD-stand van discgolf (#985): puur, geen DOM en geen THREE (scripts/discgolfhud_test.mjs). Maakt uit de stand van de ronde het model voor de gedeelde strook
 // (simhud.js): de stappen (richten, gooien, uitkomst), de laadmeter met het streepje voor de kracht die de mand haalt, de cijfers (baan, par, worp, afstand,
-// wind, totaal) en één zin "wat nu". De regels van de worp staan in discgolfrules.js; dit bestand leest ze alleen.
+// wind) en één zin "wat nu". De regels van de worp staan in discgolfrules.js; dit bestand leest ze alleen.
 
 // Icoonpaden voor de chips (24x24, lijn): richten (kruis), disc (ovaal), mand (ketting en schaal), vlag.
+import { SIMICOON as I } from './simicoon.js';
+
 export const ICOON = {
   richten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
   disc: '<ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M6 12.5c3 1.5 9 1.5 12 0"/>',
@@ -37,11 +39,13 @@ export function discgolfHudModel(g) {
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
   const ctp = g.modus === 'ctp';
   const meter = g.fase === 'aim' ? { pct: Math.max(0, Math.min(100, (g.lading || 0) * 100)), naam: 'Kracht van de worp', label: g.doel ? `Doel ${meterTekst(g.doel)}` : 'Kracht', staat: '' } : null;
+  // één primaire waarde (de afstand tot de mand), de rest secundair, elk met een pictogram; de baan staat in het chipje, het totaal springt op bij een baan
+  const mand = { label: 'Mand', waarde: `${Math.round(g.mand)} m`, icoon: I.vlag, primair: true };
   const cijfers = ctp
-    ? [{ label: 'Worp', waarde: `${g.ctpWorp}/${g.ctpTotaal}` }, { label: 'Mand', waarde: `${Math.round(g.mand)} m` }, { label: 'Wind', waarde: g.wind }, { label: 'Afstanden', waarde: g.afstanden || 'nog niets' }]
-    : [{ label: 'Baan', waarde: `${g.baan}/${g.banen}` }, { label: 'Par', waarde: String(g.par) }, { label: 'Worp', waarde: String(g.worp) }, { label: 'Mand', waarde: `${Math.round(g.mand)} m` }, { label: 'Wind', waarde: g.wind }, { label: 'Totaal', waarde: g.totaal || '0' }];
+    ? [mand, { label: 'Worp', waarde: `${g.ctpWorp}/${g.ctpTotaal}`, icoon: I.worp }, { label: 'Wind', waarde: g.wind, icoon: I.wind }]
+    : [mand, { label: 'Worp', waarde: String(g.worp), icoon: I.worp }, { label: 'Par', waarde: String(g.par), icoon: I.par }, { label: 'Wind', waarde: g.wind, icoon: I.wind }];
   return {
-    id: 'discgolf', titel: ctp ? 'Dichtst bij de mand' : 'Discgolf', icoon: ICOON.disc, plek: g.cirkel ? 'In de cirkel' : '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'aim' ? UITLEG : [],
+    id: 'discgolf', titel: ctp ? 'Dichtst bij de mand' : 'Discgolf', icoon: ICOON.disc, plek: ctp ? (g.cirkel ? 'In de cirkel' : '') : `Baan ${g.baan}/${g.banen}${g.cirkel ? ' · in de cirkel' : ''}`, stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'aim' ? UITLEG : [],
     nu: watNu(g), hulp: [g.schijf, g.release, g.hoek != null ? `hoek ${Math.round(g.hoek)}°` : '', 'E release', 'F disc'].filter(Boolean).join(' · '), slecht: !!g.slecht,
   };
 }

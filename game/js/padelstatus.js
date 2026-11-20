@@ -2,6 +2,7 @@
 // (simhud.js): de stappen (serveren, rally, punt), een meter voor de tijd om te serveren, de cijfers (games, punten, rally) en één zin "wat nu".
 // De puntentelling staat in padelrules.js en het bord bovenin; dit bestand leest alleen.
 import { SET_GAMES } from './padelrules.js';
+import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bal met veer (serveren), twee bogen (rally), vinkje (punt), racket (uitleg).
 export const ICOON = {
@@ -37,13 +38,12 @@ export function padelHudModel(g) {
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
   const wacht = g.fase === 'serve' && g.serveer ? Math.max(0, g.phaseT || 0) : null;
   const meter = wacht != null ? { pct: Math.min(100, (wacht / SERVE_TIJD) * 100), naam: 'Tijd om te serveren', label: `${Math.ceil(wacht)} s`, staat: wacht < 2 ? 'laag' : '' } : null;
+  // één primaire waarde (de games), de rest secundair, elk met een pictogram
   const cijfers = [
-    { label: 'Games', waarde: `${g.games[0]}-${g.games[1]}` },
-    { label: 'Punt', waarde: `${g.punten[0]}-${g.punten[1]}` },
-    { label: 'Rally', waarde: String(g.rally || 0) },
+    { label: 'Games', waarde: `${g.games[0]}-${g.games[1]}`, icoon: I.stand, primair: true },
+    { label: 'Punt', waarde: `${g.punten[0]}-${g.punten[1]}`, icoon: I.punt },
+    { label: 'Rally', waarde: String(g.rally || 0), icoon: I.rally },
   ];
-  if ((g.beste || 0) > 0) cijfers.push({ label: 'Langste', waarde: String(g.beste) });
-  if (g.tijd) cijfers.push({ label: 'Tijd', waarde: g.tijd });
   return {
     id: 'padel', titel: 'Padel', icoon: ICOON.racket, plek: g.capped ? 'Beslissend punt' : '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase !== 'rally' ? UITLEG : [],
     nu: watNu(g), hulp: 'A D W S lopen · Spatie slaat · Backspace geeft op', slecht: g.fase === 'point' && g.winnaar === 1,

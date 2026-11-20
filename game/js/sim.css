@@ -14,6 +14,9 @@
 .sh-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; }
 .sh-cijfers > div { display: flex; flex-direction: column; }
 .sh-cijfers dd { margin: 0; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
+.sh-cijfers dt { display: flex; align-items: center; gap: var(--ds-s-1); }
+/* één primaire waarde (het getal waar het om draait) is groter; de rest is secundair */
+.sh-cijfer--primair dd { font-size: var(--ds-t-kop); }
 .sh-hulp { margin: 0; }
 .sh-uitleg { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; }
 .sh-uitleg > li { display: flex; align-items: center; gap: var(--ds-s-2); }

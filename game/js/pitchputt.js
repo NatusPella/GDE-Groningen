@@ -4,6 +4,9 @@ import { toonStartkaart } from './startkaart.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { pitchHudModel, baanPop, UITLEG_ID } from './pitchstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, difficultyRecordKey, scaleTargetSignedRound } from './difficulty.js'; // #800
@@ -66,6 +69,7 @@ function zetVenue(item) {
   layout(venue.holes);
   if (built) {
     getScene().remove(built.root, built.ball, built.line, built.ring, built.keeper, built.sir, built.wolfie);
+    if (built.kolom) { getScene().remove(built.kolom); built.kolom.geometry.dispose(); built.kolom.material.dispose(); }
     built = null;
   }
 }
@@ -269,8 +273,7 @@ function start(w, { force = false, online = null, venueId = null } = {}) {
   if (!built) built = buildCourse(w);
   const p = hoofdspeler(w);
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
-  ensureBoard();
-  board.show();
+  ensureBoard(); // #985: solo staat de strook (simhud.js) in beeld; het bord komt erbij met meer spelers of tegen elkaar (updateHud)
   runs++;
   game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), players: null, b: null, pi: 0, volgende: null, lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random, etq: newEtiquette(), misserT: -99, online };
   etqQ = [];
@@ -436,6 +439,7 @@ function holeDone(w, strokes, why) {
   const name = why === 'opgepakt' ? 'Opgepakt' : holeName(strokes, h.par);
   const wie = meerdere(g) ? `${g.players[g.pi].naam}: ` : '';
   g.flash = { text: `${wie}${name}: ${strokes} slag${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
+  if (!meerdere(g)) { const pp = baanPop(name, strokes, h.par); simHudPop(pp.tekst, pp.geluid); } // #985
   const d = strokes - h.par;
   say(w, strokes === 1 && why !== 'opgepakt' ? 'hole1' : d < 0 ? 'birdie' : d === 0 ? 'par' : 'bogey', true);
   etqSay(w, etqHoleDone(g.etq, h.par, strokes, why === 'opgepakt' ? 'opgepakt' : 'cup'));
@@ -515,6 +519,7 @@ function updateGame(w, dt) {
     }
     if (input.isDown(' ')) {
       g.charging = true;
+      zetUitlegGezien(UITLEG_ID);
       g.charge = Math.min(1, g.charge + dt / ((putting ? CHARGE_PUTT : CHARGE_PITCH) * (input.isDown('shift') ? 1.8 : 1)));
     } else if (g.charging) {
       g.charging = false;
@@ -545,6 +550,8 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   w.companionHold = null;
   w.cameraOverride = null;
   if (board) board.hide();
+  simHudTik(0, null);
+  if (built && built.kolom) built.kolom.visible = false;
   clearBubbles(w, 'pitchputt');
   etqQ = [];
   etqNext = { sir: 0, wolfie: 0 };
@@ -761,6 +768,22 @@ function updateHud(w) {
   const h = HOLES[g.hole];
   const dist = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
   const putting = mode(g) === 'putt';
+  // #985: de gele lichtkolom boven de vlag, en de strook voor één speler op dit scherm; met meer spelers of tegen elkaar blijft het bord (scoretabel)
+  if (built) {
+    if (!built.kolom) { built.kolom = maakSimKolom('pitchkolom'); getScene().add(built.kolom); }
+    zetSimKolom(built.kolom, h.cup, 0, g.t, false);
+  }
+  const solo = !g.online && !meerdere(g);
+  if (g.bordAan !== !solo) { g.bordAan = !solo; if (solo) board.hide(); else board.show(); }
+  if (solo) {
+    const mk = putting ? straightPower(dist) : powerForCarry(dist);
+    simHudTik(0, pitchHudModel({
+      fase: g.phase, laden: g.charging, putten: putting, baan: h.n, banen: HOLES.length, par: h.par, slag: g.phase === 'aim' ? g.strokes + 1 : g.strokes, vlag: dist, club: putting ? 'Putter' : 'Wedge', zand: g.bunker,
+      lading: g.charge, doel: clamp(mk, 0, 1), totaal: relText(cardTotals(g.card).rel), flash: g.flash ? g.flash.text : '', slecht: !!(g.flash && g.flash.bad), helling: g.phase === 'aim' && putting ? slopeText(g) : '', uitleg: !uitlegGezien(UITLEG_ID),
+    }));
+    return;
+  }
+  simHudTik(0, null);
   const t = cardTotals(g.card);
   const multi = meerdere(g);
   const wie = multi ? g.players[g.pi].naam : '';
