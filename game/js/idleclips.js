@@ -31,6 +31,15 @@ export function idlePose(p, clip, tl, dur) {
     const slok = 0.5 + 0.5 * Math.sin(tl * 1.5);
     p.armR.z = naar(0.08, 1.3, env); p.armR.e = naar(0.15, 1.95 + 0.15 * slok, env);
     p.head.x = -0.12 * slok * env;
+  } else if (clip === 'telefoon') { // rechterhand tegen het oor, hoofd een beetje scheef, af en toe een knik
+    p.armR.z = naar(0.08, 1.45, env); p.armR.e = naar(0.15, 2.2, env);
+    p.head.z = 0.14 * env; p.head.y = Math.sin(tl * 0.8) * 0.2 * env;
+    p.head.x = 0.06 * Math.max(0, Math.sin(tl * 2.4)) * env;
+  } else if (clip === 'praten') { // gesprek: beide handen bewegen mee, kop knikt (#963: twee wachtenden die kletsen)
+    const g = Math.sin(tl * 3.1) * env;
+    p.armR.z = naar(0.08, 0.9, env) + 0.25 * g; p.armR.e = naar(0.15, 1.4, env) + 0.3 * g;
+    p.armL.z = naar(0.08, 0.5, env) - 0.15 * g; p.armL.e = naar(0.15, 1.0, env);
+    p.head.x = 0.1 * Math.max(0, Math.sin(tl * 2.2 + 1)) * env; p.head.y = Math.sin(tl * 0.6) * 0.3 * env;
   } else if (clip === 'lezen') {
     p.armL.z = naar(0.08, 0.7, env); p.armL.e = naar(0.15, 1.7, env);
     p.armR.z = naar(0.08, 0.7, env); p.armR.e = naar(0.15, 1.7, env);

@@ -73,6 +73,7 @@ import { haakFx } from './sfx/haken.js'; // ronde 4: kleine geluidshaken van de 
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
+import { slotRij } from './missiebeats.js'; // nasleep-rij op de uitslagkaart (AAA akte 1 en 2)
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
 import { forceClearSweep } from './clearzonesweep.js';
@@ -1315,6 +1316,8 @@ function succeed(world, def) {
     // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
     if (def.costRow && !replay) stats.push(def.costRow);
     if (!replay) stats.push(...consequenceAdjust(def).rows);
+    const nasleep = slotRij(def.label); // de nasleep: wie reageert, onder de beloning
+    if (nasleep) stats.push(nasleep);
     // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
     const r = chainState().run;
     if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
@@ -2014,7 +2017,7 @@ function updateMissionKern(dt, world) {
   }
 
   tikToastSet(dt);
-  aaaTik(world, def, dt, { race: chainState().race, timeLeft: def.type === 'stages' ? null : chainState().timeLeft, stunt: !!chainState().stuntPhase || def.type === 'stunt' });
+  aaaTik(world, def, dt, { race: chainState().race, timeLeft: def.type === 'stages' ? null : chainState().timeLeft, stunt: !!chainState().stuntPhase || def.type === 'stunt', stageIndex: chainState().stageIndex, wpIndex: chainState().wpIndex });
   if (def.type === 'deliver' && chainState().stuntPhase) {
     updateStuntPhase(dt, world, def);
   } else if (def.type === 'deliver') {

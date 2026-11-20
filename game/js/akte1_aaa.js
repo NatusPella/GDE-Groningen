@@ -18,7 +18,8 @@ import { hoofdspeler } from './players.js';
 import { buildCheckpointRaceDecor, updateCheckpointRaceDecor, disposeCheckpointRaceDecor } from './racedecor.js';
 import { raceLichtTijd } from './cinetemplates.js';
 import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } from './missiedecor.js';
-import { startCameraTake, stopCameraTake } from './cinematics.js';
+import { startCameraTake, stopCameraTake, isCinematicActive } from './cinematics.js';
+import { beatDue, beatTekst } from './missiebeats.js'; // tussen-beat halverwege (alleen een zin, nooit een regel van de missie)
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js';
 import { stingen } from './sfx/stingen.js';
 import { haakFx } from './sfx/haken.js'; // ronde 4: startsein en publiek
@@ -35,7 +36,7 @@ const zeg = (fn) => { try { return fn(); } catch (e) { return null; } }; // aank
 export function aaaStart(world, def, opties = {}) {
   aaaOpruimen(world);
   if (!def) return null;
-  H = { scene: opties.scene || null, id: def.label || '', kaart: null, kei: null, arena: null, arenaKlaar: false, bijna: false, startKlaar: false, cam: null, camT: 0, finish: null };
+  H = { scene: opties.scene || null, id: def.label || '', kaart: null, kei: null, arena: null, arenaKlaar: false, bijna: false, startKlaar: false, cam: null, camT: 0, finish: null, t: 0, beats: { gezien: {}, getoond: new Set() } };
   if (def.kaart && def.type !== 'stages') H.kaart = zeg(() => startKaart(def, `${def.label || 'm'}:def`));
   const route = KEI_ROUTE_LIJST(def);
   if (route) {
@@ -49,12 +50,14 @@ export function aaaMeld(sleutel) {
   if (H && H.kaart) meldKaart(H.kaart, sleutel);
 }
 
-// ctx: { race, timeLeft, stunt } uit de runner; het publiek en de arena kijken naar de speler.
+// ctx: { race, timeLeft, stunt, stageIndex, wpIndex } uit de runner; het publiek en de arena kijken naar de speler.
 export function aaaTik(world, def, dt, ctx = {}) {
   if (!H) return;
   const p = hoofdspeler(world);
   const focus = p ? (p.inVehicle || p) : null;
   if (H.kaart) toonRegelkaart(world, H.kaart, dt);
+  H.t += dt;
+  if (def && def.label && !isCinematicActive()) for (const b of beatDue(def.label, H.beats, { t: H.t, stageIndex: ctx.stageIndex, wpIndex: ctx.wpIndex })) world.addMessage(beatTekst(b), b.secs || 4, { kind: 'missie' });
   if (H.kei) {
     const race = ctx.race;
     if (race && race.phase === 'race' && !H.startKlaar) { H.startKlaar = true; const s = H.kei.plan.start; haakFx(world, 'startsein_toeter', s && s.x, s && s.y); } // het groene licht

@@ -11,6 +11,7 @@ import { makeStrip } from './planecontrol.js';
 import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT } from './containerplan.js';
 import { applyAkte3 } from './missions_akte3.js'; // AAA akte 3: kaarten, wachtfiguren, aankleding
 import { applyAkte45 } from './missions_akte45.js'; // AAA akte 4 en 5: kaarten, wachtfiguren, aankleding
+import { applyAkte12 } from './missions_akte12.js'; // AAA akte 1 en 2: aankleding bij start en doel
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
@@ -242,6 +243,7 @@ export function applyNieuw(list) {
   const by = (label) => list.find((d) => d.label === label);
   applyAkte4(list);
   applyAkte2(list);
+  applyAkte12(list);
   const stageOf = (def, kind, n = 0) => def.stages.filter((q) => q.kind === kind)[n];
   const pin = by('Even pinnen');
   if (pin) {
