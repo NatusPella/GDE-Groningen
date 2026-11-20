@@ -100,5 +100,16 @@ ok(/@media \(max-width: 1100px\) and \(min-width: 481px\) \{ #hud \.cw-panel \{ 
 ok(/max-height: 720px\) \{ #banter-sub, #radio-sub, #story-talk \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
 ok(/setBubbleObstacles\(list\)/.test(src('game/js/prompts.js')) && /labelDy\(/.test(src('game/js/hudrules.js')), 'een spraakbel schuift uit de HUD-onderdelen (hudrules bubblePlace)');
 
+// klasse 13: de snelheidsmeter is één compact blok (snelheid 40 px, versnelling klein, toeren als dunne balk binnen de kaart)
+const hcss = src('game/js/hud_panel.css'), hj = src('game/js/hud_panel.js');
+ok(/<div class="sp-main"><b class="sp-val">0<\/b><span class="sp-unit">km\/u<\/span><div class="sp-gears"[^>]*aria-label="Versnelling"><\/div>/.test(hj) && /class="sp-rpm" viewBox="0 0 200 14"/.test(hj) && /<\/svg><\/div>`;/.test(hj), 'de toerenbalk zit binnen sp-main, de aria-labels blijven (Versnelling, Toerental)');
+ok(/aria-label="Toerental"/.test(hj), 'aria-label Toerental blijft');
+ok(/#hud \.sp-val \{ grid-column: 1; grid-row: 1; font-size: 40px;/.test(hcss) && /#hud \.sp-rpm \{ grid-column: 1 \/ -1; grid-row: 2; width: 100%; height: 7px; \}/.test(hcss), 'snelheid 40 px, toerenbalk 7 px onder de kaart');
+// de maat: kaart ca. 150 x 66 px = 9900 px2, tegen de oude 8000 px2 kaart + 166 x 166 boog (ca. 36000 px2): minstens 60% kleiner
+const oud = 14 * 0 + (100 * 0.85 + 18 + 3 + 18 + 10) * 160 + 166 * 166, nieuw = 150 * 66;
+ok(nieuw <= oud * 0.4, 'het blok is minstens 60% kleiner qua oppervlak (' + nieuw + ' tegen ' + oud + ')');
+ok(/body\.hud-in-vehicle #hud \.hud-ctx \{ bottom: calc\(var\(--hud-edge, 46px\) \+ 80px\)/.test(src('game/js/prompts.css')), 'de toetshintstapel hangt direct boven het blok');
+ok(/no-rpm/.test(hcss) && /no-gears/.test(hcss), 'fiets, scooter en boot tonen alleen wat ze hebben (geen toeren, geen versnelling)');
+
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
