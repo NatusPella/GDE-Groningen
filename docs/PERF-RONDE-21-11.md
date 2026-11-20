@@ -15,6 +15,10 @@
   de meting door de andere instanties vervuild zijn (CPU, geheugen, GPU gedeeld) en de machine voor hen nog trager maken; dat
   heb ik niet gedaan. Er zijn dus **geen frametijden, hitchlijsten of laadtijden gemeten**; alles hieronder is uit de code, uit
   het manifest en uit node-microbenchmarks afgeleid.
+- **Wel één basisrun (`before`, main `9d4f791a7`, 17:03, CPU 79% vóór de start, drie andere sloten bezet, <2 GB vrij):** foot gem. 268 ms,
+  p95 1067 ms, 69 frames > 50 ms; ring gem. 244 ms, p95 1100 ms. Dat is ca. 4 fps: de machine zelf zat vol. Deze cijfers zijn
+  **niet bruikbaar** als basislijn of als bewijs voor of tegen een wijziging, en een `after`-run in dezelfde toestand zou niets
+  zeggen; ik heb hem daarom niet gedraaid. Ze bewijzen alleen dat gelijktijdige agents de fps-meting onbruikbaar maken.
 - Wat de eigenaar voelt (hitches bij nieuwe stadsdelen, drukke delen) is daarmee **niet bewezen opgelost**. De wijzigingen
   hieronder halen aantoonbare, structurele kosten weg; of dat de lag oplost moet een gepaarde run bij een vrij slot laten zien
   (commando onderaan).
