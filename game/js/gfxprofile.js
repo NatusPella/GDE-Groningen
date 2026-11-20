@@ -305,13 +305,17 @@ const SLOW_MS = 27, GOOD_MS = 19;
 // cpuLevel 3: no shadow map but one frame in four, the shortest view and detail ring, fewer facade details and a thinner city
 const CPU_LEVEL_MAX = 3;
 const COOL_MS = 2500, UP_WAIT_MS = 15000, UP_WAIT_MAX = 120000;
-const dyn = { scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 };
+// #1046: de eerste seconden na de spelstart (shaders die nog linken, texture-uploads) zijn geen maat voor de GPU: tijdens de startgrace telt een frame
+// langer dan GRACE_HITCH_MS niet mee, zodat de renderschaal en de schaduwkaart niet midden in de opening wisselen.
+const GRACE_HITCH_MS = 100;
+const dyn = { grace: 0, scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 };
 export const dynamicScale = () => dyn.scale;
+export const startGrace = (ms) => { dyn.grace = Math.max(0, ms); };
 export const cpuLevel = () => dyn.cpuLevel;
 
 // back to full scale (a new run in scripts/gfx_profile_test.mjs)
 export function resetDynamic() {
-  Object.assign(dyn, { scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 });
+  Object.assign(dyn, { grace: 0, scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 });
 }
 
 function median(a) {
@@ -429,6 +433,7 @@ export function noteFrame(ms, cpuMs) {
   // Zuinige modus (#96): het bewuste wachten van de frame-cap telt niet als traag beeld (#561).
   const meetMs = frameWorkMs(ms, !!st.zuinig);
   dyn.now += ms;
+  if (dyn.grace > 0) { dyn.grace -= ms; if (ms > GRACE_HITCH_MS) return false; }
   if (dyn.cool > 0) { dyn.cool -= ms; return false; }
   dyn.ms.push(meetMs); dyn.cpu.push(cpuMs); dyn.sum += meetMs;
   if (dyn.sum < 1000) return false;

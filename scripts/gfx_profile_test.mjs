@@ -1,6 +1,6 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
-import { classifyGpu, adviseFromSample, presetFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
+import { classifyGpu, adviseFromSample, presetFromSample, recommendPreset, describePreset, describeChanges, noteFrame, startGrace, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
 import { setSetting, QUALITY_PRESETS } from '../game/js/settings.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 

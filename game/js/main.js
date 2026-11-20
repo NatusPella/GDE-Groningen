@@ -10,7 +10,7 @@ import { streamFlitspaalProps } from './flitspaal.js';
 import { addPropStreamer, brokenKeysNear } from './breakables.js';
 import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
-import { DEV, STORY_TEST, FLAGS } from './devflags.js';
+import { DEV, STORY_TEST, FLAGS, perfOff } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { startSoloHost, stopSoloHost } from './coopsolo.js';
 import { tickCoopNet, setCoopTreinen, coopWereldDoorloop, zetSamenKanHaak } from './coopnet.js';
@@ -134,12 +134,13 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { programsPending, programsTotal } from './programwarm.js';
+import { planPrecompile, runPlanner, stepIdleCompile } from './startcompile.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { setHoldGrass } from './grass.js';
-import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
+import { noteFrame, startGrace, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
@@ -297,6 +298,7 @@ const START_WARM_MAX_FRAME_MS = 50;
 // gespreid (tegels vastgehouden, gebouwen en gras per frame begroot) en kost geen laadscherm.
 const WARM_BOOT_MS = 15000;
 const INTRO_WARM_MS = 8000;
+const PRECOMPILE_MAX_MS = 12000; // #1046: hoogstens zo lang porties compileren op het laadscherm
 const FILM_LICHT_MS = 6000; // hoogstens zo lang wachten tot de programma's van de filmlichtstand gelinkt zijn; de rest linkt tijdens de eerste beelden (was 12 s, #1004)
 const INTRO_TOUR_MS = 4500;
 const INTRO_TOUR_SPOT_MS = 700;
@@ -538,8 +540,16 @@ function waitForStart(world, ready) {
     // 20-11, #985): compileer de scène ook in de andere lichtstand en wacht tot alles gelinkt is, hoogstens FILM_LICHT_MS.
     // Een opgeslagen spel heeft geen film en betaalt dit niet; ?perfoff=filmlicht zet het uit voor een A/B-meting.
     const metFilm = !world.loadedFromSave;
-    const compiled = precompilePrograms({ filmLicht: metFilm });
-    // the compile call above is one blocking call (about a sixth of the step); the rest is the link wait, where the
+    // #1046: in porties van 4 ms met een beeld ertussen (de voortgang loopt echt) in plaats van één blokkerende aanroep van seconden;
+    // wat na PRECOMPILE_MAX_MS overblijft, compileert in het spel zelf per frame (stepIdleCompile). ?perfoff=compileporties = de oude aanroep.
+    let compiled;
+    if (perfOff('compileporties')) compiled = precompilePrograms({ filmLicht: metFilm });
+    else {
+      const r = await runPlanner(planPrecompile(precompileKit(), { filmLicht: metFilm }), { maxMs: PRECOMPILE_MAX_MS, yieldFn: yieldToPaint, onProgress: (p) => setBootStep('shaders', 0.2 * p) });
+      compiled = r.ms;
+      if (window.__loadMarks) window.__loadMarks.compileRest = r.rest;
+    }
+    // the compile step is the first fifth of the bar; the rest is the link wait, where the
     // programs that are ready against all of them are the real progress (opdracht 21-11)
     setBootStep('shaders', 0.2);
     const shaderTotal = programsTotal();
@@ -564,6 +574,7 @@ function waitForStart(world, ready) {
       if (window.__loadMarks) window.__loadMarks.geluid = Math.round(performance.now() - tGeluid);
     }
     // the last step: the first frames are drawn by the start screen, which then fills the bar
+    startGrace(30000); // #1046: de opening telt de eerste 30 s niet als trage GPU (geen renderschaalwissel midden in de film)
     setBootStep('beeld', 0);
     if (window.__loadMarks) {
       window.__loadMarks.shaders = Math.round(compiled);
@@ -1063,6 +1074,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   let samenSince = null, gateMenu = false;
   function frameBody(dt) {
+    stepIdleCompile(); // #1046: de rest van de laadscherm-compilatie, 2 ms per frame
     // Alleen spelen is een sessie van één (#554): start die zodra het spel loopt en er
     // geen Samen-scherm open staat. Zo lopen alle functies door hetzelfde multiplayer-pad.
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
