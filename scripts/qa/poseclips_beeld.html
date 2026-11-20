@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- Contactblad van de pose-clips (game/js/poseclips.js): elk figuur op een moment van zijn clip, met naam.
+     Gebruik: kopieer naar een gestagede game-map en open /poseclips_beeld.html?clips=wijzen,zwaaien&u=0.5&mirror=0
+     (u = genormeerde tijd binnen de clip, view = front | side). Geen opslag, geen wereld. -->
+<meta charset="utf-8">
+<title>poseclips beeld</title>
+<style>html,body{margin:0;background:#cfd8e0;overflow:hidden}#l{position:fixed;left:0;top:0;font:12px monospace;color:#222}</style>
+<script type="importmap">{"imports":{"three":"/vendor/npm/three@0.160.0/build/three.module.js","three/addons/":"/vendor/npm/three@0.160.0/examples/jsm/"}}</script>
+<canvas id="c"></canvas>
+<script type="module">
+import * as THREE from '/vendor/npm/three@0.160.0/build/three.module.js';
+import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from '/js/models3d_people.js';
+import { buildCatMesh3D } from '/js/wildlife.js';
+import { animateActor } from '/js/actoranim.js';
+import { CLIPS, CAT_CLIPS, clipLayers, applyClipsHuman, applyClipsCat, resetCat, clipDuration } from '/js/poseclips.js';
+const q = new URLSearchParams(location.search);
+const names = (q.get('clips') || Object.keys(CLIPS).join(',')).split(',');
+const u = parseFloat(q.get('u') ?? '0.5');
+const mirror = q.get('mirror') === '1';
+const view = q.get('view') || 'front';
+const cols = parseInt(q.get('cols') || String(names.length), 10);
+const W = parseInt(q.get('w') || '1800', 10), H = parseInt(q.get('h') || '640', 10);
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+r.setSize(W, H, false);
+document.getElementById('c').style.cssText = 'width:100vw;height:auto';
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcfd8e0);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(3, 6, 4); scene.add(sun);
+const rows = Math.ceil(names.length / cols), gap = 1.7;
+const camera = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
+const label = [];
+names.forEach((name, i) => {
+  const cat = !!CAT_CLIPS[name];
+  const m = cat ? buildCatMesh3D(0) : buildPersonMesh(i % 2 ? ANITA_APPEARANCE.shirt : TAMMO_APPEARANCE.shirt, i % 2 ? ANITA_APPEARANCE.skin : TAMMO_APPEARANCE.skin, i % 2 ? ANITA_APPEARANCE : TAMMO_APPEARANCE);
+  const col = i % cols, row = Math.floor(i / cols);
+  m.position.set((col - (cols - 1) / 2) * gap, 0, (row - (rows - 1) / 2) * gap * 1.4);
+  m.rotation.y = view === 'side' ? 0 : -Math.PI / 2 + 0.35; // front: figure looks at the camera (+z)
+  scene.add(m);
+  const c = cat ? CAT_CLIPS[name] : CLIPS[name];
+  const dur = clipDuration(name, {});
+  const lt = c.loop ? u * (c.period || 1) : u * dur;
+  const ev = [{ t0: 0, name, dur: c.loop ? Math.max(dur, 10) : undefined, mirror }];
+  const layers = clipLayers(ev, lt);
+  if (cat) { resetCat(m.userData); applyClipsCat(m.userData, layers); }
+  else { animateActor(m, { anim: 'idle', dt: 0.016, t: lt }); applyClipsHuman(m.userData, layers); }
+  label.push(`${name}${layers.length ? '' : ' (leeg)'}`);
+});
+const spanX = cols * gap, spanZ = rows * gap * 1.4;
+camera.position.set(0, 1.1, Math.max(spanX / (2 * Math.tan(THREE.MathUtils.degToRad(15)) * (W / H)) * 1.2, 3));
+camera.lookAt(0, 0.95, 0);
+r.render(scene, camera);
+// labels onto a 2D copy of the frame (so the saved png has them)
+const out2 = document.createElement('canvas'); out2.width = W; out2.height = H;
+const g = out2.getContext('2d');
+g.drawImage(r.domElement, 0, 0);
+g.font = '18px monospace'; g.fillStyle = '#111'; g.textAlign = 'center';
+names.forEach((n, i) => {
+  const col = i % cols, row = Math.floor(i / cols);
+  const p = new THREE.Vector3((col - (cols - 1) / 2) * gap, 0, (row - (rows - 1) / 2) * gap * 1.4).project(camera);
+  g.fillText(label[i], (p.x * 0.5 + 0.5) * W, (-p.y * 0.5 + 0.5) * H + 22);
+});
+document.body.replaceChildren(out2); out2.style.cssText = 'width:100vw;height:auto';
+if (q.get('save')) await fetch('/save?name=' + encodeURIComponent(q.get('save')), { method: 'POST', body: out2.toDataURL('image/png') });
+document.title = 'klaar';
+window.__done = true;
+</script>

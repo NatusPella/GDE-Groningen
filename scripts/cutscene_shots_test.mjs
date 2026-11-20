@@ -6,7 +6,7 @@ import { compileScene, validateScene, SHOTS } from '../game/js/cutscript.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
-const soorten = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld'];
+const soorten = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];
 
 t('alle elf shotsoorten zijn bekend', () => {
   assert.deepEqual([...SHOTS].sort(), [...soorten].sort());

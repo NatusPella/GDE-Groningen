@@ -18,6 +18,11 @@
 // `t` is seconds, or 'L<n>' / 'L<n>+1.5' (relative to the start of spoken line n), or 'end'.
 // The spoken lines themselves are never part of a scene: they come from the story data.
 //
+// Pose-clips (poseclips.js, #955): a cue { t, actor, anim: '<clip>', dur, delay, speed, mirror } plays a keyframe clip on top of the
+// base animation (idle, walk, talk); anim: 'stop' releases a held clip; a prop of kind 'kat' takes a cat clip ('kat-zitten' ...). A clip is a
+// function of the scene time (no state, no extra network traffic: a guest that plays the same scene sees the same). An unknown clip
+// falls back to the base layer.
+//
 // Animation layer: actoranim.js (animateActor(mesh, { anim, speed, gaze, t, dt }),
 // gaze = head yaw in rad, positive = target to the left of the body). The names
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
@@ -25,9 +30,10 @@
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'clap', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 import { propKindIssue, propFoot } from './cutscenemodels.js';
 import { crowdSpecIssue } from './crowdplan.js';
+import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './poseclips.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
-export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld'];
+export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).
 let shakeFilter = (a) => a;
 export function setShakeFilter(fn) { shakeFilter = typeof fn === 'function' ? fn : (a) => a; }
@@ -69,6 +75,7 @@ export function validateScene(def, opts = {}) {
     if (!a.look) err(`acteur ${id} zonder look`);
     if (!isVec(a.at, 2)) err(`acteur ${id}: at moet [f, s] zijn`);
     if (a.anim && !ACTOR_ANIMS.includes(a.anim)) err(`acteur ${id}: onbekende anim ${a.anim}`);
+    if (a.anim && !ACTOR_ANIMS.includes(a.anim) && isClip(a.anim)) err(`acteur ${id}: een clip hoort in een cue, niet in anim van de acteur`);
     if (a.sit !== undefined && a.sit !== false && !(isNum(a.sit) && a.sit > 0)) err(`acteur ${id}: sit is een zithoogte in m`);
     if (typeof a.face === 'string' && !refOk(a.face, actors, props)) err(`acteur ${id}: face verwijst nergens heen: ${a.face}`);
     if (a.road !== undefined && (typeof a.road !== 'string' || !props[a.road])) err(`acteur ${id}: road verwijst naar een onbekende prop`);
@@ -104,7 +111,13 @@ export function validateScene(def, opts = {}) {
     if (c.path !== undefined && !(Array.isArray(c.path) && c.path.length >= 2 && c.path.every((p) => isVec(p, 2)))) err(`${what}: path is een lijst van minstens twee punten`);
     if (c.ride !== undefined && c.walk === undefined) err(`${what}: ride hoort bij walk`);
     if (c.speed !== undefined && !(isNum(c.speed) && c.speed > 0)) err(`${what}: speed moet > 0 zijn`);
-    if (c.anim !== undefined && !ACTOR_ANIMS.includes(c.anim)) err(`${what}: onbekende anim ${c.anim}`);
+    if (c.anim !== undefined && c.actor && !ACTOR_ANIMS.includes(c.anim) && !isClip(c.anim) && c.anim !== CLIP_STOP) err(`${what}: onbekende anim ${c.anim}`);
+    if (c.anim !== undefined && c.prop && !isCatClip(c.anim) && c.anim !== CLIP_STOP) err(`${what}: een prop kent alleen een kat-clip, geen ${c.anim}`);
+    if (c.anim !== undefined && c.prop && isCatClip(c.anim) && props[c.prop] && props[c.prop].kind !== 'kat') err(`${what}: ${c.anim} hoort bij een kat`);
+    if (c.anim !== undefined && c.actor && isCatClip(c.anim)) err(`${what}: ${c.anim} hoort bij een kat, niet bij een acteur`);
+    if (c.delay !== undefined && !(isNum(c.delay) && c.delay >= 0)) err(`${what}: delay is seconden >= 0`);
+    if (c.mirror !== undefined && typeof c.mirror !== 'boolean') err(`${what}: mirror is true of false`);
+    if (c.anim !== undefined && c.dur !== undefined && !(isNum(c.dur) && c.dur > 0)) err(`${what}: dur moet > 0 zijn`);
     if (c.sit !== undefined && !c.actor) err(`${what}: sit hoort bij een acteur`);
     if (c.sit !== undefined && typeof c.sit !== 'boolean' && !(isNum(c.sit) && c.sit > 0)) err(`${what}: sit is true, false of een zithoogte`);
     if (typeof c.face === 'string' && !refOk(c.face, actors, props)) err(`${what}: face verwijst nergens heen: ${c.face}`);
@@ -127,6 +140,12 @@ export function validateScene(def, opts = {}) {
     if (s.shot === 'dolly' && !(isVec(s.from, 3) && isVec(s.to, 3))) err(`${what}: dolly heeft from en to [f, s, h] nodig`);
     if (s.shot === 'orbit' && !(isNum(s.radius) && s.radius > 0.3 && s.target !== undefined)) err(`${what}: orbit heeft target en radius > 0.3 nodig`);
     if (s.shot === 'follow' && !(typeof s.target === 'string' && actors[s.target.replace(/^actor:/, '')])) err(`${what}: follow heeft een acteur als target nodig`);
+    if (s.shot === 'push') {
+      if (!(typeof s.target === 'string')) err(`${what}: push heeft een target nodig`);
+      for (const k of ['d0', 'd1']) if (s[k] !== undefined && !(isNum(s[k]) && s[k] >= 0.5 && s[k] <= 40)) err(`${what}: ${k} is een afstand van 0,5 tot 40 m`);
+      for (const k of ['fov0', 'fov1']) if (s[k] !== undefined && !(isNum(s[k]) && s[k] >= 14 && s[k] <= 90)) err(`${what}: ${k} buiten 14-90`);
+      if (s.ease !== undefined && !['smooth', 'lin', 'in', 'out'].includes(s.ease)) err(`${what}: ease is smooth, lin, in of out`);
+    }
     if (s.fov !== undefined && !(isNum(s.fov) && s.fov >= 14 && s.fov <= 90)) err(`${what}: fov buiten 14-90`);
   });
   if (shots.length && st[0] !== 0) err('het eerste shot moet op t = 0 beginnen');
@@ -181,11 +200,11 @@ export function compileScene(def, opts = {}) {
   // per actor: movement segments [{t0, t1, pts}], anim/gaze/face/carry events
   const track = {};
   for (const [id, a] of Object.entries(actors)) {
-    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [], vis: [], sits: [{ t: 0, v: a.sit || 0 }] };
+    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [], vis: [], sits: [{ t: 0, v: a.sit || 0 }], clips: [] };
   }
   const drops = [];
   const ptrack = {};
-  for (const [id, p] of Object.entries(props)) ptrack[id] = { pos0: [p.at[0], p.at[1], p.at[2] ?? 0], hidden0: !!p.hidden, moves: [], spins: [], bobs: [], vis: [] };
+  for (const [id, p] of Object.entries(props)) ptrack[id] = { pos0: [p.at[0], p.at[1], p.at[2] ?? 0], hidden0: !!p.hidden, moves: [], spins: [], bobs: [], vis: [], clips: [] };
 
   for (const c of cues) {
     if (c.actor) {
@@ -198,7 +217,11 @@ export function compileScene(def, opts = {}) {
         const t0 = c.t, t1 = t0 + len / sp;
         k.segs.push({ t0, t1, pts, len, speed: sp, run: c.anim === 'run', ride: !!c.ride });
       }
-      if (c.anim !== undefined && !c.walk) k.anims.push({ t: c.t, v: c.anim });
+      // a clip plays on top of the base anim; walking, sitting and 'stop' release a held one
+      if (c.anim !== undefined && !c.walk && isClip(c.anim)) k.clips.push({ t0: c.t, name: c.anim, dur: c.dur, delay: c.delay, speed: c.speed, mirror: !!c.mirror });
+      else if (c.anim === CLIP_STOP) k.clips.push({ t0: c.t, name: null });
+      else if (c.anim !== undefined && !c.walk) k.anims.push({ t: c.t, v: c.anim });
+      if (c.walk || (c.sit !== undefined && c.sit !== false)) k.clips.push({ t0: c.t, name: null });
       if (c.gaze !== undefined) k.gazes.push({ t: c.t, v: c.gaze });
       if (c.face !== undefined) k.faces.push({ t: c.t, v: c.face });
       if (c.carry !== undefined) k.carries.push({ t: c.t, v: c.carry });
@@ -214,6 +237,7 @@ export function compileScene(def, opts = {}) {
         const pts = c.path.map((p) => [p[0], p[1], p[2] ?? k.pos0[2]]);
         k.moves.push({ t0: c.t, t1: c.t + (c.dur || pathLen(pts) / (c.speed || 3)), path: pts });
       }
+      if (c.anim !== undefined) k.clips.push(isCatClip(c.anim) ? { t0: c.t, name: c.anim, dur: c.dur, delay: c.delay, speed: c.speed, mirror: !!c.mirror } : { t0: c.t, name: null });
       if (c.spin !== undefined) k.spins.push({ t: c.t, v: c.spin });
       if (c.bob !== undefined) k.bobs.push({ t: c.t, v: c.bob });
       if (c.show !== undefined) k.vis.push({ t: c.t, v: true });
@@ -325,7 +349,7 @@ export function compileScene(def, opts = {}) {
     const sh = shots[i];
     const end = i + 1 < shots.length ? shots[i + 1].t : duration;
     const u = clamp01((t - sh.t) / Math.max(0.05, end - sh.t));
-    let pos, look;
+    let pos, look, fovNow = null;
     const tg = (spec) => pointOf(spec, t);
     switch (sh.shot) {
       case 'cut': {
@@ -401,6 +425,20 @@ export function compileScene(def, opts = {}) {
         const k = ease(u);
         pos = { f: lerp(sh.from[0], sh.to[0], k), s: lerp(sh.from[1], sh.to[1], k), h: lerp(sh.from[2], sh.to[2], k) };
         look = tg(sh.look ?? sh.target ?? 'speaker');
+        break;
+      }
+      // push: a move along the line to the target (a track-in, a slow zoom, a startled rush, a low angle). angle 0 = in front of the
+      // face (face: deg for a prop or a point), d0 -> d1 the distance, fov0 -> fov1 the lens, h0 -> h1 the height, lookH the height looked at
+      case 'push': {
+        const id = stripRef(String(sh.target).replace(/@[\d.]+$/, ''));
+        const c = tg(sh.target);
+        const base = actors[id] ? actorFacing(id, t) : rad(sh.face ?? 0);
+        const a = base + rad(sh.angle ?? 0);
+        const k = sh.ease === 'in' ? u * u : sh.ease === 'out' ? 1 - (1 - u) * (1 - u) : sh.ease === 'lin' ? u : ease(u);
+        const d = lerp(sh.d0 ?? 3, sh.d1 ?? sh.d0 ?? 3, k);
+        pos = { f: c.f + Math.cos(a) * d, s: c.s + Math.sin(a) * d, h: lerp(sh.h0 ?? 1.5, sh.h1 ?? sh.h0 ?? 1.5, k) };
+        look = { f: c.f, s: c.s, h: sh.lookH ?? c.h };
+        fovNow = lerp(sh.fov0 ?? sh.fov ?? 38, sh.fov1 ?? sh.fov0 ?? sh.fov ?? 38, k);
         break;
       }
       case 'handheld': {
@@ -566,7 +604,7 @@ export function compileScene(def, opts = {}) {
     return {
       position: clearOfTrees(cam, { x: L.x, y: L.y, z: z0 + look.h }, env),
       lookAt: { x: L.x, y: L.y, z: z0 + look.h },
-      fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
+      fov: fovNow ?? sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
     };
   }
 
@@ -593,12 +631,12 @@ export function compileScene(def, opts = {}) {
         const o = pointOf(gt, t);
         gaze = Math.max(-1.0, Math.min(1.0, angDiff(actorFacing(id, t), Math.atan2(o.s - p.s, o.f - p.f))));
       }
-      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying, sit: p.moving ? 0 : last(k.sits, t).v, visible: last([{ t: 0, v: true }, ...k.vis], t).v };
+      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying, sit: p.moving ? 0 : last(k.sits, t).v, visible: last([{ t: 0, v: true }, ...k.vis], t).v, clips: clipLayers(k.clips, t) };
     }
     for (const id of Object.keys(ptrack)) {
       const s = propState(id, t);
       const w = fit(world(anchor, s.f, s.s), env);
-      outP[id] = { x: w.x, y: w.y, h: (anchor.z || 0) + s.h, a: s.a + anchor.facing, visible: s.visible, kind: props[id].kind };
+      outP[id] = { x: w.x, y: w.y, h: (anchor.z || 0) + s.h, a: s.a + anchor.facing, visible: s.visible, kind: props[id].kind, clips: clipLayers(ptrack[id].clips, t) };
     }
     return { actors: outA, props: outP, camera: cameraAt(t, anchor, env), speaker, speakerActor: speakId };
   }
@@ -610,6 +648,7 @@ export function compileScene(def, opts = {}) {
     const marks = new Set([0, duration]);
     for (const s of k.segs) { marks.add(s.t0); marks.add(s.t1); }
     for (const e of [...k.anims, ...k.gazes, ...k.faces, ...k.carries, ...k.sits]) if (e.t > 0) marks.add(e.t);
+    for (const e of k.clips) { marks.add(e.t0 + (e.delay || 0)); if (e.name) marks.add(Math.min(duration, e.t0 + (e.delay || 0) + clipDuration(e.name, e))); }
     for (const c of cues) if (c.actor === id) marks.add(c.t);
     // speaking counts as life (the talk anim runs), so cut stretches at line edges
     const ts = [...marks].filter((x) => x >= 0 && x <= duration).sort((a, b) => a - b);
@@ -617,7 +656,7 @@ export function compileScene(def, opts = {}) {
     let from = null;
     for (let i = 0; i + 1 < ts.length; i++) {
       const mid = (ts[i] + ts[i + 1]) / 2;
-      const alive = actorPos(id, mid).moving || last([{ t: 0, v: true }, ...k.vis], mid).v === false || last(k.anims, mid).v !== 'idle' || last(k.gazes, mid).v === 'speaker' && !!lines.length || (lines.length && actorOfSpeaker(speakerAt(mid)) === id);
+      const alive = actorPos(id, mid).moving || clipLayers(k.clips, mid).length > 0 || last([{ t: 0, v: true }, ...k.vis], mid).v === false || last(k.anims, mid).v !== 'idle' || last(k.gazes, mid).v === 'speaker' && !!lines.length || (lines.length && actorOfSpeaker(speakerAt(mid)) === id);
       if (alive) { if (from != null) out.push([from, ts[i]]); from = null; } else if (from == null) from = ts[i];
     }
     if (from != null) out.push([from, duration]);

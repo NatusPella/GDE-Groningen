@@ -24,6 +24,9 @@
 // looks: the NPC table of missionstory.js ({ name, shirt, skin, ... } per key).
 
 import { SPECS_AKTE2 } from './cutscenes_akte2.js';
+import { placeTemplate, expandTemplate } from './cineshots.js';
+import { autoClip } from './cuegestures.js';
+import { isHoldClip } from './poseclips.js';
 
 const DUO = {
   tammo: { look: 'tammo', at: [0, 0.6], face: 0, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
@@ -113,6 +116,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Vijftig euro', dt: 1.0, actor: 'tessa', anim: 'cheer' },
     ],
     shots: [],
+    // direction templates (cineshots.js, #955)
+    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 4, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 5, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0] }, { on: 8, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
   };
 
@@ -211,6 +216,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
       { on: 'Ik ken iemand', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
     ],
+    cuts: [{ on: 1, tpl: 'trackIn', target: 'tessa', hold: 4 }, { on: 10, tpl: 'schrikNadering', target: 'tessa', hold: 3 }],
     wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,automaat@1', fov: 50, until: 1 },
   };
 
@@ -284,6 +290,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tessa. Sjabbe', actor: 'tammo', face: 'actor:tessa' },
     ],
     shots: [{ on: 'Nummer 4117', shot: 'cut', at: [1.0, -1.8, 1.7], look: 'scherm@1.7', fov: 34 }],
+    cuts: [{ on: 9, tpl: 'closeGezicht', target: 'tammo', hold: 1.5 }],
     wide: { from: [-3.6, 3.0, 3.0], to: [-1.8, 2.4, 2.5], look: 'mid:tessa,loketbediende@1.2', fov: 52, until: 1 },
   };
 
@@ -641,6 +648,31 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     cues.push({ t: idx == null ? 'end' : tspec(idx, dt || 0), ...cue });
   }
 
+  // pose clips (cuegestures.js, #955): the speaker and the listeners get a gesture that fits the line instead of a plain nod; a beat the
+  // author wrote for that actor around that line wins (nothing is added within 2 s of it)
+  if (!spec.noClips) {
+    const authored = {};
+    for (const b of beats) if (b.actor && (b.anim || b.walk || b.sit !== undefined) && b.idx != null && lines[b.idx]) (authored[b.actor] = authored[b.actor] || []).push(lines[b.idx].at + (b.dt || 0));
+    // a held clip (kneeling, crouching) that a beat started stays until that actor's next 'stop' or walk: nothing is laid over it
+    const held = {};
+    const bt = beats.filter((b) => b.actor && b.idx != null && lines[b.idx]).map((b) => ({ ...b, tt: lines[b.idx].at + (b.dt || 0) })).sort((x, y) => x.tt - y.tt);
+    bt.forEach((b, k) => {
+      if (!isHoldClip(b.anim)) return;
+      const end = bt.slice(k + 1).find((q) => q.actor === b.actor && (q.anim === 'stop' || q.walk));
+      (held[b.actor] = held[b.actor] || []).push([b.tt, end ? end.tt : Infinity]);
+    });
+    lines.forEach((l, i) => {
+      const me = speakerActor(l.speaker);
+      for (const id of primary) {
+        if ((held[id] || []).some(([a, z]) => l.at + 1 >= a && l.at < z)) continue;
+        const role = id === me ? 'speaker' : 'listener';
+        if ((authored[id] || []).some((q) => Math.abs(q - l.at) < 2)) continue;
+        const c = autoClip(l.text, role, id, i, l.dur);
+        if (c) cues.push({ t: tspec(i, c.delay), actor: id, anim: c.anim, dur: c.dur, ...(c.mirror ? { mirror: true } : {}) });
+      }
+    });
+  }
+
   // bystanders are never statues: now and then a glance, a shrug, a nod
   const endT = lines[lines.length - 1].at + lines[lines.length - 1].dur;
   const BG = ['look', 'shrug', 'nod', 'hips', 'idle', 'look'];
@@ -680,10 +712,29 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     shots.push({ t, ...shot });
     lastT = l.at + dt; lastSpeaker = me; lastIdx = i;
   });
+  // direction templates (cineshots.js, #955): { on, dt, tpl, hold, ...params } lays the shots of a template on that line; they replace the
+  // automatic coverage inside their range (hold s, standard: the template plus 2.5 s), so a scene can cut shot-reverse-shot, push in on a
+  // face or rush at a startled one without a camera that fights it
+  for (const c of spec.cuts || []) {
+    const idx = resolveOn(c.on, lines);
+    if (idx == null || idx < 0) continue;
+    const { on, dt, tpl, hold, ...params } = c;
+    const t0 = lines[idx].at + (dt || 0);
+    const subs = expandTemplate(tpl, params);
+    const owned = hold ?? Math.max(...subs.map((q) => q.dt)) + 2.5;
+    const num = (t) => (typeof t === 'number' ? t : (m => (m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0))(/^L(\d+)([+-][\d.]+)?$/.exec(t)));
+    for (let i = shots.length - 1; i >= 0; i--) { const n = num(shots[i].t); if (n > 0.01 && n >= t0 - 0.05 && n < t0 + owned) shots.splice(i, 1); }
+    shots.push(...placeTemplate(tpl, params, tspec(idx, dt || 0)));
+  }
+  {
+    const num2 = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; };
+    shots.sort((a, b) => num2(a.t) - num2(b.t));
+  }
   // the closing frame: back out to the street
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
   if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  if (spec.cuts && spec.cuts.length) { const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; }; shots.sort((x, y) => tn(x.t) - tn(y.t)); for (let i = shots.length - 1; i > 0; i--) if (tn(shots[i].t) - tn(shots[i - 1].t) < 0.05) shots.splice(i - 1, 1); }
   drift(shots, lines, endT + 1);
   const fx = (spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
   return { id: 'story-' + key, actors, props, cues, shots, ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };

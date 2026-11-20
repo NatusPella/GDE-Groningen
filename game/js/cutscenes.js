@@ -59,6 +59,9 @@ const ACT_TRAILER = {
     { t: 0.2, actor: 'postbode', walk: [[-2, 7.2], [3, 7.6]], speed: 1.3 },
     { t: 'L1', actor: 'postbode', face: 'actor:buurvrouw' },
     { t: 'L1+0.3', actor: 'postbode', anim: 'wave' },
+    // pose-clips (poseclips.js): the neighbour walks with the phone at her ear, the postman waves properly
+    { t: 0.5, actor: 'buurvrouw', anim: 'telefoneren', dur: 12 },
+    { t: 'L1+0.3', actor: 'postbode', anim: 'zwaaien', dur: 2.2 },
     { t: 'L2', actor: 'postbode', walk: [[14, 7.8]], speed: 1.4 },
   ],
   fx: [
@@ -144,6 +147,20 @@ const ACT_KEUKEN = {
     { t: 'L17+0.3', actor: 'tessa', walk: [[-0.9, 0.9], [0.9, 1.3], [1.3, 2.3]], speed: 1.8 },
     { t: 'L17+1.2', actor: 'tammo', sit: false },
     { t: 'L17+1.3', actor: 'tammo', walk: [[1.0, 0.9], [1.3, 1.5], [0.85, 2.3], [0.85, 2.9]], speed: 1.7 },
+    // pose-clips (poseclips.js): what each of them does with hands and head while the other talks (the scene's content is unchanged)
+    { t: 'L1+0.6', actor: 'tessa', anim: 'nadenken', dur: 2.6 },
+    { t: 'L3+0.4', actor: 'tessa', anim: 'schouderophalen', dur: 1.8 },
+    { t: 'L4+0.6', actor: 'tessa', anim: 'wijzen', dur: 1.8, mirror: true },
+    { t: 'L5+0.2', actor: 'tammo', anim: 'duimen', dur: 1.6 },
+    { t: 'L6+0.3', actor: 'tessa', anim: 'zuchten', dur: 2.0 },
+    { t: 'L7+0.5', actor: 'tammo', anim: 'verontwaardigd', dur: 2.4 },
+    { t: 'L8+0.4', actor: 'tessa', anim: 'wijzen', dur: 1.8 },
+    { t: 'L9+0.3', actor: 'tammo', anim: 'nadenken', dur: 2.0 },
+    { t: 'L11+0.2', actor: 'tammo', anim: 'rondkijken', dur: 3.0 },
+    { t: 'L13+0.2', actor: 'tammo', anim: 'verontwaardigd', dur: 2.2 },
+    { t: 'L14+0.4', actor: 'tessa', anim: 'zuchten', dur: 2.0 },
+    { t: 'L15+0.2', actor: 'tammo', anim: 'aarzelen', dur: 2.6 },
+    { t: 'L16+0.3', actor: 'tessa', anim: 'geven', dur: 1.8 },
   ],
   shots: [
     { t: 0, shot: 'dolly', from: [1.9, 1.2, 1.7], to: [1.0, 0.9, 1.5], look: [-2.1, 0.1, 1.5], fov: 50 },
@@ -224,6 +241,11 @@ const ACT_VERHUISDAG = {
     { t: 'L4', actor: 'tessa', anim: 'hips' },
     { t: 'L4+0.7', actor: 'tessa', anim: 'point' },
     { t: 'L4+0.8', actor: 'tammo', anim: 'nod' },
+    // pose-clips (poseclips.js)
+    { t: 'L1+0.3', actor: 'tessa', anim: 'verontwaardigd', dur: 2.2 },
+    { t: 'L2+0.3', actor: 'tessa', anim: 'wijzen', dur: 2.0 },
+    { t: 'L3+1.2', actor: 'tammo', anim: 'zuchten', dur: 2.0 },
+    { t: 'L4+0.9', actor: 'tammo', anim: 'opgelucht', dur: 2.0 },
     // "Rijden, niet praten": in, and the Escapade limps off on its flat tyre
     { t: 'L4+1.6', prop: 'escapade', bob: 0.05 },
     { t: 'L4+1.9', actor: 'tessa', hide: true },

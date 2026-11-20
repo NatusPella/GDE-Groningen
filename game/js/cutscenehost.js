@@ -24,6 +24,7 @@ import { propSource, TABLE_SIT } from './cutscenemodels.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
+import { applyClipsHuman, applyClipsCat, resetCat } from './poseclips.js';
 import { showNameCard } from './namecard.js';
 import { audioPlan } from './cutaudio.js';
 import { lineVoiceFor } from './linevoice.js';
@@ -284,6 +285,8 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
         if (m.userData.shadow) m.userData.shadow.visible = !st.sit;
         if (st.sit) seatedFrame(m, st, t);
         else animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt, rol: rolVan(id) });
+        // pose-clips (poseclips.js): a function of the scene time, on top of the base pose; moving, seated or carrying people only use their upper body
+        if (st.clips && st.clips.length) applyClipsHuman(m.userData, st.clips, { upper: !!st.sit || st.speed > 0.05 || !!st.carrying });
       }
       for (const [id, m] of Object.entries(props)) {
         const st = s.props[id];
@@ -291,6 +294,15 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
         m.position.set(st.x, st.h, st.y);
         m.rotation.y = -st.a;
         // a pigeon's wings (the world's mesh) beat while it moves
+        // the cat (Sien) is the world's cat mesh: a cat clip, or a quiet tail while nothing is cued
+        if (def.props[id].kind === 'kat' && m.userData.tail && m.userData.legs && m.userData.bones) {
+          const has = st.clips && st.clips.length;
+          if (has || m.userData.clipped || st.visible) {
+            resetCat(m.userData);
+            applyClipsCat(m.userData, has ? st.clips : [{ name: 'kat-staan', lt: t, dur: 1e9, fade: 1 }]);
+            m.userData.clipped = true;
+          }
+        }
         if (m.userData.wings && st.h > 0.5) for (const w of m.userData.wings) w.rotation.x = -(w.userData.sign || 1) * (0.5 + Math.sin(t * 22) * 0.7);
       }
       // #864: a carried prop follows the carrier's hand (with the offset from cutscript.js as a fallback)
