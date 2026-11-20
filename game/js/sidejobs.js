@@ -55,6 +55,9 @@ import { playerBusy, registerBusyProbe } from './busy.js';
 import { lichaamVan, invoerVan, bestuurLos } from './coopbestuur.js';
 import { waarschuwVoorStart } from './coopstatus.js';
 import { jobBonusHook } from './latehooks.js';
+import { startKaart, toonRegelkaart } from './regelkaart.js'; // AAA bijbanen: de regelkaart bij de eerste diensten
+import { stingen } from './sfx/stingen.js';
+import { bijbaanKaart, kaartNodig } from './bijbaan_aaa.js';
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
@@ -384,6 +387,9 @@ function startJob(job, takeover = null, owner = 0, cw = null) {
   if (owner === 0) ctx = c;
   c.opVerzoek = verzoekVan != null || owner > 0; // een gast vroeg erom: de host staat misschien ver weg, dus geen afbreken om de afstand voor iemand in het voertuig zit (#452)
   if (owner === 0) rec(job.id).shifts++;
+  // AAA bijbanen: een regelkaart (doel, regel, afloop) bij de eerste twee diensten van een baan; lokaal beeld, niets over het net
+  c.aaaKaart = null;
+  if (owner === 0 && !takeover && kaartNodig(job.id, rec(job.id).shifts)) { try { c.aaaKaart = startKaart({ kaart: bijbaanKaart(job.id) }, 'bijbaan:' + job.id); } catch (e) { c.aaaKaart = null; } }
   if (owner === 0) waarschuwVoorStart(world, 'bijbaan', job.id); // samen spelen: een melding als deze bijbaan nog niet samen werkt; de start gaat door
   if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan, owner); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
   const lvl = c.level;
@@ -497,6 +503,7 @@ function completeRound(c, res = {}) {
   // #685: 1+1=3 één keer uitleggen, bij de eerste gedeelde beloning
   if (aantal > 1 && !c.world.groepsbonusUitleg) { c.world.groepsbonusUitleg = true; bits.push(GROEPSBONUS_UITLEG); }
   c.world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
+  if (host) { try { stingen.push(world, 'stap'); } catch (e) { /* een sting mag de dienst nooit raken */ } } // AAA bijbanen: een betaalde ronde klinkt
   if (host) {
     if (c.levelUp) sayJobLine(c.job, 'level');
     else sayJobLine(c.job, 'done', 0.5);
@@ -653,6 +660,7 @@ function updateContext(dt, w, c) {
         return;
       }
     }
+    if (c.aaaKaart && !isCinematicActive()) toonRegelkaart(w, c.aaaKaart, dt); // na het intro, nooit eroverheen
     if (c.betweenRounds) {
       if (w.time >= c.nextRoundAt) { c.betweenRounds = false; c.job.round(c); }
     } else {

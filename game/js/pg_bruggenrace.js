@@ -13,6 +13,13 @@ import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { registreerWedstrijd, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { showBanner } from './cinematics.js';
+import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
+import { skutsjePubliek, sprintBijna } from './akte2_plan.js';
+import { stingen } from './sfx/stingen.js';
+// AAA bijbanen (PG-bruggen): publiek langs de kade bij de start en de laatste brug, een startsein, een sting bij elke brug en een
+// waarschuwing in de laatste minuut. Lokaal beeld en geluid bij de host van de race; niets gaat over het net, de wedstrijdlaag en
+// de beloning per plek blijven zoals ze waren.
+const zeg = (fn) => { try { return fn(); } catch (e) { return null; } }; // aankleding mag de race nooit raken
 
 // Elf Bruggenrace: one lap of the Diepenring from the Spilsluizen, under its
 // eleven bridges (the rondvaart route and checkpoints, rondvaartchase.js), in
@@ -167,8 +174,10 @@ export const BRUGGEN = {
     const len = cps[cps.length - 1].s - s0.s;
     Object.assign(run.data, {
       online, deeln, cps, jv, js: s0.s + 7, jspeed: 0, jfin: null, s0: s0.s, len,
-      gold: len / (JELLE_PACE * 1.07), elapsed: 0, go: false, count: COUNTDOWN, pos: deeln.length, said: 0,
+      gold: len / (JELLE_PACE * 1.07), elapsed: 0, go: false, count: COUNTDOWN, pos: deeln.length, said: 0, bijna: false, pubStart: null, pubFinish: null,
     });
+    const pub = zeg(() => skutsjePubliek((q) => routeAt(q), s0.s, cps[cps.length - 1].s, 1));
+    if (pub) { run.data.pubStart = zeg(() => buildCrowd(w, pub.start, { key: 'pg_bruggen.start' })); run.data.pubFinish = zeg(() => buildCrowd(w, pub.finish, { key: 'pg_bruggen.finish' })); }
     run.ui.setSlot('<div class="pg-help">Onder elke brug door, in de goede volgorde. Jelle vaart de hele ring.</div>');
     return true;
   },
@@ -177,6 +186,7 @@ export const BRUGGEN = {
     jelleFigure(d.jv);
     if (!w.vehicles.includes(d.jv)) w.vehicles.push(d.jv);
     const mijn = d.deeln.find((p) => !p.slot) || null;
+    for (const c of [d.pubStart, d.pubFinish]) if (c && mijn && mijn.boot) zeg(() => updateCrowd(c, dt, mijn.boot, mijn.boot));
     if (!d.online) {
       // solo: zoals het was, met dezelfde valkuilen (uitstappen of zinken is verliezen)
       const boat = mijn && mijn.boot;
@@ -197,7 +207,7 @@ export const BRUGGEN = {
         const n = Math.max(0, Math.ceil(d.count - 0.5));
         for (const p of d.deeln) if (p.slot && p.aftel !== n) { p.aftel = n; if (w.coopMeld) w.coopMeld(p.slot, n > 0 ? String(n) : 'VAREN!'); }
       } else w.addMessage(d.count > 0.5 ? String(Math.ceil(d.count - 0.5)) : 'VAREN!', 0.4, { key: 'pg-count', exact: true });
-      if (d.count <= 0) { d.go = true; if (d.online) w.addMessage('VAREN!', 1.4, { key: 'pg-count', exact: true }); }
+      if (d.count <= 0) { d.go = true; stingen.push(w, 'start'); if (d.online) w.addMessage('VAREN!', 1.4, { key: 'pg-count', exact: true }); }
       placeJelle(d, 0);
       setTarget(d.cps[0]);
       return;
@@ -227,6 +237,7 @@ export const BRUGGEN = {
     else if (run.t - run.lastSay > 24) jelle(run, d.pos === 1 ? 'behind' : 'lead');
     const ahead = Math.round(Math.abs(d.js - mijn.ps));
     run.ui.setRows([['Jelle', d.jfin != null ? 'is al binnen' : d.js - mijn.ps > 0 ? `${ahead} m voor` : `${ahead} m achter`], ['Bruggen', `${Math.min(d.cps.length, mijn.cp)}/${d.cps.length}`]]);
+    if (sprintBijna(d.elapsed, LIMIT, d.bijna)) { d.bijna = true; zeg(() => stingen.push(w, 'bijna')); }
     if (d.elapsed > LIMIT) finish(run, { success: false, medal: 0, reason: 'Te lang onderweg. Jelle heeft al koffie op.', stats: [] });
   },
   hud(run) {
@@ -238,6 +249,8 @@ export const BRUGGEN = {
   stop(run) {
     const w = run.world, d = run.data;
     actie = null;
+    for (const c of [d.pubStart, d.pubFinish]) if (c) zeg(() => disposeCrowd(c));
+    d.pubStart = null; d.pubFinish = null;
     if (d.jv) removeBoat(w, d.jv);
     for (const p of d.deeln) {
       const boot = p.boot;
@@ -279,6 +292,7 @@ function vaarDeelnemer(w, d, p) {
   if (cp && (p.ps >= cp.s - 4 && pr.d < CP_REACH || Math.hypot(boot.x - cp.x, boot.y - cp.y) < 12)) {
     p.cp++;
     if (!p.slot) {
+      zeg(() => stingen.push(w, 'stap')); // een brug gehaald
       const last = p.cp >= d.cps.length;
       if (last) w.addMessage('De laatste brug: naar de finish!', 2, { key: 'pg-cp' });
       else w.addMessage(`Brug ${p.cp}/${d.cps.length}: ${cp.bridge}`, 2, { key: 'pg-cp' });
