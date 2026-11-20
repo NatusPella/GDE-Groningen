@@ -33,6 +33,7 @@
       "main.js",
       "args.cjs",
       "steamflags.cjs",
+      "gpuflags.cjs",
       "coopcore.cjs",
       "livebussen.cjs",
       "gpuinfo.cjs",

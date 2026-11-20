@@ -96,6 +96,16 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
   ok(!E.resolveElevWalls(elev, midRamp[0], midRamp[1], (top) / 2, 0.35), 'op de trap staat niets in de weg');
   const P2 = P.buildPerrons(rows);
   ok(P2.posts.length >= 2, 'paaltjes aan de voet van de trap (een auto past er niet tussen)', String(P2.posts.length));
+  // #1039: alle paaltjes zijn één drawcall en alle masten ook (was een mesh per stuk)
+  {
+    const g3 = P3.buildPerrons3D(map);
+    const paal = g3.getObjectByName('perron-paaltjes'), mast = g3.getObjectByName('perron-masten');
+    ok(!!paal && paal.isInstancedMesh && paal.count === P2.posts.length, 'de paaltjes zijn één InstancedMesh met alle paaltjes', paal && String(paal.count));
+    ok(!!mast && mast.isInstancedMesh && mast.count === 2 * rows.reduce((n, r) => n + (r.r || []).length, 0), 'de masten zijn één InstancedMesh (twee per trap)', mast && String(mast.count));
+    let meshes = 0; g3.traverse((o) => { if (o.isMesh) meshes++; });
+    const trappen = rows.reduce((n, r) => n + (r.r || []).length, 0);
+    ok(meshes <= 7 + 2 + trappen, 'draws: de vlakken, twee instanced en een bord per trap', meshes + ' voor ' + trappen + ' trappen');
+  }
   const gap = P2.posts.filter((p) => Math.hypot(p.x - tr.b[0], p.y - tr.b[1]) < 1).map((p) => p).sort((a, b) => a.x - b.x || a.y - b.y);
   void gap;
   ok(P.onPerron(P2, 0, 5.2, top), 'onPerron: op het vloertje');

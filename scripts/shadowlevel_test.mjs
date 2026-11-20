@@ -8,6 +8,9 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 ok(adaptedShadowLevel('hoog', 1, 0) === 'hoog', 'gezonde machine: 4096');
 ok(adaptedShadowLevel('hoog', 0.9, 0) === 'hoog2048', 'adaptieve schaal omlaag: 2048');
 ok(adaptedShadowLevel('hoog', 1, 1) === 'hoog2048', 'cpuLevel 1: 2048');
+ok(adaptedShadowLevel('hoog', 1, 0, 'heelver') === 'hoog' && adaptedShadowLevel('hoog', 1, 0, 'ver') === 'hoog', '#1039 Ultra (heel ver) en ver: 4096');
+ok(adaptedShadowLevel('hoog', 1, 0, 'kort') === 'hoog2048' && adaptedShadowLevel('hoog', 1, 0, 'normaal') === 'hoog2048', '#1039 Hoog (kort) en normaal: 2048');
+ok(adaptedShadowLevel('middel', 1, 0, 'kort') === 'middel' && adaptedShadowLevel('laag', 1, 0, 'kort') === 'laag', '#1039 de zichtafstand raakt middel en laag niet');
 ok(adaptedShadowLevel('middel', 0.7, 2) === 'middel', 'middel blijft middel');
 ok(adaptedShadowLevel('laag', 1, 0) === 'laag', 'laag blijft laag');
 const vol = shadowTargetMB(SHADOW_SIZES.hoog), zuinig = shadowTargetMB(SHADOW_SIZES.hoog2048);
