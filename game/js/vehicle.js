@@ -1284,9 +1284,13 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
   for (let i = 0; i < vehicles.length; i++) {
     const a = vehicles[i];
     if (a.sinking) continue;
-    const capA = vehicleCapsule(a);
+    let capA = null; // #985: pas bij de eerste buur binnen bereik (cos/sin en een object per voertuig per frame scheelt)
     for (let j = i + 1; j < vehicles.length; j++) {
       const b = vehicles[j];
+      // de goedkoopste afwijzing eerst (geen bijwerkingen in de toetsen hieronder): de meeste paren liggen ver uit elkaar
+      const reach = a.halfLen + b.halfLen + 0.2;
+      const cdx = b.x - a.x, cdy = b.y - a.y;
+      if (cdx * cdx + cdy * cdy > reach * reach) continue;
       // wrecks are solid, heavy obstacles; two wrecks never interact
       // a boat and a car only ever share x/y with a bridge deck between them
       if (b.sinking || (a.wrecked && b.wrecked) || !a.isBoat !== !b.isBoat) continue;
@@ -1301,9 +1305,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       // a waiting cycle being broken: the chosen vehicle slips past its partner
       // (maar een wesp of fiets glipt nooit door een bus heen: de bus is zo lang dat het zichtbaar door elkaar heen rijden was, #436)
       if (world && !((a.isBus && (b.isScooter || b.isBike)) || (b.isBus && (a.isScooter || a.isBike))) && ((a.ignoreId === b.id && world.time < a.ignoreUntil) || (b.ignoreId === a.id && world.time < b.ignoreUntil))) continue;
-      const reach = a.halfLen + b.halfLen + 0.2;
-      const cdx = b.x - a.x, cdy = b.y - a.y;
-      if (cdx * cdx + cdy * cdy > reach * reach) continue;
+      if (!capA) capA = vehicleCapsule(a);
       const capB = vehicleCapsule(b);
       const { p1x, p1y, p2x, p2y, dist2: d2 } = closestPointsBetweenSegments(capA, capB);
       let dist = Math.sqrt(d2);
