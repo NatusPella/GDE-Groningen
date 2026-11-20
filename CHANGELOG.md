@@ -88,6 +88,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Fatbikes ontwijken: de routelijn en de marker wijzen nu eerst naar de Ebbingebrug en dan naar Oma Trijntje, dus de route die het spel voorstelt loopt door de fatbikes in plaats van er omheen.
 - Plaatsnaamborden en wegwijzers zijn niet meer onverwoestbaar: vanaf ongeveer 13 km/u rijd je ze omver (de paal klapt om met een metalen tik, kleine schade die met de snelheid meegroeit); langzamer stop je er gewoon tegen. Een omgevallen bord is ook omver bij je medespelers (bestaande kapotmelding) en komt na een tijd en afstand terug, zoals een kapotte bank. Ook een omgereden bank, prullenbak of fietsenrek verdwijnt nu uit het beeld in plaats van als spookobject te blijven staan.
 - Pauzemenu: de groepskoppen in de zijbalk (Doen, Bezit, Voortgang, Systeem) tonen geen aantallen meer; alleen een melding laat nog een badge zien.
+- **Een sloot houdt de auto tegen:** een auto die er te snel overheen reed, kwam er soms zonder rem overheen. De auto wordt nu over het hele stuk dat hij reed, en over zijn hele breedte, getoetst. Een sloot ingaan of oversteken remt hard af (tot kruiptempo, met een plons) en dat geldt voor iedereen gelijk, ook bij Samen spelen. Een brug of weg over de sloot blijft gewoon droog.
+- **Slootranden minder kartelig:** het gat dat een sloot of beek in de grond maakt volgt de oever nu op een meter nauwkeurig in plaats van op 2,5 m (tot 3,3 m breed voor een sloot van 1,5 m, was tot 5 m). Een bestaand gebakken terrein wordt daarvoor opnieuw gebouwd.
 
 ## [0.64.0] - 2026-11-20
 
