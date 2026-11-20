@@ -247,13 +247,6 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
-    "id": 536748,
-    "beschrijving": "Tik van een telefoonbericht",
-    "auteur": "egomassive",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 536784,
     "beschrijving": "Kaartje of papier dat verschijnt",
     "auteur": "egomassive",
@@ -296,20 +289,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 583310,
-    "beschrijving": "Tegel die breekt",
-    "auteur": "Fission9",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 683102,
-    "beschrijving": "Waterdruppel",
-    "auteur": "florianreichelt",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 529573,
     "beschrijving": "Zomer",
     "auteur": "Garuda1982",
@@ -338,23 +317,9 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 199906,
-    "beschrijving": "Glas dat breekt",
-    "auteur": "GN2013",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 28238,
     "beschrijving": "Voetstap op zand en strand",
     "auteur": "HerbertBoland",
-    "licentie": "CC BY 4.0",
-    "by": true
-  },
-  {
-    "id": 871921,
-    "beschrijving": "Zachte tik als je over een knop gaat",
-    "auteur": "heyheytheree",
     "licentie": "CC BY 4.0",
     "by": true
   },
@@ -415,13 +380,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 485109,
-    "beschrijving": "Sleutelbos die rinkelt",
-    "auteur": "Joao_Janz",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 740252,
     "beschrijving": "Mechanische klik van een weegbrug",
     "auteur": "JoontheFloof",
@@ -460,13 +418,6 @@ export const AUDIO_CREDITS = [
     "id": 528561,
     "beschrijving": "Zachte klik van een knop in het menu",
     "auteur": "Jummit",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 442280,
-    "beschrijving": "Deurbel",
-    "auteur": "jwheeler91",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -667,13 +618,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 686282,
-    "beschrijving": "Plof van een val op de grond",
-    "auteur": "profoundsounds",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 184412,
     "beschrijving": "Helikopter",
     "auteur": "qubodup",
@@ -805,13 +749,6 @@ export const AUDIO_CREDITS = [
     "auteur": "TiesWijnen",
     "licentie": "CC BY 4.0",
     "by": true
-  },
-  {
-    "id": 154887,
-    "beschrijving": "Piepje van een afstandsmeter of waarschuwing",
-    "auteur": "unfa",
-    "licentie": "CC0 1.0",
-    "by": false
   },
   {
     "id": 699521,

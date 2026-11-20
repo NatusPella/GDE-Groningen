@@ -75,11 +75,10 @@ for (const k of ['golfjes_oever', 'menigte_gemurmel', 'kikkers_nacht', 'stad_nac
 // SFX ronde 4 (#988): kleine opnames voor de missie-polish (zie scripts/audio/master_sfx_ronde4.mjs en docs/SFX-GAPS.md); cat/gain/ref/range zoals hierboven
 const RONDE4_FX = {
   gejuich_0: ['omgeving', 0.8, 10, 200], gejuich_1: ['omgeving', 0.8, 10, 200], applaus_klein: ['omgeving', 0.7, 8, 150],
-  klok_tik: ['ui', 0.6, 3, 30], piep_afstand: ['ui', 0.5, 3, 30], kaartje_schuif: ['ui', 0.6, 3, 30], sms_tik: ['ui', 0.6, 3, 30], ui_hover: ['ui', 0.7, 3, 30], ui_fout: ['ui', 0.7, 3, 30],
+  klok_tik: ['ui', 0.6, 3, 30], kaartje_schuif: ['ui', 0.6, 3, 30], ui_fout: ['ui', 0.7, 3, 30],
   munten_0: ['ui', 0.6, 3, 30], munten_1: ['ui', 0.6, 3, 30],
-  ei_breuk_0: ['winkel', 0.8, 4, 50], ei_breuk_1: ['winkel', 0.8, 4, 50], kratten_klets: ['winkel', 0.9, 5, 60], bel_uitslag: ['winkel', 0.8, 4, 40], deurbel_ding: ['deur', 0.8, 4, 40],
-  haspel_draai: ['water', 0.6, 3, 30], dobber_plons: ['water', 0.7, 4, 60], kopje_klink_0: ['winkel', 0.6, 3, 25], kopje_klink_1: ['winkel', 0.6, 3, 25], sleutels_rinkel: ['deur', 0.6, 3, 30],
-  tegel_breekt: ['deur', 0.9, 4, 60], glas_breekt: ['deur', 0.9, 5, 80], water_druppel: ['water', 0.5, 2, 20], val_plof: ['voetstap', 0.8, 3, 40],
+  ei_breuk_0: ['winkel', 0.8, 4, 50], ei_breuk_1: ['winkel', 0.8, 4, 50], kratten_klets: ['winkel', 0.9, 5, 60], bel_uitslag: ['winkel', 0.8, 4, 40],
+  haspel_draai: ['water', 0.6, 3, 30], dobber_plons: ['water', 0.7, 4, 60], kopje_klink_0: ['winkel', 0.6, 3, 25], kopje_klink_1: ['winkel', 0.6, 3, 25],
   stoomfluit: ['spoor', 0.8, 14, 600], omroep_ding: ['spoor', 0.7, 8, 100], toeter_start: ['voertuig', 0.8, 10, 300], fluitje: ['voertuig', 0.8, 8, 200],
   hydrauliek_sis: ['voertuig', 0.8, 6, 100], weegbrug_klik: ['deur', 0.7, 4, 50], brievenbus_klep: ['deur', 0.8, 3, 40], worp_lucht: ['voetstap', 0.7, 3, 40],
 };
@@ -120,7 +119,6 @@ export const FX_OPNAME_ALLEEN = {
   startsein_toeter: ['toeter_start'],
   startsein_fluit: ['fluitje'],
   klok_tik: ['klok_tik'],
-  afstand_piep: ['piep_afstand'],
   kratten_klets: ['kratten_klets'],
   ei_breuk: ['ei_breuk_0', 'ei_breuk_1'],
   weegbrug_klik: ['weegbrug_klik'],
@@ -128,17 +126,9 @@ export const FX_OPNAME_ALLEEN = {
   perron_ding: ['omroep_ding'],
   stoomfluit: ['stoomfluit'],
   bel_uitslag: ['bel_uitslag'],
-  deurbel: ['deurbel_ding'],
   brievenbus_klep: ['brievenbus_klep'],
   worp_lucht: ['worp_lucht'],
-  sleutels_rinkel: ['sleutels_rinkel'],
-  sms_tik: ['sms_tik'],
-  glas_breekt: ['glas_breekt'],
-  tegel_breekt: ['tegel_breekt'],
-  water_druppel: ['water_druppel'],
-  val_plof: ['val_plof'],
   dobber_plons: ['dobber_plons'],
-  ui_hover: ['ui_hover'],
 };
 export function vervangSleutel(name, has, rand = Math.random) {
   const kaal = String(name).replace(/_\d+$/, '');

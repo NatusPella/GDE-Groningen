@@ -425,32 +425,6 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 60 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
-    "deurbel_ding": {
-      "bestand": "deurbel_ding.ogg",
-      "gebruik": "deurbel (aanbellen)",
-      "loop": false,
-      "duur_s": 2.19,
-      "grootte_kb": 18.1,
-      "herkomst": {
-        "titel": "DoorBell Shortened",
-        "auteur": "jwheeler91",
-        "freesound_id": 442280,
-        "url": "https://freesound.org/people/jwheeler91/sounds/442280/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "a26539dc79eb5c29252d7bfd9978aac6bcd7b80b80e1e4ecec24a49ba6c3a58b"
-      },
-      "knip_s": {
-        "start": 0,
-        "duur": 2.2
-      },
-      "niveau": {
-        "rms_db": -22,
-        "piek_db": -6.6
-      },
-      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 200 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
-    },
     "dier_eend": {
       "bestand": "dier_eend.ogg",
       "gebruik": "eend die kwaakt",
@@ -874,32 +848,6 @@
         "piek_db": -9.9
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
-    },
-    "glas_breekt": {
-      "bestand": "glas_breekt.ogg",
-      "gebruik": "glas dat breekt",
-      "loop": false,
-      "duur_s": 1.18,
-      "grootte_kb": 12.4,
-      "herkomst": {
-        "titel": "Breaking Glass Stereo",
-        "auteur": "GN2013",
-        "freesound_id": 199906,
-        "url": "https://freesound.org/people/GN2013/sounds/199906/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "3386831ede8b8e26637c1abbd7e1e81a91df06b57496a904dbff51a9fd0516ff"
-      },
-      "knip_s": {
-        "start": 0,
-        "duur": 1.6
-      },
-      "niveau": {
-        "rms_db": -24.2,
-        "piek_db": -1.5
-      },
-      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 200 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
     },
     "golfjes_oever": {
       "bestand": "golfjes_oever.ogg",
@@ -1431,29 +1379,6 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
     },
-    "piep_afstand": {
-      "bestand": "piep_afstand.ogg",
-      "gebruik": "piepje van een afstandsmeter of waarschuwing",
-      "loop": false,
-      "duur_s": 0.5,
-      "grootte_kb": 6.6,
-      "herkomst": {
-        "titel": "Beep Good",
-        "auteur": "unfa",
-        "freesound_id": 154887,
-        "url": "https://freesound.org/people/unfa/sounds/154887/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "54f5650361a2323110a42eb47a1462422cc028a4a73cd21798f83b83f43c7872"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -26,
-        "piek_db": -11.5
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 500 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
-    },
     "plons_groot": {
       "bestand": "plons_groot.ogg",
       "gebruik": "grote plons in water",
@@ -1706,52 +1631,6 @@
         "piek_db": -8.4
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 50 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -20 dB, ogg (Vorbis q2)"
-    },
-    "sleutels_rinkel": {
-      "bestand": "sleutels_rinkel.ogg",
-      "gebruik": "sleutelbos die rinkelt",
-      "loop": false,
-      "duur_s": 1.51,
-      "grootte_kb": 16.9,
-      "herkomst": {
-        "titel": "Keys Jingling 1_2",
-        "auteur": "Joao_Janz",
-        "freesound_id": 485109,
-        "url": "https://freesound.org/people/Joao_Janz/sounds/485109/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "2da6d91e77cbbd9123c0352d9ca78c1399de29ffa9d236394385d0cf0359f713"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -28.9,
-        "piek_db": -1.5
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
-    },
-    "sms_tik": {
-      "bestand": "sms_tik.ogg",
-      "gebruik": "tik van een telefoonbericht",
-      "loop": false,
-      "duur_s": 0.36,
-      "grootte_kb": 4.7,
-      "herkomst": {
-        "titel": "Phone.ogg",
-        "auteur": "egomassive",
-        "freesound_id": 536748,
-        "url": "https://freesound.org/people/egomassive/sounds/536748/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "aec657da8857d3f2596fa5cb5e05ad5d2fc27c613a74d79b4b4ce13312fab9de"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -24,
-        "piek_db": -10.6
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "stad_nacht_nl": {
       "bestand": "stad_nacht_nl.ogg",
@@ -3367,29 +3246,6 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB, ogg (Vorbis q2)"
     },
-    "tegel_breekt": {
-      "bestand": "tegel_breekt.ogg",
-      "gebruik": "tegel die breekt",
-      "loop": false,
-      "duur_s": 0.52,
-      "grootte_kb": 8.1,
-      "herkomst": {
-        "titel": "Tile Breaking",
-        "auteur": "Fission9",
-        "freesound_id": 583310,
-        "url": "https://freesound.org/people/Fission9/sounds/583310/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "09cc586fa747e2a30ccaf07e6042dd72eac3992b48545f693ad0a99ff14be0c3"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -27.4,
-        "piek_db": -1.5
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 100 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -21 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
-    },
     "toeter_start": {
       "bestand": "toeter_start.ogg",
       "gebruik": "toeter als startsein of eindsignaal",
@@ -3620,29 +3476,6 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
     },
-    "ui_hover": {
-      "bestand": "ui_hover.ogg",
-      "gebruik": "zachte tik als je over een knop gaat",
-      "loop": false,
-      "duur_s": 0.15,
-      "grootte_kb": 4.3,
-      "herkomst": {
-        "titel": "Hover tick (Soft UI SFX Free)",
-        "auteur": "heyheytheree",
-        "freesound_id": 871921,
-        "url": "https://freesound.org/people/heyheytheree/sounds/871921/",
-        "licentie": "Creative Commons Attribution 4.0",
-        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "f94f4095f146fa7d6d0ba1721ff10267520501004b3e0c6e44e7ce9d25079fdf"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -30,
-        "piek_db": -5.4
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 500 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -30 dB, ogg (Vorbis q2)"
-    },
     "ui_klik": {
       "bestand": "ui_klik.ogg",
       "gebruik": "zachte klik van een knop in het menu",
@@ -3665,29 +3498,6 @@
         "piek_db": -8
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
-    },
-    "val_plof": {
-      "bestand": "val_plof.ogg",
-      "gebruik": "plof van een val op de grond",
-      "loop": false,
-      "duur_s": 0.57,
-      "grootte_kb": 6.6,
-      "herkomst": {
-        "titel": "slightmetallicthud.mp3",
-        "auteur": "profoundsounds",
-        "freesound_id": 686282,
-        "url": "https://freesound.org/people/profoundsounds/sounds/686282/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "5aaa622989152809c90b3ad438129aeb9c5fa03a3f3de2b9f89efdcee0cf9b6e"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -22,
-        "piek_db": -4.9
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 80 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
     },
     "vliegtuig_gestel": {
       "bestand": "vliegtuig_gestel.ogg",
@@ -3975,29 +3785,6 @@
         "piek_db": -1.5
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 60 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
-    },
-    "water_druppel": {
-      "bestand": "water_druppel.ogg",
-      "gebruik": "waterdruppel (druipen na het zwemmen)",
-      "loop": false,
-      "duur_s": 0.19,
-      "grootte_kb": 4.1,
-      "herkomst": {
-        "titel": "water drop",
-        "auteur": "florianreichelt",
-        "freesound_id": 683102,
-        "url": "https://freesound.org/people/florianreichelt/sounds/683102/",
-        "licentie": "Creative Commons 0 (CC0 1.0)",
-        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "datum": "2026-11-20",
-        "bron_sha256": "4538fe2d7685da74c6f7f2be6d0e133ae8a8836a83085082ad4ea20a12fb19b8"
-      },
-      "knip_s": null,
-      "niveau": {
-        "rms_db": -24,
-        "piek_db": -6.8
-      },
-      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "weegbrug_klik": {
       "bestand": "weegbrug_klik.ogg",
