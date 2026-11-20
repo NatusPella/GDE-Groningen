@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Hooibalen op de erven van boerderijen: je klimt er nu ook op (en staat erop zonder eraf geduwd te worden), net als op de balen in de velden (#959).
 - Bourtange: vijf waterstukken van het vaarnet die op droge wal en weg lagen (bij de vesting) zijn weggehaald, zodat de wal daar niet meer onder water staat (#953).
 
 ## [0.64.0] - 2026-11-20
