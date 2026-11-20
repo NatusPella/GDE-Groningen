@@ -126,7 +126,7 @@
 html.reduce-motion .rw, html.reduce-motion .rw * { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .rw, .rw * { animation: none !important; transition: none !important; } }
 
-/* ===== Designsysteem v3: de regelwidget als papieren plaatje (ADR 0040, #993) =====
+/* ===== Designsysteem v3: de regelwidget als papieren plaatje (ADR 0040, issue 993) =====
    Papier met inktrand en harde schaduw; kleur blijft nooit de enige drager (arcering, woord en icoon-gedrag blijven). */
 .rw {
   --rw-fg: var(--ds-c-ink-inkt);

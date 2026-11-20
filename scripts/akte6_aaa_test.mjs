@@ -216,7 +216,7 @@ t('de kaart komt alleen bij de eerste twee diensten van een baan', () => {
 });
 t('sidejobs.js toont de kaart alleen voor de host, na het intro, en geeft een sting bij een betaalde ronde', () => {
   const sj = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
-  assert.ok(sj.includes('owner === 0 && !takeover && kaartNodig('), 'alleen de eigen dienst, geen overgenomen bus');
+  assert.ok(sj.includes('owner === 0 && (!takeover || takeover.halte) && kaartNodig('), 'alleen de eigen dienst, geen overgenomen bus');
   assert.ok(sj.includes('c.aaaKaart && !isCinematicActive()) toonRegelkaart'), 'niet over het intro heen');
   assert.ok(sj.includes("if (host) { try { stingen.push(world, 'stap')"), 'de sting is voor de speler zelf');
 });

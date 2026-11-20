@@ -144,7 +144,7 @@ const CONTROL_GROUPS = [
     [['N'], 'Radio aan of uit'],
     [['U'], 'Geluid aan of uit'],
     [['O'], 'Verhaalstap overslaan'],
-    [['C'], 'Tijdens een taxi- of treinrit: andere camera (controller: Y)'],
+    [['C'], 'Taxi of trein: andere camera (Y)'],
     [['BACKSPACE'], 'Minigame of dienst stoppen'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
   ]],
