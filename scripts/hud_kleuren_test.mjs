@@ -126,11 +126,10 @@ ok(/mark: 0\.5/.test(skate) && /var\(--mk-danger, #d93f3f\)/.test(skate) && /tex
 const klim = read('klimtoren.js');
 ok(/var\(--mk-danger, #d93f3f\)/.test(klim) && /text: 'arm'/.test(klim) && /klimtoren: \{ titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'vlag' \}/.test(mg), 'klimtoren: armenbalk via token, vlag als icoon');
 
-// #613 hengelen: één bord voor wedstrijd en vrij hengelen, met modusregel, beetvorm en beloningskaart.
+// #613 / #985 hengelen: de strook van de light sims (simhud.js, model in hengelstatus.js) vervangt het bord; het bord blijft alleen voor de stand van de anderen in de wedstrijd.
 const hengelen = read('hengelen.js');
-ok(!/boardVrij/.test(hengelen) && (hengelen.match(/if \(!board\) board = createBoard\('hengelen'\)/g) || []).length === 2, 'hengelen: één bord voor beide modi');
-ok(/Vrij hengelen<\/span>/.test(hengelen) && /Wedstrijd<\/span>/.test(hengelen), 'hengelen: de modus staat op het bord');
-ok(/text: 'BEET'/.test(hengelen) && /kind: 'prestatie', kicker: 'Hengelen', key: 'hengel-vrij-klaar'/.test(hengelen), 'hengelen: beet als eigen vorm en het sessie-einde als beloningskaart');
+ok(/simHudTik\(0, hengelHudModel\(/.test(hengelen) && !/Vrij hengelen<\/span>/.test(hengelen), 'hengelen: één strook voor beide modi');
+ok(/beetTotaal/.test(hengelen) && /simHudPop\(/.test(hengelen) && /kicker: 'Hengelen', key: 'hengel-vrij-klaar'/.test(hengelen), 'hengelen: beetmeter, opspringende vangst en het sessie-einde als beloningskaart');
 
 // #621 rondvaart: droge kadenaam, krom Nederlands weg, uitslag noemt de gemiste kade en de seconden.
 const dienst = read('simdienst.js');
@@ -206,7 +205,7 @@ for (const [f, basis] of Object.entries(HUD_DRIFT)) {
 const { SURFACES } = await import('../game/js/hudbus.js');
 const HUD_AUDIT = new Set([...Object.keys(HUD_DRIFT), 'hudcards.css', 'choicepanel.js', 'minigamekit.js', 'kaartactieui.js']);
 // beeld/canvas/wereld: kleuren horen bij het spelbeeld of de 3D-wereld, niet bij HUD-chroom
-const BUITEN = new Set(['aimassist.js', 'banter.js', 'bakeround.js', 'boerderijui.js', 'farmhud.js', 'farmcards.js', 'busbestuurhud.js', 'busboard3d.js', 'casework.js', 'cinematics.js', 'coophold.js', 'coophud.js', 'coopscene.js', 'coopspelersui.js', 'coopwedstrijd3d.js', 'dorpsuitjes.js', 'drunk.js', 'furniture.js', 'garageui.js', 'gfxprofile.js', 'heliflight.js', 'helirun.js', 'hud_panel.js', 'hudcards.js', 'hudgps.js', 'hudtext.js', 'input.js', 'instrumenten.js', 'intromontage.js', 'loopbaanui.js', 'lowhealth.js', 'mapview.js', 'menumelding.js', 'multiplayerhostwisselui.js', 'namecard.js', 'padtest.js', 'partnerhud.js', 'pausemenu.js', 'phone.js', 'phonefeed.js', 'planeflight.js', 'postfx3d.js', 'postgame.js', 'profileoverlay.js', 'prompts.js', 'radiosub.js', 'reisrit.js', 'reisrit3d.js', 'respawn.js', 'reuzenrad.js', 'rondvaartchase.js', 'samenkeuze.js', 'savegame.js', 'scene3d.js', 'shopui.js', 'sikkomfeed.js', 'speech.js', 'spullen.js', 'stagesets.js', 'startscreen.js', 'stationtravel.js', 'story.js', 'storycontact.js', 'storydev.js', 'storytalk.js', 'storytest.js', 'stunthud.js', 'subtitles.js', 'testmenu.js', 'textfield.js', 'todoui.js', 'touch.js', 'trailer.js', 'verhaalui.js', 'veroverdpanel.js', 'beleidswinkel.js', 'visboekui.js', 'wrakduikenlive.js']);
+const BUITEN = new Set(['aimassist.js', 'banter.js', 'bakeround.js', 'boerderijui.js', 'farmhud.js', 'farmcards.js', 'simhud.js', 'busbestuurhud.js', 'busboard3d.js', 'casework.js', 'cinematics.js', 'coophold.js', 'coophud.js', 'coopscene.js', 'coopspelersui.js', 'coopwedstrijd3d.js', 'dorpsuitjes.js', 'drunk.js', 'furniture.js', 'garageui.js', 'gfxprofile.js', 'heliflight.js', 'helirun.js', 'hud_panel.js', 'hudcards.js', 'hudgps.js', 'hudtext.js', 'input.js', 'instrumenten.js', 'intromontage.js', 'loopbaanui.js', 'lowhealth.js', 'mapview.js', 'menumelding.js', 'multiplayerhostwisselui.js', 'namecard.js', 'padtest.js', 'partnerhud.js', 'pausemenu.js', 'phone.js', 'phonefeed.js', 'planeflight.js', 'postfx3d.js', 'postgame.js', 'profileoverlay.js', 'prompts.js', 'radiosub.js', 'reisrit.js', 'reisrit3d.js', 'respawn.js', 'reuzenrad.js', 'rondvaartchase.js', 'samenkeuze.js', 'savegame.js', 'scene3d.js', 'shopui.js', 'sikkomfeed.js', 'speech.js', 'spullen.js', 'stagesets.js', 'startscreen.js', 'stationtravel.js', 'story.js', 'storycontact.js', 'storydev.js', 'storytalk.js', 'storytest.js', 'stunthud.js', 'subtitles.js', 'testmenu.js', 'textfield.js', 'todoui.js', 'touch.js', 'trailer.js', 'verhaalui.js', 'veroverdpanel.js', 'beleidswinkel.js', 'visboekui.js', 'wrakduikenlive.js']);
 for (const [naam, s] of Object.entries(SURFACES)) {
   for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
 }
