@@ -460,7 +460,8 @@ function klaar(c) {
 // De strook onderin en de lichtkolom (#985): elke beeld de stand uit de ronde naar het pure model (krantenstatus.js). Alleen voor de eigen dienst.
 function zetStrook(c) {
   const d = c.data;
-  if (c.owner || !d.huizen || !d.huizen.length || d.phase === 'klaar' && !d.flying.length) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!d.huizen || !d.huizen.length || d.phase === 'klaar' && !d.flying.length) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const p = hoofdspeler(c.world);
   const open = d.huizen.filter((h) => !h.status);
   open.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));

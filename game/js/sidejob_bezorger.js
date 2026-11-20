@@ -12,6 +12,7 @@ import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js
 import { bezorgHudModel, pickupPop, afleverPop, UITLEG_ID } from './bezorgstatus.js';
 import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { reducedMotion } from './motion.js';
+import { aantalAdressen, maakLijst, afvinken, dichtstbij, puntjes, andereAdressen, basisMetAdressen, budgetMetAdressen, voortgang as teamVoortgang, klaar as teamKlaar, aantalKlaar, adresTekst } from './bezorgteam.js'; // Samen spelen (#983): verdeelde adressen
 
 const FATBIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.8, accel: 4.2, brake: 6, turnRate: 3.8, color: '#e4572e' };
 const CENTRE = { x: 191.86, y: 138.11, r: 1300 };
@@ -95,6 +96,19 @@ function newOrder(c) {
   return { zaak, door, street, nr: 1 + Math.floor(Math.random() * 140), dish: pick(zaak.menu), n, who: pick(CUSTOMERS), dist: Math.hypot(door.x - zaak.door.x, door.y - zaak.door.y) };
 }
 
+// Samen spelen (#983): een extra adres voor een meespelende bezorger, op loopafstand van de zaak (een gast loopt te voet).
+function extraAdres(c, zaak, vermijd) {
+  const map = c.world.map;
+  for (let i = 0; i < 8; i++) {
+    const p = randomStreetPoint(map, zaak.door.x, zaak.door.y, 150, 480, { cats: ['normal', 'minor', 'cycle'], within: (x, y) => Math.hypot(x - CENTRE.x, y - CENTRE.y) < CENTRE.r });
+    if (!p) continue;
+    const door = doorSpot(map, p.x, p.y);
+    if (!door || vermijd.some((v) => Math.hypot(v.x - door.x, v.y - door.y) < 40)) continue;
+    return { door, street: p.name || streetNameAt(map, p.x, p.y) || 'Onbekende straat', nr: 1 + Math.floor(Math.random() * 140), who: pick(CUSTOMERS) };
+  }
+  return null;
+}
+
 export default {
   id: 'bezorger',
   name: 'Hap & Rap bezorger',
@@ -138,6 +152,7 @@ export default {
     d.warmth = 100;
     d.cook = null;
     d.customer = null;
+    d.team = null; d.mainDone = false; // Samen spelen (#983): de adressen van een teambestelling (na het ophalen)
     d.rainNoted = false;
     const o = d.order;
     const p = hoofdspeler(c.world);
@@ -192,8 +207,27 @@ export default {
         const tight = (1 - 0.035 * Math.min(c.streak, 8)) * (1 - 0.03 * (c.level - 1));
         d.decay = 100 / (budget * tight);
         d.warmth = 100;
-        c.timeLeft = d.warmth / d.decay;
-        c.msg(`Opgehaald! Naar ${o.street} ${o.nr}. ${o.who} wacht.`, 3.5);
+        // Samen spelen (#983): met meespelers heeft de bestelling één adres per bezorger; alleen blijft het één adres
+        const helpers = typeof world.coopHelpers === 'function' ? world.coopHelpers() : null;
+        d.team = null;
+        if (helpers && helpers.length) {
+          const extras = [];
+          const vermijd = [o.door];
+          for (let i = 1; i < aantalAdressen(helpers.length); i++) {
+            const e = extraAdres(c, o.zaak, vermijd);
+            if (e) { extras.push(e); vermijd.push(e.door); }
+          }
+          if (extras.length) d.team = maakLijst({ door: o.door, street: o.street, nr: o.nr, who: o.who }, extras);
+        }
+        if (d.team) {
+          const budget2 = budgetMetAdressen(budget, d.team);
+          d.decay = 100 / (budget2 * tight);
+          c.timeLeft = d.warmth / d.decay;
+          c.msg(`Opgehaald! ${d.team.length} adressen: verdeel ze onderling, wie er het eerst staat geeft af.`, 5);
+        } else {
+          c.timeLeft = d.warmth / d.decay;
+          c.msg(`Opgehaald! Naar ${o.street} ${o.nr}. ${o.who} wacht.`, 3.5);
+        }
       }
       return;
     }
@@ -208,6 +242,19 @@ export default {
     c.timeLeft = d.warmth / rate;
 
     const door = o.door;
+    const team = d.team;
+    if (team) { // Samen spelen (#983): elk extra adres is bezorgd zodra een van de bezorgers er staat
+      for (const j of afvinken(team.slice(1), (dr) => afstandNaast(world, dr.x, dr.y), HANDOVER_R)) { // het eerste adres loopt hieronder mee (de klant, de groet)
+        const i = j + 1;
+        c.msg(`Bezorgd bij ${adresTekst(team[i])}: ${aantalKlaar(team)} van ${team.length}.`, 3);
+      }
+      if (d.mainDone && teamKlaar(team)) {
+        const warm0 = d.warmth;
+        c.complete({ base: basisMetAdressen(16 + o.dist / 22 + o.n * 3, team), tip: warm0 > 70 ? rand(6, 12) * (1 + c.streak * 0.1) : warm0 > 40 ? rand(2, 5) : 0, text: warm0 > 70 ? 'Warm bezorgd!' : 'Bezorgd.', flawless: !d.bumped });
+        return;
+      }
+    }
+    if (d.mainDone) return; // het eerste adres is af, de rest van de ronde loopt via de andere adressen
     const dd = afstandNaast(world, door.x, door.y);
     if (!d.customer && dd < CUSTOMER_SHOW_R) {
       d.customer = c.track(spawnPed(world, door.x, door.y, door.face));
@@ -222,6 +269,16 @@ export default {
       d.customer = null;
       d.last = { x: door.x, y: door.y };
       if (!c.owner) { const ap = afleverPop(warm, tip); simHudPop(ap.tekst, ap.geluid); }
+      if (team) { // Samen spelen (#983): dit adres is af; de ronde loopt door tot elk adres bezorgd is
+        d.mainDone = true; team[0].done = true;
+        if (!teamKlaar(team)) {
+          const rest = team.length - aantalKlaar(team);
+          c.msg(`Bezorgd bij ${adresTekst(team[0])}: ${aantalKlaar(team)} van ${team.length}. Nog ${rest} adres${rest === 1 ? '' : 'sen'}.`, 3);
+          return;
+        }
+        c.complete({ base: basisMetAdressen(16 + o.dist / 22 + o.n * 3, team), tip, text: warm > 70 ? 'Warm bezorgd!' : 'Bezorgd.', flawless: !d.bumped });
+        return;
+      }
       c.complete({ base: 16 + o.dist / 22 + o.n * 3, tip, text: warm > 70 ? 'Warm bezorgd!' : 'Bezorgd.', flawless: !d.bumped });
     }
   },
@@ -238,6 +295,17 @@ export default {
     }
     const w = d.wind;
     const wind = !w ? '' : w.along < -0.5 ? ` · tegenwind ${w.bft}` : w.along > 0.5 ? ' · wind mee' : '';
+    if (d.team) { // Samen spelen (#983): het dichtstbijzijnde open adres is de marker, de rest staat als puntjes
+      const p0 = hoofdspeler(c.world), i = dichtstbij(d.team, p0.x, p0.y);
+      if (i != null) {
+        const a = d.team[i];
+        return {
+          marker: { x: a.door.x, y: a.door.y }, dots: puntjes(d.team, i),
+          progress: `${teamVoortgang(c.streak + 1, d.team)} · warm ${Math.round(d.warmth)}%${wind}`,
+          goal: { label: `Bezorgen: ${adresTekst(a)}`, desc: andereAdressen(d.team, i) || 'Voor het koud is' },
+        };
+      }
+    }
     return {
       marker: { x: o.door.x, y: o.door.y },
       progress: `Bestelling ${c.streak + 1} · warm ${Math.round(d.warmth)}%${wind}`,
@@ -257,7 +325,8 @@ export default {
 // De strook onderin en de lichtkolom boven het volgende doel (#985): elke beeld de stand uit de bestelling naar het pure model (bezorgstatus.js). Alleen voor de eigen dienst.
 function zetBezorgStrook(c, p) {
   const d = c.data, o = d.order;
-  if (c.owner || !o || !d.phase) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (c.owner) { if (d.kolom) d.kolom.visible = false; return; } // de baan van een gast raakt de strook van de eigenaar niet (ook niet om hem leeg te maken)
+  if (!o || !d.phase) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
   const doel = d.phase === 'pickup' ? o.zaak.door : o.door;
   if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('bezorgkolom'));
   const grond = c.world.map.elev && c.world.map.elev.has ? c.world.map.groundHeightAt(doel.x, doel.y, 0) : 0;

@@ -82,6 +82,7 @@ import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
 import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
+import { postenBegin, postenTik, postenWaypoints } from './missieposten.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)
@@ -998,7 +999,7 @@ function syncPub(world) {
     pub.remainingWaypoints =
       (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
         ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))
-        : [];
+        : (active && st.posten ? postenWaypoints(st, st.stageIndex) : []); // Samen spelen (#983): de andere open posten
   }
   world.mission = pub;
 }
@@ -1513,6 +1514,7 @@ let forceStart = false;
 function startMission(world, def) {
   removeLeftover(world);
   chainState().tags = new Set();
+  chainState().posten = null; // Samen spelen (#983): de posten van een vorige poging tellen niet mee
   chainState().bakeTier = null;
   // #591: a new attempt starts without a skip from an earlier one
   chainState().heistSkip = false;
@@ -2643,6 +2645,7 @@ function enterStage(world, def, k) {
   }
   if (st.talk && storyDataReady()) playTalk(talkLines(st.talk.ids, st.talk), { id: `${def.id || def.label}:${k}`, delay: st.talk.delay || 1 });
   if (st.clock) { chainState().clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
+  if (st.posten) { try { postenBegin(world, def, k, chainState(), (t) => resolveTarget(world, t, from)); } catch (e) { chainState().posten = null; } } // Samen spelen (#983)
   saveCheckpoint(world, def, k);
 }
 
@@ -3482,6 +3485,8 @@ function updateStages(dt, world, def) {
   if (st.light && updateLightStage(dt, world, def, st, S)) return;
   const v = chainState().vehicle;
   const inCar = !!v && p.inVehicle === v;
+  // Samen spelen (#983): met meer spelers lopen de posten van een groep stappen tegelijk (alleen verandert er niets)
+  if (st.posten) { let pr = null; try { pr = postenTik(world, def, chainState().stageIndex, chainState(), dt, modeOk, S); } catch (e) { chainState().posten = null; } if (pr === 'volgende') { nextStage(world, def); return; } }
   // samen spelen (#452): een stap met de vlag iedereen wacht op elke meespeler bij het doel (goto, hold en escape lezen de vlag zelf)
   if (st.iedereen && !GROEPSTAPPEN.has(st.kind) && !groepKlaar(world, st, S.target)) { hint(world, WACHT_OP_ANDEREN); return; }
   switch (st.kind) {

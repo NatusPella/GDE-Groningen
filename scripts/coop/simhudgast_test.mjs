@@ -13,15 +13,24 @@ const bron = (b) => fs.readFileSync(new URL(`../../game/js/sidejob_${b}.js`, imp
 for (const b of BANEN) {
   t(`${b}: elke strook-, pop- en uitlegaanroep staat achter c.owner`, () => {
     const slecht = [];
-    bron(b).forEach((regel, i) => {
+    const regels = bron(b);
+    regels.forEach((regel, i) => {
       if (/^\s*import\s/.test(regel) || /^\s*\/\//.test(regel)) return;
       const aanroep = /\b(simHudPop|zetUitlegGezien)\(/.test(regel) || /\bsimHudTik\(0, null\)/.test(regel);
-      if (aanroep && !/\bc\.owner\b|!c \|\| !c\.owner/.test(regel)) slecht.push(`${i + 1}: ${regel.trim().slice(0, 90)}`);
+      const vroeg = i > 0 && /^\s*if \(c\.owner\) \{ if \(d\.kolom\) d\.kolom\.visible = false; return; \}/.test(regels[i - 1]); // de vorige regel is de vroege return voor een gast
+      if (aanroep && !vroeg && !/\bc\.owner\b|!c \|\| !c\.owner/.test(regel)) slecht.push(`${i + 1}: ${regel.trim().slice(0, 90)}`);
     });
     assert.deepEqual(slecht, [], 'zonder bewaking: ' + slecht.join(' | '));
   });
   t(`${b}: de strook wordt voor een gast leeg gelaten (vroege return op c.owner)`, () => {
-    assert.ok(bron(b).some((r) => /if \(c\.owner \|\|/.test(r)), 'geen vroege return op c.owner');
+    assert.ok(bron(b).some((r) => /if \(c\.owner\) \{ if \(d\.kolom\) d\.kolom\.visible = false; return; \}/.test(r)), 'geen vroege return op c.owner');
+  });
+}
+
+for (const b of BANEN) {
+  t(`${b}: een baan van een gast maakt de strook van de eigenaar ook niet leeg (geen simHudTik in een c.owner-tak)`, () => {
+    const slecht = bron(b).filter((r) => /if \(c\.owner \|\|.*\{[^}]*simHudTik\(/.test(r) || /if \(c\.owner\) \{[^}]*simHudTik\(/.test(r));
+    assert.deepEqual(slecht, []);
   });
 }
 
