@@ -8,6 +8,11 @@ import { missionStats, fmtTime, failureStats } from './missionstats.js';
 import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning, eggFailText } from './eggspeed.js';
 import { createMissionLanes } from './missionlanes.js';
 import { createMissionGates } from './missiongates.js';
+import { REQUIREMENTS, RACE_MIN_TOP, isRaceCar, isCarRide, rideOk, WRONG_RIDE } from './missionrequirements.js';
+import { roadSpot, rentalBoat, routeS, createMissionTargets } from './missiontarget.js';
+export { RACE_MIN_TOP };
+import { HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, DIJK_CP, dijkEtappe } from './missionrules.js';
+export { HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, dijkEtappe } from './missionrules.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { isNight, setHomePlace, getHomePlace, registerMissionQueries } from './missionquery.js';
@@ -31,9 +36,8 @@ import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian } from './pedestrians.js';
 import { isInsideBuilding, setPedPose } from './pedgeom.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { getShopsForRender, getOwnedEntries, repaintVehicle, storyShopState, setStoryOutfit, ownedCarTops } from './shops.js';
-import { SHOP_TYPES } from './shopdata.js';
-import { getGaragesForRender, garageInside } from './garages.js';
+import { getShopsForRender, repaintVehicle, setStoryOutfit, ownedCarTops } from './shops.js';
+import { garageInside } from './garages.js';
 import { getHomeGarageForRender } from './home.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -47,7 +51,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL, heistRolStap, heistBuit,
+  heistApproach, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL, heistRolStap, heistBuit,
 } from './heist.js';
 import { buitDelen } from './heistrollen.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
@@ -64,7 +68,6 @@ import { buildZijDefs } from './missionsdata_zij.js';
 import { buildDefsVoorMuseum, buildDefsNaMuseum } from './missions_defs.js';
 import { createBake, updateBake, showBake, hideBake, bakeProgress, bakePanel, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
 import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } from './convoy.js';
-import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
@@ -126,25 +129,10 @@ const STOP_RADIUS = 7;
 const STOP_WAIT = 1.6;
 const REQUIREMENT_HINT_EVERY = 25;
 
-// #591: skipping a heist stage with O pays half the mission reward, the same share a story skip pays.
-// The mission stays playable; only the payout is honest about the part that was skipped.
-export const HEIST_SKIP_SHARE = 0.5;
-export function skipReward(reward) {
-  return Math.round(((Number(reward) || 0) * HEIST_SKIP_SHARE) / 5) * 5;
-}
 
 
 
 
-
-
-// The nearest road point, unless that lies inside a building or a closed-off
-// courtyard: then the nearest street you can actually reach (findOpenSpawn).
-function roadSpot(map, x, y, drivable = false) {
-  const p = map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
-  if (!map.isOpenSpot || map.isOpenSpot(p.x, p.y)) return p;
-  return map.findOpenSpawn(p.x, p.y, 200, drivable) || p;
-}
 
 // De verhaaldefinities staan sinds #502 in missions_defs.js: dat bestand is de data, dit bestand de
 // runner. Alleen de def van M06 blijft hier staan, omdat twee tests zijn stappen hier letterlijk
@@ -540,84 +528,6 @@ export function getMissionList() {
   })).filter((m) => ARC_BUILT.has(m.index) || !!chainState().defs[m.index].side);
 }
 
-// --- requirements ------------------------------------------------------------
-// Some missions need gear first: a gun of your own for Jelmer's livestream, a
-// car on your own name for the sponsored ring race.
-
-const REQUIREMENTS = {
-  bike: {
-    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'bike'),
-    shop: 'fietsen',
-    text: (shop) => `De KEI-weekrace is een fietsrace: alleen wie een eigen fiets heeft, mag starten. Koop er een bij ${shop}.`,
-  },
-  heist: {
-    met: () => { const st = storyShopState(); return st.incognito || st.rental; },
-    shop: ['kleding', 'boot'],
-    text: (shop) => `Voor de kraak heb je zwart incognito nodig (Stoer & Stads) of een huurboot (Bootje Huren). Dichtstbij: ${shop}.`,
-  },
-  night: {
-    met: (w) => isNight(w),
-    garage: true, home: true,
-    text: () => 'Kraken doe je in het donker. Wacht thuis in de flat tot het avond is (na 21:00), of slaap tot de avond.',
-  },
-  boat: {
-    met: () => storyShopState().rental,
-    shop: 'boot',
-    text: (shop) => `Hiervoor heb je een eigen boot nodig. Huur er een bij ${shop}.`,
-  },
-  weapon: {
-    met: (w) => ['pistol', 'uzi', 'shotgun', 'jachtgeweer'].some((k) => (w.ammo[k] || 0) > 0),
-    shop: 'wapens',
-    text: (shop) => `Jelmer leent geen wapens meer uit. Koop eerst een wapen bij ${shop}.`,
-  },
-  // H9: a car of your own that can keep up on the ringweg (the Escapade once tuned)
-  racecar: {
-    met: (w) => ownedCarTops().some((c) => isRaceCar(c.name, c.top)) || rideOk(w, 'racecar'),
-    shop: 'tuning',
-    text: (shop) => `De ringweg-race win je alleen in een snelle auto, 200 km/u of meer. Voer de Escapade op bij ${shop}, of koop een sportwagen bij ${SHOP_TYPES.auto.chain}.`,
-  },
-  car: {
-    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'car' && !o.spec.unlock), // bought, not a story unlock
-    shop: 'auto',
-    text: (shop) => `De ringweg-race wordt gesponsord door ${SHOP_TYPES.auto.chain}: alleen wie een eigen auto heeft mag starten. Koop er eerst een bij ${shop}.`,
-  },
-};
-
-// --- the right ride at the start ----------------------------------------------
-// def.ride: what you have to arrive in for the mission to start (the start
-// marker waits, with a line from the companion, until you do).
-//   racecar  H9: a sports car, or any car tuned to 200 km/u (RACE_MIN_TOP)
-//   bike     H5: any bike, a fatbike included
-//   quay     H13: on the quay, not in a boat of your own: the tour boat waits
-
-export const RACE_MIN_TOP = 200 / 3.6;
-// the rivals top out at ~55 m/s (racers.js RACE_TOP x topScale) and the
-// rubber band holds the leaders back: from 200 km/u the podium is a fair fight
-const isRaceCar = (name, top) => name === 'sport' || top >= RACE_MIN_TOP - 0.01;
-const isCarRide = (v) => !!v && !v.isBoat && !v.isBike && !v.isScooter && !v.isHeli;
-
-function rideOk(w, ride, v = hoofdspeler(w).inVehicle) {
-  if (ride === 'racecar') return isCarRide(v) && !v.wrecked && isRaceCar(v.model.name, v.model.maxSpeed);
-  if (ride === 'bike') return !!v && v.isBike;
-  if (ride === 'quay') return !v || !v.isBoat;
-  return true;
-}
-
-// What the companion says when you turn up in the wrong thing.
-const WRONG_RIDE = {
-  racecar: [
-    { when: (v) => !v, say: 'Lopend win je geen race. Haal je snelste auto.' },
-    { when: (v) => v.model.tank, say: 'Met die vetwagen win je geen race. Haal je snelste auto.' },
-    { when: (v) => v.isBike || v.isScooter, say: 'Op de ringweg win je niks op twee wielen. Haal je snelste auto.' },
-    { when: (v) => v.isHeroCar, say: 'De Escapade is nog te traag voor de ringweg. Eerst langs Knal & Kolder.' },
-    { when: () => true, say: 'Daarmee win je geen race. Haal je snelste auto, of laat hem opvoeren bij Knal & Kolder.' },
-  ],
-  bike: [
-    { when: () => true, say: 'Het is een fietsrace. Kom op je eigen fiets.' },
-  ],
-  quay: [{ when: () => true, say: 'Eerst aanmeren en uitstappen. De rondvaartboot ligt al klaar aan de kade.' }],
-};
-
 // False (with the companion's line, now and then) while the player is not in
 // the ride def needs.
 function checkRide(w, def) {
@@ -665,6 +575,8 @@ export const requirementPlace = (...a) => gates.requirementPlace(...a);
 const nearestShopOf = (...a) => gates.nearestShopOf(...a);
 const requirementText = (...a) => gates.requirementText(...a);
 function checkRequirement(...a) { return gates.checkRequirement(...a); }
+const resolveTarget = createMissionTargets({ state: chainState, nearestShopOf });
+export { resolveTarget as resolveMissionTarget };
 export function getNextMission() {
   if (!chainState()) return null;
   const d = chainState().defs[chainState().index];
@@ -2202,135 +2114,8 @@ const SPOT_RADIUS = 16;
 const SPOT_TIME = 0.8;
 const RESPRAY_COLORS = ['#1e9e56', '#2e5f9e', '#d9b21b', '#6a2e8a', '#e8e6e0'];
 
-function resolveTarget(world, spec, from) {
-  if (!spec) return null;
-  const map = world.map;
-  const snap = (x, y) => (spec.snap ? roadSpot(map, x, y, spec.snap === 'drive') : { x, y });
-  if (Number.isFinite(spec.x) && Number.isFinite(spec.y)) return spec;
-  if (spec.at) return { ...snap(spec.at[0], spec.at[1]), label: spec.label };
-  // a real place by latitude and longitude (the new arc's tile world, akte 4); snapped to a road when `snap` says so
-  if (spec.ll) { const [wx, wy] = wgsToWorld(spec.ll[0], spec.ll[1]); return { ...snap(wx, wy), label: spec.label }; }
-  if (spec.shop) {
-    const s = nearestShopOf({ player: from }, spec.shop);
-    return s ? { x: s.x, y: s.y, name: s.name, label: spec.label || s.name } : null;
-  }
-  if (spec.garage) {
-    let best = null, bd = Infinity;
-    for (const g of getGaragesForRender()) {
-      const d = dist(g.x, g.y, from.x, from.y);
-      if (d < bd) { bd = d; best = g; }
-    }
-    return best ? { x: best.x, y: best.y, name: best.name, label: spec.label || best.name } : null;
-  }
-  if (spec.landmark) {
-    const lm = (map.meta.landmarks || []).find((l) => l.name === spec.landmark);
-    if (!lm) return null;
-    const [dx, dy] = spec.off || [0, 0];
-    return { ...snap(lm.x + dx, lm.y + dy), label: spec.label || spec.landmark, z: spec.z, r: spec.r };
-  }
-  if (spec.heistSpot) return heistSpotAt(map, spec.heistSpot);
-  if (spec.pigeonSpot) {
-    const ps = getPigeonSpotsForRender().find((q) => q.id === spec.pigeonSpot);
-    return ps ? { x: ps.x, y: ps.y, label: ps.name } : null;
-  }
-  if (spec.helipad) {
-    const hp = helipadById(spec.helipad);
-    return hp ? { x: hp.x, y: hp.y, label: spec.label || hp.name } : null;
-  }
-  if (spec.heli) {
-    const hs = getHeliSpotsForRender()[0];
-    return hs ? { x: hs.x, y: hs.y, label: spec.label || 'Traumaheli' } : null;
-  }
-  if (spec.rental) {
-    const b = rentalBoat(world);
-    return b ? { x: b.x, y: b.y, label: spec.label || 'Je huurboot' } : null;
-  }
-  if (spec.route) {
-    const r = routeS(from.x, from.y);
-    const q = routeAt(r.s);
-    return { x: q.x, y: q.y, label: spec.label };
-  }
-  if (spec.shore) return { ...roadSpot(map, from.x, from.y), label: spec.label };
-  if (spec.skutsje) return chainState().skutsje ? { x: chainState().skutsje.x, y: chainState().skutsje.y, label: spec.label } : null;
-  if (spec.storyBoat) return chainState().storyBoat ? { x: chainState().storyBoat.x, y: chainState().storyBoat.y, label: spec.label || 'De rubberboot van Klaas' } : null;
-  if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
-  return null;
-}
-export { resolveTarget as resolveMissionTarget };
-
-function rentalBoat(world) {
-  return world.vehicles.find((v) => v.isBoat && v.playerOwned && !v.wrecked && !v.sinking) || null;
-}
-
-// Progress s along the Diepenring route (rondvaartchase.js) nearest to (x, y).
-function routeS(x, y) {
-  let best = 0, bd = Infinity;
-  for (let s = 0; s <= ROUTE_LENGTH; s += 4) {
-    const q = routeAt(s);
-    const d = (q.x - x) ** 2 + (q.y - y) ** 2;
-    if (d < bd) { bd = d; best = s; }
-  }
-  return { s: best, d: Math.sqrt(bd) };
-}
-
-// A dry spot right at the water's edge near (x, y), outside buildings: where
-// Jelle takes his run-up for a jump over the water.
-function bankNear(map, x, y) {
-  const inside = (px, py) => map.buildingsNear(px, py, 1).some((b) => pointInPolygon(px, py, b.pts));
-  for (let r = 0; r <= 160; r += 4) {
-    const n = Math.max(1, Math.round(r / 3));
-    for (let k = 0; k < n; k++) {
-      const a = (k / n) * Math.PI * 2;
-      const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
-      if (isInWater(map, px, py) || inside(px, py)) continue;
-      for (let j = 0; j < 8; j++) {
-        if (isInWater(map, px + Math.cos(j * Math.PI / 4) * 4, py + Math.sin(j * Math.PI / 4) * 4)) return { x: px, y: py };
-      }
-    }
-  }
-  return roadSpot(map, x, y);
-}
-
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
 // from the mission start, pointing away from the player where the road allows.
-// seconds a parked chase target waits for the player to come close before it flees by itself
-export const CHASE_WAIT_MAX = 6;
-// the wait for a parked target: CHASE_WAIT_MAX s, plus the metres to its `parked` ring at an easy 10 m/s (the bot measured 13 m/s through the city, with a flat tyre on the way)
-export function chaseWaitMax(d0, st) {
-  return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 10;
-}
-
-// #955: a fleeing vehicle that does not get anywhere (M07's tanker ended up in a dead-end side street by the Eemskanaal and sat
-// there for good, the chase timing out as 'escaped') counts as stopped once it has stayed within CHASE_STUCK_RADIUS metres for
-// CHASE_STUCK_S seconds. Kept pure so a test can prove the timing; S holds the anchor and the clock.
-export const CHASE_STUCK_S = 12;
-export const CHASE_STUCK_RADIUS = 6;
-// Only counts while a player is close (d metres, given): a tanker at a red light or in a queue while you are still far away is
-// waiting, not stuck, and ending the chase then would hand the stage over for free. The clock stands still while you are far.
-export const CHASE_STUCK_NEAR = 80;
-export function chaseStuckStep(S, v, dt, d) {
-  if (!S.stuckAt || Math.hypot(v.x - S.stuckAt.x, v.y - S.stuckAt.y) > CHASE_STUCK_RADIUS) { S.stuckAt = { x: v.x, y: v.y }; S.stuckT = 0; return false; }
-  if (Number.isFinite(d) && d > CHASE_STUCK_NEAR) { S.stuckT = 0; return false; }
-  S.stuckT = (S.stuckT || 0) + dt;
-  return S.stuckT >= CHASE_STUCK_S;
-}
-
-// #591: the road under a chase start may not be streamed in when the stage begins. Instead of failing
-// the mission at once, the stage waits for it and tries again a few times (a clean failure was an
-// unwinnable stage, and the player had done nothing wrong).
-export const CHASE_SPAWN_WAIT_S = 8;
-export const CHASE_SPAWN_RETRY_S = 0.5;
-
-// What a chase stage does while its target could not spawn yet: 'wait' (no new attempt this frame),
-// 'try' (spawn another one) or 'fail' (the road never came). Kept pure so a test can prove the timing.
-export function chaseSpawnStep(S, dt) {
-  S.spawnT = (S.spawnT || 0) + dt;
-  if (S.spawnT > CHASE_SPAWN_WAIT_S) return 'fail';
-  if (S.spawnT < (S.spawnTryAt || 0)) return 'wait';
-  S.spawnTryAt = S.spawnT + CHASE_SPAWN_RETRY_S;
-  return 'try';
-}
-
 function spawnChaseVehicle(world, def, st) {
   const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
   const base = from && from.road ? from : def.start;
@@ -3044,21 +2829,11 @@ function updateHeliStage(dt, world, def, st, S) {
 // beloning per plek in eigen geld en racepunten. Wie nee zegt of niet meedoet, kijkt mee op het bord van de race
 // (coopwedstrijd3d.js). Zonder gasten blijft het de gewone race tegen de trekker-limo van Jelle: de opdracht zelf
 // verandert niet, de host moet nog steeds als eerste bij de sluis zijn.
-const DIJK_CP = 6;             // etappes: de voortgang is de afstand tot de sluis
 const DIJK_COUNTDOWN = 4;      // s: het gezamenlijke aftellen bij de start
 const DIJK_CAP_S = 600;        // s: de wedstrijd duurt hooguit tien minuten
 const DIJK_NA_EERSTE_S = 120;  // s: zoveel tijd krijgen de anderen na de eerste
 const DIJK_GRID = { terug: 6, rij: 8, zij: 2.4 }; // m: de startrijen achter de lijn, om en om links en rechts
 let dijkRun = null;            // de lopende wedstrijd van de straatrace (#443)
-
-// De etappe bij een afstand tot de sluis: puur, voor de tussenstand en de test (akte3_test.mjs).
-export function dijkEtappe(af, len, cps = DIJK_CP, reach = 16) {
-  if (!(len > 0)) return { cp: 0, s: 0, klaar: false };
-  const deel = clamp(1 - af / len, 0, 1);
-  const klaar = af <= reach;
-  const cp = klaar ? cps : Math.min(cps - 1, Math.floor(deel * cps));
-  return { cp, s: Math.round((deel * cps - cp) * 1000), klaar };
-}
 
 // De stap van de straatrace in de opdracht die nu loopt, of null.
 function dijkStage() {

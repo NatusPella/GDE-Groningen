@@ -20,7 +20,7 @@ const _segA = new THREE.Vector3();
 const _segB = new THREE.Vector3();
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -61,9 +61,16 @@ import { isRangedWeapon } from './weapons.js';
 import { getCombatEffect } from './combateffect.js';
 import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
-import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp, auditWaterMeshes } from './water3d.js';
+import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, auditWaterMeshes } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
-import { seaExtra, golfWip } from './golven.js';
+import { animateBoat } from './scene3d/boatbuoy3d.js';
+import { buildPolyGeometry } from './scene3d/shapegeo3d.js';
+import { buildKissHeartMesh } from './scene3d/kissheart3d.js';
+import { FADE_STEPS, applyPedFade } from './scene3d/pedfade3d.js';
+import { bindPrewarmHost, scanForPrewarm, withLightRig, prewarmLightVariants, prewarmQueued } from './scene3d/prewarm3d.js';
+import { bindCullHost, cullOffscreenActors, restoreCulledActors, knownGroupSphere, verifyShadowBox, culledActors, culledGroups } from './scene3d/cull3d.js';
+export { toggleLightRig } from './scene3d/prewarm3d.js';
+import { seaExtra } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
@@ -79,10 +86,10 @@ import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
 import { buildRailDecks, disposeStructureGeometries } from './roadstructures3d.js';
-import { snapShadowCenter, shadowPassSkipped, actorShadowReach } from './shadowsnap.js';
+import { snapShadowCenter, shadowPassSkipped } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
-import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
+import { pointInPolygon, WATER_Y, isInWater } from './util.js';
 import { buildingAt } from './tileplace.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
@@ -120,7 +127,7 @@ import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
-import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
+import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
@@ -322,9 +329,6 @@ let missionWaypointSetKey = null;
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
 const kissMeshes = new Map();
-// Kiss heart: a camera-facing sprite from a canvas heart (bezier outline,
-// glossy gradient, white rim), so it reads as a heart from every angle.
-let kissHeartTex = null;
 // Over een hek of hindernis: de sprongstand uit bewegingrules.js (#207) op de botten van de speler.
 // Eén pose die elk beeld wordt hergebruikt: de standen schrijven er direct in (geen nieuwe objecten per beeld).
 const bewegPose = neutralPose();
@@ -334,53 +338,6 @@ function vaultPose(mesh, u, climb, t) {
   applyPose(mesh.userData, bewegPose);
 }
 
-function kissHeartTexture() {
-  if (kissHeartTex) return kissHeartTex;
-  const S = 128;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const g = c.getContext('2d');
-  const heart = () => {
-    g.beginPath();
-    g.moveTo(64, 112);
-    g.bezierCurveTo(36, 92, 10, 70, 10, 44);
-    g.bezierCurveTo(10, 24, 25, 12, 41, 12);
-    g.bezierCurveTo(52, 12, 60, 18, 64, 28);
-    g.bezierCurveTo(68, 18, 76, 12, 87, 12);
-    g.bezierCurveTo(103, 12, 118, 24, 118, 44);
-    g.bezierCurveTo(118, 70, 92, 92, 64, 112);
-    g.closePath();
-  };
-  g.shadowColor = 'rgba(0, 0, 0, 0.45)';
-  g.shadowBlur = 6;
-  heart();
-  g.lineWidth = 10;
-  g.strokeStyle = '#fff4f7';
-  g.lineJoin = 'round';
-  g.stroke();
-  g.shadowColor = 'transparent';
-  const grad = g.createLinearGradient(20, 12, 100, 112);
-  grad.addColorStop(0, '#ff7aa8');
-  grad.addColorStop(0.55, '#f02d63');
-  grad.addColorStop(1, '#b3123f');
-  heart();
-  g.fillStyle = grad;
-  g.fill();
-  g.beginPath();
-  g.ellipse(40, 38, 13, 8, -0.6, 0, Math.PI * 2);
-  g.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  g.fill();
-  kissHeartTex = new THREE.CanvasTexture(c);
-  kissHeartTex.colorSpace = THREE.SRGBColorSpace;
-  return kissHeartTex;
-}
-function buildKissHeartMesh() {
-  const mat = new THREE.SpriteMaterial({ map: kissHeartTexture(), transparent: true, depthWrite: false, toneMapped: false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.geometry.userData.shared = true;
-  sprite.renderOrder = 5;
-  return sprite;
-}
 let sun = null;
 let hemi = null;
 let skyDome = null;
@@ -1011,6 +968,8 @@ export function init3D(map) {
   billboardRoot = document.getElementById('hud');
 
   postfx = createPostFX(renderer, scene, cam);
+  bindPrewarmHost({ scene, renderer, cam, postfx, sun });
+  bindCullHost({ scene, cam, vehicleMeshes, pedMeshes, wildlifeMeshes, sunDir });
   zetVrachtStencilProbe(() => postfx.hasStencil);
   initNightLights(scene);
   for (const b of gridItems(map.buildingGrid)) if (b.landmark) landmarkBuildings.push(b);
@@ -1214,86 +1173,6 @@ function applyRenderSize() {
   postfx.setSize(w, h, wantRatio);
 }
 
-
-// --- shape helpers -----------------------------------------------------
-
-function shapeFromPoly(pts) {
-  const shape = new THREE.Shape();
-  shape.moveTo(pts[0][0], -pts[0][1]);
-  for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], -pts[i][1]);
-  return shape;
-}
-
-// Grid-tessellated fallback fill, same robust technique terrain3d.js already
-// uses to cut real water holes: tile the polygon's own bbox and keep only
-// triangles whose centroid passes a plain point-in-polygon test. Immune to
-// the self-intersection assumption ShapeGeometry/earcut needs - which some
-// real water/green polygons violate on purpose (e.g. a canal "ring" like
-// the Diepenring, whose point list traces the outer edge forward then the
-// inner edge backward specifically so the ray-cast tests used everywhere
-// else in this codebase read it as a ring with a hole).
-function buildGridFillGeometry(pts) {
-  const [minx, miny, maxx, maxy] = polygonBounds(pts);
-  const w = Math.max(maxx - minx, 1e-3), d = Math.max(maxy - miny, 1e-3);
-  const targetSegs = 80;
-  const cell = Math.max(w, d) / targetSegs;
-  const segsX = Math.max(1, Math.round(w / cell));
-  const segsZ = Math.max(1, Math.round(d / cell));
-  const nx = segsX + 1, nz = segsZ + 1;
-
-  const positions = new Float32Array(nx * nz * 3);
-  for (let j = 0; j < nz; j++) {
-    const wy = miny + (d * j) / segsZ;
-    for (let i = 0; i < nx; i++) {
-      const wx = minx + (w * i) / segsX;
-      const idx = (j * nx + i) * 3;
-      positions[idx] = wx; positions[idx + 1] = 0; positions[idx + 2] = wy;
-    }
-  }
-
-  const maxTriangles = segsX * segsZ * 2;
-  const indices = new Uint32Array(maxTriangles * 3);
-  let indexCount = 0;
-  for (let j = 0; j < segsZ; j++) {
-    for (let i = 0; i < segsX; i++) {
-      const a = j * nx + i, b = j * nx + i + 1, c = (j + 1) * nx + i, dd = (j + 1) * nx + i + 1;
-      const ax = positions[a * 3], ay = positions[a * 3 + 2];
-      const bx = positions[b * 3], by = positions[b * 3 + 2];
-      const cx = positions[c * 3], cy = positions[c * 3 + 2];
-      const dx = positions[dd * 3], dy = positions[dd * 3 + 2];
-
-      const cx1 = (ax + cx + bx) / 3, cy1 = (ay + cy + by) / 3;
-      if (pointInPolygon(cx1, cy1, pts)) { indices[indexCount++] = a; indices[indexCount++] = c; indices[indexCount++] = b; }
-
-      const cx2 = (bx + cx + dx) / 3, cy2 = (by + cy + dy) / 3;
-      if (pointInPolygon(cx2, cy2, pts)) { indices[indexCount++] = b; indices[indexCount++] = c; indices[indexCount++] = dd; }
-    }
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setIndex(new THREE.BufferAttribute(indices.subarray(0, indexCount), 1));
-  geo.computeBoundingSphere();
-  return geo;
-}
-
-// earcut (via ShapeGeometry) silently collapses to a near-empty mesh on a
-// self-intersecting contour instead of throwing - caught here by checking
-// the triangulated vertex count against the input point count, since a
-// healthy triangulation never drops points. Falls back to the grid fill
-// above only for the rare polygons that actually need it; the cheap earcut
-// path stays the default for every ordinary simple polygon (most ponds/
-// parks), since building a full grid per polygon is needlessly expensive.
-function buildPolyGeometry(pts) {
-  const shape = shapeFromPoly(pts);
-  const geo = new THREE.ShapeGeometry(shape);
-  if (geo.attributes.position.count < pts.length * 0.5) {
-    geo.dispose();
-    return buildGridFillGeometry(pts);
-  }
-  geo.rotateX(-Math.PI / 2);
-  return geo;
-}
 
 // One shared animated ShaderMaterial for every water polygon (uTime updated
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
@@ -2376,59 +2255,18 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
 const _wildlifeNear = [], _wildlifeSeen = new Set(), _pedSeen = new Set(), _bubbleSeen = new Set(), _fireSeen = new Set();
-const FADE_STEPS = 16;
-const PED_FADE_TIME = 0.6;const PED_EDGE_FADE = 14;
+const PED_FADE_TIME = 0.6;
+const PED_EDGE_FADE = 14;
 const PED_BUILD_BUDGET_MS = 2.5;
 // a jump builds the people round the player at once, up to this much more
 const PED_INSTANT_EXTRA_MS = 6;
 const PED_JUMP_DIST = 40;
 const PED_RANGE_FAST = 90, PED_RANGE_FROM = 12, PED_RANGE_SLOPE = 6;
 const pedFadingOut = [];
-const fadeVariants = new Map();
 let pedClock = 0;
 let pedInstantUntil = 0;
 let pedLastX = null, pedLastY = null;
 let pedFadeWarmed = false;
-
-// Clones share one program per base material (same cache key); only the
-// uFade value differs, and three.js uploads it whenever the material switches.
-function fadeMaterial(base, level) {
-  let arr = fadeVariants.get(base);
-  if (!arr) fadeVariants.set(base, arr = []);
-  let m = arr[level];
-  if (m) return m;
-  m = base.clone();
-  m.userData.shared = true;
-  m.userData.fadeOf = base;
-  const uFade = { value: level / FADE_STEPS };
-  const prev = base.onBeforeCompile;
-  m.onBeforeCompile = (shader, r) => {
-    if (prev) prev.call(m, shader, r);
-    shader.uniforms.uFade = uFade;
-    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform float uFade;
-float pedBayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
-float pedBayer4(vec2 a) { return pedBayer2(0.5 * a) * 0.25 + pedBayer2(a); }
-void main() {
-  if (pedBayer4(gl_FragCoord.xy) >= uFade) discard;`);
-  };
-  m.customProgramCacheKey = () => (base.customProgramCacheKey ? base.customProgramCacheKey() : '') + '|pedfade';
-  arr[level] = m;
-  return m;
-}
-
-function applyPedFade(mesh, fade) {
-  const level = fade >= 1 ? FADE_STEPS : Math.max(0, Math.min(FADE_STEPS - 1, Math.round(fade * FADE_STEPS)));
-  const ud = mesh.userData;
-  if (ud.fadeLevel === level) return;
-  ud.fadeLevel = level;
-  mesh.visible = level > 0;
-  if (level === 0) return;
-  mesh.traverse((o) => {
-    if (!o.material || Array.isArray(o.material)) return;
-    const base = o.material.userData.fadeOf || o.material;
-    o.material = level >= FADE_STEPS ? base : fadeMaterial(base, level);
-  });
-}
 
 function disposePedMesh(mesh) {
   applyPedFade(mesh, 1);
@@ -3504,221 +3342,6 @@ export function update3D(dt, world) {
   probe.identify(scene);
 }
 
-// Vehicles, people and animals are ~55% of the scene's nodes (each ~30 to 60),
-// and three walks all of them every frame: the matrices, then the frustum test
-// of every mesh, in the main pass and again in the shadow pass. Most of them
-// are behind or beside the camera. Those out of the view (plus the reach of
-// their shadow) sit the frame out as hidden groups, so skipHiddenMatrixWalk
-// leaves their matrices alone too; they are shown again right after the render.
-const _cullFrustum = new THREE.Frustum();
-const _cullProj = new THREE.Matrix4();
-const _cullSphere = new THREE.Sphere();
-const _cullBox = new THREE.Box3();
-const _cullPos = new THREE.Vector3();
-const culledActors = [];
-function actorRadius(mesh) {
-  // the farthest corner of the box at build time from the group's origin; cached
-  _cullBox.setFromObject(mesh);
-  _cullPos.copy(mesh.position);
-  const b = _cullBox, p = _cullPos;
-  const dx = Math.max(Math.abs(b.min.x - p.x), Math.abs(b.max.x - p.x));
-  const dy = Math.max(Math.abs(b.min.y - p.y), Math.abs(b.max.y - p.y));
-  const dz = Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z));
-  return Math.hypot(dx, dy, dz) + 1.5;
-}
-function cullActorCache(cache, reach, kind) {
-  for (const mesh of cache.values()) {
-    if (!mesh.visible || mesh.parent !== scene) continue;
-    const ud = mesh.userData;
-    if (ud.cullR === undefined) ud.cullR = actorRadius(mesh);
-    ud.cullKind = kind;
-    _cullSphere.center.copy(mesh.position);
-    _cullSphere.radius = ud.cullR + reach;
-    if (_cullFrustum.intersectsSphere(_cullSphere)) {
-      ud.offscreen = false;
-      // what a seen actor keeps hidden (a driver's figure, lamps that are off, a holstered weapon) is not walked either
-      const kids = mesh.children;
-      for (let i = 0; i < kids.length; i++) kids[i].matrixWorldAutoUpdate = kids[i].visible;
-      continue;
-    }
-    ud.offscreen = true;
-    mesh.visible = false;
-    culledActors.push(mesh);
-  }
-}
-function cullOffscreenActors() {
-  if (perfOff('actoren')) return;
-  cam.updateMatrixWorld();
-  _cullProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
-  _cullFrustum.setFromProjectionMatrix(_cullProj);
-  const reach = actorShadowReach(sunDir);
-  cullActorCache(vehicleMeshes, reach, 'voertuig');
-  cullActorCache(pedMeshes, reach, 'persoon');
-  cullActorCache(wildlifeMeshes, reach, 'dier');
-  if (!perfOff('groepen')) cullOffscreenGroups();
-  if (window.__perfVerify) verifyCull();
-}
-// the counters of route verify (scripts/perf/routes.js, kept on window): what was cut is looked at again with an exact box
-// the box of what shows: nodes that are hidden (and what hangs on them) do not count, the root's own flag is the cull's
-const _vbox = new THREE.Box3();
-function expandVisible(o, box, root) {
-  if (!root && !o.visible) return;
-  o.updateWorldMatrix(false, false);
-  const g = o.geometry;
-  if (g && o.isMesh && o.layers.test(cam.layers)) {
-    if (!g.boundingBox) g.computeBoundingBox();
-    _vbox.copy(g.boundingBox).applyMatrix4(o.matrixWorld);
-    box.union(_vbox);
-  }
-  for (let i = 0; i < o.children.length; i++) expandVisible(o.children[i], box, false);
-}
-// a group kept out of the shadow pass for lying outside the sun's shadow box: the exact box of its casters must lie outside it too
-function expandCasters(o, box) {
-  o.updateWorldMatrix(false, false);
-  const g = o.geometry;
-  if (g && o.isMesh && o.castShadow) {
-    if (!g.boundingBox) g.computeBoundingBox();
-    _vbox.copy(g.boundingBox).applyMatrix4(o.matrixWorld);
-    box.union(_vbox);
-  }
-  for (let i = 0; i < o.children.length; i++) expandCasters(o.children[i], box);
-}
-function verifyShadowBox(c, frustum) {
-  const V = window.__perfVerify;
-  V.boxChecked = (V.boxChecked || 0) + 1;
-  _cullBox.makeEmpty();
-  expandCasters(c, _cullBox);
-  if (!_cullBox.isEmpty() && frustum.intersectsBox(_cullBox)) { V.boxBad = (V.boxBad || 0) + 1; if (V.bad.length < 12) V.bad.push(['schaduwbereik', c.name || c.type, Math.round(c.position.x), Math.round(c.position.z)]); }
-}
-function verifyCull() {
-  const V = window.__perfVerify;
-  if (!V) return;
-  const sphere = new THREE.Sphere();
-  for (const m of culledActors) {
-    V.checked++;
-    _cullBox.makeEmpty();
-    expandVisible(m, _cullBox, true);
-    if (_cullBox.isEmpty()) continue;
-    // an exact box against the camera's frustum, with no margin: nothing that shows may be cut
-    if (_cullFrustum.intersectsBox(_cullBox)) {
-      V.actors++;
-      const k = m.userData.cullKind || '?';
-      V.kinds[k] = (V.kinds[k] || 0) + 1;
-      if (V.bad.length < 24) {
-        const b = _cullBox, p = m.position;
-        const r = Math.hypot(Math.max(Math.abs(b.min.x - p.x), Math.abs(b.max.x - p.x)), Math.max(Math.abs(b.min.y - p.y), Math.abs(b.max.y - p.y)), Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z)));
-        let n = 0, hid = 0; m.traverse((o) => { n++; if (!o.visible) hid++; });
-        V.bad.push(['actor', k, Math.round(p.x), Math.round(p.z), 'r', +r.toFixed(1), 'cullR', +m.userData.cullR.toFixed(1), 'schaal', +m.scale.x.toFixed(2), 'knopen', n, 'verborgen', hid, 'doos', [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z].map((q) => +q.toFixed(1)).join('x'), Object.keys(m.userData).slice(0, 5).join('/')]);
-      }
-    }
-  }
-  for (const g of culledGroups) {
-    V.checked++;
-    _cullBox.makeEmpty();
-    expandVisible(g, _cullBox, true);
-    if (!_cullBox.isEmpty() && _cullFrustum.intersectsBox(_cullBox)) { V.groups++; if (V.bad.length < 12) V.bad.push(['group', g.name || g.type, Math.round(g.position.x), Math.round(g.position.z)]); }
-  }
-  void sphere;
-}
-function restoreCulledActors() {
-  for (let i = 0; i < culledActors.length; i++) culledActors[i].visible = true;
-  culledActors.length = 0;
-  for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
-  culledGroups.length = 0;
-}
-
-// The same for the static groups at the top of the scene (a building, a landmark, a stretch of road, a
-// water polygon: ~600 groups, a quarter of the nodes): a group whose nodes are all frozen (freezeStatic) and plain
-// meshes has a fixed bounding sphere, worked out once (again when its number of children changes, and
-// now and then), and sits the main pass out while it is outside the view. The shadow pass still walks
-// it: a building behind the camera shadows the street in front of it (hookShadowPass).
-const groupCull = new WeakMap();
-const culledGroups = [];
-const GROUP_CULL_AGE = 300;
-const GROUP_CULL_BUDGET_MS = 1;
-// only the kinds that are final once built: a pooled effect that is frozen and moved by hand (fx3d.js) must never be cut by a stale sphere
-const GROUP_CULL_NAMES = new Set(['building', 'landmark', 'road', 'water']);
-function cullableGroup(o) {
-  if (o.isLight || o.isCamera || o.isSprite || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.matrixAutoUpdate) return false;
-  if (o.isMesh && (o.frustumCulled === false || !o.geometry)) return false;
-  for (let i = 0; i < o.children.length; i++) if (!cullableGroup(o.children[i])) return false;
-  return true;
-}
-// The loose groups at the top of the scene without a name (the ticket machines of ~190 stations, street furniture, small props: ~900 of the
-// ~3800 nodes projected a frame, 80% of them outside the view) keep matrixAutoUpdate on, so they are not final the way the named kinds are.
-// One is cut only after two measurements, GROUP_CULL_AGE frames apart, saw the same local transforms (a sprite's bob is left out), and only
-// while the group itself stands where it did; its sphere has a margin of LOOSE_MARGIN for what moves a little inside (?perfoff=losgroepen).
-const LOOSE_MARGIN = 3;
-function looseGroupOk(o, top) {
-  if (o.isLight || o.isCamera || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.isBone) return false;
-  if (o.isMesh && (o.frustumCulled === false || !o.geometry)) return false;
-  if (!o.isSprite && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) return false;
-  if (top && o.userData.shadowCasters !== undefined) return false;
-  for (let i = 0; i < o.children.length; i++) if (!looseGroupOk(o.children[i], false)) return false;
-  return true;
-}
-function looseStamp(o) {
-  let s = o.children.length * 1.37 + (o.visible ? 1 : 0.5);
-  if (!o.isSprite) {
-    const p = o.position, q = o.quaternion, c = o.scale;
-    s += p.x * 1.1 + p.y * 1.3 + p.z * 1.7 + q.x * 2.1 + q.y * 2.3 + q.z * 2.9 + q.w * 3.1 + c.x * 0.7 + c.y * 0.9 + c.z * 1.1;
-  }
-  for (let i = 0; i < o.children.length; i++) s += looseStamp(o.children[i]) * 0.5;
-  return s;
-}
-function groupCullInfo(c) {
-  let k = groupCull.get(c);
-  if (k && k.n === c.children.length && ++k.age <= GROUP_CULL_AGE) return k;
-  if (!k) groupCull.set(c, k = { n: -1, age: 0, sphere: null, loose: c.name === '', stamp: NaN, stable: 0, at: null });
-  k.n = c.children.length; k.age = 0; k.sphere = null;
-  if (k.loose) {
-    if (c.children.length && looseGroupOk(c, true)) {
-      const st = looseStamp(c);
-      k.stable = st === k.stamp ? k.stable + 1 : 0;
-      k.stamp = st;
-      if (k.stable >= 1) {
-        c.updateWorldMatrix(true, true);
-        _cullBox.makeEmpty();
-        _cullBox.setFromObject(c);
-        if (!_cullBox.isEmpty()) {
-          k.sphere = _cullBox.getBoundingSphere(new THREE.Sphere());
-          k.sphere.radius += LOOSE_MARGIN;
-          k.at = [c.position.x, c.position.y, c.position.z, c.quaternion.y, c.scale.x];
-        }
-      }
-    } else { k.stamp = NaN; k.stable = 0; }
-    return k;
-  }
-  if (c.children.length && !c.userData.shadowCasters && cullableGroup(c)) {
-    _cullBox.makeEmpty();
-    _cullBox.setFromObject(c);
-    if (!_cullBox.isEmpty()) { k.sphere = _cullBox.getBoundingSphere(new THREE.Sphere()); k.sphere.radius += 1; }
-  }
-  return k;
-}
-// the bounding sphere of a top-level group that is known and still right (the shape cullOffscreenGroups keeps), or null
-function knownGroupSphere(c) {
-  const k = groupCull.get(c);
-  if (!k || !k.sphere || k.n !== c.children.length) return null;
-  if (k.loose && !(c.position.x === k.at[0] && c.position.y === k.at[1] && c.position.z === k.at[2] && c.quaternion.y === k.at[3] && c.scale.x === k.at[4])) return null;
-  return k.sphere;
-}
-function cullOffscreenGroups() {
-  const kids = scene.children;
-  const deadline = performance.now() + GROUP_CULL_BUDGET_MS;
-  let working = true;
-  for (let i = 0; i < kids.length; i++) {
-    const c = kids[i];
-    if (!c.visible || !(GROUP_CULL_NAMES.has(c.name) || (c.name === '' && c.isGroup && !perfOff('losgroepen')))) continue;
-    let k = groupCull.get(c);
-    if (!k || k.n !== c.children.length || k.age > GROUP_CULL_AGE) {
-      // the groups are looked through a few at a time: one that is not known yet is drawn as before
-      if (working && performance.now() < deadline) k = groupCullInfo(c); else { if (performance.now() >= deadline) working = false; continue; }
-    } else k.age++;
-    if (k.sphere && !_cullFrustum.intersectsSphere(k.sphere) && (!k.loose || (c.position.x === k.at[0] && c.position.y === k.at[1] && c.position.z === k.at[2] && c.quaternion.y === k.at[3] && c.scale.x === k.at[4]))) { c.visible = false; culledGroups.push(c); }
-  }
-}
-
 // three walks the matrices of hidden objects too: the pooled vehicles and
 // people and far wildlife at the top of the scene (~1100 of ~5000 nodes with
 // matrixAutoUpdate) cost ~0.6 us each every frame. A hidden group sits out of
@@ -3733,248 +3356,6 @@ function skipHiddenMatrixWalk() {
   }
   // the terrain's ~500 tile meshes are final (freezeStatic): no walk through them either
   if (terrainMesh && !perfOff('terreinvast')) terrainMesh.matrixWorldAutoUpdate = false;
-}
-
-// Every lit material has two program variants: with the night-light rig and
-// without it (nightlights3d dark rig). Each material + mesh layout that shows
-// up gets a stand-in on its own layer, compiled for the variant not in use.
-// The scene is scanned a slice per frame, compiling goes through
-// KHR_parallel_shader_compile (renderer.compile only starts the link), and
-// once the programs are linked the stand-ins are drawn once into a 1x1
-// scissor of the scene target so the GPU pipeline exists before the rig
-// ever switches over. Nothing here blocks on the driver.
-const PREWARM_LAYER = 31;
-const PREWARM_SLICE = 120;
-// once two passes over the scene have found nothing new for this rig variant only a few top-level groups are scanned per frame:
-// the full-speed pass walked every node of the scene every ~3 frames (~0.9 ms per frame)
-const PREWARM_SLICE_QUIET = 12;
-let prewarmFound = 0, prewarmQuiet = 0, prewarmLastVariant = null;
-const PREWARM_WAIT_MS = 20000;
-const PREWARM_POLL_MS = 250;
-const prewarmed = { true: new Set(), false: new Set() };
-const prewarmRoot = new THREE.Group();
-const prewarmQueue = [];
-let prewarmCursor = 0;
-let prewarmBatch = null;
-let prewarmCam = null;
-
-function prewarmKind(o) {
-  const g = o.geometry;
-  let k = g.userData._pwKind;
-  if (k === undefined) {
-    k = Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
-    g.userData._pwKind = k;
-  }
-  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isBatchedMesh ? 'b' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
-    + (o.instanceColor ? 'c' : '') + k;
-}
-
-// A stand-in draws its source's own geometry and material. Once either is
-// disposed (a despawned car, a finished spark) the stand-in is dropped:
-// drawing it would upload them again with nothing left to free them.
-const prewarmDisposed = new WeakSet();
-const prewarmWatched = new WeakSet();
-function onPrewarmSourceDispose(e) { prewarmDisposed.add(e.target); }
-function watchPrewarmSource(res) {
-  if (!res) return;
-  prewarmDisposed.delete(res);
-  if (prewarmWatched.has(res)) return;
-  prewarmWatched.add(res);
-  res.addEventListener('dispose', onPrewarmSourceDispose);
-}
-const prewarmProxyDead = (p) => prewarmDisposed.has(p.geometry) || prewarmDisposed.has(p.material);
-
-function makePrewarmProxy(o, m) {
-  const g = o.geometry;
-  if (!o.isSprite) watchPrewarmSource(g);
-  if (!m.userData.shared) watchPrewarmSource(m);
-  const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
-    : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
-      : o.isSprite ? new THREE.Sprite(m)
-        : o.isPoints ? new THREE.Points(g, m)
-          : o.isLineSegments ? new THREE.LineSegments(g, m)
-            : o.isLine ? new THREE.Line(g, m)
-              : new THREE.Mesh(g, m);
-  // a pool (multidraw3d.js): the program has the batching define; one degenerate range so that the draw is made at all
-  if (o.isBatchedMesh) {
-    proxy.isBatchedMesh = true;
-    proxy._matricesTexture = o._matricesTexture;
-    proxy._multiDrawStarts = new Int32Array(1);
-    proxy._multiDrawCounts = new Int32Array([3]);
-    proxy._multiDrawCount = 1;
-  }
-  // its own colour buffer: disposing the stand-in frees its instance buffers,
-  // and a shared one would leave the real mesh drawing from a deleted buffer
-  // (black grass tufts, shrubs and hedges)
-  if (o.instanceColor) proxy.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(3), 3);
-  // own skeleton (and instance buffer): freed after the draw, drawPrewarmBatch
-  if (o.isSkinnedMesh) proxy.bind(o.skeleton.clone(), o.bindMatrix);
-  // shadow receiving is part of the program key
-  proxy.receiveShadow = o.receiveShadow;
-  proxy.frustumCulled = false;
-  proxy.layers.set(PREWARM_LAYER);
-  return proxy;
-}
-
-// Queues stand-ins for every material/layout under `root` not yet warmed
-// for the rig variant `variant`. Hidden objects (effects that only show up
-// later, the moon and stars by day) are warmed for the current variant too,
-// since their first appearance would otherwise compile in-frame. A tag per
-// object and variant skips objects already seen with the same material.
-function scanForPrewarm(root, variant, hidden = false) {
-  hidden = hidden || !root.visible;
-  queuePrewarm(root, variant);
-  if (hidden) queuePrewarm(root, !variant);
-  const kids = root.children;
-  for (let i = 0; i < kids.length; i++) scanForPrewarm(kids[i], variant, hidden);
-}
-
-function queuePrewarm(o, variant) {
-  if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
-  const tag = variant ? '_pwOn' : '_pwOff';
-  const cast = !!o.castShadow;
-  if (!o.material || (o[tag] === o.material && o[tag + 'S'] === cast) || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
-  o[tag] = o.material;
-  o[tag + 'S'] = cast;
-  const done = prewarmed[variant];
-  const kind = prewarmKind(o);
-  for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
-    if (!m) continue;
-    const key = m.id + '.' + m.version + '|' + kind + (o.receiveShadow ? 'r' : '');
-    if (!done.has(key)) {
-      done.add(key);
-      prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
-      prewarmFound++;
-    }
-    // no depth programs while the preset has shadows off ('laag'): compiling
-    // them only competes with the ones that will be drawn
-    if (o.castShadow && sun.castShadow && (!o.customDepthMaterial || o.userData.pool) && (o.isMesh || o.isLine || o.isPoints)) {
-      const dm = o.userData.pool ? o.customDepthMaterial : shadowDepthStandIn(m);
-      const dkey = 'D' + dm.id + '|' + kind + (o.receiveShadow ? 'r' : '');
-      if (done.has(dkey)) continue;
-      done.add(dkey);
-      prewarmQueue.push({ proxy: makePrewarmProxy(o, dm), variant });
-      prewarmFound++;
-    }
-  }
-}
-
-// The shadow pass draws casters with three's shared depth material, whose
-// program also depends on the light counts - so the night rig switching on
-// at dusk used to link every depth program in-frame. A stand-in with the
-// same program parameters (as WebGLShadowMap.getDepthMaterial sets them for
-// PCF shadows) lets the warm-up above compile them for both rig variants.
-const _shadowSides = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
-const shadowDepthMats = new Map();
-function shadowDepthStandIn(m) {
-  const side = m.shadowSide != null ? m.shadowSide : _shadowSides[m.side];
-  const map = m.map || null;
-  const k = side + '|' + (map ? map.id : 0) + '|' + (m.alphaMap ? m.alphaMap.id : 0) + '|' + (m.alphaTest > 0 ? 1 : 0)
-    + '|' + (m.displacementMap && m.displacementScale !== 0 ? m.displacementMap.id : 0) + '|' + (m.wireframe ? 1 : 0);
-  let d = shadowDepthMats.get(k);
-  if (!d) {
-    d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side, map, alphaMap: m.alphaMap || null, alphaTest: m.alphaTest, wireframe: !!m.wireframe });
-    if (m.displacementMap && m.displacementScale !== 0) Object.assign(d, { displacementMap: m.displacementMap, displacementScale: m.displacementScale, displacementBias: m.displacementBias });
-    d.userData.shared = true;
-    shadowDepthMats.set(k, d);
-  }
-  return d;
-}
-
-export function toggleLightRig() { setLightRigVisible(!isLightRigOn()); }
-function withLightRig(on, fn) {
-  const cur = isLightRigOn();
-  setLightRigVisible(on);
-  try { return fn(); } finally { setLightRigVisible(cur); }
-}
-
-function prewarmCamera() {
-  if (!prewarmCam) prewarmCam = new THREE.PerspectiveCamera();
-  prewarmCam.copy(cam, false);
-  prewarmCam.layers.set(PREWARM_LAYER);
-  return prewarmCam;
-}
-
-function startPrewarmBatch() {
-  const variant = prewarmQueue[0].variant;
-  const items = [];
-  for (let i = 0; i < prewarmQueue.length && items.length < 64;) {
-    if (prewarmQueue[i].variant !== variant) { i++; continue; }
-    const { proxy } = prewarmQueue.splice(i, 1)[0];
-    if (!prewarmProxyDead(proxy)) items.push(proxy);
-  }
-  if (!items.length) return;
-  for (const p of items) prewarmRoot.add(p);
-  const camera = prewarmCamera();
-  // program keys depend on the target (tone mapping / output colour space
-  // are only applied to the screen), so compile for the scene target
-  const prevTarget = renderer.getRenderTarget();
-  renderer.setRenderTarget(postfx.sceneTarget);
-  try {
-    withLightRig(variant, () => renderer.compile(prewarmRoot, camera, scene));
-  } finally {
-    renderer.setRenderTarget(prevTarget);
-  }
-  const programs = new Set();
-  for (const p of items) {
-    const props = renderer.properties.get(p.material);
-    if (props.programs) for (const pr of props.programs.values()) programs.add(pr);
-  }
-  prewarmBatch = { variant, programs, since: performance.now(), nextCheck: performance.now() + 2 * PREWARM_POLL_MS };
-}
-
-function drawPrewarmBatch() {
-  const camera = prewarmCamera();
-  const target = postfx.sceneTarget;
-  const prevTarget = renderer.getRenderTarget();
-  const autoShadow = renderer.shadowMap.autoUpdate;
-  for (const p of [...prewarmRoot.children]) if (prewarmProxyDead(p)) prewarmRoot.remove(p);
-  scene.add(prewarmRoot);
-  renderer.shadowMap.autoUpdate = false;
-  renderer.setRenderTarget(target);
-  if (target) { target.scissor.set(0, 0, 1, 1); target.scissorTest = true; } else { renderer.setScissor(0, 0, 1, 1); renderer.setScissorTest(true); }
-  try {
-    withLightRig(prewarmBatch.variant, () => renderer.render(scene, camera));
-  } finally {
-    if (target) { target.scissorTest = false; target.scissor.set(0, 0, target.width, target.height); } else renderer.setScissorTest(false);
-    renderer.setRenderTarget(prevTarget);
-    renderer.shadowMap.autoUpdate = autoShadow;
-    scene.remove(prewarmRoot);
-    for (const p of prewarmRoot.children) {
-      if (p.isSkinnedMesh) p.skeleton.dispose();
-      else if (p.isInstancedMesh) p.dispose();
-    }
-    prewarmRoot.clear();
-  }
-}
-
-function prewarmLightVariants() {
-  const variant = !isLightRigOn();
-  if (variant !== prewarmLastVariant) { prewarmLastVariant = variant; prewarmQuiet = 0; }
-  const kids = scene.children;
-  for (let i = 0, n = Math.min(prewarmQuiet >= 2 ? PREWARM_SLICE_QUIET : PREWARM_SLICE, kids.length); i < n; i++) {
-    if (prewarmCursor >= kids.length) { prewarmCursor = 0; prewarmQuiet = prewarmFound ? 0 : prewarmQuiet + 1; prewarmFound = 0; }
-    const o = kids[prewarmCursor++];
-    if (o !== prewarmRoot) scanForPrewarm(o, variant);
-  }
-  if (prewarmBatch) {
-    // A completion query is a synchronous round trip to the GPU process that
-    // waits out its backlog (later ones in the same task are cheap), so ask
-    // only every PREWARM_POLL_MS; ready programs are dropped from the list.
-    const now = performance.now();
-    const B = prewarmBatch;
-    if (now - B.since < PREWARM_WAIT_MS) {
-      if (now < B.nextCheck) return;
-      B.nextCheck = now + PREWARM_POLL_MS;
-      for (const p of B.programs) {
-        if (!p.isReady()) return;
-        B.programs.delete(p);
-      }
-    }
-    drawPrewarmBatch();
-    prewarmBatch = null;
-  }
-  if (prewarmQueue.length) startPrewarmBatch();
 }
 
 // Starts compiling (in the background, KHR_parallel_shader_compile) the
@@ -4057,7 +3438,7 @@ export function releaseWarmupSamples() {
 // assets van de openingsfilm): zelfde pad, dus beide lichtstanden en opruimen.
 const extraWarmups = [];
 export function queueWarmupObject(build) { extraWarmups.push(build); }
-export function prewarmBusy() { return !!(extraWarmups.length || (warmupQueue && warmupQueue.length) || warmupBuilt.length || prewarmQueue.length || prewarmBatch); }
+export function prewarmBusy() { return !!(extraWarmups.length || (warmupQueue && warmupQueue.length) || warmupBuilt.length || prewarmQueued()); }
 let warmupId = -1e6;
 function queueWarmup(world) {
   const map = world.map;
@@ -4105,7 +3486,7 @@ function stepWarmup(world) {
     let obj = null;
     try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
     if (obj) prewarmObjects([obj]);
-  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch && !samplesHeld) {
+  } else if (warmupBuilt.length && !prewarmQueued() && !samplesHeld) {
     for (const o of warmupBuilt) disposeObject(o);
     warmupBuilt.length = 0;
   }
@@ -4405,73 +3786,6 @@ function buildWildlifeActor(a) {
   const blob = wildlifeShadowSize(a.kind);
   if (blob) addBlobShadow(mesh, blob[0], blob[1], 0.05);
   return mesh;
-}
-
-// Gentle swell: heave, roll and pitch from world.time plus a bow lift with
-// speed. Needs rotation.order 'YXZ' (set in buildVehicleActor) so roll and
-// pitch stay in the hull's own frame after the yaw.
-// Buoyancy: the hull rides the same swell the water shader draws (sampled
-// at bow, stern and both sides), long hulls averaging it out more; trim
-// from speed (planing craft lift their bow), a dip of the bow when braking,
-// a heel in turns, and per kind a little extra draft or lift. Whatever the
-// pitch and roll, stern, bow and sides stay above the local water level.
-const BOAT_TRIM = { rubberboot: 0.075, sloep: 0.035, dinghy: 0.04, rondvaart: 0.012, skutsje: 0.01, kano: 0.004, kajak: 0.004, sup: 0, waterfiets: 0.01, skiff: 0.004, acht: 0.004 };
-const BOAT_LIFT = { skiff: 0.02, acht: 0.02, kano: 0.02, kajak: 0.02, sup: 0.03, rubberboot: 0.015, waterfiets: 0.01 };
-const BOAT_CLEAR = { skiff: 0.05, acht: 0.05, sup: 0.035, kajak: 0.05, kano: 0.06 };
-function animateBoat(mesh, v, world, dt) {
-  const time = world.time;
-  const kind = v.isPolice ? 'sloep' : v.model.kind || 'sloep';
-  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
-  const prof = boatHullProfile(kind, L, W);
-  const now = performance.now();
-  let sh = v._shore;
-  if (!sh || now - sh.at > 400 || Math.abs(sh.x - v.x) + Math.abs(sh.y - v.y) > 3) {
-    const idx = world.map ? waterIndexAt(world.map, v.x, v.y) : null;
-    const ns = idx ? idx.nearestShore(v.x, v.y, 24) : { d: 24, i: -1, tx: 1, ty: 0 };
-    sh = v._shore = { at: now, x: v.x, y: v.y, d: ns.i >= 0 ? ns.d : 24, tx: ns.i >= 0 ? ns.tx : 1, ty: ns.i >= 0 ? ns.ty : 0, open: ns.i < 0 };
-  }
-  const c = Math.cos(v.angle), s = Math.sin(v.angle);
-  const at = (lx, lz) => waterSwellAt(v.x + c * lx - s * lz, v.y + s * lx + c * lz, time, Math.max(0.15, sh.d - Math.abs(lz)), sh.tx, sh.ty);
-  const xb = hl * 0.85;
-  const hB = at(xb, 0), hS = at(-xb, 0), hP = at(0, -hw), hR = at(0, hw), h0 = at(0, 0);
-  const resp = Math.min(1, Math.max(0.25, 3.2 / L));
-  const speedT = Math.min(1, Math.abs(v.speed) / (v.model.maxSpeed || 6));
-  const st = mesh.userData.buoy || (mesh.userData.buoy = { pitch: 0, roll: 0, heave: 0, speed: v.speed, angle: v.angle, acc: 0, yaw: 0 });
-  const k = dt > 0 ? Math.min(1, dt * 4) : 1;
-  if (dt > 0) {
-    let da = v.angle - st.angle;
-    da = Math.atan2(Math.sin(da), Math.cos(da));
-    st.yaw += (da / dt - st.yaw) * Math.min(1, dt * 3);
-    st.acc += ((v.speed - st.speed) / dt - st.acc) * Math.min(1, dt * 3);
-  }
-  st.angle = v.angle; st.speed = v.speed;
-  const seed = (v.id || 0) * 1.7;
-  const trim = (BOAT_TRIM[kind] ?? 0.03) * speedT * (v.speed >= 0 ? 1 : -0.5) - Math.max(-0.03, Math.min(0.03, st.acc * -0.012 * (v.speed > 0 ? 1 : 0)));
-  const planing = kind === 'rubberboot' ? 1 : -1;
-  const heel = Math.max(-0.08, Math.min(0.08, st.yaw * Math.abs(v.speed) * 0.025 * planing * resp));
-  const wip = golfWip(v, time);
-  const pitchT = Math.atan2(hB - hS, 2 * xb) * resp + trim + Math.sin(time * 1.1 + seed) * 0.006 + wip.pitch;
-  const rollT = Math.atan2(hP - hR, W) * Math.min(1, resp * 1.4) * 0.8 + heel + Math.sin(time * 1.4 + seed * 0.7) * 0.008 + wip.roll;
-  const heaveT = (hB + hS + hP + hR + h0 * 2) / 6 * (0.6 + 0.4 * resp) + (BOAT_LIFT[kind] || 0);
-  st.pitch += (pitchT - st.pitch) * k;
-  st.roll += (rollT - st.roll) * k;
-  st.heave += (heaveT - st.heave) * Math.min(1, k * 1.5);
-  // no gunwale under the surface: lift the hull by the worst deficit
-  const clear = (BOAT_CLEAR[kind] ?? 0.1) + (sh.open ? waterSwellAmp() * 0.5 : 0);
-  const sp = Math.sin(st.pitch), sr = Math.sin(st.roll);
-  const deficit = Math.max(
-    hS + clear - (st.heave + prof.stern - sp * hl),
-    hB + clear - (st.heave + prof.bow + sp * hl),
-    hP + clear - (st.heave + prof.mid + sr * hw),
-    hR + clear - (st.heave + prof.mid - sr * hw),
-    0,
-  );
-  mesh.rotation.order = 'YZX';
-  const base = WATER_Y + (v._lift || 0);
-  mesh.position.y = base + st.heave + deficit;
-  mesh.rotation.z = st.pitch;
-  mesh.rotation.x = st.roll;
-  v._buoyY = mesh.position.y - base;
 }
 
 function syncBoatWakes(world) {
