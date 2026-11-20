@@ -6,6 +6,7 @@
 import { charInfo } from './coopplayers.js';
 import { pvpInSpel, isPassief } from './cooppvp.js';
 import { groepen as groepenLijst } from './coopmissie.js';
+import { richtingVan } from './playermenu.js';
 
 export const VORM_TEKEN = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 export const VERBINDING_TEKST = { ok: 'goed', lag: 'haperd', lost: 'weg' };
@@ -68,7 +69,7 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
       verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
       passief: isPassief(pvp, r.slot), pvpInSpel: pvpInSpel(pvp), // #447: wie passief is; de stand telt als zichtbaar zodra iemand bewust op actief staat
       groep: groepTekstVoor(g, r.slot), leidt: !!(g && g.leider === r.slot), // "leidt <label>" of alleen de groep; een niet-deelnemer niets (#492)
-      doet, afstand, afstandTekst: afstandTekst(afstand), x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,
+      doet, afstand, afstandTekst: afstandTekst(afstand), richting: afstand != null ? richtingVan(mijn, p) : null, x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,
     });
   }
   // jij bovenaan, daarna op plek
