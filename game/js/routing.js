@@ -886,8 +886,13 @@ function computeRoute(world, target, mode, start = hoofdspeler(world)) {
     // the local grid search where the net does not join the two
     const pv = p.inVehicle;
     const r = planBoatTrip(map, [p.x, p.y], [target.x, target.y], pv && pv.isBoat ? pv : 'sloep');
-    pts = r ? r.pts : [[p.x, p.y]];
+    // geen vaarroute: een gestippelde luchtlijn naar het doel (vaarlijn3d.js, kaart en minimap) en een melding
+    pts = r ? r.pts : [[p.x, p.y], [target.x, target.y]];
     if (r) extra = { etaS: r.etaS, dock: r.dock, net: !!r.net };
+    else {
+      extra = { noRoute: true };
+      if (world.addMessage) world.addMessage('Geen vaarroute gevonden', 4, { kind: 'gevaar', key: 'geen-vaarroute' });
+    }
   } else if (mode === 'fly') {
     const plane = !!(hoofdspeler(world).inVehicle && hoofdspeler(world).inVehicle.isPlane);
     const r = planAirRoute(map, [p.x, p.y], [target.x, target.y], { plane });

@@ -2881,7 +2881,7 @@ function drawMinimap(dt, world) {
   }
 
   for (const route of getRoutes()) {
-    if (route.fly) { drawCrowLine(ctx, toScreen(player.x, player.y), toScreen(route.target.x, route.target.y), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user); continue; }
+    if (route.fly || (route.noRoute && route.mode === 'boat')) { drawCrowLine(ctx, toScreen(player.x, player.y), toScreen(route.target.x, route.target.y), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user); continue; }
     const ahead = getRouteAhead(MM_RADIUS_M * 2.5, route);
     if (ahead && ahead.length > 1) drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route === getActiveRoute() ? 4 : 3);
   }

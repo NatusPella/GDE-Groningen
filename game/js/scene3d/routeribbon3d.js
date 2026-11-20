@@ -14,6 +14,7 @@ import { SIDEWALK_EXTRA } from '../roadsurface.js';
 import { ribbonAlpha, routeOffRoad } from '../routeribbon.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from '../worldmarker3d.js';
 import { updateWaymarkers3D, routeColor } from '../waymarkers3d.js';
+import { updateVaarlijn3D, hideVaarlijn3D } from './vaarlijn3d.js';
 
 // scene en camera van scene3d.js; null tot init3D ze doorgeeft
 let scene = null;
@@ -24,6 +25,7 @@ export function setRouteRibbonScene(s, c) { scene = s; cam = c; }
 export function hideRouteRibbon3D() {
   if (waypointBeacon) waypointBeacon.visible = false;
   if (routeRibbonMesh) routeRibbonMesh.visible = false;
+  hideVaarlijn3D();
 }
 
 // Route ribbon: flat chevron strip on the road for the next stretch of the
@@ -188,8 +190,10 @@ export function updateRouteRibbon3D(dt, world) {
   }
 
   const route = routeLinks.getActiveRoute();
-  // buoys, station signs, air rings: the markers of the boat, the train and the air
-  updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
+  // station signs, air rings: the markers of the train and the air (the boat has its own line, vaarlijn3d.js)
+  updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.mode !== 'boat' && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
+  // op het water: een doorlopende vaarlijn (vaarlijn3d.js) in plaats van boeien
+  updateVaarlijn3D(dt, scene, route, routeLinks.getRouteAhead, world, routeColor(route, markerColors()[route && route.kind] || markerColors().mission));
   if (!routeRibbonMesh) {
     routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({
       map: buildChevronTexture(), vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
