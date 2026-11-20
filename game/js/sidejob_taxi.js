@@ -208,7 +208,7 @@ export default {
       if (inTaxi && speed < STOP_SPEED && Math.hypot(v.x - ped.x, v.y - ped.y) < PICKUP_R) {
         d.walking = true;
         d.walkT = 0;
-        zetUitlegGezien(UITLEG_ID);
+        if (!c.owner) zetUitlegGezien(UITLEG_ID); // alleen de eigen dienst: de baan van een gast raakt de strook van de eigenaar niet
       }
       return;
     }
@@ -241,7 +241,7 @@ export default {
       freePed(ped);
       const tip = d.comfort >= 80 ? rand(8, 16) : d.comfort >= 50 ? rand(2, 6) : 0;
       const base = 12 + d.dist / 35 + (d.fare.rush ? 10 : 0) - (d.vomited ? 25 : 0);
-      { const pp = ritPop(tip); simHudPop(pp.tekst, pp.geluid); } // #985
+      if (!c.owner) { const pp = ritPop(tip); simHudPop(pp.tekst, pp.geluid); } // #985
       c.complete({ base: Math.max(5, base), tip, text: d.comfort >= 80 ? 'Tevreden klant!' : d.comfort < 40 ? 'Klant stapt bleek uit.' : 'Rit afgerond.' });
     }
   },
@@ -267,7 +267,7 @@ export default {
   stop(c) {
     const d = c.data;
     if (d.ped) freePed(d.ped);
-    simHudTik(0, null);
+    if (!c.owner) simHudTik(0, null);
     if (d.kolom) { c.removeMesh(d.kolom); d.kolom = null; }
   },
 };
