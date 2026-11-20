@@ -33,7 +33,8 @@ export function wisselRoute(world, opts = {}) {
       let gestopt = false, handle = null;
       const open = async () => {
         if (gestopt) return;
-        if (handle && handle.cancel) handle.cancel();
+        // #983: alleen een aanbod waar niemand op antwoordde; cancel() sluit sinds #589 ook een open kanaal, en dat is een speler die al verbonden is
+        if (handle && handle.cancel && !(handle.transport && handle.transport.isOpen())) handle.cancel();
         handle = await hostRoom(room, { signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS, onstate: (s) => { if (s === 'open') open().catch(() => {}); } });
         aanvaard(handle.transport);
       };
