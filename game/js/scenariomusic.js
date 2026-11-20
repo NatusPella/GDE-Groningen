@@ -21,8 +21,12 @@ export const MENU_START_S = 8;
 export const MENU_STOP_S = 2;
 
 import { isPauseMenuOpen } from './pausestate.js';
+import { SFEER_KEYS, missieMuziekKey, bijbaanMuziekKey } from './missiesfeer.js';
+import { isNightAtHour } from './sunrules.js';
 
-export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu', 'pvp'];
+export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu', 'pvp', ...SFEER_KEYS];
+// De missiesferen (missiesfeer.js) komen alleen als sleutel binnen als hun bestand er is; anders is het 'missie' of de radio.
+const isNachtVoor = (w) => { const h = w.dayNight ? w.dayNight.hour : w.clock; return Number.isFinite(h) && isNightAtHour(h); };
 const BOERDERIJ_MODELLEN = ['tractor', 'maaidorser', 'laadmachine']; // de machines van het boerenwerk (boerderijwereld.js, #415)
 
 // Modules that own private state (the machinist service) register a probe
@@ -60,7 +64,10 @@ export function activityMusicKey(world) {
   // your safehouse menu or the photo mode: the calm home loop (it wins over a running mission and the bike)
   if (probed('thuis', world) || probed('foto', world)) return 'thuis';
   // a running story mission (tension loop), then the bike (a relaxed loop); the specific activities above win, a chase wins over all
-  if (world.mission && world.mission.phase === 'active') return 'missie';
+  // a running story mission: its own sphere (missiesfeer.js), the tension loop when that file is missing
+  if (world.mission && world.mission.phase === 'active') return missieMuziekKey(world.mission.code, world.mission.type);
+  // an active side job: its sphere once the file exists, otherwise the radio
+  if (world.sideJob && world.sideJob.active) { const k = bijbaanMuziekKey(world.sideJob.id, isNachtVoor(world)); if (k) return k; }
   if (pv && (pv.isBike || pv.isScooter)) return 'fiets';
   return null;
 }

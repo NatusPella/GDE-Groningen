@@ -2,6 +2,7 @@
 // G-Music vervangen bij een race, achtervolging, dienst of scène. De WebAudio-
 // context, de muziekbus en de instellingen komen via setScenarioHost binnen,
 // zodat deze module niets uit audio.js hoeft te importeren en de cyclus 0 blijft.
+import { sfeerTracks } from '../missiesfeer.js';
 import { createScenarioDirector, activityMusicKey, createLoopScan } from '../scenariomusic.js';
 
 // Instrumental loops that replace G-Music while something big happens
@@ -22,6 +23,7 @@ const SCENARIO_TRACKS = {
   thuis: './audio/scenario/thuis_loop.mp3',
   menu: './audio/scenario/menu_loop.mp3',
   pvp: './audio/scenario/pvp_arena_loop.mp3',
+  ...sfeerTracks(), // de missiesferen waarvan de eigenaar het bestand leverde (missiesfeer.js); de rest valt terug op 'missie'
 };
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s
