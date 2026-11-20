@@ -4,6 +4,7 @@
 // dit bestand is alleen DOM en bepaalt niets over het spel. Afronden geeft een opspringend getal en het bestaande UI-geluid (sfxLinks.uiFx).
 import { sfxLinks } from './latehooks.js';
 import { icoon } from './icons.js';
+import { zetContext } from './ctxidentiteit.js';
 import { reducedMotion } from './motion.js';
 import { STATUS } from './farmstatus.js';
 
@@ -20,6 +21,7 @@ function bouw() {
   el = document.createElement('section');
   el.id = 'bd-hud';
   el.className = 'bd-hud ds-kaart';
+  zetContext(el, 'farming'); // #1004
   el.setAttribute('aria-label', 'Werk op het land');
   el.hidden = true;
   el.innerHTML = '<header class="bd-hud__kop"><span class="bd-hud__icoon"></span>' +

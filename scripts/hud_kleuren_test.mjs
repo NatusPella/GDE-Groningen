@@ -160,7 +160,7 @@ ok(/calc\(20px \* var\(--ui, 1\)\)/.test(padelHud), 'padel: het bord schaalt mee
 // #643: de telefoon en de prestatiekaart volgen dezelfde tokens; ook rgba() telt mee.
 const telefoonCss = read('phonefeed.css');
 ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(telefoonCss), 'phonefeed.css: geen eigen blauw, tweede rood of eigen bijna-zwart');
-ok(/var\(--ds-c-ink-bord\)/.test(telefoonCss) && /var\(--ds-c-rood\)/.test(telefoonCss) && !/#[0-9a-fA-F]{3,8}/.test(telefoonCss.replace(/#(hud|pause-menu)/g, '')), 'de telefoon gebruikt de v3-tokens, geen losse hex (#998)');
+ok(/var\(--ds-c-ink-bord\)/.test(telefoonCss) && /var\(--ds-c-rood\)/.test(telefoonCss) && !/#[0-9a-fA-F]{3,8}/.test(telefoonCss.replace(/#(hud|pause-menu)/g, '')), 'de telefoon gebruikt de ds-tokens, geen losse hex (#998)');
 const prestatieCss = read('hudcards.css');
 ok(!/rgba\(232, 201, 58/.test(prestatieCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(prestatieCss), 'de prestatiekaart heeft één accent uit --hc, ook voor rgba()');
 

@@ -1,4 +1,4 @@
-/* Zelf gehoste lettertypen van designsysteem v3 (ADR 0040), licentie OFL, zie LICENSE.md. Geen extern verzoek. */
+/* Zelf gehoste lettertypen van het designsysteem (ADR 0040), licentie OFL, zie LICENSE.md. Geen extern verzoek. */
 @font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 400; font-display: swap; src: url(AtkinsonHyperlegible-Regular.ttf) format('truetype'); }
 @font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 700; font-display: swap; src: url(AtkinsonHyperlegible-Bold.ttf) format('truetype'); }
 @font-face { font-family: 'Barlow Condensed'; font-weight: 600; font-display: swap; src: url(BarlowCondensed-SemiBold.ttf) format('truetype'); }

@@ -392,3 +392,25 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 @keyframes ds-uitleg-stick { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
 @media (prefers-reduced-motion: reduce) { .ds-uitleg .ds-uitleg__stap[data-anim] * { animation: none; } }
 html.reduce-motion .ds-uitleg .ds-uitleg__stap[data-anim] *, html.rustig-drukwerk .ds-uitleg .ds-uitleg__stap[data-anim] * { animation: none; }
+/* ---- Context-identiteit (#1004, proefset golf en farming; tabel in ctxidentiteit.js) ----
+   Het paneel draagt `data-ctx`; de band, de tekst op de band en de stempel komen uit deze rollen, alleen met de bestaande inkten.
+   Tekst op de band minstens 4,5:1 (test: ctxidentiteit_test), stempel minstens 13 px en nooit met misdruk; Rustig drukwerk zet hem recht. */
+[data-ctx="golf"] { --ds-ctx-band: var(--ds-c-ink-bord); --ds-ctx-band-tx: var(--ds-c-wit); --ds-ctx-stempel: "GOLF"; }
+[data-ctx="farming"] { --ds-ctx-band: var(--ds-c-ink-geel); --ds-ctx-band-tx: var(--ds-c-ink-inkt); --ds-ctx-stempel: "BOERDERIJ"; }
+/* zeefdrukkaart: de kopband in de inkt van de context, met de stempel rechts; op een gele band geen misdruk (roze op geel is slecht leesbaar) */
+.ds-z-kaart[data-ctx] > .ds-z-kaart__kop { background: var(--ds-ctx-band); color: var(--ds-ctx-band-tx); }
+.ds-z-kaart[data-ctx="farming"] .ds-z-kaart__titel { text-shadow: none; }
+.ds-z-kaart[data-ctx] > .ds-z-kaart__kop::after {
+  content: var(--ds-ctx-stempel); flex: none; padding: 0 var(--ds-s-2); border: var(--ds-lijn-dik) solid currentColor; border-radius: var(--ds-r);
+  font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label);
+  transform: rotate(calc(var(--ds-schuin) * -2));
+}
+/* minigamebord en boerderij-HUD: de dikke rand links is de band; de stempel staat achter de titel */
+#hud .mg-board[data-ctx] { --mg-acc: var(--ds-ctx-band); }
+#hud .mg-board[data-ctx] small::after {
+  content: var(--ds-ctx-stempel); margin-left: auto; padding: 0 var(--ds-s-2); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  background: var(--ds-ctx-band); color: var(--ds-ctx-band-tx); font-size: var(--ds-t-label); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label);
+  transform: rotate(calc(var(--ds-schuin) * -2));
+}
+.bd-hud[data-ctx] { --ds-kaart-rand: var(--ds-ctx-band); }
+:is(html.rustig-drukwerk, .ds-rustig) .ds-z-kaart[data-ctx] > .ds-z-kaart__kop::after, :is(html.rustig-drukwerk, .ds-rustig) #hud .mg-board[data-ctx] small::after { transform: none; }

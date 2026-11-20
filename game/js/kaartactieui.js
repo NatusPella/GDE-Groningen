@@ -44,12 +44,12 @@ export function uitlegHtml({ gast = false } = {}) {
   const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
   const iconen = iconenBlok('kaart-actie', { compact: true, titel: false, zonderMeer: true });
   return '<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t">' +
-    '<div class="ds-papier ds-kaart ds-kaart--kop mv-help-box"><div class="ds-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-kaart__titel">Zo werkt de kaart</h2></div>' +
+    '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-help-box"><div class="ds-z-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-z-kaart__titel">Zo werkt de kaart</h2></div>' +
     // #989: eerst drie stappen met icoon en lus; de volledige regels blijven in 'Meer uitleg' staan (uit in Instellingen = alleen de regels)
     (iconen ? iconen + '<details class="ds-uitleg__meer"><summary>Meer uitleg</summary>' : '') +
-    '<ul class="ds-kaart__tekst">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
+    '<ul class="ds-z-kaart__tekst">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
     (iconen ? '</details>' : '') +
-    '<div class="mv-help-foot"><button type="button" class="ds-knop mv-help-ok" data-act="uitleg-sluit">Begrepen ' + keyTextHtml('{ENTER}') + '</button>' +
+    '<div class="mv-help-foot"><button type="button" class="ds-z-knop mv-help-ok" data-act="uitleg-sluit">Begrepen ' + keyTextHtml('{ENTER}') + '</button>' +
     '<small>Terug te vinden onder Instellingen › Besturing › Hulp.</small></div></div></div>';
 }
 
@@ -95,10 +95,10 @@ export const KAART_ACTIE_CSS = `
 .mapview-overlay .mv-help { position: absolute; inset: 0; z-index: 12; pointer-events: auto; display: grid; place-items: center; padding: 40px; background: rgba(12, 20, 14, 0.78); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: mv-help-in 0.18s ease-out; }
 .mapview-overlay .mv-help-box { width: min(600px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; gap: var(--ds-s-4); }
 .mapview-overlay .mv-help-head { align-items: center; }
-.mapview-overlay .mv-help-head .ds-kaart__titel { margin: 0; }
+.mapview-overlay .mv-help-head .ds-z-kaart__titel { margin: 0; }
 .mapview-overlay .mv-help-x { flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin-left: auto; padding: 0; border: var(--ds-lijn) solid currentColor; border-radius: var(--ds-r); background: transparent; color: inherit; cursor: pointer; }
 .mapview-overlay .mv-help-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.mapview-overlay .mv-help-x:hover { background: var(--ds-kop-tx); color: var(--ds-kop-bg); }
+.mapview-overlay .mv-help-x:hover { background: var(--ds-c-wit); color: var(--ds-zeef-kop); }
 .mapview-overlay .mv-help ul { margin: 0 0 18px 20px; padding: 0; }
 .mapview-overlay .mv-help li { margin: 6px 0; }
 .mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }

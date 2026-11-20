@@ -6,6 +6,7 @@
 import { wgsToWorld } from './rdnew.js';
 import { keyTextHtml } from './keycap.js';
 import { GOLF_VORM } from './golficons.js';
+import { zetContext, contextVan } from './ctxidentiteit.js';
 import { STOP_DIRECT, STOP_VRAAG, STOP_BEVESTIG, STOP_DOORGAAN, stopUitkomst } from './stopconventie.js';
 import { deviceText } from './touchui.js';
 
@@ -356,6 +357,7 @@ export function createBoard(title, accent) {
   // de identiteit van het spel is het embleem plus de bordvorm; de kleur (kleur/accent) leest alleen de wereld nog (markeringen, 3D)
   root.style.setProperty('--mg-acc', 'var(--ds-c-ink-bord)');
   if (thema) root.dataset.mg = title;
+  zetContext(root, contextVan(title)); // #1004: de proefset golf en farming draagt een eigen band en stempel
   if (sfeer) { root.dataset.sfeer = title; root.dataset.sfeerbord = sfeer.bordvorm; }
   // #596: het vormvlak van de sfeer, uit dezelfde patroontabel als de loopbaanbanden
   const vlak = !!(sfeer && sfeer.vorm);

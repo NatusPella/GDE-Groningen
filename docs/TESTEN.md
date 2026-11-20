@@ -270,3 +270,7 @@ Aandachtspunten:
 
 - `node scripts/compat_saves_test.mjs`: oude en beschadigde saves, veldfuzz, opslag per speler bij Samen spelen en geen halve rit in een save, met de echte `savegame.js` en een nepwereld (zonder gevendorde three.js slaat hij zichzelf over).
 - `node scripts/compat_settings_test.mjs`: oude, halve en onmogelijke instellingenbestanden. Bevindingen: [QA-SAVES-20-11.md](QA-SAVES-20-11.md).
+
+## Beeldregressie (#994)
+
+`node scripts/ui/beeldregressie.mjs --lijst|--run|--vergelijk|--ververs` vergelijkt per scherm een beeld met een referentie in `docs/beeldreferentie/` in 1024x600, 1280x720 en 1920x1080; puur getest met `node scripts/beeldregressie_test.mjs`. Draaiboek: docs/RELEASEGATE.md.

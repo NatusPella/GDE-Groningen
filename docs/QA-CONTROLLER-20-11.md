@@ -47,7 +47,7 @@ pauze Spel (alle vier de onderdelen), Spel-rail Acties, Samen spelen-hub, Te doe
 - **Het schermtoetsenbord**: A op de zoekbalk van de kaart opent het (`.pk-val`); het naam-veld (Hernoemen in de opslaglijst) is niet bereikt, want de opslaglijst had geen tekstveld zonder bestaand spel. Het typen zelf is door `padkeys_test` gedekt.
 - **Het startscherm**, Samen spelen met een tweede speler en de Spel-rail op andere venstergroottes (800x360, 21:9): niet gemeten.
 
-## Focusvolgorde per scherm (voor het designsysteem v3)
+## Focusvolgorde per scherm (voor het designsysteem)
 
 De regels staan niet per scherm in de code maar in drie lagen. Een nieuwe indeling moet ze behouden of vervangen, anders breekt de controller.
 

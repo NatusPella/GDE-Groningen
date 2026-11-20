@@ -429,14 +429,20 @@ function pump(deadline) {
 // pixels, cached for the session. Rendered in idle time (see pump): `cb` gets the URL
 // (right away when cached); the return value is the cached URL or null.
 // keep: also across sessions (see keepShot).
-export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false, group = '', zoom = 1 } = {}) {
+export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false, group = '', zoom = 1, prio = false } = {}) {
   if (!spec) return null;
   const key = `${w}x${h}@${angle}${zoom === 1 ? '' : 'z' + zoom}|${JSON.stringify(spec)}`;
   if (!shots.has(key) && keep && keptShots().shots[key]) shots.set(key, keptShots().shots[key]);
   if (shots.has(key)) { if (cb) cb(shots.get(key)); return shots.get(key); }
   const job = queue.find((j) => j.key === key);
-  if (job) { if (cb) job.cbs.push(cb); job.keep = job.keep || keep; return null; }
-  queue.push({ key, spec, w, h, angle, zoom, keep, group, cbs: cb ? [cb] : [] });
+  if (job) {
+    if (cb) job.cbs.push(cb);
+    job.keep = job.keep || keep;
+    if (prio) { queue.splice(queue.indexOf(job), 1); queue.unshift(job); } // prio: wat nu in beeld staat komt vooraan (de garagelijst, #999)
+    return null;
+  }
+  const nieuw = { key, spec, w, h, angle, zoom, keep, group, cbs: cb ? [cb] : [] };
+  if (prio) queue.unshift(nieuw); else queue.push(nieuw);
   if (!pumping) { pumping = true; idle(pump); }
   return null;
 }

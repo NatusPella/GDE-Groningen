@@ -53,7 +53,7 @@ check('de kaart schuift 8 px in via ds-mi-in (microinteractions) en de glans loo
 check('de decoratie is aria-hidden en de Nederlandse tekst blijft', /ach-badge" aria-hidden="true"/.test(ach) && ach.includes('PRESTATIE ONTGRENDELD') && ach.includes('dualHtml(a.title)'));
 check('de kaart respecteert beweging beperken en prefers-reduced-motion', /html\.reduce-motion #hud \.ach-toast/.test(ach) && /prefers-reduced-motion: reduce/.test(ach) && /animation: none !important/.test(ach));
 check('reduce-motion houdt de verborgen toast verborgen (geen ghost)', /html\.reduce-motion #hud \.ach-toast\.on \{ opacity: 1;/.test(ach) && !/html\.reduce-motion #hud \.ach-toast, html\.reduce-motion #hud \.ach-toast\.on[^}]*opacity: 1/.test(ach));
-check('de kaart blijft binnen het HUD-budget en de zone', /max-width: calc\(100vw/.test(ach) && /zones\.occupy\('E', 'ach', P3\)/.test(ach) && /ach-title \{ font-size: var\(--ds-t-kaart-titel\)/.test(ach)); // designsysteem v3: de titel leest de kaarttoken
+check('de kaart blijft binnen het HUD-budget en de zone', /max-width: calc\(100vw/.test(ach) && /zones\.occupy\('E', 'ach', P3\)/.test(ach) && /ach-title \{ font-size: var\(--ds-t-kaart-titel\)/.test(ach)); // designsysteem: de titel leest de kaarttoken
 check('goud heeft een eigen gloed en de gouden variant', /\.ach-toast\.gold \.ach-rays/.test(ach) && /\.ach-toast\.gold \.ach-title/.test(ach));
 check('de kaartduur is een pure functie van titel en omschrijving', toastDuur('Kort', 'x') === 4.2 && toastDuur('Een veel langere titel voor de kaart', 'en een langere omschrijving erbij') > 4.2 && toastDuur() === 4.2);
 check('de ontgrendelmelding stuurt goud mee naar het geluid', /kind: 'prestatie'[\s\S]{0,80}goud: !!gold/.test(ach));

@@ -397,7 +397,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .td-begin, #pause-menu .td-passport { margin-bottom: 10px; padding: 10px 12px 4px; }
   #pause-menu .pm-hub { gap: 10px; }
   #pause-menu .pm-hub-hero { padding: 12px 16px 12px 20px; }
-  #pause-menu .pm-hub-hero > .ds-kaart__kop:first-child { margin: -12px -16px 0 -20px; } /* de kop loopt tot de rand van de kaart: de marge volgt de padding hierboven, anders steekt hij erbuiten */
+  #pause-menu .pm-hub-hero > .ds-z-kaart__kop:first-child { margin: -12px -16px 0 -20px; } /* de kop loopt tot de rand van de kaart: de marge volgt de padding hierboven, anders steekt hij erbuiten */
   #pause-menu .pm-hub-hero-t { font-size: 32px; }
   #pause-menu .pm-hub-hero-hint { font-size: 16px; }
   #pause-menu .pm-hub-stap { height: 42px; padding: 0 12px; }
@@ -830,7 +830,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-hub { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 #pause-menu .pm-hub-hero { margin: 0; flex: none; }
 #pause-menu .pm-hub-hero-t { margin: 0; }
-#pause-menu .pm-hub-hero-oog { white-space: nowrap; color: inherit; opacity: 0.85; }
+#pause-menu .pm-hub-hero-oog { white-space: nowrap; color: inherit; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
 #pause-menu .pm-hub-hero-hint { margin: 0; max-width: 720px; }
 #pause-menu .pm-hub-stappen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 #pause-menu .pm-hub-inhoud { display: flex; flex-direction: column; gap: 12px; }

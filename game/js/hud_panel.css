@@ -833,7 +833,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-mm-heat {
   position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; align-items: center; z-index: 2;
   padding: 2px 7px; background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); border-radius: 10px;
-  font: 800 max(13px, 1em) var(--ds-font-kop-v3); line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
+  font: 800 max(13px, 1em) var(--ds-font-zeef-kop); line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
 }
 #hud .hud-mm-heat[hidden] { display: none; }
 #hud .hud-mm-heat span { display: inline-flex; align-items: center; gap: 3px; }
