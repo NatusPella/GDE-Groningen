@@ -20,7 +20,8 @@ w.clock = 14;
 await sleep(CFG.settle || 8000);
 const out = { stappen: [], fouten: [], venster: [innerWidth, innerHeight] };
 const fps = async (ms = 1500) => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < ms) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); });
-const shot = async (name, wait = 900) => { await sleep(wait); out.fps = out.fps || {}; out.fps[name] = await fps(600); console.log('[capture] ' + PRE + '-' + name); await sleep(600); };
+const geelNu = () => [...document.querySelectorAll('.ds-knop:not(.ds-knop--secundair):not(.ds-knop--tekst):not(.ds-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
+const shot = async (name, wait = 900) => { await sleep(wait); out.geel = out.geel || {}; out.geel[name] = geelNu(); out.fps = out.fps || {}; out.fps[name] = await fps(600); console.log('[capture] ' + PRE + '-' + name); await sleep(600); };
 const q = (s) => document.querySelector(s);
 const kleinste = (el) => { let min = 99, wie = ''; for (const n of el.querySelectorAll('*')) { const heeftTekst = [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()); if (!heeftTekst) continue; const r = n.getBoundingClientRect(); if (!r.width || !r.height) continue; const px = parseFloat(getComputedStyle(n).fontSize); if (px < min) { min = px; wie = (n.className && n.className.baseVal === undefined ? n.className : n.tagName) + ': ' + n.textContent.trim().slice(0, 30); } } return { px: min, wie }; };
 // Hoeveel van een element is na het scrollen echt zichtbaar (alle scrolvoorouders knippen)?

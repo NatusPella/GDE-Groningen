@@ -398,7 +398,7 @@ function nextHtml(cur) {
   return `<section class="td-next" aria-label="Volgende stap"><div class="td-next-top"><span class="m-eb">Waar je nu bent · ${esc(partName(cur.part))}</span>${chip('selectie', 'kan', 'Nu', true)}</div>` +
     `<b class="td-next-t">${esc(cur.title)}</b>${cur.lead ? `<p class="td-next-lead">${esc(cur.lead)}</p>` : ''}` +
     `<div class="td-next-prog"><span class="m-bar on"><i data-bar="next-${cur.part}" data-w="${pct}"></i></span><span class="mut">${done} van ${list.length} in dit hoofdstuk</span></div>` +
-    (it ? `<div class="m-acts td-next-acts ds-glas"><button type="button" class="ds-knop" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button></div>` : '') + '</section>';
+    (it ? `<div class="m-acts td-next-acts ds-glas"><button type="button" class="ds-knop ds-knop--secundair" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button></div>` : '') + '</section>';
 }
 
 // De hoofdstukken als één rustige lijst (#912): het hoofdstuk waar je bent staat open, afgeronde
@@ -515,7 +515,7 @@ function beginCard(it, i) {
   if (ts) chips.push(chip(it.tijd.loopt ? 'waarschuwing' : '', 'klok', ts.chip));
   chips.push(chip('', null, GROUP_LABEL[it.group] || it.where || 'In Grunn'));
   const why = first && !it.isGoal ? 'Deze is het dichtstbij en kan nu.' : '';
-  const doel = it.goal && !it.isGoal ? `<button type="button" class="ds-knop${first ? '' : ' ds-knop--secundair'}" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}Zet als doel</button>`
+  const doel = it.goal && !it.isGoal ? `<button type="button" class="ds-knop ds-knop--secundair" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}Zet als doel</button>`
     : it.isGoal ? '<button type="button" class="ds-knop ds-knop--secundair" data-todo-clear>Doel wissen</button>' : '';
   return `<div class="td-card ds-papier ds-kaart${first ? ' td-card-next' : ''}" data-status="${it.status || ''}">` +
     `<button type="button" class="td-card-main" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +

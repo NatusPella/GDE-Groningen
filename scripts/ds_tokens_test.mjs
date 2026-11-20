@@ -239,5 +239,24 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   for (const scherm of ['Winkel', 'Te doen', 'Garage', 'Loopbanen', 'Verhaal', 'Kaart', 'Prestaties', 'Foto', 'Samen spelen', 'HUD']) ok(migratie.includes(scherm), `migratiekaart voor ${scherm}`);
 }
 
+// ---------------------------------------------------------------- 4. besluit eigenaar 20-11: selectie is bordgroen, één gele knop per scherm
+
+{
+  for (const surface of ['papier', 'glas']) {
+    const tokens = scopeTokens(tokensCss, surface);
+    const hex = resolveToken(tokens, '--ds-selectie');
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(hex || '');
+    const [r, g, b] = m ? [1, 2, 3].map((i) => parseInt(m[i], 16)) : [0, 0, 0];
+    ok(m && g > r && g > b, `${surface}: --ds-selectie is bordgroen, geen blauw (kreeg ${hex})`);
+  }
+  ok(/Selection is bordgroen, not blue/.test(doc), 'DESIGN_SYSTEM.md noemt het besluit: selectie is bordgroen');
+  // een lijst met kaarten heeft omlijnde knoppen: de gele hoofdknop staat in het detail (todoui.js) of in de ene volgende stap
+  const todo = rd('game/js/todoui.js');
+  const kaart = todo.slice(todo.indexOf('function beginCard('), todo.indexOf('function beginHierHtml('));
+  ok(kaart.includes('data-todo-goal') && !/class="ds-knop(?:"|\$\{)[^>]*data-todo-goal/.test(kaart), 'Begin-hier-kaarten: "Zet als doel" is omlijnd (secundair)');
+  ok(!/td-next-acts[^`]*class="ds-knop"/.test(todo), 'de knop in de kaart "Waar je nu bent" is omlijnd');
+  ok(!/class="ds-knop sm-oplossing"/.test(rd('game/js/shopui.js')), 'de winkel: de oplossing in de callout is omlijnd naast de gele koopknop');
+}
+
 console.log(`\nds_tokens_test: ${controles} controles, ${fouten} fout${fouten === 1 ? '' : 'en'}`);
 process.exit(fouten ? 1 : 0);

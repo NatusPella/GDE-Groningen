@@ -287,7 +287,7 @@ function bonHtml(it) {
 
 // Het probleem met de oplossing eronder: waarom het niet kan, en wat je wel kunt doen.
 function calloutHtml(p) {
-  const knop = p.oplossing ? `<button type="button" class="ds-knop sm-oplossing" data-oplossing="${esc(p.oplossing.id)}">${esc(p.oplossing.label)}</button>` : '';
+  const knop = p.oplossing ? `<button type="button" class="ds-knop ds-knop--secundair sm-oplossing" data-oplossing="${esc(p.oplossing.id)}">${esc(p.oplossing.label)}</button>` : '';
   const mist = p.mist > 0 ? `<div class="ds-callout__cijfers"><span class="ds-cijfer"><span class="ds-cijfer__eenheid">Je mist</span><span class="ds-cijfer__waarde">${euroHeel(p.mist)}</span></span></div>` : '';
   return `<div class="ds-callout__kop">${CHIP_ICOON.no.replace('ds-chip__icoon', 'ds-icoon ds-icoon--probleem')}<span>${esc(p.kop)}</span></div>` +
     `<div class="ds-callout__tekst">${esc(p.tekst)}</div>${mist}` +
