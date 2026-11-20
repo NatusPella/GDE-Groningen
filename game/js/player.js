@@ -417,7 +417,7 @@ export class Player {
     const feet0 = this.gz + z0, feet = this.gz + this.z;
     for (const v of world.vehicles || []) {
       const p = standPlek(v, world.map);
-      if (!p || v.driver === 'player' || Math.abs(v.speed) > PERCH_RIDE_MAX) continue; // #1019: een rijdende auto voert je mee
+      if (!p || v.driver === 'player' || Math.abs(v.speed) > PERCH_RIDE_MAX) continue; // #1023: een rijdende auto voert je mee
       if (Math.abs(v.x - this.x) > v.halfLen + 0.5 || Math.abs(v.y - this.y) > v.halfLen + 0.5) continue;
       if (feet0 < p.top - 0.05 || feet > p.top + 0.02) continue;
       const [lx, ly] = worldToLocalV(v, this.x, this.y);
@@ -499,7 +499,7 @@ export class Player {
     // teleported (respawn, cutscene, mission start), the car or boat is gone, or
     // someone else took the wheel
     if (!p || v.driver === 'player' || !world.vehicles.includes(v) || Math.hypot(ex - this.x, ey - this.y) > 1.5) { this.leavePerch(world); return false; }
-    // #1019: de snelheid van een beeld eerder en de draaisnelheid voor de worprregel
+    // #1023: de snelheid van een beeld eerder en de draaisnelheid voor de worprregel
     const prevSp = P.prevSpeed ?? v.speed; P.prevSpeed = v.speed;
     const yawRate = normalizeAngle(v.angle - (P.prevAngle ?? v.angle)) / Math.max(1e-3, dt); P.prevAngle = v.angle;
     if (perchThrown({ speed: v.speed, yawRate }, prevSp, dt)) {
@@ -514,7 +514,7 @@ export class Player {
       return false;
     }
     if (input.wasPressed(' ') && !(world.minigameUntil > world.time)) {
-      const cv = perchCarryVelocity({ speed: v.speed, angle: v.angle, yawRate: 0 }, P.lx, P.ly); // #1019: je houdt de snelheid van de auto bij het afstappen
+      const cv = perchCarryVelocity({ speed: v.speed, angle: v.angle, yawRate: 0 }, P.lx, P.ly); // #1023: je houdt de snelheid van de auto bij het afstappen
       this.shoveX = cv.x * 0.6; this.shoveY = cv.y * 0.6;
       this.vz = PERCH_HOP_SPEED; // een afstapje, geen sprong van een halve meter extra (#434)
       this.jumpAt = world.time;

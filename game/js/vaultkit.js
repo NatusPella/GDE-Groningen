@@ -10,7 +10,7 @@ export const CLIMB_MAX_H = 1.95; // a car or estate roof; vans, buses and walls 
 export const LEDGE_MAX_H = 2.2;
 export const MAX_DROP = 2.5; // m: a vault never lands you further down than this (viaduct edge, cutting)
 export const PERCH_SLIP_SPEED = 6; // m/s: a car going faster than this throws you off its roof
-// #1019: een rijdende auto voert je mee. Tot PERCH_RIDE_MAX (m/s) blijf je op het dak staan, een abrupte vertraging
+// #1023: een rijdende auto voert je mee. Tot PERCH_RIDE_MAX (m/s) blijf je op het dak staan, een abrupte vertraging
 // (meer dan PERCH_BRAKE_LIMIT m/s2) of een snelle bocht gooit je eraf. PERCH_SLIP_SPEED geldt nog voor wie erop klimt.
 export const PERCH_RIDE_MAX = 18; // m/s (65 km/u)
 export const PERCH_BRAKE_LIMIT = 7; // m/s2: harder remmen dan dit en je glijdt van het dak
