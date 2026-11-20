@@ -116,6 +116,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Vijftig euro', dt: 1.0, actor: 'tessa', anim: 'cheer' },
     ],
     shots: [],
+    // direction templates (cineshots.js, #955)
+    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', hold: 5 }, { on: 4, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 5, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0] }, { on: 8, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
   };
 
@@ -214,6 +216,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
       { on: 'Ik ken iemand', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
     ],
+    cuts: [{ on: 1, tpl: 'trackIn', target: 'tessa', hold: 4 }, { on: 10, tpl: 'schrikNadering', target: 'tessa', hold: 3 }],
     wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,automaat@1', fov: 50, until: 1 },
   };
 
@@ -287,6 +290,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tessa. Sjabbe', actor: 'tammo', face: 'actor:tessa' },
     ],
     shots: [{ on: 'Nummer 4117', shot: 'cut', at: [1.0, -1.8, 1.7], look: 'scherm@1.7', fov: 34 }],
+    cuts: [{ on: 9, tpl: 'closeGezicht', target: 'tammo', hold: 1.5 }],
     wide: { from: [-3.6, 3.0, 3.0], to: [-1.8, 2.4, 2.5], look: 'mid:tessa,loketbediende@1.2', fov: 52, until: 1 },
   };
 

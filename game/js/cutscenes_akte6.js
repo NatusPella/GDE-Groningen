@@ -191,7 +191,21 @@ S['M30.intro'] = {
     { on: 'Zeven mensen', actor: 'tessa', anim: 'look' },
     { on: 'Zeg: aanvallen', actor: 'berend', anim: 'point' },
     { on: 'Aanvallen.', actor: 'tessa', anim: 'cheer' },
+    // the finale (poseclips.js): when Tessa says it, the whole company answers; the content and the lines stay as they were
+    { on: 'Aanvallen.', dt: 0.3, actor: 'tessa', anim: 'juichen', dur: 2.6 },
+    { on: 'Aanvallen.', dt: 0.5, actor: 'lammert', anim: 'juichen', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 0.7, actor: 'klaas', anim: 'juichen', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 0.6, actor: 'roelfien', anim: 'juichen', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 0.9, actor: 'wubbo', anim: 'juichen', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 0.8, actor: 'berend', anim: 'applaus', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 0.7, actor: 'tinus', anim: 'applaus', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 1.0, actor: 'geesje', anim: 'applaus', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 0.9, actor: 'bert', anim: 'juichen', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 1.1, actor: 'durk', anim: 'applaus', dur: 2.4 },
+    { on: 'Aanvallen.', dt: 1.2, actor: 'douwe', anim: 'applaus', dur: 2.4 },
   ],
+  // a slow zoom on Tessa while she says she does not know what to say
+  cuts: [{ on: 'Zeven mensen', tpl: 'langzameZoom', target: 'tessa', hold: 4 }],
   shots: [],
   wide: WIDE([-5.5, 4.6, 3.6], [-3.5, 3.4, 2.6], 'mid:berend,tessa@1'),
 };
