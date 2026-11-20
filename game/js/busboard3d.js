@@ -20,10 +20,11 @@ const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 const SIDE_OFF = 0.04;
 const FRONT_OFF = 0.07;         // voor de ruit (0,041 m) en de lampenstrook (0,051 m) van de voorkant
 const textures = new Map();
+const BOARD_TEX_MAX = 64;
 
 function boardTexture(b) {
   let t = textures.get(b.key);
-  if (t) return t;
+  if (t) { textures.delete(b.key); textures.set(b.key, t); return t; }   // LRU: het laatst gebruikte bord achteraan
   const c = document.createElement('canvas');
   c.width = 128; c.height = 20;
   const g = c.getContext('2d');
@@ -44,6 +45,8 @@ function boardTexture(b) {
   t.minFilter = THREE.NearestFilter;
   t.colorSpace = THREE.SRGBColorSpace;
   textures.set(b.key, t);
+  // begrensd (#1040): een rit door de provincie maakt een bord per lijn en bestemming; het oudste gaat eruit en wordt zo nodig opnieuw getekend
+  if (textures.size > BOARD_TEX_MAX) { const k = textures.keys().next().value; textures.get(k).dispose(); textures.delete(k); }
   return t;
 }
 

@@ -193,7 +193,9 @@ export class FrameQueue {
 // are 92 MB raw), so nothing was ever evicted and a long trip piled up 0.6 MB per tile on the heap, up to 2.4 GB for the whole province. 40e6 raw
 // is the pinned city (14e6) plus ~830 tiles (~530 MB of heap) at the hard cap, and from 20e6 the tiles that lie beyond the wanted ring
 // (hysteresis in prefetch) go first.
-const DEFAULTS = { budgetBytes: 40e6, concurrency: 4, holdMs: 10000, unloadMargin: 300, readMs: READ_GUARD_MS, decodeMs: DECODE_GUARD_MS };
+// #1040: budget 28e6 (was 40e6) and the hysteresis from 35% of it (was 50%): beyond the ring a tile is held for holdMs and then dropped as soon
+// as the resident bytes pass ~9.8e6 raw (was 20e6 = ~640 tiles of far-away heap held for nothing); the cap lowers the heap at the hard limit by 30%.
+const DEFAULTS = { budgetBytes: 28e6, evictFrom: 0.35, concurrency: 4, holdMs: 10000, unloadMargin: 300, readMs: READ_GUARD_MS, decodeMs: DECODE_GUARD_MS };
 
 export class TileStore {
   // index: parsed index.json; decode(bytes) -> Promise<tile> (default: inflate + decode on this thread)
@@ -436,7 +438,7 @@ export class TileStore {
     // #651: één scan over de entries i.p.v. drie (wanted bijwerken, aflopende
     // aanvragen afbreken en de hysteresis-evictie in dezelfde ronde).
     const far = r + this.unloadMargin + half;
-    const evict = this.residentBytes > this.budgetBytes * 0.5;
+    const evict = this.residentBytes > this.budgetBytes * this.evictFrom;
     for (const e of this.entries.values()) {
       const was = e.wanted;
       e.wanted = want.has(e.key);
