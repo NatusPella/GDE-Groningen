@@ -82,5 +82,20 @@ if (STAP.includes('samen')) {
   await shot('samen', 800);
   await sluit();
 }
+if (STAP.includes('raak')) {
+  // QA-sweep 20-11: railknoppen op raakbediening en de focusring van de schuif en het kaartzoekveld
+  const zicht = (e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+  await open('spel');
+  out.raak = { touch: document.documentElement.classList.contains('touch-device'), venster: [innerWidth, innerHeight], rail: [...document.querySelectorAll('#pause-menu .ra')].filter(zicht).map((e) => [e.textContent.trim().slice(0, 14), Math.round(e.getBoundingClientRect().width), Math.round(e.getBoundingClientRect().height)]) };
+  await shot('raak-rail', 600);
+  await open('settings');
+  const sl = document.querySelector('#pause-menu input.m-sl');
+  if (sl) { sl.scrollIntoView({ block: 'center' }); tap('ArrowRight', 'ArrowRight'); sl.focus(); const cs = getComputedStyle(sl); out.raak.schuif = { focusVisible: sl.matches(':focus-visible'), outline: cs.outlineStyle + ' ' + cs.outlineWidth }; await shot('raak-schuif', 500); }
+  await sluit();
+  await open('map'); await sleep(1500);
+  const zoek = document.querySelector('.mapview-search input');
+  if (zoek) { tap('Tab', 'Tab'); zoek.focus(); const cs = getComputedStyle(zoek); out.raak.zoek = { focusVisible: zoek.matches(':focus-visible'), outline: cs.outlineStyle + ' ' + cs.outlineWidth }; await shot('raak-zoek', 500); }
+  await sluit();
+}
 clearInterval(skipper);
 return JSON.stringify(out);

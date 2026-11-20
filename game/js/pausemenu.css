@@ -1081,12 +1081,14 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .pm-settab .pm-slist { width: auto; flex: 1 1 auto; max-width: 100%; padding-right: 0; margin-left: 0; }
 }
 
-/* Raakbediening (QA-sweep 20-11): een railknop is minstens 44 px hoog, ook op een telefoon op zijn zij (800x360 mat
-   101 x 24 px). De rail schuift zelf als alle onderdelen niet passen; deze regels staan achteraan zodat ze de
+/* Raakbediening (QA-sweep 20-11): een railknop is minstens 44 schermpixels hoog, ook op een telefoon op zijn zij (800x360 mat
+   101 x 24 px). Het menu staat in een stage die met --mz is ingezoomd (menu.css), dus de maat wordt door --mz gedeeld,
+   net als --menu-min. De klasse touch-device zet touch.js zodra raakbediening aan is (ook html.touch-play is er niet
+   zolang het menu openstaat). De rail schuift zelf als alle onderdelen niet passen; deze regels staan achteraan zodat ze de
    --ra-h van de hoogtebreekpunten winnen. */
-html.touch-play #pause-menu .pm-rail { --ra-h: 44px; }
-html.touch-play #pause-menu .ra { min-height: 44px; }
+html.touch-device #pause-menu .pm-rail { --ra-h: calc(44px / var(--mz, 1)); }
+html.touch-device #pause-menu .ra { min-height: calc(44px / var(--mz, 1)); }
 @media (pointer: coarse) {
-  #pause-menu .pm-rail { --ra-h: 44px; }
-  #pause-menu .ra { min-height: 44px; }
+  #pause-menu .pm-rail { --ra-h: calc(44px / var(--mz, 1)); }
+  #pause-menu .ra { min-height: calc(44px / var(--mz, 1)); }
 }

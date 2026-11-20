@@ -22,11 +22,9 @@ export const MENU_STOP_S = 2;
 
 import { isPauseMenuOpen } from './pausestate.js';
 import { SFEER_KEYS, missieMuziekKey, bijbaanMuziekKey } from './missiesfeer.js';
-import { isNightAtHour } from './sunrules.js';
 
 export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu', 'pvp', ...SFEER_KEYS];
-// De missiesferen (missiesfeer.js) komen alleen als sleutel binnen als hun bestand er is; anders is het 'missie' of de radio.
-const isNachtVoor = (w) => { const h = w.dayNight ? w.dayNight.hour : w.clock; return Number.isFinite(h) && isNightAtHour(h); };
+// De missiesferen (missiesfeer.js) komen alleen als sleutel binnen voor een verhaalmoment uit de lijst met een geleverd bestand; anders is het de radio.
 const BOERDERIJ_MODELLEN = ['tractor', 'maaidorser', 'laadmachine']; // de machines van het boerenwerk (boerderijwereld.js, #415)
 
 // Modules that own private state (the machinist service) register a probe
@@ -50,6 +48,17 @@ export function activityMusicKey(world) {
   const G = world.coopWedGast;
   if (G && (G.spiegel || G.score) && ACTIVITY_BY_ID[G.id]) return ACTIVITY_BY_ID[G.id];
   if (ACTIVITY_BY_ID[world.activityGame]) return ACTIVITY_BY_ID[world.activityGame];
+  // een verhaalmoment uit MISSIE_EIGEN_MUZIEK (of een bijbaanwedstrijd): eigen sfeer, ook in een voertuig met de radio aan (besluit
+  // eigenaar 20-11: de radio is de standaard). Het safehouse-menu en de fotomodus (thuis) gaan voor. Een gewone missie of bijbaan
+  // krijgt niets: de radio, of stilte als de speler hem uitzette. De spanningsloop ('missie') alleen als de missie er expliciet om vraagt.
+  if (!probed('thuis', world) && !probed('foto', world)) {
+    if (world.mission && world.mission.phase === 'active') {
+      const k = missieMuziekKey(world.mission.code, world.mission.stageIndex);
+      if (k) return k;
+      if (world.mission.spanning === true) return 'missie';
+    }
+    if (world.sideJob && world.sideJob.active) { const k = bijbaanMuziekKey(world.sideJob.id); if (k) return k; }
+  }
   // train: the machinist service, or a passenger ride between stations (stationtravel.js: trainCam without trainDriving)
   if (probed('trein', world) || (world.trainCam && !world.trainDriving)) return 'trein';
   // bus: driving a bus job or a taken-over line service (the helper and the passengers ride along in it)
@@ -63,11 +72,7 @@ export function activityMusicKey(world) {
   if (world.coopRole === 'client' && (world.coopZit === 'trein' || world.coopZit === 'bus')) return world.coopZit;
   // your safehouse menu or the photo mode: the calm home loop (it wins over a running mission and the bike)
   if (probed('thuis', world) || probed('foto', world)) return 'thuis';
-  // a running story mission (tension loop), then the bike (a relaxed loop); the specific activities above win, a chase wins over all
-  // a running story mission: its own sphere (missiesfeer.js), the tension loop when that file is missing
-  if (world.mission && world.mission.phase === 'active') return missieMuziekKey(world.mission.code, world.mission.type);
-  // an active side job: its sphere once the file exists, otherwise the radio
-  if (world.sideJob && world.sideJob.active) { const k = bijbaanMuziekKey(world.sideJob.id, isNachtVoor(world)); if (k) return k; }
+  // the bike (a relaxed loop); a story moment and the side-job races are handled above, everything else is the radio
   if (pv && (pv.isBike || pv.isScooter)) return 'fiets';
   return null;
 }

@@ -117,7 +117,7 @@ ok(/toggle\('showSubtitles', 'Ondertitels aan'/.test(pmSrc), 'de schakelaar staa
   const pauseCss = readFileSync(new URL('../game/js/pausemenu.css', import.meta.url), 'utf8');
   const menuCss = readFileSync(new URL('../game/js/menu.css', import.meta.url), 'utf8');
   const mapSrc = readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
-  ok(/html\.touch-play #pause-menu \.ra \{ min-height: 44px; \}/.test(pauseCss) && /@media \(pointer: coarse\) \{[\s\S]*?#pause-menu \.ra \{ min-height: 44px; \}/.test(pauseCss), 'railknoppen zijn op raakbediening minstens 44 px hoog');
+  ok(/html\.touch-device #pause-menu \.ra \{ min-height: calc\(44px \/ var\(--mz, 1\)\); \}/.test(pauseCss) && /@media \(pointer: coarse\) \{[\s\S]*?#pause-menu \.ra \{ min-height: calc\(44px \/ var\(--mz, 1\)\); \}/.test(pauseCss), 'railknoppen zijn op raakbediening minstens 44 px hoog');
   ok(/\.m-sl:focus-visible \{ outline: 2px solid var\(--ink\)/.test(menuCss), 'de schuifregelaar heeft een zichtbare focusring');
   ok(/\.mapview-search input:focus-visible \{ outline: 3px solid/.test(mapSrc), 'het kaartzoekveld heeft een zichtbare focusring');
 }
