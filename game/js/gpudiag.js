@@ -8,6 +8,7 @@ import { FLAGS } from './devflags.js';
 import { VERSION } from './version.js';
 import { classifyGpu, currentPreset, presetLabel, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { readLastRun } from './benchstats.js';
+import { audioBlokTekst } from './audiodiag.js';
 
 const SOFTWARE_RE = /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic|warp\b/i;
 // A GPU that shares the processor's memory: Intel UHD/Iris/HD, the AMD "Radeon(TM) Graphics" and the 3-digit-M Radeons
@@ -109,6 +110,7 @@ export function formatReport(info) {
   }
   if (i.render) add('De stad per beeld', `${f1(i.render.calls)} drawcalls, ${Math.round(i.render.triangles || 0)} driehoeken, ${i.render.geometries || '-'} geometrieën, ${i.render.textures || '-'} texturen, ${i.render.programs || '-'} shaders`);
   if (i.bench) add('Laatste benchmark', `${i.bench.avg} fps gemiddeld, p95 ${i.bench.p95} ms, laagste 1% ${i.bench.low1} fps, stand ${i.bench.preset || 'eigen'}${i.bench.cats ? '; per categorie ' + Object.entries(i.bench.cats).map(([c, v]) => `${c} ${v}`).join(', ') : ''}`);
+  if (i.audioBlok) out.push('', i.audioBlok);
   const w = gpuWarning(g.renderer, { windows: /win/i.test(i.platform || ''), softwareProbe: !!i.softwareProbe });
   if (w) out.push('', `Let op: ${w.text}`);
   return out.join('\n');
@@ -267,6 +269,7 @@ export async function collectTechInfo({ nowMs = 3000 } = {}) {
   info.hitches = hitchEntries().filter((x) => x.t >= 0);
   const last = readLastRun();
   if (last) info.bench = { avg: last.avg, p95: last.p95, low1: last.low1, preset: last.preset, cats: last.cats };
+  try { info.audioBlok = audioBlokTekst(); } catch (e) { /* geen audiodiagnose */ }
   if (D && D.gpuInfo) { try { info.electron = await D.gpuInfo(); } catch (e) { /* older shell */ } }
   return info;
 }

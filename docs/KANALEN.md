@@ -52,6 +52,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | voertuighud | heliflight.js, helirun.js, planeflight.js en 5 andere | beslist zelf | P2 | H | nee: vervangt de snelheidsmeter zolang je vliegt (body.heli-flying) of een trein bestuurt (body.tc-on) | Samen: een voertuigblok per voertuigsoort via hudlook (welke meters per voertuig staat er al). |
 | samen | coophud.js, coophold.js, coopscene.js en 4 andere | beslist zelf | P2 | - | nee: de uitnodiging Meedoen? en de uitslag van een race of golfronde tegen elkaar (coopwedstrijd3d.js, alleen zolang er een wedstrijd is), de spelerslijst (alleen bij Tab en in het pauzemenu, nooit permanent) en de fade bij samen spelen, en het meekijklaagje van een gast op de scene van de host (coopscene.js, volgt wat de host toont); geen eigen planner | Blijft; klein en alleen op verzoek van de speler. |
 | menu | pausemenu.js, menumelding.js, veroverdpanel.js en 21 andere | beslist zelf | n.v.t. | - | nee: de speler opent het zelf; het is modaal en de rest wacht. Prestaties, Cheats en de fotomodus zetten hun eigen opmaak op (zetCss in elk bestand) maar zijn panelen van ditzelfde menu, dus ze staan hier en niet als eigen surface | Blijft; buiten dit probleem (de speler vraagt erom). |
+| diagnose | gpudiag.js | beslist zelf | P1 | B | nee: het venster Technische info (Instellingen > Beeld): de speler opent het zelf en sluit het weer |  |
 | invoer | input.js, touch.js, aimassist.js | beslist zelf | n.v.t. | - | nee: invoer en richtkruis; vragen de aandacht niet | Blijft; vraagt geen aandacht. |
 | dev | storydev.js, storytest.js, testmenu.js en 2 andere | beslist zelf | n.v.t. | - | nee: ontwikkel- en promohulpen; niet voor de speler | Blijft; hoort niet in het kritieke pad (zie #109). |
 | effect | postfx3d.js, drunk.js | 3 modules, 3 aanroepen | n.v.t. | - | nee: schermeffect zonder tekst (flits, kleur); geen informatie | Blijft; geen informatie, geen kanaal. |
@@ -88,6 +89,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **voertuighud**: Voertuig-HUD buiten de auto: de heli-HUD (vervangt de snelheidsmeter), de vliegtuigkaart en het busbord.
 - **samen**: Samen spelen: de fade bij binnenkomst en de spelerslijst bij Tab (nooit permanent in beeld; de lijst met acties staat in het pauzemenu).
 - **menu**: Pauzemenu, kaart, telefoon, overzicht, garage, winkel, startscherm, profiel: de speler opent ze zelf; modaal.
+- **diagnose**: 
 - **invoer**: Invoer en richtkruis: aanraakknoppen, toetsenbordhulp, het richtkruis.
 - **dev**: Ontwikkel- en promohulpen (testmenu, trailer, verhaaltest): niet voor de speler.
 - **effect**: Schermeffecten zonder tekst: flits (trailer, dorpsuitje, verhaal), kleur van de dronken speler.
