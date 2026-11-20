@@ -5,7 +5,7 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
-import { keyLabelGlyph } from './keycap.js';
+import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
@@ -139,7 +139,7 @@ const CONTROL_GROUPS = [
     // #985 punt 1: toets 5 stond wel in KEY_ACTIONS (en werkt), maar niet in dit overzicht: een
     // speler kon hem dus niet vinden. Hij staat bij de kaart, want hij zet een doel op de kaart.
     [['5'], 'Eigen doel op de kaart'],
-    [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
+    [['ARROWS'], 'In het menu: kiezen, {ENTER}: ok'],
     [['Q', 'E'], 'Volgend tabblad of onderdeel'],
     [['[', ']'], 'Zelfde als Q en E'],
     [['N'], 'Radio aan of uit'],
@@ -147,7 +147,7 @@ const CONTROL_GROUPS = [
     [['O'], 'Verhaalstap overslaan'],
     [['C'], 'Taxi of trein: andere camera (Y)'],
     [['BACKSPACE'], 'Minigame of dienst stoppen'],
-    ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
+    ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook {ALT}+{ENTER})']] : []),
   ]],
 ];
 
@@ -173,7 +173,7 @@ const CONTROL_LONG = [
     ['Wheelie of stoppie', 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen), een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen); heli: omlaag; vliegtuig: neus omlaag.'],
     ['Schakelen', 'Handmatig schakelen: hoger en lager (Instellingen › Schakelen).'],
     ['Koppeling', 'Handmatig met koppeling: de koppeling indrukken bij het schakelen.'],
-    ['Achterom kijken', 'Achterom kijken: houd {Q} vast, of de middelste muisknop.'],
+    ['Achterom kijken', 'Achterom kijken: houd {Q} vast, of druk op {WHEEL}.'],
     ['Sirene', 'Zwaailicht en sirene (politieauto, ambulance).'],
     ['Richting aangeven', 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit).'],
     ['Eerste persoon', 'Eerste persoon aan of uit: de camera op de ogen van je figuur, met een vrije blik. De BINNENIN-filmcamera blijft via {V} bereikbaar.'],
@@ -217,7 +217,7 @@ const CONTROL_LONG = [
 const GROUP_ICONS = { voet: 'lopen', vervoer: 'auto', vechten: 'doel', duif: 'duif', samen: 'samen', menu: 'telefoon' };
 // the controller table (controls.js PAD_MAPS) each group shows when a pad is in use
 const GROUP_CTX = { voet: 'foot', vervoer: 'vehicle', vechten: 'foot', duif: 'pigeon', samen: 'foot', menu: 'menu' };
-const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
+const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' }; // keywords-ok: zoekwoorden, geen weergave
 
 const altKeys = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
 // #605: de lange uitleg van een situatie, per korte actie. Stond vroeger onder elke toets in het
@@ -598,10 +598,10 @@ function fixedKeysHtml() {
     ['Enter', 'Bevestigen en in het menu ok'],
     ['Pijltjes', 'Kiezen in het menu'],
     ['F8', 'Fotomodus'],
-    ['F11', 'Volledig scherm (ook Alt+Enter)'],
+    ['F11', 'Volledig scherm (ook {ALT}+{ENTER})'],
     ['Muis', 'Kijken, richten en schieten'],
   ];
-  return '<div class="pm-fixed">' + rows.map(([k, v]) => `<div class="pm-fixed-row"><span class="m-kc">${esc(k)}</span><span>${esc(v)}</span></div>`).join('') + '</div>';
+  return '<div class="pm-fixed">' + rows.map(([k, v]) => `<div class="pm-fixed-row"><span class="m-kc is-kbg">${keyLabelHtml(k)}</span><span>${keyText(v)}</span></div>`).join('') + '</div>';
 }
 
 // #894: dezelfde toets doet in verschillende situaties iets anders (E is gebruiken, instappen,
@@ -622,7 +622,7 @@ function keyReuseHtml() {
     .sort((a, b) => b[1].length - a[1].length).slice(0, 4);
   if (!dubbel.length) return '';
   return '<div class="pm-keyreuse"><b>Dezelfde toets, meer taken</b>' +
-    dubbel.map(([k, lijst]) => `<div class="pm-keyreuse-row"><span class="m-kc">${esc(keyLabel(k))}</span><span>${esc(lijst.join(' · '))}</span></div>`).join('') + '</div>';
+    dubbel.map(([k, lijst]) => `<div class="pm-keyreuse-row"><span class="m-kc is-kbg">${glyphHtml(k)}</span><span>${esc(lijst.join(' · '))}</span></div>`).join('') + '</div>';
 }
 
 // #980: Instellingen > Camera opent met wat er nu staat, in één blik: de stand, de beeldhoek en
@@ -639,7 +639,7 @@ function camNowHtml() {
 function hintsNowHtml() {
   return '<div class="pm-hintprev" data-hintprev role="group" aria-label="Zo zien hints eruit">' +
     '<span class="m-eb">Zo zien hints eruit</span>' +
-    '<span class="pm-hintprev-row" data-hintprev-row aria-live="polite"><span class="m-kc">E</span><span>Instappen</span></span></div>';
+    '<span class="pm-hintprev-row" data-hintprev-row aria-live="polite"><span class="m-kc is-kbg">' + glyphHtml('E') + '</span><span>Instappen</span></span></div>';
 }
 
 // De feiten bovenaan Camera en het hintvoorbeeld onder Hints volgen elke wijziging meteen (#980).
@@ -671,7 +671,7 @@ function syncNowFacts(st = getSettings()) {
       voorbeeld.dataset.stand = sig;
       voorbeeld.innerHTML = stand === 'uit' ? '<span class="mut">Hints staan uit.</span>'
         : stand === 'pad' ? `${pg('y')}<span>Instappen</span>`
-          : `<span class="m-kc">${esc(instap)}</span><span>Instappen</span>`;
+          : `<span class="m-kc is-kbg">${glyphHtml('E')}</span><span>Instappen</span>`;
     }
   }
   // zonder hints heeft "Hints tonen voor" geen gevolg: de kiezer gaat opzij in plaats van dood te lopen
@@ -705,7 +705,7 @@ function settingsHtml() {
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen', 'Schaduwen geven de wereld diepte; uit is soepeler op een lichte computer')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
-      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
+      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">{F11} of {ALT}+{ENTER}</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
            beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
@@ -755,7 +755,7 @@ function settingsHtml() {
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
+      ${toggle('mapShiftTeleport','{SHIFT}+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
@@ -765,7 +765,7 @@ function settingsHtml() {
       <div class="m-li pm-row">${rowName('Toetsen aanpassen', 'Elke toets een andere functie geven; zit een toets al op iets anders, dan ruilen ze')}<button type="button" class="m-bg" data-goto-sub="controls:toetsen">Aanpassen</button></div>
       ${keyChangedRow()}
       <div class="m-li pm-row">${rowName('Toetsenoverzicht', 'Alle toetsen per situatie, om na te lezen')}<button type="button" class="m-bg" data-goto-sub="controls:overzicht">Bekijken</button></div>
-      ${disclosure('keys-fixed', 'Deze toetsen liggen vast', 'Esc, Enter, de pijltjes en de functietoetsen', fixedKeysHtml())}
+      ${disclosure('keys-fixed', 'Deze toetsen liggen vast', '{ESC}, {ENTER}, {ARROWS} en de functietoetsen', fixedKeysHtml())}
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via een koppelprogramma), kies dan zelf; knoppen en hints volgen je keuze')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05, '', 'keer')}
@@ -809,7 +809,7 @@ ${keyReuseHtml()}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       <div class="m-gh"><span>Uitleg</span></div>
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de kaart en Activiteiten')}
-      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}
+      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of {ENTER}')}
       <div class="m-gh"><span>Terugkijken</span></div>
       <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
       <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
@@ -1585,7 +1585,7 @@ function bindRowsKeys() {
     return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen">` +
       `<span class="nm"><span class="one">${esc(hoofd)}</span>${ook}${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
-  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}`;
+  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. {ESC}, {ENTER}, {ARROWS} en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: {CTRL}+{W} sluit daar het tabblad.' : ''}`;
   return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
 }
 
@@ -1632,7 +1632,7 @@ function startKeyRebind(btn) {
   // #605: de wachtstand houdt de actienaam in beeld, zodat je weet wat je aan het indelen bent
   btn.classList.add('pm-waiting');
   btn.innerHTML = `<span class="nm"><span class="one">${esc(actionWords(canon))}</span><span class="mut">Druk een toets…</span></span><span class="m-kc">…</span>`;
-  setBindMsg('Druk de nieuwe toets. Esc annuleert.');
+  setBindMsg('Druk de nieuwe toets. {ESC} annuleert.');
   rebinding = { kind: 'key', canon };
   input.captureKey = (raw) => {
     rebinding = null;
@@ -1653,7 +1653,7 @@ function startPadRebind(btn) {
   // #605: ook hier blijft de actienaam staan terwijl je op een knop wacht
   btn.classList.add('pm-waiting');
   btn.innerHTML = `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">Druk een knop…</span></span><span class="pm-padcap">…</span>`;
-  setBindMsg('Druk op de controller de nieuwe knop. Menu/Start of Esc annuleert.');
+  setBindMsg('Druk op de controller de nieuwe knop. Menu/Start of {ESC} annuleert.');
   rebinding = { kind: 'pad', slot };
   rebinding.cancel = capturePadButton((phys) => {
     rebinding = null;
@@ -2027,8 +2027,8 @@ function runAction(a) {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').textContent = prestart
-      ? 'Benchmark starten? Duurt ongeveer een minuut. Esc stopt.'
-      : 'Benchmark starten? Je spel wordt eerst opgeslagen. Esc stopt.';
+      ? 'Benchmark starten? Duurt ongeveer een minuut. {ESC} stopt.'
+      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.';
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
   } else if (a === 'bench-go') {
@@ -2492,8 +2492,8 @@ function hintHtml([keys, label, action], pad, back) {
   if (pad && keys.every((k) => k in PAD_KEYS && PAD_KEYS[k] === null)) return '';
   const caps = keys.map((k) => {
     if (pad && k in PAD_KEYS) { const slot = PAD_KEYS[k]; return slot ? pg(slot) : ''; }
-    const kg = k.length > 1 && /^[↑↓←→]/.test(k) ? null : keyLabelGlyph(k);
-    return kg ? `<span class="m-kc is-kbg">${kg}</span>` : `<span class="m-kc">${esc(k)}</span>`;
+    const kg = keyLabelGlyph(k);
+    return kg ? `<span class="m-kc is-kbg">${kg}</span>` : `<span class="m-kc is-kbg">${keyLabelHtml(k)}</span>`;
   }).join('');
   const text = label === BACK ? back : (pad && PAD_LABEL[label]) || label;
   return `<button type="button" class="m-hint" tabindex="-1"${action ? ` data-hint="${action}"` : ''}>${caps}<span>${esc(text)}</span></button>`;

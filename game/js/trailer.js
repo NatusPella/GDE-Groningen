@@ -10,6 +10,7 @@ import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult, getBenchResult } from './gfxprofile.js';
 import { BENCH_ROUTE, BENCH_CATEGORIES, playStats, benchLooksBusy, BENCH_BUSY_NOTE, recommendStand, STAND_LABEL, shouldRemeasure, betterRun, ultraNote, benchMeasureAfter, frameStats, categoryStats, routeHitches, weakestCategory, compareRuns, compareText, packRun, readLastRun, writeLastRun, heapMb, heapPeak, memText } from './benchstats.js';
 import { onBenchmarkStop } from './gamepad.js';
+import { glyphHtml } from './keycap.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -206,6 +207,7 @@ body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display:
 #trailer-result .tr-advice { color: #f0ede4; border-left: 3px solid #3fc97a; padding-left: 10px; margin-top: 12px; }
 #trailer-result .tr-advice b { color: #3fc97a; }
 #trailer-result .tr-advice small { display: block; margin-top: 2px; font-size: 14px; color: rgba(240, 237, 228, 0.7); }
+#trailer-result .tr-keys { margin: 12px 0 0; font-size: 14px; opacity: 0.8; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 #trailer-result .tr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 #trailer-result button { font: 20px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 3px; cursor: pointer; background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
 #trailer-result button.primary { background: linear-gradient(90deg, #1e9e56, #3fc97a); color: #0c140e; border-color: transparent; }
@@ -244,8 +246,8 @@ function ensureUi() {
   root.innerHTML = '<div class="tr-vig"></div><div class="tr-flash"></div><div class="tr-black"></div>' +
     '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
-    '<span>Houd</span><span class="key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
-    '<div class="tr-cancel"><span class="key">ESC</span><span>Benchmark stoppen (controller: B)</span></div>' +
+    '<span>Houd</span><span class="key is-kbg">' + glyphHtml('SPACE') + '</span><span>ingedrukt om over te slaan</span></div>' +
+    '<div class="tr-cancel"><span class="key is-kbg">' + glyphHtml('ESC') + '</span><span>Benchmark stoppen</span></div>' +
     '<div class="tr-fps"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
@@ -2562,8 +2564,9 @@ export function showBenchmarkResults(res) {
       <button type="button" data-act="again">Nog een keer</button>
       <button type="button" data-act="settings">Instellingen</button>
       <button type="button" data-act="diag">Technische info kopiëren</button>
-      <button type="button"${adv.apply ? '' : ' class="primary"'} data-act="back">Terug</button>
-    </div></div>`;
+      <button type="button"${adv.apply ? '' : ' class="primary"'} data-act="back">Terug {ESC}</button>
+    </div>
+    <p class="tr-keys">{ARROWS} kiezen · {ENTER} ok · {ESC} terug</p></div>`;
   resultEl.hidden = false;
   document.body.classList.add('tr-result-open');
   const buttons = () => [...resultEl.querySelectorAll('button:not([hidden])')];

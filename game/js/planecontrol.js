@@ -92,7 +92,7 @@ export function idlePlane(v, dt, groundAt) {
 export function planeExitBlock(v) {
   if (!v || !v.plane || v.wrecked) return '';
   if (!v.plane.onGround) return 'Eerst landen op de baan';
-  if (v.plane.speed > 2) return 'Eerst stilstaan: rem met Shift';
+  if (v.plane.speed > 2) return 'Eerst stilstaan: rem met {SHIFT}';
   return '';
 }
 
@@ -117,7 +117,7 @@ export function planeStatus(v) {
   let state = '';
   if (p.crashed || v.wrecked) state = 'Neergestort';
   else if (p.stalled) state = 'Overtrek! Neus omlaag, gas erbij';
-  else if (p.onGround && p.speed < 1) state = 'Gas met W, trek bij 30 m/s op met Spatie';
+  else if (p.onGround && p.speed < 1) state = 'Gas met {W}, trek bij 30 m/s op met {SPACE}';
   else if (p.onGround) state = `Rotatie vanaf ${PLANE.liftoff} m/s`;
   else if (p.z - (v.groundZ ?? 0) < 40 && p.vz < -PLANE.landVz) state = 'Te snel zakken!';
   const laag = p.z - (v.groundZ ?? 0) < 60;

@@ -615,7 +615,7 @@ function landingStatus(v) {
     if (v.rotor < LIFT_SPOOL) return ['Rotor draait op...', '#e8c93a'];
     const why = heliExitBlock(v);
     if (v.landKind === 'pad' && v.landPad && v.landPad.label) return [v.landPad.label, '#3fc97a'];
-    return why ? ['Geland op een dak · Spatie om op te stijgen', '#e8c93a'] : ['Geland · E uitstappen, Spatie opstijgen', '#3fc97a'];
+    return why ? ['Geland op een dak · {SPACE} om op te stijgen', '#e8c93a'] : ['Geland · {E} uitstappen, {SPACE} opstijgen', '#3fc97a'];
   }
   const alt = v.z - (v.groundZ ?? 0);
   const hs = Math.hypot(v.vx || 0, v.vy || 0);

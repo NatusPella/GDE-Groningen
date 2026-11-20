@@ -122,7 +122,7 @@ export const UITLEG = {
   oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
 };
 // De knop in het pausemenu heet "Stoppen met <naam van de baan>" (pausemenu.js): noem die naam, dan zoekt de speler niet.
-const stopHint = (baan) => `Stoppen kan altijd: Esc en dan Stoppen met ${baan || 'deze dienst'}.`;
+const stopHint = (baan) => `Stoppen kan altijd: {ESC} en dan Stoppen met ${baan || 'deze dienst'}.`;
 const MELDING = { tehard: 'Te hard: het werk wordt slordig (de helft van die meters telt). Gas terug.', scheef: 'Blijf in de rij.', lading: 'Rustig: de oogst rolt van de kar.' };
 
 // De uitleg bij rij 1 van 4 (#437): wat de machine doet (geen knop), waarmee je gas geeft en hoe je stopt. Puur, zodat
@@ -172,7 +172,7 @@ export default {
   tagline: 'Boerderij De Zonnehoek: je eigen land, je eigen gewassen en een zonnige dag',
   intro: [
     'Boerderij De Zonnehoek is van jou: één akker bij Hoogkerk, een trekker en machines die je huurt of koopt.',
-    'Ploegen, zaaien, het gewas laten groeien (dat gaat vanzelf met de speltijd), oogsten en afleveren. Rij recht door de rij, niet te hard en niet te langzaam. De machine werkt vanzelf: je hoeft geen knop te drukken. Stoppen kan altijd via Esc.',
+    'Ploegen, zaaien, het gewas laten groeien (dat gaat vanzelf met de speltijd), oogsten en afleveren. Rij recht door de rij, niet te hard en niet te langzaam. De machine werkt vanzelf: je hoeft geen knop te drukken. Stoppen kan altijd via {ESC}.',
   ],
   sikkom: (c) => `Boerderij De Zonnehoek: ${c.streak} klussen op eigen land`,
 

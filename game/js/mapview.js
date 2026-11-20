@@ -1924,7 +1924,7 @@ function drawDynamicMarkers(ctx, world) {
       ctx.lineWidth = 2.5;
       ctx.stroke();
     }
-    icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, 'klik voor Haal weg · rechtsklik of Del om te wissen', { isGoal: true });
+    icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, '{LMB} voor Haal weg · {RMB} of {DELETE} om te wissen', { isGoal: true });
   }
 
   // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent. #674: met de

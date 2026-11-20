@@ -67,7 +67,7 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
         afloop: 'als vierde of lager binnen: opnieuw',
         regels: [
           { type: 'teller', inv: { rest: 58, totaal: 58, label: 'Tijd' }, na: 9, duur: 6 },
-          { type: 'stappen', inv: { modus: 'legenda', label: 'Podium en sprint', stappen: [{ icoon: 'hart', label: 'Plek 1 tot 3', waarde: 'podium' }, { icoon: 'stoepbord', label: 'Plek 4 en 5', waarde: 'opnieuw' }, { icoon: 'meter', label: 'Shift ingedrukt: sprint', waarde: '2,5 s' }] }, na: 16, duur: 6 },
+          { type: 'stappen', inv: { modus: 'legenda', label: 'Podium en sprint', stappen: [{ icoon: 'hart', label: 'Plek 1 tot 3', waarde: 'podium' }, { icoon: 'stoepbord', label: 'Plek 4 en 5', waarde: 'opnieuw' }, { icoon: 'meter', label: '{SHIFT} ingedrukt: sprint', waarde: '2,5 s' }] }, na: 16, duur: 6 },
           { type: 'teller', inv: { rest: 8, totaal: 58, label: 'Bijna op' }, tekst: 'De klok loopt bijna af: pak snel het volgende punt', bij: 'bijna', duur: 5 },
         ],
       },

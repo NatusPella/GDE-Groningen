@@ -64,20 +64,20 @@ async function reeks(modus) {
   await shot('voet-' + modus);
   // pauzemenu-tabs
   for (const [naam, args] of [['pauze overzicht', ['overzicht']], ['pauze kaart', ['map']], ['pauze todo', ['todo']], ['pauze instellingen', ['instellingen']], ['pauze besturing', ['instellingen', { sub: 'besturing' }]], ['pauze garage', ['garage']]]) {
-    try { PM.openPauseMenu(...args); await meet1(naam, modus, 1800); if (naam === 'pauze overzicht' || naam === 'pauze besturing') await shot(naam.replace(' ', '-') + '-' + modus); PM.closePauseMenu(); await sleep(500); } catch (e) { uit.push({ scene: naam, modus, fout: String(e.message) }); try { PM.closePauseMenu(); } catch {} }
+    try { PM.openPauseMenu(...args); await meet1(naam, modus, 1800); if (['pauze overzicht', 'pauze besturing', 'pauze kaart', 'pauze garage', 'pauze todo'].includes(naam)) await shot(naam.replace(' ', '-') + '-' + modus); PM.closePauseMenu(); await sleep(500); } catch (e) { uit.push({ scene: naam, modus, fout: String(e.message) }); try { PM.closePauseMenu(); } catch {} }
   }
   // stopvenster en minigamebord
   try {
     const K = await imp('minigamekit');
     const b = K.createBoard('discgolf'); b.set({ row: 'Worp 3 van 9', cells: [{ t: 'Hole 1', cls: 'good' }], help: K.key('SPATIE') + ' werpen · ' + K.key('ESC') + ' stoppen' }); b.show();
-    await meet1('minigamebord', modus, 700);
+    await meet1('minigamebord', modus, 700); await shot('minigamebord-' + modus);
     K.stopPressed({ wasPressed: (k) => k === 'escape', consume() {} });
     await meet1('stopvenster', modus, 700); await shot('stopvenster-' + modus);
     document.querySelectorAll('.mg-stopask').forEach((e) => e.remove()); b.hide(); b.root.remove();
   } catch (e) { uit.push({ scene: 'bord/stop', modus, fout: String(e.message) }); }
   // uitjekaart en tip
-  try { const U = await imp('uitjepaneel'); U.toonUitje(w, 'hoogvlieger', { titel: 'Reuzenrad', regel: 'Je zit in de gondel.', hint: '{SPACE} verder', secs: 6 }); await meet1('uitjekaart', modus, 900); U.verbergUitje(); } catch (e) { uit.push({ scene: 'uitje', modus, fout: String(e.message) }); }
-  try { w.addMessage('Druk op {E} om in te stappen, {WASD} om te lopen', 6); await meet1('melding met toetsen', modus, 900); } catch (e) { uit.push({ scene: 'melding', modus, fout: String(e.message) }); }
+  try { const U = await imp('uitjepaneel'); U.toonUitje(w, 'hoogvlieger', { titel: 'Reuzenrad', regel: 'Je zit in de gondel.', hint: '{SPACE} verder', secs: 6 }); await meet1('uitjekaart', modus, 900); await shot('uitjekaart-' + modus); U.verbergUitje(); } catch (e) { uit.push({ scene: 'uitje', modus, fout: String(e.message) }); }
+  try { w.addMessage('Druk op {E} om in te stappen, {WASD} om te lopen', 6); await meet1('melding met toetsen', modus, 900); await shot('melding-' + modus); } catch (e) { uit.push({ scene: 'melding', modus, fout: String(e.message) }); }
 }
 
 padOn = false;

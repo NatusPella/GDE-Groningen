@@ -13,6 +13,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Verbeterd
 
 - **Rustiger beeld in de stad (#804, #937):** het spel decodeert bij het starten alleen nog de korte, vaak gebruikte geluiden (ca. 7 MB in plaats van ca. 100 MB werkgeheugen); lussen van het weer, vliegtuigen en dieren laden pas als je ze nodig hebt, één tegelijk. Zware wegen die het spel zelf moet bouwen krijgen rust tussen twee bouwbeurten, zodat het niet meer meerdere beelden achter elkaar haperkt, en de kaartjes, de HUD van de bijbanen en de boerderij doen niet meer elk beeld werk dat alleen bij een wijziging nodig is
+- **Elke toets- en knophint is een icoon:** menuvoetregels, het stopvenster, Doorgaan en Begrepen, de garage, de fotomodus, de Besturing-tabellen, de hulp, de bijbaan- en vliegregels en de hints in de wereld tonen toetsen, pijltjes, de muis en het muiswiel als icoon in plaats van als woord. Met een controller staat overal de knop van jouw controller en die wisselt meteen als je een ander apparaat pakt. De toetsen zijn groter (minstens 26 px in het beeld, 28 px in menu's).
+- **De muis heeft dezelfde iconen als de toetsen:** linker- en rechterknop, middelste knop, wiel, bewegen en slepen (`{LMB}`, `{RMB}`, `{MMB}`, `{WHEEL}`, `{MOUSE}`, `{DRAG}`).
 
 ### Opgelost
 
