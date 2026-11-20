@@ -51,6 +51,10 @@ export const ICON_MAP = {
   schilderij: 'palette', kleding: 't-shirt', bril: 'sunglasses', laars: 'boot', zwemmen: 'waves',
   // Gevulde varianten (Phosphor 'fill') voor een aangezette toestand, zoals een favoriet.
   ster_vol: 'star-fill', hart_vol: 'heart-fill',
+  // Light sims (#985): de strook vraagt om deze betekenissen
+  ronde: 'arrow-clockwise', plaats: 'trophy', tempo: 'speedometer', worp: 'baseball', par: 'golf', stand: 'chart-bar', punt: 'check-circle', rally: 'arrows-left-right',
+  golf: 'golf', kart: 'car-profile', zwembad: 'swimming-pool', klimmen: 'hand-grabbing', skate: 'sneaker', padel: 'racquet', wandeling: 'person-simple-hike',
+  reuzenrad: 'circle-notch', krant: 'newspaper', bezorger: 'moped', bak: 'chef-hat', stempel: 'stamp',
   lopen: 'person-simple-walk', rennen: 'person-simple-run', bagage: 'backpack', hand: 'hand',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.

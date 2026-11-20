@@ -4,6 +4,7 @@
 // verliezen. Het logica-deel is puur (Node-test: scripts/bakeround_test.mjs); het paneel is een kleine
 // DOM-kaart die alleen in de browser bestaat.
 
+import { sfxLinks } from './latehooks.js';
 import { maakWidget } from './regelwidget.js'; // #987: het recept en de toetsen als iconen in plaats van een tekstlijst
 
 const INGREDIENTS = [
@@ -73,34 +74,54 @@ export function bakePanel(b, title = '') {
 // --- het paneel (alleen in de browser) -----------------------------------------
 let panel = null;
 let rwStappen = null, rwToetsen = null;
+let goed = ''; // de melding bij een gelukte bal (de foutmelding staat in b.last)
 
+// Het paneel (#985): een ds-kaart in dezelfde plek en taal als de strook van de light sims (sim.css, alleen ds-tokens, klassen bk-), met een balk voor de
+// eierballen, het recept als stappen (Oma's volgorde blijft verborgen) en de zes toetsen als legenda. Het element heet nog steeds #bakeround (de speelbot zoekt het).
 function ensurePanel() {
   if (panel || typeof document === 'undefined') return panel;
   panel = document.createElement('div');
   panel.id = 'bakeround';
-  panel.style.cssText = 'position:fixed;left:50%;bottom:18%;transform:translateX(-50%);z-index:30;background:rgba(32,24,16,.88);color:#fdf3dc;border:2px solid #e9b44c;border-radius:10px;padding:10px 16px;font:15px/1.4 Arial Narrow, Arial, sans-serif;text-align:center;pointer-events:none;min-width:280px';
-  panel.innerHTML = '<div class="bk-kop"></div><div class="bk-ronde"></div><div class="bk-regel"></div><div class="bk-toetsen"></div><div class="bk-mis"></div>';
+  panel.className = 'sh-hud bk-paneel ds-kaart';
+  panel.setAttribute('aria-label', "Oma's recept");
+  panel.innerHTML = '<header class="sh-kop"><span class="sh-titel ds-t-subkop bk-kop"></span><span class="ds-chip bk-ronde"></span></header>' +
+    '<div class="ds-streep bk-balk" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Eierballen klaar"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label bk-balklabel"></span></div>' +
+    '<div class="bk-regel"></div><div class="bk-toetsen"></div><p class="ds-t-hulp sh-nu bk-mis" aria-live="polite"></p>';
   document.body.appendChild(panel);
   // #987: de stappen van het recept (gedaan met icoon, de rest alleen genummerd, zodat Oma's volgorde niet wordt verklapt)
   // en de zes ingrediënten met hun toets als legenda
-  const q = (s) => panel.querySelector(s);
-  q('.bk-kop').style.fontWeight = '700';
-  q('.bk-mis').style.cssText = 'color:#ffb199;margin-top:4px';
-  q('.bk-regel').style.margin = q('.bk-toetsen').style.margin = '6px 0 0';
+  const q = (sel) => panel.querySelector(sel);
   rwStappen = maakWidget('stappen', q('.bk-regel'), { label: 'Recept' });
   rwToetsen = maakWidget('stappen', q('.bk-toetsen'), { modus: 'legenda', label: 'Ingrediënten' });
   if (rwToetsen) rwToetsen.inv.stappen = INGREDIENTS.map((i) => ({ icoon: i.id, label: i.label, waarde: i.key }));
   return panel;
 }
 
+// De teksten en maten van het paneel uit een bakstand: puur, zodat de test ze zonder DOM kan nakijken.
+export function bakeHudModel(b, title = '', goedTekst = '') {
+  const p = bakeProgress(b);
+  const klaar = Math.min(b.round, b.rounds);
+  return {
+    kop: title, ronde: `Eierbal ${p.round} van ${p.rounds}`, pct: Math.round((klaar / Math.max(1, b.rounds)) * 100), balkLabel: `${klaar} van ${b.rounds} klaar`,
+    mislukt: `Mislukt ${b.misses}/${b.maxMisses}`,
+    melding: b.last || goedTekst || (b.step === 0 ? "Druk de ingrediënten in Oma's volgorde (1 tot 6)" : `Stap ${b.step + 1} van ${b.order.length}`), fout: !!b.last,
+  };
+}
+
 function render(b, title) {
   const el = ensurePanel();
   if (!el) return;
-  const q = (s) => el.querySelector(s);
+  const m = bakeHudModel(b, title, goed);
+  const q = (sel) => el.querySelector(sel);
   const set = (sel, t) => { const n = q(sel); if (n.textContent !== t) n.textContent = t; };
-  set('.bk-kop', title);
-  set('.bk-ronde', `Eierbal ${Math.min(b.round + 1, b.rounds)} van ${b.rounds} · mislukt ${b.misses}/${b.maxMisses}`);
-  set('.bk-mis', b.last || '');
+  set('.bk-kop', m.kop);
+  set('.bk-ronde', `${m.ronde} · ${m.mislukt}`);
+  set('.bk-balklabel', m.balkLabel);
+  const balk = q('.bk-balk');
+  balk.setAttribute('aria-valuenow', String(m.pct));
+  balk.style.setProperty('--ds-streep-w', m.pct + '%');
+  set('.bk-mis', m.melding);
+  q('.bk-mis').classList.toggle('sh-nu--slecht', m.fout);
   if (rwStappen) {
     rwStappen.inv.stappen = b.order.map((id, k) => (k < b.step ? { icoon: id, label: INGREDIENTS.find((x) => x.id === id).label } : { icoon: '', label: '?' }));
     rwStappen.inv.klaar = b.step;
@@ -115,7 +136,7 @@ export function showBake(b, title = 'Oma\'s recept') {
 
 export function hideBake() {
   if (panel && panel.parentNode) panel.parentNode.removeChild(panel);
-  panel = null; rwStappen = null; rwToetsen = null;
+  panel = null; rwStappen = null; rwToetsen = null; goed = '';
 }
 
 // Per beeld: leest de toetsen 1-6. Geeft het resultaat van de laatste toevoeging, of null.
@@ -129,6 +150,8 @@ export function updateBake(b, input, title, extraKey = null) {
   if (key && bakeKeyId(key)) {
     if (input && input.wasPressed && input.wasPressed(key) && input.consume) input.consume(key);
     res = bakeAdd(b, bakeKeyId(key));
+    goed = res === 'round' ? 'Eierbal klaar! De volgende.' : res === 'done' ? 'Alle eierballen klaar!' : '';
+    if (res === 'round' || res === 'done') { try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ } }
   }
   if (res) render(b, title);
   return res;

@@ -29,6 +29,9 @@ import { medailleBedrag, volgendePlek } from './medalrules.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './multiplayerwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 import { hoofdspeler } from './players.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { kartHudModel, rondePop, boostPop, UITLEG_ID } from './kartstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
 // Ulrum", kartbaandata.js), laid out exactly as mapped, 330 m with the start
@@ -373,9 +376,7 @@ function start(w, { force = false, revealed = false } = {}) {
     getScene().add(k.rider);
     k.mesh.visible = true;
   });
-  w.cinematicHidePlayers = true;
-  ensureBoard();
-  board.show();
+  w.cinematicHidePlayers = true; // #985: solo staat de strook (simhud.js) in beeld; het bord blijft voor de tussenstand bij een race tegen anderen
   runs++;
   const ghostRun = loadGhost(ghostStore(), 'kart-ulrum', KEYS.ghosts);
   game = { ghostRun, rec: createRecorder(), t: 0, phase: 'grid', karts, raceT: 0, flash: null, cam: null, camA: karts[0].a, said: 0, lights: 0, result: null, finishAt: 0, hits: 0, outro: 0, lastLap: -1, boostFx: 0, exit: { ...STAND }, gapSay: 0 };
@@ -467,9 +468,9 @@ function updateOnline(w, dt) {
   for (const e of ev) {
     if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (e.n === 1) pushAudioEvent(w, { kind: 'sting', name: 'kart_countdown' }); if (!gast && e.n === 1) say(w, 'lights', true); }
     else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'Start!', t: 1.4 }; if (!gast) say(w, 'go', true); }
-    else if (e.type === 'lap' && e.i === 0) { if (e.lap >= LAPS) pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); /* je eigen finish: een korte fanfare */ g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
+    else if (e.type === 'lap' && e.i === 0) { { const pp = rondePop(e.lap, e.time); simHudPop(pp.tekst, pp.geluid); } if (e.lap >= LAPS) pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); /* je eigen finish: een korte fanfare */ g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
     else if (e.type === 'wall' && e.i === 0) pushAudioEvent(w, { kind: 'prop_hit', material: 'wood', strength: clamp(e.speed / 8, 0.2, 1), x: ORIGIN.x, y: ORIGIN.y });
-    else if (e.type === 'boost' && e.i === 0) g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 };
+    else if (e.type === 'boost' && e.i === 0) { g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 }; const pp = boostPop(e.lvl); simHudPop(pp.tekst, pp.geluid); }
     else if (e.type === 'klaar') klaar = true;
   }
   if (klaar && !gast) { end(w); return; }
@@ -540,6 +541,7 @@ function updateGame(w, dt) {
       for (const k of ks) { k.lapStart = 0; }
       pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y });
       g.flash = { text: 'Start!', t: 1.4 };
+      zetUitlegGezien(UITLEG_ID);
       say(w, 'go', true);
     }
   } else g.raceT += dt;
@@ -562,13 +564,14 @@ function updateGame(w, dt) {
       if (k.player) {
         for (const e of ev) {
           if (e.type === 'wall') { pushAudioEvent(w, { kind: 'prop_hit', material: 'wood', strength: clamp(e.speed / 8, 0.2, 1), x: ORIGIN.x, y: ORIGIN.y }); if (e.speed > 4) say(w, 'wall'); }
-          if (e.type === 'boost') { g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 }; say(w, 'boost'); }
+          if (e.type === 'boost') { g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 }; const pp = boostPop(e.lvl); simHudPop(pp.tekst, pp.geluid); say(w, 'boost'); }
         }
       }
       if (racing) {
         const lap = updateProgress(k, T, g.raceT);
         if (lap && k.player) {
           g.flash = { text: `Ronde ${lap.lap}: ${fmtTime(lap.time)}`, t: 2.4 };
+          { const pp = rondePop(lap.lap, lap.time); simHudPop(pp.tekst, pp.geluid); }
           if (lap.lap === LAPS - 1) say(w, 'last');
         }
         if (lap && k.finished && k.player && g.phase === 'race') { g.phase = 'finish'; g.finishAt = g.raceT; pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); }
@@ -620,6 +623,8 @@ function end(w, { quit = false } = {}) {
   w.cameraOverride = null;
   w.companionHold = null;
   if (board) board.hide();
+  simHudTik(0, null);
+  if (built && built.kolom) built.kolom.visible = false;
   clearBubbles(w, 'kartbaan');
   stopEngine();
   if (built) {
@@ -799,25 +804,34 @@ function ensureBoard() {
   return board;
 }
 
-const ordinal = (n) => `${n}e`;
 
 function updateHud() {
   const g = game;
-  if (!g || !board) return;
+  if (!g) return;
   const me = g.karts[0];
   const rank = rankKarts(g.karts);
   const pos = rank.indexOf(me) + 1;
   const lap = Math.min(LAPS, Math.max(1, Math.floor(me.prog / TRACK.length) + 1));
   const t = g.phase === 'grid' ? 0 : me.finished ? me.finishT : g.raceT;
-  const best = bestLap(me);
-  const kmh = Math.round(Math.abs(me.f) * 3.6);
-  const row = `<span>Ronde <b>${lap}</b>/${LAPS}</span><span>Plaats <b>${pos}</b>/4</span><span>Tijd <b>${fmtTime(t)}</b></span><span><b>${kmh}</b> km/u</span>${best != null ? `<span>Beste <b>${fmtTime(best)}</b></span>` : ''}`;
-  let flash = g.flash ? g.flash.text : g.phase === 'grid' ? (g.lights ? `Startlichten... (${Math.min(g.lights, 3)}/3)` : 'Rijders, op uw plaatsen') : me.finished ? `Gefinisht als ${ordinal(pos)}` : me.drift ? 'Drift...' : '';
-  const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? 'var(--mk-job, #ff9a3c)' : me.driftT >= KART.charge1 ? ACCENT : 'var(--ink, #f0ede4)' } : null;
-  const help = `${key('W')} gas · ${key('S')} rem · ${key('A')}${key('D')} sturen · houd ${key('SPATIE')} (handrem) in een bocht voor een drift · ${key('BACKSPACE')} stoppen`;
-  // #617: de tussenstand is een tabel met kolommen (naam, ronde, tijd), geen rij chips
-  const extra = g.online ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Speler</th><th scope="col">Ronde</th><th scope="col">Tijd</th></tr></thead><tbody>${raceStand(g).map((s) => `<tr class="${s.eigen ? 'on' : ''}"><td>${s.plek}</td><th scope="row">${String(s.naam).slice(0, 12)}</th><td>${Math.min(s.ronde, 3)}/3</td><td>${s.klaar && s.tijd != null ? fmtTime(s.tijd) : '-'}</td></tr>`).join('')}</tbody></table>` : '';
-  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help, ...(extra ? { extra } : null) });
+  // #985: één strook (simhud.js) met stappen, driftmeter, cijfers en wat nu; het model is puur (kartstatus.js)
+  simHudTik(0, kartHudModel({
+    fase: g.phase === 'outro' ? 'finish' : g.phase, lichten: g.lights, ronde: lap, plek: pos, aantal: g.karts.length, tijd: t, kmh: Math.abs(me.f) * 3.6, beste: bestLap(me),
+    drift: me.drift ? { t: me.driftT } : null, boost: me.boostT > 0, gras: !!me.grass && g.phase === 'race', uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+  // de lichtkolom boven de volgende ronde-poort (startlijn, dan de kwarten van de baan): zo zie je waar de ronde loopt
+  if (built) {
+    if (!built.kolom) { built.kolom = maakSimKolom('kartkolom'); getScene().add(built.kolom); }
+    if (g.phase === 'race' && !me.finished) {
+      const lapPos = ((me.prog % TRACK.length) + TRACK.length) % TRACK.length;
+      const gate = [1, 2, 3, 4].map((i) => (i * TRACK.length) / 4).find((s) => s > lapPos + 20) || TRACK.length;
+      const pt = pointAt(TRACK, gate % TRACK.length), q = FR.toW(pt.x, pt.y);
+      zetSimKolom(built.kolom, { x: q.x, y: q.y }, 0, g.t, false);
+    } else built.kolom.visible = false;
+  }
+  if (!g.online || !board) return;
+  // het bord is er alleen voor de tussenstand bij een race tegen anderen (#617)
+  const extra = `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Speler</th><th scope="col">Ronde</th><th scope="col">Tijd</th></tr></thead><tbody>${raceStand(g).map((s) => `<tr class="${s.eigen ? 'on' : ''}"><td>${s.plek}</td><th scope="row">${String(s.naam).slice(0, 12)}</th><td>${Math.min(s.ronde, 3)}/3</td><td>${s.klaar && s.tijd != null ? fmtTime(s.tijd) : '-'}</td></tr>`).join('')}</tbody></table>`;
+  board.set({ row: '', meter: null, flash: '', bad: false, help: '', extra });
 }
 
 // Read-only race state for the map layer (missionmap.js): the track in world

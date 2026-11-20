@@ -38,7 +38,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | plaatsnaam | hud_panel.js | beslist zelf | P3 | B | ja: overlay (locatie) | Samen met moment (wijk, landmark) en opgeslagen: een plaatsblok. |
 | wijkkaart | cinematics.js | beslist zelf | P3 | B | ja: overlay (wijkkaart) |  |
 | keuze | choicepanel.js | 10 modules, 10 aanroepen | P1 | B | ja: overlay (keuze) | Samen met bord en activiteit: een activiteitenpaneel bovenaan (kop, regels, toetsen). Het keuzepaneel en het minigamebord zijn dezelfde familie. |
-| bord | minigamekit.js, golfhud.js | 21 modules, 25 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
+| bord | minigamekit.js, golfhud.js | 21 modules, 24 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
 | ballon | scene3d.js | 14 modules, 25 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
 | spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
@@ -48,6 +48,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | toetsen | prompts.js, hudtext.js | 31 modules, 31 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
 | activiteit | stunthud.js, heistui.js, casework.js en 11 andere | beslist zelf | P1 | C | nee: het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg | Samen met keuze en bord: een gedeeld activiteitenpaneel (createBoard) voor titel, stand en toetsen. Veel eigen CSS-strings verdwijnen. |
 | boerderijhud | farmhud.js | beslist zelf | P2 | C | nee: de strook onderin tijdens het werk met je trekker of maaidorser (klus, voortgang, snelheid, diesel, lading); alleen zolang je in een machine van je boerderij zit, geen eigen planner (#985) |  |
+| simhud | simhud.js | beslist zelf | P2 | C | nee: de strook onderin tijdens een light sim (hengelen, krantenwijk): stappen, meter, cijfers, wat nu en een opspringend getal; alleen zolang de sim loopt, geen eigen planner (#985, #980) |  |
 | voertuighud | heliflight.js, helirun.js, planeflight.js en 5 andere | beslist zelf | P2 | H | nee: vervangt de snelheidsmeter zolang je vliegt (body.heli-flying) of een trein bestuurt (body.tc-on) | Samen: een voertuigblok per voertuigsoort via hudlook (welke meters per voertuig staat er al). |
 | samen | coophud.js, coophold.js, coopscene.js en 4 andere | beslist zelf | P2 | - | nee: de uitnodiging Meedoen? en de uitslag van een race of golfronde tegen elkaar (coopwedstrijd3d.js, alleen zolang er een wedstrijd is), de spelerslijst (alleen bij Tab en in het pauzemenu, nooit permanent) en de fade bij samen spelen, en het meekijklaagje van een gast op de scene van de host (coopscene.js, volgt wat de host toont); geen eigen planner | Blijft; klein en alleen op verzoek van de speler. |
 | menu | pausemenu.js, menumelding.js, veroverdpanel.js en 21 andere | beslist zelf | n.v.t. | - | nee: de speler opent het zelf; het is modaal en de rest wacht. Prestaties, Cheats en de fotomodus zetten hun eigen opmaak op (zetCss in elk bestand) maar zijn panelen van ditzelfde menu, dus ze staan hier en niet als eigen surface | Blijft; buiten dit probleem (de speler vraagt erom). |
@@ -83,6 +84,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **toetsen**: De toetstips onderaan rechts (zone H, maximaal twee): wat E, Spatie en de rest hier doen.
 - **activiteit**: Het eigen paneel van een activiteit (stuntscore, heistpanelen, tekstbijbaan, bakronde, padel, kermis en andere): rechts of bovenaan, alleen tijdens de activiteit.
 - **boerderijhud**: 
+- **simhud**: 
 - **voertuighud**: Voertuig-HUD buiten de auto: de heli-HUD (vervangt de snelheidsmeter), de vliegtuigkaart en het busbord.
 - **samen**: Samen spelen: de fade bij binnenkomst en de spelerslijst bij Tab (nooit permanent in beeld; de lijst met acties staat in het pauzemenu).
 - **menu**: Pauzemenu, kaart, telefoon, overzicht, garage, winkel, startscherm, profiel: de speler opent ze zelf; modaal.

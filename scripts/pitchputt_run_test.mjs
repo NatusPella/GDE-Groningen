@@ -66,6 +66,8 @@ PITCHPUTT.init(w);
 const dbg = window.__pitchputt;
 const frame = (dt = 1 / 60, k = 1) => { for (let i = 0; i < k; i++) { w.time += dt; was.clear(); PITCHPUTT.update(dt, w); PITCHPUTT.tick(dt, w); } };
 const bordTekst = () => { const b = boards.find((x) => x._q['.mg-row']); return b ? { row: b._q['.mg-row'].innerHTML, extra: b._q['.mg-extra'].innerHTML, flash: b._q['.mg-flash'].textContent, help: b._q['.mg-help'].innerHTML, meterT: b._q['.mg-meter-t'].textContent, cells: b._q['.mg-cells'].innerHTML } : null; };
+// #985: één speler ziet de strook (simhud.js), niet het bord; de nep-div met klasse sh-inhoud draagt zijn markup
+const strook = () => { const d = boards.find((x) => x.className === 'sh-inhoud'); return d ? String(d.innerHTML) : ''; };
 const wachtOp = (f, max = 60 * 90) => { let i = 0; while (!f() && i++ < max) frame(); return i < max; };
 const golfSubs = () => w.audioEvents.filter((e) => e.kind === 'golf').map((e) => e.sub);
 const schiet = (frames) => { keys.add(' '); frame(1 / 60, frames); keys.delete(' '); frame(); };
@@ -74,16 +76,14 @@ const schiet = (frames) => { keys.add(' '); frame(1 / 60, frames); keys.delete('
 {
   ok(dbg.start(true), 'de ronde start');
   frame(1 / 60, 3);
-  let b = bordTekst();
-  ok(b && /Baan <b>1<\/b>\/6/.test(b.row) && /gf-ic/.test(b.row) && /Wedge/.test(b.row), 'het bord toont baan, iconen en stok: ' + (b && b.row));
-  const bordRoot = boards.find((x) => x._q['.mg-row']);
-  ok(bordRoot && /mg-ic/.test(bordRoot.innerHTML) && /PITCH &amp; PUTT|PITCH & PUTT/.test(bordRoot.innerHTML) && bordRoot.dataset.mg === 'pitchputt', 'het bord draagt het thema van pitch & putt (#453)');
-  ok(/mg-cells|<i/.test(b.cells) || b.cells !== '', 'één speler: de cellen van de scorekaart');
-  ok(b.extra === '', 'één speler: geen scorebord per speler');
+  let s = strook();
+  ok(/Baan/.test(s) && /1\/6/.test(s) && /Wedge/.test(s) && /Pitch &amp; putt/.test(s), 'de strook toont baan, club en titel: ' + s.slice(0, 120));
+  ok(/data-stand="nu"/.test(s) && /role="progressbar"/.test(s), 'de strook heeft stappen en een krachtmeter');
+  ok(!boards.some((x) => x._q['.mg-row'] && x._q['.mg-row'].innerHTML), 'één speler: het bord blijft leeg');
   ok(dbg.state().phase === 'aim' && dbg.state().mode === 'pitch', 'richten, met de wedge');
   keys.add(' '); frame(1 / 60, 20);
-  b = bordTekst();
-  ok(/^\d+%$/.test(b.meterT) && +b.meterT.replace('%', '') > 10, `de krachtbalk toont een getal: ${b.meterT}`);
+  s = strook();
+  ok(/aria-valuenow="(?:[1-9]\d|100)"/.test(s), `de krachtmeter loopt vol: ${(s.match(/aria-valuenow="\d+"/) || [''])[0]}`);
   const pv = w.audioEvents.length;
   keys.delete(' '); frame();
   ok(dbg.state().phase === 'ball', 'loslaten slaat de bal');
@@ -115,10 +115,9 @@ const schiet = (frames) => { keys.add(' '); frame(1 / 60, frames); keys.delete('
   const st = dbg.state();
   ok(st.strokes === 2, `slag plus strafslag: ${st.strokes}`);
   ok(Math.hypot(st.lie.x - van.x, st.lie.y - van.y) < 1e-6, 'de bal ligt weer waar je sloeg');
-  const b = bordTekst();
-  ok(/Plons/.test(b.flash), 'het bord zegt het: ' + b.flash);
+  ok(/Plons/.test(strook()), 'de strook zegt het');
   wachtOp(() => dbg.state().phase === 'aim', 600);
-  ok(dbg.state().phase === 'aim' && /Slag <b>3<\/b>/.test(bordTekst().row), 'daarna slag 3');
+  ok(dbg.state().phase === 'aim' && /aria-label="Slag: 3"/.test(strook()), 'daarna slag 3');
   dbg.quit();
 }
 

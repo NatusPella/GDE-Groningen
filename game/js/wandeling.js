@@ -7,8 +7,12 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { iconDisc, activityBlock } from './activitykit.js';
 import { isShopOpen } from './shopui.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, fmtTime } from './minigamekit.js';
+import { mgThema, bubble, clearBubbles, pick, fmtTime } from './minigamekit.js';
 import { WANDEL_LINES } from './minigamelines3.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { wandelHudModel, stempelPop, UITLEG_ID } from './wandelstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { getScene } from './scene3d.js';
 import { registerQuitHook } from './busy.js';
 import { hoofdspeler } from './players.js';
 import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, walkMedal, nextTarget, PACE_MEDAL_AT, scaledPaceAt } from './wandelrules.js';
@@ -27,7 +31,7 @@ const PTS = routePoints();
 const START = { x: PTS[0].x, y: PTS[0].y };
 
 let run = null;
-let board = null;
+let kolom = null; // #985: de gele lichtkolom boven de volgende post
 let hudT = 0;
 
 const say = (w, kind, ttl = 0) => {
@@ -35,14 +39,13 @@ const say = (w, kind, ttl = 0) => {
   if (list) bubble(w, { x: START.x, y: START.y, name: WANDEL_LINES.who, text: pick(list), h: 2.3, tag: 'wandeling', ttl });
 };
 
-const compass = (a) => ['oost', 'zuidoost', 'zuid', 'zuidwest', 'west', 'noordwest', 'noord', 'noordoost'][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
-
 function finish(w, { quit = false } = {}) {
   const r = run;
   if (!r) return;
   run = null;
   w.wandelingActief = false;
-  if (board) board.hide();
+  simHudTik(0, null);
+  if (kolom) { getScene().remove(kolom); kolom.geometry.dispose(); kolom.material.dispose(); kolom = null; }
   clearBubbles(w, 'wandeling');
   if (quit) { w.addMessage('Wandeling gestopt', 2.5); return; }
   const s = r.s;
@@ -63,8 +66,6 @@ function finish(w, { quit = false } = {}) {
 
 function start(w) {
   if (run) return false;
-  if (!board) board = createBoard('wandeling');
-  board.show();
   run = { s: createWalk(PTS), flash: null, hint: '' };
   // De wandeling neemt de speler niet over (active: false), maar een controller en de tastbare knoppen moeten
   // hem wel kunnen stoppen: de indeling 'minigame' zet B op Backspace. Zie gamepad.js en touchlogic.js.
@@ -74,13 +75,22 @@ function start(w) {
   return true;
 }
 
-function updateHud() {
-  if (!run || !board) return;
-  const s = run.s;
-  const cells = s.pts.map((q, i) => ({ t: `${i + 1}`, cls: i < s.next ? 'good' : i === s.next ? 'on' : '' }));
-  const tgt = run.tgt;
-  const row = `<span>Tijd <b>${fmtTime(s.t)}</b></span><span>Afstand <b>${(s.dist / 1000).toFixed(2).replace('.', ',')} km</b></span><span>Tempo <b>${averagePace(s).toFixed(1).replace('.', ',')} m/s</b></span>${tgt ? `<span>${tgt.name}: ${Math.round(tgt.dist)} m ${compass(tgt.bearing)}</span>` : ''}`;
-  board.set({ row, cells, flash: run.flash ? run.flash.text : run.mounted ? 'Stap uit: in een voertuig telt niets' : '', bad: !!run.mounted, help: `Loop naar de volgende post · ${key('BACKSPACE')} stoppen` });
+function groundAt(map, x, y) {
+  return map.elev && map.elev.has ? map.groundHeightAt(x, y, 0) : 0;
+}
+
+// #985: één strook (simhud.js) met stappen, de stempels, de afstand tot de volgende post groot, tempo en tijd en één zin wat nu; het model is puur (wandelstatus.js)
+function updateHud(w) {
+  if (!run) return;
+  const s = run.s, tgt = run.tgt;
+  simHudTik(0, wandelHudModel({
+    fase: s.phase, stempels: s.stamps.length, totaal: s.pts.length, post: tgt ? tgt.name : '', afstand: tgt ? tgt.dist : null, richting: tgt ? tgt.bearing : null, tempo: averagePace(s), tijd: s.t,
+    opvoertuig: !!run.mounted, flash: '', uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+  // de gele lichtkolom boven de volgende post
+  if (!kolom) { kolom = maakSimKolom('wandelkolom'); getScene().add(kolom); }
+  const t = s.pts[s.next];
+  zetSimKolom(kolom, t && s.phase === 'walk' ? t : null, t ? groundAt(w.map, t.x, t.y) : 0, run.s.t, false);
 }
 
 function tick(dt, w) {
@@ -90,13 +100,13 @@ function tick(dt, w) {
   run.mounted = !!(p.inVehicle || p.swimming);
   if (run.mounted) { run.s.t += dt; run.s.last = null; } else {
     for (const e of stepWalk(run.s, { x: p.x, y: p.y }, dt)) {
-      if (e.type === 'stamp') { run.flash = { text: `Stempel ${e.n}/${e.of}: ${e.name}`, t: 0 }; if (e.n === 2) say(w, 'stamp', 3.5); }
+      if (e.type === 'stamp') { run.flash = { text: `Stempel ${e.n}/${e.of}: ${e.name}`, t: 0 }; { const pp = stempelPop(e.n, e.of, e.name); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } if (e.n === 2) say(w, 'stamp', 3.5); }
     }
   }
   run.tgt = nextTarget(run.s, { x: p.x, y: p.y });
   if (run.flash && (run.flash.t += dt) > 2.5) run.flash = null;
   if (run.s.phase === 'done') { finish(w); return; }
-  if ((hudT -= dt) <= 0) { hudT = 0.1; updateHud(); }
+  if ((hudT -= dt) <= 0) { hudT = 0.1; updateHud(w); }
 }
 
 function glyph(ctx) {

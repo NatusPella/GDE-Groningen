@@ -116,21 +116,25 @@ ok(/\.hx-rolechip \{[\s\S]*?min-height: 44px/.test(heistCss) && !/roleEl\.style\
 // De per-bord issues (#596/#614/#615/#617/#619/#620): de statuskleuren komen uit de tokens en de
 // borden dragen hun eigen vorm (boeiencellen, duikstreep, startlichten, balansmidden, klimvlag).
 const waterski = read('waterski.js');
-ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /text: 'arm'/.test(read('zwembad.js')), 'waterski/zwembad: baan als vorm en laatste kans');
+ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /Armen/.test(read('zwemstatus.js')), 'waterski/zwembad: baan als vorm en laatste kans');
 const zwembad = read('zwembad.js');
-ok(/var\(--mk-ok/.test(zwembad) && /var\(--mk-job/.test(zwembad) && /Spatie bij het streepje/.test(zwembad), 'zwembad: duik- en vermoeidheidsmeter via tokens en vorm');
+// #985: de strook (simhud.js, zwemstatus.js) vervangt het bord: duikbalk en armen als meter, staat in een woord (Nu!, Moe)
+const zwemst = read('zwemstatus.js');
+ok(/simHudTik\(0, zwemHudModel/.test(zwembad) && !/var\(--mk-/.test(zwembad) && /{SPATIE} als de balk bij het streepje is/.test(zwemst) && /'Moe'/.test(zwemst), 'zwembad: duik- en vermoeidheidsmeter in de strook, staat in een woord');
 const kart = read('kartbaan.js');
-ok(/mg-stand/.test(kart) && /Startlichten\.\.\. \(\$\{Math\.min\(g\.lights, 3\)\}\/3\)/.test(kart) && /var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, startlichten in de HUD, driftkleur via token');
+// #985: de strook (simhud.js, kartstatus.js) vervangt het bord; het bord blijft alleen voor de tussenstand bij een race tegen anderen
+ok(/mg-stand/.test(kart) && /simHudTik\(0, kartHudModel/.test(kart) && !/var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, de strook uit simhud.js zonder eigen kleuren');
+const kartst = read('kartstatus.js');
+ok(/Startlichten: /.test(kartst) && /Driftlading/.test(kartst), 'kartbaan: startlichten en driftmeter in de strook');
 const skate = read('skatepark.js');
 ok(/mark: 0\.5/.test(skate) && /var\(--mk-danger, #d93f3f\)/.test(skate) && /text: 'balans'/.test(skate), 'skatepark: balansmeter via token met middenstreep');
 const klim = read('klimtoren.js');
 ok(/var\(--mk-danger, #d93f3f\)/.test(klim) && /text: 'arm'/.test(klim) && /klimtoren: \{ titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'vlag' \}/.test(mg), 'klimtoren: armenbalk via token, vlag als icoon');
 
-// #613 hengelen: één bord voor wedstrijd en vrij hengelen, met modusregel, beetvorm en beloningskaart.
+// #613 / #985 hengelen: de strook van de light sims (simhud.js, model in hengelstatus.js) vervangt het bord; het bord blijft alleen voor de stand van de anderen in de wedstrijd.
 const hengelen = read('hengelen.js');
-ok(!/boardVrij/.test(hengelen) && (hengelen.match(/if \(!board\) board = createBoard\('hengelen'\)/g) || []).length === 2, 'hengelen: één bord voor beide modi');
-ok(/Vrij hengelen<\/span>/.test(hengelen) && /Wedstrijd<\/span>/.test(hengelen), 'hengelen: de modus staat op het bord');
-ok(/text: 'BEET'/.test(hengelen) && /kind: 'prestatie', kicker: 'Hengelen', key: 'hengel-vrij-klaar'/.test(hengelen), 'hengelen: beet als eigen vorm en het sessie-einde als beloningskaart');
+ok(/simHudTik\(0, hengelHudModel\(/.test(hengelen) && !/Vrij hengelen<\/span>/.test(hengelen), 'hengelen: één strook voor beide modi');
+ok(/beetTotaal/.test(hengelen) && /simHudPop\(/.test(hengelen) && /kicker: 'Hengelen', key: 'hengel-vrij-klaar'/.test(hengelen), 'hengelen: beetmeter, opspringende vangst en het sessie-einde als beloningskaart');
 
 // #621 rondvaart: droge kadenaam, krom Nederlands weg, uitslag noemt de gemiste kade en de seconden.
 const dienst = read('simdienst.js');
@@ -207,7 +211,7 @@ for (const [f, basis] of Object.entries(HUD_DRIFT)) {
 const { SURFACES } = await import('../game/js/hudbus.js');
 const HUD_AUDIT = new Set([...Object.keys(HUD_DRIFT), 'hudcards.css', 'choicepanel.js', 'minigamekit.js', 'kaartactieui.js']);
 // beeld/canvas/wereld: kleuren horen bij het spelbeeld of de 3D-wereld, niet bij HUD-chroom
-const BUITEN = new Set(['aimassist.js', 'banter.js', 'bakeround.js', 'boerderijui.js', 'farmhud.js', 'farmcards.js', 'busbestuurhud.js', 'busboard3d.js', 'casework.js', 'cinematics.js', 'coophold.js', 'coophud.js', 'coopscene.js', 'coopspelersui.js', 'coopwedstrijd3d.js', 'dorpsuitjes.js', 'drunk.js', 'furniture.js', 'garageui.js', 'gfxprofile.js', 'heliflight.js', 'helirun.js', 'hud_panel.js', 'hudcards.js', 'hudgps.js', 'hudtext.js', 'input.js', 'instrumenten.js', 'intromontage.js', 'loopbaanui.js', 'lowhealth.js', 'mapview.js', 'menumelding.js', 'multiplayerhostwisselui.js', 'namecard.js', 'padtest.js', 'partnerhud.js', 'pausemenu.js', 'phone.js', 'phonefeed.js', 'planeflight.js', 'postfx3d.js', 'postgame.js', 'profileoverlay.js', 'prompts.js', 'radiosub.js', 'reisrit.js', 'reisrit3d.js', 'respawn.js', 'reuzenrad.js', 'rondvaartchase.js', 'samenkeuze.js', 'savegame.js', 'scene3d.js', 'shopui.js', 'sikkomfeed.js', 'speech.js', 'spullen.js', 'stagesets.js', 'startscreen.js', 'stationtravel.js', 'story.js', 'storycontact.js', 'storydev.js', 'storytalk.js', 'storytest.js', 'stunthud.js', 'subtitles.js', 'testmenu.js', 'textfield.js', 'todoui.js', 'touch.js', 'trailer.js', 'verhaalui.js', 'veroverdpanel.js', 'beleidswinkel.js', 'visboekui.js', 'wrakduikenlive.js']);
+const BUITEN = new Set(['aimassist.js', 'banter.js', 'bakeround.js', 'boerderijui.js', 'farmhud.js', 'farmcards.js', 'simhud.js', 'busbestuurhud.js', 'busboard3d.js', 'casework.js', 'cinematics.js', 'coophold.js', 'coophud.js', 'coopscene.js', 'coopspelersui.js', 'coopwedstrijd3d.js', 'dorpsuitjes.js', 'drunk.js', 'furniture.js', 'garageui.js', 'gfxprofile.js', 'heliflight.js', 'helirun.js', 'hud_panel.js', 'hudcards.js', 'hudgps.js', 'hudtext.js', 'input.js', 'instrumenten.js', 'intromontage.js', 'loopbaanui.js', 'lowhealth.js', 'mapview.js', 'menumelding.js', 'multiplayerhostwisselui.js', 'namecard.js', 'padtest.js', 'partnerhud.js', 'pausemenu.js', 'phone.js', 'phonefeed.js', 'planeflight.js', 'postfx3d.js', 'postgame.js', 'profileoverlay.js', 'prompts.js', 'radiosub.js', 'reisrit.js', 'reisrit3d.js', 'respawn.js', 'reuzenrad.js', 'rondvaartchase.js', 'samenkeuze.js', 'savegame.js', 'scene3d.js', 'shopui.js', 'sikkomfeed.js', 'speech.js', 'spullen.js', 'stagesets.js', 'startscreen.js', 'stationtravel.js', 'story.js', 'storycontact.js', 'storydev.js', 'storytalk.js', 'storytest.js', 'stunthud.js', 'subtitles.js', 'testmenu.js', 'textfield.js', 'todoui.js', 'touch.js', 'trailer.js', 'verhaalui.js', 'veroverdpanel.js', 'beleidswinkel.js', 'visboekui.js', 'wrakduikenlive.js']);
 for (const [naam, s] of Object.entries(SURFACES)) {
   for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
 }
@@ -226,10 +230,12 @@ for (const f of ['hudcards.css', 'pausemenu.css', 'postgame.js', 'helirun.js', '
 
 // #627/#628/#630: kermis, reuzenrad, carbid en de duif lezen bord en accent uit MG_THEMA/createBoard.
 const kermisSrc = read('kermis.js'), radSrc = read('reuzenrad.js'), carbidSrc = read('carbid.js'), pigeonSrc = read('pigeonmode.js');
-ok(/const ACCENT = mgThema\('kermis'\)\.accent/.test(kermisSrc) && /createBoard\('kermis'\)/.test(kermisSrc) && !/\.kermis-board/.test(kermisSrc),
-  'kermis: één bord en accent uit MG_THEMA, geen eigen bord-CSS meer');
-ok(/const ACCENT = mgThema\('hoogvlieger'\)\.accent/.test(radSrc) && /createBoard\('hoogvlieger'\)/.test(radSrc) && !/\.rad-board/.test(radSrc),
-  'reuzenrad: hetzelfde bord als de kermis, accent uit MG_THEMA');
+// #985: de botsauto's tonen de strook van de light sims (simhud.js, kermisstatus.js) in plaats van het bord
+ok(/const ACCENT = mgThema\('kermis'\)\.accent/.test(kermisSrc) && /simHudTik\(0, kermisHudModel/.test(kermisSrc) && !/createBoard/.test(kermisSrc) && !/\.kermis-board/.test(kermisSrc),
+  'kermis: de strook van de light sims, accent uit MG_THEMA, geen eigen bord-CSS');
+// #985: het reuzenrad toont de strook van de light sims (simhud.js, reuzenradstatus.js) in plaats van het bord
+ok(/const ACCENT = mgThema\('hoogvlieger'\)\.accent/.test(radSrc) && /simHudTik\(0, reuzenradHudModel/.test(radSrc) && !/createBoard/.test(radSrc) && !/\.rad-board/.test(radSrc),
+  'reuzenrad: de strook van de light sims, accent uit MG_THEMA');
 ok(/const ACCENT = mgThema\('carbid'\)\.accent/.test(carbidSrc) && /createBoard\('carbid'\)/.test(carbidSrc) && !/\.carbid-board/.test(carbidSrc),
   'carbid: één bord en accent uit MG_THEMA, geen eigen bord-CSS meer');
 ok(!/\[W\] \[S\]|\[A\] \[D\]/.test(kermisSrc + carbidSrc), 'kermis en carbid: geen brackettekst meer in de kaarten');

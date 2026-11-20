@@ -6,8 +6,13 @@ import { accentVan } from './sidejobprofiel.js';
 
 import { unlockAchievement } from './achievements.js';
 import { pick, rand, spawnJobBoat, vehicleSpeed } from './sidejobkit.js';
+import { WATER_Y } from './util.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { rondvaartHudModel, verhaalPop, gemistPop, tochtPop, UITLEG_ID } from './rondvaartstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { reducedMotion } from './motion.js';
 
 const BOAT = { name: 'boat', len: 5.4, wid: 1.9, maxSpeed: 4.6, accel: 1.6, brake: 2.2, turnRate: 1.2, color: '#1f4a6e', cabin: '#f2ede0' };
 const PIER_R = 12;
@@ -109,6 +114,7 @@ export default {
     const onBoat = p.inVehicle === v;
     const speed = vehicleSpeed(v);
     const leg = d.legInfo;
+    zetRondvaartStrook(c, onBoat, speed);
 
     if (!d.boarded) {
       const [px, py] = LINE[leg.from.i];
@@ -117,6 +123,7 @@ export default {
         d.boardT += dt;
         if (d.boardT > 1.5) {
           d.boarded = true;
+          zetUitlegGezien(UITLEG_ID);
           c.timeLeft = d.budget;
           c.msg(`Iedereen aan boord! Op naar ${leg.to.name}.`, 3);
         }
@@ -163,7 +170,7 @@ export default {
               s.nextAt = s.t + Math.max(TALK_S / s.lines.length, v ? v.dur + 0.3 : 0);
             }
           }
-          if (s.said >= s.lines.length && s.t >= Math.max(TALK_S, s.nextAt || 0)) { s.done = true; c.msg(`Toeristen fotograferen ${s.name}. Klik klik.`, 2.2); }
+          if (s.said >= s.lines.length && s.t >= Math.max(TALK_S, s.nextAt || 0)) { s.done = true; c.msg(`Toeristen fotograferen ${s.name}. Klik klik.`, 2.2); const vp = verhaalPop(s.name); simHudPop(vp.tekst, vp.geluid); }
         } else if (world.time - (d.slowHintAt || -99) > 4) {
           d.slowHintAt = world.time;
           c.msg('Gas eraf! De toeristen willen het verhaal horen.', 2.2);
@@ -171,6 +178,7 @@ export default {
       } else if (passed || (dd > SIGHT_R + 6 && s.t > 0)) {
         s.missed = true;
         d.rating = Math.max(0, d.rating - 20);
+        const gp = gemistPop(s.name); simHudPop(gp.tekst, gp.geluid);
         c.msg(`De toeristen hebben ${s.name} gemist. Ze fotograferen nu maar een eend.`, 3);
       }
       break;
@@ -182,6 +190,7 @@ export default {
       if (all) unlockAchievement(world, 'sj_rondvaart');
       const told = d.sights.filter((s) => s.done).length;
       const tip = d.rating >= 85 && all ? rand(14, 24) : d.rating >= 60 ? rand(4, 9) : 0;
+      const tp = tochtPop(all, told, d.sights.length); simHudPop(tp.tekst, tp.geluid);
       c.complete({ base: 30 + Math.abs(leg.to.i - leg.from.i) * 1.1 + told * 6, tip, text: all ? 'Applaus aan boord!' : `Tocht klaar (${told}/${d.sights.length} verhalen).`, flawless: all });
     }
   },
@@ -211,6 +220,25 @@ export default {
     return { marker: { x, y }, dots, progress: `Tocht ${c.streak + 1} · ${told}/${d.sights.length} verhalen`, goal: { label: leg.to.name, desc: 'Aanleggen: stilliggen bij de steiger' } };
   },
 
-  stop() {},
+  stop(c) {
+    simHudTik(0, null);
+    if (c && c.data && c.data.kolom) { c.removeMesh(c.data.kolom); c.data.kolom = null; }
+  },
 };
 
+// De strook onderin en de lichtkolom boven het volgende doel (#985): elke beeld de stand uit de tocht naar het pure model (rondvaartstatus.js). Alleen voor de eigen dienst.
+function zetRondvaartStrook(c, onBoat, speed) {
+  const d = c.data, leg = d.legInfo, v = c.vehicle;
+  if (c.owner || !leg || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  const next = d.boarded ? d.sights.find((s) => !s.done && !s.missed) : null;
+  const doelPunt = !d.boarded ? LINE[leg.from.i] : next ? LINE[next.i] : LINE[leg.to.i];
+  if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('rondvaartkolom'));
+  zetSimKolom(d.kolom, { x: doelPunt[0], y: doelPunt[1] }, WATER_Y, c.world.time || 0, reducedMotion());
+  const afstand = Math.hypot(doelPunt[0] - v.x, doelPunt[1] - v.y);
+  const bij = !!next && afstand < SIGHT_R && onBoat;
+  simHudTik(0, rondvaartHudModel({
+    fase: !d.boarded ? 'instappen' : next ? 'varen' : 'aanleggen', steiger: leg.from.name, naar: leg.to.name, verhalen: d.sights.filter((s) => s.done).length, verhalenTotaal: d.sights.length,
+    tevreden: d.rating, snelheid: speed, tijd: c.timeLeft, doelNaam: next ? next.name : leg.to.name, doelAfstand: afstand, bijBezienswaardigheid: bij,
+    praat: next && next.t > 0 ? Math.min(1, next.t / TALK_S) : 0, instap: d.boardT > 0 ? Math.min(1, d.boardT / 1.5) : 0, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}

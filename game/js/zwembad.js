@@ -15,6 +15,9 @@ import { pushAudioEvent } from './pedgeom.js';
 import { standActivity, recLine } from './standactivity.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { POOL_LINES } from './minigamelines2.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { zwemHudModel, duikPop, keerPop, UITLEG_ID } from './zwemstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { POOL, SWIM, createSwim, stepSwim, diveMarker, swimMedal, MEDAL_AT, scaledMedalAt } from './swimrules.js';
 
 // Zwembad Het Natte Papier (invented name) at the Papiermolenlaan: a small
@@ -36,7 +39,6 @@ const INTRO_S = 1.5;
 
 let game = null;
 let built = null;
-let board = null;
 let lodT = 0;
 let runs = 0;
 
@@ -204,6 +206,8 @@ function onEvent(w, e) {
   const q = worldOf(s.x);
   if (e.type === 'dive') {
     g.diveT = 0;
+    zetUitlegGezien(UITLEG_ID);
+    { const pp = duikPop(e.q); if (pp) simHudPop(pp.tekst, pp.geluid); } // #985
     splash(w, q.x + 3, q.y, e.q > 0.9);
     g.flash = { text: e.q >= 0.95 ? 'Mooie duik!' : e.q > 0.5 ? 'Redelijke duik' : 'Buikschuiver!', t: 1.6, bad: e.q < 0.5 };
     say(w, e.q >= 0.95 ? 'dive' : 'flop', true);
@@ -212,6 +216,7 @@ function onEvent(w, e) {
     if (e.q < 0.3 && g.t - g.flailAt > 5) { g.flailAt = g.t; g.flash = { text: 'Wissel A en D, rustig ritme', t: 1.4, bad: true }; }
   } else if (e.type === 'turn') {
     g.roll = e.flip ? 0.55 : 0;
+    { const pp = keerPop(e.flip); if (pp) simHudPop(pp.tekst, pp.geluid); } // #985
     splash(w, q.x, q.y, true);
     g.flash = { text: e.flip ? 'Mooie keerpunt!' : 'Keerpunt: druk Spatie vlak voor de muur', t: 1.4, bad: !e.flip };
     if (e.flip) say(w, 'flip');
@@ -230,7 +235,8 @@ function end(w, { quit = false } = {}) {
   w.cameraOverride = null;
   const p = hoofdspeler(w);
   p.z = 0; p.swimming = false; p.water = null; p.swimTilt = 0; p.vx = p.vy = 0; p.speed = 0; p.moving = false;
-  if (board) board.hide();
+  simHudTik(0, null);
+  if (built && built.kolom) built.kolom.visible = false;
   clearBubbles(w, 'zwembad');
   p.x = STAND.x; p.y = STAND.y; p.angle = ROT - Math.PI / 2;
   if (quit) { w.addMessage('Zwemmen gestopt', 2.5); return; }
@@ -264,26 +270,22 @@ function camera(w) {
   w.cameraOverride = { position: c.position, lookAt: c.lookAt, fov: 58, cut: true };
 }
 
-function ensureBoard() {
-  if (!board) board = createBoard('zwembad');
-  return board;
-}
-
 function updateHud() {
   const g = game;
-  if (!g || !board) return;
+  if (!g) return;
   const s = g.s;
-  const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Baan <b>${Math.min(POOL.lengths, s.length + 1)}/${POOL.lengths}</b></span><span>Afstand <b>${Math.round(s.dist)} m</b></span>`;
-  let meter, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Op het startblok...' : '';
-  if (s.phase === 'block' && g.phase === 'run') {
-    meter = { v: diveMarker(s.t), mark: 0.52, color: 'var(--mk-ok, #3fc97a)', text: 'duik' };
-    flash = flash || 'Spatie bij het streepje op de balk'; // #615: vorm boven kleur
-  } else {
-    meter = { v: s.stamina, color: s.stamina < SWIM.tired ? 'var(--mk-job, #ff9a3c)' : ACCENT, text: 'arm' };
-    if (!flash && s.stamina < SWIM.tired) flash = 'Moe! Rustig aan, ritme vasthouden';
+  // #985: één strook (simhud.js) met stappen, de duikbalk of je armen, tijd (groot), baan en afstand; het model is puur (zwemstatus.js), de gele lichtkolom staat op de keerwand
+  const naarEind = s.dir > 0 || s.phase === 'block';
+  const muur = s.phase === 'swim' ? (naarEind ? POOL.len - s.x : s.x) : null;
+  simHudTik(0, zwemHudModel({
+    fase: g.phase, swimFase: s.phase, tijd: fmtTime(s.time), baan: s.length + 1, banen: POOL.lengths, afstand: s.dist, duik: diveMarker(s.t), stamina: s.stamina, moe: s.stamina < SWIM.tired, muur,
+    flash: g.flash ? g.flash.text : '', slecht: !!(g.flash && g.flash.bad), uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+  if (built) {
+    if (!built.kolom) { built.kolom = maakSimKolom('zwemkolom'); getScene().add(built.kolom); }
+    const q = worldOf(naarEind ? POOL.len : 0);
+    zetSimKolom(built.kolom, s.phase === 'done' ? null : q, 0, g.t, false);
   }
-  const help = `${key('A')}${key('D')} om en om zwemmen · ${key('SPATIE')} duik en keerpunt · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 // --- map icon ---------------------------------------------------------------------------------------
@@ -313,9 +315,7 @@ function start(w, { force = false, revealed = false } = {}) {
   if (!built) built = buildPool();
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
-  ensureBoard();
-  board.show();
-  runs++;
+  runs++; // #985: de strook (simhud.js) vervangt het bord
   game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createSwim(), flash: null, cam: null, said: 0, roll: 0, diveT: 1, flailAt: -9, outro: 0 };
   const side = FR.toW(-POOL.len / 2 - 2, POOL.width / 2 + 2);
   w.companionHold = { x: side.x, y: side.y, face: ROT };

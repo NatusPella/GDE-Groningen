@@ -1,0 +1,65 @@
+/* De HUD-strook van de light sims (#985, #980): dun en makkelijk te herstylen. Alleen ds-tokens (var(--ds-...)), geen eigen kleuren of maten, klassen met het
+   voorvoegsel sh-. Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. */
+/* Compact: ca. 22 rem breed en hooguit ca. 18% van de hoogte, rechtsonder, zodat het midden van het beeld vrij blijft (de minimap staat links). Het raster zet de
+   primaire waarde en de stappen op één regel, dan de meter, één regel "wat nu" en één regel secundaire waarden. */
+.sh-hud.ds-kaart { position: fixed;   /* twee klassen: wint van .ds-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
+  right: var(--ds-s-4); bottom: var(--ds-s-4); left: auto; z-index: 6; font-family: var(--ds-font-tekst);
+  width: min(calc(var(--ds-s-8) * 5.5), calc(100vw - var(--ds-s-6))); gap: var(--ds-s-2); padding: var(--ds-s-2) var(--ds-s-3); pointer-events: none; }
+.sh-hud[hidden], .sh-hud [hidden] { display: none; }
+.sh-inhoud { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--ds-s-2) var(--ds-s-3); align-items: center; }
+.sh-inhoud > * { grid-column: 1 / -1; min-width: 0; }
+.sh-hud .ds-icoon { fill: none; }   /* de pictogrammen zijn lijnen; ds-icoon vult standaard */
+/* de kop (naam van de sim) blijft voor schermlezers; wie speelt weet wat hij speelt */
+.sh-kop { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* 2. de stappen: rechts naast de primaire waarde, elk met zijn korte woord */
+.sh-stappen { grid-column: 2; grid-row: 1; justify-self: end; display: flex; flex-wrap: nowrap; gap: var(--ds-s-1); list-style: none; margin: 0; padding: 0; }
+.sh-stappen > li[data-stand="klaar"] .ds-chip { --ds-chip-bg: var(--ds-succes-vlak); --ds-chip-tx: var(--ds-succes-tx); }
+.sh-stappen > li[data-stand="nu"] .ds-chip { --ds-chip-bg: var(--ds-primair); --ds-chip-tx: var(--ds-primair-tx); }
+.sh-stappen > li[data-stand="straks"] .ds-chip { --ds-chip-bg: transparent; --ds-chip-tx: var(--ds-tx-zacht); }
+.sh-stappen .ds-chip { min-height: var(--ds-s-5); padding: 0 var(--ds-s-2); gap: var(--ds-s-1); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+.sh-stappen .ds-chip__icoon { width: var(--ds-s-3); height: var(--ds-s-3); }
+/* 3. de ene primaire waarde: rustige badge met pictogram, het getal groot, de naam klein ernaast */
+.sh-primair { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: var(--ds-s-2); }
+.sh-primair__badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-6); height: var(--ds-s-6); border-radius: var(--ds-r); background: var(--ds-bg-2); color: var(--ds-tx); border: var(--ds-lijn) solid var(--ds-rand); }
+.sh-primair__icoon { width: var(--ds-s-4); height: var(--ds-s-4); }
+.sh-primair__tekst { display: flex; flex-direction: row; align-items: baseline; gap: var(--ds-s-2); min-width: 0; overflow: hidden; }
+.sh-primair__naam { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-primair__naam { order: 2; line-height: var(--ds-lh-tekst); }
+.sh-groot { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); font-weight: 700; line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); white-space: nowrap; }
+.sh-groot--lang { font-size: var(--ds-t-body); }
+.sh-meter { grid-row: 2; }
+.sh-meter--laag .ds-streep__vul { background: var(--ds-probleem); }
+.sh-meter--goed .ds-streep__vul { background: var(--ds-succes); }
+.sh-meter .ds-streep__label { font-size: var(--ds-t-hulp); }
+/* 4. wat nu: de enige zin die opvalt, één regel; bij een probleem op het probleemvlak (kleur plus woorden, nooit kleur alleen) */
+.sh-nu { grid-row: 3; margin: 0; font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); font-weight: 600; color: var(--ds-tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-nu--slecht { padding: 0 var(--ds-s-2); border-radius: var(--ds-r); background: var(--ds-probleem-vlak); color: var(--ds-probleem-tx); }
+/* 5. de rest: één regel, klein en gedempt, elk met pictogram en woord */
+.sh-cijfers { grid-row: 4; display: flex; flex-wrap: nowrap; overflow: hidden; gap: var(--ds-s-3); list-style: none; margin: 0; padding: 0; color: var(--ds-tx-zacht); }
+.sh-cijfers > li { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); white-space: nowrap; }
+.sh-cijfer__icoon { flex: none; }
+.sh-cijfers > li[data-staat="goed"] { color: var(--ds-succes-tx); }
+.sh-cijfers > li[data-staat="let-op"] { color: var(--ds-waarschuwing-tx); }
+.sh-cijfers > li[data-staat="actie"] { color: var(--ds-probleem-tx); }
+.sh-waarde { font-weight: 600; color: var(--ds-tx); }
+.sh-cijfer__naam { white-space: nowrap; }
+.sh-hud .hud-key { vertical-align: baseline; }
+.sh-hulp { margin: 0; }
+/* de eerste-keer-uitleg groeit de kaart tijdelijk; hij verdwijnt bij de eerste handeling */
+.sh-uitleg .ds-chip { min-height: var(--ds-s-5); padding: 0 var(--ds-s-1); }
+.sh-hulp { display: none; }   /* de uitleg zegt het al; zonder uitleg staat de hulp er niet */
+.sh-uitleg { display: grid; grid-template-columns: 1fr; gap: var(--ds-s-1); list-style: none; margin: 0; padding: 0; }
+.sh-uitleg > li { display: flex; align-items: center; gap: var(--ds-s-2); }
+/* het opspringende getal staat rechts boven de strook */
+.sh-pop { position: fixed; left: auto; right: var(--ds-s-4); width: max-content; max-width: calc(100vw - var(--ds-s-6)); z-index: 7; pointer-events: none;
+  bottom: calc(var(--ds-s-4) + var(--ds-s-8) * 2.4); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
+.sh-pop:empty { display: none; }
+.sh-pop--aan { animation: sh-pop calc(var(--ds-m-max) * 3) var(--ds-ease) both; }
+.sh-pop--stil { opacity: 1; }
+@keyframes sh-pop { 0% { opacity: 0; transform: translateY(var(--ds-s-3)); } 15% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--ds-s-4))); } }
+@media (prefers-reduced-motion: reduce) { .sh-pop--aan { animation: none; opacity: 1; } }
+
+/* De bakronde (Oma's eierballen, #985): zelfde plek en taal als de strook; de regelwidgets (stappen en legenda) staan er als losse glazen onderdelen in. */
+.bk-paneel.ds-kaart { pointer-events: none; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6))); }
+.bk-regel, .bk-toetsen { display: flex; justify-content: center; }
+.bk-ronde { white-space: nowrap; }

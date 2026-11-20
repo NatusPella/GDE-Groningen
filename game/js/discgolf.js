@@ -6,6 +6,9 @@ import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { discgolfHudModel, baanPop, ctpPop, UITLEG_ID } from './discgolfstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, difficultyRecordKey, scaleTargetSignedRound } from './difficulty.js'; // #800
@@ -301,8 +304,7 @@ function start(w, { force = false, online = null } = {}) {
   const p = hoofdspeler(w);
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   document.body.classList.add('discgolf-on');
-  ensureBoard();
-  board.show();
+  if (online) { ensureBoard(); board.show(); } // #985: solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen in de wedstrijd
   runs++;
   setCourse(BASE);
   game = {
@@ -434,6 +436,7 @@ function ctpThrown(w, res, h) {
   const d = res.holed ? 0 : res.reason === 'water' ? null : Math.hypot(h.basket.x - res.end.x, h.basket.y - res.end.y);
   g.ctp.dists.push(d);
   const pts = ctpPoints(d);
+  { const pp = ctpPop(d, pts); simHudPop(pp.tekst, pp.geluid); }
   g.flash = { text: d == null ? 'Plons: nul punten' : d === 0 ? `In de mand! ${pts} punten` : `${d.toFixed(1).replace('.', ',')} m van de mand: ${pts} punten`, t: 2.6, bad: d == null };
   if (g.ctp.dists.length >= CTP.throws) { end(w); return; }
   g.lie = { x: h.tee.x, y: h.tee.y };
@@ -448,6 +451,7 @@ function holeDone(w, strokes, why) {
   if (g.online) { const sl = Math.min(strokes, h.par + MAX_OVER_PAR); if (g.online === 'host') wedHostScore(w, g.hole, sl); else wedGastScore(w, g.hole, sl); }
   const name = why === 'opgepakt' ? 'Opgepakt' : holeName(strokes, h.par);
   g.flash = { text: `${name}: ${strokes} worp${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
+  { const pp = baanPop(name, strokes, h.par); simHudPop(pp.tekst, pp.geluid); } // #985
   const d = strokes - h.par;
   say(w, strokes === 1 ? 'ace' : d <= -2 ? 'eagle' : d === -1 ? 'birdie' : d === 0 ? 'par' : d === 1 ? 'bogey' : 'worse', true);
   if (strokes === 1 && why !== 'opgepakt') unlockAchievement(w, 'discgolf_ace');
@@ -519,6 +523,7 @@ function updateGame(w, dt) {
     p.angle = g.yaw;
     if (input.isDown(' ')) {
       g.charging = true;
+      zetUitlegGezien(UITLEG_ID);
       g.charge = Math.min(1, g.charge + dt / CHARGE_S);
     } else if (g.charging) {
       g.charging = false;
@@ -543,6 +548,8 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   w.cameraOverride = null;
   document.body.classList.remove('discgolf-on');
   if (board) board.hide();
+  simHudTik(0, null);
+  if (built && built.kolom) built.kolom.visible = false;
   clearBubbles(w, 'discgolf');
   if (built) { built.line.visible = false; built.marker.visible = false; built.disc.visible = false; built.lie.visible = false; built.caddie.visible = !quit; built.caddieUntil = w.time + 14; }
   const p = hoofdspeler(w);
@@ -690,9 +697,31 @@ function doelKracht(g, dist) {
   try { return Math.max(0.12, Math.min(1, powerForBasket(dist, g.disc, g.loft, g.release))); } catch (e) { return null; }
 }
 
+// #985: de strook onderin (solo en dichtst bij de mand) en de gele lichtkolom boven de mand van de baan; het model is puur (discgolfstatus.js)
+function strookTik(w, g) {
+  if (built) {
+    if (!built.kolom) { built.kolom = maakSimKolom('discgolfkolom'); getScene().add(built.kolom); }
+    const bk = g.phase === 'mode' ? null : COURSE[g.hole].basket;
+    zetSimKolom(built.kolom, bk, 0, g.t, false);
+  }
+  if (g.phase === 'mode') { const m = MODES[g.pickMode]; simHudTik(0, discgolfHudModel({ modus: 'kies', kiesNaam: m.name, kiesNote: `${m.name}: ${m.note}`, uitleg: !uitlegGezien(UITLEG_ID) })); return; }
+  const h = COURSE[g.hole];
+  const dist = Math.hypot(h.basket.x - g.lie.x, h.basket.y - g.lie.y);
+  const doel = doelKracht(g, dist);
+  simHudTik(0, discgolfHudModel({
+    modus: g.ctp ? 'ctp' : 'ronde', fase: g.phase, laden: g.charging, baan: h.n, banen: COURSE.length, par: h.par, worp: g.phase === 'aim' ? g.strokes + 1 : g.strokes, mand: dist,
+    wind: `${windText(g.wind)} ${windArrow(g)}`, schijf: DISCS[g.disc].name, release: RELEASES.find((r) => r.id === g.release).name, hoek: g.loft * 57.3, lading: g.charge, doel,
+    cirkel: dist <= CIRCLE_M, totaal: relText(cardTotals(g.card).rel), flash: g.flash ? g.flash.text : '', slecht: !!(g.flash && g.flash.bad),
+    ctpWorp: g.ctp ? Math.min(CTP.throws, g.ctp.dists.length + 1) : 0, ctpTotaal: CTP.throws, afstanden: g.ctp ? g.ctp.dists.map((d) => (d == null ? 'plons' : `${d.toFixed(1).replace('.', ',')} m`)).join(' · ') : '',
+    uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}
+
 function updateHud(w) {
   const g = game;
-  if (!g || !board) return;
+  if (!g) return;
+  if (!g.online) { strookTik(w, g); return; }
+  if (!board) return;
   if (g.phase === 'mode') {
     const m = MODES[g.pickMode];
     board.set({ row: `<span>Ronde <b>${m.name}</b></span><span>${m.note}</span>`, flash: '', help: `${key('A')}${key('D')} kiezen · ${key('SPATIE')} beginnen · ${key('BACKSPACE')} stoppen` });

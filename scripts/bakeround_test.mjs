@@ -1,5 +1,6 @@
 // Test of the baking round of act 5 (game/js/bakeround.js): the recipe order, wrong ingredients and the redo.
-import { createBake, bakeAdd, bakeProgress, bakeKeyId, bakePanel, updateBake, RECIPE_PRACTICE, RECIPE_CONTEST } from '../game/js/bakeround.js';
+import { createBake, bakeAdd, bakeProgress, bakeKeyId, bakePanel, updateBake, bakeHudModel, RECIPE_PRACTICE, RECIPE_CONTEST } from '../game/js/bakeround.js';
+import { readFileSync } from 'node:fs';
 
 let n = 0, bad = 0;
 const ok = (c, m) => { n++; if (!c) { bad++; console.log('FAIL ' + m); } };
@@ -42,6 +43,21 @@ ok(updateBake(b, both, 't', '2') === 'ok' && b.step === 1, 'de eigen toets van d
 
 b = createBake({ order: RECIPE_CONTEST, rounds: 1 });
 ok(updateBake(b, { wasPressed: () => false }, 't', 'x') === null && b.step === 0, 'een onbekende toets van een gast doet niets');
+
+// het paneel (#985): de tekst en de balk komen uit een puur model, zonder eigen kleuren in de code
+b = createBake({ order: RECIPE_CONTEST, rounds: 3 });
+let m = bakeHudModel(b, 'Oma');
+ok(m.pct === 0 && m.ronde === 'Eierbal 1 van 3' && m.mislukt === 'Mislukt 0/3' && /volgorde/.test(m.melding) && !m.fout, 'het paneel begint bij nul met de opdracht');
+for (const id of RECIPE_CONTEST) bakeAdd(b, id);
+m = bakeHudModel(b, 'Oma', 'Eierbal klaar! De volgende.');
+ok(m.pct === 33 && m.balkLabel === '1 van 3 klaar' && m.ronde === 'Eierbal 2 van 3' && m.melding === 'Eierbal klaar! De volgende.', 'een klare bal telt in de balk en krijgt zijn melding');
+bakeAdd(b, 'ei'); m = bakeHudModel(b, 'Oma');
+ok(/Stap 2 van 4/.test(m.melding), 'halverwege een bal staat de stap');
+bakeAdd(b, 'bloem'); m = bakeHudModel(b, 'Oma');
+ok(m.fout && /Fries/.test(m.melding) && m.mislukt === 'Mislukt 1/3', 'een fout toont de foutmelding en de mislukte ballen');
+const bron = readFileSync(new URL('../game/js/bakeround.js', import.meta.url), 'utf8');
+ok(!/style\.cssText|#[0-9a-f]{6}/i.test(bron.replace(/\/\/.*$/gm, '')), 'het paneel heeft geen eigen kleuren of inline stijl meer');
+ok(/id = 'bakeround'/.test(bron), 'het element heet nog #bakeround (de speelbot zoekt het)');
 
 console.log(`${n - bad}/${n} bakeround checks passed`);
 process.exit(bad ? 1 : 0);

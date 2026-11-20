@@ -8,6 +8,10 @@ import {
   pick, rand, nearestOnStreet, doorSpot, randomStreetPoint, spawnJobVehicle, pointAlongRoad, decorateVehicle,
   spawnPed, pedAlive, holdPed, freePed, say, streetNameAt, afstandNaast,
 } from './sidejobkit.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { bezorgHudModel, pickupPop, afleverPop, UITLEG_ID } from './bezorgstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { reducedMotion } from './motion.js';
 
 const FATBIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.8, accel: 4.2, brake: 6, turnRate: 3.8, color: '#e4572e' };
 const CENTRE = { x: 191.86, y: 138.11, r: 1300 };
@@ -152,6 +156,7 @@ export default {
     const { world } = c;
     const d = c.data, o = d.order, p = hoofdspeler(world), v = c.vehicle;
     decorateVehicle(v, 'box', thermoBox);
+    zetBezorgStrook(c, p);
 
     if (p.inVehicle === v) {
       const s = v.speed;
@@ -181,6 +186,8 @@ export default {
       if (d.cook && pedAlive(world, d.cook)) holdPed(d.cook, p.x, p.y);
       if (dd < PICKUP_R) {
         d.phase = 'deliver';
+        zetUitlegGezien(UITLEG_ID);
+        const pk = pickupPop(); simHudPop(pk.tekst, pk.geluid);
         if (d.cook) { say(world, d.cook, pick(COOK_LINES), 3); freePed(d.cook); d.cook = null; }
         const budget = (o.dist * 1.45) / 7 + 22;
         const tight = (1 - 0.035 * Math.min(c.streak, 8)) * (1 - 0.03 * (c.level - 1));
@@ -215,6 +222,7 @@ export default {
       if (cu) { say(world, cu, pick(warm > 55 ? WARM_LINES : LUKE_LINES), 3.2); freePed(cu); }
       d.customer = null;
       d.last = { x: door.x, y: door.y };
+      const ap = afleverPop(warm, tip); simHudPop(ap.tekst, ap.geluid);
       c.complete({ base: 16 + o.dist / 22 + o.n * 3, tip, text: warm > 70 ? 'Warm bezorgd!' : 'Bezorgd.', flawless: !d.bumped });
     }
   },
@@ -240,9 +248,24 @@ export default {
 
   stop(c) {
     const d = c.data;
+    simHudTik(0, null);
+    if (d.kolom) { c.removeMesh(d.kolom); d.kolom = null; }
     if (d.cook) freePed(d.cook);
     if (d.customer) freePed(d.customer);
   },
 };
 
-
+// De strook onderin en de lichtkolom boven het volgende doel (#985): elke beeld de stand uit de bestelling naar het pure model (bezorgstatus.js). Alleen voor de eigen dienst.
+function zetBezorgStrook(c, p) {
+  const d = c.data, o = d.order;
+  if (c.owner || !o || !d.phase) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  const doel = d.phase === 'pickup' ? o.zaak.door : o.door;
+  if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('bezorgkolom'));
+  const grond = c.world.map.elev && c.world.map.elev.has ? c.world.map.groundHeightAt(doel.x, doel.y, 0) : 0;
+  zetSimKolom(d.kolom, doel, grond, c.world.time || 0, reducedMotion());
+  const w = c.world.weather;
+  simHudTik(0, bezorgHudModel({
+    fase: d.phase, zaak: o.zaak.name, dish: o.dish, n: o.n, straat: o.street, nr: o.nr, wie: o.who, warmte: d.warmth, afstand: afstandNaast(c.world, doel.x, doel.y), tijd: c.timeLeft,
+    bestelling: c.streak + 1, regen: !!(w && w.intensity > 0.3), wind: d.wind || null, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}

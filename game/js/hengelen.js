@@ -23,6 +23,8 @@ import { maakHengelAnim } from './hengelanim.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { hengelHudModel, UITLEG_ID } from './hengelstatus.js';
 import { hapticEvent } from './haptics.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
@@ -142,6 +144,7 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (g.anim) { g.anim.dispose(); g.anim = null; }
   stopHouding();
   if (board) board.hide();
+  simHudTik(0, null);
   clearBubbles(w, 'hengelen');
   const s = g.s;
   // de kas die nog niet vol was wordt afgerond: wat je ving is wat het opbrengt
@@ -205,9 +208,9 @@ function updateGame(w, dt) {
   const evs = stepHengel(g.s, { cast }, dt);
   try { if (g.anim === undefined) g.anim = maakHengelAnim(); if (g.anim) g.anim.update(dt, w, g.s, evs, at); } catch (e) { g.anim = null; }
   for (const e of evs) {
-    if (e.type === 'cast') { if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'fx', name: 'hengel_uitwerp', x: at.x, y: at.y }); }
+    if (e.type === 'cast') { zetUitlegGezien(UITLEG_ID); if (g.mode === 'vrij') { const tt = getTuig(); g.castAas = tt.aas ? tt.aas.id : null; gebruikAas(); } pushAudioEvent(w, { kind: 'fx', name: 'hengel_uitwerp', x: at.x, y: at.y }); }
     else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y, gain: 0.6 }); }
-    else if (e.type === 'bite') { hapticEvent('bite'); g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
+    else if (e.type === 'bite') { hapticEvent('bite'); g.beetTotaal = Math.max(0.2, g.s.bite || 0); g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; pushAudioEvent(w, { kind: 'fx', name: 'hengel_beet', x: at.x, y: at.y }); }
     else if (e.type === 'catch') {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
@@ -216,6 +219,7 @@ function updateGame(w, dt) {
       g.haalT = 0.9; // de ruk is voorbij: even binnenhalen voordat je weer klaarstaat
       const naam = (s && (s.naam || s.name)) || e.fish;
       g.flash = { text: `${r && r.nieuweSoort ? 'Nieuw: ' : ''}${naam} van ${kgTekst(e.kg)}!`, bad: false, t: 0 };
+      simHudPop(`${r && r.nieuweSoort ? 'Nieuw: ' : '+'}${naam} ${kgTekst(e.kg)}`, r && r.nieuweSoort ? 'ui_loopbaan' : 'ui_verzameld'); // de vangst springt op in de strook (#985)
     } else if (e.type === 'lost') { g.flash = { text: 'Ontsnapt', bad: true, t: 0 }; say(w, 'lost'); pushAudioEvent(w, { kind: 'fx', name: 'hengel_los', x: at.x, y: at.y }); }
     else if (e.type === 'done') { einde(w); return; }
   }
@@ -228,32 +232,20 @@ function updateGame(w, dt) {
   if (g.s.phase !== 'bite' && g.flash && g.flash.text === 'BEET! Nu Spatie!') g.flash = null;
 }
 
-const PHASE_TEXT = { idle: 'Gooi uit met Spatie', cast: 'De lijn zoeft uit...', wait: 'Wacht op het dobbertje...', bite: 'BEET!', scare: 'De vissen zijn gevlucht...' };
 
 function updateHud(w) {
   const g = game;
   if (!g) return;
-  const s = g.s;
-  const cells = ['idle', 'cast', 'wait', 'bite'].map((ph, i) => ({ t: ['Uit', 'Worp', 'Wacht', 'Beet'][i], cls: s.phase === ph ? (ph === 'bite' ? 'on good' : 'on') : '' }));
-  const flash = g.flash ? g.flash.text : PHASE_TEXT[s.phase];
-  const tuig = getTuig();
-  // het tuig in de HUD (#492): de hengel en het aas dat er nu op zit
-  const tuigRij = `<span>Hengel <b>${hengelNaam(tuig)}</b> · aas <b>${aasNaam(tuig)}</b></span>`;
-  const hengelRij = `<span>Hengel <b>${hengelNaam(tuig)}</b></span>`;
-  if (g.mode === 'vrij') {
-    if (!board) return;
-    const t = watertype(g.plek.type);
-    const row = `<span>Vrij hengelen</span><span>${plekNaam(g.plek.type, g.plek.naam)}</span>${tuigRij}<span>Vangsten <b>${g.vangsten}</b></span><span>Soorten <b>${g.soorten.size}</b></span><span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Visboer <b>${euro(g.betaald + g.kas)}</b></span>`;
-    // #613: de beet krijgt een eigen, grotere vorm dan de wachtstand (meter + goede flits)
-    const beat = s.phase === 'bite' ? { meter: { v: 1, color: 'var(--mk-job, #ff9a3c)', text: 'BEET' } } : null;
-    board.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help: `${t ? t.naam + ' · ' : ''}${key('SPATIE')} uitgooien en binnenhalen · ${key('BACKSPACE')} stoppen`, ...(beat || {}) });
-    return;
+  const s = g.s, vrij = g.mode === 'vrij', tuig = getTuig();
+  // #985: één strook (simhud.js) in plaats van het bord: stappen met icoon, beetmeter, cijfers en wat nu; het model is puur (hengelstatus.js)
+  simHudTik(0, hengelHudModel({
+    mode: g.mode, fase: s.phase, haal: g.haalT > 0, bijt: s.bite, beetTotaal: g.beetTotaal || 0, vangsten: vrij ? g.vangsten : s.catches.length, soorten: g.soorten.size, kg: s.kg, kas: g.betaald + g.kas,
+    plek: vrij ? plekNaam(g.plek.type, g.plek.naam) : 'Meerstad', left: s.left, tuig: { hengel: hengelNaam(tuig), aas: aasNaam(tuig) }, flash: g.flash, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+  if (!vrij && g.online && board) { // de stand van de anderen in de wedstrijd blijft op het bord
+    const online = wedScoreRijen(w);
+    if (online.length) board.set({ row: `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${kgTekst((r.slagen || 0) / 1000)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>`, cells: [], flash: '', help: '' });
   }
-  if (!board) return;
-  const online = g.online ? wedScoreRijen(w) : [];
-  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${kgTekst((r.slagen || 0) / 1000)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
-  const row = `<span>Wedstrijd</span>${stand}${hengelRij}<span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Gevangen <b>${s.catches.length}</b></span><span>Ontsnapt <b>${s.lost}</b></span>`;
-  board.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help: `${key('SPATIE')} uitgooien en binnenhalen · ${key('BACKSPACE')} stoppen` });
 }
 
 function glyph(ctx) {
@@ -268,8 +260,8 @@ function start(w, { online = null } = {}) {
   if (game) return false;
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
-  if (!board) board = createBoard('hengelen');
-  board.show();
+  if (online && !board) board = createBoard('hengelen'); // het bord blijft alleen voor de stand van de anderen (#985)
+  if (board && online) board.show();
   const mode = cleanDifficulty(getSettings().difficulty);
   const t0 = getTuig();
   game = {
@@ -294,8 +286,6 @@ function startOfUitnodigen(w) {
 function startVrij(w, plek) {
   if (game || !plek) return false;
   const p = hoofdspeler(w);
-  if (!board) board = createBoard('hengelen'); // #613: hetzelfde bord als de wedstrijd, met een modusregel
-  board.show();
   const kies = (rand) => {
     const regen = !!(w.weather && w.weather.active && w.weather.intensity > 0.25 && w.weather.kind !== 'mist');
     const t = getTuig(); // hengel en lijn van nu; het aas is dat van de worp (het laatst gebruikte pakje)

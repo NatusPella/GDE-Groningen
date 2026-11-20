@@ -10,6 +10,9 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { variantVan, variantMedal } from './activiteitvariant.js'; // #673: de combo-run-variant (beste keten)
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { skateHudModel, trucPop, ketenPop, UITLEG_ID } from './skatestatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
@@ -268,8 +271,7 @@ function start(w, { force = false, online = null } = {}) {
   if (p.inVehicle) p.exitVehicle(w.map, w);
   const b = createBoardState();
   b.u = -PARK.hu + 4; b.v = 0; b.a = 0;
-  ensureBoard();
-  board.show();
+  if (online) { ensureBoard(); board.show(); } // #985: solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen in de wedstrijd
   built.bd.visible = true;
   built.skater.visible = true;
   runs++;
@@ -355,10 +357,11 @@ function updateGame(w, dt) {
     if (r.gained) {
       g.lastNames = r.names.map((n) => TRICK_NAMES[n] || n).join(' + ');
       g.flash = { text: `${g.lastNames} +${r.gained}`, t: 1.6 };
+      if (!g.online) { const pp = trucPop(g.lastNames, r.gained); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
     }
     if (r.bailed) { g.flash = { text: `Gevallen! -${r.bailed}`, t: 1.8, bad: true }; }
     const banked = tickCombo(g.combo, 1 / 90, !g.b.grounded || !!g.b.grind);
-    if (banked) { g.flash = { text: `Keten opgeslagen: +${banked}`, t: 1.8 }; if (banked > 1200) say(w, 'combo'); }
+    if (banked) { g.flash = { text: `Keten opgeslagen: +${banked}`, t: 1.8 }; if (!g.online) { const pp = ketenPop(banked); simHudPop(pp.tekst, pp.geluid); } if (banked > 1200) say(w, 'combo'); }
   }
   if (g.phase === 'intro') {
     g.phaseT -= dt;
@@ -420,6 +423,8 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const p = hoofdspeler(w);
   p.z = 0;
   if (board) board.hide();
+  simHudTik(0, null);
+  if (built && built.kolom) built.kolom.visible = false;
   clearBubbles(w, 'skatepark');
   if (built) { built.bd.visible = false; }
   p.x = STAND.x; p.y = STAND.y; p.angle = ROT;
@@ -490,9 +495,29 @@ function ensureBoard() {
   return board;
 }
 
+// #985: de gele lichtkolom boven de dichtstbijzijnde rail (daar scoor je met een grind), en de strook voor een solo-run; het model is puur (skatestatus.js)
+const RAILS = FEATURES.filter((f) => f.type === 'rail');
+function strookTik(w, g) {
+  const c = g.combo, b = g.b;
+  if (built) {
+    if (!built.kolom) { built.kolom = maakSimKolom('skatekolom'); getScene().add(built.kolom); }
+    let rail = null, best = Infinity;
+    for (const f of RAILS) { const mu = (f.u0 + f.u1) / 2, mv = (f.v0 + f.v1) / 2, d = Math.hypot(mu - b.u, mv - b.v); if (d < best) { best = d; rail = f; } }
+    const q = rail && g.phase === 'run' ? FR.toW((rail.u0 + rail.u1) / 2, (rail.v0 + rail.v1) / 2) : null;
+    zetSimKolom(built.kolom, q, 0, g.t, false);
+  }
+  const bad = !!(g.flash && g.flash.bad);
+  simHudTik(0, skateHudModel({
+    fase: g.phase, links: g.left, duur: g.runS, score: c.total, keten: c.cur, mult: c.mult, ketenAan: !!c.chain, grond: !!b.grounded, grind: b.grind ? { bal: b.grind.bal } : null,
+    flash: bad ? g.flash.text : '', slecht: bad, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}
+
 function updateHud(w) {
   const g = game;
-  if (!g || !board) return;
+  if (!g) return;
+  if (!g.online) { strookTik(w, g); return; }
+  if (!board) return;
   const c = g.combo;
   const left = g.phase === 'run' ? Math.ceil(g.left) : g.phase === 'intro' ? g.runS : 0;
   const cur = Math.round(c.cur);

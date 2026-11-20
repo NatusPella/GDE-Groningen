@@ -11,6 +11,10 @@ import {
   holdPed, freePed, walkPed, removePed, say, vehicleSpeed, fmtClock,
 } from './sidejobkit.js';
 import { teVroegTekst } from './busbestuur.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { busHudModel, haltePop, UITLEG_ID } from './busstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { reducedMotion } from './motion.js';
 
 const STOP_R = 9;
 const STOP_SPEED = 0.8;
@@ -183,6 +187,7 @@ export default {
     const stop = d.stops[idx];
     const due = d.next >= d.stops.length ? d.dueEnd : d.due[d.next];
     const late = d.clock - due;
+    zetBusStrook(c, stop, late, vehicleSpeed(v));
 
     if (inBus) {
       if (d.prevSpeed != null && d.prevSpeed - v.speed > 3 && d.prevSpeed > 3 && world.time - d.hitAt > 1.2) {
@@ -228,6 +233,7 @@ export default {
       d.arriveLate = late;
       d.lateMax = Math.max(d.lateMax, late);
       if (late <= LATE_OK) d.onTime++;
+      { const pp = haltePop(stop.name, late); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
       c.msg(`${stop.line}${late > LATE_OK ? ` (${Math.round(late)} s te laat)` : ''}`, 3.6);
       const door = { x: v.x + Math.cos(v.angle) * (v.model.len / 2 - 1.2) - Math.sin(v.angle) * 1.6, y: v.y + Math.sin(v.angle) * (v.model.len / 2 - 1.2) + Math.cos(v.angle) * 1.6 };
       d.door = door;
@@ -305,7 +311,26 @@ export default {
 
   stop(c) {
     for (const ped of c.data.waiting || []) freePed(ped);
+    simHudTik(0, null);
+    if (c.data.kolom) { c.removeMesh(c.data.kolom); c.data.kolom = null; }
   },
 };
+
+function groundAt(map, x, y) {
+  return map.elev && map.elev.has ? map.groundHeightAt(x, y, 0) : 0;
+}
+
+// De strook onderin en de lichtkolom boven de volgende halte (#985): elke beeld de stand van het rondje naar het pure model (busstatus.js). Alleen voor de eigen dienst.
+function zetBusStrook(c, stop, late, speed) {
+  const d = c.data, v = c.vehicle;
+  if (c.owner || !stop || !v) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  if (!d.kolom) d.kolom = c.addMesh(maakSimKolom('buskolom'));
+  zetSimKolom(d.kolom, { x: stop.x, y: stop.y }, groundAt(c.world.map, stop.x, stop.y), c.world.time || 0, reducedMotion());
+  const n = d.stops.length;
+  simHudTik(0, busHudModel({
+    fase: d.hold != null ? 'vertrek' : d.dwell ? 'halte' : 'rijden', halte: stop.name, gedaan: Math.min(d.next - 1, n), totaal: n, afwijking: late, comfort: d.comfort,
+    afstand: Math.hypot(stop.x - v.x, stop.y - v.y), snelheid: speed, wacht: d.hold != null ? d.hold : null, deuren: d.dwell ? d.dwell : null, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}
 
 
