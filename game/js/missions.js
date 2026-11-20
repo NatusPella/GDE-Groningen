@@ -1309,6 +1309,9 @@ function succeed(world, def) {
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
     toonNasleep(world, def); // AAA akte 3 en 4: wat er daarna gebeurt (alleen tekst)
     if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? ' — de grootste buit was van jou.' : '.'}`, 4);
+    // AAA slot (akte 5 en 6): een finale krijgt een groot slotakkoord en een nasleep van een paar regels; alleen beeld en geluid bij deze speler
+    if (def.slotSting) { try { stingen.push(world, def.slotSting); } catch (e) { /* een sting mag de afloop nooit raken */ } }
+    if (Array.isArray(def.nasleep)) for (const t of def.nasleep) world.addMessage(t, 5, { kind: 'missie' });
     if (bonus > 0) {
       // #685: dezelfde basis en factor als de gast ziet, met het totaal erbij; de uitleg van 1+1=3
       // staat één keer bij de eerste gedeelde beloning

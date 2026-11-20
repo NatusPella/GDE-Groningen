@@ -288,6 +288,7 @@ export function applyAkte5(list) {
       },
       {
         kind: 'scene', label: 'De uitslag', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.13'] },
+        big: 'Gronings Ontzet: het plein klapt.', // het slot van het verhaal: na de scène blijft dit grote beeld hangen (orbitcamera, missions.js)
         cast: JURY,
       },
     ];

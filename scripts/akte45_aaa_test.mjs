@@ -184,5 +184,12 @@ t('M22 in de runner: de kaart en de wachtfiguur lopen door de eerste stap zonder
   assert.equal(st().phase, 'active');
 });
 
+t('M26 heeft een slot: het grote beeld bij de uitslag, het slotakkoord en een nasleep', () => {
+  const m = M.getMissionDefs().find((d) => d.label === 'Ontzet, net als in 1672');
+  assert.equal(m.slotSting, 'geslaagd_groot');
+  assert.ok(m.nasleep.length >= 1);
+  assert.ok(/Ontzet/.test(m.stages.find((s) => s.label === 'De uitslag').big));
+  assert.equal(m.stages.length, 11, 'het aantal stappen blijft (saves)');
+});
 console.log(`akte45_aaa_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
