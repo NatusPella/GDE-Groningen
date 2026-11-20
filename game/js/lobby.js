@@ -14,7 +14,7 @@
 // gaat (of het vinkje "Niet meer vragen" op dit apparaat zette), gaat in diezelfde sessie overal meteen door:
 // kamercode, lijst, verbinden, herstel en hostwissel vragen het niet nog een keer (#526).
 
-import { REASON_TEXT } from './net/protocol.js';
+import { startKnop, foutUitleg } from './playermenu.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
 import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
@@ -352,6 +352,10 @@ export function reduce(s, ev) {
     case 'laatste-code': // de code waarmee deze speler aansloot: na eruit gezet worden staat hij weer klaar om opnieuw aan te sluiten
       if (typeof ev.code !== 'string' || !ev.code) return s;
       n.caps = { ...s.caps, laatsteCode: ev.code }; return n;
+    case 'start-bezig': if (s.step !== 'verbonden' || s.startBezig) return s; n.startBezig = true; n.startS = 0; return n; // Spel starten ingedrukt: de knop blokkeert en toont voortgang (playermenu.js startKnop)
+    case 'start-tik': if (!s.startBezig) return s; n.startS = ev.s | 0; return n;
+    case 'start-klaar': n.startBezig = false; n.startS = 0; return n;
+    case 'start-gevraagd': n.startGevraagd = true; return n; // een gast vroeg de start aan wie het spel opende
     case 'verbreek': return fresh(s);
     case 'terug': return s.step === 'verbonden' ? s : fresh(s);
     default: return s;
@@ -456,7 +460,7 @@ export function view(s) {
       lines.push(wachtwoordRegel());
       lines.push(SAMEN_KAN_REGEL); // (#684) wat kan samen, terwijl je wacht
       lines.push(GROEPSBONUS_KORT); // (#811) wat samen extra oplevert, vóór de start
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, wachtwoord: wachtwoordVeld(), buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, wachtwoord: wachtwoordVeld(), buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer de code', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
@@ -483,16 +487,18 @@ export function view(s) {
       lines.push(profielTekst(s.profil), PASSIEF_REGEL);
       lines.push(SAMEN_KAN_REGEL); // (#684) de positieve lijst staat ook op het scherm waar je samen speelt
       lines.push(GROEPSBONUS_KORT); // (#811) dezelfde 1+1=3-uitleg, één keer per scherm
-      const buttons = [];
+      const buttons = []; let startInfo = null;
       if (host && s.caps.startGate) { // het spel begint pas met minstens twee spelers en een druk op Spel starten
         const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;
+        const sk = startKnop({ rol: 'host', spelers: lijst, bezig: !!s.startBezig, bezigS: s.startS || 0 }); startInfo = { hint: sk.hint, busy: sk.busy };
         lines.push(genoeg ? "Het spel begint pas als jij op 'Spel starten' drukt: ook de openingsscène zien jullie samen." : 'Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
-        buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
+        buttons.push({ act: 'start-spel', label: sk.busy ? sk.label : 'Spel starten', primary: true, disabled: sk.disabled, busy: sk.busy });
       }
       if (host) {
         // #874: het beheer per speler (eruit zetten, het spel overdragen) staat op het tabblad
         // Spelers (coopspelersui.js): daar hoort het bij de speler en is het één knop per rij
         // in plaats van vijftien knoppen onder de wachtkamer.
+        if (s.code && lijst.length < s.max) buttons.push({ act: 'kopieer', label: 'Kopieer de code' });
         const volgende = volgendeMax(s.max, lijst.length); if (volgende !== s.max) buttons.push({ act: 'max-' + volgende, label: `Maximaal ${s.max} spelers: wijzig naar ${volgende}` }); // één instelling in plaats van vier knoppen (#434)
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         if (s.openbaar) lines.push(openbaarRegel(s));
@@ -507,7 +513,8 @@ export function view(s) {
         if (s.caps.startGate) { // #642: ook een gast mag de wachtkamer starten; hij vraagt het de opener
           const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;
           lines.push(genoeg ? "Wacht op de anderen, of druk zelf op 'Spel starten'." : 'Wacht op een medespeler.');
-          buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
+          const sk = startKnop({ rol: 'gast', spelers: lijst, gevraagd: !!s.startGevraagd, opener }); startInfo = { hint: sk.hint, busy: false };
+          buttons.push({ act: 'start-spel', label: sk.label === 'Vraag om te starten' ? 'Spel starten' : sk.label, primary: true, disabled: !genoeg || sk.disabled });
         }
         lines.push(GAST_BEWAREN(s.caps.spelNaam, opener));
         lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
@@ -515,7 +522,7 @@ export function view(s) {
         // #642: iedereen stoppen is ook van de gast; de opener legt het de groep voor (J/N)
         buttons.push({ act: 'stop-iedereen', label: 'Iedereen stoppen' });
       }
-      return V({ title: 'Je speelt samen', lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, ...(host ? { wachtwoord: wachtwoordVeld() } : null), buttons });
+      return V({ title: 'Je speelt samen', kern: 1, startInfo, lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, ...(host ? { wachtwoord: wachtwoordVeld() } : null), buttons });
     }
     case 'overdragen-kies': { // het spel aan een speler overdragen (#439): de gekozen speler krijgt de vraag (J of N)
       const kandidaten = overdrachtKandidaten(s.rol, s.route, s.spelers);
@@ -543,8 +550,8 @@ export function view(s) {
     case 'geweigerd': {
       const ww = s.reason === 'wachtwoord'; // het woord klopte niet (of ontbrak): de gast kan het hier opnieuw invullen
       return V({
-        title: 'Koppelen mislukt',
-        lines: [s.reason === 'versie' || s.reason === 'protocol' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')],
+        title: foutUitleg(s.reason).titel,
+        lines: (({ tekst, doe }) => [tekst, doe])(foutUitleg(s.reason, { versie: s.caps.versie, andereVersie: s.andereVersie })),
         ...(ww ? { wachtwoord: wachtwoordVeld() } : null),
         buttons: ww ? [{ act: 'probeer', label: 'Opnieuw proberen', primary: true }, { act: 'terug', label: 'Terug' }, { act: 'diag', label: 'Verbinding testen' }] : [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }],
       });
