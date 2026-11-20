@@ -24,6 +24,7 @@ import { pushBusTrail, sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAI
 export { sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAILER_MAX_ANGLE };
 export { updateTrafficAI } from './vehicle/traffic.js';
 import { setBoatHost } from './vehicle/boatwater.js';
+import { DITCH, sweepGround, ditchEntrySpeed, ditchDragSpeed } from './vehicle/ditchsweep.js';
 import { ENTER_REACH, distToVehicleBody, canEnterVehicle, findEnterableVehicle, findNearestVehicle } from './vehicle/enter.js';
 export { ENTER_REACH, distToVehicleBody, canEnterVehicle, findEnterableVehicle, findNearestVehicle };
 export { spawnBoatOnWater, spawnPoliceBoatOnWater, bargesPerWater, manageBoatPopulation, isShip, setVaarNet, getVaarNet, TOUR_TRIP_MAX, boatInTheWay, BOAT_SWEEP_DIST, updateBoatAI } from './vehicle/boatwater.js';
@@ -367,17 +368,31 @@ const GROUND_SAMPLE_M = 0.6;
 const GRASS_DRAG = 2.5;
 const WADE_DRAG = 9;
 const WADE_TOP = 2.5;
-function offroadDrag(v, dt) {
+export function offroadDrag(v, dt) {
   if (v._gx === undefined || Math.abs(v.x - v._gx) + Math.abs(v.y - v._gy) > GROUND_SAMPLE_M) {
+    // (a jump of more than 12 m, a teleport or respawn, is no drive: no sweep over it)
+    const far = v._gx === undefined || Math.abs(v.x - v._gx) + Math.abs(v.y - v._gy) > 12;
+    const gx0 = far ? v.x : v._gx, gy0 = far ? v.y : v._gy;
     v._gx = v.x; v._gy = v.y;
     const prev = v.ground;
-    v.ground = offroadGround(groundMap, v.x, v.y);
+    // swept (ditchsweep.js): the ground all along the stretch driven since the last sample, body width
+    // included, so a fast car does not skip a ditch of 1.6 m between two samples
+    const sw = sweepGround(gx0, gy0, v.x, v.y, v.halfWid, (x, y) => offroadGround(groundMap, x, y));
+    v.ground = sw.end;
     const wet = v.ground === 'wade' || v.ground === 'ditch';
     if (wet && prev !== 'wade' && prev !== 'ditch') {
-      if (v.ground === 'ditch') v.speed *= 0.88;
       if (Math.abs(v.speed) > 1.5) v.splashed = true;
     }
+    // a ditch is a trap: crossed or entered (not while airborne) the car brakes hard, once per ditch
+    const inDitch = sw.ditch && !v.airborne;
+    if (inDitch && !v._inDitch) {
+      v.speed = ditchEntrySpeed(v.speed);
+      v.driftX *= DITCH.keep; v.driftY *= DITCH.keep;
+      if (Math.abs(v.speed) > 1.5) v.splashed = true;
+    }
+    v._inDitch = inDitch;
   }
+  if (v._inDitch) v.speed = ditchDragSpeed(v.speed, dt);
   const g = v.ground;
   if (g !== 'gras' && g !== 'wade') return;
   const sp = Math.abs(v.speed);
