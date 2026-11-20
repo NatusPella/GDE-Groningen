@@ -85,7 +85,7 @@ const bm = lees('game/js/bigmoment.js') + lees('game/js/bigmoment.css');
 ok(['bm-band', 'bm-slip', 'bm-stempel', 'bm-kaart', 'bm-tag'].every((c) => new RegExp(`class=\\"${c} ds-mi-in ds-mi-landing`).test(bm)), 'de vijf einde-missie-vormen landen met ds-mi-in ds-mi-landing');
 ok(!/@keyframes bm-/.test(bm), 'bigmoment.css heeft geen eigen @keyframes meer');
 ok(/hud-card ds-mi-in/.test(lees('game/js/hudcards.js')), 'HUD-kaarten dragen ds-mi-in');
-ok(/pf-card ds-mi-in/.test(lees('game/js/phonefeed.js')), 'telefoonmeldingen dragen ds-mi-in');
+ok(/pf-card[\w -]* ds-mi-in/.test(lees('game/js/phonefeed.js')), 'telefoonmeldingen dragen ds-mi-in');
 ok(/ach-toast ds-mi-in/.test(lees('game/js/achievements.js')), 'de prestatietoast draagt ds-mi-in');
 ok(/ds-motion\.css/.test(lees('game/index.html')), 'game/index.html laadt ds-motion.css');
 ok(/telStap/.test(lees('game/js/hud_panel.js')), 'de geldteller in de HUD gebruikt telStap');
