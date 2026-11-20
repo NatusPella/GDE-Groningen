@@ -1,6 +1,6 @@
 // Spullen (#435): het inventarissscherm is niet meer één lange lijst. Je zoekt
 // op wat je hebt ("fiets", "kast", "stempel") en kiest een deel: alles,
-// uitrusting, thuis of verzamelingen. De rekenregels staan in zoekSpullen() en
+// wapens, kleding, voedsel, upgrades, thuis of verzamelingen (#1013). De rekenregels staan in zoekSpullen() en
 // zijn puur; de bedrading (zoekveld, knoppen, lege melding) staat ernaast.
 import './node3d.mjs';
 import assert from 'node:assert/strict';
@@ -45,9 +45,10 @@ t('niks gevonden is leeg, niet alles', () => {
   assert.deepEqual(zoekSpullen(spullen, 'onderzeeër'), []);
 });
 
-t('de delen: uitrusting, thuis en verzamelingen', () => {
-  assert.deepEqual(DELEN.map(([id]) => id), ['alles', 'uitrusting', 'thuis', 'verzameling']);
-  assert.deepEqual(titels(zoekSpullen(spullen, '', 'uitrusting')), ['Buks', 'Vuisten', 'Stadjer']);
+t('de delen: de soorten die dit spel echt heeft', () => {
+  assert.deepEqual(DELEN.map(([id]) => id), ['alles', 'wapens', 'kleding', 'voedsel', 'upgrades', 'thuis', 'verzameling']);
+  assert.deepEqual(titels(zoekSpullen(spullen, '', 'wapens')), ['Buks', 'Vuisten']);
+  assert.deepEqual(titels(zoekSpullen(spullen, '', 'kleding')), ['Stadjer']);
   assert.deepEqual(titels(zoekSpullen(spullen, '', 'thuis')), ['Bank']);
   assert.deepEqual(titels(zoekSpullen(spullen, '', 'verzameling')), ['Spaarkaart Krant & Kauwgom']);
 });
@@ -58,7 +59,7 @@ t('een deel en een zoekopdracht werken samen', () => {
 });
 
 t('geld hoort bij geen enkel deel: alleen bij Alles', () => {
-  assert.deepEqual(titels(zoekSpullen(spullen, 'contant', 'uitrusting')), []);
+  assert.deepEqual(titels(zoekSpullen(spullen, 'contant', 'wapens')), []);
   assert.deepEqual(titels(zoekSpullen(spullen, 'contant', 'verzameling')), []);
   assert.deepEqual(titels(zoekSpullen(spullen, 'contant')), ['€ 1.250']);
 });
@@ -71,19 +72,17 @@ t('het scherm heeft een zoekveld, de delen als knoppen en een lege melding', () 
   const sp = lees('spullen.js');
   assert.match(sp, /data-spul-leeg/, 'een lege uitkomst zegt het');
   assert.match(sp, /aria-pressed/, 'de gekozen knop is te zien');
-  assert.match(sp, /const zichtbaar = zoekSpullen\(items, zoek, deel\)/, 'de lijst gebruikt dezelfde regels als de test');
+  assert.match(sp, /zoekSpullen\(items, zoek, deel\)/, 'de lijst gebruikt dezelfde regels als de test');
 });
 
-t('#908: Spullen begint met een kop en telt per categorie mee', () => {
+t('#1013: Spullen is een raster van tegels met aantal-badges en een detail met acties', () => {
   const sp = lees('spullen.js');
-  assert.match(sp, /function overviewHtml\(/, 'de kop is een eigen functie');
-  assert.match(sp, /pm-hero sp-hero/, 'de kop gebruikt de gedeelde hero-opmaak');
-  assert.match(sp, /sp-cat/, 'elke categorie heeft een eigen kop');
-  assert.match(sp, /const pctVan = /, 'de stand van een categorie komt uit dezelfde teller');
+  assert.match(sp, /function tegel\(/, 'een tegel is een eigen functie');
+  assert.match(sp, /class="sp-raster"/, 'de tegels staan in een raster');
+  assert.match(sp, /sp-badge/, 'het aantal staat op de tegel zelf');
+  assert.match(sp, /data-spul-weg-ja/, 'weggooien vraagt eerst een bevestiging');
+  assert.doesNotMatch(sp, /overviewHtml|pctVan|sp-cat/, 'geen oude lijst met groepskoppen en tellers meer');
   assert.match(sp, /sp-detail-cat/, 'het detail noemt de categorie');
-  const css = lees('pausemenu.css');
-  assert.match(css, /#pause-menu \.sp-hero/);
-  assert.match(css, /#pause-menu \.sp-cat \.sp-cbar/);
 });
 
 console.log(`spullen_test: ${n}/${n} ok`);

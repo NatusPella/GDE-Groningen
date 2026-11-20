@@ -62,7 +62,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './menuzoek.js';
-import { renderSpullen, spullenClick, spullenFocus, spullenEnter, zetSpullenZoek, DELEN } from './spullen.js';
+import { renderSpullen, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -340,7 +340,7 @@ function filterBinds(words) {
 }
 
 // Menu-icoon-id naar betekenisnaam (icons.js, Phosphor, ADR 0041).
-const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen' };
+const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen', sorteer: 'lijst' };
 // An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
 export const menuIcon = (id, cls = 'ss-ic') => (ICONS[id] ? icon(id, cls) : '');
 const icon = (id, cls = 'pm-ic') => icoon(ICONS[id] || 'vraag', { cls });
@@ -985,7 +985,7 @@ export function initPauseMenu(w) {
           <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen">
             <div class="pm-spulbar"><label class="m-inp pm-csearch">${icon('search')}
               <input type="search" data-spul-search placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen" autocomplete="off" spellcheck="false"></label>
-              <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen">${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${label}</button>`).join('')}</div>
+              <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen">${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${label}</button>`).join('')}<button type="button" class="m-chip sp-sort" data-spul-sort title="Wissel de volgorde van de tegels">${icon('sorteer')}<span>Sorteren: standaard</span></button></div>
             </div>
             <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
@@ -1527,6 +1527,8 @@ function runFind(i) {
 function goBack() {
   // het zoekvenster (21-11) gaat voor alles met Escape dicht
   if (findOpen()) { closeFind(); return; }
+  // Spullen (#1013): een openstaande vraag "Weggooien?" gaat eerst weg met Escape
+  if (tab === 'spullen' && spullenAnnuleer(activePanel())) return;
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
