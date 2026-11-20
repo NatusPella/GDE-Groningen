@@ -6,6 +6,7 @@ export const SIMICOON = {
   klok: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l3 2M10 3h4"/>',
   tempo: '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',
   wind: '<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/>',
+  hoogte: '<path d="M3 20l6-11 4 6 3-4 5 9z"/><path d="M9 9l1.5 2.5"/>',
   vlag: '<path d="M8 21V3"/><path d="M8 4l9 3-9 3"/>',
   worp: '<circle cx="10" cy="14" r="4"/><path d="M15 9l5-5"/>',
   par: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',

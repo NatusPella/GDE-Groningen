@@ -41,7 +41,7 @@ export function reuzenradHudModel(g) {
   const klem = Math.max(0, Math.min(1, g.voortgang || 0));
   const meter = { pct: klem * 100, naam: 'Je ritje', label: `Ronde ${Math.min(LAPS, Math.max(1, g.ronde || 1))} van ${LAPS}`, staat: '' };
   const cijfers = [
-    { label: 'Hoogte', waarde: `${Math.max(0, Math.round(g.hoogte || 0))} m`, icoon: I.vlag, primair: true },
+    { label: 'Hoogte', waarde: `${Math.max(0, Math.round(g.hoogte || 0))} m`, icoon: I.hoogte, primair: true },
     { label: 'Nog', waarde: tijdTekst(links), icoon: I.klok },
   ];
   return {

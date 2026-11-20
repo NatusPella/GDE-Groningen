@@ -40,7 +40,7 @@ export function klimHudModel(g) {
   const laag = (g.armen || 0) < ARMEN_LAAG;
   const meter = { pct: Math.max(0, Math.min(100, (g.armen || 0) * 100)), naam: 'Je armen', label: laag ? 'Bijna leeg' : 'Armen', staat: laag ? 'laag' : '' };
   const cijfers = [
-    { label: 'Hoogte', waarde: `${meter1(g.hoogte || 0)} van ${WALL.height}`, icoon: I.vlag, primair: true },
+    { label: 'Hoogte', waarde: `${meter1(g.hoogte || 0)} van ${WALL.height}`, icoon: I.hoogte, primair: true },
     { label: 'Pogingen', waarde: String(Math.max(0, g.kansen || 0)), icoon: ICOON.kans },
     { label: 'Tijd', waarde: g.tijd, icoon: I.klok },
   ];
