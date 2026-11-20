@@ -141,6 +141,15 @@ Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke
 - **Winkelen:** eten kopen met een volle maag levert iets op, verkopen vraagt net als kopen om een tweede druk, en aas kopen waarschuwt vooraf.
 - **Radio:** opgenomen praatblokken zijn ondertiteld.
 
+### Bekende beperkingen
+
+- **Samen spelen met vier is niet met vier echte vensters getest.** De lobby, het wisselen van wie het spel opent, het wegvallen en het later aansluiten zijn met de tests bewezen. Druk pas op Spel starten als alle vier de spelers in de lijst staan, verbind één voor één en gebruik allemaal dezelfde versie. De Samen-missies (bolwerken per speler, de pannenkoekenwedstrijd en het bezorgteam) zitten niet in deze versie.
+- **Een bijbaan van een gast** kan de lichte strook van wie het spel opende beïnvloeden (de uitleg en het verbergen van de strook), en velden van die speler kunnen na het einde van een sessie als spookveld bij de gast blijven staan. Dit volgt in een volgende versie.
+- **Niet door een mens gespeeld:** de nieuwe zeefdruk-menu's en -meldingen, de light sims, farmen met perceelstoestanden, de terugkeerscène, de cutscene-gebaren, de taxi- en treincamera, de OV-missies en de nieuwe muziek en geluiden. Ze zijn gebouwd, getest en in beeld gecontroleerd, maar niet beluisterd of uitgespeeld.
+- **Visuele puntjes:** op een klein venster (1024x600) kan een ondertitel van drie regels over de locatiekaart staan. De Boerderij rechts, de Spullen-lijst en een paar kleine menuregels kunnen nog beter. De toetsplaatjes zijn nog klein, en de Garage toont bij "Te koop" soms even een silhouet in plaats van een 3D-miniatuur.
+- **Prestaties:** er is in deze versie geen fps-meting gedaan, en een nieuw spel laadt ongeveer 16 tot 18 seconden langer door het voorcompileren van het filmlicht.
+- **Releasegate:** dit is een verkorte gate (besluit van de eigenaar). De statische fase en de AI-review zijn gedaan zonder blokkerende bevindingen; de fasen wereld, prestaties en beeld zijn niet gedraaid.
+
 ## [0.63.0] - 2026-11-15
 
 - **Fast travel komt aan waar je klikte (#932):** de taxi, bus en trein zochten na de rit een open plek binnen 400 m en zetten je soms in een ander buitengebied neer; nu land je op de bestemming zelf of binnen 90 m daarvan (bij de boot 40 m).
