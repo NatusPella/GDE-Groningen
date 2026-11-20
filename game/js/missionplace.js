@@ -78,3 +78,29 @@ export function tilesKnown(map, x, y, tileIndexOf, tileKey) {
   const [i, j] = tileIndexOf(x, y);
   return map.resident.has(`${i},${j}`);
 }
+
+// De grensgevallen van de missieprop-audit (scripts/world/mission_prop_audit.mjs): startplekken die op een weg, in water of in een
+// gevel lagen, gemeten op de tegels met nearestClearSpot (r 1 m, stap 1 m). `van` is de plek zoals de def hem zet, `naar` de
+// dichtstbijzijnde vrije plek. Een punt van een def dat binnen 2 m van `van` ligt, schuift naar `naar`: zo blijft de def zelf
+// ongemoeid en volgt de fix elke def die op dezelfde plek begint (kleine verschuivingen, 1 tot 8 m).
+export const PLEK_FIX = [
+  { van: [19360, 17801], naar: [19368, 17801.5], missie: 'Open, dicht (de speler stond in het water)' },
+  { van: [21165, 12446], naar: [21165, 12447], missie: 'Wie draaide de camera\'s uit? (in de gevel van het kantoor)' },
+  { van: [21724, 12339], naar: [21721.1, 12338.3], missie: 'Stoom (op de weg bij het perron)' },
+  { van: [12039, -12622], naar: [12041.4, -12618.8], missie: 'Inpakken (op de weg voor het huis)' },
+  { van: [12071, -12647], naar: [12073.4, -12643.8], missie: 'Terug (op de weg voor het erf)' },
+];
+
+// Zet de fix toe op een lijst defs (start, dest, stapdoelen, finish, aankleding). Geeft het aantal verschoven punten.
+export function applyPlekFix(list, fixes = PLEK_FIX) {
+  let n = 0;
+  const raak = (p) => {
+    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.road) return;
+    for (const f of fixes) if (Math.hypot(p.x - f.van[0], p.y - f.van[1]) < 2) { p.x = f.naar[0]; p.y = f.naar[1]; n++; return; }
+  };
+  for (const def of list || []) {
+    raak(def.start); raak(def.dest);
+    for (const st of def.stages || []) { raak(st.target); raak(st.finish); raak(st.dressingAt); }
+  }
+  return n;
+}
