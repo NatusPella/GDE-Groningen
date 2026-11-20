@@ -44,6 +44,8 @@ export const ALLOWED_COLORS = new Set([
   '#f5efe0', '#ebe2cb', '#1d1b17', '#4d483c', '#0e6b3c', '#f9c80e', '#ffd633', '#e0b000',
   '#fbe1dc', '#8c1d18', '#b3261e', '#dcefdc', '#14582f', '#dcebdd', '#fdebc8', '#7a4a00', '#a15c00',
   '#1f3a28', '#b9b7ad', '#3a1816', '#f5b5ad', '#3a2a0c',
+  // Designsysteem v3 (ADR 0040): papier, roze en de Rustig-drukwerk-varianten; de rest staat hierboven.
+  '#f3ead3', '#e8505b', '#9d1f2a', '#0b5530',
 ]);
 
 // Dezelfde kleuren als RGB-triples, voor rgb()/rgba()-notatie.
@@ -58,7 +60,7 @@ for (const triple of ['160,156,146', '214,205,180']) ALLOWED_RGB.add(triple);
 
 // Lettertypen uit ui-taal.md/Typography: de vaste stack plus Big Shoulders voor het logo.
 export const ALLOWED_FONTS = new Set([
-  'bebas neue', 'arial narrow', 'arial', 'big shoulders display', 'big shoulders',
+  'bebas neue', 'arial narrow', 'arial', 'big shoulders display', 'big shoulders', 'barlow condensed', 'atkinson hyperlegible',
   'sans-serif', 'inherit', 'initial', 'unset', 'revert', 'revert-layer',
 ]);
 

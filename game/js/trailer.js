@@ -134,7 +134,7 @@ const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 
 // --- UI ---------------------------------------------------------------------------
 
 const CSS = `
-#trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
+#trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: #f3ead3; opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
 #trailer.on { opacity: 1; }
 #trailer > div { position: absolute; }
 #trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; }
@@ -155,24 +155,24 @@ const CSS = `
 #trailer .tr-flash.big { animation: tr-flash-big 0.5s ease-out; }
 @keyframes tr-flash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 @keyframes tr-flash-big { 0% { opacity: 1; } 30% { opacity: 0.25; } 45% { opacity: 0.9; } 100% { opacity: 0; } }
-#trailer .tr-card { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 0 3px 24px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.8); }
-#trailer .tr-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: #3fc97a; text-transform: uppercase; margin-bottom: 6px; }
+#trailer .tr-card { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 3px 3px 0 #e8505b; }
+#trailer .tr-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: #f3ead3; text-transform: uppercase; margin-bottom: 6px; }
 #trailer .tr-title { font-size: clamp(48px, 8.5vw, 132px); line-height: 0.92; text-transform: uppercase; }
 #trailer .tr-title.small { font-size: clamp(38px, 5.8vw, 88px); }
-#trailer .tr-title .amp { color: #3fc97a; }
+#trailer .tr-title .amp { color: #e8505b; }
 /* no card text-shadow here: it shows through the logo's transparent, gradient-clipped letters */
 #trailer .tr-card .gde-logo { font-size: clamp(110px, 19vw, 230px); text-shadow: none; }
 #trailer .tr-title.tr-tagline { margin-top: 10px; font-size: clamp(30px, 4.4vw, 64px); letter-spacing: 0.08em; }
-#trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: rgba(240, 237, 228, 0.9); letter-spacing: 0.06em; }
+#trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: rgba(243,234,211, 0.9); letter-spacing: 0.06em; }
 /* name cards over a freeze frame: lower left, like a character intro */
-#trailer .tr-freeze { inset: 0; opacity: 0; background: radial-gradient(ellipse at 30% 60%, rgba(255, 196, 120, 0.08), rgba(8, 18, 12, 0.42) 85%); }
-#trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(72vw, 1500px); opacity: 0; text-shadow: 0 3px 24px rgba(0, 0, 0, 0.7), 0 1px 3px rgba(0, 0, 0, 0.85); }
+#trailer .tr-freeze { inset: 0; opacity: 0; background: radial-gradient(ellipse at 30% 60%, rgba(255, 196, 120, 0.08), rgba(29,27,23, 0.42) 85%); }
+#trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(72vw, 1500px); opacity: 0; text-shadow: 3px 3px 0 #e8505b; }
 #trailer .tr-name b { display: block; font-weight: normal; font-size: clamp(64px, 10vw, 160px); line-height: 0.88; text-transform: uppercase; letter-spacing: 0.02em; }
-#trailer .tr-name b .amp { color: #3fc97a; }
-#trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid #3fc97a; padding-left: 0.4em; font: italic clamp(20px, 2.5vw, 64px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: #f0ede4; }
-#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: clamp(18px, 2.3vw, 60px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.9); }
+#trailer .tr-name b .amp { color: #e8505b; }
+#trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid #e8505b; padding-left: 0.4em; font: clamp(20px, 2.5vw, 64px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; color: #f3ead3; }
+#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 #1d1b17, 0 0 2px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
-#trailer .tr-sub b { color: #3fc97a; margin-right: 6px; }
+#trailer .tr-sub b { color: #e8505b; margin-right: 6px; }
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
@@ -181,7 +181,7 @@ body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display:
 #trailer .tr-skip circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
 #trailer .tr-skip .fill { stroke: #3fc97a; stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
 #trailer .tr-skip.holding { color: #f0ede4; }
-#trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; color: rgba(240, 237, 228, 0.55); display: none; }
+#trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; color: rgba(243,234,211, 0.55); display: none; }
 #trailer.bench .tr-fps { display: block; }
 #trailer .tr-cancel { display: none; left: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); align-items: center; gap: 8px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
 #trailer.bench .tr-cancel { display: flex; }
@@ -215,11 +215,11 @@ body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display:
 #trailer-result button[hidden] { display: none; }
 body.trailer-on, body.trailer-on * { cursor: none !important; }
 #trailer .tr-slices { display: flex; gap: 1.1vw; margin-top: 1.4vh; }
-#trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: #f0ede4; position: relative; transition: none; }
-#trailer .tr-slices i.x { background: rgba(240, 237, 228, 0.28); }
-#trailer .tr-slices i.x::after { content: ''; position: absolute; left: -8%; right: -8%; top: 46%; height: 0.35vw; background: #3fc97a; transform: rotate(-6deg); }
+#trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: #f3ead3; position: relative; transition: none; }
+#trailer .tr-slices i.x { background: rgba(243,234,211, 0.28); }
+#trailer .tr-slices i.x::after { content: ''; position: absolute; left: -8%; right: -8%; top: 46%; height: 0.35vw; background: #f3ead3; transform: rotate(-6deg); }
 #trailer .tr-title.tr-tagline.tight { letter-spacing: 0.06em; }
-#trailer .tr-info { margin-top: 2.4vh; font: clamp(16px, 1.7vw, 30px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(240, 237, 228, 0.85); }
+#trailer .tr-info { margin-top: 2.4vh; font: 700 clamp(16px, 1.7vw, 30px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(243,234,211, 0.85); }
 body.trailer-on:not(.trailer-hud) #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
 /* gameplay shots (hud: true): the real HUD, no bars or vignette over it */
 body.trailer-on.trailer-hud #hud { visibility: visible; }

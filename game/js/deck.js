@@ -6,7 +6,7 @@
 
 // larger map and card text (a small screen held at arm's length), controller
 // glyphs in every hint, and the Deck's own button layout until a pad says otherwise
-export const DECK_DEFAULTS = { textSize: 'groot', hintSource: 'pad', padLayout: 'deck', touchControls: 'auto' };
+export const DECK_DEFAULTS = { textSize: 'groot', hintSource: 'pad', padLayout: 'deck', touchControls: 'auto', rustigDrukwerk: true };
 
 export function isSteamDeck(desktop = typeof window !== 'undefined' ? window.gdeDesktop : null, env = {}) {
   return !!(desktop && desktop.isSteamDeck) || env.SteamDeck === '1';
