@@ -541,7 +541,7 @@ export function view(s) {
       return V({
         title: 'Verbinding weg',
         lines: [
-          host ? `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.` : `${wie} is niet meer bereikbaar. De wereld van ${wie} staat stil tot jij weer verbonden bent; zolang je wegblijft gebeurt er niets in jullie spel.`,
+          host ? `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.` : `${wie} is niet meer bereikbaar. De wereld van ${wie === 'De ander' ? 'de ander' : wie} staat stil tot jij weer verbonden bent; zolang je wegblijft gebeurt er niets in jullie spel.`,
           host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : s.bron ? 'Kies Opnieuw verbinden: het spel zoekt de sessie weer op in de lijst. Of stop met samen spelen; je komt terug waar je was.' : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }, { act: 'diag', label: 'Verbinding testen' }],

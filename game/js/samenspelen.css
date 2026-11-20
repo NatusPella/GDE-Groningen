@@ -137,4 +137,5 @@
 :is(#pause-menu .pm-samen, .coop-hold) .coop-uitleg summary { cursor: pointer; font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); }
 :is(#pause-menu .pm-samen, .coop-hold) .coop-uitleg p { margin: var(--ds-s-2) 0 0; }
 :is(#pause-menu .pm-samen, .coop-hold) .coop-toets { display: inline-flex; margin-left: var(--ds-s-2); vertical-align: middle; }
+html.touch-device :is(#pause-menu .pm-samen, .coop-hold) .coop-toets { display: none; } /* #1011: op aanraking heet de Enter-toets "Kies" en stond als tekst achter de knop */
 :is(#pause-menu .pm-samen, .coop-hold) .coop-btn[aria-busy="true"] { cursor: progress; }
