@@ -74,6 +74,12 @@ export function phoneCard(title, body) {
   };
 }
 
+// #1012: de volle tekst van een nieuwsmelding zonder het 'KIEKDOAR MELDT:'-voorvoegsel. De kaart in de
+// hoek mag inkorten (met een beletselteken), maar de telefoon (Overig) toont deze volle tekst.
+export function newsFullText(text) {
+  return String(text ?? '').trim().replace(/^KIEKDOAR( MELDT)?:\s*/i, '');
+}
+
 // Een nieuwsbericht zonder eigen kop: de eerste zin is de kop, de rest de body. Lukt dat niet,
 // dan de eerste komma, het eerste streepje of de eerste dubbele punt; anders blijft het één regel.
 // Puur, zodat scripts/hud_test.mjs de drie evenementberichten kan nalopen.

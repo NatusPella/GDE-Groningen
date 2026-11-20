@@ -1,6 +1,6 @@
 import { icoon } from './icons.js';
 import { dualHtml, dutchFor } from './subtitles.js';
-import { fitCard, phoneCard, splitNewsCard } from './hudtext.js';
+import { fitCard, phoneCard, splitNewsCard, newsFullText } from './hudtext.js';
 import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -126,7 +126,7 @@ function parse(n) {
   }
   // #643: één telefoonkaart met een gemeten woordbudget (ook bij dynamische tekst)
   const kaart = phoneCard(title, body);
-  return { from, app, title: kaart.title, body: kaart.body, over: kaart.over };
+  return { from, app, title: kaart.title, body: kaart.body, over: kaart.over, volledig: newsFullText(n.text) };
 }
 
 export function notifyPhone(w, spec) {
@@ -154,7 +154,7 @@ export const naamGelijk = (p) => !!p.from && String(p.from).trim().toLowerCase()
 function showNote(w, n) {
   const p = parse(n);
   const full = [p.title, p.body].filter(Boolean).join(': ');
-  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text, p.from || 'Kiekdoar', p.from === 'Kiekdoar' ? [p.title, p.body].filter(Boolean).join(': ') : n.text);
+  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text, p.from || 'Kiekdoar', p.from === 'Kiekdoar' ? p.volledig : n.text); // #1012: de geschiedenis bewaart de volle tekst, niet de ingekorte kaart
   noticeFrom(p.from || 'Kiekdoar');
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');

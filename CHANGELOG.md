@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Nieuwsmelding wordt niet meer afgekapt (nog niet in beeld gezien, #1012):** een lange Kiekdoar-melding (zoals Kiezelweek) breekt op de kaart af op de breedte, een lange kop houdt zes regels in plaats van vier, en de telefoon (Overig) bewaart nu de volle tekst in plaats van de ingekorte kaart.
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
