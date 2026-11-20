@@ -1,0 +1,59 @@
+/* Big moments (bigmoment.js, #996, ADR 0040): summer screen print. Tokens only; Rustig drukwerk
+   (html.rustig-drukwerk) zeroes --ds-schuin and --ds-misdruk, and the rules below stop the
+   motion and the halftone: the same words, the same layout. Nothing here takes input. */
+.bm { position: fixed; z-index: 55; pointer-events: none; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); opacity: 0; transition: opacity 0.3s ease; }
+.bm.aan { opacity: 1; }
+.bm.uit { opacity: 0; transition-duration: 0.4s; }
+.bm p, .bm .bm-regel { margin: 0; }
+
+/* shared print bits */
+.bm-klein { display: inline-block; align-self: flex-start; padding: 2px 12px; font: 800 clamp(16px, 1.6vw, 26px) var(--ds-font-kop-v3); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard); }
+.bm-kop { font: 800 clamp(64px, 13vw, 210px)/0.9 var(--ds-font-kop-v3); color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); overflow-wrap: anywhere; }
+.bm-regel { font: 700 clamp(20px, 2.4vw, 40px)/1.25 var(--ds-font-tekst-v3); }
+.bm-meta { display: flex; flex-wrap: wrap; gap: 8px 28px; font: 600 clamp(18px, 1.8vw, 30px) var(--ds-font-kop-v3); letter-spacing: 0.04em; }
+.bm-meta-i b { margin-right: 8px; font-weight: 800; text-transform: uppercase; color: var(--ds-c-ink-bord); }
+
+/* mission passed or failed: a full-width yellow band under 1.2 degrees, the screen dimmed in ink */
+.bm-band { position: absolute; }
+.bm-geslaagd, .bm-mislukt, .bm-opgepakt { inset: 0; display: grid; place-items: center; overflow: hidden; }
+.bm-dim { position: absolute; inset: 0; background: rgba(29,27,23,0.5); }
+.bm-band { left: -6vw; right: -6vw; padding: 3vh 12vw 3.4vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 1.2vh; background: var(--ds-c-ink-geel); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 var(--ds-lijn-zeef) 0 var(--ds-c-ink-roze), var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)) translateX(-4vw); }
+.bm-geslaagd.aan .bm-band, .bm-mislukt.aan .bm-band { animation: bm-band-in 0.45s cubic-bezier(.2,.8,.2,1) both; }
+.bm-mislukt .bm-band { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); background-blend-mode: multiply; }
+.bm-mislukt .bm-klein { background: var(--ds-c-ink-inkt); }
+@keyframes bm-band-in { from { transform: rotate(var(--ds-schuin)) translateX(-30vw); } to { transform: rotate(var(--ds-schuin)) translateX(-4vw); } }
+
+/* opgepakt: a stamp on a fine slip, no violence */
+.bm-slip { position: relative; box-sizing: border-box; width: min(760px, 86vw); display: flex; flex-direction: column; gap: 14px; padding: 36px 40px 120px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); }
+.bm-stempel { position: absolute; right: 28px; bottom: 22px; padding: 4px 22px; font: 800 clamp(44px, 6vw, 90px)/1 var(--ds-font-kop-v3); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-c-ink-inkt); border: 5px solid var(--ds-c-ink-inkt); outline: 3px solid var(--ds-c-ink-inkt); outline-offset: 4px; box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -3)); }
+.bm-opgepakt.aan .bm-stempel { animation: bm-stempel-in 0.3s 0.35s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes bm-stempel-in { from { opacity: 0; transform: scale(1.5) rotate(calc(var(--ds-schuin) * -3)); } to { opacity: 1; transform: rotate(calc(var(--ds-schuin) * -3)); } }
+
+/* a new area: a place-name stamp like a postcard, lower third, no dimming */
+.bm-gebied { left: 50%; bottom: 14vh; transform: translateX(-50%); }
+.bm-kaart { position: relative; box-sizing: border-box; min-width: min(640px, 86vw); max-width: 92vw; display: flex; flex-direction: column; gap: 10px; padding: 22px 34px 26px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-bord); transform: rotate(calc(var(--ds-schuin) * -1)); }
+.bm-kaart .bm-kop { font-size: clamp(48px, 7vw, 110px); color: var(--ds-c-ink-bord); }
+.bm-zegel { position: absolute; top: 16px; right: 18px; width: 64px; height: 76px; border: 3px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
+.bm-gebied.aan .bm-kaart { animation: bm-kaart-in 0.4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes bm-kaart-in { from { transform: translateY(24px) rotate(calc(var(--ds-schuin) * -1)); } to { transform: rotate(calc(var(--ds-schuin) * -1)); } }
+
+/* wanted up or down: a short tag at the right edge next to the stars, never full screen */
+.bm-wanted { right: 0; top: 30vh; }
+.bm-tag { box-sizing: border-box; max-width: min(420px, 70vw); display: flex; flex-direction: column; gap: 4px; padding: 10px 18px 12px 20px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-right: 0; box-shadow: var(--ds-schaduw-hard-roze); }
+.bm-tag .bm-klein { font-size: 15px; background: var(--ds-c-ink-roze); color: var(--ds-c-ink-inkt); box-shadow: none; }
+.bm-tag .bm-kop { font-size: 40px; line-height: 1; }
+.bm-tag .bm-regel { font: 700 18px/1.3 var(--ds-font-tekst-v3); }
+.bm-sterren { display: flex; gap: 6px; }
+.bm-ster { width: 22px; height: 22px; box-sizing: border-box; border: 2px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 5px 5px; clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%); }
+.bm-ster.aan { background-image: none; background-color: var(--ds-c-ink-roze); }
+.bm-wanted.aan .bm-tag { animation: bm-tag-in 0.25s ease-out both; }
+@keyframes bm-tag-in { from { transform: translateX(40px); } to { transform: none; } }
+
+/* Rustig drukwerk and "Beweging beperken": no motion, no tilt (the token is 0deg), no halftone */
+html.rustig-drukwerk .bm.aan .bm-band, html.rustig-drukwerk .bm.aan .bm-stempel, html.rustig-drukwerk .bm.aan .bm-kaart, html.rustig-drukwerk .bm.aan .bm-tag, html.reduce-motion .bm.aan .bm-band, html.reduce-motion .bm.aan .bm-stempel, html.reduce-motion .bm.aan .bm-kaart, html.reduce-motion .bm.aan .bm-tag { animation: none; }
+html.rustig-drukwerk .bm { transition: none; }
+html.rustig-drukwerk .bm-band { transform: translateX(-4vw); }
+html.rustig-drukwerk .bm-mislukt .bm-band, html.rustig-drukwerk .bm-zegel { background-image: none; }
+html.rustig-drukwerk .bm-ster { background-image: none; }
+html.rustig-drukwerk .bm-ster:not(.aan) { background-color: var(--ds-c-ink-papier); }
+@media (prefers-reduced-motion: reduce) { .bm.aan .bm-band, .bm.aan .bm-stempel, .bm.aan .bm-kaart, .bm.aan .bm-tag { animation: none; } .bm { transition: none; } }
