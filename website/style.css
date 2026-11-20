@@ -1901,3 +1901,48 @@ main > section + section {
 .steps h3 {
   font-size: 1.4rem;
 }
+
+/* ---------- opbouw v2: kaarten met beeld, kamercode, team ---------- */
+
+.card--beeld {
+  padding: 0;
+  overflow: hidden;
+}
+
+.card--beeld img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: 2px solid var(--inkt);
+}
+
+.card-tekst {
+  padding: 1.1rem 1.3rem 1.3rem;
+}
+
+.card:not(.card--beeld) > .card-tekst {
+  padding: 0;
+}
+
+.kamer-stappen {
+  max-width: 60rem;
+}
+
+.team-eerlijk,
+.team-uitnodiging {
+  max-width: 46rem;
+  margin: 1.4rem 0 0;
+  color: var(--inkt);
+}
+
+.team-eerlijk {
+  padding-left: 0.9rem;
+  border-left: 4px solid var(--bordgroen);
+  font-size: 0.96rem;
+}
+
+#delen .share-row {
+  margin-top: 0.4rem;
+}
