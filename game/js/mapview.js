@@ -2387,7 +2387,7 @@ function syncKaartUitleg(world) {
   } else if (!kaartGezien()) {
     // eenmalige popup over de kaart; hij neemt zelf de focus, dus de kaart eronder is even rustig
     body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
-    const knop = state.overlay.querySelector('.mv-help .mapview-btn');
+    const knop = state.overlay.querySelector('.mv-help .mv-help-ok');
     if (knop) knop.focus({ preventScroll: true });
   }
   // de legenda bovenaan Lagen zegt hetzelfde in het kort (#445)
