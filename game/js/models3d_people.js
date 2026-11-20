@@ -368,7 +368,7 @@ function headTilt(tilt) {
 // the shell never reads as a hat floating above it.
 // innerColor (hats): the shell gets a second wall below it with its faces turned inwards, so seen from below (a low camera, the underside of a
 // cap on a bent head) it has an inside instead of being see-through; the wall thins to nothing at the rim, where the shell meets the head.
-const RIM = 1.02; // the rim of a hair or hat shell sits just outside the head (at 0.99 the tilted front rim cut zigzag wedges through the forehead)
+const RIM = 1.03; // the rim of a hair or hat shell sits just outside the head (at 0.99 the tilted front rim cut zigzag wedges through the forehead)
 function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52, innerColor = null) {
   const rimNy = Math.cos(thLen);
   const shell = (kk) => {
@@ -432,7 +432,7 @@ function buildHair(B, L) {
     case 'hijab':
       break;
     default:
-      hairCap(B, L, style === 'short' ? 1.04 : 1.055, 0.3, c);
+      hairCap(B, L, style === 'short' ? 1.06 : 1.08, 0.3, c);
   }
   if (style === 'short' || style === 'buzz') {
     for (const s of [1, -1]) B.box(0.028, HEAD_Y + 0.004, s * 0.084, 0.022, 0.045, 0.01, c);
