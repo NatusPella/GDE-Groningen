@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+
 ### Verbeterd
 
 - **Rustiger beeld in de stad (#804, #937):** het spel decodeert bij het starten alleen nog de korte, vaak gebruikte geluiden (ca. 7 MB in plaats van ca. 100 MB werkgeheugen); lussen van het weer, vliegtuigen en dieren laden pas als je ze nodig hebt, één tegelijk. Zware wegen die het spel zelf moet bouwen krijgen rust tussen twee bouwbeurten, zodat het niet meer meerdere beelden achter elkaar haperkt, en de kaartjes, de HUD van de bijbanen en de boerderij doen niet meer elk beeld werk dat alleen bij een wijziging nodig is
@@ -17,6 +18,16 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **Minder glitches en ruis in het geluid (melding Nikky):** het geluid krijgt een snelle limiter als laatste schakel, zodat opgetelde geluiden (muziek, sirenes, schoten) niet meer hard knippen. De ruisbedden van de stad, regen en krekels hebben geen gelijkspanning meer (geen bonk bij het in- of uitfaden), en een ongeldige waarde in een geluidsregeling kan de rest van het beeld niet meer overslaan.
 - **Het spel merkt geluidsonderbrekingen op:** het telt hoe vaak de uitvoer even stilvalt. Had de vorige sessie er veel, dan kiest het spel nu een ruimere geluidsbuffer (iets later geluid, geen gaten). Het blok Geluid met de stand van het geluid komt in de technische info; `?geenlimiter` zet de limiter uit voor een vergelijking. Zie docs/AUDIO-GLITCHES-21-11.md.
+- **Het benchmarkscherm leek niet te klikken:** de muisaanwijzer was op het resultaatscherm onzichtbaar. Hij staat er nu weer, en de knoppen werken zoals bedoeld.
+- **Het benchmarkadvies noemde Ultra "Hoog":** het advies sprak van "Hoog" en paste daarmee de stand Ultra toe, de zwaarste. Het advies kent nu dezelfde vier standen als de knoppen (Laag, Midden, Hoog, Ultra), stapt pas naar Ultra met veel ruimte en legt uit dat Ultra onder 60 fps een zware stand is.
+- **Geen stellig advies na een drukke meting:** bij zeer lange beelden (de pc was druk) vraagt de benchmark om opnieuw te meten in plaats van een stand aan te raden.
+- **Nieuwe videokaarten:** de nieuwe losse kaarten van de Arc B-serie worden als sterk herkend.
+
+### Nieuw
+
+- **Technische info kopiëren:** bij Instellingen › Beeld staat onder Diagnose de knop "Kopieer technische info" (ook op het benchmarkscherm en met Ctrl+Shift+G). Eén blok met je videokaart, de manier waarop die tekent (ANGLE), de schermverversing, de snelheid in rust, wat de stad per beeld kost, de haperingen van de laatste minuut en de stand van de videokaartfuncties. Het blijft op je computer: je plakt het zelf in een bericht.
+- **Waarschuwing bij de ingebouwde videokaart:** tekent het spel met de processor of op de ingebouwde videokaart, dan zegt Instellingen › Beeld dat, met een knop Uitleg voor het kiezen van de snelle videokaart in het besturingssysteem.
+- **De benchmark toont "fps in het spel":** het gemiddelde zonder de cutscenes, naast het gemiddelde van de hele route en per categorie. Een lage uitkomst wordt eerst één keer opnieuw gemeten (de beste telt) en de eerste seconden na het laden tellen niet mee.
 
 ## [0.64.0] - 2026-11-20
 

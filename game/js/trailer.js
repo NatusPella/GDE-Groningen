@@ -7,8 +7,8 @@ import { mulberry32 } from './rng.js';
 import { getScene, prewarmStreamAt, disposeObject } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
-import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
-import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, routeHitches, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun, heapMb, heapPeak, memText } from './benchstats.js';
+import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult, getBenchResult } from './gfxprofile.js';
+import { BENCH_ROUTE, BENCH_CATEGORIES, playStats, benchLooksBusy, BENCH_BUSY_NOTE, recommendStand, STAND_LABEL, shouldRemeasure, betterRun, ultraNote, benchMeasureAfter, frameStats, categoryStats, routeHitches, weakestCategory, compareRuns, compareText, packRun, readLastRun, writeLastRun, heapMb, heapPeak, memText } from './benchstats.js';
 import { onBenchmarkStop } from './gamepad.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
@@ -70,7 +70,6 @@ import { PLAN, PLAN_CUTS, SLICES } from './trailerplan.js';
 const Q = FLAGS;
 const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
-const MEASURE_AFTER_CUT_S = 0.3;
 const BENCH_RUNS = Q.benchmark ? Math.max(1, Number(Q.benchmarkRuns) || 1) : 0;
 
 // --- small helpers ------------------------------------------------------------
@@ -213,7 +212,10 @@ body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display:
 #trailer-result button:hover, #trailer-result button:focus-visible { border-color: #5fe39a; color: #5fe39a; outline: none; }
 #trailer-result button.primary:hover, #trailer-result button.primary:focus-visible { color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
 #trailer-result button[hidden] { display: none; }
-body.trailer-on, body.trailer-on * { cursor: none !important; }
+/* 0.64.1: the cursor is only hidden while a picture plays; on the result card (class tr-result-open) it is back, otherwise the card looked unclickable */
+body.trailer-on:not(.tr-result-open), body.trailer-on:not(.tr-result-open) * { cursor: none !important; }
+body.tr-result-open #trailer-result, body.tr-result-open #trailer-result * { cursor: default; }
+body.tr-result-open #trailer-result button { cursor: pointer; }
 #trailer .tr-slices { display: flex; gap: 1.1vw; margin-top: 1.4vh; }
 #trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: #f3ead3; position: relative; transition: none; }
 #trailer .tr-slices i.x { background: rgba(243,234,211, 0.28); }
@@ -2149,7 +2151,7 @@ function frame(r, dt, realMs) {
 
   if (r.mode === 'benchmark') {
     // title cards are not measured, also when a picture runs behind them
-    if (!s.black && !s.card && !frozen && st / k > MEASURE_AFTER_CUT_S) r.stats[i].ms.push(realMs);
+    if (!s.black && !s.card && !frozen && st / k > benchMeasureAfter(i)) r.stats[i].ms.push(realMs);
     // the JS heap during the run (#379): one sample a second, the card shows the peak
     if (r.heap && r.T - r.heap.at >= 1) { r.heap.at = r.T; r.heap.peak = heapPeak([r.heap.peak, heapMb()]); }
     r.fpsAcc += realMs; r.fpsN++;
@@ -2205,7 +2207,8 @@ function computeStats(r) {
   // when the browser has no performance.memory
   const heapNow = heapMb();
   const heap = r.heap ? heapPeak([r.heap.start, r.heap.peak, heapNow]) : heapNow;
-  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, memoryNow: heapNow, heaviest: shots[0] || null, frames: all.length, shots, spikes };
+  const play = playStats(r.stats.filter(Boolean));
+  return { play, avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, memoryNow: heapNow, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
@@ -2431,7 +2434,13 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
 // fps is the full run's average times its measured speed-up on those shots.
 export async function runBenchmarkSuite(world, env) {
   const cur = currentPreset();
-  const res = await runTrailer(world, { mode: 'benchmark', cut: BENCH_RUNS ? 'vol' : 'bench', env });
+  let res = await runTrailer(world, { mode: 'benchmark', cut: BENCH_RUNS ? 'vol' : 'bench', env });
+  // 0.64.1: a low first result is measured once more (compiles and streaming can hold one run back); the better one counts
+  if (!BENCH_RUNS && !res.aborted && shouldRemeasure(res.stats, 0)) {
+    const again = await runTrailer(world, { mode: 'benchmark', cut: 'bench', env, label: 'Nog een meting' });
+    if (!again.aborted && again.stats) res = betterRun(res, again);
+    if (res.stats) res.stats.remeasured = true;
+  }
   if (res.aborted || !res.stats || BENCH_RUNS) return res;
   const probe = res.stats.shots.slice(0, 2);
   const fps = {};
@@ -2499,11 +2508,15 @@ export function fadeOutTrailer(handOff, atBlack = null) {
 function advise(stats) {
   const st = getSettings();
   const cur = currentPreset(st);
-  const rec = recommendProfile(stats, cur);
-  const word = profileWord(rec.profile);
+  // what a player plays (no cutscene shots) decides; the whole route stays the headline number
+  const basis = stats.play ? { avg: stats.play.avg, low1: stats.play.low1, p95: stats.play.p95 } : stats;
+  const rec = recommendStand(basis, cur);
+  const word = STAND_LABEL[rec.stand];
   const lead = rec.change === 'up' ? 'Er is ruimte over.' : rec.change === 'down' ? 'Grunn hapert hier en daar.' : '';
-  const apply = rec.change !== 'same' || (!cur && rec.profile) ? rec.profile : null;
-  return { text: `${lead ? lead + ' ' : ''}Aanbevolen: <b>${word}</b>`, what: `${rec.text} ${describePreset(rec.profile)}.`, apply, same: rec.change === 'same' && !!cur };
+  const apply = rec.change !== 'same' || (!cur && rec.stand) ? rec.stand : null;
+  const ultra = ultraNote(cur, stats.avg, (getBenchResult() || {}).fps);
+  if (benchLooksBusy(stats)) return { text: 'Eerst nog een keer meten', what: BENCH_BUSY_NOTE, apply: null, same: false };
+  return { text: `${lead ? lead + ' ' : ''}Aanbevolen: <b>${word}</b>`, what: `${rec.text} ${describePreset(rec.stand)}.${ultra ? ' ' + ultra : ''}`, apply, same: rec.change === 'same' && !!cur };
 }
 
 let resultEl = null;
@@ -2540,7 +2553,7 @@ export function showBenchmarkResults(res) {
   resultEl.innerHTML = `<div class="tr-res">
     <h2 id="tr-res-title">Benchmark</h2>
     <div class="tr-meta">${meta}</div>
-    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${mem ? `<div title="De JavaScript-heap van het spel, de hoogste stand tijdens de meting. Niet het beeldgeheugen van de videokaart."><b>${mem[0]}<small> ${mem[1]}</small></b><span>JS-heap (piek)</span></div>` : ''}</div>
+    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${stats.play ? `<div title="Zonder de cutscenes: wat je in het spel zelf ziet."><b>${r(stats.play.avg)}</b><span>fps in het spel</span></div>` : ''}${mem ? `<div title="De JavaScript-heap van het spel, de hoogste stand tijdens de meting. Niet het beeldgeheugen van de videokaart."><b>${mem[0]}<small> ${mem[1]}</small></b><span>JS-heap (piek)</span></div>` : ''}</div>
     <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
     ${Object.keys(stats.cats).length ? `<div class="tr-cats">${Object.entries(stats.cats).map(([c, v]) => `<span class="${c === weakestCategory(stats.cats) && stats.cats[c].avg < 60 ? 'weak' : ''}">${BENCH_CATEGORIES[c]}<b>${r(v.avg)} fps</b></span>`).join('')}</div>` : ''}` : ''}
     <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
@@ -2548,14 +2561,17 @@ export function showBenchmarkResults(res) {
       <button type="button" class="primary" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
       <button type="button" data-act="again">Nog een keer</button>
       <button type="button" data-act="settings">Instellingen</button>
+      <button type="button" data-act="diag">Technische info kopiëren</button>
       <button type="button"${adv.apply ? '' : ' class="primary"'} data-act="back">Terug</button>
     </div></div>`;
   resultEl.hidden = false;
+  document.body.classList.add('tr-result-open');
   const buttons = () => [...resultEl.querySelectorAll('button:not([hidden])')];
   buttons()[0].focus({ preventScroll: true });
   return new Promise((resolve) => {
     const close = (v) => {
       resultEl.hidden = true;
+      document.body.classList.remove('tr-result-open');
       resultEl.removeEventListener('click', onClick);
       window.removeEventListener('keydown', onKey, true);
       resolve(v);
@@ -2566,6 +2582,8 @@ export function showBenchmarkResults(res) {
         resultEl.querySelector('.tr-advice').textContent = 'Toegepast. Draai de benchmark nog een keer om het verschil te zien.';
         btn.hidden = true;
         buttons()[0].focus({ preventScroll: true });
+      } else if (a === 'diag') {
+        import('./gpudiag.js').then((G) => G.copyTechInfo()).then((ok) => { btn.textContent = ok ? 'Gekopieerd' : 'Kopiëren lukte niet'; }, () => { btn.textContent = 'Kopiëren lukte niet'; });
       } else if (a === 'again' || a === 'back' || a === 'settings') close(a);
     };
     const onClick = (e) => {

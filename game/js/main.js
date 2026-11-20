@@ -230,6 +230,7 @@ import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
+import { installGpuDiag } from './gpudiag.js'; // 0.64.1: Technische info (Ctrl+Shift+G)
 import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
 
@@ -707,6 +708,7 @@ async function boot() {
   // the geometry worker loads its modules while the map downloads
   geoWorkerActive();
   preloadRoadWorker();
+  installGpuDiag();
   initA11y();
   initGlyphs();
   initTheme();
