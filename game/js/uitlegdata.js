@@ -103,6 +103,7 @@ export const HINT_UITLEG = Object.freeze({
   'v-vliegtuig': { controller: 'drive', stappen: [{ toets: 'W', animatie: 'houd', tekst: 'Gas' }, { toets: 'SPACE', animatie: 'druk', tekst: 'Optrekken bij 30 m/s' }, { icoon: 'pijl_omlaag', animatie: 'vul', tekst: 'Landen: laag en recht' }] },
   'v-quad': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { toets: 'SPACE', animatie: 'houd', tekst: 'Rem' }] },
   'v-foodtruck': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { toets: 'SPACE', animatie: 'houd', tekst: 'Handrem' }, { toets: 'C', animatie: 'druk', tekst: 'Meekijken vanuit de cabine' }] },
+  'm-penalty': { stappen: [{ toets: ['A', 'D'], animatie: 'houd', tekst: 'Richt in het doel' }, { toets: 'SPACE', animatie: 'houd', tekst: 'Houd en laat los bij het streepje' }, { icoon: 'doel', animatie: 'vul', tekst: 'Naast of over telt niet' }] },
   'm-skatepark': { stappen: [{ toets: 'W', animatie: 'druk', tekst: 'Duwen' }, { toets: 'SPACE', animatie: 'druk', tekst: 'Ollie' }, { icoon: 'ster', animatie: 'vul', tekst: 'Keten: pas landen telt' }] },
   'm-hengelen': { stappen: [{ toets: 'SPACE', animatie: 'druk', tekst: 'Gooi uit' }, { icoon: 'tijd', animatie: 'vul', tekst: 'Wacht op het dobbertje' }, { toets: 'SPACE', animatie: 'druk', tekst: 'Zakt hij? Meteen trekken' }] },
   'm-klimtoren': { stappen: [{ toets: ['A', 'D'], animatie: 'houd', tekst: 'Allebei vasthouden: klimmen' }, { toets: 'SPACE', animatie: 'druk', tekst: 'Magnesium' }] },
