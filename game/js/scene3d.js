@@ -66,6 +66,7 @@ import { syncBoatWakes3D } from './boatwake3d.js';
 import { animateBoat } from './scene3d/boatbuoy3d.js';
 import { buildPolyGeometry } from './scene3d/shapegeo3d.js';
 import { buildKissHeartMesh } from './scene3d/kissheart3d.js';
+import { FADE_STEPS, applyPedFade } from './scene3d/pedfade3d.js';
 import { bindPrewarmHost, scanForPrewarm, withLightRig, prewarmLightVariants, prewarmQueued } from './scene3d/prewarm3d.js';
 import { bindCullHost, cullOffscreenActors, restoreCulledActors, knownGroupSphere, verifyShadowBox, culledActors, culledGroups } from './scene3d/cull3d.js';
 export { toggleLightRig } from './scene3d/prewarm3d.js';
@@ -2255,7 +2256,6 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
 const _wildlifeNear = [], _wildlifeSeen = new Set();
-const FADE_STEPS = 16;
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
 const PED_BUILD_BUDGET_MS = 2.5;
@@ -2264,51 +2264,10 @@ const PED_INSTANT_EXTRA_MS = 6;
 const PED_JUMP_DIST = 40;
 const PED_RANGE_FAST = 90, PED_RANGE_FROM = 12, PED_RANGE_SLOPE = 6;
 const pedFadingOut = [];
-const fadeVariants = new Map();
 let pedClock = 0;
 let pedInstantUntil = 0;
 let pedLastX = null, pedLastY = null;
 let pedFadeWarmed = false;
-
-// Clones share one program per base material (same cache key); only the
-// uFade value differs, and three.js uploads it whenever the material switches.
-function fadeMaterial(base, level) {
-  let arr = fadeVariants.get(base);
-  if (!arr) fadeVariants.set(base, arr = []);
-  let m = arr[level];
-  if (m) return m;
-  m = base.clone();
-  m.userData.shared = true;
-  m.userData.fadeOf = base;
-  const uFade = { value: level / FADE_STEPS };
-  const prev = base.onBeforeCompile;
-  m.onBeforeCompile = (shader, r) => {
-    if (prev) prev.call(m, shader, r);
-    shader.uniforms.uFade = uFade;
-    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform float uFade;
-float pedBayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
-float pedBayer4(vec2 a) { return pedBayer2(0.5 * a) * 0.25 + pedBayer2(a); }
-void main() {
-  if (pedBayer4(gl_FragCoord.xy) >= uFade) discard;`);
-  };
-  m.customProgramCacheKey = () => (base.customProgramCacheKey ? base.customProgramCacheKey() : '') + '|pedfade';
-  arr[level] = m;
-  return m;
-}
-
-function applyPedFade(mesh, fade) {
-  const level = fade >= 1 ? FADE_STEPS : Math.max(0, Math.min(FADE_STEPS - 1, Math.round(fade * FADE_STEPS)));
-  const ud = mesh.userData;
-  if (ud.fadeLevel === level) return;
-  ud.fadeLevel = level;
-  mesh.visible = level > 0;
-  if (level === 0) return;
-  mesh.traverse((o) => {
-    if (!o.material || Array.isArray(o.material)) return;
-    const base = o.material.userData.fadeOf || o.material;
-    o.material = level >= FADE_STEPS ? base : fadeMaterial(base, level);
-  });
-}
 
 function disposePedMesh(mesh) {
   applyPedFade(mesh, 1);
