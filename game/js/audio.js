@@ -805,7 +805,8 @@ function playCrossingBell(x, y) {
   playNoiseBurst({ duration: 0.015, freq: 4200, q: 2, gain: 0.24, type: 'bandpass', out });
 }
 
-function playTrainHorn(x, y) {
+function playTrainHorn(x, y, steam = false) {
+  if (steam && playFx('stoomfluit', x, y)) return;   // ronde 4: de stoomfluit van de museumtrein (M19), anders de gewone hoorn
   if (playFx('train_horn', x, y)) return;   // de opname (samples.js FX_VERVANG), anders de synth hieronder
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.8, range: 260, h: 3 });
   if (!out) return;
@@ -2407,7 +2408,7 @@ function playAudioEvents(world) {
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;
-      case 'train_horn': playTrainHorn(x, y); break;
+      case 'train_horn': playTrainHorn(x, y, !!e.steam); break;
       case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4, e.low || 1); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;

@@ -67,6 +67,7 @@ import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { buildWaitDressing, updateWaitDressing, disposeWaitDressing, tickWaitFigure } from './wachtprops.js';
+import { haakFx } from './sfx/haken.js'; // ronde 4: kleine geluidshaken van de missie-polish
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
@@ -3251,7 +3252,9 @@ function updateEggs(dt, world, def) {
     if (def.eggs.rough) loss += eggSpeedLoss(sp, def.eggs.rough, dt);
     if (v.health < chainState().eggHp) loss += (chainState().eggHp - v.health) * 1.2;
     if (loss > 0.4 && !chainState().eggMeld) { chainState().eggMeld = true; meldRegelkaart('eierstoot'); } // AAA akte 2: de eierkaart toont de voorraad bij de eerste stoot
+    const eierVoor = chainState().eggs;
     chainState().eggs = Math.max(0, chainState().eggs - loss);
+    if (Math.floor(chainState().eggs) < Math.floor(eierVoor)) { if (eierVoor - chainState().eggs >= 3) haakFx(world, 'kratten_klets'); else haakFx(world, 'ei_breuk'); } // ronde 4: eierbreuk, bij een zware stoot de krat
   }
   chainState().eggVeh = v;
   chainState().eggPrev = sp;
@@ -3502,7 +3505,7 @@ function updateStages(dt, world, def) {
       if (S.wait) updateWaitDressing(S.wait, st.time ? Math.min(1, S.hold / st.time) : 1);
       const third = Math.floor(S.hold / st.time * 3);
       if (third > S.said && third < 3) { S.said = third; world.addMessage(st.ticks ? st.ticks[third - 1] : `Klik. Camera ${third} van 3 gaat op zwart.`, 2.4); }
-      if (S.hold >= st.time) nextStage(world, def);
+      if (S.hold >= st.time) { if (S.wait) haakFx(world, 'wacht_klaar'); nextStage(world, def); } // ronde 4: het wachten is klaar
       break;
     }
     case 'bake':
