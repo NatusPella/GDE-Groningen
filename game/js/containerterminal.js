@@ -68,7 +68,7 @@ function kraan(g) {
 
 // De kabelsrollen naast de kraan: twee dikke cilinders op hun kant.
 function kabelsrol(g, r) {
-  const m = new T.Mesh(new T.CylinderGeometry(r, r, 2.2, 14), mat('#8a8474'));
+  const m = new T.Mesh(new T.CylinderGeometry(r.r, r.r, 2.2, 14), mat('#8a8474'));
   m.rotation.z = Math.PI / 2;
   m.position.set(r.x, r.r, r.y);
   m.castShadow = true;
