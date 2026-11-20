@@ -1128,7 +1128,7 @@ export function initPauseMenu(w) {
     if (gs) return selectGarageVehicle(garageEl(), gs.dataset.garageSelect);
     if (tab === 'fotos' && fotoClick(e, world, root.querySelector('[data-panel="fotos"] .pm-inner'), { close: () => closePauseMenu() })) return;
     if (tab === 'verhaal' && pref.sub.verhaal === 'opdrachten' && todoClick(e, world, root.querySelector('[data-of="verhaal"][data-sub="opdrachten"]'), todoApi)) return;
-    if (tab === 'verhaal' && verhaalClick(e, activePanel())) return;
+    if (tab === 'verhaal' && verhaalClick(e, activePanel(), { close: () => closePauseMenu() })) return;
     if (tab === 'streken' && cheatsClick(e, world, cheatsApi)) return;
     const action = e.target.closest('[data-action]');
     if (action) runAction(action.dataset.action);

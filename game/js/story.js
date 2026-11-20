@@ -62,7 +62,7 @@ import { REMEMBRANCE } from './beppe_texts.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
-import { openingBlockers, openingIsNext } from './openingstart.js';
+import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
@@ -546,16 +546,16 @@ function playOpening(b) {
   };
   zetKlok(5.75);
   const openingKlaar = () => {
-    if (b.phase === 'done') return;
-    zetKlok(8);
-    b.phase = 'done';
+    const fin = openingFinish(b);
+    if (!fin.changed) return;
+    zetKlok(fin.hour);
+    if (b.onKlaar) b.onKlaar();
   };
   // three acts after each other: the trailer in the street, Tessa's kitchen (high above it), moving day.
   // Skipping (hold Space) ends the whole opening.
   const acts = openingActs(lines);
   const playAct = (i) => {
     const act = acts[i];
-    const last = i === acts.length - 1;
     return playScript(world, act.def, {
       lines: act.lines, duration: act.duration,
       anchor: act.def.set === 'keuken' ? { x: spot.x, y: spot.y, facing: 0, z: KITCHEN_Z } : { ...spot },
@@ -567,7 +567,7 @@ function playOpening(b) {
         onEnd: (skipped, replaced) => {
           if (i === 0) zetKlok(6.4);
           else if (i === 1) zetKlok(7.3);
-          if (last || skipped || replaced || !playAct(i + 1)) openingKlaar();
+          if (openingActEnd({ index: i, count: acts.length, skipped, replaced }) === 'klaar' || !playAct(i + 1)) openingKlaar();
         },
       },
     });
@@ -604,6 +604,32 @@ function playOpening(b) {
     onEnd: () => { openingKlaar(); },
   });
   return ok;
+}
+
+// Verhaal > Personages: de opening opnieuw bekijken (#986). De stap M00 blijft zoals hij was; de speler staat daarna
+// weer waar hij stond en de klok loopt weer op zijn tijd. Geeft een reden terug als het nu niet kan, anders ''.
+export function replayOpening() {
+  if (!world) return 'Het spel is nog niet klaar.';
+  const p = hoofdspeler(world);
+  const st = currentStep();
+  const blockers = openingReplayBlockers({
+    started: document.body.classList.contains('game-started'), client: world.coopRole === 'client', session: !!(world.coopNet && !world.coopSolo),
+    openingDue: !!st && !st.end && !!st.goal && st.goal.type === 'opening',
+    missionActive: isMissionActive(), cinematicActive: isCinematicActive(), narrativeBusy: narrativeBusy(), pigeon: !!world.pigeonMode, respawn: !!world.pendingRespawn,
+    inVehicle: !!(p && p.inVehicle), dataReady: storyDataReady(),
+  });
+  if (blockers.length || !p) return 'De opening kan nu niet: ' + (blockers[0] || 'geen speler') + '.';
+  const c = world.companion;
+  const keep = { x: p.x, y: p.y, clock: world.clock, cx: c ? c.x : null, cy: c ? c.y : null };
+  const terug = () => {
+    p.x = keep.x; p.y = keep.y;
+    if ('vx' in p) { p.vx = 0; p.vy = 0; }
+    if (c && keep.cx != null && !c.inVehicle) { c.x = keep.cx; c.y = keep.cy; }
+    if (typeof keep.clock === 'number') { world.clock = keep.clock; try { refreshDayNight(world); } catch (e) { /* nog geen dag/nacht */ } }
+  };
+  const b = { phase: 'play', replay: true, onKlaar: terug };
+  if (!playOpening(b)) { terug(); return 'De opening kon niet starten.'; }
+  return '';
 }
 
 // Credits after the epilogue: name cards over the city, no voices.

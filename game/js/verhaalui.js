@@ -7,7 +7,7 @@ import { CHARACTERS, CHARACTER_BY_ID, hasMet, isFresh, metCount, knownCharacters
 import { createSharedPreview, renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { NPC } from './missionstory.js';
-import { getStorySteps, getStoryJournal } from './story.js';
+import { getStorySteps, getStoryJournal, replayOpening } from './story.js';
 import { PARTS, CLUES, WHY, partName } from './storyarc.js';
 import { speakerColor } from './speakers.js';
 import { dutchFor } from './subtitles.js';
@@ -44,6 +44,7 @@ const CSS = `
 #pause-menu .vh-pic img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
 #pause-menu .vh-pic img.on { opacity: 1; }
 #pause-menu .vh-pic b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; color: var(--spk); }
+#pause-menu .vh-opening { margin-top: 8px; align-self: flex-start; }
 #pause-menu .vh-unknown { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; padding: 0 2px; font-size: 18px; color: var(--mut); }
 #pause-menu .vh-unknown svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 #pause-menu .vh-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
@@ -246,7 +247,8 @@ function peopleHtml() {
   const ongelezen = worldRef ? unreadInbox(worldRef).length : 0;
   return `<div class="vh-layout"><div class="vh-left"><section class="vh-hero" aria-label="Personages"><div class="vh-hero-top"><span class="m-eb">Personages</span><span class="vh-party"><b>${n}</b> van ${CHARACTERS.length} ontmoet${ongelezen ? ` · <b>${ongelezen}</b> ongelezen` : ''}</span></div>` +
     `<span class="m-bar on" aria-hidden="true"><i data-bar="people" data-w="${pct}"></i></span>` +
-    '<p>Wie je spreekt, komt erbij. De rest van Grunn leer je onderweg kennen.</p></section>' +
+    '<p>Wie je spreekt, komt erbij. De rest van Grunn leer je onderweg kennen.</p>' +
+    '<button type="button" class="ds-knop ds-knop--secundair vh-opening" data-replay-opening>Opening opnieuw bekijken</button></section>' +
     `<div class="vh-grid">${knownCharacters().map(charCard).join('')}${overigCard()}</div>` +
     (unknown > 0 ? `<p class="vh-unknown">${SIL}<span>${esc(unknownLine(unknown))}</span></p>` : '') +
     '</div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>';
@@ -340,7 +342,14 @@ export function renderVerhaal(panel, view, w = null) {
 }
 
 // Clicks inside the section; true when handled.
-export function verhaalClick(e, panel) {
+export function verhaalClick(e, panel, hooks = {}) {
+  // de opening opnieuw bekijken (#986): het menu gaat dicht, de film speelt over het nieuwe thuis en geeft de speler zijn plek terug
+  if (e.target.closest('[data-replay-opening]') && panel.contains(e.target)) {
+    if (hooks.close) hooks.close();
+    const reden = replayOpening();
+    if (reden && worldRef) worldRef.addMessage(reden, 4);
+    return true;
+  }
   const card = e.target.closest('[data-char]');
   if (!card || !panel.contains(card)) return false;
   selectCharacter(panel, card.dataset.char);

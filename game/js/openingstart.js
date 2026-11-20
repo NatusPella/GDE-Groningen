@@ -28,3 +28,41 @@ export const openingReady = (s) => openingBlockers(s).length === 0;
 // Speelt de opening als eerste, dan slaat cinematics.js de vlucht-in van de spelstart over.
 // `stepIsOpening`: de stap waar het verhaal nu op staat is M00.
 export const openingIsNext = ({ stepIsOpening, client, dataReady }) => !!stepIsOpening && !client && !!dataReady;
+
+// --- einde, overslaan en herbekijken (#986) ---------------------------------------------------------------------
+// De opening bestaat uit een trailermontage en twee gespeelde bedrijven (keuken, verhuisdag). Overslaan (spatie of
+// A ingedrukt houden) of een film die een andere film vervangt, beëindigt de hele opening: er is nooit een half
+// bedrijf over, en de stap M00 meldt zich dan precies één keer klaar. Zuiver, zodat de test het zonder DOM loopt.
+
+// Wat doet de opening als een bedrijf eindigt? 'volgende' speelt het volgende bedrijf, 'klaar' sluit de opening.
+export function openingActEnd({ index, count, skipped = false, replaced = false }) {
+  if (skipped || replaced) return 'klaar';
+  return index < count - 1 ? 'volgende' : 'klaar';
+}
+
+// De normale startstand na de opening: de klok op de ochtend van de verhuisdag, de stap klaar. Eén keer:
+// een tweede einde (de montage en een bedrijf melden zich allebei) verandert niets meer.
+export const OPENING_END_HOUR = 8;
+export function openingFinish(b) {
+  if (!b || b.phase === 'done') return { changed: false, hour: null };
+  b.phase = 'done';
+  return { changed: true, hour: OPENING_END_HOUR };
+}
+
+// Mag de speler de opening opnieuw bekijken (Verhaal > Personages)? Alleen alleen-spelen op de wereld van de speler zelf,
+// te voet en met een rustig spel; in Samen spelen is de opening van de wereld en volgt zij de gastheer (coopcut.js).
+export function openingReplayBlockers(s) {
+  const out = [];
+  if (!s.started) out.push('spel nog niet gestart');
+  if (s.client) out.push('meespeler');
+  if (s.session) out.push('Samen spelen');
+  if (s.openingDue) out.push('de opening komt nog');
+  if (s.missionActive) out.push('missie actief');
+  if (s.cinematicActive) out.push('film bezig');
+  if (s.narrativeBusy) out.push('vertelling bezig');
+  if (s.pigeon) out.push('duifstand');
+  if (s.respawn) out.push('terugzetten loopt');
+  if (s.inVehicle) out.push('in een voertuig');
+  if (!s.dataReady) out.push('verhaaldata nog niet geladen');
+  return out;
+}

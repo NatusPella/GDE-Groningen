@@ -1,7 +1,8 @@
 // #986: de openingsscène van een nieuw spel speelt als eerste film na het laadscherm.
 // node scripts/openingstart_test.mjs
 import fs from 'node:fs';
-import { openingBlockers, openingReady, openingIsNext } from '../game/js/openingstart.js';
+import { openingBlockers, openingReady, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, OPENING_END_HOUR } from '../game/js/openingstart.js';
+import { STEPS } from '../game/js/storyarc_nieuw.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
@@ -31,6 +32,40 @@ ok(/function playGameStart[\s\S]{0,1500}!w\.loadedFromSave && openingDue\(\)[\s\
 ok(/setOpeningDueProbe\(/.test(story) && /openingBlockers\(\{/.test(story), 'story.js meldt de opening aan cinematics.js en gebruikt openingBlockers');
 ok(/blockers\.join\(', '\)/.test(story), 'de waarschuwing noemt de reden van het wachten');
 ok(!/else if \(ready && world\.time - rt\.enteredAt > 40\)/.test(story), 'de wachtwaarschuwing hangt niet meer aan "ready"');
+
+// --- een nieuw spel begint met de opening; Doorgaan niet; overslaan zet de normale startstand ---
+ok(STEPS[0].id === 'M00' && STEPS[0].goal.type === 'opening', 'de eerste stap van het verhaal is de opening (een nieuw spel begint er altijd mee)');
+ok(STEPS.filter((x) => x.goal && x.goal.type === 'opening').length === 1, 'er is precies één openingsstap (geen dubbele start)');
+ok(cine.includes('!w.loadedFromSave && openingDue()'), 'bij Doorgaan (geladen save) speelt de spelstart zijn eigen vlucht-in: de opening hoort bij een nieuw spel');
+
+// bedrijven: normaal volgen ze elkaar op, overslaan of vervangen sluit de hele opening (geen half bedrijf)
+ok(openingActEnd({ index: 0, count: 3 }) === 'volgende' && openingActEnd({ index: 1, count: 3 }) === 'volgende', 'bedrijf 1 en 2 gaan door naar het volgende');
+ok(openingActEnd({ index: 2, count: 3 }) === 'klaar', 'het laatste bedrijf sluit de opening');
+for (const i of [0, 1, 2]) {
+  ok(openingActEnd({ index: i, count: 3, skipped: true }) === 'klaar', 'overslaan in bedrijf ' + (i + 1) + ' sluit de hele opening');
+  ok(openingActEnd({ index: i, count: 3, replaced: true }) === 'klaar', 'een vervangende film in bedrijf ' + (i + 1) + ' sluit de opening');
+}
+// einde: de stap meldt zich één keer klaar, de klok krijgt de ochtend van de verhuisdag, een tweede einde doet niets
+{
+  const b = { phase: 'play' };
+  const a = openingFinish(b);
+  ok(a.changed && a.hour === OPENING_END_HOUR && b.phase === 'done', 'het einde zet de stap klaar en de klok op de ochtend');
+  const c = openingFinish(b);
+  ok(!c.changed && c.hour === null && b.phase === 'done', 'een tweede einde (montage en bedrijf allebei) verandert niets: geen dubbele missiestart');
+  ok(!openingFinish(null).changed, 'zonder stand doet het einde niets');
+}
+// herbekijken via Verhaal: alleen in een rustig eigen spel
+const rustig = { started: true, client: false, session: false, openingDue: false, missionActive: false, cinematicActive: false, narrativeBusy: false, pigeon: false, respawn: false, inVehicle: false, dataReady: true };
+ok(openingReplayBlockers(rustig).length === 0, 'herbekijken mag in een rustig eigen spel');
+for (const [k, naam] of [['started', 'gestart'], ['client', 'meespeler'], ['session', 'Samen spelen'], ['openingDue', 'opening komt nog'], ['missionActive', 'missie'], ['cinematicActive', 'film'], ['narrativeBusy', 'vertelling'], ['pigeon', 'duif'], ['respawn', 'terugzetten'], ['inVehicle', 'voertuig'], ['dataReady', 'verhaaldata']]) {
+  const v = k === 'started' || k === 'dataReady' ? false : true;
+  const b = openingReplayBlockers({ ...rustig, [k]: v });
+  ok(b.length === 1 && b[0].includes(naam), 'herbekijken geblokkeerd door ' + k, b.join('|'));
+}
+ok(['export function replayOpening(', 'openingReplayBlockers({', 'openingActEnd({', 'openingFinish(b)'].every((t) => story.includes(t)), 'story.js gebruikt de zuivere regels voor einde en herbekijken');
+const vui = fs.readFileSync(new URL('../game/js/verhaalui.js', import.meta.url), 'utf8');
+ok(vui.includes('data-replay-opening') && vui.includes('replayOpening()'), 'Verhaal > Personages heeft de knop Opening opnieuw bekijken');
+ok(cine.includes('<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span>'), 'de overslaan-hint noemt de toets (glyphs.js zet er de knop van de controller voor in)');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

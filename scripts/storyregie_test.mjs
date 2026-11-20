@@ -14,7 +14,7 @@ const story = lees('story.js'), msrc = lees('missionstory.js'), akte3 = lees('cu
 ok(/const thuis = homeSpawnPoint\(\)/.test(story) && /homeSpawnPoint/.test(story), 'opening: ankert op homeSpawnPoint');
 ok(/world\.time - rt\.enteredAt > 600 && blockers\.every\(\(x\) => x === 'verhaaldata nog niet geladen'\)\) b\.phase = 'done'/.test(story) && !/else if \((ready|!blockers\.length) && world\.time - rt\.enteredAt > 40\) b\.phase = 'done'/.test(story),
   'opening: geen definitieve 40 s-overslag meer, alleen een late noodrem');
-ok(/zetKlok\(5\.75\)/.test(story) && /zetKlok\(8\)/.test(story), 'opening: klok van dageraad naar de ochtend');
+ok(/zetKlok\(5\.75\)/.test(story) && /zetKlok\(fin\.hour\)/.test(story) && lees('openingstart.js').includes('OPENING_END_HOUR = 8'), 'opening: klok van dageraad naar de ochtend');
 
 // #719: de finale verlaat eerst een voertuig, heeft een terugval als nearestRoadPoint niets vindt en dooft zwart.
 ok(/const spot = road \|\| \{ x: FINALE_SPOT\[0\], y: FINALE_SPOT\[1\] \}/.test(story), 'finale: terugval op de Markt zonder weg');
