@@ -88,6 +88,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Fatbikes ontwijken: de routelijn en de marker wijzen nu eerst naar de Ebbingebrug en dan naar Oma Trijntje, dus de route die het spel voorstelt loopt door de fatbikes in plaats van er omheen.
 - Plaatsnaamborden en wegwijzers zijn niet meer onverwoestbaar: vanaf ongeveer 13 km/u rijd je ze omver (de paal klapt om met een metalen tik, kleine schade die met de snelheid meegroeit); langzamer stop je er gewoon tegen. Een omgevallen bord is ook omver bij je medespelers (bestaande kapotmelding) en komt na een tijd en afstand terug, zoals een kapotte bank. Ook een omgereden bank, prullenbak of fietsenrek verdwijnt nu uit het beeld in plaats van als spookobject te blijven staan.
 - Pauzemenu: de groepskoppen in de zijbalk (Doen, Bezit, Voortgang, Systeem) tonen geen aantallen meer; alleen een melding laat nog een badge zien.
+### Opgelost
+
+- Het containerlabyrint (M13): de kraan staat nu op de kade van de Eemshaven en de container op open terrein achter de kaderweg, niet meer in een weiland of op de weg. De plekken hangen aan één anker en vallen terug op de dichtstbijzijnde vrije plek; voor iedereen in Samen spelen is dat dezelfde plek.
 
 ## [0.64.0] - 2026-11-20
 

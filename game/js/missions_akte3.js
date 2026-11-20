@@ -81,11 +81,11 @@ export const KAARTEN = {
   M13: [
     { doel: 'Sluip naar de kraan aan de kade', druk: 'acht minuten tot het schip vertrekt', afloop: 'ziet een bewaker je, dan stuurt hij je terug: de missie blijft',
       regels: [stappen('Het plan', 0, [stap('pijl', 'Kraan'), stap('klok', 'Stil staan'), stap('pakje', 'Container 4471'), stap('hand', 'Papieren')], { na: 8, duur: 8 }),
-        { type: 'wijzer', inv: { afstand: 130, hoek: 0, label: 'Kraan' }, tekst: 'Blijf uit de lichtbundels en uit het zicht van de camera.', na: 17, duur: 7 }] },
+        { type: 'wijzer', inv: { afstand: 90, hoek: 0, label: 'Kraan' }, tekst: 'Blijf uit de lichtbundels en uit het zicht van de camera.', na: 17, duur: 7 }] },
     { doel: 'Blijf stil in de kooi tot de bewaker wegloopt',
       regels: [{ type: 'teller', inv: { rest: 9, totaal: 9, label: 'Stil staan' }, tekst: 'Negen seconden stil staan; bij het tweede piepje kijkt hij omhoog.', na: 2, duur: 7 }] },
     { doel: 'Zoek container 4471, de blauwe naast de rode',
-      regels: [{ type: 'wijzer', inv: { afstand: 150, hoek: 0, label: 'Container 4471' }, tekst: 'De blauwe container staat naast de rode, onder de stapel.', na: 8, duur: 7 }] },
+      regels: [{ type: 'wijzer', inv: { afstand: 85, hoek: 0, label: 'Container 4471' }, tekst: 'De blauwe container staat naast de rode, onder de stapel.', na: 8, duur: 7 }] },
     { doel: 'Verwissel de papieren van container 4471',
       regels: [{ type: 'teller', inv: { rest: 6, totaal: 6, label: 'Papieren' }, tekst: 'Zes seconden rustig staan: de oude papieren eruit, de nieuwe erin.', na: 2, duur: 6 }] },
     { doel: 'Terug naar Lammert aan de kade',

@@ -53,6 +53,7 @@ function kraan(g) {
   const p = M13_CRANE;
   const k = new T.Group();
   k.position.set(p.x, 0, p.y);
+  k.rotation.y = Math.PI; // de giek wijst over het water, de kabelrollen staan aan de landkant (#1035)
   doos(k, 3.0, 2.6, 3.0, '#e8c93a', 0, 3.6, 0);
   doos(k, 3.2, 0.18, 3.2, '#333a36', 0, 5.0, 0);
   doos(k, 3.0, 0.12, 3.0, '#1f2a3a', 0, 4.1, 1.52);
@@ -91,6 +92,11 @@ export function placeContainerTerminal(world, THREE) {
   pad.position.set(M13_CONTAINER.x, 0.02, M13_CONTAINER.y);
   pad.receiveShadow = true;
   root.add(pad);
+  // de kadevloer onder de kraan (16 x 14 m), zodat de kraan op beton staat en niet in het gras
+  const vloer = new T.Mesh(new T.BoxGeometry(16, 0.08, 14), mat('#9a9c94'));
+  vloer.position.set(M13_CRANE.x, 0.02, M13_CRANE.y);
+  vloer.receiveShadow = true;
+  root.add(vloer);
   for (const c of CONTAINER_STACKS) stapel(root, c);
   kraan(root);
   for (const r of CABLE_REELS) kabelsrol(root, r);
