@@ -2231,7 +2231,7 @@ function updateSinking(v, dt, world) {
     if (val > 4 && q.length < 64) q.push({ kind: 'fx', name: 'splash_big', x: v.x, y: v.y });
     if (v.driver === 'player') {
       if (s.small) { hoofdspeler(world).ejectIntoWater(v, world); world.addMessage('Nat geworden!', 3); }
-      else world.addMessage('Plons! Je auto zinkt - E om uit te stappen', 3.5);
+      else world.addMessage('Plons! Je auto zinkt - {E} om uit te stappen', 3.5);
       world.health = Math.max(0, world.health - (s.small ? 5 : 10));
     }
     return;

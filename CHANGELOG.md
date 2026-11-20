@@ -74,6 +74,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Opgelost
 
+- **Overal toetsplaatjes in plaats van losse letters (Kist Kees en daarbuiten):** in het vliegtuig, de vliegles, de helikopter, de trein, de bus, de boerderij, de zwem- en klimbanen, de duif, Samen spelen, het pauzemenu en de winkels stond nog "met E", "A en D", "W vooruit" of "rechtermuisknop" als gewone tekst. Dat zijn nu toetsplaatjes en muisiconen die meebewegen met herbinden en met de controller. Ook de ingesproken regels ("Spatie omhoog, W vooruit, A/D draaien") tonen hun toetsen als icoon in de ondertitel; de clip zelf blijft ongewijzigd. Nieuwe test: scripts/ui/icon_sweep.mjs (in test_all licht) faalt op een losse toetsletter in spelertekst.
+
 - **Minder glitches en ruis in het geluid (melding Nikky):** het geluid krijgt een snelle limiter als laatste schakel, zodat opgetelde geluiden (muziek, sirenes, schoten) niet meer hard knippen. De ruisbedden van de stad, regen en krekels hebben geen gelijkspanning meer (geen bonk bij het in- of uitfaden), en een ongeldige waarde in een geluidsregeling kan de rest van het beeld niet meer overslaan.
 - **Het spel merkt geluidsonderbrekingen op:** het telt hoe vaak de uitvoer even stilvalt. Had de vorige sessie er veel, dan kiest het spel nu een ruimere geluidsbuffer (iets later geluid, geen gaten). Het blok Geluid met de stand van het geluid komt in de technische info; `?geenlimiter` zet de limiter uit voor een vergelijking. Zie docs/AUDIO-GLITCHES-21-11.md.
 - **Het benchmarkscherm leek niet te klikken:** de muisaanwijzer was op het resultaatscherm onzichtbaar. Hij staat er nu weer, en de knoppen werken zoals bedoeld.

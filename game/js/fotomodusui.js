@@ -93,7 +93,7 @@ function startPhotoMode(world) {
   document.body.classList.add('cine-hide-hud', 'foto-actief');
   buildOverlay();
   for (const t of ['keydown', 'keyup']) window.addEventListener(t, onKey, true);
-  say('Fotomodus · vrije camera, H terug bij Tammo');
+  say('Fotomodus · vrije camera, {H} terug bij Tammo');
   return true;
 }
 

@@ -1869,7 +1869,7 @@ function updateRetry(dt, world, def) {
   if (isCinematicActive() || world.pendingRespawn || (world.sideJob && world.sideJob.active) || playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return;
   if (!r.hintedAt || world.time - r.hintedAt > 10) {
     r.hintedAt = world.time;
-    world.addMessage(`${def.label}: opnieuw beginnen? Druk op Enter (of E).`, 4, { key: 'missie-opnieuw' });
+    world.addMessage(`${def.label}: opnieuw beginnen? Druk op {ENTER} (of {E}).`, 4, { key: 'missie-opnieuw' });
   }
   for (const k of RETRY_KEYS) {
     if (!world.input.wasPressed(k)) continue;

@@ -162,7 +162,7 @@ export default {
   boardFirst: false,
   vehicleWord: 'de krantenfiets',
   blurb: 'Kranten en folders gooien in een wijk van Grunn',
-  tagline: 'Mik op de brievenbus. E gooit.',
+  tagline: 'Mik op de brievenbus. {E} gooit.',
   intro: [
     `Moi! Welkom bij ${R.OPDRACHTGEVER}. Je krijgt een stapel kranten en folders voor een wijk, en een fiets als je wilt.`,
     'Druk E om de krant naar de dichtstbijzijnde brievenbus te gooien. Dichtbij en langzaam is raak. In een bocht op volle snelheid wordt het de deurmat, of de border.',
@@ -335,7 +335,7 @@ export default {
       marker: volgende ? { x: volgende.x, y: volgende.y } : null,
       dots,
       progress: `${d.wijk.name} · ${gedaan}/${d.huizen.length} bezorgd · stapel ${d.stapel}`,
-      goal: { label: `Bezorg de krant in de ${d.straat}`, desc: d.vijver ? 'E gooit. Of de hele stapel in de container bij het water.' : 'E gooit op de dichtstbijzijnde brievenbus' },
+      goal: { label: `Bezorg de krant in de ${d.straat}`, desc: d.vijver ? '{E} gooit. Of de hele stapel in de container bij het water.' : '{E} gooit op de dichtstbijzijnde brievenbus' },
     };
   },
 

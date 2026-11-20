@@ -132,7 +132,7 @@ export const RAGE_TEXT = {
   copCalm: 'Rustig aan, meneer. Mee naar het bureau.',
   bonk: 'Hij bonkt boos op je motorkap.',
   squirt: 'Pats! Kletsnat, maar verder niks aan de hand.',
-  drop: (key) => `Hij liet zijn ${DROP_INFO[key] ? DROP_INFO[key].name : 'spullen'} vallen. Oppakken met E.`,
+  drop: (key) => `Hij liet zijn ${DROP_INFO[key] ? DROP_INFO[key].name : 'spullen'} vallen. Oppakken met {E}.`,
   arrested: 'De agent neemt de ruziemaker mee. De auto blijft staan.',
   start: (armed) => (armed ? 'Een boze bestuurder stapt uit, met iets in de hand.' : 'Een boze bestuurder stapt uit.'),
 };

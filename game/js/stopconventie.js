@@ -6,7 +6,7 @@ export const STOP_DIRECT = ['backspace']; // stopt meteen (de pad-B komt hier oo
 export const STOP_VRAAG = 'escape';       // vraagt eerst "Stoppen?"
 export const STOP_BEVESTIG = ['escape', 'enter'];
 export const STOP_DOORGAAN = [' '];
-export const STOP_UITZONDERING = { id: 'hengelen', start: 'i', tekst: 'Vrij hengelen start met I; dat staat in de kaart en in het toetsenoverzicht.' };
+export const STOP_UITZONDERING = { id: 'hengelen', start: 'i', tekst: 'Vrij hengelen start met {I}; dat staat in de kaart en in het toetsenoverzicht.' };
 
 // De uitkomst van één frame: 'stop' (meteen of bevestigd), 'vraag' (open het venster), 'door' (venster weg)
 // of null. Puur; de aanroeper leest de toetsen en consumeert ze.

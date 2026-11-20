@@ -6,7 +6,7 @@
 // or controller button, as in hintkit.js.
 
 export const STEPS = [
-  { id: 'lopen', title: 'Lopen', body: 'Loop een stukje met {WASD}. Kijk om je heen met de muis of de rechterstick.', need: { walk: 8 } },
+  { id: 'lopen', title: 'Lopen', body: 'Loop een stukje met {WASD}. Kijk om je heen met {MOUSE} of de rechterstick.', need: { walk: 8 } },
   { id: 'rennen', title: 'Rennen', body: 'Houd {SHIFT} ingedrukt terwijl je loopt om te rennen.', need: { sprint: 1.5 } },
   { id: 'kaart', title: 'De kaart', body: 'Open de kaart met {M}. Daar kies je zelf waar je heen wilt; sluit hem weer met {M}.', need: { map: 1 } },
   { id: 'instappen', title: 'Instappen', body: 'Loop naar een fiets of auto en stap in met {E}.', need: { enter: 1 } },

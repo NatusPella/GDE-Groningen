@@ -132,7 +132,7 @@ function stapBoot(dt, world, dag, v, invoer, gast) {
     const tik = aan && !v.roeiWasAan;
     v.roeiWasAan = aan;
     const slag = roeiStap(v, tik, world.time || 0, dt);
-    if (slag && !slag.goed && (v.roeiSt.reeks || 0) === 0 && (v.roeiTekstT = (v.roeiTekstT || 0) - 1) <= 0) { v.roeiTekstT = 4; meld('Roei in een rustig ritme: tik W ongeveer elke seconde', 2.5); }
+    if (slag && !slag.goed && (v.roeiSt.reeks || 0) === 0 && (v.roeiTekstT = (v.roeiTekstT || 0) - 1) <= 0) { v.roeiTekstT = 4; meld('Roei in een rustig ritme: tik {W} ongeveer elke seconde', 2.5); }
     verbergWijzer();
     return true;
   }

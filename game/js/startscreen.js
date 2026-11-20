@@ -45,8 +45,8 @@ export const TIPS = [
   'Tip: fatbikes stoppen voor niemand. Echt niemand.',
   'Tip: {ESC} klapt je telefoon open. Berend Bos heeft altijd wel een klusje.',
   'Tip: regen in Grunn is geen weer, het is een levenshouding.',
-  'Tip: V wisselt tijdens het rijden tussen filmcamera’s.',
-  'Tip: M opent de kaart. Klik om een bestemming te zetten.',
+  'Tip: {V} wisselt tijdens het rijden tussen filmcamera’s.',
+  'Tip: {M} opent de kaart. {LMB} om een bestemming te zetten.',
   'Tip: zie je een duivenbord in de stad? Druk E en word zelf een duif. Poepen mag, ook op de Martinitoren.',
 ];
 // the commentary cows chime in between the tips

@@ -305,7 +305,7 @@ export default {
       // de haltenaam staat in het kopje (goal.label), dus de regel eronder telt alleen de halten en de tijd:
       // geen tweede keer dezelfde naam over dezelfde regel (#502)
       progress: d.dwell ? `Deuren open · nog ${Math.max(1, Math.ceil(d.dwell))} s` : `${Math.min(d.next, n)}/${n} gehaald · ${sched}`,
-      goal: { label: `Volgende halte: ${stop.name}`, desc: d.dwell ? 'Passagiers stappen in en uit; sluit de deuren met O' : 'Stop bij de halte en laat mensen instappen' },
+      goal: { label: `Volgende halte: ${stop.name}`, desc: d.dwell ? 'Passagiers stappen in en uit; sluit de deuren met {O}' : 'Stop bij de halte en laat mensen instappen' },
     };
   },
 

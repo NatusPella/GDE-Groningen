@@ -445,7 +445,7 @@ export function flyHeli(v, dt, w) {
         hurt(v, Math.max(0, impactV - LAND_VZ) * 7 + Math.max(0, hs - LAND_H) * 3, w);
         vz = impactV * 0.3;
         vx *= 0.4; vy *= 0.4;
-        say('hard', `Harde landing! Eerst stilhangen (W los, S remt), dan rustig dalen met ${downKey()}`, 3, 'tip', 5);
+        say('hard', `Harde landing! Eerst stilhangen ({W} los, {S} remt), dan rustig dalen met ${downKey()}`, 3, 'tip', 5);
       } else {
         v.onGround = true;
         v.landKind = surf.kind;
@@ -621,7 +621,7 @@ function landingStatus(v) {
   const hs = Math.hypot(v.vx || 0, v.vy || 0);
   if (v.surfaceKind === 'water' && alt < 12) return ['Onder je is water!', '#ff9a3c'];
   if (alt < 14) {
-    if (hs > LAND_H || -(v.vz || 0) > LAND_VZ) return ['Te snel om te landen: W los, S remt', '#ff9a3c'];
+    if (hs > LAND_H || -(v.vz || 0) > LAND_VZ) return ['Te snel om te landen: {W} los, {S} remt', '#ff9a3c'];
     if (v.surfaceKind === 'roof') return ['Dak onder je', '#e8c93a'];
     return [`Klaar om te landen: ${downKey()}`, '#3fc97a'];
   }

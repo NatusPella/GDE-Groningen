@@ -137,7 +137,7 @@ export const MELDING_WINKEL = (naam) => `${naam}: dat kan alleen in je eigen spe
 
 // Een gast begint zijn eigen opdracht niet vanuit de telefoon of het menu: zijn scherm is een dunne client en de
 // opdracht moet in de wereld van wie het spel opende lopen. Hij vraagt hem bij het startpunt met E (#452).
-export const MISSIE_VIA_STARTPUNT = 'Samen spelen: ga naar het startpunt van je opdracht en druk daar op E om hem te vragen.';
+export const MISSIE_VIA_STARTPUNT = 'Samen spelen: ga naar het startpunt van je opdracht en druk daar op {E} om hem te vragen.';
 export const missieMagVanuitMenu = (world) => !world || world.coopRole !== 'client';
 
 // De tabel van de regels (docs/COOP-GAST.md en de tests lezen hem). mag: ja | nee | deels

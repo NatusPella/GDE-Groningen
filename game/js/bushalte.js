@@ -168,7 +168,7 @@ function menuVoor(world, h) {
     sections() {
       return [{
         title: 'Een busdienst rijden',
-        note: 'Een bus staat bij de halte klaar. Je rijdt de lijn halte na halte: halteren, de deuren met O, op de tijd wachten, niet te vroeg weg. Betaald per rit.',
+        note: 'Een bus staat bij de halte klaar. Je rijdt de lijn halte na halte: halteren, de deuren met {O}, op de tijd wachten, niet te vroeg weg. Betaald per rit.',
         items: opties.map((o) => ({
           id: 'bus-' + o.key, label: o.tekst,
           desc: `Eerst ${o.volgende} · nog ${o.haltes} halte${o.haltes === 1 ? '' : 's'} tot de eindhalte`,

@@ -304,7 +304,7 @@ export function prepareHomeMap(map) {
     const top = Math.max(2.4, (t.h || 3) * LEVEL_HEIGHT) + (t.lift || 0);
     const T = home.tower;
     const cx = TOWER[0][0] + T.X[0] * T.w / 2 + T.Y[0] * T.d / 2, cy = TOWER[0][1] + T.X[1] * T.w / 2 + T.Y[1] * T.d / 2;
-    home.pad = { id: 'home', x: cx, y: cy, r: PAD_R, z: top + PAD_DECK, roof: top, angle: Math.atan2(T.Y[1], T.Y[0]), name: 'Jouw helidek', exit: false, label: 'Jouw helidek · E: parkeren' };
+    home.pad = { id: 'home', x: cx, y: cy, r: PAD_R, z: top + PAD_DECK, roof: top, angle: Math.atan2(T.Y[1], T.Y[0]), name: 'Jouw helidek', exit: false, label: 'Jouw helidek · {E}: parkeren' };
     registerHelipad(home.pad);
   }
   // the opening's street (intromontage.js) gets its real houses too

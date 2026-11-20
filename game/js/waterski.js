@@ -217,7 +217,7 @@ function updateGame(w, dt) {
 function onEvent(w, e) {
   const g = game, s = g.s;
   const q = FR.toW(s.sS, s.px);
-  if (e.type === 'jump') { g.flash = { text: 'Hoog! Spin met A en D, grab met E', t: 1.4 }; say(w, 'jump'); }
+  if (e.type === 'jump') { g.flash = { text: 'Hoog! Spin met {A} en {D}, grab met {E}', t: 1.4 }; say(w, 'jump'); }
   else if (e.type === 'land') {
     g.flash = { text: `Schone landing +${e.points}${e.spins ? ` · ${e.spins}× spin` : ''}${e.grab ? ' · grab' : ''} · x${e.mult}`, t: 2 };
     if (e.spins >= 1 && e.grab && e.air > 0.9) g.big = true;

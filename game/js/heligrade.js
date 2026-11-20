@@ -26,7 +26,7 @@ export function landingGuide(v, pad) {
   if (v.onGround) { state = 'geland'; text = inCircle ? 'Geland' : 'Geland naast de H'; }
   else if (dist > r * 4) { state = 'nader'; text = 'Vlieg naar de H'; }
   else if (!inCircle) { state = 'uitlijnen'; text = hs > LAND.slow ? 'Boven de H, rustig aan' : 'Naar het midden van de H'; }
-  else if (hs > LAND.hs) { state = 'te snel'; text = 'Te snel: laat W los, rem met S'; }
+  else if (hs > LAND.hs) { state = 'te snel'; text = 'Te snel: laat {W} los, rem met {S}'; }
   else if (alt > 12) { state = 'zakken'; text = 'Zak rustig door'; }
   else if (vs > LAND.vz) { state = 'te hard'; text = 'Te hard zakken: minder dalen'; }
   else { state = 'goed'; text = 'Zo is het goed: rustig zakken'; }
