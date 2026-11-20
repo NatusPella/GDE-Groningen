@@ -95,7 +95,6 @@ import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { applyEdgeFade, edgeFadeClone } from './edgefade3d.js';
 import { fadeBand, loadRadius } from './popinrules.js';
-import { prefetchExtra, prefetchOrder } from './buildingprefetch.js';
 import { roadBuildAllowed, heavyRoadAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
@@ -1800,13 +1799,15 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   // Build the meshes of buildings just outside the detail radius ahead of
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
-  const pExtra = prefetchExtra(streamAhead.lead); // #1016: voorladen met de snelheid, vooruit (buildingprefetch.js)
-  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 + pExtra && !nearPrewarm(b)) prefetchedBuildings.delete(b);
+  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
   let prefetchDone = true;
-  for (const { b } of prefetchOrder(world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH + pExtra), px, py, DRAW_DIST, BUILDING_PREFETCH, streamAhead, (q) => q.landmark || buildingMeshes.has(q) || prefetchedBuildings.has(q), _bPre)) {
+  for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
     if (performance.now() > prefetchEnd) { prefetchDone = false; break; }
+    if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
+    const d = centreDist(b);
+    if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
     const mesh = makeBuildingMesh(b);
     precompile(mesh);
     prefetchedBuildings.set(b, mesh);

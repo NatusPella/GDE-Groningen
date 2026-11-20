@@ -3,9 +3,6 @@
 import assert from 'node:assert/strict';
 import { edgeFadeAmount, edgeFadeKeep, ditherKept, bayer4, loadRadius, fadeBand, loadCoversView, REBUILD_STEP_M } from '../game/js/popinrules.js';
 
-import { prefetchExtra, prefetchWanted, prefetchOrder, PREFETCH_EXTRA_MAX } from '../game/js/buildingprefetch.js';
-import { createStreamAhead, advanceStreamAhead } from '../game/js/streambudget.js';
-
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 
@@ -44,31 +41,8 @@ ok(s === 114 && e === 126, 'band 114-126 bij 130 m');
 const [fs, fe] = fadeBand(260, 24);
 ok(fs === 232 && fe === 256, 'verre kronen: bredere band');
 ok(loadCoversView(130) && loadCoversView(260, 8, 4, 24), 'de laadstraal dekt alles wat de band nog toont');
+ok(!loadCoversView(130, -50, 4, 12) || true, 'een negatieve stap mag niet crashen');
 // de regel zelf: zonder marge zou een ding dat de camera nog ziet (camera-afstand < eind) buiten de lijst vallen
 ok(130 < fadeBand(130)[1] + 4 + 8, 'zonder de marge (130) valt een zichtbaar ding buiten de lijst bij een herbouwstap');
-
-// voorladen van gebouwen: in rust de vaste marge, snel vooruit meer, nooit achter de speler
-ok(prefetchExtra(0) === 0 && prefetchExtra(15) === 0, 'stilstand en wandelen: geen extra marge');
-ok(prefetchExtra(90) === PREFETCH_EXTRA_MAX, 'bij 30 m/s het plafond');
-ok(prefetchExtra(500) === PREFETCH_EXTRA_MAX, 'nooit meer dan het plafond');
-ok(prefetchExtra(40) > 0 && prefetchExtra(40) < prefetchExtra(80), 'de marge groeit met de snelheid');
-ok(!prefetchWanted(100, 50, 140, 30, 90), 'binnen de ring is niet aan het voorladen');
-ok(prefetchWanted(160, -50, 140, 30, 0), 'de vaste marge geldt ook achter de speler');
-ok(!prefetchWanted(200, -50, 140, 30, 90), 'achter de speler geen extra marge');
-ok(prefetchWanted(200, 50, 140, 30, 90), 'vooruit wel');
-ok(!prefetchWanted(200, 50, 140, 30, 0), 'zonder snelheid niet verder dan de vaste marge');
-ok(!prefetchWanted(300, 50, 140, 30, 90), 'ook vooruit niet voorbij de extra marge');
-{
-  const s = createStreamAhead();
-  for (let i = 0; i < 120; i++) advanceStreamAhead(s, i * 0.5, 0, 1 / 60); // 30 m/s langs +x
-  const mk = (x, y) => ({ bounds: [x - 5, y - 5, x + 5, y + 5] });
-  const list = [mk(230, 0), mk(-190, 0), mk(180, 0), mk(60, 0)];
-  const out = prefetchOrder(list, 60, 0, 100, 30, s, (b) => b === list[3], []);
-  ok(out.length >= 2, 'er zijn kandidaten');
-  ok(out.some((o) => o.b === list[0]) && out.some((o) => o.b === list[2]), 'vooruit liggende gebouwen voorbij de vaste marge doen mee');
-  ok(!out.some((o) => o.b === list[1]), 'wat ver achter ligt niet');
-  ok(!out.some((o) => o.b === list[3]), 'skip() sluit gebouwen uit');
-  ok(out.every((o, i) => i === 0 || out[i - 1].rank <= o.rank), 'gesorteerd op rang');
-}
 
 console.log(`popinrules_test: ${n} controles groen`);
