@@ -26,6 +26,7 @@ export const ICON_MAP = {
   auto: 'car', bus: 'bus', trein: 'train', tram: 'tram', boot: 'boat', zeilboot: 'sailboat',
   vliegtuig: 'airplane', fiets: 'bicycle', scooter: 'moped', motor: 'motorcycle', tractor: 'tractor',
   vrachtwagen: 'truck', taxi: 'taxi', politieauto: 'police-car', brandweer: 'fire-truck',
+  helikopter: 'drone', afslag_rechts: 'arrow-bend-up-right', afslag_links: 'arrow-bend-up-left',
   ambulance: 'ambulance', parachute: 'parachute', stuur: 'steering-wheel', toerental: 'gauge',
   // Wereld en werk
   oogst: 'grains', gewas: 'plant', boom: 'tree', blad: 'leaf', koe: 'cow', paard: 'horse', vis: 'fish',
