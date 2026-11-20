@@ -74,6 +74,22 @@ async function rit(soort, naam) {
   if (p.inVehicle) p.exitVehicle(map, w);
   p.x = van.x; p.y = van.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0;
   await sleep(6000); // de wereld rond de start laten streamen
+  if (soort === 'taxi' && CFG.padAudit) {
+    // #882: het ritpad vóór (de gewone spline door de route) en na (ritroute.js) tegen de gebouwen van de echte wereld, voor een aantal doelen
+    try {
+      const RT = await imp('routing'), CD = await imp('cinedrive'), RR = await imp('ritroute');
+      const binnen = (x, y) => RT.insideBuilding(map, x, y);
+      out.padAudit = [];
+      for (const nm of CFG.padAudit) {
+        const d = plaats(nm); if (!d) { out.padAudit.push({ naar: nm, fout: 'onbekend' }); continue; }
+        const r = RT.planDriveRoute(w, { x: d.x, y: d.y, name: d.name }, { x: van.x, y: van.y, inVehicle: null });
+        const pts = (r.pts || []).filter((q, i, a2) => i === 0 || Math.hypot(q[0] - a2[i - 1][0], q[1] - a2[i - 1][1]) > 0.5);
+        if (r.noRoute || pts.length < 2) { out.padAudit.push({ naar: nm, noRoute: true }); continue; }
+        const oud = CD.smoothPath(pts, 1), nieuw = RR.ritRoute(pts, { start: { x: van.x, y: van.y }, doel: d, binnen });
+        out.padAudit.push({ naar: nm, lengteM: Math.round(oud.len), oudSchendingen: RR.schendingen(oud, binnen), nieuwSchendingen: nieuw.schendingen, mix: nieuw.mix, beginBinnen: nieuw.begin, eindBinnen: nieuw.eind, bijgesneden: nieuw.bijgesneden });
+      }
+    } catch (e) { out.padAuditFout = String(e && e.stack || e).slice(0, 300); }
+  }
   const opts = RK.reisOptiesVoor(w, { x: dest.x, y: dest.y, name: dest.name });
   const o = opts.find((x) => x.id === soort);
   rep.optie = o ? { eta: o.eta, etaS: o.etaS, prijs: o.price, lengte: Math.round(o.length), legs: (o.legs || []).map((l) => l.kind) } : null;
