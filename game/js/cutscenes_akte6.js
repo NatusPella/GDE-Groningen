@@ -205,7 +205,7 @@ S['M30.intro'] = {
     { on: 'Aanvallen.', dt: 1.2, actor: 'douwe', anim: 'applaus', dur: 2.4 },
   ],
   // a slow zoom on Tessa while she says she does not know what to say
-  cuts: [{ on: 'Zeven mensen', tpl: 'langzameZoom', target: 'tessa', hold: 4 }],
+  cuts: [{ on: 'Zeven mensen', tpl: 'langzameZoom', target: 'tessa', angle: -50, hold: 4 }],
   shots: [],
   wide: WIDE([-5.5, 4.6, 3.6], [-3.5, 3.4, 2.6], 'mid:berend,tessa@1'),
 };
