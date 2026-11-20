@@ -247,11 +247,9 @@ export function initHud(world) {
   const mmLabel = document.createElement('div');
   mmLabel.className = 'hud-mm-label';
   root.appendChild(mmLabel);
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  defs.setAttribute('width', '0'); defs.setAttribute('height', '0'); defs.setAttribute('aria-hidden', 'true');
-  defs.style.position = 'absolute';
-  defs.innerHTML = '<defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs>';
-  root.appendChild(defs);
+  const defsWrap = document.createElement('div');
+  defsWrap.innerHTML = '<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs></svg>';
+  root.appendChild(defsWrap.firstChild);
   // #985: een tik op de minikaart opent de kaart (op een telefoon stond die achter "Meer")
   mmWrap.setAttribute('role', 'button');
   mmWrap.setAttribute('aria-label', 'Kaart openen');
