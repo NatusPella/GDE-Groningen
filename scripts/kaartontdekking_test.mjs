@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { ontvouw } from '../game/js/grenzen.js';
 import { bouwIndeling } from '../game/js/gebieden.js';
-import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M, REVEAL_MS } from '../game/js/kaartontdekking.js';
+import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M, REVEAL_MS, DETAIL, detailVoor, pinBlijftInMist } from '../game/js/kaartontdekking.js';
 
 let n = 0, fails = 0;
 const ok = (c, naam, extra = '') => { n++; if (!c) { fails++; console.log('FAIL ' + naam + (extra ? ' :: ' + extra : '')); } };
@@ -79,5 +79,16 @@ const buurten = ind.gebieden.filter((g) => g.niveau === 'buurt');
   ok(pausemenu.includes("toggle('showFog', 'Verkende gebieden op de kaart')"), 'de instelling staat nog in het menu');
 }
 
+// Het detailniveau per gebiedstoestand (20-11): onbezocht gebied toont geen straatnamen en geen pins, behalve de bewust getoonde doelen.
+{
+  ok(detailVoor('onzichtbaar').straatnamen === false && detailVoor('onzichtbaar').pins === false, 'onzichtbaar: geen straatnamen en geen pins');
+  for (const t of ['zichtbaar', 'bezig', 'veroverd']) ok(detailVoor(t).straatnamen && detailVoor(t).pins, t + ': het volle detail');
+  ok(detailVoor('onbekend') === DETAIL.onzichtbaar, 'een onbekende toestand valt terug op het minste detail');
+  for (const k of ['player', 'partner', 'goal', 'userWaypoint']) ok(pinBlijftInMist(k, {}), k + ' blijft zichtbaar in onbezocht gebied');
+  ok(pinBlijftInMist('mission', { isGoal: true }) && pinBlijftInMist('x', { self: true }), 'een bewust gekozen doel blijft');
+  ok(!pinBlijftInMist('mission', {}) && !pinBlijftInMist('shop-kapper', null) && !pinBlijftInMist('sj-taxi', undefined), 'winkels, bijbanen en missies verdwijnen');
+  const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  ok(mv.includes('pinBlijftInMist(kind, pick) && discoveryHidden(x, y)') && mv.includes('geen straatnamen in onbezocht gebied'), 'mapview filtert pins en straatnamen met het masker dat er al is (geen extra tekenpas)');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

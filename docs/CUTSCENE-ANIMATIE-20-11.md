@@ -75,3 +75,19 @@ Met de automatische gebaren en de clips (zelfde meting): 3686 acteur-seconden he
 - Knielen en hurken: de voeten kunnen iets in de grond of eroverheen staan; niet gemeten.
 - Sien heeft in de wereld geen eigen naam in de code; de scènes noemen "de kat". Een naam in de scènetekst is niet toegevoegd (geen tekstwijziging met TTS-koppeling).
 - Geen enkele clip is met een gast (Samen spelen) gespeeld; de gelijkheid volgt uit de test (zelfde scènetijd, zelfde cues).
+
+## 7. Beeld uit het echte spel (Electron met wereld)
+
+Run: `scripts/qa/cutscene_shots.mjs` via de slot-wrapper op de opening (keuken), M01.intro, M02.intro, M03.intro, M27.2 en M30.intro, 98 stills (één per camerastand), cutscenehost.js met de echte wereld, figuren, kat en camera. Het script kreeg drie reparaties om bruikbaar beeld te geven: een profielmap onder de uitvoermap (de %TEMP%-map was niet schrijfbaar), `GDE_NO_THROTTLE` en de achtergrond-vlaggen (zonder die vlaggen waren 76 stills dezelfde afbeelding), en `GDE_EXTRA_FLAGS`. Zes tot acht beelden staan in `docs/beeld-20-11/cutscenes/`.
+
+**Gezien en goed:** Tammo knielt bij de kat terwijl de kat staat of zit (M27.2, het knielen met de echte rig); Tessa met beide armen omhoog bij "Aanvallen." en de omstanders die juichen (M30.intro); de kat als echte wereldmesh met staart en poten; Tessa met een uitgestrekte arm (wijzen). Alle 98 stills zijn verschillend (geen bevroren beeld), 0 NaN-regels en 0 renderer-fouten in de log.
+
+**Gezien en gerepareerd:** het applaus (`applaus`) stond met rechte armen in een T-vorm; nu zitten de ellebogen gebogen en klappen de handen voor de borst (opnieuw gezien in M30.intro).
+
+**Gezien en niet door mij te repareren (voor de eigenaar):**
+- Het vaste testpunt van de run (Grote Markt, 200.8 / 45.4) heeft een fietsroutebord en lantaarnpalen die in meerdere standen door of voor een figuur staan (M01, M27.2, M30). Dat is wereldmeubilair op die plek; in het spel staat een scène op de plek van de missie, waar het anker bomen mijdt maar geen bord of paal. Een camera die een paal als "voorgrondobject" krijgt, is een bestaande beperking van `fitAnchor`, geen gevolg van de gebaren.
+- De keukenset staat in deze run in de open straat (de deur staat midden op het plein); in het spel staat hij in de flat. De zittende figuren aan tafel (de gebaren van Tessa en Tammo in de keuken) zijn dus niet in de echte keuken gezien.
+- Willemiens armen bij een gebaar met beide handen (`geven`, `handenschudden` met `mirror`) kruisen in één stand als twee gelijke stroken; de hoeken kloppen, maar een low-poly mouw leest daar slordig. Geen oplossing zonder eigen beeld per clip.
+
+**Niet gezien:** acteurs in de lucht en clipping van figuren met voertuigen (de scènes in deze run hebben er geen of nauwelijks); hapering bij cuts (geen fps-meting in een beeldrun, die mag niet naast een tweede instantie); het slot-gevoel van de gebaren als beweging (alleen stills).
+
