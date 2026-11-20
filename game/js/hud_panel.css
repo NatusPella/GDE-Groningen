@@ -118,7 +118,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-dist b { font-weight: normal; font-size: 25px; line-height: 1; color: var(--gron-green-light); }
 #hud .gps-dist span { font-size: max(13px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer { display: none; flex-direction: column; align-items: center; }
-#hud .gps-timer span { font-size: max(12px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
+#hud .gps-timer span { font-size: var(--hud-min); color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--hud-redtx, #ff9a9a); font-variant-numeric: tabular-nums; }
 #hud .hud-gps.has-timer .gps-timer, #hud .hud-gps.has-timer .gps-tsep { display: flex; }
 #hud .hud-gps.time-low .gps-timer b { animation: hud-timelow 0.5s ease-in-out infinite alternate; }
@@ -260,7 +260,7 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-name-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 #hud .hud-character { font-size: 17px; line-height: 1; color: #f0ede4; }
 #hud .hud-status { display: flex; gap: 4px; margin-left: 4px; }
-#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--hud-min)); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
+#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
 #hud .hud-chip[hidden] { display: none; }
 #hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
@@ -290,7 +290,7 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low .hud-bar { animation: none; } }
 
 /* savegame.js's toast, moved into the location block by hud_panel.js */
-#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--hud-min)); color: #a3b2a6; opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min); color: #a3b2a6; opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .hud-location .hud-saved { position: static; flex: none; }
 #hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
 #hud .hud-saved span { text-transform: lowercase; }
@@ -643,7 +643,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   border: 0;
   border-radius: 5px;
   color: #0c140e;
-  font-size: max(12px, var(--hud-min));
+  font-size: var(--hud-min);
   font-weight: bold;
   text-shadow: none;
   box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18);
@@ -816,7 +816,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .hud-mission[data-kind="job"] { --obj: var(--ds-c-ink-bord); }
 #hud .hud-mission[data-kind="police"] { --obj: var(--ds-probleem); }
 #hud .hud-obj-icon { fill: var(--obj); stroke: var(--hud-inkt); stroke-width: 1.4; filter: none; width: 22px; height: 22px; flex-basis: 22px; }
-#hud .hud-mission.pop .hud-obj-text { text-shadow: var(--ds-misdruk); animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-mission.pop .hud-obj-text { animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); } /* geen misdruk op lopende tekst (doel, toetsregel) */
 
 /* toetsplaatje op papier: inkt met papieren letter, zonder misdruk */
 #hud .hud-key, #cine .hud-key { background: var(--hud-inkt); color: var(--ds-c-ink-papier); box-shadow: none; border-radius: 4px; }
@@ -869,3 +869,25 @@ html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt)
 /* v3 (#993): het metgezel-ronde bolletje zonder portret was een los groen rondje; het portret staat pas als het er is */
 #hud .hud-mate-pic { border-radius: 6px; background: var(--ds-c-ink-papier); }
 #hud .hud-mate-pic:not(:has(img.on)) { display: none; }
+
+/* v3 (#993): de prestatietoast (achievements.js) als papier met inktrand en harde schaduw, zonder glas, gloed of blur */
+body #hud .ach-toast {
+  background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 10px solid var(--ds-c-ink-bord); border-radius: 8px;
+  box-shadow: var(--ds-schaduw-hard);
+}
+body #hud .ach-toast.gold { border-left-color: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard); }
+body #hud .ach-toast::after, body #hud .ach-toast .ach-rays, body #hud .ach-toast .ach-spark { display: none; }
+body #hud .ach-toast .ach-ico, body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: none; }
+body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
+body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--hud-min); }
+body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: none; }
+body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 15px/1.3 var(--ds-font-tekst-v3); letter-spacing: 0; }
+body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
+
+/* Stapeling zonder overlap (#993): de wijkkaart/id-kolom links onder en het doel delen de onderrand; op smalle schermen
+   zou het doel er dwars doorheen lopen. De kolom meet zijn bovenkant (--hud-f-top), het doel schuift erboven. */
+@media (max-width: 1500px) {
+  #hud .hud-mission { bottom: calc(max(var(--hud-edge) + 56px, var(--hud-f-top, 0px) + 12px)); }
+  body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
+}

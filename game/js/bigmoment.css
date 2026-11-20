@@ -38,7 +38,7 @@
 @keyframes bm-kaart-in { from { transform: translateY(24px) rotate(calc(var(--ds-schuin) * -1)); } to { transform: rotate(calc(var(--ds-schuin) * -1)); } }
 
 /* wanted up or down: a short tag at the right edge next to the stars, never full screen */
-.bm-wanted { right: 0; top: 30vh; }
+.bm-wanted { right: var(--ds-rand-hud); top: 30vh; }
 .bm-tag { box-sizing: border-box; max-width: min(420px, 70vw); display: flex; flex-direction: column; gap: 4px; padding: 10px 18px 12px 20px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-right: 0; box-shadow: var(--ds-schaduw-hard-roze); }
 .bm-tag .bm-klein { font-size: 15px; background: var(--ds-c-ink-roze); color: var(--ds-c-ink-inkt); box-shadow: none; }
 .bm-tag .bm-kop { font-size: 40px; line-height: 1; }
