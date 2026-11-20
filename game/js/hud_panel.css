@@ -865,3 +865,7 @@ html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt)
 @media (prefers-reduced-motion: reduce) {
   #hud .hud-money-delta.visible, #hud .hud-mission.pop .hud-obj-text, #hud .hud-weapon.switched .hud-weapon-icon { animation: none; }
 }
+
+/* v3 (#993): het metgezel-ronde bolletje zonder portret was een los groen rondje; het portret staat pas als het er is */
+#hud .hud-mate-pic { border-radius: 6px; background: var(--ds-c-ink-papier); }
+#hud .hud-mate-pic:not(:has(img.on)) { display: none; }

@@ -962,7 +962,8 @@ function placeCandidate(world) {
     if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : townTeaser(d) };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
-  return { key: 'w:' + d, kick: 'Grunn', name: d, line: wijkBlurb(d) };
+  // v3 (#993): een stadswijk staat al als label onder de minimap; een eigen kaart ernaast zou de naam dubbel tonen
+  return null;
 }
 
 function updatePlace(dt, world) {

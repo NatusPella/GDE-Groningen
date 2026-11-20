@@ -78,6 +78,8 @@
   html.rustig-drukwerk #loading { background-image: none; }
   html.rustig-drukwerk #loading::before { display: none; }
   html.rustig-drukwerk #loading .gde-mark, html.rustig-drukwerk #loading .gde-sign, html.rustig-drukwerk #loading .gde-sub, html.rustig-drukwerk #loading.ready .bt-key { animation: none; }
+  /* 720p en lager: logo kleiner en hoger, de balk op marge van de logosticker (#993) */
+  @media (max-height: 800px) { #loading .bt-logo { top: 8%; } #loading .gde-logo { font-size: 170px; } #loading .bt-load { top: 74%; } }
   @media (max-width: 760px) { #loading .gde-logo { font-size: 150px; } #loading .ld-bar { width: min(467px, 80vw); } #loading .bt-foot { flex-direction: column; align-items: flex-start; } #loading .bt-right { align-items: flex-start; text-align: left; } }
 
   #start-screen .key, #pause-menu .hud-key {
