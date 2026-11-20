@@ -72,7 +72,8 @@ import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouw
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
-import { buildStageSet, updateStageSet, disposeStageSet } from './stagesets.js';
+import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
+import { forceClearSweep } from './clearzonesweep.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
 import { buildMissionDressing, updateMissionDressing, disposeMissionDressing, spoorHoek } from './missiedecor.js';
 import { getRoutes } from './railway.js';
@@ -2603,7 +2604,14 @@ function enterStage(world, def, k) {
   // #956: een stap die zich binnen afspeelt zet de kamer om de speler (kantoor, serverkamer,
   // het Loket, Oma's keuken). In een auto slaan we hem over: dan blijft de stap in de open
   // lucht, zoals eerst. Twee dezelfde sets achter elkaar houden dezelfde kamer.
-  if (st.set && !p.inVehicle) S.set = reuse ? prev.set : buildStageSet(world, st.set, p, null, { variant: st.setVariant });
+  // echt binnen (docs/BINNENSETS-21-11.md): een stap die binnen hoort stapt eerst uit het voertuig, zodat de kamer er altijd staat
+  if (st.set && p.inVehicle && !reuse) { try { p.exitVehicle(world.map, world); } catch (e) { /* de stap speelt dan buiten, zoals eerst */ } }
+  if (st.set && !p.inVehicle) {
+    S.set = reuse ? prev.set : buildStageSet(world, st.set, p, null, { variant: st.setVariant });
+    S.camWorld = world;
+    if (S.set && !reuse) forceClearSweep();
+    chainState().binnen = S.set ? stageSetBinnen(S.set) : null; // de plek 'binnen' (missiestaat; de hold van de set houdt de speler erop)
+  }
   else if (reuse && prev && prev.set) { disposeStageSet(prev.set); prev.set = null; }
   // #955: de aankleding van een missie (de naspeling in Bourtange, het erf van
   // Tinus) staat om het doel van deze stap, met de kijkrichting van de speler.
@@ -2882,7 +2890,7 @@ function disposeStageDressing(keepSet = false) {
   disposeEindAankleding();
   const S = chainState().stage;
   if (S && S.wait) { disposeWaitDressing(S.wait); S.wait = null; }
-  if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; } // #956: de kamer gaat mee met de stap
+  if (S && S.set && !keepSet) { disposeStageSet(S.set); S.set = null; chainState().binnen = null; const cw = S.camWorld; if (cw && cw.cameraOverride && cw.cameraOverride.bron === 'binnenset') cw.cameraOverride = null; } // #956: de kamer gaat mee met de stap
   if (S && S.dressing) { disposeMissionDressing(S.dressing); S.dressing = null; } // #955: de aankleding gaat mee met de stap
   if (S && S.raceDecor) { for (const g of S.raceDecor) disposeRaceDecor(g); S.raceDecor = null; }
 }
@@ -3436,6 +3444,8 @@ function updateStages(dt, world, def) {
   // houdt hij de speler bij zijn stoel (anders loopt hij door de muur naar buiten).
   if (S.set) {
     updateStageSet(S.set, dt);
+    // echt binnen: de kamercamera blijft in de kamer, onder het plafond, zonder pan (binnenset.js); een cutscene gaat voor
+    if (!isCinematicActive()) { const cp = stageSetCamera(S.set); if (cp && (!world.cameraOverride || world.cameraOverride.bron === 'binnenset')) world.cameraOverride = cp; }
     if (S.set.hold) {
       p.x = S.set.hold.x; p.y = S.set.hold.y; p.angle = S.set.hold.angle;
       p.vx = 0; p.vy = 0; p.vz = 0;

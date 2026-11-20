@@ -67,3 +67,62 @@ export function shiftTime(t, dt) {
 export function placeTemplate(name, params, t) {
   return expandTemplate(name, params).map(({ dt, ...rest }) => ({ t: shiftTime(t, dt), ...rest }));
 }
+
+// ---- Pan-budget (eigenaar 20-11: te veel pannende shots) --------------------------------------------------------------------
+// Een "pan" is een shot dat de camera zichtbaar door de ruimte schuift of draait: een dolly of crane van meer dan PAN_MIN_TRAVEL m,
+// of een orbit van meer dan PAN_MIN_SWEEP graden. Budget per scène: hooguit PAN_BUDGET pan (de langste blijft, ingekort tot
+// PAN_MAX_TRAVEL m of PAN_MAX_SWEEP graden), dus nooit twee achter elkaar. De andere schuivers worden een bijna-vaste drift: even
+// langzaam als een ademhaling (hooguit 1 m of 10 graden), zodat de scène zijn montage houdt maar niet meer door de ruimte zwaait.
+// Puur en op data: cutscript.js past dit toe bij het compileren, dus ook de gegenereerde en oude scènes.
+export const PAN_BUDGET = 1;
+export const PAN_MIN_TRAVEL = 1.2;
+export const PAN_MIN_SWEEP = 12;
+export const PAN_MAX_TRAVEL = 4;
+export const PAN_MAX_SWEEP = 35;
+const DRIFT_TRAVEL = 1.0, DRIFT_SWEEP = 10;
+const path3 = (s) => Math.hypot(s.to[0] - s.from[0], s.to[1] - s.from[1], s.to[2] - s.from[2]);
+
+// Hoeveel de camera in dit shot zichtbaar schuift of draait: m voor dolly/crane, graden voor orbit, anders 0.
+export function shotTravel(s) {
+  if (!s) return 0;
+  if ((s.shot === 'dolly' || s.shot === 'crane') && Array.isArray(s.from) && Array.isArray(s.to)) return path3(s);
+  if (s.shot === 'orbit') return Math.abs(Number.isFinite(s.sweep) ? s.sweep : 60);
+  return 0;
+}
+export function isPan(s) {
+  if (!s) return false;
+  const t = shotTravel(s);
+  return s.shot === 'orbit' ? t > PAN_MIN_SWEEP : (s.shot === 'dolly' || s.shot === 'crane') && t > PAN_MIN_TRAVEL;
+}
+const scaleMove = (s, f) => ({ ...s, to: s.from.map((v, i) => v + (s.to[i] - v) * f) });
+
+// De shots (op tijd gesorteerd, t in seconden) binnen het budget. `duration` is de scèneduur voor het laatste shot.
+export function calmShots(shots, duration = Infinity) {
+  if (!Array.isArray(shots) || !shots.length) return shots || [];
+  const pans = [];
+  shots.forEach((s, i) => {
+    if (!isPan(s)) return;
+    const eind = i + 1 < shots.length ? shots[i + 1].t : duration;
+    pans.push({ i, span: (Number.isFinite(eind) ? eind : 99) - (Number.isFinite(s.t) ? s.t : 0) });
+  });
+  if (!pans.length) return shots;
+  const keep = new Set(pans.slice().sort((a, b) => b.span - a.span).slice(0, PAN_BUDGET).map((p) => p.i));
+  return shots.map((s, i) => {
+    if (!isPan(s)) return s;
+    const max = keep.has(i) ? { m: PAN_MAX_TRAVEL, g: PAN_MAX_SWEEP } : { m: DRIFT_TRAVEL, g: DRIFT_SWEEP };
+    if (s.shot === 'orbit') {
+      const sw = Number.isFinite(s.sweep) ? s.sweep : 60;
+      return Math.abs(sw) > max.g ? { ...s, sweep: Math.sign(sw) * max.g } : s;
+    }
+    const l = path3(s);
+    return l > max.m ? scaleMove(s, max.m / l) : s;
+  });
+}
+
+// Het aantal pans en of er twee achter elkaar staan (voor de test en de audit).
+export function panStats(shots) {
+  const list = Array.isArray(shots) ? shots : [];
+  let pans = 0, achter = 0;
+  list.forEach((s, i) => { if (isPan(s)) { pans++; if (i > 0 && isPan(list[i - 1])) achter++; } });
+  return { pans, achter, shots: list.length };
+}

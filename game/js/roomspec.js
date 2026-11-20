@@ -160,6 +160,6 @@ export function roomClamp(kind, at, x, y, z) {
   return {
     x: Math.max(at.x - (spec.w / 2 - 0.45), Math.min(at.x + (spec.w / 2 - 0.45), x)),
     y: Math.max(at.y - (spec.d / 2 - 0.45), Math.min(at.y + (spec.d / 2 - 0.45), y)),
-    z: Math.max(base + 0.3, Math.min(base + spec.h - 0.25, z)),
+    z: Math.max(base + 0.3, Math.min(base + spec.h - 0.3, z)),
   };
 }
