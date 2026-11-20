@@ -29,7 +29,7 @@ t('alles zit in de taxi: tussen de achterruit en de motorkap, binnen de portiere
   for (const d of cab.vast.filter((x) => x.g === 0)) {
     assert.ok(d.at[0] > -2.1 && d.at[0] < 3.1, `lengte ${d.at[0]}`);
     assert.ok(Math.abs(d.at[2]) < 1.3, `breedte ${d.at[2]}`);
-    assert.ok(d.at[1] > 0.1 && d.at[1] < 1.7, `hoogte ${d.at[1]}`);
+    assert.ok(d.at[1] > 0.1 && d.at[1] < 1.85, `hoogte ${d.at[1]}`);
   }
 });
 
@@ -42,7 +42,7 @@ t('het oog van de passagier zit rechts voorin, op zithoogte', () => {
 t('de straat vult het beeld: het dashboard, de stijlen en de hemel nemen minder dan de helft in', () => {
   const pitch = -0.03;
   const recht = C.beeldDekking(alles, C.TAXI_OOG, { yaw: 0, pitch, fov: 70 });
-  assert.ok(recht.open >= 0.44, `recht vooruit is ${Math.round(recht.open * 100)}% open`);
+  assert.ok(recht.open >= 0.52, `recht vooruit is ${Math.round(recht.open * 100)}% open`);
   // geen enkel onderdeel (de deur, een A-stijl, het dashboard) vult een groot deel van het beeld
   const top = Math.max(...Object.values(recht.geraakt));
   assert.ok(top < 0.2, `geen onderdeel vult meer dan 20% van het beeld (${Math.round(top * 100)}%)`);

@@ -13,9 +13,9 @@ export const TAXI_TARIEF = { start: 3.4, perKm: 2.2 };
 export const TAXI_OOG = { x: -0.4, y: 1.26, z: 0.36 };   // het oog van de passagier
 export const TAXI_VOORRUIT = { x0: 1.0, x1: 0.32 };       // onderkant (de bak) en bovenkant (de kop) van de voorruit
 
-const FLOOR = 0x2b2e33, PANEEL = 0x3b4048, DASH = 0x2d3036, DASH_TOP = 0x3a3f46, STOEL = 0x4a4f58, STOEL_RUG = 0x3d424a;
+const FLOOR = 0x2b2e33, PANEEL = 0x3b4048, DASH = 0x2d3036, DASH_TOP = 0x3a3f46, STOEL = 0x6a707a, STOEL_RUG = 0x5a606a;
 const HEMEL = 0xe8e4d8, STIJL = 0x2a2d33, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
-const HUID = 0xd9a98a, TRUI = 0x2f4a6b, BROEK = 0x23262e, PET = 0x2a2f38;
+const HUID = 0xf0bf9a, TRUI = 0x4f86c6, BROEK = 0x2c303a, PET = 0xf2f0e8;
 export const METER_AAN = 0xffb02e, METER_UIT = 0x2e2412;
 
 // Een stuk dat van punt p naar q loopt (arm, stijl, stang), als doos met de lengte langs x gedraaid.
@@ -119,8 +119,10 @@ function chauffeurDelen(sx, sz, stuur) {
   out.push(doos([sx, zit, sz], [0.5, 0.12, 0.5], STOEL), doos([sx - 0.3, zit + 0.3, sz], [0.1, 0.62, 0.5], STOEL_RUG), doos([sx - 0.34, zit + 0.7, sz], [0.08, 0.2, 0.28], STOEL));
   out.push(doos([sx + 0.03, zit + 0.4, sz], [0.3, 0.55, 0.42], TRUI));                 // romp
   out.push(doos([sx + 0.03, zit + 0.1, sz], [0.3, 0.14, 0.42], BROEK));                // heup
+  out.push(doos([sx + 0.02, zit + 0.64, sz], [0.18, 0.05, 0.26], 0xffffff));            // witte boord
+  out.push(staaf([sx + 0.2, zit + 0.66, sz - 0.1], [sx + 0.2, zit + 0.1, sz + 0.12], 0.03, 0x1b1d20)); // gordel
   out.push(doos([sx + 0.0, zit + 0.78, sz], [0.2, 0.22, 0.2], HUID));                  // hoofd
-  out.push(doos([sx - 0.06, zit + 0.86, sz], [0.1, 0.1, 0.22], 0x3a2a1e));               // haar achter de pet
+  out.push(doos([sx - 0.06, zit + 0.86, sz], [0.1, 0.1, 0.22], 0x5a3a22));               // haar achter de pet
   out.push(doos([sx + 0.11, zit + 0.76, sz + 0.1], [0.05, 0.05, 0.03], 0x1b1d20), doos([sx + 0.11, zit + 0.76, sz - 0.1], [0.05, 0.05, 0.03], 0x1b1d20)); // ogen
   out.push(doos([sx + 0.12, zit + 0.72, sz], [0.06, 0.07, 0.05], 0xc7967a));             // neus
   for (const e of [-1, 1]) out.push(doos([sx - 0.02, zit + 0.76, sz + e * 0.11], [0.04, 0.07, 0.03], 0xc7967a)); // oren
@@ -169,18 +171,18 @@ export function taxiCabine() {
   }
   // de stijlen: A (naar de voorruit), B (midden) en C (achter), links en rechts; een dak- en kopstijl
   for (const s of [-1, 1]) {
-    D.push(staaf([V.x0, 0.9, s * 0.8], [V.x1, 1.56, s * 0.72], 0.055, STIJL));
-    D.push(doos([-0.78, 1.24, s * 0.84], [0.08, 0.64, 0.07], STIJL));                    // B-stijl
-    D.push(staaf([-1.42, 0.93, s * 0.76], [-1.58, 1.52, s * 0.66], 0.08, STIJL));        // C-stijl
-    D.push(doos([-0.62, 1.585, s * 0.78], [2.1, 0.04, 0.05], STIJL));                    // dakrail
+    D.push(staaf([V.x0, 0.9, s * 0.8], [V.x1, 1.74, s * 0.72], 0.045, STIJL));
+    D.push(doos([-0.78, 1.33, s * 0.84], [0.06, 0.8, 0.05], STIJL));                    // B-stijl
+    D.push(staaf([-1.42, 0.93, s * 0.76], [-1.58, 1.7, s * 0.66], 0.06, STIJL));        // C-stijl
+    D.push(doos([-0.62, 1.73, s * 0.78], [2.1, 0.03, 0.04], STIJL));                    // dakrail
   }
-  D.push(doos([V.x1 - 0.0, 1.58, 0], [0.05, 0.05, 1.5], STIJL));                          // kopstijl bovenin de voorruit
-  D.push(doos([-1.58, 1.56, 0], [0.07, 0.07, 1.36], STIJL));                              // bovenkant achterruit
+  D.push(doos([V.x1 - 0.0, 1.74, 0], [0.04, 0.04, 1.5], STIJL));                          // kopstijl bovenin de voorruit
+  D.push(doos([-1.58, 1.72, 0], [0.05, 0.05, 1.36], STIJL));                              // bovenkant achterruit
   D.push(doos([-1.46, 1.02, 0], [0.4, 0.08, 1.5], PANEEL));                               // hoedenplank onder de achterruit
   // de hemel
-  D.push(doos([-0.69, 1.6, 0], [2.04, 0.03, 1.6], HEMEL), doos([-0.5, 1.58, 0.0], [0.24, 0.03, 0.14], 0xf4e6c0));
+  D.push(doos([-0.69, 1.77, 0], [2.04, 0.03, 1.6], HEMEL), doos([-0.5, 1.75, 0.0], [0.24, 0.03, 0.14], 0xf4e6c0));
   // de binnenspiegel, aan de kop van de voorruit
-  D.push(doos([V.x1 - 0.04, 1.52, 0.04], [0.03, 0.1, 0.24], STIJL), staaf([V.x1 - 0.01, 1.57, 0.04], [V.x1 - 0.04, 1.5, 0.04], 0.025, KNOP));
+  D.push(doos([V.x1 - 0.04, 1.62, 0.04], [0.03, 0.1, 0.24], STIJL), staaf([V.x1 - 0.01, 1.73, 0.04], [V.x1 - 0.04, 1.66, 0.04], 0.025, KNOP));
   // de achterbank, met twee hoofdsteunen
   D.push(doos([-1.1, 0.52, 0], [0.55, 0.12, 1.4], STOEL), doos([-1.36, 0.85, 0], [0.1, 0.62, 1.4], STOEL_RUG));
   for (const s of [-1, 1]) D.push(doos([-1.38, 1.22, s * 0.38], [0.08, 0.2, 0.3], STOEL));

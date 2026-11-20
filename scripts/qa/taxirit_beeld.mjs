@@ -17,13 +17,13 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-taxirit')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = profileDirFor(`gde-test-tr-${process.pid}`, OUT); // %TEMP% is voor Electron soms niet schrijfbaar
 const script = path.join(OUT, '_page.js');
-const cfg = { vanNaam: arg('van', 'Groningen'), naar: [arg('taxi', 'Winsum'), arg('trein', 'Delfzijl')], momenten: arg('momenten', '1.5,3,5,7.2,8.5,12.5,17,21').split(',').map(Number) };
+const cfg = { vanNaam: arg('van', 'Groningen'), naar: [arg('taxi', 'Winsum'), arg('trein', 'Delfzijl')], momenten: arg('momenten', '2.8,5,9.3,12.5,15,17,21').split(',').map(Number) };
 fs.writeFileSync(script, `window.__tr = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'taxirit_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
 delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1600x900',
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--in-process-gpu', '--force-device-scale-factor=1', `--window-size=${arg('size', '1600x900')}`,
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
 { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 20 * 60 * 1000, killSignal: 'SIGKILL' });

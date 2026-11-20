@@ -69,6 +69,10 @@ function bouwTaxi(world, optie, dest) {
       const q = baan(stand.s);
       if (spring) voorspel(q.x, q.y);
       cineDrive(v, w.map, q, stand.v, dt, spring ? zHoogte(w.map, q.x, q.y) : null);
+      // de verborgen speler rijdt mee: voertuigmeshes worden rond de speler getekend, en na de tijdsprong stond de taxi kilometers
+      // van hem af, zodat de cabine ontbrak in de laatste helft van de rit (beeldcheck #882)
+      const hp = hoofdspeler(w);
+      hp.x = v.x; hp.y = v.y; hp.gz = v.z || 0;
       if (stand.fase === 'sprong' && gezien !== 'sprong') { gezien = 'sprong'; const c = sluitStart(); voorspel(c.x, c.y, 10); }
       w.ritMeter = meter(stand.s);
       return { ...P.taxiCamera(P.taxiOog(v), t), cut: true };
