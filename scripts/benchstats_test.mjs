@@ -1,6 +1,6 @@
 // node scripts/benchstats_test.mjs: frame statistics, the profile advice, the
 // run comparison, the route and its storage (game/js/benchstats.js).
-import { frameStats, categoryStats, weakestCategory, recommendProfile, compareRuns, compareText, packRun, readLastRun, writeLastRun, BENCH_ROUTE, benchRouteSeconds, benchCategoryOf, heapMb, heapPeak, memText } from '../game/js/benchstats.js';
+import { frameStats, categoryStats, weakestCategory, recommendProfile, compareRuns, compareText, packRun, readLastRun, writeLastRun, BENCH_ROUTE, benchRouteSeconds, benchCategoryOf, heapMb, heapPeak, memText, playStats, shouldRemeasure, betterRun, ultraNote, recommendStand, STAND_LABEL, STAND_ORDER, benchMeasureAfter, benchLooksBusy } from '../game/js/benchstats.js';
 import { BASE_KEYS } from '../game/js/storagekeys.js';
 
 let fail = 0;
@@ -84,6 +84,35 @@ ok('no storage is fine', readLastRun({ getItem() { throw new Error('x'); } }) ==
   ok('memText: MB onder een GB, GB erboven met een komma', memText(597) === '597 MB' && memText(1494) === '1,5 GB' && memText(2428) === '2,4 GB', [memText(597), memText(1494)]);
   ok('memText zonder heap is leeg', memText(0) === '' && memText(-1) === '' && memText(null) === '');
   ok('packRun bewaart de piek van de heap', packRun({ stats: { ...s, avg: 60, p95: 20, low1: 30 }, cats: {}, memory: 1494.4 }).memory === 1494);
+}
+
+// 0.64.1 (Nikky, RX 9070 XT): speelbeeld zonder cutscenes, opnieuw meten, advies over de vier standen, Ultra-uitleg
+{
+  const frames = (n, v) => Array(n).fill(v);
+  const shots = [{ id: 'vismarkt', ms: frames(60, 10) }, { id: 'anita', ms: frames(60, 100) }, { id: 'vitrine', ms: frames(60, 100) }, { id: 'onbekend', ms: frames(500, 100) }];
+  const p = playStats(shots);
+  ok('playStats telt de cutscenes en onbekende shots niet', p && p.frames === 60 && near(p.avg, 100), JSON.stringify(p));
+  ok('playStats zonder genoeg beelden is null', playStats([{ id: 'vismarkt', ms: frames(10, 10) }]) === null && playStats(null) === null);
+  ok('een lage meting wordt één keer herhaald', shouldRemeasure({ avg: 24 }, 0) && !shouldRemeasure({ avg: 24 }, 1) && !shouldRemeasure({ avg: 70 }, 0) && !shouldRemeasure(null, 0));
+  ok('betterRun houdt de beste', betterRun({ stats: { avg: 24 } }, { stats: { avg: 40 } }).stats.avg === 40 && betterRun({ stats: { avg: 50 } }, { stats: { avg: 40 } }).stats.avg === 50 && betterRun({ stats: { avg: 24 } }, { aborted: true }).stats.avg === 24);
+  ok('de eerste shot slaat 1,5 s over, de rest 0,3 s', benchMeasureAfter(0) === 1.5 && benchMeasureAfter(3) === 0.3);
+  ok('Ultra onder 60 fps krijgt uitleg met Hoog', /Ultra is de zwaarste stand/.test(ultraNote('hoog', 24, { vlot: 58 })) && /58 fps/.test(ultraNote('hoog', 24, { vlot: 58 })));
+  ok('geen Ultra-uitleg op een andere stand of bij 60+', ultraNote('vlot', 24) === '' && ultraNote('hoog', 75) === '' && ultraNote('hoog', 0) === '');
+  ok('stand-labels volgen presetLabel: vlot heet Hoog, hoog heet Ultra', STAND_LABEL.vlot === 'Hoog' && STAND_LABEL.hoog === 'Ultra' && STAND_ORDER.join() === 'laag,middel,vlot,hoog');
+  const run = (avg, low1, p95) => ({ avg, low1, p95 });
+  let r = recommendStand(run(24, 12, 60), 'hoog');
+  ok('Ultra op 24 fps: advies Hoog, niet nog een keer Ultra', r.stand === 'vlot' && r.change === 'down', JSON.stringify(r));
+  r = recommendStand(run(24, 12, 60), 'vlot');
+  ok('Hoog op 24 fps: advies Midden', r.stand === 'middel' && r.change === 'down');
+  r = recommendStand(run(100, 70, 12), 'vlot');
+  ok('veel ruimte op Hoog: Ultra mag', r.stand === 'hoog' && r.change === 'up');
+  r = recommendStand(run(80, 50, 20), 'vlot');
+  ok('een matige ruimte op Hoog blijft Hoog (Ultra eist meer)', r.stand === 'vlot' && r.change === 'same', JSON.stringify(r));
+  r = recommendStand(run(80, 50, 20), 'middel');
+  ok('ruimte op Midden: Hoog', r.stand === 'vlot' && r.change === 'up');
+  r = recommendStand(run(120, 80, 10), null);
+  ok('eigen instellingen: gelden als Hoog', r.stand === 'hoog' || r.stand === 'vlot');
+  ok('drukke meting wordt herkend', benchLooksBusy({ p95: 250, low1: 4 }) && benchLooksBusy({ p95: 60, low1: 5 }) && !benchLooksBusy({ p95: 30, low1: 40 }) && !benchLooksBusy(null));
 }
 
 console.log(fail ? `${fail} FAILED` : 'all ok');
