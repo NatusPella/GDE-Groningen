@@ -89,3 +89,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0038](0038-altijd-online-met-instemming.md) | Altijd online met een verplichte naam en expliciete instemming | besloten |
 | [0032](0032-opening-terug-naar-gescripte-scene.md) | De standaardopening is weer de gescripte scène | besloten |
 | [0039](0039-licentievrije-audio-met-credits.md) | Licentievrije audio (CC0/CC-BY) van Freesound met credits | besloten |
+| [0040](0040-zomerse-zeefdruk-als-designsysteem.md) | Zomerse zeefdruk als enig designsysteem (v3) | besloten |
