@@ -22,14 +22,14 @@ ok(d({ specialDay: true }).big.clock && d({ timeGoal: true }).big.clock, 'clock 
 
 // stars: wanted + 6 s afterglow
 ok(d({ wanted: 2 }).show.stars, 'stars when wanted');
-ok(d({ wanted: 0, wantedAgo: 5 }).show.stars && !d({ wanted: 0, wantedAgo: 7 }).show.stars, 'stars glow on for 6 s');
+ok(d({ wanted: 0, wantedAgo: 3 }).show.stars && !d({ wanted: 0, wantedAgo: 5 }).show.stars, 'stars glow on for 4 s');
 // money
-ok(d({ moneyAgo: 1 }).show.money && !d({ moneyAgo: 6 }).show.money, 'money on change, gone after 5 s');
+ok(d({ moneyAgo: 1 }).show.money && !d({ moneyAgo: 5 }).show.money, 'money on change, gone after 4 s');
 ok(d({ nearShop: true }).show.money, 'money near a shop');
 ok(!d({ moneyAgo: 1, busy: true, wanted: 1 }).show.money, 'money coming in waits in a chase');
 // weapon / bars / vehicle
-ok(d({ armed: true }).show.weapon && !d({}).show.weapon, 'weapon only when armed');
-ok(d({ hpFull: false }).show.bars && d({ hpLow: true }).show.bars && !d({ hpFull: true, stamFull: true }).show.bars, 'bars only when not full');
+ok(d({ weaponAgo: 1 }).show.weapon && d({ fighting: true, armed: true }).show.weapon && !d({ weaponAgo: 5 }).show.weapon && !d({ armed: true }).show.weapon && !d({}).show.weapon, 'weapon on a change or a held fire button, gone after 4 s (v3)');
+ok(d({ hpAgo: 1, hpFull: false }).show.bars && d({ hpLow: true }).show.bars && !d({ hpFull: false, hpAgo: 9 }).show.bars && !d({ hpFull: true, stamFull: true }).show.bars, 'bars on a change or in danger, not for a steady wound (v3)');
 ok(d({ stamFull: false }).show.bars, 'bars while stamina is down');
 ok(d({ inVehicle: true }).show.vehicle && !d({}).show.vehicle, 'vehicle widgets only in a vehicle');
 ok(d({ keys: 2 }).show.keys && !d({ keys: 0 }).show.keys, 'keys only when there is something to do');
@@ -364,7 +364,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const cardsCss = readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
   ok(!/rgba\(232, 201, 58/.test(cardsCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(cardsCss), 'de prestatiekaart heeft één accent uit --hc');
   const pfCss = readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');
-  ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(pfCss) && /var\(--mk-user/.test(pfCss) && /var\(--mk-danger, #d93f3f\)/.test(pfCss), 'de telefoon gebruikt de tokens');
+  ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(pfCss) && /var\(--ds-/.test(pfCss) && !/#[0-9a-fA-F]{3,8}/.test(pfCss), 'de telefoon gebruikt de tokens');
   const ach = readFileSync(new URL('../game/js/achievements.js', import.meta.url), 'utf8');
   ok(/zones\.occupy\('E', 'ach', P3\)/.test(ach) && /zones\.vacate\('E', 'ach'\)/.test(ach), 'de prestatie-toast bezet zone E via het zonebord');
 }

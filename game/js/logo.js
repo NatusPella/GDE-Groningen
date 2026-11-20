@@ -1,4 +1,4 @@
-// The game's name and the GDE wordmark (CSS: .gde-logo in index.html). The
+// The game's name and the GDE wordmark (CSS: .gde-logo in index.html, a zeefdruk sticker, ADR 0040). The
 // series is GDE + a place on a place-name sign + a subtitle per game; a
 // sequel only swaps PLACE and SUBTITLE. index.html repeats the markup for the
 // loading and title screens, which show before any module has loaded.

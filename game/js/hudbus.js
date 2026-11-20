@@ -255,6 +255,7 @@ export const SURFACES = {
   scene: { files: ['cinematics.js', 'intromontage.js', 'respawn.js', 'reisrit.js', 'reisrit3d.js'], gates: [['narrative', 'scene']] },
   moment: { files: ['cinematics.js'], gates: [['moment', 'wijk'], ['moment', 'landmark'], ['moment', 'ommelanden'], ['moment', 'veroverd'], ['moment', 'crash'], ['moment', 'wanted5']] },
   banner: { files: ['cinematics.js'], zone: 'D', p: P0, gates: [['overlay', 'resultaat'], ['narrative', 'scene']] },
+  grotemomenten: { files: ['bigmoment.js'], zone: 'D', p: P0, gates: [['overlay', 'resultaat'], ['narrative', 'scene']] },
   naamkaart: { files: ['namecard.js'], gates: [['overlay', 'naamkaart']] },
   plaatsnaam: { files: ['hud_panel.js'], zone: 'B', p: P3, gates: [['overlay', 'locatie']] },
   wijkkaart: { files: ['cinematics.js'], zone: 'B', p: P3, gates: [['overlay', 'wijkkaart']] },
