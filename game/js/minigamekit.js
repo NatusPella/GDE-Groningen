@@ -204,6 +204,7 @@ body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gp
    minigame blijft de dikke linkerrand (identiteit), de tekst is inkt. Geen glas, geen verloop. */
 #hud .mg-board { color: var(--ds-c-ink-inkt); text-shadow: none; font-family: var(--ds-font-tekst-v3); background: var(--ds-c-ink-papier);
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--mg-acc, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
+#hud .mg-board, #hud .mg-board[data-sfeer] { overflow: hidden; }
 #hud .mg-board[data-sfeer] { box-shadow: var(--ds-schaduw-hard); }
 #hud .mg-board small { font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
 #hud .mg-board .mg-sfeer { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-inkt-zacht); }
