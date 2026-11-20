@@ -42,3 +42,22 @@
 .cs-meedoen-rij { display: flex; align-items: center; gap: 10px; font-size: 20px; cursor: pointer; }
 .cs-meedoen-sw { flex: none; margin: 0; accent-color: #3fc97a; cursor: pointer; }
 .cs-meedoen-sw:focus-visible { outline: 2px solid #f0ede4; outline-offset: 2px; }
+
+/* Zeefdruk (ADR 0040, #997): papier met inktrand en harde schaduw in plaats van donker glas; alleen tokens */
+.os-overlay { background: color-mix(in srgb, var(--ds-c-ink-inkt) 62%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; font-family: var(--ds-font-tekst-v3); color: var(--ds-zeef-tx); }
+.os-kaart { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+.os-eb { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); }
+.os-kaart h2 { font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk); }
+.os-uitleg, .os-consent { color: var(--ds-zeef-tx); }
+.os-naam { background: var(--ds-c-wit); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+.os-naam:focus-visible, .os-knop:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.os-consent-vink, .cs-meedoen-sw { accent-color: var(--ds-c-ink-bord); }
+.os-hint { color: var(--ds-tx-zacht); }
+.os-fout { color: var(--ds-c-rood-tx); }
+.os-knop { font-family: var(--ds-font-kop-v3); font-weight: 800; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
+.os-doorgaan, .os-meedoen { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); }
+.os-doorgaan:hover, .os-meedoen:hover { background: var(--ds-c-geel-hover); }
+.os-alleen { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
+.os-alleen:hover { background: var(--ds-c-sel-vlak); }
+.os-later { background: none; border: 0; box-shadow: none; color: var(--ds-zeef-tx); }
+.os-later:hover { color: var(--ds-zeef-tx); background: var(--ds-c-sel-vlak); }

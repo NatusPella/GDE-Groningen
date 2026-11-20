@@ -364,7 +364,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const cardsCss = readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
   ok(!/rgba\(232, 201, 58/.test(cardsCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(cardsCss), 'de prestatiekaart heeft één accent uit --hc');
   const pfCss = readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');
-  ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(pfCss) && /var\(--mk-user/.test(pfCss) && /var\(--mk-danger, #d93f3f\)/.test(pfCss), 'de telefoon gebruikt de tokens');
+  ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(pfCss) && /var\(--ds-/.test(pfCss) && !/#[0-9a-fA-F]{3,8}/.test(pfCss), 'de telefoon gebruikt de tokens');
   const ach = readFileSync(new URL('../game/js/achievements.js', import.meta.url), 'utf8');
   ok(/zones\.occupy\('E', 'ach', P3\)/.test(ach) && /zones\.vacate\('E', 'ach'\)/.test(ach), 'de prestatie-toast bezet zone E via het zonebord');
 }

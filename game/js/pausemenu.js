@@ -348,12 +348,12 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 const SECTIONS = [
   ['spel', 'Spel', 'Doorgaan, samen spelen en je spel opslaan'],
   ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
-  ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
-  ['veroverd', 'Veroverd', 'Je gebieden en wat meetelt'],
   ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
+  ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
+  ['veroverd', 'Veroverd', 'Je gebieden en wat meetelt'],
   ['prestaties', 'Prestaties', 'Wat je gehaald hebt en nog kunt halen'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['settings', 'Instellingen', 'Alles wat je ziet, hoort en bestuurt'],
@@ -364,14 +364,15 @@ const SECTIONS = [
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
-// #911: de rail heeft drie zichtbare groepen met een eigen kop en het aantal onderdelen
-// erachter, zodat je ziet hoeveel er is, waar het staat en waar het bij hoort: wat je nu
-// doet, wat van jou is, en het systeem eromheen. Over hangt onder Instellingen (een rij in
+// #911: de rail heeft zichtbare groepen met een eigen kop (sinds 20-11: Spel, Doen, Bezit, Voortgang, Systeem)
+// en het aantal onderdelen erachter, zodat je ziet hoeveel er is, waar het staat en waar het bij hoort. Over hangt onder Instellingen (een rij in
 // dat blad), want de rail houdt zijn vaste, scanbare vorm (#601). Cheats staat sinds #435
 // naast Instellingen: het was te verstopt onder Instellingen > Cheats.
 const RAIL_GROUPS = [
-  ['spelen', 'Spelen', ['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo']],
-  ['jij', 'Jij', ['map', 'spullen', 'garage', 'prestaties', 'fotos']],
+  ['spel', 'Spel', ['spel']],
+  ['doen', 'Doen', ['verhaal', 'todo', 'loopbaan', 'map']],
+  ['bezit', 'Bezit', ['spullen', 'garage']],
+  ['voortgang', 'Voortgang', ['veroverd', 'prestaties', 'fotos']],
   ['systeem', 'Systeem', ['settings', 'streken']],
 ];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
@@ -388,7 +389,7 @@ const SUBTABS = {
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
-  samen: [['samen', 'Samen spelen'], ['spelers', 'Spelers']],
+  samen: [['samen', 'Sessie'], ['spelers', 'Spelers']],
   // #604: alleen echte instellingen. Cheats staat sinds #435 als eigen onderdeel in de rail en het
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
@@ -418,7 +419,7 @@ function railPosition(id) {
   for (const [, label, members] of RAIL_GROUPS) {
     const zichtbaar = members.filter((m) => railIds.includes(m));
     const i = zichtbaar.indexOf(want);
-    if (i >= 0) return `${label} · ${i + 1} van ${zichtbaar.length}`;
+    if (i >= 0) return zichtbaar.length > 1 ? `${label} · ${i + 1} van ${zichtbaar.length}` : label;
   }
   return '';
 }
@@ -821,7 +822,7 @@ ${keyReuseHtml()}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}
       ${toggle('helpOffer', 'Hulp aanbieden', 'Na twee keer mislukken van dezelfde stap vraagt het spel of je hulp wilt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', `<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p>
 <div class="pm-a11yprev" role="img" aria-label="Proef: markerkleuren, routelijnen en tekst op deze stand">
-  <div class="pm-a11y-marks">${['ok', 'danger', 'mission', 'user', 'job', 'care', 'police'].map((r) => `<span class="pm-a11y-mk" data-mk="${r}">${r === 'user' ? 'doel' : r}</span>`).join('')}</div>
+  <div class="pm-a11y-marks">${['ok', 'danger', 'mission', 'user', 'job', 'care', 'police'].map((r) => `<span class="pm-a11y-mk" data-mk="${r}">${({ ok: 'goed', danger: 'gevaar', mission: 'missie', user: 'doel', job: 'baan', care: 'zorg', police: 'politie' })[r]}</span>`).join('')}</div>
   <div class="pm-a11y-routes"><span class="pm-a11y-route" data-route="verhaal"></span><span class="pm-a11y-route" data-route="doel"></span><span class="pm-a11y-route" data-route="klus"></span></div>
   <div class="pm-a11y-text"><span class="pm-a11y-13">13 px: een bericht op het scherm</span><span class="pm-a11y-20">20 px: een regel in het menu</span></div>
 </div>
@@ -2521,7 +2522,7 @@ function showTab(name, how) {
     const shown = [...g.querySelectorAll('[data-goto]')].filter((b) => !b.hidden).length;
     g.hidden = shown === 0;
     const cnt = g.querySelector('[data-gcount]');
-    if (cnt) cnt.textContent = String(shown);
+    if (cnt) cnt.textContent = shown > 1 ? String(shown) : '';
   }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');

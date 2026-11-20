@@ -62,7 +62,7 @@ const INK_WAS = {
   routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
   tintMini: 'rgb(6,12,9)', tintMap: 'rgb(4,8,12)',
   borderFriesland: '#e8b04a', borderDrenthe: '#c9a0e0', borderDuitsland: '#e86a5a', borderOther: '#e8e4d8', railBed: '#1b1d22',
-  routeLine: '#3fd0ff', missionArea: '#ffd84a', worldEnd: '#1f2a3a', discovery: '#5b625c',
+  routeLine: '#f9c80e', missionArea: '#ffd84a', worldEnd: '#1f2a3a', discovery: '#5b625c',
 };
 const rgbOf = (c) => toRgba(c).slice(0, 3).join();
 const rgbWas = (c) => (c[0] === '#' ? toRgba(c) : c.match(/\d+/g).map(Number)).slice(0, 3).join();

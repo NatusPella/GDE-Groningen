@@ -13,6 +13,7 @@ import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, statusRegels } from './gebiedenkaart.js';
+import { dsKleur } from './kaartkleuren.js';
 import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
 import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
@@ -327,6 +328,65 @@ function injectStyles() {
     .mapview-card .mv-pip[data-on] { color: ink(dark); border-color: transparent; }
     .mapview-card .mv-pip[data-m="1"][data-on] { background: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"][data-on] { background: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"][data-on] { background: ink(yellow); }
     .mapview-card .mv-btns { display: flex; gap: 6px; margin-top: 4px; }
+    /* Designsysteem v3 (issue 997, ADR 0040): de kaartchroom is een papieren plaatje met inktrand en harde
+       schaduw op de donkere kaart; alleen tokens, geen eigen kleur. De kaart zelf (MAP_PALETTE) blijft
+       donker tot de provinciepiramide opnieuw is gebakken. */
+    .mapview-overlay { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-tekst-v3); }
+    .mapview-header { color: var(--ds-zeef-kop); text-shadow: none; border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-title { font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk); }
+    .mv-modenote { color: var(--ds-zeef-tx) !important; }
+    .mapview-search input { color: var(--ds-zeef-tx); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-family: var(--ds-font-tekst-v3); font-size: max(15px, var(--menu-min, 15px)); }
+    .mapview-search input:focus, .mapview-search input:focus-visible { border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-klein); outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+    .mapview-search input::placeholder { color: var(--ds-tx-zacht); }
+    .mapview-results { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+    .mapview-results li { color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); }
+    .mapview-results li[aria-selected="true"], .mapview-results li:hover { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); }
+    .mapview-results .kind { color: var(--ds-tx-zacht); }
+    .mapview-results .empty { color: var(--ds-tx-zacht); }
+    .mapview-btn { color: var(--ds-primair-tx); background: var(--ds-zeef-primair); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; min-height: var(--ds-doel-aanraken); }
+    .mapview-btn:hover { background: var(--ds-c-geel-hover); }
+    .mapview-btn:active { background: var(--ds-c-geel-druk); box-shadow: none; transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); }
+    .mapview-btn.ghost { color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+    .mapview-btn.ghost:hover { color: var(--ds-zeef-tx); background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-inkt); }
+    .mapview-btn:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+    .mapview-route { color: var(--ds-zeef-tx); }
+    .mapview-route .user, .mapview-route .mission, .mapview-route .job, .mapview-route .care { color: var(--ds-zeef-tx); border-bottom: 4px solid currentColor; }
+    .mapview-route .user { border-bottom-color: var(--mk-user, ${ROUTE_COLORS.user}); }
+    .mapview-route .mission { border-bottom-color: var(--ds-c-ink-geel); }
+    .mapview-route .job { border-bottom-color: var(--mk-job, ${ROUTE_COLORS.job}); }
+    .mapview-route .care { border-bottom-color: var(--mk-care, ${ROUTE_COLORS.care}); }
+    .mapview-footer b { color: var(--ds-zeef-kop); }
+    .mapview-canvas { box-shadow: none; }
+    .mapview-zoom button { color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-zoom button:hover { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-inkt); }
+    .mapview-zoom button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+    .mapview-osm { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border-radius: 0; }
+    .mapview-tp { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-tooltip { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-tekst-v3); }
+    .mapview-tooltip .sub { color: var(--ds-zeef-kop); }
+    .mapview-legend { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+    .mapview-legend h3 { color: var(--ds-zeef-kop); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-legend .hint, .mapview-legend .note, .mapview-legend .always { color: var(--ds-tx-zacht); font-family: var(--ds-font-tekst-v3); }
+    .mapview-legend .mv-grp { background: var(--ds-c-papier-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+    .mapview-legend .mv-grp-head { color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-legend .mv-grp-head:focus-visible, .mapview-legend li[role="switch"]:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: calc(var(--ds-focus-dikte) * -1); }
+    .mapview-legend li { font-family: var(--ds-font-tekst-v3); font-size: max(16px, var(--menu-min, 16px)); }
+    .mapview-legend li[role="switch"]:hover { background: var(--ds-c-sel-vlak); }
+    .mapview-legend .chk { background: var(--ds-c-papier-2); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-sizing: border-box; }
+    .mapview-legend .chk::after { background: var(--ds-c-ink-inkt); top: 1px; left: 1px; }
+    .mapview-legend li[aria-checked="true"] .chk { background: var(--ds-c-ink-bord); }
+    .mapview-legend li[aria-checked="true"] .chk::after { background: var(--ds-c-ink-papier); }
+    .mv-naamkaart { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+    .mv-nk-k { color: var(--ds-zeef-kop); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mv-nk-n { color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk); }
+    .mv-nk-r { color: var(--ds-tx-zacht); font-family: var(--ds-font-tekst-v3); }
+    .mapview-card { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-tekst-v3); }
+    .mapview-card .mv-ico { background: var(--ds-c-papier-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+    .mapview-card b { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+    .mapview-card small, .mapview-card .mv-rec { color: var(--ds-tx-zacht); }
+    .mapview-card .mv-reisrij { color: var(--ds-zeef-tx); background: var(--ds-c-papier-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+    .mapview-card .mv-reisrij.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); }
+    .mapview-card .mv-pip[data-on] { color: var(--ds-c-ink-inkt); }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
   `);
   document.head.appendChild(style);
@@ -1988,6 +2048,26 @@ function niceScale(maxPx) {
   return best;
 }
 
+// De vignette van de kaart in het zeefdruk-pauzemenu (pausemenu.css, .gm): ze zit in het canvas, onder de legenda, de schaalbalk
+// en het kompas, en niet als laag van de pagina boven alle kaart-UI. Zo wordt niets van de kaart-UI gedimd.
+function drawVignette(ctx) {
+  const gm = state.overlay && state.overlay.classList.contains('embedded') && state.overlay.closest('.gm');
+  if (!gm) return;
+  const w = state.cw, h = state.ch, cx = w * 0.55, cy = h * 0.5;
+  const rx = Math.SQRT2 * Math.max(cx, w - cx), ry = Math.SQRT2 * Math.max(cy, h - cy);
+  const ink = dsKleur('ink-inkt');
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(rx, ry);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, ink + '00');
+  g.addColorStop(0.55, ink + '00');
+  g.addColorStop(1, ink + 'b3');
+  ctx.fillStyle = g;
+  ctx.fillRect(-cx / rx, -cy / ry, w / rx, h / ry);
+  ctx.restore();
+}
+
 function drawChrome(ctx) {
   // de legenda van Veroverd staat boven de pins en volledig dekkend (gezet in drawStaticOverlay)
   if (state.legendLaag) tekenLegenda(ctx, state.cw, state.ch, state.legendLaag);
@@ -2856,6 +2936,7 @@ function render(world) {
   ctx.drawImage(state.compose, 0, 0);
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
   drawDynamicMarkers(ctx, world);
+  drawVignette(ctx);
   drawChrome(ctx);
   updateHeader();
   if (state.frame % 20 === 0) refreshLegend(world);

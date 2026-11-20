@@ -139,3 +139,30 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
   #saveslots .ssl-hero-pic { width: 150px; } #saveslots .ssl-hero-lab { font-size: 36px; } #saveslots .ssl-hero-ic { width: 26px; height: 26px; }
   #saveslots .ssl-hero-prog { display: none; }
 }
+
+/* Zeefdruk (ADR 0040, #997): papier met inktrand in plaats van donker glas; de kleuren komen uit ds-tokens.css via .gm-zeef */
+#saveslots.gm-zeef { background: color-mix(in srgb, var(--ds-c-ink-inkt) 62%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#saveslots.gm-zeef .ssl-card { background: var(--ds-c-papier-2); box-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+#saveslots.gm-zeef .ssl-card:hover { background: var(--ds-c-sel-vlak); }
+#saveslots.gm-zeef .ssl-card.sel { box-shadow: var(--ds-schaduw-hard-klein); border-color: var(--ds-c-ink-bord); }
+#saveslots.gm-zeef .ssl-card.empty { background: none; border-style: dashed; }
+#saveslots.gm-zeef .ssl-pic, #saveslots.gm-zeef .ssl-hero-pic { background: var(--ds-c-papier-2); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#saveslots.gm-zeef .ssl-chip { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+#saveslots.gm-zeef .ssl-chip.on { background: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); }
+#saveslots.gm-zeef .ssl-chip.warn { background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx); }
+#saveslots.gm-zeef .ssl-go { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
+#saveslots.gm-zeef .ssl-more { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+#saveslots.gm-zeef .ssl-more:hover, #saveslots.gm-zeef .ssl-x:hover, #saveslots.gm-zeef .ssl-x:focus-visible { background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); }
+#saveslots.gm-zeef .ssl-over, #saveslots.gm-zeef .ssl-modal .ssl-box { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
+#saveslots.gm-zeef .ssl-modal { background: color-mix(in srgb, var(--ds-c-ink-inkt) 62%, transparent); }
+#saveslots.gm-zeef .ssl-modal .ssl-box { border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+#saveslots.gm-zeef .ssl-mi, #saveslots.gm-zeef .ssl-fb, #saveslots.gm-zeef .ssl-q p, #saveslots.gm-zeef .ssl-modal .ssl-box p { color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); }
+#saveslots.gm-zeef .ssl-q p, #saveslots.gm-zeef .ssl-modal .ssl-box p { font-family: var(--ds-font-tekst-v3); }
+#saveslots.gm-zeef .ssl-mi:hover, #saveslots.gm-zeef .ssl-mi:focus-visible, #saveslots.gm-zeef .ssl-fb:hover:not(:disabled), #saveslots.gm-zeef .ssl-fb:focus-visible, #saveslots.gm-zeef .ssl-chipbtn:hover, #saveslots.gm-zeef .ssl-chipbtn:focus-visible { background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); }
+#saveslots.gm-zeef .ssl-input { background: var(--ds-c-wit); color: var(--ds-zeef-tx); box-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#saveslots.gm-zeef .ssl-input:focus { border-color: var(--ds-c-ink-bord); }
+#saveslots.gm-zeef .ssl-chipbtn { border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-shadow: none; color: var(--ds-zeef-tx); }
+#saveslots.gm-zeef .ssl-msg { color: var(--ds-c-groen-tx); }
+#saveslots.gm-zeef .ssl-hero { background: var(--ds-c-groen-vlak); box-shadow: var(--ds-schaduw-hard-klein); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+#saveslots.gm-zeef .ssl-hero:hover { background: var(--ds-c-sel-vlak); }
+#saveslots.gm-zeef .m-bg.danger { color: var(--ds-c-rood-tx); box-shadow: none; border-color: var(--ds-c-rood); }

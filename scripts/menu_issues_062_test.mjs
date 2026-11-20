@@ -161,7 +161,7 @@ const html = leesHtml();
 {
   ok(/pm-rail-h/.test(pm) && /pm-rail-group/.test(pm), '#911: de rail heeft groepen met een kop');
   ok(/function railPosition/.test(pm) && /pm-sheet-pos/.test(pm), '#911: de bladkop zegt in welke groep en op welke plek je bent');
-  ok(/data-gcount/.test(pm) && /cnt\.textContent = String\(shown\)/.test(pm), '#911: de kop telt wat er echt in de rail staat');
+  ok(/data-gcount/.test(pm) && /cnt\.textContent = shown > 1 \? String\(shown\) : ''/.test(pm), '#911: de kop telt wat er echt in de rail staat');
   ok(/#pause-menu \.pm-rail-h \{/.test(css), '#911: de groepskop is klein en stil');
   ok(/pm-sheet-pos:empty/.test(css), '#911: zonder plek (het hoofdmenu) blijft de regel weg');
   // elke sectie heeft één korte zin, en die zegt wat je er doet

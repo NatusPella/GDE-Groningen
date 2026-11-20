@@ -13,7 +13,7 @@ import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
 import { zones, P1, P2, hudNow } from './hudrules.js';
-import { appForNote, senderForNote, senderOf } from './phoneapp.js';
+import { appForNote, senderForNote, senderOf, appNaam } from './phoneapp.js';
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -152,14 +152,14 @@ function showNote(w, n) {
   noticeFrom(p.from || 'Kiekdoar');
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');
-  el.className = 'pf-card';
+  el.className = 'pf-card ds-zeef ds-z-kaart';
   el.dataset.app = p.app;
   // #645: een dynamische kaart (naam, bedrag, missietitel) blijft op het kaartbudget
   const titel = fitCard(p.title), lichaam = fitCard(p.body);
   el.innerHTML =
-    `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
+    `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel"><small class="pf-appnaam">${esc(appNaam(p.app))}</small>${esc(p.from)}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (titel ? `<div class="pf-title">${dualHtml(titel)}</div>` : '') +
-    (lichaam ? `<div class="pf-body">${dualHtml(lichaam)}</div>` : '');
+    (lichaam ? `<div class="pf-body ds-z-kaart__tekst">${dualHtml(lichaam)}</div>` : '');
   stack.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
@@ -262,9 +262,9 @@ function hangUp() {
 }
 
 function callHtml(c) {
-  const state = c.live ? '<span class="pf-live">LIVE</span>' : `<span class="pf-state">${c.phase === 'ring' ? 'Inkomend gesprek' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
+  const state = c.live ? '<span class="pf-live ds-z-chip ds-z-chip--probleem">Live</span>' : `<span class="pf-state ds-z-chip ds-z-chip--uit">${c.phase === 'ring' ? 'Belt je' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
   return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(c.from))}</span>` +
-    `<span class="pf-callwho"><small>${c.live ? 'Kiekdoar Live' : 'Telefoon'}</small><b>${esc(c.from)}</b></span>${state}</div>` +
+    `<span class="pf-callwho"><small>${esc(appNaam(c.live ? 'live' : 'bel'))}</small><b>${esc(c.from)}</b></span>${state}</div>` +
     '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>';
 }
 
@@ -275,7 +275,7 @@ function beginCall(w, c) {
   c.i = -1;
   holdChannel('call', 'call', () => { if (call === c) finishCall(true); }, { alive: () => call === c });
   callEl = document.createElement('div');
-  callEl.className = 'pf-callcard' + (c.live ? ' live' : '');
+  callEl.className = 'pf-callcard ds-zeef ds-z-kaart' + (c.live ? ' live' : '');
   callEl.innerHTML = callHtml(c);
   stack.appendChild(callEl);
   void callEl.offsetWidth;
