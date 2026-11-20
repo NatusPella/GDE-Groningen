@@ -34,7 +34,7 @@ export const CAPS = {
   missionPropsOnRoad: 0, missionPropsInBuilding: 0, missionCraneAwayFromWater: 0,
   landmarkMisclassified: 0, stationAwayFromRail: 0, perronAwayFromRail: 13, landmarkInWater: 1, stationFootprintOnRailAfter: 0, stationFootprintOnRoadAfter: 0, stationFootprintInBuildingAfter: 0,
   // geen kit maar een gegeven: wat een herbouw van de tegels vraagt (rapport)
-  buildingsInWater: 7, buildingsOnRoad: 146, buildingsOnRail: 0, bridgesOverNothing: 145, bridgesRaisedOverNothing: 16,
+  buildingsInWater: 7, buildingsOnRoad: 146, buildingsInWaterAfter: 2, buildingsOnRoadAfter: 18, buildingsOnRail: 0, bridgesOverNothing: 145, bridgesRaisedOverNothing: 16,
   treesInWater: 83, treesInBuilding: 36, furnitureInWater: 80, furnitureInBuilding: 44,
 };
 
@@ -214,6 +214,10 @@ export async function runAudit(out, { list = false } = {}) {
     if (w) add('buildingsInWater', [b.type, b.name, Math.round(cx), Math.round(cy), w.kind]);
     const r = J.onRoad(cx, cy); if (r) add('buildingsOnRoad', [b.type, b.name, Math.round(cx), Math.round(cy), r.name || r.type]);
     if (J.onRail(cx, cy)) add('buildingsOnRail', [b.type, b.name, Math.round(cx), Math.round(cy)]);
+    // wat het spel bij het laden van de tegel overlaat (propfilter.misplacedBuilding, tileworld.js addTileSteps)
+    const mp = PF.misplacedBuilding(M, b);
+    if (w && !mp) add('buildingsInWaterAfter', [b.type, b.name, Math.round(cx), Math.round(cy), w.kind]);
+    if (r && !mp) add('buildingsOnRoadAfter', [b.type, b.name, Math.round(cx), Math.round(cy), r.name || r.type]);
   }
   // 4. brugdekken zonder iets eronder: water, spoor of een andere weg. Per OSM-weg beoordeeld (een weg is aan de
   //    tegelgrenzen in rijen geknipt; steun in een van de rijen telt voor de hele weg). Vlak (z <= 2,2 m: een brug over

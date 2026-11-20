@@ -978,7 +978,7 @@ export function init3D(map) {
     colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR, greenOf: grassFarColor, greenRank: grassFarRank },
     sidewalkExtra: SIDEWALK_EXTRA,
     roadColorOf: roadFarColor,
-    hideBuilding: (b) => hiddenBuildings.has(b),
+    hideBuilding: (b) => hiddenBuildings.has(b) || !!b.dropped, // dropped: een gebouw dat de tegelwereld wegliet (tileworld.js, #1045)
   });
   // streamed tiles (the province's, tileworld.js) join the far LOD as they
   // come and go; up close the detail streamers find them in the map's grids.
