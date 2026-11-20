@@ -933,3 +933,5 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .hud-key, #cine .hud-key { min-width: 26px; height: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; }
 #hud .hud-obj-key .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; }
 #hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; vertical-align: middle; }
+/* #985: op een laag venster (1024x600) laat het keuzepaneel of het minigamebord geen ruimte voor de toetshintstapel rechtsonder: de hints staan al in het paneel */
+@media (max-width: 1100px) and (max-height: 700px) { #hud:has(.cw-panel:not([hidden])) .hud-ctx, #hud:has(.mg-board:not([hidden])) .hud-ctx { opacity: 0; } }

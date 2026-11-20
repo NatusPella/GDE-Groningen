@@ -80,3 +80,17 @@ De doelkaart ("Nul krassen, vijftienhonderd punten", afstand, hulpregel) hangt b
 ## Beelden
 
 `docs/beeld-20-11/overlap/`: `voor-<formaat>-<scène>.png` (het begin van de dag), `na-<formaat>-<scène>.png` (laatste ronde) en `open-1024x600-<scène>.png` (wat niet is opgelost).
+
+## Ronde 2 (20-11, 0.64.0): 1024x600, toetsglyphs
+
+Deelmeting van 8 scènes (keuzepaneel, ondertitel, pad-hints x2, voet-doelkaart, auto-politie, bord-lang, bord-discgolf) met de laatste code; beelden `n3-<formaat>-<scène>.png`.
+
+| Formaat | Scènes | Overlap | Console-fouten |
+| --- | --- | --- | --- |
+| 1280x720 | 8 | **0** | 0 |
+| 1920x1080 | 8 | **0** | 0 |
+| 1024x600 | 8 | **10** (was 14 klassen) | 0 |
+
+- **Gefixt:** het keuzepaneel hangt onder 1100 px rechts onder zone C (de klok is vrij); de spraakbel ("Dan ben ik dus op tijd.") over de geldregel schuift nu uit de HUD-onderdelen (`hudrules.js bubblePlace` met obstakels uit `prompts.js`; de oorspronkelijke "onbekende div"); een ondertitelregel boven de locatiekaart staat als CSS (`@media (max-height: 720px)`, `a11y.css`); toetsplaatjes in de HUD zijn minstens 26 px (doelkaart, kaarten, prompts); stopvenster-glyph 28 px.
+- **Nog open op 1024x600:** (a) de ondertitel ligt nog over de locatie- en id-kaart (235 x 54 px): de CSS-regel `bottom: 200px` greep in de meting niet, oorzaak niet gevonden (`n3-1024x600-ondertitel-banter.png`); (b) keuzepaneel en minigamebord raken de toetshintstapel rechtsonder (24 x 48 px, de Esc-toets): daarvoor is een regel toegevoegd die de stapel verbergt zolang paneel of bord er staat, maar die is niet opnieuw gemeten; (c) een prestatie-toast over een regel van de auto-politie-scène (191 x 23 px).
+- **Glyphs niet gemeten:** de nieuwe toetsplaatjes van 26 px zijn alleen in de bovenstaande beelden te zien, niet per scherm (startkaart, menu-voetregel, stopvenster) bekeken; controllerglyphs waren al 26 tot 30 px (`a11y.css`) en zijn niet aangepast.
