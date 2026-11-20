@@ -237,7 +237,7 @@ ok(() => {
   assert.match(pm, /const wanneer = lastSavedText\(\)/, 'het moment van de laatste save komt uit dezelfde helper als de feiten');
   assert.match(pm, /Wil je het spel toch sluiten\?/, 'de sluitvariant blijft');
   assert.match(pm, /const exitBox = root\.querySelector\('\[data-exit-confirm\]'\);[\s\S]{0,160}showQuestion\(exitBox, false\);/, 'Escape ruimt de vraag op');
-  assert.match(pm, /for \(const box of root\.querySelectorAll\('\[data-exit-confirm\], \[data-quit-confirm\]'\)\) box\.hidden = true;\s*syncQuestionLayers\(\);\s*closeAction = null;/, 'het menu opent weer schoon');
+  assert.match(pm, /for \(const box of root\.querySelectorAll\('\[data-exit-confirm\], \[data-quit-confirm\](?:, \[data-find\])?'\)\) box\.hidden = true;\s*syncQuestionLayers\(\);\s*closeAction = null;/, 'het menu opent weer schoon');
 }, 'pauzemenu: een mislukte save bij Afsluiten of Herstarten blijft open met een keuze (#563)');
 
 console.log(`coopladen_test: ${n - fails}/${n}`);
