@@ -94,25 +94,23 @@ export function compactBoard(width, height) {
 
 // De sfeer van een activiteit (#595, #596): de gedeelde balk is de drager. Bordvorm, sfeernaam en tint
 // komen uit de ene sfeertabel; een bord zonder sfeer houdt de neutrale balk.
-import { sfeerVan, TINT_RGBA } from './activiteitensfeer.js';
-import { vormStijl } from './carrieresfeer.js';
+import { sfeerVan } from './activiteitensfeer.js';
 
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
-#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 310px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, var(--mk-ok, #3fc97a)); }
-#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
+#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 310px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: var(--ds-zeef-tx); text-shadow: none; pointer-events: none; z-index: 4; font-family: var(--ds-font-tekst-v3);
+  background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-top: var(--ds-s-2) solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); }
 #hud .mg-board .mg-ic { flex: none; }
 /* de sfeernaam klein naast de titel en één watermark in de marge (#595): geen tweede balk */
-#hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,237,228,0.62); font-style: normal; }
-#hud .mg-board .mg-watermark { position: absolute; right: 10px; bottom: -4px; font: 54px/1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 4px; text-transform: uppercase; color: var(--mg-acc, var(--mk-ok, #3fc97a)); opacity: 0.11; pointer-events: none; white-space: nowrap; }
+#hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) var(--ds-font-tekst-v3); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
+#hud .mg-board .mg-watermark { position: absolute; right: 10px; bottom: -4px; font: 800 54px/1 var(--ds-font-kop-v3); letter-spacing: 4px; text-transform: uppercase; color: var(--ds-c-ink-inkt); opacity: 0.08; pointer-events: none; white-space: nowrap; }
 #hud .mg-board[data-sfeerbord="scorekaart"], #hud .mg-board[data-sfeerbord="meetlat"] { border-radius: 0 10px 10px 0; }
 #hud .mg-board[data-sfeerbord="clubschild"], #hud .mg-board[data-sfeerbord="entreekaartje"] { border-radius: 14px 4px 4px 14px; }
 #hud .mg-board[data-sfeerbord="cockpitstrip"], #hud .mg-board[data-sfeerbord="startbord"], #hud .mg-board[data-sfeerbord="routebord"] { border-radius: 4px; }
-#hud .mg-board[data-sfeer] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mg-acc, #3fc97a) 22%, transparent); }
 /* #596: één vormvlak in de marge, per bordvorm een eigen silhouet, zonder tweede balk */
 #hud .mg-board[data-sfeer] { padding-left: 86px; }
-#hud .mg-board .mg-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 74px; opacity: 0.5; pointer-events: none; }
+#hud .mg-board .mg-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 74px; background-color: var(--ds-c-ink-bord); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); opacity: 0.22; pointer-events: none; }
 #hud .mg-board .mg-sfeer { min-width: 0; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hud .mg-board[data-sfeerbord="scorekaart"] .mg-vorm { width: 88px; clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%); }
 #hud .mg-board[data-sfeerbord="meetlat"] .mg-vorm { width: 56px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
@@ -127,7 +125,7 @@ const CSS = `
 #hud .mg-board[data-sfeerbord="routebord"] .mg-vorm { clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%); }
 #hud .mg-board[data-sfeerbord="vertrekbord"] .mg-vorm { width: 64px; clip-path: polygon(0 0, 100% 0, 100% 100%, 18% 100%); }
 /* #621: de rondvaart draagt de kadeband: het golfvlak links en een cream kadelijn onder */
-#hud .mg-board[data-sfeer="vaardienst"] { border-bottom: 2px solid var(--ink, #f0ede4); }
+#hud .mg-board[data-sfeer="vaardienst"] { border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 @media (max-width: 480px) { #hud .mg-board[data-sfeer] { padding-left: 12px; } #hud .mg-board .mg-vorm { display: none; } }
 /* #854: op een telefoon liggen de klok/datum links van Pauze en Meer. Een gecentreerd
    bord op de gewone hoogte schuift daar doorheen; het bord zakt op smalle liggende
@@ -158,45 +156,47 @@ const CSS = `
   body.plane-flying #hud .mg-board .mg-flash { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
-#hud .mg-board .mg-row b { font-weight: normal; color: var(--mk-mission, #e8c93a); font-size: 24px; }
+#hud .mg-board .mg-row b { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-zeef-tx); font-size: 24px; text-shadow: var(--ds-misdruk); }
 #hud .mg-board .mg-cells { display: flex; flex-wrap: wrap; gap: 3px; margin: 5px 0 2px; }
-#hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: max(13px, calc(13px / var(--ui, 1))); padding: 2px 0; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.75); }
+#hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: max(13px, calc(13px / var(--ui, 1))); padding: 2px 0; background: var(--ds-zeef-bg); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); color: var(--ds-zeef-tx); }
 /* touch: a cell with a key is a button (carillon bells) */
 html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch-action: none; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-#hud .mg-board .mg-cells i.on { background: color-mix(in srgb, var(--mk-mission, #e8c93a) 28%, transparent); color: #fff; }
-#hud .mg-board .mg-cells i.good { color: var(--mk-ok, #3fc97a); }
-#hud .mg-board .mg-cells i.bad { color: var(--mk-danger, #d93f3f); }
+#hud .mg-board .mg-cells i.on { background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); font-weight: 700; }
+#hud .mg-board .mg-cells i.good { background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); }
+#hud .mg-board .mg-cells i.bad { background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx); border-style: dashed; }
 /* good and bad also differ by shape, not by colour alone */
 #hud .mg-board .mg-cells i.good::before { content: '\\2713\\a0'; }
 #hud .mg-board .mg-cells i.bad::before, #hud .mg-board .mg-flash.bad::before { content: '\\2715\\a0'; }
 #hud .mg-board .mg-meter { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; }
 #hud .mg-board .mg-meter[hidden] { display: none; }
-#hud .mg-board .mg-meter .mg-bar { position: relative; flex: 1; height: 11px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.18); }
-#hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mg-acc, var(--mk-ok, #3fc97a)); }
-#hud .mg-board .mg-meter em { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #f0ede4; box-shadow: 0 0 0 1px rgba(12,20,14,0.7); }
-#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: max(14px, calc(14px / var(--ui, 1))); letter-spacing: 0.5px; color: #f0ede4; }
+#hud .mg-board .mg-meter .mg-bar { position: relative; flex: 1; height: 14px; background-color: var(--ds-zeef-bg); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); overflow: hidden; }
+#hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ds-c-ink-bord); border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#hud .mg-board .mg-meter em { position: absolute; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--ds-zeef-primair); border-left: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-right: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: max(14px, calc(14px / var(--ui, 1))); letter-spacing: 0.5px; color: var(--ds-zeef-tx); }
 #hud .mg-board .mg-extra[hidden] { display: none; }
 /* #619: de balanstip staat op een eigen regel, los van de puntenflits */
-#hud .mg-board .sk-bal { display: block; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.4px; color: var(--mk-job, #ff9a3c); margin: 2px 0 1px; }
+#hud .mg-board .sk-bal { display: block; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); letter-spacing: 0.4px; color: var(--ds-c-rood-tx); margin: 2px 0 1px; }
 /* een tussenstand als echte tabel (#617), geen rij chips */
-#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.82); }
+#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-zeef-tx); }
 #hud .mg-board .mg-stand th, #hud .mg-board .mg-stand td { padding: 1px 9px; font-weight: normal; text-align: right; }
 #hud .mg-board .mg-stand th[scope="row"], #hud .mg-board .mg-stand thead th:first-child { text-align: left; }
-#hud .mg-board .mg-stand thead th { font-size: max(12px, calc(12px / var(--ui, 1))); letter-spacing: 1px; color: rgba(240,237,228,0.6); }
-#hud .mg-board .mg-stand tr.on { background: rgba(63,201,122,0.18); color: #f0ede4; }
-#hud .mg-board .mg-stand tr.weg { opacity: 0.55; }
-#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
+#hud .mg-board .mg-stand thead th { font-size: max(12px, calc(12px / var(--ui, 1))); letter-spacing: 1px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-inkt-zacht); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+#hud .mg-board .mg-stand tr.on { background: var(--ds-c-sel-vlak); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); color: var(--ds-zeef-tx); font-weight: 700; }
+#hud .mg-board .mg-stand tr.weg { color: var(--ds-c-inkt-zacht); text-decoration: line-through; }
+#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-zeef-tx); }
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
-#hud .mg-board .mg-flash.bad { color: var(--mk-danger, #d93f3f); }
+#hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-groen-tx); min-height: 1em; }
+#hud .mg-board .mg-flash.bad { color: var(--ds-c-rood-tx); }
 body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .hud-nowplaying, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
-/* het stopvenster in de HUD-stijl (#596): Bebas + Arial Narrow, toetsplaatjes en 44 px-knoppen */
-.mg-stopask { position: fixed; left: 50%; top: 38%; transform: translateX(-50%); z-index: 60; pointer-events: auto; padding: 14px 22px; border-radius: 10px; background: rgba(12,20,14,0.94); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.16); color: #f0ede4; text-align: center; text-shadow: var(--hud-shadow); }
-.mg-stopask b { display: block; font: normal calc(26px * var(--ui, 1))/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
+/* het stopvenster op zeefdrukpapier (#596, #1000): Barlow + Atkinson, toetsplaatjes en 44 px-knoppen; Doorgaan is de gele hoofdknop */
+.mg-stopask { position: fixed; left: 50%; top: 38%; transform: translateX(-50%) rotate(var(--ds-schuin)); z-index: 60; pointer-events: auto; padding: var(--ds-s-4) var(--ds-s-5); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); color: var(--ds-zeef-tx); text-align: center; }
+.mg-stopask b { display: block; font: 800 calc(26px * var(--ui, 1))/1.1 var(--ds-font-kop-v3); letter-spacing: 0.04em; text-shadow: var(--ds-misdruk); }
 .mg-stopask .mg-stopbtns { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-.mg-stopask button { min-height: 44px; min-width: 44px; padding: 0 18px; border: 0; border-radius: 8px; background: var(--g, #3fc97a); color: var(--gd, #0f5c30); font: normal calc(20px * var(--ui, 1)) 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; }
-.mg-stopask button[data-do="stop"] { background: var(--mk-danger, #d93f3f); color: #fff; }
-.mg-stopask small { display: block; margin-top: 8px; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.72); }
+.mg-stopask button { min-height: var(--ds-doel-aanraken); min-width: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); font: 800 calc(20px * var(--ui, 1)) var(--ds-font-kop-v3); letter-spacing: 0.04em; cursor: pointer; box-shadow: var(--ds-schaduw-hard-klein); }
+.mg-stopask button:active { transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); box-shadow: none; }
+.mg-stopask button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+.mg-stopask button[data-do="stop"] { background: var(--ds-zeef-bg); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
+.mg-stopask small { display: block; margin-top: 8px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-c-inkt-zacht); }
 /* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
 @media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - 330px); } }
 @media (max-width: 480px) { #hud .mg-board { top: 64px; left: 50%; transform: translateX(-50%); min-width: 0; max-width: calc(100vw - 32px); } }
@@ -249,22 +249,25 @@ export const key = (t) => `<span class="hud-key">${t}</span>`;
 // createBoard(title, accent) still works as before.
 const MG_ICONEN = {
   // discgolf: een hoekige schijf (de basket staat op de baan, niet in het bord)
-  disc: `<polygon points="4,17 11,14 18,17 12,20" fill="#17301f"/><polygon points="11,5 18,8.5 18,15.5 11,19 4,15.5 4,8.5" fill="#f0ede4"/><polygon points="11,5 18,8.5 11,12" fill="#ffffff"/><polygon points="11,12 18,15.5 11,19" fill="#cfcbbd"/><polygon points="11,12 4,15.5 4,8.5" fill="#d9d5c6"/>`,
+  disc: `<polygon points="4,17 11,14 18,17 12,20" style="fill:var(--ds-c-ink-inkt)"/><polygon points="11,5 18,8.5 18,15.5 11,19 4,15.5 4,8.5" style="fill:var(--ds-c-ink-bord)"/><polygon points="11,5 18,8.5 11,12" style="fill:var(--ds-c-ink-papier)"/><polygon points="11,12 18,15.5 11,19" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="11,12 4,15.5 4,8.5" style="fill:var(--ds-c-inkt-zacht)"/>`,
   // golf: de vlag in de hole
-  vlag: `<ellipse cx="12" cy="20.5" rx="6" ry="2" fill="#17301f"/><polygon points="12,3 12,20 13.2,20 13.2,3" fill="#f0ede4"/><polygon points="13.2,3.5 21,6.8 13.2,10.2" fill="#d93f3f"/><polygon points="13.2,3.5 21,6.8 13.2,6.8" fill="#ec6b5a"/>`,
+  vlag: `<ellipse cx="12" cy="20.5" rx="6" ry="2" style="fill:var(--ds-c-ink-inkt)"/><polygon points="12,3 12,20 13.2,20 13.2,3" style="fill:var(--ds-c-ink-bord)"/><polygon points="13.2,3.5 21,6.8 13.2,10.2" style="fill:var(--ds-c-ink-roze)"/><polygon points="13.2,3.5 21,6.8 13.2,6.8" style="fill:var(--ds-c-ink-roze)"/>`,
   // skatepark: een deck met twee wielen
-  skate: `<polygon points="3,10 20,7.5 21.5,11.5 4.5,14" fill="#f0ede4"/><polygon points="4.5,14 21.5,11.5 21.5,12.8 4.5,15.3" fill="#cfcbbd"/><polygon points="7,15.3 9.4,15 9.4,18 7,18.3" fill="#17301f"/><polygon points="16,13.6 18.4,13.3 18.4,16.3 16,16.6" fill="#17301f"/>`,
+  skate: `<polygon points="3,10 20,7.5 21.5,11.5 4.5,14" style="fill:var(--ds-c-ink-bord)"/><polygon points="4.5,14 21.5,11.5 21.5,12.8 4.5,15.3" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="7,15.3 9.4,15 9.4,18 7,18.3" style="fill:var(--ds-c-ink-inkt)"/><polygon points="16,13.6 18.4,13.3 18.4,16.3 16,16.6" style="fill:var(--ds-c-ink-inkt)"/>`,
   // karten: de geblokte finishvlag
-  kart: `<polygon points="3,2.5 4.6,2.5 4.6,21.5 3,21.5" fill="#cfcbbd"/><polygon points="4.6,3 21,3 21,13.5 4.6,13.5" fill="#f0ede4"/><polygon points="4.6,3 8.7,3 8.7,8.2 4.6,8.2" fill="#17301f"/><polygon points="12.8,3 16.9,3 16.9,8.2 12.8,8.2" fill="#17301f"/><polygon points="8.7,8.2 12.8,8.2 12.8,13.5 8.7,13.5" fill="#17301f"/><polygon points="16.9,8.2 21,8.2 21,13.5 16.9,13.5" fill="#17301f"/>`,
+  kart: `<polygon points="3,2.5 4.6,2.5 4.6,21.5 3,21.5" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="4.6,3 21,3 21,13.5 4.6,13.5" style="fill:var(--ds-c-ink-bord)"/><polygon points="4.6,3 8.7,3 8.7,8.2 4.6,8.2" style="fill:var(--ds-c-ink-inkt)"/><polygon points="12.8,3 16.9,3 16.9,8.2 12.8,8.2" style="fill:var(--ds-c-ink-inkt)"/><polygon points="8.7,8.2 12.8,8.2 12.8,13.5 8.7,13.5" style="fill:var(--ds-c-ink-inkt)"/><polygon points="16.9,8.2 21,8.2 21,13.5 16.9,13.5" style="fill:var(--ds-c-ink-inkt)"/>`,
   // de golfset (golficons.js): bal, wedge, putter, zand, water, beurt, oog en winnaar
   ...GOLF_VORM,
   // #627: drie vlaggetjes (de kermis) en de gondel van het rad
-  vlaggen: `<polygon points="3,5 3,20 4.5,20 4.5,5" fill="#cfcbbd"/><polygon points="4.5,5 12,7 4.5,10" fill="#e8523a"/><polygon points="12,3 12,18 13.5,18 13.5,3" fill="#cfcbbd"/><polygon points="13.5,3 21,5 13.5,8" fill="#f2c744"/>`,
-  gondel: `<polygon points="9,3 15,3 15,5 9,5" fill="#cfcbbd"/><polygon points="11.4,5 12.6,5 12.6,15 11.4,15" fill="#cfcbbd"/><polygon points="5,16 19,16 16.5,21 7.5,21" fill="#f0ede4"/><polygon points="7.5,17.5 16.5,17.5 16.5,19 7.5,19" fill="#b9a27a"/>`,
+  vlaggen: `<polygon points="3,5 3,20 4.5,20 4.5,5" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="4.5,5 12,7 4.5,10" style="fill:var(--ds-c-ink-roze)"/><polygon points="12,3 12,18 13.5,18 13.5,3" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="13.5,3 21,5 13.5,8" style="fill:var(--ds-c-ink-geel)"/>`,
+  gondel: `<polygon points="9,3 15,3 15,5 9,5" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="11.4,5 12.6,5 12.6,15 11.4,15" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="5,16 19,16 16.5,21 7.5,21" style="fill:var(--ds-c-ink-bord)"/><polygon points="7.5,17.5 16.5,17.5 16.5,19 7.5,19" style="fill:var(--ds-c-inkt-zacht)"/>`,
   // #630: de duif van de duivenmelker
-  duif: `<polygon points="4,8 7,6 10,4 14,5 16,7 20,6 17,10 19,13 15,13 14,17 11,15 8,16 7,13 4,12 6,10" fill="#f0ede4"/><polygon points="6,10 9,8 12,9 10,12" fill="#cfcbbd"/><polygon points="15,7 17,9 16,11 14,9" fill="#cfcbbd"/><ellipse cx="7" cy="10" rx="2.4" ry="1.6" fill="#f0ede4"/><polygon points="22,11 19,9 19,13" fill="#d9662e"/>`,
+  duif: `<polygon points="4,8 7,6 10,4 14,5 16,7 20,6 17,10 19,13 15,13 14,17 11,15 8,16 7,13 4,12 6,10" style="fill:var(--ds-c-ink-bord)"/><polygon points="6,10 9,8 12,9 10,12" style="fill:var(--ds-c-inkt-zacht)"/><polygon points="15,7 17,9 16,11 14,9" style="fill:var(--ds-c-inkt-zacht)"/><ellipse cx="7" cy="10" rx="2.4" ry="1.6" style="fill:var(--ds-c-ink-bord)"/><polygon points="22,11 19,9 19,13" style="fill:var(--ds-c-ink-roze)"/>`,
 };
 
+// Zeefdruk (ADR 0040, #1000): het bord en het stopvenster dragen de identiteit van een spel met het embleem (`icoon`) en de
+// bordvorm uit de sfeertabel, in de vijf inkten; `accent` kleurt geen scherm meer en wordt alleen nog door de wereld gelezen
+// (markeringen en 3D-details van het spel zelf). De proefset golf en farming (#1004) krijgt een eigen embleemtabel.
 export const MG_THEMA = {
   discgolf: { titel: 'DISCGOLF STADSPARK', accent: '#f08a2e', icoon: 'disc' },
   pitchputt: { titel: 'PITCH & PUTT', accent: '#46b36a', icoon: 'vlag' },
@@ -321,8 +324,8 @@ export const mgThema = (id) => MG_THEMA[id] || null;
 export function sfeerVlakHtml(id) {
   const sfeer = sfeerVan(id);
   if (!sfeer) return '';
-  const vlak = vormStijl(sfeer.vorm);
-  return vlak ? `<span class="mg-vorm" aria-hidden="true" style="${vlak}background-color:${TINT_RGBA[sfeer.tint]};background-repeat:repeat;"></span>` : '';
+  const vlak = !!sfeer.vorm;
+  return vlak ? `<span class="mg-vorm" aria-hidden="true"></span>` : '';
 }
 
 export function createBoard(title, accent) {
@@ -340,13 +343,14 @@ export function createBoard(title, accent) {
   }
   const root = document.createElement('div');
   root.className = 'mg-board';
-  root.style.setProperty('--mg-acc', kleur || 'var(--mk-ok, #3fc97a)');
+  // de identiteit van het spel is het embleem plus de bordvorm; de kleur (kleur/accent) leest alleen de wereld nog (markeringen, 3D)
+  root.style.setProperty('--mg-acc', 'var(--ds-c-ink-bord)');
   if (thema) root.dataset.mg = title;
   if (sfeer) { root.dataset.sfeer = title; root.dataset.sfeerbord = sfeer.bordvorm; }
   // #596: het vormvlak van de sfeer, uit dezelfde patroontabel als de loopbaanbanden
-  const vlak = sfeer ? vormStijl(sfeer.vorm) : '';
+  const vlak = !!(sfeer && sfeer.vorm);
   root.hidden = true;
-  root.innerHTML = `${vlak ? `<span class="mg-vorm" aria-hidden="true" style="${vlak}background-color:${TINT_RGBA[sfeer.tint]};background-repeat:repeat;"></span>` : ''}<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span>${sfeer ? `<em class="mg-sfeer">${sfeer.naam}</em>` : ''}</small>${sfeer ? `<b class="mg-watermark" aria-hidden="true">${sfeer.naam}</b>` : ''}<div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
+  root.innerHTML = `${vlak ? `<span class="mg-vorm" aria-hidden="true"></span>` : ''}<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span>${sfeer ? `<em class="mg-sfeer">${sfeer.naam}</em>` : ''}</small>${sfeer ? `<b class="mg-watermark" aria-hidden="true">${sfeer.naam}</b>` : ''}<div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
   (document.getElementById('hud') || document.body).appendChild(root);
   // #854/#877/#881: op een korte telefoon (liggend) en op een smalle telefoon
   // (staand) kan het bord niet op de gewone hoogte gecentreerd staan zonder zone C
