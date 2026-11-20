@@ -171,6 +171,118 @@ Groepen die samen één beeldrun zijn: water/kade (#949, #936, #918, #948, #884)
 | #472 | PERF-METING: de samenvatting spreekt de eigen vervolgen tegen | bug | hoog | 0 | 0 | geen commit en geen test |
 | #467 | Audiobank: twee ongebruikte winterregels opruimen | wens | laag | 0 | 0 | geen commit en geen test |
 
+## Categorie D: stand na codecontrole (20-11, tweede ronde)
+
+De eerste indeling klopte niet: de fixes van 0.63.0 en 0.65.0 zaten in bundelcommits zonder `#n` in de commitregel, maar de code noemt het nummer wel (comment, test, CHANGELOG). Van de 105 hadden 104 code of een test met hun nummer; alleen #765 was echt niet gefixt (nu wel). Rode tests: `voice_lookup_audit_test` (#924, eigenaarsbesluit TTS), `buildonly_test` (ds-galerij.js, design-agent), `firstperson_test` (scene3d.js 4516 regels, grens 4500 van #497; wijziging van een andere agent) en `menu_issues_062_test` (#909/#910 in pausemenu.css, lopend werk van de design-agent). De commithashes in de oude issue-comments bestaan niet meer in deze geschiedenis; bewijs is dus de code plus de tests. **Niets is in beeld bekeken**: visuele issues blijven "beeld nodig" tot een beeldrun. Geen issue is gesloten.
+
+| # | Titel | Stand |
+|---|---|---|
+| #979 | Escape > Spel > Camera & Richten en Hints & Uitleg horen bij Instellingen | code aanwezig (game/js/pausemenu.css, game/js/pausemenu.js); test groen: instellingen_test.mjs, menu_issues_062_test.mjs; wens, beeld nodig |
+| #977 | Kavelgrenzen lopen dwars door dorpen op de kaart (o.a. Marum) | code aanwezig (game/js/countrymap.js, game/js/mapview.js); test groen: kavelgrenzen_test.mjs; beeld nodig |
+| #975 | Meldingen staan te kort in beeld (o.a. radiomelding) | code aanwezig (game/js/hud_panel.js, game/js/hudrules.js); test groen: hudmeldingen_test.mjs, proef_detect_test.mjs; beeld nodig |
+| #974 | Aardbeving: impact visueel en qua geluid veel heftiger maken | code aanwezig (game/js/audio.js, game/js/eventrules.js, game/js/worldevents.js); test groen: events_test.mjs; wens, beeld nodig |
+| #973 | Makkelijk een game van iemand anders joinen / serverbrowser | code aanwezig (game/js/lobby.js); test groen: samenbrowser_test.mjs; wens, beeld nodig |
+| #972 | Loopbaan landbouw: veel meer begeleiding en eigen velden op de kaart | code aanwezig (game/js/loopbaan.js, game/js/loopbaanui.js, game/js/mapview.js); test groen: landbouw_test.mjs; wens, beeld nodig |
+| #971 | Grijze knop "Spelers" rechtsonder is vaag | code aanwezig (game/js/coopspelers.js, game/js/coopspelersui.js); test groen: hudmeldingen_test.mjs; beeld nodig |
+| #970 | Politieauto rijdt door de garagemuur; mensen lopen door muren | code aanwezig (game/js/breakables.js); test groen: garage_muur_test.mjs; beeld nodig |
+| #969 | Koeienmissie: de schuur waar je heen moet is niet zichtbaar | code aanwezig (game/js/pg_koe.js); test groen: ommelandplace_test.mjs; beeld nodig |
+| #967 | Wegmarkeringen blijven liggen als een brug openslaat | code aanwezig (game/js/movablebridges.js, game/js/movablebridges3d.js, game/js/scene3d.js); test groen: movable_paint_test.mjs; beeld nodig |
+| #966 | Keybind-hints voor radio/muten weghalen uit de HUD | code aanwezig (game/js/hud_panel.js); test groen: coopgeluid_test.mjs, hudmeldingen_test.mjs; wens, beeld nodig |
+| #965 | Spel > Overzicht: grote kop schuift onder de tabs en wordt afgekapt | code aanwezig (game/js/pausemenu.css, game/js/pausemenu.js, game/js/todoui.js); test groen: progress_test.mjs, spelmenu_test.mjs; beeld nodig |
+| #964 | Voertuigen rijden door cutscenes heen | code aanwezig (game/js/cinehide.js, game/js/cinematics.js, game/js/scene3d.js); test groen: cinehide_test.mjs; beeld nodig |
+| #961 | Stationsperrons kloppen niet: spawn naast perron, automaat door perron, station Noord blok | code aanwezig (game/js/elevation.js, game/js/perrons3d.js, game/js/stationtravel.js); test groen: perrons_test.mjs, station_machine_test.mjs; beeld nodig |
+| #960 | Tessa en Tammo zeggen te vaak "wij tweeën tegen de rest" | code aanwezig (game/js/missionstory.js); test groen: duo_repeat_test.mjs; beeld nodig |
+| #957 | Timing-minigames (heen-en-weer-balk + spatie) zijn te moeilijk | code aanwezig (game/js/heist.js, game/js/missions.js, game/js/regelwidget.js); test groen: regelwidget_test.mjs, stagetiming_test.mjs; wens, beeld nodig |
+| #954 | Uitkijkpunt bij Bourtange werkt niet | code aanwezig (game/js/regiolevenrt.js, game/js/verkenpunten.js); test groen: uitkijkpunt_test.mjs; beeld nodig |
+| #951 | Treinmissie met mevrouw Hoving: geen trein en stil blijven staan volstaat | code aanwezig (game/js/missions_akte4.js, game/js/railway.js, game/js/stagerit.js); test groen: missieplek_test.mjs; beeld nodig |
+| #949 | Auto verdwijnt in het water via een graskade; graag physics/plons i.p.v. animatie | code aanwezig (game/js/vehicle.js, game/js/wateredge.js); test groen: waterkant_test.mjs; beeld nodig |
+| #948 | Bootmissie: je vaart onder de grond op een plek zonder water | code aanwezig (game/js/missions_akte4.js, game/js/util.js, game/js/vehicle.js); test groen: akte4_test.mjs, boat_land_test.mjs; beeld nodig |
+| #947 | Reizen-paneel opent spontaan na een missie | code aanwezig (game/js/storytravel.js); test groen: storytravel_test.mjs; beeld nodig |
+| #946 | Langere dagen en kortere nachten (zomerse daglichtcyclus) | code aanwezig (game/js/daynight.js, game/js/menuplekken.js, game/js/sunrules.js); test groen: menuplekken_test.mjs, summerday_test.mjs; wens, beeld nodig |
+| #945 | Procedurele akkerranden lopen over de weg; alleen echte akkerranden maken | code aanwezig (game/js/countryside.js); test groen: fielderand_test.mjs; beeld nodig |
+| #942 | Interieur van sommige autos beweegt niet mee (zeker na schade) | code aanwezig (game/js/carinterior.js, game/js/firstpersoncam.js, game/js/seating3d.js); test groen: firstperson_test.mjs; beeld nodig |
+| #941 | First-person camera op ooghoogte | code aanwezig (game/js/carinterior.js, game/js/firstperson.js, game/js/firstpersoncam.js); test groen: firstperson_test.mjs; beeld nodig |
+| #939 | Hooibalen zijn no-clip; je kunt ze niet met de auto aan de kant beuken | code aanwezig (game/js/bales.js, game/js/collision.js, game/js/countryplan.js); test groen: hooibaal_test.mjs; beeld nodig |
+| #938 | Zwaailampen op de politieauto bewegen niet mee bij remmen/optrekken | code aanwezig (game/js/models3d_vehicles.js); test groen: police_lamps_test.mjs; beeld nodig |
+| #937 | Dikke lagspikes bij het laden van een nieuw stuk wereld, zeker bij hoge snelheid | code aanwezig (game/js/main.js, game/js/streambudget.js); test groen: streambudget_test.mjs; beeld nodig |
+| #936 | Auto kan door een graskade heen het water in rijden | code aanwezig (game/js/vehicle.js, game/js/wateredge.js); test groen: waterkant_test.mjs; beeld nodig |
+| #935 | Drie missies zeggen allemaal "laatste klus voor vandaag" | code aanwezig (game/js/calendar.js, game/js/missionduo.js, game/js/missionstory.js); test groen: calendar_test.mjs, missionduo_test.mjs; beeld nodig |
+| #934 | Auto's gaan veel te snel kapot en impacts zijn te heftig | code aanwezig (game/js/breakables.js, game/js/impactbalance.js, game/js/vehicle.js); test groen: impactbalance_test.mjs; beeld nodig |
+| #933 | Politie spawnt veel te vaak, ook buiten de stad | code aanwezig (game/js/police.js, game/js/wantedlevels.js); test groen: police_tough_test.mjs, politie_dichtheid_test.mjs; beeld nodig |
+| #932 | Fast travel komt soms niet bij de bestemming uit (taxi) | code aanwezig (game/js/meerijden.js, game/js/reisrit.js); test groen: meerijden_test.mjs, ritpad_test.mjs; beeld nodig |
+| #931 | Menumuziek begint bij elke Escape opnieuw; graag een flinke delay | code aanwezig (game/js/audio/scenario.js, game/js/scenariomusic.js); test groen: scenariomusic_test.mjs; wens, beeld nodig |
+| #930 | Route loopt door het gras/kerkhof van de kerk (Usquert) | code aanwezig (game/js/routing.js); test groen: cemetery_route_test.mjs; beeld nodig |
+| #927 | Kaartautomaat op station Warffum staat midden op het spoor | code aanwezig (game/js/stationtravel.js); test groen: station_machine_test.mjs; beeld nodig |
+| #925 | Ontdekkingsvideos per wijk weghalen | code aanwezig (game/js/cinematics.js); test groen: district_discovery_test.mjs; wens, beeld nodig |
+| #924 | TTS: ontbrekende stemregels voor Tammo/Tessa en Tessa klinkt soms Gronings | rood: voice_lookup_audit_test 1283 !== 1286, drie stemregels hebben geen opname; nieuwe TTS vraagt een besluit van de eigenaar, niet aangeraakt |
+| #923 | Horizontale plaat door het interieur van bepaalde auto's (o.a. Knakker) | code aanwezig (game/js/models3d_vehicles.js); test groen: vehicle_interior_plate_test.mjs; beeld nodig |
+| #921 | Stadsdelen lijken opnieuw in/uit te laden of hard te poppen (LOD/streaming) | code aanwezig (game/js/farlod.js); test groen: farlod_rebuild_test.mjs, farlod_stream_test.mjs; beeld nodig |
+| #920 | Escape-menu opent dubbel na navigeren tussen schermen | code aanwezig (game/js/pausemenu.js); test groen: menu_issues_062_test.mjs; beeld nodig |
+| #918 | Gras over water op het generatieve platteland | code aanwezig (game/js/grass.js, game/js/greenwater.js); test groen: grass_water_paved_test.mjs; beeld nodig |
+| #914 | Missie 'chaos op de Grote Markt' is niet haalbaar: te weinig punten en voertuig sloopt te | code aanwezig (game/js/stuntavond.js); test groen: bot_vlieg_test.mjs; beeld nodig |
+| #913 | Missienummers mogen weg uit de UI | code aanwezig (game/js/todoui.js, game/js/verhaalui.js); test groen: verhaalopdrachten_test.mjs; wens, beeld nodig |
+| #912 | Missie-overzicht is onoverzichtelijk door aktes en 'deel 4' | code aanwezig (game/js/pausemenu.css, game/js/storyarc.js, game/js/todoui.js); test groen: verhaalopdrachten_test.mjs; beeld nodig |
+| #910 | Foto's: lege staat met alleen uitleg onder Meer opties | code aanwezig (game/js/fotomodusui.js, game/js/pausemenu.css); test groen: menu_issues_062_test.mjs; wens, beeld nodig |
+| #902 | Uitkijkpunten: hovercontext en uitleg waarom je erheen gaat | code aanwezig (game/js/hud_panel.js, game/js/mapview.js, game/js/verkenpunten.js); test groen: verken_ontdekking_test.mjs; wens, beeld nodig |
+| #901 | Kaart: randen van Friesland, Drenthe en Duitsland tonen en pan beperken | code aanwezig (game/js/kaartkader.js, game/js/mapview.js); test groen: kaartkader_test.mjs, kaartlabels_test.mjs; wens, beeld nodig |
+| #900 | Kaart: één zoomniveau voor het unlocken van een gebied | code aanwezig (game/js/gebiedenkaart.js, game/js/mapview.js); test groen: gebieden_kaart_test.mjs, mapstyle_test.mjs; wens, beeld nodig |
+| #899 | Kaartontdekking: onbezochte gebieden echt uitgrijzen | code aanwezig; rode buildonly_test gaat over ds-galerij.js (design-agent), niet over dit issue; beeld nodig |
+| #898 | Voortgangspercentage van de game zichtbaar maken | code aanwezig (game/js/hud_panel.css, game/js/hud_panel.js, game/js/pausemenu.css); test groen: progress_test.mjs; wens, beeld nodig |
+| #895 | Cheats-menu: uitleg pas zichtbaar na klikken | code aanwezig (game/js/cheatsui.js); test groen: menu_issues_062_test.mjs; wens, beeld nodig |
+| #894 | Instellingen: Besturing is een onoverzichtelijke chaos | code aanwezig (game/js/pausemenu.css, game/js/pausemenu.js); test groen: menu_issues_062_test.mjs; beeld nodig |
+| #893 | Instellingen: preset-switch en naamgeving Laag/Gemiddeld/Vlot/Hoog kloppen niet | code aanwezig (game/js/gfxprofile.js, game/js/pausemenu.css, game/js/pausemenu.js); test groen: menu_issues_062_test.mjs; beeld nodig |
+| #892 | Garage: teksthiërarchie rechtsonder en voertuigen overlappen de besturinghints | code aanwezig (game/js/garageui.js, game/js/pausemenu.css); geen eigen test; beeld nodig |
+| #891 | Moeilijkheid is te moeilijk te vinden | code aanwezig (game/js/pausemenu.css, game/js/pausemenu.js); test groen: menu_issues_062_test.mjs, spelmenu_test.mjs; beeld nodig |
+| #890 | First person valt terug naar third person na uitstappen | code aanwezig (game/js/cinematics.js, game/js/firstperson.js, game/js/firstpersoncam.js); test groen: menu_issues_062_test.mjs; beeld nodig |
+| #889 | HUD- en UI-teksten zijn selecteerbaar (blauwe highlight) | code aanwezig (game/js/menu.css); test groen: menu_issues_062_test.mjs; beeld nodig |
+| #888 | Veroverde gevaarlijke buurten blijven gevaarlijk | code aanwezig (game/js/coopworld.js, game/js/gebieden.js, game/js/mapview.js); test groen: bus_handling_test.mjs, muggings_test.mjs; beeld nodig |
+| #887 | Kaart-hover toont Warffum bij de Waddeneilanden | code aanwezig (game/js/borderplaces.js, game/js/mapview.js, game/js/regions.js); test groen: kaartlabels_test.mjs, regions_test.mjs; beeld nodig |
+| #886 | Uitkijkpunt-iconen zijn platgedrukte ovalen | code aanwezig (game/js/hud_panel.js, game/js/mapicons.js); test groen: mapicons_test.mjs; beeld nodig |
+| #885 | Grenslijnen op de mini-map trillen heen en weer | code aanwezig (game/js/hud_panel.js, game/js/mapborders.js, game/js/regions.js); test groen: mapborders_test.mjs; beeld nodig |
+| #884 | De brug naar Friesland bij Visvliet is doorzichtig | code aanwezig (game/js/roadsurface.js); test groen: bridge_all_test.mjs, bridge_dek_test.mjs; beeld nodig |
+| #881 | Aanraak-vlieg-HUD staand (360x800): bord, paneel, kolom en ondertitel overlappen | code aanwezig (game/js/hud_panel.js, game/js/minigamekit.js, game/js/touch.js); test groen: hud_layout_issues_test.mjs; beeld nodig |
+| #876 | Vliegtuigpaneel overlapt de toetshint-regels | code aanwezig (game/js/prompts.css); test groen: hud_layout_issues_test.mjs; beeld nodig |
+| #874 | Samen: wachtkamer met veel spelers (15 kick-knoppen, één lange namenzin) | code aanwezig (game/js/lobby.js, game/js/lobbyui.js, game/js/pausemenu.css); test groen: lobby_test.mjs, multiplayer_layout_test.mjs; beeld nodig |
+| #872 | Samen: ping- en naamlabels kappen af bij lange namen | code aanwezig (game/js/coopfigures3d.js, game/js/cooppings3d.js, game/js/multiplayerlabels.js); test groen: multiplayerlabels_test.mjs; beeld nodig |
+| #870 | Straatpraat-bubbels en naamkaarten kunnen buiten de viewport staan | code aanwezig (game/js/hudrules.js, game/js/namecard.js, game/js/scene3d.js); test groen: hud_layout_issues_test.mjs; beeld nodig |
+| #869 | Besturing: de actie-uitleg wordt met '…' afgekapt | code aanwezig (game/js/menu.css); test groen: hud_layout_issues_test.mjs; beeld nodig |
+| #867 | Doel-HUD (zone G) wordt op 1024x768 128 px breed en kapt de opdracht af | code aanwezig (game/js/hud_panel.css); test groen: hud_layout_issues_test.mjs; beeld nodig |
+| #863 | Cutscene-fietsers: rechte banen (water/bebouwing) en blijven stilstaan in rijpose | code aanwezig (game/js/cutscenehost.js, game/js/cutscenes.js, game/js/cutscenes_akte1.js); test groen: cutscenes_akte2_test.mjs, cutscript_test.mjs; beeld nodig |
+| #861 | Acteurs lopen in cutscenes dwars door geparkeerde voertuigen | code aanwezig (game/js/cutscenes_akte4.js); test groen: cutscenes_akte4_test.mjs; beeld nodig |
+| #860 | C00.3: matras blijft zweven als de Escapade wegrijdt | code aanwezig (game/js/cutscenes.js); test groen: cutscript_test.mjs, vliegtuigprops_test.mjs; beeld nodig |
+| #859 | Keuken C00.2: Tessa zit met een stuurhouding (armen wijd, handen zweven) | code aanwezig (game/js/cutscenehost.js, game/js/cutscenemodels.js); test groen: cutscript_test.mjs; beeld nodig |
+| #857 | In het vliegtuig zegt de voertuignaam "VOERTUIG" met een auto-icoon | code aanwezig (game/js/hud_panel.js, game/js/vehiclenames.js); test groen: vliegtuigprops_test.mjs; beeld nodig |
+| #855 | Radio-ondertitel loopt over het vliegtuigpaneel en de linkerkolom/minimap | code aanwezig (game/js/hud_panel.css); test groen: hud_layout_test.mjs; beeld nodig |
+| #854 | Vliegschool-bord overlapt de klok/datum tijdens het vliegen | code aanwezig (game/js/hud_panel.js, game/js/minigamekit.js, game/js/touch.js); test groen: hud_layout_test.mjs; beeld nodig |
+| #850 | Aanraak: vliegtuigpaneel ligt onder de knoppen en de labels zijn 8 px | code aanwezig (game/js/touch.js); test groen: hud_layout_test.mjs; beeld nodig |
+| #765 | Passages #747-fallback opent dienstwegen die geen doorgang zijn: gat in de muur met een de | gefixt in deze sessie: de terugval opent geen dienstweg meer die hooguit 6 m in de muur doodloopt (garagedeur); test passage_thin_test (2 nieuwe checks); zware audit passage_open_audit niet gedraaid, nog niet bekeken |
+| #715 | Samen spelen: scenepakket groter dan 32.000 tekens valt stil weg | code aanwezig (game/js/coopcut.js); test groen: coopcut_test.mjs; beeld nodig |
+| #714 | Samen spelen: gast in menu, winkel of minigame mist de scène of springt erna | code aanwezig (game/js/cinematics.js, game/js/coopcut.js, game/js/coopnet.js); test groen: coopcut_test.mjs; beeld nodig |
+| #713 | Samen spelen: hostwissel of hostuitval midden in een scène breekt de scènereeks | code aanwezig (game/js/cinematics.js, game/js/coophold.js, game/js/coophostwissel.js); test groen: coophostwissel_test.mjs; beeld nodig |
+| #711 | Samen spelen: gast hoort een andere stem en ziet andere ondertiteltijden (own valt uit het | code aanwezig (game/js/cinematics.js, game/js/coopcut.js, game/js/cutscenehost.js); test groen: coopcut_test.mjs, voicetiming_test.mjs; beeld nodig |
+| #710 | Veroverde gebieden heten 'Wijk 00' of 'Wijk 14' in titel, HUD en safehouse | code aanwezig (game/js/gebieden.js); test groen: gebieden_test.mjs, intocht_epic_test.mjs; beeld nodig |
+| #586 | Rebind blijft actief als het pauzemenu met de rail-'Terug' sluit | code aanwezig (game/js/pausemenu.js); test groen: spelmenu_test.mjs; beeld nodig |
+| #585 | De autosave-signatuur mist geld, dus sommige inkomsten worden nooit bewaard | code aanwezig (game/js/savegame.js); test groen: savegame_test.mjs; beeld nodig |
+| #584 | Sluiten van venster of tab bewaart niet | code aanwezig (game/js/pausemenu.js, game/js/savegame.js); test groen: savegame_test.mjs; beeld nodig |
+| #550 | Hoogkerk: te weinig bebouwing (OSM/3BAG-bron ontbreekt) | onduidelijk: de bron is niet leeg (966 gebouwen binnen 1,2 km). Vraag aan de eigenaar: welke plek in Hoogkerk mist bebouwing? Het dorpspunt ligt aan de rand van de bebouwde kom |
+| #549 | Kaart: pins en labels overlappen in de binnenstad en "0 van 5" valt over de iconen | oplossing volgens het issue-commentaar in kaartlabels (labels wijken voor pins, eigen strook voor de teller); kaartlabels_test groen; beeld van de binnenstad nodig |
+| #548 | Mobiel: plaatsnaamlabel en week-/berichtkaart over elkaar; 'Draai je toestel' dekt melding | oplossing volgens het commentaar (draaibanner wijkt voor melding, actieknoppen voor de minimap); hud_layout_test en touch_situaties_test groen; beeld op 360x800 en 800x360 nodig |
+| #547 | HUD in de auto: cabine van de Knakker mist voor- en zijruiten | oplossing volgens het commentaar (ruit Knakker 0,94 breed); voertuigmodel_test groen; beeld van binnen nodig |
+| #546 | Cutscenes M02/M18: arm in de gevel, leeg raam en los blauw buisje | beeld nodig: een eerdere agent kon het niet reproduceren; cutscene-foto's M02 en M18 bekijken |
+| #545 | Losse zwarte ring (fietswiel) zweeft op de klinkers op de Grote Markt | oplossing volgens het commentaar (rommelatlas alleen naast een stoeprand); voertuigmodel_test groen; beeld nodig |
+| #544 | Perron van station en Sauwerd 's nachts: egaal vlak zonder textuur | oplossing volgens het commentaar (eigen tegelmateriaal perron); perronmateriaal_test groen; nachtbeeld nodig |
+| #543 | Garage-draaischijf: wielen en schermen van Escapade en trekker als egale rode blokken | oplossing volgens het commentaar (silhouet-SVG verborgen); garagepics_test groen; beeld van de draaischijf nodig |
+| #542 | Mobiel landschap: actieknoppen RENNEN/VUUR/HEF/REM over de minimap | zie #548 (actieknoppen wijken voor de minimap); touch_situaties_test groen; beeld nodig |
+| #540 | Camera raakt los van grote voertuigen (trekker, bus) of zit erin | oplossing volgens het commentaar (volgcam hoogte/z, dak per voertuigsoort, camera getest tegen gevels); camera_mobiel_test en kermis_camera_test groen; beeld met trekker en bus nodig |
+| #539 | Groene doorschijnende plaat bij garage Knalpot (marker/triggervolume als vlak getekend) | oplossing volgens het commentaar (markerkolom is baken, binnen 8 m onzichtbaar); markervlak_test groen; beeld bij garage Knalpot nodig |
+| #538 | Waypoint bij het vliegveld staat op het veld in plaats van bij de ingang (uit playtest 27- | oplossing volgens het commentaar (baliePlek() bij de ingang); vliegschool_stand_test slaat hier over (geen provinciedata); beeld nodig |
+| #536 | "Knielen" komt als opdracht langs zonder uitleg (uit playtest 27-10) | oplossing volgens het commentaar (hintregel en titel bij K in de bus-UI); busui_test groen; beeld nodig |
+| #535 | Bussen hobbelen over de weg in plaats van te rollen (uit playtest 27-10) | oplossing volgens het commentaar (één hoogtebron per rijstrook, #519); bus_hobbel_test groen; rit met bus nodig |
+| #533 | Onzichtbare muren en de sluis waar je door de grond zakt (uit playtest 27-10) | oplossing volgens het commentaar (collider_keuring, 0 onzichtbare colliders); keuring niet gedraaid (provinciedata ontbreekt in deze worktree); sluis en loket nog niet bekeken |
+| #484 | Juridische teksten: "geen online", muziektellingen en "effecten zelf gesynthetiseerd" | code aanwezig (geen bronbestand); test groen: muziek_telling_test.mjs; beeld nodig |
+| #472 | PERF-METING: de samenvatting spreekt de eigen vervolgen tegen | doc bijgewerkt volgens het commentaar (docs/PERF-METING-2026-10-19.md); geen code, niets te testen; kan dicht na leescontrole |
+| #467 | Audiobank: twee ongebruikte winterregels opruimen | winterregels volgens het commentaar uit de audiobank; voice_coverage aan het eind gedraaid; geen beeld nodig, kan dicht na leescontrole |
+
 ## Categorie B: visueel of spelgevoel, beeldbewijs nodig (87)
 
 | # | Titel | Soort | Impact | Commits | Tests | Reden |
