@@ -108,7 +108,9 @@ ok(/const START_WARM_R = \d+;/.test(main) && /const START_WARM_MS = \d+;/.test(m
 ok((/const START_WARM_R = (\d+);/.exec(main) || [0, 0])[1] <= 360, 'de startring blijft binnen een redelijke grens (<= 360 m)');
 ok(/window\.__loadMarks\.startWarm/.test(main) && /window\.__loadMarks\.shaders/.test(main) && /warmWorstFrame/.test(main), 'de perf-meting ziet het voorladen, het compileren en het slechtste frame');
 ok(/typeof opts\.warm === 'function'/.test(ss) && /opts\.warm\(\)[\s\S]{0,80}\.then\(finish\)/.test(ss), 'de boot wacht op het voorladen vóór het laadscherm weggaat');
-ok(/setLoadingStatus\('De buurt rond je startpunt wordt klaargezet'\)/.test(ss) && /setLoadingStatus\('De shaders worden klaargezet'\)/.test(main), 'het laadscherm zegt wat het nog doet');
+ok(/setBootStep\('buurt', 0\)/.test(main) && /setBootStep\('shaders', 0\)/.test(main) && /setBootStep\('beeld', 0\)/.test(main), 'het laadscherm zegt in stappen wat het nog doet (#1010)');
+// #1010: de balk staat pas vol als de laatste stap klaar is: op de warm-route sluit het startscherm hem na de eerste beelden
+ok(/if \(!BOOT_WARM_ROUTE\) await finishLoading\(\);/.test(main) && (ss.match(/await finishLoading\(\);\n\s+dismissLoading\(\);/g) || []).length === 2, 'de balk wordt pas na de eerste beelden vol (warm-route), niet vóór de warm-stappen');
 ok(/function setLoadingStatus\(text\)/.test(ss), 'de laadschermstatus is ook na finishLoading nog te zetten');
 ok(/export function runStartScreen\(world, opts\)/.test(ss) && /return runStartScreen\(world, \{ render, relocate, tick, ready, warm \}\)/.test(main), 'de warm-stap gaat via de bestaande startroute');
 // Een nieuw spel én een save warmen voor; de save houdt daarna zijn eigen laadscherm

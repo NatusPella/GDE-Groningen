@@ -73,7 +73,7 @@ const bl = buildLines('travel', ['Onderweg', 'Een lijn'], p);
 ok(bl.length === 4 && bl[0][0] === 'Onderweg' && bl[1][0] === 'Wist je dat', 'lead then tips');
 ok(buildLines('travel', ['Onderweg', ''], p).length === 3, 'empty lead skipped');
 import { PICTURES, APPROVED, MISSION_PICTURE, missionPicture, pictureHtml, pictureOk } from '../game/js/loadscene.js';
-import { BOOT_PHASES, bootPhaseAt } from '../game/js/loadlogic.js';
+import { BOOT_STEPS, BOOT_DONE_LABEL, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, bootStepText, stepDurations, loadStepNr } from '../game/js/loadlogic.js';
 import fs from 'node:fs';
 ok(APPROVED.length === 7 && APPROVED.every((p) => fs.existsSync(new URL('../game/img/laad/' + p + '.jpg', import.meta.url))), 'every approved picture exists');
 ok(Object.values(MISSION_PICTURE).every(pictureOk) && missionPicture('nope') === 'vismarkt', 'every mission kind has an approved picture');
@@ -92,12 +92,71 @@ ok(!/sceneSvg|ls-scene/.test(src), 'load screen has no own svg scene');
 // #770: haalt iets het laadscherm weg, dan rondt de lus af in plaats van alleen te stoppen, anders blijft done hangen
 ok(/if \(!el\.isConnected\) \{ finish\(\); return; \}/.test(src), 'een losgekoppeld laadscherm resolvet done (#770)');
 
-// #600: the boot bar has real steps with words, also at the last one
-ok(BOOT_PHASES.length === 5 && BOOT_PHASES[0].from === 0 && BOOT_PHASES[BOOT_PHASES.length - 1].from >= 0.9,
-  'the boot bar has measured steps and a last one at the end', BOOT_PHASES.length);
-ok(bootPhaseAt(0).id === 'kaart' && bootPhaseAt(0.91).final && bootPhaseAt(1).final, 'the last boot step is final and named');
-ok(BOOT_PHASES.every((p, i) => i === 0 || p.from > BOOT_PHASES[i - 1].from), 'the boot steps rise');
-ok(bootPhaseAt(-1).from === 0 && bootPhaseAt(5).from === BOOT_PHASES[BOOT_PHASES.length - 1].from, 'out-of-range progress is clamped');
+// #600, #1010: the boot bar has every step of the start, with words and weights; it is full only after the last one
+const plans = {
+  nieuw: bootPlan(), openingen: bootPlan({ openings: true }), opgeslagen: bootPlan({ film: false }),
+  test: bootPlan({ warm: false }), stil: bootPlan({ geluid: false }),
+};
+ok(BOOT_STEPS.every((st) => st.label.length > 12 && st.weight > 0 && /^[A-Z]/.test(st.label) && !/[.!?]$/.test(st.label)), 'every boot step has a plain label and a weight');
+ok(BOOT_STEPS.map((st) => st.id).join() === 'kaart,wereld,systemen,buurt,openingsbeelden,shaders,geluid,beeld', 'the boot steps follow the order of the start', BOOT_STEPS.map((st) => st.id).join());
+ok(/shaders worden klaargezet \(dit duurt even\)/.test(BOOT_STEPS.find((st) => st.id === 'shaders').label) && /openingsbeelden worden klaargezet/.test(BOOT_STEPS.find((st) => st.id === 'openingsbeelden').label) && /geluid wordt klaargemaakt/.test(BOOT_STEPS.find((st) => st.id === 'geluid').label), 'the long steps say what they do');
+ok(BOOT_DONE_LABEL.startsWith('Klaar'), 'the end has its own words');
+for (const [naam, plan] of Object.entries(plans)) {
+  ok(Math.abs(plan.steps.reduce((t, st) => t + st.weight, 0) - 1) < 1e-9, 'weights add up to 1: ' + naam);
+  ok(plan.steps.every((st, i) => st.label && st.nr === i + 1 && st.total === plan.total && st.to > st.from && (i === 0 || st.from === plan.steps[i - 1].to)), 'steps are numbered, labelled and contiguous: ' + naam);
+  ok(plan.steps[0].from === 0 && plan.steps[plan.total - 1].to === 1, 'the plan runs from 0 to 1: ' + naam);
+  // walk the whole start in small moves: monotone, and 1 only at the end of the last step
+  let last = -1, vol = 0;
+  for (const st of plan.steps) for (let f = 0; f <= 20; f++) {
+    const v = bootProgress(plan, st.id, f / 20);
+    ok(v >= last - 1e-12, 'the bar never goes back: ' + naam + ' ' + st.id + ' ' + f);
+    if (v >= 1) vol++;
+    last = v;
+  }
+  ok(vol === 1 && bootProgress(plan, plan.steps[plan.total - 1].id, 1) === 1, 'the bar is full only at the end of the last step: ' + naam, vol);
+  ok(plan.steps.slice(0, -1).every((st) => bootProgress(plan, st.id, 1) < 1), 'no step but the last fills the bar: ' + naam);
+  // a step that has not started is never ahead of one that is further along, whatever it reports
+  ok(plan.steps.every((st) => bootPhaseAt(bootProgress(plan, st.id, 0), plan).id === st.id), 'the start of a step belongs to that step: ' + naam);
+  ok(plan.steps.every((st) => bootCreepCap(plan, bootProgress(plan, st.id, 0)) < st.to && bootCreepCap(plan, bootProgress(plan, st.id, 0)) >= st.from), 'the creep stays inside its step: ' + naam);
+}
+ok(plans.nieuw.total === 7 && plans.openingen.total === 8 && plans.test.total === 3 && plans.stil.total === 6, 'the plan follows the start: warm-up, opening shots, sound', [7, 8, 3, 6].join());
+ok(!plans.nieuw.steps.some((st) => st.id === 'openingsbeelden') && plans.openingen.steps.some((st) => st.id === 'openingsbeelden'), 'the opening shots are a step only when they are ridden ahead');
+ok(!plans.test.steps.some((st) => ['buurt', 'shaders', 'geluid', 'beeld'].includes(st.id)), 'a test run has no warm-up steps');
+{
+  const sh = (p) => p.steps.find((st) => st.id === 'shaders').weight;
+  ok(sh(plans.opgeslagen) < sh(plans.nieuw), 'a saved game has no film light, so a lighter shader step');
+  ok(plans.nieuw.steps.find((st) => st.id === 'shaders').weight + plans.nieuw.steps.find((st) => st.id === 'buurt').weight > 0.4, 'the warm-up steps weigh in: the bar is not "full" at the end of the map and the systems');
+  // the old failure: the bar stood at 92% on "buurt klaargezet" while the shaders were still to come
+  const voorWarm = bootProgress(plans.nieuw, 'systemen', 1);
+  ok(voorWarm < 0.5, 'after the systems the bar is far from full', voorWarm);
+}
+ok(bootProgress(plans.nieuw, 'bestaatniet', 1) === 0 && bootProgress(plans.nieuw, 'kaart', NaN) === 0 && bootProgress(plans.nieuw, 'kaart', 5) === plans.nieuw.steps[0].to, 'unknown step and out-of-range fractions are safe');
+ok(bootPhaseAt(0).id === 'kaart' && bootPhaseAt(0.999).final && !bootPhaseAt(0.999).klaar && bootPhaseAt(1).klaar, 'the last boot step is final; klaar only at 1');
+ok(bootPhaseAt(-1).id === 'kaart' && bootPhaseAt(5).final, 'out-of-range progress is clamped');
+ok(bootStepText(plans.nieuw.steps[4], plans.nieuw.total) === 'Stap 5 van 7', 'the step counter says which step of how many');
+// a long step with nothing to report: the creep moves the bar but never into the last tenth of the step
+{
+  const sh = plans.nieuw.steps.find((st) => st.id === 'shaders');
+  const cap = bootCreepCap(plans.nieuw, sh.from);
+  ok(cap > sh.from && cap < sh.to - (sh.to - sh.from) * 0.05 && bootCreepCap(plans.nieuw, 1) === 1, 'the creep has room to move and stops short of the step end', cap);
+}
+// the measurement: durations per step from the reported moments, shares add up to 1
+{
+  const d = stepDurations([['kaart', 0, 1000], ['kaart', 0.5, 2000], ['wereld', 0, 4000], ['wereld', 1, 5000], ['buurt', 0, 6000]], 10000);
+  ok(d.length === 3 && d[0].ms === 3000 && d[1].ms === 2000 && d[2].ms === 4000, 'stepDurations: first report to the first of the next step', JSON.stringify(d));
+  ok(Math.abs(d.reduce((t, o) => t + o.aandeel, 0) - 1) < 1e-9 && stepDurations([], 5).length === 0, 'stepDurations: shares add up to 1; empty is empty');
+}
+// the load screen's steps get a counter too (#1010)
+ok(loadStepNr(0).nr === 1 && loadStepNr(0.3).nr === 2 && loadStepNr(0.7).nr === 3 && loadStepNr(1).nr === 4 && loadStepNr(1).total === 4 && loadStepNr(0.5, 'snel').total === 1, 'the load screen counts its steps');
+ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].from : 1) - st.from), 0) === 1 && /Stap \$\{nr\.nr\} van \$\{nr\.total\}/.test(src), 'the load steps cover the bar and the screen shows "Stap n van m"');
+// the boot screen shows the counter and the step ticks, in the screen-print style (tokens, no own colours)
+{
+  const ss = fs.readFileSync(new URL('../game/js/startscreen.js', import.meta.url), 'utf8');
+  const hh = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
+  ok(/class="ld-step"/.test(hh) && /#loading \.ld-tick \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh) && /#loading \.ld-step \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh), 'the boot screen has a step counter and ticks in ink');
+  ok(/export function setBootStep\(/.test(ss) && /className = 'ld-tick'/.test(ss) && /aria-valuetext', stap \+ ': ' \+ phase\.label/.test(ss), 'the bar shows the ticks and tells the step to a screen reader');
+  ok(!/setInterval\([^)]*requestAnimationFrame/.test(ss) && /bootCreepCap\(plan, progress\)/.test(ss), 'the creep is a slow approach inside the step, no loop animation');
+}
 ok(!/firstSentence\(recapText/.test(src), 'the load screen keeps the whole recap instead of its first sentence');
 // #600: one progressbar on the bar, not on the whole screen, so the place, the story and the tip stay readable
 const ldHtml = src.slice(src.indexOf('el.innerHTML ='), src.indexOf('document.body.appendChild(el)'));

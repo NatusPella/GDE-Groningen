@@ -15,7 +15,7 @@ import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
 import { skipReady, isSkipKey } from './loadskip.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt } from './loadlogic.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt, loadStepNr } from './loadlogic.js';
 
 let tips = [];
 export const setLoadTips = (list) => { tips = [...list]; };
@@ -176,7 +176,13 @@ export function startLoadScreen(world, opts = {}) {
     fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
     barEl.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
     const stepNow = loadStepAt(prog.bar, kind);
-    if (stepEl.dataset.id !== stepNow.id) { stepEl.dataset.id = stepNow.id; stepEl.textContent = stepNow.label; barEl.setAttribute('aria-valuetext', stepNow.label); }
+    if (stepEl.dataset.id !== stepNow.id) {
+      stepEl.dataset.id = stepNow.id;
+      const nr = loadStepNr(prog.bar, kind);
+      const tekst = nr.total > 1 ? `Stap ${nr.nr} van ${nr.total}: ${stepNow.label}` : stepNow.label;
+      stepEl.textContent = tekst;
+      barEl.setAttribute('aria-valuetext', tekst);
+    }
     if (skipBtn.hidden && skipReady(kind, (now - t0) / 1000)) skipBtn.hidden = false;
     if (now - lineAt >= lineS * 1000) nextLine(now);
     if (prog.done) { finish(); return; }
