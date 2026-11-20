@@ -253,7 +253,7 @@ function toonNu(m, klaarCb) {
   }
   if (m.vorm === 'plaats') { // under the objective column of zone B (the owner moved the objective to the top centre, 20-11)
     const zb = document.querySelector('#hud .hud-zone-b');
-    if (zb) el.style.top = plaatsTop(parseFloat(getComputedStyle(el).top), zb.getBoundingClientRect().bottom) + 'px';
+    if (zb) el.style.top = plaatsTop(window.innerHeight * (m.compact ? 0.15 : 0.24), zb.getBoundingClientRect().bottom) + 'px'; // not from getComputedStyle: bigmoment.css may not be loaded yet at the first moment
   }
   requestAnimationFrame(() => el.classList.add('aan'));
   if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;

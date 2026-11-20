@@ -1,5 +1,5 @@
 // De uitleg van de eerste minuten moet kloppen met het scherm en met de menu's:
-// het doel staat onderin (hud_panel.css .hud-mission), de uitleg gaat uit onder
+// het doel staat bovenin (hud_panel.css .hud-zone-b, sinds 20-11), de uitleg gaat uit onder
 // Instellingen > Hints & uitleg en elk kaartje past binnen het HUD-woordbudget (#92).
 //   node scripts/onboarding_help_test.mjs
 import assert from 'node:assert/strict';
@@ -17,9 +17,9 @@ const ok = (c, name, extra = '') => { n++; if (!c) { console.error('FAIL', name,
 const onboarding = read('onboarding.js');
 const help = read('helpoverview.js');
 
-// De HUD zet het doel onderin (hud_panel.css), dus "bovenin" is fout.
-ok(!/Bovenin/.test(onboarding), 'onboarding zegt niet dat het doel bovenin staat');
-ok(!/Bovenin/.test(help), 'help zegt niet dat het doel bovenin staat');
+// De HUD zet het doel bovenin (hud_panel.css, zone B), dus "onderin" is fout.
+ok(!/doel[^.]{0,40}onderin/i.test(onboarding), 'onboarding zegt niet dat het doel onderin staat');
+ok(!/doel[^.]{0,40}onderin/i.test(help), 'help zegt niet dat het doel onderin staat');
 
 const skip = /const SKIP_NOTE = '([^']*)'/.exec(onboarding);
 ok(!!skip, 'onboarding heeft een SKIP_NOTE');
@@ -36,7 +36,7 @@ for (const [i, body] of bodies.entries()) {
   const words = wordCount(body);
   ok(words <= WORD_BUDGET.cardBody, `uitlegkaart ${i + 1} past binnen ${WORD_BUDGET.cardBody} woorden`, `${words}: ${body}`);
 }
-ok(/Je doel staat onderin/.test(bodies[0]), 'de eerste kaart wijst naar de onderbalk');
+ok(/Je doel staat bovenin/.test(bodies[0]), 'de eerste kaart wijst naar de doelkaart bovenin');
 
 // De Hulp-pagina noemt de echte paden van de menu's van nu.
 const text = HELP_TOPICS.map((t) => [t.title, ...t.lines].join(' ')).join(' ');

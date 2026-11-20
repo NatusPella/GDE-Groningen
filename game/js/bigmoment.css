@@ -33,7 +33,7 @@
 
 /* a new area: a place-name stamp like a postcard, lower third, no dimming */
 .bm-gebied { left: 50%; top: 24vh; transform: translateX(-50%); } /* #985: in de vrije middenzone D, niet over de doelkaart en de minikaart onderin */
-.bm-kaart { position: relative; box-sizing: border-box; min-width: min(640px, max(340px, calc(100vw - 820px))); max-width: 92vw; display: flex; flex-direction: column; gap: 10px; padding: 22px 34px 26px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-bord); transform: rotate(calc(var(--ds-schuin) * -1)); }
+.bm-kaart { position: relative; box-sizing: border-box; min-width: min(640px, max(340px, calc(100vw - 820px))); max-width: min(92vw, max(340px, calc(100vw - 820px))); display: flex; flex-direction: column; gap: 10px; padding: 22px 34px 26px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-bord); transform: rotate(calc(var(--ds-schuin) * -1)); }
 .bm-kaart .bm-kop { font-size: clamp(48px, 7vw, 110px); color: var(--ds-c-ink-bord); }
 .bm-zegel { position: absolute; top: 16px; right: 18px; width: 64px; height: 76px; border: 3px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
 
