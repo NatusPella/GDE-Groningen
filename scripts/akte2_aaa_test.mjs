@@ -107,6 +107,8 @@ t('M11: kaart op het inhalen, kaart op de kwelder, een wachtfiguur bij elke kuip
   assert.equal(d.aaa, true);
   assert.deepEqual(d.stages.map((s) => s.kind), ['goto', 'boatchase', 'scene', 'goto', 'scene', 'scene', 'scene', 'hold', 'hold', 'hold', 'goto']);
   assert.equal(d.stages.find((s) => s.kind === 'boatchase').kaart, P.KAART_M11_VAREN);
+  // #955: 'Stap in de rubberboot' telt pas als je in de boot zit; op de kade te voet was het skûtsje na 30 s weg
+  assert.equal(d.stages[0].mode, 'boat');
   const kuipen = d.stages.filter((s) => s.kind === 'hold');
   assert.equal(kuipen.length, 3);
   assert.equal(kuipen[0].kaart, P.KAART_M11_ZOUT);

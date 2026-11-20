@@ -35,7 +35,7 @@ function kustDef() {
     boatStart: { x: -18075, y: -12902, angle: 2.8, kind: 'rubberboot' },
     say: 'Haal Jelles skûtsje in en spring aan boord. Daarna het zout: blijf uit het licht van de kustwacht en wees terug voor het water komt.',
     stages: [
-      { kind: 'goto', target: { storyBoat: true }, mode: 'any', radius: 14, label: 'Stap in de rubberboot van Klaas', say: 'Klaas zit bovenin en kijkt de andere kant op. Instappen, Tammo stuurt.' },
+      { kind: 'goto', target: { storyBoat: true }, mode: 'boat', radius: 14, label: 'Stap in de rubberboot van Klaas', say: 'Klaas zit bovenin en kijkt de andere kant op. Instappen, Tammo stuurt.' },
       {
         kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', path: SKUTSJE_PATH, lead: 140, board: 9, boardTime: 2.5, escape: 420, time: 240,
         say: 'Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.',
