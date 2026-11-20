@@ -1,6 +1,6 @@
 // De stand van elk veld als één klein, puur model (#985): wat staat er, hoe ver is het, wat is de volgende klus. Eén bron voor het paneel
-// (boerderijkaarten.js), de HUD-strook (boerderijhud.js), de kaart (perceelmap.js) en de wereld (boerderijwereld.js, boerderijgewas3d.js),
-// zodat een veld overal hetzelfde heet en hetzelfde eruitziet. Geen DOM, geen three; test: scripts/boerderijstatus_test.mjs.
+// (farmcards.js), de HUD-strook (farmhud.js), de kaart (perceelmap.js) en de wereld (boerderijwereld.js, farmcrops3d.js),
+// zodat een veld overal hetzelfde heet en hetzelfde eruitziet. Geen DOM, geen three; test: scripts/farmstatus_test.mjs.
 // Altijd zomer: de stadia lopen van zaailing tot oogstklaar, er is geen winterstand.
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';

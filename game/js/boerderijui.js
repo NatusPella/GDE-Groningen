@@ -14,7 +14,7 @@ import { wgsToWorld } from './rdnew.js';
 import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 import { koopVraag, tweedeDruk } from './tweedruk.js';
-import { kaartenBlok, zetUitlegGezien } from './boerderijkaarten.js';
+import { kaartenBlok, zetUitlegGezien } from './farmcards.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -93,7 +93,7 @@ function perceel(b, geld) {
     loonwerkBlok(b, geld, gast);
 }
 
-// De velden van jou staan als kaarten (boerderijkaarten.js). Hieronder wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).
+// De velden van jou staan als kaarten (farmcards.js). Hieronder wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).
 // De plek van een veld: de gevonden rijen als ze er zijn, anders de plek van het perceel op de kaart.
 function veldPlek(id) {
   const p = B.veldPositie(getBoerderij(), id);

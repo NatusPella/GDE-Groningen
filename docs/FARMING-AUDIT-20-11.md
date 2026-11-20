@@ -37,14 +37,14 @@ afleveren (aanhanger naar de afnemer) → geld. Elke rijtaak is vier rijen van 1
 - *Samen spelen:* een gast ziet het veld van de gastheer niet (de velden worden alleen bij de eigenaar gebouwd).
 - *Kaartintro:* de kaart opent eerst een uitlegkaart (Begrepen) die de laag overdekt; voor de boerderij onbedoeld.
 
-**Wat is UI en wat is wereldweergave** (voor het herstylen met het nieuwe designsysteem): *UI* = `boerderijui.js`, `boerderijkaarten.js`, `boerderijhud.js` (alle
-opmaak in `boerderij.css`, alleen `var(--ds-...)`), de kaartstijl in `mapview.js`/`perceelmap.js`. *Wereld* = `boerderijwereld.js`, `boerderijgewas3d.js`,
-`boerderijmarker3d.js`. *Data* (geen opmaak) = `boerderijstatus.js`. Het uiterlijk van de panelen mag later wisselen; de gegevens en de wereld blijven.
+**Wat is UI en wat is wereldweergave** (voor het herstylen met het nieuwe designsysteem): *UI* = `boerderijui.js`, `farmcards.js`, `farmhud.js` (alle
+opmaak in `farm.css`, alleen `var(--ds-...)`), de kaartstijl in `mapview.js`/`perceelmap.js`. *Wereld* = `boerderijwereld.js`, `farmcrops3d.js`,
+`farmmarker3d.js`. *Data* (geen opmaak) = `farmstatus.js`. Het uiterlijk van de panelen mag later wisselen; de gegevens en de wereld blijven.
 
 ## 2. Ontwerp
 
 **De lus, zichtbaar.** Vijf stappen als chips met pictogram: Ploegen, Zaaien, Groeien, Oogsten, Afleveren; gedaan, nu en straks (één chip met nadruk). Dezelfde zeven
-veldstanden overal (`boerderijstatus.js`): *braak, stoppel, geploegd, zaailing, groeiend, bijna rijp, oogstklaar*. Altijd zomer: er is geen winterstand.
+veldstanden overal (`farmstatus.js`): *braak, stoppel, geploegd, zaailing, groeiend, bijna rijp, oogstklaar*. Altijd zomer: er is geen winterstand.
 
 **Consequentie eerst.** Het paneel opent met "Nu: Oogsten" of "Nu: Ploegen" (wat moet er, en waar), dan pas de details. Een klus zonder werktuig zegt wat er mist
 ("Nog nodig: hef omlaag (T)"). Geld en opbrengst zijn per speler (#429): de boerderij leeft in de opslag van de speler zelf.
@@ -71,7 +71,7 @@ later aan, dan krijgt hij ze met het volgende stukje (elke 1,5 s).
 
 ## 3. Wat is gebouwd (en hoe het is getest)
 
-Zie de changelog. Pure tests: `boerderijstatus_test`, `boerderijveldgast_test`; bestaande: `boerderij_test`, `boerderijwereld_test`, `boerderijui_*`, `percelen_test`,
+Zie de changelog. Pure tests: `farmstatus_test`, `farmfieldguest_test`; bestaande: `boerderij_test`, `boerderijwereld_test`, `boerderijui_*`, `percelen_test`,
 `coopextra_test`, `hudbus_surfaces_test`, `hud_kleuren_test`, `ds_tokens_test`. Beelden (Electron, wegwerpprofiel): zie de stand op het issue.
 
 ## 4. Nog niet gedaan

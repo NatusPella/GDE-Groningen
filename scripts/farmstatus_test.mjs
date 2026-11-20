@@ -1,12 +1,12 @@
-// De stand van een veld (boerderijstatus.js), de veldkaarten (boerderijkaarten.js), de HUD-strook (boerderijhud.js, alleen het model) en de
-// kaartstatus (perceelmap.js) zonder DOM of Electron (#985).   node scripts/boerderijstatus_test.mjs
+// De stand van een veld (farmstatus.js), de veldkaarten (farmcards.js), de HUD-strook (farmhud.js, alleen het model) en de
+// kaartstatus (perceelmap.js) zonder DOM of Electron (#985).   node scripts/farmstatus_test.mjs
 import assert from 'node:assert/strict';
 import './node3d.mjs';
 const B = await import('../game/js/boerderij.js');
 const PC = await import('../game/js/percelen.js');
-const S = await import('../game/js/boerderijstatus.js');
-const K = await import('../game/js/boerderijkaarten.js');
-const H = await import('../game/js/boerderijhud.js');
+const S = await import('../game/js/farmstatus.js');
+const K = await import('../game/js/farmcards.js');
+const H = await import('../game/js/farmhud.js');
 const Live = await import('../game/js/boerderijlive.js');
 const PM = await import('../game/js/perceelmap.js');
 
@@ -139,5 +139,5 @@ t('kaart: je machines staan er met hun dieselstand, en zonder bron geen machines
   S.zetMachinePlekken(null);
 });
 
-console.log(`boerderijstatus_test: ${n - fails}/${n}`);
+console.log(`farmstatus_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

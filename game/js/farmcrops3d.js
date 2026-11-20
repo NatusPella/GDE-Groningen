@@ -1,9 +1,9 @@
 // De gewassen, voren en stoppels van je velden in de wereld (#985). Elk gewas heeft per groeistadium (zaailing, groeiend, bijna rijp, rijp) een
 // eigen kleine, samengevoegde vorm met vertexkleur: één geometrie per gewas en stadium, nooit een mesh per plant (de velden zijn InstancedMesh).
 // Geen nieuwe shaders of lichten: MeshLambertMaterial met vertexColors. De vormen zijn laag-poly (30 tot 60 driehoeken) en zomers.
-// De rij- en celindeling en de status komen van boerderijwereld.js en boerderijstatus.js; dit bestand maakt alleen geometrie en materiaal.
+// De rij- en celindeling en de status komen van boerderijwereld.js en farmstatus.js; dit bestand maakt alleen geometrie en materiaal.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { STADIA } from './boerderijstatus.js';
+import { STADIA } from './farmstatus.js';
 
 const cache = new Map();
 const m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), e4 = new THREE.Euler(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3(1, 1, 1);

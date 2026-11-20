@@ -1,10 +1,10 @@
 // Samen spelen (#985): de velden van de boerderij van de gastheer gaan als EXTRA-stukje (MISC_VELDEN) naar de gast, die dezelfde status en groei ziet.
-// Het veld is van wie het spel opende; een gast bouwt het alleen, hij werkt er niet. Geen three.js-scene nodig.   node scripts/boerderijveldgast_test.mjs
+// Het veld is van wie het spel opende; een gast bouwt het alleen, hij werkt er niet. Geen three.js-scene nodig.   node scripts/farmfieldguest_test.mjs
 import assert from 'node:assert/strict';
 import './node3d.mjs';
 import * as X from '../game/js/coopextra.js';
 const B = await import('../game/js/boerderij.js');
-const S = await import('../game/js/boerderijstatus.js');
+const S = await import('../game/js/farmstatus.js');
 const Live = await import('../game/js/boerderijlive.js');
 const { gastStand } = await import('../game/js/boerderijwereld.js');   // meldt de bron van de velden aan bij coopextra.js
 
@@ -73,5 +73,5 @@ t('elke status komt heel terug bij de gast, ook stoppel en oogstklaar', () => {
   }
 });
 
-console.log(`boerderijveldgast_test: ${n - fails}/${n}`);
+console.log(`farmfieldguest_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

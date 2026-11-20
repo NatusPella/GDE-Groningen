@@ -28,10 +28,10 @@ import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
 import { sfxLinks } from './latehooks.js';
 import { registreerVelden, standVelden } from './coopextra.js';
-import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken } from './boerderijstatus.js';
-import { plantGeometrie, plantMateriaal, plantLayout, stoppelGeometrie, voorGeometrie } from './boerderijgewas3d.js';
-import { maakVeldMarker, tikVeldMarker } from './boerderijmarker3d.js';
-import { boerderijHudKlaar, boerderijHudTik } from './boerderijhud.js';
+import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken } from './farmstatus.js';
+import { plantGeometrie, plantMateriaal, plantLayout, stoppelGeometrie, voorGeometrie } from './farmcrops3d.js';
+import { maakVeldMarker, tikVeldMarker } from './farmmarker3d.js';
+import { boerderijHudKlaar, boerderijHudTik } from './farmhud.js';
 
 export const SPAWN_R = 230;            // zo dichtbij worden erf, machines en velden gebouwd
 export const DESPAWN_R = 330;          // zo ver weg gaan ze weer weg
@@ -521,7 +521,7 @@ function bouwVeldMesh(w, id, pos, b, sv = null) {   // sv: de stand van een veld
   }
   voren.instanceMatrix.needsUpdate = true;
   group.add(voren);
-  // het gewas: de vorm hangt van gewas en stadium af (boerderijgewas3d.js); de plantjes staan op vaste plekken in de rij
+  // het gewas: de vorm hangt van gewas en stadium af (farmcrops3d.js); de plantjes staan op vaste plekken in de rij
   let planten = null;
   if (stand.fase === 'gezaaid' && g) {
     const gr = Math.min(1, Math.max(0, (uren - stand.gezaaidOp) / g.groeiUren));
@@ -986,7 +986,7 @@ export function boerderijPrompt(w) {
 }
 
 // Voor tests en de stand van de boerderij in de wereld.
-// Voor de HUD-strook (boerderijhud.js): wat je nu doet met je machine, of null als je niet in een machine van je boerderij zit.
+// Voor de HUD-strook (farmhud.js): wat je nu doet met je machine, of null als je niet in een machine van je boerderij zit.
 // taak, voortgang (0..1), snelheid met de band van de taak, diesel, lading en wat er nog nodig is.
 export function boerderijHudStand(w) {
   if (!w || w.coopRole === 'client') return null;

@@ -1,10 +1,10 @@
 // De HUD-strook tijdens het werken met je machine (#985): welke klus, hoe ver, hoe hard je rijdt (met de band waarin het werk netjes wordt), diesel,
 // lading en wat er nog nodig is. Eén klein paneel onderin (zone C van de activiteiten), alleen zolang je in een machine van je boerderij zit.
-// Dun gehouden: semantische markup, alle stijl in boerderij.css met alleen ds-tokens. De gegevens komen van boerderijHudStand (boerderijwereld.js);
+// Dun gehouden: semantische markup, alle stijl in farm.css met alleen ds-tokens. De gegevens komen van boerderijHudStand (boerderijwereld.js);
 // dit bestand is alleen DOM en bepaalt niets over het spel. Afronden geeft een opspringend getal en het bestaande UI-geluid (sfxLinks.uiFx).
 import { sfxLinks } from './latehooks.js';
 import { reducedMotion } from './motion.js';
-import { STATUS } from './boerderijstatus.js';
+import { STATUS } from './farmstatus.js';
 
 const TAAK = { ploegen: 'Ploegen', cultiveren: 'Cultiveren', zaaien: 'Zaaien', bemesten: 'Bemesten', spuiten: 'Spuiten', oogsten: 'Oogsten', afleveren: 'Afleveren' };
 const TAAK_STATUS = { ploegen: 'geploegd', cultiveren: 'geploegd', zaaien: 'zaailing', bemesten: 'groeiend', spuiten: 'groeiend', oogsten: 'rijp' };

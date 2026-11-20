@@ -1,9 +1,9 @@
 // De veldkaarten van het boerderijpaneel (#985): wat nu, de lus (ploegen, zaaien, groeien, oogsten, afleveren), elk veld als kaart met status, voortgang en
 // volgende klus, de legenda van de kaartstatussen en de eerste-keer-uitleg. Dun: dit bestand maakt alleen markup (ds-kaart, ds-chip, ds-streep, ds-knop uit
-// ds-components.css; de indeling staat in boerderij.css) uit het model van boerderijstatus.js. Klikken en toetsen regelt boerderijui.js (data-bd-naar,
+// ds-components.css; de indeling staat in farm.css) uit het model van farmstatus.js. Klikken en toetsen regelt boerderijui.js (data-bd-naar,
 // data-bd-uitleg). Geen eigen kleuren: de stand zit in data-status, de betekenis in woorden en een icoon (kleur is nooit de enige betekenis).
 import * as B from './boerderij.js';
-import { STATUS, STATUS_IDS, KAART_STIJL, LUS, veldenStatus, lusKlaar, watNu } from './boerderijstatus.js';
+import { STATUS, STATUS_IDS, KAART_STIJL, LUS, veldenStatus, lusKlaar, watNu } from './farmstatus.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');

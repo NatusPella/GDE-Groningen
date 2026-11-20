@@ -4,7 +4,7 @@ import { getBoerderij } from './boerderijlive.js';
 import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK } from './mapstyle.js';
-import { veldStatus, KAART_STIJL, watNu, machinePlekken } from './boerderijstatus.js';
+import { veldStatus, KAART_STIJL, watNu, machinePlekken } from './farmstatus.js';
 
 const pos = new Map();
 const wereld = (p) => { let q = pos.get(p.id); if (!q) { q = wgsToWorld(p.lat, p.lon); pos.set(p.id, q); } return q; };
