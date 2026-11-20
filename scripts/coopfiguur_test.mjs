@@ -144,7 +144,7 @@ t('de 110 m-band geldt binnen de groep van de gastheer; met een eigen focus loop
   assert.equal(w2.coopFociInfo.foci.length, 2, 'een eigen groep');
   stap(w2, FIGUUR_TERUG_S + 5);
   assert.deepEqual([g.x, g.y], [400, 0], 'niet teruggezet');
-  assert.match(w2.messages.map((m) => m[1]).join(' '), /Druk op B/, 'wel de melding hoe hij terugkomt');
+  assert.match(w2.messages.map((m) => m[1]).join(' '), /Druk op {B}/, 'wel de melding hoe hij terugkomt');
 });
 
 t('stepFigures stuurt de figuur met de echte moveFigure: hij stuit op het huis', () => {

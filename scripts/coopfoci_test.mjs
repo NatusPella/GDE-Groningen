@@ -108,8 +108,8 @@ await t('een speler 900 m weg met een geladen wereld blijft staan en krijgt geen
   assert.equal(f.x, 900, 'niet teruggezet');
   const tekst = w.messages.map((m) => m[1]).join(' ');
   assert.ok(!/Blijf bij de groep/.test(tekst) && !/teruggezet/.test(tekst), tekst);
-  assert.match(tekst, /Druk op B/, 'een keer: zo kom je bij de groep');
-  assert.equal(w.messages.filter((m) => /Druk op B/.test(m[1])).length, 1);
+  assert.match(tekst, /Druk op {B}/, 'een keer: zo kom je bij de groep');
+  assert.equal(w.messages.filter((m) => /Druk op {B}/.test(m[1])).length, 1);
 });
 await t('de wereld daar is nog niet geladen: hij wacht en wordt na ONGELADEN_S bij de groep gezet', () => {
   const f = { slot: 2, x: 900, y: 0, vx: 3, vy: 0 };

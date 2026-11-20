@@ -60,7 +60,7 @@ t('het zoekveld staat er met uitleg, werkt meteen en Escape wist het', () => {
 t('de trekker zegt welke knop de ploeg laat zakken', () => {
   const hk = lees('hintkit.js');
   const hint = (hk.match(/\{ id: 'v-trekker'[^\n]*/) || [''])[0];
-  assert.match(hint, /T laat de hef \(en de ploeg\) zakken/, 'de hint noemt T en de ploeg');
+  assert.match(hint, /{T} laat de hef \(en de ploeg\) zakken/, 'de hint noemt T en de ploeg');
   const ho = lees('helpoverview.js');
   assert.match(ho, /Op de trekker laat \{T\} de hef zakken en weer omhoog; dat is de knop voor de ploeg/, 'Besturing > Hulp legt het ook uit');
   assert.match(ho, /\{E\} koppelt een werktuig, \{X\} lost het en \{G\} zet de aftakas aan/, 'koppelen, lossen en de aftakas staan erbij');
