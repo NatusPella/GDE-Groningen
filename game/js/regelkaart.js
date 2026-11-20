@@ -23,6 +23,7 @@
 // stap zelf draait, ziet zijn eigen kaart en zijn eigen tijdslijn.
 //   node scripts/regelkaart_test.mjs
 import { showCard } from './hudcards.js';
+import { haakUi } from './sfx/haken.js'; // ronde 4: zacht papier bij een nieuw kaartje
 import { TYPES, vorm, iconSvg, ICONEN } from './regelwidget.js';
 
 export const MAX_REGELS = 3;
@@ -129,7 +130,7 @@ export function tikKaart(staat, dt) {
 export function toonRegelkaart(world, staat, dt) {
   try {
     const spec = tikKaart(staat, dt);
-    if (spec) showCard(world, spec);
+    if (spec) { showCard(world, spec); haakUi('regelkaart_papier'); }
     return spec;
   } catch (e) {
     if (staat) staat.klaar = true;
