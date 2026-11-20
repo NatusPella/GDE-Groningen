@@ -1,11 +1,11 @@
-// AAA akte 1 en 2 (#955, #963): de tussen-beats en nasleep (missiebeats.js), de aankleding bij start en doel
+// AAA akte 1 en 2 (#955, #963): de tussen-beats en nasleep (missionbeats.js), de aankleding bij start en doel
 // (missions_akte12.js) en de wachtclips telefoon en praten met een tweede wachtende (wachtprops.js).
-//   node scripts/missiebeats_test.mjs
+//   node scripts/missionbeats_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
 import { KEY_WORD_RE } from './release/design_rules.mjs';
 
-const { BEATS, tussenBeats, slotRij, beatDue, beatTekst } = await import('../game/js/missiebeats.js');
+const { BEATS, tussenBeats, slotRij, beatDue, beatTekst } = await import('../game/js/missionbeats.js');
 const { PLANNEN_AKTE12, applyAkte12 } = await import('../game/js/missions_akte12.js');
 const { dressingPlan } = await import('../game/js/missiedecor.js');
 const W = await import('../game/js/wachtprops.js');
@@ -109,5 +109,5 @@ for (const clip of ['telefoon', 'praten']) {
 const akte2 = fs.readFileSync(new URL('akte2_plan.js', root), 'utf8');
 ok(/seed: 0\.83, maat: true/.test(akte2), 'M11: bij de laatste kuip kletst Klaas met een boer');
 
-console.log(fails ? `${fails} van ${n} controles mislukt` : `missiebeats_test: ok (${n} controles)`);
+console.log(fails ? `${fails} van ${n} controles mislukt` : `missionbeats_test: ok (${n} controles)`);
 process.exit(fails ? 1 : 0);

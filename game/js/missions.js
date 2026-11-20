@@ -73,7 +73,7 @@ import { haakFx } from './sfx/haken.js'; // ronde 4: kleine geluidshaken van de 
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
-import { slotRij } from './missiebeats.js'; // nasleep-rij op de uitslagkaart (AAA akte 1 en 2)
+import { slotRij } from './missionbeats.js'; // nasleep-rij op de uitslagkaart (AAA akte 1 en 2)
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
 import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
 import { forceClearSweep } from './clearzonesweep.js';

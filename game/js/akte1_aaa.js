@@ -19,7 +19,7 @@ import { buildCheckpointRaceDecor, updateCheckpointRaceDecor, disposeCheckpointR
 import { raceLichtTijd } from './cinetemplates.js';
 import { buildMissionDressing, updateMissionDressing, disposeMissionDressing } from './missiedecor.js';
 import { startCameraTake, stopCameraTake, isCinematicActive } from './cinematics.js';
-import { beatDue, beatTekst } from './missiebeats.js'; // tussen-beat halverwege (alleen een zin, nooit een regel van de missie)
+import { beatDue, beatTekst } from './missionbeats.js'; // tussen-beat halverwege (alleen een zin, nooit een regel van de missie)
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js';
 import { stingen } from './sfx/stingen.js';
 import { haakFx } from './sfx/haken.js'; // ronde 4: startsein en publiek
