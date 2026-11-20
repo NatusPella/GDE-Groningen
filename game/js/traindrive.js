@@ -56,12 +56,17 @@ function facingOf(t) {
   return t.cab > 0 ? car.angle : car.angle + Math.PI;
 }
 
+// #955 (M19): at the ticket machine E buys a ticket, not a train, but only when the machine answers. While it is blocked
+// (a mission is on, stars, a side job) its prompt is dim and E does nothing there; the museum train of M19 stands at
+// the Veendam machine, so a dim machine used to take the boarding away too.
+export const ticketMachineTakesE = (prompt) => !!prompt && !prompt.dim;
+
 // A stopped (or abandoned) train whose cab end the player stands next to.
 function boardable(world) {
   const p = hoofdspeler(world);
   if (world.trainDriving || p.inVehicle || p.swimming || p.water || p.ragdoll || world.pigeonMode) return null;
   // at the ticket machine E buys a ticket, not a train
-  if (stationPrompt(world)) return null;
+  if (ticketMachineTakesE(stationPrompt(world))) return null;
   let best = null, bd = BOARD_RANGE;
   for (const t of getTrains()) {
     if (t.state !== 'dwell' && t.state !== 'parked') continue;
