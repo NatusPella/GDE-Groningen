@@ -27,6 +27,7 @@ export function kiesFetch(omgeving = globalThis) {
 export function maakLiveBussen({ fetchFn, nu = () => Date.now(), opts = {} } = {}) {
   const cfg = { ...LIVE_BRON, ...opts };
   const bussen = new Map();      // id -> { id, line, dir, prev: {s, t}, cur: {s, t}, speed }
+  const jit = typeof cfg.jitter === 'function' ? cfg.jitter : () => 1 + (Math.random() * 2 - 1) * (cfg.spreiding || 0); // spreiding op het ritme; een test geeft hier 1
   const st = { aan: false, bezig: false, volgendeOp: 0, fouten: 0, reden: null, laatsteOk: 0, opgevraagd: 0, onbekend: 0 };
 
   function wis() { bussen.clear(); }
@@ -34,12 +35,13 @@ export function maakLiveBussen({ fetchFn, nu = () => Date.now(), opts = {} } = {
   function verwerk(res, t, lines) {
     if (!res.ok) {
       st.reden = res.reden;
-      if (res.reden === 'leeg') { st.fouten = 0; st.volgendeOp = t + cfg.interval; return; }   // een lege feed is geen fout, de bussen blijven eigen
+      if (res.reden === 'leeg') { st.fouten = 0; st.volgendeOp = t + cfg.interval * jit(); return; }   // een lege feed is geen fout, de bussen blijven eigen
       st.fouten++;
-      st.volgendeOp = t + Math.min(cfg.maxInterval, cfg.interval * 2 ** Math.min(st.fouten, 6));
+      // een bron die zegt "te druk" (429) of "even niet" (503) krijgt meteen de lange rust; anders verdubbelt het wachten per fout tot het maximum
+      st.volgendeOp = t + ([429, 503].includes(res.status) ? cfg.maxInterval : Math.min(cfg.maxInterval, cfg.interval * 2 ** Math.min(st.fouten, 6) * jit()));
       return;
     }
-    st.fouten = 0; st.reden = null; st.laatsteOk = t; st.volgendeOp = t + cfg.interval;
+    st.fouten = 0; st.reden = null; st.laatsteOk = t; st.volgendeOp = t + cfg.interval * jit();
     const gezien = new Set();
     st.onbekend = 0;
     for (const v of res.voertuigen) {

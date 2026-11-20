@@ -221,6 +221,7 @@ import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
+import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de eerste live bus (#922)
 import { stapSlaOver } from './simlagen.js';
 import { getSimBridge, setSimCarAttach } from './simbridge.js';
 setSimCarAttach(attachToNearestRoad);
@@ -1266,6 +1267,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
         probe.mark('pop-bikes');
         // live bussen (#395): hooguit één opvraag per minuut, alleen met de instelling aan, nooit in de geautomatiseerde runs (buslive.js)
         busLive.tick(getBusLines());
+        tikBusMelding(world);
         manageBusPopulation(world);
         probe.mark('pop-bus');
       } else if (slot === 'scooters') {

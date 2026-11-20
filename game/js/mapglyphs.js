@@ -143,7 +143,7 @@ const PH_GLYPHS = {
 // De rest van de markers (20-11): winkels, bijbanen, haltes en andere plekken tekenen hun betekenis ook uit Phosphor, zodat kaart
 // en minikaart één iconenstijl hebben. De sleutels zijn de soorten die de eigen tekenfuncties kennen (shops.js, sidejobs.js, ...).
 export const PH_KIND = {
-  station: 'trein', livebus: 'bus', 'ov-halte': 'bus', pigeon: 'duif', heli: 'helikopter', padel: 'padel', wereldeinde: 'wereldbol',
+  station: 'trein', livebus: 'bus', roosterbus: 'bus', 'ov-halte': 'bus', pigeon: 'duif', heli: 'helikopter', padel: 'padel', wereldeinde: 'wereldbol',
 };
 export const PH_SHOP = {
   wapens: 'doel', pand: 'gebouw', kleding: 'kleding', kapper: 'schaar', tabak: 'sigaret', super: 'kar', snack: 'burger', fietsen: 'fiets',

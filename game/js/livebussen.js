@@ -23,6 +23,7 @@ export const LIVE_BRON = {
   maxBytes: 3 * 1024 * 1024,
   maxVoertuigen: 300,    // na het filteren op het gebied
   verouderd: 180000,     // ms: een positie ouder dan dit telt niet meer
+  spreiding: 0.15,       // +-15% willekeurig op elk interval, zodat niet alle spelers op dezelfde seconde bij de bron aankloppen
 };
 // alleen het gebied rond (de provincie) Groningen
 export const GEBIED = { latMin: 52.95, latMax: 53.50, lonMin: 6.05, lonMax: 7.30 };
@@ -134,7 +135,7 @@ export async function haalLiveBussen({ fetchFn, url = LIVE_BRON.url, timeout = L
   try {
     const werk = (async () => {
       const res = await fetchFn(url, { ...VERZOEK, ...(ac ? { signal: ac.signal } : {}) });
-      if (!res || !res.ok) return { ok: false, reden: 'status' };
+      if (!res || !res.ok) return { ok: false, reden: 'status', status: res ? res.status || 0 : 0 };
       const bytes = await leesBody(res, maxBytes);
       if (!bytes) return { ok: false, reden: 'te-groot' };
       let alle;

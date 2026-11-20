@@ -30,7 +30,7 @@ import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender } from './stationtravel.js';
-import { liveBusMarks } from './busmap.js';
+import { liveBusMarks, roosterBusMarks } from './busmap.js';
 import { haltesVoorKaart } from './bushalte.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
@@ -1881,6 +1881,8 @@ function drawDynamicMarkers(ctx, world) {
   for (const h of haltesVoorKaart(hoofdspeler(world))) icon('trein', 'ov-halte', h.x, h.y, `Halte ${h.naam}`, {}, 'Een busdienst starten: loop erheen en druk E');
   // #922: de live bussen van vandaag, met hun lijn en dienst als label
   for (const b of liveBusMarks(hoofdspeler(world), 4)) icon(null, 'livebus', b.x, b.y, b.label, {}, b.sub);
+  // de terugval als er geen live gegevens zijn: de bussen van het spel, duidelijk als Rooster gemarkeerd (busbron.js)
+  for (const b of roosterBusMarks(world, 3)) icon(null, 'roosterbus', b.x, b.y, b.label, {}, b.sub);
   for (const q of ommelandMapSpots()) { if (onbekend(q.x, q.y)) continue; icon('ommeland', q.kind, q.x, q.y, q.name, {}, q.sub); }
   // het eerbetoonbankje (#832): een eigen icoon, altijd zichtbaar zodat de plek
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
@@ -2661,6 +2663,8 @@ const LEGEND = [
     { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layers: ['shopsWapens'] },
     { kind: 'station', label: 'Treinstation', note: 'reizen met de trein, een treindienst rijden', layers: ['trein'] },
     { kind: 'ov-halte', label: 'Bushalte', note: 'een busdienst starten', layers: ['trein'] },
+    { kind: 'livebus', label: 'Live bus', note: 'een echte bus op zijn echte plek, met lijn en richting; uit te zetten in Instellingen' },
+    { kind: 'roosterbus', label: 'Rooster', note: 'de terugval: een bus uit het rooster van het spel, alleen als er geen live gegevens zijn' },
   ] },
   { group: 'Onderweg', folded: true, rows: [
     { kind: 'companion', label: 'Maat', layers: ['companion'] },
