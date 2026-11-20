@@ -162,11 +162,12 @@ html.reduce-flash :is(#hud .hud-wanted.searching svg.on, #hud .stunt-hud .sh-lef
 html.dev-pad, html.dev-pad * { cursor: none !important; }
 
 /* The glyph characters only exist in the glyph font: font-family and font-size are !important, because HUD cards (#hud .hc-text span) and hint rows set their own font on every span inside. */
+/* The glyph draws its own key outline: no extra plate, edge or shadow around it, so the border is not doubled and the glyph does not disappear inside it. */
 /* Controller glyphs from the glyph font (inputglyphs.js, game/fonts/input): the outline glyph on the white keycap, same size as the cap it replaces. */
-html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; font-size: 22px !important; line-height: 1; letter-spacing: 0; border-radius: 5px; font-weight: normal; }
+html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; background: transparent; box-shadow: none; border: 0; font-size: 22px !important; line-height: 1; letter-spacing: 0; border-radius: 5px; font-weight: normal; }
 html .pad-g.pad-kn[data-set="xbox"] { font-family: var(--ds-font-knoppen-a, 'GDE Knoppen A'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE Knoppen B'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pm-pad-g .pad-g.pad-kn { font-size: 26px !important; }
 html .m-hint .pm-pad-g .pad-g.pad-kn { font-size: 30px !important; }
-html .pad-g.pad-kn.pad-dp { background: var(--keycap-bg); box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line); }
+html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
