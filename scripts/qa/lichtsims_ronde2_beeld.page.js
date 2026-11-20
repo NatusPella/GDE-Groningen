@@ -27,7 +27,7 @@ const strook = () => {
   const el = document.getElementById('sh-hud');
   if (!el) return { bestaat: false };
   const r = el.getBoundingClientRect();
-  return { bestaat: true, zichtbaar: !el.hidden && r.height > 0, tekst: el.innerText.replace(/\s+/g, ' ').slice(0, 260), stappen: el.querySelectorAll('.sh-stappen li').length, primair: el.querySelectorAll('.sh-cijfer--primair').length,
+  return { bestaat: true, zichtbaar: !el.hidden && r.height > 0, tekst: el.innerText.replace(/\s+/g, ' ').slice(0, 260), stappen: el.querySelectorAll('.sh-stappen li').length, primair: el.querySelectorAll('.sh-primair').length,
     iconen: el.querySelectorAll('.sh-cijfers svg').length, meter: !!el.querySelector('[role=progressbar]'), rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)], kleur: el.dataset.sim || '' };
 };
 const kolommen = () => { const sc = (window.__debug && window.__debug.scene) || null; let n = 0; if (sc && sc.traverse) sc.traverse((o) => { if (/kolom$/.test(o.name || '') && o.visible) n++; }); return n; };
