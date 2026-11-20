@@ -26,7 +26,7 @@ if (arg('lijst')) bruggen = JSON.parse(fs.readFileSync(path.resolve(arg('lijst')
 const plekken = arg('plekken') ? JSON.parse(fs.readFileSync(path.resolve(arg('plekken')), 'utf8')) : []; // [{ naam, x, y }]: luchtbeeld en straatbeeld zonder brug
 if (!(boot ? Object.keys(bruggen).length : bruggen.length) && !plekken.length && !alleenLijst) { console.error('geen bruggen: geef --lijst of --alleen-lijst'); process.exit(2); }
 const afstanden = arg('afstanden', '25,60,150,350').split(',').map(Number);
-const profile = `gde-test-bb-${process.pid}`;
+const profile = process.env.GDE_PROFILE_DIR || `gde-test-bb-${process.pid}`; // GDE_PROFILE_DIR: absoluut pad als %TEMP% niet schrijfbaar is
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, boot
   ? (zee
@@ -48,7 +48,7 @@ if (!flag('geen-slot') && !process.env.GDE_SLOT_VAST && fs.existsSync(LOCKS)) {
 }
 let r;
 try {
-  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+  r = spawnSync(electron, ['.', ...(process.env.GDE_ELECTRON_EXTRA_ARGS || '').split(',').filter(Boolean), '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(arg('url-flags') ? [`--url-flags=${arg('url-flags')}`] : [])],
     { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60 * 60 * 1000, killSignal: 'SIGKILL' });
 } finally {
@@ -56,7 +56,7 @@ try {
 }
 if (r.error) console.error('Electron starten mislukt:', r.error.message);
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
-fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+fs.rmSync(path.resolve(os.tmpdir(), profile), { recursive: true, force: true });
 let full = {};
 for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }
 fs.writeFileSync(path.join(OUT, 'brug_beeld.json'), JSON.stringify(full, null, 1));

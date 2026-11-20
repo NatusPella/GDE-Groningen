@@ -16,6 +16,7 @@ const PW = await import('../game/js/provinceworld.js');
 const G = await import('../game/js/gdt.js');
 const { isInWater, pointInPolygon } = await import('../game/js/util.js');
 const { BOURTANGE } = await import('../game/js/missions_akte6.js');
+const { patchRows } = await import('../game/js/vaarnet.js');
 
 const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
 const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
@@ -29,6 +30,9 @@ for (let dx = -320; dx <= 320; dx += 100) for (let dy = -320; dy <= 320; dy += 1
 }
 await Promise.all([...keys].map((k) => T.store.request(k, { priority: -1 })));
 map.tileQueue.run(1e9);
+// de vaarnet-waterstukken (vaarload.js zet ze bij het laden van de wereld in het water): de test telt ze mee, want de speler
+// ziet ze ook; zonder ze zei de test 'droog' waar het spel de bolwerken onder water zette (#953)
+map.addWaterPatches(patchRows(JSON.parse(fs.readFileSync(new URL('../game/vaarnet_fixes.json', import.meta.url), 'utf8'))).filter((r) => !r.strip));
 
 let n = 0, bad = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { bad++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
@@ -99,14 +103,14 @@ for (const key of ['plein', 'poort', 'brug', 'bolwerk1', 'bolwerk2', 'bolwerk3']
 // hem in de gracht (#953). De grachtstap heeft radius 10; die moet op de oever blijven. De
 // poort en de ophaalbrug liggen per definitie aan het water (het deck is droog): daar telt dat
 // het punt zelf droog is en niet verder dan een paar meter van de kant, want dat is de scène.
-const NEAR = { bolwerk1: 13, bolwerk2: 13, bolwerk3: 13, gracht: 11, poort: 2, brug: 2 };
+const NEAR = { bolwerk1: 10, bolwerk2: 10, bolwerk3: 10, gracht: 11, poort: 2, brug: 2 };
 for (const [key, min] of Object.entries(NEAR)) {
   const d = waterDist(BOURTANGE[key][0], BOURTANGE[key][1]);
   ok(d > 0, `${key} ligt niet in de gracht`);
   ok(d >= min, `${key} ligt ver genoeg van het water (${d.toFixed(1)} m, minstens ${min})`);
 }
 // de bron van de missie noemt geen grotere radius dan deze test kent
-const RADIUS = { gracht: 10, brug: 7, bolwerk1: 12, bolwerk2: 12, bolwerk3: 12, poort: 9 };
+const RADIUS = { gracht: 10, brug: 7, bolwerk1: 9, bolwerk2: 9, bolwerk3: 9, poort: 9 };
 {
   const src = fs.readFileSync(new URL('../game/js/missions_akte6.js', import.meta.url), 'utf8');
   for (const [key, r] of Object.entries(RADIUS)) {
@@ -121,6 +125,15 @@ const RADIUS = { gracht: 10, brug: 7, bolwerk1: 12, bolwerk2: 12, bolwerk3: 12, 
     ok(waterDist(BOURTANGE[key][0], BOURTANGE[key][1]) >= RADIUS[key], `${key}: de cirkel van de stap valt niet in de gracht`);
     ok(map.canWalkOut(BOURTANGE[key][0], BOURTANGE[key][1], RADIUS[key]), `${key}: de hele walcirkel is beloopbaar`);
     ok(map.treesNear(BOURTANGE[key][0], BOURTANGE[key][1], RADIUS[key]).length === 0, `${key}: geen boom in de stapcirkel`);
+    // een bolwerk is een wal en geen brugdek of steiger: de speler staat er droog, niet op een brug tussen het water (beeld #953)
+    let wet = 0, brug = 0;
+    for (let a = 0; a < 16; a++) {
+      const px = BOURTANGE[key][0] + Math.cos(a * Math.PI / 8) * RADIUS[key], py = BOURTANGE[key][1] + Math.sin(a * Math.PI / 8) * RADIUS[key];
+      if (isInWater(map, px, py)) wet++;
+      if (map.isOnBridge(px, py)) brug++;
+    }
+    ok(!map.isOnBridge(BOURTANGE[key][0], BOURTANGE[key][1]) && brug === 0, `${key}: niet op of naast een brugdek`, `${brug} van 16 punten`);
+    ok(wet === 0, `${key}: de rand van de stapcirkel is overal droog`, `${wet} van 16 punten nat`);
   }
   // de grachtstap: de cirkel blijft op de oever
   ok(waterDist(BOURTANGE.gracht[0], BOURTANGE.gracht[1]) >= RADIUS.gracht, 'gracht: de cirkel van de stap valt niet in de gracht');
