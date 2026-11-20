@@ -22,14 +22,18 @@ Gemeten met een grep door `game/js` op de stand van 20-11. Doel: alle iconen via
 | Lobby en Samen spelen | `lobbyui.js`, `samenhubui.js`, `coop*ui.js` | per scherm; emoji vervangen |
 | Prestaties en missies | `achievementicons.js`, `missionicons.js` | tekeningen per prestatie blijven eerst staan |
 
-## Stand per scherm
-
-Zie het changelog en de commits met `Refs #985`; deze tabel wordt bijgewerkt met elke commit.
+## Stand per scherm (laatste commit van deze ronde)
 
 | Scherm | Stand |
 |---|---|
-| Pauzemenu en hoofdmenu | overgezet |
-| Hoofd-HUD | zie commit |
-| Kaart en legenda | nog niet |
-| Sim-strook | laatst, andere agent |
-| Regelkaart, telefoon, winkel, garage, boerderij, toasts, lobby | nog niet |
+| Pauzemenu en hoofdmenu (ICONS, kopjes, pijlen) | overgezet |
+| Hoofd-HUD: voertuig, route-afslag, doel, muziek, aangeschoten | overgezet |
+| Hoofd-HUD: wanted-sterren (vol of raster, vorm draagt de betekenis), wapensilhouetten, toerentalmeter, portret | blijven eigen tekening |
+| Kaart: zoekveld, in-, uitzoomen, naar jezelf, acties bij een plek | overgezet |
+| Kaart: markeringen op het canvas (`mapicons.js`, `mapglyphs.js`), het stuurkruis (`map-pad-reticle`) | nog niet (canvas heeft Path2D uit `iconInner()` nodig) |
+| Te doen (`todoui.js`), winkelchips, garage (chips, slot, plek, zoeken), Samen-hub-chips | overgezet |
+| Telefoon (`phonefeed.js`) | overgezet |
+| Prestaties (`achievementsui.js`) en bedieningsplaatjes (`prompts.js`, zes van de dertien) | overgezet; de rest blijft eigen tekening |
+| Lobby (favoriet, vinkje) en boerderijmenu | overgezet |
+| Sim-strook (`simhud.js`, `simicoon.js`) | bestaat nog niet in deze tak; de andere agent koppelt via `icoon('hoogte')` enzovoort |
+| Regelkaart (`regelwidget.js` ICONEN), boerderij-HUD (`farmstatus.js`), garage-silhouetten, missie- en prestatietekeningen, `hudcards.js`, mobiele overlays | nog niet |
