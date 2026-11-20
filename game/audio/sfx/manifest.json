@@ -13,7 +13,9 @@
         "auteur": "BenDrain",
         "freesound_id": 488053,
         "url": "https://freesound.org/people/BenDrain/sounds/488053/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
@@ -29,7 +31,9 @@
         "auteur": "BlondPanda",
         "freesound_id": 778421,
         "url": "https://freesound.org/people/BlondPanda/sounds/778421/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
@@ -45,7 +49,9 @@
         "auteur": "BenDrain",
         "freesound_id": 488056,
         "url": "https://freesound.org/people/BenDrain/sounds/488056/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
@@ -61,7 +67,9 @@
         "auteur": "RutgerMuller",
         "freesound_id": 50697,
         "url": "https://freesound.org/people/RutgerMuller/sounds/50697/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
@@ -77,7 +85,9 @@
         "auteur": "audible-edge",
         "freesound_id": 71738,
         "url": "https://freesound.org/people/audible-edge/sounds/71738/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": {
         "start": 5.97,
@@ -97,7 +107,10 @@
         "auteur": "kyles",
         "freesound_id": 637742,
         "url": "https://freesound.org/people/kyles/sounds/637742/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "de8e96f070b2a9b9195fef681ba128e82ddc50ef0a21d46a5f11d4f16a28723f"
       },
       "knip_s": {
         "start": 3,
@@ -125,7 +138,10 @@
         "auteur": "kyles",
         "freesound_id": 454199,
         "url": "https://freesound.org/people/kyles/sounds/454199/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "a4b712b1eb6688a1df92d98192bda0f765a357f53106045ac220d61decfb8f8b"
       },
       "knip_s": {
         "start": 0,
@@ -153,7 +169,10 @@
         "auteur": "audible-edge",
         "freesound_id": 76804,
         "url": "https://freesound.org/people/audible-edge/sounds/76804/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "bron_sha256": "faf4d90fccb057b16e79457ce20d21f235bfb00912e62323270d266bf49870ec",
+        "datum": "2026-11-20"
       },
       "knip_s": {
         "start": 7.45,
@@ -173,7 +192,10 @@
         "auteur": "qubodup",
         "freesound_id": 184412,
         "url": "https://freesound.org/people/qubodup/sounds/184412/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e9a075dc8afe861d414cecb48809d91886d1940a870fc9cd1659b971be1ea481"
       },
       "knip_s": {
         "start": 0,
@@ -201,7 +223,10 @@
         "auteur": "qubodup",
         "freesound_id": 187681,
         "url": "https://freesound.org/people/qubodup/sounds/187681/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "46a3a1087a2515b9a87cabe2dfcea3d42a3f1c45c861c02329466efa30859933"
       },
       "knip_s": {
         "start": 0,
@@ -229,7 +254,9 @@
         "auteur": "kyles",
         "freesound_id": 637161,
         "url": "https://freesound.org/people/kyles/sounds/637161/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
@@ -245,7 +272,9 @@
         "auteur": "jrosin",
         "freesound_id": 209969,
         "url": "https://freesound.org/people/jrosin/sounds/209969/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": {
         "start": 13.85,
@@ -265,7 +294,9 @@
         "auteur": "jrosin",
         "freesound_id": 209969,
         "url": "https://freesound.org/people/jrosin/sounds/209969/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": {
         "start": 0.45,
@@ -285,7 +316,9 @@
         "auteur": "jrosin",
         "freesound_id": 209969,
         "url": "https://freesound.org/people/jrosin/sounds/209969/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-10-24"
       },
       "knip_s": {
         "start": 9,
@@ -305,7 +338,10 @@
         "auteur": "77Pacer",
         "freesound_id": 425273,
         "url": "https://freesound.org/people/77Pacer/sounds/425273/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "4228eac8f1f8e9391c5ca6467f7fde37624da7ddccce37e022e8f6c33d9dc9c0"
       },
       "knip_s": {
         "start": 0,
@@ -328,7 +364,10 @@
         "auteur": "77Pacer",
         "freesound_id": 425272,
         "url": "https://freesound.org/people/77Pacer/sounds/425272/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "d0306e100946e603598125c5e368fa660b793f3fbcf8b00a262ff25d93739e92"
       },
       "knip_s": {
         "start": 0,
@@ -356,7 +395,10 @@
         "auteur": "JuandreSound",
         "freesound_id": 490905,
         "url": "https://freesound.org/people/JuandreSound/sounds/490905/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "e0416af4a31dc680e6275e7f5bc7222fd266353ea0820f526de4a25e7e6bb117"
       },
       "knip_s": {
         "start": 19.9,
@@ -384,7 +426,10 @@
         "auteur": "OBXJohn",
         "freesound_id": 251661,
         "url": "https://freesound.org/people/OBXJohn/sounds/251661/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "070be5b83159c91044ff55b89e718d4ea67e0078b64f83b3e81eb35c092920b5"
       },
       "knip_s": {
         "start": 0.5,
@@ -412,7 +457,10 @@
         "auteur": "craigsmith",
         "freesound_id": 437851,
         "url": "https://freesound.org/people/craigsmith/sounds/437851/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "364dab99ea3128a5305f653aea25d687c108a362f8f61ea8b341f94f4c944013"
       },
       "knip_s": {
         "start": 0,
@@ -435,7 +483,10 @@
         "auteur": "craigsmith",
         "freesound_id": 437851,
         "url": "https://freesound.org/people/craigsmith/sounds/437851/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "364dab99ea3128a5305f653aea25d687c108a362f8f61ea8b341f94f4c944013"
       },
       "knip_s": {
         "start": 6,
@@ -463,7 +514,10 @@
         "auteur": "modusmogulus",
         "freesound_id": 789390,
         "url": "https://freesound.org/people/modusmogulus/sounds/789390/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "39d41a43391661b37d16ba73ed88fd80261f544080fee1dbb80cf280045c72c6"
       },
       "knip_s": {
         "start": 0,
@@ -491,7 +545,10 @@
         "auteur": "ChemiCatz",
         "freesound_id": 267899,
         "url": "https://freesound.org/people/ChemiCatz/sounds/267899/",
-        "licentie": "Creative Commons 0 (CC0 1.0)"
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "9e3e80b86c12bcc3fe30418a5c9e35bfec4c456b90a9c4bd828d29aca93336fc"
       },
       "knip_s": {
         "start": 20,

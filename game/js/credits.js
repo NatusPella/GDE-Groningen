@@ -3,6 +3,7 @@
 // list; keep the two in line. The Over screen folds credits and licences separately (#612), so
 // the two halves are also available on their own; ABOUT_HTML is both together.
 import { GAME_TITLE, SERIES, SERIES_MEANING } from './logo.js';
+import { AUDIO_CREDITS } from './sfx/audiocredits.js';
 
 // The one disclaimer (#72, #37); README.md, NOTICE.md and docs/PRIVACY-EN-CREDITS.md carry the same text.
 // It deliberately names no other game or publisher (constitution 2); the end credits only say 'alles verzonnen'.
@@ -44,6 +45,17 @@ export const AI_ASSISTENTS = [
   ['Claude Design', 'het Martinitoren-model'],
 ];
 
+// De opnames van Freesound (ADR 0039): per bron titel, auteurshandle en licentie, uit game/audio/sfx/manifest.json (via audiocredits.js).
+export function geluidenHtml(lijst = AUDIO_CREDITS) {
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const li = (c) => `<li>${esc(c.titel)} van ${esc(c.auteur)}, ${c.licentie}</li>`;
+  const by = lijst.filter((c) => c.by), cc0 = lijst.filter((c) => !c.by);
+  return ['<h4>Geluiden</h4>',
+    '<p>Voetstappen, weer, motoren, deuren en ander geluid zijn opnames van Freesound (freesound.org), bewerkt voor dit spel (ingekort, in niveau gelijkgetrokken, tot lussen gemaakt). Dank aan de makers.</p>',
+    ...(by.length ? ['<p>Onder een Creative Commons-licentie met naamsvermelding:</p>', '<ul>', ...by.map(li), '</ul>'] : []),
+    ...(cc0.length ? ['<p>Onder CC0 (publiek domein, met dank):</p>', '<ul>', ...cc0.map(li), '</ul>'] : [])].join('\n');
+}
+
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [
   ['NatusPella', 'ontwerp, verhaal, regie en code'],
@@ -71,7 +83,8 @@ ${CONTRIBUTORS.map((c) => `<li><strong>${c.who}</strong> — ${c.role}</li>`).jo
 <p>Terreinhoogte (dijken, wierden, hellingen): ${AHN_ATTRIBUTION}, CC0. Zie ahn.nl en pdok.nl.</p>
 <p>Grenzen van gemeenten, woonplaatsen, wijken en buurten (gebieden veroveren): ${GRENZEN_ATTRIBUTION}. Gemeenten, wijken en buurten onder CC BY 4.0, woonplaatsen als Public Domain Mark. Zie pdok.nl.</p>
 <h4>Muziek en stemmen</h4>
-<p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden grotendeels in het spel zelf gesynthetiseerd, aangevuld met een paar CC0-opnames van Freesound (autodeuren, bandenslip, handrembocht en een treindeur).</p>
+<p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden grotendeels in het spel zelf gesynthetiseerd, aangevuld met opnames van Freesound (zie Geluiden hieronder).</p>
+${geluidenHtml()}
 <h4>Software en lettertypes</h4>
 <p>Gemaakt met hulp van AI-assistenten: ${AI_ASSISTENTS.map(([who, role]) => `${who} (${role})`).join('; ')}. Zij staan hier als tech-stack, niet als credits.</p>
 <ul>
