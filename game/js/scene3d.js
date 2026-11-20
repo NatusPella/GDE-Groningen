@@ -93,7 +93,7 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
-import { roadBuildAllowed, heavyRoadAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
+import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
@@ -2181,7 +2181,8 @@ let bridgeViews = false;
 // ROAD_SYNC_IDLE_FRAMES really bounds the skip; ?perfoff=wegsync turns the guard
 // off for the A/B measurement. See docs/PERF-LAADHANG-0.56.1.md (#553).
 const ROAD_SYNC_IDLE_FRAMES = 6;
-let roadSyncIdle = null, roadSyncFrame = 0, roadHeavyWait = 0; // roadHeavyWait: frames waarin een heavy weg wachtte (#883)
+let roadSyncIdle = null, roadSyncFrame = 0;
+const roadHeavyGate = createHeavyRoadGate(); // #883: frames waarin een heavy weg wachtte; #804: ruimte tussen twee heavy bouwbeurten
 // #804: teller voor de wegopbouw (meetbaar in de perf-harness en tests)
 export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0, heavyBuilt: 0, heavyDeferred: 0 };
 function syncRoads(world, px, py) {
@@ -2231,20 +2232,16 @@ function syncRoads(world, px, py) {
       const ready = roadGeometryReady(r, near);
       if (waiting) continue;
       if (!ready) { waiting = true; continue; }
-      // #804: de deadline en een harde cap gelden voor élke weg, ook de
-      // "goedkope" met kant-en-klare surfaces; anders bouwde één frame de
-      // hele ring (3d:roads-piek 0,9-1,7 s). Eén weg mag altijd, zodat de
-      // streaming vooruit blijft.
-      // #804: een heavy weg (kant-en-klare surfaces ontbreken of de civiele werken
-      // worden hier gebouwd) kost honderden ms. Bouw die alleen op een verder leeg
-      // frame: geen andere weg dit frame en bijna niets meer te streamen. Anders
-      // schuift hij door naar een volgend frame (heavyDeferred).
+      // #804: de deadline en een harde cap gelden voor élke weg (anders bouwde één frame de hele ring: 3d:roads-piek 0,9-1,7 s);
+      // één weg mag altijd. Een heavy weg (surfaces ontbreken of civiele werken hier) kost honderden ms: alleen op een verder
+      // leeg frame, en met rust tussen twee heavy beurten (roadHeavyGate, roadbudget.js); anders schuift hij door (heavyDeferred).
       const heavy = !r._geoRoad || (r.z && r._geoStruct === undefined);
-      if (heavy && !heavyRoadAllowed(built, streamStat.r, roadHeavyWait)) { roadSyncStats.heavyDeferred++; deferred = true; continue; }
+      if (heavy && !roadHeavyGate.allowed(built, streamStat.r, performance.now())) { roadSyncStats.heavyDeferred++; deferred = true; continue; }
       if (!roadBuildAllowed(built, performance.now(), deadline, cap)) { roadSyncStats.deadlineStops++; break; }
       if (heavy) roadSyncStats.heavyBuilt++;
       coldRoads.delete(r);
       probe.mark('road-build-start');
+      const tHeavy = heavy ? performance.now() : 0;
       const group = buildRoadGroup(r);
       probe.mark('road-build');
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
@@ -2254,8 +2251,9 @@ function syncRoads(world, px, py) {
       roadMeshes.set(r, mesh);
       probe.mark('road-add');
       built++;
+      if (heavy) roadHeavyGate.built(performance.now(), performance.now() - tHeavy);
     }
-    roadHeavyWait = deferred ? roadHeavyWait + 1 : 0;
+    roadHeavyGate.endFrame(deferred);
     // De detailring is een cirkel (de verre LOD tekent vanaf roadDetailR), dus
     // hij reikt tot de dichtstbijzijnde weg die nog mist; met de
     // vooruit-volgorde is dat niet per se de weg waar de lus stopte (#247).

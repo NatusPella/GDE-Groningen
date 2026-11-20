@@ -68,7 +68,7 @@ t('hudcards.js vraagt de kolom voor elke E-kaart en duwt een E-kaart terug voor 
   const src = lees('game/js/hudcards.js');
   assert.match(src, /import \{[^}]*leftColumnFits[^}]*\} from '\.\/hudbus\.js'/);
   assert.match(src, /queue\.findIndex\(\(q\) => isFree\(q\) && fitsColumn\(q\)/, 'een E-kaart wacht tot hij past');
-  assert.match(src, /zoneOf\(next\) === 'A'\) for \(const e of up\) if \(zoneOf\(e\) === 'E' && !leftColumnFits\(next\.spec, e\.spec, col\)\)/, 'een A-kaart duwt een E-kaart die hij zou raken');
+  assert.match(src, /zoneOf\(next\) === 'A'\) for \(const e of up\) if \(zoneOf\(e\) === 'E' && !leftColumnFits\(next\.spec, e\.spec, columnOpts\(\)\)\)/, 'een A-kaart duwt een E-kaart die hij zou raken');
   assert.match(src, /noLog: true/, 'de teruggezette E-kaart komt niet twee keer in het tekstlog');
 });
 
