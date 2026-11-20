@@ -4,7 +4,7 @@ import { getBoerderij } from './boerderijlive.js';
 import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK, inkA } from './mapstyle.js';
-import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken } from './farmstatus.js';
+import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken, afnemerPlekken } from './farmstatus.js';
 import { iconInner } from './icons.js';
 
 const pos = new Map();
@@ -22,12 +22,17 @@ export function perceelMapSpots() {
   }
   // #985: je machines in de wereld (trekker, maaidorser, laadmachine) met hun dieselstand
   for (const m of machinePlekken()) out.push({ kind: 'perceel-machine', x: m.x, y: m.y, name: m.naam, sub: `Van jou · diesel ${Math.round(m.diesel * 100)}%${m.diesel <= 0.15 ? ' (bijna leeg)' : ''}`, id: m.uid, goal: { kind: 'place', name: m.naam, sub: 'Machine', x: m.x, y: m.y } });
+  // #1005: de afnemers van je oogst, zodra je een veld of machine hebt: dan weet je waar je heen moet nog voor je de aanhanger laadt
+  if (out.some((q) => q.kind.startsWith('perceel-eigen') || q.kind === 'perceel-machine')) {
+    for (const a of afnemerPlekken()) out.push({ kind: 'perceel-afnemer', x: a.x, y: a.y, name: a.naam, sub: 'Afnemer van je oogst · klik voor een doel', id: 'afnemer-' + a.gewas, goal: { kind: 'place', name: a.naam, sub: 'Afnemer', x: a.x, y: a.y } });
+  }
   return out;
 }
 
 const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'perceel-eigen': INK.greenLight };
 const STATUS_KIND = /^perceel-eigen-([a-z]+)$/;
 const MACHINE_KIND = 'perceel-machine';
+const AFNEMER_KIND = 'perceel-afnemer';
 
 // De vulling van een veld op de kaart: een leeg veld rustig, een groeiend gewas steeds voller, oogstklaar het volst (het doel).
 export function vulAlpha(st) {
@@ -95,6 +100,12 @@ export function drawPerceelMapIcon(ctx, kind, s) {
     ctx.beginPath(); ctx.arc(0, 0, 4.4 * s, 0, Math.PI * 2); ctx.fillStyle = INK.cream; ctx.fill();
     ctx.lineWidth = 1.2 * s; ctx.strokeStyle = INK.dark; ctx.stroke();
     ctx.font = `700 ${6 * s}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = INK.dark; ctx.fillText('T', 0, 0.4 * s);
+    return true;
+  }
+  if (kind === AFNEMER_KIND) {   // een vierkante schijf met een A: het afleverpunt, een andere vorm dan veld (rond) en machine (T)
+    ctx.beginPath(); ctx.rect(-4.6 * s, -4.6 * s, 9.2 * s, 9.2 * s); ctx.fillStyle = INK.policeBlue; ctx.fill();
+    ctx.lineWidth = 1.2 * s; ctx.strokeStyle = INK.cream; ctx.stroke();
+    ctx.font = `700 ${6 * s}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = INK.cream; ctx.fillText('A', 0, 0.4 * s);
     return true;
   }
   const m = STATUS_KIND.exec(kind);

@@ -197,5 +197,16 @@ t('je velden blijven op de kaart staan, ook ver uitgezoomd; aangeboden akkers vo
   for (const sid of S.STATUS_IDS) assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-eigen-' + sid, 2.1), true);
   assert.ok(calls.includes('fillText'), 'de letter van de stand staat op de pin');
 });
+t('afnemers staan op de kaart (#1005)', () => {
+  assert.deepEqual(S.afnemerPlekken(), [], 'zonder bron geen afnemers');
+  S.zetAfnemerPlekken(() => [{ naam: 'Coöperatie Noorderveld', gewas: 'aardappelen', x: 10, y: 20 }]);
+  assert.equal(S.afnemerPlekken().length, 1);
+  assert.equal(MI.mapCategory('perceel-afnemer'), 'home');
+  assert.equal(MI.mapKindVisible('perceel-afnemer', 0), true);
+  const calls = []; const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : (...a) => { calls.push(k); }), set: (o, k, w) => { o[k] = w; return true; } });
+  assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-afnemer', 2.1), true);
+  assert.ok(calls.includes('fillText'), 'de letter A staat op de pin');
+  S.zetAfnemerPlekken(null);
+});
 console.log(`farmstatus_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
