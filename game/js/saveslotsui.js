@@ -95,7 +95,7 @@ export function openSaveSlots(opts = {}) {
 
   rootEl = document.createElement('div');
   rootEl.id = 'saveslots';
-  rootEl.className = 'gm';
+  rootEl.className = 'gm gm-zeef';
   rootEl.setAttribute('role', 'dialog');
   rootEl.setAttribute('aria-modal', 'true');
   rootEl.setAttribute('aria-labelledby', 'ssl-title');

@@ -24,7 +24,7 @@ function teken() {
     el.style.cssText = 'position:fixed;left:50%;bottom:72px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;';
     document.body.appendChild(el);
   }
-  el.replaceChildren(...rij.map((m) => { const d = document.createElement('div'); d.textContent = m.tekst; d.style.cssText = 'max-width:min(720px,90vw);padding:10px 18px;border-radius:8px;background:rgba(12,20,14,0.94);color:#f0ede4;box-shadow:0 0 0 1px rgba(240,237,228,0.2);font:bold 22px "Arial Narrow",Arial,sans-serif;'; return d; }));
+  el.replaceChildren(...rij.map((m) => { const d = document.createElement('div'); d.textContent = m.tekst; d.style.cssText = 'max-width:min(720px,90vw);padding:10px 18px;border-radius:var(--ds-r,8px);background:var(--ds-zeef-bg,#f3ead2);color:var(--ds-zeef-tx,#1d1b17);border:var(--ds-lijn-zeef,3px) solid var(--ds-c-ink-inkt,#1d1b17);box-shadow:var(--ds-schaduw-hard-klein,3px 3px 0 #1d1b17);font:800 22px var(--ds-font-kop-v3,"Arial Narrow"),Arial,sans-serif;'; return d; }));
   if (!rij.length && timer) { clearInterval(timer); timer = null; }
 }
 export function menuMelding(tekst) {
