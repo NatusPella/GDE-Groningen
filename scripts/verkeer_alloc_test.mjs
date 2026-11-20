@@ -4,7 +4,7 @@
 //   node scripts/verkeer_alloc_test.mjs        (draait zichzelf opnieuw met --expose-gc)
 // Slaat over zonder game/world (desktop stage).
 import { spawnSync } from 'node:child_process';
-if (typeof gc !== 'function') {
+if (typeof globalThis.gc !== 'function') {
   const r = spawnSync(process.execPath, ['--expose-gc', ...process.argv.slice(1)], { stdio: 'inherit' });
   process.exit(r.status ?? 1);
 }
@@ -44,7 +44,7 @@ for (let t = 0, f = 0; t < 80; t += DT, f++) {
   if (profile && measure && !session._started) { session._started = true; await post('HeapProfiler.startSampling', { samplingInterval: 256, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true }); }
   const cars = world.vehicles.filter((v) => !v.isBoat && !v.parked && v.driver !== 'player');
   let before = 0;
-  if (measure && !profile) { gc(); before = process.memoryUsage().heapUsed; }
+  if (measure && !profile) { globalThis.gc(); before = process.memoryUsage().heapUsed; }
   const t0 = realNow();
   for (const v of cars) V.updateTrafficAI(v, DT, map, world, Math.random);
   const ms = realNow() - t0;
