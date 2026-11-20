@@ -122,7 +122,7 @@ export function initPlayerApi(world, input) {
       },
       goal: getGoal() ? { kind: getGoal().kind, name: getGoal().name, x: r1(getGoal().x), y: r1(getGoal().y) } : null,
       target: target(),
-      hud: { messages: msgs, subtitle: subtitle(), prompt: text(document.querySelector('#hud .prompt, #hud .interact-prompt')), objective: view.end ? '' : view.title, text: text(document.getElementById('hud')).slice(0, 400) },
+      hud: { messages: msgs, subtitle: subtitle(), prompt: text(document.querySelector('.hud-prompts .wp-primary.in:not(.dim)') || document.querySelector('#hud .prompt, #hud .interact-prompt')), objective: view.end ? '' : view.title, text: text(document.getElementById('hud')).slice(0, 400) },
       blocking: b,
       wanted: world.wanted || 0,
       nearby: { vehicles: nearbyVehicles(), peds: (world.pedestrians || []).filter((p) => Math.hypot(p.x - player.x, p.y - player.y) < 40).length, police: (world.vehicles || []).filter((q) => q.isPolice && Math.hypot(q.x - player.x, q.y - player.y) < 120).length },
