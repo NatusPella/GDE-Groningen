@@ -24,6 +24,8 @@ export const ALLOWED_COLORS = new Set([
   // Statuskleuren uit PALETTES (a11y.js) en de Okabe-Ito-modi
   '#3fd0ff', '#c068ff', '#ff9a3c', '#ff5fb4', '#3f6fd9',
   '#56b4e9', '#009e73', '#f0e442', '#0072b2', '#d55e00', '#cc79a7', '#e69f00', '#ff7f0e',
+  // Het grachtwater van DESIGN_SYSTEM.md, de enige kaartkleur zonder token (kaartkleuren.js WATER_BLAUW)
+  '#2c7790',
   // Chroom en kaartstijl (mapstyle.js: INK, MAP_PALETTE, MINI_PALETTE, EMPHASIS)
   '#04080c', '#060c09', '#0a130d', '#10261a', '#14b8a6', '#1b1d22', '#1c1408', '#1d3a23',
   '#1f2a3a', '#243528', '#244a2c', '#2a2e28', '#2b4230', '#2d6a86', '#2f4f33', '#2f5c36',
