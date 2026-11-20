@@ -22,6 +22,7 @@ const KEEP = {
   'routeribbon.js': 'wordt via game/js/scene3d/routeribbon3d.js gebruikt sinds de splitsing (#497)',
   'musicwatch.js': 'wordt via game/js/audio/radio.js gebruikt sinds de splitsing (#497)',
   'routeribbonwatch.js': 'wordt via game/js/scene3d/routeribbon3d.js gebruikt (de route-waakhond)',
+  'vaarlijn.js': 'wordt via game/js/scene3d/vaarlijn3d.js gebruikt (de doorlopende vaarlijn)',
 };
 
 // Het rapport gaat via een tijdelijk bestand, niet via stdout: op de Linux-runner kwam de pijp
