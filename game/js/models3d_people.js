@@ -366,13 +366,17 @@ function headTilt(tilt) {
 
 // Hair/cap shell over the scalp; its lower rim is pulled onto the head so
 // the shell never reads as a hat floating above it.
-function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52) {
+// innerColor (hats): the shell gets a second wall below it with its faces turned inwards, so seen from below (a low camera, the underside of a
+// cap on a bent head) it has an inside instead of being see-through; the wall thins to nothing at the rim, where the shell meets the head.
+function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52, innerColor = null) {
   const rimNy = Math.cos(thLen);
-  const g = ell(10, 4, (nx, ny, nz) => {
+  const shell = (kk) => ell(10, 4, (nx, ny, nz) => {
     const t = Math.min(1, Math.max(0, (ny - rimNy) / 0.45));
-    return headShape(0.99 + (k - 0.99) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
+    return headShape(0.99 + (kk - 0.99) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
   }, 0, Math.PI * 2, 0, thLen);
-  B.geo(g, composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(0, -HEAD_Y, 0)), color);
+  const m = composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(0, -HEAD_Y, 0));
+  B.geo(shell(k), m, color);
+  if (innerColor !== null) B.geo(flipWinding(shell(0.99 + (k - 0.99) * 0.4).toNonIndexed()), m, innerColor);
 }
 
 function lumpyCap(B, k, color, seed, lift = 0) {
@@ -496,11 +500,11 @@ function buildHat(B, L) {
     return;
   }
   if (hat === 'beanie') {
-    hairCap(B, L, 1.14, 0.22, L.hatColor, Math.PI * 0.5);
+    hairCap(B, L, 1.14, 0.22, L.hatColor, Math.PI * 0.5, shade(L.hatColor, 0.62));
     B.geo(loftGeometry([{ y: HEAD_Y + 0.02, d: 0.113, w: 0.1 }, { y: HEAD_Y + 0.055, d: 0.114, w: 0.101 }], 10), headTilt(0.12), shade(L.hatColor, 0.85));
   } else if (hat === 'cap' || hat === 'tammo') {
     const c = hat === 'tammo' ? L.capColor : L.hatColor;
-    hairCap(B, L, 1.12, 0.12, c, Math.PI * 0.5);
+    hairCap(B, L, 1.12, 0.12, c, Math.PI * 0.5, shade(c, 0.62));
     const brim = new THREE.CylinderGeometry(1, 1, 0.014, 8, 1, false, 0, Math.PI);
     B.geo(brim, composeMatrix(0.075, HEAD_Y + 0.045, 0, 0, 0, -0.16, 0.095, 1, 0.098), shade(c, 0.82));
     B.geo(new THREE.SphereGeometry(1, 5, 2, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(-0.01, HEAD_Y + 0.13, 0, 0, 0, 0.12, 0.014, 0.01, 0.014), shade(c, 0.8));
@@ -509,7 +513,7 @@ function buildHat(B, L) {
       B.box(0.094, HEAD_Y + 0.078, 0, 0.01, 0.032, 0.044, 0xe6e1d6, 0, 0, 0, -0.5);
     }
   } else if (hat === 'flatcap') {
-    hairCap(B, L, 1.1, 0.25, L.hatColor, Math.PI * 0.42);
+    hairCap(B, L, 1.1, 0.25, L.hatColor, Math.PI * 0.42, shade(L.hatColor, 0.62));
     B.box(0.075, HEAD_Y + 0.058, 0, 0.1, 0.018, 0.18, shade(L.hatColor, 0.9), 0, 0, 0, -0.28);
   } else if (hat === 'police') {
     const crown = loftGeometry([

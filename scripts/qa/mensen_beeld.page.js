@@ -35,6 +35,8 @@ if (p.inVehicle) p.exitVehicle(w.map, w);
   const q = (w.pedestrians || []).filter((o) => o.state !== 'dead' && !o.isCop).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
   if (q) { p.x = q.x - Math.cos(q.angle) * 2; p.y = q.y - Math.sin(q.angle) * 2; p.angle = q.angle; p.gz = w.map.groundHeightAt ? w.map.groundHeightAt(p.x, p.y, 0) || 0 : 0; p.z = 0; p.vx = p.vy = 0; await sleep(6000); }
 }
+const ONLY = window.__mensenOnly || [];
+const ON = (id) => !ONLY.length || ONLY.includes(id);
 const home = { x: p.x, y: p.y, a: p.angle };
 out.start = { x: Math.round(p.x), y: Math.round(p.y), binnen: !!(w.home && w.home.inside) };
 
@@ -45,10 +47,10 @@ const camOff = () => { pose = null; if (cine.isCinematicActive()) cine.skipCinem
 const place = (side, front) => {
   const a = p.angle, rx = -Math.sin(a), ry = Math.cos(a);
   const fx = Math.cos(a), fy = Math.sin(a);
-  const gz = (p.gz || 0) + (p.z || 0);
+  const m0 = mesh(), px = m0 ? m0.position.x : p.x, py = m0 ? m0.position.z : p.y, gz = m0 ? m0.position.y : (p.gz || 0) + (p.z || 0); // waar het figuur echt staat
   const d = side;
-  const cx = p.x + rx * d + (front ? fx * 2.2 : 0), cy = p.y + ry * d + (front ? fy * 2.2 : 0);
-  pose = { position: { x: cx, y: cy, z: gz + 1.0 }, lookAt: { x: p.x, y: p.y, z: gz + 0.95 }, fov: 38, cut: true };
+  const cx = px + rx * d + (front ? fx * 2.2 : 0), cy = py + ry * d + (front ? fy * 2.2 : 0);
+  pose = { position: { x: cx, y: cy, z: gz + 1.0 }, lookAt: { x: px, y: py, z: gz + 0.95 }, fov: 38, cut: true };
 };
 
 // kinematisch lopen: hoek a(t), snelheid v; roept per beeld fn(dt, t) aan
@@ -77,6 +79,7 @@ const ud = () => { const m = mesh(); return m && m.userData; };
 const cap = async (name) => { await sleep(150); console.log('[capture] ' + name); out.opnamen++; await sleep(500); };
 
 forced.a = home.a;
+if (ON('lopen')) {
 force(true);
 // metingen: hielcontacten per seconde en de bochthelling
 for (const v of [1.4, 3.5, 6.0]) {
@@ -101,21 +104,22 @@ for (let k = 0; k < 3; k++) { place(3.0, false); const c = capIn('lopen-zij-' + 
 for (let k = 0; k < 2; k++) { place(3.4, true); const c = capIn('ren-bocht-' + k, 0.9 + k * 0.25); await loop(1.4 + k * 0.25, 5.5, 0.8, (dt, t) => { place(3.4, true); c(dt, t); }); await sleep(500); }
 camOff();
 force(false);
+}
 p.x = home.x; p.y = home.y; p.angle = home.a;
 
 // een voetganger die opkijkt: de dichtstbijzijnde (levende) voetganger, de speler staat 4 m voor hem
-{
+if (ON('blik')) {
   const peds = (w.pedestrians || []).filter((q) => q.state !== 'dead' && !q.hideMesh && !q.isCop);
   peds.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
   const q = peds[0];
   out.metingen.voetgangers = peds.length;
   if (q) {
-    p.x = q.x + Math.cos(q.angle) * 4; p.y = q.y + Math.sin(q.angle) * 4; p.vx = p.vy = 0;
+    p.x = q.x + Math.cos(q.angle) * 4 - Math.sin(q.angle) * 2.5; p.y = q.y + Math.sin(q.angle) * 4 + Math.cos(q.angle) * 2.5; p.vx = p.vy = 0;
     await sleep(4000);
     let seen = 0;
     cam();
     for (let i = 0; i < 20; i++) {
-      p.x = q.x + Math.cos(q.angle) * 4; p.y = q.y + Math.sin(q.angle) * 4; p.vx = p.vy = 0; // blijf voor hem staan
+      p.x = q.x + Math.cos(q.angle) * 4 - Math.sin(q.angle) * 2.5; p.y = q.y + Math.sin(q.angle) * 4 + Math.cos(q.angle) * 2.5; p.vx = p.vy = 0; // blijf voor hem staan
       const a = q.angle, rx = -Math.sin(a), ry = Math.cos(a);
       pose = { position: { x: q.x + Math.cos(a) * 2.6 + rx * 1.1, y: q.y + Math.sin(a) * 2.6 + ry * 1.1, z: (q.gz || 0) + 1.55 }, lookAt: { x: q.x, y: q.y, z: (q.gz || 0) + 1.5 }, fov: 34, cut: true };
       await sleep(250);
@@ -129,7 +133,7 @@ p.x = home.x; p.y = home.y; p.angle = home.a;
 }
 
 // de speler staat lang stil: na 5 tot 10 s komt er een wachtclip; opname zodra de arm omhoog is (horloge) of na 25 s
-{
+if (ON('stil')) {
   p.x = home.x; p.y = home.y; p.angle = home.a; p.vx = p.vy = 0;
   cam();
   let got = null; const t0 = performance.now();
@@ -145,7 +149,7 @@ p.x = home.x; p.y = home.y; p.angle = home.a;
 }
 
 // het publiek: klappen, juichen, zwaaien, telefoon en handen in de zij (missiedecor.js, zoals bouwsteen_publiek_beeld)
-{
+if (ON('publiek')) {
   const M = await import('/js/missiedecor.js');
   const a = (d) => ({ x: p.x + Math.cos(p.angle) * d, y: p.y + Math.sin(p.angle) * d });
   const c0 = a(12);

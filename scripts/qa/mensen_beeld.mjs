@@ -15,10 +15,13 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-mensen')));
 const SIZE = arg('size', '1280x720');
 const SETTLE = Number(arg('settle', 9000));
+const ONLY = arg('only', '').split(',').filter(Boolean);
+const PAGE = arg('page', 'mensen_beeld.page.js');
 fs.mkdirSync(OUT, { recursive: true });
 const profile = process.env.GDE_PROFILE_DIR || `gde-test-mensen-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `await new Promise((r) => setTimeout(r, ${SETTLE}));\n` + fs.readFileSync(path.join(HERE, 'mensen_beeld.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__mensenOnly = ${JSON.stringify(ONLY)};
+await new Promise((r) => setTimeout(r, ${SETTLE}));\n` + fs.readFileSync(path.join(HERE, PAGE), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
