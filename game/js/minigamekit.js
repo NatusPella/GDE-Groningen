@@ -98,13 +98,13 @@ import { sfeerVan } from './activiteitensfeer.js';
 
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
-#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 310px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: var(--ds-zeef-tx); text-shadow: none; pointer-events: none; z-index: 4; font-family: var(--ds-font-tekst-v3);
+#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 310px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: var(--ds-zeef-tx); text-shadow: none; pointer-events: none; z-index: 4; font-family: var(--ds-font-zeef-tekst);
   background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-top: var(--ds-s-2) solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
-#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); }
+#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-bord); }
 #hud .mg-board .mg-ic { flex: none; }
 /* de sfeernaam klein naast de titel en één watermark in de marge (#595): geen tweede balk */
-#hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) var(--ds-font-tekst-v3); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
-#hud .mg-board .mg-watermark { display: none; /* #985: dubbel met de sfeernaam in de kop en lag achter de laatste regels */ position: absolute; right: 10px; bottom: -4px; font: 800 54px/1 var(--ds-font-kop-v3); letter-spacing: 4px; text-transform: uppercase; color: var(--ds-c-ink-inkt); opacity: 0.08; pointer-events: none; white-space: nowrap; }
+#hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) var(--ds-font-zeef-tekst); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
+#hud .mg-board .mg-watermark { display: none; /* #985: dubbel met de sfeernaam in de kop en lag achter de laatste regels */ position: absolute; right: 10px; bottom: -4px; font: 800 54px/1 var(--ds-font-zeef-kop); letter-spacing: 4px; text-transform: uppercase; color: var(--ds-c-ink-inkt); opacity: 0.08; pointer-events: none; white-space: nowrap; }
 #hud .mg-board[data-sfeerbord="scorekaart"], #hud .mg-board[data-sfeerbord="meetlat"] { border-radius: 0 10px 10px 0; }
 #hud .mg-board[data-sfeerbord="clubschild"], #hud .mg-board[data-sfeerbord="entreekaartje"] { border-radius: 14px 4px 4px 14px; }
 #hud .mg-board[data-sfeerbord="cockpitstrip"], #hud .mg-board[data-sfeerbord="startbord"], #hud .mg-board[data-sfeerbord="routebord"] { border-radius: 4px; }
@@ -156,7 +156,7 @@ const CSS = `
   body.plane-flying #hud .mg-board .mg-flash { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
-#hud .mg-board .mg-row b { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-zeef-tx); font-size: 24px; text-shadow: var(--ds-misdruk); }
+#hud .mg-board .mg-row b { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-zeef-tx); font-size: 24px; text-shadow: var(--ds-misdruk); }
 #hud .mg-board .mg-cells { display: flex; flex-wrap: wrap; gap: 3px; margin: 5px 0 2px; }
 #hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: max(13px, calc(13px / var(--ui, 1))); padding: 2px 0; background: var(--ds-zeef-bg); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); color: var(--ds-zeef-tx); }
 /* touch: a cell with a key is a button (carillon bells) */
@@ -175,28 +175,28 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: max(14px, calc(14px / var(--ui, 1))); letter-spacing: 0.5px; color: var(--ds-zeef-tx); }
 #hud .mg-board .mg-extra[hidden] { display: none; }
 /* #619: de balanstip staat op een eigen regel, los van de puntenflits */
-#hud .mg-board .sk-bal { display: block; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); letter-spacing: 0.4px; color: var(--ds-c-rood-tx); margin: 2px 0 1px; }
+#hud .mg-board .sk-bal { display: block; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); letter-spacing: 0.4px; color: var(--ds-c-rood-tx); margin: 2px 0 1px; }
 /* een tussenstand als echte tabel (#617), geen rij chips */
-#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-zeef-tx); }
+#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-zeef-tx); }
 #hud .mg-board .mg-stand th, #hud .mg-board .mg-stand td { padding: 1px 9px; font-weight: normal; text-align: right; }
 #hud .mg-board .mg-stand th[scope="row"], #hud .mg-board .mg-stand thead th:first-child { text-align: left; }
-#hud .mg-board .mg-stand thead th { font-size: max(12px, calc(12px / var(--ui, 1))); letter-spacing: 1px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-inkt-zacht); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+#hud .mg-board .mg-stand thead th { font-size: max(12px, calc(12px / var(--ui, 1))); letter-spacing: 1px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-inkt-zacht); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
 #hud .mg-board .mg-stand tr.on { background: var(--ds-c-sel-vlak); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); color: var(--ds-zeef-tx); font-weight: 700; }
 #hud .mg-board .mg-stand tr.weg { color: var(--ds-c-inkt-zacht); text-decoration: line-through; }
-#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-zeef-tx); }
+#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-zeef-tx); }
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-groen-tx); min-height: 1em; }
+#hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-groen-tx); min-height: 1em; }
 #hud .mg-board .mg-flash.bad { color: var(--ds-c-rood-tx); }
 body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-mission, body.mg-on #hud .hud-place, body.mg-on #hud .hud-nowplaying, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
 /* het stopvenster op zeefdrukpapier (#596, #1000): Barlow + Atkinson, toetsplaatjes en 44 px-knoppen; Doorgaan is de gele hoofdknop */
 .mg-stopask { position: fixed; left: 50%; top: 38%; transform: translateX(-50%) rotate(var(--ds-schuin)); z-index: 60; pointer-events: auto; padding: var(--ds-s-4) var(--ds-s-5); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); color: var(--ds-zeef-tx); text-align: center; }
-.mg-stopask b { display: block; font: 800 calc(26px * var(--ui, 1))/1.1 var(--ds-font-kop-v3); letter-spacing: 0.04em; text-shadow: var(--ds-misdruk); }
+.mg-stopask b { display: block; font: 800 calc(26px * var(--ui, 1))/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.04em; text-shadow: var(--ds-misdruk); }
 .mg-stopask .mg-stopbtns { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-.mg-stopask button { min-height: var(--ds-doel-aanraken); min-width: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); font: 800 calc(20px * var(--ui, 1)) var(--ds-font-kop-v3); letter-spacing: 0.04em; cursor: pointer; box-shadow: var(--ds-schaduw-hard-klein); }
+.mg-stopask button { min-height: var(--ds-doel-aanraken); min-width: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); font: 800 calc(20px * var(--ui, 1)) var(--ds-font-zeef-kop); letter-spacing: 0.04em; cursor: pointer; box-shadow: var(--ds-schaduw-hard-klein); }
 .mg-stopask button:active { transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); box-shadow: none; }
 .mg-stopask button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
 .mg-stopask button[data-do="stop"] { background: var(--ds-zeef-bg); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
-.mg-stopask small { display: block; margin-top: 8px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst-v3); color: var(--ds-c-inkt-zacht); }
+.mg-stopask small { display: block; margin-top: 8px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); }
 /* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
 @media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - max(330px, var(--hud-c-right, 0px) + 12px)); } }
 /* #985: onder 1100 px past het bord niet meer tussen de berichtkolom en zone C: het hangt rechts onder zone C (de gemeten kolom) */
@@ -204,44 +204,44 @@ body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gp
 @media (max-width: 480px) { #hud .mg-board { top: 64px; left: 50%; transform: translateX(-50%); min-width: 0; max-width: calc(100vw - 32px); } }
 /* Zomerse zeefdruk (ADR 0040): het bord en het stopvenster als papier met inktrand en harde schaduw; de accentkleur van de
    minigame blijft de dikke linkerrand (identiteit), de tekst is inkt. Geen glas, geen verloop. */
-#hud .mg-board { color: var(--ds-c-ink-inkt); text-shadow: none; font-family: var(--ds-font-tekst-v3); background: var(--ds-c-ink-papier);
+#hud .mg-board { color: var(--ds-c-ink-inkt); text-shadow: none; font-family: var(--ds-font-zeef-tekst); background: var(--ds-c-ink-papier);
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--mg-acc, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
 #hud .mg-board, #hud .mg-board[data-sfeer] { overflow: hidden; }
 #hud .mg-board[data-sfeer] { box-shadow: var(--ds-schaduw-hard); }
-#hud .mg-board small { font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
-#hud .mg-board .mg-sfeer { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-inkt-zacht); }
-#hud .mg-board .mg-watermark { top: 6px; bottom: auto; right: 10px; max-width: 36%; overflow: hidden; font: 800 30px/1 var(--ds-font-kop-v3); letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); opacity: 0.08; z-index: 0; }
+#hud .mg-board small { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+#hud .mg-board .mg-sfeer { font-family: var(--ds-font-zeef-kop); font-weight: 600; color: var(--ds-c-inkt-zacht); }
+#hud .mg-board .mg-watermark { top: 6px; bottom: auto; right: 10px; max-width: 36%; overflow: hidden; font: 800 30px/1 var(--ds-font-zeef-kop); letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); opacity: 0.08; z-index: 0; }
 #hud .mg-board > :not(.mg-watermark):not(.mg-vorm) { position: relative; z-index: 1; }
 #hud .mg-board small { flex-wrap: wrap; row-gap: 0; }
 #hud .mg-board .mg-sfeer { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; }
 #hud .mg-board .mg-vorm { opacity: 0.22; }
 #hud .mg-board[data-sfeer="vaardienst"] { border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
-#hud .mg-board .mg-row { font-family: var(--ds-font-kop-v3); font-weight: 600; letter-spacing: 0.02em; }
+#hud .mg-board .mg-row { font-family: var(--ds-font-zeef-kop); font-weight: 600; letter-spacing: 0.02em; }
 #hud .mg-board .mg-row b { font-weight: 800; color: var(--ds-c-ink-bord); }
-#hud .mg-board .mg-cells i { font-family: var(--ds-font-kop-v3); font-weight: 600; background: var(--ds-c-sel-vlak); color: var(--ds-c-inkt-zacht); border-radius: 3px; }
+#hud .mg-board .mg-cells i { font-family: var(--ds-font-zeef-kop); font-weight: 600; background: var(--ds-c-sel-vlak); color: var(--ds-c-inkt-zacht); border-radius: 3px; }
 #hud .mg-board .mg-cells i.on { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); box-shadow: inset 0 0 0 2px var(--ds-c-ink-inkt); }
 #hud .mg-board .mg-cells i.good { color: var(--ds-c-groen-tx); }
 #hud .mg-board .mg-cells i.bad { color: var(--ds-c-rood-tx); }
 #hud .mg-board .mg-meter .mg-bar { background: var(--ds-c-sel-vlak); border-radius: 3px; box-shadow: inset 0 0 0 2px var(--ds-c-ink-inkt); height: 13px; }
 #hud .mg-board .mg-meter em { background: var(--ds-c-ink-inkt); box-shadow: none; }
-#hud .mg-board .mg-meter-t { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); }
-#hud .mg-board .sk-bal { font-family: var(--ds-font-tekst-v3); color: var(--ds-c-rood-tx); }
-#hud .mg-board .mg-stand { font-family: var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); }
-#hud .mg-board .mg-stand thead th { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-inkt-zacht); }
+#hud .mg-board .mg-meter-t { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
+#hud .mg-board .sk-bal { font-family: var(--ds-font-zeef-tekst); color: var(--ds-c-rood-tx); }
+#hud .mg-board .mg-stand { font-family: var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); }
+#hud .mg-board .mg-stand thead th { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-inkt-zacht); }
 #hud .mg-board .mg-stand tr.on { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); font-weight: 700; }
-#hud .mg-board .mg-help { font-family: var(--ds-font-tekst-v3); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
-#hud .mg-board .mg-flash { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-groen-tx); }
+#hud .mg-board .mg-help { font-family: var(--ds-font-zeef-tekst); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
+#hud .mg-board .mg-flash { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-groen-tx); }
 #hud .mg-board .mg-flash.bad { color: var(--ds-c-rood-tx); }
-.mg-stopask { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-tekst-v3); }
-.mg-stopask b { font: 800 calc(30px * var(--ui, 1))/1.1 var(--ds-font-kop-v3); letter-spacing: 0.04em; text-shadow: var(--ds-misdruk); }
-.mg-stopask button { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 6px; box-shadow: var(--ds-schaduw-hard-klein); font: 800 calc(20px * var(--ui, 1)) var(--ds-font-kop-v3); letter-spacing: 0.04em; }
+.mg-stopask { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-tekst); }
+.mg-stopask b { font: 800 calc(30px * var(--ui, 1))/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.04em; text-shadow: var(--ds-misdruk); }
+.mg-stopask button { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 6px; box-shadow: var(--ds-schaduw-hard-klein); font: 800 calc(20px * var(--ui, 1)) var(--ds-font-zeef-kop); letter-spacing: 0.04em; }
 .mg-stopask button:active { transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); box-shadow: none; }
 .mg-stopask button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
 .mg-stopask button[data-do="stop"] { background: var(--ds-c-ink-papier); color: var(--ds-c-rood-tx); border-color: var(--ds-c-rood); box-shadow: var(--ds-schaduw-hard-roze); }
 .mg-stopask button { display: inline-flex; align-items: center; gap: 8px; }
-.mg-stopask .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; box-shadow: none; font-family: var(--ds-font-kop-v3); font-weight: 800; }
+.mg-stopask .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; box-shadow: none; font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 .mg-stopask small:empty { display: none; }
-.mg-stopask small { color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-tekst-v3); }
+.mg-stopask small { color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-zeef-tekst); }
 `;
 
 let cssDone = false;

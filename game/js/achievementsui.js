@@ -35,20 +35,20 @@ const CSS = `
 #pause-menu .pa-tile-ico { grid-area: ico; align-self: center; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--ds-r-pil); color: var(--ds-c-ink-bord); background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn) var(--ds-c-ink-bord); }
 #pause-menu .pa-tile-ico svg { width: 24px; height: 24px; }
 #pause-menu .pa-tile-h { grid-area: head; display: flex; align-items: center; flex-wrap: wrap; gap: 2px var(--ds-s-3); min-width: 0; }
-#pause-menu .pa-tile-h b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .pa-tile-h b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .pa-tile-h .ds-z-chip { min-height: 28px; padding: 0 var(--ds-s-3); }
 #pause-menu .pa-tile-end { grid-area: end; align-self: center; display: flex; align-items: center; gap: var(--ds-s-2); }
 #pause-menu .pa-tile-chev { display: grid; place-items: center; width: 20px; height: 20px; color: var(--ds-c-inkt-zacht); transition: transform 0.2s; }
 #pause-menu .pa-tile-chev svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .pa-tile-top[aria-expanded="true"] .pa-tile-chev { transform: rotate(90deg); color: var(--ds-c-ink-bord); }
-#pause-menu .pa-tile-pct { font-family: var(--ds-font-kop-v3); font-size: var(--ds-t-cijfer); line-height: 1; letter-spacing: var(--ds-ls-kop); }
+#pause-menu .pa-tile-pct { font-family: var(--ds-font-zeef-kop); font-size: var(--ds-t-cijfer); line-height: 1; letter-spacing: var(--ds-ls-kop); }
 #pause-menu .pa-tile-next { grid-area: next; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px var(--ds-s-2); min-width: 0; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); color: var(--ds-c-inkt-zacht); }
 #pause-menu .pa-tile-next-t { min-width: 0; overflow-wrap: anywhere; }
-#pause-menu .pa-tile-fig { font-family: var(--ds-font-kop-v3); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx); white-space: nowrap; }
+#pause-menu .pa-tile-fig { font-family: var(--ds-font-zeef-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx); white-space: nowrap; }
 #pause-menu .pa-tile .m-fold { padding: 2px 8px 8px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4.5%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .pa-tile .m-li { min-height: 50px; padding: 0 16px; }
 #pause-menu .pa-row-end { display: inline-flex; align-items: baseline; gap: 8px; flex: none; }
-#pause-menu .pa-row-pct { font-family: var(--ds-font-kop-v3); font-size: 22px; letter-spacing: 0.04em; color: var(--g); }
+#pause-menu .pa-row-pct { font-family: var(--ds-font-zeef-kop); font-size: 22px; letter-spacing: 0.04em; color: var(--g); }
 #pause-menu .m-li.near { color: color-mix(in srgb, var(--ink) 92%, transparent); }
 #pause-menu .pa-empty-pane { display: flex; flex-direction: column; gap: 16px; }
 #pause-menu .pa-next-acts { align-self: flex-start; }

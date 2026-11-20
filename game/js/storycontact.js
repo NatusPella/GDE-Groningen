@@ -118,12 +118,12 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
 #sc-live .sc-chat { position: absolute; left: 8px; right: 8px; bottom: 22%; height: auto; max-height: 30%; font-size: 14px; text-shadow: 0 1px 2px #000; }
 #sc-live .sc-hearts { position: absolute; right: 12px; bottom: 30%; font-size: 20px; color: #ff5a7a; text-shadow: 0 1px 2px #000; }
 /* Zomerse zeefdruk (ADR 0040): het scherm van de verhaaltelefoon is papier met inkt; het toestel zelf blijft een inktkleurig voorwerp. */
-#hud .sc-phone { background: var(--ds-c-ink-inkt); border-color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); }
+#hud .sc-phone { background: var(--ds-c-ink-inkt); border-color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); }
 #hud .sc-phone::before { background: var(--ds-c-ink-papier); box-shadow: none; }
 #hud .sc-screen { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); color: var(--ds-c-ink-inkt); }
 #hud .sc-phone[data-via="live"] .sc-screen { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
-#hud .sc-state { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: 13px; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
-#hud .sc-name { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#hud .sc-state { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 13px; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+#hud .sc-name { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #hud .sc-portrait { background: var(--ds-c-sel-vlak); border: 2px solid var(--ds-c-ink-inkt); box-sizing: border-box; }
 #hud .sc-wave i { background: var(--ds-c-ink-bord); }
 #hud .sc-bubble { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); font-size: 14px; }

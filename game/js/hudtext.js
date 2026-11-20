@@ -17,6 +17,7 @@ export const WORD_BUDGET = {
   cardTitle: 4,
   cardBody: 14,
   phone: 14, // a phone message card
+  news: 30, // a Kiekdoar news card on the phone: a whole sentence or two, never cut off in the middle (owner 20-11)
   prompt: 8, // the travel prompt, the bridge hint
   explain: 16,
 };
@@ -60,17 +61,17 @@ export const fitSubtitle = (text) => trimWords(text, WORD_BUDGET.subtitle);
 // kop, de body wordt op het budget afgekapt; `over` zegt of dat nodig was, zodat de audit een te
 // lange (ook dynamische) melding kan markeren in plaats van hem stil te laten groeien. Wat wordt
 // afgekapt, eindigt op een beletselteken: een kaart die midden in een zin stopt leest als een fout.
-export function phoneCard(title, body) {
+export function phoneCard(title, body, max = WORD_BUDGET.phone) {
   const t = String(title ?? '').trim();
   const b = String(body ?? '').trim();
   const woorden = wordCount(t) + wordCount(b);
-  const titel = trimWords(t, 8);
-  const rest = trimWords(b, Math.max(0, WORD_BUDGET.phone - wordCount(titel)));
+  const titel = trimWords(t, max > WORD_BUDGET.phone ? 14 : 8);
+  const rest = trimWords(b, Math.max(0, max - wordCount(titel)));
   return {
-    title: titel + (wordCount(t) > 8 && titel ? '…' : ''),
-    body: rest + (wordCount(b) > Math.max(0, WORD_BUDGET.phone - wordCount(titel)) && rest ? '…' : ''),
+    title: titel + (wordCount(t) > (max > WORD_BUDGET.phone ? 14 : 8) && titel ? '…' : ''),
+    body: rest + (wordCount(b) > Math.max(0, max - wordCount(titel)) && rest ? '…' : ''),
     words: woorden,
-    over: woorden > WORD_BUDGET.phone,
+    over: woorden > max,
   };
 }
 
@@ -80,7 +81,7 @@ export function phoneCard(title, body) {
 export function splitNewsCard(text) {
   const s = String(text ?? '').trim();
   if (!s) return { title: '', body: '' };
-  const sentence = /^(.{8,60}?[.!?])\s+(.{6,})$/.exec(s);
+  const sentence = /^(.{8,100}?[.!?])\s+(.{6,})$/.exec(s);
   if (sentence) return { title: sentence[1], body: sentence[2] };
   const sep = /^(.{8,52}?)(, | – | - |: )(.{6,})$/.exec(s);
   if (sep) return { title: sep[1], body: sep[3] };

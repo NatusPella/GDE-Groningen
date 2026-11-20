@@ -47,7 +47,7 @@ export const HUD_MODES = ['slim', 'alles', 'minimaal'];
 
 // card categories on the P scale and their zones: the table is in hudbus.js
 
-// v3 (#995): wat bij behoefte verschijnt, blijft 4 s staan na de laatste verandering
+// #995: wat bij behoefte verschijnt, blijft 4 s staan na de laatste verandering
 export const STAR_AFTERGLOW = 4;
 export const MONEY_SHOW = 4;
 export const BAR_SHOW = 4;
@@ -221,7 +221,7 @@ export function decideHud(s = {}) {
   const moneyRecent = (s.moneyAgo ?? Infinity) < MONEY_SHOW;
   // money coming in is P3: it waits out a busy moment (the caller holds it)
   show.money = all || ((moneyRecent || !!s.nearShop) && !busy && !s.moneyHeld);
-  // v3: het wapen komt bij een wissel of nieuwe munitie, en zolang je de vuurknop vasthoudt (fighting)
+  // het wapen komt bij een wissel of nieuwe munitie, en zolang je de vuurknop vasthoudt (fighting)
   show.weapon = all || (s.weaponAgo ?? Infinity) < WEAPON_SHOW || !!s.fighting;
   show.clock = all || !busy;
   out.big.clock = !!(s.specialDay || s.timeGoal);

@@ -69,7 +69,7 @@ ok(/@media \(max-width: 1100px\) \{ #hud \.mg-board \{ left: auto; right: var\(-
 ok(/max\(330px, var\(--hud-c-right, 0px\) \+ 12px\)/.test(mgjs), 'mg-board tot 1500 px: de reserve rechts is de gemeten zone C, niet vast 330 px');
 // de bordcellen zijn getallen (discgolf.js: worpen of het nummer), geen "Hole 1": ze breken niet af
 ok(/t: c\.done \? String\(c\.strokes\)/.test(src('game/js/discgolf.js')), 'discgolf-cellen zijn worpen of nummers');
-ok(/line-clamp: 4/.test(src('game/js/phonefeed.css')) && /overflow-wrap: anywhere/.test(src('game/js/phonefeed.css')), 'phonefeed: een lange kop breekt en houdt vier regels');
+ok(/line-clamp: 6/.test(src('game/js/phonefeed.css')) && /overflow-wrap: anywhere/.test(src('game/js/phonefeed.css')), 'phonefeed: een lange kop breekt en houdt zes regels (nieuws past helemaal)');
 
 // klasse 9: lage vensters (1024x600): de strook van zone B is smal, de routekaart breekt om, de doelregel kapt af met "…", de naamkaart hangt boven de hintstapel
 const css985 = src('game/js/hud_panel.css');
@@ -97,7 +97,7 @@ ok(/#hud \.hud-meter \.hud-meter-ic \{ flex: 0 0 16px; width: 16px; height: 16px
 
 // klasse 12 (1024x600): keuzepaneel onder zone C, ondertitel boven de F-kolom, spraakbel buiten de HUD
 ok(/@media \(max-width: 1100px\) and \(min-width: 481px\) \{ #hud \.cw-panel \{ left: auto; right: var\(--hud-edge, 46px\)/.test(src('game/js/choicepanel.js')), 'keuzepaneel onder 1100 px: rechts onder zone C');
-ok(/max-height: 720px\) \{ #banter-sub, #radio-sub, #story-talk \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
+ok(/max-height: 720px\) \{ html body :is\(#banter-sub, #radio-sub, #story-talk\) \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
 ok(/setBubbleObstacles\(list\)/.test(src('game/js/prompts.js')) && /labelDy\(/.test(src('game/js/hudrules.js')), 'een spraakbel schuift uit de HUD-onderdelen (hudrules bubblePlace)');
 
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);

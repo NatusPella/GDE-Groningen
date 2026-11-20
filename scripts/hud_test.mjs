@@ -334,6 +334,18 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   // Een oude, langere Kiekdoar-zin valt terug op de eerste zin en houdt de rest als body.
   const oud = T.splitNewsCard('Kiezelweek! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.');
   ok(oud.title === 'Kiezelweek!' && oud.body.startsWith('Groepjes'), 'een nieuwsbericht splitst op de eerste zin', JSON.stringify(oud));
+  // Kiekdoar-nieuws (eigenaar 20-11: een nieuwsmelding werd afgekapt): de langste regels van de ticker en de evenementen passen met het nieuwsbudget zonder beletselteken
+  const NT = await import('../game/js/nieuwsticker.js');
+  const lange = ['Een snelle auto en drie politiewagens maken een rondje Groningen. Het verkeer vraagt vriendelijk om ruimte voor iedereen die vandaag onderweg is.', 'Kiezelweek! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden, ze kijken nog niet goed uit.', ...Object.values(F.EVENT_DAYS).map((e) => e.announce)];
+  ok(T.WORD_BUDGET.news >= 28 && T.WORD_BUDGET.news > T.WORD_BUDGET.phone, 'een nieuwskaart heeft een ruimer woordbudget dan een gewone telefoonkaart', String(T.WORD_BUDGET.news));
+  for (const t of lange) {
+    const sp = T.splitNewsCard(t);
+    const kaart = T.phoneCard(sp.title, sp.body, T.WORD_BUDGET.news);
+    ok(!kaart.title.endsWith('…') && !kaart.body.endsWith('…') && T.wordCount(kaart.title + ' ' + kaart.body) === T.wordCount(t), 'een lange nieuwsregel staat er helemaal op', t.slice(0, 40));
+  }
+  ok(typeof NT.BRON === 'string', 'de nieuwsticker heeft een bron');
+  const pfJs = readFileSync(new URL('../game/js/phonefeed.js', import.meta.url), 'utf8');
+  ok(/WORD_BUDGET\.news/.test(pfJs) && !/fitCard\(p\.body\)/.test(pfJs), 'de telefoonkaart knipt nieuws niet op het gewone kaartbudget');
   const cardsCss = readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
   ok(!/rgba\(232, 201, 58/.test(cardsCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(cardsCss), 'de prestatiekaart heeft één accent uit --hc');
   const pfCss = readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');

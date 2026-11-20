@@ -1,4 +1,4 @@
-// Gedrag van de garagechips (designsysteem v2, #980): schade en banden als chips met pictogram en woord,
+// Gedrag van de garagechips (designsysteem, #980): schade en banden als chips met pictogram en woord,
 // de toon van de status en het herkennen van de tweede-druk-vraag. Pure functies uit garagetoestand.js.
 import assert from 'node:assert/strict';
 import { garageToestand, statusToon, vraagSoort, chipHtml, TOESTAND_ICOON } from '../game/js/garagetoestand.js';

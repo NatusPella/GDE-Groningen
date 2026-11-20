@@ -68,7 +68,7 @@ let byKey = new Map();
 const ICON = { check: 'vinkje', lock: 'slot', flag: 'todo', pin: 'plek', chev: 'volgende', clock: 'tijd', coin: 'geld', cup: 'prestaties', stop: 'stop' };
 const svg = (naam) => icoon(naam);
 
-// Statuschips (designsysteem v2, #980): altijd een pictogram plus een woord, nooit alleen kleur. Op papier (in een kaart)
+// Statuschips (designsysteem, #980): altijd een pictogram plus een woord, nooit alleen kleur. Op papier (in een kaart)
 // erft de chip de rol van de kaart; in de lijst op glas draagt hij zelf de glasrol.
 const CHIP_ICOON = { ok: 'vinkje', kan: 'afspelen', doel: 'todo', later: 'tijd', slot: 'slot', pin: 'plek', nieuw: 'ster', klok: 'tijd' };
 const icoonSvg = icoon;
@@ -89,12 +89,12 @@ const TDOU_CSS = `
 #pause-menu .td-card-main { display: grid; grid-template-columns: 24px 34px minmax(0, 1fr) auto; align-items: center; gap: var(--ds-s-3); width: 100%; min-height: 48px; padding: 0; border-radius: var(--ds-r); text-align: left; color: inherit; }
 #pause-menu .td-card-main:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
 #pause-menu .td-card-nm { display: flex; flex-direction: column; min-width: 0; }
-#pause-menu .td-card-nm b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .td-card-nm b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .td-card-ico { width: 30px; height: 30px; display: block; justify-self: center; }
 #pause-menu .td-card-pin { display: grid; place-items: center; }
 #pause-menu .td-card-pin svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-#pause-menu .td-card-dist { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
-#pause-menu .td-begin-nr { font-family: var(--ds-font-kop-v3); font-size: var(--ds-t-subkop); line-height: 1; text-align: center; color: var(--ds-c-inkt-zacht); }
+#pause-menu .td-card-dist { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
+#pause-menu .td-begin-nr { font-family: var(--ds-font-zeef-kop); font-size: var(--ds-t-subkop); line-height: 1; text-align: center; color: var(--ds-c-inkt-zacht); }
 #pause-menu .td-card-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2); }
 #pause-menu .td-card-chips .ds-z-chip { min-height: 28px; padding: 0 var(--ds-s-3); }
 #pause-menu .td-card-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
@@ -111,11 +111,11 @@ const TDOU_CSS = `
 #pause-menu .td-dlead p { max-width: 640px; }
 #pause-menu .td-yield { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 20px; font-size: max(18px, var(--menu-min, 18px)); color: var(--mut); }
 #pause-menu .td-yield-item { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
-#pause-menu .td-yield b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; letter-spacing: 0.03em; color: var(--g); }
+#pause-menu .td-yield b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; letter-spacing: 0.03em; color: var(--g); }
 #pause-menu .td-medals { font-size: max(18px, var(--menu-min, 18px)); }
 #pause-menu .td-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 #pause-menu .td-kpi { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 10px 14px 12px; background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
-#pause-menu .td-kpi-v { font-family: var(--ds-font-kop-v3); font-size: 34px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pause-menu .td-kpi-v { font-family: var(--ds-font-zeef-kop); font-size: 34px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #pause-menu .td-kpi-v small { font-size: 20px; color: var(--mut); }
 #pause-menu .td-kpi-v.long { font-size: 22px; line-height: 1.15; white-space: normal; overflow-wrap: break-word; }
 #pause-menu .td-kpi-l { font-size: max(15px, var(--menu-min, 15px)); line-height: 1.25; color: var(--mut); }

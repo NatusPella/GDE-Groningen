@@ -123,7 +123,7 @@ ok(!/animation\s*:\s*bm-/.test(code) && !/@keyframes/.test(code), 'no own animat
 ok(/--ds-m\b/.test(code) && !/transition[^;]*\d\.\d+s/.test(code), 'the fade uses the --ds-m token, no literal seconds');
 ok(!/\.bm-wanted\s*\{[^}]*inset\s*:/.test(code) && /\.bm-wanted\s*\{[^}]*right:\s*(?:0|var\(--ds-rand-hud\))/.test(code), 'the wanted tag sits at the edge, not full screen');
 ok(/\.bm-geslaagd, \.bm-mislukt, \.bm-opgepakt \{ inset: 0/.test(code), 'passed, failed and busted cover the screen');
-ok(/font: 800 clamp\(56px, 9vw/.test(code) && /Barlow Condensed|--ds-font-kop-v3/.test(code), 'the big print is Barlow Condensed');
+ok(/font: 800 clamp\(56px, 9vw/.test(code) && /Barlow Condensed|--ds-font-zeef-kop/.test(code), 'the big print is Barlow Condensed');
 ok(!/pointer-events:\s*auto/.test(code) && /pointer-events: none/.test(code), 'a moment never takes input');
 
 // Compact tijdens het rijden: kleiner, korter, dezelfde woorden; opgepakt en de band blijven vol

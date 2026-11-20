@@ -60,7 +60,7 @@ const CSS = `
   #pause-menu .gar-card { min-height: 178px; }
   #pause-menu .gar-card .gar-ph { flex-basis: 86px; height: 86px; }
 }
-/* Het detailpaneel (designsysteem v2, #980): de draaiende auto is de hero, eronder een papieren kaart met
+/* Het detailpaneel (designsysteem, #980): de draaiende auto is de hero, eronder een papieren kaart met
    titel en status, de toestand als chips, de feiten en pas dan de actie. Kleuren en maten komen uit
    ds-tokens.css; de glazen lijst links blijft zoals hij was. */
 #pause-menu .gar-viewer { gap: var(--ds-s-3); }
@@ -71,8 +71,8 @@ const CSS = `
 #pause-menu .gar-bon .ds-z-kaart__kop { padding-top: var(--ds-s-2); padding-bottom: var(--ds-s-2); }
 #pause-menu .gar-bon .ds-z-kaart__titel { font-size: max(var(--ds-t-subkop), var(--menu-min, 13px)); text-shadow: none; }
 /* koppen van een blok (Cijfers, Uitvoering): links, boven hun eigen blok, met een inktstreep; .ds-z-kaart__voet zet ze anders rechts */
-#pause-menu .gar-blok > h3 { justify-content: flex-start; align-items: baseline; margin: 0; padding-bottom: var(--ds-s-1); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(var(--ds-t-label), var(--menu-min, 13px)); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
-#pause-menu .gar-blok > h3 > span { font-family: var(--ds-font-tekst-v3); font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--ds-tx-zacht); }
+#pause-menu .gar-blok > h3 { justify-content: flex-start; align-items: baseline; margin: 0; padding-bottom: var(--ds-s-1); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(var(--ds-t-label), var(--menu-min, 13px)); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
+#pause-menu .gar-blok > h3 > span { font-family: var(--ds-font-zeef-tekst); font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--ds-tx-zacht); }
 #pause-menu .gar-naam { overflow-wrap: anywhere; }
 #pause-menu .gar-bon .mut, #pause-menu .gar-meme { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
 #pause-menu .gar-bon .gar-state { flex: none; }
@@ -91,7 +91,7 @@ const CSS = `
 #pause-menu .gar-msg:empty { display: none; }
 #pause-menu .gar-msg:not(.gar-vraag) { color: var(--ds-c-groen-tx); font-weight: var(--ds-gewicht-vet); }
 #pause-menu .gar-vraag-kop { display: flex; align-items: center; gap: var(--ds-s-2); }
-#pause-menu .gar-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }
+#pause-menu .gar-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }
 #pause-menu .gar-leeg { margin: var(--ds-s-3) 0 0 var(--ds-s-5); }
 #pause-menu .gar-leeg .ds-z-leeg__tekst { color: var(--ds-zeef-tx); }
 #pause-menu .gar-leeg .gar-ic { width: var(--ds-s-6); height: var(--ds-s-6); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

@@ -1,6 +1,6 @@
 import { icoon } from './icons.js';
 import { dualHtml, dutchFor } from './subtitles.js';
-import { fitCard, phoneCard, splitNewsCard } from './hudtext.js';
+import { phoneCard, splitNewsCard, trimWords, WORD_BUDGET } from './hudtext.js';
 import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -125,7 +125,8 @@ function parse(n) {
     title = title[0].toUpperCase() + title.slice(1);
   }
   // #643: één telefoonkaart met een gemeten woordbudget (ook bij dynamische tekst)
-  const kaart = phoneCard(title, body);
+  // nieuws (Kiekdoar) krijgt ruimte voor de hele regel: een kaart die midden in een zin stopt leest als een fout
+  const kaart = phoneCard(title, body, app === 'sikkom' ? WORD_BUDGET.news : WORD_BUDGET.phone);
   return { from, app, title: kaart.title, body: kaart.body, over: kaart.over };
 }
 
@@ -161,7 +162,8 @@ function showNote(w, n) {
   el.className = 'pf-card ds-zeef ds-z-kaart ds-mi-in';
   el.dataset.app = p.app;
   // #645: een dynamische kaart (naam, bedrag, missietitel) blijft op het kaartbudget
-  const titel = fitCard(p.title), lichaam = fitCard(p.body);
+  const cap = p.app === 'sikkom' ? WORD_BUDGET.news : WORD_BUDGET.cardBody;
+  const titel = trimWords(p.title, cap), lichaam = trimWords(p.body, cap);
   el.innerHTML =
     `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel">${naamGelijk(p) ? '' : `<small class="pf-appnaam">${esc(appNaam(p.app))}</small>`}${esc(p.from)}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (titel ? `<div class="pf-title">${dualHtml(titel)}</div>` : '') +

@@ -30,6 +30,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Technische info kopiëren:** bij Instellingen › Beeld staat onder Diagnose de knop "Kopieer technische info" (ook op het benchmarkscherm en met Ctrl+Shift+G). Eén blok met je videokaart, de manier waarop die tekent (ANGLE), de schermverversing, de snelheid in rust, wat de stad per beeld kost, de haperingen van de laatste minuut en de stand van de videokaartfuncties. Het blijft op je computer: je plakt het zelf in een bericht.
 - **Waarschuwing bij de ingebouwde videokaart:** tekent het spel met de processor of op de ingebouwde videokaart, dan zegt Instellingen › Beeld dat, met een knop Uitleg voor het kiezen van de snelle videokaart in het besturingssysteem.
 - **De benchmark toont "fps in het spel":** het gemiddelde zonder de cutscenes, naast het gemiddelde van de hele route en per categorie. Een lage uitkomst wordt eerst één keer opnieuw gemeten (de beste telt) en de eerste seconden na het laden tellen niet mee.
+- De kaarten op de HUD (tips, muziek, telefoon en nieuws, prestaties, activiteit) hebben nu allemaal dezelfde lettergroottes: kleine kop, titel, tekst en hulpregel. Een lange nieuws- of telefoontekst wordt niet meer groter gezet.
+- Een nieuwsbericht van Kiekdoar op de telefoon staat er nu helemaal op en wordt niet meer midden in de zin afgekapt (de kaart groeit mee tot ongeveer dertig woorden).
+- De ondertitel hangt op een laag venster (1024x600) boven de locatiekaart in plaats van erover.
+- Toetsplaatjes van Esc, Enter en Spatie in het pauzemenu zijn groter, zodat de letters erin leesbaar zijn.
+- In Spullen worden groepskoppen niet meer afgekapt en heeft het zoekveld lucht onder de kop.
 
 ## [0.64.0] - 2026-11-20
 

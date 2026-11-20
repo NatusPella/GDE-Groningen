@@ -18,7 +18,7 @@ function speelDuikScene(plek) {
   el.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:80;opacity:0;background:radial-gradient(circle at 50% 30%, rgba(63,208,255,0.35), rgba(12,20,14,0.88) 70%)';
   const txt = document.createElement('div');
   txt.textContent = `Je duikt naar ${plek.wrak.naam}…`;
-  txt.style.cssText = 'position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font:800 24px var(--ds-font-kop-v3);letter-spacing:1px;color:var(--ds-c-ink-inkt);background:var(--ds-c-ink-papier);padding:6px 18px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard);white-space:nowrap';
+  txt.style.cssText = 'position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font:800 24px var(--ds-font-zeef-kop);letter-spacing:1px;color:var(--ds-c-ink-inkt);background:var(--ds-c-ink-papier);padding:6px 18px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard);white-space:nowrap';
   el.appendChild(txt);
   for (let i = 0; i < 10; i++) {
     const b = document.createElement('i');

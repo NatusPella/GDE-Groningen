@@ -407,6 +407,23 @@ Layouts are designed at couch distance and on the Steam Deck: large targets, d-p
 3. **Visual regression per screen:** Electron screenshots of every screen at 1280x800, 1920x1080 and 4K, in both modes, against approved references.
 4. **Migration as one epic:** HUD trial first, then pause and map, phone, shops and offers, minigames, Samen spelen, load and boot screens. No release ships a half-migrated screen.
 
+## HUD-kaarten: typografische rollen
+
+Every HUD card (tip, music card, phone and news card, achievement toast, activity and wait card, goal, chase and police card) takes its text size from five roles, never from its own pixel value. The same role is the same size on every card kind. Tokens in `ds-tokens.css`, audit and the before-and-after sizes in [docs/HUD-TYPO-21-11.md](docs/HUD-TYPO-21-11.md), enforced by `scripts/hud_typo_test.mjs`.
+
+| Role | Token | Size | Use |
+|---|---|---|---|
+| eyebrow | `--ds-t-kaart-eyebrow` | 13 px, Barlow 800, caps, 0.12em | kind or sender above a title |
+| title | `--ds-t-kaart-titel` | 21 px, Barlow 800, line 1.1 | the card's headline |
+| body | `--ds-t-kaart-body` | 16 px, Atkinson, line 1.3 | the text of the card |
+| help | `--ds-t-kaart-hulp` | 13 px | time, source, key line, small explanation |
+| number | `--ds-t-kaart-getal` | 28 px | a big number on a card |
+
+- A long text (news, phone) is not set bigger: it uses the body role and the card gets a fitting width and grows with the text (up to the news budget of 30 words).
+- The roles are declared on `:root` and again on `#hud`, because `--hud-min` (13 px divided by `--ui`) only exists there: after the HUD zoom (`--ui`) the floor stays 13 px. Text size in Accessibility (`.text-groot`) zooms the card text, so the roles scale with it.
+- The moment size (`--ds-t-moment-getal`, the on-screen countdown) and the full-screen moments (`bigmoment.css`, the name card) are not cards and keep their own clamp values; they do not use the card roles.
+- `hud_typo_test` fails on a loose `font-size` in px in the card CSS (`hudcards.css`, the HUD part of `phonefeed.css`, `regelwidget.css`, the achievement toast, the music card) and on a card part that uses another role than the table above.
+
 ## Tokens and components in use
 
 The glass look above is still the HUD, the pause menu's rail and the map layer. The roles, tokens and components below are what the shop, offers, missions, careers and the Samen spelen hub already use, so they read as *one* system with the world instead of a template repeated per screen. The screen-print components (`.ds-z-*`) in the chapter above replace them as screens move over (open point in docs/DESIGN-SCHULD.md).
