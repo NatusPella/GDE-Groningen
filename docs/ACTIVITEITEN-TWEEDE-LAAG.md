@@ -43,6 +43,7 @@ gewone medaille of een persoonlijk record alleen telt hier niet als tweede laag;
 | pvparena | — | bewuste uitzondering: tegen elkaar, geen recordlaag |
 | vluchtdienst | — | bewuste uitzondering: dienst, geen medaillelaag |
 | vaardienst | — | bewuste uitzondering: dienst, geen medaillelaag |
+| penalty | — | bewuste uitzondering: vijf penalty's, het record telt al als eigen uitdaging (#981) |
 
 **8 van de 26** hebben een tweede laag; de overige 18 zijn hierboven als bewuste uitzondering
 gedocumenteerd. Padel heeft er ook een, maar valt buiten de 26 startkaart-activiteiten. De eis uit
