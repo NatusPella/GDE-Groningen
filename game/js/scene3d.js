@@ -680,8 +680,7 @@ function syncVehicleMeshes(world, player) {
   let built = 0;
   const ritV = world.ritTaxi; // #882: de taxi van de rit gaat voor, zonder zijn mesh ontbreekt de cabine
   if (ritV && !vehicleMeshes.has(ritV.id) && Math.hypot(ritV.x - player.x, ritV.y - player.y) < DRAW_DIST) {
-    const mesh = enableShadows(buildVehicleActor(ritV), false); scene.add(mesh);
-    vehicleMeshes.set(ritV.id, mesh); built++;
+    const mesh = enableShadows(buildVehicleActor(ritV), false); scene.add(mesh); vehicleMeshes.set(ritV.id, mesh); built++;
   }
   for (const v of world.vehicles) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
