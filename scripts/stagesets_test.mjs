@@ -168,6 +168,20 @@ function badPositions(group) {
   ok(buildStageSet(world, 'kelder', player, scene) === null, 'een onbekende set bouwt niets');
 }
 
+// --- de kroeg van een toast mag in een gebouw staan (M16), een gewone kamer niet -------
+{
+  const scene = new THREE.Scene();
+  const huis = { pts: [[-50, -50], [50, -50], [50, 50], [-50, 50]], bounds: [-50, -50, 50, 50] };
+  const world = { map: { groundHeightAt: () => 0, buildingsNear: () => [huis] } };
+  const player = { x: 0, y: 0, angle: 0 };
+  ok(buildStageSet(world, 'kroeg', player, scene) === null, 'een kroegkamer in een gebouw valt terug op de open lucht');
+  const kroeg = buildStageSet(world, 'kroeg', player, scene, { gebouwOk: true });
+  ok(!!kroeg, 'een kroegtoast mag in het gebouw van de kroeg staan (gebouwOk)');
+  if (kroeg) disposeStageSet(kroeg);
+  const water = { map: { groundHeightAt: () => 0, buildingsNear: () => [], isWater: () => true } };
+  ok(buildStageSet(water, 'kroeg', player, scene, { gebouwOk: true }) !== undefined, 'water blijft een reden om geen kamer te bouwen (geen crash)');
+}
+
 // --- de missies die de sets gebruiken ---------------------------------------
 {
   const spot = (x, y) => ({ x, y, road: null });

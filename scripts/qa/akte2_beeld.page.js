@@ -129,6 +129,8 @@ await sectie('a1', async () => {
   // de startplek zit eerst in de stad (terugval) en schuift naar de akker zodra de tegels bij Hoogkerk geladen zijn
   const R = await imp('rdnew'); const [fx, fy] = R.wgsToWorld(53.2336, 6.4977);
   await zet(fx, fy, 0, 12000);
+  // de tegels bij Hoogkerk laden na een tijd: tot een minuut wachten tot de bietenspot er is (was: een vaste wacht van 12 s)
+  for (let i = 0; i < 12 && !(SJ.spots() || []).find((s) => s.job && s.job.id === 'bietenoogst'); i++) await sleep(5000);
   const sp = (SJ.spots() || []).find((s) => s.job && s.job.id === 'bietenoogst');
   out.stand.a1 = { ...out.stand.a1, spot: sp ? { x: sp.x, y: sp.y } : null };
   if (!sp) throw new Error('geen bietenspot');

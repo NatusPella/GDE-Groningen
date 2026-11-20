@@ -1782,7 +1782,7 @@ function reachCheckpoint(world, def, k = chainState().wpIndex) {
     const eigen = hoofdspeler(world); // de toast hangt boven de speler van dit apparaat
     // AAA akte 3 (M16): de toast speelt in een kroeg-binnenset (def.toastSet) als die past; de kamer gaat weg als de toast klaar is
     opruimToastSet();
-    const kamer = def.toastSet && !eigen.inVehicle ? buildStageSet(world, def.toastSet, { x: eigen.x, y: eigen.y, angle: eigen.angle }) : null;
+    const kamer = def.toastSet && !eigen.inVehicle ? buildStageSet(world, def.toastSet, { x: eigen.x, y: eigen.y, angle: eigen.angle }, null, { gebouwOk: true }) : null;
     if (kamer) { chainState().toastSet = kamer; chainState().toastSetT = 0; }
     const gespeeld = playToast(world, { at: { x: eigen.x, y: eigen.y }, facing: kamer ? 0 : eigen.angle, kicker: wp.name, ...wp.toast });
     if (!gespeeld) opruimToastSet();
