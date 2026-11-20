@@ -214,9 +214,13 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
   --ds-misdruk-x: 3px;
   --ds-misdruk-y: 2px;
   --ds-misdruk: var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze);
-  --ds-schaduw-hard: 4px 4px 0 var(--ds-c-ink-inkt);
-  --ds-schaduw-hard-bord: 4px 4px 0 var(--ds-c-ink-bord);
-  --ds-schaduw-hard-roze: 4px 4px 0 var(--ds-c-ink-roze);
+  --ds-hard-x: 4px; /* verschuiving van de harde schaduw; een ingedrukte knop schuift er evenveel op */
+  --ds-hard-y: 4px;
+  --ds-hard-klein: 2px; /* chips en toetsplaatjes */
+  --ds-schaduw-hard: var(--ds-hard-x) var(--ds-hard-y) 0 var(--ds-c-ink-inkt);
+  --ds-schaduw-hard-bord: var(--ds-hard-x) var(--ds-hard-y) 0 var(--ds-c-ink-bord);
+  --ds-schaduw-hard-roze: var(--ds-hard-x) var(--ds-hard-y) 0 var(--ds-c-ink-roze);
+  --ds-schaduw-hard-klein: var(--ds-hard-klein) var(--ds-hard-klein) 0 var(--ds-c-ink-inkt);
   --ds-schuin: -1.2deg;
   --ds-raster: radial-gradient(var(--ds-c-ink-inkt) 1.1px, transparent 1.3px);
   --ds-raster-maat: 6px 6px;
@@ -236,8 +240,8 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
 .ds-misdruk { text-shadow: var(--ds-misdruk); }
 .ds-raster { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
 
-/* Rustig drukwerk: geen misdruk, schuinte, raster of stempelbeweging; alle tekst minstens 7:1. */
-html.rustig-drukwerk {
+/* Rustig drukwerk (html.rustig-drukwerk, of .ds-rustig op één paneel, zoals in de galerij): geen misdruk, schuinte, raster of stempelbeweging; alle tekst minstens 7:1. */
+html.rustig-drukwerk, .ds-rustig {
   --ds-misdruk-x: 0px;
   --ds-misdruk-y: 0px;
   --ds-misdruk: 0 0 0 transparent;
