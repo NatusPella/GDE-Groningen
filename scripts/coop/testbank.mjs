@@ -70,6 +70,14 @@ const P = {
   wedstrijd: { host: [[0, 'wacht', { s: 6 }], [8, 'wedhost', { s: 260 }], [280, 'stopHost', {}]] }, // #443: de host rijdt een race tegen twee headless gasten (de een stopt halverwege), uitslag, beloning en rematch
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
   ritreis: { host: [[0, 'wacht', { s: 8 }], [10, 'ritreis', { wie: 'host', soort: 'taxi', naar: 'Winsum', s: 100 }], [112, 'ritreis', { wie: 'gast', soort: 'taxi', naar: 'Winsum', s: 100 }], [214, 'stopHost', {}]], gast: [[0, 'wacht', { s: 8 }], [10, 'ritreis', { wie: 'host', soort: 'taxi', naar: 'Winsum', s: 100 }], [112, 'ritreis', { wie: 'gast', soort: 'taxi', naar: 'Winsum', s: 100 }]] }, // #983: een lokale taxirit van de host en daarna van een gast (de kaart weigert dat een gast; hier direct), host + gast + twee headless gasten
+  vier: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: een echte vierspelerssessie met vier Electron-vensters: spelerslijst, rondlopen, een bijbaan door een gast, een wegvallende gast, de late aansluiter blijft in de lijst
+    [0, 'wacht', { s: 6 }], [8, 'tab', { name: 'vier-tab' }], [12, 'spelersmenu', { name: 'vier-spelers' }], [20, 'loop', { s: 10 }],
+    [34, 'gastbijbaan', { s: 40, wie: 'gast' }],
+    me === 'gast2' ? [78, 'uitval', { s: 8, wie: 'gast2' }] : [78, 'wacht', { s: 28 }],
+    me === 'host' ? [108, 'uitvalHost', { s: 0, wie: 'gast2' }] : [108, 'wacht', { s: 5 }],
+    [116, 'tab', { name: 'vier-tab-na' }], [124, 'wacht', { s: 6 }],
+    ...(me === 'host' ? [[134, 'stopHost', {}]] : []),
+  ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
@@ -620,7 +628,7 @@ if (SUITE === 'net') {
     // spel, geen hostrecht (docs/COOP-GAST.md). De host hoort géén wachtscherm te krijgen zolang de
     // lopende opdracht die speler niet nodig heeft (holdBeleid) — daarom bewaken we bij de host alleen
     // dat hij het wegvallen in de lijst zag, niet dat hij pauzeerde.
-    check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm met pauze: ' + JSON.stringify(hh));
+    check(hh && hh.hold && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm (de pauze volgt uit coopHold in de volgende frame, main.js): ' + JSON.stringify(hh));
     check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is na "Opnieuw verbinden" niet terug op plek 1: ' + JSON.stringify(hk));
     if (hhh && hhh.holdGezien) check(hhh.lostGezien, 'herverbinden: de host zag het wegvallen niet in de lijst: ' + JSON.stringify(hhh));
     else note('herverbinden: de gast was binnen 5 s terug, de host zag geen wegvallen (de uitval van 8 s hierboven dekt het wegvallen van de host)');

@@ -407,6 +407,29 @@ const PHASES = {
       css: first ? { hoogte: getComputedStyle(first).height, raH: getComputedStyle(document.querySelector('#pause-menu .pm-rail')).getPropertyValue('--ra-h'), lettergrootte: getComputedStyle(first).fontSize, zoom: getComputedStyle(document.getElementById('pause-menu')).zoom, spHoogte: getComputedStyle(document.querySelector('#pause-menu .pm-rail-sp')).height, mt: getComputedStyle(document.getElementById('pause-menu')).getPropertyValue('--mt') } : null });
     shot(name); await sleep(500); await closeMenu();
   },
+  // #1011: een bijbaan door een gast, in een echte sessie. De gast (args.wie) staat bij het startpunt en drukt E; de anderen
+  // krijgen "Meedoen?" en zeggen J. Gelogd: wie meedoet, de stand van de baan en het geld per speler (elke meedoende krijgt het volle bedrag).
+  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk' }) {
+    const w = W(); const SJ = await import('./js/sidejobs.js');
+    const spot = SJ.getSideJobSpotsForRender().find((x) => x.job && x.job.id === id);
+    const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false;
+    log('gastbijbaan-begin', { wie: CFG.name, spot: spot ? [Math.round(spot.x), Math.round(spot.y)] : null, geld: geld0 });
+    if (!spot) { await sleep(s * 1000); return; }
+    const t0 = performance.now(); let laatsteLog = 0;
+    while (performance.now() - t0 < s * 1000) {
+      const G = w.coopBijbaanGast;
+      if (CFG.name === wie && !verzoek && performance.now() - t0 > 1500) {
+        w.player.x = spot.x + 0.8; w.player.y = spot.y; // de gast staat bij het startpunt
+        await sleep(1200); key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name });
+      }
+      if (CFG.name !== wie && CFG.role !== 'host' && !jGestuurd && G && G.uitn) { key('j', 'KeyJ'); jGestuurd = true; log('gastbijbaan-j', { wie: CFG.name, uitn: G.uitn.label }); }
+      if (G && G.deelt) deelde = true;
+      if (performance.now() - laatsteLog > 3000) { laatsteLog = performance.now(); log('gastbijbaan-stand', { wie: CFG.name, deelt: !!(G && G.deelt), uitn: !!(G && G.uitn), baan: G && G.id, sideJob: w.sideJob ? { actief: !!w.sideJob.active, naam: w.sideJob.name || null } : null, geld: w.money | 0 }); }
+      await sleep(500);
+    }
+    shot('gastbijbaan');
+    log('gastbijbaan-eind', { wie: CFG.name, deelde, geldWinst: (w.money | 0) - geld0 });
+  },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
   async netsim({ s = 20, latency = 0.12, jitter = 0.05, loss = 0.1, wie = null }) {
     if (wie && !wie.includes(CFG.name)) { await sleep(s * 1000); return; }
