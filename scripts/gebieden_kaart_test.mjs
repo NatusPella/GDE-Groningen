@@ -29,7 +29,7 @@ function nepCtx() {
   const log = { vul: 0, lijnen: [], teksten: [], dash: [], alpha: new Set() };
   const c = { font: '13px sans-serif', lineWidth: 1, globalAlpha: 1 };
   const noop = () => {};
-  Object.assign(c, { save: noop, restore: noop, beginPath: noop, moveTo: noop, lineTo: noop, closePath: noop, roundRect: noop, fill() { log.vul++; log.alpha.add(c.globalAlpha); }, stroke() { log.lijnen.push(c.lineWidth); },
+  Object.assign(c, { save: noop, restore: noop, beginPath: noop, moveTo: noop, lineTo: noop, closePath: noop, roundRect: noop, arc: noop, translate: noop, scale: noop, fill() { log.vul++; log.alpha.add(c.globalAlpha); }, stroke() { log.lijnen.push(c.lineWidth); },
     setLineDash(d) { log.dash.push(d.length); }, fillText(tx) { log.teksten.push(tx); }, measureText: (tx) => ({ width: String(tx).length * 6.5 }) });
   return { c, log };
 }
@@ -65,21 +65,21 @@ t('lijnDikte schaalt mee met de zoom: groeit, blijft tussen 1,1 en 3,4 px', () =
   for (let i = 1; i < d.length; i++) assert.ok(d[i] >= d[i - 1], d.join(' '));
   assert.ok(d[0] >= 1.1 && d.at(-1) <= 3.4 && d.at(-1) > d[0] + 1);
 });
-t('de drie toestanden zijn ook zonder kleur te onderscheiden: stippellijn, doorgetrokken met vulling, vlag en "veroverd"', () => {
+t('de vier toestanden zijn ook zonder kleur te onderscheiden: raster, stippellijn, effen met ring, dikke rand met vlag', () => {
   const basis = { veroverbaar: true, deel: 0, voltooid: false, klaar: 0, kleur: null, alpha: 0, vlag: '#4fb3a6' };
   const nog = K.stijl(basis), bezig = K.stijl({ ...basis, klaar: 2, deel: 0.4, kleur: 'rgb(150,184,70)', alpha: 0.2 }), klaar = K.stijl({ ...basis, voltooid: true, klaar: 5, deel: 1 }), leeg = K.stijl({ ...basis, veroverbaar: false });
-  assert.equal(nog.streep, true); assert.equal(nog.vul, null);
-  assert.equal(bezig.streep, false); assert.ok(bezig.vul && bezig.alpha >= 0.24);
+  assert.equal(nog.streep, true); assert.ok(nog.alpha < 0.1, 'zichtbaar: gedempte vulling');
+  assert.equal(bezig.streep, false); assert.ok(bezig.vul && bezig.alpha >= 0.18 && bezig.ring === 0.4);
   assert.equal(klaar.streep, false); assert.equal(klaar.vul, '#4fb3a6'); assert.ok(klaar.breed > bezig.breed);
-  assert.ok(leeg.lijnAlpha < nog.lijnAlpha && leeg.vul === null, 'wat niets te doen heeft is bijna onzichtbaar');
-  assert.equal(new Set([nog, bezig, klaar].map((s) => `${s.streep}|${!!s.vul}|${s.breed}`)).size, 3);
+  assert.ok(leeg.lijnAlpha < nog.lijnAlpha && leeg.raster === true, 'wat niet gezien is, is een raster en bijna onzichtbaar');
+  assert.equal(new Set([leeg, nog, bezig, klaar].map((s) => `${s.streep}|${!!s.vul}|${s.breed}|${s.raster}|${s.ring}|${s.icoon}`)).size, 4);
 });
-t('op vier zoomniveaus: de goede laag, grenzen, vulling voor wat gedaan is, en een legenda met de drie toestanden', () => {
+t('op vier zoomniveaus: de goede laag, grenzen, vulling voor wat gedaan is, en een legenda met de vier toestanden', () => {
   const uit = [[0.006, 'gemeente'], [0.1, 'woonplaats'], [0.22, 'wijk'], [0.5, 'buurt']].map(([sc, verwacht]) => ({ sc, verwacht, ...teken(sc) }));
   for (const u of uit) {
     assert.equal(u.laagId, u.verwacht, `zoom ${u.sc}`);
     assert.ok(u.log.lijnen.length > 0, `zoom ${u.sc}: geen grenzen`);
-    for (const tekst of ['Nog niet begonnen', 'Bezig', 'Veroverd']) assert.ok(u.log.teksten.includes(tekst), `zoom ${u.sc}: legenda mist ${tekst}`);
+    for (const tekst of ['Nog onzichtbaar', 'Zichtbaar', 'Aan het veroveren', 'Veroverd']) assert.ok(u.log.teksten.includes(tekst), `zoom ${u.sc}: legenda mist ${tekst}`);
     assert.ok(u.log.teksten.some((x) => x.startsWith('Veroverd · ')), 'de legenda noemt de laag');
   }
   assert.ok(uit[1].log.vul > 0 || uit[2].log.vul > 0 || uit[3].log.vul > 0, 'wat je deed is gekleurd');
@@ -130,7 +130,7 @@ t('zonder gebieden (de wereld is er nog niet) tekent de laag niets en gaat er ni
 });
 t('de haken: de grote kaart tekent laag en legenda, de minikaart de laag, de legenda houdt het laagjes-tabblad kloppend', () => {
   const src = (f) => fs.readFileSync(fileURLToPath(new URL('../game/js/' + f, import.meta.url)), 'utf8');
-  assert.ok(src('mapview.js').includes('tekenLegenda(ctx, state.cw, state.ch, laagId'));
+  assert.ok(src('mapview.js').includes('tekenLegenda(ctx, state.cw, state.ch, state.legendLaag)'));
   const hud = src('hud_panel.js');
   assert.ok(hud.includes("minimapShows('veroverd')") && hud.includes('tekenVeroverdMini'));
   assert.ok(hud.indexOf('tekenVeroverdMini(ctx') > hud.indexOf('fillPolys(ctx, view.water)') && hud.indexOf('tekenVeroverdMini(ctx') < hud.indexOf('for (const r of view.roads)'), 'boven groen en water, onder de wegen');

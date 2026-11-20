@@ -51,10 +51,10 @@ for (const f of ['game/js/mapview.js', 'scripts/world/province_map.mjs']) ok(!/'
 // The ink table keeps the colours the renderers had as literals: pinned here, so
 // moving a colour into the table can never change the look unnoticed.
 const INK_WAS = {
-  cream: '#f0ede4', paper: '#f5f0e6', textBright: '#f2f2f2', dark: '#0c140e', black: '#000000', white: '#ffffff',
-  green: '#1e9e56', greenLight: '#3fc97a', greenDark: '#0f5c30', red: '#d93f3f', policeBlue: '#3f6fd9', yellow: '#e8c93a',
+  cream: '#f0ede4', paper: '#f5efe0', textBright: '#f2f2f2', dark: '#0c140e', black: '#000000', white: '#ffffff',
+  green: '#1e9e56', greenLight: '#3fc97a', greenDark: '#0e6b3c', red: '#d93f3f', policeBlue: '#3f6fd9', yellow: '#f9c80e',
   horeca: '#c9622a', grey: '#c7c7c2', greyDark: '#2a2e28',
-  seaLabel: 'rgb(190,225,245)', flavour: 'rgb(245,226,170)', amber: '#ffbe46', amberInk: '#1c1408',
+  seaLabel: 'rgb(190,225,245)', flavour: 'rgb(245,226,170)', amber: '#ffbe46', amberInk: '#1d1b17',
   panelTop: '#17301f', panelCard: '#10261a', panelDeep: 'rgb(10,19,13)', selected: 'rgb(95,180,217)',
   medalBronze: '#c8834a', medalSilver: '#cfd6dc',
   homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489', passiefGrijs: '#9a9a9a',

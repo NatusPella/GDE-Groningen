@@ -70,6 +70,7 @@ export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepo
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 import { markerColors } from './a11y.js';
+import { phosphorInBox, PH_JOB } from './mapglyphs.js';
 import { loonSchatting } from './bijbaanregels.js';
 // #631: de klus-marker volgt de kleurenblindmodus (dezelfde bron als de kaartmarkers), geen eigen oranje.
 export const JOB_TARGET_COLOR = markerColors().job;
@@ -1005,6 +1006,7 @@ function hexPath(g, r) {
 export function drawJobGlyph(g, glyph, r, bg) {
   g.save();
   g.scale(r, r);
+  if (phosphorInBox(g, PH_JOB[glyph], 1.9)) { g.restore(); return; } // Phosphor (mapglyphs.js), één iconenstijl op de kaart; de eigen tekening hieronder is de terugval
   g.fillStyle = '#f2ede0';
   g.strokeStyle = '#f2ede0';
   g.lineCap = 'round';

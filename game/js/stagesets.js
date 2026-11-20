@@ -68,7 +68,8 @@ function disposePerson(m) {
 
 // The room for this stage, or null when the scene or the map is not there. `targetScene` is
 // for the test: without a running game there is no scene to put the room in yet.
-export function buildStageSet(world, kind, player, targetScene = null) {
+// opts.gebouwOk (en altijd bij de kroeg): een kamer die een kroeg voorstelt mag in een gebouw staan (de kroeg zit in dat gebouw); alleen water keurt hem af.
+export function buildStageSet(world, kind, player, targetScene = null, opts = {}) {
   const layout = stageSetLayout(kind, player);
   const scene = targetScene || getScene();
   if (!layout || !scene) return null;
@@ -82,7 +83,7 @@ export function buildStageSet(world, kind, player, targetScene = null) {
     const m = world && world.map;
     const fit = roomBaseHeight(kind, layout, {
       groundAt: m && m.groundHeightAt ? (x, y) => m.groundHeightAt(x, y, 50) : () => 0,
-      blockedAt: m ? (x, y) => (typeof m.buildingsNear === 'function' && isInsideBuilding(m, x, y)) || isInWater(m, x, y) : null,
+      blockedAt: m ? (x, y) => (!(opts.gebouwOk || kind === 'kroeg') && typeof m.buildingsNear === 'function' && isInsideBuilding(m, x, y)) || isInWater(m, x, y) : null,
     });
     if (!fit) return null;
     base = fit.z;

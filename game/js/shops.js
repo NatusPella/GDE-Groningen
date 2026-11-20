@@ -1,4 +1,5 @@
 import { gridItems } from './spatialgrid.js';
+import { phosphorInBox, PH_SHOP } from './mapglyphs.js';
 import { KEYS } from './storagekeys.js';
 import { loadTuning, tuningEffects } from './tuningplan.js';
 import { DIEREN, dierById } from './dierenregister.js';
@@ -2008,6 +2009,7 @@ function validDents(a) {
 export function drawShopGlyph(g, type, r, bg) {
   g.save();
   g.scale(r, r);
+  if (phosphorInBox(g, PH_SHOP[type], 1.9)) { g.restore(); return; } // Phosphor (mapglyphs.js); de eigen tekening hieronder is de terugval
   g.fillStyle = '#f2ede0';
   g.strokeStyle = '#f2ede0';
   g.lineCap = 'round';

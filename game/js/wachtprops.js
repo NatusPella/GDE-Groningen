@@ -42,6 +42,7 @@ export function propSpots(n = 3, radius = 6) {
   return out;
 }
 
+export const WAIT_RING_MAX = 7;
 const COL = {
   hout: 0x8a6238, hout2: 0x6f4d2a, kist: 0x9a7a4a, ton: 0x6b4a2a, baal: 0xd8c060,
   blad: 0x3d7a3a, pot: 0xa0522d, stof: 0x2f4a6a, grijs: 0x777d88, geel: 0xffc21a,
@@ -156,7 +157,8 @@ export function buildWaitDressing(st, target, radius = 3.5, world = null) {
   const group = new THREE.Group();
   group.name = 'wait-circle';
   group.position.set(target.x, base + 0.04, target.y);
-  const r = Math.max(2.2, radius || 3.5);
+  // een hold met een grote straal (M27: 16 m) zou kring, spullen en figuur ver buiten beeld zetten: de getekende kring blijft klein (de straal van de stap zelf telt voor het slagen)
+  const r = Math.min(WAIT_RING_MAX, Math.max(2.2, radius || 3.5));
   const segs = [];
   for (let i = 0; i < 16; i++) {
     const a = (i / 16) * Math.PI * 2;

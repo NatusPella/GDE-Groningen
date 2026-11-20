@@ -1,6 +1,6 @@
 // Plekbeeld: één Electron (wegwerpprofiel) springt naar elke plek (echt laadscherm, de wereld stroomt zoals in het spel) en neemt per plek een
 // luchtbeeld (schuin op 70 m, cameraOverride) en een beeld van de speler zelf (plek_beeld.page.js). Voor plekken ver van de start (#953).
-//   node scripts/qa/plek_beeld.mjs --lijst=<json [{naam,x,y}]> [--out=<map>]
+//   node scripts/qa/plek_beeld.mjs --lijst=<json [{naam,x,y}]> [--out=<map>] [--klok=23]
 // GDE_GAME_DIR, ELECTRON_EXE, GDE_DESKTOP, GDE_ELECTRON_EXTRA_ARGS zoals snelreis_meting.mjs. Uitvoer: <out>/shots-pb-*.png, plek_beeld.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -15,7 +15,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-snelreis')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = process.env.GDE_PROFILE_DIR || `gde-test-pb-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { plekken: JSON.parse(fs.readFileSync(path.resolve(arg('lijst')), 'utf8')) };
+const cfg = { plekken: JSON.parse(fs.readFileSync(path.resolve(arg('lijst')), 'utf8')), klok: arg('klok') == null ? null : Number(arg('klok')) };
 fs.writeFileSync(script, `window.__pb = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'plek_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
