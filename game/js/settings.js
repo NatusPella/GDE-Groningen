@@ -64,6 +64,8 @@ const BASE_DEFAULTS = {
   stapAnimatie: true,
   showFog: true,
   cinematicMoments: true,
+  // terugkeerscène (#986 #987): na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); standaard aan
+  terugkeerScene: true,
   gore: true,
   // Zichtafstand (viewdist.js): 'kort' hoort bij de voorinstelling die de speler als Hoog ziet
   // (de sleutel heet nog 'vlot': de look van de zwaarste stand met de afstand van Laag, #893).

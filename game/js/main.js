@@ -75,6 +75,7 @@ import { updateOffences } from './offences.js';
 import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
+import { updateTerugkeer } from './terugkeerrun.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
 import { updateContextHints } from './contexthints.js';
@@ -1109,6 +1110,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateBanter(world.paused ? 0 : gameDt, world);
     updateStoryContact(world.paused ? 0 : dt, world);
     updatePractice(world.paused ? 0 : dt, world);
+    // #986 #987: na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); wacht zelf op een rustig moment
+    updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;
