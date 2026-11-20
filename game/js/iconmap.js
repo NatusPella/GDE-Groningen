@@ -55,7 +55,7 @@ export const ICON_MAP = {
   worp: 'person-simple-throw', golf: 'golf', kart: 'car-simple', zwembad: 'swimming-pool', klimmen: 'person-simple-hike',
   wandeling: 'person-simple-hike', reuzenrad: 'aperture', skate: 'person-simple-snowboard', padel: 'racquet',
   krant: 'newspaper-clipping', bezorger: 'moped-front', taart: 'cake', bak: 'bread',
-  idee: 'lightbulb', kookpot: 'cooking-pot',
+  tandwiel: 'gear-six', anker: 'anchor-simple', idee: 'lightbulb', kookpot: 'cooking-pot',
   lopen: 'person-simple-walk', rennen: 'person-simple-run', bagage: 'backpack', hand: 'hand',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.
