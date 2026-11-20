@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- **Minder glitches en ruis in het geluid (melding Nikky):** het geluid krijgt een snelle limiter als laatste schakel, zodat opgetelde geluiden (muziek, sirenes, schoten) niet meer hard knippen. De ruisbedden van de stad, regen en krekels hebben geen gelijkspanning meer (geen bonk bij het in- of uitfaden), en een ongeldige waarde in een geluidsregeling kan de rest van het beeld niet meer overslaan.
+- **Het spel merkt geluidsonderbrekingen op:** het telt hoe vaak de uitvoer even stilvalt. Had de vorige sessie er veel, dan kiest het spel nu een ruimere geluidsbuffer (iets later geluid, geen gaten). Het blok Geluid met de stand van het geluid komt in de technische info; `?geenlimiter` zet de limiter uit voor een vergelijking. Zie docs/AUDIO-GLITCHES-21-11.md.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

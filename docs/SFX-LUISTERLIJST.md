@@ -160,3 +160,15 @@ Gekozen op titel, duur, niveau en spectrum (`scripts/audio/sfx_analyse.mjs`), **
 | `stoomfluit` | de stoomtrein M19 bij het perron | een stoomfluit van 3 s (komt in plaats van de elektrische treinhoorn) | klinkt als een fabrieksfluit; te hard |
 | `haspel_draai`, `dobber_plons`, `kopje_klink_0/1` | hengelen: een vis binnenhalen; de horecahap | een draaiende haspel, een kleine plons; een kopje op een schotel | `haspel_draai` heeft hoge rammel; `kopje_klink` als vervanging van de hap klinkt als porselein in plaats van eten |
 | `munten_0`, `munten_1`, `ui_fout` | geld uitgeven (bij 2 euro of meer); een geweigerde handeling | muntjes van 0,4 en 0,8 s; een zachte foutklank van 0,3 s | de munten klinken luider dan de kassa; `ui_fout` te scherp of te lang voor een melding die vaak komt |
+
+## Glitches en ruis (21-11, melding Nikky; zie [AUDIO-GLITCHES-21-11.md](AUDIO-GLITCHES-21-11.md))
+
+Gemeten zonder oor: geen klip, geen NaN, geen lusklik in de 154 opnames en de procedurele bronnen (`node scripts/audio/ruis_test.mjs`). Wat een mens moet beluisteren, op een pc met een hapering (lage fps) en bij voorkeur de pc van Nikky:
+
+| Wat | Waar | Wat je hoort als het goed is | Wat een fout is |
+|---|---|---|---|
+| De limiter op de uitvoer | een luide scène: rijden met sirenes, schieten en muziek tegelijk; vergelijk met `?geenlimiter` | geen tik of krak; het geheel klinkt even hard | een pompend geluid (de muziek zakt weg bij elke knal), of juist nog steeds een krak |
+| Ruisbedden zonder gelijkspanning | `bed_city`, `bed_lap`, `bed_rain`, `bed_crickets` (alleen als de opnames ontbreken) en de ambience van de stad, regen en krekels | gelijkmatig, geen bonk als de laag begint of stopt | een lage bonk bij het in- of uitfaden |
+| De ruime geluidsbuffer | na een sessie met veel glitches: de volgende sessie draait op `playback` (zie het blok Geluid in de diagnose) | geen gaten of tikken meer; geluiden komen ca. 30 ms later (schot en knal) | het geluid loopt merkbaar achter op het beeld |
+| Hapering en geluid | rijden door de dichtste stad terwijl de fps laag is | het geluid loopt door zonder gaten | tikken, krakjes of een kort ruisgeluid op het moment dat het beeld hapert |
+| Het blok Geluid | Ctrl+Shift+G (zodra de diagnose gemerged is) | glitches per minuut 0, limiter 0 keer ingegrepen | glitches > 0 terwijl het beeld soepel is: dan ligt het aan het apparaat, niet aan het spel |
