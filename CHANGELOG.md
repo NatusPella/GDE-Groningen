@@ -100,6 +100,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Technische beeldinfo (Ctrl+Shift+G):** laat zien hoe vaak het beeld wegviel, hoe lang geleden de wereld voor het laatst opnieuw is opgebouwd en waarom. Dezelfde regels staan bovenaan het Foutrapport (Instellingen).
 - **Desktop:** een weggevallen GPU- of renderproces komt in het Foutrapport en in een logbestand; een weggevallen renderproces laadt de pagina hoogstens twee keer per minuut opnieuw.
 - In de derde persoon zie je in de trekker weer wat: de camera hangt boven het cabinedak, kijkt een stukje vooruit en de bestuurder, de motorkap en de weg zijn in beeld. Hetzelfde geldt voor de maaidorser, vrachtwagen en ambulance; gewone auto's veranderen niet (#1029).
+- **Geen bomen en heggen meer op de weg in parken buiten de stad:** het park in de streek kreeg een rechthoek om het hele park en liet bomen en heggen ook op de rijbaan staan (140 bomen en 169 van 410 heggen op de provincie). Een boom op de weg valt nu weg en een heg wordt alleen op het stuk over de weg geknipt.
 
 ## [0.64.0] - 2026-11-20
 
