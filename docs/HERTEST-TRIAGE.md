@@ -682,3 +682,28 @@ De eerste indeling klopte niet: de fixes van 0.63.0 en 0.65.0 zaten in bundelcom
 | #461 | Sound: volume na het starten van een game | bug |  | 4 | 1 | commit + groene test |
 | #458 | Safehouses in bestaande gebouwen in plaats van een los huisje | wens | midden | 8 | 1 | commit + groene test |
 | #449 | Samen spelen: eigen voertuigen en panden meenemen in de wereld van een ander (bezorgen en  | wens | hoog | 14 | 2 | commit + groene test |
+
+## Beeldrun top 30 (20-11, `scripts/qa/hertest_beeld.mjs`)
+
+Eén Electron per run, wegwerpprofiel, stage van de werkboom met de wereld van `desktop/build/game` (19-11). Vaste camerastanden lopen via een eigen cinematic: `world.cameraOverride` wordt door `cinematics.js` gewist zodra er geen filmpje loopt (het oude `plek_beeld.page.js` zet daarom nu een gewone speleropname neer). Beelden staan in `docs/img/qa/<nummer>-hertest-*.png`. De machine draaide tegelijk met twee andere Electron-runs (frames 25 fps): prestatiemetingen zijn daardoor niet eerlijk.
+
+| # | Stand | Bewijs en opmerking |
+|---|---|---|
+| #884 | opgelost | `884-hertest-brug-visvliet-schuin/-onder`: N355-brug over de Lauwers heeft een dichte asfaltlaag, dichte liggers en pijlers; niets doorzichtig. |
+| #918 | opgelost op de bekeken plek | `918-hertest-oever-lucht`: langs de Friese kanaaloever houdt het gras op bij de waterlijn, geen gras over water. Twee oevers gezien, de tweede lag naast de weg. |
+| #936 | deels | `936-hertest-kade-houdt-tegen`: rustig aanrijden (< 9 m/s) stopt bij de wal, melding "De kade houdt je tegen". Harder dan 9 m/s rijdt de auto er bewust overheen (ontwerp van `wateredge.js`); wie een harde kade wil, moet dat besluiten. |
+| #949 | opgelost | `949-hertest-plons-snel`, `949-hertest-gezonken`: snelle auto valt met plons en melding "Je auto zinkt, E om uit te stappen", zinkt daarna; de auto bleef zichtbaar in alle 9 metingen. |
+| #970 | deels | `970-hertest-politie-tegen-muur`: politieauto en sedan op 8 panden in Usquert (12 m aanloop, 6 s gas): 0 frames binnen een pand, auto staat tegen de gevel. Voetgangers door muren en de garage zelf: niet bekeken. |
+| #923 | opgelost | `923-hertest-knakker-raam`: Knakker (hatch) van opzij door het zijraam: zitten, dashboard en stuur, geen horizontale plaat. |
+| #547 | opgelost | `547-hertest-knakker-ruiten` (voor- en zijruiten, ruiten donker maar aanwezig) en `547-hertest-knakker-binnen` (eerste-persoon-beeld: A-stijlen, geen open cabine). |
+| #942 | deels | `942-hertest-knakker-schade`: auto op 22% gezondheid (rook en vuur) heeft het interieur nog gewoon in de carrosserie; echte botsvervorming (deuken) niet getest. |
+| #927 | opgelost | `927-hertest-warffum-automaat-op-perron`: de kaartautomaat staat op het perron naast de speler, niet op het spoor. |
+| #961 | deels | `961-hertest-zuidhorn-perron`: speler en Tessa spawnen op het perron, de automaat staat op het perron. Groningen Noord: speler staat op het verhoogde perron (`961-hertest-noord-perron`); of de overkapping de weg eronder visueel blokkeert is niet beoordeeld. |
+| #954 | opgelost | `954-hertest-bourtange-uitkijk-prompt`: bij Bourtange Vesting (42437, 22721) verschijnt "Uitzicht bekijken (E)"; E gebruikt het punt (prompt weg, `isViewpointUsed` waar). |
+| #965 | opgelost op 1280x720 | De tabs blijven bovenaan staan, de kop van Overzicht verdwijnt niet eronder bij scrollen (`965-hertest-spel-overzicht`). Kleinere vensters niet gemeten. |
+| #977 | opgelost | `977-hertest-kaart-marum`: op de hoogste kaartzoom bij Marum lopen geen perceelgrenzen door de bebouwing; alleen enkele blauwe slootlijnen in een groen terrein. |
+| #540 | deels | `540-hertest-trekker-camera`: volgcamera achter trekker (6,5 m) en bus (18,8 m) stabiel in stilstand en kruipend; het losraken na een bocht of botsing is niet gereproduceerd (beide voertuigen bleven in de wijk hangen). |
+| #539 | niet bevestigd | `539-hertest-garage-knalpot`: Garage Knalpot Damsterkwartier heeft geen groene plaat. Eén van de vele vestigingen; de plaat kan bij een missiemarker horen. |
+| #859 | waarschijnlijk opgelost | Bestaand beeld `986-opening-keuken-tessa.png`: Tessa zit met de handen voor haar; code gebruikt `arms:'lap'`. Geen eigen run. |
+
+Niet in beeld bekeken (code en test staan groen, zie hierboven; geen beeldrun gedaan): #948 (boot onder grond), #937 en #921 (laadhapering: eigen meting op 55 m/s over 2,4 km gaf mediaan 39,7 ms en 12 frames van 100 ms of meer, maar op een belaste machine zonder referentie), #969 (koeienschuur: missie moet gestart worden), #947, #945, #934, #933, #932, #930, #914, #951, #850 (aanraakpaneel: venster 800x360 en aanraakmodus nodig), #533.
