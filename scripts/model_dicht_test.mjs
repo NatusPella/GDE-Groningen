@@ -55,7 +55,7 @@ for (const hat of ['beanie', 'flatcap']) {
 }
 
 // lang haar (Tessa): de wanden van het haar steken nergens meer dan 7 mm in het hoofd (de hoekpunten met haarkleur binnen 0,93 van de kop-ellipsoide)
-function darkInside(mesh, lim = 0.93) {
+function darkInside(mesh, lim = 0.97) {
   let g = null; mesh.traverse((o) => { if (o.geometry && o.geometry.attributes.skinIndex && !g) g = o.geometry; });
   const P = g.attributes.position, C = g.attributes.color, S = g.attributes.skinIndex;
   let n2 = 0;
