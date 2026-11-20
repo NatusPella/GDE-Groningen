@@ -1,9 +1,15 @@
 /* Big moments (bigmoment.js, #996, ADR 0040): summer screen print. Tokens only; Rustig drukwerk
    (html.rustig-drukwerk) zeroes --ds-schuin and --ds-misdruk, and the rules below stop the
    motion and the halftone: the same words, the same layout. Nothing here takes input. */
-.bm { position: fixed; z-index: 55; pointer-events: none; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); opacity: 0; transition: opacity 0.3s ease; }
+.bm { position: fixed; z-index: 55; pointer-events: none; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); opacity: 0; transition: opacity var(--ds-m) var(--ds-ease); }
 .bm.aan { opacity: 1; }
-.bm.uit { opacity: 0; transition-duration: 0.4s; }
+.bm.uit { opacity: 0; }
+/* Microinteractions (ds-motion.css): elk groot moment landt één keer (opacity plus 8 px, 250 ms) en blijft dan staan;
+   uitfaden is 200 ms zonder beweging. Rustig drukwerk en Beweging beperken zetten de tijden op 0 via de tokens. */
+.bm-band { --ds-mi-x: calc(var(--ds-mi-versch) * -1); --ds-mi-y: 0px; }
+.bm-slip, .bm-kaart { --ds-mi-y: var(--ds-mi-versch); }
+.bm-stempel { --ds-mi-y: calc(var(--ds-mi-versch) * -1); }
+.bm-tag { --ds-mi-x: var(--ds-mi-versch); --ds-mi-y: 0px; }
 .bm p, .bm .bm-regel { margin: 0; }
 
 /* shared print bits */
@@ -17,25 +23,19 @@
 .bm-band { position: absolute; }
 .bm-geslaagd, .bm-mislukt, .bm-opgepakt { inset: 0; display: grid; place-items: center; overflow: hidden; }
 .bm-dim { position: absolute; inset: 0; background: rgba(29,27,23,0.5); }
-.bm-band { left: -6vw; right: -6vw; padding: 3vh 14vw 3.4vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 1.2vh; background: var(--ds-c-ink-geel); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 var(--ds-lijn-zeef) 0 var(--ds-c-ink-roze), var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)) translateX(-4vw); }
-.bm-geslaagd.aan .bm-band, .bm-mislukt.aan .bm-band { animation: bm-band-in 0.45s cubic-bezier(.2,.8,.2,1) both; }
+.bm-band { left: -6vw; right: -6vw; padding: 3vh 14vw 3.4vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 1.2vh; background: var(--ds-c-ink-geel); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 var(--ds-lijn-zeef) 0 var(--ds-c-ink-roze), var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); }
 .bm-mislukt .bm-band { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); background-blend-mode: multiply; }
 .bm-mislukt .bm-klein { background: var(--ds-c-ink-inkt); }
-@keyframes bm-band-in { from { transform: rotate(var(--ds-schuin)) translateX(-30vw); } to { transform: rotate(var(--ds-schuin)) translateX(0); } }
 
 /* opgepakt: a stamp on a fine slip, no violence */
 .bm-slip { position: relative; box-sizing: border-box; width: min(760px, 86vw); display: flex; flex-direction: column; gap: 14px; padding: 36px 40px 120px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); }
 .bm-stempel { position: absolute; right: 28px; bottom: 22px; padding: 4px 22px; font: 800 clamp(44px, 6vw, 90px)/1 var(--ds-font-kop-v3); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-c-ink-inkt); border: 5px solid var(--ds-c-ink-inkt); outline: 3px solid var(--ds-c-ink-inkt); outline-offset: 4px; box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -3)); }
-.bm-opgepakt.aan .bm-stempel { animation: bm-stempel-in 0.3s 0.35s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes bm-stempel-in { from { opacity: 0; transform: scale(1.5) rotate(calc(var(--ds-schuin) * -3)); } to { opacity: 1; transform: rotate(calc(var(--ds-schuin) * -3)); } }
 
 /* a new area: a place-name stamp like a postcard, lower third, no dimming */
 .bm-gebied { left: 50%; top: 24vh; transform: translateX(-50%); } /* #985: in de vrije middenzone D, niet over de doelkaart en de minikaart onderin */
 .bm-kaart { position: relative; box-sizing: border-box; min-width: min(640px, max(340px, calc(100vw - 820px))); max-width: 92vw; display: flex; flex-direction: column; gap: 10px; padding: 22px 34px 26px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-bord); transform: rotate(calc(var(--ds-schuin) * -1)); }
 .bm-kaart .bm-kop { font-size: clamp(48px, 7vw, 110px); color: var(--ds-c-ink-bord); }
 .bm-zegel { position: absolute; top: 16px; right: 18px; width: 64px; height: 76px; border: 3px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
-.bm-gebied.aan .bm-kaart { animation: bm-kaart-in 0.4s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes bm-kaart-in { from { transform: translateY(24px) rotate(calc(var(--ds-schuin) * -1)); } to { transform: rotate(calc(var(--ds-schuin) * -1)); } }
 
 /* wanted up or down: a short tag at the right edge next to the stars, never full screen */
 .bm-wanted { right: var(--ds-rand-hud); top: 30vh; }
@@ -46,8 +46,20 @@
 .bm-sterren { display: flex; gap: 6px; }
 .bm-ster { width: 22px; height: 22px; box-sizing: border-box; border: 2px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 5px 5px; clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%); }
 .bm-ster.aan { background-image: none; background-color: var(--ds-c-ink-roze); }
-.bm-wanted.aan .bm-tag { animation: bm-tag-in 0.25s ease-out both; }
-@keyframes bm-tag-in { from { transform: translateX(40px); } to { transform: none; } }
+
+/* Compact (rijdend, bigmoment.js isRijdend): zo'n 40% kleiner, boven in beeld uit de weg van doelkaart, minimap en stuur;
+   dezelfde woorden, dezelfde landing (ds-mi, 250 ms), een kortere verblijftijd (in JS). */
+.bm-gebied.bm-compact { bottom: auto; top: 15vh; }
+.bm-compact .bm-kaart { min-width: min(384px, 52vw); max-width: 56vw; gap: 6px; padding: 12px 20px 14px; --ds-mi-y: calc(var(--ds-mi-versch) * -1); }
+.bm-compact .bm-kaart .bm-kop { font-size: clamp(29px, 4.2vw, 66px); }
+.bm-compact .bm-klein { font-size: clamp(13px, 1vw, 16px); padding: 1px 8px; }
+.bm-compact .bm-regel { font-size: clamp(13px, 1.4vw, 24px); }
+.bm-compact .bm-zegel { top: 10px; right: 12px; width: 38px; height: 46px; }
+.bm-wanted.bm-compact { top: 20vh; }
+.bm-compact .bm-tag { max-width: min(250px, 42vw); padding: 6px 12px 8px 14px; gap: 2px; }
+.bm-compact .bm-tag .bm-kop { font-size: 26px; }
+.bm-compact .bm-tag .bm-regel { font-size: 13px; }
+.bm-compact .bm-ster { width: 14px; height: 14px; }
 
 /* Rustig drukwerk and "Beweging beperken": no motion, no tilt (the token is 0deg), no halftone */
 html.rustig-drukwerk .bm.aan .bm-band, html.rustig-drukwerk .bm.aan .bm-stempel, html.rustig-drukwerk .bm.aan .bm-kaart, html.rustig-drukwerk .bm.aan .bm-tag, html.reduce-motion .bm.aan .bm-band, html.reduce-motion .bm.aan .bm-stempel, html.reduce-motion .bm.aan .bm-kaart, html.reduce-motion .bm.aan .bm-tag { animation: none; }

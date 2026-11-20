@@ -25,6 +25,10 @@
 }
 #hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: rotate(var(--ds-schuin)); }
 #hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: 0.45s; }
+/* ds-motion.css (.ds-mi-in): de telefoonmelding schuift 8 px in vanaf de bovenrand en faadt in 200 ms uit; de schuinte blijft op transform, zonder schaal */
+#hud .pf-card.ds-mi-in { --ds-mi-y: -8px; transform: rotate(var(--ds-schuin)); transition: opacity var(--ds-m) var(--ds-ease), translate var(--ds-m) var(--ds-ease); }
+#hud .pf-card.ds-mi-in.on { opacity: 1; transform: rotate(var(--ds-schuin)); }
+#hud .pf-card.ds-mi-in.out { opacity: 0; transform: rotate(var(--ds-schuin)); transition: opacity var(--ds-m) var(--ds-ease); }
 #hud .pf-card[data-app="geld"] { --pf: var(--ds-c-groen-tx); }
 #hud .pf-card[data-app="bericht"] { --pf: var(--ds-c-ink-inkt); }
 

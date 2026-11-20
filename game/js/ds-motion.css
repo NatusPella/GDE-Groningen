@@ -1,0 +1,56 @@
+/* Microinteracties (DESIGN_SYSTEM.md, "Microinteractions"; ADR 0040). Een kleine bibliotheek met
+   .ds-mi-* klassen voor meldingen, einde-missie-schermen, tellers en balken. Alleen opacity, de
+   losse eigenschap `translate` (1 tot 8 px) en fills; de tijden komen uit --ds-m-snel (120),
+   --ds-m (200) en --ds-m-max (250) in ds-tokens.css, dus "Beweging beperken", Rustig drukwerk en
+   prefers-reduced-motion zetten alles op 0 ms zonder eigen regel (onderaan staat alleen een
+   vangnet voor de delay). Geen @keyframes, geen lus, geen JS per frame: de toestandsklassen die de
+   componenten al hebben (.on, .aan, .out, .uit) sturen de transities. Een melding krijgt zijn
+   betekenis nooit alleen door beweging: de woorden staan er ook als er niets beweegt. */
+:root {
+  --ds-mi-versch: 8px;   /* de grootste verplaatsing van een aankomst (vanaf de rand waar de melding hoort) */
+  --ds-mi-stap: 4px;     /* een kleine landing, bijvoorbeeld een bedrag dat bijkomt */
+}
+
+/* INSCHUIVEN + UITFADEN: opacity en een korte verplaatsing vanaf de rand waar de melding hoort.
+   Zet --ds-mi-x / --ds-mi-y op de component (links: -8px 0; boven: 0 -8px; rechts: 8px 0; onder: 0 8px).
+   De component zet .on (of .aan) bij aankomst en .out (of .uit) bij vertrek; uitfaden beweegt niet. */
+.ds-mi-in {
+  opacity: 0;
+  translate: var(--ds-mi-x, 0) var(--ds-mi-y, var(--ds-mi-versch));
+  transition: opacity var(--ds-mi-duur, var(--ds-m)) var(--ds-ease) var(--ds-mi-na, 0ms), translate var(--ds-mi-duur, var(--ds-m)) var(--ds-ease) var(--ds-mi-na, 0ms);
+}
+.ds-mi-in.on, .ds-mi-in.aan, .aan .ds-mi-in { opacity: 1; translate: 0 0; }
+.ds-mi-in.out, .ds-mi-in.uit, .uit .ds-mi-in { opacity: 0; translate: 0 0; transition: opacity var(--ds-m) var(--ds-ease); }
+
+/* LANDING (einde-missie en andere grote momenten): dezelfde beweging op de langste duur van de schaal;
+   een tweede laag (de stempel) komt een stap later met .ds-mi-na. */
+.ds-mi-landing { --ds-mi-duur: var(--ds-m-max); }
+.ds-mi-na { --ds-mi-na: var(--ds-m); }
+
+/* STAPELEN / OPSCHUIVEN: gaat een melding weg, dan schuift de volgende soepel op in plaats van te springen
+   (microinteractions.js, opschuiven() zet de oude plek als offset en haalt hem er in het volgende frame af). */
+.ds-mi-schuift { transition: translate var(--ds-m) var(--ds-ease); }
+
+/* AANTIKKEN: een knop heeft een druk-state van 120 ms: hij schuift de schaduwmaat op en de schaduw valt weg. */
+.ds-mi-druk { transition: translate var(--ds-m-snel) var(--ds-ease), box-shadow var(--ds-m-snel) var(--ds-ease); }
+.ds-mi-druk:active { translate: 3px 3px; box-shadow: none; }
+
+/* VOORTGANG VULLEN: een balk vult van links naar rechts (--ds-mi-p, 0 tot 1) zonder lus en zonder layout. */
+.ds-mi-vul { transform-origin: left center; transform: scaleX(var(--ds-mi-p, 0)); transition: transform var(--ds-m-max) var(--ds-ease); }
+
+/* VERBLIJVEN: de tijd dat een melding staat is geen animatie en hoort niet in deze laag: hij komt van de
+   component (cardtime.js voor HUD-kaarten, toastDuur() voor prestaties, m.ms voor een groot moment) en
+   een melding die een klik of focus kan krijgen pauzeert zijn timer bij hover en focus. */
+
+/* TELLER OPLOPEN: een geldwaarde die bijkomt landt met een kleine stap omhoog; de cijfers zelf lopen in
+   microinteractions.js (telOp, telStap) in hooguit 250 ms op en staan daarna vast. */
+.ds-mi-teller { transition: translate var(--ds-m) var(--ds-ease); }
+.ds-mi-teller.ds-mi-op { translate: 0 calc(var(--ds-mi-stap) * -1); }
+
+/* Vangnet: ook een delay uit een eigen variabele beweegt niets bij "Beweging beperken" of Rustig drukwerk. */
+html.reduce-motion .ds-mi-in, html.rustig-drukwerk .ds-mi-in { transition-delay: 0ms; transition-duration: 0ms; }
+html.reduce-motion .ds-mi-schuift, html.rustig-drukwerk .ds-mi-schuift { transition-duration: 0ms; }
+@media (prefers-reduced-motion: reduce) {
+  .ds-mi-in { transition-duration: 0ms; transition-delay: 0ms; }
+  .ds-mi-schuift { transition-duration: 0ms; }
+}
