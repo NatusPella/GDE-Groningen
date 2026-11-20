@@ -38,5 +38,30 @@ for (const hat of ['beanie', 'flatcap']) {
   ok(inward(t) - inward(base) >= 20, `${hat} heeft een binnenkant`, `${inward(t)} tegen ${inward(base)}`);
 }
 
-console.log(fails ? `${fails} van ${n} mislukt` : `model_dicht_test: ${n} controles ok`);
+// lang haar (Tessa): de wanden van het haar steken nergens meer dan 7 mm in het hoofd (de hoekpunten met haarkleur binnen 0,93 van de kop-ellipsoide)
+function darkInside(mesh, lim = 0.93) {
+  let g = null; mesh.traverse((o) => { if (o.geometry && o.geometry.attributes.skinIndex && !g) g = o.geometry; });
+  const P = g.attributes.position, C = g.attributes.color, S = g.attributes.skinIndex;
+  let n2 = 0;
+  for (let i = 0; i < P.count; i++) {
+    if (S.getX(i) !== 2 || Math.max(C.getX(i), C.getY(i), C.getZ(i)) > 0.03) continue;
+    const x = P.getX(i), y = P.getY(i) - PERSON_RIG.HEAD_Y, z = P.getZ(i);
+    if (Math.hypot(x / 0.097, y / 0.118, z / 0.086) < lim) n2++;
+  }
+  return n2;
+}
+{
+  let worst = 0;
+  const a = M.ANITA_APPEARANCE;
+  worst = Math.max(worst, darkInside(M.buildPersonMesh(a.shirt, a.skin, a)));
+  for (let seed = 1; seed <= 24; seed++) worst = Math.max(worst, darkInside(M.buildPersonMesh(0x9e3027, 0xd9a06e, { seed, variant: 'female', hairStyle: 'long', hair: 0x1b1716 })));
+  ok(worst === 0, 'het lange haar van Tessa en andere lange haren steken niet in het hoofd', String(worst));
+  ok(typeof M.outsideHead === 'function', 'outsideHead is beschikbaar');
+  const p = M.outsideHead([0.02, PERSON_RIG.HEAD_Y + 0.05, 0.066], 1.02);
+  ok(Math.hypot(p[0] / (0.097 * Math.sqrt(1 - 0.424 ** 2)), p[2] / (0.086 * Math.sqrt(1 - 0.424 ** 2))) >= 1.019, 'een punt in het hoofd wordt eruit geduwd');
+  const far = [0.3, PERSON_RIG.HEAD_Y, 0.3];
+  ok(M.outsideHead(far)[0] === 0.3 && M.outsideHead([0, 0.5, 0])[1] === 0.5, 'een punt buiten het hoofd of ver boven de kop blijft staan');
+}
+
+console.log(fails ?`${fails} van ${n} mislukt` : `model_dicht_test: ${n} controles ok`);
 process.exit(fails ? 1 : 0);

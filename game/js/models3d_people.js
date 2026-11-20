@@ -446,6 +446,21 @@ function buildHair(B, L) {
 // surface joined along the face opening and the tips, hugging the scalp at
 // the top and falling straight onto the back and shoulders. Alternate
 // columns are shaded a touch so it reads as tidy strands, not a helmet.
+// Pushes a head-local point sideways out of the head ellipsoid (to m times its size), so the inner wall of a hair shell never sinks into the face
+// at the temples where the opening of the curtain meets the head (#985).
+export function outsideHead(pt, m = 1.03) {
+  const ny = (pt[1] - HEAD_Y) / 0.118;
+  if (Math.abs(ny) >= 0.99) return pt;
+  let hx = 0.097, hz = 0.086;
+  if (ny < 0) { hz *= 1 - 0.3 * Math.pow(-ny, 1.4); hx *= pt[0] > 0 ? 1 - 0.1 * -ny : 1 - 0.3 * -ny; }
+  if (pt[0] < 0 && ny > -0.3) hx *= 1.07;
+  const w = Math.sqrt(1 - ny * ny);
+  const q = Math.hypot(pt[0] / (hx * w), pt[2] / (hz * w));
+  if (!(q < m)) return pt;
+  const s = m / Math.max(q, 1e-3);
+  return [pt[0] * s, pt[1], pt[2] * s];
+}
+
 function hairCurtain(B, c, len) {
   const COLS = 12, ROWS = 4, T = 0.016;
   const open = 0.34 * Math.PI;
@@ -462,7 +477,8 @@ function hairCurtain(B, c, len) {
     const ca = Math.cos(a), sa = Math.sin(a);
     const front = Math.max(0, ca);
     const rx = r.rx + off, rz = r.rz + off;
-    return [ca * rx * (1 - 0.25 * front) + r.dx, r.y, sa * rz];
+    const pt = [ca * rx * (1 - 0.25 * front) + r.dx, r.y, sa * rz];
+    return outsideHead(pt, off < 0 ? 1.02 : 1.06); // the inner wall stays outside the head, the outer wall a little further out
   };
   for (let k = 0; k < ROWS; k++) {
     const r0 = rows[k], r1 = rows[k + 1];

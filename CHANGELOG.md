@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Tammo en Tessa: gaten in het model gerepareerd (#985):** de muts van Tammo (en elke pet, muts of flatcap) heeft een binnenkant en is van onderaf niet meer doorzichtig, en het lange haar van Tessa steekt aan de slapen niet meer in haar hoofd. Alleen de modelcode is veranderd (geen extra assets, geen extra draw calls; een pet heeft ongeveer zeventig driehoeken meer). Samen spelen: iedereen bouwt dezelfde modellen lokaal, niets over het netwerk. Getest in scripts/model_dicht_test.mjs; beeld nog niet bekeken, zie docs/MENSEN-ANIMATIE-AUDIT-20-11.md.
+
 - **Wie stilstaat staat niet stijf stil (#985):** na 5 tot 10 seconden stilstaan kijkt je personage rond, kijkt op zijn horloge of wipt even op zijn tenen, en daarna weer een tijdje niets; hetzelfde geldt voor voetgangers en andere spelers die blijven staan (elk op zijn eigen moment). Niet bij bukken, met een paraplu of in een vaste pose. Samen spelen: dit is beeld op elk toestel apart (idle-kleur, geen spelstaat), niets over het netwerk. Getest in scripts/gait_test.mjs en scripts/gait_anim_test.mjs; beeld nog niet bekeken.
 
 - **Je hoort je medespelers lopen, en een claxon trekt koppen (#985):** bij Samen spelen hoor je de stappen van de andere spelers als ze binnen 20 m lopen (zachter en dofer met afstand, links en rechts om en om, op het oppervlak waar ze lopen), en voetgangers voor je voertuig kijken om als je toetert (tot 28 m, ongeveer anderhalve seconde). Samen spelen: lokaal geluid en beeld, geen bericht erbij; de stappen volgen de getekende figuur van de ander. Getest in scripts/gait_test.mjs; geluid en beeld nog niet beluisterd of bekeken.
