@@ -264,10 +264,18 @@ export function cardLines(spec) {
   return head + parts.reduce((n, p) => n + wrappedLines(p), 0);
 }
 
-// a: the spec of the A card, e: the spec of the E card (either may be null)
-export function leftColumnFits(a, e) {
-  if (!a || !e) return true;
-  return cardLines(a) + cardLines(e) <= LEFT_COLUMN_LINES;
+// #985 (overlap-audit 20-11): the 18 lines hold at 1280x720; a lower window (1024x600, HUD px = window px / ui) has fewer, a taller one more.
+// LINE_PX is what one line of a card costs in HUD px (the 376 px between the top edge and the minimap at 720 divided by 18).
+export const LINE_PX = 20.5;
+export function leftColumnLines(viewH = 720) {
+  return Math.max(6, Math.floor(LEFT_COLUMN_LINES + ((Number.isFinite(viewH) ? viewH : 720) - 720) / LINE_PX));
+}
+
+// a: the spec of the A card, e: the spec of the E card (either may be null).
+// opts.viewH: the window height in HUD px; opts.extraLines: lines a phone card (phonefeed.js, also zone A) takes at the top of the column.
+export function leftColumnFits(a, e, { viewH = 720, extraLines = 0 } = {}) {
+  if (!e || (!a && !extraLines)) return true;
+  return (a ? cardLines(a) : 0) + cardLines(e) + Math.max(0, extraLines) <= leftColumnLines(viewH);
 }
 
 // --- the surfaces: everything that asks for the player's eyes or ears -------------

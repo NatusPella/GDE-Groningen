@@ -124,9 +124,10 @@ for (const [mode, p] of Object.entries(PALETTES)) {
   };
   const place = rule('#hud .hud-place');
   ok(/top:\s*max\(/.test(place) && /var\(--hud-a-bottom/.test(place), 'plaatsnaam zakt onder de gemeten berichtkolom', place.slice(0, 190));
-  // zone B heeft twee bewoners: de routekaart wijkt alleen als de kolom hem raakt
-  const gps = rule('#hud .hud-gps');
-  ok(/top:\s*max\(/.test(gps) && /var\(--hud-gps-top/.test(gps), 'de routekaart van zone B zakt onder een melding die hem raakt', gps.slice(0, 120));
+  // zone B is één kolom (doel bovenaan, routekaart eronder): de kolom wijkt alleen als de berichtkolom hem raakt (#985)
+  const zb = rule('#hud .hud-zone-b');
+  ok(/top:\s*max\(/.test(zb) && /var\(--hud-gps-top/.test(zb), 'de kolom van zone B zakt onder een melding die hem raakt', zb.slice(0, 160));
+  ok(/var\(--hud-b-bottom/.test(place), 'de plaatsnaam hangt onder de kolom van zone B (--hud-b-bottom)', place.slice(0, 260));
   // de kolom wordt gemeten en niet met een vaste hoogte geraden
   const panel = css('hud_panel.js');
   ok(/--hud-a-bottom/.test(panel) && /el\.offsetTop \+ el\.offsetHeight/.test(panel), 'hud_panel.js meet de onderkant van de kaartkolom');
@@ -193,7 +194,7 @@ for (const [mode, p] of Object.entries(PALETTES)) {
     '#855: op een korte telefoon verdwijnt de ondertitel tijdens het vliegen (radio speelt door)');
 
   const mg = fs.readFileSync(path.join(dir, 'minigamekit.js'), 'utf8');
-  ok(/box-sizing: border-box[^}]*max-width: min\(760px, calc\(100vw \/ var\(--ui, 1\) - 2 \* \(var\(--hud-edge, 46px\) \+ 310px\)\)/.test(mg),
+  ok(/box-sizing: border-box[^}]*max-width: min\(760px, calc\(100vw \/ var\(--ui, 1\) - 2 \* max\(var\(--hud-edge, 46px\) \+ 310px, var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(mg),
     '#854: het lesbord reserveert de zone C-kolom (310 px, boven de gemeten 293 px)');
   ok(/@media \(max-width: 900px\) and \(orientation: landscape\) \{\s*#hud \.mg-board \{ left: 50%; transform: translateX\(-50%\); top: calc\(var\(--hud-top, 18px\) \+ 170px\);/.test(mg),
     '#854: op een smalle liggende telefoon zakt het bord onder de zone C-rij');

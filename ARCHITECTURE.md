@@ -348,7 +348,7 @@ There are no white toast lines. Three channels, all inside `#hud` (so
   hides the HUD. `opts.exact` countdowns ("3", "GO! GO! GO!") are a big
   number in the middle. `cardlines.js` lists the few cards Tammo/Tessa say
   out loud (`react` class, lines manifest). Debug `window.__cards`.
-- Objective line (`hud_panel.js` `currentObjective`, bottom centre, zone G): one
+- Objective line (`hud_panel.js` `currentObjective`, top centre, zone B since 20-11: one column with the route card under it, `.hud-zone-b`): one
   objective at a time, the mission stage (`missionProgressText` split into
   objective and counter), else the bijbaan goal (its hint first, then the
   counter), else "Ontsnap aan de politie", else the next story step
@@ -414,8 +414,8 @@ share it through `zones`), B top centre (mission timer + GPS turn card, a new
 place's name), C top right (date and clock, stars, the search box, money
 with its +/- delta, weapon), D the free centre, E left middle (achievement >
 radio station), F bottom left (the rounded-square minimap, street and wijk,
-health, stamina, the vehicle's damage), G bottom centre (objective, dimmed
-under a subtitle), H bottom right (speed, gear row and rev arc, at most two
+health, stamina, the vehicle's damage), G bottom centre (subtitles; the objective moved up to B on 20-11, the
+column of objective and route card is `.hud-zone-b`, measured as `--hud-b-bottom` for the place name and the place card), H bottom right (speed, gear row and rev arc, at most two
 key hints). Layout values in `hud_panel.css` are the mockups' px / 1.2 (the
 HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
 

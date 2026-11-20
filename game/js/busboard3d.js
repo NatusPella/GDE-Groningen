@@ -97,7 +97,6 @@ function getCard() {
   // elkaar (#502). Zolang je een bus bestuurt zakt het doel daarom boven het kaartje.
   st.textContent = `#hud .hud-busnext{position:absolute;left:50%;bottom:calc(var(--hud-edge,46px) + 4px);transform:translateX(-50%);display:none;box-sizing:border-box;max-width:calc(100vw - 2*var(--hud-edge,46px) - 24px);padding:6px 14px 8px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.1),rgba(12,20,14,.8) 20%,rgba(12,20,14,.8) 80%,rgba(12,20,14,.1));text-align:center}
 body.bus-driving #hud .hud-busnext{display:block}
-body.bus-driving #hud .hud-mission{bottom:calc(var(--hud-edge,46px) + 120px)}
 #hud .hud-busnext small{display:block;font-size:max(12px,var(--hud-min, 13px));letter-spacing:3px;text-transform:uppercase;color:var(--mk-mission, #e8c93a)}
 #hud .hud-busnext b{font-weight:normal;font-size:22px;letter-spacing:1px}
 #hud .hud-busnext span{font-size:max(14px,var(--hud-min, 13px));color:rgba(240,237,228,.7);margin-left:8px}

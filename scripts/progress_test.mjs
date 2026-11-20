@@ -55,11 +55,10 @@ const ssl = lees('saveslotsui.js');
 const css = lees('pausemenu.css');
 const hcss = lees('hud_panel.css');
 const scss = lees('saveslots.css');
-ok(/from '\.\/progresslive\.js'/.test(hud) && /import \{ gameProgress, progressText \}/.test(hud), 'de HUD haalt het cijfer uit progresslive.js');
-ok(/hud-done/.test(hud) && /updateProgress\(dt, world\)/.test(hud), 'de HUD heeft een voortgangschipje en werkt het bij');
-ok(/hudMode === 'minimaal'/.test(hud), 'in de minimale HUD-stand blijft het chipje weg');
-ok(/Welkom terug in Grunn/.test(hud) && /getPlaySeconds\(\)/.test(hud), 'bij het hervatten zegt het spel één keer hoe ver je bent');
-ok(/hud-chip\.hud-done/.test(hcss), 'het chipje heeft een eigen, stille stijl');
+// eigenaar 20-11 (#985): de voortgang staat niet meer in de HUD, alleen in het menu (Overzicht) en het savegame-overzicht
+ok(!/from '\.\/progresslive\.js'/.test(hud) && !/hud-done/.test(hud) && !/updateProgress\(/.test(hud), 'de HUD toont de totale voortgang niet meer (geen chipje, geen progresslive)');
+ok(!/hud-done/.test(hcss), 'het chipje heeft geen stijl meer');
+ok(!/Welkom terug in Grunn/.test(hud), 'het welkom-terugbericht met het cijfer staat niet meer in de HUD');
 
 ok(/from '\.\/progresslive\.js'/.test(pm) && /gameProgress\(\)/.test(pm), 'het Overzicht haalt hetzelfde cijfer uit progresslive.js');
 ok(/pm-progress/.test(pm) && /querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat boven aan de scrollende inhoud van Overzicht (#965)');

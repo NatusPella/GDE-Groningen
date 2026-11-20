@@ -80,7 +80,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-moneyrow { display: flex; gap: 10px; align-items: baseline; }
 #hud .hud-money { font-size: 38px; line-height: 1; letter-spacing: 0.04em; color: var(--gron-green-light); font-variant-numeric: tabular-nums; }
 #hud .hud-money.rolling { color: #f0ede4; }
-#hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.4s; }
+#hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity var(--ds-m) var(--ds-ease), transform var(--ds-m) var(--ds-ease); }
 #hud .hud-money-delta.visible { opacity: 1; transform: none; }
 #hud .hud-money-delta[data-sign="plus"] { color: var(--gron-green-light); }
 #hud .hud-money-delta[data-sign="min"] { color: var(--mk-danger, #d93f3f); } /* #638: één rood, via de tokens */
@@ -102,10 +102,19 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 }
 
 /* --- zone B: the GPS card and the place name ------------------------------ */
+/* Zone B is één kolom: het doel bovenaan, de routekaart eronder (hud_panel.js zet ze in .hud-zone-b). Ze stapelen, dus ze raken elkaar niet. De kolom vult de vrije
+   strook tussen de linkerkolom (berichten, min(30vw, 350 px) breed, hudcards.css) en 12 px erachter en zone C (klok, sterren, geld; --hud-c-right is gemeten) en centreert daarin; hij hangt aan dezelfde bovenrand als zone A (#985). */
+#hud .hud-zone-b {
+  position: absolute; top: max(calc(var(--hud-top) + 2px), var(--hud-gps-top, 0px));
+  left: calc(var(--hud-edge) + min(calc(30vw / var(--ui, 1)), 350px) + 12px); right: max(var(--hud-edge), calc(var(--hud-c-right, 0px) + 12px));
+  display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
+}
+@media (max-width: 900px) { #hud .hud-zone-b { left: var(--hud-edge); right: var(--hud-edge); } }
+#hud .hud-zone-b > * { max-width: 100%; box-sizing: border-box; }
 #hud .hud-gps {
-  position: absolute; top: max(calc(var(--hud-top) + 2px), var(--hud-gps-top, 0px)); left: 50%; transform: translateX(-50%);
+  position: relative;
   display: flex; gap: 16px; align-items: center; padding: 9px 22px; border-radius: 10px;
-  background: var(--hud-card); box-shadow: var(--hud-card-ring); color: #f0ede4; text-shadow: none; white-space: nowrap; max-width: calc(58vw / var(--ui, 1));
+  background: var(--hud-card); box-shadow: var(--hud-card-ring); color: #f0ede4; text-shadow: none; white-space: nowrap;
 }
 #hud .hud-gps[hidden] { display: none; }
 #hud .gps-arrow { width: 36px; height: 36px; color: var(--gron-green-light); fill: none; stroke: var(--gron-green-light); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
@@ -138,7 +147,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
    --hud-top, zodat de indeling daar precies blijft zoals hij was. De 12 px
    kier houdt de kaart en de plaatsnaam (met de titel erin) los van elkaar. */
 #hud .hud-place {
-  position: absolute; top: max(calc(var(--hud-top) + 10px), calc(var(--hud-a-bottom, 0px) + 12px)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: absolute; top: max(calc(var(--hud-top) + 10px), calc(var(--hud-a-bottom, 0px) + 12px), calc(var(--hud-b-bottom, 0px) + 12px)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
   color: #f0ede4; text-shadow: 0 3px 18px rgba(0, 0, 0, 0.7); opacity: 0; pointer-events: none;
 }
 #hud .hud-place.on { animation: hud-place 4.6s ease-in-out forwards; }
@@ -165,8 +174,8 @@ body #hud.hud-ach-yield .ach-toast {
 /* --- zone G: the objective (the subtitle sits under it) ------------------- */
 #hud .hud-mission {
   --obj: #3fc97a;
-  position: absolute; bottom: calc(var(--hud-edge) + 56px); left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px; max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 160px))); padding: 8px 24px; border-radius: 8px;
+  position: relative;
+  display: flex; align-items: center; gap: 12px; padding: 8px 24px; border-radius: 8px;
   color: #f0ede4; text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.78) 18%, rgba(12, 20, 14, 0.78) 82%, rgba(12, 20, 14, 0));
   pointer-events: none; transition: opacity 0.4s ease;
@@ -177,30 +186,20 @@ body #hud.hud-ach-yield .ach-toast {
 #hud .hud-mission.dim { opacity: 0.7; }
 body.shop-open #hud .hud-mission { visibility: hidden; }
 body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !important; }
-/* Een trein besturen zet de cabine van treincabine.js op de bodem: breder en
-   hoger dan de snelheidsmeter die er normaal staat (zone H), en precies waar G
-   staat. Op de beelden van #463 liep de missietoast ("Ontsnap aan de politie")
-   dwars door het tractie- en rempaneel, met REM 1/2/3 over de missietekst.
-   Zolang de cabine er is houdt het doel daarom de bovenkant van die band vrij:
-   --hud-g-floor is de gemeten afstand van de onderkant van het scherm tot de
-   bovenkant van de cabine (hud_panel.js, in HUD px, dus de zoom telt mee) en
-   225 is de koude start: de cabine staat 22 px van de onderkant en is op
-   1920x1080 ongeveer 203 px hoog. De kier van 10 px houdt ze uit elkaar. */
-body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-mission[data-kind="mission"] { --obj: #e8c93a; }
 #hud .hud-mission[data-kind="job"] { --obj: #ff9a3c; }
 #hud .hud-mission[data-kind="police"] { --obj: var(--hud-redtx, #ff9a9a); }
 #hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
 #hud .hud-obj-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.1; }
 /* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
-#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; }
+#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 #hud .hud-mission-label:empty { display: none; }
-#hud .hud-mission-progress { margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
+#hud .hud-mission-progress { max-width: 100%; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }
 /* #824: de altijd zichtbare bedieningsregel, binnen de doellijn (zone G) en nooit als eigen vak.
    Klein, één regel die mag wrappen; de toetskappen blijven de canonieke .hud-key. */
 #hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: rgba(240, 237, 228, 0.72); }
-#hud .hud-obj-keys[hidden] { display: none; }
+#hud .hud-obj-keys[hidden], #hud .hud-mission:not(.obj-fresh) .hud-obj-keys { display: none; } /* #985: de hulpregel alleen de eerste seconden van een nieuw doel (hud_panel.js obj-fresh) */
 #hud .hud-obj-key { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 #hud .hud-obj-key .hud-key { height: 17px; min-width: 17px; padding: 0 4px; font-size: var(--hud-min, 13px); line-height: 17px; }
 @media (max-width: 900px) { #hud .hud-obj-keys { gap: 1px 6px; } }
@@ -265,12 +264,14 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
 /* #898: het voortgangschipje naast de naam: stil, in dezelfde maat als de andere chips */
-#hud .hud-chip.hud-done { border-color: rgba(63, 201, 122, 0.45); }
-#hud .hud-chip.hud-done b { font-weight: normal; color: var(--gron-green-light, #3fc97a); letter-spacing: 0.02em; }
 
 #hud .hud-meter { display: flex; align-items: center; gap: 8px; margin: 0; }
 #hud .hud-meter[hidden] { display: none; }
 #hud .hud-meter b { display: none; }
+/* #985: elke balk heeft een icoon van 16 px ervoor (hart, schild, voertuig; de uithoudingsbalk een lege plek), zodat de balken uitlijnen */
+#hud .hud-meter .hud-meter-ic { flex: 0 0 16px; width: 16px; height: 16px; color: var(--hud-inkt-zacht, rgba(240, 237, 228, 0.75)); }
+#hud .hud-meter .hud-bar { width: 159px; }
+#hud .hud-meter.veh .veh-name { display: none; }
 #hud .hud-bar { position: relative; width: 183px; height: 7px; background: rgba(255, 255, 255, 0.14); border-radius: 4px; overflow: hidden; }
 #hud .hud-bar-fill { position: relative; height: 100%; transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
 #hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255, 255, 255, 0.4); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
@@ -281,7 +282,6 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-meter.st .hud-bar { height: 3px; }
 #hud .hud-bar-fill.stamina { background: #f0ede4; opacity: 0.7; width: 100%; }
 #hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-meter.veh .hud-bar { width: 121px; }
 #hud .hud-meter.veh.no-label .veh-name { visibility: hidden; }
 #hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, #d93f3f, #f07a5a); }
 #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
@@ -550,7 +550,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 #hud .hud-vehname {
   /* the model name for a moment on getting in, above the key hints */
-  position: absolute; right: var(--hud-edge); bottom: var(--hud-vehname-bottom, calc(var(--hud-edge) + var(--mm-size) + 50px)); display: flex; align-items: center; gap: 12px;
+  position: absolute; right: var(--hud-edge); bottom: max(var(--hud-vehname-bottom, calc(var(--hud-edge) + var(--mm-size) + 50px)), var(--hud-vehname-ctx, 0px)); display: flex; align-items: center; gap: 12px;
   max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: #f0ede4;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
   background: linear-gradient(270deg, rgba(12, 20, 14, 0.82), rgba(23, 48, 31, 0.4) 80%, rgba(23, 48, 31, 0));
@@ -665,24 +665,6 @@ html.touch-play .hud-chip.hud-mute { min-height: 44px; min-width: 44px; display:
 /* #802: de schermnarratie is alleen voor de schermlezer, niet zichtbaar */
 #hud .hud-narration { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* --- #867: het doel van zone G past op smalle schermen -------------------- */
-/* Op 1024x768 werd de doellijn 128 px breed (formule reserveerde minimap én
-   160 px zone H) en kapte de opdracht af; op 1280x800 schoof hij over de
-   straatkolom. Onder 1320 px zakt het doel boven de straatkolom en krijgt het
-   de breedte tussen de randen, met de minimap gereserveerd. Zodra je vliegt
-   staat het paneel van zone H rechtsonder: dan zakt het doel daar ook boven. */
-@media (max-width: 1320px) {
-  #hud .hud-mission {
-    bottom: calc(var(--hud-edge) + 150px);
-    max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 16px)));
-  }
-  body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge) + 310px); }
-}
-/* Op een korte telefoon liggen de knoppen en de minimap hoger; het doel zakt
-   daar boven de aanraakknoppen (touch.js regelt de basis, dit is de vliegstand). */
-@media (max-height: 640px) and (max-width: 760px) {
-  body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge) + 210px); }
-}
 
 /* --- #855: de radio-ondertitel wijkt voor het vliegpaneel ------------------ */
 /* Het paneel van zone H staat rechtsonder en is (met de leesbare labels) ~290
@@ -764,7 +746,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 #hud .gps-sep { background: var(--hud-inkt); opacity: 0.35; }
 #hud .gps-timer b { color: var(--ds-probleem-tx); }
 #hud .hud-chip { background: var(--ds-c-ink-papier); color: var(--hud-inkt); border: 1.5px solid var(--hud-inkt); }
-#hud .hud-chip.drunk, #hud .hud-chip.hud-done b { color: var(--hud-inkt); }
+#hud .hud-chip.drunk { color: var(--hud-inkt); }
 #hud .hud-chip.drunk svg { stroke: var(--hud-inkt); fill: var(--ds-c-ink-geel); }
 #hud .hud-saved { color: var(--hud-inkt-zacht); }
 #hud .hud-saved svg { color: var(--ds-c-ink-bord); }
@@ -875,12 +857,6 @@ body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: v
 body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 15px/1.3 var(--ds-font-tekst-v3); letter-spacing: 0; }
 body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 
-/* Stapeling zonder overlap (#993): de wijkkaart/id-kolom links onder en het doel delen de onderrand; op smalle schermen
-   zou het doel er dwars doorheen lopen. De kolom meet zijn bovenkant (--hud-f-top), het doel schuift erboven. */
-@media (max-width: 1500px) {
-  #hud .hud-mission { bottom: calc(max(var(--hud-edge) + 56px, var(--hud-f-top, 0px) + 12px)); }
-  body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
-}
 
 /* ===== Zeefdruk voor de overige HUD-lagen (ADR 0040, #985): ondertitels, overslaan, verhaal-overslaan ===== */
 /* Ondertitels op een papieren plaatje met inktrand: leesbaar op elk beeld, ook zonder de instelling "Ondertitelvak".
@@ -941,6 +917,14 @@ body.cine-hide-hud #story-skip { display: none; }
 #cine .cine-chip {
   font-weight: 800; letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier);
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
+}
+/* #985: in een smalle strook (onder 1100 px) breekt de routekaart om (de afstand onder de afslag) en laat het doel de bedieningsregel weg: de strook is 240 px */
+@media (max-width: 1100px) {
+  #hud .hud-gps { flex-wrap: wrap; justify-content: center; white-space: normal; row-gap: 2px; padding: 7px 14px; }
+  #hud .hud-gps .gps-sep { display: none; }
+  #hud .gps-txt b { font-size: 24px; }
+  #hud .gps-dist { flex-direction: row; align-items: baseline; gap: 6px; }
+  #hud .hud-mission .hud-obj-keys { display: none; }
 }
 /* de naamchip staat boven de titelkaart, nooit over de titel */
 #cine.has-card .cine-name { bottom: auto; top: calc(var(--bar) + 4vh); }

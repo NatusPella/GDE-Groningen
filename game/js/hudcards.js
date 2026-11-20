@@ -28,7 +28,8 @@ import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
-import { enqueueCard, leftColumnFits } from './hudbus.js';
+import { enqueueCard, leftColumnFits, LINE_PX } from './hudbus.js';
+import { getUiScale } from './uiscale.js';
 import { CAL_ICONS } from './calendar.js';
 import { menuMelding } from './menumelding.js';
 import { hoofdspeler } from './players.js';
@@ -37,6 +38,7 @@ import { getSettings } from './settings.js';
 import { keyTextHtml, hasKeyText } from './keycap.js';
 import { cardSeconds, stickyCard } from './cardtime.js';
 import { addCardLog, cardLogText } from './cardlog.js';
+import { opschuiven } from './microinteractions.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -162,6 +164,14 @@ function split(text) {
 }
 
 // A card is up or waiting (onboarding.js waits for an empty HUD).
+// #985: what the left column holds right now: the window height in HUD px and the lines a phone card (phonefeed.js) already takes
+function columnOpts() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return {};
+  const pf = document.querySelector('#hud .phonefeed');
+  const extra = pf && pf.offsetHeight > 0 ? Math.ceil(pf.offsetHeight / LINE_PX) : 0;
+  return { viewH: window.innerHeight / (getUiScale() || 1), extraLines: extra };
+}
+
 export const cardsBusy = () => visible.some((c) => !c.leaving) || queue.length > 0;
 
 function classify(text, opts = {}, w = world) {
@@ -238,7 +248,7 @@ const zoneOf = (c) => cardZone(c.spec.kind);
 
 function mount(c) {
   const el = document.createElement('div');
-  el.className = 'hud-card';
+  el.className = 'hud-card ds-mi-in'; // ds-motion.css: inschuiven, staan, uitfaden
   el.dataset.kind = c.spec.kind;
   el.innerHTML = cardHtml(c);
   if (!c.sticky) el.style.setProperty('--hc-dur', `${c.secs}s`);
@@ -377,7 +387,7 @@ export function updateCards(dt, w) {
     if (c.sticky || c.left > 0) continue;
     if (!c.leaving) leave(c);
     else {
-      c.el.remove();
+      opschuiven(c.el.parentNode, () => c.el.remove()); // de volgende kaart schuift soepel op
       visible.splice(visible.indexOf(c), 1);
       if (!visible.some((v) => zoneOf(v) === zoneOf(c))) zones.vacate(zoneOf(c), 'card');
     }
@@ -395,7 +405,8 @@ export function updateCards(dt, w) {
   const isFree = (q) => !up.some((c) => zoneOf(c) === zoneOf(q)) && zones.free(zoneOf(q), 'card');
   // zone A and zone E share the left column: an E card waits until it fits under the A card that is up (hudbus.js, leftColumnFits)
   const upA = up.find((c) => zoneOf(c) === 'A');
-  const fitsColumn = (q) => zoneOf(q) !== 'E' || !upA || leftColumnFits(upA.spec, q.spec);
+  const col = columnOpts();
+  const fitsColumn = (q) => zoneOf(q) !== 'E' || leftColumnFits(upA ? upA.spec : null, q.spec, col);
   // one card per zone; P3 waits out a chase or a call; tips are rationed (attention.js)
   const i = queue.findIndex((q) => isFree(q) && fitsColumn(q)
     && !(calling && rankOf(q) < CARD_PRIORITY.politie)
@@ -413,7 +424,7 @@ export function updateCards(dt, w) {
     noteToast();
     mount(next);
     // an A card never waits for an E card: an E card it would run into steps aside and comes back after it
-    if (zoneOf(next) === 'A') for (const e of up) if (zoneOf(e) === 'E' && !leftColumnFits(next.spec, e.spec)) {
+    if (zoneOf(next) === 'A') for (const e of up) if (zoneOf(e) === 'E' && !leftColumnFits(next.spec, e.spec, col)) {
       queue = enqueueCard(queue, { spec: { ...e.spec, noLog: true }, secs: e.secs, key: e.key, at: e.at, age: 0, text: e.text, important: e.important, sticky: e.sticky, rank: e.rank }, MAX_QUEUE);
       leave(e);
     }

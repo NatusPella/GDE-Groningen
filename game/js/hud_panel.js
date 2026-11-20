@@ -1,7 +1,9 @@
+import { glyphHtml } from './keycap.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
 import { wantedPhase } from './wantedstate.js';
 import { levelOf, zoekBalkVulling } from './wantedlevels.js';
+import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
@@ -90,8 +92,6 @@ import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen, openPauseMenu } from './pausestate.js';
 import { bindMinimapOpen } from './minimaptap.js'; // #985
-import { gameProgress, progressText } from './progresslive.js';
-import { getPlaySeconds } from './savegame.js';
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
@@ -197,7 +197,12 @@ export function initHud(world) {
   gps.hidden = true;
   gps.innerHTML = '<svg class="gps-arrow" viewBox="0 0 24 24" aria-hidden="true"></svg><div class="gps-txt"><b></b><span></span></div>' +
     '<i class="gps-sep"></i><div class="gps-dist"><b></b><span></span></div><i class="gps-sep gps-tsep"></i><div class="gps-timer"><span>Tijd</span><b></b></div>';
-  root.appendChild(gps);
+  // zone B is one column: the objective (top), the route card under it; the place name hangs under the column (--hud-b-bottom).
+  // The objective used to sit bottom centre; the owner moved it up (#985, 20-11) so the bottom row stays for the minimap, street and speed.
+  const zoneB = document.createElement('div');
+  zoneB.className = 'hud-zone-b';
+  zoneB.appendChild(gps);
+  root.appendChild(zoneB);
 
   const place = document.createElement('div');
   place.className = 'hud-place';
@@ -211,7 +216,7 @@ export function initHud(world) {
   mission.setAttribute('aria-live', 'polite');
   mission.innerHTML = icoon('doel', { cls: 'hud-obj-icon' }) +
     '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-obj-keys" aria-label="Besturing" hidden></div><div class="hud-obj-regel" hidden></div></div><span class="hud-obj-dist"></span>';
-  root.appendChild(mission);
+  zoneB.insertBefore(mission, gps);
 
   // zone E: the radio station (an achievement goes first, hudcards.js)
   const nowPlaying = document.createElement('div');
@@ -236,6 +241,7 @@ export function initHud(world) {
   const cards = initCards(world, root);
   // De plaatsnaam en de routekaart van zone B wijken voor de berichten van zone A (#463)
   watchZoneA(root, cards);
+  watchZoneB(root, zoneB);
 
   // zone F: the minimap, the street, you (health, stamina, the vehicle's damage)
   const mmWrap = document.createElement('div');
@@ -267,16 +273,14 @@ export function initHud(world) {
     '<div class="hud-id">' +
       '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg><img alt=""></div>' +
       '<div class="hud-id-main">' +
-        '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
+        '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden>' + icoon('dorst') + 'Aangeschoten</span>' +
           '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
-          // #898: hoe ver je bent, als één stil chipje naast je naam (zelfde cijfer als het Overzicht)
-          '<span class="hud-chip hud-done" role="status" hidden><b></b></span>' +
         '</div></div>' +
-        '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
-        '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
-        '<div class="hud-meter st" hidden role="meter" aria-label="Uithoudingsvermogen" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-fill stamina"></div></div></div>' +
-        '<div class="hud-meter veh" hidden role="meter" aria-label="Staat van het voertuig" aria-valuemin="0" aria-valuemax="100"><span class="veh-name"></span><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill vehicle"></div></div></div>' +
+        '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100">' + icoon('hart_vol', { maat: 16, cls: 'hud-meter-ic' }) + '<div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
+        '<div class="hud-meter ar" hidden role="meter" aria-label="Pantser" aria-valuemin="0" aria-valuemax="100">' + icoon('schild', { maat: 16, cls: 'hud-meter-ic' }) + '<div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
+        '<div class="hud-meter st" hidden role="meter" aria-label="Uithoudingsvermogen" aria-valuemin="0" aria-valuemax="100"><span class="hud-meter-ic" aria-hidden="true"></span><div class="hud-bar"><div class="hud-bar-fill stamina"></div></div></div>' +
+        '<div class="hud-meter veh" hidden role="meter" aria-label="Voertuig" aria-valuemin="0" aria-valuemax="100">' + icoon('auto', { maat: 16, cls: 'hud-meter-ic veh-ic' }) + '<span class="veh-name"></span><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill vehicle"></div></div></div>' +
       '</div>' +
     '</div>';
   fcol.appendChild(topLeft);
@@ -302,13 +306,11 @@ export function initHud(world) {
     portraitImg: topLeft.querySelector('.hud-portrait img'),
     you: topLeft,
     mate: topLeft.querySelector('.hud-mate'),
-    mateImg: topLeft.querySelector('.hud-mate img'),
     mateTxt: topLeft.querySelector('.hud-mate-txt'),
     mateKey: '', portraitKey: '', portraitT: 0,
     drunk: topLeft.querySelector('.hud-chip.drunk'),
     idKey: '', hpKey: '', arKey: '', stKey: '', vehKey: '',
     mute: topLeft.querySelector('.hud-mute'),
-    done: topLeft.querySelector('.hud-done'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
     search: topRight.querySelector('.hud-search'),
@@ -398,6 +400,14 @@ function fitEdge(root) {
 // alles zoals het was. Zonder kaart is de kolom 0 px hoog en gaan de variabelen
 // weg. De plaatsnaam beslaat de volle breedte en schuift dus altijd op; de
 // routekaart staat in het midden en wijkt alleen als de kolom hem werkelijk raakt.
+// #985: de onderkant van zone B (doel + routekaart) in HUD px, voor de plaatsnaam (hud_panel.css) en de plaatskaart (bigmoment.js).
+function watchZoneB(root, zoneB) {
+  if (typeof ResizeObserver === 'undefined') return;
+  const place = () => root.style.setProperty('--hud-b-bottom', `${Math.ceil(zoneB.offsetTop + zoneB.offsetHeight)}px`);
+  const ro = new ResizeObserver(() => requestAnimationFrame(place)); // not in the observer callback itself: "ResizeObserver loop" errors
+  ro.observe(zoneB);
+  place();
+}
 const NARROW = 1024;
 const TOP_GAP = 12;
 function watchZoneA(root, cards) {
@@ -406,7 +416,7 @@ function watchZoneA(root, cards) {
   // en de telefoonfeed met binnenkomende berichten (phonefeed.js, staat er al
   // voor initHud). De hoogste bepaalt waar zone B begint.
   const feed = root.querySelector('.phonefeed');
-  const gps = root.querySelector('.hud-gps');
+  const gps = root.querySelector('.hud-zone-b');
   const place = () => {
     if (window.innerWidth > NARROW) {
       root.style.removeProperty('--hud-a-bottom');
@@ -458,8 +468,16 @@ function watchRightStack(root, topRight, race, vehName, cards) {
     const bottom = race.hidden ? null : vehnameBottom({ raceTop: race.getBoundingClientRect().top, viewH: window.innerHeight, gap: GAP });
     if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${bottom}px`);
     else root.style.removeProperty('--hud-vehname-bottom');
+    // #985: op een laag venster (1024x600) lag de toetshintstapel (.hud-ctx) over de naamkaart: de naamkaart hangt erboven
+    const ctx = root.querySelector('.hud-ctx');
+    if (ctx && !ctxGezien) { ro.observe(ctx); ctxGezien = true; }
+    const cr = ctx ? ctx.getBoundingClientRect() : null;
+    const boven = cr && cr.height > 0 ? vehnameBottom({ raceTop: cr.top, viewH: window.innerHeight, gap: GAP }) : null;
+    if (boven != null) root.style.setProperty('--hud-vehname-ctx', `${Math.round(boven / scale)}px`);
+    else root.style.removeProperty('--hud-vehname-ctx');
   };
-  const ro = new ResizeObserver(place);
+  let ctxGezien = false;
+  const ro = new ResizeObserver(() => requestAnimationFrame(place));
   ro.observe(topRight);
   ro.observe(race);
   if (vehName) ro.observe(vehName);
@@ -576,6 +594,7 @@ function updateVehicleName(dt, world) {
       vehNameTimer = 0;
     }
   }
+  setVehMeterIcon(v);
   els.vehRow.classList.toggle('no-label', vehicleLabelOwner({ nameCardVisible: vehNameTimer > 0 }) === 'card');
   if (vehNameTimer > 0) {
     vehNameTimer -= dt;
@@ -599,39 +618,8 @@ function updateMute() {
   els.mute.setAttribute('aria-label', label);
 }
 
-// #898: hoe ver de speler is, in één stil chipje naast de naam. Het cijfer komt uit
-// progress.js — dezelfde bron als het Overzicht en het savegame-overzicht — en wordt elke
-// tien seconden opnieuw gevraagd: een verhaalstap of een prestatie is geen haastwerk, en de
-// HUD mag er niets van merken. In de minimale HUD-stand blijft het weg (#638: rust is rust).
-const PROGRESS_EVERY = 10;
-let progT = PROGRESS_EVERY, progText = '', hervatGemeld = false;
-function updateProgress(dt, world) {
-  if (!els.done) return;
-  progT += dt;
-  if (progT < PROGRESS_EVERY) return;
-  progT = 0;
-  if (getSettings().hudMode === 'minimaal') { els.done.hidden = true; return; }
-  let info;
-  try { info = gameProgress(); } catch (e) { return; }
-  if (!info.parts.length) { els.done.hidden = true; return; }
-  els.done.hidden = false;
-  const tekst = progressText(info.pct);
-  if (tekst === progText) return;
-  progText = tekst;
-  els.done.querySelector('b').textContent = tekst;
-  els.done.title = `Voortgang van de game: ${info.parts.map((p) => `${p.label.toLowerCase()} ${p.pct}%`).join(' · ')}`;
-  els.done.setAttribute('aria-label', `Voortgang: ${tekst}`);
-  // #898: bij het hervatten van een spel dat al liep één keer zeggen hoe ver je bent. Een
-  // nieuw spel begint op nul en heeft niets te hervatten, dus die krijgt de melding niet.
-  if (hervatGemeld) return;
-  hervatGemeld = true;
-  // getPlaySeconds is de speeltijd uit de save (of van deze sessie): nul bij een nieuw spel,
-  // en een paar minuten bij een spel dat je opnieuw oppakt.
-  let eerder = 0;
-  try { eerder = getPlaySeconds(); } catch (e) { eerder = 0; }
-  if (!(eerder > 60) || !(info.pct > 0)) return;
-  if (world && world.addMessage) world.addMessage(`Welkom terug in Grunn · ${tekst}`, 4, { kind: 'tip' });
-}
+// #898 / #985 (eigenaar, 20-11): de totale voortgang ("N% klaar") staat niet meer in de HUD; hij staat in Spel > Overzicht en in het savegame-overzicht
+// (progresslive.js, dezelfde bron). Het welkom-terugbericht met het cijfer is daarmee ook weg.
 
 // #802: statusaankondigingen voor de schermnarratie. Alleen als de instelling
 // aan staat, en begrensd door de wachtrij in narration.js.
@@ -666,7 +654,6 @@ export function updateHud(dt, world) {
   updateCharacter(dt, world);
   updateBars(world);
   updateMute();
-  updateProgress(dt, world);
   updateWanted(world);
   updateMoneyWeapon(dt, world);
   updateClock(world);
@@ -1092,7 +1079,17 @@ function setPortrait(img, ch, keyField) {
   }, { angle: PORTRAIT_ANGLE, keep: true });
 }
 
-// "· Tessa rijdt mee": the companion, next to your name, while they are with you.
+// #985: the vehicle meter's icon follows the kind of vehicle (car, bike, boat, plane, scooter), like the name card on the right
+function setVehMeterIcon(v) {
+  const naam = !v ? 'auto' : v.isPlane || v.isHeli ? 'vliegtuig' : v.isBoat ? 'boot' : v._mount === 'horse' ? 'auto' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'auto';
+  if (els.vehIcKey === naam) return;
+  els.vehIcKey = naam;
+  const el = els.vehRow.querySelector('.veh-ic');
+  if (el) el.outerHTML = icoon(naam, { maat: 16, cls: 'hud-meter-ic veh-ic' });
+}
+
+// "Tessa rijdt mee": the companion for screen readers only (hud-mate-txt is visually hidden). The card shows one character, the one you play
+// (hoofdspeler: a Samen spelen guest sees their own figure); a second portrait next to the name was removed on 20-11 (#985).
 function updateMate(world) {
   const c = world.companion;
   const p = hoofdspeler(world);
@@ -1109,7 +1106,6 @@ function updateMate(world) {
   els.mate.hidden = !text;
   if (!text) return;
   els.mateTxt.textContent = '· ' + text;
-  setPortrait(els.mateImg, c.character === 'anita' ? 'anita' : 'tammo', 'mateLookKey');
   if (!was) restartClass(els.mate, 'in');
 }
 
@@ -1393,6 +1389,7 @@ const WEAPON_ICONS = {
 
 let moneyShown = null;
 let moneyTarget = 0;
+let moneyStart = 0; // microinteractions.js: de waarde waar de lopende teller van begon
 let deltaSum = 0;
 let deltaTimer = 0;
 // #661: cache de geformatteerde geldregel en de twee wapen-kind-elementen
@@ -1407,6 +1404,7 @@ function updateMoneyWeapon(dt, world) {
     if (target > moneyTarget && isBusy(world)) S.moneyHeld = nowS();
     else { S.moneyAt = nowS(); S.moneyHeld = null; }
     S.moneySign = target > moneyTarget ? 1 : -1;
+    moneyStart = moneyShown;
     moneyTarget = target;
     els.moneyDelta.textContent = (deltaSum > 0 ? '+€' : '−€') + Math.abs(deltaSum).toLocaleString('nl-NL');
     els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
@@ -1415,10 +1413,8 @@ function updateMoneyWeapon(dt, world) {
   }
   if (deltaTimer > 0 && (deltaTimer -= dt) <= 0) els.moneyDelta.classList.remove('visible');
   const diff = moneyTarget - moneyShown;
-  if (diff !== 0) {
-    const step = Math.max(1, Math.abs(diff) * Math.min(1, dt * 5));
-    moneyShown = Math.abs(diff) <= step ? moneyTarget : moneyShown + Math.sign(diff) * step;
-  }
+  // TELLER OPLOPEN (ds-motion.css, microinteractions.js): lineair in hooguit 250 ms, bij Beweging beperken meteen
+  if (diff !== 0) moneyShown = telStap(moneyShown, moneyTarget, moneyStart, dt, bewegingUit() ? 0 : MI.max / 1000);
   const rounded = Math.round(moneyShown);
   if (moneyNeedsUpdate(rounded, moneyRounded)) { moneyRounded = rounded; setText(els.money, moneyLabel(rounded)); }
   els.money.classList.toggle('rolling', diff !== 0);
@@ -1548,6 +1544,7 @@ function updateMission(dt, world) {
   // a new objective first says how (the bijbaan's hint), then its counter
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
   // the route and the story speak for themselves after a moment: the card shrinks to the goal and the distance
+  els.mission.classList.toggle('obj-fresh', world.time - els.objAt < OBJ_HINT_TIME); // #985: de hulpregel alleen bij een nieuw doel
   els.mission.classList.toggle('obj-quiet', (o.kind === 'story' || o.kind === 'goal' || o.kind === 'police') && world.time - els.objAt >= QUIET_AFTER);
   if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
   if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;
@@ -1641,7 +1638,7 @@ function updateObjectiveKeys(world, kind) {
   els.objKeys.hidden = !hint;
   if (!hint) { els.objKeys.innerHTML = ''; els.objKeys.removeAttribute('aria-label'); return; }
   els.objKeys.innerHTML = hint.groepen.map((g) => '<span class="hud-obj-key">' +
-    g.keys.map((k) => `<span class="hud-key">${escapeHtml(besturingLabel(k))}</span>`).join('') +
+    g.keys.map((k) => glyphHtml(besturingLabel(k))).join('') +
     `<span>${escapeHtml(g.werk)}</span></span>`).join('');
   els.objKeys.setAttribute('aria-label', 'Besturing: ' + hintText(hint, besturingLabel));
 }

@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bubblePlace } from '../game/js/hudrules.js';
-import { menuTextMin, MENU_READABLE_MIN, hudEdge, uiScaleFor } from '../game/js/hudlook.js';
+import { menuTextMin, MENU_READABLE_MIN, hudEdge, uiScaleFor, hudViewport } from '../game/js/hudlook.js';
 import { compactBoard } from '../game/js/minigamekit.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -18,21 +18,22 @@ let n = 0, fail = 0;
 const ok = (c, naam, extra = '') => { n++; if (!c) { fail++; console.log('FAIL', naam, extra); } };
 const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
 
-// --- #867: het doel van zone G op 1024x768 ---------------------------------
+// --- #867 / #985: het doel hangt bovenin in zone B, tussen de berichtkolom en zone C ---------------
 {
   const hud = read('hud_panel.css');
-  const smal = /@media \(max-width: 1320px\) \{([\s\S]*?)\n\}/.exec(hud);
-  ok(!!smal, '#867: er is een smalle-schermenregel voor het doel');
-  const blok = smal ? smal[1] : '';
-  ok(/bottom:\s*calc\(var\(--hud-edge\) \+ 150px\)/.test(blok), '#867: doel zakt boven de straatkolom');
-  ok(/max-width:\s*min\(calc\(58vw \/ var\(--ui, 1\)\), calc\(100vw \/ var\(--ui, 1\) - 2 \* \(var\(--hud-edge\) \+ var\(--mm-size\) \+ 16px\)\)\)/.test(blok), '#867: doel krijgt de breedte tussen de randen');
-  ok(!/160px/.test(blok), '#867: geen vaste 160px-reserve voor zone H meer');
-  // 1024x768: de oude formule gaf 128 px; nu minstens 400 px en boven de kolom.
-  const edge = hudEdge(1024, 768, uiScaleFor(1024, 768));
-  const mm = 250;
-  const w = Math.min(1024 * 0.58, 1024 - 2 * (edge + mm + 16));
-  ok(w >= 400, `#867: 1024x768 geeft ${Math.round(w)} px doelbreedte (was 128)`);
-  ok(edge + 150 > 46 + 120, '#867: de onderkant van het doel ligt boven de straatkolom');
+  const zb = (/#hud \.hud-zone-b \{([^}]*)\}/.exec(hud) || [])[1] || '';
+  ok(/top:\s*max\(calc\(var\(--hud-top\) \+ 2px\)/.test(zb) && /left:\s*calc\(var\(--hud-edge\) \+ min\(calc\(30vw \/ var\(--ui, 1\)\), 350px\) \+ 12px\)/.test(zb), '#985: zone B hangt bovenin, 12 px rechts van de berichtkolom (min(30vw, 350 px), zoals hudcards.css)');
+  ok(/right:\s*max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(zb), '#985: zone B eindigt links van zone C (gemeten --hud-c-right), dus de titel krijgt de hele vrije strook');
+  const mission = (/#hud \.hud-mission \{([^}]*)\}/.exec(hud) || [])[1] || '';
+  ok(/position:\s*relative/.test(mission) && !/bottom:/.test(mission), '#985: het doel zit in de kolom (relative), niet meer onderin (geen bottom)');
+  ok(!/#hud \.hud-mission \{[^}]*bottom:/.test(hud.replace(/#hud \.hud-mission \{[^}]*\}/, '')), '#985: geen enkele regel zet het doel nog op een bottom');
+  // 1024x768 en 1280x720: de vrije strook tussen berichtkolom en zone C (gemeten kolom ca. 400 HUD px)
+  for (const [vw, vh, cRight] of [[1024, 768, 400], [1280, 720, 400], [1920, 1080, 400]]) {
+    const vp = hudViewport(vw, vh), e = hudEdge(vw, vh, uiScaleFor(vw, vh));
+    const w = Math.max(240, vp.w - 2 * Math.max(e + 330, cRight + 12));
+    const strook = vp.w - (e + Math.min(0.3 * vw / uiScaleFor(vw, vh), 350) + 12) - Math.max(e, cRight + 12); // de band tussen de berichtkolom en zone C
+    ok(strook >= 240, `#985: ${vw}x${vh} geeft ${Math.round(strook)} px strook voor het doel (was 2 x de grootste reserve)`);
+  }
 }
 
 // --- #868: menu-, kaart- en telefoontekst houdt 12 schermpixels -------------
@@ -127,7 +128,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   ok(/root\.style\.top = '170px'/.test(mg), '#877: compact bord staat net onder zone C');
   ok(/\.mg-board \.mg-flash \{ font-size: max\(18px, calc\(22px \* var\(--ui, 1\)\)\)/.test(mg), '#868: lesbord-flash houdt 12 px op een telefoon');
   const touch = (read('touch.js').match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
-  ok(/@media \(max-height: 640px\) \{[\s\S]*?body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{ display: none; \}/.test(touch), '#877: ondertitel wijkt op korte schermen tijdens het vliegen');
+  ok(/body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{ display: none; \}/.test(touch), '#877: ondertitel wijkt tijdens het vliegen in portret');
   ok(/body\.plane-flying\.mg-on #hud \.hud-mission \{ display: none; \}/.test(touch), '#877: doel wijkt als het lesbord er staat');
   ok(/html\.touch-device #hud \.hud-instr/.test(touch) && /\.hud-instr \.hi-lamp/.test(touch), '#877: paneel en labels volgen de aanraakregels');
 }

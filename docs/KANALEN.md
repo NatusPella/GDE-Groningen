@@ -65,7 +65,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **radio**: De verhaalradio en de beltelefoon van een personage (rechts, onder het statusblok): portret, regel, golfvorm.
 - **opmerking**: De opmerking van de metgezel als een stap begint: een spraakballon boven het personage.
 - **autopraat**: Gesprek tijdens het rijden: ondertitelregel onderaan (zone G); wacht langer dan al het andere verhaal.
-- **ondertitel**: Ondertitels en dubbeltekst (Fries/Gronings met Nederlandse regel) onderaan (zone G); het doel dimt eronder.
+- **ondertitel**: Ondertitels en dubbeltekst (Fries/Gronings met Nederlandse regel) onderaan (zone G).
 - **scene**: Tussenfilmpjes en intro (hele scherm); niets anders start zolang er een scene loopt (alleen bekeken, nooit geremd).
 - **moment**: Gerantsoeneerde filmische momenten: nieuwe wijk, bezienswaardigheid, Ommelanden, crash-herhaling, vijf sterren. Vragen aan attention.js.
 - **banner**: De resultaatkaart midden (Missie geslaagd / mislukt, bijbaan, minigame), met stats. Houdt personagenaam, plaatsnaam, prestatie en duelbalk tegen.
