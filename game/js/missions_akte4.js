@@ -31,8 +31,9 @@ export const PLACES = {
   // kantoorglaspand aan het Julianapark); het weiland van de oude schatting lag
   // 100 m verderop, waar het gesprek met de accountmanager buiten bleef hangen.
   wiebelwerk: [53.10417, 6.87794],      // the invented web agency in the office building on the Julianapark
-  wiebelwerkServers: [53.10416, 6.87829],
-  wiebelwerkUit: [53.10439, 6.87832],
+  // #955: de serverkamer lag 23 m achter de glasgevel (147 m omlopen): de stap 'Naar de serverkamer' hing 25 m voor het doel; nu een vrij punt 11 m van de ingang (8 m lopen), de gang speelt in het binnenset
+  wiebelwerkServers: [53.10407, 6.87793],
+  wiebelwerkUit: [53.10415, 6.87756],   // #955: aan dezelfde kant als de ingang (25 m west), niet achter het pand
   // #951: gemeten op de tegels: de halte Veendam van de Stoptrein Veendam, en
   // een loopbaar punt 3 m naast het spoor (het oude punt lag 295 m van de lijn,
   // waardoor er geen trein in de buurt was en de rit zichzelf afspeelde).
