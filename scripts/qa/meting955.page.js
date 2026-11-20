@@ -186,6 +186,64 @@ await sectie('m15', async () => {
   }
 });
 
+// ---- M09 intro: staan er twee trekkers (de echte missietrekker en het trekkerprop van het filmpje)? -------------
+await sectie('m09intro', async () => {
+  const idx = idxVan('Heel aankomen is ook een kunst');
+  const def = M.getMissionDefs()[idx];
+  await zet(def.start.x, def.start.y, 0, SETTLE + 8000);
+  skipAan = false;
+  // zoals de proefspeler en het F9-paneel: via de verhaalsprong, zodat de gescripte intro met het trekkerprop speelt
+  if (!window.__story.jump('M09')) throw new Error('M09-sprong mislukt');
+  await sleep(1500);
+  if (!M.isMissionActive() && !M.missionDebug.start(w, idx)) throw new Error('M09 startte niet');
+  const lijst = () => w.vehicles.filter((v) => Math.hypot(v.x - p.x, v.y - p.y) < 40).map((v) => ({ naam: v.name || '', model: v.model && v.model.name, missie: !!v.missionCar, x: r1(v.x), y: r1(v.y), d: r1(Math.hypot(v.x - p.x, v.y - p.y)), zichtbaar: v.mesh ? v.mesh.visible : null }));
+  const m = { tijdlijn: [] };
+  out.stand.m09intro = m;
+  for (let i = 0; i < 12; i++) {
+    await sleep(1000);
+    // het echte missievoertuig (mesh zichtbaar?) en de props van de scène (cutscript-groep)
+    const meshes = [];
+    for (const v of w.vehicles) if (v.missionCar) { const mm = SC.getVehicleMesh(v.id); meshes.push({ echt: v.model && v.model.name, driver: v.driver, wr: !!v.wrecked, sk: !!v.sinking, af: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), x: r1(v.x), y: r1(v.y), zichtbaar: mm ? mm.visible : null, hide: !!v.hideInScene }); }
+    getScene().traverse((o) => { if (/cutscript/i.test(o.name || '')) { const ks = o.children.map((c) => ({ t: c.type, n: c.children.length, v: c.visible, x: r1(c.position.x), y: r1(c.position.z) })); meshes.push({ groep: o.name, vis: o.visible, ks: ks.slice(0, 14) }); } });
+    m.tijdlijn.push({ t: i + 1, cine: cine.isCinematicActive(), speler: [r1(p.x), r1(p.y)], voertuigen: lijst(), meshes: meshes.slice(0, 20) });
+    if ([0, 1, 3, 4, 6, 8, 10].includes(i)) await grab('m09intro-t' + (i + 1));
+  }
+  skipAan = true;
+});
+
+// ---- M19 perron: staan de reizigers van de aankleding naast het spoor, of erop? ---------------------------------
+await sectie('m19perron', async () => {
+  const idx = idxVan('Stoom');
+  const def = M.getMissionDefs()[idx];
+  const RW = await imp('railway');
+  await zet(def.start.x, def.start.y, 0, SETTLE + 8000);
+  skipAan = false;
+  if (!window.__story.jump('M19')) throw new Error('M19-sprong mislukt');
+  await sleep(1500);
+  if (!M.isMissionActive() && !M.missionDebug.start(w, idx)) throw new Error('M19 startte niet');
+  for (let i = 0; i < 40 && cine.isCinematicActive(); i++) { cine.skipCinematic(); await sleep(400); }
+  await sleep(3000);
+  const afstandTotSpoor = (x, y) => { let best = { d: Infinity, naam: '', hoek: 0 }; for (const r of RW.getRoutes()) { const pts = r.pts; for (let i = 1; i < pts.length; i++) { const ax = pts[i - 1][0], ay = pts[i - 1][1], dx = pts[i][0] - ax, dy = pts[i][1] - ay; const L2 = dx * dx + dy * dy || 1; const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2)); const d = Math.hypot(ax + dx * t - x, ay + dy * t - y); if (d < best.d) best = { d, naam: r.name, hoek: Math.atan2(dy, dx) }; } } return best; };
+  const m = { speler: [r1(p.x), r1(p.y)], hoekSpeler: r1(p.angle), mensen: [], kinderen: [] };
+  out.stand.m19perron = m;
+  let groep = null;
+  getScene().traverse((o) => { if (o.name === 'mission-dressing-perron') groep = o; });
+  if (!groep) throw new Error('geen perron-aankleding in de scene');
+  groep.updateMatrixWorld(true);
+  const wp = new (groep.position.constructor)();
+  for (const c of groep.children) { c.getWorldPosition(wp); const sp = afstandTotSpoor(wp.x, wp.z); m.kinderen.push({ n: c.name || c.type, k: c.children.length, x: r1(wp.x), y: r1(wp.z), spoor: r1(sp.d) }); }
+  m.dichtstbij = Math.min(...m.kinderen.map((q) => q.spoor));
+  m.opHetSpoor = m.kinderen.filter((q) => q.spoor < 2.2).length;
+  const sp0 = afstandTotSpoor(p.x, p.y);
+  m.spelerSpoor = { d: r1(sp0.d), naam: sp0.naam, hoek: r1(sp0.hoek) };
+  // de trein: waar staat hij
+  m.treinen = RW.getTrains().filter((t) => t.state === 'mission' || (t.c !== undefined && Math.hypot((t.x || 0) - p.x, (t.y || 0) - p.y) < 200)).slice(0, 4).map((t) => ({ state: t.state, route: t.route && t.route.name, c: r1(t.c || 0) }));
+  await grab('m19perron-a');
+  p.angle = sp0.hoek; await sleep(900); await grab('m19perron-langs');
+  p.angle = sp0.hoek + Math.PI / 2; await sleep(900); await grab('m19perron-dwars');
+  skipAan = true;
+});
+
 clearInterval(skipper); clearInterval(clockTik);
 console.log(`[meting955] beelden ${out.beelden.length}, fouten ${out.fouten.length}`);
 return JSON.stringify({ results: out });

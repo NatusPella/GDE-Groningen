@@ -2,7 +2,7 @@
 // rijdend gewoon verkeer dicht bij de filmcamera; de auto van de speler, de cast
 // van de scène, missieauto's en geparkeerde auto's blijven staan.
 //   node scripts/cinehide_test.mjs
-import { vehiclesInShot, markVehiclesInShot, clearVehicleHiding } from '../game/js/cinehide.js';
+import { vehiclesInShot, markVehiclesInShot, clearVehicleHiding, duplicateOfProps } from '../game/js/cinehide.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -37,6 +37,16 @@ ok(hidden.size === 0 && [...hidden].every((v) => !v.hideInScene), 'na de scène 
 
 // geen camera of geen wereld: niets verbergen
 ok(vehiclesInShot([dichtbij], null).length === 0 && vehiclesInShot(null, cam).length === 0, 'zonder camera of voertuigen doet de regel niets');
+
+// #955 (M09): het echte missievoertuig dat het voertuigprop van de scène dubbelt, wordt tijdens de scène niet getekend
+const anker = { x: 0, y: 0 };
+const trekker = { missionCar: true, model: { name: 'tractor' }, x: 6, y: 3 };
+ok(duplicateOfProps([trekker], anker, ['tractor']).length === 1, 'de missietrekker bij het anker dubbelt het trekkerprop');
+ok(duplicateOfProps([trekker], anker, ['escort']).length === 0, 'een ander model blijft zichtbaar');
+ok(duplicateOfProps([{ ...trekker, driver: 'player' }], anker, ['tractor']).length === 0, 'de trekker waar de speler in zit blijft zichtbaar');
+ok(duplicateOfProps([{ ...trekker, x: 80 }], anker, ['tractor']).length === 0, 'een missietrekker ver weg blijft zichtbaar');
+ok(duplicateOfProps([{ ...trekker, missionCar: false }], anker, ['tractor']).length === 0, 'gewoon verkeer blijft aan de cinehide-regel');
+ok(duplicateOfProps([trekker], anker, []).length === 0, 'een scène zonder voertuigprops verbergt niets');
 
 // de scène en de wereld gebruiken het
 const fs = await import('node:fs');

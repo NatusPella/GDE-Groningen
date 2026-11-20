@@ -32,3 +32,14 @@ export function clearVehicleHiding(hidden) {
   for (const v of hidden) v.hideInScene = false;
   hidden.clear();
 }
+
+// #955 (M09): een scène die zelf een voertuig als prop neerzet (het trekkerprop van Geesje) en
+// daarnaast het echte, stilstaande missievoertuig van dezelfde soort heeft, geeft twee trekkers in
+// beeld. Deze regel kiest dat echte voertuig, dat tijdens de scène niet getekend wordt: een
+// missievoertuig zonder bestuurder met dezelfde modelnaam dicht bij het ankerpunt.
+export function duplicateOfProps(vehicles, anchor, propModelNames, { radius = 30 } = {}) {
+  if (!vehicles || !anchor || !propModelNames || !propModelNames.length) return [];
+  return vehicles.filter((v) => v && v.missionCar && !v.driver && !v.wrecked && !v.sinking
+    && v.model && propModelNames.includes(v.model.name)
+    && Math.hypot((v.x || 0) - anchor.x, (v.y || 0) - anchor.y) <= radius);
+}

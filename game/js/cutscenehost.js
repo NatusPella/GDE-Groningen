@@ -11,6 +11,7 @@ import { isRoomKind, roomBaseHeight, roomClamp } from './roomspec.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { isInWater } from './util.js';
 import { crowdSpecToWorld, seedFromKey } from './crowdplan.js';
+import { duplicateOfProps } from './cinehide.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 import { roadPropPaths, pathClearCircles } from './cinetemplates.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
@@ -160,6 +161,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};
+  const propVehicleNames = [];
   for (const [id, a] of Object.entries(def.actors || {})) {
     const m = makeActor(a.look);
     group.add(m);
@@ -179,7 +181,11 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     const m = src ? worldProp(src) : PROP_MAKERS[p.kind]();
     group.add(m);
     props[id] = m;
+    if (src && src.vehicle) propVehicleNames.push(vehicleModel(src).name);
   }
+  // #955: het echte missievoertuig van dezelfde soort bij het anker wordt tijdens de scène niet getekend
+  const verborgen = w && w.vehicles ? duplicateOfProps(w.vehicles, anchor, propVehicleNames) : [];
+  for (const v of verborgen) v.hideInScene = true;
   // the kitchen set and its effects
   let kit = null;
   const authored = (def.fx || []).map((f) => ({ ...f, t0: resolveTime(f.t, scene.lines, scene.duration) ?? 0 }));
@@ -305,6 +311,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
       // die gingen nooit mee de deur uit. `kit.dispose()` ruimt ze op, zoals intromontage.js al doet.
       if (kit && typeof kit.dispose === 'function') kit.dispose();
       for (const c of crowds) disposeCrowd(c);
+      for (const v of verborgen) v.hideInScene = false;
       group.removeFromParent();
       disposeTree(group);
     },
