@@ -4,7 +4,7 @@
 // de bestaande bijbaan 'lijn' (sidejob_lijn.js) op die halte. Meldt zich in main.js als kind.
 //
 // Samen spelen: de wereld is van wie het spel opende; de palen zijn lokaal beeld uit dezelfde lijndata. Een gast die
-// hier E drukt start een eigen dienst in zijn eigen spel (de bijbaan is per speler, coopbijbaan.js); meerijden als
+// hier E drukt start geen eigen dienst (de gast draait geen eigen spelstap; een gastdienst loopt alleen op verzoek, coopbijbaan.js); meerijden als
 // passagier blijft meerijden.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';

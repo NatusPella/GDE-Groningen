@@ -22,6 +22,7 @@ import { klokSprongMag, meerSpelers } from './coopgroep.js';
 import { noteMoney } from './finance.js';
 import { loopbaanTel, loopbaanPrijs } from './loopbaanlive.js';
 import { kmPunten } from './loopbaan.js';
+import { stationOpties, stationRegel } from './ovmissie.js';
 import { perronMateriaal, perronTegelUV, RAND_M, RAND_KLEUR } from './stationperronmateriaal.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
@@ -504,6 +505,24 @@ function spoor(station, leg) {
   return `spoor ${n + 1}${n % 2 ? 'b' : ''}`;
 }
 
+// De treindienst vanaf dit station (treindienststart.js zet de starter; een import zou een kring maken met traindrive.js).
+let dienstStarter = null;
+export function zetDienstStarter(f) { dienstStarter = f; }
+
+function dienstItems(w, here) {
+  const items = stationOpties(here).map((o) => ({
+    id: 'dienst-' + o.key, label: o.tekst, desc: stationRegel(o),
+    cols: [`${o.haltes} haltes`], verb: 'Rijden ·', price: 0, swatch: ['#ffc917'],
+    buy() {
+      if (!dienstStarter) return 'Loop naar een stilstaande trein, druk E en daarna G';
+      closeShopMenu();
+      return dienstStarter(w, here, o) ? 'Instappen: je rijdt de dienst' : 'De trein staat nu niet klaar';
+    },
+  }));
+  items.push({ id: 'zelf-besturen', label: 'Zelf een stilstaande trein besturen', desc: 'Loop naar een stilstaande trein, druk E en daarna G', cols: [], verb: 'Zo werkt het', price: 0, swatch: ['#ffc917'], buy() { return 'Loop naar een stilstaande trein, druk E en daarna G'; } });
+  return items;
+}
+
 function menuFor(w, here) {
   const board = BOARD_LINES[Math.floor(Math.random() * BOARD_LINES.length)];
   return {
@@ -541,7 +560,7 @@ function menuFor(w, here) {
         return [{ title: 'Onderduiken: snel reizen naar een dorp', note: 'Kies een dorp in het Ommeland, daar zoekt niemand jullie. Je koopt een kaartje en staat er na een korte scène.', items: trips }];
       }
       // only stations inside the map: the off-map ends of the lines aren't offered
-      return [{ title: 'Snel reizen met een kaartje', note: `${board}. Een korte scène en je staat er.`, items: trips }, { title: 'Als passagier meegaan', note: 'Je zit in de trein en ziet elke halte langskomen. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }, { title: 'Zelf de trein besturen', note: 'Zonder kaartje: loop naar een stilstaande trein, druk E om in te stappen en daarna G om zelf te rijden.', items: [{ id: 'zelf-besturen', label: 'Zelf de trein besturen', desc: 'Loop naar een stilstaande trein, druk E en daarna G', cols: [], verb: 'Zo werkt het', price: 0, swatch: ['#ffc917'], buy() { return 'Loop naar een stilstaande trein, druk E en daarna G'; } }] }];
+      return [{ title: 'Snel reizen met een kaartje', note: `${board}. Een korte scène en je staat er.`, items: trips }, { title: 'Als passagier meegaan', note: 'Je zit in de trein en ziet elke halte langskomen. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }, { title: 'Zelf de trein besturen', note: 'Een treindienst rijden: een trein staat klaar op dit station. Je rijdt de dienst van perron naar perron: stoppen bij het perron, deuren open met O, niet te vroeg weg. Betaald per dienst.', items: dienstItems(w, here) }];
     },
   };
 }

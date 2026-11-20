@@ -123,7 +123,7 @@ export function stationOpties(station) {
       for (let i = st.idx + dir; i >= 0 && i < stops.length; i += dir) if (!stops[i].offmap) namen.push(stops[i].name);
       if (!namen.length) continue;
       out.push({
-        key: `${st.route.name}:${dir}`, route: st.route, dir, idx: st.idx, s: st.s, namen: namen.slice(0, STATION_MAX), haltes: namen.length,
+        key: `${st.route.name}:${dir}`, route: st.route, trein: st.train || null, dir, idx: st.idx, s: st.s, namen: namen.slice(0, STATION_MAX), haltes: namen.length,
         bestemming: namen[namen.length - 1], volgende: namen[0], spoor: spoorVan(station.name, st.route, dir),
         tekst: `${VERVOERDER} naar ${namen[namen.length - 1]}`,
       });
@@ -132,10 +132,10 @@ export function stationOpties(station) {
   return out.sort((a, b) => b.haltes - a.haltes || (a.key < b.key ? -1 : 1));
 }
 
-// Waar de trein van een dienst op het station komt te staan: de kop die de rijrichting op wijst staat bij het perron
-// (stagerit.js), `c` is de boogafstand van het hart van de trein. Puur, voor de test.
-export function treinPlek(optie, halfLen) {
-  return { c: optie.s - optie.dir * (halfLen - 3), cab: optie.dir };
+// Waar de trein van een dienst op het station komt te staan: het hart van de trein op de halte, zoals een trein die
+// er halteert (railway.js, c = stop.s), met de cabine aan de kant van de rijrichting. Puur, voor de test.
+export function treinPlek(optie) {
+  return { c: optie.s, cab: optie.dir };
 }
 
 // De regelkaart bij het starten van een treindienst vanaf een station.
