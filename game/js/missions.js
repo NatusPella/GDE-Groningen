@@ -77,6 +77,7 @@ import { haakFx } from './sfx/haken.js'; // ronde 4: kleine geluidshaken van de 
 import { startKaart, toonRegelkaart, meldKaart } from './regelkaart.js'; // bouwsteen: de regelkaart per stap (step.kaart)
 import { maakKort, tikKort, kortPrompt } from './akte1_plan.js'; // M06: korte handelingen die nooit mislukken (step.kort)
 import { stingen } from './sfx/stingen.js';
+import { playerOf, slotLines } from './fatbikedodge.js';
 import { slotRij } from './missionbeats.js'; // nasleep-rij op de uitslagkaart (AAA akte 1 en 2)
 import { beatStart, beatTik, beatStop, toonNasleep } from './akte34_beats.js'; // AAA akte 3 en 4: openingsbeeld, tussenbeats, nasleep
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
@@ -770,6 +771,7 @@ function runStats(world, def) {
     rondvaart: def.type === 'boat' ? rondvaartStatus() : null,
     stunt: def.type === 'stunt' ? stuntStatus() : null,
     fatbikeHits: chainState().fatbikeHits || 0,
+    ontweken: def.dodge && chainState().dodge ? playerOf(chainState().dodge, 'host').dodged : null,
     cargoLeft: def.fragile ? cargoLeft(def) : 0,
   });
 }
@@ -973,6 +975,7 @@ function progressText(world, def, pub) {
     else if (pub.vehicleDamage != null) bits.push(`Schade ${pub.vehicleDamage}%`);
     return bits.join(' · ') || null;
   }
+  if (def.type === 'fatbike' && lanes.dodgeStatus()) return lanes.dodgeStatus();
   if (def.type === 'fatbike') return `Geschept: ${chainState().fatbikeHits || 0} · Gezondheid ${Math.max(0, Math.round(world.health))}%`;
   if (def.type === 'stages') return stageProgressText(world, def);
   if (def.type === 'stunt') {
@@ -1236,6 +1239,7 @@ function succeed(world, def) {
     if (!replay) stats.push(...consequenceAdjust(def).rows);
     const nasleep = slotRij(def.label); // de nasleep: wie reageert, onder de beloning
     if (nasleep) stats.push(nasleep);
+    if (def.dodge && chainState().dodge) stats.push(...slotLines(chainState().dodge, 'host').slice(1)); // M08: de koerier na een val
     // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
     const r = chainState().run;
     if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {

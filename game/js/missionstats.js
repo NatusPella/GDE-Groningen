@@ -25,7 +25,7 @@ export function missionStats(def, ctx = {}) {
   const rv = ctx.rondvaart || null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(ctx.cargoLeft || 0)}%` : `${Math.round(r.vehDamage)}%`]);
-  if (def.type === 'fatbike') stats.push(['Geschept', String(ctx.fatbikeHits || 0)]);
+  if (def.type === 'fatbike') { if (ctx.ontweken != null) stats.push(['Ontweken', String(ctx.ontweken)]); stats.push(['Geschept', String(ctx.fatbikeHits || 0)]); }
   const su = ctx.stunt || null;
   if (su) stats.push(['Punten', String(su.score)], ['Omver', String(su.broken)]);
   if (r.hurt > 0.5 || (!rv && !r.vehicleUsed)) stats.push(['Verwondingen', `${Math.round(r.hurt)}%`]);

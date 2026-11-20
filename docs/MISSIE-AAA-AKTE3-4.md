@@ -45,6 +45,7 @@ K is kosten (S dagdeel, M een dag of twee). Elke kaart: nu, mist, AAA-versie, K,
 - **Mist:** een moment tijdens de vlucht.
 - **AAA:** kermisgangers zwaaien met suikerspinnen bij de poorten (met publieksgeluid); nasleep met het spandoek.
 - **Gedaan:** een beat bij de poorten, nasleep, toetsplaatje bij het gas. **Bewezen:** data en tests. **Niet bekeken:** het harnas vliegt niet, de vlucht is nog steeds niet in beeld gezien.
+- **Vervolg 21-11 (Kist Kees-lijn):** een openingsbeeld op het toestel bij de strook (`openCam` op de instapstap), een beat bij het instappen (Roelfien), twee radio-beats in de lucht (de paal; een sleutelmoment met `{SPACE}` en `{CTRL}`), twee radio-beats bij de landing (gas terug, `{SHIFT}` remt op de baan) en een tweede nasleepregel (data in `akte34_beats.js`, test `akte34_beats_test`). De luchtroute (rechte lijn naar het doel in een vliegtuig, branch `worktree-agent-ac59c658aceb3f83d`) zit al in de basis. **Niet gedaan:** een landingscamera (het toestel is een voertuig: de gewone camera blijft, zoals bij de heli) en de vliegles (`vliegschool.js`) kreeg geen eigen beats; het beeld is niet bekeken.
 
 ### M16 Nog eentje dan (K S)
 - **Nu:** kaart per tent, kroegset voor de toast (de kamer past nu overal volgens #955-fix; alleen Winschoten gemeten).

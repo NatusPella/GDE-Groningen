@@ -7,6 +7,7 @@
 // - per gespot ding een ring rond de duif, een flits van de kolom en een belletje.
 // De logica staat in pigeonguidelogic.js (puur). Samen spelen: de spotmissie is van wie het spel opende (de duif is van de eigenaar, #525);
 // de gast ziet de duif vliegen maar heeft deze kolommen en kaart niet.
+import { stapel, stapelRuimte, duivenKaarten } from './hudstapel.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
 import { maakSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
@@ -33,7 +34,8 @@ const kleurGeel = () => new THREE.Color(tok('--ds-c-geel', 'gold'));
 const CSS = `
 #pigeon-guide { position: fixed; inset: 0; pointer-events: none; z-index: 6; zoom: var(--ui, 1); font-family: var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt, #1d1b17); }
 #pigeon-guide[hidden] { display: none; }
-#pigeon-guide .pg-card { position: absolute; top: 204px; left: 50%; transform: translateX(-50%); min-width: 320px; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
+#pigeon-guide .pg-stack { position: absolute; top: 204px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#pigeon-guide .pg-card { min-width: 320px; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-card small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
 #pigeon-guide .pg-card b { display: block; font-family: var(--ds-font-zeef-kop); font-size: 28px; font-weight: 800; line-height: 1.1; }
 #pigeon-guide .pg-card i { display: block; font-style: normal; font-size: 16px; font-weight: 700; margin-top: 2px; }
@@ -45,8 +47,10 @@ const CSS = `
 #pigeon-guide .pg-arrow svg { display: block; width: 52px; height: 52px; margin: 0 auto; filter: drop-shadow(2px 2px 0 var(--ds-c-ink-inkt, #1d1b17)); }
 #pigeon-guide .pg-arrow svg path { fill: var(--ds-c-geel, #f9c80e); stroke: var(--ds-c-ink-inkt, #1d1b17); stroke-width: 2.5; stroke-linejoin: round; }
 #pigeon-guide .pg-arrow span { display: inline-block; margin-top: 2px; padding: 1px 8px; font-size: 15px; font-weight: 800; background: var(--ds-c-ink-papier, #f3ead3); border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; white-space: nowrap; }
-#pigeon-guide .pg-intro { position: absolute; top: 330px; left: 50%; transform: translateX(-50%); max-width: min(520px, calc(100vw / var(--ui, 1) - 32px)); padding: 10px 18px 12px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
+#pigeon-guide .pg-intro { max-width: min(520px, calc(100vw / var(--ui, 1) - 32px)); padding: 10px 18px 12px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-intro[hidden] { display: none; }
+#pigeon-guide .pg-intro.pg-compact p { display: none; }
+#pigeon-guide .pg-intro.pg-compact { padding: 6px 18px 8px; }
 #pigeon-guide .pg-intro b { display: block; font-family: var(--ds-font-zeef-kop); font-size: 20px; font-weight: 800; }
 #pigeon-guide .pg-intro p { margin: 4px 0 8px; font-size: 16px; font-weight: 600; line-height: 1.3; }
 #pigeon-guide .pg-keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font-size: 14px; font-weight: 700; }
@@ -61,9 +65,9 @@ function initDom() {
   root.id = 'pigeon-guide';
   root.hidden = true;
   root.innerHTML = `
-    <div class="pg-card" role="status"><small>Spotopdracht</small><b data-prog></b><i data-line></i><div class="pg-hold" data-holdbox hidden><u data-hold></u></div></div>
-    <div class="pg-arrow" data-arrow hidden><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L35 34 L20 27 L5 34 Z"/></svg><span data-adist></span></div>
-    <div class="pg-intro" data-intro hidden><b></b><p></p><div class="pg-keys"></div></div>`;
+    <div class="pg-stack"><div class="pg-card" role="status"><small>Spotopdracht</small><b data-prog></b><i data-line></i><div class="pg-hold" data-holdbox hidden><u data-hold></u></div></div>
+    <div class="pg-intro" data-intro hidden><b></b><p></p><div class="pg-keys"></div></div></div>
+    <div class="pg-arrow" data-arrow hidden><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L35 34 L20 27 L5 34 Z"/></svg><span data-adist></span></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
   dom = { root, prog: q('[data-prog]'), line: q('[data-line]'), holdBox: q('[data-holdbox]'), hold: q('[data-hold]'), arrow: q('[data-arrow]'), adist: q('[data-adist]'), intro: q('[data-intro]'), last: {} };
@@ -266,7 +270,13 @@ export function tickPigeonGuide(dt, world, o, flight) {
   // de uitleg van de eerste vlucht
   if (!introSeen) {
     G.introT += dt;
-    dom.intro.hidden = false;
-    if (G.introT > INTRO_S || model.done > 0) { introSeen = true; dom.intro.hidden = true; }
-  } else dom.intro.hidden = true;
+    if (G.introT > INTRO_S || model.done > 0) introSeen = true;
+  }
+  // één stapel (hudstapel.js): opdracht, uitleg en hoogtekaart schuiven onder elkaar; krap = compact, daarna weg
+  const ui = parseFloat(tok('--ui', '1')) || 1;
+  const kaarten = duivenKaarten({ introActief: !introSeen, holdActief: holdOn });
+  const stap = stapel(kaarten, { ruimte: stapelRuimte(typeof innerHeight === 'number' ? innerHeight / ui : 720) });
+  const uitleg = stap.zichtbaar.find((k) => k.id === 'uitleg');
+  dom.intro.hidden = !uitleg;
+  dom.intro.classList.toggle('pg-compact', !!(uitleg && uitleg.compact));
 }

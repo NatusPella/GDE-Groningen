@@ -100,6 +100,13 @@ const m13 = by('Het containerlabyrint'), m20 = by('Het beleg van Bourtange');
 ok('M13 wacht bij de kooi met een radio en bij de container met een landkaart', m13.stages[1].wacht.prop === 'radio' && m13.stages[3].wacht.prop === 'landkaart');
 ok('M20 houdt de noordwal met een kaartspel', m20.stages.find((s) => s.kind === 'hold' && /noordwal/.test(s.label)).wacht.prop === 'kaartspel');
 
+// 6b. M15 (Kist Kees-lijn): opening bij het toestel, radio in de lucht, sleutelmoment, landing en een tweede nasleepregel
+const m15 = by('Laag over het graan');
+ok('M15: de eerste stap heeft een openingsbeeld en een beat', !!m15.stages[0].openCam && m15.stages[0].beats.length >= 1);
+ok('M15: de lucht heeft drie beats (radio, kermis, sleutelmoment) in oplopende tijd', m15.stages[1].beats.length === 3 && m15.stages[1].beats.every((b, i, a) => i === 0 || b.na > a[i - 1].na));
+ok('M15: de landing heeft twee beats met een toetsplaatje, zonder ruwe toetsnaam', m15.stages[2].beats.length === 2 && m15.stages[2].beats.some((b) => /{SHIFT}/.test(b.tekst)) && m15.stages.flatMap((s) => s.beats).every((b) => !/(Shift|Spatie|Ctrl|WASD)/.test(b.tekst) && b.tekst.split(' ').length <= 16));
+ok('M15: nasleep met twee regels', m15.nasleep.length === 2);
+
 // 7. de haken zitten in de runner
 const run = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
 ok('missions.js start, tikt en stopt de beats en toont de nasleep', /beatStart\(world, st, S/.test(run) && /beatTik\(world, st, S, dt\)/.test(run) && /beatStop\(S\)/.test(run) && /toonNasleep\(world, def\)/.test(run));
