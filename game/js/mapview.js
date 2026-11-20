@@ -3228,6 +3228,8 @@ export function initMapView(world) {
 
   window.addEventListener('keydown', (e) => {
     if (!state.open || e.target === si) return;
+    // de eenmalige uitleg sluit met Enter of spatie, waar de focus ook staat (21-11)
+    if ((e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()) { e.preventDefault(); return; }
     // Enter on the map itself (a controller's A): click under the crosshair
     if (e.key === 'Enter' && !e.defaultPrevented && !(e.target && e.target.closest && e.target.closest('button, input, a, select, .mapview-card'))) {
       e.preventDefault();
@@ -3292,7 +3294,9 @@ export function setMapActive(world, on) {
     else toggleLegend(false);
     const ik = hoofdspeler(world);
     centreOn(ik.x, ik.y, 2);
-    state.canvas.focus({ preventScroll: true });
+    // staat de eenmalige uitleg open, dan houdt zijn knop de focus (21-11): met de focus op het doek deed Enter niets of klikte onder het richtkruis
+    const uitlegKnop = state.overlay.querySelector('.mv-help .mv-help-ok');
+    (uitlegKnop || state.canvas).focus({ preventScroll: true });
   } else closeMap();
 }
 

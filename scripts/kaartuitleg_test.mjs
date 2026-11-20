@@ -20,6 +20,9 @@ ok(/export function kaartUitlegSluiten\(\)/.test(mv) && /querySelector\('\.mv-he
 ok(/e\.target === uitleg\) \{ sluitKaartUitleg\(uitleg\)/.test(mv), 'een klik naast het kader sluit');
 ok(/act === 'uitleg-sluit'\) sluitKaartUitleg\(btn\)/.test(mv), 'Begrepen sluit');
 
+ok(mv.includes('(uitlegKnop || state.canvas).focus('), 'na het openen houdt de uitleg-knop de focus, niet het doek');
+ok(mv.includes("(e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()"), 'Enter en spatie sluiten de uitleg waar de focus ook staat');
+
 const pm = src('game/js/pausemenu.js');
 ok(/kaartUitlegSluiten/.test(pm.split('\n').find((l) => l.startsWith('import') && l.includes('mapview.js')) || ''), 'pausemenu.js importeert kaartUitlegSluiten');
 ok(/function goBack\(\) \{\s*\/\/[^\n]*\n\s*if \(tab === 'map' && kaartUitlegSluiten\(\)\) return;/.test(pm), 'Escape (en B) sluit eerst de uitleg, dan pas de kaart');

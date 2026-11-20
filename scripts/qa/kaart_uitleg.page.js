@@ -30,16 +30,22 @@ wis();
 await open();
 const m = midden();
 if (!m) { res.fout = 'uitleg niet open bij een nieuw spel'; clearInterval(skipper); return JSON.stringify(res); }
-const top = document.elementFromPoint(m.x, m.y);
-stap('open', { rect: [m.r.left, m.r.top, m.r.width, m.r.height].map(Math.round), opPunt: top && (top.tagName + '.' + top.className).slice(0, 80), isKnop: !!top && (top === m.b || m.b.contains(top)), focus: document.activeElement && document.activeElement.className });
+// de menustage is met CSS zoom ingezoomd (menu.css --mz): getBoundingClientRect en elementFromPoint kunnen dan in een andere ruimte zitten, dus probeer beide
+const zoomF = Number(getComputedStyle(document.querySelector('.gm-stage') || document.body).zoom) || 1;
+const kandidaten = [[m.x, m.y], [m.x * zoomF, m.y * zoomF], [m.x / zoomF, m.y / zoomF]];
+const treffer = kandidaten.map(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? (e.tagName + '.' + e.className).slice(0, 40) : null; });
+const raak = kandidaten.findIndex(([x, y]) => { const e = document.elementFromPoint(x, y); return e && (e === m.b || m.b.contains(e)); });
+const top = raak >= 0 ? document.elementFromPoint(kandidaten[raak][0], kandidaten[raak][1]) : document.elementFromPoint(m.x, m.y);
+stap('open', { rect: [m.r.left, m.r.top, m.r.width, m.r.height].map(Math.round), zoomF, treffer, raak, opPunt: top && (top.tagName + '.' + top.className).slice(0, 80), isKnop: !!top && (top === m.b || m.b.contains(top)), focus: document.activeElement && document.activeElement.className });
 res.opslagSleutels = Object.keys(localStorage).filter((k) => /hud|seen/i.test(k));
 // 1. klik op het midden van Begrepen
-klik(top || m.b, m.x, m.y); await sleep(400); stap('na klik op Begrepen');
+klik(top || m.b, m.x, m.y); await sleep(400); stap('na klik op Begrepen' + (raak >= 0 ? '' : ' (treft de knop niet: op het element zelf)'));
 await sluit(); await open(); stap('na heropenen');
 // 2. Enter op de knop
 wis(); await sluit(); await open();
-const b = document.querySelector('.mv-help .mv-help-ok'); if (b) b.focus();
-toets('Enter'); await sleep(400); stap('na Enter');
+// zonder zelf te focussen: waar de focus na het openen landt is het punt
+const focusNaOpen = document.activeElement && (document.activeElement.className || document.activeElement.tagName);
+toets('Enter'); await sleep(400); stap('na Enter', { focusNaOpen });
 // 3. Escape: eerst de uitleg, de kaart blijft open
 wis(); await sluit(); await open();
 toets('Escape'); await sleep(500); stap('na Escape', { kaartOpen: !!document.querySelector('.mapview-overlay') && document.querySelector('.mapview-overlay').getClientRects().length > 0 });
