@@ -149,6 +149,10 @@
     "ritBezig": {
       "eigenaar": "game/js/reisrit3d.js",
       "notitie": "reisrit3d.js zet de vlag tijdens een taxi- of treinrit en wist hem erna; savegame.js hoort hem te lezen om niet halverwege een rit te bewaren."
+    },
+    "coopStartMeting": {
+      "eigenaar": "game/js/coopstartmeting.js",
+      "notitie": "coopstartmeting.js bezit de tijdlijn van Spel starten (#1046); andere code markeert alleen een stap via markeerStartStap."
     }
   },
   "uitzonderingen": [
@@ -1726,6 +1730,13 @@
       "max": 1,
       "reden": "meldt na een aankoop dat de uitgave een kassaklik is; sfx/ui.js leest en wist de vlag",
       "issue": "#988"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/streetpopulation.js",
+      "max": 2,
+      "reden": "ruimt voetgangers op die buiten de geladen straten raken (de straatbevolking beheert wie er staat)",
+      "issue": "#1047"
     }
   ]
 }

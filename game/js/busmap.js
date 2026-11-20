@@ -6,6 +6,7 @@
 import { getLiveBussen } from './vehicle/buspop.js';
 import { getSettings } from './settings.js';
 import { bronStand, busLabel, SOORT } from './busbron.js';
+import { hoofdspeler } from './players.js';
 
 export const LIVE_BUS_ZOOM = 40; // m: dichterbij dan dit staat de bus vol in beeld
 
@@ -41,7 +42,7 @@ export function liveBusMarks(player, max = 4, reach = 900) {
 export function roosterBusMarks(world, max = 3, reach = 700) {
   if (!world || !world.vehicles) return [];
   if (busBronNu().soort === SOORT.live) return [];
-  const p = world.player || {};
+  const p = hoofdspeler(world) || {};
   const uit = [];
   for (const v of world.vehicles) {
     if (!v.isBus || !v.busRun || v.wrecked || v.driver === 'player' || v.liveId != null) continue;
