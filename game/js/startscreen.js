@@ -58,7 +58,7 @@ let fakeTimer = 0;
 let progress = 0;
 let shown = 0;
 let bootStatusLocked = false;
-// The plan of the boot bar (#1010): every step of the start with its weight, set by main.js
+// The plan of the boot bar (opdracht 21-11): every step of the start with its weight, set by main.js
 // (setBootPlan) before the boot begins. The bar is full only when the last step is done.
 let plan = bootPlan();
 let stepId = '';
@@ -561,7 +561,7 @@ function runBootScreen(world, opts, pending = null) {
         // the menu's first viewpoint was planned during the boot; the normal start never shows
         // the menu, so release those tiles instead of keeping them pinned behind the game
         try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
-        // #1010: the bar reaches 100% only now, with the last step (the first frames) done
+        // opdracht 21-11: the bar reaches 100% only now, with the last step (the first frames) done
         await finishLoading();
         dismissLoading();
         resolve('game');

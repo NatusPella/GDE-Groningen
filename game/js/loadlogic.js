@@ -51,7 +51,7 @@ export const startProgress = () => ({ total: 0, shown: 0, calm: 0, frames: 0 });
 export const BAR_PHASES = ['boot', 'save', 'travel', 'snel'];
 export const barsFor = (phase) => (BAR_PHASES.includes(phase) ? 1 : 0);
 
-// The boot bar's real steps (#600, #1010). main.js reports the measured moments of the start
+// The boot bar's real steps (#600, opdracht 21-11). main.js reports the measured moments of the start
 // (setBootStep with the step and how far it is); every step says in plain words what is
 // happening and has a weight that follows the measured duration (docs/LAAD-STREAMING-LOD.md), so the
 // bar is only full when the very last step is done: the game is really ready. The steps
@@ -153,7 +153,7 @@ export const LOAD_STEPS = [
   { from: 0.9, id: 'bijna', label: 'Bijna klaar: de buurt wordt gladgestreken' },
 ];
 export const SNEL_STEP = { id: 'snel', label: 'De buurt wordt ingeladen' };
-// The same principle as the boot bar (#1010): the step counter of the load screen. The thresholds
+// The same principle as the boot bar (opdracht 21-11): the step counter of the load screen. The thresholds
 // above are the weights (25%, 35%, 30%, 10% of the bar); the bar is only 1 when stepProgress says done.
 export function loadStepNr(bar, kind = 'travel') {
   if (kind === 'snel') return { nr: 1, total: 1 };

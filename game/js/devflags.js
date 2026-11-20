@@ -91,7 +91,7 @@ export const FLAG_DOCS = Object.freeze({
   audiograf: 'Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang',
   noattract: 'Sla het aantrekkingsfilmpje en de eerste-start-meting over; een testrun start meteen in de wereld',
   warm: 'Laat het laadscherm het startgebied en de openingsfilm toch voorwarmen in een testrun (die slaat dat anders over), om de laadtijd te meten (--url-flags=warm)',
-  laadstappen: 'Zet na het laden een tabel in de console met de duur per laadstap en tel de stappen (#1010; alleen voor metingen)',
+  laadstappen: 'Zet na het laden een tabel in de console met de duur per laadstap en tel de stappen (opdracht 21-11; alleen voor metingen)',
   warmfilm: 'Rijd de openingsfilm tijdens het laadscherm voor (tour, palette, samples); standaard uit want dat kostte 20 tot 90 s laadtijd en ~400 extra shaderprogrammas (alleen voor A/B-metingen)',
   menutest: 'Houd het oude startscherm voor de QA-harnassen (devtools zet dit bij GDE_MENU_TEST); een gewone start en elke testrun beginnen in de wereld',
   attract: 'Speel het aantrekkingsfilmpje (trailer.js)',

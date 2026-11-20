@@ -92,7 +92,7 @@ ok(!/sceneSvg|ls-scene/.test(src), 'load screen has no own svg scene');
 // #770: haalt iets het laadscherm weg, dan rondt de lus af in plaats van alleen te stoppen, anders blijft done hangen
 ok(/if \(!el\.isConnected\) \{ finish\(\); return; \}/.test(src), 'een losgekoppeld laadscherm resolvet done (#770)');
 
-// #600, #1010: the boot bar has every step of the start, with words and weights; it is full only after the last one
+// #600, opdracht 21-11: the boot bar has every step of the start, with words and weights; it is full only after the last one
 const plans = {
   nieuw: bootPlan(), openingen: bootPlan({ openings: true }), opgeslagen: bootPlan({ film: false }),
   test: bootPlan({ warm: false }), stil: bootPlan({ geluid: false }),
@@ -146,7 +146,7 @@ ok(bootStepText(plans.nieuw.steps[4], plans.nieuw.total) === 'Stap 5 van 7', 'th
   ok(d.length === 3 && d[0].ms === 3000 && d[1].ms === 2000 && d[2].ms === 4000, 'stepDurations: first report to the first of the next step', JSON.stringify(d));
   ok(Math.abs(d.reduce((t, o) => t + o.aandeel, 0) - 1) < 1e-9 && stepDurations([], 5).length === 0, 'stepDurations: shares add up to 1; empty is empty');
 }
-// the load screen's steps get a counter too (#1010)
+// the load screen's steps get a counter too (opdracht 21-11)
 ok(loadStepNr(0).nr === 1 && loadStepNr(0.3).nr === 2 && loadStepNr(0.7).nr === 3 && loadStepNr(1).nr === 4 && loadStepNr(1).total === 4 && loadStepNr(0.5, 'snel').total === 1, 'the load screen counts its steps');
 ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].from : 1) - st.from), 0) === 1 && /Stap \$\{nr\.nr\} van \$\{nr\.total\}/.test(src), 'the load steps cover the bar and the screen shows "Stap n van m"');
 // the boot screen shows the counter and the step ticks, in the screen-print style (tokens, no own colours)

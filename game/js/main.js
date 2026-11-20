@@ -278,7 +278,7 @@ initLoading();
 // thread. A longer boot is the price the owner chose for a smooth start. A test
 // or QA run skips it: those start from a script and their timing must stay put.
 const WARM_START = FLAGS.warm || !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
-// #1010: the warm-up runs behind the boot screen's bar (the route of a normal start); the menu route of the QA
+// opdracht 21-11: the warm-up runs behind the boot screen's bar (the route of a normal start); the menu route of the QA
 // and trailer tools has no warm-up, so its bar finishes at the end of the boot as before
 const BOOT_WARM_ROUTE = WARM_START && !(FLAGS.attract || FLAGS.menutest || FLAGS.trailer || FLAGS.preview);
 const AUDIO_WARM_MS = 5000; // hoogstens zo lang wachten op het decoderen van de geluiden
@@ -540,7 +540,7 @@ function waitForStart(world, ready) {
     const metFilm = !world.loadedFromSave;
     const compiled = precompilePrograms({ filmLicht: metFilm });
     // the compile call above is one blocking call (about a sixth of the step); the rest is the link wait, where the
-    // programs that are ready against all of them are the real progress (#1010)
+    // programs that are ready against all of them are the real progress (opdracht 21-11)
     setBootStep('shaders', 0.2);
     const shaderTotal = programsTotal();
     const shaderVoortgang = () => { const n = programsPending(); setBootStep('shaders', Math.min(0.97, 0.2 + 0.77 * (shaderTotal ? 1 - n / shaderTotal : 1))); return n; };
@@ -730,7 +730,7 @@ function withDeadline(p, ms, wat, onTimeout = null) {
 
 async function boot() {
   markLoad('boot');
-  // #1010: the bar knows every step of the start from the first moment; it is full only when the last one is done
+  // opdracht 21-11: the bar knows every step of the start from the first moment; it is full only when the last one is done
   setBootPlan({ warm: BOOT_WARM_ROUTE, openings: !!FLAGS.warmfilm, geluid: !(FLAGS.stil && !FLAGS.audiograf) });
   setBootStep('kaart', 0);
   // #749: de boot als geheel heeft een uiterste grens (zie armBootWatchdog)
@@ -952,7 +952,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // het laden niet stil te leggen.
   const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
   if (vraagOnline) beginOnlineStartQuestion();
-  // #1010: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
+  // opdracht 21-11: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
   if (!BOOT_WARM_ROUTE) await finishLoading();
   if (vraagOnline) {
     // Een verborgen venster telt niet als antwoord: wacht tot de speler het spel ziet en

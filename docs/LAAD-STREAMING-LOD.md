@@ -225,9 +225,9 @@ Niet geverifieerd in beeld.
 - Facade-batcher, schaduwkaart, voertuig- en persoonsmodellen, rails en water-LOD niet nagelopen.
 - v0.54.0-vergelijking is op code en commits gedaan, niet door te draaien.
 
-## Laadstappen en de balk van het laadscherm (#1010)
+## Laadstappen en de balk van het laadscherm (opdracht 21-11)
 
-De balk van het eerste laadscherm kent sinds #1010 alle stappen van het opstarten (`BOOT_STEPS`, `bootPlan` in
+De balk van het eerste laadscherm kent sinds opdracht 21-11 alle stappen van het opstarten (`BOOT_STEPS`, `bootPlan` in
 `game/js/loadlogic.js`) en staat pas vol als de laatste stap klaar is. `main.js` meldt elke stap met `setBootStep(id, deel)`;
 `startscreen.js` tekent balk, streepjes, "Stap n van m" en de zin van de stap. Stappen die een run niet heeft (testrun zonder
 warm-up, openingsbeelden alleen met `?warmfilm`, geen geluid met `?stil`) vallen uit het plan; de gewichten worden dan opnieuw tot 1 geschaald.
