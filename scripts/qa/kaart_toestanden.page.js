@@ -26,7 +26,7 @@ if (document.pointerLockElement) document.exitPointerLock();
 let hold = null, done = false;
 const tick = () => { if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = 0; w.camYaw = 0; } w.clock = 13; if (!done) requestAnimationFrame(tick); };
 requestAnimationFrame(tick);
-const cap = async (name) => { console.log('[capture] ' + name); await sleep(900); };
+const cap = async (name) => { await sleep(1200); console.log('[capture] ' + name); await sleep(1500); };
 
 let o = null;
 for (let i = 0; i < 300 && !o; i++) { o = GL.getOverzicht(); if (!o) await sleep(200); }
@@ -56,11 +56,12 @@ results.wijkToestanden = tel;
 results.perWijk = [A, B, C].map((g) => (lijst.find((r) => r.gebied.id === g.id) || {}).toestand);
 
 const mx = (A.x + B.x + C.x) / 3, my = (A.y + B.y + C.y) / 3;
-PM.openPauseMenu('map'); await sleep(1500);
+PM.openPauseMenu('map'); await sleep(2500);
+for (const b of document.querySelectorAll('button')) if (/begrepen/i.test(b.textContent)) { b.click(); await sleep(600); }
 for (const [z, naam] of [[3, 'kaart-toestanden-z3'], [2, 'kaart-toestanden-z2'], [1, 'kaart-toestanden-z1']]) {
   MV.setMapView(mx, my, z); await sleep(3500); await cap(naam); results.shots.push(naam);
 }
-PM.closePauseMenu(); await sleep(800);
+PM.closePauseMenu(); await sleep(2500);
 // de minikaart: de speler midden tussen de wijken
 hold = { x: mx, y: my }; p.x = mx; p.y = my; await sleep(4000);
 await cap('minikaart-toestanden'); results.shots.push('minikaart-toestanden');

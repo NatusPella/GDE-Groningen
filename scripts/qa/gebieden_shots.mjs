@@ -35,14 +35,15 @@ if (process.argv.includes('--slot')) await takeSlot();
 
 fs.mkdirSync(OUT, { recursive: true });
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-const profile = `gde-test-gb-${process.pid}`;
+const profile = path.join(OUT, 'profiel-' + process.pid);
+fs.mkdirSync(profile, { recursive: true });
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, fs.readFileSync(arg('page', '') ? path.resolve(arg('page', '')) : path.join(HERE, 'gebieden_shots.page.js'), 'utf8'));
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (GAME) env.GDE_GAME_DIR = GAME;
 delete env.ELECTRON_RUN_AS_NODE;
 let stdout = '', stderr = '';
-const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env });
+const child = spawn(electron, ['.', ...(process.env.GDE_EXTRA_FLAGS ? process.env.GDE_EXTRA_FLAGS.split(' ') : []), '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env });
 try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
 child.stdout.on('data', (d) => { stdout += d; });
 child.stderr.on('data', (d) => { stderr += d; });
