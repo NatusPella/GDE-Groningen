@@ -128,7 +128,7 @@ const releaseLinks = [...html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<
   .filter(Boolean);
 ok(releaseLinks.length >= 1, 'de CTA naar de Releases heeft tekst', String(releaseLinks.length));
 ok(html.includes('href="' + REPO + '"'), 'er is een link naar de repo');
-ok(/id="delen"/.test(gebouwd) && /href="#delen"/.test(gebouwd), 'de pagina heeft een deel-sectie en een navigatielink');
+ok(/class="site-footer"[\s\S]*id="delen"/.test(gebouwd), 'de deelregel staat in de footer (geen los blok meer)');
 ok(/https:\/\/wa\.me\//.test(gebouwd) && /twitter\.com\/intent\/tweet/.test(gebouwd) && /facebook\.com\/sharer/.test(gebouwd), 'de deellinks naar WhatsApp, X en Facebook staan er');
 ok(/data-share-kopieer/.test(gebouwd), 'de kopieer-knop staat er');
 ok(!/id="pers"|href="#pers"|press-panel/.test(gebouwd), 'de oude pershoek staat niet meer op de pagina');
@@ -240,7 +240,12 @@ ok(/\bprefers-reduced-motion\b/.test(css), 'style.css respecteert prefers-reduce
 ok(/open-wereldkomedie/i.test(gebouwd) && /GDE = Grootste Diefstal Ever/.test(gebouwd), 'de hero noemt genre en de naam-uitleg');
 ok(/class="platform-row"/.test(gebouwd) && !/Windows-only/.test(gebouwd) && !/Actions-minuten/.test(gebouwd), 'de platforminformatie is actueel en zonder Actions-jargon');
 ok(/Over › Problemen/.test(gebouwd) && !/Instellingen › Foutrapport/.test(gebouwd), 'de FAQ verwijst naar het juiste foutrapportpad');
-ok(/60\+ reacties in het playtest-issue/.test(gebouwd) && /issues\/116/.test(gebouwd), 'de pagina toont echt playtest-bewijs en linkt naar #116');
+ok(/issues\/116/.test(gebouwd) && /testers/i.test(gebouwd), 'de pagina linkt naar het playtest-issue #116 en noemt testers');
+ok(/klein team/i.test(html) && /id="team"/.test(html), 'de pagina vertelt het klein-team-verhaal in een eigen blok');
+ok(!/één maker|door de maker|van de maker/i.test(html), 'de pagina legt niet meer de nadruk op één maker');
+ok(/id="samen-spelen"/.test(html) && /kamercode/i.test(html), 'Samen spelen is een eigen blok met kamercode-uitleg');
+ok(/<a class="btn btn-primary" href="[^"]*releases">[^<]+<\/a>/.test(html.slice(html.indexOf('class="hero"'), html.indexOf('id="trailer"'))), 'de hero heeft de hoofd-CTA naar de releases');
+ok(/AI-assistenten/.test(html), 'de pagina blijft eerlijk over AI-hulp');
 ok(!/releases\/latest/.test(gebouwd), 'downloadlinks gaan naar de releaselijst, niet naar de pre-release-redirect');
 ok(/class="nav-toggle"/.test(gebouwd) && /aria-controls="site-nav"/.test(gebouwd), 'de mobiele header heeft een menuknop');
 ok(/navToggle/.test(script) && /aria-expanded/.test(script), 'script.js schakelt het mobiele menu');
@@ -267,20 +272,17 @@ ok(/<main\b/.test(html) && (html.match(/<h1\b/gi) || []).length === 1 && /<heade
 ok(/<main id="inhoud" tabindex="-1"/.test(html), 'de skip-link kan focus naar de inhoud verplaatsen');
 ok(/class="skip-link"[^>]*href="#inhoud"/i.test(html) && /id="inhoud"/.test(html), 'de pagina heeft een skip-link naar de inhoud');
 
-// Opbouw volgens de funnel: aandacht (hero) → interesse (trailer, kort) → verlangen
-// (wat je doet, de stad, beelden) → actie (zo speel je mee, CTA) → vertrouwen
-// (gemaakt, delen, FAQ, 18+).
+// Opbouw verhaal-eerst: hero (belofte, download, trailer) → wat je doet → echt Groningen →
+// samen spelen → het team → beelden → zo begin je → FAQ → 18+.
 const volgorde = [
   'class="hero"',
   'id="trailer"',
-  'class="trust-strip"',
   'id="wat-je-kunt-doen"',
   'id="echt-groningen"',
+  'id="samen-spelen"',
+  'id="team"',
   'id="beelden"',
   'id="spelen"',
-  'class="cta-band"',
-  'id="delen"',
-  'id="zo-gemaakt"',
   'id="vragen"',
   'id="leeftijd"',
 ];
