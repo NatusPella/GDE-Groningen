@@ -373,6 +373,7 @@ export const CLIP_NAMES = Object.keys(CLIPS);
 export const CAT_CLIP_NAMES = Object.keys(CAT_CLIPS);
 export const isClip = (name) => typeof name === 'string' && Object.prototype.hasOwnProperty.call(CLIPS, name);
 export const isCatClip = (name) => typeof name === 'string' && Object.prototype.hasOwnProperty.call(CAT_CLIPS, name);
+export const isHoldClip = (name) => isClip(name) && !!CLIPS[name].hold && !CLIPS[name].loop;
 export const isAnyClip = (name) => isClip(name) || isCatClip(name);
 const def = (name) => (isClip(name) ? CLIPS[name] : isCatClip(name) ? CAT_CLIPS[name] : null);
 

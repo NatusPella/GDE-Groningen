@@ -26,6 +26,7 @@
 import { SPECS_AKTE2 } from './cutscenes_akte2.js';
 import { placeTemplate, expandTemplate } from './cineshots.js';
 import { autoClip } from './cuegestures.js';
+import { isHoldClip } from './poseclips.js';
 
 const DUO = {
   tammo: { look: 'tammo', at: [0, 0.6], face: 0, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
@@ -648,9 +649,18 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   if (!spec.noClips) {
     const authored = {};
     for (const b of beats) if (b.actor && (b.anim || b.walk || b.sit !== undefined) && b.idx != null && lines[b.idx]) (authored[b.actor] = authored[b.actor] || []).push(lines[b.idx].at + (b.dt || 0));
+    // a held clip (kneeling, crouching) that a beat started stays until that actor's next 'stop' or walk: nothing is laid over it
+    const held = {};
+    const bt = beats.filter((b) => b.actor && b.idx != null && lines[b.idx]).map((b) => ({ ...b, tt: lines[b.idx].at + (b.dt || 0) })).sort((x, y) => x.tt - y.tt);
+    bt.forEach((b, k) => {
+      if (!isHoldClip(b.anim)) return;
+      const end = bt.slice(k + 1).find((q) => q.actor === b.actor && (q.anim === 'stop' || q.walk));
+      (held[b.actor] = held[b.actor] || []).push([b.tt, end ? end.tt : Infinity]);
+    });
     lines.forEach((l, i) => {
       const me = speakerActor(l.speaker);
       for (const id of primary) {
+        if ((held[id] || []).some(([a, z]) => l.at + 1 >= a && l.at < z)) continue;
         const role = id === me ? 'speaker' : 'listener';
         if ((authored[id] || []).some((q) => Math.abs(q - l.at) < 2)) continue;
         const c = autoClip(l.text, role, id, i, l.dur);
