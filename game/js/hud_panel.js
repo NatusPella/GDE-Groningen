@@ -78,6 +78,7 @@ import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
 import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
+import { airGuide, airSub, airEtaText } from './airguide.js';
 import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
@@ -133,11 +134,16 @@ const TURN_ICON = { rechts: 'afslag_rechts', links: 'afslag_links', recht: 'pijl
 
 // The GPS card where there is no turn to give: the train (where to get off,
 // where to change) and the air (altitude advice, the landing spot).
-function modeCard(route, mode) {
+function modeCard(route, mode, me) {
   if (!route || route.remaining <= 30) return null;
   if (mode === 'ov' && route.uitstappen) {
     const change = route.changes && route.changes[0];
     return { title: `Uitstappen bij ${route.uitstappen.replace(/^Groningen\s+/, '')}`, sub: change ? `Overstappen bij ${change.replace(/^Groningen\s+/, '')}` : '' };
+  }
+  // in de lucht: een rechte lijn naar het doel; koers, peiling, tijd en hoogteadvies (airguide.js) in plaats van afslagen
+  if (mode === 'lucht' && route.mode === 'fly' && route.target && me) {
+    const g = airGuide(me, route.target, { alt: route.alt });
+    return { title: g.title, sub: airSub(g), dist: formatDistance(g.dist), eta: airEtaText(g.etaS) };
   }
   if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };
   return null;
@@ -1006,7 +1012,8 @@ function updateGps(dt, world) {
     turn = nextTurn(ahead, GPS_NEAR);
   }
   gpsState.turn = turn;
-  const card = turn ? null : modeCard(route, mode);
+  const v0 = p.inVehicle;
+  const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null);
   gpsState.card = card;
   if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
@@ -1027,13 +1034,13 @@ function updateGps(dt, world) {
     setText(els.gpsDist, formatDistance(route.remaining));
     setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, route.mode || (mode === 'fiets' ? 'bike' : 'drive'), route));
   } else if (card) {
-    key += `|${card.title}|${card.sub}|${formatDistance(route.remaining)}`;
+    key += `|${card.title}|${card.sub}|${card.dist || formatDistance(route.remaining)}|${card.eta || ''}`;
     if (key === els.gpsKey) return;
     setIc(els.gpsArrow, TURN_ICON.recht);
     setText(els.gpsTitle, card.title);
     setText(els.gpsSub, card.sub);
-    setText(els.gpsDist, formatDistance(route.remaining));
-    setText(els.gpsEta, etaText(route.remaining, 0, route.mode || 'drive', route));
+    setText(els.gpsDist, card.dist || formatDistance(route.remaining));
+    setText(els.gpsEta, card.eta || etaText(route.remaining, 0, route.mode || 'drive', route));
   } else if (key === els.gpsKey) return;
   els.gpsKey = key;
   setText(els.gpsTimer, gpsState.timer);

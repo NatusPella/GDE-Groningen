@@ -6,6 +6,7 @@ import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
 import { roadAllowed, oneWayFor } from './roadaccess.js';
+import { airArrival } from './airguide.js';
 import { boatRoute, boatTrip, trainTrip, airRoute, etaSeconds, polyLength } from './travelroute.js';
 import { getSharedNet, planVaarRoute, airOfKind } from './vaarnet.js';
 import { getWaterIndex, waterClearance } from './waterindex.js';
@@ -552,7 +553,7 @@ function travelMode(player) {
   if (!v) return 'walk';
   if (v.isBoat) return 'boat';
   // a helicopter or plane flies: a line to the target, around the no-fly zones
-  if (v.isHeli) return 'fly';
+  if (v.isHeli || v.isPlane) return 'fly';
   return v.isBike || v._mount ? 'bike' : 'drive';
 }
 
@@ -952,7 +953,8 @@ function computeRoute(world, target, mode, start = hoofdspeler(world)) {
   return {
     pts, cum, length, remaining: length,
     kind: target.kind, target, mode, idx: 0, px: p.x, py: p.y, off: 0, version: stats.runs,
-    fly: mode === 'fly' && pts.length <= 2,
+    // in de lucht is de route voor het oog een rechte lijn (minimap en luchtlijn: airguide.js), ook als de planner een no-flyzone ontwijkt
+    fly: mode === 'fly',
     etaS: etaSeconds(length, ROUTE_TO_HUD[mode] || 'auto'),
     ...(extra || {}),
   };
@@ -1070,9 +1072,23 @@ function updateSlot(world, slot, target, mode) {
   }
 }
 
+// Aankomst in de lucht: binnen AIR_ARRIVE_R horizontaal (en de hoogte van het doel, als het er een heeft): een melding, een keer per doel.
+let airArrivedKey = '';
+function checkAirArrival(world, p) {
+  const r = route;
+  if (!r || r.mode !== 'fly' || !r.target) return;
+  const v = p.inVehicle;
+  const me = { x: v ? v.x : p.x, y: v ? v.y : p.y, z: v ? v.z : p.gz };
+  const key = `${r.target.kind}:${Math.round(r.target.x)}:${Math.round(r.target.y)}`;
+  if (key === airArrivedKey || !airArrival(me, r.target)) return;
+  airArrivedKey = key;
+  if (world.addMessage) world.addMessage(`Aangekomen: ${r.target.name || 'je doel'}`, 3, { kind: 'tip', key: 'lucht-aangekomen' });
+}
+
 export function updateRouting(dt, world) {
   ensureGraph(world.map);
   const p = hoofdspeler(world);
+  checkAirArrival(world, p);
 
   const mode = world.pigeonMode || world.heliRun ? 'fly' : world.trainDriving || world.trainCam ? 'ov' : travelMode(p);
   // the big map may plan the waypoint for another way of travel than your own
