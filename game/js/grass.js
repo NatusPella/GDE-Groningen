@@ -978,8 +978,15 @@ function rectDist(b, x, y) {
 }
 
 // (#314 C2) De chunks over de groenlaag; opnieuw opgebouwd als map.geoVer verandert.
+// perf counters (CPU-profiel 21-11): chunk meshes built, and kept through a regroup because their polygons did not change
+export const chunkStats = { built: 0, kept: 0, disposed: 0 };
+const samePolys = (a, b) => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+};
 function buildGrassChunks() {
-  if (chunks) for (const c of chunks.values()) if (c.group) disposeChunk(c);
+  const old = chunks;
   chunks = new Map();
   for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
     if (!g.bounds || g.pts.length < 3) continue;
@@ -993,6 +1000,15 @@ function buildGrassChunks() {
   }
   for (const c of chunks.values()) c.polys.sort((a, b) => kindOf(a).prio - kindOf(b).prio);
   assignSubLayers(map);
+  // Elke tegel met groen veranderde de groenlaag en liet vroeger ALLE chunkmeshes weggooien en opnieuw bouwen
+  // (3d:grass 22 tot 33 ms per frame tijdens het stromen). Een chunk met dezelfde vlakken houdt zijn mesh.
+  if (old) {
+    for (const [key, c] of chunks) {
+      const o = old.get(key);
+      if (o && o.group && samePolys(o.polys, c.polys)) { c.group = o.group; o.group = null; chunkStats.kept++; }
+    }
+    for (const o of old.values()) if (o.group) { disposeChunk(o); chunkStats.disposed++; }
+  }
   chunksGreenVer = greenVerOf(map);
 }
 
@@ -1010,6 +1026,7 @@ function syncChunks(px, py, dist) {
     if (d < dist) {
       if (!c.group && gebouwd < 2 && performance.now() - t0 < 3) {
         c.group = buildChunk(c);
+        chunkStats.built++;
         scene.add(c.group);
         gebouwd++;
       }
