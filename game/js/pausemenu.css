@@ -1312,7 +1312,7 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 #pause-menu .pm-csearch { margin-left: 64px; }
 @media (max-height: 820px) { #pause-menu .pm-csearch { margin-left: 40px; } }
 /* 720p: de grijze hulpregels (.mut, small) en notities op minstens 13 schermpixels; op 1080p blijft alles zoals het was */
-@media (max-height: 900px) { #pause-menu.gm :is(.mut, small, .m-note, .t) { font-size: max(18px, var(--menu-min)); } }
+@media (max-height: 900px) { #pause-menu.gm.gm.gm.gm.gm :is(.mut, small, .m-note, .t) { font-size: max(18px, var(--menu-min)); } } /* hoge specificiteit: de losse regels per paneel (.m-li .nm > .mut e.d.) winnen anders */
 /* het zoekveld in Besturing krijgt lucht boven (tegen de onderlijn van de tabs) en onder (voor de lijst) */
 #pause-menu .pm-cinner > .pm-csearch, #pause-menu .pm-csub > .pm-csearch, #pause-menu [data-sub] > .pm-csearch { margin-top: 16px; margin-bottom: 20px; }
 #pause-menu .pm-spulbar .pm-csearch { margin-top: 0; margin-bottom: 0; }

@@ -99,7 +99,7 @@ export const KAART_ACTIE_CSS = `
 .mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
 /* Het pad naar Hulp liep buiten de popup af; het mag krimpen en doorlopen (#602). */
 .mapview-overlay .mv-help-foot small { min-width: 0; flex: 1 1 220px; color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); overflow-wrap: anywhere; }
-.mapview-overlay .mv-help .mv-help-ok { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+.mapview-overlay .mv-help .mv-help-ok { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 .mapview-overlay .mv-help .mv-help-ok:focus-visible, .mapview-overlay .mv-help-x:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-kop-tx); outline-offset: var(--ds-focus-afstand); }
 .mapview-overlay .mv-help .mv-help-ok:focus-visible { outline-color: var(--ds-focus); }
 @keyframes mv-help-in { from { opacity: 0; } to { opacity: 1; } }
