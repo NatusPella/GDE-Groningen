@@ -46,7 +46,7 @@ const LESSONS = [
   {
     id: 'doel',
     when: (w) => !!w.storyGuide && w.stats.missionsDone === 0 && !busy(w),
-    card: () => ({ title: 'Je eerste klus', body: `Je doel staat onderin. Volg de gele route. ${SKIP_NOTE}` }),
+    card: () => ({ title: 'Je eerste klus', body: `Je doel staat bovenin. Volg de gele route. ${SKIP_NOTE}` }),
   },
   {
     id: 'geld',

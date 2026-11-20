@@ -51,11 +51,23 @@ t('elke startkaart past alleen tussen de bovenrand en de minimap (ook met een re
   assert.deepEqual(te, [], `langer dan ${B.LEFT_COLUMN_LINES} regels loopt onder de minimap door`);
 });
 
+t('de kolom telt het venster en de telefoonkaart mee (#985)', () => {
+  const streek = { kind: 'prestatie', title: 'Nieuwe streek', body: 'Hoogeland. De naam staat nu op je kaart.' };
+  const a = { kind: 'bijbaan', title: 'Kartbaan', bodyHtml: 'Rijd drie rondes.<br>Wie het snelst is, wint.<br>Houd je aan de banen.' };
+  assert.equal(B.leftColumnLines(720), 18, 'op 720 hoog blijven het 18 regels');
+  assert.ok(B.leftColumnLines(600) < 18 && B.leftColumnLines(600) >= 6, 'op 600 hoog zijn het er minder: ' + B.leftColumnLines(600));
+  assert.ok(B.leftColumnLines(900) > 18, 'op 900 HUD-px hoog (1080p) meer');
+  assert.equal(B.leftColumnFits(null, streek, { viewH: 600, extraLines: 0 }), true, 'een E-kaart zonder iets erboven past altijd');
+  assert.equal(B.leftColumnFits(null, streek, { viewH: 600, extraLines: 11 }), false, 'een hoge telefoonkaart bovenin duwt de E-kaart weg op 600 hoog');
+  assert.equal(B.leftColumnFits(null, streek, { viewH: 720, extraLines: 3 }), true, 'een korte telefoonkaart past op 720');
+  assert.equal(B.leftColumnFits(a, streek, { viewH: 600 }), B.cardLines(a) + B.cardLines(streek) <= B.leftColumnLines(600));
+});
+
 t('hudcards.js vraagt de kolom voor elke E-kaart en duwt een E-kaart terug voor een A-kaart', () => {
   const src = lees('game/js/hudcards.js');
   assert.match(src, /import \{[^}]*leftColumnFits[^}]*\} from '\.\/hudbus\.js'/);
   assert.match(src, /queue\.findIndex\(\(q\) => isFree\(q\) && fitsColumn\(q\)/, 'een E-kaart wacht tot hij past');
-  assert.match(src, /zoneOf\(next\) === 'A'\) for \(const e of up\) if \(zoneOf\(e\) === 'E' && !leftColumnFits\(next\.spec, e\.spec\)\)/, 'een A-kaart duwt een E-kaart die hij zou raken');
+  assert.match(src, /zoneOf\(next\) === 'A'\) for \(const e of up\) if \(zoneOf\(e\) === 'E' && !leftColumnFits\(next\.spec, e\.spec, col\)\)/, 'een A-kaart duwt een E-kaart die hij zou raken');
   assert.match(src, /noLog: true/, 'de teruggezette E-kaart komt niet twee keer in het tekstlog');
 });
 

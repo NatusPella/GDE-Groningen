@@ -50,38 +50,11 @@ ok(d({ objective: true, subtitle: true }).dimObjective && !d({ objective: true }
   const m = css.match(/#hud \.hud-mission\.dim \{[^}]*opacity:\s*([\d.]+)/);
   ok(!!m && Number(m[1]) >= 0.7, 'a dimmed objective stays readable (0.7), got ' + (m ? m[1] : 'niets'));
 }
-// #463: het doel (zone G) en de treincabine (zone H) mogen elkaar nooit raken.
-// De cabine van treincabine.js is breder en hoger dan de snelheidsmeter en ligt
-// over de bodem waar G staat: op 1920x1080 liep de missietoast ("Ontsnap aan de
-// politie") dwars door het tractie- en rempaneel, met REM 1/2/3 over de tekst.
-// De regel: onder een trein houdt G de bovenkant van die band vrij, met de maat
-// die hud_panel.js aan de cabine meet (--hud-g-floor) en een kier eronder.
+// #463 / #985: het doel (zone B) en de treincabine (zone H) raken elkaar niet: het doel hangt bovenin, de cabine onderin.
 {
   const css = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
-  const hudjs = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
-  const at = css.indexOf('body.tc-on #hud .hud-mission {');
-  const gRule = at < 0 ? '' : css.slice(at, css.indexOf('}', at));
-  const floor = /bottom:\s*calc\(\s*var\(--hud-g-floor,\s*(\d+)px\)\s*\+\s*(\d+)px\s*\)/.exec(gRule);
-  ok(!!floor, 'onder een trein houdt het doel een strook vrij voor de cabine');
-  ok(/\.tc-cab/.test(hudjs) && /--hud-g-floor/.test(hudjs) && /ResizeObserver/.test(hudjs),
-    'hud_panel.js meet de cabine voor die strook (en volgt hem als hij groeit)');
-  // De cabine: 22 px van de onderkant (treincabine.js, --hud-bottom) en op de
-  // beelden van #463 203 HUD px hoog; 700 px breed plus 32 px padding vanaf
-  // max(300px, 50% - 350px). De meting van hud_panel.js kan hem alleen hoger
-  // maken (waarschuwing erbij, de uitleg erboven); de strook in de CSS is de
-  // ondergrens.
-  const CAB_BOTTOM = 22, CAB_H = 203, CAB_W = 700, CAB_PAD = 32, MM = 250;
-  const cabTop = CAB_BOTTOM + CAB_H;
-  for (const [w, h] of [[1280, 720], [1920, 1080]]) {
-    const vp = L.hudViewport(w, h), e = L.hudEdge(w, h, vp.scale);
-    const gBottom = (floor ? Number(floor[1]) : 0) + (floor ? Number(floor[2]) : 0);
-    ok(gBottom >= cabTop, `${w}x${h}: het doel staat boven de cabine (${gBottom} >= ${cabTop})`);
-    // en ze liggen ook echt boven elkaar: zonder die scheiding raakten ze elkaar
-    const cabL = Math.max(300, vp.w / 2 - 350), cabR = cabL + Math.min(CAB_W, w - 316) + CAB_PAD;
-    const gW = Math.min((58 * w) / vp.scale, vp.w - 2 * (e + MM + 160));
-    ok(cabR > vp.w / 2 - gW / 2 && cabL < vp.w / 2 + gW / 2, `${w}x${h}: het doel staat horizontaal boven de cabine`);
-    ok(gBottom + 64 < vp.h - e - MM, `${w}x${h}: de strook duwt het doel niet het beeld in of op de kaart`);
-  }
+  ok(!/body\.tc-on #hud \.hud-mission/.test(css), 'onder een trein verschuift het doel niet meer (het hangt bovenin zone B)');
+  ok(/#hud \.hud-zone-b \{[^}]*top:/.test(css), 'zone B hangt aan de bovenrand');
 }
 // #463: de prestatiekaart dekt geen interactiehint af -- de hint gaat voor.
 // De vakken komen uit de beelden van #463 (1920x1080): de kaart
@@ -327,7 +300,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const hudjs = panel;
   ok(R.vehnameBottom({ raceTop: 173, viewH: 720 }) === 555, 'de naamkaart staat boven het racepaneel (720 - 173 + 8)', String(R.vehnameBottom({ raceTop: 173, viewH: 720 })));
   ok(R.vehnameBottom({}) === null && R.vehnameBottom({ raceTop: NaN, viewH: 720 }) === null, 'zonder racepaneel geen meting');
-  ok(/bottom: var\(--hud-vehname-bottom/.test(css), 'de naamkaart gebruikt de gemeten onderkant');
+  ok(/bottom: max\(var\(--hud-vehname-bottom/.test(css) && /var\(--hud-vehname-ctx/.test(css), 'de naamkaart gebruikt de gemeten onderkant (en hangt boven de toetshintstapel, #985)');
   ok(/html\.touch-play \.hud-chip\.hud-mute \{ min-height: 44px/.test(css), 'de dempknop haalt 44 px op touch');
   ok(/hud-money-delta\[data-sign="min"\] \{ color: var\(--mk-danger/.test(css), 'geld eraf is het ene gevaar-rood via de tokens');
   ok(/MM_ICON_BUDGET = 10/.test(panel), 'de minimap heeft een totaalbudget');

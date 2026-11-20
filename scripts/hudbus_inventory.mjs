@@ -54,7 +54,7 @@ const INFO = {
   },
   ondertitel: {
     api: { names: ['setDualText'], from: 'subtitles.js' },
-    what: 'Ondertitels en dubbeltekst (Fries/Gronings met Nederlandse regel) onderaan (zone G); het doel dimt eronder.',
+    what: 'Ondertitels en dubbeltekst (Fries/Gronings met Nederlandse regel) onderaan (zone G).',
     suggest: 'Blijft. setDualText is een tekstmaker, geen kanaal: meerdere modules bouwen er hun eigen regel mee; de plaatsing hoort bij het ene ondertitelblok.',
   },
   scene: {

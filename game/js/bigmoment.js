@@ -187,6 +187,19 @@ export function maakPlanner() {
   };
 }
 
+// #985 (overlap-audit 20-11): the wanted tag sits under the HUD's right column (clock, stars, money, weapon), never over it.
+// trBottom: the bottom of that column in screen px; the tag stays inside the window (viewH, its own height).
+export function randTop(trBottom, viewH = Infinity, hoogte = 0, gap = 12) {
+  const top = Math.round((Number.isFinite(trBottom) ? trBottom : 0) + gap);
+  return Math.max(0, Math.min(top, Number.isFinite(viewH) ? Math.max(0, viewH - hoogte - gap) : top));
+}
+
+// The place card ('gebied') hangs in the free centre, but never over zone B (the objective and the route card, measured):
+// base is its own top (px), zoneBottom the bottom of that column.
+export function plaatsTop(base, zoneBottom, gap = 12) {
+  return Math.round(Math.max(Number.isFinite(base) ? base : 0, Number.isFinite(zoneBottom) ? zoneBottom + gap : 0));
+}
+
 // ---------------------------------------------------------------------------------------- DOM
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -234,6 +247,14 @@ function toonNu(m, klaarCb) {
   el.setAttribute('aria-label', m.aria);
   el.innerHTML = binnenHtml(m);
   document.body.appendChild(el);
+  if (m.vorm === 'rand') { // under the HUD's right column, measured now: the zoom and the weapon chip decide how tall it is
+    const tr = document.querySelector('#hud .hud-top-right');
+    if (tr) el.style.top = randTop(tr.getBoundingClientRect().bottom, window.innerHeight, el.offsetHeight) + 'px';
+  }
+  if (m.vorm === 'plaats') { // under the objective column of zone B (the owner moved the objective to the top centre, 20-11)
+    const zb = document.querySelector('#hud .hud-zone-b');
+    if (zb) el.style.top = plaatsTop(window.innerHeight * (m.compact ? 0.15 : 0.24), zb.getBoundingClientRect().bottom) + 'px'; // not from getComputedStyle: bigmoment.css may not be loaded yet at the first moment
+  }
   requestAnimationFrame(() => el.classList.add('aan'));
   if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;
   const weg = () => {

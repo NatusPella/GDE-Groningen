@@ -98,7 +98,7 @@ html.touch-device.touch-portrait #hud .hud-fcol { bottom: max(calc(var(--mm-bott
 html.touch-device.touch-portrait #hud .hud-cards-e { bottom: max(calc(var(--mm-bottom) + var(--mm-size) + 14px), calc(var(--t-left-top, 0px) / var(--ui, 1) + 14px)); }
 /* #805: staand zakt de plaatsnaam onder de knoppenrij (Pauze/Meer) en wordt hij smaller, zodat
    hij niet onder de knoppen of over de minimap valt; in landschap blijft de bestaande plaats. */
-html.touch-device.touch-portrait #hud .hud-place { top: max(calc(var(--hud-top) + 132px), calc(var(--hud-a-bottom, 0px) + 12px)); padding: 0 12px; }
+html.touch-device.touch-portrait #hud .hud-place { top: max(calc(var(--hud-top) + 132px), calc(var(--hud-a-bottom, 0px) + 12px), calc(var(--hud-b-bottom, 0px) + 12px)); padding: 0 12px; }
 html.touch-device.touch-portrait #hud .pl-name { font-size: clamp(34px, 10vw, 56px); }
 html.touch-device.touch-portrait #hud .pl-kick { gap: 10px; font-size: 16px; }
 html.touch-device.touch-portrait #hud .pl-kick i { width: 42px; }
@@ -106,17 +106,9 @@ html.touch-device.touch-portrait #hud .pl-kick i { width: 42px; }
 html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.35) transparent; }
 
 /* #826: HUD-blokken niet onder de aanraakknoppen; tekst in de nowplaying >= 12 px. */
-html.touch-device #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 190px); }
-/* #850/#877: het vliegtuigpaneel staat op aanraak gecentreerd op de bodem (als de
-   snelheidsmeter) en is ~185 px hoog; het doel zakt daar precies boven, onder zone C.
-   Op korte schermen is de strook daarvoor krap: het doel houdt dan één regel over
-   (de bedieningsregel staat al in het paneel zelf). Staat het les-/minigamebord
-   (body.mg-on) er ook, dan is er helemaal geen strook en wijkt het doel. */
-html.touch-device body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 290px); }
+/* #850/#877/#985: het doel hangt bovenin (zone B), dus het vliegtuigpaneel onderin raakt het niet meer; staat het les-/minigamebord
+   (body.mg-on) er ook, dan wijkt het doel (het bord hangt op dezelfde plek). */
 @media (max-height: 640px) {
-  html.touch-device body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 298px); }
-  html.touch-device body.plane-flying #hud .hud-mission :is(.hud-mission-progress, .hud-obj-keys, .hud-obj-dist) { display: none; }
-  html.touch-device body.plane-flying #hud .hud-mission .hud-mission-label { -webkit-line-clamp: 1; line-clamp: 1; }
   html.touch-device body.plane-flying.mg-on #hud .hud-mission { display: none; }
 }
 /* #881: in portret is er tussen paneel, kolom en doel geen hoogte voor een
