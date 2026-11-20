@@ -424,6 +424,9 @@ Bewezen zonder Electron met `scripts/coop/viersp_hostwissel_test.mjs` (host en d
 ## Uitleg met iconen en quicktime-stand (#989, #962)
 
 Beide zijn instellingen van het apparaat (Instellingen, gde-settings) en doen dus **iedereen lokaal in zijn eigen spel**: wat een gast ziet is zijn eigen uitleg en zijn eigen Niet meer tonen-vlag (gde-uitleg-niet-meer); er gaat niets over het netwerk. De quicktime-stand is per speler, maar de stap draait bij wie het spel opende (de wereld is van de gastheer): rondes, zone, extra pogingen en het gevolg (de tags) komen uit de stand van de gastheer. Een gast ziet de balk van de gastheer en drukt mee; zijn eigen stand verandert de stap dus niet (dat is niet getest met een echte gast). Een missie wacht nooit op de druk van een gast. Test: scripts/qte_test.mjs en scripts/uitleg_test.mjs (puur, zonder testbank); een testbankstap voor een gast op Overslaan is niet gedaan.
+## Boerderij, Spullen en Loopbanen in het menu (#1010, #1013, #980, 22-11)
+
+Alle drie zijn per speler (#429): het menu toont de eigen boerderij, de eigen spullen en de eigen loopbaanprofielen van wie het opent; er gaat niets over het net en er is geen snapshot of EXTRA-bericht. Een gast ziet dus zijn eigen velden, voorraad en niveaus, en wat hij daar doet (een veld op de kaart zetten, eten opeten of weggooien, een loopbaan starten) raakt alleen zijn eigen spel. Weggooien haalt eten uit de eigen voorraad en vraagt eerst "Weggooien? Dit kan niet terug."; wapens, kleding, meubels en upgrades zijn niet weg te gooien. Valt iemand weg of sluit hij later aan, dan verandert er niets aan wat een ander in zijn eigen menu ziet. Gedekt door pure tests (`farmmodel_test`, `spullenmodel_test`, `careermodel_test`); een gastbaan is er niet bij nodig omdat er niets gedeeld wordt.
 
 ## Niet gedaan
 

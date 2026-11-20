@@ -397,7 +397,7 @@ function dagKaart() {
   return `<div class="bd-dag" style="margin:0 0 8px"><p class="lb-titel"><b>Vandaag</b> <span class="mut">speldag ${k.dag + 1}</span></p><p class="mut">${esc(dagKeuzeTekst(k))}${machine}</p></div>`;
 }
 
-export function renderBoerderijPanel(el, world) {
+export function renderBoerderijPanel(el, world, sluit = null) {
   if (!el) return;
   zetCss();
   const b = getBoerderij();
@@ -413,7 +413,7 @@ export function renderBoerderijPanel(el, world) {
   fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
-    const opnieuw = () => renderBoerderijPanel(el, world);
+    const opnieuw = () => renderBoerderijPanel(el, world, sluit);
     el.addEventListener('click', (e) => {
       const o = e.target.closest('[data-bd]');
       const g = e.target.closest('[data-bd-gewas]');
@@ -428,7 +428,7 @@ export function renderBoerderijPanel(el, world) {
       else if (pc && !tweedeDrukStap(pc.dataset)) opnieuw();
       else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (uitleg) { zetUitlegGezien(); opnieuw(); }
-      else if (naar) { const q = veldPlek(naar.dataset.bdNaar); setUserWaypoint(q.x, q.y, PC.perceelDef(naar.dataset.bdNaar).naam); if (world && world.addMessage) world.addMessage('Het veld staat op je kaart.', 3); }
+      else if (naar) { const q = veldPlek(naar.dataset.bdNaar); setUserWaypoint(q.x, q.y, PC.perceelDef(naar.dataset.bdNaar).naam); if (world && world.addMessage) world.addMessage(naar.dataset.bdSluit ? "Op weg naar je veld. Het doel staat op je kaart." : "Het veld staat op je kaart.", 3); if (naar.dataset.bdSluit && typeof sluit === "function") sluit(); }
       else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
       else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }

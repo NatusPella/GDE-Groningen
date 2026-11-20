@@ -24,6 +24,7 @@ import { woordenVan, past } from './zoektekst.js';
 import { icoon } from './icons.js';
 import { deviceText } from './touchui.js';
 import { glyphHtml } from './keycap.js';
+import { CATS, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
 // Phosphor-pictogrammen via icons.js (21-11), per categorie van deze lijst
 const ICOON = { geld: 'geld', wapens: 'zwaard', melee: 'mes', werp: 'pakket', kleding: 'kleding', eten: 'eten', thuis: 'thuis', kaart: 'kaart', upgrade: 'gereedschap' };
@@ -38,22 +39,9 @@ const SECTIONS = [
   ['upgrade', 'Upgrades'],
 ];
 
-// Wat er staat als een categorie nog leeg is: waar je het vindt (#435)
-const EMPTY = {
-  werp: 'Nog niets om te gooien. Pang & Zo verkoopt het.',
-  eten: 'Nog niets te eten. De toonbank verkoopt snacks; wat je vangt, gaat mee naar huis.',
-  thuis: 'Nog geen meubels. EIKEA heeft ze; thuis zet je ze neer.',
-  upgrade: 'Nog geen upgrades. Knal & Kolder Tuning en Spaak & Band helpen je graag.',
-};
-// Categorieen die ook leeg zichtbaar blijven, zodat je weet dat ze bestaan
-const ALWAYS = new Set(['werp', 'eten', 'thuis', 'upgrade']);
-
-// De delen van het scherm (#435): met een druk op de knop zie je alleen wat je
-// bij je hebt, wat thuis staat of wat je verzamelt.
-export const DELEN = [['alles', 'Alles'], ['uitrusting', 'Uitrusting'], ['thuis', 'Thuis'], ['verzameling', 'Verzamelingen']];
-// geld hoort bij geen enkel deel: je ziet het bij Alles bovenaan, en in de
-// andere delen gaat het over spullen (#435)
-const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kleding: 'uitrusting', eten: 'uitrusting', upgrade: 'uitrusting', thuis: 'thuis', kaart: 'verzameling' };
+// De tabs van het raster (#1013): wat je hebt, per soort; de indeling staat in spullenmodel.js. Een tab zonder spullen blijft staan en
+// zegt waar je ze vindt (LEEG), zodat je weet dat de soort bestaat.
+export const DELEN = CATS;
 
 // Eten (#502) woont in eten.js: een bladmodule, want de winkel (shops.js) en de savegame
 // gebruiken dezelfde voorraad en mogen daarvoor niet van dit menu afhangen. Hier zowel
@@ -73,7 +61,7 @@ const zoektekst = (it) => [it.title, it.sub, it.how, it.perk, it.desc, ...(it.ro
 export function zoekSpullen(items, query = '', deel = 'alles') {
   const words = woordenVan(query);
   return items.filter((it) => {
-    if (deel !== 'alles' && DEEL_VAN[it.cat] !== deel) return false;
+    if (deel !== 'alles' && catVan(it) !== deel) return false;
     if (!words.length) return true;
     return past(zoektekst(it), words);
   });
@@ -83,6 +71,9 @@ let sel = null;
 let byKey = new Map();
 let zoek = '';
 let deel = 'alles';
+let sortering = 'soort';
+// De openstaande vraag "Weggooien?" (spullenmodel.weggooiStap): hoort bij één tegel en vervalt zodra je een andere kiest.
+let weggooiVraag = null;
 // De melding van de laatste actie (#502): die hoort in het detailpaneel, want de HUD zit
 // achter het pauzemenu en w.addMessage zou je nooit zien.
 let note = '';
@@ -117,24 +108,41 @@ function moneyLedgerHtml() {
     '</div></div>';
 }
 
-// De vaste opmaak van het detailpaneel. Eigen <style> in dit bestand: Spullen tekent
-// zijn eigen paneel en deelt geen klasse met een ander scherm dan de .m-* basis. De
-// blokken zijn directe kinderen van .td-detail (net als de rest van het paneel), zodat
-// de plakkende actiebalk onderaan blijft werken; de klassen heten sp-* zodat de gedeelde
-// .m-* van Te doen en Verhaal ongemoeid blijven. De stijl staat bij de lijst, die elke
-// tekening opnieuw wordt gevuld: precies één keer in het paneel.
+// De vaste opmaak van Spullen (#1013). Eigen <style> in dit bestand: links een raster van tegels (icoon, naam, stand, een aantal-badge),
+// rechts het detail met de acties. Kleuren komen uit de tokens van het menu (--ink, --mut, --line, --g) en uit ds-tokens.css; de
+// tekst is overal minstens 13 px en een tegel mag zijn naam over drie regels zetten, zodat niets midden in een woord wordt afgekapt.
+// De stijl staat bij de lijst, die elke tekening opnieuw wordt gevuld: precies één keer in het paneel.
 const SP_CSS = `<style data-spul-css>
-/* De lijst hoeft geen 600 px: de kaarten zijn kort (naam, stand, pictogram) en het detail
-   heeft de ruimte nodig. 320 px laat op 1280x720 het detail genoeg over voor het kasboek;
-   de lijst scrollt zelf. De marge ertussen is kleiner dan de standaard 48/64 px. */
-#pause-menu [data-panel="spullen"] .td-list{width:min(320px,40%);padding-right:32px}
+#pause-menu [data-panel="spullen"] .td-list{width:min(560px,54%);padding-right:24px}
 #pause-menu [data-panel="spullen"] .m-pane{padding-left:32px}
+@media (max-width:1100px),(max-height:640px){#pause-menu [data-panel="spullen"] .td-list{width:min(460px,52%);padding-right:16px}}
 @media (max-width:760px){#pause-menu [data-panel="spullen"] .td-list{width:auto;max-width:100%}}
-#pause-menu .sp-dhead{display:flex;align-items:center;gap:18px;min-width:0}
-#pause-menu .sp-big{width:76px;height:76px;flex:none;display:grid;place-items:center;border-radius:18px;background:rgba(63,201,122,.10);box-shadow:inset 0 0 0 1px rgba(63,201,122,.30);color:var(--g)}
+#pause-menu .sp-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px;padding:6px 6px 20px}
+#pause-menu .sp-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;min-height:128px;padding:26px 8px 10px;border-radius:12px;border:2px solid color-mix(in srgb,var(--ink) 28%,transparent);background:transparent;color:var(--ink);font:inherit;text-align:center;cursor:pointer;transition:background-color 150ms ease-out,border-color 150ms ease-out,transform 120ms ease-out}
+#pause-menu .sp-tile:hover{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent)}
+#pause-menu .sp-tile:active{transform:scale(.97)}
+#pause-menu .sp-tile[aria-current="true"]{background:var(--ds-c-sel-vlak);border-color:var(--g);box-shadow:inset 0 0 0 1px var(--g)}
+#pause-menu .sp-tile:focus-visible{outline:3px solid var(--ds-focus,var(--ink));outline-offset:2px}
+#pause-menu .sp-tile__ic{display:grid;place-items:center;width:40px;height:40px;color:var(--g)}
+#pause-menu .sp-tile__ic svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#pause-menu .sp-tile__t{font-size:15px;line-height:1.2;max-width:100%;overflow-wrap:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#pause-menu .sp-tile__s{font-size:13px;line-height:1.2;color:var(--mut);max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#pause-menu .sp-badge{position:absolute;top:6px;right:6px;min-width:26px;height:24px;padding:0 7px;display:inline-grid;place-items:center;border-radius:12px;background:var(--ink);color:var(--ds-zeef-bg,#fff);font-size:14px;font-weight:700;letter-spacing:.02em}
+#pause-menu .sp-pip{position:absolute;top:6px;left:6px;max-width:calc(100% - 52px);padding:1px 7px;border-radius:10px;border:1.5px solid var(--g);color:var(--g);font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pause-menu .sp-leeg{padding:var(--ds-s-4,16px) 8px;max-width:420px;font-size:max(16px,var(--menu-min));color:var(--mut)}
+#pause-menu .sp-sort{margin-left:auto}
+#pause-menu .sp-weg{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:12px;border:2px solid var(--redtx);background:color-mix(in srgb,var(--redtx) 8%,transparent);animation:sp-in 160ms ease-out}
+#pause-menu .sp-weg p{margin:0;font-size:max(18px,var(--menu-min))}
+#pause-menu .sp-weg b{font-weight:700}
+#pause-menu .sp-weg .sp-weg-ja{color:var(--redtx);border-color:var(--redtx)}
+#pause-menu .sp-acts-weg{display:flex;flex-wrap:wrap;gap:8px}
+#pause-menu .sp-dhead{display:flex;align-items:center;gap:18px;min-width:0;animation:sp-in 160ms ease-out}
+@keyframes sp-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#pause-menu .sp-tile,#pause-menu .sp-weg,#pause-menu .sp-dhead{transition:none;animation:none}}
+#pause-menu .sp-big{width:76px;height:76px;flex:none;display:grid;place-items:center;border-radius:18px;background:color-mix(in srgb,var(--g) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--g) 30%,transparent);color:var(--g)}
 #pause-menu .sp-big svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #pause-menu .sp-dmeta{display:flex;flex-direction:column;gap:6px;min-width:0}
-#pause-menu .sp-dmeta .td-h2{margin:0}
+#pause-menu .sp-dmeta .td-h2{margin:0;overflow-wrap:break-word}
 #pause-menu .sp-desc{margin:0;max-width:640px;font-size:20px;line-height:1.45;color:var(--ink)}
 #pause-menu .sp-eerlijk{margin:0;max-width:640px;font-size:max(18px,var(--menu-min));line-height:1.45;color:var(--mut)}
 #pause-menu .sp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 32px;padding:16px 0 0;border-top:1px solid var(--line)}
@@ -179,7 +187,8 @@ function collect(w) {
     const held = w.weapon === k;
     return {
       key: 'w:' + k, cat, icon: melee ? 'melee' : cat === 'werp' ? 'werp' : 'wapens', title: s.label || k,
-      sub: melee ? 'Slaan · altijd bij de hand' : `${ammo} ${s.unit || 'patronen'}${s.cap ? ` (max ${s.cap})` : ''}`,
+      sub: melee ? 'Slaan · altijd bij de hand' : `${s.unit || 'patronen'}${s.cap ? ` (max ${s.cap})` : ''}`,
+      aantal: melee ? 0 : ammo, eenheid: s.unit || 'patronen',
       side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
       how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '',
       rows: [['Toets', String(WEAPONS[k].slot)], ...(WEAPONS[k].damage ? [['Schade', String(WEAPONS[k].damage)]] : [])],
@@ -224,7 +233,7 @@ function collect(w) {
   const stuks = eten.reduce((n, e) => n + e.aantal, 0);
   counts.eten = stuks ? `${stuks} ${stuks === 1 ? 'stuk' : 'stuks'}` : '';
   for (const e of eten) {
-    out.push({ key: 'e:' + e.id, cat: 'eten', icon: 'eten', title: e.label, sub: `${e.aantal} ${e.aantal === 1 ? 'stuk' : 'stuks'}`,
+    out.push({ key: 'e:' + e.id, cat: 'eten', icon: 'eten', title: e.label, sub: e.how, aantal: e.aantal, weg: { id: e.id, aantal: e.aantal },
       desc: e.how === 'Zelf gevangen' ? 'Zelf gevangen aan de waterkant. Opeten kan overal, ook hier in het menu.'
         : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
       rows: [['Per stuk', `+${e.hp} gezondheid`], ['Jij nu', `${Math.round(w.health)} van 100`]],
@@ -268,70 +277,60 @@ function homeRoute(what) {
   return `Route naar huis (${what})`;
 }
 
-// #908: de kop van Spullen zegt in één oogopslag wat je hebt: geld, het aantal dingen en de
-// verzamelingen die je bijhoudt. Alleen bij "Alles" en zonder zoekopdracht, zodat een zoekresultaat
-// niet onder een algemene kop verdwijnt.
-function overviewHtml(items, w) {
-  const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;
-  const geld = euro(Math.max(0, Math.floor(w.money)));
-  let jr = null;
-  try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
-  const eieren = getSaveSet('eierballen').size;
-  const geheimen = getSaveSet('geheimen').size;
-  const meta = [
-    jr ? `${jr.found.length} van ${jr.total} aanwijzingen` : '',
-    `${eieren} van ${EIERBAL_TOTAL} eierballen`,
-    `${geheimen} van ${SECRETS_TOTAL} geheimpjes`,
-  ].filter(Boolean);
-  return `<section class="pm-hero sp-hero" aria-label="Spullen"><div class="pm-hero-h"><span class="m-eb">Spullen</span><span class="pm-badge" data-tone="ok">${owned} ${owned === 1 ? 'ding' : 'dingen'} in bezit</span></div>` +
-    `<h2 class="pm-hero-t">${geld}</h2><p class="pm-hero-lead">Contant op zak. Kies links wat je bij je hebt; rechts staat wat het is, waar het vandaan komt en wat je ermee kunt.</p>` +
-    `<div class="pm-hero-meta">${meta.map((m) => `<span>${esc(m)}</span>`).join('')}</div></section>`;
+// Een tegel van het raster: icoon, naam en stand, links de toestand (In de hand, Aan) en rechts het aantal. De naam voor een schermlezer
+// bevat het aantal en de toestand (tegelNaam), want de badge zelf is alleen voor het oog.
+function tegel(it) {
+  const badge = badgeTekst(it);
+  return `<button type="button" class="sp-tile" data-spul="${esc(it.key)}" data-cat="${catVan(it)}" aria-label="${esc(tegelNaam(it))}" title="${esc(it.title)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
+    (it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : '') + (badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : '') +
+    `<span class="sp-tile__ic">${svg(it.icon)}</span><span class="sp-tile__t">${esc(it.title)}</span><span class="sp-tile__s">${esc(it.sub || '')}</span></button>`;
 }
 
-function card(it) {
-  return `<button type="button" class="m-li" data-spul="${esc(it.key)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
-    `${svg(it.icon)}<span class="nm"><span class="one">${esc(it.title)}</span><span class="mut one">${esc(it.sub || '')}</span></span>` +
-    `${it.side ? `<span class="t g">${esc(it.side)}</span>` : ''}</button>`;
+// De acties onder het detail: de eigen actie van het ding (Opeten, In de hand nemen), de weg naar een ander scherm, en bij eten het
+// weggooien met een bevestiging die zegt dat het niet terug kan. De bevestiging staat IN het detail, niet in een venster erbovenop.
+function actiesHtml(it) {
+  let btns = '';
+  if (it.act) btns += deviceText(`<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)} ${glyphHtml('ENTER')}</button>`, `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`);
+  if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
+  let weg = '';
+  if (kanWeggooien(it)) {
+    const n = it.weg.aantal;
+    if (weggooiVraag && weggooiVraag.key === it.key) {
+      const wat = weggooiVraag.alles && n > 1 ? `alle ${n} stuks ${it.title}` : `één stuk ${it.title}`;
+      weg = `<div class="sp-weg" role="alertdialog" aria-label="Weggooien bevestigen" aria-describedby="sp-weg-t"><p id="sp-weg-t"><b>${WEGGOOI_VRAAG}</b> ${esc(wat.charAt(0).toUpperCase() + wat.slice(1))} gaat weg.</p>` +
+        `<div class="sp-acts-weg"><button type="button" class="m-bg" data-spul-weg-nee="${esc(it.key)}">Nee, houden</button><button type="button" class="m-bg sp-weg-ja" data-spul-weg-ja="${esc(it.key)}">${icoon('prullenbak', { cls: 'pm-ic' })}<span>Ja, weggooien</span></button></div></div>`;
+    } else {
+      weg = `<div class="sp-acts-weg"><button type="button" class="m-bg" data-spul-weg="${esc(it.key)}">${icoon('prullenbak', { cls: 'pm-ic' })}<span>${n > 1 ? 'Eén weggooien' : 'Weggooien'}</span></button>` +
+        (n > 1 ? `<button type="button" class="m-bg" data-spul-weg="${esc(it.key)}" data-alles="1"><span>Alles weggooien (${n})</span></button>` : '') + '</div>';
+    }
+  }
+  return (btns ? `<div class="m-acts td-acts">${btns}</div>` : '') + weg;
 }
 
-// Het detailpaneel (#929): wat het item IS, waar het vandaan komt, wat je ermee kunt
-// en, bij geld, het kasboek. De kaart links draagt de naam en de stand al; hier staat
-// nooit dezelfde regel nog eens, en is er niets te zeggen dan zegt het paneel dat in
-// één eerlijke zin in plaats van een rij met nullen.
+// Het detailpaneel (#929, #1013): wat het ding IS, waar het vandaan komt, wat het doet en de acties. De tegel draagt de naam en de
+// stand al; hier staat nooit dezelfde regel nog eens, en is er niets te zeggen dan zegt het paneel dat in één eerlijke zin.
 function detailHtml() {
   const it = byKey.get(sel);
-  if (!it) return '<p class="mut">Kies links iets; hier lees je wat het is, waar het vandaan komt en wat je ermee kunt.</p>';
+  if (!it) return '<div class="ds-leeg sp-leeg"><p>Kies een tegel; hier lees je wat het is, waar het vandaan komt en wat je ermee kunt.</p></div>';
   const facts = [
     it.how ? ['Herkomst', it.how] : null,
     it.perk ? ['Effect', it.perk] : null,
     ...(it.rows || []),
   ].filter(Boolean);
+  if (it.aantal > 0) facts.unshift(['Bij je', `${it.aantal} ${it.eenheid || (it.aantal === 1 ? 'stuk' : 'stuks')}`]);
   const factHtml = facts.length
     ? `<div class="sp-facts">${facts.map(([k, v]) => `<div class="sp-fact"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}</div>`
     : '';
   const ledger = it.ledger ? moneyLedgerHtml() : '';
-  let btns = '';
-  if (it.act) btns += deviceText(`<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)} ${glyphHtml('ENTER')}</button>`, `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`);
-  if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
   const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
-  // Het geldkaartje links zegt het bedrag en "Contant" al; daar staat de kop gewoon
-  // "Geld" en is de categorie-eyebrow weggelaten in plaats van hem te herhalen.
   const kop = it.cat === 'geld' ? 'Geld' : it.title;
-  // De blokken zijn directe kinderen van .td-detail (die zelf al een flexkolom met gap is),
-  // precies zoals het paneel daarvoor ook werkte: de .m-grow duwt de acties naar onderen.
   return `<div class="sp-dhead"><span class="sp-big">${svg(it.icon)}</span><div class="sp-dmeta">` +
     `${cat && cat !== kop ? `<span class="m-eb sp-detail-cat">${esc(cat)}</span>` : ''}<h2 class="m-h2 td-h2">${esc(kop)}</h2></div></div>` +
     `${it.desc ? `<p class="sp-desc">${esc(it.desc)}</p>` : ''}` +
     (ledger || factHtml ? (ledger || '') + factHtml : (!it.desc ? '<p class="sp-eerlijk">Verder valt hier niets over te zeggen.</p>' : '')) +
     `<span class="m-grow"></span>` +
-    `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
+    `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${actiesHtml(it)}`;
 }
-
-// '3 van 8' -> 38, zodat een categorie ook een balk kan dragen zonder een tweede telling.
-const pctVan = (tekst) => {
-  const m = /(\d+)\s*van\s*(\d+)/.exec(String(tekst || ''));
-  return m && Number(m[2]) ? Math.round((Number(m[1]) / Number(m[2])) * 100) : null;
-};
 
 // Het <style>-blok staat één keer boven de lijst. De lijst wordt bij elke tekening
 // opnieuw gevuld, dus er staat nooit een tweede kopie in het paneel; het detailpaneel
@@ -349,29 +348,23 @@ export function upgradeTotaal(shop, fjordOffers = []) {
 }
 
 export function renderSpullen(panel, w) {
-  const { items, counts } = collect(w);
+  const { items } = collect(w);
   byKey = new Map(items.map((it) => [it.key, it]));
-  const zichtbaar = zoekSpullen(items, zoek, deel);
+  const zichtbaar = sorteer(zoekSpullen(items, zoek, deel), sortering);
   const zichtbaarSet = new Set(zichtbaar);
   if (!sel || !zichtbaarSet.has(sel)) sel = zichtbaar[0] ? zichtbaar[0].key : null;
+  if (weggooiVraag && (weggooiVraag.key !== sel || !kanWeggooien(byKey.get(sel)))) weggooiVraag = null;
   const list = panel.querySelector('.td-list');
-  const leeg = zoek.trim() || deel !== 'alles';
-  const secties = SECTIONS.map(([cat, label]) => {
-    const mine = zichtbaar.filter((it) => it.cat === cat);
-    if (!mine.length && !(ALWAYS.has(cat) && !leeg)) return '';
-    const count = counts[cat] || '';
-    const pct = pctVan(count);
-    const kop = `<div class="m-gh sp-cat"><span class="sp-gh">${svg(cat)}${label}</span><span class="sp-cat-r">${count ? `<span class="sp-cat-n">${esc(count)}</span>` : ''}` +
-      `${pct != null ? `<span class="m-bar sp-cbar${pct ? ' on' : ''}" aria-hidden="true"><i data-bar="sp-${cat}" data-w="${pct}" style="width:${pct}%"></i></span>` : ''}</span></div>`;
-    return `<section class="sp-cat-sec" data-cat="${cat}">${kop}` +
-      (mine.length ? mine.map(card).join('') : `<p class="mut sp-leeg sp-empty">${esc(EMPTY[cat] || '')}</p>`) + '</section>';
-  }).join('');
-  const hero = !leeg ? overviewHtml(items, w) : '';
-  // De stijl hoort bij de lijst, die elke tekening opnieuw wordt gevuld: zo staat hij
-  // er precies één keer en niet in het detail (dat los hertekend wordt).
-  list.innerHTML = SP_CSS + hero + (secties || `<p class="m-note sp-leeg" data-spul-leeg>Niks gevonden${zoek.trim() ? ` voor "${esc(zoek.trim())}"` : ''}. ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om alles te zien.'}</p>`);
+  const zoekt = zoek.trim();
+  const raster = zichtbaar.length
+    ? `<div class="sp-raster" role="group" aria-label="Je spullen">${zichtbaar.map(tegel).join('')}</div>`
+    : `<div class="ds-leeg sp-leeg" data-spul-leeg><p>${zoekt ? `Niks gevonden voor "${esc(zoekt)}". ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om overal te zoeken.'}` : esc(LEEG[deel] || LEEG.alles)}</p></div>`;
+  // De stijl hoort bij de lijst, die elke tekening opnieuw wordt gevuld: zo staat hij er precies één keer en niet in het detail.
+  list.innerHTML = SP_CSS + raster;
   // de knoppen boven de lijst tonen de stand (#435)
   for (const b of panel.querySelectorAll('[data-spul-deel]')) b.setAttribute('aria-pressed', String(b.dataset.spulDeel === deel));
+  const sortKnop = panel.querySelector('[data-spul-sort]');
+  if (sortKnop) { const t = sortKnop.querySelector('span'); if (t) t.textContent = 'Sorteren: ' + sortLabel(sortering).toLowerCase(); }
   const zoekveld = panel.querySelector('[data-spul-search]');
   if (zoekveld && zoekveld.value !== zoek) zoekveld.value = zoek;
   panel.querySelector('.td-detail').innerHTML = detailHtml();
@@ -387,12 +380,13 @@ export function zetSpullenZoek(tekst) { zoek = String(tekst || ''); }
 export function spullenZoekStand() { return { zoek, deel }; }
 export function zetSpullenDeel(d) { deel = DELEN.some(([id]) => id === d) ? d : 'alles'; }
 
-// Focus or click on a card shows it; the action button runs it. a: { rerender(keep), message(text) }
+// Focus or click on a tile shows it; the action button runs it. a: { rerender(keep), message(text) }
 export function spullenFocus(panel, el) {
   const c = el && el.closest && el.closest('[data-spul]');
   if (!c || !panel.contains(c) || c.dataset.spul === sel) return;
   sel = c.dataset.spul;
-  note = ''; // een andere kaart: de melding van de vorige actie hoort er niet meer bij
+  note = ''; // een andere tegel: de melding van de vorige actie hoort er niet meer bij
+  weggooiVraag = weggooiStap(weggooiVraag, 'ander', sel).state; // en een openstaande vraag Weggooien? ook niet
   for (const b of panel.querySelectorAll('[data-spul]')) b.toggleAttribute('aria-current', b.dataset.spul === sel);
   panel.querySelector('.td-detail').innerHTML = detailHtml();
 }
@@ -414,9 +408,51 @@ export function spullenEnter(panel, key, a) {
   return true;
 }
 
+// Esc op een openstaande vraag Weggooien? sluit die en laat de focus op de knop zijn waar hij vandaan kwam. Geeft true als er iets te
+// sluiten was (dan gaat Esc niet ook nog een scherm terug).
+export function spullenAnnuleer(panel) {
+  if (!weggooiVraag) return false;
+  const key = weggooiVraag.key;
+  weggooiVraag = weggooiStap(weggooiVraag, 'annuleer', key).state;
+  if (panel) {
+    panel.querySelector('.td-detail').innerHTML = detailHtml();
+    const terug = panel.querySelector('[data-spul-weg]');
+    if (terug && terug.focus) terug.focus({ preventScroll: true });
+  }
+  return true;
+}
+
 export function spullenClick(e, w, panel, a) {
   const chip = e.target.closest('[data-spul-deel]');
-  if (chip) { zetSpullenDeel(chip.dataset.spulDeel); a.rerender(); return true; }
+  if (chip) { zetSpullenDeel(chip.dataset.spulDeel); weggooiVraag = null; a.rerender(); return true; }
+  if (e.target.closest('[data-spul-sort]')) { sortering = cycleSort(sortering); a.rerender(); return true; }
+  const weg = e.target.closest('[data-spul-weg]');
+  if (weg) {
+    weggooiVraag = weggooiStap(null, 'vraag', weg.dataset.spulWeg, !!weg.dataset.alles).state;
+    panel.querySelector('.td-detail').innerHTML = detailHtml();
+    const veilig = panel.querySelector('[data-spul-weg-nee]'); // de veilige keuze krijgt de focus
+    if (veilig && veilig.focus) veilig.focus({ preventScroll: true });
+    return true;
+  }
+  const nee = e.target.closest('[data-spul-weg-nee]');
+  if (nee) { spullenAnnuleer(panel); return true; }
+  const ja = e.target.closest('[data-spul-weg-ja]');
+  if (ja) {
+    const key = ja.dataset.spulWegJa;
+    const r = weggooiStap(weggooiVraag, 'bevestig', key);
+    const it = byKey.get(key);
+    weggooiVraag = r.state;
+    if (r.doe && it) {
+      const sleutels = [...panel.querySelectorAll('[data-spul]')].map((b) => b.dataset.spul);
+      note = weggooi(w, it, r.alles);
+      const rest = Math.floor(Number(w.eten && w.eten[it.weg.id]) || 0);
+      const volgende = rest > 0 ? key : naWeggooien(sleutels, key);
+      if (rest <= 0) sel = volgende;
+      a.rerender({ dataset: { spul: volgende || '' } });
+      note = '';
+    } else a.rerender(panel.querySelector(kaartSel(key)));
+    return true;
+  }
   const act = e.target.closest('[data-spul-act]');
   if (act) {
     const it = byKey.get(act.dataset.spulAct);

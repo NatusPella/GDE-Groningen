@@ -127,7 +127,7 @@ ok(/\[data-panel="settings"\] \.pm-inner\.pm-settings > \.m-tabs \.m-tablist \{ 
 const kinderen = (pm.match(/const CHILD = \{([^}]+)\}/) || [])[1] || '';
 ok(/visboek: 'loopbaan'/.test(kinderen) && !/boerderij:/.test(kinderen) && /controls: 'settings'/.test(kinderen), 'Visboek hangt onder Loopbaan, de toetsen en knoppen onder Instellingen; Boerderij is sinds 21-11 een eigen rail-item');
 const rail = pm.slice(pm.indexOf('const RAIL_GROUPS ='), pm.indexOf('const CHILD ='));
-ok(/'loopbaan', 'boerderij', 'map'/.test(rail), 'Boerderij staat als eigen item in de rail, onder Doen (21-11)');
+ok(/'bezit', 'Bezit', \['spullen', 'garage', 'boerderij'\]/.test(rail), 'Boerderij staat als eigen item in de rail, onder Bezit (21-11)');
 for (const id of ['visboek', 'controls']) ok(!new RegExp("'" + id + "'").test(rail), id + ' staat niet los in de rail');
 for (const id of ['visboek', 'boerderij', 'controls']) ok(new RegExp("\\['" + id + "', '[^']+', '").test(pm) && new RegExp('data-panel="' + id + '"').test(pm), id + ' bestaat nog als onderdeel met zijn paneel (niets verdwenen)');
 ok(/aria-current', String\(b\.dataset\.goto === \(CHILD\[name\] \|\| name\)\)/.test(pm), 'de rail markeert de ouder van een onderdeel');
@@ -137,7 +137,7 @@ const lb = read('game/js/loopbaanui.js');
 ok(/VAK_LINK = \{[\s\S]*?hengelen: \{ id: 'visboek'[\s\S]*?landbouw: \{ id: 'boerderij'/.test(lb) && lb.includes('bezighedenHtml(id, v, banen)') && !lb.includes('lb-tegel') && !lb.includes('lb-bez-rij'), 'Vissen en Boerderij zijn bezigheden van hun loopbaan, geen aparte tegels (#430)');
 ok(lb.includes('data-todo-goal="job:') && lb.includes('Volgende klus') && !lb.includes('volgendeKlusHtml') && !lb.includes('Naar de volgende klus:') && !lb.includes('data-lbview'), 'elke bezigheid staat er één keer: Volgende klus is een label, geen tweede knop; Veroverd is geen weergave van Loopbaan');
 // één overzicht: elke loopbaan toont zijn bezigheden en voortgang, en geen bezigheid valt onder twee loopbanen
-ok(lb.includes('bezighedenAantal(info.id)') && /const bezighedenAantal = \(id\) => L\.banenVan\(id\)\.length/.test(lb), 'elke loopbaan in de lijst zegt hoeveel bezigheden erbij horen, met de voortgangsbalk ernaast');
+ok(lb.includes('bezighedenAantal(k.id)') && /const bezighedenAantal = \(id\) => L\.banenVan\(id\)\.length/.test(lb), 'elke loopbaan in de lijst zegt hoeveel bezigheden erbij horen, met de voortgangsbalk ernaast');
 {
   const baanVak = lbSrc.slice(lbSrc.indexOf('const BAAN_VAK = {'), lbSrc.indexOf('export const BAAN_IDS'));
   const paren = [...baanVak.matchAll(/([a-z]+):\s*'([a-z]+)'/g)].map((x) => [x[1], x[2]]);
@@ -251,7 +251,7 @@ ok(pm.includes('if (isPhotoMode()) return;'), 'het pauzemenu opent niet over de 
 ok(fu.includes('BAR_HTML') && fu.includes("KEYBTN('W A S D', 'Lopen')") && fu.includes('data-foto-stop'), 'de fotomodus heeft een knoppenbalk met sleutelhints en Terug');
 ok(fu.includes("inProvinceData(p.cam.x, p.cam.y) === false"), 'de vrije camera van de fotomodus blijft binnen de wereld');
 ok(read('game/js/gebiedenkaart.js').includes('landBorders()') && read('game/js/regions.js').includes('export const landBorders'), 'de kaart tekent de landgrenzen in de kleur van het buurgebied');
-ok(sp.includes('const EMPTY =') && sp.includes('svg(it.icon)') && sp.includes('ALWAYS.has(cat)'), 'Spullen: pictogrammen en een uitleg bij een lege categorie');
+ok(sp.includes('LEEG[deel]') && sp.includes('svg(it.icon)') && sp.includes('class="sp-raster"'), 'Spullen: pictogrammen en een uitleg bij een lege categorie');
 const ac = read('game/js/achievements.js');
 ok(ac.includes("id: 'kaart_alle'") && ac.includes("stat: 'gebied_provincie'") && read('game/js/achievementtracker.js').includes('syncGebiedStats') && read('game/js/gebieden.js').includes('function kaartVerkend'), 'Prestaties: de hele kaart verkend en de gebiedenvoortgang tellen mee');
 ok(read('game/js/player.js').includes('Even uitpuffen'), 'Shift zonder sprint zegt waarom');
@@ -299,7 +299,7 @@ const railGroepen = (pm.match(/const RAIL_GROUPS = \[([\s\S]*?)\];/) || [])[1] |
 const railDelen = [...railGroepen.matchAll(/\['(\w+)', '([^']+)', \[([^\]]+)\]\]/g)].map((m) => [m[1], m[2], [...m[3].matchAll(/'(\w+)'/g)].map((x) => x[1])]);
 ok(railDelen.length === 5 && !railDelen.flatMap((d) => d[2]).includes('over'), 'de rail heeft vijf groepen en geen Over-rij (#601)', JSON.stringify(railDelen.map((d) => d[0])));
 ok(railDelen.map((d) => d[0]).join() === 'spel,doen,bezit,voortgang,systeem' && railDelen.map((d) => d[1]).join() === 'Spel,Doen,Bezit,Voortgang,Systeem', 'de groepen heten Spel, Doen, Bezit, Voortgang en Systeem (#911, 20-11)');
-ok(railDelen[0][2].join() === 'spel' && railDelen[1][2].join() === 'verhaal,todo,loopbaan,boerderij,map' && railDelen[2][2].join() === 'spullen,garage' && railDelen[3][2].join() === 'veroverd,prestaties,fotos' && railDelen[4][2].join() === 'settings,streken', 'de rail: Spel | Verhaal, Activiteiten, Loopbanen, Boerderij, Kaart | Spullen, Garage | Veroverd, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676, #911, 20-11)');
+ok(railDelen[0][2].join() === 'spel' && railDelen[1][2].join() === 'verhaal,todo,loopbaan,map' && railDelen[2][2].join() === 'spullen,garage,boerderij' && railDelen[3][2].join() === 'veroverd,prestaties,fotos' && railDelen[4][2].join() === 'settings,streken', 'de rail: Spel | Verhaal, Activiteiten, Loopbanen, Boerderij, Kaart | Spullen, Garage | Veroverd, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676, #911, 20-11)');
 ok(/pm-rail-h/.test(pm) && !/data-gcount/.test(pm) && /function railPosition\(/.test(pm), 'de kop van een groep toont geen aantal en de bladkop zegt waar je bent (#911, 21-11)');
 ok(/'over',\s*'Over'/.test(pm) && /data-goto="over"|data-goto-sub="[a-z]+:over"/.test(pm), 'Over bestaat nog als onderdeel met een ingang (#601)');
 ok(/rowName\('Over GDE'.*?data-goto="over"/.test(pm), 'Instellingen > Interface heeft een rij naar Over (#601)');

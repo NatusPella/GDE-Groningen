@@ -817,30 +817,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-spelcoop[hidden] { display: none; }
 #pause-menu .pm-spelcoop:not([hidden]) { flex: 1; min-height: 0; }
 /* Spullen (#435): pictogram bij categorie en kaart, uitleg bij een lege categorie */
-#pause-menu .sp-gh { display: inline-flex; align-items: center; gap: 10px; }
-#pause-menu .sp-gh .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .m-li .pm-ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: var(--g); flex: none; }
-#pause-menu .sp-leeg { margin: 4px 24px 16px; font-size: 18px; line-height: 1.4; }
 /* Spullen (#435): zoeken en de delen bovenaan, zodat je snel vindt wat je hebt */
 #pause-menu .pm-spulbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 24px 14px; flex: none; } /* lucht boven het zoekveld: de kop Spullen met zijn schaduw mag er niet onder staan */
 #pause-menu .pm-spulbar .pm-csearch { margin: 0; flex: 1 1 260px; max-width: 520px; }
 #pause-menu .pm-spulchips { justify-content: flex-start; }
-/* #908: Spullen begint met wat je hebt en houdt per categorie de stand bij; de pictogrammen
-   blijven de taal van de lijst. */
-#pause-menu .sp-hero { margin: 0 0 16px; }
-#pause-menu .sp-hero .pm-hero-t { font-size: 48px; color: var(--g); }
-#pause-menu .sp-hero .pm-hero-meta span { position: relative; padding-left: 14px; }
-#pause-menu .sp-hero .pm-hero-meta span::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 5px; height: 5px; border-radius: 50%; background: var(--g); opacity: 0.8; }
-#pause-menu .sp-cat-sec { display: flex; flex-direction: column; }
-/* De lijstkolom is 320 px breed, dus "0 van 11" en het balkje mogen daar niet over twee
-   regels vallen. Ze houden hun breedte; de categorienaam krimpt in als het krap wordt. */
-#pause-menu .sp-cat { min-width: 0; flex-wrap: wrap; row-gap: 2px; } /* een groepskop wrapt in plaats van afgekapt te worden (WERPSPU...) */
-#pause-menu .sp-cat .sp-cat-r { display: inline-flex; align-items: center; gap: 10px; flex: none; white-space: nowrap; }
-#pause-menu .sp-cat .sp-cat-n { font-size: 16px; color: var(--mut); white-space: nowrap; }
-#pause-menu .sp-cat .sp-cbar { width: 40px; flex: none; }
-#pause-menu .sp-cat .sp-gh { min-width: 0; overflow: visible; flex: 0 1 auto; }
-#pause-menu .sp-cat .sp-gh > svg { flex: none; }
-#pause-menu .sp-empty { padding: 2px 24px 14px; margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
 #pause-menu .sp-detail-cat { display: inline-flex; align-items: center; gap: 10px; }
 #pause-menu .sp-detail-cat .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .sp-detail-sub { font-size: 22px; line-height: 1.35; color: var(--ink); }
@@ -1368,9 +1349,6 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 #pause-menu .pm-find-hint:empty { display: none; }
 /* Spullen: de groepskop mag over twee regels (Werpspul, Kaarten & verzamelingen werden afgekapt), het balkje per groep
    vervalt (de telling staat erbij, het totaal staat in het blok erboven) en het zoekveld raakt de titel niet meer */
-#pause-menu .sp-cat { flex-wrap: wrap; row-gap: 0; }
-#pause-menu .sp-cat .sp-gh { flex: 1 1 auto; overflow: visible; white-space: normal; }
-#pause-menu .sp-cat .sp-cbar { display: none; }
 #pause-menu .pm-spulbar { padding-top: 12px; }
 /* de rij waar een zoekresultaat je heen bracht */
 #pause-menu .pm-flash { animation: pm-flash 1.8s ease both; }
