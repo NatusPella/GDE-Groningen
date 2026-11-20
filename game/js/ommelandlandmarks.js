@@ -3,6 +3,7 @@ import { edgeDistance } from './countryfield.js';
 import { landmarkParams, kitCoversBuilding, COVER_KINDS, wierdeOnRoad, wierdeRadius, setKitList } from './landmarkkit.js';
 import { createLandmarkLayer } from './landmarklayer3d.js';
 import { installeerUitkijkpunten } from './verkenpunten.js';
+import { stationFit } from './propfilter.js';
 
 // The landmark kits in today's Ommeland (LK1): the candidates from
 // game/landmarkkits.json (scripts/add_landmark_kits.py) outside the city
@@ -63,6 +64,13 @@ function prepareLandmarks(items, map) {
   for (const m of mills) out.push(landmarkParams(m));
   for (const t of other) {
     if (t.k === 'tower' && churches.some((c) => near(c, t, 45))) continue;
+    // een station zonder omtrek is een punt op het spoor: evenwijdig aan en naast het spoor, niet erover (propfilter.js)
+    if (t.k === 'station' && !t.o) {
+      const fit = stationFit(map, t);
+      if (fit === 'tile') continue; // de tegels hebben zelf een stationsgebouw, met zijn eigen kit
+      out.push(landmarkParams(t, fit));
+      continue;
+    }
     out.push(landmarkParams(t));
   }
   return out.filter(Boolean);
@@ -98,7 +106,7 @@ export function updateOmmelandLandmarks(world, scene, focus, hideBuilding = null
       if (!j || !j.items) return;
       installeerUitkijkpunten(world.map, j.items); // #807 A15: de acht uitkijkpunten op de kaart
       // a church without an outline of its own is fitted to the tiles' church there
-      const lone = j.items.filter((it) => (it.k === 'church' || it.k === 'chapel') && !it.o).map((it) => [it.x, it.y]);
+      const lone = j.items.filter((it) => ((it.k === 'church' || it.k === 'chapel') && !it.o) || (it.k === 'station' && !it.o)).map((it) => [it.x, it.y]);
       S.list = await withTiles(world.map, lone, () => prepareLandmarks(j.items, world.map), { radius: 60, token: 'kits', slice: 6 });
       setKitList(S.list); // (the tiles' own church kits leave the churches of this list alone, #406)
       S.layer = createLandmarkLayer(scene, S.list);
