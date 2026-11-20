@@ -1,4 +1,4 @@
-# Bekende beperkingen in 0.65 (concept, integratie-21-11-c)
+# Bekende beperkingen in 0.65 (concept, integratie-21-11-d)
 
 Voor wie de nieuwe versie speelt. Eerlijk wat niet getest of niet af is. Niets hieronder is een reden om niet te spelen; het is wat je kunt tegenkomen. De feiten komen uit de agent-rapporten in de issues #1008 tot #1041 en uit `docs/*-21-11.md`; alles wat een agent niet in beeld heeft gezien staat als "nog niet bekeken".
 
@@ -23,6 +23,12 @@ Voor wie de nieuwe versie speelt. Eerlijk wat niet getest of niet af is. Niets h
 - Geheugen (#1040): geen 10-minuten-soak (`scripts/perf/leak_soak.mjs`); "geen groei over 10 minuten" is niet bewezen. De laadtijd voor en na is niet gemeten (`docs/PERF-HEAP-21-11.md`).
 - Geluid: de limiter en de ruimere buffer zijn gemeten, niet beluisterd (`docs/AUDIO-GLITCHES-21-11.md`).
 - Het beeldherstel na een verloren beeldcontext (donkere sluier in plaats van wit) is alleen met pure tests en een nagebootste context-verlies bewezen, niet op een echte stuurprogramma-reset.
+
+## Niet samengevoegd (golf 4)
+- **TTS-branch (worktree-agent-a55db64d6906bccb1):** niet samengevoegd; `voice_coverage` blijft rood tot de opnames er zijn.
+- **`escmenu-panelen-van-kaartlagen-agent`:** niet samengevoegd (botst met de nieuwere menu-ronde).
+- **Oude golfbranch (worktree-agent-a3a022888096e6905, 24-10) en toetsplaatjesbranch (worktree-agent-a9487c892e88511e2, #1003):** overgeslagen; hun werk zit al in een nieuwere vorm in de integratie (golf: `golfphysics.js`, `golfhud.js`; toetsplaatjes: `keycap.js`, `inputglyphs.js`, `key_literals_test`), de merge gaf alleen add/add-botsingen.
+- **Wereldaudit en containerplan M13:** de wereldaudit-branch had een eigen, kleinere verschuiving van de M13-kraan; de nieuwere ankerversie (#1035) blijft staan. De audit `mission_prop_audit` is die van #1035.
 
 ## Releasegate
 De licht-gate is gedraaid op een schone checkout van `integratie-21-11-c`. Tests die wereldgegevens nodig hebben (`data/cache/province`, `game/world`) slaan zichzelf over en zijn niet gedraaid. De fasen zwaar, Electron, perf en visual en de AI-review draait de coördinator.
