@@ -229,8 +229,9 @@ for (const f of ['hudcards.css', 'pausemenu.css', 'postgame.js', 'helirun.js', '
 
 // #627/#628/#630: kermis, reuzenrad, carbid en de duif lezen bord en accent uit MG_THEMA/createBoard.
 const kermisSrc = read('kermis.js'), radSrc = read('reuzenrad.js'), carbidSrc = read('carbid.js'), pigeonSrc = read('pigeonmode.js');
-ok(/const ACCENT = mgThema\('kermis'\)\.accent/.test(kermisSrc) && /createBoard\('kermis'\)/.test(kermisSrc) && !/\.kermis-board/.test(kermisSrc),
-  'kermis: één bord en accent uit MG_THEMA, geen eigen bord-CSS meer');
+// #985: de botsauto's tonen de strook van de light sims (simhud.js, kermisstatus.js) in plaats van het bord
+ok(/const ACCENT = mgThema\('kermis'\)\.accent/.test(kermisSrc) && /simHudTik\(0, kermisHudModel/.test(kermisSrc) && !/createBoard/.test(kermisSrc) && !/\.kermis-board/.test(kermisSrc),
+  'kermis: de strook van de light sims, accent uit MG_THEMA, geen eigen bord-CSS');
 // #985: het reuzenrad toont de strook van de light sims (simhud.js, reuzenradstatus.js) in plaats van het bord
 ok(/const ACCENT = mgThema\('hoogvlieger'\)\.accent/.test(radSrc) && /simHudTik\(0, reuzenradHudModel/.test(radSrc) && !/createBoard/.test(radSrc) && !/\.rad-board/.test(radSrc),
   'reuzenrad: de strook van de light sims, accent uit MG_THEMA');

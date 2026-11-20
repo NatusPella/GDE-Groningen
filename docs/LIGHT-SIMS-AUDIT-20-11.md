@@ -309,6 +309,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De botsauto's en de andere attracties van de kermis (`kermis.js`) houden hun eigen bord, een kaartmarkering voor de instap.
 
+## 18. Botsauto's (kermis)
+
+**Wat kan de speler.** Een ritje in de botsauto's op de kermis (E bij het hokje, €3): W en S gas en achteruit, A en D sturen, botsen tegen de auto's van de bots (in de flank of van achteren geeft meer punten, een reeks binnen 2,2 seconden telt door), een rit van 75 seconden.
+
+**De lus.** De bel, botsen en punten sprokkelen, afstappen.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst een auto raakt (`gde-sim-uitleg-v1`) |
+| HUD | bord (`minigamekit`) met tijd, punten en reeks | strook (`simhud.js`): stappen Bel, Botsen, Afstappen, een meter met de tijd van het ritje, je punten groot met je reeks en pictogram, één zin wat nu |
+| Wereld | de tent, de auto's, vonken bij een botsing | plus een gele lichtkolom boven de dichtstbijzijnde tegenstander (`simkolom3d.js`, je maat telt niet) |
+| Feedback | een flits op het bord | elke botsing springt op met waar je hem raakte en je reeks, met het bestaande UI-geluid (geen geluid bij kop op kop) |
+
+**Samen spelen.** De botsauto's staan in de wereld van wie het spel opende (`coopstatus.js`: nee, kermis). De strook en de lichtkolom zijn lokaal voor wie rijdt. Valt de rijder weg, dan verdwijnt de strook met het ritje. Test: `kermishud_test`, `kermis_camera_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** De overige attracties van de kermis, een aparte uitslagkaart in de strook (de bestaande uitslag blijft).
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.

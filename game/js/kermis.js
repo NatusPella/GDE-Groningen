@@ -16,7 +16,10 @@ import { notifyPhone } from './phonefeed.js';
 import { spawnFxSpark } from './fx3d.js';
 import { addStaticCollider, addProp, removeProp } from './breakables.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { easeStep, createBoard, mgThema } from './minigamekit.js';
+import { easeStep, mgThema } from './minigamekit.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { kermisHudModel, botsPop, UITLEG_ID } from './kermisstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
@@ -466,7 +469,6 @@ function start(w, { free = false, revealed = false } = {}) {
   w.cinematicHidePlayers = true;
   if (built.roof) built.roof.visible = false;
   document.body.classList.add('kermis-on');
-  showBoard();
   toonStartkaart(w, 'kermis');
   janSay(w, story ? 'story' : 'start');
   return true;
@@ -553,6 +555,7 @@ function collide(w, cars) {
         g.hits++;
         { const q = toW(me.u, me.v); pushAudioEvent(w, { kind: 'fx', name: 'kermis_ding', x: q.x, y: q.y }); }
         g.best = Math.max(g.best, g.combo);
+        { const pp = botsPop(flank, pts, g.combo); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); } // #985
         g.flash = { text: `${flank === 'flank' ? 'In de flank' : flank === 'kont' ? 'Van achteren' : 'Kop op kop'}! +${pts}${g.combo > 1 ? ` · reeks ${g.combo}` : ''}`, t: 1.3 };
         w.lastImpact = { strength: Math.min(0.5, 0.12 + into * 0.07), time: w.time, x: hoofdspeler(w).x, y: hoofdspeler(w).y };
         botSay(w, other, BOTS_BUMPED);
@@ -630,7 +633,8 @@ function end(w, { quit = false } = {}) {
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('kermis-on');
-  if (board) board.hide();
+  simHudTik(0, null);
+  if (built.kolom) { getScene().remove(built.kolom); built.kolom.geometry.dispose(); built.kolom.material.dispose(); built.kolom = null; } // de scène is na de rit weer zoals ervoor
   if (built.roof) built.roof.visible = true;
   built.cars.forEach((car, i) => {
     if (car.rider) {
@@ -755,23 +759,18 @@ function camera(w) {
 
 // --- HUD -------------------------------------------------------------------------------------
 
-// #627: hetzelfde bord als het reuzenrad (minigamekit createBoard), met de Suikerspin-sfeer.
-let board = null;
-
-function showBoard() {
-  if (!board) board = createBoard('kermis');
-  board.show();
-}
-
+// #985: de gedeelde strook van de light sims in plaats van het bord, en een gele lichtkolom boven de dichtstbijzijnde tegenstander; het model is puur (kermisstatus.js)
 function updateHud() {
   const g = game;
-  if (!board || !g) return;
-  const k = (t) => `<span class="hud-key">${t}</span>`;
-  const left = g.phase === 'ride' ? Math.max(0, Math.ceil(g.phaseT)) : g.phase === 'intro' ? RIDE_S : 0;
-  const row = `<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Punten <b>${g.score}</b></span><span>Reeks <b>${g.phase === 'ride' && g.t - g.comboT < 2.2 ? g.combo : 0}</b></span>`;
-  const flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Wacht op de bel...' : g.phase === 'outro' ? 'Afstappen!' : '';
-  const help = `${k('W')}${k('S')} gas / achteruit · ${k('A')}${k('D')} sturen · ${k('BACKSPACE')} uitstappen`;
-  board.set({ row, flash, bad: !!(g.flash && g.flash.bad), help });
+  if (!g) return;
+  const reeks = g.phase === 'ride' && g.t - g.comboT < 2.2 ? g.combo : 0;
+  simHudTik(0, kermisHudModel({ fase: g.phase, links: g.phase === 'ride' ? g.phaseT : g.phase === 'intro' ? g.rideS : 0, duur: g.rideS, score: g.score, reeks, flash: '', slecht: false, uitleg: !uitlegGezien(UITLEG_ID) }));
+  if (!built) return;
+  if (!built.kolom) { built.kolom = maakSimKolom('kermiskolom'); getScene().add(built.kolom); }
+  const me = built.cars[0];
+  let dichtst = null, dd = Infinity;
+  built.cars.forEach((c, i) => { if (i < 2) return; const d = Math.hypot(c.u - me.u, c.v - me.v); if (d < dd) { dd = d; dichtst = c; } }); // i = 1 is je maat, geen doelwit
+  zetSimKolom(built.kolom, g.phase === 'ride' && dichtst ? toW(dichtst.u, dichtst.v) : null, 0, g.t, false);
 }
 
 // --- the activity --------------------------------------------------------------------------
