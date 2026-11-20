@@ -226,6 +226,8 @@ export function createEnvironmentUpdater(renderer, sunDir) {
   const inputs = new Array(15).fill(0); // scratch: no arrays per call
   return {
     get texture() { return current; },
+    // na een verloren context is het doel leeg: de volgende update moet opnieuw bakken
+    invalidate() { last = null; },
     update(zenith, horizon, ground, dir, sunColor, gain) {
       u.uZenith.value.copy(zenith).multiplyScalar(gain);
       u.uHorizon.value.copy(horizon).multiplyScalar(gain);

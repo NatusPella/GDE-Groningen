@@ -10,6 +10,7 @@ import { streamFlitspaalProps } from './flitspaal.js';
 import { addPropStreamer, brokenKeysNear } from './breakables.js';
 import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
+import { initGpuDiag } from './gpudiag.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { startSoloHost, stopSoloHost } from './coopsolo.js';
@@ -842,6 +843,7 @@ async function boot() {
   initActivityKinds(world, 'late');
   initStory(world);
   let gpuClass = '';
+  initGpuDiag(); // Ctrl+Shift+G: beeldcontext-teller en laatste herbouw
   setErrorContext(() => {
     const st = getSettings();
     const step = currentStep();
