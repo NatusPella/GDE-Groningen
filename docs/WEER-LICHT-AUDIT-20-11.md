@@ -20,7 +20,10 @@ Zie `scripts/weer/weer_scenes.js`: zeven momenten (zonsopgang 5,3 u, ochtend 8,5
 - **Mist**: dichtbij (onder de zichtbodem van 16 m) is er geen verschil met helder weer, dus in een smalle straat is mist alleen aan het eind van de straat te zien. Dat is bewust (#866), maar het maakt mist in de stad een zwak effect. Niet veranderd.
 - **Bewolkt** op 13 u: kleur en schaduw veranderen subtiel, er is geen duidelijke wolkenlucht in beeld; de wolkenlaag was door de camerahoek niet te beoordelen.
 - **Avond (18,5 u) en zonsondergang (20,9 u)** lijken sterk op elkaar in dit kadertje: warm licht, lange schaduwen; de gloed zit in de hemel en die zit niet in beeld.
-- **Nacht en schemering**, **lantaarns en ramen 's nachts**, **sterren**, **wolken en zonsopgangshemel**: nog niet bekeken (de beeldrun haalde het tijdslimiet van 240 s niet bij een zwaar belaste machine en daarna wachtte het slot op geheugen). Hier staat dus niets over beweerd.
+- **Nacht (1 u) en late schemering (22 u)**, met de camera laag en naar de open lucht (`scripts/weer/weer_probe.js`): een diepblauwe hemel met een veld van sterren, goed leesbaar en niet te druk; de straat is donker met een lamppool en warm verlichte garagewanden; schaduwen zijn hard en blauw (maanlicht). Dat leest goed. Straatlantaarns en ramen in de verte zaten niet in beeld, dus daarover niets beweerd.
+- **Zonsondergang (20,9 u)**: de hemel loopt van roze-paars bij de horizon naar donkerblauw met de eerste sterren; zacht en geloofwaardig. De zon zelf stond niet in beeld.
+- **5,3 u** (de scène heet "zonsopgang") toont volle dag: heldere lucht, geen oranje gloed. De zomerse zon staat daar al boven de horizon; de dageraad ligt eerder in de klok. De naam in `weer_scenes.js` is dus misleidend; een goed dageraadsmoment is niet gezocht.
+- **Wolkenlaag, schermvullende hemel en vlakke lichtovergangen in beweging**: nog niet bekeken (de camera kijkt in elke richting tegen gebouwen); alleen losse standbeelden, geen video van een wisseling.
 
 ## Wat springt of flikkert (uit de code, niet in beeld bevestigd)
 
@@ -61,6 +64,6 @@ Tijd en weer zijn gezamenlijke keuzes en geen hostrecht. De host meldt de klok o
 
 ## Open
 
-- Beelden van schemering, nacht, sterren, lantaarns en ramen, en een hemelbeeld met wolken (camera omhoog, `scripts/weer/weer_probe.js` is een start).
+- Een hemelbeeld met wolken op een open plek, lantaarns en ramen van een afstand, de dageraad op het juiste uur, en een reeks beelden door een weerwisseling heen (het springen zelf is alleen uit de code en met pure tests gezien).
 - Easing op de sleutelstanden (punt 6) met beeld voor en na.
 - Frametijd voor en na op een rustige machine (`scripts/weer_shots.mjs` met `GDE_WEER_NOBUSY=1` onder de slot-wrapper).
