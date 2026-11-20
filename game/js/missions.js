@@ -37,6 +37,8 @@ import { getGaragesForRender, garageInside } from './garages.js';
 import { getHomeGarageForRender } from './home.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
+import { tickPigeonGuide } from './pigeonguide.js';
+import { progressText as spotProgress } from './pigeonguidelogic.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode, STEPS, missionIndexOf } from './storyarc.js';
 import { requestRespawn } from './world.js';
 import { getMissionRecord, recordStat } from './achievements.js';
@@ -2486,7 +2488,7 @@ function stageProgressBase(world, def) {
   if (!S || !st) return null;
   const list = def.heist ? def.stages.filter((q) => !q.only || q.only === heistApproach()) : def.stages;
   const n = `${list.indexOf(st) + 1}/${list.length}`;
-  if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
+  if (st.kind === 'pigeon' && S.flying) return `${st.label} · ${spotProgress(S.spotted.size, S.targets.filter(Boolean).length)}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
   if (st.kind === 'bake' && S.bake) return `${st.label} · eierbal ${bakeProgress(S.bake).round}/${S.bake.rounds}`;
   if (st.kind === 'convoy' && chainState().convoy) { const sc = convoyStatus(world, chainState().convoy); return `${st.label} · ${sc.near}/${sc.total} bij elkaar`; }
@@ -2545,6 +2547,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'pigeon') {
     S.targets = st.targets.map((t) => resolveTarget(world, t, from));
     S.target = resolveTarget(world, { pigeonSpot: st.spot }, from);
+    S.place = st.place ? resolveTarget(world, st.place, from) : null; // de naam van het gebouw, boven het gebouw in de wereld
     S.gullT = st.gulls ? st.gulls[1] : 0;
     if (st.flag && !hasTowerFlag()) showMissionFlag(world, def, from);
   }
@@ -3859,7 +3862,12 @@ function updatePigeonStage(dt, world, def, st, S) {
       meldRegelkaart('foto' + S.spotted.size); // de regelkaart van M04 telt mee (AAA akte 1)
     }
   });
+  tickPigeonGuide(dt, world, { targets: S.targets, spotted: S.spotted, holds: S.holds, spotTime: st.spotTime || SPOT_TIME, radius: SPOT_RADIUS, place: S.place, world3d: !st.flag }, f);
   if (S.spotted.size >= S.targets.filter(Boolean).length) {
+    // een eindmoment: de ring en het belletje van het laatste ding krijgen even de ruimte voor de duif landt
+    if (!S.endT) world.addMessage(`${spotProgress(S.spotted.size, S.spotted.size)}. Goed gevlogen!`, 3);
+    S.endT = (S.endT || 0) + dt;
+    if (S.endT < 1.6) return;
     stopPigeonMode(world);
     nextStage(world, def);
   }

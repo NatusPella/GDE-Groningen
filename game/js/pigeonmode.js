@@ -14,6 +14,8 @@ import { mgThema } from './minigamekit.js';
 import { quitRunningActivities } from './busy.js';
 import { waterNearby } from './waterlevels.js';
 import { poiLayerPlace } from './facilities.js';
+import { clearPigeonGuide } from './pigeonguide.js';
+import { glyphHtml } from './keycap.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -631,7 +633,9 @@ function sikkom(text) {
   sfx('notify', P.x, P.y, 0.5);
 }
 
-const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}><kbd class="hud-key">${k}</kbd>${label}</span>`;
+// De toetsen als toetsplaatje (keycap.js): ze lopen mee met herbinden en pad; een toets zonder token (A / D) blijft een gewoon plaatje.
+const K_TOKEN = { WASD: 'WASD', Spatie: 'SPACE', Shift: 'SHIFT', E: 'E', F: 'F', Q: 'Q', X: 'X', C: 'C' };
+const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}>${K_TOKEN[k] ? glyphHtml(K_TOKEN[k]) : `<kbd class="hud-key">${k}</kbd>`}${label}</span>`;
 
 function updateHud(dt) {
   if (!hud) return;
@@ -1714,6 +1718,7 @@ export function stopPigeonMode(w = world) {
   w.pigeonMode = false;
   w.pigeonIntro = false;
   document.body.classList.remove('pigeon-mode');
+  clearPigeonGuide();
   hud.root.hidden = true;
   hud.card.classList.remove('on');
   hud.sikkom.classList.remove('on');

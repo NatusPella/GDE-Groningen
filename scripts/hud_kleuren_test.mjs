@@ -187,6 +187,7 @@ const HUD_DRIFT = {
   'treincabine.js': [],
   'heistui.js': ['#3fc97a', '#d93f3f', '#0f1c13'],
   'pigeonmode.js': [],
+  'pigeonguide.js': [],
   // #632: de cockpit-rand leent alleen tokens en chroom.
   'cockpit.js': [],
   // #633: de gedeelde uitje-kaart leent alles van de sfeer- en thematabellen.
