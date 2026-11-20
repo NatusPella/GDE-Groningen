@@ -252,3 +252,20 @@ body.heli-flying #hud .hud-vehname { display: none; }
 #hud .ctx-row.icon { opacity: 0.8; }
 #hud .ctx-row.icon::before { content: attr(title); font-size: 16px; color: #f0ede4; text-shadow: var(--hud-shadow); }
 #hud .ctx-row.learn .ctx-text b, #hud .ctx-row.new .ctx-text b { color: #f0ede4; font-size: 17px; text-transform: none; font-family: 'Arial Narrow', Arial, sans-serif; }
+
+/* ===== Designsysteem v3: wereldprompts als papieren plaatjes (ADR 0040, #993) =====
+   Papier, inktrand, harde schaduw; de soort (--wp-accent) staat als blokje en als rand links, nooit als tekst op papier. */
+#hud .wp { --wp-accent: var(--ds-c-ink-bord); --wp-line: var(--ds-c-ink-inkt); }
+#hud .wp[data-kind="steal"], #hud .wp[data-kind="danger"] { --wp-accent: var(--ds-c-ink-papier); }
+#hud .wp[data-kind="danger"] { --wp-line: var(--ds-probleem); --wp-accent: var(--ds-probleem); }
+#hud .wp[data-kind="mission"] { --wp-accent: var(--ds-c-ink-geel); --wp-line: var(--ds-c-ink-inkt); }
+#hud .wp-dot { background: var(--wp-accent); border: 2px solid var(--ds-c-ink-inkt); box-sizing: content-box; box-shadow: none; }
+@keyframes wp-ping { 0% { box-shadow: 0 0 0 0 var(--ds-c-ink-inkt); } 70%, 100% { box-shadow: 0 0 0 10px transparent; } }
+#hud .wp-line { height: 2px; background: var(--wp-line); box-shadow: none; }
+#hud .wp-chip, #hud .wp.flip .wp-chip {
+  color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--wp-accent); border-right-width: var(--ds-lijn-zeef);
+  border-radius: 6px; clip-path: none; box-shadow: var(--ds-schaduw-hard);
+}
+#hud .wp-text b, #hud .wp[data-kind="act"] .wp-text b, #hud .wp[data-kind="steal"] .wp-text b { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: 0.04em; }
+#hud .wp-text small { color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-tekst-v3); letter-spacing: 0; }

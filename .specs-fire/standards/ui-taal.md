@@ -188,12 +188,27 @@ een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
   Nederlandse gezinsauto uit de jaren 90" en kiest kantig boven chibi, met de echte
   maten uit `models3d_people.js` (#479).
 
-## Designsysteem v2 (#980, fase 1: nog niet in het spel)
+## Tokens en componenten in gebruik (#980)
 
-Een tweede oppervlak naast het glas: een crème papieren bon (winkel, aanbod, missies, loopbanen) met bordgroen voor koppen, kentekengeel als het ene accent voor "kan nu" en inkt voor tekst; glas blijft voor de pauze- en kaartlaag en de HUD. De tokens (`game/js/ds-tokens.css`), de componenten (`game/js/ds-components.css`), de galerij (`game/ds-galerij.html`), de contrasttabel, de typografie- en ruimteschaal, de HUD-hoeken, de beweging, de regels en de migratiekaarten per scherm staan in het hoofdstuk "Design system v2" van `DESIGN_SYSTEM.md`; de telling van de huidige CSS in `docs/DESIGN-AUDIT-CSS.md`.
+Het papieren oppervlak met bordgroen voor koppen, kentekengeel als het ene accent voor "kan nu" en inkt voor tekst; glas blijft nog voor de pauze- en kaartlaag en de HUD tot die schermen zijn omgebouwd (zie het hoofdstuk hieronder en `docs/DESIGN-SCHULD.md`). De tokens (`game/js/ds-tokens.css`), de componenten (`game/js/ds-components.css`), de galerij (`game/ds-galerij.html`), de contrasttabel, de typografie- en ruimteschaal, de HUD-hoeken, de beweging en de regels staan in `DESIGN_SYSTEM.md`; de telling van de huidige CSS in `docs/DESIGN-AUDIT-CSS.md`.
 - Kleur is een rol (primair, probleem, selectie, succes, waarschuwing), nooit alleen de kleur: er gaat een icoon, vorm of woord mee. Geen blauw accent en geen tweede rood buiten de papier-variant van het ene rood.
 - Hulptekst minstens 13 px en 4,5:1; beweging hooguit 250 ms en uit bij "Beweging beperken"; elk scherm heeft een hero of een reden waarom niet, en elke lege toestand een haak en een handeling.
-- Bewaakt door `checkDsLine` en `checkDsFiles` in `scripts/release/design_rules.mjs` en door `scripts/ds_tokens_test.mjs` (contrast per kleurpaar, componentenlijst, galerij). De bestaande schermen veranderen pas in fase 2.
+- Bewaakt door `checkDsLine` en `checkDsFiles` in `scripts/release/design_rules.mjs` en door `scripts/ds_tokens_test.mjs` (contrast per kleurpaar, componentenlijst, galerij).
+
+## Designsysteem: zomerse zeefdruk (besloten 20-11, ADR 0040)
+
+Het doel voor alle UI; het werk is de ombouw-epic van ADR 0040 (#991 tot en met #1002). De tokens en componenten staan er al; tot een scherm is omgebouwd, beschrijven "Kleur", "Typografie" en "Tokens en componenten in gebruik" wat de code doet. Over het doel wint dit hoofdstuk; de hexwaarden zijn voorlopig tot de eigenaar de HUD in het spel heeft gezien. Details en tabellen: hoofdstuk "The design system: summer screen print" in `DESIGN_SYSTEM.md`; waarom en wat is afgewezen: [ADR 0040](adr/0040-zomerse-zeefdruk-als-designsysteem.md).
+
+- **Eén materiaal overal:** HUD, menu's, telefoon, kaart, laadschermen en grote momenten zijn zeefdruk op crème papier. Donker glas en de papieren bon verdwijnen als oppervlak; tokens, componenten en galerij blijven het mechanisme.
+- **Palet:** papier `#f3ead3`, inkt `#1d1b17`, bordgroen `#0e6b3c`, zomergeel `#f9c80e`, roze `#e8505b`, plus het ene gevaarrood (ADR 0010) en de kleurenblinde `--mk-*`. Niets anders. Eén geel: `#e8c93a` gaat op in zomergeel; wanted wordt roze sterren met inktrand, een lege ster is raster.
+- **Drukeffecten met een taak:** misdruk (roze, 2 tot 3 px) markeert verandering en identiteit, nooit een zin of toetsplaatje; harde schaduw is de hoogteschaal; raster betekent leeg, uit of op slot; kaarten hooguit 1,5 graden scheef, een kaart met focus staat recht.
+- **Letters:** Barlow Condensed voor titels, cijfers, HUD, knoppen en stempels; Atkinson Hyperlegible voor elke zin. Beide OFL en zelf gehost in `game/fonts/`; de Google Fonts-links verdwijnen (constitution-regel 4). Big Shoulders blijft alleen voor het logo. Leesnorm blijft 13 px, harde ondergrens 12 px.
+- **Rustig drukwerk** (instelling): geen misdruk, schuinte, raster of stempelbeweging, alle tekst minstens 7:1, verder dezelfde inkten en layout. Standaard aan op de Steam Deck.
+- **HUD verschijnt bij behoefte:** minimap en doelregel blijven staan; geld, gezondheid, wapen en wanted komen bij een verandering, in gevaar of op een vastgehouden knop en gaan na 4 s weg (instelling "Altijd tonen"). HUD-waarden staan op een papieren plaatje met inktrand. Minimap: afgerond vierkant, route als dikke zomergele lijn, zoom per vervoermiddel, buurtnaam eronder.
+- **Grote momenten:** missie geslaagd of mislukt (schermvullend, Groningse uitroep met Nederlands eronder, beloning en tijd), opgepakt of buiten westen (stempel op een bekeuring, zonder geweld), nieuw gebied of dorp (plaatsnaamstempel), wanted omhoog of omlaag (kort aan de rand, niet schermvullend).
+- **Volle persoonlijkheid:** parodie-apps, stempels, Groningse uitroepen en droge lege toestanden. Knoplabels blijven gewone werkwoorden; elke Groningse regel heeft het Nederlands erbij; geen echt merk of echte persoon; woordbudget 14 blijft.
+- **Controller eerst:** ontworpen op bank-afstand en de Deck, d-pad-focus, bumpers voor tabs, vasthouden om iets onomkeerbaars te bevestigen. Muis, toetsenbord en touch bedienen dezelfde plekken.
+- **Handhaving:** token- en componenttest, de galerij als enige bron (elk component in elke staat, ook Rustig drukwerk en Samen spelen), beeldregressie per scherm in drie resoluties en beide standen, en de ombouw als één epic: eerst de HUD-proef, dan pauze en kaart, telefoon, winkels, minigames, Samen spelen, laad- en bootscherm. Geen release met een half omgebouwd scherm.
 
 ## Regels voor een nieuw scherm of nieuwe tekst
 

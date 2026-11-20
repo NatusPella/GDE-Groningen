@@ -1,0 +1,9 @@
+/* Zelf gehoste lettertypen van designsysteem v3 (ADR 0040), licentie OFL, zie LICENSE.md. Geen extern verzoek. */
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 400; font-display: swap; src: url(AtkinsonHyperlegible-Regular.ttf) format('truetype'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 700; font-display: swap; src: url(AtkinsonHyperlegible-Bold.ttf) format('truetype'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 600; font-display: swap; src: url(BarlowCondensed-SemiBold.ttf) format('truetype'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 800; font-display: swap; src: url(BarlowCondensed-ExtraBold.ttf) format('truetype'); }
+@font-face { font-family: 'Bebas Neue'; font-weight: 400; font-display: swap; src: url(BebasNeue-Regular.ttf) format('truetype'); }
+@font-face { font-family: 'Big Shoulders Display'; font-weight: 700; font-display: swap; src: url(BigShouldersDisplay-Bold.ttf) format('truetype'); }
+@font-face { font-family: 'Big Shoulders Display'; font-weight: 800; font-display: swap; src: url(BigShouldersDisplay-ExtraBold.ttf) format('truetype'); }
+@font-face { font-family: 'Big Shoulders Display'; font-weight: 900; font-display: swap; src: url(BigShouldersDisplay-Black.ttf) format('truetype'); }

@@ -28,7 +28,7 @@ import { lineVoiceFor } from './linevoice.js';
 // phone talk is a call on the speech.js channel
 import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice } from './audio.js';
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
-import { senderOf, bodyOf } from './phoneapp.js';
+import { senderOf, bodyOf, appNaam, LEEG } from './phoneapp.js';
 
 export const PHONE_NAME = 'Pixie Vouw 11';
 const RING_TIME = 0.9;
@@ -70,19 +70,19 @@ function buddyTalk(w) {
       'Moi! Kun je niet gewoon appen, net als ieder normaal mens?',
       'Sinds ik jou ken heb ik geen rustige dag meer gehad in Grunn.',
     ]),
-    actions: c ? [{ label: 'Waar ben je?', primary: true, run: () => { setUserWaypoint(c.x, c.y, buddyName(w)); flashAndClose(`${buddyName(w)} staat op je kaart`); } }] : [],
+    actions: c ? [{ label: 'Zoek op kaart', primary: true, run: () => { setUserWaypoint(c.x, c.y, buddyName(w)); flashAndClose(`${buddyName(w)} staat op Waarzit`); } }] : [],
   };
 }
 
 function berendTalk(w, c) {
   const next = getNextMission();
-  if (!next) return { line: 'Niks. Kom mor later.' };
+  if (!next) return { line: 'Het Klusjesbord is leeg. Zelfs ik heb niks. Kom mor later.' };
   if (next.active) return { line: 'Je bent al bezig. Eerst afmaken.' };
   // Samen spelen: een gast begint zijn opdracht niet aan de telefoon, maar bij het startpunt (#452).
   if (!missieMagVanuitMenu(w)) {
     return {
       line: `Samen spelen: "${next.label}" vraag je bij het startpunt. Daar druk je op E.`,
-      actions: [{ label: 'Wijs het startpunt', primary: true, run: () => { setUserWaypoint(next.start.x, next.start.y, next.label); flashAndClose('Het startpunt staat op je kaart'); } }],
+      actions: [{ label: 'Wijs het startpunt', primary: true, run: () => { setUserWaypoint(next.start.x, next.start.y, next.label); flashAndClose('Het startpunt staat op Waarzit'); } }],
     };
   }
   const list = getMissionList();
@@ -91,11 +91,11 @@ function berendTalk(w, c) {
   const done = m.done ? ' Al eens gedaan, dus klusloon. Geld is geld.' : '';
   const needs = m.needs ? ` Maar eerst: ${m.needs}` : '';
   return {
-    line: `Kom mor. Klusje: "${m.label}". €${m.pay}, contant.${done}${needs}`,
+    line: `Nieuw op het Klusjesbord. Kom mor. Klusje: "${m.label}". €${m.pay}, contant.${done}${needs}`,
     actions: [
       // a later story mission asks first (todo.js); the menu closes for that question
       { label: 'Klus aannemen', primary: true, run: () => { closePauseMenu(); playMission(w, idx, () => w.addMessage(`Route naar ${m.label}`, 3)); } },
-      { label: 'Iets anders?', run: () => { c.offer = (idx + 1) % list.length; talk(c); } },
+      { label: 'Andere klus', run: () => { c.offer = (idx + 1) % list.length; talk(c); } },
     ],
   };
 }
@@ -124,7 +124,7 @@ function garageTalk(w) {
   if (hero && w.player.inVehicle === hero) line = 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?';
   else if (hero) {
     line = 'Je Escapade staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?';
-    actions.push({ label: 'Op kaart zetten', primary: true, run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op de kaart'); } });
+    actions.push({ label: 'Zet op kaart', primary: true, run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op Waarzit'); } });
   } else {
     line = `Afgeschreven? Wéér? Voor €${GARAGE_PRICE} zet ik een nieuwe bij je neer.`;
     actions.push({
@@ -163,7 +163,7 @@ function jelleTalk() {
         'Ik heb geoefend, hear. Deze keer win ik. Wis en wrachtich.',
         'Mijn mem zegt: Jelle, laat die Grinzers maar winnen. Maar mijn mem is er niet.',
       ]),
-      actions: o ? [{ label: `${o.name} op kaart`, primary: true, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`${o.name} staat op je kaart`); } }] : [],
+      actions: o ? [{ label: `Zoek ${o.name}`, primary: true, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`${o.name} staat op je kaart`); } }] : [],
     };
   }
   return {
@@ -237,10 +237,17 @@ export const OVERIG = '__overig';
 function callHtml() {
   const c = call;
   const name = c.contact.name;
-  const acts = c.phase === 'talk' ? c.actions.map((a, i) => `<button type="button" class="${a.hangup ? 'm-bt danger' : a.primary ? 'm-bp' : 'm-bg'}" data-ph-act="${i}">${esc(a.label)}</button>`).join('') : '';
-  return `<div class="ph-head"><span class="av lg">${esc(initials(name))}</span><div class="pm-pane-top"><span class="m-eb">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</span><h2 class="m-h2 td-h2">${esc(name)}</h2></div></div>` +
-    (c.phase === 'talk' && c.line ? `<p class="ph-bubble">${speakerHtml(c.contact.speaker || name)}${dualHtml(c.line)}</p>` : '') +
-    '<span class="m-grow"></span>' + (acts ? `<div class="m-acts ph-acts">${acts}</div>` : '');
+  // Eén gele hoofdknop per scherm: alleen de eerste primaire actie is geel, de rest is papier of gevaar.
+  let geel = false;
+  const knop = (a) => {
+    if (a.hangup) return 'ds-z-knop ds-z-knop--gevaar';
+    if (a.primary && !geel) { geel = true; return 'ds-z-knop'; }
+    return 'ds-z-knop ds-z-knop--secundair';
+  };
+  const acts = c.phase === 'talk' ? c.actions.map((a, i) => `<button type="button" class="${knop(a)}" data-ph-act="${i}">${esc(a.label)}</button>`).join('') : '';
+  return `<div class="pt-kaart ds-zeef"><div class="pt-kop"><span class="pt-av">${esc(initials(name))}</span><div class="pt-wie"><span class="ds-z-chip ${c.phase === 'ringing' ? 'ds-z-chip--primair' : 'ds-z-chip--succes'}">${c.phase === 'ringing' ? `${esc(appNaam('bel'))} rinkelt…` : 'Aan de lijn'}</span><h2 class="pt-naam">${esc(name)}</h2></div></div>` +
+    (c.phase === 'talk' && c.line ? `<p class="pt-bubbel ds-z-kaart ds-z-kaart--recht">${speakerHtml(c.contact.speaker || name)}${dualHtml(c.line)}</p>` : '') +
+    (acts ? `<div class="pt-acts">${acts}</div>` : '') + '</div>';
 }
 
 function renderDetail(focusActs = false) {
@@ -248,7 +255,7 @@ function renderDetail(focusActs = false) {
   if (!panel || !panel.isConnected) return;
   const aside = panel.querySelector('.td-detail');
   if (!aside) return;
-  aside.innerHTML = call ? callHtml() : note ? `<p class="mut">${esc(note)}</p>` : '';
+  aside.innerHTML = call ? callHtml() : note ? `<p class="pt-hulp">${esc(note)}</p>` : '';
   for (const b of panel.querySelectorAll('[data-ph-contact]')) {
     const on = !!call && Number(b.dataset.phContact) === callIdx;
     b.toggleAttribute('aria-current', on);
@@ -284,9 +291,12 @@ function messagesHtml(id) {
   if (!items.length) return '';
   const laatste = items[0]; // phoneHistory is nieuwste-eerst (phonefeed.js)
   const from = senderOf(laatste);
-  const kop = id === OVERIG ? `<h4 class="m-eb">${esc(from === 'Kiekdoar' ? 'Nieuws (Kiekdoar)' : from)}</h4>` : '';
-  return '<div class="ph-thread">' + kop + `<div class="ph-msg"><span class="mut">${esc(laatste.at || '')}</span><p>${dualHtml(bodyOf(laatste))}</p></div></div>`;
+  const app = appNaam(laatste.app || (from === 'Kiekdoar' ? 'sikkom' : 'bericht'));
+  const kop = id === OVERIG ? `<h4 class="pt-van">${esc(from === 'Kiekdoar' ? 'Nieuws (Kiekdoar)' : from)}</h4>` : '';
+  return '<div class="pt-draad ds-zeef">' + kop + `<div class="pt-bericht ds-z-kaart ds-z-kaart--recht"><span class="pt-tijd">${esc(app)}${laatste.at ? ' · ' + esc(laatste.at) : ''}</span><p class="ds-z-kaart__tekst">${dualHtml(bodyOf(laatste))}</p></div></div>`;
 }
+// Lege staat met persoonlijkheid (#998): alleen onder Overig, waar anders niets zou staan.
+const leegHtml = (l) => `<div class="pt-draad ds-zeef"><div class="ds-z-leeg"><div class="ds-z-leeg__beeld" aria-hidden="true"></div><h4 class="ds-z-leeg__kop">${l.kop}</h4><p class="ds-z-leeg__tekst">${l.tekst}</p></div></div>`;
 // Het blok onder een personage: bellen (als het een contact is) en het laatste bericht.
 // De volledige geschiedenis wordt niet meer getoond (zie messagesHtml).
 export function renderCharacterPhone(block, w, id) {
@@ -297,8 +307,8 @@ export function renderCharacterPhone(block, w, id) {
   block.dataset.phChar = id;
   markReadFor(id);
   const bel = contacts(w).map((c, i) => ({ c, i })).filter(({ c }) => characterForSender(c.speaker || c.name) === id)
-    .map(({ c, i }) => `<button type="button" class="m-bg ph-bel" data-ph-contact="${i}"${callIdx === i && call ? ' aria-current="true"' : ''}>Bel ${esc(c.name)}</button>`).join('');
-  block.innerHTML = `<h3 class="m-eb">${id === OVERIG ? 'Berichten en contacten' : 'Berichten'}</h3>${bel ? `<div class="m-acts ph-acts">${bel}</div>` : ''}<div class="td-detail ph-detail" aria-live="polite"></div>${messagesHtml(id)}`;
+    .map(({ c, i }) => `<button type="button" class="ds-z-knop ds-z-knop--secundair pt-bel" data-ph-contact="${i}"${callIdx === i && call ? ' aria-current="true"' : ''}>Bel ${esc(c.name)}</button>`).join('');
+  block.innerHTML = `<h3 class="pt-titel">${id === OVERIG ? 'Kletsmaar en contacten' : 'Kletsmaar'}</h3>${bel ? `<div class="pt-acts ds-zeef">${bel}</div>` : ''}<div class="td-detail ph-detail" aria-live="polite"></div>${messagesHtml(id) || (id === OVERIG && !bel ? leegHtml(LEEG.berichten) : '')}`;
   renderDetail();
 }
 

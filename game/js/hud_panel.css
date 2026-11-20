@@ -711,3 +711,161 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 /* #987: regelwidgets (regelwidget.js) onder de doelregel, bijvoorbeeld de eierrit: snelheid tegen de limiet en de eieren */
 #hud .hud-obj-regel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; max-width: 100%; }
 #hud .hud-obj-regel[hidden] { display: none; }
+
+/* ===== Designsysteem v3: de HUD als zeefdruk (ADR 0040, #993, #995) =====
+   Papieren plaatjes met inktrand en harde schaduw, Barlow Condensed voor cijfers, Atkinson
+   Hyperlegible voor zinnen. Alleen var(--ds-...) uit ds-tokens.css. Misdruk (--ds-misdruk) staat
+   alleen op een waarde die net veranderde en valt na 1,4 s weg. Rustig drukwerk
+   (html.rustig-drukwerk) nult misdruk, schuinte en raster via de tokens; hier staat voor
+   dat geval alleen nog wat de tokens niet dekken (animaties). */
+#hud {
+  --hud-plaat: var(--ds-c-ink-papier);
+  --hud-inkt: var(--ds-c-ink-inkt);
+  --hud-inkt-zacht: var(--ds-c-inkt-zacht);
+  --hud-rand: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);
+  --hud-schaduw: var(--ds-schaduw-hard);
+  --hud-zinnen: var(--ds-font-tekst-v3);
+  font-family: var(--ds-font-kop-v3);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+@keyframes hud-misdruk-weg { to { text-shadow: none; filter: none; } }
+
+/* het papieren plaatje: elke waarde en kaart van de HUD */
+#hud .hud-clock, #hud .hud-wanted, #hud .hud-moneyrow, #hud .hud-weapon, #hud .hud-gps, #hud .hud-mission,
+#hud .hud-nowplaying, #hud .hud-race, #hud .hud-vehname, #hud .hud-location, #hud .hud-top-left .hud-id,
+#hud .hud-search, #hud .sp-main, #hud .hud-special {
+  background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); box-shadow: var(--hud-schaduw);
+  border-radius: 8px; text-shadow: none; box-sizing: border-box;
+}
+#hud .hud-clock { padding: 3px 12px 2px; }
+#hud .hud-wanted { padding: 4px 8px; width: max-content; margin-left: auto; align-items: center; }
+#hud .hud-moneyrow { padding: 3px 12px 2px; align-items: baseline; }
+#hud .hud-weapon { padding: 3px 12px 3px 8px; }
+#hud .hud-top-left .hud-id { padding: 6px 12px 6px 8px; }
+#hud .hud-location { padding: 4px 12px 5px; }
+#hud .sp-main { padding: 4px 14px 6px; }
+#hud .hud-special { margin-right: 6px; box-shadow: none; }
+#hud .hud-search { background: var(--ds-probleem-vlak); border-color: var(--ds-probleem); }
+
+/* tekst op papier: inkt, geen creme of glaslaag */
+#hud .hud-date, #hud .hud-weapon-text, #hud .gps-dist span, #hud .gps-timer span, #hud .hud-obj-dist, #hud .sp-unit,
+#hud .hud-mate, #hud .hud-meter.veh .veh-name { color: var(--hud-inkt-zacht); }
+#hud .hud-time, #hud .hud-weapon-ammo, #hud .gps-txt b, #hud .hud-street, #hud .hud-character, #hud .sp-val, #hud .hud-race .hr-pos b,
+#hud .hud-race .hr-row b, #hud .hud-vehname b, #hud .hud-nowplaying b { color: var(--hud-inkt); font-weight: 800; }
+#hud .hud-district, #hud .hud-nowplaying small, #hud .hud-vehname small, #hud .gps-dist b { color: var(--ds-c-ink-bord); font-weight: 800; }
+#hud .hud-special, #hud .hud-special.small { color: var(--hud-inkt); font-weight: 800; }
+#hud .hud-special svg { fill: var(--ds-c-ink-geel); stroke: var(--hud-inkt); stroke-width: 1.4; }
+#hud .gps-txt span, #hud .hud-mission-label, #hud .hud-mission-progress, #hud .hud-obj-keys, #hud .hud-nowplaying span:not(.np-ic),
+#hud .hud-mate, #hud .hud-chip { font-family: var(--hud-zinnen); font-weight: 400; letter-spacing: 0; }
+#hud .gps-txt span, #hud .hud-mission-progress, #hud .hud-obj-keys, #hud .hud-nowplaying span:not(.np-ic) { color: var(--hud-inkt-zacht); }
+#hud .hud-mission-label { color: var(--hud-inkt); font-weight: 700; font-size: 18px; }
+#hud .gps-arrow { stroke: var(--ds-c-ink-bord); }
+#hud .gps-sep { background: var(--hud-inkt); opacity: 0.35; }
+#hud .gps-timer b { color: var(--ds-probleem-tx); }
+#hud .hud-chip { background: var(--ds-c-ink-papier); color: var(--hud-inkt); border: 1.5px solid var(--hud-inkt); }
+#hud .hud-chip.drunk, #hud .hud-chip.hud-done b { color: var(--hud-inkt); }
+#hud .hud-chip.drunk svg { stroke: var(--hud-inkt); fill: var(--ds-c-ink-geel); }
+#hud .hud-saved { color: var(--hud-inkt-zacht); }
+#hud .hud-saved svg { color: var(--ds-c-ink-bord); }
+#hud .hud-saved.hud-saved-broken, #hud .hud-saved.hud-saved-broken svg { color: var(--ds-probleem-tx); }
+#hud .hud-weapon-icon { fill: var(--hud-inkt); color: var(--hud-inkt); filter: none; }
+#hud .np-ic { background: var(--ds-c-ink-geel); border: 2px solid var(--hud-inkt); }
+#hud .np-ic svg { stroke: var(--hud-inkt); }
+#hud .hud-vehname .vn-ic { fill: var(--hud-inkt); stroke: var(--hud-inkt); filter: none; }
+#hud .hud-vehname .vn-ic circle:not(.ln) { fill: var(--hud-plaat); }
+#hud .hud-vehname { border-right-width: 2.5px; border-right-color: var(--hud-inkt); }
+#hud .hud-nowplaying, #hud .hud-vehname { box-shadow: var(--hud-schaduw); }
+
+/* geld: misdruk alleen terwijl het getal tikt of een verschil telt */
+#hud .hud-money { color: var(--hud-inkt); font-weight: 800; }
+#hud .hud-money.rolling { color: var(--hud-inkt); text-shadow: var(--ds-misdruk); }
+#hud .hud-money-delta { font-weight: 800; }
+#hud .hud-money-delta.visible { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-money-delta[data-sign="plus"] { color: var(--ds-succes-tx); }
+#hud .hud-money-delta[data-sign="min"] { color: var(--ds-probleem-tx); }
+
+/* wapen: misdruk bij een wissel */
+#hud .hud-weapon.switched .hud-weapon-icon { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze)); animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out), hud-misdruk-weg 0.01s 1.4s forwards; }
+
+/* wanted: roze sterren met inktrand; een lege ster is een raster (vorm en aantal, nooit alleen kleur) */
+#hud .hud-wanted svg { width: 28px; height: 28px; fill: url(#hud-raster); stroke: var(--hud-inkt); stroke-width: 1.8; opacity: 1; }
+#hud .hud-wanted svg.on { fill: var(--ds-c-ink-roze); stroke: var(--hud-inkt); stroke-width: 1.8; }
+#hud .hud-wanted.changed svg.on { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-inkt)); }
+#hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2; }
+#hud .hud-wanted svg:not(.on) { stroke-dasharray: none; }
+#hud .hud-search > i { background: var(--ds-c-ink-papier); border: 1.5px solid var(--hud-inkt); height: 9px; }
+#hud .hud-search > i > i { background: var(--ds-probleem); }
+
+/* gezondheid en voertuig: balk met inktrand, vulling in bordgroen of gevaar */
+#hud .hud-bar { height: 12px; background: var(--ds-c-ink-papier); border: 2px solid var(--hud-inkt); border-radius: 4px; box-sizing: border-box; }
+#hud .hud-meter.st .hud-bar { height: 7px; }
+#hud .hud-bar-ghost { background: var(--ds-c-ink-roze); opacity: 0.7; }
+#hud .hud-bar-fill.health, #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: var(--ds-c-ink-bord); }
+#hud .hud-bar-fill.armor { background: var(--hud-inkt-zacht); }
+#hud .hud-bar-fill.stamina { background: var(--ds-c-ink-bord); opacity: 1; }
+#hud .hud-bar-fill.vehicle { background: var(--ds-probleem); }
+#hud .hud-meter.low .hud-bar-fill.health { background: repeating-linear-gradient(135deg, var(--ds-probleem) 0 5px, var(--ds-c-ink-papier) 5px 8px); }
+#hud .hud-portrait, #hud .hud-mate-pic { border: 2px solid var(--hud-inkt); background: var(--ds-c-ink-bord); }
+#hud .hud-portrait svg { fill: var(--ds-c-ink-papier); }
+#hud .hud-portrait.low { border-color: var(--ds-probleem); box-shadow: 3px 2px 0 var(--ds-c-ink-roze); filter: none; }
+
+/* doel: het plaatje loopt met zijn tekst mee, geel is de pijl en de rand van een missie */
+#hud .hud-mission { padding: 6px 18px 6px 12px; }
+#hud .hud-mission[data-kind="mission"] { --obj: var(--ds-c-ink-geel); }
+#hud .hud-mission[data-kind="job"] { --obj: var(--ds-c-ink-bord); }
+#hud .hud-mission[data-kind="police"] { --obj: var(--ds-probleem); }
+#hud .hud-obj-icon { fill: var(--obj); stroke: var(--hud-inkt); stroke-width: 1.4; filter: none; width: 22px; height: 22px; flex-basis: 22px; }
+#hud .hud-mission.pop .hud-obj-text { text-shadow: var(--ds-misdruk); animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), hud-misdruk-weg 0.01s 1.4s forwards; }
+
+/* toetsplaatje op papier: inkt met papieren letter, zonder misdruk */
+#hud .hud-key, #cine .hud-key { background: var(--hud-inkt); color: var(--ds-c-ink-papier); box-shadow: none; border-radius: 4px; }
+
+/* plaatsnaam en prestaties blijven grote letters op het beeld, nu met misdruk op de naam bij het binnenkomen */
+#hud .hud-place { color: var(--ds-c-ink-papier); text-shadow: 3px 3px 0 var(--ds-c-ink-inkt); }
+#hud .pl-name { font-family: var(--ds-font-kop-v3); font-weight: 800; text-shadow: var(--ds-misdruk), 4px 4px 0 var(--ds-c-ink-inkt); -webkit-text-stroke: 2px var(--ds-c-ink-inkt); paint-order: stroke fill; }
+#hud .pl-kick { color: var(--ds-c-ink-geel); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#hud .pl-kick i { background: var(--ds-c-ink-geel); }
+#hud .pl-line { font-family: var(--hud-zinnen); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+
+/* race en rit */
+#hud .hud-race { border-right-width: 2.5px; }
+#hud .hud-race .hr-pos span, #hud .hud-race .hr-row span { color: var(--hud-inkt-zacht); }
+#hud .hud-race .hr-pos[data-lead="1"] b, #hud .hud-race .hr-row[data-state="ahead"] b, #hud .hud-race .hr-row[data-k="best"] b { color: var(--ds-succes-tx); }
+#hud .hud-race .hr-row[data-state="low"] b { color: var(--ds-probleem-tx); }
+#hud .sp-gears { color: var(--hud-inkt-zacht); }
+#hud .sp-gears .on { color: var(--ds-c-ink-bord); }
+#hud .sp-gears .warn { color: var(--ds-probleem-tx); }
+#hud .rpm-bg { stroke: var(--ds-c-ink-papier); }
+#hud .rpm-fill { stroke: var(--ds-c-ink-bord); }
+
+/* de minimap: afgerond vierkant op papier, inktrand, harde schaduw; de buurtnaam hangt als inktlabel eronder */
+#hud .hud-minimap-wrap {
+  background: var(--hud-plaat); border: var(--hud-rand); border-radius: 16px; padding: 6px; box-sizing: border-box;
+  box-shadow: var(--hud-schaduw); overflow: hidden; transition: box-shadow 0.4s ease;
+}
+#hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
+#hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }
+#hud .hud-mm-label {
+  position: absolute; left: var(--hud-edge); bottom: max(8px, calc(var(--mm-bottom) - 38px)); max-width: var(--mm-size);
+  box-sizing: border-box; padding: 2px 12px 3px; background: var(--hud-inkt); color: var(--ds-c-ink-papier);
+  border-radius: 5px; font-size: max(17px, var(--hud-min)); line-height: 1.15; font-weight: 800; letter-spacing: 0.04em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+}
+#hud .hud-mm-label:empty { display: none; }
+body.hide-minimap #hud .hud-mm-label { display: none; }
+#hud .hud-mm-label.nieuw { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; }
+
+/* Rustig drukwerk: de tokens nullen misdruk, schuinte en raster; hier nog de beweging en de lege ster als omtrek */
+html.rustig-drukwerk #hud .hud-money-delta.visible, html.rustig-drukwerk #hud .hud-mission.pop .hud-obj-text,
+html.rustig-drukwerk #hud .hud-weapon.switched .hud-weapon-icon, html.rustig-drukwerk #hud .hud-mm-label.nieuw { animation: none; text-shadow: none; filter: none; }
+html.rustig-drukwerk #hud .hud-wanted svg:not(.on) { fill: none; }
+html.rustig-drukwerk #hud .hud-wanted.changed svg.on { filter: none; }
+html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt); }
+@media (prefers-reduced-motion: reduce) {
+  #hud .hud-money-delta.visible, #hud .hud-mission.pop .hud-obj-text, #hud .hud-weapon.switched .hud-weapon-icon { animation: none; }
+}
+
+/* v3 (#993): het metgezel-ronde bolletje zonder portret was een los groen rondje; het portret staat pas als het er is */
+#hud .hud-mate-pic { border-radius: 6px; background: var(--ds-c-ink-papier); }
+#hud .hud-mate-pic:not(:has(img.on)) { display: none; }
