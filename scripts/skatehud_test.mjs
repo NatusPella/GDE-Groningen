@@ -1,0 +1,32 @@
+// Pure test van de skatepark-HUD (#985): scripts/skatehud_test.mjs
+import assert from 'node:assert/strict';
+import { skateHudModel, watNu, stapVan, STAPPEN, UITLEG, BALANS_GEVAAR, trucPop, ketenPop } from '../game/js/skatestatus.js';
+import { FEATURES } from '../game/js/skatetricks.js';
+import { simHudHtml } from '../game/js/simhud.js';
+
+assert.equal(skateHudModel(null), null);
+assert.equal(stapVan({ grond: true, grind: null }), 'duw'); assert.equal(stapVan({ grond: false, grind: null }), 'truc'); assert.equal(stapVan({ grond: false, grind: { bal: 0 } }), 'grind');
+const basis = { fase: 'run', links: 61.2, duur: 90, score: 12400, keten: 0, mult: 1, ketenAan: false, grond: true, grind: null, flash: '', slecht: false, uitleg: false };
+const duw = skateHudModel(basis);
+assert.equal(duw.stappen.length, STAPPEN.length); assert.equal(duw.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(duw.stappen[0].stand, 'nu');
+assert.equal(duw.meter.naam, 'Tijd van de run'); assert.equal(duw.meter.label, '1:02'); assert.equal(Math.round(duw.meter.pct), 68);
+assert.equal(duw.cijfers.length, 1, 'zonder keten alleen de score'); assert.equal(duw.cijfers[0].waarde, (12400).toLocaleString('nl-NL')); assert.ok(duw.cijfers[0].primair && duw.cijfers[0].icoon);
+assert.match(duw.nu, /Duw met W/); assert.equal(duw.uitleg.length, 0);
+const keten = skateHudModel({ ...basis, ketenAan: true, keten: 850, mult: 3, grond: false });
+assert.equal(keten.cijfers.length, 2); assert.match(keten.cijfers[1].waarde, /x3$/); assert.ok(keten.cijfers.every((c) => c.icoon) && keten.cijfers.filter((c) => c.primair).length === 1);
+assert.equal(keten.stappen[1].stand, 'nu'); assert.match(keten.nu, /In de lucht/); assert.match(watNu({ ...basis, ketenAan: true }), /keten telt/);
+const grind = skateHudModel({ ...basis, grond: false, grind: { bal: 0.3 } });
+assert.equal(grind.stappen[2].stand, 'nu'); assert.equal(grind.meter.naam, 'Balans'); assert.equal(grind.meter.staat, ''); assert.match(grind.nu, /leunt rechts/);
+assert.match(watNu({ ...basis, grind: { bal: -0.3 } }), /leunt links/); assert.match(watNu({ ...basis, grind: { bal: 0 } }), /midden/);
+const gevaar = skateHudModel({ ...basis, grind: { bal: BALANS_GEVAAR + 0.1 } });
+assert.equal(gevaar.meter.staat, 'laag'); assert.equal(gevaar.meter.label, 'Bijna gevallen'); assert.ok(gevaar.slecht);
+assert.equal(skateHudModel({ ...basis, grind: { bal: 99 } }).meter.pct, 100, 'balans nooit boven 100'); assert.equal(skateHudModel({ ...basis, grind: { bal: -99 } }).meter.pct, 0);
+assert.equal(skateHudModel({ ...basis, links: 8 }).meter.staat, 'laag', 'de laatste seconden');
+const intro = skateHudModel({ ...basis, fase: 'intro', links: 90, uitleg: true });
+assert.equal(intro.uitleg.length, UITLEG.length); assert.match(intro.nu, /Daar gaan we/); assert.equal(skateHudModel({ ...basis, fase: 'outro' }).nu, 'Tijd!');
+assert.equal(skateHudModel({ ...basis, flash: 'Gevallen! -300', slecht: true }).nu, 'Gevallen! -300');
+assert.ok(FEATURES.some((f) => f.type === 'rail'), 'het park heeft rails voor de lichtkolom');
+assert.equal(trucPop('Kickflip', 1500).tekst, `Kickflip +${(1500).toLocaleString('nl-NL')}`); assert.match(ketenPop(2400).tekst, /Keten opgeslagen/);
+const html = simHudHtml(gevaar);
+assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3);
+console.log('skatehud_test ok');

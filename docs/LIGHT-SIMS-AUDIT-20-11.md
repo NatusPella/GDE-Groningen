@@ -207,6 +207,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** Een kaartmarkering voor de keerwand, een eigen sting voor een record.
 
+## 12. Skatepark
+
+**Wat kan de speler.** Een run van negentig seconden in het skatepark (E bij de ingang): W duwt, A en D sturen en draaien, Spatie ollie, E kickflip, F heelflip, S grab, op een rail een grind met balans. Trucs vormen een keten die pas telt als je landt; medailles en records.
+
+**De lus.** Duwen, springen, een truc in de lucht, landen, de keten opslaan, opnieuw.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst een truc scoort (`gde-sim-uitleg-v1`) |
+| HUD | bord met tijd, score, keten en beste in een rij, een balansbalk in eigen kleuren | solo: strook (`simhud.js`): chips Duwen, Truc, Grind (wat je nu doet), meter met de run-tijd of tijdens een grind je balans, score groot en de keten met pictogram, één zin wat nu; in de wedstrijd blijft het bord |
+| Wereld | park, rails, helling, de skater | plus een gele lichtkolom boven de dichtstbijzijnde rail (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | een getal springt op per truc ("Kickflip +1.500") en per opgeslagen keten, met het bestaande UI-geluid; een val staat als zin in de strook |
+
+**Samen spelen.** Een solo-run is van de speler zelf (lokaal, ook bij een gast). De wedstrijd tegen elkaar (`multiplayerwedstrijd.js`, host telt, beurten) houdt het bord met de stand van de anderen. Valt een speler weg, dan verdwijnt zijn strook met zijn run. Test: `skatehud_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** De strook in de wedstrijd, een lijn op de grond naar de volgende rail, een kaartmarkering.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
