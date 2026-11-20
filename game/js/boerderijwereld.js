@@ -792,7 +792,7 @@ function meldOogstklaar(w, b) {
     vorigeStand.set(id, nu);
     if (nu === 'rijp' && was && was !== 'rijp') {
       const v = B.veldStand(b, id), g = B.GEWASSEN[v.gewas];
-      bericht(w, `${g ? g.naam : 'Je gewas'} op ${PC.perceelDef(id).naam} is oogstklaar. Zoek de gele lichtkolom en oogst met de maaidorser.`, 6);
+      bericht(w, `${g ? g.naam : 'Je gewas'} op ${PC.perceelDef(id).naam} is oogstklaar. Zoek de lichtkolom en oogst met de maaidorser.`, 6);
       try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ }
     }
   }

@@ -1,5 +1,5 @@
 // De markering van een veld in de wereld (#985): een paal met een vlag in de kleur van de status op de hoek van het veld, een vorm bovenop (kleur is nooit
-// de enige betekenis) en, als het gewas oogstklaar is, een zachte gele lichtkolom die rustig pulseert. Alles MeshBasic zonder licht of nieuwe shader;
+// de enige betekenis) en, als het gewas oogstklaar is, een zachte lichtkolom in de kleur van de stand (groen) die rustig pulseert. Alles MeshBasic zonder licht of nieuwe shader;
 // de kolom heeft depthWrite uit en een lichte lift, dus geen z-fighting met de grond. De kleuren komen uit farmstatus.js (zelfde taal als de kaart).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WERELD_KLEUR, GROEI_STANDEN } from './farmstatus.js';

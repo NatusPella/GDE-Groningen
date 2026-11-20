@@ -94,22 +94,23 @@ export function watNu(s, schuurKg = 0) {
 }
 
 // De kaartstijl van een status: een naam uit INK (mapstyle.js), een lijnpatroon en een letter, zodat kleur nooit de enige betekenis is.
-// Eén accent: geel is alleen voor oogstklaar (het doel); de rest is groen, grijs of amber.
+// Dezelfde kleurtaal als de gebieden (eigenaar, 20-11): groen is klaar en in orde (oogstklaar, met een vlag), geel is bezig met een voortgang (het gewas groeit),
+// dof grijs is leeg (braak, stoppel) en room is geploegd. Kleur is nooit de enige betekenis: elke stand heeft ook een letter, een lijnpatroon en een icoon.
 export const KAART_STIJL = {
   braak: { vul: 'grey', rand: 'grey', letter: 'B', dash: [6, 5] },
-  stoppel: { vul: 'amber', rand: 'amber', letter: 'S', dash: [6, 5] },
+  stoppel: { vul: 'grey', rand: 'grey', letter: 'S', dash: [2, 4] },
   geploegd: { vul: 'cream', rand: 'cream', letter: 'P', dash: [] },
-  zaailing: { vul: 'greenLight', rand: 'greenLight', letter: 'Z', dash: [] },
-  groeiend: { vul: 'greenLight', rand: 'greenLight', letter: 'G', dash: [] },
-  bijna: { vul: 'green', rand: 'greenLight', letter: 'G', dash: [] },
-  rijp: { vul: 'yellow', rand: 'yellow', letter: 'O', dash: [] },
+  zaailing: { vul: 'yellow', rand: 'yellow', letter: 'Z', dash: [] },
+  groeiend: { vul: 'yellow', rand: 'yellow', letter: 'G', dash: [] },
+  bijna: { vul: 'yellow', rand: 'yellow', letter: 'G', dash: [] },
+  rijp: { vul: 'green', rand: 'greenLight', letter: 'O', dash: [] },
 };
 
 // Welke standen een groeibalk of voortgangsring krijgen (kaart, wereldmarkering): het gewas staat er (zaailing tot oogstklaar).
 export const GROEI_STANDEN = ['zaailing', 'groeiend', 'bijna', 'rijp'];
 
 // De kleur van de wereldmarkering per status (hex), dezelfde taal als de kaart.
-export const WERELD_KLEUR = { braak: 0x9a9488, stoppel: 0xc9a24f, geploegd: 0xe6dcc2, zaailing: 0x7fd99c, groeiend: 0x3fc97a, bijna: 0x1e9e56, rijp: 0xe8c93a };
+export const WERELD_KLEUR = { braak: 0x9a9488, stoppel: 0xb8ad8e, geploegd: 0xe6dcc2, zaailing: 0xf3e07a, groeiend: 0xe8c93a, bijna: 0xd2a72c, rijp: 0x2fb36a };
 
 // Compact voor Samen spelen: één byte per veld (statusindex 0..6 in de bovenste drie bits, gewasindex in de onderste vijf) en de groei in 1/255.
 export const GEWAS_INDEX = B.GEWAS_IDS;

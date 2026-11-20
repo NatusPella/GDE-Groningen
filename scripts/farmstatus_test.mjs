@@ -65,7 +65,9 @@ t('elke status heeft icoon, kaartstijl met letter, wereldkleur en een verschille
     assert.ok(S.KAART_STIJL[sid].letter, sid); assert.ok(Number.isInteger(S.WERELD_KLEUR[sid]), sid);
   }
   assert.equal(new Set(S.STATUS_IDS.map((x) => S.WERELD_KLEUR[x])).size, S.STATUS_IDS.length, 'elke stand een eigen wereldkleur');
-  assert.equal(S.KAART_STIJL.rijp.vul, 'yellow'); assert.equal(Object.values(S.KAART_STIJL).filter((x) => x.vul === 'yellow').length, 1, 'geel is alleen oogstklaar');
+  assert.equal(S.KAART_STIJL.rijp.vul, 'green'); assert.equal(Object.values(S.KAART_STIJL).filter((x) => x.vul === 'green').length, 1, 'groen is alleen oogstklaar (klaar en in orde)');
+  for (const sid of ['zaailing', 'groeiend', 'bijna']) assert.equal(S.KAART_STIJL[sid].vul, 'yellow', 'geel is bezig: ' + sid);
+  assert.equal(S.KAART_STIJL.braak.vul, 'grey', 'braak is dof');
 });
 
 t('watNu: oogsten, ploegen, zaaien, wachten en de oogst afleveren', () => {
