@@ -208,6 +208,7 @@ import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
+import { busHalteKind } from './bushalte.js';
 import { busBestuurKind } from './busbestuurhud.js';
 import { busInterieurKind } from './businterieur3d.js';
 import { bootInterieurKind } from './bootinterieur3d.js';
@@ -243,6 +244,7 @@ registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: in
 registerActivityKind(planeKind);
 registerActivityKind(BOERDERIJ_WERELD_KIND); // je eigen erf, machines en werktuigen in de wereld (#415)
 registerActivityKind(busBoardKind);
+registerActivityKind(busHalteKind);
 registerActivityKind(busBestuurKind);
 registerActivityKind(busInterieurKind);
 registerActivityKind(bootInterieurKind); // roef/stuurhut-interieurs van boten (#847)

@@ -53,6 +53,17 @@ export default {
   start(c) {
     // de dienst overnemen van de bus waar je al in zit (busboard3d.js, #396): die bus, die lijn, die richting
     const tk = c.takeover;
+    if (tk && tk.halte) {
+      // een dienst vanaf een halte (ovmissie.js): de bus staat bij die halte klaar, de rit begint daar in de gekozen richting
+      const { line, dir, index } = tk.halte;
+      const p = startAt(line, line.stops[index].s, dir);
+      const v = spawnJobVehicle(c.world, p.x, p.y, { kind: 'bus', model: COACH, angle: p.angle });
+      if (!v) return 'Geen bus beschikbaar';
+      c.data.line = line;
+      c.data.halte = tk.halte;
+      c.vehicle = v;
+      return true;
+    }
     if (tk) {
       const s = project(tk.line, tk.vehicle.x, tk.vehicle.y).s;
       const dienst = takeOverService(tk.line, { dir: tk.dir, s, max: MAX_STOPS });
@@ -98,7 +109,7 @@ export default {
       c.msg(`${d.keer ? 'Einde van de lijn: je rijdt de terugweg. ' : ''}Dienst overgenomen${mee ? ` met ${mee} reizigers aan boord` : ''}: eerst ${nu.name}, dan ${last.name}.`, 3.5);
       return;
     }
-    const plan = planRide(d.line, c.vehicle.x, c.vehicle.y);
+    const plan = d.halte ? { dir: d.halte.dir, first: d.halte.eerst } : planRide(d.line, c.vehicle.x, c.vehicle.y);
     d.ride = makeRide(d.line, { ...plan, max: MAX_STOPS });
     c.vehicle.busBediend = c.vehicle.busBediend || makeBediening(); // deuren (O) en kneel (K) bedien je zelf (#444)
     c.vehicle.rideLine = { line: d.line, dir: d.ride.dir }; // het bord en het HUD-kaartje volgen de rit (busboard3d.js, #386)
