@@ -279,6 +279,7 @@ async function connect() {
   if (gateKnop) { // een nieuw spel: de gastheer start het (zoals een speler); de opening begint daarna, de anderen kijken mee (of de gastheer slaat over)
     if (CFG.gateWachtMs) await sleep(CFG.gateWachtMs); // de gast leest 'Wacht tot ... het spel start' en het menu sluit pas bij het starten
     gateKnop.click(); log('spel-gestart', {});
+    setTimeout(async () => { try { await until(() => W().coopStartMeting && W().coopStartMeting.klaar, 90000, 'start-meting'); const m = W().coopStartMeting; log('start-meting', { samenvatting: m.samenvatting, stappen: m.stappen, events: m.events.slice(0, 40) }); } catch (e) { /* geen meting */ } }, 0); // #1011: wat zet de gastheer stil na Spel starten
     let skip = true; (async () => { while (skip) { if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip(); await sleep(2500); } })();
     await until(() => !(W().paused), 60000, 'het spel loopt na Spel starten'); // op een drukke computer duurt het laadscherm van de opening soms lang
     await sleep(1500);
@@ -405,6 +406,28 @@ const PHASES = {
       rail: rail ? [rail.scrollHeight, rail.clientHeight] : null, opslaan: opsl ? Math.round(opsl.getBoundingClientRect().bottom) : null, venster: [innerWidth, innerHeight], raHoogte: first && second ? Math.round(second.getBoundingClientRect().top - first.getBoundingClientRect().top) : null, coop: document.getElementById('pause-menu').dataset.coop,
       css: first ? { hoogte: getComputedStyle(first).height, raH: getComputedStyle(document.querySelector('#pause-menu .pm-rail')).getPropertyValue('--ra-h'), lettergrootte: getComputedStyle(first).fontSize, zoom: getComputedStyle(document.getElementById('pause-menu')).zoom, spHoogte: getComputedStyle(document.querySelector('#pause-menu .pm-rail-sp')).height, mt: getComputedStyle(document.getElementById('pause-menu')).getPropertyValue('--mt') } : null });
     shot(name); await sleep(500); await closeMenu();
+  },
+  // #1011: een bijbaan door een gast, in een echte sessie. De gast (args.wie) staat bij het startpunt en drukt E; de anderen
+  // krijgen "Meedoen?" en zeggen J. Gelogd: wie meedoet, de stand van de baan en het geld per speler (elke meedoende krijgt het volle bedrag).
+  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk' }) {
+    const w = W(); const SJ = await import('./js/sidejobs.js');
+    const spot = SJ.getSideJobSpotsForRender().find((x) => x.job && x.job.id === id);
+    const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false; const slotVan = { gast: 1, gast2: 2, gast3: 3 }[wie] || 1;
+    log('gastbijbaan-begin', { wie: CFG.name, spot: spot ? [Math.round(spot.x), Math.round(spot.y)] : null, geld: geld0 });
+    if (!spot) { await sleep(s * 1000); return; }
+    const t0 = performance.now(); let laatsteLog = 0;
+    while (performance.now() - t0 < s * 1000) {
+      const G = w.coopBijbaanGast;
+      // de plek van een gast is van de gastheer: de host zet de figuur van de gast bij het startpunt (de gast loopt er zelf niet heen)
+      if (CFG.role === 'host' && performance.now() - t0 < 9000) { const f = (w.coopFigures || {})[slotVan]; if (f) { f.x = spot.x + 0.8; f.y = spot.y; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } }
+      if (CFG.name === wie && !verzoek && performance.now() - t0 > 6000) { key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name, pos: [Math.round(w.player.x), Math.round(w.player.y)], spot: [Math.round(spot.x), Math.round(spot.y)], msg: (w.messages || []).slice(-2).map((m) => m.text || m) }); }
+      if (CFG.name !== wie && CFG.role !== 'host' && !jGestuurd && G && G.uitn) { key('j', 'KeyJ'); jGestuurd = true; log('gastbijbaan-j', { wie: CFG.name, uitn: G.uitn.label }); }
+      if (G && G.deelt) deelde = true;
+      if (performance.now() - laatsteLog > 3000) { laatsteLog = performance.now(); log('gastbijbaan-stand', { wie: CFG.name, deelt: !!(G && G.deelt), uitn: !!(G && G.uitn), baan: G && G.id, sideJob: w.sideJob ? { actief: !!w.sideJob.active, naam: w.sideJob.name || null } : null, geld: w.money | 0 }); }
+      await sleep(500);
+    }
+    shot('gastbijbaan');
+    log('gastbijbaan-eind', { wie: CFG.name, deelde, geldWinst: (w.money | 0) - geld0 });
   },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
   async netsim({ s = 20, latency = 0.12, jitter = 0.05, loss = 0.1, wie = null }) {
@@ -1260,6 +1283,7 @@ const PHASES = {
       log('gate-wacht', { cine: cineOn(), paused: !!W().paused, cam: !!W().cameraOverride, knop: !!panel().querySelector('[data-act="start-spel"]') });
       shot('gate-host');
       panel().querySelector('[data-act="start-spel"]').click(); log('spel-gestart', {});
+      setTimeout(async () => { try { await until(() => W().coopStartMeting && W().coopStartMeting.klaar, 90000, 'start-meting'); const m = W().coopStartMeting; log('start-meting', { samenvatting: m.samenvatting, stappen: m.stappen, events: m.events.slice(0, 40) }); } catch (e) { /* geen meting */ } }, 0); // #1011: wat zet de gastheer stil na Spel starten
     } else {
       await closeMenu(); // de gast kijkt vanuit het spel mee; hij wacht tot de gastheer start (hij begint niet zelf)
       log('gate-gast', { cine: cineOn(), cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null });
