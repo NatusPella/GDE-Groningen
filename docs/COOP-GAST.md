@@ -213,6 +213,7 @@ Samen spelen, geldt voor iedere gast. Een korte netwerkhik is geen einde van de 
 
 De weg terug hangt af van hoe de gast binnenkwam, en alles blijft in het geheugen of in `laatsteCode` (geen IP-adres, geen wachtwoord):
 - **Kamercode:** `laatsteCode` staat in `gde-coop-sessie` en vult het veld.
+- **Direct (IP-adres, alleen desktop):** de directe code (`GDE2-...`) bevat het adres van de host en komt daarom nooit in `gde-coop-sessie` en nooit in een veld of een hubregel (constitutie 10, #1011): `coopsave.js` houdt hem alleen in het geheugen van deze run. Na een herstart van het spel typt de gast hem opnieuw in; een oude installatie die zo'n code bewaarde, wordt bij het lezen schoongemaakt.
 - **Openbare lijst:** de gast onthoudt id, hostsleutel en rijnaam in `bronVan(sessie)` (`net/joingate.js`) en hervat met `hervatViaLijst()` in `lobbyui.js`.
 - **Na een hostwissel (#439) of overname (#450):** de bron van de eerste route hoort bij de oude host. De nieuwe kamer wordt daarom de laatste code (`onCode` in `coophostwisselnet.js`, voor iedere gast die bij de nieuwe host aansluit, ook wie het spel opende); de host-failover zelf verandert niet.
 
