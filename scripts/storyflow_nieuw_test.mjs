@@ -127,6 +127,8 @@ const REQS = new Set([...src.slice(src.indexOf('const REQUIREMENTS = {')).matchA
 ok(KINDS.has('goto') && KINDS.has('hold') && KINDS.has('chase') && REQS.has('night'), 'stage kinds and requirements were read from missions.js', `${KINDS.size}/${REQS.size}`);
 // plan and vault are panels and scenes of their own: their label is a title, the HUD goal comes from the scene
 const NOSAY = new Set(['scene', 'shot', 'board', 'plan', 'vault']);
+// de missiedefinities dragen sinds de wegindex een verwijzing naar de kaart (circulair): sla 'map' en herhaalde objecten over
+const safeJson = (o) => { const gezien = new WeakSet(); return JSON.stringify(o, (k, v) => (k === 'map' ? undefined : v && typeof v === 'object' ? (gezien.has(v) ? undefined : (gezien.add(v), v)) : v)); };
 const OLD_PLOT = /Boer Roelf|\bHilje\b|\bde Grunn\b/;
 const insideOutline = (poly, x, y) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
 const inProvince = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x > -45000 && p.x < 62000 && p.y > -45000 && p.y < 22000;
@@ -135,8 +137,8 @@ for (const st of missionSteps) {
   if (!d) continue;
   const tag = st.id;
   ok(Number.isFinite(d.start && d.start.x) && Number.isFinite(d.start.y), `${tag}: a start`);
-  ok(insideOutline(FALLBACK.outline, d.start.x, d.start.y), `${tag}: the start is inside the province's outline`, JSON.stringify(d.start));
-  ok(!OLD_PLOT.test(JSON.stringify(d)), `${tag}: nothing of the old plot (Boer Roelf, Hilje) or "de Grunn"`);
+  ok(insideOutline(FALLBACK.outline, d.start.x, d.start.y), `${tag}: the start is inside the province's outline`, `${d.start.x},${d.start.y}`);
+  ok(!OLD_PLOT.test(safeJson(d)), `${tag}: nothing of the old plot (Boer Roelf, Hilje) or "de Grunn"`);
   ok(typeof d.label === 'string' && d.label.length > 3, `${tag}: a label`);
   ok(d.reward === st.reward, `${tag}: the def pays what the step says`, `${d.reward}/${st.reward}`);
   for (const sc of st.scenes || []) ok(scenes.has(sc), `${tag}: scene ${sc} exists`);
@@ -244,7 +246,7 @@ for (const [id, b] of Object.entries(REISBEATS)) {
   const fin = defs[MISSION_IDS.indexOf('ontzet')];
   const kinds = fin.stages.map((q) => q.kind);
   ok(['bake', 'hold', 'chase', 'choice'].every((k) => kinds.includes(k)), 'the finale mixes bake, hold, chase and a choice', kinds.join());
-  ok(!/mag niet|mag je niet/i.test(JSON.stringify(defs)), 'no failure line says "mag niet"');
+  ok(!/mag niet|mag je niet/i.test(safeJson(defs)), 'no failure line says "mag niet"');
 }
 
 // --- acts 2 and 3: goal in the HUD, failure lines without 'dat mag niet' (#147)

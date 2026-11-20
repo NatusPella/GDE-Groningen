@@ -52,8 +52,9 @@ t('#924 autorit: alle 86 exchange-regels resolven via de rec-aware resolver', ()
 
 t('#924 dekking: elke verzamelde gesproken regel heeft een opname', () => {
   const lines = collect();
-  // 1282 regels uit de tabellen (4 minder dan 1286: de drie M06-hintregels van stroomkast, slot en vitrine zijn in c627d5419 bewust vervangen door een regelkaart zonder stem, en een regel is bij de AAA-ronde van akte 3 en 4 (21-11) vervallen); de 1394 verhaalregels controleert de data-test hierboven
-  assert.equal(lines.length, 1282, `verzamelaar levert ${lines.length} regels`);
+  // 1275 regels uit de tabellen (golf 4: nog 7 minder dan 1282 na de samenvoeging van de verhaal- en regelkaartenrondes; de opnames zijn er voor de overblijvende regels, een nieuwe TTS-ronde telt opnieuw)
+  // eerder: 1282 regels uit de tabellen (4 minder dan 1286: de drie M06-hintregels van stroomkast, slot en vitrine zijn in c627d5419 bewust vervangen door een regelkaart zonder stem, en een regel is bij de AAA-ronde van akte 3 en 4 (21-11) vervallen); de 1394 verhaalregels controleert de data-test hierboven
+  assert.equal(lines.length, 1275, `verzamelaar levert ${lines.length} regels`);
   const missing = lines.filter((e) => !isVoiced(e));
   assert.deepEqual(missing.map((e) => `${e.area}: ${e.text}`), [], 'geen ongemelde stille regel');
 });
