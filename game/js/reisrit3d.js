@@ -63,6 +63,9 @@ function bouwTaxi(world, optie, dest) {
       w.ritTaxi = v; // scene3d tekent de cabine van Gele Gans voor de passagier (ritcabine3d.js)
       w.ritMeter = meter(0);
       cineDrive(v, w.map, q, 0, 0, v.z);
+      // de verborgen speler staat er vanaf het eerste beeld, zodat het voertuig en zijn cabine meteen getekend worden (in de eerste seconden zat de camera nog zonder cabine op de weg, beeldcheck 20-11)
+      const hp = hoofdspeler(w);
+      hp.x = v.x; hp.y = v.y; hp.gz = v.z || 0;
     },
     stap(w, stand, t) {
       const dt = Math.max(0, Math.min(0.1, t - lastT));
