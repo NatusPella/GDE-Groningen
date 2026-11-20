@@ -135,23 +135,29 @@ export function crowdPlan(spec, ground = null) {
   return { members, requested, short: members.length < requested, seed, shape: spec.shape };
 }
 
+// Wie niet reageert staat niet allemaal hetzelfde stil: een deel kijkt op een telefoon of staat met de handen in de zij (#985).
+export function idleFor(m) {
+  const k = m.id % 8;
+  return k === 3 ? 'phone' : k === 6 ? 'hips' : 'idle';
+}
+
 // De reactie van een figuur op iets dat voorbijkomt (focus: { x, y } van de speler of het
 // voertuig). Binnen REACT_NEAR juichen of zwaaien ze, met een korte, per figuur andere
 // vertraging, en dat houdt even aan nadat het onderwerp voorbij is; tot REACT_LOOK kijken ze
 // mee. state is per figuur ({} bij de eerste keer); de nieuwe state komt terug.
 export function crowdReact(state, m, focus, now) {
   const s = state && typeof state === 'object' ? state : {};
-  if (s.anim === undefined) { s.anim = 'idle'; s.until = 0; s.since = -1; s.gaze = 0; }
+  if (s.anim === undefined) { s.anim = idleFor(m); s.until = 0; s.since = -1; s.gaze = 0; }
   if (focus && isNum(focus.x) && isNum(focus.y)) {
     const d = Math.hypot(focus.x - m.x, focus.y - m.y);
     s.gaze = Math.max(-1.1, Math.min(1.1, wrap(Math.atan2(focus.y - m.y, focus.x - m.x) - m.a))) * (d <= REACT_LOOK ? 1 : 0);
     if (d <= REACT_NEAR) {
       if (s.since < 0) s.since = now + m.delay;
-      if (now >= s.since) { s.anim = m.id % 3 === 0 ? 'wave' : 'cheer'; s.until = now + 1.6 + m.delay; } else s.anim = 'look';
+      if (now >= s.since) { s.anim = m.id % 3 === 0 ? 'wave' : m.id % 5 === 2 ? 'clap' : 'cheer'; s.until = now + 1.6 + m.delay; } else s.anim = 'look';
     } else {
-      if (now >= s.until) { s.since = -1; s.anim = d <= REACT_LOOK ? 'look' : 'idle'; }
+      if (now >= s.until) { s.since = -1; s.anim = d <= REACT_LOOK ? 'look' : idleFor(m); }
     }
-  } else if (now >= s.until) { s.anim = 'idle'; s.since = -1; s.gaze = 0; }
+  } else if (now >= s.until) { s.anim = idleFor(m); s.since = -1; s.gaze = 0; }
   return s;
 }
 

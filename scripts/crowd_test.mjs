@@ -82,7 +82,7 @@ const bad = (m) => inBuilding(m.x, m.y) || inLake(m.x, m.y) || onRoad(m.x, m.y);
   ok(at(-60) === 'idle', 'ver weg doet het publiek niets');
   ok(at(-14) === 'look', 'een naderend voertuig wordt nagekeken');
   ok(at(0) === 'cheer', 'bij het passeren juichen ze');
-  ok(['cheer', 'wave'].includes(seq.find((s) => s.x === 6).anim), 'ook net daarna nog');
+  ok(['cheer', 'wave', 'clap'].includes(seq.find((s) => s.x === 6).anim), 'ook net daarna nog');
   ok(seq[seq.length - 1].anim === 'idle', 'later staat het publiek weer stil');
   const m3 = { ...m, id: 3 };
   let s3 = null;
@@ -137,7 +137,7 @@ const bad = (m) => inBuilding(m.x, m.y) || inLake(m.x, m.y) || onRoad(m.x, m.y);
   // een voertuig dat voorbijkomt: de dichtstbijzijnde figuren juichen
   const near = c.members.reduce((a, b) => (Math.hypot(a.x - 10, a.y) < Math.hypot(b.x - 10, b.y) ? a : b));
   for (let i = 0; i < 20; i++) updateCrowd(c, 0.1, { x: near.x, y: near.y + 2 }, { x: 0, y: 0 });
-  ok(near.state && ['cheer', 'wave'].includes(near.state.anim), 'de figuur naast het voertuig juicht', near.state && near.state.anim);
+  ok(near.state && ['cheer', 'wave', 'clap'].includes(near.state.anim), 'de figuur naast het voertuig juicht', near.state && near.state.anim);
   // ver weg van de camera: niet getekend
   updateCrowd(c, 0.1, null, { x: 5000, y: 5000 });
   ok(c.members.every((m) => m.mesh.visible === false), 'ver van de camera wordt het publiek niet getekend');
@@ -149,6 +149,20 @@ const bad = (m) => inBuilding(m.x, m.y) || inLake(m.x, m.y) || onRoad(m.x, m.y);
   ok(buildCrowd(world, spec, { key: 'test:plein', scene }) !== null, 'na het opruimen kan het publiek opnieuw');
   P.releaseCrowd('test:plein');
   ok(buildCrowd(world, spec, { key: 'leeg', scene, ground: () => false }) === null && !P.crowdClaimed('leeg'), 'een publiek zonder plek laat geen sleutel achter');
+}
+
+// --- klappen en verschillende wachthoudingen (#985) -------------------------------------------------------------
+{
+  const ids = Array.from({ length: 40 }, (_, i) => i);
+  const idle = new Set(ids.map((id) => P.idleFor({ id })));
+  ok(idle.has('idle') && idle.has('phone') && idle.has('hips'), 'het publiek staat niet allemaal hetzelfde stil', [...idle].join(','));
+  ok(ids.filter((id) => P.idleFor({ id }) === 'idle').length > ids.length / 2, 'de meesten staan gewoon');
+  const reacts = new Set(ids.map((id) => P.crowdReact(null, { id, x: 0, y: 0, a: 0, delay: 0 }, { x: 1, y: 0 }, 5).anim));
+  ok(reacts.has('clap') && reacts.has('cheer') && reacts.has('wave'), 'bij het passeren juichen, zwaaien en klappen ze', [...reacts].join(','));
+  const A = await import('../game/js/actoranim.js');
+  ok(A.ANIMS.includes('clap') && A.REACTIONS.klap, 'actoranim kent clap en de klap-reactie');
+  const pose = A.neutralPose(); A.REACTIONS.klap.fn(pose, 1, 0.5, 0.1);
+  ok(Number.isFinite(pose.armL.z) && pose.armL.z > 0.9 && pose.armR.e > 1.2, 'de handen komen voor de borst');
 }
 
 console.log(fails ? `${fails} van ${n} mislukt` : `crowd_test: ${n} controles ok`);

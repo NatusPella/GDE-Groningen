@@ -209,6 +209,13 @@ export const REACTIONS = {
   schud: { dur: 1.1, fn(p, w, k, t) { p.head.y += Math.sin(t * 11) * 0.35 * w; } },
   wijs: { dur: 1.4, fn(p, w, k, t) { T(p.armR, 'z', 1.45, w); T(p.armR, 'e', 0.1, w); T(p.armR, 'x', 0.1, w); p.chest.z += 0.04 * w; } },
   juich: { dur: 1.4, fn(p, w, k, t) { const s = Math.sin(t * 8); T(p.armL, 'z', 2.7 + 0.1 * s, w); T(p.armR, 'z', 2.7 - 0.1 * s, w); T(p.armL, 'e', 0.3, w); T(p.armR, 'e', 0.3, w); T(p.armL, 'x', -0.3, w); T(p.armR, 'x', 0.3, w); p.pelvisDrop += 0.03 * Math.abs(s) * w; p.head.z += -0.15 * w; } },
+  // klappen: de onderarmen voor de borst, de handen komen om de 0,35 s bij elkaar (publiek, #985)
+  klap: { dur: 1.6, fn(p, w, k, t) {
+    const s = 0.5 + 0.5 * Math.sin(t * 18);
+    T(p.armL, 'z', 1.05, w); T(p.armR, 'z', 1.05, w); T(p.armL, 'e', 1.55, w); T(p.armR, 'e', 1.55, w);
+    T(p.armL, 'x', 0.02 + 0.22 * s, w); T(p.armR, 'x', -0.02 - 0.22 * s, w);
+    T(p.head, 'z', 0.06, w); p.pelvisDrop += 0.008 * s * w;
+  } },
   zwaai: { dur: 1.8, fn(p, w, k, t) {
     const sway = Math.sin(t * 9);
     T(p.armR, 'z', 2.75, w); T(p.armR, 'x', 0.3 + 0.28 * sway, w); T(p.armR, 'e', 0.45 + 0.2 * sway, w);
@@ -629,8 +636,8 @@ export function createStage(opts = {}) {
 // De host zet positie en rotatie; deze functie poseert alleen botten (kop, romp, ledematen).
 // Met o.rol deelt een rol zijn staat met zijn kopieën (#434); met o.verberg blijft een
 // tweede kopie van een rol onzichtbaar in plaats van mee te bewegen.
-export const ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
-const LOOPED = { wave: 'zwaai', point: 'wijs', shrug: 'schouders', nod: 'knik', shake: 'schud', laugh: 'lach', cheer: 'juich' };
+export const ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'clap', 'look', 'ride', 'zwem', 'klim', 'sprong'];
+const LOOPED = { wave: 'zwaai', point: 'wijs', shrug: 'schouders', nod: 'knik', shake: 'schud', laugh: 'lach', cheer: 'juich', clap: 'klap' };
 const meshActors = new WeakMap();
 // (#434) Eén acteurstaat per rol in een scène: staat een rol er twee keer in, of krijgt
 // hij tussen twee bedrijven een nieuw model, dan begint hij niet met een eigen, net
