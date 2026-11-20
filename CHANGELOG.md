@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De gele routelijn in de wereld verdwijnt niet meer ineens terwijl de minimap de route nog toont: een strook die helemaal van de verharding af ligt (route over gras, wegen nog niet geladen) kreeg overal doorzichtigheid 0 en krijgt nu een bodem; een mislukte bouw liet een lege strook staan tot je 2 m verder was en wordt nu na een seconde opnieuw geprobeerd; en een waakhond controleert een paar keer per seconde of de lijn bestaat, in de scene staat, zichtbaar is en op de grond ligt, herstelt hem anders en telt de herstelacties.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
