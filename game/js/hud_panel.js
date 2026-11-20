@@ -1,3 +1,4 @@
+import { glyphHtml } from './keycap.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
 import { wantedPhase } from './wantedstate.js';
@@ -1637,7 +1638,7 @@ function updateObjectiveKeys(world, kind) {
   els.objKeys.hidden = !hint;
   if (!hint) { els.objKeys.innerHTML = ''; els.objKeys.removeAttribute('aria-label'); return; }
   els.objKeys.innerHTML = hint.groepen.map((g) => '<span class="hud-obj-key">' +
-    g.keys.map((k) => `<span class="hud-key">${escapeHtml(besturingLabel(k))}</span>`).join('') +
+    g.keys.map((k) => glyphHtml(besturingLabel(k))).join('') +
     `<span>${escapeHtml(g.werk)}</span></span>`).join('');
   els.objKeys.setAttribute('aria-label', 'Besturing: ' + hintText(hint, besturingLabel));
 }
