@@ -882,7 +882,7 @@ function spelHtml() {
       ${saveFactsHtml()}
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
-      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden begint buiten je flat')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
+      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden zet je terug waar je was, of bij je flat als je daar opsloeg')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>

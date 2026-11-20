@@ -20,3 +20,13 @@ export function plekNaam(x, y, { meta, ommelandArea, areaNameAt } = {}) {
   }
   return typeof best === 'string' ? best : '';
 }
+
+// #984: begint laden op de plek van de save of in de flat? Een save midden in een missie
+// ('busy') en een save ergens anders in de provincie ('free') houden de plek; een save bij het
+// huis ('home'), een oude save zonder context en een save zonder positie (in een boot) beginnen
+// weer in de flat.
+export function laadtOpOpslagplek(d) {
+  if (!d) return false;
+  if (d.ctx === 'busy') return true;
+  return d.ctx === 'free' && !!d.pos && Number.isFinite(d.pos.x) && Number.isFinite(d.pos.y);
+}

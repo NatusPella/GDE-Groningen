@@ -66,6 +66,7 @@ import { zetDeelHaken } from './coopbezit.js';
 import { getIndeling } from './gebiedenlive.js';
 import { puntInGebied } from './grenzen.js';
 import { hoofdspeler } from './players.js';
+import { laadtOpOpslagplek } from './saveplek.js'; // #984: laden op de plek van de save
 
 const NEAR_M = 200;
 const FAR_M = 260;
@@ -1122,8 +1123,9 @@ export function applyHomeOnLoad(w, d) {
   front = t && Array.isArray(t.front) ? t.front.filter((k) => typeof k === 'string').slice(0, 40) : [];
   fadeGen++;
   exitFlatNow(w);
-  const busySave = d && d.ctx === 'busy';
-  if (busySave) {
+  // #984: een save ergens anders in de provincie ('free') houdt de plek, net als een save midden in een
+  // missie; een save bij het huis, een oude save zonder context en een save in een boot beginnen in de flat.
+  if (laadtOpOpslagplek(d)) {
     // a mid-mission save made upstairs: back on the street, not inside the tower
     if (inPoly(TOWER, hoofdspeler(w).x, hoofdspeler(w).y, 1)) placeAtLobby(w);
     return;

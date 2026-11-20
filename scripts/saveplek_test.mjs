@@ -1,7 +1,7 @@
 // Savekaart: waar je was en hoe een nieuw spel heet (#985):  node scripts/saveplek_test.mjs
 // Puur en op een geheugenopslag; raakt nooit de echte opslag.
 import assert from 'node:assert/strict';
-import { plekNaam } from '../game/js/saveplek.js';
+import { plekNaam, laadtOpOpslagplek } from '../game/js/saveplek.js';
 import * as S from '../game/js/saveslots.js';
 import { SAVE_VERSION } from '../game/js/savemigrate.js';
 import { ARC_ID } from '../game/js/storyarc.js';
@@ -43,6 +43,16 @@ ok(() => {
   assert.equal(S.saveFailText(sec), 'de browser staat opslaan nu niet toe');
   assert.doesNotMatch(S.saveFailText(quota) + S.saveFailText(null), /[A-Z][a-z]+Error|failed/, 'geen Engelse techniek bij de speler');
 }, 'de reden van een mislukte save is Nederlands');
+
+ok(() => {
+  assert.equal(laadtOpOpslagplek({ ctx: 'busy', pos: { x: 1, y: 2 } }), true, 'midden in een missie: de plek blijft');
+  assert.equal(laadtOpOpslagplek({ ctx: 'free', pos: { x: 1204.5, y: -88 } }), true, '#984: ergens anders opgeslagen: laden zet je daar terug');
+  assert.equal(laadtOpOpslagplek({ ctx: 'home', pos: { x: 1, y: 2 } }), false, 'opgeslagen bij het huis: de flat');
+  assert.equal(laadtOpOpslagplek({ pos: { x: 1, y: 2 } }), false, 'een oude save zonder context: de flat');
+  assert.equal(laadtOpOpslagplek({ ctx: 'free', pos: null }), false, 'in een boot is er geen plek: de flat');
+  assert.equal(laadtOpOpslagplek({ ctx: 'free', pos: { x: NaN, y: 2 } }), false);
+  assert.equal(laadtOpOpslagplek(null), false);
+}, 'laden op de plek van de save (#984)');
 
 console.log(`saveplek_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

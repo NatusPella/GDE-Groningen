@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Laden zet je terug waar je opsloeg: sloeg je ergens in de provincie op, dan sta je na het laden daar weer en niet meer buiten je flat. Sloeg je bij je flat op, dan begin je nog steeds in de flat (#984).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
