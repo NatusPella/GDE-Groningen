@@ -16,6 +16,8 @@ export const SOORTEN = ['geslaagd', 'mislukt', 'opgepakt', 'gebied', 'wanted'];
 export const MAX_WOORDEN = 14;   // the 14-word budget of ui-taal.md
 export const MAX_FLITS_PER_S = 3; // no flash above three a second (photosensitivity)
 export const MAX_WACHTRIJ = 3;
+export const RIJDEN_MS = 3;       // vanaf deze snelheid (m/s) of in een voertuig, boot of vliegtuig is de speler aan het rijden
+export const COMPACT_FACTOR = 0.6; // een compact moment is zo'n 40% kleiner en blijft korter staan
 
 // Defaults per kind: form, label, a Gronings exclamation with its Dutch line, how long it stays (ms).
 // "Grunn" never "de Grunn"; every Gronings line has its Dutch next to it (regelNl).
@@ -34,6 +36,7 @@ const cut = (s, max) => {
 
 // At most `max` words, the rest becomes an ellipsis: the same budget as the rest of the UI.
 import { isPauseMenuOpen } from './pausestate.js';
+import { hoofdspeler } from './players.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -59,6 +62,18 @@ export function formatTijd(t) {
   return h ? `${h}:${twee(m)}:${twee(r)}` : `${m}:${twee(r)}`;
 }
 
+// Compact (rijdend): alleen de vormen die in beeld iets bedekken (nieuw gebied, wanted); opgepakt en de
+// einde-missie-band blijven vol. Puur, zodat de test het zonder DOM kan controleren.
+export const COMPACT_VORMEN = ['plaats', 'rand'];
+export function isRijdend({ inVehicle = false, snelheid = 0 } = {}) {
+  return !!inVehicle || (Number.isFinite(snelheid) && snelheid > RIJDEN_MS);
+}
+export function rijdendVan(w) {
+  const p = hoofdspeler(w);
+  if (!p) return false;
+  return isRijdend({ inVehicle: !!p.inVehicle, snelheid: Math.hypot(p.vx || 0, p.vy || 0) });
+}
+
 // Opts -> the one shape the DOM and the tests read. Always has the words, whatever the mode.
 // opts: { soort, titel, regelNl, beloning, tijd, sterren, klein, beloningLabel }  (all but soort optional)
 export function bouwMoment(opts = {}) {
@@ -73,12 +88,13 @@ export function bouwMoment(opts = {}) {
   const sterren = Number.isFinite(opts.sterren) ? Math.max(0, Math.min(5, Math.round(opts.sterren))) : null;
   const beloningLabel = cut(opts.beloningLabel, 16) || (soort === 'opgepakt' ? 'Boete' : 'Beloning');
   const klein = cut(opts.klein, 24) || d.klein;
+  const compact = !!opts.rijdend && COMPACT_VORMEN.includes(d.vorm);
   const delen = [klein + '.', kop + '.', regelNl];
   if (beloning) delen.push(`${beloningLabel}: ${beloning}.`);
   if (tijd) delen.push(`Tijd: ${tijd}.`);
   if (sterren != null) delen.push(`${sterren} van 5 sterren.`);
   return {
-    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningLabel, tijd, sterren, ms: d.ms,
+    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
     aria: delen.join(' '),
   };
 }
@@ -212,7 +228,7 @@ function binnenHtml(m) {
 function toonNu(m, klaarCb) {
   ensureCss();
   const el = document.createElement('div');
-  el.className = `bm bm-v-${m.vorm} bm-${m.soort}`; // bm-v-: de vorm van de wortel botst anders met het kind .bm-band of .bm-stempel
+  el.className = `bm bm-v-${m.vorm} bm-${m.soort}${m.compact ? ' bm-compact' : ''}`; // bm-v-: de vorm van de wortel botst anders met het kind .bm-band of .bm-stempel
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', m.vorm === 'rand' ? 'polite' : 'assertive');
   el.setAttribute('aria-label', m.aria);

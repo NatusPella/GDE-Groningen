@@ -47,6 +47,20 @@
 .bm-ster { width: 22px; height: 22px; box-sizing: border-box; border: 2px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 5px 5px; clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%); }
 .bm-ster.aan { background-image: none; background-color: var(--ds-c-ink-roze); }
 
+/* Compact (rijdend, bigmoment.js isRijdend): zo'n 40% kleiner, boven in beeld uit de weg van doelkaart, minimap en stuur;
+   dezelfde woorden, dezelfde landing (ds-mi, 250 ms), een kortere verblijftijd (in JS). */
+.bm-gebied.bm-compact { bottom: auto; top: 15vh; }
+.bm-compact .bm-kaart { min-width: min(384px, 52vw); max-width: 56vw; gap: 6px; padding: 12px 20px 14px; --ds-mi-y: calc(var(--ds-mi-versch) * -1); }
+.bm-compact .bm-kaart .bm-kop { font-size: clamp(29px, 4.2vw, 66px); }
+.bm-compact .bm-klein { font-size: clamp(13px, 1vw, 16px); padding: 1px 8px; }
+.bm-compact .bm-regel { font-size: clamp(13px, 1.4vw, 24px); }
+.bm-compact .bm-zegel { top: 10px; right: 12px; width: 38px; height: 46px; }
+.bm-wanted.bm-compact { top: 20vh; }
+.bm-compact .bm-tag { max-width: min(250px, 42vw); padding: 6px 12px 8px 14px; gap: 2px; }
+.bm-compact .bm-tag .bm-kop { font-size: 26px; }
+.bm-compact .bm-tag .bm-regel { font-size: 13px; }
+.bm-compact .bm-ster { width: 14px; height: 14px; }
+
 /* Rustig drukwerk and "Beweging beperken": no motion, no tilt (the token is 0deg), no halftone */
 html.rustig-drukwerk .bm.aan .bm-band, html.rustig-drukwerk .bm.aan .bm-stempel, html.rustig-drukwerk .bm.aan .bm-kaart, html.rustig-drukwerk .bm.aan .bm-tag, html.reduce-motion .bm.aan .bm-band, html.reduce-motion .bm.aan .bm-stempel, html.reduce-motion .bm.aan .bm-kaart, html.reduce-motion .bm.aan .bm-tag { animation: none; }
 html.rustig-drukwerk .bm { transition: none; }
