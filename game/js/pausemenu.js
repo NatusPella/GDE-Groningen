@@ -388,7 +388,7 @@ const SUBTABS = {
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
-  samen: [['samen', 'Samen spelen'], ['spelers', 'Spelers']],
+  samen: [['samen', 'Sessie'], ['spelers', 'Spelers']],
   // #604: alleen echte instellingen. Cheats staat sinds #435 als eigen onderdeel in de rail en het
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
