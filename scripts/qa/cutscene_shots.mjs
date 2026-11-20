@@ -26,18 +26,19 @@ fs.mkdirSync(OUT, { recursive: true });
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
-const profile = `gde-test-cs-${process.pid}`;
+const profile = path.join(OUT, `profiel-${process.pid}`); // absoluut: %TEMP% is soms niet schrijfbaar
+fs.mkdirSync(profile, { recursive: true });
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, WACHT + `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE, spot: SPOT ? (([x, y, a]) => ({ x, y, a: a || 0 }))(SPOT.split(',').map(Number)) : undefined, probe: PROBE ? (([id, t, px]) => ({ id, t: Number(t), px: px.split(',').map((q) => q.split('x').map(Number)) }))(PROBE.split(':')) : undefined, dense: DENSE ? Object.fromEntries(DENSE.split(',').map((d) => { const [id, shot, n] = d.split(':'); return [id, { shot: Number(shot), n: Number(n) || 4 }]; })) : undefined })};\n` + fs.readFileSync(path.join(HERE, arg('page', 'cutscene_shots.page.js')), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-const env = { ...process.env, GDE_TEST_PROFILE: profile };
+const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
 const r = spawnSync(electron, ['.', ...(process.env.GDE_EXTRA_FLAGS ? process.env.GDE_EXTRA_FLAGS.split(' ') : []), '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 45 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt:', r.error.message);
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
-fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+fs.rmSync(profile, { recursive: true, force: true });
 const lines = (r.stdout || '').split('\n');
 let full = {};
 for (const l of lines) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }
