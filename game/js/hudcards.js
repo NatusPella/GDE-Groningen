@@ -33,6 +33,7 @@ import { menuMelding } from './menumelding.js';
 import { hoofdspeler } from './players.js';
 import { sfeerVan, sfeerStijl } from './carrieresfeer.js'; // #631: de sfeerband van de bijbaan op de kaart
 import { getSettings } from './settings.js';
+import { keyTextHtml, hasKeyText } from './keycap.js';
 import { cardSeconds, stickyCard } from './cardtime.js';
 import { addCardLog, cardLogText } from './cardlog.js';
 
@@ -219,19 +220,9 @@ function missionCardIcon(w, text) {
   return null;
 }
 
-// A key named in a card becomes a key cap: [E], "(E)", "druk (op) E/Spatie".
-const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|Spatie|Enter|Tab|Shift|Backspace|Esc';
-const KEY_RE = new RegExp(`\\[(${KEYS})\\]|\\((${KEYS})\\)|(\\b[Dd]ruk (?:op )?)(${KEYS})\\b`, 'g');
-function teaches(text) {
-  KEY_RE.lastIndex = 0;
-  return KEY_RE.test(text);
-}
-function keycaps(html) {
-  return html.replace(KEY_RE, (m, a, b, pre, c) => {
-    const k = a || b || c;
-    return (pre || '') + `<kbd class="hud-key">${k === 'Spatie' ? 'SPATIE' : k.toUpperCase()}</kbd>`;
-  });
-}
+// A key named in a card becomes a key cap: {E}, [E], "(E)", "druk (op) E", "houd E" (keycap.js).
+const teaches = hasKeyText;
+const keycaps = keyTextHtml;
 
 function cardHtml(c) {
   const s = c.spec;

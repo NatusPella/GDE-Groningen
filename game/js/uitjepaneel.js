@@ -5,13 +5,12 @@
 // eigen hex, geen eigen font, geen tweede keycapstijl. Eén regel voortgang en één hint, zoals een
 // uitje betaamt; wat de speler ziet is Nederlands, de code blijft Engels.
 import { sfeerVan, TINT_RGBA } from './activiteitensfeer.js';
+import { keyTextHtml } from './keycap.js';
 import { vormStijl } from './carrieresfeer.js';
 import { mgIcoon } from './minigamekit.js';
 
 // [X] wordt de canonieke toetskap (.hud-key), net als in de startkaarten.
-const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|I|Spatie|Enter|Tab|Shift|Backspace|Esc|1|2|3|4';
-const KEY_RE = new RegExp(`\\[(${KEYS})\\]`, 'g');
-const keysHtml = (s) => String(s).replace(KEY_RE, (m, k) => `<kbd class="hud-key">${k === 'Spatie' ? 'SPATIE' : k.toUpperCase()}</kbd>`);
+const keysHtml = (s) => keyTextHtml(String(s)); // [E], {E}: glyphs follow rebinding (keycap.js)
 
 // De uitjes die deze kaart gebruiken; de id's zijn ook de sleutels van de sfeertabel.
 export const UITJES = {

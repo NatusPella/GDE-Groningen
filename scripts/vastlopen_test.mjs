@@ -13,7 +13,7 @@ t('de hint komt één keer na de stiltetijd en noemt de toets en het menu', () =
   const r = loop(st, VAST_STIL_S + 3, klem);
   assert.equal(r.hints.length, 1);
   assert.ok(r.hints[0] >= VAST_STIL_S - 0.2 && r.hints[0] <= VAST_STIL_S + 0.2, 'rond zes seconden: ' + r.hints[0]);
-  assert.match(VAST_HINT, /Backspace/);
+  assert.match(VAST_HINT, /{BACKSPACE}/);
   assert.match(VAST_HINT, /Vastgelopen/);
 });
 

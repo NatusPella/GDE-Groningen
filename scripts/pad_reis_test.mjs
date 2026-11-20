@@ -4,6 +4,7 @@
 // run heeft een glyph-hulp met een stopknop, en de telefoon op het Verhaal-tabblad is
 // weer te openen (ook op het gesprek van een bericht dat net binnenkwam).
 //   node scripts/pad_reis_test.mjs
+import { glyph } from '../game/js/inputglyphs.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -52,16 +53,18 @@ ok(/padButtonIndex\('a'\)/.test(src('reisrit.js')), 'reisscène: A slaat over, m
 const inner = (html) => (html.match(/([^<>]+)<\/span>$/) || [])[1];
 // zo bouwt glyphs.js een hint: het spelknop-slot eerst door physicalButton, dan de glyph
 const hint = (slot, fam, binds) => padGlyphInner(C.physicalButton(binds, slot), fam);
-ok(inner(hint('a', 'xbox', {})) === 'A' && inner(hint('b', 'xbox', {})) === 'B', 'hint: zonder herbinding A en B');
-ok(inner(hint('a', 'xbox', swapAB)) === 'B' && inner(hint('b', 'xbox', swapAB)) === 'A', 'hint na het omwisselen: de bevestigknop wijst de rechterknop (B) aan', hint('a', 'xbox', swapAB));
+// the hint is a glyph of the glyph font now (inputglyphs.js): compare with the character of the A and B button
+const GA = glyph('xbox', 'xbox_button_a').char, GB = glyph('xbox', 'xbox_button_b').char;
+ok(inner(hint('a', 'xbox', {})) === GA && inner(hint('b', 'xbox', {})) === GB, 'hint: zonder herbinding A en B');
+ok(inner(hint('a', 'xbox', swapAB)) === GB && inner(hint('b', 'xbox', swapAB)) === GA, 'hint na het omwisselen: de bevestigknop wijst de rechterknop (B) aan', hint('a', 'xbox', swapAB));
 ok(hint('a', 'xbox', swapAB).includes('aria-label="rechter knop"'), 'hint na het omwisselen: ook de aria-label noemt de knop die je indrukt', hint('a', 'xbox', swapAB));
-ok(inner(hint('a', 'switch', {})) === 'A' && inner(hint('b', 'switch', {})) === 'B', 'hint op een Switch-pad: bevestigen is de rechterknop (A)');
-ok(inner(hint('a', 'switch', swapAB)) === 'B', 'hint op een Switch-pad met eigen herbinding: de onderste knop (B)');
-ok(hint('a', 'ps', {}).includes('<svg') && hint('a', 'ps', {}).includes('data-slot="a"'), 'hint bij vormknoppen: het kruis');
+ok(inner(hint('a', 'switch', {})) === GA && inner(hint('b', 'switch', {})) === GB, 'hint op een Switch-pad: bevestigen is de rechterknop (A)');
+ok(inner(hint('a', 'switch', swapAB)) === GB, 'hint op een Switch-pad met eigen herbinding: de onderste knop (B)');
+ok(inner(hint('a', 'ps', {})) === glyph('ps', 'playstation_button_cross').char && hint('a', 'ps', {}).includes('data-slot="a"'), 'hint bij vormknoppen: het kruis');
 ok(C.PAD_LAYOUTS.xbox[hint('a', 'xbox', {}).match(/data-slot="([a-z]+)"/)[1]] === 'A', 'de glyph noemt de knop die er echt zit');
 ok(/padGlyphInner\(physicalButton\(getSettings\(\)\.padBinds, slot\)/.test(g), 'glyphs.js doet dat in de hint zelf (render)');
 // de andere aanroepers (pauzemenu, winkel, titelscherm) geven de knop al: die verandert niet
-ok(inner(padGlyphInner('a', 'xbox')) === 'A' && inner(padGlyphInner('b', 'xbox')) === 'B', 'padGlyphInner zelf blijft "deze knop"');
+ok(inner(padGlyphInner('a', 'xbox')) === GA && inner(padGlyphInner('b', 'xbox')) === GB, 'padGlyphInner zelf blijft "deze knop"');
 
 // --- 3. de heli-run: glyph-hulp en een stopknop die de pad kan maken -----------------------
 const h = src('helirun.js');

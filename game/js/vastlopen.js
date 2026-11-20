@@ -8,7 +8,7 @@ export const VAST_SNELHEID = 0.4;  // m/s: daaronder staat het voertuig stil
 
 export const nieuwVast = () => ({ stil: 0, houd: 0, hint: false });
 
-export const VAST_HINT = 'Zit je vast? Houd Backspace ingedrukt om jezelf vrij te zetten, of kies Esc, Spel, Overzicht, Vastgelopen.';
+export const VAST_HINT = 'Zit je vast? Houd {BACKSPACE} ingedrukt om jezelf vrij te zetten, of kies {ESC}, Spel, Overzicht, Vastgelopen.';
 
 // Eén frame. invoer: { inVoertuig, gas (gas of rem ingedrukt), snelheid, bezig (een scène, menu of minigame), houdt (Backspace) }.
 // Geeft { vast, hint, vrij } terug en werkt `st` bij: hint één keer per vastzit-periode, vrij zodra de toets lang genoeg is vastgehouden.

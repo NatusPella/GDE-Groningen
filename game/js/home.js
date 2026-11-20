@@ -58,9 +58,7 @@ import { isVillageMiniActive } from './dorpsuitjes.js';
 import { isActivityActive } from './activities.js';
 import { buildHelipadMesh } from './heli3d.js';
 import { tagPleiadenlaan, tagKorenbloemstraat } from './thuis3d.js';
-import { keyWord } from './controls.js';
 import { getSettings } from './settings.js';
-const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 import { playerBusy } from './busy.js';
 import { groepAkkoord } from './coopgroep.js';
@@ -1299,7 +1297,7 @@ function toRoof(w) {
       c.inVehicle = v;
       v.passenger = 'companion';
     }
-    w.addMessage(`Op het dak. Spatie: opstijgen, ${downKey()}: omlaag`, 5, { kind: 'tip' });
+    w.addMessage('Op het dak. {SPACE}: opstijgen, {CTRL}: omlaag', 5, { kind: 'tip' });
   }, 520);
 }
 

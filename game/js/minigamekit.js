@@ -4,6 +4,7 @@
 // coordinates of an older frame. No THREE here, so the pure rule files and
 // their node tests can import it.
 import { wgsToWorld } from './rdnew.js';
+import { keyTextHtml } from './keycap.js';
 import { GOLF_VORM } from './golficons.js';
 import { STOP_DIRECT, STOP_VRAAG, STOP_BEVESTIG, STOP_DOORGAAN, stopUitkomst } from './stopconventie.js';
 import { deviceText } from './touchui.js';
@@ -425,7 +426,7 @@ export function stopPressed(input) {
     // #596: het venster staat in de HUD-stijl, met echte knoppen zodat touch ook een uitweg heeft.
     el.innerHTML = '<b>Stoppen?</b><div class="mg-stopbtns" role="group" aria-label="Stoppen?">' +
       '<button type="button" data-do="door">Doorgaan</button><button type="button" data-do="stop">Stoppen</button></div>' +
-      '<small>' + deviceText('Esc of Enter = stoppen &middot; Spatie = doorgaan', 'Tik op Stoppen of Doorgaan') + '</small>';
+      '<small>' + deviceText(keyTextHtml('{ESC} of {ENTER} = stoppen') + ' &middot; ' + keyTextHtml('{SPACE} = doorgaan'), 'Tik op Stoppen of Doorgaan') + '</small>';
     const kies = (k) => {
       // dezelfde toetsweg als de rest van het spel: keydown + keyup via input.js
       inputMod = inputMod || import('./input.js');

@@ -4,6 +4,7 @@
 // pausemenu.css (ov-*, td-*).
 import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
+import { keyTextHtml } from './keycap.js';
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
 import { activityTodoItems } from './activities.js';
@@ -620,7 +621,7 @@ function detailHtml(world) {
   const story = it.goal === 'story';
   let primary = '';
   if (it.upgrade && it.status !== 'klaar') primary = `<button type="button" class="ds-knop" data-todo-buy="${esc(it.upgrade)}">Kopen (${esc(it.record)})</button>`;
-  else if (it.goal && !it.isGoal) primary = `<button type="button" class="ds-knop" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${story && getGoal() ? 'Terug naar het verhaal' : 'Zet als doel'}${deviceText('<span class="ds-badge">Enter</span>', '')}</button>`;
+  else if (it.goal && !it.isGoal) primary = `<button type="button" class="ds-knop" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${story && getGoal() ? 'Terug naar het verhaal' : 'Zet als doel'}${deviceText(keyTextHtml('{ENTER}'), '')}</button>`;
   let more = '';
   if (it.isGoal) more += '<button type="button" class="ds-knop ds-knop--secundair" data-todo-clear>Doel wissen</button>';
   if (it.dist != null) more += `<button type="button" class="ds-knop ds-knop--secundair" data-todo-map="${esc(it.key)}">${svg(ICON.pin)}Op de kaart</button>`;

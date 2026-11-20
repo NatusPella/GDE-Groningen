@@ -10,11 +10,11 @@ import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
 import { deurBijSpeler, deurNaam, heeftInstapdeur } from './vehicledoors.js';
 import { getSettings } from './settings.js';
-import { physicalKey, tokenKey, keyName, keyWord, PAD_LAYOUTS } from './controls.js';
+import { physicalKey, tokenKey, keyName, PAD_LAYOUTS } from './controls.js';
+import { glyphHtml, keyTextHtml } from './keycap.js';
 import { KEYS } from './storagekeys.js';
 import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.js';
 import { hoofdspeler } from './players.js';
-const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
 import { isPhoneOpen, isPauseMenuOpen } from './pausestate.js';
@@ -116,42 +116,7 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-const MOUSE_SVG = (btn) => '<svg class="hud-mouse" data-btn="' + btn + '" viewBox="0 0 14 20" aria-hidden="true">' +
-  '<rect x="1" y="1" width="12" height="18" rx="6" class="m-body"/>' +
-  '<path d="M7 1v7M1.4 8h11.2" class="m-seam"/>' +
-  '<path d="M7 1.2A5.8 5.8 0 0 0 1.2 7v1H7z" class="m-l"/>' +
-  '<path d="M7 1.2A5.8 5.8 0 0 1 12.8 7v1H7z" class="m-r"/>' +
-  '<rect x="6" y="3" width="2" height="3.4" rx="1" class="m-w"/>' +
-  '</svg>';
-
-const KEY_LABELS = { ' ': 'SPATIE', SPACE: 'SPATIE', SHIFT: 'SHIFT', CTRL: 'CTRL', ESC: 'ESC' };
-
-// Glyph for one control token: a keycap, the WASD cluster, or a mouse icon.
-// `data-gk` names the token, so glyphs.js can show the controller button
-// instead; a rebound key shows the key it is bound to now.
-export function glyphHtml(token, opts = {}) {
-  let inner;
-  const gk = esc(token);
-  if (token === 'WASD') {
-    inner = `<span class="hud-wasd" data-gk="${gk}"><span class="hud-key">${keyCap('w')}</span><span class="hud-key">${keyCap('a')}</span><span class="hud-key">${keyCap('s')}</span><span class="hud-key">${keyCap('d')}</span></span>`;
-  } else if (token === 'ARROWS') {
-    inner = `<span class="hud-wasd" data-gk="${gk}"><span class="hud-key">↑</span><span class="hud-key">←</span><span class="hud-key">↓</span><span class="hud-key">→</span></span>`;
-  } else if (token === 'LMB' || token === 'RMB' || token === 'MOUSE' || token === 'WHEEL') {
-    inner = `<span class="hud-mouse-g" data-gk="${gk}">` + MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w' }[token]) + '</span>';
-  } else {
-    const canon = tokenKey(token);
-    const phys = physicalKey(getSettings().keyBinds, canon);
-    const label = phys !== canon ? keyName(phys) : (KEY_LABELS[token] || token);
-    inner = `<span class="hud-key" data-gk="${gk}">` + esc(label) + '</span>';
-  }
-  if (!opts.ring) return inner;
-  return '<span class="hud-hold">' + inner +
-    '<svg class="hud-hold-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" class="r-bg"/><circle cx="20" cy="20" r="17" class="r-fg" pathLength="100"/></svg></span>';
-}
-
-function keyCap(k) {
-  return esc(keyName(physicalKey(getSettings().keyBinds, k)));
-}
+export { glyphHtml };
 
 // Hold-to-interact / cooldown ring around a glyph; p in 0..1.
 function setHoldProgress(el, p) {
@@ -392,7 +357,7 @@ function findPrimary(world) {
     // E boards a boat alongside, Space climbs out: a quay next to a boat
     // never puts you aboard by accident
     const boat = findEnterableVehicle(p.x, p.y, world.vehicles, 1.4);
-    if (boat && boat.isBoat) return { id: 'board-' + boat.id, x: boat.x, y: boat.y, h: 1.6, key: 'E', label: 'Aan boord klimmen', sub: p.canClimbOut && !isPadActive() ? `${keyWord(getSettings().keyBinds, ' ')}: de kade op` : '', ring: true };
+    if (boat && boat.isBoat) return { id: 'board-' + boat.id, x: boat.x, y: boat.y, h: 1.6, key: 'E', label: 'Aan boord klimmen', sub: p.canClimbOut && !isPadActive() ? '{SPACE}: de kade op' : '', ring: true };
     if (!p.canClimbOut) return null;
     return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'SPATIE', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
   }
@@ -563,7 +528,7 @@ function noteExplained(id) {
 function chipHtml(c, primary) {
   const sub = promptSub(c, hudSeen);
   const glyph = primary && c.key ? '<span class="wp-glyph">' + glyphHtml(c.key, { ring: c.ring }) + '</span>' : '<i class="wp-tick"></i>';
-  return glyph + '<span class="wp-text"><b>' + esc(c.label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span>';
+  return glyph + '<span class="wp-text"><b>' + esc(c.label) + '</b>' + (sub ? '<small>' + keyTextHtml(esc(sub)) + '</small>' : '') + '</span>';
 }
 
 function placeWp(slot, c, primary, hold = null) {
@@ -732,23 +697,23 @@ function contextRows(world, primary) {
     rows.push(tut('deuren', ['O'], 'Deuren', 'Open of dicht op een halte tijdens de dienst'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
-    rows.push(tut('dienst', ['G'], 'Dienst rijden', 'Halte voor halte, op tijd en op de streep: Backspace stopt'));
+    rows.push(tut('dienst', ['G'], 'Dienst rijden', 'Halte voor halte, op tijd en op de streep: {BACKSPACE} stopt'));
   } else if (p.inVehicle && p.inVehicle.isHeli) {
-    rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', `Spatie omhoog, ${downKey()} omlaag: landen doe je laag en langzaam`));
+    rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', `{SPACE} omhoog, {CTRL} omlaag: landen doe je laag en langzaam`));
     rows.push(tut('heliFly', ['W', 'S'], 'Vooruit & remmen', 'W vooruit, S remt af tot je stilhangt, dan achteruit'));
     rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', 'A/D of de muis draait de neus'));
     rows.push(tut('heliBoost', ['SHIFT'], 'Sneller', 'Vol gas vooruit'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
-    if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
+    if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd {RMB} vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
     if (p.canClimbOut) rows.push(tut('climb', ['SPATIE'], 'Eruit klimmen', 'Klim de kade op (E stapt in een boot)'));
   } else if (armed) {
     const w = WEAPONS[world.weapon];
     if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
-    else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
-    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', `Bukken (${downKey()}) en klikken zet de bus neer. Wegwezen!`));
+    else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, {TAB} wisselt' : 'Houd vast om te richten'));
+    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', `Bukken ({CTRL}) en klikken zet de bus neer. Wegwezen!`));
     else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
     rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of scrollen'));
   }
@@ -774,7 +739,7 @@ function rowState(r) {
 function rowHtml(r) {
   const state = rowState(r);
   const glyphs = r.keys.map((k) => glyphHtml(k)).join('');
-  const text = state !== 'learn' ? '' : '<span class="ctx-text"><b>' + esc(r.label) + '</b>' + (r.desc ? '<small>' + esc(r.desc) + '</small>' : '') + '</span>';
+  const text = state !== 'learn' ? '' : '<span class="ctx-text"><b>' + esc(r.label) + '</b>' + (r.desc ? '<small>' + keyTextHtml(esc(r.desc)) + '</small>' : '') + '</span>';
   return '<span class="ctx-glyphs">' + glyphs + '</span>' + pic(r.id) + text;
 }
 

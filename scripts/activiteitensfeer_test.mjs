@@ -162,7 +162,7 @@ t('de module is puur: geen imports, geen DOM, geen THREE', () => {
     assert.match(html, /mg-stopbtns/, 'de knoppenrij');
     assert.match(html, /data-do="stop"/, 'een Stoppen-knop');
     assert.match(html, /data-do="door"/, 'een Doorgaan-knop');
-    assert.match(html, /Spatie = doorgaan/, 'de toetsuitleg blijft');
+    assert.match(html, /hud-key[^>]*>[^<]*SPATIE[^<]*<[/]span> = doorgaan/i, 'de toetsuitleg blijft, met de toets als plaatje');
   });
 }
 
