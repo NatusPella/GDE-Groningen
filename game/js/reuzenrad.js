@@ -3,7 +3,11 @@ import { toonStartkaart } from './startkaart.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { easeStep, createBoard, mgThema } from './minigamekit.js';
+import { easeStep, mgThema } from './minigamekit.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { reuzenradHudModel, stapVan, topPop, UITLEG_ID } from './reuzenradstatus.js';
+import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
+import { getScene } from './scene3d.js';
 import { showCard } from './hudcards.js';
 import { recordStat, getStat } from './achievements.js';
 import { getSettings } from './settings.js';
@@ -23,7 +27,7 @@ const EYE = 1.0; // oog boven de zitting
 const NAME = 'Hoogvlieger';
 
 let ride = null;
-let board = null;
+let kolom = null; // #985: de gele lichtkolom bij de instap
 
 const { toW, toL } = kermisFrame;
 const LOAD = toW(W.LOAD_AT.u, W.LOAD_AT.v);
@@ -79,7 +83,6 @@ function start(w, index) {
   w.cinematicHidePlayers = true;
   document.body.classList.add('kermis-on');
   w.addMessage(`${NAME}: veel plezier!`, 2.2);
-  showBoard();
   toonStartkaart(w, 'hoogvlieger');
   recordStat(w, 'reuzenradRides');
 }
@@ -91,7 +94,7 @@ function end(w, { quit = false } = {}) {
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('kermis-on');
-  if (board) board.hide();
+  simHudTik(0, null);
   const p = hoofdspeler(w);
   p.x = LOAD.x; p.y = LOAD.y; p.z = 0; p.angle = kermisFrame.rot + Math.PI / 2;
   p.speed = 0; p.moving = false;
@@ -171,23 +174,25 @@ const TODO = (world) => {
   };
 };
 
-// --- HUD: dezelfde kaart als het botsautobord (kermis.js) ---------------------------------
+// --- HUD (#985): de gedeelde strook van de light sims in plaats van het bord, plus een gele lichtkolom bij de instap -----------
 
-// #627: hetzelfde bord als de botsauto's (minigamekit createBoard), met de kermissfeer-band.
-function showBoard() {
-  if (!board) board = createBoard('hoogvlieger');
-  board.show();
-}
-
-function updateHud() {
-  if (!ride) { if (board) board.hide(); return; }
+// Het model is puur (reuzenradstatus.js); hier alleen de stand van het ritje inlezen.
+function updateHud(w) {
   const wheel = kermisWheel();
-  const k = (t) => `<span class="hud-key">${t}</span>`;
-  const left = wheel ? Math.ceil(W.rideSecondsLeft(ride.plan, wheel.rot)) : 0;
-  const hoogte = ride.seat ? Math.max(0, Math.round(ride.seat.h)) : 0;
-  const row = `<span>Hoogte <b>${hoogte} m</b></span><span>Rondes <b>${W.LAPS}</b></span><span>Nog <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span>`;
-  const help = ride.exitReq ? `Je stapt uit zodra je beneden bent... ${k('BACKSPACE')}` : `Rondkijken met de muis of ${k('←')}${k('→')}${k('↑')}${k('↓')} · ${k('BACKSPACE')} uitstappen`;
-  board.set({ row, help });
+  // de lichtkolom bij de instap: alleen als het rad open is, je dichtbij staat en je niet meerijdt
+  const p = w && hoofdspeler(w);
+  const toon = !ride && !!w && open(w) && Math.hypot(p.x - LOAD.x, p.y - LOAD.y) < 70 && !p.inVehicle;
+  if (toon && !kolom) { kolom = maakSimKolom('reuzenradkolom'); getScene().add(kolom); }
+  if (kolom) zetSimKolom(kolom, toon ? LOAD : null, 0, (w && w.time) || 0, false);
+  if (!ride || !wheel) { simHudTik(0, null); return; }
+  const hoogte = ride.seat ? ride.seat.h : 0, maxH = W.AX + W.R - W.SEAT_DROP;
+  const f = W.rideFraction(ride.plan, wheel.rot);
+  const stijgt = Math.cos(W.gondolaAngle(ride.plan.index, wheel.rot)) > 0;
+  const model = { hoogte, maxHoogte: maxH, stijgt, voortgang: f, links: W.rideSecondsLeft(ride.plan, wheel.rot), ronde: Math.floor(f * W.LAPS) + 1, uitstap: ride.exitReq, mag: W.mayExit(ride.plan, wheel.rot), uitleg: !uitlegGezien(UITLEG_ID) };
+  const op = stapVan(model) === 'top';
+  if (op && !ride.opTop) { const pp = topPop(hoogte, model.ronde); simHudPop(pp.tekst, pp.geluid); zetUitlegGezien(UITLEG_ID); }
+  ride.opTop = op;
+  simHudTik(0, reuzenradHudModel(model));
 }
 
 export const HOOGVLIEGER = {
@@ -210,7 +215,7 @@ export const HOOGVLIEGER = {
   active: () => !!ride,
   quit: (w) => end(w, { quit: true }),
   update,
-  tick() { updateHud(); },
+  tick(dt, w) { updateHud(w); },
   camera,
   icon: drawIcon,
   mapSub: (s, w) => (kermisOn(w) ? 'Kermis op de Grote Markt: het rad draait' : "Het reuzenrad van kermisbaas Jan, 's avonds op de kermis"),

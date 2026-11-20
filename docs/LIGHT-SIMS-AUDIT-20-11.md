@@ -292,6 +292,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** Een pijl op de grond naar de post, een kaartlaag met de route, een eigen sting voor de laatste stempel.
 
+## 17. Reuzenrad Hoogvlieger (kermis)
+
+**Wat kan de speler.** Het reuzenrad van kermisbaas Jan op de Grote Markt, 's avonds of als de kermis staat (E bij de instap, €2): twee rondes meedraaien in een gondel, vrij rondkijken met de muis of de pijltjes, uitstappen met Backspace zodra je weer onderaan hangt.
+
+**De lus.** Instappen als een gondel onderaan hangt, omhoog, de top, omlaag, twee rondes, uitstappen.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart | plus vier iconen met een zin in de strook tot je voor het eerst de top haalt (`gde-sim-uitleg-v1`) |
+| HUD | bord (`minigamekit`) met hoogte, rondes en de tijd die je nog hebt | strook (`simhud.js`): stappen Omhoog, Uitzicht, Omlaag, een meter met hoe ver je ritje is, de hoogte groot met de tijd die je nog hebt en pictogram, één zin wat nu (kijk rond, je bent beneden) |
+| Wereld | het rad, de gondels, een ring bij de instap | plus een gele lichtkolom bij de instap als het rad open is en je dichtbij staat (`simkolom3d.js`) |
+| Feedback | niets | de top van elke ronde springt op ("Op de top: 17 m") met het bestaande UI-geluid |
+
+**Samen spelen.** Het rad zet je lichaam en de camera in de wereld en is daarom van wie het spel opende (`coopstatus.js`: nee, hoogvlieger). De strook en de lichtkolom zijn lokaal voor wie meerijdt of bij de instap staat. Valt de rijder weg, dan verdwijnt de strook met het ritje. Test: `reuzenradhud_test`, `reuzenrad_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** De botsauto's en de andere attracties van de kermis (`kermis.js`) houden hun eigen bord, een kaartmarkering voor de instap.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
