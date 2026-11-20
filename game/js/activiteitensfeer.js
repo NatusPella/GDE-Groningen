@@ -50,6 +50,8 @@ export const ACTIVITEIT_SFEER = {
     ['De club betreurt uw slag.', 'Handicap 54. Wij zeggen hier niets over.']),
   skatepark: S('Skateboard in de beton', 'veld', 'terrein', '#e8523a', 'skate', 'entreekaartje', 'kapitaal',
     ['De beton is koud, het asfalt ook.', 'Eén keer vallen en je kent de plek.']),
+  penalty: S('Elf meter van de waarheid', 'veld', 'grid', '#5fae52', 'bal', 'scorekaart', 'kapitaal',
+    ['De keeper kent je naam niet, wel je voorhoofd.', 'Vijf kansen en één tribune die kijkt.']),
   kartbaan: S('Rondjes in Ulrum', 'nacht', 'grid', '#f2b82a', 'kart', 'startbord', 'kapitaal',
     ['Iedereen is kampioen tot de eerste bocht.', 'De baan is kort, de excuses niet.']),
   zwembad: S('Baantjes', 'veld', 'golf', '#2fc4c9', 'water', 'startbord', 'klein',

@@ -60,3 +60,13 @@ export const KART_RIVALS = [
   { name: 'Marlies', shirt: 0xe07ab0, variant: 'female', age: 'adult', kart: 0x2f6fd0, hit: ['Pas op voor mijn lak!', 'Eerst kijken, dan sturen!'], hitBy: ['Oeps!', 'Dat was jij die er stond.'] },
   { name: 'Hendrik', shirt: 0x6a5a48, variant: 'male', age: 'old', kart: 0x2fa04a, hit: ['Jongen, rustig aan.', 'In mijn tijd reden we netjes.'], hitBy: ['Zo hoort het.', 'Ha! Meters maken.'] },
 ];
+
+export const PENALTY_LINES = {
+  who: 'Keeper Mans',
+  start: ['Vijf stuks, jongen. Mik maar in de hoek.', 'Op de stip. Ik beloof niets, de club ook niet.'],
+  goal: ['Dat zat er in. Netjes.', 'Ik zag hem, ik kwam er niet bij.'],
+  redding: ['Die had ik. Die had ik echt.', 'Ruikt naar een keeper, dit.'],
+  mis: ['Naast. De tribune bedankt je.', 'Dat ging de wolken in.'],
+  endGood: ['Koelbloedig. De club wil je spreken.', 'Dat is een serie om over te praten.'],
+  endPoor: ['De stip is niet weggelopen. Nog eens?', 'Een volgende keer. De keeper wacht.'],
+};

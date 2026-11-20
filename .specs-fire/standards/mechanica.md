@@ -26,7 +26,7 @@ eerste klus staat in `START` (`:129`, #431). Opslag `gde-loopbaan-v1`
 factor (`loopbaanDeel`, `:192`), de gast past zijn eigen factor toe (`loopbaanGast`, `:232`).
 
 **Eerste klus en De Duizendpoot (#846).** De maatstaf is de eerste klus die echt gedaan is: punten of
-teller > 0 in het vak, nooit de menuknop (`eersteKlusGedaan`, `game/js/loopbaan.js:229`; een uit de
+teller > 0 in het vak, nooit de menuknop (`eersteKlusGedaan`, `game/js/loopbaan.js:244`; een uit de
 prestaties gezaaid profiel telt mee). De telling gaat als levensduur-teller `careerFirstJobs` naar de
 prestaties; bij negentien ontgrendelt de prestatie "De Duizendpoot" (categorie bijbaan) en betaalt
 `loopbaanlive.js` eenmalig €750 lokaal, zonder loonfactor en zonder coopDeel (per speler/apparaat). De
