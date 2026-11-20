@@ -182,13 +182,24 @@ export function grindNodig(v) {
   return !!v && v.surface === 'gras' && Math.abs(v.speed || 0) > 6 && (v._fxDec || 0) > 9 && !v.isBoat && !v.isHeli;
 }
 
-// De lader: haalt manifest.json en daarna elk bestand van de eigen map, decodeert met ctx.decodeAudioData.
+// De lader: haalt manifest.json en daarna de bestanden van de eigen map, decodeert met ctx.decodeAudioData.
+// Perf (#804): alleen de korte, vaak gebruikte klanken (EAGER_CATS) worden bij de start gedecodeerd; de rest (lussen van
+// het weer, vliegtuig, dieren, donder) pas bij de eerste vraag via has() of buffer(). Tot dan geeft buffer() null en speelt
+// de synth, zoals bij een ontbrekend bestand. Eén decodeerbeurt tegelijk met ruimte ertussen, zodat er geen hitchreeks komt.
+// Alles bij de start decoderen kostte ca. 100 MB PCM (154 klanken); nu start het met ca. 12 MB.
+export const EAGER_CATS = new Set(['ui', 'deur', 'voetstap', 'winkel']);
+export const DECODE_GAP_MS = 12;
+export function eagerKeys(keys = SAMPLE_KEYS) { return keys.filter((k) => SAMPLE_INFO[k] && EAGER_CATS.has(SAMPLE_INFO[k].cat)); }
 // fetchFn en ctx komen mee (testbaar); een mislukking is stil: buffer() blijft null en de synth neemt het over.
-export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fetch : null, base = SAMPLE_BASE, keys = SAMPLE_KEYS } = {}) {
+export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fetch : null, base = SAMPLE_BASE, keys = SAMPLE_KEYS, eager = eagerKeys(keys), gapMs = DECODE_GAP_MS } = {}) {
   const buffers = new Map();
   const last = new Map();
-  const stats = { geladen: 0, mislukt: 0 };
-  let manifest = null, started = null;
+  const stats = { geladen: 0, mislukt: 0, lui: 0 };
+  const known = new Set(keys);
+  const tried = new Set();   // sleutels waarvan het laden gestart is (gelukt of mislukt): nooit twee keer
+  const queue = [];
+  let manifest = null, started = null, draining = null;
+  const pause = () => (gapMs > 0 ? new Promise((r) => setTimeout(r, gapMs)) : Promise.resolve());
   async function laad(key) {
     try {
       const m = manifest && manifest.geluiden && manifest.geluiden[key];
@@ -199,8 +210,21 @@ export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fet
       if (buf) { buffers.set(key, buf); stats.geladen++; } else stats.mislukt++;
     } catch (e) { stats.mislukt++; /* stil: de synth blijft de terugval */ }
   }
+  function enqueue(key) {
+    if (tried.has(key) || !known.has(key)) return;
+    tried.add(key);
+    queue.push(key);
+    if (manifest && !draining) draining = drain();
+  }
+  async function drain() {
+    try {
+      while (queue.length) { await laad(queue.shift()); if (queue.length) await pause(); }
+    } finally { draining = null; }
+  }
+  // een sleutel die gevraagd wordt voordat het manifest er is, wacht in de wachtrij tot start() hem leegt
+  const want = (key) => { if (started && ctx && fetchFn) enqueue(key); };
   return {
-    // idempotent; geeft een belofte die nooit weigert
+    // idempotent; geeft een belofte die nooit weigert (klaar als de eager-klanken geladen zijn)
     start() {
       if (started) return started;
       started = (async () => {
@@ -209,13 +233,17 @@ export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fet
           const res = await fetchFn(base + 'manifest.json');
           if (!res || !res.ok) return;
           manifest = await res.json();
-          for (const k of keys) await laad(k);
+          for (const k of eager) enqueue(k);
+          if (!draining && queue.length) draining = drain();
+          while (draining) await draining;
         } catch (e) { /* geen manifest of geen toegang: geen samples */ }
       })();
       return started;
     },
-    buffer(key) { return buffers.get(key) || null; },
-    has(key) { return buffers.has(key); },
+    // alles laden (testen en meetscripts): de lui-sleutels erbij
+    async laadAlles() { await this.start(); for (const k of keys) enqueue(k); while (draining) await draining; },
+    buffer(key) { const b = buffers.get(key); if (b) return b; if (!tried.has(key)) { stats.lui++; want(key); } return null; },
+    has(key) { if (buffers.has(key)) return true; if (!tried.has(key)) { stats.lui++; want(key); } return false; },
     isLoop(key) { return !!(manifest && manifest.geluiden && manifest.geluiden[key] && manifest.geluiden[key].loop); },
     cool(key, now) { return afkoelingOk(last, key, now); },
     stats,

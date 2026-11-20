@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   SAMPLE_KEYS, SAMPLE_INFO, SAMPLE_BASE, VARIATIE, variatie, afkoelingOk, heeftAutoPortier, autoDeurPlan, createSamples,
-  slipLoopNiveau, slipLoopRate, grindNodig, FX_VERVANG, FX_OPNAME_ALLEEN, vervangSleutel,
+  slipLoopNiveau, slipLoopRate, grindNodig, eagerKeys, FX_VERVANG, FX_OPNAME_ALLEEN, vervangSleutel,
 } from '../game/js/sfx/samples.js';
 import { CATEGORIES } from '../game/js/sfx/mixplan.js';
 
@@ -117,10 +117,27 @@ const fakeFetch = (files) => async (url) => {
   for (const k of SAMPLE_KEYS) files[g[k].bestand] = 'x';
   const s = createSamples(fakeCtx(), { fetchFn: fakeFetch(files) });
   ok(s.buffer('auto_deur_open') === null, 'voor het laden: geen buffer (de synth speelt)');
-  await s.start();
+  await s.laadAlles();
   ok(SAMPLE_KEYS.every((k) => s.has(k)) && s.stats.mislukt === 0, 'alles geladen', JSON.stringify(s.stats));
   ok(s.isLoop('band_piep_bocht') && !s.isLoop('auto_deur_open'), 'loop-vlag uit het manifest');
   ok(s.start() === s.start(), 'start is idempotent');
+}
+// lui laden (#804): alleen de korte, vaak gebruikte klanken bij de start; de lussen en de rest bij de eerste vraag
+{
+  const files = { 'manifest.json': JSON.stringify(man) };
+  for (const k of SAMPLE_KEYS) files[g[k].bestand] = 'x';
+  const s = createSamples(fakeCtx(), { fetchFn: fakeFetch(files), gapMs: 0 });
+  await s.start();
+  const eager = eagerKeys();
+  ok(eager.length > 50 && eager.length < SAMPLE_KEYS.length / 2 + 20, `bij de start alleen de eager-klanken (${eager.length} van ${SAMPLE_KEYS.length})`);
+  ok(eager.every((k) => s.has(k)) && s.stats.geladen === eager.length, 'de eager-klanken zijn na start() geladen', JSON.stringify(s.stats));
+  ok(!s.has('regen_bui') && s.buffer('regen_bui') === null, 'een lus van het weer is na start() nog niet gedecodeerd (de synth speelt)');
+  ok(g.regen_bui.loop && !eager.includes('regen_bui') && !eager.includes('zomer_insecten'), 'lussen zijn nooit eager');
+  await new Promise((r) => setTimeout(r, 30));
+  ok(s.has('regen_bui') && s.buffer('regen_bui') !== null, 'na de eerste vraag laadt de klank op de achtergrond');
+  const n = s.stats.geladen; s.has('regen_bui'); s.buffer('regen_bui'); await s.laadAlles();
+  ok(s.stats.geladen === SAMPLE_KEYS.length && n < SAMPLE_KEYS.length, 'laadAlles haalt de rest, en niets wordt twee keer geladen', JSON.stringify(s.stats));
+  ok(s.buffer('onbekend_geluid') === null && s.stats.geladen === SAMPLE_KEYS.length, 'een onbekende sleutel laadt niets');
 }
 {
   const s = createSamples(fakeCtx(), { fetchFn: fakeFetch({}) });
@@ -131,14 +148,14 @@ const fakeFetch = (files) => async (url) => {
   const files = { 'manifest.json': JSON.stringify(man) };
   for (const k of SAMPLE_KEYS) if (k !== 'remmen_grind') files[g[k].bestand] = 'x';
   const s = createSamples(fakeCtx(), { fetchFn: fakeFetch(files) });
-  await s.start();
+  await s.laadAlles();
   ok(s.buffer('remmen_grind') === null && s.buffer('auto_deur_open') !== null && s.stats.mislukt === 1, 'een ontbrekend bestand: alleen die sleutel valt terug');
 }
 {
   const files = { 'manifest.json': JSON.stringify(man) };
   for (const k of SAMPLE_KEYS) files[g[k].bestand] = 'x';
   const s = createSamples(fakeCtx({ stuk: true }), { fetchFn: fakeFetch(files) });
-  await s.start();
+  await s.laadAlles();
   ok(SAMPLE_KEYS.every((k) => s.buffer(k) === null) && s.stats.mislukt === SAMPLE_KEYS.length, 'een bestand dat niet decodeert: terugval, geen fout');
 }
 {
