@@ -15,6 +15,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Minder quicktime-events (#962):** de fierljep in Bourtange (M20) en de sprong over de wagons (M21) hebben geen naald en geen vak meer: je drukt op spatie voor de volgende stap (of ze lopen vanzelf door) en het gaat altijd goed. De korte timing van de gang in M18 en het loswippen in de modder (M22) blijven. Samen spelen: de druk van een gast telt ook mee.
 - **Inpakken bij Willemien speelt binnen (M27):** boeken, servies en de kat pak je nu in haar woonkamer in, met Willemien erbij, in plaats van in de open lucht (#956). Past de kamer niet op die plek, dan speel je buiten zoals eerst. Samen spelen: de missie is van wie het spel opende; wie meedoet ziet de kamer lokaal.
 
 ## [0.64.0] - 2026-11-20
