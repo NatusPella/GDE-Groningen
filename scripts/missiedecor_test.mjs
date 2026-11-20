@@ -86,6 +86,24 @@ for (const kind of DRESSING_KINDS) {
   ok(set === null && scene.children.length === 0, 'een onbekende soort bouwt niets');
 }
 
+// #955: onderdelen op water of in een gebouw vervallen of schuiven naar het doel (M30: 2 van 5 in een gracht, 2 in een huis)
+{
+  const SQ = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const tel = (set) => set.props.filter((q) => !q.tex).length + set.people.length;
+  const kaal = buildMissionDressing({ map: { groundHeightAt: () => 0 } }, 'naspeling', { x: 0, y: 0, a: 0 }, new THREE.Scene());
+  const alles = buildMissionDressing({ map: { groundHeightAt: () => 0, buildingsNear: () => [{ pts: SQ(-1e5, -1e5, 1e5, 1e5) }] } }, 'naspeling', { x: 0, y: 0, a: 0 }, new THREE.Scene());
+  ok(tel(kaal) > 4, 'zonder gebouwen staan alle onderdelen er', String(tel(kaal)));
+  ok(tel(alles) === 0, 'staat alles in een gebouw, dan vervallen de onderdelen', String(tel(alles)));
+  // een huis alleen op x van 8 tot 40: wat er stond verschuift naar het doel of vervalt, niets staat nog in het huis
+  const huis = { pts: SQ(8, -40, 40, 40) };
+  const deels = buildMissionDressing({ map: { groundHeightAt: () => 0, buildingsNear: () => [huis] } }, 'naspeling', { x: 0, y: 0, a: 0 }, new THREE.Scene());
+  let binnen = 0;
+  deels.group.updateMatrixWorld(true);
+  for (const c of deels.group.children) { const p = c.getWorldPosition(new THREE.Vector3()); if (p.x > 8 && p.x < 40 && p.z > -40 && p.z < 40) binnen++; }
+  ok(tel(deels) > 0, 'een deel van de onderdelen blijft staan', String(tel(deels)));
+  ok(binnen === 0, 'geen onderdeel in het huis', String(binnen));
+}
+
 // --- de missies en de missielus ---------------------------------------------
 const m4 = fs.readFileSync(new URL('../game/js/missions_akte4.js', import.meta.url), 'utf8');
 const m5 = fs.readFileSync(new URL('../game/js/missions_akte5.js', import.meta.url), 'utf8');
