@@ -6,7 +6,7 @@
 import { charInfo } from './coopplayers.js';
 import { pvpInSpel, isPassief } from './cooppvp.js';
 import { groepen as groepenLijst } from './coopmissie.js';
-import { richtingVan } from './playermenu.js';
+import { richtingVan } from './playerstatus.js';
 
 export const VORM_TEKEN = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 export const VERBINDING_TEKST = { ok: 'goed', lag: 'haperd', lost: 'weg' };

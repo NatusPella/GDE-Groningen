@@ -2,7 +2,7 @@
 // de status per speler als korte plaatjes (woord plus vorm, nooit alleen kleur), de Spel-starten-knop met zijn
 // voortgang, foutmeldingen in gewone taal en de compacte regel voor de Tab-lijst. De weergave staat in
 // coopspelersui.js (lijst en Tab) en lobbyui.js (wachtkamer); de tekst van een fout in lobby.js.
-//   node scripts/playermenu_test.mjs
+//   node scripts/playerstatus_test.mjs
 
 // ---- de richting en afstand van een andere speler, voor de Tab-lijst
 const WINDSTREKEN = [

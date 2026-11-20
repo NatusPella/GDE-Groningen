@@ -14,7 +14,7 @@
 // gaat (of het vinkje "Niet meer vragen" op dit apparaat zette), gaat in diezelfde sessie overal meteen door:
 // kamercode, lijst, verbinden, herstel en hostwissel vragen het niet nog een keer (#526).
 
-import { startKnop, foutUitleg } from './playermenu.js';
+import { startKnop, foutUitleg } from './playerstatus.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
 import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
@@ -352,7 +352,7 @@ export function reduce(s, ev) {
     case 'laatste-code': // de code waarmee deze speler aansloot: na eruit gezet worden staat hij weer klaar om opnieuw aan te sluiten
       if (typeof ev.code !== 'string' || !ev.code) return s;
       n.caps = { ...s.caps, laatsteCode: ev.code }; return n;
-    case 'start-bezig': if (s.step !== 'verbonden' || s.startBezig) return s; n.startBezig = true; n.startS = 0; return n; // Spel starten ingedrukt: de knop blokkeert en toont voortgang (playermenu.js startKnop)
+    case 'start-bezig': if (s.step !== 'verbonden' || s.startBezig) return s; n.startBezig = true; n.startS = 0; return n; // Spel starten ingedrukt: de knop blokkeert en toont voortgang (playerstatus.js startKnop)
     case 'start-tik': if (!s.startBezig) return s; n.startS = ev.s | 0; return n;
     case 'start-klaar': n.startBezig = false; n.startS = 0; return n;
     case 'start-gevraagd': n.startGevraagd = true; return n; // een gast vroeg de start aan wie het spel opende

@@ -16,7 +16,7 @@
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { icoon } from './icons.js';
 import { keyTextHtml } from './keycap.js';
-import { KOPIEER, magStarten, startKnop } from './playermenu.js';
+import { KOPIEER, magStarten, startKnop } from './playerstatus.js';
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN, VERBIND_TIK_MS } from './lobby.js';
 import { consentOnthoudenHtml } from './onlineconsentui.js';
 import { getSettings, setSetting } from './settings.js';

@@ -1,7 +1,7 @@
 // Het spelersmenu (docs/SPELERSMENU-UX-21-11.md): status per speler, Spel starten, foutmeldingen, de Tab-regel.
-//   node scripts/playermenu_test.mjs
+//   node scripts/playerstatus_test.mjs
 import assert from 'node:assert/strict';
-import { statusVan, startKnop, magStarten, foutUitleg, tabRegel, richtingVan, versieRegel, LATER_ACTIES, START_LANG_NA_S } from '../game/js/playermenu.js';
+import { statusVan, startKnop, magStarten, foutUitleg, tabRegel, richtingVan, versieRegel, LATER_ACTIES, START_LANG_NA_S } from '../game/js/playerstatus.js';
 import { REASON_TEXT } from '../game/js/net/protocol.js';
 
 let n = 0;

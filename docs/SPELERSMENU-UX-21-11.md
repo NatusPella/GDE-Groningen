@@ -50,11 +50,11 @@ De stijl was al zeefdruk; de inhoud was niet doorgedacht. Beelden voor en na: `s
 
 **Tab-lijst in het spel.** Compact, geen knoppen behalve de pictogrammen. De voet zegt hoe je de lijst sluit en de roepgebaren.
 
-**Fouten.** `foutUitleg` in `playermenu.js`: Andere versie, Kamer vol, Verbinden mislukt, Wachtwoord nodig, Je bent verwijderd, Andere wereld, Ander verhaal, Verbinding verbroken (met "Opnieuw verbinden").
+**Fouten.** `foutUitleg` in `playerstatus.js`: Andere versie, Kamer vol, Verbinden mislukt, Wachtwoord nodig, Je bent verwijderd, Andere wereld, Ander verhaal, Verbinding verbroken (met "Opnieuw verbinden").
 
 ## 5. Wat er gebouwd is
 
-- `game/js/playermenu.js` (puur, getest in `scripts/playermenu_test.mjs`): `statusVan`, `startKnop`, `magStarten`, `foutUitleg`, `tabRegel`, `richtingVan`, `versieRegel`, `LATER_ACTIES`.
+- `game/js/playerstatus.js` (puur, getest in `scripts/playerstatus_test.mjs`): `statusVan`, `startKnop`, `magStarten`, `foutUitleg`, `tabRegel`, `richtingVan`, `versieRegel`, `LATER_ACTIES`.
 - `game/js/coopspelersui.js`: Spelers-tab en Tab-lijst opnieuw; `coopspelers.js` geeft per speler de richting mee.
 - `game/js/lobby.js` en `lobbyui.js`: de Spel-starten-knop met voortgang, foutschermen met een eigen titel, de code groot en kopieerbaar met melding, uitleg in een vouw, Enter op de hoofdknop.
 - `game/js/samenpanel.js`: een HUD-bericht zodra het starten het menu sluit.
@@ -62,7 +62,7 @@ De stijl was al zeefdruk; de inhoud was niet doorgedacht. Beelden voor en na: `s
 
 ## 6. Samen spelen
 
-Dit is een weergave: het is van wie het spel opende en van elke gast voor zichzelf wat hij ziet. Wie het spel opende ziet de knoppen Spel overdragen en Eruit zetten; een gast niet. Elke speler ziet dezelfde lijst (naam, kleur, verbinding, ready, passive mode); de afstand en richting zijn die van de eigen speler naar de ander. Er is geen voortgang of beloning mee gemoeid. Valt iemand weg, dan staat de rij als "Verbinding weg" in de lijst en blokkeert Spel starten tot de speler terug is of eruit gezet wordt. Wie later aansluit, staat bij de volgende verversing (elke 0,25 s) in de lijst. Dekking: `playermenu_test`, `coopspelers_test`, `coopui_test`, `lobby_test`.
+Dit is een weergave: het is van wie het spel opende en van elke gast voor zichzelf wat hij ziet. Wie het spel opende ziet de knoppen Spel overdragen en Eruit zetten; een gast niet. Elke speler ziet dezelfde lijst (naam, kleur, verbinding, ready, passive mode); de afstand en richting zijn die van de eigen speler naar de ander. Er is geen voortgang of beloning mee gemoeid. Valt iemand weg, dan staat de rij als "Verbinding weg" in de lijst en blokkeert Spel starten tot de speler terug is of eruit gezet wordt. Wie later aansluit, staat bij de volgende verversing (elke 0,25 s) in de lijst. Dekking: `playerstatus_test`, `coopspelers_test`, `coopui_test`, `lobby_test`.
 
 ## 7. Niet gedaan
 

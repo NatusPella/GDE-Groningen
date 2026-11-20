@@ -1,6 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { icoon } from './icons.js';
-import { statusVan, tabRegel, versieRegel, LATER_ACTIES } from './playermenu.js';
+import { statusVan, tabRegel, versieRegel, LATER_ACTIES } from './playerstatus.js';
 import { gateOn } from './coopgate.js';
 import { VERSION } from './version.js';
 import { keyTextHtml } from './keycap.js';
@@ -42,7 +42,7 @@ function rijHtml(r, acties, rol = null, bevestig = null, ctx = {}) {
   const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
   const later = acties && !r.jij && !vraagt ? `<span class="cs-laterrij">${laterHtml()}</span>` : '';
   const actiesHtml = naar || geef || eruit || later ? `<span class="cs-acties">${naar}${geef}${eruit}${later}</span>` : '';
-  // #903: de speler is een kaart met een avatar in zijn eigen kleur en vorm; de status staat als woorden met een icoon (playermenu.js statusVan).
+  // #903: de speler is een kaart met een avatar in zijn eigen kleur en vorm; de status staat als woorden met een icoon (playerstatus.js statusVan).
   // Kleur is nooit het enige signaal: de vorm en het woord staan ernaast.
   const afstand = !r.jij && r.afstandTekst ? `${r.afstandTekst}${r.richting ? ` ${r.richting.pijl} ${r.richting.woord}` : ''}` : '';
   return `<li class="cs-rij${r.verbinding === 'lost' ? ' cs-rij-weg' : ''}" data-slot="${r.slot}"><span class="cs-avatar" aria-hidden="true"><span class="cs-vorm" style="color:${esc(veiligeKleur(r.kleur))}">${VORM_TEKEN[r.vorm] || '●'}</span></span>` +
@@ -50,7 +50,7 @@ function rijHtml(r, acties, rol = null, bevestig = null, ctx = {}) {
     `<span class="cs-status">${statusVan(r, ctx).map(chipHtml).join('')}</span>` +
     `<span class="cs-doet">${esc(r.doet)}${afstand ? `<small>${esc(afstand)}</small>` : ''}</span>${actiesHtml}</li>`;
 }
-// De compacte regel van de Tab-lijst in het spel: naam, kleur, ping, afstand en richting, klaar (playermenu.js tabRegel)
+// De compacte regel van de Tab-lijst in het spel: naam, kleur, ping, afstand en richting, klaar (playerstatus.js tabRegel)
 function tabRijHtml(r, ctx = {}) {
   const t = tabRegel(r, ctx);
   const klaar = t.klaar === null ? '' : `<span class="cs-tab-klaar">${icoon(t.klaar ? 'vinkje' : 'zandloper', { maat: 's' })}${t.klaar ? 'Klaar' : 'Weg'}</span>`;
