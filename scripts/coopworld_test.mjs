@@ -23,6 +23,18 @@ t('voertuigsoorten: bus, politie, boot, fiets, vrachtwagen, gewone auto', () => 
   assert.equal(S[W.voertuigSoort({ model: { len: 4 } })], 'auto');
   for (const s of S) assert.ok(W.VOERTUIG_MATEN[s], s);
 });
+t('voetgangers: een speler die ver weg loopt krijgt zijn deel, ook als de gastheer er al meer dan het maximum heeft (#429, #983)', () => {
+  const peds = [];
+  for (let i = 0; i < 40; i++) peds.push({ x: (i % 8) * 5, y: Math.floor(i / 8) * 5, health: 100, angle: 0 }); // 40 bij de gastheer
+  for (let i = 0; i < 6; i++) peds.push({ x: 5055 + i * 2, y: 0, health: 100, angle: 0 }); // 6 bij een speler ver weg, op 55-65 m van hem (verder dan de gastheer-voetgangers van hun speler)
+  const world = { vehicles: [], pedestrians: peds, time: 1 };
+  const bij = [{ x: 0, y: 0 }, { x: 5000, y: 0 }];
+  const e = W.verzamelEntiteiten(world, bij).filter((x) => x.kind === W.SOORT_VOETGANGER);
+  assert.ok(e.some((x) => x.x > 4000), 'de ver weg lopende speler ziet voetgangers');
+  assert.ok(e.filter((x) => x.x > 4000).length >= 5, 'zijn deel is ruim (bijna de helft van het maximum)');
+  assert.ok(e.length <= W.MAX_VOETGANGERS);
+  assert.equal(W.verzamelEntiteiten(world, [{ x: 0, y: 0 }]).filter((x) => x.kind === W.SOORT_VOETGANGER).length, W.MAX_VOETGANGERS, 'een speler alleen: gewoon het maximum');
+});
 t('alleen voertuigen dicht bij een speler, nabije eerst; wrakken en rommel niet', () => {
   const world = { vehicles: [veh(1, 10, 0), veh(2, 500, 0), veh(3, 100, 0), veh(4, 0, 20, { wrecked: true }), veh(5, NaN, 0), null] };
   const e = W.verzamelEntiteiten(world, [{ x: 0, y: 0 }]);

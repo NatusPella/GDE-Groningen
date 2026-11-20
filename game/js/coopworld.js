@@ -50,7 +50,9 @@ export function kiesVoetgangers(world, bij, { radius = RADIUS_VOETGANGER, max = 
     if (d <= radius || (belangrijk && d <= BELANGRIJK_RADIUS)) lijst.push({ d: belangrijk ? d - 60 : d, p });
   }
   lijst.sort((a, b) => a.d - b.d);
-  return lijst.slice(0, max);
+  // #429 (#983): bij spelers uit elkaar eerst eerlijk verdelen over de groepen en dan pas afkappen; anders nemen de voetgangers dicht bij de
+  // gastheer alle plekken en ziet een gast die ver weg loopt er geen enkele (de weving in verzamelEntiteiten kwam te laat)
+  return verweef(lijst, bij, groepenVan(bij)).slice(0, max);
 }
 
 export const voertuigId = (v, i) => (Number.isInteger(v.id) ? vid(v, i) : null); // het id dat een voertuig in de snapshot heeft (null: geen vast id)
