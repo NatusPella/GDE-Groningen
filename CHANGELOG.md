@@ -74,6 +74,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Opgelost
 
+- **Wereldaudit 21-11: props en gebouwen over de hele provincie (#1044):** één audit (`scripts/world/world_audit.mjs`) telt wat er op een rijbaan, op het spoor, in water of in een gebouw staat, in de tegels en in de kits; hij draait mee in `--fase=zwaar` met drempels die alleen kunnen dalen. Rapport met voor- en nacijfers: docs/WERELD-AUDIT-21-11.md.
+- **Containerterminal van M13 op de goede plek (#1044):** de kraan stond 128 m van de kade in een weiland en twee van de vier containers stonden op de Synergieweg. De kraan staat nu aan de waterkant, de containers op open land, vrij van weg en gebouw.
+- **Geen masten, zuilen en perrondelen meer op de weg, het spoor of in een huis (#1044):** alle streekplekken, niet alleen de parken, gaan door de tegelkaart (247 onderdelen op de weg, 671 in een gebouw en 354 op het spoor vielen er voorheen niet af).
+- **Havens, jachthavens en pieren aan water (#1044):** een kade, kraan, loods of pier ver van het water (1.972 onderdelen) valt weg, net als onderdelen op een weg of in een gebouw (126 en 57); de cel wordt opnieuw gebouwd als er tegels bij komen.
+- **Stations naast het spoor in plaats van erover (#1044):** 20 van de 21 stations zonder eigen omtrek stonden met een willekeurige hoek midden op het spoor. Het gebouw staat nu evenwijdig aan het spoor, ernaast, met de perronzijde naar de sporen; een station dat de tegels al tekenen krijgt geen tweede.
+- Straatmeubilair (bankje, lantaarn) staat niet meer op het spoor.
 - **Minder glitches en ruis in het geluid (melding Nikky):** het geluid krijgt een snelle limiter als laatste schakel, zodat opgetelde geluiden (muziek, sirenes, schoten) niet meer hard knippen. De ruisbedden van de stad, regen en krekels hebben geen gelijkspanning meer (geen bonk bij het in- of uitfaden), en een ongeldige waarde in een geluidsregeling kan de rest van het beeld niet meer overslaan.
 - **Het spel merkt geluidsonderbrekingen op:** het telt hoe vaak de uitvoer even stilvalt. Had de vorige sessie er veel, dan kiest het spel nu een ruimere geluidsbuffer (iets later geluid, geen gaten). Het blok Geluid met de stand van het geluid komt in de technische info; `?geenlimiter` zet de limiter uit voor een vergelijking. Zie docs/AUDIO-GLITCHES-21-11.md.
 - **Het benchmarkscherm leek niet te klikken:** de muisaanwijzer was op het resultaatscherm onzichtbaar. Hij staat er nu weer, en de knoppen werken zoals bedoeld.
