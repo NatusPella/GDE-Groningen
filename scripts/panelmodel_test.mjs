@@ -39,7 +39,7 @@ t('Spullen: Phosphor-pictogrammen, Enter-hint op de hoofdactie en Q/E tussen de 
   const sp = lees('game/js/spullen.js');
   assert.ok(sp.includes("import { icoon } from './icons.js'"));
   assert.doesNotMatch(sp, /<svg class="pm-ic"/);
-  assert.match(sp, /m-kc dark">Enter/);
+  assert.match(sp, /\$\{glyphHtml\('ENTER'\)\}/); // de Enter-hint is een toetsplaatje (keycap.js, key_literals_test)
   assert.ok(lees('game/js/pausemenu.js').includes("if (tab === 'spullen' && cycleSpullenDelen(dir)) return;"));
 });
 
