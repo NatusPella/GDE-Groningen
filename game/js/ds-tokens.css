@@ -231,6 +231,12 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
   --ds-zeef-kop: var(--ds-c-ink-bord);
   --ds-zeef-primair: var(--ds-c-ink-geel);
   --ds-zeef-accent: var(--ds-c-ink-roze);
+  --ds-font-toetsen: 'GDE Toetsen', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-knoppen-a: 'GDE Knoppen A', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-knoppen-b: 'GDE Knoppen B', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-knoppen-deck: 'GDE Knoppen Deck', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-knoppen-algemeen: 'GDE Knoppen Algemeen', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-aanraking: 'GDE Aanraking', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
   --ds-font-kop-v3: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
   --ds-font-tekst-v3: 'Atkinson Hyperlegible', Arial, sans-serif;
 }
