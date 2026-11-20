@@ -22,7 +22,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
 {
   const hud = read('hud_panel.css');
   const zb = (/#hud \.hud-zone-b \{([^}]*)\}/.exec(hud) || [])[1] || '';
-  ok(/top:\s*max\(calc\(var\(--hud-top\) \+ 2px\)/.test(zb) && /left:\s*calc\(var\(--hud-edge\) \+ 330px\)/.test(zb), '#985: zone B hangt bovenin, rechts van de berichtkolom (330 px)');
+  ok(/top:\s*max\(calc\(var\(--hud-top\) \+ 2px\)/.test(zb) && /left:\s*calc\(var\(--hud-edge\) \+ min\(calc\(30vw \/ var\(--ui, 1\)\), 350px\) \+ 12px\)/.test(zb), '#985: zone B hangt bovenin, 12 px rechts van de berichtkolom (min(30vw, 350 px), zoals hudcards.css)');
   ok(/right:\s*max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(zb), '#985: zone B eindigt links van zone C (gemeten --hud-c-right), dus de titel krijgt de hele vrije strook');
   const mission = (/#hud \.hud-mission \{([^}]*)\}/.exec(hud) || [])[1] || '';
   ok(/position:\s*relative/.test(mission) && !/bottom:/.test(mission), '#985: het doel zit in de kolom (relative), niet meer onderin (geen bottom)');
@@ -31,7 +31,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   for (const [vw, vh, cRight] of [[1024, 768, 400], [1280, 720, 400], [1920, 1080, 400]]) {
     const vp = hudViewport(vw, vh), e = hudEdge(vw, vh, uiScaleFor(vw, vh));
     const w = Math.max(240, vp.w - 2 * Math.max(e + 330, cRight + 12));
-    const strook = vp.w - (e + 330) - Math.max(e, cRight + 12); // de band tussen de berichtkolom en zone C
+    const strook = vp.w - (e + Math.min(0.3 * vw / uiScaleFor(vw, vh), 350) + 12) - Math.max(e, cRight + 12); // de band tussen de berichtkolom en zone C
     ok(strook >= 240, `#985: ${vw}x${vh} geeft ${Math.round(strook)} px strook voor het doel (was 2 x de grootste reserve)`);
   }
 }

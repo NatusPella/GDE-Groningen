@@ -103,10 +103,10 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 /* --- zone B: the GPS card and the place name ------------------------------ */
 /* Zone B is één kolom: het doel bovenaan, de routekaart eronder (hud_panel.js zet ze in .hud-zone-b). Ze stapelen, dus ze raken elkaar niet. De kolom vult de vrije
-   strook tussen de linkerkolom (berichten, 330 px) en zone C (klok, sterren, geld; --hud-c-right is gemeten) en centreert daarin; hij hangt aan dezelfde bovenrand als zone A (#985). */
+   strook tussen de linkerkolom (berichten, min(30vw, 350 px) breed, hudcards.css) en 12 px erachter en zone C (klok, sterren, geld; --hud-c-right is gemeten) en centreert daarin; hij hangt aan dezelfde bovenrand als zone A (#985). */
 #hud .hud-zone-b {
   position: absolute; top: max(calc(var(--hud-top) + 2px), var(--hud-gps-top, 0px));
-  left: calc(var(--hud-edge) + 330px); right: max(var(--hud-edge), calc(var(--hud-c-right, 0px) + 12px));
+  left: calc(var(--hud-edge) + min(calc(30vw / var(--ui, 1)), 350px) + 12px); right: max(var(--hud-edge), calc(var(--hud-c-right, 0px) + 12px));
   display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
 }
 @media (max-width: 900px) { #hud .hud-zone-b { left: var(--hud-edge); right: var(--hud-edge); } }

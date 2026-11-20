@@ -79,7 +79,7 @@ ok(/#hud \.hud-mission \.hud-obj-keys \{ display: none; \}/.test(css985), 'small
 ok(/--hud-vehname-ctx/.test(src('game/js/hud_panel.js')) && /var\(--hud-vehname-ctx, 0px\)/.test(css985), 'de naamkaart hangt boven de toetshintstapel (--hud-vehname-ctx)');
 ok(/display: none; \/\* #985/.test(src('game/js/minigamekit.js')), 'het watermerk van het minigamebord ligt niet meer achter de laatste regels');
 ok(/columnOpts\(\)/.test(src('game/js/hudcards.js')) && /leftColumnFits\(upA \? upA\.spec : null, q\.spec, col\)/.test(src('game/js/hudcards.js')), 'hudcards: een E-kaart telt het venster en de telefoonkaart mee');
-ok(/left: calc\(var\(--hud-edge\) \+ 330px\); right: max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(css985), 'zone B vult de strook tussen berichtkolom en zone C');
+ok(/left: calc\(var\(--hud-edge\) \+ min\(calc\(30vw \/ var\(--ui, 1\)\), 350px\) \+ 12px\); right: max\(var\(--hud-edge\), calc\(var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(css985), 'zone B vult de strook tussen berichtkolom en zone C');
 
 // klasse 10: het karakterkaartje toont één personage, dat van de speler (hoofdspeler: ook een gast ziet zijn eigen figuur)
 const hp = src('game/js/hud_panel.js');
