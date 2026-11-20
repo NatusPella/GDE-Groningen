@@ -58,6 +58,7 @@ import { jobBonusHook } from './latehooks.js';
 import { startKaart, toonRegelkaart } from './regelkaart.js'; // AAA bijbanen: de regelkaart bij de eerste diensten
 import { stingen } from './sfx/stingen.js';
 import { bijbaanKaart, kaartNodig } from './bijbaan_aaa.js';
+import { openingVan, klantPraatje, reeksMelding, reeksTekst, eindregel } from './bijbaanbeats.js'; // AAA bijbanen: begin- en eindritueel, klantpraatjes, zichtbare reeks
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
@@ -408,6 +409,8 @@ function startJob(job, takeover = null, owner = 0, cw = null) {
       else sayDuoJobLine(hoofdspeler(world).character, 'start');
     }
   }
+  // AAA bijbanen: een herkenbaar begin (de handelingen van het vak, met toetsplaatje bij de eerste diensten); alleen beeld bij deze speler
+  if (owner === 0) { const open = openingVan(job.id, rec(job.id).shifts); if (open) world.addMessage(open, 4.5, { kind: 'bijbaan' }); }
   try { job.round(c); } catch (e) { crash(e, c); return false; }
   publish();
   return true;
@@ -501,10 +504,12 @@ function completeRound(c, res = {}) {
   }
   const bits = [bonusDelen(pay + tip, aantal, total, SIDEJOB_LEVEL_BONUS * (Math.max(1, c.level) - 1)).tekst];
   if (tip) bits.push(`fooi ${euro(tip)}`);
-  bits.push(`reeks ${c.streak}`);
+  bits.push(reeksTekst(c.streak)); // reeks 4 (+24%): de bonus die de volgende klus krijgt
   // #685: 1+1=3 één keer uitleggen, bij de eerste gedeelde beloning
   if (aantal > 1 && !c.world.groepsbonusUitleg) { c.world.groepsbonusUitleg = true; bits.push(GROEPSBONUS_UITLEG); }
   c.world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
+  // AAA bijbanen: een klant met een eigen praatje en een mijlpaal in de reeks; lokaal beeld bij de speler van deze dienst
+  try { const pr = klantPraatje(c.job.id, c.round - 1, c.beatSeed == null ? (c.beatSeed = Math.random()) : c.beatSeed); if (pr) c.world.addMessage(pr, 4.2, { kind: 'bijbaan' }); const rm = reeksMelding(c.streak); if (rm) c.world.addMessage(rm, 4, { kind: 'bijbaan' }); } catch (e) { /* een praatje mag de dienst nooit raken */ }
   if (host) { try { stingen.push(world, 'stap'); } catch (e) { /* een sting mag de dienst nooit raken */ } } // AAA bijbanen: een betaalde ronde klinkt
   if (host) {
     if (c.levelUp) sayJobLine(c.job, 'level');
@@ -577,7 +582,8 @@ function endShift(kind, reason = '', c2 = null) {
     if (kind !== 'dead') {
       const title = kind === 'fail' ? 'KLUS MISLUKT' : kind === 'wanted' ? 'DIENST GESTAAKT' : 'DIENST VOORBIJ';
       const stats = [['Klussen', String(c.streak)], ['Verdiend', euro(c.earned)], ['Beste reeks', String(best)]];
-      showBanner({ kind: kind === 'quit' ? 'pass' : 'fail', title, reason: `${job.name}: ${pretty}`, reward: 0, stats });
+      const slot = eindregel(job.id, { kind, streak: c.streak }); // AAA bijbanen: een slotregel die bij de lijn past
+      showBanner({ kind: kind === 'quit' ? 'pass' : 'fail', title, reason: `${job.name}: ${pretty}${slot ? `. ${slot}` : ''}`, reward: 0, stats });
     } else if (reason) {
       world.addMessage(reason, 3);
     }
