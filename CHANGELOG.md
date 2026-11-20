@@ -66,6 +66,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **De kamer is echt binnen:** in een binnenstap (het Loket, het kantoor, de woonkamer, de kruitkelder en de andere kamers) staan geen voetgangers, auto's, fietsenstallingen of andere losse spullen meer in de kamer, de camera blijft in de kamer onder het plafond (geen dak of buitenwereld meer in beeld) en de speler staat altijd binnen: past de kamer niet op die plek, dan zoekt het spel de dichtstbijzijnde plek die wel past, en wie in een voertuig zit stapt eerst uit. Samen spelen: het is lokaal bij wie de stap speelt; een gast ziet de kamer van de stap niet, zoals eerst.
 - **Rustiger camera in scènes:** hooguit één zichtbare pan per scène (nooit twee achter elkaar); de andere schuivers zijn een bijna-vaste drift. Camera's in een kamer blijven 0,3 m onder het plafond. Dit geldt voor alle scènes (100 van de 115 hadden meer dan één pan).
+### Sneller
+
+- **Minder haperen tijdens het lopen en rijden (CPU-profiel):** de routegraaf en de wegen- en verkeersindex worden na elke nieuwe tegel opnieuw opgebouwd; die herbouw is nu goedkoper (gebouwtoets zonder kopieën, knooppunten als getal), en het gras gooit niet meer al zijn stukken weg zodra een tegel met groen binnenkomt.
 
 ## [0.64.0] - 2026-11-20
 

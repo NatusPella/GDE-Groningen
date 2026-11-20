@@ -89,6 +89,10 @@ function attach(win, { gameDir }) {
   if (hasFlag('--profile-load')) {
     win.webContents.once('did-navigate', () => runProfile(win, Number(argValue('--profile-load')) || 20000).catch((err) => console.log('[profile]', err.message)));
   }
+  // --heapprof-load[=ms]: the objects of the page load that are still alive after ms (live heap by allocation site, GDE_PROFILE_OUT keeps the raw profile)
+  if (hasFlag('--heapprof-load')) {
+    win.webContents.once('did-navigate', () => runHeapProfile(win, Number(argValue('--heapprof-load')) || 60000, true).catch((err) => console.log('[heapprof]', err.message)));
+  }
   // --benchmark --profile: a CPU profile of 30 s of the first run
   if (BENCH && hasFlag('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
   if (BENCH || TRAILER || argValue('--bench-eval')) {

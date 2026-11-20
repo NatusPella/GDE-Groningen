@@ -39,7 +39,8 @@ export function setTrafficHost(h) {
 // from shared OSM nodes (road ends as well as mid-road crossings). ---
 
 const graphCache = new WeakMap();
-const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
+// één getal per punt (0,1 m): geen string per hoekpunt bij het bouwen van de knooppuntindex (bereik ruim 3000 km, zie scripts/perf/nodekey_bench.mjs)
+const nodeKey = (p) => (Math.round(p[0] * 10) + 33554432) * 67108864 + (Math.round(p[1] * 10) + 33554432);
 
 // The nodes (shared vertices) of the roads by road. The city's roads are indexed at once; a road that
 // streamed in with a province tile (it lives in the map's road grid, not in map.roads) is indexed the
