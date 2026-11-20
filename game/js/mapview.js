@@ -15,7 +15,7 @@ import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, statusRegels } from './gebiedenkaart.js';
 import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
-import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
+import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -1241,6 +1241,7 @@ function drawStreetNames(ctx, boxes, bezet = []) {
     if (!best) continue;
     const mx = (best.a[0] + best.b[0]) / 2, my = (best.a[1] + best.b[1]) / 2;
     if (mx < x0 || mx > x1 || my < y0 || my > y1) continue;
+    if (discoveryHidden(mx, my)) continue; // 20-11: geen straatnamen in onbezocht gebied
     const chord = Math.hypot(best.b[0] - best.a[0], best.b[1] - best.a[1]) * state.scale;
     cands.push({ r, mx, my, chord, a: best.a, b: best.b, pri: ROAD_ORDER[r.cat] });
   }
@@ -1648,6 +1649,7 @@ function drawDynamicMarkers(ctx, world) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return; // een laag zonder echte plek mag geen pin of toFixed-crash geven
     if (layer && !layerOn(layer)) return;
     if (!mapKindVisible(kind, z)) return;
+    if (!pinBlijftInMist(kind, pick) && discoveryHidden(x, y)) return; // 20-11: in nog onbezocht gebied geen pins, alleen de bewust getoonde doelen
     const [sx, sy] = toScreen(x, y);
     if (sx < -20 || sy < -20 || sx > state.cw + 20 || sy > state.ch + 20) return;
     if (samen) pick = { ...pick, samen };

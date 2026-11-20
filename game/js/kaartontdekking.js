@@ -43,3 +43,20 @@ export function revealAlpha(now, at, ms = REVEAL_MS) {
   const t = Math.max(0, Math.min(1, (now - at) / ms));
   return 1 - t * t * (3 - 2 * t);
 }
+
+// Het detailniveau per gebiedstoestand (20-11, gebiedtoestand.js): in een gebied waar je nog nooit was zie je alleen grove vormen
+// (de mistlaag dempt wegen, water en gebouwen), geen straatnamen en geen kleine pins. Bezocht gebied houdt het volle detail.
+// De toestand wordt per speler uit het eigen profiel gehaald; de kaart is lokaal.
+export const DETAIL = {
+  onzichtbaar: { straatnamen: false, pins: false },
+  zichtbaar: { straatnamen: true, pins: true },
+  bezig: { straatnamen: true, pins: true },
+  veroverd: { straatnamen: true, pins: true },
+};
+export const detailVoor = (toestand) => DETAIL[toestand] || DETAIL.onzichtbaar;
+
+// Pins die ook in onbezocht gebied blijven: jijzelf, medespelers, het gekozen doel en je eigen waypoint (bewust getoonde doelen).
+const BLIJFT = new Set(['player', 'partner', 'goal', 'userWaypoint']);
+export function pinBlijftInMist(kind, pick) {
+  return BLIJFT.has(kind) || !!(pick && (pick.isGoal || pick.self));
+}
