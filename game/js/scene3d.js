@@ -1997,27 +1997,8 @@ export function prewarmPending() {
 export function warmWaterIndex(worldMap) {
   try { if (worldMap) getWaterIndex(worldMap); return true; } catch (e) { console.warn('waterindex voorladen', e); return false; }
 }
-// Programma's die nog linken (renderer.info.programs, de niet-blokkerende COMPLETION_STATUS waar die er is):
-// het laadscherm wacht hier op na precompilePrograms({ filmLicht: true }).
-export function programsPending() {
-  try {
-    const list = renderer && renderer.info.programs ? renderer.info.programs : [];
-    let n = 0;
-    if (linkExt === undefined) { try { linkExt = renderer.getContext().getExtension('KHR_parallel_shader_compile'); } catch (e) { linkExt = null; } }
-    const gl = renderer.getContext();
-    // zonder de 25 ms-rem van programLinked: dit loopt alleen op het laadscherm, waar de vraag niets in beeld vertraagt
-    for (const p of list) {
-      if (p._linked) continue;
-      let ready;
-      try { ready = linkExt ? !!gl.getProgramParameter(p.program, linkExt.COMPLETION_STATUS_KHR) : p.isReady(); } catch (e) { ready = true; }
-      if (ready) p._linked = true; else n++;
-    }
-    return n;
-  } catch (e) { return 0; }
-}
-// opts.filmLicht: compileer de scène ook in de andere lichtstand (de lichtset van de nacht/dageraad staat aan bij de
-// cuts van de openingsfilm; zonder dit linkt elk materiaal daar synchroon, 40 tot 132 programma's, haperingen van 360
-// tot 1133 ms, #985). Kost laadtijd op het laadscherm in plaats van frames in de film.
+// opts.filmLicht: compileer de scène ook in de andere lichtstand (nacht/dageraad staat aan bij de cuts van de film, #985);
+// het laadscherm wacht daarna met programwarm.js programsPending() tot alles gelinkt is.
 export function precompilePrograms(opts = {}) {
   const t0 = performance.now();
   // Een object met een `material` maar zonder geometry (zoals een Group met een
