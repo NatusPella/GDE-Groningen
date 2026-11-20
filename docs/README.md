@@ -154,6 +154,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BEKENDE-BEPERKINGEN-0.65.md](<BEKENDE-BEPERKINGEN-0.65.md>) | Naslag (concept). Wat in 0.65 niet getest of niet af is: Samen spelen, niet in beeld bekeken, prestaties en de gate. |
 | [BUSSEN-LIVE-21-11.md](<BUSSEN-LIVE-21-11.md>) | Naslag bij #395 en #922: live buslocaties als USP, de bron en de kaartlaag (stand 21-11). |
 | [PERF-START-21-11.md](<PERF-START-21-11.md>) | Spel starten: stilstand in de opening (#1046), meting en aanpak. |
+| [PERF-STIL-21-11.md](<PERF-STIL-21-11.md>) | Stille meting 0.44 tegen 0.64 tegen main op Laag, Hoog en Ultra, start van een nieuw spel en Electron 45.3.3 (#1008, #1015). |
 | [QOL-STAND-21-11.md](<QOL-STAND-21-11.md>) | QoL-stand van epic #985: de 52 bevindingen van 17-11 en wat ervan af is. |
 | [BALANS-21-11.md](<BALANS-21-11.md>) | Naslag. Economiebalans met een sim van 10 uur: verdienste per uur, de Duizendpoot (#1050) en de voor/na-tabel. |
 | [VERKEER-AUDIT-21-11.md](<VERKEER-AUDIT-21-11.md>) | Verkeers- en wereldleven-audit (#1047 tot #1049): AI-verkeer, parkeren, voetgangers, fietsers. |
