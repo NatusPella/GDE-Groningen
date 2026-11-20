@@ -210,6 +210,21 @@ function footsteps(dt, world) {
       playStep(st.surface, ped.x, ped.y, n.gain, run ? 0.9 : 1.03, 0, rain, { run, lp: n.lp, side: st.side, vx: Math.cos(ped.angle || 0), vy: Math.sin(ped.angle || 0) });
     }
   }
+  // the other players (Samen spelen): their figures set footN/footSide/footT/footRun from the drawn walk cycle (coopfigures3d.js, gait.js shareFeet);
+  // you hear their feet like a walker's, and only a few metres off (the figure is drawn from the snapshot, so this is local sound, nothing on the net)
+  const cf = world.coopFigures;
+  if (cf && !world.paused) for (const k in cf) {
+    const f = cf[k];
+    if (!f || f.footT === undefined || world.time - f.footT > 0.3) continue;
+    let st = pedState.get(f);
+    if (!st) { st = { n: f.footN }; pedState.set(f, st); }
+    if (f.footN === st.n) continue;
+    st.n = f.footN;
+    const L = K.listener, d = Math.hypot(f.x - L.x, f.y - L.z);
+    if (d > 20) continue;
+    const n = npcStep(d, !!f.footRun, false);
+    playStep(surfaceAt(world.map, f.x, f.y), f.x, f.y, n.gain, f.footRun ? 0.9 : 1.03, 0, rain, { run: !!f.footRun, lp: n.lp, side: f.footSide ? 1 : 0, vx: Math.cos(f.angle || 0), vy: Math.sin(f.angle || 0) });
+  }
 }
 
 // --- combat -------------------------------------------------------------

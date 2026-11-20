@@ -2,7 +2,7 @@
 // plus de koppeling in de code (models3d_people.js, scene3d.js, sfx/foley.js) en de Samen-spelen-regel (gast rekent hetzelfde).
 //   node scripts/gait_test.mjs
 import fs from 'node:fs';
-import { footContact, contactGain, turnLean, approachTo, gazeToward, glanceOn, wrapPi, MAX_YAW_RATE, GAZE_MAX } from '../game/js/gait.js';
+import { footContact, contactGain, turnLean, approachTo, gazeToward, glanceOn, glanceAt, shareFeet, wrapPi, MAX_YAW_RATE, GAZE_MAX, GLANCE_RANGE, HONK_RANGE } from '../game/js/gait.js';
 import { strideFor } from '../game/js/sfx/steps.js';
 
 let fails = 0;
@@ -76,12 +76,35 @@ check('approachTo never overshoots', approachTo(0, 1, 2, 0.1) === 0.2 && approac
   check('glanceOn is deterministic (a guest sees the same)', glanceOn(12.34, 0.5) === glanceOn(12.34, 0.5));
 }
 
+// claxon en glimp: dichtbij en voor de mens; een claxon trekt ook een verre blik, 1,6 s lang
+{
+  const p = { angle: 0, x: 0, y: 0 }, ped = (o = {}) => ({ animOffset: 30, ...o });
+  const near = { x: 6, y: 1 }, far = { x: 20, y: 1 };
+  let hits = 0; for (let i = 0; i < 400; i++) { const ud = ped(); glanceAt(ud, p, near, i * 0.2); if (ud.gazeT === ud.gazeT) hits++; }
+  check('a walker nearby glances at you part of the time', hits > 80 && hits < 320, String(hits));
+  const ud1 = ped(); glanceAt(ud1, p, far, 5);
+  check('a walker beyond the glance range does not look', Number.isNaN(ud1.gazeT) && GLANCE_RANGE < 20 && HONK_RANGE > 20);
+  const ud2 = ped(), car = { x: 20, y: 1, inVehicle: { horn: true } };
+  glanceAt(ud2, p, car, 5);
+  check('a honk draws a far head', ud2.gazeT > 0 && ud2.honkUntil > 5);
+  glanceAt(ud2, p, { x: 20, y: 1, inVehicle: { horn: false } }, 5.5);
+  check('the head keeps looking a moment after the honk', ud2.gazeT > 0);
+  glanceAt(ud2, p, { x: 20, y: 1 }, 8);
+  check('and goes back after it', Number.isNaN(ud2.gazeT));
+  const o = {}; shareFeet(o, { footN: 3, footSide: 1 }, 7);
+  const o2 = {}; shareFeet(o2, {}, 1);
+  check('shareFeet copies the contact and its time; nothing without a contact', o.footN === 3 && o.footSide === 1 && o.footT === 7 && !('footT' in o2));
+  const q = { pose: 'x' }; const ud3 = ped(); glanceAt(ud3, { ...p, ...q }, near, 1);
+  check('a walker with a pose does not glance', Number.isNaN(ud3.gazeT));
+}
+
 // de koppeling in de code
 const src = (p) => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
 const people = src('../game/js/models3d_people.js'), scene = src('../game/js/scene3d.js'), foley = src('../game/js/sfx/foley.js');
 check('animatePersonWalk records heel contacts and turn lean', /footContact\(prevPhase, phase\)/.test(people) && /ud\.footN/.test(people) && /turnLean\(yawRate, s\)/.test(people) && /chest\.rotation\.x \+= ud\.turnLean/.test(people));
 check('scene3d hands the contacts to the sound (player and walkers)', /shareFeet\(player, playerMesh\.userData/.test(scene) && /shareFeet\(p, ud, world\.time\)/.test(scene) && /glanceAt\(ud, p, player/.test(scene));
 check('foley follows the contacts and keeps the stride counter as a fall-back', /p\.footN !== footSeen/.test(foley) && /ped\.footN !== st\.n/.test(foley) && /e\.kind === 'step' && live/.test(foley) && /tickFoot\(foot, p, dt, footOut\)/.test(foley));
+check('the other players\' figures hand over their heel contacts and foley plays them (Samen spelen)', /shareFeet\(f, e\.mesh\.userData/.test(src('../game/js/coopfigures3d.js')) && /world\.coopFigures/.test(foley) && /f\.footN === st\.n/.test(foley));
 check('gait.js has no imports (pure; no cycle)', !/^import /m.test(src('../game/js/gait.js')));
 check('the net snapshot gets no new field for this (docs/COOP-GAST.md)', !/footN|turnLean|gazeT/.test(src('../game/js/coopextra.js')) && !/footN|turnLean|gazeT/.test(src('../game/js/coopstate.js')));
 

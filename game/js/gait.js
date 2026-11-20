@@ -79,8 +79,14 @@ export function shareFeet(o, ud, t) {
 
 // Een voetganger vlakbij glimpt naar de speler: alleen binnen GLANCE_RANGE, niet met iets in de hand en alleen als de speler voor hem staat.
 // Zet ud.gazeT (hoek ten opzichte van de neus, of NaN voor geen blik); animatePersonWalk glijdt daarheen.
+// Een claxon trekt elk hoofd in het gehoor (HONK_RANGE, ~1,6 s) naar het voertuig, ook van wie niet eerst naar je keek.
 export const GLANCE_RANGE = 9;
+export const HONK_RANGE = 28;
+export const HONK_LOOK = 1.6;
 export function glanceAt(ud, p, player, t) {
-  const g = gazeToward(p.angle, p.x, p.y, player.x, player.y, GLANCE_RANGE); // the cheap range test first: most walkers are far
-  ud.gazeT = g === g && !p.pose && !p.carry && !p.heldWeapon && glanceOn(t, ud.animOffset * 0.01) ? g : NaN;
+  const v = player.inVehicle;
+  if (v && v.horn) ud.honkUntil = t + HONK_LOOK;
+  const honk = ud.honkUntil > t;
+  const g = gazeToward(p.angle, p.x, p.y, player.x, player.y, honk ? HONK_RANGE : GLANCE_RANGE); // the cheap range test first: most walkers are far
+  ud.gazeT = g === g && !p.pose && !p.carry && !p.heldWeapon && (honk || glanceOn(t, ud.animOffset * 0.01)) ? g : NaN;
 }

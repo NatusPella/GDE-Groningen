@@ -9,6 +9,7 @@ import { syncZitters, aantalZitters } from './coopzitten3d.js';
 import { bestuurdersLijst } from './coopbestuur.js';
 import { isCinematicActive } from './cinematics.js';
 import { buildPersonMesh, animatePersonWalk, setHeldWeapon, applyAttackPose } from './models3d_people.js';
+import { shareFeet } from './gait.js';
 import { avatarVan, avatarLook, avatarLabel } from './coopspeler.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncBezig, hasBezigMeshes } from './coopbezig3d.js';
@@ -83,7 +84,9 @@ export function syncFigures(world, dt) {
       e.mesh.position.set(f.x, (f.gz || 0) + (f.z || 0), f.y);
       e.mesh.rotation.set(0, -(f.angle || 0), 0); // ook weer rechtop na een val (#369)
       e.mesh.userData.crouch = !!f.crouching; // bukken (#434)
-      animatePersonWalk(e.mesh, walkSpeed(e.prev, f, dt), dt);
+      const ws = walkSpeed(e.prev, f, dt);
+      animatePersonWalk(e.mesh, ws, dt);
+      shareFeet(f, e.mesh.userData, world.time || 0); f.footRun = ws > 4.5; // het hielcontact voor sfx/foley.js: je hoort je medespelers lopen (gait.js)
     }
     if (f.coopWapen !== undefined || f.coopFx) { // het wapen in zijn hand en zijn slag of schot (een gast met een wapen, coopwapen.js, #434)
       try { setHeldWeapon(e.mesh, f.coopWapen || null); if (f.coopWapen || f.coopFx) applyAttackPose(e.mesh, f.coopFx, world.time, null); } catch (er) { /* zonder wapen */ }
