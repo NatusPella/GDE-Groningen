@@ -93,7 +93,7 @@ function leesVeld(v) {
   const gewas = GEWASSEN[v.gewas] ? v.gewas : null;
   // een gezaaid veld zonder gewas of zaaitijd is niets: terug naar braak; een geoogst veld is braak
   if ((fase === 'gezaaid' && (!gewas || !Number.isFinite(v.gezaaidOp))) || fase === 'geoogst') return nieuwVeld();
-  return { fase, gewas: fase === 'braak' ? null : gewas, bodem: getal(v.bodem, 0, 1), zaai: getal(v.zaai, 0, 1), mest: getal(v.mest, 0, 1), gezaaidOp: fase === 'gezaaid' ? getal(v.gezaaidOp, 0, MAX_UREN) : null, cult: getal(v.cult, 0, 1), spuit: getal(v.spuit, 0, 1) };
+  return { fase, gewas: fase === 'braak' ? null : gewas, bodem: getal(v.bodem, 0, 1), zaai: getal(v.zaai, 0, 1), mest: getal(v.mest, 0, 1), gezaaidOp: fase === 'gezaaid' ? getal(v.gezaaidOp, 0, MAX_UREN) : null, cult: getal(v.cult, 0, 1), spuit: getal(v.spuit, 0, 1), ...(fase === 'braak' && GEWASSEN[v.stoppel] ? { stoppel: v.stoppel } : {}) };
 }
 
 // Een boerderij uit opslag (of iets anders): leeg, oud of kapot geeft een geldige, onbekende velden gaan weg, getallen worden begrensd.
@@ -108,7 +108,7 @@ export function normaliseer(raw) {
   }
   b.veld = leesVeld(d.veld);
   if (PERCEEL_IDS.includes(d.veldVan)) b.veldVan = d.veldVan;
-  if (d.velden && typeof d.velden === 'object') for (const id of PERCEEL_IDS) { const v = leesVeld(d.velden[id]); if (id !== b.veldVan && v.fase !== 'braak') b.velden[id] = v; }
+  if (d.velden && typeof d.velden === 'object') for (const id of PERCEEL_IDS) { const v = leesVeld(d.velden[id]); if (id !== b.veldVan && (v.fase !== 'braak' || v.stoppel)) b.velden[id] = v; }
   const s = d.schuur;
   if (s && typeof s === 'object' && GEWASSEN[s.gewas] && s.kg > 0) b.schuur = { gewas: s.gewas, kg: Math.round(getal(s.kg, 0, 1e6)), kwaliteit: getal(s.kwaliteit, 0, 1, 1), veld: PERCEEL_IDS.includes(s.veld) ? s.veld : null };
   if (d.machines && typeof d.machines === 'object') for (const m of MACHINE_IDS) if (d.machines[m] === 'eigen') b.machines[m] = 'eigen';
@@ -154,7 +154,7 @@ function leesBoek(b, raw) {
 export function syncVeld(b) {
   const nu = b.bedrijf.actief;
   if (b.veldVan === nu) return false;
-  if (b.bedrijf.percelen[b.veldVan] && b.veld.fase !== 'braak') b.velden[b.veldVan] = b.veld;   // is het perceel weg, dan blijft ook het gewas weg
+  if (b.bedrijf.percelen[b.veldVan] && (b.veld.fase !== 'braak' || b.veld.stoppel)) b.velden[b.veldVan] = b.veld;   // is het perceel weg, dan blijft ook het gewas weg
   b.veld = b.velden[nu] || nieuwVeld();
   delete b.velden[nu];
   b.veldVan = nu;
@@ -361,7 +361,7 @@ export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = fa
     // de grond wordt moe van dezelfde teelt achter elkaar: wisselen van gewas put hem minder uit
     log.u = Math.min(UITPUTTING_MAX, Math.round((log.u + (log.g === v.gewas ? 0.08 : 0.04)) * 1000) / 1000);
     log.g = v.gewas;
-    b.veld = nieuwVeld();
+    b.veld = { ...nieuwVeld(), stoppel: v.gewas };   // het stoppelveld blijft staan tot je ploegt (alleen het beeld: #985)
     b.totaal.oogsten++;
     return { taak, fractie: f, kg: b.schuur.kg, gewas: v.gewas };
   }
