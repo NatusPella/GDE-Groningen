@@ -207,6 +207,9 @@ function injectStyles() {
     }
     .mapview-btn:hover { background: ink(greenLight); }
     .mapview-btn.ghost { color: ink(cream); background: transparent; border: 1px solid ink(greenLight 0.6); }
+    .mapview-card .mv-link { font: inherit; font-size: 14px; color: var(--ds-zeef-tx); background: none; border: 0; padding: 4px 2px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .mapview-card .mv-link:hover { color: var(--ds-c-ink-inkt); }
+    .mapview-card .mv-link:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
     .mapview-btn.ghost:hover { border-color: ink(greenLight); color: ink(greenLight); }
     .mapview-btn[hidden] { display: none; }
     .mapview-btn:focus-visible { outline: 3px solid ink(cream); outline-offset: 2px; }
@@ -2440,7 +2443,7 @@ function showCard(world, h, sx, sy) {
   // op jezelf klikken: een hint bij je eigen plek, geen acties naar jezelf (#445)
   if (h.self) {
     const el = state.cardEl;
-    el.innerHTML = `<span class="mv-ico"><img src="${mapIconUrl('player')}" alt=""></span><div>${hierHtml(h.hier || '')}<div class="mv-btns"><button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>`;
+    el.innerHTML = `<span class="mv-ico"><img src="${mapIconUrl('player')}" alt=""></span><div>${hierHtml(h.hier || '')}<div class="mv-btns"><button type="button" class="mv-link" data-card="close">Sluiten</button></div></div>`;
     el.hidden = false;
     state.card = { h, self: true };
     return;
@@ -2468,7 +2471,7 @@ function showCard(world, h, sx, sy) {
     stapHtml = reisHtml(rijen, gekozen, kleur);
     if (gast) stapHtml += `<p class="mv-note">${escHtml(GAST_REIS_MELDING)}</p>`;
     const sel = opts.find((o) => o.id === gekozen);
-    if (gekozen && sel && !gast) stapHtml += `<button type="button" class="mapview-btn" data-card="rij"${sel.afford ? '' : ' disabled'}>Reis nu · ${sel.price > 0 ? `€ ${sel.price}` : 'gratis'} · ${escHtml(sel.eta || '')}</button>`;
+    if (gekozen && sel && !gast) stapHtml += `<button type="button" class="mapview-btn" data-card="rij"${sel.afford ? '' : ' disabled'}>Reis nu · ${sel.price > 0 ? `€ ${sel.price}` : 'gratis'} · ${escHtml(sel.eta || '')} ${sel.afford ? keyTextHtml('{ENTER}') : ''}</button>`;
     state.reis = { opts, gekozen, lagen: lijnLagen(opts, gekozen), dest: { x: h.x, y: h.y, name: h.name } };
   } else if (stap === 'info') {
     stapHtml = infoHtml(infoRegels({ spot: { x: h.x, y: h.y, name: it ? it.title : h.name }, sub: it ? it.meta : h.sub, afstand: d, fmt: formatDistance }));
@@ -2476,7 +2479,7 @@ function showCard(world, h, sx, sy) {
   const el = state.cardEl;
   el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name || 'Plek op de kaart')}</b>` +
     `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${h.samen ? `<p class="mv-note" data-samen="${escHtml(h.samen.status)}">${escHtml(h.samen.tekst)}</p>` : ''}${actiesHtml(model, stap)}${stapHtml}` +
-    '<div class="mv-btns"><button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>';
+    '<div class="mv-btns"><button type="button" class="mv-link" data-card="close">Sluiten</button></div></div>';
   el.hidden = false;
   state.card = { h, it, gekozen, stap, model };
 }
