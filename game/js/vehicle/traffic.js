@@ -131,7 +131,7 @@ const drivableRoad = (r) => r.cat !== 'foot' && r.pts.length > 1;
 // Een tegel erbij of eraf: alleen de gewijzigde wegen en hun buurt (een weg met een hoekpunt binnen 5 m, en wie eraan
 // vastzat) gaan er opnieuw in, in de volgorde van de vorige bouw (_ord). Zelfde uitkomst als een volledige herbouw,
 // op de volgorde binnen een knooppuntlijst na (zie docs/PERF-WEGINDEX-21-11.md).
-const GRAPH_DELTA_MAX = 600;
+const GRAPH_DELTA_MAX = 1500; // en hooguit een derde van de geladen wegen: daarboven is een volledige bouw goedkoper
 function applyRoadDelta(map, g, delta) {
   const last = new Map();
   for (const d of delta) last.set(d.road, d.op);
@@ -179,7 +179,7 @@ function roadGraph(map) {
   if (g && g.idxVer !== undefined && map.roadGrid) {
     const idx = roadIndexOf(map);
     const delta = idx.since(g.idxVer);
-    if (delta && delta.length <= GRAPH_DELTA_MAX) {
+    if (delta && delta.length <= Math.max(GRAPH_DELTA_MAX, idx.size / 3)) {
       applyRoadDelta(map, g, delta);
       g.ver = ver; g.idxVer = idx.version; g.geoVer = map.geoVer;
       return g;
