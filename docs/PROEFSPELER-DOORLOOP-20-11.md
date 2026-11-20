@@ -31,7 +31,7 @@ Bot-artefacten die ik in de bot (en een in de spel-API voor de bot) repareerde:
 | Missie | Uitkomst | Wat er gebeurde | Mens vastgelopen? |
 | --- | --- | --- | --- |
 | M01 Nul krassen, vijftienhonderd punten | gehaald (151 s) | Geen bijzonderheden. | nee |
-| M02 Even pinnen | gehaald (532 s) | Eerste poging mislukt: de politie klemt de auto in. Twee keer 30 s vast met de auto tegen een muur 16 m voor de garage-ingang (beeld `shots-M02-oog18-vast`). De tekst zegt "Spuit & Klaar", het gebouw heet "Garage Knalpot Damsterkwartier". | misschien kort; tekstverschil is verwarrend |
+| M02 Even pinnen | gehaald (532 s) | Eerste poging mislukt: de politie klemt de auto in. Twee keer 30 s vast met de auto tegen een muur 16 m voor de garage-ingang (beeld `shots-M02-oog18-vast`). De muur is een huis in de Moeskersgang waar de bot tegenaan stuurde. De regelkaart noemde "Spuit & Klaar", het gebouw heet "Garage Knalpot": tekst gefixt in het vervolg. | misschien kort; tekstverschil is verwarrend |
 | M03 Het Loket | gehaald (30 s) | Geen bijzonderheden. | nee |
 | M04 Kieken van boven | gehaald (56 s) | Geen bijzonderheden. | nee |
 | M05 Wind tegen, beide kanten op | niet bereikt | Eerst "Koop een fiets bij Trap & Toeter" (de bot herkende de winkelprompt niet; opgelost). Daarna start de missie alleen op een fiets ("Kom op je eigen fiets", duidelijke melding). Na de fix start de race, maar de bot jat een fiets en wordt opgepakt. | nee: de eis en de hint zijn duidelijk |
@@ -43,10 +43,10 @@ Bot-artefacten die ik in de bot (en een in de spel-API voor de bot) repareerde:
 | M11 Geleend van de Friezen | niet bereikt | Drie keer "het skûtsje is weg" (afstand 150 tot 260 m, het skûtsje vaart 7 m/s, de rubberboot haalt 16 m/s). De bot stuurt de rubberboot niet goed genoeg. | onzeker; theoretisch haalbaar |
 | M12 Het staat niet in het rooster | **geskipt** | De bot kan de heli niet landen ("Spoedje: land op de H van het UMCG", 930 m). Het bot-gat is bekend. De stap zelf werkt (de heli vliegt met Dijkstra, de prompt is duidelijk). | nee (alleen bot) |
 | M13 Het containerlabyrint | gehaald (187 s) | NaN-geometrie bij de start, gerepareerd. | nee |
-| M14 De dijk | niet bereikt | De bot rijdt 2,5 km en stopt dan bij "De kade houdt je tegen" op de Hogelandsterweg bij Holwierde (20200, -16226), 5,5 km voor het doel. Zes keer 30 s vast. De weg heeft daar water op de rijbaan (8 m, 3 m voor de bot) en is een weg met `z`, geen herkende brug. Zie hieronder. | **verdacht, handmatig controleren** |
+| M14 De dijk | niet bereikt (bot-fout) | De bot rijdt 2,5 km, stuurt dan dwars het talud van de dijk af en wordt door de kade tegengehouden (`De kade houdt je tegen`) op `(20202, -16226)`, 5,5 km voor het doel. Mijn eerste hypothese (een weg zonder brug) klopte niet: de hartlijn van de weg is droog, de sloot loopt er 6 tot 9 m naast (zie Vervolg, punt 1). | nee |
 | M15 Laag over het graan | gehaald (443 s) | De eerste run eindigde door de tijdgrens van de run; de tweede haalde alle poorten. | nee |
 | M16 Nog eentje dan | niet bereikt | De bot rijdt in een auto door een te-voet-missie (drie tenten, de menigte duwt) en haalt drie keer de tijd niet ("tijd op"). Het HUD toont een racetimer met "Controlepunt 1/3". | onzeker |
-| M17 Open, dicht | niet bereikt | De bot krijgt de sloep niet vooruit ("klem", snelheid ~1 m/s bij de start) en de bruggen draaien te laat open. HUD: 13,2 km voor 1,2 km hemelsbreed. Toeteren helpt niet voor een stilstaande boot. | onzeker; de routelengte van 13,2 km verdient een blik |
+| M17 Open, dicht | niet bereikt; daarna gefixt | De bot krijgt de sloep niet vooruit en de bruggen draaien te laat open. HUD: 13,2 km voor 1,2 km hemelsbreed. Het vervolg vond twee echte fouten (te krappe etappelimieten en een ontbrekende tak van het vaarnet bij brug 1), zie Vervolg, punt 3. | nee, na de fix van het vervolg |
 | M18 Wie draaide de camera's uit? | gehaald na fix (65 s) | Voor de fix 280 s vast 25 m voor "Naar de serverkamer". | nee (gerepareerd) |
 | M19 Stoom | **geskipt** | De bot zit in de cabine en drukt nooit W (de bot rijdt geen trein). De cabine toont het bedieningspaneel en de hendel; de stap zelf lijkt goed. Beeld: `shots-M19-oog42-vast`. Na de sprong naar M20 bleef de speler in de cabine zitten (alleen bij de F9-sprong). | nee (alleen bot) |
 | M20 Het beleg van Bourtange | gerepareerd, beeld gezien; niet door de bot uitgespeeld | De nieuwe noordwal en de houdring staan in de beelden hierboven (via de sprong, op de plek gezet: de stap loopt door naar de houdstap). Twee keer kwam de bot niet bij de startmarker: eerst vast bij een hoek aan de Kazernestraat (35 m), later 250 m ten westen van het fort, waar hij weigert een water-oversteek van een fietspad (rood, over de sloot bij Atalanta) te nemen. Een mens zwemt daar door; de bot niet. | onzeker: de oversteek bij Atalanta is mogelijk een brug zonder dek in de data |
@@ -61,23 +61,21 @@ Bot-artefacten die ik in de bot (en een in de spel-API voor de bot) repareerde:
 | M29 Terug | gehaald (56 s) | Geen bijzonderheden. | nee |
 | M30 Het proefbeleg | niet bereikt (twee runs, voor en na de fix) | De bot haalt de gracht en de ophaalbrug, en loopt dan vast op de Batterijenstraat 60 m voor bolwerk 1 (op een fiets, "De kade houdt je tegen"). Na de fix staat bolwerk 1 op de gemeten plek: het loopt 339 m om (ruim 3x de hemelsbreedte) en het HUD toont geen routelijn (beeld `shots-M30-oog16-vast`: de lichtbundel staat aan de overkant van de gracht). Alleen de looptest `m30_bolwerk_test` bewijst dat het te voet kan. | onzeker: handmatig controleren van de brug naar bolwerk 1 |
 
-## M14: de kade op de Hogelandsterweg
+## M14 en de weg zonder brug: ingetrokken
 
-De auto van de bot (met een lekke band, 1 m/s) stopt bij `(20202, -16226)` met "De kade houdt je tegen. Rustig aan bij het water." De tegels zeggen: de weg `Hogelandsterweg` (`major`) loopt daar over ongeveer 8 m water (`isInWater` is waar van 3 tot 9 m voor het punt, de hartlijn zelf ligt in het water), de hoogte van de weg (`z`) is daar 0,00 en `isOnBridge` is nergens waar. Er ligt dus geen brug of duiker in de data: de weg kruist een sloot gelijkvloers. `guardWaterEdge` houdt een langzame auto tegen; een snellere auto valt in de plons (`startVehicleFall`), want `waterPolyAt` is alleen droog voor `z > 1,5` of op een brug. Het wegen-veto van `overOpenWater` helpt hier niet (de hartlijn ligt in het water, en wegen met een `z`-reeks worden overgeslagen). Ik heb dit in het spel zelf niet kunnen herhalen (mijn meetscript kreeg de testauto niet aan het rijden); het bewijs is de run van de bot en de tegeldata. Controleer met de hand: rij vanuit het westen over de Hogelandsterweg bij Holwierde. Voorstel: de brug in de wereldbouw markeren (het OSM-deel heeft vermoedelijk een duiker of brug zonder `bridge=yes`), of `onCarRoad` laten gelden voor een weg die aan beide kanten binnen 15 m droog weer begint. Niet aangepast: dit raakt de rijfysica en de wereldbouw vlak voor de speelsessie. Dit is de enige verdachte plek waar een mens hard kan vastzitten of zinken tijdens een missie.
+In de eerste versie van dit document stond een verdachte plek op de Hogelandsterweg bij Holwierde (een weg door een sloot zonder brug). Dat was een meetfout van mij: ik trok de rijrichting van de bot door als wegverloop, en de natte punten lagen 7 m naast de hartlijn, in de sloot langs de dijk. Het vervolg (punt 1 hieronder) mat op de hartlijn zelf: droog. M14 is dus geen spelbug. Een audit over de provincie op wegen waarvan de hartlijn wel door water loopt zonder brug draait apart (resultaat: zie onder "Audit wegen zonder brug").
 
-## Aanbeveling: audit op wegen zonder brug
+## Audit wegen zonder brug
 
-Twee plekken (M14 bij Holwierde, M20 bij Atalanta) tonen hetzelfde patroon: een weg of fietspad dat een waterpolygoon kruist zonder brug in de data. Voor een voetganger is dat zwemmen; voor een auto is het een muur of een plons. Een audit over de provincie (wegen met de hartlijn in water, zonder bridge-vlag en met een hoogte rond 0) zou de rest vinden; die is niet gedraaid.
+AUDIT_PLAATSHOUDER
 
 ## Open punten voor een mens (13:00)
 
-1. M14: rij de Hogelandsterweg bij Holwierde (zie boven). Een auto kan daar stoppen of zinken.
-2. M17: controleer de sloep (de HUD toont 13,2 km voor een route van 1,2 km) en de eerste vier bruggen.
-3. M26: de bakstap op de Grote Markt met een fiets (loop met je fiets).
-4. M16: de menigte van de tenten (te voet; de race-HUD met "Controlepunt 1/3" staat erbij).
-5. M02: de garage-tekst ("Spuit & Klaar") past niet bij "Garage Knalpot".
-6. M30: loop van de ophaalbrug naar bolwerk 1 (339 m, geen routelijn in het HUD).
-7. M20: de oversteek van het fietspad bij Atalanta (west van het fort), mogelijk een brug zonder dek.
+1. M17: controleer de sloep na de fix van het vervolg (etappelimieten en de tak van het vaarnet bij brug 1).
+2. M26: de bakstap op de Grote Markt met een fiets (loop met je fiets).
+3. M16: de menigte van de tenten (te voet; de race-HUD met "Controlepunt 1/3" staat erbij).
+4. M30: loop van de ophaalbrug naar bolwerk 1 (339 m, geen routelijn in het HUD).
+5. M20: de oversteek van het fietspad bij Atalanta (west van het fort), mogelijk een brug zonder dek.
 
 ## Niet bekeken
 
