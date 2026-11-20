@@ -131,6 +131,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SOCIAL-EN-WEBSITE.md](<SOCIAL-EN-WEBSITE.md>) | Stand: 20 oktober 2026. Het plaatje is gemaakt (`docs/social-preview.png`, hieronder) en de About-tekst en… |
 | [SOLO-SESSIE-AUDIT.md](<SOLO-SESSIE-AUDIT.md>) | Stand: worktree `w77-coop-bake-vault`, commit `78db7781` (de werkboom bevatte bij deze audit |
 | [SPECS-FIRE.md](<SPECS-FIRE.md>) | Twee systemen die elkaar aanvullen, zolang de rolverdeling vastligt. Dit bestand |
+| [BEKENDE-BEPERKINGEN-0.64.0.md](<BEKENDE-BEPERKINGEN-0.64.0.md>) | Naslag. Wat in 0.64.0 niet getest of niet af is (Samen spelen, nog niet gespeelde onderdelen, visuele puntjes, verkorte releasegate). |
 | [SPEELGIDS-4-SPELERS.md](<SPEELGIDS-4-SPELERS.md>) | Naslag. Speelgids voor de eigenaar en drie vrienden (18+): installeren, Samen spelen, passive mode en PvP, opnieuw verbinden, overslaan, bugs melden en bekende beperkingen. Verwijst voor de verbinding naar SPEELGIDS-VIER-SPELERS.md. |
 | [SPEELGIDS-VIER-SPELERS.md](<SPEELGIDS-VIER-SPELERS.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md). Korte gids voor vier spelers over internet: hosten, meedoen, wat is getest (#983) en wat niet (NAT, STUN), met de eerste stappen als het niet lukt. |
 | [SPEELTEST.md](<SPEELTEST.md>) | Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten; zonder save begint het verhaal m… |
