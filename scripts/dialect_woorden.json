@@ -3,7 +3,7 @@
     "bieno": {
       "nl": "bijna",
       "status": "twijfel",
-      "n": 28,
+      "n": 29,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"bijna\"): host, hoast, benoasten, glad; \"bieno\" komt niet voor",
       "voorstel": "hoast",
       "handmatig": true
@@ -18,19 +18,19 @@
     "moeke": {
       "nl": "moeder",
       "status": "bron",
-      "n": 19,
+      "n": 20,
       "opm": "Woordwaark (S.H. Abels, Westerkwartier, S.J.H. Reker, K. ter Laan, H. Molema): bok ⋅ moeder; moeder ⋅ stad; moeder; moeke"
     },
     "stroat": {
       "nl": "straat",
       "status": "bron",
-      "n": 9,
+      "n": 10,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): straat"
     },
     "stun": {
       "nl": "stond",
       "status": "afgeleid",
-      "n": 26
+      "n": 27
     },
     "fryslân": {
       "nl": "friesland",
@@ -40,12 +40,12 @@
     "lèste": {
       "nl": "laatste",
       "status": "afgeleid",
-      "n": 19
+      "n": 21
     },
     "kin": {
       "nl": "kan",
       "status": "bron",
-      "n": 39,
+      "n": 40,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "ains": {
@@ -63,13 +63,13 @@
     "aals": {
       "nl": "alles",
       "status": "bron",
-      "n": 59,
+      "n": 61,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): veel; alles; als"
     },
     "wust": {
       "nl": "weet",
       "status": "afgeleid",
-      "n": 8
+      "n": 9
     },
     "old": {
       "nl": "oud",
@@ -80,7 +80,7 @@
     "woater": {
       "nl": "water",
       "status": "bron",
-      "n": 37,
+      "n": 40,
       "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, H. Molema, K. ter Laan): knie ⋅ water; ondiep ⋅ water; urine ⋅ water; water"
     },
     "kaai": {
@@ -92,7 +92,7 @@
     "eefkes": {
       "nl": "even",
       "status": "bron",
-      "n": 46,
+      "n": 52,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): eventjes"
     },
     "vroag": {
@@ -110,7 +110,7 @@
     "goat": {
       "nl": "gaat",
       "status": "afgeleid",
-      "n": 33
+      "n": 34
     },
     "veurdeur": {
       "nl": "voordeur",
@@ -126,7 +126,7 @@
     "aaltied": {
       "nl": "altijd",
       "status": "bron",
-      "n": 59,
+      "n": 62,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): altijd"
     },
     "opnij": {
@@ -145,7 +145,7 @@
     "hol": {
       "nl": "hou",
       "status": "afgeleid",
-      "n": 31,
+      "n": 35,
       "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"hol; bol\"; de gebruikte betekenis \"hou\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "butendeur": {
@@ -168,7 +168,7 @@
     "stilstait": {
       "nl": "stilstaat",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "veurdat": {
       "nl": "voordat",
@@ -197,7 +197,7 @@
     "aleen": {
       "nl": "alleen",
       "status": "twijfel",
-      "n": 62,
+      "n": 63,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"alleen\"): allain, allaint, allinneg, allènt, bloots; \"aleen\" komt niet voor",
       "voorstel": "allain",
       "handmatig": true
@@ -205,7 +205,7 @@
     "aarst": {
       "nl": "eerst",
       "status": "twijfel",
-      "n": 41,
+      "n": 46,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"eerste\"): geen \"aarst\"; ter Laan en Steenhuis geven \"aarst\" = \"arks\"; de vorm voor eerst is niet bevestigd",
       "voorstel": "navragen",
       "handmatig": true
@@ -241,13 +241,13 @@
     "aal": {
       "nl": "al",
       "status": "bron",
-      "n": 21,
+      "n": 25,
       "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): mogelijk; voortdurend ⋅ wèl; al ⋅ alles ⋅ ieder ⋅ iedereen; al, het -"
     },
     "opkocht": {
       "nl": "opgekocht",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "joaren": {
       "nl": "jaren",
@@ -264,7 +264,7 @@
     "blieven": {
       "nl": "blijven",
       "status": "bron",
-      "n": 6,
+      "n": 7,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): believen ⋅ blijven; believen"
     },
     "ieder": {
@@ -278,7 +278,7 @@
     "rie": {
       "nl": "rij",
       "status": "afgeleid",
-      "n": 35
+      "n": 38
     },
     "kwiet": {
       "nl": "kwijt",
@@ -332,7 +332,7 @@
     "dien": {
       "nl": "je",
       "status": "bron",
-      "n": 75,
+      "n": 77,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): jouw; dijn; -tje; -je"
     },
     "zulfs": {
@@ -364,13 +364,13 @@
     "holt": {
       "nl": "houdt",
       "status": "afgeleid",
-      "n": 5,
+      "n": 10,
       "opm": "Woordwaark (S.H. Abels, A.A. Ganderheyden, H. Molema, P. Boeles) kent het trefwoord als \"Klaas ⋅ hout; hout; huis\"; de gebruikte betekenis \"houdt\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "gaauwer": {
       "nl": "sneller",
       "status": "afgeleid",
-      "n": 7
+      "n": 8
     },
     "oetziet": {
       "nl": "eruitziet",
@@ -454,7 +454,7 @@
     "riedt": {
       "nl": "rijdt",
       "status": "afgeleid",
-      "n": 23
+      "n": 27
     },
     "verlezen": {
       "nl": "kan",
@@ -480,7 +480,7 @@
     "aarste": {
       "nl": "eerste",
       "status": "twijfel",
-      "n": 9,
+      "n": 13,
       "opm": "zie \"aarst\": \"aarste\" (eerste) is niet bevestigd",
       "voorstel": "navragen",
       "handmatig": true
@@ -572,7 +572,7 @@
     "vandoage": {
       "nl": "vandaag",
       "status": "bron",
-      "n": 27,
+      "n": 28,
       "opm": "Woordwaark (S.J.H. Reker): vandaag"
     },
     "kriegst": {
@@ -695,7 +695,7 @@
     "et": {
       "nl": "eet",
       "status": "afgeleid",
-      "n": 6,
+      "n": 8,
       "opm": "Woordwaark (P. Boeles) kent het trefwoord als \"h; et\"; de gebruikte betekenis \"eet\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "leuf": {
@@ -706,12 +706,12 @@
     "har": {
       "nl": "had",
       "status": "afgeleid",
-      "n": 26
+      "n": 27
     },
     "nije": {
       "nl": "nieuwe",
       "status": "bron",
-      "n": 17,
+      "n": 18,
       "opm": "Woordwaark (P. Boeles): nieuw"
     },
     "zuken": {
@@ -729,7 +729,7 @@
     "zai": {
       "nl": "ze",
       "status": "afgeleid",
-      "n": 57,
+      "n": 61,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden) kent het trefwoord als \"zij; zaai\"; de gebruikte betekenis \"ze\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "moaken": {
@@ -764,12 +764,12 @@
     "gong": {
       "nl": "ging",
       "status": "afgeleid",
-      "n": 9
+      "n": 10
     },
     "zied": {
       "nl": "sinds",
       "status": "twijfel",
-      "n": 21,
+      "n": 22,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"sinds\"): \"sunt\", \"van dat\"; \"zied\" betekent daar zijde/kant, niet sinds",
       "voorstel": "sunt",
       "handmatig": true
@@ -864,7 +864,7 @@
     "mekoar": {
       "nl": "elkaar",
       "status": "bron",
-      "n": 8,
+      "n": 9,
       "opm": "Woordwaark (K. ter Laan, H. Molema): elkaar; wambuis"
     },
     "hoeren": {
@@ -939,12 +939,12 @@
     "bliedt": {
       "nl": "blijft",
       "status": "afgeleid",
-      "n": 11
+      "n": 12
     },
     "lèst": {
       "nl": "laatst",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "zichzulf": {
       "nl": "zichzelf",
@@ -959,7 +959,7 @@
     "woarom": {
       "nl": "waarom",
       "status": "bron",
-      "n": 28,
+      "n": 29,
       "opm": "Woordwaark (H. Molema): waarom; daarom"
     },
     "nammen": {
@@ -1043,7 +1043,7 @@
     "woar": {
       "nl": "waar",
       "status": "bron",
-      "n": 43,
+      "n": 47,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): waar ⋅ werkelijk; misschien; ergens; waar"
     },
     "ideë": {
@@ -1385,7 +1385,7 @@
     "rieden": {
       "nl": "rijden",
       "status": "bron",
-      "n": 24,
+      "n": 26,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): rijden; rijden ⋅ varen"
     },
     "sluut": {
@@ -1439,13 +1439,13 @@
     "veurbie": {
       "nl": "voorbij",
       "status": "bron",
-      "n": 2,
+      "n": 4,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): voorbij; geleden ⋅ voorbij"
     },
     "hielemoal": {
       "nl": "helemaal",
       "status": "bron",
-      "n": 4,
+      "n": 5,
       "opm": "Woordwaark (S.J.H. Reker): helemaal; bijna ⋅ helemaal; geheel ⋅ helemaal"
     },
     "ruum": {
@@ -1456,7 +1456,7 @@
     "aaien": {
       "nl": "eieren",
       "status": "afgeleid",
-      "n": 12,
+      "n": 15,
       "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, K. ter Laan) kent het trefwoord als \"eggen; aaien; ⋅ besmeuren ⋅ klikken ⋅ slaan\"; de gebruikte betekenis \"eieren\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "volkstuun": {
@@ -1581,7 +1581,7 @@
     "kriegt": {
       "nl": "krijgt",
       "status": "afgeleid",
-      "n": 7
+      "n": 8
     },
     "noteerd": {
       "nl": "genoteerd",
@@ -1602,7 +1602,7 @@
     "geft": {
       "nl": "geeft",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "stuurst": {
       "nl": "stuurt",
@@ -1670,7 +1670,7 @@
     "eerlke": {
       "nl": "eerlijke",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "samenwarking": {
       "nl": "samenwerking",
@@ -1772,13 +1772,13 @@
     "schient": {
       "nl": "schijnt",
       "status": "bron",
-      "n": 2,
+      "n": 3,
       "opm": "Woordwaark (H. Molema): schijnen"
     },
     "diek": {
       "nl": "dijk",
       "status": "bron",
-      "n": 5,
+      "n": 6,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): dijk"
     },
     "veurzorg": {
@@ -1810,7 +1810,7 @@
     "hiel": {
       "nl": "heel",
       "status": "bron",
-      "n": 1,
+      "n": 3,
       "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden): heel; halen; houden; geheel ⋅ heel"
     },
     "wiezen": {
@@ -1906,7 +1906,7 @@
     "aander": {
       "nl": "andere",
       "status": "bron",
-      "n": 14,
+      "n": 15,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): ander ⋅ tweede ⋅ volgend; ander; toekomstig ⋅ volgend; tweede"
     },
     "leende": {
@@ -1957,7 +1957,7 @@
     "bestait": {
       "nl": "bestaat",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "dissels": {
       "nl": "jezelf",
@@ -1989,7 +1989,7 @@
     "haald": {
       "nl": "gehaald",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "menuut": {
       "nl": "minuut",
@@ -2360,7 +2360,7 @@
     "holst": {
       "nl": "houdt",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "lieske": {
       "nl": "lijstje",
@@ -2391,7 +2391,7 @@
     "wilst": {
       "nl": "wil",
       "status": "afgeleid",
-      "n": 4
+      "n": 5
     },
     "valst": {
       "nl": "valt",
@@ -2401,7 +2401,7 @@
     "vanof": {
       "nl": "vanaf",
       "status": "afgeleid",
-      "n": 4
+      "n": 5
     },
     "tiedelk": {
       "nl": "tijdelijk",
@@ -2420,7 +2420,7 @@
     "wiest": {
       "nl": "wijst",
       "status": "afgeleid",
-      "n": 3
+      "n": 4
     },
     "oetdaging": {
       "nl": "uitdaging",
@@ -2502,7 +2502,7 @@
     "hollen": {
       "nl": "houden",
       "status": "bron",
-      "n": 4,
+      "n": 5,
       "opm": "Woordwaark (K. ter Laan, A.A. Ganderheyden, H. Molema): houden; stoppen; hilt"
     },
     "hongen": {
@@ -2603,7 +2603,7 @@
     "overaind": {
       "nl": "overeind",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "koopaovend": {
       "nl": "koopavond",
@@ -2624,7 +2624,7 @@
     "verjoardag": {
       "nl": "verjaardag",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "lien": {
@@ -2869,7 +2869,7 @@
     "kommen": {
       "nl": "komen",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): komen"
     },
     "deurtrappen": {
@@ -2924,7 +2924,7 @@
     "spiet": {
       "nl": "spijt",
       "status": "bron",
-      "n": 2,
+      "n": 3,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "völ": {
@@ -3171,7 +3171,7 @@
     "kepot": {
       "nl": "kapot",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden, H. Molema): kapot ⋅ ziek; kapot; ziek; bedorven ⋅ gemeen ⋅ ziek"
     },
     "peerden": {
@@ -3228,12 +3228,12 @@
     "inschrieven": {
       "nl": "inschrijven",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "honderdvieftig": {
       "nl": "honderdvijftig",
       "status": "afgeleid",
-      "n": 4
+      "n": 5
     },
     "wrieven": {
       "nl": "wrijven",
@@ -3372,7 +3372,7 @@
     "vieftienhonderd": {
       "nl": "vijftienhonderd",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "betoal": {
       "nl": "betaal",
@@ -3417,7 +3417,7 @@
     "ried": {
       "nl": "rijd",
       "status": "afgeleid",
-      "n": 2
+      "n": 4
     },
     "oldste": {
       "nl": "oudste",
@@ -3524,7 +3524,335 @@
     "allebaai": {
       "nl": "allebei",
       "status": "afgeleid",
+      "n": 2
+    },
+    "sluus": {
+      "nl": "sluis",
+      "status": "twijfel",
+      "n": 5,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "aai": {
+      "nl": "ei",
+      "status": "afgeleid",
+      "n": 3
+    },
+    "luuk": {
+      "nl": "luik",
+      "status": "twijfel",
+      "n": 2,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "omroepen": {
+      "nl": "omgeroepen",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "drukken": {
+      "nl": "duwen",
+      "status": "twijfel",
+      "n": 2,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "aaier": {
+      "nl": "eieren",
+      "status": "afgeleid",
       "n": 1
+    },
+    "road": {
+      "nl": "rood",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "sprink": {
+      "nl": "spring",
+      "status": "twijfel",
+      "n": 2,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "zel": {
+      "nl": "zal",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "verhoal": {
+      "nl": "verhaal",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "afzet": {
+      "nl": "afgezet",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "blift": {
+      "nl": "blijft",
+      "status": "afgeleid",
+      "n": 2
+    },
+    "darde": {
+      "nl": "derde",
+      "status": "twijfel",
+      "n": 3,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "weggoat": {
+      "nl": "weggaat",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "weerkomt": {
+      "nl": "terugkomt",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "nargens": {
+      "nl": "nergens",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "twijde": {
+      "nl": "tweede",
+      "status": "twijfel",
+      "n": 3,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "veurin": {
+      "nl": "voorin",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "sluup": {
+      "nl": "sluip",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "binnenrieden": {
+      "nl": "binnenrijden",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "derachteraan": {
+      "nl": "erachteraan",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "standploats": {
+      "nl": "standplaats",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "verscheuven": {
+      "nl": "verschoven",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "twijentwintig": {
+      "nl": "tweeëntwintig",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "zandploat": {
+      "nl": "zandplaat",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "wiend": {
+      "nl": "wind",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "drukt": {
+      "nl": "duwt",
+      "status": "twijfel",
+      "n": 2,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "zeuven": {
+      "nl": "zeven",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "kikt": {
+      "nl": "kijkt",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "veurop": {
+      "nl": "voorop",
+      "status": "afgeleid",
+      "n": 3
+    },
+    "hoar": {
+      "nl": "haar",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "aanders": {
+      "nl": "anders",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "holen": {
+      "nl": "houden",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "appie": {
+      "nl": "appje",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "roade": {
+      "nl": "rode",
+      "status": "twijfel",
+      "n": 3,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "zuudhorn": {
+      "nl": "zuidhorn",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "veurroaden": {
+      "nl": "voorraden",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "zijwiend": {
+      "nl": "zijwind",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "schoapen": {
+      "nl": "schapen",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "vieve": {
+      "nl": "vijf",
+      "status": "afgeleid",
+      "n": 3
+    },
+    "roepen": {
+      "nl": "geroepen",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "gebruuk": {
+      "nl": "gebruik",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "fain": {
+      "nl": "fijn",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "opstiegen": {
+      "nl": "opstijgen",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "loag": {
+      "nl": "laag",
+      "status": "afgeleid",
+      "n": 2
+    },
+    "groan": {
+      "nl": "graan",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "paol": {
+      "nl": "paal",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "kerktuun": {
+      "nl": "kerktuin",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "tegenwiend": {
+      "nl": "tegenwind",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "achterblift": {
+      "nl": "achterblijft",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "kwietraakt": {
+      "nl": "kwijtraakt",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "oppikt": {
+      "nl": "opgepikt",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "print": {
+      "nl": "geprint",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "dizze": {
+      "nl": "deze",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "nuimt": {
+      "nl": "neemt",
+      "status": "afgeleid",
+      "n": 1
+    },
+    "haard": {
+      "nl": "hard",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "onderdeur": {
+      "nl": "onderdoor",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
     }
   },
   "fries": {
