@@ -3001,10 +3001,12 @@ function updateHeliStage(dt, world, def, st, S) {
     return;
   }
   if (S.started || isCinematicActive()) return;
-  if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
+  // M12 (variant rooster) is Dijkstra's heli at Lauwersoog; the old H15 is Rotor Roelf's on Eelde
+  const rooster = st.variant === 'rooster';
+  if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, rooster ? 'Uitstappen: Dokter Dijkstra wacht bij de heli.' : 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
   if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, actor: p, onFinish: (res) => { S.result = res; } });
-  if (!S.started && S.t > 10) { world.addMessage('Rotor Roelf vliegt zelf. Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
+  if (!S.started && S.t > 10) { world.addMessage(rooster ? 'Dijkstra vliegt zelf. Hij brengt de aktetas.' : 'Rotor Roelf vliegt zelf. Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
 
 // --- M14 De dijk: de straatrace als wedstrijd tegen elkaar (#443) -----------------

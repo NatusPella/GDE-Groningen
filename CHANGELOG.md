@@ -101,6 +101,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Desktop:** een weggevallen GPU- of renderproces komt in het Foutrapport en in een logbestand; een weggevallen renderproces laadt de pagina hoogstens twee keer per minuut opnieuw.
 - In de derde persoon zie je in de trekker weer wat: de camera hangt boven het cabinedak, kijkt een stukje vooruit en de bestuurder, de motorkap en de weg zijn in beeld. Hetzelfde geldt voor de maaidorser, vrachtwagen en ambulance; gewone auto's veranderen niet (#1029).
 - **Geen bomen en heggen meer op de weg in parken buiten de stad:** het park in de streek kreeg een rechthoek om het hele park en liet bomen en heggen ook op de rijbaan staan (140 bomen en 169 van 410 heggen op de provincie). Een boom op de weg valt nu weg en een heg wordt alleen op het stuk over de weg geknipt.
+- Ballonjacht (E bij het UMCG): de vlucht mislukte halverwege met "De ballon is weg…", omdat de ringenronde tot 1,8 km van de ballon komt en dat de grens was. De grens volgt nu de ronde zelf, dus de ronde is af te maken.
+- Heli-opdrachten: een fout in één beeld van de vlucht laat het spel niet meer vastlopen met een stilstaand beeld en zonder HUD; de vlucht wordt dan afgebroken met een melding. Ook de opruiming na de vlucht zet de HUD, de camera en de spelervlaggen altijd terug.
+- Samen spelen: vliegt een gast de heli-opdracht, dan stapt die gast na afloop uit en blijft de host staan waar hij stond.
+- De vlucht eindigt op de dichtstbijzijnde open plek (Eemshaven, Eelde) in plaats van op een vast punt dat in water of tegen een gebouw kon liggen.
+- M12: de hint en de melding noemen Dokter Dijkstra in plaats van Rotor Roelf.
 
 ## [0.64.0] - 2026-11-20
 
