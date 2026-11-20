@@ -13,7 +13,7 @@ import { mountCockpitCss, COCKPIT_CLASS } from './cockpit.js';
 import { startBusShift } from './sidejobs.js';
 import { nearestLine, project } from './busroutes.js';
 import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopCard, roundDist, OPERATOR } from './busboard.js';
-import { createLru } from './lrucache.js';
+import { LRUCache } from './lrucache.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
@@ -21,7 +21,8 @@ const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 const SIDE_OFF = 0.04;
 const FRONT_OFF = 0.07;         // voor de ruit (0,041 m) en de lampenstrook (0,051 m) van de voorkant
 // begrensd (#1040): een rit door de provincie maakt een bord per lijn en bestemming; het oudste gaat eruit en wordt zo nodig opnieuw getekend
-const textures = createLru(64, (t) => t.dispose());
+const textures = new LRUCache(64);
+textures.onEvict = (t) => t.dispose();
 
 function boardTexture(b) {
   let t = textures.get(b.key);
