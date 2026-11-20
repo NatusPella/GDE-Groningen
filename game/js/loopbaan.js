@@ -214,6 +214,7 @@ export const STAT_VAK = {
   pitchputtRounds: { vak: 'golf', xp: 28, n: 1, premie: 15 },
   hengelSessions: { vak: 'hengelen', xp: 24, n: 1, premie: 10 },
   skateRuns: { vak: 'buiten', xp: 10, n: 1, premie: 10 },
+  penaltySeries: { vak: 'buiten', xp: 12, n: 1, premie: 10 },
   skiRuns: { vak: 'buiten', xp: 10, n: 1, premie: 10 },
   klimTops: { vak: 'buiten', xp: 15, n: 1, premie: 15 },
   zwemRuns: { vak: 'buiten', xp: 8, n: 1 },
@@ -325,7 +326,7 @@ function markeerGestart(p) {
 // (gde-prestaties-v1) al telden, hooguit tot niveau 3. stats: de levensduur-tellers; sets: de lijsten met plekken.
 const ZAAD_PER_STAT = {
   trainTrips: ['trein', 20], padelMatches: ['padel', 6], kartRaces: ['race', 5], regatta: ['race', 5], driftRuns: ['race', 3],
-  discgolfRounds: ['golf', 6], pitchputtRounds: ['golf', 5], hengelSessions: ['hengelen', 4], skateRuns: ['buiten', 3], skiRuns: ['buiten', 3],
+  discgolfRounds: ['golf', 6], pitchputtRounds: ['golf', 5], hengelSessions: ['hengelen', 4], skateRuns: ['buiten', 3], penaltySeries: ['buiten', 3], skiRuns: ['buiten', 3],
   klimTops: ['buiten', 5], heliRuns: ['lucht', 7], pannenkoekShifts: ['horeca', 7], botsautoRides: ['kermis', 4], reuzenradRides: ['kermis', 3], carbidGames: ['kermis', 4],
 };
 export const ZAAD_MAX_XP = XP_DREMPELS[2];

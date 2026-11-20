@@ -65,7 +65,7 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
 {
   const gooit = async () => { throw new Error('offline'); };
   assert.deepStrictEqual(await haalLiveBussen({ fetchFn: gooit }), { ok: false, reden: 'netwerk' });
-  assert.deepStrictEqual(await haalLiveBussen({ fetchFn: async () => respons(new Uint8Array(0), { ok: false, status: 503 }) }), { ok: false, reden: 'status' });
+  assert.deepStrictEqual(await haalLiveBussen({ fetchFn: async () => respons(new Uint8Array(0), { ok: false, status: 503 }) }), { ok: false, reden: 'status', status: 503 });
   assert.deepStrictEqual(await haalLiveBussen({}), { ok: false, reden: 'netwerk' });
   let afgebroken = false;
   const hangt = (u, o) => new Promise((_, no) => { o.signal.addEventListener('abort', () => { afgebroken = true; no(new Error('abort')); }); });
@@ -106,7 +106,7 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   ];
   let n = 0, aanroepen = 0;
   const f = async () => { aanroepen++; return respons(feeds[Math.min(n++, feeds.length - 1)]); };
-  const lb = maakLiveBussen({ fetchFn: f, nu: () => t });
+  const lb = maakLiveBussen({ fetchFn: f, nu: () => t, opts: { jitter: () => 1 } });
   assert.strictEqual(lb.tick(false, [line], t), null, 'uit: geen opvraag');
   assert.strictEqual(aanroepen, 0);
   await lb.tick(true, [line], t);
@@ -142,7 +142,7 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   let t = 5_000_000;
   let modus = 'stuk';
   const f = async () => (modus === 'stuk' ? respons(new Uint8Array(0), { ok: false, status: 500 }) : modus === 'leeg' ? respons(feed(voertuig({ id: 'x', lat: 51.9, lon: 4.5 }))) : respons(feed(voertuig(bus('A', 1000, 2, 90)))));
-  const lb = maakLiveBussen({ fetchFn: f, nu: () => t });
+  const lb = maakLiveBussen({ fetchFn: f, nu: () => t, opts: { jitter: () => 1 } });
   await lb.tick(true, [line], t);
   assert.strictEqual(lb.stand().fouten, 1);
   const eerste = lb.stand().volgendeOp - t;
@@ -158,7 +158,7 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   assert.strictEqual(lb.stand().volgendeOp - t, LIVE_BRON.interval);
   // een lijnenlijst die nog leeg is (data niet geladen): geen opvraag
   let n = 0;
-  const lb2 = maakLiveBussen({ fetchFn: async () => { n++; return respons(feed()); }, nu: () => t });
+  const lb2 = maakLiveBussen({ fetchFn: async () => { n++; return respons(feed()); }, nu: () => t, opts: { jitter: () => 1 } });
   assert.strictEqual(lb2.tick(true, [], t), null); assert.strictEqual(n, 0);
 }
 
@@ -227,6 +227,23 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   assert.ok(JSON.stringify(pkg).includes('livebussen.cjs'), 'in het pakket');
   const pre = fs.readFileSync(new URL('../desktop/preload.js', import.meta.url), 'utf8');
   assert.ok(/liveBussen: \(\) => ipcRenderer\.invoke\('gde:live-bussen'\)/.test(pre), 'de brug neemt geen argumenten aan');
+}
+
+// --- #922: een te drukke bron krijgt de lange rust, en het ritme wordt gespreid ---
+{
+  let t = 7_000_000;
+  const lb = maakLiveBussen({ fetchFn: async () => respons(new Uint8Array(0), { ok: false, status: 429 }), nu: () => t, opts: { jitter: () => 1 } });
+  await lb.tick(true, [line], t);
+  assert.strictEqual(lb.stand().volgendeOp - t, LIVE_BRON.maxInterval, 'bij 429 meteen de lange rust, geen hamering');
+  assert.ok(LIVE_BRON.spreiding > 0 && LIVE_BRON.spreiding <= 0.2, 'de spreiding is klein maar er');
+  // met de standaardspreiding blijft het volgende moment binnen de grenzen, ook na veel fouten
+  const ruim = maakLiveBussen({ fetchFn: async () => respons(new Uint8Array(0), { ok: false, status: 500 }), nu: () => t });
+  for (let i = 0; i < 10; i++) {
+    t = Math.max(t, ruim.stand().volgendeOp);
+    await ruim.tick(true, [line], t);
+    const wacht = ruim.stand().volgendeOp - t;
+    assert.ok(wacht >= LIVE_BRON.interval * (1 - LIVE_BRON.spreiding) && wacht <= LIVE_BRON.maxInterval + 1, `wachttijd ${wacht}`);
+  }
 }
 
 console.log('livebussen_test: ok');

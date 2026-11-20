@@ -30,7 +30,7 @@ import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender } from './stationtravel.js';
-import { liveBusMarks } from './busmap.js';
+import { liveBusMarks, roosterBusMarks } from './busmap.js';
 import { haltesVoorKaart } from './bushalte.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
@@ -1858,7 +1858,7 @@ function drawDynamicMarkers(ctx, world) {
     ctx.restore();
   }
   for (const ps of getPadelSpotsForRender()) { if (onbekend(ps.x, ps.y)) continue; icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'), samenVan('minigame', 'padel')); }
-  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'], vliegschool: ['vliegschool', 'Vliegschool', 'mg:vliegschool'] };
+  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], penalty: ['penalty', 'Penaltyserie Euroborg', 'mg:penalty'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'], vliegschool: ['vliegschool', 'Vliegschool', 'mg:vliegschool'] };
   for (const a of activityMapIcons(world)) {
     // #825: een streek die deze speler nog niet kent toont geen activiteiten-iconen; de wereld, de
     // wegen en de missies blijven wel staan (alleen de kaart verbergt ze, niets is onbereikbaar).
@@ -1881,6 +1881,8 @@ function drawDynamicMarkers(ctx, world) {
   for (const h of haltesVoorKaart(hoofdspeler(world))) icon('trein', 'ov-halte', h.x, h.y, `Halte ${h.naam}`, {}, 'Een busdienst starten: loop erheen en druk E');
   // #922: de live bussen van vandaag, met hun lijn en dienst als label
   for (const b of liveBusMarks(hoofdspeler(world), 4)) icon(null, 'livebus', b.x, b.y, b.label, {}, b.sub);
+  // de terugval als er geen live gegevens zijn: de bussen van het spel, duidelijk als Rooster gemarkeerd (busbron.js)
+  for (const b of roosterBusMarks(world, 3)) icon(null, 'roosterbus', b.x, b.y, b.label, {}, b.sub);
   for (const q of ommelandMapSpots()) { if (onbekend(q.x, q.y)) continue; icon('ommeland', q.kind, q.x, q.y, q.name, {}, q.sub); }
   // het eerbetoonbankje (#832): een eigen icoon, altijd zichtbaar zodat de plek
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
@@ -2654,7 +2656,7 @@ const LEGEND = [
     { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
-    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, zwemmen, klimmen, waterskiën, vlieglessen, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer).filter((l) => l !== 'safehuis')] },
+    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, penalty’s, skatepark, karten, zwemmen, klimmen, waterskiën, vlieglessen, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer).filter((l) => l !== 'safehuis')] },
     { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
@@ -2675,6 +2677,8 @@ const LEGEND = [
     { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layers: ['shopsWapens'] },
     { kind: 'station', label: 'Treinstation', note: 'reizen met de trein, een treindienst rijden', layers: ['trein'] },
     { kind: 'ov-halte', label: 'Bushalte', note: 'een busdienst starten', layers: ['trein'] },
+    { kind: 'livebus', label: 'Live bus', note: 'een echte bus op zijn echte plek, met lijn en richting; uit te zetten in Instellingen' },
+    { kind: 'roosterbus', label: 'Rooster', note: 'de terugval: een bus uit het rooster van het spel, alleen als er geen live gegevens zijn' },
   ] },
   { group: 'Onderweg', folded: true, rows: [
     { kind: 'companion', label: 'Maat', layers: ['companion'] },

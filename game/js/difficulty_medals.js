@@ -11,6 +11,7 @@ const clock = (s) => {
 };
 const punten = (v) => `${nl(v)} punten`;
 const kg = (v) => `${String(Math.round(v * 10) / 10).replace('.', ',')} kg`;
+const goals = (v) => `${Math.min(5, Math.max(1, Math.round(v)))} doelpunten`;
 const procent = (v) => `${Math.min(100, Math.round(v * 100))}% goed`;
 const tijd = (v) => `binnen ${clock(v)}`;
 const par = (v) => {
@@ -38,6 +39,7 @@ export const MEDAILLE_BRON = {
   carbid: { t: [45, 80, 120], lower: false, fmt: punten, std: ['45 punten', '80 punten', '120 punten'] },
   kermis: { t: [60, 110, 160], lower: false, fmt: punten, std: ['60 punten', '110 punten', '160 punten'] },
   drift: { t: [2500, 5000, 9000], lower: false, fmt: punten, std: ['2.500 punten', '5.000 punten', '9.000 punten'] },
+  penalty: { t: [2, 3, 5], lower: false, fmt: goals, std: ['2 doelpunten', '3 doelpunten', '5 doelpunten'], max: 5 },
   skatepark: { t: [1200, 3200, 6500], lower: false, fmt: punten, std: ['1.200 punten', '3.200 punten', '6.500 punten'] },
   pannenkoek: { t: [400, 700, 1000], lower: false, fmt: punten, std: ['400 punten', '700 punten', '1.000 punten'] },
   waterski: { t: [650, 1300, 2200], lower: false, fmt: punten, std: ['650 punten', '1.300 punten', '2.200 punten'] },

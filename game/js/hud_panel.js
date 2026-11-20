@@ -33,7 +33,7 @@ import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
-import { liveBusMarks, drawLiveBusMapIcon } from './busmap.js';
+import { liveBusMarks, roosterBusMarks, drawLiveBusMapIcon } from './busmap.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
@@ -2208,6 +2208,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind === 'livebus' || kind === 'ov-halte') drawLiveBusMapIcon(ctx, s, t);
+      else if (kind === 'roosterbus') drawLiveBusMapIcon(ctx, s, t, true);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
       else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
       else if (kind.startsWith('mm-')) drawMissionLayerIcon(ctx, kind, s);
@@ -2678,6 +2679,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
   // #922: de live bussen met hun eigen icoon; dichterbij dan de POI-grens
   add(null, liveBusMarks(player, 3), 'livebus', 3, MM_POI_FAR_M);
+  add(null, roosterBusMarks(world, 2), 'roosterbus', 2, MM_POI_FAR_M); // de terugval, alleen zonder live gegevens (busbron.js)
   add('ommeland', ommelandMapSpots().filter((q) => sichtbaar(q.x, q.y)), (q) => q.kind, 2, MM_POI_FAR_M);
   // het eerbetoonbankje (#832): een eigen icoon, ook zichtbaar voordat je er geweest bent
   const beppe = beppeMapSpot();
