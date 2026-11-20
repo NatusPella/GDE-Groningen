@@ -348,7 +348,7 @@ function doeKoppel(w, c) {
   const r = WT.koppel(c.rig, recFrom(bd, c.trekker.farm), recFrom(bd, c.imp.uid), bezetUids());
   if (!r.ok) { zeg(w, 'koppel', r.reden, 2, 3.5); return false; }
   const d = WT.WERKTUIG[c.imp.type];
-  const hint = d.vervoer ? 'Laad de oogst bij je erf met E.' : [d.hef ? `${TOETS.hef} = hef` : null, d.pto ? `${TOETS.pto} = aftakas` : null].filter(Boolean).join(', ');
+  const hint = d.vervoer ? 'Laad de oogst bij je erf met {E}.' : [d.hef ? `${TOETS.hef} = hef` : null, d.pto ? `${TOETS.pto} = aftakas` : null].filter(Boolean).join(', ');
   bericht(w, `${r.naam} gekoppeld.${hint ? ' ' + hint + '.' : ''}`, 5);
   return true;
 }

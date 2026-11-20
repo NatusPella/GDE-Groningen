@@ -120,7 +120,7 @@ export default {
     queueHalte(c.world, c.vehicle, { board: first[0].board, alight: 0 });
     const last = d.ride.table[d.ride.table.length - 1];
     c.timeLeft = last.arrive + 120;
-    c.msg(`${d.line.name}: ${first[0].board} reizigers stappen in. Naar ${last.name}. O: deuren.`, 3.5);
+    c.msg(`${d.line.name}: ${first[0].board} reizigers stappen in. Naar ${last.name}. {O}: deuren.`, 3.5);
   },
 
   timeout: () => 'de dienstregeling is helemaal in de soep gelopen',
@@ -143,7 +143,7 @@ export default {
       if (e.type === 'arrive') {
         pushAudioEvent(c.world, { kind: 'sting', name: 'halte' }); // aankomst op een halte (stings.js)
         const txt = e.state === 'op tijd' ? 'op tijd' : e.state === 'vroeg' ? 'te vroeg' : 'te laat';
-        if (e.manual) c.msg(`${e.stop.name}: ${txt}. Open de deuren met O.`, 3);
+        if (e.manual) c.msg(`${e.stop.name}: ${txt}. Open de deuren met {O}.`, 3);
         else {
           queueHalte(c.world, v, e);
           c.msg(`${e.stop.name}: ${txt}. ${e.alight} uit, ${e.board} in.`, 3);
@@ -152,7 +152,7 @@ export default {
       } else if (e.type === 'doorsopen') {
         if (bc) { nieuweHalte(bc, e.board); bc.laatste = { board: e.board, alight: e.alight }; }
         queueHalte(c.world, v, e);
-        c.msg(e.last ? `${e.stop.name}: eindhalte, ${e.alight} reizigers stappen uit.` : `${e.alight} uit, ${e.board} in.${e.kneel ? ' Lage instap, fijn.' : ''} Sluit de deuren met O.`, 3);
+        c.msg(e.last ? `${e.stop.name}: eindhalte, ${e.alight} reizigers stappen uit.` : `${e.alight} uit, ${e.board} in.${e.kneel ? ' Lage instap, fijn.' : ''} Sluit de deuren met {O}.`, 3);
       } else if (e.type === 'request') c.msg(`Een reiziger drukte op de halteknop: stoppen bij ${e.stop.name}.`, 2.6);
       else if (e.type === 'skipped') c.msg('Voorbij de halte met dichte deuren: de reizigers blijven staan!', 3);
       else if (e.type === 'klever') c.msg(pick(WORDS.klever), 2.6);

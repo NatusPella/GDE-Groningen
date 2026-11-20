@@ -16,7 +16,7 @@ export const BIJBAAN_KAARTEN = {
     regels: [stappen('Een rit', [stap('hand', 'Ophalen'), stap('hart', 'Rustig rijden'), stap('pijl', 'Afzetten')], { na: 6, duur: 9 })] },
   bezorger: { doel: 'Haal het eten op en bezorg het voor het koud is', afloop: 'het eten moet bezorgd zijn voor het koud is',
     regels: [stappen('Een bestelling', [stap('pakje', 'Ophalen'), stap('pijl', 'Trappen'), stap('hand', 'Bezorgen')], { na: 6, duur: 9 })] },
-  krantenwijk: { doel: 'Gooi de krant op de stoep of in de brievenbus', afloop: 'mik op de brievenbus, E gooit',
+  krantenwijk: { doel: 'Gooi de krant op de stoep of in de brievenbus', afloop: 'mik op de brievenbus, {E} gooit',
     regels: [toets('Gooien', ['E'], 'tik', { na: 6, duur: 8 })] },
   verhuizing: { doel: 'Sjouw de spullen en lever alles heel af', afloop: 'alles moet heel aankomen: rij voorzichtig',
     regels: [stappen('Een verhuizing', [stap('pakje', 'Sjouwen'), stap('hart', 'Voorzichtig rijden'), stap('pijl', 'Uitladen')], { na: 6, duur: 9 })] },

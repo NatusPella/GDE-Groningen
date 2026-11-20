@@ -142,7 +142,7 @@ export function treinPlek(optie) {
 export function stationKaart(optie) {
   return {
     doel: optie ? `Rij ${optie.tekst}` : 'Rij de treindienst',
-    afloop: 'stoppen bij elk perron, deuren open met O, niet te vroeg weg',
+    afloop: 'stoppen bij elk perron, deuren open met {O}, niet te vroeg weg',
     regels: [{ type: 'stappen', inv: { label: 'De dienst', klaar: 0, stappen: [{ icoon: 'pijl', label: 'Stoppen bij het perron' }, { icoon: 'klok', label: 'Op de tijd wachten' }, { icoon: 'hart', label: 'Zacht remmen' }] }, na: 6, duur: 9 }],
   };
 }

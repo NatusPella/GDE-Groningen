@@ -561,7 +561,7 @@ function menuFor(w, here) {
         return [{ title: 'Onderduiken: snel reizen naar een dorp', note: 'Kies een dorp in het Ommeland, daar zoekt niemand jullie. Je koopt een kaartje en staat er na een korte scène.', items: trips }];
       }
       // only stations inside the map: the off-map ends of the lines aren't offered
-      return [{ title: 'Snel reizen met een kaartje', note: `${board}. Een korte scène en je staat er.`, items: trips }, { title: 'Als passagier meegaan', note: 'Je zit in de trein en ziet elke halte langskomen. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }, { title: 'Zelf de trein besturen', note: 'Een treindienst rijden: een trein staat klaar op dit station. Je rijdt de dienst van perron naar perron: stoppen bij het perron, deuren open met O, niet te vroeg weg. Betaald per dienst.', items: dienstItems(w, here) }];
+      return [{ title: 'Snel reizen met een kaartje', note: `${board}. Een korte scène en je staat er.`, items: trips }, { title: 'Als passagier meegaan', note: 'Je zit in de trein en ziet elke halte langskomen. Houd {SPACE} ingedrukt om naar je halte te springen.', items: rideItems(w, here) }, { title: 'Zelf de trein besturen', note: 'Een treindienst rijden: een trein staat klaar op dit station. Je rijdt de dienst van perron naar perron: stoppen bij het perron, deuren open met {O}, niet te vroeg weg. Betaald per dienst.', items: dienstItems(w, here) }];
     },
   };
 }

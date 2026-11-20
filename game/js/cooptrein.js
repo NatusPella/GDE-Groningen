@@ -28,8 +28,8 @@ const TREIN_WALK_DRAAI = 1.8;       // rad/s met de pijltjes links en rechts
 const TREIN_WALK_ZEND_S = 0.1;      // s: zo vaak gaat de looppositie naar de gastheer
 
 export const TREIN_TEKST = {
-  in: 'Je rijdt mee als passagier. E bij stilstand: uitstappen.',
-  conducteur: 'Je bent conducteur: O de deuren, K de waakzaamheid. E bij stilstand: uitstappen.',
+  in: 'Je rijdt mee als passagier. {E} bij stilstand: uitstappen.',
+  conducteur: 'Je bent conducteur: {O} de deuren, {K} de waakzaamheid. {E} bij stilstand: uitstappen.',
   uit: 'Je stapt uit de trein.',
   wacht: 'Wacht tot de trein stilstaat.',
   dienst: 'De dienst is al bezig: halverwege stapt niemand meer in.',

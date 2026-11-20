@@ -386,7 +386,7 @@ const basis = standActivity({
   id: 'hengelen',
   name: 'Hengelen Meerstad',
   label: 'Hengelen',
-  note: 'hengelplek aan het meer in Meerstad: de zwaarste vangst in negentig seconden. Overal aan het water kun je vrij hengelen met I',
+  note: 'hengelplek aan het meer in Meerstad: de zwaarste vangst in negentig seconden. Overal aan het water kun je vrij hengelen met {I}',
   accent: ACCENT,
   stand: () => STAND,
   origin: () => ORIGIN,

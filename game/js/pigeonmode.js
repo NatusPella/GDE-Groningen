@@ -633,9 +633,9 @@ function sikkom(text) {
   sfx('notify', P.x, P.y, 0.5);
 }
 
-// De toetsen als toetsplaatje (keycap.js): ze lopen mee met herbinden en pad; een toets zonder token (A / D) blijft een gewoon plaatje.
+// De toetsen als toetsplaatje (keycap.js): ze lopen mee met herbinden en pad; A / D zijn twee plaatjes.
 const K_TOKEN = { WASD: 'WASD', Spatie: 'SPACE', Shift: 'SHIFT', E: 'E', F: 'F', Q: 'Q', X: 'X', C: 'C' };
-const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}>${K_TOKEN[k] ? glyphHtml(K_TOKEN[k]) : `<kbd class="hud-key">${k}</kbd>`}${label}</span>`;
+const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}>${k === 'A / D' ? glyphHtml('A') + glyphHtml('D') : K_TOKEN[k] ? glyphHtml(K_TOKEN[k]) : `<kbd class="hud-key">${k}</kbd>`}${label}</span>`;
 
 function updateHud(dt) {
   if (!hud) return;
@@ -1302,7 +1302,7 @@ function toggleFlock() {
     flock.push({ x, y, z: P.z + 12 + Math.random() * 6, vx: 0, vy: 0, vz: 0, mesh, i, flap: Math.random() * 6, floor: 0, grounded: false, scatter: null, leaving: false, t: 0, walk: 0 });
   }
   sfx('coo', P.x, P.y, 0.9);
-  world.addMessage('Zwerm geroepen! Q stuurt ze weer weg.', 2.5);
+  world.addMessage('Zwerm geroepen! {Q} stuurt ze weer weg.', 2.5);
 }
 
 function updateFlock(dt) {
@@ -1627,7 +1627,7 @@ function beginFlight(w) {
   hud.root.hidden = false;
   hud.hintKey = '';
   // in a mission the stage's own card explains the flight (and X would end it)
-  if (!inMission(w)) w.addMessage(pick(['Moi duuf! Grunn is van joe.', 'Roekoe! De wijk ligt aan je pootjes.', 'Vleugels uit, poep klaar.']) + ' X om weer mens te worden.', 4);
+  if (!inMission(w)) w.addMessage(pick(['Moi duuf! Grunn is van joe.', 'Roekoe! De wijk ligt aan je pootjes.', 'Vleugels uit, poep klaar.']) + ' {X} om weer mens te worden.', 4);
 }
 
 const inMission = (w) => !!(w.mission && w.mission.phase === 'active');

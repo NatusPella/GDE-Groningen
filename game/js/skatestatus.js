@@ -50,7 +50,7 @@ export function skateHudModel(g) {
 
 export function watNu(g) {
   if (g.flash) return g.flash;
-  if (g.fase === 'intro') return 'Daar gaan we: duw met W';
+  if (g.fase === 'intro') return 'Daar gaan we: duw met {W}';
   if (g.fase === 'outro') return 'Tijd!';
   if (g.grind) return g.grind.bal > 0.1 ? 'Je leunt rechts: stuur links' : g.grind.bal < -0.1 ? 'Je leunt links: stuur rechts' : 'Grind! Houd het midden';
   if (g.grond === false) return 'In de lucht: draai en land netjes';

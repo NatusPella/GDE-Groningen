@@ -102,6 +102,27 @@ export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|ALT|TAB|BACKSP
 
 // The same text for a place that cannot show a glyph (aria-label, title, document.title, a canvas, a log): the key name, never braces.
 const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', MMB: 'middelste muisknop', DRAG: 'muis slepen', ARROWUP: 'pijl omhoog', ARROWDOWN: 'pijl omlaag', ARROWLEFT: 'pijl links', ARROWRIGHT: 'pijl rechts', ALT: 'Alt', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };
+// Spoken lines and their subtitles keep the words of the clip ("Spatie omhoog, W vooruit, A en D draaien"; ADR 0041), so the text
+// itself cannot hold {TOKEN}s. What the player SEES can: this turns the unambiguous key mentions of such a line into {TOKEN}s
+// (rendered by keyTextHtml/sweepTokens). Conservative: only the game's control letters, after "met/tik/druk/houd", in a pair
+// (W/S, A en D) or before a verb of control (W vooruit, S remt, E koppelt). Compass letters, "Plan B", "Loket C", "U" stay text.
+const SPOKEN_LETTERS = 'WASDEFQRGKXCVZHOIT';
+const SP_BEHIND = String.raw`(?<![\w{[(/.\-'’"+#])`;
+const SP_WORD = new RegExp(SP_BEHIND + String.raw`(Spatiebalk|Spatie|Shift|Ctrl|Esc|Enter|Backspace)(?![\w}\]'’-])`, 'g');
+const SP_PAIR = new RegExp(SP_BEHIND + String.raw`([WASDQEFZX])( en | of | ?/ ?|, )([WASDQEFZX])(?![\w}\]/.'’-])`, 'g');
+const SP_WITH = new RegExp(String.raw`\b(met|Met|tik|Tik|via|Druk op|druk op|Druk|druk|Houd|houd|Laat|laat|rem met|duw met) ([${SPOKEN_LETTERS}])(?![\w{}'’-])(?!\. [A-Z][a-z])`, 'g');
+const SP_VERB = new RegExp(SP_BEHIND + String.raw`([${SPOKEN_LETTERS}])(?= (?:vooruit|achteruit|remt|rem|gas|los|is gas|is rem|is de fluit|stuurt|hendel|deuren|dienst|omhoog|omlaag|hoger|lager|koppelt|lost|laat|zet|tankt|gooit)\b)`, 'g');
+const SP_TOKEN = { Spatie: 'SPACE', Spatiebalk: 'SPACE', Shift: 'SHIFT', Ctrl: 'CTRL', Esc: 'ESC', Enter: 'ENTER', Backspace: 'BACKSPACE' };
+export function spokenKeyTokens(text) {
+  const t = String(text ?? '');
+  if (!t) return t;
+  return t
+    .replace(SP_PAIR, (m, a, mid, b) => (a === b && mid.trim() !== ',' ? m : `{${a}}${mid}{${b}}`))
+    .replace(SP_WITH, (m, p, k) => `${p} {${k}}`)
+    .replace(SP_VERB, (m, k) => `{${k}}`)
+    .replace(SP_WORD, (m, w) => `{${SP_TOKEN[w]}}`);
+}
+
 export function plainKeyText(text) {
   return String(text).replace(BRACE_KEY_RE, (m, k) => PLAIN_NAMES[k] || keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 }

@@ -134,7 +134,7 @@ for (const spelers of AANTALLEN) {
   // ---- 7. in- en uitstappen
   const auto = { id: 7, x: 5000, y: 100, angle: 0, speed: 0, halfWid: 1, model: { len: 4 } };
   s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto; s.step(1);
-  match(tekst(tessa), /Tammo zit in een voertuig\. Druk bij het voertuig op E om mee te rijden\./, `${spelers}: Tessa leest hoe ze meerijdt`);
+  match(tekst(tessa), /Tammo zit in een voertuig\. Druk bij het voertuig op {E} om mee te rijden\./, `${spelers}: Tessa leest hoe ze meerijdt`);
   ok(!tessa.coopInVoertuig, `${spelers}: ze gaat niet vanzelf mee`);
   if (figs().length) {
     for (const f of figs()) { f.x = 5000 + 2; f.y = 100 + f.slot * 0.3; }

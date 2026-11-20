@@ -116,10 +116,10 @@ function placeStrook(strook, r, hoogte, p) {
 // Wat de machine doet, in gewone woorden en met de toets erbij: de ploeg, zaaier, strooier en rooier hebben geen eigen knop;
 // ze werken zodra je in de rij rijdt. Gas geven is W (of het pijltje omhoog), sturen met A en D.
 export const UITLEG = {
-  ploegen: 'De ploeg zakt vanzelf zodra je in de rij rijdt: gas geven met W en recht door, er is geen knop voor de ploeg.',
-  zaaien: 'De zaaimachine zaait vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
-  bemesten: 'De strooier strooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
-  oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
+  ploegen: 'De ploeg zakt vanzelf zodra je in de rij rijdt: gas geven met {W} en recht door, er is geen knop voor de ploeg.',
+  zaaien: 'De zaaimachine zaait vanzelf zodra je in de rij rijdt: gas geven met {W} en recht door.',
+  bemesten: 'De strooier strooit vanzelf zodra je in de rij rijdt: gas geven met {W} en recht door.',
+  oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gas geven met {W} en recht door.',
 };
 // De knop in het pausemenu heet "Stoppen met <naam van de baan>" (pausemenu.js): noem die naam, dan zoekt de speler niet.
 const stopHint = (baan) => `Stoppen kan altijd: {ESC} en dan Stoppen met ${baan || 'deze dienst'}.`;

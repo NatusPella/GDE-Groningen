@@ -436,7 +436,7 @@ function findPrimary(world) {
   const weapon = world.weapon || 'fists';
   if (isMeleeWeapon(weapon)) {
     const ped = pedInReach(world, WEAPONS[weapon].range + 0.4, Math.PI / 3);
-    if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? 'Klik om uit te delen' : '', learn: learning('punch'), danger: true };
+    if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? '{LMB} om uit te delen' : '', learn: learning('punch'), danger: true };
   }
   // aan de kant bij water en niets anders te doen: hengelen (#412)
   const vis = hengelVrijPrompt(world, false);
@@ -720,7 +720,7 @@ function contextRows(world, primary) {
   }
   const armed = isRangedWeapon(world.weapon);
   if (world.trainDriving) {
-    rows.push(tut('drive', ['W', 'S'], 'Tractiehendel', 'W trekt de hendel omhoog (tractie), S zet hem terug en dan op Rem 1 tot 3'));
+    rows.push(tut('drive', ['W', 'S'], 'Tractiehendel', '{W} trekt de hendel omhoog (tractie), {S} zet hem terug en dan op Rem 1 tot 3'));
     rows.push(tut('waak', ['K'], 'Waakzaamheid', 'Druk K als de trein erom vraagt, anders remt hij vanzelf'));
     rows.push(tut('deuren', ['O'], 'Deuren', 'Open of dicht op een halte tijdens de dienst'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
@@ -728,8 +728,8 @@ function contextRows(world, primary) {
     rows.push(tut('dienst', ['G'], 'Dienst rijden', 'Halte voor halte, op tijd en op de streep: {BACKSPACE} stopt'));
   } else if (p.inVehicle && p.inVehicle.isHeli) {
     rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', `{SPACE} omhoog, {CTRL} omlaag: landen doe je laag en langzaam`));
-    rows.push(tut('heliFly', ['W', 'S'], 'Vooruit & remmen', 'W vooruit, S remt af tot je stilhangt, dan achteruit'));
-    rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', 'A/D of de muis draait de neus'));
+    rows.push(tut('heliFly', ['W', 'S'], 'Vooruit & remmen', '{W} vooruit, {S} remt af tot je stilhangt, dan achteruit'));
+    rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', '{A}/{D} of {MOUSE} draait de neus'));
     rows.push(tut('heliBoost', ['SHIFT'], 'Sneller', 'Vol gas vooruit'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
@@ -739,11 +739,11 @@ function contextRows(world, primary) {
     if (p.canClimbOut) rows.push(tut('climb', ['SPATIE'], 'Eruit klimmen', 'Klim de kade op (E stapt in een boot)'));
   } else if (armed) {
     const w = WEAPONS[world.weapon];
-    if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
+    if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd {RMB} vast om in te zoomen, {LMB} om te schieten'));
     else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, {TAB} wisselt' : 'Houd vast om te richten'));
-    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', `Bukken ({CTRL}) en klikken zet de bus neer. Wegwezen!`));
+    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', `Bukken ({CTRL}) en {LMB} zet de bus neer. Wegwezen!`));
     else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
-    rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of scrollen'));
+    rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of {WHEEL}'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming', true));
   rows.push(tut('pause', ['ESC'], 'Telefoon', 'Bellen, berichten, te doen, kaart en instellingen', true));

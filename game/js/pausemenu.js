@@ -143,7 +143,7 @@ const CONTROL_GROUPS = [
     [['5'], 'Eigen doel op de kaart'],
     [['ARROWS'], 'In het menu: kiezen, {ENTER}: ok'],
     [['Q', 'E'], 'Volgend tabblad of onderdeel'],
-    [['[', ']'], 'Zelfde als Q en E'],
+    [['[', ']'], 'Zelfde als {Q} en {E}'],
     [['N'], 'Radio aan of uit'],
     [['U'], 'Geluid aan of uit'],
     [['O'], 'Verhaalstap overslaan'],
@@ -159,7 +159,7 @@ const CONTROL_GROUPS = [
 const CONTROL_LONG = [
   ['voet', [
     ['Lopen en draaien', '{WASD} lopen en draaien.'],
-    ['Camera draaien', 'De muis draait de camera; houd hem laag om omhoog te kijken.'],
+    ['Camera draaien', '{MOUSE} draait de camera; houd hem laag om omhoog te kijken.'],
     ['Rennen', 'Rennen: houd {SHIFT} vast.'],
     ['Springen', 'Springen, over hekjes en auto\'s, en uit het water klimmen.'],
     ['Bukken', 'Bukken: houd {CTRL} vast.'],
@@ -186,12 +186,12 @@ const CONTROL_LONG = [
   ['vechten', [
     ['Aanvallen', 'Aanvallen, schieten, gooien.'],
     ['Richten', 'Richten; jachtgeweer: door de kijker.'],
-    ['Volgend doel', 'Tijdens het richten: volgend doelwit (of de muis snel opzij).'],
+    ['Volgend doel', 'Tijdens het richten: volgend doelwit (of {MOUSE} snel opzij).'],
     ['Slaan', 'Slaan: vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok (nog eens: wisselen).'],
     ['Pistool', 'Pistool, uzi, waterpistool.'],
     ['Hagelgeweer', 'Hagelgeweer, jachtgeweer.'],
     ['Carbid', 'Carbidbus, vuurwerkpijlen.'],
-    ['Wapen wisselen', 'Volgend of vorig wapen (scrollen).'],
+    ['Wapen wisselen', 'Volgend of vorig wapen ({WHEEL}).'],
   ]],
   ['duif', [
     ['Lopen en sturen', 'Lopen; in de lucht: sturen.'],
@@ -734,7 +734,7 @@ function settingsHtml() {
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
       <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
-      <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
+      <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met {N}, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${toggle('showSubtitles', 'Ondertitels aan', 'Uit verbergt wat er gezegd wordt; geluiden beschrijven hieronder blijft dan gewoon werken')}
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
@@ -751,13 +751,13 @@ function settingsHtml() {
       ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
       ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
       <div class="m-gh"><span>Rijden</span></div>
-      ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
+      ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook {J} ingedrukt')}
       ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
       ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport','{SHIFT}+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
+      ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
@@ -788,11 +788,11 @@ ${keyReuseHtml()}
     ${tab('camera', `
       ${camNowHtml()}
       <div class="m-gh"><span>Kijken</span></div>
-      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik. Geldt overal en blijft na in- en uitstappen staan. C (in de browser G) doet hetzelfde')}
+      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik. Geldt overal en blijft na in- en uitstappen staan. {C} (in de browser {G}) doet hetzelfde')}
       ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoger laat meer zien, maar maakt alles kleiner')}
       ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat; in eerste persoon maakt dit niet uit', 'keer')}
       <div class="m-gh"><span>Richten</span></div>
-      ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
+      ${toggle('autoAim', 'Automatisch richten', '{RMB} zoekt zelf het beste doelwit')}
       <div class="m-gh"><span>Sfeer</span></div>
       ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
       ${toggle('terugkeerScene', 'Terugkeerscène', 'Een korte scène in de flat als je een opgeslagen spel laadt')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
@@ -1716,7 +1716,7 @@ function bindRowsKeys() {
     return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen">` +
       `<span class="nm"><span class="one">${esc(hoofd)}</span>${ook}${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
-  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. {ESC}, {ENTER}, {ARROWS} en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: {CTRL}+{W} sluit daar het tabblad.' : ''}`;
+  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. {ESC}, {ENTER}, {ARROWS} en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op {C}: {CTRL}+{W} sluit daar het tabblad.' : ''}`;
   return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
 }
 

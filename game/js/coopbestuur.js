@@ -19,7 +19,7 @@ export function magGebruiken(recht, slot, eigenaar) {
 }
 
 export const BESTUUR_TEKST = {
-  in: 'Je rijdt. Met E stap je uit als het voertuig bijna stilstaat.',
+  in: 'Je rijdt. Met {E} stap je uit als het voertuig bijna stilstaat.',
   uit: 'Stap uit als het voertuig bijna stilstaat.',
   slot: 'Dat slot zit dicht.',
   vlieg: 'Een helikopter of vliegtuig besturen kan alleen in je eigen spel.',
@@ -30,7 +30,7 @@ export const BESTUUR_TEKST = {
   wacht: 'De wereld hier wordt nog geladen. Even wachten.',
 };
 export const TREK_TEKST = {
-  deur: (naam) => `Je opent de ${naam}. Nog een keer E om er iemand uit te trekken.`,
+  deur: (naam) => `Je opent de ${naam}. Nog een keer {E} om er iemand uit te trekken.`,
   uit: 'Je trekt de passagier uit het voertuig.',
   mede: 'Je trok een medespeler uit het voertuig.',
   passief: 'Een medespeler eruit trekken kan alleen als jullie allebei niet op passief staan.',

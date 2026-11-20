@@ -121,6 +121,6 @@ export function planeStatus(v) {
   else if (p.onGround) state = `Rotatie vanaf ${PLANE.liftoff} m/s`;
   else if (p.z - (v.groundZ ?? 0) < 40 && p.vz < -PLANE.landVz) state = 'Te snel zakken!';
   const laag = p.z - (v.groundZ ?? 0) < 60;
-  if (!state && !p.onGround && p.gear === false && laag && p.speed < PLANE.stall * 1.8) state = 'Landingsgestel uit met G!';
+  if (!state && !p.onGround && p.gear === false && laag && p.speed < PLANE.stall * 1.8) state = 'Landingsgestel uit met {G}!';
   return { speed: Math.round(p.speed * 3.6), alt, throttle: Math.round(p.throttle * 100), state, flaps: p.flaps || 0, gear: p.gear !== false };
 }

@@ -109,7 +109,7 @@ function paneHtml(w) {
   return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
     `<p>${open ? esc(c.desc) : esc(hintOf(c))}</p>` +
     (open ? `<p class="${impact(c) === 'veilig' ? 'g' : 'red'}">${impact(c) === 'veilig' ? 'Veilig voor prestaties. ' : 'Hindert prestaties. '}${noteOf(c)}</p>` : '') +
-    (open && st.pending === c.id ? `<p class="red">Weet je het zeker? Prestaties gaan uit zolang hij aan staat. Druk nog eens ${key('Enter')} (of A) om hem aan te zetten; een andere rij annuleert.</p>` : open && (!c.kind || c.kind === 'toggle') ? `<p class="mut">Bladeren verandert niets. Zet aan of uit met ${key('Enter')} (of A) op de knop.</p>` : '') +
+    (open && st.pending === c.id ? `<p class="red">Weet je het zeker? Prestaties gaan uit zolang hij aan staat. Druk nog eens ${key('Enter')} (of {A}) om hem aan te zetten; een andere rij annuleert.</p>` : open && (!c.kind || c.kind === 'toggle') ? `<p class="mut">Bladeren verandert niets. Zet aan of uit met ${key('Enter')} (of {A}) op de knop.</p>` : '') +
     '<span class="m-grow"></span>' +
     (busy ? '<p class="mut">Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.</p>' : '') +
     `<p class="g st-msg" role="status">${esc(msg)}</p>`;

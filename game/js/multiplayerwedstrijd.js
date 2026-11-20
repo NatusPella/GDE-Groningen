@@ -444,7 +444,7 @@ export function wedNodigUit(world, id, { starter = null } = {}) {
   }
   W.u = maakUitnodiging(id, regel.naam, gasten.map((s) => s.slot));
   for (const s of gasten) n.hub.announce(uitEvent(W.u), s.slot);
-  meld(world, 0, `Uitnodiging voor ${regel.naam} verstuurd. Over ${UITNODIGING_S} seconden begint het, of druk nog eens op E om nu te starten.`);
+  meld(world, 0, `Uitnodiging voor ${regel.naam} verstuurd. Over ${UITNODIGING_S} seconden begint het, of druk nog eens op {E} om nu te starten.`);
   return { ok: true, reden: 'uitgenodigd' };
 }
 // Het instapvenster (#443): een gast die tijdens de uitnodiging binnenkomt (voor de start) krijgt dezelfde vraag en kan dus nog

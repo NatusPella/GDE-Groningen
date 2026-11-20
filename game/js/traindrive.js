@@ -101,7 +101,7 @@ export function trainPrompt(world) {
     const slow = t.v < EXIT_MAX_SPEED;
     return {
       id: 'trein-rijden', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'E', label: 'Uitstappen',
-      sub: slow ? 'W/S hendel, O deuren, G dienst rijden' : 'Eerst stoppen: {S} remt, {SPACE} is de noodrem', ring: true, dim: !slow,
+      sub: slow ? '{W}/{S} hendel, {O} deuren, {G} dienst rijden' : 'Eerst stoppen: {S} remt, {SPACE} is de noodrem', ring: true, dim: !slow,
     };
   }
   const b = boardable(world);
@@ -109,7 +109,7 @@ export function trainPrompt(world) {
   const parked = b.t.state === 'parked';
   return {
     id: 'trein-kapen', x: b.x, y: b.y, h: railZ(b.x, b.y) + PANEEL_H, key: 'E', label: parked ? 'Instappen' : 'Trein kapen',
-    sub: parked ? 'Daarna G: de dienst rijden, of rij zelf verder' : `${b.t.cfg.label} stelen (twee sterren). Daarna G: de dienst rijden`, ring: true,
+    sub: parked ? 'Daarna {G}: de dienst rijden, of rij zelf verder' : `${b.t.cfg.label} stelen (twee sterren). Daarna {G}: de dienst rijden`, ring: true,
   };
 }
 

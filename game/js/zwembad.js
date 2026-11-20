@@ -213,7 +213,7 @@ function onEvent(w, e) {
     say(w, e.q >= 0.95 ? 'dive' : 'flop', true);
   } else if (e.type === 'stroke') {
     if (Math.random() < 0.35) splash(w, q.x, q.y, false);
-    if (e.q < 0.3 && g.t - g.flailAt > 5) { g.flailAt = g.t; g.flash = { text: 'Wissel A en D, rustig ritme', t: 1.4, bad: true }; }
+    if (e.q < 0.3 && g.t - g.flailAt > 5) { g.flailAt = g.t; g.flash = { text: 'Wissel {A} en {D}, rustig ritme', t: 1.4, bad: true }; }
   } else if (e.type === 'turn') {
     g.roll = e.flip ? 0.55 : 0;
     { const pp = keerPop(e.flip); if (pp) simHudPop(pp.tekst, pp.geluid); } // #985
@@ -254,7 +254,7 @@ function end(w, { quit = false } = {}) {
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   volgendeTredeRij(stats, scaledMedalAt(mode), time, { medal, lager: true, klok: true });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'SNELSTE VAN HET ZWEMBAD' : medal ? 'MOOIE BANEN' : 'DROOG DOEKJE?', reason: medal ? `Honderd meter in ${fmtTime(time)}` : 'Houd een rustig ritme: A, D, A, D, ongeveer twee slagen per seconde', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'SNELSTE VAN HET ZWEMBAD' : medal ? 'MOOIE BANEN' : 'DROOG DOEKJE?', reason: medal ? `Honderd meter in ${fmtTime(time)}` : 'Houd een rustig ritme: {A}, {D}, {A}, {D}, ongeveer twee slagen per seconde', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 

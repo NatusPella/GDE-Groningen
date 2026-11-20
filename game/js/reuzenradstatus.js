@@ -21,7 +21,7 @@ export const STAPPEN = [
 // De uitleg voor de eerste keer: vier iconen met een zin. Wordt getoond tot je voor het eerst de top haalt (dit apparaat).
 export const UITLEG_ID = 'reuzenrad';
 export const UITLEG = [
-  { icoon: ICOON.top, tekst: 'Kijk rond met de muis of de pijlen' },
+  { icoon: ICOON.top, tekst: 'Kijk rond met {MOUSE} of {ARROWS}' },
   { icoon: ICOON.omhoog, tekst: `Het rad draait ${LAPS} rondes` },
   { icoon: ICOON.uit, tekst: '{BACKSPACE}: uitstappen als je beneden bent' },
   { icoon: I.klok, tekst: 'Zo lang duurt je ritje nog' },
@@ -46,14 +46,14 @@ export function reuzenradHudModel(g) {
   ];
   return {
     id: 'reuzenrad', titel: 'Hoogvlieger', icoon: ICOON.top, plek: '', stappen, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
-    nu: watNu(g), hulp: 'Rondkijken met de muis of de pijlen · {BACKSPACE} uitstappen', slecht: false,
+    nu: watNu(g), hulp: 'Rondkijken met {MOUSE} of {ARROWS} · {BACKSPACE} uitstappen', slecht: false,
   };
 }
 
 export function watNu(g) {
   if (g.uitstap) return g.mag ? 'Je stapt nu uit' : 'Je stapt uit zodra je beneden bent';
   if (stapVan(g) === 'top') return 'Op de top: wat een uitzicht!';
-  if (g.stijgt) return 'Omhoog: kijk rond met de muis';
+  if (g.stijgt) return 'Omhoog: kijk rond met {MOUSE}';
   return g.mag ? 'Beneden: {BACKSPACE} om uit te stappen' : 'Je gaat weer omlaag';
 }
 

@@ -1190,7 +1190,7 @@ export function updateStory(dt, w) {
     // #654: de kus-unlock en de volgende stap hoeven niet 60x/s herberekend
     if (storyDue) {
       const kiss = kissUnlockedNow();
-      if (kiss && w.kissUnlocked === false) w.addMessage('Nieuw: geef elkaar een kusje met K', 4, { key: 'kiss-unlock' });
+      if (kiss && w.kissUnlocked === false) w.addMessage('Nieuw: geef elkaar een kusje met {K}', 4, { key: 'kiss-unlock' });
       w.kissUnlocked = kiss;
     }
   }

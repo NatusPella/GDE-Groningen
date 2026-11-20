@@ -994,7 +994,7 @@ export function updatePlanStage(dt, world, st, S, def) {
       S.choosing = false;
       UI.planChoosing(false);
       UI.planFocus('island');
-      world.addMessage('Terug bij de bouwtekening. Druk A of S voor een aanpak.', 3);
+      world.addMessage('Terug bij de bouwtekening. Druk {A} of {S} voor een aanpak.', 3);
       return false;
     }
     if (inp.wasPressed('a') || inp.wasPressed('arrowleft')) S.picked = 'sluip';

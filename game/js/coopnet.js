@@ -623,7 +623,7 @@ export function meldVoertuig(world, n) {
     if (s.slot < 1 || s.verbinding === 'lost') continue;
     const f = figures(world)[s.slot];
     if (f && f.inVeh === hv) continue; // wie al meerijdt hoeft niets te lezen
-    n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} zit in een voertuig. Druk bij het voertuig op E om mee te rijden.` }, s.slot);
+    n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} zit in een voertuig. Druk bij het voertuig op {E} om mee te rijden.` }, s.slot);
     een = true;
   }
   return een;
@@ -650,8 +650,8 @@ export function tegelGeladen(world, x, y) {
   if (!m.store.index.tiles[tileKey(i, j)]) return true; // daar is niets te laden (zee, buiten de kaart)
   return m.resident.has(`${i},${j}`);
 }
-export const LOS_TEKST = 'Je loopt los van de groep. Druk op B (controller: D-pad omhoog) om bij de groep te komen.';
-export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op B (controller: D-pad omhoog) om bij de groep te komen, anders word je zo teruggezet.';
+export const LOS_TEKST = 'Je loopt los van de groep. Druk op {B} (controller: D-pad omhoog) om bij de groep te komen.';
+export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op {B} (controller: D-pad omhoog) om bij de groep te komen, anders word je zo teruggezet.';
 export const LOS_MELD_M = 300; // m: vanaf hier zegt het spel een keer hoe je bij de groep komt
 export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
 
@@ -774,7 +774,7 @@ export function bandFiguren(world, dt) {
     if (fig.vastMeet >= 0.25) { fig.vastTijd = world.coopVrij && !world.coopVrij(fig.x, fig.y, world) ? (fig.vastTijd || 0) + fig.vastMeet : 0; fig.vastMeet = 0; }
     if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // te lang buiten de groep zonder eigen interessegebied (meer dan acht groepen), of vast: terug bij de groep
       fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.losGemeld = false; fig.wacht = false; fig.ongeladen = 0; fig.vx = 0; fig.vy = 0;
-      if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.stoel = vrijeStoel(world, fig, v); fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
+      if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.stoel = vrijeStoel(world, fig, v); fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met {E} stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
       if (!zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2))) {
         if (zetInBoot(world, fig)) { if (world.coopMeld) world.coopMeld(fig.slot, BOOT_MELD); continue; }
         continue; // nergens droog en geen boot: hij blijft staan en de volgende meting probeert het opnieuw (geen valse melding)
@@ -809,7 +809,7 @@ export function bandMetgezel(world, dt) {
   if (c.verTijd < (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S)) return false;
   c.verTijd = 0; c.gewaarschuwd = false; c.losGemeld = false; c.coopWacht = false; c.ongeladen = 0; c.vx = 0; c.vy = 0;
   const plek = false; // geen automatisch meerijden: te ver weg betekent naast de gastheer, instappen doet ze zelf met E
-  if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); return true; }
+  if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met {E} stap je uit als het voertuig stilstaat.'); return true; }
   const droog = zetBijGroep(world, c, Math.PI * 1.7);
   if (!droog && zetInBoot(world, c)) { if (world.coopMeld) world.coopMeld(1, BOOT_MELD); return true; }
   if (droog && world.coopMeld) world.coopMeld(1, 'Je staat weer bij de groep.'); // geen droge plek en geen boot: niet claimen dat het gelukt is (#366)

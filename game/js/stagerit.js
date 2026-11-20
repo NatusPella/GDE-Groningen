@@ -126,10 +126,10 @@ export function updateRit(dt, world, st, S, hint) {
       // got out again: fine at the platform, otherwise back in
       const d = Math.hypot(hoofdspeler(world).x - R.platform.x, hoofdspeler(world).y - R.platform.y);
       if (R.reached || d < (st.radius || 40)) return 'done';
-      hint(world, st.board || 'Terug in de cabine: E bij de kop van de trein.');
+      hint(world, st.board || 'Terug in de cabine: {E} bij de kop van de trein.');
       return null;
     }
-    hint(world, st.board || 'Stap in de cabine van de stilstaande trein: E bij de kop.');
+    hint(world, st.board || 'Stap in de cabine van de stilstaande trein: {E} bij de kop.');
     return null;
   }
   if (driving !== R.train) return null;
@@ -157,11 +157,11 @@ export function updateRit(dt, world, st, S, hint) {
       hint(world, 'Uitstappen met E. Dan stappen de juryleden uit.');
       return null;
     }
-    hint(world, st.brake || 'Het perron: remmen met S, nu!');
+    hint(world, st.brake || 'Het perron: remmen met {S}, nu!');
     return null;
   }
   if (R.reached && d > radius + 70) return { fail: st.late || 'de trein reed door het station' };
-  if (!R.said && S.t > 6) { R.said = 1; world.addMessage('W is gas, S is rem. Het volgende perron ligt verderop langs het spoor.', 4); }
+  if (!R.said && S.t > 6) { R.said = 1; world.addMessage('{W} is gas, {S} is rem. Het volgende perron ligt verderop langs het spoor.', 4); }
   return null;
 }
 

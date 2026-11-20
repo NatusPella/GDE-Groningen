@@ -8,7 +8,7 @@ export const HELP_TOPICS = [
   { id: 'doel', title: 'Waar moet ik heen?', lines: [
     'Onderin staat je doel. Volg de gele route op de minimap tot in de gele marker.',
     'Open de kaart met {M}, kies een plek of missie en de route gaat erheen. Het verhaal wacht zolang.',
-    '{SHIFT} + klik op de kaart zet je meteen op die plek (uit te zetten bij {ESC} › Instellingen › Spelregels).',
+    '{SHIFT} + {LMB} op de kaart zet je meteen op die plek (uit te zetten bij {ESC} › Instellingen › Spelregels).',
   ] },
   { id: 'kaart', title: 'De kaart: waypoint en reizen', lines: [
     'Klik op een plek of een icoon op de kaart en kies uit drie dingen: Zet waypoint, Reis erheen (met de kosten en de duur) of Info. Met een controller kies je een plek met {ENTER} onder het kruisje.',

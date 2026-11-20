@@ -29,22 +29,22 @@ const tekst = (s, n) => (typeof s === 'string' ? s.replace(/[\u0000-\u001f<>]/g,
 // De regel per baantype. rol: wat je bent; hulp: wat je doet (wordt getoond); positie: je plek telt mee bij ophalen en afgeven;
 // actie: E doet iets in de baan (de host rekent het uit vanaf jouw plek).
 export const BIJBAAN_REGELS = {
-  taxi: { rol: 'passagier', hulp: 'Stap met E in de taxi en rijd mee. Elke rit levert jou ook het volle loon op.', positie: false, actie: false },
+  taxi: { rol: 'passagier', hulp: 'Stap met {E} in de taxi en rijd mee. Elke rit levert jou ook het volle loon op.', positie: false, actie: false },
   bezorger: { rol: 'tweede bezorger', hulp: 'Loop naar de zaak en haal samen op. Met meer bezorgers zijn er meer adressen: wie er het eerst staat geeft af.', positie: true, actie: false },
-  krantenwijk: { rol: 'helper', hulp: 'Loop mee en gooi kranten met E naar de brievenbussen. De stapel is gedeeld.', positie: true, actie: true },
-  vracht: { rol: 'bijrijder', hulp: 'Rijd mee in de truck van de chauffeur en help met E bij laden en lossen. De chauffeur rijdt.', positie: false, actie: true },
+  krantenwijk: { rol: 'helper', hulp: 'Loop mee en gooi kranten met {E} naar de brievenbussen. De stapel is gedeeld.', positie: true, actie: true },
+  vracht: { rol: 'bijrijder', hulp: 'Rijd mee in de truck van de chauffeur en help met {E} bij laden en lossen. De chauffeur rijdt.', positie: false, actie: true },
   // #683: drie banen waar een meespeler als passagier of tweede jurylid meedoet en de volle beloning deelt.
-  rondvaart: { rol: 'passagier', hulp: 'Stap met E aan boord van de rondvaartboot en vaar mee; je hoort het verhaal en deelt de fooi.', positie: false, actie: false },
+  rondvaart: { rol: 'passagier', hulp: 'Stap met {E} aan boord van de rondvaartboot en vaar mee; je hoort het verhaal en deelt de fooi.', positie: false, actie: false },
   // #819: de ontspannen tour (zonder tijdsdruk) is een rustige passagiersrol; de fooi wordt gedeeld.
-  rondvaarttour: { rol: 'passagier', hulp: 'Stap met E aan boord van de ontspannen rondvaart en vaar mee; de fooi wordt gedeeld.', positie: false, actie: false },
-  veerdienst: { rol: 'passagier', hulp: 'Stap met E aan boord van de veerboot en vaar mee; elke overtocht levert jou ook het volle loon op.', positie: false, actie: false },
+  rondvaarttour: { rol: 'passagier', hulp: 'Stap met {E} aan boord van de ontspannen rondvaart en vaar mee; de fooi wordt gedeeld.', positie: false, actie: false },
+  veerdienst: { rol: 'passagier', hulp: 'Stap met {E} aan boord van de veerboot en vaar mee; elke overtocht levert jou ook het volle loon op.', positie: false, actie: false },
   rechtbank: { rol: 'tweede jurylid', hulp: 'Zit in de jury: je ziet de zaak mee, deelt de vergoeding en één fout antwoord wordt door de jury vergeven.', positie: false, actie: false },
   // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (vanaf de grond of vanuit het voertuig).
-  cabaret: { rol: 'mede-optreder', hulp: 'Roep met E op de maat mee met de cabaretier: samen krijg je meer applaus en een hogere fooi.', positie: true, actie: true },
-  loket: { rol: 'tweede balie', hulp: 'Help met E aan de tweede balie: elke klant die je overneemt is extra fooi voor jullie beiden.', positie: true, actie: true },
-  snackoverlast: { rol: 'handhaver', hulp: 'Loop mee en help met E: je fluit de groep tot bedaren en dat levert een extra fooi op.', positie: true, actie: true },
-  tjalke: { rol: 'bemanning', hulp: 'Zit naast de chauffeur en help met E met de kaart en de route; elke hulp maakt de rit meer waard.', positie: false, actie: true },
-  bietenoogst: { rol: 'helper', hulp: 'Help met E op de akker: je trekt bieten los en laadt mee; elke hulp geeft extra loon.', positie: true, actie: true },
+  cabaret: { rol: 'mede-optreder', hulp: 'Roep met {E} op de maat mee met de cabaretier: samen krijg je meer applaus en een hogere fooi.', positie: true, actie: true },
+  loket: { rol: 'tweede balie', hulp: 'Help met {E} aan de tweede balie: elke klant die je overneemt is extra fooi voor jullie beiden.', positie: true, actie: true },
+  snackoverlast: { rol: 'handhaver', hulp: 'Loop mee en help met {E}: je fluit de groep tot bedaren en dat levert een extra fooi op.', positie: true, actie: true },
+  tjalke: { rol: 'bemanning', hulp: 'Zit naast de chauffeur en help met {E} met de kaart en de route; elke hulp maakt de rit meer waard.', positie: false, actie: true },
+  bietenoogst: { rol: 'helper', hulp: 'Help met {E} op de akker: je trekt bieten los en laadt mee; elke hulp geeft extra loon.', positie: true, actie: true },
 };
 export const bijbaanMetCoop = (id) => Object.prototype.hasOwnProperty.call(BIJBAAN_REGELS, id);
 

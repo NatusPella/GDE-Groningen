@@ -26,7 +26,7 @@ export const KAARTEN = {
   // M17 Open, dicht: de regel stond alleen in de tekst (toeter, wacht op de fanfare); elf bruggen, één per deel.
   M17: [
     { doel: 'Vaar de eerste vier bruggen door: toeter, Wubbo opent', druk: 'zeven minuten voor alle elf', afloop: 'is het mosterdschip eerder, dan begin je opnieuw',
-      regels: [stappen('Zo gaat een brug', 0, [stap('pijl', 'Vaar op de brug af'), stap('hand', 'Toeter met H'), stap('hart', 'Wacht tot hij open is')], { na: 6, duur: 9 }),
+      regels: [stappen('Zo gaat een brug', 0, [stap('pijl', 'Vaar op de brug af'), stap('hand', 'Toeter met {H}'), stap('hart', 'Wacht tot hij open is')], { na: 6, duur: 9 }),
         teller('Tijd', 420, { na: 20, duur: 6 })] },
     { doel: 'Brug 5, 6 en 7: Wubbo fluit, zonder fanfare',
       regels: [stappen('Wubbo\'s fluit', 0, [stap('hart', 'Eén keer: open'), stap('hand', 'Twee keer: dicht'), stap('pijl', 'Niet te vroeg')], { na: 5, duur: 9 })] },
@@ -49,9 +49,9 @@ export const KAARTEN = {
   // M19 Stoom: de bediening van de trein stond alleen in de say-tekst.
   M19: {
     perron: { doel: 'Ga naar de stilstaande stoomtrein op het perron',
-      regels: [stappen('Op het perron', 0, [stap('pijl', 'Naar de kop van de trein'), stap('hand', 'Instappen met E')], { na: 5, duur: 9 })] },
+      regels: [stappen('Op het perron', 0, [stap('pijl', 'Naar de kop van de trein'), stap('hand', 'Instappen met {E}')], { na: 5, duur: 9 })] },
     rit: { doel: 'Rij de museumtrein naar het volgende perron', afloop: 'rij je door het perron, dan zitten de juryleden nog vast',
-      regels: [toets('De stoomtrein', ['W', 'S', 'H'], 'houd', { tekst: 'W is gas, S is rem, H is de fluit.', na: 4, duur: 9 }),
+      regels: [toets('De stoomtrein', ['W', 'S', 'H'], 'houd', { tekst: '{W} is gas, {S} is rem, {H} is de fluit.', na: 4, duur: 9 }),
         wijzer('Volgende perron', 2300, 'Het volgende perron ligt ruim twee kilometer verderop. Rem op tijd.', { na: 16, duur: 8 })] },
   },
   // M20 Het beleg van Bourtange: elf stappen met dezelfde regel (houd de plek); één kaart per soort.

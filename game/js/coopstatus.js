@@ -174,7 +174,7 @@ export const SAMEN_KAN_TITEL = 'Wat kan samen';
 // samenplan.js (hudcards).
 export const EIGEN_PLAN_TITEL = 'Doe intussen je eigen ding';
 export const EIGEN_PLAN = [
-  ['hengelen', 'aan elk water met I'],
+  ['hengelen', 'aan elk water met {I}'],
   ['pannenkoeken bakken', 'op het pannenkoekenschip'],
   ['de beiaard', 'bij de Martinitoren'],
   ['boeren', 'op je eigen akker bij Hoogkerk'],

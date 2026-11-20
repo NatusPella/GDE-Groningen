@@ -73,7 +73,7 @@ export const ARENA_TEKST = {
   label: 'de PvP-arena',
   vraagt: 'Je vraagt de PvP-arena te starten.',
   hostVraag: (naam) => `${naam} wil de PvP-arena starten. Doe je mee? J = ja, N = nee.`,
-  verstuurd: (sec) => `Uitnodiging verstuurd: over ${sec} s begint de ronde, of druk nog eens op E.`,
+  verstuurd: (sec) => `Uitnodiging verstuurd: over ${sec} s begint de ronde, of druk nog eens op {E}.`,
   meedoen: 'Je doet mee: zorg dat je in het veld staat als de ronde begint.',
   nee: 'Je doet niet mee: de ronde loopt zonder jou door.',
   niemand: 'Niemand deed mee: de ronde gaat niet door.',

@@ -65,7 +65,7 @@ export const WEAPON_STOCK = [
   { key: 'pistol', label: 'Pistool "Klapperman"', desc: 'Betrouwbaar, handzaam, luid genoeg', gun: 120, ammoPrice: 25, ammo: 36, cap: 250 },
   { key: 'uzi', label: 'Uzi "Ratelaar"', desc: 'Veel lood, weinig precisie', gun: 300, ammoPrice: 40, ammo: 90, cap: 600 },
   { key: 'shotgun', label: 'Hagelgeweer "Boerenbuks"', desc: 'Van de boer uit Ten Boer. Dichtbij: weg is weg', gun: 400, ammoPrice: 35, ammo: 12, cap: 80 },
-  { key: 'jachtgeweer', label: 'Jachtgeweer "Hogelandse Havik"', desc: 'Met kijker: rechtermuisknop vasthouden. Van ver, één keer raak', gun: 650, ammoPrice: 40, ammo: 10, cap: 60 },
+  { key: 'jachtgeweer', label: 'Jachtgeweer "Hogelandse Havik"', desc: 'Met kijker: houd {RMB} vast. Van ver, één keer raak', gun: 650, ammoPrice: 40, ammo: 10, cap: 60 },
   { key: 'waterpistool', label: 'Waterpistool "Spetter"', desc: 'Doet geen pijn, maar niemand wil nat worden. Blust ook een brandende bak', gun: 25, ammoPrice: 5, ammo: 150, cap: 600, unit: 'water' },
   { key: 'carbidbus', label: 'Carbidbus "Knalbus"', desc: 'Melkbus met carbid, zoals op het Hogeland met de carbidschietwedstrijd. Gooien, of bukken en neerzetten', gun: 90, ammoPrice: 30, ammo: 3, cap: 15, unit: 'bussen' },
   { key: 'vuurwerk', label: 'Vuurwerkpijlen "Sterrenregen"', desc: 'Het hele jaar oud en nieuw. Fluit, knalt en spat', gun: 60, ammoPrice: 25, ammo: 6, cap: 40, unit: 'pijlen' },
@@ -442,7 +442,7 @@ export function initShops(world) {
   for (const s of placed) {
     if (s.type !== 'heli') continue;
     s.name = 'Rotor Roelf Eelde';
-    registerHelipad({ id: 'eelde', x: s.pad.x, y: s.pad.y, r: s.pad.r, z: PAD_DECK, name: s.name, exit: true, label: 'Rotor Roelf · E uitstappen' });
+    registerHelipad({ id: 'eelde', x: s.pad.x, y: s.pad.y, r: s.pad.r, z: PAD_DECK, name: s.name, exit: true, label: 'Rotor Roelf · {E} uitstappen' });
   }
   shops = placed;
   declutterCache.clear();

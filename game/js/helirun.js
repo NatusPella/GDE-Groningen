@@ -999,7 +999,7 @@ function updateCatchHud() {
   const tips = [
     tip(c.okZ, 'hoogte goed', c.dz > 0 ? `lager (${downKey()})` : 'hoger (Spatie)'),
     tip(c.okLat, 'afstand goed', c.lat <= P.CATCH.near ? 'verder weg' : 'dichterbij'),
-    tip(c.okV, 'snelheid goed', 'rustiger: laat W los'),
+    tip(c.okV, 'snelheid goed', 'rustiger: laat {W} los'),
   ].join(' · ');
   if (hud.cache.tips !== tips) { hud.cache.tips = tips; hud.catchTips.innerHTML = tips; }
 }

@@ -232,9 +232,9 @@ function minigameItems(world, acts = activityMapIcons(world)) {
   mg('ringrace', 'mg:ringrace', 'ringrace', 'Ringrace', 'ringweg · één rondje · gratis', 'ringrace', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · de ringweg',
     'Eén rondje over de ringweg van 17,5 km tegen vier tegenstanders, met de eerlijke racewagen van de baan. Winnen is goud, tweede zilver, derde brons. Met medespelers rijd je tegen elkaar.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
   mg('zwembad', 'mg:zwembad', 'zwembad', 'Zwembad Het Natte Papier', 'Papiermolenlaan · 100 meter · gratis', 'zwembad', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Papiermolenlaan',
-    'Vier banen van vijfentwintig meter. Duik vanaf het blok en zwem met A en D om en om in een rustig ritme; een keerpunt vlak voor de muur met {SPATIE} is sneller.', [[1, 'binnen 1:40'], [2, 'binnen 1:16'], [3, 'binnen 1:04']]);
+    'Vier banen van vijfentwintig meter. Duik vanaf het blok en zwem met {A} en {D} om en om in een rustig ritme; een keerpunt vlak voor de muur met {SPATIE} is sneller.', [[1, 'binnen 1:40'], [2, 'binnen 1:16'], [3, 'binnen 1:04']]);
   mg('klimtoren', 'mg:klimtoren', 'klimtoren', 'Klimtoren Zernike', 'Zernike · twaalf meter · gratis', 'klimtoren', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Zernike',
-    'Houd A en D vast voor je handen, laat steeds één hand los om hem hoger te zetten. Rust op de grote grepen, anders geven je armen het op.', [[1, 'binnen 1:20'], [2, 'binnen 0:48'], [3, 'binnen 0:30']]);
+    'Houd {A} en {D} vast voor je handen, laat steeds één hand los om hem hoger te zetten. Rust op de grote grepen, anders geven je armen het op.', [[1, 'binnen 1:20'], [2, 'binnen 0:48'], [3, 'binnen 0:30']]);
   mg('waterski', 'mg:waterski', 'waterski', 'Waterskiën bij het Grunopark', 'Grunopark · achter de boot · gratis', 'waterski', (v) => `Record ${Math.round(v).toLocaleString('nl-NL')} punten`, 'Minigame · Grunopark',
     'Achter de boot over het meer: zwaai om de boeien, spring over de golven en sla een salto of grab voor extra punten. Drie valpogingen.', [[1, '650 punten'], [2, '1.300 punten'], [3, '2.200 punten']]);
   {
