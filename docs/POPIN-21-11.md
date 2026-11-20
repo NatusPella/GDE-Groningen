@@ -73,7 +73,7 @@ verre LOD (`scene3d.js syncBuildingsPass`: de detailring is een cirkel tot het d
 7. **Al goed:** voetgangers (fade met schermdeur-dither, spawn buiten het gezicht), verkeer en geparkeerde auto's (`spawnWouldPop`),
    gras zelf (smoothstep-fade in de shader), gebouwen (voorladen tot 30 m buiten de ring), wegen (vooruit-prioriteit `streamRank`).
 
-## Fixes (elk een eigen commit, alle pure regels in `popinrules.js` en `buildingprefetch.js`)
+## Fixes (elk een eigen commit, pure regels in `popinrules.js`)
 
 | # | Wat | Waarom | Kost |
 |---|---|---|---|
@@ -81,23 +81,23 @@ verre LOD (`scene3d.js syncBuildingsPass`: de detailring is een cirkel tot het d
 | 2 | **Voertuigen: hysterese** op de rand (`VEH_KEEP_EXTRA` = 15 m): bouwen op 140 m, pas weghalen op 155 m. | oorzaak 6 | nul |
 | 3 | **Grasvlakken:** `GRASS_PREBUILD` = 30 m: een vlak wordt verborgen (`visible = false`) gebouwd en op zijn straal getoond; opruimen 30 m verder. | oorzaak 5 | tot 65% meer grasvlakken in het geheugen (verborgen, niet getekend); bouwbudget (2 per frame, 3 ms) ongewijzigd |
 | 4 | **Raamkozijnen:** `CPU_FACADE_DIST` van 100/70/45 naar 140/90/60 m. | oorzaak 4 | op een drukke machine meer kozijnen getekend (1,96x het oppervlak bij niveau 1); **frametijd niet apart gemeten, zie risico** |
-| 5 | **Gebouwen voorladen met de snelheid mee, vooruit** (`buildingprefetch.js`): de vaste marge van 30 m blijft, vooruit komt er tot 90 m bij (lead = 3 s x snelheid), op volgorde van `streamRank`. | oorzaak 3 | CPU begrensd door het vaste budget (1,5 ms per frame); meer niet-getoonde meshes in het geheugen, alleen vooruit |
+| 5 | **Teruggedraaid: gebouwen voorladen met de snelheid mee, vooruit.** De vaste marge van 30 m wordt vooruit tot 90 m groter (lead = 3 s x snelheid), op volgorde van `streamRank`. In vier gepaarde a7-runs (zie de A/B-tabel) bleef de detailring even vaak klein als zonder; "alleen echte winst houden", dus niet in de tak (de commits staan er als revert). | oorzaak 3 | n.v.t. |
 
-Nieuw en geen onderdeel van het spel: `scripts/qa/popin.mjs` + `popin.page.js` (de probe), `scripts/popinrules_test.mjs` (66
-controles: band, dither, laadstraal, voorladen), `scripts/popin_wiring_test.mjs` (13: de statische no-undef-controle op de geraakte
+Nieuw en geen onderdeel van het spel: `scripts/qa/popin.mjs` + `popin.page.js` (de probe), `scripts/popinrules_test.mjs` (52
+controles: band, dither, laadstraal), `scripts/popin_wiring_test.mjs` (10: de statische no-undef-controle op de geraakte
 bestanden en dat elke nieuwe naam gedeclareerd of geïmporteerd is, naar aanleiding van de mislukte poging hieronder).
-`scene3d.js` staat op 4498 regels (grens 4500); de nieuwe code staat in eigen modules en de regels zijn elders bespaard.
+`scene3d.js` staat op 4499 regels (grens 4500); de nieuwe code staat in eigen modules en de regels zijn elders bespaard.
 
 ### Een fout onderweg
 
-Een eerste versie van fix 5 gebruikte `_bPre` zonder hem te declareren (een mislukte bewerking van het script). `node --check` ziet dat
+De eerste versie van fix 5 (inmiddels teruggedraaid) gebruikte `_bPre` zonder hem te declareren (een mislukte bewerking van het script). `node --check` ziet dat
 niet; de eerste na-run met die versie toonde "Er ging iets mis: _bPre is not defined" in beeld en liep op een kapotte frame. Die run
 (en wat ik er in de vorige tussenstand over zei) is vervallen. `scripts/popin_wiring_test.mjs` vangt dit nu, de probe meldt fouten in
 `results.errors`, en de beelden hieronder komen uit een run zonder fouten.
 
 ## Voor/na (zichtafstand kort, tekenafstand 140 m)
 
-Geldige paren: **voor3** (kort-voor3, basis v0.64.0) tegen **na5** (kort-na5, alle vijf fixes, zonder fouten). Frametijd p50
+Geldige paren: **voor3** (kort-voor3, basis v0.64.0) tegen **na5** (kort-na5, zonder fouten). Let op: na5 bevat nog fix 5, die daarna is teruggedraaid; de stills en deze tabel zijn dus van de tak mét die fix. Omdat fix 5 niets meetbaars deed (zie de A/B-tabel) verwacht ik geen verschil met de uiteindelijke tak, maar die uiteindelijke tak (fix 1 tot 4) is als aparte volledige run **niet** gemeten (alleen als a7-run `na3`). Frametijd p50
 voor/na: foot 108/80 ms, a7 47/37 ms, heli 27/24 ms (beide kanten dezelfde drukke machine, de na-runs iets rustiger).
 
 | route | zichtbaar per s (voor, na) | binnen 60 m per s (voor, na) | detailring < 90% van de tekenafstand (voor, na) | kleinste ring (voor, na) |
@@ -106,7 +106,21 @@ voor/na: foot 108/80 ms, a7 47/37 ms, heli 27/24 ms (beide kanten dezelfde drukk
 | a7 | 39 / 42 | 10,8 / 14,3 | 13,2% / 3,5% | 37 / 44 m |
 | heli | 17 / 18 | 5,4 / 5,0 | 0% / 0% | 140 / 140 m |
 
-AB_TABEL
+**A/B op de detailring** (alleen route a7, kort, afwisselend; `ab-*`). Een run op 1 beeld per seconde (base-1, p50 1015 ms) is weggelaten.
+
+| run | variant | p50 | detailring < 90% | < 50% | kleinste ring |
+|---|---|---|---|---|---|
+| voor3 (volledige run) | basis | 47 ms | 13,2% | 2,9% | 37 m |
+| ab-base-2 | basis | 35 ms | 6,4% | 1,9% | 18 m |
+| ab-na3-1 | fix 1 tot 4 | 77 ms | 32,7% | 6,4% | 11 m |
+| ab-na3-2 | fix 1 tot 4 | 35 ms | 10,7% | 4,5% | 18 m |
+| ab-na5-1 | fix 1 tot 5 | 45 ms | 6,3% | 1,9% | 36 m |
+| ab-na5-2 | fix 1 tot 5 | 40 ms | 6,5% | 2,4% | 18 m |
+| kort-na5 (volledige run) | fix 1 tot 5 | 37 ms | 3,5% | 0,9% | 44 m |
+
+Lees: de spreiding tussen twee runs van dezelfde variant (basis 6,4% en 13,2%; fix 1 tot 4 10,7% en 32,7% bij een tragere frame) is
+groter dan elk verschil tussen varianten. De ring krimpt dus nog steeds in de Binnenstad (6 tot 13% van de frames onder 90%), en geen enkele
+fix heeft dat aangetoond verbeterd of verslechterd. Het is een eigen, nog open oorzaak (hieronder).
 
 Stills (1280x720, dezelfde route): `docs/beeld-21-11/popin/voor-*.png` en `na-*.png`, route foot, a7 en heli, beeld 1, 3 en 6.
 Het duidelijkste verschil is in `voor-heli-3.png` tegen `na-heli-6.png`: de boomrij vooruit loopt in "na" uit in een schermdeurpatroon en
@@ -120,9 +134,9 @@ is niet langer in de mist afgekapt. Dat is een eenzaam beeld, geen statistiek.
   (`popinrules_test.mjs`) en uit het beeld. Een echte beeldmeting (pixelverschil tussen opeenvolgende beelden) is niet gedaan.
 - **Grote objecten hebben een betekenisloze afstand.** Een grasvlak of batch met een omhullende bol van 200 m "verschijnt" op 0 m als de
   camera in de bol staat. De afstandsverdeling per categorie geldt voor kleine dingen (gebouwen, bomen, auto's), niet voor vlakken.
-- **Een tweede poging van de detailringmeting** (a7, kort, A/B/A/B van basis, fixes 1 tot 4 en alle vijf) staat hierboven in de tabel
-  `AB_TABEL`; daar zitten ook de enige echte herhalingen. De uitslag van een enkele run is ruis: de frametijd wisselde 2 tot 5 keer tussen
-  runs door de belasting van de machine.
+- **De detailring**: zie de A/B-tabel. De uitslag van een enkele run is ruis (de frametijd wisselde 2 tot 5 keer tussen runs door de belasting van
+  de machine); de ramen-op-het-hoogste-LOD-klacht is daarmee gemeten (de ring krimpt) maar **niet opgelost** door deze ronde. Wat wel is gedaan
+  voor ramen: fix 4 (kozijnen op een drukke machine op grotere afstand), die niet apart op frametijd is gemeten.
 - **Frametijd en geheugen van de fixes zijn niet apart gemeten.** In de geldige paren (hierboven) is de p50 voor/na gelijk of lager, de
   heap hoger (foot 2,7 -> 2,9 GB, a7 1,2 -> 2,3 GB, heli 2,2 -> 1,8 GB: wisselt met de run en met de garbage collector, niet toe te
   schrijven aan een fix). Een `scripts/perf/run.mjs`-reeks (norm 33,5 ms) is niet gedraaid: die machine was deze middag niet stil genoeg
@@ -131,8 +145,9 @@ is niet langer in de mist afgekapt. Dat is een eenzaam beeld, geen statistiek.
 - **De zichtafstanden "normaal" en "ver"** (mist 25% resp. 0% op de tekenafstand) zijn gemeten in de eerste runs (normaal-voor) maar
   niet met een geldige na-run herhaald; de boomfix zou daar het meeste doen en is daar niet aangetoond.
 - **De werkelijke oorzaak van een kleinste ring van 18 m** (a7) is niet bevestigd: de link-wachttijd van 2 s is de waarschijnlijkste
-  (de ring krimpt tot de afstand van het wachtende gebouw), een tegel die laat binnenkomt de tweede. Een tijdreeks per frame van
-  welk gebouw mist en waarom is de eerstvolgende stap.
+  (de ring krimpt tot de afstand van het wachtende gebouw), een tegel die laat binnenkomt de tweede. Het voorladen met de snelheid mee
+  (fix 5) had dat moeten verkleinen en deed dat niet aantoonbaar, wat de link-wachttijd als enige oorzaak onzeker maakt. Een tijdreeks per frame van
+  welk gebouw mist, hoe lang en waarom is de eerstvolgende stap.
 - **Voertuigen en voetgangers** zijn in deze ronde niet aangepast behalve de hysterese: hun spawnregels (`spawnWouldPop`, pedView) en de
   voetgangersfade bestonden al; de probe toont voetgangers wel als gebeurtenissen (met fade) en geparkeerde auto's (66 tot 78 in de a7).
 
