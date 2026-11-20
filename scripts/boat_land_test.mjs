@@ -59,6 +59,25 @@ const pts = ['veendamA', 'veendamB', 'veendamC', 'veendamD'].map((k) => PLACES[k
 ok(pts[0][0] < pts[1][0] && pts[1][0] < pts[2][0], 'de tussenpunten gaan noordwaarts langs de diep');
 ok(pts.every((p) => p[1] > boot[1]), 'ze liggen oostelijk van de start (langs de diep)');
 ok(Math.abs(pts[3][1] - pts[2][1]) < 0.02 && Math.abs(pts[3][0] - pts[2][0]) < 0.002, 'brug elf ligt naast de vorige groep (de diep buigt daar)');
+// #955: het vaarnet liep bij brug 1 dood (13,3 km omweg voor 1,2 km kanaal) en de etappe-limiet van 105 s was korter dan de rit zelf
+{
+  const { createVaarNet, planVaarRoute } = await import('../game/js/vaarnet.js');
+  const { buildAkte4Defs } = await import('../game/js/missions_akte4.js');
+  const net = createVaarNet(JSON.parse(fs.readFileSync(new URL('../game/vaarnet.json', import.meta.url), 'utf8')));
+  const stops = [boot, ...pts].map((p) => wgsToWorld(p[0], p[1]));
+  const def = buildAkte4Defs().find((d) => d.label === 'Open, dicht');
+  const legs = def.stages.filter((s) => s.kind === 'goto');
+  let totaal = 0;
+  for (let i = 0; i < stops.length - 1; i++) {
+    const r = planVaarRoute(net, stops[i], stops[i + 1], 'sloep');
+    const recht = Math.hypot(stops[i + 1][0] - stops[i][0], stops[i + 1][1] - stops[i][1]);
+    ok(r && r.length < recht * 1.5 + 100, `etappe ${i + 1}: de vaarroute van de sloep is geen omweg`, r ? `${r.length} m voor ${Math.round(recht)} m recht` : 'geen route');
+    // de sloep haalt 11 m/s (playerTop): de limiet moet ruimte laten voor de bruggen en de bochten
+    ok(legs[i].limit >= (r ? r.length : recht) / 11 * 1.5, `etappe ${i + 1}: de limiet laat ruimte (${legs[i].limit} s)`);
+    totaal += legs[i].limit;
+  }
+  ok(def.timeLimit >= totaal, 'de totaaltijd past bij de som van de etappes', `${def.timeLimit} s voor ${totaal} s`);
+}
 // de oude schatting lag 3 km noordelijker: die mag niet terugkomen
 ok(Math.abs(PLACES.veendamBoot[0] - 53.1050) > 0.01, 'de oude start op het land is weg');
 

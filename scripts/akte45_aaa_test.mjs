@@ -63,7 +63,7 @@ const stap = (sleutel, soort, re, nr = 0) => { const s = def(NAMEN[sleutel]).sta
 t('de canon van M17 tot M26 is ongewijzigd: stapsoorten en beloning', () => {
   assert.deepEqual(def(NAMEN.M17).stages.map((s) => s.kind), ['board', 'goto', 'goto', 'goto', 'goto']);
   assert.equal(def(NAMEN.M17).reward, 700);
-  assert.equal(def(NAMEN.M17).timeLimit, 420);
+  assert.equal(def(NAMEN.M17).timeLimit, 600); // #955: was 420, de eerste etappe alleen al kost 107 s
   assert.equal(def(NAMEN.M18).stages.length, 9);
   assert.equal(def(NAMEN.M18).reward, 600);
   assert.deepEqual(def(NAMEN.M19).stages.map((s) => s.kind), ['goto', 'rit']);
