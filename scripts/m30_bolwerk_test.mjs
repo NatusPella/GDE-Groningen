@@ -1,5 +1,5 @@
 // #955: M30 (Het proefbeleg) loopt de punten van Bourtange af zoals het spel ze oplost: elk punt gaat door roadSpot
-// (het dichtstbijzijnde pad, tot 120 m ver) tenzij de stap `snap: null` meegeeft. Bolwerk 1 en 3 werden zo 36 m en 30 m
+// (het dichtstbijzijnde pad, tot 120 m ver) tenzij het punt in BOURTANGE_RAUW staat (snap: null). Bolwerk 1 en 3 werden zo 36 m en 30 m
 // verschoven naar het pad aan de overkant van de gracht (930 m lopen van de brug naar bolwerk 1 voor 117 m
 // hemelsbreed); bourtange_test keurde alleen de ongeschoven plekken. Deze test lost de punten op zoals het spel en
 // eist dat elk been niet meer dan 4,5x de hemelsbreedte kost (plus 60 m): de vesting heeft maar enkele bruggen.
@@ -22,7 +22,8 @@ const P = {};
 for (const m of tabel.matchAll(/^\s*(\w+): \[(\d+), (\d+)\]/gm)) P[m[1]] = [Number(m[2]), Number(m[3])];
 // de volgorde van de stappen van M30 (de gracht eerst, het plein als laatste); `snap: null` uit de bron
 const ORDER = ['gracht', 'brug', 'bolwerk1', 'bolwerk2', 'bolwerk3', 'poort', 'plein'];
-const rauw = (k) => new RegExp(`bourtangeAt\\('${k}', '[^']+', \\{ snap: null \\}\\)`).test(src);
+const RAUW = new Set([...(/BOURTANGE_RAUW = new Set\(\[([^\]]*)\]\)/.exec(src) || [0, ''])[1].matchAll(/'(\w+)'/g)].map((m) => m[1]));
+const rauw = (k) => RAUW.has(k);
 
 const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
 const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
