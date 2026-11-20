@@ -259,6 +259,7 @@ function trackUsage(dt, world) {
 function vehicleVerb(v) {
   const moving = Math.abs(v.speed || 0) > 0.3;
   const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
+  if (v.fallen) return { label: 'Fiets rechtzetten' }; // #1018: eerst overeind, dan opstappen
   // your own ride (hero car, bought, rented, job vehicle) is never theft
   if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isHeli ? 'Instappen en vliegen' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
   if (v.isPolice) return { label: 'Jatten', steal: true };

@@ -76,6 +76,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **De taxi staat er altijd bij Reis erheen, soms uitgeschakeld met een reden (#1019, #882):** eerst verscheen de taxi alleen vanaf 300 m en soms wel en soms niet. Nu is hij er altijd; kan hij niet, dan staat er waarom: 'Te dichtbij: loop of rij zelf', 'Niet tijdens een achtervolging: wacht tot de politie weg is' (nieuw) of 'Je hebt € x te weinig'. Tabeltest met alle voorwaarden; de kaartkeuze is niet in beeld bekeken. Samen spelen: een gast reist nog steeds niet (bestaande melding).
 - **De taxi rijdt niet meer door gebouwen (#1020, #882):** het ritpad wordt gecontroleerd tegen de gebouwvoetafdrukken (ook op de rechterbaan) en zakt zo nodig terug naar een lichtere bocht; ligt je startplek of het doel in een gebouw, dan start en stopt de taxi aan de straatkant. Pure test op nagebouwde straten; gemeten op de echte wereld voor een aantal ritten (zie het issue).
+- Een rijdende auto voert je mee: sta je op het dak van een auto, bus of vrachtwagen die rijdt (ook een auto met een NPC-bestuurder), dan ga je mee tot ongeveer 65 km/u, ook door bochten. Een harde rem, een scherpe bocht op snelheid of een te hoge snelheid gooit je eraf, en stap je af dan houd je een deel van de snelheid (#1023).
+
+- Een fiets uit een stalling pakken lukt altijd: een fiets tegen een gevel start buiten het gebouw, een fiets die niet te pakken is geeft de volgende vrije en anders de melding "Deze fiets staat vast, probeer een andere." (#1018).
+- Een beschadigde fiets of scooter rijdt trager (hoe meer schade, hoe lager de topsnelheid). Een fiets zonder rijder die een flinke klap krijgt valt om en ligt op de grond tot je hem met E rechtzet (#1018).
+
+- Laden zet je terug waar je opsloeg: sloeg je ergens in de provincie op, dan sta je na het laden daar weer en niet meer buiten je flat. Sloeg je bij je flat op, dan begin je nog steeds in de flat (#984).
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

@@ -119,3 +119,28 @@ export function schadeTekst(v, len, wid) {
   const fiets = v && v.isBike ? staatTekst(fietsStaat(v, len, wid)) : '';
   return [faseTekst(fase) + (zones.length ? ` (deuken ${join(zones)})` : ''), los.length ? `Los: ${join(los)}` : '', fiets ? `Fiets: ${fiets}` : ''].filter(Boolean).join('. ');
 }
+
+// #1018: een fiets of scooter die een flinke klap krijgt zonder bestuurder valt om en ligt op de grond tot iemand
+// hem rechtzet (E); een beschadigde fiets rijdt merkbaar trager. Pure regels, vehicle.js en player.js lezen ze.
+export const OMVAL_SCHADE = 6; // klapsterkte (voor de schaal) waarbij een stilstaande tweewieler omvalt
+export const SCHADE_VANAF = 90; // gezondheid waaronder de snelheid daalt
+export const SCHADE_MIN_FACTOR = 0.45; // topsnelheid bij gezondheid 0 (dan is hij ook uitgeschakeld)
+export const OMVAL_ROL = 1.35; // radialen: de fiets ligt op zijn zij
+
+export const isTweewieler = (v) => !!v && (!!v.isBike || !!v.isScooter);
+
+// Factor op de topsnelheid: 1 bij een heel voertuig, lineair omlaag tot SCHADE_MIN_FACTOR bij gezondheid 0.
+export function schadeSnelheidFactor(v) {
+  if (!isTweewieler(v)) return 1;
+  const h = Number.isFinite(v.health) ? Math.max(0, Math.min(100, v.health)) : 100;
+  if (h >= SCHADE_VANAF) return 1;
+  return SCHADE_MIN_FACTOR + (1 - SCHADE_MIN_FACTOR) * (h / SCHADE_VANAF);
+}
+
+// Valt deze tweewieler om door een klap van sterkte dmg? Alleen zonder bestuurder (de rijder houdt hem rechtop).
+export function valtOm(v, dmg) {
+  return isTweewieler(v) && !v.fallen && !v.wrecked && !v.driver && dmg >= OMVAL_SCHADE;
+}
+
+export function valOm(v) { v.fallen = true; v.speed = 0; v.roll = OMVAL_ROL; }
+export function zetRecht(v) { v.fallen = false; v.roll = 0; }
