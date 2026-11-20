@@ -642,7 +642,7 @@ export function mountLobby(root, hooks, opts = {}) {
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     stopVerbindTik();
     autoTries = AUTO_MAX; // na sluiten geen pogingen meer
-    if (handle && handle.cancel) handle.cancel();
+    annuleerWachtend(); // #983: het paneel wordt opnieuw getekend terwijl de sessie doorloopt; een verbonden speler (bij een volle sessie is de laatste handle er een) blijft verbonden
     handle = null; wacht = false;
     stopAankondiging(); stopLuisteren();
     if (hub && hub.opOpenbaar) hub.opOpenbaar = null; // dit scherm plaatst niets meer; de sessie houdt wel zijn naam en id (#450)

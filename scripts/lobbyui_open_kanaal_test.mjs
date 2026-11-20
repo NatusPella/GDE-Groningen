@@ -54,5 +54,23 @@ assert.equal(eerste.closed, false, 'de verbonden gast blijft verbonden terwijl h
 assert.equal(eerste.ch.readyState, 'open');
 assert.equal(pcs[1].closed, false, 'het nieuwe aanbod wacht');
 lobby.close();
+
+// een volle sessie: de laatste handle is de verbonden gast; het paneel opnieuw tekenen (lobby.close()) laat hem verbonden
+{
+  const n0 = pcs.length, s0 = sockets.length;
+  const vol = { startHost: () => ({ roster: { max: 2, spelers: [] }, vrijePlekken: false }), addGuest() {}, startClient() {}, setMax: (m) => m };
+  const root2 = fakeRoot(); const l2 = mountLobby(root2, vol);
+  root2.click('kies-host'); root2.click('route-kamer'); root2.click('akkoord');
+  await until(() => l2.state().code, 5000, 'tweede gastheer heeft een kamercode');
+  const room2 = parseRoom(l2.state().code).room;
+  await until(() => pcs.length === n0 + 1, 5000, 'aanbod van de volle sessie');
+  const m = sockets.slice(s0).flatMap((x) => x.sent.map((t) => { try { return JSON.parse(t); } catch (e) { return null; } })).find((q) => q && q.offers && q.offers.length);
+  const blob2 = await encryptBlob(room2, JSON.stringify({ type: 'answer', sdp: 'v=0 antwoord' }));
+  for (const x of sockets.slice(s0)) if (x.onmessage) x.onmessage({ data: JSON.stringify({ action: 'announce', info_hash: m.info_hash, offer_id: m.offers[0].offer_id, answer: { type: 'answer', sdp: blob2 } }) });
+  await until(() => pcs[n0].ch.readyState === 'open', 3000, 'de gast van de volle sessie is open');
+  l2.close();
+  await tick(50);
+  assert.equal(pcs[n0].closed, false, 'het paneel sluiten of opnieuw tekenen sluit een verbonden gast niet');
+}
 console.log('lobbyui_open_kanaal_test: ok');
 process.exit(0);
