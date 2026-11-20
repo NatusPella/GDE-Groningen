@@ -84,6 +84,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Laden zet je terug waar je opsloeg: sloeg je ergens in de provincie op, dan sta je na het laden daar weer en niet meer buiten je flat. Sloeg je bij je flat op, dan begin je nog steeds in de flat (#984).
 - Hooibalen op de erven van boerderijen: je klimt er nu ook op (en staat erop zonder eraf geduwd te worden), net als op de balen in de velden (#959).
 - Bourtange: vijf waterstukken van het vaarnet die op droge wal en weg lagen (bij de vesting) zijn weggehaald, zodat de wal daar niet meer onder water staat (#953).
+- **Politie op de minikaart is uitgelegd:** zodra er politie in beeld is, staat linksboven op de minikaart een label met een schild en het aantal eenheden, en een ster met je gezochtniveau (bijvoorbeeld 3/5). Houd de aanwijzer erop voor de uitleg. De tekst is minstens 13 px.
 
 ## [0.64.0] - 2026-11-20
 
