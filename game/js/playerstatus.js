@@ -113,3 +113,23 @@ export const LATER_ACTIES = [
   { id: 'dempen', icoon: 'geluid_uit', label: 'Dempen', uitleg: 'Dempen komt later.' },
   { id: 'blokkeren', icoon: 'stop', label: 'Blokkeren', uitleg: 'Blokkeren komt later.' },
 ];
+
+// ---- de hint "Spelers · 2" in de HUD: geen knop, want in het spel is de muis vergrendeld en een klik doet niets
+// De lijst opent met Tab (controller: de toets die controls.js daarvoor kent). Eerst even volledig zichtbaar na het aansluiten
+// en bij elke verandering in het aantal spelers, daarna een minimale indicator (pictogram en aantal).
+export const HINT = { volMs: 8000, label: 'Spelers' };
+export const hintTekst = (aantal) => {
+  const n = Number.isFinite(aantal) ? Math.max(0, Math.round(aantal)) : 0;
+  return n > 0 ? `${HINT.label} · ${n}` : HINT.label;
+};
+// vorige: { aantal, sinds } of null; geeft de nieuwe waarde terug (sinds springt mee als het aantal verandert)
+export const volgHint = (vorige, aantal, nu) => (vorige && vorige.aantal === aantal ? vorige : { aantal, sinds: nu });
+// ctx: { aantal, sinds, nu, vergrendeld (de muis is vastgezet), open (de lijst staat open) }
+// stand: 'weg' (geen sessie) | 'vol' (chip met Tab-icoon en tekst) | 'dim' (alleen pictogram en aantal)
+// klikbaar: alleen als de muis vrij is (menu, kaart, aanraken) of de lijst open staat; anders is het een hint en geen knop
+export function hintStand({ aantal = 0, sinds = 0, nu = 0, vergrendeld = true, open = false } = {}) {
+  if (!(aantal > 0)) return { stand: 'weg', klikbaar: false };
+  const klikbaar = !vergrendeld || !!open;
+  const vers = nu - sinds < HINT.volMs;
+  return { stand: vers || klikbaar ? 'vol' : 'dim', klikbaar };
+}

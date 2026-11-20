@@ -1,6 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { icoon } from './icons.js';
-import { statusVan, tabRegel, versieRegel, LATER_ACTIES } from './playerstatus.js';
+import { statusVan, tabRegel, versieRegel, LATER_ACTIES, hintStand, hintTekst, volgHint } from './playerstatus.js';
 import { gateOn } from './coopgate.js';
 import { VERSION } from './version.js';
 import { keyTextHtml } from './keycap.js';
@@ -13,7 +13,7 @@ import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from 
 import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur, SPELERS_KNOP, spelersKnopTekst } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur, SPELERS_KNOP } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
 import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
@@ -84,10 +84,17 @@ const CSS = `
 .cs-naam .cs-groep.cs-leidt { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
 .cs-acties { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 /* #636: dezelfde lijst ook op aanraking (44 px-knop), zonder muis of Tab */
-.cs-open { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: grid; place-items: center; min-width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
-.cs-open[aria-expanded="true"] { background: var(--ds-zeef-primair); }
-.cs-open:hover { background: var(--ds-c-sel-vlak); }
-.cs-open:focus-visible, .pm-spelers :is(button, input):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+/* De hint (geen knop): kleine chip met het Tab-toetsicoon en "Spelers · n"; na een tijd alleen pictogram en aantal. Klikbaar (cs-klik) alleen als de muis vrij is. */
+.cs-hint { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: inline-flex; align-items: center; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); min-height: var(--ds-s-6); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); line-height: 1; opacity: .92; pointer-events: none; cursor: default; transition: opacity .6s ease; }
+/* boven de minimap links: rechtsonder staan de snelheidsmeter, de voertuignaam en de toetshints (uitstappen, E, M) */
+.cs-hint.cs-in-hud { position: absolute; right: auto; left: var(--hud-edge, 14px); bottom: calc(var(--mm-bottom, 14px) + var(--mm-size, 160px) + 8px); }
+.cs-hint.cs-dim { opacity: .55; padding: 0 var(--ds-s-2); }
+.cs-hint .ic { width: 1.1em; height: 1.1em; }
+.cs-hint-toets { display: inline-flex; }
+.cs-hint.cs-klik { pointer-events: auto; cursor: pointer; min-height: var(--ds-doel-aanraken); min-width: var(--ds-doel-aanraken); justify-content: center; padding: 0 var(--ds-s-4); opacity: 1; }
+.cs-hint.cs-klik[aria-expanded="true"] { background: var(--ds-zeef-primair); }
+.cs-hint.cs-klik:hover { background: var(--ds-c-sel-vlak); }
+.cs-hint:focus-visible, .pm-spelers :is(button, input):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
 .cs-eruit, .cs-naar, .pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .cs-kleuren button { display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); justify-self: start; margin: 0; min-height: var(--ds-doel-aanraken); padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
 .cs-naar:hover, .cs-naar:focus-visible, .pm-spelers .cs-roep button:hover { background: var(--ds-c-sel-vlak); }
 .cs-eruit { border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
@@ -183,25 +190,39 @@ function zorgVoorStijl() {
 }
 
 // ---- de lijst bij Tab (elke frame vanuit main.js via coophud.js) en op aanraking (#636)
-let overlay = null, laatste = '', knop = null, vast = false;
+let overlay = null, laatste = '', knop = null, vast = false, hintVolg = null, hintKey = '', viaKlik = false;
+// De hint rechtsonder (geen knop): in het spel is de muis vergrendeld en doet een klik niets, de lijst opent met Tab (of de
+// controllerknop). Is de muis vrij (menu, kaart, aanraken) of staat de lijst open, dan is hij wel klikbaar (playerstatus.js hintStand).
 function zorgVoorKnop(world, zichtbaar, aantal = 0) {
   if (typeof document === 'undefined') return;
-  if (!zichtbaar) { if (knop) knop.style.display = 'none'; return; }
+  if (!zichtbaar) { if (knop) knop.style.display = 'none'; hintVolg = null; return; }
   zorgVoorStijl();
+  const nu = Date.now();
+  hintVolg = volgHint(hintVolg, aantal, nu);
+  const h = hintStand({ aantal, sinds: hintVolg.sinds, nu, vergrendeld: !!document.pointerLockElement, open: vast });
   if (!knop) {
-    knop = document.createElement('button');
-    knop.type = 'button'; knop.id = 'coop-spelers-knop'; knop.className = 'cs-open';
-    knop.setAttribute('aria-controls', 'coop-spelers');
-    knop.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); vast = !vast; updateSpelersOverlay(world); });
-    document.body.appendChild(knop);
+    knop = document.createElement('div');
+    knop.id = 'coop-spelers-knop'; knop.className = 'cs-hint';
+    knop.addEventListener('click', (e) => { if (!knop.classList.contains('cs-klik')) return; e.preventDefault(); e.stopPropagation(); vast = !vast; viaKlik = vast; updateSpelersOverlay(world); });
+    knop.addEventListener('keydown', (e) => { if (knop.classList.contains('cs-klik') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); knop.click(); } });
+    const hud = document.getElementById('hud');
+    (hud || document.body).appendChild(knop);
+    if (hud) knop.classList.add('cs-in-hud');
   }
-  // #971: een grijze knop met alleen "Spelers" zei niet wat hij deed. Nu staat er
-  // "Spelerslijst" (met het aantal) en leggen title en aria-label de knop uit.
-  knop.textContent = spelersKnopTekst(aantal);
-  knop.title = SPELERS_KNOP.title;
-  knop.setAttribute('aria-label', `${SPELERS_KNOP.title}${aantal ? `, ${aantal} spelers` : ''}`);
+  const key = [h.stand, h.klikbaar, aantal, vast].join('|');
+  if (key !== hintKey) { // alleen bij een verandering opnieuw tekenen: de HUD tikt elke frame
+    hintKey = key;
+    knop.classList.toggle('cs-dim', h.stand === 'dim');
+    knop.classList.toggle('cs-klik', h.klikbaar);
+    knop.innerHTML = h.stand === 'dim'
+      ? `${icoon('spelers', { maat: 's' })}<span class="cs-hint-n">${aantal}</span>`
+      : `<span class="cs-hint-toets">${keyTextHtml('{TAB}')}</span><span class="cs-hint-t">${esc(hintTekst(aantal))}</span>`;
+    if (h.klikbaar) { knop.setAttribute('role', 'button'); knop.tabIndex = 0; knop.setAttribute('aria-controls', 'coop-spelers'); knop.setAttribute('aria-expanded', vast ? 'true' : 'false'); }
+    else { knop.setAttribute('role', 'status'); knop.removeAttribute('tabindex'); knop.removeAttribute('aria-controls'); knop.removeAttribute('aria-expanded'); }
+    knop.title = SPELERS_KNOP.title;
+    knop.setAttribute('aria-label', `${SPELERS_KNOP.title}${aantal ? `, ${aantal} spelers` : ''}`);
+  }
   knop.style.display = '';
-  knop.setAttribute('aria-expanded', vast ? 'true' : 'false');
 }
 export function updateSpelersOverlay(world) {
   if (typeof document === 'undefined') return;
@@ -218,6 +239,7 @@ export function updateSpelersOverlay(world) {
     document.body.appendChild(overlay);
   }
   overlay.style.display = '';
+  if (viaKlik) { viaKlik = false; overlay.tabIndex = -1; try { overlay.focus({ preventScroll: true }); } catch (e) { /* geen focus */ } } // geopend met de muis: de focus gaat mee naar de lijst
   const ctx = { wachtkamer: gateOn() };
   const key = ctx.wachtkamer + rijen.map((r) => `${r.slot}|${r.doet}|${r.verbinding}|${r.ms}|${r.afstandTekst}|${r.richting && r.richting.woord}|${r.naam}|${r.groep}|${r.passief}`).join(';');
   if (key === laatste) return;

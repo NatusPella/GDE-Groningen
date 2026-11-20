@@ -36,7 +36,7 @@ export const KEY_ACTIONS = [
   ['r', 'Lak of garagemenu', 'actie'],
   ['c', 'Eerste persoon aan of uit (in de browser G); duif: koeren', 'actie'],
   ['x', 'Duif: weer mens worden; trekker: aftakas aan of uit', 'actie'],
-  ['tab', 'Volgend doelwit tijdens het richten', 'wapens'],
+  ['tab', 'Volgend doelwit tijdens het richten; in een sessie: de spelerslijst (controller: rechterstick indrukken)', 'wapens'],
   ['1', 'Slaan', 'wapens'],
   ['2', 'Pistool', 'wapens'],
   ['3', 'Geweer', 'wapens'],

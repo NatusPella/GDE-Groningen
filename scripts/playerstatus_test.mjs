@@ -1,7 +1,8 @@
 // Het spelersmenu (docs/SPELERSMENU-UX-21-11.md): status per speler, Spel starten, foutmeldingen, de Tab-regel.
 //   node scripts/playerstatus_test.mjs
 import assert from 'node:assert/strict';
-import { statusVan, startKnop, magStarten, foutUitleg, tabRegel, richtingVan, versieRegel, LATER_ACTIES, START_LANG_NA_S } from '../game/js/playerstatus.js';
+import fs from 'node:fs';
+import { statusVan, startKnop, magStarten, foutUitleg, tabRegel, richtingVan, versieRegel, LATER_ACTIES, START_LANG_NA_S, hintTekst, hintStand, volgHint, HINT } from '../game/js/playerstatus.js';
 import { REASON_TEXT } from '../game/js/net/protocol.js';
 
 let n = 0;
@@ -109,6 +110,45 @@ t('richting: y wijst naar het zuiden; onbekende plek geeft null', () => {
 t('later: dempen en blokkeren staan klaar met uitleg', () => {
   assert.deepEqual(LATER_ACTIES.map((a) => a.id), ['dempen', 'blokkeren']);
   for (const a of LATER_ACTIES) assert.match(a.uitleg, /later/);
+});
+
+t('hint: Spelers · n, alleen met een sessie', () => {
+  assert.equal(hintTekst(2), 'Spelers · 2');
+  assert.equal(hintTekst(0), 'Spelers');
+  assert.equal(hintTekst(NaN), 'Spelers');
+  assert.equal(hintStand({ aantal: 0 }).stand, 'weg');
+});
+
+t('hint: eerst volledig, daarna een minimale indicator, en weer vol bij een verandering', () => {
+  const nu0 = 1000;
+  let v = volgHint(null, 2, nu0);
+  assert.equal(hintStand({ aantal: 2, sinds: v.sinds, nu: nu0 + 1000 }).stand, 'vol', 'net aangesloten');
+  assert.equal(hintStand({ aantal: 2, sinds: v.sinds, nu: nu0 + HINT.volMs + 1 }).stand, 'dim', 'daarna gedimd');
+  assert.equal(volgHint(v, 2, nu0 + 50000), v, 'zelfde aantal: de teller loopt door');
+  v = volgHint(v, 3, nu0 + 60000); // iemand sloot aan
+  assert.equal(hintStand({ aantal: 3, sinds: v.sinds, nu: nu0 + 61000 }).stand, 'vol');
+  v = volgHint(v, 2, nu0 + 90000); // iemand viel weg
+  assert.equal(hintStand({ aantal: 2, sinds: v.sinds, nu: nu0 + 91000 }).stand, 'vol');
+});
+
+t('hint: klikbaar alleen als de muis vrij is of de lijst open staat', () => {
+  assert.equal(hintStand({ aantal: 2, vergrendeld: true }).klikbaar, false, 'pointer lock: een hint, geen knop');
+  assert.equal(hintStand({ aantal: 2, vergrendeld: false }).klikbaar, true);
+  assert.equal(hintStand({ aantal: 2, vergrendeld: true, open: true }).klikbaar, true);
+  assert.equal(hintStand({ aantal: 2, sinds: 0, nu: 9e9, vergrendeld: false }).stand, 'vol', 'klikbaar is nooit gedimd');
+});
+
+t('hint: weergave is geen knop, staat links boven de minimap en heeft een controllerroute', () => {
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(ui, /createElement\('button'\)[^;]*coop-spelers-knop/);
+  assert.match(ui, /\.cs-hint \{[^}]*pointer-events: none/, 'niet klikbaar zolang de muis vergrendeld is');
+  const inHud = /\.cs-hint\.cs-in-hud \{([^}]*)\}/.exec(ui)[1];
+  assert.match(inHud, /left: var\(--hud-edge/);
+  assert.doesNotMatch(inHud, /right: var\(--hud-edge/, 'niet rechtsonder bij de snelheidsmeter, de voertuignaam en de toetshints');
+  assert.match(inHud, /--mm-size/, 'boven de minimap, niet erover');
+  assert.match(ui, /keyTextHtml\('\{TAB\}'\)/, 'het Tab-toetsicoon (keycap.js schakelt naar de controllerknop)');
+  const controls = fs.readFileSync(new URL('../game/js/controls.js', import.meta.url), 'utf8');
+  assert.match(controls, /\['tab', '[^']*spelerslijst/, 'de Besturing-lijst noemt de spelerslijst');
 });
 
 console.log(`\n${n} tests, alles groen`);

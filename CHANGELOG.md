@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: de grijze knop Spelerslijst rechtsonder is een hint geworden: een kleine chip met het Tab-toetsicoon en Spelers · n, boven de minimap links. Hij staat even volledig in beeld na het aansluiten en bij elke verandering in het aantal spelers, en dimt daarna tot pictogram en aantal. Alleen met de muis vrij (menu, aanraken) of een open lijst is hij klikbaar. De Besturing-lijst noemt de spelerslijst (controller: rechterstick indrukken). Lokaal per speler.
+
 - Samen spelen: het spelersmenu is rustiger en duidelijker. Elke speler heeft een status in woorden met een pictogram: wie het spel opende, verbinding en ping, in de wachtkamer, passief of actief, en bovenaan de versie.
 - Samen spelen: Spel starten is pas actief als er minstens twee spelers zijn en niemand is weggevallen, en zegt waarom het uit staat. Na een klik staat er "Spel wordt gestart…" en doet een tweede klik niets.
 - Samen spelen: de kamercode staat groot in beeld met een knop die meldt "Gekopieerd"; de uitleg staat in een vouw en de gele hoofdknop heeft een toetshint (Enter).
