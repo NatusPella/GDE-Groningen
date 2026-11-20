@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- Beeldreeks van een geregisseerde scène zonder wereld (#955): speelt scene.sample(t) af op een kaal veld met de echte figuren,
+     de echte kat en de camera van de scène; losse voorwerpen zijn blokken. Alleen voor QA van gebaren en camera, geen wereld,
+     geen binnensets, geen gebouwen.
+     Gebruik (serveer een gestagede game-map met scripts/qa/serve_static.mjs en kopieer dit bestand erin):
+       /cutscene_frames.html?id=M27.2&times=2,5,8,11&cols=2&save=m27.png&w=1600&h=900 -->
+<meta charset="utf-8">
+<title>cutscene frames</title>
+<style>html,body{margin:0;background:#222;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"/vendor/npm/three@0.160.0/build/three.module.js","three/addons/":"/vendor/npm/three@0.160.0/examples/jsm/"}}</script>
+<canvas id="c"></canvas>
+<script type="module">
+import * as THREE from '/vendor/npm/three@0.160.0/build/three.module.js';
+import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from '/js/models3d_people.js';
+import { buildWildlifeMesh3D } from '/js/wildlife.js';
+import { animateActor, beginSceneActors } from '/js/actoranim.js';
+import { applyClipsHuman, applyClipsCat, resetCat } from '/js/poseclips.js';
+import { buildCatalog } from '/js/cutpreview.js';
+import { propFoot } from '/js/cutscenemodels.js';
+const q = new URLSearchParams(location.search);
+const id = q.get('id') || 'M27.2';
+const times = (q.get('times') || '2,5,8,11').split(',').map(Number);
+const W = parseInt(q.get('w') || '1600', 10), H = parseInt(q.get('h') || '900', 10);
+const cols = parseInt(q.get('cols') || '2', 10), rows = Math.ceil(times.length / cols);
+const script = await (await fetch('/storydata/script.json')).json();
+const src = await (await fetch('/js/missionstory.js')).text();
+const cat = buildCatalog({ script, npcSource: src });
+const e = cat.find((x) => x.id === id);
+if (!e || !e.scene) { document.title = 'geen scene ' + id; throw new Error('geen scene ' + id); }
+const ANCHOR = { x: 0, y: 0, facing: 0, z: 0 };
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+r.setSize(W, H, false);
+r.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9db7cc);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x667744, 1.5));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(-4, 8, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: 0x6b8a55 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+// the figures and props of the scene
+const first = e.scene.sample(0, ANCHOR, null);
+const actors = {}, props = {};
+beginSceneActors();
+for (const [aid, a] of Object.entries(first.actors)) {
+  const look = a.look === 'tammo' ? TAMMO_APPEARANCE : a.look === 'anita' ? ANITA_APPEARANCE : a.look;
+  const m = buildPersonMesh(look.shirt, look.skin, look);
+  scene.add(m); actors[aid] = m;
+}
+for (const [pid, p] of Object.entries(first.props)) {
+  let m;
+  if (p.kind === 'kat') m = buildWildlifeMesh3D({ kind: 'cat', variant: 0, bobSeed: 0 });
+  else { const f = propFoot(p.kind) || [0.5, 0.5, 0.5]; m = new THREE.Mesh(new THREE.BoxGeometry(f[0], f[2], f[1]), new THREE.MeshLambertMaterial({ color: 0xb98d56 })); m.geometry.translate(0, f[2] / 2, 0); }
+  scene.add(m); props[pid] = m;
+}
+const cam = new THREE.PerspectiveCamera(46, (W / cols) / (H / rows), 0.05, 400);
+const label = [];
+times.forEach((t, k) => {
+  const s = e.scene.sample(t, ANCHOR, null);
+  // warm the idle layer so the base pose is settled, then the pose clips on top (as cutscenehost.js does)
+  for (const [aid, m] of Object.entries(actors)) {
+    const st = s.actors[aid];
+    m.visible = st.visible !== false;
+    m.position.set(st.x, st.h, st.y); m.rotation.set(0, -st.a, 0);
+    for (let i = 0; i < 6; i++) animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt: 0.05, rol: aid });
+    if (st.clips && st.clips.length) applyClipsHuman(m.userData, st.clips, { upper: !!st.sit || st.speed > 0.05 || !!st.carrying });
+  }
+  for (const [pid, m] of Object.entries(props)) {
+    const st = s.props[pid];
+    m.visible = st.visible; m.position.set(st.x, st.h, st.y); m.rotation.y = -st.a;
+    if (m.userData.tail && m.userData.legs && m.userData.bones) {
+      resetCat(m.userData);
+      applyClipsCat(m.userData, st.clips && st.clips.length ? st.clips : [{ name: 'kat-staan', lt: t, dur: 1e9, fade: 1 }]);
+    }
+  }
+  const c = s.camera;
+  cam.fov = c.fov; cam.aspect = (W / cols) / (H / rows); cam.updateProjectionMatrix();
+  cam.position.set(c.position.x, c.position.z, c.position.y);
+  cam.lookAt(c.lookAt.x, c.lookAt.z, c.lookAt.y);
+  const col = k % cols, row = Math.floor(k / cols);
+  const x = col * (W / cols), y = (rows - 1 - row) * (H / rows);
+  r.setViewport(x, y, W / cols, H / rows); r.setScissor(x, y, W / cols, H / rows);
+  r.render(scene, cam);
+  const line = e.lines.find((l) => t >= l.at && t < l.at + l.dur);
+  label.push(`t=${t}s shot ${c.shotIndex}${line ? ' ' + line.speaker + ': ' + line.text.slice(0, 48) : ''}${Object.entries(s.actors).filter(([, a]) => a.clips && a.clips.length).map(([n, a]) => ` [${n}:${a.clips[a.clips.length - 1].name}]`).join('')}${Object.entries(s.props).filter(([, a]) => a.clips && a.clips.length).map(([n, a]) => ` [${n}:${a.clips[a.clips.length - 1].name}]`).join('')}`);
+});
+const out = document.createElement('canvas'); out.width = W; out.height = H;
+const g = out.getContext('2d'); g.drawImage(r.domElement, 0, 0);
+g.font = '15px monospace';
+label.forEach((t, k) => { const col = k % cols, row = Math.floor(k / cols); g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(col * (W / cols), row * (H / rows), W / cols, 22); g.fillStyle = '#fff'; g.fillText(t.slice(0, Math.floor(W / cols / 8.6)), col * (W / cols) + 6, row * (H / rows) + 16); });
+document.body.replaceChildren(out); out.style.cssText = 'width:100vw;height:auto';
+if (q.get('save')) await fetch('/save?name=' + encodeURIComponent(q.get('save')), { method: 'POST', body: out.toDataURL('image/png') });
+document.title = 'klaar';
+</script>
