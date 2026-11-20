@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- **Samen spelen: een bijbaan van een medespeler stoort jouw scherm niet meer.** Rijdt, vaart of bezorgt een medespeler in jouw spel, dan blijven jouw lichte strook onderin en je uitlegvlag ongemoeid.
+- **Samen spelen: geen spookvelden meer na afloop.** Zodra een sessie voorbij is, verdwijnen de velden van de ander uit jouw wereld.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
