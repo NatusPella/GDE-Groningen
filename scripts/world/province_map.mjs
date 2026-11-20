@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { MAP_PALETTE, toRgba } from '../../game/js/mapstyle.js';
+import { KAART_PALET_VERSIE, piramideNieuw } from '../../game/js/kaartkleuren.js';
 
 export const TILE_PX = 512;
 export const FINE_M = 20; // metres a pixel at the finest level (z3)
@@ -18,7 +19,7 @@ export const LEVELS = 4;
 // cycleway is the map's own colour (it was a darker red here by mistake)
 const P = MAP_PALETTE;
 export const STYLE = {
-  green: toRgba(P.park, 230), forest: toRgba(P.forest, 240), water: toRgba(P.water), waterEdge: toRgba(P.waterEdge), building: [160, 156, 146, 170],
+  green: toRgba(P.park, 230), forest: toRgba(P.forest, 240), water: toRgba(P.water), waterEdge: toRgba(P.waterEdge), building: [...piramideNieuw().building, 170],
   minor: toRgba(P.minor, 200), normal: toRgba(P.road), major: toRgba(P.major), cycle: toRgba(P.cycle, 170), rail: toRgba(P.rail),
 };
 const FOREST = new Set(['forest', 'wood']);
@@ -196,5 +197,5 @@ export function writePyramid(R, dir) {
     levels.unshift(L);
     if (z > 0) cur = halve(cur);
   }
-  return { meta: { x0: R.x0, y0: R.y0, tile: TILE_PX, dir: 'provmap/', levels }, bytes };
+  return { meta: { x0: R.x0, y0: R.y0, tile: TILE_PX, dir: 'provmap/', palet: KAART_PALET_VERSIE, levels }, bytes };
 }

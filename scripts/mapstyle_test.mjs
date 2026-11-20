@@ -4,6 +4,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, baseDimOverlay, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
 import * as mapicons from '../game/js/mapicons.js';
+import { markerKleuren, dsKleur } from '../game/js/kaartkleuren.js';
 import * as mapstyle from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
@@ -19,7 +20,7 @@ ok(!layersAtZoom(2.7).buildings && layersAtZoom(ZOOM.building).buildings, 'build
 ok(roadWidthPx('normal', 1, 8, 0.5) === 0.9 && roadWidthPx('normal', 3, 8, 0.5) === 1.4, 'normal road width by zoom');
 ok(roadWidthPx('major', 8, 12, 1) > 2.4, 'real width up close');
 
-ok(seaStyle().fill === MAP_PALETTE.water && seaStyle(MINI_PALETTE).edge === '#5aa0c0', 'sea per palette');
+ok(seaStyle().fill === MAP_PALETTE.water && seaStyle(MINI_PALETTE).edge === MINI_PALETTE.waterEdge, 'sea per palette');
 ok(toRgba('#2d6a86').join() === '45,106,134,255' && toRgba('rgba(160, 156, 146, 0.62)')[3] === 158, 'toRgba');
 
 // day and night
@@ -88,9 +89,10 @@ const FILL_WAS = {
   zorg: '#ef4444', politiebureau: '#3b82f6', garage: '#f59e0b', station: '#8b5cf6', job: '#14b8a6',
   shop: '#ec4899', fun: '#3fae49', horeca: '#f97316', ommeland: '#38bdf8', flitspaal: '#facc15', tip: '#d6a05a', other: '#f5f0e6',
 };
-ok(JSON.stringify(ICON_RIM) === JSON.stringify(RIM_WAS) && JSON.stringify(ICON_FILL) === JSON.stringify(FILL_WAS) && ICON_GLYPH_LIGHT === '#fff8ea', 'icon rim and fill colours unchanged');
+// 21-11: the marker colours are the five roles of the screen-print palette (kaartkleuren.js), no longer the old per-category hexes
+ok(Object.keys(RIM_WAS).every((c) => c in ICON_RIM) && Object.keys(FILL_WAS).every((c) => c in ICON_FILL) && JSON.stringify(ICON_FILL) === JSON.stringify(markerKleuren().vul) && ICON_GLYPH_LIGHT === dsKleur('creme'), 'icon rim and fill colours are the marker roles');
 ok(mapicons.FLAT_FILL === ICON_FILL && mapicons.HALO_DARK === INK.dark && mapicons.HALO_LIGHT === INK.cream && mapicons.GLYPH_LIGHT === ICON_GLYPH_LIGHT, 'mapicons reads the table');
-ok(mapicons.mapRimColor('hospital') === '#ff5a5a' && mapicons.mapRimColor('player') === 'rgba(240, 237, 228, 0.92)', 'rim colour per kind');
+ok(mapicons.mapRimColor('hospital') === INK.cream && mapicons.mapRimColor('player') === 'rgba(240, 237, 228, 0.92)', 'rim colour per kind');
 
 // the zoom rule per icon category: from the table, one entry per category mapicons knows
 const MIN_WAS = { player: 0, partner: 0, goal: 0, mission: 0, police: 0, gevaar: 0, rival: 0, halte: 0, subdoel: 0, home: 0, own: 0.6, station: 0, zorg: 0.9, politiebureau: 0.9, garage: 1.1, job: 1.1, fun: 1.6, shop: 2, ommeland: 0.34, companion: 1.6, tip: 4, horeca: 6, flitspaal: 4, other: 2 };
