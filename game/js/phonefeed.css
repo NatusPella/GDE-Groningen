@@ -56,8 +56,8 @@
 #hud .pf-more { min-height: var(--ds-s-5); padding: 0 var(--ds-s-2); font-size: var(--ds-t-kaart-hulp); }
 #hud .pf-more[hidden] { display: none; }
 #hud .pf-time { margin-left: auto; font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-kaart-hulp); font-variant-numeric: tabular-nums; }
-#hud .pf-title { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-titel); line-height: var(--ds-lh-kaart-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; } /* #985: een lang woord breekt, een lange kop houdt vier regels */
-#hud .pf-body { font-size: var(--ds-t-kaart-body); line-height: var(--ds-lh-kaart-tekst); }
+#hud .pf-title { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-titel); line-height: var(--ds-lh-kaart-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; } /* #985: een lang woord breekt, een lange kop houdt zes regels (de volle tekst staat in de telefoon; #1012) */
+#hud .pf-body { font-size: var(--ds-t-kaart-body); line-height: var(--ds-lh-kaart-tekst); overflow-wrap: anywhere; min-width: 0; } /* #1012: een lang woord breekt in plaats van de kaart te rekken */
 
 /* calls and livestreams */
 #hud .pf-callcard { --pf: var(--ds-c-ink-bord); min-height: 132px; padding: var(--ds-s-3) var(--ds-s-4); }
