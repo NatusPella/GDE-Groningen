@@ -88,6 +88,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Fatbikes ontwijken: de routelijn en de marker wijzen nu eerst naar de Ebbingebrug en dan naar Oma Trijntje, dus de route die het spel voorstelt loopt door de fatbikes in plaats van er omheen.
 - Plaatsnaamborden en wegwijzers zijn niet meer onverwoestbaar: vanaf ongeveer 13 km/u rijd je ze omver (de paal klapt om met een metalen tik, kleine schade die met de snelheid meegroeit); langzamer stop je er gewoon tegen. Een omgevallen bord is ook omver bij je medespelers (bestaande kapotmelding) en komt na een tijd en afstand terug, zoals een kapotte bank. Ook een omgereden bank, prullenbak of fietsenrek verdwijnt nu uit het beeld in plaats van als spookobject te blijven staan.
 - Pauzemenu: de groepskoppen in de zijbalk (Doen, Bezit, Voortgang, Systeem) tonen geen aantallen meer; alleen een melding laat nog een badge zien.
+- De kaart en de minikaart staan nu ook met het land in de nieuwe kleuren: glasgroen land, bordgroen voor parken en bos, een rustig blauw voor water, crème wegen en papieren gebouwen. De markers (diensten, winkels, politie, vervoer) gebruiken vijf kleurrollen met een crème rand; geel blijft voor je doel en je route. De oude kaartplaat wordt bij het laden herkleurd, dus er is geen nieuwe wereld nodig.
+- Je kunt Zo werkt de kaart altijd sluiten: met Begrepen, Enter, Escape (of B op de controller) of door ernaast te klikken, en hij komt niet terug na heropenen.
 
 ## [0.64.0] - 2026-11-20
 

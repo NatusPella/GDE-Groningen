@@ -11,7 +11,7 @@ import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
-import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountMapView, kaartUitlegSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
@@ -1527,6 +1527,8 @@ function runFind(i) {
 function goBack() {
   // het zoekvenster (21-11) gaat voor alles met Escape dicht
   if (findOpen()) { closeFind(); return; }
+  // de eenmalige uitleg op de kaart gaat met Escape (en B) eerst weg; de kaart blijft open
+  if (tab === 'map' && kaartUitlegSluiten()) return;
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.

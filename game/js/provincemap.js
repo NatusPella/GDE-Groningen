@@ -3,9 +3,11 @@
 // loaded tile by tile as the view needs it. Where a level's image is not in
 // yet, a coarser one that is stands in; a load asks the caller to redraw.
 
+import { herkleurRaster, KAART_PALET_VERSIE } from './kaartkleuren.js';
+
 let M = null;
 let base = 'world/';
-const imgs = new Map(); // 'z-tx_ty' -> HTMLImageElement (complete or loading)
+const imgs = new Map(); // 'z-tx_ty' -> HTMLImageElement (loading) or, once in, the image or its recoloured canvas
 const listeners = new Set();
 let queued = false;
 // fn() after images came in (once a frame at most): the map redraws its tiles
@@ -25,6 +27,23 @@ export function setProvinceMap(meta, { root = 'world/' } = {}) {
 }
 export const provinceMapOn = () => !!M;
 
+// A pyramid baked before the screen-print palette (21-11) has no meta.palet: its pixels are recoloured once, when a tile comes in
+// (kaartkleuren.js herkleurRaster), so the world need not be rebuilt. A rebuilt pyramid carries KAART_PALET_VERSIE and is drawn as is.
+export const provinceMapNeedsRecolour = () => !!M && M.palet !== KAART_PALET_VERSIE;
+function recoloured(im) {
+  if (!provinceMapNeedsRecolour() || typeof document === 'undefined') return im;
+  try {
+    const c = document.createElement('canvas');
+    c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(im, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height);
+    herkleurRaster(d.data);
+    g.putImageData(d, 0, 0);
+    return c;
+  } catch (e) { return im; } // no pixel access: the old colours stay rather than no map
+}
+
 // The world box the base map covers, or null.
 export function provinceMapBounds() {
   if (!M) return null;
@@ -43,11 +62,11 @@ export function levelFor(pxPerM) {
 function image(k, key) {
   const id = `${M.levels[k].z}-${key}`;
   let im = imgs.get(id);
-  if (im) return im.complete && im.naturalWidth ? im : null;
+  if (im) return im.tagName === 'CANVAS' || (im.complete && im.naturalWidth) ? im : null;
   if (typeof Image === 'undefined') return null;
   im = new Image();
   im.decoding = 'async';
-  im.onload = loaded;
+  im.onload = () => { imgs.set(id, recoloured(im)); loaded(); };
   im.src = `${base}${M.dir}z${M.levels[k].z}-${key}.png`;
   imgs.set(id, im);
   return null;
@@ -70,7 +89,7 @@ export function drawProvinceBase(ctx, x0, y0, x1, y1, pxPerM) {
         if (only && !only(tx, ty, span)) continue;
         const im = image(k, key);
         if (!im) { missing++; continue; }
-        ctx.drawImage(im, M.x0 + tx * span, M.y0 + ty * span, im.naturalWidth * L.m, im.naturalHeight * L.m);
+        ctx.drawImage(im, M.x0 + tx * span, M.y0 + ty * span, (im.naturalWidth || im.width) * L.m, (im.naturalHeight || im.height) * L.m);
       }
     }
     return missing;
