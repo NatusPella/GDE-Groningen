@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- **Een sloot houdt de auto tegen:** een auto die er te snel overheen reed, kwam er soms zonder rem overheen. De auto wordt nu over het hele stuk dat hij reed, en over zijn hele breedte, getoetst. Een sloot ingaan of oversteken remt hard af (tot kruiptempo, met een plons) en dat geldt voor iedereen gelijk, ook bij Samen spelen. Een brug of weg over de sloot blijft gewoon droog.
+- **Slootranden minder kartelig:** het gat dat een sloot of beek in de grond maakt volgt de oever nu op een meter nauwkeurig in plaats van op 2,5 m (tot 3,3 m breed voor een sloot van 1,5 m, was tot 5 m). Een bestaand gebakken terrein wordt daarvoor opnieuw gebouwd.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
