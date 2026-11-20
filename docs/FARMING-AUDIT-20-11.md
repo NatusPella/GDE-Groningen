@@ -3,7 +3,7 @@
 > Werkdocument bij de feedback van de eigenaar op 20-11: "de light sims zijn nog niet goed genoeg, met name farming is qua UI/UX/HUD/gameplay/map-weergave
 > echt nog helemaal niks". Dit is een momentopname (audit, ontwerp, wat er is gebouwd en wat nog niet). De regels van de boerderij staan in
 > [.specs-fire/standards/mechanica.md](../.specs-fire/standards/mechanica.md) en [BOERDERIJ.md](BOERDERIJ.md); bij verschil wint de spec.
-> Beelden: `desktop/build/farm_voor/` en `desktop/build/farm_na/` (niet in git; opnieuw te maken met `node scripts/qa/boerderij_beeld.mjs --prefix=voor|na`).
+> Beelden: `docs/img/qa/farming-*.jpg` (opnieuw te maken met `node scripts/qa/boerderij_beeld.mjs --prefix=voor|na`).
 
 ## 1. Audit (voor de wijziging, gezien in Electron met een wegwerpprofiel)
 
@@ -69,10 +69,23 @@ meehelpen als bestuurder van een vrije machine (bestond: #434), waarbij zijn klu
 eigen spel op zijn eigen akker (lokale minigame, beloning per speler volgens #429). Valt de host weg, dan verdwijnen de velden bij de gast (leeg stukje of na 4 s); sluit een gast
 later aan, dan krijgt hij ze met het volgende stukje (elke 1,5 s).
 
-## 3. Wat is gebouwd (en hoe het is getest)
+## 3. Wat is gebouwd, en bewijs
 
-Zie de changelog. Pure tests: `farmstatus_test`, `farmfieldguest_test`; bestaande: `boerderij_test`, `boerderijwereld_test`, `boerderijui_*`, `percelen_test`,
-`coopextra_test`, `hudbus_surfaces_test`, `hud_kleuren_test`, `ds_tokens_test`. Beelden (Electron, wegwerpprofiel): zie de stand op het issue.
+Zie de changelog. Beelden (Electron, wegwerpprofiel, 1600x900; script `scripts/qa/boerderij_beeld.mjs`, de trekker wordt direct bestuurd want instappen kan alleen bij een deur, #459):
+
+| Wat | Voor | Na |
+|---|---|---|
+| Paneel Perceel | `docs/img/qa/farming-voor-paneel-perceel.jpg` | `farming-na-paneel-perceel-rijp.jpg` (Nu: Oogsten, de lus, één gele knop) |
+| Grond na het ploegen | `farming-voor-veld-geploegd.jpg` (vlak, alleen kleur) | `farming-na-veld-geploegd.jpg` (voren) |
+| Drie groeistadia | `farming-voor-veld-groeit.jpg` (één bolvorm) | `farming-na-veld-zaailing.jpg`, `farming-na-veld-groeiend.jpg`, `farming-na-veld-rijp.jpg` |
+| Oogstklaar | `farming-voor-veld-rijp.jpg` (niet te zien) | `farming-na-markering-oogstklaar.jpg` (vlag, ruit en gele lichtkolom) |
+| Stoppelveld | bestond niet | `farming-na-veld-stoppel.jpg` |
+| HUD tijdens het werk | bestond niet | `farming-na-hud-tijdens-ploegen.jpg` |
+| Kaart | alleen een pictogram | `farming-na-kaart-oogstklaar.jpg` (geel vlak met O, het woord Oogstklaar en een T voor je machine) |
+
+Pure tests: `farmstatus_test` (11), `farmfieldguest_test` (4), `boerderijwereld_test` (10, o.a. de oogstklaar-melding); bestaande: `boerderij_test`, `boerderijui_*`, `percelen_test`, `coopextra_test`, `hudbus_surfaces_test`, `hud_kleuren_test`, `ds_tokens_test`, `a11y_test`, `import_cycles_test`, `devflags_test`, `text_audit`, `spec_check`, `docs_index_test`.
+
+**Eerlijk over wat niet is gezien of gemeten:** geen mens heeft gespeeld; de fps is niet gemeten (instancing en één geometrie per gewas en stadium, maar geen perfmeting); z-fighting is alleen op de beelden bekeken (polygonOffset op cellen en voren); de opspringende getallen, het geluid, de melding "oogstklaar" en het stoppel per cel achter de maaidorser zijn niet in beeld gezien; Samen spelen is alleen als pure test bewezen (coderen, status en groei bij de gast), niet met twee Electron-instanties; controller en toetsenbord in het paneel zijn niet door een mens geprobeerd (alles is een gewone knop met focus). Camerastand van de veldbeelden is wisselend (de testbank zet de speler neer).
 
 ## 4. Nog niet gedaan
 
