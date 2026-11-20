@@ -3,7 +3,7 @@
 import { getBoerderij } from './boerderijlive.js';
 import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
-import { INK } from './mapstyle.js';
+import { INK, inkA } from './mapstyle.js';
 import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken } from './farmstatus.js';
 import { iconInner } from './icons.js';
 
@@ -101,6 +101,8 @@ export function drawPerceelMapIcon(ctx, kind, s) {
   const stijl = m ? KAART_STIJL[m[1]] : null;
   if (stijl) {   // je veld: een schijf met een schuur (Phosphor) in de kleur van de stand, de rand in het lijnpatroon van de stand en de letter van de stand (20-11)
     const r = 5 * s;
+    ctx.save(); ctx.shadowColor = inkA('dark', 0.6); ctx.shadowBlur = 3 * s; ctx.shadowOffsetY = 0.8 * s;   // witte rand en schaduw: de pin valt op tussen andere pictogrammen
+    ctx.beginPath(); ctx.arc(0, 0, r + 1.3 * s, 0, Math.PI * 2); ctx.fillStyle = INK.white; ctx.fill(); ctx.restore();
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = INK[stijl.vul] || INK.greenLight; ctx.fill();
     ctx.lineWidth = 1.5 * s; ctx.strokeStyle = INK.dark; ctx.setLineDash((stijl.dash || []).map((d) => d * s * 0.45)); ctx.stroke(); ctx.setLineDash([]);
     tekenPhosphor(ctx, 'boerderij', 0, -0.4 * s, 6.6 * s, stijl.vul === 'green' ? INK.cream : INK.dark);

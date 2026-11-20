@@ -167,7 +167,8 @@ try {
     PM.closePauseMenu(); await sleep(500);
     await kaartShot('kaart-rijp');
     await kaartShot('kaart-midden', 3);
-    await kaartShot('kaart-ver', 0.3);   // ver uitgezoomd: je veld blijft als pin staan
+    await kaartShot('kaart-ver', 0.3);
+    await kaartShot('kaart-ver-2', 0.9);   // ver uitgezoomd: je veld blijft als pin staan
     PM.closePauseMenu(); await sleep(400);
     Live.rondAf(w, 'oogsten', 0.9, { vrij: true });
     await vantage('veld-stoppel', 3500);
