@@ -58,8 +58,8 @@ t('de rekwisieten bouwen de stapel, de kraan en de rollen op die plekken', () =>
 
 t('de kabelrol krijgt zijn straal, niet het hele rolobject (NaN-geometrie bij de start van M13, #955)', () => {
   const bron = lees('containerterminal.js');
-  assert.match(bron, /new T.CylinderGeometry(r.r, r.r, 2.2, 14)/);
-  assert.doesNotMatch(bron, /new T.CylinderGeometry(r, r,/);
+  assert.ok(bron.includes('new T.CylinderGeometry(r.r, r.r, 2.2, 14)'));
+  assert.ok(!bron.includes('new T.CylinderGeometry(r, r,'));
 });
 
 console.log(`containerplan_test: ${n}/${n} ok`);
