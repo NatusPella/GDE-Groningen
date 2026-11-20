@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Geen bomen en heggen meer op de weg in parken buiten de stad:** het park in de streek kreeg een rechthoek om het hele park en liet bomen en heggen ook op de rijbaan staan (140 bomen en 169 van 410 heggen op de provincie). Een boom op de weg valt nu weg en een heg wordt alleen op het stuk over de weg geknipt.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

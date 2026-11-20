@@ -1,7 +1,8 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { CEL, celVan, partsToWorld } from './streekplekken.js';
+import { CEL, celVan, partsToWorld, dropOnRoad } from './streekplekken.js';
+import { roadNetReady, snapRoad } from './roadgraph.js';
 import { edgeDistance } from './countryfield.js';
 
 // Landplekken (#21, #23, #164, #198, scripts/world/streekplekken.mjs -> game/streekplekken.json): perrons,
@@ -43,9 +44,17 @@ const UP = new THREE.Vector3(0, 1, 0);
 const PARK_IN_STAD = -30;
 const inStad = (p) => p.t === 'park' && edgeDistance(p.x, p.y) < PARK_IN_STAD;
 
+// De rechthoek van een park kan een weg kruisen: bomen en heggen daarop vallen weg (roadgraph.js, halve breedte per
+// soort plus een berm). Zolang het wegennet nog niet geladen is (of ontbreekt in de webversie) wacht een cel kort.
+const HALF_W = { 1: 7, 2: 4.5, 3: 5, 4: 4, 5: 3.5, 6: 3, 7: 3 };
+const BERM = 1.2, MAX_WACHT = 60;
+let wacht = 0;
+const opWeg = (x, y) => { const s = snapRoad(x, y, 12); return !!s && !s.bridge && s.d < (HALF_W[s.kind] || 3) + BERM; };
+const wegenKlaar = () => roadNetReady() || ++wacht > MAX_WACHT;
+
 function celGroup(lijst) {
   const per = { box: [], cyl: [], cone: [] };
-  for (const p of lijst) { if (inStad(p)) continue; for (const q of partsToWorld(p)) per[q.s].push(q); }
+  for (const p of lijst) { if (inStad(p)) continue; for (const q of p.t === 'park' && roadNetReady() ? dropOnRoad(partsToWorld(p), opWeg) : partsToWorld(p)) per[q.s].push(q); }
   const g = new THREE.Group();
   g.name = 'streekplekken';
   for (const s of Object.keys(per)) {
@@ -91,6 +100,7 @@ export function updateStreekplekken3D(world) {
   }
   for (const [k, lijst] of cellen) {
     if (live.has(k) || dist(k) > STREAM_IN) continue;
+    if (!wegenKlaar()) break;
     const g = celGroup(lijst);
     scene.add(g);
     live.set(k, g);

@@ -67,6 +67,7 @@ function rng(seed) {
 const box = (x, y, z, w, h, d, c, ry = 0) => ({ s: 'box', x, y, z, w, h, d, c, ry });
 const cyl = (x, y, z, r, h, c) => ({ s: 'cyl', x, y, z, w: r, h, d: r, c, ry: 0 });
 const cone = (x, y, z, r, h, c) => ({ s: 'cone', x, y, z, w: r, h, d: r, c, ry: 0 });
+const HEG_H = 1.0, HEG_D = 0.9;   // een heg van het parkkit: lage lange doos
 
 // Een boom: stam en kegelkroon (y = onderkant).
 const boom = (x, z, h, c) => [cyl(x, 0, z, 0.18 + h * 0.02, h * 0.4, KLEUR.stam), cone(x, h * 0.3, z, h * 0.32, h * 0.7, c)];
@@ -140,7 +141,7 @@ export function kitFor(plek) {
       const len = Math.min(90, Math.max(12, L)) * 0.9, br = Math.min(70, Math.max(8, W)) * 0.9;
       o.push(box(0, 0, 0, len, 0.04, Math.min(2.4, br * 0.3), 0xc9b98f), box(0, 0, 0, Math.min(2.4, len * 0.3), 0.04, br * 0.9, 0xc9b98f));
       if (len > 24 && br > 16) {
-        for (const sz of [-1, 1]) o.push(box(0, 0, sz * br / 2, len * 0.9, 1.0, 0.9, KLEUR.blad));
+        for (const sz of [-1, 1]) o.push(box(0, 0, sz * br / 2, len * 0.9, HEG_H, HEG_D, KLEUR.blad));
         o.push(box(len * 0.22, 0, br * 0.18, Math.min(14, len * 0.25), 0.07, Math.min(9, br * 0.25), 0x5d8fb0));
       }
       const bomen = Math.min(Math.floor((cap - 14) / 2), Math.max(4, Math.round(len * br / 200)));
@@ -159,6 +160,34 @@ export function kitFor(plek) {
 
 // Kit in wereldcoordinaten (de eigen kitFor, niet die van de waterplekken).
 export const partsToWorld = (plek, parts = kitFor(plek)) => partsNaarWereld(plek, parts);
+
+// Parkkit en wegen: de rechthoek van een park is de omhullende van het OSM-vlak en kan een weg kruisen; bomen
+// en heggen horen dan niet op het wegdek ("bij de streek 2 bomen en een heg op de weg").
+export const isHedgePart = (q) => q.s === 'box' && q.h === HEG_H && q.d === HEG_D;
+// Punten [x, y] langs de as van een heg in wereldruimte (ry = -a: de lengte-as loopt in (cos ry, -sin ry)).
+export function hedgeSamples(q, step = 1.5) {
+  const n = Math.max(1, Math.ceil(q.w / step)), dx = Math.cos(q.ry), dy = -Math.sin(q.ry), out = [];
+  for (let i = 0; i <= n; i++) { const t = (i / n - 0.5) * q.w; out.push([q.x + dx * t, q.z + dy * t]); }
+  return out;
+}
+// Laat onderdelen op een weg weg. onRoad(x, y) -> boolean (wereldcoordinaten). Vlakke onderdelen (paden, vijver,
+// h < 0.1) blijven; een heg wordt in stukken van 3 m geknipt en alleen het stuk op de weg valt weg; bomen
+// (stam en kroon op hetzelfde punt) en de rest vallen weg als hun midden op de weg staat.
+export function dropOnRoad(parts, onRoad) {
+  const out = [];
+  for (const q of parts) {
+    if (q.h < 0.1) { out.push(q); continue; }
+    if (!isHedgePart(q)) { if (!onRoad(q.x, q.z)) out.push(q); continue; }
+    if (!hedgeSamples(q).some(([x, y]) => onRoad(x, y))) { out.push(q); continue; }
+    const n = Math.max(1, Math.round(q.w / 3)), seg = q.w / n, dx = Math.cos(q.ry), dy = -Math.sin(q.ry), e = seg / 2;
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) * seg - q.w / 2, cx = q.x + dx * t, cy = q.z + dy * t;
+      if (onRoad(cx, cy) || onRoad(cx - dx * e, cy - dy * e) || onRoad(cx + dx * e, cy + dy * e)) continue;
+      out.push({ ...q, x: cx, z: cy, w: seg });
+    }
+  }
+  return out;
+}
 
 // Houdt de plekken per cel binnen het budget; de belangrijkste (prio, benoemde) blijven.
 // -> { kept, dropped: {type: n}, perCel: Map(cel -> onderdelen) }
