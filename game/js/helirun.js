@@ -317,6 +317,33 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
   #heli-hud .hh-msg, #heli-hud .hh-say, #heli-hud .hh-help, #heli-hud .hh-fade, #heli-hud .hh-card { transition: none; }
 }
 html.reduce-motion #heli-hud .hh-msg, html.reduce-motion #heli-hud .hh-say, html.reduce-motion #heli-hud .hh-help, html.reduce-motion #heli-hud .hh-fade, html.reduce-motion #heli-hud .hh-card { transition: none; }
+/* Zomerse zeefdruk (ADR 0040): de heli-opdracht als papieren plaatjes met inktrand en harde schaduw. */
+#heli-hud { font-family: var(--ds-font-kop-v3); font-weight: 600; color: var(--ds-c-ink-inkt); }
+#heli-hud :is(.hh-panel, .hh-alt, .hh-guide, .hh-say, .hh-help, .hh-card) { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-shadow: none; }
+#heli-hud .hh-panel { border-left: 8px solid var(--mk-mission, var(--ds-c-ink-geel)); }
+#heli-hud .hh-title { font-weight: 800; color: var(--ds-c-ink-bord); }
+#heli-hud .hh-row { color: var(--ds-c-inkt-zacht); }
+#heli-hud .hh-row b { font-weight: 800; color: var(--ds-c-ink-inkt); }
+#heli-hud .hh-row b.low { color: var(--ds-c-rood-tx); }
+#heli-hud .hh-score b { color: var(--ds-c-ink-inkt); }
+#heli-hud .hh-alt .me { background: var(--ds-c-ink-inkt); box-shadow: none; }
+#heli-hud .hh-alt span { font-weight: 800; }
+#heli-hud .hh-arrow path { fill: var(--ds-c-ink-geel); stroke: var(--ds-c-ink-inkt); }
+#heli-hud .hh-goal small { font-family: var(--ds-font-tekst-v3); font-size: 14px; color: var(--ds-c-inkt-zacht); }
+#heli-hud .hh-goal .up, #heli-hud .hh-goal .down { color: var(--ds-c-ink-bord); font-weight: 800; }
+#heli-hud .hh-catch .lbl { font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier); display: inline-block; padding: 2px 10px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 6px; }
+#heli-hud .hh-catch .bar { background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 4px; }
+#heli-hud .hh-catch .bar i { background: var(--ds-c-ink-bord); }
+#heli-hud .hh-catch .tips { font-family: var(--ds-font-tekst-v3); font-size: 14px; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier); display: inline-block; padding: 2px 10px; border-radius: 4px; }
+#heli-hud .hh-catch .tips .ok { color: var(--ds-c-groen-tx); font-weight: 700; }
+#heli-hud .hh-msg { font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); background: var(--ds-c-ink-papier); padding: 2px 16px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
+#heli-hud .hh-say { font-family: var(--ds-font-tekst-v3); }
+#heli-hud .hh-help { font-family: var(--ds-font-tekst-v3); font-size: 15px; }
+#heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border: 0; border-radius: 4px; font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#heli-hud .hh-fade span { color: var(--ds-c-ink-papier); }
+#heli-hud .hh-card { border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#heli-hud .hh-card h2 { font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
+#heli-hud .hh-card p { font-family: var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); }
 `;
 
 function initHudDom() {

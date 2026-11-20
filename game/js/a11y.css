@@ -67,10 +67,10 @@ html:is(.sub-groot, .sub-extragroot) :is(#cine .cine-sub, #banter-sub, #radio-su
 html.sub-box :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
   width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
   padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box;
-  background: rgba(12, 20, 14, 0.84); text-shadow: none;
+  background: var(--ds-c-ink-papier); text-shadow: none;
 }
-html.sub-box #hud .sc-bubble { background: rgba(12, 20, 14, 0.92); }
-html.sub-box #name-card { padding: 10px 18px 12px; border-radius: 8px; background: rgba(12, 20, 14, 0.84); }
+html.sub-box #hud .sc-bubble { background: var(--ds-c-ink-papier); }
+html.sub-box #name-card { padding: 10px 18px 12px; border-radius: 8px; background: var(--ds-c-ink-papier); }
 
 /* #985: gesproken ondertitels uit. De geluidscaptions ([sirene]) blijven staan: die hebben hun
    eigen schakelaar. Elke drager staat hier, ook de naamkaart en de telefoonkaart. */
@@ -119,12 +119,12 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-wanted svg.o
 
 /* --- subtitle contrast "Hoog" (a11ylogic.js subtitleStyle): white on a nearly opaque dark box, heavier letters --- */
 html.subc-hoog :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
-  color: #fff !important; font-weight: 700; width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
-  padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box; background: rgba(12, 20, 14, 0.96); text-shadow: none;
+  color: var(--ds-c-ink-inkt) !important; font-weight: 700; width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
+  padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box; background: var(--ds-c-ink-papier); text-shadow: none;
 }
 html.subc-hoog #hud :is(.pf-say, .pf-sub, .pf-speaker) { color: var(--ds-zeef-tx); font-weight: 700; } /* #998: de telefoonkaart is papier */
-html.subc-hoog #hud .sc-bubble { background: rgba(12, 20, 14, 0.96); color: #fff; }
-html.subc-hoog #name-card { padding: 10px 18px 12px; border-radius: 8px; background: rgba(12, 20, 14, 0.96); color: #fff; }
+html.subc-hoog #hud .sc-bubble { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); }
+html.subc-hoog #name-card { padding: 10px 18px 12px; border-radius: 8px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); }
 
 /* --- text size (Tekstgrootte): cards, hints and phone bubbles grow; the rest of the HUD has Grootte interface --- */
 html:is(.text-groot, .text-extragroot) :is(#hud .hc-text, #hud .ctx-row, #hud .sc-bubble) { zoom: var(--text-scale, 1); }
@@ -155,8 +155,8 @@ html.reduce-flash :is(#hud .hud-wanted.searching svg.on, #hud .stunt-hud .sh-lef
 #padkeyboard .pk-help { margin: 6px 0 0; font-size: 12px; opacity: .7; text-align: center; }
 
 /* geluidsondertitels (soundcaptions.js, #200) */
-#sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 600 calc(18px * var(--sub-scale, 1)) 'Arial Narrow', Arial, sans-serif; color: #f0ede4; text-shadow: 0 1px 3px #000, 0 0 2px #000; }
-#sound-captions div { padding: 2px 12px; border-radius: 6px; background: rgba(12, 20, 14, 0.7); font-style: italic; }
+#sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); text-shadow: none; }
+#sound-captions div { padding: 2px 12px; border-radius: 6px; background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); font-style: italic; }
 
 /* met een controller of aanraking geen muiscursor (inputdevice.js); een muisbeweging brengt hem terug */
 html.dev-pad, html.dev-pad * { cursor: none !important; }

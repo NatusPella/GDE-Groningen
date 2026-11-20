@@ -48,6 +48,26 @@ const CSS = `
 #hud .stunt-brief .sb-foot { margin-top: 8px; font: 15px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; }
 @media (prefers-reduced-motion: reduce) { #hud .stunt-pop { animation-duration: 1.2s; } #hud .stunt-hud .sh-left[data-urgent="1"] { animation: none; } }
 @media (max-width: 760px) { #hud .stunt-pops { right: 14px; top: calc(var(--hud-tr-bottom) + 150px); } }
+/* Zomerse zeefdruk (ADR 0040): de stuntscore en het stuntbord als papier met inktrand en harde schaduw. */
+#hud .stunt-hud, #hud .stunt-brief { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-kop-v3); font-weight: 600; }
+#hud .stunt-hud { border-right: 8px solid var(--ds-c-ink-bord); }
+#hud .stunt-brief { border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#hud .stunt-hud .sh-label, #hud .stunt-hud .sh-score small, #hud .stunt-brief .sb-foot { color: var(--ds-c-inkt-zacht); }
+#hud .stunt-hud .sh-combo { color: var(--ds-c-ink-bord); font-weight: 800; }
+#hud .stunt-hud .sh-combo[data-on="0"] { color: var(--ds-c-inkt-zacht); }
+#hud .stunt-hud .sh-score { font-weight: 800; }
+#hud .stunt-hud .sh-bar, #hud .stunt-hud .sh-cw { background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); }
+#hud .stunt-hud .sh-bar i, #hud .stunt-hud .sh-cw i { background: var(--ds-c-ink-bord); }
+#hud .stunt-hud .sh-cw { height: 8px; }
+#hud .stunt-hud .sh-left[data-urgent="1"] { color: var(--ds-c-rood-tx); }
+#hud .stunt-hud .sh-left[data-done="1"] { color: var(--ds-c-groen-tx); }
+#hud .stunt-pop { font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); background: var(--ds-c-ink-papier); padding: 0 10px; border: 2px solid var(--ds-c-ink-inkt); border-radius: 6px; }
+#hud .stunt-pop b, #hud .stunt-pop.combo { color: var(--ds-c-ink-bord); }
+#hud .stunt-pop.bad b, #hud .stunt-pop.bad { color: var(--ds-c-rood-tx); }
+#hud .stunt-brief h3 { font-weight: 800; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
+#hud .stunt-brief p, #hud .stunt-brief ul, #hud .stunt-brief .sb-foot { font-family: var(--ds-font-tekst-v3); }
+#hud .stunt-brief li span:last-child { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); }
+#hud .stunt-brief li.bad span:last-child { color: var(--ds-c-rood-tx); }
 `;
 
 const BRIEF_TIME = 6;

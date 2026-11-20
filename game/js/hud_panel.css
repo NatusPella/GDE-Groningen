@@ -703,7 +703,7 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
    randen (de kolommen zijn samen 46 + 250 px aan de linkerkant). */
 @media (min-width: 761px) and (max-width: 1366px) and (min-height: 641px) {
   #banter-sub, #radio-sub {
-    bottom: calc(200px * var(--ui, 1)) !important;
+    bottom: calc(222px * var(--ui, 1)) !important;
     max-width: min(56vw, calc(100vw - 2 * (46px + 250px))) !important;
   }
 }
@@ -890,4 +890,65 @@ body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 @media (max-width: 1500px) {
   #hud .hud-mission { bottom: calc(max(var(--hud-edge) + 56px, var(--hud-f-top, 0px) + 12px)); }
   body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
+}
+
+/* ===== Zeefdruk voor de overige HUD-lagen (ADR 0040, #985): ondertitels, overslaan, verhaal-overslaan ===== */
+/* Ondertitels op een papieren plaatje met inktrand: leesbaar op elk beeld, ook zonder de instelling "Ondertitelvak".
+   Inline stijl van de dragers (banter.js, radiosub.js, rondvaartchase.js, postgame.js) wint niet van !important. */
+:is(#banter-sub, #radio-sub, #rv-sub, #pg-sub) {
+  font-family: var(--ds-font-tekst-v3) !important; font-size: clamp(15px, 1.5vw, 20px); color: var(--ds-c-ink-inkt) !important; text-shadow: none !important;
+  background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
+  padding: 0.35em 0.8em 0.4em !important; box-sizing: border-box; letter-spacing: 0 !important; line-height: 1.3;
+}
+#cine .cine-sub {
+  width: fit-content; max-width: min(86vw, calc(820px * var(--ui, 1))); box-sizing: border-box; padding: 0.35em 0.8em 0.4em; line-height: 1.3;
+  font-family: var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); text-shadow: none; letter-spacing: 0;
+  background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
+}
+:is(#banter-sub, #radio-sub, #rv-sub, #pg-sub) :is(.bt-speaker, .rv-speaker, .rs-firma), #cine .cine-speaker, :is(#banter-sub, #radio-sub, #rv-sub, #pg-sub) b {
+  font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord) !important; text-shadow: none; letter-spacing: 0.03em;
+}
+#cine.sub-clue .cine-line { color: var(--ds-c-ink-inkt); font-weight: 700; }
+#cine.sub-clue .cine-sub::before { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px * var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+/* Overslaan: houd de toets ingedrukt; een papieren plaatje met een ring in zomergeel */
+#cine .cine-skip {
+  padding: 5px 12px 5px 8px; font-family: var(--ds-font-tekst-v3); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0; color: var(--ds-c-ink-inkt);
+  background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
+}
+#cine .cine-skip.holding { color: var(--ds-c-ink-inkt); }
+#cine .cine-skip .hud-key { font-family: var(--ds-font-kop-v3); font-weight: 800; letter-spacing: 0.04em; background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+#cine .cine-skip-ring circle { stroke: var(--ds-c-ink-inkt); opacity: 0.3; }
+#cine .cine-skip-ring .fill { stroke: var(--ds-c-ink-bord); opacity: 1; }
+/* Verhaal overslaan (story.js): de ene "kan nu"-knop van dat moment is geel */
+#story-skip { position: fixed; left: 60%; bottom: 17%; transform: translateX(-50%); z-index: 40; pointer-events: auto; }
+#story-skip button {
+  zoom: var(--ui, 1); display: flex; gap: 10px; align-items: center; min-height: 44px; padding: 6px 16px 6px 10px; cursor: pointer;
+  font: 800 18px/1.1 var(--ds-font-kop-v3); letter-spacing: 0.04em; color: var(--ds-c-ink-inkt);
+  background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
+}
+#story-skip button:hover { background: var(--ds-c-geel-hover); }
+#story-skip button:active { background: var(--ds-c-geel-druk); transform: translate(var(--ds-hard-x), var(--ds-hard-y)); box-shadow: none; }
+#story-skip button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+#story-skip .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; font: 800 14px/1 var(--ds-font-kop-v3); background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; }
+body.cine-hide-hud #story-skip { display: none; }
+/* Filmlaag (#cine): de balken zijn inkt, de titelkaart, de naam en het kleine chipje zijn papier met inktrand. De grote filmtitel
+   (.cine-big) blijft een titel in beeld, zonder vlak. */
+#cine { font-family: var(--ds-font-kop-v3); }
+#cine .cine-bar { background: var(--ds-c-ink-inkt); }
+#cine .cine-card {
+  padding: 12px 26px 16px; color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
+}
+#cine .cine-kicker { font-weight: 800; letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+#cine[data-accent="wanted"] .cine-kicker { color: var(--ds-c-rood-tx); }
+#cine .cine-title { font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
+#cine .cine-title::after { background: var(--ds-c-ink-geel); box-shadow: none; border: 2px solid var(--ds-c-ink-inkt); box-sizing: border-box; }
+#cine[data-accent="tammo"] .cine-title, #cine[data-accent="anita"] .cine-title { color: var(--ds-c-ink-inkt); }
+#cine .cine-name {
+  padding: 4px 18px 6px 14px; font-weight: 800; letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--ds-c-ink-bord); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
+}
+#cine .cine-chip {
+  font-weight: 800; letter-spacing: 0.1em; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
 }

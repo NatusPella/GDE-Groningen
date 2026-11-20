@@ -146,6 +146,38 @@ body.tc-on #hud .hud-speedo, body.tc-on #hud .hud-route, body.tc-on #hud .hud-pl
 html.reduce-motion #hud .tc-cab .tc-alert, html.reduce-flash #hud .tc-cab .tc-alert { animation: none !important; }
 @media (max-width: 760px) { #hud .tc-cab { left: 8px; width: calc(100vw - 16px); } }
 @media (max-width: 560px) { #hud .tc-cab { grid-template-columns: auto auto 1fr; } #hud .tc-cab .tc-next { grid-column: 1 / -1; } }
+/* Zomerse zeefdruk (ADR 0040): de cabine, de uitleg en de eindstand als papier met inktrand en harde schaduw. */
+#hud .tc-cab, #hud .tc-intro, #hud .tc-result { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; font-family: var(--ds-font-tekst-v3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
+#hud .tc-cab .tc-sign { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#hud .tc-cab .tc-sign.none { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-inkt-zacht); color: var(--ds-c-inkt-zacht); }
+#hud .tc-cab .tc-speed b { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); }
+#hud .tc-cab .tc-speed b.over { color: var(--ds-c-rood-tx); text-shadow: var(--ds-misdruk); }
+#hud .tc-cab .tc-speed small { font-family: var(--ds-font-kop-v3); font-weight: 600; font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
+#hud .tc-cab .tc-lever i { font-family: var(--ds-font-kop-v3); font-weight: 600; font-size: max(13px, calc(13px / var(--ui, 1))); height: 16px; line-height: 16px; background: var(--ds-c-sel-vlak); color: var(--ds-c-inkt-zacht); }
+#hud .tc-cab .tc-lever i.on { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); box-shadow: inset 0 0 0 2px var(--ds-c-ink-inkt); }
+#hud .tc-cab .tc-lever i.zero { border-left-color: var(--ds-c-inkt-zacht); }
+#hud .tc-cab .tc-lever i.pw { border-left-color: var(--ds-c-ink-bord); }
+#hud .tc-cab .tc-lever i.br { border-left-color: var(--ds-c-rood); }
+#hud .tc-cab .tc-next small { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-ink-bord); filter: none; }
+#hud .tc-cab .tc-next b { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); }
+#hud .tc-cab .tc-next span { color: var(--ds-c-ink-inkt); }
+#hud .tc-cab .tc-next em { color: var(--ds-c-ink-bord); font-weight: 700; }
+#hud .tc-cab .tc-next .bad { color: var(--ds-c-rood-tx); }
+#hud .tc-cab .tc-row { color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-tekst-v3); }
+#hud .tc-cab .tc-row b { color: var(--ds-c-ink-inkt); font-weight: 800; font-family: var(--ds-font-kop-v3); }
+#hud .tc-cab .tc-row .tc-door { background: var(--ds-c-sel-vlak); border: 2px dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 600; }
+#hud .tc-cab .tc-row .tc-door.open { background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); border-style: solid; }
+#hud .tc-cab .tc-row .tc-storing { color: var(--ds-c-rood-tx); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#hud .tc-cab .tc-alert { background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx); border: 2px solid var(--ds-c-rood); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+@keyframes tcblink { 50% { background: var(--ds-c-ink-papier); } }
+#hud .tc-intro b, #hud .tc-result small { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-ink-bord); }
+#hud .tc-result h3 { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
+#hud .tc-result .tc-score { font-family: var(--ds-font-kop-v3); font-weight: 600; border-bottom: 2px dashed var(--ds-c-inkt-zacht); }
+#hud .tc-result .tc-score b { font-weight: 800; }
+#hud .tc-result .tc-score b.good { color: var(--ds-c-groen-tx); }
+#hud .tc-result .tc-score b.mid { color: var(--ds-c-ink-inkt); }
+#hud .tc-result .tc-score b.low { color: var(--ds-c-rood-tx); }
+#hud .tc-result p { color: var(--ds-c-inkt-zacht); }
 `;
 
 let cssDone = false;
@@ -190,7 +222,7 @@ export function createCabHud() {
         + `<div class="tc-speed"><b class="${over ? 'over' : ''}">${v.kmh}</b><small>KM/U${v.maxKmh ? ` (MAX ${v.maxKmh})` : ''}</small></div>`
         + `<div class="tc-lever" title="tractiehendel">${lever}</div><div class="tc-next">${nextHtml}</div>`
         + `<div class="tc-alert" ${v.dm != null || v.emergency ? '' : 'hidden'}>${v.emergency ? 'WAAKZAAMHEIDSREM: de trein remt vanzelf' : `WAAKZAAM? Druk ${key('K')} binnen ${v.dm} s`}</div>`
-        + `<div class="tc-row"><span>Hendel: <b style="font-weight:normal;color:var(--mk-mission, #e8c93a)">${v.leverText}</b></span>`
+        + `<div class="tc-row"><span>Hendel: <b>${v.leverText}</b></span>`
         + `<span class="tc-door${v.doors ? ' open' : ''}">Deuren ${v.doors ? 'open' : 'dicht'}</span>`
         + `${v.storing ? `<span class="tc-storing">${v.storing}</span>` : ''}`
         + `<span>${helpHtml || ''}</span></div>`;
