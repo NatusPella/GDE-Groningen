@@ -21,11 +21,14 @@ export const SFEER_BESTAND = {
   missie_finale: 'missie_finale.mp3', // groots: het slot
   missie_nacht: 'missie_nacht.mp3', // (nu niet gekoppeld: alleen een expliciete nachtscene)
   missie_water: 'missie_water.mp3', // skutsje-sprint en de sloepmissie als wedstrijd
+  missie_caper: 'missie_caper.mp3', // lichtvoetige kaper: komische stunts waar iets mis mag gaan (M09, M18)
+  missie_wandeling: 'missie_wandeling.mp3', // statig-komisch: pompeuze ritjes en plechtigheden (M10, M24)
+  missie_flaneren: 'missie_flaneren.mp3', // branie en zelfvertrouwen: de missies met een zelfverzekerd loopje (M08, M12)
 };
 export const SFEER_KEYS = Object.keys(SFEER_BESTAND);
 
 // De lijst die de eigenaar bijhoudt: alleen sferen waarvan het bestand echt in game/audio/scenario/ staat.
-export const BESCHIKBARE_SFEREN = ['missie_komisch', 'missie_sluipen', 'missie_feest', 'missie_warm', 'missie_finale', 'missie_water'];
+export const BESCHIKBARE_SFEREN = ['missie_komisch', 'missie_sluipen', 'missie_feest', 'missie_warm', 'missie_finale', 'missie_water', 'missie_caper', 'missie_wandeling', 'missie_flaneren'];
 
 // DE LIJST VAN DE EIGENAAR: de verhaalmomenten met eigen muziek. Alles wat hier niet staat, is radio.
 // code = de missiecode (world.mission.code, M01 tot M30); sfeer = een sleutel uit SFEER_BESTAND;
@@ -47,6 +50,10 @@ export const MISSIE_EIGEN_MUZIEK = [
   { code: 'M27', sfeer: 'missie_warm' }, { code: 'M28', sfeer: 'missie_warm' }, { code: 'M29', sfeer: 'missie_warm' },
   // finale: het slot
   { code: 'M30', sfeer: 'missie_finale' },
+  // lichtvoetig: de eigenaar vond deze drie eerder te kinderlijk of te midi; daarom alleen bij komische momenten (20-11)
+  { code: 'M09', sfeer: 'missie_caper' }, { code: 'M18', sfeer: 'missie_caper' },
+  { code: 'M10', sfeer: 'missie_wandeling' }, { code: 'M24', sfeer: 'missie_wandeling' },
+  { code: 'M08', sfeer: 'missie_flaneren' }, { code: 'M12', sfeer: 'missie_flaneren' },
   // ontdekken en nacht: nog geen regels; voeg er een toe als een scene dat vraagt (onthulling, uitkijkpunt, nachtscene)
 ];
 

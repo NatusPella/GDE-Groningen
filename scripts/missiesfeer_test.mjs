@@ -10,7 +10,7 @@ import { activityMusicKey, createScenarioDirector, ACTIVITY_KEYS } from '../game
 import { STEPS } from '../game/js/storyarc.js';
 
 const dir = new URL('../game/audio/scenario/', import.meta.url);
-const NAMEN = ['komisch', 'sluipen', 'ontdekken', 'warm', 'feest', 'werk', 'finale', 'nacht', 'water'];
+const NAMEN = ['komisch', 'sluipen', 'ontdekken', 'warm', 'feest', 'werk', 'finale', 'nacht', 'water', 'caper', 'wandeling', 'flaneren'];
 
 // elke sfeer: sleutel, bestandsnaam missie_<naam>.mp3, en hij zit in de lijst van de director
 assert.deepEqual(SFEER_KEYS, NAMEN.map((n) => 'missie_' + n));
@@ -29,7 +29,7 @@ assert.ok(existsSync(new URL('missie_spanning_loop.mp3', dir)), 'de terugval-loo
 // de lijst van de eigenaar: klein, bekende codes en sferen, per sfeer alleen de verhaalmomenten
 const codes = STEPS.filter((s) => s.kind === 'mission').map((s) => s.id);
 assert.ok(codes.length >= 30);
-assert.ok(MISSIE_EIGEN_MUZIEK.length <= 20, 'houd de lijst klein');
+assert.ok(MISSIE_EIGEN_MUZIEK.length <= 26, 'houd de lijst klein');
 for (const e of MISSIE_EIGEN_MUZIEK) {
   assert.ok(codes.includes(e.code), e.code + ': onbekende missiecode');
   assert.ok(SFEER_KEYS.includes(e.sfeer), e.code + ': onbekende sfeer ' + e.sfeer);
@@ -42,6 +42,10 @@ assert.deepEqual(sferenVan('missie_warm'), ['M27', 'M28', 'M29']);
 assert.deepEqual(sferenVan('missie_finale'), ['M30']);
 assert.deepEqual(sferenVan('missie_werk'), [], 'werk is niet gekoppeld: klussen houden de radio');
 assert.deepEqual(sferenVan('missie_nacht'), []);
+assert.deepEqual(sferenVan('missie_caper'), ['M09', 'M18']);
+assert.deepEqual(sferenVan('missie_wandeling'), ['M10', 'M24']);
+assert.deepEqual(sferenVan('missie_flaneren'), ['M08', 'M12']);
+assert.equal(missieMuziekKey('M18'), 'missie_caper');
 assert.equal(missieSfeer('M05'), 'missie_komisch');
 assert.equal(missieSfeer('M06'), 'missie_sluipen');
 assert.equal(missieSfeer('M26'), 'missie_feest');
@@ -50,8 +54,8 @@ assert.equal(missieSfeer('M30'), 'missie_finale');
 // elke andere missie, een onbekende code of een missie zonder code: geen eigen sfeer (de radio)
 const lijst = new Set(MISSIE_EIGEN_MUZIEK.map((e) => e.code));
 for (const c of codes) if (!lijst.has(c)) { assert.equal(missieSfeer(c), null, c + ': geen eigen sfeer'); assert.equal(missieMuziekKey(c), null, c + ': radio'); }
-assert.ok(codes.filter((c) => !lijst.has(c)).length >= 10, 'de meeste missies houden de radio');
-for (const c of [null, undefined, '', 'M44', 'M09', 'X1']) assert.equal(missieMuziekKey(c), null, String(c));
+assert.ok(codes.filter((c) => !lijst.has(c)).length >= 5, 'de meeste missies houden de radio');
+for (const c of [null, undefined, '', 'M44', 'M15', 'X1']) assert.equal(missieMuziekKey(c), null, String(c));
 // een lijstmoment geeft zijn sleutel alleen als het bestand er is (anders de radio, geen 404)
 for (const e of MISSIE_EIGEN_MUZIEK) assert.equal(missieMuziekKey(e.code), sfeerBeschikbaar(e.sfeer) ? e.sfeer : null, e.code);
 assert.equal(missieMuziekKey('M01'), 'missie_komisch');
@@ -70,11 +74,11 @@ assert.equal(missieMuziekKey('M07'), null);
 assert.equal(missieMuziekKey('M22'), null);
 
 // een regel met stap telt alleen binnen het stageIndex-bereik
-MISSIE_EIGEN_MUZIEK.push({ code: 'M09', stap: [2, 3], sfeer: 'missie_komisch' });
-assert.equal(missieMuziekKey('M09', 2), 'missie_komisch');
-assert.equal(missieMuziekKey('M09', 3), 'missie_komisch');
-assert.equal(missieMuziekKey('M09', 1), null);
-assert.equal(missieMuziekKey('M09'), null, 'zonder stageIndex telt een stapregel niet');
+MISSIE_EIGEN_MUZIEK.push({ code: 'M15', stap: [2, 3], sfeer: 'missie_komisch' });
+assert.equal(missieMuziekKey('M15', 2), 'missie_komisch');
+assert.equal(missieMuziekKey('M15', 3), 'missie_komisch');
+assert.equal(missieMuziekKey('M15', 1), null);
+assert.equal(missieMuziekKey('M15'), null, 'zonder stageIndex telt een stapregel niet');
 MISSIE_EIGEN_MUZIEK.pop();
 
 // bijbanen: standaard de radio; alleen een wedstrijd of verhaalmoment een sfeer (en alleen als het bestand er is)
@@ -85,7 +89,7 @@ for (const p of Object.values(sfeerTracks())) assert.ok(existsSync(new URL(p.rep
 
 // activityMusicKey: een gewone actieve missie of bijbaan geeft null (radio), een lijstmoment zijn sfeer
 assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: {} }), null, 'een gewone missie is de radio');
-assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M09', type: 'stages' }, player: {} }), null);
+assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M15', type: 'stages' }, player: {} }), null);
 assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M06', type: 'stages' }, player: {} }), 'missie_sluipen');
 assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M02' }, player: {} }), 'missie_komisch');
 assert.equal(activityMusicKey({ sideJob: { active: true, id: 'bruggen' }, player: {} }), 'missie_feest');
@@ -95,7 +99,7 @@ assert.equal(activityMusicKey({ sideJob: { active: true, id: 'taxi' }, player: {
 assert.equal(activityMusicKey({ mission: { phase: 'inactive' }, sideJob: { active: false, id: 'taxi' }, player: {} }), null);
 // in een voertuig wint de radio (null) bij een gewone missie, een verhaalmoment wint bij een lijstmoment
 const auto = { inVehicle: { model: { name: 'sedan' } } };
-assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M09' }, player: auto }), null);
+assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M15' }, player: auto }), null);
 assert.equal(activityMusicKey({ mission: { phase: 'active', code: 'M06' }, player: auto }), 'missie_sluipen');
 
 // zelfde sfeer in de volgende stap herstart niet; wisselen is een wissel van sleutel (crossfade in scenario.js)
