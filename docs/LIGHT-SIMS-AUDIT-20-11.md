@@ -18,7 +18,7 @@ de lus nu zichtbaar of uitgelegd is.
 | 2. Krantenwijk | hoog: een van de eerste bijbanen | wereld al redelijk (brievenbussen, vliegende kranten, liggende kranten), maar elke brievenbus zag er na de worp hetzelfde uit, geen duidelijk volgend doel in de straat, de stapel en de uitkomst alleen als meldingen, geen uitleg | gebouwd, zie 3 |
 | 3. Bezorger (Hap & Rap) | hoog | tekstregel "warm 82%" in de bijbaankaart; eten dat afkoelt was onzichtbaar; geen doel in de straat; geen uitleg | gebouwd, zie 4 |
 | 4. Bakronde (Oma's eierballen, akte 5) | middel: twee missies (M25, M26) en dus gegarandeerd gespeeld | paneel met harde kleuren en inline stijl in de code (eigen donkerbruin en oranje rand, Arial), geen voortgangsbalk, een bal die klaar is kreeg geen teken | gebouwd, zie 5 |
-| 5. Rondvaart | midden | niet gedaan in deze ronde (tijd), staat bovenaan het vervolg | open |
+| 5. Rondvaartgids | midden: een bijbaan met een eigen steiger en een rustige lus | de toeristen en het verhaal waren onzichtbaar: alleen een regel "Tocht 1 · 1/3 verhalen", geen teken waar je moet vertragen, geen uitleg | gebouwd, zie 6 |
 
 ## 2. Hengelen
 
@@ -101,6 +101,26 @@ Oma's volgorde blijft verborgen: alleen wat je goed deed krijgt zijn icoon (de r
 Test: `bakeround_test` (23, o.a. `bakeHudModel` en dat er geen eigen kleuren of inline stijl meer in de code staan). Beeld: `docs/img/qa/lichtsims-bakeronde-na.jpg` (het paneel in een browservenster met de echte stijlbladen, niet in het spel).
 
 **Niet gedaan.** Zichtbare eierballen of een pan in de keuken (de wereldkant van deze sim: de keuken is een binnenset van de missie), een eigen sting per bal.
+
+## 6. Rondvaartgids (Diepenring-water)
+
+**Wat kan de speler.** Bijbaan van Schipper Geert: een rondvaartboot tussen vier steigers langs zeven bezienswaardigheden varen. Bij elke bezienswaardigheid gas eraf (onder 3,6 m/s): dan vertelt de gids het verhaal (regels met stem), anders missen de toeristen het en daalt hun tevredenheid.
+Stoten laat hem ook dalen. Aan het eind stilliggen bij de steiger; alle verhalen geeft een fooi en een prestatie.
+
+**De lus.** Instappen (even stilliggen bij de steiger), varen en vertellen, aanleggen, de volgende tocht de andere kant op.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de intro van Geert | plus vier iconen met een zin in de strook tot de toeristen voor het eerst aan boord zijn (`gde-sim-uitleg-v1`) |
+| HUD | de bijbaankaart met "Tocht 2 · 1/3 verhalen · uitleg 40%" | strook: stappen als chips (instappen, varen, aanleggen), een balk voor het verhaal dat je vertelt (anders de verhalen van de tocht), cijfers verhalen, tevredenheid, tempo en tijd, en één zin wat nu ("Gas eraf bij Herebrug: ze willen het verhaal horen", "Je vertelt over Herebrug") |
+| Wereld | boot, geleidepuntjes op de vaarlijn | een gele lichtkolom op het water boven het volgende doel: de steiger, de volgende bezienswaardigheid, daarna de eindsteiger (`simkolom3d.js`, op waterniveau) |
+| Feedback | een regel in de berichtenkaart | een getal springt op: "Verhaal verteld: Herebrug", "Gemist: ...", "Applaus aan boord!" met het bestaande UI-geluid |
+| Kaart | markering en geleidepuntjes (bestond al, uit `view()`) | ongewijzigd |
+
+**Samen spelen.** De bijbaan is van wie het spel opende (de boot en de tocht). De strook en de lichtkolom zijn voor de eigen dienst (`c.owner` leeg) en worden niet aan gasten gestuurd; een gast als bijrijder ziet de bijbaankaart zoals eerst.
+Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading).
+
+**Niet gedaan.** Toeristen aan boord in beeld (de boot heeft ze niet als figuren), een kaartlaag met de route en de bezienswaardigheden als lijst.
 
 ## Beeldbewijs en eerlijkheid
 
