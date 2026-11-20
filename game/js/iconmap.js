@@ -49,6 +49,8 @@ export const ICON_MAP = {
   download: 'download-simple', upload: 'upload-simple', plus: 'plus', min: 'minus',
   zandloper: 'hourglass', dobbelsteen: 'dice-five', raket: 'rocket',
   schilderij: 'palette', kleding: 't-shirt', bril: 'sunglasses', laars: 'boot', zwemmen: 'waves',
+  // Gevulde varianten (Phosphor 'fill') voor een aangezette toestand, zoals een favoriet.
+  ster_vol: 'star-fill', hart_vol: 'heart-fill',
   lopen: 'person-simple-walk', rennen: 'person-simple-run', bagage: 'backpack', hand: 'hand',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.

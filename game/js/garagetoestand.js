@@ -38,13 +38,15 @@ export function vraagSoort(msg, vragen = {}) {
   return '';
 }
 
-const SVG = (d) => `<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="${d}"/></svg>`;
+import { icoon as fIcoon } from './icons.js';
+const SVG = (naam) => fIcoon(naam, { cls: 'ds-chip__icoon', maat: 's' });
+// Betekenisnamen (icons.js, Phosphor, ADR 0041).
 export const TOESTAND_ICOON = {
-  ok: SVG('M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z'),
-  warn: SVG('M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM7.2 4h1.6v5H7.2zm0 6h1.6v1.6H7.2z'),
-  no: SVG('M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z'),
-  mut: SVG('M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM4.5 7.2h7v1.6h-7z'),
-  kan: SVG('M3 2.5l10 5.5-10 5.5z'),
+  ok: SVG('vinkje'),
+  warn: SVG('waarschuwing'),
+  no: SVG('waarschuwing'),
+  mut: SVG('min'),
+  kan: SVG('afspelen'),
 };
 const KLASSE = { ok: ' ds-chip--succes', warn: ' ds-chip--waarschuwing', no: ' ds-chip--probleem', kan: ' ds-chip--primair', mut: '' };
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

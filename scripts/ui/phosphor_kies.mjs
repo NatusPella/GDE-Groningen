@@ -12,7 +12,9 @@ if (!pkg) { console.error('Geef de pakketmap mee (met assets/regular en assets/b
 const { ICON_MAP } = await import(pathToFileURL(path.join(root, 'game/js/iconmap.js')).href);
 const names = [...new Set(Object.values(ICON_MAP))].sort();
 const inner = (weight, n) => {
-  const file = path.join(pkg, 'assets', weight, weight === 'regular' ? `${n}.svg` : `${n}-${weight}.svg`);
+  // een naam op -fill komt uit het gewicht fill (voor een aangezette toestand) en is in beide plekken gelijk
+  if (n.endsWith('-fill')) weight = 'fill';
+  const file = path.join(pkg, 'assets', weight, weight === 'regular' ? `${n}.svg` : weight === 'fill' ? `${n}.svg` : `${n}-${weight}.svg`);
   if (!fs.existsSync(file)) throw new Error(`ontbreekt: ${file}`);
   const m = fs.readFileSync(file, 'utf8').match(/<svg[^>]*>([\s\S]*)<\/svg>/);
   return m[1].trim();
