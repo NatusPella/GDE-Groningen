@@ -31,9 +31,9 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 207 scènes, 1.431 regels in act 1 tot en met 6; 37 zijn stille appjes en
-37 hebben geen opname, dus die toont het spel als ondertitel met leestijd
-(`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
+De data: 207 scènes, 1.431 regels in act 1 tot en met 6; 37 zijn stille appjes en 37 hebben geen opname (precies die appjes, bewust stil; alle
+1.394 gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
+het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
 #462); wat nog geen opname heeft blijft ondertitel (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
 
@@ -72,7 +72,7 @@ Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
 | Sjabbe, Klaas, Bert, Dijkstra, Sjoerd, Henk, Jelmer, Geert, de torenwachter | bijrollen | zie `docs/personages.md` |
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw en
-hebben nog geen stem (`docs/verhaal/nieuw/07-TTS-RAMING.md:67`). **Geschrapt** zijn
+hadden geen stem; Geesje, Rotor Roelf en de tien Tessa-regels zijn op 20-11 ingesproken. Wat buiten `script.json` nog geen stem heeft staat in `docs/verhaal/TTS-ACHTERSTAND-21-11.md`. **Geschrapt** zijn
 Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`;
 `game/js/storyarc_nieuw.js:105-106`); Rotor Roelf blijft alleen een stem.
 

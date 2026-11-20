@@ -44,6 +44,8 @@ out.push('Een regel krijgt een opname door hem op te nemen onder de stem uit de 
 out.push('');
 out.push(`Eerst de opening en missie 1 t/m 3 (${first} regels): die ziet iedere speler in het eerste uur.`);
 out.push('');
+out.push('Deze lijst telt alleen `script.json`. Spreekbronnen in `game/js` die niet in `scripts/voicelines_collect.mjs` staan (terugkeervignetten, doelregels en keuzegesprekken van de nieuwe missies) vallen erbuiten: zie `docs/verhaal/TTS-ACHTERSTAND-21-11.md` (`node scripts/voice_backlog.mjs`).');
+out.push('');
 for (const k of order) {
   const list = steps.get(k);
   const n = list.reduce((a, x) => a + x.m.length, 0);

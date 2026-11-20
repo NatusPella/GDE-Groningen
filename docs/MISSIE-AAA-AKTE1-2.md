@@ -26,7 +26,7 @@ Hoort bij #955 (aankleding), #956 (binnen spelen) en #963 (wachten in een cirkel
 
 ## #963: wachten in een cirkel
 
-Er is geen lege cirkel meer: een `hold`-stap heeft sinds eerdere rondes een ring die oplicht, spullen eromheen en op verzoek een wachtfiguur. Deze ronde erbij: de clips `telefoon` (hand tegen het oor, schuin hoofd) en `praten` (beide handen mee, knikken) in `idleclips.js`; de prop `bordje` (A-bord met kegel, zonder tekst); `wacht: { maat: true }` zet een tweede wachtende naast de eerste, ze praten en luisteren om de beurt met gelijke beurtlengtes. De eerste figuur (kleur, plek, rooster) blijft per seed gelijk met of zonder maat. In akte 1 en 2 zijn er verder geen kale `hold`-stappen: M03 wacht in de binnenset (geen ring, wel de wachtrij), M11 heeft zijn figuren. Zie [verhaal/TTS-ACHTERSTAND-21-11.md](verhaal/TTS-ACHTERSTAND-21-11.md) voor de nieuwe tekst.
+Er is geen lege cirkel meer: een `hold`-stap heeft sinds eerdere rondes een ring die oplicht, spullen eromheen en op verzoek een wachtfiguur. Deze ronde erbij: de clips `telefoon` (hand tegen het oor, schuin hoofd) en `praten` (beide handen mee, knikken) in `idleclips.js`; de prop `bordje` (A-bord met kegel, zonder tekst); `wacht: { maat: true }` zet een tweede wachtende naast de eerste, ze praten en luisteren om de beurt met gelijke beurtlengtes. De eerste figuur (kleur, plek, rooster) blijft per seed gelijk met of zonder maat. In akte 1 en 2 zijn er verder geen kale `hold`-stappen: M03 wacht in de binnenset (geen ring, wel de wachtrij), M11 heeft zijn figuren. Zie [verhaal/TTS-ACHTERSTAND-21-11-alleen-tekst.md](verhaal/TTS-ACHTERSTAND-21-11-alleen-tekst.md) voor de nieuwe tekst.
 
 ## Samen spelen (per missie)
 

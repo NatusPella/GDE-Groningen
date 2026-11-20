@@ -16,7 +16,7 @@ Hoort bij #955 (aankleding), #956 (binnen spelen), #963 (wachten in een kring) e
 | Toetsplaatjes | kaarten en `say` | `{H}`, `{E}`, `{W}`, `{S}`, `{SPATIE}`, `{A}`, `{D}` in M12, M15, M17 en M19. |
 | Missieplekken | `missionplace.js` `applyPlekFix` | De zes grensgevallen van de audit, zie onderaan. |
 
-Alle nieuwe tekst is alleen te lezen (berichten en kaarten). Er zijn geen nieuwe gesproken regels, dus `docs/verhaal/TTS-ACHTERSTAND-21-11.md` hoeft niets te noteren en er is geen audio gegenereerd.
+Alle nieuwe tekst is alleen te lezen (berichten en kaarten). Er zijn geen nieuwe gesproken regels, dus `docs/verhaal/TTS-ACHTERSTAND-21-11-alleen-tekst.md` hoeft niets te noteren en er is geen audio gegenereerd.
 
 ## Auditkaarten
 

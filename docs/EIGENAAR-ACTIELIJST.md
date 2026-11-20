@@ -244,6 +244,8 @@ al vast, dus dit is een tekstknoop, geen stemknoop. Daarna de teksten samenvoege
 wachtrij zetten en de opname starten (met de LiteLLM-sleutel in `.env`), gevolgd door
 `build_story_data` en `voice_coverage`.
 
+**Bijgewerkt 21-11:** de 20 regels van Geesje en Rotor Roelf en de tien Tessa-regels zijn op 20-11 ingesproken (7277a5a9c); `voice_coverage` en `opnamelijst` staan op nul. Wat nog zonder stem is staat buiten `script.json` en is uitgewerkt in [verhaal/TTS-ACHTERSTAND-21-11.md](verhaal/TTS-ACHTERSTAND-21-11.md) (`node scripts/voice_backlog.mjs`). De alinea hieronder is de oude stand.
+
 **Voorbereiding in de repo (stand 13 november 2026):** [GRONINGS-20-SPREEKTEKSTEN.md](verhaal/GRONINGS-20-SPREEKTEKSTEN.md)
 is de open lijst met per regel wat een kenner moet beslissen;
 [DIALECT-CONCEPT.md](verhaal/DIALECT-CONCEPT.md) heeft de eerdere concepten en
