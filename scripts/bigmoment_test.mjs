@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import {
   SOORTEN, STANDAARD, MAX_WOORDEN, MAX_FLITS_PER_S, MAX_WACHTRIJ,
-  bouwMoment, klemWoorden, formatBeloning, formatTijd, momentStijl, toelatenFlits, maakPlanner, showBigMoment,
+  bouwMoment, mayMomentTonen, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, klemWoorden, formatBeloning, formatTijd, momentStijl, toelatenFlits, maakPlanner, showBigMoment,
 } from '../game/js/bigmoment.js';
 
 let n = 0, fails = 0;
@@ -83,6 +83,29 @@ ok(toelatenFlits([0, 100, 200], 1050), 'the gate opens after a second');
   const res = [];
   for (let i = 1; i <= MAX_WACHTRIJ + 2; i++) res.push(q.aanvraag(bouwMoment({ soort: 'gebied', titel: 'X' + i }), 2000 * i).actie);
   ok(res.filter((r) => r === 'wacht').length === MAX_WACHTRIJ && res[res.length - 1] === 'laat-vallen', 'the queue holds at most three');
+}
+// the hooks (#996): banner, wanted, busted or down, area; and who sees it in Samen spelen
+{
+  const k = bouwMoment(momentVanBanner({ kind: 'fail', title: 'Sikkom.', reason: 'Probeer het nog eens.', reward: 0 }));
+  ok(k.soort === 'mislukt' && k.kop === 'Sikkom.' && k.regelNl === 'Probeer het nog eens.', 'a short banner title is the big print');
+  const l = bouwMoment(momentVanBanner({ kind: 'pass', title: 'KNAL IN DE POLDER', reason: 'Boer Roelf knikt.', reward: 750 }));
+  ok(l.soort === 'geslaagd' && l.kop === STANDAARD.geslaagd.kop && l.regelNl.includes('KNAL IN DE POLDER') && l.beloning === '€ 750', 'a long mission title goes in the line, the reward stays');
+  ok(momentVanWanted(2, 2) === null && momentVanWanted(NaN, 1) === null, 'no change in wanted, no moment');
+  const op = bouwMoment(momentVanWanted(1, 3)), neer = bouwMoment(momentVanWanted(3, 1)), weg = bouwMoment(momentVanWanted(2, 0));
+  ok(op.vorm === 'rand' && op.sterren === 3 && neer.sterren === 1 && weg.sterren === 0, 'wanted up and down are edge tags with the star count');
+  ok(op.klein !== neer.klein && neer.klein !== weg.klein, 'up, down and gone read differently in words');
+  const bust = bouwMoment(momentVanOpgepakt({ busted: true, geld: 250 })), down = bouwMoment(momentVanOpgepakt({ busted: false, geld: 100 }));
+  ok(bust.vorm === 'stempel' && bust.kop === 'Opgepakt' && bust.beloningLabel === 'Boete' && bust.beloning === '− € 250', 'busted is a stamp with a fine');
+  ok(down.kop === 'Buiten westen' && down.klein === 'Neergegaan' && down.beloningLabel === 'Rekening' && woorden(down.regelNl) <= MAX_WOORDEN, 'knocked out is "Buiten westen" with a hospital bill');
+  ok(!/doodgeschoten|neergeschoten|bloed|gore|geweld|dood/i.test(JSON.stringify([bust, down])), 'busted and down show no violence');
+  const g = bouwMoment(momentVanGebied('Haren', 'Een groen dorp.'));
+  ok(g.vorm === 'plaats' && g.kop === 'Haren' && g.regelNl === 'Een groen dorp.', 'a first visit is a place stamp');
+  // guests see a moment only when it is theirs or a joint mission they joined
+  ok(mayMomentTonen({}) && mayMomentTonen({ gast: false }), 'host and solo player see everything');
+  ok(!mayMomentTonen({ gast: true }), 'a guest does not see the world state of the host');
+  ok(mayMomentTonen({ gast: true, eigen: true }), 'a guest sees what happens to himself');
+  ok(mayMomentTonen({ gast: true, gezamenlijk: true, deelnemer: true }) && !mayMomentTonen({ gast: true, gezamenlijk: true, deelnemer: false }), 'a joint mission shows only to a participating guest');
+  ok(showBigMoment({ ...momentVanWanted(0, 1), gast: true }) === null, 'the gate also holds in the DOM function');
 }
 ok(showBigMoment({ soort: 'geslaagd' }) === null, 'without a document the DOM function does nothing');
 

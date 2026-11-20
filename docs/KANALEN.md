@@ -33,6 +33,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | scene | cinematics.js, intromontage.js, respawn.js en 2 andere | 14 modules, 30 aanroepen | n.v.t. | - | ja: narrative (scene) | Blijft. |
 | moment | cinematics.js | beslist zelf | n.v.t. | - | ja: moment (wijk, landmark, ommelanden, veroverd, crash, wanted5) | wijk en landmark kunnen samen met de plaatsnaam: het vlucht-shot is dezelfde boodschap als de naam. Minder momenten, meer plaatsnaam. |
 | banner | cinematics.js | 20 modules, 31 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
+| grotemomenten | bigmoment.js | beslist zelf | P0 | D | ja: overlay (resultaat), narrative (scene) |  |
 | naamkaart | namecard.js | 3 modules, 4 aanroepen | n.v.t. | - | ja: overlay (naamkaart) | Samen met ondertitel: de naam staat al als sprekerlabel in de regel; de grote kaart alleen voor het eerste ontmoeten. |
 | plaatsnaam | hud_panel.js | beslist zelf | P3 | B | ja: overlay (locatie) | Samen met moment (wijk, landmark) en opgeslagen: een plaatsblok. |
 | wijkkaart | cinematics.js | beslist zelf | P3 | B | ja: overlay (wijkkaart) |  |
@@ -67,6 +68,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **scene**: Tussenfilmpjes en intro (hele scherm); niets anders start zolang er een scene loopt (alleen bekeken, nooit geremd).
 - **moment**: Gerantsoeneerde filmische momenten: nieuwe wijk, bezienswaardigheid, Ommelanden, crash-herhaling, vijf sterren. Vragen aan attention.js.
 - **banner**: De resultaatkaart midden (Missie geslaagd / mislukt, bijbaan, minigame), met stats. Houdt personagenaam, plaatsnaam, prestatie en duelbalk tegen.
+- **grotemomenten**: 
 - **naamkaart**: De naamkaart bij het eerste ontmoeten van een personage (groot, links onder, boven de ondertitel).
 - **plaatsnaam**: De naam van de plek waar je binnenkomt (zone B, bovenaan midden), met het Opgeslagen-vinkje ernaast.
 - **wijkkaart**: 
