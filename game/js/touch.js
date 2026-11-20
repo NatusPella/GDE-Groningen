@@ -3,7 +3,8 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchScale, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, leftStrip, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchScale, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, leftStrip, touchContext, stickless, touchUiActive, iconFor, phIconFor, STICK_RADIUS } from './touchlogic.js';
+import { icoon } from './icons.js';
 import { HENGEL_HINT } from './controls.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
@@ -259,9 +260,15 @@ export function initTouch(input, world, hooks = {}) {
   function face(el, label, { text = true } = {}) {
     el.setAttribute('aria-label', label);
     el.setAttribute('role', 'button');
-    const icon = iconFor(label);
+    const ph = phIconFor(label);
+    const icon = ph || iconFor(label);
     if (!icon) {
       el.classList.add('t-num');
+      if (text) { const s = document.createElement('span'); s.className = 't-lb'; s.textContent = label; el.appendChild(s); }
+      return;
+    }
+    if (ph) {
+      el.insertAdjacentHTML('beforeend', icoon(ph, { cls: 't-ic' }));
       if (text) { const s = document.createElement('span'); s.className = 't-lb'; s.textContent = label; el.appendChild(s); }
       return;
     }

@@ -17,6 +17,7 @@
 //   a big number in the middle of the screen instead.
 // - A few important cards are said out loud by whoever you play
 //   (cardlines.js, lines manifest), on the speech.js channel as a reaction.
+import { icoon } from './icons.js';
 import { readingSeconds } from './world.js';
 import { dualHtml } from './subtitles.js';
 import { lineVoiceFor } from './linevoice.js';
@@ -46,15 +47,8 @@ const VOICE_GAP = 6;
 const VOICE_REPEAT = 60;
 const HINT_REPEAT = 20;
 
-const ICON = {
-  missie: '<path d="M6 3h2v18H6zM8 4h11l-2.5 4L19 12H8z"/>',
-  bijbaan: '<path d="M9 4h6a1 1 0 0 1 1 1v2h4a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4V5a1 1 0 0 1 1-1zm1 3h4V6h-4zM3 12h18v1.6H3z"/>',
-  geld: '<circle cx="12" cy="12" r="9.5"/><path class="hc-cut" d="M15.6 8.2a4.6 4.6 0 0 0-7.3 2.1H7v1.4h1.1v.6H7v1.4h1.3a4.6 4.6 0 0 0 7.3 2.1l-.9-1.2a3.1 3.1 0 0 1-4.8-.9h3.3v-1.4H9.6v-.6h3.6v-1.4H9.9a3.1 3.1 0 0 1 4.8-.9z"/>',
-  politie: '<path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/>',
-  gevaar: '<path fill-rule="evenodd" d="M12 2.5L1.5 21h21zM11 9.5h2v6h-2zm0 7.5h2v2h-2z"/>',
-  prestatie: '<path d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.4A5 5 0 0 1 13 14.9V17h3v3H8v-3h3v-2.1A5 5 0 0 1 8.4 12H8a4 4 0 0 1-4-4V5h3zm0 4H6v1a2 2 0 0 0 1 1.7zm10 0v2.7A2 2 0 0 0 18 8V7z"/>',
-  tip: '<path d="M9 21.5h6V20H9zM12 2a7 7 0 0 0-4 12.7V18.5h8v-3.8A7 7 0 0 0 12 2z"/>',
-};
+// Betekenisnamen (icons.js, Phosphor, ADR 0041); missie- en kalenderkaarten houden hun eigen tekening.
+const ICON = { missie: 'todo', bijbaan: 'bagage', geld: 'geld', politie: 'politie', gevaar: 'waarschuwing', prestatie: 'prestaties', tip: 'idee' };
 // rank: attention.js CARD_PRIORITY (story > danger > reward > tips)
 const CARD_KINDS = {
   missie: { label: 'Missie', rank: CARD_PRIORITY.missie },
@@ -106,7 +100,10 @@ let cardLog = [];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // 'm-<i>': the icon of story mission i (missionicons.js)
-const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${(/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || (/^cal-/.test(kind) && CAL_ICONS[kind.slice(4)]) || ICON[kind] || ICON.tip}</svg>`;
+const svg = (kind) => {
+  const eigen = (/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || (/^cal-/.test(kind) && CAL_ICONS[kind.slice(4)]);
+  return eigen ? `<svg viewBox="0 0 24 24" aria-hidden="true">${eigen}</svg>` : icoon(ICON[kind] || ICON.tip);
+};
 
 export function initCards(w, root) {
   world = w;

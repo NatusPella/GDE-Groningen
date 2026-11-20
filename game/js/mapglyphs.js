@@ -5,6 +5,7 @@
 // disc's own colour where a hole is wanted (the hole shows as the badge fill).
 // Units: the disc is 4.6 wide, a glyph stays inside +-3.4. drawMapGlyph returns false for other kinds.
 import { INK } from './mapstyle.js';
+import { iconInner } from './icons.js';
 
 const CREAM = '#f2ede0';
 const DISC = INK.green;
@@ -132,6 +133,27 @@ const GLYPHS = {
 };
 export const MAP_GLYPH_KINDS = Object.keys(GLYPHS);
 
+// Phosphor (icons.js, ADR 0041): waar de browser Path2D kent tekent de schijf de betekenis uit de iconenset
+// (bold, in crème); anders (node, tests) blijft de eigen tekening hierboven. Betekenisnamen, geen bestanden.
+const PH_GLYPHS = {
+  'act-carbid': 'water', 'act-kartbaan': 'vlag', 'act-klimtoren': 'hoogte', 'act-waterski': 'zwemmen', 'act-vliegschool': 'vliegtuig',
+  'act-pannenkoek': 'kookpot', 'act-hengelen': 'vis', 'act-snackketen': 'kroon', 'act-evenementen': 'tent',
+  'pg-jelle': 'hart_vol', 'pg-fjord': 'eten', dorp: 'veroverd', onderdeel: 'tandwiel', wrakduik: 'anker', streekuitdaging: 'route',
+};
+const phPaths = new Map();
+function phGlyph(g, naam) {
+  if (typeof Path2D === 'undefined') return false;
+  let lijst = phPaths.get(naam);
+  if (!lijst) { lijst = [...iconInner(naam, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); phPaths.set(naam, lijst); }
+  if (!lijst.length) return false;
+  g.save();
+  g.translate(-3.4, -3.4); g.scale(6.8 / 256, 6.8 / 256);
+  g.fillStyle = CREAM;
+  for (const p of lijst) g.fill(p);
+  g.restore();
+  return true;
+}
+
 export function drawMapGlyph(ctx, kind, s) {
   const glyph = GLYPHS[kind];
   if (!glyph) return false;
@@ -144,7 +166,7 @@ export function drawMapGlyph(ctx, kind, s) {
   ctx.stroke();
   ctx.save();
   ctx.scale(s, s);
-  glyph(ctx);
+  if (!(PH_GLYPHS[kind] && phGlyph(ctx, PH_GLYPHS[kind]))) glyph(ctx);
   ctx.restore();
   return true;
 }

@@ -30,10 +30,15 @@ Gemeten met een grep door `game/js` op de stand van 20-11. Doel: alle iconen via
 | Hoofd-HUD: voertuig, route-afslag, doel, muziek, aangeschoten | overgezet |
 | Hoofd-HUD: wanted-sterren (vol of raster, vorm draagt de betekenis), wapensilhouetten, toerentalmeter, portret | blijven eigen tekening |
 | Kaart: zoekveld, in-, uitzoomen, naar jezelf, acties bij een plek | overgezet |
-| Kaart: markeringen op het canvas (`mapicons.js`, `mapglyphs.js`), het stuurkruis (`map-pad-reticle`) | nog niet (canvas heeft Path2D uit `iconInner()` nodig) |
+| Kaart: de 15 schijf-glyphs op het canvas (`mapglyphs.js`, Path2D uit `iconInner()`, met de eigen tekening als terugval in node) en het stuurkruis | overgezet |
+| Kaart: overige markeringen (`mapicons.js` tekent afbeeldingen per categorie) | nog niet |
 | Te doen (`todoui.js`), winkelchips, garage (chips, slot, plek, zoeken), Samen-hub-chips | overgezet |
 | Telefoon (`phonefeed.js`) | overgezet |
 | Prestaties (`achievementsui.js`) en bedieningsplaatjes (`prompts.js`, zes van de dertien) | overgezet; de rest blijft eigen tekening |
 | Lobby (favoriet, vinkje) en boerderijmenu | overgezet |
 | Sim-strook (`simhud.js`, `simicoon.js`) | bestaat nog niet in deze tak; de andere agent koppelt via `icoon('hoogte')` enzovoort |
-| Regelkaart (`regelwidget.js` ICONEN), boerderij-HUD (`farmstatus.js`), garage-silhouetten, missie- en prestatietekeningen, `hudcards.js`, mobiele overlays | nog niet |
+| HUD-kaarten (`hudcards.js`: missie, bijbaan, geld, politie, gevaar, prestatie, tip) | overgezet; missie- en kalenderkaarten houden hun eigen tekening |
+| Mobiele overlays (`touch.js`, 35 van de ca. 80 knoplabels via `PH_TOUCH`) | overgezet; de rest houdt de eigen tekening |
+| Regelkaart (`regelwidget.js`): de iconen worden met CSS-vulkleuren per toestand ingekleurd (ok, let, breekt) en zijn eigen tekeningen (kliko, zout, meel) | bewust nog niet |
+| Boerderij-HUD (`farmstatus.js`, `farmcards.js`): de groeistadia zijn eigen tekeningen, Phosphor heeft geen stadia | bewust nog niet |
+| Wapensilhouetten, toerentalmeter, wanted-sterren (vol of raster draagt de betekenis), garage-silhouetten, missie- en prestatietekeningen, toasts van prestaties | blijven eigen tekening |
