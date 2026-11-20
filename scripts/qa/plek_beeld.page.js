@@ -16,7 +16,8 @@ for (let i = 0; i < 25 && w.paused; i++) { tap(' ', 'Space'); await sleep(200); 
 const CFG = window.__pb || { plekken: [] };
 D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
-w.devInvuln = true; w.clock = 14;
+const KLOK = (window.__pb && window.__pb.klok != null) ? window.__pb.klok : 14; // uren; --klok=23 voor de nacht (#919)
+w.devInvuln = true; w.clock = KLOK;
 const { isInWater } = await import('/js/util.js');
 const WLv = await import('/js/waterlevels.js');
 const out = { plekken: [] };
@@ -29,7 +30,7 @@ try {
     for (let i = 0; i < 60 && !document.getElementById('load-screen'); i++) await sleep(100);
     for (let i = 0; i < 400 && document.getElementById('load-screen'); i++) await sleep(100);
     await sleep(6000);
-    w.clock = 14;
+    w.clock = KLOK;
     const gz = map.groundHeightAt ? (map.groundHeightAt(q.x, q.y, 0) || 0) : 0;
     rep.speler = { x: Math.round(p.x), y: Math.round(p.y), inWater: !!isInWater(map, p.x, p.y), label: (document.querySelector('.hud-place, #place, .place-name') || {}).textContent || null };
     { const pl = WLv.waterPolyAt(map, q.x, q.y, 0); rep.waterpoly = pl ? { pts: pl.pts.length, bounds: (pl.bounds || []).map(Math.round), keys: Object.keys(pl), naam: pl.name || null, kind: pl.kind || pl.type || null, holes: pl.holes ? pl.holes.length : 0 } : null; rep.waterRondom = map.waterNear(q.x, q.y, 60).length; rep.gebouwNabij = map.buildingsNear ? map.buildingsNear(q.x, q.y, 20).length : -1; }
