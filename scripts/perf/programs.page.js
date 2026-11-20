@@ -47,7 +47,7 @@ for (const a of AT) {
   out.snaps.push(s);
 }
 const win = (a, b) => { const f = frames.filter(([t]) => t >= a && t < b); return { frames: f.length, over50: f.filter(([, d]) => d > 50).length, over100: f.filter(([, d]) => d > 100).length, worst: f.reduce((m, [, d]) => Math.max(m, d), 0) }; };
-out.win = { s0_25: win(0, 25000), s25_70: win(25000, 70000), s70_end: win(70000, 1e9) };
+out.win = { s0_25: win(0, 25000), s0_60: win(0, 60000), s25_70: win(25000, 70000), s70_end: win(70000, 1e9) };
 out.hitches = frames.filter(([, d]) => d > 100).slice(0, 80);
 out.total = Math.round(performance.now() - t0);
 return JSON.stringify(out);
