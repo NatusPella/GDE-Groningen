@@ -49,7 +49,7 @@ export function mapCategory(kind) {
   if (kind === 'cash' || kind.startsWith('police')) return 'police';
   if (kind.startsWith('home')) return 'home';
   if (kind === 'own') return 'own';
-  if (kind === 'station') return 'station';
+  if (kind === 'station' || kind === 'ov-halte') return 'station'; // een bushalte hoort bij het OV-filter (ovmissie.js)
   if (kind === 'hospital') return 'zorg';
   if (kind === 'politiebureau') return 'politiebureau';
   if (kind === 'garage') return 'garage';

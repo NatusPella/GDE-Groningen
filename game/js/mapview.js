@@ -29,6 +29,7 @@ import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender } from './stationtravel.js';
 import { liveBusMarks } from './busmap.js';
+import { haltesVoorKaart } from './bushalte.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID, klikActie } from './kaartactie.js';
@@ -1805,6 +1806,8 @@ function drawDynamicMarkers(ctx, world) {
   }
   for (const sj of getSideJobSpotsForRender()) { if (onbekend(sj.x, sj.y)) continue; icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id }, samenVan('bijbaan', sj.job.id)); }
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}. Machinist: pak een stilstaande trein (E), dan G` : 'Reizen met de trein. Machinist: pak een stilstaande trein (E), dan G');
+  // de bushaltes rond de speler (ovmissie.js): bij elke halte kan een busdienst beginnen; zelfde filter als de stations
+  for (const h of haltesVoorKaart(hoofdspeler(world))) icon('trein', 'ov-halte', h.x, h.y, `Halte ${h.naam}`, {}, 'Een busdienst starten: loop erheen en druk E');
   // #922: de live bussen van vandaag, met hun lijn en dienst als label
   for (const b of liveBusMarks(hoofdspeler(world), 4)) icon(null, 'livebus', b.x, b.y, b.label, {}, b.sub);
   for (const q of ommelandMapSpots()) { if (onbekend(q.x, q.y)) continue; icon('ommeland', q.kind, q.x, q.y, q.name, {}, q.sub); }
@@ -2555,7 +2558,8 @@ const LEGEND = [
     { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },
     { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layers: ['shopsWapens'] },
-    { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layers: ['trein'] },
+    { kind: 'station', label: 'Treinstation', note: 'reizen met de trein, een treindienst rijden', layers: ['trein'] },
+    { kind: 'ov-halte', label: 'Bushalte', note: 'een busdienst starten', layers: ['trein'] },
   ] },
   { group: 'Onderweg', folded: true, rows: [
     { kind: 'companion', label: 'Maat', layers: ['companion'] },

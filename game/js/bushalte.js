@@ -125,6 +125,20 @@ function tik(dt, world) {
   ververs(world, p);
 }
 
+// De haltes voor de kaart: de dichtstbijzijnde rond de speler, niet de hele provincie. Eén keer per 150 m berekend.
+const KAART_R = 2500, KAART_MAX = 70;
+let kaartCache = { x: 1e9, y: 1e9, lijst: [] };
+export function haltesVoorKaart(p) {
+  const lines = getBusLines();
+  if (!lines.length || !p) return [];
+  if (Math.hypot(p.x - kaartCache.x, p.y - kaartCache.y) > 150) {
+    const lijst = haltesNabij(lines, p.x, p.y, KAART_R);
+    lijst.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+    kaartCache = { x: p.x, y: p.y, lijst: lijst.slice(0, KAART_MAX) };
+  }
+  return kaartCache.lijst;
+}
+
 // De halte waar de speler te voet bij staat, of null.
 function halteBijSpeler(world) {
   const p = hoofdspeler(world);
