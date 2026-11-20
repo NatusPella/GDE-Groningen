@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- **De duivenmissie "Kieken van boven" is nu in de wereld te volgen:** bij elk ding dat je moet spotten staat een gele lichtkolom met een naamplaat en de afstand, op de grond ligt de zone waarin je moet hangen, en boven het gebouw staat de naam ("Het Groninger Museum", "De Martinitoren"). Bovenin staat een kaart met "Gespot 2 van 6", het dichtstbijzijnde doel met afstand en richting in woorden, en een balk terwijl je erboven hangt. Een pijl aan de rand van het scherm wijst erheen. De eerste vlucht begint met een korte uitleg met toetsplaatjes. Een gespot ding krijgt een ring om de duif, een flits van de kolom en een belletje, en na het laatste ding is er een eindmoment. De duif-opdracht is van de speler die het spel opende; wie meedoet ziet de duif vliegen. De toetsen onderin beeld zijn nu toetsplaatjes, en "Fluit een duif" zegt dat je zelf als duif vliegt.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

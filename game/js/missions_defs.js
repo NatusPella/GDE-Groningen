@@ -142,7 +142,7 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
       startSpot: 'station',
       stages: [
         {
-          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', say: 'Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.',
+          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', place: { landmark: 'Groninger Museum', label: 'Het Groninger Museum' }, say: 'Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.',
           targets: [
             { at: [-46.86, 864.79], label: 'Vliegles: zweef boven het Stationsplein' },
             { landmark: 'Groninger Museum', off: [-30, -22], label: 'Camera bij de noordgevel' },
@@ -219,6 +219,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
         },
         {
           kind: 'pigeon', spot: 'martini', label: 'Pik de vijf touwen los', say: 'Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.',
+          place: { landmark: 'Martinitoren', label: 'De Martinitoren' },
           spotTime: 0.6, gulls: [6, 10], gullText: 'Een Fryske meeuw duikt op je af!', verb: 'Pik! %s is los',
           flag: { landmark: 'Martinitoren', off: [0, 12], z0: 42, z1: 72, width: 14 },
           targets: [
