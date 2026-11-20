@@ -109,6 +109,40 @@ export const BIJBAAN_BEATS = {
     ],
     eind: { goed: 'Het rondje is af. De gasten kijken om, de zon staat nog hoog.', mager: 'Het rondje is af. Rustig aan, de steiger wacht.', mis: 'Het rondje is voorbij. Morgen kijken we weer rond.' },
   },
+  verhuizing: {
+    open: 'De laadklep is open, de banden staan strak. Alles heel afleveren: rij voorzichtig.',
+    eerst: 'De laadklep is open. Sjouw de spullen, rij voorzichtig en laad alles heel uit: dat betaalt het best.',
+    klant: [
+      'Klant: "Die kast is van mijn oma. Hij heeft meer verhuizingen gezien dan ik."',
+      'Klant: "Niet kantelen met de plant! Hij heet Harm en hij is gevoelig."',
+      'Klant: "Is dit de laatste doos? Dan kan ik eindelijk weer zitten."',
+      'Klant: "Zet de bank maar hier. Of daar. Nee, toch hier. Of daar."',
+      'Klant: "Wat zit er in deze doos? Het klinkt als een kleine band."',
+    ],
+    eind: { goed: 'De laatste doos staat binnen. De klant zet koffie, de bank staat goed.', mager: 'Alles staat binnen. Er kwam wat langs de deur, maar niets ging stuk.', mis: 'De laadklep gaat dicht. De volgende verhuizing is een nieuwe kans.' },
+  },
+  vracht: {
+    open: 'Cabine, spiegels, oplegger. Koppel netjes en lever de lading rustig af.',
+    eerst: 'Cabine, spiegels, oplegger. Koppel netjes, rij rustig en lever de lading af: een inklapper is een slecht begin.',
+    klant: [
+      'Magazijnier: "Op de minuut. Mijn koffie is nog warm, dat zegt genoeg."',
+      'Magazijnier: "Achteruit, achteruit, nog iets, nog iets... stop. Mooi als een prentbriefkaart."',
+      'Magazijnier: "Weet je wat er in zit? Ik ook niet. Dat is het mooie aan dit werk."',
+      'Magazijnier: "De vorige chauffeur parkeerde hier met zijn ogen dicht. Jij kijkt, dat scheelt."',
+    ],
+    eind: { goed: 'De oplegger staat leeg en recht. De magazijnier steekt een duim op.', mager: 'De lading is af. De dag was kort, de cabine ruikt naar warme koffie.', mis: 'De cabine gaat dicht. Morgen een nieuwe lading, een nieuwe kans.' },
+  },
+  veerdienst: {
+    open: 'De loopplank ligt klaar, het water is glad. Breng de passagiers rustig over.',
+    eerst: 'De loopplank ligt klaar. Passagiers aan boord, rustig overvaren en netjes aanleggen: zonder haast is het beste.',
+    klant: [
+      'Passagier: "Dit is de enige boot waar ik niet over een brug hoef. Heerlijk."',
+      'Passagier: "Mag mijn fiets mee? Hij is mee, hij weet het nog niet."',
+      'Passagier: "Het is zomer, het water is glad, ik ga nooit meer ergens anders heen."',
+      'Passagier: "Rustig aan, kapitein. Mijn ijsje heeft nog geen tijd gehad om te smelten."',
+    ],
+    eind: { goed: 'De loopplank gaat omhoog. De laatste passagiers zwaaien vanaf de kade.', mager: 'De overtocht is klaar. Rustig water, rustig einde.', mis: 'De veerboot ligt vast. Morgen vaart hij weer, rustig aan.' },
+  },
 };
 
 export const BEAT_LIJNEN = Object.keys(BIJBAAN_BEATS);
