@@ -577,9 +577,9 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #hud .np-ic { width: 47px; height: 47px; border-radius: 8px; background: #1e9e56; display: grid; place-items: center; flex: none; }
 #hud .np-ic svg { width: 25px; height: 25px; fill: none; stroke: #0c140e; stroke-width: 2; stroke-linecap: round; }
 #hud .hud-nowplaying div { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
-#hud .hud-nowplaying small { font-size: 14px; color: var(--gron-green-light); }
-#hud .hud-nowplaying b { font-weight: normal; font-size: 20px; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-nowplaying span:not(.np-ic) { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: rgba(240, 237, 228, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-nowplaying small { font-size: var(--ds-t-kaart-eyebrow); color: var(--gron-green-light); }
+#hud .hud-nowplaying b { font-weight: normal; font-size: var(--ds-t-kaart-titel); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-nowplaying span:not(.np-ic) { font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--ds-t-kaart-hulp); color: rgba(240, 237, 228, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-nowplaying { transition: opacity 0.2s; transform: none; } }
 
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
@@ -852,9 +852,9 @@ body #hud .ach-toast.gold { border-left-color: var(--ds-c-ink-geel); box-shadow:
 body #hud .ach-toast::after, body #hud .ach-toast .ach-rays, body #hud .ach-toast .ach-spark { display: none; }
 body #hud .ach-toast .ach-ico, body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: none; }
 body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
-body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--hud-min); }
+body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); }
 body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: none; }
-body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 15px/1.3 var(--ds-font-zeef-tekst); letter-spacing: 0; }
+body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-zeef-tekst); letter-spacing: 0; }
 body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 
 

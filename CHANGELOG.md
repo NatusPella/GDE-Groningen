@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De kaarten op de HUD (tips, muziek, telefoon en nieuws, prestaties, activiteit) hebben nu allemaal dezelfde lettergroottes: kleine kop, titel, tekst en hulpregel. Een lange nieuws- of telefoontekst wordt niet meer groter gezet.
 - Een nieuwsbericht van Kiekdoar op de telefoon staat er nu helemaal op en wordt niet meer midden in de zin afgekapt (de kaart groeit mee tot ongeveer dertig woorden).
 - De ondertitel hangt op een laag venster (1024x600) boven de locatiekaart in plaats van erover.
 - Toetsplaatjes van Esc, Enter en Spatie in het pauzemenu zijn groter, zodat de letters erin leesbaar zijn.
