@@ -13,7 +13,7 @@ const TAAK_STATUS = { ploegen: 'geploegd', cultiveren: 'geploegd', zaaien: 'zaai
 const nl = (n, d = 0) => Number(n).toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
 const kmu = (ms) => ms * 3.6;
 
-let el = null, sleutel = '', popT = 0;
+let el = null, popEl = null, sleutel = '', popT = 0;
 const refs = {};
 
 function bouw() {
@@ -30,9 +30,14 @@ function bouw() {
     '<div class="bd-hud__rij"><div class="bd-hud__snel"><span class="bd-hud__baan" aria-hidden="true"><span class="bd-hud__zone"></span><span class="bd-hud__naald"></span></span><span class="ds-t-hulp bd-hud__snelte"></span></div>' +
     '<div class="ds-streep bd-hud__diesel" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Diesel"><span class="ds-streep__label">Diesel</span><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label bd-hud__dieselte"></span></div>' +
     '<span class="ds-t-hulp bd-hud__lading"></span></div>' +
-    '<p class="ds-t-hulp bd-hud__nu" aria-live="polite"></p><span class="bd-hud__pop ds-t-cijfer" aria-hidden="true"></span>';
+    '<p class="ds-t-hulp bd-hud__nu" aria-live="polite"></p>';
   document.body.appendChild(el);
-  for (const k of ['icoon', 'taak', 'veld', 'voortgang', 'diesel', 'zone', 'naald', 'snelte', 'dieselte', 'lading', 'nu', 'pop']) refs[k] = el.querySelector('.bd-hud__' + k);
+  // Het opspringende getal is een eigen element naast de strook: het blijft zichtbaar als je direct uitstapt en de strook verdwijnt.
+  popEl = document.createElement('span');
+  popEl.className = 'bd-hud__pop ds-t-cijfer';
+  popEl.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(popEl);
+  for (const k of ['icoon', 'taak', 'veld', 'voortgang', 'diesel', 'zone', 'naald', 'snelte', 'dieselte', 'lading', 'nu']) refs[k] = el.querySelector('.bd-hud__' + k);
   refs.voortgangLabel = refs.voortgang.querySelector('.ds-streep__label');
 }
 
@@ -63,7 +68,7 @@ export function hudModel(s) {
 
 // Elk beeld (boerderijwereld.js): toont of verbergt de strook en schrijft alleen bij een verschil.
 export function boerderijHudTik(dt, stand) {
-  if (popT > 0) { popT -= dt; if (popT <= 0 && refs.pop) { refs.pop.classList.remove('bd-pop', 'bd-pop-stil'); refs.pop.textContent = ''; } }
+  if (popT > 0) { popT -= dt; if (popT <= 0 && popEl) { popEl.classList.remove('bd-pop', 'bd-pop-stil'); popEl.textContent = ''; } }
   if (!stand) { if (el && !el.hidden) el.hidden = true; return; }
   bouw();
   if (!el) return;
@@ -98,14 +103,15 @@ export function boerderijHudTik(dt, stand) {
 export function boerderijHudKlaar(taak, fractie, uit) {
   bouw();
   const tekst = taak === 'oogsten' && uit && uit.kg ? `+${nl(uit.kg)} kg` : `${TAAK[taak] || taak}: ${Math.round((fractie || 0) * 100)}%`;
-  if (refs.pop) {
-    refs.pop.textContent = tekst;
-    refs.pop.classList.remove('bd-pop', 'bd-pop-stil');
-    if (reducedMotion()) refs.pop.classList.add('bd-pop-stil');
-    else { void refs.pop.offsetWidth; refs.pop.classList.add('bd-pop'); }
+  if (popEl) {
+    popEl.textContent = tekst;
+    popEl.classList.remove('bd-pop', 'bd-pop-stil');
+    if (reducedMotion()) popEl.classList.add('bd-pop-stil');
+    else { void popEl.offsetWidth; popEl.classList.add('bd-pop'); }
     popT = 2.6;
   }
   try { sfxLinks.uiFx(taak === 'oogsten' ? 'ui_verzameld' : 'ui_loopbaan'); } catch (e) { /* geen geluid is geen ramp */ }
 }
 
 export const _hudEl = () => el;
+export const _hudPopEl = () => popEl;

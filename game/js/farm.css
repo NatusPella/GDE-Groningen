@@ -19,7 +19,7 @@
 .bd-hud[data-snelheid="lang"] .bd-hud__naald { background: var(--ds-waarschuwing); }
 .bd-hud__lading { grid-column: 1 / -1; }
 .bd-hud__nu { margin: 0; }
-.bd-hud__pop { position: absolute; right: var(--ds-s-5); top: calc(-1 * var(--ds-s-6)); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
+.bd-hud__pop { position: fixed; left: calc(43.8vw + var(--ds-s-5)); bottom: calc(max(2vh, var(--ds-s-4)) + var(--ds-s-8) * 3); z-index: 6; pointer-events: none; color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
 .bd-hud__pop:empty { display: none; }
 .bd-pop { animation: bd-pop calc(var(--ds-m-max) * 3) var(--ds-ease) both; }
 .bd-pop-stil { opacity: 1; }

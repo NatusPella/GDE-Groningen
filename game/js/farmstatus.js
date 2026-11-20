@@ -130,3 +130,7 @@ export function decodeerVeld(c) {
 let machineBron = null;
 export function zetMachinePlekken(fn) { machineBron = typeof fn === 'function' ? fn : null; }
 export function machinePlekken() { try { return machineBron ? machineBron() || [] : []; } catch (e) { return []; } }
+// De afnemers (waar je de oogst aflevert) voor de kaart: ook voordat je de aanhanger laadt zie je waar je heen moet (#1005). Zelfde bron-patroon als de machines.
+let afnemerBron = null;
+export function zetAfnemerPlekken(fn) { afnemerBron = typeof fn === 'function' ? fn : null; }
+export function afnemerPlekken() { try { return afnemerBron ? afnemerBron() || [] : []; } catch (e) { return []; } }

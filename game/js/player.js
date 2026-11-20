@@ -75,6 +75,7 @@ const EXHAUST_RATE = 2; // health/sec
 export const CLIMB_TIME = 0.6;
 const CLIMB_REACH = 1.3;
 const CLIMB_SCAN_INTERVAL = 0.15;
+const CLIMB_GRACE_S = 0.7;   // s na het klimmen dat je niet direct het water weer in loopt (#958)
 const SPLASH_LIFE = 1.1;
 // the hedges and fences: countryside.js, which lets a vault over them
 const WALK_OPTS = { byPlayer: true, noWalls: true };
@@ -127,6 +128,7 @@ export class Player {
     this.canClimbOut = false;
     this.climb = null;
     this.climbSpot = null;
+    this.climbGraceUntil = 0;
     this.climbScanAt = 0;
   }
 
@@ -263,6 +265,9 @@ export class Player {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
       if (!inHomeFlat()) [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z, this.z);
+      // (#958) vlak na het uit het water klimmen loop je niet meteen weer de kant af: wie de richting van het water blijft vasthouden
+      // wisselde 4 s lang tussen klimmen en vallen. Na het klimmen staat de waterkant even dicht; daarna mag je er weer in.
+      if (this.climbGraceUntil > world.time && isInWater(map, nextX, nextY, this.gz + this.z)) { this.vx = 0; this.vy = 0; break; }
       this.x = nextX;
       this.y = nextY;
       this.followGround(map);
@@ -682,7 +687,7 @@ export class Player {
       this.swimTilt = -0.9 * (1 - e);
       this.vx = 0; this.vy = 0;
       this.canClimbOut = false;
-      if (k >= 1) { this.leaveWater(); [this.x, this.y] = resolveBuildingCollisions(this.x, this.y, this.radius, map); }
+      if (k >= 1) { this.leaveWater(); this.climbGraceUntil = world.time + CLIMB_GRACE_S; [this.x, this.y] = resolveBuildingCollisions(this.x, this.y, this.radius, map); }
       return;
     }
 

@@ -28,7 +28,7 @@ import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
 import { sfxLinks } from './latehooks.js';
 import { registreerVelden, standVelden } from './coopextra.js';
-import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken } from './farmstatus.js';
+import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken, zetAfnemerPlekken } from './farmstatus.js';
 import { plantGeometrie, plantMateriaal, plantLayout, stoppelGeometrie, voorGeometrie } from './farmcrops3d.js';
 import { maakVeldMarker, tikVeldMarker } from './farmmarker3d.js';
 import { boerderijHudKlaar, boerderijHudTik } from './farmhud.js';
@@ -1050,6 +1050,18 @@ registreerVelden('boerderij', () => {
     if (!pos) continue;
     const st = veldStatus(b, id);
     uit.push({ x: pos.x, y: pos.y, a: pos.a || 0, s: Math.max(0, STATUS_IDS.indexOf(st.statusId)), g: st.gewas ? Math.max(0, GEWAS_INDEX.indexOf(st.gewas)) : 0, f: Math.round(st.groei * 255) });
+  }
+  return uit;
+});
+// de afnemers op de kaart (perceelmap.js): per afnemer één plek, de weg-plek zodra die bekend is en anders de verzonnen plek zelf
+zetAfnemerPlekken(() => {
+  const uit = [], gezien = new Set();
+  for (const gewas of Object.keys(AFNEMER_PLEK)) {
+    const g = B.GEWASSEN[gewas];
+    if (!g || gezien.has(g.afnemer)) continue;
+    gezien.add(g.afnemer);
+    const p = S.afnemers.get(gewas) || (([x, y]) => ({ x, y }))(wgsToWorld(AFNEMER_PLEK[gewas][0], AFNEMER_PLEK[gewas][1]));
+    uit.push({ naam: g.afnemer, gewas, x: p.x, y: p.y });
   }
   return uit;
 });

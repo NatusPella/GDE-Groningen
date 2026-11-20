@@ -123,11 +123,18 @@ function canopyGroup(map, list, props) {
   const posts = [], gridPosts = [];
   const solid = (kind, ...args) => { const p = addStaticCollider(kind, ...args); if (props) props.push(p); return p; };
   let k = -1;
+  const gezien = new Set();
   for (const c of list) {
     k++;
     if (isPaddepoelRoof(c)) { group.add(buildPaddepoelRoof(map)); continue; }
     const pts = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
     if (pts.length < 3) continue;
+    // (#917) twee luifels met precies dezelfde omtrek (OSM-dubbelen) vallen in één vlak: de tweede doet niets extra
+    const sleutel = pts.map(([x, y]) => x.toFixed(2) + ',' + y.toFixed(2)).join(';');
+    if (!c.custom && gezien.has(sleutel)) continue;
+    gezien.add(sleutel);
+    // de verschuiving hangt aan het volgnummer én aan de plek: een tegel telt zijn luifels zelf vanaf 0, dus overlappende luifels in buurtegels kregen dezelfde hoogte
+    const stap = (k + (Math.abs(Math.round(pts[0][0] / 3) * 7 + Math.round(pts[0][1] / 3) * 13)) % 8) % 8;
     // a canopy with its own model (thuis3d.js: the petrol station) brings its own columns
     if (c.custom) {
       const own = c.custom(map);
@@ -141,7 +148,7 @@ function canopyGroup(map, list, props) {
     const geo = new THREE.ExtrudeGeometry(shape, { depth: SLAB, bevelEnabled: false });
     geo.rotateX(Math.PI / 2);
     const base = canopyBase(map, pts);
-    geo.translate(0, base + CANOPY_Y + SLAB + (k % 8) * CANOPY_STAGGER, 0);
+    geo.translate(0, base + CANOPY_Y + SLAB + stap * CANOPY_STAGGER, 0);
     const big = ringArea2(pts) > BIG_CANOPY;
     const slab = new THREE.Mesh(geo, big ? solarMaterial() : slabMat);
     slab.name = 'kap-plaat';
@@ -153,7 +160,7 @@ function canopyGroup(map, list, props) {
     if (overPerron(map, pts)) {
       const under = new THREE.ShapeGeometry(shape);
       under.rotateX(Math.PI / 2);
-      under.translate(0, base + CANOPY_Y - 0.03 + (k % 8) * CANOPY_STAGGER, 0);
+      under.translate(0, base + CANOPY_Y - 0.03 + stap * CANOPY_STAGGER, 0);
       const underMesh = new THREE.Mesh(under, perronUnderMat);
       underMesh.name = 'perronkap-onder';
       underMesh.receiveShadow = false;
