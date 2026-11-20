@@ -30,7 +30,8 @@ export function zetUitlegGezien(id) {
 // Toetsen staan in de tekst als {SPATIE}, {E}, {WASD}: de strook toont ze als toetsplaatje (en een controller als zijn knop). De echte glyphHtml (prompts.js) wordt
 // in het spel nagelaadd; zonder die (een test) valt het terug op het canonieke .hud-key-plaatje.
 let glyph = (token) => `<span class="hud-key" data-gk="${esc(token)}">${esc(token)}</span>`;
-export const zetGlyph = (fn) => { if (typeof fn === 'function') glyph = fn; };
+let glyphVer = 0;
+export const zetGlyph = (fn) => { if (typeof fn === 'function') { glyph = fn; glyphVer++; } };
 export const tekstHtml = (t) => esc(t == null ? '' : t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyph(k));
 
 export function simHudHtml(m) {
@@ -56,6 +57,8 @@ export function simHudHtml(m) {
     (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${tekstHtml(t)}</p>`).join('');
 }
 
+// #804: het model is data; zijn JSON-vingerafdruk (plus de toetsplaatjes-versie) is een veelvoud goedkoper dan de hele HTML-string met esc, svg en icoon elk beeld.
+export function modelSleutel(m) { try { return glyphVer + '|' + JSON.stringify(m); } catch (e) { return null; } }
 let el = null, inhoud = null, pop = null, sleutel = '', popT = 0;
 
 function bouw() {
@@ -90,10 +93,10 @@ export function simHudTik(dt, m) {
   bouw();
   if (!el) return;
   if (el.hidden) el.hidden = false;
-  const html = simHudHtml(m);
-  if (html === sleutel) return;
-  sleutel = html;
-  inhoud.innerHTML = html;
+  const mk = modelSleutel(m);
+  if (mk !== null && mk === sleutel) return;
+  sleutel = mk;
+  inhoud.innerHTML = simHudHtml(m);
   el.dataset.sim = m.id || '';
 }
 
