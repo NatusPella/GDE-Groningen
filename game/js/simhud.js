@@ -21,21 +21,24 @@ export function zetUitlegGezien(id) {
 }
 
 // De markup van de strook uit een model: puur, zodat een test hem zonder DOM kan nakijken.
-// model: { id, titel, icoon, plek, stappen: [{ label, icoon, stand: 'klaar'|'nu'|'straks' }], meter: { pct, label, naam, staat }, cijfers: [{ label, waarde }],
+// model: { id, titel, icoon, plek, stappen: [{ label, icoon, stand: 'klaar'|'nu'|'straks' }], meter: { pct, label, naam, staat }, primair: { icoon, waarde, naam }, cijfers: [{ icoon, label, waarde, staat }],
 //          nu, hulp, slecht, uitleg: [{ icoon, tekst }] }
 export function simHudHtml(m) {
   if (!m) return '';
   const stappen = (m.stappen || []).length
-    ? `<ol class="sh-stappen" aria-label="De stappen">${m.stappen.map((s) => `<li data-stand="${esc(s.stand || 'straks')}"${s.stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-chip">${svg(s.icoon || '', 'ds-chip__icoon')}${esc(s.label)}</span></li>`).join('')}</ol>` : '';
+    ? `<ol class="sh-stappen" aria-label="De stappen">${m.stappen.map((s) => `<li data-stand="${esc(s.stand || 'straks')}"${s.stand === 'nu' ? ' aria-current="step"' : ''}><span class="ds-chip">${svg(s.icoon || '', 'ds-chip__icoon')}<span class="sh-stap">${esc(s.label)}</span></span></li>`).join('')}</ol>` : '';
+  // volgorde: stap, dan de ene primaire waarde (groot, met pictogram) met zijn meter, dan een paar secundaire waarden (klein, gedempt, elk met pictogram), dan wat nu
+  const primair = m.primair
+    ? `<div class="sh-primair" role="group" aria-label="${esc(m.primair.naam || '')}: ${esc(m.primair.waarde)}">${svg(m.primair.icoon || '', 'ds-icoon ds-icoon--groot sh-primair__icoon')}<span class="sh-groot ds-t-cijfer">${esc(m.primair.waarde)}</span><span class="ds-t-hulp sh-primair__naam">${esc(m.primair.naam || '')}</span></div>` : '';
   const meter = m.meter
-    ? `<div class="ds-streep sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${esc(m.meter.label || '')}</span></div>` : '';
+    ? `<div class="ds-streep sh-meter${m.meter.staat ? ' sh-meter--' + esc(m.meter.staat) : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.meter.pct)}" aria-label="${esc(m.meter.naam || 'Voortgang')}" style="--ds-streep-w:${Math.round(m.meter.pct)}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span>${m.meter.label && !m.primair ? `<span class="ds-streep__label">${esc(m.meter.label)}</span>` : ''}</div>` : '';
   const cijfers = (m.cijfers || []).length
-    ? `<dl class="sh-cijfers">${m.cijfers.map((c) => `<div><dt class="ds-t-hulp">${esc(c.label)}</dt><dd class="sh-waarde">${esc(c.waarde)}</dd></div>`).join('')}</dl>` : '';
+    ? `<ul class="sh-cijfers" aria-label="Details">${m.cijfers.map((c) => `<li${c.staat ? ' data-staat="' + esc(c.staat) + '"' : ''} title="${esc(c.label)}" aria-label="${esc(c.label)}: ${esc(c.waarde)}">${svg(c.icoon || '', 'ds-icoon ds-icoon--klein sh-cijfer__icoon')}<span class="sh-waarde">${esc(c.waarde)}</span></li>`).join('')}</ul>` : '';
   const uitleg = (m.uitleg || []).length
     ? `<ul class="sh-uitleg" aria-label="Zo werkt het">${m.uitleg.map((u) => `<li><span class="ds-chip">${svg(u.icoon || '', 'ds-chip__icoon')}</span><span class="ds-t-hulp">${esc(u.tekst)}</span></li>`).join('')}</ul>` : '';
   return `<header class="sh-kop">${svg(m.icoon || '', 'ds-icoon sh-icoon')}<span class="sh-titel ds-t-subkop">${esc(m.titel || '')}</span>${m.plek ? `<span class="ds-chip sh-plek">${esc(m.plek)}</span>` : ''}</header>` +
-    stappen + meter + cijfers + uitleg + `<p class="ds-t-hulp sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` +
-    [].concat(m.hulp || []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
+    stappen + primair + meter + cijfers + uitleg + `<p class="ds-t-hulp sh-nu${m.slecht ? ' sh-nu--slecht' : ''}" aria-live="polite">${esc(m.nu || '')}</p>` +
+    (m.uitleg && m.uitleg.length ? [].concat(m.hulp || []) : []).map((t) => `<p class="ds-t-hulp sh-hulp">${esc(t)}</p>`).join('');
 }
 
 let el = null, inhoud = null, pop = null, sleutel = '', popT = 0;

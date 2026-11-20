@@ -2,6 +2,7 @@
 // strook (simhud.js): de stappen (naar de wijk, bezorgen, klaar), de voortgang over de brievenbussen, de stapel en de uitkomst van de worpen, en één zin "wat nu".
 // De regels van de worp en het loon staan in krantenrules.js; dit bestand leest ze alleen.
 import { WORP_BEREIK, WORP_LOON } from './krantenrules.js';
+import { IC } from './simicons.js';
 
 // Icoonpaden voor de chips (24x24, lijn): wijk (huisjes), krant (rol), brievenbus, vinkje.
 export const ICOON = {
@@ -37,12 +38,12 @@ export function krantHudModel(g) {
   const idx = Math.max(0, STAPPEN.findIndex((s) => s.id === g.fase));
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
   const gedaan = Math.max(0, Math.min(g.totaal, g.gedaan || 0));
-  const w = g.worpen || { bus: 0, mat: 0, gemist: 0 };
   const meter = g.fase === 'naarwijk' ? null : { pct: (gedaan / g.totaal) * 100, naam: 'Brievenbussen bezorgd', label: `${gedaan} van ${g.totaal}` };
-  const cijfers = [{ label: 'Stapel', waarde: String(Math.max(0, g.stapel || 0)) }, { label: 'In de bus', waarde: String(w.bus) }, { label: 'Op de mat', waarde: String(w.mat) }, { label: 'Mis', waarde: String(w.gemist) }];
-  if (g.tijd != null) cijfers.push({ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.tijd))} s` });
+  const primair = g.fase === 'naarwijk' ? { icoon: IC.afstand, waarde: g.afstand == null ? '-' : `${Math.round(g.afstand)} m`, naam: 'naar de wijk' } : { icoon: IC.bus, waarde: `${gedaan}/${g.totaal}`, naam: 'bezorgd' };
+  const cijfers = [{ icoon: IC.krant, label: 'Stapel kranten', waarde: String(Math.max(0, g.stapel || 0)), staat: (g.stapel || 0) <= 0 ? 'actie' : (g.stapel || 0) <= 1 ? 'let-op' : '' }];
+  if (g.tijd != null) cijfers.push({ icoon: IC.klok, label: 'Tijd over', waarde: `${Math.max(0, Math.ceil(g.tijd))} s`, staat: g.tijd < 20 ? 'let-op' : '' });
   return {
-    id: 'krantenwijk', titel: 'Krantenwijk', icoon: ICOON.krant, plek: g.wijk || '', stappen, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
+    id: 'krantenwijk', titel: 'Krantenwijk', icoon: ICOON.krant, plek: g.wijk || '', stappen, primair, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
     nu: watNu(g), hulp: 'E gooit · dichtbij en langzaam is raak', slecht: g.fase === 'bezorgen' && (g.stapel || 0) <= 0 && gedaan < g.totaal,
   };
 }
@@ -51,7 +52,7 @@ export function watNu(g) {
   if (g.fase === 'naarwijk') return `Naar de ${g.wijk}: ${g.totaal} brievenbussen in de ${g.straat}`;
   if (g.fase === 'klaar') return 'Wijk bezorgd';
   if ((g.stapel || 0) <= 0) return 'De stapel is op';
-  const lui = g.vijver && !g.lui ? ' Of de hele stapel in de container bij het water.' : '';
+  const lui = g.vijver && !g.lui ? ' · of de hele stapel in de container' : '';
   if (g.afstand != null && g.afstand <= WORP_BEREIK) return ((g.snelheid || 0) > SNEL ? 'Rustig aan: dichtbij en langzaam is raak' : 'Nu E: gooi de krant') + lui;
   return 'Ga naar de brievenbus met de gele kolom' + lui;
 }

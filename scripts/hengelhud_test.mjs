@@ -13,8 +13,9 @@ assert.equal(idle.stappen.length, STAPPEN.length);
 assert.equal(idle.stappen.filter((s) => s.stand === 'nu').length, 1, 'precies één stap heeft nadruk');
 assert.equal(idle.stappen[0].stand, 'nu'); assert.equal(idle.meter, null);
 assert.match(idle.nu, /Spatie/); assert.equal(idle.uitleg.length, 0);
-assert.deepEqual(idle.cijfers.map((c) => c.label).slice(0, 4), ['Vangsten', 'Soorten', 'Gewicht', 'Visboer']);
-assert.equal(idle.cijfers[2].waarde, '1,3 kg'); assert.equal(idle.cijfers[3].waarde, '€3');
+assert.deepEqual(idle.cijfers.map((c) => c.label), ['Vangsten', 'Visboer'], 'minder getallen: twee secundaire waarden');
+assert.equal(idle.primair.waarde, '1,3 kg'); assert.ok(idle.primair.icoon, 'de primaire waarde heeft een pictogram'); assert.equal(idle.cijfers[1].waarde, '€3');
+assert.ok(idle.cijfers.every((c) => c.icoon), 'elk getal heeft een pictogram');
 
 const wacht = hengelHudModel({ ...basis, fase: 'wait' });
 assert.equal(wacht.stappen[0].stand, 'klaar'); assert.equal(wacht.stappen[1].stand, 'nu'); assert.match(wacht.nu, /Nog niet trekken/);
@@ -33,7 +34,8 @@ assert.equal(haal.stappen[3].stand, 'nu'); assert.match(haal.nu, /Baars van 0,60
 const eerste = hengelHudModel({ ...basis, uitleg: true });
 assert.equal(eerste.uitleg.length, UITLEG.length); assert.ok(eerste.uitleg.every((u) => u.icoon && u.tekst));
 const wed = hengelHudModel({ ...basis, mode: 'wedstrijd', left: 61.2, vangsten: 3 });
-assert.equal(wed.titel, 'Hengelwedstrijd'); assert.equal(wed.cijfers[0].waarde, '62 s'); assert.equal(wed.cijfers.length, 3);
+assert.equal(wed.titel, 'Hengelwedstrijd'); assert.equal(wed.cijfers[0].waarde, '62 s'); assert.equal(wed.cijfers.length, 2); assert.equal(wed.primair.naam, 'Gewicht');
+assert.equal(hengelHudModel({ ...basis, mode: 'wedstrijd', left: 9 }).cijfers[0].staat, 'let-op', 'de laatste seconden zijn geel');
 
 // de markup: geen eigen kleuren, elke stap een woord en een icoon, de meter is een voortgangsbalk
 const html = simHudHtml(beet);

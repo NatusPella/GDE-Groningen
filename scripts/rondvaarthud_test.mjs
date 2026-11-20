@@ -13,8 +13,8 @@ assert.equal(rondvaartHudModel(null), null); assert.equal(rondvaartHudModel({}),
 const m = rondvaartHudModel(basis);
 assert.equal(m.stappen.length, STAPPEN.length); assert.deepEqual(m.stappen.map((s) => s.stand), ['klaar', 'nu', 'straks']);
 assert.equal(m.meter.label, '1 van 3 verhalen'); assert.equal(Math.round(m.meter.pct), 33);
-assert.deepEqual(m.cijfers.map((c) => c.label), ['Verhalen', 'Tevreden', 'Tempo', 'Tijd']);
-assert.equal(m.cijfers[0].waarde, '1/3'); assert.equal(m.cijfers[1].waarde, '92%'); assert.equal(m.cijfers[2].waarde, '9 km/u'); assert.equal(m.cijfers[3].waarde, '96 s');
+assert.deepEqual(m.cijfers.map((c) => c.label), ['Tevredenheid toeristen', 'Tijd over']); assert.ok(m.cijfers.every((c) => c.icoon));
+assert.equal(m.primair.waarde, '1/3'); assert.equal(m.cijfers[0].waarde, '92%'); assert.equal(m.cijfers[0].staat, 'goed'); assert.equal(m.cijfers[1].waarde, '96 s');
 assert.match(m.nu, /Vaar naar Herebrug \(141 m\)/); assert.equal(m.slecht, false); assert.equal(m.plek, 'Steiger Oosterhaven');
 
 // bij een bezienswaardigheid: te snel is een waarschuwing, rustig is vertellen met een verhaalbalk
@@ -28,8 +28,8 @@ assert.equal(instap.stappen[0].stand, 'nu'); assert.equal(instap.meter.pct, 50);
 const aan = rondvaartHudModel({ ...basis, fase: 'aanleggen', verhalen: 3 });
 assert.equal(aan.meter, null); assert.deepEqual(aan.stappen.map((s) => s.stand), ['klaar', 'klaar', 'nu']); assert.match(aan.nu, /leg stil bij de steiger/);
 assert.ok(rondvaartHudModel({ ...basis, tevreden: 40 }).slecht, 'boze toeristen zijn een waarschuwing');
-assert.equal(rondvaartHudModel({ ...basis, tijd: null }).cijfers.length, 3, 'zonder klok geen tijdcijfer');
-assert.equal(rondvaartHudModel({ ...basis, verhalenTotaal: 0, verhalen: 5 }).cijfers[0].waarde, '0/0');
+assert.equal(rondvaartHudModel({ ...basis, tijd: null }).cijfers.length, 1, 'zonder klok geen tijdcijfer');
+assert.equal(rondvaartHudModel({ ...basis, verhalenTotaal: 0, verhalen: 5 }).primair.waarde, '0/0');
 assert.equal(rondvaartHudModel({ ...basis, uitleg: true }).uitleg.length, UITLEG.length);
 assert.doesNotMatch(watNu({ ...basis, bijBezienswaardigheid: false }), /Gas eraf/);
 

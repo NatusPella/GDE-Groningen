@@ -2,6 +2,8 @@
 // strook (simhud.js): de stappen (instappen, varen, aanleggen), een balk voor het verhaal dat je vertelt of de verhalen van deze tocht, de tevredenheid van de toeristen,
 // je tempo en één zin wat nu. De regels (drempels, beoordeling) staan in sidejob_rondvaart.js; dit bestand leest ze alleen.
 
+import { IC } from './simicons.js';
+
 // Icoonpaden voor de chips (24x24, lijn): steiger (paal met plank), boot, anker, vinkje.
 export const ICOON = {
   steiger: '<path d="M3 17h18"/><path d="M6 17v3M12 17v3M18 17v3"/><path d="M8 17V8h8v9"/>',
@@ -40,10 +42,11 @@ export function rondvaartHudModel(g) {
   else if (g.fase === 'varen' && g.praat > 0) meter = { pct: klem(g.praat) * 100, naam: 'Verhaal dat je vertelt', label: `verhaal ${Math.round(klem(g.praat) * 100)}%` };
   else if (g.fase === 'varen' && totaal) meter = { pct: (gedaan / totaal) * 100, naam: 'Verhalen verteld', label: `${gedaan} van ${totaal} verhalen` };
   const tevreden = Math.max(0, Math.min(100, Math.round(g.tevreden == null ? 100 : g.tevreden)));
-  const cijfers = [{ label: 'Verhalen', waarde: `${gedaan}/${totaal}` }, { label: 'Tevreden', waarde: `${tevreden}%` }, { label: 'Tempo', waarde: `${Math.round((g.snelheid || 0) * 3.6)} km/u` }];
-  if (g.tijd != null) cijfers.push({ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.tijd))} s` });
+  const primair = { icoon: IC.verhaal, waarde: `${gedaan}/${totaal}`, naam: 'verhalen verteld' };
+  const cijfers = [{ icoon: IC.hart, label: 'Tevredenheid toeristen', waarde: `${tevreden}%`, staat: tevreden >= 80 ? 'goed' : tevreden >= 60 ? 'let-op' : 'actie' }];
+  if (g.tijd != null) cijfers.push({ icoon: IC.klok, label: 'Tijd over', waarde: `${Math.max(0, Math.ceil(g.tijd))} s`, staat: g.tijd < 20 ? 'let-op' : '' });
   return {
-    id: 'rondvaart', titel: 'Rondvaartgids', icoon: ICOON.boot, plek: g.fase === 'instappen' ? (g.steiger || '') : (g.naar || ''), stappen, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
+    id: 'rondvaart', titel: 'Rondvaartgids', icoon: ICOON.boot, plek: g.fase === 'instappen' ? (g.steiger || '') : (g.naar || ''), stappen, primair, meter, cijfers, uitleg: g.uitleg ? UITLEG : [],
     nu: watNu(g), hulp: 'Gas eraf bij een bezienswaardigheid · stoten maakt de toeristen minder tevreden', slecht: tevreden < 60 || (g.fase === 'varen' && !!g.bijBezienswaardigheid && (g.snelheid || 0) >= SLOW),
   };
 }

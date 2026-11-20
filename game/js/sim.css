@@ -1,8 +1,8 @@
 /* De HUD-strook van de light sims (#985, #980): dun en makkelijk te herstylen. Alleen ds-tokens (var(--ds-...)), geen eigen kleuren of maten, klassen met het
    voorvoegsel sh-. Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. */
 .sh-hud.ds-kaart { position: fixed;   /* twee klassen: wint van .ds-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
-  left: 50%; bottom: max(19vh, calc(var(--ds-s-8) * 2.5)); transform: translateX(-50%); z-index: 6; font-family: var(--ds-font-tekst);
-  width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6))); gap: var(--ds-s-2); pointer-events: none; }
+  left: 50%; bottom: max(13vh, calc(var(--ds-s-8) * 1.5)); transform: translateX(-50%); z-index: 6; font-family: var(--ds-font-tekst);
+  width: min(calc(var(--ds-s-8) * 5.5), calc(100vw - var(--ds-s-6))); gap: var(--ds-s-2); pointer-events: none; }
 .sh-hud[hidden], .sh-hud [hidden] { display: none; }
 .sh-inhoud { display: flex; flex-direction: column; gap: var(--ds-s-2); }
 .sh-kop { display: flex; align-items: center; gap: var(--ds-s-3); }
@@ -10,17 +10,28 @@
 .sh-stappen { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); list-style: none; margin: 0; padding: 0; }
 .sh-stappen > li[data-stand="klaar"] .ds-chip { --ds-chip-bg: var(--ds-succes-vlak); --ds-chip-tx: var(--ds-succes-tx); }
 .sh-stappen > li[data-stand="nu"] .ds-chip { --ds-chip-bg: var(--ds-primair); --ds-chip-tx: var(--ds-primair-tx); }
+/* alleen de stap die nu aan de beurt is toont zijn woord; de andere chips zijn een icoon (het woord blijft voor schermlezers): de strook blijft klein en dekt het water niet af */
+.sh-stappen > li:not([data-stand="nu"]) .sh-stap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .sh-meter--laag .ds-streep__vul { background: var(--ds-probleem); }
-.sh-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; }
-.sh-cijfers > div { display: flex; flex-direction: column; }
-.sh-cijfers dd { margin: 0; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
+.sh-hud .ds-icoon { fill: none; }   /* de pictogrammen zijn lijnen; ds-icoon vult standaard */
+.sh-primair { display: flex; align-items: center; gap: var(--ds-s-3); }
+.sh-primair__icoon { flex: none; color: var(--ds-primair); }
+.sh-groot { font-weight: 700; line-height: var(--ds-lh-kop); }
+.sh-primair__naam { margin-left: auto; }
+.sh-cijfers { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; color: var(--ds-tx-zacht); }
+.sh-cijfers > li { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+.sh-cijfer__icoon { flex: none; }
+.sh-cijfers > li[data-staat="goed"] { color: var(--ds-succes-tx); }
+.sh-cijfers > li[data-staat="let-op"] { color: var(--ds-waarschuwing-tx); }
+.sh-cijfers > li[data-staat="actie"] { color: var(--ds-probleem); }
+.sh-waarde { font-weight: 600; }
 .sh-hulp { margin: 0; }
 .sh-uitleg { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); list-style: none; margin: 0; padding: 0; }
 .sh-uitleg > li { display: flex; align-items: center; gap: var(--ds-s-2); }
 .sh-nu { margin: 0; }
 .sh-nu--slecht { color: var(--ds-probleem); }
 .sh-pop { position: fixed; left: 0; right: 0; margin-inline: auto; width: max-content; max-width: calc(100vw - var(--ds-s-6)); z-index: 7; pointer-events: none;
-  bottom: calc(max(19vh, calc(var(--ds-s-8) * 2.5)) + var(--ds-s-8) * 3.5); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
+  bottom: calc(max(13vh, calc(var(--ds-s-8) * 1.5)) + var(--ds-s-8) * 2.6); color: var(--ds-succes-tx); background: var(--ds-succes-vlak); border-radius: var(--ds-r); padding: 0 var(--ds-s-3); opacity: 0; }
 .sh-pop:empty { display: none; }
 .sh-pop--aan { animation: sh-pop calc(var(--ds-m-max) * 3) var(--ds-ease) both; }
 .sh-pop--stil { opacity: 1; }
@@ -28,6 +39,6 @@
 @media (prefers-reduced-motion: reduce) { .sh-pop--aan { animation: none; opacity: 1; } }
 
 /* De bakronde (Oma's eierballen, #985): zelfde plek en taal als de strook; de regelwidgets (stappen en legenda) staan er als losse glazen onderdelen in. */
-.bk-paneel.ds-kaart { pointer-events: none; }
+.bk-paneel.ds-kaart { pointer-events: none; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6))); }
 .bk-regel, .bk-toetsen { display: flex; justify-content: center; }
 .bk-ronde { white-space: nowrap; }
