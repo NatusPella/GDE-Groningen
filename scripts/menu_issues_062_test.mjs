@@ -98,7 +98,7 @@ const html = leesHtml();
   ok(koppen.join('|') === 'Muis|Toetsenbord|Controller|Aanraken|In het spel', '#894: vijf koppen in een vaste, leesbare volgorde', koppen.join('|'));
   ok(/\$\{keyChangedRow\(\)\}/.test(besturing) && /function keyChangedRow/.test(pm), '#894: één rij zegt hoeveel er aangepast is, met één knop terug');
   ok(/binds-reset-all/.test(pm) && /setSetting\('keyBinds', \{\}\)/.test(pm) && /setSetting\('padBinds', \{\}\)/.test(pm), '#894: die knop zet toetsen én knoppen terug');
-  ok(/function fixedKeysHtml/.test(pm) && /Esc, Enter, de pijltjes/.test(besturing), '#894: de vaste toetsen staan er met hun uitleg');
+  ok(/function fixedKeysHtml/.test(pm) && /{ESC}, {ENTER}, {ARROWS}/.test(besturing), '#894: de vaste toetsen staan er met hun uitleg');
   ok(/function keyReuseHtml/.test(pm) && /Dezelfde toets, meer taken/.test(pm), '#894: toetsen met meer taken staan op één rij');
   ok(/keyReuseHtml\(\)/.test(besturing), '#894: dat blok staat naast de besturing');
   ok(/zit een toets al op iets anders, dan ruilen ze/.test(besturing), '#894: de ruilregel staat bij de knop zelf');
