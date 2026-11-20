@@ -1,0 +1,5 @@
+
+[smoke] {"ready":true,"canvas":true,"version":"v0.64.0","font":true,"desktop":true,"fullscreen":false,"menu":"","started":true,"loading":false,"pauseButtons":"resume,exit,resume,resume,save,saves,menu,exit,restart,load,new,cancel,coop-load-go,coop-load-cancel,coop-new-go,coop-new-cancel","fullscreenToggle":true}
+[perf-script] {"size":"1920x1080","done":["50-hud-te-voet","51-hud-rijden-compacte-snelheidsmeter","52-hud-rijden-politie-wanted-minikaartlabel","53-hud-te-voet-politie-wanted","54-hud-telefoon-nieuws-lange-kop","55-hud-kaarten-tip-missie-geld","56-hud-toetshints-instappen","70-laadscherm-save-stap-1","71-laadscherm-save-stap-2","72-laadscherm-save-stap-3","73-laadscherm-save-stap-4","75-laadscherm-snel-stap-1"],"notities":{"laadnoot":"laadscherm: de balk en stap per beeld handmatig gezet op een kopie van het echte scherm (echte stapteksten uit loadlogic); het eerste laadscherm (boot) staat in boot-NN.png"}}
+
+(electron) 'console-message' arguments are deprecated and will be removed. Please use Event<WebContentsConsoleMessageEventParams> object instead.

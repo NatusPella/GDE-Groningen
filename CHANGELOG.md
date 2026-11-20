@@ -138,6 +138,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Opgelost
 
 - Het containerlabyrint (M13): de kraan staat nu op de kade van de Eemshaven en de container op open terrein achter de kaderweg, niet meer in een weiland of op de weg. De plekken hangen aan één anker en vallen terug op de dichtstbijzijnde vrije plek; voor iedereen in Samen spelen is dat dezelfde plek.
+- De kaart en de minikaart staan nu ook met het land in de nieuwe kleuren: glasgroen land, bordgroen voor parken en bos, een rustig blauw voor water, crème wegen en papieren gebouwen. De markers (diensten, winkels, politie, vervoer) gebruiken vijf kleurrollen met een crème rand; geel blijft voor je doel en je route. De oude kaartplaat wordt bij het laden herkleurd, dus er is geen nieuwe wereld nodig.
+- Je kunt Zo werkt de kaart altijd sluiten: met Begrepen, Enter, Escape (of B op de controller) of door ernaast te klikken, en hij komt niet terug na heropenen.
 
 ## [0.64.0] - 2026-11-20
 
