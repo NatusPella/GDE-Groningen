@@ -68,7 +68,10 @@ const CSS = `
 #pause-menu .gar-stage .gar-hint { padding-left: var(--ds-s-3); }
 #pause-menu .gar-bon { flex: none; gap: var(--ds-s-3); padding-top: var(--ds-s-4); }
 #pause-menu .gar-bon .ds-z-kaart__kop { padding-top: var(--ds-s-2); padding-bottom: var(--ds-s-2); }
-#pause-menu .gar-bon .ds-z-kaart__titel { font-size: var(--ds-t-label); }
+#pause-menu .gar-bon .ds-z-kaart__titel { font-size: max(var(--ds-t-subkop), var(--menu-min, 13px)); text-shadow: none; }
+/* koppen van een blok (Cijfers, Uitvoering): links, boven hun eigen blok, met een inktstreep; .ds-z-kaart__voet zet ze anders rechts */
+#pause-menu .gar-blok > h3 { justify-content: flex-start; align-items: baseline; margin: 0; padding-bottom: var(--ds-s-1); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(var(--ds-t-label), var(--menu-min, 13px)); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
+#pause-menu .gar-blok > h3 > span { font-family: var(--ds-font-tekst-v3); font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--ds-tx-zacht); }
 #pause-menu .gar-naam { overflow-wrap: anywhere; }
 #pause-menu .gar-bon .mut, #pause-menu .gar-meme { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
 #pause-menu .gar-bon .gar-state { flex: none; }
