@@ -100,6 +100,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-RONDE-21-11.md](<PERF-RONDE-21-11.md>) | Prestatieronde 21-11 (#804, #937, #921): lui decoderen van de SFX, rust tussen zware wegen, layoutlezing van kaartjes, simhud en boerderij; voor/na en wat niet gemeten kon worden. |
 | [PERF-RENDER-21-11.md](<PERF-RENDER-21-11.md>) | Renderprestaties over de breedte 21-11: drawcalls en triangles per preset en scene, wat de belaste machine wel en niet liet meten, en het voorstel voor gepaarde metingen. |
 | [PERF-PROFIEL-21-11.md](<PERF-PROFIEL-21-11.md>) | CPU-profiel van de hoofdthread in vier scenes (21-11): hitch-bronnen, top-10 hotspots, heap levend tegenover gebruikt, drie fixes met tellers en wat open staat. |
+| [POPIN-21-11.md](<POPIN-21-11.md>) | Pop-in (#1016): meting per categorie met `scripts/qa/popin.mjs`, oorzaken (tekenstraal tegen mist, de detailring die krimpt, harde randen), fixes voor bomen, voertuigen, grasvlakken en voorladen, voor/na en wat niet bewezen is. |
 | [WEER-LICHT-AUDIT-20-11.md](<WEER-LICHT-AUDIT-20-11.md>) | Audit van weer, licht en dag-nacht (#985): wat er staat, wat springt of veel kost, welke zachte overgangen er zijn bijgekomen en wat nog niet in beeld is gezien. |
 | [PERSKIT.md](<PERSKIT.md>) | Perskit voor de openbare playtest: pitch, quote-waardige regels, feiten, beeld en een concept-persbericht (nog niet verstuurd). |
 | [PLAYTESTPLAN.md](<PLAYTESTPLAN.md>) | Doel: zien of een speler die de game niet kent het verhaal volgt, steeds weet wat het doel is en tot het ei… |

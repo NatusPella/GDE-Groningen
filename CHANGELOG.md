@@ -69,6 +69,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Sneller
 
 - **Minder haperen tijdens het lopen en rijden (CPU-profiel):** de routegraaf en de wegen- en verkeersindex worden na elke nieuwe tegel opnieuw opgebouwd; die herbouw is nu goedkoper (gebouwtoets zonder kopieën, knooppunten als getal), en het gras gooit niet meer al zijn stukken weg zodra een tegel met groen binnenkomt.
+### Verbeterd
+
+- **Minder pop-in van bomen, grasvlakken en ramen (#1016):** bomen doven in een korte band vóór hun tekenafstand uit (schermdeurpatroon) in plaats van in één keer te verdwijnen of te verschijnen, en de boomlijst wordt een herbouwstap verder geladen dan getekend. Grasvlakken worden net buiten het zicht alvast klaargezet en pas op hun afstand getoond, auto's blijven iets langer staan op de rand van het zicht en op een drukke machine tekent het spel de raamkozijnen en gevelversiering op grotere afstand (140, 90 en 60 m in plaats van 100, 70 en 45 m). Meetscript: `scripts/qa/popin.mjs`; uitleg en wat niet bewezen is in docs/POPIN-21-11.md.
 
 ## [0.64.0] - 2026-11-20
 

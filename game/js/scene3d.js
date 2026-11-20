@@ -94,6 +94,8 @@ import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
+import { applyEdgeFade, edgeFadeClone } from './edgefade3d.js';
+import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
@@ -667,7 +669,7 @@ function buildVehicleActor(v) {
 // Traffic spawns 70+ m out, so a new car's mesh can wait a frame or two:
 // beyond VEH_NEAR only one is built per frame once VEH_BUILD_MS is spent.
 const VEH_BUILD_MS = 3;
-const VEH_NEAR = 45;
+const VEH_NEAR = 45, VEH_KEEP_EXTRA = 15;
 const _vehSeen = new Set();
 function syncVehicleMeshes(world, player) {
   _vehSeen.clear();
@@ -684,7 +686,7 @@ function syncVehicleMeshes(world, player) {
   }
   for (const v of world.vehicles) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d >= DRAW_DIST) continue;
+    if (d >= DRAW_DIST + (vehicleMeshes.has(v.id) ? VEH_KEEP_EXTRA : 0)) continue; // #1016: hysterese, geen bouwen en slopen op de rand
     if (!vehicleMeshes.has(v.id)) {
       if (cine ? built >= 2 : (built > 0 && d > VEH_NEAR && performance.now() > deadline)) continue;
       const mesh = enableShadows(buildVehicleActor(v), false);
@@ -1572,13 +1574,14 @@ const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0,
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 // a conifer: a cone of radius 1 from y -1 to 1
 const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
-SHARED_MATERIALS.add(TREE_TRUNK_MAT);
-SHARED_MATERIALS.add(TREE_CANOPY_MAT);
-SHARED_GEOMETRIES.add(TREE_TRUNK_GEO);
-SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
-SHARED_GEOMETRIES.add(TREE_CONE_GEO);
+for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETRIES.add(g);
 // a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
 const TREE_FAR = 260;
+const TREE_NEAR_R = loadRadius(TREE_DIST);
+// #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST));
+const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24));
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();
 function tumbleMat(hex) {
@@ -1672,7 +1675,7 @@ function ensureTreeCapacity(n) {
   make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
   make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity * 2);
   make(TREE_CONE_GEO, TREE_CANOPY_MAT, treeCapacity);
-  make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity, false);
+  make(TREE_CANOPY_GEO, TREE_FAR_MAT, treeCapacity, false);
 }
 
 // --- per-frame sync ------------------------------------------------------
@@ -1883,7 +1886,7 @@ let buildingDetailR = DRAW_DIST;
 const FACADE_DETAIL_DIST = { laag: 80 };
 let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
-const CPU_FACADE_DIST = [Infinity, 100, 70, 45];
+const CPU_FACADE_DIST = [Infinity, 140, 90, 60]; // #1016: was [Infinity, 100, 70, 45]: de raamkozijnen sprongen op een drukke machine al op 100 m aan
 let shadowFrame = 0;
 // no vehicle faster than 4 m/s in (or just next to) the area that casts shadows
 function shadowAreaCalm(world, fx, fy) {
@@ -2296,12 +2299,12 @@ function syncTrees(world, px, py) {
   if (!treeSyncDue(px, py, treeSyncX, treeSyncY, hiddenChanged, map.geoVer, treeSyncGeoVer)) return;
   // the trees round the player, and further out the crowns of the woods
   // #760: dezelfde query in een herbruikbuffer i.p.v. een nieuwe array per aanroep
-  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, TREE_FAR);
+  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, loadRadius(TREE_FAR));
   const trees = [];
   for (let i = 0; i < n; i++) {
     const t = _treeQuery[i];
     if (t._broken) continue;
-    if (Math.abs(t[0] - px) <= TREE_DIST && Math.abs(t[1] - py) <= TREE_DIST && Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST) trees.push(t);
+    if (Math.abs(t[0] - px) <= TREE_NEAR_R && Math.abs(t[1] - py) <= TREE_NEAR_R && Math.hypot(t[0] - px, t[1] - py) <= TREE_NEAR_R) trees.push(t);
     else if (t[4] & TREE_FLAG.fill) trees.push(t);
   }
   if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) {
@@ -2327,12 +2330,9 @@ function syncTrees(world, px, py) {
     _treeGroup.updateMatrix();
     const d = layoutTree(t, trunk, canopy, lobe);
     treeColor(t, _leaf);
-    const near = Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST;
-    if (!near) {
-      // far: the crown only, no shadow
-      put(far, canopy, _leaf);
-      continue;
-    }
+    const dd = Math.hypot(t[0] - px, t[1] - py), near = dd <= TREE_NEAR_R;
+    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) put(far, canopy, _leaf); // far crown: no shadow; woods overlap it in the fade band
+    if (!near) continue;
     _bark.setHex(SPECIES[d.sp].trunk);
     put(trunks, trunk, _bark);
     const hideCrown = camTreeHidden.includes(t) && crownShadowOnly.count < CROWN_SHADOW_CAP - 1;
@@ -4350,7 +4350,7 @@ function applyTimeOfDay(dt, world) {
   setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   // the leaves' emissive fill fades with the same night as the windows (#463)
-  TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  TREE_FAR_MAT.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
