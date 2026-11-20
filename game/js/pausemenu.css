@@ -1386,6 +1386,9 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
   #pause-menu .pm-q-head, #pause-menu .pm-ver, #pause-menu .pm-rail-sp { display: none; }
   #pause-menu .pm-rail-go { padding-top: 4px; }
 }
+/* Loopbanen: de stand op één regel */
+#pause-menu .lb-stand { display: flex; flex-wrap: wrap; gap: 4px 24px; padding: 6px 24px; font-size: 18px; }
+#pause-menu .lb-stand b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; font-weight: normal; }
 /* Boerderij: de onderdelen zijn tabs, dus het detail heeft de hele breedte */
 #pause-menu .pm-boerderij .bd-main { display: block; padding-top: 12px; }
 #pause-menu .pm-boerderij .bd-main > .bd-pane { width: auto; max-width: none; }

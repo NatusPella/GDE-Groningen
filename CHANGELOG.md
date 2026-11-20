@@ -18,6 +18,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Pauzemenu: Boerderij heeft een eigen plek in de zijbalk onder Doen ("Begin je boerderij" zolang je nog niet op het land hebt gewerkt). Percelen, Erf, Gewas, Machines, Kasboek en Bank staan als tabs in het scherm zelf, en Spel heeft een regel "Naar mijn boerderij".
 - Boerderij: je velden staan als één rustige lijst, met per veld een icoon, de stand, de oppervlakte en de knop "Zet op de kaart".
 
+- Spullen: pictogrammen uit de vaste set, de hoofdactie toont de toets (Enter) en Q en E wisselen tussen Alles, Uitrusting, Thuis en Verzamelingen.
+- Loopbanen: de stand staat op één regel en elke loopbaan in de lijst heeft twee regels met het niveau rechts, zonder balk per rij.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

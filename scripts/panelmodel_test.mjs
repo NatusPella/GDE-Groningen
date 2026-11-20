@@ -35,4 +35,12 @@ t('de bron: eigen rail-item onder Doen, tabs in het paneel, dynamisch label, act
   assert.match(ui, /Begin je boerderij/);
 });
 
+t('Spullen: Phosphor-pictogrammen, Enter-hint op de hoofdactie en Q/E tussen de groepen', () => {
+  const sp = lees('game/js/spullen.js');
+  assert.ok(sp.includes("import { icoon } from './icons.js'"));
+  assert.doesNotMatch(sp, /<svg class="pm-ic"/);
+  assert.match(sp, /m-kc dark">Enter/);
+  assert.match(lees('game/js/pausemenu.js'), /if (tab === 'spullen' && cycleSpullenDelen(dir)) return;/);
+});
+
 console.log(`panelmodel_test: ${n}/${n} ok`);

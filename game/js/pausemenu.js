@@ -436,7 +436,7 @@ const HINTS = {
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
   map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'onderdeel'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
-  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'groep'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   loopbaan: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -1346,6 +1346,7 @@ function onKey(e) {
     // Q/E and [ ] do what the footer says (DESIGN_SYSTEM.md, "Menus"): the visible tab
     // row first, the innermost one on a screen with a second row (Spel > Samen spelen),
     // then the section's own tabs, then the previous or next section (#601).
+    if (tab === 'spullen' && cycleSpullenDelen(dir)) return;
     if (SUBTABS[tab] && cycleVisibleTabs(dir)) return;
     if (cycleOwnTabs(dir)) return;
     cycleSection(dir);
@@ -1641,6 +1642,15 @@ function cycleVisibleTabs(dir) {
   if (tab === 'settings' || tab === 'spel') syncControls();
   const again = activePanel().querySelector(`[data-of="${next.dataset.of}"][data-subtab="${next.dataset.subtab}"]`);
   focusEl(again || next);
+  return true;
+}
+
+// Spullen: Q en E wisselen tussen de groepen (Alles, Uitrusting, Thuis, Verzamelingen), zoals de footer zegt
+function cycleSpullenDelen(dir) {
+  const chips = [...root.querySelectorAll('[data-panel="spullen"] [data-spul-deel]')];
+  if (!chips.length) return false;
+  const i = Math.max(0, chips.findIndex((c) => c.getAttribute('aria-pressed') === 'true'));
+  chips[(i + dir + chips.length) % chips.length].click();
   return true;
 }
 

@@ -150,9 +150,8 @@ function rij(profiel, info) {
   const namen = bezighedenNamen(info.id);
   const onder = `${nul ? 'Nog niet begonnen' : d.titel}${aantal ? ` · ${aantal} ${aantal === 1 ? 'bezigheid' : 'bezigheden'}` : ''}`;
   return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
-    `<span class="lb-sfeer-chip" style="${sfeerStijl(info.id)}" aria-hidden="true"></span>` +
     `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(onder)}</span></span>` +
-    `<span class="lb-niv"><b>${d.niveau}</b><span>van ${L.MAX_NIVEAU}</span></span><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lb-${info.id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span></button>`;
+    `<span class="lb-niv"><b>${d.niveau}</b><span>van ${L.MAX_NIVEAU}</span></span></button>`;
 }
 
 // Elke bezigheid van een loopbaan staat er één keer: de bijbanen uit loopbaan.js (BAAN_VAK) en, bij Vissen en Landbouw, het
@@ -345,10 +344,8 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
       ? `<p class="pm-hero-lead">Er wachten ${L.VAKKEN.length} loopbanen op je. Doe in één vak een eerste klus en je krijgt je eerste titel, met meer loon bij elke stap omhoog.</p>` +
         `<div class="lb-eerste ds-zeef" role="list" aria-label="Zo begin je"><span class="ds-z-chip" role="listitem">1. Kies een vak</span><span class="ds-z-chip" role="listitem">2. Doe de eerste klus</span><span class="ds-z-chip" role="listitem">3. Krijg je titel</span></div></section>`
       : `<p class="pm-hero-lead">Kies links een vak: elk vak heeft zijn eigen ladder, zijn eigen loon en de klussen die erbij horen.${eerste.klaar ? ' Je bent de duizendpoot van Grunn.' : ''}</p></section>`);
-  const stats = `<div class="pm-stats lb-stats">` +
-    `<span class="pm-stat" data-tone="accent"><b>${eerste.gedaan}</b><span>van ${eerste.totaal} eerste klussen${duizendpoot}</span><span class="m-bar${eerste.gedaan ? ' on' : ''}"><i data-bar="lb-eerste" data-w="${pctEerste}"></i></span></span>` +
-    `<span class="pm-stat"><b>${omhoog}</b><span>van ${maxOmhoog} niveaus omhoog</span><span class="m-bar${omhoog ? ' on' : ''}"><i data-bar="lb-niveau" data-w="${pctNiveau}"></i></span></span>` +
-    `<span class="pm-stat"><b>${sam.aantal}</b><span>van ${L.VAKKEN.length} loopbanen begonnen</span><span class="m-bar${sam.aantal ? ' on' : ''}"><i data-bar="lb-gestart" data-w="${pctGestart}"></i></span></span></div>`;
+  // de stand op één regel (panelmodel, 21-11): drie vakken met elk een balk herhaalden wat de hero al zegt
+  const stats = `<div class="pm-stats lb-stats lb-stand"><span><b>${sam.aantal}</b> van ${L.VAKKEN.length} loopbanen begonnen</span><span><b>${eerste.gedaan}</b> van ${eerste.totaal} eerste klussen${duizendpoot}</span><span><b>${omhoog}</b> van ${maxOmhoog} niveaus omhoog</span></div>`;
   const lijst = L.GROEPEN.map((g) => {
     const vakken = L.VAKKEN.filter((v) => v.groep === g.id);
     const begonnen = vakken.filter((v) => L.isGestart(profiel, v.id)).length;
