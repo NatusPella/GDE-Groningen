@@ -4,6 +4,7 @@ export function bevindingen(r) {
   if (!r || typeof r !== 'object') return b;
   if (r.opm && [].concat(r.opm).some((o) => /geen focus/.test(o))) b.push('geen focus te krijgen met de D-pad');
   if (r.onbereikbaar && r.onbereikbaar.length) b.push(`${r.onbereikbaar.length} klikdoel(en) onbereikbaar met de D-pad`);
+  if (r.rail && r.rail.mist && r.rail.mist.length) b.push(`${r.rail.mist.length} railknop(pen) niet met de D-pad te bereiken`);
   if (r.focusVal) b.push('focus valt op de pagina (body) tijdens het lopen');
   if (r.dubbeleRing) b.push(`${r.dubbeleRing} extra focusring(en)`);
   if (typeof r.aKlik === 'string' && /^GEEN/.test(r.aKlik)) b.push('A klikt de gefocuste knop niet');

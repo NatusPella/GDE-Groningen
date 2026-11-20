@@ -60,7 +60,7 @@ async function loop(dir, bezocht, max = 70) {
 
 // ---------- het meten van één scherm ----------
 async function meetScherm(naam, root, opties = {}) {
-  const r = { naam, doelen: 0, bereikt: 0, onbereikbaar: [], geenStartFocus: false, focusVal: 0, dubbeleRing: 0, aKlik: null, bTerug: null, bumper: null, trigger: null, scroll: null, kbHint: [], woordHint: [], opm: [] };
+  const r = { naam, doelen: 0, bereikt: 0, onbereikbaar: [], geenStartFocus: false, focusVal: 0, pogingen: [], dubbeleRing: 0, aKlik: null, bTerug: null, bumper: null, trigger: null, scroll: null, kbHint: [], woordHint: [], opm: [] };
   if (!root || !echtZichtbaar(root)) { r.opm.push('scherm niet zichtbaar'); gelogd(naam, r); return; }
   const alle = klikbaar(root);
   r.doelen = alle.length;
@@ -102,6 +102,7 @@ async function meetScherm(naam, root, opties = {}) {
           o.focus({ preventScroll: true }); await druk(d);
           const nu = document.activeElement;
           if (nu && nu !== o && root.contains(nu)) { if (!bezocht.has(nu)) { bezocht.add(nu); voortgang = true; } }
+          if (r.pogingen.length < 40) r.pogingen.push(label(e) + ' <- ' + label(o) + ' ' + d + ' = ' + label(nu));
           if (nu === e) { gevonden = true; break; }
         }
         if (gevonden) break;
@@ -109,6 +110,17 @@ async function meetScherm(naam, root, opties = {}) {
     }
     rest = alle.filter((e) => !bezocht.has(e) && echtZichtbaar(e));
     if (!voortgang) break;
+  }
+  // de rail (secties) van het pauzemenu: vanaf de huidige sectie met de D-pad omhoog en omlaag, bereik je alle secties?
+  const rail = root.querySelector('.pm-game');
+  if (rail && opties.rail !== false) {
+    const huidig = rail.querySelector('[aria-current="true"]') || rail.querySelector('button');
+    const secties = [...rail.querySelectorAll(FOCUSABLE)].filter(echtZichtbaar);
+    const bez = new Set(); if (huidig) { huidig.focus({ preventScroll: true }); bez.add(huidig); }
+    for (const d of ['up', 'down', 'down']) for (let i = 0; i < secties.length + 2; i++) { await druk(d); const nu = document.activeElement; if (nu && rail.contains(nu)) bez.add(nu); }
+    r.rail = { secties: secties.length, bereikt: bez.size, mist: secties.filter((e) => !bez.has(e)).map(label) };
+    for (const e of secties) if (bez.has(e)) bezocht.add(e);
+    rest = alle.filter((e) => !bezocht.has(e) && echtZichtbaar(e));
   }
   r.bereikt = alle.length - rest.length;
   r.onbereikbaar = rest.slice(0, 14).map(label);
