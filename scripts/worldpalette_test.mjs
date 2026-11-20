@@ -51,6 +51,7 @@ for (const m of [0.3, 0.5, 1]) {
 {
   const g0 = rgb(0x4f7234), g1 = rgb(dsWereld(0x4f7234, 'groen', 1));
   ok(g1[2] / g1[1] > g0[2] / g0[1], 'gras: blauwer dan geel naar bordgroen');
+  ok(sat(dsWereld(0x4f7234, 'groen', 1)) < sat(0x4f7234) && sat(dsWereld(0x6a9352, 'loof', 1)) < sat(0x6a9352), 'gras en loof worden gedempter, niet fleuriger');
   ok(sat(dsWereld(0x8f4634, 'auto', 0.5)) < sat(0x8f4634), 'baksteen wordt minder verzadigd');
   ok(sat(dsWereld(0xd6cab0, 'auto', 1)) <= sat(0xd6cab0) + 0.001, 'crème wordt niet fleuriger');
   const z = rgb(dsWereld(0x232323, 'auto', 1));

@@ -4,10 +4,13 @@ const { app, BrowserWindow } = require('electron');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-app.setPath('userData', fs.mkdtempSync(path.join(os.tmpdir(), 'gde-plaat-')));
+const prof = process.env.GDE_PLAAT_PROFILE || path.join(os.tmpdir(), 'gde-plaat-' + process.pid); // eigen wegwerpmap (GDE_PLAAT_PROFILE als %TEMP% niet schrijfbaar is)
+fs.mkdirSync(prof, { recursive: true });
+app.setPath('userData', prof);
 const [inHtml, uitPng, breedte] = process.argv.slice(-3);
+setTimeout(() => { console.log('timeout'); process.exit(3); }, 90000);
 app.whenReady().then(async () => {
-  const win = new BrowserWindow({ show: false, width: Number(breedte) || 1900, height: 900, webPreferences: { offscreen: false, sandbox: true } });
+  const win = new BrowserWindow({ show: true, width: Number(breedte) || 1900, height: 900, webPreferences: { offscreen: false, sandbox: true, backgroundThrottling: false } });
   await win.loadFile(path.resolve(inHtml));
   await new Promise((r) => setTimeout(r, 1500));
   const h = await win.webContents.executeJavaScript('Math.ceil(document.documentElement.scrollHeight)');

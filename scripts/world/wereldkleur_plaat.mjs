@@ -36,7 +36,7 @@ if (modus === 'kleurplaat') {
   const plekken = JSON.parse(fs.readFileSync(path.join(map, 'plekken.json'), 'utf8')); // [{ naam, label }]
   const kol = [['m0', 'VOOR: oud palet (0)'], ['m25', 'NA: meng 0,25'], ['m50', 'NA: meng 0,5']];
   let h = `<!doctype html><meta charset="utf-8"><style>${CSS}
-.plek{padding:0 28px 14px}.plek b{display:block;font:700 20px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;text-transform:uppercase;padding:6px 0 4px}.r{display:flex;gap:8px}.r div{flex:1;position:relative}.r img{width:100%;display:block;border:2px solid #1d1b17}.r span{position:absolute;left:0;top:0;background:#1d1b17;color:#f3ead3;font:700 13px monospace;padding:2px 7px}
+.plek{padding:0 28px 14px}.plek b{display:block;font:700 20px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;text-transform:uppercase;padding:6px 0 4px}.r{display:flex;gap:8px}.r div{flex:1;position:relative;overflow:hidden;border:2px solid #1d1b17}.r img{width:100%;display:block;margin-bottom:-4.6%;clip-path:inset(0 0 9% 0)}.r span{position:absolute;left:0;top:0;background:#1d1b17;color:#f3ead3;font:700 13px monospace;padding:2px 7px}
 .aanb{margin:6px 28px 18px;padding:12px 16px;border:3px solid #0e6b3c;background:#fbf4de;max-width:1700px;font-size:17px}</style>
 <h1>Wereldkleur: voor en na (21-11)</h1><div class="sub">Zelfde plek, zelfde tijd en weer, 1280x720 uit het echte spel; links het oude palet, in het midden en rechts de wereldkleur van worldpalette.js (subtiel richting het designsysteem).</div>
 <div class="aanb"><b>Aanbeveling:</b> ${esc(aanb || '(volgt)')}</div>`;

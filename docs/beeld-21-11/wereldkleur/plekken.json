@@ -1,0 +1,38 @@
+[
+ {
+  "naam": "1-grotemarkt-dag",
+  "label": "Grote Markt, overdag"
+ },
+ {
+  "naam": "2-binnenstad-dag",
+  "label": "Binnenstad, overdag (straatbeeld)"
+ },
+ {
+  "naam": "3-grotemarkt-avond",
+  "label": "Grote Markt, avond"
+ },
+ {
+  "naam": "4-grotemarkt-nacht",
+  "label": "Grote Markt, nacht"
+ },
+ {
+  "naam": "5-binnenstad-regen",
+  "label": "Binnenstad, regen"
+ },
+ {
+  "naam": "6-ommeland",
+  "label": "Ommeland (Usquert)"
+ },
+ {
+  "naam": "7-haven-water",
+  "label": "Haven en water"
+ },
+ {
+  "naam": "8-kermis",
+  "label": "Kermis, avond"
+ },
+ {
+  "naam": "9-woonwijk",
+  "label": "Woonwijk, overdag"
+ }
+]

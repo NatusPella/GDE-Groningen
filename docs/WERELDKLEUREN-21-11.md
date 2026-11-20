@@ -49,7 +49,12 @@ Uit het designsysteem (ADR 0040): papier `f3ead3`, inkt `1d1b17`, bordgroen `0e6
 
 ## 4. Beoordeling
 
-(Volgt na de beelden.)
+Negen plekken op 1280x720 uit het echte spel (Grote Markt overdag, avond en nacht, binnenstad overdag en in de regen, Ommeland bij Usquert, haven en water, kermis, woonwijk), elk bij meng 0, 0,25 en 0,5, in [overzicht.png](beeld-21-11/wereldkleur/overzicht.png) met de losse beelden ernaast.
+
+- **Eerlijk oordeel:** bij 0,25 is het verschil in een kort voor-en-na nauwelijks te zien (een tikje warmere, minder verzadigde gevels en stoepen, iets gedempter gras); dat past bij "subtiel", maar de eigenaar zal het pas merken als hij de twee naast elkaar legt. Bij 0,5 is het wel te zien en nog ordelijk, niet rommelig: gevels bruiner, gras blauwer en gedempter (bordgroen), daken en straatstenen grijzer-warm, het water donkerder en blauwer. Herkenbare plekken (de straten rond de Grote Markt; de Martinitoren en de Euroborg zelf zijn niet apart in beeld gebracht) blijven herkenbaar en het contrast tussen weg, stoep en gevel is niet veranderd. Avond en nacht blijven zoals ze waren (daar verandert alleen de schaduwtint en de grondweerkaatsing).
+- **Aanbeveling:** laat de standaard op **0,3** staan. Wil de eigenaar het zichtbaarder, dan **0,5**; verder dan 0,5 is niet bekeken in beeld (alleen `?dswereld=1` in de kleurplaat).
+- **Eerlijke kanttekeningen bij de beelden:** voorbijgangers, auto's en struiken verschillen per run (elk beeld is een eigen run), dus kijk naar gevels, gras, straat en water; bij de Grote Markt en het water staat de camera dicht bij de gebouwen; in het kermisbeeld staat een boom voor de helft van het beeld; de melding "Houd spatie ingedrukt" is in het overzicht weggesneden. Verbeterpunt: een standaard-NPC-vrije scène of vaste seed.
+- Gevonden en gefixt tijdens het werk: gras werd bij een eerste versie *verzadigder* (bordgroen op dezelfde helderheid); het doel is nu bordgroen gemengd met papier (`bordzacht`), met een test.
 
 ## 5. Niet gedaan en niet gezien
 

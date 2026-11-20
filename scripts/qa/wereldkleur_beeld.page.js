@@ -43,7 +43,7 @@ try {
     p.x = q.x; p.y = q.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; hold = { x: q.x, y: q.y };
     for (let i = 0; i < 60 && !document.getElementById('load-screen'); i++) await sleep(100);
     for (let i = 0; i < 400 && document.getElementById('load-screen'); i++) await sleep(100);
-    await sleep(7000);
+    await sleep(12000);
     const gz = (map.groundHeightAt ? map.groundHeightAt(q.x, q.y, 0) : 0) || 0;
     const pose = q.oog
       ? { position: { x: q.x, y: q.y, z: gz + 1.8 }, lookAt: { x: q.x + Math.cos(q.a) * 40, y: q.y + Math.sin(q.a) * 40, z: gz + 4 }, cut: true }

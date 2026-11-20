@@ -12,6 +12,7 @@
 // De inkten van het designsysteem (gelijk aan ds-tokens.css en kaartkleuren.js) plus het ene inktblauwgroen van het water.
 export const WERELD_INKTEN = Object.freeze({
   papier: 0xf3ead3, inkt: 0x1d1b17, bord: 0x0e6b3c, geel: 0xf9c80e, roze: 0xe8505b,
+  bordzacht: 0x5e9771, // bordgroen met papier gemengd (35%): het doel van gras en loof, zodat groen gedempt wordt in plaats van verzadigder
   water: 0x1f4654, // inktblauwgroen: tussen bordgroen en een rustig blauw; het designsysteem kent geen blauw, de wereld heeft water nodig
 });
 
@@ -24,8 +25,8 @@ export const WERELD_ROLLEN = Object.freeze({
   steen: { doel: 'papier', w: 0.6, luma: true },  // stoep, straatsteen, grijs beton: een warme papiertoon
   weg: { doel: 'inkt', w: 0.6, luma: true },      // asfalt: warm inktgrijs in plaats van koud blauwgrijs
   donker: { doel: 'inkt', w: 0.9, luma: true },   // bijna zwart wordt inkt, geen puur zwart
-  groen: { doel: 'bord', w: 0.7, luma: true },    // gras en loof: gedempter en consistenter richting bordgroen
-  loof: { doel: 'bord', w: 0.55, luma: true },    // boomkronen: iets minder, zodat soorten herkenbaar blijven
+  groen: { doel: 'bordzacht', w: 0.7, luma: true },    // gras en loof: gedempter en consistenter richting bordgroen
+  loof: { doel: 'bordzacht', w: 0.55, luma: true },    // boomkronen: iets minder, zodat soorten herkenbaar blijven
   water: { doel: 'water', w: 0.8, luma: true },   // inktblauwgroen, minder neon
   blauw: { doel: 'water', w: 0.6, luma: true },   // glas, schaduwtint
   papier: { doel: 'papier', w: 0.8, luma: false }, // wit (wegmarkering, kozijn) wordt papier
