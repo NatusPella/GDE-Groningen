@@ -22,7 +22,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 175 modules, 719 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| kaart | hudcards.js | 177 modules, 724 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
 | prestatie | achievements.js | 33 modules, 97 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
@@ -32,13 +32,13 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | ondertitel | cinematics.js, storytalk.js, subtitles.js en 1 andere | 4 modules, 4 aanroepen | P1 | G | ja: narrative (sub-cine) | Blijft. setDualText is een tekstmaker, geen kanaal: meerdere modules bouwen er hun eigen regel mee; de plaatsing hoort bij het ene ondertitelblok. |
 | scene | cinematics.js, intromontage.js, respawn.js en 2 andere | 14 modules, 30 aanroepen | n.v.t. | - | ja: narrative (scene) | Blijft. |
 | moment | cinematics.js | beslist zelf | n.v.t. | - | ja: moment (wijk, landmark, ommelanden, veroverd, crash, wanted5) | wijk en landmark kunnen samen met de plaatsnaam: het vlucht-shot is dezelfde boodschap als de naam. Minder momenten, meer plaatsnaam. |
-| banner | cinematics.js | 20 modules, 31 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
+| banner | cinematics.js | 21 modules, 32 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
 | grotemomenten | bigmoment.js | beslist zelf | P0 | D | ja: overlay (resultaat), narrative (scene) |  |
 | naamkaart | namecard.js | 3 modules, 4 aanroepen | n.v.t. | - | ja: overlay (naamkaart) | Samen met ondertitel: de naam staat al als sprekerlabel in de regel; de grote kaart alleen voor het eerste ontmoeten. |
 | plaatsnaam | hud_panel.js | beslist zelf | P3 | B | ja: overlay (locatie) | Samen met moment (wijk, landmark) en opgeslagen: een plaatsblok. |
 | wijkkaart | cinematics.js | beslist zelf | P3 | B | ja: overlay (wijkkaart) |  |
 | keuze | choicepanel.js | 10 modules, 10 aanroepen | P1 | B | ja: overlay (keuze) | Samen met bord en activiteit: een activiteitenpaneel bovenaan (kop, regels, toetsen). Het keuzepaneel en het minigamebord zijn dezelfde familie. |
-| bord | minigamekit.js, golfhud.js | 17 modules, 20 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
+| bord | minigamekit.js, golfhud.js | 18 modules, 21 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
 | ballon | scene3d.js | 14 modules, 25 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
 | spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
