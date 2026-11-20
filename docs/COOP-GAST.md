@@ -395,10 +395,6 @@ Het Pannenkoekenschip (`pannenkoek.js`) is sinds #983 ook een wedstrijd tegen el
 
 De baan Hap & Rap bezorger (`sidejob_bezorger.js`) is met meespelers een gezamenlijke ronde. De regels staan puur in `game/js/bezorgteam.js` (`aantalAdressen`, `afvinken`, `dichtstbij`, `puntjes`, loon en tijd per extra adres). Zodra de bezorger de bestelling ophaalt en er meespelers zijn (`world.coopHelpers()`, wie J zei bij de baan), krijgt de bestelling één adres per speler (hoogstens vier; de extra adressen liggen op loopafstand van de zaak, 150 tot 480 m). Een adres is bezorgd zodra de dichtstbijzijnde bezorger binnen 3,2 m van de deur staat; de ronde is klaar als elk adres af is. Het dichtstbijzijnde open adres is de marker, de andere open adressen zijn puntjes (`dots`); naar de gasten gaan ze mee in het doelbericht als `o` (hoogstens drie, alleen bij de bezorger; `coopbijbaan.js` `doelEvent` en `leesBijbaan`). Elk extra adres geeft iedereen € 9 extra basisloon en 14 seconden extra warmtebudget (`EXTRA_BASIS`, `EXTRA_TIJD_S`); de beloning blijft per speler volledig (#429), zonder delen. Zonder meespelers is er één adres en verandert er niets. **Wegvallen:** de adressen blijven te halen voor wie er nog is (de dichtstbijzijnde van allen telt). **Later aansluiten:** kijkt mee tot de volgende baan. **Test:** `scripts/coop/bezorgteam_test.mjs`. **Niet bekeken:** echte instanties, het beeld van de puntjes en hoe lopend naar een adres bij een gast voelt.
 
-## Niet gedaan
-
-Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
-
 ## Veroveren en intochten (#723)
 
 **Veroveren** is per speler: wat jij veroverd hebt staat in je eigen profiel (`gde-gebieden-v1`) en gaat niet mee naar een andere wereld; de kaartlaag Veroverd en de titels zijn van jou. Een gast kan dus veroveren in de wereld van wie het spel opende, maar zijn voortgang blijft in zijn eigen profiel (en een gast kan geen gebied van de gastheer "overnemen").
@@ -424,3 +420,7 @@ Het spelersmenu (pauzemenu > Spel > Samen spelen > Spelers, de Tab-lijst en de w
 ## Vierspelersavond en hostwissel (#983, 20-11)
 
 Bewezen zonder Electron met `scripts/coop/viersp_hostwissel_test.mjs` (host en drie gasten over de echte netlaag en een geheugentransport): drie overdrachten achter elkaar met steeds één host en vier unieke plekken; beloningen per gebeurtenis-id blijven per speler en nooit dubbel, ook niet als dezelfde gebeurtenis na de overdracht via de nieuwe host opnieuw wordt aangeboden (de boekhouding `coopBoek` staat bij de ontvanger, niet bij de host); overname na wegvallen van wie het spel opende; een gast die wegvalt krijgt niets en een late speler sluit bij de nieuwe host aan en krijgt vanaf dan zijn eigen beloning. De baan van een gast (`c.owner > 0`) raakt de lichte strook van de eigenaar niet: geen pop-up, geen uitlegvlag en ook geen leegmaken per beeld (`scripts/coop/simhudgast_test.mjs`). Open: een gast ziet voor zijn eigen baan geen strook (de baan draait bij de host).
+
+## Niet gedaan
+
+Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
