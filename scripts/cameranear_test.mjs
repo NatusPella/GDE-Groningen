@@ -38,7 +38,12 @@ ok(C.NEAR_MIN === 0.5, 'op de grond is near zoals het spel altijd had: 0,5 m');
 // wie dichtbij muren, dashboard of wapen kijkt, houdt 0,5, ook als de vrije ruimte groot lijkt (balkon, brug, dak)
 const hoog = { clearance: 80 };
 ok(C.cameraNearTarget({ ...hoog }) === C.NEAR_MAX, 'een hoog luchtbeeld krijgt near 2,5');
-ok(C.cameraNearTarget({ ...hoog, firstPerson: true }) === C.NEAR_MIN, 'eerste persoon: 0,5 (het wapen en de handen zitten voor de lens)');
+ok(C.cameraNearTarget({ ...hoog, firstPerson: true }) === C.NEAR_FIRST_PERSON, 'eerste persoon: klein near (het wapen en de handen zitten voor de lens)');
+ok(C.NEAR_FIRST_PERSON <= 0.1 && C.NEAR_FIRST_PERSON >= 0.05, 'eerste persoon: near tussen 0,05 en 0,1 m (muur, dashboard, kozijn op ~0,3 m zichtbaar)');
+ok(C.cameraNearTarget({ clearance: 0, firstPerson: true, inVehicle: true }) <= 0.1, 'eerste persoon in een voertuig-interieur: near <= 0,1');
+ok(C.cameraNearTarget({ clearance: 80, firstPerson: true, inVehicle: true, flying: true }) <= 0.1, 'eerste persoon in de helikopter-cabine: near <= 0,1');
+ok(C.cameraNearTarget({ clearance: 0, firstPerson: true }) < C.cameraNearTarget({ clearance: 0 }), 'derde persoon houdt zijn 0,5');
+ok(C.depthStep(60, C.NEAR_FIRST_PERSON) < 0.03, 'op 60 m blijft de dieptestap in de eerste persoon onder 3 cm');
 ok(C.cameraNearTarget({ ...hoog, override: true }) === C.NEAR_MIN, 'een scriptcamera (cutscene, binnenkamer): 0,5');
 ok(C.cameraNearTarget({ ...hoog, indoors: true }) === C.NEAR_MIN, 'binnen: 0,5');
 ok(C.cameraNearTarget({ ...hoog, inVehicle: true }) === C.NEAR_MIN, 'in een auto, trein of op een boot (ook op een viaduct): 0,5');

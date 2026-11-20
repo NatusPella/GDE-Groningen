@@ -72,6 +72,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Verbeterd
 
 - **Minder pop-in van bomen, grasvlakken en ramen (#1016):** bomen doven in een korte band vóór hun tekenafstand uit (schermdeurpatroon) in plaats van in één keer te verdwijnen of te verschijnen, en de boomlijst wordt een herbouwstap verder geladen dan getekend. Grasvlakken worden net buiten het zicht alvast klaargezet en pas op hun afstand getoond, auto's blijven iets langer staan op de rand van het zicht en op een drukke machine tekent het spel de raamkozijnen en gevelversiering op grotere afstand (140, 90 en 60 m in plaats van 100, 70 en 45 m). Meetscript: `scripts/qa/popin.mjs`; uitleg en wat niet bewezen is in docs/POPIN-21-11.md.
+- **Eerste persoon: niet meer door dingen heen kijken:** het near-vlak van de camera is in de eerste persoon (te voet, in een auto en in de helikopter) 0,08 m in plaats van 0,5 m, zodat muren, kozijnen, dashboard en voorruit, armen en wapens vlak bij je ogen niet meer wegvallen. De derde persoon en de luchtbeelden houden hun near.
 
 ## [0.64.0] - 2026-11-20
 

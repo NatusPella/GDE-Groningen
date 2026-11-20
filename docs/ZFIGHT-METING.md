@@ -86,7 +86,7 @@ Niet bekeken: een dijk (geen vaste plek gekozen), het effect op de overgang van 
 
 ## Wat is gebouwd
 
-Het goedkoopste dat werkt, op grond van de meting: `game/js/cameranear.js`. Het near-vlak groeit met de vrije ruimte onder de camera (0,5 m tot 10 m vrij, daarna zacht tot 2,5 m bij 60 m vrij) en blijft 0,5 m op de grond, in de eerste persoon, in een auto of trein, en in elke scriptcamera (cutscene, binnenkamer). Een vliegende helikopter mag wel groeien: de camera hangt boven de stad en de dichtstbijzijnde vlakken zijn de daken ver onder de lens. Omhoog zacht (e^(-3 dt)), omlaag direct (een te groot near knipt de omgeving weg). `?near=<m>` en `?far=<m>` zetten de waarden vast voor metingen.
+Het goedkoopste dat werkt, op grond van de meting: `game/js/cameranear.js`. Het near-vlak groeit met de vrije ruimte onder de camera (0,5 m tot 10 m vrij, daarna zacht tot 2,5 m bij 60 m vrij) en blijft 0,5 m op de grond (derde persoon), in een auto of trein en in elke scriptcamera. In de eerste persoon is near 0,08 m (#1024): 0,5 knipte muren, dashboard en armen weg; de dieptestap is daar op 60 m nog 2,6 cm, op afstand grover (de z-fight-plekken op afstand zijn in de eerste persoon niet opnieuw gemeten) (cutscene, binnenkamer). Een vliegende helikopter mag wel groeien: de camera hangt boven de stad en de dichtstbijzijnde vlakken zijn de daken ver onder de lens. Omhoog zacht (e^(-3 dt)), omlaag direct (een te groot near knipt de omgeving weg). `?near=<m>` en `?far=<m>` zetten de waarden vast voor metingen.
 
 Gemeten in de echte camera (`near_cam.page.js`, weergave `ver`, far 1650 m):
 
