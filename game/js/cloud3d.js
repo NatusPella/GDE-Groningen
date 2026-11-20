@@ -2,6 +2,7 @@
 // langzaam rondtrekt. Aantal, tint en doorzichtigheid komen uit cloudlook.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { cloudState, cloudSpots, CLOUD_COUNT } from './cloudlook.js';
+import { easeTo, cloudFill } from './weersmooth.js';
 
 const _gm = new THREE.Matrix4(), _im = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 
@@ -30,7 +31,7 @@ export function buildCloudLayer() {
   });
   mesh.count = 0;
   group.add(mesh);
-  group.userData = { mat, mesh, clouds, angle: 0, radius: 0 };
+  group.userData = { mat, mesh, clouds, angle: 0, radius: 0, fill: NaN };
   return group;
 }
 
@@ -44,13 +45,18 @@ export function updateCloudLayer(layer, camPos, radius, weather, daylight, night
   u.mat.color.setRGB(st.tint[0], st.tint[1], st.tint[2]);
   u.mat.opacity = st.opacity;
   const R = radius * 0.55;
+  // het aantal wolken schuift zacht mee met het weer; de laatste wolk groeit in plaats van er ineens te hangen
+  u.fill = easeTo(u.fill, st.fill, dt, 4);
+  const { full, frac } = cloudFill(u.fill, u.clouds.length);
   let n = 0;
-  for (let i = 0; i < u.clouds.length && i < st.count; i++) {
+  for (let i = 0; i < u.clouds.length && i <= full; i++) {
+    const grow = i < full ? 1 : frac;
+    if (grow < 0.02) break;
     const c = u.clouds[i], s = c.spot;
     const el = s.el * (0.6 + 0.4 * st.spread);
     _p.set(Math.cos(s.az) * Math.cos(el) * R, Math.sin(el) * R, Math.sin(s.az) * Math.cos(el) * R);
     _q.setFromAxisAngle(_up, -s.az - Math.PI / 2); // de blobs liggen langs de raaklijn
-    _gm.compose(_p, _q, _s.setScalar(R * 0.22));
+    _gm.compose(_p, _q, _s.setScalar(R * 0.22 * grow));
     for (const bm of c.blobs) u.mesh.setMatrixAt(n++, _im.multiplyMatrices(_gm, bm));
   }
   u.mesh.count = n;

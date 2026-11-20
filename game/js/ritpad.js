@@ -134,17 +134,48 @@ export function kijkHoek(t) {
   const raam = glans(t, 0.63, 7.2) * 0.7, chauffeur = glans(t, 0.6, 3.0) * 0.9;
   return {
     yaw: 0.05 * Math.sin(t * 0.9) + 0.04 * Math.sin(t * 0.37 + 1) + raam - chauffeur,
-    pitch: -0.03 + 0.015 * Math.sin(t * 0.7 + 0.5) - raam * 0.05,
+    pitch: 0.01 + 0.015 * Math.sin(t * 0.7 + 0.5) - raam * 0.05, // iets omhoog: het dashboard nam eerst een derde van het beeld
   };
 }
 
-// De camera van de taxi: oog + kijkpunt (30 m verderop) in kaartcoördinaten. hoek = a van de taxi.
-export function taxiCamera(oog, t, kijkAfstand = 30) {
-  const { yaw, pitch } = kijkHoek(t);
+// Wat de taxi doet, zacht gemaakt voor de passagier en het stuur: de bocht (rad/s, + is naar rechts), de versnelling (m/s², - is
+// remmen) en daaruit de stuurhoek. Eén per rit; stap() krijgt per beeld de koers (a, rad), de snelheid en dt.
+export function maakDynamiek() {
+  let a0 = null, v0 = 0, bocht = 0, versnelling = 0;
+  const hoekVerschil = (x, y) => { let d = x - y; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; };
+  return {
+    stap(a, v, dt) {
+      if (!(dt > 0.0005) || !Number.isFinite(a) || !Number.isFinite(v)) return this.stand();
+      if (a0 !== null) {
+        const k = 1 - Math.exp(-dt / 0.35); // een trage volger: een bocht bouwt op en een schok van het pad vlakt af
+        bocht += (clamp(hoekVerschil(a, a0) / dt, -1.2, 1.2) - bocht) * k;
+        versnelling += (clamp((v - v0) / dt, -8, 8) - versnelling) * k;
+      }
+      a0 = a; v0 = v;
+      return this.stand();
+    },
+    stand() { return { bocht, versnelling, stuur: clamp(bocht * 1.6, -1.1, 1.1) }; }, // stuur in rad: positief draait rechtsom
+  };
+}
+
+// Wegdek en deining: een kleine trilling die met de snelheid groeit (stilstaan trilt niet). Twee niet-verwante frequenties.
+const trilling = (t, v) => { const f = clamp(v / 15, 0, 1); return f * (0.0035 * Math.sin(t * 17.3) + 0.0025 * Math.sin(t * 29.1 + 2)); };
+
+// De camera van de taxi: oog + kijkpunt (30 m verderop) in kaartcoördinaten. hoek = a van de taxi. dyn (optioneel) is de stand
+// van maakDynamiek() plus de snelheid: in een bocht kijkt de passagier iets mee en leunt hij naar buiten, bij remmen knikt het
+// hoofd naar voren, bij optrekken iets terug, en het wegdek geeft een fijne trilling.
+export function taxiCamera(oog, t, kijkAfstand = 30, dyn = null) {
+  const h = kijkHoek(t);
+  let yaw = h.yaw, pitch = h.pitch, zijwaarts = 0;
+  if (dyn) {
+    yaw += clamp(dyn.bocht * 0.14, -0.12, 0.12);
+    pitch += clamp(dyn.versnelling * 0.0045, -0.03, 0.03) + trilling(t, dyn.v || 0);
+    zijwaarts = -clamp(dyn.bocht * 0.05, -0.05, 0.05); // naar buiten van de bocht: bij een bocht naar rechts schuift hij naar links
+  }
   const fx = oog.fx, fy = oog.fy, rx = -fy, ry = fx;
   const dx = fx * Math.cos(yaw) + rx * Math.sin(yaw), dy = fy * Math.cos(yaw) + ry * Math.sin(yaw);
   return {
-    position: { x: oog.x, y: oog.y, z: oog.z },
+    position: { x: oog.x + rx * zijwaarts, y: oog.y + ry * zijwaarts, z: oog.z },
     lookAt: { x: oog.x + dx * kijkAfstand, y: oog.y + dy * kijkAfstand, z: oog.z + Math.tan(pitch) * kijkAfstand },
     fov: 70,
   };
@@ -206,12 +237,16 @@ export const spoorBoog = (stuk, afstand) => clamp(stuk.s0 + stuk.dir * afstand, 
 // Camera bij de trein. car = { x, y, angle, z } (het midden van de trein), dir = rijrichting (+1 of -1; angle is
 // de richting van het spoor in toenemende boog), view: 'raam' (bij het raam, uitkijkend en een stukje vooruit) of
 // 'zij' (naast de trein, de hele trein in de polder).
-export function treinCamera(car, dir, view) {
+export function treinCamera(car, dir, view, t = 0, v = 0) {
   const fx = Math.cos(car.angle) * dir, fy = Math.sin(car.angle) * dir, nx = -fy, ny = fx, z0 = car.z || 0;
+  if (view === 'achter') return { position: { x: car.x - fx * 30 + nx * 3, y: car.y - fy * 30 + ny * 3, z: z0 + 6 }, lookAt: { x: car.x + fx * 6, y: car.y + fy * 6, z: z0 + 2 }, fov: 58 };
+  if (view === 'boven') return { position: { x: car.x - fx * 8, y: car.y - fy * 8, z: z0 + 48 }, lookAt: { x: car.x + fx * 4, y: car.y + fy * 4, z: z0 }, fov: 55 };
   if (view === 'zij') {
     return { position: { x: car.x + nx * 18 - fx * 16, y: car.y + ny * 18 - fy * 16, z: z0 + 6 }, lookAt: { x: car.x + fx * 10, y: car.y + fy * 10, z: z0 + 2 }, fov: 52 };
   }
-  return { position: { x: car.x + nx * 1.9 - fx * 2, y: car.y + ny * 1.9 - fy * 2, z: z0 + 2.5 }, lookAt: { x: car.x + nx * 40 + fx * 22, y: car.y + ny * 40 + fy * 22, z: z0 + 1.6 }, fov: 62 };
+  // in de coupé: de rails rammelen zacht (een lage dreun en een snelle tik van de wielstellen, sterker met de snelheid)
+  const f = clamp(v / 18, 0, 1), dreun = f * (0.004 * Math.sin(t * 5.1) + 0.0025 * Math.sin(t * 11.7 + 1)), tik = f * 0.0025 * Math.sin(t * 31.3);
+  return { position: { x: car.x + nx * 1.9 - fx * 2, y: car.y + ny * 1.9 - fy * 2, z: z0 + 2.5 + dreun * 6 }, lookAt: { x: car.x + nx * 40 + fx * 22 - fx * tik * 60, y: car.y + ny * 40 + fy * 22 - fy * tik * 60, z: z0 + 1.6 + (dreun + tik) * 40 }, fov: 62 };
 }
 
 // Welk beeld hoort bij welk moment: je zit vanaf het begin in de coupé bij het raam (het perron schuift weg, het kader van
@@ -225,6 +260,26 @@ export function treinBeeld(plan, stand) {
   }
   if (stand.fase === 'sluit') return stand.t > plan.openS + plan.houdS + plan.sluitS - ZIJ_S ? 'zij' : 'raam';
   return 'raam';
+}
+
+// ---- de camerakeuze (C of Y tijdens de rit) -------------------------------------------------------------------------------
+
+// De camera's van de rit: cabine (je zit er zelf in: de taxicabine, het raam van de coupé), achter (achter het voertuig), zij (filmisch,
+// voor-zijkant) en boven (hoog van boven). De keuze is lokaal per speler en staat in de instellingen (ritCamera, standaard cabine).
+export const RIT_CAMERAS = ['cabine', 'achter', 'zij', 'boven'];
+export const RIT_CAMERA_NAMEN = { cabine: 'Cabine', achter: 'Achter', zij: 'Filmisch', boven: 'Van boven' };
+export const geldigeRitCamera = (k) => (RIT_CAMERAS.includes(k) ? k : 'cabine');
+export const volgendeRitCamera = (k) => RIT_CAMERAS[(RIT_CAMERAS.indexOf(geldigeRitCamera(k)) + 1) % RIT_CAMERAS.length];
+
+// De buitencamera's om een voertuig { x, y, z, angle } (kaartcoördinaten, angle = rijrichting): positie en kijkpunt, met rechts als
+// (-sin a, cos a) zoals rechterBaan. De taxi is 4 m lang; de afstanden zijn daarop gekozen.
+export function ritBuitenCamera(v, kies) {
+  const a = v.angle || 0, fx = Math.cos(a), fy = Math.sin(a), rx = -fy, ry = fx, z = v.z || 0;
+  const bij = (u, r, h) => ({ x: v.x + fx * u + rx * r, y: v.y + fy * u + ry * r, z: z + h });
+  if (kies === 'achter') return { position: bij(-9, 0, 3.4), lookAt: bij(3, 0, 1.2), fov: 62 };
+  if (kies === 'zij') return { position: bij(6.5, 5.5, 1.5), lookAt: bij(0, 0, 1.1), fov: 50 };
+  if (kies === 'boven') return { position: bij(-5, 0, 26), lookAt: bij(2, 0, 0), fov: 55 };
+  return null;
 }
 
 // ---- terugval en samenspelen -----------------------------------------------------------------------------

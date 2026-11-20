@@ -30,7 +30,8 @@ const busy = () => {
 };
 fs.mkdirSync(out, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-for (let i = 0; busy(); i++) {
+// GDE_WEER_NOBUSY=1: de slot-wrapper (desktop/build/slots/slot.mjs) bewaakt het aantal runs al
+for (let i = 0; !process.env.GDE_WEER_NOBUSY && busy(); i++) {
   if (i === 0) console.log('Er draait al een Electron; wacht.');
   if (i > 240) { console.error('Electron bleef bezet; gestopt.'); process.exit(3); }
   await sleep(5000);
@@ -39,15 +40,15 @@ for (let i = 0; busy(); i++) {
 let failed = 0;
 for (const q of qualities) {
   const profile = 'gde-test-weer-' + process.pid;
-  const profDir = path.join(os.tmpdir(), profile);
+  const profDir = path.join(process.env.GDE_WEER_PROFROOT || os.tmpdir(), profile);
   fs.rmSync(profDir, { recursive: true, force: true });
   const script = path.join(out, `_scenes-${q}.js`);
   fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\nawait (await import('/js/settings.js')).setSetting('quality', ${JSON.stringify(q)});\n` + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, q + '.png');
-  const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + size, '--smoke-test=' + png, '--perf-script=' + script];
+  const args = ['.', '--no-sandbox', '--in-process-gpu', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + size, '--smoke-test=' + png, '--perf-script=' + script];
   console.log('==', q);
-  const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: { ...process.env, GDE_TEST_PROFILE: profile }, shell: process.platform === 'win32' });
+  const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: { ...process.env, GDE_TEST_PROFILE: process.env.GDE_WEER_PROFROOT ? profDir : profile }, shell: process.platform === 'win32' });
   let log = '';
   child.stdout.on('data', (d) => { log += d; });
   child.stderr.on('data', (d) => { log += d; });

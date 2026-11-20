@@ -87,6 +87,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
 | [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |
 | [PERF-RONDE-20-11.md](<PERF-RONDE-20-11.md>) | Prestatieronde 20-11 (#985, #937, #921): statische audit van de per-frame-paden, microbenchmarks, kleine fixes, Samen-spelen-kosten per speler en wat open staat. |
+| [WEER-LICHT-AUDIT-20-11.md](<WEER-LICHT-AUDIT-20-11.md>) | Audit van weer, licht en dag-nacht (#985): wat er staat, wat springt of veel kost, welke zachte overgangen er zijn bijgekomen en wat nog niet in beeld is gezien. |
 | [PERSKIT.md](<PERSKIT.md>) | Perskit voor de openbare playtest: pitch, quote-waardige regels, feiten, beeld en een concept-persbericht (nog niet verstuurd). |
 | [PLAYTESTPLAN.md](<PLAYTESTPLAN.md>) | Doel: zien of een speler die de game niet kent het verhaal volgt, steeds weet wat het doel is en tot het ei… |
 | [PROEFSPELER.md](<PROEFSPELER.md>) | De proefspeler: de Spelbot met een menselijk profiel (`--mens`) en een playtestbundel per missie (beelden, samenvatting, reviewbrief) voor een vision-reviewer. |
@@ -106,6 +107,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [QA-SWEEP-20-11.md](<QA-SWEEP-20-11.md>) | Meetronde van de schermen op vijf vensterformaten zonder menselijk oog (buiten beeld, afgekapte tekst, bedekte doelen, contrast, focus), met bevindingen en wat niet gemeten is. |
 | [QA-CONTROLLER-20-11.md](<QA-CONTROLLER-20-11.md>) | Meetronde van het bedienen met een controller (nagebootste gamepad): bereik, A/B, bumpers, scroll, hints per scherm, de fix voor de kaartknoppen (L3), de focusvolgorde per vlak en wat nog niet gezien is. |
 | [OV-MISSIES-20-11.md](<OV-MISSIES-20-11.md>) | Een bus- of treindienst starten bij elke halte en elk station: wat er was, wat er nu is (haltepalen, kaartpictogram, menu, regelkaart), de Samen-spelen-regel en wat nog niet gezien is. |
+| [REISRIT-POLISH-20-11.md](<REISRIT-POLISH-20-11.md>) | Audit van de taxi- en treinrit (#882, #926) per onderdeel: cabine-licht, kijkhoek, stuur en chauffeur, camera-sway, geluid, begin en einde, de trein; wat gedaan is en wat open staat (glas, regen, perronreizigers). |
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SFX-GAPS.md](<SFX-GAPS.md>) | Inventaris van spelgebeurtenissen zonder eigen geluid of met een te algemeen geluid (UI, beloning, wereld-foley, omgeving per streek), met wat is gebouwd en wat nog open staat. |
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
