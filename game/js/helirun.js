@@ -69,7 +69,6 @@ export const HELI_MEDAL_SCORES = [0, 0, 2400, 3000];
 const MEDALS = HELI_MEDAL_SCORES;
 const MEDAL_NAMES = ['', 'Brons', 'Zilver', 'Goud'];
 const INTRO_S = 3.6, RESULT_S = 5.5, PICKUP_S = 2.5, FADE_S = 0.7;
-const BALLOON_GONE_M = 1800;
 const BALLOON_SEED = 1810;
 
 const VARIANTS = {
@@ -548,12 +547,12 @@ export function startHeliRun(opts = {}) {
 
   const ringLeg = plan.legs.find((l) => l.kind === 'rings');
   run = {
-    V, variant, plan, st, pads, v, b, onFinish: opts.onFinish || null,
+    V, variant, plan, st, pads, v, b, goneM: P.balloonGoneM(plan, bAt, V.timeLimit), onFinish: opts.onFinish || null,
     phase: 'intro', t: 0, phaseT: 0, timeLeft: V.timeLimit || 0, elapsed: 0, score: 0, hits: 0, msgT: 0,
     ringsTotal: ringLeg ? ringLeg.rings.length : 0, tgt: null, legLabel: '', said: new Set(), faded: false,
     say: { queue: [], cur: null, t: 0, until: 0 }, startPad, cam: null,
     prevCine: { hide: w.cinematicHidePlayers, nav: w.cinematicHideNav },
-    start: { x: pl.x, y: pl.y, angle: pl.angle }, result: null,
+    start: { x: pl.x, y: pl.y, angle: pl.angle }, result: null, actor: pl,
   };
   run.rings = ringLeg ? buildRings(ringLeg) : null;
   run.beacon = buildBeacon();
@@ -622,15 +621,19 @@ function cleanup(aborted) {
   const r = run;
   const w = world;
   run = null;
-  for (const o of [r.rings, r.beacon, r.hanger]) if (o) scene.remove(o);
-  const bi = w.balloons.indexOf(r.b);
-  if (bi >= 0) {
-    if (r.result && r.result.success) { r.b.scripted = false; r.b.phase = 'float'; r.b.targetZ = r.b.z; r.b.drift = P.BALLOON_SPEED; }
-    else w.balloons.splice(bi, 1);
-  }
-  landHeliOnPad(w, 30);
-  // Rotor Roelf takes his demo heli back
   const v = r.v;
+  // A throw in the tidying must not leave the game in the heli state (the screen without its HUD, the world stood
+  // still: main.js only runs updateHeliRun while world.heliRun is set), so the flags below always get their turn.
+  try {
+    for (const o of [r.rings, r.beacon, r.hanger]) if (o) scene.remove(o);
+    const bi = w.balloons.indexOf(r.b);
+    if (bi >= 0) {
+      if (r.result && r.result.success) { r.b.scripted = false; r.b.phase = 'float'; r.b.targetZ = r.b.z; r.b.drift = P.BALLOON_SPEED; }
+      else w.balloons.splice(bi, 1);
+    }
+    landHeliOnPad(w, 30);
+  } catch (e) { console.error('heli run opruimen', e); }
+  // Rotor Roelf takes his demo heli back
   v.driver = null;
   v.passenger = null;
   v.heliRun = false;
@@ -646,7 +649,7 @@ function cleanup(aborted) {
   hud.card.classList.remove('on');
   hud.say.classList.remove('on');
   hud.fade.classList.remove('on');
-  const pl = hoofdspeler(w);
+  const pl = r.actor || hoofdspeler(w);
   pl.inVehicle = null;
   // back on the street by the UMCG (a run given up at Eelde stays at Eelde)
   const atEelde = r.startPad.id === 'eelde' && Math.hypot(v.x - r.startPad.x, v.y - r.startPad.y) < 400;
@@ -654,7 +657,10 @@ function cleanup(aborted) {
   const back = r.variant === 'rooster' && r.result && r.result.success ? { x: P.ROOSTER.eemshaven.x, y: P.ROOSTER.eemshaven.y }
     : r.variant === 'rooster' ? { x: r.startPad.x - 7, y: r.startPad.y + 5 }
     : atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
-  pl.x = back.x; pl.y = back.y;
+  // the quay of the Eemshaven and the pad of Eelde are not checked against buildings or water: the nearest open spot
+  let at = back;
+  try { if (w.map && w.map.openSpotNear) at = w.map.openSpotNear(back.x, back.y) || back; } catch (e) { at = back; }
+  pl.x = at.x; pl.y = at.y;
   pl.angle = r.start.angle;
   pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
   pl.water = null; pl.swimming = false; pl.climb = null;
@@ -869,8 +875,29 @@ function cutToCity(leg) {
 
 const PILOT_CRUISE = new Set();
 
+// An error in one frame of the run must not repeat every frame: main.js calls this inside updateGameplay, so a
+// throw each frame stops the rest of the frame (the 3D update and the HUD) and the screen stands still without
+// its HUD. The run is given up instead, with the same tidying as a Backspace.
 export function updateHeliRun(dt, w) {
   if (!run) return;
+  try {
+    stepHeliRun(dt, w);
+  } catch (e) {
+    console.error('heli run', e);
+    if (!run) return;
+    try { w.addMessage('Vlucht afgebroken: er ging iets mis, Rotor Roelf haalt zijn heli op', 4); } catch (e2) { /* geen melding */ }
+    try { cleanup(true); } catch (e3) {
+      console.error('heli run opruimen', e3);
+      run = null;
+      w.heliRun = false;
+      w.cameraOverride = null;
+      document.body.classList.remove('heli-run');
+      if (hud) hud.root.hidden = true;
+    }
+  }
+}
+
+function stepHeliRun(dt, w) {
   const r = run, v = r.v;
   r.t += dt;
   r.phaseT += dt;
@@ -934,7 +961,7 @@ export function updateHeliRun(dt, w) {
       if (r.lastHp !== undefined && hp < r.lastHp - 2) { r.hits++; r.score -= HIT_PENALTY; }
       r.lastHp = v.health;
       updateCatchHud();
-      const far = r.b.phase !== 'ground' && Math.hypot(r.b.x - v.x, r.b.y - v.y) > BALLOON_GONE_M && !!leg && (leg.kind === 'rings' || leg.kind === 'catch');
+      const far = r.b.phase !== 'ground' && Math.hypot(r.b.x - v.x, r.b.y - v.y) > r.goneM && !!leg && (leg.kind === 'rings' || leg.kind === 'catch');
       if (v.wrecked || v.health <= 0) finish(false, 'De Wieken Wubbo is neergestort. Rotor Roelf is niet blij.');
       else if (far) finish(false, r.V.failText);
       else if (r.finishAt && r.t >= r.finishAt && !r.say.cur && !r.say.queue.length) finish(true);
@@ -978,7 +1005,7 @@ function updateCatchHud() {
 }
 
 function syncPlayer() {
-  const pl = hoofdspeler(world), v = run.v;
+  const pl = run.actor || hoofdspeler(world), v = run.v;
   pl.x = v.x; pl.y = v.y; pl.angle = v.angle;
   pl.vx = 0; pl.vy = 0;
 }

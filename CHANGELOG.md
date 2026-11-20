@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Ballonjacht (E bij het UMCG): de vlucht mislukte halverwege met "De ballon is weg…", omdat de ringenronde tot 1,8 km van de ballon komt en dat de grens was. De grens volgt nu de ronde zelf, dus de ronde is af te maken.
+- Heli-opdrachten: een fout in één beeld van de vlucht laat het spel niet meer vastlopen met een stilstaand beeld en zonder HUD; de vlucht wordt dan afgebroken met een melding. Ook de opruiming na de vlucht zet de HUD, de camera en de spelervlaggen altijd terug.
+- Samen spelen: vliegt een gast de heli-opdracht, dan stapt die gast na afloop uit en blijft de host staan waar hij stond.
+- De vlucht eindigt op de dichtstbijzijnde open plek (Eemshaven, Eelde) in plaats van op een vast punt dat in water of tegen een gebouw kon liggen.
+- M12: de hint en de melding noemen Dokter Dijkstra in plaats van Rotor Roelf.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

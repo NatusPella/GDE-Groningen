@@ -35,6 +35,15 @@ export const BALLOON_CRUISE = 62;
 const BALLOON_RISE = 2.6;
 export const CATCH = { near: 9, far: 24, dz: 4.5, rel: 4, need: 4, bump: 7.5 };
 export const CRUISE_S = 9;
+// How far the balloon may be from the heli before it counts as gone. The standalone Ballonjacht tour
+// reaches 1,8 km from the balloon's launch spot (the far west of Stad), so a fixed 1800 m failed the run
+// halfway; the limit is the tour's own reach plus what the balloon drifts meanwhile.
+export const BALLOON_GONE_M = 1800;
+export function balloonGoneM(plan, at, timeLimit = 0) {
+  let reach = 0;
+  for (const leg of plan.legs) if (leg.kind === 'rings') for (const q of leg.rings) reach = Math.max(reach, Math.hypot(q.x - at.x, q.y - at.y));
+  return Math.max(BALLOON_GONE_M, reach + BALLOON_SPEED * ((timeLimit || 300) + 120) + 200);
+}
 // where the cut after the cruise puts the heli: this far south of the UMCG, at this height
 export const ENTRY = { back: 1000, z: 70 };
 const P_CUT = ENTRY.back;
