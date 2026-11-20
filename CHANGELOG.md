@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Fatbikes ontwijken: de routelijn en de marker wijzen nu eerst naar de Ebbingebrug en dan naar Oma Trijntje, dus de route die het spel voorstelt loopt door de fatbikes in plaats van er omheen.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

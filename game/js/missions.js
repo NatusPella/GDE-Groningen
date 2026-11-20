@@ -937,7 +937,7 @@ function syncPub(world) {
   if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
   else if (def.type === 'deliver') target = chainState().stuntPhase ? def.stunt.center : nextStop(def) || def.dest;
-  else if (def.type === 'fatbike') target = def.dest;
+  else if (def.type === 'fatbike') target = lanes.laneTarget(def, chainState().notesSaid);
   else if (def.type === 'stages') target = stageMarker(world, def);
   // past the last waypoint (the last pub's toast plays before the outro): the last one
   else target = def.waypoints[Math.min(st.wpIndex, def.waypoints.length - 1)];

@@ -329,5 +329,13 @@ function releaseCrowd() {
   state().crowd.length = 0;
 }
 
-  return { startLane, updateLaneBikes, checkLaneHits, releaseLaneBikes, spawnCrowds, updateCrowd, releaseCrowd, laneGeom, laneAt, laneProject };
+  // Waar de routelijn en de marker heen wijzen: eerst langs elk nog niet gelezen punt van de baan (de
+  // Ebbingebrug), dan pas naar het einde. Zonder dit plande de navigatie de kortste weg naar Oma Trijntje,
+  // dwars langs de fatbike-baan, en ontweek je de meeste fatbikes door gewoon de route te volgen.
+  function laneTarget(def, said) {
+    for (const n of def.notes || []) if (!(said && said.has(n))) return n;
+    return def.dest;
+  }
+
+  return { laneTarget, startLane, updateLaneBikes, checkLaneHits, releaseLaneBikes, spawnCrowds, updateCrowd, releaseCrowd, laneGeom, laneAt, laneProject };
 }
