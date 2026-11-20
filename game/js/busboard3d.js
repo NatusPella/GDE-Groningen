@@ -13,13 +13,16 @@ import { mountCockpitCss, COCKPIT_CLASS } from './cockpit.js';
 import { startBusShift } from './sidejobs.js';
 import { nearestLine, project } from './busroutes.js';
 import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopCard, roundDist, OPERATOR } from './busboard.js';
+import { LRUCache } from './lrucache.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
 // (hw + 0,02 = 1,295 m): dat was het flikkerende bord (#382). De buitenste deurlijst ligt op 1,301 m.
 const SIDE_OFF = 0.04;
 const FRONT_OFF = 0.07;         // voor de ruit (0,041 m) en de lampenstrook (0,051 m) van de voorkant
-const textures = new Map();
+// begrensd (#1040): een rit door de provincie maakt een bord per lijn en bestemming; het oudste gaat eruit en wordt zo nodig opnieuw getekend
+const textures = new LRUCache(64);
+textures.onEvict = (t) => t.dispose();
 
 function boardTexture(b) {
   let t = textures.get(b.key);

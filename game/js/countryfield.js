@@ -198,6 +198,7 @@ export function maarY(j) {
 // Village of block (bx, by): { x, y, r } or null. Its disc reaches into the
 // block to the west, never across a horizontal block edge.
 const villageCache = new Map();
+const VILLAGE_CACHE_MAX = 4000;
 // Is (x, y) land of the province (regions.js provinceLandAt)? The hash-grid countryside (ditches, fences, farms, villages, trees,
 // herds) exists only there: none over the Wadden Sea, the Eems and Dollard, the North Sea or beyond the border (#233).
 // Everywhere until a province layer sets the mask.
@@ -215,6 +216,7 @@ export function villageOf(bx, by) {
     const r = 100 + chash(bx - 9, by + 17) * 30;
     if (edgeDistance(x, y) >= r + 260 && landOk(x, y) && landOk(x - r, y) && landOk(x + r, y) && landOk(x, y - r) && landOk(x, y + r)) v = { x, y, r, bx, by };
   }
+  if (villageCache.size > VILLAGE_CACHE_MAX) villageCache.clear();   // begrensd (#1040): een lange rit raakt duizenden blokken; opnieuw berekenen is goedkoop
   villageCache.set(key, v);
   return v;
 }

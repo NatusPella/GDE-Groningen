@@ -139,6 +139,30 @@ const fakeFetch = (files) => async (url) => {
   ok(s.stats.geladen === SAMPLE_KEYS.length && n < SAMPLE_KEYS.length, 'laadAlles haalt de rest, en niets wordt twee keer geladen', JSON.stringify(s.stats));
   ok(s.buffer('onbekend_geluid') === null && s.stats.geladen === SAMPLE_KEYS.length, 'een onbekende sleutel laadt niets');
 }
+// geheugenbewaking (#1004): ongebruikte lui geladen klanken gaan uit de map (idle en bovengrens, oudste eerst), eager blijft, has() laadt opnieuw
+{
+  const files = { 'manifest.json': JSON.stringify(man) };
+  for (const k of SAMPLE_KEYS) files[g[k].bestand] = 'x';
+  let t = 1000;
+  const ctx = { decodeAudioData: async () => ({ length: 480000, numberOfChannels: 1, duration: 10 }) };   // 1,92 MB per klank
+  const s = createSamples(ctx, { fetchFn: fakeFetch(files), gapMs: 0, clock: () => t, idleMs: 60000, maxBytes: 4 * 1048576 });
+  await s.start();
+  ok(s.stats.ready && s.stats.eagerGoal === eagerKeys().length && s.stats.eagerDone === s.stats.eagerGoal, 'ready en eager-teller kloppen na start()', JSON.stringify(s.stats));
+  const nEager = s.stats.geladen;
+  const lazy = ['regen_bui', 'regen_dak', 'wind_gras', 'zomer_vogels'];
+  for (const k of lazy) { t += 10; s.has(k); await new Promise((r) => setTimeout(r, 5)); }
+  ok(lazy.every((k) => s.has(k)), 'lui klanken geladen');
+  ok(s.stats.eagerDone === s.stats.eagerGoal, 'lui klanken tellen niet mee voor eager');
+  const before = s.bytes();
+  t += 25000; s.has('zomer_vogels');   // de aanroep zelf ruimt op (elke 20 s): bovengrens 4 MB laat hooguit 2 klanken staan
+  const after = s.bytes();
+  ok(after < before && after - eagerKeys().length * 1920000 <= 4 * 1048576 + 1, `bovengrens: ${before} naar ${after} bytes`);
+  ok(s.has('zomer_vogels'), 'het zojuist gebruikte klinkt nog');
+  ok(eagerKeys().every((k) => s.has(k)), 'eager-klanken blijven altijd');
+  t += 61000; ok(s.trim(t) >= 1, 'na de idle-tijd gaat een ongebruikte lus eruit');
+  ok(s.stats.uit >= 3 && !s.has('regen_bui') && (await new Promise((r) => setTimeout(r, 10)), s.has('regen_bui')), 'een opgeruimde klank laadt bij de volgende vraag opnieuw', JSON.stringify(s.stats));
+  ok(nEager === eagerKeys().length, 'geen NaN of vreemde tellers', String(nEager));
+}
 {
   const s = createSamples(fakeCtx(), { fetchFn: fakeFetch({}) });
   await s.start();

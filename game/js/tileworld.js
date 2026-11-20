@@ -12,6 +12,7 @@
 // and is visible through the query methods and queryView. The arrays and the
 // elevation model keep to the pinned set until the F1 builder gives them a
 // tile home.
+import { registerMemSource } from './memwatch.js';
 import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
@@ -625,6 +626,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   const split = tiles.map(splitOverlay);
   const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain, sparse: sparseIdx }).attachStore(store);
   world.tileIndex = index;
+  registerMemSource('tiles', () => ({ resident: store.residentKeys.length, bytes: store.residentBytes, loads: store.stats.loads, evictions: store.stats.evictions }));   // technische info (#1004)
   // the overlays of the city's tiles (the rows of build_province.mjs the city's data leaves out, merged into their tile by
   // scripts/world/merge_overlays.mjs): into the grids like a streamed tile, held for good with the city
   // (in the order of the stumps in the province index, as the overlay tiles came before: extendElevation builds a viaduct over what is

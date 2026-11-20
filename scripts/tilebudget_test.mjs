@@ -37,7 +37,7 @@ ok(d.peak <= d.store.budgetBytes + 6 * RAW, 'de top blijft bij het budget (plus 
 ok(d.late === 0, 'geen enkele tegel binnen 250 m kwam te laat', String(d.late));
 
 // 2. het oude budget liet pas bij de helft van 150 MB ruw los
-const o = await drive({ budgetBytes: 150e6 });
+const o = await drive({ budgetBytes: 150e6, evictFrom: 0.5 });
 ok(o.peak >= 70e6, 'met 150e6 ruw hield de store tot 75 MB ruw vast (het oude gedrag, ~2 GB heap)', `${o.peak / 1e6} MB`);
 ok(d.peak < o.peak * 0.5, 'het nieuwe budget houdt de top onder de helft van de oude', `${d.peak / 1e6} tegen ${o.peak / 1e6} MB`);
 
