@@ -714,6 +714,12 @@ function settingsHtml() {
         <p data-bench-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
       </div>
+      <div class="m-li pm-row">${rowName('Diagnose', 'Videokaart, schermverversing en snelheid in één blok om te kopiëren of door te sturen (Ctrl+Shift+G)')}<button type="button" class="m-bg" data-action="gpuinfo">Kopieer technische info</button></div>
+      <div class="pm-confirm" data-gpu-warn hidden>
+        <p data-gpu-warn-text></p>
+        <p data-gpu-help hidden>Zo kies je de snelle videokaart in Windows: open Instellingen › Systeem › Beeldscherm › Graphics, kies GDE Groningen in de lijst (of voeg de app toe met Bladeren), klik op Opties en kies Hoge prestaties. Start het spel daarna opnieuw. Zit je beeldscherm aan het moederbord in plaats van aan de videokaart, steek de kabel dan in de videokaart.</p>
+        <div class="m-acts"><button type="button" class="m-bt" data-action="gpu-help">Uitleg</button></div>
+      </div>
       ${disclosure('video', 'Meer opties', 'Licht, gloed en kleuren', `
         ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}`)}`, `
       <aside class="m-pane" data-preset-pane><div class="pm-pane-top"><span class="m-eb">Voorinstelling</span><h2 class="m-h2" data-preset-name></h2></div>
@@ -2012,6 +2018,11 @@ function runAction(a) {
     if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
     preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
     location.reload();
+  } else if (a === 'gpuinfo') {
+    import('./gpudiag.js').then((G) => G.showTechInfo());
+  } else if (a === 'gpu-help') {
+    const h = root.querySelector('[data-gpu-help]');
+    h.hidden = !h.hidden;
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
@@ -2194,6 +2205,7 @@ function syncControls() {
   if (demp) demp.checked = isMuted();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
   syncPresets(st);
+  syncGpuWarning();
   for (const el of root.querySelectorAll('[data-setting]')) {
     const v = st[el.dataset.setting];
     if (el.classList.contains('m-pk')) {
@@ -2222,6 +2234,19 @@ function syncControls() {
   if (diffBox) for (const row of diffBox.querySelectorAll('[data-diff]')) row.toggleAttribute('data-on', row.dataset.diff === st.difficulty);
   syncKeyChanged();
   syncNowFacts(st);
+}
+
+// 0.64.1: a line under the diagnose row when the game draws in software or on the integrated GPU
+function syncGpuWarning() {
+  const box = root.querySelector('[data-gpu-warn]');
+  if (!box) return;
+  import('./gpudiag.js').then((G) => {
+    const w = G.currentGpuWarning();
+    box.hidden = !w;
+    if (!w) return;
+    box.querySelector('[data-gpu-warn-text]').textContent = w.text;
+    box.querySelector('[data-action="gpu-help"]').hidden = !w.help;
+  }, () => {});
 }
 
 // The preset buttons, the explanation beside them and, after a benchmark, one

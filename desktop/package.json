@@ -35,6 +35,7 @@
       "steamflags.cjs",
       "coopcore.cjs",
       "livebussen.cjs",
+      "gpuinfo.cjs",
       "externurl.cjs",
       "httpcache.cjs",
       "guards.cjs",

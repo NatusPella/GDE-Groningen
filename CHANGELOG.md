@@ -9,6 +9,19 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Nieuw
+
+- **Technische info kopiëren:** bij Instellingen › Beeld staat onder Diagnose de knop "Kopieer technische info" (ook op het benchmarkscherm en met Ctrl+Shift+G). Eén blok met je videokaart, de manier waarop die tekent (ANGLE), de schermverversing, de snelheid in rust, wat de stad per beeld kost, de haperingen van de laatste minuut en de stand van de videokaartfuncties. Het blijft op je computer: je plakt het zelf in een bericht.
+- **Waarschuwing bij de ingebouwde videokaart:** tekent het spel met de processor of op de ingebouwde videokaart, dan zegt Instellingen › Beeld dat, met een knop Uitleg voor het kiezen van de snelle videokaart in het besturingssysteem.
+- **De benchmark toont "fps in het spel":** het gemiddelde zonder de cutscenes, naast het gemiddelde van de hele route en per categorie. Een lage uitkomst wordt eerst één keer opnieuw gemeten (de beste telt) en de eerste seconden na het laden tellen niet mee.
+
+### Opgelost
+
+- **Het benchmarkscherm leek niet te klikken:** de muisaanwijzer was op het resultaatscherm onzichtbaar. Hij staat er nu weer, en de knoppen werken zoals bedoeld.
+- **Het benchmarkadvies noemde Ultra "Hoog":** het advies sprak van "Hoog" en paste daarmee de stand Ultra toe, de zwaarste. Het advies kent nu dezelfde vier standen als de knoppen (Laag, Midden, Hoog, Ultra), stapt pas naar Ultra met veel ruimte en legt uit dat Ultra onder 60 fps een zware stand is.
+- **Geen stellig advies na een drukke meting:** bij zeer lange beelden (de pc was druk) vraagt de benchmark om opnieuw te meten in plaats van een stand aan te raden.
+- **Nieuwe videokaarten:** de nieuwe losse kaarten van de Arc B-serie worden als sterk herkend.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
