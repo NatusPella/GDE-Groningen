@@ -14,7 +14,7 @@ export const TAXI_OOG = { x: -0.4, y: 1.26, z: 0.36 };   // het oog van de passa
 export const TAXI_VOORRUIT = { x0: 1.0, x1: 0.32 };       // onderkant (de bak) en bovenkant (de kop) van de voorruit
 
 const FLOOR = 0x2b2e33, PANEEL = 0x3b4048, DASH = 0x2d3036, DASH_TOP = 0x3a3f46, STOEL = 0x4a4f58, STOEL_RUG = 0x3d424a;
-const HEMEL = 0xb9b5aa, STIJL = 0x2a2d33, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
+const HEMEL = 0xd6d2c6, STIJL = 0x2a2d33, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
 const HUID = 0xd9a98a, TRUI = 0x2f4a6b, BROEK = 0x23262e, PET = 0x2a2f38;
 export const METER_AAN = 0xffb02e, METER_UIT = 0x2e2412;
 
@@ -76,7 +76,7 @@ export function meterDelen() {
   const { x, y, z, draai } = METER, c = Math.cos(draai), s = Math.sin(draai);
   // lokale meterassen: lx = diepte (naar achteren is het scherm), ly omhoog, lz dwars; draai om y
   const wereld = (lx, ly, lz) => [x + lx * c + lz * s, y + ly, z - lx * s + lz * c];
-  const rot = [0, -draai, 0];
+  const rot = [0, draai, 0];
   const huis = [doos(wereld(0, 0, 0), [0.1, 0.13, 0.32], STIJL, rot)];
   const plaat = doos(wereld(-0.052, 0, 0), [0.006, 0.1, 0.29], 0x14161a, rot);
   const cijfers = [];
@@ -120,11 +120,15 @@ function chauffeurDelen(sx, sz, stuur) {
   out.push(doos([sx + 0.03, zit + 0.4, sz], [0.3, 0.55, 0.42], TRUI));                 // romp
   out.push(doos([sx + 0.03, zit + 0.1, sz], [0.3, 0.14, 0.42], BROEK));                // heup
   out.push(doos([sx + 0.0, zit + 0.78, sz], [0.2, 0.22, 0.2], HUID));                  // hoofd
+  out.push(doos([sx - 0.06, zit + 0.86, sz], [0.1, 0.1, 0.22], 0x3a2a1e));               // haar achter de pet
+  out.push(doos([sx + 0.11, zit + 0.76, sz + 0.1], [0.05, 0.05, 0.03], 0x1b1d20), doos([sx + 0.11, zit + 0.76, sz - 0.1], [0.05, 0.05, 0.03], 0x1b1d20)); // ogen
+  out.push(doos([sx + 0.12, zit + 0.72, sz], [0.06, 0.07, 0.05], 0xc7967a));             // neus
+  for (const e of [-1, 1]) out.push(doos([sx - 0.02, zit + 0.76, sz + e * 0.11], [0.04, 0.07, 0.03], 0xc7967a)); // oren
   out.push(doos([sx - 0.02, zit + 0.92, sz], [0.24, 0.07, 0.24], PET), doos([sx + 0.13, zit + 0.9, sz], [0.1, 0.03, 0.2], PET)); // pet met klep
   for (const s of [-1, 1]) {
-    const schouder = [sx + 0.0, zit + 0.6, sz + s * 0.24], hand = [stuur[0] + 0.01, stuur[1] + 0.02, sz + s * 0.16];
-    out.push(staaf(schouder, [(schouder[0] + hand[0]) / 2 + 0.02, (schouder[1] + hand[1]) / 2 - 0.08, (schouder[2] + hand[2]) / 2], 0.09, TRUI));
-    out.push(staaf([(schouder[0] + hand[0]) / 2 + 0.02, (schouder[1] + hand[1]) / 2 - 0.08, (schouder[2] + hand[2]) / 2], hand, 0.08, TRUI));
+    const schouder = [sx + 0.0, zit + 0.62, sz + s * 0.22], hand = [stuur[0] + 0.01, stuur[1] + 0.02, sz + s * 0.16];
+    out.push(staaf(schouder, [(schouder[0] + hand[0]) / 2 + 0.02, (schouder[1] + hand[1]) / 2 - 0.08, (schouder[2] + hand[2]) / 2], 0.075, TRUI));
+    out.push(staaf([(schouder[0] + hand[0]) / 2 + 0.02, (schouder[1] + hand[1]) / 2 - 0.08, (schouder[2] + hand[2]) / 2], hand, 0.07, TRUI));
     out.push(doos(hand, [0.07, 0.07, 0.07], HUID));
     out.push(staaf([sx + 0.1, zit + 0.12, sz + s * 0.12], [sx + 0.5, zit + 0.08, sz + s * 0.14], 0.14, BROEK)); // dijen en onderbenen
     out.push(staaf([sx + 0.5, zit + 0.08, sz + s * 0.14], [sx + 0.55, zit - 0.22, sz + s * 0.14], 0.11, BROEK));
@@ -144,14 +148,15 @@ export function taxiCabine() {
   const dikte = V.x0 - 0.7;
   D.push(doos([V.x0 - dikte / 2, 0.64, 0], [dikte, 0.48, 1.56], DASH));
   D.push(doos([V.x0 - dikte / 2 - 0.02, 0.89, 0], [dikte - 0.04, 0.03, 1.56], DASH_TOP));
+  D.push(doos([V.x0 - 0.02, 0.905, 0], [0.03, 0.012, 1.56], TAXI_GEEL));  // de gele sierstrook van Gele Gans langs de bak
   // handschoenenkastje voor de passagier en de luchtroosters
   D.push(doos([0.64, 0.75, 0.5], [0.03, 0.2, 0.5], 0x23262b), doos([0.63, 0.9, 0.22], [0.03, 0.06, 0.2], RUBBER), doos([0.63, 0.9, -0.1], [0.03, 0.06, 0.2], RUBBER));
   // instrumentenkap voor de chauffeur
   D.push(doos([0.74, 1.0, -0.42], [0.22, 0.14, 0.42], STIJL));
   // het stuur en de chauffeur
-  const stuur = [0.48, 0.98, -0.42];
+  const stuur = [0.4, 0.98, -0.42];
   D.push(...stuurDelen(stuur[0], stuur[1], stuur[2]));
-  D.push(...chauffeurDelen(-0.4, -0.42, stuur));
+  D.push(...chauffeurDelen(-0.2, -0.42, stuur));
   // het midden: tunnel, versnellingspook en de handrem
   D.push(doos([-0.1, 0.46, 0], [1.4, 0.26, 0.26], DASH), doos([0.15, 0.7, 0.0], [0.05, 0.3, 0.05], STIJL), doos([0.15, 0.86, 0.0], [0.09, 0.07, 0.07], RUBBER));
   // stoel van de passagier: alleen de zijkant en de rug achter het oog (de camera zit er net voor)
@@ -164,12 +169,12 @@ export function taxiCabine() {
   }
   // de stijlen: A (naar de voorruit), B (midden) en C (achter), links en rechts; een dak- en kopstijl
   for (const s of [-1, 1]) {
-    D.push(staaf([V.x0, 0.93, s * 0.8], [V.x1, 1.55, s * 0.72], 0.07, STIJL));
+    D.push(staaf([V.x0, 0.9, s * 0.8], [V.x1, 1.56, s * 0.72], 0.055, STIJL));
     D.push(doos([-0.78, 1.24, s * 0.84], [0.08, 0.64, 0.07], STIJL));                    // B-stijl
     D.push(staaf([-1.42, 0.93, s * 0.76], [-1.58, 1.52, s * 0.66], 0.08, STIJL));        // C-stijl
-    D.push(doos([-0.62, 1.575, s * 0.78], [2.1, 0.05, 0.06], STIJL));                    // dakrail
+    D.push(doos([-0.62, 1.585, s * 0.78], [2.1, 0.04, 0.05], STIJL));                    // dakrail
   }
-  D.push(doos([V.x1 - 0.0, 1.57, 0], [0.07, 0.07, 1.5], STIJL));                          // kopstijl bovenin de voorruit
+  D.push(doos([V.x1 - 0.0, 1.58, 0], [0.05, 0.05, 1.5], STIJL));                          // kopstijl bovenin de voorruit
   D.push(doos([-1.58, 1.56, 0], [0.07, 0.07, 1.36], STIJL));                              // bovenkant achterruit
   D.push(doos([-1.46, 1.02, 0], [0.4, 0.08, 1.5], PANEEL));                               // hoedenplank onder de achterruit
   // de hemel
@@ -276,7 +281,7 @@ export function treinKaderDelen() {
   vlak(-wijd, wijd, R.y1 + 0.13, R.y1 + 0.16, T_DONKER, d + 0.12, 0.02);
   // de vensterbank met een uitstekend tafeltje (een blad dat naar de lens toe uitsteekt)
   D.push(doos([0.0, R.y0 - 0.02, d + 0.16], [wijd * 2, 0.04, 0.34], T_HOUT));
-  D.push(doos([0.0, R.y0 - 0.045, d + 0.16], [wijd * 2, 0.012, 0.34], T_DONKER));
+  D.push(doos([0.0, R.y0 - 0.055, d + 0.33], [wijd * 2, 0.07, 0.02], T_DONKER)); // de voorrand van het blad (de dozen staan van ver naar dichtbij: het kader tekent zonder diepte)
   // de rug van de stoel ervoor, links in beeld: een blauwe rug met een hoofdsteun
   D.push(doos([-0.82, -0.2, d + 0.28], [0.5, 0.78, 0.12], T_STOEL));
   D.push(doos([-0.82, 0.24, d + 0.28], [0.3, 0.16, 0.1], T_STOEL_DONKER));

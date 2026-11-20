@@ -54,7 +54,7 @@ t('de chauffeur is te zien als de passagier naar links kijkt, en de meter heeft 
   const m = C.meterDelen();
   const chauffeur = cab.vast.filter((d) => d.at[2] < -0.2 && d.at[2] > -0.65 && d.at[0] < -0.2 && d.at[0] > -0.7 && d.at[1] > 0.9);
   assert.ok(chauffeur.length >= 3, 'romp, hoofd en pet staan op de chauffeursstoel');
-  const links = C.beeldDekking(alles, C.TAXI_OOG, { yaw: -0.8, pitch: -0.03, fov: 70 });
+  const links = C.beeldDekking(alles, C.TAXI_OOG, { yaw: -0.95, pitch: -0.03, fov: 70 });
   const idx = new Set(chauffeur.map((d) => alles.indexOf(d)));
   const zicht = Object.entries(links.geraakt).filter(([k]) => idx.has(Number(k))).reduce((s, [, v]) => s + v, 0);
   assert.ok(zicht > 0.04, `de chauffeur vult ${Math.round(zicht * 100)}% van het beeld bij een blik naar links`);

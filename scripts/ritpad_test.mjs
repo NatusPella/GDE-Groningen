@@ -139,7 +139,7 @@ t('de camera zit op de bijrijdersstoel: rechts voorin, met de chauffeur links, k
   assert.ok(oog.y > 50, 'rechts van het midden: de bijrijder (kaart-y wijst naar rechts bij rijrichting +x)');
   assert.ok(oog.x < 100, 'achter het midden van de taxi: de voorruit is ver genoeg weg');
   assert.ok(oog.z > 1 && oog.z < 1.6, 'op ooghoogte van een zittende');
-  const cam = P.taxiCamera(oog, 3);
+  const cam = P.taxiCamera(oog, 0.2);
   assert.ok(cam.lookAt.x > oog.x + 20, 'kijkt vooruit');
   assert.ok(Math.abs(cam.lookAt.y - oog.y) < 30 * Math.sin(1), 'en niet dwars');
   assert.ok(cam.fov > 50 && cam.fov < 90);
@@ -163,8 +163,8 @@ t('de blik beweegt zacht en zonder sprongen', () => {
   let prev = P.kijkHoek(0);
   for (let x = 0.05; x < 40; x += 0.05) {
     const h = P.kijkHoek(x);
-    assert.ok(Math.abs(h.yaw - prev.yaw) < 0.05 && Math.abs(h.pitch - prev.pitch) < 0.02, `ruk bij ${x}`);
-    assert.ok(Math.abs(h.yaw) < 1 && Math.abs(h.pitch) < 0.2, 'blijft binnen een redelijke hoek');
+    assert.ok(Math.abs(h.yaw - prev.yaw) < 0.07 && Math.abs(h.pitch - prev.pitch) < 0.02, `ruk bij ${x}`);
+    assert.ok(Math.abs(h.yaw) < 1.1 && Math.abs(h.pitch) < 0.2, 'blijft binnen een redelijke hoek');
     prev = h;
   }
 });

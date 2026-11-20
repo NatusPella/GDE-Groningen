@@ -131,7 +131,7 @@ export function taxiOog(taxi) {
 // een blik uit het raam rechts (rond 7 s en 17 s). yaw > 0 is naar rechts, pitch < 0 omlaag (radialen).
 const glans = (t, w, piek) => { const x = Math.max(0, Math.sin(w * t - (w * piek - Math.PI / 2))); return x * x * x; };
 export function kijkHoek(t) {
-  const raam = glans(t, 0.63, 7.2) * 0.7, chauffeur = glans(t, 0.6, 3.0) * 0.8;
+  const raam = glans(t, 0.63, 7.2) * 0.7, chauffeur = glans(t, 0.6, 3.0) * 0.9;
   return {
     yaw: 0.05 * Math.sin(t * 0.9) + 0.04 * Math.sin(t * 0.37 + 1) + raam - chauffeur,
     pitch: -0.03 + 0.015 * Math.sin(t * 0.7 + 0.5) - raam * 0.05,
