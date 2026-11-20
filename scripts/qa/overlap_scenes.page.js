@@ -106,6 +106,21 @@ await scene('gezocht-5-zoeken', async () => { w.wanted = 5; if (w.police) w.poli
 await scene('lange-tip', async () => { w.addMessage(LANG, 12, { kind: 'tip', important: true }); await sleep(1500); });
 await scene('lange-melding-geld', async () => { w.addMessage('Je betaalt € 1.250,00 aan Boerderij De Overtocht voor de reparatie van de zware landbouwtrekker en de nieuwe banden', 12, { kind: 'geld' }); await sleep(1500); });
 await scene('telefoon-lang', async () => { PF.notifyPhone(w, { text: 'Kiekdoar: ' + LANG, from: 'Kiekdoar', app: 'nieuws', duration: 12 }); await sleep(2500); }, { wacht: 2500 });
+// Kiekdoar-nieuws (eigenaar 20-11: "een popup met iets van nieuws werd afgekapt"): de langste nieuwsregels van nieuwsticker.js en calendar/flavourlines,
+// als telefoonkaart (sikkom), als tipkaart van de ticker (lezer + regel) en samen met een ondertitel
+const NIEUWS_LANG = 'Een snelle auto en drie politiewagens maken een rondje Groningen. Het verkeer vraagt vriendelijk om ruimte voor iedereen die vandaag onderweg is.';
+const KIEZEL = 'Kiezelweek! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden, ze kijken nog niet goed uit.';
+await scene('nieuws-telefoon-lang', async () => { PF.notifyPhone(w, { text: 'Kiekdoar: ' + NIEUWS_LANG, from: 'Kiekdoar', app: 'nieuws', duration: 12 }); await sleep(2500); }, { wacht: 2500 });
+await scene('nieuws-telefoon-kiezelweek', async () => { PF.notifyPhone(w, { text: 'Kiekdoar: ' + KIEZEL, from: 'Kiekdoar', app: 'nieuws', duration: 12 }); await sleep(2500); }, { wacht: 2500 });
+await scene('nieuws-tipkaart', async () => { HC.showCard(w, { kind: 'tip', kicker: 'Kiekdoar Nieuws', title: 'Dikkie Dijkstra', body: NIEUWS_LANG, duration: 12, key: 'ov-nieuws', voice: false }); await sleep(1500); });
+await scene('nieuws-met-ondertitel', async () => {
+  let s = document.getElementById('banter-sub');
+  if (!s) { s = document.createElement('div'); s.id = 'banter-sub'; s.innerHTML = '<span class="bt-speaker" style="font-weight:bold;margin-right:6px"></span><span class="bt-line"></span>'; document.body.appendChild(s); }
+  s.querySelector('.bt-speaker').textContent = 'Tammo:'; s.querySelector('.bt-line').textContent = 'Zeg, dit was niet de afslag naar de Ring, hè? Kijk even naar links.'; s.style.opacity = '1';
+  PF.notifyPhone(w, { text: 'Kiekdoar: ' + KIEZEL, from: 'Kiekdoar', app: 'nieuws', duration: 12 });
+  HC.showCard(w, { kind: 'tip', kicker: 'Kiekdoar Nieuws', title: 'Marrit Meeuwsen', body: NIEUWS_LANG, duration: 12, key: 'ov-nieuws2', voice: false });
+  await sleep(2500);
+}, { wacht: 2000 });
 await scene('telefoon-gesprek', async () => { PF.startCall(w, { from: 'Rikus', lines: [{ text: 'Hé, met Rikus. Heb je even?' }, { text: 'Kom maar naar de Grote Markt, daar staat een bakfiets met een hele lading.' }] }); await sleep(3500); }, { wacht: 3000, schoon: async () => { if (PF.hangUp) PF.hangUp(); } });
 // regelkaart
 await scene('regelkaart', async () => {

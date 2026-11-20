@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Een nieuwsbericht van Kiekdoar op de telefoon staat er nu helemaal op en wordt niet meer midden in de zin afgekapt (de kaart groeit mee tot ongeveer dertig woorden).
+- De ondertitel hangt op een laag venster (1024x600) boven de locatiekaart in plaats van erover.
+- Toetsplaatjes van Esc, Enter en Spatie in het pauzemenu zijn groter, zodat de letters erin leesbaar zijn.
+- In Spullen worden groepskoppen niet meer afgekapt en heeft het zoekveld lucht onder de kop.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.
