@@ -3,9 +3,9 @@
 
 /* ---- HUD-strook tijdens het werk (zone C, net als het paneel van een activiteit) ---- */
 .bd-hud.ds-kaart { position: fixed;   /* twee klassen: wint van .ds-kaart { position: relative } ongeacht de laadvolgorde van de stijlbladen */
-  left: 50%; bottom: max(13vh, calc(var(--ds-s-8) + var(--ds-s-4))); transform: translateX(-50%); z-index: 6; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6)));
+  left: 50%; bottom: max(19vh, calc(var(--ds-s-8) * 2.5)); font-family: var(--ds-font-tekst); transform: translateX(-50%); z-index: 6; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6)));
   gap: var(--ds-s-2); pointer-events: none; }
-.bd-hud[hidden] { display: none; }
+.bd-hud[hidden], .bd-hud [hidden] { display: none; }   /* ds-streep is flex en zou het hidden-attribuut anders overrulen */
 .bd-hud__kop { display: flex; align-items: center; gap: var(--ds-s-3); }
 .bd-hud__taak { flex: 1; }
 .bd-hud__rij { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); align-items: center; }
@@ -25,6 +25,10 @@
 @media (prefers-reduced-motion: reduce) { .bd-pop { animation: none; opacity: 1; } .bd-hud__naald { transition: none; } }
 
 /* ---- Paneel: veldkaarten, lus en legenda ---- */
+/* de menutekst (.m-pane p) is licht voor donkere vlakken; op een papieren kaart moet de tekst donker blijven (twee klassen winnen ervan) */
+.bd-pane .ds-kaart p, .bd-pane .ds-kaart li { color: var(--ds-tx); max-width: none; }
+.bd-pane .ds-kaart .ds-t-hulp, .bd-pane .ds-kaart .ds-kaart__voet { color: var(--ds-tx-zacht); }
+.bd-pane .ds-kaart .bd-veld__nu { color: var(--ds-tx); }
 .bd-velden { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 4), 1fr)); gap: var(--ds-s-3); }
 .bd-veld { gap: var(--ds-s-2); }
 .bd-veld[data-status="rijp"] { --ds-kaart-rand: var(--ds-primair); }
