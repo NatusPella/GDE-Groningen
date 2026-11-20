@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Wie stilstaat staat niet stijf stil (#985):** na 5 tot 10 seconden stilstaan kijkt je personage rond, kijkt op zijn horloge of wipt even op zijn tenen, en daarna weer een tijdje niets; hetzelfde geldt voor voetgangers en andere spelers die blijven staan (elk op zijn eigen moment). Niet bij bukken, met een paraplu of in een vaste pose. Samen spelen: dit is beeld op elk toestel apart (idle-kleur, geen spelstaat), niets over het netwerk. Getest in scripts/gait_test.mjs en scripts/gait_anim_test.mjs; beeld nog niet bekeken.
+
 - **Je hoort je medespelers lopen, en een claxon trekt koppen (#985):** bij Samen spelen hoor je de stappen van de andere spelers als ze binnen 20 m lopen (zachter en dofer met afstand, links en rechts om en om, op het oppervlak waar ze lopen), en voetgangers voor je voertuig kijken om als je toetert (tot 28 m, ongeveer anderhalve seconde). Samen spelen: lokaal geluid en beeld, geen bericht erbij; de stappen volgen de getekende figuur van de ander. Getest in scripts/gait_test.mjs; geluid en beeld nog niet beluisterd of bekeken.
 
 - **Levendiger publiek (#985):** wie bij een evenement of stunt langs het publiek komt, ziet nu naast juichen en zwaaien ook mensen die klappen (de handen komen voor de borst bij elkaar), en het wachtende publiek staat niet meer allemaal hetzelfde stil: een deel kijkt op een telefoon of staat met de handen in de zij. Nieuwe acteer-anim `clap` voor de regietaal. Samen spelen: het publiek wordt lokaal opgebouwd uit spec en seed, niets gaat over het netwerk, dus gasten zien op hun eigen toestel dezelfde verdeling (de keuze volgt het figuurnummer). Getest in scripts/crowd_test.mjs; beeld nog niet bekeken.

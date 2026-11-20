@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, markShared, tubeGeometry } from './pixelart3d.js';
 import { hash2 } from './rng.js';
-import { footContact, turnLean, approachTo, wrapPi } from './gait.js';
+import { footContact, turnLean, approachTo, wrapPi, fidgetAt } from './gait.js';
+import { idlePose } from './idleclips.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
@@ -1905,10 +1906,27 @@ export function animatePersonWalk(mesh, speed, dt) {
     arm.rotation.set(-side * (0.03 + 0.1 * r * w), 0, swing + 0.08 * r * w + 0.02 * breath * idle);
     elbow.rotation.z = elbowBase + 0.35 * w * Math.max(0, Math.sin(-ph)) * (1 - r) + 0.06 * idle;
   }
+  // wie lang stilstaat kijkt rond, op zijn horloge of wipt (gait.js fidgetAt, idleclips.js); als overlay op de rustpose
+  if (w < 0.05 && crouch === 0 && !ud.umbrella && !leash && !ud.posed && !(ud.air > 0) && !dead) {
+    ud.stillT = (ud.stillT || 0) + step;
+    if (ud.stillT > 5 && fidgetAt(ud.stillT, ud.animOffset * 0.01, _fid)) fidgetOverlay(ud);
+  } else ud.stillT = 0;
   if (crouch > 0) applyCrouch(ud, crouch, phase, w, s, cadence);
   const air = ud.airBlend = approach(ud.airBlend || 0, Math.max(0, Math.min(1, ud.air || 0)), step / 0.08);
   if (air > 0) applyAirPose(ud, air);
   updatePose(mesh);
+}
+
+const _fid = { clip: '', tl: 0, dur: 1 };
+const _fp = { pelvisDrop: 0, pelvisZ: 0, pelvisRX: 0, pelvisRY: 0, chest: { x: 0, y: 0, z: 0 }, head: { x: 0, y: 0, z: 0 }, armL: { x: 0, z: 0.08, e: 0.15 }, armR: { x: 0, z: 0.08, e: 0.15 }, legL: { z: 0, k: -0.06 }, legR: { z: 0, k: -0.06 } };
+// The idle clip of _fid on top of the resting pose, as differences from the neutral stand (zero at the start and end of the clip).
+function fidgetOverlay(ud) {
+  idlePose(_fp, _fid.clip, _fid.tl, _fid.dur);
+  ud.head.rotation.x += _fp.head.x; ud.head.rotation.y += _fp.head.y;
+  ud.chest.rotation.y += _fp.chest.y;
+  ud.armL.rotation.z += _fp.armL.z - 0.08; ud.elbowL.rotation.z += _fp.armL.e - 0.15;
+  ud.pelvis.position.y -= _fp.pelvisDrop;
+  ud.kneeL.rotation.z += _fp.legL.k + 0.06; ud.kneeR.rotation.z += _fp.legR.k + 0.06;
 }
 
 // Jump / vault tuck: knees pulled up, arms reaching forward and down onto

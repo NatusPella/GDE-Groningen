@@ -2,7 +2,7 @@
 // plus de koppeling in de code (models3d_people.js, scene3d.js, sfx/foley.js) en de Samen-spelen-regel (gast rekent hetzelfde).
 //   node scripts/gait_test.mjs
 import fs from 'node:fs';
-import { footContact, contactGain, turnLean, approachTo, gazeToward, glanceOn, glanceAt, shareFeet, wrapPi, MAX_YAW_RATE, GAZE_MAX, GLANCE_RANGE, HONK_RANGE } from '../game/js/gait.js';
+import { footContact, contactGain, turnLean, approachTo, gazeToward, glanceOn, glanceAt, shareFeet, fidgetAt, FIDGET_DUR, FIDGET_CYCLE, FIDGET_CLIPS, wrapPi, MAX_YAW_RATE, GAZE_MAX, GLANCE_RANGE, HONK_RANGE } from '../game/js/gait.js';
 import { strideFor } from '../game/js/sfx/steps.js';
 
 let fails = 0;
@@ -96,6 +96,17 @@ check('approachTo never overshoots', approachTo(0, 1, 2, 0.1) === 0.2 && approac
   check('shareFeet copies the contact and its time; nothing without a contact', o.footN === 3 && o.footSide === 1 && o.footT === 7 && !('footT' in o2));
   const q = { pose: 'x' }; const ud3 = ped(); glanceAt(ud3, { ...p, ...q }, near, 1);
   check('a walker with a pose does not glance', Number.isNaN(ud3.gazeT));
+}
+
+// wachtclips bij lang stilstaan
+{
+  const out = { clip: '', tl: 0, dur: 0 };
+  check('no clip before 5 s of standing still', !fidgetAt(4.9, 0, out) && !fidgetAt(0, 0.9, out));
+  check('a clip starts after 5 to 10 s (per person)', fidgetAt(5.0, 0, out) && out.tl < 0.01 && !fidgetAt(9.9, 0.99, out) && fidgetAt(10.1, 0.99, out));
+  check('a clip runs FIDGET_DUR s, then a rest', fidgetAt(5 + FIDGET_DUR - 0.1, 0, out) && !fidgetAt(5 + FIDGET_DUR + 0.5, 0, out) && fidgetAt(5 + FIDGET_CYCLE + 1, 0, out));
+  const seen = new Set(); for (let k = 0; k < 6; k++) if (fidgetAt(6.5 + k * FIDGET_CYCLE + 1, 0.3, out)) seen.add(out.clip);
+  check('the clips rotate', seen.size === FIDGET_CLIPS.length && [...seen].every((c) => FIDGET_CLIPS.includes(c)));
+  check('NaN is no clip', !fidgetAt(NaN, 0.5, out));
 }
 
 // de koppeling in de code

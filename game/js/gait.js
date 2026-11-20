@@ -71,6 +71,21 @@ export function glanceOn(t, seed) {
   return x > -0.1;
 }
 
+// Wie lang stilstaat doet af en toe iets: rondkijken, op zijn horloge kijken of wippen (de clips van idleclips.js). Na 5 tot 10 s stilstaan
+// (per mens anders, seed 0 tot 1) een clip van FIDGET_DUR s, daarna weer FIDGET_CYCLE - FIDGET_DUR s rust, en zo door. Schrijft in `out`
+// ({ clip, tl, dur }) en geeft true als er nu een clip loopt.
+export const FIDGET_CLIPS = ['rondkijken', 'horloge', 'wippen'];
+export const FIDGET_DUR = 4;
+export const FIDGET_CYCLE = 11;
+export function fidgetAt(still, seed, out) {
+  const c = still - (5 + (seed % 1) * 5);
+  if (!(c >= 0)) return false;
+  const n = Math.floor(c / FIDGET_CYCLE), tl = c - n * FIDGET_CYCLE;
+  if (tl > FIDGET_DUR) return false;
+  out.clip = FIDGET_CLIPS[(n + Math.floor((seed % 1) * 7)) % FIDGET_CLIPS.length]; out.tl = tl; out.dur = FIDGET_DUR;
+  return true;
+}
+
 // Naar de wereld toe (scene3d.js): het hielcontact van de getekende loopcyclus op het object van de speler of voetganger, voor sfx/foley.js.
 // t = wereldtijd; foley neemt het contact alleen over zolang dit elke frame wordt bijgewerkt (t niet ouder dan 0,3 s).
 export function shareFeet(o, ud, t) {
