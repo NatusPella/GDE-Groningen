@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+### Opgelost
+
+- Het containerlabyrint (M13): de kraan staat nu op de kade van de Eemshaven en de container op open terrein achter de kaderweg, niet meer in een weiland of op de weg. De plekken hangen aan één anker en vallen terug op de dichtstbijzijnde vrije plek; voor iedereen in Samen spelen is dat dezelfde plek.
+
 ## [0.64.0] - 2026-11-20
 
 Samen spelen met vier, een nieuwe opening, een echte taxi en trein en een flinke ronde aankleding van de missies. Eerste build voor de speeltest met vier spelers.

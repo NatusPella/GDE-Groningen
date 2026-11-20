@@ -1573,6 +1573,7 @@ function startMission(world, def) {
     lanes.startLane(world, def);
     startEindAankleding(world, def);
   } else if (def.type === 'stages') {
+    if (typeof def.snapSpots === 'function') def.snapSpots(world.map, def); // #1035: plekken van de missierekwisieten vallen terug op de dichtstbijzijnde vrije plek
     if (def.vehicle === 'car' && def.snapStart && !def.start.road) {
       const rs = roadSpot(world.map, def.start.x, def.start.y, true);
       if (rs && rs.road) def.start = { ...rs };
