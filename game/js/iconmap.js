@@ -61,7 +61,7 @@ export const ICON_MAP = {
   veld_braak: 'minus', veld_stoppel: 'hourglass', veld_geploegd: 'waves', veld_zaailing: 'plant', veld_groeiend: 'leaf', veld_bijna: 'grains', veld_rijp: 'flag-checkered',
   // Kaart en minikaart (20-11): de markers tekenen hun betekenis uit Phosphor (mapglyphs.js)
   schaar: 'scissors', burger: 'hamburger', stoel: 'armchair', spuit: 'spray-bottle', oplegger: 'truck-trailer', rechter: 'gavel',
-  podium: 'microphone-stage', studie: 'graduation-cap', promotie: 'megaphone', kaartje: 'ticket',
+  lagen: 'stack', podium: 'microphone-stage', studie: 'graduation-cap', promotie: 'megaphone', kaartje: 'ticket',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.
 export const ICON_SIZES = { s: 16, m: 20, l: 24, xl: 32 };

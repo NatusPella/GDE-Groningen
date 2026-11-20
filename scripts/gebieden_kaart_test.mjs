@@ -186,7 +186,7 @@ t('#900: de grote kaart opent hetzelfde gebied en toont de strook op elk zoomniv
   const src = (f) => fs.readFileSync(fileURLToPath(new URL('../game/js/' + f, import.meta.url)), 'utf8');
   const view = src('mapview.js');
   assert.ok(view.includes('openGebied(kaartLaag().lijst, wx, wy)'), 'hover en klik gebruiken het open niveau');
-  assert.ok(view.includes('statusRegels(kaartLaag().lijst)'), 'de voortgangsstrook komt uit alle lagen');
+  assert.ok(view.includes('statusRegels(kaartLaag().lijst, 99)'), 'de voortgangsstrook komt uit alle lagen');
   assert.ok(view.includes('if (strookRegels.length) tekenVoortgangsStrook('), 'de strook staat er ook als de getekende laag geen naam kwijt kan');
   assert.ok(!view.includes('const hoofd = kiesLaag(typisch, state.scale)'), 'de hover hangt niet meer aan de zoomlaag');
 });
