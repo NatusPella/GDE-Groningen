@@ -14,6 +14,7 @@ import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
 import { sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
+import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './loopbaanmodel.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -48,6 +49,39 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 
 
 const CSS = `${SFEER_BAND_CSS}
+.lb-balk { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-5); flex: none; margin: 0 0 var(--ds-s-3); padding: 0 var(--ds-s-1); }
+.lb-balk__t { display: flex; align-items: baseline; gap: var(--ds-s-3); min-width: 0; }
+.lb-balk__t > b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: 1.05; letter-spacing: var(--ds-ls-kop); text-transform: uppercase; overflow-wrap: break-word; }
+.lb-balk__s { display: flex; flex-wrap: wrap; gap: var(--ds-s-1) var(--ds-s-4); font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); }
+.lb-balk__s b { color: var(--ink); font-weight: 700; }
+/* kaarten (#1010) */
+.lb-kaart { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "ic t act" "ic bar bar" "ic volgt volgt"; column-gap: var(--ds-s-3); row-gap: 3px; align-items: center; width: 100%; min-height: 84px; padding: 10px 12px; text-align: left; transition: background-color 150ms ease-out, transform 120ms ease-out; }
+.lb-kaart:active { transform: scale(0.99); }
+.lb-kaart > .pa-ico { grid-area: ic; align-self: start; width: 36px; height: 36px; }
+.lb-kaart > .pa-ico svg { width: 100%; height: 100%; }
+.lb-k-t { grid-area: t; display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.lb-k-naam { font-size: 20px; overflow-wrap: break-word; }
+.lb-k-stand { font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); overflow-wrap: break-word; }
+.lb-k-act { grid-area: act; align-self: start; padding: 1px 10px; border-radius: 999px; border: 1.5px solid var(--ink); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.5; white-space: nowrap; }
+.lb-k-act[data-actie="doorgaan"] { border-color: var(--g); color: var(--g); }
+.lb-k-act[data-actie="klaar"] { border-style: dashed; color: var(--mut); border-color: var(--mut); }
+.lb-k-bar { grid-area: bar; height: 6px; width: 100%; }
+.lb-k-volgt { grid-area: volgt; font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); overflow-wrap: break-word; }
+.lb-kaart.nul .lb-k-naam { opacity: 0.85; }
+/* hoofdactie, voortgang en feiten in het detail */
+.lb-actie { display: flex; flex-direction: column; gap: var(--ds-s-3); padding: var(--ds-s-3) 0; border-bottom: 1px solid var(--line); animation: lb-in 160ms ease-out; }
+.lb-actie__r { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-3); }
+.lb-actie__hint { margin: 0; flex: 1 1 220px; min-width: 0; color: var(--mut); font-size: max(15px, var(--menu-min, 15px)); }
+.lb-hoofd { min-height: var(--ds-doel-aanraken, 44px); }
+.lb-actie .lb-voort { margin: 0; }
+.lb-voort__t { font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); white-space: nowrap; }
+.lb-voort__p { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 22px; }
+.lb-feiten { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ds-s-3) var(--ds-s-5); margin: 0; }
+.lb-feiten > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lb-feiten dt { font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
+.lb-feiten dd { margin: 0; font-size: 18px; line-height: 1.3; overflow-wrap: break-word; }
+@keyframes lb-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lb-kaart, .lb-actie { transition: none; animation: none; } }
 .lb-hero { flex: none; }
 .lb-hero--leeg .lb-eerste { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin-top: 2px; }
 .lb-hero--leeg .lb-eerste .ds-z-chip { min-height: 32px; }
@@ -60,24 +94,13 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-stats { flex: none; }
 .lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-zeef-tekst); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
-.lb-groep .lb-gn { margin-left: auto; letter-spacing: 0; text-transform: none; opacity: 0.85; font-size: max(14px, var(--menu-min, 14px)); }
 .lb-li { gap: 12px; }
-.lb-li .nm { min-width: 0; }
-.lb-li .lb-niv { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.9; background: color-mix(in srgb, var(--ink) 8%, transparent); }
-.lb-li .lb-niv b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 20px; line-height: 1; }
-.lb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
 .lb-li.nul .pa-ico { opacity: 0.4; }
-.lb-li.sel .lb-niv { background: color-mix(in srgb, var(--g) 20%, transparent); }
 .m-pane.lb-pane { gap: 12px; }
 .lb-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .lb-pane .lb-blok p { margin: 4px 0; }
 .lb-pane p.lb-titel { margin: 0 0 2px; font-size: 24px; }
 .lb-pane .lb-kop p { margin: 0; }
-.lb-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; flex: none; }
-.lb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 5%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
-.lb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
-.lb-kpi b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; overflow-wrap: anywhere; }
-.lb-kpi small { font-size: 16px; color: var(--mut); }
 .lb-voort { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
 .lb-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
 .lb-pane .m-num { font-size: 26px; }
@@ -143,15 +166,19 @@ function zetCss() {
 let gekozen = 'trein';
 const bars = new Map();
 
-function rij(profiel, info) {
-  const d = L.volgendDoel(profiel, info.id);
-  const nul = !L.isGestart(profiel, info.id);
-  const aantal = bezighedenAantal(info.id);
-  const namen = bezighedenNamen(info.id);
-  const onder = `${nul ? 'Nog niet begonnen' : d.titel}${aantal ? ` · ${aantal} ${aantal === 1 ? 'bezigheid' : 'bezigheden'}` : ''}`;
-  return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
-    `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(onder)}</span></span>` +
-    `<span class="lb-niv"><b>${d.niveau}</b><span>van ${L.MAX_NIVEAU}</span></span></button>`;
+// Een loopbaan als kaart (loopbaanmodel.js, #1010): icoon, naam, titel en niveau, een voortgangsbalk naar het volgende niveau, de
+// volgende beloning en wat de hoofdactie van deze loopbaan is (Doorgaan of Nu starten; de knop zelf staat in het detail, zodat
+// er per kaart één focusstop is). De kaart is één knop: kiezen toont het detail rechts.
+function kaart(k) {
+  const aan = gekozen === k.id;
+  const namen = bezighedenNamen(k.id);
+  const aantal = bezighedenAantal(k.id);
+  const label = `${k.naam}, ${k.stand}${k.gestart ? `, ${k.titel}, ${k.pct} procent naar het volgende niveau` : ''}, ${k.actieLabel}`;
+  return `<button type="button" class="m-li lb-li lb-kaart${k.gestart ? '' : ' nul'}${aan ? ' sel' : ''}" data-vak="${k.id}" data-actie="${k.actie}" aria-label="${esc(label)}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${aan ? ' aria-current="true"' : ''}>` +
+    `${loopbaanIcoon(k.icoon)}<span class="lb-k-t"><span class="lb-k-naam">${esc(k.naam)}</span><span class="lb-k-stand">${esc(k.gestart ? k.titel + ' · niveau ' + k.niveau : 'Nog niet begonnen')}</span></span>` +
+    `<span class="lb-k-act" data-actie="${k.actie}">${esc(k.actieLabel)}</span>` +
+    (k.gestart && k.volgend ? `<span class="m-bar lb-k-bar" aria-hidden="true"><i data-bar="lbk-${k.id}" data-w="${k.pct}"></i></span>` : '') +
+    `<span class="lb-k-volgt">${k.gestart ? esc(k.beloning) : esc(aantal ? aantal + (aantal === 1 ? ' bezigheid' : ' bezigheden') + ' erbij' : 'Begin met een eerste klus')}</span></button>`;
 }
 
 // Elke bezigheid van een loopbaan staat er één keer: de bijbanen uit loopbaan.js (BAAN_VAK) en, bij Vissen en Landbouw, het
@@ -178,7 +205,7 @@ function startHtml(profiel, id) {
     ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
   return `<div class="lb-start"><p class="m-eb">Begin met deze loopbaan</p>` +
     `<p><b>Eerste klus:</b> ${esc(s.klus)}</p><p class="mut">${esc(s.plek)}${s.baan ? ' · loop erheen en druk E, of start hier' : ''}</p>${verhaal}` +
-    `<p class="lb-link ds-zeef"><button type="button" class="ds-z-knop" data-vak-start="${esc(id)}">Loopbaan starten</button>${baan}</p></div>`;
+    (baan ? `<p class="lb-link ds-zeef">${baan}</p>` : '') + '</div>';
 }
 
 // De kaartjescontrole als echte handeling (#437): het paneel laat de teller van de lopende ronde en de uitslag van
@@ -242,6 +269,23 @@ function trapHtml(id, d, v) {
     }).join('') + '</ol></section>';
 }
 
+// De hoofdactie van het gekozen vak (de ene gele knop), de voortgang naar het volgende niveau en de drie feiten: eis, wat het nu betaalt en
+// de volgende beloning. Alles komt uit loopbaanmodel.js.
+function actieHtml(profiel, id) {
+  const a = hoofdActie(profiel, id, doelen);
+  if (!a) return '';
+  const e = eisEnVerdiensten(profiel, id);
+  const d = L.volgendDoel(profiel, id);
+  let knop;
+  if (a.soort === 'start') knop = `<button type="button" class="m-bp lb-hoofd" data-vak-start="${esc(id)}">${esc(a.label)}</button>`;
+  else if (a.soort === 'doel') knop = `<button type="button" class="m-bp lb-hoofd" data-todo-goal="job:${esc(a.baan)}">${esc(a.label)}</button>`;
+  else if (a.soort === 'activiteiten') knop = `<button type="button" class="m-bp lb-hoofd" data-goto="todo">${esc(a.label)}</button>`;
+  else knop = `<span class="pm-badge" data-tone="ok">${esc(a.label)}</span>`;
+  const balk = d.volgend ? `<div class="lb-voort"><span class="lb-voort__t">Niveau ${d.niveau} van ${L.MAX_NIVEAU}</span><span class="m-bar"><i data-bar="lbd-${esc(id)}" data-w="${e.pct}"></i></span><b class="lb-voort__p">${e.pct}%</b></div>` : '';
+  return `<section class="lb-actie" aria-label="Wat nu"><div class="lb-actie__r">${knop}${a.hint ? `<p class="lb-actie__hint">${esc(a.hint)}</p>` : ''}</div>${balk}` +
+    `<dl class="lb-feiten"><div><dt>Eis</dt><dd>${esc(e.eis)}</dd></div><div><dt>Verdient nu</dt><dd>${esc(e.verdiensten)}</dd></div>${e.volgende ? `<div><dt>Volgende beloning</dt><dd>${esc(e.volgende)}</dd></div>` : ''}</dl></section>`;
+}
+
 function detailHtml(profiel, id, w = null) {
   const info = L.vakInfo(id);
   if (!info) return '<p class="mut">Kies een vak om te zien hoe het ervoor staat.</p>';
@@ -249,9 +293,6 @@ function detailHtml(profiel, id, w = null) {
   const d = L.volgendDoel(profiel, id);
   const groep = (L.GROEPEN.find((g) => g.id === info.groep) || {}).naam || '';
   const factor = L.loonFactor(profiel, id);
-  const doel = d.volgend
-    ? `Nog ${nl(d.nodig)} punten tot ${esc(d.volgend)}, met ${d.extra}% meer loon.`
-    : 'Hoogste niveau bereikt.';
   // #671: één regel in gewone taal met de eerstvolgende stap en waar je die doet, plus de knop naar Te doen.
   const stap = L.volgendeStap(profiel, id);
   const waar = stap && stap.waar ? NAMEN.get(stap.waar) || stap.waar : '';
@@ -271,18 +312,15 @@ function detailHtml(profiel, id, w = null) {
   // wat dit niveau je aan een handeling geeft (#437): niveau 3 bij Spoor is kaartjes knippen op het perron, geen getal
   const kan = L.vaardigheidVan(id, d.niveau);
   const vaardigheid = kan ? `<p class="lb-kan"><b>${esc(kan.titel)}:</b> ${esc(kan.wat)}</p>` : '';
-  // #905: de drie dingen die je van dit vak wilt weten staan naast elkaar, niet in een lange regel.
-  const kpi = `<div class="lb-kpis"><div class="lb-kpi"><span>Betaalt nu</span><b>${factor > 1 ? `+${L.percentage(factor)}%` : 'basisloon'}</b></div>` +
-    `<div class="lb-kpi"><span>${d.volgend ? `Nog tot ${esc(d.volgend)}` : 'Hoogste niveau'}</span><b>${d.volgend ? `${nl(d.nodig)}<small> punten</small>` : 'bereikt'}</b></div></div>`;
   // De volgorde is de leesorde: eerst wie je bent en waar je staat, dan de ladder, dan de ene volgende stap met de
   // startplek en de ene primaire knop, dan wat je hier doet; de langere uitleg en de gids komen pas daarna.
   return `<div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
-    // een vak dat je nog niet begon, opent met zijn ene knop (Loopbaan starten) boven de ladder: onder de ladder lag hij op 720p buiten beeld
+    // de ene gele hoofdknop (Doorgaan of Nu starten) staat direct onder de titel, met de voortgang en de drie feiten
+    actieHtml(profiel, id) +
     (L.isGestart(profiel, id) ? '' : start) +
     trap +
-    kpi +
-    `<div class="lb-next${stap && stap.klaar ? ' klaar' : ''}">${stapHtml}<p class="mut">${doel}</p></div>` +
+    `<div class="lb-next${stap && stap.klaar ? ' klaar' : ''}">${stapHtml}</div>` +
     (L.isGestart(profiel, id) ? start : '') +
     bezigheden +
     `<div class="lb-blok"><h3 class="m-eb lb-h3">Over dit vak</h3>` +
@@ -344,15 +382,10 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
       ? `<p class="pm-hero-lead">Er wachten ${L.VAKKEN.length} loopbanen op je. Doe in één vak een eerste klus en je krijgt je eerste titel, met meer loon bij elke stap omhoog.</p>` +
         `<div class="lb-eerste ds-zeef" role="list" aria-label="Zo begin je"><span class="ds-z-chip" role="listitem">1. Kies een vak</span><span class="ds-z-chip" role="listitem">2. Doe de eerste klus</span><span class="ds-z-chip" role="listitem">3. Krijg je titel</span></div></section>`
       : `<p class="pm-hero-lead">Kies links een vak: elk vak heeft zijn eigen ladder, zijn eigen loon en de klussen die erbij horen.${eerste.klaar ? ' Je bent de duizendpoot van Grunn.' : ''}</p></section>`);
-  // de stand op één regel (panelmodel, 21-11): drie vakken met elk een balk herhaalden wat de hero al zegt
-  const stats = `<div class="pm-stats lb-stats lb-stand"><span><b>${sam.aantal}</b> van ${L.VAKKEN.length} loopbanen begonnen</span><span><b>${eerste.gedaan}</b> van ${eerste.totaal} eerste klussen${duizendpoot}</span><span><b>${omhoog}</b> van ${maxOmhoog} niveaus omhoog</span></div>`;
-  const lijst = L.GROEPEN.map((g) => {
-    const vakken = L.VAKKEN.filter((v) => v.groep === g.id);
-    const begonnen = vakken.filter((v) => L.isGestart(profiel, v.id)).length;
-    return `<div class="lb-groep"><span>${esc(g.naam)}</span><span class="lb-gn">${begonnen} van ${vakken.length} begonnen</span></div>` + vakken.map((v) => rij(profiel, v)).join('');
-  }).join('');
+  const lijst = modelOverzicht(profiel).groepen.map((g) => `<div class="lb-groep"><span>${esc(g.groep.naam)}</span></div>` + g.kaarten.map(kaart).join('')).join('');
   // zonder één begonnen loopbaan zijn drie nul-kaarten geen voortgang: de uitnodiging in de hero zegt het al (#846)
-  el.innerHTML = hero + (leeg ? '' : stats) +
+  const balk = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(hoogsteTitel)}</b></span><span class="lb-balk__s"><span><b>${sam.aantal}</b> van ${L.VAKKEN.length} begonnen</span><span><b>${eerste.gedaan}</b> van ${eerste.totaal} eerste klussen${duizendpoot}</span><span><b>${omhoog}</b> van ${maxOmhoog} niveaus omhoog</span></span></header>`;
+  el.innerHTML = (leeg ? hero : balk) +
     `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {

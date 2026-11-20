@@ -478,13 +478,13 @@ t('#846: wat het scherm en Te doen tonen komt uit dezelfde teller', () => {
   assert.ok(!/from '\.\/story\.js'/.test(kaarten), 'geen import van story.js (geen cyclus)');
 });
 
-t('#905: het Loopbanen-scherm heeft een kop, een standenrij en een KPI-strook', () => {
+t('#1010: het Loopbanen-scherm heeft een koprij, kaarten met hoofdactie en een detail met feiten, zonder tellers achter koppen', () => {
   const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
-  assert.match(ui, /pm-hero lb-hero/, 'de kop gebruikt de gedeelde hero-opmaak');
-  assert.match(ui, /pm-stats lb-stats/, 'de stand staat op één regel (21-11)');
-  assert.match(ui, /lb-kpis/, 'het detail heeft een KPI-strook');
-  assert.match(ui, /lb-gn/, 'elke groep noemt hoeveel vakken er begonnen zijn');
-  assert.match(ui, /lb-kpi/, 'de KPI heeft een eigen opmaak');
+  assert.match(ui, /pm-hero lb-hero/, 'zonder voortgang opent de kop met een uitnodiging');
+  assert.match(ui, /lb-balk/, 'met voortgang staat de stand op één regel');
+  assert.match(ui, /lb-kaart/, 'elke loopbaan is een kaart');
+  assert.match(ui, /lb-feiten/, 'het detail heeft eis, verdiensten en volgende beloning');
+  assert.doesNotMatch(ui, /lb-gn|lb-kpi/, 'geen aantallen achter de groepskoppen en geen oude KPI-strook');
 });
 
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
