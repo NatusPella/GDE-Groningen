@@ -1697,7 +1697,7 @@ function syncBuildings(world, px, py) {
   syncBuildingsPass(world, px, py);
 }
 
-const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, py) {
+const _bSeen = new Set(), _bMissing = [], _bPre = []; function syncBuildingsPass(world, px, py) {
   // #314 C1: een landmark van een weggevallen tegel uit de lijst en de scène halen; een
   // teruggekomen tegel heeft zijn landmark al via onTiles toegevoegd.
   if (landmarkDirty) {
