@@ -21,8 +21,11 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
-import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT, scaledMedalAt } from './climbrules.js';
+import { WALL, ARMS, TOP_HOLD, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT, scaledMedalAt } from './climbrules.js';
 import { climbFx, pushFoley } from './sfx/minigamefoley.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { klimHudModel, magnesiumPop, topPop, UITLEG_ID } from './klimstatus.js';
+import { maakSimKolom, zetSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
 
 // Klimtoren Zernike: a 12 m climbing tower on open ground at the Zernike
 // campus. Hold A (left hand) and D (right hand) to reach and grip the next
@@ -177,8 +180,8 @@ function onEvent(w, e) {
   if (e.type === 'fall') {
     g.flash = { text: `Gevallen! +${WALL.penalty} s (${s.falls}/${WALL.tries})`, t: 2, bad: true };
     say(w, 'fall', true);
-  } else if (e.type === 'chalk') g.flash = { text: 'Magnesium: je armen zijn weer fris', t: 1.6 };
-  else if (e.type === 'top') say(w, 'top', true);
+  } else if (e.type === 'chalk') { g.flash = { text: 'Magnesium: je armen zijn weer fris', t: 1.6 }; if (!g.online) { const pp = magnesiumPop(); simHudPop(pp.tekst, pp.geluid); } }
+  else if (e.type === 'top') { say(w, 'top', true); if (!g.online) { const pp = topPop(); simHudPop(pp.tekst, pp.geluid); } }
   else if (e.type === 'grip' && e.hold.big && s.hands.a.hold && s.hands.d.hold && s.hands.a.hold.big && s.hands.d.hold.big) say(w, 'rest');
 }
 
@@ -191,6 +194,8 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const p = hoofdspeler(w);
   p.z = 0; p.vx = p.vy = 0; p.speed = 0; p.moving = false;
   if (board) board.hide();
+  simHudTik(0, null);
+  if (built && built.kolom) built.kolom.visible = false;
   clearBubbles(w, 'klimtoren');
   p.x = STAND.x; p.y = STAND.y; p.angle = Math.PI + ROT;
   if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
@@ -253,9 +258,26 @@ function ensureBoard() {
   return board;
 }
 
+// #985: de strook voor een solo-klim en een gele lichtkolom boven de top van de wand; het model is puur (klimstatus.js)
+function strookTik(w, g) {
+  const s = g.s;
+  if (built) {
+    if (!built.kolom) { built.kolom = maakSimKolom('klimkolom'); getScene().add(built.kolom); }
+    const q = holdWorld(TOP_HOLD);
+    zetSimKolom(built.kolom, g.phase === 'run' || g.phase === 'intro' ? { x: q.x, y: q.y } : null, WALL.height - KOLOM_HOOGTE, g.t, false); // de kolom loopt tot de top
+  }
+  if (!s.ground) zetUitlegGezien(UITLEG_ID);
+  simHudTik(0, klimHudModel({
+    fase: g.phase, klimFase: s.phase, grond: !!s.ground, hoogte: s.ground ? 0 : Math.max(0, s.body + 1.15), tijd: fmtTime(s.time), kansen: WALL.tries - s.falls, armen: s.arms,
+    flash: g.flash ? g.flash.text : '', slecht: !!(g.flash && g.flash.bad), uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}
+
 function updateHud(w) {
   const g = game;
-  if (!g || !board) return;
+  if (!g) return;
+  if (!g.online) { strookTik(w, g); return; }
+  if (!board) return;
   const s = g.s;
   const height = s.ground ? 0 : Math.max(0, s.body + 1.15);
   // #620: de online stand is een tabel met tijd, hoogte en status per klimmer, geen rij stukjes tekst
@@ -320,8 +342,7 @@ function start(w, { online = null, revealed = false } = {}) {
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   const holds = makeHolds(seed);
-  ensureBoard();
-  board.show();
+  if (online) { ensureBoard(); board.show(); } // #985: solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen in de wedstrijd
   runs++;
   if (rwKlim) rwKlim.verberg();
   game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createClimb(holds), flash: null, cam: null, said: 0, online };

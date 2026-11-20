@@ -224,6 +224,23 @@ Test: `rondvaarthud_test` (model, drempel gelijk aan de baan, markup, bedrading)
 
 **Niet gedaan.** De strook in de wedstrijd, een lijn op de grond naar de volgende rail, een kaartmarkering.
 
+## 13. Klimtoren
+
+**Wat kan de speler.** Een klimwand van twaalf meter bij de toren (E bij de mat): houd A en D allebei vast, de handen pakken de volgende grepen (een ring toont de greep), Spatie geeft magnesium voor frisse armen, drie pogingen met een tijdstraf bij een val. Medailles op tijd.
+
+**De lus.** Aan de grond, klimmen en rusten op grote grepen, de top of een val.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de startkaart en een regelwidget met toetsen en lus (#987) | solo: vier iconen met een zin in de strook tot je voor het eerst van de grond komt (`gde-sim-uitleg-v1`); de regelwidget blijft in de wedstrijd op het bord |
+| HUD | bord met tijd, hoogte en pogingen in een rij, een armenbalk | solo: strook (`simhud.js`): stappen Start, Klimmen, Top, meter voor je armen ("Bijna leeg"), de hoogte groot met pogingen en tijd en pictogram, één zin wat nu |
+| Wereld | wand, grepen, ringen op de volgende grepen | plus een gele lichtkolom boven de top van de wand (`simkolom3d.js`) |
+| Feedback | een regel in de berichtenkaart | magnesium ("Frisse armen") en de top springen op met het bestaande UI-geluid; een val staat als zin in de strook |
+
+**Samen spelen.** Een solo-klim is van de speler zelf (lokaal, ook bij een gast). De wedstrijd tegen elkaar (`multiplayerwedstrijd.js`, host telt) houdt het bord met de tabel van de klimmers; de strook is daar niet getoond. Valt een speler weg, dan verdwijnt zijn strook met zijn klim. Test: `klimhud_test`, `hud_kleuren_test`.
+
+**Niet gedaan.** De strook in de wedstrijd, een tweede meter voor de hoogte (de strook kent er één), een kaartmarkering.
+
 ## Beeldbewijs en eerlijkheid
 
 `docs/img/qa/lichtsims-strook-na.jpg` en `lichtsims-strook-na-2.jpg` (met de bezorger, ook een koud wordende bestelling): de echte markup van de strook (`simHudHtml`) met de echte stijlbladen (ds-tokens, ds-components, sim.css) in een browservenster: hengelen met een beet, hengelen bij de eerste keer (uitleg met vier pictogrammen), krantenwijk onderweg en bij de eerste keer. Het script staat niet in git (`.scr/simbeeld.mjs`). **Niet in het spel gezien:** de strook boven de echte wereld, de lichtkolom, het vlaggetje, het uitroepteken boven het dobbertje en het opspringende getal (geen gestagede game en wereld in deze worktree, en meerdere Electron-instanties van anderen liepen al). Geen fps gemeten; de wereldkant is een paar kleine meshes met MeshBasic, zonder nieuw shaderprogramma of licht.
