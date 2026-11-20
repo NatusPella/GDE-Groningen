@@ -98,7 +98,8 @@ t('de lange uitleg noemt een toets als token, niet als losse letter', () => {
 t('#985: het hintvoorbeeld volgt de echte instaptoets', () => {
   assert.match(pm, /const instap = keyLabel\(physicalKey\(st\.keyBinds, 'e'\)\)/, 'de letter komt uit physicalKey');
   assert.match(pm, /const sig = `\$\{stand\}\|\$\{instap\}`/, 'de hertekening hangt ook aan de letter');
-  assert.match(pm, /<span class="m-kc">\$\{esc\(instap\)\}<\/span><span>Instappen<\/span>/, 'en die letter wordt gebruikt');
+  // keycap.js (#1003): het toetsplaatje {E} volgt zelf de echte binding; instap blijft in de hertekensleutel
+  assert.match(pm, /<span class="m-kc is-kbg">\$\{glyphHtml\('E'\)\}<\/span><span>Instappen<\/span>/, 'en die letter komt uit het toetsplaatje');
   assert.doesNotMatch(pm, /: '<span class="m-kc">E<\/span><span>Instappen<\/span>'/, 'geen hardgecodeerde E meer');
 });
 
