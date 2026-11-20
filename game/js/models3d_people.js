@@ -379,6 +379,14 @@ function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52, innerColor = null
   if (innerColor !== null) B.geo(flipWinding(shell(0.99 + (k - 0.99) * 0.4).toNonIndexed()), m, innerColor);
 }
 
+// The hood of a hoodie or jacket, hanging at the back of the neck: an open bowl, so it gets an inner wall (faces turned in, a bit smaller) and reads as cloth
+// with a lining instead of a see-through fin seen from the side or from above.
+function hoodBowl(B, top) {
+  const bowl = (k) => ell(8, 4, (x, y, z) => [x * 0.11 * k - 0.1, y * 0.09 * k + 1.47, z * 0.13 * k], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62);
+  B.geo(bowl(1), null, shade(top, 0.9));
+  B.geo(flipWinding(bowl(0.88).toNonIndexed()), null, shade(top, 0.68));
+}
+
 function lumpyCap(B, k, color, seed, lift = 0) {
   const g = new THREE.IcosahedronGeometry(1, 1);
   const p = g.attributes.position;
@@ -629,7 +637,7 @@ function buildTorso(B, L, skin) {
       for (const s of [1, -1]) B.box(front(1.33) + 0.01, 1.29, s * 0.03, 0.006, 0.12, 0.008, 0xd8d4cc);
       if (!L.hoodUp) {
         B.bone = BONE.chest;
-        B.geo(ell(8, 4, (x, y, z) => [x * 0.11 - 0.1, y * 0.09 + 1.47, z * 0.13], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62), null, shade(top, 0.9));
+        hoodBowl(B, top);
         B.bone = W_TORSO;
       }
       collarRing(shade(top, 0.95), 1.1, 0.045);
@@ -646,7 +654,7 @@ function buildTorso(B, L, skin) {
       for (const s of [1, -1]) B.box(front(1.02) * 1.05, 1.02, s * 0.085, 0.012, 0.018, 0.06, shade(top, 0.75));
       if (L.hood) {
         B.bone = BONE.chest;
-        B.geo(ell(8, 4, (x, y, z) => [x * 0.11 - 0.1, y * 0.09 + 1.47, z * 0.13], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62), null, shade(top, 0.9));
+        hoodBowl(B, top);
         B.bone = W_TORSO;
       }
       collarRing(shade(top, 0.9), 1.12, 0.05);

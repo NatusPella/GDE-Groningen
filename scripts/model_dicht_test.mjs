@@ -38,6 +38,22 @@ for (const hat of ['beanie', 'flatcap']) {
   ok(inward(t) - inward(base) >= 20, `${hat} heeft een binnenkant`, `${inward(t)} tegen ${inward(base)}`);
 }
 
+// de capuchon van Tammo (open kom achter de nek): ook die heeft een binnenwand, anders is hij van opzij of boven een doorzichtige vin
+{
+  const t = build({ character: 'tammo' });
+  let g = null; t.traverse((o) => { if (o.geometry && o.geometry.attributes.skinIndex && !g) g = o.geometry; });
+  const P = g.attributes.position, N = g.attributes.normal, S = g.attributes.skinIndex;
+  let inw = 0, outw = 0;
+  for (let i = 0; i < P.count; i += 3) {
+    if (S.getX(i) !== 1) continue; // romp (bot 1)
+    const cx = (P.getX(i) + P.getX(i + 1) + P.getX(i + 2)) / 3, cy = (P.getY(i) + P.getY(i + 1) + P.getY(i + 2)) / 3, cz = (P.getZ(i) + P.getZ(i + 1) + P.getZ(i + 2)) / 3;
+    if (cy < 1.4 || cx > -0.05 || Math.abs(cz) > 0.14) continue; // de kom achter de nek
+    const d = N.getX(i) * (cx + 0.1) + N.getY(i) * (cy - 1.47) + N.getZ(i) * cz; // t.o.v. het midden van de kom
+    if (d < -1e-6) inw++; else outw++;
+  }
+  ok(inw >= 15 && outw >= 15, 'de capuchon heeft een buiten- en een binnenwand', `${outw} buiten, ${inw} binnen`);
+}
+
 // lang haar (Tessa): de wanden van het haar steken nergens meer dan 7 mm in het hoofd (de hoekpunten met haarkleur binnen 0,93 van de kop-ellipsoide)
 function darkInside(mesh, lim = 0.93) {
   let g = null; mesh.traverse((o) => { if (o.geometry && o.geometry.attributes.skinIndex && !g) g = o.geometry; });
