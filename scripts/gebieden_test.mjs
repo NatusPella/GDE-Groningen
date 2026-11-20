@@ -260,6 +260,29 @@ t('#708: intochten: één keer per speler, in het profiel, en terug te kijken al
   const m = G.voegSamen({ v: 2, intochten: ['wk:WK002'] }, { v: 2, intochten: ['bu:BU001'] });
   assert.deepEqual(m.intochten.sort(), ['bu:BU001', 'wk:WK002']);
 });
+t('bezoekRoute (#990): een snelle auto slaat geen buurt meer over; een sprong telt alleen het eindpunt', () => {
+  const i = ind();
+  const p = G.nieuwProfiel();
+  // een meting per seconde op 2000 m afstand (een vliegtuig): de buurten ertussen tellen mee
+  assert.deepEqual(G.bezoekRoute(p, i, { x: 500, y: 1000 }, 2500, 1000, 60, 3000), ['bu:BU001', 'bu:BU002', 'bu:BU003']);
+  // een sprong verder dan max (reizen, laden): alleen het eindpunt
+  const q = G.nieuwProfiel();
+  assert.deepEqual(G.bezoekRoute(q, i, { x: 500, y: 1000 }, 2500, 1000), ['bu:BU003'], 'een sprong telt de tussenliggende buurten niet');
+  // zonder vorige meting alleen de plek zelf, en niets tweemaal
+  const r = G.nieuwProfiel();
+  assert.deepEqual(G.bezoekRoute(r, i, null, 1500, 1000), ['bu:BU002']);
+  assert.deepEqual(G.bezoekRoute(r, i, { x: 1500, y: 1000 }, 1500, 1000), []);
+  assert.deepEqual(G.bezoekRoute(r, i, { x: 1, y: 1 }, NaN, 5), [], 'een ongeldige plek telt niet');
+  assert.deepEqual(G.bezoekRoute(r, null, null, 5, 5), [], 'zonder indeling niets');
+});
+t('nieuwGebied (#990): één melding voor een nieuwe woonplaats of gemeente, geen melding per buurt', () => {
+  const i = ind();
+  const eerste = G.nieuwGebied(i, [], ['bu:BU001']);
+  assert.ok(eerste && (eerste.niveau === 'gemeente' || eerste.niveau === 'woonplaats'), 'de eerste buurt maakt zijn woonplaats of gemeente zichtbaar');
+  assert.equal(G.nieuwGebied(i, ['bu:BU001'], ['bu:BU002']), null, 'een tweede buurt in dezelfde gemeente meldt niets');
+  assert.equal(G.nieuwGebied(i, [], []), null);
+  assert.equal(G.nieuwGebied(null, [], ['bu:BU001']), null);
+});
 t('bezoek: de buurt waar je bent telt eenmaal; kaartVerkend telt de bezochte buurten en rondt naar beneden af', () => {
   const i = ind(), p = G.nieuwProfiel();
   assert.equal(G.bezoek(p, i, 10, 10), 'bu:BU001');

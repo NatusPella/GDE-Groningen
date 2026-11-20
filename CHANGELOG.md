@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Kaart ontdekken (nog niet in beeld gezien, #990):** een snelle auto of een vliegtuig sloeg smalle buurten over omdat de tracker maar één keer per seconde keek; nu telt elke buurt langs de route mee (een sprong door reizen of laden telt alleen het eindpunt). Een nieuwe woonplaats of gemeente op je kaart krijgt één rustige melding met de teller ("x van y buurten verkend"); de zachte onthulling op de kaart zelf was er al. Veroverd gebied is lichtgroen.
 - **Nieuwsmelding wordt niet meer afgekapt (nog niet in beeld gezien, #1012):** een lange Kiekdoar-melding (zoals Kiezelweek) breekt op de kaart af op de breedte, een lange kop houdt zes regels in plaats van vier, en de telefoon (Overig) bewaart nu de volle tekst in plaats van de ingekorte kaart.
 ## [0.64.0] - 2026-11-20
 

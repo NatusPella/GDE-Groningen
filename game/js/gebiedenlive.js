@@ -181,13 +181,29 @@ export const intochtenOverzicht = () => { const ind = getIndeling(); return ind 
 // De kaart verkennen (#435): de buurt waar de speler is telt mee zodra hij er komt. achievementtracker.js vraagt dit
 // elke seconde; geeft het id van een nieuwe buurt terug, anders null. Samen spelen: elke speler verkent op zijn eigen
 // apparaat en telt in zijn eigen profiel, dus een gast telt zijn eigen buurten.
+let laatstePlek = null; // #990: waar de vorige meting was, om de buurten ertussen mee te tellen
 export function bezoekPlek(w) {
   if (geblokkeerd() || !w || !w.player) return null;
   const ind = getIndeling();
   if (!ind) return null;
-  const id = G.bezoek(getProfiel(), ind, w.player.x, w.player.y);
-  if (id) markeer();
-  return id;
+  const p = getProfiel();
+  const voor = p.bezocht.slice();
+  const x = w.player.x, y = w.player.y;
+  const ids = G.bezoekRoute(p, ind, laatstePlek, x, y);
+  laatstePlek = { x, y };
+  if (!ids.length) return null;
+  markeer();
+  meldNieuwGebied(w, ind, voor, ids);
+  return ids[ids.length - 1];
+}
+
+// #990: een nieuwe woonplaats of gemeente op de kaart krijgt één rustige melding met de teller (niet per buurt).
+function meldNieuwGebied(w, ind, voor, ids) {
+  if (!w || !w.addMessage || !voor.length) return; // de allereerste buurt (de startplek) krijgt geen melding
+  const g = G.nieuwGebied(ind, voor, ids);
+  if (!g) return;
+  const k = G.kaartVerkend(getProfiel(), ind);
+  w.addMessage(`${g.naam} staat nu op je kaart (${k.gedaan} van ${k.totaal} buurten verkend)`, 5, { kind: 'prestatie', kicker: 'Nieuw gebied', key: 'gebied-ontdekt-' + g.id });
 }
 
 // Elke paar seconden (achievementtracker.js): de missies die klaar zijn in deze save tellen mee.
