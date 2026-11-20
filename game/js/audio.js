@@ -1946,6 +1946,35 @@ function updateEngineLayer(dt, on, rpm, spec, muffle) {
   }
 }
 
+// De rit (#882): de motor van de taxi zoals je hem van binnen hoort, gedempt en zacht (de passagier zit niet zelf in het voertuig, dus de gewone
+// motor klinkt niet). Dezelfde opname als de motorlaag; toonhoogte en niveau volgen de snelheid. world.ritTaxi is het voertuig van de rit.
+let ritMotor = null;
+function updateRitMotor(world) {
+  const t = ctx.currentTime, v = world.ritTaxi, buf = samples && samples.buffer('motor_auto_stationair');
+  const aan = !!(v && buf && !world.paused);
+  if (aan && !ritMotor) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 850;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(lp).connect(gain).connect(sfxBus);
+    src.start();
+    ritMotor = { src, gain };
+  }
+  if (!ritMotor) return;
+  if (aan) {
+    const k = clamp(Math.abs(v.speed || 0) / 20, 0, 1);
+    ritMotor.src.playbackRate.setTargetAtTime(0.8 + 0.7 * k, t, 0.12);
+    ritMotor.gain.gain.setTargetAtTime(SAMPLE_INFO.motor_auto_stationair.gain * categoryLevel('voertuig') * (0.8 - 0.3 * k), t, 0.2);
+  } else {
+    ritMotor.gain.gain.setTargetAtTime(0, t, 0.15);
+    const l = ritMotor; ritMotor = null;
+    try { l.src.stop(t + 0.8); } catch (e) { /* already stopped */ }
+  }
+}
+
 function updateEngineSynth(dt, world) {
   const S = engineState;
   const v = hoofdspeler(world).inVehicle;
@@ -2993,6 +3022,7 @@ function updateWorldAudio(dt, world) {
 // gebeurtenissen (schoten, stemmen, meldingen) blijven wel per frame lopen.
 function updateWorldMixers(dt, world) {
   updateEngine(dt, world);
+  updateRitMotor(world);
   updatePaddling(dt, world);
   updateSailing(dt, world);
   updateSqueal(dt, world);
