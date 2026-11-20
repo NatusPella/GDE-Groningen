@@ -49,7 +49,7 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) { #hud .stunt-pop { animation-duration: 1.2s; } #hud .stunt-hud .sh-left[data-urgent="1"] { animation: none; } }
 @media (max-width: 760px) { #hud .stunt-pops { right: 14px; top: calc(var(--hud-tr-bottom) + 150px); } }
 /* Zomerse zeefdruk (ADR 0040): de stuntscore en het stuntbord als papier met inktrand en harde schaduw. */
-#hud .stunt-hud, #hud .stunt-brief { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-kop-v3); font-weight: 600; }
+#hud .stunt-hud, #hud .stunt-brief { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-kop); font-weight: 600; }
 #hud .stunt-hud { border-right: 8px solid var(--ds-c-ink-bord); }
 #hud .stunt-brief { border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 #hud .stunt-hud .sh-label, #hud .stunt-hud .sh-score small, #hud .stunt-brief .sb-foot { color: var(--ds-c-inkt-zacht); }
@@ -65,8 +65,8 @@ const CSS = `
 #hud .stunt-pop b, #hud .stunt-pop.combo { color: var(--ds-c-ink-bord); }
 #hud .stunt-pop.bad b, #hud .stunt-pop.bad { color: var(--ds-c-rood-tx); }
 #hud .stunt-brief h3 { font-weight: 800; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
-#hud .stunt-brief p, #hud .stunt-brief ul, #hud .stunt-brief .sb-foot { font-family: var(--ds-font-tekst-v3); }
-#hud .stunt-brief li span:last-child { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-bord); }
+#hud .stunt-brief p, #hud .stunt-brief ul, #hud .stunt-brief .sb-foot { font-family: var(--ds-font-zeef-tekst); }
+#hud .stunt-brief li span:last-child { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-bord); }
 #hud .stunt-brief li.bad span:last-child { color: var(--ds-c-rood-tx); }
 `;
 

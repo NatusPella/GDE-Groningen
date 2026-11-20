@@ -1,4 +1,4 @@
-// Te doen, Loopbanen, Verhaal en Veroverd in beeld (designsysteem v2, fase 3, #980): één Electron (wegwerpprofiel, sluit af)
+// Te doen, Loopbanen, Verhaal en Veroverd in beeld (designsysteem, fase 3, #980): één Electron (wegwerpprofiel, sluit af)
 // opent de schermen zoals een speler ze opent en neemt beelden en metingen (ds_schermen3_beeld.page.js).
 //   node scripts/qa/ds_schermen3_beeld.mjs [--out=<map>] [--prefix=voor] [--size=1280x720] [--settle=8000] [--stap=todo,loopbaan,verhaal,veroverd]
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/shots-<prefix><hoogte>-*.png, ds3_<prefix><formaat>.json, run-*.log.

@@ -145,12 +145,12 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
 
 /* ===== Zomerse zeefdruk (ADR 0040, #985): het hoofdmenu als papieren kaart over de vliegende stad =====
    De menukleuren (--ink, --g, --mut) draaien hier om naar inkt op papier; wat daar niet op leest staat hieronder per regel. */
-#start-screen { --ink: var(--ds-c-ink-inkt); --g: var(--ds-c-ink-bord); --mut: var(--ds-c-inkt-zacht); --gd: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); background: none; }
+#start-screen { --ink: var(--ds-c-ink-inkt); --g: var(--ds-c-ink-bord); --mut: var(--ds-c-inkt-zacht); --gd: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); background: none; }
 #start-screen::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: min(880px, 66vw); pointer-events: none;
   background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 14px 14px;
   border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
 #start-screen > * { z-index: 1; }
-#start-screen .ss-item { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: none; border-radius: 8px; border: var(--ds-lijn-zeef) solid transparent; background: none; }
+#start-screen .ss-item { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: none; border-radius: 8px; border: var(--ds-lijn-zeef) solid transparent; background: none; }
 #start-screen .ss-item:hover { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-inkt); }
 #start-screen .ss-item.sel { background: var(--ds-c-ink-geel); border-color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
 #start-screen .ss-item.sel::before { display: none; }
@@ -163,13 +163,13 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
 #start-screen .ss-item.sel .ss-ic, #start-screen .ss-item:hover .ss-ic, #start-screen .ss-item:focus-visible .ss-ic { color: var(--ds-c-ink-inkt); }
 #start-screen .ss-tag { color: var(--ds-c-inkt-zacht); text-shadow: none; }
 #start-screen .ss-save { padding: 14px 20px 16px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-shadow: none; color: var(--ds-c-ink-inkt); }
-#start-screen .ss-save .big { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
+#start-screen .ss-save .big { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
 #start-screen .ss-save .meta { font-size: 18px; color: var(--ds-c-inkt-zacht); }
 #start-screen .ss-news { background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
-#start-screen .ss-news-head h2 { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
-#start-screen .ss-news-close { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); }
+#start-screen .ss-news-head h2 { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
+#start-screen .ss-news-close { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
 #start-screen .ss-news-body { color: var(--ds-c-ink-inkt); scrollbar-color: var(--ds-c-ink-inkt) var(--ds-c-ink-papier); }
-#start-screen .ss-news-body :is(h3, h4) { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); }
+#start-screen .ss-news-body :is(h3, h4) { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
 #start-screen .ss-news-body h4 { color: var(--ds-c-ink-bord); }
 #start-screen .ss-news-body a { color: var(--ds-c-ink-bord); text-decoration: underline; }
 #start-screen .ss-news-body code { background: var(--ds-c-sel-vlak); }

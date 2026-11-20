@@ -1095,7 +1095,7 @@ html.touch-device #pause-menu .ra { min-height: calc(44px / var(--mz, 1)); }
   #pause-menu .ra { min-height: calc(44px / var(--mz, 1)); }
 }
 
-/* ===== Designsysteem v3: zomerse zeefdruk (#997, ADR 0040) =====================================
+/* ===== Designsysteem: zomerse zeefdruk (#997, ADR 0040) =====================================
    Het pauzemenu en de kaart erin zijn papier en inkt: de rail en het blad zijn papieren plaatjes
    met inktrand en harde schaduw boven een gedimde wereld. Alleen tokens (var(--ds-...)), geen eigen
    kleur of lettertype; de hoogte is de harde schaduw, selectie is bordgroen, geel is de ene hoofdknop.
@@ -1106,7 +1106,7 @@ html.touch-device #pause-menu .ra { min-height: calc(44px / var(--mz, 1)); }
   --ink: var(--ds-c-ink-inkt); --mut: var(--ds-c-inkt-zacht);
   --line: color-mix(in srgb, var(--ds-c-ink-inkt) 16%, transparent); --line2: color-mix(in srgb, var(--ds-c-ink-inkt) 34%, transparent);
   --red: var(--ds-c-rood); --redtx: var(--ds-c-rood-tx);
-  font-family: var(--ds-font-tekst-v3);
+  font-family: var(--ds-font-zeef-tekst);
 }
 #pause-menu.gm.visible:not(.prestart), #pause-menu.gm.prestart {
   -webkit-backdrop-filter: blur(6px) saturate(0.8); backdrop-filter: blur(6px) saturate(0.8);
@@ -1115,11 +1115,11 @@ html.touch-device #pause-menu .ra { min-height: calc(44px / var(--mz, 1)); }
 #pause-menu.gm :focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
 html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-chip):focus { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: calc(var(--ds-focus-dikte) * -1); }
 /* letters */
-#pause-menu.gm :is(.bebas, .m-bebas, .m-eb, .m-h1, .m-h2, .m-num, .m-tab, .m-val, .m-gh, .ra, .m-bp, .m-bg, .m-bt, .cp-btn, .cp-title, .m-pk output) { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pause-menu.gm :is(.bebas, .m-bebas, .m-eb, .m-h1, .m-h2, .m-num, .m-tab, .m-val, .m-gh, .ra, .m-bp, .m-bg, .m-bt, .cp-btn, .cp-title, .m-pk output) { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #pause-menu.gm :is(.m-h1, .m-h2) { text-shadow: var(--ds-misdruk); color: var(--ds-c-ink-inkt); }
 #pause-menu.gm .m-eb { color: var(--ds-zeef-kop); }
-#pause-menu.gm .m-tab small, #pause-menu.gm .ra .n, #pause-menu.gm .pm-rail-h { font-family: var(--ds-font-tekst-v3); }
-#pause-menu.gm .pm-rail-h { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pause-menu.gm .m-tab small, #pause-menu.gm .ra .n, #pause-menu.gm .pm-rail-h { font-family: var(--ds-font-zeef-tekst); }
+#pause-menu.gm .pm-rail-h { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 /* de rail: een papieren plaatje */
 #pause-menu.gm .pm-rail { padding: var(--ds-s-4) 0 var(--ds-s-3); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
 #pause-menu.gm .ra { color: var(--ds-tx-zacht); }
@@ -1157,7 +1157,7 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .m-bt.danger:hover { color: var(--ds-c-rood-tx); }
 #pause-menu.gm .m-chip[aria-checked="true"] { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-bord); }
 #pause-menu.gm .m-hint { color: var(--ds-c-ink-inkt); text-shadow: none; }
-#pause-menu.gm .m-kc, #pause-menu.gm .pm-ckeys .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); box-shadow: none; font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pause-menu.gm .m-kc, #pause-menu.gm .pm-ckeys .hud-key { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); box-shadow: none; font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #pause-menu.gm .m-kc.dark { background: transparent; color: var(--ds-c-ink-inkt); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-inkt); }
 /* schakelaar, schuif, invoer, balk */
 #pause-menu.gm .m-sw { background: var(--ds-c-papier-2); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-inkt); }
@@ -1185,10 +1185,10 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .pm-samen .coop-code { background: var(--ds-zeef-bg); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu.gm .pm-samen .coop-error { color: var(--ds-c-rood-tx); }
 #pause-menu.gm .pm-samen .m-bp, .coop-hold .m-bp { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); box-shadow: var(--ds-schaduw-hard); }
-#pause-menu.gm .pm-a11y-mk { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-inkt); }
+#pause-menu.gm .pm-a11y-mk { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-inkt); }
 
 /* Kaart in het pauzemenu: de kaart blijft donker land, alle chroom is papier met inktrand */
-#pause-menu.gm .mapview-overlay.embedded { background: var(--ds-c-ink-inkt); border: 0; border-radius: 0; box-shadow: none; font-family: var(--ds-font-tekst-v3); }
+#pause-menu.gm .mapview-overlay.embedded { background: var(--ds-c-ink-inkt); border: 0; border-radius: 0; box-shadow: none; font-family: var(--ds-font-zeef-tekst); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-body::after { background: radial-gradient(ellipse at 55% 50%, transparent 55%, color-mix(in srgb, var(--ds-c-ink-inkt) 70%, transparent) 100%); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-header { border: 0; background: none; box-shadow: none; }
 #pause-menu.gm .mapview-overlay.embedded .mv-hl .mapview-title { color: var(--ds-c-ink-papier); text-shadow: var(--ds-misdruk); }
@@ -1200,9 +1200,9 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .mv-layers { background: var(--ds-zeef-bg); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-legend-body { scrollbar-color: var(--ds-c-ink-inkt) transparent; }
-#pause-menu.gm .mapview-overlay.embedded .mapview-legend h3 { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-zeef-kop); }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend h3 { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-zeef-kop); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-grp { background: none; border: 0; }
-#pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-grp-head { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-grp-head { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend li[role="switch"]:hover { background: var(--ds-c-sel-vlak); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend :is(.note, .always) { color: var(--ds-tx-zacht); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend .chk { background: var(--ds-c-papier-2); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-sizing: border-box; }
@@ -1212,14 +1212,14 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend :is(li:focus-visible, .mv-grp-head:focus-visible) { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-zoom .m-bg { background: var(--ds-zeef-bg); }
 #pause-menu.gm .mapview-overlay.embedded .mv-goal { padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
-#pause-menu.gm .mapview-overlay.embedded .mapview-route { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pause-menu.gm .mapview-overlay.embedded .mapview-route { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #pause-menu.gm .mapview-overlay.embedded .mapview-osm { padding: 2px var(--ds-s-2); background: var(--ds-zeef-bg); color: var(--ds-c-ink-inkt); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-tp { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border-radius: var(--ds-r); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-tooltip { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card { background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card :is(small, .mv-rec) { color: var(--ds-tx-zacht); }
-#pause-menu.gm .mapview-overlay.embedded .mapview-card b { font-family: var(--ds-font-kop-v3); font-weight: 800; }
-#pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; }
+#pause-menu.gm .mapview-overlay.embedded .mapview-card b { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+#pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn:hover { background: var(--ds-c-geel-hover); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn.ghost { background: var(--ds-zeef-bg); color: var(--ds-c-ink-inkt); box-shadow: none; }
 #pause-menu.gm .mapview-overlay.embedded .mapview-card .mapview-btn.ghost:hover { background: var(--ds-c-sel-vlak); }
@@ -1234,12 +1234,12 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .m-hint { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-tx); }
 /* de groepskoppen van de rail en het voortgangsblok */
 #pause-menu.gm .pm-rail-h { font-size: max(15px, var(--menu-min)); letter-spacing: var(--ds-ls-label); color: var(--ds-zeef-tx); }
-#pause-menu.gm .pm-rail-h .cnt { font-family: var(--ds-font-tekst-v3); font-size: max(15px, var(--menu-min)); letter-spacing: 0; color: var(--ds-tx-zacht); }
+#pause-menu.gm .pm-rail-h .cnt { font-family: var(--ds-font-zeef-tekst); font-size: max(15px, var(--menu-min)); letter-spacing: 0; color: var(--ds-tx-zacht); }
 #pause-menu.gm .ov-scroll { -webkit-mask-image: none; mask-image: none; padding-top: var(--ds-s-3); scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
 #pause-menu.gm .pm-progress { flex: none; overflow: visible; margin: 0 var(--ds-s-4) var(--ds-s-4); padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-c-papier-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu.gm .pm-progress-head { flex-wrap: wrap; }
 #pause-menu.gm .pm-progress-head .m-eb { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-kop); }
-#pause-menu.gm .pm-progress-pct b { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-zeef-tx); text-shadow: var(--ds-misdruk); }
+#pause-menu.gm .pm-progress-pct b { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-zeef-tx); text-shadow: var(--ds-misdruk); }
 #pause-menu.gm .pm-progress-pct .mut, #pause-menu.gm .pm-progress-parts li { font-size: max(16px, var(--menu-min)); color: var(--ds-zeef-tx); }
 #pause-menu.gm .pm-progress-parts li > span:last-child { color: var(--ds-tx-zacht); }
 #pause-menu.gm .pm-progress .m-bar { height: var(--ds-s-3); }
@@ -1258,7 +1258,7 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .mapview-overlay.embedded .mapview-legend .mv-legend-body { -webkit-mask-image: none; mask-image: none; }
 #pause-menu.gm .mapview-overlay.embedded .mapview-route { font-size: max(20px, var(--menu-min)); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-osm { font-size: max(14px, var(--menu-min)); }
-#pause-menu.gm .mv-layers-n { font-family: var(--ds-font-tekst-v3); font-size: max(16px, var(--menu-min)); color: var(--ds-tx-zacht); }
+#pause-menu.gm .mv-layers-n { font-family: var(--ds-font-zeef-tekst); font-size: max(16px, var(--menu-min)); color: var(--ds-tx-zacht); }
 /* de uitleg "Zo werkt de kaart": een papieren kaart op een gedimde kaart, zonder vervaging */
 #pause-menu.gm .mapview-overlay .mv-help { background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
 #pause-menu.gm .mapview-overlay .mv-help-box { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); transform: none; font-size: max(16px, var(--menu-min)); }

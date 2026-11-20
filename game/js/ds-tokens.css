@@ -237,11 +237,11 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
   --ds-font-knoppen-deck: 'GDE Knoppen Deck', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
   --ds-font-knoppen-algemeen: 'GDE Knoppen Algemeen', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
   --ds-font-aanraking: 'GDE Aanraking', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-  --ds-font-kop-v3: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-  --ds-font-tekst-v3: 'Atkinson Hyperlegible', Arial, sans-serif;
+  --ds-font-zeef-kop: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --ds-font-zeef-tekst: 'Atkinson Hyperlegible', Arial, sans-serif;
 }
-.ds-zeef { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); }
-.ds-zeef-kop { font-family: var(--ds-font-kop-v3); font-weight: 800; }
+.ds-zeef { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); }
+.ds-zeef-kop { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 .ds-misdruk { text-shadow: var(--ds-misdruk); }
 .ds-raster { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
 

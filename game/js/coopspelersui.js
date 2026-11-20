@@ -48,13 +48,13 @@ const roepHint =() => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}
 const CSS = `
 /* Zeefdruk (#1001): alleen ds-tokens en de .ds-z-* stijl; de identiteitskleur van een speler komt als inline color (data) en de vorm staat er altijd naast.
    De lijst staat buiten het .gm-paneel en gebruikt dus de papiertokens, niet de glasvariabelen. */
-#coop-spelers, .pm-spelers { color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); }
-.cs-lijst { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+#coop-spelers, .pm-spelers { color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); }
+.cs-lijst { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ds-s-2); }
 .cs-rij { display: grid; grid-template-columns: var(--ds-s-7) minmax(110px, auto) minmax(0, 1fr) auto; gap: var(--ds-s-1) var(--ds-s-3); align-items: center; padding: var(--ds-s-2) var(--ds-s-3); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 .cs-avatar { grid-row: 1 / span 2; display: grid; place-items: center; width: var(--ds-s-7); height: var(--ds-s-7); border-radius: var(--ds-r-pil); background: var(--ds-c-ink-inkt); }
 .cs-vorm { font-size: var(--ds-t-subkop); line-height: 1; text-align: center; }
-.cs-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
-.cs-naam small, .cs-net small, .cs-doet small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; }
+.cs-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.cs-naam small, .cs-net small, .cs-doet small { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); font-weight: 400; letter-spacing: 0; }
 .cs-naam .cs-jij { color: var(--ds-c-groen-tx); }
 .cs-doet { display: flex; flex-direction: column; gap: 1px; }
 .cs-groep { display: inline-block; padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); }
@@ -67,11 +67,11 @@ const CSS = `
 .cs-stip-lost { background: var(--ds-c-rood); }
 .cs-acties { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 /* #636: dezelfde lijst ook op aanraking (44 px-knop), zonder muis of Tab */
-.cs-open { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: grid; place-items: center; min-width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
+.cs-open { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: grid; place-items: center; min-width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
 .cs-open[aria-expanded="true"] { background: var(--ds-zeef-primair); }
 .cs-open:hover { background: var(--ds-c-sel-vlak); }
 .cs-open:focus-visible, .pm-spelers :is(button, input):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
-.cs-eruit, .cs-naar, .pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .cs-kleuren button { display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); justify-self: start; margin: 0; min-height: var(--ds-doel-aanraken); padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
+.cs-eruit, .cs-naar, .pm-spelers .cs-pvp button, .pm-spelers .cs-roep button, .cs-kleuren button { display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); justify-self: start; margin: 0; min-height: var(--ds-doel-aanraken); padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); cursor: pointer; }
 .cs-naar:hover, .cs-naar:focus-visible, .pm-spelers .cs-roep button:hover { background: var(--ds-c-sel-vlak); }
 .cs-eruit { border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
 #coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; box-sizing: border-box; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); pointer-events: none; }
@@ -81,8 +81,8 @@ const CSS = `
 #coop-spelers .cs-lijst::-webkit-scrollbar { width: 8px; }
 #coop-spelers .cs-lijst::-webkit-scrollbar-thumb { border-radius: var(--ds-r); background: var(--ds-c-ink-inkt); }
 #coop-spelers .cs-lijst::-webkit-scrollbar-track { background: transparent; }
-#coop-spelers h3 { margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
-#coop-spelers .cs-voet { margin-top: var(--ds-s-2); padding-top: var(--ds-s-2); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); }
+#coop-spelers h3 { margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+#coop-spelers .cs-voet { margin-top: var(--ds-s-2); padding-top: var(--ds-s-2); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); }
 #coop-spelers .cs-voet b { padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); background: var(--ds-zeef-bg); }
 #coop-spelers .cs-rij { padding: var(--ds-s-2); grid-template-columns: var(--ds-s-6) minmax(80px, auto) minmax(0, 1fr) auto; }
 #coop-spelers .cs-avatar { width: var(--ds-s-6); height: var(--ds-s-6); }
@@ -90,7 +90,7 @@ const CSS = `
 .pm-spelers { display: flex; flex-direction: column; gap: var(--ds-s-4); max-width: 952px; padding: var(--ds-s-6) var(--ds-s-8) var(--ds-s-7); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
 .pm-spelers .cs-kop, .pm-spelers .cs-pvp, .cs-profiel { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
 .pm-spelers .cs-pvp { align-items: flex-start; }
-.pm-spelers .cs-kop-t, .pm-spelers .cs-sectie h4, .cs-profiel h4 { margin: 0; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+.pm-spelers .cs-kop-t, .pm-spelers .cs-sectie h4, .cs-profiel h4 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
 .pm-spelers .cs-kop-t { font-size: var(--ds-t-kop); }
 .pm-spelers .cs-kop-leeg .cs-kop-t { color: var(--ds-tx-zacht); }
 .pm-spelers .cs-sectie { display: flex; flex-direction: column; gap: var(--ds-s-2); padding-top: var(--ds-s-1); }
@@ -102,8 +102,8 @@ const CSS = `
 .pm-spelers .cs-pvp button[aria-pressed="true"], .cs-kleuren button[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
 .cs-kleuren button[aria-pressed="true"]::after { content: "\\2713"; }
 .pm-spelers .cs-roep { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); }
-.cs-profiel-label { display: flex; gap: var(--ds-s-3); align-items: center; font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
-.cs-profiel-naam { min-width: 0; min-height: var(--ds-doel-aanraken); max-width: 260px; padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); }
+.cs-profiel-label { display: flex; gap: var(--ds-s-3); align-items: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
+.cs-profiel-naam { min-width: 0; min-height: var(--ds-doel-aanraken); max-width: 260px; padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); }
 .cs-kleuren { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 .cs-profiel-fout { color: var(--ds-c-rood-tx); }
 .cs-profiel-hint { font-size: var(--ds-t-hulp); }

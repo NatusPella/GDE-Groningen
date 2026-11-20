@@ -32,23 +32,23 @@ const CSS = `
 @media (max-width: 480px) { #hud .cw-panel { top: 64px; } }
 html.touch-device #hud .cw-panel .cw-opt { min-height: 44px; box-sizing: border-box; }
 /* Zomerse zeefdruk (ADR 0040): papier met inktrand en harde schaduw; de accentkleur blijft de dikke linkerrand. */
-#hud .cw-panel { color: var(--ds-c-ink-inkt); text-shadow: none; font-family: var(--ds-font-tekst-v3); background: var(--ds-c-ink-papier);
+#hud .cw-panel { color: var(--ds-c-ink-inkt); text-shadow: none; font-family: var(--ds-font-zeef-tekst); background: var(--ds-c-ink-papier);
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--cw-acc, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
-#hud .cw-panel small { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+#hud .cw-panel small { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
 #hud .cw-panel .cw-text { font-size: 19px; }
 #hud .cw-panel .cw-rule { color: var(--ds-c-inkt-zacht); }
-#hud .cw-panel .cw-opt { font-family: var(--ds-font-kop-v3); font-weight: 600; background: var(--ds-c-sel-vlak); border-radius: 3px; }
-#hud .cw-panel .cw-opt .cw-note { font-family: var(--ds-font-tekst-v3); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
-#hud .cw-panel .cw-opt .cw-badge { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: 2px solid var(--ds-c-ink-inkt); border-radius: 3px; }
+#hud .cw-panel .cw-opt { font-family: var(--ds-font-zeef-kop); font-weight: 600; background: var(--ds-c-sel-vlak); border-radius: 3px; }
+#hud .cw-panel .cw-opt .cw-note { font-family: var(--ds-font-zeef-tekst); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
+#hud .cw-panel .cw-opt .cw-badge { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: 2px solid var(--ds-c-ink-inkt); border-radius: 3px; }
 #hud .cw-panel .cw-opt.pick { background: var(--ds-c-ink-geel); box-shadow: inset 0 0 0 2px var(--ds-c-ink-inkt); }
 #hud .cw-panel .cw-opt.good { background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); }
 #hud .cw-panel .cw-opt.bad { background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx); }
 #hud .cw-panel .cw-meter { background: var(--ds-c-sel-vlak); border-radius: 3px; box-shadow: inset 0 0 0 2px var(--ds-c-ink-inkt); height: 13px; }
 #hud .cw-panel .cw-meter i { background: var(--ds-c-ink-inkt); }
 #hud .cw-panel .cw-meter b { background: var(--ds-c-ink-geel); }
-#hud .cw-panel .cw-flash { font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-groen-tx); }
+#hud .cw-panel .cw-flash { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-groen-tx); }
 #hud .cw-panel .cw-flash.bad { color: var(--ds-c-rood-tx); }
-#hud .cw-panel .cw-help { font-family: var(--ds-font-tekst-v3); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
+#hud .cw-panel .cw-help { font-family: var(--ds-font-zeef-tekst); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
 `;
 
 let cssDone = false;

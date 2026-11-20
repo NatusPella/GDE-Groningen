@@ -1,4 +1,4 @@
-// Page half of scripts/qa/ds_schermen4_beeld.mjs (desktop --perf-script body; designsysteem v2 fase 4, #980):
+// Page half of scripts/qa/ds_schermen4_beeld.mjs (desktop --perf-script body; designsysteem fase 4, #980):
 // opent Prestaties, Foto's, Kaart en Samen spelen zoals een speler dat doet, neemt beelden ("[capture] naam") en meet.
 // window.__ds4 = { settle, prefix, stap: ['prestaties', 'fotos', 'kaart', 'samen'] }.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));

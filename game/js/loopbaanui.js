@@ -58,13 +58,13 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-hero > .lb-hero-ico { position: absolute; z-index: 2; right: 32px; top: 50%; width: 72px; height: 72px; margin: 0; color: color-mix(in srgb, var(--ink) 90%, transparent); transform: translateY(-50%); }
 .lb-hero-ico svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .lb-stats { flex: none; }
-.lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-tekst-v3); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+.lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-zeef-tekst); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
 .lb-groep .lb-gn { margin-left: auto; letter-spacing: 0; text-transform: none; opacity: 0.85; font-size: max(14px, var(--menu-min, 14px)); }
 .lb-li { gap: 12px; }
 .lb-li .nm { min-width: 0; }
 .lb-li .lb-niv { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.9; background: color-mix(in srgb, var(--ink) 8%, transparent); }
-.lb-li .lb-niv b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 20px; line-height: 1; }
+.lb-li .lb-niv b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 20px; line-height: 1; }
 .lb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
 .lb-li.nul .pa-ico { opacity: 0.4; }
 .lb-li.sel .lb-niv { background: color-mix(in srgb, var(--g) 20%, transparent); }
@@ -76,21 +76,21 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; flex: none; }
 .lb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 5%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 .lb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
-.lb-kpi b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; overflow-wrap: anywhere; }
+.lb-kpi b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; overflow-wrap: anywhere; }
 .lb-kpi small { font-size: 16px; color: var(--mut); }
 .lb-voort { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
 .lb-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
 .lb-pane .m-num { font-size: 26px; }
-/* De ladder als trap (designsysteem v2, #980): een papieren kaart op het glas; elk niveau staat een stap verder naar rechts (--stap),
+/* De ladder als trap (designsysteem, #980): een papieren kaart op het glas; elk niveau staat een stap verder naar rechts (--stap),
    het huidige niveau heeft de selectierand en het streepje naar het volgende, elk niveau noemt zijn loon en een chip met pictogram. */
 .lb-ladder { gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); margin: 2px 0 0; }
 .lb-trap { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .lb-trap li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; align-items: center; column-gap: var(--ds-s-3); row-gap: var(--ds-s-1); min-height: 44px; padding: var(--ds-s-1) var(--ds-s-3) var(--ds-s-1) calc(var(--ds-s-2) + var(--stap, 0) * 10px); border-left: var(--ds-status-rand) solid transparent; border-radius: 6px; color: var(--ds-c-inkt-zacht); }
 .lb-trap li.bereikt { color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-bord); }
 .lb-trap li.nu { background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-bord); }
-.lb-trap .nr { font-family: var(--ds-font-kop-v3); font-size: var(--ds-t-subkop); line-height: 1; text-align: right; }
+.lb-trap .nr { font-family: var(--ds-font-zeef-kop); font-size: var(--ds-t-subkop); line-height: 1; text-align: right; }
 .lb-trap .lb-stap-t { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
-.lb-trap .lb-stap-t b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-body); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+.lb-trap .lb-stap-t b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-body); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 .lb-trap .lb-loon { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
 .lb-trap li.nu .lb-loon, .lb-trap li.bereikt .lb-loon { color: var(--ds-zeef-tx); }
 .lb-trap .ds-z-chip { min-height: 28px; }
@@ -117,7 +117,7 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-bz .mut { font-size: max(14px, var(--menu-min, 14px)); }
-.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-tekst-v3); font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
+.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-zeef-tekst); font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
 .lb-bz-link { border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); padding-top: 4px; margin-top: 2px; }
 .lb-leeg { margin: 4px 0 0; }
 .lb-start { padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 40%, transparent); }

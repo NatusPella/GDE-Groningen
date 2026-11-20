@@ -1,4 +1,4 @@
-// Page half of scripts/qa/ds_schermen3_beeld.mjs (desktop --perf-script body; designsysteem v2 fase 3, #980):
+// Page half of scripts/qa/ds_schermen3_beeld.mjs (desktop --perf-script body; designsysteem fase 3, #980):
 // opent Te doen, Loopbanen, Verhaal en Veroverd zoals een speler dat doet, neemt beelden ("[capture] naam") en meet.
 // window.__ds3 = { settle, prefix, stap: ['todo', 'loopbaan', 'verhaal', 'veroverd'] }.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));

@@ -1,7 +1,7 @@
 /* The load screen (loadscreen.js) in summer screen print (ADR 0040, #1002): paper and ink, the
    render as a framed print with a hard shadow, a yellow progress bar with the step in words.
    Laid out for 1440x900 like the HUD and zoomed with --ui; no backdrop-filter. */
-#load-screen { position: fixed; inset: 0; z-index: 50; overflow: hidden; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-tekst-v3); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 14px 14px; opacity: 0; transition: opacity 0.45s ease; }
+#load-screen { position: fixed; inset: 0; z-index: 50; overflow: hidden; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 14px 14px; opacity: 0; transition: opacity 0.45s ease; }
 #load-screen::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at 40% 50%, rgba(29,27,23,1) 40%, transparent 98%); mask-image: radial-gradient(ellipse at 40% 50%, rgba(29,27,23,1) 40%, transparent 98%); pointer-events: none; }
 #load-screen.on { opacity: 1; }
 #load-screen.instant { opacity: 1; transition: none; }
@@ -12,25 +12,25 @@
 #load-screen .ls-shade, #load-screen .ls-foot-shade { display: none; }
 #load-screen .ls-stage { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
 #load-screen .ls-brand { position: absolute; top: 90px; left: 100px; transform: rotate(var(--ds-schuin)); transform-origin: left top; }
-#load-screen .gde-logo { font-size: 167px; align-items: flex-start; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-inkt); }
+#load-screen .gde-logo { font-size: 167px; align-items: flex-start; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
 #load-screen .gde-logo .gde-mark { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--ds-c-ink-inkt); filter: none; text-shadow: var(--ds-misdruk); }
-#load-screen .gde-logo .gde-sign { font-size: max(13px, 0.32em); align-self: flex-start; font-family: var(--ds-font-kop-v3); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); }
+#load-screen .gde-logo .gde-sign { font-size: max(13px, 0.32em); align-self: flex-start; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); }
 /* the static copy matches the real logo lockup (DESIGN_SYSTEM.md, "Logo"): the subtitle in print caps (#600, #1002) */
-#load-screen .gde-logo .gde-sub { margin: 0.6em 0 0; font: 600 max(13px, 0.14em)/1.1 var(--ds-font-kop-v3); letter-spacing: 0.08em; text-transform: uppercase; text-align: left; color: var(--ds-c-ink-inkt); text-shadow: none; }
+#load-screen .gde-logo .gde-sub { margin: 0.6em 0 0; font: 600 max(13px, 0.14em)/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.08em; text-transform: uppercase; text-align: left; color: var(--ds-c-ink-inkt); text-shadow: none; }
 #load-screen .ls-card { position: absolute; left: 100px; bottom: 200px; max-width: 560px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-#load-screen .ls-kick { margin-bottom: 4px; padding: 2px 10px; font: 800 18px var(--ds-font-kop-v3); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard); }
-#load-screen .ls-place { font: 800 84px/0.95 var(--ds-font-kop-v3); color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
+#load-screen .ls-kick { margin-bottom: 4px; padding: 2px 10px; font: 800 18px var(--ds-font-zeef-kop); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard); }
+#load-screen .ls-place { font: 800 84px/0.95 var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
 #load-screen .ls-when { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 #load-screen .ls-when > span { font-size: 18px; color: var(--ds-c-ink-inkt); }
-#load-screen .ls-when .ls-badge { font: 800 18px var(--ds-font-kop-v3); letter-spacing: 0.06em; padding: 2px 10px; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#load-screen .ls-when .ls-badge { font: 800 18px var(--ds-font-zeef-kop); letter-spacing: 0.06em; padding: 2px 10px; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 #load-screen .ls-bottom { position: absolute; left: 100px; right: 100px; bottom: 70px; display: flex; flex-direction: column-reverse; gap: 22px; align-items: stretch; }
 #load-screen .ls-tip { display: flex; gap: 15px; align-items: center; max-width: 900px; }
 #load-screen .ls-tip-ic { width: 43px; height: 43px; box-sizing: border-box; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-bord); display: grid; place-items: center; flex: none; }
 #load-screen .ls-tip-ic svg { width: 22px; height: 22px; fill: none; stroke: var(--ds-c-ink-inkt); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#load-screen .ls-tip div span { font: 800 18px var(--ds-font-kop-v3); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-bord); }
-#load-screen .ls-tip p { margin: 3px 0 0; font: 400 19px/1.4 var(--ds-font-tekst-v3); letter-spacing: 0; color: var(--ds-c-ink-inkt); }
+#load-screen .ls-tip div span { font: 800 18px var(--ds-font-zeef-kop); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-bord); }
+#load-screen .ls-tip p { margin: 3px 0 0; font: 400 19px/1.4 var(--ds-font-zeef-tekst); letter-spacing: 0; color: var(--ds-c-ink-inkt); }
 #load-screen .ls-prog { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-#load-screen .ls-step { font: 700 19px/1.3 var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); min-height: 1.3em; }
+#load-screen .ls-step { font: 700 19px/1.3 var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); min-height: 1.3em; }
 #load-screen .ls-tip.swap { animation: ls-line-in 0.5s ease-out; }
 @keyframes ls-line-in { from { opacity: 0; transform: translateY(4px); } }
 #load-screen .ls-bar { width: 100%; height: 22px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; }
@@ -70,9 +70,9 @@ html.rustig-drukwerk #load-screen::before { display: none; }
 html.rustig-drukwerk #load-screen .ls-bar { background-image: none; }
 
 /* #985: Verder, zodra het scherm langer dan een paar seconden duurt: the one yellow thing you can do. */
-#load-screen .ls-skip { position: absolute; right: 100px; top: 40px; z-index: 3; padding: 8px 18px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font: 800 20px var(--ds-font-kop-v3); letter-spacing: 0.06em; cursor: pointer; }
+#load-screen .ls-skip { position: absolute; right: 100px; top: 40px; z-index: 3; padding: 8px 18px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font: 800 20px var(--ds-font-zeef-kop); letter-spacing: 0.06em; cursor: pointer; }
 #load-screen .ls-skip[hidden] { display: none; }
 #load-screen .ls-skip:active { transform: translate(4px, 4px); box-shadow: none; }
 #load-screen .ls-skip:hover, #load-screen .ls-skip:focus-visible { outline: 3px solid var(--ds-c-ink-bord); outline-offset: 3px; }
-#load-screen .ls-skip kbd { margin-left: 8px; padding: 1px 6px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier); font: 800 14px var(--ds-font-kop-v3); }
+#load-screen .ls-skip kbd { margin-left: 8px; padding: 1px 6px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier); font: 800 14px var(--ds-font-zeef-kop); }
 @media (max-width: 900px) { #load-screen .ls-skip { right: 40px; top: auto; bottom: 120px; } }

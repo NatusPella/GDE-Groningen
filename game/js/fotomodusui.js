@@ -298,7 +298,7 @@ const FOTO_CSS = `
 #pause-menu .foto-beeld .foto-leeg { width: 100%; aspect-ratio: 16 / 9; border-radius: 0; color: var(--ds-c-inkt-zacht); }
 #pause-menu .foto-gal figcaption.foto-tekst { display: flex; flex-direction: column; gap: 1px; min-width: 0; margin-top: 0; padding: var(--ds-s-2) var(--ds-s-3) var(--ds-s-3); font-size: inherit; }
 #pause-menu .foto-kop { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-#pause-menu .foto-plek { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .foto-plek { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .foto-weer { flex: none; margin-left: auto; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); white-space: nowrap; }
 #pause-menu .foto-wanneer { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
 #pause-menu .foto-bestand { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); color: var(--ds-c-inkt-zacht); }

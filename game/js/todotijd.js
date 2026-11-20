@@ -1,4 +1,4 @@
-// Het tijdstreepje van Te doen (designsysteem v2, #980): een lopend evenement laat zien hoeveel van zijn tijd nog over is,
+// Het tijdstreepje van Te doen (designsysteem, #980): een lopend evenement laat zien hoeveel van zijn tijd nog over is,
 // wat nog moet beginnen zegt vanaf wanneer. Puur, zodat todo_tijd_test het zonder scherm kan natrekken.
 // `tijd` komt uit todo.js (evenementItem): { loopt, over (uren), totaal (uren), van ('18:00') }; zonder tijd is er geen streep.
 export function tijdStreep(tijd) {

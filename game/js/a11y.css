@@ -158,7 +158,7 @@ html.reduce-flash :is(#hud .hud-wanted.searching svg.on, #hud .stunt-hud .sh-lef
 #padkeyboard .pk-help { margin: 6px 0 0; font-size: 12px; opacity: .7; text-align: center; }
 
 /* geluidsondertitels (soundcaptions.js, #200) */
-#sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-tekst-v3); color: var(--ds-c-ink-inkt); text-shadow: none; }
+#sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none; }
 #sound-captions div { padding: 2px 12px; border-radius: 6px; background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); font-style: italic; }
 
 /* met een controller of aanraking geen muiscursor (inputdevice.js); een muisbeweging brengt hem terug */

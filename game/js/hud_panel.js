@@ -249,7 +249,7 @@ export function initHud(world) {
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
   root.appendChild(mmWrap);
-  // v3 (#993): de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
+  // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
   defsWrap.innerHTML = '<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs></svg>';
   root.appendChild(defsWrap.firstChild);
@@ -935,7 +935,7 @@ function placeCandidate(world) {
     if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : townTeaser(d) };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
-  // v3 (#993): een stadswijk staat al als label onder de minimap; een eigen kaart ernaast zou de naam dubbel tonen
+  // #993: een stadswijk staat al als label onder de minimap; een eigen kaart ernaast zou de naam dubbel tonen
   return null;
 }
 
@@ -1195,7 +1195,7 @@ function updateWanted(world) {
   if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
   const stars = [...els.wanted.children];
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
-  // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (v3, #993)
+  // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)
   els.wanted.classList.add('changed');
   clearTimeout(wantedChangedT);
   wantedChangedT = setTimeout(() => els.wanted.classList.remove('changed'), 1400);
@@ -1427,7 +1427,7 @@ function updateMoneyWeapon(dt, world) {
     els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-col"><span class="hud-weapon-text"></span><small class="hud-weapon-ammo"></small></span>`;
     weaponTextEl = weaponAmmoEl = null; // nieuwe kinderen
     restartClass(els.weapon, 'switched');
-    if (!eerste) S.weaponAt = nowS(); // het wapen wisselde: het plaatje komt even in beeld (v3, #995)
+    if (!eerste) S.weaponAt = nowS(); // het wapen wisselde: het plaatje komt even in beeld (#995)
   }
   const label = WEAPON_LABELS[world.weapon] || 'VUISTEN';
   const textEl = weaponTextEl || (weaponTextEl = els.weapon.querySelector('.hud-weapon-text'));

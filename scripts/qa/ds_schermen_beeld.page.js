@@ -1,4 +1,4 @@
-// Page half of scripts/qa/ds_schermen_beeld.mjs (desktop --perf-script body; designsysteem v2 fase 2, #980):
+// Page half of scripts/qa/ds_schermen_beeld.mjs (desktop --perf-script body; designsysteem fase 2, #980):
 // opent de winkel, de beleidswinkel en de garage zoals een speler dat doet, neemt beelden ("[capture] naam") en meet.
 // window.__ds = { settle, stap: ['winkel', 'beleid', 'garage'] }.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));

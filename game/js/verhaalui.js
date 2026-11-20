@@ -43,19 +43,19 @@ const CSS = `
 #pause-menu .vh-pic { position: relative; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; overflow: hidden; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); background: var(--ds-zeef-bg); }
 #pause-menu .vh-pic img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
 #pause-menu .vh-pic img.on { opacity: 1; }
-#pause-menu .vh-pic b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 34px; color: var(--ds-zeef-tx); }
+#pause-menu .vh-pic b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 34px; color: var(--ds-zeef-tx); }
 #pause-menu .vh-opening { margin-top: 8px; align-self: flex-start; }
 #pause-menu .vh-unknown { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; padding: 0 2px; font-size: 18px; color: var(--mut); }
 #pause-menu .vh-unknown svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 #pause-menu .vh-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
-#pause-menu .vh-name b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; letter-spacing: 0.05em; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pause-menu .vh-name b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; letter-spacing: 0.05em; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #pause-menu .vh-name small { font-size: 18px; line-height: 1.2; color: var(--mut); }
 #pause-menu .vh-viewer { flex: 1 1 54%; min-width: 0; }
 #pause-menu .vh-stage { position: relative; flex: none; height: 280px; max-width: 460px; overflow: hidden; background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu .vh-stage canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #pause-menu .vh-stage canvas:active { cursor: grabbing; }
 #pause-menu .vh-stage[data-locked] canvas { filter: brightness(0); opacity: 0.8; cursor: default; }
-#pause-menu .vh-stage .vh-mono { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--ds-font-kop-v3); font-size: 120px; color: var(--ds-zeef-tx); opacity: 0.7; }
+#pause-menu .vh-stage .vh-mono { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--ds-font-zeef-kop); font-size: 120px; color: var(--ds-zeef-tx); opacity: 0.7; }
 #pause-menu .vh-stage .vh-hint { position: absolute; left: 0; bottom: 0; font-size: 18px; color: var(--mut); pointer-events: none; }
 #pause-menu .vh-quote { padding-left: 16px; border-left: 3px solid var(--spk); font-style: italic; font-size: 20px; line-height: 1.35; }
 #pause-menu .vh-quote small { display: block; margin-top: 3px; font-style: normal; font-size: 18px; color: var(--mut); }
@@ -68,14 +68,14 @@ const CSS = `
 #pause-menu .vh-held .vh-stage { height: auto; min-height: 250px; max-width: none; border-radius: var(--ds-r); background: var(--ds-zeef-kop); }
 #pause-menu .vh-held .vh-stage .vh-hint { left: var(--ds-s-2); bottom: var(--ds-s-1); font-size: var(--ds-t-hulp); color: var(--ds-c-wit); }
 #pause-menu .vh-held-tekst { display: flex; flex-direction: column; justify-content: center; gap: var(--ds-s-2); min-width: 0; }
-#pause-menu .vh-held-tekst h3 { margin: 0; font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#pause-menu .vh-held-tekst h3 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .vh-held .vh-quote { padding-left: var(--ds-s-3); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); }
 #pause-menu .vh-held .vh-quote small { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
 #pause-menu .vh-held .ds-z-chip { align-self: flex-start; }
-#pause-menu .vh-kort { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-3); min-height: 44px; padding: 0 2px; box-shadow: inset 0 -1px 0 var(--line); font-family: var(--ds-font-kop-v3); font-size: 22px; letter-spacing: 0.05em; color: var(--mut); text-transform: uppercase; }
+#pause-menu .vh-kort { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-3); min-height: 44px; padding: 0 2px; box-shadow: inset 0 -1px 0 var(--line); font-family: var(--ds-font-zeef-kop); font-size: 22px; letter-spacing: 0.05em; color: var(--mut); text-transform: uppercase; }
 #pause-menu .vh-leeg { margin: var(--ds-s-2) 0 var(--ds-s-3); padding: var(--ds-s-4); }
 #pause-menu .vh-miss { display: flex; flex-wrap: wrap; gap: 8px; }
-#pause-menu .vh-miss span { font-family: var(--ds-font-kop-v3); font-size: 20px; letter-spacing: 0.05em; color: var(--mut); }
+#pause-menu .vh-miss span { font-family: var(--ds-font-zeef-kop); font-size: 20px; letter-spacing: 0.05em; color: var(--mut); }
 #pause-menu .vh-miss span[data-st="klaar"] { color: var(--g); }
 #pause-menu .vh-miss span[data-st="nu"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--g); text-underline-offset: 4px; }
 #pause-menu .vh-parts { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 18%, transparent) transparent; max-width: 1000px; }
@@ -87,7 +87,7 @@ const CSS = `
 #pause-menu .vh-why b { font-weight: normal; color: var(--ink); }
 #pause-menu .vh-clues { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 4px 48px; max-width: 1000px; }
 #pause-menu .vh-clue { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; box-shadow: inset 0 -1px 0 var(--line); }
-#pause-menu .vh-clue b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; letter-spacing: 0.05em; line-height: 1.1; }
+#pause-menu .vh-clue b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; letter-spacing: 0.05em; line-height: 1.1; }
 #pause-menu .vh-clue b em { font-style: normal; color: var(--g); margin-right: 4px; }
 #pause-menu .vh-clue p { font-size: 18px; line-height: 1.35; color: var(--mut); }
 #pause-menu .vh-clue[data-unknown] b { color: var(--mut); }
@@ -98,25 +98,25 @@ const CSS = `
 #pause-menu .vh-plakje[data-state="verloren"] b::after { content: ' · verloren'; color: var(--ds-c-rood-tx); }
 #pause-menu .vh-plakje[data-state="geblokkeerd"] b::after { content: ' · geblokkeerd'; color: var(--ds-zeef-tx); }
 #pause-menu .vh-plakje[data-state="open"] b::after { content: ' · nog open'; color: var(--mut); }
-#pause-menu .vh-clue[data-new] b::after { content: ' nieuw'; font-family: var(--ds-font-tekst-v3); font-size: 18px; letter-spacing: 0; color: var(--g); }
+#pause-menu .vh-clue[data-new] b::after { content: ' nieuw'; font-family: var(--ds-font-zeef-tekst); font-size: 18px; letter-spacing: 0; color: var(--g); }
 /* #904: de kop van Personages en Aanwijzingen is één rustige strook met de stand erin; de
    geschiedenis en de aanwijzingen krijgen daardoor een begin in plaats van een lijst die maar loopt. */
 #pause-menu .vh-hero { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 14px 18px; background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
 #pause-menu .vh-hero-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; }
-#pause-menu .vh-hero-t { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .vh-hero-t { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
 #pause-menu .vh-hero .m-bar { width: 100%; max-width: 420px; height: 6px; }
 #pause-menu .vh-hero p { margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
 #pause-menu .vh-hero-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 16px; color: var(--mut); }
 #pause-menu .vh-party { display: flex; align-items: center; gap: 10px; font-size: 18px; }
-#pause-menu .vh-party b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.02em; color: var(--ink); }
+#pause-menu .vh-party b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.02em; color: var(--ink); }
 #pause-menu .vh-facts { grid-template-columns: auto minmax(0, 1fr); }
 #pause-menu .vh-clue-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-#pause-menu .vh-clue-kind { font-family: var(--ds-font-tekst-v3); font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
+#pause-menu .vh-clue-kind { font-family: var(--ds-font-zeef-tekst); font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
 #pause-menu .vh-clue[data-kind="hart"] .vh-clue-kind { color: var(--ds-c-ink-roze); }
 #pause-menu .vh-part { position: relative; }
 #pause-menu .vh-part[data-cur] { box-shadow: inset 3px 0 0 var(--g); padding-left: 14px; }
 #pause-menu .vh-summary { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; padding: 14px 18px; border-radius: 12px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 45%, transparent); }
-#pause-menu .vh-summary b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 30px; letter-spacing: 0.03em; }
+#pause-menu .vh-summary b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 30px; letter-spacing: 0.03em; }
 #pause-menu .vh-summary p { margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
 #pause-menu .vh-summary .m-bar { width: 100%; max-width: 420px; height: 6px; }
 `;
@@ -176,7 +176,7 @@ function viewerHtml(c) {
   }
   const steps = missionChips(c);
   const spk = speakerColor(c.speakers[0]);
-  // De hero: de papieren personagekaart met het portret in een omlijnd vlak links (designsysteem v2, #980).
+  // De hero: de papieren personagekaart met het portret in een omlijnd vlak links (designsysteem, #980).
   const held = `<section class="vh-held ds-zeef ds-z-kaart" style="--spk:${spk}" aria-label="${esc(c.name)}"><div class="vh-stage" style="--spk:${spk}">${stageInner}</div>` +
     `<div class="vh-held-tekst"><span class="ds-z-chip">${esc(c.role)}</span><h3>${esc(c.name)}</h3>` +
     `<p class="vh-quote" style="--spk:${spk}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p></div></section>`;

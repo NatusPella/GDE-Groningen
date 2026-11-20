@@ -1,4 +1,4 @@
-// Gedrag van de winkelbon (designsysteem v2, #980): wat een keuze kost vóór je kiest, het probleem met zijn
+// Gedrag van de winkelbon (designsysteem, #980): wat een keuze kost vóór je kiest, het probleem met zijn
 // oplossing en de risicovolle keuze. Pure functies uit shopbon.js, gebouwd op shoplist.js.
 import assert from 'node:assert/strict';
 import { bonRegels, alternatief, probleemVan, risicoVan } from '../game/js/shopbon.js';

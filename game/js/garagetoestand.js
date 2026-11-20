@@ -1,4 +1,4 @@
-// De toestand van een eigen voertuig als statuschips (designsysteem v2, #980): schade en banden, elk met een
+// De toestand van een eigen voertuig als statuschips (designsysteem, #980): schade en banden, elk met een
 // pictogram en een woord, nooit alleen kleur. Pure regels zonder DOM; garageui.js tekent de chips.
 // De bron is wat het voertuig al heeft: `health` (0 tot 100) en `flat` (lekke band), van het voertuig in de wereld
 // (`e.v`) of van de bewaarde regel (`extra.entry`). Een boot en een helikopter hebben geen banden.

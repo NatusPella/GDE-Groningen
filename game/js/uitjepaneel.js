@@ -63,10 +63,10 @@ html.reduce-motion #uitje-paneel { transition: none; }
 /* Zomerse zeefdruk (ADR 0040): de uitjekaart als papier met inktrand en harde schaduw; de accentkleur is de dikke linkerrand. */
 #uitje-paneel .uitje-kaart { color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--uitje-acc, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
 #uitje-paneel .uitje-vorm { opacity: 0.2; }
-#uitje-paneel .uitje-kicker { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
-#uitje-paneel .uitje-titel { font-family: var(--ds-font-kop-v3); font-weight: 800; }
-#uitje-paneel .uitje-regel { font-family: var(--ds-font-tekst-v3); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-ink-inkt); }
-#uitje-paneel .uitje-hint { font-family: var(--ds-font-tekst-v3); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
+#uitje-paneel .uitje-kicker { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
+#uitje-paneel .uitje-titel { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+#uitje-paneel .uitje-regel { font-family: var(--ds-font-zeef-tekst); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-ink-inkt); }
+#uitje-paneel .uitje-hint { font-family: var(--ds-font-zeef-tekst); font-size: max(13px, calc(13px / var(--ui, 1))); color: var(--ds-c-inkt-zacht); }
 @media (max-width: 480px) { #uitje-paneel { bottom: 16px; } #uitje-paneel .uitje-kaart { padding-left: 76px; } }
 `;
 

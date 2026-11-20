@@ -1,4 +1,4 @@
-// Prestaties, Foto's, Kaart en Samen spelen in beeld (designsysteem v2, fase 4, #980): één Electron (wegwerpprofiel, sluit af)
+// Prestaties, Foto's, Kaart en Samen spelen in beeld (designsysteem, fase 4, #980): één Electron (wegwerpprofiel, sluit af)
 // opent de schermen zoals een speler ze opent en neemt beelden en metingen (ds_schermen4_beeld.page.js).
 //   node scripts/qa/ds_schermen4_beeld.mjs [--out=<map>] [--prefix=voor] [--size=1280x720] [--settle=8000] [--stap=prestaties,fotos,kaart,samen]
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/shots-<prefix><hoogte>-*.png, ds4_<prefix><formaat>.json, run-*.log.
