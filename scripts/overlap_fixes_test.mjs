@@ -1,0 +1,51 @@
+// Pure layouttests van de reparaties uit de overlap-audit van 20-11 (docs/OVERLAP-AUDIT-20-11.md, #985): per opgeloste klasse een regel.
+//   node scripts/overlap_fixes_test.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { randTop } from '../game/js/bigmoment.js';
+import { labelDy, CLEAR_GAP } from '../game/js/promptclear.js';
+
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const src = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
+let n = 0, fails = 0;
+const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log('FAIL ' + m + (info !== '' ? ' (' + JSON.stringify(info) + ')' : '')); } };
+
+// klasse 1: de gezocht-tag (grote moment, rand) hangt onder de rechterkolom van de HUD, niet over het wapenchip
+ok(randTop(228, 720, 120) === 240, 'randTop: 12 px onder de rechterkolom (720p: kolom eindigt op 228)', randTop(228, 720, 120));
+ok(randTop(342, 1080, 150) === 354, 'randTop: 1080p');
+ok(randTop(900, 720, 120) === 588, 'randTop: blijft binnen het venster (hoogte 120)', randTop(900, 720, 120));
+ok(randTop(NaN, 720, 120) === 12, 'randTop: zonder meting 12 px van boven');
+ok(/el\.style\.top = randTop\(/.test(src('game/js/bigmoment.js')), 'showBigMoment zet de top van de rand-tag uit de gemeten kolom');
+
+// klasse 2: een wereldlabel ligt nooit over een HUD-kaart, de minikaart of het doel
+const view = { w: 1280, h: 720 };
+const chip = (l, t, r, b) => ({ left: l, top: t, right: r, bottom: b });
+ok(labelDy(chip(400, 85, 610, 130), [chip(10, 34, 360, 120)], view) === 0, 'labelDy: geen overlap, geen verschuiving');
+// een label boven de helft van het scherm over een kaart: eronder
+let dy = labelDy(chip(300, 90, 500, 130), [chip(36, 34, 390, 120)], view);
+ok(dy === 120 + CLEAR_GAP - 90, 'labelDy: een kaart bovenin: het label gaat eronder', dy);
+// een label onderin over de doelkaart: erboven
+dy = labelDy(chip(500, 470, 700, 510), [chip(402, 450, 878, 507)], view);
+ok(dy === (450 - CLEAR_GAP - 40) - 470, 'labelDy: de doelkaart onderin: het label gaat erboven', dy);
+// twee onderdelen na elkaar: de tweede ronde pakt het
+dy = labelDy(chip(300, 300, 500, 340), [chip(250, 280, 600, 360), chip(250, 230, 600, 270)], view);
+ok(dy !== 0, 'labelDy: een tweede obstakel op de weg wordt meegenomen', dy);
+// geen ruimte (obstakel dat het hele venster vult): blijft staan
+ok(labelDy(chip(300, 300, 500, 340), [chip(0, 0, 1280, 720)], view) === 0, 'labelDy: geen ruimte, het label blijft staan');
+ok(labelDy(chip(300, 300, 500, 340), [chip(500, 300, 700, 340)], view) === 0, 'labelDy: tegen elkaar aan is geen overlap');
+ok(/labelDy\(/.test(src('game/js/prompts.js')), 'prompts.js past labelDy toe op elk wereldlabel');
+
+// klasse 4: het minigamebord loopt niet onder de klok (zone C) door: zijn maximale breedte houdt rekening met de gemeten kolom
+ok(/max-width: min\(760px, calc\(100vw \/ var\(--ui, 1\) - 2 \* max\(var\(--hud-edge, 46px\) \+ 310px, var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(src('game/js/minigamekit.js')), 'mg-board: max-width volgt --hud-c-right');
+// 1280 px breed, kolom C 400 HUD-px: bord <= 1280 - 2 * 412 = 456 en dus rechts van het bord (centraal) vrij van de klok
+const bordMax = (vw, ui, edge, cRight) => Math.min(760, vw / ui - 2 * Math.max(edge + 310, cRight + 12), vw - 32);
+ok(bordMax(1280, 1, 46, 400) === 456 && 640 + 456 / 2 <= 1280 - 400, 'mg-board 720p: rechterrand valt links van zone C', bordMax(1280, 1, 46, 400));
+
+// klasse 5: de plaatskaart ('gebied') hangt in de vrije middenzone, niet onderin over doel en minikaart
+const css = src('game/js/bigmoment.css');
+ok(/\.bm-gebied \{[^}]*top: 24vh/.test(css) && !/\.bm-gebied \{[^}]*bottom/.test(css), 'bm-gebied: boven in de vrije zone (top), niet op bottom 14vh');
+ok(/min-width: min\(640px, max\(340px, calc\(100vw - 820px\)\)\)/.test(css), 'bm-kaart: breedte laat de linkerkolom (kaarten) en de rechterkolom vrij');
+
+console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
+process.exit(fails ? 1 : 0);

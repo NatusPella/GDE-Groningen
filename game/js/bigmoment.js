@@ -171,6 +171,13 @@ export function maakPlanner() {
   };
 }
 
+// #985 (overlap-audit 20-11): the wanted tag sits under the HUD's right column (clock, stars, money, weapon), never over it.
+// trBottom: the bottom of that column in screen px; the tag stays inside the window (viewH, its own height).
+export function randTop(trBottom, viewH = Infinity, hoogte = 0, gap = 12) {
+  const top = Math.round((Number.isFinite(trBottom) ? trBottom : 0) + gap);
+  return Math.max(0, Math.min(top, Number.isFinite(viewH) ? Math.max(0, viewH - hoogte - gap) : top));
+}
+
 // ---------------------------------------------------------------------------------------- DOM
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -218,6 +225,10 @@ function toonNu(m, klaarCb) {
   el.setAttribute('aria-label', m.aria);
   el.innerHTML = binnenHtml(m);
   document.body.appendChild(el);
+  if (m.vorm === 'rand') { // under the HUD's right column, measured now: the zoom and the weapon chip decide how tall it is
+    const tr = document.querySelector('#hud .hud-top-right');
+    if (tr) el.style.top = randTop(tr.getBoundingClientRect().bottom, window.innerHeight, el.offsetHeight) + 'px';
+  }
   requestAnimationFrame(() => el.classList.add('aan'));
   if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;
   const weg = () => {

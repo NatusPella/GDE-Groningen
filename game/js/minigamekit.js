@@ -99,7 +99,7 @@ import { vormStijl } from './carrieresfeer.js';
 
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
-#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 310px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
+#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 310px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-ic { flex: none; }
