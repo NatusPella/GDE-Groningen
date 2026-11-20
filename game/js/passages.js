@@ -190,9 +190,11 @@ function computePassages(map, b) {
     if (!(ra.r.cat === 'service' || ra.r.type === 'service')) continue;
     if (out.some((p) => p.road === ra.r)) continue;
     if (pathLength(ra.pts) < 2) continue;
+    // #765: een dienstweg die op de muur doodloopt (laadkuil, garage-inrit) is een garagedeur op de gevel, geen gat in de muur
+    if (!(ra.s0 && ra.s1) && pathLength(ra.pts) <= doorDepth(ra.r)) continue;
     out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len: pathLength(ra.pts), mapped: null, cat: ra.r.cat, road: ra.r, shown: true });
   }
-  linkDoors(b, doors, out);  linkDoors(b, doors, out);  linkDoors(b, doors, out);  linkDoors(b, doors, out);
+  linkDoors(b, doors, out);
   b._doors = doors.filter((e) => !e.hall).map((e) => doorOnFacade(b, e));
   return out;
 }

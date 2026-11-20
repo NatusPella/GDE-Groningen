@@ -44,5 +44,17 @@ ok(passagesOf(plain.map, plain.b).length === 0, 'zonder markering blijft een voe
 const r2 = through(plain.map);
 ok(r2.pushed === r2.inside, 'een wandelaar wordt dan weggeduwd', `${r2.pushed}/${r2.inside}`);
 
+// #765: een dienstweg die 4 m in de muur doodloopt is een garagedeur, geen gat; een dienstweg dwars door het gebouw is wel een doorgang
+const bigRing = [[0, 0], [20, 0], [20, 20], [0, 20], [0, 0]];
+const svc = (pts) => ({ pts, cat: 'service', type: 'service', width: 3, bounds: [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))] });
+const makeSvc = (road) => {
+  const b = { pts: bigRing, bounds: [0, 0, 20, 20], type: 'yes' };
+  return { b, map: { buildings: [b], roads: [road], passageWays: [], buildingsNear: () => [b], roadsNear: () => [road], roadGrid: null } };
+};
+const dead = makeSvc(svc([[10, -10], [10, 4]]));
+ok(passagesOf(dead.map, dead.b).filter((p) => !p.hall).length === 0, '#765: een dienstweg die 4 m in de muur doodloopt blijft dicht (garagedeur)');
+const full = makeSvc(svc([[10, -10], [10, 30]]));
+ok(passagesOf(full.map, full.b).filter((p) => !p.hall).length === 1, '#765: een dienstweg dwars door het gebouw blijft een doorgang');
+
 console.log(`${n - fails}/${n} checks passed`);
 process.exit(fails ? 1 : 0);
