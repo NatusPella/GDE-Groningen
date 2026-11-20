@@ -3,6 +3,7 @@ import { getScene } from './scene3d.js';
 import { WATER_Y } from './util.js';
 import { CEL, celVan, partsToWorld } from './waterplekken.js';
 import { hoofdspeler } from './players.js';
+import { dropWaterParts } from './propfilter.js';
 
 // Waterplekken (#23, #7, scripts/world/waterplekken.mjs -> game/waterplekken.json): sluizen,
 // brugtorens, havens, vuurtorens en dijk- en zeewerken, per cel van 512 m als
@@ -37,9 +38,12 @@ function load() {
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 const UP = new THREE.Vector3(0, 1, 0);
 
-function celGroup(lijst) {
+// Door de tegelkaart (propfilter.js): geen onderdeel op de weg of in een huis, en een kade, pier of strekdam hoort aan
+// water (een kraan in een weiland ver van het water was een haven-kit op de binnenhoek van een schuin vlak).
+// Een cel wordt opnieuw gebouwd als er tegels bijkwamen (map.geoVer).
+function celGroup(lijst, map) {
   const per = { box: [], cyl: [], cone: [] };
-  for (const p of lijst) for (const q of partsToWorld(p)) per[q.s].push(q);
+  for (const p of lijst) for (const q of dropWaterParts(partsToWorld(p), map, p)) per[q.s].push(q);
   const g = new THREE.Group();
   g.name = 'waterplekken';
   for (const s of Object.keys(per)) {
@@ -85,9 +89,20 @@ export function updateWaterplekken3D(world) {
   }
   for (const [k, lijst] of cellen) {
     if (live.has(k) || dist(k) > STREAM_IN) continue;
-    const g = celGroup(lijst);
+    const g = celGroup(lijst, world.map);
+    g.userData.ver = world.map ? world.map.geoVer : 0;
     scene.add(g);
     live.set(k, g);
     break;   // een cel per tik
+  }
+  if (world.map && world.map.geoVer !== undefined && (!world.map.tileQueue || !world.map.tileQueue.items || !world.map.tileQueue.items.length)) for (const [k, g] of live) {
+    if (g.userData.ver === world.map.geoVer || dist(k) > STREAM_IN) continue;
+    scene.remove(g);
+    g.traverse((o) => { if (o.isInstancedMesh) { o.dispose(); o.geometry.dispose(); } });
+    const g2 = celGroup(cellen.get(k) || [], world.map);
+    g2.userData.ver = world.map.geoVer;
+    scene.add(g2);
+    live.set(k, g2);
+    break;
   }
 }

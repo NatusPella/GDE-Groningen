@@ -281,6 +281,7 @@ export function spotFreeOnMap(map, x, y, { house = 0.35, road = 0.25 } = {}) {
   if (!map) return true;
   if (buildingAt(map, x, y, house)) return false;
   if (map.waterNear && waterPolyIn(map.waterNear(x, y, 6), x, y)) return false;
+  if (map.railNear) for (const r of map.railNear(x, y, 6)) if (r.pts && r.pts.length > 1 && segNear(r.pts, x, y, 1.9)) return false; // niet op het spoor (wereldaudit 21-11)
   for (const r of map.roadsNear ? map.roadsNear(x, y, 8) : []) {
     if (r.cat === 'foot' || r.cat === 'cycle' || !r.pts || r.pts.length < 2) continue;
     if (segNear(r.pts, x, y, (r.width || 5) / 2 + road)) return false;

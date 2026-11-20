@@ -4,6 +4,7 @@ import { getScene } from './scene3d.js';
 import { CEL, celVan, partsToWorld, dropOnRoad } from './streekplekken.js';
 import { roadNetReady, snapRoad } from './roadgraph.js';
 import { edgeDistance } from './countryfield.js';
+import { dropStreekParts } from './propfilter.js';
 
 // Landplekken (#21, #23, #164, #198, scripts/world/streekplekken.mjs -> game/streekplekken.json): perrons,
 // schoorstenen, zendmasten, monumenten en parken, per cel van 512 m als InstancedMesh (een per
@@ -52,9 +53,16 @@ let wacht = 0;
 const opWeg = (x, y) => { const s = snapRoad(x, y, 12); return !!s && !s.bridge && s.d < (HALF_W[s.kind] || 3) + BERM; };
 const wegenKlaar = () => roadNetReady() || ++wacht > MAX_WACHT;
 
-function celGroup(lijst) {
+// Elke soort gaat door de tegelkaart (propfilter.js): geen mast of zuil op het asfalt of in een huis, en bij een park
+// ook geen boom in een gebouw. Een cel wordt opnieuw gebouwd als er tegels bijkwamen (map.geoVer): de eerste bouw kan
+// vóór de tegels van die plek klaar zijn.
+function celGroup(lijst, map) {
   const per = { box: [], cyl: [], cone: [] };
-  for (const p of lijst) { if (inStad(p)) continue; for (const q of p.t === 'park' && roadNetReady() ? dropOnRoad(partsToWorld(p), opWeg) : partsToWorld(p)) per[q.s].push(q); }
+  for (const p of lijst) {
+    if (inStad(p)) continue;
+    const parts = p.t === 'park' && roadNetReady() ? dropOnRoad(partsToWorld(p), opWeg) : partsToWorld(p);
+    for (const q of dropStreekParts(parts, map, p.t)) per[q.s].push(q);
+  }
   const g = new THREE.Group();
   g.name = 'streekplekken';
   for (const s of Object.keys(per)) {
@@ -101,10 +109,22 @@ export function updateStreekplekken3D(world) {
   for (const [k, lijst] of cellen) {
     if (live.has(k) || dist(k) > STREAM_IN) continue;
     if (!wegenKlaar()) break;
-    const g = celGroup(lijst);
+    const g = celGroup(lijst, world.map);
+    g.userData.ver = world.map ? world.map.geoVer : 0;
     scene.add(g);
     live.set(k, g);
     break;   // een cel per tik
+  }
+  // een cel die voor de laatste tegels is gebouwd, opnieuw (een per tik, alleen binnen bereik)
+  if (world.map && world.map.geoVer !== undefined && (!world.map.tileQueue || !world.map.tileQueue.items || !world.map.tileQueue.items.length)) for (const [k, g] of live) {
+    if (g.userData.ver === world.map.geoVer || dist(k) > STREAM_IN) continue;
+    scene.remove(g);
+    g.traverse((o) => { if (o.isInstancedMesh) { o.dispose(); o.geometry.dispose(); } });
+    const g2 = celGroup(cellen.get(k) || [], world.map);
+    g2.userData.ver = world.map.geoVer;
+    scene.add(g2);
+    live.set(k, g2);
+    break;
   }
 }
 
