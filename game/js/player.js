@@ -8,7 +8,8 @@ import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
 import { waterAt, surfaceLiftAt, boatDeck } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
-import { findRideableProp, rideProp } from './rideprops.js';
+import { findRideableProp, rideFirstFree } from './rideprops.js';
+import { zetRecht } from './vehicledamage.js'; // #1018: een omgevallen fiets rechtzetten
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
@@ -1003,12 +1004,15 @@ export class Player {
   }
 
   takeProp(world, prop) {
-    const v = rideProp(world, prop);
+    const v = rideFirstFree(world, prop, this.x, this.y);
     if (v) this.enterVehicle(v, world);
+    else world.addMessage('Deze fiets staat vast, probeer een andere.', 2.5); // #1018: geen stille mislukking meer
   }
 
   enterVehicle(v, world) {
     if (!canEnterVehicle(v)) return;
+    // #1018: een omgevallen fiets ligt op de grond: E zet hem eerst rechtop, daarna stap je op
+    if (v.fallen) { zetRecht(v); if (world) world.addMessage('Fiets rechtgezet.', 2, { kind: 'tip' }); return; }
     const driven = !!v.road || !!v.countryDrive; // an AI driver: city traffic or an Ommeland road user
     // iemand achter het stuur (occupants.js): ook een wachtende in een geparkeerde auto
     // wordt er bij een autokraak uitgetrokken (#459), met de reacties van pedestrians.js

@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Een fiets uit een stalling pakken lukt altijd: een fiets tegen een gevel start buiten het gebouw, een fiets die niet te pakken is geeft de volgende vrije en anders de melding "Deze fiets staat vast, probeer een andere." (#1018).
+- Een beschadigde fiets of scooter rijdt trager (hoe meer schade, hoe lager de topsnelheid). Een fiets zonder rijder die een flinke klap krijgt valt om en ligt op de grond tot je hem met E rechtzet (#1018).
+
 - Laden zet je terug waar je opsloeg: sloeg je ergens in de provincie op, dan sta je na het laden daar weer en niet meer buiten je flat. Sloeg je bij je flat op, dan begin je nog steeds in de flat (#984).
 
 ## [0.64.0] - 2026-11-20

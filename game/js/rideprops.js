@@ -18,11 +18,40 @@ export function findRideableProp(x, y, reach = PROP_REACH) {
   return best ? { prop: best, dist: bestD } : null;
 }
 
+// Een rekfiets staat vaak tegen een gevel: staat het middelpunt binnen een gebouw, dan zat de speler na het pakken
+// vast in de muur (#1018). Schuif de nieuwe fiets naar de dichtstbijzijnde vrije plek.
+export function vrijeStart(map, x, y) {
+  if (!map || typeof map.escapeBuilding !== 'function') return { x, y };
+  const [sx, sy] = map.escapeBuilding(x, y, 0.8);
+  return Number.isFinite(sx) && Number.isFinite(sy) ? { x: sx, y: sy } : { x, y };
+}
+
 export function rideProp(world, p) {
   if (!claimProp(p)) return null;
-  const v = makeTwoWheeler(p.kind === 'scooter' ? 'moped' : p.kind, p.x, p.y, p.face ?? p.angle ?? 0, p.tint);
+  const spot = vrijeStart(world && world.map, p.x, p.y);
+  const v = makeTwoWheeler(p.kind === 'scooter' ? 'moped' : p.kind, spot.x, spot.y, p.face ?? p.angle ?? 0, p.tint);
   // an unlocked bike against a wall is fair game in Groningen; a cracked lock is theft
   v.petty = !p.locked;
   world.vehicles.push(v);
   return v;
+}
+
+// De volgorde waarin een speler op (x, y) een rekfiets probeert: de dichtstbijzijnde eerst. Een fiets die niet
+// te claimen is (zelfde sleutel al in gebruik) valt af; dan volgt de volgende (#1018).
+export function rideCandidates(x, y, reach = PROP_REACH) {
+  return propsInRadius(x, y, reach, KINDS)
+    .map((p) => ({ prop: p, dist: Math.hypot(p.x - x, p.y - y) }))
+    .sort((a, b) => a.dist - b.dist);
+}
+
+// Pak de gekozen fiets, of anders de volgende vrije. null als er niets te pakken valt.
+export function rideFirstFree(world, prop, x, y) {
+  const first = rideProp(world, prop);
+  if (first) return first;
+  for (const c of rideCandidates(x, y)) {
+    if (c.prop === prop) continue;
+    const v = rideProp(world, c.prop);
+    if (v) return v;
+  }
+  return null;
 }
