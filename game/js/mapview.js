@@ -113,6 +113,7 @@ import { isAreaHidden, isAreaKnown, isViewpointUsed, explorationLabels, onExplor
 import { MIST_ALPHA, OPEN_MS, NAAMKAART_MS, mistByte, streekOwnerGrid, applyStreekMist, openingRadius, openingLevel, openingDone, focusScale, cameraStep, naamkaart, queueReveal, strekenTekst } from './kaartonthulling.js';
 import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
+import { icoon } from './icons.js';
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
 // (read live: the palette turns to its night colours, see mapstyle.js)
@@ -2855,13 +2856,13 @@ export function initMapView(world) {
   overlay.setAttribute('aria-label', 'Kaart van Groningen');
   overlay.innerHTML =
     '<div class="mapview-header"><div class="mv-hl"><span class="m-eb mv-eb" hidden></span><h1 class="mapview-title m-h1">Kaart</h1>' +
-    '<label class="mapview-search m-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
+    '<label class="mapview-search m-inp">' + icoon('zoek') + '<input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
     '<div class="mv-hr">' +
     '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button>' +
     '<button type="button" class="m-bg mv-close" data-act="close" style="display:none">Sluiten</button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
-    '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
+    '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen">' + icoon('plus') + '</button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen">' + icoon('min') + '</button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf">' + icoon('doel') + '</button></div>' +
     '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal waypoint weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
     '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><div class="mv-naamkaart" hidden aria-live="polite"></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
