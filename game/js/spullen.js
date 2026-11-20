@@ -23,6 +23,7 @@ import { getLedger, summary } from './finance.js';
 import { woordenVan, past } from './zoektekst.js';
 import { icoon } from './icons.js';
 import { deviceText } from './touchui.js';
+import { glyphHtml } from './keycap.js';
 
 // Phosphor-pictogrammen via icons.js (21-11), per categorie van deze lijst
 const ICOON = { geld: 'geld', wapens: 'zwaard', melee: 'mes', werp: 'pakket', kleding: 'kleding', eten: 'eten', thuis: 'thuis', kaart: 'kaart', upgrade: 'gereedschap' };
@@ -310,7 +311,7 @@ function detailHtml() {
     : '';
   const ledger = it.ledger ? moneyLedgerHtml() : '';
   let btns = '';
-  if (it.act) btns += deviceText(`<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)} <span class="m-kc dark">Enter</span></button>`, `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`);
+  if (it.act) btns += deviceText(`<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)} ${glyphHtml('ENTER')}</button>`, `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`);
   if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
   const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
   // Het geldkaartje links zegt het bedrag en "Contant" al; daar staat de kop gewoon
