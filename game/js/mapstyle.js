@@ -1,10 +1,11 @@
 // One style table for the 2D maps (docs: issue #112): the minimap, the full
 // map, the province's pre-rendered pyramid (scripts/world/province_map.mjs
 // imports this file too) and the sea in regions.js read their colours, road
-// widths, draw order and zoom rules from here. No imports and no DOM, so
+// widths, draw order and zoom rules from here. Only the pure kaartkleuren.js and no DOM, so
 // Node scripts can load it. Two palettes: "map" (the full map and the
 // pyramid, a dark calm land) and "mini" (the minimap, lighter so it reads
 // at 150 px). Both share the same keys.
+import { kaartInk } from './kaartkleuren.js';
 
 export const MAP_PALETTE = {
   meadow: '#243528', park: '#2f5c36', ditch: '#2d6a86', water: '#2d6a86', waterEdge: '#4a8fae',
@@ -56,6 +57,8 @@ export const INK = {
   // de onbezochte gebieden op de kaart (#899): een grijsgroen dat het land uitgrauwt
   discovery: '#5b625c',
 };
+// De rollen die ook een designsysteemkleur zijn komen uit kaartkleuren.js (ds-tokens), niet uit een eigen hex.
+Object.assign(INK, kaartInk());
 const inkRgb = {};
 // the ink as 'rgba(r, g, b, alpha)'; alpha is a number or a ready string
 export function inkA(name, alpha) {
