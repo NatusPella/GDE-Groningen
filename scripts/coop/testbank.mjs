@@ -31,6 +31,7 @@ const MENU = flag('menu') || SUITE !== 'basis';
 const GASTEN = Math.max(0, Math.min(3, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' || SUITE === 'meerijden' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
 const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'meerijden' ? 1 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
+const TEGELIJK = flag('tegelijk'); // alle gasten starten meteen na de host en voeren de code tegelijk in (zoals vrienden in een groepsapp), niet één voor één
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const LIJST = SUITE === 'lijst'; // #983: de gast komt binnen via de openbare sessielijst (nep-MQTT-broker op 127.0.0.1), zonder de kamercode in te typen
 const ROUTE = arg('route', SUITE === 'kamer' || LIJST ? 'kamer' : 'direct');
@@ -160,8 +161,8 @@ else if (ROUTE === 'direct') {
 const guestCode = code ? code.code : '';
 const guestArgs = SUITE === 'touch' || SUITE === 'net' ? ['--url-flags=touch=1'] : []; // de eerste Electron-gast bedient met aanraking
 if (code && GASTEN >= 1) guest = start('gast', { role: 'gast', code: guestCode }, 22, guestArgs);
-if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, 15000)); guest2 = start('gast2', { role: 'gast', code: guestCode }, 33); }
-if (code && GASTEN > 2) { await new Promise((r) => setTimeout(r, 15000)); guest3 = start('gast3', { role: 'gast', code: guestCode }, 44); } // de vierde speler (#983) // pas als de eerste gast er is: zo is de plek voorspelbaar
+if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, TEGELIJK ? 0 : 15000)); guest2 = start('gast2', { role: 'gast', code: guestCode }, 33); }
+if (code && GASTEN > 2) { await new Promise((r) => setTimeout(r, TEGELIJK ? 0 : 15000)); guest3 = start('gast3', { role: 'gast', code: guestCode }, 44); } // de vierde speler (#983) // pas als de eerste gast er is: zo is de plek voorspelbaar
 
 // headless gasten (de vierde speler): komen erbij zodra de twee Electron-gasten er zijn; in de suite 'net' met een slecht netwerk
 const mocks = [];
