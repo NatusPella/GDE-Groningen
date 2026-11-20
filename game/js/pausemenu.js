@@ -7,6 +7,7 @@
 // Instellingen, Besturing.
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
+import { retryBeschikbaar, herstartMissie } from './missions.js';   // #985 punt 16
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
@@ -2139,6 +2140,9 @@ function runAction(a) {
       if (!box.hidden) box.querySelector('[data-action="mission-stop-go"]').focus();
       else root.querySelector('[data-action="mission-stop"]').focus();
     }
+  } else if (a === 'mission-retry') {
+    // #985 punt 16: dezelfde weg als Enter na een mislukking; geen bevestiging nodig.
+    if (herstartMissie(world)) setOpen(false);
   } else if (a === 'mission-stop-go') {
     if (world.safetyActions && world.safetyActions.cancelMission()) setOpen(false);
   } else if (a === 'unstuck') {
@@ -2451,6 +2455,10 @@ function helpButtons() {
 // the running mission, for the "Missie stoppen" row of Overzicht (#390): null when no mission runs
 function stopInfo() {
   const w = world;
+  // #985 punt 16: na een mislukking is er geen lopende missie meer, maar wel een aanbod om
+  // opnieuw te beginnen. Zonder deze tak stond er niets in Overzicht en was de enige weg terug
+  // de startmarker, terwijl de Enter-hint allang weg was.
+  if (w && retryBeschikbaar()) return { title: (w.mission && w.mission.label) || 'je laatste missie', herstart: true };
   if (!w || !w.safetyActions || !w.safetyActions.missionActive()) return null;
   return { title: (w.mission && w.mission.label) || 'de missie' };
 }

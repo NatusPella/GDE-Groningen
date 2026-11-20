@@ -99,6 +99,15 @@ ok(/if \(mee\) chainState\(\)\.completed\.add\(chainState\(\)\.index\)/.test(m),
 ok(/sluitGastStart\(world, mee\)/.test(m), 'en zijn eigen keten blijft staan als hij toekeek (#452)');
 ok(/wrecked \|\| v\.disabled\) return vf\.wrecked/.test(m), 'kapot blijft direct falen');
 ok(/placeParty\(world, def\.start\)/.test(m), 'Opnieuw zet de groep op de startplek');
+// #985 punt 16: de hint verdween na 40 s en dan was de startmarker de enige weg terug. Overzicht
+// heeft nu dezelfde actie als Enter, via een pure check en één functie die de fade start.
+ok(/export function retryBeschikbaar\(\)/.test(m) && /st\.retry && retryOfferLive\(st\.retry/.test(m), 'het aanbod is als pure check beschikbaar');
+ok(/export function herstartMissie\(world\)/.test(m) && /st\.retry\.fade = RETRY_FADE_S/.test(m) && /respawnFade\(1, 350\)/.test(m), 'herstart doet hetzelfde als Enter');
+const pmSrc = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+ok(/retryBeschikbaar\(\)\) return \{ title: .*herstart: true \}/.test(pmSrc), 'Overzicht toont de herstart na een mislukking');
+ok(/a === 'mission-retry'/.test(pmSrc) && /herstartMissie\(world\)/.test(pmSrc), 'en de knop roept die functie aan');
+const todui = fs.readFileSync(new URL('../game/js/todoui.js', import.meta.url), 'utf8');
+ok(/extra\.stop\.herstart/.test(todui) && /data-action="mission-retry"/.test(todui), 'de rij heet "Opnieuw beginnen", niet "Missie stoppen"');
 ok(/kind: 'getaway', checkpoint: true/.test(m), 'M06: checkpoint bij de vlucht na de lege vitrine');
 const saves = read('savegame.js') + read('savemigrate.js');
 ok(!/checkpoints/.test(saves), 'checkpoints staan niet in de save (tijdelijk, save/laad breekt niets)');

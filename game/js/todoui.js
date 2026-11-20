@@ -334,7 +334,13 @@ export function renderOverview(el, world, help, extra = {}) {
   const ach = nearlyThere();
   const helpHtml = `<div class="ov-help">${help.map(([a, ic, label]) => `<button type="button" class="m-bg" data-action="${a}">${ic}<span>${esc(label)}</span></button>`).join('')}</div>`;
   // a running mission can be stopped from here (#390): the button asks "Missie stoppen?" first (pausemenu.js); stopping is no failure
-  const stopHtml = extra.stop ? `<div class="ov-stop"><div class="m-gh"><span>Missie bezig</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bg" data-action="mission-stop">${ICON.stop || ''}<span>Missie stoppen</span></button></div>` +
+  // #985 punt 16: na een mislukking is er geen lopende missie, maar wel een aanbod om opnieuw te
+  // beginnen. Dat stond hier niet, terwijl de Enter-hint na 40 s verdween: dan was de startmarker
+  // de enige weg terug. Nu staat er dezelfde actie als Enter, zonder bevestiging (er valt niets
+  // te verliezen: je begint gewoon opnieuw).
+  const stopHtml = extra.stop && extra.stop.herstart
+    ? `<div class="ov-stop"><div class="m-gh"><span>Mislukt</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bp" data-action="mission-retry"><span>Opnieuw beginnen</span></button></div></div>`
+    : extra.stop ? `<div class="ov-stop"><div class="m-gh"><span>Missie bezig</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bg" data-action="mission-stop">${ICON.stop || ''}<span>Missie stoppen</span></button></div>` +
     '<div class="pm-confirm" data-stop-confirm hidden><p>Missie stoppen?</p><p class="m-note">Je krijgt geen straf en je kunt hem opnieuw starten. Wat je in deze poging deed, telt niet mee.</p>' +
     '<div class="m-acts"><button type="button" class="m-bp" data-action="mission-stop-go">Ja, stoppen</button><button type="button" class="m-bt" data-action="mission-stop-no">Nee, doorgaan</button></div></div></div>' : '';
   // #965: de hero staat buiten de scroller. De tabs en de grote kop blijven staan
