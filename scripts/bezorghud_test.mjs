@@ -39,6 +39,6 @@ assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html), 'geen eigen kleuren in de marku
 
 // bedrading: de strook alleen voor de eigen dienst, de kolom is gedeeld met de krantenwijk en schrijft geen diepte
 const b = bron('sidejob_bezorger.js');
-assert.match(b, /zetBezorgStrook\(c, p\)/); assert.match(b, /if \(c\.owner \|\|/); assert.match(b, /simHudTik\(0, null\)/); assert.match(b, /maakSimKolom\('bezorgkolom'\)/);
+assert.match(b, /zetBezorgStrook\(c, p\)/); assert.match(b, /if \(c\.owner\) \{/); assert.match(b, /simHudTik\(0, null\)/); assert.match(b, /maakSimKolom\('bezorgkolom'\)/);
 assert.match(bron('simkolom3d.js'), /depthWrite: false/); assert.match(bron('sidejob_krantenwijk.js'), /maakSimKolom\('krantkolom'\)/);
 console.log('bezorghud_test ok');
