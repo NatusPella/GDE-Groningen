@@ -31,11 +31,11 @@ const tok = (naam, terug) => (typeof document !== 'undefined' && getComputedStyl
 const kleurGeel = () => new THREE.Color(tok('--ds-c-geel', 'gold'));
 
 const CSS = `
-#pigeon-guide { position: fixed; inset: 0; pointer-events: none; z-index: 6; zoom: var(--ui, 1); font-family: var(--ds-font-tekst-v3, Arial, sans-serif); color: var(--ds-c-ink-inkt, #1d1b17); }
+#pigeon-guide { position: fixed; inset: 0; pointer-events: none; z-index: 6; zoom: var(--ui, 1); font-family: var(--ds-font-zeef-tekst, Arial, sans-serif); color: var(--ds-c-ink-inkt, #1d1b17); }
 #pigeon-guide[hidden] { display: none; }
 #pigeon-guide .pg-card { position: absolute; top: 204px; left: 50%; transform: translateX(-50%); min-width: 320px; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-card small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-#pigeon-guide .pg-card b { display: block; font-family: var(--ds-font-kop-v3, Arial, sans-serif); font-size: 28px; font-weight: 800; line-height: 1.1; }
+#pigeon-guide .pg-card b { display: block; font-family: var(--ds-font-zeef-kop, Arial, sans-serif); font-size: 28px; font-weight: 800; line-height: 1.1; }
 #pigeon-guide .pg-card i { display: block; font-style: normal; font-size: 16px; font-weight: 700; margin-top: 2px; }
 #pigeon-guide .pg-hold { height: 10px; margin-top: 6px; border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; background: var(--ds-c-wit, #fff); overflow: hidden; }
 #pigeon-guide .pg-hold[hidden] { display: none; }
@@ -47,7 +47,7 @@ const CSS = `
 #pigeon-guide .pg-arrow span { display: inline-block; margin-top: 2px; padding: 1px 8px; font-size: 15px; font-weight: 800; background: var(--ds-c-ink-papier, #f3ead3); border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; white-space: nowrap; }
 #pigeon-guide .pg-intro { position: absolute; top: 330px; left: 50%; transform: translateX(-50%); max-width: min(520px, calc(100vw / var(--ui, 1) - 32px)); padding: 10px 18px 12px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-intro[hidden] { display: none; }
-#pigeon-guide .pg-intro b { display: block; font-family: var(--ds-font-kop-v3, Arial, sans-serif); font-size: 20px; font-weight: 800; }
+#pigeon-guide .pg-intro b { display: block; font-family: var(--ds-font-zeef-kop, Arial, sans-serif); font-size: 20px; font-weight: 800; }
 #pigeon-guide .pg-intro p { margin: 4px 0 8px; font-size: 16px; font-weight: 600; line-height: 1.3; }
 #pigeon-guide .pg-keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font-size: 14px; font-weight: 700; }
 #pigeon-guide .pg-keys span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }

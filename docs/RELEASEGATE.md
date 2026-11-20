@@ -318,3 +318,13 @@ Deze tests draaien zonder Electron, wereld of netwerk, en zitten automatisch in
 `run_tests.mjs` en de lichte fase van `test_all.mjs`. De **Electron-kant** (beelden maken,
 perf meten) is hier niet te testen: dat bewijst de eerste echte releasegate-run op de machine
 van de eigenaar. Tot die tijd heet dat deel "niet getest".
+
+## Beeldregressie per scherm (#994)
+
+`node scripts/ui/beeldregressie.mjs` vergelijkt per scherm een nieuw beeld met een goedgekeurde referentie in `docs/beeldreferentie/` (`<formaat>-<scherm>.png`), in drie formaten: 1024x600, 1280x720 en 1920x1080. Het script heeft geen afhankelijkheden (eigen PNG-lezer, `scripts/lib/pngdiff.mjs`).
+
+- `--run` maakt de beelden van de eerste set (vijf schermen: garage, te doen, verhaal, telefoon en de Samen spelen-hub) met `scripts/ui_shots.mjs`; `--run --groep=<id>` een andere groep (`afronding`, `hud`, `kaart`, `samen-gast`); `--lijst` toont ze. Een Electron-run gaat via het slot: `node desktop/build/slots/slot.mjs run ds -- node scripts/ui/beeldregressie.mjs --run`.
+- `--vergelijk` zet een uitvoermap (standaard `.beeldregressie/uit`) naast de referenties. Een pixel telt als afwijkend bij meer dan `--tolerantie` (standaard 8 van 255 per kanaal); een scherm faalt bij meer dan `--drempel` afwijkende pixels (standaard 0,5 procent). Bij een afwijking staat een diffbeeld in `<uit>/diff/`. Exit 1 bij een afwijking of een referentie zonder nieuw beeld; een beeld zonder referentie is alleen een melding (`--streng` maakt er een fout van).
+- `--ververs [--only=a,b]` zet de beelden uit de uitvoermap als nieuwe referentie. Alleen met die vlag worden referenties aangemaakt of bijgewerkt, en alleen na een keuring van het beeld.
+- De gastweergave van Samen spelen is een eigen groep (`samen-gast`).
+- Puur getest: `node scripts/beeldregressie_test.mjs`. Referenties zijn er nog niet (eerste Electron-run en keuring volgen); zonder referentie meldt het script alleen "nieuw".
