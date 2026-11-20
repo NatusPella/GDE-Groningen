@@ -279,7 +279,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
 | `?warmfilm` | Rijd de openingsfilm in het laadscherm voor (tour, palette, samples); standaard uit (kostte 20 tot 90 s laadtijd), alleen voor A/B-metingen |
-| `?dswereld=0..1` | Menging van de wereldkleuren met het designsysteem (`worldpalette.js`): standaard 0,3; `0` is het oude palet, `1` volledig; alleen voor vergelijken |
+| `?dswereld` (0 tot 1) | Menging van de wereldkleuren met het designsysteem (`worldpalette.js`): standaard 0,3; `0` is het oude palet, `1` volledig; alleen voor vergelijken |
 | `?warm` | Laat een testrun (die `noattract` krijgt) het startgebied en de openingsfilm toch voorwarmen in het laadscherm, om de laadtijd te meten; via `--url-flags=warm` |
 | `?simlagen` | Standaard aan; `?zonderlagen` zet de simulatielagen uit (simlagen.js, #18) en valt terug op de vaste doelaantallen |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |

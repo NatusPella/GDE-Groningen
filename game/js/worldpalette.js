@@ -8,6 +8,7 @@
 // - de helderheid (luma) van een kleur blijft behouden bij elke rol behalve accent en papier: wegen, stoepen en gevaren houden hun contrast;
 // - bij meng 0 is de uitkomst gelijk aan de invoer; de uitkomst is deterministisch en blijft binnen 0x000000..0xffffff;
 // - geen wintertint: alleen warme, groene en inktblauwe doelen, geen wit en geen kou.
+import { FLAGS } from './devflags.js';
 
 // De inkten van het designsysteem (gelijk aan ds-tokens.css en kaartkleuren.js) plus het ene inktblauwgroen van het water.
 export const WERELD_INKTEN = Object.freeze({
@@ -39,12 +40,8 @@ let _meng = null;
 export function wereldMeng() {
   if (_meng !== null) return _meng;
   let m = WERELD_DS_MENG;
-  try {
-    if (typeof location !== 'undefined' && location.search) {
-      const v = new URLSearchParams(location.search).get('dswereld');
-      if (v !== null && v !== '' && Number.isFinite(Number(v))) m = Number(v);
-    }
-  } catch (e) { /* zonder pagina blijft de constante */ }
+  const v = FLAGS.dswereld;
+  if (v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))) m = Number(v);
   _meng = Math.max(0, Math.min(1, m));
   return _meng;
 }
