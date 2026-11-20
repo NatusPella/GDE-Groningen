@@ -23,7 +23,7 @@
 .bm-band { position: absolute; }
 .bm-geslaagd, .bm-mislukt, .bm-opgepakt { inset: 0; display: grid; place-items: center; overflow: hidden; }
 .bm-dim { position: absolute; inset: 0; background: rgba(29,27,23,0.5); }
-.bm-band { left: -6vw; right: -6vw; padding: 3vh 14vw 3.4vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 1.2vh; background: var(--ds-c-ink-geel); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 var(--ds-lijn-zeef) 0 var(--ds-c-ink-roze), var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)) translateX(-4vw); }
+.bm-band { left: -6vw; right: -6vw; padding: 3vh 14vw 3.4vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 1.2vh; background: var(--ds-c-ink-geel); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 var(--ds-lijn-zeef) 0 var(--ds-c-ink-roze), var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); }
 .bm-mislukt .bm-band { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); background-blend-mode: multiply; }
 .bm-mislukt .bm-klein { background: var(--ds-c-ink-inkt); }
 

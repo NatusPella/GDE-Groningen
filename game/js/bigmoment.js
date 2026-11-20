@@ -212,7 +212,7 @@ function binnenHtml(m) {
 function toonNu(m, klaarCb) {
   ensureCss();
   const el = document.createElement('div');
-  el.className = `bm bm-${m.vorm} bm-${m.soort}`;
+  el.className = `bm bm-v-${m.vorm} bm-${m.soort}`; // bm-v-: de vorm van de wortel botst anders met het kind .bm-band of .bm-stempel
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', m.vorm === 'rand' ? 'polite' : 'assertive');
   el.setAttribute('aria-label', m.aria);
