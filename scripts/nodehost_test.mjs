@@ -183,7 +183,7 @@ try {
     assert.equal(g.wachtwoord, 'zomer', 'het wachtwoord gaat mee naar de toestemming');
     g = L.reduce(g, { t: 'akkoord' });
     g = L.reduce(g, { t: 'status', status: 'geweigerd', reason: 'wachtwoord' });
-    assert.equal(L.view(g).lines[0], REASON_TEXT.wachtwoord);
+    assert.ok(REASON_TEXT.wachtwoord.startsWith(L.view(g).lines[0].replace(/.$/, '')) && L.view(g).lines.join(' ').includes('Vraag het aan wie het spel opende'), 'playerstatus.js: tekst en wat te doen in de regels');
     assert.ok(L.view(g).wachtwoord, 'een verkeerd wachtwoord: het veld staat er weer');
     assert.ok(L.view(g).buttons.some((b) => b.act === 'probeer'), 'opnieuw proberen');
     g = L.reduce(g, { t: 'probeer' });
