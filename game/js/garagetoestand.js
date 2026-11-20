@@ -38,7 +38,7 @@ export function vraagSoort(msg, vragen = {}) {
   return '';
 }
 
-const SVG = (d) => `<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="${d}"/></svg>`;
+const SVG = (d) => `<svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="${d}"/></svg>`;
 export const TOESTAND_ICOON = {
   ok: SVG('M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z'),
   warn: SVG('M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM7.2 4h1.6v5H7.2zm0 6h1.6v1.6H7.2z'),
@@ -46,10 +46,10 @@ export const TOESTAND_ICOON = {
   mut: SVG('M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM4.5 7.2h7v1.6h-7z'),
   kan: SVG('M3 2.5l10 5.5-10 5.5z'),
 };
-const KLASSE = { ok: ' ds-z-chip--succes', warn: '', no: ' ds-z-chip--probleem', kan: ' ds-z-chip--primair', mut: '' };
+const KLASSE = { ok: ' ds-chip--succes', warn: ' ds-chip--waarschuwing', no: ' ds-chip--probleem', kan: ' ds-chip--primair', mut: '' };
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Eén chip als HTML (icoon en woord).
 export function chipHtml(tone, label, extra = '') {
-  return `<span class="ds-z-chip${KLASSE[tone] || ''}${extra}">${TOESTAND_ICOON[tone] || TOESTAND_ICOON.mut}${esc(label)}</span>`;
+  return `<span class="ds-chip${KLASSE[tone] || ''}${extra}">${TOESTAND_ICOON[tone] || TOESTAND_ICOON.mut}${esc(label)}</span>`;
 }

@@ -24,10 +24,10 @@ import {
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const GLYPHS = {
-  car: '<path d="M6 30l4-11a5 5 0 0 1 4.7-3.3h18.6A5 5 0 0 1 38 19l4 11h1.5a2.5 2.5 0 0 1 2.5 2.5V40h-5v3a3 3 0 0 1-6 0v-3H13v3a3 3 0 0 1-6 0v-3H2v-7.5A2.5 2.5 0 0 1 4.5 30zm6-1h24l-2.8-8.2a1.5 1.5 0 0 0-1.4-1h-15.6a1.5 1.5 0 0 0-1.4 1z"/><circle cx="10" cy="35" r="2.6" style="fill:var(--ds-c-ink-inkt)"/><circle cx="38" cy="35" r="2.6" style="fill:var(--ds-c-ink-inkt)"/>',
+  car: '<path d="M6 30l4-11a5 5 0 0 1 4.7-3.3h18.6A5 5 0 0 1 38 19l4 11h1.5a2.5 2.5 0 0 1 2.5 2.5V40h-5v3a3 3 0 0 1-6 0v-3H13v3a3 3 0 0 1-6 0v-3H2v-7.5A2.5 2.5 0 0 1 4.5 30zm6-1h24l-2.8-8.2a1.5 1.5 0 0 0-1.4-1h-15.6a1.5 1.5 0 0 0-1.4 1z"/><circle cx="10" cy="35" r="2.6" fill="#10180f"/><circle cx="38" cy="35" r="2.6" fill="#10180f"/>',
   bike: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="32" r="8"/><circle cx="37" cy="32" r="8"/><path d="M11 32l8-14h12l6 14M11 32h11l9-14M16 13h6M31 18l-2-6h5"/></g>',
   bus: '<path d="M4 12a4 4 0 0 1 4-4h32a4 4 0 0 1 4 4v22a2 2 0 0 1-2 2h-2v3a3 3 0 0 1-6 0v-3H14v3a3 3 0 0 1-6 0v-3H6a2 2 0 0 1-2-2zm4 2v8h8v-8zm11 0v8h8v-8zm11 0v8h9v-8z"/>',
-  truck: '<path d="M2 12h26v22H2zM30 18h8l6 8v8h-14z"/><circle cx="10" cy="36" r="4"/><circle cx="36" cy="36" r="4"/><rect x="32" y="20" width="6" height="5" style="fill:var(--ds-c-ink-inkt)"/>',
+  truck: '<path d="M2 12h26v22H2zM30 18h8l6 8v8h-14z"/><circle cx="10" cy="36" r="4"/><circle cx="36" cy="36" r="4"/><rect x="32" y="20" width="6" height="5" fill="#10180f"/>',
   boat: '<path d="M4 28h40l-6 10H10zM14 18h14v8H14zM30 14h3v12h-3z"/><path d="M6 42c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2" fill="none" stroke="currentColor" stroke-width="2"/>',
   scooter: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="34" r="6"/><circle cx="38" cy="34" r="6"/><path d="M17 34h14l5-18h5M31 34l-3-9H15"/></g><path d="M14 22h13v5H12z"/>',
   heli: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 9h34M21 9v6M10 41h20M14 35v6M26 35v6M30 25h12M41 19v10"/></g><path d="M8 27a12 10 0 0 1 24 0v6H8z"/>',
@@ -63,36 +63,30 @@ const CSS = `
    titel en status, de toestand als chips, de feiten en pas dan de actie. Kleuren en maten komen uit
    ds-tokens.css; de glazen lijst links blijft zoals hij was. */
 #pause-menu .gar-viewer { gap: var(--ds-s-3); }
-#pause-menu .gar-stage { height: clamp(150px, 19vh, 220px); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-klein); }
-#pause-menu .gar-stage .gar-hint, #pause-menu .gar-stage:hover .gar-hint, #pause-menu .gar-stage:focus-within .gar-hint { color: var(--ds-zeef-tx); }
+#pause-menu .gar-stage { height: clamp(150px, 19vh, 220px); border-radius: var(--ds-r); box-shadow: inset 0 0 0 var(--ds-lijn) var(--line2); }
 #pause-menu .gar-stage .gar-hint { padding-left: var(--ds-s-3); }
 #pause-menu .gar-bon { flex: none; gap: var(--ds-s-3); padding-top: var(--ds-s-4); }
-#pause-menu .gar-bon .ds-z-kaart__kop { padding-top: var(--ds-s-2); padding-bottom: var(--ds-s-2); }
-#pause-menu .gar-bon .ds-z-kaart__titel { font-size: max(var(--ds-t-subkop), var(--menu-min, 13px)); text-shadow: none; }
-/* koppen van een blok (Cijfers, Uitvoering): links, boven hun eigen blok, met een inktstreep; .ds-z-kaart__voet zet ze anders rechts */
-#pause-menu .gar-blok > h3 { justify-content: flex-start; align-items: baseline; margin: 0; padding-bottom: var(--ds-s-1); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: max(var(--ds-t-label), var(--menu-min, 13px)); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
-#pause-menu .gar-blok > h3 > span { font-family: var(--ds-font-tekst-v3); font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--ds-tx-zacht); }
+#pause-menu .gar-bon .ds-kaart__kop { padding-top: var(--ds-s-2); padding-bottom: var(--ds-s-2); }
+#pause-menu .gar-bon .ds-kaart__titel { font-size: var(--ds-t-label); }
 #pause-menu .gar-naam { overflow-wrap: anywhere; }
-#pause-menu .gar-bon .mut, #pause-menu .gar-meme { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
+#pause-menu .gar-bon .mut, #pause-menu .gar-meme { color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); }
 #pause-menu .gar-bon .gar-state { flex: none; }
 #pause-menu .gar-chips { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 #pause-menu .gar-chips:empty { display: none; }
 #pause-menu .gar-blok { display: flex; flex-direction: column; gap: var(--ds-s-1); }
-#pause-menu .gar-bon .gar-where, #pause-menu .gar-bon .gar-look { color: var(--ds-zeef-tx); font-size: var(--ds-t-body); }
+#pause-menu .gar-bon .gar-where, #pause-menu .gar-bon .gar-look { color: var(--ds-tx); font-size: var(--ds-t-body); }
 #pause-menu .gar-stats { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-5); }
-#pause-menu .gar-stats .ds-z-balk { flex: 1 1 200px; }
-#pause-menu .gar-bon .gar-dot { box-shadow: 0 0 0 var(--ds-lijn-zeef) var(--ds-c-ink-inkt); }
-#pause-menu .gar-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); padding: var(--ds-s-3) 0 0; border-top: var(--ds-lijn-dik) dashed var(--ds-c-inkt-zacht); }
-#pause-menu .gar-acts .ds-z-knop { min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-body); }
-#pause-menu .gar-acts .ds-z-knop { flex-direction: row; gap: var(--ds-s-2); }
-#pause-menu .gar-acts .ds-z-knop svg { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .gar-stats .ds-streep { flex: 1 1 200px; }
+#pause-menu .gar-bon .gar-dot { box-shadow: 0 0 0 var(--ds-lijn) var(--ds-tx); }
+#pause-menu .gar-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); padding: var(--ds-s-3) 0 0; border-top: var(--ds-lijn-dik) dashed var(--ds-tx-zacht); }
+#pause-menu .gar-acts .ds-knop { min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-body); }
+#pause-menu .gar-acts .ds-knop { flex-direction: row; gap: var(--ds-s-2); }
+#pause-menu .gar-acts .ds-knop svg { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .gar-msg { margin: 0; min-height: 0; font-size: var(--ds-t-body); }
 #pause-menu .gar-msg:empty { display: none; }
-#pause-menu .gar-msg:not(.gar-vraag) { color: var(--ds-c-groen-tx); font-weight: var(--ds-gewicht-vet); }
-#pause-menu .gar-vraag-kop { display: flex; align-items: center; gap: var(--ds-s-2); }
-#pause-menu .gar-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }
+#pause-menu .gar-msg:not(.ds-callout) { color: var(--ds-succes-tx); font-weight: var(--ds-gewicht-vet); }
 #pause-menu .gar-leeg { margin: var(--ds-s-3) 0 0 var(--ds-s-5); }
-#pause-menu .gar-leeg .ds-z-leeg__tekst { color: var(--ds-zeef-tx); }
+#pause-menu .gar-leeg .ds-leeg__tekst { color: var(--ds-tx); }
 #pause-menu .gar-leeg .gar-ic { width: var(--ds-s-6); height: var(--ds-s-6); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 /* De draaihint staat als eigen strook onder het model (nooit erover) en licht op
    zodra de muis of de focus op de draaitafel staat, zodat hij leesbaar blijft.
@@ -148,7 +142,7 @@ function endHtml(e) {
 // while its snapshot is still being drawn (#610).
 function row(e) {
   return `<button type="button" class="m-li gar-card${e.locked ? ' off' : ''}${e.id === selected ? ' sel' : ''}" data-garage-select="${esc(e.id)}" data-group="${groupOf(e)}"${e.id === selected ? ' aria-current="true"' : ''}>` +
-    `<span class="gar-ph" data-look="${garageCardLook(e)}" aria-hidden="true">${vehicleGlyph(e.kind, e.locked ? 'var(--ds-c-inkt-zacht)' : e.color)}</span>` +
+    `<span class="gar-ph" data-look="${garageCardLook(e)}" aria-hidden="true">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}</span>` +
     `<span class="nm"><span class="one">${esc(e.model)}</span><span class="gar-st">${endHtml(e)}</span></span></button>`;
 }
 
@@ -161,7 +155,7 @@ function stageHtml(e) {
   const model = esc(e.model);
   // #892: het model en de hint staan onder elkaar in plaats van over elkaar: de auto zakte
   // over "Sleep of draai met ← →" heen, waardoor de hint onleesbaar werd.
-  return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? 'var(--ds-c-inkt-zacht)' : e.color)}` +
+  return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}` +
     '<img class="gar-still" alt="" draggable="false" hidden>' +
     `<canvas tabindex="0" role="img" aria-label="3D-model van ${model}: sleep of gebruik de pijltjes om te draaien"></canvas>` +
     '<span class="gar-hint">Sleep of gebruik <kbd class="m-kc" data-gk="arrowleft">←</kbd><kbd class="m-kc" data-gk="arrowright">→</kbd></span></div>';
@@ -172,15 +166,15 @@ function stageHtml(e) {
 // knoppen door elkaar). Nu drie rustige blokken met een eigen kop — waar hij staat, de cijfers
 // en de uitvoering — en de knoppen onderaan op één regel.
 function secHtml(title, note, inner) {
-  return `<div class="gar-blok"><h3 class="ds-z-kaart__voet">${esc(title)}${note ? ` <span>${note}</span>` : ''}</h3>${inner}</div>`;
+  return `<div class="gar-blok"><h3 class="ds-kaart__label">${esc(title)}${note ? ` <span>${note}</span>` : ''}</h3>${inner}</div>`;
 }
 
 // De cijfers: topsnelheid als getal met eenheid, trekkracht als streep met altijd het getal erbij.
 function statsHtml(e) {
   const kracht = Math.max(0, Math.min(10, Number(e.accelScore) || 0));
   return '<div class="gar-stats">' +
-    `<span class="ds-z-waarde"><span class="ds-z-waarde__getal">${e.topSpeed}</span><span class="ds-z-waarde__eenheid">km/u topsnelheid</span></span>` +
-    `<span class="ds-z-balk" style="--ds-z-w:${kracht * 10}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">trekkracht ${kracht} / 10</span></span></div>`;
+    `<span class="ds-cijfer"><span class="ds-cijfer__waarde">${e.topSpeed}</span><span class="ds-cijfer__eenheid">km/u topsnelheid</span></span>` +
+    `<span class="ds-streep ds-streep--dik" style="--ds-streep-w:${kracht * 10}%"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">trekkracht ${kracht} / 10</span></span></div>`;
 }
 
 // De korte status naast de titel: thuis, in de buurt, te koop, op slot. De kaart
@@ -216,24 +210,24 @@ function detailsHtml(e, msg) {
   // De knoppenrij is een eigen blok onder de gegevens (gar-acts), geen plakkerige voetregel:
   // anders schoof hij over de laatste regel van WAAR (review 0.62). Eén gele hoofdknop; wat je niet
   // terugdraait (verkopen, slopen) en wat nu om een tweede druk vraagt staat omlijnd.
-  const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="ds-z-knop" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
-    (e.status !== 'driving' ? `<button type="button" class="ds-z-knop${vraag === 'aflever' ? ' ds-z-knop--gevaar' : ''} gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
-    (e.status === 'near' || e.status === 'far' ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') +
-    (e.canSell ? `<button type="button" class="ds-z-knop ds-z-knop--${vraag === 'verkoop' ? 'gevaar' : 'secundair'}" data-garage-sell="${esc(e.id)}">${esc(e.sellLabel)}</button>` : '') + '</div>';
+  const acts = koop ? `<div class="m-acts td-acts gar-acts"><button type="button" class="ds-knop" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts gar-acts">' +
+    (e.status !== 'driving' ? `<button type="button" class="ds-knop${vraag === 'aflever' ? ' ds-knop--gevaar' : ''} gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
+    (e.status === 'near' || e.status === 'far' ? `<button type="button" class="ds-knop ds-knop--secundair" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') +
+    (e.canSell ? `<button type="button" class="ds-knop ds-knop--${vraag === 'verkoop' ? 'gevaar' : 'secundair'}" data-garage-sell="${esc(e.id)}">${esc(e.sellLabel)}</button>` : '') + '</div>';
   const waarHtml = waar && waar.trim() ? secHtml('Waar', '', `<div class="gar-where">${waar}</div>`) : '';
   // Eerst wie en wat (titel, status, sfeerregel), dan de feiten (waar, cijfers,
   // uitvoering) en pas daarna de actie: de knop hoort bij het besluit dat de
   // feiten boven hem onderbouwen, niet andersom.
   const toestand = garageToestand(e, { entry: getOwnedEntries().find((o) => o.key === e.key) });
-  const kaartToon = e.locked ? ' ds-z-kaart--uit' : e.status === 'lost' ? ' ds-z-kaart--probleem' : e.status === 'driving' ? ' ds-z-kaart--selectie' : '';
+  const kaartToon = e.locked ? ' ds-kaart--uit' : e.status === 'lost' ? ' ds-kaart--probleem' : e.status === 'driving' ? ' ds-kaart--succes' : '';
   const stoon = statusToon(e);
   const vraagHtml = vraag
-    ? `<div class="gar-msg gar-vraag ds-z-kaart ds-z-kaart--probleem ds-z-kaart--recht" role="status"><div class="ds-z-kaart__tekst gar-vraag-kop">${TOESTAND_ICOON.warn}<b>Even checken</b></div><div class="ds-z-kaart__tekst">${esc(msg)}</div></div>`
+    ? `<div class="gar-msg ds-callout ds-callout--waarschuwing" role="status"><div class="ds-callout__kop">${TOESTAND_ICOON.warn.replace('ds-chip__icoon', 'ds-icoon ds-icoon--waarschuwing')}<span>Even checken</span></div><div class="ds-callout__tekst">${esc(msg)}</div></div>`
     : `<div class="gar-msg" role="status">${esc(msg || '')}</div>`;
-  return `<div class="gar-bon ds-zeef ds-z-kaart ${kaartToon}">` +
-    `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span>` +
+  return `<div class="gar-bon ds-papier ds-kaart ds-kaart--kop${kaartToon}">` +
+    `<div class="ds-kaart__kop"><span class="ds-kaart__titel">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span>` +
     chipHtml(stoon, status, ' gar-state') + '</div>' +
-    `<h2 class="gar-naam">${esc(e.model)}</h2>` +
+    `<h2 class="ds-t-kop gar-naam">${esc(e.model)}</h2>` +
     (e.meme ? `<div class="mut gar-meme">${esc(e.meme)}</div>` : '') +
     `<div class="gar-chips" aria-label="Toestand">${toestand.map((t) => chipHtml(t.tone, t.label)).join('')}</div>` +
     waarHtml + slotHtml + secHtml('Cijfers', '', statsHtml(e)) + secHtml('Uitvoering', '', uitvoering) +
@@ -280,7 +274,7 @@ export function selectGarageVehicle(el, id, msg = '') {
     box.innerHTML = viewerHtml(e, msg);
   }
   // de bevestigingsvraag staat onderaan het paneel: breng hem in beeld, anders zie je alleen dat er niets gebeurt
-  const vraagEl = box.querySelector('.gar-msg.gar-vraag');
+  const vraagEl = box.querySelector('.gar-msg.ds-callout');
   if (vraagEl && vraagEl.scrollIntoView) vraagEl.scrollIntoView({ block: 'nearest' });
   const c = box.querySelector('canvas');
   if (!c) return;
@@ -374,7 +368,7 @@ function fillPics(el) {
     if (!ph) continue;
     const put = (url) => {
       if (!ph.isConnected) return;
-      ph.innerHTML = url ? `<img alt="" draggable="false" src="${url}">` : vehicleGlyph(e.kind, e.locked ? 'var(--ds-c-inkt-zacht)' : e.color);
+      ph.innerHTML = url ? `<img alt="" draggable="false" src="${url}">` : vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color);
     };
     if (!spec) { put(''); continue; }
     renderSnapshot(spec, GARAGE_PIC_W, GARAGE_PIC_H, put, { angle: GARAGE_3Q_ANGLE, zoom: garagePicZoom(spec), group: PIC_GROUP });
@@ -457,9 +451,9 @@ function tabsHtml(list) {
 function listHtml(list) {
   const shown = shownList(list);
   if (!shown.length) {
-    return '<div class="gar-leeg ds-z-leeg ds-zeef"><span class="ds-z-leeg__beeld"><svg class="gar-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg></span>' +
-      '<h3 class="ds-z-leeg__kop">Niks in deze selectie</h3><div class="ds-z-leeg__tekst">Kies een andere soort of toon alles.</div>' +
-      '<button type="button" class="ds-z-knop ds-z-knop--secundair" data-garage-cat="all">Alle soorten</button></div>';
+    return '<div class="gar-leeg ds-leeg ds-glas"><span class="ds-leeg__beeld"><svg class="gar-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M16 16l5 5"/></svg></span>' +
+      '<h3 class="ds-leeg__kop">Niks in deze selectie</h3><div class="ds-leeg__tekst">Kies een andere soort of toon alles.</div>' +
+      '<button type="button" class="ds-knop ds-knop--secundair" data-garage-cat="all">Alle soorten</button></div>';
   }
   let out = '';
   for (const { group, items } of garageSections(shown)) out += `<div class="m-gh"><span>${GROUP_HEAD[group]}</span><span>${items.length}</span></div>${items.map(row).join('')}`;

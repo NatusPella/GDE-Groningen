@@ -10,7 +10,7 @@ const AREA_COLORS = {
   safe: { fill: inkA('greenLight', 0.16), edge: INK.greenLight },
   mission: { fill: inkA('missionArea', 0.12), edge: ICON_RIM.halte },
 };
-const LINE_COLORS = { route: INK.routeLine, ideal: INK.greenLight, crow: INK.cream, track: inkA('cream', 0.55) };
+const LINE_COLORS = { route: INK.routeLine, ideal: ICON_RIM.halte, crow: INK.cream, track: inkA('cream', 0.55) };
 
 // glyph of an 'mm-' kind at (0, 0), s as the other map icons
 export function drawMissionLayerIcon(ctx, kind, s) {

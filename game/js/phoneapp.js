@@ -33,22 +33,3 @@ export function bodyOf(e) {
   const m = /^(?:(?:Gesprek|Live) · )?[^:]{2,32}: (.*)$/s.exec(e.text || '');
   return m ? m[1] : String(e.text || '');
 }
-
-// De apps op de Pixie Vouw 11 hebben verzonnen namen (#998): geen echte merken, wel een knipoog.
-// De sleutel is de interne app (hudbus.js), de naam is wat de speler leest.
-export const APP_NAAM = {
-  sikkom: 'Kiekdoar',
-  bericht: 'Kletsmaar',
-  geld: 'Knipbank',
-  bel: 'Hoorndoar',
-  live: 'Kiekdoar Live',
-  missies: 'Klusjesbord',
-  kaart: 'Waarzit',
-  samen: 'Samenspul',
-};
-export const appNaam = (app) => APP_NAAM[app] || APP_NAAM.bericht;
-
-// Lege staten met persoonlijkheid: één kop en één regel, nooit alleen "Geen items".
-export const LEEG = {
-  berichten: { kop: 'Stil in Kletsmaar', tekst: 'Niemand die iets van je wil. Geniet ervan, het duurt vast niet lang.' },
-};

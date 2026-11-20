@@ -1,132 +1,150 @@
-/* Phone notifications and calls (phonefeed.js), linksboven in de HUD. Inside #hud: uiscale.js zoom
-   applies, vw/vh are / --ui. Sinds #998 zeefdruk (ADR 0040): papieren kaartjes met inktrand en
-   harde schaduw uit de .ds-z-kaart-component; hier staat alleen wat de telefoon zelf toevoegt
-   (stapel, beweging, avatar, tijdbalk). Geen losse hex: alleen var(--ds-...). Rustig drukwerk
-   (html.rustig-drukwerk) haalt schuinte en misdruk uit de tokens; de beweging staat dan uit. */
+/* Phone notifications and calls (phonefeed.js), bottom left above the
+   street name. Inside #hud: uiscale.js zoom applies, vw/vh are / --ui. */
 #hud .phonefeed {
   position: absolute;
   left: var(--hud-edge, 46px);
   top: var(--hud-top, 34px);
-  width: min(300px, calc(40vw / var(--ui, 1)));
+  width: min(350px, calc(30vw / var(--ui, 1)));
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: var(--ds-s-3);
+  gap: 8px;
   pointer-events: none;
 }
 
 #hud .pf-card, #hud .pf-callcard {
-  --pf: var(--ds-c-ink-bord);
-  gap: var(--ds-s-2);
+  --pf: var(--gron-green-light);
+  position: relative;
+  color: #f0ede4;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gron-green, #1e9e56) 10%, #0c140e), #0c140e 92%); /* #643: HUD-behuizing, geen eigen bijna-zwart */
+  border: 1px solid rgba(240, 237, 228, 0.12);
+  border-top: 3px solid var(--pf);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
   opacity: 0;
-  transform: translateY(-40px) rotate(calc(var(--ds-schuin) * -2)) scale(0.96);
+  transform: translateY(-40px) rotate(1.5deg) scale(0.96);
   transform-origin: 20% 0%;
   transition: opacity 0.35s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s;
 }
-#hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: rotate(var(--ds-schuin)); }
+#hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: none; }
 #hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: 0.45s; }
-#hud .pf-card[data-app="geld"] { --pf: var(--ds-c-groen-tx); }
-#hud .pf-card[data-app="bericht"] { --pf: var(--ds-c-ink-inkt); }
-
-/* de tijdbalk onderaan, in de inkt van de app */
+#hud .pf-card[data-app="bericht"] { --pf: var(--mk-user, #c068ff); }
+#hud .pf-card[data-app="geld"] { --pf: var(--mk-ok, #3fc97a); }
 #hud .pf-card::after {
   content: '';
   position: absolute;
   left: 0;
   bottom: 0;
-  height: var(--ds-s-1);
+  height: 2px;
   width: 100%;
   background: var(--pf);
+  opacity: 0.55;
   transform-origin: left;
 }
 #hud .pf-card.on::after { animation: pf-time var(--pf-dur, 7s) linear forwards; }
 @keyframes pf-time { to { transform: scaleX(0); } }
 
-#hud .pf-head { gap: var(--ds-s-2); justify-content: flex-start; }
-#hud .pf-app { display: grid; place-items: center; flex: none; width: var(--ds-s-5); height: var(--ds-s-5); }
-#hud .pf-app svg { width: var(--ds-s-4); height: var(--ds-s-4); }
-#hud .pf-from { display: flex; flex-direction: column; min-width: 0; line-height: 1.05; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .pf-appnaam { font-family: var(--ds-font-tekst-v3); font-weight: normal; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-shadow: none; text-transform: none; }
-#hud .pf-more { min-height: var(--ds-s-5); padding: 0 var(--ds-s-2); font-size: var(--ds-t-hulp); }
-#hud .pf-more[hidden] { display: none; }
-#hud .pf-time { margin-left: auto; font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); font-variant-numeric: tabular-nums; }
-#hud .pf-title { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
-#hud .pf-body { font-size: max(var(--ds-t-body), var(--hud-min, 0px)); }
-
-/* calls and livestreams */
-#hud .pf-callcard { --pf: var(--ds-c-ink-bord); min-height: 132px; padding: var(--ds-s-3) var(--ds-s-4); }
-#hud .pf-callcard.live { --pf: var(--ds-c-rood); border-color: var(--ds-c-rood); box-shadow: var(--ds-schaduw-hard-roze); }
-#hud .pf-call-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-3); }
-#hud .pf-avatar {
-  position: relative;
-  flex: 0 0 var(--ds-hoogte-knop);
-  height: var(--ds-hoogte-knop);
+#hud .pf-head { display: flex; align-items: center; gap: 8px; padding: 9px 14px 2px 12px; }
+#hud .pf-app {
   display: grid;
   place-items: center;
-  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  color: #0c140e;
+  background: var(--pf);
+}
+#hud .pf-app svg { width: 16px; height: 16px; }
+#hud .pf-from { font-size: max(16px, var(--hud-min)); letter-spacing: 2px; text-transform: uppercase; color: var(--pf); }
+#hud .pf-more { padding: 1px 7px 0; border-radius: 9px; font-size: 14px; letter-spacing: 0.5px; color: #0c140e; background: rgba(240,237,228,0.85); }
+#hud .pf-more[hidden] { display: none; }
+#hud .pf-time { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: rgba(240, 237, 228, 0.55); }
+#hud .pf-title { padding: 3px 14px 0; font-size: 25px; line-height: 1.02; letter-spacing: 0.6px; text-transform: uppercase; }
+#hud .pf-body { padding: 3px 14px 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(17px, var(--hud-min)); line-height: 1.28; color: rgba(240, 237, 228, 0.92); }
+#hud .pf-title:last-child { padding-bottom: 12px; }
+
+/* calls and livestreams */
+#hud .pf-callcard { --pf: var(--mk-ok, #3fc97a); border-radius: 18px; }
+#hud .pf-callcard.live { --pf: var(--mk-danger, #d93f3f); }
+#hud .pf-call-head { display: flex; align-items: center; gap: 11px; padding: 11px 14px 6px 12px; }
+#hud .pf-avatar {
+  position: relative;
+  flex: 0 0 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
-  font-family: var(--ds-font-kop-v3);
-  font-weight: 800;
-  font-size: var(--ds-t-subkop);
-  color: var(--ds-zeef-tx);
-  background: var(--ds-zeef-primair);
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: #0c140e;
+  background: var(--pf);
 }
 #hud .pf-callcard.ringing .pf-avatar::after {
   content: '';
   position: absolute;
-  inset: calc(var(--ds-s-1) * -1);
+  inset: -4px;
   border-radius: 50%;
-  border: var(--ds-lijn-dik) solid var(--pf);
+  border: 2px solid var(--pf);
   animation: pf-ring 0.8s ease-out infinite;
 }
 #hud .pf-callcard.ringing { animation: pf-buzz 0.4s ease-in-out infinite alternate; }
 @keyframes pf-ring { from { transform: scale(0.9); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
 @keyframes pf-buzz { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
-#hud .pf-callwho { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
-#hud .pf-callwho small { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); }
-#hud .pf-callwho b { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .pf-state, #hud .pf-live { margin-left: auto; white-space: nowrap; }
+#hud .pf-callwho { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
+#hud .pf-callwho small { font-size: max(13px, var(--hud-min)); letter-spacing: 2.5px; text-transform: uppercase; color: var(--pf); }
+#hud .pf-callwho b { margin-top: 2px; font-weight: normal; font-size: 26px; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .pf-state { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(14px, var(--hud-min)); color: rgba(240, 237, 228, 0.7); white-space: nowrap; }
 #hud .pf-clock { font-weight: normal; font-variant-numeric: tabular-nums; }
-#hud .pf-dot { width: var(--ds-s-2); height: var(--ds-s-2); border-radius: 50%; background: var(--ds-c-ink-bord); animation: pf-blink 1.2s ease-in-out infinite; }
-#hud .pf-live { animation: pf-blink 1.4s ease-in-out infinite; }
+#hud .pf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pf); animation: pf-blink 1.2s ease-in-out infinite; }
+#hud .pf-live { margin-left: auto; padding: 3px 8px 1px; border-radius: 4px; font-size: 15px; letter-spacing: 2px; color: #fff; background: var(--mk-danger, #d93f3f); animation: pf-blink 1.4s ease-in-out infinite; }
 @keyframes pf-blink { 50% { opacity: 0.4; } }
-#hud .pf-line { display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-1) 0 var(--ds-s-1) var(--ds-s-3); border-left: var(--ds-status-rand) solid var(--pf); min-height: 22px; }
+#hud .pf-line { display: flex; flex-direction: column; gap: 3px; padding: 2px 16px 14px 65px; min-height: 22px; }
 #hud .pf-line.new { animation: pf-line 0.35s ease-out; }
 @keyframes pf-line { from { opacity: 0; transform: translateY(6px); } }
-#hud .pf-speaker { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#hud .pf-speaker { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
 #hud .pf-speaker:empty, #hud .pf-sub:empty { display: none; }
-#hud .pf-say { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
-#hud .pf-sub { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); font-style: italic; }
-#hud .pf-callcard.ended { border-style: dashed; box-shadow: none; opacity: 0.85; }
+#hud .pf-say { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 19px; line-height: 1.25; }
+#hud .pf-sub { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; line-height: 1.25; font-style: italic; color: rgba(240, 237, 228, 0.68); }
+#hud .pf-callcard.ended { filter: saturate(0.3); opacity: 0.8; }
 
 @media (max-height: 640px) {
-  #hud .pf-title { font-size: var(--ds-t-subkop); }
+  #hud .pf-title { font-size: 21px; }
+  #hud .pf-body, #hud .pf-say { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   #hud .pf-card, #hud .pf-callcard { transition: opacity 0.2s; transform: none !important; }
-  #hud .pf-callcard.ringing, #hud .pf-callcard.ringing .pf-avatar::after, #hud .pf-line.new, #hud .pf-live, #hud .pf-dot { animation: none; }
+  #hud .pf-callcard.ringing, #hud .pf-callcard.ringing .pf-avatar::after, #hud .pf-line.new { animation: none; }
 }
-/* Rustig drukwerk: geen beweging, geen schuinte */
-html.rustig-drukwerk #hud :is(.pf-card, .pf-callcard) { transition: opacity 0.2s; transform: none !important; }
-html.rustig-drukwerk #hud :is(.pf-callcard.ringing, .pf-callcard.ringing .pf-avatar::after, .pf-card.on::after, .pf-line.new, .pf-live, .pf-dot) { animation: none; }
 
 /* narrative.js: steps aside while a cutscene, story call or subtitle is up */
 #hud .phonefeed.pf-held { opacity: 0; transition: opacity 0.2s; }
 
+/* The cards are the folded Pixie Vouw 11: its narrow cover screen, a slim
+   bezel, the hinge down the left side and a punch-hole camera on top. */
+#hud .phonefeed { width: min(276px, calc(40vw / var(--ui, 1))); }
+#hud .pf-callcard { min-height: 132px; }
+#hud .pf-call-head { flex-wrap: wrap; }
+#hud .pf-card, #hud .pf-callcard {
+  border: 5px solid #111613;
+  border-left: 9px solid #1a201c;
+  border-radius: 22px 20px 20px 22px;
+  box-shadow: inset 0 3px 0 var(--pf), inset 0 0 0 1px rgba(240, 237, 228, 0.07), -2px 0 0 #070a08, 0 0 0 1px #2b332d, 0 12px 28px rgba(0, 0, 0, 0.55);
+  background-clip: padding-box;
+  padding-top: 6px;
+}
+#hud .pf-card::before, #hud .pf-callcard::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: #050806;
+  box-shadow: 0 0 0 1.5px #1f2622;
+}
+
 /* de duif-HUD staat linksboven: de telefoonkaarten schuiven eronder (#239) */
 body.pigeon-mode #hud .phonefeed { top: 150px; }
-
-/* ---- Telefoon in het menu (phone.js): contactgesprek en laatste bericht ---- */
-.pt-titel { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; margin: 0 0 var(--ds-s-2); }
-.pt-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); margin: var(--ds-s-2) 0; }
-.pt-kaart { display: flex; flex-direction: column; gap: var(--ds-s-4); padding: var(--ds-s-2) 0; background: transparent; }
-.pt-kop { display: flex; align-items: center; gap: var(--ds-s-4); }
-.pt-av { flex: none; display: grid; place-items: center; width: var(--ds-s-8); height: var(--ds-s-8); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 50%; background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-kop); box-shadow: var(--ds-schaduw-hard-klein); }
-.pt-wie { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ds-s-1); }
-.pt-naam { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); text-transform: uppercase; margin: 0; }
-.pt-bubbel { max-width: 640px; font-size: var(--ds-t-body); }
-.pt-draad { display: flex; flex-direction: column; gap: var(--ds-s-3); }
-.pt-van { font-family: var(--ds-font-kop-v3); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; margin: 0; }
-.pt-bericht { max-width: 560px; }
-.pt-tijd { font-family: var(--ds-font-tekst-v3); font-size: var(--ds-t-hulp); }
-.pt-hulp { font-size: var(--ds-t-body); }

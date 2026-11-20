@@ -50,33 +50,33 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 const CSS = `${SFEER_BAND_CSS}
 .lb-hero { flex: none; }
 .lb-hero--leeg .lb-eerste { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin-top: 2px; }
-.lb-hero--leeg .lb-eerste .ds-z-chip { min-height: 32px; }
-.lb-hero--leeg .lb-eerste .ds-z-chip { padding: 0 var(--ds-s-4); }
+.lb-hero--leeg .lb-eerste .ds-chip { min-height: 32px; }
+.lb-hero--leeg .lb-eerste .ds-chip { padding: 0 var(--ds-s-4); }
 .lb-hero .pm-hero-t { font-size: 44px; }
 .lb-hero > :not(.lb-hero-sfeer):not(.lb-hero-ico) { position: relative; z-index: 1; }
-.lb-hero > .lb-hero-sfeer { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: 320px; opacity: 0.42; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, var(--ds-c-ink-inkt) 70%); mask-image: linear-gradient(90deg, transparent, var(--ds-c-ink-inkt) 70%); }
-.lb-hero > .lb-hero-ico { position: absolute; z-index: 2; right: 32px; top: 50%; width: 72px; height: 72px; margin: 0; color: color-mix(in srgb, var(--ink) 90%, transparent); transform: translateY(-50%); }
+.lb-hero > .lb-hero-sfeer { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: 320px; opacity: 0.42; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%); mask-image: linear-gradient(90deg, transparent, #000 70%); }
+.lb-hero > .lb-hero-ico { position: absolute; z-index: 2; right: 32px; top: 50%; width: 72px; height: 72px; margin: 0; color: rgba(240, 237, 228, 0.9); transform: translateY(-50%); }
 .lb-hero-ico svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .lb-stats { flex: none; }
-.lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-tekst-v3); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+.lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
 .lb-groep .lb-gn { margin-left: auto; letter-spacing: 0; text-transform: none; opacity: 0.85; font-size: max(14px, var(--menu-min, 14px)); }
 .lb-li { gap: 12px; }
 .lb-li .nm { min-width: 0; }
-.lb-li .lb-niv { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.9; background: color-mix(in srgb, var(--ink) 8%, transparent); }
-.lb-li .lb-niv b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 20px; line-height: 1; }
+.lb-li .lb-niv { display: inline-flex; align-items: baseline; gap: 4px; margin-left: auto; padding: 2px 10px; border-radius: 999px; white-space: nowrap; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.9; background: rgba(240, 237, 228, 0.08); }
+.lb-li .lb-niv b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 20px; line-height: 1; }
 .lb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
 .lb-li.nul .pa-ico { opacity: 0.4; }
-.lb-li.sel .lb-niv { background: color-mix(in srgb, var(--g) 20%, transparent); }
+.lb-li.sel .lb-niv { background: rgba(63, 201, 122, 0.2); }
 .m-pane.lb-pane { gap: 12px; }
 .lb-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .lb-pane .lb-blok p { margin: 4px 0; }
 .lb-pane p.lb-titel { margin: 0 0 2px; font-size: 24px; }
 .lb-pane .lb-kop p { margin: 0; }
 .lb-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; flex: none; }
-.lb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 5%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
+.lb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); }
 .lb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
-.lb-kpi b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; overflow-wrap: anywhere; }
+.lb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; overflow-wrap: anywhere; }
 .lb-kpi small { font-size: 16px; color: var(--mut); }
 .lb-voort { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
 .lb-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
@@ -85,18 +85,18 @@ const CSS = `${SFEER_BAND_CSS}
    het huidige niveau heeft de selectierand en het streepje naar het volgende, elk niveau noemt zijn loon en een chip met pictogram. */
 .lb-ladder { gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); margin: 2px 0 0; }
 .lb-trap { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.lb-trap li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; align-items: center; column-gap: var(--ds-s-3); row-gap: var(--ds-s-1); min-height: 44px; padding: var(--ds-s-1) var(--ds-s-3) var(--ds-s-1) calc(var(--ds-s-2) + var(--stap, 0) * 10px); border-left: var(--ds-status-rand) solid transparent; border-radius: 6px; color: var(--ds-c-inkt-zacht); }
-.lb-trap li.bereikt { color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-bord); }
-.lb-trap li.nu { background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-bord); }
-.lb-trap .nr { font-family: var(--ds-font-kop-v3); font-size: var(--ds-t-subkop); line-height: 1; text-align: right; }
+.lb-trap li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; align-items: center; column-gap: var(--ds-s-3); row-gap: var(--ds-s-1); min-height: 44px; padding: var(--ds-s-1) var(--ds-s-3) var(--ds-s-1) calc(var(--ds-s-2) + var(--stap, 0) * 10px); border-left: var(--ds-status-rand) solid transparent; border-radius: 6px; color: var(--ds-tx-zacht); }
+.lb-trap li.bereikt { color: var(--ds-tx); border-left-color: var(--ds-succes); }
+.lb-trap li.nu { background: var(--ds-selectie-vlak); color: var(--ds-selectie-tx); border-left-color: var(--ds-selectie); }
+.lb-trap .nr { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: 1; text-align: right; }
 .lb-trap .lb-stap-t { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
-.lb-trap .lb-stap-t b { font-family: var(--ds-font-kop-v3); font-weight: normal; font-size: var(--ds-t-body); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-.lb-trap .lb-loon { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
-.lb-trap li.nu .lb-loon, .lb-trap li.bereikt .lb-loon { color: var(--ds-zeef-tx); }
-.lb-trap .ds-z-chip { min-height: 28px; }
-.lb-trap .ds-z-balk { grid-column: 2 / -1; }
+.lb-trap .lb-stap-t b { font-family: var(--ds-font-kop); font-weight: normal; font-size: var(--ds-t-body); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+.lb-trap .lb-loon { font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+.lb-trap li.nu .lb-loon, .lb-trap li.bereikt .lb-loon { color: var(--ds-tx); }
+.lb-trap .ds-chip { min-height: 28px; }
+.lb-trap .ds-streep { grid-column: 2 / -1; }
 .lb-h3 { margin: 6px 0 0; }
-.lb-next { padding: 10px 14px 10px 16px; border-radius: 10px; background: color-mix(in srgb, var(--ink) 4%, transparent); box-shadow: inset 3px 0 0 var(--g); }
+.lb-next { padding: 10px 14px 10px 16px; border-radius: 10px; background: rgba(240, 237, 228, 0.04); box-shadow: inset 3px 0 0 var(--g, #3fc97a); }
 .lb-next.klaar { box-shadow: inset 3px 0 0 var(--line2); }
 .lb-next p { margin: 4px 0; }
 .lb-next .lb-voort { margin: 0 0 6px; }
@@ -108,22 +108,22 @@ const CSS = `${SFEER_BAND_CSS}
 }
 .lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 0; }
 .lb-banen li { display: flex; gap: 8px; align-items: center; opacity: 0.6; min-height: 38px; padding: 2px 8px; border-radius: 6px; }
-.lb-banen li:has(.lb-doel) { opacity: 1; background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.lb-banen li:has(.lb-doel) { opacity: 1; background: rgba(240, 237, 228, 0.04); }
 .lb-banen .lb-doel { margin-left: auto; height: 34px; white-space: nowrap; }
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .lb-banen li:not(.klaar) svg { visibility: hidden; }
-.lb-kan { padding-left: 10px; box-shadow: inset 3px 0 0 var(--g); }
+.lb-kan { padding-left: 10px; box-shadow: inset 3px 0 0 var(--g, #3fc97a); }
 .lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-bz .mut { font-size: max(14px, var(--menu-min, 14px)); }
-.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-tekst-v3); font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
-.lb-bz-link { border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); padding-top: 4px; margin-top: 2px; }
+.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.08em; text-transform: uppercase; background: rgba(63, 201, 122, 0.18); color: var(--g, #3fc97a); }
+.lb-bz-link { border-top: 1px solid rgba(255, 255, 255, 0.09); padding-top: 4px; margin-top: 2px; }
 .lb-leeg { margin: 4px 0 0; }
-.lb-start { padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 40%, transparent); }
+.lb-start { padding: 10px 14px; border-radius: 10px; background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.4); }
 .lb-start p { margin: 4px 0; }
 .lb-start .lb-link { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
-.lb-start .ds-z-knop { flex-direction: row; min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+.lb-start .ds-knop { flex-direction: row; min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 .lb-start.klaar { background: none; box-shadow: none; padding: 0; }
 .lb-stap { margin: 6px 0 2px; }
 .lb-stap-actie { margin: 2px 0 8px; }
@@ -176,10 +176,10 @@ function startHtml(profiel, id) {
   const verhaal = step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '';
   if (gestart) return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${verhaal}</div>`;
   const baan = s.baan && doelen.has(s.baan)
-    ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
+    ? `<button type="button" class="ds-knop ds-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
   return `<div class="lb-start"><p class="m-eb">Begin met deze loopbaan</p>` +
     `<p><b>Eerste klus:</b> ${esc(s.klus)}</p><p class="mut">${esc(s.plek)}${s.baan ? ' · loop erheen en druk E, of start hier' : ''}</p>${verhaal}` +
-    `<p class="lb-link ds-zeef"><button type="button" class="ds-z-knop" data-vak-start="${esc(id)}">Loopbaan starten</button>${baan}</p></div>`;
+    `<p class="lb-link ds-glas"><button type="button" class="ds-knop" data-vak-start="${esc(id)}">Loopbaan starten</button>${baan}</p></div>`;
 }
 
 // De kaartjescontrole als echte handeling (#437): het paneel laat de teller van de lopende ronde en de uitslag van
@@ -223,11 +223,11 @@ const TRAP_ICOON = {
   nu: '<path d="M3 2.5l10 5.5-10 5.5z"/>',
   nog: '<path d="M4 7V5a4 4 0 0 1 8 0v2h1v7H3V7zm1.6 0h4.8V5a2.4 2.4 0 0 0-4.8 0z"/>',
 };
-const trapChip = (toon, icoon, tekst) => `<span class="ds-z-chip${toon ? ' ds-z-chip--' + toon : ''}"><svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true">${TRAP_ICOON[icoon]}</svg>${tekst}</span>`;
+const trapChip = (toon, icoon, tekst) => `<span class="ds-chip${toon ? ' ds-chip--' + toon : ''}"><svg class="ds-chip__icoon" viewBox="0 0 16 16" aria-hidden="true">${TRAP_ICOON[icoon]}</svg>${tekst}</span>`;
 function trapHtml(id, d, v) {
   const info = L.vakInfo(id);
   if (!info) return '';
-  return `<section class="lb-ladder ds-zeef ds-z-kaart" aria-label="De ladder van dit vak"><div class="ds-z-kaart__kop"><span class="ds-z-kaart__voet">De ladder</span><span class="ds-z-kaart__voet">niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></div>` +
+  return `<section class="lb-ladder ds-papier ds-kaart" aria-label="De ladder van dit vak"><div class="ds-kaart__kop"><span class="ds-kaart__label">De ladder</span><span class="ds-kaart__label">niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></div>` +
     '<ol class="lb-trap" aria-label="Niveaus">' + info.titels.map((t, i) => {
       const niv = i + 1;
       const cls = niv < d.niveau ? 'bereikt' : niv === d.niveau ? 'nu' : '';
@@ -236,7 +236,7 @@ function trapHtml(id, d, v) {
       const loon = plus ? `+${plus}% loon` : 'basisloon';
       // het huidige niveau draagt het streepje naar het volgende, met altijd een getal erbij
       const streep = niv === d.niveau && d.volgend && v
-        ? `<div class="ds-z-balk" style="--ds-z-w:${Math.round(d.deel * 100)}%" role="img" aria-label="${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} van ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])} punten"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} / ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])}</span></div>` : '';
+        ? `<div class="ds-streep" style="--ds-streep-w:${Math.round(d.deel * 100)}%" role="img" aria-label="${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} van ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])} punten"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label">${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} / ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])}</span></div>` : '';
       return `<li class="${cls}" style="--stap:${niv - 1}"${niv === d.niveau ? ' aria-current="step"' : ''}>` +
         `<span class="nr" aria-hidden="true">${niv}</span>` +
         `<span class="lb-stap-t"><b>${esc(t)}</b><span class="lb-loon">${loon}</span></span>${chip}${streep}</li>`;
@@ -343,7 +343,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
     `<h2 class="pm-hero-t${hoogsteTitel.length > 22 ? ' long' : ''}">${esc(hoogsteTitel)}</h2>` +
     (leeg
       ? `<p class="pm-hero-lead">Er wachten ${L.VAKKEN.length} loopbanen op je. Doe in één vak een eerste klus en je krijgt je eerste titel, met meer loon bij elke stap omhoog.</p>` +
-        `<div class="lb-eerste ds-zeef" role="list" aria-label="Zo begin je"><span class="ds-z-chip" role="listitem">1. Kies een vak</span><span class="ds-z-chip" role="listitem">2. Doe de eerste klus</span><span class="ds-z-chip" role="listitem">3. Krijg je titel</span></div></section>`
+        `<div class="lb-eerste ds-glas" role="list" aria-label="Zo begin je"><span class="ds-chip" role="listitem">1. Kies een vak</span><span class="ds-chip" role="listitem">2. Doe de eerste klus</span><span class="ds-chip" role="listitem">3. Krijg je titel</span></div></section>`
       : `<p class="pm-hero-lead">Kies links een vak: elk vak heeft zijn eigen ladder, zijn eigen loon en de klussen die erbij horen.${eerste.klaar ? ' Je bent de duizendpoot van Grunn.' : ''}</p></section>`);
   const stats = `<div class="pm-stats lb-stats">` +
     `<span class="pm-stat" data-tone="accent"><b>${eerste.gedaan}</b><span>van ${eerste.totaal} eerste klussen${duizendpoot}</span><span class="m-bar${eerste.gedaan ? ' on' : ''}"><i data-bar="lb-eerste" data-w="${pctEerste}"></i></span></span>` +

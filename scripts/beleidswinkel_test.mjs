@@ -139,11 +139,11 @@ t('de bon toont het gevolg vóór de keuze: prijs, saldo en saldo erna, of wat e
   assert.deepEqual(beleidBon(250, NaN), { prijs: 250, saldo: 0, na: 0, mist: 250 });
   resetBeleidVoorTest(mem());
   const rijk = beleidPaneelHtml(1000);
-  assert.match(rijk, /Na aankoop<\/span><span class="ds-z-bon__stippen"><\/span><b>€750<\/b>/, 'saldo erna van de eerste maatregel');
+  assert.match(rijk, /Na aankoop<\/span><b>€750<\/b>/, 'saldo erna van de eerste maatregel');
   assert.doesNotMatch(rijk, /Je mist/);
   const arm = beleidPaneelHtml(100);
-  assert.match(arm, /Je mist<\/span><span class="ds-z-bon__stippen"><\/span><b>€150<\/b>/);
-  assert.match(arm, /bw-probleem/, 'te weinig geld geeft een probleem-callout');
+  assert.match(arm, /Je mist<\/span><b>€150<\/b>/);
+  assert.match(arm, /ds-callout/, 'te weinig geld geeft een probleem-callout');
   assert.match(arm, /Je hebt nog €150 nodig/);
 });
 
@@ -152,7 +152,7 @@ t('er is één gele hoofdknop, de rest is secundair; een aangenomen maatregel he
   const html = beleidPaneelHtml(5000);
   const knoppen = html.match(/<button[^>]*data-beleid="[^"]*"[^>]*>/g) || [];
   assert.equal(knoppen.length, 3);
-  assert.equal(knoppen.filter((k) => !k.includes('ds-z-knop--secundair')).length, 1, 'precies één gele knop');
+  assert.equal(knoppen.filter((k) => !k.includes('ds-knop--secundair')).length, 1, 'precies één gele knop');
   koopBeleid(wereld(5000), 'flits');
   const na = beleidPaneelHtml(4750);
   assert.equal((na.match(/data-beleid="flits"/g) || []).length, 0, 'gekochte maatregel zonder knop');
@@ -170,7 +170,7 @@ t('bij te weinig geld wijst de oplossing naar een maatregel die je wel kunt beta
 t('elke status heeft een pictogram en een woord, niet alleen kleur', () => {
   resetBeleidVoorTest(mem());
   const html = beleidPaneelHtml(260);
-  for (const woord of ['Kan nu', 'Te duur']) assert.match(html, new RegExp(`<svg class="ds-z-chip__icoon"[^>]*>.*?</svg>${woord}`));
+  for (const woord of ['Kan nu', 'Te duur']) assert.match(html, new RegExp(`<svg class="ds-chip__icoon"[^>]*>.*?</svg>${woord}`));
 });
 
 console.log(`${n - fails}/${n} ok`);

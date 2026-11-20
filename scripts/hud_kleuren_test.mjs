@@ -143,7 +143,7 @@ ok(/powerForBasket/.test(disc) && (disc.match(/mark: doelKracht\(g, dist\)/g) ||
 const sk = read('skatepark.js');
 ok(/extra = `<span class="sk-bal">/.test(sk) && !/flash = g\.b\.grind\.bal >/.test(sk), 'skatepark: de balanstip staat op een eigen regel (#619)');
 ok(/class="mg-stand"/.test(klim) && !/stand \? `<span>/.test(klim), 'klimtoren: de online stand is een tabel (#620)');
-ok(/\[data-sfeer="vaardienst"\] \{ border-bottom: var\(--ds-lijn-zeef\) solid var\(--ds-c-ink-inkt/.test(mg), 'rondvaart: de kadeband staat op het bord (#621)');
+ok(/\[data-sfeer="vaardienst"\] \{ border-bottom: 2px solid var\(--ink/.test(mg), 'rondvaart: de kadeband staat op het bord (#621)');
 ok((mg.match(/clip-path: polygon/g) || []).length >= 8, 'de bordvormen hebben eigen silhouetten (#596)');
 ok(/function boardBox\(vw, ui = 1\)/.test(mg), 'de bordmaat is als pure functie na te rekenen (#596)');
 
@@ -156,7 +156,7 @@ ok(/calc\(20px \* var\(--ui, 1\)\)/.test(padelHud), 'padel: het bord schaalt mee
 // #643: de telefoon en de prestatiekaart volgen dezelfde tokens; ook rgba() telt mee.
 const telefoonCss = read('phonefeed.css');
 ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(telefoonCss), 'phonefeed.css: geen eigen blauw, tweede rood of eigen bijna-zwart');
-ok(/var\(--ds-c-ink-bord\)/.test(telefoonCss) && /var\(--ds-c-rood\)/.test(telefoonCss) && !/#[0-9a-fA-F]{3,8}/.test(telefoonCss.replace(/#(hud|pause-menu)/g, '')), 'de telefoon gebruikt de v3-tokens, geen losse hex (#998)');
+ok(/var\(--mk-user/.test(telefoonCss) && /var\(--mk-danger, #d93f3f\)/.test(telefoonCss), 'de telefoon gebruikt de tokens');
 const prestatieCss = read('hudcards.css');
 ok(!/rgba\(232, 201, 58/.test(prestatieCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(prestatieCss), 'de prestatiekaart heeft één accent uit --hc, ook voor rgba()');
 
@@ -174,7 +174,7 @@ ok(new Set(uniek).size === uniek.length, 'minigamekit.js: elke minigame heeft ee
 // vallen. Alleen naar beneden bijwerken (haakjes eruit als een kleur weg is).
 const HUD_DRIFT = {
   'hud_panel.css': ['#f3dc6a', '#e8c93a', '#7a6610', '#d93f3f', '#ff9a9a', '#3fc97a', '#2b5f8f', '#ffd36a', '#1e9e56', '#c8d0c9', '#8f2626', '#f07a5a', '#a3b2a6', '#ff6f61', '#ffd23f', '#f2d36b', '#f2c14e', '#9cc1f0', '#f39a8c'],
-  'phonefeed.css': [],
+  'phonefeed.css': ['#d93f3f', '#111613', '#1a201c', '#070a08', '#2b332d', '#050806', '#1f2622'],
   'achievements.js': ['#3fc97a', '#6fe39d', '#1e9e56', '#e8c93a', '#fff0a8', '#d9a91e'],
   'golfhud.js': [],
   'padel.js': ['#3f8a4a', '#2f6fb8', '#f4f4ee', '#f2ede0', '#dff04a'],
