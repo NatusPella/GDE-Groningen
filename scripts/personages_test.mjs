@@ -43,8 +43,8 @@ t('Personages tekent het grid alleen met bekende personages en één regel erond
 
 t('de statuskleuren van Verhaal komen uit de tokens, niet uit eigen hexen', () => {
   const vu = lees('verhaalui.js');
-  assert.match(vu, /var\(--mk-danger, #d93f3f\)/, 'verloren is de gevarentoken');
-  assert.match(vu, /var\(--mk-mission, #e8c93a\)/, 'geblokkeerd is de missietoken');
+  assert.match(vu, /data-state="verloren"\] b::after \{[^}]*var\(--ds-c-rood-tx\)/, 'verloren is de gevarentoken (zeefdruk-rood)');
+  assert.match(vu, /data-state="geblokkeerd"\] b::after \{[^}]*var\(--ds-zeef-tx\)/, 'geblokkeerd is de zeefdruk-tekstkleur');
   assert.match(vu, /var\(--g\)/);
   assert.ok(!/#e0604a|#e8b84a|#6f7f73/i.test(vu), 'geen tweede rood, amber of vast grijs meer');
   // Wat overblijft zijn de chroomkleuren van de achtergrondbasis (DESIGN_SYSTEM.md) en de
