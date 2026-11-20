@@ -14,7 +14,7 @@ import { vindBron, schrijfOgg, SR } from './stap_knip.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const arg = (n, d) => (process.argv.find((a) => a.startsWith(`--${n}=`)) || '').slice(n.length + 3) || d;
 const BRON = arg('bron', '').split(',').filter(Boolean);
-const ALLEEN = arg('alleen', '');
+const ALLEEN = arg('alleen', '').split(',').filter(Boolean);
 const UIT = path.join(ROOT, 'game', 'audio', 'sfx');
 
 // id: Freesound-id; knip: [start, duur] in s (weglaten = geheel); loop: naadloos met kruisfade kruis (s); rms: doelniveau dB; hp/lp: Hz; fade: [in, uit] s;
@@ -38,6 +38,13 @@ export const GELUIDEN = {
   dier_eend: { id: 418509, rms: -21, hp: 200, lp: 10000, fade: [0.005, 0.1], gebruik: 'eend die kwaakt' },
   dier_meeuw_0: { id: 463034, knip: [0, 1.6], rms: -21, hp: 500, lp: 12000, fade: [0.01, 0.2], gebruik: 'meeuw die roept' },
   dier_meeuw_1: { id: 463034, knip: [4.4, 2.0], rms: -21, hp: 500, lp: 12000, fade: [0.01, 0.25], gebruik: 'meeuw die roept (tweede)' },
+  tram_bel_op_0: { id: 497557, rms: -22, hp: 300, lp: 14000, fade: [0.004, 0.2], gebruik: 'tram die belt (kort)' },
+  tram_bel_op_1: { id: 497561, rms: -22, hp: 300, lp: 14000, fade: [0.004, 0.3], gebruik: 'tram die belt (lang)' },
+  bus_halte_ding: { id: 419491, rms: -23, hp: 200, lp: 14000, fade: [0.004, 0.3], gebruik: 'ding van een halte (de bus stopt)' },
+  bus_deur_sis: { id: 250633, rms: -24, hp: 80, lp: 12000, fade: [0.01, 0.2], gebruik: 'deuren van een bus die opengaan' },
+  ui_klik: { id: 528561, rms: -26, hp: 300, lp: 14000, fade: [0.002, 0.03], gebruik: 'zachte klik van een knop in het menu' },
+  motor_diesel_stationair: { id: 149193, knip: [0, 12], loop: true, kruis: 0.3, rms: -24, hp: 40, lp: 8000, gebruik: 'trekker of bus: dieselmotor op stationair onder de motorsynth (lus, toonhoogte volgt het toerental)' },
+  kermis_lawaai: { id: 353221, knip: [0, 10], loop: true, kruis: 0.6, rms: -26, hp: 100, lp: 10000, gebruik: 'kermis: drukte, attracties en muziek op afstand (lus)' },
   golfjes_oever: { id: 376796, knip: [0, 16], loop: true, kruis: 0.6, rms: -26, hp: 100, lp: 9000, gebruik: 'kleine golfjes tegen de oever en de kade (lus)' },
   menigte_gemurmel: { id: 457043, knip: [0, 12], loop: true, kruis: 0.5, rms: -26, hp: 120, lp: 8000, gebruik: 'gemurmel van een menigte (lus)' },
   kikkers_nacht: { id: 586934, knip: [0, 18], loop: true, kruis: 0.6, rms: -28, hp: 300, lp: 10000, gebruik: 'kikkers aan het water in de zomernacht (lus)' },
@@ -95,7 +102,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const man = lees(mp);
   const rapport = [];
   for (const [k, g] of Object.entries(GELUIDEN)) {
-    if (ALLEEN && ALLEEN !== k) continue;
+    if (ALLEEN.length && !ALLEEN.includes(k)) continue;
     const { bestand, meta: metaPad } = vindBron(BRON, g.id);
     const meta = lees(metaPad);
     if (g.loop) g.knip = [beste(bestand, g), g.knip[1]];

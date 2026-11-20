@@ -51,12 +51,21 @@ export function uiFx(naam, { gain = 1, delay = 0 } = {}) {
 
 sfxLinks.uiFx = (naam) => uiFx(naam); // mapview.js (latehooks.js): het ontdekkingsgeluid bij een nieuwe streek
 
+// De opname van een zachte knopklik (samples.js ui_klik, SFX ronde 3) in plaats van de synthpiepjes; false = nog niet geladen (de synth neemt het over).
+function klik(rate = 1, gain = 1) {
+  const S = K.samples, buffer = S && S.buffer('ui_klik');
+  if (!buffer) return false;
+  return !!K.buf('ui_klik', { bus: ui(), buffer, gain: SAMPLE_INFO.ui_klik.gain * categoryLevel('ui') * gain, rate, prio: 2 });
+}
+
 function tick(f = 1800, g = 0.035) {
+  if (klik(clamp(0.8 + (f / 1800) * 0.3, 0.7, 1.5), 0.6)) return;
   K.tone({ freq: f, freqEnd: f * 0.9, type: 'square', duration: 0.022, gain: g, filterFreq: 5000, bus: ui(), prio: 2 });
   K.noise({ duration: 0.012, freq: 4500, q: 2, gain: 0.05, type: 'bandpass', bus: ui(), prio: 2 });
 }
 
 function select() {
+  if (klik(1, 1)) return;
   K.tone({ freq: 880, type: 'triangle', duration: 0.07, gain: 0.07, bus: ui(), prio: 2 });
   K.tone({ freq: 1320, type: 'triangle', duration: 0.1, gain: 0.07, delay: 0.05, bus: ui(), prio: 2 });
 }

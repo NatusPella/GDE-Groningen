@@ -7,8 +7,7 @@ import { trunksNear } from '../countrywalls.js';
 import { rand as rnd } from '../rng.js';
 import { seaAt } from '../regions.js';
 import { streekAt } from '../regioleven.js';
-import { streekNiveaus } from './streekklank.js';
-import { stepContext } from './steps.js';
+import { streekNiveaus } from './streekklank.js';import { stepContext } from './steps.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
@@ -48,6 +47,7 @@ const BED_DEFS = {
   terrace: { buf: 'bed_terrace' },
   crickets: { buf: 'bed_crickets' },
   kikkers: { file: 'kikkers_nacht' },
+  kermis: { file: 'kermis_lawaai' },
   lap: { buf: 'bed_lap', file: 'golfjes_oever', positional: true },
   // per streek (streekklank.js): zee en kust, open polder, riet, industrie
   kust: { buf: 'bed_kust' },
@@ -355,6 +355,12 @@ function setTargets(world) {
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
   beds.lap.target = clamp(1 - place.waterD / 28, 0, 1) * (v && v.isBoat ? 0.32 : 0.2) * paused;
+  // de kermis op de Grote Markt: drukte en attracties op afstand zolang hij open is (opname kermis_lawaai), zachter bij regen en in een voertuig
+  const kermisMid = sfxLinks.kermisPunt(world);
+  if (kermisMid) {
+    const kd = Math.hypot(K.listener.x - kermisMid.x, K.listener.z - kermisMid.y);
+    beds.kermis.target = Math.pow(clamp(1 - kd / 200, 0, 1), 1.5) * 0.4 * (1 - rain * 0.5) * cabin * paused;
+  } else beds.kermis.target = 0;
   // kikkers aan het water op een zomernacht (opname), in het groen of op het platteland; regen en een gesloten voertuig dempen ze
   beds.kikkers.target = night * clamp(1 - place.waterD / 45, 0, 1) * Math.max(place.green, place.trees * 0.6, place.rural * 0.8) * 0.2 * (1 - rain) * cabin * paused;
 

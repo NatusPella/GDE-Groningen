@@ -10,4 +10,4 @@ export const jobBonusHook = { get: () => 1 };                  // furniture.js -
 // getGrenzen: the real wijk boundaries (gebiedenbronnen.js), for the wijk card's highlights (#725)
 export const cinematicLinks = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {}, getGrenzen: () => null };
 // sfx/ambience.js and sfx/ui.js ask scene3d.js and mapview.js through this (they fill it when they load)
-export const sfxLinks = { getScene: () => null, mapStats: () => null, uiFx: () => false }; // uiFx: sfx/ui.js, voor de kaart (de onthulling van een streek)
+export const sfxLinks = { getScene: () => null, mapStats: () => null, uiFx: () => false, kermisPunt: () => null }; // uiFx: sfx/ui.js, voor de kaart (de onthulling van een streek); kermisPunt: kermis.js, het midden van de kermis zolang hij open is (sfx/ambience.js)

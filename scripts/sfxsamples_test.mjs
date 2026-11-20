@@ -38,7 +38,7 @@ for (const k of SAMPLE_KEYS) ok(CATEGORIES[SAMPLE_INFO[k].cat], `${k}: categorie
 // -- sleutels in de code komen voor in het manifest -----------------------------------------
 const JS = path.join(ROOT, 'game', 'js');
 const used = new Set();
-const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_auto_stationair|kassa_koop|winkelbel_deur|deur_(?:hout|huis)_[a-z_]+_op|plons_groot|scheepshoorn_op|camera_sluiter|alarm_loeit|vuurwerk_knal_[0-9]|trein_remmen_piep|dier_[a-z_0-9]+|golfjes_oever|menigte_gemurmel|kikkers_nacht)['"`]/g;
+const re = /['"`](auto_(?:deur|portiergreep)[a-z_0-9]*|band_piep_bocht|handrem_bocht|remmen_grind|trein_deur[a-z_0-9]*|heli_rotor[a-z_]*|vliegtuig_[a-z_]+|boot_motor[a-z_]*|regen_[a-z]+|wind_gras|zomer_[a-z]+|donder_[a-z_0-9]+|band_drift|motor_(?:auto|diesel)_stationair|ui_klik|tram_bel_op_[0-9]|bus_halte_ding|bus_deur_sis|kermis_lawaai|kassa_koop|winkelbel_deur|deur_(?:hout|huis)_[a-z_]+_op|plons_groot|scheepshoorn_op|camera_sluiter|alarm_loeit|vuurwerk_knal_[0-9]|trein_remmen_piep|dier_[a-z_0-9]+|golfjes_oever|menigte_gemurmel|kikkers_nacht)['"`]/g;
 for (const f of fs.readdirSync(JS, { recursive: true }).filter((x) => x.endsWith('.js'))) {
   const t = fs.readFileSync(path.join(JS, f), 'utf8');
   for (const m of t.matchAll(re)) used.add(m[1]);

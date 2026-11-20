@@ -134,3 +134,7 @@ Gekozen op titel, duur, niveau en spectrum (`scripts/audio/sfx_analyse.mjs`), **
 | `golfjes_oever` | langs een kade, gracht of oever (naast het synth-water) | zacht klotsen, geen branding | een lus die hoorbaar herhaalt (16 s) |
 | `menigte_gemurmel` | plein, markt en drukke straat | gemurmel van een menigte, onverstaanbaar | verstaanbare woorden (Engels?) of een lach die steeds terugkomt |
 | `kikkers_nacht` | nacht, bij water in het groen of op het platteland | kikkerkoor in de verte | klinkt tropisch; te hard bij een stadsgracht |
+| `tram_bel_op_0`, `tram_bel_op_1`, `bus_halte_ding`, `bus_deur_sis` | een tram of bus rijdt na een halte weg; de busdeur gaat open | tramtikken (kort en lang), een ding van de halte, een deur die opengaat | `bus_halte_ding` komt uit een metro-opname (klinkt het niet Nederlands?); `bus_deur_sis` is stil en dof (bron is 3,6 s) |
+| `ui_klik` | elke klik en elke menuwissel (select en tick van `sfx/ui.js`) | een zachte knopklik, 0,14 s | te zacht naast de rest; de bevestigingsklank van vroeger (twee tonen) is weg: mis je die, haal `klik(` uit `select()` |
+| `motor_diesel_stationair` | de trekker en de bus (motorsoort 2), onder de motorsynth | dieselbrom op stationair, zakt weg als je opschroeft | een tweede motor naast de synth (zet `ENGINE_LAYER_KINDS` terug zonder 2); de naad bij 12 s |
+| `kermis_lawaai` | op de Grote Markt en tot 200 m erbij, zolang de kermis open is | drukte, attracties en muziek op afstand | muziek met een herkenbaar liedje; te hard in de straten ernaast |

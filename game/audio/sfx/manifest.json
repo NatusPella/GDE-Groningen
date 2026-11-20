@@ -215,6 +215,52 @@
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 100 ms), statisch niveau (RMS -21 dB, piek max -2 dB), ogg (Vorbis q3)"
     },
+    "bus_deur_sis": {
+      "bestand": "bus_deur_sis.ogg",
+      "gebruik": "deuren van een bus die opengaan",
+      "loop": false,
+      "duur_s": 3.57,
+      "grootte_kb": 24.4,
+      "herkomst": {
+        "titel": "bus doors opening.wav",
+        "auteur": "kwahmah_02",
+        "freesound_id": 250633,
+        "url": "https://freesound.org/people/kwahmah_02/sounds/250633/",
+        "licentie": "Creative Commons Attribution 3.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/3.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "0862772e821d5af948c9f891a3213eb009739646d379bc8d227cf7c642ad921b"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -5.4
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 80 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+    },
+    "bus_halte_ding": {
+      "bestand": "bus_halte_ding.ogg",
+      "gebruik": "ding van een halte (de bus stopt)",
+      "loop": false,
+      "duur_s": 2.67,
+      "grootte_kb": 11.4,
+      "herkomst": {
+        "titel": "Subway Station Chime",
+        "auteur": "plasterbrain",
+        "freesound_id": 419491,
+        "url": "https://freesound.org/people/plasterbrain/sounds/419491/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "c3805dbfd348408555f63e8731fcca2821dd2c9e8bfd411bd91a555a64f4ae98"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -23,
+        "piek_db": -11.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 200 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -23 dB, ogg (Vorbis q2)"
+    },
     "camera_sluiter": {
       "bestand": "camera_sluiter.ogg",
       "gebruik": "sluiter van een fototoestel",
@@ -723,6 +769,37 @@
       },
       "bewerking": "ffmpeg en eigen script: hoogdoorlaat 120 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -20 dB, ogg (Vorbis q2)"
     },
+    "kermis_lawaai": {
+      "bestand": "kermis_lawaai.ogg",
+      "gebruik": "kermis: drukte, attracties en muziek op afstand (lus)",
+      "loop": true,
+      "duur_s": 10,
+      "grootte_kb": 79.3,
+      "herkomst": {
+        "titel": "FunFair NL 001 160827_00.wav",
+        "auteur": "klankbeeld",
+        "freesound_id": 353221,
+        "url": "https://freesound.org/people/klankbeeld/sounds/353221/",
+        "licentie": "Creative Commons Attribution 4.0",
+        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "2601614f6dbd17a042e1f061f470cbb65b6ab2133fb9a88fa9009a4975cfabca"
+      },
+      "knip_s": {
+        "start": 1,
+        "duur": 10
+      },
+      "naad": {
+        "sprong_ratio": 0.35,
+        "niveaustap_db": -0.38,
+        "kruisfade_ms": 600
+      },
+      "niveau": {
+        "rms_db": -26,
+        "piek_db": -9.5
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 100 Hz, laagdoorlaat 10 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 600 ms), niveau RMS -26 dB, ogg (Vorbis q2)"
+    },
     "kikkers_nacht": {
       "bestand": "kikkers_nacht.ogg",
       "gebruik": "kikkers aan het water in de zomernacht (lus)",
@@ -815,6 +892,37 @@
         "piek_db": -13.4
       },
       "bewerking": "ffmpeg: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 300 ms), niveau RMS -24 dB, ogg (Vorbis q2)"
+    },
+    "motor_diesel_stationair": {
+      "bestand": "motor_diesel_stationair.ogg",
+      "gebruik": "trekker of bus: dieselmotor op stationair onder de motorsynth (lus, toonhoogte volgt het toerental)",
+      "loop": true,
+      "duur_s": 12,
+      "grootte_kb": 89.4,
+      "herkomst": {
+        "titel": "tractor idling",
+        "auteur": "videog",
+        "freesound_id": 149193,
+        "url": "https://freesound.org/people/videog/sounds/149193/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "483bb79068bf08e2878d30d60321226e4d4c6f5d302f8bbce3f91c491d8d49c2"
+      },
+      "knip_s": {
+        "start": 1,
+        "duur": 12
+      },
+      "naad": {
+        "sprong_ratio": 0.26,
+        "niveaustap_db": 0.8,
+        "kruisfade_ms": 300
+      },
+      "niveau": {
+        "rms_db": -24,
+        "piek_db": -9.5
+      },
+      "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 40 Hz, laagdoorlaat 8 kHz, mono 44,1 kHz, naadloze lus (nuldoorgang, gelijk-vermogen-kruisfade 300 ms), niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "plons_groot": {
       "bestand": "plons_groot.ogg",
@@ -2598,6 +2706,52 @@
       },
       "bewerking": "ffmpeg: hoogdoorlaat 70 Hz, losse stap geknipt op de aanzet, fade-in 2 ms en fade-uit 50 ms (cosinus), niveau RMS -23 dB over de eerste 150 ms (piek max -1,5 dB), mono 44,1 kHz, ogg (Vorbis q3)"
     },
+    "tram_bel_op_0": {
+      "bestand": "tram_bel_op_0.ogg",
+      "gebruik": "tram die belt (kort)",
+      "loop": false,
+      "duur_s": 0.96,
+      "grootte_kb": 11,
+      "herkomst": {
+        "titel": "11-2 Tram bell",
+        "auteur": "16HPanskaWillheimova_Sara",
+        "freesound_id": 497557,
+        "url": "https://freesound.org/people/16HPanskaWillheimova_Sara/sounds/497557/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "003b6bc606d3ec119a83cb3b2a327d9db1496735ce015d185e2c5eac3209c741"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -4.4
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
+    "tram_bel_op_1": {
+      "bestand": "tram_bel_op_1.ogg",
+      "gebruik": "tram die belt (lang)",
+      "loop": false,
+      "duur_s": 1.58,
+      "grootte_kb": 15.8,
+      "herkomst": {
+        "titel": "11-3 Tram bell",
+        "auteur": "16HPanskaWillheimova_Sara",
+        "freesound_id": 497561,
+        "url": "https://freesound.org/people/16HPanskaWillheimova_Sara/sounds/497561/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "fb75160cf03b6fe508bb5261c2d1fdd3ae52ce47b444c1eaedcdc57e863a4160"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -22,
+        "piek_db": -6.5
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
     "trein_deur_dicht": {
       "bestand": "trein_deur_dicht.ogg",
       "gebruik": "treindeuren gaan dicht",
@@ -2689,6 +2843,29 @@
         "piek_db": -4.1
       },
       "bewerking": "ffmpeg en eigen script: knippen, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    },
+    "ui_klik": {
+      "bestand": "ui_klik.ogg",
+      "gebruik": "zachte klik van een knop in het menu",
+      "loop": false,
+      "duur_s": 0.14,
+      "grootte_kb": 4.1,
+      "herkomst": {
+        "titel": "Soft UI Button Click",
+        "auteur": "Jummit",
+        "freesound_id": 528561,
+        "url": "https://freesound.org/people/Jummit/sounds/528561/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "datum": "2026-11-20",
+        "bron_sha256": "6f86cb41a3b875ce57279b767d29b31d3989770ae1fbcb118182f2381d4c1eed"
+      },
+      "knip_s": null,
+      "niveau": {
+        "rms_db": -26,
+        "piek_db": -8
+      },
+      "bewerking": "ffmpeg en eigen script: hoogdoorlaat 300 Hz, laagdoorlaat 14 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
     },
     "vliegtuig_gestel": {
       "bestand": "vliegtuig_gestel.ogg",

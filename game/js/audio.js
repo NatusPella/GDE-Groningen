@@ -1923,11 +1923,18 @@ const boatSamplesReady = () => keysReady(kit, BOAT_KEYS);
 
 // A recorded idle loop under the engine synth of a passenger car (#988, sfx/samples.js motor_auto_stationair): the body of a real engine at idle
 // and low revs, pitched with the rpm and faded out as the revs climb, so the worklet carries the rest. ENGINE_LAYER_ON switches it off.
-const ENGINE_LAYER_ON = true, ENGINE_LAYER_KINDS = new Set([0, 1, 5, 6, 10]);
+// Kind 2 (de bus en de trekker, een traag diesel) krijgt een eigen lus: motor_diesel_stationair (SFX ronde 3, de trekker op stationair).
+const ENGINE_LAYER_ON = true, ENGINE_LAYER_KINDS = new Set([0, 1, 2, 5, 6, 10]);
+const engineLayerKey = (kind) => (kind === 2 ? 'motor_diesel_stationair' : 'motor_auto_stationair');
 let engineLayer = null;
-function updateEngineLayer(dt, on, rpm, spec, muffle) {
+function updateEngineLayer(dt, on, rpm, spec, muffle, key = 'motor_auto_stationair') {
   const t = ctx.currentTime;
-  const buf = ENGINE_LAYER_ON && samples && samples.buffer('motor_auto_stationair');
+  const buf = ENGINE_LAYER_ON && samples && samples.buffer(key);
+  if (engineLayer && engineLayer.key !== key) {   // een ander voertuigtype: de oude lus loopt uit
+    engineLayer.gain.gain.setTargetAtTime(0, t, 0.08);
+    const l = engineLayer; engineLayer = null;
+    try { l.src.stop(t + 0.4); } catch (e) { /* already stopped */ }
+  }
   if (on && buf && !engineLayer) {
     const src = ctx.createBufferSource();
     src.buffer = buf; src.loop = true;
@@ -1935,13 +1942,13 @@ function updateEngineLayer(dt, on, rpm, spec, muffle) {
     gain.gain.value = 0;
     src.connect(gain).connect(sfxBus);
     src.start();
-    engineLayer = { src, gain };
+    engineLayer = { src, gain, key };
   }
   if (!engineLayer) return;
   if (on && buf) {
     const k = clamp((rpm - spec.idle) / Math.max(1, (spec.red - spec.idle) * 0.5), 0, 1);
     engineLayer.src.playbackRate.setTargetAtTime(0.85 + 0.9 * k, t, 0.06);
-    engineLayer.gain.gain.setTargetAtTime(SAMPLE_INFO.motor_auto_stationair.gain * categoryLevel('voertuig') * (1 - 0.85 * k) * (muffle < 16000 ? 0.5 : 1), t, 0.1);
+    engineLayer.gain.gain.setTargetAtTime(SAMPLE_INFO[key].gain * categoryLevel('voertuig') * (1 - 0.85 * k) * (muffle < 16000 ? 0.5 : 1), t, 0.1);
   } else {
     engineLayer.gain.gain.setTargetAtTime(0, t, 0.12);
     const l = engineLayer; engineLayer = null;
@@ -2027,7 +2034,7 @@ function updateEngineSynth(dt, world) {
     const place = getPlace();
     engineEarly.level.gain.setTargetAtTime(v.isBoat ? 0 : 0.05 + 0.13 * clamp(place.density || 0, 0, 1), ctx.currentTime, 0.5);
   }
-  updateEngineLayer(dt, ENGINE_LAYER_KINDS.has(S.kind) && !v.isBoat && !v.isPlane && !world.paused && !(t < S.startAt), rpm, spec, muffle);
+  updateEngineLayer(dt, ENGINE_LAYER_KINDS.has(S.kind) && !v.isBoat && !v.isPlane && !world.paused && !(t < S.startAt), rpm, spec, muffle, engineLayerKey(S.kind));
   synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1, muffle }], road });
 }
 

@@ -2,6 +2,20 @@
 // De bronnen van de geluidsopnames (Freesound) voor de sectie "Geluiden" in de credits (credits.js). ADR 0039.
 export const AUDIO_CREDITS = [
   {
+    "id": 497557,
+    "beschrijving": "Tram die belt",
+    "auteur": "16HPanskaWillheimova_Sara",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 497561,
+    "beschrijving": "Tram die belt",
+    "auteur": "16HPanskaWillheimova_Sara",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 425272,
     "beschrijving": "Vliegtuig",
     "auteur": "77Pacer",
@@ -275,6 +289,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 528561,
+    "beschrijving": "Zachte klik van een knop in het menu",
+    "auteur": "Jummit",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 353221,
+    "beschrijving": "Kermis",
+    "auteur": "klankbeeld",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 618493,
     "beschrijving": "Zomer",
     "auteur": "klankbeeld",
@@ -293,6 +321,13 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kikkers aan het water in de zomernacht",
     "auteur": "KrystianPawlowski",
     "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
+    "id": 250633,
+    "beschrijving": "Deuren van een bus die opengaan",
+    "auteur": "kwahmah_02",
+    "licentie": "CC BY 3.0",
     "by": true
   },
   {
@@ -408,6 +443,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 419491,
+    "beschrijving": "Ding van een halte",
+    "auteur": "plasterbrain",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 184412,
     "beschrijving": "Helikopter",
     "auteur": "qubodup",
@@ -518,6 +560,13 @@ export const AUDIO_CREDITS = [
     "auteur": "TiesWijnen",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 149193,
+    "beschrijving": "Trekker of bus",
+    "auteur": "videog",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 415301,

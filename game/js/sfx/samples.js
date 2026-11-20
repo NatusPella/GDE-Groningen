@@ -57,7 +57,16 @@ const RONDE3_FX = {
   vuurwerk_knal_1: { cat: 'explosie', gain: 0.9, ref: 25, range: 1500 },
   trein_remmen_piep: { cat: 'spoor', gain: 0.7, ref: 12, range: 300 },
 };
+Object.assign(RONDE3_FX, {
+  tram_bel_op_0: { cat: 'voertuig', gain: 0.8, ref: 8, range: 120 },
+  tram_bel_op_1: { cat: 'voertuig', gain: 0.8, ref: 8, range: 120 },
+  bus_halte_ding: { cat: 'voertuig', gain: 0.7, ref: 6, range: 80 },
+  bus_deur_sis: { cat: 'voertuig', gain: 0.8, ref: 5, range: 60 },
+  ui_klik: { cat: 'ui', gain: 1, ref: 3, range: 30 },   // menu: select() en tick() in sfx/ui.js, zonder afstand
+});
 for (const [k, i] of Object.entries(RONDE3_FX)) SAMPLE_INFO[k] = { ...i, gap: 0 };
+SAMPLE_INFO.motor_diesel_stationair = { cat: 'voertuig', gain: 0.5, ref: 8, range: 70, gap: 0 };   // trekker en bus, onder de motorsynth (audio.js updateEngineLayer)
+SAMPLE_INFO.kermis_lawaai = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };   // lus voor de kermis (sfx/ambience.js)
 // dierengeluiden en de lussen van de omgeving: de sturing (afstand, tijdstip, plek) staat in sfx/ambience.js
 for (const k of ['dier_koe', 'dier_schaap', 'dier_paard', 'dier_eend', 'dier_meeuw_0', 'dier_meeuw_1']) SAMPLE_INFO[k] = { cat: 'dier', gain: 1, ref: 4, range: 120, gap: 0 };
 for (const k of ['golfjes_oever', 'menigte_gemurmel', 'kikkers_nacht']) SAMPLE_INFO[k] = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };
@@ -77,6 +86,9 @@ export const FX_VERVANG = {
   alarm_ring: ['alarm_loeit'],
   firework_burst: ['vuurwerk_knal_0', 'vuurwerk_knal_1'],
   rail_squeal: ['trein_remmen_piep'],
+  tram_bel: ['tram_bel_op_0', 'tram_bel_op_1'],
+  bus_bel: ['bus_halte_ding'],
+  bus_door_hiss: ['bus_deur_sis'],
 };
 export function vervangSleutel(name, has, rand = Math.random) {
   const lijst = FX_VERVANG[name] || FX_VERVANG[String(name).replace(/_\d+$/, '')];

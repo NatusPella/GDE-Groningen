@@ -9,6 +9,7 @@ import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { sfxLinks } from './latehooks.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { onthullingScene } from './uitjescene.js';
@@ -82,6 +83,8 @@ const toL = (x, y) => ({ u: (x - K.x) * C + (y - K.y) * S, v: -(x - K.x) * S + (
 const BOOTH = toW(-HU - 1.6, 3.2);
 const STAND = toW(-HU - 2.8, 0.8);
 const JAN = toW(-HU - 1, 2.4);
+
+sfxLinks.kermisPunt = (w) => (kermisOn(w) ? toW(0, 0) : null); // sfx/ambience.js (latehooks.js): het kermisgeluid op afstand
 
 // The kermis frame, for reuzenrad.js: kermis-local (u, v) to map and back, and the frame's turn.
 export const kermisFrame = { toW, toL, rot: K.rot };
