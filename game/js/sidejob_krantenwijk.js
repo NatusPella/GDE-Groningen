@@ -14,6 +14,8 @@ import {
 import { isInWater } from './util.js';
 import * as R from './krantenrules.js';
 import { hoofdspeler } from './spelersregister.js';
+import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
+import { krantHudModel, worpPop, UITLEG_ID } from './krantenstatus.js';
 
 const BIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 4.2, brake: 6, turnRate: 3.8, color: '#2e6f9e' };
 const OVERNAME_R = 45;       // m van het eerste huis: vanaf hier telt de ronde als begonnen
@@ -51,7 +53,28 @@ function brievenbusMesh() {
   const bak = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.24), new THREE.MeshLambertMaterial({ color: 0xd8402e }));
   bak.position.y = 0.95;
   g.add(bak);
+  // het vlaggetje gaat omhoog en er steekt een krant uit als de krant erin zit (#985): je ziet vanaf de straat welke brievenbussen klaar zijn
+  const vlag = new THREE.Group();
+  const stok = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.3, 0.03), new THREE.MeshLambertMaterial({ color: 0x4a4a4a }));
+  stok.position.set(0.2, 1.17, 0);
+  const doek = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.02), new THREE.MeshBasicMaterial({ color: 0xf4c430 }));
+  doek.position.set(0.28, 1.28, 0);
+  const rol = krantMesh();
+  rol.scale.set(0.8, 0.8, 0.8);
+  rol.position.set(0, 1.07, 0.18);
+  vlag.add(stok, doek, rol);
+  vlag.visible = false;
+  g.add(vlag);
+  g.userData.vlag = vlag;
   return g;
+}
+
+// De lichtkolom boven de volgende brievenbus (#985): MeshBasic zonder licht of nieuwe shader, depthWrite uit, zodat hij niet met de grond vecht.
+function kolomMesh() {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 9, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xf4c430, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  m.name = 'krantkolom';
+  m.visible = false;
+  return m;
 }
 
 function containerMesh() {
@@ -205,8 +228,11 @@ export default {
       const m = brievenbusMesh();
       m.position.set(h.x, groundAt(map, h.x, h.y), h.y);
       m.rotation.y = -h.face + Math.PI / 2;
+      h.mesh = m;
       c.addMesh(m); d.mesh.push(m);
     }
+    d.kolom = kolomMesh();
+    c.addMesh(d.kolom); d.mesh.push(d.kolom);
     const mx = d.huizen.reduce((s, h) => s + h.x, 0) / d.huizen.length, my = d.huizen.reduce((s, h) => s + h.y, 0) / d.huizen.length;
     const vijver = zoekVijver(map, mx, my);
     if (vijver && rnd() < 0.5) {
@@ -278,6 +304,7 @@ export default {
     const d = c.data;
     if (c.vehicle) decorateVehicle(c.vehicle, 'krant', krantTas);
     stapelBeelden(c, dt);
+    zetStrook(c);
     if (!d.huizen || !d.huizen.length) return;
     if (d.phase === 'naarwijk') {
       const eerste = d.huizen[0];
@@ -319,6 +346,7 @@ export default {
 
   stop(c) {
     wis(c);
+    simHudTik(0, null);
   },
 };
 
@@ -338,6 +366,7 @@ function krantTas() {
 
 function wis(c) {
   const d = c.data;
+  d.kolom = null;
   for (const m of d.mesh || []) c.removeMesh(m);
   d.mesh = [];
   for (const f of d.flying || []) c.removeMesh(f.mesh);
@@ -360,6 +389,7 @@ function nieuwsteDoel(c, p = hoofdspeler(c.world)) {
 
 function gooiKrant(c, huis, afstand, p = hoofdspeler(c.world)) {
   const d = c.data, w = c.world;
+  zetUitlegGezien(UITLEG_ID);
   const sp = windSnelheid(w, p);
   const fout = R.worpFout(afstand, sp, R.ruisUit(rnd));
   const uitkomst = R.worpUitkomst(fout);
@@ -405,6 +435,9 @@ function stapelBeelden(c, dt) {
     if (f.uitkomst === 'bus') { c.removeMesh(f.mesh); } else d.mesh.push(f.mesh);
     f.huis.status = f.uitkomst;
     d.worpen[f.uitkomst] += 1;
+    if (f.uitkomst === 'bus' && f.huis.mesh && f.huis.mesh.userData.vlag) f.huis.mesh.userData.vlag.visible = true;
+    const pop = worpPop(f.uitkomst);
+    simHudPop(pop.tekst, pop.geluid);
     c.msg(pick(f.uitkomst === 'bus' ? R.BUS_LINES : f.uitkomst === 'mat' ? R.MAT_LINES : R.MIS_LINES), 2);
   }
 }
@@ -427,3 +460,21 @@ function klaar(c) {
   c.complete({ base: res.base, tip: res.tip, text: res.perfect ? 'Elke krant in de bus!' : pick(R.KLAAR_NETJES), flawless: res.schoon });
 }
 
+
+// De strook onderin en de lichtkolom (#985): elke beeld de stand uit de ronde naar het pure model (krantenstatus.js). Alleen voor de eigen dienst.
+function zetStrook(c) {
+  const d = c.data;
+  if (c.owner || !d.huizen || !d.huizen.length || d.phase === 'klaar' && !d.flying.length) { simHudTik(0, null); if (d.kolom) d.kolom.visible = false; return; }
+  const p = hoofdspeler(c.world);
+  const open = d.huizen.filter((h) => !h.status);
+  open.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+  const volgende = d.phase === 'naarwijk' ? d.huizen[0] : open[0];
+  if (d.kolom) {
+    d.kolom.visible = !!volgende && d.phase !== 'klaar';
+    if (volgende) d.kolom.position.set(volgende.x, groundAt(c.world.map, volgende.x, volgende.y) + 4.5, volgende.y);
+  }
+  simHudTik(0, krantHudModel({
+    fase: d.phase, wijk: d.wijk ? d.wijk.name : '', straat: d.straat, totaal: d.huizen.length, gedaan: d.huizen.length - open.length, stapel: d.stapel, worpen: d.worpen,
+    vijver: d.vijver, lui: d.lui, afstand: volgende ? Math.hypot(volgende.x - p.x, volgende.y - p.y) : null, snelheid: windSnelheid(c.world, p), tijd: c.timeLeft, uitleg: !uitlegGezien(UITLEG_ID),
+  }));
+}

@@ -15,7 +15,7 @@ de lus nu zichtbaar of uitgelegd is.
 | Sim | Speelkans | Waarom nu zwak | Stand |
 |---|---|---|---|
 | 1. Hengelen | hoog: overal aan het water met I, plus de Meerstad-wedstrijd | wereld goed (hengel, lijn, dobber, vis), maar HUD was een tekstbord in eigen kleuren, geen uitleg, geen beetteken, vangst alleen als regel | gebouwd, zie 2 |
-| 2. Krantenwijk | hoog: eerste bijbaan | zie 3 | zie 3 |
+| 2. Krantenwijk | hoog: een van de eerste bijbanen | wereld al redelijk (brievenbussen, vliegende kranten, liggende kranten), maar elke brievenbus zag er na de worp hetzelfde uit, geen duidelijk volgend doel in de straat, de stapel en de uitkomst alleen als meldingen, geen uitleg | gebouwd, zie 3 |
 | 3. Bezorger | hoog | zie 3 | zie 3 |
 | 4. Kartbaan | midden | zie 3 | zie 3 |
 | 5. Rondvaart | midden | zie 3 | zie 3 |
@@ -43,3 +43,24 @@ speler ziet zijn eigen stappen en beetmeter. In de wedstrijd tegen elkaar blijft
 Test: `hengelhud_test`.
 
 **Niet gedaan.** Kaartmarkering voor goede hengelplekken, een vangstlijst van de dag in de strook, een eigen sting voor een zeldzame vis.
+
+## 3. Krantenwijk
+
+**Wat kan de speler.** Bijbaan van Drukkerij De Natte Inkt (verzonnen): in een wijk van Grunn kranten gooien naar brievenbussen, op de fiets of lopend. E gooit naar de dichtstbijzijnde brievenbus; dichtbij en langzaam is raak,
+op volle snelheid wordt het de deurmat of de border. In een wijk met een vijver mag de hele stapel in de papiercontainer (betaalt minder). Loon per worp plus een vaste vergoeding en een fooi bij alles raak (`krantenrules.js`).
+
+**De lus.** Naar de wijk, bezorgen (stapel is huizen plus drie reserve), ronde klaar, volgende wijk. Elke ronde heeft een klok.
+
+| Onderdeel | Voor | Na |
+|---|---|---|
+| Uitleg | de intro van de baas (drie zinnen) | plus vier iconen met een zin in de strook tot je voor het eerst gooit (`gde-sim-uitleg-v1`) |
+| HUD | de bijbaankaart met een regel voortgang ("Helpman, 2/6 bezorgd, stapel 7") | strook: stappen als chips (naar de wijk, bezorgen, klaar), balk brievenbussen bezorgd, cijfers stapel, in de bus, op de mat, mis en tijd, en één zin wat nu (afstand en snelheid bepalen of er staat "Nu E" of "Rustig aan") |
+| Wereld | brievenbus, vliegende en liggende kranten | de volgende brievenbus krijgt een gele lichtkolom (MeshBasic, depthWrite uit), en een brievenbus waar de krant in zit krijgt een omhoog gezet vlaggetje met een krantenrol erin |
+| Feedback | een regel in de berichtenkaart | een getal springt op per worp ("In de bus €4,50", "Op de mat €2,70", "Mis, geen loon") met het bestaande UI-geluid |
+| Kaart | de markering van de volgende brievenbus en puntjes voor de rest (bestond al, uit `view()`) | ongewijzigd |
+
+**Samen spelen.** De bijbaan is van wie het spel opende (de wereld bezit de ronde, de brievenbussen en de stapel). Een meespelende gast gooit mee met `helperActie` (bestond al, #452) en ziet de bijbaankaart zoals eerst; de strook, de lichtkolom en de vlaggetjes
+zijn er voor de eigen dienst (`c.owner` leeg). De vlaggetjes en de kolom staan in de wereld van de host en worden niet aan gasten gestuurd (nog niet gezien bij twee instanties). Beloning per speler volgens #429, zoals bij elke bijbaan. Valt de host weg, dan eindigt de dienst.
+Test: `krantenhud_test` (model, markup, bedrading).
+
+**Niet gedaan.** Het vlaggetje bij de gast, een kaartlaag met de route als lijn, een eigen sting bij een foutloze ronde.
