@@ -38,6 +38,27 @@ for (const e of (window.__sl.cutscenes.length ? [] : L.FX_LIST)) {
   results.push({ id: e.id, group: e.group, label: e.label, peak, rms, bRms: Math.round(bRms * 1e4) / 1e4, bPeak, n: m.length, started });
   console.log('[sl] ' + JSON.stringify(results[results.length - 1]));
 }
+// de procedurele stings van stings.js (kart, uitslag, Meedoen?, trein, halte): geen bufferbron, dus ze staan niet in FX_LIST;
+// ze gaan via world.audioEvents (kind 'sting') en worden net zo gemeten (--only=sting: meet alleen deze)
+const STING_NAMEN = ['kart_countdown', 'kart_finish', 'winnaar', 'verliezer', 'meedoen', 'speler_sluit_aan', 'trein_vertrek', 'halte'];
+for (const naam of (window.__sl.cutscenes.length ? [] : STING_NAMEN)) {
+  if (only.length && !only.some((o) => ('sting:' + naam).startsWith(o))) continue;
+  const log = tap();
+  let t0 = Math.round(performance.now() - log.t0);
+  await sleep(700);
+  const base = win(t0, t0 + 650);
+  const bRms = base.length ? base.reduce((a, r) => a + r.rms, 0) / base.length : 0;
+  const bPeak = base.reduce((a, r) => Math.max(a, r.peak), 0);
+  (w.audioEvents || (w.audioEvents = [])).push({ kind: 'sting', name: naam, x: p.x, y: p.y });
+  t0 = Math.round(performance.now() - log.t0);
+  await sleep(4500);
+  const m = win(t0, t0 + 4200);
+  const peak = m.reduce((a, r) => Math.max(a, r.peak), 0);
+  const rms = m.reduce((a, r) => Math.max(a, r.rms), 0);
+  results.push({ id: 'sting:' + naam, group: 'Stings (procedureel)', label: naam, peak, rms, bRms: Math.round(bRms * 1e4) / 1e4, bPeak, n: m.length, started: 0 });
+  console.log('[sl] ' + JSON.stringify(results[results.length - 1]));
+  await sleep(900); // de afkoeling van de sting-regie (0,6 s)
+}
 // cutscenes (--cutscenes=M01,M02,...): jump to the step, press E at the start and log what the scene
 // queues and the level on the tap while it runs (same idea as visual_issues.page.js 'cutscenes')
 const scenes = {};

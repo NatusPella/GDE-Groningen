@@ -72,6 +72,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [MISSIEBALANS.md](<MISSIEBALANS.md>) | Branch-aware missiecurve, uitschieters en de ontwerpregel voor lange/korte missies (#829). |
 | [MULTIPLAYER-VISIE.md](<MULTIPLAYER-VISIE.md>) | De visie van de eigenaar (besluiten van 23-10, 24-10 en 6-11), op één plek. In gesprekken zeggen we multipl… |
 | [MUZIEK.md](<MUZIEK.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
+| [MUZIEK-TE-VRAGEN.md](<MUZIEK-TE-VRAGEN.md>) | Wat aan muziek gekoppeld is (alles) en wat de eigenaar nog moet leveren; uitkomst van de audiograafcontrole (#986, #988). |
 | [ONBOARDING.md](<ONBOARDING.md>) | Doel: zien of iemand die de game niet kent in de eerste dertig minuten begrijpt wie hij is, |
 | [ONTWIKKELEN.md](<ONTWIKKELEN.md>) | Developer notes (in English, like ARCHITECTURE.md): test switches, |
 | [PERF-LAADHANG-0.56.1.md](<PERF-LAADHANG-0.56.1.md>) | Onderzoek naar de melding dat 0.56.1 op sommige machines in het laadscherm bleef |
