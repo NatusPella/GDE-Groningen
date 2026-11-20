@@ -6,7 +6,8 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
 const src = fs.readFileSync(new URL('../desktop/main.js', import.meta.url), 'utf8');
-ok(/backgroundThrottling: true/.test(src), 'backgroundThrottling staat aan (default)');
+// standaard aan; alleen de QA-meting zet hem uit met GDE_NO_THROTTLE (aae0ff58d)
+ok(/backgroundThrottling: (true|!process\.env\.GDE_NO_THROTTLE)\b/.test(src), 'backgroundThrottling staat aan (default)');
 ok(!/backgroundThrottling: false/.test(src), 'nergens meer uit');
 console.log('#656 meting: achtergrondvenster wordt weer afgeknepen (was backgroundThrottling: false -> volle 60 fps doorrenderen)');
 console.log(`${n - fails}/${n} desktopthrottle`);
