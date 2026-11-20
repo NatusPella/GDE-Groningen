@@ -42,7 +42,48 @@ SAMPLE_INFO.band_drift = { cat: 'voertuig', gain: 0.5, ref: 6, range: 60, gap: 0
 SAMPLE_INFO.motor_auto_stationair = { cat: 'voertuig', gain: 0.5, ref: 8, range: 70, gap: 0 };
 // voetstappen (sfx/steps.js, foley.js): stap_<ondergrond>_<n>; de sturing (variant, links en rechts, afstand) zit in steps.js en foley.js
 for (const k of FILE_STEP_KEYS) SAMPLE_INFO[k] = { cat: 'voetstap', gain: 1, ref: 3, range: 30, gap: 0 };
+// SFX ronde 3 (#988): eenmalige klanken die een synthgeluid vervangen (zie FX_VERVANG), dieren voor sfx/ambience.js en de lussen van de omgeving.
+const RONDE3_FX = {
+  kassa_koop: { cat: 'ui', gain: 0.8, ref: 3, range: 30 },
+  winkelbel_deur: { cat: 'winkel', gain: 0.8, ref: 4, range: 40 },
+  deur_hout_open_op: { cat: 'deur', gain: 0.8, ref: 3, range: 40 },
+  deur_hout_dicht_op: { cat: 'deur', gain: 0.9, ref: 3, range: 45 },
+  deur_huis_dicht_op: { cat: 'deur', gain: 0.9, ref: 3, range: 45 },
+  plons_groot: { cat: 'water', gain: 0.8, ref: 6, range: 120 },
+  scheepshoorn_op: { cat: 'water', gain: 0.8, ref: 30, range: 1200 },
+  camera_sluiter: { cat: 'ui', gain: 0.7, ref: 3, range: 25 },
+  alarm_loeit: { cat: 'omgeving', gain: 0.7, ref: 8, range: 140 },
+  vuurwerk_knal_0: { cat: 'explosie', gain: 0.9, ref: 25, range: 1500 },
+  vuurwerk_knal_1: { cat: 'explosie', gain: 0.9, ref: 25, range: 1500 },
+  trein_remmen_piep: { cat: 'spoor', gain: 0.7, ref: 12, range: 300 },
+};
+for (const [k, i] of Object.entries(RONDE3_FX)) SAMPLE_INFO[k] = { ...i, gap: 0 };
+// dierengeluiden en de lussen van de omgeving: de sturing (afstand, tijdstip, plek) staat in sfx/ambience.js
+for (const k of ['dier_koe', 'dier_schaap', 'dier_paard', 'dier_eend', 'dier_meeuw_0', 'dier_meeuw_1']) SAMPLE_INFO[k] = { cat: 'dier', gain: 1, ref: 4, range: 120, gap: 0 };
+for (const k of ['golfjes_oever', 'menigte_gemurmel', 'kikkers_nacht']) SAMPLE_INFO[k] = { cat: 'omgeving', gain: 1, ref: 10, range: 400, gap: 0 };
 export const SAMPLE_KEYS = Object.keys(SAMPLE_INFO);
+
+// Opnames in de plaats van een synthgeluid: fx-naam van sfx/fxbank.js (met of zonder _n) naar de sleutels die hem vervangen.
+// audio.js playFx en sfx/ui.js uiFx kiezen een geladen sleutel; is er niets geladen, dan blijft de synth de terugval.
+export const FX_VERVANG = {
+  winkel_kassa: ['kassa_koop'],
+  shop_bell: ['winkelbel_deur'],
+  door_wood_open: ['deur_hout_open_op'],
+  door_wood_close: ['deur_hout_dicht_op'],
+  door_house_close: ['deur_huis_dicht_op'],
+  splash_big: ['plons_groot'],
+  ship_horn: ['scheepshoorn_op'],
+  camera_click: ['camera_sluiter'],
+  alarm_ring: ['alarm_loeit'],
+  firework_burst: ['vuurwerk_knal_0', 'vuurwerk_knal_1'],
+  rail_squeal: ['trein_remmen_piep'],
+};
+export function vervangSleutel(name, has, rand = Math.random) {
+  const lijst = FX_VERVANG[name] || FX_VERVANG[String(name).replace(/_\d+$/, '')];
+  if (!lijst || typeof has !== 'function') return null;
+  const klaar = lijst.filter((k) => has(k));
+  return klaar.length ? klaar[Math.floor(rand() * klaar.length) % klaar.length] : null;
+}
 
 // kleine willekeurige variatie per keer: toonhoogte ±4% en volume ±1,5 dB
 export const VARIATIE = { rate: 0.04, db: 1.5 };

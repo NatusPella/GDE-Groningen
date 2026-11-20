@@ -23,11 +23,25 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 376796,
+    "beschrijving": "Kleine golfjes tegen de oever en de kade",
+    "auteur": "amholma",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 369053,
     "beschrijving": "Auto",
     "auteur": "AndrewAlexander",
     "licentie": "CC0 1.0",
     "by": false
+  },
+  {
+    "id": 23641,
+    "beschrijving": "Trein die remt",
+    "auteur": "Anton",
+    "licentie": "CC BY 4.0",
+    "by": true
   },
   {
     "id": 34073,
@@ -79,6 +93,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 457043,
+    "beschrijving": "Gemurmel van een menigte",
+    "auteur": "Breviceps",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 216878,
+    "beschrijving": "Houten deur die piepend opengaat",
+    "auteur": "CastIronCarousel",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 267899,
     "beschrijving": "Vliegtuig",
     "auteur": "ChemiCatz",
@@ -93,6 +121,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 270435,
+    "beschrijving": "Sluiter van een fototoestel",
+    "auteur": "chrisvink",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 636075,
+    "beschrijving": "Scheepshoorn van een groot schip",
+    "auteur": "coalcon",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 459449,
     "beschrijving": "Voetstap op zand en strand",
     "auteur": "Coral_Island_Studios",
@@ -103,6 +145,13 @@ export const AUDIO_CREDITS = [
     "id": 437851,
     "beschrijving": "Vliegtuig",
     "auteur": "craigsmith",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 369620,
+    "beschrijving": "Huisdeur die dichtvalt",
+    "auteur": "cribbler",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -163,6 +212,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 172712,
+    "beschrijving": "Schaap dat blaat",
+    "auteur": "Gitanki",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 168013,
     "beschrijving": "Voetstap op rennen op harde grond",
     "auteur": "gmarchisio",
@@ -177,9 +233,23 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
+    "id": 463034,
+    "beschrijving": "Meeuw die roept",
+    "auteur": "iamaviolin",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 698697,
     "beschrijving": "Voetstap op metaal",
     "auteur": "IENBA",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 140727,
+    "beschrijving": "Vuurwerk",
+    "auteur": "j1987",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -219,6 +289,13 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
+    "id": 586934,
+    "beschrijving": "Kikkers aan het water in de zomernacht",
+    "auteur": "KrystianPawlowski",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 454199,
     "beschrijving": "Motorboot",
     "auteur": "kyles",
@@ -236,6 +313,20 @@ export const AUDIO_CREDITS = [
     "id": 637742,
     "beschrijving": "Motorboot",
     "auteur": "kyles",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 700378,
+    "beschrijving": "Koe die loeit",
+    "auteur": "manofham",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 418509,
+    "beschrijving": "Eend die kwaakt",
+    "auteur": "Mikes-MultiMedia",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -331,9 +422,23 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 442773,
+    "beschrijving": "Grote plons in water",
+    "auteur": "qubodup",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 816019,
     "beschrijving": "Voetstap op stenen of tegels",
     "auteur": "qubodup",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 878619,
+    "beschrijving": "Kassa bij een aankoop",
+    "auteur": "Qvantor",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -345,9 +450,23 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 192761,
+    "beschrijving": "Winkelbel boven de deur",
+    "auteur": "ryuuzan",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 813622,
     "beschrijving": "Voetstap op stenen of tegels",
     "auteur": "SecureSubset",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 269571,
+    "beschrijving": "Paard dat hinnikt",
+    "auteur": "shadoWisp",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -364,6 +483,27 @@ export const AUDIO_CREDITS = [
     "auteur": "spycrah",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 537737,
+    "beschrijving": "Houten deur die dichtvalt",
+    "auteur": "steeltowngaming",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 445237,
+    "beschrijving": "Vuurwerk",
+    "auteur": "steffcaffrey",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 563284,
+    "beschrijving": "Alarmbel die loeit",
+    "auteur": "syntheffects",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 682771,
