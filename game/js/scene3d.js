@@ -64,6 +64,8 @@ import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, auditWaterMeshes } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { animateBoat } from './scene3d/boatbuoy3d.js';
+import { buildPolyGeometry } from './scene3d/shapegeo3d.js';
+import { buildKissHeartMesh } from './scene3d/kissheart3d.js';
 import { seaExtra } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
@@ -83,7 +85,7 @@ import { buildRailDecks, disposeStructureGeometries } from './roadstructures3d.j
 import { snapShadowCenter, shadowPassSkipped, actorShadowReach } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
-import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
+import { pointInPolygon, WATER_Y, isInWater } from './util.js';
 import { buildingAt } from './tileplace.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
@@ -319,9 +321,6 @@ let missionWaypointSetKey = null;
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
 const kissMeshes = new Map();
-// Kiss heart: a camera-facing sprite from a canvas heart (bezier outline,
-// glossy gradient, white rim), so it reads as a heart from every angle.
-let kissHeartTex = null;
 // Over een hek of hindernis: de sprongstand uit bewegingrules.js (#207) op de botten van de speler.
 // Eén pose die elk beeld wordt hergebruikt: de standen schrijven er direct in (geen nieuwe objecten per beeld).
 const bewegPose = neutralPose();
@@ -331,53 +330,6 @@ function vaultPose(mesh, u, climb, t) {
   applyPose(mesh.userData, bewegPose);
 }
 
-function kissHeartTexture() {
-  if (kissHeartTex) return kissHeartTex;
-  const S = 128;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const g = c.getContext('2d');
-  const heart = () => {
-    g.beginPath();
-    g.moveTo(64, 112);
-    g.bezierCurveTo(36, 92, 10, 70, 10, 44);
-    g.bezierCurveTo(10, 24, 25, 12, 41, 12);
-    g.bezierCurveTo(52, 12, 60, 18, 64, 28);
-    g.bezierCurveTo(68, 18, 76, 12, 87, 12);
-    g.bezierCurveTo(103, 12, 118, 24, 118, 44);
-    g.bezierCurveTo(118, 70, 92, 92, 64, 112);
-    g.closePath();
-  };
-  g.shadowColor = 'rgba(0, 0, 0, 0.45)';
-  g.shadowBlur = 6;
-  heart();
-  g.lineWidth = 10;
-  g.strokeStyle = '#fff4f7';
-  g.lineJoin = 'round';
-  g.stroke();
-  g.shadowColor = 'transparent';
-  const grad = g.createLinearGradient(20, 12, 100, 112);
-  grad.addColorStop(0, '#ff7aa8');
-  grad.addColorStop(0.55, '#f02d63');
-  grad.addColorStop(1, '#b3123f');
-  heart();
-  g.fillStyle = grad;
-  g.fill();
-  g.beginPath();
-  g.ellipse(40, 38, 13, 8, -0.6, 0, Math.PI * 2);
-  g.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  g.fill();
-  kissHeartTex = new THREE.CanvasTexture(c);
-  kissHeartTex.colorSpace = THREE.SRGBColorSpace;
-  return kissHeartTex;
-}
-function buildKissHeartMesh() {
-  const mat = new THREE.SpriteMaterial({ map: kissHeartTexture(), transparent: true, depthWrite: false, toneMapped: false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.geometry.userData.shared = true;
-  sprite.renderOrder = 5;
-  return sprite;
-}
 let sun = null;
 let hemi = null;
 let skyDome = null;
@@ -1207,86 +1159,6 @@ function applyRenderSize() {
   postfx.setSize(w, h, wantRatio);
 }
 
-
-// --- shape helpers -----------------------------------------------------
-
-function shapeFromPoly(pts) {
-  const shape = new THREE.Shape();
-  shape.moveTo(pts[0][0], -pts[0][1]);
-  for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], -pts[i][1]);
-  return shape;
-}
-
-// Grid-tessellated fallback fill, same robust technique terrain3d.js already
-// uses to cut real water holes: tile the polygon's own bbox and keep only
-// triangles whose centroid passes a plain point-in-polygon test. Immune to
-// the self-intersection assumption ShapeGeometry/earcut needs - which some
-// real water/green polygons violate on purpose (e.g. a canal "ring" like
-// the Diepenring, whose point list traces the outer edge forward then the
-// inner edge backward specifically so the ray-cast tests used everywhere
-// else in this codebase read it as a ring with a hole).
-function buildGridFillGeometry(pts) {
-  const [minx, miny, maxx, maxy] = polygonBounds(pts);
-  const w = Math.max(maxx - minx, 1e-3), d = Math.max(maxy - miny, 1e-3);
-  const targetSegs = 80;
-  const cell = Math.max(w, d) / targetSegs;
-  const segsX = Math.max(1, Math.round(w / cell));
-  const segsZ = Math.max(1, Math.round(d / cell));
-  const nx = segsX + 1, nz = segsZ + 1;
-
-  const positions = new Float32Array(nx * nz * 3);
-  for (let j = 0; j < nz; j++) {
-    const wy = miny + (d * j) / segsZ;
-    for (let i = 0; i < nx; i++) {
-      const wx = minx + (w * i) / segsX;
-      const idx = (j * nx + i) * 3;
-      positions[idx] = wx; positions[idx + 1] = 0; positions[idx + 2] = wy;
-    }
-  }
-
-  const maxTriangles = segsX * segsZ * 2;
-  const indices = new Uint32Array(maxTriangles * 3);
-  let indexCount = 0;
-  for (let j = 0; j < segsZ; j++) {
-    for (let i = 0; i < segsX; i++) {
-      const a = j * nx + i, b = j * nx + i + 1, c = (j + 1) * nx + i, dd = (j + 1) * nx + i + 1;
-      const ax = positions[a * 3], ay = positions[a * 3 + 2];
-      const bx = positions[b * 3], by = positions[b * 3 + 2];
-      const cx = positions[c * 3], cy = positions[c * 3 + 2];
-      const dx = positions[dd * 3], dy = positions[dd * 3 + 2];
-
-      const cx1 = (ax + cx + bx) / 3, cy1 = (ay + cy + by) / 3;
-      if (pointInPolygon(cx1, cy1, pts)) { indices[indexCount++] = a; indices[indexCount++] = c; indices[indexCount++] = b; }
-
-      const cx2 = (bx + cx + dx) / 3, cy2 = (by + cy + dy) / 3;
-      if (pointInPolygon(cx2, cy2, pts)) { indices[indexCount++] = b; indices[indexCount++] = c; indices[indexCount++] = dd; }
-    }
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setIndex(new THREE.BufferAttribute(indices.subarray(0, indexCount), 1));
-  geo.computeBoundingSphere();
-  return geo;
-}
-
-// earcut (via ShapeGeometry) silently collapses to a near-empty mesh on a
-// self-intersecting contour instead of throwing - caught here by checking
-// the triangulated vertex count against the input point count, since a
-// healthy triangulation never drops points. Falls back to the grid fill
-// above only for the rare polygons that actually need it; the cheap earcut
-// path stays the default for every ordinary simple polygon (most ponds/
-// parks), since building a full grid per polygon is needlessly expensive.
-function buildPolyGeometry(pts) {
-  const shape = shapeFromPoly(pts);
-  const geo = new THREE.ShapeGeometry(shape);
-  if (geo.attributes.position.count < pts.length * 0.5) {
-    geo.dispose();
-    return buildGridFillGeometry(pts);
-  }
-  geo.rotateX(-Math.PI / 2);
-  return geo;
-}
 
 // One shared animated ShaderMaterial for every water polygon (uTime updated
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
