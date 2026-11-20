@@ -55,6 +55,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [DIALECT-CONTROLE.md](<DIALECT-CONTROLE.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [EIGENAAR-ACTIELIJST.md](<EIGENAAR-ACTIELIJST.md>) | Eén blok per eigenaar-issue: wat de eigenaar doet, wat er in de repo klaarstaat en wat een agent niet mag of kan. |
 | [FARMING-AUDIT-20-11.md](<FARMING-AUDIT-20-11.md>) | Werkdocument bij de feedback van de eigenaar: audit van de boerderij (schermen, HUD, kaart, wereld), het ontwerp van de lus en de veldstanden, wat er is gebouwd en wat niet (#985, #980). |
+| [LIGHT-SIMS-AUDIT-20-11.md](<LIGHT-SIMS-AUDIT-20-11.md>) | Werkdocument bij de feedback van de eigenaar over de light sims: inventaris en keuze van vijf (hengelen eerst), per sim de audit, wat er is gebouwd (gedeelde HUD-strook, wereldfeedback, uitleg) en wat niet (#985, #980). |
 | [GEBIEDEN.md](<GEBIEDEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/w… |
 | [GELUID.md](<GELUID.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [IARC-ANTWOORDEN.md](<IARC-ANTWOORDEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |

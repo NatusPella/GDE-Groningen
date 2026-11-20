@@ -32,8 +32,16 @@ export function maakHengelAnim() {
   ring.rotation.x = -Math.PI / 2;
   const vis = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 5), mat(0x8fa6b8));
   vis.rotation.z = Math.PI / 2;
-  g.add(rod, dobber, lijn, ring, vis);
-  rod.visible = dobber.visible = lijn.visible = ring.visible = vis.visible = false;
+  // het uitroepteken boven het dobbertje bij een beet (#985): je ziet vanaf de wal dat er wat gebeurt; één kleine mesh, geen licht, geen eigen shader
+  const uitroep = new THREE.Group();
+  const uitroepMat = new THREE.MeshBasicMaterial({ color: 0xffd23c, depthTest: false, transparent: true });
+  const streep = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.055, 0.26, 6), uitroepMat);
+  streep.position.y = 0.2;
+  const punt = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), uitroepMat);
+  uitroep.add(streep, punt);
+  uitroep.renderOrder = 5;
+  g.add(rod, dobber, lijn, ring, vis, uitroep);
+  rod.visible = dobber.visible = lijn.visible = ring.visible = vis.visible = uitroep.visible = false;
   scene.add(g);
 
   const s = { phase: 'idle', t: 0, splashT: -1, splashAt: null, vangstT: -1 };
@@ -70,6 +78,8 @@ export function maakHengelAnim() {
       if (o.trilling) d.x += Math.sin(s.t * 40) * 0.02;
       dobber.visible = lijn.visible = o.zichtbaar;
       dobber.position.set(d.x, d.h, d.y);
+      uitroep.visible = st.phase === 'bite';
+      if (uitroep.visible) uitroep.position.set(d.x, d.h + 0.5 + Math.abs(Math.sin(s.t * 9)) * 0.12, d.y);
       if (o.zichtbaar) {
         const a = lijnGeo.attributes.position;
         lijnPunten(tip, d, o.hang, o.spanning, LIJN_N).forEach((q, i) => a.setXYZ(i, q.x, q.h, q.y));
