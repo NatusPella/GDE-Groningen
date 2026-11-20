@@ -13,7 +13,8 @@ import { getGaragesForRender, lekkeBandGarage } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
 import { borderSegments, BORDER_CELL } from './mapborders.js'; // #885: stabiele buurtgrenzen op de minikaart
-import { tekenVeroverdMini } from './gebiedenkaart.js';
+import { tekenVeroverdMini, plekOnbezocht } from './gebiedenkaart.js';
+import { pinBlijftInMist } from './kaartontdekking.js';
 import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
@@ -2688,8 +2689,10 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   pois.sort((a, b) => mapPriority(b[0]) - mapPriority(a[0]));
   const gap2 = MM_POI_GAP_PX * MM_POI_GAP_PX;
   const drawn = [];
+  const mist = getSettings().showFog; // 20-11: in nog onbezocht gebied geen pins op de minikaart (zoals op de grote kaart)
   for (const [kind, x, y] of pois) {
     if (!inRange(x, y)) continue;
+    if (mist && !pinBlijftInMist(kind, null) && plekOnbezocht(x, y)) continue;
     const [sx, sy] = toScreen(x, y);
     let blocked = false;
     for (let i = 0; i < placed.length && !blocked; i += 2) blocked = (placed[i] - sx) ** 2 + (placed[i + 1] - sy) ** 2 < gap2;

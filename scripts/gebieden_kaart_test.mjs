@@ -191,5 +191,17 @@ t('#900: de grote kaart opent hetzelfde gebied en toont de strook op elk zoomniv
   assert.ok(!view.includes('const hoofd = kiesLaag(typisch, state.scale)'), 'de hover hangt niet meer aan de zoomlaag');
 });
 
+t('plekOnbezocht (minikaart): een bezochte buurt is bekend, een andere niet, rommel is nooit onbezocht', () => {
+  assert.equal(K.plekOnbezocht(NaN, 0), false);
+  const o = Live.getOverzicht();
+  const buurt = o.ind.gebieden.find((g) => g.niveau === 'buurt');
+  const was = o.profiel.bezocht.slice();
+  o.profiel.bezocht.length = 0;
+  assert.equal(K.plekOnbezocht(buurt.x, buurt.y), true, 'zonder bezoek is de buurt onbezocht');
+  o.profiel.bezocht.push(buurt.id);
+  assert.equal(K.plekOnbezocht(buurt.x, buurt.y), false, 'na een bezoek niet meer');
+  o.profiel.bezocht.length = 0; o.profiel.bezocht.push(...was);
+});
+
 console.log(`${n - fails}/${n} geslaagd`);
 process.exit(fails ? 1 : 0);
