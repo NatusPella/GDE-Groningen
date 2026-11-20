@@ -305,6 +305,48 @@ await sectie('m26plein', async () => {
   skipAan = true;
 });
 
+// ---- M19 instappen: kan een mens de museumtrein in (E bij de kop), en wat doet de kaartautomaat? ---------------------
+await sectie('m19board', async () => {
+  const idx = idxVan('Stoom');
+  const def = M.getMissionDefs()[idx];
+  const RW = await imp('railway');
+  await zet(def.start.x, def.start.y, 0, SETTLE + 8000);
+  skipAan = false;
+  if (!window.__story.jump('M19')) throw new Error('M19-sprong mislukt');
+  await sleep(1500);
+  if (!M.isMissionActive() && !M.missionDebug.start(w, idx)) throw new Error('M19 startte niet');
+  for (let i = 0; i < 40 && cine.isCinematicActive(); i++) { cine.skipCinematic(); await sleep(400); }
+  for (let i = 0; i < 30 && !(M.missionDebug.state() && M.missionDebug.state().stage >= 1); i++) { M.missionDebug.complete(w); await sleep(1500); }
+  await sleep(2500);
+  const m = { stand: M.missionDebug.state(), pogingen: [], tijd: [] };
+  out.stand.m19board = m;
+  const trein = RW.getTrains().find((t) => t.state === 'mission' || t.state === 'parked');
+  if (!trein) throw new Error('geen museumtrein in de wereld');
+  const kop = (t) => { const e = []; for (const end of [1, -1]) e.push({ end, p: RW.routePoint(t.route, t.c + end * (t.halfLen - 3)) }); return e; };
+  m.trein = { state: trein.state, type: trein.type, route: trein.route && trein.route.name, c: r1(trein.c), kop: kop(trein).map((q) => ({ end: q.end, x: r1(q.p[0]), y: r1(q.p[1]) })) };
+  // naast de kop staan, zoals een mens, en E drukken
+  for (const q of kop(trein)) {
+    for (const afstand of [1.5, 3.5]) {
+      if (p.inVehicle) p.exitVehicle(map, w);
+      if (w.trainDriving) { try { (await imp('traindrive')).quitTrainDrive(w); } catch (e) { /* weg */ } }
+      await zet(q.p[0] + afstand, q.p[1] + 1, 0, 1500);
+      const pr = hudPrompt();
+      await tap('e', 'KeyE'); await sleep(1200);
+      m.pogingen.push({ kop: q.end, afstand, spot: [r1(q.p[0] + afstand), r1(q.p[1] + 1)], prompt: pr, binnen: !!w.trainDriving, bericht: (w.messages || []).slice(-2).map((x) => x.text || x) });
+      if (w.trainDriving) break;
+    }
+    if (w.trainDriving) break;
+  }
+  m.binnen = !!w.trainDriving;
+  await grab('m19board-na-e');
+  // de speler zelf op de plek van het doel, een halve minuut: blijft hij leven (de proefspeler stierf daar twee keer)?
+  if (w.trainDriving) { try { (await imp('traindrive')).quitTrainDrive(w); } catch (e) { /* weg */ } }
+  const tg = M.missionDebug.state().stageInfo && M.missionDebug.state().stageInfo.target;
+  await zet(tg ? tg.x : p.x, tg ? tg.y : p.y, 0, 1500);
+  for (let i = 0; i < 30; i++) { await sleep(1000); const tr = RW.getTrains().filter((t) => Math.hypot((t.cars && t.cars[0] ? t.cars[0].x : 0) - p.x, (t.cars && t.cars[0] ? t.cars[0].y : 0) - p.y) < 150).map((t) => ({ s: t.state, v: r1(t.v || 0) })); m.tijd.push({ t: i, hp: Math.round(p.health), dood: p.state, treinen: tr.slice(0, 3) }); if (p.health <= 0) break; }
+  skipAan = true;
+});
+
 clearInterval(skipper); clearInterval(clockTik);
 console.log(`[meting955] beelden ${out.beelden.length}, fouten ${out.fouten.length}`);
 return JSON.stringify({ results: out });
