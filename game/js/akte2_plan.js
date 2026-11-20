@@ -109,7 +109,7 @@ export const PLAN_TRIJNTJE = {
 export const WACHT_M11 = [
   { figuur: true, prop: 'kist', seed: 0.21 },
   { figuur: true, prop: 'ton', seed: 0.57 },
-  { figuur: true, prop: 'baal', seed: 0.83 },
+  { figuur: true, prop: 'baal', seed: 0.83, maat: true }, // bij de laatste kuip kletst Klaas met een boer (#963)
 ];
 
 // --- Publiek van de skûtsje-sprint ---------------------------------------------------------------------------------------

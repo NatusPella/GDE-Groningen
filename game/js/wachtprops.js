@@ -22,7 +22,7 @@ const KINDS = [
   [/perron|station|halte|bushok/i, 'bank'],
 ];
 // De spullen die een stap met `wacht: { prop }` zelf mag kiezen; de vijf eerste volgen anders de tekst.
-export const PROP_KINDS = ['bank', 'kist', 'baal', 'ton', 'plant', 'koffie', 'krant', 'hengel'];
+export const PROP_KINDS = ['bank', 'kist', 'baal', 'ton', 'plant', 'koffie', 'krant', 'hengel', 'bordje'];
 export function waitDressingFor(st = {}) {
   st = st || {};
   if (st.wacht && PROP_KINDS.includes(st.wacht.prop)) return st.wacht.prop;
@@ -76,6 +76,9 @@ function buildProp(kind) {
     g.add(box(0.08, 0.7, 0.08, COL.hout2, 0, 0.35, 0));
     const stok = box(0.04, 0.04, 2.2, COL.hout, 0, 0.95, 0.5); stok.rotation.x = 0.35;
     g.add(stok, cyl(0.2, 0.3, COL.stof, 0.7, 0.15, 0.1, 8));
+  } else if (kind === 'bordje') { // A-bord "even geduld": twee schuine planken, een kegel ernaast (zonder tekst: die zou onvertaald in beeld staan)
+    for (const s of [-1, 1]) { const pl = box(0.7, 0.9, 0.05, 0xf2efe6, s * 0.18, 0.46, 0); pl.rotation.z = s * -0.2; g.add(pl); }
+    g.add(box(0.5, 0.12, 0.05, COL.geel, 0, 0.78, 0.04), cyl(0.12, 0.45, 0xe8742a, 0.7, 0.23, 0.2, 8));
   } else { // plant
     g.add(cyl(0.34, 0.5, COL.pot, 0, 0.25, 0, 6));
     const blad = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), mat(COL.blad));
@@ -90,17 +93,18 @@ function buildProp(kind) {
 // wachtende persoon die rondkijkt, op zijn horloge kijkt, wipt, koffie drinkt of leest. Wachten blijft gewoon
 // wachten: de figuur is alleen beeld, de klok, de cirkel en het slagen veranderen niet. Zonder `wacht` geen figuur.
 // Samen spelen: elke speler bouwt de figuur bij zijn eigen stap; er wordt niets gedeeld of verstuurd.
-export const IDLE_CLIPS = ['rondkijken', 'horloge', 'wippen', 'koffie', 'lezen'];
+export const IDLE_CLIPS = ['rondkijken', 'horloge', 'wippen', 'koffie', 'lezen', 'telefoon', 'praten'];
 // Per soort plek de voorkeur voor de clips (de volgorde draait met de seed).
 const CLIPS_PER_PLEK = {
-  bank: ['horloge', 'rondkijken', 'wippen'],
-  plant: ['horloge', 'wippen', 'rondkijken'],
+  bank: ['horloge', 'telefoon', 'rondkijken', 'wippen'],
+  plant: ['horloge', 'wippen', 'telefoon', 'rondkijken'],
   ton: ['rondkijken', 'wippen', 'horloge'],
   baal: ['rondkijken', 'wippen', 'koffie'],
   kist: ['rondkijken', 'horloge', 'wippen'],
   koffie: ['koffie', 'rondkijken', 'koffie', 'horloge'],
   krant: ['lezen', 'rondkijken', 'lezen', 'horloge'],
   hengel: ['rondkijken', 'wippen', 'rondkijken'],
+  bordje: ['telefoon', 'horloge', 'rondkijken'],
 };
 const SHIRTS = [0xc8552e, 0x2f6fb0, 0xe0b93a, 0x3f8a52, 0x8a4a8a, 0x555f6e];
 const SKINS = [0xf1c9a5, 0xd9a06e, 0xa9744a, 0x7a4e2e];
@@ -126,12 +130,22 @@ export function waitFigureFor(st, seed = waitSeed(st)) {
   for (let i = 0; i < voorkeur.length; i++) rooster.push({ clip: voorkeur[(i + draai) % voorkeur.length], dur: 3 + rng() * 3 });
   let totaal = 0;
   for (const r of rooster) totaal += r.dur;
-  return {
-    prop, seed, rol: typeof w.rol === 'string' ? w.rol : 'wachter',
+  const plan = {
+    maat: null, prop, seed, rol: typeof w.rol === 'string' ? w.rol : 'wachter',
     plek: Math.floor(rng() * 3), // welke van de drie plekken om de kring (propSpots)
     shirt: SHIRTS[Math.floor(rng() * SHIRTS.length)], skin: SKINS[Math.floor(rng() * SKINS.length)],
     rooster, totaal, fase: rng() * totaal, // elke figuur begint ergens anders in zijn rooster
   };
+  // #963: met `wacht.maat` staan er twee wachtenden die met elkaar kletsen (een kleine bezigheid die de tijd vult); de
+  // maat komt uit dezelfde rng na alle andere trekkingen, zodat een stap zonder maat precies dezelfde figuur houdt.
+  if (w.maat) {
+    const dur = (n) => 3.5 + n * 2.5;
+    const maatRooster = [{ clip: 'praten', dur: dur(rng()) }, { clip: 'wippen', dur: dur(rng()) }, { clip: 'praten', dur: dur(rng()) }];
+    const eigenRooster = [{ clip: 'praten', dur: maatRooster[0].dur }, { clip: 'rondkijken', dur: maatRooster[1].dur }, { clip: 'praten', dur: maatRooster[2].dur }];
+    const tot = maatRooster.reduce((a, r) => a + r.dur, 0);
+    plan.maat = { shirt: SHIRTS[Math.floor(rng() * SHIRTS.length)], skin: SKINS[Math.floor(rng() * SKINS.length)], rooster: maatRooster, totaal: tot, fase: 0, eigenRooster };
+  }
+  return plan;
 }
 
 // Welke clip er op tijd t loopt, en hoe ver daarin (tl) en hoe lang hij duurt; schrijft in `uit`, maakt niets aan.
@@ -188,6 +202,15 @@ export function buildWaitDressing(st, target, radius = 3.5, world = null) {
       mesh.rotation.y = -a - Math.PI / 2;
       group.add(mesh);
       group.userData.figuur = { mesh, plan, pose: neutralPose(), t: 0, uit: { clip: '', tl: 0, dur: 1 } };
+      if (plan.maat) { // de maat staat naast hem, met het gezicht naar hem toe
+        const m2 = buildPersonMesh(plan.maat.shirt, plan.maat.skin, { seed: Math.floor(plan.seed * 1e6) + 7 });
+        const a2 = a + 0.2, r2 = r + 1.5;
+        m2.position.set(Math.cos(a2) * r2, 0, Math.sin(a2) * r2);
+        m2.rotation.y = mesh.rotation.y + 0.9;
+        mesh.rotation.y -= 0.25; // en hij draait iets naar de maat
+        group.add(m2);
+        group.userData.figuur.maat = { mesh: m2, plan: plan.maat, pose: neutralPose(), uit: { clip: '', tl: 0, dur: 1 } };
+      }
     } catch (e) { /* een figuur die niet bouwt, is geen reden voor een kapotte stap */ }
   }
   scene.add(group);
@@ -199,9 +222,15 @@ export function tickWaitFigure(group, dt) {
   const f = group && group.userData && group.userData.figuur;
   if (!f) return false;
   f.t += Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.25) : 0;
-  const c = figureClipAt(f.plan, f.t, f.uit);
+  const plan = f.plan.maat ? { ...f.plan, rooster: f.plan.maat.eigenRooster, totaal: f.plan.maat.totaal, fase: 0 } : f.plan; // met een maat praat hij mee
+  const c = figureClipAt(plan, f.t, f.uit);
   idlePose(f.pose, c.clip, c.tl, c.dur);
   applyPose(f.mesh.userData, f.pose);
+  if (f.maat) {
+    const c2 = figureClipAt(f.maat.plan, f.t, f.maat.uit);
+    idlePose(f.maat.pose, c2.clip, c2.tl, c2.dur);
+    applyPose(f.maat.mesh.userData, f.maat.pose);
+  }
   return true;
 }
 
