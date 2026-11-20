@@ -906,7 +906,8 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-samen-inner::-webkit-scrollbar { width: 8px; }
 #pause-menu .pm-samen-inner::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(240, 237, 228, 0.32); }
 #pause-menu .pm-samen-inner::-webkit-scrollbar-track { background: rgba(240, 237, 228, 0.05); }
-#pause-menu .pm-samen .coop-btns { position: sticky; bottom: 0; z-index: 3; margin-top: 4px; padding: 10px 0 6px; background: linear-gradient(180deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.96) 14px); }
+#pause-menu .pm-samen .coop-btns { position: sticky; bottom: 0; z-index: 3; margin-top: 12px; padding: 12px 0 8px; background: rgba(12, 20, 14, 0.98); box-shadow: 0 -1px 0 rgba(240, 237, 228, 0.18); }
+#pause-menu .pm-samen { scroll-padding-bottom: 72px; }
 #pause-menu .pm-samen .coop-btns .coop-btn { max-width: 100%; }
 #pause-menu .pm-samen .coop-code { position: sticky; top: 0; z-index: 3; background: rgba(12, 20, 14, 0.96); box-shadow: 0 8px 12px rgba(12, 20, 14, 0.55); }
 #pause-menu .pm-samen .coop-profiel-vouw { margin: 4px 0; }

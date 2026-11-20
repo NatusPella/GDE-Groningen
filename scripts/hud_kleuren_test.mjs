@@ -194,6 +194,7 @@ const HUD_DRIFT = {
   'achievementsui.js': [],
   'cheatsui.js': [],
   'fotomodusui.js': [],
+  'bigmoment.js': [],
 };
 for (const [f, basis] of Object.entries(HUD_DRIFT)) {
   const nieuw = strayHexes(f).filter((h) => !basis.includes(h));

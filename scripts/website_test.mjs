@@ -128,7 +128,7 @@ const releaseLinks = [...html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<
   .filter(Boolean);
 ok(releaseLinks.length >= 1, 'de CTA naar de Releases heeft tekst', String(releaseLinks.length));
 ok(html.includes('href="' + REPO + '"'), 'er is een link naar de repo');
-ok(/id="delen"/.test(gebouwd) && /href="#delen"/.test(gebouwd), 'de pagina heeft een deel-sectie en een navigatielink');
+ok(/class="site-footer"[\s\S]*id="delen"/.test(gebouwd), 'de deelregel staat in de footer (geen los blok meer)');
 ok(/https:\/\/wa\.me\//.test(gebouwd) && /twitter\.com\/intent\/tweet/.test(gebouwd) && /facebook\.com\/sharer/.test(gebouwd), 'de deellinks naar WhatsApp, X en Facebook staan er');
 ok(/data-share-kopieer/.test(gebouwd), 'de kopieer-knop staat er');
 ok(!/id="pers"|href="#pers"|press-panel/.test(gebouwd), 'de oude pershoek staat niet meer op de pagina');
@@ -240,7 +240,12 @@ ok(/\bprefers-reduced-motion\b/.test(css), 'style.css respecteert prefers-reduce
 ok(/open-wereldkomedie/i.test(gebouwd) && /GDE = Grootste Diefstal Ever/.test(gebouwd), 'de hero noemt genre en de naam-uitleg');
 ok(/class="platform-row"/.test(gebouwd) && !/Windows-only/.test(gebouwd) && !/Actions-minuten/.test(gebouwd), 'de platforminformatie is actueel en zonder Actions-jargon');
 ok(/Over › Problemen/.test(gebouwd) && !/Instellingen › Foutrapport/.test(gebouwd), 'de FAQ verwijst naar het juiste foutrapportpad');
-ok(/60\+ reacties in het playtest-issue/.test(gebouwd) && /issues\/116/.test(gebouwd), 'de pagina toont echt playtest-bewijs en linkt naar #116');
+ok(/issues\/116/.test(gebouwd) && /testers/i.test(gebouwd), 'de pagina linkt naar het playtest-issue #116 en noemt testers');
+ok(/klein team/i.test(html) && /id="team"/.test(html), 'de pagina vertelt het klein-team-verhaal in een eigen blok');
+ok(!/één maker|door de maker|van de maker/i.test(html), 'de pagina legt niet meer de nadruk op één maker');
+ok(/id="samen-spelen"/.test(html) && /kamercode/i.test(html), 'Samen spelen is een eigen blok met kamercode-uitleg');
+ok(/<a class="btn btn-primary" href="[^"]*releases">[^<]+<\/a>/.test(html.slice(html.indexOf('class="hero"'), html.indexOf('id="trailer"'))), 'de hero heeft de hoofd-CTA naar de releases');
+ok(/AI-assistenten/.test(html), 'de pagina blijft eerlijk over AI-hulp');
 ok(!/releases\/latest/.test(gebouwd), 'downloadlinks gaan naar de releaselijst, niet naar de pre-release-redirect');
 ok(/class="nav-toggle"/.test(gebouwd) && /aria-controls="site-nav"/.test(gebouwd), 'de mobiele header heeft een menuknop');
 ok(/navToggle/.test(script) && /aria-expanded/.test(script), 'script.js schakelt het mobiele menu');
@@ -248,35 +253,36 @@ ok(/\.js \.site-nav:not\(\.is-open\)/.test(css), 'style.css verbergt de mobiele 
 ok(/@media \(max-width: 48rem\) \{[\s\S]*?\.site-header\s*\{[^}]*position:\s*static/.test(css), 'de header is op mobiel niet sticky');
 
 // Merkenpalet uit DESIGN_SYSTEM.md: geen near-miss-hexen, geel alleen voor wanted-sterren.
-const PALET = new Set(['#1e9e56', '#3fc97a', '#0f5c30', '#0c140e', '#17301f', '#f0ede4', '#f2f2f2', '#d93f3f', '#e8c93a']);
+const PALET = new Set(['#f3ead3', '#1d1b17', '#0e6b3c', '#f9c80e', '#e8505b', '#d93f3f', '#b3261e', '#8c1d18']);
 const hexen = [...new Set((css.match(/#[0-9a-f]{3,8}\b/gi) || []).map((h) => h.toLowerCase()))];
 const buitenPalet = hexen.filter((h) => !PALET.has(h));
 ok(buitenPalet.length === 0, 'style.css gebruikt alleen het merkenpalet', buitenPalet.join(', '));
-ok(!/#e8c93a/i.test(css), 'geel is niet als merkkleur gebruikt (alleen wanted-sterren)');
-ok(/h1,\s*h2,\s*h3\s*\{[^}]*font-weight:\s*900/.test(css), 'koppen staan op systeemlettertype met weight 900');
-ok(/--bg-glow:\s*#17301f/.test(css) && /--bg:\s*#0c140e/.test(css) && /radial-gradient\([^;]*var\(--bg-glow\)[^;]*var\(--bg\)/.test(css), 'achtergrond is de donkergroene radial #17301f naar #0c140e');
+ok(!/#e8c93a/i.test(css), 'het oude geel #e8c93a is samengevoegd met zomergeel');
+ok(/h1,\s*h2,\s*h3\s*\{[^}]*font-weight:\s*800/.test(css), 'koppen staan op Barlow Condensed met weight 800');
+ok(/--papier:\s*#f3ead3/.test(css) && /body\s*\{[^}]*background:\s*var\(--papier\)/.test(css), 'achtergrond is effen papier #f3ead3');
+ok(/text-shadow:\s*var\(--misdruk\)/.test(css) && /--misdruk:\s*3px 3px 0 var\(--roze\)/.test(css), 'de h1 heeft roze misdruk van 3px');
+ok(!/blur\(/.test(css.replace(/backdrop-filter:\s*none/g, '')) && !/(box|text)-shadow:[^;]*\d+px \d+px [1-9]\d*px/.test(css), 'harde schaduw zonder blur');
 ok(/\.plaatsbord\s*\{/.test(css) && /class="plaatsbord"/.test(html), 'de pleknaambord-stijl staat in de hero');
-ok(/:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--ink\)/.test(css), 'focus is één cream ring van 2px');
+ok(/:focus-visible\s*\{[^}]*outline:\s*3px solid var\(--bordgroen\)/.test(css), 'focus is één bordgroene ring van 3px');
 
-ok(/system-ui/.test(css) && !/@font-face/i.test(css), 'systeemlettertypen, geen @font-face');
+ok(/@font-face/i.test(css) && /Barlow Condensed/.test(css) && /Atkinson Hyperlegible/.test(css), 'Barlow Condensed en Atkinson Hyperlegible staan als @font-face');
+ok(!/url\(\s*['"]?(https?:)?\/\//i.test(css) && !/fonts\.(googleapis|gstatic)/i.test(css + html), 'lettertypen zelf gehost, geen extern verzoek');
+ok(['AtkinsonHyperlegible-Regular.ttf', 'AtkinsonHyperlegible-Bold.ttf', 'BarlowCondensed-SemiBold.ttf', 'BarlowCondensed-ExtraBold.ttf'].every((f) => bestaat('fonts/' + f)), 'de vier lettertypebestanden staan in _site/fonts');
 ok(/<main\b/.test(html) && (html.match(/<h1\b/gi) || []).length === 1 && /<header\b/.test(html) && /<footer\b/.test(html), 'semantische HTML met precies één h1');
 ok(/<main id="inhoud" tabindex="-1"/.test(html), 'de skip-link kan focus naar de inhoud verplaatsen');
 ok(/class="skip-link"[^>]*href="#inhoud"/i.test(html) && /id="inhoud"/.test(html), 'de pagina heeft een skip-link naar de inhoud');
 
-// Opbouw volgens de funnel: aandacht (hero) → interesse (trailer, kort) → verlangen
-// (wat je doet, de stad, beelden) → actie (zo speel je mee, CTA) → vertrouwen
-// (gemaakt, delen, FAQ, 18+).
+// Opbouw verhaal-eerst: hero (belofte, download, trailer) → wat je doet → echt Groningen →
+// samen spelen → het team → beelden → zo begin je → FAQ → 18+.
 const volgorde = [
   'class="hero"',
   'id="trailer"',
-  'class="trust-strip"',
   'id="wat-je-kunt-doen"',
   'id="echt-groningen"',
+  'id="samen-spelen"',
+  'id="team"',
   'id="beelden"',
   'id="spelen"',
-  'class="cta-band"',
-  'id="delen"',
-  'id="zo-gemaakt"',
   'id="vragen"',
   'id="leeftijd"',
 ];

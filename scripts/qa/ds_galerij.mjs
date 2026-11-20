@@ -1,4 +1,4 @@
-// Schermafbeeldingen van de designsysteem-galerij (#980, fase 1): game/ds-galerij.html met de tokens en
+// Schermafbeeldingen van de designsysteem-galerij (#980): game/ds-galerij.html met de tokens en
 // componenten van ds-tokens.css en ds-components.css in alle toestanden, op papier en op glas.
 // Electron (wegwerpprofiel, één instantie, sluit af) laadt de galerij in een iframe en loopt ds_galerij.page.js af.
 //   node scripts/qa/ds_galerij.mjs [--out=<map>] [--size=1600x900] [--settle=<ms>]
@@ -6,7 +6,7 @@
 // desktop/node_modules/electron/dist ontbreekt. Draai alleen als de Electron-instantie vrij is (er mag er één tegelijk).
 // Uitvoer: <out>/shots-ds-<sectie>-<papier|glas>.png, features.json (fouten, kleinste tekst, overloop, focus,
 // beweging), run.log. Exit 0 als de pagina laadde en features.json geen fouten bevat.
-// Nog niet gedraaid in fase 1: er is dus geen beeld van de galerij in de app gezien.
+// Beeldcontrole: draai het in Electron; zonder run is er geen beeld van de galerij gezien.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

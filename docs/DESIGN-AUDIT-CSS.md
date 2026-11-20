@@ -1,4 +1,4 @@
-# Audit van de UI-CSS tegen het designsysteem (#980, fase 1)
+# Audit van de UI-CSS tegen het designsysteem (#980)
 
 Naslag. De regels staan in [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) en [ui-taal.md](../.specs-fire/standards/ui-taal.md); dit is een telling van wat de CSS feitelijk doet, op papier gelezen en geteld (nog niet op het scherm bekeken). Gemeten op de acht bestanden `menu`, `pausemenu`, `hud_panel`, `hudcards`, `shopui`, `prompts`, `a11y` en `loadscreen` in `game/js/` (samen 2.600 regels CSS zonder commentaar), met een eenmalig telscript; de getallen zijn een momentopname, geen test.
 
@@ -10,7 +10,7 @@ Naslag. De regels staan in [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) en [ui-taal.m
 | Kleur: `rgba()` | 404 | Het grootste deel zijn doorzichtige varianten van crème en groen (lijnen, vlakken); ze zijn niet te tellen als eigen kleur |
 | Kleur via een token (`var(--g)`, `--ink`, `--gron-*`, `--hud-*`, `--mk-*`) | 364 | Meer dan de losse hex, maar de tokens leven op drie plekken (`.gm`, `:root` in `hud_panel.css`, `a11y.css`) en heten overal anders |
 | Tokens die een bestand zelf definieert | `menu` 18, `hud_panel` 25, `hudcards` 7, `prompts` 6, `pausemenu` 4, `a11y` 4; `shopui` en `loadscreen` 0 | Geen gedeeld bestand: `shopui` en `loadscreen` hebben 31 en 3 `var()`-gebruiken zonder eigen definitie |
-| Verlopen (`gradient(`) | 65 | Het huidige glas-op-donker gebruikt ze overal (kaart, paneel, sluier); v2 kent er geen |
+| Verlopen (`gradient(`) | 65 | Het huidige glas-op-donker gebruikt ze overal (kaart, paneel, sluier); het designsysteem kent er geen |
 | Afrondingen (`border-radius`) | 20 verschillende waarden over 144 declaraties | `8px` 29x, `50%` 17x, `10px` 15x, `12px` 14x, `2px` 12x, `6px` 10x, `999px` 8x, `16px` 7x, `4px` 7x, daarnaast `5px`, `14px`, `3px`. Het document kent 4, 8, 10 en 18 px |
 | Lettergrootte (`font-size`) | 411 declaraties in 77 verschillende waarden; 160 daarvan op een van de menumaten 80/64/44/26/24/20/18 px; 50 zijn geen px (`em`, `%`, `max()`, `calc()`) | `18px` 76x, `20px` 38x, `16px` 38x, `22px` 27x, `15px` 23x, `24px` 17x, `28px` 14x, `14px` 14x, `26px` 13x. Maten als 15, 16, 17, 19, 22 en 30 staan niet in de schaal van het document |
 | Lettergrootte onder 13 px | 5 declaraties: `prompts.css` 8,5 px en 10 px (toetsplaatje in de WASD-hint), `pausemenu.css` 12 px (toetsplaatje), `a11y.css` 12 px (padknop) en 12 px (`.pk-help`, een hulpzin met `opacity: .7`) | De vier toetsplaatjes mogen; `.pk-help` is een zin onder de leesnorm en met laag contrast (zie DESIGN-SCHULD rij 3) |
@@ -28,10 +28,10 @@ Naslag. De regels staan in [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) en [ui-taal.m
 4. **Typografieschaal.** 77 lettergroottes tegen een schaal van zes; veel tussenmaten (15, 17, 19, 22) zijn zoektochten naar passen, geen rol.
 5. **Ruimte.** Een derde van de ruimtewaarden valt buiten een 4-px-basis. Het document heeft geen ruimteschaal; alleen de menurijen zijn vast (56 px).
 6. **Tokens zonder eigenaar.** Het document noemt drie plekken voor tokens; `shopui.css` en `loadscreen.css` gebruiken er zonder ze te definiëren, en `pausemenu.css` definieert er vier terwijl het 172 keer een `var()` leest.
-7. **Verlopen.** 65 verlopen staan in de huidige "crime-poster look" (de radiale achtergrond en de kaart); dat is bewust en blijft in de bestaande schermen. De v2-componenten gebruiken alleen vlakken.
-8. **Contrast van hulptekst.** `muted` is crème op 68 procent (`--mut`); op glas haalt dat de norm, maar kleine tekst met `opacity` (`.pk-help` op .7) en de kleinste maten zijn de plekken waar het laag blijft. Het v2-systeem heeft daarom een aparte rol voor hulptekst (`--ds-tx-zacht`, minstens 4,5:1) en een vloer van 13 px.
-9. **Eén focusring.** Twee stijlen (crème in `.gm`, groen met een pad); v2 kent er één per oppervlak (inkt op papier, crème op glas).
+7. **Verlopen.** 65 verlopen staan in de huidige "glas-op-donker look" (de radiale achtergrond en de kaart); dat is bewust en blijft in de bestaande schermen. De componenten van het designsysteem gebruiken alleen vlakken.
+8. **Contrast van hulptekst.** `muted` is crème op 68 procent (`--mut`); op glas haalt dat de norm, maar kleine tekst met `opacity` (`.pk-help` op .7) en de kleinste maten zijn de plekken waar het laag blijft. Het designsysteem heeft daarom een aparte rol voor hulptekst (`--ds-tx-zacht`, minstens 4,5:1) en een vloer van 13 px.
+9. **Eén focusring.** Twee stijlen (crème in `.gm`, groen met een pad); het designsysteem kent er één per oppervlak (inkt op papier, crème op glas).
 
 ## Wat dit niet is
 
-Geen test: er is geen drempel die hierop faalt. De bestaande schermen blijven zoals ze zijn tot fase 2 (migratie); `scripts/release/design_rules.mjs` keurt alleen nieuwe regels, en voor de twee nieuwe bestanden (`ds-tokens.css`, `ds-components.css`) strenger. Niets hier is op het scherm bekeken.
+Geen test: er is geen drempel die hierop faalt. De bestaande schermen blijven zoals ze zijn tot de schermen zijn omgebouwd; `scripts/release/design_rules.mjs` keurt alleen nieuwe regels, en voor de twee nieuwe bestanden (`ds-tokens.css`, `ds-components.css`) strenger. Niets hier is op het scherm bekeken.

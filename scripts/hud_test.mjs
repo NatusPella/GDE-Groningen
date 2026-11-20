@@ -22,14 +22,14 @@ ok(d({ specialDay: true }).big.clock && d({ timeGoal: true }).big.clock, 'clock 
 
 // stars: wanted + 6 s afterglow
 ok(d({ wanted: 2 }).show.stars, 'stars when wanted');
-ok(d({ wanted: 0, wantedAgo: 5 }).show.stars && !d({ wanted: 0, wantedAgo: 7 }).show.stars, 'stars glow on for 6 s');
+ok(d({ wanted: 0, wantedAgo: 3 }).show.stars && !d({ wanted: 0, wantedAgo: 5 }).show.stars, 'stars glow on for 4 s');
 // money
-ok(d({ moneyAgo: 1 }).show.money && !d({ moneyAgo: 6 }).show.money, 'money on change, gone after 5 s');
+ok(d({ moneyAgo: 1 }).show.money && !d({ moneyAgo: 5 }).show.money, 'money on change, gone after 4 s');
 ok(d({ nearShop: true }).show.money, 'money near a shop');
 ok(!d({ moneyAgo: 1, busy: true, wanted: 1 }).show.money, 'money coming in waits in a chase');
 // weapon / bars / vehicle
-ok(d({ armed: true }).show.weapon && !d({}).show.weapon, 'weapon only when armed');
-ok(d({ hpFull: false }).show.bars && d({ hpLow: true }).show.bars && !d({ hpFull: true, stamFull: true }).show.bars, 'bars only when not full');
+ok(d({ weaponAgo: 1 }).show.weapon && d({ fighting: true, armed: true }).show.weapon && !d({ weaponAgo: 5 }).show.weapon && !d({ armed: true }).show.weapon && !d({}).show.weapon, 'weapon on a change or a held fire button, gone after 4 s (v3)');
+ok(d({ hpAgo: 1, hpFull: false }).show.bars && d({ hpLow: true }).show.bars && !d({ hpFull: false, hpAgo: 9 }).show.bars && !d({ hpFull: true, stamFull: true }).show.bars, 'bars on a change or in danger, not for a steady wound (v3)');
 ok(d({ stamFull: false }).show.bars, 'bars while stamina is down');
 ok(d({ inVehicle: true }).show.vehicle && !d({}).show.vehicle, 'vehicle widgets only in a vehicle');
 ok(d({ keys: 2 }).show.keys && !d({ keys: 0 }).show.keys, 'keys only when there is something to do');

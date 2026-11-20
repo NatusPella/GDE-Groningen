@@ -59,6 +59,10 @@ const BASE_DEFAULTS = {
   // (bij 'geen' wacht een belangrijke kaart op een klik of Enter; zie cardtime.js)
   readingTime: 'normaal',
   reduceMotion: false,
+  // Rustig drukwerk (#992, ADR 0040): geen misdruk, schuinte, raster of stempelbeweging, tekst minstens 7:1;
+  // zet html.rustig-drukwerk (motion.js). Standaard aan op de Steam Deck (deck.js). Een oud bestand zonder
+  // de sleutel valt op deze standaard terug, dus een versiesprong in savemigrate.js is niet nodig.
+  rustigDrukwerk: false,
   // instap- en uitstapanimatie (#459): uit = meteen op je stoel, zonder deur open en
   // dicht en zonder de loop- en zitbeweging (Instellingen, Toegankelijkheid)
   stapAnimatie: true,
