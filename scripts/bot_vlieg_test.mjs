@@ -118,6 +118,42 @@ const stripSpec = m15.stages[0].strip;
   ok(!(both.includes('w') && both.includes('shift')), 'gas en rem gaan niet samen');
 }
 
+// --- 1c. vliegen met wind (#955): de zomerbries tot 7 m/s duwt het vliegtuig opzij; de landing blijft op de strook --------
+// De eerste proefrun landde 28 tot 35 m naast de as (een crash, de strook is 34 m plus 6 m marge breed): de plaatser mikte
+// op de koers in plaats van op het spoor over de grond. Hier dezelfde vlucht als hierboven, met wind uit vier richtingen,
+// op het echte vliegmodel; de wind is bekend voor de piloot (o.wind), zoals de bot hem uit planeflight.windNu haalt.
+{
+  const strip = PC.makeStrip(stripSpec);
+  const start = strip.point(strip.length * 0.45);
+  for (const [naam, dir] of [['oost', 0], ['zuid', Math.PI / 2], ['west', Math.PI], ['noord', -Math.PI / 2]]) {
+    const wind = { x: Math.cos(dir) * 7, y: Math.sin(dir) * 7 };
+    const p = A.makePlane(start.x, start.y, 0, strip.heading);
+    const ctl = { thr: 0, flaps: 0, gear: true };
+    const DT = 1 / 60;
+    let t = 0, gi = 0, phase = null, landed = false;
+    let state = { closest: Infinity, agl: 0 };
+    let gemist = '';
+    while (t < 600) {
+      const agl = p.z;
+      const g = gates[gi];
+      const keys = g
+        ? L.planeKeys(p, { agl, goal: { x: g.x, y: g.y }, alt: (g.lo + g.hi) / 2, mode: 'fly', wind })
+        : L.planeKeys(p, { agl, goal: start, alt: 30, mode: 'land', strip: stripSpec, phase, wind });
+      if (!g) phase = keys.phase;
+      A.stepPlane(p, { ...PC.planeInput((k) => keys.has(k), ctl, DT), wind }, DT, () => 0, (x, y) => strip.contains(x, y));
+      t += DT;
+      if (p.crashed) break;
+      if (g) {
+        const r = judgeGate(g, state, Math.hypot(p.x - g.x, p.y - g.y), agl);
+        if (r === 'pass') { gi++; state = { closest: Infinity, agl: 0 }; } else if (r) { gemist = `poort ${gi + 1} ${r}`; break; }
+      } else if (p.onGround && p.speed < 2 && strip.contains(p.x, p.y)) { landed = true; break; }
+    }
+    const across = -(p.x - stripSpec.x) * Math.sin(stripSpec.heading) + (p.y - stripSpec.y) * Math.cos(stripSpec.heading);
+    ok(!gemist && gi === gates.length, `wind uit het ${naam}: alle poorten gevlogen`, gemist || `${gi}/${gates.length}`);
+    ok(landed && !p.crashed, `wind uit het ${naam}: de kist landt op de strook`, `t=${Math.round(t)} s, ${Math.round(across)} m naast de as, crash ${p.crashed}`);
+  }
+}
+
 // --- 2. stunten: de drift van M01 binnen de regels van het spel --------------------------------
 {
   const vehicle = readFileSync(path.join(root, 'game/js/vehicle.js'), 'utf8');

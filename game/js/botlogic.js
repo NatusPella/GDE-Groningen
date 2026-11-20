@@ -620,7 +620,11 @@ function planeKeysCircuit(p, o) {
       // swings past it, the bank turns the plane itself), and the glide slope brings it down. Pointing the other way
       // after the turn is the same rule: the error is large, so the bank goes to its stop
       const join = clamp(-across / PLANE_LAND.join, -PLANE_LAND.maxJoin, PLANE_LAND.maxJoin);
-      const want = normAngle(st.heading + join);
+      // #955: the summer breeze (up to 7 m/s) pushes the plane sideways over the ground, so a heading that points down the
+      // strip drifts off it (M15: touched down 28 to 35 m beside the axis, a crash). The localizer aims the ground track:
+      // the heading is turned into the wind by the crab angle (o.wind = { x, y } in m/s, the way it blows; none is none)
+      const crab = o.wind && p.speed > 5 ? normAngle(Math.atan2(p.speed * Math.sin(p.heading) + o.wind.y, p.speed * Math.cos(p.heading) + o.wind.x) - p.heading) : 0;
+      const want = normAngle(st.heading + join - crab);
       goal = { x: p.x + Math.cos(want) * 1000, y: p.y + Math.sin(want) * 1000 };
       alt = along < PLANE_LAND.glideFrom ? clamp((PLANE_LAND.glideFrom - along) * PLANE_LAND.glide, 0, 50) : 0;
       vT = PLANE_LAND.vFinal;

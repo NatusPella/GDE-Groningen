@@ -26,6 +26,7 @@ const Ga = await imp('garages');
 const Co = await imp('collision');
 const Un = await imp('util');
 const TL = await imp('trafficlaw');
+const PF = await imp('planeflight');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
@@ -408,6 +409,8 @@ async function flyStep(s) {
     o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: stripSpec.x, y: stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec, phase: mem.landPhase || null };
   }
   if (!o) { releaseFly(); return; }
+  // #955: the breeze pushes the plane over the ground; the landing localizer aims the ground track (botlogic PLANE_LAND)
+  try { o.wind = PF.windNu(world, v); } catch (e) { /* no wind known: the heading is the track */ }
   const want = L.planeKeys({ x: pl.x, y: pl.y, z: pl.z, heading: pl.heading, speed: pl.speed, pitch: pl.pitch, roll: pl.roll, vz: pl.vz, onGround: pl.onGround, throttle: pl.throttle }, o);
   applyFlyKeys(want);
   // the landing circuit keeps its phase between ticks (to the fix, or the final): see botlogic.planeKeys
