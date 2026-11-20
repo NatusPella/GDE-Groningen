@@ -334,7 +334,7 @@ export const SURFACES = {
   diagnose: { files: ['gpudiag.js'], zone: 'B', p: P1, own: 'het venster Technische info (Instellingen > Beeld): de speler opent het zelf en sluit het weer' },
   invoer: { files: ['input.js', 'touch.js', 'aimassist.js'], own: 'invoer en richtkruis; vragen de aandacht niet' },
   dev: { files: ['storydev.js', 'storytest.js', 'testmenu.js', 'padtest.js', 'trailer.js'], own: 'ontwikkel- en promohulpen; niet voor de speler' },
-  effect: { files: ['postfx3d.js', 'drunk.js'], own: 'schermeffect zonder tekst (flits, kleur); geen informatie' },
+  effect: { files: ['postfx3d.js', 'drunk.js', 'gpuherstel.js'], own: 'schermeffect zonder tekst (flits, kleur); geen informatie; gpuherstel.js is de donkere sluier als de beeldkaart even wegvalt' },
 };
 
 // The P scale and the zone of a surface: its own, else those of its card kinds (the most urgent / the first).

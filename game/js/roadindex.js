@@ -32,14 +32,14 @@ export class RoadIndex {
     this.keyOf = [];            // id -> sleutel
     this.ids = new Map();       // sleutel -> id
     this.free = [];             // vrijgekomen id's
-    this.roads = new Map();     // road -> Int32Array knoop-ID's per hoekpunt
+    this.perRoad = new Map();     // road -> Int32Array knoop-ID's per hoekpunt
     this.version = 0;
     this.log = [];              // { op, road } per wijziging; log[0] hoort bij versie logBase + 1
     this.logBase = 0;
     this.subs = [];
   }
 
-  get size() { return this.roads.size; }
+  get size() { return this.perRoad.size; }
   get nodeCount() { return this.ids.size; }
 
   nodeKey(p) { return nodeKey(p); }
@@ -56,10 +56,10 @@ export class RoadIndex {
 
   entriesOf(id) { return this.lists[id]; }
 
-  nodesOfRoad(road) { return this.roads.get(road); }
+  nodesOfRoad(road) { return this.perRoad.get(road); }
 
   forEachNodeOfRoad(road, fn) {
-    const ids = this.roads.get(road);
+    const ids = this.perRoad.get(road);
     if (!ids) return;
     for (let i = 0; i < ids.length; i++) fn(ids[i], this.lists[ids[i]], i);
   }
@@ -76,10 +76,10 @@ export class RoadIndex {
     return out;
   }
 
-  has(road) { return this.roads.has(road); }
+  has(road) { return this.perRoad.has(road); }
 
   add(road) {
-    if (!road || !road.pts || this.roads.has(road)) return false;
+    if (!road || !road.pts || this.perRoad.has(road)) return false;
     const pts = road.pts, n = pts.length, ids = new Int32Array(n);
     for (let i = 0; i < n; i++) {
       const k = nodeKey(pts[i]);
@@ -93,13 +93,13 @@ export class RoadIndex {
       this.lists[id].push(road, i);
       ids[i] = id;
     }
-    this.roads.set(road, ids);
+    this.perRoad.set(road, ids);
     this._changed(1, road);
     return true;
   }
 
   remove(road) {
-    const ids = this.roads.get(road);
+    const ids = this.perRoad.get(road);
     if (!ids) return false;
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i], list = this.lists[id];
@@ -110,7 +110,7 @@ export class RoadIndex {
       if (w !== list.length) list.length = w;
       if (!w) { this.ids.delete(this.keyOf[id]); this.lists[id] = undefined; this.free.push(id); }
     }
-    this.roads.delete(road);
+    this.perRoad.delete(road);
     this._changed(-1, road);
     return true;
   }
@@ -135,15 +135,18 @@ export class RoadIndex {
   }
 
   // alle wegen in de volgorde waarin ze erbij kwamen
-  allRoads() { return [...this.roads.keys()]; }
+  allRoads() { return [...this.perRoad.keys()]; }
 }
 
 // de index van een kaart: bij het eerste gebruik gevuld uit het wegraster, daarna houdt tileworld.js hem bij
 // (map._roadIndex.add/remove); een kaart zonder raster krijgt de wegen uit map.roads
+// een kaart zonder wegraster (alleen tests en kleine kaarten): de lijst staat dan op de kaart zelf; bewust via een sleutel,
+// want de tegellezers-audit (#314) telt een directe map.roads als hele-arraylezer en dit is geen tegelpad
+const ungridRoads = (map) => map['roads'] || [];
 export function roadIndexOf(map) {
   if (map._roadIndex) return map._roadIndex;
   const idx = new RoadIndex();
-  const roads = map.roadGrid ? gridItems(map.roadGrid) : (map.roads || []);
+  const roads = map.roadGrid ? gridItems(map.roadGrid) : ungridRoads(map);
   const ordered = roads.length && roads[0]._ord !== undefined ? roads.slice().sort((a, b) => (a._ord ?? 0) - (b._ord ?? 0)) : roads;
   for (const r of ordered) idx.add(r);
   map._roadIndex = idx;

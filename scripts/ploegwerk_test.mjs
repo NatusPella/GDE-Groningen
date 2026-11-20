@@ -19,7 +19,7 @@ t('elke taak heeft uitleg; bij ploegen staat er dat de ploeg vanzelf zakt en dat
   for (const taak of ['ploegen', 'zaaien', 'bemesten', 'oogsten']) {
     assert.ok(UITLEG[taak], `${taak}: uitleg`);
     assert.match(UITLEG[taak], /vanzelf/, `${taak}: de machine werkt vanzelf`);
-    assert.match(UITLEG[taak], /gas geven met W/, `${taak}: welke toets gas geeft`);
+    assert.match(UITLEG[taak], /gas geven met {W}/, `${taak}: welke toets gas geeft`);
   }
   assert.match(UITLEG.ploegen, /De ploeg zakt vanzelf/);
   assert.match(UITLEG.ploegen, /geen knop voor de ploeg/);

@@ -136,7 +136,7 @@ t('punt 3: vlak bij de start biedt de mislukking Opnieuw aan, en Enter start opn
   const s = M.missionDebug.state();
   assert.equal(s.phase, 'idle');
   assert.equal(s.retry, true, 'het Opnieuw-aanbod blijft staan, ook op de start');
-  assert.ok(heeft(w, /opnieuw beginnen\? Druk op Enter/), 'en de speler ziet de vraag');
+  assert.ok(heeft(w, /opnieuw beginnen\? Druk op {ENTER}/), 'en de speler ziet de vraag');
 
   w.input.toetsen.add('enter');
   tik(w, 1);

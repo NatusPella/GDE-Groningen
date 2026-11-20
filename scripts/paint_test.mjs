@@ -5,6 +5,7 @@
 import './node3d.mjs';
 
 const THREE = await import('three');
+(await import('../game/js/worldpalette.js')).setWereldMeng(0); // de test vergelijkt ruwe lakkleuren: zonder de wereldmenging
 await import('../game/js/player.js');
 const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 const { PAINTS } = await import('../game/js/shops.js');

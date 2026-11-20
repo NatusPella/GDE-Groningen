@@ -31,7 +31,7 @@ ok(currentStep(st) === null, 'geen stap meer na afloop');
 ok(stepPractice(st, {}).advanced === null, 'klaar blijft klaar');
 
 // teksten: Nederlands, geen merken, tokens bekend
-const KNOWN = new Set(['WASD', 'SHIFT', 'M', 'E', 'ESC']);
+const KNOWN = new Set(['WASD', 'SHIFT', 'M', 'E', 'ESC', 'MOUSE']);
 for (const s of [...STEPS, DONE]) {
   ok(s.title && s.body, 'tekst: ' + (s.id || 'klaar'));
   for (const m of s.body.matchAll(/\{(\w+)\}/g)) ok(KNOWN.has(m[1]), 'token ' + m[1]);

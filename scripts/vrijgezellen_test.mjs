@@ -4,6 +4,7 @@
 import './node3d.mjs';
 
 const THREE = await import('three');
+(await import('../game/js/worldpalette.js')).setWereldMeng(0); // de test vergelijkt ruwe kleuren: zonder de wereldmenging
 const V = await import('../game/js/vrijgezellen.js');
 const SL = await import('../game/js/streetlife.js');
 const P = await import('../game/js/models3d_people.js');

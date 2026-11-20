@@ -22,7 +22,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 173 modules, 706 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| kaart | hudcards.js | 175 modules, 719 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
 | prestatie | achievements.js | 33 modules, 97 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
@@ -55,7 +55,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | diagnose | gpudiag.js | beslist zelf | P1 | B | nee: het venster Technische info (Instellingen > Beeld): de speler opent het zelf en sluit het weer |  |
 | invoer | input.js, touch.js, aimassist.js | beslist zelf | n.v.t. | - | nee: invoer en richtkruis; vragen de aandacht niet | Blijft; vraagt geen aandacht. |
 | dev | storydev.js, storytest.js, testmenu.js en 2 andere | beslist zelf | n.v.t. | - | nee: ontwikkel- en promohulpen; niet voor de speler | Blijft; hoort niet in het kritieke pad (zie #109). |
-| effect | postfx3d.js, drunk.js | 3 modules, 3 aanroepen | n.v.t. | - | nee: schermeffect zonder tekst (flits, kleur); geen informatie | Blijft; geen informatie, geen kanaal. |
+| effect | postfx3d.js, drunk.js, gpuherstel.js | 3 modules, 3 aanroepen | n.v.t. | - | nee: schermeffect zonder tekst (flits, kleur); geen informatie; gpuherstel.js is de donkere sluier als de beeldkaart even wegvalt | Blijft; geen informatie, geen kanaal. |
 
 ## Wat de speler ziet
 

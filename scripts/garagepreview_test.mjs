@@ -19,6 +19,7 @@ import './node3d.mjs';
 import { readFileSync } from 'node:fs';
 
 const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+(await import('../game/js/worldpalette.js')).setWereldMeng(0); // de test vergelijkt ruwe lakkleuren: zonder de wereldmenging
 const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 const { VEHICLE_STOCK, PAINTS } = await import('../game/js/shops.js');
 const G = await import('../game/js/garagepics.js');
