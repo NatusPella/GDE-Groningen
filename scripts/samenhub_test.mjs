@@ -410,7 +410,7 @@ const lees = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url),
 
 await t('het pauzemenu geeft Escape eerst aan de hub, vóór de gewone stap terug', () => {
   const pm = lees('pausemenu.js');
-  const goBack = pm.slice(pm.indexOf('function goBack()'), pm.indexOf('function goBack()') + 900);
+  const goBack = pm.slice(pm.indexOf('function goBack()'), pm.indexOf('function goBack()') + 1600);
   assert.match(goBack, /samenHubTerug\(\)/, 'goBack delegeert naar de hub');
   assert.ok(goBack.indexOf('samenHubTerug()') < goBack.indexOf('data-restart-confirm'), 'en doet dat vóór het sluiten van het menu');
   assert.match(goBack, /pref\.sub\.spel === 'samen' && \(pref\.sub\.samen \|\| 'samen'\) !== 'spelers'/, 'maar niet op het tabblad Spelers, waar geen hub staat');
