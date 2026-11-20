@@ -11,7 +11,7 @@ import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailab
 import { makeTick } from './tickbudget.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
-import { gateOn } from './coopgate.js';
+import { gateOn } from './coopgate.js'; import { markeerStartStap } from './coopstartmeting.js';
 import { startMeerijden } from './reisrit.js';
 import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
@@ -251,7 +251,7 @@ const GOALS = {
           missionActive: isMissionActive(), cinematicActive: isCinematicActive(), startActive: isCinematicActive('start'), sinceCinematicS: sinceCinematic(),
           narrativeBusy: narrativeBusy(), pigeon: !!world.pigeonMode, respawn: !!world.pendingRespawn, dataReady: storyDataReady(),
         });
-        if (!blockers.length) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
+        if (!blockers.length) { b.phase = 'play'; markeerStartStap(world, 'opening-speelt'); if (!playOpening(b)) b.phase = 'done'; }
         else if (world.time - rt.enteredAt > 40) {
           // #718: niet meer definitief overslaan als de wereld even niet rustig wordt (laden, rijden bij de
           // start): de opening blijft klaarstaan en wordt later alsnog geprobeerd. Wel één regel in de

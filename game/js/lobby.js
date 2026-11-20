@@ -388,7 +388,7 @@ export function jijRegel(s, lijst, ik) {
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
 // Het kamercodeveld toont wat je zelf typte (invoerDraft), ook na een nieuwe tekening; zonder eigen
 // invoer valt het terug op de laatst gebruikte code.
-const invoerWaarde = (s) => (s.invoerDraft != null ? s.invoerDraft : (s.caps.laatsteCode || ''));
+const invoerWaarde = (s) => (s.invoerDraft != null ? s.invoerDraft : (/^GDE2-/i.test(s.caps.laatsteCode || '') ? '' : (s.caps.laatsteCode || ''))); // een directe code bevat een IP-adres: nooit in een veld tonen (constitutie 10)
 // Wat het verbindscherm zegt: eerst naar welke kamer er gezocht wordt, daarna dat er nog niets terugkwam, en na ruim 20 seconden dat een
 // typefout in de code geen foutmelding geeft maar gewoon een kamer die niet bestaat (#985). Een tik is 4 seconden.
 export const VERBIND_TIK_MS = 4000;
@@ -541,7 +541,7 @@ export function view(s) {
       return V({
         title: 'Verbinding weg',
         lines: [
-          host ? `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.` : `${wie} is niet meer bereikbaar. De wereld van ${wie} staat stil tot jij weer verbonden bent; zolang je wegblijft gebeurt er niets in jullie spel.`,
+          host ? `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.` : `${wie} is niet meer bereikbaar. De wereld van ${wie === 'De ander' ? 'de ander' : wie} staat stil tot jij weer verbonden bent; zolang je wegblijft gebeurt er niets in jullie spel.`,
           host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : s.bron ? 'Kies Opnieuw verbinden: het spel zoekt de sessie weer op in de lijst. Of stop met samen spelen; je komt terug waar je was.' : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }, { act: 'diag', label: 'Verbinding testen' }],

@@ -46,11 +46,12 @@ const EXTRA_ARGS = (process.env.GDE_COOP_ELECTRON_ARGS || '').split(',').map((x)
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
 const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
+const SPELERS_ELECTRON = GASTEN >= 3 ? ['host', 'gast', 'gast2', 'gast3'] : ['host', 'gast', 'gast2']; // #1011: ook de derde Electron-gast heeft een programma (anders eindigt hij meteen en valt hij weg)
 
 // ---------------------------------------------------------------- programma per instantie (seconden na "iedereen erbij")
 const P = {
   basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
-  net: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [
+  net: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [
     [0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: [SECOND] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }],
     me === 'gast' ? [88, 'touch', { s: 12 }] : [88, 'kijk', { s: 12 }],   // de Electron-gast 'gast' heeft aanraakbediening (touch=1)
     me === 'host' ? [102, 'uitvalHost', { s: 8 }] : me === 'gast' ? [102, 'uitval', { s: 8, wie: 'gast' }] : [102, 'wacht', { s: 28 }],
@@ -60,15 +61,23 @@ const P = {
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
   lijst: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
-  verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 3600)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
-  opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
-  gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
+  verhaal: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 3600)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
+  opening: flag('host-save') ? Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
+  gastacties: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
   uitelkaar: { host: [[0, 'wacht', { s: 6 }], [8, 'uitelkaar', { s: 20 }], [150, 'stopHost', {}]] }, // #429: twee figuren los van de gastheer (500 m en Delfzijl) in dezelfde sessie
   bestuur: { host: [[0, 'wacht', { s: 6 }], [8, 'bestuur', { s: Number(arg('bestuur-s', 150)) }], [8 + Number(arg('bestuur-s', 150)) + 6, 'stopHost', {}]] }, // #434: twee headless gasten bestuurden een auto, misdaad en politie
   meerijden: { host: [[0, 'wacht', { s: 6 }], [8, 'meerijden', { s: Number(arg('meerijden-s', 55)) }], [8 + Number(arg('meerijden-s', 55)) + 6, 'stopHost', {}]] }, // #525: een headless gast stapt in bij de auto van de gastheer, rijdt en stapt naast de deur weer uit
   wedstrijd: { host: [[0, 'wacht', { s: 6 }], [8, 'wedhost', { s: 260 }], [280, 'stopHost', {}]] }, // #443: de host rijdt een race tegen twee headless gasten (de een stopt halverwege), uitslag, beloning en rematch
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
   ritreis: { host: [[0, 'wacht', { s: 8 }], [10, 'ritreis', { wie: 'host', soort: 'taxi', naar: 'Winsum', s: 100 }], [112, 'ritreis', { wie: 'gast', soort: 'taxi', naar: 'Winsum', s: 100 }], [214, 'stopHost', {}]], gast: [[0, 'wacht', { s: 8 }], [10, 'ritreis', { wie: 'host', soort: 'taxi', naar: 'Winsum', s: 100 }], [112, 'ritreis', { wie: 'gast', soort: 'taxi', naar: 'Winsum', s: 100 }]] }, // #983: een lokale taxirit van de host en daarna van een gast (de kaart weigert dat een gast; hier direct), host + gast + twee headless gasten
+  vier: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: een echte vierspelerssessie met vier Electron-vensters: spelerslijst, rondlopen, een bijbaan door een gast, een wegvallende gast, de late aansluiter blijft in de lijst
+    [0, 'wacht', { s: 6 }], [8, 'tab', { name: 'vier-tab' }], [12, 'spelersmenu', { name: 'vier-spelers' }], [20, 'loop', { s: 10 }],
+    [34, 'gastbijbaan', { s: 40, wie: 'gast' }],
+    me === 'gast2' ? [78, 'uitval', { s: 8, wie: 'gast2' }] : [78, 'wacht', { s: 28 }],
+    me === 'host' ? [108, 'uitvalHost', { s: 0, wie: 'gast2' }] : [108, 'wacht', { s: 5 }],
+    [116, 'tab', { name: 'vier-tab-na' }], [124, 'wacht', { s: 6 }],
+    ...(me === 'host' ? [[134, 'stopHost', {}]] : []),
+  ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
@@ -619,7 +628,7 @@ if (SUITE === 'net') {
     // spel, geen hostrecht (docs/COOP-GAST.md). De host hoort géén wachtscherm te krijgen zolang de
     // lopende opdracht die speler niet nodig heeft (holdBeleid) — daarom bewaken we bij de host alleen
     // dat hij het wegvallen in de lijst zag, niet dat hij pauzeerde.
-    check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm met pauze: ' + JSON.stringify(hh));
+    check(hh && hh.hold && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm (de pauze volgt uit coopHold in de volgende frame, main.js): ' + JSON.stringify(hh));
     check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is na "Opnieuw verbinden" niet terug op plek 1: ' + JSON.stringify(hk));
     if (hhh && hhh.holdGezien) check(hhh.lostGezien, 'herverbinden: de host zag het wegvallen niet in de lijst: ' + JSON.stringify(hhh));
     else note('herverbinden: de gast was binnen 5 s terug, de host zag geen wegvallen (de uitval van 8 s hierboven dekt het wegvallen van de host)');

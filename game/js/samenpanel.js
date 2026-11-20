@@ -2,6 +2,7 @@
 // Hier komen de uitnodiging (host) en het aansluiten (gast) samen; geen keuze bij
 // Nieuw spel of Doorgaan. Dit is lijm tussen lobbyui.js en coopnet.js; niet in beeld bekeken.
 import { mountLobby } from './lobbyui.js';
+import { startStartMeting, markeerStartStap } from './coopstartmeting.js';
 import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers, vraagStart, vraagStop } from './coopnet.js';
 import { isSoloHost } from './coopsolo.js';
 import { fadeFlash } from './coophud.js';
@@ -129,7 +130,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     // #642: een gast kan het ook vragen; de gastheer opent dan het hek en de gast start bij het hek-bericht.
     startSpel: () => {
       const n = world.coopNet;
-      if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; openHek(world); if (world.addMessage) world.addMessage('Spel wordt gestart… even geduld, de wereld wordt geladen.', 8); } // alleen met minstens twee spelers; de melding blijft staan als het menu dicht is
+      if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; startStartMeting(world); openHek(world); markeerStartStap(world, 'hek-open'); if (world.addMessage) world.addMessage('Spel wordt gestart… even geduld, de wereld wordt geladen.', 8); } // alleen met minstens twee spelers; de melding blijft staan als het menu dicht is
       else setGate(false); // een gast: de ander startte
       sluit();
     },

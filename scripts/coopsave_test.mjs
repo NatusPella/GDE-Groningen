@@ -22,6 +22,18 @@ t('bewaart kamercodes en koppelcodes, geen rommel', () => {
   assert.equal(S.toSession(null, { code: '<script>alert(1)</script>' }).laatsteCode, '');
   assert.equal(S.toSession({ laatsteCode: 'K3J9D-8F2MN' }, {}).laatsteCode, '');
 });
+t('een directe code (met IP-adres) komt nooit in de opslag, alleen in het geheugen (constitutie 10, #1011)', () => {
+  const ls = new Mem(); const ip = 'GDE2-84.12.34.56:41000-ABCDEFGH-1A2B';
+  assert.equal(S.writeSession(ls, S.toSession(null, { code: ip })), true);
+  assert.ok(!/84\.12\.34\.56/.test(ls.getItem(KEYS.coopSession)), 'geen IP-adres op schijf');
+  assert.equal(S.readSession(ls).laatsteCode, ip, 'opnieuw verbinden werkt binnen deze run');
+  S.writeSession(ls, S.toSession(null, { code: 'K3J9D-8F2MN' }));
+  assert.equal(S.readSession(ls).laatsteCode, 'K3J9D-8F2MN', 'een kamercode vervangt het adres');
+  S.clearSession(ls); assert.equal(S.readSession(ls).laatsteCode, '');
+  const oud = new Mem(); oud.setItem(KEYS.coopSession, JSON.stringify({ v: 1, laatsteCode: ip }));
+  assert.equal(S.readSession(oud).laatsteCode, '', 'wat een oude versie bewaarde, wordt niet getoond');
+  assert.ok(!/84\.12/.test(oud.getItem(KEYS.coopSession)), 'en van schijf gehaald');
+});
 t('schrijven, lezen, wissen; solosleutel onaangeroerd', () => {
   const ls = new Mem(); ls.setItem(KEYS.save, 'SOLO');
   assert.equal(S.writeSession(ls, S.toSession(null, { code: 'K3J9D-8F2MN' })), true);

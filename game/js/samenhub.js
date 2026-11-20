@@ -143,7 +143,7 @@ export function stapMetWie({ sessie = null, gasten = 0, laatsteCode = '', beslot
   } else {
     rijen.push({ soort: 'leeg', tekst: 'Er is nog geen sessie. Kies eerst bij Waar speel je hoe je samen speelt.' });
   }
-  if (laatsteCode) rijen.push({ soort: 'eerder', tekst: `De code waar je het laatst mee meedeed: ${laatsteCode}.` });
+  if (laatsteCode) rijen.push({ soort: 'eerder', tekst: /^GDE2-/i.test(laatsteCode) ? 'Je deed eerder mee via een direct adres; dat adres tonen we niet.' : `De code waar je het laatst mee meedeed: ${laatsteCode}.` }); // een directe code bevat een IP-adres (constitutie 10)
   const knoppen = sessie
     ? [{ act: 'spelers', label: 'Spelers' }, { act: 'lobby', label: 'Uitnodigen of aansluiten' }, { act: 'volgende', label: 'Verder naar Start', primary: true }]
     : besloten
