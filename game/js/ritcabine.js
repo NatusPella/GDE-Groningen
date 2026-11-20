@@ -14,7 +14,7 @@ export const TAXI_OOG = { x: -0.4, y: 1.26, z: 0.36 };   // het oog van de passa
 export const TAXI_VOORRUIT = { x0: 1.0, x1: 0.32 };       // onderkant (de bak) en bovenkant (de kop) van de voorruit
 
 const FLOOR = 0x2b2e33, PANEEL = 0x3b4048, DASH = 0x2d3036, DASH_TOP = 0x3a3f46, STOEL = 0x4a4f58, STOEL_RUG = 0x3d424a;
-const HEMEL = 0xd6d2c6, STIJL = 0x2a2d33, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
+const HEMEL = 0xe8e4d8, STIJL = 0x2a2d33, TAXI_GEEL = 0xe8c13a, RUBBER = 0x1f2226, KNOP = 0x8a8f98;
 const HUID = 0xd9a98a, TRUI = 0x2f4a6b, BROEK = 0x23262e, PET = 0x2a2f38;
 export const METER_AAN = 0xffb02e, METER_UIT = 0x2e2412;
 
@@ -255,12 +255,12 @@ export function beeldDekking(delen, oog, { yaw = 0, pitch = 0, fov = 70, aspect 
 // KADER_D): een wand met een raam, de raamstijl, een vensterbank met een tafeltje en de rug van de stoel ervoor. Het zit
 // op de camera (niet op de trein), want de camera zit bij het raam; wat door het raam valt is de echte polder.
 export const KADER_D = 1.0;
-const T_WAND = 0xd9d7cf, T_RUBBER = 0x4a4e55, T_BANK = 0xb9b6ab, T_STOEL = 0x2f5d8a, T_STOEL_DONKER = 0x233f5d, T_HOUT = 0x8a6a45, T_REK = 0xbfbcb2, T_DONKER = 0x2b2f36;
+const T_WAND = 0xd9d7cf, T_RUBBER = 0x5c616a, T_BANK = 0xb9b6ab, T_STOEL = 0x2f5d8a, T_STOEL_DONKER = 0x233f5d, T_HOUT = 0x8a6a45, T_REK = 0xbfbcb2, T_DONKER = 0x2b2f36;
 export const KADER_RAAM = { x0: -0.86, x1: 0.88, y0: -0.36, y1: 0.44 }; // de opening, op afstand KADER_D, bij een beeldhoek van 62 graden
 
 export function treinKaderDelen() {
   const d = -KADER_D, R = KADER_RAAM;
-  const rand = 0.06;
+  const rand = 0.045;
   const D = [];
   const vlak = (x0, x1, y0, y1, c, z = d, dik = 0.03) => D.push(doos([(x0 + x1) / 2, (y0 + y1) / 2, z], [x1 - x0, y1 - y0, dik], c));
   const wijd = 2.4, hoog = 1.4; // ruim voorbij het beeld

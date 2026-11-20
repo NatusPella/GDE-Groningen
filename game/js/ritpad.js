@@ -214,15 +214,15 @@ export function treinCamera(car, dir, view) {
   return { position: { x: car.x + nx * 1.9 - fx * 2, y: car.y + ny * 1.9 - fy * 2, z: z0 + 2.5 }, lookAt: { x: car.x + nx * 40 + fx * 22, y: car.y + ny * 40 + fy * 22, z: z0 + 1.6 }, fov: 62 };
 }
 
-// Welk beeld hoort bij welk moment: de eerste en de laatste paar seconden naast de trein (je ziet hem wegrijden
-// en binnenrollen), de rest bij het raam.
-export const ZIJ_S = 3.5;
+// Welk beeld hoort bij welk moment: je zit vanaf het begin in de coupé bij het raam (het perron schuift weg, het kader van
+// ritcabine.js zit voor de lens) en de laatste paar seconden kijk je van buiten naar de trein die het perron binnenrolt.
+// Een buitenopname aan het begin stond onder de overkapping van het vertrekstation (beeldcheck #926).
+export const ZIJ_S = 2;
 export function treinBeeld(plan, stand) {
   if (stand.fase === 'rijden' || stand.fase === 'aankomst') {
-    if (plan.kort) return stand.fase === 'aankomst' || stand.t > plan.rijS - ZIJ_S || stand.t < ZIJ_S ? 'zij' : 'raam';
+    if (plan.kort) return stand.fase === 'aankomst' || stand.t > plan.rijS - ZIJ_S ? 'zij' : 'raam';
     return 'zij';
   }
-  if (stand.fase === 'open') return stand.t < ZIJ_S ? 'zij' : 'raam';
   if (stand.fase === 'sluit') return stand.t > plan.openS + plan.houdS + plan.sluitS - ZIJ_S ? 'zij' : 'raam';
   return 'raam';
 }

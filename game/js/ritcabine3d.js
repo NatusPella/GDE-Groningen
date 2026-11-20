@@ -11,7 +11,7 @@ let lambert = null, basic = null, kaderMat = null;
 function materialen() {
   if (!lambert) {
     // zoals carinterior.js: één gedeeld materiaal dat de cabine uit de schaduw tilt
-    lambert = markShared(new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x20232a }));
+    lambert = markShared(new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x30343c }));
     // het scherm van de meter brandt zelf: onverlicht, ook 's nachts leesbaar (zoals treininterieur.js)
     basic = markShared(new THREE.MeshBasicMaterial({ vertexColors: true }));
     // het treinkader staat voor de lens: geen diepte, als laatste getekend

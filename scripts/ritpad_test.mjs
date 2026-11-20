@@ -215,11 +215,11 @@ t('de boog op het spoor volgt de rijrichting en blijft op het spoor', () => {
   assert.equal(P.spoorBoog(terug, 99999), 0);
 });
 
-t('de treinrit gebruikt dezelfde tijdsplanning en wisselt de opnamen: zij, raam, zij', () => {
+t('de treinrit gebruikt dezelfde tijdsplanning en wisselt de opnamen: raam, zij', () => {
   const plan = P.ritTijdplan(11700, { mode: 'trein', etaS: 1100 });
   assert.equal(plan.kort, false);
   assert.ok(plan.totaalS >= 18 && plan.totaalS <= 30);
-  assert.equal(P.treinBeeld(plan, P.ritStand(plan, 0.5)), 'zij', 'de trein rijdt weg: naast de trein');
+  assert.equal(P.treinBeeld(plan, P.ritStand(plan, 0.5)), 'raam', 'de trein rijdt weg: je zit al in de coupé (geen opname onder de overkapping van het station)');
   assert.equal(P.treinBeeld(plan, P.ritStand(plan, 6)), 'raam');
   assert.equal(P.treinBeeld(plan, P.ritStand(plan, plan.openS + plan.houdS + plan.sluitS - 0.5)), 'zij', 'de trein rolt binnen');
   assert.equal(P.treinBeeld(plan, P.ritStand(plan, plan.totaalS)), 'zij', 'bij de aankomst staat hij naast het perron');
