@@ -51,6 +51,14 @@
 "src": "anita/breng_geesjes_zestig_eieren_heel_7dec031d.mp3",
 "dur": 10.28
 },
+"Anita|Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.": {
+"src": "anita/brug_acht_negen_en_tien_niet_te__4fa29048.mp3",
+"dur": 5.62
+},
+"Anita|Brug elf. Aan de overkant staat de limo met de gouden koffer. De brug draait niet voor een limo.": {
+"src": "anita/brug_elf_aan_de_overkant_staat_d_0dac6d0e.mp3",
+"dur": 5.96
+},
 "Anita|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
 "src": "anita/camera_s_op_herhaling_nu_de_acht_5c076a9e.mp3",
 "dur": 3.55
@@ -86,6 +94,10 @@
 "Anita|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
 "src": "anita/de_decorauto_blijft_hier_femke_l_adcd5e7d.mp3",
 "dur": 4.24
+},
+"Anita|De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.": {
+"src": "anita/de_fanfare_is_weg_jelle_kocht_ha_c8aebe48.mp3",
+"dur": 7.69
 },
 "Anita|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
 "src": "anita/de_navigatie_stuurt_je_om_via_de_db7edfb2.mp3",
@@ -579,6 +591,14 @@
 "src": "tammo/breng_geesjes_zestig_eieren_heel_4196b08a.mp3",
 "dur": 9.75
 },
+"Tammo|Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.": {
+"src": "tammo/brug_acht_negen_en_tien_niet_te__307c9ec5.mp3",
+"dur": 5.97
+},
+"Tammo|Brug elf. Aan de overkant staat de limo met de gouden koffer. De brug draait niet voor een limo.": {
+"src": "tammo/brug_elf_aan_de_overkant_staat_d_4cb80d6a.mp3",
+"dur": 6.35
+},
 "Tammo|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
 "src": "tammo/camera_s_op_herhaling_nu_de_acht_be674738.mp3",
 "dur": 3.48
@@ -614,6 +634,10 @@
 "Tammo|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
 "src": "tammo/de_decorauto_blijft_hier_femke_l_6c9ff5d3.mp3",
 "dur": 3.64
+},
+"Tammo|De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.": {
+"src": "tammo/de_fanfare_is_weg_jelle_kocht_ha_3dce9f68.mp3",
+"dur": 7.96
 },
 "Tammo|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
 "src": "tammo/de_navigatie_stuurt_je_om_via_de_205a960a.mp3",

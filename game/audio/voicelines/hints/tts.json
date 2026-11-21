@@ -138,6 +138,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-20"
 },
+"Anita|Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.": {
+"src": "anita/brug_acht_negen_en_tien_niet_te__4fa29048.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
+"Anita|Brug elf. Aan de overkant staat de limo met de gouden koffer. De brug draait niet voor een limo.": {
+"src": "anita/brug_elf_aan_de_overkant_staat_d_0dac6d0e.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Brug elf. Aan de overkant staat de limo met de gouden koffer. De brug draait niet voor een limo.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Anita|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
 "src": "anita/camera_s_op_herhaling_nu_de_acht_5c076a9e.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -234,6 +256,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.": {
+"src": "anita/de_fanfare_is_weg_jelle_kocht_ha_c8aebe48.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
 },
 "Anita|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
 "src": "anita/de_navigatie_stuurt_je_om_via_de_db7edfb2.mp3",
@@ -1547,6 +1580,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-20"
 },
+"Tammo|Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.": {
+"src": "tammo/brug_acht_negen_en_tien_niet_te__307c9ec5.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "Brug acht, negen en tien. Nait te vroeg: n dichte brug is dicht.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
+"Tammo|Brug elf. Aan de overkant staat de limo met de gouden koffer. De brug draait niet voor een limo.": {
+"src": "tammo/brug_elf_aan_de_overkant_staat_d_4cb80d6a.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "Brug elf. Aan de overkant stait de limo mit de gouden koffer. De brug draait nait veur n limo.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: aanwijzend, gehaast.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Tammo|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
 "src": "tammo/camera_s_op_herhaling_nu_de_acht_be674738.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1638,6 +1693,17 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Tammo|De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.": {
+"src": "tammo/de_fanfare_is_weg_jelle_kocht_ha_3dce9f68.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "De fanfare is weg: Jelle kocht heur veur zien optocht. Wubbo fluit: ain keer is open, twij keer is dicht.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
 },
 "Tammo|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
 "src": "tammo/de_navigatie_stuurt_je_om_via_de_205a960a.mp3",
