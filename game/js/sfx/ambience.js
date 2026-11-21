@@ -113,7 +113,7 @@ export function initAmbience(kit, world) {
       filter.frequency.value = 20000;
       filter.connect(gain);
     }
-    beds[key] = { ...d, gain, filter, panner, src: null, level: 0, target: 0, quietFor: 0, fresh: true, occGain: 1 };
+    beds[key] = { ...d, key, gain, filter, panner, src: null, level: 0, target: 0, quietFor: 0, fresh: true, occGain: 1 };
   }
   K.bank.warm(Object.values(BED_DEFS).map((d) => d.buf).filter(Boolean));
 
@@ -145,6 +145,7 @@ function startBed(b) {
   src.playbackRate.value = bedStartRate(Math.random());   // een lus start elke keer met een iets andere toonhoogte (+-1,5 procent)
   src.connect(b.filter || b.gain);
   src.start(now(), Math.random() * buffer.duration);
+  if (K.track) K.track('bed:' + b.key, src, { max: 1 });   // ruisregister: een bed hoort er hooguit één te hebben
   b.src = src;
 }
 
@@ -159,6 +160,10 @@ function driveBeds(dt) {
   const t = now();
   for (const key in beds) {
     const b = beds[key];
+    // een NaN-doel (een plaatsmeting die NaN geeft) bleef in b.level hangen en liet setTargetAtTime gooien: het bed ging nooit meer uit
+    if (!Number.isFinite(b.target)) b.target = 0;
+    if (!Number.isFinite(b.level)) b.level = 0;
+    if (!Number.isFinite(b.occGain)) b.occGain = 1;
     if (b.target > 0.002 && !b.src) startBed(b);
     const rate = b.target > b.level ? 0.7 : 0.45;
     b.level += (b.target - b.level) * Math.min(1, dt * rate);
