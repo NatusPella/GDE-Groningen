@@ -6211,9 +6211,17 @@
 "src": "tammo/iemand_uit_friesland_dat_was_zij_6d699d17.mp3",
 "dur": 3.08
 },
+"Tammo|\"Iemand uit Friesland.\" Dat was zijn oma.": {
+"src": "tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3",
+"dur": 2.44
+},
 "Tammo|\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.": {
 "src": "tammo/tige_tank_foar_de_auto_j_de_fjor_ad0e71dc.mp3",
 "dur": 5.01
+},
+"Tammo|\"Tige tank foar de auto. – J.\" De snackwagen. Zonder Fjord.": {
+"src": "tammo/tige_tank_foar_de_auto_j_de_snac_bece8bc9.mp3",
+"dur": 4.6
 },
 "Tammo|\"Vriend.\"": {
 "src": "tammo/vriend_bc3f134f.mp3",
@@ -6323,9 +6331,17 @@
 "src": "tammo/daar_was_ik_al_bang_voor_934709fb.mp3",
 "dur": 1.29
 },
+"Tammo|Daarna iets met jou.": {
+"src": "tammo/daarna_iets_met_jou_08fdcd3e.mp3",
+"dur": 1.16
+},
 "Tammo|Daarom.": {
 "src": "tammo/daarom_ff18d48b.mp3",
 "dur": 0.55
+},
+"Tammo|Dan de kade.": {
+"src": "tammo/dan_de_kade_7aff1578.mp3",
+"dur": 1.07
 },
 "Tammo|Dan eerst het Loket.": {
 "src": "tammo/dan_eerst_het_loket_586dc693.mp3",
@@ -6355,6 +6371,10 @@
 "src": "tammo/dan_ken_je_het_slecht_04ba58d1.mp3",
 "dur": 1.22
 },
+"Tammo|Dan krijgt de frietwagen een nieuwe lamp.": {
+"src": "tammo/dan_krijgt_de_frietwagen_een_nie_8a2c5b1e.mp3",
+"dur": 2.19
+},
 "Tammo|Dan pakken we hem in Veendam.": {
 "src": "tammo/dan_pakken_we_hem_in_veendam_5ce9b4dc.mp3",
 "dur": 1.58
@@ -6363,6 +6383,10 @@
 "src": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_f1f6d7cc.mp3",
 "dur": 5.44
 },
+"Tammo|Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.": {
+"src": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3",
+"dur": 5.99
+},
 "Tammo|Dan zet ik mijn friteuse daar.": {
 "src": "tammo/dan_zet_ik_mijn_friteuse_daar_9f65225e.mp3",
 "dur": 1.56
@@ -6370,6 +6394,10 @@
 "Tammo|Dank je, Roelfien.": {
 "src": "tammo/dank_je_roelfien_909dd021.mp3",
 "dur": 1.03
+},
+"Tammo|Dans je mee?": {
+"src": "tammo/dans_je_mee_8a0a7d71.mp3",
+"dur": 0.87
 },
 "Tammo|Dat bedoel ik.": {
 "src": "tammo/dat_bedoel_ik_8151fda0.mp3",
@@ -6415,6 +6443,10 @@
 "src": "tammo/dat_is_de_wind_9e826567.mp3",
 "dur": 1.24
 },
+"Tammo|Dat is een eerlijke ruil.": {
+"src": "tammo/dat_is_een_eerlijke_ruil_538fc4bb.mp3",
+"dur": 1.45
+},
 "Tammo|Dat is een eind fietsen.": {
 "src": "tammo/dat_is_een_eind_fietsen_e10b80bc.mp3",
 "dur": 1.24
@@ -6422,6 +6454,10 @@
 "Tammo|Dat is een ja.": {
 "src": "tammo/dat_is_een_ja_90c7406a.mp3",
 "dur": 0.84
+},
+"Tammo|Dat is een pan met een verhaal.": {
+"src": "tammo/dat_is_een_pan_met_een_verhaal_b4ad0266.mp3",
+"dur": 1.65
 },
 "Tammo|Dat is een prioriteit.": {
 "src": "tammo/dat_is_een_prioriteit_aac6cc6b.mp3",
@@ -6438,6 +6474,10 @@
 "Tammo|Dat is vandaag mijn werk.": {
 "src": "tammo/dat_is_vandaag_mijn_werk_cb7e15fc.mp3",
 "dur": 1.27
+},
+"Tammo|Dat is veel.": {
+"src": "tammo/dat_is_veel_6de340a5.mp3",
+"dur": 1.01
 },
 "Tammo|Dat klinkt als thuis.": {
 "src": "tammo/dat_klinkt_als_thuis_2577a0b4.mp3",
@@ -6471,9 +6511,17 @@
 "src": "tammo/dat_weet_ze_5c3a8ab4.mp3",
 "dur": 0.96
 },
+"Tammo|Dat wist de hele flat nu ook.": {
+"src": "tammo/dat_wist_de_hele_flat_nu_ook_036f0bde.mp3",
+"dur": 1.55
+},
 "Tammo|Dat wist ik.": {
 "src": "tammo/dat_wist_ik_019f3db2.mp3",
 "dur": 0.78
+},
+"Tammo|Dat zeg je elke keer.": {
+"src": "tammo/dat_zeg_je_elke_keer_7af04035.mp3",
+"dur": 1.48
 },
 "Tammo|Dat zei hij in de modder ook.": {
 "src": "tammo/dat_zei_hij_in_de_modder_ook_944e0fc3.mp3",
@@ -6731,6 +6779,10 @@
 "src": "tammo/een_eierbal_en_nog_warm_ook_f434558b.mp3",
 "dur": 2.1
 },
+"Tammo|Een eierbal. Dat is anders.": {
+"src": "tammo/een_eierbal_dat_is_anders_e75b2145.mp3",
+"dur": 1.75
+},
 "Tammo|Een fatbike.": {
 "src": "tammo/een_fatbike_54cf4e6e.mp3",
 "dur": 1.59
@@ -6750,6 +6802,10 @@
 "Tammo|Een groot nat veld.": {
 "src": "tammo/een_groot_nat_veld_fde19033.mp3",
 "dur": 1.92
+},
+"Tammo|Een grote. Zodat jij hem ziet.": {
+"src": "tammo/een_grote_zodat_jij_hem_ziet_d9bbeb81.mp3",
+"dur": 2.3
 },
 "Tammo|Een hoed. Die ging zelf op pad.": {
 "src": "tammo/een_hoed_die_ging_zelf_op_pad_b86ead71.mp3",
@@ -6875,6 +6931,10 @@
 "src": "tammo/en_je_bent_nederlandse_bae45cc7.mp3",
 "dur": 1.15
 },
+"Tammo|En jij?": {
+"src": "tammo/en_jij_1ef5c630.mp3",
+"dur": 0.61
+},
 "Tammo|En nu een melkbus. Voor een paar dagen.": {
 "src": "tammo/en_nu_een_melkbus_voor_een_paar__4e0a112d.mp3",
 "dur": 2.33
@@ -6911,9 +6971,17 @@
 "src": "tammo/en_wist_je_het_35831ad9.mp3",
 "dur": 0.74
 },
+"Tammo|En?": {
+"src": "tammo/en_377e47bb.mp3",
+"dur": 0.51
+},
 "Tammo|Er staan alleen plaatjes in.": {
 "src": "tammo/er_staan_alleen_plaatjes_in_aebfe642.mp3",
 "dur": 1.76
+},
+"Tammo|Er stond geen naam op.": {
+"src": "tammo/er_stond_geen_naam_op_b7efcbb8.mp3",
+"dur": 1.08
 },
 "Tammo|Er was geen zee. Alleen een dijk.": {
 "src": "tammo/er_was_geen_zee_alleen_een_dijk_f4163f8d.mp3",
@@ -6987,6 +7055,10 @@
 "src": "tammo/gronings_ontzet_de_noordelijke_s_fdaa654c.mp3",
 "dur": 9.71
 },
+"Tammo|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.": {
+"src": "tammo/gronings_ontzet_de_noordelijke_s_c980a213.mp3",
+"dur": 8.71
+},
 "Tammo|Groter dan ik dacht.": {
 "src": "tammo/groter_dan_ik_dacht_f49a1364.mp3",
 "dur": 1.22
@@ -7011,6 +7083,10 @@
 "src": "tammo/het_is_een_bal_26cd9882.mp3",
 "dur": 0.72
 },
+"Tammo|Het is goed.": {
+"src": "tammo/het_is_goed_97201844.mp3",
+"dur": 0.71
+},
 "Tammo|Het is jouw droom. Jij kiest.": {
 "src": "tammo/het_is_jouw_droom_jij_kiest_7d48df3a.mp3",
 "dur": 1.65
@@ -7018,6 +7094,10 @@
 "Tammo|Het is negen uur.": {
 "src": "tammo/het_is_negen_uur_1014455b.mp3",
 "dur": 1.07
+},
+"Tammo|Het is tweeëntwintig graden.": {
+"src": "tammo/het_is_tweee_ntwintig_graden_631b8d35.mp3",
+"dur": 1.42
 },
 "Tammo|Het is vandalisme.": {
 "src": "tammo/het_is_vandalisme_22dfc978.mp3",
@@ -7034,6 +7114,10 @@
 "Tammo|Het staat goed.": {
 "src": "tammo/het_staat_goed_c839175c.mp3",
 "dur": 0.94
+},
+"Tammo|Het staat je goed. Op dinsdag.": {
+"src": "tammo/het_staat_je_goed_op_dinsdag_d90c71d7.mp3",
+"dur": 1.91
 },
 "Tammo|Het theehuis is open. Als het niet regent. Dus bijna nooit.": {
 "src": "tammo/het_theehuis_is_open_als_het_nie_6e2ddb48.mp3",
@@ -7063,6 +7147,10 @@
 "src": "tammo/hij_hangt_een_vlag_aan_onze_tore_0e630bb8.mp3",
 "dur": 2.45
 },
+"Tammo|Hij hangt een vlag aan onze toren voor zijn oma.": {
+"src": "tammo/hij_hangt_een_vlag_aan_onze_tore_180bffcc.mp3",
+"dur": 3.09
+},
 "Tammo|Hij heeft hem gestolen om hem eerlijk te winnen.": {
 "src": "tammo/hij_heeft_hem_gestolen_om_hem_ee_494e9cd1.mp3",
 "dur": 2.76
@@ -7070,6 +7158,10 @@
 "Tammo|Hij is consistent.": {
 "src": "tammo/hij_is_consistent_09e843e0.mp3",
 "dur": 1.17
+},
+"Tammo|Hij is creatief.": {
+"src": "tammo/hij_is_creatief_edae7e63.mp3",
+"dur": 1.39
 },
 "Tammo|Hij is romantischer dan ik.": {
 "src": "tammo/hij_is_romantischer_dan_ik_7aedc806.mp3",
@@ -7183,6 +7275,10 @@
 "src": "tammo/ik_ben_vierendertig_oma_050b585c.mp3",
 "dur": 1.78
 },
+"Tammo|Ik ben vierentwintig, oma.": {
+"src": "tammo/ik_ben_vierentwintig_oma_5af68f6d.mp3",
+"dur": 1.93
+},
 "Tammo|Ik beweeg niet.": {
 "src": "tammo/ik_beweeg_niet_bcbaa034.mp3",
 "dur": 1.6
@@ -7267,6 +7363,10 @@
 "src": "tammo/ik_hang_ik_hang_echt_985c0d01.mp3",
 "dur": 2.2
 },
+"Tammo|Ik heb een eierbal gebakken, voor de oefening.": {
+"src": "tammo/ik_heb_een_eierbal_gebakken_voor_cc47fdbb.mp3",
+"dur": 2.76
+},
 "Tammo|Ik heb een trein bestuurd.": {
 "src": "tammo/ik_heb_een_trein_bestuurd_3dd674eb.mp3",
 "dur": 1.51
@@ -7314,6 +7414,10 @@
 "Tammo|Ik kan niet meer. Naar de kant!": {
 "src": "tammo/ik_kan_niet_meer_naar_de_kant_976ac4b6.mp3",
 "dur": 2.24
+},
+"Tammo|Ik las dat als een suggestie.": {
+"src": "tammo/ik_las_dat_als_een_suggestie_94c081ce.mp3",
+"dur": 1.6
 },
 "Tammo|Ik lees alles van een bierviltje.": {
 "src": "tammo/ik_lees_alles_van_een_bierviltje_8f61847e.mp3",
@@ -7391,6 +7495,10 @@
 "src": "tammo/ik_wel_de_escapade_8ce4f245.mp3",
 "dur": 1.59
 },
+"Tammo|Ik wen eraan.": {
+"src": "tammo/ik_wen_eraan_f6cb9f1f.mp3",
+"dur": 0.83
+},
 "Tammo|Ik wil bij jou blijven.": {
 "src": "tammo/ik_wil_bij_jou_blijven_7b7a374c.mp3",
 "dur": 1.91
@@ -7402,6 +7510,10 @@
 "Tammo|Ik zeg wel wat.": {
 "src": "tammo/ik_zeg_wel_wat_77bf1120.mp3",
 "dur": 0.84
+},
+"Tammo|Ik zet er twee neer. Dan kies jij zelf.": {
+"src": "tammo/ik_zet_er_twee_neer_dan_kies_jij_841b8af1.mp3",
+"dur": 2.57
 },
 "Tammo|Ik zie alleen een brug.": {
 "src": "tammo/ik_zie_alleen_een_brug_321db361.mp3",
@@ -7415,6 +7527,10 @@
 "src": "tammo/ik_zie_het_3ab7a8cd.mp3",
 "dur": 1.03
 },
+"Tammo|Ik zie mijn naam. Zeven keer.": {
+"src": "tammo/ik_zie_mijn_naam_zeven_keer_4c93519f.mp3",
+"dur": 2.09
+},
 "Tammo|Ik zit hier.": {
 "src": "tammo/ik_zit_hier_056842b5.mp3",
 "dur": 1.36
@@ -7422,6 +7538,10 @@
 "Tammo|Ik zit vast.": {
 "src": "tammo/ik_zit_vast_6360f1a1.mp3",
 "dur": 1.01
+},
+"Tammo|Ik. Morgen.": {
+"src": "tammo/ik_morgen_06f3414d.mp3",
+"dur": 1.55
 },
 "Tammo|Ik… zeg het niet goed.": {
 "src": "tammo/ik_zeg_het_niet_goed_68f401ae.mp3",
@@ -7467,6 +7587,10 @@
 "src": "tammo/je_ging_alleen_achter_de_trein_a_e0e4b1f1.mp3",
 "dur": 3.94
 },
+"Tammo|Je haar zit anders.": {
+"src": "tammo/je_haar_zit_anders_644e671d.mp3",
+"dur": 1.34
+},
 "Tammo|Je hebt de klok bijgehouden.": {
 "src": "tammo/je_hebt_de_klok_bijgehouden_02752332.mp3",
 "dur": 1.23
@@ -7475,6 +7599,10 @@
 "src": "tammo/je_hebt_hem_dus_echt_962da433.mp3",
 "dur": 1.13
 },
+"Tammo|Je kijkt raar.": {
+"src": "tammo/je_kijkt_raar_8e4db7bd.mp3",
+"dur": 1.11
+},
 "Tammo|Je kunt geen weg kopen.": {
 "src": "tammo/je_kunt_geen_weg_kopen_1f9993d9.mp3",
 "dur": 1.46
@@ -7482,6 +7610,14 @@
 "Tammo|Je valt de vesting aan.": {
 "src": "tammo/je_valt_de_vesting_aan_d81d18ac.mp3",
 "dur": 1.81
+},
+"Tammo|Je weet het nog.": {
+"src": "tammo/je_weet_het_nog_43472179.mp3",
+"dur": 0.96
+},
+"Tammo|Je wekker ging om zes uur af.": {
+"src": "tammo/je_wekker_ging_om_zes_uur_af_b3a0faa4.mp3",
+"dur": 2.11
 },
 "Tammo|Je zegt joa als een vraag.": {
 "src": "tammo/je_zegt_joa_als_een_vraag_75d50a33.mp3",
@@ -7498,6 +7634,10 @@
 "Tammo|Je ziet er goed uit met wind.": {
 "src": "tammo/je_ziet_er_goed_uit_met_wind_df9b09ab.mp3",
 "dur": 1.38
+},
+"Tammo|Je zit hier aan tafel.": {
+"src": "tammo/je_zit_hier_aan_tafel_fea6e5c5.mp3",
+"dur": 1.66
 },
 "Tammo|Jelle daagt jullie uit voor de Noordelijke Snackprijs op Gronings Ontzet. Winnen jullie, dan houden jullie de Eierbal.": {
 "src": "tammo/jelle_daagt_jullie_uit_voor_de_n_4819ba7f.mp3",
@@ -7587,6 +7727,14 @@
 "src": "tammo/klopt_5e433fd0.mp3",
 "dur": 0.51
 },
+"Tammo|Koffie staat klaar.": {
+"src": "tammo/koffie_staat_klaar_027f0493.mp3",
+"dur": 1.07
+},
+"Tammo|Koffie?": {
+"src": "tammo/koffie_f36dc5b3.mp3",
+"dur": 0.58
+},
 "Tammo|Kom op, Geertje! Naar huis!": {
 "src": "tammo/kom_op_geertje_naar_huis_d28fdf5d.mp3",
 "dur": 1.87
@@ -7646,6 +7794,10 @@
 "Tammo|Luik open. Ik heb een schort om.": {
 "src": "tammo/luik_open_ik_heb_een_schort_om_313e8fb3.mp3",
 "dur": 1.84
+},
+"Tammo|Maakt niet uit.": {
+"src": "tammo/maakt_niet_uit_6bb74591.mp3",
+"dur": 0.99
 },
 "Tammo|Meer dan mensen. Iedereen heeft er één, en één in het water.": {
 "src": "tammo/meer_dan_mensen_iedereen_heeft_e_2a6ae6c1.mp3",
@@ -7723,6 +7875,10 @@
 "src": "tammo/niemand_klaagt_nou_ja_iedereen_k_5cff85b5.mp3",
 "dur": 4.05
 },
+"Tammo|Niemand zoekt ons.": {
+"src": "tammo/niemand_zoekt_ons_ac33b0eb.mp3",
+"dur": 1.22
+},
 "Tammo|Niet te voorkomen.": {
 "src": "tammo/niet_te_voorkomen_9b9a1c70.mp3",
 "dur": 1.13
@@ -7771,6 +7927,18 @@
 "src": "tammo/oma_hoe_zei_opa_het_eigenlijk_te_54c22775.mp3",
 "dur": 2.8
 },
+"Tammo|Omdat het altijd goed is.": {
+"src": "tammo/omdat_het_altijd_goed_is_d92e590d.mp3",
+"dur": 1.54
+},
+"Tammo|Omdat ik het fijn vind.": {
+"src": "tammo/omdat_ik_het_fijn_vind_fccf497e.mp3",
+"dur": 1.45
+},
+"Tammo|Omdat jij naast me zit.": {
+"src": "tammo/omdat_jij_naast_me_zit_be3522fc.mp3",
+"dur": 1.77
+},
 "Tammo|Omelet. Achterin. Overal.": {
 "src": "tammo/omelet_achterin_overal_50b32ed9.mp3",
 "dur": 2.61
@@ -7790,6 +7958,10 @@
 "Tammo|Op één fatbike?": {
 "src": "tammo/op_e_e_n_fatbike_467c5f31.mp3",
 "dur": 1.19
+},
+"Tammo|Overal waar jij staat.": {
+"src": "tammo/overal_waar_jij_staat_3baa671e.mp3",
+"dur": 1.5
 },
 "Tammo|Overdag slaapt het hier. Om twaalf uur 's nachts zegt heel Grunn hier \"moi\".": {
 "src": "tammo/overdag_slaapt_het_hier_om_twaal_0a796e23.mp3",
@@ -7830,6 +8002,18 @@
 "Tammo|Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.": {
 "src": "tammo/rij_hem_heel_naar_het_boterdiep__b4b38db9.mp3",
 "dur": 7.93
+},
+"Tammo|Roerei of spiegelei?": {
+"src": "tammo/roerei_of_spiegelei_fbb82d0d.mp3",
+"dur": 2.18
+},
+"Tammo|Roerei. Dan zie je niet dat het mislukt is.": {
+"src": "tammo/roerei_dan_zie_je_niet_dat_het_m_6fa95b47.mp3",
+"dur": 2.24
+},
+"Tammo|Roerei. Zoals jij het wilt.": {
+"src": "tammo/roerei_zoals_jij_het_wilt_04f2dcd3.mp3",
+"dur": 1.96
 },
 "Tammo|Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.": {
 "src": "tammo/rotor_roelf_leent_zijn_demoheli__05190c77.mp3",
@@ -7899,6 +8083,10 @@
 "src": "tammo/twee_reuzen_trokken_een_pinautom_96ba3411.mp3",
 "dur": 6.58
 },
+"Tammo|Twee.": {
+"src": "tammo/twee_75069400.mp3",
+"dur": 0.9
+},
 "Tammo|Twintig minuten. Dan staat het twee-nul.": {
 "src": "tammo/twintig_minuten_dan_staat_het_tw_0de25dc0.mp3",
 "dur": 2.39
@@ -7959,6 +8147,10 @@
 "src": "tammo/waar_zie_je_dat_aan_dc2be555.mp3",
 "dur": 1.01
 },
+"Tammo|Waar?": {
+"src": "tammo/waar_c8edf50c.mp3",
+"dur": 0.59
+},
 "Tammo|Waarmee?": {
 "src": "tammo/waarmee_96df2134.mp3",
 "dur": 0.67
@@ -7986,6 +8178,10 @@
 "Tammo|Wacht.": {
 "src": "tammo/wacht_4d571e34.mp3",
 "dur": 0.85
+},
+"Tammo|Wacht. Ik moet even gaan zitten.": {
+"src": "tammo/wacht_ik_moet_even_gaan_zitten_c976ceff.mp3",
+"dur": 2.61
 },
 "Tammo|Wacht. Wat rijdt daar het museumterrein op?": {
 "src": "tammo/wacht_wat_rijdt_daar_het_museumt_28cbe83c.mp3",
@@ -8110,6 +8306,10 @@
 "Tammo|Wie is die man.": {
 "src": "tammo/wie_is_die_man_391f1b51.mp3",
 "dur": 0.96
+},
+"Tammo|Wie neemt de badkamer als eerste?": {
+"src": "tammo/wie_neemt_de_badkamer_als_eerste_336b767f.mp3",
+"dur": 2.59
 },
 "Tammo|Wie rijdt hem dan?": {
 "src": "tammo/wie_rijdt_hem_dan_266b6c9a.mp3",
