@@ -82,7 +82,7 @@ export function openLaunchChoice({ index = 0 } = {}) {
     const b = e.target && e.target.closest ? e.target.closest('.sk-keuze') : null;
     if (b) sluit(b.dataset.keuze);
   });
-  knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => { nu = i; }));
+  knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => zet(i))); // de muis volgt de focus: de knop onder de muis is de gekozen knop
   open = { promise, el };
   zet(nu);
   return promise;
