@@ -192,7 +192,7 @@ S['M30.intro'] = {
     { on: 'Een gracht is ook water', actor: 'klaas', anim: 'point' },
     { on: 'Ik vlieg boven', actor: 'roelfien', anim: 'point' },
     { on: 'Ik doe de lier', actor: 'wubbo', anim: 'hips' },
-    { on: 'Trekker heeft een toren', actor: 'tinus', anim: 'point' },
+    { on: 'De trekker heeft een toren', actor: 'tinus', anim: 'point' },
     { on: 'Ik zie alles vanaf', actor: 'geesje', anim: 'hips' },
     { on: 'Veertig duiven', actor: 'bert', anim: 'nod' },
     { on: 'Veertig duiven', dt: 1.6, actor: 'tammo', face: 'actor:bert' },

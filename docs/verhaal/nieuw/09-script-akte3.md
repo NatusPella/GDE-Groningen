@@ -106,16 +106,17 @@ TESSA: Hij loopt weg. Nu. [NIEUW]
 ## [M13.3] Het containerlabyrint: outro – Waddenkust, Eemshaven, kade – te voet
 LAMMERT: Het schip vaart leeg weg. Jelle krijgt zijn lading nooit. [NIEUW]
 TESSA: En alles wat we gered hebben? [NIEUW]
-LAMMERT: Mijn vrachtwagen brengt het naar mijn woonschip in Delfzijl. Dit vat is van mijn vader: het vet van 1953. Voor Oma. [NIEUW]
+LAMMERT: Mijn vrachtwagen brengt het naar Delfzijl. Het vat is van mijn vader. {pause=0.6} [NIEUW]
+LAMMERT: Het vet van 1953. Voor Oma. {pause=0.8} [NIEUW]
 TAMMO: Dan wil Jelle het terug. [NIEUW]
-LAMMERT: Om acht uur komt zijn deurwaarder. Maar Trijntje tekent eerder de overdracht van mijn woonschip, op de sluis. Dan mag hij er niet bij. [NIEUW]
+LAMMERT: Om acht uur komt zijn deurwaarder. Trijntje tekent eerder de overdracht van mijn woonschip, op de sluis. Dan mag hij er niet bij. [NIEUW]
 LAMMERT: En als jullie ooit een wagen hebben, staat hij aan mijn kade. Een stek. Vannacht slapen jullie in mijn havenkantoor. [NIEUW]
 TAMMO: Een kantoor? [NIEUW]
 LAMMERT: Met een bed. Twee bedden. [NIEUW]
-TESSA: Twee bedden. [NIEUW]
+TESSA: Twee bedden. {pause=0.9} [NIEUW]
 (regie: Tammo zegt niets. Hij kijkt naar zijn schoenen.)
-TESSA: Dat gezicht betekent: prima. [NIEUW]
-TAMMO: Klopt. [NIEUW]
+TAMMO: Prima. [NIEUW]
+TESSA: Ik vroeg niks. [NIEUW]
 
 ## [M13.4] Het containerlabyrint: herhaling – Waddenkust, Eemshaven – te voet
 LAMMERT: De bewaker kijkt nog steeds omhoog. Hij wacht al een uur. [NIEUW]

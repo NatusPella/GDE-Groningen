@@ -3,7 +3,8 @@
   "lang-scene"
  ],
  "M01.1": [
-  "lang"
+  "lang",
+  "lang-scene"
  ],
  "S01": [
   "lang-scene"
@@ -11,7 +12,19 @@
  "M03.2": [
   "lang-scene"
  ],
+ "M03.4": [
+  "lang-scene"
+ ],
  "M06.3": [
+  "lang-scene"
+ ],
+ "M08.3": [
+  "lang-scene"
+ ],
+ "M09.1": [
+  "lang-scene"
+ ],
+ "M11.1": [
   "lang-scene"
  ],
  "B2": [
@@ -21,7 +34,7 @@
   "lang-scene"
  ],
  "M20.3": [
-  "lang"
+  "lang-scene"
  ],
  "M20.5": [
   "lang-scene"
@@ -38,6 +51,9 @@
  "M25.1": [
   "lang"
  ],
+ "M26.2": [
+  "lang-scene"
+ ],
  "M26.4": [
   "lang-scene"
  ],
@@ -51,6 +67,9 @@
   "beurten"
  ],
  "M26.13": [
+  "lang-scene"
+ ],
+ "M30.1": [
   "lang-scene"
  ]
 }

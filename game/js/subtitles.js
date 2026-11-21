@@ -214,6 +214,7 @@ export const FY = {
   'Mem. Hier is hij. Voor u. Ik heb hem genomen zoals het hoort: netjes, met een bedankje.': 'Moeder. Hier is hij. Voor u. Ik heb hem genomen zoals het hoort: netjes, met een bedankje.',
   'Mem. Dat is een inbreuk op onze overeenkomst.': 'Moeder. Dat is een inbreuk op onze overeenkomst.',
   'Mem. De afspraak was: u houdt hem vast tot ik win. Dit is een overtreding van onze overeenkomst.': 'Moeder. De afspraak was: u houdt hem vast tot ik win. Dit is een overtreding van onze overeenkomst.',
+  'Mem. U houdt hem vast tot ik win. Dat was de afspraak.': 'Moeder. U houdt hem vast tot ik win. Dat was de afspraak.',
   'Jij kende Mem.': 'Jij kende Mem. (Mem is Mem is zijn oma: de oma van Jelle)',
   'Mem. Dit is nog niet voorbij. Mijn juristen noemen het een geschil.': 'Moeder. Dit is nog niet voorbij. Mijn juristen noemen het een geschil.',
   'Ik wist niet waar de bal lag; Mem hield iets voor Jelle verborgen. Dat had ik moeten zeggen.': 'Ik wist niet waar de bal lag; Mem hield iets voor Jelle verborgen. Dat had ik moeten zeggen.',
