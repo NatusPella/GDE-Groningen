@@ -92,6 +92,8 @@ export const BASE_KEYS = {
   hengeltuig: 'gde-hengeltuig-v1',
   // the farm of this player (boerderij.js, #415): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
   boerderij: 'gde-boerderij-v1',
+  // the property of this player (bezit.js, #1097): parcels and buildings as a compact id set; new, no legacy name, never part of a savegame (everyone has their own, #429)
+  bezit: 'gde-bezit-v1',
   // the one-time explanation card of the farm panel (farmcards.js, #985): new, no legacy name, per device, never part of a savegame
   boerderijUitleg: 'gde-boerderij-uitleg-v1',
   simUitleg: 'gde-sim-uitleg-v1',

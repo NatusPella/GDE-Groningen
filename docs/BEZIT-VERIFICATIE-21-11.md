@@ -14,3 +14,12 @@ Gemeten op de wereld van 20-11 (3 s): 13.664 percelen (13.883 stukken-groepen, 2
 In beeld te controleren:
 - Na een volledige wereldbouw staan `bezit-percelen.json` en `bezit-panden.json` naast `index-provincie.json` (`global.bezitFile`).
 - De bouwtijd en de grootte van `game/world` zijn nauwelijks veranderd (+1,1 MB uitgepakt).
+
+## #1097 Opslag, prijsmodel en namen
+
+Gebouwd: `game/js/bezit.js` (opslag `gde-bezit-v1`, compacte ID-set met delta-varint, kopen en verkopen, migratie van de verzonnen percelen als
+legacy, herkoppelen met terugbetaling), `game/js/bezitprijs.js` (prijs, bodem, schaalprijs, pacht, namen en verkoper), `game/js/bezitgate.js`
+(poort per akte: akte 2 Percelen, akte 3 Bedrijven; stub met de vorm van de gedeelde poort van de verhaal-epic). Test `scripts/bezit_test.mjs`
+(23 controles, met de echte index: mediaan en aandeel goedkope percelen, naamuniciteit).
+
+In beeld te controleren: nog niets zichtbaar; de opslag wordt pas gebruikt door #1098 en #1099.
