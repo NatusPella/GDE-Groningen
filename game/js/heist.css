@@ -26,16 +26,16 @@
 /* fuse box: a needle over a bar */
 #heist-ui .hx-bar { position: relative; height: 20px; margin-top: 10px; border-radius: 10px; background: var(--ds-c-glas-2); overflow: hidden; border: 1px solid color-mix(in srgb, var(--ds-c-wit) 12%, transparent); }
 #heist-ui .hx-zone { position: absolute; top: 0; bottom: 0; background: var(--ds-c-licht-groen); box-shadow: 0 0 12px color-mix(in srgb, var(--ds-c-licht-groen) 60%, transparent); }
-#heist-ui .hx-needle { position: absolute; top: -3px; bottom: -3px; width: 4px; margin-left: -2px; background: var(--ds-c-creme); border-radius: 2px; box-shadow: 0 0 6px rgba(255, 255, 255, 0.8); }
+#heist-ui .hx-needle { position: absolute; top: -3px; bottom: -3px; width: 4px; margin-left: -2px; background: var(--ds-c-creme); border-radius: 2px; box-shadow: 0 0 6px color-mix(in srgb, var(--ds-c-wit) 80%, transparent); }
 #heist-ui .hx-lamps { display: flex; justify-content: center; gap: 10px; margin-top: 9px; }
 #heist-ui .hx-lamp { width: 13px; height: 13px; border-radius: 50%; background: var(--ds-c-glas-3); border: 1px solid color-mix(in srgb, var(--ds-c-wit) 25%, transparent); }
 #heist-ui .hx-lamp.done { background: var(--ds-c-licht-groen); box-shadow: 0 0 10px color-mix(in srgb, var(--ds-c-licht-groen) 80%, transparent); }
 
 /* lock: pins bouncing in their chambers, the shear line on top */
-#heist-ui .hx-lock { display: flex; justify-content: center; gap: 12px; margin-top: 10px; padding: 8px 14px 10px; border-radius: 6px; background: linear-gradient(180deg, #3a3326, #231e16); border: 1px solid rgba(240, 200, 110, 0.35); }
+#heist-ui .hx-lock { display: flex; justify-content: center; gap: 12px; margin-top: 10px; padding: 8px 14px 10px; border-radius: 6px; background: var(--ds-c-inkt-zacht); border: 1px solid color-mix(in srgb, var(--ds-c-geel) 35%, transparent); }
 #heist-ui .hx-chamber { position: relative; width: 24px; height: 78px; border-radius: 4px; background: var(--ds-c-glas); overflow: hidden; border: 1px solid color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent); }
 #heist-ui .hx-chamber::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: var(--zone, 16%); background: color-mix(in srgb, var(--ds-c-licht-groen) 22%, transparent); border-bottom: 1px dashed color-mix(in srgb, var(--ds-c-licht-groen) 80%, transparent); }
-#heist-ui .hx-pin { position: absolute; left: 4px; right: 4px; height: 34px; border-radius: 3px 3px 6px 6px; background: linear-gradient(90deg, #b89043, #f0c24e 45%, #9a7430); }
+#heist-ui .hx-pin { position: absolute; left: 4px; right: 4px; height: 34px; border-radius: 3px 3px 6px 6px; background: var(--ds-c-geel); }
 #heist-ui .hx-chamber.cur { border-color: var(--ds-c-licht-groen); box-shadow: 0 0 10px color-mix(in srgb, var(--ds-c-licht-groen) 50%, transparent); }
 #heist-ui .hx-chamber.set .hx-pin { background: linear-gradient(90deg, var(--ds-c-licht-groen), var(--ds-c-licht-groen) 45%, var(--ds-c-ink-bord)); }
 
@@ -88,7 +88,7 @@
 #heist-ui .hx-card span { display: block; margin-top: 3px; font-family: var(--ds-font-tekst); font-size: 14px; letter-spacing: 0.2px; opacity: 0.85; }
 #heist-ui .hx-card em { display: block; margin-top: 4px; font-family: var(--ds-font-tekst); font-style: normal; font-size: 13px; opacity: 0.55; }
 #heist-ui .hx-pad { font-size: 13px; letter-spacing: 1px; opacity: 0.7; margin-left: 4px; }
-#heist-ui .hx-rolechip { position: fixed; left: 50%; transform: translateX(-50%); bottom: 104px; z-index: 60; display: flex; gap: 8px; align-items: center; max-width: min(560px, 86vw); padding: 8px 14px; border-radius: 10px; background: rgba(12,16,14,0.82); color: var(--ds-c-creme); font: 14px/1.35 var(--ds-font-tekst); min-height: 44px; box-shadow: 0 2px 12px color-mix(in srgb, var(--ds-c-ink-inkt) 35%, transparent); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+#heist-ui .hx-rolechip { position: fixed; left: 50%; transform: translateX(-50%); bottom: 104px; z-index: 60; display: flex; gap: 8px; align-items: center; max-width: min(560px, 86vw); padding: 8px 14px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-glas) 82%, transparent); color: var(--ds-c-creme); font: 14px/1.35 var(--ds-font-tekst); min-height: 44px; box-shadow: 0 2px 12px color-mix(in srgb, var(--ds-c-ink-inkt) 35%, transparent); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
 #heist-ui .hx-rolechip b { color: var(--mk-mission, #e8c93a); white-space: nowrap; }
 #heist-ui .hx-choice-note { display: none; margin-top: 6px; font-family: var(--ds-font-tekst); font-size: 13px; opacity: 0.6; text-align: center; }
 #heist-ui .hx-plan.choosing .hx-choice-note { display: block; }
@@ -105,10 +105,10 @@
   font-family: var(--ds-font-tekst); font-style: italic; /* #629: geen handgeschreven font; cursief Arial Narrow zoals afgesproken */
 }
 #heist-ui .hx-note.on { opacity: 1; transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
-#heist-ui .hx-note::before { content: ''; position: absolute; left: 42%; top: -11px; width: 76px; height: 22px; background: rgba(230, 220, 160, 0.75); transform: rotate(4deg); }
+#heist-ui .hx-note::before { content: ''; position: absolute; left: 42%; top: -11px; width: 76px; height: 22px; background: color-mix(in srgb, var(--ds-c-papier-2) 75%, transparent); transform: rotate(4deg); }
 #heist-ui .hx-note .kick { font-family: var(--ds-font-tekst); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
 #heist-ui .hx-note .txt { font-size: 34px; line-height: 1.25; margin-top: 8px; }
-#heist-ui .hx-note .nl-sub { display: block; margin-top: 6px; font-family: var(--ds-font-tekst); font-size: 15px; font-style: italic; color: #6d5d44; }
+#heist-ui .hx-note .nl-sub { display: block; margin-top: 6px; font-family: var(--ds-font-tekst); font-size: 15px; font-style: italic; color: var(--ds-c-inkt-zacht); }
 
 /* --- the alarm and the laser zap ------------------------------------------------------------ */
 #heist-ui .hx-alarm { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent) 100%); }

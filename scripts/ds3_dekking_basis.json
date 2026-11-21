@@ -286,8 +286,8 @@
   "svg": 1
  },
  "game/js/heist.css": {
-  "kleur": 10,
-  "glas": 6,
+  "kleur": 0,
+  "glas": 4,
   "oud": 0,
   "font": 0,
   "klein": 0,

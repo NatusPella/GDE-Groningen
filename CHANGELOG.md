@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Zeefdruk: de Opgeslagen spellen, het inbraakspel, de veldkaarten van de boerderij, de simulatiemeter en de bakrondebalk gebruiken de tokens en dezelfde papieren voortgangsbalk als de rest; geen harde kleuren of glas meer. Samen spelen: niets verandert, alles blijft lokaal per speler.
 - Beeldregressie (#994): de testlaag vergelijkt elk omgebouwd scherm in 1280x800, 1920x1080 en 4K, vol en in Rustig drukwerk, met goedgekeurde referenties en meldt een afwijking boven de drempel; de releasegate laat de stage Beeld daarop falen. Samen spelen: de gastweergave is een eigen groep; niets over het netwerk, het draait alleen in de testomgeving.
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
