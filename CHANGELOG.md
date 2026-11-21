@@ -12,6 +12,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - **Bezit (epic #1095), in opbouw:** bij het bouwen van de wereld komen er twee kleine indexbestanden met de koopbare percelen (13.664, met een stabiel ID, toegangsklasse en soort) en de bedrijfspanden; het spel laadt ze pas als je iets met Bezit doet.
+- Kaartlaag Te koop: op de kaart zie je de percelen van de provincie met een prijs, groen als ze van jou zijn en grijs met een slotje als ze niet te koop zijn (geen toegang tot een weg). Klik een perceel voor de kaart met bodem, ligging, verkoper, verwachte oogst en Koop met een bevestiging; het veld verschijnt daarna bij je boerderij. Wie veel land heeft, betaalt meer voor het volgende perceel.
 - **Bezit, tak Percelen (#1101), in opbouw:** een gekocht perceel werkt als veld van je boerderij, en een grote akker vraagt meer rondes in plaats van meer opbrengst per ronde.
 - Landarbeiders en voormannen werken je percelen af voor een loon per speldag (70 tot 80% van de opbrengst van handwerk: handwerk levert minstens 25% meer); verpachten levert 0,9% van de koopprijs per speldag; hoe meer je beheert, hoe minder elk extra perceel oplevert.
 - Vee op je weide (melkvee, schapen, kippen), boomgaardfruit als gewas, een beheerscherm-model met sorteren, filteren en bulkacties, en korte boerenregels van Tessa.

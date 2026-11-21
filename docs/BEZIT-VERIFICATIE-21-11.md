@@ -81,3 +81,19 @@ Open gaten:
 - Het perceel-ID's en de machines (slijtage) komen uit de percelen-tak; hun koppeling aan `parcelLoss` en `machineBreakdown` moet de bouwer leggen.
 In beeld te controleren: niets zichtbaar (pure regels); de teksten van de meldingen en de keuzescenes bij de buren zijn nog door niemand gelezen in het spel.
 
+
+## #1098 Kaartlaag Te koop, perceelkaart en kopen
+
+Gebouwd: `game/js/forsalemap.js` (laag: standen, prijsstappen, telling per cel bij uitzoomen, maximaal 250 vlakken, klikken), `forsaledraw.js`
+(canvas), `forsalecard.js` (perceelkaart met Koop en bevestiging, Verkoop), `bezitlive.js` (aanbod, kopen en verkopen uit `world.money` met noteMoney
+en het kasboek, lui laden van de index, terugdraaien na een nieuwe wereldbouw), haken in `mapview.js` en `boerderijlive.js` (register voor het
+laden) en `main.js` (`initBezit` voor `initBoerderij`). Tests `forsalemap_test` (9), `forsalecard_test` (9), `bezitlive_test` (11).
+Lokaal lezen van de index staat als uitzondering in `scripts/release/rules_audit.mjs` (`NETWERK_LOKAAL`: geen webadres).
+
+In beeld te controleren:
+- Kaart openen, laag Te koop aan (staat standaard aan, alleen als de tak Land open is): bij inzoomen blauwe streepvlakken met een prijskaartje, uitgezoomd
+  ronde tellingen; geen geel. Het vlak is een schets rond het binnenpunt (de tegelvorm zit niet in de index).
+- Klik op een vlak: perceelkaart met soort, grootte, bodem, ligging, verkoper, verwachting, prijs en Koop; Koop vraagt eerst een bevestiging;
+  daarna staat het perceel groen op de kaart, het geld is eraf en het veld staat in Bezit/Boerderij. Doel zetten en Reis werken via de bestaande actiebalk.
+- De legenda-rij Te koop (de rij Percelen met geel voor de twaalf vaste percelen blijft nog staan).
+- Een speler zonder index (bouw zonder bezit-bestanden): de laag blijft leeg en het spel gaat door.

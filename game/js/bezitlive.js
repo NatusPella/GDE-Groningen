@@ -159,3 +159,19 @@ export const ownedParcelIdsForNet = () => Object.keys(getBezit().parcels).filter
 
 export const heeftBezit = () => Z.ownedCount(getBezit()) > 0;
 export function zetBezitVoorTest(raw, st) { bezit = raw ? Z.normalizeBezit(raw) : null; if (st !== undefined) opslagOverride = st; vuil = false; }
+
+// ---- de kaartlaag Te koop (forsalemap.js): de dichtstbijzijnde diepte uit de live toestand ----
+import { forSaleLayer } from './forsalemap.js';
+const baseCache = new Map();                                            // basisprijs per ID: de streek rekent niet elk beeld opnieuw
+const baseOf = (p) => { let v = baseCache.get(p.id); if (v === undefined) { v = P.basePrice(p, regionOfPoint(p.x, p.y)); baseCache.set(p.id, v); } return v; };
+const layer = forSaleLayer({
+  get parcels() { return index ? index.parcels : null; },
+  ownsId: (id) => Z.ownsParcel(getBezit(), id),
+  claimOf: (id) => claimLookup(id),
+  priceOf: (p) => { const b = baseOf(p); return b ? Math.round((b * P.scaleFactor(Z.ownedCount(getBezit()))) / 50) * 50 : 0; },
+});
+// rect = [x0, y0, x1, y1] (wereldmeters), scale = pixels per meter. Zonder index { mode: 'none' } en wordt de index op de achtergrond geladen.
+export function forSaleView(rect, scale, base = 'world/') {
+  if (!index) { ensureIndex(base).catch(() => {}); return { mode: 'none', shapes: [], clusters: [], total: 0, loading: true }; }
+  return layer.view(rect, scale);
+}

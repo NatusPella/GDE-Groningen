@@ -44,6 +44,10 @@ import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, eigenPerceelVlakken, tekenVeldBadge } from './perceelmap.js';
 import { veldBij } from './percelen.js';
+import { forSaleView, parcelOffer, koopPerceel, verkoopPerceel, bezitOpen, ensureIndex } from './bezitlive.js';
+import { pickShape } from './forsalemap.js';
+import { drawForSale } from './forsaledraw.js';
+import { offerCardHtml, hoverSub } from './forsalecard.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
@@ -1761,6 +1765,11 @@ function drawDynamicMarkers(ctx, world) {
     if (st.letter) tekenVeldLabel(ctx, v, st, a, c, toScreen);
     ctx.restore();
   }
+  // epic Bezit (#1098): de kaartlaag Te koop (forsalemap.js): vlakken met prijs, van jou, van een medespeler, niet te koop
+  const koopView = layerOn('tekoop') && bezitOpen('land') ? forSaleView(viewRect(), state.scale) : null;
+  state.koopVelden = koopView && koopView.mode === 'shapes' ? koopView.shapes : [];
+  if (koopView && koopView.loading) ensureIndex().then(() => { state.dirty = true; }).catch(() => {});
+  if (koopView) drawForSale(ctx, koopView, toScreen, state.zoom, state.hoverKoopId, state.card && state.card.h && state.card.h.bezit);
   // de OV-lijnen van de bestemming waar de kaartkaart open voor staat (#97)
   if (state.reis) tekenLijnen(ctx, state.reis.lagen, toScreen, 1);
 
@@ -2347,7 +2356,10 @@ function updateTooltip(sx, sy) {
   // #972: een eigen veld heeft geen pin maar wel een hover: de omtrek licht op en de
   // tip noemt het gewas, de grootte en de grond.
   const veld = !nearestHover(sx, sy) ? veldBij(state.eigenVelden, wx, wy) : null;
-  const h = nearestHover(sx, sy) || (veld ? { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, veld: true } : null);
+  const koop = !nearestHover(sx, sy) && !veld ? pickShape(state.koopVelden, wx, wy, 8) : null;
+  const koopOffer = koop ? parcelOffer(koop.id) : null;
+  const h = nearestHover(sx, sy) || (veld ? { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, veld: true } : koopOffer ? { name: koopOffer.name, sub: hoverSub(koopOffer), x: koop.x, y: koop.y, veld: true } : null);
+  if ((state.hoverKoopId || null) !== (koop ? koop.id : null)) { state.hoverKoopId = koop ? koop.id : null; state.dirty = true; }
   if ((state.hoverVeldId || null) !== (veld ? veld.id : null)) {
     state.hoverVeldId = veld ? veld.id : null;
     state.dirty = true;
@@ -2423,6 +2435,7 @@ function handleClick(world, sx, sy, shift = false) {
   const [wx, wy] = toWorld(sx, sy);
   // #972: een klik op je eigen akker opent hetzelfde kaartje als een plek, met de naam van het veld
   const veld = !h ? veldBij(state.eigenVelden, wx, wy) : null;
+  const koop = !h && !veld ? pickShape(state.koopVelden, wx, wy, 8) : null;
   // de cheat Overal en nergens, of shift+klik (instelling mapShiftTeleport, kaartteleport.js)
   if (wantsTeleport({ shift, enabled: getSettings().mapShiftTeleport, teleportMode: state.teleport })) {
     if (h && h.teleport) teleportTo(world, h.teleport);
@@ -2431,9 +2444,11 @@ function handleClick(world, sx, sy, shift = false) {
   }
   // een klik op het waypoint zelf haalt het weg (#445): de tweede klik wist hem
   if (h && h.isGoal && klikActie(getUserWaypoint(), { x: h.x, y: h.y }) === 'weg') { hideCard(); clearUserWaypoint(); return; }
-  if (state.card) { hideCard(); if (!h && !veld) return; }
+  if (state.card) { hideCard(); if (!h && !veld && !koop) return; }
   // je eigen veld: het kaartje van het perceel, met dezelfde acties als een plek
   if (veld) { showCard(world, { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, spot: true }, sx, sy); return; }
+  // epic Bezit (#1098): een perceel op de kaartlaag Te koop: de perceelkaart met Koop, Doel en Info
+  if (koop) { const o = parcelOffer(koop.id); if (o) { showCard(world, { name: o.name, sub: hoverSub(o), x: koop.x, y: koop.y, spot: true, bezit: koop.id }, sx, sy); return; } }
   // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
   if (h && h.self) { showCard(world, h, sx, sy); return; }
   // een marker: een kaartje met wat het is en "Zet als doel"
@@ -2513,10 +2528,10 @@ function showCard(world, h, sx, sy) {
   } else if (keep && keep.melding) stapHtml = `<p class="mv-note">${escHtml(keep.melding)}</p>`;
   const el = state.cardEl;
   el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name || 'Plek op de kaart')}</b>` +
-    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${h.samen ? `<p class="mv-note" data-samen="${escHtml(h.samen.status)}">${escHtml(h.samen.tekst)}</p>` : ''}${actiesHtml(model, stap)}${stapHtml}` +
+    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${h.samen ? `<p class="mv-note" data-samen="${escHtml(h.samen.status)}">${escHtml(h.samen.tekst)}</p>` : ''}${actiesHtml(model, stap)}${stapHtml}${h.bezit ? offerCardHtml(parcelOffer(h.bezit), { stap: keep ? keep.bezitStap || null : null, melding: keep ? keep.bezitMelding || '' : '', money: world.money || 0 }) : ''}` +
     '<div class="mv-btns"><button type="button" class="mv-link" data-card="close">Sluiten</button></div></div>';
   el.hidden = false;
-  state.card = { h, it, gekozen, stap, model };
+  state.card = { h, it, gekozen, stap, model, bezitStap: keep ? keep.bezitStap : null, bezitMelding: keep ? keep.bezitMelding : '' };
   syncReisPopup(popup);
 }
 
@@ -2698,6 +2713,7 @@ function cardAction(world, act) {
     return;
   }
   if (act === 'reis-sluit') { kaartReisPopupSluiten(); return; }
+  if (act.startsWith('bezit-')) { bezitActie(world, c, act); return; }
   if (act === 'reis' || act === 'info') {
     // Reis erheen opent de popup (een gast leest daarin waarom reizen hier niet kan); Info klapt de kaart uit of weer in
     c.stap = act === 'reis' ? 'reis' : (c.stap === act ? null : act);
@@ -2730,6 +2746,18 @@ function cardAction(world, act) {
   hideCard();
   if (act === 'clear' || act === 'haalweg' || act === 'story') clearGoal();
   else if (act === 'goal' || act === 'waypoint') zetWaypoint(world, c, h);
+}
+
+// Bezit (#1098): kopen en verkopen op de perceelkaart, steeds met een bevestiging. Het resultaat staat als melding op de kaart en in het berichtenvak.
+function bezitActie(world, c, act) {
+  const id = c.h.bezit;
+  if (act === 'bezit-koop' || act === 'bezit-verkoop') { c.bezitStap = act === 'bezit-koop' ? 'koop' : 'verkoop'; c.bezitMelding = ''; showCard(world, c.h); return; }
+  if (act === 'bezit-annuleer') { c.bezitStap = null; c.bezitMelding = ''; showCard(world, c.h); return; }
+  const r = act === 'bezit-ok' ? koopPerceel(world, id) : verkoopPerceel(world, id);
+  c.bezitStap = null; c.bezitMelding = r.text || '';
+  if (r.ok && world.addMessage) world.addMessage(r.text, 3);
+  state.dirty = true;
+  showCard(world, c.h);
 }
 
 // Zet waypoint: een missie of klus wordt jouw doel, een plek wordt het ene waypoint.
@@ -2784,6 +2812,7 @@ const LEGEND = [
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
     { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou (met omtrek en hover); klik voor een doel', layers: ['percelen'] },
+    { kind: 'perceel-koop', label: 'Te koop', note: 'percelen in de provincie: blauw met streeplijn en prijs is te koop, groen is van jou, een andere kleur van een medespeler, grijs met een slot is niet te koop; klik voor de perceelkaart met Koop', layers: ['tekoop'] },
     { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (groen met een vlag: dat is je doel; geel: het gewas groeit); T is een machine van jou, A een afnemer van je oogst', layers: ['percelen'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
   ] },
