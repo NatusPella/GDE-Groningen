@@ -88,9 +88,27 @@ export function meetNotice(active, distance) {
 
 // --- zichtbare underglow (het budget per beeld) -------------------------------------------------------------------
 // entries: [{ id, dist, glow }] voor alle getekende auto's; geeft de Set van id's die hun underglow mogen tonen: de dichtstbijzijnde max.
-export function glowBudget(entries, max = MAX_GLOW_VISIBLE) {
-  const show = new Set();
-  for (const e of entries.filter((x) => x.glow).sort((a, b) => a.dist - b.dist || String(a.id).localeCompare(String(b.id))).slice(0, max)) show.add(e.id);
+// Review 22-11 N2: een vaste lijst van hoogstens max (invoegen op afstand, bij gelijke afstand wint de eerste), zonder filter, sort of nieuwe Set per frame;
+// met `out` wordt een meegegeven Set hergebruikt (leeggemaakt en gevuld).
+const _best = [];
+const glowBefore = (a, b) => a.dist < b.dist || (a.dist === b.dist && String(a.id).localeCompare(String(b.id)) < 0);
+export function glowBudget(entries, max = MAX_GLOW_VISIBLE, out = null) {
+  const show = out || new Set();
+  show.clear();
+  if (!(max > 0)) return show;
+  const best = _best;
+  best.length = 0;
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    if (!e.glow) continue;
+    let j;
+    if (best.length < max) { j = best.length; best.push(e); }
+    else { if (!glowBefore(e, best[max - 1])) continue; j = max - 1; }
+    while (j > 0 && glowBefore(e, best[j - 1])) { best[j] = best[j - 1]; j--; }
+    best[j] = e;
+  }
+  for (let i = 0; i < best.length; i++) show.add(best[i].id);
+  best.length = 0;
   return show;
 }
 
