@@ -61,6 +61,18 @@ export function snackView(w) {
     wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats };
 }
 
+// De wagens die in de wereld staan (voor snackwagens3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
+// Alleen als de poort open is.
+export function wagonSites() {
+  if (!snackOpen()) return [];
+  const S = L.snackState(), day = L.calToday(), out = [];
+  const add = (spot, kind, staff) => { const p = SP.spotXY(spot); if (p) out.push({ spot, x: p.x, y: p.y, kind, staff }); };
+  if (S.own.spot && SP.permitHeld(S.permits, S.own.spot, day) && L.myMobile().some((m) => m.id === 'frietwagen')) add(S.own.spot, 'own');
+  for (const f of S.fleet) if (f.spot && SP.permitHeld(S.permits, f.spot, day)) add(f.spot, 'fleet', f.staff.name);
+  for (const id of S.rival.spots) if (!SP.permitHeld(S.permits, id, day)) add(id, 'rival');
+  return out;
+}
+
 export function koopWagen(w) { const c = closed(); if (c) return c; return L.koopMobiel(w, 'frietwagen'); }
 export function koopVergunning(w, spot) {
   const c = closed(); if (c) return c;
