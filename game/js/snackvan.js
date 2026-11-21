@@ -218,7 +218,8 @@ export function answerEvent(S, choiceId, day, money) {
     return { ok: true, cost: price + r.cost, gain: 0, text: r.text, won: r.win };
   }
   if (p.kind === 'bod') {
-    if (choiceId === 'verkoop' && S.permits[p.spot]) {
+    if (choiceId === 'verkoop' && !S.permits[p.spot]) return { ok: false, why: 'onbekend' };      // de vergunning is intussen vervallen: er is niets te verkopen, het aanbod blijft tot de deadline staan
+    if (choiceId === 'verkoop') {
       delete S.permits[p.spot]; S.rival = RV.acquire(S.rival, p.spot); gain = p.price;
       if (S.own.spot === p.spot) S.own.spot = null;
       for (const w of S.fleet) if (w.spot === p.spot) w.spot = null;
@@ -347,6 +348,7 @@ export function settleDays(S, from, to, ctxFor) {
   for (let d = a + 1; d <= z; d++) {
     const ctx = typeof ctxFor === 'function' ? ctxFor(d) : { ...(ctxFor || {}), day: d };
     if (sum.ownQ !== null) ctx.ownQ = sum.ownQ;
+    if (Number.isFinite(ctx.money)) ctx.money = Math.max(0, ctx.money - sum.fixed);      // wat eerdere dagen aan vergunningen uitgaven is er niet meer: elke dag verlengt met het saldo dat overblijft
     const r = settleDay(S, { ...ctx, day: ctx.day === undefined ? d : ctx.day });
     last = r; sum.days++; sum.ownNet += r.ownNet; sum.fleetNet += r.fleetNet; sum.fixed += r.fixed; sum.ownQ = r.ownQ;
     for (const l of r.lines) sum.lines.push(l);

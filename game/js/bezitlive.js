@@ -441,7 +441,7 @@ export function schenkMobiel(id = 'frietwagen') {
   const b = getBezit(), d = BZ.MOBILE_TYPES[id];
   if (!d || (b.mobile && b.mobile[id])) return false;
   if (!b.mobile) b.mobile = {};
-  b.mobile[id] = { p: d.price, t: Math.floor(getBoerderij().uren / 24), q: 100, cfg: { pr: 1, hr: 10, spot: 'park' } };
+  b.mobile[id] = { p: d.price, t: Math.floor(getBoerderij().uren / 24), q: 100, gift: true, cfg: { pr: 1, hr: 10, spot: 'park' } };
   markeer();
   return true;
 }

@@ -110,7 +110,7 @@ export function normalizeBezit(raw) {
     for (const id of Object.keys(raw.mobile).slice(0, 8)) {
       const s = raw.mobile[id];
       if (!/^[a-z][a-z0-9-]{1,24}$/.test(id) || !s || typeof s !== 'object') continue;
-      b.mobile[id] = { p: Math.round(num(s.p, 0, 1e9)), t: Math.round(num(s.t, 0, 1e6)), q: Math.round(num(s.q, 0, 100, 100)), cfg: normBizCfg(s.cfg) || {} };
+      b.mobile[id] = { p: Math.round(num(s.p, 0, 1e9)), t: Math.round(num(s.t, 0, 1e6)), q: Math.round(num(s.q, 0, 100, 100)), ...(s.gift === true ? { gift: true } : {}), cfg: normBizCfg(s.cfg) || {} };
     }
   }
   b.debt = Math.round(num(raw.debt, 0, 1e9));
