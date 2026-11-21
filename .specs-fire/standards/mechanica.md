@@ -248,7 +248,7 @@ wachten van de zuinige modus telt daarbij niet mee (`capIdleMs` in `game/js/fram
 **Bestanden.** `weatherstate.js`, `weerdag.js`, `sunrules.js`, `daynight.js`, `sky3d.js`,
 `scene3d.js`.
 
-**Tests.** `weerdag_test.mjs`, `weernacht_test.mjs`, `weerlook_test.mjs`, `coopweer_test.mjs`;
+**Tests.** `weerdag_test.mjs`, `weernacht_test.mjs`, `weerlook_test.mjs`, `coopweer_test.mjs`, `summerday_test.mjs` (zomervariatie per kalenderdag, docs/ZOMERVARIATIE-21-11.md);
 beeldcontrole met `scripts/qa/weer_nacht.mjs`.
 
 ## Uitleg en onboarding

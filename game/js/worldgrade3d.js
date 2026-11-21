@@ -21,6 +21,8 @@ export function applyWorldGrade(L, niveau, weather) {
   _ctx.overcast = weather ? weather.overcast || 0 : 0;
   _ctx.mist = weather ? weather.mist || 0 : 0;
   _ctx.storm = weather ? weather.intensity || 0 : 0;
+  _ctx.hitte = weather && weather.summer ? weather.summer.heat || 0 : 0;
+  _ctx.gloed = weather && weather.summer ? weather.summer.glow || 0 : 0;
   _ctx.rustig = !!s.rustigDrukwerk;
   _ctx.kleurenblind = !!s.colorBlind && s.colorBlind !== 'uit';
   const p = gradeParams(_ctx, _p);
