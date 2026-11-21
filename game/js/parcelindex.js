@@ -1,7 +1,7 @@
 // Perceel- en pandindex voor Bezit (epic #1095, #1096): leest bezit-percelen.json en bezit-panden.json (gebouwd door
 // scripts/world/bezit_index.mjs bij het bouwen van de wereld) en beantwoordt vragen met een grof raster. Puur: geen DOM, geen THREE,
 // geen klok, geen netwerk (scripts/bezit_index_test.mjs). Het laden zelf (fetch) staat in loadBezitIndex en wordt alleen aangeroepen
-// als de speler iets met Bezit doet: lui, nooit bij het starten. De vorm van een perceel komt nooit uit dit bestand maar uit de tegel.
+// als de speler iets met Bezit doet: lui, nooit bij het starten. De omtrek van een perceel staat in een apart, lui nageladen bestand (bezit-vormen.json: createShapeIndex, shapeOf); zonder dat blijft de schets.
 //
 // Een perceel: { id, x, y (binnenpunt, RD-wereldmeters), ax, ay (ankerpunt), ha, kind: 'w'|'a'|'b', access: 'weg'|'pad'|'wegNabij'|'padNabij'|'geen' }
 
@@ -33,9 +33,14 @@ export function createParcelIndex(file) {
     }
     return out;
   };
+  let shapes = null;
   return {
     size: list.length,
     places,
+    // de getekende omtrek (bezit-vormen.json, lui nageladen): shapeOf(id) geeft de punten in wereldmeters of null (nog niet geladen, of te klein voor een vorm)
+    attachShapes(file) { shapes = file ? createShapeIndex(file, this) : null; return shapes ? shapes.size : 0; },
+    shapeOf: (id) => (shapes ? shapes.shapeOf(id) : null),
+    hasShapes: () => !!shapes && shapes.size > 0,
     // de dichtstbijzijnde woonplaats (naam) van een punt, of null zonder plaatsen
     placeAt(x, y) {
       let best = null, bd = Infinity;
@@ -61,6 +66,37 @@ export function createParcelIndex(file) {
         if (d < bd && d <= r) { bd = d; best = p; }
       }
       return best;
+    },
+  };
+}
+
+// De omtrekken (bezit-vormen.json, scripts/world/bezit_index.mjs): rijen [id, [dx0, dy0, dx1, dy1, ...]] in stappen van file.step meter, het eerste punt relatief aan het
+// binnenpunt van het perceel, elk volgend relatief aan het vorige. shapeOf(id) geeft [[x, y], ...] in wereldmeters (gesloten, zonder herhaald slotpunt) of null.
+// Een kleine cache van uitgepakte omtrekken (alleen wat in beeld is wordt uitgepakt, nooit alle 13.650 tegelijk).
+export const SHAPE_CACHE_MAX = 600;
+export function createShapeIndex(file, parcels) {
+  const step = file && Number.isFinite(file.step) && file.step > 0 ? file.step : 5;
+  const rows = (file && Array.isArray(file.rows) && file.v === 1) ? file.rows : [];
+  const raw = new Map(), cache = new Map();
+  for (const r of rows) if (Array.isArray(r) && typeof r[0] === 'string' && Array.isArray(r[1]) && r[1].length >= 6 && r[1].length % 2 === 0) raw.set(r[0], r[1]);
+  return {
+    size: raw.size,
+    has: (id) => raw.has(id),
+    shapeOf(id) {
+      const hit = cache.get(id);
+      if (hit) return hit;
+      const flat = raw.get(id), p = parcels && parcels.byId ? parcels.byId(id) : null;
+      if (!flat || !p) return null;
+      const pts = [];
+      let px = 0, py = 0;
+      for (let i = 0; i < flat.length; i += 2) {
+        px += flat[i]; py += flat[i + 1];
+        if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
+        pts.push([p.x + px * step, p.y + py * step]);
+      }
+      if (cache.size >= SHAPE_CACHE_MAX) cache.delete(cache.keys().next().value);
+      cache.set(id, pts);
+      return pts;
     },
   };
 }
@@ -94,10 +130,15 @@ export function createBuildingIndex(file) {
 
 // Lui laden: één keer per bestand, daarna uit het geheugen. fetchJson(url) -> Promise<object>; mislukt het, dan een lege index (het spel gaat door).
 let cache = null;
-export function loadBezitIndex(fetchJson, base = '', files = { percelen: 'bezit-percelen.json', panden: 'bezit-panden.json' }) {
+export function loadBezitIndex(fetchJson, base = '', files = { percelen: 'bezit-percelen.json', panden: 'bezit-panden.json', vormen: 'bezit-vormen.json' }) {
   if (cache) return cache;
   const safe = (f) => Promise.resolve().then(() => fetchJson(base + f)).catch(() => null);
-  cache = Promise.all([safe(files.percelen), safe(files.panden)]).then(([p, b]) => ({ parcels: createParcelIndex(p), buildings: createBuildingIndex(b) }));
+  cache = Promise.all([safe(files.percelen), safe(files.panden)]).then(([p, b]) => {
+    const parcels = createParcelIndex(p);
+    // de omtrekken komen erna, op de achtergrond: de index is meteen bruikbaar (met de schets) en krijgt de vormen zodra ze er zijn
+    if (files.vormen) safe(files.vormen).then((v) => { if (v) parcels.attachShapes(v); });
+    return { parcels, buildings: createBuildingIndex(b) };
+  });
   return cache;
 }
 export const resetBezitIndexCache = () => { cache = null; };

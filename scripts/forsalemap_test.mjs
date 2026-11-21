@@ -70,5 +70,25 @@ t('prestatie: een beeld met 600 percelen onder 5 ms', () => {
   for (let i = 0; i < 50; i++) layer.view(all, 0.5);
   assert.ok((performance.now() - t0) / 50 < 5);
 });
+t('de echte omtrek (bezit-vormen.json) gaat voor de schets zodra hij geladen is, en de kaartkaart-tekst volgt', async () => {
+  const ix2 = createParcelIndex({ v: 1, kinds: ['w', 'a', 'b'], access: ['weg', 'pad', 'wegNabij', 'padNabij', 'geen'], rows });
+  const l2 = F.forSaleLayer({ parcels: ix2, ownsId: () => false, claimOf: () => null, priceOf: (p) => 100 });
+  const before = l2.view([1000, 1000, 1300, 1300], 0.3).shapes[0];
+  assert.equal(before.real, false); assert.equal(before.punten.length, 4, 'de schets: vier hoeken');
+  const p = ix2.byId(before.id);
+  ix2.attachShapes({ v: 1, step: 5, rows: [[before.id, [-4, -3, 8, 0, 0, 6, -8, 0]]] });          // een rechthoek 40 x 30 m rond het binnenpunt
+  const after = l2.view([1000, 1000, 1300, 1300], 0.3).shapes.find((s) => s.id === before.id);
+  assert.equal(after.real, true);
+  assert.deepEqual(after.punten[0], [p.x - 20, p.y - 15]);
+  assert.equal(after.punten.length, 4);
+  assert.ok(after.punten.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)));
+  const other = l2.view([1000, 1000, 1300, 1300], 0.3).shapes.find((s) => s.id !== before.id);
+  assert.equal(other.real, false, 'een perceel zonder vorm houdt zijn schets');
+  const { labelSpot } = await import('../game/js/forsaledraw.js');
+  const [w, cx, cy] = labelSpot(after, (x, y) => [x * 2, y * 2]);
+  assert.equal(w, 80); assert.deepEqual([cx, cy], [p.x * 2, p.y * 2]);
+  const [w2] = labelSpot(other, (x, y) => [x, y]);
+  assert.ok(w2 > 0);
+});
 console.log(`forsalemap_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

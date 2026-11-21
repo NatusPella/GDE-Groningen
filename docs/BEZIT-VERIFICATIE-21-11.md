@@ -36,9 +36,7 @@ Gemeten: duizend percelen, elke berekening van het beheerscherm onder 20 ms.
 In beeld te controleren (nog niets gezien, de UI en de 3D horen bij de bouwer):
 - Een gekocht perceel verschijnt als veld op de kaart en in het boerderijmenu met naam, soort en bodem; ploegen, zaaien en oogsten werken erop.
 - De opbrengst per werkronde is bij grote percelen niet meer onevenredig hoog (de rijlengte schaalt mee; de rijen in de wereld moeten `rowLayout(ha)` volgen).
-- Een landarbeider rijdt zichtbaar de rijen (hoogstens vier tegelijk, binnen 230 m) en het veld verandert per cel; buiten beeld verandert alleen het cijfer.
-- Het vee in beeld is hoogstens twaalf dieren per perceel; ziekte, voer en opbrengst staan in het beheerscherm.
-- Boomgaardfruit heeft nog geen 3D-vorm, afnemerplek of kleur in de wereld (`boerderijwereld.js`, `farmcrops3d.js`, `werktuigen3d.js`).
+- Zie hieronder "Zichtbare werkers, vee, Tessa-regels en boomgaardfruit in de wereld" voor de zichtbare AI-werkers, het vee, de Tessa-regels en boomgaardfruit.
 - Balans: een arbeider levert netto ongeveer 43 euro per ha per speldag bij 10 percelen in Oldambt (de pacht 21); te tunen in werkpakket 10.
 ## #1102 Tak Bedrijven (pure logica)
 
@@ -125,8 +123,49 @@ zonder dat kon de boerderij het veld in de wereld niet zoeken. Test `bezitmarker
 In beeld te controleren:
 - Na een koop: bij het perceel staat een paal met bord (naam, Van jou); op de kaart en de minikaart een groene pin met stand; het veld wordt gezocht zodra je dichtbij bent (bestaande boerderijcode).
 - Bij 200 palen geen merkbare fps-daling (perf-run met 1.000 percelen is nog niet gedaan); borden zijn goed leesbaar op 20 m en niet te groot.
-- Geen getekende grenslijn: de index bevat geen vorm en de kaartranden van PERCEELRANDEN-21-11 zijn nog niet aangesloten (bekend gat); alleen de paal staat in het perceel.
+- Grenslijn (nu gebouwd): `bezit-vormen.json` (13.650 omtrekken, 793 KB, 311 KB gzip, 119 ms bouwtijd erbij; 6,4 punten gemiddeld, hoogstens 24), `parcelindex.js` (`createShapeIndex`, `shapeOf(id)`,
+  lui nageladen na de index), de kaartlaag Te koop tekent de echte omtrek zodra hij geladen is (anders de schets) en `bezitmarker3d.js` legt een dunne lijn op grondhoogte rond je eigen en
+  geclaimde percelen (hoogstens 40, dichtstbijzijnde eerst; `planOutlines`, `outlineSegments`). Dit is een eigendomsmarkering, geen kaartrand (zie BEZIT-21-11.md hoofdstuk 14, besluit 5).
+  Tests: `bezit_index_test` (22), `bezitmarker_test` (14), `forsalemap_test` (10). Bij de echte wereld: 13.645 van de 13.650 omtrekken bevatten het binnenpunt, geen NaN.
+  Nog niet gezien: de lijn in de wereld (zichtbaar op gras en akker? door het terrein heen?), de omtrek op de kaart (kaartje op het binnenpunt, vorm bij hoge zoom).
+  Gaten: een perceel dat over een tegelrand loopt heeft de vorm van zijn grootste stuk (de lijn kan dan langs een tegelrand lopen, gemiddeld 85% van de oppervlakte); percelen zonder vorm (14 van
+  13.664) houden de schets; de lijn is 1 pixel breed (lijnbreedte van `LineBasicMaterial` werkt niet overal); de vormen zijn nog niet door de build in `game/world` gelegd (alleen gemeten in een tijdelijke map).
 - Een bord boven op een pand staat op de gevel-hoogte van het pand (gok: 3,4 m); controleer bij hoge panden.
+
+## #1101 Zichtbare werkers, vee, Tessa-regels en boomgaardfruit in de wereld
+
+Gebouwd (onderdelen A tot en met D van de opdracht aan de subagent; nog niets in beeld gezien):
+- **A. AI-werkers:** `farmworkers.js` (puur: planning met `visibleJobs`, hoogstens 4, de dichtstbijzijnde, nieuwe binnen 230 m en bestaande tot 330 m, de cel waar de
+  werker is, glijden, het uiterlijk van een boer) en `farmworkers3d.js` (een trekker met een figuur uit `buildPersonMesh`, het werktuig van de taak erachter, de cellen
+  van het veld kleuren mee via `paintWorkerCell` in `boerderijwereld.js`; geen werkers voor een gast; `disposeObject` bij weggaan; planning twee keer per seconde).
+  De dagtik geeft de bewerkte percelen door (`holdingsmodel` zet `rep.staff.worked`, `bezitlive.dagTik` zet `worked` in het rapport, `bezithooks.onDayReport` zet ze
+  klaar). De haak staat in `main.js` naast `updateBezitMarkers`. De outfit `boer` van epic-kleding is er alleen voor de speler (`shops.js`); de werker heeft dezelfde
+  velden in `FARMER_OUTFIT`, een voorman draagt een rode pet.
+- **B. Vee:** `herdview.js` (puur: `herdSummary`, `planHerds`, `animalLayout`) en `herdview3d.js` (de bestaande koe-, schaap- en kipmodellen van `wildlife.js`; hoogstens
+  12 dieren per weide, 4 weiden tegelijk, binnen de streamstraal, vast per perceel-ID).
+- **C. Tessa:** `bezithooks.js` (`tessaLineForPurchase`, `onParcelBought`, `onWorkerHired`, `onHerdStocked`, `onLeasedOut`, `onFirstHarvest`, `onDayReport`, `deliverLine`).
+  Alleen tekst, via `addMessage`, met "Tessa: " ervoor; eenmalig per streek of gebeurtenis, met kans en cooldown uit `tessarules.js`.
+- **D. Boomgaardfruit:** boompje in `farmcrops3d.js` (vorm `boom`), kleur in `werktuigen3d.js`, afnemer Fruitveiling De Bongerd bij Zuidhorn in `boerderijwereld.js`;
+  `GEWAS_INDEX` blijft `ALLE_GEWAS_IDS` met fruit op plek 5 (de vijf bestaande ongewijzigd; de coöp-codering gebruikt een byte).
+Tests: `farmworkers_test` (13), `herdview_test` (15). Bestaande tests groen: `farmstaff_test`, `livestock_test`, `tessarules_test`, `bezitlive_test`, `boerderij_test`.
+
+In beeld te controleren:
+- Met personeel op een perceel (een arbeider aangesteld, een speldag voorbij): binnen 230 m rijdt een trekker met een boer de rijen van dat perceel; de cellen kleuren in de
+  kleur van de taak; bij 5 of meer bewerkte percelen zijn er hoogstens 4 werkers zichtbaar; ver weg is er niets.
+- Een gast ziet geen werkers en geen vee van de gastheer.
+- De boer zit goed op de trekker (stoel), het werktuig hangt achter de trekker met de voorkant naar de trekker; de pet is zichtbaar; geen dubbele figuren.
+- Vee: op een weide met melkvee, schapen of kippen staan hoogstens 12 dieren rond het binnenpunt, niet in water of tegen een gebouw; ze staan stil.
+- Tessa-regels verschijnen als melding met "Tessa: ", niet vaker dan eens per twee speldagen en niet twee keer dezelfde.
+- Boomgaardfruit: de boompjes (vier stadia) en de afnemer Fruitveiling De Bongerd bij Zuidhorn op een weg.
+
+Gaten:
+- Het veld toont na de dagtik al de eindstand van de dag (het model past het hele dagwerk in één keer toe); de werker kleurt de cellen waar hij langs rijdt in de kleur van de
+  taak, hij laat het veld dus niet echt per cel veranderen. Een echt per-cel-verloop vraagt een dagtik die per uur werkt (een grotere wijziging in `farmstaff.js`).
+- De rijen van een groot perceel zijn tot 3 keer zo lang als het veldmesh (100 m); de trekker rijdt dan buiten het getekende veld verder.
+- De dieren staan stil (geen graasanimatie) en de kip is het hen-model van de eend; de plek wordt niet gecontroleerd tegen de echte perceelvorm (alleen water en gebouwen).
+- `bezitlive.koopPerceel`, `huurArbeider` en het neerzetten van vee roepen de haken van `bezithooks.js` nog niet aan (alleen de dagrapportage is gekoppeld): de bouwer koppelt ze.
+  `herdSummary(bezit, id)` is nog niet in de perceelinfo getoond.
+- Het tweede persona-kanaal (`personaLine`) is niet gebruikt: de Tessa-regels hebben hun eigen staat in het bezit.
 
 ## #1104 Samen spelen
 

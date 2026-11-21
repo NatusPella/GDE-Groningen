@@ -75,3 +75,45 @@ export function bezitVersion(bezit, claims = []) {
   for (const id of Object.keys(bezit.parcels)) h = (h + id.charCodeAt(id.length - 1) * 3 + id.charCodeAt(1)) | 0;
   return h;
 }
+
+// ---- de grenslijn van je percelen (#1100): de omtrek van de vorm zelf, als dunne lijn op de grond ----
+// Dit is geen rand van de kaart (PERCEELRANDEN-21-11: geen afgeleide heg, hek of draad uit een polygoon): het is een eigendomsmarkering zonder botsing, alleen voor wat van jou
+// of van een medespeler is, en alleen als bezit-vormen.json geladen is. Hoogstens MAX_OUTLINES lijnen tegelijk (de dichtstbijzijnde), binnen dezelfde straal als de palen.
+export const MAX_OUTLINES = 40;
+export const OUTLINE_STEP_M = 8;         // een lijn wordt in stukken van hoogstens zoveel meter gelegd, zodat hij de grond volgt
+
+// Zelfde vorm als planMarkers, zodat diffMarkers/applyDiff ze kunnen vergelijken: { key: 'o:<id>' | 'oc:<id>', id, pts, state, color, x, y, label, sub, d }.
+export function planOutlines({ player, bezit, index = null, claims = [], radius = MARKER_RADIUS, max = MAX_OUTLINES } = {}) {
+  const out = [];
+  if (!player || !Number.isFinite(player.x) || !Number.isFinite(player.y) || !bezit || !index || !index.parcels || !index.parcels.shapeOf) return out;
+  const add = (key, id, state, color, x, y) => {
+    const d = Math.hypot(x - player.x, y - player.y);
+    if (d > radius) return;
+    const pts = index.parcels.shapeOf(id);
+    if (!pts || pts.length < 3 || pts.some((q) => !Number.isFinite(q[0]) || !Number.isFinite(q[1]))) return;
+    out.push({ key, id, pts, state, color, x, y, label: 'omtrek', sub: String(pts.length), d });
+  };
+  for (const id of Object.keys(bezit.parcels)) {
+    const r = bezit.parcels[id];
+    const c = r.lg ? null : (r.c || r.a);
+    if (c) add('o:' + id, id, 'own', null, c[0], c[1]);
+  }
+  for (const cl of claims) { const p = index.parcels.byId(cl.id); if (p) add('oc:' + cl.id, cl.id, 'claimed', cl.color || null, p.x, p.y); }
+  return out.sort((a, b) => a.d - b.d || (a.key < b.key ? -1 : 1)).slice(0, max);
+}
+
+// De punten van een gesloten omtrek als losse lijnstukken (paren), elk hoogstens OUTLINE_STEP_M lang; heightAt(x, y) geeft de grondhoogte. Alleen eindige getallen.
+// Geeft een platte lijst x, hoogte, y (de wereld-z) per hoekpunt van het stuk.
+export function outlineSegments(pts, heightAt, lift = 0.2, step = OUTLINE_STEP_M) {
+  const out = [];
+  const h = (x, y) => { const v = heightAt ? heightAt(x, y) : 0; return (Number.isFinite(v) ? v : 0) + lift; };
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    for (let k = 0; k < n; k++) {
+      const x0 = a[0] + ((b[0] - a[0]) * k) / n, y0 = a[1] + ((b[1] - a[1]) * k) / n, x1 = a[0] + ((b[0] - a[0]) * (k + 1)) / n, y1 = a[1] + ((b[1] - a[1]) * (k + 1)) / n;
+      out.push(x0, h(x0, y0), y0, x1, h(x1, y1), y1);
+    }
+  }
+  return out;
+}

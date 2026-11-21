@@ -40,11 +40,22 @@ export function drawForSale(ctx, view, toScreen, zoomScale, hoverId = null, sele
       const [a, , c] = s.punten.map(([x, y]) => toScreen(x, y));
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]); ctx.stroke();
     }
-    const [p0, p1, p2] = s.punten.map(([x, y]) => toScreen(x, y));
-    const w = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
-    if (w >= LABEL_MIN_PX || hot) drawTag(ctx, (p0[0] + p2[0]) / 2, (p0[1] + p2[1]) / 2, s, st, own);
+    const [w, cx, cy] = labelSpot(s, toScreen);
+    if (w >= LABEL_MIN_PX || hot) drawTag(ctx, cx, cy, s, st, own);
     ctx.restore();
   }
+}
+
+// Waar het kaartje komt en hoe breed het vlak op het scherm is: de echte omtrek (real) heeft het kaartje op het binnenpunt en de breedte van zijn omhullende;
+// de schets (vier hoeken) heeft het midden van zijn diagonaal en de lengte van zijn eerste zijde.
+export function labelSpot(s, toScreen) {
+  const P = s.punten.map(([x, y]) => toScreen(x, y));
+  if (s.real) {
+    const xs = P.map((q) => q[0]), [bx, by] = toScreen(s.x, s.y);
+    return [Math.max(...xs) - Math.min(...xs), bx, by];
+  }
+  const [p0, p1, p2] = P;
+  return [Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), (p0[0] + p2[0]) / 2, (p0[1] + p2[1]) / 2];
 }
 
 // Het kaartje op het vlak: prijs bij te koop, "Van jou", de naam van de medespeler, of een slotje. Tekst in DS3-inkt op een donkere plaat.

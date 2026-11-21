@@ -116,6 +116,69 @@ t('pandindex: opzoeken en dichtbij', () => {
   assert.equal(bi.byId(222).type, 'school');
   assert.equal(bi.near(1050, 1000, 100).length, 2);
 });
+// ---- de getekende grenslijn (#1100): bezit-vormen.json ----
+const wiggle = (cx, cy, r, k) => Array.from({ length: k }, (_, i) => { const a = (i / k) * Math.PI * 2, rr = r * (1 + 0.04 * Math.sin(i * 5)); return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]; });
+const closed = (pts) => pts.concat([pts[0]]);
+const decode = (p, flat, step = X.SHAPE_STEP) => { const o = []; let x = 0, y = 0; for (let i = 0; i < flat.length; i += 2) { x += flat[i]; y += flat[i + 1]; o.push([p.pt[0] + x * step, p.pt[1] + y * step]); } return o; };
+const distToRing = (q, ring) => { let b = Infinity; for (let i = 0; i < ring.length; i++) { const a = ring[i], c = ring[(i + 1) % ring.length]; const dx = c[0] - a[0], dy = c[1] - a[1], l2 = dx * dx + dy * dy || 1; const tt = Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / l2)); b = Math.min(b, Math.hypot(q[0] - a[0] - tt * dx, q[1] - a[1] - tt * dy)); } return b; };
+t('vormen: Douglas-Peucker houdt de hoekpunten en gooit rechte stukken weg', () => {
+  const sq = [[0, 0], [50, 0], [100, 0], [100, 50], [100, 100], [50, 100], [0, 100], [0, 50]];
+  const s = X.simplifyRing(sq, 8);
+  assert.equal(s.length, 4);
+  assert.deepEqual(X.simplifyRing([[0, 0], [10, 0], [5, 8]], 8).length, 3);
+});
+t('vormen: delta-codering relatief aan het binnenpunt, terug te lezen binnen tolerantie plus afronding', () => {
+  const ring = wiggle(5000, 6000, 120, 60);
+  const p = { id: 'p0000000000aa', pt: [5003, 5998], m2: 45000, pieces: [{ pts: closed(ring) }] };
+  const flat = X.shapeDeltas(p);
+  assert.ok(flat && flat.length % 2 === 0 && flat.length / 2 >= 3 && flat.length / 2 <= X.SHAPE_MAX_POINTS);
+  const back = decode(p, flat);
+  for (const q of back) assert.ok(distToRing(q, ring) <= X.SHAPE_TOLERANCE + X.SHAPE_STEP, 'het punt ligt dicht bij de echte rand');
+  for (const q of ring) assert.ok(distToRing(q, back) <= X.SHAPE_TOLERANCE + X.SHAPE_STEP, 'de echte rand ligt dicht bij de vorm');
+  assert.ok(flat.every((v) => Number.isInteger(v)));
+});
+t('vormen: hoogstens 24 punten, ook bij een gekartelde rand (de tolerantie groeit mee)', () => {
+  const ring = Array.from({ length: 400 }, (_, i) => { const a = (i / 400) * Math.PI * 2, r = 150 + (i % 2 ? 25 : -25); return [Math.cos(a) * r, Math.sin(a) * r]; });
+  const flat = X.shapeDeltas({ pt: [0, 0], m2: 70000, pieces: [{ pts: closed(ring) }] });
+  assert.ok(flat && flat.length / 2 <= X.SHAPE_MAX_POINTS);
+});
+t('vormen: het grootste stuk telt, geen gaten, onbruikbare vormen geven null', () => {
+  const big = closed(wiggle(0, 0, 100, 40)), small = closed(wiggle(500, 0, 10, 8));
+  const a = X.shapeDeltas({ pt: [0, 0], m2: 31400, pieces: [{ pts: small }, { pts: big }] });
+  const b = X.shapeDeltas({ pt: [0, 0], m2: 31400, pieces: [{ pts: big }] });
+  assert.deepEqual(a, b);
+  assert.equal(X.shapeDeltas({ pt: [0, 0], m2: 1, pieces: [{ pts: [[0, 0], [1, 0], [0, 0]] }] }), null);
+  assert.equal(X.shapeDeltas({ pt: [0, 0], m2: 1, pieces: [] }), null);
+  assert.equal(X.shapeDeltas({ pt: [0, 0], m2: 1, pieces: [{ pts: closed([[0, 0], [20, 0], [40, 0], [60, 0]]) }] }), null, 'een rechte lijn is geen vorm');
+});
+t('vormen: shapeRows is gesorteerd en deterministisch', () => {
+  const ps = [3, 1, 2].map((i) => ({ id: 'p' + String(i).padStart(12, '0'), pt: [i * 1000, 0], m2: 30000, pieces: [{ pts: closed(wiggle(i * 1000, 0, 90, 30)) }] }));
+  const a = X.shapeRows(ps), b = X.shapeRows([...ps].reverse());
+  assert.deepEqual(a, b);
+  assert.deepEqual(a.map((r) => r[0]), ['p000000000001', 'p000000000002', 'p000000000003']);
+  assert.equal(X.shapeRows(ps, { minHa: 99 }).length, 0);
+});
+t('vormen: createShapeIndex pakt uit naar wereldmeters, cachet en weert kapotte rijen', () => {
+  const parcels = PI.createParcelIndex(file);
+  const first = file.rows[0];
+  const p = parcels.byId(first[0]);
+  const ring = wiggle(p.x, p.y, 80, 30);
+  const flat = X.shapeDeltas({ pt: [p.x, p.y], m2: 20000, pieces: [{ pts: closed(ring) }] });
+  const vf = { v: 1, step: 5, rows: [[first[0], flat], ['x', [1, 2]], [file.rows[1][0], [1, 2, 3]], 'kapot', [file.rows[2][0], [0, 0, 'a', 1, 2, 3]]] };
+  const sx = PI.createShapeIndex(vf, parcels);
+  assert.equal(sx.size, 2, 'alleen de rijen met minstens drie punten en een even aantal (de rij met een letter valt bij het uitpakken weg)');
+  const pts = sx.shapeOf(first[0]);
+  assert.ok(pts.length >= 3 && pts.every((q) => Number.isFinite(q[0]) && Number.isFinite(q[1])));
+  assert.equal(sx.shapeOf(first[0]), pts, 'uit de cache');
+  assert.equal(sx.shapeOf('onbekend'), null);
+  assert.equal(sx.shapeOf(file.rows[2][0]), null, 'NaN geeft geen vorm');
+  assert.equal(parcels.shapeOf(first[0]), null, 'zonder vormen: geen omtrek (de schets blijft)');
+  assert.equal(parcels.attachShapes(vf), 2);
+  assert.ok(parcels.hasShapes() && parcels.shapeOf(first[0]).length === pts.length);
+  assert.equal(parcels.attachShapes(null), 0);
+  assert.equal(parcels.shapeOf(first[0]), null);
+  assert.equal(PI.createShapeIndex(null, parcels).size, 0);
+});
 t('lui laden: één keer en een mislukte bron geeft een lege index', async () => {
   PI.resetBezitIndexCache();
   let calls = 0;
@@ -123,7 +186,7 @@ t('lui laden: één keer en een mislukte bron geeft een lege index', async () =>
   assert.equal(r.parcels.size, 3);
   assert.equal(r.buildings.size, 0);
   await PI.loadBezitIndex(async () => { calls++; return null; });
-  assert.equal(calls, 2);
+  assert.equal(calls, 3, 'percelen, panden en (op de achtergrond) de vormen');
   PI.resetBezitIndexCache();
 });
 

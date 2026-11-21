@@ -1,6 +1,6 @@
 // De kaartlaag "Te koop" (epic #1095, #1098; ontwerp docs/BEZIT-21-11.md 7): welke percelen er in beeld staan, met stand, prijsstap en vorm.
 // Puur: geen DOM, geen canvas, geen klok (scripts/forsalemap_test.mjs); mapview.js tekent wat dit teruggeeft. De vorm is een schets op
-// kaalschaal (perceelVlak van percelen.js: de tegelvorm zit niet in de index); alleen wat in beeld is wordt berekend, nooit alle 13.664 tegelijk.
+// kaalschaal (perceelVlak van percelen.js) zolang bezit-vormen.json niet geladen is, daarna de echte omtrek (parcelindex shapeOf); alleen wat in beeld is wordt berekend, nooit alle 13.664 tegelijk.
 //
 // Kleurtaal (DS3): te koop = policeBlue-streeplijn met een prijskaartje, van jou = greenLight, medespeler = zijn spelerkleur, niet te koop = grijs
 // met een slotje. Geel blijft gereserveerd voor 'volg dit'-doelen. Nooit alleen kleur: elke stand heeft een lijnpatroon (dash) en een vorm.
@@ -21,6 +21,12 @@ export const STATES = {
   locked: { dash: [2, 5], ink: 'locked', alpha: 0.08, icon: 'slot', label: 'Niet te koop' },
 };
 export const priceStep = (price, ha) => { const pha = price / Math.max(0.1, ha); return PRICE_PER_HA_STEPS.filter((s) => pha > s).length; };
+
+// De omtrek van een perceel: de echte, vereenvoudigde vorm uit bezit-vormen.json als die geladen is (real: true), anders de schets op kaalschaal.
+function outlineOf(ix, p) {
+  const real = ix.shapeOf ? ix.shapeOf(p.id) : null;
+  return real && real.length >= 3 ? { punten: real, real: true } : { punten: perceelVlak({ id: p.id, ha: p.ha }, { x: p.x, y: p.y }), real: false };
+}
 
 // deps: { parcels (parcelindex), ownsId(id), claimOf(id) -> {name,color}|null, priceOf(parcel) -> euro, showLocked }
 export function forSaleLayer(deps) {
@@ -57,7 +63,7 @@ export function forSaleLayer(deps) {
         const price = st === 'forSale' ? deps.priceOf(p) : 0;
         const claim = st === 'claimed' ? deps.claimOf(p.id) : null;
         shapes.push({ id: p.id, state: st, x: p.x, y: p.y, ha: p.ha, kind: p.kind, access: p.access, price, step: st === 'forSale' ? priceStep(price, p.ha) : 0,
-          punten: perceelVlak({ id: p.id, ha: p.ha }, { x: p.x, y: p.y }), claim });
+          ...outlineOf(ix, p), claim });
       }
       return { mode: 'shapes', shapes, clusters: [], total };
     },

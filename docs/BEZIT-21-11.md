@@ -593,3 +593,9 @@ Deze besluiten vervangen of verduidelijken de open vragen van hoofdstuk 11 en wa
 2. **Monumenten en bijzondere gebouwen zijn niet koopbaar** (monumenten, landmarks, kerken, musea, gemeentehuizen en wat al op de uitsluitlijst staat: ziekenhuis, politie, verhaalgebouwen). De zachte "Beheer"-grens van 6.1 vervalt; `businessexclusion.js` (`isMonument`) sluit ze altijd uit, met reden op de kaart.
 3. **Handwerk levert 25% meer dan personeel**: de beste arbeider haalt 80% van handwerk (`SKILL_RATIO` 70, 75 en 80%), handwerk blijft per handeling het meest.
 4. **Hypotheek en lening komen later.** Het prijs- en kasboekmodel houdt ruimte vrij: `bezit.debt` bestaat al in de opslag, het kasboek van de boerderij kent de post `rente`, en niets in de kooplogica gaat uit van een schuldvrij bezit. Geen lening in de eerste slices.
+5. **De grenslijn is een eigendomsmarkering, geen kaartrand** (#1100). PERCEELRANDEN-21-11 besloot dat het spel geen heg, hek, draad of berm meer afleidt uit een perceelpolygoon: een
+   rand bestaat alleen waar de kaart een lijn heeft. De getekende omtrek van een gekocht perceel is daar geen uitzondering op maar iets anders: een platte, dunne lijn op de grond (`LineSegments`,
+   geen botsing, geen model, geen proptype, niet in `edgeclasses.js`), alleen om te laten zien wat van jou is, en alleen voor wat van jou of van een medespeler is. Hij hoort bij het spelersbezit, niet
+   bij de wereld: een perceel dat je niet bezit krijgt geen lijn. De vorm komt uit `bezit-vormen.json` (omtrek van het grootste stuk, Douglas-Peucker 8 m, 5 m afgerond, delta-gecodeerd, hoogstens 24
+   punten), niet uit de tegel; het verschil met de kaart is dus dat de lijn de vereenvoudigde vorm van het perceel is en niet de echte rand van het landgebruik. Dezelfde omtrek tekent de kaartlaag Te
+   koop. Gemeten: 13.650 vormen, 793 KB (311 KB gzip, ruim binnen de 1 MB), 119 ms bouwtijd.

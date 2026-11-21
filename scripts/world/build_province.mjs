@@ -36,7 +36,7 @@ import { waterIndex, wetFraction } from './placement_audit.mjs';
 import { snapSignals, junctionsOf } from './junction_tiles.mjs';
 import { profileFeats, cutZ, cutZt } from './province_profile.mjs';
 import { clearPackTrees } from './tegel_schoon.mjs';
-import { writeBezitIndex, PARCEL_FILE, BUILDING_FILE } from './bezit_index.mjs';
+import { writeBezitIndex, PARCEL_FILE, BUILDING_FILE, SHAPE_FILE } from './bezit_index.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROVINCE_BUILDER = 1;
@@ -687,7 +687,7 @@ export function writeProvince(out, built) {
   // the base map's pyramid (province_map.mjs) next to the packs
   const pm = built.raster ? writePyramid(built.raster, out) : null;
   if (pm) { global.map = pm.meta; built.stats.mapMB = +(pm.bytes / 1e6).toFixed(2); }
-  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json', landFile: 'provincie-land.json', bezitFile: PARCEL_FILE, bezitPandenFile: BUILDING_FILE, ...(built.roadNet ? { roadsFile: 'provincie-roads.json.gz' } : {}) } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
+  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json', landFile: 'provincie-land.json', bezitFile: PARCEL_FILE, bezitPandenFile: BUILDING_FILE, bezitVormenFile: SHAPE_FILE, ...(built.roadNet ? { roadsFile: 'provincie-roads.json.gz' } : {}) } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
   fs.writeFileSync(path.join(out, 'provincie-bus.json'), JSON.stringify({ builder: PROVINCE_BUILDER, bus }));
   fs.writeFileSync(path.join(out, 'provincie-land.json'), JSON.stringify({ builder: PROVINCE_BUILDER, ...built.rail }));
   // the Bezit index (epic #1095): the buyable parcels and the business buildings, read lazily by the game (bezit_index.mjs)
