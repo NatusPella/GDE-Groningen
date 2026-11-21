@@ -127,5 +127,25 @@ ok(STREAM_BOOT_MS < STREAM_SLOW_FRAME_MS && STREAM_SLOW_FRAME_MS < STREAM_FRAME_
 ok(noteStreamWorldPart(createStreamBudget(), NaN).bootUntil === 0, 'een onbekende klok zet geen budget');
 ok(streamFrameMs(null, 1000, 16, 10) === STREAM_FRAME_MS, 'zonder budget: het normale budget');
 
+// ---- 5. #1016: de snelheid reageert snel op optrekken en laat langzaam los ----
+{
+  // een sprint van stilstand naar 30 m/s op 60 beelden per seconde: meting van het vooruitzicht na 0,2 s
+  const sim = (secs, vOf, from) => { const s = from || createStreamAhead(); let x = s.x === null ? 0 : s.x; if (s.x === null) advanceStreamAhead(s, 0, 0, 1 / 60); for (let i = 0; i < Math.round(secs * 60); i++) { x += vOf(i / 60) / 60; advanceStreamAhead(s, x, 0, 1 / 60); } return s; };
+  const up = sim(0.2, () => 30);
+  ok(up.speed > 18, 'na 0,2 s vol gas leest de schatting al ruim 18 m/s', up.speed.toFixed(1));
+  ok(up.lead > 54, 'en het vooruitzicht is al meer dan 54 m', up.lead.toFixed(1));
+  const oud = (() => { const s = createStreamAhead(); advanceStreamAhead(s, 0, 0, 1 / 60); let x = 0; for (let i = 0; i < 12; i++) { x += 0.5; const k = Math.min(1, (1 / 60) / 0.35); s.speed += (30 - s.speed) * k; } return s.speed; })();
+  ok(up.speed > oud * 1.5, 'de oude gelijkmatige uitmiddeling bleef ver onder de nieuwe', oud.toFixed(1) + ' tegen ' + up.speed.toFixed(1));
+  const brake = sim(0.25, (t) => 30, undefined); const before = brake.lead;
+  const after = sim(0.25, () => 0, brake);
+  ok(after.lead > 0 && after.speed > 10, 'een korte rem van 0,25 s houdt het vooruitzicht vast', after.speed.toFixed(1));
+  const stop = sim(3, () => 0, after);
+  ok(stop.lead === 0 && stop.speed < STREAM_SPEED_MIN, 'na drie seconden stilstand is het vooruitzicht weg', stop.speed.toFixed(2));
+  ok(before <= STREAM_MAX_LEAD, 'het vooruitzicht blijft onder het plafond');
+  const t0 = process.hrtime.bigint(); const b = createStreamAhead(); for (let i = 0; i < 1e6; i++) advanceStreamAhead(b, i * 0.5, 0, 1 / 60); const ns = Number(process.hrtime.bigint() - t0) / 1e6;
+  ok(ns < 2000, 'advanceStreamAhead blijft goedkoop (meting: ' + ns.toFixed(0) + ' ns per aanroep)', ns.toFixed(0));
+  console.log('meetpunt: advanceStreamAhead ' + ns.toFixed(0) + ' ns per aanroep, schatting na 0,2 s vol gas ' + up.speed.toFixed(1) + ' m/s');
+}
+
 console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} controles`);
 process.exit(fails ? 1 : 0);
