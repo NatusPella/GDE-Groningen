@@ -30,8 +30,8 @@ globalThis.localStorage = {
 globalThis.document = { addEventListener() {}, removeEventListener() {}, hidden: false, body: null, head: null };
 
 const S = await import('../game/js/settings.js');
-const { EERSTE_START, SCHAKELAAR, moetVragen, moetNaamVragen, moetToestemmingVragen, kiesNaam, kiesToestemming, zetMeedoen } = await import('../game/js/onlineconsent.js');
-const { onlineStartHtml, meedoenSchakelaarHtml, mountOnlineStart, openOnlineStart, maybeOpenOnlineStart } = await import('../game/js/onlineconsentui.js');
+const { EERSTE_START, SCHAKELAAR, moetVragen, moetNaamVragen, moetToestemmingVragen, kiesNaam, wijzigNaam, kiesToestemming, zetMeedoen } = await import('../game/js/onlineconsent.js');
+const { onlineStartHtml, onlineInstellingHtml, meedoenSchakelaarHtml, mountOnlineStart, openOnlineStart } = await import('../game/js/onlineconsentui.js');
 
 let n = 0;
 const t = async (naam, f) => { await f(); n++; };
@@ -52,32 +52,51 @@ await t('moetVragen vraagt tot onlineMeedoen true is én de naam geldig is', asy
   assert.equal(moetVragen(), false);
 });
 
-await t('de naamkaart bewaart alleen de naam: de online-toestemming blijft zoals ze was (die komt bij Samen spelen)', async () => {
+await t('de kaart bewaart naam én akkoord, en zonder vinkje niets', async () => {
   naar(false); naamZet('');
   assert.equal(moetNaamVragen(), true);
+  assert.equal(kiesNaam('Bouwer', { consent: false }).ok, false, 'zonder vinkje geen weg verder');
+  assert.equal(S.getSettings().onlineNaam, '', 'niets bewaard bij een fout');
   const r = kiesNaam('Bouwer');
   assert.equal(r.ok, true);
-  assert.equal(r.meedoen, false, 'geen toestemming bewaard');
-  assert.equal(S.getSettings().onlineMeedoen, false, 'onlineMeedoen blijft false');
-  assert.equal(moetNaamVragen(), false, 'de naam is er');
-  assert.equal(moetToestemmingVragen(), true, 'de toestemming wordt bij Samen gevraagd');
-  naar(null); naamZet('');
-  kiesNaam('Bouwer');
-  assert.equal(S.getSettings().onlineMeedoen, null, 'ook een vers profiel krijgt geen toestemming van de naamkaart');
+  assert.equal(r.meedoen, true);
+  assert.equal(S.getSettings().onlineMeedoen, true);
+  assert.equal(moetNaamVragen(), false);
+  assert.equal(moetToestemmingVragen(), false, 'onthouden: de kaart komt niet meer');
+  assert.equal(moetVragen(), false);
+});
+
+await t('Instellingen: de naam wijzigen met dezelfde filter, het akkoord intrekken laat de naam staan', async () => {
+  naar(true); naamZet('Bouwer');
+  assert.equal(wijzigNaam('Tessa').ok, false, 'een verhaalnaam wordt geweigerd');
+  assert.equal(S.getSettings().onlineNaam, 'Bouwer', 'bij een fout blijft de oude naam');
+  assert.equal(wijzigNaam('').ok, false);
+  const r = wijzigNaam('Metselaar');
+  assert.equal(r.ok, true);
+  assert.equal(S.getSettings().onlineNaam, 'Metselaar');
+  const html = onlineInstellingHtml({ naam: 'Metselaar', meedoen: true });
+  assert.match(html, /os-inst-naam/); assert.match(html, /data-akkoord-in/);
+  zetMeedoen(false);
+  assert.equal(S.getSettings().onlineMeedoen, false);
+  assert.equal(S.getSettings().onlineNaam, 'Metselaar', 'de naam blijft');
+  assert.equal(moetNaamVragen(), false, 'na intrekken vraagt het spel alleen het akkoord');
+  assert.equal(moetToestemmingVragen(), true);
+  assert.doesNotMatch(onlineInstellingHtml({ naam: 'Metselaar', meedoen: false }), /data-akkoord-in/, 'zonder akkoord geen intrekknop');
 });
 
 // --- 2. de kaart: één verplichte stap, één knop --------------------------------
 await t('de kaart heeft een naamveld en precies één knop Doorgaan', async () => {
   const html = onlineStartHtml({ naam: '', fout: '' });
-  assert.match(html, /Hoe heet je\?/);
-  assert.match(html, /Je naam/);
-  assert.match(html, /blijft op dit apparaat|op dit apparaat/);
-  assert.doesNotMatch(html, /STUN|broker|IP-adres|openbare servers|Samen spelen</, 'geen netwerktekst op de naamkaart');
+  assert.match(html, /Je naam voor Samen spelen/);
+  assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
+  assert.match(html, /STUN-server en openbare brokers/);
   assert.match(html, new RegExp(`>${EERSTE_START.doorgaan}<`));
   assert.equal((html.match(/<button\b/g) || []).length, 1, 'één knop: Doorgaan');
   assert.ok(!/data-keuze|Meedoen<|Alleen spelen|Later</.test(html), 'geen tweede antwoord of uitstelknop');
   assert.match(html, /class="os-naam"[^>]*maxlength="16"[^>]*required/, 'verplicht naamveld met dezelfde grens als het profiel');
-  assert.doesNotMatch(html, /os-consent-vink|type="checkbox"/, 'de naamkaart vraagt geen netwerktoestemming');
+  assert.match(html, /class="os-consent-vink"/, 'het akkoord is een verplicht vinkje op dezelfde kaart');
+  assert.doesNotMatch(onlineStartHtml({}), /data-terug/, 'zonder terug geen Terug-knop');
+  assert.match(onlineStartHtml({ terug: true }), /data-terug/);
   assert.ok(html.indexOf('class="os-naam"') < html.indexOf('data-doorgaan'), 'het naamveld staat boven de knop');
 });
 
@@ -109,18 +128,18 @@ await t('een verhaalnaam wordt via dezelfde filter geweigerd, met dezelfde uitle
 });
 
 // --- 4. Doorgaan schrijft altijd online = true + de naam -----------------------
-await t('Doorgaan schrijft alleen de naam (geen toestemming), en verbindt zelf niets', async () => {
+await t('Doorgaan schrijft de naam en het akkoord, en verbindt zelf niets', async () => {
   schoon();
   let gekozen = null;
   const root = nepRoot('Bouwer');
   mountOnlineStart(root, { onKies: (r) => { gekozen = r; } });
   root.klik();
-  assert.equal(S.getSettings().onlineMeedoen, null);
-  assert.notEqual(bewaard().onlineMeedoen, true);
+  assert.equal(S.getSettings().onlineMeedoen, true);
+  assert.equal(bewaard().onlineMeedoen, true);
   assert.equal(S.getSettings().onlineNaam, 'Bouwer');
   assert.equal(bewaard().onlineNaam, 'Bouwer');
   assert.equal(gekozen.keuze, 'doorgaan');
-  assert.equal(gekozen.meedoen, false);
+  assert.equal(gekozen.meedoen, true);
   assert.deepEqual([log.ws.length, log.pc.length], [0, 0], 'de kaart is geen netwerklaag');
   assert.equal(root.innerHTML, '', 'de kaart is weg');
   assert.equal(moetNaamVragen(), false);
@@ -145,7 +164,7 @@ await t('Escape sluit de kaart niet en bewaart niets', async () => {
   root.toets('Escape', root.veld());
   assert.equal(gekozen, null, 'Escape doet niets');
   assert.equal(S.getSettings().onlineMeedoen, null);
-  assert.match(root.innerHTML, /Hoe heet je\?/, 'de kaart staat er nog');
+  assert.match(root.innerHTML, /Je naam voor Samen spelen/, 'de kaart staat er nog');
 });
 
 await t('er is geen later/close-API meer om de vraag over te slaan', async () => {
@@ -181,19 +200,8 @@ await t('openOnlineStart wacht op Doorgaan; Escape laat de belofte open', async 
   const antwoord = await belofte;
   assert.equal(antwoord.keuze, 'doorgaan');
   assert.equal(S.getSettings().onlineNaam, 'Bouwer');
-  assert.notEqual(S.getSettings().onlineMeedoen, true);
+  assert.equal(S.getSettings().onlineMeedoen, true);
   assert.equal(kaart.weg, true);
-});
-
-// --- 7. de boot vraagt alleen als het moet -----------------------------------
-await t('maybeOpenOnlineStart slaat de vraag over als de naam al geldig is', async () => {
-  naar(true); naamZet('Bouwer');
-  assert.equal(await maybeOpenOnlineStart({ settings: S.getSettings() }), null);
-  naar(false); naamZet('Bouwer');
-  assert.equal(await maybeOpenOnlineStart({ settings: S.getSettings() }), null, 'een geldige naam is genoeg, ook zonder toestemming');
-  assert.equal(moetVragen(), true, 'moetVragen (de oude gecombineerde vraag) blijft de naam plus toestemming meten');
-  naar(true); naamZet('');
-  assert.equal(moetVragen(), true, 'een lege naam vraagt opnieuw');
 });
 
 // --- 8. de schakelaar blijft dezelfde sleutel lezen ---------------------------

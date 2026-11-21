@@ -86,3 +86,34 @@ Per context een screenshot met het toetsplaatje in de zin; kijk naar: staat het 
 13. De houdring (`.hud-hold`) om een glyph: past de ring nog om de glyph (nu inline, zonder vaste maat)?
 
 Bekende risico's om daar te zoeken: een glyph direct als flex-kind van een rij die `align-items: center` zet (de wikkel is `inline` maar wordt als flex-kind een blok; het midden kan dan een paar tienden em afwijken), de `.hud-hold`-ring (vaste speling van 3 px), en de WASD-rij in een smalle hintrij.
+
+## Vervolg 21-11: de overslaan-hint in de echte render (#1075)
+
+De eerste fix (inline, zonder flex) bleek in een echt screenshot niet te werken: Spatie stond lager en klein, de label onleesbaar. Met `scripts/ui/keycap_meet.mjs` (headless Chrome, echte CSS en echte glyphfonts, geen Electron) is dat gemeten en gereproduceerd (`docs/beeld-21-11/keycap-skip/voor.png`, `na.png`, `mock.html`).
+
+**Oorzaken (gemeten)**
+1. De Spatie-glyph is maar 573/2048 hoog (Shift 655, Tab 614...), de toets 983. Een vaste schaal voor "0,48 em inkt" gaf Spatie 16 px inkt bij 18 px tekst, met een label van enkele pixels; en de daling was voor 0,48 berekend, dus Spatie stond 4,3 px te laag (Shift 3,3, Tab 1,8).
+2. De fonts hebben typografische metrics (ascent 0,8, descent 0,2; hhea 0,667/0 op macOS en Linux). Bij een grotere schaal ligt het nulhoge regelvak van de glyph (`line-height: 0`) ver boven de basislijn en groeit de regel of het flexvak: in flexrijen (HUD-hint, hold-ring, menuvoet) stond de glyph 3 tot 6 px te hoog of te laag.
+3. Flexrijen centreren de vakken van toets en tekst; die hebben een andere regelhoogte.
+
+**Oplossing, centraal**
+- `data-ink` (uit de fonts, `scripts/input_glyph_ink.mjs` schrijft `inputglyphs_ink.js` en het blok in `ds-keycap.css`): de INKT is overal even hoog (`--ds-kc-cap`), een lage toets krijgt een groter lettertype en een leesbaar label. Spatie is nu ook 20 tot 27 px hoog en ongeveer 1,7 keer zo breed als hoog.
+- `vertical-align` volgt uit `--ds-kc-mid` (0,30 em) en de inkthoogte: het midden staat op de halve letterhoogte, voor elke glyph.
+- `ascent-override: 10%; descent-override: 0%` op de zes glyphfonts (`fonts.css`): het regelvak ligt vlak bij de basislijn, op elk platform, hoe groot de glyph ook is. Het verschil tussen Windows en macOS (0,03 em) verdwijnt hiermee.
+- Flexrijen (`.ctx-row`, `.wp-chip`, `.wp-glyph`, `.hud-hold`, `.m-hint`, `.m-foot`, `.sk-hulp > span`, `.hud-obj-key`, `.mg-stopask`) staan op `align-items: baseline`.
+- De ring links (`.cine-skip-ring`, heist, trailer) staat via dezelfde `--ds-kc-mid` op de tekstregel; de vloer `--ds-kc-floor` is 20 px.
+
+**Meting (px, + is lager dan het midden van de tekst; 6 toetsen x 10 varianten, 1920x1080-achtige maten)**
+
+| Variant | voor (SPACE / SHIFT / W) | na (SPACE / SHIFT / W) |
+|---|---|---|
+| cine-skip | +4,3 (16 px hoog) / +3,3 / -1,2 | -0,2 (27 px hoog) / -0,2 / -0,2 |
+| heist-skipchip | +3,2 / +2,2 / -0,8 | -0,8 / -1,3 / -1,3 |
+| hud-hold | +3,1 / +2,1 / -1,9 | -0,1 / -0,2 / -0,4 |
+| prompts (ctx-row) | +2,0 / +1,0 / -3,0 | +0,3 / +0,3 / +0,3 |
+| hintkaart, uitleg, ondertitel | +4,0 tot +4,5 / +3,0 tot +3,5 / -0,5 | -0,1 tot +0,4 / -0,6 tot -0,1 / -0,6 tot -0,1 |
+| knop, launchchoice-pil, menuvoet | +1 tot +7 (SPACE) | -1,2 tot +0,3 |
+
+De test staat op 1,5 px (1 px plus 0,5 voor het afronden van de canvasmeting); de grootste restwaarde is -1,3 px in de heist-chip (14 px tekst: de vloer van 20 px duwt het plaatje 0,6 px omhoog). De Esc- en Enter-glyph blijven kleine labels in de Kenney-tekening houden.
+
+**Te verifiëren in het echte spel (Electron)**: de overslaan-hint rechtsonder in de opening op 1920x1080 en 1280x720 (inclusief de grotere pil van `launchchoice*`), de hold-ring om een glyph (ring en glyph concentrisch), en een glyph in een knop met `Bebas`-kop.

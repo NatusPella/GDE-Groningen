@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "generated": "2026-11-21",
+  "source": "docs/CUTSCENE-REGIE-21-11.md",
+  "description": "Toetsbare regels voor cutscene-regie in GDE Groningen. Elk regel heeft een ID (R-xx), beschrijving, ernst en wie het kan toetsen (linter/render/ai/panel). Gebruikt door cutscene_lint.mjs, cutscene-review.md en kwaliteitscontroles.",
+  "rules": [
+    {
+      "id": "R-01",
+      "title": "Establishing shot aanwezig of gemotiveerd afwezig",
+      "description": "Elke scène begint met een establishing shot (wide, 2–4 s) of heeft een goede reden om het over te slaan (vervolg van vorige scène, twee regels).",
+      "severity": "belangrijk",
+      "testableBy": ["render", "ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "example": "M01.intro begint met wide van Martinikerkhof, Martinitoren op achtergrond, 3,5 s."
+    },
+    {
+      "id": "R-02",
+      "title": "Shot-duur binnen norm",
+      "description": "Shot-duur 1–12 s, gemiddeld 4–7 s. Geen shots >15 s tenzij tracking van één beweging.",
+      "severity": "belangrijk",
+      "testableBy": ["linter", "render"],
+      "autoCheck": true,
+      "linterRule": "checkShotDurations",
+      "parameters": { "min": 1, "max": 15, "avgTarget": [4, 7], "trackingException": true }
+    },
+    {
+      "id": "R-03",
+      "title": "Shot-wissel per 1-2 regels",
+      "description": "Wissel van shot per 1–2 regels dialoog. Geen 4+ regels in één statisch shot.",
+      "severity": "belangrijk",
+      "testableBy": ["linter", "ai"],
+      "autoCheck": true,
+      "linterRule": "checkShotPerLine",
+      "parameters": { "maxLinesPerShot": 3 }
+    },
+    {
+      "id": "R-04",
+      "title": "180°-regel gerespecteerd",
+      "description": "180°-regel: blijf aan één kant van de lijn tussen sprekende personen, behalve met neutral shot ertussen of bewuste plaatswissel.",
+      "severity": "blokkerend",
+      "testableBy": ["render", "ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "example": "Tammo links, Tessa rechts in alle shots van het gesprek; lijn tussen hen wordt niet gekruist."
+    },
+    {
+      "id": "R-05",
+      "title": "Lens (FOV) matcht shot-type",
+      "description": "Lens (FOV) matcht shot-type: wide 46–54, medium 36–44, close-up 20–32.",
+      "severity": "belangrijk",
+      "testableBy": ["linter"],
+      "autoCheck": true,
+      "linterRule": "checkFOVRange",
+      "parameters": { "wide": [46, 54], "medium": [36, 44], "closeup": [20, 32] }
+    },
+    {
+      "id": "R-06",
+      "title": "Camerahoogte is ooghoogte of gemotiveerd",
+      "description": "Camerahoogte is ooghoogte (1,55–1,65 m) voor neutraal gesprek; afwijken heeft reden (macht, kwetsbaarheid, crane).",
+      "severity": "belangrijk",
+      "testableBy": ["linter", "render"],
+      "autoCheck": true,
+      "linterRule": "checkCameraHeight",
+      "parameters": { "eyeLevel": [1.55, 1.65], "motivated": ["crane", "low", "high"] }
+    },
+    {
+      "id": "R-07",
+      "title": "Camerabewegingen menselijk-tempo",
+      "description": "Camerabewegingen zijn menselijk-tempo: dolly ≤2 m/s horizontaal, crane ≤0,8 m/s verticaal. Geen zigzag.",
+      "severity": "blokkerend",
+      "testableBy": ["linter", "render"],
+      "autoCheck": true,
+      "linterRule": "checkCameraSpeed",
+      "parameters": { "maxDollySpeed": 2.0, "maxCraneSpeed": 0.8, "noZigzag": true }
+    },
+    {
+      "id": "R-08",
+      "title": "Stilte na punchline",
+      "description": "Na een punchline of emotioneel moment: 0,5–1,5 s stilte voordat de volgende regel of een reaction shot.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "category": "humor-structuur",
+      "note": "Structuur is toetsbaar; of het grappig is, beoordeelt het panel."
+    },
+    {
+      "id": "R-09",
+      "title": "Inserts: maximaal 2, relevant en gedoseerd",
+      "description": "Maximaal 2 inserts per scène. Insert toont een prop die in dialoog genoemd wordt. Duur 1–3 s.",
+      "severity": "belangrijk",
+      "testableBy": ["linter", "ai"],
+      "autoCheck": true,
+      "linterRule": "checkInserts",
+      "parameters": { "maxPerScene": 2, "minDuration": 1, "maxDuration": 3 }
+    },
+    {
+      "id": "R-10",
+      "title": "Reaction shots: maximaal 2 per 10 regels",
+      "description": "Maximaal 2 reaction shots per scène van 10 regels. Reacties zijn voor momenten die ertoe doen.",
+      "severity": "nit",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-11",
+      "title": "Ondertitels: max 18 woorden, leessnelheid 15-17/10s",
+      "description": "Ondertitels: max 18 woorden per regel, 15–17 woorden per 10 seconden. Lange regels splitsen.",
+      "severity": "blokkerend",
+      "testableBy": ["linter"],
+      "autoCheck": true,
+      "linterRule": "checkSubtitleLength",
+      "parameters": { "maxWordsPerLine": 18, "wordsPerTenSec": [15, 17] }
+    },
+    {
+      "id": "R-12",
+      "title": "Ondertitels: max 2 regels per blok",
+      "description": "Ondertitels: max 2 regels per blok. 3 regels alleen als elke regel <5 woorden.",
+      "severity": "belangrijk",
+      "testableBy": ["linter"],
+      "autoCheck": true,
+      "linterRule": "checkSubtitleBlockSize",
+      "parameters": { "maxLinesPerBlock": 2, "exception": { "maxLines": 3, "maxWordsPerLine": 5 } }
+    },
+    {
+      "id": "R-13",
+      "title": "Naamkaart bij eerste verschijning",
+      "description": "Elk personage heeft bij eerste verschijning een naamkaart (naam + 1 droge regel) of een goede reden om het over te slaan (stem op radio, terugkerende bijrol).",
+      "severity": "blokkerend",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "example": "Berend M01.intro: naamkaart 'Berend Bos. Nul krassen.'"
+    },
+    {
+      "id": "R-14",
+      "title": "Introductie met aanloop of establishing",
+      "description": "Nieuw personage heeft bij voorkeur aanloop (ander personage noemt hem vooraf) of wordt geïntroduceerd via establishing shot + naamkaart.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "example": "Jelle: aangekondigd door Berend (M01.6), Sjabbe (M02.3), chat (M01.5) vóór zijn verschijning in M03.2."
+    },
+    {
+      "id": "R-15",
+      "title": "Continuïteit: kleding, props, tijd",
+      "description": "Kleding, props, tijd van de dag zijn consistent binnen een scène. Geen props die verschijnen/verdwijnen zonder reden.",
+      "severity": "blokkerend",
+      "testableBy": ["render", "ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-16",
+      "title": "Tijd van de dag matcht missie",
+      "description": "Tijd van de dag matcht de missie-tijd (ochtend = ochtendlicht, avond = avondlicht). Geen avondzon in een ochtendmissie.",
+      "severity": "belangrijk",
+      "testableBy": ["render", "ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-17",
+      "title": "Weer: altijd zomer",
+      "description": "Weer is altijd zomer, droog, blauw/licht bewolkt. Geen regen, onweer, mist, sneeuw.",
+      "severity": "blokkerend",
+      "testableBy": ["render", "ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "constitutionRule": 3
+    },
+    {
+      "id": "R-18",
+      "title": "Geen clipping",
+      "description": "Geen clipping: camera staat niet in/door gebouwen, bomen, terrein. Clearance ≥0,5 m van muren.",
+      "severity": "blokkerend",
+      "testableBy": ["render"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-19",
+      "title": "Achtergrondverkeer mag, niet storend",
+      "description": "Achtergrondverkeer (fietsers, wandelaars) mag, maar niet tussen camera en hoofdrolspelers tijdens emotionele momenten.",
+      "severity": "belangrijk",
+      "testableBy": ["render", "ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-20",
+      "title": "Maximaal 3 sprekende mensen",
+      "description": "Maximaal 3 sprekende mensen per scène. Meer: laat de rest zwijgen of split de scène.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": true,
+      "linterRule": "checkSpeakersPerScene",
+      "parameters": { "maxSpeakers": 3 }
+    },
+    {
+      "id": "R-21",
+      "title": "Emotioneel moment heeft visuele uitbetaling",
+      "description": "Een emotioneel moment (kus, ruzie, overwinning, verlies) heeft visuele uitbetaling: close-up, stilte, crane-out of fade.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-22",
+      "title": "Geen lange monologen",
+      "description": "Geen lange uitleg door één mond. Dialoog is ping-pong, geen monoloog. Max 3 beurten achter elkaar.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": true,
+      "linterRule": "checkConsecutiveTurns",
+      "parameters": { "maxConsecutiveTurns": 3 }
+    },
+    {
+      "id": "R-23",
+      "title": "Reactie van luisteraar",
+      "description": "Reactie van de luisteraar: gezicht, blik, gebaar. Geen twee lange regels zonder reactie-shot ertussen.",
+      "severity": "nit",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-24",
+      "title": "Toon-check: understatement, kicker kort",
+      "description": "Toon-check: understatement, droog, warm. Laatste regel (kicker) is kort (max 7 woorden) en zet de toon.",
+      "severity": "nit",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null,
+      "category": "smaak",
+      "note": "Structuur (kicker-lengte) toetsbaar; toon is panelOordeel."
+    },
+    {
+      "id": "R-25",
+      "title": "Shot/reverse niet te snel",
+      "description": "Geen shot/reverse sneller dan 2 seconden per shot tenzij snelle ruzie. Gemiddeld 3–5 s per shot in dialoog.",
+      "severity": "belangrijk",
+      "testableBy": ["linter", "render"],
+      "autoCheck": true,
+      "linterRule": "checkShotReverseSpeed",
+      "parameters": { "minShotDuration": 2, "avgTarget": [3, 5], "fastDialogException": true }
+    },
+    {
+      "id": "R-26",
+      "title": "POV-shots gemotiveerd",
+      "description": "Eerste persoon-shots (POV) alleen met reden (duif-modus, specifiek verhaalmoment). Niet standaard.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-27",
+      "title": "Geen fourth wall breaking",
+      "description": "Geen personages die tegen de camera praten (breaking the fourth wall) tenzij radio (Rikus), telefoon of specifieke gag.",
+      "severity": "blokkerend",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-28",
+      "title": "Voertuigen logisch geplaatst",
+      "description": "Voertuigen: als een auto in beeld is, staat hij logisch (geparkeerd, rijdt langs, rijdt weg). Geen zwevende auto's.",
+      "severity": "blokkerend",
+      "testableBy": ["render"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-29",
+      "title": "Gebouwen herkenbaar of generic",
+      "description": "Gebouwen op de achtergrond zijn herkenbare landmarks (Martinitoren, Aa-kerk) of generic low-poly gebouwen. Geen clipping-artefacten.",
+      "severity": "belangrijk",
+      "testableBy": ["render"],
+      "autoCheck": false,
+      "linterRule": null
+    },
+    {
+      "id": "R-30",
+      "title": "Intro en outro sluiten aan",
+      "description": "Intro en outro van een scène sluiten aan: als intro eindigt met 'naar de auto lopen', begint de outro niet midden in de auto.",
+      "severity": "belangrijk",
+      "testableBy": ["ai"],
+      "autoCheck": false,
+      "linterRule": null
+    }
+  ],
+  "severityLevels": {
+    "blokkerend": "Mag niet in het spel; breekt constitution, spelervaring of visuele logica. Moet worden gefixed vóór elke release.",
+    "belangrijk": "Moet worden gefixed voor release; schaadt kwaliteit maar breekt het spel niet.",
+    "nit": "Mooier maar niet cruciaal; fix indien tijd, anders acceptabel.",
+    "smaak": "Subjectief oordeel; gaat naar review-panel (3 reviewers), niet naar één persoon. Structuur is toetsbaar, oordeel niet."
+  },
+  "testCategories": {
+    "linter": "Statische check van cutscene-code (scripts/cutscene_lint.mjs). Checkt code-structuur, getallen, duren, FOV, aantal speakers.",
+    "render": "Visuele check van rendered video + contactbladen. Checkt clipping, continuïteit, tijd van de dag, weer, voertuigen, gebouwen.",
+    "ai": "Vision-review van contactbladen + script door ai-reviewer (Claude Opus, GPT-4o). Checkt shot-keuze, emotie-camera, introductie, dialoog-flow, toon.",
+    "panel": "Humor-review door 3 onafhankelijke reviewers. Checkt timing, personage-toon, Groningse droogheid, kicker, afstemming op grappenbank. Structuur toetsbaar, oordeel subjectief."
+  },
+  "usage": {
+    "linter": "node scripts/cutscene_lint.mjs --scene=M01.intro → checkt alle autoCheck: true regels, geeft rood/geel/groen.",
+    "render": "node scripts/cutscene_render.mjs --scene=M01.intro → maakt video + contactbladen voor render/ai checks.",
+    "aiReview": "node scripts/cutscene_ai_review.mjs --scene=M01.intro --prompt=scripts/release/prompts/cutscene-review.md → JSON met bevindingen.",
+    "panel": "node scripts/cutscene_panel_review.mjs --akte=1 --mode=humor → 3 reviewers beoordelen humor-beats, meerderheid beslist."
+  },
+  "statistics": {
+    "totalRules": 30,
+    "byCategory": {
+      "blokkerend": 9,
+      "belangrijk": 18,
+      "nit": 3,
+      "smaak": 1
+    },
+    "byTestable": {
+      "linter": 12,
+      "render": 10,
+      "ai": 19,
+      "panel": 1
+    },
+    "autoCheckable": 12
+  }
+}

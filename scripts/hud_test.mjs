@@ -20,9 +20,9 @@ ok(!q.show.stars && !q.show.money && !q.show.weapon && !q.show.bars && !q.show.v
 ok(!q.big.clock, 'clock small on a normal day');
 ok(d({ specialDay: true }).big.clock && d({ timeGoal: true }).big.clock, 'clock big on a special day or with a time goal');
 
-// stars: wanted + 6 s afterglow
+// stars (#1080): only at 1 star or more, in every mode; never an empty row at 0
 ok(d({ wanted: 2 }).show.stars, 'stars when wanted');
-ok(d({ wanted: 0, wantedAgo: 3 }).show.stars && !d({ wanted: 0, wantedAgo: 5 }).show.stars, 'stars glow on for 4 s');
+ok(!d({ wanted: 0, wantedAgo: 3 }).show.stars && !d({ wanted: 0 }).show.stars && !d({ mode: 'alles', wanted: 0 }).show.stars && d({ mode: 'alles', wanted: 1 }).show.stars, 'no empty star row at 0, also in Alles');
 // money
 ok(d({ moneyAgo: 1 }).show.money && !d({ moneyAgo: 5 }).show.money, 'money on change, gone after 4 s');
 ok(d({ nearShop: true }).show.money, 'money near a shop');
@@ -288,7 +288,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   const panel = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
   ok(/const MM_ICON_BUDGET = \d+/.test(panel), 'minimap: een totaalplafond voor de losse iconen');
   ok(/iconCount >= MM_ICON_BUDGET/.test(panel), 'minimap: de icoonhelper stopt bij het budget');
-  ok(/policeBadge\(polities\.length/.test(panel) && /polities\.length === 1 \? best\.kind : 'police'/.test(panel) && /badge\.ring\.segmenten/.test(panel) && /badge\.dots/.test(panel) && !/strokeText\(String\(polities\.length\)/.test(panel), 'minimap: politie is één badge met een heat-ring (ook bij één eenheid), geen cijfer (#952, review 0.63)');
+  ok(!/policeBadge|heatChip|badge\.ring|badge\.dots|mmHeat/.test(panel) && /MAX_POLITIE_ICONEN/.test(panel), 'minimap: geen schild-chip, ring of stippen meer; hoogstens drie politie-iconen (#1080)');
   ok(/cashN < 3/.test(panel), 'minimap: hoogstens drie cash-doelen');
   ok(/if \(\+\+n >= 3\) break; \/\/ #638/.test(panel), 'minimap: hoogstens drie plaatsnamen');
 }
@@ -304,8 +304,8 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(/html\.touch-play \.hud-chip\.hud-mute \{ min-height: 44px/.test(css), 'de dempknop haalt 44 px op touch');
   ok(/hud-money-delta\[data-sign="min"\] \{ color: var\(--mk-danger/.test(css), 'geld eraf is het ene gevaar-rood via de tokens');
   ok(/MM_ICON_BUDGET = 10/.test(panel), 'de minimap heeft een totaalbudget');
-  ok(/policeBadge\(polities\.length/.test(panel) && /polities\.length === 1 \? best\.kind : 'police'/.test(panel) && /badge\.ring\.segmenten/.test(panel) && /badge\.dots/.test(panel) && !/strokeText\(String\(polities\.length\)/.test(panel), 'de politie is één badge met een heat-ring (ook bij één eenheid), geen cijfer (#952, review 0.63)');
-  ok(/toonSter/.test(panel) && /mmHeatSter\.classList\.toggle\('weg'/.test(panel) && /mmh-ster/.test(panel), 'de chip toont het ster-deel alleen bij 1 ster of meer en het schild alleen met politie in beeld (geen 0/5)');
+  ok(!/policeBadge|heatChip|badge\.ring|badge\.dots|mmHeat/.test(panel) && /MAX_POLITIE_ICONEN/.test(panel), 'minimap: geen schild-chip, ring of stippen meer; hoogstens drie politie-iconen (#1080)');
+  ok(!/hud-mm-heat|mmh-ster/.test(panel) && !/hud-mm-heat/.test(css) && /els\.wanted\.hidden = ster === 0/.test(panel), 'de lege sterrenrij is weg bij 0 en de minimap heeft geen chip (#1080)');
   // #638: op 1280x720 en 1280x800 raakt de naamkaart het racepaneel niet en blijft de telefoonkolom links.
   for (const vh of [720, 800]) {
     const raceTop = 173;
@@ -353,6 +353,14 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(pfCss) && /var\(--ds-/.test(pfCss) && !/#[0-9a-fA-F]{3,8}/.test(pfCss), 'de telefoon gebruikt de tokens');
   const ach = readFileSync(new URL('../game/js/achievements.js', import.meta.url), 'utf8');
   ok(/zones\.occupy\('E', 'ach', P3\)/.test(ach) && /zones\.vacate\('E', 'ach'\)/.test(ach), 'de prestatie-toast bezet zone E via het zonebord');
+}
+
+// de minimap en de grote kaart tekenen "jij" via de kijkanker (#1141): duif, heli en trein draaien de kaart op hun eigen richting
+{
+  const hp = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8'), mv = readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  ok(/mapUpRotation\(anchor, northUp\(/.test(hp) && /angle: player\.angle \+ mapRotation/.test(hp), 'de minimap draait en tekent de driehoek via de kijkanker');
+  ok(!/world\.camYaw \?\? player\.angle/.test(hp), 'de minimap leest camYaw niet meer los');
+  ok(/getViewAnchor/.test(mv) && !/const ik = hoofdspeler\(world\)/.test(mv), 'de grote kaart gebruikt de kijkanker voor je marker en je plek');
 }
 
 console.log(`${n} checks, ${fails} failed`);

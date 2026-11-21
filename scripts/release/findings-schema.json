@@ -16,7 +16,7 @@
         },
         "aspect": {
           "type": "string",
-          "enum": ["correctness", "rules", "design", "perf", "ux", "gameplay", "visual", "multiplayer", "privacy", "toegankelijkheid"],
+          "enum": ["correctness", "rules", "design", "perf", "ux", "gameplay", "visual", "cutscenes", "multiplayer", "privacy", "toegankelijkheid"],
           "description": "Het beoordeelde aspect; hoort bij de review die dit opleverde."
         },
         "ernst": {
