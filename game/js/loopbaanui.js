@@ -73,6 +73,11 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-actie__r { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-3); }
 .lb-actie__hint { margin: 0; flex: 1 1 220px; min-width: 0; color: var(--mut); font-size: max(15px, var(--menu-min, 15px)); }
 .lb-hoofd { min-height: var(--ds-doel-aanraken, 44px); }
+/* #1055: de hoofdactie blijft onderaan het detail in beeld (op 1920x1080 werd de knop Nu starten afgekapt: het detail scrolt, de actie plakt aan de onderrand) */
+.lb-pane > .lb-vast { position: sticky; bottom: 0; z-index: 2; flex: none; padding: var(--ds-s-2) 0 var(--ds-s-3); background: var(--ds-zeef-bg, var(--ds-c-ink-papier, #f3ead3)); box-shadow: 0 -1px 0 var(--line); }
+/* #1055: het vinkje van de gekozen rij staat rechtsonder, niet over de pill rechtsboven; de laatste regel laat er ruimte voor */
+#pause-menu [data-panel="loopbaan"] .m-li.lb-kaart.sel::after, #pause-menu [data-panel="loopbaan"] .m-li.lb-kaart[aria-current="true"]::after { top: auto; bottom: var(--ds-s-1); right: var(--ds-s-3); }
+.lb-kaart .lb-k-volgt { padding-right: 40px; }
 .lb-actie .lb-voort { margin: 0; }
 .lb-voort__t { font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); white-space: nowrap; }
 .lb-voort__p { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 22px; }
@@ -282,7 +287,7 @@ function actieHtml(profiel, id) {
   else if (a.soort === 'activiteiten') knop = `<button type="button" class="m-bp lb-hoofd" data-goto="todo">${esc(a.label)}</button>`;
   else knop = `<span class="pm-badge" data-tone="ok">${esc(a.label)}</span>`;
   const balk = d.volgend ? `<div class="lb-voort"><span class="lb-voort__t">Niveau ${d.niveau} van ${L.MAX_NIVEAU}</span><span class="m-bar"><i data-bar="lbd-${esc(id)}" data-w="${e.pct}"></i></span><b class="lb-voort__p">${e.pct}%</b></div>` : '';
-  return `<section class="lb-actie" aria-label="Wat nu"><div class="lb-actie__r">${knop}${a.hint ? `<p class="lb-actie__hint">${esc(a.hint)}</p>` : ''}</div>${balk}` +
+  return `<div class="lb-vast" role="group" aria-label="Wat nu"><div class="lb-actie__r">${knop}${a.hint ? `<p class="lb-actie__hint">${esc(a.hint)}</p>` : ''}</div></div><section class="lb-actie" aria-label="Voortgang en eisen">${balk}` +
     `<dl class="lb-feiten"><div><dt>Eis</dt><dd>${esc(e.eis)}</dd></div><div><dt>Verdient nu</dt><dd>${esc(e.verdiensten)}</dd></div>${e.volgende ? `<div><dt>Volgende beloning</dt><dd>${esc(e.volgende)}</dd></div>` : ''}</dl></section>`;
 }
 

@@ -2550,7 +2550,8 @@ function syncNavBadges() {
   if (tabN) tabN.innerHTML = coopN ? `${icon('spelers', 'pm-ic n-ic')}${coopN}` : '';
   // geen badge op Activiteiten: 'nieuw' hoort bij Verhaal (aanwijzingen en personages), niet bij de activiteiten (#435)
   setN('todo', '');
-  setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
+  // 21-11 (beeldronde): geen getal in de rail; het bolletje (data-new) zegt "nieuw", het aantal ongelezen staat in de hero van Verhaal en voor schermlezers in het label
+  setN('verhaal', '', unread ? `${unreadN} ongelezen` : '');
   if (vNav && unread) vNav.toggleAttribute('data-new', true);
 }
 
@@ -2716,9 +2717,11 @@ function showTab(name, how) {
   syncNavBadges();
   const [, label, hint] = sectionOf(name);
   sheet.querySelector('.pm-sheet-title').textContent = label;
-  sheet.querySelector('.pm-sheet-sub').textContent = SHEET_NOTE[name] || hint;
+  // 21-11 (beeldronde): bij Spel herhaalde de losse kop rechtsboven alleen de titel ("Spel") en de tabbladen eronder; die twee regels vervallen
+  const eigenKop = name === 'spel';
+  sheet.querySelector('.pm-sheet-sub').textContent = eigenKop ? '' : SHEET_NOTE[name] || hint;
   const pos = sheet.querySelector('.pm-sheet-pos');
-  if (pos) pos.textContent = prestart ? '' : railPosition(name);
+  if (pos) pos.textContent = prestart || eigenKop ? '' : railPosition(name);
   if (name !== 'map') sheetNote('');
   root.querySelector('[data-action="reset"]').hidden = name !== 'settings';
   if (name !== 'settings') {
