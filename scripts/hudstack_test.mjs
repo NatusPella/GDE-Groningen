@@ -87,7 +87,7 @@ t('ook bij Grootte interface 1,2 tot 1,5 raken de zones elkaar niet (review 21-1
   const m = duivenMaten(1000);
   assert.ok(m.stapel < 480 && m.stapel >= 240 && m.links < 350, 'op een smal vlak krimpen ze');
   const pg = fs.readFileSync(new URL('../game/js/pigeonguide.js', import.meta.url), 'utf8');
-  assert.ok(pg.includes('dom.stack.style.width = `${duivenMaten(vw).stapel}px`'),'de stapel gebruikt dezelfde breedte als zijn zone');
+  assert.ok(pg.includes("'width', `${duivenMaten(vw).stapel}px`"),'de stapel gebruikt dezelfde breedte als zijn zone');
 });
 
 t('de richtingspijl blijft in de vrije band, ook als het doel ver buiten beeld ligt', () => {
