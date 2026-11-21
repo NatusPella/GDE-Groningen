@@ -121,5 +121,21 @@ ok(Q.qteStandVan(undefined) === 'normaal' && Q.qteStandVan({}) === 'makkelijk', 
   ok(KEYS.settings === 'gde-settings', 'in de bestaande opslagsleutel gde-settings (geen nieuwe sleutel)');
 }
 
+// #962: de uitweg bij een tweede misser
+{
+  const { qteTip, QTE_TIP_VANAF } = await import('../game/js/qte.js');
+  ok(qteTip('makkelijk', 1) === '', 'één misser: nog geen tip');
+  ok(/Overslaan/.test(qteTip('makkelijk', QTE_TIP_VANAF)) && /Quicktime-events/.test(qteTip('normaal', 3)), 'bij de tweede misser noemt de tip de instelling');
+  ok(qteTip('overslaan', 5) === '', 'op Overslaan valt er niets meer te kiezen: geen tip');
+  const { enterTiming, stepTiming } = await import('../game/js/stagetiming.js');
+  const rond = (t) => ({ zone: [0.45, 0.55], speed: 0.7, text: t, ok: 'ja', bad: 'mis' });
+  const st = { kind: 'timing', rounds: [rond('a'), rond('b'), rond('c')] };
+  const S = {}; enterTiming(S, st, () => false, { settings: { qteStand: 'normaal' } });
+  ok(S.tipGezien === false, 'een nieuwe stap begint zonder tip');
+  stepTiming(st, S, { hit: false }, 0.05); ok(!S.tipGezien, 'na de eerste misser nog geen tip');
+  S.replyT = 0; stepTiming(st, S, false, 0.05);
+  stepTiming(st, S, { hit: false }, 0.05); ok(S.tipGezien === true, 'na de tweede misser staat de tip aan');
+}
+
 console.log(fails ? `qte_test: ${fails} van ${n} mislukt` : `qte_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);
