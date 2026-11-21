@@ -9,6 +9,8 @@ import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { ensureSamenProfile } from './launchchoiceui.js';
+import { askNewGameDifficulty } from './difficultyui.js';
+import { difficultyPlan } from './difficultycard.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
 import { stopSoloHost } from './coopsolo.js';
 import { isPauseMenuOpen } from './pausestate.js';
@@ -174,6 +176,15 @@ function afterPaint(fn) {
 // the benchmark) starts the game like a player does; AUTO only skips the
 // first-run graphics measurement and the boot animations.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
+
+// #1150: een NIEUW spel (een verse plek of de allereerste start) vraagt eerst "Hoe pittig moet het zijn?", na de keuzekaart Alleen of Samen en
+// vóór het spel begint. Een testrun (dezelfde vlaggen als de startkeuze) slaat de kaart over en speelt op Standaard; ?moeilijkheid=vraag toont hem toch.
+async function chooseDifficulty() {
+  try {
+    const testmodus = !!(AUTO || FLAGS.autoplay || FLAGS.menutest);
+    await askNewGameDifficulty({ plan: difficultyPlan({ testmodus, vlag: FLAGS.moeilijkheid }), fresh: true });
+  } catch (e) { console.warn('moeilijkheid kiezen', e); }
+}
 
 // #749: een late, alsnog geslaagde boot ruimt de foutstand van de boot-wachter op (de rode
 // .error-klasse en de herlaadknop), anders blijft die op het laadscherm staan tot het scherm
@@ -557,9 +568,10 @@ function runBootScreen(world, opts, pending = null) {
         resolve('game');
       });
     };
-    const startNew = () => {
+    const startNew = async () => {
       startTheme();
       reseedAutoplay();
+      await chooseDifficulty(); // #1150: de moeilijkheid van dit nieuwe spel, vóór de eerste save
       // #562: stond de verse plek al klaar (na "Nieuw spel" en de herlaad), dan begint het spel daar en
       // hoeft er geen tweede lege plek bij te komen.
       if (fresh) finishFreshStart(); else startNewSlot();
@@ -610,11 +622,12 @@ function runBootSaveScreen(world, opts) {
         resolve('game');
       });
     };
-    const startNew = () => {
+    const startNew = async () => {
       // zonder vrije plek (volle opslag) blijft de keuze staan in plaats van zonder schrijfplek te starten
       if (!startNewSlot()) { open(); return; }
       startTheme();
       reseedAutoplay();
+      await chooseDifficulty(); // #1150
       warmBeforeFinish(opts, finish);
     };
     const continueGame = () => {

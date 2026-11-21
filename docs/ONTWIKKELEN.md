@@ -251,6 +251,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Sla het aantrekkingsfilmpje en de eerste-start-meting over; een testrun start meteen in de wereld |
 | `?startkeuze` | Startkaart Alleen of Samen spelen (`launchchoice.js`): `startkeuze=alleen` slaat de kaart over en speelt alleen, zonder netwerk (devtools zet dit in elke testrun behalve `--coop`); `startkeuze=vraag` (`GDE_STARTKEUZE=vraag`) toont de kaart ook in een testrun, voor beeld en tests |
+| `?moeilijkheid` | Kaart "Hoe pittig moet het zijn?" bij een nieuw spel (`difficultycard.js`, #1150): `moeilijkheid=vraag` (`GDE_MOEILIJKHEID=vraag`) toont hem ook in een testrun; `moeilijkheid=ontspannen`, `standaard` of `uitdagend` zet dat niveau zonder kaart (devtools zet `moeilijkheid=standaard` in elke testrun) |
 | `?menutest` | Houd het oude startscherm voor de QA-harnassen (`GDE_MENU_TEST=1`, devtools zet deze vlag); elke gewone start en elke testrun begint meteen in de wereld |
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
 | `?perf` | Prestatierun: start meteen in de wereld (geen titelscherm) |

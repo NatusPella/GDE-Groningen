@@ -83,8 +83,12 @@ t('de stand staat op de startkaart en in de instellingen', () => {
     assert.ok(ontspannen && /Stand: Ontspannen/.test(ontspannen.bodyHtml), 'de kaart volgt de gekozen stand');
   } finally { zet(); }
   const menu = lees('game/js/pausemenu.js');
-  assert.match(menu, /picker\('difficulty', 'Moeilijkheid'/, 'de instellingen hebben een moeilijkheidskeuze');
-  assert.match(menu, /\['ontspannen', 'Ontspannen'\], \['standaard', 'Standaard'\], \['uitdagend', 'Uitdagend'\]/, 'met de drie standen');
+  // #1150: het niveau en de opties staan op een eigen tabblad (difficultypanel.js), per save
+  assert.match(menu, /\['moeilijkheid', 'Moeilijkheid'\]/, 'de instellingen hebben een tabblad Moeilijkheid');
+  assert.match(menu, /tab\('moeilijkheid', difficultyTabHtml\(\)/, 'dat tabblad toont het niveau en de opties');
+  const dm = lees('game/js/difficultypanel.js');
+  assert.match(dm, /data-setting="difficulty"/, 'het niveau is de gewone kiezer van de instellingen');
+  assert.match(dm, /DIFFICULTY_MODES\.map\(\(m\) => \[m, DIFFICULTY\[m\]\.label\]\)/, 'met de drie niveaus');
 });
 
 
