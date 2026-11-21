@@ -8,6 +8,8 @@
 // map: het spel (TileWorld) of een kaartvorm { roadsNear, buildingsNear, waterNear } (audit).
 // Leaf: geen THREE, geen DOM.
 import { closestPointOnSegment, pointInPolygon, polygonBounds } from './util.js';
+// één hergebruikt resultaatobject voor de segmentafstanden hieronder: ze lezen het meteen en bewaren het niet (#1052: per tegel miljoenen kleine objecten, GC in de eerste minuut)
+const SEG = { x: 0, y: 0, t: 0, dist2: 0 };
 
 // Zoom van een weg vanaf zijn middellijn waarbinnen we zoeken (breedste rijbaan plus een berm).
 const REACH = 12;
@@ -28,7 +30,7 @@ export function onGroundRoad(map, x, y, margin = 0.3, { foot = false } = {}) {
     const b = r.bounds;
     if (b && (x < b[0] - room || x > b[2] + room || y < b[1] - room || y > b[3] + room)) continue;
     for (let i = 0; i + 1 < P.length; i++) {
-      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1], SEG);
       if (cp.dist2 > room * room) continue;
       if (zAt(r, i, cp.t) > HOOG_MAAIVELD) continue;
       return true;
@@ -53,7 +55,7 @@ export function inBuildingAt(map, x, y, margin = 0) {
 export function distToOutline(P, x, y) {
   let best = Infinity;
   for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
-    const cp = closestPointOnSegment(x, y, P[j][0], P[j][1], P[i][0], P[i][1]);
+    const cp = closestPointOnSegment(x, y, P[j][0], P[j][1], P[i][0], P[i][1], SEG);
     if (cp.dist2 < best) best = cp.dist2;
   }
   return Math.sqrt(best);
@@ -67,6 +69,8 @@ export function waterDistance(map, x, y, reach = 60) {
     if (!w.pts || w.pts.length < 3) continue;
     const q = w.bounds || (w.bounds = polygonBounds(w.pts));
     if (x < q[0] - reach || x > q[2] + reach || y < q[1] - reach || y > q[3] + reach) continue;
+    // het vak kan niet dichterbij komen dan zijn omhullende: dan is de volledige randafstand niet nodig (zelfde uitkomst)
+    if (best < Infinity) { const bx = x < q[0] ? q[0] - x : x > q[2] ? x - q[2] : 0, by = y < q[1] ? q[1] - y : y > q[3] ? y - q[3] : 0; if (bx * bx + by * by >= best * best) continue; }
     if (pointInPolygon(x, y, w.pts)) return 0;
     const d = distToOutline(w.pts, x, y);
     if (d < best) best = d;
@@ -112,7 +116,7 @@ export function nearRailAt(map, x, y, m = 2.1) {
   for (const r of map.railNear(x, y, m + 4)) {
     const P = r.pts;
     if (!P || P.length < 2) continue;
-    for (let i = 0; i + 1 < P.length; i++) if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < m * m) return true;
+    for (let i = 0; i + 1 < P.length; i++) if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1], SEG).dist2 < m * m) return true;
   }
   return false;
 }
@@ -131,7 +135,7 @@ export function stationFit(map, item, len = 32, wid = 12) {
     const P = r.pts;
     if (!P || P.length < 2) continue;
     for (let i = 0; i + 1 < P.length; i++) {
-      const cp = closestPointOnSegment(item.x, item.y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+      const cp = closestPointOnSegment(item.x, item.y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1], SEG);
       const d = Math.sqrt(cp.dist2);
       if (!best || d < best.d) best = { d, x: cp.x, y: cp.y, tx: P[i + 1][0] - P[i][0], ty: P[i + 1][1] - P[i][1] };
     }

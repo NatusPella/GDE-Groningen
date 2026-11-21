@@ -29,7 +29,8 @@ export function markDryRoad(map, r) {
   // the water near the whole road, got once: most roads have none, the rest test only these
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
-  const polys = map.waterGrid.query(x0 - 0.5, y0 - 0.5, x1 + 0.5, y1 + 0.5);
+  // alleen de vlakken waarvan de omhullende het wegvak raakt (een rastercel levert er meer): de rest kan geen punt van deze weg bevatten
+  const polys = map.waterGrid.query(x0 - 0.5, y0 - 0.5, x1 + 0.5, y1 + 0.5).filter((w) => { const q = w.bounds; return !q || !(q[2] < x0 || q[0] > x1 || q[3] < y0 || q[1] > y1); });
   if (!polys.length) return false;
   for (let i = 0; i < pts.length - 1; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
