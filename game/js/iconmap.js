@@ -61,6 +61,14 @@ export const ICON_MAP = {
   veld_braak: 'minus', veld_stoppel: 'hourglass', veld_geploegd: 'waves', veld_zaailing: 'plant', veld_groeiend: 'leaf', veld_bijna: 'grains', veld_rijp: 'flag-checkered',
   // Kaart en minikaart (20-11): de markers tekenen hun betekenis uit Phosphor (mapglyphs.js)
   schaar: 'scissors', burger: 'hamburger', stoel: 'armchair', spuit: 'spray-bottle', oplegger: 'truck-trailer', rechter: 'gavel',
+  // Autotuning (#1155): een betekenis per categorie en per veld van de pimp-werkplaats (tuningworkshopui.js)
+  tune_lak: 'palette', tune_afwerking: 'drop', tune_kleur2: 'palette', tune_strepen: 'flag-checkered', tune_sticker: 'stamp',
+  tune_velgen: 'steering-wheel', tune_banden: 'circle-notch', tune_velgmaat: 'gauge', tune_spoiler: 'rocket', tune_kit: 'car-profile',
+  tune_diffuser: 'wind', tune_dak: 'package', tune_uitlaat: 'gas-pump', tune_koplampen: 'lightbulb', tune_underglow: 'lightning',
+  tune_tint: 'sunglasses', tune_plaat: 'ticket', tune_hanger: 'leaf', tune_onderdelen: 'wrench', tune_builds: 'stack',
+  tune_motor: 'gauge', tune_ophanging: 'steering-wheel', tune_stoel: 'armchair', tune_geluid: 'speaker-high', tune_licht: 'lightbulb',
+  tune_luifel: 'tent', tune_uitstalling: 'storefront', tune_bakkenlicht: 'siren', tune_lucht: 'cloud', tune_belettering: 'megaphone',
+  tune_snack: 'hamburger', tune_details: 'ticket', tune_carrosserie: 'car-profile', tune_camera: 'camera', tune_voorna: 'arrows-left-right',
   lagen: 'stack', podium: 'microphone-stage', studie: 'graduation-cap', promotie: 'megaphone', kaartje: 'ticket',
 };
 // Maten (px) voor de ds-tokens en het gewicht per maat: regular, bold bij 16 px en kleiner.

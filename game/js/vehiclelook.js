@@ -123,6 +123,7 @@ export const OPTIONS = {
     O('bijtjes', 'Bijtjes', 50, 'Een paar bijtjes zoemen rond de uitstalling'),
   ],
   snackName: [
+    O('tamtes', 'TAM & TES', 0, 'De naam van de snackwagen: Tammo en Tessa'),
     O('none', 'Geen belettering', 0),
     O('zonnedijk', 'Frituur Zonnedijk', 40),
     O('kwark', 'Kwarkbakkie', 40),
@@ -376,7 +377,7 @@ export function generateLook(seed, ctx = {}) {
     raw.display = pick(r, ['bord', 'tafel', 'vlaggen', 'none']);
     raw.beacon = pick(r, ['bak', 'ring', 'none']);
     raw.air = pick(r, ['damp', 'geur', 'bijtjes', 'none']);
-    raw.snackName = pick(r, idsOf('snackName').slice(1));
+    raw.snackName = pick(r, idsOf('snackName').filter((x) => x !== 'none'));
   }
   if (ctx.noGlow) delete raw.glow;
   return { look: sanitizeLook(raw, kind), bodyColor, style };

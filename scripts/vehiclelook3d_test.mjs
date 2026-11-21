@@ -105,6 +105,12 @@ L3.tickVehicleLook(sm, 3, 0, false);
 ok(sm.userData.lookAir.visible === false, 'de lucht is ver weg uit');
 ok(sm.userData.lookCalls === 5 + 1 - 1 || sm.userData.lookCalls >= 4, 'snackwagen-drawcalls blijven klein', String(sm.userData.lookCalls));
 for (const air of ['damp', 'geur', 'bijtjes']) { const m = buildVehicleMesh({ ...sv, id: 41, look: { air } }); ok(!!m.userData.lookAir && m.userData.lookAir.material.userData.shared, 'lucht ' + air); }
+// TAM & TES is de standaardbelettering van de snackwagen: ook zonder look, en 'none' haalt hem weg
+const kaal = buildVehicleMesh({ ...sv, id: 42, look: undefined });
+ok(!!kaal.userData.lookOverlay, 'een snackwagen zonder look draagt TAM & TES');
+const zonder = buildVehicleMesh({ ...sv, id: 43, look: { snackName: 'none' } });
+ok(!zonder.userData.lookOverlay, 'zonder belettering geen overlay');
+ok(OPTIONS.snackName[0].id === 'tamtes' && OPTIONS.snackName[0].label === 'TAM & TES', 'de eerste (standaard) belettering is TAM & TES');
 const snackOnCar = buildVehicleMesh(car('sedan', 4.6, 1.8, { awning: 'zon', beacon: 'bak', air: 'damp', snackName: 'tammo' }));
 ok(!snackOnCar.userData.lookOverlay && !snackOnCar.userData.lookAir, 'snackwagen-onderdelen komen niet op een gewone auto');
 
