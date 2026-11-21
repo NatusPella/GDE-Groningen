@@ -1,9 +1,9 @@
 import { gridItems } from './spatialgrid.js';
 import { phosphorInBox, PH_SHOP } from './mapglyphs.js';
 import { KEYS } from './storagekeys.js';
-import { loadTuning, tuningEffects } from './tuningplan.js';
+import { loadTuning, tuningEffects, sanitizeTuning, tuningKind } from './tuningplan.js';
 import { attachStoredLook } from './vehiclelookstore.js';
-import { lookKind } from './vehiclelook.js';
+import { lookKind, parseLook } from './vehiclelook.js';
 import { DIEREN, dierById } from './dierenregister.js';
 import { loadBezit, saveBezit, koop, upgrade, koopBlokkade, upgradeBlokkade, stemming, PLEK_MAX } from './dierenbezit.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -556,7 +556,7 @@ export function spawnStockVehicle(world, key, x, y, angle) {
 // boot (die op het water van de host komt te liggen) en zijn heli. Hij staat niet
 // in de collectie van de host en komt dus niet in zijn save; de host ruimt hem op
 // als de gast weggaat (coopbezit.js).
-export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents, flat }, x, y, angle) {
+export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents, flat, tuning }, x, y, angle) {
   if (!spec) return null;
   const v = spawnOwned(world, { key: null, spec, color: color || spec.color, upgrades: upgrades || [], health, dents, flat }, x, y, angle ?? 0);
   // spawnOwnedBoat bouwt de boot kaal op: de onderdelen en schade van de gast
@@ -566,6 +566,13 @@ export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents
     if (Number.isFinite(health)) v.health = Math.max(5, Math.min(100, health));
     if (Array.isArray(dents) && dents.length) v.dentLog = dents.slice(0, 12);
     if (flat === true) v.flat = true;
+  }
+  // de onderdelen en het uiterlijk van de gast (epic Autotuning #1155): alleen op de kopie, niet in de opslag van de host
+  if (v && tuning) {
+    const kind = lookKind(v);
+    if (tuning.parts) { const p = sanitizeTuning(tuning.parts, tuningKind(v)); if (Object.keys(p).length) v.tuning = tuningEffects(p); }
+    const l = kind && tuning.look ? parseLook(tuning.look, kind) : null;
+    if (l && Object.keys(l).length) v.look = l;
   }
   return v;
 }

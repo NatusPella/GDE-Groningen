@@ -15,6 +15,7 @@ import { glowBudget, MAX_GLOW_VISIBLE } from './tuningworld.js';
 
 const SHARED = (o) => { o.userData = o.userData || {}; o.userData.shared = true; return o; };
 const DARK = 0x1f2022, CHROME = 0xb9bcc0, TIRE = 0x1b1b1c;
+const H = (n) => '#' + n.toString(16).padStart(6, '0'); // een kleurgetal als canvaskleur
 const WHITE_PX = 16; // de effen witte hoek van de atlas: effen delen wijzen daarheen met hun uv
 
 // --- de cache -------------------------------------------------------------------------------------
@@ -36,7 +37,7 @@ export function clearLookCache() { for (const g of cache.values()) { g.dispose()
 // belettering-namen van de snackwagen (512x36 per naam).
 export const DECAL_CELLS = { frituur: 0, kwark: 1, wiebel: 2, grunn: 3, rally: 4, vlam: 5, ster: 6 };
 const CELL_W = 256, CELL_H = 96, CELL_Y0 = 32, ATLAS_W = 512, ATLAS_H = 640, NAME_Y0 = 416, NAME_H = 36;
-export const SNACK_NAMES = { zonnedijk: ['FRITUUR ZONNEDIJK', '#f9c80e', '#b3261e'], kwark: ['KWARKBAKKIE', '#f3ead3', '#2e5f9e'], eierbal: ['EIERBAL EXPRESS', '#d8641c', '#f3ead3'], vethap: ['DE VETTE HAP', '#1d1b17', '#f9c80e'], knabbel: ['KNABBEL EN BABBEL', '#0e6b3c', '#f3ead3'], tammo: ["TAMMO'S FRIET", '#4fb3ff', '#1d1b17'] };
+export const SNACK_NAMES = { zonnedijk: ['FRITUUR ZONNEDIJK', H(0xf9c80e), H(0xb3261e)], kwark: ['KWARKBAKKIE', H(0xf3ead3), H(0x2e5f9e)], eierbal: ['EIERBAL EXPRESS', H(0xd8641c), H(0xf3ead3)], vethap: ['DE VETTE HAP', H(0x1d1b17), H(0xf9c80e)], knabbel: ['KNABBEL EN BABBEL', H(0x0e6b3c), H(0xf3ead3)], tammo: ["TAMMO'S FRIET", H(0x4fb3ff), H(0x1d1b17)] };
 let atlas = null;
 function drawDecal(g, id, x, y) {
   const w = CELL_W, h = CELL_H;
@@ -45,21 +46,21 @@ function drawDecal(g, id, x, y) {
     g.fillStyle = fg; g.font = `bold ${size}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText(text, x + w / 2, y + h / 2 + 2, w - 28);
   };
-  if (id === 'frituur') { band('#f9c80e', '#b3261e', 'FRITUUR', 40); g.fillStyle = '#1d1b17'; g.font = 'bold 18px sans-serif'; g.fillText('ZONNEDIJK', x + w / 2, y + h - 18); }
-  else if (id === 'kwark') { band('#f3ead3', '#2e5f9e', 'KWARK RACING', 32); g.fillStyle = '#1d1b17'; for (let i = 0; i < 8; i++) g.fillRect(x + 12 + i * 29, y + 10, 14, 8); }
-  else if (id === 'wiebel') band('#1d1b17', '#f9c80e', 'WIEBELWERK', 34);
-  else if (id === 'grunn') band('#0e6b3c', '#f3ead3', 'GRUNN DRIFT', 36);
-  else if (id === 'rally') band('#d8641c', '#f3ead3', 'OMMELANDEN', 32);
+  if (id === 'frituur') { band(H(0xf9c80e), H(0xb3261e), 'FRITUUR', 40); g.fillStyle = H(0x1d1b17); g.font = 'bold 18px sans-serif'; g.fillText('ZONNEDIJK', x + w / 2, y + h - 18); }
+  else if (id === 'kwark') { band(H(0xf3ead3), H(0x2e5f9e), 'KWARK RACING', 32); g.fillStyle = H(0x1d1b17); for (let i = 0; i < 8; i++) g.fillRect(x + 12 + i * 29, y + 10, 14, 8); }
+  else if (id === 'wiebel') band(H(0x1d1b17), H(0xf9c80e), 'WIEBELWERK', 34);
+  else if (id === 'grunn') band(H(0x0e6b3c), H(0xf3ead3), 'GRUNN DRIFT', 36);
+  else if (id === 'rally') band(H(0xd8641c), H(0xf3ead3), 'OMMELANDEN', 32);
   else if (id === 'vlam') {
-    g.fillStyle = '#ff9a62';
+    g.fillStyle = H(0xff9a62);
     g.beginPath(); g.moveTo(x + 4, y + h - 10);
     for (let i = 0; i < 6; i++) { g.lineTo(x + 4 + i * 42 + 20, y + 12 + (i % 2) * 18); g.lineTo(x + 4 + i * 42 + 42, y + h - 10); }
     g.closePath(); g.fill();
-    g.fillStyle = '#f9c80e'; g.beginPath(); g.moveTo(x + 24, y + h - 10);
+    g.fillStyle = H(0xf9c80e); g.beginPath(); g.moveTo(x + 24, y + h - 10);
     for (let i = 0; i < 5; i++) { g.lineTo(x + 24 + i * 42 + 18, y + 40 + (i % 2) * 10); g.lineTo(x + 24 + i * 42 + 40, y + h - 10); }
     g.closePath(); g.fill();
   } else if (id === 'ster') {
-    g.fillStyle = '#f3ead3';
+    g.fillStyle = H(0xf3ead3);
     for (let i = 0; i < 7; i++) {
       const cx = x + 20 + i * 36, cy = y + h / 2 + (i % 2 ? 8 : -8);
       g.beginPath();
@@ -73,7 +74,7 @@ function getAtlas() {
   const c = document.createElement('canvas');
   c.width = ATLAS_W; c.height = ATLAS_H;
   const g = c.getContext('2d');
-  g.fillStyle = '#ffffff'; g.fillRect(0, 0, WHITE_PX, WHITE_PX);
+  g.fillStyle = H(0xffffff); g.fillRect(0, 0, WHITE_PX, WHITE_PX);
   for (const [id, i] of Object.entries(DECAL_CELLS)) drawDecal(g, id, (i % 2) * CELL_W, CELL_Y0 + Math.floor(i / 2) * CELL_H);
   Object.values(SNACK_NAMES).forEach(([text, bg, fg], i) => {
     const y = NAME_Y0 + i * NAME_H;
@@ -353,9 +354,9 @@ function plateMaterial(text) {
     const c = document.createElement('canvas');
     c.width = 256; c.height = 64;
     const g = c.getContext('2d');
-    g.fillStyle = '#e3bb1c'; g.fillRect(0, 0, 256, 64);
-    g.strokeStyle = '#1d1b17'; g.lineWidth = 4; g.strokeRect(2, 2, 252, 60);
-    g.fillStyle = '#1d1b17'; g.font = 'bold 40px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = H(0xe3bb1c); g.fillRect(0, 0, 256, 64);
+    g.strokeStyle = H(0x1d1b17); g.lineWidth = 4; g.strokeRect(2, 2, 252, 60);
+    g.fillStyle = H(0x1d1b17); g.font = 'bold 40px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText(text, 128, 34, 236);
     map = new THREE.CanvasTexture(c);
     map.colorSpace = THREE.SRGBColorSpace;
@@ -378,7 +379,7 @@ function airMaterial(kind) {
     const c = document.createElement('canvas');
     c.width = c.height = 32;
     const g = c.getContext('2d');
-    g.fillStyle = '#fff'; g.beginPath(); g.arc(16, 16, 15, 0, Math.PI * 2); g.fill();
+    g.fillStyle = H(0xffffff); g.beginPath(); g.arc(16, 16, 15, 0, Math.PI * 2); g.fill();
     dotTex = new THREE.CanvasTexture(c);
     dotTex.userData = { shared: true };
   }

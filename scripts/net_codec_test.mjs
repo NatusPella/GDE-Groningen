@@ -107,6 +107,12 @@ t('voertuigstaat en uiterlijk: rondreis, versie 2, oude snapshots geweigerd (#42
   // een snapshot van versie 1 wordt netjes geweigerd
   const oud = K.encodeSnapshot(1, 1, 0, snap); oud[1] = 1; assert.equal(K.decodeSnapshot(oud), null);
   // te veel uiterlijkrecords of afgeknotte records
+  // epic Autotuning (#1155): de tuning-code reist als optionele staart van het uiterlijkrecord; zonder blijft het record zoals het was
+  const getuned = K.decodeSnapshot(K.encodeSnapshot(3, 3, 0, { ...snap, looks: [{ ...look, tune: 'L1m1-0000000000-ZOMER_21' }] }), new Map());
+  assert.equal(getuned.looks[0].tune, 'L1m1-0000000000-ZOMER_21');
+  assert.deepEqual(getuned.looks[0].dents.length, 2);
+  assert.equal(K.decodeSnapshot(K.encodeSnapshot(4, 4, 0, snap), new Map()).looks[0].tune, undefined, 'zonder tuning geen veld');
+  assert.equal(K.decodeSnapshot(K.encodeSnapshot(5, 5, 0, { ...snap, looks: [{ ...look, tune: 'sp aties\u00e9' }] }), new Map()).looks[0].tune, undefined, 'geen rare tekens');
   const veel = K.encodeSnapshot(1, 1, 0, { ...snap, looks: Array(K.MAX_LOOKS + 3).fill(look) }); assert.equal(K.decodeSnapshot(veel).looks.length, K.MAX_LOOKS);
   const goed = K.encodeSnapshot(1, 1, 0, snap); assert.equal(K.decodeSnapshot(goed.subarray(0, goed.length - 3)), null);
 });

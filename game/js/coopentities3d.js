@@ -126,7 +126,7 @@ export const zoekGastVoertuig = (id) => { const m = voertuigen.get(id); return m
 // Het echte model van de host (look uit de snapshot, #428): dezelfde bouwer als de host, met deuken, lampen en wielen.
 let dbgT = 0;
 const wacht = new Map(); // id -> tijdstip waarop we het voertuig voor het eerst zagen zonder uiterlijk
-const lookSleutel = (l) => [l.model, l.fl, l.len, l.wid, l.color, l.color2, l.extra].join('|');
+const lookSleutel = (l) => [l.model, l.fl, l.len, l.wid, l.color, l.color2, l.extra, l.tune || ''].join('|');
 const dentSleutel = (l) => l.dents.map((d) => d.map((n) => n.toFixed(2)).join(',')).join(';');
 function echtMeshVanLook(spec) {
   try { return buildVehicleMesh(spec); } catch (e) { return null; }

@@ -1,0 +1,58 @@
+# Autotuning (Pimp my Ride): besluiten, regels en koppelingen
+
+Epic #1155. Eigenaarswens (21-11): *"En bij alle garages ook de auto's kunnen pimpen. En dat er soms ook gepimpte auto's in de wereld rondrijden of geparkeerd staan (maar niet te veel!)"* Aanvulling van de eigenaar: de snackwagen is het eindvoertuig van het late verhaal en moet volledig te tunen zijn. Besluit in [ADR 0045](../.specs-fire/standards/adr/0045-autotuning-een-systeem-voor-alle-voertuigen.md); spec in [mechanica.md](../.specs-fire/standards/mechanica.md). Verificatie: [TUNING-VERIFICATIE-21-11.md](TUNING-VERIFICATIE-21-11.md).
+
+## Bestanden
+
+| Laag | Bestand | Rol |
+| --- | --- | --- |
+| Data | `game/js/vehiclelook.js` | catalogus (verzonnen namen en prijzen), velden per soort, paletten, compacte code `L1...`, generator `generateLook`, nummerbordfilter |
+| Opslag | `game/js/vehiclelookstore.js` | sleutel `gde-tuninglook-v1`: look per voertuig plus drie builds, tolerant lezen |
+| 3D | `game/js/vehiclelook3d.js` | overlay op het gebouwde model, velgen, afwerking, ruitfolie, underglow, snackwagen-onderdelen, begrensde cache |
+| Model | `game/js/tuningdraft.js`, `tuningoffer.js` | concept, kosten, tabbladen, garageniveau, dagaanbiedingen |
+| UI | `game/js/tuningworkshopui.js`, `tuningui.css` | het DS3-paneel (preview-eerst, builds, voor en na) |
+| Koppeling | `game/js/tuningbind.js` | bezit-id, installeren (kasboek, bewaren, op het voertuig zetten) |
+| Prestaties | `game/js/tuningplan.js` | onderdeel `ophanging`, grenzen `DRAAI_MIN/MAX`, `GRIP_MAX`; rijhaak in `vehicle/tuning.js` `maxYawRate` |
+| Wereld | `game/js/tuningworld.js`, `tuningtraffic.js` | aandeel, budgetten, treffen; haken in `vehicle.js` en `parkedcars.js` |
+| Samen spelen | `coopworld.js`, `net/codec.js`, `coopbezit.js` | optionele code `tune` en veld `tuning` |
+
+## Besluiten (met reden)
+
+- **Opslag apart (`gde-tuninglook-v1`), niet in de savegame of in `gde-tuning-v1`.** De savegame heeft slots en migraties; de onderdelenopslag heeft een eigen test en versie. Een eigen sleutel kan geen van beide breken. Per voertuig één korte code (hoogstens 96 tekens), tot drie builds, hoogstens 64 voertuigen. Voertuig-id's zijn dezelfde als bij `tuningplan` (`hero` of de sleutel van het bezit).
+- **Lak blijft van Spuit & Klaar.** De carrosseriekleur staat in `model.color` en wordt via `repaintVehicle` gezet; de werkplaats biedt hem ook aan (60 euro, zelfde prijs) maar wist daarbij de politiesterren niet (dat blijft een voorrecht van de spuiterij, zodat de werkplaats geen goedkope ontsnapping wordt).
+- **Eén drawcall.** Spoiler, kit, strepen, stickers, dakdrager, uitlaat, lampringen en hanger zitten in één geometrie met vertexkleuren en één atlas (512x640, stickers en snackwagen-namen). Underglow is een tweede mesh (additief vlak, `visible` alleen 's nachts en alleen voor de 6 dichtstbijzijnde), een nummerbord een derde. Velgen en banden zijn een andere gedeelde wielgeometrie (de wiel-instancing deelt hem). Afwerking (metallic, parelmoer, mat) en ruitfolie wijzigen alleen de materiaaleigenschappen van dat voertuig; de banden krijgen een eigen kopie zodat rubber rubber blijft.
+- **Gedeelde cache met een grens.** Overlay- en wielgeometrieën zitten in een LRU van 48 met `userData.shared`; een verdrongen geometrie geeft zijn GPU-buffer terug (`dispose`) en zijn wielpool (`forgetWheelPool`). Geparkeerde auto's delen een prototype per look (`parked3d.js` `protoKey`, hoogstens 64) en hun underglow is een aparte laag per blok die alleen 's nachts zichtbaar is.
+- **Prestatie-tuning sluit aan op wat er is.** Motor, remmen, brede banden, turbo en sperdifferentieel blijven de shop-upgrades (`shops.js`); banden, uitlaat, stoel, verlichting en geluid blijven onderdelen. Nieuw is alleen de `ophanging` die comfort tegen bochtensnelheid ruilt: `draai` ligt tussen 0,90 en 1,08 (afgekapt in `tuningEffects`), `grip` hoogstens 1,25, en het wegdek-effect (`gripK`) blijft de bovengrens. Het werkt alleen voor het voertuig van de speler en verandert de topsnelheid niet, dus de bestaande `MAX_CAR_SPEED`-grens blijft de echte bovengrens. Alles gaat via het kasboek (`noteMoney('Garage')`, `recordStat` aankopen en uitgaven).
+- **Alle garages, niet allemaal hetzelfde.** Elke garage (Garage Knalpot, Pomp & Poets, de werf, de fietsenmaker, de tuningwinkel) toont bovenaan zijn lijst "Pimp-werkplaats" voor je eigen voertuig. Het niveau (1 tot 3) komt deterministisch uit het garage-id; onderdelen boven het niveau zijn zichtbaar maar vergrendeld ("Alleen bij een grote garage"). Elke spelkalenderdag zijn er drie dagaanbiedingen met 25% korting. De stad zet show-onderdelen vooraan, het platteland rally-onderdelen. De eigen garage thuis (kind `thuis`) is altijd niveau 3: de Homebase-lead roept `pimpEntryItem(world, v, { kind: 'thuis', name })` aan.
+- **Preview-eerst, controller-eerst.** Elke keuze staat meteen op het 3D-voorbeeld (`vehiclepreview.js` kent `spec.tune`); pas Installeren betaalt (bij 200 euro of meer na een tweede druk). Pijl omhoog en omlaag kiest een rij en loopt door naar het volgende tabblad, pijl links en rechts kiest de waarde, `[` en `]` (LT en RT) wisselen van tabblad, Enter (A) installeert, Delete (X) draait terug, spatie (Y) of V toont "voor", Esc (B) sluit (met een waarschuwing bij een niet-geïnstalleerd concept).
+- **Nummerbord en beletteringen zijn verzonnen.** Hoogstens 8 tekens, een echt kentekenformaat (`XX-99-XX`), scheldwoorden en merken worden geweigerd. Stickers en snackwagen-namen zijn parodieën (Frituur Zonnedijk, Kwark Racing, Wiebelwerk Garage, Grunn Drift Team, Ommelanden Rally, Tammo's Friet), nooit een echt merk.
+- **Samen spelen.** Zie [COOP-GAST.md](COOP-GAST.md) ("Tuning"). Wie sessie-lid is als gast kan niet kopen (`pimpEntryItem` geeft dan niets terug).
+- **Politie.** Een gepimpte auto, ook een met underglow of een grote vleugel, is geen reden voor optreden. Er is geen straatrace-mechaniek en geen glorificatie: wie hard rijdt wordt gezocht zoals altijd. De enige koppeling is de bestaande `opvallend`-waarde van uitlaat en geluid (`signalement.js`).
+
+## De wereld: "soms, maar niet te veel"
+
+`tuningworld.js` (pure regels, getest met 30.000 id's per wijkprofiel):
+
+| Plek (verkeersprofiel) | Basis | Opmerking |
+| --- | --- | --- |
+| student, centrum | 3,2% en 3,0% | stijlen race, show, cruiser |
+| chic | 2,4% | show, cruiser |
+| industrie | 1,4% | rally, cruiser |
+| standaard, bakfiets | 1,0% en 0,8% | cruiser |
+| platteland (weinig bebouwing) | 0% | nooit, behalve op een treffen |
+
+Vermenigvuldigers: sport 2,4, tokkie 2, hatch 1, sedan 0,8, wagon 0,7, suv 0,9, elektrisch 0,5, roestbak 0,3, bestelbus 0,2, taxi, bezorger, vracht, ambulance, geldwagen 0. 's Avonds (18 tot 02 uur) x1,6, 's ochtends x0,5, vrijdag en zaterdag x1,3, geparkeerd x0,8. **Nooit meer dan 5%** (`MAX_SHARE`). Rijdend: hoogstens 8 tegelijk in de wereld (`MAX_TUNED_TRAFFIC`), en bij 6 gepimpte auto's met underglow krijgt een nieuwe er geen. Zichtbare underglow: de 6 dichtstbijzijnde (`MAX_GLOW_VISIBLE`), de rest brandt niet. De look komt uit `unit('pimp', id)`: dezelfde auto ziet er elke keer en bij elke speler hetzelfde uit (geparkeerd: uit de plek van het vak).
+
+**Autotreffen.** Een op de twaalf stedelijke parkeerplaatsen (`isMeetLotId`, uit het stabiele id) is een treffenplek: de hele week 30% gepimpt. Vrijdag- en zaterdagavond (19 tot 01 uur) en zondagmiddag (13 tot 17 uur) is het treffen "aan": nadert de speler met minstens drie gepimpte auto's binnen 70 m, dan komt er een melding (hoogstens eens per 10 minuten) en af en toe een zin van een bezoeker (`MEET_LINES`, geen merken). Er is geen racen, geen politieoptreden en geen beloning; het is een plek om naar te kijken en te praten.
+
+## Koppelingen
+
+- **Bezit/bedrijven (epic-bezit).** Interface: een tuningwinkel als bezit roept `pimpEntryItem(world, v, site)` aan met een eigen `site` (`{ id, name, kind: 'tuning', region }`); het garageniveau volgt `tuningoffer.garageLevel(site)` (te overschrijven met een eigen niveau door `kind: 'thuis'` voor niveau 3). Inkomsten van een eigen tuningwinkel zijn aan het Bezit-systeem; dit systeem rekent in een eigen garage nog steeds af bij de speler.
+- **Kleding/NPC-outfits.** De paletten (`ACCENT_COLORS`, `GLOW_COLORS`, `BODY_COLORS`) komen uit de inkten van `ds-tokens.css` en de spuiterij; de test controleert dat. Een gedeelde kleurtabel voor NPC-outfits kan dezelfde `ACCENT_COLORS` lezen.
+- **Verhaal: de snackwagen.** Elk model met `name === 'foodtruck'` of `'snackwagen'` (of `v.isSnackwagen`) is soort `snackwagen` (`lookKind`) en kan alle velden van een auto zonder spoiler, kit, diffuser, dak en koplampen, plus **luifel** (zonnig, bordgroen, roze), **uitstalling** (krijtbord, klaptafel met krukjes, vlaggenlijn), **bakkenlicht** (frituurmand of lampjesrand, zelflichtend), **lucht** (frituurdamp, geurpakket, bijtjes), en **belettering** uit zes verzonnen namen. Verwachting van het model: het komt uit `assembleCar` (dus `userData.body` en `userData.wheels`), serveerkant aan +z, de luifel tussen `-len/2+0,55` en `len/2-1,45` op 1,98 m (zoals `buildFoodtruckMesh`). Een nieuw snackwagenmodel van de verhaal- of Bezit-leads dat andere maten heeft past alleen `snackParts` in `vehiclelook3d.js` aan. Bij verhuizen of kopen van het eindvoertuig is het bezit-id (de sleutel in `getOwnedEntries()`) de sleutel van zijn tuning; het voertuig moet `playerOwned` zijn.
+- **Prestaties/Steam.** `pimp_1` "Pimp my Ride" (eerste installatie), `garagebaas` "Garagebaas" (10 installaties), `hele_show` "Hele show" (12 uiterlijkvelden tegelijk); `steam/achievements.json` is opnieuw gegenereerd.
+- **Interieurs (epic-interieurs).** Een garage die je binnengaat is een werkplaats: `pimpEntryItem` hangt aan de garagemenu's die bij binnenrijden opengaan; een interieurlead die de garage als pand bouwt roept dezelfde functie aan met zijn eigen `site`.
+
+## Open punten
+
+Nog niet in beeld gezien in de echte game (alleen headless mocks: `docs/beeld-21-11/tuning`): de werkplaats in een echte garage, de preview van een tweewieler, bus en boot, underglow bij echte nacht, het treffen, parkeerchunks met gepimpte auto's, en de prestatiemeting van gepimpte verkeersauto's. De coördinator doet die in de sweep.

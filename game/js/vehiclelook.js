@@ -191,25 +191,27 @@ export const categoriesFor = (kind) => CATEGORIES.map((c) => ({ ...c, fields: c.
 // De paletten komen uit de inkten van het ontwerpsysteem (ds-tokens.css) en de spuiterij (shops.js PAINTS),
 // zodat een gepimpte auto in dezelfde wereld past. Een eigen kleur mag ook (kleurkiezer), alleen niet te
 // donker of te grijs om 's nachts op te vallen is geen eis: het is gewoon een kleur.
+const P = (id, label, c) => ({ id, label, color: c });
+export const DEFAULT_CUSTOM_COLOR = '#2e5f9e'; // waar de kleurkiezer begint
 export const BODY_COLORS = [
-  { id: 'rood', label: 'Brandweerrood', color: '#a11f1f' }, { id: 'groen', label: 'Stadjersgroen', color: '#1e9e56' },
-  { id: 'zwart', label: 'Nachtzwart', color: '#1b1c1f' }, { id: 'wit', label: 'Kwarkwit', color: '#e8e6e0' },
-  { id: 'geel', label: 'Koolzaadgeel', color: '#d9b21b' }, { id: 'oranje', label: 'Oranje', color: '#d8641c' },
-  { id: 'blauw', label: 'Reitdiepblauw', color: '#2e5f9e' }, { id: 'paars', label: 'Paars-pimp', color: '#6a2e8a' },
-  { id: 'roze', label: 'Zomerroze', color: '#e8505b' }, { id: 'turkoois', label: 'Zeeblauw', color: '#1ba3b8' },
-  { id: 'limoen', label: 'Limoen', color: '#8ccf2a' }, { id: 'borduur', label: 'Bordgroen', color: '#0e6b3c' },
+  P('rood', 'Brandweerrood', '#a11f1f'), P('groen', 'Stadjersgroen', '#1e9e56'),
+  P('zwart', 'Nachtzwart', '#1b1c1f'), P('wit', 'Kwarkwit', '#e8e6e0'),
+  P('geel', 'Koolzaadgeel', '#d9b21b'), P('oranje', 'Oranje', '#d8641c'),
+  P('blauw', 'Reitdiepblauw', '#2e5f9e'), P('paars', 'Paars-pimp', '#6a2e8a'),
+  P('roze', 'Zomerroze', '#e8505b'), P('turkoois', 'Zeeblauw', '#1ba3b8'),
+  P('limoen', 'Limoen', '#8ccf2a'), P('borduur', 'Bordgroen', '#0e6b3c'),
 ];
 export const ACCENT_COLORS = [
-  { id: 'wit', label: 'Wit', color: '#f3ead3' }, { id: 'zwart', label: 'Zwart', color: '#1d1b17' },
-  { id: 'geel', label: 'Zonnegeel', color: '#f9c80e' }, { id: 'rood', label: 'Rood', color: '#d93f3f' },
-  { id: 'blauw', label: 'Blauw', color: '#4fb3ff' }, { id: 'groen', label: 'Groen', color: '#3fc97a' },
-  { id: 'oranje', label: 'Oranje', color: '#ff9a62' }, { id: 'roze', label: 'Roze', color: '#ff7ab8' },
-  { id: 'paars', label: 'Paars', color: '#b78cff' }, { id: 'zilver', label: 'Zilver', color: '#b9b7ad' },
+  P('wit', 'Wit', '#f3ead3'), P('zwart', 'Zwart', '#1d1b17'),
+  P('geel', 'Zonnegeel', '#f9c80e'), P('rood', 'Rood', '#d93f3f'),
+  P('blauw', 'Blauw', '#4fb3ff'), P('groen', 'Groen', '#3fc97a'),
+  P('oranje', 'Oranje', '#ff9a62'), P('roze', 'Roze', '#ff7ab8'),
+  P('paars', 'Paars', '#b78cff'), P('zilver', 'Zilver', '#b9b7ad'),
 ];
 export const GLOW_COLORS = [
-  { id: 'cyaan', label: 'Cyaan', color: '#6fd3e0' }, { id: 'blauw', label: 'Blauw', color: '#4fb3ff' },
-  { id: 'groen', label: 'Groen', color: '#5bd6a0' }, { id: 'roze', label: 'Roze', color: '#ff7ab8' },
-  { id: 'paars', label: 'Paars', color: '#b78cff' }, { id: 'oranje', label: 'Oranje', color: '#ff9a62' },
+  P('cyaan', 'Cyaan', '#6fd3e0'), P('blauw', 'Blauw', '#4fb3ff'),
+  P('groen', 'Groen', '#5bd6a0'), P('roze', 'Roze', '#ff7ab8'),
+  P('paars', 'Paars', '#b78cff'), P('oranje', 'Oranje', '#ff9a62'),
 ];
 export const PALETTES = { body: BODY_COLORS, color2: ACCENT_COLORS, rimColor: ACCENT_COLORS, lampColor: ACCENT_COLORS, glow: GLOW_COLORS };
 

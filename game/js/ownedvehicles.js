@@ -73,7 +73,10 @@ import { getHomeForRender, getHomeMooringForRender, getHomePad, homeWhereLabel }
 import { eigenTruckHook, isVrachtTruck } from './vrachtkosten.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
-import { storedLookOf } from './vehiclelookstore.js'; // de uiterlijk-tuning op de garagekaarten (epic Autotuning, #1155)
+import { storedLookOf, loadLooks } from './vehiclelookstore.js';
+import { lookCode } from './vehiclelook.js';
+import { loadTuning, sanitizeTuning } from './tuningplan.js';
+import { KEYS } from './storagekeys.js'; // de uiterlijk-tuning op de garagekaarten (epic Autotuning, #1155)
 const DELIVERY_COOLDOWN = 30;
 const HELI_FERRY_FEE = 60;
 const NEAR_M = 200;
@@ -579,7 +582,19 @@ export function bezorgGegevens(world, id) {
     health: Number.isFinite(dmg.health) ? dmg.health : 100,
     dents: Array.isArray(dmg.dents) ? dmg.dents.slice(-12).map((d) => d.slice(0, 3)) : [],
     flat: dmg.flat === true,
+    tuning: bezorgTuning(id),
   };
+}
+
+// De tuning van je voertuig voor de bezorging (epic Autotuning #1155): de onderdelen en de compacte look-code. null als er niets op zit.
+function bezorgTuning(id) {
+  try {
+    const st = typeof localStorage !== 'undefined' ? localStorage : null;
+    const parts = sanitizeTuning(loadTuning(st, KEYS.tuning)[id]);
+    const rec = loadLooks(st, KEYS.tuningLook)[id];
+    const look = rec && rec.code ? rec.code : '';
+    return Object.keys(parts).length || look ? { look, parts } : null;
+  } catch (e) { return null; }
 }
 
 // Garage glyph: bus/truck/boat get their own silhouette.

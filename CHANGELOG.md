@@ -11,6 +11,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Nieuw: de Pimp-werkplaats. In elke garage, op de werf, bij de fietsenmaker en bij de tuningwinkel staat bovenaan "Pimp-werkplaats" voor je eigen voertuig. Je ziet elke keuze meteen op je auto (draaien met de muis) en betaalt pas bij Installeren: lak en afwerking (glans, metallic, parelmoer, mat), tweede kleur, strepen en stickers (Frituur Zonnedijk, Kwark Racing, Grunn Drift Team en meer), velgen en banden, spoiler, bodykit, diffuser, dakdrager, uitlaat, koplampen, underglow die 's nachts brandt, raamfolie, een verzonnen nummerbord en een hanger. Drie builds per voertuig, voor en na naast elkaar, volledig met controller.
+- Nieuw: Ophanging bij Onderdelen: scherper door de bocht of zachter, nooit meer dan een paar procent. Niet elke garage heeft alles (grote garages hebben meer) en elke dag zijn er drie dagaanbiedingen met 25% korting.
+- Nieuw: de snackwagen is te tunen met luifel, uitstalling (krijtbord, klaptafel, vlaggenlijn), bakkenlicht, frituurdamp, geurpakket, bijtjes en een eigen belettering.
+- Soms rijdt of staat er een gepimpte auto in de stad (hoogstens een op de twintig, in de polder nooit). Op sommige parkeerplaatsen is vrijdag- en zaterdagavond en zondagmiddag een autotreffen: kijk rond en neem een frietje. Een gepimpte auto is nooit een reden voor de politie.
+- Samen spelen: medespelers zien jouw gepimpte voertuig, ook als je het laat bezorgen. Tuning kopen kan alleen in je eigen spel.
+- Prestaties: Pimp my Ride, Garagebaas en Hele show.
+
 - Bij de allereerste start krijg je alleen de keuzekaart: Alleen spelen is direct spelen, zonder naam of akkoord. Doe je voor het eerst iets met Samen spelen, dan vult het spel eenmalig één kaart "Je naam voor Samen spelen" met je naam en het akkoord (STUN, brokers, IP-adres); dat wordt onthouden. Terug of Escape op die kaart brengt je terug naar de keuze. Wie al een naam en akkoord had, merkt niets.
 - Nieuw: Instellingen, Samen spelen. Daar pas je je naam aan (met dezelfde controle op verboden woorden en echte namen) en trek je je akkoord in; bij Samen spelen vraagt het spel dan alleen het akkoord opnieuw, je naam blijft.
 - Minimap en grote kaart: je driehoekje en de kaart draaien nu mee met wat je bestuurt. Bij een duif, helikopter, vliegtuig en trein draait de kaart op de eigen richting in plaats van op de camera (een filmstand of scènecamera liet de kaart tollen), en bij een scène of de fotomodus blijft de kaart rustig. In- en uitstappen draait de driehoek zacht in plaats van te springen (#1141).

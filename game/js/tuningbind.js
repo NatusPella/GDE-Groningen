@@ -12,6 +12,7 @@ import { recordStat } from './achievements.js';
 import { markDirty } from './savehook.js';
 import { pushAudioEvent } from './pedgeom.js';
 
+const FULL_BUILD = 12; // zoveel uiterlijkvelden tegelijk is een hele show
 const store = () => (typeof localStorage !== 'undefined' ? localStorage : null);
 
 // 'hero' voor de Escapade, de sleutel van het bezit voor een eigen voertuig, anders null (een gestolen auto kun je niet pimpen).
@@ -76,6 +77,7 @@ export function installState(w, v, st, ctx) {
   pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.5, x: v.x, y: v.y });
   recordStat(w, 'tuneInstalls');
   recordStat(w, 'tuneParts', check.quote.changed);
+  if (Object.keys(l).length >= FULL_BUILD) recordStat(w, 'tuneFullBuild'); // 'Hele show'
   markDirty('tuning');
   return { ok: true, text: check.quote.total > 0 ? 'Klaar! Henk veegt zijn handen af. Dat zijn ze weer' : 'Klaar! Terug naar standaard', tone: 'win', quote: check.quote };
 }

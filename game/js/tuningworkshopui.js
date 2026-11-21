@@ -8,7 +8,7 @@ import { padGlyphInner } from './glyphs.js';
 import { saveGame } from './savehook.js';
 import { vehiclePreviewOf, setTuningOpener } from './shops.js';
 import { reducedMotion } from './motion.js';
-import { optionOf, FIELD_LABELS, KIND_LABELS, cleanColor, cleanPlate, isStock, PRESETS_PER_VEHICLE } from './vehiclelook.js';
+import { optionOf, DEFAULT_CUSTOM_COLOR, FIELD_LABELS, KIND_LABELS, cleanColor, cleanPlate, isStock, PRESETS_PER_VEHICLE } from './vehiclelook.js';
 import { garageLevel, dealLines, MAX_LEVEL } from './tuningoffer.js';
 import {
   changeField, changePart, applyBuild, quote, canInstall, tabsFor, tabChanges, groupsFor, changedEffectRows, summaryText, sameState, showiness,
@@ -166,7 +166,7 @@ function rowHtml(g) {
     const custom = g.value && !cur ? g.value : '';
     return `<div class="tm-row" data-field="${g.field}" data-type="color" tabindex="0" role="radiogroup" aria-label="${label}"><div class="tm-rh"><span class="tm-rl">${label}</span><span class="tm-rv">${cur ? esc(cur.label) : g.value ? 'Eigen kleur' : g.noneLabel || 'Standaard'}</span><span class="tm-rp">${g.value !== g.installed ? euro(g.price) : 'Zit erop'}</span></div>
       <div class="tm-opts tm-sws">${g.noneLabel ? `<button type="button" class="tm-sw none" data-val="" role="radio" aria-checked="${!g.value}" tabindex="-1" aria-label="${esc(g.noneLabel)}"><span>Geen</span></button>` : ''}${g.palette.map((c) => `<button type="button" class="tm-sw" data-val="${c.color}" role="radio" aria-checked="${c.state === 'on'}" tabindex="-1" aria-label="${esc(c.label)}" title="${esc(c.label)}" style="--sw:${c.color}"></button>`).join('')}
-      <label class="tm-sw own${custom ? ' on' : ''}" title="Eigen kleur"><input type="color" class="tm-colorin" data-field="${g.field}" value="${esc(custom || (cur && cur.color) || '#2e5f9e')}" aria-label="Eigen kleur kiezen"><span>Eigen</span></label></div></div>`;
+      <label class="tm-sw own${custom ? ' on' : ''}" title="Eigen kleur"><input type="color" class="tm-colorin" data-field="${g.field}" value="${esc(custom || (cur && cur.color) || DEFAULT_CUSTOM_COLOR)}" aria-label="Eigen kleur kiezen"><span>Eigen</span></label></div></div>`;
   }
   const cur = g.options.find((o) => o.state === 'on');
   return `<div class="tm-row" data-field="${g.field}" data-type="${g.type}" tabindex="0" role="radiogroup" aria-label="${label}"><div class="tm-rh"><span class="tm-rl">${label}</span><span class="tm-rv">${esc(cur ? cur.label : '')}</span><span class="tm-rp">${cur && cur.price > 0 && !cur.installed ? euro(cur.price) : ''}</span></div>

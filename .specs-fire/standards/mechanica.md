@@ -175,6 +175,14 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Tests.** `voetbal_spelers_test`, `voetbalparken_test`, `voetbal_seizoen_test`, `voetbal_ontwikkeling_test`, `voetbal_carriere_test`, `voetbal_carrierelive_test`, `voetbal_ui_test`, `voetbal_transfers_test`, `voetbal_beats_test`, `voetbal_samen_test`, `voetbal_sponsors_test`, `voetbal_wereld_test` en de sim-testbank `scripts/voetbal_carriere_sim.mjs`.
 
+## Autotuning (epic #1155)
+
+**Doel.** Je kunt je eigen voertuig pimpen in elke garage, en soms zie je een gepimpte auto in de wereld, maar nooit veel.
+
+**Regels.** Eén uiterlijk-systeem voor alle voertuigtypen als overlay op het gebouwde model (hoogstens een drawcall voor de romp, een voor underglow en een voor het nummerbord; velgen kosten niets). Opslag per speler onder `gde-tuninglook-v1` met een korte code `L1...` en drie builds; onderdelen met prestatie-effect blijven in `gde-tuning-v1`, begrensd (`draai` 0,90 tot 1,08, `grip` hoogstens 1,25). Aandeel in de wereld hoogstens 5% (stad meer, platteland 0), hoogstens 8 rijdend en 6 zichtbare underglows tegelijk. Verzonnen namen, geen echte kentekens, geen politie-aandacht. Samen spelen: de look reist als optionele korte code, kopen alleen in je eigen spel.
+
+**Bestanden.** `vehiclelook.js`, `vehiclelookstore.js`, `vehiclelook3d.js`, `tuningdraft.js`, `tuningoffer.js`, `tuningworkshopui.js`, `tuningbind.js`, `tuningworld.js`, `tuningtraffic.js`, `tuningplan.js`. **Tests.** `scripts/vehiclelook_test.mjs`, `vehiclelook3d_test.mjs`, `tuningdraft_test.mjs`, `tuningworld_test.mjs`, `tuningplan_test.mjs`. Uitgebreid in [docs/TUNING-21-11.md](../../docs/TUNING-21-11.md).
+
 ## Gevecht
 
 **Doel.** Melee met gewicht: een reeks slagen die oploopt zolang je raakt.
