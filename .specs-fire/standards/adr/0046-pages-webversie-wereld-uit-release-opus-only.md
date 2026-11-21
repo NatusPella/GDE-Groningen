@@ -1,4 +1,4 @@
-# 0045 - Pages-webversie: wereld uit de release, alleen Opus, onder /play/
+# 0046 - Pages-webversie: wereld uit de release, alleen Opus, onder /play/
 
 - **Status:** besloten (21-11-2026; issue #1090)
 - **Datum:** 21-11-2026

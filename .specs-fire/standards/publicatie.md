@@ -204,7 +204,7 @@ merk of een andere game. De disclaimer staat in README, `NOTICE.md` en Over.
 ### Webversie op GitHub Pages
 
 De webversie (`/play/`) en de marketingpagina (root) komen in één Pages-site, met de hand gedeployd door de
-eigenaar via `pages-deploy.yml` (#1090, ADR 0045): de wereld uit `gde-world.tgz` van de release, alleen Opus-audio,
+eigenaar via `pages-deploy.yml` (#1090, ADR 0046): de wereld uit `gde-world.tgz` van de release, alleen Opus-audio,
 geen telemetrie. Draaiboek: `docs/PAGES-WORKFLOW-21-11.md`.
 
 ### Niets naar buiten zonder akkoord

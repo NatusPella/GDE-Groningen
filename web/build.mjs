@@ -6,7 +6,7 @@
 //   node web/build.mjs          build web-dist/
 //   node web/build.mjs --zip    and zip it for itch.io
 //   GDE_WEB_OPUS_ONLY=1 (or --opus-only)  publish only the Opus clips, no mp3/wav fallback: about
-//                               300 MB less; used by the Pages workflow (ADR 0045); Safari before 18.4 stays silent
+//                               300 MB less; used by the Pages workflow (ADR 0046); Safari before 18.4 stays silent
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
