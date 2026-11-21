@@ -23,7 +23,7 @@ export function planWagons(sites, player, current = new Set(), max = MAX_WAGONS)
     if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
     const key = `${s.kind}:${s.spot}`, d = Math.hypot(s.x - player.x, s.y - player.y);
     if (d > (current.has(key) ? DESPAWN_R : SPAWN_R)) continue;
-    out.push({ key, spot: s.spot, kind: s.kind, x: s.x, y: s.y, d, heading: Math.floor(hashUnit('snack-richting', s.spot) * 4) * (Math.PI / 2), color: COLORS[s.kind] || COLORS.fleet, sign: SIGNS[s.kind] || SIGNS.fleet,
+    out.push({ key, spot: s.spot, kind: s.kind, x: s.x, y: s.y, d, heading: Math.floor(hashUnit('snack-richting', s.spot) * 4) * (Math.PI / 2), color: COLORS[s.kind] || COLORS.fleet, sign: s.sign || SIGNS[s.kind] || SIGNS.fleet,
       seller: sellerLook(s) });
   }
   out.sort((a, b) => a.d - b.d || (a.key < b.key ? -1 : 1));
