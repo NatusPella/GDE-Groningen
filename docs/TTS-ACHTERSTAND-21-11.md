@@ -1,25 +1,23 @@
 # TTS-achterstand 21-11: stand van de opnameronde
 
-Stand 21-11 (16:35 tot 17:00): **geen enkele clip opgenomen**; de gateway weigerde elke aanvraag.
+## Ronde 1 (16:35 tot 17:00): mislukt
 
-## Wat er is vastgesteld
+Gateway in cooldown: vier proeven met 320 s tussenpoos gaven steeds HTTP 429 ("All deployments for selected model are in cooldown"). Niets opgenomen, niets gekost.
 
-- Gateway (`litellm.natuspella.nl`) is zelf gezond (`/health/readiness` geeft 200, db verbonden).
-- `POST /v1/audio/speech` voor `google/gemini-3.8-flash-lite-tts` geeft steeds **HTTP 429**: "No deployments available for selected model ... All deployments for selected model are in cooldown ... Try again in 300 seconds."
-- Vier proeven met 320 s tussenpoos (16:42, 16:48, 16:53, 16:58) gaven alle vier hetzelfde antwoord. De cooldown verloopt dus niet; waarschijnlijk is de bovenliggende quota van de gateway op (of andere processen houden hem in cooldown). Elke aanvraag kostte 0 dollar.
-- Een eerdere proef met `tts_lines.py` (3 clips, `--rpm 4`) bleef in de ingebouwde cooldown-wachtlus hangen (2 x 310 s per clip) en is gestopt; er is niets weggeschreven.
+## Ronde 2 (18:00 tot 19:00, branch tts-ronde2-21-11): afgerond
 
-## Wachtlijst na een verse `tts_lines_list.mjs`
+De eigenaar zette meer saldo op LiteLLM; de proefaanvraag gaf 200 (4,1 s).
 
-- 474 opdrachten (voice_wacht.json heeft er nog 483: draai bij de volgende ronde `node scripts/tts_lines_list.mjs && node scripts/voice_wacht.mjs --write`).
-- Per spreker: Anita 291 (211 lines + 80 hints), Tammo 136 (56 lines + 80 hints), Jelle Terpstra 31, Mem Terpstra 13, Durk 5, Berend Bos 2, Loketbediende 2, Oma Trijntje 1, Douwe 1, Ubbo 1 (sms).
-- 9 Tammo-regels zijn GEBLOKKEERD: er is nog geen Groningse spreektekst voor in `scripts/gronings_spoken.json` (o.a. "Iemand uit Friesland. Dat was zijn oma.", de reishints). Eerst die tekst toevoegen, dan opnemen.
-- Schatting alles: ca. 1977 s audio, ca. 0,30 dollar via litellm (lite-tts), ruim binnen het budget van 2,50.
+- **Opgenomen:** 895 van de 896 opdrachten in een ronde, de laatste (Anita, "Een lamp.") in een tweede poging, dus **896 clips, 0 open**. De wachtlijst `scripts/voice_wacht.json` is leeg (`keys: []`).
+- **Volgorde:** Tammo, Jelle, Mem, Beppe, Rikus, Oma Trijntje, Durk, Douwe, Berend, Loketbediende, Ubbo, Anita, Hilbrand, Roelie, daarna de hints (Tammo, Anita). Lang niet alle regels die de wachtlijst noemde kwamen uit het hoofdverhaal: Anita 308 regels + 80 hints, Hilbrand 143 en Roelie 134 (voetbalcommentaar), Tammo 58 + 80 hints, Jelle 46, Mem 16, Durk 9, Beppe 8, Douwe 6, Rikus 2, Berend 2, Loketbediende 2, Oma Trijntje 1, Ubbo 1 (sms).
+- **Kosten:** gemeld door de gateway ca. 0,51 dollar voor 896 clips (budget 2,50); ca. 3500 s audio geschat.
+- **Spreektekst:** 9 Tammo-regels hadden geen Groningse spreektekst; die staan nu in `scripts/gronings_spoken.json` (nog niet door een Groninger beluisterd).
+- **Nabewerking en controle:** elke clip ging door `voice_tailfix` (in `tts_lines.py`). Daarna meten `eindBurst` (ruisachtig_scan) en `popBegin` de nieuwe clips: 9 van 846 hadden nog een ruis-einde of pop-begin; die zijn met `scripts/audio/staart_trimmer.mjs` in place gerepareerd (fade-in, ruis-einde weg) en daarna 0 fouten op alle 846. Het manifest-`dur` van die 9 is niet bijgewerkt (verschil ten hoogste 0,3 s).
+- **Niet opgenomen (geen opdracht in de lijst):** 26 verhaalregels wachten op een stemkeuze (CAST: Meneer Veldkamp, Daan, Anneke, Stien, Lieke) en 319 op een Groningse spreektekst; die staan als "alleen tekst (vrijgesteld)" in `voice_coverage`.
+- **Controles:** `voice_coverage --quiet` groen (3054/3054), `spec_check` 0 fouten, `cutscenes_voicedur_test` 78/78.
+- **Luisterlijst:** `docs/TTS-LUISTER-NIEUW.html` (relatieve paden) en een variant met `file://`-paden in de tijdelijke map, gemaakt met `node scripts/tts_luister_nieuw.mjs --jobs=<gesorteerde lijst>`. Alles is door niemand beluisterd: nog niet gehoord.
 
-## Voorgestelde volgorde voor de volgende ronde
+## Voor de volgende keer
 
-1. Tammo (lines), Jelle, Mem, Oma Trijntje, Durk, Douwe, Berend, Loketbediende, Ubbo; daarna Anita; daarna de hints (sorteer de jobs en geef ze mee met `--jobs`).
-2. `python scripts/tts_lines.py N --jobs <gesorteerde lijst> --budget 0.5 --rpm 4`; de nabewerking (`voice_tailfix`) zit al in `tts_lines.py`; controleer daarna met de ruis- en popdetectoren.
-3. Daarna `voice_wacht.mjs --write` en `voice_coverage.mjs --quiet`.
-
-Eerst één proefaanvraag doen; pas bij een 200 de volledige ronde starten.
+- De clips staan als mp3 in `game/audio/voicelines/` (nog niet in het formaat van `pakket-slank-21-11`; na een rebase de paden in `tts.json` en `manifest.json` controleren).
+- `tts_lines_list.mjs` laat bij een hergeneratie alleen regels met bestaande clip staan; `voice_wacht.json` is daarom met de hand berekend (opdrachten zonder manifestregel of zonder bestand).
