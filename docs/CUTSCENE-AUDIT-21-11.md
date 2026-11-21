@@ -145,3 +145,16 @@ Per regel (belangrijk, voor naar na):
 | CS-T01 leessnelheid | 1 | 1 | M06.intro regel 3 ("En daarna brengen we hem terug."): de opname is 1,27 s lang voor 31 tekens (20,4 tekens per seconde); alleen een nieuwe opname lost dat op. |
 
 Nog niet gedaan en niet bekeken: geen van de nieuwe shots is in beeld gezien (Electron draaide niet); de tweede hoeken, het inzetshot in M21.intro en de draaiende sprekers zijn alleen op de cijfers van de linter en de scenetests (`cutscenes_*_test`, `cutscene_lint_test`) beoordeeld. Hertest in beeld is nodig (label `hertest`).
+
+## Tweede ronde (21-11, #1146): van 114 naar 48 belangrijke vondsten
+
+Gemeten met `node scripts/cutscene_lint.mjs`: 0 blokkerend (`--strict` blijft 0), 48 belangrijk (was 114), 65 nit (was 83), 18 uitgezonderd met reden (was 10), globale score 98 (was 96). Geen gesproken regel is gewijzigd, dus er staat niets nieuws op `scripts/voice_wacht.json`.
+
+| Regel | Voor | Na | Hoe |
+|---|---|---|---|
+| CS-V05 kijkrichting | 43 | 0 | Twee fouten zaten in de meting, de rest in de regie. De linter nam elke figuur met een naam (ook een figurant zonder regel) als gesprekspartner en mat tegen de dichtstbijzijnde; hij meet nu tegen wie de spreker echt aanspreekt (de laatste andere spreker vóór de regel en de eerstvolgende erna; kijkt hij naar een van de twee, dan is het goed) en een figurant praat niet mee. In de regie draaide een beat naar een rekwisiet of een figurant aan het begin van een regel, terwijl de spreker nog tegen zijn gesprekspartner praatte: die draai komt nu aan het eind van de regel (M01.intro, M01.3, M02.intro, M04.intro, M06.intro, M08.outro, M25.3). Wie wegloopt tijdens zijn regel draait daarna weer naar de ander (M02.intro, M01.intro, M18.2, M26.intro); Berend in M26.6 praat tegen Anita en niet tegen de radiostem. |
+| CS-C06 as (belangrijk) | 29 | 14 | De automatische dekking (`missionScene`) houdt één kant aan (`duoSide`, voorheen per spreker een andere), de orbit van een duospreker blijft vóór het duo en die van een figurant tussen figurant en duo, en een shot zonder spreker staat vóór het duo in plaats van erachter. De 14 die blijven komen van sjablonen, handgemaakte shots en paren die tijdens de scène van plaats wisselen (onder meer de keuken, M01.intro, M16.outro, M15.outro). |
+| CS-T04 te veel sprekers | 30 | 22 | Acht groepsscènes (zes tot elf sprekers: M15.outro, M20.3, M20.outro, M23.intro, M25.outro, M26.13, M26.intro, M30.intro) staan met een reden in `scripts/release/cutscene-uitzonderingen.json`; de reden is een voorstel van de agent en nog niet door verhaal-lead of eigenaar bekeken. De andere 22 vragen een tekstwijziging. |
+| CS-T01, T02, T03 | 1, 4, 7 | 1, 4, 7 | Niet aangeraakt: tekst (en voor T01 een nieuwe opname). |
+
+Nog open: CS-C06 (14), CS-T04 (22), CS-T03 (7), CS-T02 (4), CS-T01 (1). Geen van de verplaatste camera's en beats is in beeld bekeken (Electron draaide niet); de nieuwe vaste kant van de dekking kan hier en daar een shot opleveren dat te dicht op een ander staat (CS-C07 steeg van 5 naar 6 nits). Hertest in beeld is nodig (label `hertest`).

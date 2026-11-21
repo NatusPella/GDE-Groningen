@@ -147,7 +147,14 @@ const CTX = { speakers: { T: {}, A: {}, berend: {}, rikus: {} }, npc: {} };
   const knik = bouw({ cues: [{ t: 'L3', actor: 'tammo', anim: 'nod' }] }, [['Anita', 'Wil je mee?'], ['Tammo', 'Goedemorgen.'], ['Anita', 'Ja.'], ['Tammo', 'Nee, dank je.'], ['Anita', 'Jammer.'], ['Tammo', 'Ja.']]);
   ok(heeft(lintUnit(knik, CTX), 'CS-V04'), 'V04: knikken bij "Nee" wordt gemeld');
   const rug = bouw({ actors: { tammo: { ...DUO.tammo, face: 180, gaze: 0 }, tessa: DUO.tessa }, cues: [] });
-  ok(heeft(lintUnit(rug, CTX), 'CS-V05') || true, 'V05: draait zonder te crashen');
+  ok(heeft(lintUnit(bouw({ actors: { tammo: { ...DUO.tammo, face: 90, gaze: 0 }, tessa: DUO.tessa }, cues: [] }), CTX), 'CS-V05'), 'V05: een spreker met zijn rug naar de ander wordt gemeld');
+  ok(lintUnit(rug, CTX).length >= 0, 'V05: draait zonder te crashen');
+  // #1146: gemeten tegen wie hij aanspreekt, niet tegen wie het dichtstbij staat; een figurant zonder regel telt niet mee
+  const extra = { look: 'tammo', at: [0, 1.4], face: 180, anim: 'idle', speaker: ['Gast'], gaze: 0 };
+  const metExtra = bouw({ actors: { tammo: { ...DUO.tammo, face: -90, gaze: 0 }, tessa: DUO.tessa, gast: extra }, cues: [] });
+  ok(!heeft(lintUnit(metExtra, CTX), 'CS-V05'), 'V05: wie naar de ander kijkt faalt niet omdat een figurant achter hem staat');
+  const naarExtra = bouw({ actors: { tammo: { ...DUO.tammo, face: 90, gaze: 0 }, tessa: DUO.tessa, gast: { ...extra, at: [0, 1.4] } }, cues: [] });
+  ok(heeft(lintUnit(naarExtra, CTX), 'CS-V05'), 'V05: wie naar een figurant kijkt in plaats van naar de ander wordt gemeld');
 }
 
 // ---- 6. humor: alleen structuur en labels, nooit smaak --------------------------------------------------------------------

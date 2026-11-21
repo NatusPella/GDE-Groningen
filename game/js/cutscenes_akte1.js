@@ -706,7 +706,7 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     const same = me === lastSpeaker && me != null;
     if (!forced && l.at - lastT < (me != null && me !== lastSpeaker ? 1.0 : 2.0) && i > 0) return; // a new speaker gets a frame at once (cutscenes_audit)
     if (!forced && same && l.dur < 4.5 && i - lastIdx < 3) return;
-    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : 1;
+    const duoSide = 1; // one side of the axis for the whole scene (#1146: the camera does not jump over the line between the speakers)
     let shot;
     if (forced) { const { on, dt, ...rest } = forced; shot = { ...rest }; if (dt) shot.dt = dt; }
     else if (me == null) shot = { shot: 'cut', at: [[3.6, 0.6, 1.7], [3.2, -0.7, 1.6], [4.0, 0.1, 2.0]][i % 3], look: 'mid:tammo,tessa@1.3', fov: 40 };
@@ -758,7 +758,7 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     const pos = (q) => (q && (q.at || q.from)) || null;
     const apart = (c) => near.every((q) => { const a = pos(q), b = pos(c); return !a || !b || Math.hypot(a[0] - b[0], a[1] - b[1]) > 0.6; });
     if (me == null) { const offs = [[3.6, 0.6, 1.7], [3.2, -0.7, 1.6], [4.0, 0.1, 2.0], [4.4, -1.2, 2.3]].map((at) => ({ shot: 'cut', at, look: 'mid:tammo,tessa@1.3', fov: 40 })); return offs.find(apart) || offs[3]; }
-    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : 1;
+    const duoSide = 1; // one side of the axis for the whole scene (#1146: the camera does not jump over the line between the speakers)
     const far = me === 'tammo' || me === 'tessa';
     // a pose that differs from the shots around it (no jump cut): the first candidate that stands more than 0.6 m from both
     const cands = [CAMS.high(duoSide, far), CAMS.cut(duoSide, far), CAMS.high(-duoSide, far), CAMS.cut(-duoSide, far), CAMS.orbit(duoSide, far, far ? -40 + (i % 4) * 25 : 150 + (i % 3) * 30)];

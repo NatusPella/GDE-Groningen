@@ -60,6 +60,54 @@
       "regel": "CS-T08",
       "reden": "De student is een rolfiguur zonder naam met twee regels op de kermis; de rol staat in de regie van de scène.",
       "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M15.outro",
+      "regel": "CS-T04",
+      "reden": "Zes sprekers: de jury, Jelle, Roelfien en Daan staan samen aan de proeftafel en Tammo en Anita staan ertussen; het is een groepsscène waarin elke jurylid een eigen standpunt heeft. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M20.3",
+      "regel": "CS-T04",
+      "reden": "Zes sprekers: de familie Terpstra (Mem, Jelle, Oma Trijntje) en Berend staan met Tammo en Anita bij elkaar; het door elkaar praten van de familie is de grap. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M20.outro",
+      "regel": "CS-T04",
+      "reden": "Vijf sprekers: de familie (Berend, Oma Trijntje, Mem) en het duo komen aan het slot van de missie samen; het slot is bewust een groepsbeeld. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M23.intro",
+      "regel": "CS-T04",
+      "reden": "Zes sprekers: de oproep voor de Markt van morgen verzamelt Mem, Geesje, Wubbo, Tinus, Klaas en Berend bij het duo; het verzamelen van de hele gemeenschap is de inhoud van de scène. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M25.outro",
+      "regel": "CS-T04",
+      "reden": "Zeven sprekers: een familiebezoek aan Oma Trijntje met Mem, Jelle, Anneke en Lieke naast het duo; het door elkaar praten is de grap van de scène. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M26.13",
+      "regel": "CS-T04",
+      "reden": "Zes sprekers: de afrekening in de familielijn rond de eierbal (Oma Trijntje, Mem, Jelle en Berend) met het duo erbij; die lijn komt hier samen en alle vier hebben een eigen aandeel. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M26.intro",
+      "regel": "CS-T04",
+      "reden": "Vijf sprekers: de ochtend van de wedstrijd met Rikus, Berend, een kind, Jelle en het duo; de volle Markt is het uitgangspunt van de scène. Terugbrengen tot drie sprekers vraagt andere tekst en nieuwe opnames.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M30.intro",
+      "regel": "CS-T04",
+      "reden": "Elf sprekers: de slotbespreking van het plan van Bourtange verzamelt het hele ensemble (Berend, Lammert, Klaas, Roelfien, Wubbo, Tinus, Geesje, Bert, Durk en Douwe) rond het duo; dat is de bedoeling van het slot van het verhaal. Terugbrengen tot drie sprekers kan niet zonder de scène te herschrijven.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
     }
   ]
 }
