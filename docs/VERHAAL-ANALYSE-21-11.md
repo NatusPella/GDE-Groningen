@@ -705,3 +705,70 @@ Ontwerp (kost M, los werkpakket, geen verhaalblokkade):
 6. **Deel 4** koppelen aan de wagen (Willemien als klant): akkoord, of blijft het een los, stil verhaal?
 7. **Rikus als jeugdvriend** laten horen in een korte scène met Tammo in akte 1: akkoord (één kleine nieuwe scène)?
 8. De drie getalfouten of canonvragen die al bij de andere agent liggen (leeftijden, "vijf jaar") blijven daar; ik wijzig ze niet.
+
+---
+
+## 22. Bouwverslag en besluiten (epic-verhaal-21-11, 21-11)
+
+Dit hoofdstuk legt vast wat de bouwer van de epic besloot en deed. Samen spelen: alles hieronder is scènetekst en data bij de scène van wie het spel opende, per speler lokaal (iedereen is lokaal de hoofdpersoon die de stap nodig heeft en ziet de ander als partner-NPC); een gast ziet de scène mee en slaat hem lokaal over zonder de host te stoppen.
+
+### 22.1 Antwoorden op de zeven open vragen (hoofdstuk 21)
+
+| Vraag | Besluit | Waar |
+|---|---|---|
+| 1 Plakjesbord als prop in de flat | ja; als koelkastlijst en prikbord in de scènes (O1, O12, M08.3), de 3D-prop zelf is nog niet gebouwd | VERHAAL-INSPIRATIEPLAN-21-11.md |
+| 2 Spelregel van de bal | één zin: wie de bal heeft, zit de jury voor | M03.2, M03.4 |
+| 3 Mem krijgt in akte 2 een stem | ja: overgangsscènes O4 en O5, hoorbare telefoontjes in akte 4 | 09-script-akte2/4 |
+| 4 Gating | echt dicht voor nieuwe saves, bestaande saves houden alles (migratieregel) | `game/js/unlockgate.js`, `scripts/unlockgate_test.mjs` |
+| 5 Akte-mapping | akte 1 rijden en klussen, 2 boerderij (Tessa), 3 panden en ondernemen, 4 voetbal en regio; één gedeelde poort met `registerGateWorld` voor Bezit en voetbal | idem |
+| 6 Deel 4 koppelen aan de wagen | ja: Willemien is vaste klant, Jelle bestelt een eierbal | O11, M27, M29 |
+| 7 Rikus als jeugdvriend | ja: de opening, overgangsscène O2 | C00.2, O2 |
+
+### 22.2 Latere besluiten van de eigenaar (kern 21-11) en hoe ze zijn verwerkt
+
+- **Kern:** hun doel is een plekje in de wereld; de snackwagen is een verhaaltwist rond akte 4 en 5 en komt niet prominent in de marketing (slogan: "Ontdek jezelf in Grunn"). Verwerkt in `docs/verhaal/RUGGENGRAAT.md`, de opening (C00.2: "Het is een tekening ... Ik weet nog niet wat ik wil"), `WHY` per akte, de mijlpaalvlaggen (`wagen:idee` M00, `wagen:naam` pas M22) en Jelles bod op het recept in plaats van op de wagen (O6). De bestaande plotmotor (Snackprijs, Gouden Eierbal, Oma's recept) blijft: hij is beproefd; wat verschuift is de betekenis.
+- **Romantiek zoet en komisch, zonder drama:** ze worden een stel (de kus staat in M26.17, het hoogtepunt blijft M26.7); de ruzie in akte 4 is een komisch misverstand ("Ik tel mee"), geen pijn.
+- **Gaswinning en aardbevingen weg:** zie VERHAAL-WEGHALEN-21-11.md.
+- **Winnen met oprechte interesse en liefde:** Jelle wint met bureaucratie, omkoping en sabotage; Tammo en Tessa met behulpzaamheid. Het thema staat in `reputation.js` (kleur) en de relatie-bijbel (bewijsmomenten); het terugkomen van geholpen NPC's in de climax is voor de Electron-sweep en de volgende ronde (open).
+- **Jelle's oma (Mem):** de dossiers zijn leidend (Mem is Jelle's oma); de speltekst zegt nog "moeder" ("Er is een moeder", "Foar mem" betekent voor mama). Dat is bewust niet in deze ronde omgezet: het raakt tientallen ingesproken regels en de beste onthulling van het spel. Voorstel: één gerichte ronde met de TTS-ronde erbij.
+- **Voetbal:** Tammo helpt Tessa te shinen (regelaar, later trainer); de koppeling zit in de tekst van akte 4 (B4) en de poort ('voetbal' in akte 4); de spelkant is de voetbalepic.
+
+### 22.3 Keuze per missie (Behouden / Bijschaven / Herschrijven / Herstructureren)
+
+Regel van de eigenaar: kies op effect op duidelijkheid en rode draad, niet op moeite; goede missies blijven; speelmechaniek en assets blijven hergebruikt.
+
+| Missie | Keuze | Reden |
+|---|---|---|
+| M01 Nul krassen | Bijschaven | Berend is nu vooraf genoemd; de bewezen grappen blijven |
+| M02 Even pinnen | Bijschaven | Sjabbe en Henk worden vooraf genoemd, rest ongewijzigd |
+| M03 Het Loket | Bijschaven | de dubbele spelregel is één zin; Jelle blijft het model voor een introductie |
+| M04 Kieken van boven | Behouden | de duivenband is hier al bewezen; Bert wordt vooraf aangekondigd |
+| M05 Wind tegen | Behouden | werkt, Sjoerd wordt in M04 al genoemd |
+| M06 Het museum stond er al zo | Behouden | de kraak is de climax van akte 1; Henk en Veldkamp krijgen aanloop |
+| M07 Al het vet van Grunn | Bijschaven | aanleiding uit O3, Jelle belt zelf |
+| M08 Fatbikes | Herschrijven | Oma's monoloog is het recept in drie beurten, het prikbord |
+| M09 Heel aankomen | Bijschaven | Tessa blijkt boerendochter |
+| M10 Trekker-limo | Bijschaven | de sloot (Jelle laat zijn hart zien) blijft, de misverstandsketen begint |
+| M11 Geleend van de Friezen | Herschrijven (M11.3) | de chocola-oefenbal is een briefje van Mem |
+| M12 Het staat niet in het rooster | Bijschaven | Oma kondigt Dijkstra aan; de duivenband is de aanleiding |
+| M13 Containerlabyrint | Bijschaven | Lammert via Klaas, Sjabbe noemt het havenkantoor als pand |
+| M14 De dijk | Bijschaven | Jelle legt de huurschuld zelf uit |
+| M15 Laag over het graan | Bijschaven | Roelfien noemt Geert; Jelles kantoorwagen op de kermis (M15.5) |
+| M16 Nog eentje dan | Bijschaven | Geerts grap is nu een signaal; "Twee bedden" en de kus blijven; keerpunt krijgt ruimte |
+| M17 Open, dicht | Bijschaven | Wubbo's intro ongestoord; "Over zaterdag" naar O7 |
+| M18 Camera's | Herstructureren | aanleiding voor het bewijs (de chat en Rikus), "vier dagen" |
+| M19 Stoom | Herschrijven (outro) | de juryregel in korte beurten met Berend |
+| M20 Het beleg | Behouden | de kruitkelder en "Ik tel mee" zijn de beste scènes |
+| M21 Rode auto | Herstructureren | een ruzie tussen twee vrienden en Tammo's falen in plaats van de rollenlijst |
+| M22 Een luik erin | Bijschaven | de knuffel blijft; de ontdekking van de wagen staat hier (`wagen:naam`) |
+| M23 De colonne | Behouden | werkt |
+| M24 Vlag | Bijschaven | een duivengrap zonder uitleg |
+| M25 Het bod | Bijschaven | het familiediner (Tessa's ouders en nichtje) is toegevoegd |
+| M26 Ontzet | Herschrijven (M26.2, M26.6), Herstructureren (M26.5) | Berend in korte beurten; Jelle verliest op zijn eigen vergunning; kus in M26.17 |
+| E Epiloog | Herstructureren | gesplitst in E1 tot en met E3: Rikus plus Tammo en Tessa, ze zijn een stel |
+| M27 tot en met M29 | Bijschaven | Willemien is vaste klant, een gewone verbouwing |
+| M30 Proefbeleg | Bijschaven | de uitnodiging naar de open wereld komt van Geesje, Berend en Sjabbe |
+
+### 22.4 Eindcijfers
+
+Zie docs/VERHAAL-VERIFICATIE-21-11.md (wat in beeld en gehoor te controleren is, tellers en testlijst) en docs/VERHAAL-TEMPO-21-11.md (lengte).
