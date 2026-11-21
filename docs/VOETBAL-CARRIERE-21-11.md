@@ -234,20 +234,28 @@ Seizoensbeloningen (eenmalig): promotie €300, bekerwinst €400, kampioen Terp
 
 ## 8. Clubbezit als Bezit-tak (pakket 7)
 
-**Afstemming met de Bezit-epic.** Bij het schrijven van dit plan had de planningsagent van de Bezit-epic (branch `boerderij-provincie-plan-21-11`) nog niets gecommit (zijn branch stond op main). De onderstaande aansluiting is daarom een **aanname** die bij de merge gecontroleerd moet worden; dit pakket levert niets wat Bezit al levert:
+**Afstemming met de Bezit-epic** ([#1095](https://github.com/NatusPella/GDE-Groningen/issues/1095), ontwerp `docs/BEZIT-21-11.md` op de branch `boerderij-provincie-plan-21-11`, nog niet gemerged; gelezen op 21-11). Voetbal dupliceert niets en gebruikt het volgende van Bezit:
 
-1. Eén register van bezittingen per speler (opslag in zijn eigen profiel, komt mee in andermans wereld zoals voertuigen en panden, #449). Voetbal voegt de soort `club` toe en schrijft **geen eigen opslag**.
-2. Het Bezit-blad in het menu (nu Spullen, Garage, Boerderij) krijgt de tab **Club**.
-3. Eén prijsmodel (aankoop uit een omzetmultiple, onderhoud, achterstand en terugval zoals bij een gehuurd perceel) dat clubs en stadions mee kan nemen.
-4. Opbrengst loopt via de uitbetalingshaak van Bezit (per wedstrijdronde of speldag), niet via `loopbaanVerdien` (geen loonfactor).
+| Van Bezit | Gebruik voor clubbezit |
+|---|---|
+| Opslag `gde-bezit-v1` per speler (#1097; compacte verzameling, `kas`, nooit polygonen, komt mee in andermans wereld, #449 en #429) | een sleutel `clubs: { <clubId>: { aandeel, sinds, prijs } }` in dat profiel; **voetbal krijgt geen eigen bezitsopslag** (de carrière blijft in `gde-voetbalcarriere-v1`) |
+| Menu: groep Bezit met het onderdeel "Land en bedrijf" en subtabs Overzicht, Boerderij, Bedrijven, Te koop (#1099) | een vijfde subtab **Club**, pas zichtbaar na het eerste aandeel (of na de beat B10); het Bezit-overzicht toont de club als regel |
+| Prijsmodel: schaalprijs (`x (1 + min(aantal, 200) / 100)`), `VERKOOP_FACTOR` 75%, belasting 0,1% per speldag, onderhoud 0 tot 100, geen beslag, bank-schuld tot een grens | dezelfde regels voor aandelen en tribunes; een tribune is een uitbreiding van het stadionpand, geen apart systeem |
+| Bedrijven (#1102): een pand met omzet per speldag, passief plus beheer, vier knoppen (prijs, voorraad, personeel, openingstijd), verzadiging per woonplaats | het stadion (de Euroborg is een echt gebouw; het pand bestaat als OSM-pand) is een Bedrijven-pand met de rol `stadion`: kaartjesprijs is de prijsknop, het publiek komt uit de klantenpot van de stad, een tribune-upgrade is een verbouwing |
+| Prestaties: een nieuwe prestatielijn per tak, kasboek met posten | clubposten (aankoop, dividend, tribune) in hetzelfde kasboek |
+
+**Wat voetbal levert:** de soort `club` en `stadion` (regels in `voetbalclub_bezit.js`, puur), de omzetformule per ronde en de koppeling aan de competitie (stand, vorm, divisie bepalen het publiek). Zodra #1097 en #1099 gemerged zijn, is pakket 7 klein; tot dan is het een interface (`bezitSoort`) met een stub in de test, zodat pakket 1 tot 6 en 8 tot 10 niet wachten.
+
+**Gedeelde poort.** Bezit start ook "na akte 1" met een akte-scène (#1099), en de Beppe-boog (#1063) wil rust rond haar afscheid. Beide epics hebben dus dezelfde ontgrendelvoorwaarden. Voorstel: één helper `zijpadPoort(id)` (akte klaar, geen Beppe-conflict, geen lopende missie of scène, hooguit één zijpad-beat per speldag, gedeelde wachtrij zodat Bezit en voetbal elkaar niet tegelijk melden), gebouwd door het pakket dat het eerst landt (waarschijnlijk Bezit 4 of voetbal 6) en door het andere hergebruikt. Zonder dit krijgt de speler twee uitnodigingen in dezelfde minuut.
 
 Ontwerp van de tak (alleen het voetbalspecifieke):
 
-- **Aandeel in een club** (10%, 25%, 51%, 100%), eerst van een club in de Talentenklasse; een eigen club kost veel meer. De kosten zijn een veelvoud van de jaaromzet van de club.
-- **Omzet per wedstrijdronde:** kaartjes (publiek x prijs; publiek hangt af van de stadiongrootte, de plek in de stand en de vorm), sponsors (per club), minus salarissen en onderhoud. Dividend naar de eigenaar = aandeel x winst, minus 25% die in de kas blijft.
-- **Stadion:** de Euroborg is een echt gebouw (een plaats mag); de club die er speelt blijft verzonnen. Tribune-uitbreiding (een kleine, middelgrote en grote tribune) is een koopbare upgrade die de capaciteit en de kaartjesomzet verhoogt. De prijzen volgen het perceelmodel.
-- **Terugverdientijd:** 6 tot 10 speeluren, **trager dan een perceel** (de boerderij is al ongeveer €1.500 per uur); dit voorkomt dat clubbezit de dominante geldmachine wordt. De startprijzen en de rendementen staan onder "Balans" in pakket 10.
-- **Risico:** een slecht seizoen kan de omzet verlagen; een negatieve kas geeft een achterstand en bij twee gemiste periodes verkoopt de bank het aandeel terug, net als een gehuurd perceel. Niemand verliest zijn hele vermogen.
+- **Aandeel in een club** (10%, 25%, 51%, 100%), eerst een club in de Talentenklasse. Waardestart (voorstel, te tunen in pakket 10): Talentenklasse €30.000, Terpklasse €80.000, Kroonklasse €250.000; een aandeel kost `aandeel x waarde x schaalprijs`. Een eigen club (100%) is een eindspel, geen begin.
+- **Omzet per wedstrijdronde:** kaartjes (publiek x prijs; publiek volgt stadiongrootte, plek in de stand, vorm en de klantenpot van de stad), sponsors (per club, eenmalig per seizoen), minus salarissen en onderhoud. Dividend naar de eigenaar = aandeel x winst, 25% van de winst blijft in de clubkas.
+- **Opbrengst (balans):** een rustig passief inkomen **tussen de pacht (ongeveer 44 speeluren terugverdientijd) en de huur van een woning (ongeveer 160 speeluren) uit de Bezit-balans**: startwaarde **0,45% van de aankoopprijs per speldag** (ongeveer 60 speeluren, 1,35% per ronde van drie dagen), met een uitslag van plus of min 40% door vorm en plek. Een aandeel van 10% in een Talentenklasse-club (€3.000) levert dus ongeveer €14 per speldag. Zo is clubbezit **nooit** de snelste geldmachine en blijft het binnen de Bezit-regel dat passief hooguit een kwart van het actieve inkomen is. De getallen worden in pakket 10 met `economie_sim_test` bevestigd.
+- **Stadion en tribune:** een kleine, middelgrote en grote tribune als verbouwing van het stadionpand (prijs `m2 x €700` uit Bedrijven); capaciteit en kaartjesomzet stijgen, onderhoud ook. De tribunefase bepaalt ook het aantal toeschouwers in 3D (hoofdstuk 10).
+- **Risico:** een slecht seizoen verlaagt de omzet; een negatieve clubkas geeft een achterstand en bij twee gemiste periodes verkoopt de bank het aandeel terug tegen de Bezit-regel (zoals een gehuurd perceel). Niemand verliest zijn vermogen.
+- **Samen spelen:** een aandeel is van de speler (zijn eigen `gde-bezit-v1`); in andermans wereld ziet een gast de clubnaam en het stadion met de naam van de eigenaar, geen kasboek. Een stadionpand kan maar één eigenaar hebben (de Bezit-claim uit hoofdstuk 10 van BEZIT-21-11, laagste tijd en speler-id wint, de ander krijgt zijn geld terug).
 
 ## 9. UI en menu
 
@@ -256,7 +264,7 @@ Ontwerp van de tak (alleen het voetbalspecifieke):
 **Voorkeur: een kindscherm Voetbal onder Loopbanen, en een tab Club onder Bezit.** Redenen:
 
 - Loopbaan staat in de groep Doen en gaat over wat je doet en wat het oplevert; de agenda, de selectie en de stand zijn dat. De bestaande `CHILD`-structuur (`visboek`, `controls`) is er al voor onderdelen zonder eigen plek in de rail.
-- Het Bezit-blad is voor wat je hebt. Een club of aandeel is bezit.
+- De groep Bezit is voor wat je hebt: een club of aandeel is bezit. Bezit-epic (#1095) maakt van Boerderij het onderdeel "Land en bedrijf" met subtabs; voetbal voegt daar een subtab Club aan toe.
 - **Voetbal wordt geen twintigste vak.** `loopbaan.js` heeft negentien vakken en De Duizendpoot, de prestatie, de teller `careerFirstJobs` en de specs tellen op negentien. Een twintigste vak verandert de prestatie, Steam en de tellers; dat is een duur gevolg voor weinig winst. Wedstrijden blijven `footballMatches` (vak Buiten, 14 punten). De carrière krijgt in het Loopbanen-overzicht één kaart "Voetbal" (in de groep Sport en spel, via een extra kaartbron in `careermodel.js`) die naar het kindscherm opent, met een eigen niveau (Talent, Selectiespeler, Basisspeler, Kapitein, Trainer-coach) en zonder loonfactor.
 
 Zie ADR [0042](../.specs-fire/standards/adr/0042-voetbalcarriere-eigen-profiel-en-dagteller.md).
@@ -360,7 +368,7 @@ Epic: [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106) (mileston
 | 4 | [#1110](https://github.com/NatusPella/GDE-Groningen/issues/1110) | Carrière-opslag, menu en de start (eerste slice) | M | validate | `voetbalcarriere.js`, `voetbalcarriereui.js`, `pausemenu.js`, `storagekeys.js`, `todoui.js` | 1, 2 (licht) |
 | 5 | [#1111](https://github.com/NatusPella/GDE-Groningen/issues/1111) | Transfers, AI-clubs, managerlaag | L | validate | `voetbaltransfers.js`, `voetbalmanager.js` | 2, 3, 4 |
 | 6 | [#1112](https://github.com/NatusPella/GDE-Groningen/issues/1112) | Verhaalbeats en ontgrendeling | S | confirm | `voetbalbeats.js` | 4 |
-| 7 | [#1113](https://github.com/NatusPella/GDE-Groningen/issues/1113) | Clubbezit (tak van Bezit) | M | validate | `voetbalclub_bezit.js`, Bezit-blad | 5 en de Bezit-epic |
+| 7 | [#1113](https://github.com/NatusPella/GDE-Groningen/issues/1113) | Clubbezit (tak van Bezit, #1095) | M | validate | `voetbalclub_bezit.js`, subtab Club in Land en bedrijf | 5 en Bezit #1097, #1099, #1102 |
 | 8 | [#1114](https://github.com/NatusPella/GDE-Groningen/issues/1114) | Samen spelen (teamgenoten, rivalen, ratings) | M | validate | `voetbalmatch.js`, `coopnet.js`-haak | 1, 4 |
 | 9 | [#1115](https://github.com/NatusPella/GDE-Groningen/issues/1115) | Wereld, beeld en geluid | L | confirm | `voetbal.js`, `npcvoetbal.js`, audio, kaartlaag | 1 (beeld), 4 |
 | 10 | [#1116](https://github.com/NatusPella/GDE-Groningen/issues/1116) | Balans, prestaties, tellers en docs | S, doorlopend | autopilot | `economie_sim_test`, `achievements.js`, specs | alles |
@@ -395,7 +403,8 @@ Wat de speler doet, van begin tot eind, zonder transfers, managerlaag, bezit of 
 | Samen: ratings van een gast (opgevoerd) | midden | geklemd op niveau aan de hostkant; test |
 | Samen: rivalen in team 1 vraagt wijziging van de sim (alle mensen zijn nu team 0) | midden | apart pakket 8; testbank-stap; `MAX_SPELERS_VOETBAL` per team |
 | Beeld: 24 shirts en publiek op de wedstrijdhelft | midden | patronen en instancing; rook-test; beeldronde |
-| Bezit-epic loopt anders dan aangenomen | midden | pakket 7 pas na de merge van Bezit; stub-interface; dit plan zegt wat het nodig heeft |
+| Bezit-epic verandert na dit plan (het ontwerp staat nog op een branch) | midden | pakket 7 pas na de merge van #1097 en #1099; stub-interface; gedeelde `zijpadPoort` afgesproken |
+| Twee uitnodigingen tegelijk (Bezit en voetbal beginnen allebei na akte 1) | midden | één gedeelde poort en wachtrij (hoofdstuk 8), een zijpad-beat per speldag |
 | Verhaalbotsing met de Beppe-boog of een missie | laag | ontgrendelvoorwaarden en een test (`voetbal_beats_test`) |
 | Blessures voelen als leed | laag | nooit getoond, uit te zetten, nooit blijvend |
 | Nachtsignaal bestaat niet los van de datum (calendarday) | midden | pakket 2 begint met een onderzoek van `calendarday.js` en een kleine haak; test met vastgehouden datum |
@@ -412,4 +421,4 @@ Wat de speler doet, van begin tot eind, zonder transfers, managerlaag, bezit of 
 
 ## 18. Wat niet in dit plan zit
 
-Geen spelcode, geen Electron-run, geen beeldcontrole, geen push, merge of tag. Dit ontwerp is gebaseerd op het lezen van de code en de specs (stand 21-11, main 66ab3b33b) en op de besluiten hierboven; niets is gemeten. De aansluiting op de Bezit-epic is een aanname omdat het ontwerp daarvan nog niet bestond.
+Geen spelcode, geen Electron-run, geen beeldcontrole, geen push, merge of tag. Dit ontwerp is gebaseerd op het lezen van de code en de specs (stand 21-11, main 66ab3b33b) en op de besluiten hierboven; niets is gemeten. De aansluiting op de Bezit-epic volgt `docs/BEZIT-21-11.md` op de branch `boerderij-provincie-plan-21-11` (nog niet gemerged); bij een wijziging daar past hoofdstuk 8 mee.
