@@ -148,7 +148,7 @@ ok(bootStepText(plans.nieuw.steps[4], plans.nieuw.total) === 'Stap 5 van 7', 'th
 }
 // the load screen's steps get a counter too (opdracht 21-11)
 ok(loadStepNr(0).nr === 1 && loadStepNr(0.3).nr === 2 && loadStepNr(0.7).nr === 3 && loadStepNr(1).nr === 4 && loadStepNr(1).total === 4 && loadStepNr(0.5, 'snel').total === 1, 'the load screen counts its steps');
-ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].from : 1) - st.from), 0) === 1 && /Stap \$\{nr\.nr\} van \$\{nr\.total\}/.test(src), 'the load steps cover the bar and the screen shows "Stap n van m"');
+ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].from : 1) - st.from), 0) === 1 && !/Stap \$\{nr\.nr\}/.test(src), 'the load steps cover the bar and the screen shows the step as one status line');
 // the boot screen shows the counter and the step ticks, in the screen-print style (tokens, no own colours)
 {
   const ss = fs.readFileSync(new URL('../game/js/startscreen.js', import.meta.url), 'utf8');

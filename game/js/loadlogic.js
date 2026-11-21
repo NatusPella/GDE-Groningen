@@ -61,8 +61,8 @@ export const barsFor = (phase) => (BAR_PHASES.includes(phase) ? 1 : 0);
 export const BOOT_STEPS = [
   { id: 'kaart', weight: 0.12, label: 'De kaart van Grunn komt binnen' },
   { id: 'wereld', weight: 0.06, label: 'De wereld wordt opgebouwd' },
-  { id: 'systemen', weight: 0.13, label: 'Straten, verkeer en spelsystemen worden gestart' },
-  { id: 'buurt', weight: 0.18, label: 'Je buurt wordt ingeladen', when: 'warm' },
+  { id: 'systemen', weight: 0.13, label: 'Wegen en voertuigen worden klaargezet' },
+  { id: 'buurt', weight: 0.18, label: 'Wegen en gebouwen rond je worden geladen', when: 'warm' },
   { id: 'openingsbeelden', weight: 0.12, label: 'De openingsbeelden worden klaargezet', when: 'openings' },
   { id: 'shaders', weight: 0.33, weightEenLicht: 0.16, label: 'De shaders worden klaargezet (dit duurt even)', when: 'warm' },
   { id: 'geluid', weight: 0.04, label: 'Het geluid wordt klaargemaakt', when: 'geluid' },

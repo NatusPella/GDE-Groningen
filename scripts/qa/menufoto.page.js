@@ -171,9 +171,8 @@ if (wil('laad')) await probeer('laad', async () => {
     for (const s of stappen) {
       const st = LL.loadStepAt(s.bar, soort), n = LL.loadStepNr(s.bar, soort);
       const fill = kloon.querySelector('.ls-bar i'); if (fill) fill.style.transform = 'scaleX(' + s.bar + ')';
-      const te = kloon.querySelector('.ls-step'); if (te) te.textContent = n.total > 1 ? `Stap ${n.nr} van ${n.total}: ${st.label}` : st.label;
+      const te = kloon.querySelector('.ls-step'); if (te) te.textContent = st.label;
       const tipB = kloon.querySelector('.ls-tip'); if (tipB) tipB.hidden = false;
-      const skip = kloon.querySelector('.ls-skip'); if (skip) skip.hidden = i < stappen.length - 1;
       await cap(`${nr + i}-laadscherm-${soort}-stap-${i + 1}`, 700); i++;
     }
     kloon.remove(); act.el.style.visibility = '';

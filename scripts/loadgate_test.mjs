@@ -1,60 +1,49 @@
-// De laadpoort en de ene vloeiende balk (opdracht 21-11):  node scripts/loadgate_test.mjs
+// De laadpoort en de ene vloeiende balk (opdracht 21-11, automatisch door):  node scripts/loadgate_test.mjs
 import fs from 'node:fs';
-import { createGate, gateTick, gatePress, HANG_S, REMEMBER_MS } from '../game/js/loadgate.js';
+import { createGate, gateTick, fadeMs, statusLine, HANG_S, FADE_MS } from '../game/js/loadgate.js';
 import { easeBar, MAX_STEP_PER_FRAME, bootPlan, bootProgress } from '../game/js/loadlogic.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
-const tick = (g, o, now) => gateTick(g, { stap: 'Gebouwen en straten komen binnen', ...o }, now);
+const tick = (g, o) => gateTick(g, { stap: 'Gebouwen en straten komen binnen', ...o });
 
-// geen prompt tijdens het laden, wel bij klaar
+// tijdens het laden: de echte stap als statusregel, geen prompt, geen actie
 {
   const g = createGate();
-  const a = tick(g, { elapsedS: 0.5 }, 0);
-  ok(a.state === 'laadt' && !a.prompt && a.status === 'Laden…' && a.sub.length > 0, 'laden: geen prompt, wel status en stap');
-  const b = tick(g, { elapsedS: HANG_S - 0.1 }, 100);
-  ok(b.state === 'laadt' && !b.prompt, 'vlak voor de wachttijd nog steeds geen prompt');
-  const c = tick(g, { done: true, elapsedS: 3 }, 200);
-  ok(c.state === 'klaar' && c.prompt, 'klaar: de prompt staat er');
-  ok(gatePress(g, 210).actie === 'door', 'klaar: Enter werkt direct');
-  ok(gatePress(g, 215).actie === 'niets' && tick(g, { done: true }, 220).actie === 'niets', 'geen dubbele start');
+  const a = tick(g, { elapsedS: 0.5 });
+  ok(a.state === 'laadt' && a.actie === 'niets' && a.status === 'Gebouwen en straten komen binnen', 'laden: de statusregel is de echte stap', a.status);
+  const b = tick(g, { elapsedS: HANG_S - 0.1 });
+  ok(b.state === 'laadt' && b.actie === 'niets', 'vlak voor de wachttijd nog gewoon laden');
+  ok(!('prompt' in a) && !('promptTekst' in a), 'er is geen prompt in de poort');
 }
-// Enter tijdens het laden: geen dode toets
+// klaar: het scherm gaat zelf door, precies één keer
 {
   const g = createGate();
-  tick(g, { elapsedS: 1 }, 1000);
-  const r = gatePress(g, 1100);
-  ok(r.actie === 'onthoud' && /^Nog even: Gebouwen/.test(r.melding), 'Enter tijdens laden: melding "Nog even: <stap>"', r.melding);
-  const v = tick(g, { done: true, elapsedS: 1.5 }, 1600);
-  ok(v.actie === 'door', 'onthouden Enter wordt uitgevoerd zodra het klaar is');
-  ok(tick(g, { done: true }, 1700).actie === 'niets' && gatePress(g, 1800).actie === 'niets', 'en maar één keer');
+  tick(g, { elapsedS: 1 });
+  const c = tick(g, { done: true, elapsedS: 3 });
+  ok(c.state === 'klaar' && c.actie === 'door', 'klaar: automatisch door, zonder toets');
+  ok(tick(g, { done: true }).actie === 'niets' && tick(g, { done: true }).actie === 'niets', 'en maar één keer');
+  ok(tick(createGate(), { done: true, elapsedS: 0 }).actie === 'door', 'ook als het laden direct klaar is');
 }
-// een te oude Enter vervalt
+// een lange stap: eerlijke reden, géén dwang en géén knop; klaar sluit alsnog zelf
 {
   const g = createGate();
-  tick(g, { elapsedS: 1 }, 0);
-  gatePress(g, 0);
-  tick(g, { elapsedS: 3 }, REMEMBER_MS + 50);
-  const v = tick(g, { done: true }, REMEMBER_MS + 100);
-  ok(v.actie === 'niets' && v.prompt, 'na de veiligheids-timeout van 1 s telt de oude Enter niet meer');
+  const v = tick(g, { elapsedS: HANG_S + 1, stap: 'De tegels rond je worden gelegd' });
+  ok(v.state === 'hangt' && v.actie === 'niets' && /niet vastgelopen/.test(v.status) && /De tegels rond je worden gelegd/.test(v.status), 'hangt: reden en stap in de statusregel');
+  ok(tick(g, { done: true, elapsedS: HANG_S + 2 }).actie === 'door', 'na een lange wacht sluit klaar het scherm alsnog zelf');
 }
-// timeout: reden en "Toch doorgaan"
+// Samen spelen: de gast wacht op de gastheer
 {
   const g = createGate();
-  const v = tick(g, { elapsedS: HANG_S + 1, stap: 'De tegels rond je worden gelegd' }, 0);
-  ok(v.state === 'hangt' && v.prompt && v.promptTekst === 'Toch doorgaan' && /niet vastgelopen/.test(v.status) && /De tegels rond je worden gelegd/.test(v.sub), 'hangt: reden en Toch doorgaan');
-  ok(gatePress(g, 5).actie === 'door', 'Toch doorgaan werkt direct');
+  const v = tick(g, { elapsedS: 20, wachtOp: 'Tammo' });
+  ok(v.state === 'wacht-host' && v.actie === 'niets' && v.status === 'Wachten op Tammo', 'gast: Wachten op <naam>, ook na lange tijd');
+  ok(tick(g, { elapsedS: 21, wachtOp: '' }).state === 'hangt', 'de gastheer is er, het laden loopt nog: terug naar de gewone staten');
 }
-// Samen spelen: de gast wacht op de host
-{
-  const g = createGate();
-  const v = tick(g, { elapsedS: 20, wachtOp: 'Tammo' }, 0);
-  ok(v.state === 'wacht-host' && !v.prompt && v.status === 'Wachten op Tammo', 'gast: Wachten op <naam>, geen prompt, ook na lange tijd');
-  const r = gatePress(g, 10);
-  ok(r.actie === 'onthoud' && r.melding === 'Wachten op Tammo', 'gast: Enter doet niets behalve de melding');
-  ok(tick(g, { elapsedS: 21, wachtOp: '' }, 20).state === 'hangt', 'de host is er, het laden loopt nog: terug naar de gewone staten');
-}
-ok(tick(createGate(), null, 0).state === 'laadt' && tick(createGate(), { elapsedS: NaN }, 0).state === 'laadt', 'slechte invoer is veilig');
+ok(tick(createGate(), null).state === 'laadt' && tick(createGate(), { elapsedS: NaN }).state === 'laadt', 'slechte invoer is veilig');
+ok(statusLine('laadt', '') === 'Het spel wordt geladen' && statusLine('klaar', 'x') === 'Klaar', 'statusLine: terugval en klaar');
+
+// de fade: kort, bij reduced motion direct
+ok(fadeMs(false) === FADE_MS && FADE_MS <= 400 && FADE_MS > 0 && fadeMs(true) === 0, 'fade: hooguit 400 ms, bij reduced motion direct');
 
 // een vloeiende balk: gewogen, monotoon, nooit > 100 % en nooit een sprong
 {
@@ -88,10 +77,12 @@ for (const [naam, plan] of Object.entries({ nieuw: bootPlan(), opgeslagen: bootP
   ok(!/ld-tick|buildTicks/.test(html + ss), 'bootbalk: geen tikken of segmenten');
   ok(!/ls-seg|ls-tick|ld-seg/.test(css + ls + html), 'laadbalk: geen segmenten');
   ok(/#load-screen \.ls-bar i \{[^}]*var\(--ds-c-ink-bord\)/.test(css) && /#loading \.ld-fill \{[^}]*var\(--ds-c-ink-bord\)/.test(html), 'bordgroene vulling');
-  ok(/#load-screen \.ls-note \{[^}]*font: 400 16px/.test(css) && /#load-screen \.ls-step \{[^}]*19px/.test(css), 'tekst ruim boven de 13 px-vloer');
-  ok(/keyTextHtml\('\{ENTER\}'\)/.test(ls) && !/>Verder \{ENTER\}/.test(ls), 'de prompt gebruikt het toetsplaatje, geen ruwe tekst');
-  ok(!/skipReady/.test(ls), 'de prompt hangt niet meer aan een vaste 2,5 s maar aan de laadpoort');
-  ok(/class="ls-skip" hidden/.test(ls) && /gv\.prompt/.test(ls), 'de prompt begint verborgen en volgt de poort');
+  ok(/#load-screen \.ls-step \{[^}]*font: 400 18px/.test(css), 'de statusregel staat ruim boven de 13 px-vloer');
+  ok(!/ls-skip|ls-note|keyTextHtml|gatePress|isSkipKey|keydown/.test(ls + css), 'laadscherm: geen Enter-prompt, geen toetsafhandeling meer');
+  ok(!/bt-key/.test(html), 'bootscherm: geen leeg Enter-vak meer');
+  ok(/fadeMs\(reduced\(\)\)/.test(ls) && /gv\.actie === 'door'/.test(ls), 'het scherm sluit op de actie van de poort, met de fade');
+  ok(/ls-bar[\s\S]*ls-step/.test(ls.slice(ls.indexOf('class="ls-prog"'))), 'de statusregel staat onder de balk');
+  ok(fs.existsSync(new URL('../game/js/loadskip.js', import.meta.url)) === false, 'loadskip.js (Verder-prompt) is weg');
 }
 console.log(`loadgate_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

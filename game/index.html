@@ -70,8 +70,6 @@
   #loading .ld-status.swap { opacity: 0; }
   #loading .ld-step { font: 600 14px var(--ds-font-zeef-kop); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-inkt); min-height: 1.3em; margin-top: -6px; }
   #loading .ld-status.error { color: var(--ds-c-rood-tx); font-weight: 700; }
-  #loading .bt-key { margin-top: 18px; font: 800 25px var(--ds-font-zeef-kop); letter-spacing: 0.12em; opacity: 0; transition: opacity 0.5s; }
-  #loading.ready .bt-key { opacity: 1; animation: bt-breathe 2.2s ease-in-out infinite; }
   #loading.ready .ld-bar, #loading.ready .ld-status { opacity: 0.55; }
   #loading .bt-foot { position: absolute; left: 46px; right: 46px; bottom: 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 33px; }
   #loading .bt-age { display: flex; gap: 13px; align-items: center; }
@@ -88,7 +86,7 @@
   /* Rustig drukwerk: the same words and layout, no stamp motion, no tilt, no halftone */
   html.rustig-drukwerk #loading { background-image: none; }
   html.rustig-drukwerk #loading::before { display: none; }
-  html.rustig-drukwerk #loading .gde-mark, html.rustig-drukwerk #loading .gde-sign, html.rustig-drukwerk #loading .gde-sub, html.rustig-drukwerk #loading.ready .bt-key { animation: none; }
+  html.rustig-drukwerk #loading .gde-mark, html.rustig-drukwerk #loading .gde-sign, html.rustig-drukwerk #loading .gde-sub { animation: none; }
   /* 720p en lager: logo kleiner en hoger, de balk op marge van de logosticker (#993) */
   @media (max-height: 800px) { #loading .bt-logo { top: 8%; } #loading .gde-logo { font-size: 170px; } #loading .bt-load { top: 74%; } }
   @media (max-width: 760px) { #loading .gde-logo { font-size: 150px; } #loading .ld-bar { width: min(467px, 80vw); } #loading .bt-foot { flex-direction: column; align-items: flex-start; } #loading .bt-right { align-items: flex-start; text-align: left; } }
@@ -170,7 +168,6 @@
       <div class="ld-bar" role="progressbar" aria-label="De game wordt geladen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ld-fill"></div></div>
       <div class="ld-status">Grunn wordt wakker</div>
       <div class="ld-step" aria-hidden="true"></div>
-      <div class="bt-key" aria-live="polite"></div>
     </div>
     <div class="bt-foot">
       <div class="bt-age">
