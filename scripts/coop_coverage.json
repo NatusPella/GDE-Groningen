@@ -928,7 +928,8 @@
     "weersmooth",
     "coopweer",
     "cloud*",
-    "greenwater"
+    "greenwater",
+    "summerday"
    ],
    "eigenaar": "wereld",
    "gast": "Het weer is van de wereld: de host meldt de weerstaat, een gast zet hem in zijn eigen machine.",
