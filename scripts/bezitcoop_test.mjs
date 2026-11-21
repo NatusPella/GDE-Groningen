@@ -108,5 +108,28 @@ t('live: kopen meldt een claim, een verloren conflict betaalt het geld volledig 
   assert.equal(L.parcelOffer('paaaaaaaaaaa1').claim.name, 'lotte');
   L.setClaimLookup(null); L.setClaimSend(null);
 });
+t('standplaatsen: sp:-claims volgen dezelfde regels, blijven uit de perceellijst en de snapshot van percelen', () => {
+  const a = C.createClaims('A');
+  assert.ok(a.apply(claim('sp:markt', 'B', 5, 'lotte')).ok && a.apply(claim(ID(1), 'B', 5)).ok);
+  assert.equal(a.apply(claim('sp:zzz1234567890', 'B', 5)).ok, false);
+  assert.equal(a.lookup('sp:markt').name, 'lotte');
+  assert.deepEqual(a.list().map((x) => x.id), [ID(1)]);
+  assert.deepEqual(a.listSpots().map((x) => x.spot), ['markt']);
+  const r = a.apply(claim('sp:markt', 'A', 3, 'ik'));                       // eerdere claim wint: de claim van B gaat naar A
+  assert.ok(r.ok && r.replaced === 'B');
+  assert.deepEqual(a.mineSpots(), ['markt']); assert.equal(a.snapshotSpots(), 'markt');
+  assert.equal(C.decodeIds(a.snapshot()).length, 0);                       // percelen-snapshot bevat geen standplaatsen
+  const b = C.createClaims('B');
+  assert.equal(b.adoptSpots('A', 'ik', '#0c0', 'markt,park,zz zz'), 2);
+  assert.deepEqual(b.listSpots().map((x) => x.spot).sort(), ['markt', 'park']);
+  assert.equal(b.drop('A'), 2);
+});
+t('meewerken in de snackwagen: de eigenaar houdt zijn winst, de gast krijgt uurloon of een deel van de winst', () => {
+  const l = C.snackShare({ net: 600, hours: 5, portions: 120 });
+  assert.equal(l.owner.net, 600); assert.equal(l.guest.wage, 70); assert.equal(l.guest.portions, 120);
+  const s = C.snackShare({ net: 600, hours: 10, mode: 'aandeel' });
+  assert.equal(s.guest.wage, 150); assert.equal(C.snackShare({ net: -50, hours: 10, mode: 'aandeel' }).guest.wage, 0);
+  assert.equal(C.snackShare({ hours: 99 }).guest.wage, 14 * 14);
+});
 console.log(`bezitcoop_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

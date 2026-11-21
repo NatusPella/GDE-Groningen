@@ -5,11 +5,13 @@
 // Meewerken (5.5): de eigenaar krijgt oogst en voortgang, de gast krijgt loon. Puur: geen netwerk, geen DOM, geen klok (scripts/bezitcoop_test.mjs); het verzenden is een haak.
 
 export const CLAIM_MAX = 5000;                     // hoeveel claims van anderen we onthouden (een bovengrens tegen een vol netwerk)
-export const ID_RE = /^p[0-9a-f]{12}$/;
+export const PARCEL_RE = /^p[0-9a-f]{12}$/;
+export const SPOT_RE = /^sp:[a-z]{2,12}$/;                // een standplaats van de snackwagen (standplaats.js claimKey)
+export const ID_RE = /^(p[0-9a-f]{12}|sp:[a-z]{2,12})$/;
 
 // De ID-verzameling als 6 byte per perceel in base64 (het netwerk stuurt dit, nooit polygonen).
 export function encodeIds(ids) {
-  const list = [...new Set(ids)].filter((id) => ID_RE.test(id)).sort();
+  const list = [...new Set(ids)].filter((id) => PARCEL_RE.test(id)).sort();
   let s = '';
   for (const id of list) for (let i = 1; i < 13; i += 2) s += String.fromCharCode(parseInt(id.slice(i, i + 2), 16));
   return typeof btoa === 'function' ? btoa(s) : Buffer.from(s, 'binary').toString('base64');
@@ -63,9 +65,15 @@ export function createClaims(selfId) {
     lookup(id) { const c = claims.get(id); return c && c.from !== selfId ? { name: c.name, color: c.color, playerId: c.from } : null; },
     has: (id) => claims.has(id),
     // Voor de palen in de wereld: de claims van anderen als { id, name, color }.
-    list() { const out = []; for (const [id, c] of claims) if (c.from !== selfId) out.push({ id, name: c.name, color: c.color }); return out; },
+    list() { const out = []; for (const [id, c] of claims) if (c.from !== selfId && PARCEL_RE.test(id)) out.push({ id, name: c.name, color: c.color }); return out; },
+    // De standplaatsen van anderen als { spot, name, color } (alleen sp:-claims); mine(): de eigen.
+    listSpots() { const out = []; for (const [id, c] of claims) if (c.from !== selfId && SPOT_RE.test(id)) out.push({ spot: id.slice(3), name: c.name, color: c.color }); return out; },
+    mineSpots() { const out = []; for (const [id, c] of claims) if (c.from === selfId && SPOT_RE.test(id)) out.push(id.slice(3)); return out; },
     // Aansluiten: wat wij sturen (onze eigen claims als verzameling) en wat we terugkrijgen (de verzameling van een ander, als claims van hem).
-    snapshot() { const mine = []; for (const [id, c] of claims) if (c.from === selfId) mine.push(id); return encodeIds(mine); },
+    snapshot() { const mine = []; for (const [id, c] of claims) if (c.from === selfId && PARCEL_RE.test(id)) mine.push(id); return encodeIds(mine); },
+    // Aansluiten voor standplaatsen: een kommalijst van de eigen sp:-claims (hoogstens 16) en wat we van een ander overnemen.
+    snapshotSpots() { return api.mineSpots().slice(0, 16).join(','); },
+    adoptSpots(playerId, name, color, str, t = 0) { let k = 0; for (const s of String(str || '').split(',').slice(0, 16)) if (api.apply({ id: 'sp:' + s, action: 'claim', from: playerId, name, color, t }).ok) k++; return k; },
     adopt(playerId, name, color, str, t = 0) { let n = 0; for (const id of decodeIds(str)) if (api.apply({ id, action: 'claim', from: playerId, name, color, t }).ok) n++; return n; },
     size: () => claims.size,
     clear() { claims.clear(); },
@@ -81,4 +89,12 @@ export function workShare({ ha, wagePerHa = 85, harvestKg = 0 }) {
     owner: { harvestKg: Math.max(0, Math.round(harvestKg)), progress: true },
     guest: { wage: Math.round(h * Math.max(0, wagePerHa)), hectares: Math.round(h * 100) / 100, points: Math.round(h * 5) },
   };
+}
+
+// Meewerken in de snackwagen (Snackimperium, #1102): de eigenaar houdt de winst van zijn wagen en zijn voortgang; een gast achter het luik krijgt loon per uur
+// (nieuw geld, niet van de eigenaar af) of, bij een wagen op aandeel, een kwart van de dagwinst naar rato van zijn uren; de gast telt zijn eigen verkochte porties.
+export function snackShare({ net = 0, hours = 0, portions = 0, mode = 'loon', wagePerHour = 14 }) {
+  const h = Math.max(0, Math.min(14, Number(hours) || 0));
+  const wage = mode === 'aandeel' ? Math.round(Math.max(0, Number(net) || 0) * 0.25 * Math.min(1, h / 10)) : Math.round(h * Math.max(0, wagePerHour));
+  return { owner: { net: Math.round(Number(net) || 0), progress: true }, guest: { wage, portions: Math.max(0, Math.round(portions)), points: Math.round(h * 4) } };
 }

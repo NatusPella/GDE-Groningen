@@ -8,6 +8,7 @@
 export const BEZIT_BRANCHES = {
   land: { feature: 'bezit-land', act: 2, label: 'Land' },
   business: { feature: 'bezit-bedrijven', act: 3, label: 'Bedrijven' },
+  snack: { feature: 'bezit-snack', act: 5, label: 'Snackwagen' },       // de eindgame: Snackimperium (#1102), pas in de late akte
 };
 export const BEZIT_BRANCH_IDS = Object.keys(BEZIT_BRANCHES);
 
@@ -21,12 +22,12 @@ export const resetUnlockGate = () => { gate = () => true; };
 export const makeActGate = (currentAct, legacy = () => false) => (feature) => {
   const b = Object.values(BEZIT_BRANCHES).find((x) => x.feature === feature);
   if (!b) return true;
-  if (legacy()) return true;
+  if (legacy() && b.feature !== 'bezit-snack') return true;       // een nieuwe eindgame: een bestaand profiel heeft hem niet al
   const a = Number(currentAct());
   return Number.isFinite(a) && a >= b.act;
 };
 
-export const branchOpen = (branch) => !BEZIT_BRANCHES[branch] || !!gate(BEZIT_BRANCHES[branch].feature);
+export const branchOpen = (branch) => { if (branch === 'snack') ensureSnackGate(); return !BEZIT_BRANCHES[branch] || !!gate(BEZIT_BRANCHES[branch].feature); };
 
 // De tekst voor een dichte tak (Nederlands, voor het menu): waarom en wanneer hij opengaat.
 export function branchClosedText(branch) {
@@ -41,8 +42,12 @@ export const openBranches = () => BEZIT_BRANCH_IDS.filter(branchOpen);
 // ---- aansluiting op de gedeelde ontgrendelpoort van de verhaal-epic (unlockgate.js, #1131) ----
 // Percelen horen bij de wereld 'farm' (akte 2, Tessa), Bedrijven bij 'bezit' (akte 3, panden en ondernemen). De stand (progress) komt van de host:
 // setGateProgress(() => progressFrom({ stepId, ended, gate, begun })). Zonder provider blijft de stubpoort van hierboven (open).
-import { worldOpen, gateHint } from './unlockgate.js';
-export const GATE_WORLD = { land: 'farm', business: 'bezit' };
+import { worldOpen, gateHint, registerGateWorld, gateWorld } from './unlockgate.js';
+export const GATE_WORLD = { land: 'farm', business: 'bezit', snack: 'snackwagen' };
+// Tessa leidt de snackwagen in; akte 5 ('ontzet'). Bij elke vraag opnieuw gemeld als de registratie door een reset weg is (unlockgate.js resetGateRegistry).
+const SNACK_GATE = { id: 'snackwagen', part: 'ontzet', by: 'Tessa', hint: 'Tessa wil nu écht een eigen snackwagen: eerst het verhaal af, dan staat de eerste standplaats voor je open.' };
+const ensureSnackGate = () => { if (!gateWorld('snackwagen')) registerGateWorld(SNACK_GATE); };
+ensureSnackGate();
 let progressProvider = null;
 export function setGateProgress(fn) {
   progressProvider = typeof fn === 'function' ? fn : null;

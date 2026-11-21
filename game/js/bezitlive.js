@@ -20,6 +20,8 @@ import { unlockAchievement, setStatMax } from './achievements.js';
 import * as H from './holdingsmodel.js';
 import { onParcelBought, onWorkerHired, deliverLine } from './bezitworldhooks.js';
 import * as BZ from './business.js';
+import * as SN from './snackwagen.js';
+import * as SPT from './standplaats.js';
 import * as FX from './businessexclusion.js';
 import * as EV from './bezitevents.js';
 import { hireWorker, fireWorker, staffOf } from './farmstaff.js';
@@ -171,6 +173,8 @@ export function verkoopPerceel(w, id) {
 
 // ---- Samen spelen: de claim (bezitcoop.js haakt hier in) ----
 export const setClaimLookup = (fn) => { claimLookup = typeof fn === 'function' ? fn : () => null; };
+export const claimOfKey = (key) => claimLookup(key);          // de claim van een medespeler op een sleutel (perceel-id of 'sp:<plek>'), of null
+export const sendClaim = (msg) => claimSend(msg);
 export const setClaimSend = (fn) => { claimSend = typeof fn === 'function' ? fn : () => {}; };
 // De ID-verzameling van je eigen bezit voor een gast die later aansluit: alleen de niet-legacy percelen.
 export const ownedParcelIdsForNet = () => Object.keys(getBezit().parcels).filter((id) => !getBezit().parcels[id].lg);
@@ -448,7 +452,7 @@ export function dagTik(w) {
   const b = getBezit(), farm = getBoerderij();
   const day = Math.floor(farm.uren / 24);
   clock = { cal: calDayOf(w), farm: day };
-  if (!(Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length)) { b.x.lastDay = day; return null; }
+  if (!(Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length || SN.isActive(snackState()))) { b.x.lastDay = day; return null; }
   if (!Number.isFinite(b.x.lastDay)) { b.x.lastDay = day; return null; }                       // een bezit zonder vastgelegde dag begint vandaag te tellen
   const from = b.x.lastDay;
   if (day <= from) return null;
@@ -462,7 +466,9 @@ export function dagTik(w) {
     BZ.storeBiz(b, res.biz); bizNet += res.sum.net; tax += res.sum.tax;
   }
   let mobNet = 0;
-  for (const id of Object.keys(b.mobile || {})) {            // de frietwagen: omzet naar standplaats, weekend en kermis (business.js)
+  const SS = snackState(), snackOn = SN.isActive(SS);
+  for (const id of Object.keys(b.mobile || {})) {            // de snackwagen (id frietwagen): omzet naar standplaats, weekend en kermis (business.js)
+    if (snackOn && id === 'frietwagen') continue;             // met standplaatsen rekent snackwagen.js de wagen af (Snackimperium)
     const biz = mobileBiz(id);
     if (!biz) continue;
     const spotRegion = CH.SPOT_REGION[biz.cfg.spot] || 'overig';
@@ -474,14 +480,50 @@ export function dagTik(w) {
   const rows = ownedRows(farm, b);
   const ch = tickChains(w, farm, from, last, rows);
   net += ch.bonus;
+  const sn = snackOn ? tickSnack(w, SS, from, last, money) : { own: 0, passive: 0, fixed: 0, lines: [] };
+  net += sn.passive;                                                                              // wat de medewerkers in de wagens verdienen is passief: onder dezelfde rem
   const ev = tickNews(w, farm, from, last, rows);
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
+  net += sn.own + sn.fixed;                                                                       // de wagen die je zelf runt heeft zijn eigen plafond (snackwagen.js compressOwn); vergunningen zijn kosten
   net += ev.money;                                                                                // een boete of de dierenarts is geen passief inkomen: geen rem
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
-  if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3)) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
+  if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3).concat(sn.lines.slice(-2))) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
   markeer();
-  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
+  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), snack: Math.round(sn.own + sn.passive + sn.fixed), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
   return lastReport;
+}
+
+// ---- de snackwagen: Snackimperium (snackwagen.js, standplaats.js, rival.js; epic #1102) ----
+// De toestand zit in bezit.x.snack (per speler, #429) en wordt bij het eerste gebruik genormaliseerd.
+const snackDone = new WeakSet();
+export function snackState() {
+  const b = getBezit();
+  if (!b.x.snack || !snackDone.has(b.x.snack)) { b.x.snack = SN.normalizeSnack(b.x.snack); snackDone.add(b.x.snack); }
+  return b.x.snack;
+}
+// Hoeveel van wat in het menu zit uit je eigen keten komt (0 tot 1): friet en kaas als de verwerker van jou is en de bron levert (elk de helft), melk uit de bron van de kaasketen.
+// Vlees heeft geen eigen keten in het spel (geen vleesvee): altijd 0.
+export function snackChainOwner(views = null) {
+  const v = views || chainViews();
+  const by = (id) => v.find((c) => c.id === id);
+  const level = (c) => (c ? (c.links.some((l) => l.role === 'processor' && l.owned) ? 0.5 : 0) + (c.sourceCount > 0 ? 0.5 : 0) : 0);
+  return (p) => (p === 'friet' ? level(by('friet')) : p === 'kaas' ? level(by('kaas')) : p === 'melk' ? ((by('kaas') || {}).sourceCount > 0 ? 0.5 : 0) : 0);
+}
+const snackCal = (cd) => ({ weekend: weekendDay(cd), kermisAt: (s) => { const d = SPT.spotDef(s), f = d ? EV.festivalOn(d.region, cd) : null; return !!(f && f.kermis); } });
+// Een of meer dagen: geeft { own, passive, fixed, lines } (eigen wagen na compressOwn, medewerkers ruw voor de rem, vergunningen als min) en schrijft het onderhoud van de wagen terug.
+function tickSnack(w, S, from, last, money) {
+  const b = getBezit(), ownBiz = mobileBiz('frietwagen'), chainOwn = snackChainOwner(), had = Object.keys(S.permits);
+  const res = SN.settleDays(S, from, last, (d) => { const cd = calOf(d); return { day: cd, ...snackCal(cd), money, ownWagon: !!ownBiz, ownQ: ownBiz ? ownBiz.q : 100, chainOwn, taken: (id) => !!claimLookup('sp:' + id) }; });
+  if (ownBiz && res.sum.ownQ !== null) b.mobile.frietwagen.q = res.sum.ownQ;
+  for (const id of had) if (!S.permits[id]) claimSend({ id: SPT.claimKey(id), action: 'release' });      // een vervallen vergunning geeft de plek in de sessie vrij
+  const inc = SN.incomeOf(res.sum);
+  const held = SPT.heldIds(S.permits, calToday()).length;
+  try {
+    if (S.own.spot && ownBiz) unlockAchievement(w, 'bz_snack_eerste');
+    setStatMax(w, 'bzStandplaatsen', held);
+    if (SN.goalStatus(S, { day: calToday() }).find((g) => g.id === 'usmem').done) unlockAchievement(w, 'bz_usmem');
+  } catch (e) { /* prestaties niet klaar */ }
+  return { own: inc.own, passive: inc.passiveRaw, fixed: inc.fixed, lines: res.sum.lines };
 }
 
 // ---- het nieuws en de keuze van de buurman ----
