@@ -614,6 +614,18 @@ export function releaseLostClaim(w, id) {
   return { ok: true, refund, text: 'Een medespeler was net eerder: je geld is terug.' };
 }
 
+// Een standplaats waar een medespeler net eerder was (claim 'sp:<plek>'): je vergunning gaat terug, je wagen staat weer thuis en je krijgt wat je betaalde terug; nooit verlies.
+export function releaseLostSpot(w, key) {
+  const spot = SPT.spotOfClaim(key), S = snackState();
+  if (!spot || !S.permits[spot]) return { ok: false };
+  const refund = S.permits[spot].paid;
+  delete S.permits[spot];
+  if (S.own.spot === spot) S.own.spot = null;
+  for (const f of S.fleet) if (f.spot === spot) f.spot = null;
+  noteMoney('Verkoop'); w.money += refund; markeer();
+  return { ok: true, refund, text: 'Een medespeler was net eerder bij die standplaats: je geld is terug.' };
+}
+
 // Samen spelen aanzetten voor deze sessie: claims bijhouden en doorsturen via send(msg) (het transport staat in de netlaag, nog te koppelen aan een EXTRA-bericht).
 // Geeft { receive(w, msg), snapshot(), drop(id), stop() }; zonder sessie blijft alles in je eigen spel.
 import { createClaims } from './bezitcoop.js';
@@ -624,7 +636,7 @@ export function attachCoop(w, selfId, name, color, send) {
   if (w) w.bezitClaims = () => claims.list();
   return {
     claims,
-    receive(world, msg) { const r = claims.apply(msg); if (r.lost) { const b = releaseLostClaim(world, msg.id); if (b.ok && world.addMessage) world.addMessage(b.text, 4); } return r; },
+    receive(world, msg) { const r = claims.apply(msg); if (r.lost) { const b = SPT.spotOfClaim(msg.id) ? releaseLostSpot(world, msg.id) : releaseLostClaim(world, msg.id); if (b.ok && world.addMessage) world.addMessage(b.text, 4); } return r; },
     snapshot: () => claims.snapshot(),
     drop: (id) => claims.drop(id),
     stop() { setClaimLookup(null); setClaimSend(null); claims.clear(); if (w) w.bezitClaims = null; },

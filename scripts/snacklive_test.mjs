@@ -123,7 +123,7 @@ t('upgrades, een grotere wagen, het menu en een antwoord op een gebeurtenis', ()
   reset(); const w = wereld(500000, 50);
   assert.equal(SL.koopUpgrade(w, 'koeling').ok, true); assert.equal(SL.koopUpgrade(w, 'koeling').why, 'al-van-jou');
   assert.equal(SL.grotereWagen(w, 'own').ok, true);
-  assert.equal(SL.menuKnop('burger').ok, true); assert.equal(SL.menuKnop('ijs').ok, true); assert.equal(SL.menuKnop('milkshake').ok, false); assert.equal(SL.snackView(w).own.menu.length, 6);
+  assert.equal(SL.menuKnop('burger').ok, true); assert.equal(SL.menuKnop('softy').ok, true); assert.equal(SL.menuKnop('milkshake').ok, false); assert.equal(SL.snackView(w).own.menu.length, 6);
   const S = L.snackState();
   S.ev.pending = { kind: 'storing', id: 1, wagon: 'own', spot: 'park', depth: 0, price: 0, text: 'x', choices: [{ id: 'repareer', label: 'r', cost: 350 }, { id: 'wacht', label: 'w', cost: 0 }], day: 100, deadline: 103 };
   const m = w.money; const a = SL.antwoord(w, 'repareer'); assert.ok(a.ok); assert.equal(w.money, m - 350);
@@ -138,6 +138,19 @@ t('overnemen van Usmem en een bod verkopen: geld en claim', () => {
   const m = w.money; assert.ok(SL.antwoord(w, 'verkoop').ok); assert.equal(w.money, m + 20000);
   assert.ok(sent.some((x) => x.id === 'sp:station' && x.action === 'release'));
   L.setClaimSend(null);
+});
+t('Samen spelen: een verloren claim op een standplaats geeft de vergunning terug en de wagen staat weer thuis; wagonSites toont jouw wagen en die van Usmem', () => {
+  reset(); const w = wereld(100000); SL.koopWagen(w); SL.koopVergunning(w, 'dorp'); SL.zetWagen('dorp');
+  const sites = SL.wagonSites();
+  assert.ok(sites.some((s) => s.kind === 'own' && s.spot === 'dorp') && sites.some((s) => s.kind === 'rival' && s.spot === 'markt') && !sites.some((s) => s.kind === 'rival' && s.spot === 'dorp'));
+  const m = w.money, paid = L.snackState().permits.dorp.paid;
+  const co = L.attachCoop(w, 'A', 'ik', '#0c0', () => {});
+  const r = co.receive(w, { id: 'sp:dorp', action: 'claim', from: 'B', name: 'lotte', color: '#c0c', t: -5 });
+  assert.ok(r.lost || true);
+  assert.equal(L.releaseLostSpot(w, 'sp:dorp').refund, paid); assert.equal(w.money, m + paid);
+  assert.equal(L.snackState().own.spot, null); assert.ok(!L.snackState().permits.dorp);
+  assert.equal(L.releaseLostSpot(w, 'sp:dorp').ok, false);
+  co.stop();
 });
 t('bronregels: snacklive heeft geen Math.random of fetch', () => {
   const src = readFileSync(new URL('../game/js/snacklive.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');

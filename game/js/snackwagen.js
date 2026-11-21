@@ -24,7 +24,7 @@ export const TIERS = {
 };
 export const TIER_IDS = Object.keys(TIERS);
 export const UPGRADES = {
-  koeling: { label: 'Koeling', price: 6000, note: 'Burger, milkshake en softijs op het menu; minder bederf.' },
+  koeling: { label: 'Koeling', price: 6000, note: 'Burger, milkshake en softy op het menu; minder bederf.' },
   sauzen: { label: 'Eigen merk-sauzen (Terpsaus)', price: 8000, note: 'Elke klant betaalt 60 cent meer en 6% meer klanten komen terug.' },
   pan: { label: 'Dubbele frituurpan', price: 4000, note: '15% meer capaciteit en een storing komt half zo vaak voor.' },
 };
@@ -38,7 +38,7 @@ export const ITEMS = {
   souffle: { label: 'Kaassoufflé', price: 3.2, cost: 0.8, chain: 'kaas', kg: 0.1, base: true },
   burger: { label: 'Burger', price: 6.5, cost: 2.2, chain: 'vlees', kg: 0.15, needs: 'koeling' },
   milkshake: { label: 'Milkshake', price: 4.2, cost: 1.1, chain: 'melk', kg: 0.3, needs: 'koeling' },
-  ijs: { label: 'Softijs', price: 3.2, cost: 0.7, chain: 'melk', kg: 0.12, needs: 'koeling' },
+  softy: { label: 'Softy', price: 3.2, cost: 0.7, chain: 'melk', kg: 0.12, needs: 'koeling' },
 };
 export const ITEM_IDS = Object.keys(ITEMS);
 export const DEFAULT_MENU = ['friet', 'frikandel', 'kroket', 'bamischijf'];

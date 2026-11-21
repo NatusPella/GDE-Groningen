@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- **Snackwagen en Usmem Snacks (eindgame van Bezit):** de frietwagen heet nu Snackwagen. Vanaf akte 5 opent in Land en bedrijf het tabblad Snackwagen: zestien standplaatsen (Grote Markt, station, Reitdiephaven, de kust en meer) met een vergunning van 40 speldagen, een menu uit je eigen keten, een grotere wagen, koeling, eigen sauzen en medewerkers-wagens. Het beste plekje van de stad is van Jelle Terpstra's Usmem Snacks: neem het over, ontmoet zijn bod, prijzenoorlog en valse recensies en bouw je Snackimperium (score 0 tot 100).
+- De kaart heeft een laag Standplaatsen (blauw vrij, groen van jou, rood van Usmem, een andere kleur van een medespeler); je snackwagens en die van Usmem staan geparkeerd in de wereld. Drie nieuwe prestaties: Eerste standplaats, Tien standplaatsen en Usmem overtroefd.
+- Samen spelen: iedere speler bouwt een eigen imperium met eigen voortgang; een standplaats die een medespeler heeft is voor jou niet te koop (net als percelen), en verliest hij de claim, dan krijg je je geld terug.
+
 - **Bezit (epic #1095), in opbouw:** bij het bouwen van de wereld komen er twee kleine indexbestanden met de koopbare percelen (13.664, met een stabiel ID, toegangsklasse en soort) en de bedrijfspanden; het spel laadt ze pas als je iets met Bezit doet.
 - Samen spelen met Bezit: een perceel dat een medespeler in de sessie koopt, zie je als "van <naam>" in zijn kleur en is voor jou deze sessie niet te koop; kopen twee spelers tegelijk, dan wint de eerste en krijgt de ander zijn geld terug. Een perceel is nu minstens 2.400 waard, en passief inkomen (pacht, personeel, winkels) vlakt zacht af naar een plafond, zodat actief spelen het meest blijft opleveren.
 - Wat je koopt zie je terug in de wereld: een paal met een bord (naam en "Van jou") op je percelen en panden, en een pin met de stand van het veld op de kaart en de minikaart. Een medespeler krijgt zijn eigen kleur en naam op zijn percelen.

@@ -10,6 +10,7 @@ import { Vehicle } from './vehicle.js';
 import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh } from './models3d_people.js';
 import { wagonSites, snackOpen } from './snacklive.js';
+import { INK } from './mapstyle.js';
 import { planWagons, diffWagons, PLAN_EVERY_S, MAX_WAGONS } from './snackwagenplan.js';
 
 const S = { actors: new Map(), t: 0, planT: -9 };
@@ -25,7 +26,7 @@ function signMaterial(text, color) {
   const cv = document.createElement('canvas');
   cv.width = 512; cv.height = 128;
   const g = cv.getContext('2d');
-  g.fillStyle = '#f4f1e6'; g.fillRect(0, 0, 512, 128);
+  g.fillStyle = INK.cream; g.fillRect(0, 0, 512, 128);
   g.fillStyle = color; g.fillRect(0, 0, 512, 12); g.fillRect(0, 116, 512, 12);
   g.font = 'bold 54px "Arial Black", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 256, 66, 460);
   const tex = new THREE.CanvasTexture(cv);

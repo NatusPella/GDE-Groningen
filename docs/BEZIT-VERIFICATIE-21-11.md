@@ -208,3 +208,22 @@ Bekende gaten:
 - De woningen zijn gesynthetiseerd (geen echt pand): een ID per plaats en nummer met een vast grondvlak, een plek in de buurt van de plaats en de woningprijs; ze staan niet als gebouw op de kaart. Verhuur is automatisch (geen knop voor zelf bewonen).
 - Samen spelen: ketens, markt en nieuws zijn per speler (`bezit.x`); de streekprijs gebruikt de gedeelde kalenderdag, maar de verzadiging door wat een medespeler levert komt pas aan als de bouwer de levering via een EXTRA-bericht naar `AM.recordRemoteDelivery` stuurt.
 
+## #1102 Snackwagen en Usmem Snacks (eindgame, Snackimperium)
+
+Gebouwd: `standplaats.js` (16 plekken, vraag, vergunning), `rival.js` (Usmem Snacks), `snackwagen.js` (toestand, dag, menu, upgrades, vloot, gebeurtenissen, doelen, score), `snacklive.js` (acties en
+view), `snackui.js` (tabblad Snackwagen), `standplaatsmap.js`, `standplaatsdraw.js`, `standplaatscard.js` (kaartlaag), `snackwagenplan.js` en `snackwagens3d.js` (wagens in de wereld, hoogstens vijf),
+`bezitcoop.js` (claims `sp:`, `snackShare`), `bezitgate.js` (poort akte 5), `bezitlive.js` (dagtik), prestaties in `achievements.js`. Ontwerp en balans: `BEZIT-21-11.md` hoofdstuk 15.
+Tests: `standplaats_test` (16), `rival_test` (14), `snackwagen_test` (29), `snackbalans_test` (12), `snacklive_test` (12), `snackui_test` (8), `snackwagens3d_test` (10), `standplaatsmap_test` (7),
+`bezitcoop_test` (12, was 10); bestaande bezit-, business-, supplychain-, areamarket- en evenementen-tests blijven groen. Niet in Electron bekeken.
+
+In beeld te controleren (nog niet bekeken):
+- Poort: in akte 1 tot 4 staat op het tabblad Snackwagen "Nog dicht" met een zin van Tessa; in akte 5 (of na het verhaal) staat hij open.
+- Tabblad Snackwagen: tegels (naam, Snackimperium-score, plekken tegen Usmem), Usmem-regel, je wagen (voorspelling van vandaag, voorraad, uren, prijs, menu, upgrades), de standplaatsen (Doel, Vergunning,
+  Neem over, Zet mijn wagen hier, Extra wagen), de wachtende gebeurtenis met antwoorden, de doelen. Elke koop vraagt een tweede druk.
+- Kaart: de laag Standplaatsen in de legenda; blauwe cirkel (vrij), groene schijf met W (van jou, wagen erop), rode ruit (Usmem), vierkant (medespeler); klik opent het kaartje met de bevestiging.
+- Wereld: op je standplaatsen en op die van Usmem staat een geparkeerde wagen met een verkoper erbij (blauw, groen voor je medewerkers, rood met "USMEM SNACKS"); hoogstens vijf tegelijk binnen ca. 260 m.
+  Let op: staat een wagen in een gevel of op een rijbaan (coordinaten komen uit lat/lon), is het bord goed leesbaar en staat de verkoper aan de stoeprand en kijkt hij naar de wagen?
+- Dagtik: de snackregel verschijnt in het dagrapport (`snack`); een sabotagebericht verschijnt als tip.
+- Samen spelen: een plek die een medespeler heeft staat bij jou als "van <naam>" en is niet te koop; een vervallen vergunning geeft de plek vrij.
+Bekende gaten: zie `BEZIT-21-11.md` 15.4 (verbruik niet van de keten, winkeldichtheid niet aangesloten, prijzenoorlog niet in de ketenleveringen, gast-meewerken zonder UI).
+

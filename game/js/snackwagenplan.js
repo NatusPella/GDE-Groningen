@@ -4,11 +4,12 @@
 
 import { hashUnit, hashPick } from './bezithash.js';
 import { FIRST_NAMES } from './businessstaff.js';
+import { INK } from './mapstyle.js';
 
 export const SPAWN_R = 260, DESPAWN_R = 340;          // een wagen verschijnt binnen 260 m en verdwijnt pas voorbij 340 m: geen geflikker aan de rand
 export const MAX_WAGONS = 5;                           // hoogstens vijf tegelijk (de dichtstbijzijnde): geheugen en tekenwerk blijven klein
 export const PLAN_EVERY_S = 0.5;
-export const COLORS = { own: '#2f6fb0', fleet: '#3f9f5f', rival: '#c0392b' };
+export const COLORS = { own: INK.homeBlue, fleet: INK.green, rival: INK.red };
 export const SIGNS = { own: 'SNACKWAGEN', fleet: 'SNACKWAGEN', rival: 'USMEM SNACKS' };
 const SHIRTS = [0xe8c24a, 0xf4f1e6, 0x9bb8d3, 0xd98b5f];
 

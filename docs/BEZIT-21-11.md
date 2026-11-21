@@ -601,3 +601,75 @@ Deze besluiten vervangen of verduidelijken de open vragen van hoofdstuk 11 en wa
    bij de wereld: een perceel dat je niet bezit krijgt geen lijn. De vorm komt uit `bezit-vormen.json` (omtrek van het grootste stuk, Douglas-Peucker 8 m, 5 m afgerond, delta-gecodeerd, hoogstens 24
    punten), niet uit de tegel; het verschil met de kaart is dus dat de lijn de vereenvoudigde vorm van het perceel is en niet de echte rand van het landgebruik. Dezelfde omtrek tekent de kaartlaag Te
    koop. Gemeten: 13.650 vormen, 793 KB (311 KB gzip, ruim binnen de 1 MB), 119 ms bouwtijd.
+
+## 15. Snackwagen en Usmem Snacks (eindgame, #1102; canon-update van de eigenaar 21-11)
+
+De **snackwagen** is het eind-voertuig van Bezit en een bedrijf-light-sim als endgame: een mobiel bedrijf dat per speldag veel meer oplevert dan een winkel of perceel, maar actief beheerd
+wordt (menu, plek, voorraad) en tegen een concurrent opboxt: **Usmem Snacks** van Jelle Terpstra (verzonnen; Jelle is een verhaalpersonage, vriendelijk-venijnig). De id `frietwagen` blijft in
+de opslag (compatibiliteit met bestaande saves en de verhaal-vlaggen); wat de speler leest heet Snackwagen.
+
+### 15.1 Besluiten
+
+1. **Eén wagen, twee lagen.** De bestaande kleine wagen (7.500, `business.js`) is de eerste snackwagen en blijft precies zoals hij was zolang je geen standplaats hebt (geen verandering voor
+   bestaande spelers). Zodra je een vergunning hebt rekent `snackwagen.js` hem af en niet meer `business.stepDay`. De kleine wagen groeit via drie stappen (klein, groot, XL) en bedrijfsbrede
+   upgrades (koeling, eigen merk-sauzen "Terpsaus", dubbele frituurpan).
+2. **Poort.** Het tabblad Snackwagen opent via de gedeelde verhaalpoort: `registerGateWorld({ id: 'snackwagen', part: 'ontzet', by: 'Tessa' })` (akte 5), `bezitgate.branchOpen('snack')`.
+   Bij een dichte poort staat er uitleg van Tessa (nooit een leeg scherm). De stubpoort (zonder gedeelde poort) laat de legacy-regel de eindgame niet openen; de gedeelde poort (`worldOpen`)
+   volgt zijn eigen migratieregel (bestaande saves houden alles).
+3. **Standplaatsen** (`standplaats.js`, puur): zestien plekken met verzonnen namen bij echte plaatsen (Hoek van de Grote Markt, Martinikerkhof, Stationsplein, Oosterpoort, Reitdiephaven,
+   Noorderplantsoen, voetbalstadion, kermisterrein, Haren, Winsum, Leek, Veendam, Delfzijl, Zoutkamp, Lauwersoog, Eemshaven), ligging uit lat/lon via `wgsToWorld`. Vraag per dag =
+   `260 x druk x weekeffect x gebeurtenis x uurvenster x winkeldichtheid x ruis`. Het uurvenster volgt een profiel per soort plek (dag, spits, avond, haven, club, event); de kermis en de
+   thuiswedstrijd (elke 14 dagen op zaterdag) tellen alleen op de dag zelf. Concurrentie per plek (vast) en 3% per Usmem-plek in hetzelfde cluster (max 15%); een goede naam drukt het.
+   **Vergunning:** `6.000 x druk^1,6` (markt ca. 12.700, dorp ca. 1.700), 40 speldagen geldig, vanzelf verlengd voor 25% zolang er geld is (anders vervalt de plek), 15% duurder per vergunning die je
+   al hebt (max x3).
+4. **Het beste plekje is het eerste doel, en het is van Usmem.** Hij begint met markt, station, Oosterpoort en stadion. Jij pakt eerst vrije plekken en neemt daarna over (vraagprijs
+   2,4x tot 1,6x de vergunning, naar je naam). Overnemen maakt hem gemener (stemming +25, meer kans op sabotage). Hij breidt elke 9 tot 14 speldagen uit tot ongeveer 40% van de plekken en
+   komt elke 18 tot 25 dagen met een bod op je beste plek (1,8x tot 2,2x); verkopen mag, weigeren geeft een goede naam.
+5. **Sabotage is satire** (constitution 6): storing aan de frituurpan, pechdag, valse recensie, prijzenoorlog, een verkoper die hij wegkoopt. Nooit geweld. Het standaardgevolg treedt meteen in
+   (je kunt het nog verbeteren met een antwoord dat geld kost); niet antwoorden is nooit fataal. Kans 5% tot 22% per dag (stemming, voorsprong; bescherming door pan en naam).
+6. **Reputatie 0 tot 100 per speler**: goede dagen bouwen op, een lege wagen kost 2,5 per dag, een prijs boven 125% kost; factor op de vraag 0,8 tot 1,2.
+7. **Menu en keten.** Acht producten (vier basis, kaassoufflé erbij, burger/milkshake/softijs vragen koeling), per wagen 4/6/8 plekken. Een eigen keten (`bezitchain`: verwerker van jou en bron
+   die levert) maakt het inkopen tot de helft goedkoper en geeft tot 6% extra klanten. Het verbruik wordt NIET van de keten afgetrokken (zie 15.4).
+8. **Voorraad = actief beheer.** De wagen die je zelf runt verkoopt alleen als er voorraad is (vul aan voor 5 dagen, 40 euro per rit); zonder voorraad 15% van de capaciteit en een slechte naam.
+9. **Medewerkers-wagens** (extra wagens, 12.000 + 10% per wagen, max 11): loon (90 + 0,6 x vaardigheid per dag) of 30% aandeel; zonder jou op 85% en 15% aanvoerkosten; ze kiezen zelf het
+   beste uurvenster. Zichtbaar in de wereld (`snackwagens3d.js`).
+10. **Eindscore Snackimperium** (0 tot 100): aandeel plekken tegenover Usmem (60), wagens (15), eigen ketens (10), naam (10), het beste plekje (5); elf doelen; prestaties `bz_snack_eerste`,
+    `bz_snack_tien` (tien standplaatsen tegelijk) en `bz_usmem` (acht plekken en 75% aandeel).
+
+### 15.2 Balans (afspraak; `node scripts/bezit_sim.mjs`, `snackbalans_test`)
+
+De snackwagen mag **meer geven dan winkels en percelen** omdat het actief beheerd werk is, maar blijft begrensd. Gemeten met de echte modules (40 speldagen, zonder Usmem):
+
+| profiel | winst per speldag | investering | rendement per speldag |
+|---|---|---|---|
+| start: kleine wagen op het dorp | 249 (0,57x actief) | 9.150 | 2,7% |
+| mid: grote wagen + koeling in het park | 538 (1,22x) | 30.150 | 1,8% |
+| best: groot, alle upgrades, zes producten op de markt | 854 (1,94x) | 50.250 | 1,7% |
+| imperium: best + zes medewerkers-wagens | 1.752 (3,98x) | 165.400 | 1,06% |
+
+Ter vergelijking: pacht 0,9%, huur 1,2%, winkel ongeveer 0,55% per speldag. Met Usmem en sabotage (de speler geeft het goedkoopste antwoord) zakt de opbrengst met 3% tot 6%.
+
+* **De eigen wagen** heeft een eigen zacht plafond (`compressOwn`, 1.800 per speldag): in de praktijk hoogstens 2x wat actief werk per speldag oplevert (440). Dat is meer dan de rem op passief; de
+  reden is dat hij voorraad en aandacht vraagt (besluit 8).
+* **Wat medewerkers verdienen** gaat vóór de bestaande rem `compressPassive` (plafond 3x actief, gedeeld met al het andere passieve inkomen): passief blijft binnen 3x.
+* **Totaal** van een groot imperium (eigen wagen + zes wagens) is ongeveer 4x actief (getest tot 4,25x). Dat is bewust hoger dan de 3x passief omdat de eigen wagen actief werk is; stel bij door
+  `OWN_CAP_DAY`, `STAFF_AUTO` of `FLEET_PRICE` in `snackwagen.js`.
+* **Geen exploit:** wagen kopen en verkopen kost 40%, elke upgrade is eenmalig, vergunningen worden duurder per stuk (max x3), er komt geen geld uit het niets (alle kosten lopen via de aanroeper).
+
+### 15.3 Samen spelen
+
+Regel (ook in `COOP-GAST.md`): **elke speler heeft zijn eigen imperium, zijn eigen Usmem en zijn eigen voortgang (#429); niets hiervan zit in een savegame of snapshot.** Alleen de claims op
+standplaatsen zijn gedeeld: `bezitcoop.createClaims` kent naast `p<12 hex>` ook `sp:<plek>` (`SPOT_RE`); wat een medespeler in deze sessie heeft is voor jou niet te koop of over te nemen, en
+je ziet het op de kaartlaag Standplaatsen als "van <naam>" in zijn kleur. Conflict: de laagste (tijd, speler-id) wint, zoals bij percelen. Wegvallen: zijn claims verdwijnen (`drop`), zijn eigen
+bezit blijft van hem. Aansluiten: `snapshotSpots` en `adoptSpots` (kommalijst). Meewerken: een gast achter het luik krijgt via `bezitcoop.snackShare` uurloon (14 per uur) of een kwart van de
+dagwinst (aandeel) naar rato van zijn uren; de eigenaar houdt zijn winst en voortgang. Een vervallen vergunning geeft de claim vrij. Gast-meewerken in de UI is nog niet aangesloten (15.4).
+
+### 15.4 Open gaten
+
+* De 3D-wagens zijn het bestaande foodtruck-model in een eigen kleur met een nieuw bord; de verkoper staat naast het luik. De plekken komen uit lat/lon en kunnen net in een gevel of op een
+  stoep vallen; in beeld controleren (zie `BEZIT-VERIFICATIE-21-11.md`).
+* Het verbruik van het menu (kilo friet, kaas, melk) wordt niet van de keten afgetrokken; de keten geeft alleen korting en klanten. Vlees heeft geen eigen keten (geen vleesvee): altijd 0.
+* De winkeldichtheid (`densityFactor`) staat in de logica maar is niet aangesloten op `shopspots.js`; de ruis per dag en het uurvenster doen het werk.
+* De prijzenoorlog raakt de verkoop van de snackwagens, niet de leveringen van de ketens (de `areamarket`-eventfactor is een volgende stap: `warEffect` geeft de diepte al terug).
+* Meewerken door een gast kent de logica (`snackShare`), maar er is nog geen knop of netwerkbericht voor.
+* De balans is een sim, geen speeltest.

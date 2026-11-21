@@ -91,7 +91,7 @@ const wkd = (cd) => { const wd = (cd + 4) % 7; return wd === 6 || wd === 0; };
 const FRIETWAGEN_PRICE = BZ.MOBILE_TYPES.frietwagen.price;
 export function snackProfile({ days = 40, quiet = true } = {}) {
   const give = (S, ids) => { for (const id of ids) S.permits[id] = { until: 1e7, paid: SP.permitPrice(id, Object.keys(S.permits).length) }; };
-  const full = (S) => { S.up = ['koeling', 'sauzen', 'pan']; S.own.tier = 'groot'; S.own.menu = ['friet', 'frikandel', 'kroket', 'burger', 'milkshake', 'ijs']; };
+  const full = (S) => { S.up = ['koeling', 'sauzen', 'pan']; S.own.tier = 'groot'; S.own.menu = ['friet', 'frikandel', 'kroket', 'burger', 'milkshake', 'softy']; };
   const mk = (id) => {
     const S = SN.newSnack();
     let invest = FRIETWAGEN_PRICE;

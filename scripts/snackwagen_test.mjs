@@ -18,9 +18,9 @@ t('een nieuwe toestand: leeg, niet actief, wagen zonder plek, menu van vier, naa
   assert.deepEqual(S.rival.spots, RV.START_SPOTS);
 });
 t('normalizeSnack: rommel, onbekende plekken en menu-items worden gezuiverd, de rest blijft', () => {
-  const S = SN.newSnack(); give(S, ['dorp']); S.up = ['koeling']; S.own.spot = 'dorp'; S.own.menu = ['friet', 'burger', 'ijs']; S.fleet.push({ id: 'w1', spot: 'dorp', tier: 'groot', mode: 'aandeel', staff: { id: 'a', name: 'Marit', skill: 55 }, paid: 12000, wageUp: 20 });
+  const S = SN.newSnack(); give(S, ['dorp']); S.up = ['koeling']; S.own.spot = 'dorp'; S.own.menu = ['friet', 'burger', 'softy']; S.fleet.push({ id: 'w1', spot: 'dorp', tier: 'groot', mode: 'aandeel', staff: { id: 'a', name: 'Marit', skill: 55 }, paid: 12000, wageUp: 20 });
   const back = SN.normalizeSnack(JSON.parse(JSON.stringify(S)));
-  assert.deepEqual(back.permits, S.permits); assert.deepEqual(back.own.menu, ['friet', 'burger', 'ijs']); assert.equal(back.fleet[0].mode, 'aandeel'); assert.equal(back.fleet[0].wageUp, 20);
+  assert.deepEqual(back.permits, S.permits); assert.deepEqual(back.own.menu, ['friet', 'burger', 'softy']); assert.equal(back.fleet[0].mode, 'aandeel'); assert.equal(back.fleet[0].wageUp, 20);
   const bad = SN.normalizeSnack({ permits: { zzz: { until: 1 }, dorp: { until: 5 } }, up: ['x', 'pan', 'pan'], rep: 999, own: { spot: 'zzz', tier: 'mega', hours: 99, pr: 9, menu: ['burger', 'friet'] }, fleet: [{ id: 'x1' }, { id: 'w2', spot: 'leek' }, null], ev: { pending: { kind: 'zzz' } } });
   assert.deepEqual(Object.keys(bad.permits), ['dorp']); assert.deepEqual(bad.up, ['pan']); assert.equal(bad.rep, 100); assert.equal(bad.own.spot, null); assert.equal(bad.own.tier, 'klein');
   assert.equal(bad.own.hours, 14); assert.equal(bad.own.pr, 1.4); assert.deepEqual(bad.own.menu, ['friet']);      // burger vraagt koeling
@@ -28,14 +28,14 @@ t('normalizeSnack: rommel, onbekende plekken en menu-items worden gezuiverd, de 
   assert.ok(SN.normalizeSnack(null).own.menu.length === 4);
   assert.ok(JSON.stringify(S).length < 3000);
 });
-t('menu: slots per wagen, koeling opent burger, milkshake en ijs; nooit een leeg menu', () => {
+t('menu: slots per wagen, koeling opent burger, milkshake en softy; nooit een leeg menu', () => {
   const S = SN.newSnack();
   assert.equal(SN.toggleMenuItem(S, 'burger').why, 'dicht');
   assert.equal(SN.toggleMenuItem(S, 'souffle').why, 'vol');
   assert.equal(SN.buyUpgrade(S, 'koeling', 1e9).ok, true);
   assert.equal(SN.upgradeTier(S, 'own', 1e9).tier, 'groot');
   assert.ok(SN.toggleMenuItem(S, 'burger').ok && SN.toggleMenuItem(S, 'milkshake').ok);
-  assert.equal(S.own.menu.length, 6); assert.equal(SN.toggleMenuItem(S, 'ijs').why, 'vol');
+  assert.equal(S.own.menu.length, 6); assert.equal(SN.toggleMenuItem(S, 'softy').why, 'vol');
   for (const id of ['milkshake', 'burger', 'friet', 'frikandel', 'kroket']) SN.toggleMenuItem(S, id);
   assert.equal(S.own.menu.length, 1); assert.equal(SN.toggleMenuItem(S, 'bamischijf').why, 'leeg'); assert.equal(SN.toggleMenuItem(S, 'souffle').ok, true);
   assert.equal(SN.setMenu(S, []).ok, false); assert.equal(SN.setMenu(S, ['x']).why, 'leeg');
@@ -45,7 +45,7 @@ t('menu-cijfers: een eigen keten maakt het inkopen goedkoper, sauzen en variatie
   const a = SN.menuNumbers(m, [], () => 0), b = SN.menuNumbers(m, [], () => 1), c = SN.menuNumbers(m, ['sauzen', 'koeling'], () => 0);
   assert.ok(b.cogs < a.cogs * 0.9 && b.localAppeal > a.localAppeal);
   assert.ok(Math.abs(c.ticket - a.ticket - 0.6) < 1e-9 && c.cogs < a.cogs);
-  assert.ok(SN.menuNumbers([...m, 'burger', 'milkshake', 'ijs', 'souffle'], ['koeling'], () => 0).variety === 1.08);
+  assert.ok(SN.menuNumbers([...m, 'burger', 'milkshake', 'softy', 'souffle'], ['koeling'], () => 0).variety === 1.08);
   assert.ok(a.ticket / a.cogs > 3);
 });
 t('een dag: zonder plek of vergunning geen omzet, met een plek een winst; voorraad telt af', () => {
