@@ -222,6 +222,9 @@ export const FY = {
   'Dank u, Mem.': 'Dank u, Mem. (Fries voor mama)',
   // akte 4 (WP5): Tessa belt Mem en hoort het hardop (M18.4)
   'Mem weer? Wat zei ze?': 'Mem (Fries voor mama) weer? Wat zei ze?',
+  // akte 5 (WP6): de vergunning in drievoud en de jas van Mem
+  'Zijn vergunning voor morgen. Evenement "Foar Mem", Oude Boteringestraat, vanaf half drie. Gesloten voor verkeer.': 'Zijn vergunning voor morgen. Evenement "Voor moeder", Oude Boteringestraat, vanaf half drie. Gesloten voor verkeer.',
+  'Mem zegt elke zomer jas. Het enige wat hetzelfde bleef.': 'Mem (Fries voor mama) zegt elke zomer jas. Het enige wat hetzelfde bleef.',
 };
 
 export const GRO = {

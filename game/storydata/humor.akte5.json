@@ -1,0 +1,158 @@
+{
+ "note": "Humorbeats van akte 5 (WP6 #1129, 21-11): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel. Variant 0 staat in docs/verhaal/nieuw/09-script-akte5.md. Schema: humor.json.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-01",
+   "scene": "M24.1",
+   "speaker": "BERT",
+   "context": "Grote Markt, onder de Martinitoren. Tessa vraagt waarom de duif naar Tammo luistert; Tammo weet het niet. Er is in het hele spel nooit een uitleg voor de duivenband.",
+   "shot": "halve close-up Bert, dan Tammo die zijn schouders ophaalt, de duif op de rand",
+   "variants": [
+    "Hij weet het niet, jong. Zij ook niet.",
+    "Dat weet hij niet. De duiven ook niet. Zo werkt het.",
+    "Niemand weet het, jong. Zij het minst."
+   ],
+   "neutral": "Dat weet niemand, jong."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-02",
+   "scene": "M26.5",
+   "speaker": "TAMMO",
+   "context": "Oude Boteringestraat, drie uur geweest. Jelle zoekt in zijn eigen papieren naar een overtreding: de duiven hadden geen vergunning. Tammo kan daar niets op zeggen, want hij heeft ze nooit gevraagd.",
+   "shot": "halve close-up Jelle, nat, met zijn vinger omhoog; reactieshot Tammo, schouders omhoog",
+   "variants": [
+    "Ze komen vanzelf.",
+    "Ik heb ze niet gevraagd.",
+    "Dat doen ze zelf."
+   ],
+   "neutral": "Dat klopt."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-03",
+   "scene": "M26.5",
+   "speaker": "TESSA",
+   "context": "Jelles eigen vergunning voor een evenement in de Oude Boteringestraat maakt de straat tot een plek waar een kraam mag staan en een limo niet. Zijn bureaucratie werkt tegen hem.",
+   "shot": "close Tessa met het vel papier in beeld, dan Jelle die het stempel herkent",
+   "variants": [
+    "Op een evenement staat een kraam. Een limo niet.",
+    "Bij een evenement hoort een kraam. Een limo hoort er niet bij.",
+    "Een kraam mag erin. Een limo niet. Staat in jouw vergunning."
+   ],
+   "neutral": "Een kraam mag hier staan. Een limo niet."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-04",
+   "scene": "O10",
+   "speaker": "TESSA",
+   "context": "Oma's keuken, avond voor het Ontzet. In de envelop met Jelles rekening zit ook zijn vergunning in drievoud; hij stuurt altijd alles in drievoud, ook aan wie hij tegenwerkt.",
+   "shot": "over de schouder van Tessa naar het vel, dan halve close Tammo die het niet gelooft",
+   "variants": [
+    "In drievoud. De derde kopie is voor de ontvanger. Dat zijn wij.",
+    "Hij stuurt het in drievoud. De derde kopie is voor ons.",
+    "In drievoud, Tammo. Eén voor hem, één voor de notaris, één voor ons."
+   ],
+   "neutral": "Hij stuurt altijd alles in drievoud."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-05",
+   "scene": "M26.17",
+   "speaker": "BEREND",
+   "context": "De Grote Markt, na de kus. Berend telt alles; deze keer de seconden van de kus, en hij zegt het hardop in de stilte.",
+   "shot": "halve close Berend in zijn bisschopsmantel, mond half open, dan terug naar het paar",
+   "variants": [
+    "Elf seconden. Ik tel alleen.",
+    "Elf seconden. Ik zeg verder niks.",
+    "Dat waren er elf. Ik tel maar."
+   ],
+   "neutral": "Dat duurde elf seconden."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-06",
+   "scene": "E1",
+   "speaker": "TAMMO",
+   "context": "Vismarkt, twee weken later. Berend heeft de foto van de kus laten inlijsten en op de achterkant geschreven hoe lang het duurde.",
+   "shot": "insert van de foto in het luik, dan halve close Tammo die de achterkant voorleest",
+   "variants": [
+    "Op de achterkant staat: elf seconden.",
+    "Hij heeft er op de achterkant elf seconden bij gezet.",
+    "Achterop staat: elf seconden. Met een potlood."
+   ],
+   "neutral": "Hij heeft de foto mooi laten inlijsten."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-07",
+   "scene": "E1",
+   "speaker": "TAMMO",
+   "context": "Vismarkt, twee weken later. Drie duiven zitten in een rij op het dak van de Fjord Frituur, als wachtende klanten. Tammo houdt zijn handen omhoog: hij heeft niets gezegd.",
+   "shot": "wide op het dak met de drie duiven, dan Tammo met zijn handen omhoog",
+   "variants": [
+    "Ik heb niks gezegd.",
+    "Dat was ik niet.",
+    "Ik fluit niet eens."
+   ],
+   "neutral": "Dat zijn er drie."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-08",
+   "scene": "E2",
+   "speaker": "TAMMO",
+   "context": "Radio in de Fjord Frituur. Rikus zegt voor de zoveelste keer dat hij niks zegt, terwijl hij het net heeft gezegd: er brandt maar in één slaapkamer licht.",
+   "shot": "halve close Tammo bij de radio, Tessa naast hem met een bakje friet",
+   "variants": [
+    "Dat zegt hij heel hard.",
+    "Dat zegt hij elke keer.",
+    "Hij zegt het wel erg duidelijk."
+   ],
+   "neutral": "Hij bedoelt het goed."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H5-09",
+   "scene": "E2",
+   "speaker": "TAMMO",
+   "context": "Radio in de Fjord Frituur. Rikus meldt dat Jelle weer een pand heeft gekocht; Tessa zegt dat hij doorkoopt, Tammo antwoordt in dezelfde maat.",
+   "shot": "twee-shot in het luik, Tessa knikt na de zin",
+   "variants": [
+    "Wij bakken door.",
+    "Dan bakken wij ook door.",
+    "Wij frituren door."
+   ],
+   "neutral": "Wij ook."
+  }
+ ]
+}

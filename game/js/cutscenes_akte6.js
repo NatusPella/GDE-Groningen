@@ -17,6 +17,8 @@ S['M27.intro'] = {
     { on: 'Hoe lang', actor: 'tessa', anim: 'shrug' },
     { on: 'Een paar weken, zeggen ze', actor: 'willemien', anim: 'shake' },
     { on: 'Graag', actor: 'tammo', anim: 'nod' },
+    // WP7: Willemien is vaste klant van de Fjord Frituur
+    { on: 'Ik ken jullie van het luik', actor: 'willemien', anim: 'point' },
     { on: 'Delfstof Noord zet', actor: 'willemien', anim: 'point' },
     { on: 'Oma zei: gewoon dozen', actor: 'tessa', anim: 'nod' },
     { on: 'Dat zegt Trijntje', actor: 'willemien', anim: 'hips' },
@@ -137,12 +139,20 @@ S['M29.2'] = {
     { on: 'Ik heb de tafels gebracht', actor: 'boer', anim: 'shrug' },
     { on: 'Waar hangt de foto', actor: 'tessa', anim: 'look' },
     { on: 'In de gang', actor: 'willemien', anim: 'nod' },
+    // WP7: Willemien bakt Oma's recept na, en Tammo geeft Oma's antwoord uit M25.2 terug
+    { on: 'En de eierballen', actor: 'tessa', anim: 'point' },
+    { on: 'Trijntjes recept', actor: 'willemien', anim: 'shrug' },
+    { on: 'Een eierbal. Dat is anders', actor: 'tammo', anim: 'point' },
     { on: 'Dansen', actor: 'tessa', anim: 'wave' },
     { on: 'Nee.', actor: 'tammo', anim: 'shake' },
     { on: '…Voor de grip', actor: 'tammo', anim: 'shrug' },
+    // ze zijn een stel: Tessa pakt zijn hand en ze dansen tussen de tafels
     { on: '…Voor de grip', dt: 0.8, actor: 'tessa', anim: 'cheer' },
+    { on: '…Voor de grip', dt: 1.0, actor: 'tessa', walk: [[0, 0.2]], speed: 0.8 },
+    { on: '…Voor de grip', dt: 1.7, actor: 'tessa', anim: 'lean' },
+    { on: '…Voor de grip', dt: 1.7, actor: 'tammo', anim: 'lean' },
   ],
-  shots: [],
+  shots: [{ on: '…Voor de grip', dt: 0.6, shot: 'dolly', from: [-3.6, 2.2, 1.5], to: [-2.4, 1.2, 1.6], look: 'mid:tammo,tessa@1.4', fov: 38 }],
   wide: WIDE([-5.4, 4.4, 3.4], [-3.4, 3.2, 2.5], 'mid:willemien,buurvrouw@1'),
 };
 S['M29.outro'] = {
@@ -270,12 +280,18 @@ S['M30.5'] = {
 S['M30.outro'] = {
   cast: {
     tinus: { key: 'tinus', at: [6.4, -2.2], face: 175, anim: 'idle', bg: true, gest: ['nod', 'talk'] },
-    geesje: { key: 'geesje', at: [6.8, 2.4], face: 190, anim: 'idle', bg: true, gest: ['hips', 'talk'] },
+    geesje: { key: 'geesje', at: [6.8, 2.4], face: 190, anim: 'idle', gest: ['hips', 'talk'] },
+    // WP7: de uitnodiging naar de open wereld komt van Berend, Geesje en Jelle (natgeregend in een deken)
+    berend: { key: 'berend', at: [5.4, -3.2], face: 170, anim: 'idle', gest: ['point', 'nod'] },
+    jelle: { key: 'jelle', at: [5.8, 1.6], face: 190, anim: 'idle', gest: ['shrug', 'hips'] },
   },
   props: { bus: { kind: 'bestelbus', at: [4.8, 0, 0], face: 90 } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'tinus', walk: [[4.6, -1.8]], speed: 0.8 },
+    { on: 'De bieten staan', actor: 'geesje', anim: 'point' },
+    { on: 'In Veendam zoeken ze', actor: 'berend', anim: 'point' },
+    { on: 'Ik heb het gezien', actor: 'jelle', anim: 'shrug' },
     { on: 'Elke zomer één ronde', actor: 'tessa', anim: 'talk' },
     { on: 'Thuis is waar de kar staat', actor: 'tammo', anim: 'hips' },
     { on: 'Zes.', actor: 'tessa', anim: 'laugh' },
