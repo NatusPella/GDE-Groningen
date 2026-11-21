@@ -164,7 +164,7 @@ async function faseLicht(prev) {
     ['voice_coverage', ['scripts/voice_coverage.mjs', '--quiet']],
     ['text_audit', ['scripts/text_audit.mjs']],
     ['player_singleton_audit', ['scripts/player_singleton_audit.mjs']],
-    ['coop_dekking_audit', ['scripts/coop_dekking_audit.mjs']],
+    ['coop_coverage_audit', ['scripts/coop_coverage_audit.mjs']],
     ['world_eigenaar', ['scripts/world_eigenaar.mjs']],
     ['spec_check', ['scripts/spec_check.mjs']],
     ['cutscene_lint', ['scripts/cutscene_lint.mjs', '--meld', '--quiet']],

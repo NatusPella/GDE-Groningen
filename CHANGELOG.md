@@ -11,6 +11,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Samen spelen: de krantenwijk, de rondvaart, de rondvaarttour en het keuzepaneel van bijbanen rekenen nu met het lichaam van de speler die de baan speelt, niet met dat van wie het spel opende. Een gast die een bijbaan doet krijgt dus de juiste afstand, tijd en stem. De kaartkijkanker en de voetbalcarrière lezen ook de eigen speler.
+- Intern: de dekkingsaudit voor Samen spelen (`scripts/coop_coverage_audit.mjs`, matrix in docs/COOP-DEKKING-21-11.md) en de rooktest `alles` van de testbank voor Samen spelen, met het draaiboek in docs/COOP-SWEEP-21-11.md.
+
 - Bij de allereerste start krijg je alleen de keuzekaart: Alleen spelen is direct spelen, zonder naam of akkoord. Doe je voor het eerst iets met Samen spelen, dan vult het spel eenmalig één kaart "Je naam voor Samen spelen" met je naam en het akkoord (STUN, brokers, IP-adres); dat wordt onthouden. Terug of Escape op die kaart brengt je terug naar de keuze. Wie al een naam en akkoord had, merkt niets.
 - Nieuw: Instellingen, Samen spelen. Daar pas je je naam aan (met dezelfde controle op verboden woorden en echte namen) en trek je je akkoord in; bij Samen spelen vraagt het spel dan alleen het akkoord opnieuw, je naam blijft.
 - Minimap en grote kaart: je driehoekje en de kaart draaien nu mee met wat je bestuurt. Bij een duif, helikopter, vliegtuig en trein draait de kaart op de eigen richting in plaats van op de camera (een filmstand of scènecamera liet de kaart tollen), en bij een scène of de fotomodus blijft de kaart rustig. In- en uitstappen draait de driehoek zacht in plaats van te springen (#1141).

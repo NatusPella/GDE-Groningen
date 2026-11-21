@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Alle modules van game/js op het moment van de laatste --update. Een module die hier niet in staat moet bij een systeem met een Samen-regel horen (scripts/coop_dekking_audit.mjs).",
+ "note": "Alle modules van game/js op het moment van de laatste --update. Een module die hier niet in staat moet bij een systeem met een Samen-regel horen (scripts/coop_coverage_audit.mjs).",
  "modules": [
   "a11y",
   "a11ylogic",

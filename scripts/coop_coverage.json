@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Bron van docs/COOP-DEKKING-21-11.md en van scripts/coop_dekking_audit.mjs. Elk systeem krijgt de zes vragen van AGENTS.md (Multiplayer bij ontwerp): a) wereld of speler, b) wat ziet een gast, c) beloning en voortgang, d) wegvallen, later aansluiten en hostwissel, e) enkelspeler-aanname (geteld uit de singleton-basislijn), f) dekking. Status OK, gat of nvt. Een gat heeft een eigenaar (issue of lead) en een prioriteit. wachtOp = epic-branch die nog niet in main staat: de regel en de test worden pas gekeurd als de branch is gemerged.",
+ "note": "Bron van docs/COOP-DEKKING-21-11.md en van scripts/coop_coverage_audit.mjs. Elk systeem krijgt de zes vragen van AGENTS.md (Multiplayer bij ontwerp): a) wereld of speler, b) wat ziet een gast, c) beloning en voortgang, d) wegvallen, later aansluiten en hostwissel, e) enkelspeler-aanname (geteld uit de singleton-basislijn), f) dekking. Status OK, gat of nvt. Een gat heeft een eigenaar (issue of lead) en een prioriteit. wachtOp = epic-branch die nog niet in main staat: de regel en de test worden pas gekeurd als de branch is gemerged.",
  "statussen": ["OK", "gat", "nvt"],
  "prioriteiten": ["hoog", "middel", "laag", "-"],
  "eigenaren": ["wereld", "speler", "gesynct", "lokaal", "wedstrijd"],

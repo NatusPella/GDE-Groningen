@@ -13,12 +13,12 @@ Elk systeem krijgt dezelfde zes vragen:
 - **e)** Zit er een enkelspeler-aanname in de code (directe verwijzingen naar `world.player`, geteld door `scripts/player_singleton_audit.mjs`)?
 - **f)** Welke test dekt het (pure coöp-test of testbank-suite), en wat is de status: OK, gat of niet van toepassing, met prioriteit?
 
-De bron is [scripts/coop_dekking.json](../scripts/coop_dekking.json); de tabel hieronder wordt daaruit gegenereerd (`node scripts/coop_dekking_audit.mjs --write`) en de audit keurt dat hij klopt. Een systeem toevoegen of een status wijzigen doe je dus in de bron.
+De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel hieronder wordt daaruit gegenereerd (`node scripts/coop_coverage_audit.mjs --write`) en de audit keurt dat hij klopt. Een systeem toevoegen of een status wijzigen doe je dus in de bron.
 
 ## Besluiten van deze ronde
 
 1. **Eén bron, een gegenereerde matrix.** De matrix is gegenereerd uit het manifest zodat hij niet kan verouderen; de handgeschreven delen (dit hoofdstuk en de lijsten per epic) staan buiten de markeringen. Alternatief (een handgeschreven tabel) is afgewezen: dat wijkt binnen een week af van de code.
-2. **Nieuwe modules moeten bij een systeem horen.** De audit kent de moduleslijst van nu (`scripts/coop_dekking_baseline.json`, 1.298 modules). Een nieuw bestand in `game/js` moet onder een systeem met een Samen-regel vallen of onder `nietCoopRelevant` met een reden. De 1.298 oude modules zijn niet allemaal bij naam toegewezen: dat zou een tabel van 1.300 regels zijn zonder winst. Per systeem staan wel de patronen, en daaruit komt kolom e.
+2. **Nieuwe modules moeten bij een systeem horen.** De audit kent de moduleslijst van nu (`scripts/coop_coverage_baseline.json`, 1.298 modules). Een nieuw bestand in `game/js` moet onder een systeem met een Samen-regel vallen of onder `nietCoopRelevant` met een reden. De 1.298 oude modules zijn niet allemaal bij naam toegewezen: dat zou een tabel van 1.300 regels zijn zonder winst. Per systeem staan wel de patronen, en daaruit komt kolom e.
 3. **Opslagsleutels zijn per speler, per apparaat of wereldstaat.** Elke sleutel in `storagekeys.js` is ingedeeld; wereldstaat mag alleen voor de savegame zelf (`save`, `saveSlots`, `saveBackup`); een sleutel per speler mag niet in `savegame.js` staan; een nieuwe `gde-`-literal buiten het register is een fout.
 4. **De singleton-teller telt meer.** De eerste meting (#500) zag `world.player` en `w.player` maar niet `ctx.world.player` en `const { player } = world`. Dat zijn 13 verwijzingen erbij (nu 80 in plaats van 67); de nieuwe basislijn is het startpunt voor de ratel, en wie een verwijzing weghaalt moet `--update` draaien. Nieuwe verwijzingen zijn een fout; de teller kan alleen omlaag.
 5. **Zekere gaten zijn gefixt, de rest is een issue of een lijst voor de lead.** Alleen kleine, gerichte wijzigingen; geen refactors. Wat een nieuw ontwerp vraagt (waypoint delen, tuning in het bezorg-bericht, beroving per speler) is een issue.
@@ -27,7 +27,7 @@ De bron is [scripts/coop_dekking.json](../scripts/coop_dekking.json); de tabel h
 
 ## De matrix
 
-<!-- MATRIX:BEGIN (gegenereerd door scripts/coop_dekking_audit.mjs --write; niet met de hand aanpassen) -->
+<!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->
 
 **Samenvatting:** 40 systemen: 31 OK, 8 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
 
@@ -219,8 +219,8 @@ Zie het issue "Voetbalcarrière: koppel voetbalsamen.js aan coopnet.js en regist
 | Wat | Hoe | Waar |
 |---|---|---|
 | Geen nieuwe `world.player` | `node scripts/player_singleton_audit.mjs` (ratel, telt ook `ctx.world.player` en destructurering) | test_all licht, CI |
-| Elk systeem een Samen-regel, elke nieuwe module bij een systeem | `node scripts/coop_dekking_audit.mjs` (blokkerend) | test_all licht, releasegate static |
+| Elk systeem een Samen-regel, elke nieuwe module bij een systeem | `node scripts/coop_coverage_audit.mjs` (blokkerend) | test_all licht, releasegate static |
 | Opslagsleutels per speler of als wereldstaat gemarkeerd | dezelfde audit | idem |
-| Echt samen spelen | testbank-suite `alles` en de pure tegenhanger `scripts/coop/alles_test.mjs` | sweep, zie [COOP-SWEEP-21-11.md](COOP-SWEEP-21-11.md) |
+| Echt samen spelen | testbank-suite `alles` en de pure tegenhanger `scripts/coop/all_systems_test.mjs` | sweep, zie [COOP-SWEEP-21-11.md](COOP-SWEEP-21-11.md) |
 
-Een nieuwe module of feature toevoegen: kies het systeem in het manifest waar hij bij hoort (of voeg een systeem toe met een Samen-regel in COOP-GAST.md of in het feature-doc), draai `node scripts/coop_dekking_audit.mjs --write` en zet `--update` pas na akkoord van de coördinator op de moduleslijst.
+Een nieuwe module of feature toevoegen: kies het systeem in het manifest waar hij bij hoort (of voeg een systeem toe met een Samen-regel in COOP-GAST.md of in het feature-doc), draai `node scripts/coop_coverage_audit.mjs --write` en zet `--update` pas na akkoord van de coördinator op de moduleslijst.

@@ -37,6 +37,7 @@ Een worktree heeft geen `node_modules`: wijs `ELECTRON_EXE` naar de Electron van
 
 | suite | wat | Electron |
 |---|---|---|
+| `alles` | rooktest 21-11 (docs/COOP-SWEEP-21-11.md): host en twee gasten spelen een kort scenario met zoveel mogelijk systemen (kaartping, waypoint per speler, outfit, tuning, Bezit, winkel en geld, bijbaan, cutscene, opslagcheck); pure tegenhanger `scripts/coop/all_systems_test.mjs` | 3 |
 | `basis` | hoofdmenu, lobby, toestemming, verbinden, lijst, klok, desync (`--menu`, `--gasten=1\|2`, `--duration`) | 2 of 3 |
 | `net` | vier spelers (host, een Electron-gast met aanraakbediening, twee headless gasten met 80 ms en 5% verlies; `--gasten=2` neemt een tweede Electron-gast, `--gasten=0` alleen de host met drie headless gasten): slecht netwerk op een gast, desync inbrengen en herstel, Tessa loopt, aanraakbediening, kabel eruit en terug met pauzescherm aan beide kanten, de verbinding sluiten en opnieuw verbinden via het wachtscherm, de host betaalt een gast (eigen save), een ritje met Tessa als passagier, een filmpje, een gast verlaat het spel via het menu en een nieuwe gast neemt de plek, de host stopt via het menu | 1 tot 3 |
 | `kamer` | de kamercode-route: WebRTC op de loopback met een lokale nep-tracker (`faketracker.mjs`, zonder STUN); controleert dat de tracker geen IP-adres en geen kamercode ziet | 2 |

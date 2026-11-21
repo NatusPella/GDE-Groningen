@@ -1,9 +1,9 @@
-// Test voor scripts/coop_dekking_audit.mjs: de audit keurt een nieuwe module zonder systeem, een systeem zonder
+// Test voor scripts/coop_coverage_audit.mjs: de audit keurt een nieuwe module zonder systeem, een systeem zonder
 // Samen-regel of test, een gat zonder eigenaar en een opslagsleutel zonder indeling; en de echte repo is groen.
-//   node scripts/coop_dekking_audit_test.mjs
+//   node scripts/coop_coverage_audit_test.mjs
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { auditSources, registryKeys, globToRe, maakMatrix, schrijfMatrix } from './coop_dekking_audit.mjs';
+import { auditSources, registryKeys, globToRe, maakMatrix, schrijfMatrix } from './coop_coverage_audit.mjs';
 
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.log('FAIL ' + m); } };
@@ -15,7 +15,7 @@ const basis = () => ({
   opslag: { save: { scope: 'wereld', reden: 'de savegame' }, boerderij: { scope: 'speler', reden: 'eigen boerderij' } },
   features: [{
     id: 'a', naam: 'A', groep: 'G', modules: ['alpha*'], eigenaar: 'speler', gast: 'g', beloning: 'b', wegval: 'w',
-    test: ['scripts/coop_dekking_audit.mjs'], regel: { doc: 'docs/COOP-DEKKING-21-11.md', zoek: 'Hoe je dit leest' }, status: 'OK', prio: '-',
+    test: ['scripts/coop_coverage_audit.mjs'], regel: { doc: 'docs/COOP-DEKKING-21-11.md', zoek: 'Hoe je dit leest' }, status: 'OK', prio: '-',
   }],
 });
 const draai = (manifest, extra = {}) => auditSources({
@@ -71,11 +71,11 @@ ok(JSON.stringify(registryKeys("export const BASE_KEYS = {\n  a: 'gde-a',\n  // 
 ok(globToRe('voetbal*').test('voetbalsamen') && !globToRe('voetbal*').test('xvoetbal'), 'globToRe');
 const mx = maakMatrix(basis(), { a: { n: 0, bestanden: [] } }, 3);
 ok(/1 systemen: 1 OK, 0 gat/.test(mx) && /\| A \|/.test(mx), 'de matrix noemt het systeem');
-ok(schrijfMatrix('x\n<!-- MATRIX:BEGIN (gegenereerd door scripts/coop_dekking_audit.mjs --write; niet met de hand aanpassen) -->\nold\n<!-- MATRIX:END -->\ny', 'NIEUW').includes('NIEUW'), 'schrijfMatrix vervangt het blok');
+ok(schrijfMatrix('x\n<!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->\nold\n<!-- MATRIX:END -->\ny', 'NIEUW').includes('NIEUW'), 'schrijfMatrix vervangt het blok');
 
 // de echte repo is groen
-const echt = spawnSync(process.execPath, [fileURLToPath(new URL('./coop_dekking_audit.mjs', import.meta.url))], { encoding: 'utf8' });
+const echt = spawnSync(process.execPath, [fileURLToPath(new URL('./coop_coverage_audit.mjs', import.meta.url))], { encoding: 'utf8' });
 ok(echt.status === 0, 'de echte repo is groen: ' + echt.stdout.split('\n').filter((l) => l.startsWith('FOUT')).slice(0, 3).join(' | '));
 
-console.log(failed ? `${failed} test(s) mislukt` : 'coop_dekking_audit_test: alles goed');
+console.log(failed ? `${failed} test(s) mislukt` : 'coop_coverage_audit_test: alles goed');
 process.exit(failed ? 1 : 0);

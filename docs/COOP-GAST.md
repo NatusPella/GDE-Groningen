@@ -502,7 +502,7 @@ De carrière is van de speler zelf (`gde-voetbalcarriere-v1`, nooit gedeeld, noo
 
 ## Overige systemen: Samen-regels (21-11, dekking)
 
-Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/coop_dekking_audit.mjs`) kreeg elk systeem de zes vragen van AGENTS.md. Voor de systemen die hierboven geen eigen regel hadden staat die hier, kort.
+Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/coop_coverage_audit.mjs`) kreeg elk systeem de zes vragen van AGENTS.md. Voor de systemen die hierboven geen eigen regel hadden staat die hier, kort.
 
 **Recap (Waar waren we?).** De kaart na Doorgaan bestaat alleen in een sessie van één (`savegame.js` `coopSessieLoopt`); een gast of een lopende sessie slaat hem over (`recapcard.js` zegt "meespeler"). De staat (`gde-recap-v1`) is per apparaat en zit nooit in een savegame. Geen beloning, niets te herstellen bij wegvallen of een hostwissel. Test: `scripts/recapcard_test.mjs`.
 

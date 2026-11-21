@@ -1,11 +1,11 @@
 // Bewaakt dat de hele game rekening houdt met Samen spelen (21-11, opdracht van de eigenaar).
 //
-// Bron: scripts/coop_dekking.json (per systeem de zes vragen van AGENTS.md: wie is de eigenaar, wat ziet een gast,
+// Bron: scripts/coop_coverage.json (per systeem de zes vragen van AGENTS.md: wie is de eigenaar, wat ziet een gast,
 // wie krijgt de beloning, wat bij wegvallen en hostwissel, enkelspeler-aanname, dekking). Uit die bron komt de
 // matrix in docs/COOP-DEKKING-21-11.md (tussen de markeringen MATRIX:BEGIN en MATRIX:END).
 //
 // Wat de audit keurt (blokkerend, exit 1):
-//   1. Nieuwe feature-module: elk bestand in game/js dat niet in de basislijn (scripts/coop_dekking_baseline.json)
+//   1. Nieuwe feature-module: elk bestand in game/js dat niet in de basislijn (scripts/coop_coverage_baseline.json)
 //      staat, moet bij een systeem met een Samen-regel horen (veld modules) of onder nietCoopRelevant vallen.
 //   2. Elk systeem heeft een Samen-regel: het genoemde doc bestaat en bevat de zoektekst. Systemen met wachtOp
 //      (een epic-branch die nog niet in main staat) mogen die regel nog missen; zodra hij er staat, wordt hij gekeurd.
@@ -18,20 +18,20 @@
 //   7. De matrix in het doc klopt met de bron (herstel met --write).
 //
 // Gebruik:
-//   node scripts/coop_dekking_audit.mjs            keurt
-//   node scripts/coop_dekking_audit.mjs --write    schrijft de matrix in het doc
-//   node scripts/coop_dekking_audit.mjs --update   zet de moduleslijst (basislijn) gelijk aan de bron
-//   node scripts/coop_dekking_audit.mjs --json     machineleesbare samenvatting
+//   node scripts/coop_coverage_audit.mjs            keurt
+//   node scripts/coop_coverage_audit.mjs --write    schrijft de matrix in het doc
+//   node scripts/coop_coverage_audit.mjs --update   zet de moduleslijst (basislijn) gelijk aan de bron
+//   node scripts/coop_coverage_audit.mjs --json     machineleesbare samenvatting
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scanDetail } from './player_singleton_audit.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const MANIFEST = path.join(ROOT, 'scripts', 'coop_dekking.json');
-export const BASELINE = path.join(ROOT, 'scripts', 'coop_dekking_baseline.json');
+export const MANIFEST = path.join(ROOT, 'scripts', 'coop_coverage.json');
+export const BASELINE = path.join(ROOT, 'scripts', 'coop_coverage_baseline.json');
 export const DOC = path.join(ROOT, 'docs', 'COOP-DEKKING-21-11.md');
-const BEGIN = '<!-- MATRIX:BEGIN (gegenereerd door scripts/coop_dekking_audit.mjs --write; niet met de hand aanpassen) -->';
+const BEGIN = '<!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->';
 const END = '<!-- MATRIX:END -->';
 const LEADS = ['Bezit', 'Verhaal', 'Kleding', 'Interieurs', 'Tuning'];
 
@@ -90,7 +90,7 @@ export function auditSources(opt = {}) {
   for (const m of modules) {
     if (bekend.has(m)) continue;
     const c = claim(m);
-    if (!c.features.length && !c.nvt) fouten.push(`nieuwe module game/js/${m}.js hoort bij geen systeem in scripts/coop_dekking.json (voeg hem toe aan een systeem met een Samen-regel, of aan nietCoopRelevant met een reden)`);
+    if (!c.features.length && !c.nvt) fouten.push(`nieuwe module game/js/${m}.js hoort bij geen systeem in scripts/coop_coverage.json (voeg hem toe aan een systeem met een Samen-regel, of aan nietCoopRelevant met een reden)`);
   }
   const weg = (baseline.modules || []).filter((m) => !modules.includes(m));
   if (weg.length) info.push(`${weg.length} module(s) uit de basislijn bestaan niet meer; werk bij met --update`);
@@ -127,19 +127,19 @@ export function auditSources(opt = {}) {
   const scopes = ['speler', 'apparaat', 'wereld'];
   for (const k of sleutels) {
     const o = opslag[k];
-    if (!o) { fouten.push(`opslagsleutel ${k} (storagekeys.js) is niet ingedeeld in scripts/coop_dekking.json: speler, apparaat of wereld, met een reden`); continue; }
+    if (!o) { fouten.push(`opslagsleutel ${k} (storagekeys.js) is niet ingedeeld in scripts/coop_coverage.json: speler, apparaat of wereld, met een reden`); continue; }
     if (!scopes.includes(o.scope)) fouten.push(`opslagsleutel ${k}: onbekende scope ${o.scope}`);
     if (!String(o.reden || '').trim()) fouten.push(`opslagsleutel ${k}: reden ontbreekt`);
     if (o.scope === 'wereld' && !(manifest.wereldSleutels || []).includes(k)) fouten.push(`opslagsleutel ${k}: wereldstaat mag alleen voor ${(manifest.wereldSleutels || []).join(', ')}; een nieuwe sleutel hoort per speler of per apparaat te zijn`);
   }
-  for (const k of Object.keys(opslag)) if (!sleutels.includes(k) && !opt.storageSrc) fouten.push(`opslagsleutel ${k} staat in coop_dekking.json maar niet meer in storagekeys.js`);
+  for (const k of Object.keys(opslag)) if (!sleutels.includes(k) && !opt.storageSrc) fouten.push(`opslagsleutel ${k} staat in coop_coverage.json maar niet meer in storagekeys.js`);
   if (opt.saveSrc !== undefined || !opt.storageSrc) {
     const saveSrc = opt.saveSrc !== undefined ? opt.saveSrc : fs.readFileSync(path.join(ROOT, 'game', 'js', 'savegame.js'), 'utf8');
     for (const k of sleutels) if (opslag[k] && opslag[k].scope === 'speler' && !(manifest.inSavegameToegestaan || []).includes(k) && new RegExp(`KEYS\\.${k}\\b`).test(saveSrc)) fouten.push(`opslagsleutel ${k} is per speler maar savegame.js leest of schrijft hem: dan zit hij in de wereldsave`);
   }
   const lit = opt.literals || literalenBuitenRegister();
   const toegestaan = new Set(manifest.sleutelLiteralenBuitenRegister || []);
-  for (const l of lit) if (!toegestaan.has(l.sleutel)) fouten.push(`nieuwe opslagsleutel ${l.sleutel} in game/js/${l.bestand}: leg hem vast in storagekeys.js (en deel hem in als speler of apparaat in scripts/coop_dekking.json)`);
+  for (const l of lit) if (!toegestaan.has(l.sleutel)) fouten.push(`nieuwe opslagsleutel ${l.sleutel} in game/js/${l.bestand}: leg hem vast in storagekeys.js (en deel hem in als speler of apparaat in scripts/coop_coverage.json)`);
 
   // 6. feature-docs
   if (!opt.skipDocs) {
@@ -149,7 +149,7 @@ export function auditSources(opt = {}) {
       const rel = 'docs/' + d;
       if (nvt[d]) continue;
       if (/samen spelen|multiplayer|\bcoop/i.test(text(rel))) continue;
-      fouten.push(`${rel} noemt Samen spelen niet: voeg een regel Samen spelen toe, of zet het doc in docNvt (scripts/coop_dekking.json) met een reden`);
+      fouten.push(`${rel} noemt Samen spelen niet: voeg een regel Samen spelen toe, of zet het doc in docNvt (scripts/coop_coverage.json) met een reden`);
     }
     for (const d of Object.keys(nvt)) if (!exists('docs/' + d)) fouten.push(`docNvt noemt docs/${d}, dat niet bestaat`);
   }
@@ -244,7 +244,7 @@ function main() {
   const modules = listModules();
 
   if (argv.includes('--update')) {
-    fs.writeFileSync(BASELINE, JSON.stringify({ version: 1, note: 'Alle modules van game/js op het moment van de laatste --update. Een module die hier niet in staat moet bij een systeem met een Samen-regel horen (scripts/coop_dekking_audit.mjs).', modules }, null, 1) + '\n');
+    fs.writeFileSync(BASELINE, JSON.stringify({ version: 1, note: 'Alle modules van game/js op het moment van de laatste --update. Een module die hier niet in staat moet bij een systeem met een Samen-regel horen (scripts/coop_coverage_audit.mjs).', modules }, null, 1) + '\n');
     console.log(`Basislijn bijgewerkt: ${modules.length} modules.`);
     return 0;
   }
@@ -267,7 +267,7 @@ function main() {
     const d = fs.readFileSync(DOC, 'utf8');
     const a = d.indexOf(BEGIN), b = d.indexOf(END);
     if (a < 0 || b < 0) fouten.push('docs/COOP-DEKKING-21-11.md mist de markeringen MATRIX:BEGIN en MATRIX:END');
-    else if (d.slice(a + BEGIN.length, b).trim() !== matrix.trim()) fouten.push('de matrix in docs/COOP-DEKKING-21-11.md is niet gelijk aan de bron: draai node scripts/coop_dekking_audit.mjs --write');
+    else if (d.slice(a + BEGIN.length, b).trim() !== matrix.trim()) fouten.push('de matrix in docs/COOP-DEKKING-21-11.md is niet gelijk aan de bron: draai node scripts/coop_coverage_audit.mjs --write');
   }
   const tel = (s) => manifest.features.filter((x) => x.status === s).length;
   if (json) console.log(JSON.stringify({ systemen: manifest.features.length, ok: tel('OK'), gat: tel('gat'), nvt: tel('nvt'), blokkerend: fouten.length, fouten, info }, null, 1));
