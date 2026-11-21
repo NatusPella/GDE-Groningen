@@ -153,8 +153,10 @@ ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].f
 {
   const ss = fs.readFileSync(new URL('../game/js/startscreen.js', import.meta.url), 'utf8');
   const hh = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
-  ok(/class="ld-step"/.test(hh) && /#loading \.ld-tick \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh) && /#loading \.ld-step \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh), 'the boot screen has a step counter and ticks in ink');
-  ok(/export function setBootStep\(/.test(ss) && /className = 'ld-tick'/.test(ss) && /aria-valuetext', stap \+ ': ' \+ phase\.label/.test(ss), 'the bar shows the ticks and tells the step to a screen reader');
+  ok(/class="ld-step"/.test(hh) && /#loading \.ld-step \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh), 'the boot screen has a step counter in ink');
+  ok(!/ld-tick/.test(hh) && !/ld-tick|buildTicks/.test(ss), 'the boot bar is one continuous bar: no ticks or segments');
+  ok(/#loading \.ld-fill \{[^}]*var\(--ds-c-ink-bord\)/.test(hh), 'the boot bar fills in sign green');
+  ok(/export function setBootStep\(/.test(ss) && /aria-valuetext', stap \+ ': ' \+ phase\.label/.test(ss) && /easeBar\(shown, progress/.test(ss), 'the bar eases and tells the step to a screen reader');
   ok(!/setInterval\([^)]*requestAnimationFrame/.test(ss) && /bootCreepCap\(plan, progress\)/.test(ss), 'the creep is a slow approach inside the step, no loop animation');
 }
 ok(!/firstSentence\(recapText/.test(src), 'the load screen keeps the whole recap instead of its first sentence');

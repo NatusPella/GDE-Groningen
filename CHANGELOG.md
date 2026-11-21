@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Laadscherm: de Enter-prompt staat er alleen als hij werkt, en de laadbalk is één vloeiende balk (#1069):** tijdens het laden staat er "Laden…" met de huidige stap en geen "Verder"-knop meer na een vaste 2,5 seconde. Duurt een stap te lang (8 seconden), dan zegt het scherm waar het op wacht en werkt "Toch doorgaan" direct. Druk je tijdens het laden op Enter, dan krijg je "Nog even: ..." en wordt het onthouden (hoogstens 1 seconde), zonder dubbele start. Een meespeler die op de wereld wacht, ziet "Wachten op ...". De laadbalk van het opstartscherm heeft geen streepjes per stap meer: één bordgroene vulling die zacht meeloopt (nooit terug, hooguit 1 % per beeld).
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.

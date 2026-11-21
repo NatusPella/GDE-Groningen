@@ -160,6 +160,17 @@ export function loadStepNr(bar, kind = 'travel') {
   const id = loadStepAt(bar, kind).id;
   return { nr: LOAD_STEPS.findIndex((s) => s.id === id) + 1, total: LOAD_STEPS.length };
 }
+// One smooth bar (opdracht 21-11, owner): the shown value eases towards the target, never goes back, never passes 1 and
+// moves at most MAX_STEP_PER_FRAME (1%) per frame of 16.7 ms, so a jump in the target (a step ends, a queue empties) is
+// a calm slide and not a lurch. dtMs scales the limit for a slow frame (a hidden window, a heavy boot step).
+export const MAX_STEP_PER_FRAME = 0.01;
+export function easeBar(shown, target, dtMs = 16.7) {
+  const s = clamp01(shown), t = clamp01(target);
+  if (t <= s) return s;
+  const frames = Math.max(0.2, Math.min(12, (Number.isFinite(dtMs) ? dtMs : 16.7) / 16.7));
+  const step = Math.min((t - s) * 0.12 * frames, MAX_STEP_PER_FRAME * frames);
+  return Math.min(t, s + Math.max(step, Math.min(t - s, 0.0004 * frames)));
+}
 export function loadStepAt(bar, kind = 'travel') {
   if (kind === 'snel') return SNEL_STEP;
   const p = Math.max(0, Math.min(1, Number.isFinite(bar) ? bar : 0));
