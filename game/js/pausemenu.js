@@ -991,7 +991,7 @@ export function initPauseMenu(w) {
       <section class="pm-sheet m-panel" aria-labelledby="pm-sheet-title">
         <header class="pm-sheet-head m-head">
           <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb" hidden></span><h1 class="m-h1 pm-sheet-title" id="pm-sheet-title"></h1></div>
-          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span><span class="mut pm-sheet-sub"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
+          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
         </header>
         <div class="pm-sheet-body">
           <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-todo">
@@ -2728,11 +2728,10 @@ function showTab(name, how) {
   syncFooter();
   root.querySelector('#pm-title').textContent = prestart ? 'Menu' : 'Pauze';
   syncNavBadges();
-  const [, label, hint] = sectionOf(name);
+  const [, label] = sectionOf(name);
   sheet.querySelector('.pm-sheet-title').textContent = label;
-  // 21-11 (beeldronde): bij Spel herhaalde de losse kop rechtsboven alleen de titel ("Spel") en de tabbladen eronder; die twee regels vervallen
+  // 21-11 (pauzemenu-ruimte): de omschrijving rechts van de kop is weg; titel, tabs en inhoud krijgen de ruimte (bij Spel staat de plek er ook niet bij)
   const eigenKop = name === 'spel';
-  sheet.querySelector('.pm-sheet-sub').textContent = eigenKop ? '' : SHEET_NOTE[name] || hint;
   const pos = sheet.querySelector('.pm-sheet-pos');
   if (pos) pos.textContent = prestart || eigenKop ? '' : railPosition(name);
   if (name !== 'map') sheetNote('');
