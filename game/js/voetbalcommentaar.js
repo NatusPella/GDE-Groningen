@@ -16,7 +16,7 @@ const isSjabloon = (t) => /\{[a-z]+\}/.test(t);
 // De sleutel van de stembank voor een entry; sjablonen hebben er geen (ze blijven ondertitel).
 export const stemSleutel = (wie, tekst) => (!tekst || isSjabloon(tekst) || !COMMENTATOREN[wie] ? null : `${COMMENTATOREN[wie].stem}|${tekst}`);
 export function vulSjabloon(tekst, v = {}) {
-  return String(tekst).replace(/\{([a-z]+)\}/g, (all, k) => (v[k] != null && v[k] !== '' ? String(v[k]) : k === 'stand' ? '' : k === 'team' ? 'de ploeg' : k === 'speler' ? 'de speler' : 'de ander')).replace(/\s+([.,!?])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+  return String(tekst).replace(/\{([a-z]+)\}/g, (all, k) => (v[k] != null && v[k] !== '' ? String(v[k]) : k === 'stand' ? '' : k === 'team' ? 'de ploeg' : k === 'speler' ? 'de speler' : k === 'ronde' ? 'deze ronde' : k === 'rondes' ? 'zeven' : k === 'divisie' ? 'competitie' : k === 'sponsor' ? 'onze sponsor' : 'de ander')).replace(/\s+([.,!?])/g, '$1').replace(/\s{2,}/g, ' ').trim();
 }
 export function allLines() {
   const uit = [];
@@ -70,6 +70,25 @@ function plan(c, soort, wie, vars, vertraging = 0) {
 }
 
 const ander = (wie) => (wie === 'h' ? 'r' : 'h');
+// Het seizoen in de carrière (ctx.carriere, voetbalcarriere.js commentaryContext): na de aftrap een regel over de ronde of de plek in de stand, daarna het debuut of de sponsor. Hilbrand opent, Roelie reageert met een kans.
+function seasonLines(c, ctx, uit) {
+  const k = ctx.carriere;
+  const vars = varsVan(c, ctx, { ronde: k.ronde, rondes: k.rondes, divisie: k.divisie, speler: k.naam, sponsor: k.sponsor || '' });
+  let kindId = 'seizoenRonde';
+  if (k.kind === 'cup') kindId = 'bekerWedstrijd';
+  else if (k.kind === 'europe') kindId = 'europaWedstrijd';
+  else if (k.laatste) kindId = 'seizoenLaatste';
+  else if (k.rank && k.rank <= 2) kindId = 'seizoenTop';
+  else if (k.rank && k.clubs && k.rank >= k.clubs - 1) kindId = 'seizoenBodem';
+  const queue = [kindId];
+  if (k.debuut) queue.push('carriereDebuut'); else if (k.sponsor && (k.ronde | 0) % 2 === 1) queue.push('sponsorRegel');
+  let at = ctx.derby ? 10 : 6.5;
+  for (const s of queue) {
+    const a = plan(c, s, 'h', vars, at); if (a) uit.push(a);
+    if (a && c.rng() < (KINDS[s] || { kans: 0.3 }).kans) { const b = plan(c, s, 'r', vars, at + 2.4); if (b) uit.push(b); }
+    at += 8;
+  }
+}
 // Een gebeurtenis van de sim in commentaar. Geeft de geplande regels (ook in c.rij; tikCommentaar speelt ze af).
 export function commentaarVoor(c, e, ctx = {}) {
   const uit = [];
@@ -95,6 +114,7 @@ export function commentaarVoor(c, e, ctx = {}) {
         c.flags.start = true;
         zeg('start');
         if (ctx.derby) { const d = plan(c, 'derby', 'h', varsVan(c, ctx), 6.5); if (d) uit.push(d); }
+        if (ctx.carriere) seasonLines(c, ctx, uit);
       } else if (ctx.helft === 2 && !c.flags.tweede) { c.flags.tweede = true; zeg('tweedeHelft'); }
       break;
     }
@@ -104,6 +124,7 @@ export function commentaarVoor(c, e, ctx = {}) {
       c.scorePrev = sc.slice();
       if (e.eigen) { zeg('goalEigen', { speler: spk, team: c.teams[t] }); break; }
       if (vorigVerschil < 0 && sc[t] === sc[1 - t]) { zeg('comeback', { speler: spk, team: c.teams[t] }, 'h'); break; }
+      if (ctx.carriere && t0(t) && spk && spk === ctx.carriere.naam) { zeg('sterGoal', { speler: spk, team: c.teams[t] }, 'h'); break; }
       zeg(t0(t) ? 'goalThuis' : 'goalUit', { speler: spk, team: c.teams[t] }, 'h');
       break;
     }

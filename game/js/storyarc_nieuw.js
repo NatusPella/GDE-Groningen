@@ -238,7 +238,7 @@ export const PARTS = {
 
 // The between-steps of #845, in step order. They were added to the story after the first save format (v:1), so a
 // v:1 save does not know them: storyarc.js passedBetweenSteps closes the ones that save had already passed.
-export const BETWEEN_STEPS = ['A1', 'A2'];
+export const BETWEEN_STEPS = ['A1', 'A2', 'V1', 'V2', 'V3'];
 
 // Overgangsscènes (#1125, storybridge.js): een korte scène van Tammo en Tessa (soms Rikus, Mem of Jelle) tussen twee
 // missies, op een rustig moment gespeeld zodra de stap `after` af is. De regels staan als scène `scene` (kind 'bridge')
@@ -373,6 +373,18 @@ export const STEPS = [
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
     lead: ['A', 'Dan de jury: wie de jury koopt, hoeft niet te winnen. In Jelles stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
   A('J6', 'zuid', 'Beppe aan de deur', { type: 'home' }, { built: true, scenes: ['J6'], lead: ['T', 'Beppe belde dat ze langskomt. Met soep. Het is nog maar dinsdag, maar ik ruim de flat vast op.'], homeScene: { id: 'J6', big: 'Beppe aan de deur', clock: 20 } }),
+  // Voetbalverhaallijn (V1-V3, #1179, epic #1106): Tessa is de ster, Tammo helpt haar shinen (de papieren, de schoenen, de sponsor). Alleen bestaande doeltypes (shop, reis);
+  // geen stem (silent: telefoonregels). Samen spelen: een verhaalstap is per speler (eigen voortgang, #429): elke speler loopt hem in zijn eigen spel; de wereld van de host hoeft er niets voor te doen.
+  // Het is geen voorwaarde voor de carrière: voetbalpoort.js opent de carrière al in akte 4; deze stappen geven de reden en de eerste aanloop. Hernoemen of weghalen kan niet: de id's staan in saves (BETWEEN_STEPS).
+  A('V1', 'zuid', 'Schoenen voor de ster', { type: 'shop', shop: 'kleding' }, { built: true, player: 'anita',
+    lead: ['T', 'De club in Veendam zoekt spelers en ik heb je opgegeven. Je hebt schoenen en een shirt nodig. Ik betaal de eerste maat.'],
+    done: ['T', 'Dat staat je. Echt. Het dorpsteam vergat je nooit, en Veendam vergeet je ook niet.'] }),
+  A('V2', 'zuid', 'De eerste training', { type: 'reis', to: 'Veendam', at: [53.1058, 6.8756], r: 700 }, { built: true, player: 'anita',
+    lead: ['T', 'Vanavond is de training in Veendam. Ga maar vast, ik regel de papieren. Jij hoeft alleen te schitteren.'],
+    done: ['T', 'Drie keer raak, zegt de trainer. Hij zei het alsof hij het niet geloofde. Ik heb er een foto van.'] }),
+  A('V3', 'zuid', 'Het is jouw avond', { type: 'shop', shop: 'super' }, { built: true, player: 'anita',
+    lead: ['T', 'Een sponsor wil een rondje geven voor het team. Haal bij de avondwinkel iets te drinken voor iedereen.'],
+    done: ['T', 'Bedankt. De selectie vindt je nu al aardig. Dat is jouw werk, ik draag alleen de tassen.'] }),
   // the bus to Bourtange: the goal is the place (storyreis.js, akte 2's travel steps); the trip talk is the beat's (reisbeats.js)
   A('T4', 'zuid', 'De bus naar Bourtange', { type: 'reis', to: 'Vesting Bourtange', at: [53.0069, 7.1914], r: 350, scene: 'T4.3', from: 0 }, { built: true, scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'],
     lead: ['T', 'Jelle komt dinsdag met zijn mannen naar het Beleg van Bourtange. Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),

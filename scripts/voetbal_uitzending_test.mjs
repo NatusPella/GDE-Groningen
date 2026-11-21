@@ -159,8 +159,34 @@ t('commentaar: geen echte clubs of merken, geen "de Grunn", geen dubbele regel, 
     assert.equal(gezien.has(r.tekst), false, `dubbel: ${r.tekst}`); gezien.add(r.tekst);
     assert.ok(/[.!?]$/.test(r.tekst), `eindigt zonder leesteken: ${r.tekst}`);
     const open = (r.tekst.match(/\{/g) || []).length; assert.equal(open, (r.tekst.match(/\}/g) || []).length);
-    for (const mm of r.tekst.matchAll(/\{([a-z]+)\}/g)) assert.ok(['speler', 'team', 'ander', 'stand'].includes(mm[1]), `onbekend sjabloon ${mm[0]}`);
+    for (const mm of r.tekst.matchAll(/\{([a-z]+)\}/g)) assert.ok(['speler', 'team', 'ander', 'stand', 'ronde', 'rondes', 'divisie', 'sponsor'].includes(mm[1]), `onbekend sjabloon ${mm[0]}`);
   }
+});
+t('commentaar: seizoen en carrière (#1179): de juiste soort bij de ronde, de plek en het debuut; zonder carrière niets', () => {
+  const soorten = (ctx) => { const c = makeCommentaar({ seed: 7, teams: ['Stadjers', 'Wadlopers'], ids: ['stadjers', 'wadlopers'] }); const uit = commentaarVoor(c, { type: 'aftrap', team: 0 }, { helft: 1, score: [0, 0], ...ctx }); return [...new Set(uit.map((e) => e.soort))]; };
+  const basis = { kind: 'league', ronde: 2, rondes: 7, laatste: false, divisie: 'Talentenklasse', rank: 5, clubs: 8, debuut: false, naam: 'Tessa', sponsor: '' };
+  assert.deepEqual(soorten({}), ['start']);
+  assert.deepEqual(soorten({ carriere: basis }), ['start', 'seizoenRonde']);
+  assert.ok(soorten({ carriere: { ...basis, rank: 1 } }).includes('seizoenTop'));
+  assert.ok(soorten({ carriere: { ...basis, rank: 8 } }).includes('seizoenBodem'));
+  assert.ok(soorten({ carriere: { ...basis, ronde: 7, laatste: true } }).includes('seizoenLaatste'));
+  assert.ok(soorten({ carriere: { ...basis, kind: 'cup' } }).includes('bekerWedstrijd'));
+  assert.ok(soorten({ carriere: { ...basis, kind: 'europe' } }).includes('europaWedstrijd'));
+  assert.ok(soorten({ carriere: { ...basis, debuut: true } }).includes('carriereDebuut'));
+  assert.ok(soorten({ carriere: { ...basis, sponsor: 'Gouden Bakkerij', ronde: 3 } }).includes('sponsorRegel'));
+  for (const soort of ['seizoenRonde', 'seizoenTop', 'seizoenBodem', 'seizoenLaatste', 'bekerWedstrijd', 'europaWedstrijd', 'carriereDebuut', 'sterGoal', 'sponsorRegel']) {
+    assert.ok(KINDS[soort] && COMMENTAAR[soort].h.length >= MIN_PER_KIND && COMMENTAAR[soort].r.length >= MIN_PER_KIND, soort);
+    assert.ok(COMMENTAAR[soort].h.some((x) => !/\{/.test(x)) && COMMENTAAR[soort].r.some((x) => !/\{/.test(x)), `${soort}: ook vaste regels (stem)`);
+  }
+  // de sjablonen worden gevuld, ook zonder waarden valt het netjes terug
+  const c = makeCommentaar({ seed: 3, teams: ['Stadjers', 'Wadlopers'], ids: ['stadjers', 'wadlopers'] });
+  const uit = commentaarVoor(c, { type: 'aftrap', team: 0 }, { helft: 1, score: [0, 0], carriere: { ...basis, debuut: true } });
+  for (const e of uit) assert.ok(!/\{/.test(e.tekst), e.tekst);
+  assert.equal(vulSjabloon('Ronde {ronde} van {rondes} in de {divisie}.', {}), 'Ronde deze ronde van zeven in de competitie.');
+  // een doelpunt van de carrièrespeler is een ster-regel, een doelpunt van een ander niet
+  const ster = (naam) => { const k = makeCommentaar({ seed: 5, teams: ['Stadjers', 'Wadlopers'], ids: ['stadjers', 'wadlopers'] }); return commentaarVoor(k, { type: 'goal', team: 0, speler: 3, stand: [1, 0] }, { score: [1, 0], carriere: basis, naamVan: () => naam }).map((e) => e.soort); };
+  assert.ok(ster('Tessa').every((x) => x === 'sterGoal') && ster('Tessa').length >= 1);
+  assert.ok(ster('Wietske').every((x) => x === 'goalThuis') && ster('Wietske').length >= 1);
 });
 t('commentaar: sjablonen worden gevuld, een vaste regel heeft een stemsleutel, een sjabloon niet', () => {
   assert.equal(vulSjabloon('Goal! {speler} scoort voor {team}. De stand: {stand}.', { speler: 'Wietske', team: 'Stadjers', stand: '1-0' }), 'Goal! Wietske scoort voor Stadjers. De stand: 1-0.');

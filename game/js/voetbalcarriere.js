@@ -10,6 +10,7 @@ import * as A from './voetbalagenda.js';
 import * as O from './voetbalontwikkeling.js';
 import * as T from './voetbaltransfers.js';
 import * as Sp from './voetbalsponsors.js';
+import * as B from './voetbalclub_bezit.js';
 import { makeRng } from './minigamekit.js';
 
 export const VERSION = 1;
@@ -50,7 +51,7 @@ export function createCareer({ char = 'anita', index = null, home = null, day = 
     seasonNr: 1, day: Math.max(0, day | 0), seasonStart: Math.max(0, day | 0), cal: [], evDone: 0, leagues: null, cup: null, europe: null, europeQ: false,
     prog: {}, phase: {}, mprog: {}, mphase: {}, fatigue: 0, injury: null, history: [], trainedDay: -1, matchDay: -1, focus: c === 'anita' ? 'shot' : 'pass',
     stats: { matches: 0, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, simulated: 0, seasons: 0, titles: 0, promotions: 0, cups: 0, europe: 0, earned: 0 },
-    seasonStats: { goals: 0, assists: 0, played: 0 }, log: [], flags: {}, last: null, settings: { injuries: true }, result: null, market: T.emptyMarket(), tactic: { formation: '4-4-2', style: 'evenwichtig' }, offer: null, bezit: {},
+    seasonStats: { goals: 0, assists: 0, played: 0 }, log: [], flags: {}, last: null, settings: { injuries: true }, result: null, market: T.emptyMarket(), tactic: { formation: '4-4-2', style: 'evenwichtig' }, offer: null, bezit: B.newClubBezit(),
   };
   return openSeason(s);
 }
@@ -220,9 +221,11 @@ export function playEvent(c, getClub, result = null, { missed = false } = {}) {
   s.stats.goals += stat.goals | 0; s.stats.assists += stat.assists | 0;
   s.seasonStats.goals += stat.goals | 0; s.seasonStats.assists += stat.assists | 0; if (played) s.seasonStats.played++;
   const earn = payFor(division, m.kind, outcome, played);
+  if (m.kind === 'league') earn.push(...clubDividends(s, getClub));
   const sp = Sp.settle(s.sponsors, { goals: s.seasonStats.goals, unbeaten: Sp.unbeatenRun(s.history), promoted: false });
   s.sponsors = sp.sponsors; earn.push(...sp.earn);
   s.stats.earned += earn.reduce((a, x) => a + x.amount, 0);
+  if (!s.flags.shareReady && s.stats.earned >= SHARE_READY_EARNED) s.flags.shareReady = true;      // het eerste clubaandeel komt in beeld als je genoeg met voetbal verdiende (B10)
   const summary = {
     kind: m.kind, n: m.n, opponent: m.opponent, opponentName: m.opponentName, isHome: m.isHome, gf: own.gf, ga: own.ga, pens: own.pens, outcome, played, missed, earn, gains: g.gains, injury, notes, goals: stat.goals | 0,
     firstGoal: !!(stat.goals && !s.flags.firstGoal), debut: !s.flags.debut,
@@ -325,6 +328,59 @@ export function finishSeason(c, getClub) {
   nxt.lastResults = (s.lastResults || []).concat([result]).slice(-6);
   notes.push(outcome === 'promotie' || outcome === 'kampioen-promotie' ? 'Promotie!' : outcome === 'degradatie' ? 'Degradatie: volgend seizoen een klasse lager' : 'Het seizoen is voorbij');
   return { career: nxt, earn, notes, report: result };
+}
+
+// ---- clubbezit (#1113, #1179): aandelen in een club, in het profiel tot Bezit er een tak voor heeft (voetbalclub_bezit.js; de adapter naar Bezit is voetbalbezit.js) ----
+export const SHARE_READY_EARNED = 3000;
+const clubDivision = (c, id) => S.divisionOf(c.world, id);
+// De dividenden van een competitieronde: elke club waarvan je een aandeel hebt, naar zijn plek in zijn eigen klasse; een club in de pool (niet gespeeld) keert niets uit.
+export function clubDividends(c, getClub) {
+  const out = [];
+  for (const id of Object.keys((c.bezit && c.bezit.clubs) || {})) {
+    const d = clubDivision(c, id), lg = d && c.leagues[d];
+    if (!lg || !lg.clubs.includes(id)) continue;
+    const h = c.bezit.clubs[id], r = B.dividendOf(h, S.rankOf(lg, id) || (lg.clubs.length + 1) / 2, lg.clubs.length);
+    if (r.payout > 0) out.push({ label: `Dividend ${nameOf(getClub, id)}`, amount: r.payout, bron: 'club' });
+  }
+  return out;
+}
+// Een aandeel kopen of verkopen: `money` is wat de speler heeft (de live-laag betaalt of stort het bedrag via loopbaanVerdien / de kas). Alleen een club in jouw wereld, nooit de pool.
+export function buyClubShare(c, clubId, share, money, getClub = null) {
+  const d = c && c.started ? clubDivision(c, clubId) : null;
+  if (!d || d === 'pool') return { career: c, ok: false, reason: 'Die club staat niet in de competitie' };
+  const r = B.buy(c, clubId, d, share, money, c.day);
+  return r.ok ? { career: r.career, ok: true, price: r.price, club: nameOf(getClub, clubId) } : { career: c, ok: false, reason: r.reason, price: r.price };
+}
+export function sellClubShare(c, clubId) {
+  if (!c || !c.started) return { career: c, ok: false, reason: 'Geen carrière' };
+  const r = B.sell(c, clubId);
+  return r.ok ? { career: r.career, ok: true, price: r.price } : { career: c, ok: false, reason: r.reason };
+}
+export const clubSharesOf = (c) => Object.entries((c && c.bezit && c.bezit.clubs) || {}).map(([club, h]) => ({ club, ...h }));
+function normClubBezit(raw) {
+  const out = B.newClubBezit();
+  const src = raw && typeof raw === 'object' && raw.clubs && typeof raw.clubs === 'object' ? raw.clubs : {};
+  for (const id of Object.keys(src).slice(0, 40)) {
+    const h = src[id];
+    if (!/^[a-z0-9_-]{1,40}$/i.test(id) || !h || typeof h !== 'object') continue;
+    const frac = Math.round(Number(h.aandeel) * 100) / 100;
+    if (!(frac > 0 && frac <= 1)) continue;
+    out.clubs[id] = { aandeel: frac, sinds: Math.max(0, Math.min(1e6, Math.round(Number(h.sinds)) || 0)), prijs: Math.max(0, Math.min(1e9, Math.round(Number(h.prijs)) || 0)) };
+  }
+  return out;
+}
+
+// De context voor het commentaar van een carrièrewedstrijd (#1179, voetbalcommentaar.js ctx.carriere): welke ronde, welke plek, de laatste ronde, het debuut, de ster en de sponsor.
+export function commentaryContext(c, getClub, m = null) {
+  if (!hasCareer(c)) return null;
+  const ev = m || nextMatch(c, getClub);
+  if (!ev) return null;
+  const st = leagueTable(c), mine = st.rows.find((r) => r.id === c.club);
+  const first = (c.sponsors && c.sponsors.slots ? c.sponsors.slots : []).find((x) => x.accepted);
+  return {
+    kind: ev.kind, ronde: ev.n, rondes: ev.kind === 'league' ? S.ROUNDS : ev.n, laatste: ev.kind === 'league' && ev.n === S.ROUNDS, divisie: ({ kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse' })[st.division] || 'competitie',
+    rank: mine ? mine.plek : 0, clubs: st.rows.length, debuut: !c.flags.debut, naam: c.me.name, sponsor: first ? first.naam : '',
+  };
 }
 
 // ---- stand en overzicht voor de schermen ----
@@ -446,7 +502,7 @@ export function normalize(raw) {
       stats, seasonStats: { goals: num(d.seasonStats && d.seasonStats.goals), assists: num(d.seasonStats && d.seasonStats.assists), played: num(d.seasonStats && d.seasonStats.played) },
       log: [], flags: d.flags && typeof d.flags === 'object' ? Object.fromEntries(Object.entries(d.flags).slice(0, 40).map(([k, v]) => [String(k).slice(0, 24), v === true ? true : v === false ? false : typeof v === 'number' ? v : 0])) : {},
       last: d.last && typeof d.last === 'object' ? { kind: String(d.last.kind || ''), text: String(d.last.text || '').slice(0, 80), outcome: String(d.last.outcome || '') } : null,
-      sponsors: normSponsors(d.sponsors), market: normMarket(d.market), tactic: { formation: TACTICS.formations.includes(d.tactic && d.tactic.formation) ? d.tactic.formation : '4-4-2', style: TACTICS.styles.includes(d.tactic && d.tactic.style) ? d.tactic.style : 'evenwichtig' }, offer: d.offer && typeof d.offer.club === 'string' ? { club: d.offer.club, seasons: Math.max(1, Math.min(3, d.offer.seasons | 0)), salaryBonus: Math.max(0, d.offer.salaryBonus | 0) } : null, bezit: d.bezit && typeof d.bezit === 'object' ? d.bezit : {},
+      sponsors: normSponsors(d.sponsors), market: normMarket(d.market), tactic: { formation: TACTICS.formations.includes(d.tactic && d.tactic.formation) ? d.tactic.formation : '4-4-2', style: TACTICS.styles.includes(d.tactic && d.tactic.style) ? d.tactic.style : 'evenwichtig' }, offer: d.offer && typeof d.offer.club === 'string' ? { club: d.offer.club, seasons: Math.max(1, Math.min(3, d.offer.seasons | 0)), salaryBonus: Math.max(0, d.offer.salaryBonus | 0) } : null, bezit: normClubBezit(d.bezit),
       settings: { injuries: !(d.settings && d.settings.injuries === false) }, result: d.result && typeof d.result === 'object' ? d.result : null, lastResults: Array.isArray(d.lastResults) ? d.lastResults.slice(-6) : [],
     };
     return out;

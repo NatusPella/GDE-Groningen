@@ -442,7 +442,8 @@ export function collect() {
   // --- het voetbalcommentaar (epic voetbal-uitzending, game/js/voetbalcommentaardata.js): Hilbrand (h) en Roelie (r); een regel met een accolade is een sjabloon en blijft ondertitel
   const vc = src('voetbalcommentaardata.js');
   const COMMENT = lit(vc, 'export const COMMENTAAR = ');
-  for (const pool of Object.values(COMMENT)) for (const [k, who] of [['h', 'Hilbrand'], ['r', 'Roelie']]) for (const t of pool[k] || []) if (!/\{/.test(t)) add('Voetbalcommentaar', 'lines', [who], t);
+  const COMMENT_CARRIER = lit(src('voetbalcommentarycareer.js'), 'export const COMMENTAAR_CARRIER = ');   // de seizoens- en carrièreregels (#1179)
+  for (const pool of Object.values({ ...COMMENT, ...COMMENT_CARRIER })) for (const [k, who] of [['h', 'Hilbrand'], ['r', 'Roelie']]) for (const t of pool[k] || []) if (!/\{/.test(t)) add('Voetbalcommentaar', 'lines', [who], t);
 
   // Regels die bewust geen opname meer hebben (inclusieve taal, docs/INCLUSIEVE-TAAL.md): ze verschijnen als
   // ondertitel of tekstballon en worden niet opnieuw gegenereerd. Zie scripts/voice_stil.json.
