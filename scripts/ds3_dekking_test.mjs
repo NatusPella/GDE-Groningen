@@ -8,6 +8,7 @@
 //   node scripts/ds3_dekking_test.mjs --write    de stand (scripts/ds3_dekking_basis.json) gelijkzetten aan de bron (alleen om te dalen)
 import fs from 'node:fs';
 import path from 'node:path';
+import { scopeTokens, resolveToken, contrastRatio } from './release/ds_tokens_lib.mjs';
 import { telAlles, totalen, SOORTEN, BEWUST, BEWUST_PATROON, ROOT } from './lib/ds3_telling.mjs';
 
 const BASIS = path.join(ROOT, 'scripts', 'ds3_dekking_basis.json');
@@ -66,6 +67,44 @@ for (const f of ['game/js/ds-schermen.css', 'game/js/fouttoast.js', 'game/js/ds-
   const v = res[f];
   ok(!!v, `${f} wordt geteld`);
   if (v) for (const s of SOORTEN) if (s !== 'oud' || f !== 'game/js/ds-components.css') ok(v.n[s] === 0, `${f} heeft geen ${s} (${v.n[s]})`);
+}
+
+// ---- ds3-vervolg 21-11: de bevindingen F1, F3, F5, F8, F19, F26 blijven opgelost (de nieuwe tellingen lus, lang, emoji en svg staan in de ratel hierboven) ----
+{
+  const lees = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
+  const uiBestanden = Object.keys(res).filter((f) => /\.(?:css|js)$/.test(f) && !res[f].bewust);
+  // F1: één bron voor "Beweging beperken": html.reduce-motion én de OS-instelling, voor alle UI (ook ingespoten stijlen)
+  const beweging = lees('game/js/ds-beweging.css');
+  ok(/html\.reduce-motion \*/.test(beweging) && /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\*/.test(beweging), 'F1: ds-beweging.css kent html.reduce-motion en prefers-reduced-motion (beide takken)');
+  ok(/animation-iteration-count:\s*1 !important/.test(beweging) && /transition-duration:\s*0\.01ms !important/.test(beweging), 'F1: de gedeelde regel zet lussen en transities uit');
+  ok(/href="js\/ds-beweging\.css"/.test(lees('game/index.html')), 'F1: index.html laadt ds-beweging.css');
+  ok(/classList\.toggle\('reduce-motion'/.test(lees('game/js/motion.js')), 'F1: motion.js zet html.reduce-motion bij de instelling én de OS-voorkeur');
+  // F3: geen crème of alfa als scrollbalk; de duim haalt 3:1 tegen de baan en het papier
+  const alfaBalk = [];
+  for (const f of uiBestanden) lees(f).split('\n').forEach((l, i) => {
+    const delen = [...l.matchAll(/scrollbar-color:[^;}]*|::-webkit-scrollbar-(?:thumb|track)[^{]*\{[^}]*/g)].map((m) => m[0]);
+    if (delen.some((d) => /creme|rgba\(|color-mix\(|var\(--ink\)/.test(d))) alfaBalk.push(`${f}:${i + 1}`);
+  });
+  ok(alfaBalk.length === 0, `F3: scrollbalken gebruiken --ds-scroll-duim en --ds-scroll-spoor (geen crème of alfa): ${alfaBalk.slice(0, 5).join(', ')}`);
+  const tokens = lees('game/js/ds-tokens.css');
+  const tk = scopeTokens(tokens, 'papier');
+  for (const [duim, baan, norm] of [['--ds-scroll-duim', '--ds-scroll-spoor', 3], ['--ds-scroll-duim', '--ds-c-ink-papier', 3]]) {
+    const r = contrastRatio(resolveToken(tk, duim), resolveToken(tk, baan));
+    ok(r >= norm, `F3: ${duim} tegen ${baan} is ${r.toFixed(2)}:1 (norm ${norm}:1)`);
+  }
+  // F8: roze alleen als vlak of misdruk, nooit als tekst op papier; Rustig drukwerk haalt 7:1 voor het roze
+  const rozeTekst = [];
+  for (const f of uiBestanden) lees(f).split('\n').forEach((l, i) => { if (/(?:^|[^-a-z])color:\s*var\(--ds-c-ink-roze\)/.test(l) && /pause-menu|pm-|vh-|ds-z-|m-/.test(l) && !/intromontage|trailer/.test(f)) rozeTekst.push(`${f}:${i + 1}`); });
+  ok(rozeTekst.length === 0, `F8: geen roze tekst op papier in menu's (gebruik --ds-c-rood-tx): ${rozeTekst.join(', ')}`);
+  const rustigRoze = (tokens.match(/html\.rustig-drukwerk, \.ds-rustig \{[^}]*--ds-c-ink-roze:\s*(#[0-9a-fA-F]{6})/) || [])[1];
+  ok(!!rustigRoze && contrastRatio(rustigRoze, resolveToken(tk, '--ds-c-ink-papier')) >= 7, `F8: Rustig drukwerk-roze ${rustigRoze} haalt 7:1 tegen papier`);
+  // F19: de regelaudit staat alleen de zeefdruk-lettertypen toe en kent de 13 px-vloer
+  const regels = await import('./release/design_rules.mjs');
+  ok(!regels.ALLOWED_FONTS.has('bebas neue') && !regels.ALLOWED_FONTS.has('arial narrow') && !regels.ALLOWED_FONTS.has('arial'), 'F19: Bebas Neue, Arial Narrow en Arial staan niet meer voorop in ALLOWED_FONTS');
+  ok(regels.TEXT_FLOOR_PX === 13 && regels.TEXT_KEY_FLOOR_PX === 12, 'F19: de vloer is 13 px, een toetsplaatje 12 px');
+  // F26: de toetsfonts worden één keer voorgeladen
+  const pre = [...lees('game/index.html').matchAll(/rel="preload" href="(fonts\/input\/[^"]+)"/g)].map((m) => m[1]);
+  ok(new Set(pre).size === pre.length, `F26: geen dubbele font-preload (${pre.length} regels, ${new Set(pre).size} uniek)`);
 }
 
 const t = totalen(res);

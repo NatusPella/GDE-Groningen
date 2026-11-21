@@ -49,7 +49,7 @@ export const ALLOWED_COLORS = new Set([
   '#fbe1dc', '#8c1d18', '#b3261e', '#dcefdc', '#14582f', '#dcebdd', '#fdebc8', '#7a4a00', '#a15c00',
   '#1f3a28', '#b9b7ad', '#3a1816', '#f5b5ad', '#3a2a0c',
   // Zomerse zeefdruk (ADR 0040): papier, roze en de Rustig-drukwerk-varianten; de rest staat hierboven.
-  '#f3ead3', '#e8505b', '#9d1f2a', '#0b5530',
+  '#f3ead3', '#e8505b', '#9d1f2a', '#8e1a25', '#0b5530',
   // Identiteit van medespelers (--ds-c-id-1 tot 8 in ds-tokens.css; de tabel zelf staat in coopidentiteit.js)
   '#4fb3ff', '#5bd6a0', '#f2b134', '#ff9a62', '#ff7ab8', '#b78cff', '#e86a6a', '#6fd3e0',
 ]);
@@ -65,15 +65,21 @@ const ALLOWED_RGB = new Set([...ALLOWED_COLORS].map((hex) => {
 for (const triple of ['160,156,146', '214,205,180']) ALLOWED_RGB.add(triple);
 
 // Lettertypen uit ui-taal.md/Typography: de vaste stack plus Big Shoulders voor het logo.
+// F19 (ds3-vervolg 21-11): alleen de zeefdruk-lettertypen en de toetsfonts (GDE ...) staan nog voorop; Bebas Neue, Arial Narrow en Arial
+// zijn alleen nog als terugval achter een zeefdruk-lettertype toegestaan (zie FALLBACK_FONTS), zoals de stapels in ds-tokens.css.
 export const ALLOWED_FONTS = new Set([
-  'bebas neue', 'arial narrow', 'arial', 'big shoulders display', 'big shoulders', 'barlow condensed', 'atkinson hyperlegible',
+  'big shoulders display', 'big shoulders', 'barlow condensed', 'atkinson hyperlegible',
+  'gde aanraking', 'gde knoppen a', 'gde knoppen algemeen', 'gde knoppen b', 'gde knoppen deck', 'gde toetsen',
   'sans-serif', 'inherit', 'initial', 'unset', 'revert', 'revert-layer',
 ]);
+export const FALLBACK_FONTS = new Set(['bebas neue', 'arial narrow', 'arial', 'monospace', 'ui-monospace', 'consolas']);
 
 // De leesnorm (ui-taal.md, "Leesnorm"): 13 px voor menu's en HUD, 12 px is de harde ondergrens voor een
 // zin; alleen de binnenkant van een toetsplaatje mag kleiner. spec_check.mjs houdt de spec hierop vast.
+// F19: één vloer van 13 px voor elke zin (menu's en HUD); alleen de binnenkant van een toetsplaatje mag tot 12 px (TEXT_KEY_FLOOR_PX).
 export const TEXT_NORM_PX = 13;
-export const TEXT_FLOOR_PX = 12;
+export const TEXT_FLOOR_PX = 13;
+export const TEXT_KEY_FLOOR_PX = 12;
 
 // Designsysteem (#980): de twee CSS-bestanden hebben strengere regels dan de rest van de UI.
 const DS_COMPONENTS = /(?:^|\/)game\/js\/ds-components\.css$/;
@@ -191,7 +197,7 @@ export function checkDsLine({ file, line, text } = {}) {
     if (/^--ds-t-/.test(name)) {
       const px = [...value.matchAll(/(\d+(?:\.\d+)?)px/g)].map((x) => Number(x[1]));
       if (px.some((n) => n < TEXT_NORM_PX) && name !== '--ds-t-toets') add('blokkerend', 'Lettergrootte-token onder 13 px', `${name}: ${value.trim()}; alleen --ds-t-toets (toetsplaatje) mag op 12 px.`, 'Maak het 13 px of groter.');
-      if (name === '--ds-t-toets' && px.some((n) => n < TEXT_FLOOR_PX)) add('blokkerend', 'Toetsmaat onder 12 px', `${name}: ${value.trim()}.`, 'Houd de toets op 12 px.');
+      if (name === '--ds-t-toets' && px.some((n) => n < TEXT_KEY_FLOOR_PX)) add('blokkerend', 'Toetsmaat onder 12 px', `${name}: ${value.trim()}.`, 'Houd de toets op 12 px.');
     }
     if (/^--ds-s-\d+$/.test(name) && value.trim().endsWith('px') && Number.parseFloat(value) % 4 !== 0) add('belangrijk', 'Ruimte-token buiten de 4-px-basis', `${name}: ${value.trim()}.`, 'Gebruik een veelvoud van 4 px.');
     if (/^--ds-m(?:-|$)/.test(name) && durationsMs(value).some((ms) => ms > DS_MAX_MOTION_MS)) add('blokkerend', 'Beweging-token langer dan 250 ms', `${name}: ${value.trim()}.`, 'Houd beweging op 250 ms of korter.');
@@ -340,11 +346,9 @@ function fontFamilies(text, file) {
   for (const m of clean.matchAll(/fontFamily\s*[:=]\s*(['"`])([^'"`]*)\1/g)) values.push(m[2]);
   const families = [];
   for (const value of values) {
-    for (const part of value.split(',')) {
-      const name = part.trim().replace(/^['"]|['"]$/g, '').toLowerCase();
-      if (!name || name.startsWith('var(')) continue;
-      families.push(name);
-    }
+    const stack = value.split(',').map((part) => part.trim().replace(/^['"]|['"]$/g, '').replace(/['"]\s*!important\s*$/i, '').toLowerCase()).filter((n) => n && !n.startsWith('var('));
+    // het eerste lettertype van een stapel moet een zeefdruk- of toetsfont zijn; Bebas Neue, Arial Narrow en Arial mogen alleen als terugval
+    stack.forEach((name, i) => { if (i > 0 && FALLBACK_FONTS.has(name)) return; families.push(name); });
   }
   return [...new Set(families)];
 }
@@ -423,10 +427,10 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
     if (candidates.fontgrootte) {
       const sizes = fontSizeValues(raw, filePath);
       const keycap = KEYCAP_CONTEXT.test(raw);
-      const tiny = sizes.filter((s) => s < 12);
+      const tiny = sizes.filter((s) => s < TEXT_FLOOR_PX);
       if (tiny.length && !keycap) {
         ernst = 'blokkerend';
-        problems.push(`lettergrootte onder 12 px: ${tiny.map((s) => `${s}px`).join(', ')}`);
+        problems.push(`lettergrootte onder 13 px: ${tiny.map((s) => `${s}px`).join(', ')}`);
       }
       const rel = keycap ? [] : shrinkingRelativeSizes(raw, filePath);
       if (rel.length) problems.push(`relatieve lettergrootte onder 1 (${rel.join(', ')}) zonder vloer; gebruik max(${TEXT_NORM_PX}px, ...)`);

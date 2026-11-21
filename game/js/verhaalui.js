@@ -113,7 +113,7 @@ const CSS = `
 #pause-menu .vh-facts { grid-template-columns: auto minmax(0, 1fr); }
 #pause-menu .vh-clue-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 #pause-menu .vh-clue-kind { font-family: var(--ds-font-zeef-tekst); font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
-#pause-menu .vh-clue[data-kind="hart"] .vh-clue-kind { color: var(--ds-c-ink-roze); }
+#pause-menu .vh-clue[data-kind="hart"] .vh-clue-kind { color: var(--ds-c-rood-tx); }
 #pause-menu .vh-part { position: relative; }
 #pause-menu .vh-part[data-cur] { box-shadow: inset 3px 0 0 var(--g); padding-left: 14px; }
 #pause-menu .vh-summary { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; padding: 14px 18px; border-radius: 12px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 45%, transparent); }

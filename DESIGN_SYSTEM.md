@@ -108,7 +108,7 @@ Text on dark chrome keeps 4.5:1 (3:1 for large text and icons); `a11ylogic.js` m
   short, large, punchy labels, not sentences.
 - **Menu running text** is Arial Narrow too (`.gm`, 20 px, line height 1.45); Bebas is for titles, tabs, buttons, numbers and eyebrows. In the menus the scale is
   80 / 64 / 44 px for title, section title and number, 26 for tabs and buttons, 20 body, 18 small (full table in [docs/DESIGN-COMPONENTEN.md](docs/DESIGN-COMPONENTEN.md)).
-- **Minimum size: 12 px for any sentence**, on every screen (the Steam Deck's 1280x800 held at arm's length, CHANGELOG #64); menu text 13 px and up (Menurust below).
+- **Minimum size: 13 px for any sentence (a keycap badge inside: 12 px)**, on every screen (the Steam Deck's 1280x800 held at arm's length, CHANGELOG #64); menu text 13 px and up (Menurust below).
   Only keycap interiors may be smaller. The HUD grows text with the window and never shrinks it below 13 px divided by `--ui`. Players can add one or two steps
   (`textSize`) and the Deck starts on "groot". A few places are still under 12; see [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md).
 
@@ -368,7 +368,7 @@ Five inks plus two status roles, nothing else: a hex outside this table fails th
 - **Barlow Condensed** (600, 800) for titles, numbers, HUD values, buttons and stamps; mixed case is allowed and preferred for words longer than a label.
 - **Atkinson Hyperlegible** (400, 700) for every sentence: messages, subtitles, descriptions, receipts.
 - Both are OFL and **self-hosted** under `game/fonts/`; the Google Fonts links in `game/index.html` go (constitution rule 4). Big Shoulders stays only for the logo, also self-hosted.
-- The reading norm stays: 13 px goal, 12 px hard floor, sized for the controller-first couch distance.
+- The reading norm stays: 13 px floor for every sentence, 12 px only inside a keycap badge, sized for the controller-first couch distance.
 
 ### Rustig drukwerk (setting)
 
@@ -661,7 +661,7 @@ Two kinds of colour, and they never mix (#479):
 Before a new screen, panel, card or toast merges, tick all of these (or write why not in the issue):
 
 - [ ] **Tokens.** Only colours, fonts and radii from this page; no new hex, no flat black, no second red, no blue accent. Role colours via `markerColors()` / `--mk-*`.
-- [ ] **Text.** Dutch, from the word list, within the word budget (`hudtext.js`), no sentence under 12 px (menus 13 px and up), checked at 1280x720 and 1280x800 (Deck) and at 4K.
+- [ ] **Text.** Dutch, from the word list, within the word budget (`hudtext.js`), no sentence under 13 px, checked at 1280x720 and 1280x800 (Deck) and at 4K.
 - [ ] **Surface.** A menu uses `.gm` and the `.m-*` set (one primary button, a visible focus, hints at the bottom right); a HUD element has a zone, a priority, a `SURFACES` entry and a `mayShow()` answer and takes no click.
 - [ ] **One cue is never enough.** Shape, pattern, mark or word next to every colour; a caption next to every sound; the key as a token so it follows rebinding and the pad glyph.
 - [ ] **Devices.** Works with keyboard, controller (a `PAD_MAPS` slot) and touch (44 px), and the hint follows the active device. Esc or B always backs out.

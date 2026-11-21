@@ -798,7 +798,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 /* plaatsnaam en prestaties blijven grote letters op het beeld, nu met misdruk op de naam bij het binnenkomen */
 #hud .hud-place { color: var(--ds-c-ink-papier); text-shadow: 3px 3px 0 var(--ds-c-ink-inkt); }
 #hud .pl-name { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: var(--ds-misdruk), 4px 4px 0 var(--ds-c-ink-inkt); -webkit-text-stroke: 2px var(--ds-c-ink-inkt); paint-order: stroke fill; }
-#hud .pl-kick { color: var(--ds-c-ink-geel); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#hud .pl-kick { color: var(--ds-c-ink-papier); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 #hud .pl-kick i { background: var(--ds-c-ink-geel); }
 #hud .pl-line { font-family: var(--hud-zinnen); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 

@@ -135,7 +135,7 @@ html.touch-device:not(.touch-portrait) #hud .hud-place { left: 90px; right: 300p
 html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress,
   .hud-district, .hud-instr small, .hud-instr .hi-keys, .hud-instr .hi-st, .hud-instr .hi-row, .hud-instr .hi-num span,
   .hud-instr .hi-lamp, .hud-instr .hi-keys .hud-key, .hud-busnext small, .hud-busnext span, .hud-busnext em,
-  .pf-from, .pf-body, .pf-state, .mg-sfeer, .mg-help) { font-size: max(12px, calc(12px / var(--ui, 1))); }
+  .pf-from, .pf-body, .pf-state, .mg-sfeer, .mg-help) { font-size: max(13px, calc(13px / var(--ui, 1))); }
 /* #868: de aanraakknoppen zelf staan buiten #hud en schalen met de knopzoom; hun
    labels zakten in portret naar 11 px. 16 px in knopeenheden houdt ze op 12 px. */
 @media (max-width: 700px) { #touch-ui .t-btn .t-lb { font-size: max(17px, calc(13px / var(--t-scale, 1))); } }

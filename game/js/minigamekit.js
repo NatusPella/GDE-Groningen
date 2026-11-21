@@ -104,7 +104,7 @@ const CSS = `
 #hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-bord); }
 #hud .mg-board .mg-ic { flex: none; }
 /* de sfeernaam klein naast de titel en één watermark in de marge (#595): geen tweede balk */
-#hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) var(--ds-font-zeef-tekst); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
+#hud .mg-board .mg-sfeer { font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
 #hud .mg-board .mg-watermark { display: none; /* #985: dubbel met de sfeernaam in de kop en lag achter de laatste regels */ position: absolute; right: 10px; bottom: -4px; font: 800 54px/1 var(--ds-font-zeef-kop); letter-spacing: 4px; text-transform: uppercase; color: var(--ds-c-ink-inkt); opacity: 0.08; pointer-events: none; white-space: nowrap; }
 #hud .mg-board[data-sfeerbord="scorekaart"], #hud .mg-board[data-sfeerbord="meetlat"] { border-radius: 0 10px 10px 0; }
 #hud .mg-board[data-sfeerbord="clubschild"], #hud .mg-board[data-sfeerbord="entreekaartje"] { border-radius: 14px 4px 4px 14px; }
@@ -181,7 +181,7 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-zeef-tx); }
 #hud .mg-board .mg-stand th, #hud .mg-board .mg-stand td { padding: 1px 9px; font-weight: normal; text-align: right; }
 #hud .mg-board .mg-stand th[scope="row"], #hud .mg-board .mg-stand thead th:first-child { text-align: left; }
-#hud .mg-board .mg-stand thead th { font-size: max(12px, calc(12px / var(--ui, 1))); letter-spacing: 1px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-inkt-zacht); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+#hud .mg-board .mg-stand thead th { font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 1px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-inkt-zacht); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
 #hud .mg-board .mg-stand tr.on { background: var(--ds-c-sel-vlak); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); color: var(--ds-zeef-tx); font-weight: 700; }
 #hud .mg-board .mg-stand tr.weg { color: var(--ds-c-inkt-zacht); text-decoration: line-through; }
 #hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-zeef-tx); }

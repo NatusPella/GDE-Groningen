@@ -100,7 +100,7 @@ function getCard() {
   // elkaar (#502). Zolang je een bus bestuurt zakt het doel daarom boven het kaartje.
   st.textContent = `#hud .hud-busnext{position:absolute;left:50%;bottom:calc(var(--hud-edge,46px) + 4px);transform:translateX(-50%);display:none;box-sizing:border-box;max-width:calc(100vw - 2*var(--hud-edge,46px) - 24px);padding:6px 14px 8px;color:var(--ds-c-creme);text-shadow:var(--hud-shadow);background:linear-gradient(90deg,color-mix(in srgb, var(--ds-c-glas) 10%, transparent),color-mix(in srgb, var(--ds-c-glas) 80%, transparent) 20%,color-mix(in srgb, var(--ds-c-glas) 80%, transparent) 80%,color-mix(in srgb, var(--ds-c-glas) 10%, transparent));text-align:center}
 body.bus-driving #hud .hud-busnext{display:block}
-#hud .hud-busnext small{display:block;font-size:max(12px,var(--hud-min, 13px));letter-spacing:3px;text-transform:uppercase;color:var(--mk-mission, #e8c93a)}
+#hud .hud-busnext small{display:block;font-size:max(13px,var(--hud-min, 13px));letter-spacing:3px;text-transform:uppercase;color:var(--mk-mission, #e8c93a)}
 #hud .hud-busnext b{font-weight:normal;font-size:22px;letter-spacing:1px}
 #hud .hud-busnext span{font-size:max(14px,var(--hud-min, 13px));color:color-mix(in srgb, var(--ds-c-creme) 70%, transparent);margin-left:8px}
 #hud .hud-busnext em{display:none;font-style:normal;font-size:max(13px,var(--hud-min, 13px));margin-top:4px;color:color-mix(in srgb, var(--ds-c-creme) 85%, transparent)}

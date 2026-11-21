@@ -146,7 +146,7 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-bz .mut { font-size: max(14px, var(--menu-min, 14px)); }
-.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-zeef-tekst); font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
+.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-zeef-tekst); font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
 .lb-bz-link { border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); padding-top: 4px; margin-top: 2px; }
 .lb-leeg { margin: 4px 0 0; }
 .lb-start { padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 40%, transparent); }

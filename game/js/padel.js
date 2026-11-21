@@ -1314,7 +1314,7 @@ const CSS = `
   color: var(--ds-c-creme); text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 88%, transparent), color-mix(in srgb, var(--ds-c-glas-2) 62%, transparent) 80%, color-mix(in srgb, var(--ds-c-glas-2) 20%, transparent)); border-left: 3px solid ${ACCENT}; }
 #hud .padel-board small { display: block; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; color: ${ACCENT}; }
-#hud .padel-board .mg-sfeer { display: block; margin-top: 2px; font: max(12px, calc(12px / var(--ui, 1))) var(--ds-font-tekst); letter-spacing: 2px; text-transform: uppercase; color: color-mix(in srgb, var(--ds-c-creme) 62%, transparent); font-style: normal; }
+#hud .padel-board .mg-sfeer { display: block; margin-top: 2px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-tekst); letter-spacing: 2px; text-transform: uppercase; color: color-mix(in srgb, var(--ds-c-creme) 62%, transparent); font-style: normal; }
 #hud .padel-board .pb-teams { display: grid; grid-template-columns: auto auto auto; gap: 0 14px; align-items: baseline; font-size: calc(20px * var(--ui, 1)); letter-spacing: 1px; line-height: 1.15; }
 #hud .padel-board .pb-teams b { font-weight: normal; font-size: calc(24px * var(--ui, 1)); text-align: right; }
 #hud .padel-board .pb-teams i { font-style: normal; font-size: calc(24px * var(--ui, 1)); color: var(--mk-mission, #e8c93a); text-align: right; min-width: 30px; }
