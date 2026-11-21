@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Spullen toont je spullen als een galerij van 3D-plaatjes, net als de Garage: elk ding heeft zijn eigen model in beeld (met het aantal, de toestand en op het tabblad Alles de soort), geen pictogrammen meer. Het raster krijgt de meeste ruimte; het detail rechts is een compact paneel van hooguit ongeveer een derde van de breedte, met een kleiner draaibaar model, de omschrijving, de knoppen (Opeten, In de hand nemen, Weggooien) direct eronder en daarna de cijfers. De plaatjes verschijnen vanzelf, eerst bij wat je ziet. Met de pijltjes of de D-pad loop je over het raster (ook Home, End en PageUp/PageDown), Enter doet de actie, Q en E wisselen van tabblad en Esc gaat terug. Zonder 3D toont een tegel zijn pictogram. Met Beweging beperken staan de tegels stil. Spullen blijven per speler (#1147).
+
 - Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
 - De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
 - Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.

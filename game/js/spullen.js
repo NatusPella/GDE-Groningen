@@ -5,7 +5,7 @@
 // puts home on the GPS; eten eet je hier op (#502). Vehicles stay in Garage,
 // clues and people in Verhaal.
 // It is its own pause-menu section (`markup in pausemenu.js` data-panel="spullen":
-// a list left and a detail pane right, the same `.m-*` set as the Garage). Het detail
+// a gallery of 3D thumbnails left (spullenthumbs.js, spullenraster.js) and a compact detail pane right (max 30%), the same `.m-*` set as the Garage). Het detail
 // toont een draaibaar 3D-model van het ding (#1086): dezelfde gedeelde voorbeeldrenderer als
 // de Garage (vehiclepreview.js createSharedPreview, één canvas per detail, geen eigen
 // WebGL-context); welk model staat in spullen3d.js, de nieuwe modellen in models3d_spullen.js.
@@ -25,9 +25,11 @@ import { woordenVan, past } from './zoektekst.js';
 import { icoon } from './icons.js';
 import { deviceText } from './touchui.js';
 import { glyphHtml } from './keycap.js';
-import { createSharedPreview } from './vehiclepreview.js';
+import { createSharedPreview, renderSnapshot, cancelSnapshots, releaseSnapshots } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { reducedMotion } from './motion.js';
+import { rasterMaat, kolommenUitTops, focusStep, TEGEL_MIN } from './spullenraster.js';
+import { createThumbs } from './spullenthumbs.js';
 import { moneySpec, wapenSpec, kledingSpec, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
 import { CATS, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
@@ -113,27 +115,37 @@ function moneyLedgerHtml() {
     '</div></div>';
 }
 
-// De vaste opmaak van Spullen (#1013). Eigen <style> in dit bestand: links een raster van tegels (icoon, naam, stand, een aantal-badge),
+// De vaste opmaak van Spullen (#1013). Eigen <style> in dit bestand: links een galerij van tegels (3D-plaatje, naam, stand, een aantal-badge),
 // rechts het detail met de acties. Kleuren komen uit de tokens van het menu (--ink, --mut, --line, --g) en uit ds-tokens.css; de
 // tekst is overal minstens 13 px en een tegel mag zijn naam over drie regels zetten, zodat niets midden in een woord wordt afgekapt.
 // De stijl staat bij de lijst, die elke tekening opnieuw wordt gevuld: precies één keer in het paneel.
 const SP_CSS = `<style data-spul-css>
-#pause-menu [data-panel="spullen"] .td-list{width:min(560px,54%);padding-right:24px}
-#pause-menu [data-panel="spullen"] .m-pane{padding-left:32px}
-@media (max-width:1100px),(max-height:640px){#pause-menu [data-panel="spullen"] .td-list{width:min(460px,52%);padding-right:16px}}
-@media (max-width:760px){#pause-menu [data-panel="spullen"] .td-list{width:auto;max-width:100%}}
-#pause-menu .sp-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px;padding:6px 6px 20px}
-#pause-menu .sp-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;min-height:128px;padding:26px 8px 10px;border-radius:12px;border:2px solid color-mix(in srgb,var(--ink) 28%,transparent);background:transparent;color:var(--ink);font:inherit;text-align:center;cursor:pointer;transition:background-color 150ms ease-out,border-color 150ms ease-out,transform 120ms ease-out}
-#pause-menu .sp-tile:hover{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent)}
-#pause-menu .sp-tile:active{transform:scale(.97)}
-#pause-menu .sp-tile[aria-current="true"]{background:var(--ds-c-sel-vlak);border-color:var(--g);box-shadow:inset 0 0 0 1px var(--g)}
-#pause-menu .sp-tile:focus-visible{outline:3px solid var(--ds-focus,var(--ink));outline-offset:2px}
-#pause-menu .sp-tile__ic{display:grid;place-items:center;width:40px;height:40px;color:var(--g)}
-#pause-menu .sp-tile__ic svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-#pause-menu .sp-tile__t{font-size:15px;line-height:1.2;max-width:100%;overflow-wrap:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-#pause-menu .sp-tile__s{font-size:13px;line-height:1.2;color:var(--mut);max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#pause-menu .sp-badge{position:absolute;top:6px;right:6px;min-width:26px;height:24px;padding:0 7px;display:inline-grid;place-items:center;border-radius:12px;background:var(--ink);color:var(--ds-zeef-bg,#fff);font-size:14px;font-weight:700;letter-spacing:.02em}
-#pause-menu .sp-pip{position:absolute;top:6px;left:6px;max-width:calc(100% - 52px);padding:1px 7px;border-radius:10px;border:1.5px solid var(--g);color:var(--g);font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pause-menu [data-panel="spullen"] .td-list{flex:1 1 auto;width:auto;min-width:0;padding-right:20px}
+#pause-menu [data-panel="spullen"] .m-pane{flex:0 0 var(--sp-detail,380px);width:var(--sp-detail,380px);min-width:0;box-sizing:border-box;padding-left:24px}
+@media (max-width:760px){#pause-menu [data-panel="spullen"] .td-list{max-width:100%;padding-right:0}#pause-menu [data-panel="spullen"] .m-pane{flex:none;width:auto;padding-left:0}}
+#pause-menu .sp-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--sp-min,152px),1fr));gap:12px;padding:6px 6px 20px}
+#pause-menu .sp-tile{position:relative;display:flex;flex-direction:column;gap:4px;min-width:0;padding:6px 6px 8px;border-radius:12px;border:2px solid color-mix(in srgb,var(--ink) 28%,transparent);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform var(--ds-m-midden,150ms) var(--ds-m-uit,ease-out)}
+#pause-menu .sp-tile::before,#pause-menu .sp-tile::after{content:"";position:absolute;pointer-events:none;border-radius:10px;opacity:0;transition:opacity var(--ds-m-midden,150ms) var(--ds-m-uit,ease-out)}
+#pause-menu .sp-tile::before{inset:0;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+#pause-menu .sp-tile::after{inset:-2px;border-radius:12px;border:2px solid var(--g);box-shadow:inset 0 0 0 1px var(--g)}
+#pause-menu .sp-tile:hover{transform:translateY(-2px)}
+#pause-menu .sp-tile:hover::before,#pause-menu .sp-tile:focus-visible::before{opacity:1}
+#pause-menu .sp-tile:active{transform:scale(.98)}
+#pause-menu .sp-tile[aria-current="true"]::before{opacity:1;background:var(--ds-c-sel-vlak)}
+#pause-menu .sp-tile[aria-current="true"]::after{opacity:1}
+#pause-menu .sp-tile:focus-visible{outline:3px solid var(--ds-focus,var(--ink));outline-offset:3px}
+#pause-menu .sp-tile > *{position:relative}
+#pause-menu .sp-pw{position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:color-mix(in srgb,var(--ink) 7%,transparent);box-shadow:inset 0 0 0 1px var(--line)}
+#pause-menu .sp-ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--g)}
+#pause-menu .sp-ph img{width:100%;height:100%;object-fit:contain;transition:transform var(--ds-m-lang,250ms) var(--ds-m-uit,ease-out);animation:sp-in var(--ds-m-midden,150ms) var(--ds-m-uit,ease-out) both}
+#pause-menu .sp-tile:hover .sp-ph img,#pause-menu .sp-tile:focus-visible .sp-ph img{transform:scale(1.07)}
+#pause-menu .sp-ph[data-state="laden"]::before{content:"";width:38%;height:38%;border-radius:10px;border:2px dashed color-mix(in srgb,var(--ink) 30%,transparent)}
+#pause-menu .sp-ph svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#pause-menu .sp-tile__t{font-size:15px;line-height:1.2;max-width:100%;overflow-wrap:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
+#pause-menu .sp-tile__s{font-size:13px;line-height:1.2;color:var(--mut);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pause-menu .sp-badge{position:absolute;top:5px;right:5px;min-width:26px;height:24px;padding:0 7px;display:inline-grid;place-items:center;border-radius:12px;background:var(--ink);color:var(--ds-zeef-bg,#fff);font-size:14px;font-weight:700;letter-spacing:.02em}
+#pause-menu .sp-pip{position:absolute;top:5px;left:5px;max-width:calc(100% - 52px);padding:1px 7px;border-radius:10px;background:var(--ds-zeef-bg,#fff);border:1.5px solid var(--g);color:var(--g);font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pause-menu .sp-soort{position:absolute;left:5px;bottom:5px;max-width:calc(100% - 10px);padding:0 7px;border-radius:9px;background:color-mix(in srgb,var(--ink) 80%,transparent);color:var(--ds-zeef-bg,#fff);font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pause-menu .sp-leeg{padding:var(--ds-s-4,16px) 8px;max-width:420px;font-size:max(16px,var(--menu-min));color:var(--mut)}
 #pause-menu .sp-sort{margin-left:auto}
 #pause-menu .sp-weg{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:12px;border:2px solid var(--redtx);background:color-mix(in srgb,var(--redtx) 8%,transparent);animation:sp-in 160ms ease-out}
@@ -143,17 +155,18 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-acts-weg{display:flex;flex-wrap:wrap;gap:8px}
 #pause-menu .sp-dhead{display:flex;align-items:center;gap:18px;min-width:0;animation:sp-in 160ms ease-out}
 @keyframes sp-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){#pause-menu .sp-tile,#pause-menu .sp-weg,#pause-menu .sp-dhead{transition:none;animation:none}}
+@media (prefers-reduced-motion:reduce){#pause-menu .sp-tile,#pause-menu .sp-tile::before,#pause-menu .sp-tile::after,#pause-menu .sp-ph img,#pause-menu .sp-weg,#pause-menu .sp-dhead{transition:none;animation:none}#pause-menu .sp-tile:hover,#pause-menu .sp-tile:hover .sp-ph img{transform:none}}
+html.reduce-motion #pause-menu .sp-tile,html.reduce-motion #pause-menu .sp-tile::before,html.reduce-motion #pause-menu .sp-tile::after,html.reduce-motion #pause-menu .sp-ph img{transition:none;animation:none}html.reduce-motion #pause-menu .sp-tile:hover,html.reduce-motion #pause-menu .sp-tile:hover .sp-ph img{transform:none}
 #pause-menu .sp-big{width:76px;height:76px;flex:none;display:grid;place-items:center;border-radius:18px;background:color-mix(in srgb,var(--g) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--g) 30%,transparent);color:var(--g)}
 #pause-menu .sp-big svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #pause-menu .sp-dmeta{display:flex;flex-direction:column;gap:6px;min-width:0}
-#pause-menu .sp-dmeta .td-h2{margin:0;overflow-wrap:break-word}
-#pause-menu .sp-desc{margin:0;max-width:640px;font-size:20px;line-height:1.45;color:var(--ink)}
+#pause-menu .sp-dmeta .td-h2{margin:0;overflow-wrap:break-word;font-size:clamp(26px,2.2vw,34px);line-height:1.1}
+#pause-menu .sp-desc{margin:0;max-width:640px;font-size:17px;line-height:1.4;color:var(--ink)}
 #pause-menu .sp-eerlijk{margin:0;max-width:640px;font-size:max(18px,var(--menu-min));line-height:1.45;color:var(--mut)}
-#pause-menu .sp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 32px;padding:16px 0 0;border-top:1px solid var(--line)}
-#pause-menu .sp-fact{display:flex;flex-direction:column;gap:3px;min-width:0}
-#pause-menu .sp-fact > span:first-child{font-size:max(15px,var(--menu-min));letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
-#pause-menu .sp-fact > span:last-child{font-size:max(19px,var(--menu-min));line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
+#pause-menu .sp-facts{display:grid;grid-template-columns:1fr;gap:6px;padding:10px 0 0;border-top:1px solid var(--line)}
+#pause-menu .sp-fact{display:flex;flex-direction:row;align-items:baseline;justify-content:space-between;gap:12px;min-width:0}
+#pause-menu .sp-fact > span:first-child{flex:none;font-size:max(13px,var(--menu-min));letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+#pause-menu .sp-fact > span:last-child{font-size:max(16px,var(--menu-min));line-height:1.3;color:var(--ink);text-align:right;overflow-wrap:anywhere}
 #pause-menu .sp-ledger{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:color-mix(in srgb, var(--ds-c-glas) 55%, transparent);box-shadow:inset 0 0 0 1px var(--line2)}
 #pause-menu .sp-lhead{font-family:var(--ds-font-kop);font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 #pause-menu .sp-days{display:flex;align-items:flex-end;gap:6px;height:56px}
@@ -165,21 +178,23 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:20px;font-size:max(17px,var(--menu-min));line-height:1.35}
 #pause-menu .sp-lrow > span:first-child{color:var(--mut);flex:none}
 #pause-menu .sp-lv{color:var(--ink);text-align:right;overflow-wrap:anywhere}
-@media (max-width:1440px){#pause-menu .sp-facts{grid-template-columns:1fr}}
 #pause-menu .sp-model{display:flex;flex-direction:column;gap:var(--ds-s-2,8px);min-width:0;animation:sp-in 160ms ease-out}
-#pause-menu .sp-stage{position:relative;height:clamp(200px,34vh,320px);overflow:hidden;border:var(--ds-lijn-zeef,2px) solid var(--ds-c-ink-inkt,var(--ink));background:var(--ds-zeef-bg,transparent);color:var(--ds-zeef-tx,var(--ink));box-shadow:var(--ds-schaduw-hard-klein,none)}
+#pause-menu .sp-stage{position:relative;height:clamp(140px,24vh,200px);overflow:hidden;border:var(--ds-lijn-zeef,2px) solid var(--ds-c-ink-inkt,var(--ink));background:var(--ds-zeef-bg,transparent);color:var(--ds-zeef-tx,var(--ink));box-shadow:var(--ds-schaduw-hard-klein,none)}
 #pause-menu .sp-stage canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:grab;touch-action:none;transition:opacity 160ms ease-out}
 #pause-menu .sp-stage canvas.on{opacity:1}
 #pause-menu .sp-stage canvas:active{cursor:grabbing}
 #pause-menu .sp-stage canvas:focus-visible{outline:3px solid var(--ds-focus,var(--ink));outline-offset:-5px}
 #pause-menu .sp-stage .sp-ic{position:absolute;inset:0;display:grid;place-items:center;color:var(--g);transition:opacity 160ms ease-out;pointer-events:none}
 #pause-menu .sp-stage .sp-ic svg{width:72px;height:72px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-#pause-menu .sp-stage[data-state="laden"] .sp-ic{animation:sp-puls 900ms ease-in-out infinite alternate}
-#pause-menu .sp-stage[data-state="klaar"] .sp-ic{opacity:0}
-@keyframes sp-puls{from{opacity:.35}to{opacity:.8}}
+#pause-menu .sp-stage .sp-ic{opacity:0}
+#pause-menu .sp-stage[data-state="terugval"] .sp-ic{opacity:1}
+#pause-menu .sp-stage .sp-still{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;transition:opacity 160ms ease-out}
+#pause-menu .sp-stage[data-state="klaar"] .sp-still,#pause-menu .sp-stage[data-state="terugval"] .sp-still{opacity:0}
+#pause-menu .sp-stage[data-state="laden"]:not([data-still])::before{content:"";position:absolute;left:36%;top:30%;width:28%;height:40%;border-radius:12px;border:2px dashed color-mix(in srgb,var(--ink) 30%,transparent)}
 #pause-menu .sp-stage-voet{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:32px;font-size:max(14px,var(--menu-min,14px));color:var(--mut)}
 #pause-menu .sp-stage-voet .sp-melding{flex:1 1 auto;min-width:0}
-#pause-menu .sp-stage-voet [data-spul-reset]{margin-left:auto}
+#pause-menu .sp-stage-voet [data-spul-reset]{margin-left:auto;min-height:32px;padding:2px 12px;font-size:max(15px,var(--menu-min,15px));letter-spacing:.02em;text-shadow:none}
+#pause-menu [data-panel="spullen"] .m-pane > .m-acts.td-acts{position:static;padding:0;margin:0}
 #pause-menu .sp-stage-voet [hidden]{display:none}
 @media (prefers-reduced-motion:reduce){#pause-menu .sp-model,#pause-menu .sp-stage canvas,#pause-menu .sp-stage .sp-ic{transition:none;animation:none}}
 html.reduce-motion #pause-menu .sp-model,html.reduce-motion #pause-menu .sp-stage canvas,html.reduce-motion #pause-menu .sp-stage .sp-ic,html.reduce-motion #pause-menu .sp-stage[data-state="laden"] .sp-ic{transition:none;animation:none}
@@ -296,13 +311,58 @@ function homeRoute(what) {
   return `Route naar huis (${what})`;
 }
 
-// Een tegel van het raster: icoon, naam en stand, links de toestand (In de hand, Aan) en rechts het aantal. De naam voor een schermlezer
-// bevat het aantal en de toestand (tegelNaam), want de badge zelf is alleen voor het oog.
-function tegel(it) {
+// Een tegel van de galerij (spullen-ui 21-11): een 3D-plaatje van het ding (geen icoon: dat staat er alleen als het model ontbreekt of WebGL
+// faalt), met links boven de toestand (In de hand, Aan), rechts boven het aantal en onderaan de soort (alleen op het tabblad Alles).
+// Het plaatje komt lui binnen (spullenthumbs.js); tot dan staat een neutraal, stilstaand vak. De naam voor een schermlezer bevat het
+// aantal en de toestand (tegelNaam), want de badges zelf zijn alleen voor het oog.
+const catLabel = (it) => (CATS.find(([id]) => id === catVan(it)) || [, ''])[1];
+function tegel(it, i) {
   const badge = badgeTekst(it);
-  return `<button type="button" class="sp-tile" data-spul="${esc(it.key)}" data-cat="${catVan(it)}" aria-label="${esc(tegelNaam(it))}" title="${esc(it.title)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
-    (it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : '') + (badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : '') +
-    `<span class="sp-tile__ic">${svg(it.icon)}</span><span class="sp-tile__t">${esc(it.title)}</span><span class="sp-tile__s">${esc(it.sub || '')}</span></button>`;
+  const soort = deel === 'alles' && it.cat !== 'geld' ? catLabel(it) : '';
+  const ph = it.viewer ? '<span class="sp-ph" data-state="laden"></span>' : `<span class="sp-ph" data-state="icoon">${svg(it.icon)}</span>`;
+  return `<button type="button" class="sp-tile" data-spul="${esc(it.key)}" data-i="${i}" data-cat="${catVan(it)}" aria-label="${esc(tegelNaam(it))}" title="${esc(it.title)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
+    `<span class="sp-pw">${ph}${it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : ''}${badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : ''}${soort ? `<span class="sp-soort" aria-hidden="true">${esc(soort)}</span>` : ''}</span>` +
+    `<span class="sp-tile__t">${esc(it.title)}</span><span class="sp-tile__s">${esc(it.sub || '')}</span></button>`;
+}
+
+// De maten van de galerij: het detail hooguit 30% van de breedte, de rest voor de tegels (spullenraster.rasterMaat). Gemeten aan het
+// gebied met raster en detail (dus na de ui-schaal); staat het paneel verborgen, dan blijven de standaardmaten staan.
+let thumbs = null;
+let thumbPaneel = null;
+let thumbItems = [];
+const STANDAARD_MAAT = { thumbW: 192, thumbH: 144 };
+function meetMaat() {
+  const p = thumbPaneel;
+  const main = p && p.querySelector ? p.querySelector('.m-main') : null;
+  let breedte = main && main.clientWidth ? main.clientWidth : 0;
+  if (breedte && typeof getComputedStyle === 'function') { const cs = getComputedStyle(main); breedte -= (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0); }
+  if (!breedte) return STANDAARD_MAAT;
+  const dpr = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
+  const m = rasterMaat({ breedte, dpr });
+  if (!m.smal && p.style && p.style.setProperty) {
+    p.style.setProperty('--sp-detail', m.detailB + 'px');
+    p.style.setProperty('--sp-min', (breedte < 1100 ? TEGEL_MIN.krap : TEGEL_MIN.ruim) + 'px');
+  }
+  return m;
+}
+
+function stopThumbs(geef) {
+  if (thumbs) { thumbs.dispose(geef); thumbs = null; }
+  if (geef) releaseSnapshots('spullen');
+}
+
+function startThumbs(panel, lijst, zichtbaar) {
+  stopThumbs(false);
+  thumbPaneel = panel;
+  thumbItems = zichtbaar;
+  if (!lijst || !lijst.addEventListener || !zichtbaar.length) return;
+  thumbs = createThumbs(lijst, {
+    items: zichtbaar,
+    maat: meetMaat,
+    gekozen: () => zichtbaar.findIndex((it) => it.key === sel),
+    render: renderSnapshot, release: releaseSnapshots, cancel: cancelSnapshots,
+    icoon: (it) => svg(it.icon),
+  });
 }
 
 // De acties onder het detail: de eigen actie van het ding (Opeten, In de hand nemen), de weg naar een ander scherm, en bij eten het
@@ -339,13 +399,15 @@ const stageKey = (it) => (it && it.viewer ? JSON.stringify(it.viewer) : '');
 function stageHtml(it) {
   const label = esc(modelLabel(it.title));
   return `<div class="sp-model"><div class="sp-stage" data-spul-stage data-key="${esc(stageKey(it))}" data-state="laden">` +
-    `<span class="sp-ic" aria-hidden="true">${svg(it.icon)}</span>` +
+    `<span class="sp-ic" aria-hidden="true">${svg(it.icon)}</span><img class="sp-still" alt="" draggable="false" hidden>` +
     `<canvas tabindex="0" role="img" aria-label="${label}: sleep of gebruik de pijltjestoetsen om te draaien"></canvas></div>` +
     `<div class="sp-stage-voet"><span class="sp-melding" data-spul-hint>Sleep of gebruik ${glyphHtml('ARROWLEFT')}${glyphHtml('ARROWRIGHT')} om te draaien</span>` +
     `<button type="button" class="ds-z-knop ds-z-knop--ghost" data-spul-reset aria-label="Model terugzetten naar de voorkant">Terugzetten</button></div></div>`;
 }
 
+let viewerTimer = 0;
 function stopViewer() {
+  clearTimeout(viewerTimer);
   if (viewerObs) { viewerObs.disconnect(); viewerObs = null; }
   if (viewer) { viewer.dispose(); viewer = null; }
   viewerKey = '';
@@ -353,7 +415,7 @@ function stopViewer() {
 
 // Zet het detailpaneel neer en koppelt het model. Dezelfde stage (zelfde model) blijft staan; een ander model krijgt een nieuwe
 // preview op het nieuwe canvas (de gedeelde renderer blijft). Valt WebGL weg of is er geen model, dan blijft het icoon staan.
-function zetDetail(panel) {
+function zetDetail(panel, traag = false) {
   const detail = panel.querySelector('.td-detail');
   const it = byKey.get(sel);
   const nieuwKey = stageKey(it);
@@ -373,6 +435,15 @@ function zetDetail(panel) {
   stopViewer();
   const stage = detail.querySelector('[data-spul-stage]');
   if (!stage || !it || !it.viewer) return;
+  const still = stage.querySelector('.sp-still');
+  const url = thumbs ? thumbs.url(it.viewer) : '';
+  if (still && url) { still.src = url; still.hidden = false; stage.dataset.still = '1'; }
+  // een toets die snel door het raster loopt bouwt niet bij elke tegel een model: het beeld volgt als de focus even rust (90 ms)
+  if (traag) viewerTimer = setTimeout(() => { if (stage.isConnected) koppelModel(panel, detail, stage, it, nieuwKey); }, 90);
+  else koppelModel(panel, detail, stage, it, nieuwKey);
+}
+
+function koppelModel(panel, detail, stage, it, nieuwKey) {
   const c = stage.querySelector('canvas');
   let zichtbaar = true;
   const preview = createSharedPreview(c, {
@@ -403,7 +474,7 @@ function zetDetail(panel) {
 }
 
 // Het model loslaten: tab gewisseld of menu gesloten (pausemenu.js).
-export function disposeSpullenViewer() { stopViewer(); }
+export function disposeSpullenViewer() { stopViewer(); stopThumbs(true); }
 
 // Draaien met de pijltjes of de D-pad (net als de draaitafel van de Garage); true als er een model draait.
 export function turnSpullenViewer(dir) {
@@ -432,9 +503,9 @@ function detailHtml() {
   return (it.viewer ? stageHtml(it) : '') + `<div class="sp-dhead">${it.viewer ? '' : `<span class="sp-big">${svg(it.icon)}</span>`}<div class="sp-dmeta">` +
     `${cat && cat !== kop ? `<span class="m-eb sp-detail-cat">${esc(cat)}</span>` : ''}<h2 class="m-h2 td-h2">${esc(kop)}</h2></div></div>` +
     `${it.desc ? `<p class="sp-desc">${esc(it.desc)}</p>` : ''}` +
-    (ledger || factHtml ? (ledger || '') + factHtml : (!it.desc ? '<p class="sp-eerlijk">Verder valt hier niets over te zeggen.</p>' : '')) +
-    `<span class="m-grow"></span>` +
-    `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${actiesHtml(it)}`;
+    // de acties staan direct onder de omschrijving (compact detail: nooit onder een scrollrand), de cijfers en het kasboek daarna
+    `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${actiesHtml(it)}` +
+    (ledger || factHtml ? (ledger || '') + factHtml : (!it.desc ? '<p class="sp-eerlijk">Verder valt hier niets over te zeggen.</p>' : ''));
 }
 
 // Het <style>-blok staat één keer boven de lijst. De lijst wordt bij elke tekening
@@ -462,7 +533,7 @@ export function renderSpullen(panel, w) {
   const list = panel.querySelector('.td-list');
   const zoekt = zoek.trim();
   const raster = zichtbaar.length
-    ? `<div class="sp-raster" role="group" aria-label="Je spullen">${zichtbaar.map(tegel).join('')}</div>`
+    ? `<div class="sp-raster" role="group" aria-label="Je spullen">${zichtbaar.map((it, i) => tegel(it, i)).join('')}</div>`
     : `<div class="ds-leeg sp-leeg" data-spul-leeg><p>${zoekt ? `Niks gevonden voor "${esc(zoekt)}". ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om overal te zoeken.'}` : esc(LEEG[deel] || LEEG.alles)}</p></div>`;
   // De stijl hoort bij de lijst, die elke tekening opnieuw wordt gevuld: zo staat hij er precies één keer en niet in het detail.
   list.innerHTML = SP_CSS + raster;
@@ -472,6 +543,7 @@ export function renderSpullen(panel, w) {
   if (sortKnop) { const t = sortKnop.querySelector('span'); if (t) t.textContent = 'Sorteren: ' + sortLabel(sortering).toLowerCase(); }
   const zoekveld = panel.querySelector('[data-spul-search]');
   if (zoekveld && zoekveld.value !== zoek) zoekveld.value = zoek;
+  startThumbs(panel, list, zichtbaar);
   zetDetail(panel);
   const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;
   const kop = zichtbaar.length === items.length ? '' : `${zichtbaar.length} van ${items.length} · `;
@@ -493,7 +565,22 @@ export function spullenFocus(panel, el) {
   note = ''; // een andere tegel: de melding van de vorige actie hoort er niet meer bij
   weggooiVraag = weggooiStap(weggooiVraag, 'ander', sel).state; // en een openstaande vraag Weggooien? ook niet
   for (const b of panel.querySelectorAll('[data-spul]')) { if (b.dataset.spul === sel) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); } // niet toggleAttribute: dat zet aria-current="" en dat is geen waarde
-  zetDetail(panel);
+  zetDetail(panel, true);
+}
+
+// Pijltjes, Home, End en PageUp/PageDown door de galerij (pausemenu.js roept dit aan voor een tegel met focus). true als de focus
+// verplaatst is; false als er in die richting niets meer is, dan neemt het menu de toets over (omhoog naar het zoekveld, links naar
+// de rail, rechts naar het detail).
+export function spullenNavigeer(panel, el, toets) {
+  const huidig = el && el.closest ? el.closest('.sp-tile') : null;
+  if (!panel || !huidig) return false;
+  const tegels = [...panel.querySelectorAll('.sp-tile')];
+  const i = tegels.indexOf(huidig);
+  if (i < 0) return false;
+  const n = focusStep(i, tegels.length, kolommenUitTops(tegels.map((t) => t.offsetTop)), toets);
+  if (n === null || !tegels[n]) return false;
+  tegels[n].focus();
+  return true;
 }
 
 // Een kaartselector zonder CSS.escape: de sleutels zijn van ons (geen quotes), en zo

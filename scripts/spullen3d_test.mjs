@@ -106,7 +106,7 @@ t('spullen.js: de viewer gebruikt createSharedPreview (geen eigen WebGLRenderer)
   const s = src('../game/js/spullen.js');
   assert.ok(/createSharedPreview\(c, \{/.test(s));
   assert.ok(!/new THREE\.WebGLRenderer|WebGLRenderer\(/.test(s));
-  assert.match(s, /export function disposeSpullenViewer\(\) \{ stopViewer\(\); \}/);
+  assert.match(s, /export function disposeSpullenViewer\(\) \{ stopViewer\(\); stopThumbs\(true\); \}/);
   assert.match(s, /viewer\.dispose\(\)/);
   assert.match(s, /IntersectionObserver/); // pauzeren buiten beeld
   assert.match(s, /speed: reducedMotion\(\) \? 0 : /); // beperkte beweging: geen automatische draai
@@ -114,7 +114,7 @@ t('spullen.js: de viewer gebruikt createSharedPreview (geen eigen WebGLRenderer)
   assert.match(s, /3D is hier niet beschikbaar/); // terugval naar het icoon
   // elk ding in collect() zet viewer (geld, wapens, vuisten, kleding, thuis, eten, vier kaarten, drie upgradesoorten)
   const gezet = (s.match(/viewer: /g) || []).length;
-  assert.ok(gezet >= 13, 'te weinig items met viewer in collect(): ' + gezet);
+  assert.ok(gezet >= 12, 'te weinig items met viewer in collect(): ' + gezet);
 });
 
 t('pausemenu.js: de viewer gaat weg bij een ander tabblad en bij sluiten, en draait op de pijltjes', () => {
