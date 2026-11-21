@@ -16,6 +16,7 @@ import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieres
 import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 import { koopVraag, tweedeDruk } from './tweedruk.js';
 import { kaartenBlok, zetUitlegGezien } from './farmcards.js';
+import { getBezit } from './bezitlive.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -77,7 +78,7 @@ function perceel(b, geld) {
   const volgende = s.volgende ? B.TAKEN[s.volgende].naam : null;
   const k = s.volgende ? B.kosten(b, s.volgende) : null;
   const wacht = B.wacht(b);
-  const blok = kaartenBlok(b); // de kaart toont al de volgende klus en wat in de schuur ligt (21-11)
+  const blok = kaartenBlok(b, getBezit()); // de kaart toont al de volgende klus en wat in de schuur ligt (21-11)
   const waar = b.perceel ? 'Je akker ligt bij Hoogkerk, in de buurt van Suikerhal Hoogkerk.' : 'Je akker wordt gekozen als je voor het eerst gaat werken.';
   // #985: eerst wat nu te doen valt (kaart met de lus en de velden), daarna de kosten, de schuur en het uitbesteden
   const begin = boerderijBegonnen(b) ? '' : `<article class="ds-z-kaart ds-z-kaart--recht ds-z-kaart--selectie bd-begin"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Begin je boerderij</h3></header><p class="ds-z-kaart__tekst">Je akker ligt bij Hoogkerk. Ga erheen, pak de trekker en ploeg het veld; daarna kies je een gewas en zaai je.</p><footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop" data-bd-weg="1">Zet de akker op de kaart</button></footer></article>`;

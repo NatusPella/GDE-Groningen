@@ -121,5 +121,32 @@ t('1000 kuddes: een dagtik blijft snel', () => {
   assert.equal(r.herds, 1000); assert.ok(ms < 20, `${ms} ms`);
 });
 
+t('kopen: de kudde past op het perceel, kost per dier en trekt niets af zonder genoeg geld (#1101)', () => {
+  const b = bezitMet(['w', 4], ['a', 4], ['w', 0.05]);
+  const [w4, a4, w01] = [pid(0), pid(1), pid(2)];
+  assert.deepEqual(L.herdOffers(b, w4).map((o) => o.sp), ['melkvee', 'schapen', 'kippen']);
+  assert.equal(L.herdOffers(b, w4).find((o) => o.sp === 'melkvee').n, 10);
+  assert.deepEqual(L.herdOffers(b, a4), [], 'op een akker loopt geen vee');
+  assert.deepEqual(L.herdOffers(b, w01), [], 'te klein');
+  assert.deepEqual(L.herdOffers(b, 'onbekend'), []);
+  assert.equal(L.herdOffers(b, w4, 100).every((o) => !o.kan), true);
+  const arm = L.buyHerd(b, w4, 'melkvee', 100);
+  assert.equal(arm.ok, false); assert.equal(arm.why, 'te-weinig-geld'); assert.equal(arm.tekort, 14000 - 100); assert.equal(L.herdsOf(b)[w4], undefined);
+  const r = L.buyHerd(b, w4, 'melkvee', 1e6);
+  assert.deepEqual([r.ok, r.n, r.cost], [true, 10, 14000]);
+  assert.equal(L.herdsOf(b)[w4].n, 10);
+  assert.equal(L.buyHerd(b, w4, 'schapen', 1e6).why, 'al-vee');
+  assert.equal(L.buyHerd(b, a4, 'melkvee', 1e6).why, 'past-niet');
+  assert.equal(L.buyHerd(b, 'x', 'melkvee', 1e6).why, 'niet-van-jou');
+});
+t('verkopen: 70 procent van de prijs, de kudde is weg en een tweede keer lukt niet (#1101)', () => {
+  const b = bezitMet(['w', 2]);
+  L.buyHerd(b, pid(0), 'schapen', 1e6);
+  const r = L.sellHerd(b, pid(0));
+  assert.deepEqual([r.ok, r.n, r.value], [true, 20, Math.round(180 * 20 * 0.7)]);
+  assert.equal(L.herdsOf(b)[pid(0)], undefined);
+  assert.equal(L.sellHerd(b, pid(0)).ok, false);
+  assert.ok(L.herdSellValue({ sp: 'melkvee', n: 1 }) < L.ANIMAL_PRICE.melkvee, 'verkopen levert minder op dan kopen kost');
+});
 console.log(`livestock_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

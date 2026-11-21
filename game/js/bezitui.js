@@ -16,6 +16,7 @@ import { hoofdspeler } from './players.js';
 import { districtName } from './bezitnews.js';
 import { MOBILE_SPOTS } from './business.js';
 import { renderSnackPanel } from './snackui.js';
+import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
@@ -58,7 +59,24 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${newsHtml(news)}${empty}` +
     `<div class="bz-filters" role="group" aria-label="Sorteren en filteren"><label class="bz-sel">Sorteren<select data-bz-sort>${H.SORTS.map((s) => `<option value="${s}"${ui.sort === s ? ' selected' : ''}>${SORT_NAME[s]}</option>`).join('')}</select></label>` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
-    (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : '') + staffHtml + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
+    (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
+}
+
+// ---- Vee (#1101): kuddes op je weilanden, een kudde kopen (past op de grootte van het perceel) of verkopen; per speler (#429) ----
+const MAX_VEE_ROWS = 12;
+export function veeHtml(bezit, rows, money = 0) {
+  const weiden = rows.filter((r) => r.kind === 'w' && !((bezit.parcels[r.id] || {}).lg));
+  const kuddes = weiden.filter((r) => r.herd);
+  const vrij = weiden.filter((r) => !r.herd && herdOffers(bezit, r.id).length);
+  const herds = herdsOf(bezit);
+  const kudde = kuddes.map((r) => `<div class="bd-rij" data-vee="${esc(r.id)}"><span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${SPECIES[r.herd.sp].naam}</span><span>${r.herd.n} ${r.herd.n === 1 ? 'dier' : 'dieren'}</span>${r.herd.sick > 0 ? '<span class="bz-zwak">Ziek: dierenarts nodig</span>' : '<span>Gezond</span>'}</span></span>` +
+    `<span class="bd-acties">${askOr('verkoop-vee', r.id, `Verkopen · ${euro(herdSellValue(herds[r.id]))}`, 'Zeker?')}</span></div>`).join('');
+  const aanbod = vrij.slice(0, MAX_VEE_ROWS).map((r) => `<div class="bd-rij" data-vee-vrij="${esc(r.id)}"><span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${ha(r.ha)} ha weiland</span><span>nog geen vee</span></span></span><span class="bd-acties">` +
+    herdOffers(bezit, r.id, money).map((o) => btn('koop-vee', `${o.naam} · ${o.n} · ${euro(o.cost)}`, ` data-id="${esc(r.id)}" data-sp="${o.sp}"`, !o.kan)).join(' ') + '</span></div>').join('');
+  const leeg = !weiden.length ? '<p class="mut">Je hebt nog geen weiland. Vee loopt op een weiland van jou: koop er een bij Te koop.</p>'
+    : !kuddes.length && !vrij.length ? '<p class="mut">Je weilanden zijn te klein voor vee.</p>' : '';
+  const meer = vrij.length > MAX_VEE_ROWS ? `<p class="mut">En nog ${vrij.length - MAX_VEE_ROWS} weilanden zonder vee.</p>` : '';
+  return `<h3 class="m-h3">Vee</h3>${leeg}${kudde}${aanbod}${meer}`;
 }
 
 // ---- Nieuws van het land (bezitnews.js): hoogstens vijf regels, de buurman met een keuze en de trekkertrek ----
@@ -210,6 +228,8 @@ function act(world, d, els) {
   else if (a === 'plek') ui.msg = L.setPitch(id, d.spot).text;
   else if (a === 'reno-mobiel') ui.msg = L.renoveerMobiel(world, id).text;
   else if (a === 'huur') ui.msg = L.huurArbeider(world, Number(d.skill)).text;
+  else if (a === 'koop-vee') ui.msg = L.koopVee(world, id, d.sp).text;
+  else if (a === 'verkoop-vee') { if (!ask(a)) ui.msg = L.verkoopVee(world, id).text; }
   else if (a === 'ontsla') { if (!ask(a)) { L.ontslaArbeider(id); ui.msg = 'Ontslagen. De percelen van die arbeider staan weer op Zelf.'; } }
   else if (a.startsWith('bulk-')) {
     const ids = H.selectedIds(ui.sel, rows);

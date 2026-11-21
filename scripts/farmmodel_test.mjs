@@ -6,6 +6,8 @@ const B = await import('../game/js/boerderij.js');
 const PC = await import('../game/js/percelen.js');
 const M = await import('../game/js/farmmodel.js');
 const Live = await import('../game/js/boerderijlive.js');
+const Z = await import('../game/js/bezit.js');
+const LS = await import('../game/js/livestock.js');
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -51,7 +53,7 @@ t('rijp staat bovenaan en de hoofdknop wijst naar dat veld', () => {
   assert.equal(o.rijp, 1);
   assert.equal(o.hoofd.veld, id);
   assert.match(o.hoofd.label, /rijpe veld/);
-  assert.equal(o.dieren, null, 'dieren bestaan in dit spel niet: het scherm zegt dat');
+  assert.deepEqual(o.dieren, [], 'zonder bezit geen dieren');
   assert.equal(o.leeg, false);
 });
 
@@ -82,5 +84,17 @@ t('zonder velden is het overzicht leeg en heeft het geen hoofdknop', () => {
   assert.equal(o.hoofd, null);
 });
 
+t('dieren (#1101): zonder bezit een lege lijst, met vee een regel per kudde met soort, aantal en opbrengst', () => {
+  assert.deepEqual(M.dierenLijst(null), []);
+  assert.deepEqual(M.overzicht(b).dieren, [], 'zonder bezit geen dieren');
+  const bz = Z.newBezit();
+  bz.parcels[id] = { k: 'w', ha: 4, t: 0, p: 3000, w: 0, m: 'self' };
+  assert.equal(LS.stockHerd(bz, id, 'melkvee').ok, true);
+  const lijst = M.dierenLijst(bz);
+  assert.equal(lijst.length, 1);
+  assert.deepEqual([lijst[0].soort, lijst[0].n, lijst[0].ziek, lijst[0].perDag, lijst[0].eenheid], ['Melkvee', 10, false, 220, 'liter']);
+  LS.infect(LS.herdsOf(bz)[id]);
+  assert.equal(M.overzicht(b, bz).dieren[0].ziek, true);
+});
 console.log(`farmmodel_test: ${n - fails}/${n}`);
 if (fails) process.exit(1);
