@@ -298,7 +298,7 @@ export const ACHIEVEMENTS = [
 const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));
 
 let life = blankLife();
-let perSave = { eierballen: new Set() };
+let perSave = { eierballen: new Set(), beppe: new Set() };
 let world = null;
 let writeTimer = 0;
 let toastEl = null;
@@ -645,15 +645,16 @@ export function recordChallengeResult(w, id, { value, medal = 0, lower = false }
 // --- savegame ---------------------------------------------------------------
 
 export function getAchievementSaveData() {
-  return { eierballen: [...getSaveSet('eierballen')], geheimen: [...getSaveSet('geheimen')], knutselwagen: [...getSaveSet('knutselwagen')], unlocked: Object.keys(life.unlocked) };
+  return { eierballen: [...getSaveSet('eierballen')], geheimen: [...getSaveSet('geheimen')], knutselwagen: [...getSaveSet('knutselwagen')], beppe: [...getSaveSet('beppe')], unlocked: Object.keys(life.unlocked) };
 }
 
 export function applyAchievementSaveData(d) {
-  perSave = { eierballen: new Set(), geheimen: new Set(), knutselwagen: new Set() };
+  perSave = { eierballen: new Set(), geheimen: new Set(), knutselwagen: new Set(), beppe: new Set() };
   if (!d || typeof d !== 'object') return;
   if (Array.isArray(d.eierballen)) for (const id of d.eierballen) if (typeof id === 'string') perSave.eierballen.add(id);
   if (Array.isArray(d.geheimen)) for (const id of d.geheimen) if (typeof id === 'string') perSave.geheimen.add(id);
   if (Array.isArray(d.knutselwagen)) for (const id of d.knutselwagen) if (typeof id === 'string') perSave.knutselwagen.add(id);
+  if (Array.isArray(d.beppe)) for (const id of d.beppe) if (typeof id === 'string') perSave.beppe.add(id); // het Beppe-verhaal (#1063): per save
   let merged = false;
   if (Array.isArray(d.unlocked)) {
     for (const id of d.unlocked) if (BY_ID.has(id) && !life.unlocked[id]) { life.unlocked[id] = 1; merged = true; }

@@ -20,6 +20,7 @@
 // data and has not been seen in the game yet.
 
 import { FAREWELL, HOUSE_ARRIVAL, TODO } from './beppe_texts.js';
+import { OPEN } from './beppe_visit_texts.js';
 
 // The world end whose road this place follows (worldends.js / ommelandlines.js).
 export const BEPPE_END_ID = 'friesland';
@@ -340,11 +341,11 @@ export function housePoint(site, lx, lz) {
 // The special map icon for the garden bench (hud_panel.js draws kind 'beppe' in
 // its own style): always visible so the place can be found, and it offers the
 // route as a place goal (a click on the marker) plus its Te-doen card.
-export function markerOf(site) {
+export function markerOf(site, open = false) {
   if (!site || !site.gardenBench) return null;
   const x = site.gardenBench.x, y = site.gardenBench.y;
   return {
-    kind: 'beppe', x, y, name: HOUSE_ARRIVAL.title, sub: TODO.sub,
+    kind: 'beppe', x, y, name: HOUSE_ARRIVAL.title, sub: open ? OPEN.sub : TODO.sub,
     goal: { kind: 'place', name: TODO.title, sub: TODO.sub, x, y },
     todo: TODO_KEY,
   };
@@ -360,7 +361,7 @@ export function farewellGuide(site, found = false) {
 
 // The "Te doen" entry (group Ommeland) for the place: made by this pure module
 // so the test can check it; beppe_garden fills in the site and the found state.
-export function tributeTodo(site, found = false) {
+export function tributeTodo(site, found = false, open = false) {
   if (!site || !site.gardenBench) return null;
   const x = site.gardenBench.x, y = site.gardenBench.y;
   return {
@@ -368,7 +369,7 @@ export function tributeTodo(site, found = false) {
     status: found ? 'klaar' : '', meta: TODO.meta, medal: null,
     record: found ? TODO.done : '', x, y,
     goal: { kind: 'place', name: TODO.title, sub: TODO.sub, x, y },
-    detail: { kicker: TODO.kicker, text: TODO.text, rows: [] },
+    detail: { kicker: TODO.kicker, text: open ? `${OPEN.todoText} ${TODO.text}` : TODO.text, rows: [] },
   };
 }
 

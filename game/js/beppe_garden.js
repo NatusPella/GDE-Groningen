@@ -49,6 +49,7 @@ import { repairVehicle } from './garages.js';
 import { isOwnVehicle } from './ownedvehicles.js';
 import { WEAPON_STOCK } from './shops.js';
 import { addStaticCollider } from './breakables.js';
+import { buildBeppeRoom, visitPrompt, visitInteract, visitTick, dropInside, resetVisit, visitDebug, visitStatus } from './beppe_binnen.js'; // #1063: the inside
 
 const BUILD_R = 340, DROP_R = 520, ANIM_R = 160;
 const TILES_R = 320; // the tiles this far round the border must be in before the site is final
@@ -66,6 +67,8 @@ let retryAt = 0;
 let tries = 0;
 let warned = false;
 const sessionMarks = {};
+// What beppe_binnen.js needs of this place: the site and the two groups (the house outside, the room inside).
+const visitCtx = { site: () => site, get room() { return built && built.room; }, get house() { return built && built.house; } };
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -523,7 +526,10 @@ function build() {
   const gardenY = groundAt(map, site.gardenBench.x, site.gardenBench.y);
   root.add(placeGroup(benchMesh(plaqueTexture(), own), site.bench, benchY));
   root.add(placeGroup(kollumSign(own), site.sign, signY));
-  root.add(placeGroup(houseMesh(own), site.house, houseY));
+  const houseGroup = placeGroup(houseMesh(own), site.house, houseY);
+  const roomGroup = placeGroup(buildBeppeRoom(own), site.house, houseY); // the inside, hidden until the door is used (#1063)
+  root.add(houseGroup);
+  root.add(roomGroup);
   root.add(placeGroup(gardenMesh(own), site.house, houseY));
   root.add(placeGroup(benchMesh(null, own), site.gardenBench, gardenY));
   scene.add(root);
@@ -533,12 +539,13 @@ function build() {
   scene.add(pigeonGroup);
   const birdhouse = housePoint(site, 9.4, -2.6);
   birds = makeBirds(pigeonGroup, birdhouse.x, birdhouse.y, 2.6, 8, {});
-  built = { root, own, pigeonGroup };
+  built = { root, own, pigeonGroup, house: houseGroup, room: roomGroup };
   addColliders();
 }
 
 function drop() {
   if (!built) return;
+  dropInside(world, visitCtx);
   built.root.removeFromParent();
   for (const r of built.own) if (r && typeof r.dispose === 'function') r.dispose();
   built.pigeonGroup.removeFromParent();
@@ -660,6 +667,8 @@ function useNow(w) {
 export function beppePrompt(w) {
   if (!w || !world || !site || !built) return null;
   if (w.paused || w.uiPaused || w.pigeonMode || w.heliRun) return null;
+  const inHouse = visitPrompt(w, visitCtx); // the door and the room (#1063)
+  if (inHouse) return inHouse;
   const id = useNow(w);
   if (id === 'bench') {
     return { id: 'beppe-bankje', x: site.bench.x, y: site.bench.y, h: 1.3, key: 'E', label: LAST_BENCH.promptLabel, sub: LAST_BENCH.promptSub, ring: true };
@@ -672,6 +681,7 @@ export function beppePrompt(w) {
 
 export function tryBeppeGardenInteract(w) {
   if (!w || !w.input || !site) return false;
+  if (visitInteract(w, visitCtx)) return true;
   const id = useNow(w);
   if (!id) return false;
   if (!(w.input.wasPressed('e') || w.input.wasPressed('f'))) return false;
@@ -683,7 +693,8 @@ export function tryBeppeGardenInteract(w) {
   }
   // the garden bench: the rest stop, every visit (the weapons and the repaired
   // vehicles are idempotent); the remembrance card only the first time
-  const first = !hasUnique(TRIBUTE.set, TRIBUTE.remembrance);
+  // the remembrance card belongs to the memory phase (#1063): while she lives the bench is only a rest stop
+  const first = visitStatus().phase === 'herinnering' && !hasUnique(TRIBUTE.set, TRIBUTE.remembrance);
   gift(w);
   if (first) recordUnique(w, TRIBUTE.set, TRIBUTE.remembrance);
   showRemembranceCard(w, first);
@@ -694,6 +705,7 @@ export function tryBeppeGardenInteract(w) {
 export function updateBeppeGarden(dt, w) {
   if (!w || !w.map || !w.map.store) return;
   world = w;
+  visitTick(dt, w, visitCtx); // the invitation once the house is open, and the room while inside (#1063)
   ensureSite();
   if (!site || site.provisional) return; // the tiles round the place are not in yet (#916)
   const p = hoofdspeler(w);
@@ -713,7 +725,7 @@ export function updateBeppeGarden(dt, w) {
   if (d < LAYOUT.arrivalR) showArrivalCard(w);
   // the memory also comes when the player walks up to the house without using
   // the bench (the garden bench is the normal way)
-  if (!hasUnique(TRIBUTE.set, TRIBUTE.remembrance) && near(p, site.house, LAYOUT.houseR)) {
+  if (visitStatus().phase === 'herinnering' && !hasUnique(TRIBUTE.set, TRIBUTE.remembrance) && near(p, site.house, LAYOUT.houseR)) {
     const first = true;
     recordUnique(w, TRIBUTE.set, TRIBUTE.remembrance);
     gift(w);
@@ -739,6 +751,9 @@ export function initBeppeGarden(w) {
   warned = false;
   retryAt = 0;
   worldClock = false;
+  resetVisit();
+  // dying or being arrested puts the player elsewhere: out of the room, without a walk to the door
+  if (Array.isArray(w.onRespawn)) w.onRespawn.push((ww) => dropInside(ww, visitCtx));
   // The post-game guided route (postgame.js) asks this: point at the place
   // until the remembrance there has been read. A closure, so the site may
   // still be computed later; no import from postgame here (no cycle).
@@ -753,6 +768,7 @@ export function initBeppeGarden(w) {
         gardenBench: site.gardenBench, marker: markerOf(site),
       } : null),
       gift: () => gift(world),
+      visit: () => visitDebug(),
       place: () => ensureSite(),
       go: (spot = 'bench') => {
         const p = hoofdspeler(world), s = site && site[spot];
@@ -770,7 +786,7 @@ export function initBeppeGarden(w) {
 // map also knows the bench before the player has been near the place.
 export function beppeMapSpot() {
   ensureSite();
-  return markerOf(site);
+  return markerOf(site, visitStatus().unlocked);
 }
 
 // The "Te doen" entry (todo.js asks for it): the place as a goal, and done once
@@ -778,7 +794,7 @@ export function beppeMapSpot() {
 export function beppeTodoItem(w) {
   ensureSite();
   if (!site) return null;
-  return tributeTodo(site, !!(w && hasUnique(TRIBUTE.set, TRIBUTE.remembrance)));
+  return tributeTodo(site, !!(w && hasUnique(TRIBUTE.set, TRIBUTE.remembrance)), visitStatus().unlocked);
 }
 
 export function beppeSpots() {
