@@ -1378,6 +1378,30 @@
       "steamApiNaam": ""
     },
     {
+      "id": "pimp_1",
+      "titel": "Pimp my Ride",
+      "omschrijving": "Laat je eerste wijziging installeren in een pimp-werkplaats",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_PIMP_1",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "garagebaas",
+      "titel": "Garagebaas",
+      "omschrijving": "Laat 10 keer iets installeren in een pimp-werkplaats",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GARAGEBAAS",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "hele_show",
+      "titel": "Hele show",
+      "omschrijving": "Pimp een voertuig met minstens 12 onderdelen tegelijk",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_HELE_SHOW",
+      "steamApiNaam": ""
+    },
+    {
       "id": "ingericht",
       "titel": "Helemaal ingericht",
       "omschrijving": "Zet alle EIKEA-meubels in jullie flat",

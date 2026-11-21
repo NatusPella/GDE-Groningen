@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { UNLIT_LAMP } from './nightlights3d.js';
+import { lookCode } from './vehiclelook.js';
 
 // Sleeping parked cars (parkedcars.js) drawn as a handful of merged, static
 // meshes: every 64 m chunk bakes its cars into one geometry per material
@@ -12,7 +13,9 @@ const CHUNK = 64;
 const BUILD_BUDGET_MS = 0.9;
 const SLICE = 1500; // vertices written between budget checks
 
-const protos = new Map(); // model object -> { parts, shadows }
+const protos = new Map(); // model object (of een gepimpte auto: een tekstsleutel) -> { parts, shadows, glows }
+const PROTO_MAX = 64; // gepimpte auto's hebben elk een eigen sleutel: de oudste vallen weg en worden zo nodig opnieuw gebouwd (leakwatch)
+let glowNight = false; // epic Autotuning (#1155): de underglow van geparkeerde auto's brandt alleen 's nachts
 const chunks = new Map(); // key -> { cars: Set, meshes: [], dirty }
 let root = null;
 
@@ -31,16 +34,21 @@ const _m = new THREE.Matrix4();
 const _car = new THREE.Matrix4();
 const _nm = new THREE.Matrix3();
 
+// De sleutel van het model: de modelobjecten zelf zijn gedeeld; een gepimpte auto deelt zijn voorbeeld met elke auto met dezelfde look en lak.
+const protoKey = (v) => (v.look ? 't|' + [v.model.name, v.model.len, v.model.wid, v.model.color, lookCode(v.look, 'auto')].join('|') : v.model);
+
 function protoFor(v, buildActor) {
-  let p = protos.get(v.model);
+  const key = protoKey(v);
+  let p = protos.get(key);
   if (p) return p;
   const actor = buildActor(v);
   actor.position.set(0, 0, 0);
   actor.rotation.set(0, 0, 0);
   actor.updateMatrixWorld(true);
-  const parts = [], shadows = [];
+  const parts = [], shadows = [], glows = [];
   const shadowMesh = actor.userData.shadow;
   actor.traverse((o) => {
+    if (o.isMesh && o.name === 'lookGlow') { glows.push({ geo: o.geometry, matrix: o.matrixWorld.clone(), material: o.material }); return; } // de underglow: een eigen laag, alleen 's nachts
     if (!o.isMesh || !o.visible) return;
     // parked: lamp lenses unlit (index 2 is the vehicles' unshaded lamp material)
     const lamp = Array.isArray(o.material) && o.material[2];
@@ -54,8 +62,9 @@ function protoFor(v, buildActor) {
     const entry = { geo: o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, matrix: o.matrixWorld.clone(), material: o.material };
     (o === shadowMesh ? shadows : parts).push(entry);
   });
-  p = { parts, shadows };
-  protos.set(v.model, p);
+  p = { parts, shadows, glows };
+  protos.set(key, p);
+  if (protos.size > PROTO_MAX) protos.delete(protos.keys().next().value);
   return p;
 }
 
@@ -133,13 +142,14 @@ function newMesh(buckets, cast) {
 
 // Generator: fills the chunk's new buffers slice by slice, then swaps them in.
 function* bakeJob(chunk, buildActor) {
-  const body = new Map(), shade = new Map();
+  const body = new Map(), shade = new Map(), glow = new Map();
   for (const v of chunk.cars) {
-    if (!protos.has(v.model)) yield 'proto';
+    if (!protos.has(protoKey(v))) yield 'proto';
     const p = protoFor(v, buildActor);
     _car.makeRotationY(-v.angle).setPosition(v.x, 0, v.y);
     for (const part of p.parts) bake(body, part, _m.multiplyMatrices(_car, part.matrix), v);
     for (const part of p.shadows) bake(shade, part, _m.multiplyMatrices(_car, part.matrix), v);
+    for (const part of p.glows) bake(glow, part, _m.multiplyMatrices(_car, part.matrix), v);
   }
   const built = [newMesh(body, true), newMesh(shade, false)].filter(Boolean);
   const ranges = new Map();
@@ -158,12 +168,22 @@ function* bakeJob(chunk, buildActor) {
     mesh.geometry.computeBoundingSphere();
   }
   if (built[1]) built[1].mesh.renderOrder = 1;
+  const glowBuilt = newMesh(glow, false);
+  if (glowBuilt) { glowBuilt.mesh.renderOrder = 2; glowBuilt.mesh.name = 'parked-glow'; glowBuilt.mesh.visible = glowNight; built.push(glowBuilt); }
   for (const m of chunk.meshes) { root.remove(m); m.geometry.dispose(); }
   chunk.meshes = built.map((b) => b.mesh);
   for (const m of chunk.meshes) root.add(m);
   chunk.ranges = ranges;
   // cars that left while this job ran
   for (const car of [...ranges.keys()]) if (!chunk.cars.has(car)) collapse(chunk, car);
+}
+
+// 's nachts aan, overdag uit: de underglow van de geparkeerde auto's (een laag per blok, geen losse lichten).
+export function setParkedGlowNight(night) {
+  const on = night > 0.3;
+  if (on === glowNight) return;
+  glowNight = on;
+  for (const c of chunks.values()) for (const m of c.meshes) if (m.name === 'parked-glow') m.visible = on;
 }
 
 // Degenerates a car's triangles in place: gone this frame, no rebake needed.

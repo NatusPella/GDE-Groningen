@@ -11,6 +11,8 @@ import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { hash3 as hash } from './rng.js';
+import { tuneParkedBay, tickMeet } from './tuningtraffic.js'; // gepimpte auto's in de wereld (epic Autotuning, #1155)
+import { isMeetLotId } from './tuningworld.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -99,6 +101,13 @@ export function slotFits(map, road, x, y, angle, m, outX, outY) {
   return !map.isOnBridge(x, y);
 }
 
+// Een klein deel van de vakken krijgt een gepimpte auto (vast per vak, zie tuningtraffic.js); een treffenplek meer.
+function decorate(world, s, meet = false) {
+  const t = tuneParkedBay(world, s, s.model.name, { meet });
+  if (t) { s.look = t.look; s.model = { ...s.model, color: t.color }; if (meet) s.meet = true; }
+  return s;
+}
+
 // Yields after every footprint test (the expensive part), so a cell can be
 // spread over several frames; returns the cell's slots.
 function* genCell(world, st, gx, gy) {
@@ -128,7 +137,7 @@ function* genCell(world, st, gx, gy) {
           if (x < x0 || x >= x0 + CELL || y < y0 || y >= y0 + CELL) continue;
           const fits = slotFits(map, r, x, y, angle, m, nx, ny);
           yield;
-          if (fits) slots.push({ x, y, angle, model: m, v: null, taken: false });
+          if (fits) slots.push(decorate(world, { x, y, angle, model: m, v: null, taken: false }));
         }
       }
     }
@@ -143,7 +152,7 @@ function* genCell(world, st, gx, gy) {
     if (m.len > b.len - 0.3 || m.wid > b.wid + 0.1) continue;
     const free = !slotOverlaps(slots, b.x, b.y, b.angle, m, 0.3) && !(map.reservedAt && map.reservedAt(b.x, b.y));
     yield;
-    if (free) { slots.push({ x: b.x, y: b.y, angle: b.angle, model: m, v: null, taken: false, bay: true }); inBays++; }
+    if (free) { slots.push(decorate(world, { x: b.x, y: b.y, angle: b.angle, model: m, v: null, taken: false, bay: true }, isMeetLotId(b.id))); inBays++; }
   }
   return slots;
 }
@@ -328,6 +337,7 @@ export function tickParkedCars(world) {
   const st = states.get(world);
   if (!st) return;
   const p = hoofdspeler(world);
+  tickMeet(world, p, st.sleeping, performance.now() / 1000); // autotreffen: een melding en een praatje (tuningtraffic.js, epic Autotuning #1155)
   // de gastheer zelf, plus elke losse groep spelers (#429): een gast wekt de auto waar hij bij staat (#434)
   const foci = p ? [p, ...(world.coopFoci || []).filter((f) => !f.host)] : [];
   if (st.sleeping.size) {
@@ -416,6 +426,7 @@ function spawnInto(world, st) {
     if (vehicleInTheWay(world, s.x, s.y, s.model)) continue;
     const v = new Vehicle(s.x, s.y, s.angle, s.model);
     v.parked = true;
+    if (s.look) v.look = s.look;
     v.parkSlot = s;
     s.v = v;
     st.active.add(v);

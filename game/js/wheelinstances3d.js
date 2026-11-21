@@ -34,6 +34,15 @@ function poolFor(geo, mat, cast) {
   return p;
 }
 
+// Een geëvicteerde wielgeometrie (vehiclelook3d.js) laat ook zijn pool los: anders groeit de lijst met elke nieuwe look.
+export function forgetWheelPool(geo) {
+  for (const [k, p] of pools) {
+    if (p.geo !== geo) continue;
+    if (p.mesh) { p.mesh.removeFromParent(); p.mesh.dispose(); }
+    pools.delete(k);
+  }
+}
+
 function grow(p, need) {
   const cap = Math.max(32, p.cap * 2, need);
   const m = new THREE.InstancedMesh(p.geo, p.mat, cap);

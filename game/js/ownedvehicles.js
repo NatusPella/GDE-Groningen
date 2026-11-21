@@ -74,6 +74,10 @@ import { getHomeForRender, getHomeMooringForRender, getHomePad, homeWhereLabel }
 import { eigenTruckHook, isVrachtTruck } from './vrachtkosten.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
+import { storedLookOf, loadLooks } from './vehiclelookstore.js';
+import { lookCode } from './vehiclelook.js';
+import { loadTuning, sanitizeTuning } from './tuningplan.js';
+import { KEYS } from './storagekeys.js'; // de uiterlijk-tuning op de garagekaarten (epic Autotuning, #1155)
 const DELIVERY_COOLDOWN = 30;
 const HELI_FERRY_FEE = 60;
 const NEAR_M = 200;
@@ -462,7 +466,7 @@ function statusOf(world, v, lost, kind, key) {
   return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: ommelandArea(v.x, v.y) ? 'In het Ommeland' : 'Ergens in Grunn', dist: d };
 }
 
-function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
+function view(world, { id, hero, spec, color, upgrades, v, lost, key, tune }) {
   const list = upgradeListForStock(spec);
   const perf = perfModel(spec.model, upgrades, list);
   // the top the player gets out of it (vehicle.js playerTune), scaled by its upgrades
@@ -471,7 +475,7 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
   const where = v && status.key !== 'garage' && status.key !== 'lost' ? placeOf(world.map, v.x, v.y) : null;
   const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : status.key === 'garage' && (spec.kind === 'heli' || spec.kind === 'boat') ? 0 : spec.kind === 'heli' ? HELI_FERRY_FEE : REDELIVERY_FEE;
   return {
-    id, key, hero, owned: true, v, spec,
+    id, key, hero, owned: true, v, spec, tune,
     ...nameOf(spec, v),
     kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color,
     paint: paintLabel(color, hero ? 'Fjordrood' : 'Fabriekskleur'),
@@ -546,12 +550,12 @@ export function getGarageList(world) {
   const look = getHeroLook();
   out.push(view(world, {
     id: 'hero', key: 'hero', hero: true, spec: HERO_SPEC, color: look.color || HERO_SPEC.color,
-    upgrades: look.upgrades, v: hero, lost: !hero && !eigenOpzij(world),
+    upgrades: look.upgrades, v: hero, lost: !hero && !eigenOpzij(world), tune: storedLookOf('hero'),
   }));
   for (const o of getOwnedEntries()) {
     out.push(view(world, {
       id: o.key, key: o.key, hero: false, spec: o.spec, color: o.color,
-      upgrades: o.v ? o.v.upgrades || [] : o.upgrades || [], v: o.v, lost: !!o.lost,
+      upgrades: o.v ? o.v.upgrades || [] : o.upgrades || [], v: o.v, lost: !!o.lost, tune: storedLookOf(o.key),
     }));
   }
   return out;
@@ -580,7 +584,19 @@ export function bezorgGegevens(world, id) {
     health: Number.isFinite(dmg.health) ? dmg.health : 100,
     dents: Array.isArray(dmg.dents) ? dmg.dents.slice(-12).map((d) => d.slice(0, 3)) : [],
     flat: dmg.flat === true,
+    tuning: bezorgTuning(id),
   };
+}
+
+// De tuning van je voertuig voor de bezorging (epic Autotuning #1155): de onderdelen en de compacte look-code. null als er niets op zit.
+function bezorgTuning(id) {
+  try {
+    const st = typeof localStorage !== 'undefined' ? localStorage : null;
+    const parts = sanitizeTuning(loadTuning(st, KEYS.tuning)[id]);
+    const rec = loadLooks(st, KEYS.tuningLook)[id];
+    const look = rec && rec.code ? rec.code : '';
+    return Object.keys(parts).length || look ? { look, parts } : null;
+  } catch (e) { return null; }
 }
 
 // Garage glyph: bus/truck/boat get their own silhouette.

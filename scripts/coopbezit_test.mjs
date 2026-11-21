@@ -7,8 +7,9 @@ import {
   RECHTEN, STANDAARD_RECHT, STANDAARD_PAND_RECHT, MAX_BEZORG, MAX_PANDEN, SOORTEN, PAND_SLEUTEL,
   nieuweDeelStaat, rechtVan, zetDeelRecht, wisselRecht, magGebruiken, leesBezorg, bezorgEvent,
   pandEvent, bezorgVraag, pandVraag, bezorgControle, bezorgHost, bezorgPandHost, bezorgWeg,
-  bezorgAllesWeg, zetDeelHaken, soortVan,
+  bezorgAllesWeg, zetDeelHaken, soortVan, TUNING_VELD, leesTuning,
 } from '../game/js/coopbezit.js';
+import { lookCode } from '../game/js/vehiclelook.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log('ok  ' + naam); };
@@ -294,6 +295,24 @@ t('geen staat of geen gastheer: niets breekt', () => {
   assert.equal(bezorgVraag({}, { id: 'hero', kind: 'car' }).ok, false, 'zonder sessie geen bezorging');
   assert.equal(pandVraag({}, { id: 'h:wp:WP1017', x: 1, y: 2, ang: 0 }).ok, false, 'zonder sessie geen pand');
   assert.equal(bezorgHost({ coopNet: { role: 'client' } }, 1, pandBody()), false, 'een gast is geen host');
+});
+
+// de tuning van een bezorgd voertuig (epic Autotuning #1155): onderdelen en look-code reizen mee, gecontroleerd, optioneel
+t('tuning: TUNING_VELD, leesTuning en een oud bericht zonder het veld', () => {
+  assert.equal(TUNING_VELD, 'tuning');
+  const code = lookCode({ spoiler: 'wing', glow: '#6fd3e0' });
+  assert.deepEqual(leesTuning({ look: code, parts: { banden: 'b-race', ophanging: 'h-sport' } }), { look: code, parts: { banden: 'b-race', ophanging: 'h-sport' } });
+  assert.equal(leesTuning(null), null);
+  assert.equal(leesTuning({ look: 'nep', parts: { banden: 'bestaat-niet' } }), null, 'onzin wordt niets');
+  assert.equal(leesTuning({ look: 'L1' + 'x'.repeat(200), parts: {} }), null, 'te lange code geweigerd');
+  assert.deepEqual(leesTuning({ look: '', parts: { uitlaat: 'u-knal', evil: 'x' } }), { look: '', parts: { uitlaat: 'u-knal' } }, 'alleen echte onderdelen');
+  const body = { k: 'bezorg', soort: 'voertuig', id: 'hero', color: '#a11f1f', upgrades: [], dents: [], health: 90, flat: false, tuning: { look: code, parts: { banden: 'b-race' } } };
+  const v = leesBezorg(body);
+  assert.equal(v.tuning.look, code);
+  assert.equal(leesBezorg({ ...body, tuning: undefined }).tuning, null, 'een ouder bericht heeft geen tuning');
+  const ev = bezorgEvent({ id: 'hero', color: '#a11f1f', upgrades: [], dents: [], health: 90, tuning: { look: code, parts: {} } }, 'iedereen');
+  assert.equal(ev.tuning.look, code);
+  assert.equal('tuning' in bezorgEvent({ id: 'hero', color: '#a11f1f' }, 'iedereen'), false, 'zonder tuning blijft het bericht zoals het was');
 });
 
 console.log(`coopbezit_test: ${n}/${n} ok`);

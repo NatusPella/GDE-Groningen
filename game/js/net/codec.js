@@ -62,7 +62,8 @@ export function decodeInput(buf) {
 // in 'looks': hoogstens MAX_LOOKS records per snapshot, zodat 60 voertuigen binnen een pakket blijven.
 // --- voertuigstaat en uiterlijk (#428) ---
 const LOOK_DENTS = 8;
-const LOOK_MAX = 2 + 1 + 2 + 2 + 1 + 3 + 3 + 1 + 1 + LOOK_DENTS * 3 + 1; // lengte van het grootste record, zonder id en lengtebyte
+const LOOK_TUNE = 96; // de uiterlijk-tuning als korte tekst (vehiclelook.js lookCode), optioneel achter de deuken (epic Autotuning #1155)
+const LOOK_MAX = 2 + 1 + 2 + 2 + 1 + 3 + 3 + 1 + 1 + LOOK_DENTS * 3 + 1 + 1 + LOOK_TUNE; // lengte van het grootste record, zonder id en lengtebyte
 function writeVehicleDyn(v, o, e) {
   let fl = (e.fl || 0) & 0xff;
   const z = Number(e.vz) || 0;
@@ -107,6 +108,8 @@ function writeLook(b, v, o, l) {
     v.setInt8(o++, clamp(Math.round(d[1] / 0.05), -127, 127));
     v.setUint8(o++, clamp(Math.round(d[2] * 255), 0, 255));
   }
+  const tune = typeof l.tune === 'string' && /^[\x21-\x7e]+$/.test(l.tune) ? l.tune.slice(0, LOOK_TUNE) : '';
+  if (tune) { v.setUint8(o++, tune.length); for (let i = 0; i < tune.length; i++) v.setUint8(o++, tune.charCodeAt(i)); }
   b[lenAt] = o - start;
   return o;
 }
@@ -123,6 +126,10 @@ function readLook(buf, v, o) {
   if (nd > LOOK_DENTS || o + nd * 3 > end) return null;
   l.dents = [];
   for (let i = 0; i < nd; i++) { l.dents.push([v.getInt8(o) * 0.1, v.getInt8(o + 1) * 0.05, v.getUint8(o + 2) / 255]); o += 3; }
+  if (o < end) { // de tuning-code (een oudere host stuurt hem niet; een ouder spel leest er niet naar en slaat hem via de lengte over)
+    const nt = v.getUint8(o++);
+    if (nt <= LOOK_TUNE && o + nt <= end) { let t = ''; for (let i = 0; i < nt; i++) t += String.fromCharCode(v.getUint8(o + i)); l.tune = t; }
+  }
   return { look: l, o: end }; // een nieuwere host mag er in dezelfde versie velden achter zetten: de lengte bepaalt het einde
 }
 

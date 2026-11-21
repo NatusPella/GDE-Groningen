@@ -72,7 +72,8 @@ import { bindCullHost, cullOffscreenActors, restoreCulledActors, knownGroupSpher
 export { toggleLightRig } from './scene3d/prewarm3d.js';
 import { seaExtra } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
-import { syncParkedLayer } from './parked3d.js';
+import { syncParkedLayer, setParkedGlowNight } from './parked3d.js';
+import { tickVehicleLooks } from './vehiclelook3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
 import { getWaterIndex, waterIndexAt } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
@@ -3396,6 +3397,8 @@ export function update3D(dt, world) {
     endWheels();
   }
   updateNightLights(world, vehicleMeshes, focus.x, focus.y, lightState.night || 0, wetness, dt);
+  tickVehicleLooks(vehicleMeshes, focus.x, focus.y, lightState.night || 0, performance.now() / 1000); // underglow en lucht van gepimpte voertuigen (epic Autotuning #1155)
+  setParkedGlowNight(lightState.night || 0);
   probe.mark('3d:lights');
   stepWarmup(world);
   prewarmLightVariants();

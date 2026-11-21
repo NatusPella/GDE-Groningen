@@ -18,6 +18,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Nieuw: de Pimp-werkplaats. In elke garage, op de werf, bij de fietsenmaker en bij de tuningwinkel staat bovenaan "Pimp-werkplaats" voor je eigen voertuig. Je ziet elke keuze meteen op je auto (draaien met de muis) en betaalt pas bij Installeren: lak en afwerking (glans, metallic, parelmoer, mat), tweede kleur, strepen en stickers (Frituur Zonnedijk, Kwark Racing, Grunn Drift Team en meer), velgen en banden, spoiler, bodykit, diffuser, dakdrager, uitlaat, koplampen, underglow die 's nachts brandt, raamfolie, een verzonnen nummerbord en een hanger. Drie builds per voertuig, voor en na naast elkaar, volledig met controller.
+- Nieuw: Ophanging bij Onderdelen: scherper door de bocht of zachter, nooit meer dan een paar procent. Niet elke garage heeft alles (grote garages hebben meer) en elke dag zijn er drie dagaanbiedingen met 25% korting.
+- Nieuw: de snackwagen is te tunen met luifel, uitstalling (krijtbord, klaptafel, vlaggenlijn), bakkenlicht, frituurdamp, geurpakket, bijtjes en een eigen belettering.
+- Soms rijdt of staat er een gepimpte auto in de stad (hoogstens ongeveer drie op de honderd, in de polder nooit). Heel af en toe is er een autotreffen op een parkeerplaats: kijk rond en neem een frietje. Een gepimpte auto is nooit een reden voor de politie.
+- Samen spelen: medespelers zien jouw gepimpte voertuig, ook als je het laat bezorgen. Tuning kopen kan alleen in je eigen spel.
+- Prestaties: Pimp my Ride, Garagebaas en Hele show.
+
 - Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten
 - Bij de kassa of de bar druk je op E: een winkel van het spel opent zijn eigen menu, een andere winkel of een café verkoopt een klein product; in de kledingwinkel pas je in het pashokje, in een kerk steek je een kaarsje aan
 - Winkels, cafés, kantoren en andere bedrijven zijn altijd open; de woningen van anderen zitten meestal op slot (niet te betreden), een op de vijf staat open
