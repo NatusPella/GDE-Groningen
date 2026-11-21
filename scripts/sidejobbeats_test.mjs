@@ -1,8 +1,8 @@
-// AAA bijbanen, tweede ronde: het ritueel, de klantpraatjes en de reeks (game/js/bijbaanbeats.js), en de koppeling in sidejobs.js.
-//   node scripts/bijbaanbeats_test.mjs
+// AAA bijbanen, tweede ronde: het ritueel, de klantpraatjes en de reeks (game/js/sidejobbeats.js), en de koppeling in sidejobs.js.
+//   node scripts/sidejobbeats_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { BIJBAAN_BEATS, BEAT_LIJNEN, openingVan, klantPraatje, reeksMelding, reeksTekst, reeksBonusPct, eindregel, alleBeatRegels } from '../game/js/bijbaanbeats.js';
+import { BIJBAAN_BEATS, BEAT_LIJNEN, openingVan, klantPraatje, reeksMelding, reeksTekst, reeksBonusPct, eindregel, alleBeatRegels } from '../game/js/sidejobbeats.js';
 
 let n = 0, fails = 0;
 const t = (naam, f) => { n++; try { f(); console.log('ok  ', naam); } catch (e) { fails++; process.exitCode = 1; console.log('FAIL', naam, '\n    ' + (e.message || e)); } };

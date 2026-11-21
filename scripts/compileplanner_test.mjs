@@ -1,7 +1,7 @@
 // Pure test van game/js/compileplanner.js (#1046): budget, volgorde en geen dubbele compilaties.
 import assert from 'node:assert/strict';
 import { CompilePlanner, COMPILE_BUDGET_MS } from '../game/js/compileplanner.js';
-import { withAllVisible, planPrecompile, scanLate, stepIdleCompile, idleCompilePending } from '../game/js/startcompile.js';
+import { withAllVisible, planPrecompile, scanLate, stepIdleCompile, idleCompilePending } from '../game/js/launchcompile.js';
 
 let ok = 0;
 const t = (naam, fn) => { fn(); ok++; };

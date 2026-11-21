@@ -2,7 +2,7 @@
 // Hier komen de uitnodiging (host) en het aansluiten (gast) samen; geen keuze bij
 // Nieuw spel of Doorgaan. Dit is lijm tussen lobbyui.js en coopnet.js; niet in beeld bekeken.
 import { mountLobby } from './lobbyui.js';
-import { startStartMeting, markeerStartStap } from './coopstartmeting.js';
+import { startStartMeting, markeerStartStap } from './multiplayerlaunchtiming.js';
 import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers, vraagStart, vraagStop } from './coopnet.js';
 import { isSoloHost } from './coopsolo.js';
 import { fadeFlash } from './coophud.js';

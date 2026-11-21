@@ -1,6 +1,6 @@
 // De vaarroutelijn in de wereld: één mesh op het wateroppervlak (zeefdruk: donkere rand,
 // routekleur, crème chevrons in vaarrichting). Eén vaste buffergeometrie, geen allocatie per
-// frame; de regels (bemonstering, uitfade, hoogte) staan pure in ../vaarlijn.js.
+// frame; de regels (bemonstering, uitfade, hoogte) staan pure in ../sailline.js.
 // Een eigen module naast routeribbon3d.js (het lint op land); die roept hem alleen aan.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from '../a11y.js';
@@ -10,7 +10,7 @@ import { waterSwellAmp } from '../water3d.js';
 import { INK } from '../mapstyle.js';
 import {
   VAARLIJN, vaarlijnGewenst, vaarlijnTerugval, herbemonster, terugvalPunten, maakLijnBuffers, vulLijn, lijnSleutel,
-} from '../vaarlijn.js';
+} from '../sailline.js';
 
 const OPACITY = 0.92;
 const FADE_S = 0.2;           // microinteractie: erin en eruit in 200 ms

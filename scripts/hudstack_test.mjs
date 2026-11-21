@@ -1,7 +1,7 @@
 // De HUD-kaartenstapel (duivenspot en museum): geen overlap, prioriteit, compact en automatisch wegvallen.
-//   node scripts/hudstapel_test.mjs
+//   node scripts/hudstack_test.mjs
 import assert from 'node:assert/strict';
-import { stapel, overlap, stapelRuimte, duivenKaarten, STAPEL_TOP, STAPEL_GAP } from '../game/js/hudstapel.js';
+import { stapel, overlap, stapelRuimte, duivenKaarten, STAPEL_TOP, STAPEL_GAP } from '../game/js/hudstack.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
@@ -58,7 +58,7 @@ t('de museumkaart: ondertitel en naamplaten blijven buiten de stapel (eigen lane
 // --- vaste zones (#1053, #1058): geen overlap bij 1280x720 en 1920x1080 ---------------------------------------------------------
 import fs from 'node:fs';
 import { uiScaleFor } from '../game/js/hudlook.js';
-import { duivenZones, zoneOverlap, pijlPlek, plaatSelectie, LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, HINTS_LINKS } from '../game/js/hudstapel.js';
+import { duivenZones, zoneOverlap, pijlPlek, plaatSelectie, LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, HINTS_LINKS } from '../game/js/hudstack.js';
 
 const VENSTERS = [[1280, 720], [1920, 1080], [1366, 768], [2560, 1440]];
 const hudPx = (w, h) => { const ui = uiScaleFor(w, h, 1, false); return [w / ui, h / ui]; };
@@ -123,4 +123,4 @@ t('de toetsuitleg staat op één plek: de uitlegkaart "Je bent de duif" en de to
   assert.ok(say.length > 20 && !/\bW\/S\b|Shift|WASD/.test(say), `de missietekst noemt geen toetsen meer: ${say}`);
 });
 
-console.log(`hudstapel_test: ${n}/${n} ok`);
+console.log(`hudstack_test: ${n}/${n} ok`);

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 
 const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 const RR = await import('../game/js/scene3d/routeribbon3d.js');
-const W = await import('../game/js/routeribbonwatch.js');
+const W = await import('../game/js/pathribbonwatch.js');
 let n = 0;
 const ok = (c, m) => { n++; assert.ok(c, m); };
 

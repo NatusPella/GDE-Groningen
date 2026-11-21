@@ -5,7 +5,7 @@
 //  - de rechte lijn, bijgesneden tot N meter vooruit (airLine),
 //  - peiling, afstand, tijd en hoogteadvies voor de navigatiekaart (airGuide),
 //  - aankomst op afstand en hoogte (airArrival),
-//  - en de waakhondregel voor de luchtlijn (airLineFault; de grondstrook zit in routeribbonwatch.js).
+//  - en de waakhondregel voor de luchtlijn (airLineFault; de grondstrook zit in pathribbonwatch.js).
 //
 // Wereldas: x oost, y zuid; de hoek van een voertuig loopt kloksgewijs (plus is rechts).
 // Samen spelen: de route is lokaal per speler; elke speler ziet zijn eigen luchtlijn.

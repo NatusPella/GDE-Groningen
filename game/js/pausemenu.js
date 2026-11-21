@@ -63,7 +63,7 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
-import { maakRegel, zoekRegels, SOORTEN } from './menuzoek.js';
+import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
 import { renderSpullen, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';

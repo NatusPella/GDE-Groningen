@@ -91,7 +91,7 @@ import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
 import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
-import { postenBegin, postenTik, postenWaypoints } from './missieposten.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
+import { postenBegin, postenTik, postenWaypoints } from './missionposts.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)

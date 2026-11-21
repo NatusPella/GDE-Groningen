@@ -58,7 +58,7 @@ import { jobBonusHook } from './latehooks.js';
 import { startKaart, toonRegelkaart } from './regelkaart.js'; // AAA bijbanen: de regelkaart bij de eerste diensten
 import { stingen } from './sfx/stingen.js';
 import { bijbaanKaart, kaartNodig } from './bijbaan_aaa.js';
-import { openingVan, klantPraatje, reeksMelding, reeksTekst, eindregel } from './bijbaanbeats.js'; // AAA bijbanen: begin- en eindritueel, klantpraatjes, zichtbare reeks
+import { openingVan, klantPraatje, reeksMelding, reeksTekst, eindregel } from './sidejobbeats.js'; // AAA bijbanen: begin- en eindritueel, klantpraatjes, zichtbare reeks
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';

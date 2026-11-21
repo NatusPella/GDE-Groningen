@@ -138,7 +138,7 @@ import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { programsPending, programsTotal } from './programwarm.js';
-import { planPrecompile, runPlanner, stepIdleCompile } from './startcompile.js';
+import { planPrecompile, runPlanner, stepIdleCompile } from './launchcompile.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { setHoldGrass } from './grass.js';

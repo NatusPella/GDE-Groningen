@@ -1,6 +1,6 @@
 // Samen spelen (#983, #429): de regels van posten die tegelijk bezet worden (game/js/samenposten.js).
 //   node scripts/samenposten_test.mjs
-// Puur: geen wereld, geen netwerk. De koppeling met de echte stappen staat in scripts/coopmissie_posten_test.mjs.
+// Puur: geen wereld, geen netwerk. De koppeling met de echte stappen staat in scripts/multiplayer_missionposts_test.mjs.
 import assert from 'node:assert/strict';
 import { maakPosten, tik, verdeel, activeer, rolTekst, minimaleTijd, aantalKlaar, nogOpen, voortgangVan, POST_AFNAME } from '../game/js/samenposten.js';
 

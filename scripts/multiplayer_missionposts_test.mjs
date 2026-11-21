@@ -1,6 +1,6 @@
 // Samen spelen (#983, #429): de drie bolwerken van het proefbeleg (M30) worden met meer spelers tegelijk bezet.
-//   node scripts/coopmissie_posten_test.mjs
-// De echte missions.js, missieposten.js en samenposten.js op een platte testkaart (zoals coopmissie_motor_test.mjs). Alleen de kaart en
+//   node scripts/multiplayer_missionposts_test.mjs
+// De echte missions.js, missionposts.js en samenposten.js op een platte testkaart (zoals coopmissie_motor_test.mjs). Alleen de kaart en
 // de opslag zijn vervangen. Bewezen: alleen (en met een toeschouwer) loopt het oude pad; met twee, drie en vier spelers loopt de klok van
 // elke post tegelijk; wegvallen en een speler die er niet bij hoort veranderen de uitkomst niet; de rollen komen als melding per speler.
 import './node3d.mjs';
@@ -180,5 +180,5 @@ t('een nieuwe poging begint zonder de posten van de vorige', () => {
   assert.equal(stap(), eerste(), 'het eerste bolwerk is niet klaar van een vorige poging');
 });
 
-if (fails) console.log(`coopmissie_posten_test: ${n - fails}/${n} ok, ${fails} mislukt`);
-else console.log(`coopmissie_posten_test: ${n}/${n} ok`);
+if (fails) console.log(`multiplayer_missionposts_test: ${n - fails}/${n} ok, ${fails} mislukt`);
+else console.log(`multiplayer_missionposts_test: ${n}/${n} ok`);

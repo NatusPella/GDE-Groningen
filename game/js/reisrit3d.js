@@ -14,7 +14,7 @@ import { carModel, applyFleetFlags } from './trafficfleet.js';
 import { cineDrive } from './cinedrive.js';
 import { taxiBedrag, perronPlek } from './ritcabine.js';
 import { planDriveRoute, insideBuilding } from './routing.js';
-import { ritRoute } from './ritroute.js';
+import { ritRoute } from './ridepath.js';
 import { getRoutes as getSpoorRoutes, addMissionTrain, removeMissionTrain, placeTrain, clearTrackFor } from './railway.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { klokSprongMag } from './coopgroep.js';
@@ -45,7 +45,7 @@ function bouwTaxi(world, optie, dest) {
   const r = planDriveRoute(world, dest, p);
   const pts = schoon(r && !r.noRoute ? r.pts : null);
   if (!P.ritKanEcht('taxi', { pad: pts })) return null;
-  // het pad volgt de weg en snijdt geen gebouw; de taxi start en stopt aan de straatkant (ritroute.js, #882)
+  // het pad volgt de weg en snijdt geen gebouw; de taxi start en stopt aan de straatkant (ridepath.js, #882)
   const rr = ritRoute(pts, { start: { x: p.x, y: p.y }, doel: dest, binnen: (x, y) => insideBuilding(world.map, x, y) });
   const pad = rr.pad;
   if (rr.schendingen > 0) console.warn(`reisrit3d: ${rr.schendingen} punten van het ritpad liggen in een gebouw (data)`);

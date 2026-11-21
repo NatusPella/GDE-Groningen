@@ -30,7 +30,7 @@ Elke `hold`-stap van akte 5 en 6 heeft een `wacht`-figuur met passende prop en e
 
 ## Bijbanen en loopbanen
 
-Nieuw in deze ronde: het ritueel in [`bijbaanbeats.js`](../game/js/bijbaanbeats.js), aangeroepen door `sidejobs.js` bij de start, na elke betaalde klus en bij het einde. Het loon, het niveau en de voortgang veranderen niet.
+Nieuw in deze ronde: het ritueel in [`sidejobbeats.js`](../game/js/sidejobbeats.js), aangeroepen door `sidejobs.js` bij de start, na elke betaalde klus en bij het einde. Het loon, het niveau en de voortgang veranderen niet.
 
 | Lijn | Begin (nu) | Klant/passagier (nu) | Reeks | Eind (nu) | Mist nog |
 |---|---|---|---|---|---|
@@ -58,4 +58,4 @@ Nieuw in deze ronde: het ritueel in [`bijbaanbeats.js`](../game/js/bijbaanbeats.
 
 ## Wat is niet bekeken
 
-Er is in deze ronde **geen Electron gedraaid** en geen beeld bekeken: het slotfeest (staat het op de wal of in de gracht?), de plaatsing van het grote beeld na de poort, de leesbaarheid van de berichten bij een vol HUD (maximaal vier tegelijk) en het slotakkoord op de muziek (`missie_finale` loopt dan al) zijn **nog niet bekeken**. Pure tests dekken: de defs, de stappenaantallen (saves), de teksten (geen merk, geen winter), de reeksformule en de koppeling in `sidejobs.js` (`scripts/akte6_aaa_test.mjs`, `scripts/akte45_aaa_test.mjs`, `scripts/bijbaanbeats_test.mjs`).
+Er is in deze ronde **geen Electron gedraaid** en geen beeld bekeken: het slotfeest (staat het op de wal of in de gracht?), de plaatsing van het grote beeld na de poort, de leesbaarheid van de berichten bij een vol HUD (maximaal vier tegelijk) en het slotakkoord op de muziek (`missie_finale` loopt dan al) zijn **nog niet bekeken**. Pure tests dekken: de defs, de stappenaantallen (saves), de teksten (geen merk, geen winter), de reeksformule en de koppeling in `sidejobs.js` (`scripts/akte6_aaa_test.mjs`, `scripts/akte45_aaa_test.mjs`, `scripts/sidejobbeats_test.mjs`).

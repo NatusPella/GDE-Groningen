@@ -68,7 +68,7 @@ export function duivenKaarten({ introActief, holdActief, hoogteActief, intro = {
 
 // --- vaste zones (#1053, #1058) ------------------------------------------------------------------------------------------------
 // Elk HUD-onderdeel van de duivenmodus en de minigame-lagen (heli, duif) heeft één vaste zone in HUD-px (het venster gedeeld door --ui);
-// deze rechthoeken mogen elkaar nooit raken (hudstapel_test.mjs, bij 1280x720 en 1920x1080). De CSS gebruikt dezelfde getallen
+// deze rechthoeken mogen elkaar nooit raken (hudstack_test.mjs, bij 1280x720 en 1920x1080). De CSS gebruikt dezelfde getallen
 // (pigeonmode.js, pigeonguide.js, hudcards.css, helirun.js); de test leest die bestanden na. Onderdelen die om dezelfde plek strijden
 // (missiekaart, prestatiekaart, nieuwsregel) delen één zone met een prioriteit: het hoogste wint, de rest wacht.
 export const LINKS_RAND = 46;       // px: de linkerrand van de HUD (--hud-edge)

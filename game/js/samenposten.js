@@ -2,7 +2,7 @@
 // van het proefbeleg bij Bourtange) wordt met meer spelers verdeeld: elke speler neemt een eigen post en de klok van elke post loopt
 // door zolang er iemand staat. Alleen is het precies de oude volgorde (één post per keer): dezelfde tijd per post, dezelfde
 // afname buiten de kring (de helft van de oploopsnelheid, zoals bij een `hold`-stap). Puur: geen three.js, geen wereld, geen netwerk
-// (scripts/samenposten_test.mjs). De koppeling met de stappen staat in missieposten.js.
+// (scripts/samenposten_test.mjs). De koppeling met de stappen staat in missionposts.js.
 
 export const POST_AFNAME = 0.5;      // buiten de kring zakt de klok half zo snel als hij loopt (zoals missions.js bij `hold`)
 export const POST_MAX = 6;           // een groep heeft hoogstens zes posten

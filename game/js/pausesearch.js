@@ -1,5 +1,5 @@
 // Zoeken in het pauzemenu (21-11, docs/ESCAPEMENU-UX-21-11.md): typ een woord en spring naar een scherm, een onderdeel,
-// een instelling of een actie, zoals een spotlight. Puur (geen DOM), zodat scripts/menuzoek_test.mjs het natrekt;
+// een instelling of een actie, zoals een spotlight. Puur (geen DOM), zodat scripts/pausesearch_test.mjs het natrekt;
 // pausemenu.js levert de lijst en voert de gekozen regel uit.
 import { woordenVan } from './zoektekst.js';
 

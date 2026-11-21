@@ -12,7 +12,7 @@ import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js
 import { bezorgHudModel, pickupPop, afleverPop, UITLEG_ID } from './bezorgstatus.js';
 import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { reducedMotion } from './motion.js';
-import { aantalAdressen, maakLijst, afvinken, dichtstbij, puntjes, andereAdressen, basisMetAdressen, budgetMetAdressen, voortgang as teamVoortgang, klaar as teamKlaar, aantalKlaar, adresTekst } from './bezorgteam.js'; // Samen spelen (#983): verdeelde adressen
+import { aantalAdressen, maakLijst, afvinken, dichtstbij, puntjes, andereAdressen, basisMetAdressen, budgetMetAdressen, voortgang as teamVoortgang, klaar as teamKlaar, aantalKlaar, adresTekst } from './deliveryteam.js'; // Samen spelen (#983): verdeelde adressen
 
 const FATBIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.8, accel: 4.2, brake: 6, turnRate: 3.8, color: '#e4572e' };
 const CENTRE = { x: 191.86, y: 138.11, r: 1300 };

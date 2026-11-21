@@ -17,6 +17,6 @@ De banners van `missions_akte12.js` (PAND & POEN, GROOTHANDEL DE VETPOT, WIERDEM
 | M30 nasleep | alleen tekst | De zon zakt achter de wal van Bourtange. De vesting is genomen, door een leger van karton. / Thuis is waar de kar staat. |
 | M26 nasleep | alleen tekst | Het plein ruimt op. De vlaggen gaan in de doos, de laatste eierbal gaat rond. |
 | Slotfeest M30, spandoek | alleen tekst | EIERBALLEN OP DE WAL: De vesting is genomen, de frituur is open |
-| Bijbanen: opening, klantpraatjes, slotregels | alleen tekst (HUD-berichten en eindbord) | `game/js/bijbaanbeats.js`: tien lijnen, elk een opening, 3 tot 6 klantpraatjes en drie slotregels |
+| Bijbanen: opening, klantpraatjes, slotregels | alleen tekst (HUD-berichten en eindbord) | `game/js/sidejobbeats.js`: tien lijnen, elk een opening, 3 tot 6 klantpraatjes en drie slotregels |
 
 Opnemen kan later met de bestaande stemmen; de klantpraatjes zijn "Klant:", "Reiziger:", "Bewoner:", "Gast:" en "Passagier:" en horen dan bij een bijrol-stem.

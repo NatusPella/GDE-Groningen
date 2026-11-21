@@ -151,8 +151,8 @@
       "notitie": "reisrit3d.js zet de vlag tijdens een taxi- of treinrit en wist hem erna; savegame.js hoort hem te lezen om niet halverwege een rit te bewaren."
     },
     "coopStartMeting": {
-      "eigenaar": "game/js/coopstartmeting.js",
-      "notitie": "coopstartmeting.js bezit de tijdlijn van Spel starten (#1046); andere code markeert alleen een stap via markeerStartStap."
+      "eigenaar": "game/js/multiplayerlaunchtiming.js",
+      "notitie": "multiplayerlaunchtiming.js bezit de tijdlijn van Spel starten (#1046); andere code markeert alleen een stap via markeerStartStap."
     }
   },
   "uitzonderingen": [

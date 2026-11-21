@@ -65,7 +65,7 @@ ok(/export function precompilePrograms\(/.test(scene) && /precompile\(scene\)/.t
 ok(/export function setCinematicBatches/.test(scene) && /function drainCineBatches/.test(read('game/js/scene3d.js')), 'scene3d kan batches tijdens de film gespreid compileren en tonen');
 ok(/setCinematicBatches\(true\)/.test(read('game/js/intromontage.js')) && /setCinematicBatches\(false\)/.test(read('game/js/intromontage.js')), 'de film zet de gespreide batches aan en na de film weer uit');
 ok(/for \(const p of programs\.values\(\)\) if \(!programLinked\(p\)\)/.test(scene) && /programLinked\(p\)/.test(read('game/js/scene3d.js')), 'batches wachten niet-blokkerend op shaderlinks (geen secondenfreeze in het eerste filmbeeld)');
-ok(/o\.material && !o\.geometry/.test(read('game/js/startcompile.js')) && /withParkedMaterials\(scene/.test(scene) && /userData\.terrainMaterial/.test(read('game/js/terrain3d.js')), 'geen materiaal op niet-draw-objecten: voorcompileren slaat shaders niet meer over (#804)');
+ok(/o\.material && !o\.geometry/.test(read('game/js/launchcompile.js')) && /withParkedMaterials\(scene/.test(scene) && /userData\.terrainMaterial/.test(read('game/js/terrain3d.js')), 'geen materiaal op niet-draw-objecten: voorcompileren slaat shaders niet meer over (#804)');
 ok(/nearPrewarm[\s\S]{0,400}s\.r \+ 10/.test(scene), 'de prewarm beschermt de gebouwen binnen zijn eigen radius');
 const iWarm = main.indexOf('const warm = async () => {');
 const iWarmEnd = main.indexOf('return runStartScreen(world, { render, relocate, tick, ready, warm });', iWarm);

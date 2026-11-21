@@ -1,8 +1,8 @@
 // Het pad van de taxirit (#882, playtest 0.64.0: "de taxi rijdt dwars door een gebouw heen"): het pad volgt de weg, snijdt geen gebouwvoetafdruk
 // (ook niet op de rechterbaan waar de taxi rijdt) en start en stopt aan de straatkant als de speler of het doel in een gebouw ligt.
-//   node scripts/ritroute_test.mjs
+//   node scripts/ridepath_test.mjs
 import assert from 'node:assert/strict';
-import { maakPad, ritRoute, schendingen } from '../game/js/ritroute.js';
+import { maakPad, ritRoute, schendingen } from '../game/js/ridepath.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
@@ -82,4 +82,4 @@ t('lange routes: alleen het gereden begin en einde worden gecontroleerd (snel)',
   assert.equal(r.schendingen, 0);
 });
 
-console.log(`ritroute_test: ${n}/${n} ok`);
+console.log(`ridepath_test: ${n}/${n} ok`);

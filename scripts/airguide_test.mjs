@@ -7,7 +7,7 @@ const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/thr
 const G = await import('../game/js/airguide.js');
 const RR = await import('../game/js/scene3d/routeribbon3d.js');
 const A3 = await import('../game/js/scene3d/airline3d.js');
-const W = await import('../game/js/routeribbonwatch.js');
+const W = await import('../game/js/pathribbonwatch.js');
 const RA = await import('../game/js/roadaccess.js');
 let n = 0;
 const ok = (c, m) => { n++; assert.ok(c, m); };

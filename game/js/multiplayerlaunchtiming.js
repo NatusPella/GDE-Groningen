@@ -2,7 +2,7 @@
 // Deze module meet het zonder iets aan te passen: vanaf het moment van starten legt hij elke lange taak (PerformanceObserver 'longtask')
 // en elke lange beeldsprong (rAF) vast, met de stap waarin hij viel, en vat het samen in de console (`[start-meting] {...}`) en op
 // world.coopStartMeting. Stappen zet de code zelf met markeerStartStap('naam') op de plekken die er toe doen.
-// Alleen metingen: geen netwerk, geen opslag, geen spelergegevens. Puur deel (samenvatting) is getest in scripts/coopstartmeting_test.mjs.
+// Alleen metingen: geen netwerk, geen opslag, geen spelergegevens. Puur deel (samenvatting) is getest in scripts/multiplayerlaunchtiming_test.mjs.
 
 export const START_METING_MS = 70000;
 export const START_DREMPEL_MS = 120;

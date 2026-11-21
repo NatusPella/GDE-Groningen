@@ -12,12 +12,12 @@ import { hoofdspeler } from '../players.js';
 import { gameBusy } from '../busy.js';
 import { SIDEWALK_EXTRA } from '../roadsurface.js';
 import { ribbonAlpha, routeOffRoad } from '../routeribbon.js';
-import { ribbonFault, needsAlphaFloor, noteRibbonRepair, RIBBON_ALPHA_FLOOR } from '../routeribbonwatch.js';
+import { ribbonFault, needsAlphaFloor, noteRibbonRepair, RIBBON_ALPHA_FLOOR } from '../pathribbonwatch.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from '../worldmarker3d.js';
 import { updateWaymarkers3D, routeColor } from '../waymarkers3d.js';
 import { isAirCraft } from '../airguide.js';
 import { updateAirLine3D, hideAirLine3D } from './airline3d.js';
-import { updateVaarlijn3D, hideVaarlijn3D } from './vaarlijn3d.js';
+import { updateVaarlijn3D, hideVaarlijn3D } from './sailline3d.js';
 
 // scene en camera van scene3d.js; null tot init3D ze doorgeeft
 let scene = null;
@@ -202,7 +202,7 @@ function keepRight(pts, map) {
 const routeLinks = { getActiveRoute: () => null, getRouteAhead: () => null, getUserWaypoint: () => null };
 export function setRouteLinks(l) { Object.assign(routeLinks, l); }
 
-// --- waakhond (routeribbonwatch.js) ---
+// --- waakhond (pathribbonwatch.js) ---
 const RIBBON_WATCH_S = 0.5;
 let watchT = 0;
 let ribbonBuildFailed = false;
@@ -255,12 +255,12 @@ export function updateRouteRibbon3D(dt, world) {
   }
 
   const route = routeLinks.getActiveRoute();
-  // station signs, air rings: the markers of the train and the air (the boat has its own line, vaarlijn3d.js)
+  // station signs, air rings: the markers of the train and the air (the boat has its own line, sailline3d.js)
   // (in een try: een fout hier mocht de strook hieronder niet meer laten bijwerken)
   try {
     updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.mode !== 'boat' && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
   } catch (e) { reportRibbonError('waymarkers', e); }
-  // op het water: een doorlopende vaarlijn (vaarlijn3d.js) in plaats van boeien
+  // op het water: een doorlopende vaarlijn (sailline3d.js) in plaats van boeien
   try {
     updateVaarlijn3D(dt, scene, route, routeLinks.getRouteAhead, world, routeColor(route, markerColors()[route && route.kind] || markerColors().mission));
   } catch (e) { reportRibbonError('vaarlijn', e); }
@@ -326,4 +326,4 @@ export function updateRouteRibbon3D(dt, world) {
 }
 
 // het aantal herstelacties van de waakhond, voor de technische info
-export { getRouteRibbonStats } from '../routeribbonwatch.js';
+export { getRouteRibbonStats } from '../pathribbonwatch.js';

@@ -1,11 +1,11 @@
-// Samen spelen (#983, #452): de bezorgronde met verdeelde adressen (game/js/bezorgteam.js en de koppeling in sidejob_bezorger.js).
-//   node scripts/coop/bezorgteam_test.mjs
+// Samen spelen (#983, #452): de bezorgronde met verdeelde adressen (game/js/deliveryteam.js en de koppeling in sidejob_bezorger.js).
+//   node scripts/coop/deliveryteam_test.mjs
 // Deel 1 is puur. Deel 2 draait de echte baan (sidejob_bezorger.js) op een platte testkaart met een nep-baancontext: alleen blijft het één
 // adres (precies als voorheen), met één of meer meespelers heeft de bestelling meer adressen en is de ronde klaar als elk adres bezorgd is.
 import '../node3d.mjs';
 import assert from 'node:assert/strict';
 
-const T = await import('../../game/js/bezorgteam.js');
+const T = await import('../../game/js/deliveryteam.js');
 const { doelEvent, leesBijbaan, BIJBAAN_REGELS } = await import('../../game/js/coopbijbaan.js');
 const bezorger = (await import('../../game/js/sidejob_bezorger.js')).default;
 
@@ -198,4 +198,4 @@ t('een nieuwe ronde begint zonder de adressen van de vorige', () => {
   assert.equal(ctx.c.data.mainDone, false);
 });
 
-console.log(fails ? `bezorgteam_test: ${n - fails}/${n} ok, ${fails} mislukt` : `bezorgteam_test: ${n}/${n} ok`);
+console.log(fails ? `deliveryteam_test: ${n - fails}/${n} ok, ${fails} mislukt` : `bezorgteam_test: ${n}/${n} ok`);

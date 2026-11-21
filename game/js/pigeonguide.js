@@ -7,7 +7,7 @@
 // - per gespot ding een ring rond de duif, een flits van de kolom en een belletje.
 // De logica staat in pigeonguidelogic.js (puur). Samen spelen: de spotmissie is van wie het spel opende (de duif is van de eigenaar, #525);
 // de gast ziet de duif vliegen maar heeft deze kolommen en kaart niet.
-import { stapel, stapelRuimte, duivenKaarten, duivenZones, pijlPlek, plaatSelectie, STAPEL_TOP } from './hudstapel.js';
+import { stapel, stapelRuimte, duivenKaarten, duivenZones, pijlPlek, plaatSelectie, STAPEL_TOP } from './hudstack.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
 import { maakSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
@@ -39,7 +39,7 @@ const CSS = `
 #pigeon-guide .pg-hold { height: 10px; margin-top: 6px; border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; background: var(--ds-c-wit, #fff); overflow: hidden; }
 #pigeon-guide .pg-hold[hidden] { display: none; }
 #pigeon-guide .pg-hold u { display: block; height: 100%; width: 100%; background: var(--ds-c-geel, #f9c80e); transform-origin: left; transform: scaleX(0); text-decoration: none; }
-#pigeon-guide .pg-arrow { position: absolute; left: 50%; top: 50%; width: 240px; margin: -50px 0 0 -120px; text-align: center; }   /* left/top komen uit pijlPlek (hudstapel.js): altijd binnen de vrije band */
+#pigeon-guide .pg-arrow { position: absolute; left: 50%; top: 50%; width: 240px; margin: -50px 0 0 -120px; text-align: center; }   /* left/top komen uit pijlPlek (hudstack.js): altijd binnen de vrije band */
 #pigeon-guide .pg-arrow[hidden] { display: none; }
 #pigeon-guide .pg-arrow svg { display: block; width: 52px; height: 52px; margin: 0 auto; filter: drop-shadow(2px 2px 0 var(--ds-c-ink-inkt, #1d1b17)); }
 #pigeon-guide .pg-arrow svg path { fill: var(--ds-c-geel, #f9c80e); stroke: var(--ds-c-ink-inkt, #1d1b17); stroke-width: 2.5; stroke-linejoin: round; }
@@ -259,7 +259,7 @@ export function tickPigeonGuide(dt, world, o, flight) {
   dom.holdBox.hidden = !holdOn;
   if (holdOn) dom.hold.style.transform = `scaleX(${n.hold.toFixed(3)})`;
 
-  // één stapel (hudstapel.js): opdracht (en later hoogtekaart) onder elkaar; krap = compact, daarna weg. De toetsen staan alleen in de balk onderaan.
+  // één stapel (hudstack.js): opdracht (en later hoogtekaart) onder elkaar; krap = compact, daarna weg. De toetsen staan alleen in de balk onderaan.
   const ui = parseFloat(tok('--ui', '1')) || 1;
   const vw = (typeof innerWidth === 'number' ? innerWidth : 1280) / ui, vh = (typeof innerHeight === 'number' ? innerHeight : 720) / ui;
   // de stapel begint onder de doel- en routekaart van de gewone HUD, ook als die hoger zijn (op 1280x720 slaat de doelregel om)

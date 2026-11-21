@@ -3,7 +3,7 @@
 // trip, air rings with a landing pad in the air. On the road the route ribbon
 // and the waypoint beacon (scene3d.js) are the markers; the bike ribbon only
 // takes its own colour (routeColor). On the water the route is a line
-// (scene3d/vaarlijn3d.js), no longer a row of buoys: buoys stay real
+// (scene3d/sailline3d.js), no longer a row of buoys: buoys stay real
 // navigation marks (fairway, shoals).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 

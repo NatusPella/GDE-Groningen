@@ -1,6 +1,6 @@
 // Samen spelen (#983, #443): de pannenkoekenwedstrijd op het Pannenkoekenschip. Iedereen bakt twee minuten op zijn eigen scherm met
 // dezelfde bestellingen; de host houdt het scorebord en betaalt per plek. Alleen blijft het de gewone minigame.
-//   node scripts/coopwedstrijd_pannenkoek_test.mjs
+//   node scripts/multiplayermatch_pannenkoek_test.mjs
 // De echte pannenkoek.js en multiplayerwedstrijd.js; de wereld is een nepwereld met een nephub (zoals coopwedstrijd_test.mjs).
 import './node3d.mjs';
 import assert from 'node:assert/strict';
@@ -167,4 +167,4 @@ t('de gastkant: de start zet hem aan het bakken, zijn punten gaan naar de host, 
   assert.ok(!PANNENKOEK.active());
 });
 
-console.log(fails ? `coopwedstrijd_pannenkoek_test: ${n - fails}/${n} ok, ${fails} mislukt` : `coopwedstrijd_pannenkoek_test: ${n}/${n} ok`);
+console.log(fails ? `multiplayermatch_pannenkoek_test: ${n - fails}/${n} ok, ${fails} mislukt` : `multiplayermatch_pannenkoek_test: ${n}/${n} ok`);

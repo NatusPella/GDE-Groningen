@@ -34,7 +34,7 @@ Elk voorstel volgt dezelfde vorm: **rol** (wat doet elke speler), **beloning en 
 
 ### Gebouwd in deze ronde
 
-1. **Het proefbeleg bij Bourtange (M30): drie bolwerken tegelijk** (`samenposten.js`, `missieposten.js`).
+1. **Het proefbeleg bij Bourtange (M30): drie bolwerken tegelijk** (`samenposten.js`, `missionposts.js`).
    - *Rol:* elke speler neemt een eigen bolwerk (de dichtstbijzijnde, bij gelijke afstand de laagste plek) en blijft staan tot de klok vol is.
    - *Beloning en voortgang:* gewone opdrachtbeloning per speler; de verhaalstappen en stemmen blijven die van de gewone stappen.
    - *Wegvallen en later aansluiten:* valt iemand weg, dan loopt de groep door met de overblijvers (wat klaar is blijft klaar); een laatkomer kijkt mee.
@@ -44,7 +44,7 @@ Elk voorstel volgt dezelfde vorm: **rol** (wat doet elke speler), **beloning en 
    - *Beloning en voortgang:* €90, €55, €30, €15 per plek in de eigen portemonnee en loopbaan Horeca; record, dienst en prestatie in de eigen opslag.
    - *Wegvallen en later aansluiten:* wie stopt of wegvalt telt niet mee en krijgt niets; wie na de start aanklopt kijkt mee op het bord; de host hoeft niet mee te doen.
    - *Schaal:* 1: de gewone minigame; 2 tot 4: wedstrijd (de AI doet niet mee).
-3. **Bijbaan: bezorgen met verdeelde adressen** (`bezorgteam.js`, `sidejob_bezorger.js`).
+3. **Bijbaan: bezorgen met verdeelde adressen** (`deliveryteam.js`, `sidejob_bezorger.js`).
    - *Rol:* na het ophalen heeft de bestelling één adres per bezorger; jullie verdelen de stad en wie er het eerst staat geeft af.
    - *Beloning en voortgang:* elk extra adres geeft iedereen €9 extra basisloon; de beloning is per speler volledig, niets wordt gedeeld.
    - *Wegvallen en later aansluiten:* de adressen blijven te halen voor wie er is; een laatkomer kijkt mee tot de volgende baan.
@@ -70,8 +70,8 @@ Elk voorstel volgt dezelfde vorm: **rol** (wat doet elke speler), **beloning en 
 
 ## 4. Bewijs
 
-- **Puur:** `scripts/samenposten_test.mjs` (13 tests), `scripts/coop/bezorgteam_test.mjs` (12, inclusief de echte baan op een platte kaart), `scripts/coopwedstrijd_pannenkoek_test.mjs` (8, met nephub en de gastkant).
-- **Echte `missions.js`:** `scripts/coopmissie_posten_test.mjs` (9): alleen, toeschouwer, twee, drie en vier spelers, rollen per speler, wegvallen, nieuwe poging. Zonder de koppeling falen vijf van de negen: de test meet dus echt het verschil.
+- **Puur:** `scripts/samenposten_test.mjs` (13 tests), `scripts/coop/deliveryteam_test.mjs` (12, inclusief de echte baan op een platte kaart), `scripts/multiplayermatch_pannenkoek_test.mjs` (8, met nephub en de gastkant).
+- **Echte `missions.js`:** `scripts/multiplayer_missionposts_test.mjs` (9): alleen, toeschouwer, twee, drie en vier spelers, rollen per speler, wegvallen, nieuwe poging. Zonder de koppeling falen vijf van de negen: de test meet dus echt het verschil.
 - **Testbank, twee en vier spelers over echte TCP-verbindingen (127.0.0.1), zonder Electron:** `scripts/coop/samenmissies_tcp_test.mjs` (de gastheer draait de echte netlaag `coopnet.js` en de echte `missions.js`; de gasten zijn headless via `mockclient.mjs`): elke gast krijgt zijn bolwerk als melding, drie bolwerken in ongeveer één vlag bij vier spelers, een gast die midden in de opdracht weggaat (de rest maakt af) en een late gast die nee zegt (bezet niets). `scripts/coop/samenwedstrijd_tcp_test.mjs`: uitnodiging bij elke gast, J en N, de start alleen voor wie ja zei, betaald per plek, een gast die weggaat krijgt niets, een late gast doet niet mee. Beide draaien ook mee in `scripts/coop_licht_test.mjs`. Dit zijn geen Electron-instanties: de machine zat vol (zie de slotenregel) en de gastheer is hier een Node-proces met de echte koppelingen; de bezorgronde heeft geen TCP-stap (alleen de pure regels, de echte baan op een platte kaart en het doelbericht).
 
 ## 5. Niet gezien

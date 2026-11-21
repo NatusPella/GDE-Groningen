@@ -1,7 +1,7 @@
 // Samen spelen (#983, #429, #452): de bezorgronde met verdeelde adressen. Doet er naast de bezorger een tweede, derde of vierde speler mee
 // (de gasten die J zeiden bij de baan "Hap & Rap bezorger"), dan heeft de bestelling na het ophalen één adres per bezorger: je verdeelt de
 // stad onderling, wie het eerst bij een deur staat geeft dat adres af, en de ronde is klaar als elk adres bezorgd is. Alleen is er één adres
-// en verandert er niets. Puur: geen three.js, geen wereld, geen netwerk (scripts/bezorgteam_test.mjs). De koppeling met de baan staat in
+// en verandert er niets. Puur: geen three.js, geen wereld, geen netwerk (scripts/deliveryteam_test.mjs). De koppeling met de baan staat in
 // sidejob_bezorger.js; het doel naar de gasten gaat als puntjes mee in het doelbericht van coopbijbaan.js.
 
 export const TEAM_MAX = 4;          // hoogstens vier adressen (vier spelers)
