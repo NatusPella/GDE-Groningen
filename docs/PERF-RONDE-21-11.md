@@ -85,3 +85,9 @@ node desktop/build/runperf.mjs after  a1   # deze tak
 (`desktop/build/` staat niet in git; opnieuw opbouwen: `GDE_PREBUILT_WORLD=<recente build>/game/world GDE_STAGE_OUT=<map>/game node desktop/build.mjs`,
 voor de basislijn met `GDE_STAGE_SRC` op een `git archive` van main.) Herhaal drie keer, neem de mediaan van p95 en de hitchlijst,
 en meld hoeveel andere Electron-instanties er draaiden.
+
+## Correctie na de codereview van 21-11 (stand 828ec9f57)
+
+- **Punt (c), de heavy-wegpoort "laat alles uiteindelijk door"**: waar, maar zonder bovengrens op de totale wachttijd. Na een bouw van `cost` ms wacht de poort `max(250, 4 x cost)` ms. Bij 70 heavy wegen van 300 ms is dat 70 x 1,2 s = ca. 84 s tot de laatste weg er staat (rekenkundig, uit de poort en `roadbudget_test`; niet in het spel gezien, de verre laag dekt een deel). Wie dan 25 m/s rijdt, heeft kilometers zonder wegdek buiten die laag. Een afstandsregel (dichtbij of vooruit zonder rust) hoort bij de streaming-planner.
+- **De bewering "niets per beeld" in de kop van `memwatch.js`** klopte niet voor de lus in `gpudiag.js`: die las elk beeld twee keer `performance.memory`. Dat is gerepareerd (`heapTracker.due`: een lezing per 5 s en bij een hapering, `scripts/gpudiag_test.mjs`).
+- **Punt (b), de gedwongen layout in `hudcards.js` (#804)**: dezelfde fout zat nog in `pigeonguide.js` (`getComputedStyle`, `querySelectorAll` en `getBoundingClientRect` per frame in de spotstage). Gerepareerd met `throttledRead` (4 x per seconde) en een onthouden tokencache (`scripts/pigeonguide_test.mjs`).
