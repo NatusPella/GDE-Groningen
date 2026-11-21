@@ -1,8 +1,8 @@
 // navtarget.js en navpijl.js (#1078): welk doel de pijl volgt, wat wacht, wat dezelfde plek is, wat klaar is; de kleur per type en de pijl zelf.
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
-import { snapshotFromWorld, distanceFor, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navtarget.js';
-import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT } from '../game/js/navpijl.js';
+import { snapshotFromWorld, distanceFor, compactDistance, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navtarget.js';
+import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT, ACTIVE_R, DOT_R, TAG_GAP, tagPlek } from '../game/js/navpijl.js';
 import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
 import { dsKleur, contrast, kaartLand } from '../game/js/kaartkleuren.js';
@@ -151,7 +151,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
     if (langs(dicht[i], dicht[j]) < nodig - 0.6) goed = false;
   }
   ok(goed, 'markers in dezelfde richting schuiven uit elkaar');
-  ok(dicht.find((q) => q.actief).s === b.sVoor(-0.9), 'de boog van het doel blijft op zijn plek staan');
+  ok(dicht.find((q) => q.actief).s === b.sVoor(-0.9), 'het doel dat je volgt blijft op zijn plek staan');
   ok(place([{ a: 0, actief: true }, { a: 1, actief: true }], S).items.filter((q) => q.actief).length === 1, 'er is hooguit één boog');
   ok(spreid([{ s: 5, actief: false }], b.lengte).length === 1, 'spreid met één punt doet niets');
 
@@ -168,10 +168,9 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   drawKompasRand(m2.c, S, items, { t: 0.3, beweging: false });
   ok(drawKompasRand(leeg.c, S, [], {}).length === 0 && leeg.tel.fill === 0 && leeg.tel.stroke === 0, 'zonder doelen tekent de kaart niets (rustige kaart)');
   ok(r1.length === 3 && m1.tel.save === m1.tel.restore, 'drie markers, save en restore in evenwicht');
-  ok(m1.tel.text === 1, 'alleen de boog krijgt een afstand (' + m1.tel.text + ' teksten)');
-  ok(m1.tel.fill > 6 && m1.tel.stroke > 6, 'schijven, iconen en randen worden getekend');
-  const pulsRadius = (m) => Math.max(...m.tel.radii);
-  ok(pulsRadius(m2) === 17 && pulsRadius(m1) > 17 && pulsRadius(m1) < 18, 'met Beweging beperken pulseert de boog niet');
+  ok(m1.tel.text === 1, 'alleen het doel dat je volgt krijgt een afstand (' + m1.tel.text + ' teksten)');
+  ok(m1.tel.fill > 4 && m1.tel.stroke > 3, 'schijven, iconen en randen worden getekend');
+  ok(!m2.tel.radii.some((r) => r > ACTIVE_R && r < ACTIVE_R + 0.7) && m1.tel.radii.some((r) => r > ACTIVE_R && r < ACTIVE_R + 0.7), 'met Beweging beperken pulseert het doel niet');
   // elk type heeft een Phosphor-icoon in de icoonset
   for (const [g, naam] of Object.entries(GLYPH)) ok(iconBekend(naam), `glyph ${g} is een bestaand Phosphor-icoon (${naam})`);
 }
@@ -183,7 +182,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(/drawKompasRand\(/.test(hud) && !/drawNavPijl|drawEdgeArrow/.test(hud), 'hud_panel.js tekent de kompasboog, niet de oude pijl');
   ok(/reducedMotion\(\)/.test(hud) && /--nav-doel/.test(hud), 'hud_panel.js: Beweging beperken en de kleur van de GPS-kaart');
   const ka = fs.readFileSync(new URL('../game/js/kaartactie.js', import.meta.url), 'utf8');
-  ok(/stippellijn langs de rand/.test(ka), 'Zo werkt de kaart legt de boog uit');
+  ok(/rond icoon tegen de rand/.test(ka), 'Zo werkt de kaart legt het randicoon uit');
   const css = fs.readFileSync(new URL('../game/js/ds-tokens.css', import.meta.url), 'utf8');
   for (const t of ['--nav-actief', '--nav-eigen', '--nav-secundair']) ok(css.includes(t + ':'), `ds-tokens.css heeft ${t}`);
   const a11y = fs.readFileSync(new URL('../game/js/a11y.js', import.meta.url), 'utf8');
@@ -221,6 +220,39 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(/MARKER_COLOR_ACTIVE = 0xf9c80e/.test(mm), 'de ringen van de actieve missie zijn geel, niet cyaan');
   const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
   ok(/resolveNavTargets\(snapshotFromWorld/.test(mv) && /drawMapTargets\(/.test(mv), 'de grote kaart leest navtarget.js');
+}
+
+// 20. compact (ronde 4): afstandstekst, inzet, klemming, obstakels
+{
+  ok(compactDistance(0) === '10 m' && compactDistance(84) === '80 m' && compactDistance(420) === '420 m' && compactDistance(994) === '990 m', 'afstand: meters onder een kilometer op tientallen');
+  ok(compactDistance(995) === '1,0 km' && compactDistance(4730) === '4,7 km' && compactDistance(9940) === '9,9 km', 'afstand: een decimaal onder 10 km');
+  ok(compactDistance(9950) === '10 km' && compactDistance(12400) === '12 km' && compactDistance(123456) === '123 km', 'afstand: hele kilometers vanaf 10 km, geen decimale ruis');
+  ok(compactDistance(NaN) === '' && compactDistance(-5) === '', 'afstand: geen onzin bij een ongeldige waarde');
+  const S = 250, b = track(S);
+  // inzet: de schijf zit 3 px van de rand (op de rechte stukken), nooit erbuiten
+  ok(TRACK_INSET - ACTIVE_R >= 2.5 && TRACK_INSET - ACTIVE_R <= 4, `vaste inzet van de schijf: ${TRACK_INSET - ACTIVE_R} px van de rand`);
+  let binnen = true; for (let q = 0; q < b.lengte; q += 2) { const [x, y] = b.punt(q); if (Math.min(x, y, S - x, S - y) < ACTIVE_R + 2) binnen = false; }
+  ok(binnen, 'elke plek op de baan houdt de schijf binnen de kaart');
+  // de tag staat tegen de schijf aan, aan de binnenkant, en nooit buiten de kaart
+  const l = tagPlek(TRACK_INSET, 120, S, 38, 17), r = tagPlek(S - TRACK_INSET, 120, S, 38, 17), o = tagPlek(120, TRACK_INSET, S, 38, 17), u = tagPlek(120, S - TRACK_INSET, S, 38, 17);
+  ok(l.kant === 0 && l.cx - 19 >= TRACK_INSET + ACTIVE_R + TAG_GAP - 0.01 && Math.abs(l.cy - 120) < 0.01, 'tag links: rechts naast de schijf, op dezelfde hoogte');
+  ok(r.kant === 2 && r.cx + 19 <= S - TRACK_INSET - ACTIVE_R - TAG_GAP + 0.01, 'tag rechts: links naast de schijf');
+  ok(o.kant === 1 && o.cy - 8.5 >= TRACK_INSET + ACTIVE_R + TAG_GAP - 0.01 && u.kant === 3 && u.cy + 8.5 <= S - TRACK_INSET - ACTIVE_R - TAG_GAP + 0.01, 'tag boven en onder: aan de binnenkant');
+  const hoek = tagPlek(TRACK_INSET, TRACK_INSET, S, 60, 17);
+  ok(hoek.cx - 30 >= 2 && hoek.cy - 8.5 >= 2 && hoek.cx + 30 <= S - 2, 'tag in de hoek blijft binnen de kaart');
+  // obstakels: een marker op de plek van de N-badge schuift opzij en blijft op de baan
+  const n = place([{ a: -Math.PI / 2, actief: true }], S, [{ a: -Math.PI / 2, nodig: 28 }]).items[0];
+  const noord = b.sVoor(-Math.PI / 2);
+  const afstandTotN = Math.min(Math.abs(n.s - noord) % b.lengte, b.lengte - (Math.abs(n.s - noord) % b.lengte));
+  ok(afstandTotN >= 28 - 0.6, `het doel dat je volgt wijkt voor de N-badge (${afstandTotN.toFixed(1)} px) en blijft op de baan`);
+  const punt = place([{ a: -Math.PI / 2, actief: false }], S, [{ a: -Math.PI / 2, nodig: 28 }]).items[0];
+  const dp = Math.min(Math.abs(punt.s - noord) % b.lengte, b.lengte - (Math.abs(punt.s - noord) % b.lengte));
+  ok(dp >= 28 - 0.6, `een wachtend doel schuift weg van de N-badge (${dp.toFixed(1)} px)`);
+  const wind = place([{ a: 2.7, actief: false }, { a: 2.75, actief: false }], S, [{ a: 2.72, nodig: 30 }]).items;
+  ok(wind.every((q) => Math.min(Math.abs(q.s - b.sVoor(2.72)) % b.lengte, b.lengte - (Math.abs(q.s - b.sVoor(2.72)) % b.lengte)) >= 30 - 0.6), 'punten wijken ook voor het windschijfje');
+  const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  ok(/compactDistance\(/.test(hud) && /obstakels/.test(hud), 'hud_panel.js: compacte afstand en obstakels');
+  ok(DOT_R < ACTIVE_R && DOT_R * 2 >= 16, 'punten kleiner dan de schijf, maar minstens 16 px');
 }
 
 console.log(`navtarget_test: ${n} controles, ${fails} fouten`);

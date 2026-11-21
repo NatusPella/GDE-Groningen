@@ -62,7 +62,7 @@ import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
-import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, GLYPH } from './navtarget.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, GLYPH } from './navtarget.js';
 import { drawMapTargets } from './navpijl.js';
 import { markerColors } from './a11y.js';
 import { gameBusy } from './busy.js';
@@ -1991,7 +1991,7 @@ function drawDynamicMarkers(ctx, world) {
     const lijst = nav.alle.map((d) => {
       const [sx, sy] = toScreen(d.x, d.y);
       const actief = d.rol === 'actief';
-      return { sx, sy, kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(distanceFor(d, actieveRoute)) : '', zonderSchijf: d.type === 'eigen' };
+      return { sx, sy, kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '', zonderSchijf: d.type === 'eigen' };
     }).filter((q) => q.sx > -30 && q.sy > -30 && q.sx < state.cw + 30 && q.sy < state.ch + 30);
     // een wachtend eigen doel heeft al zijn pin: geen tweede icoon eroverheen
     drawMapTargets(ctx, lijst.filter((q) => q.actief || !q.zonderSchijf), { s: Math.max(0.8, Math.min(1.25, scBasis / ICON)), t, beweging: !reducedMotion() });
