@@ -174,5 +174,10 @@ ok(loadStepAt(0).id === 'plek' && loadStepAt(0.3).id === 'gebouwen' && loadStepA
 ok(loadStepAt(NaN).id === 'plek' && loadStepAt(-3).id === 'plek' && loadStepAt(9).id === 'bijna', 'load step clamps');
 ok(loadStepAt(0.5, 'snel').id === 'snel', 'snel has one step');
 ok(LOAD_STEPS.every((s, i) => s.label.length > 8 && (i === 0 || s.from > LOAD_STEPS[i - 1].from)), 'load steps are words in ascending order');
+// beeldronde 21-11: de kopstijl van de tip geldt alleen voor het kopje (div > span); een toetsplaatje in de tipregel erft hem niet
+{
+  const css = fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8');
+  ok(/#load-screen \.ls-tip div > span \{/.test(css) && !/\.ls-tip div span \{/.test(css), 'tip heading style does not hit key caps inside the tip line');
+}
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

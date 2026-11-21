@@ -44,7 +44,7 @@ export function stapModel(s, opts = {}) {
   if (!toetsen.length) {
     const inTekst = [...tekst.matchAll(TOKEN)].map((m) => m[1]);
     if (inTekst.length && inTekst.length <= 2) toetsen = inTekst;
-    if (inTekst.length && inTekst.length <= 2) tekst = tekst.replace(TOKEN, '').replace(/^[\s:·,]+|[\s:·,]+$/g, '').replace(/\s{2,}/g, ' ');
+    if (inTekst.length && inTekst.length <= 2) tekst = tekst.replace(TOKEN, '').replace(/^[\s:·,]+|[\s:·,]+$/g, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.;:!?])/g, '$1');
   }
   const ic = bron.icoon && iconBekend(bron.icoon) ? bron.icoon : null;
   const animatie = ANIMATIES.includes(bron.animatie) ? bron.animatie : raadAnimatie({ ...bron, tekst: String(bron.tekst || '') });

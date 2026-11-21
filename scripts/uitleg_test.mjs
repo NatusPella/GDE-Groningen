@@ -64,6 +64,7 @@ for (const [id, lijst] of Object.entries(sims)) {
   const s = U.stapModel({ icoon: 'vis', tekst: '{SPATIE}: gooi uit' });
   ok(s.tekst === 'gooi uit' && s.animatie === 'druk', 'tekst zonder token, animatie druk', JSON.stringify(s));
   ok(s.toetsen.length === 1 && s.toetsen[0] === 'SPATIE', 'een stap met icoon en token houdt de toets (geen verdwenen toets, beeldronde 21-11)', JSON.stringify(s.toetsen));
+  ok(U.stapModel({ icoon: 'doel', tekst: 'Houd {SPATIE}, laat los bij het streepje' }).tekst === 'Houd, laat los bij het streepje', 'geen losse spatie voor de komma na het weghalen van het token');
   ok(/data-gk="SPATIE"/.test(U.uitlegHtml(U.uitlegModel([{ icoon: 'vis', tekst: 'Houd {SPATIE}, laat los bij het streepje' }]))), 'de penalty-regel "Houd {SPATIE}" toont het toetsplaatje');
   const k = U.stapModel({ icoon: 'vis', tekst: 'Houd {A} en {D} allebei vast' });
   ok(k.animatie === 'houd', 'houd leidt tot de houd-animatie');
