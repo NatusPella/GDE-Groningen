@@ -2,7 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is het vervolg op [SFX-DEKKING-21-11.md](SFX-DEKKING-21-11.md) (ronde 5: 100 gebeurtenissen, 39 gekoppeld). Issue #1166.
 
-**Stand: 76 van 100 gebeurtenissen gekoppeld** (was 39). Alleen code die in `origin/main` staat is gekoppeld; de epic-branches (kleding, tuning, interieurs, Bezit, verhaal) bevatten geen eigen koppelpunten voor de resterende 24 (hun commits raken menu's, haar, kaartstijlen, verhaalregels en changelog), dus er is geen patchbestand nodig. De coördinator ziet mogelijk kleine mergeconflicten in `game/js/interiors.js` en `game/js/shops.js` (epic Interieurs en Kleding raken die bestanden ook); elke koppeling is één regel `sfxEvent(...)`, dus opnieuw toepassen is eenvoudig.
+**Stand: 76 van 100 gebeurtenissen gekoppeld** (was 39). Alleen code die in `origin/main` staat is gekoppeld; de epic-branches (kleding, tuning, interieurs, Bezit, verhaal) bevatten geen eigen koppelpunten voor de resterende 24 (hun commits raken menu's, haar, kaartstijlen, verhaalregels en changelog), dus er is geen patchbestand nodig. Gecontroleerd met `git merge-tree`: deze branch merget schoon met de vijf epic-branches en voetbal-fifa op de code na; alleen `CHANGELOG.md` botst met epic Bezit (beide voegen een regel onder `[Unreleased]` toe, houd ze allebei).
 
 Niet beluisterd door een mens en geen Electron gedraaid: alles hieronder is "nog niet bekeken" in beeld en op het gehoor.
 
