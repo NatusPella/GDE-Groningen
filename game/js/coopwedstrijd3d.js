@@ -114,7 +114,7 @@ let el = null, laatste = '';
 // --hud-top, of lager als de gemeten berichtenkolom van zone A tot daar komt
 // (--hud-a-bottom). Op een laag venster is hij compacter, zodat vier regels niet bijna
 // de onderrand raken.
-const CSS = `.wed-kaart{position:fixed;left:50%;top:max(calc(var(--hud-top, 34px) + 64px), calc(var(--hud-a-bottom, 0px) + 8px));transform:translateX(-50%);z-index:55;box-sizing:border-box;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:14px 20px 12px;border-radius:10px;background:color-mix(in srgb, var(--ds-c-glas) 92%, transparent);color:var(--ds-c-creme);border-left:4px solid var(--ds-c-ink-geel);font:16px/1.45 'Arial Narrow', Arial, sans-serif;pointer-events:none}
+const CSS = `.wed-kaart{position:fixed;left:50%;top:max(calc(var(--hud-top, 34px) + 64px), calc(var(--hud-a-bottom, 0px) + 8px));transform:translateX(-50%);z-index:55;box-sizing:border-box;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:14px 20px 12px;border-radius:10px;background:color-mix(in srgb, var(--ds-c-glas) 92%, transparent);color:var(--ds-c-creme);border-left:4px solid var(--ds-c-ink-geel);font:16px/1.45 var(--ds-font-tekst);pointer-events:none}
 .wed-kaart b{display:block;font-size:13px;letter-spacing:3px;color:var(--ds-c-ink-geel);text-transform:uppercase;margin-bottom:6px}
 .wed-kaart p{margin:2px 0;white-space:pre-wrap}.wed-kaart em{display:block;margin-top:8px;font-style:normal;font-size:14px;color:color-mix(in srgb, var(--ds-c-creme) 80%, transparent)}
 @media (max-height:560px){.wed-kaart{top:max(calc(var(--hud-top, 18px) + 62px), calc(var(--hud-a-bottom, 0px) + 6px));min-width:0;padding:8px 14px 7px;font-size:14px;line-height:1.35}

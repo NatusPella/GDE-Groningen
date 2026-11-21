@@ -24,13 +24,13 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-logo .gde-mark { line-height: 0.78; }
 #pause-menu .pm-q-info { font-size: 18px; margin-top: 4px; }
 #pause-menu .pm-q-info:empty { display: none; }
-#pause-menu .ra { position: relative; display: flex; align-items: center; gap: 16px; width: 100%; height: var(--ra-h); padding: 0 16px 0 24px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 28px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ds-c-creme) 66%, transparent); transition: color 0.2s; }
+#pause-menu .ra { position: relative; display: flex; align-items: center; gap: 16px; width: 100%; height: var(--ra-h); padding: 0 16px 0 24px; font-family: var(--ds-font-kop); font-size: 28px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ds-c-creme) 66%, transparent); transition: color 0.2s; }
 #pause-menu .ra .ra-ic { flex: none; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 #pause-menu .ra[aria-current="true"] .ra-ic { color: var(--g); opacity: 1; }
 #pause-menu .ra:hover { color: var(--ink); }
 #pause-menu .ra[aria-current="true"] { color: var(--ink); }
 #pause-menu .ra[aria-current="true"]::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--g); }
-#pause-menu .ra .n { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); }
+#pause-menu .ra .n { margin-left: auto; font-family: var(--ds-font-tekst); font-size: 18px; letter-spacing: 0; color: var(--g); }
 #pause-menu .ra .n:empty { display: none; }
 #pause-menu .ra .n .n-ic { width: 16px; height: 16px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
 /* het tabblad Spelers onder Samen spelen telt mee met een poppetje, net als de teller bij Spel (#435) */
@@ -102,13 +102,13 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 
 /* Over: version, the changelog and the credits as a reference screen (#601) */
 #pause-menu .pm-over { width: min(760px, 100%); padding: 0 8px 28px; color: var(--ink); line-height: 1.55; font-size: 18px; }
-#pause-menu .pm-over h3 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 28px; letter-spacing: 0.04em; margin: 18px 0 6px; }
-#pause-menu .pm-over h4 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; margin: 14px 0 4px; color: var(--g); }
+#pause-menu .pm-over h3 { font-family: var(--ds-font-kop); font-size: 28px; letter-spacing: 0.04em; margin: 18px 0 6px; }
+#pause-menu .pm-over h4 { font-family: var(--ds-font-kop); font-size: 20px; letter-spacing: 0.04em; margin: 14px 0 4px; color: var(--g); }
 #pause-menu .pm-over p, #pause-menu .pm-over li { font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); }
 #pause-menu .pm-over ul { margin: 4px 0 10px 18px; }
 #pause-menu .pm-over .pm-over-news { margin-top: 16px; border-top: 1px solid color-mix(in srgb, var(--ds-c-creme) 12%, transparent); padding-top: 4px; }
 /* de nieuwmarkering is een gewone menu-eyebrow in het groen, geen eigen schermklasse meer (#612) */
-#pause-menu .pm-over h3 .m-eb { display: inline; margin-left: 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--g); }
+#pause-menu .pm-over h3 .m-eb { display: inline; margin-left: 12px; font-family: var(--ds-font-tekst); font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--g); }
 /* changelog, credits en licenties zijn elk in te klappen; de vouw staat onder zijn regel */
 #pause-menu .pm-over .m-disc { margin-top: 8px; }
 #pause-menu .pm-over .m-fold { padding: 4px 24px 8px 64px; }
@@ -153,7 +153,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-fpsbar.on { color: var(--ink); }
 #pause-menu .pm-fpsbar .bebas { font-size: 22px; text-align: right; }
 #pause-menu .pm-subprev { display: flex; align-items: flex-end; justify-content: center; min-height: 240px; padding: 0 32px 28px; border-radius: 12px; background: linear-gradient(180deg, color-mix(in srgb, var(--ds-c-creme) 5%, transparent), color-mix(in srgb, var(--ds-c-creme) 10%, transparent)), radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent), transparent 70%); box-shadow: inset 0 0 0 1px var(--line); max-width: 640px; }
-#pause-menu .pm-subtxt { font-size: calc(24px * var(--sub-scale, 1)); line-height: 1.3; text-align: center; padding: 2px 10px; border-radius: 6px; text-shadow: 0 1px 3px #000, 0 0 2px #000; font-family: 'Arial Narrow', Arial, sans-serif; }
+#pause-menu .pm-subtxt { font-size: calc(24px * var(--sub-scale, 1)); line-height: 1.3; text-align: center; padding: 2px 10px; border-radius: 6px; text-shadow: 0 1px 3px #000, 0 0 2px #000; font-family: var(--ds-font-tekst); }
 html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shadow: none; padding: 4px 12px; }
 #pause-menu .pm-subtxt b { font-weight: bold; color: var(--g); }
 #pause-menu .pm-note { padding: 0 24px 16px; font-size: 18px; color: var(--mut); max-width: 860px; }
@@ -187,7 +187,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .ov-hero > * { position: relative; z-index: 1; }
 #pause-menu .ov-hero > .ov-shot { position: absolute; z-index: 0; top: -40px; right: -64px; width: 820px; height: calc(100% + 120px); object-fit: cover; opacity: 0.5; -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%); mask-image: linear-gradient(90deg, transparent, #000 70%); pointer-events: none; border-radius: 0 16px 0 0; }
 #pause-menu .ov-main { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
-#pause-menu .ov-title { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 104px; line-height: 0.86; letter-spacing: 0.02em; }
+#pause-menu .ov-title { font-family: var(--ds-font-kop); font-size: 104px; line-height: 0.86; letter-spacing: 0.02em; }
 #pause-menu .ov-title.long { font-size: 80px; }
 /* op 720p en lager krijgt de vaste hero iets minder lucht, zodat de tabs, de hero
    en de eerste regels van de scrollende inhoud samen op het blad passen (#965) */
@@ -207,7 +207,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu button.ov-tile:not([tabindex="-1"]):hover { background: color-mix(in srgb, var(--ds-c-creme) 10%, transparent); }
 #pause-menu .ov-tile[tabindex="-1"] { cursor: default; }
 #pause-menu .ov-tile svg { width: 24px; height: 24px; fill: none; stroke: var(--g); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#pause-menu .ov-tv { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 44px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; }
+#pause-menu .ov-tv { font-family: var(--ds-font-kop); font-size: 44px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; }
 /* een lange waarde ('net begonnen', een groot bedrag) krimpt mee met de breedte van de tegel in plaats van over de buurtegel te lopen (#351) */
 #pause-menu .ov-tv.long { font-size: min(44px, 17cqw); }
 #pause-menu .ov-tl { font-size: 17px; }
@@ -230,7 +230,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .ov-help .m-bg { height: 48px; font-size: 20px; padding: 0 20px; }
 #pause-menu .ov-agenda { display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 8px 24px 16px; }
 #pause-menu .ov-agenda li { display: flex; align-items: center; gap: 10px; font-size: 18px; }
-#pause-menu .ov-agenda b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 22px; letter-spacing: 0.05em; }
+#pause-menu .ov-agenda b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 22px; letter-spacing: 0.05em; }
 #pause-menu .ov-ag-ic { width: 20px; height: 20px; fill: var(--mut); flex: none; }
 #pause-menu .ov-agenda li[data-on] .ov-ag-ic { fill: var(--ds-c-ink-geel); }
 
@@ -249,12 +249,12 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
    groen; de regel eronder zegt in gewone taal wat die stand doet. */
 #pause-menu .pm-rowfull { flex-wrap: wrap; row-gap: 10px; }
 #pause-menu .pm-seg { display: inline-flex; flex: none; gap: 2px; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--ds-c-creme) 6%, transparent); box-shadow: inset 0 0 0 1px var(--line2); }
-#pause-menu .pm-segbtn { min-width: 104px; height: 38px; padding: 0 18px; border-radius: 999px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.07em; text-align: center; color: var(--mut); transition: background 0.18s, color 0.18s; }
+#pause-menu .pm-segbtn { min-width: 104px; height: 38px; padding: 0 18px; border-radius: 999px; font-family: var(--ds-font-kop); font-size: 22px; letter-spacing: 0.07em; text-align: center; color: var(--mut); transition: background 0.18s, color 0.18s; }
 #pause-menu .pm-segbtn:hover { color: var(--ink); background: color-mix(in srgb, var(--ds-c-creme) 6%, transparent); }
 #pause-menu .pm-segbtn[aria-pressed="true"] { color: var(--ds-c-glas); background: var(--g); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
 #pause-menu .pm-segbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 #pause-menu .pm-seg-hint { flex: 1 0 100%; font-size: 16px; line-height: 1.35; }
-#pause-menu .td-next .td-next-t { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 30px; letter-spacing: 0.04em; line-height: 1.05; }
+#pause-menu .td-next .td-next-t { font-family: var(--ds-font-kop); font-weight: normal; font-size: 30px; letter-spacing: 0.04em; line-height: 1.05; }
 #pause-menu .td-next p { margin: 0; font-size: 18px; }
 #pause-menu .td-h2 { font-size: 48px; }
 #pause-menu .td-fv { font-size: 24px; line-height: 1.3; color: var(--ink); max-width: 240px; }
@@ -291,7 +291,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-hero::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--g); opacity: 0.85; }
 #pause-menu .pm-hero[data-tone="quiet"]::before { background: var(--line2); opacity: 1; }
 #pause-menu .pm-hero-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
-#pause-menu .pm-hero-t { margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 44px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .pm-hero-t { margin: 0; font-family: var(--ds-font-kop); font-weight: normal; font-size: 44px; line-height: 1; letter-spacing: 0.03em; }
 #pause-menu .pm-hero-t.long { font-size: 34px; }
 #pause-menu .pm-hero-lead { margin: 0; max-width: 720px; font-size: 20px; line-height: 1.4; color: color-mix(in srgb, var(--ds-c-creme) 86%, transparent); }
 #pause-menu .pm-hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; font-size: 18px; color: var(--mut); }
@@ -302,7 +302,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-ach > .pm-hero, #pause-menu .pm-inner > .pm-hero { flex: none; }
 #pause-menu .pm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 0 24px 18px; flex: none; }
 #pause-menu .pm-stat { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 12px 16px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-creme) 5%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
-#pause-menu .pm-stat b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .pm-stat b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
 #pause-menu .pm-stat span { font-size: 16px; line-height: 1.25; color: var(--mut); }
 #pause-menu .pm-stat .m-bar { margin-top: 5px; }
 #pause-menu .pm-stat[data-tone="accent"] { background: color-mix(in srgb, var(--ds-c-licht-groen) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 45%, transparent); }
@@ -311,14 +311,14 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-badge[data-tone="ok"] { color: var(--g); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); }
 #pause-menu .pm-badge[data-tone="warn"] { color: var(--mk-mission, #e8c93a); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-geel) 50%, transparent); }
 #pause-menu .pm-sec { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin: 18px 24px 6px; }
-#pause-menu .pm-sec h3 { margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.04em; }
+#pause-menu .pm-sec h3 { margin: 0; font-family: var(--ds-font-kop); font-weight: normal; font-size: 26px; letter-spacing: 0.04em; }
 #pause-menu .pm-sec span { font-size: 16px; color: var(--mut); }
 
 /* Verhaal > Opdrachten (#912): de volgende stap bovenaan, daaronder de hoofdstukken als één
    rustige lijst. Het huidige hoofdstuk staat open; de rest is één regel met zijn stand. */
 #pause-menu .td-next { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin: 0 24px 18px; padding: 16px 20px 18px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-licht-groen) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); flex: none; }
 #pause-menu .td-next-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
-#pause-menu .td-next-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 34px; letter-spacing: 0.03em; line-height: 1.04; }
+#pause-menu .td-next-t { font-family: var(--ds-font-kop); font-weight: normal; font-size: 34px; letter-spacing: 0.03em; line-height: 1.04; }
 #pause-menu .td-next-lead { margin: 0; max-width: 600px; font-size: 20px; line-height: 1.4; color: color-mix(in srgb, var(--ds-c-creme) 86%, transparent); }
 #pause-menu .td-next-prog { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; font-size: 16px; }
 #pause-menu .td-next-prog .m-bar { flex: 1 1 160px; max-width: 300px; }
@@ -339,7 +339,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* Activiteiten (#907): een kop met de telling, daaronder de filters en de lijst per soort. */
 #pause-menu .td-acthero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 24px 12px; padding: 4px 0; flex: none; }
 #pause-menu .td-acthero-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#pause-menu .td-acthero-t { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 30px; line-height: 1; letter-spacing: 0.03em; }
+#pause-menu .td-acthero-t { font-family: var(--ds-font-kop); font-weight: normal; font-size: 30px; line-height: 1; letter-spacing: 0.03em; }
 #pause-menu .td-acthero-lead { font-size: 16px; line-height: 1.3; color: var(--mut); }
 #pause-menu .td-acthero-facts { display: flex; gap: 8px; flex-wrap: wrap; }
 #pause-menu .td-acttools { display: flex; flex-direction: column; margin: 0 0 4px; }
@@ -350,7 +350,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .td-begin-lead { padding: 0 0 8px; }
 #pause-menu .td-begin-list { display: flex; flex-direction: column; gap: 4px; }
 #pause-menu .td-begin-item { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 4px; }
-#pause-menu .td-begin-nr { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; line-height: 1; text-align: center; color: var(--g); }
+#pause-menu .td-begin-nr { font-family: var(--ds-font-kop); font-size: 22px; line-height: 1; text-align: center; color: var(--g); }
 #pause-menu .td-begin-row { padding: 0 8px; }
 #pause-menu .td-passport { margin: 0 24px 16px; padding: 14px 16px 6px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .td-passport .m-gh { padding: 0 0 6px; }
@@ -436,7 +436,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-progress { display: flex; flex-direction: column; gap: 8px; margin: 0 24px 18px; padding: 14px 18px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .pm-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 #pause-menu .pm-progress-pct { display: inline-flex; align-items: baseline; gap: 6px; }
-#pause-menu .pm-progress-pct b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 38px; line-height: 1; letter-spacing: 0.03em; color: var(--g); }
+#pause-menu .pm-progress-pct b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 38px; line-height: 1; letter-spacing: 0.03em; color: var(--g); }
 #pause-menu .pm-progress-pct .mut { font-size: 16px; }
 #pause-menu .pm-progress .m-bar { height: 6px; }
 #pause-menu .pm-progress-parts { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 2px 0 0; padding: 0; list-style: none; }
@@ -446,7 +446,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* #891: de drie moeilijkheidsstanden naast elkaar, met de gevolgen erbij; de gekozen stand licht op */
 #pause-menu .pm-diff { flex: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 0 24px 18px; }
 #pause-menu .pm-diff-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
-#pause-menu .pm-diff-row b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.04em; }
+#pause-menu .pm-diff-row b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.04em; }
 #pause-menu .pm-diff-row span { font-size: 15px; line-height: 1.3; color: var(--mut); }
 #pause-menu .pm-diff-row[data-on] { background: color-mix(in srgb, var(--ds-c-licht-groen) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); }
 #pause-menu .pm-diff-row[data-on] b { color: var(--g); }
@@ -456,7 +456,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-fixed-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: baseline; gap: 10px; font-size: 16px; }
 #pause-menu .pm-fixed-row .m-kc { justify-self: start; }
 #pause-menu .pm-keyreuse { margin: 6px 0 2px; padding-top: 10px; border-top: 1px solid var(--line); }
-#pause-menu .pm-keyreuse b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 22px; letter-spacing: 0.04em; }
+#pause-menu .pm-keyreuse b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 22px; letter-spacing: 0.04em; }
 #pause-menu .pm-keyreuse-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: baseline; gap: 10px; font-size: 16px; color: var(--mut); }
 #pause-menu .pm-keyreuse-row .m-kc { justify-self: start; }
 /* op een smal venster staan de drie standen onder elkaar in plaats van naast elkaar */
@@ -472,7 +472,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 
 /* Telefoon */
 #pause-menu .ph-head { display: flex; align-items: center; gap: 24px; }
-#pause-menu .av.lg { flex: none; display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 44px; color: var(--g); background: color-mix(in srgb, var(--ds-c-licht-groen) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ds-c-licht-groen) 40%, transparent); padding-top: 4px; }
+#pause-menu .av.lg { flex: none; display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; font-family: var(--ds-font-kop); font-size: 44px; color: var(--g); background: color-mix(in srgb, var(--ds-c-licht-groen) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ds-c-licht-groen) 40%, transparent); padding-top: 4px; }
 #pause-menu .ph-bubble { align-self: stretch; padding: 20px 24px; border-radius: 16px 16px 16px 4px; background: color-mix(in srgb, var(--ds-c-creme) 7%, transparent); font-size: 22px; line-height: 1.4; max-width: 640px; }
 #pause-menu .ph-acts { flex-wrap: wrap; gap: 16px; }
 #pause-menu .ph-thread { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: thin; flex: 1; min-height: 0; }
@@ -522,7 +522,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-viewer .pm-stat { padding: 8px 12px; }
 #pause-menu .gar-viewer .pm-stat b { font-size: 28px; }
 #pause-menu .gar-where { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 18px; }
-#pause-menu .gar-where b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 24px; letter-spacing: 0.04em; color: var(--g); }
+#pause-menu .gar-where b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 24px; letter-spacing: 0.04em; color: var(--g); }
 #pause-menu .gar-look { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 18px; }
 #pause-menu .gar-look .mut { font-size: 16px; }
 #pause-menu .gar-meme { font-size: 17px; line-height: 1.35; }
@@ -574,7 +574,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pa-rowbar { display: block; width: min(220px, 100%); height: 4px; margin-top: 5px; }
 #pause-menu .pa-cat-note { font-size: 15px; white-space: nowrap; }
 #pause-menu .pa-leeg { display: flex; flex-direction: column; gap: 4px; padding: 18px 24px 8px; }
-#pause-menu .pa-leeg b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 28px; letter-spacing: 0.03em; }
+#pause-menu .pa-leeg b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 28px; letter-spacing: 0.03em; }
 #pause-menu .pa-leeg .m-note { max-width: 520px; }
 #pause-menu .m-disc .bebas { font-size: 22px; color: var(--mut); margin-left: auto; }
 #pause-menu .m-disc .m-bar + .bebas { margin-left: 0; }
@@ -586,7 +586,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-cgroup { break-inside: avoid; margin: 0 0 24px; padding: 0; }
 #pause-menu .pm-cgroup:focus-visible { outline-offset: 4px; }
 #pause-menu .pm-cgroup[hidden], #pause-menu .pm-crow[hidden] { display: none; }
-#pause-menu .pm-cgroup h3 { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; }
+#pause-menu .pm-cgroup h3 { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; font-family: var(--ds-font-kop); font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; }
 #pause-menu .pm-cgroup h3 .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .pm-crow { display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: center; gap: 16px; min-height: 48px; padding: 6px 0; box-shadow: inset 0 -1px 0 var(--line); font-size: 18px; line-height: 1.3; }
 #pause-menu .pm-ckeys { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
@@ -607,7 +607,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-binds[hidden] { display: none; }
 #pause-menu .pm-binds:not([hidden]) { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ds-c-creme) 18%, transparent) transparent; }
 /* the canonical keycap (DESIGN_SYSTEM.md) also in the menu */
-#pause-menu .pm-ckeys .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 7px; margin: 0; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: var(--ds-c-glas); font: bold 14px/1 'Arial Narrow', Arial, sans-serif; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
+#pause-menu .pm-ckeys .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 7px; margin: 0; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: var(--ds-c-glas); font: bold 14px/1 var(--ds-font-tekst); text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
 #pause-menu .pm-ckeys .hud-wasd { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 2px; }
 #pause-menu .pm-ckeys .hud-wasd .hud-key { min-width: 22px; height: 22px; font-size: 12px; }
 #pause-menu .pm-ckeys .hud-wasd .hud-key:first-child { grid-column: 2; }
@@ -618,7 +618,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 
 /* Kaart (mapview.js, embedded): the map is the screen; title and search top left,
    layers top right, your route bottom left, zoom bottom right. */
-#pause-menu .mapview-overlay.embedded { position: absolute; inset: 0; background: #13221a; font-family: 'Arial Narrow', Arial, sans-serif; color: var(--ink); overflow: hidden; border: 0; }
+#pause-menu .mapview-overlay.embedded { position: absolute; inset: 0; background: #13221a; font-family: var(--ds-font-tekst); color: var(--ink); overflow: hidden; border: 0; }
 #pause-menu .mapview-overlay.embedded .mapview-body { position: absolute; inset: 0; display: block; }
 #pause-menu .mapview-overlay.embedded .mapview-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 #pause-menu .mapview-overlay.embedded .mapview-body::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 55% 50%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 45%, color-mix(in srgb, var(--ds-c-glas) 85%, transparent) 100%), linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 85%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 30%); }
@@ -640,7 +640,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .mapview-overlay.embedded .mv-hr { position: absolute; right: 80px; top: var(--mt); display: flex; align-items: flex-start; gap: 16px; pointer-events: none; }
 #pause-menu .mapview-overlay.embedded .mv-hr > * { pointer-events: auto; }
 #pause-menu .mv-layers { background: color-mix(in srgb, var(--ds-c-glas) 75%, transparent); }
-#pause-menu .mv-layers-n { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--mut); }
+#pause-menu .mv-layers-n { font-family: var(--ds-font-tekst); font-size: 18px; letter-spacing: 0; color: var(--mut); }
 #pause-menu .mapview-overlay.embedded .mapview-legend { position: absolute; right: 152px; top: calc(var(--mt) + 72px); width: 420px; max-height: calc(100% - var(--mt) - 72px - 104px); margin: 0; padding: 24px 24px 32px; gap: 8px; border-radius: 16px; background: color-mix(in srgb, var(--ds-c-glas) 94%, transparent); border: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 10%, transparent), 0 24px 48px rgba(0, 0, 0, 0.4); overflow: hidden; display: flex; flex-direction: column; }
 /* QA 0.62.0: de titel en de uitleg blijven staan; de laagjes scrollen in hun eigen vak
    naast de zoomknoppen, met een zachte onderrand i.p.v. een harde afkap. */
@@ -648,10 +648,10 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 30px), transparent 100%);
   mask-image: linear-gradient(180deg, #000 calc(100% - 30px), transparent 100%); }
 #pause-menu .mapview-overlay.embedded .mapview-legend[hidden] { display: none; }
-#pause-menu .mapview-overlay.embedded .mapview-legend h3 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; margin: 0 0 4px; }
+#pause-menu .mapview-overlay.embedded .mapview-legend h3 { font-family: var(--ds-font-kop); font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; margin: 0 0 4px; }
 #pause-menu .mapview-overlay.embedded .mapview-legend .mv-leg-hint { display: none; }
 #pause-menu .mapview-overlay.embedded .mapview-legend .mv-grp { border: 0; background: none; border-radius: 0; scroll-snap-align: start; }
-#pause-menu .mapview-overlay.embedded .mapview-legend .mv-grp-head { padding: 12px 0 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.05em; color: var(--ink); }
+#pause-menu .mapview-overlay.embedded .mapview-legend .mv-grp-head { padding: 12px 0 8px; font-family: var(--ds-font-kop); font-size: 24px; letter-spacing: 0.05em; color: var(--ink); }
 #pause-menu .mapview-overlay.embedded .mapview-legend li { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; border-radius: 8px; font-size: 18px; }
 #pause-menu .mapview-overlay.embedded .mapview-legend li[role="switch"]:hover { background: color-mix(in srgb, var(--ds-c-creme) 5%, transparent); }
 #pause-menu .mapview-overlay.embedded .mapview-legend li > span:nth-child(2) { flex: 1; min-width: 0; }
@@ -667,7 +667,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .mapview-overlay.embedded .mv-goal:has(.mapview-route:empty):has([data-act="clear"][hidden]) { display: none; }
 #pause-menu .mapview-overlay.embedded .mapview-route { margin: 0; display: flex; flex-direction: column; gap: 4px; font-size: 24px; line-height: 1.2; white-space: normal; color: var(--ink); }
 #pause-menu .mapview-overlay.embedded .mapview-route > span + span { margin: 0; }
-#pause-menu .mapview-overlay.embedded .mapview-route button { margin-left: 12px; padding: 0 10px; height: 32px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0.05em; border-radius: 6px; border: 0; box-shadow: inset 0 0 0 1px currentColor; }
+#pause-menu .mapview-overlay.embedded .mapview-route button { margin-left: 12px; padding: 0 10px; height: 32px; font-family: var(--ds-font-kop); font-size: 18px; letter-spacing: 0.05em; border-radius: 6px; border: 0; box-shadow: inset 0 0 0 1px currentColor; }
 #pause-menu .mapview-overlay.embedded .mapview-osm { left: 80px; bottom: 3.7%; padding: 0; background: none; font-size: 18px; color: var(--mut); }
 #pause-menu .mapview-overlay.embedded .mapview-tp { top: calc(var(--mt) + 8px); padding: 0 24px; height: 48px; display: flex; align-items: center; border-radius: 24px; font-size: 22px; background: var(--g); color: var(--ds-c-glas); }
 #pause-menu .mapview-overlay.embedded .mapview-tp[hidden] { display: none; }
@@ -677,10 +677,10 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .mapview-overlay.embedded .mapview-card > * { flex-shrink: 0; }   /* #1054: de kaart scrolt binnen het scherm in plaats van boven af te kappen */
 #pause-menu .mapview-overlay.embedded .mapview-card .mv-ico { display: none; }
 #pause-menu .mapview-overlay.embedded .mapview-card > div { gap: 12px; }
-#pause-menu .mapview-overlay.embedded .mapview-card b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 44px; line-height: 0.95; letter-spacing: 0.04em; }
+#pause-menu .mapview-overlay.embedded .mapview-card b { font-family: var(--ds-font-kop); font-size: 44px; line-height: 0.95; letter-spacing: 0.04em; }
 #pause-menu .mapview-overlay.embedded .mapview-card small, #pause-menu .mapview-overlay.embedded .mapview-card .mv-rec { font-size: 18px; color: var(--mut); letter-spacing: 0; }
 #pause-menu .mapview-overlay.embedded .mapview-card .mv-btns { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
-#pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn { height: 56px; padding: 0 28px; border-radius: 8px; border: 0; background: var(--g); color: var(--ds-c-glas); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; letter-spacing: 0.06em; cursor: pointer; }
+#pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn { height: 56px; padding: 0 28px; border-radius: 8px; border: 0; background: var(--g); color: var(--ds-c-glas); font-family: var(--ds-font-kop); font-size: 26px; letter-spacing: 0.06em; cursor: pointer; }
 #pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn:hover { background: #62d792; }
 #pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn.ghost { height: 40px; padding: 0 8px; background: none; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); font-size: 22px; }
 #pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn.ghost:hover { color: var(--ink); }
@@ -755,7 +755,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* Samen spelen (lobbyui.js, #95): kop, tekst, code, invoer en knoppen in de menustijl; ook in het wachtscherm (.coop-hold) */
 #pause-menu .pm-samen { display: flex; flex-direction: column; gap: 12px; max-width: 952px; padding: 32px 64px 40px; overflow: visible; }
 /* the sheet already has the title: the lobby's own one is dropped, and Foto's gets the same inset as the other sections (m-main: 64px) */
-#pause-menu .pm-samen .coop-title { display: block; margin: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; line-height: 1; letter-spacing: 0.03em; color: var(--ink); }
+#pause-menu .pm-samen .coop-title { display: block; margin: 0; font-family: var(--ds-font-kop); font-weight: normal; font-size: 40px; line-height: 1; letter-spacing: 0.03em; color: var(--ink); }
 #pause-menu .pm-fotos { overflow-y: auto; scrollbar-width: none; }
 #pause-menu .pm-fotos .foto-panel { padding: 32px 64px 40px; }
 /* Foto's: de galerij eerst, de telling en de uitleg erachter (#611) */
@@ -769,8 +769,8 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-fotos .foto-panel .m-disc { width: min(760px, 100%); }
 #pause-menu .pm-fotos .foto-panel .m-fold { align-self: stretch; width: min(760px, 100%); }
 #pause-menu .pm-fotos .foto-panel .m-fold .foto-lead { font-size: 18px; }
-.pm-samen, .coop-hold { font-family: 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
-.pm-samen .coop-title, .coop-hold .coop-title { margin: 0 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; letter-spacing: 0.04em; }
+.pm-samen, .coop-hold { font-family: var(--ds-font-tekst); color: var(--ink, #f0ede4); }
+.pm-samen .coop-title, .coop-hold .coop-title { margin: 0 0 4px; font-family: var(--ds-font-kop); font-weight: normal; font-size: 40px; letter-spacing: 0.04em; }
 .pm-samen p, .coop-hold p { margin: 0; max-width: 640px; font-size: 22px; line-height: 1.35; }
 .pm-samen .coop-code, .coop-hold .coop-code { width: fit-content; max-width: 100%; margin: 4px 0; padding: 14px 18px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent); font-family: Consolas, 'Courier New', monospace; font-size: 26px; letter-spacing: 0.06em; user-select: all; overflow-wrap: anywhere; }
 .pm-samen .coop-input, .coop-hold .coop-input { box-sizing: border-box; width: 100%; max-width: 520px; height: 56px; padding: 0 16px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--ds-c-creme) 30%, transparent); background: rgba(0, 0, 0, 0.35); color: inherit; font-family: Consolas, 'Courier New', monospace; font-size: 24px; }
@@ -778,7 +778,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 .pm-samen .coop-error, .coop-hold .coop-error { color: #ff9a8f; }
 .pm-samen .coop-btns, .pm-samen .coop-wensen, .coop-hold .coop-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
 .coop-hold .coop-btn, .pm-samen .coop-btn, .pm-samen .coop-wens { cursor: pointer; border: 0; }
-.coop-hold .m-bg, .coop-hold .m-bp, .pm-samen .m-bg, .pm-samen .m-bp { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; height: 56px; padding: 0 24px; border-radius: 8px; font-size: 24px; letter-spacing: 0.06em; background: transparent; color: var(--ink, #f0ede4); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent); }
+.coop-hold .m-bg, .coop-hold .m-bp, .pm-samen .m-bg, .pm-samen .m-bp { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; font-family: var(--ds-font-kop); height: 56px; padding: 0 24px; border-radius: 8px; font-size: 24px; letter-spacing: 0.06em; background: transparent; color: var(--ink, #f0ede4); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent); }
 .coop-hold .m-bp, .pm-samen .m-bp { background: var(--g, #3fc97a); color: var(--ds-c-glas); box-shadow: none; }
 .pm-samen .coop-wens[aria-pressed="true"] { background: color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent); box-shadow: inset 0 0 0 1px var(--g, #3fc97a); }
 .pm-samen .coop-btn:focus-visible, .coop-hold .coop-btn:focus-visible, .pm-samen .coop-wens:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
@@ -839,7 +839,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-hub-stap[data-staat="klaar"] { color: var(--g); opacity: 0.85; }
 #pause-menu .pm-hub-stap[data-staat="straks"] { opacity: 0.55; }
 #pause-menu .pm-hub-stap[aria-current="step"] { color: var(--ink); box-shadow: inset 0 0 0 2px var(--g, #3fc97a); opacity: 1; }
-#pause-menu .pm-hub-nr { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: color-mix(in srgb, var(--ds-c-creme) 14%, transparent); font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; }
+#pause-menu .pm-hub-nr { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: color-mix(in srgb, var(--ds-c-creme) 14%, transparent); font-family: var(--ds-font-tekst); font-size: 14px; }
 #pause-menu .pm-hub-stap[aria-current="step"] .pm-hub-nr { background: var(--g); color: var(--ds-c-glas); }
 #pause-menu .pm-hub-teller { margin: 0; font-size: 17px; }
 #pause-menu .pm-hub-keuzes { display: flex; flex-direction: column; gap: 10px; }
@@ -870,7 +870,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
    scanbare rij, met de host en een weggevallen of haperende verbinding als klein label
    ernaast; kleur en vorm horen bij de spelerslijst, niet bij deze regel. */
 .coop-spelers-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; max-width: 760px; }
-.coop-speler { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 12px; border-radius: 999px; background: color-mix(in srgb, var(--ds-c-creme) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 18%, transparent); font: max(17px, var(--menu-min)) 'Arial Narrow', Arial, sans-serif; overflow-wrap: anywhere; }
+.coop-speler { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 12px; border-radius: 999px; background: color-mix(in srgb, var(--ds-c-creme) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 18%, transparent); font: max(17px, var(--menu-min)) var(--ds-font-tekst); overflow-wrap: anywhere; }
 .coop-speler small { font-size: max(14px, var(--menu-min)); opacity: 0.7; }
 /* Wie het spel opende heeft een groene rand, maar kleur alleen is voor een voorlezer en voor
    wie kleuren slecht onderscheidt geen informatie: de chip zegt het ook met tekst (#a11y). */
@@ -895,7 +895,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-samen .coop-btns .coop-btn { max-width: 100%; }
 #pause-menu .pm-samen .coop-code { position: sticky; top: 0; z-index: 3; background: color-mix(in srgb, var(--ds-c-glas) 96%, transparent); box-shadow: 0 8px 12px color-mix(in srgb, var(--ds-c-glas) 55%, transparent); }
 #pause-menu .pm-samen .coop-profiel-vouw { margin: 4px 0; }
-#pause-menu .pm-samen .coop-profiel-vouw > summary { cursor: pointer; font: 20px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.05em; opacity: 0.9; }
+#pause-menu .pm-samen .coop-profiel-vouw > summary { cursor: pointer; font: 20px var(--ds-font-kop); letter-spacing: 0.05em; opacity: 0.9; }
 #pause-menu .pm-samen .coop-profiel-vouw[open] > summary { margin-bottom: 6px; }
 #pause-menu .pm-samen .coop-profiel-vouw > .coop-profiel { margin: 0; }
 #pause-menu .pm-samen .coop-input, #pause-menu .pm-samen .coop-wachtwoord, #pause-menu .pm-samen .coop-code { scroll-margin-bottom: 84px; }
@@ -955,13 +955,13 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-errsum { padding: 0 24px 12px; font-size: 18px; line-height: 1.4; color: var(--ink); max-width: 860px; }
 #pause-menu .pm-errsum:empty { display: none; }
 #pause-menu .pm-errfold { padding: 0 24px 8px; max-width: 860px; }
-#pause-menu .pm-errfold > summary { cursor: pointer; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; color: var(--mut); }
+#pause-menu .pm-errfold > summary { cursor: pointer; font-family: var(--ds-font-kop); font-size: 20px; letter-spacing: 0.04em; color: var(--mut); }
 #pause-menu .pm-errfold > summary:hover, #pause-menu .pm-errfold[open] > summary { color: var(--g); }
 #pause-menu .pm-errfold > .pm-errlog { padding: 12px 0 0; }
 /* #604: kleine proef bij Toegankelijkheid: de markerkleuren, de routelijnen en 13/20 px-tekst zoals ze nu zijn */
 #pause-menu .pm-a11yprev { display: flex; flex-direction: column; gap: 14px; margin: 4px 0 14px; padding: 16px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-glas) 55%, transparent); box-shadow: inset 0 0 0 1px var(--line2); }
 #pause-menu .pm-a11y-marks { display: flex; flex-wrap: wrap; gap: 8px; }
-#pause-menu .pm-a11y-mk { padding: 3px 10px; border-radius: 999px; background: var(--mk-ok, #3fc97a); color: var(--ds-c-glas); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 16px; letter-spacing: 0.04em; }
+#pause-menu .pm-a11y-mk { padding: 3px 10px; border-radius: 999px; background: var(--mk-ok, #3fc97a); color: var(--ds-c-glas); font-family: var(--ds-font-kop); font-size: 16px; letter-spacing: 0.04em; }
 #pause-menu .pm-a11y-mk[data-mk="ok"] { background: var(--mk-ok, #3fc97a); }
 #pause-menu .pm-a11y-mk[data-mk="danger"] { background: var(--mk-danger, #d93f3f); }
 #pause-menu .pm-a11y-mk[data-mk="mission"] { background: var(--mk-mission, #e8c93a); }
@@ -983,7 +983,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-nowfacts { display: flex; flex-wrap: wrap; gap: 12px 40px; margin: 0 24px 12px; padding: 14px 18px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-glas) 55%, transparent); box-shadow: inset 0 0 0 1px var(--line2); flex: none; }
 #pause-menu .pm-nowfacts:empty { display: none; }
 #pause-menu .pm-nowfacts .m-fact { gap: 2px; }
-#pause-menu .pm-nowfacts .m-fact > b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.04em; color: var(--ink); }
+#pause-menu .pm-nowfacts .m-fact > b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 26px; letter-spacing: 0.04em; color: var(--ink); }
 #pause-menu .pm-hintprev { display: flex; flex-direction: column; gap: 8px; margin: 0 24px 12px; padding: 14px 18px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-glas) 55%, transparent); box-shadow: inset 0 0 0 1px var(--line2); flex: none; }
 #pause-menu .pm-hintprev-row { display: inline-flex; align-items: center; gap: 10px; font-size: 18px; color: var(--ink); }
 #pause-menu .pm-hintprev-row .pm-pad-g svg { width: 30px; height: 30px; }
@@ -1352,7 +1352,7 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 #pause-menu .pm-find-list { list-style: none; margin: 0; padding: 0; width: 100%; max-height: min(52vh, 420px); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
 #pause-menu .pm-find-r { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 6px 12px; border-radius: 8px; text-align: left; color: inherit; font-size: 20px; }
 #pause-menu .pm-find-r .pm-ic { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-#pause-menu .pm-find-t { flex: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
+#pause-menu .pm-find-t { flex: none; font-family: var(--ds-font-kop); font-size: 24px; letter-spacing: 0.04em; }
 #pause-menu .pm-find-p { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #pause-menu .pm-find-k { flex: none; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
 #pause-menu .pm-find-r:hover, #pause-menu .pm-find-r:focus-visible { background: color-mix(in srgb, var(--g) 22%, transparent); outline: 2px solid currentColor; outline-offset: -2px; }
@@ -1373,7 +1373,7 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 }
 /* Loopbanen: de stand op één regel */
 #pause-menu .lb-stand { display: flex; flex-wrap: wrap; gap: 4px 24px; padding: 6px 24px; font-size: 18px; }
-#pause-menu .lb-stand b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; font-weight: normal; }
+#pause-menu .lb-stand b { font-family: var(--ds-font-kop); font-size: 24px; font-weight: normal; }
 /* Boerderij: de onderdelen zijn tabs, dus het detail heeft de hele breedte */
 #pause-menu .pm-boerderij .bd-main { display: block; padding-top: 12px; }
 #pause-menu .pm-boerderij .bd-main > .bd-pane { width: auto; max-width: none; }

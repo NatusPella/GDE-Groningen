@@ -150,7 +150,7 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-fact > span:first-child{font-size:max(15px,var(--menu-min));letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
 #pause-menu .sp-fact > span:last-child{font-size:max(19px,var(--menu-min));line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
 #pause-menu .sp-ledger{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:color-mix(in srgb, var(--ds-c-glas) 55%, transparent);box-shadow:inset 0 0 0 1px var(--line2)}
-#pause-menu .sp-lhead{font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+#pause-menu .sp-lhead{font-family:var(--ds-font-kop);font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 #pause-menu .sp-days{display:flex;align-items:flex-end;gap:6px;height:56px}
 #pause-menu .sp-day{flex:1;display:flex;align-items:flex-end;height:100%}
 #pause-menu .sp-day i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--g);opacity:.85}

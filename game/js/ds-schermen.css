@@ -82,3 +82,19 @@ body.tr-result-open #trailer-result button { cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) { #trailer-result { animation: none; } }
 html.reduce-motion #trailer-result { animation: none; }
+
+/* ---- Technische info (Ctrl+Shift+G, gpudiag.js): een papieren kaart met de tekst in een witte, geranderde strook ---- */
+#gpudiag {
+  position: fixed; inset: 0; z-index: 96; display: flex; align-items: center; justify-content: center; padding: var(--ds-s-4);
+  background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent);
+}
+#gpudiag[hidden] { display: none; }
+#gpudiag, #gpudiag * { cursor: default; }
+#gpudiag button, #gpudiag button * { cursor: pointer; }
+#gpudiag .gd-box { width: min(calc(var(--ds-s-8) * 11), 100%); max-height: calc(100vh - var(--ds-s-6)); font-family: var(--ds-font-zeef-tekst); }
+#gpudiag pre {
+  margin: 0; flex: 1; min-height: 0; overflow: auto; padding: var(--ds-s-2) var(--ds-s-3); white-space: pre-wrap; overflow-wrap: anywhere; user-select: text;
+  background: var(--ds-c-wit); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  font: var(--ds-t-hulp) / var(--ds-lh-tekst) ui-monospace, Consolas, monospace;
+}
+@media (max-height: 780px) { #gpudiag .ds-z-knop { min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); } }

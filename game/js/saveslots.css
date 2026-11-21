@@ -26,10 +26,10 @@
 #saveslots .ssl-chip.on { background: var(--g2); color: var(--ds-c-wit); }
 #saveslots .ssl-chip.warn { background: color-mix(in srgb, var(--ds-c-rood-glas) 85%, transparent); color: var(--ds-c-wit); }
 /* the one action of the card shows on the chosen card (always on touch) */
-#saveslots .ssl-go { position: absolute; right: 10px; bottom: 10px; height: 36px; padding: 0 16px; display: none; align-items: center; border-radius: 8px; background: var(--g); color: var(--ds-c-glas); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.05em; }
+#saveslots .ssl-go { position: absolute; right: 10px; bottom: 10px; height: 36px; padding: 0 16px; display: none; align-items: center; border-radius: 8px; background: var(--g); color: var(--ds-c-glas); font-family: var(--ds-font-kop); font-size: 22px; letter-spacing: 0.05em; }
 #saveslots .ssl-card.sel .ssl-main:not(:disabled) .ssl-go, #saveslots .ssl-main:hover:not(:disabled) .ssl-go { display: inline-flex; }
 #saveslots .ssl-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px 14px; min-width: 0; }
-#saveslots .ssl-nm { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 32px; line-height: 1.05; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#saveslots .ssl-nm { font-family: var(--ds-font-kop); font-size: 32px; line-height: 1.05; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #saveslots .ssl-part { font-size: 20px; line-height: 1.25; }
 #saveslots .ssl-meta { font-size: 18px; line-height: 1.25; }
 /* #898: het voortgangspercentage van een opgeslagen spel, als balkje onder de regel */
@@ -50,7 +50,7 @@
 #saveslots .ssl-x { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; color: var(--mut); }
 #saveslots .ssl-x:hover, #saveslots .ssl-x:focus-visible { color: var(--ink); background: color-mix(in srgb, var(--ds-c-creme) 12%, transparent); }
 #saveslots .ssl-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-#saveslots .ssl-mi { display: flex; align-items: center; gap: 16px; width: 100%; height: 48px; padding: 0 12px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); text-align: left; transition: background 0.2s, color 0.2s; }
+#saveslots .ssl-mi { display: flex; align-items: center; gap: 16px; width: 100%; height: 48px; padding: 0 12px; border-radius: 8px; font-family: var(--ds-font-kop); font-size: 26px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); text-align: left; transition: background 0.2s, color 0.2s; }
 #saveslots .ssl-mi:hover, #saveslots .ssl-mi:focus-visible { background: color-mix(in srgb, var(--ds-c-creme) 9%, transparent); color: var(--ink); }
 #saveslots .ssl-mi:focus-visible .ssl-ic, #saveslots .ssl-mi:hover .ssl-ic { stroke: var(--g); opacity: 1; }
 #saveslots .ssl-mi:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
@@ -87,7 +87,7 @@
 #saveslots .ssl-note { flex: none; padding: 2px 56px 0; font-size: 17px; line-height: 1.35; color: var(--mut); }
 #saveslots .ssl-foot { flex: none; display: flex; align-items: center; gap: 12px; padding: 0 56px 16px; }
 #saveslots .ssl-fgrow { flex: 1; }
-#saveslots .ssl-fb { display: inline-flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); transition: background 0.2s, color 0.2s; }
+#saveslots .ssl-fb { display: inline-flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-radius: 8px; font-family: var(--ds-font-kop); font-size: 24px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); transition: background 0.2s, color 0.2s; }
 #saveslots .ssl-fb:hover:not(:disabled), #saveslots .ssl-fb:focus-visible { background: color-mix(in srgb, var(--ds-c-creme) 9%, transparent); color: var(--ink); }
 #saveslots .ssl-fb:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 
@@ -120,7 +120,7 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
 #saveslots .ssl-hero-pic { position: relative; flex: none; width: 240px; aspect-ratio: 16 / 9; background: linear-gradient(160deg, rgba(30, 62, 42, 0.9), color-mix(in srgb, var(--ds-c-glas) 95%, transparent)); }
 #saveslots .ssl-hero-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
 #saveslots .ssl-hero-body { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; padding: 12px 24px 12px 0; }
-#saveslots .ssl-hero-lab { display: flex; align-items: center; gap: 14px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 56px; line-height: 0.95; letter-spacing: 0.04em; }
+#saveslots .ssl-hero-lab { display: flex; align-items: center; gap: 14px; font-family: var(--ds-font-kop); font-size: 56px; line-height: 0.95; letter-spacing: 0.04em; }
 #saveslots .ssl-hero-ic { width: 40px; height: 40px; flex: none; fill: none; stroke: var(--g); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #saveslots .ssl-hero-nm { font-size: 24px; line-height: 1.2; }
 #saveslots .ssl-hero-meta { font-size: 20px; line-height: 1.25; }

@@ -23,7 +23,7 @@
   --hud-stack-top: 160px;
   /* HUD scale from uiscale.js; vw/vh inside #hud must be divided by it */
   zoom: var(--ui, 1);
-  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-kop);
   letter-spacing: 0.04em;
 }
 @media (max-height: 640px), (max-width: 760px) { #hud { --mm-size: 190px; --hud-edge: max(24px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); --hud-top: max(18px, env(safe-area-inset-top, 0px)); --mm-bottom: max(46px, env(safe-area-inset-bottom, 0px)); } }
@@ -88,7 +88,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-weapon { display: flex; align-items: center; gap: 9px; }
 #hud .hud-weapon-col { display: flex; flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
 #hud .hud-weapon-text { font-size: 15px; letter-spacing: 0.08em; line-height: 1; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); white-space: nowrap; }
-#hud .hud-weapon-ammo { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; color: var(--ds-c-creme); text-shadow: inherit; }
+#hud .hud-weapon-ammo { font-family: var(--ds-font-kop); font-size: 20px; color: var(--ds-c-creme); text-shadow: inherit; }
 #hud .hud-weapon-ammo[data-num="1"] { font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
 #hud .hud-weapon-icon { width: 38px; height: 20px; flex: none; fill: var(--ds-c-creme); color: var(--ds-c-creme); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)); }
 #hud .hud-weapon.switched .hud-weapon-icon { animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out); }
@@ -120,7 +120,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-arrow { width: 36px; height: 36px; color: var(--gron-green-light); fill: none; stroke: var(--gron-green-light); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #hud .gps-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 #hud .gps-txt b { font-weight: normal; font-size: 28px; line-height: 1; }
-#hud .gps-txt span { font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(15px, var(--hud-min)); color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); overflow: hidden; text-overflow: ellipsis; }
+#hud .gps-txt span { font-family: var(--ds-font-tekst); font-size: max(15px, var(--hud-min)); color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); overflow: hidden; text-overflow: ellipsis; }
 #hud .gps-txt span:empty { display: none; }
 #hud .gps-sep { width: 1px; align-self: stretch; background: color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent); }
 #hud .gps-dist { display: flex; flex-direction: column; align-items: flex-end; }
@@ -155,8 +155,8 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .pl-kick { display: flex; gap: 18px; align-items: center; font-size: 20px; letter-spacing: 0.3em; color: var(--gron-green-light); }
 #hud .pl-kick i { width: 70px; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent), var(--ds-c-licht-groen)); }
 #hud .pl-kick i:last-child { transform: scaleX(-1); }
-#hud .pl-name { font-family: 'Big Shoulders Display', 'Bebas Neue', sans-serif; font-weight: 900; font-size: 76px; line-height: 0.95; letter-spacing: 0.02em; text-transform: uppercase; max-width: 90%; text-align: center; }
-#hud .pl-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 16px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); letter-spacing: 0.02em; }
+#hud .pl-name { font-family: var(--ds-font-logo); font-weight: 900; font-size: 76px; line-height: 0.95; letter-spacing: 0.02em; text-transform: uppercase; max-width: 90%; text-align: center; }
+#hud .pl-line { font-family: var(--ds-font-tekst); font-size: 16px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); letter-spacing: 0.02em; }
 #hud .pl-line:empty { display: none; }
 
 /* --- de prestatiekaart wijkt voor een interactiehint (achievements.js) ----- */
@@ -192,13 +192,13 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
 #hud .hud-obj-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.1; }
 /* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
-#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+#hud .hud-mission-label { font-family: var(--ds-font-tekst); font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 #hud .hud-mission-label:empty { display: none; }
-#hud .hud-mission-progress { max-width: 100%; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); white-space: nowrap; }
+#hud .hud-mission-progress { max-width: 100%; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: var(--ds-font-tekst); font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }
 /* #824: de altijd zichtbare bedieningsregel, binnen de doellijn (zone G) en nooit als eigen vak.
    Klein, één regel die mag wrappen; de toetskappen blijven de canonieke .hud-key. */
-#hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); }
+#hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: var(--ds-font-tekst); font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); }
 #hud .hud-obj-keys[hidden], #hud .hud-mission:not(.obj-fresh) .hud-obj-keys { display: none; } /* #985: de hulpregel alleen de eerste seconden van een nieuw doel (hud_panel.js obj-fresh) */
 #hud .hud-obj-key { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 #hud .hud-obj-key .hud-key { height: 17px; min-width: 17px; padding: 0 4px; font-size: var(--hud-min, 13px); line-height: 17px; }
@@ -249,7 +249,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-portrait img.on, #hud .hud-mate-pic img.on { opacity: 1; }
 #hud .hud-portrait:has(img.on) svg { opacity: 0; }
 #hud .hud-portrait.low { border-color: var(--ds-c-rood-glas); box-shadow: 0 0 10px color-mix(in srgb, var(--ds-c-rood-glas) 60%, transparent); filter: saturate(0.55) brightness(0.9); }
-#hud .hud-mate { display: inline-flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
+#hud .hud-mate { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ds-font-tekst); font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
 #hud .hud-mate[hidden] { display: none; }
 #hud .hud-mate-pic { display: block; flex-basis: 26px; width: 26px; height: 26px; }
 #hud .hud-mate-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -259,7 +259,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-name-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 #hud .hud-character { font-size: 17px; line-height: 1; color: var(--ds-c-creme); }
 #hud .hud-status { display: flex; gap: 4px; margin-left: 4px; }
-#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid color-mix(in srgb, var(--ds-c-wit) 30%, transparent); border-radius: 4px; }
+#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: var(--ds-font-tekst); font-size: var(--hud-min); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid color-mix(in srgb, var(--ds-c-wit) 30%, transparent); border-radius: 4px; }
 #hud .hud-chip[hidden] { display: none; }
 #hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
@@ -290,7 +290,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low .hud-bar { animation: none; } }
 
 /* savegame.js's toast, moved into the location block by hud_panel.js */
-#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min); color: var(--ds-tx-zacht, #a3b2a6); opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: var(--ds-font-tekst); font-size: var(--hud-min); color: var(--ds-tx-zacht, #a3b2a6); opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .hud-location .hud-saved { position: static; flex: none; }
 #hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
 #hud .hud-saved span { text-transform: lowercase; }
@@ -339,7 +339,7 @@ body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.0
   inset: 0;
   z-index: 15;
   pointer-events: none;
-  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-kop);
   color: var(--ds-c-creme);
   --bar: 11vh;
 }
@@ -430,7 +430,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   transform: translate(-50%, 50%);
   width: min(86vw, 820px);
   text-align: center;
-  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-tekst);
   font-size: clamp(16px, 1.6vw, 21px);
   letter-spacing: 0.3px;
   opacity: 0;
@@ -466,8 +466,8 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
 #cine.has-sub .cine-skip { bottom: calc(var(--bar) * 0.5 + 64px * var(--ui, 1)); } /* niet over de ondertitel (#463) */
 body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
-#cine .cine-skip { gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
-#cine .cine-skip .hud-key { margin-right: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; }
+#cine .cine-skip { gap: 6px; font-family: var(--ds-font-tekst); font-size: 14px; letter-spacing: 0.3px; }
+#cine .cine-skip .hud-key { margin-right: 0; font-family: var(--ds-font-kop); letter-spacing: 1px; }
 #cine .cine-skip-ring { width: 20px; height: 20px; transform: rotate(-90deg); }
 #cine .cine-skip-ring circle { fill: none; stroke: color-mix(in srgb, var(--ds-c-creme) 25%, transparent); stroke-width: 3; }
 #cine .cine-skip-ring .fill { stroke: var(--gron-green-light, #3fc97a); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
@@ -498,7 +498,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   zoom: calc(var(--ui, 1.2) / 1.2);
   opacity: 0;
   pointer-events: none;
-  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-tekst);
   color: var(--ds-c-creme);
 }
 #cine .cine-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--ds-c-glas) 35%, transparent), color-mix(in srgb, var(--ds-c-glas) 90%, transparent) 85%), linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 70%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 60%); }
@@ -512,7 +512,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #cine .cb-bar { display: block; width: 64px; height: 4px; border-radius: 2px; background: var(--ds-c-licht-groen); }
 #cine .cine-banner[data-kind="fail"] .cb-bar { background: var(--ds-c-creme); }
 #cine .cb-title {
-  font-family: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', sans-serif; font-weight: 900; text-transform: uppercase;
+  font-family: var(--ds-font-logo); font-weight: 900; text-transform: uppercase;
   font-size: 88px; line-height: 0.88; letter-spacing: 0.01em; color: var(--ds-c-creme); text-shadow: none;
 }
 #cine .cb-reason { font-size: 22px; line-height: 1.45; color: color-mix(in srgb, var(--ds-c-creme) 88%, transparent); }
@@ -520,7 +520,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #cine .cb-fact { display: flex; flex-direction: column; gap: 4px; }
 #cine .cb-fact:has(.cb-reward:empty) { display: none; }
 #cine .cb-fact > span { font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 68%, transparent); }
-#cine .cb-reward { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 72px; line-height: 1; letter-spacing: 0.03em; color: var(--ds-c-licht-groen); }
+#cine .cb-reward { font-family: var(--ds-font-kop); font-size: 72px; line-height: 1; letter-spacing: 0.03em; color: var(--ds-c-licht-groen); }
 #cine .cb-stats { display: flex; flex-direction: column; }
 #cine .cb-stats div { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding: 12px 0; box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--ds-c-creme) 8%, transparent); }
 
@@ -541,7 +541,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 @keyframes cb-row-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 #cine .cb-stats span { flex: none; max-width: 40%; font-size: 20px; color: color-mix(in srgb, var(--ds-c-creme) 68%, transparent); }
 /* een lange waarde (Gevolg, Ontdekt) slaat om onder zichzelf en botst niet tegen het label (#250) */
-#cine .cb-stats b { flex: 1 1 0; min-width: 0; text-align: right; overflow-wrap: anywhere; line-height: 1.15; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; font-weight: normal; letter-spacing: 0.04em; }
+#cine .cb-stats b { flex: 1 1 0; min-width: 0; text-align: right; overflow-wrap: anywhere; line-height: 1.15; font-family: var(--ds-font-kop); font-size: 26px; font-weight: normal; letter-spacing: 0.04em; }
 @media (prefers-reduced-motion: reduce) { #cine .cine-banner.in, #cine .cine-banner.out { animation: none; opacity: 1; } #cine .cine-banner.out { opacity: 0; } #cine .cine-banner.in .cb-bar, #cine .cine-banner.in .cb-title, #cine .cine-banner.in .cb-reason, #cine .cine-banner.in .cb-fact, #cine .cine-banner.in .cb-reward, #cine .cine-banner.in .cb-stats div { animation: none; opacity: 1; transform: none; } }
 /* #cine sits outside #hud, so its small text follows the HUD scale here */
 #cine .cine-kicker, #cine .cine-chip, #cine .cine-skip .hud-key, #cine .cine-skip-ring { zoom: var(--ui, 1); }
@@ -579,7 +579,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #hud .hud-nowplaying div { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
 #hud .hud-nowplaying small { font-size: var(--ds-t-kaart-eyebrow); color: var(--gron-green-light); }
 #hud .hud-nowplaying b { font-weight: normal; font-size: var(--ds-t-kaart-titel); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-nowplaying span:not(.np-ic) { font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--ds-t-kaart-hulp); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-nowplaying span:not(.np-ic) { font-family: var(--ds-font-tekst); font-size: var(--ds-t-kaart-hulp); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-nowplaying { transition: opacity 0.2s; transform: none; } }
 
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
@@ -626,7 +626,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 /* story subtitles: a highlighted clue (missionstory.js) */
 #cine.sub-clue .cine-line { color: var(--mk-mission, #f2d36b); }
-#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--mk-mission, #f2c14e); margin-bottom: 2px; text-transform: uppercase; }
+#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: var(--ds-font-kop); font-size: 13px; letter-spacing: 3px; color: var(--mk-mission, #f2c14e); margin-bottom: 2px; text-transform: uppercase; }
 #cine[data-accent="tammo"] .cine-title { color: #9cc1f0; }
 #cine[data-accent="anita"] .cine-title { color: #f39a8c; }
 
@@ -650,7 +650,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 }
 
 /* drift score chip (driftzone.js) */
-#drift-chip { position: fixed; left: 50%; bottom: 27%; transform: translateX(-50%); z-index: 20; display: flex; align-items: baseline; gap: 10px; padding: 6px 16px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-glas) 72%, transparent); color: var(--ds-c-creme); font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; pointer-events: none; border: 1px solid rgba(232, 82, 58, 0.55); }
+#drift-chip { position: fixed; left: 50%; bottom: 27%; transform: translateX(-50%); z-index: 20; display: flex; align-items: baseline; gap: 10px; padding: 6px 16px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-glas) 72%, transparent); color: var(--ds-c-creme); font-family: var(--ds-font-kop); letter-spacing: 0.04em; pointer-events: none; border: 1px solid rgba(232, 82, 58, 0.55); }
 #drift-chip[hidden] { display: none; }
 #drift-chip .dc-k { font-size: 15px; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); }
 #drift-chip .dc-p { font-size: 34px; font-weight: normal; color: var(--mk-mission, #ffd23f); min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }

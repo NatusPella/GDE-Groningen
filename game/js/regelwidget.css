@@ -21,7 +21,7 @@
   color: var(--rw-fg);
   background: color-mix(in srgb, var(--ds-c-glas) 86%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 28%, transparent);
-  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-tekst);
   font-size: var(--ds-t-kaart-hulp);
   line-height: 1.2;
   letter-spacing: 0.02em;
@@ -88,7 +88,7 @@
 
 /* f. toets met een lus van de handeling */
 .rw-toets .rw-toetsen { display: inline-flex; gap: 4px; }
-.rw-toets .rw-key, .rw-toets kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; box-sizing: border-box; border-radius: 5px; background: var(--rw-fg); color: var(--rw-gat); font: bold 13px 'Arial Narrow', Arial, sans-serif; box-shadow: 0 3px 0 color-mix(in srgb, var(--ds-c-creme) 45%, transparent); }
+.rw-toets .rw-key, .rw-toets kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; box-sizing: border-box; border-radius: 5px; background: var(--rw-fg); color: var(--rw-gat); font: bold 13px var(--ds-font-tekst); box-shadow: 0 3px 0 color-mix(in srgb, var(--ds-c-creme) 45%, transparent); }
 .rw-toets .rw-draai { display: none; width: 22px; height: 22px; fill: none; stroke: var(--rw-fg); stroke-width: 2; stroke-linecap: round; }
 .rw-toets[data-handeling="draai"] .rw-draai, .rw-toets[data-anim="draai"] .rw-draai { display: block; }
 .rw-toets[data-anim="houd"] kbd, .rw-toets[data-anim="houd"] .rw-key { animation: rw-houd 1.8s ease-in-out infinite; }

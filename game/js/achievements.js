@@ -727,7 +727,7 @@ body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 1
 #hud .ach-toast.gold .ach-kicker { color: var(--mk-mission, #e8c93a); }
 #hud .ach-toast .ach-title { font-size: var(--ds-t-kaart-titel); letter-spacing: var(--ds-ls-label); line-height: var(--ds-lh-kaart-kop); color: var(--ds-c-creme); }
 #hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
-#hud .ach-toast .ach-desc { font: var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); }
+#hud .ach-toast .ach-desc { font: var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-tekst); letter-spacing: 0; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); }
 #hud .ach-toast .ach-pct { font-size: var(--ds-t-kaart-hulp); color: color-mix(in srgb, var(--ds-c-creme) 50%, transparent); margin-left: 8px; letter-spacing: 1px; }
 @media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } }
 `;

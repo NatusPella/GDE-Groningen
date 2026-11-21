@@ -11,6 +11,12 @@ export const BEWUST = {
   'game/ds-galerij.html': 'de galerij toont de oude set als referentie',
   'game/fonts/fonts.css': 'de @font-face-regels van de zelf gehoste lettertypen',
   'game/cutpreview.html': 'ontwikkelaarstool voor het bekijken van cutscenes, geen speler-UI',
+  // Alleen met een URL-vlag of --dev geladen (main.js importeert ze dan pas): ontwikkelaarsgereedschap, geen speler-UI.
+  'game/js/testmenu.js': 'ontwikkelaarsmenu (?testmenu, F10): alleen met de vlag geladen, eigen opslag',
+  'game/js/storydev.js': 'ontwikkelaarspaneel (?dev, F9): alleen met de vlag geladen',
+  'game/js/storytest.js': 'geautomatiseerde verhaaltest (?storytest): alleen met de vlag geladen',
+  'game/js/sfx/sfxtest.js': 'geluidentestpaneel (?sfxtest, F8): alleen met de vlag geladen',
+  'game/js/cutpreviewui.js': 'ontwikkelaarsvenster voor de cutscene-preview (cutpreview.html)',
 };
 // Kaartstijl op canvas en identiteitstabellen: data, geen UI-oppervlak. (3D-materialen en canvas tellen niet mee: de telling kijkt in JS alleen naar CSS-declaraties.)
 export const BEWUST_PATROON = [
@@ -49,27 +55,30 @@ export function telBestand(f, src) {
     // een var(--x, #hex)-terugval is de token; die telt niet
     const k = l.replace(/var\(\s*--[\w-]+\s*,\s*[^)]*\)/g, 'var()');
     let kleur = 0;
-    // CSS en HTML: elke regel. JS: alleen een echte CSS-declaratie (`color: #abc;`, ook in een sjabloon) of een
-    // `.style.x = '#abc'`; een datatabel (`color: '#abc'`), 3D-materiaal of canvas (fillStyle) telt niet.
-    const kleurTeksten = [];
-    if (css) kleurTeksten.push(k);
+    // CSS: elke regel. JS en HTML: alleen een echte CSS-declaratie (`color: #abc;`, ook in een sjabloon) of een
+    // `.style.x = '#abc'`; een datatabel (`color: '#abc'`), 3D-materiaal of canvas (fillStyle) telt niet. Elke kleur telt één keer,
+    // ook als hij in twee van die contexten tegelijk valt (een declaratie in een cssText-sjabloon).
+    const bereiken = [];
+    if (css) bereiken.push([0, k.length]);
     else {
-      for (const m of k.matchAll(/(?:^|[\s;{"'`])(?:color|background(?:-color|-image)?|border(?:-[a-z]+)?|outline(?:-color)?|box-shadow|text-shadow|fill|stroke|--[\w-]+)\s*:\s*([^'"`,;{}]*(?:\([^)]*\)[^'"`,;{}]*)*)/gi)) kleurTeksten.push(m[1]);
-      for (const m of k.matchAll(/\.style(?:\.\w+|\[[^\]]+\])\s*=\s*(['"`])([^'"`]*)\1/g)) kleurTeksten.push(m[2]);
-      for (const m of k.matchAll(/style\s*=\s*\\?["']([^"']*)["']/g)) kleurTeksten.push(m[1]);
+      const voeg = (m, groep) => { const s = m.index + m[0].lastIndexOf(m[groep]); bereiken.push([s, s + m[groep].length]); };
+      for (const m of k.matchAll(/(?:^|[\s;{"'`])(?:color|background(?:-color|-image)?|border(?:-[a-z]+)?|outline(?:-color)?|box-shadow|text-shadow|fill|stroke|--[\w-]+)\s*:\s*([^'"`,;{}]*(?:\([^)]*\)[^'"`,;{}]*)*)/gi)) voeg(m, 1);
+      for (const m of k.matchAll(/\.style(?:\.\w+|\[[^\]]+\])\s*=\s*(['"`])([^'"`]*)\1/g)) voeg(m, 2);
+      for (const m of k.matchAll(/style\s*=\s*\\?["']([^"']*)["']/g)) voeg(m, 1);
     }
-    for (const kt of kleurTeksten) {
-      for (const m of kt.matchAll(HEX)) {
-        if (/^#(?:000|000000|fff|ffffff)$/i.test(m[0]) && /shadow|filter/i.test(k)) continue; // slagschaduw is chroom
-        kleur++;
-      }
-      for (const m of kt.matchAll(RGB)) {
-        const r = kt.slice(m.index).match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-        if (r && r[1] === '0' && r[2] === '0' && r[3] === '0' && /shadow|filter/i.test(k)) continue; // slagschaduw
-        kleur++;
-      }
+    const binnen = (i) => bereiken.some(([a, b]) => i >= a && i < b);
+    for (const m of k.matchAll(HEX)) {
+      if (!binnen(m.index)) continue;
+      if (/^#(?:000|000000|fff|ffffff)$/i.test(m[0]) && /shadow|filter/i.test(k)) continue; // slagschaduw is chroom
+      kleur++;
     }
-    const stijl = css || html || kleurTeksten.length > 0 || /\.style\b|cssText|<style/.test(k);
+    for (const m of k.matchAll(RGB)) {
+      if (!binnen(m.index)) continue;
+      const r = k.slice(m.index).match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+      if (r && r[1] === '0' && r[2] === '0' && r[3] === '0' && /shadow|filter/i.test(k)) continue; // slagschaduw
+      kleur++;
+    }
+    const stijl = css || html || bereiken.length > 0 || /\.style\b|cssText|<style/.test(k);
     let glas = 0;
     if (/--gron-green/.test(k)) glas++;
     if (/backdrop-filter/.test(k)) glas++;

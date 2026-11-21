@@ -10,7 +10,7 @@ const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 
 const VLAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21V4M7 5l10 3.5L7 12"/></svg>';
 
 export const GEBIEDEN_CSS = `
-.gb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+.gb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-tekst); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .gb-groep:first-child { margin-top: 0; }
 .gb-groep .gb-n { margin-left: auto; letter-spacing: 0; text-transform: none; opacity: 0.85; }
 .gb-li .gb-vlag { flex: none; width: 26px; height: 26px; display: grid; place-items: center; opacity: 0.35; }
@@ -28,7 +28,7 @@ export const GEBIEDEN_CSS = `
 .gb-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 2px 0 6px; }
 .gb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 12%, transparent); }
 .gb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
-.gb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; }
+.gb-kpi b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; }
 .gb-kpi small { font-size: 16px; color: var(--mut); }
 .gb-blok { display: flex; flex-direction: column; gap: 2px; }
 .gb-blok h3 { margin: 12px 0 2px; }

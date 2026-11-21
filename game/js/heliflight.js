@@ -573,7 +573,7 @@ body.hide-minimap #hud .hud-heli { right: 16px; bottom: 50px; }
 #hud .hud-heli .hh2-row b { font-weight: normal; font-size: 30px; letter-spacing: 1px; }
 #hud .hud-heli .hh2-row span { font-size: 12px; letter-spacing: 1px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
 #hud .hud-heli .hh2-vs { font-size: 16px; }
-#hud .hud-heli .hh2-st { margin-top: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.2px; }
+#hud .hud-heli .hh2-st { margin-top: 5px; font-family: var(--ds-font-tekst); font-size: 15px; letter-spacing: 0.2px; }
 #hud .hud-heli .hh2-bar { margin-top: 5px; height: 4px; background: color-mix(in srgb, var(--ds-c-creme) 15%, transparent); }
 #hud .hud-heli .hh2-bar i { display: block; height: 100%; background: var(--hh, var(--mk-ok, #3fc97a)); }/* Zomerse zeefdruk (ADR 0040): de vluchtkaart als papier met inktrand en harde schaduw. */
 #hud .hud-heli { color: var(--ds-c-ink-inkt); text-shadow: none; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--hh, var(--ds-c-ink-bord)); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-kop); font-weight: 600; }

@@ -484,30 +484,30 @@ body.pigeon-mode #hud .hud-money-delta, body.pigeon-mode #hud .hud-weapon, body.
 body.pigeon-mode #hud .hud-speedo, body.pigeon-mode #hud .hud-route,
 body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud[hidden] { display: none; }
-#pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: var(--ds-c-creme); z-index: 5; zoom: var(--ui, 1); --ph-acc: var(--mk-ok, #3fc97a); }
+#pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--ds-font-kop); color: var(--ds-c-creme); z-index: 5; zoom: var(--ui, 1); --ph-acc: var(--mk-ok, #3fc97a); }
 #pigeon-hud .ph-panel { position: absolute; top: 12px; left: 14px; width: 240px; padding: 6px 12px 8px 6px; background: linear-gradient(90deg, rgba(10,14,18,0.8), rgba(10,14,18,0.45) 75%, rgba(10,14,18,0)); border-left: 3px solid var(--ph-acc); text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
 #pigeon-hud .ph-head { display: flex; align-items: center; gap: 10px; }
 #pigeon-hud .ph-badge { flex: 0 0 46px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--ds-c-creme) 55%, transparent), color-mix(in srgb, var(--ds-c-glas) 90%, transparent)); box-shadow: 0 0 0 2px var(--ph-acc), 0 0 12px color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent); }
 #pigeon-hud .ph-badge svg { width: 30px; height: 30px; fill: var(--ds-c-creme); }
 #pigeon-hud .ph-headtext { flex: 1; min-width: 0; }
 #pigeon-hud .ph-title { font-size: 19px; letter-spacing: 2px; color: var(--ph-acc); line-height: 1; text-transform: uppercase; }
-#pigeon-hud .ph-kicker { font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.5px; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); margin-top: 2px; }
+#pigeon-hud .ph-kicker { font: 12px var(--ds-font-tekst); letter-spacing: 0.5px; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); margin-top: 2px; }
 #pigeon-hud .ph-score { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
 #pigeon-hud .ph-score b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--ds-c-creme); }
-#pigeon-hud .ph-score span { font: 12px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); }
-#pigeon-hud .ph-meters { display: flex; gap: 14px; margin-top: 6px; padding-left: 2px; font: 14px 'Arial Narrow', Arial, sans-serif; font-variant-numeric: tabular-nums; }
+#pigeon-hud .ph-score span { font: 12px var(--ds-font-tekst); color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); }
+#pigeon-hud .ph-meters { display: flex; gap: 14px; margin-top: 6px; padding-left: 2px; font: 14px var(--ds-font-tekst); font-variant-numeric: tabular-nums; }
 #pigeon-hud .ph-meters span { display: inline-flex; align-items: center; gap: 4px; }
 #pigeon-hud .ph-meters svg { width: 13px; height: 13px; fill: none; stroke: var(--ph-acc); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-#pigeon-hud .ph-best { margin-top: 3px; padding-left: 2px; font: 12px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
+#pigeon-hud .ph-best { margin-top: 3px; padding-left: 2px; font: 12px var(--ds-font-tekst); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
 #pigeon-hud .ph-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 #pigeon-hud .ph-chips:not(:has(:not(:empty))) { display: none; }
-#pigeon-hud .ph-combo, #pigeon-hud .ph-tag { padding: 0 6px; border-radius: 4px; font: 12px/18px 'Arial Narrow', Arial, sans-serif; white-space: nowrap; }
+#pigeon-hud .ph-combo, #pigeon-hud .ph-tag { padding: 0 6px; border-radius: 4px; font: 12px/18px var(--ds-font-tekst); white-space: nowrap; }
 #pigeon-hud .ph-combo { background: var(--mk-ok, #3fc97a); color: var(--ds-c-glas); font-weight: bold; }
 #pigeon-hud .ph-tag { background: rgba(0,0,0,0.55); border: 1px solid var(--mk-mission, #f2c744); color: var(--mk-mission, #f2c744); }
 #pigeon-hud .ph-combo:empty, #pigeon-hud .ph-tag:empty { display: none; }
 #pigeon-hud .ph-boost { margin-top: 5px; height: 5px; background: color-mix(in srgb, var(--ds-c-creme) 15%, transparent); border-radius: 3px; overflow: hidden; }
 #pigeon-hud .ph-boost i { display: block; height: 100%; background: linear-gradient(90deg, var(--mk-mission, #f2c744), var(--mk-ok, #3fc97a)); transform-origin: left; }
-#pigeon-hud .ph-hints { position: absolute; left: 560px; right: 46px; bottom: 22px; width: fit-content; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(760px, calc(100vw / var(--ui, 1) - 606px));   /* #1053: vaste zone rechts van de plaatsnaam (hudstapel.js duivenZones) */ padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
+#pigeon-hud .ph-hints { position: absolute; left: 560px; right: 46px; bottom: 22px; width: fit-content; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(760px, calc(100vw / var(--ui, 1) - 606px));   /* #1053: vaste zone rechts van de plaatsnaam (hudstapel.js duivenZones) */ padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px var(--ds-font-tekst); letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
 #pigeon-hud .ph-hints span { display: inline-flex; align-items: center; white-space: nowrap; color: color-mix(in srgb, var(--ds-c-creme) 88%, transparent); }
 #pigeon-hud .ph-hints .hot { color: var(--mk-mission, #f2c744); }
 #pigeon-hud .ph-hints .ph-gast, #pigeon-hud .ph-hints .ph-touch { color: color-mix(in srgb, var(--ds-c-creme) 62%, transparent); }
@@ -520,12 +520,12 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-card.on { opacity: 1; transform: none; }
 #pigeon-hud .ph-card small { display: block; font-size: 14px; letter-spacing: 3px; color: var(--ph-acc); }
 #pigeon-hud .ph-card b { display: block; margin-top: 3px; font-weight: normal; font-size: 32px; letter-spacing: 1px; line-height: 1; }
-#pigeon-hud .ph-card i { display: block; font: 16px 'Arial Narrow', Arial, sans-serif; margin-top: 3px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }
+#pigeon-hud .ph-card i { display: block; font: 16px var(--ds-font-tekst); margin-top: 3px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }
 #pigeon-hud .ph-card i:empty { display: none; }
 /* #630: geen eigen wit vlak meer; de sfeerkaart is donkere chrome met dezelfde tokens als de rest. */
-#pigeon-hud .ph-sikkom { position: absolute; top: 96px; right: 14px; width: 280px; padding: 8px 12px 10px; background: color-mix(in srgb, var(--ds-c-glas) 92%, transparent); color: var(--ds-c-creme); border-left: 3px solid var(--mk-mission, #f2c744); border-radius: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font: 14px/1.3 'Arial Narrow', Arial, sans-serif; transform: translateX(120%); transition: transform 0.35s ease; }
+#pigeon-hud .ph-sikkom { position: absolute; top: 96px; right: 14px; width: 280px; padding: 8px 12px 10px; background: color-mix(in srgb, var(--ds-c-glas) 92%, transparent); color: var(--ds-c-creme); border-left: 3px solid var(--mk-mission, #f2c744); border-radius: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font: 14px/1.3 var(--ds-font-tekst); transform: translateX(120%); transition: transform 0.35s ease; }
 #pigeon-hud .ph-sikkom.on { transform: translateX(0); }
-#pigeon-hud .ph-sikkom b { display: block; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 2px; color: var(--mk-danger, #d93f3f); }
+#pigeon-hud .ph-sikkom b { display: block; font: 16px var(--ds-font-kop); letter-spacing: 2px; color: var(--mk-danger, #d93f3f); }
 #pigeon-hud .ph-warn { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); font-size: 34px; letter-spacing: 3px; color: var(--mk-danger, #d93f3f); text-shadow: 0 2px 10px rgba(0,0,0,0.8); animation: ph-blink 0.6s steps(2) infinite; }
 #pigeon-hud .ph-warn:empty { display: none; }
 @keyframes ph-blink { 50% { opacity: 0.45; } }

@@ -54,6 +54,34 @@ function zetOm(tekst, { schaduwBlijft }) {
 const DECL = /((?:^|[\s;{"'`])(?:color|background(?:-color|-image)?|border(?:-[a-z]+)?|outline(?:-color)?|box-shadow|text-shadow|fill|stroke|caret-color|accent-color|--[\w-]+)\s*:\s*)([^'"`;{}]*(?:\([^)]*\)[^'"`;{}]*)*)/gi;
 const STYLE_TOEW = /(\.style(?:\.\w+|\[[^\]]+\])\s*=\s*)(['"`])([^'"`]*)\2/g;
 
+// Lettertypestapels naar de lettertokens (--ds-font-*). Alleen in CSS-tekst: een `font-family:` of een `font:`-shorthand met een
+// onbegonnen (niet-geciteerde) waarde; nooit in een canvas (`ctx.font = ...`) of een datatabel (`font: '20px ...'`).
+const FONT_REGELS = [
+  [/(['"])Barlow Condensed\1(?:\s*,\s*(['"])Arial Narrow\2)?(?:\s*,\s*Arial)?(?:\s*,\s*sans-serif)?/g, 'var(--ds-font-zeef-kop)'],
+  [/(['"])Atkinson Hyperlegible\1(?:\s*,\s*Arial)?(?:\s*,\s*sans-serif)?/g, 'var(--ds-font-zeef-tekst)'],
+  [/(['"])Big Shoulders Display\1(?:\s*,\s*(['"])Bebas Neue\2)?(?:\s*,\s*(['"])Arial Narrow\3)?(?:\s*,\s*sans-serif)?/g, 'var(--ds-font-logo)'],
+  [/(['"])Bebas Neue\1(?:\s*,\s*(['"])Arial Narrow\2)?(?:\s*,\s*Arial)?(?:\s*,\s*sans-serif)?/g, 'var(--ds-font-kop)'],
+  [/(['"])Arial Narrow\1(?:\s*,\s*Arial)?(?:\s*,\s*sans-serif)?/g, 'var(--ds-font-tekst)'],
+];
+function zetFontOm(regel, css) {
+  let n = 0;
+  const zet = (waarde) => {
+    let w = waarde;
+    for (const [re, tok] of FONT_REGELS) w = w.replace(re, () => { n++; return tok; });
+    return w;
+  };
+  let uit;
+  if (css) {
+    uit = regel.replace(/((?:^|[\s;{])font(?:-family)?\s*:\s*)([^;}]*)/g, (m, kop, waarde) => kop + zet(waarde));
+  } else {
+    // geen API-aanroepen (document.fonts.check('bold 10px "Bebas Neue"')) en geen canvas: daar kent de tekst geen var()
+    if (/document\.fonts|\.font\s*=|fillText|measureText|\bctx\b|\.check\(|\.load\(/.test(regel)) return { tekst: regel, n: 0 };
+    uit = regel.replace(/(font-family\s*:\s*)([^;`}]*)/g, (m, kop, waarde) => kop + zet(waarde));
+    uit = uit.replace(/((?:^|[\s;{`'"])font\s*:\s*(?=[^\s'"`]))([^;`}]*)/g, (m, kop, waarde) => kop + zet(waarde));
+  }
+  return { tekst: uit, n };
+}
+
 export function zetBestandOm(f, src) {
   const css = /\.css$/.test(f);
   let totaal = 0;
@@ -81,6 +109,7 @@ export function zetBestandOm(f, src) {
       r = r.replace(DECL, (m, kop, waarde) => { const o = zetOm(waarde, { schaduwBlijft: schaduw }); totaal += o.n; return kop + o.tekst; });
       r = r.replace(STYLE_TOEW, (m, kop, q, waarde) => { const o = zetOm(waarde, { schaduwBlijft: schaduw }); totaal += o.n; return kop + q + o.tekst + q; });
     }
+    if (/font/.test(r)) { const o = zetFontOm(r, css); r = o.tekst; totaal += o.n; }
     return herstel(r);
   });
   return { src: uit.join('\n'), n: totaal };

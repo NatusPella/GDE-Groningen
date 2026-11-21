@@ -22,7 +22,7 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-ring { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 45%, transparent); background: rgba(10, 19, 13, 0.25); display: none; }
 #touch-ui .t-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: color-mix(in srgb, var(--ds-c-licht-groen) 70%, transparent); }
 #touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 55%, transparent);
-  background: rgba(10, 19, 13, 0.5); color: var(--ds-c-creme); font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
+  background: rgba(10, 19, 13, 0.5); color: var(--ds-c-creme); font: 17px var(--ds-font-kop); letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: color-mix(in srgb, var(--ds-c-licht-groen) 75%, transparent); color: var(--ds-c-glas); }
 #touch-ui .t-more { right: calc(max(10px, env(safe-area-inset-right)) + 68px); top: max(10px, env(safe-area-inset-top)); min-width: 64px; height: 64px; font-size: 15px; }
 #touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }

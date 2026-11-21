@@ -11,7 +11,7 @@ import { maakWidget } from './regelwidget.js';
 const CSS = `
 #hud .stunt-hud { position: absolute; top: calc(var(--hud-tr-bottom) + 8px); right: var(--hud-edge, 46px); width: 232px; box-sizing: border-box;
   padding: 8px 14px 10px; border-radius: 10px; background: rgba(10, 19, 13, 0.78); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 16%, transparent);
-  border-right: 3px solid var(--gron-green-light); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; }
+  border-right: 3px solid var(--gron-green-light); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); font-family: var(--ds-font-kop); }
 #hud .stunt-hud[hidden], #hud .stunt-brief[hidden] { display: none; }
 #hud .stunt-hud .sh-top { display: flex; justify-content: space-between; align-items: baseline; }
 #hud .stunt-hud .sh-label { font-size: 15px; letter-spacing: 1px; color: #a3b2a6; }
@@ -29,7 +29,7 @@ const CSS = `
 #hud .stunt-hud .rw { background: none; box-shadow: none; padding: 6px 0 0; }
 @keyframes sh-pulse { to { opacity: 0.55; } }
 #hud .stunt-pops { position: absolute; top: calc(var(--hud-tr-bottom) + 12px); right: 292px; width: 220px; height: 150px; pointer-events: none; }
-#hud .stunt-pop { position: absolute; right: 0; top: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 28px;
+#hud .stunt-pop { position: absolute; right: 0; top: 0; font-family: var(--ds-font-kop); font-size: 28px;
   letter-spacing: 0.5px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); white-space: nowrap; animation: sh-rise 1.5s ease-out forwards; }
 #hud .stunt-pop b { font-weight: normal; color: var(--gron-green-light); }
 #hud .stunt-pop.combo { font-size: 24px; color: var(--gron-green-light); }
@@ -39,13 +39,13 @@ const CSS = `
   padding: 14px 18px 12px; border-radius: 12px; background: rgba(10, 19, 13, 0.88); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent);
   border-top: 3px solid var(--gron-green-light); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .stunt-brief.out { opacity: 0; transition: opacity 0.4s; }
-#hud .stunt-brief h3 { margin: 0 0 2px; font: normal 30px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: var(--gron-green-light); }
-#hud .stunt-brief p { margin: 0 0 8px; font: 17px 'Arial Narrow', Arial, sans-serif; }
-#hud .stunt-brief ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; font: 17px 'Arial Narrow', Arial, sans-serif; }
+#hud .stunt-brief h3 { margin: 0 0 2px; font: normal 30px var(--ds-font-kop); letter-spacing: 1px; color: var(--gron-green-light); }
+#hud .stunt-brief p { margin: 0 0 8px; font: 17px var(--ds-font-tekst); }
+#hud .stunt-brief ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; font: 17px var(--ds-font-tekst); }
 #hud .stunt-brief li { display: contents; }
-#hud .stunt-brief li span:last-child { text-align: right; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 21px; color: var(--gron-green-light); }
+#hud .stunt-brief li span:last-child { text-align: right; font-family: var(--ds-font-kop); font-size: 21px; color: var(--gron-green-light); }
 #hud .stunt-brief li.bad span:last-child { color: var(--ds-c-rood-glas); }
-#hud .stunt-brief .sb-foot { margin-top: 8px; font: 15px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; }
+#hud .stunt-brief .sb-foot { margin-top: 8px; font: 15px var(--ds-font-tekst); color: #a3b2a6; }
 @media (prefers-reduced-motion: reduce) { #hud .stunt-pop { animation-duration: 1.2s; } #hud .stunt-hud .sh-left[data-urgent="1"] { animation: none; } }
 @media (max-width: 760px) { #hud .stunt-pops { right: 14px; top: calc(var(--hud-tr-bottom) + 150px); } }
 /* Zomerse zeefdruk (ADR 0040): de stuntscore en het stuntbord als papier met inktrand en harde schaduw. */

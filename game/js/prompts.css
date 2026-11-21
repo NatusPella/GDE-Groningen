@@ -108,7 +108,7 @@
   margin-top: 2px;
   font-size: var(--hud-min);
   letter-spacing: 0.5px;
-  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-tekst);
   color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent);
 }
 #hud .wp-text small:empty { display: none; }
@@ -216,7 +216,7 @@ body.heli-flying #hud .hud-vehname { display: none; }
 #hud .ctx-text b { font-weight: normal; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
 #hud .ctx-text small {
   margin-top: 3px;
-  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-tekst);
   font-size: 13px;
   letter-spacing: 0.3px;
   color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent);
@@ -252,7 +252,7 @@ body.heli-flying #hud .hud-vehname { display: none; }
 #hud .ctx-row .ctx-glyphs .hud-key { border-radius: 6px; min-width: 30px; height: 30px; padding: 0 8px; font-size: 16px; box-shadow: 0 3px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
 #hud .ctx-row.icon { opacity: 0.8; }
 #hud .ctx-row.icon::before { content: attr(title); font-size: 16px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); }
-#hud .ctx-row.learn .ctx-text b, #hud .ctx-row.new .ctx-text b { color: var(--ds-c-creme); font-size: 17px; text-transform: none; font-family: 'Arial Narrow', Arial, sans-serif; }
+#hud .ctx-row.learn .ctx-text b, #hud .ctx-row.new .ctx-text b { color: var(--ds-c-creme); font-size: 17px; text-transform: none; font-family: var(--ds-font-tekst); }
 
 /* ===== Designsysteem: wereldprompts als papieren plaatjes (ADR 0040, #993) =====
    Papier, inktrand, harde schaduw; de soort (--wp-accent) staat als blokje en als rand links, nooit als tekst op papier. */

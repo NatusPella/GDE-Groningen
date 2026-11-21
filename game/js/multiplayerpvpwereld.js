@@ -458,7 +458,7 @@ function toonBord(world, ar) {
   if (!arenaBordAan) { arenaBord.show(); arenaBordAan = true; }
   arenaBord.set({
     row: `<span>Jij: team ${ARENA_TEAMS[0].naam} ${teamVorm(0)}</span><span>${ARENA_TEAMS[0].naam} ${teamVorm(0)} <b>${s.score[0]}</b></span><span>${m}:${r < 10 ? '0' : ''}${r}</span><span>${ARENA_TEAMS[1].naam} ${teamVorm(1)} <b>${s.score[1]}</b></span>`,
-    extra: `<div style="display:flex;gap:12px;flex-wrap:wrap;font:13px 'Arial Narrow',Arial,sans-serif">${s.zones.map(zoneVorm).join('')}</div>`,
+    extra: `<div style="display:flex;gap:12px;flex-wrap:wrap;font:13px var(--ds-font-tekst)">${s.zones.map(zoneVorm).join('')}</div>`,
     flash: ar.fase === 'klaar' && world.pvpArenaUitslag ? world.pvpArenaUitslag.tekst : (world.pvpArenaFlash || ''),
     help: ar.fase === 'klaar' ? ARENA_TEKST.rematch : `Verover de zones met je team · treffer ${ARENA.puntenTreffer} punt, uitschakeling ${ARENA.puntenNeer}`,
   });

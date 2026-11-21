@@ -65,7 +65,7 @@ function injectStyle() {
 #hud .sc-phone { position: absolute; right: var(--hud-edge, 46px); top: var(--hud-stack-top, 210px); width: 232px; box-sizing: border-box; border-radius: 26px; padding: 10px 9px 14px;
   max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - 200px); overflow: hidden;
   background: var(--ds-c-glas); border: 2px solid var(--ds-c-licht-groen); box-shadow: 0 14px 34px rgba(0,0,0,.6), 0 0 0 3px color-mix(in srgb, var(--ds-c-glas) 85%, transparent);
-  color: #f2f2f2; font-family: 'Arial Narrow', Arial, sans-serif; transform: translateY(40px) rotate(3deg); opacity: 0;
+  color: #f2f2f2; font-family: var(--ds-font-tekst); transform: translateY(40px) rotate(3deg); opacity: 0;
   transition: transform var(--dur-slow, 320ms) var(--ease-out, ease-out), opacity var(--dur-base, 200ms) var(--ease-out, ease-out); pointer-events: none; }
 #hud .sc-phone { border: 5px solid #111613; border-left: 9px solid #1a201c; border-radius: 24px 22px 22px 24px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent), -2px 0 0 #070a08, 0 0 0 1px #2b332d, 0 14px 34px rgba(0,0,0,.6); }
 #hud .sc-phone::before { content: ''; position: absolute; top: 5px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #050806; box-shadow: 0 0 0 1.5px #1f2622; z-index: 2; }
@@ -105,12 +105,12 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
   transition: transform .45s ease, opacity .35s ease; pointer-events: none; background: #f6efdc; color: #2b2418; border-radius: 4px;
   padding: 22px 26px 18px; box-shadow: 0 18px 40px rgba(0,0,0,.55); font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; }
 #sc-card.show { opacity: 1; transform: translate(-50%, -50%) rotate(-2deg); }
-#sc-card .sc-cardkick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
+#sc-card .sc-cardkick { font-family: var(--ds-font-tekst); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
 #sc-card .sc-cardtext { font-size: 21px; line-height: 1.35; margin-top: 8px; }
-#sc-card .nl-sub { color: #6d5d44; font-family: 'Arial Narrow', Arial, sans-serif; }
+#sc-card .nl-sub { color: #6d5d44; font-family: var(--ds-font-tekst); }
 #sc-card .sc-sign { text-align: right; margin-top: 10px; font-size: 18px; }
 #sc-card::before { content: ''; position: absolute; left: 44%; top: -10px; width: 70px; height: 22px; background: rgba(230,220,160,.7); transform: rotate(3deg); }
-#sc-live { position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(ellipse 34% 60% at 50% 50%, transparent 72%, rgba(0,0,0,.72) 100%); font-family: 'Arial Narrow', Arial, sans-serif; color: var(--ds-c-wit); }
+#sc-live { position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(ellipse 34% 60% at 50% 50%, transparent 72%, rgba(0,0,0,.72) 100%); font-family: var(--ds-font-tekst); color: var(--ds-c-wit); }
 #sc-live.show { opacity: 1; }
 #sc-live .sc-liveframe { position: absolute; top: 3vh; bottom: 3vh; left: 50%; transform: translateX(-50%); aspect-ratio: 9 / 16; max-width: 92vw;
   border: 10px solid #111; border-radius: 34px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.72); }

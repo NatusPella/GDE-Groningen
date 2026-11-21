@@ -206,7 +206,7 @@ function dienstActiviteit(cfg) {
     const naar = run.d.naarNaam ? `<span>Naar <b>${run.d.naarNaam}</b></span>` : '';
     board.set({
       row: naar + rows.map(([k, val]) => `<span>${k} <b>${val}</b></span>`).join(''),
-      extra: toren.length ? `<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font:13px 'Arial Narrow',Arial,sans-serif;margin:4px 0 2px">${toren.map(([k, val]) => `<b style="color:var(--mk-mission,#e8c93a);font-weight:normal">${k}</b><span>${val}</span>`).join('')}</div>` : undefined,
+      extra: toren.length ? `<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font:13px var(--ds-font-tekst);margin:4px 0 2px">${toren.map(([k, val]) => `<b style="color:var(--mk-mission,#e8c93a);font-weight:normal">${k}</b><span>${val}</span>`).join('')}</div>` : undefined,
       cells: d.halten.map((h, i) => ({ t: `${i + 1}`, cls: i < d.i ? (d.gemist.some((g) => g.index === i) ? 'bad' : 'good') : i === d.i ? 'on' : '' })),
       meter: { v: stand.voortgang, text: `${Math.round(stand.voortgang * 100)}%` },
       flash: run.flash,

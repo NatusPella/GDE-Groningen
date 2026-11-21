@@ -82,6 +82,7 @@
   /* ---- Typografie: rollen, geen losse px. Ontwerpmaat 1080p (stage, zoom --mz) ---- */
   --ds-font-kop: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   --ds-font-tekst: 'Arial Narrow', Arial, sans-serif;
+  --ds-font-logo: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', sans-serif; /* het logo en de plaatsnaam in de HUD */
   --ds-t-display: 64px;
   --ds-t-kop: 44px;
   --ds-t-subkop: 28px;

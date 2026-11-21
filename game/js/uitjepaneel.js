@@ -51,11 +51,11 @@ const CSS = `
 #uitje-paneel.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 #uitje-paneel .uitje-kaart { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding: 9px 16px 10px 84px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 94%, transparent), color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 78%, color-mix(in srgb, var(--ds-c-glas) 50%, transparent)); border-left: 3px solid var(--uitje-acc); border-radius: 0 8px 8px 0; }
 #uitje-paneel .uitje-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 70px; opacity: 0.42; pointer-events: none; }
-#uitje-paneel .uitje-kicker { display: flex; align-items: center; gap: 5px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 3px; color: var(--uitje-acc); text-transform: uppercase; }
+#uitje-paneel .uitje-kicker { display: flex; align-items: center; gap: 5px; font: 12px var(--ds-font-tekst); letter-spacing: 3px; color: var(--uitje-acc); text-transform: uppercase; }
 #uitje-paneel .uitje-kicker .mg-ic { width: 14px; height: 14px; }
-#uitje-paneel .uitje-titel { font: 22px/1.05 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; }
-#uitje-paneel .uitje-regel { font: 13px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 86%, transparent); }
-#uitje-paneel .uitje-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 12px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); min-height: 1em; }
+#uitje-paneel .uitje-titel { font: 22px/1.05 var(--ds-font-kop); letter-spacing: 1.5px; }
+#uitje-paneel .uitje-regel { font: 13px var(--ds-font-tekst); color: color-mix(in srgb, var(--ds-c-creme) 86%, transparent); }
+#uitje-paneel .uitje-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 12px var(--ds-font-tekst); color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); min-height: 1em; }
 #uitje-paneel .uitje-hint:empty, #uitje-paneel .uitje-regel:empty { display: none; }
 #uitje-paneel .hud-key { margin: 0 2px; vertical-align: middle; }
 @media (prefers-reduced-motion: reduce) { #uitje-paneel { transition: none; } }

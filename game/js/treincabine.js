@@ -120,7 +120,7 @@ const CSS = `
 #hud .tc-cab .tc-next span { display: block; font-size: 15px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }
 #hud .tc-cab .tc-next em { font-style: normal; color: var(--mk-mission, #e8c93a); }
 #hud .tc-cab .tc-next .bad { color: var(--mk-job, #ff9a3c); }
-#hud .tc-cab .tc-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px 16px; align-items: center; font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); font-family: 'Arial Narrow', Arial, sans-serif; }
+#hud .tc-cab .tc-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px 16px; align-items: center; font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); font-family: var(--ds-font-tekst); }
 #hud .tc-cab .tc-row .tc-door { padding: 1px 8px; background: color-mix(in srgb, var(--ds-c-creme) 12%, transparent); font-size: 14px; }
 #hud .tc-cab .tc-row .tc-door.open { background: color-mix(in srgb, var(--mk-ok, #3fc97a) 25%, transparent); color: var(--ink, #f0ede4); }
 #hud .tc-cab .tc-row .tc-storing { color: var(--mk-job, #ff9a3c); font-size: 16px; letter-spacing: 1px; }

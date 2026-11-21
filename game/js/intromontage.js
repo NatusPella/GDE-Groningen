@@ -98,7 +98,7 @@ function polyline(pts) {
 // --- styling -----------------------------------------------------------------
 
 const CSS = `
-#intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.3s; }
+#intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.3s; }
 #intro-montage.on { opacity: 1; }
 #intro-montage > div { position: absolute; inset: 0; }
 #intro-montage .im-grade { background: linear-gradient(160deg, rgba(0, 150, 170, 0.22) 0%, rgba(0, 0, 0, 0) 45%, rgba(255, 128, 40, 0.2) 100%); mix-blend-mode: soft-light; }
@@ -132,8 +132,8 @@ const CSS = `
 #intro-montage .im-cap.on { opacity: 1; transform: none; }
 #intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: var(--ds-c-ink-papier); }
 #intro-montage .im-cap span { display: block; margin-top: 2px; font-size: clamp(26px, 3.2vw, 44px); line-height: 1; letter-spacing: 1px; }
-#intro-montage .im-lower .im-role { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(18px, 2vw, 28px); letter-spacing: 0.4px; margin-top: 8px; max-width: min(70vw, 640px); color: color-mix(in srgb, var(--ds-c-ink-papier) 92%, transparent); }
-#intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#intro-montage .im-lower .im-role { font-family: var(--ds-font-tekst); font-size: clamp(18px, 2vw, 28px); letter-spacing: 0.4px; margin-top: 8px; max-width: min(70vw, 640px); color: color-mix(in srgb, var(--ds-c-ink-papier) 92%, transparent); }
+#intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: var(--ds-font-tekst); font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 #intro-montage .im-sub.on { opacity: 1; }
 #intro-montage .im-sub b { color: var(--ds-c-ink-papier); margin-right: 6px; }
 /* De kleurcorrectie van de montage zit in de im-grade-overlay; een CSS-filter op het WebGL-canvas kost op de echte GPU meetbaar fps (intro 5->11 fps bij 0 s, 11->28 fps bij 25 s). */
