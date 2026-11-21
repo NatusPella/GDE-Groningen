@@ -72,7 +72,7 @@ ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(
 // #979: de twee verhuisde tabbladen staan nu onder Instellingen, met hun eigen inhoud.
 const setSub = (pm.match(/settings: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const setIds = [...setSub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(setIds.join() === 'video,sound,spel,besturing,camera,display,hints,a11y', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen (#979)', setIds.join());
+ok(setIds.join() === 'video,sound,spel,besturing,camera,display,hints,a11y,online', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen en Samen spelen (online) (#979)', setIds.join());
 ok(setIds.filter((id) => ['camera', 'hints'].includes(id)).every((id) => settingsSrc.includes(`tab('${id}'`)), 'Camera en Hints hebben hun eigen inhoud onder Instellingen');
 ok(!/data-goto-sub="spel:camera"/.test(pm) && !/data-goto-sub="spel:hints"/.test(pm), 'geen enkele knop of verwijzing wijst nog naar Spel > Camera of Spel > Hints');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
