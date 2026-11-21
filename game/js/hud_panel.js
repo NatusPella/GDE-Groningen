@@ -68,7 +68,7 @@ import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
-import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, NAV_ROL, GLYPH } from './navtarget.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, NAV_ROL, GLYPH } from './navtarget.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -3176,9 +3176,13 @@ function drawMinimap(dt, world) {
   for (const d of [...nav.secundair, ...(nav.actief ? [nav.actief] : [])]) {
     if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de markering aan de rand is voor wat buiten de kaart ligt
     const actief = d.rol === 'actief';
-    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(distanceFor(d, actieveRoute)) : '' });
+    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '' });
   }
-  drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion() });
+  // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge, het windschijfje en de hitte-chip (zolang hij er is)
+  const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 28 }];
+  if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 30 });
+  if (els.mmHeat && !els.mmHeat.hidden) obstakels.push({ a: -3 * Math.PI / 4, nodig: 40 }, { a: -2.05, nodig: 56 });
+  drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion(), obstakels });
 }
 
 // A heli run (helirun.js): its rings as circles where they hang, the H to land

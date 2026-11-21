@@ -1,20 +1,24 @@
-// De doelmarkering aan de rand van de minimap: ontwerp C, de kompasboog (#1078, gekozen door de eigenaar op 21-11; docs/MINIMAP-PIJLEN-21-11.md).
+// De doelmarkering aan de rand van de minimap (#1078; docs/MINIMAP-PIJLEN-21-11.md), compact (ronde 4): de minimale set.
 //
-// Een rustige stippellijn loopt langs de rand van de kaart. Het doel dat je volgt is één dikke boog op die lijn, op de plek van de richting, met een
-// rond Phosphor-icoon in het midden en de afstand in een papieren plaatje ernaast. Wachtende doelen (hooguit twee) en medespelers of eigen voertuigen
-// zijn kleine ronde icoon-punten op dezelfde lijn: geen pijl. Markers die te dichtbij komen schuiven uit elkaar; de afstand tot de kaartrand is vast.
+// Het doel dat je volgt is één rond Phosphor-icoon direct tegen de rand van de kaart (vaste inzet van 3 px) met een kleine afstandstag er direct naast, aan de
+// binnenkant. Wachtende doelen (hooguit twee), medespelers en eigen voertuigen zijn kleine ronde iconen op dezelfde rand. Geen lijn, geen boog, geen apart
+// plaatje: de plek langs de rand is de richting. Markers schuiven uit elkaar en wijken voor de N-badge, het windschijfje en de hitte-chip (obstakels).
 // Kleur zegt de rol (navtarget.js NAV_ROL), het icoon zegt het type: nooit alleen kleur.
 //
 // Twee delen: de meetkunde (puur, getest in scripts/navtarget_test.mjs) en het tekenen (canvas; zonder Path2D, zoals in node, vallen de iconen weg).
 import { iconInner } from './icons.js';
 import { dsKleur } from './kaartkleuren.js';
 
-export const TRACK_INSET = 23; // afstand van het hart van een marker tot de kaartrand (px, op een kaart van 250)
-export const TRACK_RADIUS = 24; // de hoeken van de baan
-export const MIN_ACTIEF = 48; // afstand langs de baan tussen de boog en een punt
-export const MIN_DOT = 28; // afstand langs de baan tussen twee punten
+export const TRACK_INSET = 15; // afstand van het hart van een marker tot de kaartrand (px, op een kaart van 250): de schijf (straal 12) zit 3 px van de rand
+export const TRACK_RADIUS = 16; // de hoeken van de baan
+export const ACTIVE_R = 12; // de schijf van het doel dat je volgt
+export const DOT_R = 8.5; // de punten
+export const MIN_ACTIEF = 30; // afstand langs de baan tussen de schijf en een punt
+export const MIN_DOT = 21; // afstand langs de baan tussen twee punten
 export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navtarget.js MAX_SECUNDAIR); medespelers en voertuigen tellen daar niet bij
 export const MAX_ANDEREN = 3; // en hooguit zoveel medespelers en eigen voertuigen als punt
+export const TAG_H = 17; // de afstandstag: 13 px tekst
+export const TAG_GAP = 3; // tussen schijf en tag
 
 // ------------------------------------------------------------------ meetkunde
 // Een afgeronde vierkante baan met de klok mee vanaf het begin van de bovenrand. S: de breedte van de kaart.
@@ -52,16 +56,17 @@ export function track(S, inset = TRACK_INSET, radius = TRACK_RADIUS) {
   return { punt: dot, sVoor, lengte, S };
 }
 
-// Markers uit elkaar schuiven langs de baan: de boog blijft staan, de rest gaat weg van wie te dichtbij zit. items: [{ s, actief }], wijzigt s.
+// Markers uit elkaar schuiven langs de baan: het doel dat je volgt blijft voor punten staan (alleen vaste obstakels duwen hem weg), de rest gaat weg van wie te dichtbij zit. Vaste obstakels ({ vast, nodig, s })
+// bewegen niet en houden `nodig` px afstand. items: [{ s, actief }], wijzigt s.
 export function spreid(items, lengte, min = { actief: MIN_ACTIEF, punt: MIN_DOT }) {
   const distance = (a, b) => { const d = Math.abs(a - b) % lengte; return Math.min(d, lengte - d); };
-  for (let ronde = 0; ronde < 40; ronde++) {
+  for (let ronde = 0; ronde < 60; ronde++) {
     let veranderd = false;
     for (const r of items) {
-      if (r.actief) continue;
+      if (r.vast) continue;
       for (const o of items) {
-        if (o === r) continue;
-        const nodig = o.actief ? min.actief : min.punt;
+        if (o === r || (r.actief && !o.vast)) continue; // het doel dat je volgt wijkt alleen voor vaste obstakels (N-badge, wind), nooit voor punten
+        const nodig = o.vast ? o.nodig : o.actief ? min.actief : min.punt;
         const d = distance(r.s, o.s);
         if (d < nodig) {
           let delta = ((r.s - o.s) % lengte + lengte) % lengte; if (delta > lengte / 2) delta -= lengte;
@@ -74,15 +79,26 @@ export function spreid(items, lengte, min = { actief: MIN_ACTIEF, punt: MIN_DOT 
   return items;
 }
 
-// De hele plaatsing: items [{ a (schermhoek in radialen), actief, ... }] -> dezelfde items met s, x, y; de boog eerst, daarna de punten uit elkaar.
-// Hooguit één actief item; wie er meer heeft, krijgt de rest als punt.
-export function place(items, S) {
+// De hele plaatsing: items [{ a (schermhoek in radialen), actief, ... }] -> dezelfde items met s, x, y. Hooguit één actief item; wie er meer heeft, krijgt de rest
+// als punt. obstakels: [{ a (schermhoek), nodig (px langs de baan) }]: vaste dingen op of bij de rand (N-badge, wind, hitte-chip) waar markers omheen schuiven.
+export function place(items, S, obstakels = []) {
   const b = track(S);
   let gezien = false;
   const uit = items.map((i) => { const actief = !!i.actief && !gezien; if (actief) gezien = true; return { ...i, actief, s: b.sVoor(i.a) }; });
-  spreid(uit, b.lengte);
+  const vast = obstakels.map((o) => ({ vast: true, nodig: o.nodig, s: b.sVoor(o.a) }));
+  spreid([...uit, ...vast], b.lengte);
   for (const i of uit) { const [x, y] = b.punt(i.s); i.x = x; i.y = y; }
   return { items: uit, baan: b };
+}
+
+// Waar de tag komt: aan de kant van de kaart waar de schijf zit (aan de linkerrand: rechts van de schijf; bovenaan: eronder), tegen de schijf aan en binnen de kaart geklemd.
+export function tagPlek(x, y, S, w, h, r = ACTIVE_R) {
+  const d = [x, y, S - x, S - y];
+  const kant = d.indexOf(Math.min(...d)); // 0 links, 1 boven, 2 rechts, 3 onder
+  let cx = x, cy = y;
+  if (kant === 0) cx = x + r + TAG_GAP + w / 2; else if (kant === 2) cx = x - r - TAG_GAP - w / 2;
+  else if (kant === 1) cy = y + r + TAG_GAP + h / 2; else cy = y - r - TAG_GAP - h / 2;
+  return { cx: Math.max(w / 2 + 2, Math.min(S - w / 2 - 2, cx)), cy: Math.max(h / 2 + 2, Math.min(S - h / 2 - 2, cy)), kant };
 }
 
 // ------------------------------------------------------------------ tekenen
@@ -108,83 +124,60 @@ function cirkel(ctx, x, y, r, vul, rand, breed) {
   if (vul) { ctx.fillStyle = vul; ctx.fill(); }
   if (rand) { ctx.lineWidth = breed; ctx.strokeStyle = rand; ctx.stroke(); }
 }
-function boog(ctx, b, s, half, breed, kleur) {
-  ctx.beginPath();
-  for (let i = 0; i <= 28; i++) { const [x, y] = b.punt(s - half + 2 * half * i / 28); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
-  ctx.lineWidth = breed; ctx.strokeStyle = kleur; ctx.stroke();
+// De tag: de afstand als kleine tekst (13 px) in een krappe papieren pil direct naast de schijf.
+function tagGrootte(ctx, tekst) {
+  ctx.font = "600 13px 'Barlow Condensed', 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
+  return { w: Math.ceil(ctx.measureText(tekst).width) + 9, h: TAG_H };
 }
-function plaatje(ctx, cx, cy, tekst, k) {
-  ctx.font = "600 14px 'Barlow Condensed', 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
-  const w = Math.max(44, ctx.measureText(tekst).width + 16), h = 22, x = cx - w / 2, y = cy - h / 2;
-  const doos = (dx, dy) => { ctx.beginPath(); (ctx.roundRect ? ctx.roundRect(x + dx, y + dy, w, h, 5) : ctx.rect(x + dx, y + dy, w, h)); };
-  doos(2, 2); ctx.fillStyle = k.inkt; ctx.fill();
-  doos(0, 0); ctx.fillStyle = k.papier; ctx.fill(); ctx.lineWidth = 2.2; ctx.strokeStyle = k.inkt; ctx.stroke();
+function tag(ctx, cx, cy, w, h, tekst, k) {
+  const x = cx - w / 2, y = cy - h / 2;
+  const doos = (dx, dy) => { ctx.beginPath(); (ctx.roundRect ? ctx.roundRect(x + dx, y + dy, w, h, 4) : ctx.rect(x + dx, y + dy, w, h)); };
+  doos(1.5, 1.5); ctx.fillStyle = k.inkt; ctx.fill();
+  doos(0, 0); ctx.fillStyle = k.papier; ctx.fill(); ctx.lineWidth = 1.8; ctx.strokeStyle = k.inkt; ctx.stroke();
   ctx.fillStyle = k.inkt; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(tekst, cx, cy + 0.5);
 }
+// Een schijf: harde schaduw, kleur met inktrand, het icoon in inkt erin.
+function schijf(ctx, k, x, y, r, kleur, naam, pulse = 0) {
+  cirkel(ctx, x + 1.5, y + 1.5, r, k.inkt);
+  cirkel(ctx, x, y, r + pulse, kleur, k.inkt, 2.4);
+  icoon(ctx, naam, x, y, r * 1.05, k.inkt);
+}
 
-// Tekent de kompasboog. S: kaartbreedte; items: [{ a, kleur, icoon, actief, tekst }]; opties: { t (seconden), beweging (false bij Beweging beperken) }.
-// Geeft de geplaatste items terug (voor de test en de schermlezer).
+// Tekent de randmarkeringen. S: kaartbreedte; items: [{ a, kleur, icoon, actief, tekst }];
+// opties: { t (seconden), beweging (false bij Beweging beperken), obstakels (zie place) }. Geeft de geplaatste items terug (voor de test).
 export function drawKompasRand(ctx, S, items, opties = {}) {
   if (!items.length) return [];
   const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
-  const { items: geplaatst, baan: b } = place(items, S);
+  const { items: geplaatst } = place(items, S, opties.obstakels || []);
   ctx.save();
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  // de rustige stippellijn
-  const rand = track(S);
-  ctx.beginPath();
-  for (let i = 0; i <= 240; i++) { const [x, y] = rand.punt(rand.lengte * i / 240); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
-  ctx.closePath();
-  ctx.setLineDash([0.1, 6.2]); ctx.lineWidth = 2.4; ctx.globalAlpha = 0.7; ctx.strokeStyle = k.creme; ctx.stroke();
-  ctx.setLineDash([]); ctx.globalAlpha = 1;
-  // punten: wachtend, medespelers en voertuigen
-  for (const i of geplaatst.filter((q) => !q.actief)) {
-    cirkel(ctx, i.x + 1.5, i.y + 1.5, 10.5, k.inkt);
-    cirkel(ctx, i.x, i.y, 10.5, i.kleur, k.inkt, 2.8);
-    icoon(ctx, i.icoon, i.x, i.y, 13, k.inkt);
-  }
-  // de boog van het doel dat je volgt
+  for (const i of geplaatst.filter((q) => !q.actief)) schijf(ctx, k, i.x, i.y, DOT_R, i.kleur, i.icoon);
   for (const i of geplaatst.filter((q) => q.actief)) {
-    ctx.save(); ctx.translate(2, 2); boog(ctx, b, i.s, 34, 12, k.inkt); ctx.restore();
-    boog(ctx, b, i.s, 34, 12, k.creme); boog(ctx, b, i.s, 34, 9.4, k.inkt); boog(ctx, b, i.s, 34, 5.8, i.kleur);
-    const puls = opties.beweging === false ? 0 : 0.5 + 0.5 * Math.sin((opties.t || 0) * 5);
-    cirkel(ctx, i.x + 2, i.y + 2, 17, k.inkt);
-    cirkel(ctx, i.x, i.y, 17 + puls * 0.8, i.kleur, k.inkt, 3.6);
-    cirkel(ctx, i.x, i.y, 12, k.papier, k.inkt, 2.2);
-    icoon(ctx, i.icoon, i.x, i.y, 16, k.inkt);
-    if (i.tekst) {
-      const dx = S / 2 - i.x, dy = S / 2 - i.y, l = Math.hypot(dx, dy) || 1;
-      plaatje(ctx, Math.max(30, Math.min(S - 30, i.x + dx / l * 47)), Math.max(18, Math.min(S - 18, i.y + dy / l * 47)), i.tekst, k);
-    }
+    const puls = opties.beweging === false ? 0 : 0.6 * (0.5 + 0.5 * Math.sin((opties.t || 0) * 5));
+    cirkel(ctx, i.x, i.y, ACTIVE_R + 1.6, k.creme); // een crème randje: de schijf leest ook op donker land
+    schijf(ctx, k, i.x, i.y, ACTIVE_R, i.kleur, i.icoon, puls);
+    if (i.tekst) { const g = tagGrootte(ctx, i.tekst); const p = tagPlek(i.x, i.y, S, g.w, g.h); tag(ctx, p.cx, p.cy, g.w, g.h, i.tekst, k); }
   }
   ctx.restore();
   return geplaatst;
 }
 
-// De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstand eronder, wachtende doelen
+// De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstandstag eronder, wachtende doelen
 // zijn kleine iconen. items: [{ sx, sy, kleur, icoon, actief, tekst, zonderSchijf }] in schermpixels; s: kaartschaal (1 = de maat van de minikaart).
-// zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen het afstandsplaatje komt eronder.
+// zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen de tag komt eronder.
 export function drawMapTargets(ctx, items, opties = {}) {
   if (!items.length) return;
   const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
   const s = opties.s || 1;
   ctx.save();
   for (const i of [...items.filter((q) => !q.actief), ...items.filter((q) => q.actief)]) {
-    if (!i.actief) {
-      cirkel(ctx, i.sx + 1.5 * s, i.sy + 1.5 * s, 10.5 * s, k.inkt);
-      cirkel(ctx, i.sx, i.sy, 10.5 * s, i.kleur, k.inkt, 2.8 * s);
-      icoon(ctx, i.icoon, i.sx, i.sy, 13 * s, k.inkt);
-      continue;
+    if (!i.actief) { schijf(ctx, k, i.sx, i.sy, DOT_R * s, i.kleur, i.icoon); continue; }
+    const puls = opties.beweging === false ? 0 : 0.6 * (0.5 + 0.5 * Math.sin((opties.t || 0) * 5));
+    if (!i.zonderSchijf) { cirkel(ctx, i.sx, i.sy, (ACTIVE_R + 1.6) * s, k.creme); schijf(ctx, k, i.sx, i.sy, ACTIVE_R * s, i.kleur, i.icoon, puls); }
+    if (i.tekst) {
+      const g = tagGrootte(ctx, i.tekst);
+      tag(ctx, i.sx, i.sy + (i.zonderSchijf ? 14 : (ACTIVE_R + 1.6) * s + TAG_GAP + g.h / 2), g.w, g.h, i.tekst, k);
     }
-    if (!i.zonderSchijf) {
-      const puls = opties.beweging === false ? 0 : 0.5 + 0.5 * Math.sin((opties.t || 0) * 5);
-      cirkel(ctx, i.sx + 2 * s, i.sy + 2 * s, 17 * s, k.inkt);
-      cirkel(ctx, i.sx, i.sy, (17 + puls * 0.8) * s, i.kleur, k.inkt, 3.6 * s);
-      cirkel(ctx, i.sx, i.sy, 12 * s, k.papier, k.inkt, 2.2 * s);
-      icoon(ctx, i.icoon, i.sx, i.sy, 16 * s, k.inkt);
-    }
-    if (i.tekst) plaatje(ctx, i.sx, i.sy + (i.zonderSchijf ? 14 : 30) * s, i.tekst, k);
   }
   ctx.restore();
 }
