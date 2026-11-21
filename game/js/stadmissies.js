@@ -1,7 +1,7 @@
 // Acht speelbare zijmissies uit #26 als pure regels, in dezelfde vorm als
 // bijbaanregels.js (init, step, result) zodat het sidejob-contract ze met een dunne
 // adapter (sidejob_stad.js) kan draaien: Museumbus (Nationaal Busmuseum), Suikerbieten
-// (Hoogkerk), Herstelploeg (Delfstof Noord in het Hogeland), Live bij Radio Noordkust
+// (Hoogkerk), Herstelploeg (Dorpshuis Noord in het Hogeland), Live bij Radio Noordkust
 // (OOGTV), Rave in het Telefoonhuis en de Stille levering (Kliniek Van der Meden), Cabaretgeluid bij de Schouwburg en Bernhards karretje. Geen THREE, geen wereld, geen Math.random.
 //
 // Invoer per stap (alles optioneel): speed m/s, decel m/s^2 (positief), lat m/s^2,
@@ -9,8 +9,8 @@
 // Uitkomst van result(s): { base, tip, flawless, text, failed } in euro's.
 //
 // Alleen Nederlands, verzonnen organisaties, niemand raakt gewond: een misser is een
-// kras, een verloren lading, een klacht of een lege zaal. Delfstof Noord is de verzonnen
-// zijlijn van de gaswinning: de ploeg helpt, er is geen wraak en geen echte instantie.
+// kras, een verloren lading, een klacht of een lege zaal. De Stichting Dorpshuis Noord is een verzonnen
+// vereniging: de ploeg helpt, er is geen wraak en geen echte instantie.
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const lvlK = (level) => clamp(((level || 1) - 1) / 4, 0, 1);
@@ -75,13 +75,13 @@ const suikerbieten = {
   result: (s) => s.delivered ? pay(30 + s.load * 0.5, s.load > 85 ? 22 : s.load > 65 ? 8 : 0, s.load > 95, s.load > 95 ? 'Alle bieten aan boord afgeleverd!' : 'Bieten afgeleverd, een paar bleven onderweg.') : pay(0, 0, false, 'De bieten liggen nog bij de hoop.', true),
 };
 
-// 3. Herstelploeg: Delfstof Noord helpt dorpen met stutwerk en koffie. Vertrouwen groeit bij rustig rijden en stilstaan voor een praatje.
+// 3. Herstelploeg: Stichting Dorpshuis Noord helpt dorpen met stutwerk en koffie. Vertrouwen groeit bij rustig rijden en stilstaan voor een praatje.
 const herstelploeg = {
-  id: 'herstelploeg', naam: 'Herstelploeg Delfstof Noord', bedrijf: 'Delfstof Noord', regio: 'hogeland', voertuig: 'bestelbus',
+  id: 'herstelploeg', naam: 'Herstelploeg Dorpshuis Noord', bedrijf: 'Stichting Dorpshuis Noord', regio: 'hogeland', voertuig: 'bestelbus',
   plek: { wgs: [53.3322, 6.7459] },
   blurb: 'Een ploeg met stutmateriaal langs drie dorpen brengen',
   tagline: 'Geen wraak, geen ruzie: luister, help en drink een kop koffie.',
-  intro: ['Delfstof Noord stuurt vandaag een herstelploeg langs drie dorpen met scheuren in de muren.', 'Rijd zacht door de dorpen. Sta bij elk huis even stil en luister: dat is het werk.'],
+  intro: ['Stichting Dorpshuis Noord stuurt vandaag een herstelploeg langs drie dorpshuizen die een opknapbeurt krijgen.', 'Rijd zacht door de dorpen. Sta bij elk huis even stil en luister: dat is het werk.'],
   init: (level) => ({ stops: 3, at: 0, wait: 0, trust: 100, limit: 15 - lvlK(level) * 2 }),
   step(s, i, dt) {
     const ev = [];

@@ -2,6 +2,11 @@
   "note": "Bewust toegestane gevallen voor scripts/text_audit.mjs. Elke regel heeft een reden (why). term = het gevonden woord (hoofdletterongevoelig), file/ctx maken het smaller.",
   "allow": [
     {
+      "rule": "naam",
+      "file": "characterdossiers",
+      "why": "personagedossiers (#personagebijbel-21-11): de volledige namen zijn bewust verzonnen voor verzonnen personages; echte personen komen er niet in. scripts/characterdossiers_test.mjs bewaakt de rest (geen e-mail, link of postcode)."
+    },
+    {
       "rule": "persoonsgegevens",
       "term": "050-555 01 23",
       "file": "reklametaxi.js",

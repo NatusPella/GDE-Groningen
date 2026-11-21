@@ -26,7 +26,7 @@ ok(!/\n  stage = i;\n/.test(msrc) && !/opts = \{ \.\.\.opts, stage: i \};/.test(
 ok(/export function playStoryIntro\(w, i, \{ stage = i,/.test(msrc) && /export function playStoryOutro\(w, i, opts = \{\}\) \{/.test(msrc), 'missionstory: stage-parameter blijft bestaan');
 
 // #737: de M16-outro is gesplitst; het tweede deel speelt op de dijk met een eigen anker en dagdeel.
-ok(/split: \{ at: 'Bij Berend mocht ik niet rijden', key: 'M16\.dijk'/.test(akte3), 'M16: de knip en de dijkspec staan in de regie');
+ok(/split: \{ at: 'In de botsauto mocht ik niet', key: 'M16\.dijk'/.test(akte3), 'M16: de knip en de dijkspec staan in de regie');
 ok(/S\['M16\.dijk'\] = \{/.test(akte3), 'M16.6: eigen dijkscène');
 ok(/spec\.split && spec\.split\.key/.test(msrc) && /queue: true/.test(msrc), 'missionstory speelt het tweede deel in de wachtrij');
 

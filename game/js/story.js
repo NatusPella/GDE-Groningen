@@ -67,6 +67,9 @@ import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './na
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
+import { bridgeActive } from './storybridgerun.js';
+import { milestoneFlagsFor, milestoneFlagsForDone } from './storymilestones.js';
+import { progressFrom, newGate, stampGate, gateHint, worldOpen } from './unlockgate.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
 import { registerStoryQueries } from './storyquery.js';
@@ -110,7 +113,8 @@ const state = freshState();
 let rt = freshRuntime();
 
 function freshState() {
-  return { done: new Set(), skipped: new Set(), fails: {}, waived: new Set(), voorschot: new Set(), cards: new Set(), flags: new Set() };
+  // gate: de ontgrendelpoort (unlockgate.js, #1131); undefined = een oude save, alles open (migratieregel)
+  return { done: new Set(), skipped: new Set(), fails: {}, waived: new Set(), voorschot: new Set(), cards: new Set(), flags: new Set(), gate: undefined };
 }
 
 function freshRuntime() {
@@ -301,6 +305,8 @@ function enter(step) {
     if (step && step.end && !state.cards.has(step.end)) rt.cardPending = step.end;
     return;
   }
+  // een nieuw spel (de opening staat voor de boeg, niets gedaan) begint met een dichte poort (#1131)
+  if (step.id === 'M00' && !state.gate && state.done.size === 0) state.gate = newGate();
   rt.leadAt = world.time + LEAD_DELAY;
   rt.sayAt = -1;
   // the first step of a later part opens with an "Eerder in GDE" recap
@@ -333,6 +339,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   if (!skipped) noteStepCleared(step.id);
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
+  for (const fl of milestoneFlagsFor(step.id)) state.flags.add(fl);   // de frietwagen groeit mee (#1136)
   if (!quiet && step.kind === 'activity' && step.done) {
     // "Even onderduiken": the scene and text of the option the player picked
     const shown = step.goal && step.goal.type === 'hideout' ? hideoutStep(step, rt.base) : step;
@@ -1154,7 +1161,7 @@ export function initStory(w) {
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
   initSkipUi();
-  registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
+  registerNarrative('say', { active: () => (!!world && (rt.sayUntil || 0) > world.time) || bridgeActive() });
   ready = true;
   window.__story = storyApi;
 }
@@ -1235,7 +1242,7 @@ export function updateStory(dt, w) {
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
     const c = rt.clueToasts.shift();
-    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"`, 4.5);
+    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}` : `Nieuwe aanwijzing: ${c.title}`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment, and
@@ -1289,8 +1296,17 @@ export function getStorySave() {
   return {
     v: 2, done: [...done], skipped: [...state.skipped], fails: { ...state.fails },
     waived: [...state.waived], voorschot: [...state.voorschot], cards: [...state.cards], flags: [...state.flags],
+    ...(state.gate ? { gate: stampGate(state.gate, storyGateProgress()) } : {}),
   };
 }
+
+// De stand voor de gedeelde poort (unlockgate.js): alleen de eigen voortgang van deze speler. Een gast heeft zijn eigen.
+export function storyGateProgress() {
+  const c = currentStep();
+  return progressFrom({ stepId: c && !c.end ? c.id : null, ended: !!(c && c.end && c.finale), gate: state.gate, begun: (id) => isLoopbaanGestart(id) });
+}
+export const storyWorldOpen = (id) => worldOpen(id, storyGateProgress());
+export const storyGateHint = (id) => gateHint(id, storyGateProgress());
 
 // Without story data (a save from before 0.5.0) the progress follows from
 // the missions already passed: see isDone. Money, cars and prestaties live
@@ -1302,7 +1318,9 @@ export function applyStorySave(d) {
   Object.assign(state, fresh);
   rt = freshRuntime();
   if (world) world.kissUnlocked = false;
+  // een oude save zonder gate blijft alles open (migratieregel); een nieuw spel krijgt zijn poort in enter() bij de opening
   if (!d || typeof d !== 'object' || (d.v !== 1 && d.v !== 2)) return;
+  if (d.gate && d.gate.v === 1 && Array.isArray(d.gate.open) && d.gate.legacy !== true) state.gate = { v: 1, open: d.gate.open.filter((x) => typeof x === 'string') };
   const ids = (list) => (Array.isArray(list) ? list.filter((id) => STEP_BY_ID.has(id)) : []);
   const done = ids(d.done);
   // a v:1 save predates A1/A2: close a between-step only when that save had already passed it, so a player who
@@ -1314,6 +1332,7 @@ export function applyStorySave(d) {
   state.waived = new Set((Array.isArray(d.waived) ? d.waived : []).filter((k) => typeof k === 'string'));
   state.cards = new Set((Array.isArray(d.cards) ? d.cards : []).filter((k) => PARTS[k]));
   state.flags = new Set((Array.isArray(d.flags) ? d.flags : []).filter((k) => typeof k === 'string'));
+  for (const fl of milestoneFlagsForDone(state.done)) state.flags.add(fl);   // een oude save krijgt de mijlpalen van wat hij al deed (#1136)
   for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
   // no frame with the old save's kisses (player.js runs before updateStory)
   if (world) world.kissUnlocked = kissUnlockedNow();
@@ -1332,6 +1351,9 @@ function meet(key) {
 export function getStoryCharacters() {
   return Object.entries(CHARACTERS).map(([key, c]) => ({ key, ...c, met: state.flags.has('met:' + key) }));
 }
+
+// Voor de overgangsscènes (storybridgerun.js): de echte sets, zodat de scène zijn eigen vlag zet.
+export const storyBridgeView = () => { const c = currentStep(); return { done: state.done, flags: state.flags, currentId: c && !c.end ? c.id : null }; };
 
 export function storyFlag(name) {
   return state.flags.has(name);
@@ -1414,7 +1436,7 @@ export function getStoryView() {
     done, total: avail.length,
   };
 }
-registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave });
+registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave, storyGateHint, storyWorldOpen });
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).
@@ -1441,6 +1463,7 @@ export function devJumpTo(id, opts = {}) {
   for (const s of prior) {
     state.done.add(s.id);
     if (s.unlocks) state.flags.add(s.unlocks);
+    for (const fl of milestoneFlagsFor(s.id)) state.flags.add(fl);
   }
   // a jump into Deel 4: the finale card of act 5 has played, or the gate (nextStoryStep) would send the story back to it
   if (PARTS[STEPS[k].part].after) state.cards.add(PARTS[STEPS[k].part].after);

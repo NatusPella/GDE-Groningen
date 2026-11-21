@@ -1,0 +1,181 @@
+{
+ "note": "Humorbeats van akte 2 (WP3, #1126). Zelfde schema als humor.json; ids H2-nn, variant 0 staat in docs/verhaal/nieuw/09-script-akte2.md.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     2,
+     2
+    ],
+    "reason": "Juristen die het veel vonden is een droge Jelle-kicker, en past voor Tammo's Salamitactiek.",
+    "certainty": "midden"
+   },
+   "id": "H2-01",
+   "scene": "M07.1",
+   "speaker": "JELLE",
+   "context": "Bornholmstraat, ochtend. Tessa en Tammo schuilen achter een muur; Jelle belt en meldt droog dat hij al het vet van Grunn heeft gekocht.",
+   "shot": "Tessa met de telefoon op luidspreker, Tammo kijkt naar de tankwagen",
+   "variants": [
+    "Mevrouw. Het vet van Grunn is van mij. Ik koop het voor één klomp.",
+    "Mevrouw. Ik heb het vet van Grunn gekocht. Voor één klomp, contant.",
+    "Mevrouw. Al het vet van Grunn: één klomp. Mijn juristen vonden het veel."
+   ],
+   "neutral": "Mevrouw. Het vet van Grunn is van mij. Dat staat in de overeenkomst."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     1
+    ],
+    "reason": "Compact, juridisch en met de vaste overeenkomstkicker.",
+    "certainty": "laag"
+   },
+   "id": "H2-02",
+   "scene": "M08.2",
+   "speaker": "JELLE",
+   "context": "Oude Ebbingestraat. Tessa en Tammo rennen door een stroom fatbikes; Jelle belt en legt juridisch uit dat een fatbike geen fiets is en voetgangers geen voorrang hebben.",
+   "shot": "Tessa en Tammo half rennend, telefoon op luidspreker, fatbikes op de achtergrond",
+   "variants": [
+    "Mevrouw. Juridisch is een fatbike geen fiets, en voetgangers hebben hier geen voorrang. Dat staat in mijn overeenkomst.",
+    "Mevrouw. Een fatbike is juridisch geen fiets, dus u heeft geen voorrang. Dat staat in mijn overeenkomst.",
+    "Mevrouw. Mijn juristen melden dat een fatbike geen fiets is. Voetgangers hebben dus geen voorrang."
+   ],
+   "neutral": "Mevrouw. In deze straat hebben voetgangers geen voorrang. Dat staat in mijn overeenkomst."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     2,
+     1
+    ],
+    "reason": "Je vroeg nooit naar de kippen: droog, kort, pointe laatste.",
+    "certainty": "midden"
+   },
+   "id": "H2-03",
+   "scene": "M09.1",
+   "speaker": "TESSA",
+   "context": "Pastorie in Warffum. Tessa vertelt terloops dat ze boerendochter is; Tammo is verbaasd dat hij het na vijf jaar nu pas hoort.",
+   "shot": "twee-shot, Tammo kijkt Tessa aan, Tessa tilt een krat",
+   "variants": [
+    "Je vroeg niet naar de kippen.",
+    "Je vroeg nooit naar de kippen.",
+    "Je vroeg ook nooit naar mijn kippen."
+   ],
+   "neutral": "Je vroeg er nooit naar."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Kort en droog, laat Tammo's rouwjas-regel de pointe zijn.",
+    "certainty": "laag"
+   },
+   "id": "H2-04",
+   "scene": "M10.2",
+   "speaker": "TESSA",
+   "context": "Op de quad over de wierdepaden. Tammo is voor de tweede keer verbaasd over wat Tessa allemaal van het platteland weet.",
+   "shot": "Tessa stuurt de quad, Tammo achterop kijkt opzij naar haar",
+   "variants": [
+    "Boerendochter. Elke wierde heeft een achterweg.",
+    "Boerendochter. Elke wierde heeft een achterweg, en elke achterweg een sloot.",
+    "Boerendochter. Achterwegen zitten in mijn bloed."
+   ],
+   "neutral": "Ik ken dit soort wegen van thuis."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Twee. Eén woord, perfecte droge correctie en echo.",
+    "certainty": "midden"
+   },
+   "id": "H2-05",
+   "scene": "M11.1",
+   "speaker": "TAMMO",
+   "context": "Zoutkamp, de haven. Klaas zegt dat ze op zijn boot sliepen; Tessa zegt \"Eén keer\" en Tammo corrigeert haar droog. Echo van \"Eén keer\" in M09.",
+   "shot": "halve close-up Tammo, Tessa kijkt hem zijdelings aan",
+   "variants": [
+    "Twee.",
+    "Twee. En een halve.",
+    "Het waren er twee."
+   ],
+   "neutral": "Dat was ook zo."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     "neutral",
+     0
+    ],
+    "reason": "Geen bal is een korte woordspeling met de pointe laatste.",
+    "certainty": "midden"
+   },
+   "id": "H2-06",
+   "scene": "M11.3",
+   "speaker": "TAMMO",
+   "context": "Aan boord van het skûtsje. In de kist ligt geen gouden bal maar een broodtrommel; Tammo is teleurgesteld.",
+   "shot": "Tammo houdt de broodtrommel omhoog, Tessa naast hem",
+   "variants": [
+    "Een broodtrommel. We hebben een boot gekaapt voor een broodtrommel.",
+    "We hebben een boot gekaapt voor een broodtrommel.",
+    "Een broodtrommel. Dit is geen schat, dit is een lunch."
+   ],
+   "neutral": "Een broodtrommel. Geen bal."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     2
+    ],
+    "reason": "Tessa die het afdoet met een nuchtere boot-uitleg verbergt het gevoel droog.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "H2-07",
+   "scene": "M11.3",
+   "speaker": "TESSA",
+   "context": "Aan boord. Tessa herkent het handschrift van Mem op het briefje en probeert dat te verbergen; Tammo merkt dat ze raar kijkt.",
+   "shot": "close-up Tessa die het briefje wegvouwt, Tammo achter haar schouder",
+   "variants": [
+    "Het schommelt. Het is een boot.",
+    "Het is de boot, Tammo.",
+    "Zeegang."
+   ],
+   "neutral": "Niks. Het was een lange dag."
+  }
+ ]
+}

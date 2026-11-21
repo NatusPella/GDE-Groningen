@@ -7,6 +7,8 @@
 // telt de punten bij zijn eigen profiel (loopbaanGast). Een gast draait updateGameplay niet; zijn tellers lopen dus
 // alleen via die beloningen.
 
+import { careerTalk } from './careermoments.js';
+import { storyWorldOpen, storyGateHint } from './storyquery.js';
 import { KEYS } from './storagekeys.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
@@ -145,6 +147,8 @@ function meldOmhoog(w, o) {
   if (!w || !w.addMessage) return;
   const info = L.vakInfo(o.vak);
   const plus = L.percentage(L.factorVoorNiveau(o.naar));
+  // het koppelmoment bij het eerste niveau omhoog (careermoments.js): ze kijken samen terug op wie hier goed was
+  if (o.naar === 2) import('./storytalk.js').then((m) => m.playTalk(careerTalk(o.vak, 'koppel'), { id: 'loopbaan-koppel:' + o.vak, delay: 6 })).catch(() => {});
   w.addMessage(`${o.titel}: ${info.naam} niveau ${o.naar}, ${plus}% meer loon`, 5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-' + o.vak });
   // een niveau dat een handeling geeft, zegt erbij wat je nu kunt (#437): niveau 3 bij Spoor is kaartjes knippen, geen getal
   const kan = L.vaardigheidVan(o.vak, o.naar);
@@ -176,6 +180,11 @@ export function controleerDuizendpoot(w) {
 export function startLoopbaan(w, vak) {
   const info = L.vakInfo(vak);
   if (!info) return { gestart: false, nieuw: false, start: null };
+  // de ontgrendelpoort (unlockgate.js, #1131): een nieuw spel opent een loopbaan via het verhaal; een begonnen vak of een oude save is nooit dicht
+  if (!L.isGestart(getProfiel(), vak) && !storyWorldOpen(vak)) {
+    if (w && w.addMessage) w.addMessage(storyGateHint(vak) || 'Dit komt later in het verhaal.', 4.5, { kind: 'missie', key: 'loopbaan-poort-' + vak });
+    return { gestart: false, nieuw: false, start: null };
+  }
   const r = L.startVak(getProfiel(), vak);
   if (!r.nieuw) return r;
   markeer();
@@ -183,6 +192,8 @@ export function startLoopbaan(w, vak) {
   if (w && w.addMessage) {
     w.addMessage(`Loopbaan begonnen: ${info.naam}. Eerste klus: ${r.start.klus}`, 4.5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-start-' + vak });
   }
+  // de vraag van de dag (careermoments.js): Tammo en Tessa over het vak, als korte ondertitelpraat; nooit een eis
+  import('./storytalk.js').then((m) => m.playTalk(careerTalk(vak, 'vraag'), { id: 'loopbaan-vraag:' + vak, delay: 4 })).catch(() => {});
   return r;
 }
 

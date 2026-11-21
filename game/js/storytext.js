@@ -132,7 +132,7 @@ export function talkLines(ids, { from = 0, to = Infinity } = {}) {
     if (!sc) continue;
     for (const l of sc.lines) {
       if (l.channel === 'app-stil') continue;
-      out.push({ speaker: l.voice || l.speaker, text: l.text, voice: lineVoice(l), channel: l.channel, textOnly: !!l.textOnly });
+      out.push({ speaker: l.voice || l.speaker, text: l.text, voice: lineVoice(l), channel: l.channel, textOnly: !!l.textOnly, ...(l.form ? { form: l.form } : {}) });
     }
   }
   return out.slice(from, to);
@@ -159,8 +159,12 @@ const APP_SCHEDULE = {
   'A2.1': [['M07', 'after'], ['M10', 'after'], ['M10', 'after'], ['M11', 'after'], ['M11', 'after'], ['M08', 'start']],
   'A3.1': [['M15', 'after'], ['M15', 'after'], ['M16', 'after'], ['M16', 'after'], ['M16', 'after']],
   'A4.1': [['M19', 'after'], ['M19', 'after'], ['M19', 'after'], ['M19', 'after']],
+  // inspiratiepakket (21-11): de logeerkamer en Mem, het kasboekje en de lijst, Femke
+  'A2.2': [['M08', 'after'], ['M08', 'after'], ['M08', 'after'], ['M08', 'after'], ['M08', 'after'], ['M08', 'after'], ['M10', 'after'], ['M10', 'after'], ['M10', 'after']],
+  'A3.4': [['M14', 'after'], ['M14', 'after'], ['M14', 'after'], ['M14', 'after'], ['M15', 'after'], ['M15', 'after'], ['M15', 'after']],
+  'A4.2': [['M18', 'after'], ['M18', 'after'], ['M18', 'after']],
 };
-const NAMES = { TESSA: 'Tessa', TAMMO: 'Tammo', MEM: 'Mem', RIKUS: 'Rikus', JELLE: 'Jelle', SJOERD: 'Sjoerd', SJABBE: 'Sjabbe', HENK: 'Henk', BEREND: 'Berend' };
+const NAMES = { FEMKE: 'Femke', TESSA: 'Tessa', TAMMO: 'Tammo', MEM: 'Mem', RIKUS: 'Rikus', JELLE: 'Jelle', SJOERD: 'Sjoerd', SJABBE: 'Sjabbe', HENK: 'Henk', BEREND: 'Berend' };
 
 // Every silent app text of the script with the step and moment it is due: [{ step, at, from, text }]
 export function appSchedule() {
@@ -227,7 +231,10 @@ export function banterExchanges() {
     const lines = s.lines.filter((l) => l.key === 'T' || l.key === 'A').map((l) => [l.key, l.text, l.tag, l.rec, l.voice || l.speaker]);
     if (!lines.length) continue;
     if (s.pool) {
-      chunk(lines, POOL_SPLIT[s.pool]).forEach((ex, i) => out.push({ id: `n-${s.pool}-${i}`, trigger: 'idle', ...(POOL_GATE[s.pool] || {}), lines: ex }));
+      // een extra pool (B1.1, B2.2, ...) is één uitwisseling en volgt de poort van zijn akte
+      const base = s.pool.replace(/\.\d+$/, '');
+      const sizes = POOL_SPLIT[s.pool] || (base !== s.pool ? [lines.length] : undefined);
+      chunk(lines, sizes).forEach((ex, i) => out.push({ id: `n-${s.pool}-${i}`, trigger: 'idle', ...(POOL_GATE[s.pool] || POOL_GATE[base] || {}), lines: ex }));
     } else {
       out.push({ id: `n-${s.id}`, trigger: `after:${s.step}:pass`, lines });
     }

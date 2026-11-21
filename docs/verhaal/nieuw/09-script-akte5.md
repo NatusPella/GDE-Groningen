@@ -18,6 +18,7 @@ HENK: Het luik zit aan de zijkant. Dan kun je serveren. [NIEUW]
 TESSA: Dat is een Fjord Frituur. [NIEUW]
 TAMMO: Een Escapade met een gat. [NIEUW]
 HENK: Een karaktergat. [NIEUW]
+TESSA: Het is een voordeur. Een voordeur die meerijdt. [NIEUW]
 TESSA: Het is klaar. [NIEUW]
 TAMMO: Het bovenstuk is blauw. Dat was niet afgesproken. [NIEUW]
 TESSA: Het is de kleur van de naam. [NIEUW]
@@ -47,7 +48,7 @@ TAMMO: Het voelde raar. [BEHOUDEN]
 TESSA: Het klonk goed. [BEHOUDEN]
 TAMMO: Jij zweeg voor een ander. Ik zweeg voor niemand. Dat is erger. [NIEUW]
 TAMMO: Je ging alleen achter de trein aan. Ik zat op een hooibaal te mokken. [NIEUW]
-TESSA: Ik moet je iets vertellen. Ik heb op zeven plekken gewoond voor ik tien was. [NIEUW]
+TESSA: Ik moet je iets vertellen. Ik woonde op een boerderij tot ik acht was. Daarna ben ik steeds verhuisd. [NIEUW]
 TAMMO: Zeven? [NIEUW]
 TESSA: En elke zomer woonde ik in Ljouwert, naast Mem. Zij leerde me suikerbrood roosteren. [NIEUW]
 TAMMO: Jij? Fries? [NIEUW]
@@ -55,6 +56,8 @@ TESSA: Een beetje. [NIEUW]
 TAMMO: Dat verklaart waarom je moi zegt als je denkt dat ik niet luister. [NIEUW]
 TESSA: Dat deed ik één keer. [NIEUW]
 TAMMO: Twee keer. [NIEUW]
+TAMMO: En die jas in augustus. [NIEUW]
+TESSA: Mem zegt elke zomer jas. Het enige wat hetzelfde bleef. [NIEUW]
 TESSA: De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen. [NIEUW]
 TESSA: Ik ging niet weg. [NIEUW]
 TAMMO: Je bleef nergens. [NIEUW]
@@ -71,7 +74,7 @@ TESSA: Jelle huurt morgen de hele Markt. Vandaag staan wij er eerst. Wij voorop,
 GEESJE: Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt. [NIEUW]
 WUBBO: Ik rij de bus. Een bus is een brug op wielen. Ik zet de zijstraten dicht. [NIEUW]
 TINUS: Ik rij de trekker. Wat Jelle ook neerzet, ik trek het weg. [NIEUW]
-KAPITEIN KLAAS: Ik heb mijn rubberboot terug. De moeder van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem. [NIEUW]
+KAPITEIN KLAAS: Ik heb mijn rubberboot terug. De oma van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem. [NIEUW]
 BEREND: Ik rij achteraan, met vijftien kanonnen en een doos vuurwerk voor het Ontzet. Dan zie ik alles. [NIEUW]
 TESSA: Eén van jullie rijdt vlak naast ons en houdt Jelle bezig. Wie dat is, kiezen wij zo. [NIEUW]
 TESSA: Rijden. Niet praten. [NIEUW]
@@ -147,12 +150,15 @@ TORENWACHTER (radio): Iets Fries. Ik meld alleen. [BEHOUDEN]
 (regie: donderdag 27 augustus, avond. Een reuzenvlag van dertig meter met pompeblêden. Onderaan: FOAR MEM. Gameplay: Tammo is de duif en pikt vijf touwen van Jelles vlag door.)
 TESSA: De vlag hangt precies boven de plek waar de Fjord Frituur morgen moet staan. Hij moet eraf. [NIEUW]
 BERT: Die Fries noemde d'Olle Grieze "in aardich tuorke". Een áárdig torentje! [BEHOUDEN]
-TESSA: "Foar mem." Voor zijn moeder. [BEHOUDEN]
-TAMMO: Hij hangt een vlag aan onze toren voor zijn moeder. [BEHOUDEN]
+TESSA: "Foar mem." Voor zijn oma. [NIEUW]
+TAMMO: Hij hangt een vlag aan onze toren voor zijn oma. [NIEUW]
 TESSA: Dat is eigenlijk best lief. [BEHOUDEN]
 TAMMO: Het is vandalisme. [BEHOUDEN]
 TESSA: Lief vandalisme. [BEHOUDEN]
 BERT: Vijf touwen. Een duif met een scherpe snavel. [BEHOUDEN]
+TESSA: En waarom luistert die duif naar jou? [NIEUW]
+TAMMO: Geen idee. [NIEUW]
+BERT: Hij weet het niet, jong. Zij ook niet. [NIEUW]
 TAMMO: Ik fluit. Hij pikt. [BEHOUDEN]
 
 ## [M24.2] Er hangt iets Fries aan d'Olle Grieze: de vlag – Stad, Martinitoren – duif
@@ -172,6 +178,19 @@ TESSA: Nee. Gewoon. [NIEUW]
 
 ## [M24.4] Er hangt iets Fries aan d'Olle Grieze: herhaling – Stad, Grote Markt – duif
 BERT: Weer iets aan de toren? Fluiten maar, jong. [BEHOUDEN]
+
+## [O10] De rekening – Stad, Noorderhaven – Oma's keuken
+(regie: avond, de dag voor het Ontzet. Op de mat van Oma's keuken ligt een witte envelop met een J. Tessa vouwt hem open, Tammo leest mee over haar schouder.)
+TESSA: "Rekening voor het gebruik van de openbare weg. Eenmalig." [NIEUW]
+TAMMO: Hoeveel? [NIEUW]
+TESSA: Genoeg om te zien dat hij bang is. [NIEUW]
+TAMMO: Dat is nieuw. [NIEUW]
+TESSA: Hij stuurt een rekening. Hij belt niet meer. [NIEUW]
+TAMMO: Er zit nog een vel in. [NIEUW]
+(regie: een vergunning in drievoud, met Jelles stempel. De bovenste doorslag is wit, de onderste geel.)
+TESSA: Zijn vergunning voor morgen. Evenement "Foar Mem", Oude Boteringestraat, vanaf half drie. Gesloten voor verkeer. [NIEUW]
+TAMMO: Waarom stuurt hij ons die? [NIEUW]
+TESSA: In drievoud. De derde kopie is voor de ontvanger. Dat zijn wij. [NIEUW]
 
 ## [A5.1] Appjes donderdagavond (stil, geen stem) – Stad – telefoon
 APP TAMMO→TESSA (stil): Ik zeg het op de Grote Markt. Voor iedereen. [NIEUW]
@@ -211,7 +230,7 @@ TESSA: Tammo verkocht het horloge van zijn opa voor één luik. Jij biedt tien f
 TAMMO: Het is jouw droom. Jij kiest. [BEHOUDEN]
 TESSA: …Het bod viel tegen. [BEHOUDEN]
 JELLE: Tegen? Dit is meer dan… [BEHOUDEN]
-TESSA: Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders. [BEHOUDEN]
+TESSA: Je biedt geld voor iets wat geen geld is. En je oma wil iets anders. [NIEUW]
 JELLE: Wat dan? [BEHOUDEN]
 TESSA: Dat iemand één keer zegt dat ze de beste was. Dat koop je niet, Jelle. [BEHOUDEN]
 (regie: Jelle zwijgt. Dat is voor het eerst.)
@@ -236,6 +255,22 @@ RIKUS (radio): Vandaag staat er weer een Berend op de Grote Markt, in kostuum, e
 RIKUS (radio): De fietstunnel-update: 2031. Hij is bijna klaar. En ik sta straks vooraan. Eerste friet is voor mij. [BEHOUDEN]
 RIKUS (radio): De peiling staat al twee weken open: zeggen die twee Stadjers ooit wat ze voelen? Drie procent zegt ja. [NIEUW]
 
+## [M25.6] Het bod viel tegen: het familiediner – Stad, Noorderhaven, Oma's keuken – te voet
+(regie: donderdagnacht, laat. Er wordt gebeld. In Oma's keuken staan Tessa's moeder, haar vader met een mand eieren en een meisje van tien in een gele regenjas. Naamkaart: ANNEKE. Naamkaart: LIEKE. Tessa's vader zegt niets en kijkt naar de pan. Oma en Mem zitten aan tafel met een bord proefeierballen.)
+ANNEKE: We waren in de buurt. Met een mand eieren. [NIEUW]
+TESSA: Mam. Het is half twaalf. [NIEUW]
+ANNEKE: Jij belt nooit. Dan komen wij. [NIEUW]
+OMA TRIJNTJE: Ga zitten. Eet een eierbal. Er zit vet in. [NIEUW]
+ANNEKE: Bij ons gaan eieren niet in het vet. [NIEUW]
+OMA TRIJNTJE: Dan gaan ze er later in. [NIEUW]
+LIEKE: Zijn jullie al samen? [NIEUW]
+TESSA: Wij wonen samen. [NIEUW]
+LIEKE: Jullie zijn al samen. Jullie weten het alleen niet. [NIEUW]
+OMA TRIJNTJE: En wanneer trouwen jullie? [NIEUW]
+TAMMO: Ik zeg liever niks. [NIEUW]
+(regie: Tessa's vader pakt zwijgend een eierbal, kauwt en knikt langzaam. In zijn streek is dat het hoogste compliment.)
+ANNEKE: Dat zag ik al. Dat is een goed teken. [NIEUW]
+
 ## [M26.1] Ontzet, net als in 1672: de uitzending – Stad, Grote Markt – te voet
 (regie: vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de Fjord Frituur, blauw, met een luik; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen.)
 RIKUS (radio): Moi, Grunn. Nachtstreek, in het daglicht. Ik voel me een vleermuis. [BEHOUDEN]
@@ -249,10 +284,14 @@ TESSA: Je doet alles onder druk. Daarom werkt het. [BEHOUDEN]
 
 ## [M26.2] Ontzet, net als in 1672: de regels – Stad, Grote Markt, de jurytafel – te voet
 (regie: Tessa legt het geprinte logboek van Wiebelwerk op de jurytafel. Berend staat op en klopt met zijn bisschopsstaf.)
-BEREND: Voor iedereen. De beste eierbal wint de standplaats. De Gouden Eierbal zelf gaat terug naar het museum. Dat zijn twee aparte dingen. [NIEUW]
+BEREND: Voor iedereen. De beste eierbal wint de standplaats. [NIEUW]
+TESSA: En de Gouden Eierbal? [NIEUW]
+BEREND: Die gaat terug naar het museum. Twee aparte dingen. [NIEUW]
 TESSA: Berend, dit is het logboek van Wiebelwerk. Twaalf augustus. Jelle nam de bal vijf dagen vóór ons. [NIEUW]
 BEREND: Regel een: wie partij is, zit niet voor. Dat is Jelle. [NIEUW]
-BEREND: Regel twee: mevrouw Hoving zit nog in de trein, met volpension. Dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen. [NIEUW]
+RIKUS (radio): Mevrouw Hoving, de bewaarder, zit nog in de trein. Met volpension. [NIEUW]
+BEREND: Regel twee: zonder bewaarder zit het oudste jurylid voor. Dat ben ik. [NIEUW]
+BEREND: Ik heb nog nooit iets gewonnen. Nu moet ik oordelen. [NIEUW]
 JELLE: Een notaris gaat boven een bisschop. Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan teken ik de uitslag zelf. [NIEUW]
 (regie: Jelle loopt naar zijn limo, de gouden koffer onder zijn arm.)
 
@@ -312,7 +351,14 @@ GEESJE (telefoon): Wie blijft staan, mag breien. [NIEUW]
 TAMMO: Klopt. [NIEUW]
 
 ## [M26.5] Ontzet, net als in 1672: Mem – Stad, Oude Boteringestraat – te voet
-(regie: Mem komt aangelopen, met haar schort nog aan. Jelle klautert nat de kant op.)
+(regie: de torenklok slaat drie. Jelle klautert nat de kant op, de gouden koffer boven water. Tessa houdt de vergunning omhoog, met zijn eigen stempel. Tammo heeft een bakje met één warme eierbal.)
+TESSA: Je eigen vergunning, Jelle. Deze straat is vandaag afgesloten voor jouw evenement. [NIEUW]
+JELLE: Voor mijn vlag. [NIEUW]
+TESSA: Op een evenement staat een kraam. Een limo niet. [NIEUW]
+JELLE: …Jouw duiven hadden geen vergunning. [NIEUW]
+TAMMO: Ze komen vanzelf. [NIEUW]
+TAMMO: Eierbal? Hij is warm. [NIEUW]
+(regie: Jelle neemt hem aan. Hij bijt. Hij vergeet wat hij ging zeggen. Aan het eind van de straat komt Mem aangelopen, met haar schort nog aan.)
 MEM: Jelle. Geef hem aan mij. [NIEUW]
 JELLE: Mem. De notaris sluit… [NIEUW]
 MEM: Dat is zijn probleem. Jij bent mijn probleem. [NIEUW]
@@ -328,7 +374,10 @@ BEREND (bij de Groninger eierbal): …Braid noar de zin. …Kon minder. [BEHOUDE
 (regie: hij zegt niks meer. Hij slikt.)
 RIKUS (radio): Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd. [BEHOUDEN]
 (regie: Berend schraapt zijn keel.)
-BEREND: Eén verschil, dan stemmen we. De Friese bal is glad, van fijn meel. De Groninger heeft een korrel van grof meel. Die korrel proef je. Dat is een eierbal die ergens vandaan komt. [NIEUW]
+BEREND: Eén verschil, dan stemmen we. De Friese bal is glad, van fijn meel. [NIEUW]
+TESSA: En de onze? [NIEUW]
+BEREND: Die heeft een korrel, van grof meel. Die proef je. [NIEUW]
+BEREND: Dat is een eierbal die ergens vandaan komt. [NIEUW]
 BEREND: Stemmen. Jurylid één. [NIEUW]
 
 ## [M26.10] Ontzet, net als in 1672: de stemming, vijf van de vijf – Stad, Grote Markt – te voet
@@ -372,11 +421,11 @@ BEREND: De standplaats op de Vismarkt gaat naar de Fjord Frituur. [NIEUW]
 MEM: De bal gaat terug naar het museum. Dat is zijn plek. [NIEUW]
 BEREND: En na afloop ga ik naar de politie, over twaalf augustus. Ik was belegeraar, geen getuige. Nu wel. [NIEUW]
 JELLE: De standplaatsen houd ik. Dat is juridisch dichtgetimmerd. De molen ook. De rest geef ik terug. [NIEUW]
-MEM: Dat is mijn zoon. [NIEUW]
+MEM: Dat is mijn kleinzoon. [NIEUW]
 JELLE: Ja, mem. [NIEUW]
 
 ## [M26.7] Ontzet, net als in 1672: de vijf woorden – Stad, achter de kraam – te voet
-(regie: het lawaai van de markt. Tammo en Tessa achter de frituur.)
+(regie: het lawaai van de markt. Tammo en Tessa achter de frituur. Als Tammo begint te praten, zakt het lawaai weg: niemand overstemt dit.)
 RIKUS (radio): We schakelen over naar de kraam. Er is een peiling die al twee weken openstaat. [BEHOUDEN]
 TESSA: Tammo. Iedereen luistert. [BEHOUDEN]
 TAMMO: …Woist ja wel. [BEHOUDEN]
@@ -389,6 +438,12 @@ TAMMO: Ik had er meer. Die waren minder goed. [BEHOUDEN]
 TESSA: Mien jong. Dat duurde vijf jaar. [NIEUW]
 TAMMO: Kon minder. [BEHOUDEN]
 TESSA: Kon veel minder. [BEHOUDEN]
+
+## [M26.17] Ontzet, net als in 1672: de kus – Stad, achter de kraam – te voet
+(regie: de markt is stil geworden. Tessa pakt Tammo bij zijn jas, trekt hem naar zich toe en kust hem, lang, midden in het beeld van heel de Grote Markt. Bij het luik laat een kind zijn eierbal vallen. Dan klapt iemand, dan iedereen.)
+TAMMO: …Ik heb geen woorden meer. [NIEUW]
+BEREND: Elf seconden. Ik tel alleen. [NIEUW]
+RIKUS (radio): …Ik zeg niks. [NIEUW]
 RIKUS (radio): Peiling gesloten. [BEHOUDEN]
 
 ## [M26.8] Ontzet, net als in 1672: Jelle 's avonds – Stad – telefoon
@@ -405,27 +460,45 @@ APP MEM→TESSA (stil): Tige tank, famke. – M. [NIEUW]
 APP TESSA→MEM (stil): Dank u, Mem. [NIEUW]
 
 ## [E1] Epiloog – Stad, Vismarkt – Fjord Frituur
-(regie: twee weken later, vrijdag 11 september. Bij de Vismarkt staat de Fjord Frituur met een rij tot de Korenbeurs.)
+(regie: twee weken later, vrijdag 11 september. Bij de Vismarkt staat de Fjord Frituur met een rij tot de Korenbeurs. Aan het luik hangt een bord: "Eierbal met mosterd. Oma's recept." Ernaast een ingelijste foto van de Grote Markt: twee mensen achter een frituur, midden in een kus, met een bisschop op de achtergrond. Op het dak zitten drie duiven in een rij, als klanten.)
 RIKUS (radio): Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op. [NIEUW]
 TESSA: Het is tweeëntwintig graden. [NIEUW]
 TAMMO: Het is Grunn. [BEHOUDEN]
 TESSA: Spijt van de zomer? [BEHOUDEN]
 TAMMO: Nee. Van de volgende ook niet. Alvast. [NIEUW]
+TESSA: Willemien staat weer vooraan. Haar oma kende Oma Trijntje. [NIEUW]
+TAMMO: Derde keer deze week. Uitverkocht voor vieren. [NIEUW]
+TESSA: Berend heeft de foto laten inlijsten. [NIEUW]
+TAMMO: Op de achterkant staat: elf seconden. [NIEUW]
+(regie: Tessa breekt een eierbal doormidden en geeft Tammo de helft. Ze blijft naast hem staan, haar schouder tegen de zijne.)
+TESSA: De duiven staan weer in de rij. [NIEUW]
+TAMMO: Ik heb niks gezegd. [NIEUW]
 
 ## [E2] Slot – Stad, Nachtstreek – radio
-(regie: Rikus in de studio, met een bakje friet op het bureau.)
+(regie: Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de Fjord Frituur.)
 RIKUS (radio): Moi. Nachtstreek, het laatste kwartier. [BEHOUDEN]
 RIKUS (radio): De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje. [BEHOUDEN]
 RIKUS (radio): Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs. [BEHOUDEN]
 RIKUS (radio): In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks. [BEHOUDEN]
+TESSA: Hij zegt niks. [NIEUW]
+TAMMO: Dat zegt hij heel hard. [NIEUW]
 RIKUS (radio): Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen. [BEHOUDEN]
 RIKUS (radio): Jelle gaf bijna alles terug, helemaal vrijwillig. De standplaatsen en de molen hield hij. Hij zei dat hij het gezellig vond. [NIEUW]
 RIKUS (radio): Oldenhuis Bakt sluit alle eenenveertig snackbars. De eigenaar blijkt Jelle te zijn. Nu weet ik wie dat at: niemand. [NIEUW]
+RIKUS (radio): Jelle kocht vanochtend een pand aan de Hereweg. Hij noemt het een hobby. [NIEUW]
+TESSA: Hij koopt door. [NIEUW]
+TAMMO: Wij bakken door. [NIEUW]
 RIKUS (radio): Mevrouw Hoving stapt na bijna vier weken volpension in Wildervank uit de trein. [NIEUW]
 RIKUS (radio): De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht. [NIEUW]
+
+## [E3] Slot: de laatste regels – Stad, Nachtstreek – radio
+(regie: Rikus schuift het bakje friet naar de microfoon. In de Fjord Frituur draait Tessa de radio zachter.)
 RIKUS (radio): De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje. [NIEUW]
 RIKUS (radio): Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets. [NIEUW]
-RIKUS (radio): Durk en Douwe werken nu voor Jelles moeder. Ze sturen een kaartje. [NIEUW]
+RIKUS (radio): De loketbediende van Loket B stond vooraan. Ze zei dat Tessa haar bij haar naam had gegroet. Dat doet niemand. [NIEUW]
+RIKUS (radio): Een oude vrouw met een rollator kreeg de eerste eierbal. Tammo had op het perron op haar gewacht. [NIEUW]
+RIKUS (radio): Het jongetje van het bankje stond er ook. Hij deelde zijn snack met een duif. [NIEUW]
+RIKUS (radio): Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje. [NIEUW]
 RIKUS (radio): Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. [NIEUW]
 RIKUS (radio): En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald. [BEHOUDEN]
 RIKUS (radio): Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi. [BEHOUDEN]

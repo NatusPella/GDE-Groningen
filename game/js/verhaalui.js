@@ -10,6 +10,7 @@ import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { NPC } from './missionstory.js';
 import { getStorySteps, replayOpening } from './story.js';
 import { speakerColor } from './speakers.js';
+import { cardFacts } from './characterdossiers.js';
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
 import { renderCharacterPhone, phoneUnreadFor, unreadInbox, OVERIG } from './phone.js';
@@ -132,6 +133,15 @@ function missionChips(c) {
   }).join('') + '</div>';
 }
 
+// "Wie is dit?": the dossier facts this player may see now (age, home, work, what they are to the duo). Each fact has a
+// known-from mark (characterdossiers: met, or a story step that must be done), so the card never spoils; per player, local.
+function dossierHtml(c) {
+  const done = new Set(getStorySteps().filter((s) => s.done).map((s) => s.id));
+  const facts = cardFacts(c.id, { met: hasMet(c.id), done });
+  if (!facts.length) return '';
+  return `<span class="m-eb">Wie is dit?</span><dl class="vh-facts">${facts.map((f) => `<dt>${esc(f.label)}</dt><dd>${esc(f.text)}</dd>`).join('')}</dl>`;
+}
+
 function viewerHtml(c) {
   const met = hasMet(c.id);
   const look = lookOf(c);
@@ -151,6 +161,7 @@ function viewerHtml(c) {
   return held +
     `<p class="vh-bio">${esc(c.bio)}</p>` +
     `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen in</dt><dd>${steps}</dd>` : ''}</dl>` +
+    dossierHtml(c) +
     '<div class="vh-phone" data-vh-phone></div>';
 }
 

@@ -96,8 +96,8 @@ export const QUAKE_BARKS = [
 
 // Kiekdoar: one calm line, no damage, no blame. `{m}` = the magnitude.
 export const QUAKE_NEWS = [
-  'Lichte aardbeving in het Hogeland, kracht {m}. Geen schade gemeld. Delfstof Noord volgt de metingen.',
-  'Even getril in Grunn en omgeving: aardbeving van {m}. Geen schade of gewonden gemeld.',
+  'Zware trilling in het Hogeland, kracht {m}: een kolonne kranen reed door een dorp. Geen schade gemeld.',
+  'Even getril in Grunn en omgeving: kracht {m}, een zware wagen over de brug. Geen schade of gewonden gemeld.',
   'Kort getril onder de Stad, kracht {m}. Alles in orde, laat de meldkamer weten.',
 ];
 export const quakeNewsText = (m, rng = Math.random) => QUAKE_NEWS[Math.floor(rng() * QUAKE_NEWS.length)].replace('{m}', String(m).replace('.', ','));

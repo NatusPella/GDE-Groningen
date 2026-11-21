@@ -1,0 +1,458 @@
+{
+ "note": "Humorbeats van het inspiratiepakket (21-11, epic #1121): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel, `panel` volgt na de beoordeling. Variant 0 staat in docs/verhaal/nieuw/09-script-akte*.md. Schema: humor.json. Plan: docs/VERHAAL-INSPIRATIEPLAN-21-11.md.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Pointe landt op Tammo, droog en zonder uitleg.",
+    "certainty": "midden"
+   },
+   "id": "HI-01",
+   "scene": "M06.0",
+   "speaker": "VELDKAMP",
+   "context": "Flat, bijna middernacht, akte 1. De oude buurman van elf negen klopt aan met een duif op zijn schouder; de duif wil naar Tammo en Veldkamp zegt dat droog en zonder uitleg.",
+   "shot": "halve close-up Veldkamp in de deuropening; Tammo kijkt naar de duif, geen reactie van Tessa",
+   "variants": [
+    "Mijn duiven doen dat bij niemand. Hij wil naar Tammo.",
+    "Mijn duiven zijn nooit naar iemand gegaan. Deze wil naar Tammo.",
+    "Hij wil naar Tammo. Dat doen mijn duiven bij niemand."
+   ],
+   "neutral": "Mijn duif wil naar Tammo."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     2
+    ],
+    "reason": "Kort, onhandig-lief en praktisch.",
+    "certainty": "laag"
+   },
+   "id": "HI-02",
+   "scene": "O1",
+   "speaker": "TAMMO",
+   "context": "Flat, avond. Tessa heeft een lijst met twee kolommen op de koelkast gehangen (wat Tammo vindt, wat Tessa vindt); Tammo staat met twee koppen thee in de deur.",
+   "shot": "halve close-up Tammo met de thee; Tessa kijkt al naar het kaartje op de koelkast",
+   "variants": [
+    "En waar staat \"thee\"?",
+    "Staat er ook bij dat ik de thee zet?",
+    "Staat \"thee\" erbij?"
+   ],
+   "neutral": "Wat staat er bij mij?"
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Praktisch, droog en korter dan de karakter-variant.",
+    "certainty": "hoog"
+   },
+   "id": "HI-03",
+   "scene": "B1.1",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 1. Tessa vraagt waarom iedereen denkt dat ze al een stel zijn; Tammo geeft een droog en volstrekt praktisch antwoord.",
+   "shot": "twee-shot in de Escapade door de voorruit; Tessa kijkt opzij",
+   "variants": [
+    "Het is een hele goede koelkast.",
+    "Het is een koelkast met karakter.",
+    "Dat is een hele goede koelkast, Tessa."
+   ],
+   "neutral": "Dat weet ik ook niet."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Korte zelfspot, pointe laatste.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "HI-04",
+   "scene": "B1.2",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 1. Tammo verbetert ongevraagd een mus in een ringmus; Tessa zegt dat het het leukste is wat hij vandaag zei; Tammo antwoordt droog over zichzelf.",
+   "shot": "halve close-up Tammo, kleine glimlach naar de weg",
+   "variants": [
+    "Het was het enige.",
+    "Het was ook het enige.",
+    "Ik zei vandaag verder niks."
+   ],
+   "neutral": "Dank je."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Absurde non-uitleg waar Tessa's reactie precies op past.",
+    "certainty": "midden"
+   },
+   "id": "HI-05",
+   "scene": "B1.3",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 1, vraag van de dag over duiven. Tessa vraagt hoe lang een duif zonder poepen kan; Tammo (de duivenfluisteraar) antwoordt zonder uitleg.",
+   "shot": "twee-shot; Tessa kijkt hem aan en wacht op meer",
+   "variants": [
+    "Dat hangt van de jas af.",
+    "Dat hangt af van wiens jas.",
+    "Dat hangt ervan af hoe schoon de jas is."
+   ],
+   "neutral": "Dat weet ik niet. Ik vraag het aan Bert."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     1
+    ],
+    "reason": "Eén woord is het beste ritme voor een onderbreking.",
+    "certainty": "hoog"
+   },
+   "id": "HI-06",
+   "scene": "B2.1",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 2, het bijna-moment: Tammo begint \"eigenlijk—\" en wordt onderbroken, nu door een koe op de weg.",
+   "shot": "halve close-up Tammo, dan Tessa die naar voren kijkt; de koe staat in het raam",
+   "variants": [
+    "Koe. Op de weg.",
+    "Koe.",
+    "Een koe. Voor ons."
+   ],
+   "neutral": "Pas op, de weg."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Past bij zeventig jaar Oma en is warm en droog.",
+    "certainty": "hoog"
+   },
+   "id": "HI-07",
+   "scene": "B2.2",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 2, vraag van de dag over eieren (vracht, landbouw en horeca). Tessa vraagt hoeveel eieren er in een eierbal zitten; Tammo antwoordt twee keer kort.",
+   "shot": "twee-shot; Tessa heeft de kaart in haar handen",
+   "variants": [
+    "Eén. En zeventig jaar.",
+    "Eén. En heel veel geduld.",
+    "Eén ei. En een heel mensenleven."
+   ],
+   "neutral": "Eén ei, dacht ik."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Huurcontract is de droge anticlimax op zijn liefdesverklaring.",
+    "certainty": "midden"
+   },
+   "id": "HI-08",
+   "scene": "M10.5",
+   "speaker": "TESSA",
+   "context": "In de auto, akte 2, de misverstandsketen: Tammo zegt drie keer iets liefs maar onduidelijks (\"ik wil dit niet kwijt\", \"alles\", \"ik blijf\"); Tessa antwoordt steeds op de verkeerde vraag. Dit is de laatste schakel.",
+   "shot": "twee-shot; Tammo kijkt naar de weg, Tessa kijkt naar haar telefoon en merkt niets",
+   "variants": [
+    "Natuurlijk blijf je. Je hebt een huurcontract.",
+    "Natuurlijk blijf je. Het contract loopt nog twee jaar.",
+    "Je hebt getekend, Tammo. Je blijft."
+   ],
+   "neutral": "Natuurlijk blijf je."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     2,
+     0,
+     1
+    ],
+    "reason": "Droge onverwachte onderwerpskeuze, korte pointe.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "HI-09",
+   "scene": "T2",
+   "speaker": "TAMMO",
+   "context": "Streekbus naar Zoutkamp, akte 2. Tammo schrikt wakker uit zijn dagdroom (hij als stuntheld, Tessa als Koningin van de Friteuse); Tessa zegt dat hij in zijn slaap lacht.",
+   "shot": "halve close-up Tammo tegen het raam, dan Tessa die hem aankijkt",
+   "variants": [
+    "Ik droomde over verkeer.",
+    "Ik droomde over een rotonde.",
+    "Niks. Verkeer."
+   ],
+   "neutral": "Ik droomde iets leuks."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Onschuldig-schuldig en deadpan, laat de duif het werk doen.",
+    "certainty": "hoog"
+   },
+   "id": "HI-10",
+   "scene": "M15.6",
+   "speaker": "TAMMO",
+   "context": "Kermis in Winschoten, akte 3. Daan, een charmante zanger, wil een liedje voor Tessa zingen; Tammo (stil jaloers) zegt niets, zijn duif laat iets vallen op Daans glimmende jasje.",
+   "shot": "halve close-up Tammo met de duif op zijn schouder, dan Daans jasje; Tessa trekt een wenkbrauw op",
+   "variants": [
+    "Ik heb niks gezegd.",
+    "Dat was niet mijn bedoeling.",
+    "Dat deed hij zelf."
+   ],
+   "neutral": "Pech voor het jasje."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Droge terugtrekker met kicker Een park.",
+    "certainty": "midden"
+   },
+   "id": "HI-11",
+   "scene": "B3.1",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 3, het bewuste bijna-moment: Tammo begint \"eigenlijk—\" en kiest dan voor een onschuldig feit (windpark); Tessa zegt dat ze dacht dat het iets was.",
+   "shot": "twee-shot; Tessa kijkt hem even te lang aan, dan naar buiten",
+   "variants": [
+    "Het is ook iets. Een park.",
+    "Het is ook iets. Een groot iets.",
+    "Het is ook iets. Het heet een park."
+   ],
+   "neutral": "Het is een park."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     1,
+     0,
+     0
+    ],
+    "reason": "Eigen eenheid zonder gezwam; Tessa's reactie klopt.",
+    "certainty": "midden"
+   },
+   "id": "HI-12",
+   "scene": "B3.2",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 3, vraag van de dag over een meeuw (lucht en kermis). Tessa vraagt hoe hoog een meeuw vliegt; Tammo antwoordt in een eigen eenheid.",
+   "shot": "twee-shot; Tessa schudt haar hoofd, Tammo houdt zijn gezicht in de plooi",
+   "variants": [
+    "Net zo hoog als zijn frikandel.",
+    "Zo hoog als hij zijn frikandel kan houden.",
+    "Dat hangt van de frikandel af."
+   ],
+   "neutral": "Hoger dan ik denk."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Onverwacht scherp en bescheiden, Tammo-achtig.",
+    "certainty": "hoog"
+   },
+   "id": "HI-13",
+   "scene": "B3.3",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 3, het autoduet op een verzonnen nummer van Rikus (geen songtekst). Tessa zingt het refrein, Tammo de bas; Tessa merkt op dat hij altijd de bas zingt.",
+   "shot": "twee-shot; Tessa zingt, Tammo knikt de maat",
+   "variants": [
+    "Iemand moet de bodem leggen.",
+    "Zonder bas valt het refrein om.",
+    "Een refrein heeft een vloer nodig."
+   ],
+   "neutral": "Zo klinkt het goed."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     "neutral"
+    ],
+    "reason": "Kort vakmanschap zonder uitleg.",
+    "certainty": "midden"
+   },
+   "id": "HI-14",
+   "scene": "M17.5",
+   "speaker": "STIEN",
+   "context": "Onder brug elf in Veendam, akte 4. Stien (70, frituurhoudster) hoort dat Tessa een wagen \"voor andere mensen\" vindt en geeft haar eerste vakregel.",
+   "shot": "halve close-up Stien met de friteuse; Tessa luistert, Tammo kijkt naar de friet",
+   "variants": [
+    "Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen.",
+    "Dat zei ik ook. Veertig jaar geleden. Eerst het vet warm, dan de mensen.",
+    "Eerst het vet warm, dan de mensen. Veertig jaar, en ik heb het nog steeds niet fout."
+   ],
+   "neutral": "Eerst het vet warm, dan de mensen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     0,
+     1
+    ],
+    "reason": "Droog en scherp, past bij tien jaar en ziet alles.",
+    "certainty": "laag"
+   },
+   "id": "HI-15",
+   "scene": "B4.2",
+   "speaker": "TAMMO",
+   "context": "In de auto, akte 4. Tessa kondigt aan dat haar moeder, haar vader en haar nichtje Lieke (tien, ziet alles) naar het Ontzet komen; Tammo reageert droog.",
+   "shot": "twee-shot; Tessa kijkt naar de weg, Tammo slikt",
+   "variants": [
+    "Dan heb ik een probleem.",
+    "Dan weet zij het eerder dan ik.",
+    "Dan moet ik me gedragen."
+   ],
+   "neutral": "Ik ben benieuwd."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Sluit exact aan op de herhaling in HI-17.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "HI-16",
+   "scene": "M25.6",
+   "speaker": "OMA TRIJNTJE",
+   "context": "Oma's keuken, donderdagnacht, akte 5. Tessa's moeder zegt dat bij hen de eieren niet in het vet gaan; Oma (92) antwoordt zonder haar stem te verheffen.",
+   "shot": "halve close-up Oma met de eierbal; Anneke kijkt naar de pan",
+   "variants": [
+    "Dan gaan ze er later in.",
+    "Dan gaan ze er straks alsnog in.",
+    "Alles gaat er uiteindelijk in."
+   ],
+   "neutral": "Probeer er één."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Kind zegt het ongezouten, Tammo en Tessa weten het niet.",
+    "certainty": "hoog"
+   },
+   "id": "HI-17",
+   "scene": "M25.6",
+   "speaker": "LIEKE",
+   "context": "Oma's keuken, donderdagnacht, akte 5. Lieke (10) vraagt of Tammo en Tessa al samen zijn; Tessa zegt dat ze samenwonen; Lieke zegt wat ze ziet.",
+   "shot": "halve close-up Lieke in haar gele regenjas; Tessa en Tammo kijken niet naar elkaar",
+   "variants": [
+    "Jullie zijn al samen. Jullie weten het alleen niet.",
+    "Jullie zijn al samen. Alleen jullie niet.",
+    "Jullie zijn al een stel. Jullie zeggen het niet."
+   ],
+   "neutral": "Dat is niet hetzelfde."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Oma rechttoe rechtaan, lokt Tammo's zwijgen uit.",
+    "certainty": "hoog"
+   },
+   "id": "HI-18",
+   "scene": "M25.6",
+   "speaker": "OMA TRIJNTJE",
+   "context": "Oma's keuken, donderdagnacht, akte 5. Na Lieke's opmerking vraagt Oma Trijntje (92) wanneer ze trouwen; Tammo zegt niets terug.",
+   "shot": "halve close-up Oma, dan Tammo die naar zijn eierbal kijkt",
+   "variants": [
+    "En wanneer trouwen jullie?",
+    "En de bruiloft? Ik ben tweeënnegentig.",
+    "Wanneer is de bruiloft? Ik heb niet veel tijd."
+   ],
+   "neutral": "Eet nog een eierbal."
+  }
+ ]
+}

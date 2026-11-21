@@ -100,6 +100,8 @@ export const SPEAKERS = {
   buschauffeur: 'Buschauffeur', kustwachter: 'Kustwachter', kermisexploitant: 'Kermisexploitant', deurwaarder: 'Deurwaarder',
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
+  // inspiratiepakket (21-11)
+  veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
 };
 // Boer Roelf and Hilje are gone in this story
 delete SPEAKERS.roelf;
@@ -139,6 +141,11 @@ export const CHARACTERS = {
   roelfien: { name: 'Roelfien', card: 'Graanboerin. Vliegt laag.', step: 'M15', bio: 'Graanboerin en vlieger in het Oldambt, Oma\'s oudste klant. Vrolijk en praktisch.', quote: 'Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis.' },
   wubbo: { name: 'Wubbo', card: 'Brugwachter. Elf bruggen, één ritme.', step: 'M17', bio: 'Brugwachter in Veendam. Rustig, praktisch, en gek op de fanfare.', quote: 'Mis je de maat, dan wacht je.' },
   willemien: { name: 'Willemien', card: 'Familie van Oma Trijntje. Woont in een huis dat blijft staan.', step: 'M27', bio: 'Oma Trijntjes familie in Loppersum. Nuchter, droog, niet heldhaftig en niet boos: ze wacht, ze pakt in en ze komt terug.', quote: 'Het is een huis. Het moet alleen even blijven staan.' },
+  veldkamp: { name: 'Meneer Veldkamp', card: 'Buurman op elf negen. Zijn duiven kiezen zelf.', step: 'M00', bio: 'Oude buurman in Paddepoel met een duiventil op de galerij. Zegt weinig en ziet veel. Zijn duiven vliegen naar Tammo toe en niet naar hem; hij vraagt er nooit naar.', quote: 'Mijn duiven doen dat bij niemand.' },
+  daan: { name: 'Daan', card: 'Kermiszanger. Heeft een lied over alles.', step: 'M15', bio: 'Zanger en barman op de kermis in Winschoten, charmant en een tikje te zeker van zichzelf. Zijn glimmende jasje houdt niet van duiven.', quote: 'Eén couplet. Over een meisje met een spandoek.' },
+  stien: { name: 'Stien', card: 'Frituurhoudster onder brug elf. Veertig jaar vet.', step: 'M17', bio: 'Zeventig, staat al veertig jaar met haar frituurwagen onder brug elf in Veendam. Kortaf, warm, en leert Tessa het vak.', quote: 'Eerst het vet warm, dan de mensen.' },
+  anneke: { name: 'Anneke', card: 'Tessa\'s moeder. Komt met een mand eieren.', step: 'M25', bio: 'Tessa\'s moeder, van het platteland, praktisch en direct. Haar man had kippen; zij komt onaangekondigd en neemt altijd eieren mee.', quote: 'Jij belt nooit. Dan komen wij.' },
+  lieke: { name: 'Lieke', card: 'Tessa\'s nichtje, tien. Ziet alles.', step: 'M25', bio: 'Tien jaar, in een gele regenjas, Tessa\'s nichtje. Ze heeft het al lang door en zegt het hardop.', quote: 'Jullie zijn al samen.' },
   tinus: { name: 'Tinus', card: 'Trekkertrekker. De modder pakt eerst je auto.', step: 'T4', bio: 'Trekkertrekker en re-enactor uit het Westerkwartier. Joviaal, met een schuur en een trekker.', quote: 'De modder pakt eerst je auto. Je plannen komen daarna.' },
 };
 
@@ -146,56 +153,70 @@ export const CHARACTERS = {
 // title/name/date as the first version's PARTS had them; `card` is the "volgt" card where the built story stops.
 export const PARTS = {
   kop: { title: 'Akte 1: Moi, Grunn', name: 'Moi, Grunn', date: '14 augustus', open: true, end: 'Einde van akte 1',
-    card: [['Tessa', 'Dat was akte 1.'], ['Tammo', 'Er komt meer.']] },
+    card: [['Tessa', 'Dat was akte 1.'], ['Tammo', 'Er komt meer.'], ['Meneer Veldkamp', 'Er zat vanavond een duif op de reling van elf negen. Hij keek omhoog. Ik heb het hok open gelaten.']] },
   romp: { title: 'Akte 2: Het Noorden is groot', name: 'Het Noorden is groot', date: '18 augustus', open: true, end: 'Einde van akte 2', textOnly: true,
     recap: [
       ['studio', 'Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist.'],
       ['Groninger Museum', 'De vitrine was leeg. Op het kussen: "Tige tank! – J."'],
       ['Grote Markt', 'Eerder in GDE. Een Fries in een blauw colbert koopt Grunn op, plakje voor plakje. Het eerste plakje is al van hem.'],
     ],
-    card: [['Tessa', 'Dat was akte 2. De Eemshaven is van Jelle, zegt hij.'], ['Tammo', 'Akte 3 volgt: aan de Eems.']] },
+    card: [['Tessa', 'Dat was akte 2. De Eemshaven is van Jelle, zegt hij.'], ['Tammo', 'Akte 3 volgt: aan de Eems.'], ['Oma Trijntje', 'Eet je krentjebrij, jong. Ook in akte drie.']] },
   staart: { title: 'Akte 3: Aan de Eems', name: 'Aan de Eems', date: '21 augustus', open: true, end: 'Akte 3 volgt', textOnly: true,
     recap: [
       ['Noorderhaven', 'Eerder in GDE. Oma Trijntje bakt het recept van 1953 na, met vijf ingrediënten en vijf vrienden: vet, eieren, zout, meel en mosterd.'],
       ['Hogeland', 'De eieren en het zout zijn gered. Jelle heeft de bal in een koffer, en Mem appt Tessa in het geheim.'],
       ['Eemshaven', 'Aan de Eems. Jelle vliegt met zijn koopboek in een ballon, en zijn voorraad vaart weg met een schip.'],
     ],
-    card: [['Tessa', 'Akte 3 volgt.'], ['Tammo', 'Aan de Eems.']] },
+    card: [['Tessa', 'Akte 3 volgt.'], ['Tammo', 'Aan de Eems.'], ['Roelfien', 'Vlieg laag en houd de molen rechts. De rest komt vanzelf.']] },
   zuid: { title: 'Akte 4: Zuidwaarts', name: 'Zuidwaarts', date: '24 augustus', open: true, end: 'Einde van akte 4', textOnly: true,
     recap: [
       ['Oldambt', 'Eerder in GDE. Jelle probeert de jury, de haven en het graan te kopen. Plakje voor plakje.'],
       ['Kermis', 'Een dijk, een kus, en daarna zei niemand er iets over.'],
       ['Veenkoloniën', 'Zuidwaarts. Elf bruggen, een logboek en een trein die stilstaat.'],
     ],
-    card: [['Tessa', 'Dat was akte 4.'], ['Tammo', 'Daarna komt de schuur.']] },
-  // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2); the text of the script, kept in sync by scripts/akte5_test.mjs
+    card: [['Tessa', 'Dat was akte 4.'], ['Tammo', 'Daarna komt de schuur.'], ['Meneer Veldkamp', 'Drie duiven zitten al dagen op de reling. Ze wachten op iemand. Ik weet op wie.']] },
+  // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2, E3); the text of the script, kept in sync by scripts/akte5_test.mjs
   ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true, textOnly: true,
     recap: [
-      ['Bourtange', 'Het Beleg. De bal ging naar de moeder van Jelle, en de Escapade naar Jelle.'],
+      ['Bourtange', 'Het Beleg. De bal ging naar de oma van Jelle, en de Escapade naar Jelle.'],
       ['Zuidhorn', 'De Escapade is terug en de bal is weg. De vrienden van Oma twijfelen.'],
       ['Overmorgen', 'Het Ontzet. Om drie uur laat Jelle zich bij de notaris inschrijven als nieuwe bewaarder: dan tekent hij zelf de uitslag.'],
     ],
     card: [
-      ['Rikus', "Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op."],
-      ['Tessa', "Het is tweeëntwintig graden."],
-      ['Tammo', "Het is Grunn."],
-      ['Tessa', "Spijt van de zomer?"],
-      ['Tammo', "Nee. Van de volgende ook niet. Alvast."],
-      ['Rikus', "Moi. Nachtstreek, het laatste kwartier."],
-      ['Rikus', "De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje."],
-      ['Rikus', "Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs."],
+      ['Rikus', 'Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op.'],
+      ['Tessa', 'Het is tweeëntwintig graden.'],
+      ['Tammo', 'Het is Grunn.'],
+      ['Tessa', 'Spijt van de zomer?'],
+      ['Tammo', 'Nee. Van de volgende ook niet. Alvast.'],
+      ['Tessa', 'Willemien staat weer vooraan. Haar oma kende Oma Trijntje.'],
+      ['Tammo', 'Derde keer deze week. Uitverkocht voor vieren.'],
+      ['Tessa', 'Berend heeft de foto laten inlijsten.'],
+      ['Tammo', 'Op de achterkant staat: elf seconden.'],
+      ['Tessa', 'De duiven staan weer in de rij.'],
+      ['Tammo', 'Ik heb niks gezegd.'],
+      ['Rikus', 'Moi. Nachtstreek, het laatste kwartier.'],
+      ['Rikus', 'De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje.'],
+      ['Rikus', 'Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs.'],
       ['Rikus', "In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks."],
-      ['Rikus', "Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen."],
-      ['Rikus', "Jelle gaf bijna alles terug, helemaal vrijwillig. De standplaatsen en de molen hield hij. Hij zei dat hij het gezellig vond."],
-      ['Rikus', "Oldenhuis Bakt sluit alle eenenveertig snackbars. De eigenaar blijkt Jelle te zijn. Nu weet ik wie dat at: niemand."],
-      ['Rikus', "Mevrouw Hoving stapt na bijna vier weken volpension in Wildervank uit de trein."],
-      ['Rikus', "De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht."],
-      ['Rikus', "De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje."],
-      ['Rikus', "Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets."],
-      ['Rikus', "Durk en Douwe werken nu voor Jelles moeder. Ze sturen een kaartje."],
-      ['Rikus', "Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert."],
-      ['Rikus', "En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald."],
-      ['Rikus', "Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi."],
+      ['Tessa', 'Hij zegt niks.'],
+      ['Tammo', 'Dat zegt hij heel hard.'],
+      ['Rikus', 'Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen.'],
+      ['Rikus', 'Jelle gaf bijna alles terug, helemaal vrijwillig. De standplaatsen en de molen hield hij. Hij zei dat hij het gezellig vond.'],
+      ['Rikus', 'Oldenhuis Bakt sluit alle eenenveertig snackbars. De eigenaar blijkt Jelle te zijn. Nu weet ik wie dat at: niemand.'],
+      ['Rikus', 'Jelle kocht vanochtend een pand aan de Hereweg. Hij noemt het een hobby.'],
+      ['Tessa', 'Hij koopt door.'],
+      ['Tammo', 'Wij bakken door.'],
+      ['Rikus', 'Mevrouw Hoving stapt na bijna vier weken volpension in Wildervank uit de trein.'],
+      ['Rikus', 'De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht.'],
+      ['Rikus', 'De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje.'],
+      ['Rikus', 'Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets.'],
+      ['Rikus', 'De loketbediende van Loket B stond vooraan. Ze zei dat Tessa haar bij haar naam had gegroet. Dat doet niemand.'],
+      ['Rikus', 'Een oude vrouw met een rollator kreeg de eerste eierbal. Tammo had op het perron op haar gewacht.'],
+      ['Rikus', 'Het jongetje van het bankje stond er ook. Hij deelde zijn snack met een duif.'],
+      ['Rikus', 'Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje.'],
+      ['Rikus', 'Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert.'],
+      ['Rikus', 'En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald.'],
+      ['Rikus', 'Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi.'],
     ] },
   // Deel 4 (docs/verhaal/nieuw/DEEL4.md): a short continuation after the finale (`after`): it starts once the finale card
   // of that part has played (storyarc.js nextStoryStep) and does not hold back the credits (story.js getEnding)
@@ -209,14 +230,35 @@ export const PARTS = {
       ['Rikus', 'Moi. Nachtstreek, nazomer. In Loppersum brandt licht in de gang. Ik zeg niks.'],
       ['Rikus', 'In Bourtange won een bisschop van karton. Hij zegt dat het verkeerd voelde. Volgend jaar verliest hij weer.'],
       ['Rikus', 'De Fjord Frituur staat op de Vismarkt. De rij loopt tot de Korenbeurs. Elke zomer rijdt hij één ronde.'],
+      ['Rikus', 'Jelle bestelde een eierbal, voor zijn oma. Hij betaalde contant. Uit een klomp, vermoed ik.'],
       ['Tessa', 'Dat was Deel 4.'],
-      ['Tammo', 'Het was nazomer.'],
+      ['Tammo', 'Nu de rest van de wereld.'],
     ] },
 };
 
 // The between-steps of #845, in step order. They were added to the story after the first save format (v:1), so a
 // v:1 save does not know them: storyarc.js passedBetweenSteps closes the ones that save had already passed.
 export const BETWEEN_STEPS = ['A1', 'A2'];
+
+// Overgangsscènes (#1125, storybridge.js): een korte scène van Tammo en Tessa (soms Rikus, Mem of Jelle) tussen twee
+// missies, op een rustig moment gespeeld zodra de stap `after` af is. De regels staan als scène `scene` (kind 'bridge')
+// in script.json; `via` zegt waar het speelt ('car', 'flat' of 'phone'). Elke scène is overslaanbaar en nooit nodig om
+// door te kunnen. Nooit twee scènes na twee opeenvolgende missies (scripts/storybridge_test.mjs).
+export const BRIDGES = [
+  { id: 'O1', after: 'M02', via: 'flat', scene: 'O1' },   // het kaartje van de eerste studieweek, de luiken van de wagen
+  { id: 'O2', after: 'M04', via: 'phone', scene: 'O2' },  // Rikus belt Tammo: de jeugdvriend, "vijf jaar"
+  { id: 'O3', after: 'M06', via: 'car', scene: 'O3' },    // na de kraak: eerlijk winnen, Oma's 1953
+  { id: 'O4', after: 'M08', via: 'car', scene: 'O4' },    // Mem belt Tessa (1): de jas
+  { id: 'O5', after: 'M10', via: 'phone', scene: 'O5' },  // Mem belt Tessa (2): "Straks"
+  { id: 'O6', after: 'M13', via: 'phone', scene: 'O6' },  // Jelle biedt op de Fjord Frituur
+  { id: 'O7', after: 'M16', via: 'car', scene: 'O7' },    // "Over zaterdag"
+  { id: 'O8', after: 'M18', via: 'phone', scene: 'O8' },  // Rikus: de politie zoekt twee Stadjers; bewaar het logboek
+  { id: 'O9', after: 'M21', via: 'phone', scene: 'O9' },  // apart: "Ik heb de auto"
+  { id: 'O10', after: 'M24', via: 'flat', scene: 'O10' }, // Jelles rekening voor de colonne
+  { id: 'O11', after: 'M28', via: 'phone', scene: 'O11' }, // Jelle bestelt een eierbal voor zijn oma
+  // wat nu: de wagen groeit, de wereld staat open; een eerdere keuze (storyromance.js) geeft een extra openingsregel
+  { id: 'O12', after: 'M30', via: 'flat', scene: 'O12', extra: [{ if: 'romantiek:kaartje-hangt', line: ['Tessa', 'Het kaartje hangt er nog.'] }, { if: 'romantiek:kaartje-zak', line: ['Tammo', 'Het kaartje zit nog in mijn zak.'] }] },
+];
 
 const M = (id, part, title, def, o = {}) => ({ id, part, kind: 'mission', mission: def, title, built: false, silent: true, ...o });
 const A = (id, part, title, goal, o = {}) => ({ id, part, kind: 'activity', title, goal, built: false, silent: true, ...o });
@@ -249,24 +291,24 @@ export const STEPS = [
   // --- Akte 2: Het Noorden is groot (Stad, Hogeland, Waddenzee, di 18 - do 20 augustus) -----
   M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950, loopbanen: ['vracht'],
     story: { intro: ['M07.1'], outro: ['M07.3'], replay: ['M07.5'] }, scenes: ['M07.1', 'M07.2', 'M07.3', 'M07.4', 'M07.5'],
-    lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Banden stuk, tankwagen pakken, naar de Oosterpoort.'] }),
+    lead: ['T', 'Jelle koopt al het vet van Grunn, en zonder vet geen eerlijke eierbal, ook niet voor Oma. Banden stuk, tankwagen pakken, naar de Oosterpoort.'] }),
   M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi', loopbanen: ['bezorg', 'buiten'],
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
-    lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Loop te voet heelhuids door de fatbikes in de Oude Ebbingestraat, dan vertelt ze wat ze over die bal weet.'] }),
+    lead: ['T', 'Oma Trijntje belde: wie eerlijk wil winnen, heeft haar recept van 1953 nodig. Loop te voet heelhuids door de fatbikes in de Oude Ebbingestraat naar de Noorderhaven.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
   A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, loopbanen: ['trein'], scenes: ['T1'],
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700, loopbanen: ['horeca'],
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
-    lead: ['A', 'Geesje woont in de pastorie in Warffum. Zij heeft de laatste eieren van het Hogeland.'] }),
+    lead: ['A', 'Geesje woont in de pastorie in Warffum en heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
   M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle', loopbanen: ['landbouw'],
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
-    story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
+    story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4', 'M10.5'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
   // #845: a between-step (the alternation mission <-> side activity): one round of the Landbouw side job before
   // the story goes on; silent, so no TTS, and the existing skip offers to pass it.
   A('A1', 'romp', 'De bietenoogst bij Hoogkerk', { type: 'sideJob', job: 'bietenoogst' }, { built: true, loopbanen: ['landbouw'],
-    lead: ['A', 'De bieten moeten van het land. Akkerbouw Zonnehoek zoekt bij Hoogkerk een rooier: vier rijen, één trekker.'] }),
+    lead: ['A', 'De bieten moeten van het land. Akkerbouw Zonnehoek zoekt bij Hoogkerk een rooier: vier rijen, één trekker. Dit werk ken ik van thuis.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
     lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300, loopbanen: ['water'],
@@ -292,7 +334,7 @@ export const STEPS = [
   A('T3', 'staart', 'De trein naar Winschoten', { type: 'reis', to: 'Winschoten', at: [53.1444, 7.0356], r: 400, scene: 'T3', from: 4 }, { built: true, scenes: ['T3'],
     lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Jelle geeft de juryleden daar op de kermis een proeverij.'] }),
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
-    story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
+    story: { intro: ['M15.1'], outro: ['M15.3', 'M15.5', 'M15.6'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.5', 'M15.6', 'M15.4'],
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Midwolda. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600, loopbanen: ['kermis'],
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
@@ -303,20 +345,20 @@ export const STEPS = [
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,
-    story: { intro: ['M17.1'], outro: ['M17.3'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.4'],
-    lead: ['A', 'Wubbo bedient elf bruggen in Veendam. Jelles mosterdschip moet erdoor, wij ook. Wij eerst.'] }),
+    story: { intro: ['M17.1'], outro: ['M17.3', 'M17.5'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.5', 'M17.4'],
+    lead: ['A', 'Eerst de mosterd. Wubbo bedient elf bruggen in Veendam: vaar voor Jelles mosterdschip uit, dan sluit hij de bruggen achter je.'] }),
   M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 600,
     story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.6', 'M18.7', 'M18.3', 'M18.4', 'M18.5'],
-    lead: ['T', 'Wiebelwerk in Veendam doet elke nacht om middernacht de update van het museum. Ik wil het logboek zien.'] }),
+    lead: ['T', "Dan het bewijs. Grunn houdt ons voor de dieven; Wiebelwerk in Veendam beheert de museumcamera's. Het logboek van 12 augustus moet laten zien dat Jelle de bal al had."] }),
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
-    lead: ['A', 'Jelle kocht de machinist. In de stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
+    lead: ['A', 'Dan de jury: wie de jury koopt, hoeft niet te winnen. In Jelles stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
   // the bus to Bourtange: the goal is the place (storyreis.js, akte 2's travel steps); the trip talk is the beat's (reisbeats.js)
   A('T4', 'zuid', 'De bus naar Bourtange', { type: 'reis', to: 'Vesting Bourtange', at: [53.0069, 7.1914], r: 350, scene: 'T4.3', from: 0 }, { built: true, scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'],
-    lead: ['T', 'Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),
+    lead: ['T', 'Jelle komt dinsdag met zijn mannen naar het Beleg van Bourtange. Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),
   M('M20', 'zuid', 'Het beleg van Bourtange', 'beleg', { built: true, reward: 1200,
     story: { intro: ['M20.1'], outro: ['M20.5'], replay: ['M20.6'] }, scenes: ['M20.1', 'M20.2', 'M20.3', 'M20.4', 'M20.5', 'M20.6'],
-    lead: ['A', 'Het Beleg van Bourtange begint om negen uur. Berend heeft veertig man en een paard van karton.'] }),
+    lead: ['A', 'Het Beleg van Bourtange begint om negen uur. Jelle komt, en de bal reist met hem mee. Haal hem terug, voordat hij hem aan zijn oma geeft.'] }),
   M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { built: true, reward: 1100, player: 'anita', solo: true,
     story: { intro: ['M21.1'], outro: null, replay: ['M21.5'] }, scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5', 'M21.6'],
     lead: ['A', 'De Escapade staat op een goederentrein richting Ljouwert. Ik haal hem terug. Alleen.'] }),
@@ -332,17 +374,17 @@ export const STEPS = [
     story: { intro: ['M24.1'], outro: null, replay: ['M24.4'] }, scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'],
     lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de Fjord Frituur: laat Berts duif de vijf touwen doorpikken.'] }),
   M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { built: true, reward: 600,
-    story: { intro: ['M25.1'], outro: ['M25.4'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'],
+    story: { intro: ['M25.1'], outro: ['M25.4', 'M25.6'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.6', 'M25.5'],
     lead: ['A', "Oma's keuken aan de Noorderhaven. Bak vannacht een proefronde eierballen met alle vijf de ingrediënten: morgen is het Ontzet."] }),
   M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
-    story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.14', 'M26.15', 'M26.16', 'M26.4', 'M26.5', 'M26.6', 'M26.10', 'M26.11', 'M26.12', 'M26.13', 'M26.7', 'M26.8', 'M26.9'],
+    story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.17', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.14', 'M26.15', 'M26.16', 'M26.4', 'M26.5', 'M26.6', 'M26.10', 'M26.11', 'M26.12', 'M26.13', 'M26.7', 'M26.17', 'M26.8', 'M26.9'],
     lead: ['A', 'De Grote Markt, vrijdag, Gronings Ontzet. Win met de beste eierbal, hou de kraam heel en houd Jelle voor drie uur bij de notaris vandaan.'] }),
-  A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2'] }),
+  A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2', 'E3'] }),
 
   // --- Deel 4: Nazomer (Loppersum en Bourtange, ma 14 - za 19 september), after the finale card ------------------
   M('M27', 'nazomer', 'Inpakken', 'inpakken', { built: true, reward: 400,
     story: { intro: ['M27.1'], outro: ['M27.3'], replay: ['M27.4'] }, scenes: ['M27.1', 'M27.2', 'M27.3', 'M27.4'],
-    lead: ['A', 'Oma Trijntje belde: Willemien in Loppersum moet even uit haar huis, het wordt versterkt. Wij helpen inpakken. Gewoon dozen.'] }),
+    lead: ['A', 'Oma Trijntje belde: Willemien in Loppersum, elke woensdag vaste klant bij het luik, moet even uit haar huis. Het wordt verbouwd. Wij helpen inpakken. Gewoon dozen.'] }),
   M('M28', 'nazomer', 'De wisselwoning', 'wisselwoning', { built: true, reward: 400,
     story: { intro: ['M28.1'], outro: ['M28.3'], replay: ['M28.4'] }, scenes: ['M28.1', 'M28.2', 'M28.3', 'M28.4'],
     lead: ['T', 'De dozen staan in de verhuisbus. Willemien zit voorin met de kat. Rustig rijden, naar de wisselwoning aan de rand van het dorp.'] }),
@@ -359,12 +401,12 @@ export const STEPS = [
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")
 export const WHY = {
-  kop: 'Inschrijven voor de Noordelijke Snackprijs, en de Gouden Eierbal eerder pakken dan Jelle.',
-  romp: 'Jelles plakjes tegenhouden en uitzoeken waar de bal is.',
-  staart: 'De haven, het graan en de jury: Jelle koopt alles op.',
-  zuid: 'Bewijs dat Jelle de bal nam, en de bal terughalen.',
-  ontzet: 'De wedstrijd winnen en de bal terugbrengen. En de Fjord Frituur een thuis geven.',
-  nazomer: "Oma's familie helpen, en Berend één keer laten winnen.",
+  kop: 'Tammo en Tessa weten niet wat ze met hun leven moeten en willen elkaar niet kwijtraken. Eerst geld en een plek in de Noordelijke Snackprijs, voordat Jelle alles opkoopt.',
+  romp: "Een recept van 1953 om eerlijk te winnen: Oma Trijntjes vijf ingrediënten van vijf vrienden. Jelle koopt ze op.",
+  staart: 'Jelle koopt de haven, het graan en de jury. Tammo en Tessa proberen van alles en merken dat ze samen sterker zijn.',
+  zuid: 'Bewijs dat Jelle de bal al had, en een team om samen iets te beginnen. Samen, ook als het schuurt.',
+  ontzet: 'Het Ontzet winnen met de beste eierbal en de snackwagen een standplaats geven. Jelle zit ons op de hielen.',
+  nazomer: "De wagen groeit. Oma's familie heeft hulp nodig en Jelle bestelt stiekem eierballen.",
 };
 
 // Clues of "Wat weten we?": a clue shows once its step is done.
@@ -381,33 +423,49 @@ export const CLUES = [
   { step: 'M03', kind: 'hart', title: 'Eerst pakken, als bewaking', text: 'Als een ander hem pakt, is hij weg uit Stad. Dus pakken Tessa en Tammo hem eerst, en brengen ze hem terug na het Ontzet.' },
   { step: 'M06', kind: 'clue', title: 'De lege vitrine', text: 'Iemand was ons voor. Op het kussen: "Tige tank! – J." Jelle Terpstra belde live naar Nachtstreek: de bal is bij hem.' },
   { step: 'M06', kind: 'hart', title: 'Voor de grip', text: 'Tessa pakte zijn hand. "Voor de grip." Allebei zeiden ze het.' },
+  { step: 'M07', kind: 'clue', title: 'Al het vet van Grunn', text: 'Jelle belde zelf: hij kocht al het vet van Grunn, voor één klomp. Zonder vet bakt niemand een eierbal, ook Oma niet. Dus pakten Tessa en Tammo de tankwagen.' },
   { step: 'M07', kind: 'hart', title: 'Iemand uit Friesland', text: 'Tessa kreeg weer een appje van iemand uit Friesland. Tammo vroeg of hij lang is.' },
   { step: 'M08', kind: 'clue', title: 'Gerda Terpstra, 1953', text: 'Oma Trijntje won in 1953. Tweede werd een Fries meisje: Gerda Terpstra, de mem van Jelle. Haar eierbal was beter. De jury wist het niet.' },
-  { step: 'M08', kind: 'clue', title: 'Het lijstje van Oma', text: 'Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Lammert, Geesje, Klaas, Roelfien en Wubbo. Jelle koopt ze allemaal op.' },
+  { step: 'M08', kind: 'clue', title: 'Het lijstje van Oma', text: 'Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Geesje heeft de eieren, Klaas het zout, de rest staat op het lijstje (Lammert, Roelfien en Wubbo). Dijkstra van het ziekenhuis helpt ook. Jelle koopt alles op. Het lijstje hangt aan het prikbord: dat is het menu van de Fjord Frituur.' },
   { step: 'M08', kind: 'hart', title: 'Niet tegen haar', text: 'Oma Trijntje: "Jij: één zin, hè. Niet zeventig jaar." Tammo zegt dat hij wel iets zegt. Oma: "Niet tegen haar."' },
   { step: 'M09', kind: 'clue', title: 'Een eierkoek per week', text: 'Jelle sloot de Dorpsweg en huurde een boer die dwars staat: een eierkoek per week, levenslang. Geesje: haar kippen hebben geen contract. Gerda Terpstra woonde in Ljouwert en belt Oma elk jaar op haar verjaardag.' },
+  { step: 'M09', kind: 'hart', title: 'Boerendochter', text: 'Tessa is boerendochter: ze sorteerde eieren voor ze kon lezen en kent elke achterweg. Tammo wist het vijf jaar niet. Ze zei dat hij nooit naar de kippen vroeg.' },
   { step: 'M10', kind: 'clue', title: 'De bal is echt', text: 'Jelle draagt de Gouden Eierbal in een gouden koffer: "mijn juristen willen dat ik hem bij me draag". Hij chanteert met de museumbeelden van zijn bewaker: verlaat Grunn en de Snackprijs, dan verdwijnen ze.' },
   { step: 'M10', kind: 'hart', title: 'Mem wil niks', text: 'Mem is eenennegentig, zeventig jaar tweede. Jelle: "Mem wil niks. Daarom doe ik het." Tessa: "Dat klonk bekend."' },
-  { step: 'M11', kind: 'clue', title: 'Een oefenbal', text: 'In de kist op het skûtsje lag een chocoladebal met het kaartje "Foar mem". Jelle oefent hoe hij hem aan zijn moeder geeft. De echte is bij hem.' },
+  { step: 'M11', kind: 'clue', title: 'Een briefje van M.', text: 'In de kist op het skûtsje lag geen bal, maar een broodtrommel met een briefje in een oud handschrift: "Eet wat. Ik wil niks. – M." Jelle was een val aan het zetten. Tessa keek er te lang naar en zei niets.' },
   { step: 'M11', kind: 'clue', title: 'Lammerts haven', text: 'Klaas: de Eemshaven is Lammerts haven. Zijn vader danste in 1953 met Oma. Jelle zegt dat de haven van hem is. Dokter Dijkstra heeft een heli klaarstaan.' },
   { step: 'M11', kind: 'hart', title: 'De lange blik', text: 'Op de zandplaat, onder de sterren, keken ze elkaar te lang aan. Toen trilde haar telefoon. "Niks. Iemand uit Friesland." Tammo keek weg.' },
+  { step: 'M12', kind: 'clue', title: 'Het koopboek', text: 'Jelle vloog met zijn koopboek boven de Dollard: acht plakjes, bij elk "Foar mem" met een hartje. Plakje vijf is de haven (container 4471, vannacht). Het laatste is de bewaarder: notaris, 28 augustus, drie uur.' },
+  { step: 'M12', kind: 'hart', title: 'Duiven luisteren naar Tammo', text: 'Dijkstra: Trijntje zegt dat duiven naar Tammo luisteren. Hij hing aan de lier, floot, en de ballon zat vol duiven. Tessa vroeg het hem eerst. "Dank je dat je het vraagt."' },
+  { step: 'M13', kind: 'clue', title: 'Een stek aan de kade', text: 'Container 4471 voer leeg weg. Lammert: als ze ooit een wagen hebben, staat hij aan zijn kade. Een stek. Sjabbe: een havenkantoor is een pand, en dat kun je zelf beheren. Jelle koopt panden.' },
+  { step: 'M13', kind: 'hart', title: 'Twee bedden', text: 'Lammerts havenkantoor heeft twee bedden. Tammo zei niks en keek naar zijn schoenen. "Dat gezicht betekent: prima." "Klopt."' },
+  { step: 'M14', kind: 'clue', title: 'Inboedel', text: 'Jelle kocht Lammerts huurschuld; zijn deurwaarder zou het woonschip met het vet erin nemen. Trijntje tekende om vijf voor acht. Jelle: "Mijn juristen vinden dat u te hard rijdt."' },
+  { step: 'M14', kind: 'hart', title: 'Dat is de wind', text: 'Tammo: "Je ziet er goed uit met wind." Tessa: "Wat bedoelde je dan?" Tammo: "Dat bedoelde ik wel." Hij was rood. Dat was de wind.' },
+  { step: 'M15', kind: 'clue', title: 'Levenslang eierballen', text: 'Het spandoek joeg twee van de vier juryleden weg, en Roelfien gaf grof meel voor Oma. Jelle stuurde een bedankbriefje: zijn proeverij was uitverkocht. Hij liet zijn gouden koffer geen seconde los.' },
+  { step: 'M16', kind: 'clue', title: 'Maandag in Veendam', text: 'Durk, na een gelijkspel in de botsauto: Jelle rijdt maandag naar Veendam voor de mosterd. De bal gaat mee, in de koffer onder het kussen van de limo.' },
+  { step: 'M16', kind: 'hart', title: 'Gebotst', text: 'Tessa trok hem in de botsauto naar zich toe. Daarna zeiden ze: "Goed. Maandag dan." Op de dijk zeiden ze nog: "Moi." "…Moi."' },
   // Akte 4
   { step: 'M17', kind: 'clue', title: 'De grove mosterd', text: 'De grove mosterd is gered: het mosterdschip liep vast voor brug elf. Jelle kocht de fanfare weg, maar Wubbo floot.' },
   { step: 'M17', kind: 'clue', title: 'Middernacht', text: 'Wubbo: een webbureau in Veendam werkt alles om middernacht bij. Ook de bruggen. Tammo: net als de museumcamera\'s.' },
-  { step: 'M17', kind: 'hart', title: 'Over zaterdag', text: 'Tammo: "Over zaterdag." Tessa: "Welke zaterdag?" Geen van beiden zei er verder iets over.' },
+  { step: 'M17', kind: 'clue', title: 'Open of dicht', text: 'Jelle belde vanuit zijn limo: zijn vastzittende schip is "een overtreding". Wubbo: "Open of dicht. Nooit allebei. Vandaag dicht."' },
+  { step: 'M17', kind: 'hart', title: 'Geen woord', text: 'Na Wubbo keek Tammo naar Tessa, en Tessa naar het water. Niemand zei iets over de botsauto.' },
   { step: 'M18', kind: 'clue', title: 'Twaalf augustus', text: 'In het logboek van Wiebelwerk: op 12 augustus stond de update op elf minuten, aangevraagd door Us Mem Snacks. Zijdeur om 00:03, pas van bewaker twee, gasten D en D.' },
-  { step: 'M18', kind: 'clue', title: 'Een leeg museum', text: 'Mevrouw Hoving\'s pas werd op 12 augustus geblokkeerd. Jelle had de bal vijf dagen vóór onze kraak al. Tessa printte het logboek.' },
+  { step: 'M18', kind: 'clue', title: 'Een leeg museum', text: 'Mevrouw Hoving\'s pas werd op 12 augustus geblokkeerd. Jelle had de bal vier dagen vóór onze kraak al. Tessa printte het logboek.' },
+  { step: 'M18', kind: 'clue', title: 'Twee Stadjers in het zwart', text: 'In Grunn zeggen ze dat twee Stadjers in het zwart het museum leegroofden: Tammo en Tessa. Het logboek is hun bewijs.' },
   { step: 'M18', kind: 'hart', title: 'Het logboek', text: 'Tessa wilde het logboek van Wiebelwerk zien. Tammo vroeg waarom. Zij vond het leuk dat hij het wilde weten.' },
+  { step: 'M18', kind: 'hart', title: 'Een jas in augustus', text: 'Mem belde Tessa: dinsdag naar Bourtange, Jelle komt ook. Tammo hoorde alleen over de jas. Tessa vertelde de rest niet.' },
   { step: 'M19', kind: 'clue', title: 'Eén van vijf', text: 'Eén jurylid stapte uit. Een ander tekende voor levenslang eierballen: dat is van Jelle. De bewaarder blijft in de trein, dus Berend zit voor.' },
+  { step: 'M19', kind: 'clue', title: 'Vrijdag, drie uur', text: 'Berend: is de bewaarder er niet, dan zit het oudste jurylid voor (Berend, sinds 1982). Vrijdag om drie uur schrijft Jelle zich bij de notaris in als bewaarder en tekent hij de uitslag zelf.' },
   { step: 'M19', kind: 'hart', title: 'Een trein in een station', text: 'Tammo: "Ik heb een trein bestuurd." Tessa: "Je hebt hem in een station gezet."' },
   { step: 'M20', kind: 'clue', title: 'Een moeder', text: 'Mem nam de bal van Jelle af in de kruitkelder van Bourtange. "Er is geen overeenkomst, jonge. Er is een moeder." Jelle: "Dit is nog niet voorbij."' },
   { step: 'M20', kind: 'clue', title: 'Tige tank! – J.', text: 'Het briefje is van Jelle: hij schrijft overal een bedankje bij. De Escapade stond niet meer op de parkeerplaats. Er lag een klomp.' },
-  { step: 'M20', kind: 'hart', title: 'Jij zegt nooit iets', text: 'Tessa appte al weken met Mem en zei het niet. Tammo vroeg het niet. "Jij zegt nooit iets!" zeiden ze allebei.' },
+  { step: 'M20', kind: 'hart', title: 'Jij zegt nooit iets', text: 'Tessa sprak al weken met Mem en zei het niet. Tammo vroeg het niet. "Jij zegt nooit iets!" zeiden ze allebei.' },
   { step: 'M21', kind: 'clue', title: 'De auto of de bal', text: 'Op de wagon moest Tessa kiezen. Ze koos de auto. De beleggers sprongen met de bal naar een limo. Op de bijrijdersstoel: "Tige tank foar de bal. – J."' },
   { step: 'M21', kind: 'hart', title: 'Elke keuze faalt', text: 'Tammo kon de vrienden niet bij elkaar houden. Zijn zinnen kwamen er niet goed uit. Beiden zijn alleen, en beiden gaan naar Tinus\' schuur.' },
-  { step: 'M22', kind: 'hart', title: 'Zeven plekken', text: 'Tessa woonde op zeven plekken voor haar tiende, en elke zomer in Ljouwert naast Mem. "Ik ging niet weg. Ik ben gebleven."' },
+  { step: 'M22', kind: 'hart', title: 'Steeds verhuisd', text: 'Tessa woonde op een boerderij tot haar achtste en verhuisde daarna steeds, en elke zomer in Ljouwert naast Mem. "Ik ging niet weg. Ik ben gebleven."' },
   { step: 'M22', kind: 'clue', title: 'Het horloge van opa', text: 'Tammo verkocht het horloge van zijn opa, via Bert, voor het luik. Het liep vijf minuten voor.' },
   { step: 'M23', kind: 'clue', title: 'Jelles bruggenvergunningen', text: 'Jelle gaf elke brug op de route een evenementenvergunning om de colonne te splitsen. Wubbo opende ze met zijn eigen sleutel. De colonne is een evenement zonder vergunning: Jelle stuurt een rekening.' },
+  { step: 'M24', kind: 'clue', title: 'Jelles eigen vergunning', text: 'Jelle stuurde een rekening en een vergunning in drievoud: evenement "Foar Mem", Oude Boteringestraat, vanaf half drie, gesloten voor verkeer. De derde kopie is voor ons. Op een evenement staat een kraam, een limo niet.' },
   { step: 'M25', kind: 'clue', title: 'De notaris', text: 'Morgen om drie uur laat Jelle zich bij de notaris in de Oude Boteringestraat inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Wij houden hem tegen.' },
   // Deel 4
   { step: 'M27', kind: 'hart', title: 'Twee tieners op een fiets', text: 'Een foto uit 1953, in een la in Loppersum: Trijntje en Willemiens oma op een fiets, onderweg naar Stad voor de prijs. Tegen de wind in.' },
@@ -415,5 +473,6 @@ export const CLUES = [
   { step: 'M29', kind: 'hart', title: 'Voor de grip', text: 'Op het erf in Loppersum vroeg Tessa of Tammo wilde dansen. Hij zei nee. Toen zei hij: "Voor de grip."' },
   { step: 'M30', kind: 'clue', title: 'Dan is winnen verkeerd', text: 'Berend won het proefbeleg van Bourtange, voor het eerst in veertig jaar. Hij zegt dat het verkeerd voelt. Volgend jaar verliest hij weer.' },
   { step: 'M30', kind: 'hart', title: 'Zes woorden', text: '"Thuis is waar de kar staat." Zes woorden, zei Tessa. Kon minder. Elke zomer rijdt de Fjord Frituur één ronde.' },
-  { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde vijf jaar. Kon minder.' },
+  { step: 'M30', kind: 'clue', title: 'De wereld ligt open', text: 'Geesje heeft bieten die tot aan de weg staan, in Veendam zoeken ze een aanvalster, Sjabbe heeft een leeg pand en Willemien wil een tweede wagen. Jelle wacht tot de panden goedkoper worden.' },
+  { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde vijf jaar. Kon minder. Daarna kuste ze hem, voor heel de Grote Markt. Berend telde elf seconden.' },
 ];

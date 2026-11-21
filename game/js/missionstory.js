@@ -92,6 +92,12 @@ export const NPC = {
   // Deel 4 (docs/verhaal/nieuw/DEEL4.md)
   willemien: { name: 'Willemien', shirt: 0x8a6f9a, skin: SKIN.woodLight, variant: 'female', seed: 6116, hairStyle: 'bun', look: { age: 'old' } },
   buurvrouw: { name: 'Buurvrouw', shirt: 0xc27a8a, skin: SKIN.woodMid, variant: 'female', seed: 6117, hairStyle: 'curly' },
+  // inspiratiepakket (21-11): de kleding-epic kleedt deze rollen
+  veldkamp: { name: 'Meneer Veldkamp', shirt: 0x6b6f55, skin: SKIN.woodLight, variant: 'male', seed: 6118, look: { age: 'old' } },
+  anneke: { name: 'Anneke', shirt: 0x6f8f5a, skin: SKIN.woodLight, variant: 'female', seed: 6119, hairStyle: 'bob' },
+  lieke: { name: 'Lieke', shirt: 0xe8c030, skin: SKIN.woodLight, variant: 'female', seed: 6120, hairStyle: 'curly', look: { age: 'child' } },
+  daan: { name: 'Daan', shirt: 0xb8b8d8, skin: SKIN.woodMid, variant: 'male', seed: 6121 },
+  stien: { name: 'Stien', shirt: 0xd8d4c8, skin: SKIN.woodLight, variant: 'female', seed: 6122, hairStyle: 'bun', look: { age: 'old' } },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -291,8 +297,8 @@ const STORY = [
     npc: 'bert', outroPose: 'cheer', ask: 0,
     intro: [
       ['N', 'Die Fries noemde d\'Olle Grieze "in aardich tuorke". Een áárdig torentje!'],
-      ['A', '"Foar mem." Voor zijn moeder.', { clue: true }],
-      ['T', 'Hij hangt een vlag aan onze toren voor zijn moeder.'],
+      ['A', '"Foar mem." Voor zijn oma.', { clue: true }],
+      ['T', 'Hij hangt een vlag aan onze toren voor zijn oma.'],
       ['A', 'Dat is eigenlijk best lief.'],
       ['T', 'Het is vandalisme.'],
       ['A', 'Lief vandalisme.'],
@@ -322,7 +328,7 @@ const STORY = [
     outroNpc: false,
     outro: [
       ['T', 'Chocola. We hebben een boot gekaapt voor chocola.'],
-      ['A', 'Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.', { clue: true }],
+      ['A', 'Een oefenbal. Hij oefent hoe hij hem aan zijn oma geeft.', { clue: true }],
       ['T', 'Hij is romantischer dan ik.'],
       ['A', 'Iedereen is romantischer dan jij.'],
       ['klaas', 'Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.'],
@@ -369,7 +375,7 @@ const STORY = [
       ['A', 'Hoe wist jij dat hij hier was?'],
       ['T', 'Ik luisterde naar Rikus. En ik ben de trein achterna gefietst. Wind tegen.'],
       ['A', 'Beide kanten op.'],
-      ['T', '"Iemand uit Friesland." Dat was zijn moeder.'],
+      ['T', '"Iemand uit Friesland." Dat was zijn oma.'],
       ['A', 'Ze wil dat hij ophoudt.', { clue: true }],
       ['T', '…Een moeder. Ik was jaloers op een moeder.'],
       ['A', 'Een beetje, hè.'],

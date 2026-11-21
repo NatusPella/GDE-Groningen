@@ -14,6 +14,7 @@ import { isCinematicActive } from './cinematics.js';
 import { isCallActive } from './phonefeed.js';
 import { noteSpoken } from './characters.js';
 import { readingTime, talkLines } from './storytext.js';
+import { lineSchedule } from './dialogueform.js';
 
 const LINE_GAP = 0.25;
 const TAIL = 0.35;
@@ -89,9 +90,14 @@ function nextLine(world) {
   const v = l.voice && !l.textOnly && l.channel !== 'radio' ? l.voice : null;
   // a recording that cannot play (muted, the channel is taken) leaves the line as text
   const played = !!(v && playCallVoice(v.src));
-  cur.until = (played ? Math.max(v.dur + TAIL, 1.4) : readingTime(l.text)) + LINE_GAP;
+  // dialoogvorm (#1134): een regel met {ov}, {cut} of {pause} krijgt zijn eigen timing; zonder vorm blijft alles zoals het was
+  const base = played ? Math.max(v.dur + TAIL, 1.4) : readingTime(l.text);
+  // een afkap (cut) werkt alleen op een regel zonder opname: een stem die al klinkt, wordt niet midden in een woord gestopt
+  const form = l.form && played && l.form.cut !== undefined ? { ...l.form, cut: undefined } : l.form;
+  const sch = form ? lineSchedule({ ...l, form }, base, LINE_GAP) : null;
+  cur.until = sch ? sch.untilNextS : base + LINE_GAP;
   noteSpoken(world, l.speaker);
-  show(l);
+  show(sch && sch.text !== l.text ? { ...l, text: sch.text } : l);
 }
 
 export function updateStoryTalk(dt, world) {

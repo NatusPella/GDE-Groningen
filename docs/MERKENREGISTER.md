@@ -132,7 +132,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | Pakkie Nou | pakketdienst | `game/js/vehiclenames.js` | pakketbezorgers in het algemeen | ok |
 | Noord-Nieuws | verslaggeversbus | `game/js/vehiclenames.js` | niets | ok |
 | Fjord Frituur | frietwagen van Tessa | `game/js/characters.js` | niets | ok |
-| Escapade | held-auto "Fjord Escapade" (Tammo) | `game/js/vehiclenames.js`; de naam staat bewust ook in de tekst van `game/js/missionrequirements.js`, `game/js/missions_akte4.js`, `game/js/prompts.js` en `game/js/spullen.js` | klank van "Fjord"/"Escapade" lijkt op een bekend automerk en model | let op |
+| Escapade | held-auto "Fjord Escapade" (Tammo) | `game/js/vehiclenames.js`; de naam staat bewust ook in de tekst van `game/js/missionrequirements.js`, `game/js/missions_akte4.js`, `game/js/prompts.js`, `game/js/spullen.js` en de personagedossiers (`game/js/characterdossiers_leads.js`, `game/js/characterdossiers_story.js`, `game/js/characterdossiers_minor.js`, `game/js/characterdossiers_relations.js`) | klank van "Fjord"/"Escapade" lijkt op een bekend automerk en model | let op |
 | Dollard | automerk | `game/js/vehiclenames.js` | de Dollard (baai); geen merk | ok |
 | Eemsmond | automerk | `game/js/vehiclenames.js` | gebied; geen merk | ok |
 | Hunze | automerk | `game/js/vehiclenames.js` | rivier; geen merk | ok |

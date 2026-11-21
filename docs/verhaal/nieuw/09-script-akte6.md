@@ -1,14 +1,15 @@
 # 09 · Script Deel 4: "Nazomer" (Eemsdelta en Westerwolde, 14 - 19 september)
 
-> Formaat en regels: zie de kop van [09-script-akte1.md](09-script-akte1.md). Hoort bij [DEEL4.md](DEEL4.md). Missie-id's: M27-M30 en T5. Alleen tekst: geen opname bestaat, dus elke regel is `[NIEUW]` en wordt als ondertitel getoond. Geen echte merken of personen; het gasbedrijf heet Delfstof Noord en is nergens een schurk.
+> Formaat en regels: zie de kop van [09-script-akte1.md](09-script-akte1.md). Hoort bij [DEEL4.md](DEEL4.md). Missie-id's: M27-M30 en T5. Alleen tekst: geen opname bestaat, dus elke regel is `[NIEUW]` en wordt als ondertitel getoond. Geen echte merken of personen; de aannemer heeft geen naam en is nergens een schurk.
 
 ## [M27.1] Inpakken: intro – Eemsdelta, Loppersum, Willemiens huis – te voet
-(regie: maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: DELFSTOF NOORD · VERSTERKING. Een lange haarscheur langs de voordeur, die niet wordt uitgelicht en niet wordt vermeden. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand.)
+(regie: maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: AANNEMER · VERBOUWING. Een stapel nieuwe kozijnen langs de voordeur. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand.)
 WILLEMIEN: Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is toch even niet van mij. [NIEUW]
 TESSA: Hoe lang? [NIEUW]
 WILLEMIEN: Een paar weken, zeggen ze. Dat zeggen ze al twee jaar. Koffie? [NIEUW]
 TAMMO: Graag. [NIEUW]
-WILLEMIEN: Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie. [NIEUW]
+WILLEMIEN: Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. [NIEUW]
+WILLEMIEN: De aannemer zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie. [NIEUW]
 TESSA: Oma zei: gewoon dozen. [NIEUW]
 WILLEMIEN: Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst. [NIEUW]
 
@@ -53,6 +54,16 @@ TAMMO: Dat weet ze. [NIEUW]
 ## [M28.4] De wisselwoning: herhaling – Eemsdelta, Loppersum – bestelbus
 WILLEMIEN: Nog een ritje? De kat blijft hier. Die heeft het wel gezien. [NIEUW]
 
+## [O11] Een eierbal – Loppersum – telefoon
+(regie: middag. De verhuisbus staat bij de wisselwoning. Tessa's telefoon: een onbekend nummer, en ze weet al wie.)
+JELLE (telefoon): Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn oma. [NIEUW]
+TESSA (telefoon): De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur. [NIEUW]
+JELLE (telefoon): Mijn assistent haalt hem. Ik betaal contant. [NIEUW]
+TESSA (telefoon): Uit een klomp? [NIEUW]
+JELLE (telefoon): Dat is een ander gesprek. [NIEUW]
+TAMMO: Wat wilde hij nou? [NIEUW]
+TESSA: Een eierbal. Voor zijn oma. [NIEUW]
+
 ## [M29.1] Terug: intro – Eemsdelta, Loppersum, het erf – bestelbus
 (regie: donderdag 17 september, late middag. Een strakke, nieuwe gevel zonder balken; de kat zit al op de stoep. Mensen zetten tafels op het erf. Gameplay: breng Willemien en haar spullen terug naar huis; daarna het buurtfeest op het erf.)
 WILLEMIEN: Een paar weken, zeiden ze. Dit keer klopte het. [NIEUW]
@@ -68,10 +79,15 @@ BUURVROUW: Ik ben de buurvrouw. Ik heb gekookt voor twintig. We zijn met twaalf.
 BOER: Ik heb de tafels gebracht. En weer opgehaald. En weer gebracht. Ze wisten niet waar ze moesten. [NIEUW]
 TESSA: Waar hangt de foto? [NIEUW]
 WILLEMIEN: In de gang. Waar je hem ziet als je weggaat. En als je terugkomt. [NIEUW]
+TESSA: En de eierballen? Die staan er mooi. [NIEUW]
+WILLEMIEN: Trijntjes recept. Het is een bal. [NIEUW]
+TAMMO: Een eierbal. Dat is anders. [NIEUW]
 TESSA: Dansen? [NIEUW]
 TAMMO: Nee. [NIEUW]
 TESSA: Tammo. [NIEUW]
+(regie: ze steekt haar hand uit. Hij kijkt ernaar, naar de lampjes en naar het erf.)
 TAMMO: …Voor de grip. [BEHOUDEN]
+(regie: ze dansen tussen de tafels. Tessa legt haar hoofd even tegen zijn schouder. Niemand zegt er iets van.)
 
 ## [M29.3] Terug: outro – Eemsdelta, Loppersum, het erf – te voet
 (regie: lampjes boven het erf, een trage kraan omhoog van de tafels naar het dak en de lucht, het busje van Rikus met zijn antenne. Geen grote muziek, alleen het nummer van Rikus.)
@@ -166,7 +182,11 @@ TESSA: Hij zegt van niet. [NIEUW]
 OMA TRIJNTJE (telefoon): Dan is hij blij. [NIEUW]
 
 ## [M30.6] Het proefbeleg: de kar – Westerwolde, Bourtange, de poort – te voet
-(regie: avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik.)
+(regie: avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakjes.)
+GEESJE: De bieten staan tot aan de weg, Tessa. Ik heb handen nodig. [NIEUW]
+BEREND: In Veendam zoeken ze een aanvalster. Ik heb je naam genoemd. [NIEUW]
+SJABBE (telefoon): Ik heb een pand. Het staat leeg. Jelle heeft het nog niet gezien. [NIEUW]
+JELLE: Ik heb het gezien. Ik wacht tot het goedkoper wordt. [NIEUW]
 TESSA: Elke zomer één ronde langs de plekken waar vrienden wonen. Dan kan ik groeien en jij thuisblijven. [NIEUW]
 TAMMO: Thuis is waar de kar staat. [NIEUW]
 TESSA: Zes. [NIEUW]
@@ -175,3 +195,18 @@ TESSA: Kon veel minder. [NIEUW]
 
 ## [M30.7] Het proefbeleg: herhaling – Westerwolde, Bourtange, de hooiberg – te voet
 BEREND: Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar. [NIEUW]
+
+## [O12] Wat nu – Stad, Paddepoel – flat
+(regie: avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open.)
+(regie: op de koelkast hangt de lijst. In de kolom "wij vinden" staat één regel, in twee handschriften: de Fjord Frituur.)
+TESSA: Wat nu? [NIEUW]
+TAMMO: Rijden. [NIEUW]
+TESSA: Waarheen? [NIEUW]
+TAMMO: Waar jij wilt. [NIEUW]
+TESSA: Een pand, de bieten, Veendam. Een tweede wagen voor Willemien. Jelle koopt ze ook op. [NIEUW]
+TAMMO: Dan beginnen we overal. [NIEUW]
+(regie: op de galerij kijkt meneer Veldkamp om het hoekje, een duif op zijn arm.)
+VELDKAMP: De duiven vragen of jullie blijven. [NIEUW]
+TESSA: Samen. [NIEUW]
+TAMMO: Samen. [NIEUW]
+

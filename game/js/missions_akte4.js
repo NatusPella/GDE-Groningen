@@ -158,9 +158,9 @@ export function buildAkte4Defs() {
           kind: 'hold', set: 'serverkamer', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Hoving is die dag geblokkeerd.'],
           label: 'Lees het logboek van 12 augustus', say: 'Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.',
         },
-        // #743: de centrale clue (Jelle had de bal al vijf dagen eerder) is geen 54 s 'talk' meer tijdens het
+        // #743: de centrale clue (Jelle had de bal al vier dagen eerder) is geen 54 s 'talk' meer tijdens het
         // sluipen, maar een eigen, skippbare scène in de serverkamer; de speler kan hem niet meer missen.
-        { kind: 'scene', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), label: 'Het logboek van 12 augustus', kicker: 'Wiebelwerk', big: 'Vijf dagen eerder', script: { ids: ['M18.3'] } },
+        { kind: 'scene', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), label: 'Het logboek van 12 augustus', kicker: 'Wiebelwerk', big: 'Vier dagen eerder', script: { ids: ['M18.3'] } },
         { kind: 'goto', target: ll('wiebelwerkUit', { label: 'Buiten' }), mode: 'any', radius: 18, label: 'Naar buiten, met het printje', say: 'Tessa heeft het logboek geprint. Nu weg voor de accountmanager terug is.' },
       ],
     },

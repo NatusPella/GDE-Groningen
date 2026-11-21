@@ -1,23 +1,48 @@
 # 09 · Script akte 3: "Aan de Eems" (Eemsdelta en Oldambt)
 
 > Formaat zoals in [09-script-akte1.md](09-script-akte1.md): kopregel `## [ID] Titel – regio/plaats – voertuig`, `(regie: ...)` (met dagdeel en `Gameplay:`), dialoog `SPREKER: tekst [BEHOUDEN|NIEUW]`, kanalen `(radio)` alleen wereld, `(telefoon)` voor briefings en hints, appjes `APP VAN→NAAR (stil): ...`. Hoort bij [03-akte3.md](03-akte3.md). Missie-id's: M12-M16 (M16 is de samengevoegde kermismissie: kroegentocht en botsauto's, met de kus).
+>
+> **Herschreven 21-11 (epic #1121, WP4 #1127).** Akte 3 is "een stek": de wagen krijgt een plek (Lammerts kade, de kermis; flag `wagen:stek`). Jelle legt zijn koopboek zelf uit (radio R3.0, de ballon M12.3, de kantoorwagen M15.5); Tessa legt minder uit en Tammo reageert. Nieuwe cast met aanloop: Dijkstra (Oma belt in M12.1, Rotor Roelf door Dijkstra), Lammert (Klaas, akte 2), Roelfien (Oma's lijstje, T3), Geert (Roelfien in M15.3). Sjabbe noemt Lammerts havenkantoor als pand dat zij zelf kunnen beheren (A3.2, de tegenhanger van Jelles "kopen"; alleen tekst, geen mechaniek).
+>
+> **Ritme (zes doelen, twee dagen en een nacht): per missie een wens, een belemmering en een draai.**
+>
+> | Missie | Wens | Belemmering | Draai |
+> |---|---|---|---|
+> | M12 | Jelles koopboek | privé-luchtruim, en Dijkstra wil eerst lunchen | Tammo hangt aan de lier (de duiven luisteren naar hem); het boek geeft plakje vijf tot en met acht |
+> | M13 | container 4471 leeg uit de haven | één container, een bewaker onder de kraan | Lammert geeft een stek: de kade en twee bedden |
+> | M14 | de sluis voor de deurwaarder | Jelle kocht Lammerts huurschuld, zijwind, schapen | Tammo's "dat bedoelde ik wel" |
+> | M15 | de jury laten zien wat Jelle doet | Tammo heeft nog nooit gevlogen | Jelle bedankt hen: het spandoek maakte zijn proeverij druk |
+> | M16 | weten waar Jelle heen gaat | drie tenten, een dronken menigte | de kus; daarna het antwoord: maandag Veendam |
+
+## [R3.0] Nachtstreek, vrijdagochtend – Stad – radio
+RIKUS (radio): Vrijdag 21 augustus. Een beller meldt dat hij vanmiddag opstijgt. Ik zeg niks. [NIEUW]
+JELLE (radio): Jelle Terpstra. Vanmiddag vlieg ik in mijn ballon over de Dollard, met mijn koopboek. Alles wat ik koop, staat erin. [NIEUW]
+RIKUS (radio): Het luchtruim is van niemand, meneer Terpstra. [NIEUW]
+JELLE (radio): Was. Mijn juristen hebben het contract nagelezen. [NIEUW]
+RIKUS (radio): Ik draai een plaat. [NIEUW]
 
 ## [M12.1] Het staat niet in het rooster: intro – Waddenkust, Lauwersoog, terrein bij de visafslag – helikopter
-(regie: vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het UMCG-dak aanvliegen en landt op het terrein bij de visafslag. Naamkaart: DOKTER DIJKSTRA. Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en de Eemshaven, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.)
+(regie: vrijdag 21 augustus, ochtend. Tessa's telefoon ligt op de motorkap van de Escapade, op de luidspreker. Boven het water komt een helikopter aan en landt op het terrein bij de visafslag. Naamkaart: DOKTER DIJKSTRA. Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en de Eemshaven, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.)
+OMA TRIJNTJE (telefoon): Dijkstra komt jullie halen, jong. Van het ziekenhuis. Ik kookte voor zijn afdeling. [NIEUW]
+TAMMO: Een dokter met een heli? [NIEUW]
 DOKTER DIJKSTRA: Mijn traumaheli staat in onderhoud. Dit is die van Rotor Roelf, en mijn nachtdienst heeft honger. [NIEUW]
-TESSA: Wij zoeken Jelles ballon. Hij vliegt boven de Dollard, met zijn koopboek in een aktetas. Daarin staat welk plakje hij als volgende koopt. [NIEUW]
-DOKTER DIJKSTRA: Eerst de lunch. Achterin staat een koeltas voor mijn collega's. Zij hebben twaalf uur niets gegeten. [NIEUW]
+TESSA: Wij zoeken Jelles ballon. Die hangt vanmiddag boven de Dollard, met zijn koopboek. [NIEUW]
+DOKTER DIJKSTRA: Eerst de lunch voor mijn collega's. Zij hebben twaalf uur niets gegeten. [NIEUW]
 TESSA: Dat is geen noodgeval. [BEHOUDEN]
 DOKTER DIJKSTRA: Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag. [BEHOUDEN]
-DOKTER DIJKSTRA: Dan de ballon. Ik heb een lier. Tessa houdt de heli stil naast de mand. Tammo hangt aan de lier en pakt de tas. [NIEUW]
-TESSA: Ik heb drie lessen gehad en een jaar vlieggames gespeeld. Dat is meer dan Tammo. [NIEUW]
+DOKTER DIJKSTRA: Dan de ballon. Ik heb een lier, en iemand moet hangen. Trijntje zegt dat duiven naar meneer Tammo luisteren. [NIEUW]
+TAMMO: Duiven luisteren naar niemand. [BEHOUDEN]
+TESSA: Behalve naar jou. [NIEUW]
+TESSA: Ik vlieg. Drie lessen en een jaar vlieggames. Dat is meer dan Tammo. [NIEUW]
 TAMMO: Natuurlijk hang ík. [BEHOUDEN]
 TESSA: Ik vraag het, Tammo. Wil je hangen? [BEHOUDEN]
 TAMMO: …Ja. Dank je dat je het vraagt. [BEHOUDEN]
 
 ## [M12.2] Het staat niet in het rooster: de lunch – Stad, UMCG, helidek – helikopter
-ROTOR ROELF (telefoon): Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak. [NIEUW]
-ROTOR ROELF (telefoon): De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? [NIEUW]
+ROTOR ROELF (telefoon): Moi! Rotor Roelf. Is mijn heli nog heel? [NIEUW]
+TESSA: Nog wel. [NIEUW]
+ROTOR ROELF (telefoon): Zeg maar "misschien", dan is het een gratis proefvlucht. Nait tegen d'Olle Grieze aan, hè? [NIEUW]
+TAMMO: Misschien. [NIEUW]
 DOKTER DIJKSTRA: Eierballen. Nog warm. Jullie zijn mijn helden. [BEHOUDEN]
 TAMMO: Een gewone vrijdag. [NIEUW]
 DOKTER DIJKSTRA: En nu de ballon. Naar de Dollard. [NIEUW]
@@ -31,20 +56,24 @@ JELLE: Goedemiddag. U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorra
 TESSA: Wij zijn een heli. [NIEUW]
 DURK: Douwe. Een heli. [NIEUW]
 DOUWE: …heli. [NIEUW]
-(regie: Tammo stapt de mand in, pakt de aktetas en snijdt de riem door waarmee ze aan de mand hangt. Tessa houdt de heli stil.)
+(regie: Tammo fluit. Een wolk duiven daalt op de mand; Jelle grijpt zijn hoed. Tammo stapt de mand in, pakt de aktetas en snijdt de riem door waarmee ze aan de mand hangt. Tessa houdt de heli stil.)
 TAMMO: Ik heb hem! [NIEUW]
+JELLE: Er zitten duiven op mijn mand. Mijn juristen hebben duiven niet voorzien. [NIEUW]
+JELLE: Dat boek is mijn plan: de haven, de bloem, de jury, de mosterd. Lezen mag. Stoppen niet. Foar mem. [NIEUW]
+TESSA: Dat gaan we proberen. [NIEUW]
 TAMMO: Doe bist schier. [BEHOUDEN]
+
+## [M12.4] Het staat niet in het rooster: outro – Waddenkust, Eemshaven, helidek – helikopter
+(regie: de heli staat op het helidek van de Eemshaven. In de aktetas ligt een boek met acht bladzijden, elk met een plakje salami erop getekend. Bij elk plakje staat in de kantlijn "Foar mem", met een hartje.)
 TESSA: Je praatte de hele tijd, aan dat touw. [BEHOUDEN]
 TAMMO: Ik had hoogtevrees. [BEHOUDEN]
 TESSA: Je zei "doe bist schier" tegen de ballon. [NIEUW]
 TAMMO: …Hij was mooi. [BEHOUDEN]
-
-## [M12.4] Het staat niet in het rooster: outro – Waddenkust, Eemshaven, helidek – helikopter
-(regie: in de aktetas ligt een boek met acht bladzijden, elk met een plakje salami erop getekend.)
-TESSA: Het koopboek van Jelle. Acht plakjes, en bij elk plakje staat in de kantlijn "Foar mem", met een hartje. [NIEUW]
+TESSA: Plakje vijf: de haven. Vannacht, Eemshaven, container 4471. [NIEUW]
+TAMMO: Wat zit erin? [NIEUW]
+TESSA: Oma's vet. En alles wat haar vrienden extra hadden. [NIEUW]
 TAMMO: En het laatste plakje? [NIEUW]
-TESSA: "De bewaarder." Daarbij staat: notaris, 28 augustus, drie uur. Meer niet. [NIEUW]
-TAMMO: Container 4471 staat bij de haven. [NIEUW]
+TESSA: De bewaarder. Notaris, 28 augustus, drie uur. Meer niet. [NIEUW]
 TESSA: Dan weten we waar we vannacht moeten zijn. Hier. [NIEUW]
 DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [NIEUW]
 
@@ -53,14 +82,12 @@ DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDE
 
 ## [M13.1] Het containerlabyrint: intro – Waddenkust, Eemshaven, de kade – te voet
 (regie: vrijdagnacht 21 augustus. Windmolenbladen, kabelrollen, kolenbergen, een paar containers, een kraan, schijnwerpers. Naamkaart: LAMMERT. Gameplay: een sluipmissie tussen de opslag; container 4471 vinden en de papieren verwisselen.)
-TESSA: Wij komen van Oma Trijntje. In Jelles koopboek staat: vannacht vertrekt zijn schip uit de Eemshaven, met alle reserves van Oma's vrienden aan boord. [NIEUW]
-LAMMERT: Hier vaart de Borkum-veerboot en daar zoemt het datacenter. Ik ben de havenmeester en ik vertel altijd wat er niet is: een leeg schip en een volle kabel. [NIEUW]
-LAMMERT: Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet. [NIEUW]
-TESSA: De lading staat in container 4471: alles wat de vrienden van Oma extra hadden en Jelle opkocht. Het schip vertrekt om zes uur. [NIEUW]
-LAMMERT: Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier. [NIEUW]
-TAMMO: Eén container tussen alle windmolenbladen en kabelrollen? [NIEUW]
+LAMMERT: Moi. Lammert, havenmeester. Ik vertel altijd wat er niet is: een leeg schip, een volle kabel. [NIEUW]
+LAMMERT: Klaas zei dat jullie kwamen. Mijn vader danste in 1953 met Trijntje. [NIEUW]
+TESSA: Container 4471. Het schip vertrekt om zes uur. [NIEUW]
 LAMMERT: Wij hebben geen containerterminal. Wij hebben één container en weten niet van wie. [NIEUW]
-LAMMERT: Hij staat onder een stapel kabelrollen, naast de rode. [NIEUW]
+TAMMO: Eén container tussen alle windmolenbladen en kabelrollen? [NIEUW]
+LAMMERT: Onder een stapel kabelrollen, naast de rode. Hier zijn de papieren: wissel ze om, dan blijft de lading hier. [NIEUW]
 TAMMO: Ze zijn bijna allemaal rood. [NIEUW]
 LAMMERT: Dan moet je de blauwe zoeken. [NIEUW]
 TESSA: We pakken de kraan. Dan zien we van boven welke blauw is. [NIEUW]
@@ -78,10 +105,11 @@ TESSA: Hij loopt weg. Nu. [NIEUW]
 
 ## [M13.3] Het containerlabyrint: outro – Waddenkust, Eemshaven, kade – te voet
 LAMMERT: Het schip vaart leeg weg. Jelle krijgt zijn lading nooit. [NIEUW]
-LAMMERT: Mijn vrachtwagen brengt alles wat jullie hebben gered vannacht naar mijn woonschip in Delfzijl. [NIEUW]
-LAMMERT: Dit vat is van mijn vader: het vet van 1953. Voor Oma. [NIEUW]
-LAMMERT: Vanochtend om acht uur tekent Trijntje op de sluis de overdracht van mijn woonschip. Dan mag de deurwaarder er niet meer bij. [NIEUW]
-LAMMERT: Jullie slapen in mijn havenkantoor. [NIEUW]
+TESSA: En alles wat we gered hebben? [NIEUW]
+LAMMERT: Mijn vrachtwagen brengt het naar mijn woonschip in Delfzijl. Dit vat is van mijn vader: het vet van 1953. Voor Oma. [NIEUW]
+TAMMO: Dan wil Jelle het terug. [NIEUW]
+LAMMERT: Om acht uur komt zijn deurwaarder. Maar Trijntje tekent eerder de overdracht van mijn woonschip, op de sluis. Dan mag hij er niet bij. [NIEUW]
+LAMMERT: En als jullie ooit een wagen hebben, staat hij aan mijn kade. Een stek. Vannacht slapen jullie in mijn havenkantoor. [NIEUW]
 TAMMO: Een kantoor? [NIEUW]
 LAMMERT: Met een bed. Twee bedden. [NIEUW]
 TESSA: Twee bedden. [NIEUW]
@@ -92,16 +120,32 @@ TAMMO: Klopt. [NIEUW]
 ## [M13.4] Het containerlabyrint: herhaling – Waddenkust, Eemshaven – te voet
 LAMMERT: De bewaker kijkt nog steeds omhoog. Hij wacht al een uur. [NIEUW]
 
+## [A3.2] Appjes akte 3: Sjabbe en het havenkantoor (stil, geen stem) – Eemshaven – telefoon
+APP SJABBE→TESSA (stil): Ik vraag niks. Ik zeg alleen: Lammerts havenkantoor is een pand. Jelle koopt panden. Jullie kunnen er ook een beheren. – S. [NIEUW]
+APP TESSA→SJABBE (stil): Beheren? Wij hebben nog niet eens een wagen. [NIEUW]
+APP SJABBE→TESSA (stil): Eerst een bed, dan een pand. Ik vraag niks. [NIEUW]
+
+## [O6] Een bod – Eemshaven, de kade – Escapade
+(regie: ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
+JELLE (telefoon): Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben. [NIEUW]
+TESSA (telefoon): Dat was een misverstand. [NIEUW]
+JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij. [NIEUW]
+TESSA (telefoon): Hij is niet te koop. [NIEUW]
+JELLE (telefoon): Alles is te koop, mevrouw. Ik wacht. Foar mem. [NIEUW]
+TAMMO: Het is niet eens van ons. Het is van mijn oma. [NIEUW]
+TESSA: Dat weet hij ook. Daarom belt hij mij. [NIEUW]
+
 ## [M14.1] De dijk: intro – Eemsdelta, Bierum, de dijk – auto van Lammert
-(regie: zaterdag 22 augustus, vroege ochtend. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem zit een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
-JELLE: Goedemorgen. Mijn deurwaarder neemt om acht uur het woonschip van meneer Lammert in beslag. Ik heb gisteren zijn huurschuld gekocht. [NIEUW]
-TESSA: In beslag nemen: dan neemt hij alles mee wat Lammert voor Oma bewaart. Trijntje wacht op de sluis met de pen. Tekent ze eerst, dan komt de deurwaarder te laat. [NIEUW]
-JELLE: Dan raad ik u aan eerder aan de sluis te zijn dan mijn deurwaarder. Wie wint, mag famke een eierbal geven. [NIEUW]
+(regie: zaterdag 22 augustus, vroege ochtend. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem staat een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
+JELLE: Goedemorgen. Ik heb Lammerts huurschuld gekocht. Mijn deurwaarder neemt om acht uur zijn woonschip in beslag. [NIEUW]
+TESSA: Met het vet erin. [NIEUW]
+JELLE: Dat is nu inboedel. [NIEUW]
+JELLE: Mijn deurwaarder is om acht uur bij de sluis. U ook, hoop ik. Wie wint, mag famke een eierbal geven. [NIEUW]
 TESSA: Famke koopt haar eigen eierbal. [BEHOUDEN]
 TAMMO: Dat neem ik je kwalijk. [BEHOUDEN]
 TESSA: Dat was een hele zin, Tammo. [BEHOUDEN]
 TAMMO: Ik voelde het. [BEHOUDEN]
-TESSA: We rijden over de dijk naar de sluis van Delfzijl. Eerste aan de sluis wint, en de voorraad blijft van ons. [NIEUW]
+TESSA: Eerste aan de sluis wint. [NIEUW]
 TAMMO: Ik rij. [NIEUW]
 TESSA: Ik zeg: links, rechts, schaap. [NIEUW]
 TAMMO: Daar heb ik niks aan. [NIEUW]
@@ -112,12 +156,12 @@ TAMMO: Ik zie het. [NIEUW]
 TESSA: Zijwind. Niet aan het stuur trekken. [NIEUW]
 TAMMO: Ik trek nooit aan het stuur. [NIEUW]
 TESSA: Je hebt net getrokken. [NIEUW]
-JELLE (telefoon): Mevrouw, kom maar mee in mijn limo. Daar is plek. [NIEUW]
+JELLE (telefoon): Mevrouw, mijn juristen vinden dat u te hard rijdt. In mijn limo is plek. [NIEUW]
 TESSA: Rij, Tammo. [NIEUW]
 
 ## [M14.3] De dijk: na de finish – Eemsdelta, sluis Delfzijl – auto van Lammert
 (regie: de auto van Lammert en de limo bij de sluis. Tammo is eerst.)
-LAMMERT: De overdracht is getekend, om vijf voor acht. Het beslag mislukt. Alleen mijn kade is verhuurd, voor een evenement. [NIEUW]
+LAMMERT: De overdracht is getekend, om vijf voor acht. Het woonschip is van Trijntje en het vet is veilig. [NIEUW]
 DEURWAARDER: Dat is nu officieel. Daar kan ik niets tegen doen. [NIEUW]
 TAMMO: Je ziet er goed uit met wind. [NIEUW]
 TESSA: Mijn haar zit overal, Tammo. [NIEUW]
@@ -135,8 +179,16 @@ JELLE: Een rondje meer of minder. Dat neem ik jullie niet kwalijk. [NIEUW]
 RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. [NIEUW]
 RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een bestaande snackbar verbouwt, naast de visboer. De visboer lacht niet. [NIEUW]
 
+## [R3.4] Nachtstreek, vrijdagnacht: een plaat – Stad – radio
+RIKUS (radio): Mijn verzoekplaat van de week: "Elfde Verdieping", van De Fietstunnels. Een nummer over een lift die werkt. [NIEUW]
+RIKUS (radio): Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks. [NIEUW]
+
 ## [T3] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
-TESSA: We nemen de trein naar Winschoten. Jelle geeft de juryleden daar een proeverij op de kermis. Dat staat in zijn koopboek. Roelfien wacht met haar vliegtuigje bij Midwolda. [NIEUW]
+TAMMO: Het koopboek. Plakje zes: bloem en jury. Proeverij, kermis Winschoten. [NIEUW]
+TESSA: Dan gaan wij daar ook heen. Roelfien wacht bij Midwolda. [NIEUW]
+TAMMO: Roelfien? [NIEUW]
+TESSA: Van het meel in Oma's lijstje. Ze heeft een vliegtuigje. [NIEUW]
+TAMMO: Een vliegtuigje. [NIEUW]
 TESSA: Let op, de trein gaat eerst terug via Station Grunn. [NIEUW]
 TAMMO: Dus we gaan eerst naar huis. [NIEUW]
 TESSA: Even groeten, dan door. [NIEUW]
@@ -149,8 +201,9 @@ TAMMO: Een beetje. [NIEUW]
 ## [M15.1] Laag over het graan: intro – Oldambt, Roelfiens boerderij bij Midwolda – klein vliegtuig
 (regie: zaterdag 22 augustus, middag. Een landingsstrook naast een graanveld, een rode gewasspuiter. Naamkaart: ROELFIEN. Gameplay: laag over het graan vliegen, een spandoek oppikken en door een poortcorridor over de kermis slepen.)
 ROELFIEN: Trijntje zei dat Tammo niks kan, maar het met overtuiging doet. Ik zeg het maar meteen, dan weten we dat allebei. [NIEUW]
-TESSA: Jelle wil de juryleden kopen met een proeverij. [NIEUW]
-ROELFIEN: Dan laten we de hele kermis zien wat hij doet. Mijn vliegtuigje sleept al twintig jaar een spandoek voor de kermis. [NIEUW]
+TAMMO: …Dat klopt wel. [NIEUW]
+ROELFIEN: Mijn vliegtuigje sleept al twintig jaar een spandoek voor de kermis. Vandaag sleept hij onze boodschap. [NIEUW]
+TESSA: Jelle wil de jury kopen met een proeverij. Wij laten de hele kermis lezen wat hij doet. [NIEUW]
 ROELFIEN: Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis. [NIEUW]
 ROELFIEN: Het graan staat er nog. Dat wacht op het weer, niet op Jelle. [NIEUW]
 TAMMO: Ik heb nog nooit gevlogen. [NIEUW]
@@ -173,31 +226,57 @@ JELLE: Het is een proeverij. Er wordt alleen geproefd. [NIEUW]
 JURYLID: Ik stap eruit. [NIEUW]
 JURYLID: Ik ook. [NIEUW]
 ROELFIEN: Twee van de vier andere juryleden zijn weggelopen. De andere twee zitten nog bij Jelle. [NIEUW]
-TESSA: Twee weg. Dat scheelt. Als ze maar wegblijven. [NIEUW]
+TESSA: Twee weg. Dat scheelt. [NIEUW]
 ROELFIEN: De molen in Midwolda is van Jelle. Fijn meel krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof. [NIEUW]
 TESSA: Dan heeft Jelle al het fijne meel. [NIEUW]
 ROELFIEN: Oma's recept lust grof. Hier is het meel. Voor Trijntje. [NIEUW]
 TESSA: Dan is het meel gered. Alleen de mosterd nog. [NIEUW]
 TAMMO: Dank je, Roelfien. [NIEUW]
-ROELFIEN: Doe de groeten aan Trijntje. En zeg dat de kermis mooi is. [NIEUW]
-TESSA: Vol, tenminste. [NIEUW]
-TESSA: Durk en Douwe zitten nog bij Geert. Zij weten waar Jelle heen gaat. [NIEUW]
+ROELFIEN: Doe de groeten aan Trijntje. Vanavond is Geert, van de Poelestraat, hier met drie tenten. Wie daar drinkt, vertelt alles. [NIEUW]
+
+## [M15.5] Laag over het graan: het kantoor op wielen – Oldambt, Winschoten, de kermis – te voet
+(regie: achter de proeverijtent staat Jelles trekker-limo met een kantoor op wielen erachter: TERPSTRA MOBIEL KANTOOR. Achter het raam zitten drie mannen met mappen. Jelle komt naar buiten met een envelop. Onder zijn andere arm een gouden koffer.)
+JELLE: Mevrouw Tessa. Een moment. Mijn juristen hebben dit voor u opgesteld. [NIEUW]
+TESSA: Een dagvaarding? [NIEUW]
+JELLE: Een bedankbriefje. "Tige tank! – J." Uw spandoek heeft mijn proeverij uitverkocht. [NIEUW]
+TAMMO: Wij hebben de jury weggejaagd. [NIEUW]
+JELLE: Twee van de vier. De mensen kwamen voor "levenslang eierballen". Zo'n spandoek is goud waard. [NIEUW]
+TESSA: Dat was niet de bedoeling. [NIEUW]
+JELLE: Dat staat nergens in het contract. Mijn juristen hebben het gecontroleerd. [NIEUW]
+(regie: Jelle stapt in de limo. De gouden koffer laat hij geen seconde los.)
+TAMMO: Hij laat die koffer niet los. [NIEUW]
+TESSA: Nee. Waar hij heen gaat, gaat de bal heen. Durk en Douwe weten waar. Ze zitten bij Geert. [NIEUW]
+
+## [M15.6] Laag over het graan: de zanger – Oldambt, Winschoten, de kermis – te voet
+(regie: bij de proeverijtent zingt een jonge man in een glimmend jasje met een gitaar voor een groepje mensen. Naamkaart: DAAN. Een duif landt op Tammo's schouder.)
+DAAN: Jij bent van het spandoek. Dat ik dat mocht meemaken. [NIEUW]
+TESSA: Het was een ongeluk. [NIEUW]
+DAAN: Dan heb je veel ongelukken nodig. Vanavond sta ik achter de bar bij Geert. Mag ik dan een liedje zingen? [NIEUW]
+TAMMO: Ze moet nog eten. [NIEUW]
+DAAN: Eén couplet. Over een meisje met een spandoek. [NIEUW]
+(regie: de duif op Tammo's schouder vliegt op, draait een rondje en laat iets vallen op Daans glimmende jasje.)
+TAMMO: Ik heb niks gezegd. [NIEUW]
+TESSA: Kom. Geert wacht. [NIEUW]
 
 ## [M15.4] Laag over het graan: herhaling – Oldambt, Winschoten – klein vliegtuig
 ROELFIEN: Het spandoek is gewassen. Het graan heeft niks gezien. [NIEUW]
 
 ## [M16.1] Nog eentje dan: intro – Oldambt, Winschoten, de kermis – te voet
-(regie: zaterdag 22 augustus, avond. De kermis in Winschoten. Gameplay: drie kermistenten te voet af, tussen een dronken menigte, om Durk en Douwe mee te krijgen naar de botsauto's; daar een rit, met de tweeling als tegenstander.)
-GEERT: Moi. Geert, van de Poelestraat. Er zitten twee Friese reuzen aan mijn bar en ze zingen al een uur. Ik heb drie tenten op deze kermis. Blijf bij ze. [NIEUW]
+(regie: zaterdag 22 augustus, avond. De kermis in Winschoten. Naamkaart: GEERT. Gameplay: drie kermistenten te voet af, tussen een dronken menigte, om Durk en Douwe mee te krijgen naar de botsauto's; daar een rit, met de tweeling als tegenstander.)
+GEERT: Moi. Geert, van de Poelestraat. Twee Friese reuzen zitten aan mijn bar en ze zingen al een uur. [NIEUW]
+GEERT: Ik weet alles van iedereen. Zij vertellen het straks zelf, na drie tenten. Blijf bij ze. [NIEUW]
 GEERT: En Tessa: mijn nieuwe barman wil heel graag je nummer. [NIEUW]
 TAMMO: Die barman heeft het druk. [BEHOUDEN]
 TESSA: O ja? Sinds wanneer bepaal jij dat? [BEHOUDEN]
 TAMMO: Sinds nu. [BEHOUDEN]
+GEERT: Hij kijkt al sinds de ingang naar je. Dat zie ik altijd. [NIEUW]
 TESSA: Jaloers? Jij? Wat heb je met Tammo gedaan? [BEHOUDEN]
+(regie: Tammo zegt niets. Hij kijkt heel aandachtig naar de tent.)
 TESSA: Drie tenten. Daarna vertellen ze alles, en daarna weten ze het zelf niet meer. [NIEUW]
 TAMMO: Ik drink maar één. [NIEUW]
 
 ## [M16.2] Nog eentje dan: tussen de tenten – Oldambt, Winschoten, de kermis – te voet
+(regie: bewijsmoment, relatie-bijbel 9: in de botsauto zit Tammo naast Tessa en kijkt de andere kant op, zodat zij zelf kan leren sturen. Twee-shot door de voorruit.)
 STUDENT: Proost! Nog eentje dan! [NIEUW]
 TESSA: Wie is dat? [NIEUW]
 TAMMO: Een eerstejaars. Ze zijn overal. [NIEUW]
@@ -211,9 +290,15 @@ DURK: Douwe… alles draait. [BEHOUDEN]
 DOUWE: …draait. [BEHOUDEN]
 TAMMO: Moi, jongens. Lekker gebotst? [BEHOUDEN]
 DURK: Baas zegt: jij bent de duif. Maar eerst bier. [BEHOUDEN]
+(regie: Durks telefoon rinkelt: JELLE. Hij houdt hem op een armlengte van zijn oor.)
+JELLE (telefoon): Durk. Mijn juristen willen een rapport. Waar zijn jullie? [NIEUW]
+DURK: Op een kermis, baas. [NIEUW]
+JELLE (telefoon): Ik hoor botsauto's. Ik betaal jullie niet voor botsauto's. [NIEUW]
+DURK: Nee, baas. Douwe, hang op. [NIEUW]
+DOUWE: …op. [NIEUW]
 TESSA: Een rit. Wij tegen jullie. Wie wint, krijgt een antwoord. [NIEUW]
 DURK: Welke vraag? [NIEUW]
-TESSA: Waar is de bal, en waar gaat Jelle maandag heen? [NIEUW]
+TESSA: Die zeg ik als ik win. [NIEUW]
 DOUWE: …Hè. [BEHOUDEN]
 
 ## [M16.4] Nog eentje dan: de rit en de kus – Oldambt, Winschoten, de kermis – botsautootje
@@ -230,10 +315,19 @@ TAMMO: Au. [NIEUW]
 TESSA: Au. [NIEUW]
 
 ## [M16.5] Nog eentje dan: het antwoord – Oldambt, Winschoten, de kermis – botsautootje
-DURK: Baas rijdt maandag naar Veendam, voor de mosterd. De bal gaat mee, in de gouden koffer onder het kussen van de limo. [NIEUW]
+(regie: achter de botsauto's, op een bankje. Durk zit, Douwe staat naast hem. Tessa en Tammo staan een meter te ver uit elkaar. De muziek is ver weg. De camera blijft op Durk: dit is het moment waarop de akte omslaat.)
+TESSA: Niemand won, want iedereen werd eruit gezet. [NIEUW]
+DURK: Gelijkspel is ook een antwoord. Vraag maar, famke. [NIEUW]
+TESSA: Waar gaat Jelle maandag heen? [NIEUW]
+DURK: Baas rijdt maandag naar Veendam, voor de mosterd. [NIEUW]
 DOUWE: Durk. Dat was geheim. …Hè. [BEHOUDEN]
-TESSA: Hij heeft hem echt. En hij draagt hem altijd bij zich. [NIEUW]
-TAMMO: Dan pakken we hem in Veendam. [NIEUW]
+TAMMO: Heeft hij de bal bij zich? [NIEUW]
+DURK: Gaat mee, in de koffer. Onder het kussen van de limo. Baas slaapt erop. [NIEUW]
+TESSA: Maandag. Veendam. [NIEUW]
+TAMMO: Over twee dagen. [NIEUW]
+(regie: ze kijken elkaar aan en kijken meteen weer weg.)
+TESSA: Goed. Maandag dan. [NIEUW]
+TAMMO: Goed. [NIEUW]
 DURK: Net fertelle, hè? [NIEUW]
 
 ## [M16.6] Nog eentje dan: de dijk – Oldambt, dijk van het Oldambtmeer bij Blauwestad – te voet
@@ -251,6 +345,10 @@ APP MEM→TESSA (stil): Nog zes dagen. Zeg het hem niet. – M. [NIEUW]
 
 ## [M16.7] Nog eentje dan: herhaling – Oldambt, Winschoten, de kermis – te voet
 GEERT: Drie tenten? Nog eentje dan. [NIEUW]
+
+## [A3.3] Appjes akte 3: dubbele geheimen (stil, geen stem) – Oldambt – telefoon
+APP TESSA→MEM (stil): Ik zeg het hem niet. Maar het voelt niet fijn, Mem. – T. [NIEUW]
+APP MEM→TESSA (stil): Dat weet ik, famke. Jij bent aardiger dan mijn kleinzoon verdient. – M. [NIEUW]
 
 ## [R3.3] Overgang naar akte 4: Nachtstreek – studio – radio
 RIKUS (radio): Zondag. Het is stil in Winschoten. Dat is ook een kermis. [NIEUW]
@@ -274,9 +372,47 @@ TAMMO: Een bocht met ambitie. [NIEUW]
 TESSA: Je geeft nooit toe. [NIEUW]
 TAMMO: Jij ook niet. [NIEUW]
 
+## [B3.1] Autogesprekken akte 3: de onvoltooide zin (pool; bijna-moment) – Eemsdelta – Escapade
+TAMMO: Tessa, eigenlijk— [NIEUW]
+TESSA: Wat dan? [NIEUW]
+TAMMO: Eigenlijk heet een groep van die dingen een windpark. [NIEUW]
+TESSA: Ik dacht even dat het iets was. [NIEUW]
+TAMMO: Het is ook iets. Een park. [NIEUW]
+
+## [B3.2] Autogesprekken akte 3: vraag van de dag (pool; lucht en kermis) – Waddenkust – Escapade
+TESSA: Vraag van de dag. Hoe hoog vliegt een meeuw? [NIEUW]
+TAMMO: Net zo hoog als zijn frikandel. [NIEUW]
+TESSA: Dat is geen hoogte. [NIEUW]
+TAMMO: Het is een eenheid. [NIEUW]
+
+## [B3.3] Autogesprekken akte 3: het autoduet (pool; alleen een verzonnen nummer, geen tekst) – Oldambt – Escapade
+(regie: de radio draait "Elfde Verdieping" van De Fietstunnels. Tessa zingt het refrein, Tammo de bas. Geen songtekst op het scherm.)
+TESSA: Dit nummer ken ik. Zet harder. [NIEUW]
+TAMMO: Jij zingt het refrein, ik de bas. [NIEUW]
+TESSA: Jij zingt altijd de bas. [NIEUW]
+TAMMO: Iemand moet de bodem leggen. [NIEUW]
+
+## [A3.4] Appjes akte 3: het kasboekje en de lijst (stil, geen stem) – alle regio's – telefoon
+APP TESSA→TAMMO (stil): Kasboekje. Benzine 38,50. Wie betaalde? [NIEUW]
+APP TAMMO→TESSA (stil): Jij. [NIEUW]
+APP TESSA→TAMMO (stil): Dan staat het bij jou in het rood. [NIEUW]
+APP TAMMO→TESSA (stil): Dan staat het er nog een tijd. [NIEUW]
+APP TESSA→TAMMO (stil): Nieuwe kolom op de koelkast: "wij vinden". Nog leeg. [NIEUW]
+APP TAMMO→TESSA (stil): Wat zet je erin? [NIEUW]
+APP TESSA→TAMMO (stil): Ik wacht op jou. [NIEUW]
+
 ## [A3.1] Appjes akte 3 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Nog zeven dagen. Hou Jelle bezig. – M. [NIEUW]
 APP MEM→TESSA (stil): Zeg het hem niet. Hij praat met Rikus. – M. [NIEUW]
 APP TESSA→MEM (stil): Ik vertel niks. Maar hij vraagt het steeds. [NIEUW]
 APP TAMMO→TESSA (stil): Alles goed? [NIEUW]
 APP TESSA→TAMMO (stil): Ja. Alles goed. [NIEUW]
+
+## [O7] Over zaterdag – Oldambt, de weg naar Stad – Escapade
+(regie: nacht, terug van de kermis. Tammo stuurt, Tessa kijkt naar buiten. Een tijd lang zegt niemand iets.)
+TAMMO: Over zaterdag. {pause=0.9} [NIEUW]
+TESSA: Welke zaterdag? [NIEUW]
+TAMMO: ...Laat maar. [NIEUW]
+(regie: stilte. Tessa kijkt naar buiten, de weg gaat verder.)
+TESSA: Het is mooi weer. [NIEUW]
+TAMMO: Ja. [NIEUW]

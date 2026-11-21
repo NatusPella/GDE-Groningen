@@ -14,10 +14,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withEllipsisAliases } from '../game/js/voicebank.js';
+import { parseForm } from '../game/js/dialogueform.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'docs', 'verhaal', 'nieuw');
 const OUT = path.join(REPO, 'game', 'storydata', 'script.json');
+const HUMOR_DIR = path.join(REPO, 'game', 'storydata');
 const VL = path.join(REPO, 'game', 'audio', 'voicelines');
 
 // script speaker -> { key: speaker key of the game (storyarc SPEAKERS / missionstory NPC), name: shown, voice: name in the voice manifests }
@@ -62,6 +64,12 @@ export const SPEAKER_TABLE = {
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
   STUDENT: sp('student', 'Student'),
   BOER: sp('boer', 'Boer'),
+  // inspiratiepakket (21-11, VERHAAL-INSPIRATIEPLAN-21-11.md): nieuwe stemmen, nog geen opnames
+  VELDKAMP: sp('veldkamp', 'Meneer Veldkamp'),
+  ANNEKE: sp('anneke', 'Anneke'),
+  LIEKE: sp('lieke', 'Lieke'),
+  DAAN: sp('daan', 'Daan'),
+  STIEN: sp('stien', 'Stien'),
   // Deel 4 (09-script-akte6.md): no recordings
   WILLEMIEN: sp('willemien', 'Willemien'),
   BUURVROUW: sp('buurvrouw', 'Buurvrouw'),
@@ -100,6 +108,7 @@ function kindOf(id, title) {
   if (/^A\d/.test(id)) return 'app';
   if (/^B\d/.test(id)) return 'banter';
   if (/^S\d/.test(id)) return 'side';
+  if (/^O\d/.test(id)) return 'bridge';
   if (/^T\d/.test(id)) return /herhaling/.test(title) ? 'replay' : /instappen|intro/.test(title) ? 'intro' : /aankomst/.test(title) ? 'outro' : 'travel';
   if (/^E\d/.test(id)) return 'epilogue';
   if (/Autogesprek/.test(title)) return 'banter';
@@ -107,6 +116,34 @@ function kindOf(id, title) {
   if (/: outro\b/.test(title)) return 'outro';
   if (/: herhaling\b/.test(title)) return 'replay';
   return 'key';
+}
+
+// De humorkeuze (#1134 en docs/verhaal/SCHRIJFREGELS-21-11.md): een nieuwe of herschreven komische beat heeft drie varianten en een
+// veilige neutrale terugval in game/storydata/humor.json; `chosen` (0, 1, 2 of 'neutral') is de variant die het spel gebruikt.
+// De bron (de 09-scripts) draagt een van de teksten; de build zet de gekozen tekst in de regel en geeft hem het label 'humor'.
+export function readHumor(dir = HUMOR_DIR) {
+  // humor.json en per akte een eigen bestand humor.<naam>.json (zodat parallel werk elkaar niet in de weg zit)
+  const beats = [];
+  if (!fs.existsSync(dir)) return { beats };
+  for (const f of fs.readdirSync(dir).filter((x) => /^humor(\.[a-z0-9]+)?\.json$/.test(x)).sort()) {
+    const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+    if (!j || !Array.isArray(j.beats)) throw new Error(f + ': "beats" ontbreekt');
+    for (const b of j.beats) beats.push({ ...b, file: f });
+  }
+  return { beats };
+}
+export const humorText = (b) => (b.chosen === 'neutral' ? b.neutral : b.variants[b.chosen]);
+function applyHumor(scenes) {
+  for (const b of readHumor().beats) {
+    const sc = scenes.find((q) => q.id === b.scene);
+    if (!sc) throw new Error('humor.json: scène ' + b.scene + ' bestaat niet (' + b.id + ')');
+    const all = [...b.variants, b.neutral];
+    const l = sc.lines.find((x) => all.includes(x.text) && (!b.speaker || x.who === b.speaker));
+    if (!l) throw new Error('humor.json: ' + b.id + ' vindt geen regel in ' + b.scene + ' met een van de varianten');
+    l.text = humorText(b);
+    l.humor = b.id;
+    l.tag = 'NIEUW';
+  }
 }
 
 export function parseScripts() {
@@ -140,11 +177,15 @@ export function parseScripts() {
         continue;
       }
       const c = /^(.*?)(?: \(([^)]*)\))?$/.exec(head);
-      const line = { who: c[1], text: m[2], tag, channel: CHANNEL[c[2]] && c[2] !== 'stil' ? CHANNEL[c[2]] : 'stem' };
+      // dialoogvorm (#1134): {ov=..}, {cut=..} of {pause=..} achter de tekst gaat naar `form`, niet in de tekst
+      const pf = parseForm(m[2]);
+      const line = { who: c[1], text: pf.text, tag, channel: CHANNEL[c[2]] && c[2] !== 'stil' ? CHANNEL[c[2]] : 'stem' };
+      if (pf.form) line.form = pf.form;
       if (c[2] && !CHANNEL[c[2]]) line.manner = c[2];
       scene.lines.push(line);
     }
   }
+  applyHumor(scenes);
   return scenes;
 }
 
@@ -152,7 +193,7 @@ export function parseScripts() {
 // or at the start of the step when they sit between two scenes of one step
 function anchor(scenes) {
   scenes.forEach((s, i) => {
-    if (s.step || (s.kind !== 'radio' && s.kind !== 'app' && s.kind !== 'banter' && s.kind !== 'side')) return;
+    if (s.step || (s.kind !== 'radio' && s.kind !== 'app' && s.kind !== 'banter' && s.kind !== 'side' && s.kind !== 'bridge')) return;
     let prev = null, next = null;
     for (let j = i - 1; j >= 0; j--) if (scenes[j].step) { prev = scenes[j].step; break; }
     // what comes after the scene: a banter or replay line of the step before it does not count
@@ -199,6 +240,8 @@ export function build() {
       if (l.tag === 'BEHOUDEN' && !recorded) behoudenMissing.push({ scene: s.id, speaker: spk.name, voice: spk.voice, text: l.text });
       const out = { speaker: spk.name, key: spk.key, text: l.text, tag: l.tag, channel: l.channel, textOnly: !recorded };
       if (l.manner) out.manner = l.manner;
+      if (l.humor) out.humor = l.humor;
+      if (l.form) out.form = l.form;
       if (rec) out.rec = rec;
       if (spk.voice !== spk.name) out.voice = spk.voice;
       return out;

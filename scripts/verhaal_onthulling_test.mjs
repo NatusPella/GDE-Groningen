@@ -68,7 +68,7 @@ ok(eerste.length >= 5, 'er zijn scènes in de eerste vijf minuten', eerste.lengt
 ok(eerste.every((s) => s.namen.length <= 2), 'elke scène in de eerste vijf minuten heeft hoogstens twee nieuwe namen', eerste.map((s) => `${s.id}:${s.namen.length}`).join(' '));
 ok(scenes.every((s) => s.onverklaard.length === 0), 'nergens een onverklaarde verwijzing', scenes.filter((s) => s.onverklaard.length).map((s) => s.id).join());
 const keuken = scenes.find((s) => s.id === 'C00.2');
-ok(keuken && keuken.namen.length <= 2 && keuken.regels.length <= 18, 'de keuken noemt hoogstens twee namen in achttien regels', keuken && keuken.namen.join());
+ok(keuken && keuken.namen.length <= 2 && keuken.regels.length <= 26, 'de keuken noemt hoogstens twee namen in zesentwintig regels (kern 21-11: de zorg om elkaar kwijt te raken staat in de opening)', keuken && keuken.namen.join());
 ok(scenes.flatMap((s) => s.regels).every((r) => !/complimentenladder/i.test(r.text) || r.speaker !== 'Tessa'), 'Tessa verwijst niet meer naar een ladder die niemand heeft uitgelegd');
 
 // de regie en het script blijven bij elkaar: het script heeft 3 + 18 + 5 regels in de opening, cutscenes.js splitst op die plekken
@@ -81,7 +81,7 @@ ok(/const OPENING_CUT = \[\];/.test(cut), 'de opening heeft geen stille, geschra
 
 // de haak staat in beeld: de slotkaart van de trailer zegt wat er aan de hand is
 const montage = fs.readFileSync(new URL('../game/js/intromontage.js', import.meta.url), 'utf8');
-ok(/im-kicker">Twee afgestudeerden. Eén frietwagen. Geen plek.<\/div>/.test(montage), 'de slotkaart van de trailer noemt de haak: twee afgestudeerden, één frietwagen, geen plek');
+ok(/im-kicker">Ontdek jezelf in Grunn.<\/div>/.test(montage), 'de slotkaart van de trailer noemt de haak: twee afgestudeerden, één frietwagen, geen plek');
 
 console.log(`${n - fails}/${n} verhaal_onthulling`);
 process.exit(fails ? 1 : 0);
