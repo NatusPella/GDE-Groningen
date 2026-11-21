@@ -53,31 +53,7 @@ export function willowGeometry() {
   return B.build();
 }
 
-export function hedgeGeometry() {
-  const B = new GeoBuilder();
-  B.geo(jitterIco(0.5, 1, 31, 1.05, 1, 1), composeMatrix(0, 0.55, 0, 0, 0, 0, 1, 1.2, 1.1), leafShade([0x3a5f2c, 0x44693a, 0x355628]));
-  return B.build();
-}
-
-export function boxGeometry(sx, sy, sz, color, y0 = 0) {
-  const B = new GeoBuilder();
-  B.box(0, y0 + sy / 2, 0, sx, sy, sz, color);
-  return B.build();
-}
-
 // ------------------------------------------------------------------ field props
-
-export function gateGeometry() {
-  const B = new GeoBuilder();
-  const G = 0xb9bec0, W = 0x8a6440;
-  B.box(-2.1, 0.7, 0, 0.18, 1.4, 0.18, W);
-  B.box(2.1, 0.7, 0, 0.18, 1.4, 0.18, W);
-  for (let i = 0; i < 5; i++) B.box(0, 0.25 + i * 0.22, 0, 4.0, 0.05, 0.05, G);
-  B.box(-1.95, 0.7, 0, 0.06, 1.0, 0.06, G);
-  B.box(1.95, 0.7, 0, 0.06, 1.0, 0.06, G);
-  B.geo(tubeGeometry([-1.9, 0.27, 0], [1.9, 1.13, 0], 0.03, 0.03, 4), null, G);
-  return B.build();
-}
 
 export function baleGeometry() {
   const B = new GeoBuilder();
@@ -108,32 +84,6 @@ export function reedGeometry() {
     const col = i % 3 === 0 ? 0x8f8a52 : i % 3 === 1 ? 0x6f8444 : 0x7c8c4a;
     B.tri([x - w * Math.sin(a), 0, z + w * Math.cos(a)], [x + w * Math.sin(a), 0, z - w * Math.cos(a)], [lx, h, lz], col);
     if (i % 2 === 0) B.box(lx, h + 0.1, lz, 0.05, 0.22, 0.05, 0x5a3a22);
-  }
-  return B.build();
-}
-
-// Ditch bank: a low grassy berm one metre long, scaled along the ditch.
-export function bankGeometry() {
-  const B = new GeoBuilder();
-  const h = 0.16, w = 0.45, t = 0.15, top = 0x5a7432, side = 0x465e27;
-  B.quad([-0.5, h, t], [0.5, h, t], [0.5, h, -t], [-0.5, h, -t], top);
-  B.quad([-0.5, 0, w], [0.5, 0, w], [0.5, h, t], [-0.5, h, t], side);
-  B.quad([0.5, 0, -w], [-0.5, 0, -w], [-0.5, h, -t], [0.5, h, -t], side);
-  B.quad([0.5, 0, w], [0.5, 0, -w], [0.5, h, -t], [0.5, h, t], side);
-  B.quad([-0.5, 0, -w], [-0.5, 0, w], [-0.5, h, t], [-0.5, h, -t], side);
-  return B.build();
-}
-
-// Pitrus: a tuft of stiff dark rush blades on a wet ditch edge.
-export function rushGeometry() {
-  const B = new GeoBuilder();
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + chash(i, 11) * 0.9;
-    const s = Math.sin(a) * 0.05, c = Math.cos(a) * 0.05;
-    const top = [Math.cos(a) * 0.22, 0.45 + chash(i, 13) * 0.3, Math.sin(a) * 0.22];
-    const col = i % 2 ? 0x3e5a2a : 0x56702f;
-    B.tri([-s, 0, c], [s, 0, -c], top, col);
-    B.tri([s, 0, -c], [-s, 0, c], top, col);
   }
   return B.build();
 }

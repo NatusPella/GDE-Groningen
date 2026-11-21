@@ -4,7 +4,7 @@ import {
 } from './countryfield.js';
 import { provinceMapBounds } from './provincemap.js';
 import { provinceLandAt } from './regions.js';
-import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
+import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW } from './countryplan.js';
 import { farPropsIn } from './farprops.js';
 import { MAP_PALETTE, MINI_PALETTE, mapPhase, applyMapPhase, currentMapPhase } from './mapstyle.js';
 
@@ -240,7 +240,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st, opts = null) 
   ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // tree rows along polder roads and strip boundaries
+  // tree rows along polder roads (the strip boundaries have none any more, #1092)
   if (pxPerM > 0.55) {
     ctx.strokeStyle = st.tree;
     ctx.lineWidth = Math.max(px(1.2), 4);
@@ -254,13 +254,6 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st, opts = null) 
             if (s === 0) segOut(bx * BLOCK + o, by * BLOCK, bx * BLOCK + o, (by + 1) * BLOCK, 60);
             else segOut(bx * BLOCK, by * BLOCK + o, (bx + 1) * BLOCK, by * BLOCK + o, 60);
           }
-        }
-        const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
-        for (let col = 1; col < BLOCK / PW; col++) {
-          if (chash(col + bx * 131 + 900, by * 977 + (rot ? 7 : 3)) >= TREE_ROW_P) continue;
-          const a = col * PW + 2;
-          if (rot) segOut(bx * BLOCK, by * BLOCK + a, (bx + 1) * BLOCK, by * BLOCK + a, 60);
-          else segOut(bx * BLOCK + a, by * BLOCK, bx * BLOCK + a, (by + 1) * BLOCK, 60);
         }
       }
     }

@@ -3,7 +3,7 @@ import { markInstancesDirty } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { createTerrainMaterial } from './terrain3d.js';
 import {
-  BLOCK, PW, PL, DITCH_HW, MAIN_HW, MAAR_HW, MAAR_WATER, ROAD_IN, ROAD_W,
+  BLOCK, PW, PL, MAIN_HW, MAAR_HW, MAAR_WATER, ROAD_IN, ROAD_W,
   chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, maarX, maarY, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
@@ -11,19 +11,19 @@ import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
-  ROAD_C, FARM_TYPES, TREE_ROW_P, WILLOW_ROW_P, HEDGE_ROW_P, WIRE_ROW_P, ROAD_ROW,
+  ROAD_C, FARM_TYPES, ROAD_ROW,
   openLand, blockPlan, farmDetail, villagePlan, blockSigns, farmAt, inVillage, pushOutOfPlan,
 } from './countryplan.js';
 import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt, hedgeMapped } from './countryedge.js';
+import { EDGE, edgeBlocked, roadGap, landUseAt } from './countryedge.js';
 import { propVrij } from './propclear.js';
 import { baleSolid } from './bales.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
+import { ditchRamp, provinceBlock } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
-import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks, setTileSolids, clearTileSolids } from './countrywalls.js';
+import { setTileTrunks, clearTileTrunks, pushOutOfTrunks, setTileSolids, clearTileSolids } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
 import { updateTileWater, tileWaterStats } from './tilewatermask.js';
 import { waterAt } from './waterlevels.js';
@@ -236,13 +236,13 @@ const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vec
 // folded into the red channel on top of the tint
 // Clearance (m) each kind keeps from the edge of a road, cycle path or
 // drive (countryedge.js roadGap, what the ground shader paints): crowns
-// and hedges stay off the asphalt, posts and reeds may reach the verge.
+// stay off the asphalt, reeds may reach the verge.
 // Kinds not listed (bridges, paving, real buildings, glow) are not held back.
 const ROAD_CLEAR = {
-  tree: 1.2, poplar: 1.2, willow: 1.2, hedge: 1.0, post: 0.3, wire: 0.3, gate: 0.5, bale: 1.0, reed: 0.3,
+  tree: 1.2, poplar: 1.2, willow: 1.2, bale: 1.0, reed: 0.3,
   barrack: 1.5, shed: 1.5, mestsilo: 1.5, towersilo: 1.5, feedsilo: 1.5, clamp: 1.5, plough: 1,
   tractorBody: 1, tractorBase: 1, trailerBody: 1, trailerBase: 1, grave: 0.5, glass: 1.5, clubhouse: 1.5,
-  mast: 0.5, goal: 1, bank: 0.5, rush: 0.3,
+  mast: 0.5, goal: 1,
 };
 // De waarde per soort is de voetafdruk van die soort (kroon, heg, baal, paal): dezelfde
 // regel in propclear.js houdt die afstand plus PROP_MARGE van elke verharding, ook die van
@@ -257,26 +257,6 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
   const clear = ROAD_CLEAR[type];
   if (clear !== undefined) {
     if (!propVrijHier(x, y, type)) return false;
-    // a hedge piece lies over the tiles' water, roads or houses at its ends or in between (issue #124)
-    if (type === 'hedge') {
-      const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
-      if (edgeSpanBlocked(x - hx, y - hy, x + hx, y + hy, 0.5, 1.3)) return false;
-    }
-    if (type === 'wire') {
-      // the span's ends too: a wire may not cross a lane
-      const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
-      if (!clearOfRoad(x + hx, y + hy, clear) || !clearOfRoad(x - hx, y - hy, clear)) return false;
-      // and the wire between them: not across the tiles' water either (issue #185)
-      if (edgeSpanBlocked(x - hx, y - hy, x + hx, y + hy, 0.5, 1.3)) return false;
-    }
-  }
-  // hedges and wire fences are low walls you vault (countrywalls.js); the
-  // lowest strand stands for the whole fence
-  const wall = type === 'hedge' ? [Math.min(1.25, 1.15 * sy), 0.3 * sz] : type === 'wire' && yOff < 0.62 ? [1.15, 0.08] : null;
-  if (wall && tile.tx !== undefined) {
-    const hl = type === 'hedge' ? 0.5 * sx : sx / 2;
-    const hx = Math.cos(rotY) * hl, hy = -Math.sin(rotY) * hl;
-    (tile.walls || (tile.walls = [])).push(x - hx, y - hy, x + hx, y + hy, wall[0], wall[1]);
   }
   // a trunk is solid like the city's trees (0.22 m radius there, scaled with the crown)
   if ((type === 'tree' || type === 'poplar' || type === 'willow') && tile.tx !== undefined) {
@@ -324,55 +304,10 @@ function* genTileSteps(tx, ty) {
   const W = (a, b) => blockToWorld(bx, by, rot, a, b);
   const lineAng = rot ? 0 : Math.PI / 2; // three rotY that lays local +X along the strip direction b
   const plan = blockPlan(bx, by);
-  // #945: with real tiles here, the real roads, ditches and field edges of the
-  // data are in charge. No procedural parcels or edges in such a block any more:
-  // they ran over the real road (Winschoten).
-  const covered = provinceBlock(bx, by);
-  yield;
-
-  // strip-boundary lines: tree rows, hedges, electric fences
-  for (let col = Math.ceil(aMin / PW); col * PW < aMax; col++) {
-    if (col <= 0) continue;
-    const a = col * PW;
-    const lh = chash(col + bx * 131 + 900, by * 977 + (rot ? 7 : 3));
-    const side = chash(col + 3, by + bx) < 0.5 ? -1 : 1;
-    if (lh < TREE_ROW_P) {
-      const willow = lh < WILLOW_ROW_P;
-      for (let b = Math.ceil(bMin / 7) * 7; b < bMax; b += 7) {
-        const [x, y] = W(a + side * 2.1, b + (R() - 0.5) * 1.5);
-        if (!fadeKeep(x, y) || !okSpot(x, y, 1.6)) continue;
-        push(tile, willow ? 'willow' : 'tree', x, y, R() * 6.28, 0.85 + R() * 0.3, 0.85 + R() * 0.35, 0.85 + R() * 0.3, 0xffffff, 0.1);
-      }
-    } else if (lh < HEDGE_ROW_P) {
-      for (let b = Math.ceil(bMin / 2.2) * 2.2; b < bMax; b += 2.2) {
-        const [x, y] = W(a + side * 2.0, b);
-        if (!fadeKeep(x, y) || !okSpot(x, y, 1.5)) continue;
-        push(tile, 'hedge', x, y, lineAng + (R() - 0.5) * 0.3, 2.6, 0.9 + R() * 0.35, 1.3, 0xffffff, 0.08);
-      }
-    } else if (!covered && lh < WIRE_ROW_P) {
-      let run = null;
-      const flush = () => {
-        if (!run || run.n < 2) { run = null; return; }
-        const len = Math.hypot(run.x1 - run.x0, run.y1 - run.y0);
-        const mx = (run.x0 + run.x1) / 2, my = (run.y0 + run.y1) / 2;
-        const ang = -Math.atan2(run.y1 - run.y0, run.x1 - run.x0);
-        for (const h of [0.45, 0.85]) push(tile, 'wire', mx, my, ang, len, 1, 1, 0xffffff, 0, h);
-        run = null;
-      };
-      for (let b = Math.ceil(bMin / 3.5) * 3.5; b < bMax; b += 3.5) {
-        const [x, y] = W(a + side * 1.6, b);
-        if (!fadeKeep(x, y) || !okSpot(x, y, 1.4) || landUseAt(x, y) === 'akker') { flush(); continue; }
-        push(tile, 'post', x, y, R() * 6.28, 1, 0.9 + R() * 0.2, 1, 0xffffff, 0.12);
-        if (!run) run = { x0: x, y0: y, x1: x, y1: y, n: 1 };
-        else { run.x1 = x; run.y1 = y; run.n++; }
-      }
-      flush();
-    }
-  }
-  yield;
-  // #945: in a block with real tiles there are no procedural edges: the real
-  // edges (the tiles' mapped hedges and rows) are already there.
-  if (!covered) genFieldEdges(tile, bx, by, rot, aMin, bMin, W);
+  // #1092: no procedural field edges at all. A hedge, fence, ditch or tree row stands only where the map has
+  // one (the tiles' mapped barrier=hedge|fence, natural=tree_row and waterway=ditch, drawn by tileworld.js and
+  // streetfurniture3d.js with the one rule table of edgeclasses.js), so no parcel strip of the hash grid gets a
+  // row of trees, a hedge, barbed wire, a bank or a gate any more (docs/PERCEELRANDEN-21-11.md).
   yield;
 
   // polder-road verges: tree lanes of oaks / poplars
@@ -475,11 +410,6 @@ function genVillage(tile, v) {
   const here = (x, y) => x >= x0 && x < x0 + TILE && y >= y0 && y < y0 + TILE;
   if (here(v.x, v.y)) {
     push(tile, 'mound', v.x, v.y, 0, 1, 1, 1, 0xffffff, 0);
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2;
-      if (Math.abs(Math.cos(a) + 1) < 0.02) continue;
-      push(tile, 'hedge', v.x + Math.cos(a) * 16, v.y + Math.sin(a) * 16, -a + Math.PI / 2, 1.9, 0.8, 1.0, 0xffffff, 0.08, M3.TERP_H - 0.1);
-    }
   }
   for (const h of V.houses) if (here(h.x, h.y)) push(tile, 'house' + h.kind + (h.look % 2), h.x, h.y, -h.angle, 1, 1, 1, 0xffffff, 0.06);
   for (const t of V.trees) {
@@ -497,7 +427,7 @@ function genBridges(tile, bx, by) {
   if (maarX(bx) && edgeRoad(bx, by, 1) && edgeRoad(bx - 1, by, 1) && inTile(tile, X, Y + ROAD_C)) push(tile, 'bridge', X, Y + ROAD_C, 0, 1, 1, 1, 0xffffff, 0);
 }
 
-// Rows of trees, hedges and fences thin out towards the city in 25 m
+// Rows of trees thin out towards the city in 25 m
 // pieces, so the countryside fades in rather than starting on a line.
 function fadeKeep(x, y) {
   const r = ditchRamp(x, y);
@@ -505,219 +435,7 @@ function fadeKeep(x, y) {
 }
 
 
-// Graphics preset 'laag' (scene3d.js applyViewSettings): field edges with
-// fewer fences on wider posts with two strands, and no rushes, cross-ditch
-// fences or houtwal trees.
-// Applies to tiles laid out from then on.
-let fieldLow = false;
-export function setCountryPropLevel(level) { fieldLow = level === 'laag'; }
-
-function parcelGate(R, a0, b0, b1) {
-  if (R() >= 0.45) return null;
-  const endB = R() < 0.5 && b0 > 0 ? b0 + 1.9 : b1 < BLOCK ? b1 - 1.9 : b0 + 1.9;
-  return { endB, ga: a0 + 5 + R() * (PW - 14) };
-}
 const parcelRng = (seed) => mulberry(chash(Math.floor(seed * 1e7), 91));
-
-// pastures (and some mown strips) kept in by barbed wire
-// (x, y): where the tiles give the land use (OSM landuse), those decide. Without
-// real data there is no fictitious parcel with a fence any more (#945): those
-// edges ran over the real road (Winschoten). A real arable field keeps no edge either.
-function fencedParcel(seed, x, y) {
-  const real = landUseAt(x, y);
-  if (real !== 'weide' && real !== 'boomgaard') return false;
-  const h = chash(Math.floor(seed * 1e6), 5);
-  return h < 0.8;
-}
-
-// emit(s, e) for each stretch of samples t0, t0 + step, .. t1 that all pass
-// ok, cut into pieces of at most maxLen that share their end samples
-function lineRuns(t0, t1, step, ok, maxLen, emit) {
-  let s = null, last = 0;
-  for (let t = t0; t <= t1 + 1e-6; t += step) {
-    if (!ok(t)) { if (s !== null && last > s) emit(s, last); s = null; continue; }
-    if (s === null) s = t;
-    else if (t - s > maxLen) { if (last > s) emit(s, last); s = last; }
-    last = t;
-  }
-  if (s !== null && last > s) emit(s, last);
-}
-
-const segOf = (A, B) => [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, Math.hypot(B[0] - A[0], B[1] - A[1]), -Math.atan2(B[1] - A[1], B[0] - A[0])];
-const angOf = (P, t) => { const A = P(t, 0), B = P(t + 1, 0); return -Math.atan2(B[1] - A[1], B[0] - A[0]); };
-
-// A wire span across a (painted) ditch: the posts stand either side of it, the strands would hang over the water
-function spanOnDitch(ax, ay, bx, by) {
-  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 1.5));
-  for (let k = 1; k < n; k++) if (countrySurface(ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n) === 'sloot') return true;
-  return false;
-}
-
-// barbed wire: weathered posts, three dull strands
-// postUntil: the posts stop here (default t1); the last wire span runs on to t1, the first post of the next tile, so a
-// tile seam has no hole in the fence (a post and 5-10 m of wire were missing on every 160 m, #124)
-function fenceLine(tile, P, t0, t1, step, ok, postUntil = t1) {
-  let prev = null; // the sample before: the wire to it must not cross a ditch, lane or house of the tiles
-  let afterRail = false; // the fence was cut by the track: a field gate stands at each end of the cut (an overweghek)
-  const railGate = (x, y, t) => { if (!fieldLow) push(tile, 'gate', x, y, angOf(P, t), 1, 1, 1, 0xffffff, 0.04); };
-  lineRuns(t0, t1, step, (t) => {
-    const [x, y] = P(t);
-    if (!ok(x, y, t)) {
-      const onRail = nearRail(x, y);
-      if (prev && onRail) railGate(prev[0], prev[1], t);
-      afterRail = onRail;
-      prev = null;
-      return false;
-    }
-    const last = prev;
-    prev = [x, y];
-    if (afterRail) { railGate(x, y, t); afterRail = false; }
-    if (last && (edgeSpanBlocked(last[0], last[1], x, y, 0.5) || spanOnDitch(last[0], last[1], x, y))) return false;
-    if (t > postUntil) return true; // the neighbour tile's first post stands here
-    const h = chash(Math.round(x * 5), Math.round(y * 5));
-    return push(tile, 'post', x, y, h * 6.28, 1, 0.92 + h * 0.16, 1, 0xa89a86, 0.12);
-  }, 48, (a, b) => {
-    const [mx, my, len, ang] = segOf(P(a), P(b));
-    for (const h of fieldLow ? [0.5, 0.9] : [0.4, 0.68, 0.96]) push(tile, 'wire', mx, my, ang, len, 1, 1, 0x8e8e8a, 0, h);
-  });
-}
-
-// a mapped hedge this near makes the hash's own hedge stay out (m)
-const HEDGE_KEEP = 6;
-// a hedge, with a tree every treeStep m standing treeOff behind it (houtwal)
-function hedgeLine(tile, P, t0, t1, ok, treeStep, treeOff) {
-  const ang = angOf(P, t0);
-  for (let t = t0 + 1.1; t < t1; t += 2.2) {
-    const [x, y] = P(t, 0);
-    if (!ok(x, y) || hedgeMapped(x, y, HEDGE_KEEP)) continue; // OSM maps a hedge here: it is the real one
-
-    const h = chash(Math.round(x * 3), Math.round(y * 3) + 7);
-    push(tile, 'hedge', x, y, ang + (h - 0.5) * 0.3, 2.6, 0.9 + h * 0.4, 1.3, 0xffffff, 0.08);
-    if (treeStep && Math.floor(t / treeStep) !== Math.floor((t + 2.2) / treeStep)) {
-      const [tx, ty] = P(t, treeOff);
-      if (ok(tx, ty)) push(tile, h < 0.3 ? 'willow' : 'tree', tx, ty, h * 6.28, 0.8 + h * 0.3, 0.8 + h * 0.4, 0.8 + h * 0.3, 0xffffff, 0.1);
-    }
-  }
-}
-
-// Field boundaries: low grass banks along the painted ditches with tufts of
-// rush on the pastures, barbed wire round the pastures (their end fences
-// open on the strip's gate) and behind the polder-road verges with a gate
-// now and then, and the odd hedge or houtwal on a cross ditch or a road.
-function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
-  const aMax = aMin + TILE, bMax = bMin + TILE;
-  const step = fieldLow ? 8 : 5;
-  const gates = new Map();
-  const gateOf = (p) => {
-    let g = gates.get(p.seed);
-    if (g === undefined) gates.set(p.seed, g = parcelGate(parcelRng(p.seed), p.a0, p.b0, p.b1));
-    return g;
-  };
-  const fenceOk = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && fencedParcel(parcelAt(x, y).seed, x, y);
-  // across: a cross ditch, its bank running along a
-  const bankOk = (x, y, across) => {
-    if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 2) || edgeBlocked(x, y, 1)) return false;
-    const p = parcelAt(x, y);
-    if (osmDitchesAt(p.bx, p.by)) return false; // no painted ditch here, so no bank
-    if (p.road || p.dMain < MAIN_HW + 0.8 || p.dMaar < MAAR_HW + 1 || !thinDitchOn(p)) return false;
-    const other = across ? Math.min(p.a - p.a0, p.a1 - p.a) : Math.min(p.b - p.b0, p.b1 - p.b);
-    return other >= 1.8 && clearOfRoad(x, y, 0.8);
-  };
-  const bank = (P, t0, t1, across) => {
-    lineRuns(t0, t1, 2.5, (t) => {
-      const [x, y] = P(t, 1.25);
-      if (!bankOk(x, y, across)) return false;
-      if (!fieldLow && chash(Math.round(x * 2), Math.round(y * 2) + 17) < 0.1 && parcelUse(parcelAt(x, y).seed) === 'pasture') {
-        const [rx, ry] = P(t, 1.0), h = chash(Math.round(x * 7), Math.round(y * 7));
-        push(tile, 'rush', rx, ry, h * 6.28, 0.8 + h * 0.5, 0.8 + h * 0.5, 0.8 + h * 0.5, 0xffffff, 0.1);
-      }
-      return true;
-    }, fieldLow ? 30 : 20, (s, e) => {
-      const [mx, my, len, ang] = segOf(P(s - 0.6, 1.25), P(e + 0.6, 1.25));
-      push(tile, 'bank', mx, my, ang, len, 1, 1, 0xffffff, 0.06);
-    });
-  };
-
-  // strip ditches: banks on both sides, barbed wire on a pasture side of a
-  // line without a row of its own (one side where both are pasture)
-  for (let col = Math.ceil(aMin / PW); col * PW < aMax; col++) {
-    if (col <= 0) continue;
-    const a = col * PW;
-    const lh = chash(col + bx * 131 + 900, by * 977 + (rot ? 7 : 3));
-    const pick = chash(col + bx * 7, by * 5 + 33) < 0.5 ? -1 : 1;
-    const t0 = Math.max(bMin, 0) + 1.25, t1 = Math.min(bMax, BLOCK) - 0.01;
-    // the fences run from the tile's own edge to the next tile's first post
-    const f0 = Math.ceil(Math.max(bMin, 0) / step) * step, f1 = Math.min(bMax, BLOCK);
-    for (const sd of [-1, 1]) {
-      bank((t, o) => W(a + sd * o, t), t0, t1, false);
-      if (lh < (fieldLow ? 0.67 : WIRE_ROW_P)) continue;
-      fenceLine(tile, (t) => W(a + sd * 1.9, t), f0, f1, step, (x, y, t) => {
-        if (!fenceOk(x, y)) return false;
-        if (sd === pick) return true;
-        const [ox, oy] = W(a - sd * 1.9, t);
-        return !fencedParcel(parcelAt(ox, oy).seed, ox, oy);
-      }, t1);
-    }
-  }
-
-  // cross ditches between the strips' parcels: banks, the pastures' end
-  // fences with a gap for their gate, or now and then a hedge / houtwal
-  for (let col = Math.floor(aMin / PW); col * PW < aMax; col++) {
-    const a0 = col * PW, a1 = a0 + PW;
-    const off = chash(col + bx * 131 + by * 977, rot ? 18 : 17) * PL;
-    for (let row = Math.ceil((bMin + off) / PL); row * PL - off < bMax; row++) {
-      const b = row * PL - off;
-      if (b <= 0 || b >= BLOCK) continue;
-      const t0 = Math.max(a0, aMin), t1 = Math.min(a1, aMax) - 0.01;
-      for (const sd of [-1, 1]) bank((t, o) => W(t, b + sd * o), t0 + 1.25, t1, true);
-      if (fieldLow) continue;
-      const kind = chash(col * 17 + bx * 31 + row, by * 13 + 404);
-      if (kind < 0.09) {
-        const sd = kind < 0.045 ? -1 : 1;
-        const [px, py] = W((a0 + a1) / 2, b + sd * 3);
-        if (gateOf(parcelAt(px, py))) continue;
-        const ok = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.5);
-        hedgeLine(tile, (t, o) => W(t, b + sd * (2.0 + o)), t0, t1, ok, kind < 0.06 ? 8 : 0, 0.5);
-        continue;
-      }
-      for (const sd of [-1, 1]) {
-        const bl = b + sd * 1.9;
-        fenceLine(tile, (t) => W(t, bl), a0 + 2, a1 - 2, step, (x, y) => {
-          const p = parcelAt(x, y);
-          if (p.a < aMin || p.a >= aMax) return false;
-          const g = gateOf(p);
-          if (g && Math.abs(g.endB - bl) < 0.5 && Math.abs(p.a - g.ga) < 2.4) return false;
-          return fenceOk(x, y);
-        });
-      }
-    }
-  }
-
-  // polder roads: barbed wire behind the verge with a field gate now and
-  // then, or a houtwal where the road has no lane of trees
-  const x0 = tile.tx * TILE, y0 = tile.ty * TILE;
-  for (const s of [0, 1]) {
-    if (!edgeRoad(bx, by, s) || (s === 0 ? x0 - bx * BLOCK : y0 - by * BLOCK) !== 0) continue;
-    const rh = chash(bx * 17 + s * 5 + 3, by * 23 + 11);
-    const off = ROAD_IN + ROAD_W + 3.4, base = s === 0 ? y0 : x0;
-    const P = (t, o = 0) => (s === 0 ? [x0 + off + o, y0 + t] : [x0 + t, y0 + off + o]);
-    const ok = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && !farmAt(x, y, 5) && landUseAt(x, y) !== 'akker';
-    if (rh < 0.6) {
-      const gateAt = (k) => chash(k + s * 7919, (s === 0 ? bx : by) * 31 + 3) < 0.45;
-      const gap = (u) => { const k = Math.floor(u / 48); return gateAt(k) && Math.abs(u - (k + 0.5) * 48) < 2.4; };
-      fenceLine(tile, P, 2, TILE - 0.01, step, (x, y) => !gap(s === 0 ? y : x) && ok(x, y));
-      for (let k = Math.floor(base / 48); (k + 0.5) * 48 < base + TILE; k++) {
-        const u = (k + 0.5) * 48;
-        if (u < base || !gateAt(k)) continue;
-        const [gx, gy] = P(u - base);
-        if (ok(gx, gy)) push(tile, 'gate', gx, gy, s === 0 ? -Math.PI / 2 : 0, 1, 1, 1, 0xffffff, 0.04);
-      }
-    } else if (rh < 0.72 && !ROAD_ROW(bx, by, s)) {
-      hedgeLine(tile, P, 0, TILE, ok, fieldLow ? 0 : 9, 0.6);
-    }
-  }
-}
-
 const HERD_STEP = 8;
 function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
@@ -740,26 +458,6 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     // (every HERD_STEP m: the herd grazes over the whole strip; a 5 x 5 grid let a pond, a ditch or the track through, #210)
     const nx = Math.max(2, Math.ceil((rect[2] - rect[0]) / HERD_STEP)), ny = Math.max(2, Math.ceil((rect[3] - rect[1]) / HERD_STEP));
     for (let i = 0; i <= nx && herdsOk; i++) for (let j = 0; j <= ny; j++) { const hx = rect[0] + ((rect[2] - rect[0]) * i) / nx, hy = rect[1] + ((rect[3] - rect[1]) * j) / ny; if (edgeBlocked(hx, hy, 3) || landUseAt(hx, hy) === 'akker') { herdsOk = false; break; } }
-  }
-
-  // gate at one end of the strip, with short fence wings (a fenced
-  // pasture's end fence comes from genFieldEdges)
-  const gate = parcelGate(R, a0, b0, b1);
-  if (gate) {
-    const { endB, ga } = gate;
-    const [gx, gy] = W(ga, endB);
-    if (okSpot(gx, gy, 0.5)) {
-      const across = rot ? -Math.PI / 2 : 0;
-      push(tile, 'gate', gx, gy, across + (R() < 0.3 ? 0.5 : 0), 1, 1, 1, 0xffffff, 0.04);
-      for (const s of fieldLow || !fencedParcel(seed, gx, gy) ? [-1, 1] : []) {
-        for (let k = 1; k <= 2; k++) {
-          const [px, py] = W(ga + s * (2.1 + k * 2.2), endB);
-          if (okSpot(px, py, 0.5)) push(tile, 'post', px, py, 0, 1, 1, 1, 0xffffff, 0.12);
-        }
-        const [mx, my] = W(ga + s * 4.3, endB);
-        for (const h of [0.45, 0.85]) push(tile, 'wire', mx, my, rot ? -Math.PI / 2 : 0, 4.4, 1, 1, 0xffffff, 0, h);
-      }
-    }
   }
 
   // round bales on mown / hay strips, sometimes in long rows
@@ -836,10 +534,6 @@ const PROP_TYPES = {
   tree: { geo: M3.roundTreeGeometry, cap: 9000, shadow: true },
   poplar: { geo: M3.poplarGeometry, cap: 6000, shadow: true },
   willow: { geo: M3.willowGeometry, cap: 4000, shadow: true },
-  hedge: { geo: M3.hedgeGeometry, cap: 8000, shadow: false },
-  post: { geo: () => M3.boxGeometry(0.11, 1.15, 0.11, 0x8d8474), cap: 9000, shadow: false },
-  wire: { geo: () => M3.boxGeometry(1, 0.025, 0.025, 0xdad6c8), cap: 6000, shadow: false },
-  gate: { geo: M3.gateGeometry, cap: 1500, shadow: false },
   bale: { geo: M3.baleGeometry, cap: 6000, shadow: true },
   barrack: { geo: M3.barrackGeometry, cap: 300, shadow: true },
   reed: { geo: M3.reedGeometry, cap: 14000, shadow: false, near: true, double: true },
@@ -863,8 +557,6 @@ const PROP_TYPES = {
   clubhouse: { geo: M3.clubhouseGeometry, cap: 40, shadow: true },
   mast: { geo: M3.lightMastGeometry, cap: 200, shadow: true },
   goal: { geo: M3.goalGeometry, cap: 120, shadow: false },
-  bank: { geo: M3.bankGeometry, cap: 6000, shadow: false },
-  rush: { geo: M3.rushGeometry, cap: 6000, shadow: false },
 };
 farmGeo(M3.farmKHRGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fkhr' + i] = { geo: g, cap: 120, shadow: true }; });
 farmGeo(M3.farmOldaGeometry, M3.OLDA_LOOKS).forEach((g, i) => { PROP_TYPES['folda' + i] = { geo: g, cap: 120, shadow: true }; });
@@ -1132,7 +824,6 @@ function syncTiles(px, py, viewDist, budgetEnd) {
 }
 
 function loadTile(t) {
-  setTileWalls(t.tx, t.ty, t.walls);
   setTileTrunks(t.tx, t.ty, t.trunks);
   setTileSolids(t.tx, t.ty, t.solids);
   t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
@@ -1153,7 +844,6 @@ function loadTile(t) {
 }
 
 function unloadTile(t) {
-  clearTileWalls(t.tx, t.ty);
   clearTileTrunks(t.tx, t.ty);
   clearTileSolids(t.tx, t.ty);
   const ch = chunkFor(t);
@@ -1177,7 +867,7 @@ function unloadTile(t) {
   }
 }
 
-// Reed clumps along the ditch banks, only for tiles near the player.
+// Reed clumps along the banks of the polder's maaren (#1092: no longer along the parcel grid's ditches), only for tiles near the player.
 function addReeds(t) {
   t.reeds = true;
   const it = reedItems(t);
@@ -1197,42 +887,7 @@ function addReeds(t) {
 function reedItems(t) {
   const x0 = t.tx * TILE, y0 = t.ty * TILE;
   const bx = Math.floor(x0 / BLOCK), by = Math.floor(y0 / BLOCK);
-  const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
-  const lx0 = x0 - bx * BLOCK, ly0 = y0 - by * BLOCK;
-  const aMin = rot ? ly0 : lx0, bMin = rot ? lx0 : ly0;
   const tmp = { items: {} };
-  const put = (a, b) => {
-    const [x, y] = blockToWorld(bx, by, rot, a, b);
-    const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-    if (clump > 0.42 || !openLand(x, y)) return;
-    const p = parcelAt(x, y);
-    if (p.road || p.dMain < MAIN_HW * 0.8 || p.dMaar < MAAR_WATER || (p.dDitch < DITCH_HW * 0.72 && p.dMain > MAIN_HW + 0.5)) return;
-    if (farmAt(x, y, 0) || inVillage(x, y, 0) || edgeBlocked(x, y, 1)) return;
-    if (p.dDitch < DITCH_HW * 0.72 + 1.2 && p.dMain > MAIN_HW + 0.5 && !thinDitchOn(p)) return;
-    const h = chash(Math.round(x * 3), Math.round(y * 3));
-    push(tmp, 'reed', x, y, h * 6.28, 0.9 + h * 0.3, 0.6 + clump * 1.1, 0.9 + h * 0.3, 0xffffff, 0.12);
-  };
-  // strip ditches (and the block's own main ditch at a = 0 / b = 0)
-  for (let col = Math.ceil(aMin / PW); col * PW < aMin + TILE; col++) {
-    const a = col * PW, hw = col === 0 ? MAIN_HW * 0.8 : DITCH_HW * 0.72;
-    for (let b = bMin + 0.6; b < bMin + TILE; b += 1.25) {
-      for (const sd of [-1, 1]) put(a + sd * (hw + 0.25 + chash(Math.round(b * 4), col) * 0.35), b);
-    }
-  }
-  if (bMin === 0) {
-    for (let a = aMin + 0.6; a < aMin + TILE; a += 1.25) put(a, MAIN_HW * 0.8 + 0.3 + chash(Math.round(a * 4), 9) * 0.35);
-  }
-  // cross ditches between the strips' parcels
-  for (let col = Math.floor(aMin / PW); col * PW < aMin + TILE; col++) {
-    const off = chash(col + bx * 131 + by * 977, rot ? 18 : 17) * PL;
-    for (let row = Math.ceil((bMin + off) / PL); row * PL - off < bMin + TILE; row++) {
-      const b = row * PL - off;
-      if (b <= 0 || b >= BLOCK) continue;
-      for (let a = col * PW + 1.5; a < col * PW + PW - 1.5; a += 1.25) {
-        for (const sd of [-1, 1]) put(a, b + sd * (DITCH_HW * 0.72 + 0.25 + chash(Math.round(a * 4), row) * 0.35));
-      }
-    }
-  }
   // maar banks
   for (const [on, vert, c] of [[maarX(bx), true, bx * BLOCK], [maarX(bx + 1), true, (bx + 1) * BLOCK], [maarY(by), false, by * BLOCK], [maarY(by + 1), false, (by + 1) * BLOCK]]) {
     if (!on) continue;
@@ -1605,8 +1260,6 @@ function gameplay(dt, world) {
   if (countryWeight(p.x, p.y) > 0.5) {
     pushOutOfPlan(p, p.radius || 0.35);
     pushOutOfTrunks(p, p.radius || 0.35);
-    // field hedges and fences: over them only with a vault (player.js)
-    if (!p.vault && (p.gz || 0) < 0.5 && (p.z || 0) < 1) pushOutOfWalls(p, p.radius || 0.35);
   }
   S.surf = wading ? 'sloot' : null;
   S.prev = [p.x, p.y];

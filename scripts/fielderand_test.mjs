@@ -19,16 +19,14 @@ ok(provinceBlock(9, 20) === false && provinceBlock(10, 22) === false, 'buiten he
 setProvinceBlocks(null);
 ok(provinceBlock(10, 20) === false, 'zonder provincielaag is niets covered');
 
-// 2. de bron: de fictieve randen zijn weg en de echte data is de baas
+// 2. de bron: er zijn helemaal geen procedurele randen meer (#1092, voorheen alleen in een gedekt blok, #945)
 const src = fs.readFileSync(new URL('../game/js/countryside.js', import.meta.url), 'utf8');
-const fenced = src.slice(src.indexOf('function fencedParcel('), src.indexOf('// emit(s, e)'));
-ok(fenced.length > 0, 'fencedParcel gevonden');
-ok(/real !== 'weide' && real !== 'boomgaard'/.test(fenced), 'alleen een echte weide of boomgaard krijgt een rand');
-ok(!/parcelUse\(seed\)/.test(fenced), 'geen fictieve grondsoort meer in fencedParcel (#945)');
-ok(/const covered = provinceBlock\(bx, by\)/.test(src), 'de tegel kent de gedekte blokken');
-ok(/if \(!covered\) genFieldEdges\(/.test(src), 'in een gedekt blok geen procedurele veldranden');
-ok(/else if \(!covered && lh < WIRE_ROW_P\)/.test(src), 'ook geen fictief raster op de perceelgrens in een gedekt blok');
-ok(!/genRealFieldEdges/.test(src), 'geen verweesde generator');
+for (const naam of ['genFieldEdges', 'fenceLine', 'hedgeLine', 'fencedParcel', 'parcelGate', 'spanOnDitch', 'WIRE_ROW_P', 'HEDGE_ROW_P', 'TREE_ROW_P', 'hedgeMapped'])
+  ok(!src.includes(naam), 'countryside.js kent ' + naam + ' niet meer');
+for (const soort of ['post', 'wire', 'gate', 'bank', 'rush'])
+  ok(!new RegExp("push\\(tile, '" + soort + "'").test(src), 'countryside.js zet geen ' + soort + ' meer');
+ok(!/PROP_TYPES[\s\S]{0,200}\b(post|wire|gate|bank|rush): \{/.test(src.slice(src.indexOf('const PROP_TYPES'), src.indexOf('const PROP_TYPES') + 600)), 'de proptabel heeft geen randsoorten meer');
+ok(/#1092: no procedural field edges at all/.test(src), 'de plek van de oude randen draagt de regel');
 
 console.log(`${n - fails}/${n} fielderand`);
 process.exit(fails ? 1 : 0);
