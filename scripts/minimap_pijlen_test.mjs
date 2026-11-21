@@ -1,6 +1,6 @@
 // Contrast- en kleurenblindheidscontrole van het voorgestelde pijlenstelsel van de minimap (docs/MINIMAP-PIJLEN-21-11.md, #1078).
-//   node scripts/minimap_pijlen_check.mjs            controleert en faalt bij een onderschrijding
-//   node scripts/minimap_pijlen_check.mjs --tabel    schrijft de tabellen voor het document (markdown)
+//   node scripts/minimap_pijlen_test.mjs            controleert en faalt bij een onderschrijding
+//   node scripts/minimap_pijlen_test.mjs --tabel    schrijft de tabellen voor het document (markdown)
 //
 // Wat het meet (alles uit de tokens, niets met de hand):
 //  1. contrast van elke pijlkleur tegen de minikaartkleuren (weiland, park, water, weg, gebouwen) en tegen de donkere pijlrand (glas): niet-tekst 3:1;
@@ -47,8 +47,8 @@ export const ACHTERGRONDEN = {
 const glas = dsKleur('glas'), creme = dsKleur('creme');
 // de pijlkleuren per alternatief (A1 = voorkeur): naam -> hex
 export const PIJLEN = {
-  'A1 Eén geel': { actief: dsKleur('ink-geel'), secundair: dsKleur('creme'), zorg: dsKleur('ink-roze') },
-  'A2 Geel en paars': { actief: dsKleur('ink-geel'), eigen: PALETTES.uit.user, secundair: dsKleur('creme'), zorg: dsKleur('ink-roze') },
+  'A1 Eén geel': { actief: dsKleur('ink-geel'), secundair: dsKleur('creme'), zorg: PALETTES.uit.care },
+  'A2 Geel en paars': { actief: dsKleur('ink-geel'), eigen: PALETTES.uit.user, secundair: dsKleur('creme'), zorg: PALETTES.uit.care },
   'A3 Per categorie': { missie: PALETTES.uit.mission, eigen: PALETTES.uit.user, klus: PALETTES.uit.job, zorg: PALETTES.uit.care },
 };
 // de drie kleurenblindpaletten (a11y.js) voor de oude kleuren, om te laten zien waarom A3 daar schuurt
@@ -108,14 +108,14 @@ function tabel() {
   console.log('Contrast van de pijlkleur tegen de minikaart (WCAG 2; niet-tekst 3:1) en tegen de donkere pijlrand (glas)\n');
   console.log(`| Alternatief | Rol | Hex | op glas | ${kop.join(' | ')} | minimum | met rand |`);
   console.log(`|---|---|---|---|${kop.map(() => '---').join('|')}|---|---|`);
-  for (const r of rijen) console.log(`| ${r.alt} | ${r.rol} | \`${r.hex}\` | ${f(r.opGlas)} | ${kop.map((k) => f(r[k])).join(' | ')} | ${f(r.min)} | ${f(r.eff)} |`);
+  for (const r of rijen.filter((x) => x.alt !== 'A1 Eén geel')) console.log(`| ${r.alt} | ${r.rol} | \`${r.hex}\` | ${f(r.opGlas)} | ${kop.map((k) => f(r[k])).join(' | ')} | ${f(r.min)} | ${f(r.eff)} |`);
   console.log('\nOnderscheid tussen twee pijlkleuren (CIE76 ΔE; vanaf 20 zijn ze ook zonder vorm te scheiden), met kleurenblindheid gesimuleerd\n');
   console.log('| Alternatief | Paar | normaal | deuteranopie | protanopie | tritanopie |');
   console.log('|---|---|---|---|---|---|');
-  for (const p of paren) console.log(`| ${p.alt} | ${p.a} / ${p.b} | ${f(p.normaal, 0)} | ${f(p.deuteranopie, 0)} | ${f(p.protanopie, 0)} | ${f(p.tritanopie, 0)} |`);
-  console.log('\nDe huidige paletten (a11y.js) per kleurenblindstand, A3 (per categorie): ΔE tussen missie (geel), eigen doel, klus en zorg zoals de speler ze ziet\n');
-  console.log('| Instelling | missie | eigen | klus | zorg | kleinste ΔE (waargenomen) | welk paar |');
-  console.log('|---|---|---|---|---|---|---|');
+  for (const p of paren.filter((x) => x.alt === 'A2 Geel en paars')) console.log(`| ${p.alt} | ${p.a} / ${p.b} | ${f(p.normaal, 0)} | ${f(p.deuteranopie, 0)} | ${f(p.protanopie, 0)} | ${f(p.tritanopie, 0)} |`);
+  console.log('\nDe huidige paletten (a11y.js) per kleurenblindstand, ΔE tussen missie (geel), eigen doel, klus en zorg zoals de speler ze ziet (alle paren; het kleinste staat erbij)\n');
+  console.log('| Instelling | missie | eigen | klus | zorg | geel/eigen | kleinste ΔE (waargenomen) | welk paar |');
+  console.log('|---|---|---|---|---|---|---|---|');
   for (const [k, set] of Object.entries(CB_A3)) {
     const z = k === 'uit' ? 'normaal' : k;
     const namen = Object.keys(set);
@@ -124,7 +124,7 @@ function tabel() {
       const d = deltaE(simuleer(set[namen[i]], z), simuleer(set[namen[j]], z));
       if (d < min) { min = d; wie = `${namen[i]}/${namen[j]}`; }
     }
-    console.log(`| ${k} | \`${set.missie}\` | \`${set.eigen}\` | \`${set.klus}\` | \`${set.zorg}\` | ${f(min, 0)} | ${wie} |`);
+    console.log(`| ${k} | \`${set.missie}\` | \`${set.eigen}\` | \`${set.klus}\` | \`${set.zorg}\` | ${f(deltaE(simuleer(set.missie, z), simuleer(set.eigen, z)), 0)} | ${f(min, 0)} | ${wie} |`);
   }
 }
 
@@ -133,6 +133,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   else {
     const fails = controle();
     if (fails.length) { for (const x of fails) console.log('FAIL', x); process.exit(1); }
-    console.log('minimap_pijlen_check: ok');
+    console.log('minimap_pijlen_test: ok');
   }
 }
