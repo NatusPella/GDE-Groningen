@@ -85,5 +85,9 @@ export const createRetryOffer = (missionIndex, now) => ({ missionIndex, until: n
 
 export const retryOfferLive = (o, now) => !!o && !o.done && now < o.until;
 
+// Overzicht (#985 punt 16): de rij Opnieuw beginnen blijft staan zolang het aanbod bij de laatste missie hoort, ook na de 40 s van de Enter-hint.
+// Alleen de hint (en Enter) verlopen; een nieuwe missie, laden of een andere keten wist het aanbod zelf.
+export const retryOverzichtLive = (o, index) => !!o && !o.done && o.missionIndex === index;
+
 // Wat de speler kan indrukken: Enter, of E (gamepad en touch sturen E).
 export const RETRY_KEYS = ['enter', 'e'];

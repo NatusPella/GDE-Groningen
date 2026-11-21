@@ -7,7 +7,7 @@
 // Instellingen, Besturing.
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
-import { retryBeschikbaar, herstartMissie } from './missions.js';   // #985 punt 16
+import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
@@ -2143,6 +2143,7 @@ function runAction(a) {
   } else if (a === 'mission-retry') {
     // #985 punt 16: dezelfde weg als Enter na een mislukking; geen bevestiging nodig.
     if (herstartMissie(world)) setOpen(false);
+    else status(herstartBlokkade(world) || 'Even wachten, dan kan het opnieuw.');
   } else if (a === 'mission-stop-go') {
     if (world.safetyActions && world.safetyActions.cancelMission()) setOpen(false);
   } else if (a === 'unstuck') {

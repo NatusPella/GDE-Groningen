@@ -100,7 +100,7 @@ const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
 import {
   isCheckpointStage, makeCheckpoint, applyCheckpointProgress, recordCheckpoint, createGrace, stepGrace,
-  createRetryOffer, retryOfferLive, RETRY_KEYS,
+  createRetryOffer, retryOfferLive, retryOverzichtLive, RETRY_KEYS,
 } from './missioncheckpoint.js';
 import { placeParty } from './storytravel.js';
 import { respawnFade } from './respawn.js';
@@ -1778,12 +1778,22 @@ const RETRY_FADE_S = 0.45;
 // Overzicht-knop gebruikt hem. Puur op de ketenstand, zodat de test hem kan naspelen.
 export function retryBeschikbaar() {
   const st = chainState();
-  return !!(st && st.retry && retryOfferLive(st.retry, worldRef ? worldRef.time : Infinity));
+  return !!(st && st.retry && retryOverzichtLive(st.retry, st.index));
+}
+// Dezelfde bewakers als Enter: tijdens een cutscene, respawn, bijbaan of activiteit begint de missie niet opnieuw (anders gaan groep en
+// voertuig midden in die activiteit naar de start). Geeft de reden voor de speler, of '' als het kan.
+export function herstartBlokkade(world) {
+  if (!world) return 'Even wachten.';
+  if (isCinematicActive() || world.pendingRespawn) return 'Even wachten: er loopt een filmpje of je komt net terug.';
+  if (world.sideJob && world.sideJob.active) return 'Rond eerst je bijbaan af.';
+  if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return 'Rond eerst je activiteit af.';
+  return '';
 }
 export function herstartMissie(world) {
   const st = chainState();
   if (!st || !st.retry || !world) return false;
   if (st.phase !== 'idle') return false;
+  if (st.retry.missionIndex !== st.index || herstartBlokkade(world)) return false;
   st.retry.fade = RETRY_FADE_S;
   respawnFade(1, 350);
   return true;
@@ -1804,8 +1814,10 @@ function updateRetry(dt, world, def) {
     respawnFade(0, 500);
     return;
   }
-  if (r.missionIndex !== chainState().index || !retryOfferLive(r, world.time)) { chainState().retry = null; return; }
+  if (r.missionIndex !== chainState().index) { chainState().retry = null; return; }
   if (chainState().phase !== 'idle') return;
+  // na de 40 s verloopt alleen de hint met Enter; de rij Opnieuw beginnen in Overzicht blijft (retryBeschikbaar)
+  if (!retryOfferLive(r, world.time)) return;
   // #591: this used to drop the offer when the player was near the start. Together with `armed = false`
   // after a failure that made a dead zone right around the marker: no offer and no re-trigger until he
   // walked a few metres away. The offer is fine close by (Enter still restarts at the start).
