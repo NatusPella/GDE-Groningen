@@ -65,7 +65,7 @@ export const HELP_TOPICS = [
   { id: 'geluid', title: 'Geluid uit of weer aan', lines: [
     'Staat het geluid uit, dan staat linksboven in beeld een luidspreker met een streep erdoor, met de toets erbij. Druk op {U} om het weer aan te zetten.',
     'Zie je dat teken en hoor je niets, dan is er niets kapot: het geluid staat gewoon uit. Onder {ESC} › Instellingen › Geluid & ondertitels staan de volumeschuiven.',
-    'De radio gaat apart aan en uit met {N}; met Shift erbij kies je de volgende zender. Het volume van muziek, effecten en stemmen stel je in onder {ESC} › Instellingen › Geluid & ondertitels.',
+    'De radio gaat apart aan en uit met {N}; met {SHIFT} erbij kies je de volgende zender. Het volume van muziek, effecten en stemmen stel je in onder {ESC} › Instellingen › Geluid & ondertitels.',
   ] },
 ];
 

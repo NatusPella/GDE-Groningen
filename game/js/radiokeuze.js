@@ -8,6 +8,7 @@ import { shortcutName } from './dsbutton.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // row: radio.js channelList(): { id, name, sub, dj, tracks, status: 'open' | 'soon', active }
+const ARIA_SHIFT = 'Shift'; // naam van de wijzigertoets in aria-keyshortcuts (geen spelertekst)
 export function channelRowHtml(row) {
   const soon = row.status === 'soon';
   const value = row.active ? 'Aan' : soon ? 'Binnenkort' : '';
@@ -19,7 +20,7 @@ export function channelRowHtml(row) {
 
 // The "Volgende zender" button with Shift+N inside (two glyphs in one button; data-gk sits on each of them).
 export function nextButtonHtml() {
-  return `<button type="button" class="ds-z-knop ds-z-knop--secundair ds-z-knop--toets" data-channel-next data-key="N" aria-keyshortcuts="${esc('Shift+' + shortcutName('N'))}">`
+  return `<button type="button" class="ds-z-knop ds-z-knop--secundair ds-z-knop--toets" data-channel-next data-key="N" aria-keyshortcuts="${esc(ARIA_SHIFT + '+' + shortcutName('N'))}">` // keywords-ok: ARIA-syntaxis, geen spelertekst
     + `<span class="ds-z-knop__label">Volgende zender</span>`
     + `<span class="ds-z-knop__toets" aria-hidden="true">${glyphHtml('SHIFT')}${glyphHtml('N')}</span></button>`;
 }

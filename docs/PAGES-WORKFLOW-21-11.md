@@ -1,7 +1,7 @@
 # Pages-workflow voor de webversie, 21-11 (#1090)
 
 Vervolg op [PAGES-BUILD-21-11.md](PAGES-BUILD-21-11.md) (de lokale proefbouw). Dit document beschrijft de workflow
-`.github/workflows/pages-deploy.yml`, de gemaakte keuzes (ADR [0045](../.specs-fire/standards/adr/0045-pages-webversie-wereld-uit-release-opus-only.md))
+`.github/workflows/pages-deploy.yml`, de gemaakte keuzes (ADR [0048](../.specs-fire/standards/adr/0048-pages-webversie-wereld-uit-release-opus-only.md))
 en wat er in de webversie niet werkt. **Er is niets gedeployd**: de coördinator start de workflow zelf na de merge
 (constitutie 8).
 
@@ -42,7 +42,7 @@ Gebruik `pages.yml` niet meer zodra het spel live staat: die zet alleen de marke
 
 ## De keuzes, met afgewezen alternatieven
 
-Volledig in ADR 0045. Kort:
+Volledig in ADR 0048. Kort:
 
 - **Wereld uit het release-asset**, niet bouwen op de runner (de provincie-extract is niet in git; uren, GB's en gratis minuten)
   en geen lokale cache (die bestaat niet op een runner). Afgewezen: een ingekorte webwereld (eigen variant, ander pad dan Electron),

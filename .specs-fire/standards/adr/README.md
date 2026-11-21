@@ -81,19 +81,19 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0029](0029-hostsleutel-in-aankondiging.md) | Hostsleutel in de aankondiging bindt het join-antwoord aan de host | besloten |
 | [0030](0030-terreingrond-als-buildcache.md) | De terreingrond is een build-cache, geen runtime-werk | voorgesteld |
 | [0031](0031-laadscherm-warmt-startbuurt.md) | Het laadscherm bouwt de startbuurt en de shaders voor | besloten |
+| [0032](0032-opening-terug-naar-gescripte-scene.md) | De standaardopening is weer de gescripte scène | besloten |
 | [0033](0033-montage-terug-met-performance-vangnet.md) | De trailer-montage blijft C00.1 met performance-vangnet | 2026-11-11 |
 | [0034](0034-ai-releasegate-met-bewijs.md) | Een releasegate met bewijs, AI-beeldreview en AI-code-review | besloten |
 | [0035](0035-eerste-persoon-en-interieur-lods.md) | Eerste persoon is een speelcamera, interieurs krijgen drie LOD's | besloten |
 | [0036](0036-alle-voertuigfamilies-interieur.md) | Alle voertuigfamilies krijgen een eigen interieur volgens het #833-patroon | besloten |
 | [0037](0037-perf-norm-30fps.md) | Perf-norm v2: 30 fps-p95, werktijd en een 1 s-hitchbudget | besloten |
 | [0038](0038-altijd-online-met-instemming.md) | Altijd online met een verplichte naam en expliciete instemming | besloten |
-| [0032](0032-opening-terug-naar-gescripte-scene.md) | De standaardopening is weer de gescripte scène | besloten |
 | [0039](0039-licentievrije-audio-met-credits.md) | Licentievrije audio (CC0/CC-BY) van Freesound met credits | besloten |
 | [0040](0040-zomerse-zeefdruk-als-designsysteem.md) | Zomerse zeefdruk als enig designsysteem (v3) | besloten |
 | [0041](0041-phosphor-als-iconenset.md) | Phosphor als enige iconenset | besloten |
 | [0042](0042-voetbalcarriere-eigen-profiel-en-dagteller.md) | Voetbalcarrière: eigen profiel, eigen dagteller, geen twintigste vak | voorgesteld |
 | [0043](0043-parodienamen-voor-voetbalclubs.md) | Parodienamen op echte clubs voor alle voetbalclubs | voorgesteld |
-| [0045](0045-autotuning-een-systeem-voor-alle-voertuigen.md) | Autotuning: één uiterlijk-systeem voor alle voertuigen, als overlay | aangenomen |
 | [0044](0044-interieurs-in-het-pand-zelf.md) | Interieurs in het pand zelf, lui gebouwd (geen teleport) | besloten |
-| [0045](0045-pages-webversie-wereld-uit-release-opus-only.md) | Pages-webversie: wereld uit de release, alleen Opus, onder /play/ | besloten |
+| [0045](0045-autotuning-een-systeem-voor-alle-voertuigen.md) | Autotuning: één uiterlijk-systeem voor alle voertuigen, als overlay | aangenomen |
 | [0046](0046-radiozenders-met-eigen-pool-en-anti-herhaling.md) | Radiozenders: een keuze uit zenders met eigen pool, zonder dat het gaat herhalen | voorgesteld |
+| [0048](0048-pages-webversie-wereld-uit-release-opus-only.md) | Pages-webversie: wereld uit de release, alleen Opus, onder /play/ | besloten |
