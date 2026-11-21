@@ -9,6 +9,7 @@ import { padButtonIndex, playerPad } from './glyphs.js';
 import { treinReis } from './trainride.js';
 import { start3dRit } from './reisrit3d.js';
 import { perronZAt } from './perrons.js';
+import { noteOvGebruikt } from './ovhintlive.js';
 
 let active = null;
 
@@ -296,6 +297,7 @@ export function startMeerijden(world, optie, dest) {
     world.addMessage('Te weinig geld voor dit kaartje', 2.5);
     return Promise.resolve({ aangekomen: false });
   }
+  if (plan.mode === 'taxi' || plan.mode === 'trein' || plan.mode === 'bus') noteOvGebruikt(); // de lichte hint (#1091) zwijgt voor wie het OV of de taxi al pakt
   if (plan.mode === 'taxi' || plan.mode === 'trein') {
     const laadTeller = world.loadCount || 0;
     let echt = null;

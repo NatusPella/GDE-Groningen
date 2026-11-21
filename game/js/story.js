@@ -11,6 +11,7 @@ import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailab
 import { makeTick } from './tickbudget.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
+import { tickOvHint } from './ovhintlive.js';
 import { gateOn } from './coopgate.js'; import { markeerStartStap } from './multiplayerlaunchtiming.js';
 import { startMeerijden } from './reisrit.js';
 import { FLAGS } from './devflags.js';
@@ -1256,9 +1257,11 @@ export function updateStory(dt, w) {
   }
   // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
   if (FLAGS.reizen && rt.leadAt < 0) {
-    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, ride: rideWith(w, startMeerijden), script: storyScene,
+    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ride: rideWith(w, startMeerijden), script: storyScene,
       busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
+  // #1091: bij een ver doel zegt het andere personage dat het ook met de taxi of het OV kan (geen keuzescherm)
+  if (FLAGS.reizen && rt.leadAt < 0) tickOvHint(w, dt);
   // the voorschot follows the lead that says what it is for
   if (rt.leadAt < 0 && (rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }
   if (step.kind === 'activity') {

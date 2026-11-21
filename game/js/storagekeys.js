@@ -78,6 +78,8 @@ export const BASE_KEYS = {
   dieren: 'gde-dieren-v1',
   // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name
   hudSeen: 'gde-hud-gezien',
+  // how often the light OV/taxi hint was shown and whether the player used OV or a taxi (ovhint.js, #1091): new, no legacy name, never part of a savegame
+  ovHint: 'gde-ovhint-v1',
   // which steps were cleared with help on, and for which steps the help offer was shown (assistlive.js, #215): new, no legacy name
   help: 'gde-hulp-v1',
   // the career of this player per trade (loopbaan.js, #381): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
