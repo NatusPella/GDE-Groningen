@@ -163,7 +163,9 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Bestanden.** `voetbalcompetitie.js`, `voetbalrules.js`, `voetbalbal.js`, `voetbalai.js`, `voetbalmatch.js` (puur), `voetbalstatus.js` (HUD-model), `voetbaldata.js` (teksten), `voetbalkarakter.js` (de dunne aansluiting op Tessa), `voetbal.js` (wereld, camera, invoer, aansluiting), `penalty.js` (de bonusmodus Strafschoppen).
 
-**Tests.** `voetbal_test.mjs`, `voetbal_botsim.mjs` (100 wedstrijden computer tegen computer: gemiddeld 2 tot 5 doelpunten, geen vastlopers of NaN), `penalty_test.mjs`.
+**Uitzending (epic voetbal-uitzending, 21-11).** De hele wedstrijd is de hoofdervaring (de poort heet Wedstrijd spelen; de penalty's zijn een minigame ernaast). `voetbalextrarules.js` (kaarten, blessures, wissels, strafschoppen, optioneel buitenspel; alles uit te zetten; statistieken en Man van de match), `voetbalregie.js` (camera-regie en herhaling), `voetbalpresentatie.js` (scorebord met verzonnen clubembleem, opstelling, rustpauze, eindsamenvatting, radar, gastgebeurtenissen), `voetbaltvlayer.js` met `voetbaltv.css` (de DOM-laag), `voetbalcommentaar.js` en `voetbalcommentaardata.js` (twee verzonnen commentatoren, 304 regels, afwisselend en niet herhalend; vaste regels met een stem in de TTS-cast, de rest ondertitel). Samen spelen: het commentaar, de regie, de radar en de namen zijn lokaal; kaarten, blessures en statistieken zijn van wie het spel opende; geen herhaling. Zie docs/VOETBAL-UITZENDING-21-11.md.
+
+**Tests.** `voetbal_test.mjs`, `voetbal_uitzending_test.mjs` (regels, commentaar, regie, presentatie), `voetbal_botsim.mjs` (100 wedstrijden computer tegen computer: gemiddeld 2 tot 5 doelpunten, geen vastlopers of NaN), `penalty_test.mjs`.
 
 ## Voetbalcarrière (epic #1106)
 

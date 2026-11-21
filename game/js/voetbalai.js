@@ -14,7 +14,7 @@ const naar = (p, tx, ty, { sprint = false, stop = 0.35 } = {}) => {
   return { dx: dx / d * v, dy: dy / d * v, sprint, tackle: false, kick: null, duik: null };
 };
 
-const teamgenoten = (m, p) => m.spelers.filter((q) => q.team === p.team && q !== p);
+const teamgenoten = (m, p) => m.spelers.filter((q) => q.team === p.team && q !== p && !q.rood);
 const opponents = (m, p) => m.spelers.filter((q) => q.team !== p.team);
 
 // Hoe vrij is de lijn van a naar b: de kleinste afstand van een tegenstander tot dat lijnstuk.
@@ -122,6 +122,13 @@ function dragerIntentie(m, p, lv) {
     if (p.besluitT > 0 || (m.hervat && m.hervat.t < m.hervat.pauze)) return NIETS;
     const q = besteOntvanger(m, p, { minScore: -9 }) || teamgenoten(m, p).find((x) => x.rol !== 'keeper') || null;
     p.besluitT = lv.reactie;
+    // een strafschop gaat op het doel; een vrije trap dicht bij het doel ook (soms)
+    if (m.hervat && (m.hervat.kind === 'strafschop' || (m.hervat.kind === 'vrij' && voor && dgoal < PITCH.L * 0.27 && Math.abs(p.x) < PITCH.B * 0.3 && m.rng() < 0.55))) {
+      const keeper = m.spelers.find((x) => x.team !== p.team && x.rol === 'keeper');
+      const kant = keeper && keeper.x > 0.3 ? -1 : keeper && keeper.x < -0.3 ? 1 : (m.rng() < 0.5 ? -1 : 1);
+      const ax = kant * (PITCH.DOEL_B / 2) * (0.45 + 0.4 * m.rng()), dx = ax - p.x, dy = gy - p.y, l = Math.hypot(dx, dy) || 1;
+      return { ...NIETS, kick: { soort: 'schot', kracht: 0.82 + 0.18 * m.rng(), dx: dx / l, dy: dy / l, doel: -1 } };
+    }
     if (!q) return { ...NIETS, kick: { soort: 'pass', kracht: 0.5, dx: 0, dy: dir, doel: -1 } };
     return kopieer(p, q, m.hervat && (m.hervat.kind === 'hoek' || m.hervat.kind === 'doelschop') && dist(p, q) > PITCH.L * 0.29);
   }

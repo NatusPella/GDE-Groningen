@@ -30,7 +30,7 @@ export function speelWedstrijd(seed, { duur = 'normaal', stand = 'standaard', fo
     if (![b.x, b.y, b.z, b.vx, b.vy, b.vz].every(Number.isFinite)) r.nan++;
     for (const p of m.spelers) {
       if (![p.x, p.y, p.vx, p.vy, p.face, p.stamina].every(Number.isFinite)) r.nan++;
-      else if (Math.abs(p.x) > PITCH.B / 2 + 0.01 || Math.abs(p.y) > PITCH.L / 2 + 0.01) r.buiten++;
+      else if (!p.rood && (Math.abs(p.x) > PITCH.B / 2 + 0.01 || Math.abs(p.y) > PITCH.L / 2 + 0.01)) r.buiten++;
     }
     r.fases[m.fase] = (r.fases[m.fase] || 0) + 1;
     // een vastloper: in het spel ligt de bal bijna stil zonder drager (of een herstart wacht eindeloos)

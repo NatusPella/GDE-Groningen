@@ -180,7 +180,7 @@ t('de achterlijn: hoekschop of doelschop, de keeper trapt de doelschop', () => {
   assert.deepEqual([h.kind, h.team], ['doelschop', 0]); assert.equal(m.spelers[m.bal.owner].rol, 'keeper');
 });
 t('overtreding: een mislukte tackle van achteren of omver lopen geeft de ander een vrije bal; geen kaarten', () => {
-  const m = makeMatch([], { duur: 'kort', seed: 17, aiBeide: true });
+  const m = makeMatch([], { duur: 'kort', seed: 17, aiBeide: true, regels: { kaarten: false, blessures: false, strafschoppen: false, wissels: false } });
   tot(m, 'spel', 30);
   const dader = m.spelers.find((p) => p.team === 1 && p.i === 3), slachtoffer = m.spelers.find((p) => p.team === 0 && p.i === 3);
   slachtoffer.x = 0; slachtoffer.y = 0; slachtoffer.face = Math.PI / 2; slachtoffer.vx = 0; slachtoffer.vy = 3; slachtoffer.speed = 3;
@@ -191,7 +191,7 @@ t('overtreding: een mislukte tackle van achteren of omver lopen geeft de ander e
   const ev = stap(m, 0.2);
   const o = ev.find((e) => e.type === 'overtreding');
   assert.ok(o && o.team === 1, JSON.stringify(ev.map((e) => e.type))); assert.equal(m.fase, 'hervat'); assert.equal(m.hervat.kind, 'vrij'); assert.equal(m.hervat.team, 0);
-  assert.equal(JSON.stringify(m).includes('kaart'), false, 'geen kaarten in de stand');
+  assert.deepEqual([m.stat.geel, m.stat.rood], [[0, 0], [0, 0]], 'met de regels uit: geen kaarten');
   assert.equal(m.stat.overtredingen[1], 1);
 });
 t('geen buitenspel: een aanvaller achter de laatste verdediger mag de bal gewoon krijgen', () => {
@@ -569,7 +569,7 @@ t('elf tegen elf past in de momentopname: 64 getallen, heen en terug op 5 cm nau
   assert.equal(sp.mijnId, m.mensen[1].ctl);
   const klein = makeMatch([mens(0)], { seed: 1 }); zetFormaat('groot'); assert.equal(voerInVoetbal(sp, { ...snapVoetbal(klein, 2), f: 'lv', n: 5 }), false, 'een momentopname van een ander formaat telt niet');
   zetFormaat('klein');
-  // de hoek en de vlaggen blijven heel in het getal
+  // de hoek en de flags blijven heel in het getal
   m.spelers[3].face = -2.5; m.spelers[3].tackleT = 0.2; m.spelers[3].vier = 1;
   voerInVoetbal(sp, leesLiveVoetbal(JSON.parse(JSON.stringify(snapVoetbal(m, 9)))));
   assert.ok(Math.abs(Math.cos(sp.spelers[3].face) - Math.cos(-2.5)) < 0.12 && sp.spelers[3].tackleT > 0 && sp.spelers[3].vier > 0);

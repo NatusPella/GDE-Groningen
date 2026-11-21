@@ -1,6 +1,8 @@
 # Voetbal Sim Light in de Euroborg (21-11, #981)
 
 > **Uitbreiding (eigenaar, 21-11): een volledige wedstrijd.** Naast vijf tegen vijf is er nu **elf tegen elf** op een volledig veld (56 x 90 m, doelen 7,32 x 2,44 m, 2 x 150 s normaal of 2 x 75 s kort), met **tactiek** (vorming en speelstijl) en een **competitie** van zes verzonnen clubs. Zie het kopje "Volledig veld, tactiek en competitie" onderaan; de rest van dit document geldt voor beide formaten.
+>
+> **Uitbreiding (eigenaar, 21-11): de wedstrijd als uitzending.** De hele wedstrijd staat voorop (de poort heet Wedstrijd spelen, de penalty's zijn de minigame ernaast) met tv-regie, herhaling, scorebord met clubembleem, opstelling, rustpauze, samenvatting met Man van de match, twee commentatoren, kaarten, blessures, wissels, strafschoppen en optioneel buitenspel. Zie [VOETBAL-UITZENDING-21-11.md](VOETBAL-UITZENDING-21-11.md). De regel "Geen buitenspel, geen kaarten" hieronder geldt daardoor alleen nog met de regels uit.
 
 Een echte, korte voetbalwedstrijd als light sim: vijf tegen vijf op een klein veld binnen de tribunes van de Euroborg, in de speelstijl van een voetbalgame. Alles is verzonnen (teams, namen, commentaar); er komen geen echte clubs, spelers, competities, merken of logo's in (constitutie 2) en er wordt geen geweld getoond (constitutie 6). Gebouwd zonder Electron: alles is bewezen met pure tests en node-simulaties, **niets is in beeld bekeken** (zie de lijst onderaan).
 

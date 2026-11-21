@@ -16,4 +16,4 @@ export const VOETBAL_LINES = {
   gelijk: ['Gelijkspel. Niemand wint, niemand gaat boos naar huis.', 'Gelijk. De pepermunt wordt eerlijk verdeeld.'],
   omaPraat: ['Oma Trijntje: Schiet nou eens, jongen!', 'Oma Trijntje: In mijn tijd speelden we op klompen.', 'Oma Trijntje: Die scheids is blind, maar wel aardig.'],
 };
-export const PROMPT_SUB = '5 of 11 tegen 11 · Euroborg · gratis';
+export const PROMPT_SUB = '11 tegen 11 met commentaar · Euroborg · gratis';

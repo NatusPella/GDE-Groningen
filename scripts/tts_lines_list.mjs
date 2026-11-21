@@ -34,6 +34,9 @@ const CAST = {
   Jelmer: { voice: 'Puck', who: 'jonge Groningse streamer, hyper', pool: ['verbaasd, hardop voorlezend', 'opgewonden, snel'] },
   Sjoerd: { voice: 'Umbriel', who: 'Groningse wedstrijdleider, droog', pool: ['droog, licht verbaasd', 'schamper, mopperend'] },
   Henk: { voice: 'Sadaltager', who: 'gemoedelijke Groningse garagehouder', pool: ['gemoedelijk, rustig'] },
+  // het voetbalcommentaar (epic voetbal-uitzending): de verslaggever en de kleurcommentator, gewoon Nederlands met een licht noordelijk accent
+  Hilbrand: { voice: 'Sadachbia', who: 'Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur', pool: ['opgewonden, snel', 'enthousiast, warm', 'verbaasd, juichend'], accent: 'spoken in clear standard Dutch with a light, warm northern lilt' },
+  Roelie: { voice: 'Achird', who: 'Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek', pool: ['droog, laconiek', 'rustig, met een knipoog', 'plagend, zuchtend'], accent: 'spoken in clear standard Dutch with a light, warm northern lilt' },
   // Rikus: the narrator and the Radio Nachtstreek night DJ, one voice for both
   [NARRATOR]: { voice: 'Schedar', who: 'Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
   Beppe: { voice: 'Aoede', who: 'Tammo\'s Friese beppe (oma), warm, zacht en nuchter, spreekt Fries', pool: ['warm, zacht', 'plagend, liefdevol'], accent: 'spoken in Frisian (Frysk), a warm old Frisian grandmother, slowly and kindly' },

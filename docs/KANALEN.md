@@ -22,7 +22,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 190 modules, 779 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| kaart | hudcards.js | 190 modules, 780 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
 | prestatie | achievements.js | 37 modules, 107 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
@@ -40,11 +40,12 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | keuze | choicepanel.js | 11 modules, 11 aanroepen | P1 | B | ja: overlay (keuze) | Samen met bord en activiteit: een activiteitenpaneel bovenaan (kop, regels, toetsen). Het keuzepaneel en het minigamebord zijn dezelfde familie. |
 | bord | minigamekit.js, golfhud.js | 19 modules, 22 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
 | ballon | scene3d.js | 14 modules, 25 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
-| spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
+| spraak | speech.js | 15 modules, 20 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
 | opgeslagen | savegame.js | beslist zelf | P3 | F | nee: het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart | Weg als eigen element: een pictogram in het plaatsblok, of een kaart van de soort tip. |
 | recapkaart | recapcardrun.js | beslist zelf | n.v.t. | - | nee: de recapkaart Waar waren we? na Doorgaan: wacht op een rustig moment (geen scene, geen verhaalbeat), houdt de wereld stil (uiPaused) en sluit via de knop of de terugtoets; alleen lokaal, niets in het opgeslagen spel |  |
 | vertrekbordtijdlijn | departuretimelineui.js | beslist zelf | n.v.t. | - | nee: de tijdlijn op het vertrekbord van een station (#1085): een element in het bord zelf, geen kaart of melding op de HUD |  |
+| voetbaltv | voetbaltvlayer.js | beslist zelf | n.v.t. | - | nee: de tv-laag van de voetbalwedstrijd (voetbal.js): ondertitel van het commentaar, veldradar, herhalinglabel en de kaarten van de uitzending (opstelling, rust, einde); alleen tijdens de wedstrijd, geen melding en geen klik |  |
 | voetbalcarriere | voetbalcarriereui.js | beslist zelf | n.v.t. | - | nee: het kindscherm Voetbal onder Loopbanen in het pauzemenu: de speler opent het zelf, geen melding en geen HUD-kaart |  |
 | binnenset | stagesets.js | beslist zelf | n.v.t. | - | nee: de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956) |  |
 | duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
@@ -85,6 +86,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **opgeslagen**: Het kleine Opgeslagen-vinkje links onder, bij de plaatsnaam.
 - **recapkaart**: 
 - **vertrekbordtijdlijn**: 
+- **voetbaltv**: 
 - **voetbalcarriere**: 
 - **binnenset**: 
 - **duikscene**: 

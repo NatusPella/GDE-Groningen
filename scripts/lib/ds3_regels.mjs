@@ -198,6 +198,7 @@ export const SVG_GEOMETRIE = [
   [/^game\/js\/(?:heistui|trailer|cinematics)\.js$/, 'wijzerplaat en voortgangsring (skip-ring) zijn meetgeometrie met data-afhankelijke dash-lengte'],
   [/^game\/js\/(?:helirun|zeilvaren)\.js$/, 'richtings- en windpijl draait mee met de data: geometrie, geen icoon'],
   [/^game\/js\/aimassist\.js$/, 'richtkijker en richtcirkel zijn meetgeometrie'],
+  [/^game\/js\/voetbalpresentatie\.js$/, 'het verzonnen clubembleem (kleuren en patroon van de club) en de veldradar (posities van de spelers) hangen van data af: geometrie, geen icoon; het kruisje van de blessure hoort bij het scorebord'],
   [/^game\/js\/pigeonguide\.js$/, 'de richtingspijl naar de volgende plek draait mee met de hoek (data), met omtrek en schaduw: geometrie, geen icoon'],
 ];
 const svgGeometrie = (f) => SVG_GEOMETRIE.some(([re]) => re.test(f));

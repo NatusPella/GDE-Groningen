@@ -192,7 +192,7 @@ function recText() {
 function prompt(w) {
   if (!nearGate(w)) return null;
   const why = activityBlock(w);
-  return { id: 'penalty', x: GATE.x, y: GATE.y, h: 2.2, key: 'E', label: 'Penaltyserie', sub: why || recText() || 'Vijf penalty’s · Euroborg · gratis', ring: true, dim: !!why };
+  return { id: 'penalty', x: GATE.x, y: GATE.y, h: 2.2, key: 'E', label: 'Penalty’s (minigame)', sub: why || recText() || 'Bonusspel naast de wedstrijd · gratis', ring: true, dim: !!why };
 }
 
 function secondary(w) {

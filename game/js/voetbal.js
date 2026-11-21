@@ -30,6 +30,14 @@ import {
   makeMatch, tikWedstrijd, zetTactiek, verlaatVoetbal, uitslagVoetbal, medailleUitRij, liveVoetbal, makeFootballMirror, voerInVoetbal, tikVoetbalSpiegel,
 } from './voetbalmatch.js';
 import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID } from './voetbalstatus.js';
+import { makeCommentaar, commentaarVoor, tikCommentaar, commentMvp, derbyVan } from './voetbalcommentaar.js';
+import { makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot, nextMode, MODE_NAMES } from './voetbalregie.js';
+import { scoreboardRow, opstellingHtml, rustHtml, eindHtml, radarHtml, subtitleHtml, guestEvents, guestState, leesTvVoorkeur, hex } from './voetbalpresentatie.js';
+import { matchMvp, statistiekenVan } from './voetbalextrarules.js';
+import { besteOntvanger } from './voetbalai.js';
+import { makeTvLayer } from './voetbaltvlayer.js';
+import { lineVoiceFor } from './linevoice.js';
+import { playBubbleVoice } from './audio.js';
 import { VOETBAL_LINES, PROMPT_SUB } from './voetbaldata.js';
 import { newCompetition, leesCompetitie, nextOpponent, applyRound, tabel, yourRank, isKampioen, clubName, KAMPIOEN_BONUS } from './voetbalcompetitie.js';
 import { voetbalBonusVan, characterEnter, zetVoetbalKarakterHaken, karakterEind, tessaLine, tessaUitleg } from './voetbalkarakter.js';
@@ -67,7 +75,16 @@ let uitnodiging = null; // wat de host koos bij de uitnodiging: { duur, stand, t
 // --- de voorkeur: kort of normaal (alleen dit apparaat, geen savegame) ----------------------------------------------------------
 
 const leesOpslag = () => { try { return leesVoorkeur(typeof localStorage !== 'undefined' ? localStorage.getItem(KEYS.voetbal) : null); } catch (e) { return leesVoorkeur(null); } };
-const schrijfOpslag = (v) => { try { localStorage.setItem(KEYS.voetbal, JSON.stringify({ duur: v.duur, formaat: v.formaat, vorming: v.vorming, stijl: v.stijl, modus: v.modus, comp: v.comp || null })); } catch (e) { /* geen opslag is geen ramp */ } };
+const leesTv = () => { try { return leesTvVoorkeur(typeof localStorage !== 'undefined' ? localStorage.getItem(KEYS.voetbal) : null); } catch (e) { return leesTvVoorkeur(null); } };
+const schrijfOpslag = (v, tv = null) => {
+  try {
+    let oud = null; try { oud = JSON.parse(localStorage.getItem(KEYS.voetbal) || 'null'); } catch (e) { oud = null; }
+    const nextTv = tv || (oud && oud.tv) || undefined;
+    localStorage.setItem(KEYS.voetbal, JSON.stringify({ duur: v.duur, formaat: v.formaat, vorming: v.vorming, stijl: v.stijl, modus: v.modus, comp: v.comp || null, tv: nextTv }));
+  } catch (e) { /* geen opslag is geen ramp */ }
+};
+const schrijfTv = (tv) => schrijfOpslag(leesOpslag(), { camera: tv.camera, regels: tv.regels });
+const TV_TIMINGS = { intro: 7.5, rust: 10, eind: 12 };     // lang genoeg voor de opstelling, de rustpauze met statistieken en de eindsamenvatting
 const zetDuurVoorkeur = (duur) => { const v = leesOpslag(); if (DUREN[duur]) { v.duur = duur; schrijfOpslag(v); } return leesOpslag().duur; };
 let panel = null;         // het keuzescherm voor de wedstrijd (alleen solo): { v: voorkeur }
 const stijlVan = (s) => STIJLEN[(STIJLEN.indexOf(s) + 1) % STIJLEN.length];
@@ -94,7 +111,7 @@ function materials() {
   mats = {
     paal: new THREE.MeshStandardMaterial({ color: 0xf4f1e8, roughness: 0.5, metalness: 0.2 }),
     net: new THREE.MeshBasicMaterial({ map: netTex, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }),
-    lijn: new THREE.MeshBasicMaterial({ color: 0xf4f1e8 }),
+    bar: new THREE.MeshBasicMaterial({ color: 0xf4f1e8 }),
     gras: new THREE.MeshStandardMaterial({ map: gras, roughness: 0.95 }),
     bal: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 }),
     schaduw: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false }),
@@ -157,17 +174,17 @@ function bouw(w, formaat = 'klein', site = null) {
   gras.position.set(0, 0.035, 0);
   gras.receiveShadow = true;
   root.add(gras);
-  const line = (bx, bz, fx, fy) => { const q = toLocal(fx, fy); doos(root, M.lijn, bx, 0.02, bz, q.x, 0.06, q.y); };
+  const line = (bx, bz, fx, fy) => { const q = toLocal(fx, fy); doos(root, M.bar, bx, 0.02, bz, q.x, 0.06, q.y); };
   // de rand, de middenlijn, het middencirkeltje en de twee strafschopgebieden
   line(PITCH.B, 0.12, 0, -(PITCH.L / 2)); line(PITCH.B, 0.12, 0, (PITCH.L / 2)); line(0.12, PITCH.L, -(PITCH.B / 2), 0); line(0.12, PITCH.L, (PITCH.B / 2), 0);
   line(PITCH.B, 0.1, 0, 0);
   const groot = formaat === 'groot', cirkel = groot ? 9.15 : 3;
-  const mid = new THREE.Mesh(new THREE.RingGeometry(cirkel - 0.1, cirkel, 48).rotateX(-Math.PI / 2), M.lijn);
+  const mid = new THREE.Mesh(new THREE.RingGeometry(cirkel - 0.1, cirkel, 48).rotateX(-Math.PI / 2), M.bar);
   const mq = toLocal(0, 0); mid.position.set(mq.x, 0.065, mq.y); root.add(mid);
   for (const s of [-1, 1]) {
     const y0 = s * (PITCH.L / 2), y1 = s * ((PITCH.L / 2) - PITCH.STRAF_D);
     line(PITCH.STRAF_B, 0.1, 0, y1); line(0.1, PITCH.STRAF_D, -PITCH.STRAF_B / 2, (y0 + y1) / 2); line(0.1, PITCH.STRAF_D, PITCH.STRAF_B / 2, (y0 + y1) / 2);
-    const stip = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12).rotateX(-Math.PI / 2), M.lijn);
+    const stip = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12).rotateX(-Math.PI / 2), M.bar);
     const sq = toLocal(0, s * ((PITCH.L / 2) - (groot ? 11 : 4.5))); stip.position.set(sq.x, 0.066, sq.y); root.add(stip);
   }
   buildGoal(root, M, -(PITCH.L / 2), -1); buildGoal(root, M, (PITCH.L / 2), 1);
@@ -291,12 +308,12 @@ function recText() {
 function prompt(w) {
   if (!nearGate(w)) return null;
   const why = activityBlock(w);
-  return { id: 'voetbal', x: GATE.x, y: GATE.y, h: 2.2, key: 'E', label: 'Voetbal Euroborg', sub: why || recText() || PROMPT_SUB, ring: true, dim: !!why };
+  return { id: 'voetbal', x: GATE.x, y: GATE.y, h: 2.2, key: 'E', label: 'Wedstrijd spelen', sub: why || recText() || PROMPT_SUB, ring: true, dim: !!why };
 }
 function secondary(w) {
   if (game || hoofdspeler(w).inVehicle) return [];
   if (Math.hypot(hoofdspeler(w).x - GATE.x, hoofdspeler(w).y - GATE.y) > 160) return [];
-  return [{ id: 'voetbal-2', x: GATE.x, y: GATE.y, h: 2.2, label: 'Voetbal Euroborg', sub: 'Loop naar de spelerspoort en druk E', kind: 'place' }];
+  return [{ id: 'voetbal-2', x: GATE.x, y: GATE.y, h: 2.2, label: 'Wedstrijd spelen in de Euroborg', sub: 'Loop naar de spelerspoort en druk E', kind: 'place' }];
 }
 function interact(w) {
   if (!nearGate(w)) return false;
@@ -315,10 +332,11 @@ function panelHud() {
   const v = panel.v, comp = v.modus === 'competitie' ? leesCompetitie(v.comp) : null;
   const formaat = v.modus === 'competitie' ? 'groot' : v.formaat;
   const next = comp && !comp.klaar ? nextOpponent(comp) : null;
-  const modus = v.modus === 'competitie' ? (comp && !comp.klaar ? `Competitie, ronde ${comp.ronde + 1} van 5 tegen ${clubName(next)}` : 'Competitie: een nieuw seizoen') : 'Vriendschappelijk';
-  const row = `<span>Voetbal Euroborg</span><span><b>${FORMATEN[formaat].naam}</b></span><span>${modus}</span>`;
-  const flash = `Vorming ${cleanFormation(formaat, v.vorming)} · stijl ${v.stijl} · ${v.duur === 'kort' ? 'kort' : 'normaal'}`;
-  const help = keyTextHtml('{1} formaat · {2} competitie · {3} vorming · {4} stijl · {5} duur · {F} begint · {BACKSPACE} stopt');
+  const modus = v.modus === 'competitie' ? (comp && !comp.klaar ? `Competitie, ronde ${comp.ronde + 1} van 5 tegen ${clubName(next)}` : 'Competitie: een newName seizoen') : 'Vriendschappelijk';
+  const tv = leesTv();
+  const row = `<span>Wedstrijd spelen</span><span><b>${FORMATEN[formaat].naam}</b></span><span>${modus}</span>`;
+  const flash = `Vorming ${cleanFormation(formaat, v.vorming)} · stijl ${v.stijl} · ${v.duur === 'kort' ? 'kort' : 'normaal'} · kaarten en blessures ${tv.regels.kaarten ? 'aan' : 'uit'} · ${MODE_NAMES[tv.camera].toLowerCase()}`;
+  const help = keyTextHtml('{F} Wedstrijd spelen · {1} formaat · {2} competitie · {3} vorming · {4} stijl · {5} duur · {6} kaarten en blessures · {7} camera · {BACKSPACE} stopt') + ' · Penalty’s zijn een minigame bij de poort ernaast';
   ensureBoard().set({ row, cells: null, meter: null, flash, bad: false, help });
 }
 function openPanel(w) {
@@ -346,6 +364,8 @@ function panelTick(w) {
   if (druk('3')) { v.vorming = nextFormation(v.modus === 'competitie' ? 'groot' : v.formaat, v.vorming); fresh = true; }
   if (druk('4')) { v.stijl = stijlVan(v.stijl); fresh = true; }
   if (druk('5')) { v.duur = v.duur === 'kort' ? 'normaal' : 'kort'; fresh = true; }
+  if (druk('6')) { const tv = leesTv(), aan = !(tv.regels.kaarten && tv.regels.blessures); tv.regels = { ...tv.regels, kaarten: aan, blessures: aan }; schrijfTv(tv); fresh = true; }
+  if (druk('7')) { const tv = leesTv(); tv.camera = nextMode(tv.camera); schrijfTv(tv); fresh = true; }
   if (fresh) { v.vorming = cleanFormation(v.formaat, v.vorming); schrijfOpslag(v); panelHud(); }
   if (druk('f') || druk(' ')) { schrijfOpslag(v); closePanel(); launch(w, { force: true }); }
 }
@@ -373,8 +393,8 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   let opt = online === 'gast' ? null : (uitnodiging && online ? uitnodiging : freshOptions());
   if (career) { const v = leesOpslag(); opt = { duur: 'normaal', stand: footballLevel(), tg: 0, formaat: 'groot', vorming: cleanFormation('groot', v.vorming), stijl: cleanStijl(v.stijl), comp: null, seed: ((Date.now() / 1000) | 0) + runs * 7919 }; }
   if (career) { site = career.site || { x: CX, y: CY, a: 0 }; }
-  if (!sim && career) sim = makeMatch([{ slot: 0, naam: career.naam || 'Jij', char: career.char, bonus: career.bonus }], { duur: opt.duur, stand: opt.stand, seed: opt.seed, formaat: 'groot', vorming: opt.vorming, stijl: opt.stijl, teams: career.teams, ratings: career.ratings });
-  if (!sim) sim = makeMatch([{ slot: 0, naam: 'Jij', char: p.character || null, bonus: voetbalBonusVan() }], { duur: opt.duur, stand: opt.stand, seed: opt.seed || 1, tegenstander: opt.tg, formaat: opt.formaat, vorming: opt.vorming, stijl: opt.stijl });
+  if (!sim && career) sim = makeMatch([{ slot: 0, naam: career.naam || 'Jij', char: career.char, bonus: career.bonus }], { duur: opt.duur, stand: opt.stand, seed: opt.seed, formaat: 'groot', vorming: opt.vorming, stijl: opt.stijl, teams: career.teams, ratings: career.ratings, regels: leesTv().regels, timings: TV_TIMINGS });
+  if (!sim) sim = makeMatch([{ slot: 0, naam: 'Jij', char: p.character || null, bonus: voetbalBonusVan() }], { duur: opt.duur, stand: opt.stand, seed: opt.seed || 1, tegenstander: opt.tg, formaat: opt.formaat, vorming: opt.vorming, stijl: opt.stijl, regels: leesTv().regels, timings: TV_TIMINGS });
   const mode = online === 'gast' ? sim.stand : opt.stand;
   if (opt && opt.comp && !online) { const vv = leesOpslag(); vv.comp = opt.comp; schrijfOpslag(vv); }
   zetFormaat(sim.formaat);
@@ -384,6 +404,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   if (career && career.site) { ruimParkOp(); parkBuilt = bouw(w, sim.formaat, career.site); }
   const bon = career ? null : characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
   game = { online, sim, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
+  tvInit(w, game);
   const fl = fld();
   fl.root.visible = true; fl.bord.visible = !parkBuilt;
   fl.bal.visible = true; fl.schaduw.visible = true;
@@ -393,7 +414,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   w.companionHold = career && career.site ? { x: game.exitX, y: game.exitY, face: -Math.PI / 2 } : { x: GATE.x, y: GATE.y - 4, face: -Math.PI / 2 };
   if (online === 'gast') installeerGastKnoppen(w);
   if (online !== 'gast') toonStartkaart(w, 'voetbal', { record: recText() });
-  say(w, 'start', true);
+  ballSfx(w, 'sport_stinger');
   if (online !== 'gast' && tessaUitleg()) w.addMessage(tessaUitleg(), 6); // de regel over het dorpsteam van Tessa (alleen tekst, alleen met de Tessa-haak)
   teken(w, 0);
   return true;
@@ -403,10 +424,11 @@ function say(w, kind, force = false) {
   const pool = VOETBAL_LINES[kind];
   if (!pool || !game) return;
   if (!force && game.t - game.said < 5) return;
-  game.said = game.t;
   const q = toWorld((PITCH.B / 2) + 3, 0);
   const tessa = (kind === 'goalThuis' && tessaLine('viering')) || (kind === 'redding' && tessaLine('keepersneer')) || (kind === 'overtreding' && tessaLine('tegenstandersneer')) || null; // alleen tekst; zonder de Tessa-haak is dit null
-  bubble(w, { x: q.x, y: q.y, name: tessa ? 'Tessa' : VOETBAL_LINES.who, text: tessa || pick(pool), h: 3.2, tag: 'voetbal', ttl: 4 });
+  if (!tessa) return;      // het gewone commentaar is van Hilbrand en Roelie (voetbalcommentaar.js); hier alleen nog Tessa's eigen regel
+  game.said = game.t;
+  bubble(w, { x: q.x, y: q.y, name: 'Tessa', text: tessa, h: 3.2, tag: 'voetbal', ttl: 4 });
 }
 
 // --- het spel zelf --------------------------------------------------------------------------------------------------------------
@@ -419,13 +441,15 @@ function invoer(w) { return leesInvoer((k) => w.input.isDown(k), () => w.input.a
 function updateSolo(w, dt) {
   const g = game;
   const inv = invoer(w);
-  handleEvents(w, tikWedstrijd(g.sim, dt, () => inv));
+  g.evs = tikWedstrijd(g.sim, dt, () => inv);
+  handleEvents(w, g.evs);
 }
 function updateHost(w, dt) {
   const g = game, n = w.coopNet;
   if (!n || !n.wed || n.wed.lv !== g.sim) { end(w, { quit: true, extern: true }); return; } // de sessie is weg
   const inv = invoer(w);
-  handleEvents(w, wedLiveTik(w, g.sim, dt, () => inv));
+  g.evs = wedLiveTik(w, g.sim, dt, () => inv);
+  handleEvents(w, g.evs);
 }
 
 // SFX ronde 5: een geluid van de centrale tabel op de plek van de bal (elke machine speelt zijn eigen wedstrijdgebeurtenissen: lokaal)
@@ -434,8 +458,11 @@ function ballSfx(w, key) { const b = game && game.sim && game.sim.bal ? toWorld(
 function handleEvents(w, evs) {
   const g = game;
   for (const e of evs) {
+    commentaarVoor(g.com, e, comCtx(g));
+    const hh = planHerhaling(g.op, e, { online: !!g.online, klok: g.sim.klok, laatste: g.lastKans });
+    if (hh) { g.replayWacht = hh; if (hh.soort === 'kans') g.lastKans = g.op.t; }
     if (e.type === 'schop') { const q = toWorld(e.x, e.y); pushAudioEvent(w, { kind: 'golf', sub: 'slag', strength: 0.25 + 0.5 * (e.sterkte || 0.5), x: q.x, y: q.y }); sfxEvent(w, 'football_kick', q.x, q.y); }
-    else if (e.type === 'paal' || e.type === 'lat') { const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'rand', strength: 0.7, x: b.x, y: b.y }); sfxEvent(w, 'football_post', b.x, b.y); }
+    else if (e.type === 'paal' || e.type === 'lat') { const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'rand', strength: 0.7, x: b.x, y: b.y }); sfxEvent(w, 'football_post', b.x, b.y); sfxEvent(w, 'crowd_groan', b.x, b.y); }
     else if (e.type === 'goal') {
       const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'hole', strength: 0.9, x: b.x, y: b.y });
       sfxEvent(w, 'football_net', b.x, b.y); sfxEvent(w, 'crowd_goal_roar', b.x, b.y);   // SFX ronde 5: het net en het publiek
@@ -445,7 +472,9 @@ function handleEvents(w, evs) {
     else if (e.type === 'uit') say(w, 'uit');
     else if (e.type === 'overtreding') say(w, 'overtreding');
     else if (e.type === 'fluit') { if (e.helft === 1) say(w, 'rust', true); ballSfx(w, 'referee_whistle'); }
-    else if (e.type === 'aftrap' || e.type === 'hervat') { ballSfx(w, 'referee_whistle'); if (e.type === 'aftrap') ballSfx(w, 'crowd_chant'); }   // SFX ronde 6: het publiek zingt bij de aftrap
+    else if (e.type === 'aftrap') { ballSfx(w, 'referee_whistle'); if (g.sim.helft === 1 && g.sim.score[0] + g.sim.score[1] === 0) ballSfx(w, 'crowd_chant'); }   // SFX ronde 6: het publiek zingt bij de eerste aftrap
+    else if (e.type === 'hervat') ballSfx(w, 'referee_whistle');
+    else if (e.type === 'kaart' || e.type === 'buitenspel') ballSfx(w, 'referee_whistle');
     else if (e.type === 'stuit') ballSfx(w, 'ball_bounce');
     else if (e.type === 'einde') { say(w, e.winnaar === 0 ? 'winst' : e.winnaar < 0 ? 'gelijk' : 'verlies', true); ballSfx(w, 'referee_whistle'); sfxEvent(w, 'sport_stinger'); }
     const pop = popVan(e, 0);
@@ -469,8 +498,14 @@ function gastTik(w, dt) {
     if (game.sim.fase === 'goal') { flits(); simHudPop('GOAL!', 'ui_verzameld'); }
     game.lastFase = game.sim.fase;
   }
+  const toest = guestState(game.sim);
+  game.evs = guestEvents(game.gastPrev, toest);       // commentaar en regie zijn lokaal: ze lezen het verschil tussen twee momentopnamen
+  game.gastPrev = toest;
+  for (const e of game.evs) commentaarVoor(game.com, e, comCtx(game));
+  tvRegie(w, dt);
   teken(w, dt);
   updateHud(w);
+  tvTik(w, dt);
   return true;
 }
 
@@ -484,6 +519,9 @@ function updateGame(w, dt) {
   g.t += dt; g.dt = dt;
   w.minigameUntil = w.time + 0.25; // Spatie en de looptoetsen horen bij de wedstrijd (geen sprong)
   if (stopPressed(w.input)) { end(w, { quit: true }); return; }
+  if (g.replay) { tikHerhaling(w, dt); return; }
+  if (w.input.wasPressed('3')) { w.input.consume('3'); const tv = leesTv(); tv.camera = nextMode(g.regie.modus); g.regie.modus = tv.camera; schrijfTv(tv); g.cam = null; w.addMessage(MODE_NAMES[tv.camera], 2.5); }
+  if (!g.online && (g.sim.fase === 'intro' || g.sim.fase === 'rust' || g.sim.fase === 'eind') && (w.input.wasPressed('f') || w.input.wasPressed(' '))) { w.input.consume('f'); w.input.consume(' '); g.sim.faseT = Math.min(g.sim.faseT, 0.05); } // de opstelling, rustpauze of samenvatting overslaan
   if (w.input.wasPressed('1')) { w.input.consume('1'); const freshStyle = stijlVan(g.sim.tac[0].stijl); zetTactiek(g.sim, 0, { stijl: freshStyle }); const vv = leesOpslag(); vv.stijl = freshStyle; schrijfOpslag(vv); w.addMessage(`Speelstijl: ${freshStyle}`, 2.5); }
   if (w.input.wasPressed('2')) { w.input.consume('2'); const nv = nextFormation(g.sim.formaat, g.sim.tac[0].vorming); zetTactiek(g.sim, 0, { vorming: nv }); const vv = leesOpslag(); if (vv.formaat === g.sim.formaat) { vv.vorming = nv; schrijfOpslag(vv); } w.addMessage(`Vorming: ${nv}`, 2.5); }
   if (g.online === 'host') updateHost(w, dt); else updateSolo(w, dt);
@@ -491,8 +529,171 @@ function updateGame(w, dt) {
   if (g.sim.fase === 'klaar') { end(w); return; }
   const p = hoofdspeler(w), id = eigenId(g);
   if (id >= 0) { const q = toWorld(g.sim.spelers[id].x, g.sim.spelers[id].y); p.x = q.x; p.y = q.y; p.angle = Math.PI / 2; } // de wereld streamt rond het veld
+  opnameTik(g.op, g.sim, dt);
+  if (g.replayWacht && !g.online && (g.sim.fase === 'aftrap' || g.sim.fase === 'hervat')) launchReplay(w);
+  else if (g.replayWacht && (g.sim.fase === 'rust' || g.sim.fase === 'eind' || g.sim.fase === 'klaar')) g.replayWacht = null;
+  tvRegie(w, dt);
   teken(w, dt);
   updateHud(w);
+  tvTik(w, dt);
+}
+
+// --- de tv-laag: commentaar, regie, herhaling, namen, pijlen en overlay (alleen lokaal; Samen spelen stuurt hier niets voor over het net) -----------------------------------------------
+
+const comCtx = (g) => ({ fase: g.sim.fase, helft: g.sim.helft, klok: g.sim.klok, duurHelft: g.sim.duurHelft, score: g.sim.score.slice(), bezit: g.bezitPct, derby: g.derby, naamVan: (id) => (g.sim.spelers[id] ? g.sim.spelers[id].naam : '') });
+
+function tvInit(w, g) {
+  const sim = g.sim;
+  g.com = makeCommentaar({ seed: (sim.seed | 0) + runs, teams: [sim.teams[0].kort, sim.teams[1].kort], ids: [sim.teams[0].id, sim.teams[1].id], duurHelft: sim.duurHelft });
+  g.derby = derbyVan(sim.teams[0].id, sim.teams[1].id);
+  g.regie = makeRegie({ modus: leesTv().camera });
+  g.op = makeOpname(); g.replay = null; g.replayWacht = null; g.lastKans = -999; g.camShot = 'breed'; g.camReplay = null; g.evs = [];
+  g.tv = makeTvLayer(); g.namen = makeNamen(sim); g.pijlen = makePijlen();
+  g.ondertitel = null; g.bezitPct = [50, 50]; g.bezitT = 0; g.radarT = -1; g.radarHtml = null; g.mvpGezegd = false; g.eindT = -1; g.gastPrev = guestState(sim); g.paneelCache = { fase: '', html: '' }; g.pasT = 0; g.pasId = -1;
+  commentaarVoor(g.com, { type: 'aftrap', team: 0 }, { ...comCtx(g), helft: 1 });    // de commentatoren openen al tijdens de opstelling
+}
+function tvStop(g) {
+  if (g.tv) g.tv.weg();
+  const sc = getScene();
+  for (const n of g.namen || []) { sc.remove(n.sp); n.mat.dispose(); n.tex.dispose(); }
+  if (g.pijlen) for (const k of ['pas', 'schot']) { sc.remove(g.pijlen[k].g); g.pijlen[k].bar.geometry.dispose(); g.pijlen[k].kop.geometry.dispose(); g.pijlen[k].mat.dispose(); }
+}
+
+// De regie: welk shot nu (op de gebeurtenissen van deze tik); een wissel is een harde snit.
+function tvRegie(w, dt) {
+  const g = game, rs = regieTik(g.regie, g.sim, g.evs || [], dt);
+  if (rs.cut) g.cam = null;
+  g.camShot = rs.shot;
+}
+
+// Het commentaar op het scherm (ondertitel) en, als er een opname is, ook te horen. De ondertitel is er altijd.
+function sayLine(w, r) {
+  const g = game;
+  let dur = Math.max(2.8, 0.9 + r.tekst.split(/\s+/).length * 0.42);
+  const v = r.sleutel ? lineVoiceFor(r.stem, r.tekst) : null;
+  if (v) { playBubbleVoice(v.src, v.dur, null); dur = Math.max(dur, v.dur + 0.4); }
+  g.ondertitel = { html: subtitleHtml(r), tot: g.t + dur };
+}
+
+// Elke frame: het commentaar afspelen, de kaart van het moment (opstelling, rust, einde), de radar en de ondertitel.
+function tvTik(w, dt) {
+  const g = game, sim = g.sim;
+  g.bezitT -= dt;
+  if (g.bezitT <= 0 && !g.online) { g.bezitT = 2; g.bezitPct = statistiekenVan(sim).bezit; }
+  for (const r of tikCommentaar(g.com, dt, comCtx(g))) sayLine(w, r);
+  if (g.ondertitel && g.t > g.ondertitel.tot) g.ondertitel = null;
+  if (sim.fase === 'eind' && g.eindT < 0) g.eindT = g.t;
+  if (sim.fase === 'eind' && !g.mvpGezegd && g.t - g.eindT > 3.5 && !sim.spiegel) { g.mvpGezegd = true; const mvp = matchMvp(sim); if (mvp) commentMvp(g.com, mvp.naam); }
+  let paneel = null, hint = null;
+  const cardPhase = sim.fase === 'intro' || sim.fase === 'rust' || sim.fase === 'eind' || sim.fase === 'klaar';
+  if (cardPhase) {
+    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
+    paneel = g.paneelCache.html;
+    hint = g.online ? null : '{F} Doorgaan';
+  } else g.paneelCache = { fase: '', html: '' };
+  g.radarT -= dt;
+  if (g.radarT <= 0) { g.radarT = 0.2; g.radarHtml = cardPhase || g.replay ? null : radarHtml(sim, eigenId(g)); }
+  g.tv.zet({ radar: g.radarHtml, paneel, hint, ondertitel: g.ondertitel ? g.ondertitel.html : null, herhaling: !!g.replay });
+}
+
+// De herhaling (alleen solo): na een doelpunt (of een grote kans) staat de wedstrijd even stil en zie je de opname van de laatste seconden vanaf de zijlijn en de doelcamera, op 80 procent snelheid.
+function launchReplay(w) {
+  const g = game, wacht = g.replayWacht;
+  g.replayWacht = null;
+  const clip = wacht ? opnameClip(g.op, wacht.van, wacht.tot) : null;
+  if (!clip || clip.duur < 1.5) return;
+  g.replay = { clip, t: 0, duur: clip.duur, soort: wacht.soort };
+  g.cam = null;
+}
+function tikHerhaling(w, dt) {
+  const g = game, r = g.replay, sim = g.sim;
+  r.t += dt * 0.8;
+  if (r.t >= r.duur || w.input.wasPressed('f') || w.input.wasPressed(' ') || w.input.wasPressed('enter')) { w.input.consume('f'); w.input.consume(' '); w.input.consume('enter'); g.replay = null; g.camReplay = null; g.cam = null; return; }
+  const bw = pasFrameToe(sim, clipFrame(r.clip, r.t));
+  g.camReplay = cameraVoor(herhalingShot(r.t / r.duur), sim, -1, g.t);
+  g.replaySnit = herhalingShot(r.t / r.duur);
+  teken(w, dt);
+  herstelStaat(sim, bw);
+  tvTik(w, dt);
+}
+
+// --- spelersnamen boven de spelers en de pas- en schotpijlen ----------------------------------------------------------------------------------
+
+function makeNamen(sim) {
+  if (typeof document === 'undefined') return [];
+  const scene = getScene();
+  return sim.spelers.map(() => {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 56;
+    const tex = new THREE.CanvasTexture(cv);
+    const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+    const sp = new THREE.Sprite(mat); sp.scale.set(3.6, 0.79, 1); sp.renderOrder = 12; sp.visible = false;
+    scene.add(sp);
+    return { sp, cv, tex, mat, sleutel: '' };
+  });
+}
+function drawNameTag(n, naam, jij, kleur) {
+  const sleutel = `${naam}|${jij ? 1 : 0}|${kleur}`;
+  if (n.sleutel === sleutel) return;
+  n.sleutel = sleutel;
+  const c = n.cv.getContext && n.cv.getContext('2d');
+  if (!c) return;
+  c.clearRect(0, 0, 256, 56);
+  c.fillStyle = hex(jij ? 0xf9c80e : 0xf3ead3); c.strokeStyle = hex(0x1d1b17); c.lineWidth = 4;
+  c.fillRect(4, 8, 248, 40); c.strokeRect(4, 8, 248, 40);
+  c.fillStyle = hex(kleur); c.fillRect(4, 8, 16, 40);
+  c.fillStyle = hex(0x1d1b17); c.font = '700 26px "Barlow Condensed", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(String(naam).slice(0, 14), 138, 29);
+  n.tex.needsUpdate = true;
+}
+// Namen: jouw speler (gemarkeerd), de baldrager, medespelers (mensen) en bij eigen bal de teamgenoten in de buurt (om aan te spelen). Op de rest staat niets: geen rommel in beeld.
+function tekenNamen(g) {
+  const sim = g.sim, id = eigenId(g), me = id >= 0 ? sim.spelers[id] : null, owner = sim.bal.owner;
+  const eigenBal = owner >= 0 && sim.spelers[owner].team === 0;
+  const actief = sim.fase === 'spel' || sim.fase === 'hervat' || sim.fase === 'aftrap' || sim.fase === 'goal';
+  sim.spelers.forEach((p, i) => {
+    const n = g.namen[i];
+    if (!n) return;
+    const jij = p.id === id;
+    const tonen = actief && !p.rood && (jij || p.id === owner || sim.mensen.some((x) => !x.weg && x.ctl === p.id) || (me && eigenBal && p.team === me.team && Math.hypot(p.x - me.x, p.y - me.y) < 18));
+    n.sp.visible = !!tonen;
+    if (!tonen) return;
+    drawNameTag(n, p.naam, jij, sim.teams[p.team].shirt);
+    const q = toWorld(p.x, p.y);
+    n.sp.position.set(q.x, ground + (jij ? 3.1 : 2.55), q.y);
+  });
+}
+function makePijlen() {
+  const scene = getScene();
+  const mk = (kleur) => {
+    const mat = new THREE.MeshBasicMaterial({ color: kleur, transparent: true, opacity: 0.85, depthWrite: false });
+    const g = new THREE.Group();
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 1), mat);
+    const kop = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.7, 3).rotateX(Math.PI / 2), mat);
+    g.add(bar, kop); g.visible = false; scene.add(g);
+    return { g, bar, kop, mat };
+  };
+  return { pas: mk(0xf3ead3), schot: mk(0xf9c80e) };
+}
+function zetPijl(pj, van, naar, lengte) {
+  const a = toWorld(van.x, van.y), b = toWorld(naar.x, naar.y), dx = b.x - a.x, dz = b.y - a.y, l = Math.hypot(dx, dz) || 1;
+  pj.g.visible = true; pj.g.position.set(a.x, ground + 0.12, a.y); pj.g.rotation.y = Math.atan2(dx, dz);
+  pj.bar.scale.z = lengte; pj.bar.position.z = lengte / 2 + 0.6; pj.kop.position.z = lengte + 0.9;
+  return l;
+}
+// De pijlen: bij de bal een pijl naar de beste pass en, terwijl je laadt, een pijl voor de schotrichting (de lengte groeit met de kracht). Niets bij een gast (zijn invoer loopt via de host).
+function tekenPijlen(g) {
+  const k = g.pijlen, sim = g.sim, id = eigenId(g), human = ownHuman(g);
+  k.pas.g.visible = false; k.schot.g.visible = false;
+  if (g.online === 'gast' || g.replay || id < 0 || sim.bal.owner !== id || !human || human.weg || !(sim.fase === 'spel' || (sim.hervat && sim.hervat.t >= sim.hervat.pauze))) return;
+  const p = sim.spelers[id];
+  g.pasT -= g.dt;
+  if (g.pasT <= 0) { g.pasT = 0.15; const q = p.rol === 'keeper' ? besteOntvanger(sim, p, { geenKeeper: true, minScore: 0.1 }) : besteOntvanger(sim, p, { minScore: 0.1 }); g.pasId = q ? q.id : -1; }
+  if (g.pasId >= 0 && sim.spelers[g.pasId]) { const q = sim.spelers[g.pasId]; zetPijl(k.pas, p, q, Math.max(1, Math.min(8, Math.hypot(q.x - p.x, q.y - p.y) - 1.8))); }
+  const laad = Math.max(human.laad.schot, human.laad.lang) / LAAD_S;
+  if (laad > 0.02) {
+    const dir = { x: Math.cos(p.face), y: Math.sin(p.face) };
+    zetPijl(k.schot, p, { x: p.x + dir.x * 10, y: p.y + dir.y * 10 }, 2 + 6 * Math.min(1, laad));
+  }
 }
 
 // --- tekenen --------------------------------------------------------------------------------------------------------------------
@@ -528,18 +729,21 @@ function teken(w, dt) {
     m.ander[k].visible = true; m.ander[k].position.set(q.x, ground + 0.09, q.y); k++;
   }
   for (; k < m.ander.length; k++) m.ander[k].visible = false;
+  if (g.namen && !g.replay) tekenNamen(g); else if (g.namen) for (const n of g.namen) n.sp.visible = false;
+  if (g.pijlen) tekenPijlen(g);
 }
 
 function camera(w) {
   const g = game;
   if (!g) return;
-  const sim = g.sim, b = sim.bal, id = eigenId(g), me = id >= 0 ? sim.spelers[id] : null;
-  const fx = me ? b.x * 0.7 + me.x * 0.3 : b.x, fy = me ? b.y * 0.8 + me.y * 0.2 : b.y;
-  const sc = sim.formaat === 'groot' ? 1.55 : 1; // op het grote veld hangt de camera hoger en verder terug
-  const cam = toWorld(clamp(fx * 0.55, -7 * sc, 7 * sc), clamp(fy - 15 * sc, -(PITCH.L / 2) - 8 * sc, (PITCH.L / 2) - 7 * sc));
-  const at = toWorld(clamp(fx * 0.9, -(PITCH.B / 2), (PITCH.B / 2)), clamp(fy + 2.5 * sc, -(PITCH.L / 2), (PITCH.L / 2)));
-  const c = easeCamera(g, { x: cam.x, y: cam.y, z: ground + 16 * sc }, { x: at.x, y: at.y, z: ground + 0.5 }, 0.1);
-  w.cameraOverride = { position: c.position, lookAt: c.lookAt, fov: sim.formaat === 'groot' ? 62 : 58, cut: true };
+  const sim = g.sim, id = eigenId(g);
+  // de tv-regie (voetbalregie.js) kiest het shot; het standaardshot is de camera achter je speler. De posities zijn veldcoördinaten.
+  const shot = g.replay ? g.replaySnit : g.camShot;
+  const extra = shot === 'viering' ? { speler: g.regie.scorer } : g.regie.extra;
+  const cv = g.replay && g.camReplay ? g.camReplay : cameraVoor(shot, sim, id, g.t, extra);
+  const wp = (q) => { const t = toWorld(q.x, q.y); return { x: t.x, y: t.y, z: ground + q.z }; };
+  const c = easeCamera(g, wp(cv.pos), wp(cv.at), shot === 'speler' ? 0.1 : shot === 'breed' ? 0.06 : 0.14);
+  w.cameraOverride = { position: c.position, lookAt: c.lookAt, fov: cv.fov, cut: true };
 }
 
 // --- de HUD: het bord bovenin en de strook onderin -------------------------------------------------------------------------------
@@ -564,7 +768,8 @@ function updateHud(w) {
     hervat: sim.hervat ? sim.hervat.kind : null, tekst: g.online === 'gast' ? sim.flashTekst : sim.flash ? sim.flash.tekst : '', uitleg: !uitlegGezien(UITLEG_ID),
   };
   if (model.laad > 0.02) zetUitlegGezien(UITLEG_ID);
-  const boardModel = voetbalBoard({ ...model, help: keyTextHtml('{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel · {1} stijl · {2} vorming · {BACKSPACE} stopt') });
+  const boardModel = voetbalBoard({ ...model, help: keyTextHtml('{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel · {1} stijl · {2} vorming · {3} camera · {BACKSPACE} stopt') });
+  boardModel.row = scoreboardRow(sim);
   ensureBoard().set(boardModel);
   simHudTik(0, voetbalHudModel({ ...model, formaatNaam: FORMATEN[sim.formaat].naam }));
 }
@@ -585,6 +790,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (board) board.hide();
   simHudTik(0, null);
   clearBubbles(w, 'voetbal');
+  tvStop(g);
   for (const a of g.actors) getScene().remove(a.mesh);
   for (const mk of [g.marks.eigen, g.marks.pijl, ...g.marks.ander]) { getScene().remove(mk); mk.geometry.dispose(); }
   if (built) { built.bal.visible = false; built.schaduw.visible = false; }
@@ -661,7 +867,7 @@ registreerWedstrijd('voetbal', {
   naam: 'Voetbal Euroborg', soort: 'live', live: liveVoetbal, minSpelers: 2,
   maak: (deeln) => {
     uitnodiging = freshOptions({ ...leesOpslag(), modus: 'vriendschappelijk' }); // een competitie speel je alleen; samen is het een vriendschappelijke wedstrijd met de gekozen tactiek
-    return makeMatch(deeln.map((d) => ({ slot: d.slot, naam: d.naam, char: d.char, bonus: voetbalBonusVan() })), { duur: uitnodiging.duur, stand: uitnodiging.stand, seed: uitnodiging.seed, tegenstander: uitnodiging.tg, formaat: uitnodiging.formaat, vorming: uitnodiging.vorming, stijl: uitnodiging.stijl });
+    return makeMatch(deeln.map((d) => ({ slot: d.slot, naam: d.naam, char: d.char, bonus: voetbalBonusVan() })), { duur: uitnodiging.duur, stand: uitnodiging.stand, seed: uitnodiging.seed, tegenstander: uitnodiging.tg, formaat: uitnodiging.formaat, vorming: uitnodiging.vorming, stijl: uitnodiging.stijl, regels: leesTv().regels, timings: TV_TIMINGS });
   },
   start: (w, sim) => launch(w, { online: 'host', force: true, sim }),
   plek: () => ({ ...GATE }),
