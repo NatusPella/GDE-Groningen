@@ -26,6 +26,6 @@ ok(devStats.files === 1 && devStats.bytes === 1000, 'de meting telt dev-modules 
 console.log(`#657 meting: ${tags.length} modules (${(stats.bytes / 1e6).toFixed(2)} MB in de testopzet) in één parallelle modulepreload-golf i.p.v. 892 losse ontdekkingsstappen`);
 console.log(`#757 meting: ${dev.length} dev/QA/trailer-modules staan niet meer in de preload-lijst`);
 const build = fs.readFileSync(new URL('../web/build.mjs', import.meta.url), 'utf8');
-ok(/modulePreloadTags\(files\.map\(rel\)\)/.test(build) && /tags \+ '\\n<script src="web\.js">/.test(build), 'de build zet de hints in index.html');
+ok(/modulePreloadTags\(files\.map\(rel\), \{ reachable \}\)/.test(build) && /tags \+ '\\n<script src="web\.js">/.test(build), 'de build zet de hints in index.html');
 console.log(`${n - fails}/${n} webpreload`);
 process.exit(fails ? 1 : 0);

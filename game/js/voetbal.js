@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { toonStartkaart } from './startkaart.js';
 import { getSettings } from './settings.js';
 import { difficultyRecordKey, cleanDifficulty, footballLevel, footballDuration } from './difficulty.js'; // #1169: tegenstander en duur per save
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
@@ -124,6 +124,7 @@ function materials() {
     pijl: new THREE.MeshBasicMaterial({ color: 0xf4c430 }),
     bord: new THREE.MeshStandardMaterial({ color: 0x1f3a2a, roughness: 0.8 }),
   };
+  for (const m of Object.values(mats)) m.userData.shared = true; // review 22-11 P1: gedeeld tussen wedstrijden; disposeObject laat ze staan
   return mats;
 }
 
@@ -153,7 +154,9 @@ function buildGoal(root, M, fy, uit) { // fy: de doellijn (-(VELD.L / 2) of (VEL
   dak.position.set(w.x, ph, w.y + uit * diep / 2); root.add(dak);
 }
 
+let gateMat = null;
 function gateSign() {
+  if (gateMat) return gateMat; // review 22-11 P1: een keer gemaakt en gedeeld (geen nieuwe textuur per wedstrijd)
   const c = document.createElement('canvas');
   c.width = 256; c.height = 96;
   const g = c.getContext('2d');
@@ -163,7 +166,9 @@ function gateSign() {
   g.font = '22px sans-serif'; g.fillText('Vijf tegen vijf', 128, 72);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
-  return new THREE.MeshBasicMaterial({ map: t });
+  gateMat = new THREE.MeshBasicMaterial({ map: t });
+  gateMat.userData.shared = true;
+  return gateMat;
 }
 
 function bouw(w, formaat = 'klein', site = null) {
@@ -209,7 +214,7 @@ function bouw(w, formaat = 'klein', site = null) {
 function ruimBouwOp() {
   if (!built) return;
   const sc = getScene();
-  for (const o of [built.root, built.bord, built.bal, built.schaduw]) sc.remove(o);
+  for (const o of [built.root, built.bord, built.bal, built.schaduw]) { sc.remove(o); disposeObject(o); } // review 22-11 P1: geometrie vrij, gedeelde materialen blijven
   built = null;
 }
 
@@ -221,7 +226,7 @@ function ruimParkOp() {
   if (!parkBuilt) return;
   const sc = getScene();
   if (parkBuilt.publiek) parkBuilt.publiek.dispose();
-  for (const o of [parkBuilt.root, parkBuilt.bord, parkBuilt.bal, parkBuilt.schaduw]) sc.remove(o);
+  for (const o of [parkBuilt.root, parkBuilt.bord, parkBuilt.bal, parkBuilt.schaduw]) { sc.remove(o); disposeObject(o); }
   parkBuilt = null;
 }
 
@@ -815,7 +820,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   simHudTik(0, null);
   clearBubbles(w, 'voetbal');
   tvStop(g);
-  for (const a of g.actors) getScene().remove(a.mesh);
+  for (const a of g.actors) { getScene().remove(a.mesh); disposeObject(a.mesh); } // review 22-11 P1: skelet, persoonsteller en racket terug
   for (const mk of [g.marks.eigen, g.marks.pijl, ...g.marks.ander]) { getScene().remove(mk); mk.geometry.dispose(); }
   if (built) { built.bal.visible = false; built.schaduw.visible = false; }
   p.x = g.exitX; p.y = g.exitY; p.angle = -Math.PI / 2;

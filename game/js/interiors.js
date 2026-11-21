@@ -39,6 +39,7 @@ import { noteMoney } from './finance.js';
 import { sfxEvent } from './sfx/haken.js';
 import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
+import { streamPlanner } from './streamplanner.js';
 
 export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
@@ -124,9 +125,8 @@ function planOf(b) {
     const spot = spotFor(spotIndex(), b.pts, b.entrance || null);
     let style = null;
     try { style = S.hooks.homeStyle(b); } catch (e) { style = null; }
-    rec = planInterior(b, { spot, style });
-    rec.b = b;
-    rec.epoch = hookEpoch();
+    const plan = planInterior(b, { spot, style });
+    rec = { ok: plan.ok, why: plan.why, plan, b, epoch: hookEpoch() }; // scan, build en pinInterior lezen rec.plan (het platte plan van interiorrules.js zat er niet in)
     if (!rec.ok && spot && (rec.why === 'small' || rec.why === 'low')) markNotEnterable(spot.x, spot.y); // the map layer stops promising it
     S.plans.set(b, rec);
   }
@@ -202,23 +202,35 @@ function drop(w, ls) {
   unregisterPortalBoxes(ls, ls.boxes);
   if (scene) scene.remove(ls.group);
   disposeObject(ls.group);
-  ls.npcs.length = 0;
+  for (const o of ls.npcs) unregisterPoseSource(o.seed);
+  ls.npcs.length = 0; ls.npcTodo = null;
   S.live.delete(ls.b);
   const p = hoofdspeler(w);
   if (p) updatePortals(p.x, p.y, true);
 }
 
+// Review 22-11 P3: de mensen van een pand komen niet allemaal in de frame dat het live gaat (elke figuur is een eigen uiterlijk: 2 tot 4 ms,
+// samen tot ca. 40 ms), maar een per frame via de streamplanner (klasse actors); addNpcs maakt alleen de lijst, buildNextNpc bouwt er een.
 function addNpcs(ls) {
   const { plan } = ls, L = plan.layout;
-  const accent = L.palette ? L.palette.accent : 0x3f6ea8;
-  const firstSeen = new Set();
   const all = [...L.npc.map((n) => ({ ...n, level: 1 })), ...(L.upper ? L.upper.npc.map((n) => ({ ...n, level: 2 })) : [])].slice(0, MAX_NPC);
   if (!ls.grid) { ls.grid = walkGrid(L); ls.reach = reachable(L, ls.grid); ls.stage = makeStage(L, ls.grid, ls.reach); }
   // an own business: the customers of today's turnover (Bezit), on top of the loose ones the layout has
   let want = 0;
   try { want = S.hooks.customers(ls.b) | 0; } catch (e) { want = 0; }
   if (want > 0) all.push(...extraCustomers(ls.grid, ls.reach, all, missingCustomers(want, all), mulberry32((plan.seed ^ 0x9e3779b1) >>> 0)).map((n) => ({ ...n, level: 1 })));
-  all.forEach((n, i) => {
+  ls.npcTodo = all.map((n, i) => ({ n, i }));
+  ls.firstSeen = new Set();
+  ls.npcsOn = true;
+  ls.crowdKey = null; // the first update sets who is there at this hour
+}
+
+function buildNextNpc(ls) {
+  const { plan } = ls, L = plan.layout;
+  const accent = L.palette ? L.palette.accent : 0x3f6ea8;
+  const { n, i } = ls.npcTodo.shift();
+  const firstSeen = ls.firstSeen;
+  {
     const look = npcLook(n.role, plan.seed, i, accent, plan.sub);
     let fig;
     try { fig = buildPersonMesh(look.shirt, look.skin, look.opts); } catch (e) { return; }
@@ -227,7 +239,7 @@ function addNpcs(ls) {
     fig.position.set(x - plan.frame.ox, baseY, z - plan.frame.oy);
     fig.rotation.y = yawOfFace(plan.frame, n.face);
     // the pose (sitting, crouching, ringing up) comes from the pose source of the person system
-    const src = { state: 'alive', pose: n.pose === 'sit' ? 'sit' : null };
+    const src = { state: 'alive', pose: n.pose === 'sit' ? 'sit' : null, persistent: true }; // persistent: prunePoseSources (pedestrians) laat hem staan
     registerPoseSource(look.opts.seed, src);
     let actor = null;
     if (n.level === 1) {
@@ -236,9 +248,8 @@ function addNpcs(ls) {
     }
     ls.group.add(fig);
     ls.npcs.push({ fig, n, src, actor, seed: look.opts.seed, baseY, idx: i, first: !STAFF_ROLES.has(n.role) && !firstSeen.has(n.role) && !!firstSeen.add(n.role), present: true, seen: true });
-  });
-  ls.npcsOn = true;
-  ls.crowdKey = null; // the first update sets who is there at this hour
+    ls.crowdKey = null; // the new figure gets its place in the crowd of the hour in this same update
+  }
 }
 
 // The crowd of the hour: who is there (interiorcrowd.js) and what part of the day the scripts follow; once per game half hour, not per frame.
@@ -253,6 +264,7 @@ function applyCrowd(w, ls) {
 function dropNpcs(ls) {
   for (const o of ls.npcs) { unregisterPoseSource(o.seed); ls.group.remove(o.fig); disposeObject(o.fig); }
   ls.npcs.length = 0;
+  ls.npcTodo = null;
   ls.npcsOn = false;
 }
 
@@ -317,6 +329,10 @@ function updateLive(w, ls, dt, p, onFoot) {
   const wantNpcs = (st.open || inside) && dd < NPC_R;
   if (wantNpcs && !ls.npcsOn) addNpcs(ls);
   else if (!wantNpcs && ls.npcsOn) dropNpcs(ls);
+  if (ls.npcsOn && ls.npcTodo && ls.npcTodo.length) {
+    const plan2 = streamPlanner(), g = plan2.grant('actors', 6);
+    if (g > 0) { const t0 = performance.now(); buildNextNpc(ls); plan2.spend('actors', performance.now() - t0); }
+  }
   if (ls.npcsOn && dd < NPC_R) {
     applyCrowd(w, ls);
     // Seen from outside only what shows through a window or the door; the rest is behind a wall and costs nothing (no draw, no animation)

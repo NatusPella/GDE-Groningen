@@ -360,6 +360,12 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
 // --- snapshots ----------------------------------------------------------------------
 
 const shots = new Map();
+const SHOTS_MAX = 200; // review 22-11 N5: de garagekaarten en portretten bleven de hele sessie als data-URL staan; de oudste gaan eruit (een volgende vraag tekent opnieuw)
+function rememberShot(key, url) {
+  shots.delete(key);
+  shots.set(key, url);
+  while (shots.size > SHOTS_MAX) shots.delete(shots.keys().next().value);
+}
 const shotGroups = new Map(); // group -> keys asked for with that group (releaseSnapshots)
 // a still that came out empty (no WebGL at that moment) is not kept: the next ask draws it again
 function forgetBlankShots() { for (const [k, v] of shots) if (!v) shots.delete(k); }
@@ -425,9 +431,10 @@ function pump(deadline) {
     if (n ? performance.now() - t0 >= SHOT_BUDGET_MS || left < MIN_IDLE_MS : left < MIN_IDLE_MS) break;
     const job = queue.shift();
     if (!shots.has(job.key)) {
-      const url = shoot(job.spec, job.w, job.h, job.angle, job.zoom);
+      let url;
+      try { url = shoot(job.spec, job.w, job.h, job.angle, job.zoom); } catch (e) { url = ''; } // review 22-11 N4: een foute spec mag de rij niet voorgoed laten vastlopen
       // een leeg plaatje nooit bewaren: de volgende vraag tekent het opnieuw (na een herstelde context)
-      if (url) shots.set(job.key, url);
+      if (url) rememberShot(job.key, url);
       if (job.keep && url) keepShot(job.key, url);
     }
     for (const cb of job.cbs) cb(shots.has(job.key) ? shots.get(job.key) : '');
@@ -445,7 +452,7 @@ export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = fals
   if (!spec) return null;
   const key = `${w}x${h}@${angle}${zoom === 1 ? '' : 'z' + zoom}|${JSON.stringify(spec)}`;
   if (group) { let g = shotGroups.get(group); if (!g) shotGroups.set(group, g = new Set()); g.add(key); }
-  if (!shots.has(key) && keep && keptShots().shots[key]) shots.set(key, keptShots().shots[key]);
+  if (!shots.has(key) && keep && keptShots().shots[key]) rememberShot(key, keptShots().shots[key]);
   if (shots.has(key)) { if (cb) cb(shots.get(key)); return shots.get(key); }
   const job = queue.find((j) => j.key === key);
   if (job) {

@@ -39,6 +39,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Voetbal
 
+- Voetbal: na een wedstrijd geven het veld, de doelen, het bord, de bal en de spelers hun geheugen weer terug (geen groeiend geheugen meer bij een carrière met veel wedstrijden).
 - Voetbal: Tessa is de ster en Tammo helpt haar shinen. In akte 4 komen drie korte stappen (schoenen kopen, de eerste training in Veendam, een rondje voor het team); oude saves krijgen ze als gedaan of nog te spelen. Samen spelen: per speler, in zijn eigen verhaal.
 - Voetbal: clubaandelen. In het Manager-scherm koop je een deel van je club (10, 25, 51 of 100 procent); elke competitieronde keert dividend uit en je kunt het aandeel voor 75 procent terugverkopen. Een sponsor kiest voortaan een echt bedrijfspand uit de Bezit-pandindex; wie dat pand bezit, krijgt hooguit tien procent meer klanten op thuisdagen.
 - Voetbal: het commentaar kent het seizoen. Hilbrand en Roelie praten over de ronde, de plek in de stand, de laatste ronde, de beker, de Waddenbeker, een debuut, een doelpunt van de ster en de sponsor (82 nieuwe vaste regels staan op de wachtlijst voor de stemmen).
@@ -112,6 +113,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Interieurs
 
+- Interieurs: de mensen in een winkel, café of kantoor verschijnen een voor een in plaats van allemaal tegelijk, zodat het spel niet hapert als je een pand nadert; zittende klanten blijven zitten in plaats van na twee seconden op te staan.
 - Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten
 - Bij de kassa of de bar druk je op E: een winkel van het spel opent zijn eigen menu, een andere winkel of een café verkoopt een klein product; in de kledingwinkel pas je in het pashokje, in een kerk steek je een kaarsje aan
 - Winkels, cafés, kantoren en andere bedrijven zijn altijd open; de woningen van anderen zitten meestal op slot (niet te betreden), een op de vijf staat open
@@ -187,6 +189,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Wereld, weer en verkeer
 
+- Sneller starten: de webversie en de app laden geen losse hulpmodules meer vooraf (ca. 320 kB minder); garagekaartjes en portretten houden hoogstens 200 plaatjes in het geheugen.
 - Weer: elke kalenderdag is net anders, maar het blijft altijd zomer. Er zijn hete dagen, bewolkte dagen, zomerbuien met soms onweer, ochtendmist boven de weilanden, een regenboog na een bui, bries aan de kust en warme avonden met vliegjes en gloed. Bij Samen spelen is het voor iedereen gelijk, ook voor wie later aansluit. Voetgangers dragen vaker een zonnebril als het heet is.
 - Ramen: kozijnen en glas staan dichtbij altijd volledig, niet meer half doorzichtig. Binnen 40 m is elk raam opaak; bij snelheid of op een drukke machine zakt de kozijnafstand niet meer onder 60 m (die kon naar 36 m zakken); een groot gebouw krijgt zijn ramen op de afstand van zijn gevel in plaats van van zijn middelpunt; en gebouwen met hun gevel binnen 60 m worden eerst gebouwd, ook boven het frame-budget (hoogstens vier per frame).
 - Nieuw: Instellingen, Beeld, Wereldkleur (Uit, Subtiel, Drukwerk). De wereld krijgt een subtiele kleurtaal van het drukwerk van het spel: warm papierachtig licht, inktblauwe schaduwen, een tikje gedempt, op Hoog en Ultra een lichte papierkorrel en een rasterhint in de diepste schaduw. Subtiel is de standaard; Laag past alleen de materiaalkleuren aan. Rustig drukwerk zet korrel en raster uit; wie een kleurenblindmodus kiest, krijgt geen demping. Per speler, bij Samen spelen niet gedeeld. Gevels, gras en straat volgen de nieuwe stand na een herstart. Gele en roze accenten van de wereld blijven achter de gele 'volg dit'-markers, en donkerrode stenen houden hun contrast met markers. Nog niet in het spel bekeken (alleen berekend en getest).

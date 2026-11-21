@@ -746,6 +746,7 @@ export function createFarLOD(scene, map, opts) {
   function dropStreamTile(key) {
     const t = tiles.get('s:' + key);
     if (!t) return;
+    tileCooler.forget(t); // review 22-11: anders houdt de koeler de gebouwen en stukken van een gedropte tegel vast
     disposeTile(t);
     tiles.delete(t.key);
     tilesVersion++;

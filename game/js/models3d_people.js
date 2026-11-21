@@ -1387,7 +1387,8 @@ const poseSources = new Map();
 export function registerPoseSource(seed, src) { poseSources.set(seed, src); }
 export function unregisterPoseSource(seed) { poseSources.delete(seed); }
 export function prunePoseSources(alive) {
-  for (const [seed, src] of poseSources) if (!alive.has(src)) poseSources.delete(seed);
+  // review 22-11 P2: een bron met `persistent` (een interieur-NPC) hoort bij geen voetganger en wordt door zijn eigenaar vrijgegeven
+  for (const [seed, src] of poseSources) if (!alive.has(src) && !src.persistent) poseSources.delete(seed);
 }
 
 // the folded Pixie Vouw 11: narrow, tall and a bit thick

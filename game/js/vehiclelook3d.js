@@ -542,19 +542,19 @@ export function addonTriangles(look, kind, v, fit, H = 1.6) { return buildAddons
 
 // Elke frame voor alle getekende voertuigen (scene3d.js): de underglow volgt de nacht, hoogstens MAX_GLOW_VISIBLE tegelijk (de dichtstbij,
 // het budget van tuningworld.js) en de lucht van een snackwagen alleen dichtbij. meshes: de Map id -> mesh; (fx, fz): het zwaartepunt van de camera.
-const _glowList = [];
+const _glowList = [], _glowPool = [], _glowShow = new Set(); // review 22-11 N2: lijst, ingangen en Set worden hergebruikt (geen allocaties per beeld)
 export function tickVehicleLooks(meshes, fx, fz, night, t) {
   _glowList.length = 0;
   for (const m of meshes.values()) {
     const ud = m.userData;
     if (!ud || (!ud.lookGlow && !ud.lookAir)) continue;
     const d = Math.hypot(m.position.x - fx, m.position.z - fz);
-    if (ud.lookGlow) _glowList.push({ id: m, dist: d, glow: true });
+    if (ud.lookGlow) { const e = _glowPool[_glowList.length] || (_glowPool[_glowList.length] = { id: null, dist: 0, glow: true }); e.id = m; e.dist = d; _glowList.push(e); }
     if (ud.lookAir) { const near = d < 45; ud.lookAir.visible = near; if (near) placeAir(ud.lookAir, t); }
   }
   if (!_glowList.length) return;
-  const show = glowBudget(_glowList, MAX_GLOW_VISIBLE);
-  for (const e of _glowList) e.id.userData.lookGlow.visible = night > 0.3 && show.has(e.id);
+  const show = glowBudget(_glowList, MAX_GLOW_VISIBLE, _glowShow);
+  for (const e of _glowList) { e.id.userData.lookGlow.visible = night > 0.3 && show.has(e.id); e.id = null; }
 }
 
 // Een sticker getekend in een rechthoek van het canvas (voor de keuzetegels, tuningtiles.js): de cel uit de atlas, geschaald.
