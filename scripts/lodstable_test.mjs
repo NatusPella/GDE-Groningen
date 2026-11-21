@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {
   RING_KEEP_MAX, RING_HOLD_MS, selectRing, createRingSmoother, hystVisible, hystWidth, fadeStep, fadeSecs, facadeBand, createCooler,
   DISPOSE_DELAY_MS, DISPOSE_PER_FRAME, speedScale, facadeSpeedScale, ringSpeedScale, farBuildDist, thinPath,
+  FACADE_OPAQUE_M, FACADE_MIN_M, RING_MIN_M, NEAR_BUILD_M, NEAR_URGENT_MAX, boundsDist, facadeFloor, buildRank, nearUrgent, ringFloor,
 } from '../game/js/lodstable.js';
 import { streamRank, createStreamAhead, advanceStreamAhead } from '../game/js/streambudget.js';
 
@@ -178,6 +179,48 @@ ok(farBuildDist(500, 200) === 200 && farBuildDist(100, 400) === 100 && farBuildD
   ok(bend.every((p, i) => i === 0 || p.s > bend[i - 1].s), 's is strikt stijgend');
   ok(thinPath([[0, 0], [100000, 0]], 10, 50).length <= 50, 'het maximum aantal punten');
   ok(thinPath([[5, 5]]).length === 1 && thinPath([[5, 5], [5, 5]]).length === 1, 'een punt of nulrit');
+}
+
+// ---- ramen dichtbij (#1016): nooit half op korte afstand ----
+{
+  // de kozijnband begint nooit voor 40 m: alles daarbinnen is opaak, ook bij een kleine gevelafstand
+  for (const on of [45, 50, 60, 90, 140, 300]) {
+    const [a, b] = facadeBand(on);
+    ok(a >= Math.min(FACADE_OPAQUE_M, on) && b === on && a <= b, `band bij ${on} m begint niet voor ${FACADE_OPAQUE_M} m`);
+  }
+  ok(facadeBand(30)[0] === 30, 'een afstand onder 40 m heeft geen band (harde rand op de afstand zelf)');
+  // snelheid en een drukke machine: de gevelafstand zakt niet onder 60 m (60 m x 0,6 was 36 m: kozijnen half op 30 m)
+  for (const base of [60, 90, 140]) for (const v of [0, 12, 20, 35, 60]) {
+    const eff = facadeFloor(base * facadeSpeedScale(v));
+    ok(eff >= FACADE_MIN_M, `gevelafstand ${base} m bij ${v} m/s blijft ${eff} >= ${FACADE_MIN_M}`);
+    ok(facadeBand(eff)[0] >= FACADE_OPAQUE_M, `en de band begint op ${facadeBand(eff)[0]} m, niet voor ${FACADE_OPAQUE_M} m`);
+  }
+  ok(facadeFloor(Infinity) === Infinity, 'zonder gevelafstand blijft Infinity');
+  // de detailring krimpt door de snelheid niet onder 60 m, en nooit boven de tekenafstand
+  for (const d of [80, 140, 300]) for (const v of [0, 25, 45]) {
+    const r = ringFloor(d * ringSpeedScale(v), d);
+    ok(r >= Math.min(RING_MIN_M, d) && r <= d, `ring ${d} m bij ${v} m/s: ${r}`);
+  }
+  // de afstand tot de gevel: een groot gebouw met een ver middelpunt heeft zijn gevel dichtbij
+  const hall = [-100, -20, 100, 20]; // 200 m lang, middelpunt op 0
+  ok(boundsDist(hall, 0, 0) === 0, 'binnen de voetafdruk: 0');
+  ok(boundsDist(hall, 150, 0) === 50, 'naast de kop: afstand tot de rand, niet tot het middelpunt (150)');
+  ok(Math.abs(boundsDist(hall, 130, 40) - Math.hypot(30, 20)) < 1e-9, 'schuin voor de hoek');
+  const c = 150; // het middelpunt ligt op 150 m: voorbij elke gevelafstand tot 140 + 12, de gevel op 50 m niet
+  ok(hystVisible(false, boundsDist(hall, c, 0), FACADE_MIN_M + 12) && !hystVisible(false, c, FACADE_MIN_M + 12), 'kozijnen aan op de gevelafstand, uit op de middelpuntafstand');
+  // de bouwvolgorde: nabijheid, dan richting, dan de rest
+  ok(buildRank(10, 500) < buildRank(40, -80) && buildRank(40, -80) < buildRank(NEAR_BUILD_M, -80), 'dichtbij gaat voor, ook voor een gebouw dat in de rijrichting ligt');
+  ok(buildRank(NEAR_BUILD_M, 123) === 123 && buildRank(200, -50) === -50, 'buiten 60 m telt de rang in de rijrichting');
+  const miss = [[200, -50], [30, 400], [5, 900], [90, 20]].map(([nd, rk]) => ({ nd, rank: buildRank(nd, rk) })).sort((a, b) => a.rank - b.rank);
+  ok(miss[0].nd === 5 && miss[1].nd === 30 && miss[2].nd === 200 && miss[3].nd === 90, 'sorteervolgorde: 5, 30 (nabij), dan richting (200 voor 90)');
+  // boven het budget: alleen nabij, hoogstens NEAR_URGENT_MAX per frame
+  ok(nearUrgent(20, 0) && nearUrgent(59.9, NEAR_URGENT_MAX - 1), 'nabij en onder het maximum: boven het budget');
+  ok(!nearUrgent(20, NEAR_URGENT_MAX) && !nearUrgent(NEAR_BUILD_M, 0) && !nearUrgent(150, 0), 'boven het maximum of niet nabij: wacht op het budget');
+  // een model van een teleport: 30 wachtende gebouwen op 10 tot 60 m, budget 1 gebouw per frame: alle nabije zijn klaar in 8 frames
+  const q = Array.from({ length: 30 }, (_, i) => 10 + i * 1.7).sort((a, b) => a - b);
+  let frames = 0;
+  while (q.length && frames < 100) { let built = 0, near = 0; for (let i = 0; i < q.length;) { if (built > 0 && !nearUrgent(q[i], near)) { i++; continue; } if (built > 0) near++; built++; q.splice(i, 1); } frames++; }
+  ok(frames <= 8, `30 nabije gebouwen na ${frames} frames klaar (4 + 1 per frame)`);
 }
 
 console.log(`lodstable_test: ${n} controles groen`);
