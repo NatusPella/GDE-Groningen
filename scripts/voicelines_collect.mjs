@@ -243,6 +243,8 @@ export function collect() {
   const cp = src('cityprops.js');
   bubble('Straatfiguren', lit(cp, 'const VENDOR_LINES = '), { who: 'marktkoopman', tag: ['luid roepend, joviaal', 'opgewekt, aanprijzend'] });
   bubble('Straatfiguren', ['Alweer n fiets uut t Diep, joh!'], { tag: 'vermoeid, zuchtend' });
+  // wereld levend (worldlife.js, 21-11): the bubbles of the daily events; the animal sounds are text only
+  for (const t of Object.values(lit(src('worldlifelines.js'), 'export const LIFE_LINES = ')).flatMap((e) => [...e.mensen, ...Object.values(e.rol || {}).flat()])) bubble('Wereld levend', [t], { tag: ['luchtig, kort, in het voorbijgaan', 'opgewekt, praatgraag'] });
   const se = src('seating3d.js');
   bubble('Water (boten & zwemmers)', lit(se, 'const GREET_LINES = '), { tag: ['vrolijk, roepend over het water', 'lacherig, zwaaiend'] });
   bubble('Water (boten & zwemmers)', lit(se, 'const GREET_FAST = '), { tag: ['die boos is, roepend over het water', 'geschrokken, mopperend'] });

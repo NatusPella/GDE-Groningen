@@ -77,6 +77,8 @@ dingen, profiel `gde-gebieden-v1` per speler, safehouses in wijken en woonplaats
 Een verhaalplek uit Deel 4 is geen rij in dat systeem: het verhaal noemt de plek,
 `safehuizen.js` beslist of je er kunt rusten (ADR 0021).
 
+Dagelijks leven (epic #1181, `worldlife.js`, docs/WERELD-LEVEN-21-11.md): markt, artiesten, studentenfeest, kermis, wandelaars, hardlopers, toeristen en dieren zijn een pure functie van kalenderdag en klok (zomerlaag van het weer erbij), met een vast budget van drie InstancedMesh-objecten; test `worldlife_test.mjs` en `worldlife3d_test.mjs`.
+
 ## Regels voor een nieuwe feature
 
 1. Geen nieuwe kaartbron: lees de tegel van je punt, of de handlaag met

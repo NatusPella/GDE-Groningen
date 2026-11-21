@@ -29,7 +29,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 
 <!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->
 
-**Samenvatting:** 42 systemen: 34 OK, 7 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
+**Samenvatting:** 43 systemen: 35 OK, 7 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
 
 | Systeem | a) Bezit | b) Gast | c) Beloning | d) Wegvallen, aansluiten, hostwissel | e) world.player | f) Dekking | Status |
 |---|---|---|---|---|---|---|---|
@@ -70,6 +70,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | **Wereld** | | | | | | | |
 | Tijd, slapen, pauzeren en laden | gedeeld, gesynct | Tijd verspringen, slapen, reizen, laden en pauzeren zijn gezamenlijke keuzes (stemming J of N); pauzeren is voor jezelf. | Geen. | Een weggevallen speler telt niet mee in de stemming; hostwissel laat tijd, weer en politie zoals ze waren. | nee | `groep_test`, `coopladen_test`, `coopduur_test`, `coophostwissel_test` | OK |
 | Weer | wereld (wie het spel opende) | Het weer is van de wereld: de host meldt de weerstaat, een gast zet hem in zijn eigen machine. | Geen. | Hostwissel neemt de weerstaat mee (herstelmomentopname). | nee | `coopweer_test`, `weatherstate_test` | OK |
+| Wereld levend (dagelijkse evenementen en dieren) | wereld (wie het spel opende) | De evenementen van de dag (markt, artiesten, studentenfeest, kermis, wandelaars, hardlopers, toeristen, eenden, schapen, duiven, zwaluwen) zijn een pure functie van kalenderdag en klok: elke speler rekent ze zelf uit op de dag en klok van de gastheer, zonder bericht. | Geen: het is decor, geen voortgang. | Er is niets om te verliezen of over te nemen: wie later aansluit of de gastheer wordt, ziet dezelfde plekken en aantallen (alleen het lopen en de bubbels zijn lokaal). | nee | `worldlife_test`, `worldlife3d_test` | OK |
 | Cheats en testmenu | lokaal per apparaat | Uit zodra er een tweede speler is: geen cheats, geen teleport, geen testmenu of dev-paneel. | Geen. | Valt de tweede speler weg, dan staan cheats weer aan te zetten voor wie alleen speelt. | nee | `cheats_test`, `cheatsui_test`, `bot_cheatvrij_test` | OK |
 | Achtergrondverkeer, voetgangers, dieren en wereldstreaming | wereld (wie het spel opende) | De wereld wordt geladen en gesimuleerd rond elke groep spelers (foci); een gast ziet dezelfde NPC's uit de snapshots. | Geen. | Een focus verdwijnt met zijn spelers; het totaalbudget blijft begrensd. | ja: 10 (pedestrians 4, streetpopulation 1, swimmers3d 1, wildlife 4) | `coopfoci_test`, `tilefocus_test`, `coopgaten_test` | OK |
 | Wapens, PvP en passive mode | gedeeld, gesynct | Eigen wapen uit je eigen opslag; PvP alleen buiten passive mode; dood door een medespeler kost niets. | Geen. | Niets te herstellen. | nee | `coopwapen_test`, `cooppvp_test`, `pvpvertraging_test` | OK |

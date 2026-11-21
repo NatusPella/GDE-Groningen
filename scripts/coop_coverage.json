@@ -974,6 +974,28 @@
    "prio": "-"
   },
   {
+   "id": "wereldleven",
+   "naam": "Wereld levend (dagelijkse evenementen en dieren)",
+   "groep": "Wereld",
+   "modules": [
+    "worldlife*"
+   ],
+   "eigenaar": "wereld",
+   "gast": "De evenementen van de dag (markt, artiesten, studentenfeest, kermis, wandelaars, hardlopers, toeristen, eenden, schapen, duiven, zwaluwen) zijn een pure functie van kalenderdag en klok: elke speler rekent ze zelf uit op de dag en klok van de gastheer, zonder bericht.",
+   "beloning": "Geen: het is decor, geen voortgang.",
+   "wegval": "Er is niets om te verliezen of over te nemen: wie later aansluit of de gastheer wordt, ziet dezelfde plekken en aantallen (alleen het lopen en de bubbels zijn lokaal).",
+   "test": [
+    "scripts/worldlife_test.mjs",
+    "scripts/worldlife3d_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Wereld levend per dag (21-11).**"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "cheats",
    "naam": "Cheats en testmenu",
    "groep": "Wereld",

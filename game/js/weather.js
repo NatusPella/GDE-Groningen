@@ -7,6 +7,7 @@ import { regenDruppels } from './weerlook.js';
 import { streekZonHoogte } from './weerdag.js';
 import { easeTo, rainFade, flashGain } from './weersmooth.js';
 import { updateSummerFlies } from './summerflies3d.js';
+import { updateWorldLife } from './worldlife3d.js'; // wereld levend (21-11): dagelijkse evenementen en dieren, 3 instanced meshes
 import { summerLayer, combineSummer, rainbowStrength } from './summerday.js'; // zomervariatie per kalenderdag (21-11)
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
 import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR } from './weatherlook.js';
@@ -357,6 +358,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   }
   updateRain(dt, world, px, py, cam);
   updateSummerFlies(scene, w.summer ? w.summer.flies : 0, cam, dt);
+  updateWorldLife(scene, world, px, py, dt);
   const quality = getSettings().quality;
   const flash = updateLightning(dt, w.active ? t : 0, quality, scene);
   const region = hoofdspeler(world) ? regionAt(hoofdspeler(world).x, hoofdspeler(world).y) : 'stad';
