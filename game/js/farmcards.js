@@ -65,6 +65,14 @@ export function machinesKaartHtml(machines) {
     `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd="machines">Machines huren of kopen</button></footer></section>`;
 }
 
+// De dieren op je weilanden (#1101): een regel per kudde met aantal en status (icoon en woord), of een eerlijke zin met de weg naar Land en bedrijf.
+export function dierenKaartHtml(dieren) {
+  const rijen = (dieren || []).map((d) => `<li class="ds-lijst__rij bd-dier" data-ziek="${d.ziek ? '1' : '0'}"><span class="bd-veldregel__t"><b>${esc(d.soort)} · ${nl(d.n)} ${d.n === 1 ? 'dier' : 'dieren'}</b><span class="ds-t-hulp">${esc(d.naam)}</span></span>` +
+    `<span class="ds-z-chip bd-chip" data-dier="${d.ziek ? 'ziek' : 'gezond'}">${esc(d.ziek ? 'Ziek: dierenarts nodig' : `Gezond · ${String(d.perDag).replace('.', ',')} ${esc(d.eenheid)} per dag`)}</span></li>`).join('');
+  return `<section class="ds-z-kaart ds-z-kaart--recht bd-dieren-kaart" aria-label="Dieren"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Dieren</h3></header>` +
+    (rijen ? `<ul class="ds-lijst">${rijen}</ul>` : `<div class="ds-leeg"><p>Je hebt nog geen dieren. Koop vee voor een weiland van jou bij Land en bedrijf, Overzicht.</p></div>`) + '</section>';
+}
+
 // De toegang tot meer land: altijd zichtbaar op het overzicht, niet verstopt in een tab.
 export function toegangKaartHtml(t) {
   return `<section class="ds-z-kaart ds-z-kaart--recht bd-toegang" aria-label="Meer land"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Meer land</h3></header>` +
@@ -90,8 +98,8 @@ export function uitlegKaartHtml(metLegenda = false) {
 }
 
 // Het hele blok voor het onderdeel Overzicht: wat nu (met de ene hoofdknop), de lus, elk veld als kaart, de machines, meer land en de uitleg.
-export function kaartenBlok(b) {
-  const o = overzicht(b);
+export function kaartenBlok(b, bezit = null) {
+  const o = overzicht(b, bezit);
   if (o.leeg) return '';
   const schuurKg = o.schuurKg;
   const eerste = o.velden.find((v) => v.id === (o.hoofd && o.hoofd.veld)) || o.velden[0];
@@ -101,8 +109,7 @@ export function kaartenBlok(b) {
     lusHtml({ ...s, ...{ statusId: eerste.statusId, klaar: eerste.klaar } }, schuurKg) + (eerste.groeit ? groeiHtml({ naam: eerste.naam, stadium: 0, groei: eerste.groei }) : '') +
     `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop" data-bd-naar="${esc(eerste.id)}" data-bd-sluit="1">${esc(o.hoofd.label)}</button></footer></article>`;
   const velden = `<div class="bd-velden" role="group" aria-label="Je velden">${o.velden.map((k) => veldKaartHtml(k)).join('')}</div>`;
-  const dieren = `<p class="ds-t-hulp bd-dieren">Dieren: er lopen nog geen dieren op je boerderij; je werkt met akkers en weiland.</p>`;
-  return hoofd + velden + machinesKaartHtml(o.machines) + toegangKaartHtml(o.toegang) + dieren + uitlegKaartHtml(true);
+  return hoofd + velden + machinesKaartHtml(o.machines) + toegangKaartHtml(o.toegang) + dierenKaartHtml(o.dieren) + uitlegKaartHtml(true);
 }
 
 export const _gewasNaam = (id) => (B.GEWASSEN[id] ? B.GEWASSEN[id].naam : '');

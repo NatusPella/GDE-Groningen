@@ -6,6 +6,7 @@
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import { veldStatus, veldenStatus, watNu } from './farmstatus.js';
+import { SPECIES, herdsOf } from './livestock.js';
 
 // De zes standen van de speler (een veld heeft er altijd precies één) naast de zeven van de kaart (farmstatus.js).
 export const STAND = {
@@ -94,9 +95,21 @@ export function toegang(b) {
   return { eigen: mijn.size, aanbod: aanbod.length, koop, huur, tekst: aanbod.length ? `${aanbod.length} percelen in de buurt: ${huur} te huur, ${koop} te koop` : 'Alle percelen in de buurt zijn van jou.' };
 }
 
+// De kuddes op je weilanden voor het overzicht (#1101): per kudde de soort, het aantal, of ze ziek zijn en wat ze per speldag geven (een gezonde kudde).
+// Zonder bezit (een gast zonder eigen bezit, een test) is er geen lijst. Het bezit is per speler (#429).
+export function dierenLijst(bezit) {
+  if (!bezit || !bezit.parcels) return [];
+  const herds = herdsOf(bezit);
+  return Object.keys(herds).filter((id) => bezit.parcels[id] && SPECIES[herds[id].sp]).sort().map((id) => {
+    const h = herds[id], sp = SPECIES[h.sp], def = PC.perceelDef(id);
+    const perDag = Math.round(h.n * sp.perDag * (sp.product === 'wol' ? 100 : 1)) / (sp.product === 'wol' ? 100 : 1);
+    return { id, naam: def ? def.naam : id, sp: h.sp, soort: sp.naam, n: h.n, ziek: h.sick > 0, product: sp.product, perDag, eenheid: sp.eenheid };
+  });
+}
+
 // Het hele overzicht. De hoofdknop is wat nu het meest oplevert: oogsten als er een veld rijp is, anders de volgende klus
 // op het eerste veld dat er een heeft, anders de percelen (meer land) of de kaart. Eén gele knop per scherm.
-export function overzicht(b) {
+export function overzicht(b, bezit = null) {
   const schuurKg = (b.schuur && b.schuur.kg) || 0;
   const velden = veldKaarten(b, schuurKg);
   const rijp = velden.filter((v) => v.klaar).length;
@@ -108,8 +121,7 @@ export function overzicht(b) {
   return {
     velden, rijp, hoofd, schuurKg,
     machines: machineLijst(b),
-    // dieren zijn er in dit spel niet: het scherm zegt dat eerlijk in plaats van een lege kaart te tonen
-    dieren: null,
+    dieren: dierenLijst(bezit),
     toegang: toegang(b),
     verwachtKg: totaalKg,
     leeg: !velden.length,

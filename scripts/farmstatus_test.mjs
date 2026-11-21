@@ -228,5 +228,11 @@ t('de laag oogstklaarAlleen staat standaard uit en volgt de schakelaar (geen ech
   MF.setLayer('oogstklaarAlleen', false);
   assert.ok(PM.perceelMapSpots().some((q) => q.kind === 'perceel-koop' || q.kind === 'perceel-huur' || q.kind.startsWith('perceel-eigen')), 'uit: de percelen zijn er weer');
 });
+t('Dieren-kaart (#1101): leeg zegt waar je vee koopt, met vee staat soort, aantal en status in woorden', () => {
+  assert.match(K.dierenKaartHtml([]), /nog geen dieren[^<]*Land en bedrijf/);
+  const h = K.dierenKaartHtml([{ id: 'x', naam: 'Weide Noord', soort: 'Melkvee', n: 10, ziek: false, perDag: 220, eenheid: 'liter' }, { id: 'y', naam: 'Weide Zuid', soort: 'Schapen', n: 1, ziek: true, perDag: 0.12, eenheid: 'kg' }]);
+  assert.match(h, /Melkvee · 10 dieren/); assert.match(h, /Schapen · 1 dier</); assert.match(h, /Gezond · 220 liter per dag/); assert.match(h, /Ziek: dierenarts nodig/);
+  assert.ok(!/Dieren: er lopen nog geen dieren/.test(K.kaartenBlok(b)), 'het oude "bestaan niet" is weg');
+});
 console.log(`farmstatus_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

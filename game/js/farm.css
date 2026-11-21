@@ -65,7 +65,8 @@
 .bd-veld[data-stand="rijp"] { box-shadow: 0 0 0 var(--ds-s-1) var(--ds-succes-vlak); }
 .bd-machine { grid-template-columns: var(--ds-s-5) minmax(0, 1fr) auto; }
 .bd-machine[data-stand="brandstof"] .bd-chip, .bd-machine[data-stand="slijtage"] .bd-chip, .bd-machine[data-stand="achterstand"] .bd-chip { background: var(--ds-waarschuwing-vlak); color: var(--ds-waarschuwing-tx); }
-.bd-dieren { margin: 0; }
+.bd-dier { grid-template-columns: minmax(0, 1fr) auto; }
+.bd-dier[data-ziek="1"] .bd-chip { background: var(--ds-waarschuwing-vlak); color: var(--ds-waarschuwing-tx); }
 .bd-veld .ds-z-knop { transition: transform 120ms ease-out, background-color 120ms ease-out; }
 .bd-veld .ds-z-knop:active { transform: translateY(1px); }
 @media (prefers-reduced-motion: reduce) { .bd-veld .ds-z-knop { transition: none; } }

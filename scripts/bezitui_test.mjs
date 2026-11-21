@@ -114,6 +114,34 @@ t('personeel: aanstellen kost niets bij het aanstellen, het loon loopt per dag; 
   assert.ok(h.includes('1 medewerker') && h.includes('hooguit 80%') && h.includes('data-bz="ontsla"'));
   assert.equal(L.huurArbeider(w(10), 3).ok, false);
 });
+t('vee (#1101): een weiland toont het aanbod, kopen trekt geld af en toont de kudde, verkopen vraagt een tweede druk', () => {
+  reset();
+  const world = w(50000);
+  assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
+  let h = U.summaryHtml(ctx(world));
+  assert.ok(h.includes('>Vee<') && h.includes('data-bz="koop-vee"') && h.includes('data-sp="melkvee"') && h.includes('nog geen vee'));
+  const voor = world.money;
+  const r = L.koopVee(world, 'paaaaaaaaaaa1', 'melkvee');
+  assert.ok(r.ok, r.text); assert.ok(world.money < voor, 'het geld gaat eraf');
+  h = U.summaryHtml(ctx(world));
+  assert.ok(h.includes('data-vee="paaaaaaaaaaa1"') && h.includes('Gezond') && h.includes('data-bz="verkoop-vee"') && !h.includes('data-bz="koop-vee"'));
+  assert.equal(L.koopVee(world, 'paaaaaaaaaaa1', 'schapen').ok, false, 'een tweede kudde op hetzelfde perceel kan niet');
+  U.ui.confirm = 'verkoop-vee:paaaaaaaaaaa1';
+  assert.ok(U.summaryHtml(ctx(world)).includes('data-ok="1"'));
+  U.ui.confirm = null;
+  const na = world.money;
+  assert.ok(L.verkoopVee(world, 'paaaaaaaaaaa1').ok); assert.ok(world.money > na, 'de verkoop levert geld op');
+  assert.equal(L.verkoopVee(world, 'paaaaaaaaaaa1').ok, false, 'niets meer te verkopen');
+});
+t('vee: te weinig geld geeft een zin met het tekort en laat het geld staan', () => {
+  reset();
+  const world = w(60000);
+  assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
+  world.money = 100;
+  const r = L.koopVee(world, 'paaaaaaaaaaa1', 'melkvee');
+  assert.equal(r.ok, false); assert.match(r.text, /Je mist nog/); assert.equal(world.money, 100);
+  assert.match(U.summaryHtml(ctx(world)), /data-bz="koop-vee"[^>]*disabled/, 'de knop is uit zonder geld');
+});
 t('filters en sortering: alleen bestaande opties; ongeldige invoer geeft geen fout', () => {
   reset();
   U.ui.sort = 'bestaatniet';

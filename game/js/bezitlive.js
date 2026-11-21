@@ -31,7 +31,7 @@ import * as CH from './bezitchain.js';
 import * as SC from './supplychain.js';
 import * as NW from './bezitnews.js';
 import * as HS from './housing.js';
-import { herdsOf, infect, SPECIES } from './livestock.js';
+import { herdsOf, infect, SPECIES, buyHerd, sellHerd } from './livestock.js';
 import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
 import * as CT from './chaintrucks.js'; // fillLinkPositions: een schakel zonder plek krijgt een terugvalplek
@@ -294,6 +294,20 @@ export function huurArbeider(w, skill) {
   return { ok: true, text: `${r.worker.name} is aangesteld.` };
 }
 export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r && r.ok !== false) markeer(); return !!(r && r.ok !== false); }
+
+// ---- vee op je weiland (#1101): kopen en verkopen met het geld van de speler; het bezit is per speler (#429) ----
+export function koopVee(w, id, sp) {
+  const r = buyHerd(getBezit(), id, sp, Number.isFinite(w && w.money) ? w.money : 0);
+  if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-vee' ? 'Op dit perceel loopt al vee.' : 'Dit vee past niet op dit perceel.' };
+  noteMoney('Winkels'); w.money -= r.cost; markeer();
+  return { ok: true, n: r.n, text: `${r.n} ${SPECIES[sp].naam.toLowerCase()} gekocht voor ${euro(r.cost)}.` };
+}
+export function verkoopVee(w, id) {
+  const r = sellHerd(getBezit(), id);
+  if (!r.ok) return { ok: false, text: 'Hier loopt geen vee.' };
+  noteMoney('Verkoop'); w.money += r.value; markeer();
+  return { ok: true, text: `Je kudde is verkocht voor ${euro(r.value)}.` };
+}
 
 // ---- de klok: de kalenderdag van de wereld naast de dag van de boerderij ----
 // De streekprijs en de gebeurtenissen rekenen met de gedeelde kalender (calendar.js, world.calendar.day) zodat medespelers dezelfde dag zien; de

@@ -72,6 +72,41 @@ export function removeHerd(bezit, id) {
   return true;
 }
 
+// ---- kopen en verkopen (#1101): vee koop je per dier voor een weiland van jou; het perceel bepaalt hoeveel er past ----
+export const ANIMAL_PRICE = { melkvee: 1400, schapen: 180, kippen: 9 };   // euro per dier (verzonnen prijzen, in de buurt van wat het kost)
+export const SELL_FACTOR = 0.7;                                          // verkopen levert 70% op: het vee is al gewend aan je erf
+export const herdCost = (sp, n) => (ANIMAL_PRICE[sp] && n > 0 ? Math.round(ANIMAL_PRICE[sp] * n) : 0);
+export const herdSellValue = (herd) => (herd && ANIMAL_PRICE[herd.sp] ? Math.round(ANIMAL_PRICE[herd.sp] * herd.n * SELL_FACTOR) : 0);
+
+// Wat past hier en wat kost het: een lijst { sp, naam, n (de capaciteit), cost, kan } voor een perceel van jou; leeg als het perceel geen weiland is, niet van jou, of al vee heeft.
+export function herdOffers(bezit, id, money = Infinity) {
+  const rec = bezit && bezit.parcels[id];
+  if (!rec || rec.lg || herdsOf(bezit)[id]) return [];
+  return SPECIES_IDS.filter((sp) => canKeep(sp, rec.k, rec.ha)).map((sp) => {
+    const n = capacityOf(sp, rec.ha);
+    const cost = herdCost(sp, n);
+    return { sp, naam: SPECIES[sp].naam, n, cost, kan: n > 0 && cost <= money };
+  });
+}
+
+// Een volle kudde kopen: { ok, n, cost } of { ok: false, why: 'te-weinig-geld' | 'past-niet' | 'al-vee' | ..., tekort }. De aanroeper trekt het geld af.
+export function buyHerd(bezit, id, sp, money = 0) {
+  const offer = herdOffers(bezit, id).find((o) => o.sp === sp);
+  if (!offer) return { ok: false, why: herdsOf(bezit)[id] ? 'al-vee' : bezit && bezit.parcels[id] ? 'past-niet' : 'niet-van-jou' };
+  if (!(money >= offer.cost)) return { ok: false, why: 'te-weinig-geld', tekort: Math.ceil(offer.cost - money) };
+  const r = stockHerd(bezit, id, sp, offer.n);
+  return r.ok ? { ok: true, n: r.n, cost: offer.cost } : r;
+}
+
+// De kudde van een perceel verkopen: { ok, n, value }. De aanroeper telt het geld bij.
+export function sellHerd(bezit, id) {
+  const h = herdsOf(bezit)[id];
+  if (!h) return { ok: false, why: 'geen-vee' };
+  const value = herdSellValue(h), n = h.n;
+  removeHerd(bezit, id);
+  return { ok: true, n, value };
+}
+
 // ---- ziekte: de aanroeper voert het in (een gebeurtenis uit 5.8), de sim rekent ermee ----
 export function infect(herd, days = SICK_DAYS) {
   if (!herd || herd.sick > 0) return false;
