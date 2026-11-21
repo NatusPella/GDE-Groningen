@@ -63,11 +63,13 @@ import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
 import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1079: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
 import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
 import { VILLAGES } from './ommelandlines.js';
-import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
+import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
 export { getClockText };
-import { storyWaiting, missionOnMap } from './goal.js';
-import { setGhostBar, ring, pop } from './motion.js';
+import { storyWaiting, missionOnMap, getGoal } from './goal.js';
+import { bepaalNavDoelen, snapshotUitWereld, afstandVoor, navKleur, NAV_ROL, GLYPH } from './navdoel.js';
+import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
+import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts, hintCount } from './prompts.js';
@@ -1066,6 +1068,8 @@ function updateGps(dt, world) {
   const v0 = p.inVehicle;
   const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null);
   gpsState.card = card;
+  // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navdoel.js)
+  els.gps.style.setProperty('--nav-doel', route ? ROUTE_COLORS[route.kind] || '' : '');
   if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
   if (turn) {
@@ -1817,7 +1821,8 @@ function hexA(hex, a) {
 }
 
 function applyPalette(p = markerColors()) {
-  Object.assign(ROUTE_COLORS, { user: p.user, mission: p.mission, job: p.job, care: p.care });
+  // navdoel.js NAV_ROL kiest per type de paletrol: de kleur van een route of pijl wijzigen is daar één regel
+  Object.assign(ROUTE_COLORS, { user: p[NAV_ROL.eigen], mission: p[NAV_ROL.missie], job: p[NAV_ROL.klus], care: p[NAV_ROL.zorg] });
   C.red = p.danger;
   C.yellow = p.mission;
   C.yellowHalf = hexA(p.mission, 0.5);
@@ -2565,34 +2570,6 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
   ctx.restore();
 }
 
-// mark: what the arrow points at, drawn small inside it (a dot for your
-// goal, a square for a klus, a ring for the story, nothing for your car)
-function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
-  ctx.beginPath();
-  ctx.moveTo(7 * s, 0);
-  ctx.lineTo(-4.2 * s, 4.4 * s);
-  ctx.lineTo(-4.2 * s, -4.4 * s);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.lineWidth = 1.2 * s;
-  ctx.strokeStyle = C.dark;
-  ctx.stroke();
-  if (mark) {
-    ctx.fillStyle = C.dark;
-    ctx.strokeStyle = C.dark;
-    ctx.beginPath();
-    if (mark === 'user') ctx.arc(-0.6 * s, 0, 1.5 * s, 0, Math.PI * 2);
-    else if (mark === 'job') ctx.rect(-2 * s, -1.4 * s, 2.8 * s, 2.8 * s);
-    if (mark === 'user' || mark === 'job') ctx.fill();
-    else if (mark === 'mission') { ctx.lineWidth = 0.9 * s; ctx.arc(-0.6 * s, 0, 1.6 * s, 0, Math.PI * 2); ctx.stroke(); }
-  }
-  ctx.restore();
-}
-
 export function drawRoute(ctx, pts, s = 1) {
   if (pts.length < 2) return;
   ctx.save();
@@ -3016,6 +2993,24 @@ function drawMinimap(dt, world) {
   if (job && job.marker) reserve(job.marker.x, job.marker.y);
   // map rule (goal.js): the story's mission, the goal's or the one that runs
   const showMission = !!(m && missionOnMap(world) && !job && !busyGame);
+  // samen spelen: de doelen van de groep (#368, #452, #492); een gast ziet die van de gastheer, de gastheer die van de groepen
+  const gastDoelLijst = world.coopRole === 'client' && !showMission && !job ? gastDoelen(world) : [];
+  const groepDoelen = kaartDoelen(world);
+  const eigenGroepDoelen = showMission || job ? [] : groepDoelen.filter((gd) => gd.eigen);
+  const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoelLijst[0] && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
+  // #1078 navdoel.js: welk doel de pijl volgt (gevuld), welke wachten (hol) en welke doelen dezelfde plek zijn
+  const careRoute = getCareRoute();
+  const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
+  const goalNu = getGoal();
+  const nav = bepaalNavDoelen(snapshotUitWereld(world, {
+    speler: { x: player.x, y: player.y }, modus: mmMode, busyGame, goal: goalNu, missieOpKaart: missionOnMap(world),
+    heli: heliMarks && heliMarks.target ? heliMarks.target : null,
+    groep: [dichtstbijDoel(gastDoelLijst, player.x, player.y), dichtstbijDoel(eigenGroepDoelen, player.x, player.y)].filter(Boolean).map((r) => r.doel).concat(gastStart ? [gastStart] : []),
+    zorg: lekGarage ? { x: lekGarage.x, y: lekGarage.y, name: 'Garage' } : careRoute && careRoute.target ? { x: careRoute.target.x, y: careRoute.target.y, name: careRoute.target.name } : null,
+  }));
+  // twee doelen op dezelfde plek zijn één doel: het lagere krijgt geen eigen markering (de speler zag eerst een paarse pin onder een gele ring)
+  const samen = (id) => nav.verborgen.some((v) => v.id === id && /^zelfde plek/.test(v.reden));
+  const missieMarker = showMission && !samen('missie');
   if (showMission) reserve(m.marker.x, m.marker.y);
   if (wp) reserve(wp.x, wp.y);
   const showOwn = minimapShows('car');
@@ -3042,16 +3037,15 @@ function drawMinimap(dt, world) {
   }
 
 
-  let missionEdge = null, jobEdge = null;
   if (job) {
     for (const d of job.dots) icon('sj-dot', d.x, d.y);
-    if (job.marker && !icon('sj-target', job.marker.x, job.marker.y)) jobEdge = edgeAngle(job.marker.x, job.marker.y);
+    if (job.marker) icon('sj-target', job.marker.x, job.marker.y);
   }
   // a post-game challenge's next checkpoint (postgame.js)
   const ct = !job && world.challengeTarget;
   if (ct) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), MM_ICON);
-    if (!icon('sj-target', ct.x, ct.y)) jobEdge = edgeAngle(ct.x, ct.y);
+    icon('sj-target', ct.x, ct.y);
   }
   if (showMission) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
@@ -3060,26 +3054,18 @@ function drawMinimap(dt, world) {
       for (const w of wps) icon('waypoint', w.x, w.y);
     }
     const kind = missionMapKind(m.index, m.phase === 'active');
-    if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
+    if (missieMarker) icon(kind, m.marker.x, m.marker.y);
   }
   // samen spelen: het doel van de opdracht van de gastheer staat ook op de minimap van een gast (#368)
-  const gastDoelLijst = world.coopRole === 'client' && !showMission && !job ? gastDoelen(world) : []; // alle doelen van de host (#452); de pijl wijst naar het dichtstbijzijnde
-  const gastDoel = gastDoelLijst[0], naast = dichtstbijDoel(gastDoelLijst, player.x, player.y);
-  for (const gd of gastDoelLijst) if (!icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y) && naast && naast.doel === gd) missionEdge = edgeAngle(gd.x, gd.y);
+  // (de lijsten staan hierboven bij navdoel; de pijl naar het dichtstbijzijnde doel komt uit nav, #452)
+  for (const gd of gastDoelLijst) icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y);
   // samen spelen (#492): op de gastheer de groepen uit het register. De eigen groep staat vol en bovenop; de andere groepen mogen
   // gedempt mee en overschrijven de eigen markering niet. Loopt de eigen opdracht al op de kaart, dan is die marker genoeg.
-  const groepDoelen = kaartDoelen(world);
   if (!busyGame) for (const gd of groepDoelen) if (!gd.eigen) icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y, { alpha: KAART_ANDER_ALPHA });
-  const eigenGroepDoelen = showMission || job ? [] : groepDoelen.filter((gd) => gd.eigen);
-  const naastEigen = dichtstbijDoel(eigenGroepDoelen, player.x, player.y);
-  for (const gd of eigenGroepDoelen) if (!icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y) && naastEigen && naastEigen.doel === gd) missionEdge = edgeAngle(gd.x, gd.y);
-  const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
-  if (gastStart && !icon(missionMapKind(gastStart.index, false), gastStart.x, gastStart.y)) missionEdge = edgeAngle(gastStart.x, gastStart.y);
+  for (const gd of eigenGroepDoelen) icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y);
+  if (gastStart) icon(missionMapKind(gastStart.index, false), gastStart.x, gastStart.y);
 
-  let wpEdge = null;
-  if (wp && !busyGame && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
-  let heliEdge = null;
-  if (heliMarks && heliMarks.target && !inRange(heliMarks.target.x, heliMarks.target.y)) heliEdge = edgeAngle(heliMarks.target.x, heliMarks.target.y);
+  if (wp && !busyGame && !samen('eigen')) icon('userWaypoint', wp.x, wp.y);
 
   // eigen voertuigen: op de minimap als ze erin vallen, anders een pijl aan de rand (de Escapade en de dichtstbijzijnde andere)
   const ownEdges = [];
@@ -3089,8 +3075,6 @@ function drawMinimap(dt, world) {
   }
 
   // lekke band (#985): de dichtstbijzijnde garage gloeit op de minimap, buiten beeld als pijl aan de rand
-  let lekEdge = null;
-  const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
   if (lekGarage) {
     if (inRange(lekGarage.x, lekGarage.y)) {
       const [sx, sy] = toScreen(lekGarage.x, lekGarage.y);
@@ -3102,7 +3086,7 @@ function drawMinimap(dt, world) {
       ctx.restore();
       drawMapIconHalo(ctx, 'garage', sx, sy, MM_ICON);
       drawMapIcon(ctx, 'garage', sx, sy, MM_ICON, { t });
-    } else lekEdge = edgeAngle(lekGarage.x, lekGarage.y);
+    }
   }
 
   const c = world.companion;
@@ -3181,25 +3165,18 @@ function drawMinimap(dt, world) {
   const wind = miniWind(world);
   if (wind) drawMiniWind(ctx, WIND_X, MINIMAP_SIZE - WIND_Y, wind, mapRotation);
 
-  const edgeR = MINIMAP_SIZE / 2 - 11;
-  if (lekEdge != null) drawEdgeArrow(ctx, cx + Math.cos(lekEdge) * edgeR, cy + Math.sin(lekEdge) * edgeR, lekEdge, ROUTE_COLORS.care, 1 + pulseAt(t) * 0.2);
-  for (const a of ownEdges) drawEdgeArrow(ctx, cx + Math.cos(a) * edgeR, cy + Math.sin(a) * edgeR, a, C.greenLight, 0.9);
-  for (const e of partnerEdges) if (e.a != null) drawEdgeArrow(ctx, cx + Math.cos(e.a) * edgeR, cy + Math.sin(e.a) * edgeR, e.a, e.kleur, 0.9);
-  if (jobEdge != null) {
-    const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
-    drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, ROUTE_COLORS.job || JOB_TARGET_COLOR, wp ? 0.8 : s, 'job');
+  // de kompasboog (navpijl.js, ontwerp C): het doel dat je volgt als boog met icoon en afstand, wachtende doelen, medespelers en voertuigen als punten
+  const palet = markerColors();
+  const actieveRoute = getActiveRoute();
+  const kompas = [];
+  const anderen = [...ownEdges.map((a) => ({ a, kleur: C.greenLight, icoon: GLYPH.auto })), ...partnerEdges.filter((e) => e.a != null).map((e) => ({ a: e.a, kleur: e.kleur, icoon: GLYPH.speler }))];
+  kompas.push(...anderen.slice(0, MAX_ANDEREN));
+  for (const d of [...nav.secundair, ...(nav.actief ? [nav.actief] : [])]) {
+    if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de markering aan de rand is voor wat buiten de kaart ligt
+    const actief = d.rol === 'actief';
+    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navKleur(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(afstandVoor(d, actieveRoute)) : '' });
   }
-  if (missionEdge != null) {
-    const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
-    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s, 'mission');
-  }
-  if (heliEdge != null) {
-    drawEdgeArrow(ctx, cx + Math.cos(heliEdge) * edgeR, cy + Math.sin(heliEdge) * edgeR, heliEdge, INK.heliDone, 1 + pulseAt(t) * 0.2, 'mission');
-  }
-  if (wpEdge != null) {
-    const s = 1 + pulseAt(t) * 0.2;
-    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s, 'user');
-  }
+  drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion() });
 }
 
 // A heli run (helirun.js): its rings as circles where they hang, the H to land

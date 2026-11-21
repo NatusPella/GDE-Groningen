@@ -25,7 +25,7 @@ export const EMPHASIS = { foot: '#d9d4c4', cycle: '#ff8a5c', bridgeCasing: '#0c1
 export const INK = {
   cream: '#f0ede4', paper: '#f5f0e6', textBright: '#f2f2f2', dark: '#0c140e', black: '#000000', white: '#ffffff',
   green: '#1e9e56', greenLight: '#3fc97a', greenDark: '#0f5c30',
-  red: '#d93f3f', policeBlue: '#3f6fd9', yellow: '#e8c93a', horeca: '#c9622a', grey: '#c7c7c2', greyDark: '#2a2e28',
+  red: '#d93f3f', policeBlue: '#3f6fd9', yellow: '#f9c80e', horeca: '#c9622a', grey: '#c7c7c2', greyDark: '#2a2e28',
   // labels and warnings
   seaLabel: '#bee1f5', flavour: '#f5e2aa', amber: '#ffbe46', amberInk: '#1c1408',
   // the full map's panel and card chrome

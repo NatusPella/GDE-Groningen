@@ -101,6 +101,7 @@ export const KAART_UITLEG = [
   'Er is één waypoint tegelijk. Klik er nog eens op, of kies Haal weg, om hem te wissen.',
   'Reis erheen is snel reizen: dat kost tijd en geld. Zelf gaan zet een waypoint en je rijdt of loopt zelf.',
   'De legenda achter Lagen legt elk icoon en elke lijn uit; zet lagen daar aan of uit.',
+  'Op de minikaart loopt een stippellijn langs de rand. De dikke boog met een icoon en een afstand is wat je volgt: geel is de route van het verhaal, paars is jouw eigen doel. Een klein rond icoon wacht even.',
 ];
 // Alleen voor een gast in Samen spelen: waypoint kan, snel reizen niet.
 export const GAST_UITLEG = 'In Samen spelen kun je wel een waypoint zetten en zelf gaan, maar niet snel reizen: dat kan alleen in je eigen spel.';

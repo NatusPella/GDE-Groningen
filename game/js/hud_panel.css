@@ -964,3 +964,6 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
 #hud .hud-speedo.no-rpm .sp-main { grid-template-columns: auto 1fr; }
 #hud .hud-speedo.no-rpm.no-gears .sp-main { min-width: 0; }
+
+/* #1078: een rand in de kleur van de route die de kaart uitlegt (geel = autoroute, paars = eigen doel); alleen een kleurvlak, de tekst blijft inkt op papier */
+#hud .hud-gps { box-shadow: inset 6px 0 0 var(--nav-doel, transparent), var(--hud-schaduw); }

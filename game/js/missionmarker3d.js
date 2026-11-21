@@ -8,10 +8,10 @@ import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './w
 // Local origin at ground level (y=0) for both builders below; the integrator
 // positions groups/meshes at (worldX, y, worldY) per the ARCHITECTURE.md
 // mapping (three.x=world.x, three.z=world.y). Colors match the old 2D
-// marker palette: cyan while a mission is active, yellow while idle/on
+// marker palette; since #1078 yellow both while a mission is active and while idle/on
 // cooldown (i.e. showing where to go to START the next mission).
 
-export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
+export const MARKER_COLOR_ACTIVE = 0xf9c80e; // #1078: geel (NAV_ROL.missie, ds ink-geel), was cyaan
 
 // The start (idle) and the objective (active) of a mission: the shared world
 // marker (worldmarker3d.js), a diamond for the start, an arrow for the goal.
