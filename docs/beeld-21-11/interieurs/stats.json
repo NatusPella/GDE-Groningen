@@ -1,0 +1,223 @@
+[
+ {
+  "spec": "winkel/supermarkt",
+  "kind": "winkel",
+  "sub": "supermarkt",
+  "label": "Supermarkt",
+  "hall": [
+   7.4,
+   10.399999999999999
+  ],
+  "items": 19,
+  "npc": 3,
+  "triangles": 2040,
+  "drawCallsView": 4,
+  "trianglesView": 2080,
+  "buildMs": 10.2,
+  "geometryBytes": 159120
+ },
+ {
+  "spec": "winkel/bakker",
+  "kind": "winkel",
+  "sub": "bakker",
+  "label": "Bakker",
+  "hall": [
+   7.4,
+   10.399999999999999
+  ],
+  "items": 13,
+  "npc": 3,
+  "triangles": 1196,
+  "drawCallsView": 4,
+  "trianglesView": 1256,
+  "buildMs": 2.6,
+  "geometryBytes": 93288
+ },
+ {
+  "spec": "winkel/kleding",
+  "kind": "winkel",
+  "sub": "kleding",
+  "label": "Kledingwinkel",
+  "hall": [
+   7.4,
+   10.399999999999999
+  ],
+  "items": 11,
+  "npc": 3,
+  "triangles": 1394,
+  "drawCallsView": 2,
+  "trianglesView": 1394,
+  "buildMs": 3.3,
+  "geometryBytes": 108731.99999999999
+ },
+ {
+  "spec": "winkel/kapper",
+  "kind": "winkel",
+  "sub": "kapper",
+  "label": "Kapper",
+  "hall": [
+   7.4,
+   10.399999999999999
+  ],
+  "items": 16,
+  "npc": 3,
+  "triangles": 1708,
+  "drawCallsView": 4,
+  "trianglesView": 1738,
+  "buildMs": 4,
+  "geometryBytes": 133224
+ },
+ {
+  "spec": "horeca/cafe",
+  "kind": "horeca",
+  "sub": "cafe",
+  "label": "Horeca",
+  "hall": [
+   8.4,
+   11.399999999999999
+  ],
+  "items": 27,
+  "npc": 1,
+  "triangles": 1088,
+  "drawCallsView": 2,
+  "trianglesView": 1088,
+  "buildMs": 2.5,
+  "geometryBytes": 84864
+ },
+ {
+  "spec": "horeca/kroeg",
+  "kind": "horeca",
+  "sub": "kroeg",
+  "label": "Horeca",
+  "hall": [
+   8.4,
+   11.399999999999999
+  ],
+  "items": 32,
+  "npc": 0,
+  "triangles": 1298,
+  "drawCallsView": 2,
+  "trianglesView": 1298,
+  "buildMs": 1.3,
+  "geometryBytes": 101244
+ },
+ {
+  "spec": "kantoor",
+  "kind": "kantoor",
+  "sub": null,
+  "label": "Kantoor",
+  "hall": [
+   9.399999999999999,
+   13.399999999999999
+  ],
+  "items": 14,
+  "npc": 1,
+  "triangles": 986,
+  "drawCallsView": 2,
+  "trianglesView": 986,
+  "buildMs": 1.3,
+  "geometryBytes": 76908
+ },
+ {
+  "spec": "woning",
+  "kind": "woning",
+  "sub": null,
+  "label": "Woning",
+  "hall": [
+   6.4,
+   10.399999999999999
+  ],
+  "items": 11,
+  "npc": 0,
+  "triangles": 758,
+  "drawCallsView": 2,
+  "trianglesView": 758,
+  "buildMs": 1.4,
+  "geometryBytes": 59123.99999999999
+ },
+ {
+  "spec": "kerk",
+  "kind": "kerk",
+  "sub": null,
+  "label": "Kerk",
+  "hall": [
+   10.399999999999999,
+   18
+  ],
+  "items": 26,
+  "npc": 3,
+  "triangles": 1468,
+  "drawCallsView": 2,
+  "trianglesView": 1468,
+  "buildMs": 1.3,
+  "geometryBytes": 114503.99999999999
+ },
+ {
+  "spec": "station",
+  "kind": "station",
+  "sub": null,
+  "label": "Stationshal",
+  "hall": [
+   13.4,
+   13.399999999999999
+  ],
+  "items": 17,
+  "npc": 5,
+  "triangles": 1074,
+  "drawCallsView": 4,
+  "trianglesView": 1104,
+  "buildMs": 1.6,
+  "geometryBytes": 83772
+ },
+ {
+  "spec": "bibliotheek",
+  "kind": "bibliotheek",
+  "sub": null,
+  "label": "Bibliotheek",
+  "hall": [
+   12.4,
+   13.399999999999999
+  ],
+  "items": 43,
+  "npc": 1,
+  "triangles": 7298,
+  "drawCallsView": 2,
+  "trianglesView": 7298,
+  "buildMs": 6.6,
+  "geometryBytes": 569244
+ },
+ {
+  "spec": "garage/werkplaats",
+  "kind": "garage",
+  "sub": "werkplaats",
+  "label": "Garage",
+  "hall": [
+   8.4,
+   11.399999999999999
+  ],
+  "items": 14,
+  "npc": 1,
+  "triangles": 776,
+  "drawCallsView": 4,
+  "trianglesView": 786,
+  "buildMs": 1.2,
+  "geometryBytes": 60527.99999999999
+ },
+ {
+  "spec": "publiek/politie",
+  "kind": "publiek",
+  "sub": "politie",
+  "label": "Publiek gebouw",
+  "hall": [
+   9.399999999999999,
+   11.399999999999999
+  ],
+  "items": 19,
+  "npc": 5,
+  "triangles": 894,
+  "drawCallsView": 4,
+  "trianglesView": 924,
+  "buildMs": 1.4,
+  "geometryBytes": 69732
+ }
+]

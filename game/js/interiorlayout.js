@@ -31,7 +31,7 @@ export const ITEM_TYPES = [
 // sizes of the footprint on the floor: face 0/2 look along v (width along u), 1/3 look along u
 export const footprint = (it) => (it.face & 1 ? { su: it.d, sv: it.w } : { su: it.w, sv: it.d });
 export const rectOf = (it) => { const { su, sv } = footprint(it); return { u0: it.u - su / 2, u1: it.u + su / 2, v0: it.v - sv / 2, v1: it.v + sv / 2 }; };
-const overlap = (a, b, g = 0) => a.u0 < b.u1 + g && a.u1 > b.u0 - g && a.v0 < b.v1 + g && a.v1 > b.v0 - g;
+const boxesMeet = (a, b, g = 0) => a.u0 < b.u1 + g && a.u1 > b.u0 - g && a.v0 < b.v1 + g && a.v1 > b.v0 - g;
 
 // unit vector (du, dv) a face looks along
 export const faceDir = (face) => [[0, -1], [1, 0], [0, 1], [-1, 0]][face & 3];
@@ -58,14 +58,14 @@ class Plan {
   pick(list) { return list[Math.floor(this.rnd() * list.length)]; }
   chance(p) { return this.rnd() < p * this.density; }
 
-  fits(r, zone = this.hall, gap = 0.04, deco = null) {
-    if (r.u0 < zone.u0 - 1e-6 || r.u1 > zone.u1 + 1e-6 || r.v0 < zone.v0 - 1e-6 || r.v1 > zone.v1 + 1e-6) return false;
+  fits(r, area = this.hall, gap = 0.04, deco = null) {
+    if (r.u0 < area.u0 - 1e-6 || r.u1 > area.u1 + 1e-6 || r.v0 < area.v0 - 1e-6 || r.v1 > area.v1 + 1e-6) return false;
     if (r.u0 < this.hall.u0 - 1e-6 || r.u1 > this.hall.u1 + 1e-6 || r.v0 < this.hall.v0 - 1e-6 || r.v1 > this.hall.v1 + 1e-6) return false;
-    for (const q of this.reserved) if (overlap(r, q)) return false;
-    for (const w of this.walls) if (overlap(r, w)) return false;
+    for (const q of this.reserved) if (boxesMeet(r, q)) return false;
+    for (const w of this.walls) if (boxesMeet(r, w)) return false;
     if (deco && deco.floor) return true; // a rug lies under everything
     for (const it of this.items) {
-      if (!it.solid || !overlap(r, rectOf(it), deco ? 0 : gap)) continue;
+      if (!it.solid || !boxesMeet(r, rectOf(it), deco ? 0 : gap)) continue;
       if (deco && it.h < deco.y0 - 0.05) continue; // hangs above the furniture
       return false;
     }
@@ -73,39 +73,39 @@ class Plan {
   }
 
   // add an item; null when it does not fit. Defaults: solid, height 1.
-  add(type, u, v, w, d, face, props = {}, zone = this.hall) {
+  add(type, u, v, w, d, face, props = {}, area = this.hall) {
     const it = { type, u, v, w, d, h: 1, face, solid: true, ...props };
     const deco = it.solid ? null : (it.y0 === undefined ? { floor: true } : { y0: it.y0 });
-    if (!this.fits(rectOf(it), zone, 0.04, deco)) return null;
+    if (!this.fits(rectOf(it), area, 0.04, deco)) return null;
     this.items.push(it);
     return it;
   }
 
-  // flush against a wall of a zone; `along` is u (back/front) or v (left/right) of the centre
-  onWall(zone, side, type, along, w, d, props = {}) {
+  // flush against a wall of a area; `along` is u (back/front) or v (left/right) of the centre
+  onWall(area, side, type, along, w, d, props = {}) {
     let u, v, face;
-    if (side === 'back') { v = zone.v1 - d / 2; u = along; face = FACE.DOOR; }
-    else if (side === 'front') { v = zone.v0 + d / 2; u = along; face = FACE.BACK; }
-    else if (side === 'left') { u = zone.u0 + d / 2; v = along; face = FACE.E; }
-    else { u = zone.u1 - d / 2; v = along; face = FACE.W; }
-    return this.add(type, u, v, w, d, face, props, zone);
+    if (side === 'back') { v = area.v1 - d / 2; u = along; face = FACE.DOOR; }
+    else if (side === 'front') { v = area.v0 + d / 2; u = along; face = FACE.BACK; }
+    else if (side === 'left') { u = area.u0 + d / 2; v = along; face = FACE.E; }
+    else { u = area.u1 - d / 2; v = along; face = FACE.W; }
+    return this.add(type, u, v, w, d, face, props, area);
   }
 
   // a run of units along a wall between two coordinates
-  run(zone, side, type, w, d, from, to, props = {}, gap = 0.04, skip = 0) {
+  run(area, side, type, w, d, from, to, props = {}, gap = 0.04, skip = 0) {
     const out = [];
     for (let a = from + w / 2; a <= to - w / 2 + 1e-6; a += w + gap) {
       if (skip && this.rnd() < skip) continue;
       const p = typeof props === 'function' ? props(out.length) : props;
-      const it = this.onWall(zone, side, type, a, w, d, p);
+      const it = this.onWall(area, side, type, a, w, d, p);
       if (it) out.push(it);
     }
     return out;
   }
 
-  zoneOf(u0, u1, v0, v1) { return { u0, u1, v0, v1 }; }
+  areaOf(u0, u1, v0, v1) { return { u0, u1, v0, v1 }; }
 
-  // a partition wall across a zone with a doorway; axis 'u' = a wall at fixed v along u
+  // a partition wall across a area with a doorway; axis 'u' = a wall at fixed v along u
   partition(axis, at, from, to, doorAt, doorW = 1.0, h = this.height) {
     const t = PART_T / 2;
     const seg = (a, b) => {
@@ -119,7 +119,7 @@ class Plan {
     this.reserved.push(c);
     // whatever was placed in the wall or in the doorway before the partition is taken away
     const wallsNow = axis === 'u' ? [{ u0: from, u1: doorAt - doorW / 2, v0: at - t, v1: at + t }, { u0: doorAt + doorW / 2, u1: to, v0: at - t, v1: at + t }] : [{ u0: at - t, u1: at + t, v0: from, v1: doorAt - doorW / 2 }, { u0: at - t, u1: at + t, v0: doorAt + doorW / 2, v1: to }];
-    this.items = this.items.filter((it) => !it.solid || !(overlap(rectOf(it), c) || wallsNow.some((w) => overlap(rectOf(it), w))));
+    this.items = this.items.filter((it) => !it.solid || !(boxesMeet(rectOf(it), c) || wallsNow.some((w) => boxesMeet(rectOf(it), w))));
   }
 
   npcAt(role, u, v, face, pose = 'stand', extra = {}) { this.npc.push({ role, u, v, face, pose, ...extra }); }
@@ -153,7 +153,6 @@ function shopRecipe(p, sub) {
   const shelfH = 1.2 + T.row * 0.9;
   const accent = T.accent;
   const service = SERVICE.has(sub) || D < 5;
-  let counterZoneBack = null;
   if (service) {
     // a service counter across the room, the shop-keeper behind it, the wares on the back wall
     const cw = Math.min(W - 1.6, Math.max(2.2, W * 0.55));
@@ -161,7 +160,6 @@ function shopRecipe(p, sub) {
     const cu = H.u0 + W / 2 + (p.rnd() - 0.5) * Math.max(0, W - cw - 1.2);
     const counter = p.add('counter', cu, cv, cw, 0.7, FACE.DOOR, { h: T.counter[0] || 1, color: T.accent, glass: sub === 'bakker' || sub === 'slager' }, p.hall);
     if (counter) {
-      counterZoneBack = counter;
       p.npcAt('winkelier', cu, (cv + 0.35 + H.v1) / 2, FACE.DOOR, 'stand');
       p.useAt('kopen', cu, cv - 0.35 - 0.7, 1.4, { face: FACE.BACK, target: sub });
     }
@@ -194,7 +192,6 @@ function shopRecipe(p, sub) {
     if (counter) {
       p.npcAt('winkelier', sideLeft ? H.u0 + 0.5 : H.u1 - 0.5, cv, sideLeft ? FACE.E : FACE.W, 'stand');
       p.useAt('kopen', sideLeft ? cu + 0.35 + 0.8 : cu - 0.35 - 0.8, cv, 1.4, { face: sideLeft ? FACE.W : FACE.E, target: sub });
-      counterZoneBack = counter;
     }
     const wareFrom = H.v0 + (counter ? cl + 2.0 : 1.6);
     if (sub === 'kleding') p.add('booth', sideLeft ? H.u1 - 0.7 : H.u0 + 0.7, H.v1 - 1.2, 1.2, 1.2, sideLeft ? FACE.W : FACE.E, { h: 2.2, color: T.accent, tag: 'paskamer' });
@@ -219,11 +216,13 @@ function shopRecipe(p, sub) {
       const mu = H.u0 + W / 2 + (p.rnd() - 0.5) * Math.max(0, W - 6) * 0.4;
       for (let v = wareFrom + 0.3 + p.rnd() * 0.6; v < H.v1 - 1.9; v += 2.5 + p.rnd() * 0.4) {
         const n = W >= 7.5 && iw < 2.2 ? 2 : 1;
-        for (let k = 0; k < n; k++) p.add('gondola', mu + (n === 1 ? 0 : (k - 0.5) * 2.8), v, iw, 0.7, FACE.DOOR, { h: ih, color: T.accent, row: T.row, items: T.items });
+        for (let k = 0; k < n; k++) {
+          if (sub === 'kleding') p.add('rack', mu + (n === 1 ? 0 : (k - 0.5) * 2.8), v, Math.min(iw, 1.6), 0.5, FACE.DOOR, { h: 1.6, color: T.accent });
+          else p.add('gondola', mu + (n === 1 ? 0 : (k - 0.5) * 2.8), v, iw, 0.7, FACE.DOOR, { h: ih, color: T.accent, row: T.row, items: T.items });
+        }
       }
     }
   }
-  void counterZoneBack;
   // loose customers
   scatterPeople(p, 'klant', Math.min(3, Math.floor(p.W * p.D / 28)) * (p.rnd() < 0.8 ? 1 : 0));
   p.palette = { wall: T.wall, floor: T.floor, floorPattern: T.floorPattern, accent: T.accent, ceil: 0xf2efe8, sign: T.sign };
@@ -282,7 +281,7 @@ function officeRecipe(p) {
     const mv = H.v1 - 3.4;
     p.partition('u', mv, H.u0, H.u1, H.u0 + W * 0.7, 1.0, p.height);
     p.rooms.push({ id: 'vergaderkamer', role: 'vergaderen', u0: H.u0, u1: H.u1, v0: mv + PART_T / 2, v1: H.v1 });
-    p.add('table', H.u0 + W / 2, (mv + H.v1) / 2 + 0.2, Math.min(3.2, W - 2), 1.2, FACE.DOOR, { h: 0.75 }, p.zoneOf(H.u0, H.u1, mv, H.v1));
+    p.add('table', H.u0 + W / 2, (mv + H.v1) / 2 + 0.2, Math.min(3.2, W - 2), 1.2, FACE.DOOR, { h: 0.75 }, p.areaOf(H.u0, H.u1, mv, H.v1));
     work.v1 = mv - PART_T / 2;
   }
   const seatsAt = [];
@@ -330,29 +329,29 @@ function homeRecipe(p) {
   p.add('plant', H.u0 + 0.5, living.v0 + 0.8, 0.6, 0.6, FACE.DOOR, { h: 1.2 }, living);
   p.add('coatrack', H.u1 - 0.3, H.v0 + 0.5, 0.4, 0.3, FACE.W, { h: 1.7, solid: true });
   if (back) {
-    const zone = { ...H, v0: living.v1 + PART_T };
-    p.rooms.push({ id: 'keuken', role: 'keuken', u0: zone.u0, u1: zone.u1, v0: zone.v0, v1: zone.v1 });
-    p.run(zone, 'back', 'kitchen', 0.9, 0.6, zone.u0 + 0.2, Math.min(zone.u1 - 0.2, zone.u0 + 4.2), { h: 0.9, color: 0xdad6cc });
-    p.add('fridge', zone.u0 + 0.5, zone.v1 - 0.9, 0.7, 0.7, FACE.DOOR, { h: 1.8, color: 0xe4e6e8 }, zone);
-    const tu = zone.u0 + W * 0.5, tv = zone.v0 + Math.min(1.8, (zone.v1 - zone.v0) * 0.5);
-    const t = p.add('table', tu, tv, 1.4, 0.9, FACE.DOOR, { h: 0.75 }, zone);
-    if (t) for (const du of [-0.5, 0.5]) { p.add('chair', tu + du, tv - 0.7, 0.42, 0.42, FACE.BACK, { h: 0.9 }, zone); p.add('chair', tu + du, tv + 0.7, 0.42, 0.42, FACE.DOOR, { h: 0.9 }, zone); }
+    const area = { ...H, v0: living.v1 + PART_T };
+    p.rooms.push({ id: 'keuken', role: 'keuken', u0: area.u0, u1: area.u1, v0: area.v0, v1: area.v1 });
+    p.run(area, 'back', 'kitchen', 0.9, 0.6, area.u0 + 0.2, Math.min(area.u1 - 0.2, area.u0 + 4.2), { h: 0.9, color: 0xdad6cc });
+    p.add('fridge', area.u0 + 0.5, area.v1 - 0.9, 0.7, 0.7, FACE.DOOR, { h: 1.8, color: 0xe4e6e8 }, area);
+    const tu = area.u0 + W * 0.5, tv = area.v0 + Math.min(1.8, (area.v1 - area.v0) * 0.5);
+    const t = p.add('table', tu, tv, 1.4, 0.9, FACE.DOOR, { h: 0.75 }, area);
+    if (t) for (const du of [-0.5, 0.5]) { p.add('chair', tu + du, tv - 0.7, 0.42, 0.42, FACE.BACK, { h: 0.9 }, area); p.add('chair', tu + du, tv + 0.7, 0.42, 0.42, FACE.DOOR, { h: 0.9 }, area); }
     // a bedroom when there is a second wing
-    if (W >= 6.2 && zone.v1 - zone.v0 >= 3) {
-      const mu = zone.u0 + W * 0.58;
-      p.partition('v', mu, zone.v0, zone.v1, zone.v0 + 1.2, 0.9);
-      p.rooms.push({ id: 'slaapkamer', role: 'slapen', u0: mu + PART_T / 2, u1: H.u1, v0: zone.v0, v1: zone.v1 });
-      const bz = { ...zone, u0: mu + PART_T / 2 };
+    if (W >= 6.2 && area.v1 - area.v0 >= 3) {
+      const mu = area.u0 + W * 0.58;
+      p.partition('v', mu, area.v0, area.v1, area.v0 + 1.2, 0.9);
+      p.rooms.push({ id: 'slaapkamer', role: 'slapen', u0: mu + PART_T / 2, u1: H.u1, v0: area.v0, v1: area.v1 });
+      const bz = { ...area, u0: mu + PART_T / 2 };
       p.add('bed', bz.u1 - 1.1, bz.v1 - 1.1, 2.0, 1.6, FACE.W, { h: 0.55, color: p.pickFabric }, bz);
       p.add('wardrobe', bz.u0 + 0.8, bz.v1 - 0.4, 1.4, 0.55, FACE.DOOR, { h: 2.1 }, bz);
       p.add('cabinet', bz.u1 - 0.3, bz.v0 + 0.9, 0.5, 0.4, FACE.W, { h: 0.5 }, bz);
     }
-    if (p.chance(0.5)) p.npcAt('bewoner', zone.u0 + W * 0.3, zone.v0 + 1.0, FACE.BACK, 'stand');
+    if (p.chance(0.5)) p.npcAt('bewoner', area.u0 + W * 0.3, area.v0 + 1.0, FACE.BACK, 'stand');
   } else if (p.chance(0.5)) {
     p.npcAt('bewoner', tvU, bv - 2.6, FACE.BACK, 'sit');
   }
   p.useAt('rondkijken', H.u0 + W / 2, H.v0 + 2.0, 1.4, { face: FACE.BACK });
-  p.palette = { wall: look.wall ?? 0xe8dcc4, floor: look.floor ?? 0x9a7448, floorPattern: 2, accent: look.accent ?? 0x8a3a3a, ceil: 0xf4f0e8 };
+  p.palette = { wall: look.wall ?? 0xe8dcc4, floor: look.floor ?? 0x9a7448, floorPattern: 0, accent: look.accent ?? 0x8a3a3a, ceil: 0xf4f0e8 };
 }
 
 function churchRecipe(p) {
@@ -375,7 +374,7 @@ function churchRecipe(p) {
   p.palette = { wall: 0xe2d8c4, floor: 0x8e8a82, floorPattern: 2, accent: 0xc9a04a, ceil: 0xd8cfbc };
 }
 
-function stationRecipe(p, sub) {
+function terminalRecipe(p, sub) {
   const H = p.hall, W = p.W, D = p.D;
   const n = Math.max(1, Math.min(3, Math.floor(W / 3.2)));
   for (let i = 0; i < n; i++) {
@@ -452,7 +451,7 @@ function publicRecipe(p, sub) {
   p.palette = { wall: sub === 'politie' ? 0xdfe6ee : 0xe8e4da, floor: 0x8a8e92, floorPattern: 1, accent: sub === 'politie' ? 0x2a3f6a : 0x6a5a48, ceil: 0xf4f4f2 };
 }
 
-const RECIPES = { winkel: shopRecipe, horeca: horecaRecipe, kantoor: officeRecipe, woning: homeRecipe, kerk: churchRecipe, station: stationRecipe, bibliotheek: libraryRecipe, garage: garageRecipe, publiek: publicRecipe };
+const RECIPES = { winkel: shopRecipe, horeca: horecaRecipe, kantoor: officeRecipe, woning: homeRecipe, kerk: churchRecipe, station: terminalRecipe, bibliotheek: libraryRecipe, garage: garageRecipe, publiek: publicRecipe };
 
 // --- reachability ----------------------------------------------------------------------------------------
 
@@ -479,10 +478,10 @@ export function reachable(layout, grid = walkGrid(layout)) {
   const { free, nu, nv, H } = grid;
   const seen = new Uint8Array(nu * nv);
   const ci = Math.min(nu - 1, Math.max(0, Math.floor((0 - H.u0) / CELL))), ck = 0;
-  let start = -1;
-  for (let k = 0; k < Math.min(nv, 4) && start < 0; k++) for (let d = 0; d < 3 && start < 0; d++) for (const s of [0, -1, 1]) { const i = ci + s * d; if (i >= 0 && i < nu && free[k * nu + i]) { start = k * nu + i; break; } }
-  if (start < 0) return { seen, grid };
-  const q = [start]; seen[start] = 1;
+  let firstCell = -1;
+  for (let k = 0; k < Math.min(nv, 4) && firstCell < 0; k++) for (let d = 0; d < 3 && firstCell < 0; d++) for (const s of [0, -1, 1]) { const i = ci + s * d; if (i >= 0 && i < nu && free[k * nu + i]) { firstCell = k * nu + i; break; } }
+  if (firstCell < 0) return { seen, grid };
+  const q = [firstCell]; seen[firstCell] = 1;
   while (q.length) {
     const c = q.pop(), i = c % nu, k = (c - i) / nu;
     for (const [di, dk] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
@@ -517,12 +516,12 @@ export function validateLayout(L) {
   L.items.forEach((it, i) => {
     const r = rectOf(it);
     if (r.u0 < H.u0 - 1e-6 || r.u1 > H.u1 + 1e-6 || r.v0 < H.v0 - 1e-6 || r.v1 > H.v1 + 1e-6) bad.push(`item ${i} (${it.type}) buiten de hal`);
-    if (it.solid && overlap(r, door)) bad.push(`item ${i} (${it.type}) blokkeert de deur`);
+    if (it.solid && boxesMeet(r, door)) bad.push(`item ${i} (${it.type}) blokkeert de deur`);
     if (!ITEM_TYPES.includes(it.type)) bad.push(`item ${i} onbekend type ${it.type}`);
   });
   for (let i = 0; i < L.items.length; i++) for (let k = i + 1; k < L.items.length; k++) {
     const a = L.items[i], b = L.items[k];
-    if (a.solid && b.solid && overlap(rectOf(a), rectOf(b), -1e-6)) bad.push(`items ${i} en ${k} overlappen`);
+    if (a.solid && b.solid && boxesMeet(rectOf(a), rectOf(b), -1e-6)) bad.push(`items ${i} en ${k} overlappen`);
   }
   const res = reachable(L);
   const spots = [...L.npc.map((n) => ({ ...n, what: 'npc ' + n.role, r: 0.5 })), ...L.use.map((s) => ({ ...s, what: 'gebruik ' + s.id }))];
@@ -587,7 +586,7 @@ export function generateLayout(spec) {
     L.removed = 0;
     // a person who stands inside a solid or a partition wall is dropped
     const body = (n) => ({ u0: n.u - 0.25, u1: n.u + 0.25, v0: n.v - 0.25, v1: n.v + 0.25 });
-    L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && overlap(body(n), rectOf(it))) && !L.walls.some((w) => overlap(body(n), w)));
+    L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && boxesMeet(body(n), rectOf(it))) && !L.walls.some((w) => boxesMeet(body(n), w)));
     repair(L);
     const bads = validateLayout(L);
     if (!bads.length) return L;

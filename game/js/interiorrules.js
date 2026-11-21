@@ -50,7 +50,10 @@ export function planInterior(b, opts = {}) {
   const look = ks.kind === 'woning' || ks.kind === 'kantoor' ? homeLook(en.look, seed / 4294967296) : null;
   const layout = generateLayout({ kind: ks.kind, sub: ks.sub, seed, hall, door, height: ceiling, look });
   if (!layout) return { ok: false, why: 'layout', kind: ks.kind };
-  return { ok: true, kind: ks.kind, sub: ks.sub, seed, frame, hall, door, height: ceiling, layout, label: labelOf(ks.kind, ks.sub), shop: en.shop };
+  return {
+    ok: true, kind: ks.kind, sub: ks.sub, seed, frame, hall, door, height: ceiling, layout, label: labelOf(ks.kind, ks.sub), shop: en.shop,
+    doorC: en.c, windows: en.windows || [], doorColor: en.doorColor, frameColor: en.frameColor,
+  };
 }
 
 // Is the door open for the player? hour 0..24; private homes follow the "open house" share, owned ones always.

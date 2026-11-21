@@ -587,6 +587,7 @@ function addKraam(B, e, s0, s1, top, seed) {
 }
 
 function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
+  const panes = []; // the glass of the front, for the interior (b.entrance.windows)
   const span = s1 - s0;
   wallBox(B, e, s0, s1, 0, 0.4, 0, 0.075, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
   const frameC = S.shopFrame;
@@ -597,7 +598,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   const shopRank = poiType ? rankForType(poiType, seed) : hash2(seed, 5.5);
   // gevelreclame en markies van hetzelfde winkeltype als het interieur in de ruit (winkelkit.js)
   const look = facadeLook(shopRank);
-  const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
+  const shopUV = (s0, s1, y0, y1, bay) => panes.push({ c: (s0 + s1) / 2, w: s1 - s0, y0, y1 }) && wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     if (i === doorBay && bw > 1.1) {
@@ -627,7 +628,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
       wallQuad(B, e, p0, p1, yb - 0.22, yb, db, c);
     }
   }
-  return { door: shopDoor };
+  return { door: shopDoor, panes };
 }
 
 // --- roofs --------------------------------------------------------------------------
@@ -1117,6 +1118,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   }
 
   let windows = 0;
+  const winList = [];
   let entrance = null, lookPane = null; // the front door and the pane next to it (b.entrance, interiors: interiorrules.js)
   // het budget volgt de gevel: anders blijft de lange straatmuur van een groot gebouw kaal als de eerste muren het op hebben (#421)
   let wanted = 0;
@@ -1157,7 +1159,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
           wallBox(B, e, c - w - 0.05, c + w + 0.05, y0 - 0.06, y0, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_TOP);
         } else {
           const pane = addWindow(B, e, c, w, y0, y1, S, seed + i * 7.7 + f * 3.1 + e.ax);
-          if (f === 0 && e === mainEdge && !lookPane) lookPane = { c, pane };
+          if (f === 0 && e === mainEdge) { if (!lookPane) lookPane = { c, pane }; winList.push({ c, w, y0, y1 }); }
         }
         windows++;
       }
@@ -1182,7 +1184,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   b.entrance = entrance ? {
     ax: entrance.e.ax, ay: entrance.e.ay, tx: entrance.e.tx, ty: entrance.e.ty, nx: entrance.e.nx, ny: entrance.e.ny, len: entrance.e.len,
     c: entrance.c, w: entrance.w, h: entrance.h, shop: entrance.shop, floorH, floors: floorCount, depth,
-    look: lookPane ? lookPane.pane : null, archetype,
+    look: lookPane ? lookPane.pane : null, archetype, doorColor: S.door, frameColor: entrance.shop ? S.shopFrame : S.frame,
+    windows: entrance.shop && front ? front.panes : winList,
   } : null;
   // read by the QA scenes (scripts/ui/shots_scenes_r39.js): where the shopfront is and what it sells
   // (shopsigns3d.js hangs the name of the shop on it)

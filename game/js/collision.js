@@ -48,6 +48,12 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
     for (const b of nearby) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x < minx - radius || x > maxx + radius || y < miny - radius || y > maxy + radius) continue;
+      // a building with a live interior (interiors.js, #1150): the walkable hall and its open front door replace the footprint
+      if (b.walk) {
+        const wk = b.walk.resolve(x, y, radius);
+        if (wk === true) continue;
+        if (wk) { x = wk[0]; y = wk[1]; continue; }
+      }
       const pts = b.pts;
       let bestDist2 = Infinity, bestX = 0, bestY = 0, bestI = 0;
       for (let i = 0; i < pts.length - 1; i++) {

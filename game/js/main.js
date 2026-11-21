@@ -196,6 +196,7 @@ import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { BEPPE_KIND } from './beppe_garden.js';
+import { INTERIOR_KIND } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
 import { tryAaien, updateAaien } from './aaien.js';
 import { tryControle, updateControle } from './kaartjescontrole.js';
 import { registerActivityKind, initActivityKinds, interactActivityKinds, tickActivityKinds } from './activityhub.js';
@@ -274,6 +275,7 @@ registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 registerActivityKind(BEPPE_KIND); // het eerbetoonbankje aan de westgrens (#832)
+registerActivityKind(INTERIOR_KIND); // panden die je te voet kunt betreden: winkels, cafés, huizen, kerken ... (#1150)
 registerActivityKind({ id: 'aaien', slot: 'uitje', interact: tryAaien, tickPhase: 'world', tick: updateAaien });
 registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tickPhase: 'world', tick: updateControle });
 
