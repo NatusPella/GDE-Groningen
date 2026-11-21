@@ -202,6 +202,7 @@ function drop(w, ls) {
   unregisterPortalBoxes(ls, ls.boxes);
   if (scene) scene.remove(ls.group);
   disposeObject(ls.group);
+  for (const o of ls.npcs) unregisterPoseSource(o.seed);
   ls.npcs.length = 0;
   S.live.delete(ls.b);
   const p = hoofdspeler(w);
@@ -227,7 +228,7 @@ function addNpcs(ls) {
     fig.position.set(x - plan.frame.ox, baseY, z - plan.frame.oy);
     fig.rotation.y = yawOfFace(plan.frame, n.face);
     // the pose (sitting, crouching, ringing up) comes from the pose source of the person system
-    const src = { state: 'alive', pose: n.pose === 'sit' ? 'sit' : null };
+    const src = { state: 'alive', pose: n.pose === 'sit' ? 'sit' : null, persistent: true }; // persistent: prunePoseSources (pedestrians) laat hem staan
     registerPoseSource(look.opts.seed, src);
     let actor = null;
     if (n.level === 1) {
