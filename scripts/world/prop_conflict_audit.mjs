@@ -4,6 +4,11 @@
 // Het onderzoek (weiland-randen-sloten.md) mat 885 palen over spoor buiten 5 km van de stad;
 // dit is de herhaalbare versie, met drempels die alleen kunnen dalen.
 //
+// Sinds #1092 zet countryside.js geen paal, draad, heg, poort, berm of bies meer uit het perceelraster: de audit keurt dat de
+// procedurele randobjecten nul zijn (edgeObjects, edgeWalls) en dat elk getekend hek- of hegstuk op een gemapte bronlijn ligt
+// (edgeNoSource), en meet de kaartranden (osmPieces) en sloten (ditchRows, ditchMeters) die er wel zijn, plus de tekencalls
+// (edgeDraws van drawsAll) en het matrixgeheugen (edgeBytes) van wat er was.
+//
 // Sinds #502 keurt de audit ook wat er ná de start gebeurt: of een kudde met haar
 // graasbereik (huis plus loopafstand, binnen het perceel) de rijbaan kan halen, en of
 // een wandelaar van pedestrians.js op de asfaltstrook van een weg terechtkomt.
@@ -40,6 +45,7 @@ export const ZERO = [
   'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding',
   'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'cattleOnFarmland', 'cattleReachOnRoad',
   'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'gateOnRail', 'walkersOnRoad',
+  'edgeObjects', 'edgeWalls', 'edgeNoSource', 'ditchNoWater',
 ];
 export const RATE = [
   ['seamGaps', 'posts', 0.002], ['doublePosts', 'posts', 0.025], ['postOnDitch', 'posts', 0.001],
@@ -134,6 +140,35 @@ export function judge(map) {
 
 const KINDS = { post: 'post', wire: 'wire', hedge: 'hedge' };
 
+// De procedurele randsoorten van countryside.js (palen, draad, heggen, poorten, slootbermen, biezen): per soort het
+// aantal, de tekencalls (een soort per prop-tegel is een instanced mesh) en het geheugen van de matrices (16 floats,
+// 64 byte per stuk) in het venster, plus de loopmuren die ze registreerden. Sinds #1092 moet dat alles nul zijn:
+// een rand komt alleen uit een kaartlijn (de gemapte hekken, heggen, boomrijen en sloten van de tegels).
+// ligt een stuk (fence of hedge) op een gemapte lijn van zijn soort? (de rijen `mapped` komen uit de FURNITURE-sectie van de tegels)
+export function sourceNear(mapped, it, tol = 1.5) {
+  for (const m of mapped) {
+    if (m.k !== it.k || !m.pts) continue;
+    const P = m.pts;
+    for (let i = 0; i + 1 < P.length; i++) if (segDist(it.x, it.y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]) <= tol) return true;
+  }
+  return false;
+}
+
+export const EDGE_KINDS = ['post', 'wire', 'hedge', 'gate', 'bank', 'rush'];
+export function countEdgeKinds(tile, ox, oy, add) {
+  for (const kind of EDGE_KINDS) {
+    const m = tile.items[kind] && tile.items[kind].m;
+    if (!m || !m.length) continue;
+    let n = 0;
+    for (let q = 0; q < m.length; q += 16) { const px = m[q + 12], py = m[q + 14]; if (px >= ox && px <= ox + 1000 && py >= oy && py <= oy + 1000) n++; }
+    if (!n) continue;
+    add('edgeObjects', n); add('edgeDraws'); add('edgeBytes', n * 64); add('edge_' + kind, n);
+  }
+  for (const kind of Object.keys(tile.items)) if (tile.items[kind].m.length) add('drawsAll');
+  const w = tile.walls ? tile.walls.length / 6 : 0;
+  if (w) add('edgeWalls', w);
+}
+
 // Kan een kudde vanaf haar graasplek de rijbaan halen? De dieren trekken een doel binnen
 // `spread` van hun huis, begrensd door het perceel; dat perceel loopt tot de rand van de
 // strook en kent de weg niet (#502). Rekent met de echte afstand tot de asfaltstrook.
@@ -217,7 +252,6 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
   const npar = near(map.parcels);
   map.landUseAt = (x, y) => { let best = null, ba = Infinity; for (const q of npar(x, y, 0.5)) { const b = q.bounds; if (x < b[0] || x > b[2] || y < b[1] || y > b[3] || !inPoly(x, y, q.pts)) continue; const ar = (b[2] - b[0]) * (b[3] - b[1]); if (ar < ba) { ba = ar; best = q.use; } } return best; };
   CF.setProvinceDitches(!!(index.global && index.global.osmDitches));
-  CE.setExtraHedge((px, py, r) => PW.realHedgeNear(map, px, py, r));
   CE.setExtraUse(index.global && index.global.osmParcels ? (px, py) => PW.realUseAt(map, isTile, px, py) : null);
   const J = judge(map);
   const [ox, oy] = G.tileOrigin(ci, cj);
@@ -229,6 +263,7 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
   for (let tx = Math.floor(ox / T); tx <= Math.floor((ox + 1000) / T); tx++) {
     for (let ty = Math.floor(oy / T); ty <= Math.floor((oy + 1000) / T); ty++) {
       const tile = CS.countryTileItems(tx, ty);
+      countEdgeKinds(tile, ox, oy, add);
       for (const [kind, name] of Object.entries(KINDS)) {
         const m = tile.items[kind] && tile.items[kind].m;
         for (let q = 0; m && q < m.length; q += 16) {
@@ -278,10 +313,26 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
     for (const it of res.items) {
       if ((it.k !== 'fence' && it.k !== 'hedge') || it.src !== 'osm') continue;
       add('osmPieces');
+      // een rand zonder bronlijn mag niet (#1092): elk stuk ligt binnen 1,5 m van een gemapte lijn van zijn soort
+      if (!sourceNear(mapped, it)) add('edgeNoSource');
       if (J.onRail(it.x, it.y)) add('osmOnRail');
       if (J.onRoad(it.x, it.y)) add('osmOnRoad');
       if (J.inWater(it.x, it.y)) add('osmInWater');
       if (J.inBuilding(it.x, it.y)) add('osmInBuilding');
+    }
+  }
+  // de sloten: echt water in de tegels (WATER-rijen met kind 'sloot', een lint rond de OSM-lijn met peil lv en diepte dp): per soort
+  // dezelfde regels als elk ander water (vehicle.js offroadGround leest kind 'sloot' als 'ditch'); een sloot zonder diepte telt als geen water
+  {
+    const seen = new Set();
+    for (const w of map.all.water) {
+      if (w.kind !== 'sloot' || seen.has(w) || !w.pts.some(([x, y]) => x >= ox && x < ox + 1000 && y >= oy && y < oy + 1000)) continue;
+      seen.add(w);
+      add('ditchRows');
+      let len = 0;
+      for (let i = 0; i + 1 < w.pts.length; i++) len += Math.hypot(w.pts[i + 1][0] - w.pts[i][0], w.pts[i + 1][1] - w.pts[i][1]);
+      add('ditchMeters', Math.round(len / 2)); // het lint loopt heen en terug
+      if (!(w.dp > 0)) add('ditchNoWater');
     }
   }
   // dubbele palen: een buur binnen 1,5 m
@@ -353,7 +404,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'postOnFarmland', 'cattleOnFarmland', 'cattleReachOnRoad', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'walkers', 'walkersOnRoad'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'postOnFarmland', 'cattleOnFarmland', 'cattleReachOnRoad', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'edgeNoSource', 'ditchRows', 'ditchMeters', 'ditchNoWater', 'edgeObjects', 'edgeDraws', 'drawsAll', 'edgeBytes', 'edgeWalls', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'walkers', 'walkersOnRoad'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);
