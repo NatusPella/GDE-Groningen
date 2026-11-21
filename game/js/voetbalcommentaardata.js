@@ -161,5 +161,5 @@ export const COMMENTAAR = {
 export const MIN_PER_KIND = 5;
 export const MIN_TOTAAL = 200;
 export const MAX_WORDS = 22;
-export const DERBYS = [['stadjers', 'ommelanders'], ['stadjers', 'hunebedders'], ['veenpiraten', 'kleibijters'], ['wadlopers', 'ommelanders']];
+const DERBYS = [['stadjers', 'ommelanders'], ['stadjers', 'hunebedders'], ['veenpiraten', 'kleibijters'], ['wadlopers', 'ommelanders']];
 export const isDerby = (a, b) => DERBYS.some(([x, y]) => (x === a && y === b) || (x === b && y === a));

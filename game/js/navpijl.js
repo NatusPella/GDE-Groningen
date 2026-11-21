@@ -12,7 +12,7 @@ import { dsKleur } from './kaartkleuren.js';
 export const TRACK_INSET = 12; // afstand van het hart van een marker tot de kaartrand (px, op een kaart van 250): de schijf (straal 10, buitenstraal 11,8) zit 0,2 px van de rand
 const TRACK_RADIUS = 14; // de hoeken van de baan
 export const ACTIVE_R = 10; // de schijf van het doel dat je volgt (icoonstraal hooguit 10)
-export const HALO = 1.2; // het crème randje om de schijf
+const HALO = 1.2; // het crème randje om de schijf
 export const ACTIEF_UIT = ACTIVE_R + 0.6 + HALO; // buitenstraal van het doel dat je volgt (met puls en crème rand): 11,8
 export const DOT_R = 7; // de punten (straal hooguit 7)
 export const MIN_ACTIEF = 24; // afstand langs de baan tussen de schijf en een punt
@@ -21,7 +21,7 @@ export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navtarget.js 
 export const MAX_ANDEREN = 3; // en hooguit zoveel medespelers en eigen voertuigen als punt
 export const TAG_H = 16; // de afstandstag: 13 px tekst (de DS3-vloer), hooguit 40 x 16 px
 export const TAG_W_MAX = 40;
-export const TAG_PADDING = 2; // links en rechts van de tekst
+const TAG_PADDING = 2; // links en rechts van de tekst
 export const TAG_GAP = 2; // tussen schijf en tag
 export const TAG_TEKST_PX = 13;
 

@@ -5,7 +5,7 @@
 import { PITCH, richtingVan, ownGoalY, inStrafschop } from './voetbalrules.js';
 
 export const DEFAULT_RULES = Object.freeze({ kaarten: true, blessures: true, strafschoppen: true, buitenspel: false, wissels: true });
-export const RULE_KEYS = Object.keys(DEFAULT_RULES);
+const RULE_KEYS = Object.keys(DEFAULT_RULES);
 // Alleen echte booleans worden overgenomen; al het andere is de standaard (een corrupte voorkeur breekt niets).
 export function cleanRules(r) {
   const o = { ...DEFAULT_RULES };
@@ -15,9 +15,9 @@ export function cleanRules(r) {
 export const NO_RULES = Object.freeze({ kaarten: false, blessures: false, strafschoppen: false, buitenspel: false, wissels: false });
 
 // De bank (verzonnen voornamen, geen echte voetballers): klein twee wissels per team, groot drie.
-export const BENCH_HOME = ['Anko', 'Dieuwke', 'Siebren', 'Hilde'];
-export const BENCH_AWAY = ['Tjeerd', 'Aaltje', 'Wubbe', 'Geesje'];
-export const bankGrootte = (perTeam) => (perTeam > 6 ? 3 : 2);
+const BENCH_HOME = ['Anko', 'Dieuwke', 'Siebren', 'Hilde'];
+const BENCH_AWAY = ['Tjeerd', 'Aaltje', 'Wubbe', 'Geesje'];
+const bankGrootte = (perTeam) => (perTeam > 6 ? 3 : 2);
 
 // De strafschopstip van het team dat verdedigt: op ongeveer tweederde van de diepte van het strafschopgebied.
 export const penaltySpot = (team) => ({ x: 0, y: ownGoalY(team) + richtingVan(team) * PITCH.STRAF_D * 0.62 });
@@ -54,7 +54,7 @@ export function noteer(m, type, team, speler = -1, extra = null) {
 }
 
 // Een speler van het veld sturen: hij gaat naar de zijlijn en doet niet meer mee (de rest speelt met één man minder; de vorming schuift niet).
-export function stuurWeg(m, p) {
+function stuurWeg(m, p) {
   p.rood = true;
   if (m.bal.owner === p.id) { m.bal.owner = -1; m.bal.vx = m.bal.vy = 0; }
   p.slot = null;

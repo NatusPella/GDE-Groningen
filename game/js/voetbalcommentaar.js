@@ -12,7 +12,7 @@ const MIN_TUSSEN = { 1: 3.6, 2: 1.8, 3: 0 };     // seconden stilte die een entr
 const KIND_INTERVAL = { kans: 14, schot: 11, uit: 20, ingooi: 24, overtreding: 12, vrij: 16, hoek: 14, doelschop: 20, redding: 7, vulling: 12, bezitThuis: 90, bezitUit: 90 };
 const LEEG = Object.freeze({ h: [], r: [] });
 
-export const isSjabloon = (t) => /\{[a-z]+\}/.test(t);
+const isSjabloon = (t) => /\{[a-z]+\}/.test(t);
 // De sleutel van de stembank voor een entry; sjablonen hebben er geen (ze blijven ondertitel).
 export const stemSleutel = (wie, tekst) => (!tekst || isSjabloon(tekst) || !COMMENTATOREN[wie] ? null : `${COMMENTATOREN[wie].stem}|${tekst}`);
 export function vulSjabloon(tekst, v = {}) {

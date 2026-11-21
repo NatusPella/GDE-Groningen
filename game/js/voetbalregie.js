@@ -68,7 +68,7 @@ export function cameraVoor(shot, sim, eigenId = -1, t = 0, extra = {}) {
 // ---------------------------------------------------------------- de opname voor de herhaling
 
 const OPNAME_HZ = 15;
-export const OPNAME_MAX_S = 12;
+const OPNAME_MAX_S = 12;
 export function makeOpname() { return { frames: [], acc: 0, t: 0, n: 0 }; }
 const flags = (p) => (p.duikT > 0 ? 1 : 0) | (p.tackleT > 0 ? 2 : 0) | (p.stun > 0 ? 4 : 0) | (p.vier > 0 ? 8 : 0);
 export function opnameTik(op, sim, dt) {

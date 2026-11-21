@@ -74,7 +74,7 @@ export function categoryOfField(field) {
   return c ? c.id : 'onderdelen';
 }
 // De plek van de flits op het voertuig als deel van zijn maat (x vooruit, y omhoog, z opzij): { x, y, z } in -1..1 voor L, H, W.
-export const FLASH_SPOT = { spoiler: [-0.5, 0.75, 0], kit: [0.45, 0.1, 0.5], diffuser: [-0.5, 0.1, 0], roof: [0, 1, 0], exhaust: [-0.5, 0.1, 0.3], lamps: [0.5, 0.5, 0.3], decal: [0, 0.5, 0.5], stripe: [0.2, 0.9, 0], hanger: [0.2, 0.8, 0], awning: [0, 0.8, 0.8], display: [0, 0.1, 0.9], beacon: [0.3, 1, 0], air: [0, 1, 0] };
+const FLASH_SPOT = { spoiler: [-0.5, 0.75, 0], kit: [0.45, 0.1, 0.5], diffuser: [-0.5, 0.1, 0], roof: [0, 1, 0], exhaust: [-0.5, 0.1, 0.3], lamps: [0.5, 0.5, 0.3], decal: [0, 0.5, 0.5], stripe: [0.2, 0.9, 0], hanger: [0.2, 0.8, 0], awning: [0, 0.8, 0.8], display: [0, 0.1, 0.9], beacon: [0.3, 1, 0], air: [0, 1, 0] };
 export const flashSpot = (field) => FLASH_SPOT[field] || [0, 0.5, 0];
 
 // Een effect heeft een duur en een verloop 0..1 (1 = net begonnen, 0 = klaar). Zachte uitloop.

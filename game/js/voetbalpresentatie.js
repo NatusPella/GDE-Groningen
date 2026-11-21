@@ -32,10 +32,10 @@ export function clubLogo(team, maat = 28) {
   return `<svg class="vbtv-logo" width="${maat}" height="${maat}" viewBox="0 0 32 34" role="img" aria-label="Clubembleem van ${esc(team.kort || team.naam)}"><defs><clipPath id="vbc-${esc(team.id || initiaal(team.naam))}"><path d="${clip}"/></clipPath></defs><g clip-path="url(#vbc-${esc(team.id || initiaal(team.naam))})"><rect width="32" height="34" fill="${a}"/>${patroon}</g><path d="${clip}" fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2"/><text x="16" y="19" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="2.4" paint-order="stroke">${esc(initiaal(team.kort || team.naam))}</text></svg>`;
 }
 export const cardIcon = (kleur) => `<span class="vbtv-kaart vbtv-kaart--${kleur === 'rood' ? 'rood' : 'geel'}" role="img" aria-label="${kleur === 'rood' ? 'Rode kaart' : 'Gele kaart'}"><i></i><b>${kleur === 'rood' ? 'rood' : 'geel'}</b></span>`;
-export const blessureIcoon = () => '<span class="vbtv-blessure" role="img" aria-label="Blessure"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 1h4v4h4v4H9v4H5V9H1V5h4z" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="1.4"/></svg></span>';
+const blessureIcoon = () => '<span class="vbtv-blessure" role="img" aria-label="Blessure"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 1h4v4h4v4H9v4H5V9H1V5h4z" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="1.4"/></svg></span>';
 
 // Per team: kaarten en blessures van het veld (uit de spelers) voor het scorebord.
-export function teamIcoonRij(sim, team) {
+function teamIcoonRij(sim, team) {
   const sp = sim.spelers.filter((p) => p.team === team);
   const geel = sp.filter((p) => p.geel === 1 && !p.rood).length, rood = sp.filter((p) => p.rood).length, bles = sp.filter((p) => p.blessure).length;
   return { geel, rood, blessure: bles };
@@ -54,7 +54,7 @@ export function scoreboardRow(sim) {
 // ---------------------------------------------------------------- de opstelling bij de aftrap
 
 const ROL_KORT = { keeper: 'Keeper', verdediger: 'Verdediging', middenvelder: 'Middenveld', aanvaller: 'Aanval' };
-export function opstellingModel(sim) {
+function opstellingModel(sim) {
   const kant = (t) => ({ team: sim.teams[t], vorming: sim.tac && sim.tac[t] ? sim.tac[t].vorming : '', stijl: sim.tac && sim.tac[t] ? sim.tac[t].stijl : '',
     spelers: sim.spelers.filter((p) => p.team === t).map((p, k) => ({ nr: k + 1, naam: p.naam, rol: p.rol, rolNaam: ROL_KORT[p.rol] || '', jij: sim.mensen.some((x) => x.ctl === p.id && !x.weg) })) });
   return { thuis: kant(0), uit: kant(1), formaat: sim.formaat };
@@ -67,7 +67,7 @@ export function opstellingHtml(sim) {
 
 // ---------------------------------------------------------------- de rustpauze en het eindverslag
 
-export function statRijen(sim) {
+function statRijen(sim) {
   const s = statistiekenVan(sim);
   const rij = (label, [a, b], pct = false) => ({ label, a: pct ? `${a}%` : String(a), b: pct ? `${b}%` : String(b), deel: a + b > 0 ? a / (a + b) : 0.5 });
   const rijen = [rij('Balbezit', s.bezit, true), rij('Schoten', s.schoten), rij('Schoten op doel', s.opDoel), rij('Hoekschoppen', s.hoeken), rij('Overtredingen', s.overtredingen)];
