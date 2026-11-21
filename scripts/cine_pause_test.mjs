@@ -35,7 +35,7 @@ ok(/const a = active;\s*active = null;\s*pauseOff\(\);/.test(finish), 'finish ha
 
 // 3. main.js laat world.paused van die vlag afhangen en slaat updateGameplay dan over
 ok(/world\.paused = isMapOpen\(\) \|\| isPauseMenuOpen\(\) \|\| isShopOpen\(\) \|\| !!world\.uiPaused \|\| !!world\.coopHold;/.test(main), 'main rekent world.uiPaused mee in world.paused');
-ok(/if \(!world\.paused\) for \(let r = 0; r < reps; r\+\+\) updateGameplay\(gameDt\);/.test(main), 'updateGameplay draait alleen als de wereld niet gepauzeerd is');
+ok(/if \(!world\.paused\) for \(let r = 0; r < reps; r\+\+\) frameGuard\.run\('updateGameplay', updateGameplay, gameDt\);/.test(main), 'updateGameplay draait alleen als de wereld niet gepauzeerd is');
 const spel = blok(main, 'function updateGameplay(dt) {', '\n  }');
 ok(/world\.time \+= dt;/.test(spel), 'de wereldklok loopt in updateGameplay (dus niet tijdens de scène)');
 ok(/player\.update\(dt, world\)/.test(spel), 'de speler bestuurt in updateGameplay (dus niet tijdens de scène)');
