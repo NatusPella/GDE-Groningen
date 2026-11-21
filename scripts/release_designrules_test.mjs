@@ -339,6 +339,63 @@ try {
   ok(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '  color: #1d1b17;' }).length === 0, 'ds: de nieuwe tokenhex mag ook elders (alleen de ds-bestanden zijn strenger)');
 }
 
+// ---------------------------------------------------------------- nul blokkerend (21-11, #1064): netto, goedgekeurde bron, scherpere regels
+{
+  const L = (file, text, line = 1) => ({ file, line, text });
+  const klr = '  color: #123456; background: radial-gradient(circle, var(--ds-c-creme), var(--ds-c-ink-inkt));';
+  // nettotelling: dezelfde overtreding verwijderd en weer toegevoegd (de tokeniser, een herschreven regel) telt niet
+  const zelfde = auditLines([L('game/js/menu.css', klr)], [], { removedLines: [{ file: 'game/js/menu.css', text: klr }] });
+  is(zelfde.telling.blokkerend, 0, 'netto: een herschreven regel met dezelfde kleur en hetzelfde verloop is geen nieuwe overtreding');
+  const meer = auditLines([L('game/js/menu.css', klr), L('game/js/menu.css', klr.replace('123456', '654321'), 2)], [], { removedLines: [{ file: 'game/js/menu.css', text: klr }] });
+  ok(meer.telling.blokkerend > 0, 'netto: een extra kleur boven wat verwijderd is blijft blokkerend');
+  const nieuwBestand = auditLines([L('game/js/nieuw.css', klr)], ['game/js/nieuw.css'], { removedLines: [{ file: 'game/js/menu.css', text: klr }] });
+  ok(nieuwBestand.telling.blokkerend > 0, 'netto: verwijderde regels in een ander bestand sussen een nieuw bestand niet');
+  ok(auditLines([L('game/js/menu.css', klr)], []).telling.blokkerend > 0, 'netto: zonder verwijderde regels telt alles mee (de oude werking)');
+
+  // het eigenschapsnaam --ds-kaart-rand is een token, de klasse .ds-kaart blijft een oude component
+  ok(checkDesignLine({ file: 'game/js/ds-components.css', line: 1, text: '.bd-hud[data-ctx] { --ds-kaart-rand: var(--ds-ctx-band); }' }).length === 0, 'oud: --ds-kaart-rand is een token');
+  const oud = auditLines([L('game/js/menu.css', '.x { } .ds-kaart { color: var(--ds-c-ink-inkt); }')], []);
+  ok(oud.findings.some((f) => f.titel === 'Niet via het designsysteem'), 'oud: de klasse .ds-kaart blijft een bevinding');
+  const tok = auditLines([L('game/js/menu.css', '.bd-hud[data-ctx] { --ds-kaart-rand: var(--ds-ctx-band); }')], []);
+  is(tok.telling.blokkerend, 0, 'oud: --ds-kaart-rand is in de regelaudit geen oude klasse');
+
+  // goedgekeurde openbare leesopvraag: alleen de goedgekeurde host in het goedgekeurde bestand
+  const url = (file, text) => auditLines([L(file, text)], []).findings.filter((f) => f.categorie === 'privacy');
+  is(url('game/js/livetreinen.js', "  url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',").length, 0, 'netwerk: de goedgekeurde treinfeed is geen bevinding');
+  is(url('game/js/livetreinen.js', '// Bron: de feed (https://gtfs.ovapi.nl/nl/trainUpdates.pb)').length, 0, 'netwerk: dezelfde host in commentaar ook niet');
+  ok(url('game/js/livetreinen.js', "  url: 'https://voorbeeld.example/x.pb',").some((f) => f.ernst === 'blokkerend'), 'netwerk: een andere host in hetzelfde bestand blijft blokkerend');
+  ok(url('game/js/livetreinen.js', '  const r = await fetch(url);').some((f) => f.ernst === 'blokkerend'), 'netwerk: een fetch-aanroep blijft blokkerend, ook in het goedgekeurde bestand');
+  ok(url('game/js/ander.js', "  url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',").some((f) => f.ernst === 'blokkerend'), 'netwerk: dezelfde host in een ander bestand blijft blokkerend');
+  is(url('game/js/ander.js', "import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';").length, 0, 'netwerk: de three-import (het bouwen zet hem om) is geen bevinding');
+
+  // lettertype: een var()-terugval is het token; een los lettertype blijft een bevinding
+  ok(checkDesignLine({ file: 'game/js/a11y.css', line: 1, text: "html .pad-g[data-set=\"keys\"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), var(--ds-font-tekst); }" }).length === 0, 'font: var(--token, terugval) is goed');
+  ok(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: "  font-family: 'Comic Sans MS', cursive;" }).some((f) => f.categorie === 'typografie'), 'font: een los lettertype blijft een bevinding');
+
+  // !important: bewust in de reduced-motion-takken en de toetsplaatjes, een nit elders
+  ok(checkDesignLine({ file: 'game/js/ds-beweging.css', line: 1, text: '  animation-delay: 0s !important;' }).length === 0, 'important: ds-beweging.css is bewust');
+  ok(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '  color: var(--ds-c-ink-inkt) !important;' }).some((f) => f.ernst === 'nit'), 'important: elders blijft het een nit');
+
+  // TODO: alleen een aantekening, geen identifier
+  const todo = (text) => auditLines([L('game/js/x.js', text)], []).findings.filter((f) => f.categorie === 'codekwaliteit').length;
+  is(todo('  sub: open ? OPEN.sub : TODO.sub,'), 0, 'todo: TODO.sub is een identifier');
+  is(todo('  const x = 1; // TODO: later'), 1, 'todo: // TODO is een aantekening');
+
+  // merken: alleen in tekst; een regex, een identifier of een selector is geen speltekst
+  const merken = (file, text) => auditLines([L(file, text)], [], { brands: ['NS', 'Apple', 'Xbox', 'Google'] }).findings.filter((f) => f.titel.includes('merknaam'));
+  is(merken('game/js/x.js', "  if (/apple/i.test(r)) return 'integrated';").length, 0, 'merken: een regex-literal is geen speltekst');
+  is(merken('game/js/x.js', '  const ns = idx.nearestShore(v.x, v.y, 24);').length, 0, 'merken: een identifier (ns) is geen speltekst');
+  is(merken('game/js/x.css', 'html .pad-g[data-set="xbox"] { color: var(--ds-c-ink-inkt); }').length, 0, 'merken: een CSS-selector is geen speltekst');
+  is(merken('game/js/x.js', "  say: 'Neem de NS naar Zwolle',").length, 1, 'merken: een merk in een tekst blijft een bevinding');
+  is(merken('game/js/x.css', '.a::after { content: "Google"; }').length, 1, 'merken: een merk in content: blijft een bevinding');
+  is(merken('game/js/credits.js', "<p>lettertypes bij Google Fonts</p>").length, 0, 'merken: credits.js noemt de diensten bij naam (bronvermelding)');
+  // merkenrisico: een bewust genoemd bestand in het register is geen bevinding
+  const gevoelig = [{ naam: 'Escapade', bron: 'game/js/vehiclenames.js', bronnen: ['game/js/vehiclenames.js', 'game/js/prompts.js'], beoordeling: 'let op' }];
+  const risico = (file) => auditLines([L(file, "  label: 'Jouw ouwe Escapade',")], [], { sensitive: gevoelig }).findings.filter((f) => f.titel.includes('merkenrisico')).length;
+  is(risico('game/js/prompts.js'), 0, 'register: een extra bronbestand in de cel is bewust');
+  is(risico('game/js/anders.js'), 1, 'register: een ander bestand blijft een bevinding');
+}
+
 if (fouten) {
   console.log(`release_designrules_test: ${fouten} fout(en) van ${controles} controles`);
   process.exitCode = 1;

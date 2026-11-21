@@ -60,7 +60,7 @@
 #start-screen .ss-news-body p { margin: 8px 0; }
 #start-screen .ss-news-body strong { color: var(--ink); }
 #start-screen .ss-news-body a { color: var(--g); }
-#start-screen .ss-news-body code { font-family: Menlo, Consolas, monospace; font-size: 0.9em; background: color-mix(in srgb, var(--ds-c-creme) 8%, transparent); padding: 0 6px; border-radius: 4px; }
+#start-screen .ss-news-body code { font-family: var(--ds-font-code); font-size: max(13px, 0.9em); background: color-mix(in srgb, var(--ds-c-creme) 8%, transparent); padding: 0 6px; border-radius: 4px; }
 @media (max-height: 820px) {
   #start-screen .ss-logo { top: 56px; } #start-screen .gde-logo { font-size: 150px; }
   #start-screen .ss-menu { bottom: 80px; } #start-screen .ss-item { height: 48px; font-size: 32px; } #start-screen .ss-hero .ss-label { font-size: 46px; }

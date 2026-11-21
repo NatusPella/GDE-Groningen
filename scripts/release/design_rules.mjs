@@ -342,7 +342,8 @@ export function strayColors(text, file) {
 }
 
 function fontFamilies(text, file) {
-  const clean = stripComments(text, file);
+  // een var(--token, terugval) is het token zelf; de terugval keuren we niet (zelfde afspraak als bij kleuren)
+  const clean = stripComments(text, file).replace(/var\(\s*--[\w-]+\s*,\s*[^)]*\)/g, 'var()');
   const values = [];
   for (const m of clean.matchAll(/font-family\s*:\s*([^;}]+)/gi)) values.push(m[1]);
   for (const m of clean.matchAll(/fontFamily\s*[:=]\s*(['"`])([^'"`]*)\1/g)) values.push(m[2]);
@@ -382,6 +383,14 @@ function shrinkingRelativeSizes(text, file) {
   }
   return [...new Set(out)];
 }
+
+// Bestanden waar !important het ontwerp is, niet een noodgreep: de reduced-motion-takken en de toegankelijkheidsoverrides moeten
+// winnen van elke componentregel, en de maten van een toetsplaatje moeten winnen van contextregels als `#hud .hc-text span`.
+export const IMPORTANT_BEWUST = [
+  [/(?:^|\/)game\/js\/ds-beweging\.css$/, 'de reduced-motion-takken zetten beweging uit en moeten winnen van elke componentregel'],
+  [/(?:^|\/)game\/js\/ds-keycap\.css$/, 'de maatregels van het toetsplaatje moeten winnen van contextregels (zie de kop van het bestand)'],
+  [/(?:^|\/)game\/js\/a11y\.css$/, 'toegankelijkheidsinstellingen (toetsfont, contrast, maat) overschrijven bewust de auteursstijl'],
+];
 
 /**
  * Keurt één toegevoegde regel. Geeft een array bevindingen volgens $defs.bevinding
@@ -451,7 +460,7 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
   }
 
   // Nieuwe !important is een nit, geen blokkade.
-  if (candidates.important) {
+  if (candidates.important && !IMPORTANT_BEWUST.some(([re]) => re.test(filePath))) {
     findings.push(finding({
       file, line, text, ernst: 'nit', categorie: 'design-system',
       titel: 'Nieuwe !important',

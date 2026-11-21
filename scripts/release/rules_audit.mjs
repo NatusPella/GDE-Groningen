@@ -57,12 +57,14 @@ const URL_ANY = /\bhttps?:\/\/[^\s'"`)]+|\bwww\.[a-z0-9-]+\.[a-z]{2,}/i;
 const ENV_REF = /(?<![\w.])\.env\b/;
 const STORAGE_CALL = /(?:localStorage|sessionStorage)\s*\.\s*(?:setItem|getItem|removeItem)\s*\(\s*(?:([A-Za-z_$][\w$]*)|(['"`])([^'"`]*)\2)/g;
 const CONST_STRING = /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(['"`])([^'"`]*)\2/g;
-const TODO_RE = /\b(?:TODO|FIXME|HACK|XXX)\b/;
+// Een aantekening staat in commentaar (// TODO, /* FIXME, # HACK); een identifier als TODO.sub is geen aantekening.
+const TODO_RE = /(?:\/\/|\/\*|^\s*\*|#|<!--)\s*(?:TODO|FIXME|HACK|XXX)\b/;
 // Goedgekeurde openbare leesopvragen (AGENTS.md constitutie 4: alleen OPHALEN, zonder spelergegevens, met uitzetter en terugval).
 // Een bestand staat hier alleen met zijn host en de reden; een URL op een andere host, of een fetch-aanroep, blijft blokkerend.
 export const NETWERK_GOEDGEKEURD = {
   'game/js/livetreinen.js': { host: 'gtfs.ovapi.nl', reden: 'live treinvertragingen (#1085), besluit eigenaar 21-11, zie docs/TREINEN-LIVE-21-11.md en docs/LICENTIES.md; uitzetter liveTreinen' },
 };
+const THREE_CDN = /from\s+(['"])https:\/\/cdn\.jsdelivr\.net\/npm\/three@[\w.]+\/build\/three\.module\.js\1/;
 const urlHosts = (tekst) => [...String(tekst).matchAll(/\bhttps?:\/\/([^\s'"`)/:]+)/gi)].map((m) => m[1].toLowerCase());
 const NEW_JS = /^game\/js\/.+\.(?:m?js|cjs)$/;
 
@@ -217,7 +219,7 @@ export function loadRegisterData(repoRoot = REPO) {
   return {
     realBrands: parseRealBrands(md),
     sensitive: rows.filter((r) => /^let op/i.test(r.beoordeling))
-      .map((r) => ({ naam: r.naam, bron: normalize(r.bron), beoordeling: r.beoordeling })),
+      .map((r) => ({ naam: r.naam, bron: normalize(r.bron), bronnen: (r.bronnen || [r.bron]).map(normalize), beoordeling: r.beoordeling })),
     rows,
   };
 }
@@ -233,6 +235,28 @@ function brandRegex(term) {
     brandRegexes.set(term, re);
   }
   return re;
+}
+
+// Bestanden die echte diensten bij naam noemen als bronvermelding of privacyverklaring (eerlijkheid gaat voor), niet als spelfictie.
+export const MERKEN_BESTAND_OK = {
+  'game/js/credits.js': 'credits en privacyverklaring noemen de echte diensten (jsDelivr, Google Fonts, STUN) bij naam; dat is een bronvermelding, geen speltekst',
+};
+
+/**
+ * Alleen tekst die de speler kan lezen telt voor de merkenregel: in JS de stringliteralen en sjablonen (regexen,
+ * identifiers en commentaar niet: `/apple/i` in een diagnose, een variabele `ns`), in CSS alleen `content:`
+ * (geen selectors of attribuutwaarden als [data-set="xbox"]), in andere bestanden (html, json) alles.
+ */
+export function speltekst(clean, file) {
+  const f = normalize(file);
+  if (/\.css$/i.test(f)) return [...String(clean).matchAll(/\bcontent\s*:\s*([^;}]*)/gi)].map((m) => m[1]).join(' ');
+  if (!/\.(?:m?js|cjs)$/i.test(f)) return clean;
+  const zonderRegex = String(clean).replace(/(?<![\w)\]$])\/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n[])+\/[a-z]*/g, ' ');
+  const regels = [];
+  for (const m of zonderRegex.matchAll(/(['"`])((?:\\.|(?!\1)[^\\])*)\1/g)) regels.push(m[2]);
+  // een regel zonder aanhalingsteken kan binnen een sjabloon over meerdere regels staan (html-tekst): die tellen volledig mee als er geen code in staat
+  if (!/['"`]/.test(zonderRegex) && !/^\s*(?:const|let|var|if|else|for|while|return|import|export|function|class|switch|case|break|continue|await)\b|=>|[;{}]\s*$|^\s*[\w$.]+\s*=\s/.test(zonderRegex)) regels.push(zonderRegex);
+  return regels.join(' ');
 }
 
 function findBrands(text, brands) {
@@ -364,7 +388,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
         }), 'winter');
       }
 
-      const merken = findBrands(clean, brands);
+      const merken = MERKEN_BESTAND_OK[file] ? [] : findBrands(speltekst(clean, file), brands);
       if (merken.length) {
         voegToe(finding({
           file, line, text, ernst: 'belangrijk', categorie: 'constitutie',
@@ -376,7 +400,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
       }
 
       for (const row of sensitive) {
-        if (!row.naam || file === row.bron) continue;
+        if (!row.naam || file === row.bron || (row.bronnen && row.bronnen.includes(file))) continue;
         if (!brandRegex(row.naam).test(clean)) continue;
         voegToe(finding({
           file, line, text, ernst: 'belangrijk', categorie: 'constitutie',
@@ -391,7 +415,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     // Netwerk: geen nieuwe externe verbindingen in game/js (constitutie 4/5).
     if (GAME_JS.test(file)) {
       perRegel.netwerk += 1;
-      const clean = stripComments(text, file).replace(/from\s+(['"])https:\/\/cdn\.jsdelivr\.net\/npm\/three@[\w.]+\/build\/three\.module\.js\1/, "from 'three'"); // het bouwen zet dit om naar de eigen vendormap (desktop/vendor-cache)
+      const clean = stripComments(text, file).replace(THREE_CDN, "from 'three'"); // het bouwen zet dit om naar de eigen vendormap (desktop/vendor-cache)
       const goedgekeurd = NETWERK_GOEDGEKEURD[file];
       const hosts = urlHosts(clean);
       if (goedgekeurd && !FETCH_CODE.test(clean) && hosts.length && hosts.every((h) => h === goedgekeurd.host)) {
@@ -404,7 +428,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
             + '(AGENTS.md constitutie 4/5). Een nieuwe fetch, XMLHttpRequest of webadres hoort eerst langs een uitzondering.',
           fix: 'Gebruik de bestaande goedgekeurde weg (STUN/broker/live bus) of haal de verbinding weg; leg een uitzondering vast.',
         }), 'netwerk');
-      } else if (URL_ANY.test(text)) {
+      } else if (URL_ANY.test(text.replace(THREE_CDN, "from 'three'")) && !(goedgekeurd && urlHosts(text).every((h) => h === goedgekeurd.host))) {
         voegToe(finding({
           file, line, text, ernst: 'belangrijk', categorie: 'privacy',
           titel: 'Webadres in commentaar',
