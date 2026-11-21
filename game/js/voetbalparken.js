@@ -35,10 +35,10 @@ const PATRONEN = ['effen', 'brede-streep', 'helften', 'smalle-streep'];
 // De club van een plaats: stabiel id (`lc` plus het plaats-id), naam, palet en sterkte (30 tot 48: amateurs). De pool wordt nooit gespeeld, alleen bijgehouden.
 export function clubForPlace(pl) {
   const h = hashSeed('club', pl.id);
-  const naam = localClubName(pl.id, pl.n);
+  const clubName = localClubName(pl.id, pl.n);
   const hue = (h >>> 5) % 360;
   return {
-    id: `lc${pl.id}`, naam, kort: naam.length > 22 ? naam.split(' ').slice(-1)[0] : naam, division: 'pool', sterkte: 30 + (h >>> 9) % 19, budget: 8000 + ((h >>> 11) % 8) * 1000,
+    id: `lc${pl.id}`, naam: clubName, kort: clubName.length > 22 ? clubName.split(' ').slice(-1)[0] : clubName, division: 'pool', sterkte: 30 + (h >>> 9) % 19, budget: 8000 + ((h >>> 11) % 8) * 1000,
     shirt: hsl(hue, 0.55, 0.42), broek: hsl((hue + 180) % 360, 0.12, 0.9), keeper: hsl((hue + 120) % 360, 0.5, 0.5), patroon: PATRONEN[(h >>> 13) % PATRONEN.length], accent: 0xf4f1e8,
     placeId: pl.id, plaats: pl.n, kind: pl.k, x: pl.x, y: pl.y, park: pl.p[0], trainingsvelden: pl.p.slice(1),
   };
@@ -47,11 +47,11 @@ export function clubForPlace(pl) {
 // De index uit de JSON: lijsten per plaats, een kaart op plaats-id en de clubs. Kapotte data geeft een lege index (de carrière valt dan terug op de zes vaste clubs).
 export function makeParkIndex(raw) {
   const ok = raw && typeof raw === 'object' && raw.v === 1 && Array.isArray(raw.plaatsen);
-  const plaatsen = (ok ? raw.plaatsen : []).filter((p) => p && Number.isFinite(p.id) && typeof p.n === 'string' && Number.isFinite(p.x) && Number.isFinite(p.y) && Array.isArray(p.p) && p.p.length && p.p.every((k) => Number.isFinite(k.x) && Number.isFinite(k.y) && Number.isFinite(k.r)));
-  const clubs = plaatsen.map(clubForPlace);
+  const places = (ok ? raw.plaatsen : []).filter((p) => p && Number.isFinite(p.id) && typeof p.n === 'string' && Number.isFinite(p.x) && Number.isFinite(p.y) && Array.isArray(p.p) && p.p.length && p.p.every((k) => Number.isFinite(k.x) && Number.isFinite(k.y) && Number.isFinite(k.r)));
+  const clubs = places.map(clubForPlace);
   const byPlace = new Map(clubs.map((c) => [c.placeId, c]));
   const byId = new Map(clubs.map((c) => [c.id, c]));
-  return { plaatsen, clubs, byPlace, byId, parkCount: plaatsen.reduce((s, p) => s + p.p.length, 0) };
+  return { plaatsen: places, clubs, byPlace, byId, parkCount: places.reduce((s, p) => s + p.p.length, 0) };
 }
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 // De dichtstbijzijnde clubs bij een punt (afstand tot het thuispark, dan het plaats-id): stabiel en deterministisch.
@@ -87,6 +87,6 @@ export function resolveClub(index, id) { return index.byId.get(id) || null; }
 export const HOME_FALLBACK = Object.freeze({ x: -2174, y: -2246 });
 const FALLBACK_PLACES = [['Haren', 1], ['Hoogkerk', 2], ['Eelde', 3], ['Winsum', 4], ['Zuidhorn', 5], ['Bedum', 6], ['Ten Boer', 7], ['Leek', 8]];
 export function fallbackIndex() {
-  const plaatsen = FALLBACK_PLACES.map(([n, k], i) => ({ id: 9000000 + k, n, k: 'village', x: HOME_FALLBACK.x + (i - 3.5) * 900, y: HOME_FALLBACK.y + (i % 2 ? 700 : -700), p: [{ x: HOME_FALLBACK.x + (i - 3.5) * 900, y: HOME_FALLBACK.y + (i % 2 ? 700 : -700), r: 0, f: 1, a: 9000, c: 0, l: 0 }] }));
-  return makeParkIndex({ v: 1, plaatsen });
+  const places = FALLBACK_PLACES.map(([n, k], i) => ({ id: 9000000 + k, n, k: 'village', x: HOME_FALLBACK.x + (i - 3.5) * 900, y: HOME_FALLBACK.y + (i % 2 ? 700 : -700), p: [{ x: HOME_FALLBACK.x + (i - 3.5) * 900, y: HOME_FALLBACK.y + (i % 2 ? 700 : -700), r: 0, f: 1, a: 9000, c: 0, l: 0 }] }));
+  return makeParkIndex({ v: 1, plaatsen: places });
 }

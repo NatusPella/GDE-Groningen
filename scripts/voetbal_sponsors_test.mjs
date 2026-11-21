@@ -17,7 +17,7 @@ t('sponsors: twee of drie sleuven, elk een ander soort, bedragen binnen 150 tot 
   for (const [div, lo, hi] of [['talent', 150, 300], ['terp', 250, 500], ['kroon', 400, 800]]) {
     for (let s = 1; s <= 20; s++) {
       const o = Sp.offersFor('lc1', div, s);
-      assert.ok(o.length >= 2 && o.length <= Sp.MAX_SLOTS);
+      assert.ok(o.length >= 2 && o.length <= Sp.MAX_SPONSOR_DEALS);
       assert.equal(new Set(o.map((x) => x.sort)).size, o.length);
       for (const x of o) { assert.ok(x.amount >= lo && x.amount <= hi, `${div} ${x.amount}`); assert.ok(Sp.GOALS[x.goal]); assert.equal(x.accepted, false); }
     }
@@ -57,7 +57,7 @@ t('de sponsor staat op het veld; de pandeigenaar krijgt hooguit +10% op thuisdag
   for (const form of [0.92, 1, 1.08, 3]) { const o = Sp.ownerBonus({ isHomeDay: true, ownsPand: true, form }); assert.ok(o.factor > 1 && o.factor <= 1.1 + 1e-9); assert.equal(o.extraPayout, 0); }
 });
 t('in de carrière: sponsors per seizoen, doelen betalen mee en de opslag blijft heel', () => {
-  let c = C.startCareer({ char: 'anita', index });
+  let c = C.createCareer({ char: 'anita', index });
   assert.ok(c.sponsors.slots.length >= 2);
   const slot = c.sponsors.slots[0];
   const r = C.acceptSponsor(c, slot.id); c = r.career; assert.ok(r.ok);
@@ -107,6 +107,6 @@ t('tribune, bank en de claim bij Samen spelen', () => {
   assert.equal(B.bankRecall({ prijs: 1000 }, 1).recall, false); assert.deepEqual(B.bankRecall({ prijs: 1000 }, 2), { recall: true, payout: 750 });
   assert.equal(B.claimWinner({ time: 5, player: 'b' }, { time: 7, player: 'a' }).player, 'b');
   assert.equal(B.claimWinner({ time: 5, player: 'b' }, { time: 5, player: 'a' }).player, 'a');
-  assert.equal(B.bezitSoort.id, 'club');
+  assert.equal(B.ownershipBranch.id, 'club');
 });
 console.log(`voetbal_sponsors_test ok (${n} groepen)`);

@@ -21,7 +21,7 @@ export function loadIndex() {
 export function runCareer({ char = 'anita', seizoenen = 3, strategie = 'speel', index = loadIndex(), train = true } = {}) {
   const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
   const getClub = C.clubResolver(index);
-  let c = C.startCareer({ char, index, home: { x: hx, y: hy } });
+  let c = C.createCareer({ char, index, home: { x: hx, y: hy } });
   const rep = { char, strategie, seasons: [], earned: 0, playedMatches: 0, simMatches: 0, days: 0, minutes: 0, start: C.myRating(c), notes: [] };
   const target = c.seasonNr + seizoenen;
   let guard = 0;

@@ -6,7 +6,7 @@
 import { makeRng } from './minigamekit.js';
 import { hashSeed } from './voetbalspelers.js';
 
-export const MAX_SLOTS = 3;
+export const MAX_SPONSOR_DEALS = 3;
 export const OWNER_BONUS_MAX = 0.1;
 // De soorten (pandtype uit facilities, winkelsoort) met een naamgenerator: een voorvoegsel en een achtervoegsel die samen geen bestaand merk zijn.
 export const SORTS = {
@@ -43,20 +43,20 @@ export function offersFor(clubId, division, seasonNr) {
 export const newSponsors = (clubId, division, seasonNr) => ({ nr: seasonNr, slots: offersFor(clubId, division, seasonNr) });
 export function accept(sp, slotId, pandIndex = null, plaats = null) {
   const s = JSON.parse(JSON.stringify(sp));
-  const slot = s.slots.find((x) => x.id === slotId);
-  if (!slot || slot.accepted) return { sponsors: sp, ok: false };
-  slot.accepted = true;
-  slot.osm = pandIndex && typeof pandIndex.find === 'function' ? (pandIndex.find(SORTS[slot.sort].pand, plaats) || null) : null;
-  return { sponsors: s, ok: true, slot };
+  const deal = s.slots.find((x) => x.id === slotId);
+  if (!deal || deal.accepted) return { sponsors: sp, ok: false };
+  deal.accepted = true;
+  deal.osm = pandIndex && typeof pandIndex.find === 'function' ? (pandIndex.find(SORTS[deal.sort].pand, plaats) || null) : null;
+  return { sponsors: s, ok: true, slot: deal };
 }
 // De stand voor de doelen: doelpunten dit seizoen, wedstrijden zonder verlies op rij (uit de vorm) en of het seizoen met promotie eindigde. Geeft de nieuwe sponsors en de uit te betalen regels (elk doel eenmalig).
 export function settle(sp, state) {
   if (!sp) return { sponsors: sp, earn: [] };
   const s = JSON.parse(JSON.stringify(sp)), earn = [];
-  for (const slot of s.slots) {
-    if (!slot.accepted || slot.paid || !GOALS[slot.goal].check(state)) continue;
-    slot.paid = true;
-    earn.push({ label: `Sponsor ${slot.naam}`, amount: slot.amount, bron: 'sponsor' });
+  for (const deal of s.slots) {
+    if (!deal.accepted || deal.paid || !GOALS[deal.goal].check(state)) continue;
+    deal.paid = true;
+    earn.push({ label: `Sponsor ${deal.naam}`, amount: deal.amount, bron: 'sponsor' });
   }
   return { sponsors: s, earn };
 }

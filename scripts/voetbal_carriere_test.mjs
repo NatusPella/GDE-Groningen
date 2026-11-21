@@ -13,11 +13,11 @@ const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naa
 const index = loadIndex();
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const getClub = C.clubResolver(index);
-const start = (char = 'anita') => C.startCareer({ char, index, home: { x: hx, y: hy } });
+const start = (char = 'anita') => C.createCareer({ char, index, home: { x: hx, y: hy } });
 
 t('start: Tessa de ster, Tammo gewoon, allebei in het team; de club is een lokale club bij het huis', () => {
   const a = start('anita'), b = start('tammo');
-  assert.ok(C.isStarted(a) && a.char === 'anita' && a.me.name === 'Tessa' && a.mate.name === 'Tammo');
+  assert.ok(C.hasCareer(a) && a.char === 'anita' && a.me.name === 'Tessa' && a.mate.name === 'Tammo');
   assert.ok(b.char === 'tammo' && b.me.name === 'Tammo' && b.mate.name === 'Tessa');
   assert.ok(a.me.attrs.shot > b.me.attrs.shot);
   assert.equal(a.club, a.world.talent[0]); assert.ok(a.club.startsWith('lc'));
@@ -29,7 +29,7 @@ t('start: Tessa de ster, Tammo gewoon, allebei in het team; de club is een lokal
   assert.equal(sq.length, 18); assert.ok(sq.some((p) => p.id === 'tessa') && sq.some((p) => p.id === 'tammo'));
 });
 t('de start zonder parkdata valt terug op acht vaste plaatsen', () => {
-  const c = C.startCareer({ char: 'anita', index: null, home: null });
+  const c = C.createCareer({ char: 'anita', index: null, home: null });
   assert.equal(c.world.talent.length, 8); assert.ok(C.nextMatch(c, C.clubResolver(fallbackIndex())));
 });
 t('de volgende wedstrijd en het venster: op dag 3 open, daarna gemist en uitgerekend zonder geldverlies', () => {
@@ -52,7 +52,7 @@ t('een gespeelde wedstrijd: bonus, ervaring, vorm, vermoeidheid, stand, en de an
   assert.equal(s.outcome, 'winst'); assert.ok(s.played && s.debut && s.firstGoal);
   assert.equal(s.earn.reduce((a, e) => a + e.amount, 0), C.PAY.talent.contract + C.PAY.talent.win);
   assert.equal(c2.stats.matches, 1); assert.equal(c2.stats.goals, 2); assert.equal(c2.fatigue, 35); assert.equal(c2.history.length, 1);
-  const st = C.standings(c2);
+  const st = C.leagueTable(c2);
   assert.equal(st.round, 1);
   assert.equal(st.rows.reduce((a, x) => a + x.g, 0), 8, 'vier duels, acht clubs gespeeld');
   assert.equal(st.rows.find((x) => x.id === c.club).p, 3);
@@ -76,7 +76,7 @@ t('trainen: een per speldag, kost vermoeidheid, focus wordt onthouden', () => {
   assert.equal(C.train(r.career, 'pace').ok, false, 'twee keer op een dag kan niet');
   const next = C.advanceDays(r.career, 1, getClub).career;
   assert.ok(C.train(next, 'pace').ok, 'de volgende dag weer');
-  assert.equal(C.setFocus(c, 'nep').focus, c.focus);
+  assert.equal(C.withFocus(c, 'nep').focus, c.focus);
 });
 t('drie seizoenen headless: de structuur klopt (promotie, standen, bekers, economie)', () => {
   const r = runCareer({ char: 'anita', seizoenen: 3, strategie: 'speel' });
@@ -124,7 +124,7 @@ t('opslag: normalize bewaart een geldig profiel en maakt van kapotte data een le
   assert.ok(C.serialize(c).length < 20000, `klein: ${C.serialize(c).length}`);
   for (const bad of [null, undefined, 'x', '{}', '{"v":2}', '{"v":1,"started":true}', '{"v":1,"started":true,"char":"x"}', 42, [], JSON.stringify({ ...c, leagues: { kroon: 1 } }), JSON.stringify({ ...c, me: { role: 'x' } })]) {
     const r = C.normalize(bad);
-    assert.equal(C.isStarted(r), false, String(bad).slice(0, 30));
+    assert.equal(C.hasCareer(r), false, String(bad).slice(0, 30));
     assert.equal(r.v, 1);
   }
   const hack = C.normalize(JSON.stringify({ ...c, fatigue: 9999, day: -5, injury: { days: 99, text: 'x' }, stats: { ...c.stats, goals: 'x' } }));
@@ -143,7 +143,7 @@ t('de uitslag van een gespeelde wedstrijd hoort bij de ratings: sterker is beter
 t('niveau en rol: begint als Talent, Speler; trainer pas later', () => {
   const c = start();
   assert.equal(C.levelOf(c).id, 'talent'); assert.equal(c.role, 'speler'); assert.equal(C.levelOf(null).id, 'talent');
-  assert.ok(C.overview(c, getClub).next && C.overview(c, getClub).divisionName === 'Talentenklasse');
-  assert.equal(C.overview(null, getClub), null);
+  assert.ok(C.summary(c, getClub).next && C.summary(c, getClub).divisionName === 'Talentenklasse');
+  assert.equal(C.summary(null, getClub), null);
 });
 console.log(`voetbal_carriere_test ok (${n} groepen)`);

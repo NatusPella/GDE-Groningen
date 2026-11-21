@@ -1,6 +1,6 @@
 // Clubbezit als tak van Bezit (#1113, epic #1106, ontwerp docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 8 en docs/BEZIT-21-11.md): puur, geen DOM (scripts/voetbal_clubbezit_test.mjs).
 // Voetbal bouwt GEEN eigen bezitsopslag: de aandelen staan in het profiel van de speler. Zodra de Bezit-opslag (gde-bezit-v1, #1097) en het Bezit-menu (#1099) op deze tak zijn, verhuist `bezit.clubs` naar `bezit.x.clubs`
-// van dat profiel en komt er een subtab Club; tot dan is dit de interface (`bezitSoort`) met een stub in de test. Dezelfde prijsregels als Bezit: schaalprijs (x (1 + min(aantal, 200) / 100)), verkoop 75%, belasting 0,1% per speldag.
+// van dat profiel en komt er een subtab Club; tot dan is dit de interface (`ownershipBranch`) met een stub in de test. Dezelfde prijsregels als Bezit: schaalprijs (x (1 + min(aantal, 200) / 100)), verkoop 75%, belasting 0,1% per speldag.
 // Rustig passief inkomen: 0,45% van de aankoopprijs per speldag (1,35% per ronde van drie dagen) met een uitslag van plus of min 40% door plek; nooit de snelste geldmachine. Niemand verliest zijn vermogen.
 export const SHARES = [0.1, 0.25, 0.51, 1];
 export const VALUE = { talent: 30000, terp: 80000, kroon: 250000 };
@@ -10,7 +10,7 @@ export const RESERVE = 0.25;                        // je koopt nooit je spaarge
 export const TRIBUNES = [{ id: 'klein', naam: 'Kleine tribune', m2: 120, capaciteit: 400 }, { id: 'middel', naam: 'Middelgrote tribune', m2: 300, capaciteit: 1200 }, { id: 'groot', naam: 'Grote tribune', m2: 700, capaciteit: 3000 }];
 export const TRIBUNE_PER_M2 = 700;
 
-export const bezitSoort = { id: 'club', naam: 'Club', tab: 'Club' };   // de interface naar de Bezit-tak
+export const ownershipBranch = { id: 'club', naam: 'Club', tab: 'Club' };   // de interface naar de Bezit-tak
 export const newClubBezit = () => ({ clubs: {} });
 export const priceOf = (division, share, ownedCount = 0) => Math.round((VALUE[division] || VALUE.talent) * share * (1 + Math.min(ownedCount, SCALE_CAP) / 100));
 export const ownedCount = (b) => Object.keys((b && b.clubs) || {}).length;

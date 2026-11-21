@@ -79,7 +79,7 @@ export const performance = ({ goals = 0, assists = 0, tackles = 0, saves = 0 } =
 
 // Vermoeidheid: een wedstrijd 35, een training 15, herstel 35 per speldag. Onder energie 25 (vermoeidheid 75 en hoger) speel je op 90% tempo en uithouding.
 export const addFatigue = (f, amount) => Math.min(FATIGUE.max, Math.max(0, (Number(f) || 0) + amount));
-export const recover = (f, days = 1) => Math.max(0, (Number(f) || 0) - FATIGUE.perDay * Math.max(0, days));
+export const reduceFatigue = (f, days = 1) => Math.max(0, (Number(f) || 0) - FATIGUE.perDay * Math.max(0, days));
 export const isTired = (f) => f >= FATIGUE.tiredAt;
 export const energy = (f) => Math.max(0, 100 - f);
 

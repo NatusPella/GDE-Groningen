@@ -32,7 +32,7 @@ export const BEATS = [
 export const beatById = (id) => BEATS.find((b) => b.id === id) || null;
 export const beatText = (beat, char) => (char === 'tammo' ? beat.tammo : beat.anita);
 // De figuur die de papieren regelt: de ander dan de speler.
-export const regelaarVan = (char) => (char === 'tammo' ? 'Tessa' : 'Tammo');
+export const partnerOf = (char) => (char === 'tammo' ? 'Tessa' : 'Tammo');
 
 // Mag er nu een beat komen? ctx = { unlocked: de poort, busy: een missie, scène of kaart loopt, day: de speldag }. Allemaal waar, anders wacht hij.
 export const beatMayShow = (c, ctx = {}) => !!ctx.unlocked && !ctx.busy && (c.flags.beatDay | 0) !== (ctx.day | 0) + 1;
@@ -66,13 +66,13 @@ export const isUnlocked = (progress) => voetbalOpen(progress);
 // Wat de regelaar voorstelt in het scherm Vandaag: één voorstel, in de persona van de figuur die niet speelt (droog en praktisch).
 export function proposal(c, getNext = null) {
   if (!c || !c.started) return null;
-  const naam = regelaarVan(c.char);
+  const partner = partnerOf(c.char);
   const m = getNext;
-  if (c.injury) return { wie: naam, tekst: `Rust uit. ${c.injury.text}.` };
-  if (c.fatigue >= 75) return { wie: naam, tekst: 'Je bent moe. Een dag rust is geen schande.' };
-  if (m && m.status === 'open') return { wie: naam, tekst: 'De wedstrijd wacht. Speel hem zelf voor het volle bedrag.' };
-  if (!c.trainedDay || c.trainedDay < 0) return { wie: naam, tekst: c.char === 'anita' ? 'Train op schot: dat is je beste wapen.' : 'Train op pass: dat is waar je baat bij hebt.' };
-  return { wie: naam, tekst: 'Train vandaag nog een keer. Het kost niets.' };
+  if (c.injury) return { wie: partner, tekst: `Rust uit. ${c.injury.text}.` };
+  if (c.fatigue >= 75) return { wie: partner, tekst: 'Je bent moe. Een dag rust is geen schande.' };
+  if (m && m.status === 'open') return { wie: partner, tekst: 'De wedstrijd wacht. Speel hem zelf voor het volle bedrag.' };
+  if (!c.trainedDay || c.trainedDay < 0) return { wie: partner, tekst: c.char === 'anita' ? 'Train op schot: dat is je beste wapen.' : 'Train op pass: dat is waar je baat bij hebt.' };
+  return { wie: partner, tekst: 'Train vandaag nog een keer. Het kost niets.' };
 }
 // De regel voor de HUD (hooguit 14 woorden).
 export const hudLine = (beat, char) => { const b = beatText(beat, char); return `${b.wie}: ${b.tekst}`; };

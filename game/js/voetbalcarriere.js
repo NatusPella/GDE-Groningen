@@ -3,7 +3,7 @@
 // het seizoen, de agenda in speldagen (`day`, opgehoogd per nacht), vorm, vermoeidheid, blessure, beker en Waddenbeker. Alle functies geven een nieuw profiel terug en wijzigen het oude niet.
 // Geld komt hier alleen als `earn`-regels terug; de live-laag (voetbalcarrierelive.js) betaalt ze via loopbaanVerdien. Zelfde seed = zelfde uitkomst voor alle spelers.
 import { makeProtagonist, makeSquad, lineupFor, teamStrength, simFactors, hashSeed, playerRating, readPlayer } from './voetbalspelers.js';
-import { CLUBS, EUROPE_CLUBS, clubsOf, clubById, teamFor, clubNaam } from './voetbalclubs.js';
+import { CLUBS, EUROPE_CLUBS, clubsOf, clubById, teamFor, clubName } from './voetbalclubs.js';
 import { localDivision, fallbackIndex, NEAR_TRIP_M, HOME_FALLBACK } from './voetbalparken.js';
 import * as S from './voetbalseizoen.js';
 import * as A from './voetbalagenda.js';
@@ -32,11 +32,11 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 const rel = (c) => c.day - c.seasonStart;
 
 export function newCareer() { return { v: VERSION, started: false }; }
-export const isStarted = (c) => !!(c && c.started);
+export const hasCareer = (c) => !!(c && c.started);
 
 // ---- het begin ----
 // opts: { char: 'anita' | 'tammo', index: de parkindex (voetbalparken.js), home: { x, y } }. Zonder bruikbare index (kapotte data) valt de start terug op acht vaste plaatsen rond de stad (fallbackIndex).
-export function startCareer({ char = 'anita', index = null, home = null, day = 0 } = {}) {
+export function createCareer({ char = 'anita', index = null, home = null, day = 0 } = {}) {
   const c = char === 'tammo' ? 'tammo' : 'anita';
   const idx = index && index.clubs.length >= 8 ? index : fallbackIndex();
   const loc = localDivision(idx, home || HOME_FALLBACK);
@@ -52,12 +52,12 @@ export function startCareer({ char = 'anita', index = null, home = null, day = 0
     stats: { matches: 0, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, simulated: 0, seasons: 0, titles: 0, promotions: 0, cups: 0, europe: 0, earned: 0 },
     seasonStats: { goals: 0, assists: 0, played: 0 }, log: [], flags: {}, last: null, settings: { injuries: true }, result: null, market: T.emptyMarket(), tactic: { formation: '4-4-2', style: 'evenwichtig' }, offer: null, bezit: {},
   };
-  return startSeason(s);
+  return openSeason(s);
 }
 export const seasonSeed = (c) => hashSeed('season', WORLD_SEED, c.seasonNr);
 
 // Het begin van een seizoen: de drie competities (elke klasse speelt mee), de beker vanaf seizoen 2 en de Waddenbeker voor de kampioen van de Kroonklasse.
-export function startSeason(c) {
+export function openSeason(c) {
   const s = clone(c);
   const seed = seasonSeed(s);
   s.leagues = { kroon: S.newLeague('kroon', s.world.kroon, s.seasonNr), terp: S.newLeague('terp', s.world.terp, s.seasonNr), talent: S.newLeague('talent', s.world.talent, s.seasonNr) };
@@ -74,7 +74,7 @@ export function startSeason(c) {
 }
 
 // ---- clubs en sterkte ----
-export const nameOf = (getClub, id) => { const k = getClub && getClub(id); return k ? k.naam : clubNaam(id); };
+export const nameOf = (getClub, id) => { const k = getClub && getClub(id); return k ? k.naam : clubName(id); };
 export const divisionOfMyClub = (c) => S.divisionOf(c.world, c.club);
 // De selectie van een club: vast uit (club, zaad); de eigen club krijgt de speler en de teamgenoot erin (op de plek van de beste van hun rol).
 export function squadOf(c, clubId, getClub) {
@@ -93,14 +93,14 @@ export function makeContext(c, getClub) {
   const mine = teamStrength(squadOf(c, c.club, getClub));
   const fatigueMult = O.isTired(c.fatigue) ? 0.97 : 1;
   const own = { attack: mine.attack * fatigueMult * (c.injury ? 0.97 : 1), defense: mine.defense };
-  const over = { [c.club]: own };
+  const strengthByClub = { [c.club]: own };
   const m = c.market || T.emptyMarket();
   for (const id of new Set([...Object.keys(m.imports), ...Object.keys(m.gone)])) {
     if (id === c.club) continue;
     const club = getClub(id);
-    if (club) over[id] = teamStrength(T.rosterOf(m, id, makeSquad(id, club.sterkte, WORLD_SEED)));
+    if (club) strengthByClub[id] = teamStrength(T.rosterOf(m, id, makeSquad(id, club.sterkte, WORLD_SEED)));
   }
-  return S.makeCtx(getClub, over);
+  return S.makeCtx(getClub, strengthByClub);
 }
 export const myRating = (c) => playerRating(c.me);
 export function levelOf(c) {
@@ -246,7 +246,7 @@ export function train(c, focus, score = 0.8) {
   s.trainedDay = rel(s);
   return { career: s, ok: true, gains: g.gains, focus: f };
 }
-export const setFocus = (c, focus) => (O.TRAIN_FOCI.includes(focus) ? { ...c, focus } : c);
+export const withFocus = (c, focus) => (O.TRAIN_FOCI.includes(focus) ? { ...c, focus } : c);
 
 // ---- de tijd: speldagen ----
 // Een nacht (of meer) verder. Een ronde die voorbij zijn venster is, wordt door de club uitgerekend (gemist: zonder geldverlies). Na de laatste wedstrijd en de pauze begint het volgende seizoen.
@@ -259,7 +259,7 @@ export function advanceDays(c, nights, getClub) {
   for (let i = 0; i < days; i++) {
     s = clone(s);
     s.day++;
-    s.fatigue = O.recover(s.fatigue, 1);
+    s.fatigue = O.reduceFatigue(s.fatigue, 1);
     s.injury = O.tickInjury(s.injury, 1);
     // gemiste wedstrijden (de dag na het venster)
     for (let guard = 0; guard < 20 && s.evDone < s.cal.length; guard++) {
@@ -317,7 +317,7 @@ export function finishSeason(c, getClub) {
   s.seasonNr++;
   s.phase = O.resetPhase();
   promoteRoles(s, getClub, rank);
-  const nxt = startSeason({ ...s, day: s.day });
+  const nxt = openSeason({ ...s, day: s.day });
   nxt.seasonStart = s.day;
   nxt.result = result;
   nxt.offer = T.offerFor(nxt, null, getClub);
@@ -328,13 +328,13 @@ export function finishSeason(c, getClub) {
 }
 
 // ---- stand en overzicht voor de schermen ----
-export function standings(c, div = null) {
+export function leagueTable(c, div = null) {
   const d = div || divisionOfMyClub(c) || 'talent';
   return { division: d, rows: S.table(c.leagues[d]), round: c.leagues[d].round, done: c.leagues[d].done };
 }
-export function overview(c, getClub) {
-  if (!isStarted(c)) return null;
-  const st = standings(c);
+export function summary(c, getClub) {
+  if (!hasCareer(c)) return null;
+  const st = leagueTable(c);
   const mine = st.rows.find((r) => r.id === c.club);
   return {
     club: nameOf(getClub, c.club), clubId: c.club, division: st.division, divisionName: { kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse' }[st.division], rank: mine ? mine.plek : 0, points: mine ? mine.p : 0, round: st.round,
@@ -365,7 +365,7 @@ export function acceptSponsor(c, slotId, pandIndex = null) {
 }
 export const declineOffer = (c) => (c && c.offer ? { ...c, offer: null, flags: { ...c.flags, bid: false } } : c);
 export const TACTICS = { formations: ['4-4-2', '4-3-3', '3-5-2'], styles: ['verdedigend', 'evenwichtig', 'aanvallend'] };
-export function setTactic(c, { formation, style } = {}) {
+export function withTactic(c, { formation, style } = {}) {
   if (!c || !c.roles || !c.roles.trainer) return c;
   const t = { ...c.tactic };
   if (TACTICS.formations.includes(formation)) t.formation = formation;
@@ -381,7 +381,7 @@ export function lineupOf(c, getClub, formationRoles) {
 }
 export function managerBuy(c, playerId, getClub) {
   if (!c.roles.manager) return { career: c, ok: false, reason: 'Nog geen manager' };
-  if (!T.inWindow(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
+  if (!T.inBreak(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
   const club = getClub(c.club), p = (c.market.pool || []).find((x) => x.id === playerId);
   if (!p) return { career: c, ok: false, reason: 'Die speler is er niet' };
   const r = T.buyPlayer(c.market, club, p, squadOf(c, c.club, getClub));
@@ -389,7 +389,7 @@ export function managerBuy(c, playerId, getClub) {
 }
 export function managerSell(c, playerId, getClub) {
   if (!c.roles.manager) return { career: c, ok: false, reason: 'Nog geen manager' };
-  if (!T.inWindow(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
+  if (!T.inBreak(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
   const p = squadOf(c, c.club, getClub).find((x) => x.id === playerId);
   if (!p || p.protagonist) return { career: c, ok: false, reason: 'Die speler blijft' };
   const r = T.sellPlayer(c.market, getClub(c.club), p);
@@ -400,8 +400,8 @@ export const clubCash = (c, getClub) => T.cashOf(c.market || T.emptyMarket(), ge
 // ---- opslag ----
 function normSponsors(sp) {
   if (!sp || typeof sp !== 'object' || !Array.isArray(sp.slots)) return null;
-  const slots = sp.slots.slice(0, Sp.MAX_SLOTS).filter((x) => x && Sp.SORTS[x.sort] && Sp.GOALS[x.goal] && Number.isFinite(x.amount)).map((x) => ({ id: String(x.id).slice(0, 20), sort: x.sort, naam: String(x.naam || '').slice(0, 40), goal: x.goal, amount: Math.max(0, Math.min(2000, Math.round(x.amount))), accepted: !!x.accepted, paid: !!x.paid, osm: Number.isFinite(x.osm) ? x.osm : null }));
-  return { nr: Math.max(1, sp.nr | 0), slots };
+  const deals = sp.slots.slice(0, Sp.MAX_SPONSOR_DEALS).filter((x) => x && Sp.SORTS[x.sort] && Sp.GOALS[x.goal] && Number.isFinite(x.amount)).map((x) => ({ id: String(x.id).slice(0, 20), sort: x.sort, naam: String(x.naam || '').slice(0, 40), goal: x.goal, amount: Math.max(0, Math.min(2000, Math.round(x.amount))), accepted: !!x.accepted, paid: !!x.paid, osm: Number.isFinite(x.osm) ? x.osm : null }));
+  return { nr: Math.max(1, sp.nr | 0), slots: deals };
 }
 function normMarket(m) {
   const e = T.emptyMarket();

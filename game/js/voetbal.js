@@ -15,7 +15,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import * as CL from './voetbalcarrierelive.js';
 import { matchSetup } from './voetbalcarriere.js';
 import { pitchPlacement } from './voetbalparken.js';
-import { setLauncher } from './voetbalcarriereui.js';
+import { registerLauncher } from './voetbalcarriereui.js';
 import { formationList } from './voetbalrules.js';
 import { awayKit } from './voetbalwereld.js';
 import { pushAudioEvent } from './pedgeom.js';
@@ -144,10 +144,10 @@ function gateSign() {
   return new THREE.MeshBasicMaterial({ map: t });
 }
 
-function bouw(w, formaat = 'klein', plek = null) {
+function bouw(w, formaat = 'klein', site = null) {
   zetFormaat(formaat);
   const M = materials();
-  const at = plek || { x: CX, y: CY, a: 0 };
+  const at = site || { x: CX, y: CY, a: 0 };
   if (w && w.map && typeof w.map.surfaceAt === 'function') { try { const r = w.map.surfaceAt(at.x, at.y, { z: 0, ribbon: null }); if (r && Number.isFinite(r.z)) ground = r.z; } catch (e) { ground = 0; } }
   const root = new THREE.Group();
   root.position.set(at.x, ground, at.y);      // het veld is in eigen ruimte gebouwd (toLocal) en draait mee met de lengteas van het park
@@ -175,7 +175,7 @@ function bouw(w, formaat = 'klein', plek = null) {
   const plaat = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.28), gateSign());
   plaat.position.set(0, 2.1, -0.1); plaat.rotation.y = Math.PI; gateBoard.add(plaat);
   gateBoard.position.set(GATE.x, ground, GATE.y + 1.4);
-  gateBoard.visible = !plek;                  // het bord bij de spelerspoort hoort alleen bij de Euroborg
+  gateBoard.visible = !site;                  // het bord bij de spelerspoort hoort alleen bij de Euroborg
   const bal = new THREE.Mesh(new THREE.SphereGeometry(BAL_VIS, 14, 10), M.bal);
   bal.castShadow = true; bal.visible = false;
   const schaduw = new THREE.Mesh(new THREE.CircleGeometry(0.2, 14).rotateX(-Math.PI / 2), M.schaduw);
@@ -596,18 +596,18 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
 // --- de carrièrewedstrijd (#1110, #1117): de sim met de clubs en ratings van de carrière, op het sportpark van de thuisploeg (of de Euroborg); het resultaat gaat naar het profiel -------------------
 
 // Start de wedstrijd van de volgende ronde van de carrière. Geeft true als hij begon.
-export function startCarriereWedstrijd(w) {
-  if (game || !CL.isStarted()) return false;
+export function launchCareerMatch(w) {
+  if (game || !CL.hasCareer()) return false;
   const c = CL.getCareer(), v = leesOpslag();
   const setup = matchSetup(c, CL.getClub, formationList('groot', cleanFormation('groot', v.vorming)));
   if (!setup) return false;
   const m = setup.match;
   const venue = m.park ? m.park : null;
-  let plek = null;
-  if (venue) { const pp = pitchPlacement(venue); plek = { x: pp.x, y: pp.y, a: pp.angle - Math.PI / 2 }; }
-  return launch(w, { force: true, career: { teams: setup.teams, ratings: setup.ratings, bonus: setup.bonus, char: c.char, naam: c.me.name, site: plek, match: m } });
+  let site = null;
+  if (venue) { const pp = pitchPlacement(venue); site = { x: pp.x, y: pp.y, a: pp.angle - Math.PI / 2 }; }
+  return launch(w, { force: true, career: { teams: setup.teams, ratings: setup.ratings, bonus: setup.bonus, char: c.char, naam: c.me.name, site: site, match: m } });
 }
-setLauncher((w) => startCarriereWedstrijd(w));
+registerLauncher((w) => launchCareerMatch(w));
 
 function afrondenCarriere(w, g, quit) {
   if (quit) { w.addMessage('Wedstrijd gestopt: de ronde blijft staan', 3); return; }
@@ -618,10 +618,10 @@ function afrondenCarriere(w, g, quit) {
   const r = CL.finishMatch(w, { gf, ga, stats });
   const s = r.summary;
   if (!s) return;
-  const regels = [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(stats.goals)]];
-  if (s.gains && s.gains.length) regels.push(['Groei', `+${s.gains.length}`]);
-  if (s.notes && s.notes.length) regels.push(['Beker', s.notes[0]]);
-  showBanner({ kind: s.outcome === 'winst' ? 'pass' : 'fail', title: s.outcome === 'winst' ? 'GEWONNEN' : s.outcome === 'gelijk' ? 'GELIJKSPEL' : 'VERLOREN', reason: `${sim.teams[0].naam} ${gf}-${ga} ${sim.teams[1].naam}`, reward: 0, stats: regels });
+  const rows = [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(stats.goals)]];
+  if (s.gains && s.gains.length) rows.push(['Groei', `+${s.gains.length}`]);
+  if (s.notes && s.notes.length) rows.push(['Beker', s.notes[0]]);
+  showBanner({ kind: s.outcome === 'winst' ? 'pass' : 'fail', title: s.outcome === 'winst' ? 'GEWONNEN' : s.outcome === 'gelijk' ? 'GELIJKSPEL' : 'VERLOREN', reason: `${sim.teams[0].naam} ${gf}-${ga} ${sim.teams[1].naam}`, reward: 0, stats: rows });
 }
 
 // De beloning van één speler uit zijn eigen uitslagsregel: record, medaille, prestaties, het banner. Het geld van een gast betaalt de host (betaalGast); hier alleen wat bij de eigen speler hoort.

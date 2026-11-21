@@ -23,10 +23,10 @@ export function seasonCalendar({ cup = true, europe = false } = {}) {
 export const seasonLength = (cal) => cal.reduce((m, e) => Math.max(m, e.day), 0) + BREAK_DAYS;
 export const KIND_NAMES = { league: 'Competitie', cup: 'Dijkbeker', europe: 'Waddenbeker' };
 // Het venster van een wedstrijd: vanaf zijn dag, een speldag lang (twee bij een verre rit).
-export const windowOf = (ev, travelDays = 1) => ({ from: ev.day, to: ev.day + Math.max(1, travelDays) - 1 });
+export const dateRangeOf = (ev, travelDays = 1) => ({ from: ev.day, to: ev.day + Math.max(1, travelDays) - 1 });
 // 'soon' (nog niet), 'open' (nu te spelen) of 'missed' (voorbij: de club rekent hem uit, zonder geldverlies).
 export function eventStatus(ev, relDay, travelDays = 1) {
-  const w = windowOf(ev, travelDays);
+  const w = dateRangeOf(ev, travelDays);
   return relDay < w.from ? 'soon' : relDay <= w.to ? 'open' : 'missed';
 }
 // De volgende wedstrijd die nog niet geweest is: `done` is het aantal afgewerkte events in de kalender. Null aan het einde van het seizoen.

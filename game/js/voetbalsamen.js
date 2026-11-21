@@ -61,9 +61,9 @@ export const dropOut = (plan, slot) => ({ team0: plan.team0.filter((s) => s !== 
 // De beloning van een gast uit zijn eigen uitslagsregel: geld (kleiner dan bij een eigen carrièrewedstrijd: geen contractdeel), ervaring en nooit competitiepunten.
 export function guestReward({ outcome = 'verlies', goals = 0, weg = false } = {}, level = 'talent') {
   if (weg) return { geld: 0, xp: 0, competitiepunten: 0, contract: 0 };
-  const geld = { winst: 30, gelijk: 10, verlies: 5 }[outcome] || 0;
+  const reward = { winst: 30, gelijk: 10, verlies: 5 }[outcome] || 0;
   const mult = { talent: 1, terp: 1.5, kroon: 2, europa: 2.5 }[level] || 1;
-  return { geld: Math.round((geld + Math.min(3, goals) * 5) * mult), xp: outcome === 'winst' ? 26 : outcome === 'gelijk' ? 18 : 14, competitiepunten: 0, contract: 0 };
+  return { geld: Math.round((reward + Math.min(3, goals) * 5) * mult), xp: outcome === 'winst' ? 26 : outcome === 'gelijk' ? 18 : 14, competitiepunten: 0, contract: 0 };
 }
 // De ervaring van een gast voor zijn eigen carrière (zijn profiel, niet dat van de host): een vaste, kleine hoeveelheid (60%, zoals een uitgerekende wedstrijd), zodat meespelen nooit sneller groeit dan zelf spelen.
 export const guestXpFactor = 0.6;

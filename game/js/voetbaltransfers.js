@@ -94,7 +94,7 @@ export function settleSeason(market, clubs, rosterFor) {
 }
 
 // ---- de manager: jouw club (de kas is van de club, niet van de speler) ----
-export const inWindow = (c) => !!c && c.started && c.evDone >= c.cal.length;                 // de pauze tussen de seizoenen
+export const inBreak = (c) => !!c && c.started && c.evDone >= c.cal.length;                 // de pauze tussen de seizoenen
 export function buyPlayer(market, club, player, roster) {
   const price = priceOf(player), cash = cashOf(market, club);
   if (player.club) return { ok: false, reason: 'Die speler heeft al een club' };

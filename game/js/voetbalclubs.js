@@ -7,20 +7,20 @@ export const DIVISION_NAMES = { kroon: 'Kroonklasse', terp: 'Terpklasse', talent
 export const PATTERNS = ['effen', 'brede-streep', 'helften', 'smalle-streep'];
 export const PATTERN_NAMES = { effen: 'effen', 'brede-streep': 'brede strepen', helften: 'twee helften', 'smalle-streep': 'smalle strepen' };
 export const CLUBS_PER_DIVISION = 8;
-export const HOME_STADIUM = 'euroborg';       // de enige echte stadion: de Kroonklasse en de Waddenbeker spelen daar
+export const HOME_ARENA = 'euroborg';       // de enige echte stadion: de Kroonklasse en de Waddenbeker spelen daar
 
 const c = (id, naam, kort, division, sterkte, budget, shirt, broek, keeper, patroon, accent, extra = {}) => ({ id, naam, kort, division, sterkte, budget, shirt, broek, keeper, patroon, accent, ...extra });
 // sterkte: het gemiddelde ratingniveau van de selectie (1 tot 100); budget: de clubkas in euro bij de start.
 export const CLUBS = [
   // Kroonklasse (de top; thuis in de Euroborg)
-  c('stadjers', 'De Stadjers', 'Stadjers', 'kroon', 72, 900000, 0x2f9e5b, 0xf4f1e8, 0xf0c020, 'brede-streep', 0xf4f1e8, { stadion: HOME_STADIUM }),
-  c('hunebedders', 'De Hunebedders', 'Hunebedders', 'kroon', 66, 600000, 0xc0482b, 0x3a3a3a, 0x4aa3d8, 'effen', 0xf4f1e8, { stadion: HOME_STADIUM }),
-  c('veenpiraten', 'De Veenpiraten', 'Veenpiraten', 'kroon', 70, 800000, 0x2a2f36, 0xe8e0c0, 0xff9a3c, 'helften', 0xe8e0c0, { stadion: HOME_STADIUM }),
-  c('grachtenhelden', 'De Grachtenhelden', 'Grachtenhelden', 'kroon', 78, 2400000, 0xd8d8d0, 0xd8d8d0, 0x6fcf6a, 'brede-streep', 0xb03030, { stadion: HOME_STADIUM }),
-  c('gloeipeertjes', 'De Gloeipeertjes', 'Gloeipeertjes', 'kroon', 76, 1900000, 0xc22f2f, 0xf4f1e8, 0x2a2f36, 'effen', 0xf4f1e8, { stadion: HOME_STADIUM }),
-  c('kuipvaarders', 'De Kuipvaarders', 'Kuipvaarders', 'kroon', 74, 1300000, 0xe8e0c0, 0x2a2f36, 0xc0482b, 'helften', 0x2a2f36, { stadion: HOME_STADIUM }),
-  c('kaasdragers', 'De Kaasdragers', 'Kaasdragers', 'kroon', 71, 1000000, 0xd9302f, 0xf4f1e8, 0x2f6fb5, 'effen', 0xf0c020, { stadion: HOME_STADIUM }),
-  c('domtorenaars', 'De Domtorenaars', 'Domtorenaars', 'kroon', 69, 700000, 0xe0e0e0, 0xc0301f, 0x4aa3d8, 'smalle-streep', 0xc0301f, { stadion: HOME_STADIUM }),
+  c('stadjers', 'De Stadjers', 'Stadjers', 'kroon', 72, 900000, 0x2f9e5b, 0xf4f1e8, 0xf0c020, 'brede-streep', 0xf4f1e8, { stadion: HOME_ARENA }),
+  c('hunebedders', 'De Hunebedders', 'Hunebedders', 'kroon', 66, 600000, 0xc0482b, 0x3a3a3a, 0x4aa3d8, 'effen', 0xf4f1e8, { stadion: HOME_ARENA }),
+  c('veenpiraten', 'De Veenpiraten', 'Veenpiraten', 'kroon', 70, 800000, 0x2a2f36, 0xe8e0c0, 0xff9a3c, 'helften', 0xe8e0c0, { stadion: HOME_ARENA }),
+  c('grachtenhelden', 'De Grachtenhelden', 'Grachtenhelden', 'kroon', 78, 2400000, 0xd8d8d0, 0xd8d8d0, 0x6fcf6a, 'brede-streep', 0xb03030, { stadion: HOME_ARENA }),
+  c('gloeipeertjes', 'De Gloeipeertjes', 'Gloeipeertjes', 'kroon', 76, 1900000, 0xc22f2f, 0xf4f1e8, 0x2a2f36, 'effen', 0xf4f1e8, { stadion: HOME_ARENA }),
+  c('kuipvaarders', 'De Kuipvaarders', 'Kuipvaarders', 'kroon', 74, 1300000, 0xe8e0c0, 0x2a2f36, 0xc0482b, 'helften', 0x2a2f36, { stadion: HOME_ARENA }),
+  c('kaasdragers', 'De Kaasdragers', 'Kaasdragers', 'kroon', 71, 1000000, 0xd9302f, 0xf4f1e8, 0x2f6fb5, 'effen', 0xf0c020, { stadion: HOME_ARENA }),
+  c('domtorenaars', 'De Domtorenaars', 'Domtorenaars', 'kroon', 69, 700000, 0xe0e0e0, 0xc0301f, 0x4aa3d8, 'smalle-streep', 0xc0301f, { stadion: HOME_ARENA }),
   // Terpklasse (streek; de sportparken van de grotere plaatsen)
   c('wadlopers', 'De Wadlopers', 'Wadlopers', 'terp', 58, 220000, 0x2f6fb5, 0xf4f1e8, 0xe8e0c0, 'effen', 0xf4f1e8),
   c('ommelanders', 'De Ommelanders', 'Ommelanders', 'terp', 54, 200000, 0x8a4ab5, 0xe8c93a, 0x6fcf6a, 'smalle-streep', 0xe8c93a),
@@ -32,7 +32,7 @@ export const CLUBS = [
   c('doorgaanse-arenden', 'De Doorgaanse Arenden', 'Arenden', 'terp', 53, 190000, 0xe0d020, 0x2a3a5a, 0xc0482b, 'effen', 0x2a3a5a),
 ];
 // De zestien verzonnen buitenlandse clubs van de Waddenbeker (A.3): alleen een naam, een sterkte en een palet; thuis en uit op de Euroborg.
-const e = (id, naam, sterkte, shirt, broek, patroon) => ({ id, naam, kort: naam.replace(/^De /, ''), division: 'europa', sterkte, budget: 0, shirt, broek, keeper: 0x6fcf6a, patroon, accent: 0xf4f1e8, stadion: HOME_STADIUM });
+const e = (id, naam, sterkte, shirt, broek, patroon) => ({ id, naam, kort: naam.replace(/^De /, ''), division: 'europa', sterkte, budget: 0, shirt, broek, keeper: 0x6fcf6a, patroon, accent: 0xf4f1e8, stadion: HOME_ARENA });
 export const EUROPE_CLUBS = [
   e('koninklijke-matadors', 'De Koninklijke Matadors', 88, 0xe8e8f0, 0xe8e8f0, 'effen'), e('blauwgranaten', 'De Blauwgranaten', 86, 0x2a3f8f, 0x8f2a3a, 'brede-streep'),
   e('beierse-bierbazen', 'De Beierse Bierbazen', 85, 0xc22f2f, 0xc22f2f, 'effen'), e('oudere-dames', 'De Oudere Dames', 80, 0xf0f0f0, 0x2a2f36, 'brede-streep'),
@@ -48,7 +48,7 @@ export const WADDENBEKER_SIZE = 16;
 
 const ALL = new Map([...CLUBS, ...EUROPE_CLUBS].map((x) => [x.id, x]));
 export const clubById = (id) => ALL.get(id) || null;
-export const clubNaam = (id) => (ALL.get(id) || { naam: String(id) }).naam;
+export const clubName = (id) => (ALL.get(id) || { naam: String(id) }).naam;
 export const clubsOf = (division) => CLUBS.filter((x) => x.division === division);
 // Een club als wedstrijdteam voor makeMatch (dezelfde vorm als TEAMS in voetbalrules.js); onbekend geeft null.
 export const teamFor = (club) => (club ? { id: club.id, naam: club.naam, kort: club.kort, shirt: club.shirt, broek: club.broek, keeperShirt: club.keeper, patroon: club.patroon, accent: club.accent } : null);

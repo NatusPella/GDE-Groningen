@@ -24,13 +24,13 @@ const storage = () => {
   try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; }
 };
 // Voor de tests: een eigen opslag (nooit de echte gde-*-sleutels).
-export function setStorage(st) { storageOverride = st; career = null; dirty = false; prevClock = null; }
-export function setParkData(raw) { index = raw ? makeParkIndex(raw) : null; if (index && index.clubs.length < 8) index = null; }
+export function useStorage(st) { storageOverride = st; career = null; dirty = false; prevClock = null; }
+export function useParkData(raw) { index = raw ? makeParkIndex(raw) : null; if (index && index.clubs.length < 8) index = null; }
 export const getIndex = () => index || (index = fallbackIndex());
 export const getClub = (id) => C.clubResolver(getIndex())(id);
 // De parkdata (voetbalparkendata.js, ongeveer 27 kB) laadt lui met import(): geen netwerkaanroep, alleen de eigen module; kapot of weg geeft de terugval van acht vaste plaatsen.
 export async function loadParkData() {
-  try { const m = await import('./voetbalparkendata.js'); setParkData(m.default); } catch (e) { setParkData(null); }
+  try { const m = await import('./voetbalparkendata.js'); useParkData(m.default); } catch (e) { useParkData(null); }
   return getIndex().parkCount;
 }
 
@@ -55,8 +55,8 @@ function mark() {
   if (!timer && typeof setTimeout === 'function') { timer = setTimeout(saveNow, WRITE_DELAY_MS); if (timer && timer.unref) timer.unref(); }
 }
 export function subscribe(f) { listeners.add(f); return () => listeners.delete(f); }
-export const set = (c) => { career = c; mark(); return career; };
-export const isStarted = () => C.isStarted(getCareer());
+export const replaceCareer = (c) => { career = c; mark(); return career; };
+export const hasCareer = () => C.hasCareer(getCareer());
 
 // Het geld uit een lijst `earn`-regels: één betaling via loopbaanVerdien (het vak Buiten, zoals de Euroborg-wedstrijd; geen eigen loonfactor). Geeft het bedrag dat echt betaald is.
 export function payEarn(w, lines, { xp = 0, label = '' } = {}) {
@@ -68,9 +68,9 @@ export function payEarn(w, lines, { xp = 0, label = '' } = {}) {
 }
 
 // Een nieuwe carrière (de speler nam de uitnodiging aan): `char` is het personage waarmee hij speelt.
-export function startNew(_w, char, day = 0) {
+export function createNew(_w, char, day = 0) {
   const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
-  career = C.startCareer({ char, index: getIndex(), home: { x: hx, y: hy }, day });
+  career = C.createCareer({ char, index: getIndex(), home: { x: hx, y: hy }, day });
   mark(); saveNow();
   return career;
 }
@@ -82,7 +82,7 @@ export function updateDay(dt, w) {
   const h = w && Number.isFinite(w.clock) ? ((w.clock % 24) + 24) % 24 : null;
   const night = nightPassed(prevClock, h);
   prevClock = h;
-  if (!night || !C.isStarted(c)) return null;
+  if (!night || !C.hasCareer(c)) return null;
   return advance(w, 1);
 }
 export function advance(w, nights) {
@@ -96,7 +96,7 @@ export function advance(w, nights) {
 }
 // De prestaties van de carrière (elf, per speler): welke horen bij dit profiel, deze wedstrijd en dit seizoenseinde. Geeft de lijst ids (de aanroeper hoeft niets te doen); unlockAchievement is idempotent.
 export function achievementsFor(c, { summary = null, report = null } = {}) {
-  if (!C.isStarted(c)) return [];
+  if (!C.hasCareer(c)) return [];
   const ids = [], div = C.divisionOfMyClub(c);
   if (summary && summary.played && c.stats.matches >= 1) ids.push('vc_debuut');
   if (summary && summary.goals > 0 && summary.played && C.divisionOfMyClub(c) === 'terp') ids.push('vc_doelpunt_terp');
@@ -132,8 +132,8 @@ export function trainNow(w, focus, score = 0.8) {
   if (r.ok) { career = r.career; mark(); if (w && w.addMessage) w.addMessage(`Training klaar: ${r.gains.length ? '+1 ' + r.gains.join(', +1 ') : 'je voelt het groeien'}`, 3); }
   return r;
 }
-export function setFocusNow(focus) { career = C.setFocus(getCareer(), focus); mark(); return career; }
-export function setInjuries(on) { const c = getCareer(); if (!C.isStarted(c)) return c; career = { ...c, settings: { ...c.settings, injuries: !!on }, injury: on ? c.injury : null }; mark(); return career; }
+export function applyFocus(focus) { career = C.withFocus(getCareer(), focus); mark(); return career; }
+export function applyInjuries(on) { const c = getCareer(); if (!C.hasCareer(c)) return c; career = { ...c, settings: { ...c.settings, injuries: !!on }, injury: on ? c.injury : null }; mark(); return career; }
 export function flush() { saveNow(); }
 
 // ---- de poort, de uitnodiging en de beats ----
@@ -141,7 +141,7 @@ export function flush() { saveNow(); }
 export function progressNow(w) {
   let sv = { end: false };
   try { sv = getStoryView() || sv; } catch (e) { sv = { end: false }; }
-  return progressFrom({ stepId: sv.id || null, ended: !!sv.end, gate: w ? w.gate : undefined, dev: !!(w && w.devJump), begun: () => isStarted() });
+  return progressFrom({ stepId: sv.id || null, ended: !!sv.end, gate: w ? w.gate : undefined, dev: !!(w && w.devJump), begun: () => hasCareer() });
 }
 export const isUnlockedNow = (w) => voetbalOpen(progressNow(w));
 // Kan er nu een zijpad-beat komen? Niet tijdens een missie of scène, niet in dezelfde minuut als een kaart.
@@ -151,7 +151,7 @@ export function sidePathBusy(w) {
   try { return !!(playerBusy(w).busy || narrativeBusy() || (extraBusy && extraBusy())); } catch (e) { return false; }
 }
 let beatCheck = 0;
-const currentDay = () => { const c = getCareer(); return C.isStarted(c) ? c.day : 0; };
+const currentDay = () => { const c = getCareer(); return C.hasCareer(c) ? c.day : 0; };
 // Elke frame goedkoop; elke twee seconden kijken we of er een uitnodiging of beat te melden is (een stil appje: hooguit 14 woorden). Geeft de beat of null.
 export function updateBeats(dt, w) {
   if (!w || (beatCheck -= dt) > 0) return null;
@@ -159,7 +159,7 @@ export function updateBeats(dt, w) {
   const c = getCareer();
   const ctx = { unlocked: isUnlockedNow(w), busy: sidePathBusy(w), day: currentDay() };
   const char = w.player && w.player.character === 'tammo' ? 'tammo' : 'anita';
-  if (!C.isStarted(c)) {
+  if (!C.hasCareer(c)) {
     // de uitnodiging: hooguit een keer per speldag en drie keer in totaal (het paneel toont hem altijd); een gemiste uitnodiging vervalt niet maar zeurt niet
     const nu = Math.floor((w.time || 0) / 1440);
     if (!ctx.unlocked || ctx.busy || (c.invites | 0) >= 3 || (c.inviteWorld != null && c.inviteWorld === nu)) return null;

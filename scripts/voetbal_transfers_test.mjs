@@ -48,7 +48,7 @@ t('een club koopt alleen als het een verbetering is en binnen budget', () => {
   assert.equal(T.weakestRole(base('stadjers')) !== undefined, true);
 });
 t('de manager: kopen en verkopen alleen in de pauze en alleen als manager; een koop-verkoopcyclus kost altijd geld; de kas is niet van de speler', () => {
-  let c = C.startCareer({ char: 'anita', index });
+  let c = C.createCareer({ char: 'anita', index });
   c = { ...c, roles: { trainer: true, manager: true }, market: { ...c.market, pool: T.freeAgents(1, 1, 5) } };
   assert.equal(C.managerBuy(c, c.market.pool[0].id, getClub).ok, false, 'niet buiten de pauze');
   const pauze = { ...c, evDone: c.cal.length };
@@ -64,7 +64,7 @@ t('de manager: kopen en verkopen alleen in de pauze en alleen als manager; een k
   assert.equal(C.managerBuy({ ...pauze, market: { ...pauze.market, cash: { [pauze.club]: 10 } } }, p.id, getClub).ok, false, 'te weinig kas');
 });
 t('het bod (B6): vanaf seizoen 2, een klasse hoger, aannemen kan alleen aan het begin; weigeren houdt alles', () => {
-  const c0 = C.startCareer({ char: 'anita', index });
+  const c0 = C.createCareer({ char: 'anita', index });
   assert.equal(T.offerFor(c0, null, getClub), null, 'seizoen 1: geen bod');
   const c = { ...c0, seasonNr: 2, me: { ...c0.me, attrs: { pace: 70, shot: 70, pass: 70, stamina: 70, defend: 50 } } };
   const o = T.offerFor(c, null, getClub);
@@ -76,11 +76,11 @@ t('het bod (B6): vanaf seizoen 2, een klasse hoger, aannemen kan alleen aan het 
   assert.equal(T.offerFor({ ...c, club: c.world.kroon[0], world: { ...c.world, kroon: [c.world.kroon[0]] } }, null, getClub), null, 'in de top is er niets hoger');
 });
 t('tactiek: alleen als trainer; vormingen en stijlen worden gecontroleerd', () => {
-  const c = C.startCareer({ char: 'tammo', index });
-  assert.deepEqual(C.setTactic(c, { formation: '4-3-3' }), c, 'een speler beslist de tactiek niet');
+  const c = C.createCareer({ char: 'tammo', index });
+  assert.deepEqual(C.withTactic(c, { formation: '4-3-3' }), c, 'een speler beslist de tactiek niet');
   const tr = { ...c, roles: { trainer: true, manager: false } };
-  assert.equal(C.setTactic(tr, { formation: '4-3-3', style: 'aanvallend' }).tactic.style, 'aanvallend');
-  assert.equal(C.setTactic(tr, { formation: 'nep' }).tactic.formation, '4-4-2');
+  assert.equal(C.withTactic(tr, { formation: '4-3-3', style: 'aanvallend' }).tactic.style, 'aanvallend');
+  assert.equal(C.withTactic(tr, { formation: 'nep' }).tactic.formation, '4-4-2');
   const lu = C.lineupOf(tr, getClub, ['keeper', 'verdediger', 'verdediger', 'verdediger', 'verdediger', 'middenvelder', 'middenvelder', 'middenvelder', 'middenvelder', 'aanvaller', 'aanvaller']);
   assert.equal(lu.basis.length, 11); assert.equal(lu.bank.length, 7);
 });

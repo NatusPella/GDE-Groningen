@@ -1,8 +1,8 @@
 // Test van de ontwikkeling, training, vorm, vermoeidheid en blessures (#1109) en van de agenda (#1108): scripts/voetbal_ontwikkeling_test.mjs. Puur.
 import assert from 'node:assert/strict';
 import { makeProtagonist, ATTRS, attrCap } from '../game/js/voetbalspelers.js';
-import { matchXp, simulatedXp, applyXp, trainingXp, canTrain, formFactor, formArrow, pushHistory, performance, addFatigue, recover, isTired, rollInjury, tickInjury, INJURY_TEXTS, FORBIDDEN_INJURY_WORDS, PHASE_CAP, FATIGUE, MAX_INJURY_DAYS, resetPhase } from '../game/js/voetbalontwikkeling.js';
-import { nightPassed, seasonCalendar, seasonLength, eventStatus, nextEvent, windowOf, dayText, catchUpDays, DAYS_PER_ROUND, MAX_CATCHUP_DAYS } from '../game/js/voetbalagenda.js';
+import { matchXp, simulatedXp, applyXp, trainingXp, canTrain, formFactor, formArrow, pushHistory, performance, addFatigue, reduceFatigue, isTired, rollInjury, tickInjury, INJURY_TEXTS, FORBIDDEN_INJURY_WORDS, PHASE_CAP, FATIGUE, MAX_INJURY_DAYS, resetPhase } from '../game/js/voetbalontwikkeling.js';
+import { nightPassed, seasonCalendar, seasonLength, eventStatus, nextEvent, dateRangeOf, dayText, catchUpDays, DAYS_PER_ROUND, MAX_CATCHUP_DAYS } from '../game/js/voetbalagenda.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
@@ -55,7 +55,7 @@ t('vorm: laatste vijf wedstrijden, 0,92 tot 1,08, met pijltje', () => {
 t('vermoeidheid: wedstrijd 35, training 15, herstel 35 per dag; moe vanaf 75', () => {
   let f = addFatigue(0, FATIGUE.match); assert.equal(f, 35);
   f = addFatigue(f, FATIGUE.match); f = addFatigue(f, FATIGUE.training); assert.equal(f, 85); assert.ok(isTired(f));
-  assert.equal(recover(f, 1), 50); assert.equal(recover(f, 5), 0); assert.equal(addFatigue(99, 50), 100);
+  assert.equal(reduceFatigue(f, 1), 50); assert.equal(reduceFatigue(f, 5), 0); assert.equal(addFatigue(99, 50), 100);
 });
 t('blessures: deterministisch, alleen bij overbelasting, uit te zetten, hooguit 3 dagen, zonder leed-woorden', () => {
   assert.equal(rollInjury({ seed: 1, day: 1, fatigue: 50 }), null, 'fris geeft nooit een blessure');
@@ -92,7 +92,7 @@ t('de agenda: competitie elke 3 dagen, beker en Europa ertussen, nooit twee weds
 t('wedstrijdvensters: soon, open, missed; een verre rit duurt twee dagen', () => {
   const ev = { day: 3, kind: 'league', n: 1 };
   assert.equal(eventStatus(ev, 2), 'soon'); assert.equal(eventStatus(ev, 3), 'open'); assert.equal(eventStatus(ev, 4), 'missed');
-  assert.equal(eventStatus(ev, 4, 2), 'open'); assert.deepEqual(windowOf(ev, 2), { from: 3, to: 4 });
+  assert.equal(eventStatus(ev, 4, 2), 'open'); assert.deepEqual(dateRangeOf(ev, 2), { from: 3, to: 4 });
   assert.equal(dayText(0), 'vandaag'); assert.equal(dayText(1), 'morgen'); assert.equal(dayText(2), 'over 2 speldagen');
   assert.equal(catchUpDays(500), MAX_CATCHUP_DAYS); assert.equal(catchUpDays(-3), 0); assert.equal(catchUpDays('x'), 0);
 });

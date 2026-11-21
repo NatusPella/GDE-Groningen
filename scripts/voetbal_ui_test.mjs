@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
-import { viewHtml, TABS, kaartInfo } from '../game/js/voetbalcarriereui.js';
+import { viewHtml, TABS, cardInfo } from '../game/js/voetbalcarriereui.js';
 import { wordCount } from '../game/js/hudtext.js';
 
 let n = 0;
@@ -13,7 +13,7 @@ const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naa
 const index = makeParkIndex(PARKDATA);
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const getClub = C.clubResolver(index);
-const start = (char = 'anita') => C.startCareer({ char, index, home: { x: hx, y: hy } });
+const start = (char = 'anita') => C.createCareer({ char, index, home: { x: hx, y: hy } });
 const env = { getClub, unlocked: true, hint: null, char: 'anita' };
 const tekst = (h) => h.replace(/<[^>]+>/g, ' ').replace(/&amp;|&lt;|&gt;|&quot;/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -75,8 +75,8 @@ t('namen uit de data worden ge-escaped', () => {
   assert.ok(!h.includes('<b>x</b>') && h.includes('&lt;b&gt;x'));
 });
 t('de kaart in Loopbanen: niet begonnen of stand en niveau', () => {
-  assert.equal(kaartInfo(C.newCareer(), getClub).gestart, false);
-  const k = kaartInfo(start(), getClub);
+  assert.equal(cardInfo(C.newCareer(), getClub).gestart, false);
+  const k = cardInfo(start(), getClub);
   assert.ok(k.gestart && /Talentenklasse, plek \d/.test(k.stand) && k.niveau === 'Talent' && /over 3 speldagen/.test(k.volgende));
 });
 t('Trainer- en Managertab pas na ontgrendeling; het bod, de tactiek en de markt staan in beeld', () => {

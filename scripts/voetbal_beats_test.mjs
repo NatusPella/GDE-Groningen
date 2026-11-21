@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
-import { BEATS, beatText, nextBeat, markBeat, beatsDone, inviteBeat, proposal, regelaarVan, hudLine, BEAT_MAX_WORDS, beatMayShow } from '../game/js/voetbalbeats.js';
+import { BEATS, beatText, nextBeat, markBeat, beatsDone, inviteBeat, proposal, partnerOf, hudLine, BEAT_MAX_WORDS, beatMayShow } from '../game/js/voetbalbeats.js';
 import { voetbalOpen, voetbalHint, zetPoort, PART_ORDER } from '../game/js/voetbalpoort.js';
 import { wordCount } from '../game/js/hudtext.js';
 import { hasForbiddenWord } from './voetbal_verboden.mjs';
@@ -14,7 +14,7 @@ const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naa
 const index = makeParkIndex(PARKDATA);
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const getClub = C.clubResolver(index);
-const start = (char = 'anita') => C.startCareer({ char, index, home: { x: hx, y: hy } });
+const start = (char = 'anita') => C.createCareer({ char, index, home: { x: hx, y: hy } });
 const ctx = { unlocked: true, busy: false, day: 5 };
 
 t('tien beats, elk hooguit 14 woorden, Nederlands, geen verboden woorden uit de canon', () => {
@@ -29,7 +29,7 @@ t('tien beats, elk hooguit 14 woorden, Nederlands, geen verboden woorden uit de 
     assert.ok(x.wie && x.tekst.length > 10);
     assert.ok(!/[A-Z]{3,}/.test(x.tekst), 'geen schreeuwtekst');
   }
-  assert.equal(regelaarVan('anita'), 'Tammo'); assert.equal(regelaarVan('tammo'), 'Tessa');
+  assert.equal(partnerOf('anita'), 'Tammo'); assert.equal(partnerOf('tammo'), 'Tessa');
   assert.equal(beatText(BEATS[0], 'anita').wie, 'Tammo'); assert.equal(beatText(BEATS[0], 'tammo').wie, 'Tessa');
   assert.match(hudLine(BEATS[1], 'anita'), /^Tessa: /);
 });
