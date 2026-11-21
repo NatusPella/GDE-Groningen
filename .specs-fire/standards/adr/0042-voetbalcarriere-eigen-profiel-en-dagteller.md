@@ -28,3 +28,10 @@ De voetbalsim wordt een carrière met meerdere seizoenen (epic #1106). Drie keuz
 - Pakket 2 begint met een onderzoek van het nachtsignaal en een kleine haak.
 - `spec_check --write` voor de tellers van prestaties en sleutels bij het bouwen; `storagekeys.js` krijgt één sleutel.
 - Samen spelen: de agenda is per speler; gezamenlijke tijdkeuzes veranderen alleen de wereldklok.
+
+## Aanvulling 21-11 (besluiten van de eigenaar)
+
+- **Rollen:** Speler, later Trainer en Manager, als aparte fasen met eigen schermen. Tammo en Tessa zijn allebei speelbaar (Tessa de ster); de ander is teamgenoot en regelt de papieren. De carrière gebruikt de Tessa-wisselhaak niet.
+- **Velden:** geen tweede stadion; de echte sportparken uit de kaartdata zijn de locaties van de lagere klassen (281 parken, 141 plaatsen; `scripts/world/voetbalvelden_audit.mjs`), de top speelt in de Euroborg.
+- **Namen en sponsors:** parodienamen (ADR 0043); sponsors zijn parodiebedrijven op echte panden die ook Bezit-panden zijn.
+- **Blessures:** blijven, zonder beeld en uit te zetten.
