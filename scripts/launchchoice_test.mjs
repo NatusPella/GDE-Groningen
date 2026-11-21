@@ -43,7 +43,7 @@ function stroom(plan, antwoorden) {
   const deps = {
     plan,
     settings: () => S.getSettings(),
-    naam: async () => { gevraagd.push('naam'); C.kiesNaam(a.naam || 'Bouwer'); },
+    naam: async () => { gevraagd.push('naam'); if (a.naamTerug && a.naamTerug.shift()) return false; C.kiesNaam(a.naam || 'Bouwer'); return true; },
     keuze: async (index) => { gevraagd.push(`keuze:${index}`); return a.keuzes.shift(); },
     toestemming: async () => { gevraagd.push('toestemming'); const ja = a.toestemming.shift(); if (ja) C.geefToestemming(); return ja; },
     sessie: async () => { gevraagd.push('sessie'); return a.sessie.shift(); },
@@ -54,13 +54,13 @@ function stroom(plan, antwoorden) {
 }
 
 // --- 1. het plan: wat vraagt een start? ---------------------------------------
-await t('plan: eerste start vraagt de naam en de keuze; een oud profiel alleen de keuze', () => {
+await t('plan: bij de allereerste start alleen de keuzekaart, geen naamscherm; een oud profiel ook', () => {
   nieuwProfiel();
-  assert.deepEqual(K.launchPlan(S.getSettings()), { naam: true, keuze: true, modus: null, reden: '' });
+  assert.deepEqual(K.launchPlan(S.getSettings()), { naam: false, keuze: true, modus: null, reden: '' });
   oudProfiel();
   assert.deepEqual(K.launchPlan(S.getSettings()), { naam: false, keuze: true, modus: null, reden: '' });
 });
-await t('plan: een naam zonder (of met ingetrokken) toestemming krijgt de naamkaart NIET opnieuw; de toestemming komt bij Samen', () => {
+await t('plan: een naam zonder (of met ingetrokken) toestemming krijgt alleen de toestemmingskaart bij Samen, de naam blijft', () => {
   for (const meedoen of [null, false]) {
     oudProfiel(meedoen);
     const p = K.launchPlan(S.getSettings());
@@ -70,9 +70,9 @@ await t('plan: een naam zonder (of met ingetrokken) toestemming krijgt de naamka
     assert.equal(K.naKeuze('samen', S.getSettings()), 'toestemming');
   }
 });
-await t('plan: een ongeldige bewaarde naam (met de hand bewerkt) vraagt de naamkaart weer, ook bij Samen', () => {
+await t('plan: een ongeldige bewaarde naam (met de hand bewerkt) vraagt bij Samen de kaart met naam en akkoord', () => {
   zet('...', true);
-  assert.equal(K.launchPlan(S.getSettings()).naam, true);
+  assert.equal(K.launchPlan(S.getSettings()).naam, false, 'bij de start nooit');
   assert.equal(K.naKeuze('samen', S.getSettings()), 'naam');
 });
 await t('plan: testmodus en ?startkeuze=alleen slaan de kaart over; startkeuze=vraag toont hem ook in een testrun', () => {
@@ -80,7 +80,7 @@ await t('plan: testmodus en ?startkeuze=alleen slaan de kaart over; startkeuze=v
   assert.deepEqual(K.launchPlan(S.getSettings(), { testmodus: true }), { naam: false, keuze: false, modus: null, reden: 'testmodus' });
   assert.deepEqual(K.launchPlan(S.getSettings(), { vlag: 'alleen' }), { naam: false, keuze: false, modus: 'alleen', reden: 'vlag' });
   assert.deepEqual(K.launchPlan(S.getSettings(), { testmodus: true, vlag: 'alleen' }).modus, 'alleen');
-  assert.deepEqual(K.launchPlan(S.getSettings(), { testmodus: true, vlag: 'vraag' }), { naam: true, keuze: true, modus: null, reden: '' });
+  assert.deepEqual(K.launchPlan(S.getSettings(), { testmodus: true, vlag: 'vraag' }), { naam: false, keuze: true, modus: null, reden: '' });
 });
 await t('naKeuze: Alleen is klaar; Samen met naam en toestemming gaat naar de sessiekeuze', () => {
   oudProfiel(true);
@@ -133,12 +133,14 @@ await t('toetsen: pijlen en WASD, 1 en 2, Enter, spatie, Escape en Backspace', (
 });
 
 // --- 4. de stroom: alle paden ---------------------------------------------------
-await t('pad: nieuw profiel kiest Alleen: naam, keuze, geen toestemming, geen netwerk, keuze bewaard', async () => {
+await t('pad: nieuw profiel kiest Alleen: alleen de keuze, geen naam, geen akkoord, geen netwerk, keuze bewaard', async () => {
   nieuwProfiel();
   const s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['alleen'] });
   const modus = await K.askLaunchChoice(s.deps);
   assert.equal(modus, 'alleen');
-  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
+  assert.deepEqual(s.gevraagd, ['keuze:0']);
+  assert.equal(S.getSettings().onlineNaam, '');
+  assert.notEqual(S.getSettings().onlineMeedoen, true);
   assert.deepEqual(s.samen, []);
   assert.equal(S.getSettings().startKeuze, 'alleen');
   assert.deepEqual([log.ws, log.pc, log.fetch], [0, 0, 0]);
@@ -209,38 +211,47 @@ await t('pad: testmodus en de vlag vragen niets en bewaren niets', async () => {
     assert.equal(S.getSettings().onlineNaam, '', 'geen naam verzonnen');
   }
 });
-await t('pad: startKeuze=vraag in een testrun toont de kaart en de naamkaart (nieuw profiel)', async () => {
+await t('pad: startKeuze=vraag in een testrun toont de kaart (nieuw profiel), zonder naamscherm', async () => {
   nieuwProfiel();
   const s = stroom(K.launchPlan(S.getSettings(), { testmodus: true, vlag: 'vraag' }), { keuzes: ['alleen'] });
   await K.askLaunchChoice(s.deps);
-  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
+  assert.deepEqual(s.gevraagd, ['keuze:0']);
 });
-await t('eerste start: de naam komt zonder toestemming; Alleen laat onlineMeedoen leeg, Samen vraagt het akkoord pas daarna', async () => {
+await t('eerste Samen: de kaart met naam en akkoord, daarna onthouden; Terug brengt je terug naar de keuze; ingetrokken vraagt alleen het akkoord', async () => {
   nieuwProfiel();
   let s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['alleen'] });
   await K.askLaunchChoice(s.deps);
-  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
-  assert.equal(S.getSettings().onlineNaam, 'Bouwer');
-  assert.notEqual(S.getSettings().onlineMeedoen, true, 'Alleen: geen netwerktoestemming');
+  assert.deepEqual(s.gevraagd, ['keuze:0']);
+  assert.equal(S.getSettings().onlineNaam, '', 'Alleen: geen naam');
   nieuwProfiel();
-  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen', 'alleen'], toestemming: [false], sessie: [] });
-  assert.equal(await K.askLaunchChoice(s.deps), 'alleen', 'het akkoord weigeren brengt je terug op de keuze, Alleen blijft kunnen');
-  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0', 'toestemming', 'keuze:0']);
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen', 'alleen'], naamTerug: [true] });
+  assert.equal(await K.askLaunchChoice(s.deps), 'alleen', 'Terug op de naamkaart: alsnog Alleen');
+  assert.deepEqual(s.gevraagd, ['keuze:0', 'naam', 'keuze:0']);
   assert.notEqual(S.getSettings().onlineMeedoen, true);
   nieuwProfiel();
-  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], toestemming: [true], sessie: ['host'] });
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], sessie: ['host'] });
   assert.equal(await K.askLaunchChoice(s.deps), 'samen');
-  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0', 'toestemming', 'sessie']);
-  assert.equal(S.getSettings().onlineMeedoen, true, 'het akkoord is bewaard na de toestemmingskaart');
+  assert.deepEqual(s.gevraagd, ['keuze:0', 'naam', 'sessie'], 'naam en akkoord op één kaart, geen aparte toestemmingskaart');
+  assert.equal(S.getSettings().onlineNaam, 'Bouwer');
+  assert.equal(S.getSettings().onlineMeedoen, true, 'onthouden');
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], sessie: ['gast'] });
+  await K.askLaunchChoice(s.deps);
+  assert.deepEqual(s.gevraagd, ['keuze:1', 'sessie'], 'de tweede keer niets nieuws');
+  S.setSetting('onlineMeedoen', false); // ingetrokken in Instellingen
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], toestemming: [true], sessie: ['host'] });
+  await K.askLaunchChoice(s.deps);
+  assert.deepEqual(s.gevraagd, ['keuze:1', 'toestemming', 'sessie'], 'alleen het akkoord, niet de naam');
+  assert.equal(S.getSettings().onlineNaam, 'Bouwer');
 });
-await t('de naamkaart blijft verplicht en eenmalig: nooit een weg zonder geldige naam, nooit opnieuw na een geldige', () => {
+await t('de kaart blijft verplicht voor Samen: nooit een weg zonder geldige naam en akkoord, nooit opnieuw na een geldige', () => {
   nieuwProfiel();
   assert.equal(C.kiesNaam('').ok, false);
   assert.equal(C.moetNaamVragen(), true);
+  assert.equal(C.kiesNaam('Bouwer', { consent: false }).ok, false);
   assert.equal(C.kiesNaam('Bouwer').ok, true);
   assert.equal(C.moetNaamVragen(), false);
-  S.setSetting('onlineMeedoen', false); // later ingetrokken in het spelerspaneel
-  assert.equal(C.moetNaamVragen(), false, 'de naamkaart komt niet terug');
+  S.setSetting('onlineMeedoen', false); // later ingetrokken in Instellingen
+  assert.equal(C.moetNaamVragen(), false, 'de naam wordt niet opnieuw gevraagd');
   assert.equal(C.moetToestemmingVragen(), true);
 });
 await t('stand van de sessie: applyLaunchMode onthoudt alleen echte keuzes', () => {

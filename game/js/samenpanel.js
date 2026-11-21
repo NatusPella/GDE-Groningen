@@ -18,7 +18,9 @@ import { isCinematicActive, skipCinematic } from './cinematics.js';
 import { formatRoom } from './net/sigcrypto.js';
 import { mountSamenHub, hubTerug as hubTerugUi, closeSamenHub } from './samenhubui.js';
 import { ACT, STAP, actieVan } from './samenhub.js';
-import { magOnline } from './settings.js';
+import { magOnline, getSettings } from './settings.js';
+import { moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
+import { ensureSamenProfile } from './launchchoiceui.js';
 
 // Aansluiten als gast terwijl je eigen opening of een filmpje nog loopt (bijvoorbeeld bij opnieuw aansluiten): wie op Aansluiten drukt
 // kiest ervoor, dus je eigen filmpje stopt en je sluit meteen aan. Herstel na een val of een nieuwe start wacht nog wel (#429).
@@ -99,6 +101,14 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
   // en staat de hub er opnieuw. Een bestaande stroom met een rol (hoofdmenu, main.js, de testbank) komt hier nooit.
   if (!nu && !startOpts.rol && !startOpts.lijst && !view) {
     mountedOn = root;
+    // eerste keer iets met Samen spelen: eerst de kaart met naam en akkoord (of alleen het akkoord); Terug laat een korte uitleg staan
+    if (moetNaamVragen(getSettings()) || moetToestemmingVragen(getSettings())) {
+      root.innerHTML = '<div class="cs-kop cs-kop-leeg"><b class="cs-kop-t">Samen spelen</b><p>Voor Samen spelen heb je eerst een naam en je akkoord nodig.</p><button type="button" class="m-bp" data-profiel>Naam en akkoord invullen</button></div>';
+      const vraag = () => ensureSamenProfile().then((ok) => { if (ok && mountedOn === root && root.isConnected !== false) mountHub(root, world, sluit); });
+      root.querySelector('[data-profiel]').addEventListener('click', vraag);
+      vraag();
+      return;
+    }
     mountHub(root, world, sluit);
     return;
   }

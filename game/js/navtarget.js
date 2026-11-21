@@ -178,3 +178,12 @@ export function snapshotFromWorld(w, e) {
 export function distanceFor(doel, route) {
   return route && route.target && Math.hypot(route.target.x - doel.x, route.target.y - doel.y) < 40 ? route.remaining : doel.afstand;
 }
+
+// De afstand voor de kleine tag bij het doel (minikaart en grote kaart): meters onder een kilometer, daarboven kilometers, geen decimale ruis.
+//   onder 1 km op tientallen ("80 m", "420 m"), onder 10 km een decimaal ("4,7 km"), daarboven hele kilometers ("12 km").
+export function compactDistance(m) {
+  if (!Number.isFinite(m) || m < 0) return '';
+  if (m < 995) return `${Math.max(10, Math.round(m / 10) * 10)} m`;
+  if (m < 9950) return `${(Math.round(m / 100) / 10).toFixed(1).replace('.', ',')} km`;
+  return `${Math.round(m / 1000)} km`;
+}

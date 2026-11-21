@@ -122,6 +122,22 @@ rooster-trein is hij een controle (de gast bewaart het grootste verschil per lij
 de gewone bestuurde trein. In Samen spelen rekenen bord en treinen **zonder live vertraging** (alle spelers het rooster): de live vertraging komt uit de eigen opvraag van elke speler en zou de treinen uit elkaar halen;
 het bord zegt dan "Rooster". Alleen voor wie solo speelt zijn de vertragingen op bord en trein live.
 
+### Deel 4: het bord als tijdlijn (eigenaar 21-11: "de blokken met de eerstvolgende treinen zijn niet duidelijk genoeg")
+
+Het linkerblok, de kop "Vertrekbord Perron" en de titel van het station blijven. De vier losse cellen zijn vervangen door **één kaart met een tijdlijn**: een verticale as met bovenaan "NU" en de
+spelkloktijd, en daaronder per trein (maximaal vijf) een punt op de as met de vertrektijd (tabulaire cijfers, bij vertraging de nieuwe tijd met de plantijd doorgestreept), de bestemming, de verzonnen
+lijnnaam, het spoor, de bron als woord (Live of Rooster), de vertraging als `+3` en "over 4 min" met een balk waarvan de lengte de afstand in tijd is (as van 15 minuten, groeit in stappen van 15 tot een uur;
+wat verder weg is staat aan het einde). De eerstvolgende trein is groot en bordgroen; de rest is rustig papier en inkt. Kleurtaal (DS3): geen geel (dat is "volg dit"); rood alleen voor "vervalt" en een
+vertraging van 10 minuten of meer; elke toestand heeft ook een vorm en een woord (cirkel = op tijd, ruit met ▲ = vertraagd, kruis met "Vervalt" = rijdt niet). De bronregel "Bron: open OV-gegevens" blijft onder de kaart.
+
+Eén bron van waarheid: `game/js/departuretimeline.js` is puur (sorteren, maximum, posities op de as, labels, toon, vorm, schermlezertekst; test `scripts/departuretimeline_test.mjs`); `departuretimelineui.js`
+tekent het (HTML en een patcher per trein: alleen een nieuwe trein schuift in, `ds-m-rij`; een veranderde minuut tikt één keer, `ds-m-tik`; alleen de eerstvolgende heeft de rustige live-stip,
+`ds-m-stip--live`; alles uit onder "Beweging beperken"). Schermlezers krijgen één zin per trein in een verborgen alinea; de visuele lijst is `aria-hidden`. Onder 1100 px breed vervalt de balk (de minuten blijven).
+Vergelijking oud en nieuw: `docs/beeld-21-11/vertrekbord/` (`node scripts/vertrekbord_mock.mjs` en `node scripts/vertrekbord_shots.mjs`, headless Chrome, geen Electron).
+
+**Het bord in de wereld:** er is in de wereld geen vertrekbord-textuur op het perron; het enige canvas daar is het naambord (`perrons3d.js bordTexture`, 512 x 128, vette 54 px, wit op blauw: goed leesbaar op afstand). Het
+vertrekbord is alleen het HUD-bord. Een toekomstig bord in de wereld hoeft alleen `buildTimeline(view)` te tekenen. Niet gebouwd, dus ook niet beoordeeld op leesbaarheid op afstand.
+
 ### Eerlijke beperking: de spelklok is niet de echte tijd
 
 De vertragingen zijn die van **nu** in het echt, de spelklok loopt vrij. De live vertraging wordt aan een bordrij gehangen op treinnummer en geplande minuut. Staat de spelklok op 14:00 terwijl het
@@ -155,7 +171,7 @@ Elke speler heeft zijn eigen opvraag en zijn eigen bord: het rooster is een best
 snapshot of een EXTRA-bericht. De spelklok en de speldag (en dus de dagsoort) volgen de gezamenlijke wereld; de gast gebruikt zijn eigen `calendarToday` zoals het stationsleven dat al deed. Een gast
 die de optie uit heeft of geen bron bereikt ziet het rooster zonder vertraging, de host kan een andere stand zien als zijn opvraag net een minuut eerder of later viel. Er is geen host-recht in: niemand
 beslist voor een ander. Valt iemand weg of sluit hij later aan, dan verandert er niets voor de anderen. De zichtbare treinen (`railway.js`) blijven van de wereld van wie het spel opende; het bord
-hangt daar niet meer van af. Test: pure tests; niet met twee instanties gezien.
+hangt daar niet meer van af. Test: pure tests; niet met twee instanties gezien. De tijdlijn op het bord (deel 4) is per speler lokaal: elke speler tekent zijn eigen bord uit zijn eigen opvraag; in Samen spelen rooster zonder live vertraging, zonder snapshot of EXTRA-bericht.
 
 ## Niet gedaan en niet gezien
 

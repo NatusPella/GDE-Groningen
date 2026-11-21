@@ -71,32 +71,32 @@ export function directDialogue({ lines, actors = [], wide = null } = {}) {
   let lastSpeaker = lines[0] && first >= 1 ? lines[0].speaker : null;
   let reactionDue = 0; // earliest time the next shot may start (room after a punch line)
   for (let i = 0; i < lines.length; i++) {
-    const covered = i < first; // the opening shot already covers this line: only its humor label and its reaction are still ours
+    const held = i < first; // the opening shot already covers this line: only its humor label and its reaction are still ours
     const l = lines[i];
     if (!l.speaker) continue; // a voice off screen (radio, phone) is covered by the previous shot
     const listener = listenerOf(l, i);
     const tpl = templateFor(l);
     const isPunch = l.kind === 'punch' || l.humor === true;
     if (isPunch) humor.push({ line: i, label: 'humor-review', text: l.text });
-    const dtStart = Math.max(0, reactionDue - at(i));
-    if (covered) { lastSpeaker = l.speaker; } else if (tpl && listener) {
-      push(i, dtStart, placeTemplate(tpl, { target: l.speaker, angle: angleFor(tpl, side(l.speaker)) }, 0), tpl, true);
+    const dtOpen = Math.max(0, reactionDue - at(i));
+    if (held) { lastSpeaker = l.speaker; } else if (tpl && listener) {
+      push(i, dtOpen, placeTemplate(tpl, { target: l.speaker, angle: angleFor(tpl, side(l.speaker)) }, 0), tpl, true);
       stats.closeUps++;
     } else if (l.speaker !== lastSpeaker || l.dur > MAX_HOLD - 1 || i === first) {
       if (listener) {
         const s = side(l.speaker);
-        push(i, dtStart, [{ shot: 'ots', from: listener, target: l.speaker, dist: 1.7, side: r2(0.55 * s), fov: 34 }], 'reverse');
+        push(i, dtOpen, [{ shot: 'ots', from: listener, target: l.speaker, dist: 1.7, side: r2(0.55 * s), fov: 34 }], 'reverse');
         stats.reverse++;
-      } else push(i, dtStart, [{ shot: 'cut', at: [-2.4, 0.6, 1.7], look: l.speaker, fov: 38 }], 'single');
+      } else push(i, dtOpen, [{ shot: 'cut', at: [-2.4, 0.6, 1.7], look: l.speaker, fov: 38 }], 'single');
     }
     lastSpeaker = l.speaker;
     // room after a promise, a confession or a punch line: cut to the listener while the line ends and hold on his face
     const wantsReaction = ['promise', 'confession', 'punch'].includes(l.kind) || isPunch;
     if (wantsReaction && listener && i + 1 < lines.length) {
-      const start = Math.max(0.5, l.dur - REACTION_HOLD * 0.6);
+      const onset = Math.max(0.5, l.dur - REACTION_HOLD * 0.6);
       const react = { ...placeTemplate('wachtOpReactie', { target: listener, angle: angleFor('wachtOpReactie', side(listener)) }, 0)[0], offscreen: 'reaction: the speaker is heard, the listener is seen' };
-      plan.push({ t: at(i, start), key: shiftTime(`L${i}`, r2(start)), shot: react, tag: 'reaction', strong: true });
-      reactionDue = at(i, start) + REACTION_HOLD;
+      plan.push({ t: at(i, onset), key: shiftTime(`L${i}`, r2(onset)), shot: react, tag: 'reaction', strong: true });
+      reactionDue = at(i, onset) + REACTION_HOLD;
       stats.reactions++;
     }
   }
