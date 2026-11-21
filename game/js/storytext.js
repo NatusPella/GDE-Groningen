@@ -132,7 +132,7 @@ export function talkLines(ids, { from = 0, to = Infinity } = {}) {
     if (!sc) continue;
     for (const l of sc.lines) {
       if (l.channel === 'app-stil') continue;
-      out.push({ speaker: l.voice || l.speaker, text: l.text, voice: lineVoice(l), channel: l.channel, textOnly: !!l.textOnly });
+      out.push({ speaker: l.voice || l.speaker, text: l.text, voice: lineVoice(l), channel: l.channel, textOnly: !!l.textOnly, ...(l.form ? { form: l.form } : {}) });
     }
   }
   return out.slice(from, to);

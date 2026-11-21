@@ -410,7 +410,7 @@ APP TESSA→TAMMO (stil): Ja. Alles goed. [NIEUW]
 
 ## [O7] Over zaterdag – Oldambt, de weg naar Stad – Escapade
 (regie: nacht, terug van de kermis. Tammo stuurt, Tessa kijkt naar buiten. Een tijd lang zegt niemand iets.)
-TAMMO: Over zaterdag. [NIEUW]
+TAMMO: Over zaterdag. {pause=0.9} [NIEUW]
 TESSA: Welke zaterdag? [NIEUW]
 TAMMO: ...Laat maar. [NIEUW]
 (regie: stilte. Tessa kijkt naar buiten, de weg gaat verder.)

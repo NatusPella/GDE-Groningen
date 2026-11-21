@@ -37,3 +37,7 @@ De eigenaar vindt humor moeilijk voor een taalmodel. Daarom:
 ## Toetsen
 
 `node scripts/build_story_data.mjs`, `storydata_test`, `story_spine_test`, `dialogue_rhythm_test` (een nieuwe overtreding faalt; `--write` trekt de lijst gelijk), `introduction_test` (idem), `humor_test`, `storybridge_test`, `storyclarity_test`, `recapcard_test`, de akte-testen van je akte, `voice_coverage --quiet`, `text_audit_test`, `dialect_woorden_test`, `gronings_spoken_test`.
+
+## Dialoogvorm (overlap, onderbreking, stilte)
+
+Achter de tekst van een regel mag, vóór `[NIEUW]`, één tag: `{ov=0.3}` (de volgende regel start 0,3 s eerder: een reactie of "Ja, maar..."), `{cut=1.4}` (de regel wordt na 1,4 s afgekapt en eindigt op drie puntjes; alleen op een regel zonder opname) of `{pause=0.8}` (zoveel stilte na de regel; een stilte telt als beurt). Zonder tag verandert niets. Zet geen tag op een regel van een humorbeat (de build matcht de varianten op de tekst). Code: `game/js/dialogueform.js`, test: `scripts/dialoogvorm_test.mjs`. Samen spelen: het is tekst en timing bij de scène; een gast ziet dezelfde timing mee.

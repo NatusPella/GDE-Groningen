@@ -153,7 +153,7 @@ ACCOUNTMANAGER: Nog een intake? De koffie is nog warm. [NIEUW]
 ## [O8] Bewaar het – Veenkoloniën, Veendam – telefoon
 (regie: avond. Het logboek van Wiebelwerk ligt geprint op de motorkap. Tammo's telefoon gaat: Rikus.)
 RIKUS (telefoon): Tammo. De politie zoekt twee Stadjers in het zwart. Dat heb je niet van mij. [NIEUW]
-TAMMO (telefoon): Wij zijn niet de dieven. [NIEUW]
+TAMMO (telefoon): Wij zijn niet de dieven. {ov=0.4} [NIEUW]
 RIKUS (telefoon): Dat weet ik. Hebben jullie dat logboek nog? [NIEUW]
 TESSA: Geprint. [NIEUW]
 RIKUS (telefoon): Bewaar het. Ik heb dit niet gezegd. [NIEUW]
@@ -436,7 +436,7 @@ APP FEMKE→TESSA (stil): Hij zegt het wel heel mooi. [NIEUW]
 ## [O9] Ik heb de auto – Westerkwartier, op weg naar Zuidhorn – telefoon
 (regie: avond. Tessa rijdt de teruggehaalde Escapade, Tammo staat langs een weg met zijn telefoon. Ze hebben elkaar de hele dag niet gebeld. Nu belt zij.)
 TESSA (telefoon): Ik heb de auto. [NIEUW]
-TAMMO (telefoon): Goed. [NIEUW]
+TAMMO (telefoon): Goed. {pause=1.0} [NIEUW]
 TESSA (telefoon): Hoe is het met de vrienden van Oma? [NIEUW]
 TAMMO (telefoon): Niet goed. Ik heb het niet goed gezegd. [NIEUW]
 TESSA (telefoon): Dat doet er niet toe. [NIEUW]
