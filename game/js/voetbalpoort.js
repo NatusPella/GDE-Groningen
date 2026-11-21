@@ -6,9 +6,9 @@ import { worldOpen as gateWorldOpen, gateHint as gateGateHint, progressFrom as g
 const VOETBAL_WORLD = 'voetbal';
 export { PART_ORDER } from './unlockgate.js';
 
-const standaard = { worldOpen: gateWorldOpen, gateHint: gateGateHint };
-let gate = standaard;
-export function zetPoort(p) { gate = p && typeof p.worldOpen === 'function' ? { worldOpen: p.worldOpen, gateHint: p.gateHint || gateGateHint } : standaard; }
+const defaultGate = { worldOpen: gateWorldOpen, gateHint: gateGateHint };
+let gate = defaultGate;
+export function zetPoort(p) { gate = p && typeof p.worldOpen === 'function' ? { worldOpen: p.worldOpen, gateHint: p.gateHint || gateGateHint } : defaultGate; }
 export const voetbalOpen = (progress = {}) => !!gate.worldOpen(VOETBAL_WORLD, progress);
 export const voetbalHint = (progress = {}) => gate.gateHint(VOETBAL_WORLD, progress);
 

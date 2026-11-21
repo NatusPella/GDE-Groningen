@@ -22,6 +22,8 @@ import * as H from './holdingsmodel.js';
 import { onParcelBought, onWorkerHired, deliverLine } from './bezitworldhooks.js';
 import * as BZ from './business.js';
 import * as SN from './snackvan.js';
+import { currentStep } from './storyquery.js';
+import { STEPS } from './storyarc.js';
 import * as SPT from './pitch.js';
 import * as FX from './businessexclusion.js';
 import * as EV from './bezitevents.js';
@@ -526,10 +528,12 @@ export function snackChainOwner(views = null) {
 export const weekendOf = (cd) => weekendDay(cd);
 export const kermisAtOn = (cd) => snackCal(cd).kermisAt;
 const snackCal = (cd) => ({ weekend: weekendDay(cd), kermisAt: (s) => { const d = SPT.spotDef(s), f = d ? EV.festivalOn(d.region, cd) : null; return !!(f && f.kermis); } });
+// De akte van de huidige verhaalstap (jellebaas.js); null zonder verhaal of na het einde.
+const storyPartNow = () => { const c = currentStep(); const st = c && !c.end ? STEPS.find((x) => x.id === c.id) : null; return st ? st.part : null; };
 // Een of meer dagen: geeft { own, passive, fixed, lines } (eigen wagen na compressOwn, medewerkers ruw voor de rem, vergunningen als min) en schrijft het onderhoud van de wagen terug.
 function tickSnack(w, S, from, last, money) {
   const b = getBezit(), ownBiz = mobileBiz('frietwagen'), chainOwn = snackChainOwner(), had = Object.keys(S.permits);
-  const res = SN.settleDays(S, from, last, (d) => { const cd = calOf(d); return { day: cd, ...snackCal(cd), money, ownWagon: !!ownBiz, ownQ: ownBiz ? ownBiz.q : 100, chainOwn, taken: (id) => !!claimLookup('sp:' + id) }; });
+  const res = SN.settleDays(S, from, last, (d) => { const cd = calOf(d); return { day: cd, part: storyPartNow(), ...snackCal(cd), money, ownWagon: !!ownBiz, ownQ: ownBiz ? ownBiz.q : 100, chainOwn, taken: (id) => !!claimLookup('sp:' + id) }; });
   if (ownBiz && res.sum.ownQ !== null) b.mobile.frietwagen.q = res.sum.ownQ;
   for (const id of had) if (!S.permits[id]) claimSend({ id: SPT.claimKey(id), action: 'release' });      // een vervallen vergunning geeft de plek in de sessie vrij
   for (const prod of ['friet', 'kaas']) {                  // het menuverbruik gaat van de voorraad van je eigen verwerker af (alleen als die van jou is en levert)

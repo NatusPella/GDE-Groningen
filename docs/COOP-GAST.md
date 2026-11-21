@@ -579,6 +579,9 @@ wint en de verliezer krijgt zijn geld terug via `releaseLostSpot`; wie wegvalt v
 meewerken achter het luik van jouw wagen (`snackShare`): uurloon of een kwart van de dagwinst, nieuw geld; de eigenaar houdt winst en voortgang (nog geen knop of bericht, de logica is getest).
 De wagens in de wereld (`snackwagens3d.js`) zijn lokaal: elke speler ziet de wagens van zijn eigen imperium en van zijn eigen Usmem. Tests: `bezitcoop_test` en `snacklive_test`.
 
+
+**Jelle als eindbaas (#1139, `jellebaas.js`).** De offerte aan het begin van elke akte en de handlanger bij zijn streken zijn tekst in de eigen meldingen van de snackwagen: per speler, want ze volgen de eigen verhaalakte (`currentStep` van de eigen voortgang) en de eigen Usmem-toestand (`bezit.x.snack.offerPart`, bewaard per speler; een oude save of zonder akte krijgt niets). Wie wegvalt of later aansluit mist hooguit een offerte; er gaat niets over het net. Test: `scripts/jellebaas_test.mjs`.
+
 ## Bezit (21-11, epic Bezit)
 
 Bezit is per speler (#429): percelen, panden, personeel, ketens, snackwagen en kasboek staan in het eigen `gde-bezit-v1`; niets daarvan zit in een snapshot of een savegame. Wat wel gedeeld wordt is een zachte laag van claims.
