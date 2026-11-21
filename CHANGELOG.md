@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Minder haperingen na het wisselen van tegels en bij nieuwe shaders (nog niet in Electron gemeten, #1008, #1046, #1015):** de routegraaf (de kaart voor routes en de pijl) wordt na een tegelwissel in porties van 4 ms per beeld herbouwd in plaats van ca. 250 ms achter elkaar (dezelfde graaf, bewezen met een test); de minikaart zoekt zijn pins vier keer per seconde in plaats van bij elk getekend beeld; de sets die lampen van de nachtrig lenen (keuken, loket, kantoor, kamers en nu ook de radiostudio van Rikus) worden gecompileerd zoals ze straks getekend worden, zodat hun shaders niet bij het eerste beeld linken. In **Kopieer technische info** staat nu een blok **Shaderprogramma's na de start**: hoeveel shaders er na het laden nog bij het tekenen werden gelinkt, met het verschil met hun tweeling (bijvoorbeeld het aantal lichten of instancing).
+
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.

@@ -30,8 +30,8 @@ ok(diffKeys(a, makeKey({ bits1: ['isWebGL2', 'supportsVertexTextures', 'instanci
 ok(diffKeys(a, makeKey({ bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog'] })).join() === '-shadowMapEnabled', 'schaduwkaart eraf');
 ok(diffKeys(a, makeKey({ params: { outputColorSpace: 'srgb', toneMapping: 4 }, bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog', 'shadowMapEnabled'] })).join('; ') === 'outputColorSpace srgb-linear -> srgb; toneMapping 0 -> 4', 'doel (kleurruimte en tonemapping)');
 ok(diffKeys(a, makeKey({ defines: { WATER_Q: 2 }, bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog', 'shadowMapEnabled'] }))[0].startsWith('shader/defines'), 'een define erbij');
-ok(diffKeys(a, makeKey({ custom: 'function(s){s.y=2;}', bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog', 'shadowMapEnabled'] })).join() === 'onBeforeCompile/kleurruimte', 'ander onBeforeCompile');
-ok(diffKeys(a, makeKey({ custom: 'function(s, r){ s.a=1, s.b=2; }', bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog', 'shadowMapEnabled'] })).join() === 'onBeforeCompile/kleurruimte', 'onBeforeCompile met komma\'s breekt de uitlijning niet');
+ok(diffKeys(a, makeKey({ custom: 'function(s){s.y=2;}', bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog', 'shadowMapEnabled'] })).join() .startsWith('custom '), 'ander onBeforeCompile');
+ok(diffKeys(a, makeKey({ custom: 'function(s, r){ s.a=1, s.b=2; }', bits1: ['isWebGL2', 'supportsVertexTextures'], bits2: ['useFog', 'shadowMapEnabled'] })).join() .startsWith('custom '), 'onBeforeCompile met komma\'s breekt de uitlijning niet');
 ok(parseKey('abc,def') === null && diffKeys('abc', 'def')[0] === 'sleutelvorm onbekend', 'onbekende vorm');
 
 // nep-renderer: programma's ontstaan in compile (voor de start), in compile en in draw (na de start)

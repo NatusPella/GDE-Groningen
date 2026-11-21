@@ -52,7 +52,8 @@ export function diffKeys(a, b) {
   const x1 = A.mask1 ^ B.mask1, x2 = A.mask2 ^ B.mask2;
   for (const n of bitNames(x1, BOOL1)) out.push((B.mask1 & (1 << BOOL1.indexOf(n)) ? '+' : '-') + n);
   for (const n of bitNames(x2, BOOL2)) out.push((B.mask2 & (1 << BOOL2.indexOf(n)) ? '+' : '-') + n);
-  if (A.tail.join(',') !== B.tail.join(',')) out.push('onBeforeCompile/kleurruimte');
+  const ta = A.tail.join(','), tb = B.tail.join(',');
+  if (ta !== tb) out.push(`custom ${ta.slice(-26)} -> ${tb.slice(-26)}`); // customProgramCacheKey (cutmask3d, portalcut3d, interiorglass: dynamisch) of kleurruimte
   return out;
 }
 
