@@ -235,6 +235,21 @@ Wens van de eigenaar (21-11): prestaties mogen meer als een prestatie voelen en 
 - **Samen spelen.** Animaties zijn lokaal: elke speler speelt zijn eigen HUD, menu's en geluid, niets wordt gesynchroniseerd of over het net gestuurd. Een prestatie is per speler (#429), dus een gast ziet en hoort alleen zijn eigen prestaties.
 - **Gecontroleerd.** `scripts/ds3_dekking_test.mjs` en `scripts/achievementunlock_test.mjs`; niets hiervan is in beeld of gehoor bekeken (zie het issue).
 
+## Meldingen: duur en aflopend balkje
+
+Wens van de eigenaar (21-11): sommige HUD-onderdelen hebben een balkje dat leegloopt, zodat je weet wanneer een melding weer weggaat; bijna alle meldingen mogen dat hebben en ongeveer even lang in beeld blijven. Dit is de spec; de uitwerking met de tabellen staat in `DESIGN_SYSTEM.md` ("Meldingen: duur en aflopend balkje"), de inventaris van alle meldingstypen in `docs/MELDINGEN-21-11.md`, de code in `game/js/noticetiming.js` (puur), `game/js/melding.js` (DOM) en `game/js/ds-melding.css`.
+
+- **Eén bouwsteen.** Elke tijdelijke melding (HUD-kaart, prestatietoast, telefoonmelding, naamkaart, menumelding) gebruikt `.ds-melding` met `.ds-melding__tijd`; een nieuwe melding bouwt geen eigen balkje of eigen timer.
+- **Vier duren.** Kort 4 s, normaal 6 s, lang 9 s, max 10 s (tokens `--ds-melding-*`). De duur komt uit de tekst: 2 s + tekens / 15, tussen 4 en 10 s, naar boven op een klas. Een tekst wordt nooit afgekapt voor hij te lezen is.
+- **Het balkje** beweegt alleen met `transform: scaleX`, loopt lineair, is bordgroen (rood bij gevaar en politie, licht groen op een donkere kaart, nooit geel) en staat onderaan de melding.
+- **Pauze en hover.** De timer en het balkje staan stil bij pauze, menu, film, verhaalgesprek en (waar de melding de muis mag krijgen) hover.
+- **Kritiek.** Een kritieke melding (de foutkaart, een kaart die op een klik wacht) heeft geen balkje en sluit met een knop of toets.
+- **Beweging beperken.** Het balkje blijft zichtbaar en loopt in tien stappen; de readingTime verandert niet (besluit, zie DESIGN_SYSTEM.md).
+- **Wachtrij.** Hooguit een kaart tegelijk in de HUD; de rest wacht op precedence (kritiek, prio, oudste); bij twee of meer wachtenden is de duur kort.
+- **Uitzonderingen** staan met een reden in `NOTICE_TYPES`: de foutkaart, de eindkaart en grote momenten, banners en de wijkkaart, ondertitels, het Opgeslagen-vinkje, het laadscherm en de stuntuitleg. `scripts/ds3_dekking_test.mjs` keurt een nieuw bestand dat een element op een timer laat verdwijnen zonder register.
+- **Samen spelen.** Meldingen zijn lokaal per speler; niets wordt gesynchroniseerd.
+- **Gecontroleerd.** `scripts/meldingtijd_test.mjs` en `scripts/ds3_dekking_test.mjs`; niets hiervan is in beeld bekeken (zie het issue).
+
 ## HUD-kaarten: typografische rollen
 
 Elke HUD-kaart (tip, muziekkaart, telefoon- en nieuwskaart, prestatietoast, activiteit- en wachtkaart, doel, achtervolging en politie) haalt zijn lettergrootte uit vijf rollen en nooit uit een eigen px-waarde. Dezelfde rol is op elke kaartsoort dezelfde maat.

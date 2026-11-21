@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Meldingen: duur en aflopend balkje (mock, 21-11)</title>
+<!-- Headless mock (geen Electron, geen spelstaat): zes meldingstypen met de echte css van het spel (ds-tokens, ds-melding, hudcards,
+     phonefeed). Het balkje staat op een vaste stand (animation-delay is min de verstreken tijd, gepauzeerd) zodat de PNG hem toont.
+     ?stand=0.25 zet de rest op 25 %; ?rustig=1 zet Beweging beperken aan (het balkje in tien stappen); ?pauze=0 laat het balkje echt lopen.
+     Opnemen: scripts of handmatig, headless Chrome:  chrome --headless --screenshot=mock.png --window-size=1500,1000 mock.html -->
+<link rel="stylesheet" href="../../../game/fonts/fonts.css">
+<link rel="stylesheet" href="../../../game/js/ds-tokens.css">
+<link rel="stylesheet" href="../../../game/js/ds-components.css">
+<link rel="stylesheet" href="../../../game/js/ds-motion.css">
+<link rel="stylesheet" href="../../../game/js/ds-micro.css">
+<link rel="stylesheet" href="../../../game/js/ds-melding.css">
+<link rel="stylesheet" href="../../../game/js/hudcards.css">
+<link rel="stylesheet" href="../../../game/js/phonefeed.css">
+<style>
+  html, body { margin: 0; font-family: var(--ds-font-tekst); background: #2a3a2c; color: var(--ds-c-creme); }
+  h1 { margin: 18px 24px 4px; font: 800 26px var(--ds-font-zeef-kop); letter-spacing: 0.04em; text-transform: uppercase; }
+  p.uit { margin: 0 24px 14px; font-size: 14px; max-width: 110ch; opacity: 0.85; }
+  .rooster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 0 24px 24px; }
+  .vak { position: relative; min-height: 290px; padding-top: 40px !important; border: 2px solid #1d1b17; background: linear-gradient(135deg, #5b6e5a, #7d8a6e 55%, #a39a7e); padding: 16px; box-sizing: border-box; }
+  .vak > .etiket { position: absolute; left: 8px; top: 8px; font: 700 12px var(--ds-font-zeef-tekst); background: #1d1b17; color: #f3ead3; padding: 2px 8px; }
+  .vak .klas { position: absolute; right: 8px; bottom: 6px; font: 700 12px var(--ds-font-zeef-tekst); background: #f3ead3; color: #1d1b17; padding: 2px 8px; border: 1px solid #1d1b17; }
+  #hud { position: static; }
+  #hud .hud-cards, #hud .hud-cards-e { position: static; width: auto; }
+  #hud .hud-card { opacity: 1; }
+  #hud .pf-card { position: relative; width: 340px; opacity: 1; transform: rotate(var(--ds-schuin)); display: flex; }
+  /* de prestatietoast: donkere kaart, licht balkje (de echte css staat in achievements.js) */
+  .ach-toast { position: relative; display: flex; align-items: center; gap: 14px; min-width: 340px; box-sizing: border-box; padding: 14px 26px 18px 14px;
+    background: color-mix(in srgb, var(--ds-c-glas) 92%, transparent); border-left: 5px solid var(--mk-ok, #3fc97a); border-radius: 12px; color: var(--ds-c-creme); }
+  .ach-toast .ach-ico { width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff0a8, #d9a91e 70%); flex: none; }
+  .ach-toast .ach-kicker { font: 800 12px var(--ds-font-zeef-kop); letter-spacing: 0.14em; color: var(--mk-ok, #3fc97a); }
+  .ach-toast .ach-title { font: 800 22px var(--ds-font-zeef-kop); letter-spacing: 0.04em; text-transform: uppercase; display: block; }
+  .ach-toast .ach-desc { font-size: 14px; opacity: 0.8; }
+  #name-card { position: relative; padding: 10px 22px 18px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); width: fit-content; }
+  #name-card .nc-name { font: 800 64px/0.9 var(--ds-font-zeef-kop); color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); text-transform: uppercase; }
+  #name-card .nc-line { font-size: 18px; margin-top: 6px; max-width: 30ch; }
+  .menumelding { position: relative; width: fit-content; max-width: 90%; padding: 10px 18px 14px; border-radius: 8px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); font: 800 22px var(--ds-font-zeef-kop); }
+  .kritiek { position: relative; padding: var(--ds-s-4); background: var(--ds-c-rood-vlak); color: var(--ds-c-rood-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-rood); box-shadow: var(--ds-schaduw-hard-roze); border-radius: 8px; width: fit-content; max-width: 90%; }
+  .kritiek b { font: 800 20px var(--ds-font-zeef-kop); text-transform: uppercase; display: block; }
+  .kritiek button { margin-top: 10px; }
+</style>
+</head>
+<body>
+<h1>Meldingen: duur en aflopend balkje</h1>
+<p class="uit">Elke tijdelijke melding heeft onderaan een balkje dat in zijn readingTime leegloopt (kort 4 s, normaal 6 s, lang 9 s). Bordgroen is de standaard, rood is voor gevaar en politie, een donkere kaart krijgt een licht groen balkje. Een kritieke melding heeft geen balkje en sluit met een knop. Onder Beweging beperken loopt het balkje in tien stappen. Hieronder staat elk type op een andere stand van zijn tijd.</p>
+<div class="rooster" id="rooster"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const rustig = q.get('rustig') === '1';
+  const pauze = q.get('pauze') !== '0';
+  if (rustig) document.documentElement.classList.add('reduce-motion');
+  const stand = q.has('stand') ? +q.get('stand') : null;
+  const vakken = [
+    { naam: 'HUD-kaart (tip)', klas: 'normaal 6 s', stand: 0.3, html: (b) => `<div id="hud"><div class="hud-cards"><div class="hud-card on ds-melding" data-kind="tip" ${b(6, 0.3)}><div class="hc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><rect x="10" y="15" width="4" height="4"/></svg></div><div class="hc-text"><small>Tip</small><b>Fiets sneller</b><span>Houd Shift ingedrukt om te sprinten.</span></div>${bar(6, 0.3)}</div></div></div>` },
+    { naam: 'HUD-kaart (gevaar, rood)', klas: 'normaal 6 s', stand: 0.55, html: (b) => `<div id="hud"><div class="hud-cards"><div class="hud-card on ds-melding ds-melding--waarschuwing" data-kind="gevaar"><div class="hc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 21H2z"/></svg></div><div class="hc-text"><small>Let op</small><b>Je verbrandt</b><span>Stap uit de zon of zoek schaduw.</span></div>${bar(6, 0.55)}</div></div></div>` },
+    { naam: 'Prestatietoast (donker, licht balkje)', klas: 'normaal 6 s', stand: 0.2, html: () => `<div class="ach-toast ds-melding ds-melding--donker"><span class="ach-ico"></span><span><span class="ach-kicker">PRESTATIE ONTGRENDELD</span><span class="ach-title">Eerste ritje</span><span class="ach-desc">Rij je eerste kilometer.</span></span>${bar(6, 0.2)}</div>` },
+    { naam: 'Telefoonmelding (Kiekdoar)', klas: 'lang 9 s', stand: 0.45, html: () => `<div id="hud"><div class="pf-card ds-zeef ds-z-kaart on ds-melding" data-app="sikkom"><div class="pf-head ds-z-kaart__kop"><span class="pf-from ds-z-kaart__titel">Kiekdoar</span><span class="pf-time">13:00</span></div><div class="pf-title">Achtervolging eindigt zonder arrestatie</div><div class="pf-body ds-z-kaart__tekst">korps baalt</div>${bar(9, 0.45)}</div></div>` },
+    { naam: 'Naamkaart', klas: 'kort 4 s', stand: 0.6, html: () => `<div id="name-card" class="ds-melding"><div class="nc-name">Tessa</div><div class="nc-line">Wil graag, kan niet altijd.</div>${bar(4, 0.6)}</div>` },
+    { naam: 'Menumelding en kritieke melding', klas: 'kort 4 s / kritiek: geen balk', stand: 0.4, html: () => `<div class="menumelding ds-melding">Niet tijdens een missie.${bar(4, 0.4)}</div><div class="kritiek ds-melding ds-melding--kritiek" style="margin-top:14px"><b>Er ging iets mis</b>Het spel loopt zo veel mogelijk door.<br><button class="ds-z-knop ds-z-knop--secundair">Sluiten</button></div>` },
+  ];
+  function bar(duur, st) {
+    const s = stand != null ? stand : st;
+    const verstreken = (duur * s).toFixed(2);
+    return `<i class="ds-melding__tijd" aria-hidden="true" style="--ds-melding-duur:${duur}s; animation: ds-melding-tijd ${duur}s ${rustig ? 'steps(10, end)' : 'linear'} -${verstreken}s forwards; animation-play-state: ${pauze ? 'paused' : 'running'}"></i>`;
+  }
+  const noop = () => '';
+  document.getElementById('rooster').innerHTML = vakken.map((v) => `<div class="vak"><span class="etiket">${v.naam}</span>${v.html(noop)}<span class="klas">${v.klas}</span></div>`).join('');
+</script>
+</body>
+</html>

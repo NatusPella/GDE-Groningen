@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Meldingen blijven ongeveer even lang in beeld en laten zien wanneer ze weggaan: onderaan loopt een balkje leeg (bordgroen, rood bij gevaar en politie). Kaarten, prestaties, telefoonberichten, naamkaarten en meldingen in het menu hebben nu allemaal een van vier duren (4, 6, 9 of 10 seconden, naar de lengte van de tekst), zodat je de tijd hebt om te lezen. De tijd stopt bij pauze, menu, filmpjes en als je met de muis boven de prestatiekaart staat. Bij Beweging beperken loopt het balkje in tien stappen in plaats van vloeiend. Meldingen zijn lokaal per speler.
+
 - Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
 - De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
 - Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.
