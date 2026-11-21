@@ -62,6 +62,8 @@ const TODO_RE = /(?:\/\/|\/\*|^\s*\*|#|<!--)\s*(?:TODO|FIXME|HACK|XXX)\b/;
 // Goedgekeurde openbare leesopvragen (AGENTS.md constitutie 4: alleen OPHALEN, zonder spelergegevens, met uitzetter en terugval).
 // Een bestand staat hier alleen met zijn host en de reden; een URL op een andere host, of een fetch-aanroep, blijft blokkerend.
 export const NETWERK_GOEDGEKEURD = {
+  // alleen links in de credits (CC BY vraagt bron- en licentielink bij de naamsvermelding); het spel haalt hier niets mee op (review 22-11)
+  'game/js/sfx/audiocredits.js': { host: ['freesound.org', 'creativecommons.org'], reden: 'bron- en licentielinks bij de CC BY-naamsvermelding in Over › Geluiden; gegenereerd uit het manifest, geen opvraag door het spel' },
   'game/js/livetrains.js': { host: 'gtfs.ovapi.nl', reden: 'live treinvertragingen (#1085), besluit eigenaar 21-11, zie docs/TREINEN-LIVE-21-11.md en docs/LICENTIES.md; uitzetter liveTreinen' },
 };
 // Lokaal lezen van wereldbestanden (zelfde herkomst, geen webadres, geen spelergegevens): een fetch zonder URL is geen externe verbinding.
@@ -422,7 +424,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
       const clean = stripComments(text, file).replace(THREE_CDN, "from 'three'"); // het bouwen zet dit om naar de eigen vendormap (desktop/vendor-cache)
       const goedgekeurd = NETWERK_GOEDGEKEURD[file];
       const hosts = urlHosts(clean);
-      if (goedgekeurd && !FETCH_CODE.test(clean) && hosts.length && hosts.every((h) => h === goedgekeurd.host)) {
+      if (goedgekeurd && !FETCH_CODE.test(clean) && hosts.length && hosts.every((h) => [].concat(goedgekeurd.host).includes(h))) {
         // goedgekeurde bron: geen bevinding (zie NETWERK_GOEDGEKEURD)
       } else if (NETWERK_LOKAAL[file] && FETCH_CODE.test(clean) && !URL_ANY.test(clean)) {
         // lokaal lezen uit de wereldmap: geen bevinding (zie NETWERK_LOKAAL)
@@ -434,7 +436,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
             + '(AGENTS.md constitutie 4/5). Een nieuwe fetch, XMLHttpRequest of webadres hoort eerst langs een uitzondering.',
           fix: 'Gebruik de bestaande goedgekeurde weg (STUN/broker/live bus) of haal de verbinding weg; leg een uitzondering vast.',
         }), 'netwerk');
-      } else if (URL_ANY.test(text.replace(THREE_CDN, "from 'three'")) && !(goedgekeurd && urlHosts(text).every((h) => h === goedgekeurd.host))) {
+      } else if (URL_ANY.test(text.replace(THREE_CDN, "from 'three'")) && !(goedgekeurd && urlHosts(text).every((h) => [].concat(goedgekeurd.host).includes(h)))) {
         voegToe(finding({
           file, line, text, ernst: 'belangrijk', categorie: 'privacy',
           titel: 'Webadres in commentaar',

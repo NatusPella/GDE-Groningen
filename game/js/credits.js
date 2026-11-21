@@ -48,7 +48,7 @@ export const AI_ASSISTENTS = [
 // De opnames van Freesound (ADR 0039): per bron titel, auteurshandle en licentie, uit game/audio/sfx/manifest.json (via audiocredits.js).
 export function geluidenHtml(lijst = AUDIO_CREDITS) {
   const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const link = (url, tekst) => `<a href="${esc(url).replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer">${tekst}</a>`;
+  const link = (url, tekst) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${tekst}</a>`;
   // CC BY: titel (zoals gegeven), auteur, bronlink en licentielink; CC0 houdt de korte regel
   const li = (c) => (c.by && c.bron && c.licentieUrl
     ? `<li>${esc(c.beschrijving)}: ${link(c.bron, c.titel ? `${esc(c.titel)}` : `Freesound ${c.id}`)} van ${esc(c.auteur)}, ${link(c.licentieUrl, c.licentie)}, Freesound ${c.id}</li>`
