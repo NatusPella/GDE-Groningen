@@ -53,7 +53,7 @@ t('#924 autorit: alle 86 exchange-regels resolven via de rec-aware resolver', ()
 t('#924 dekking: elke verzamelde gesproken regel heeft een opname', () => {
   const lines = collect();
   // Merge 21-11 (batch 2): 1508 regels (5 erbij door ov-hint-banter en voetbal-sim). Daarvoor 1503 regels (228 erbij op 1275 na de samenvoeging; was 1511 op de TTS-tak vóór de rondes van golf 4: de doelregels, keuzevragen en terugkeervignetten van de nieuwe missies, #735). Eerder 1283 (3 minder dan 1286: de drie M06-hintregels van stroomkast, slot en vitrine zijn in c627d5419 bewust vervangen door een regelkaart zonder stem); de 1394 verhaalregels controleert de data-test hierboven
-  assert.equal(lines.length, 1867, `verzamelaar levert ${lines.length} regels`);
+  assert.equal(lines.length, 1907, `verzamelaar levert ${lines.length} regels`);
   const missing = lines.filter((e) => !isVoiced(e));
   assert.deepEqual(missing.map((e) => `${e.area}: ${e.text}`), [], 'geen ongemelde stille regel');
 });
