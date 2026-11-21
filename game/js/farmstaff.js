@@ -103,6 +103,16 @@ export function leaseDayTick(bezit, farm, day) {
   return { day, income, parcels };
 }
 
+// Een oogst verkopen tegen de dagprijs van de speldag (de lading van een perceel): boekt de omzet en geeft het bedrag. Ook voor de loonwerker (holdingsmodel.js).
+export function sellLoad(farm, id, gewas, kg, day) {
+  if (!(kg > 0) || !B.GEWASSEN[gewas]) return 0;
+  const price = dagprijs(gewas, day) || B.GEWASSEN[gewas].prijsKg;
+  const money = Math.round(kg * price);
+  B.boek(farm, { omzet: money, veld: id, kg });
+  farm.totaal.leveringen++; farm.totaal.omzet += money;
+  return money;
+}
+
 // ---- de dag van het personeel ----
 // Een perceel op 'staff' vraagt werk als het rijp is (oogsten), braak (ploegen en zaaien) of geploegd (zaaien). Eerst wat rijp is, dan de rest,
 // binnen elke groep op id (stabiel). Een perceel groter dan wat er die dag nog over is, wacht (meer land vraagt meer mensen).
@@ -175,13 +185,7 @@ export function staffDayTick(bezit, farm, day, ctx = {}) {
         if (kg > 0) {
           let sold = kg;
           if (ctx.deliver === 'store') { const s = PC.bergOp(farm.bedrijf, farm.bedrijf.thuis, load.gewas, kg); sold = kg - (s.ok ? s.kg : 0); rep.storedKg += kg - sold; if (kg - sold > 0) B.boek(farm, { veld: j.id, kg: kg - sold }); }
-          if (sold > 0) {
-            const price = dagprijs(load.gewas, day) || B.GEWASSEN[load.gewas].prijsKg;
-            const money = Math.round(sold * price);
-            B.boek(farm, { omzet: money, veld: j.id, kg: sold });
-            farm.totaal.leveringen++; farm.totaal.omzet += money;
-            rep.income += money;
-          }
+          if (sold > 0) rep.income += sellLoad(farm, j.id, load.gewas, sold, day);
           rep.harvestedKg += kg;
           entry.kg = kg;
         }

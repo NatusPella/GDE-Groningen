@@ -30,13 +30,14 @@ export const parcelDefFromRecord = (id, rec, ctx = {}) => parcelDefOf(id, rec.k,
 // ctx.region(id) en ctx.place(id) (beide optioneel) geven de streek en de woonplaats van een perceel; zonder gelden 'overig' en het Hogeland.
 const ctxFor = (ctx, id) => ({ region: (ctx && ctx.region && ctx.region(id)) || 'overig', place: (ctx && ctx.place && ctx.place(id)) || undefined });
 
-// Alle niet-legacy percelen van het bezit in het register van percelen.js zetten. Geeft het aantal nieuw aangemelde.
+// Alle niet-legacy percelen van het bezit in het register van percelen.js zetten (een bekend id wordt ververst). Geeft het aantal nieuw aangemelde.
 export function registerOwnedParcels(bezit, ctx = {}) {
   let n = 0;
   for (const id of Object.keys(bezit.parcels)) {
     const rec = bezit.parcels[id];
-    if (rec.lg || !PC.EXTRA_ID.test(id) || PC.perceelDef(id)) continue;
-    if (PC.registreerExtraPerceel(parcelDefFromRecord(id, rec, ctxFor(ctx, id)))) n++;
+    if (rec.lg || !PC.EXTRA_ID.test(id)) continue;
+    const had = !!PC.perceelDef(id);
+    if (PC.registreerExtraPerceel(parcelDefFromRecord(id, rec, ctxFor(ctx, id))) && !had) n++;   // opnieuw aanmelden ververst streek en plaats
   }
   return n;
 }
