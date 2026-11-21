@@ -20,6 +20,7 @@ import {
   schiet, keeperPlek, nieuweSerie, noteer, doelpunten, genomen, klaar, penaltyMedaille, medailleBij, goalsTekst,
 } from './penaltyrules.js';
 import { hoofdspeler } from './players.js';
+import { karakterStart, karakterEind } from './voetbalkarakter.js'; // de speler schiet als Tessa (dunne laag, #981); zonder haak gebeurt er niets
 
 // Penaltyserie in de Euroborg (#981, Voetbal Sim Light): vijf penalty's op het doel van FC Grunn-achtig (een verzonnen club, geen echte spelers). De Euroborg is een echt
 // gebouw; het veld ligt binnen de tribunes en het stadion is rondom dicht, dus je start bij de spelerspoort aan de zuidkant en wordt het veld op gebracht. A/D richt
@@ -220,7 +221,7 @@ function start(w, { force = false, online = null } = {}) {
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   if (online) { ensureBoard(); board.show(); } // solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen
   runs++;
-  game = { t: 0, fase: 'intro', faseT: INTRO_S, serie: nieuweSerie(), u: 0, v: 0.45, kracht: 0, laden: false, res: null, laatste: null, tekst: '', flash: null, cam: null, said: 0, online, mode: cleanDifficulty(getSettings().difficulty), schotT: 0, dt: 0 };
+  game = { t: 0, fase: 'intro', faseT: INTRO_S, serie: nieuweSerie(), u: 0, v: 0.45, kracht: 0, laden: false, res: null, laatste: null, tekst: '', flash: null, cam: null, said: 0, online, mode: cleanDifficulty(getSettings().difficulty), schotT: 0, dt: 0, bon: karakterStart(w, 'voetbal') };
   built.root.visible = true; built.bord.visible = true;
   built.bal.visible = true; built.keeper.visible = true; built.kruis.visible = false;
   zetKeeper(0, 0, 0);
@@ -360,6 +361,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (!g) return;
   game = null;
   eindActiviteit(w, 'voetbal');
+  karakterEind(w, g.bon);
   w.companionHold = null;
   w.cameraOverride = null;
   const p = hoofdspeler(w);

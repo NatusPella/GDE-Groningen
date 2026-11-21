@@ -14,17 +14,17 @@ const ACT = lees('game/js/activities.js');
 let n = 0, fails = 0;
 const t = (naam, f) => { n++; try { f(); } catch (e) { fails++; console.log('FAIL', naam, '\n  ', String(e.message || e).split('\n').slice(0, 3).join('\n   ')); } };
 
-// De 27 activiteiten uit activities.js (zonder de module te laden: die haalt THREE en de DOM).
+// De 28 activiteiten uit activities.js (zonder de module te laden: die haalt THREE en de DOM).
 const imports = {};
 for (const m of ACT.matchAll(/import \{ ([^}]+) \} from '\.\/([^']+)\.js';/g)) for (const naam of m[1].split(',').map((x) => x.trim().split(' as ')[0])) imports[naam] = m[2];
 const lijst = ACT.match(/const LIST = \[([^\]]+)\]/)[1].split(',').map((x) => x.trim());
 const moduleBronnen = lijst.map((naam) => (imports[naam] ? lees(`game/js/${imports[naam]}.js`) : ACT));
 const ids = ['carbid', 'kermis', 'hoogvlieger', 'geheimen', 'drift', 'discgolf', 'pitchputt', 'skatepark', 'kartbaan',
   'zwembad', 'klimtoren', 'waterski', 'carillon', 'pannenkoek', 'hengelen', 'boeren', 'wandeling', 'snackketen',
-  'evenementen', 'regatta', 'ringrace', 'vliegschool', 'safehuis', 'pvparena', 'vluchtdienst', 'vaardienst', 'penalty'];
+  'evenementen', 'regatta', 'ringrace', 'vliegschool', 'safehuis', 'pvparena', 'vluchtdienst', 'vaardienst', 'penalty', 'voetbal'];
 
-t('activities.js heeft 27 activiteiten en een id-bron', () => {
-  assert.equal(lijst.length, 27);
+t('activities.js heeft 28 activiteiten en een id-bron', () => {
+  assert.equal(lijst.length, 28);
   assert.match(ACT, /export const ACTIVITEIT_IDS = LIST\.map/);
   for (const id of ids) assert.ok(moduleBronnen.some((bron) => new RegExp(`id: '${id}'`).test(bron)), `${id} bestaat als activiteit`);
 });

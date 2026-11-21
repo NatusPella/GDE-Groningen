@@ -61,6 +61,11 @@ export const STARTKAART = {
     medailles: ['2 doelpunten', '3 doelpunten', '5 doelpunten'], beloning: 'prijzengeld per plek en loopbaanpunten',
     kern: '[A] [D] [W] [S] richten · houd [Spatie] en laat los',
   },
+  voetbal: {
+    titel: 'Voetbal Euroborg', doel: 'Vijf of elf tegen elf tegen verzonnen teams, ook als competitie met zes clubs',
+    medailles: ['Winst', 'Winst met de nul', 'Winst met een hattrick'], beloning: 'prijzengeld per uitslag en loopbaanpunten',
+    kern: '[W] [A] [S] [D] lopen · [F] [E] passen · {SPATIE} schot',
+  },
   skatepark: {
     titel: 'Skatepark', doel: 'Negentig seconden trucs, met een keten die oploopt',
     medailles: ['1.200 punten', '3.200 punten', '6.500 punten'], beloning: 'prijzengeld per plek en loopbaanpunten',

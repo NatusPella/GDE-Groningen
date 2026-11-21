@@ -52,6 +52,8 @@ export const ACTIVITEIT_SFEER = {
     ['De beton is koud, het asfalt ook.', 'Eén keer vallen en je kent de plek.']),
   penalty: S('Elf meter van de waarheid', 'veld', 'grid', '#5fae52', 'bal', 'scorekaart', 'kapitaal',
     ['De keeper kent je naam niet, wel je voorhoofd.', 'Vijf kansen en één tribune die kijkt.']),
+  voetbal: S('Vijf tegen vijf', 'veld', 'schub', '#2f9e5b', 'bal', 'scorekaart', 'kapitaal',
+    ['Oma Trijntje roept harder dan de scheids fluit.', 'Eén bal, tien paar schoenen en een tribune vol meningen.']),
   kartbaan: S('Rondjes in Ulrum', 'nacht', 'grid', '#f2b82a', 'kart', 'startbord', 'kapitaal',
     ['Iedereen is kampioen tot de eerste bocht.', 'De baan is kort, de excuses niet.']),
   zwembad: S('Baantjes', 'veld', 'golf', '#2fc4c9', 'water', 'startbord', 'klein',

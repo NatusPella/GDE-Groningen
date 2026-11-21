@@ -53,6 +53,7 @@ export const HINTS = [
   { id: 'm-discgolf', kind: 'minigame', match: 'discgolf', title: 'Discgolf', body: 'Gooi de schijf in de mand met zo min mogelijk worpen. Je loopt de ronde door het Stadspark; de uitleg staat tijdens het spelen in beeld.' },
   { id: 'm-pitchputt', kind: 'minigame', match: 'pitchputt', title: 'Pitch & putt', body: 'Zes korte banen: eerst pitchen, op de green putten. Zo min mogelijk slagen. De uitleg staat tijdens het spelen in beeld.' },
   { id: 'm-penalty', kind: 'minigame', match: 'penalty', title: 'Penaltyserie', body: 'Vijf penalty’s op de keeper. Richt in het doel, houd {SPACE} en laat los bij het streepje: te zacht of te hard geeft kans op mis. De uitleg staat tijdens het spelen in beeld.' },
+  { id: 'm-voetbal', kind: 'minigame', match: 'voetbal', title: 'Voetbal', body: 'Vijf of elf tegen elf in de Euroborg, ook als competitie. Loop met {WASD}, speel over met {F} of {E}, schiet met {SPATIE}. Kies vooraf formaat en tactiek.' },
   { id: 'm-skatepark', kind: 'minigame', match: 'skatepark', title: 'Skatepark', body: 'Hellingen, leuningen en kunstjes. Ken je de toetsen niet, kijk dan naar de uitleg in beeld.' },
   { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'Kartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },

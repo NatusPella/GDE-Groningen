@@ -60,6 +60,7 @@ export const SPEL_SLEUTELS = {
   pitchputt: ['s:pitchputtRounds'],
   skatepark: ['s:skateRuns'],
   penalty: ['s:penaltySeries'],
+  voetbal: ['s:footballMatches'],
   kartbaan: ['s:kartRaces', 'u:kart'],
   zwembad: ['s:zwemRuns'],
   klimtoren: ['s:klimTops'],

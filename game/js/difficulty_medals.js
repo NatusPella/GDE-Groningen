@@ -40,6 +40,7 @@ export const MEDAILLE_BRON = {
   kermis: { t: [60, 110, 160], lower: false, fmt: punten, std: ['60 punten', '110 punten', '160 punten'] },
   drift: { t: [2500, 5000, 9000], lower: false, fmt: punten, std: ['2.500 punten', '5.000 punten', '9.000 punten'] },
   penalty: { t: [2, 3, 5], lower: false, fmt: goals, std: ['2 doelpunten', '3 doelpunten', '5 doelpunten'], max: 5 },
+  voetbal: { fixed: ['Winst', 'Winst met de nul', 'Winst met een hattrick'], lower: false, fmt: (v) => String(v), std: ['Winst', 'Winst met de nul', 'Winst met een hattrick'] }, // de eisen zijn de wedstrijduitslag; de stand verandert de tegenstander, niet de eis
   skatepark: { t: [1200, 3200, 6500], lower: false, fmt: punten, std: ['1.200 punten', '3.200 punten', '6.500 punten'] },
   pannenkoek: { t: [400, 700, 1000], lower: false, fmt: punten, std: ['400 punten', '700 punten', '1.000 punten'] },
   waterski: { t: [650, 1300, 2200], lower: false, fmt: punten, std: ['650 punten', '1.300 punten', '2.200 punten'] },
@@ -58,7 +59,7 @@ export function medailleTeksten(id, mode = 'standaard') {
   const b = MEDAILLE_BRON[id];
   if (!b) return null;
   const m = cleanDifficulty(mode);
-  if (m === 'standaard') return b.std.slice();
+  if (m === 'standaard' || b.fixed) return b.std.slice();
   if (b.place) {
     // ruimere stand: de bronzen plek schuift één op; strengere stand: alleen de eerste twee plekken.
     const at = m === 'ontspannen' ? [b.place[0] + 1, b.place[1] + 1, b.place[2] + 1] : [2, 2, 1];

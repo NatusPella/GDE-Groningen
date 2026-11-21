@@ -282,6 +282,7 @@ export const MG_THEMA = {
   pitchputt: { titel: 'PITCH & PUTT', accent: '#46b36a', icoon: 'vlag' },
   skatepark: { titel: 'SKATEPARK STADSPARK', accent: '#e8523a', icoon: 'skate' },
   penalty: { titel: 'PENALTYSERIE EUROBORG', accent: '#5fae52', icoon: 'bal' },
+  voetbal: { titel: 'VOETBAL EUROBORG', accent: '#2f9e5b', icoon: 'bal' },
   kartbaan: { titel: 'KARTEN IN ULRUM', accent: '#f2b82a', icoon: 'kart' },
   // de toren: wie boven is wint (kroon)
   klimtoren: { titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'vlag' }, // #620: de vlag op de top zegt klimmen, niet 'winnaar'

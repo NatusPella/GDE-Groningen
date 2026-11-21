@@ -155,6 +155,16 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 **Tests.** `minigames_test.mjs`, `minigames3_test.mjs`, `golfbeurt_test.mjs`,
 `golfetiquette_test.mjs`, `padelrules_test.mjs`.
 
+## Voetbal in de Euroborg
+
+**Doel.** Een echte, korte wedstrijd als light sim (#981): vijf tegen vijf op een klein veld in de Euroborg, in de speelstijl van een voetbalgame, met verzonnen teams (geen echte clubs, spelers, merken of competities; constitutie 2) en zonder getoond geweld (constitutie 6).
+
+**Regels.** Twee formaten: vijf tegen vijf (klein veld) en elf tegen elf (volledig veld, 56 x 90 m), elk met vormingen (tactiek: 2-2, 3-1, 1-3; 4-4-2, 4-3-3, 3-5-2) en een speelstijl (verdedigend, evenwichtig, aanvallend); een competitie (`voetbalcompetitie.js`) is een seizoen van vijf rondes elf tegen elf met zes verzonnen clubs, drie punten voor winst en één voor gelijkspel. Twee helften van 90 s bij vijf tegen vijf (kort: 45 s) of 150 s bij elf tegen elf (kort: 75 s), de klok loopt alleen in het spel. Aftrap, uitbal (inworp, hoekschop, doelschop) met een korte pauze, doelpunt met viering en een slow-motionflits, de tegenpartij trapt af. Geen buitenspel en geen kaarten; omver lopen of een mislukte tackle van achteren is een vrije bal voor de ander. De bal (`voetbalbal.js`) rolt met wrijving, stuit, raakt paal en lat en is deterministisch. De computer (`voetbalai.js`) heeft rollen (keeper, verdediger, aanvaller) en een vorming die met de bal meeschuift; de moeilijkheid bepaalt reactietijd, snelheid, schotspreiding, keeper en tackle van de tegenstander, de maatjes spelen altijd standaard. Medailles: winst, winst met de nul, winst met een hattrick; het record is het doelsaldo van je beste winst, per stand. De invoer is één byte (`KNOP` in `voetbalrules.js`: sprint, schot, wissel, tackle, pass, lang), dezelfde voor toetsenbord, controller en een gast. Samen spelen: de live-wedstrijd van het bestaande kader (`multiplayerwedstrijd.js`), twee tot vier spelers in één team tegen de computer, autoritair bij wie het spel opende, beloning en record per speler (docs/COOP-GAST.md).
+
+**Bestanden.** `voetbalcompetitie.js`, `voetbalrules.js`, `voetbalbal.js`, `voetbalai.js`, `voetbalmatch.js` (puur), `voetbalstatus.js` (HUD-model), `voetbaldata.js` (teksten), `voetbalkarakter.js` (de dunne aansluiting op Tessa), `voetbal.js` (wereld, camera, invoer, aansluiting), `penalty.js` (de bonusmodus Strafschoppen).
+
+**Tests.** `voetbal_test.mjs`, `voetbal_botsim.mjs` (100 wedstrijden computer tegen computer: gemiddeld 2 tot 5 doelpunten, geen vastlopers of NaN), `penalty_test.mjs`.
+
 ## Gevecht
 
 **Doel.** Melee met gewicht: een reeks slagen die oploopt zolang je raakt.
