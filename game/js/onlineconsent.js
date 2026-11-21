@@ -19,11 +19,21 @@ export const onlineNaamFout = (naam) => {
 };
 export const onlineNaamOk = (naam) => onlineNaamFout(naam) === '';
 export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !== true || !onlineNaamOk(settings.onlineNaam);
+// Sinds de startkeuze (Alleen of Samen, startchoice.js) zijn het twee vragen. De naamkaart komt EENMALIG, op de eerste start:
+// wie een geldige naam bewaarde krijgt hem nooit meer vanzelf (de naam past hij later aan in het pauzemenu). De toestemming
+// wordt pas gevraagd als iemand Samen kiest en ze niet (meer) bewaard is: Alleen spelen gebruikt het netwerk niet.
+export const moetNaamVragen = (settings = getSettings()) => !onlineNaamOk(settings.onlineNaam);
+export const moetToestemmingVragen = (settings = getSettings()) => settings.onlineMeedoen !== true;
+// Alleen de toestemming, voor wie al een naam heeft (Samen gekozen na een ingetrokken toestemming). De naam blijft zoals hij is.
+export function geefToestemming({ zet = setSetting } = {}) {
+  zet('onlineMeedoen', true);
+  return { ok: true, meedoen: true };
+}
 
 // What the first start shows: a name, and one honest question with two answers.
 export const EERSTE_START = {
   titel: 'Je naam voor Samen spelen',
-  uitleg: `${CONSENT_TEXT} Je speelt altijd online, in je eigen besloten sessie; onder deze naam zien anderen je alleen als je de sessie deelt. Je kunt je naam later in het pauzemenu aanpassen.`,
+  uitleg: `${CONSENT_TEXT} Bij elke start kies je zelf of je alleen of samen speelt; alleen bij Samen spelen gaat er iets naar buiten. Onder deze naam zien anderen je alleen als je een sessie deelt. Je kunt je naam later in het pauzemenu aanpassen.`,
   naamLabel: 'Je naam',
   naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
   consent: 'Ik ga ermee akkoord dat het spel online verbindt met een STUN-server en openbare brokers; mijn IP-adres gaat daarvoor naar die diensten.',

@@ -1,4 +1,4 @@
-// Samen spelen (#530, ADR 0022, eigenaarsopdracht 13-11): altijd online en een verplichte
+// Samen spelen (#530, ADR 0022, eigenaarsopdracht 13-11; sinds 21-11 eenmalig, startchoice.js): een verplichte
 // naam. De eerste-startkaart is één stap met naamveld + "Doorgaan"; er is geen "Meedoen",
 // "Alleen spelen" of "Later" en Escape/time-out slaat de vraag niet over. Deze test gebruikt
 // een nep-DOM en een localStorage die alleen gde-settings toestaat.
@@ -191,7 +191,7 @@ await t('maybeOpenOnlineStart slaat de vraag over als de naam al geldig is', asy
 await t('de schakelaar leest en schrijft dezelfde sleutel', async () => {
   naar(true);
   assert.doesNotMatch(meedoenSchakelaarHtml(), /data-meedoen|type="checkbox"/);
-  assert.match(meedoenSchakelaarHtml(), /altijd online/);
+  assert.match(meedoenSchakelaarHtml(), /Alleen of Samen spelen/);
   const r = zetMeedoen(false);
   assert.equal(r.meedoen, false);
   assert.equal(S.getSettings().onlineMeedoen, false);

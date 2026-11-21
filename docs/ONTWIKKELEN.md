@@ -250,6 +250,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?geenlimiter` | Geen limiter op het geluid (A/B-test bij knallen of ruis, zie docs/AUDIO-GLITCHES-21-11.md) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Sla het aantrekkingsfilmpje en de eerste-start-meting over; een testrun start meteen in de wereld |
+| `?startkeuze` | Startkaart Alleen of Samen spelen (`startchoice.js`): `startkeuze=alleen` slaat de kaart over en speelt alleen, zonder netwerk (devtools zet dit in elke testrun behalve `--coop`); `startkeuze=vraag` (`GDE_STARTKEUZE=vraag`) toont de kaart ook in een testrun, voor beeld en tests |
 | `?menutest` | Houd het oude startscherm voor de QA-harnassen (`GDE_MENU_TEST=1`, devtools zet deze vlag); elke gewone start en elke testrun begint meteen in de wereld |
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
 | `?perf` | Prestatierun: start meteen in de wereld (geen titelscherm) |
