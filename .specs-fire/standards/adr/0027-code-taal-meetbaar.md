@@ -29,7 +29,10 @@ Zonder meetbare grens blijft elke sessie dezelfde discussie voeren.
 4. **Meetbaar:** `scripts/naamtaal_check.mjs` vergelijkt nieuwe JS-bestanden met
    `scripts/naamtaal_baseline.json`. Een nieuw bestand met een Nederlandse naam
    of een nieuwe `coop`-naam is een fout in de lichte fase; bestaande bestanden
-   worden niet geblokkeerd.
+   worden niet geblokkeerd. Sinds 22-11 telt `coop` ook als achtervoegsel, kijkt
+   de poort ook naar `scripts/` (nieuwe scripts zonder coop in de naam) en staan
+   de bestaande overtreders van de scherpere regels vast in
+   `baseline.uitzonderingen` (alleen krimpen; geen massale hernoeming).
 5. **Geen vertaalronde:** massa-hernoemen blijft afgewezen; dit besluit is geen
    voorraad opdrachten.
 
