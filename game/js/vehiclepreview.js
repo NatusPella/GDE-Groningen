@@ -2,12 +2,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { buildWeaponMesh, buildPersonMesh, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
 import { buildProductMesh } from './shopmodels3d.js';
+import { buildSpulMesh } from './models3d_spullen.js';
 import { VERSION } from './version.js';
 import { watchContext } from './blackframe.js';
 import { KEYS } from './storagekeys.js';
 import { previewVehicle } from './garagepics.js';
 
-const OBJECT_KINDS = new Set(['weapon', 'person', 'product']);
+const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul']);
 // a person seen from the front, the face turned a little into the screen
 // (the model faces its local -x)
 export const PORTRAIT_ANGLE = -1.55;
@@ -16,7 +17,8 @@ export const PORTRAIT_ANGLE = -1.55;
 // spec = { kind, model, color, nameIdx, flags } for a vehicle, or
 // { kind: 'weapon', weapon } / { kind: 'person', look, frame } (a person
 // appearance, as TAMMO_APPEARANCE; frame 'head' for a portrait) /
-// { kind: 'product', product } (shopmodels3d.js key), framed by bounding box.
+// { kind: 'product', product } (shopmodels3d.js key) / { kind: 'spul', spul } (models3d_spullen.js,
+// the Spullen viewer #1086), framed by bounding box.
 //
 // createVehiclePreview: its own renderer on its own canvas (the shops).
 // createSharedPreview: the same, but drawn by the one shared renderer below
@@ -90,7 +92,8 @@ function buildObject(spec, sphereFit = false) {
   if (OBJECT_KINDS.has(spec.kind)) {
     const body = spec.kind === 'weapon' ? buildWeaponMesh(spec.weapon)
       : spec.kind === 'person' ? buildPersonMesh(spec.look.shirt, spec.look.skin, spec.look)
-        : buildProductMesh(spec.product);
+        : spec.kind === 'spul' ? buildSpulMesh(spec.spul)
+          : buildProductMesh(spec.product);
     if (!body) return null;
     const mesh = new THREE.Group();
     mesh.add(body);
@@ -337,6 +340,8 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
     wake() { if (p.mesh && !p.raf && !p.dead) p.raf = requestAnimationFrame(tick); },
     // turn the model by hand (keyboard)
     turn(da) { p.angle += da; p.idleAt = performance.now() + 2500; },
+    // back to the front view and the starting zoom (Spullen viewer, #1086)
+    reset() { p.angle = angle; p.zoom = zoom; p.idleAt = performance.now() + 2500; },
     dispose() {
       p.dead = true;
       cancelAnimationFrame(p.raf);
