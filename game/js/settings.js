@@ -144,6 +144,8 @@ const BASE_DEFAULTS = {
   // play with others, false = a private session for one. Null must never read as
   // "yes": it means the game still has to ask, and asks before any contact.
   onlineMeedoen: null,
+  // Alleen of Samen bij de start (startkeuze.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
+  startKeuze: null,
   // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
   // toestemmingsscherm. Alleen de keuze van het scherm; zonder dit vinkje komt
   // de vraag één keer per sessie en gaat er niets naar buiten voor het akkoord.
@@ -226,6 +228,7 @@ function load() {
     // De lus hierboven kopieert geen null (typeof null is 'object'), dus dit moet apart:
     // ontbrekend, null, "true", 1 of wat dan ook wordt null en dus "nog nooit gevraagd".
     out.onlineMeedoen = raw.onlineMeedoen === true ? true : raw.onlineMeedoen === false ? false : null;
+    out.startKeuze = raw.startKeuze === 'alleen' || raw.startKeuze === 'samen' ? raw.startKeuze : null; // alleen de voorselectie van de startkaart
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }

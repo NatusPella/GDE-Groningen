@@ -5,7 +5,7 @@
 // gde-settings, and the lobby (lobbyui.js) is still the one place that asks before connecting.
 import { ONLINE_NAAM_MAX } from './lobby.js';
 import { getSettings } from './settings.js';
-import { EERSTE_START, SCHAKELAAR, moetVragen, kiesNaam } from './onlineconsent.js';
+import { EERSTE_START, SCHAKELAAR, moetVragen, moetNaamVragen, kiesNaam } from './onlineconsent.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -30,7 +30,7 @@ export function onlineStartHtml({ naam = '', fout = '', consent = false } = {}) 
 
 // Het spelerspaneel: geen keuze meer, het spel speelt altijd online (eigenaarsbeslissing #530).
 export function meedoenSchakelaarHtml() {
-  return `<div class="cs-meedoen"><p class="cs-profiel-hint">Je speelt altijd online, ook als je alleen speelt. Andere spelers zien je alleen als je een sessie deelt.</p></div>`;
+  return `<div class="cs-meedoen"><p class="cs-profiel-hint">Bij elke start kies je Alleen of Samen spelen; alleen bij Samen spelen gaat er iets naar buiten. Andere spelers zien je alleen als je een sessie deelt.</p></div>`;
 }
 
 // Het vinkje "Niet meer vragen" in de wachtkamer (#526): dezelfde toestemmingsvorm
@@ -117,9 +117,10 @@ export function openOnlineStart({ naam = getSettings().onlineNaam } = {}) {
 }
 
 
-// What the boot calls: only a player who was never asked gets the screen.
+// What the boot calls: only a player who was never asked gets the screen, once (a saved valid name is the proof).
+// Consent that was withdrawn later is asked when Samen spelen is chosen (startkeuzeui.js), not on every start.
 export function maybeOpenOnlineStart(opts = {}) {
   const s = opts.settings || getSettings();
-  return moetVragen(s) ? openOnlineStart(opts) : Promise.resolve(null);
+  return moetNaamVragen(s) ? openOnlineStart(opts) : Promise.resolve(null);
 }
 
