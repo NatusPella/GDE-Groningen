@@ -131,13 +131,13 @@ export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward
 }
 
 // Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the
-// options of the edge tag. Going to zero is "out of sight"; the tag carries the star count in words too.
+// options of the edge tag. Going to zero is "out of sight". #1080: a short status card without stars; the stars live in one place (the HUD card top right).
 export function momentVanWanted(prev, nu) {
   if (!Number.isFinite(prev) || !Number.isFinite(nu) || prev === nu) return null;
   const omhoog = nu > prev;
-  if (omhoog) return { soort: 'wanted', klein: 'Gezocht', titel: 'Pas op!', regelNl: nu >= 5 ? 'Alle agenten zoeken je.' : 'De politie let op je.', sterren: nu };
-  if (nu === 0) return { soort: 'wanted', klein: 'Weg uit beeld', titel: 'Vrij', regelNl: 'De politie ziet je niet meer.', sterren: 0 };
-  return { soort: 'wanted', klein: 'Minder gezocht', titel: 'Rustiger', regelNl: 'De politie zoekt minder naar je.', sterren: nu };
+  if (omhoog) return { soort: 'wanted', klein: 'Gezocht', titel: 'Pas op!', regelNl: nu >= 5 ? 'Alle agenten zoeken je.' : 'De politie let op je.' };
+  if (nu === 0) return { soort: 'wanted', klein: 'Weg uit beeld', titel: 'Vrij', regelNl: 'De politie ziet je niet meer.' };
+  return { soort: 'wanted', klein: 'Minder gezocht', titel: 'Rustiger', regelNl: 'De politie zoekt minder naar je.' };
 }
 
 // Opgepakt (busted: a fine) or buiten westen (down: a hospital bill); money is the amount lost.
@@ -239,7 +239,7 @@ function binnenHtml(m) {
   if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;
   if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;
   if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
-  return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${m.sterren > 0 ? sterrenHtml(m.sterren) : ''}<span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
+  return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span><span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
 }
 
 // Het geluid van de eindkaart komt van buiten (cinematics.js koppelt audio.js): dit bestand blijft zonder audio-import testbaar.

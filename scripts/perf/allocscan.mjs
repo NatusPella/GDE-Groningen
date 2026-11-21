@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const HOT_FILES = [
   'game/js/vehicle/traffic.js', 'game/js/pedestrians.js', 'game/js/hudgps.js', 'game/js/hudstapel.js', 'game/js/hudmoney.js',
-  'game/js/hudcards.js', 'game/js/hud_panel.js', 'game/js/hudbus.js', 'game/js/hudtext.js', 'game/js/mapview.js', 'game/js/minimapheat.js',
+  'game/js/hudcards.js', 'game/js/hud_panel.js', 'game/js/hudbus.js', 'game/js/hudtext.js', 'game/js/mapview.js',
   'game/js/routeribbon.js', 'game/js/fx3d.js', 'game/js/simhud.js', 'game/js/hudlook.js',
 ];
 const HOT_NAME = /^(update|tick|step|draw|render|sync|frame|animate|refresh|pump|run)[A-Z_0-9]?/;
