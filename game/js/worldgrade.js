@@ -117,11 +117,11 @@ export const gradeNeutral = () => ({ ...NEUTRAL, lichtMul: [1, 1, 1], schaduwMul
 // Rustig drukwerk: geen raster en geen korrel, en niet sterker dan Subtiel. Kleurenblind: niet gedempt en geen raster.
 export function gradeParams(ctx, out = {}) {
   const spec = WORLD_COLOR_STRENGTH[ctx.stand];
-  const niveau = ctx.niveau === 'hoog' || ctx.niveau === 'middel' ? ctx.niveau : 'laag';
-  if (!spec || spec.grade <= 0 || niveau === 'laag') {
+  const level = ctx.niveau === 'hoog' || ctx.niveau === 'middel' ? ctx.niveau : 'laag';
+  if (!spec || spec.grade <= 0 || level === 'laag') {
     Object.assign(out, gradeNeutral());
     out.stand = ctx.stand || 'uit';
-    out.niveau = niveau;
+    out.niveau = level;
     return out;
   }
   let sterkte = spec.grade;
@@ -137,7 +137,7 @@ export function gradeParams(ctx, out = {}) {
 
   out.actief = true;
   out.stand = ctx.stand;
-  out.niveau = niveau;
+  out.niveau = level;
   out.dagdeel = gradeDaypart(ctx.elevation, ctx.hour);
   out.satMul = ctx.kleurenblind ? 1 : clamp(1 - sat * sterkte, 0.85, 1);
   out.conMul = clamp(1 + p.con * sterkte, 1, 1.06);
@@ -146,9 +146,9 @@ export function gradeParams(ctx, out = {}) {
   out.mist = clamp(mist * sterkte, 0, 0.4);
   out.zenit = clamp(p.zenit * sterkte, 0, 0.3);
   out.grond = clamp(p.grond * sterkte, 0, 0.3);
-  const nabewerking = niveau === 'hoog' && !ctx.rustig;
-  out.raster = nabewerking && !ctx.kleurenblind ? GRADE_BASE.raster * p.raster * sterkte : 0;
-  out.korrel = nabewerking ? GRADE_BASE.korrel * korrel * sterkte : 0;
+  const postEffects = level === 'hoog' && !ctx.rustig;
+  out.raster = postEffects && !ctx.kleurenblind ? GRADE_BASE.raster * p.raster * sterkte : 0;
+  out.korrel = postEffects ? GRADE_BASE.korrel * korrel * sterkte : 0;
   return out;
 }
 const _p = {};
