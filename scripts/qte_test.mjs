@@ -51,6 +51,11 @@ ok(Q.qteStandVan(undefined) === 'normaal' && Q.qteStandVan({}) === 'makkelijk', 
   ok(p.rounds[0].speed < 0.8 && p.rounds[1].speed < 1.2, 'de naald is langzamer');
   ok(p.zoneFactor > 1 && p.extraMissers === 1, 'ruimere zone en een poging extra');
   ok(p.goodAt === 2, 'de tagdrempel past mee: alles raak blijft de goede tag', String(p.goodAt));
+  // review 21-11: met een weggelaten ronde zakt de drempel mee; Makkelijk was strenger dan Normaal (goodAt 2 van 3 werd 2 van 2)
+  const laag = { ...st(), goodAt: 2 };
+  ok(Q.qtePas(laag, 'normaal').goodAt === 2 && Q.qtePas(laag, 'makkelijk').goodAt === 1, 'Makkelijk is nooit strenger dan Normaal', String(Q.qtePas(laag, 'makkelijk').goodAt));
+  const vier = { ...st(), goodAt: 3, rounds: [...st().rounds, { speed: 1, text: 'd' }] };
+  ok(Q.qtePas(vier, 'normaal').goodAt === 3 && Q.qtePas(vier, 'makkelijk').goodAt === 2, 'vier rondes: 3 van 4 wordt 2 van 3');
   ok(Q.qtePas({ rounds: [{ speed: 1 }, { speed: 1 }] }, 'makkelijk').rounds.length === 2, 'bij twee rondes blijft het bij twee');
   const bron = st(); Q.qtePas(bron, 'makkelijk');
   ok(bron.rounds.length === 3 && bron.rounds[0].speed === 0.8, 'de bron (de missiedata) blijft ongewijzigd');

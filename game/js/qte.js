@@ -26,7 +26,7 @@ export function qtePas(st, stand = 'normaal') {
   let weg = 0;
   if (r.overslaan && rondes.length > 1) { weg = rondes.length - 1; rondes = [rondes[rondes.length - 1]]; }
   else if (r.weg && rondes.length >= 3) { rondes.splice(Math.floor(rondes.length / 2), 1); weg = 1; }
-  const goodAt = st && Number.isFinite(st.goodAt) ? Math.max(1, Math.min(st.goodAt - (r.overslaan ? weg : 0), rondes.length)) : undefined;
+  const goodAt = st && Number.isFinite(st.goodAt) ? Math.max(1, Math.min(st.goodAt - weg, rondes.length)) : undefined; // een weggelaten ronde verlaagt de drempel mee (anders is Makkelijk strenger dan Normaal)
   return { rounds: rondes, goodAt, zoneFactor: r.zone, extraMissers: r.extra, overslaan: r.overslaan, auto: r.auto, stand: schoneQte(stand), weg };
 }
 
