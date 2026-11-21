@@ -41,6 +41,8 @@ import { tileFocus } from './tilefocus.js';
 import { createStreamBudget, noteStreamWorldPart } from './streambudget.js';
 import { streamPlanner } from './streamplanner.js';
 import { setHoldProbe } from './tilestream.js';
+import { installActivityProbe } from './placementurgency.js';
+import { playerBusy } from './busy.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
@@ -1038,6 +1040,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   setAudioCamera(getCamera);
   setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
   setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen });
+  // #1052: een lopende missie, bijbaan, wedstrijd of minigame heeft zijn plaatsingsvensters nu nodig (placementurgency.js)
+  installActivityProbe(() => playerBusy(world, ['sideJob', 'challenge', 'race', 'padel', 'activityGame', 'heliRun', 'missionPhase', 'mission', 'activity', 'activeRace']).busy);
   // #1052: the placement windows (tiles all over the province) wait while a film or cutscene plays, like the stream's own low budget (frameBody)
   setHoldProbe(() => document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || !!(world.cineQuiet && performance.now() < world.cineQuiet));
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });

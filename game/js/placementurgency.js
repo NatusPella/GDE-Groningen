@@ -20,6 +20,15 @@ export const URGENT_NEAR_M = 400;
 // ms tegelwerk per frame voor een urgent venster (bovenop wat de stroom zelf doet): ruim, maar niet in één klap
 export const URGENT_SLICE_MS = 6;
 
+// na een geladen savegame staan de plaatsingsvensters van het hervatte spel (faciliteiten, winkels, het huis) niet meer
+// achteraan: zo lang (ms) telt elk venster als 'restoring' (#1052; savegame.js meldt de lading met noteRestore)
+export const RESTORE_MS = 20000;
+let restoreUntil = 0;
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+export function noteRestore(now = clock()) { restoreUntil = now + RESTORE_MS; }
+export function restoreActive(now = clock()) { return now < restoreUntil; }
+export function resetRestore() { restoreUntil = 0; }
+
 let activityProbe = null;
 // main.js (of een minigame) zegt "er loopt een missie, minigame of activiteit die plaatsing nodig heeft"
 export function installActivityProbe(fn) { activityProbe = typeof fn === 'function' ? fn : null; }
@@ -51,5 +60,5 @@ export function urgencyMode({ urgent = false, near = Infinity, activity = false,
 
 // Kortweg voor tileplace.js: de stand uit de punten, de focus en de vlaggen.
 export function urgencyModeFor(points, focus, { urgent = false, slice = 0, restoring = false } = {}) {
-  return urgencyMode({ urgent, near: nearestPointDist(points, focus), activity: activityActive(), restoring, slice });
+  return urgencyMode({ urgent, near: nearestPointDist(points, focus), activity: activityActive(), restoring: restoring || restoreActive(), slice });
 }
