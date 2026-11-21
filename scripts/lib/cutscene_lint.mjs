@@ -482,23 +482,30 @@ export function checkVisual(unit) {
   }
   // V05: kijkrichting van de spreker, op twee momenten in de regel (een draai die onderweg is telt niet)
   if (unit.scene) {
-    const gesprekspartners = (id) => Object.keys(actors).filter((x) => x !== id && actors[x].speaker);
-    const weg = (s, id) => {
+    // a conversation partner has a line of his own in this scene (an extra who only has a name does not talk along)
+    const sprekers = new Set(regels.filter((q) => !isOff(q)).map((q) => speakerActorId(unit, q.speaker)).filter(Boolean));
+    const gesprekspartners = (id) => Object.keys(actors).filter((x) => x !== id && actors[x].speaker && sprekers.has(x));
+    // the ones he talks to: the last other speaker before the line and the next one after it (he may look at either)
+    const aangesproken = (i, id) => {
+      const ander = (q) => { const a = isOff(q) ? null : speakerActorId(unit, q.speaker); return a && a !== id ? a : null; };
+      return [...new Set([regels.slice(0, i).reverse().map(ander).find(Boolean), regels.slice(i + 1).map(ander).find(Boolean)].filter(Boolean))];
+    };
+    const weg = (s, id, doelen) => {
       const me = s.actors[id];
       if (!me || me.visible === false || me.speed > 0.3 || me.sit) return null;
-      const naastmij = gesprekspartners(id).map((o) => s.actors[o]).filter((o) => o && o.visible !== false && dist2(o.x, o.y, me.x, me.y) < 9);
+      const naastmij = (doelen && doelen.length ? doelen : gesprekspartners(id)).map((o) => s.actors[o]).filter((o) => o && o.visible !== false && (doelen && doelen.length ? true : dist2(o.x, o.y, me.x, me.y) < 9));
       if (!naastmij.length) return null;
-      const d = naastmij.sort((p, q) => dist2(p.x, p.y, me.x, me.y) - dist2(q.x, q.y, me.x, me.y))[0];
-      const naar = Math.atan2(d.y - me.y, d.x - me.x);
-      return Math.abs(Math.atan2(Math.sin(naar - me.a), Math.cos(naar - me.a))) * 180 / Math.PI;
+      const hoek = (d) => { const naar = Math.atan2(d.y - me.y, d.x - me.x); return Math.abs(Math.atan2(Math.sin(naar - me.a), Math.cos(naar - me.a))) * 180 / Math.PI; };
+      return Math.min(...naastmij.map(hoek));
     };
     let fout = 0;
     for (const [i, l] of regels.entries()) {
       if (isOff(l) || fout >= 2) continue;
       const id = speakerActorId(unit, l.speaker);
       if (!id) continue;
-      const d1 = weg(unit.scene.sample(l.at + Math.min(1, l.dur / 2), AANKER), id);
-      const d2 = weg(unit.scene.sample(l.at + l.dur * 0.8, AANKER), id);
+      const doelen = aangesproken(i, id);
+      const d1 = weg(unit.scene.sample(l.at + Math.min(1, l.dur / 2), AANKER), id, doelen);
+      const d2 = weg(unit.scene.sample(l.at + l.dur * 0.8, AANKER), id, doelen);
       if (d1 != null && d2 != null && d1 > 120 && d2 > 120) { fout++; out.push(vondst(unit, 'CS-V05', `${l.speaker} praat bij regel ${i} met zijn rug naar de ander (${d1.toFixed(0)} graden)`, { t: l.at, regelNr: i })); }
     }
   }

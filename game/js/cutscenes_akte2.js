@@ -132,7 +132,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Dan eet je hem', actor: 'trijntje', face: 'actor:tammo' },
       { on: 'Dan eet je hem', dt: 0.3, actor: 'trijntje', anim: 'hips' },
       // 1953: she looks at the photo on the wall
-      { on: '1953. Dat ik won', actor: 'trijntje', face: 'prop:foto' },
+      { on: '1953. Dat ik won', dt: 2.3, actor: 'trijntje', face: 'prop:foto' },
       { on: '1953. Dat ik won', dt: 0.6, actor: 'trijntje', anim: 'point' },
       { on: '1953. Dat ik won', dt: 5.5, actor: 'trijntje', face: 'actor:tessa' },
       { on: 'Terpstra? Van Jelle', actor: 'tessa', anim: 'look' },
