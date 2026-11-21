@@ -52,6 +52,8 @@ De regels die schoon zijn, zijn dat omdat het bestaande werk ze al afdwingt (`va
 | M23.intro | CS-V01 | Tinus praat (regel 4) maar staat niet in de scène |
 | M26.intro | CS-V01 | Jelle Terpstra praat (regel 12) maar staat niet in de scène |
 
+Issues: #1144 (spreker niet in beeld, bug), #1145 (spreker ontbreekt in de scène, bug), #1146 (de 216 belangrijke vondsten, wens); alle drie in de mijlpaal "Verhaal: rode draad, introducties en natuurlijke dialogen" en bij WP15 regie #1138 en WP11 dialoogvorm #1134.
+
 Twee groepen: **spreker niet in beeld** (7 vondsten in 6 cutscenes) en **spreker ontbreekt in de scène** (4 cutscenes). Beide zijn voor de speler zichtbaar als een stem zonder gezicht; de eerste groep is vaak een shot dat te lang op de luisteraar of een prop blijft, de tweede is een personage dat wel praat maar geen acteur in de regie heeft (zo hoort het alleen bij radio, telefoon of voicemail; anders hoort hij in `cast`).
 
 ## De 20 slechtste cutscenes
