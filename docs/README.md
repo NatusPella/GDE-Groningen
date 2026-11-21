@@ -53,6 +53,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [DESIGN-COMPONENTEN.md](<DESIGN-COMPONENTEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [DESIGN-SAMEN-SPELEN.md](<DESIGN-SAMEN-SPELEN.md>) | How the UI of Samen spelen (multiplayer) looks and behaves, and what every new screen has to answer about i… |
 | [DESIGN-SCHULD.md](<DESIGN-SCHULD.md>) | Where the code differs from [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) and its detail pages, found by reading… |
+| [DESIGN-AUDIT-UI-21-11.md](<DESIGN-AUDIT-UI-21-11.md>) | Inventaris van alle UI die nog niet via het designsysteem loopt (issue #1064): aantallen voor en na, wat is omgezet, wat bewust blijft en wat een beeldverificatie vraagt. |
 | [DESIGN-STAND-21-11.md](<DESIGN-STAND-21-11.md>) | Stand per issue van het designsysteem-epic (#991 tot #1006) op 21-11: gedaan met bewijs, open en volgende stap. |
 | [HUD-TYPO-21-11.md](<HUD-TYPO-21-11.md>) | Typografische schaal van de HUD-kaarten: vijf rollen, audit van alle kaarten en wat de test bewaakt. |
 | [DIALECT-CONTROLE.md](<DIALECT-CONTROLE.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |

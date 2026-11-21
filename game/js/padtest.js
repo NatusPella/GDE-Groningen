@@ -56,10 +56,10 @@ export function openPadTest() {
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-label', 'Controller testen');
-  root.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:rgba(10,14,12,.82);color:#f0ede4;font:16px system-ui,sans-serif';
-  root.innerHTML = `<div style="width:min(640px,92vw);max-height:90vh;overflow:auto;padding:20px;border-radius:14px;background:#17201a;border:1px solid #3a4a3e">
+  root.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:rgba(10,14,12,.82);color:var(--ds-c-creme);font:16px system-ui,sans-serif';
+  root.innerHTML = `<div style="width:min(640px,92vw);max-height:90vh;overflow:auto;padding:20px;border-radius:14px;background:var(--ds-c-glas-2);border:1px solid var(--ds-c-glas-3)">
     <h2 style="margin:0 0 8px">Controller testen</h2>
-    <p class="pt-id" style="margin:0 0 4px"></p><p class="pt-info" style="margin:0 0 4px"></p><p class="pt-note" style="margin:0 0 8px;color:#f2c230"></p>
+    <p class="pt-id" style="margin:0 0 4px"></p><p class="pt-info" style="margin:0 0 4px"></p><p class="pt-note" style="margin:0 0 8px;color:var(--ds-c-ink-geel)"></p>
     <p style="margin:0 0 6px">Staat er een andere letter op je onderste knop dan hieronder? Kies hoe je knoppen heten:</p>
     <div class="pt-lay" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${LAYOUT_CHOICES.map(([v, t]) => `<button type="button" data-lay="${v}" style="padding:6px 12px">${t}</button>`).join('')}</div>
     <p class="pt-last" style="margin:0 0 8px;min-height:1.4em"></p>
@@ -86,7 +86,7 @@ export function openPadTest() {
     for (const b of q('.pt-lay').children) {
       const on = b.dataset.lay === (pref || 'auto');
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.style.cssText = `padding:6px 12px;border:1px solid #3a4a3e;background:${on ? '#f2c230' : 'transparent'};color:${on ? '#17201a' : 'inherit'}`;
+      b.style.cssText = `padding:6px 12px;border:1px solid var(--ds-c-glas-3);background:${on ? '#f2c230' : 'transparent'};color:${on ? '#17201a' : 'inherit'}`;
     }
     const btns = q('.pt-btns');
     const n = pad ? pad.buttons.length : 0;
@@ -94,7 +94,7 @@ export function openPadTest() {
       btns.innerHTML = '';
       for (let i = 0; i < n; i++) {
         const b = document.createElement('span');
-        b.style.cssText = 'padding:4px 8px;border-radius:6px;border:1px solid #3a4a3e;min-width:2.4em;text-align:center';
+        b.style.cssText = 'padding:4px 8px;border-radius:6px;border:1px solid var(--ds-c-glas-3);min-width:2.4em;text-align:center';
         b.textContent = padTestLabel(i, family);
         b.title = 'Knop ' + i;
         btns.appendChild(b);

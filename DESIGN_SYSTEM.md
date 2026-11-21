@@ -108,7 +108,7 @@ Text on dark chrome keeps 4.5:1 (3:1 for large text and icons); `a11ylogic.js` m
   short, large, punchy labels, not sentences.
 - **Menu running text** is Arial Narrow too (`.gm`, 20 px, line height 1.45); Bebas is for titles, tabs, buttons, numbers and eyebrows. In the menus the scale is
   80 / 64 / 44 px for title, section title and number, 26 for tabs and buttons, 20 body, 18 small (full table in [docs/DESIGN-COMPONENTEN.md](docs/DESIGN-COMPONENTEN.md)).
-- **Minimum size: 12 px for any sentence**, on every screen (the Steam Deck's 1280x800 held at arm's length, CHANGELOG #64); menu text 13 px and up (Menurust below).
+- **Minimum size: 13 px for any sentence (a keycap badge inside: 12 px)**, on every screen (the Steam Deck's 1280x800 held at arm's length, CHANGELOG #64); menu text 13 px and up (Menurust below).
   Only keycap interiors may be smaller. The HUD grows text with the window and never shrinks it below 13 px divided by `--ui`. Players can add one or two steps
   (`textSize`) and the Deck starts on "groot". A few places are still under 12; see [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md).
 
@@ -368,7 +368,7 @@ Five inks plus two status roles, nothing else: a hex outside this table fails th
 - **Barlow Condensed** (600, 800) for titles, numbers, HUD values, buttons and stamps; mixed case is allowed and preferred for words longer than a label.
 - **Atkinson Hyperlegible** (400, 700) for every sentence: messages, subtitles, descriptions, receipts.
 - Both are OFL and **self-hosted** under `game/fonts/`; the Google Fonts links in `game/index.html` go (constitution rule 4). Big Shoulders stays only for the logo, also self-hosted.
-- The reading norm stays: 13 px goal, 12 px hard floor, sized for the controller-first couch distance.
+- The reading norm stays: 13 px floor for every sentence, 12 px only inside a keycap badge, sized for the controller-first couch distance.
 
 ### Rustig drukwerk (setting)
 
@@ -550,7 +550,7 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-leeg` | an empty, locked or reached state that says something useful and offers an action | | |
 | `.ds-zeef`, `.ds-rustig` | surface scope: cream paper, ink text; `.ds-rustig` scopes Rustig drukwerk to one panel (the game sets `html.rustig-drukwerk`) | none | see "Screen-print components" |
 | `.ds-z-knop` | button: yellow primary with ink edge and hard shadow; pressed = shadow gone and the button moved by the offset | none | `--secundair`, `--ghost`, `--gevaar`; hover, `:focus-visible`, `:disabled`, `[aria-disabled]`, `[aria-busy]` |
-| `.ds-z-kaart` | card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
+| `.ds-z-kaart` | card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit`, `--bord` (solid bordgroen with white text: an advice card) |
 | `.ds-z-chip` | status pill: icon or shape plus a word | `__icoon` | `--primair`, `--selectie`, `--probleem`, `--succes`, `--uit` |
 | `.ds-z-tabs`, `.ds-z-tab` | tab pills, the active one filled ink | none | `[aria-selected="true"]` or `--actief`, `:disabled` |
 | `.ds-z-rij` | list row: icon, name with sub line, value | `__naam`, `__sub`, `__waarde` | `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
@@ -558,6 +558,7 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-z-glyph` | one key or button glyph (keyboard, mouse, controller, Steam Deck, touch) on a white plate with ink edge; `data-set` picks the font | none | none |
 | `.ds-z-stempel` | stamp: a tilted print with an edge | none | `--geel`, `--gevaar`, `--in` (drops in within 250 ms; none in Rustig drukwerk) |
 | `.ds-z-bon` | receipt line: name, dotted leader, amount, double rule above the total | `__regel`, `__stippen`, `__bedrag`, `__totaal` | none |
+| `.ds-z-feit` | fact tile: a number with a word under it, paper with an ink edge (benchmark result, summaries); the number is a Barlow figure | `__n`, `__l` | `--probleem` |
 | `.ds-z-leeg` | halftone empty state: raster block with a dashed edge, a word and one action | `__beeld`, `__kop`, `__tekst` | none (Rustig drukwerk: no raster, the dashed edge and the word stay) |
 | `.ds-z-balk` | progress bar: raster track, ink fill, a label with the numbers; set `--ds-z-w` | `__baan`, `__vul`, `__label` | `--tijd` (yellow), `--laag` (red) |
 | `.ds-z-waarde` | plate for HUD values: paper with an ink edge | `__icoon`, `__getal`, `__eenheid` | `--wijzig` (misregistration pulse on change), `--gevaar`, `--weg` (faded out) |
@@ -689,7 +690,7 @@ The hard limit of 250 ms stays for every micro animation (`--ds-m-*`; the releas
 10. **Two surfaces only.** Paper for shop, offers, missions, careers and anything you read and decide; glass for the pause rail, the map layer and the HUD. Do not put a glass card on paper or the reverse without the scope class.
 11. **Checks.** `scripts/release/design_rules.mjs` (`checkDsLine`, `checkDsFiles`) enforces rules 1, 2 and 9 on the two files and the contrast, motion and focus checks in `scripts/ds_tokens_test.mjs`; the rest is review and the checklist below.
 
-Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions.
+Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions. Every new screen passes `node scripts/ds3_dekking_test.mjs` (a ratchet on hard colours, dark glass, old classes, loose fonts and text under 13 px) and `rules_audit` blocks new ones in a diff; a deliberate exception carries a `ds3-uitzondering` comment with its reason (see docs/DESIGN-AUDIT-UI-21-11.md).
 
 ## Panels
 
@@ -725,7 +726,7 @@ Two kinds of colour, and they never mix (#479):
 Before a new screen, panel, card or toast merges, tick all of these (or write why not in the issue):
 
 - [ ] **Tokens.** Only colours, fonts and radii from this page; no new hex, no flat black, no second red, no blue accent. Role colours via `markerColors()` / `--mk-*`.
-- [ ] **Text.** Dutch, from the word list, within the word budget (`hudtext.js`), no sentence under 12 px (menus 13 px and up), checked at 1280x720 and 1280x800 (Deck) and at 4K.
+- [ ] **Text.** Dutch, from the word list, within the word budget (`hudtext.js`), no sentence under 13 px, checked at 1280x720 and 1280x800 (Deck) and at 4K.
 - [ ] **Surface.** A menu uses `.gm` and the `.m-*` set (one primary button, a visible focus, hints at the bottom right); a HUD element has a zone, a priority, a `SURFACES` entry and a `mayShow()` answer and takes no click.
 - [ ] **One cue is never enough.** Shape, pattern, mark or word next to every colour; a caption next to every sound; the key as a token so it follows rebinding and the pad glyph.
 - [ ] **Devices.** Works with keyboard, controller (a `PAD_MAPS` slot) and touch (44 px), and the hint follows the active device. Esc or B always backs out.

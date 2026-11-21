@@ -85,7 +85,7 @@ const CSS = `
 .cs-acties { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
 /* #636: dezelfde lijst ook op aanraking (44 px-knop), zonder muis of Tab */
 /* De hint (geen knop): kleine chip met het Tab-toetsicoon en "Spelers · n"; na een tijd alleen pictogram en aantal. Klikbaar (cs-klik) alleen als de muis vrij is. */
-.cs-hint { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: inline-flex; align-items: center; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); min-height: var(--ds-s-6); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: 1; opacity: .92; pointer-events: none; cursor: default; transition: opacity .6s ease; }
+.cs-hint { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); bottom: max(96px, calc(env(safe-area-inset-bottom, 0px) + 96px)); z-index: 701; display: inline-flex; align-items: center; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); min-height: var(--ds-s-6); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: 1; opacity: .92; pointer-events: none; cursor: default; transition: opacity var(--ds-m-max) ease; }
 /* boven de minimap links: rechtsonder staan de snelheidsmeter, de voertuignaam en de toetshints (uitstappen, E, M) */
 .cs-hint.cs-in-hud { position: absolute; right: auto; left: var(--hud-edge, 14px); bottom: calc(var(--mm-bottom, 14px) + var(--mm-size, 160px) + 8px); }
 .cs-hint.cs-dim { opacity: .55; padding: 0 var(--ds-s-2); }
@@ -101,17 +101,17 @@ const CSS = `
 #coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; box-sizing: border-box; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); pointer-events: none; }
 /* #873: de lijst zelf scrolt (de overlay kapte hem af) en alleen de lijst vangt de muis,
    zodat de rest van het scherm doorklikbaar blijft naar het spel. */
-#coop-spelers .cs-lijst { max-height: calc(100vh - 204px); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; padding-right: var(--ds-s-1); }
+#coop-spelers .cs-lijst { max-height: calc(100vh - 204px); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); padding-right: var(--ds-s-1); }
 #coop-spelers .cs-lijst::-webkit-scrollbar { width: 8px; }
-#coop-spelers .cs-lijst::-webkit-scrollbar-thumb { border-radius: var(--ds-r); background: var(--ds-c-ink-inkt); }
-#coop-spelers .cs-lijst::-webkit-scrollbar-track { background: transparent; }
+#coop-spelers .cs-lijst::-webkit-scrollbar-thumb { background: var(--ds-scroll-duim); border: 2px solid var(--ds-scroll-spoor); border-radius: var(--ds-scroll-rond); }
+#coop-spelers .cs-lijst::-webkit-scrollbar-track { background: var(--ds-scroll-spoor); }
 #coop-spelers h3 { margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
 #coop-spelers .cs-voet { margin-top: var(--ds-s-2); padding-top: var(--ds-s-2); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); }
 #coop-spelers .cs-voet b { padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); background: var(--ds-zeef-bg); }
 #coop-spelers .cs-rij { padding: var(--ds-s-2); grid-template-columns: var(--ds-s-6) minmax(80px, auto) minmax(0, 1fr) auto; }
 #coop-spelers .cs-avatar { width: var(--ds-s-6); height: var(--ds-s-6); }
 #coop-spelers .cs-vorm { font-size: var(--ds-t-body); }
-.pm-spelers { display: flex; flex-direction: column; gap: var(--ds-s-4); max-width: 952px; padding: var(--ds-s-6) var(--ds-s-8) var(--ds-s-7); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-c-ink-inkt) transparent; }
+.pm-spelers { display: flex; flex-direction: column; gap: var(--ds-s-4); max-width: 952px; padding: var(--ds-s-6) var(--ds-s-8) var(--ds-s-7); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 .pm-spelers .cs-kop, .pm-spelers .cs-pvp, .cs-profiel { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
 .pm-spelers .cs-pvp { align-items: flex-start; }
 .pm-spelers .cs-kop-t, .pm-spelers .cs-sectie h4, .cs-profiel h4 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }

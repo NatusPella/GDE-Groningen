@@ -59,6 +59,7 @@ export function verplichtVoor(slot, regel) {
 // Een nieuwe opdracht begint (of een groep die nog loopt komt terug): nodig de gasten uit. Geeft de uitnodigingen [{ slot, verplicht, sec }] terug.
 // De stand van een andere groep die nog loopt, blijft bewaard; dezelfde sleutel houdt zijn antwoorden (#452).
 export function begin(st, sleutel, slots, regel = null, stap = null) {
+  if (!st) return [];
   if (sleutel === st.opdracht) { if (stap !== undefined && stap !== null) st.stap = stap; return []; }
   bewaar(st);
   laad(st, sleutel, stap);
@@ -77,6 +78,7 @@ export function begin(st, sleutel, slots, regel = null, stap = null) {
 // slots krijgen de gewone uitnodiging; de gastheer hoort bij hen (slot 0) als hij in de lijst staat. De keuze en de stand horen
 // bij deze id: een andere groep die nog loopt, houdt de zijne (bewaar/laad).
 export function beginGast(st, sleutel, slots, regel = null, stap = null, starter = 1) {
+  if (!st) return [];
   if (!st || !sleutel || !(starter >= 1)) return [];
   if (sleutel === st.opdracht) { if (stap !== undefined && stap !== null) st.stap = stap; return []; }
   bewaar(st);
@@ -95,7 +97,7 @@ export function beginGast(st, sleutel, slots, regel = null, stap = null, starter
 }
 // Een gast sluit aan terwijl de opdracht al loopt: dezelfde uitnodiging als wie erbij was. Wie al gekozen heeft (opnieuw aangesloten) wordt niet nogmaals gevraagd.
 // mag = false (de opdracht kent geen late instap): de gast wordt toeschouwer en krijgt geen uitnodiging.
-export function laat(st, slot, regel = null, mag = true, id = st.opdracht) {
+export function laat(st, slot, regel = null, mag = true, id = st && st.opdracht) {
   const k0 = standVan(st, id);
   if (!k0 || !(slot >= 1)) return null;
   const k = k0.keuze[slot];
@@ -107,13 +109,14 @@ export function laat(st, slot, regel = null, mag = true, id = st.opdracht) {
   return { slot, verplicht, sec: MEEDOEN_WACHT };
 }
 // Deze opdracht is voorbij. Een andere groep die nog loopt, houdt zijn stand (#452).
-export function einde(st, id = st.opdracht) {
+export function einde(st, id = st && st.opdracht) {
+  if (!st) return; // een gast of een host zonder meedoen-stand: er is niets te sluiten
   if (id && id !== st.opdracht) { delete st.standen[id]; return; }
   st.sinds = 0; st.opdracht = null; st.keuze = {}; st.rest = {}; st.stap = null; st.spoiler = {};
 }
 
 // Het antwoord van een gast; een verplichte rol of een late of onbekende speler verandert niets.
-export function antwoord(st, slot, ja, id = st.opdracht) {
+export function antwoord(st, slot, ja, id = st && st.opdracht) {
   const k0 = standVan(st, id);
   if (!k0 || k0.keuze[slot] !== 'wacht') return false;
   k0.keuze[slot] = ja ? 'ja' : 'nee'; delete k0.rest[slot]; delete k0.spoiler[slot];
@@ -121,7 +124,7 @@ export function antwoord(st, slot, ja, id = st.opdracht) {
 }
 // De gast leest een spoilerwaarschuwing (zijn eigen verhaal is nog niet zover): geen standaard-ja meer, hij moet zelf J zeggen;
 // zonder antwoord valt hij na BEVESTIG_HOST seconden af (nee). Wie bevestigt loopt intussen vrij en krijgt nog geen deel.
-export function bevestig(st, slot, id = st.opdracht) {
+export function bevestig(st, slot, id = st && st.opdracht) {
   const k0 = standVan(st, id);
   if (!k0 || k0.keuze[slot] !== 'wacht') return false;
   k0.spoiler[slot] = true; k0.rest[slot] = BEVESTIG_HOST;
@@ -129,6 +132,7 @@ export function bevestig(st, slot, id = st.opdracht) {
 }
 // Time-out: alleen een spoilerwaarschuwing zonder bevestiging loopt af (nee). Wie gewoon niet antwoordt is toeschouwer en doet nooit vanzelf mee (#452).
 export function tik(st, dt) {
+  if (!st) return [];
   const klaar = [];
   // De lopende opdracht en de groepen die ernaast nog lopen: hun klok en bevestigingstijd lopen door (#452).
   for (const s of [st, ...Object.values(st.standen || {})]) {

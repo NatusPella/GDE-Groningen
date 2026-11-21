@@ -8,7 +8,7 @@ import { toonStartkaart } from './startkaart.js';
 // chip shows the running score anywhere you drift. Not a minigame that takes
 // over the player (the car keeps driving): the activity hub hands it the
 // map icon, the "doen en beleven" list and Ubbo's rows. `window.__drift` debug.
-import { createDrift, stepDrift, driftMedal } from './drift.js';
+import { createDrift, stepDrift, driftMedal, driftVoortgang } from './drift.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, difficultyRecordKey, scaleTarget } from './difficulty.js'; // #800
 import { recordChallengeResult, getChallengeRecord, recordStat, unlockAchievement, MEDALS } from './achievements.js';
@@ -37,6 +37,7 @@ let lastVehicle = null;
 let lastHealth = 100;
 let chip = null;
 let chipKey = '';
+let chipMult = 1;
 let world = null;
 
 function driftEligible(v) {
@@ -45,23 +46,40 @@ function driftEligible(v) {
 
 const zoneAt = (x, y) => DRIFT_ZONES.find((z) => Math.hypot(x - z.x, y - z.y) <= z.r) || null;
 
+// De drift-HUD is een zeefdrukkaart (#1064, DS3): de multiplier als groot cijfer, de score met tabelcijfers, een balkje tot de volgende
+// multiplier en een rand die per niveau zwaarder wordt (klasse dc-niv1 tot 5 in ds-schermen.css). Het DOM blijft staan; alleen de
+// teksten en de breedte van de balk veranderen, zodat de korte pop bij een multiplier-sprong (dc-pop, hooguit 250 ms) niet telkens begint.
 function ensureChip() {
   if (chip || typeof document === 'undefined') return chip;
   chip = document.createElement('div');
   chip.id = 'drift-chip';
+  chip.className = 'ds-z-kaart ds-z-kaart--recht dc-kaart dc-niv1';
   chip.setAttribute('role', 'status');
   chip.hidden = true;
+  chip.innerHTML = '<span class="dc-k ds-z-kaart__titel"></span><span class="dc-rij"><span class="dc-m ds-z-feit"><b class="ds-z-feit__n"></b></span>'
+    + '<b class="dc-p"></b><span class="dc-t"></span></span>'
+    + '<span class="ds-z-balk ds-z-balk--tijd dc-balk" aria-hidden="true"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span></span>';
+  chip.querySelector('.dc-m').addEventListener('animationend', (e) => e.currentTarget.classList.remove('dc-pop'));
   document.body.appendChild(chip);
   return chip;
 }
 
-function showChip(html, key) {
+function showChip(d, key) {
   const c = ensureChip();
   if (!c) return;
   if (key === chipKey) return;
   chipKey = key;
-  if (!html) { c.hidden = true; return; }
-  c.innerHTML = html;
+  if (!d) { c.hidden = true; chipMult = 1; return; }
+  const q = (sel) => c.querySelector(sel);
+  q('.dc-k').textContent = d.titel;
+  q('.dc-m .ds-z-feit__n').textContent = 'x' + d.mult;
+  q('.dc-m').classList.toggle('dc-actief', d.actief);
+  q('.dc-p').textContent = d.pts.toLocaleString('nl-NL');
+  q('.dc-t').textContent = d.links == null ? '' : d.links + ' s';
+  q('.ds-z-balk__vul').style.setProperty('--ds-z-w', Math.round(d.p * 100) + '%');
+  c.className = c.className.replace(/\bdc-niv\d\b/, 'dc-niv' + d.mult);
+  if (d.mult > chipMult && !c.hidden) { const m = q('.dc-m'); m.classList.remove('dc-pop'); void m.offsetWidth; m.classList.add('dc-pop'); }
+  chipMult = d.mult;
   c.hidden = false;
 }
 
@@ -118,7 +136,7 @@ function tick(dt, w) {
   if (!driftEligible(v) || w.paused || !dt) {
     if (run) finalize(w, 'uit');
     if (!v || !driftEligible(v)) { drift.cur = 0; drift.chain = false; drift.active = false; drift.mult = 1; }
-    showChip('', '');
+    showChip(null, '');
     lastVehicle = v || null;
     return;
   }
@@ -145,9 +163,10 @@ function tick(dt, w) {
   if (drift.chain || run) {
     const left = run ? Math.max(0, Math.ceil(MAX_RUN - run.time)) : 0;
     const mult = drift.chain ? drift.mult : 1;
-    const key = `${pts}|${mult}|${left}|${drift.active ? 1 : 0}`;
-    if (key !== chipKey) showChip(`<span class="dc-k">${run ? 'DRIFT · ' + run.zone.name : 'DRIFT'}</span><b class="dc-p">${pts.toLocaleString('nl-NL')}</b><span class="dc-m${drift.active ? ' on' : ''}">x${mult}</span>${run ? `<span class="dc-t">${left}s</span>` : ''}`, key);
-  } else showChip('', '');
+    const vg = driftVoortgang(drift);
+    const key = `${pts}|${mult}|${left}|${drift.active ? 1 : 0}|${Math.round(vg.p * 50)}`;
+    if (key !== chipKey) showChip({ titel: run ? 'Drift · ' + run.zone.name : 'Drift', pts, mult, actief: drift.active, links: run ? left : null, p: vg.p }, key);
+  } else showChip(null, '');
 }
 
 function drawIcon(ctx, s) {

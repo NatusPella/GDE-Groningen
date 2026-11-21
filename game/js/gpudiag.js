@@ -322,19 +322,7 @@ export function currentGpuWarning() {
 
 // --- the dialog: Ctrl+Shift+G and ?gpuinfo=1 ------------------------------------------------
 
-const CSS = `
-#gpudiag { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; background: rgba(4, 8, 6, 0.7); }
-#gpudiag[hidden] { display: none; }
-#gpudiag, #gpudiag * { cursor: default; }
-#gpudiag .gd-box { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-sizing: border-box; background: rgba(8, 14, 10, 0.96); border: 1px solid rgba(63, 201, 122, 0.4); border-radius: 6px; padding: 18px 22px; color: #f0ede4; font: 15px/1.4 'Arial Narrow', Arial, sans-serif; }
-#gpudiag h2 { margin: 0 0 8px; font: 30px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 2px; font-weight: normal; color: #3fc97a; }
-#gpudiag pre { margin: 0 0 12px; overflow: auto; flex: 1; white-space: pre-wrap; font: 13px/1.35 Consolas, monospace; color: #d8d4c8; user-select: text; }
-#gpudiag .gd-row { display: flex; gap: 8px; }
-#gpudiag button { font: 19px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 4px; background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
-#gpudiag button, #gpudiag button * { cursor: pointer; }
-#gpudiag button.primary { background: #1e9e56; color: #0c140e; border-color: #1e9e56; }
-#gpudiag button:hover, #gpudiag button:focus-visible { border-color: #5fe39a; outline: none; box-shadow: 0 0 0 2px #f0ede4; }
-`;
+// De opmaak staat in ds-schermen.css (zeefdruk, designsysteem): een .ds-z-kaart met .ds-z-knop-knoppen.
 
 let dlg = null;
 let vorigeFocus = null;
@@ -359,15 +347,12 @@ let techRun = 0;
 export async function showTechInfo(opts) {
   if (typeof document === 'undefined') return;
   if (!dlg) {
-    const style = document.createElement('style');
-    style.textContent = CSS;
-    document.head.appendChild(style);
     dlg = document.createElement('div');
     dlg.id = 'gpudiag';
     dlg.setAttribute('role', 'dialog');
     dlg.setAttribute('aria-modal', 'true');
     dlg.setAttribute('aria-labelledby', 'gpudiag-t');
-    dlg.innerHTML = '<div class="gd-box"><h2 id="gpudiag-t">Technische info</h2><pre data-gd-text>Meten, een paar seconden…</pre><div class="gd-row"><button type="button" class="primary" data-gd="copy">Kopiëren</button><button type="button" data-gd="close">Sluiten</button></div></div>';
+    dlg.innerHTML = '<div class="gd-box ds-zeef ds-z-kaart ds-z-kaart--recht"><div class="ds-z-kaart__kop"><h2 id="gpudiag-t" class="ds-z-kaart__titel">Technische info</h2></div><pre data-gd-text>Meten, een paar seconden…</pre><div class="gd-row ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-gd="close">Sluiten</button><button type="button" class="ds-z-knop" data-gd="copy">Kopiëren</button></div></div>';
     dlg.addEventListener('click', (e) => {
       const b = e.target.closest('button[data-gd]');
       if (!b) return;

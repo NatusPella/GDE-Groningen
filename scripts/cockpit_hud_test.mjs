@@ -34,7 +34,7 @@ ok(!/#(?!f0ede4|0c140e|fff|ffffff)[0-9a-fA-F]{6}\b/.test(instrHex), 'vliegtuig: 
 const heli = lees('helirun.js');
 ok(!/var\(--mk-[a-z]+, var\(--mk-/.test(heli), 'heli: geen dubbele token-fallback');
 ok(/markerColors\(\)/.test(heli) && /SPOT_COLOR\(\)/.test(heli), 'heli: spotkleur uit de mission-token');
-ok(/var\(--mk-mission/.test(heli) && /var\(--mk-danger/.test(heli), 'heli: status via de tokens');
+ok(/var\(--ds-c-ink-bord\)/.test(heli) && /var\(--ds-c-rood-tx\)/.test(heli), 'heli: status via de tokens');
 
 // Uitleg ≤14 woorden per kaart, 12 px-vloer en keycaps bestaan al in de HUD; reduce-motion voor de heli.
 ok(/prefers-reduced-motion/.test(heli) || /reduce-motion/.test(heli), 'heli: reduce-motion geregeld');

@@ -201,13 +201,15 @@ try {
   const font = checkDesignLine({ file: 'game/js/menu.css', line: 13, text: "  font-family: 'Comic Sans MS', sans-serif;" });
   is(font.map((f) => f.ernst), ['belangrijk'], 'design: onbekend lettertype is belangrijk');
   is(font[0].categorie, 'typografie', 'design: lettertype heeft categorie typografie');
-  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: "  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;" }).length, 0, 'design: vaste fontstack mag');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: "  font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;" }).length, 0, 'design: zeefdruk-lettertype met terugval mag');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: "  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;" }).map((f) => f.ernst), ['belangrijk'], 'design: Bebas Neue voorop is belangrijk (F19)');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: "  font-family: 'Arial Narrow', sans-serif;" }).map((f) => f.ernst), ['belangrijk'], 'design: Arial Narrow voorop is belangrijk (F19)');
   is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: "  font-family: 'Big Shoulders Display';" }).length, 0, 'design: Big Shoulders voor het logo mag');
 
   const klein = checkDesignLine({ file: 'game/js/menu.css', line: 14, text: '  font-size: 9px;' });
   is(klein.map((f) => f.ernst), ['blokkerend'], 'design: 9 px is blokkerend');
-  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '  font-size: 12px;' }).map((f) => f.ernst), ['belangrijk'], 'design: 12 px in een menu is belangrijk');
-  is(checkDesignLine({ file: 'game/js/hud_panel.css', line: 1, text: '  font-size: 12px;' }).length, 0, 'design: 12 px buiten een menu mag');
+  is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '  font-size: 12px;' }).map((f) => f.ernst), ['blokkerend'], 'design: 12 px in een menu is blokkerend (de vloer is 13 px, F19)');
+  is(checkDesignLine({ file: 'game/js/hud_panel.css', line: 1, text: '  font-size: 12px;' }).map((f) => f.ernst), ['blokkerend'], 'design: 12 px in de HUD is ook blokkerend (F19)');
   is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '.m-kc { font-size: 10px; }' }).length, 0, 'design: toetsplaatje-inhoud mag kleiner');
   is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '#foto-ui .foto-lbl { font-size: .78em; }' }).map((f) => f.ernst), ['belangrijk'], 'design: krimpende em zonder vloer is belangrijk');
   is(checkDesignLine({ file: 'game/js/menu.css', line: 1, text: '#foto-ui .foto-lbl { font-size: max(13px, .78em); }' }).length, 0, 'design: max(13px, em) is veilig');

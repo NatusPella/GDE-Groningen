@@ -9,7 +9,7 @@ function subEl() {
   el.setAttribute('aria-live', 'polite');
   Object.assign(el.style, {
     position: 'fixed', left: '50%', bottom: '27vh', transform: 'translateX(-50%)', width: 'min(86vw, 760px)',
-    textAlign: 'center', font: "clamp(15px, 1.5vw, 20px) 'Arial Narrow', Arial, sans-serif", color: '#fff',
+    textAlign: 'center', font: "clamp(15px, 1.5vw, 20px) var(--ds-font-tekst)", color: '#fff',
     letterSpacing: '0.3px', textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.6)', pointerEvents: 'none',
     opacity: '0', transition: 'opacity 0.25s', zIndex: '40',
   });

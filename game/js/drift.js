@@ -79,3 +79,13 @@ export function slipAngle(angle, speed, driftX, driftY) {
   if (fwd < 1) return 0;
   return Math.atan2(lat, fwd);
 }
+
+// Voortgang naar de volgende multiplier voor de drift-HUD (een balkje): de multiplier stijgt per DRIFT.step seconden driften en per
+// richtingswissel (flips). p loopt 0..1 over de tijd tot de volgende tijdstap en is 1 op het maximum.
+export function driftVoortgang(d, cfg = DRIFT) {
+  const mult = d && d.chain ? Math.max(1, Math.min(cfg.maxMult, d.mult || 1)) : 1;
+  if (mult >= cfg.maxMult) return { mult, max: true, p: 1 };
+  const t = d && d.chain && Number.isFinite(d.t) ? d.t : 0;
+  const p = Math.max(0, Math.min(1, (t % cfg.step) / cfg.step));
+  return { mult, max: false, p };
+}

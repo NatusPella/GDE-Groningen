@@ -58,7 +58,7 @@ ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95,\s*180,\s*217/.test(kaartactie), 'kaartact
 
 // De TV-overlay (#803): eigen --fm-*-tokens in de inline stijl, zodat er geen losse hexen meer staan.
 const tv = read('furniture.js');
-ok(/--fm-green:\s*#3fc97a/.test(tv) && /--fm-ink:\s*#f0ede4/.test(tv) && /--fm-amber:\s*#e8c93a/.test(tv), 'TV-overlay: eigen --fm-*-tokens');
+ok(/--fm-green:\s*(?:#3fc97a|var\(--ds-c-licht-groen\))/.test(tv) && /--fm-ink:\s*(?:#f0ede4|var\(--ds-c-creme\))/.test(tv) && /--fm-amber:\s*(?:#e8c93a|var\(--ds-c-ink-geel\))/.test(tv), 'TV-overlay: eigen --fm-*-tokens');
 ok(/border:2px solid var\(--fm-green\)/.test(tv) && /color:var\(--fm-ink\)/.test(tv) && /color:var\(--fm-amber\)/.test(tv), 'TV-overlay: kleuren via de tokens');
 
 // #809: pingkleuren volgen de marker-/kleurenblindpaletten en de controllerfocus is crème.
@@ -81,7 +81,7 @@ ok(!/#ff9a3c|#ffd23f|#5dff7a/.test(golf.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{
 const padel = read('padel.js');
 ok(/const ACCENT = mgThema\('padel'\)\.accent/.test(padel), 'padel.js: het accent komt uit de accenttabel');
 ok(!/#3aa6e8|#ffd23f|#5dff7a/.test(padel.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()')), 'padel.js: geen eigen blauw of losse statushexen in de HUD');
-ok(/var\(--mk-mission/.test(padel) && /GP = gouden punt/.test(padel), 'padel.js: de puntstand is een token en GP heeft uitleg');
+ok(/pb-teams i \{[^}]*var\(--ds-c-ink-bord\)/.test(padel) && /GP = gouden punt/.test(padel), 'padel.js: de puntstand is een token en GP heeft uitleg');
 
 
 // De machinist (#625): de cabine gebruikt de tokens (geen eigen blauw/rood), en de knipperende
@@ -107,7 +107,7 @@ for (const f of ['helirun.js', 'heliflight.js', 'busbestuurhud.js', 'busboard3d.
 // goud uit de mission-token (per kleurenblindmodus) en de rolchip is 44 px op touch.
 const heistCss = read('heist.css');
 ok(!/Segoe Print|Bradley Hand|Comic Sans|#f2c14e/.test(heistCss), 'heist.css: geen handgeschreven font of eigen goud');
-ok(/font-family: 'Arial Narrow', Arial, sans-serif; font-style: italic;/.test(heistCss), 'heist.css: de notitie is cursief Arial Narrow');
+ok(/font-family: (?:'Arial Narrow', Arial, sans-serif|var\(--ds-font-tekst\)); font-style: italic;/.test(heistCss), 'heist.css: de notitie is cursief Arial Narrow');
 const heistUi = read('heistui.js');
 ok(/GOLD = \(\) => markerColors\(\)\.mission/.test(heistUi), 'heistui.js: het goud komt uit de mission-token');
 ok(!/Segoe Print|Bradley Hand|Comic Sans|system-ui/.test(heistUi), 'heistui.js: geen handgeschreven font of system-ui meer');
@@ -244,7 +244,7 @@ ok(/const ACCENT = mgThema\('carbid'\)\.accent/.test(carbidSrc) && /createBoard\
   'carbid: één bord en accent uit MG_THEMA, geen eigen bord-CSS meer');
 ok(!/\[W\] \[S\]|\[A\] \[D\]/.test(kermisSrc + carbidSrc), 'kermis en carbid: geen brackettekst meer in de kaarten');
 ok(strayHexes('pigeonmode.js').length === 0 && /const thema = mgThema\('duivenmelker'\)/.test(pigeonSrc), 'duif: geen losse hex, titel en accent uit MG_THEMA');
-ok(/font: 12px\/18px/.test(pigeonSrc) && /prefers-reduced-motion/.test(pigeonSrc) && /class="hud-key"/.test(pigeonSrc), 'duif: chips 12 px, keycaps via .hud-key en reduce-motion');
+ok(/font: 13px\/18px/.test(pigeonSrc) && /prefers-reduced-motion/.test(pigeonSrc) && /class="hud-key"/.test(pigeonSrc), 'duif: chips 13 px, keycaps via .hud-key en reduce-motion');
 
 // De kaart en de minikaart (20-11): de kleuren van de gebiedstoestanden komen uit kaartkleuren.js (ds-tokens), geen eigen hex in het tekenen of de toestandsregels.
 for (const f of ['gebiedenkaart.js', 'gebiedtoestand.js']) { const s = strayHexes(f); ok(s.length === 0, f + ': kleuren buiten de ds-tokens: ' + (s.join(', ') || 'geen')); }

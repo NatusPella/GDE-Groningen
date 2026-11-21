@@ -8,6 +8,7 @@
 //  - markt: de Vismarkt is elke dag marktdag, dus de Fjord Frituur is er drukker (pg_foodtruck.js).
 // De regels zijn puur; alleen `koopBeleid` en `laad`/`bewaar` raken opslag of geld aan, met een opslag-
 // parameter zodat de tests geen echte localStorage nodig hebben.
+import { icoon } from './icons.js';
 import { KEYS } from './storagekeys.js';
 import { betaal } from './economy.js';
 import { euro } from './geldtekst.js';
@@ -77,9 +78,9 @@ const heel = (n) => Math.max(0, Math.floor(Number(n) || 0));
 // geld een probleemkaart met de oplossing. De opmaak staat hier, naast de tekst die ze beschrijft; de
 // tokens en bouwstenen komen uit ds-tokens.css en ds-components.css (.ds-z-*).
 const ICOON = {
-  ok: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>',
-  nee: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z"/></svg>',
-  kan: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5l10 5.5-10 5.5z"/></svg>',
+  ok: icoon('vinkje', { cls: 'ds-z-chip__icoon' }),
+  nee: icoon('waarschuwing', { cls: 'ds-z-chip__icoon' }),
+  kan: icoon('afspelen', { cls: 'ds-z-chip__icoon' }),
 };
 const BELEID_CSS = `
 .bw-beleid { margin: var(--ds-s-3) 0 var(--ds-s-1); display: flex; flex-direction: column; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); }

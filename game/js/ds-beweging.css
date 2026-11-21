@@ -1,0 +1,21 @@
+/* Eén bron voor "Beweging beperken" (F1 uit de ds3-review, #1064). De instelling in het spel zet alleen html.reduce-motion
+   (motion.js; de OS-instelling zet dezelfde klasse), maar CSS-bestanden die alleen @media (prefers-reduced-motion) kenden
+   volgden de schakelaar niet. Deze regel geldt voor alle UI, ook voor stijlen die JS inspuit: geen lus (een animatie speelt
+   hooguit één keer), geen vertraging, een transitie van 0,01 ms. Een eenmalige verblijfsanimatie (kaarttimer, plaatsnaam)
+   loopt door en heeft een eigen regel in zijn bestand. Beide takken staan hier, zodat ds3_ratel_test ze samen kan toetsen. */
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

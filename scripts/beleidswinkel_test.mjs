@@ -170,7 +170,7 @@ t('bij te weinig geld wijst de oplossing naar een maatregel die je wel kunt beta
 t('elke status heeft een pictogram en een woord, niet alleen kleur', () => {
   resetBeleidVoorTest(mem());
   const html = beleidPaneelHtml(260);
-  for (const woord of ['Kan nu', 'Te duur']) assert.match(html, new RegExp(`<svg class="ds-z-chip__icoon"[^>]*>.*?</svg>${woord}`));
+  for (const woord of ['Kan nu', 'Te duur']) assert.match(html, new RegExp(`<svg class="(?:ic )?ds-z-chip__icoon"[^>]*>.*?</svg>${woord}`));
 });
 
 console.log(`${n - fails}/${n} ok`);

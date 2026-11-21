@@ -1,3 +1,4 @@
+import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
 import { guestRetryDue, GUEST_RETRY_MS } from './guestsave.js';
 import { getMissionProgress, setMissionProgress, getMissionDefs } from './missions.js';
@@ -676,7 +677,7 @@ export function loadBootSave(w = world) {
   return true;
 }
 
-const DISK_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5 9-10"/></svg>';
+const DISK_SVG = icoon('opslaan', { maat: 18 }); // F6: Phosphor via icons.js
 
 function showToast() {
   if (!toastEl) return;
@@ -711,7 +712,7 @@ function markSaveBroken(reason) {
     world.addMessage(`Opslaan lukt niet: ${reason}. Maak ruimte vrij in je browseropslag.`, 8, { key: 'save-broken', exact: true });
   }
 }
-const BROKEN_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 8v5M12 16.5v.5"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 3.6 21 20H3z"/></svg>';
+const BROKEN_SVG = icoon('waarschuwing', { maat: 18 }); // F6: Phosphor via icons.js
 
 export function initSaveGame(w) {
   world = w;

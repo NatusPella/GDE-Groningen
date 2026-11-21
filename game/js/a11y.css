@@ -3,11 +3,11 @@
 /* --- controller glyphs ---------------------------------------------------- */
 /* A controller glyph is drawn as the same white keycap as a keyboard key (DESIGN_SYSTEM.md, .hud-key in
    hud_panel.css, .m-kc in menu.css), so a hint looks the same on a keyboard and on a controller. */
-:root { --keycap-bg: #fbfaf5; --keycap-ink: #0c140e; --keycap-edge: #a9a69b; --keycap-line: rgba(0, 0, 0, 0.18); }
+:root { --keycap-bg: var(--ds-c-toets-vlak); --keycap-ink: var(--ds-c-glas); --keycap-edge: var(--ds-c-toets-rand); --keycap-line: color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); }
 .pad-g {
   display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
   min-width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); height: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0 0.4em; vertical-align: calc(var(--ds-kc-lift) * 1em);
-  font: bold max(calc(var(--ds-kc-letter) * 1em), var(--ds-kc-letter-min))/1 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-transform: none;
+  font: bold max(calc(var(--ds-kc-letter) * 1em), var(--ds-kc-letter-min))/1 var(--ds-font-tekst); letter-spacing: 0.3px; text-transform: none;
   color: var(--keycap-ink); background: var(--keycap-bg); border: 0; border-radius: 5px;
   box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line);
   text-shadow: none;
@@ -15,8 +15,8 @@
 .pad-face { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0; border-radius: 50%; }
 .pad-face svg { width: 0.9em; height: 0.9em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
 .pad-sh { border-radius: 7px 7px 4px 4px; }
-.pad-stick { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0; border-radius: 50%; box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 3px rgba(12, 20, 14, 0.14); }
-.pad-stick.press { box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 2px rgba(12, 20, 14, 0.5); width: auto; min-width: 1.25em; border-radius: 0.7em; padding: 0 0.3em; }
+.pad-stick { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0; border-radius: 50%; box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 3px color-mix(in srgb, var(--ds-c-glas) 14%, transparent); }
+.pad-stick.press { box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 2px color-mix(in srgb, var(--ds-c-glas) 50%, transparent); width: auto; min-width: 1.25em; border-radius: 0.7em; padding: 0 0.3em; }
 .pad-dp { min-width: 0; padding: 0; background: none; border: 0; box-shadow: none; }
 .pad-dpad { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); height: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); filter: drop-shadow(0 2px 0 var(--keycap-edge)); }
 .pad-dpad .pd-base { fill: var(--keycap-bg); stroke: var(--keycap-line); stroke-width: 1; }
@@ -41,7 +41,7 @@ html.pad-active #pause-menu [data-panel="map"] canvas:focus { outline: none !imp
 /* the map: A sets a goal under the crosshair in the middle */
 .map-pad-reticle { display: none; position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; pointer-events: none; z-index: 3; }
 html.pad-active .map-pad-reticle { display: block; }
-.map-pad-reticle svg { width: 100%; height: 100%; color: #f0ede4; fill: none; stroke: #f0ede4; stroke-width: 2; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9)); }
+.map-pad-reticle svg { width: 100%; height: 100%; color: var(--ds-c-creme); fill: none; stroke: var(--ds-c-creme); stroke-width: 2; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent)); }
 
 /* --- subtitle size (Instellingen > Toegankelijk) ---------------------------- */
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #cine .cine-sub { font-size: calc(clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))) * var(--sub-scale, 1)); }
@@ -53,7 +53,7 @@ html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-sub { font-size: calc(
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-speaker { font-size: calc(14px * var(--sub-scale, 1)); }
 /* the phone card is narrow: its bubbles grow less */
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble { font-size: calc(14px * min(var(--sub-scale, 1), 1.25)); }
-html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble .nl-sub { font-size: calc(12px * min(var(--sub-scale, 1), 1.25)); }
+html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble .nl-sub { font-size: calc(13px * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-name { font-size: calc(clamp(44px, 7vw, 96px) * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-line { font-size: calc(clamp(16px, 1.6vw, 22px) * var(--sub-scale, 1)); max-width: calc(36ch * 1); }
 /* bigger lines need the width: keep them inside the screen */
@@ -81,7 +81,7 @@ html.sub-uit #hud .sc-bubble, html.sub-uit #hud .pf-callcard { display: none !im
 
 /* --- colour-blind palettes: HUD states -------------------------------------- */
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.low .hud-bar-fill.health {
-  background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, rgba(12, 20, 14, 0.85) 5px 8px);
+  background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, color-mix(in srgb, var(--ds-c-glas) 85%, transparent) 5px 8px);
 }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.low :is(svg) { fill: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.low b { color: var(--mk-danger); }
@@ -89,28 +89,28 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.low b:
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-portrait.low { border-color: var(--mk-danger); border-style: dashed; }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-bar-fill.health { background: var(--mk-ok); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-money-delta[data-sign="min"] { color: var(--mk-danger); }
-html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.hurt .sp-bar i { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 4px, rgba(12, 20, 14, 0.85) 4px 6px); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.hurt .sp-bar i { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 4px, color-mix(in srgb, var(--ds-c-glas) 85%, transparent) 4px 6px); }
 
 /* --- Besturing: rebinding rows (pausemenu.js) -------------------------------- */
 #pause-menu .pm-bind { grid-template-columns: minmax(0, 1fr) auto; }
 #pause-menu .pm-bindbtn { min-width: 92px; justify-content: center; }
 #pause-menu .pm-bindbtn .hud-key { min-width: 30px; height: 26px; padding: 0 8px; font-size: 14px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
 #pause-menu .pm-bindbtn.pm-changed { border-color: var(--pm-acc, #3fc97a); }
-#pause-menu .pm-bindbtn.pm-waiting { color: #0c140e; background: linear-gradient(180deg, #3fc97a, #1e9e56); }
+#pause-menu .pm-bindbtn.pm-waiting { color: var(--ds-c-glas); background: var(--ds-c-licht-groen); }
 #pause-menu .pm-bindmsg:empty { display: none; }
 .pm-pad-g { display: inline; margin: 0 0.05em; white-space: nowrap; }
 
 /* round 2: the revs and the damage meter read by shape too, not by colour alone */
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.redline .rpm-fill { stroke: var(--mk-danger); stroke-dasharray: 6 4; }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: var(--mk-ok); }
-html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh.hurt .hud-bar-fill.vehicle { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, rgba(12, 20, 14, 0.85) 5px 8px); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh.hurt .hud-bar-fill.vehicle { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, color-mix(in srgb, var(--ds-c-glas) 85%, transparent) 5px 8px); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-search > i > i { background: var(--mk-danger); }
 /* round 2: the remaining red accents follow the palette, and a low race time carries a mark */
-html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--mk-danger), 0 14px 32px rgba(0, 0, 0, 0.5); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--mk-danger), 0 14px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .gps-timer b { color: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b { color: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b::before { content: '! '; }
-html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-wanted svg.on { fill: var(--mk-mission); stroke: #f0ede4; stroke-width: 1.4; }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-wanted svg.on { fill: var(--mk-mission); stroke: var(--ds-c-creme); stroke-width: 1.4; }
 
 /* --- subtitle contrast "Hoog" (a11ylogic.js subtitleStyle): white on a nearly opaque dark box, heavier letters --- */
 html.subc-hoog :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
@@ -135,19 +135,19 @@ html.reduce-flash :is(#hud .hud-wanted.searching svg.on, #hud .stunt-hud .sh-lef
 #pause-menu .pm-hline { margin: 4px 0; line-height: 1.5; }
 
 /* the Oefenen button in Hulp reads as a button */
-#pause-menu .pm-help .m-bt { margin-top: 8px; padding: 8px 20px; border-radius: 8px; background: rgba(63, 201, 122, 0.18); box-shadow: inset 0 0 0 1.5px var(--g); color: var(--g); cursor: pointer; }
+#pause-menu .pm-help .m-bt { margin-top: 8px; padding: 8px 20px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent); box-shadow: inset 0 0 0 1.5px var(--g); color: var(--g); cursor: pointer; }
 
 /* schermtoetsenbord voor de controller (padkeyboard.js, #151) */
 #padkeyboard { position: fixed; inset: auto 0 0 0; z-index: 99998; display: flex; justify-content: center; padding: 12px; pointer-events: none; }
-#padkeyboard .pk-box { pointer-events: auto; width: min(760px, 96vw); padding: 12px; border-radius: 14px; background: #17201a; border: 1px solid #3a4a3e; color: #f0ede4; font: 16px 'Arial Narrow', Arial, sans-serif; box-shadow: 0 8px 32px rgba(0, 0, 0, .5); }
-#padkeyboard .pk-val { min-height: 1.6em; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: #0e1510; font-size: 20px; word-break: break-all; }
+#padkeyboard .pk-box { pointer-events: auto; width: min(760px, 96vw); padding: 12px; border-radius: 14px; background: var(--ds-c-glas-2); border: 1px solid var(--ds-c-glas-3); color: var(--ds-c-creme); font: 16px var(--ds-font-tekst); box-shadow: 0 8px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
+#padkeyboard .pk-val { min-height: 1.6em; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: var(--ds-c-glas); font-size: 20px; word-break: break-all; }
 #padkeyboard .pk-row { display: flex; gap: 6px; margin-bottom: 6px; justify-content: center; }
-#padkeyboard button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 8px; border: 1px solid #3a4a3e; background: #223026; color: inherit; font: inherit; cursor: pointer; }
+#padkeyboard button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 8px; border: 1px solid var(--ds-c-glas-3); background: var(--ds-c-glas-3); color: inherit; font: inherit; cursor: pointer; }
 #padkeyboard button.act { flex: 1.6 1 0; }
 #padkeyboard button.space { flex: 4 1 0; }
-#padkeyboard button.on { outline: 3px solid #f2c230; background: #34503c; }
-#padkeyboard button.shift-on { background: #f2c230; color: #17201a; }
-#padkeyboard .pk-help { margin: 6px 0 0; font-size: 12px; opacity: .7; text-align: center; }
+#padkeyboard button.on { outline: 3px solid var(--ds-c-ink-geel); background: var(--ds-c-glas-3); }
+#padkeyboard button.shift-on { background: var(--ds-c-ink-geel); color: var(--ds-c-glas-2); }
+#padkeyboard .pk-help { margin: 6px 0 0; font-size: 13px; opacity: .7; text-align: center; }
 
 /* geluidsondertitels (soundcaptions.js, #200) */
 #sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none; }
@@ -160,10 +160,10 @@ html.dev-pad, html.dev-pad * { cursor: none !important; }
 /* The glyph draws its own key outline: no extra plate, edge or shadow around it, so the border is not doubled and the glyph does not disappear inside it. */
 /* Controller glyphs from the glyph font (inputglyphs.js, game/fonts/input): the outline glyph on the white keycap, same size as the cap it replaces. */
 html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; background: transparent; box-shadow: none; border: 0; color: inherit; border-radius: 0.2em; font-weight: normal; }
-html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), 'Arial Narrow', Arial, sans-serif !important; }
-html .pad-g.pad-kn[data-set="xbox"] { font-family: var(--ds-font-knoppen-a, 'GDE Knoppen A'), 'Arial Narrow', Arial, sans-serif !important; }
-html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE Knoppen B'), 'Arial Narrow', Arial, sans-serif !important; }
-html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), 'Arial Narrow', Arial, sans-serif !important; }
+html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), var(--ds-font-tekst) !important; }
+html .pad-g.pad-kn[data-set="xbox"] { font-family: var(--ds-font-knoppen-a, 'GDE Knoppen A'), var(--ds-font-tekst) !important; }
+html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE Knoppen B'), var(--ds-font-tekst) !important; }
+html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), var(--ds-font-tekst) !important; }
 html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
 
 /* #985: op een laag venster hangen de ondertitels boven de locatiekaart (F-kolom), niet erin; het toetsglyph in het stopvenster is 28 px */

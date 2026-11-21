@@ -17,7 +17,7 @@ function css() {
   const st = document.createElement('style');
   st.textContent = `
 #story-dev{position:fixed;top:12px;right:12px;z-index:60;font:13px/1.35 system-ui,sans-serif;color:#eee}
-#story-dev .sd-badge{background:#b8322a;color:#fff;border-radius:6px;padding:3px 8px;font-weight:700;cursor:pointer;float:right}
+#story-dev .sd-badge{background:#b8322a;color:var(--ds-c-wit);border-radius:6px;padding:3px 8px;font-weight:700;cursor:pointer;float:right}
 #story-dev .sd-panel{clear:both;margin-top:6px;width:320px;background:rgba(14,16,20,.94);border:1px solid #444;border-radius:10px;padding:10px;display:none}
 #story-dev.open .sd-panel{display:block}
 #story-dev select,#story-dev button{font:inherit;background:#23262d;color:#eee;border:1px solid #555;border-radius:6px;padding:4px 7px;margin:2px 0;cursor:pointer}

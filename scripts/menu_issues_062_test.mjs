@@ -224,7 +224,10 @@ const html = leesHtml();
   const pos = kleur(/#pause-menu \.pm-sheet-pos \{[^}]*color: ([^;]+);/);
   ok(railH === 'var(--mut)' && pos === 'var(--mut)', 'review: de navigatielabels gebruiken de leesbare mut-token', `${railH}|${pos}`);
   // de token echt doorrekenen op de donkerste en de lichtste menukaart
-  const m = menuCss.match(/--mut: rgba\(([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\)/);
+  let m = menuCss.match(/--mut: rgba\(([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\)/);
+  // sinds 21-11 een token: color-mix(in srgb, var(--ds-c-creme) 68%, transparent); crème is 240,237,228
+  const mix0 = menuCss.match(/--mut: color-mix\(in srgb, var\(--ds-c-creme\) ([\d.]+)%, transparent\)/);
+  if (!m && mix0) m = [null, 240, 237, 228, Number(mix0[1]) / 100];
   ok(!!m, 'review: --mut is een rgba-token');
   if (m) {
     const [r, g, b, a] = m.slice(1).map(Number);

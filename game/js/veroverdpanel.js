@@ -4,6 +4,7 @@
 // #906: de kop is een hero met de stand, daaronder de eerstvolgende taken als kaarten, de uitleg
 // met de echte aantallen en pas dan de lijst met provincies en gebieden. Kop, stand, taken en
 // uitleg zitten samen in één scrolvlak, zodat de taken altijd in beeld beginnen.
+import { icoon } from './icons.js';
 import { gebiedenHtml, kiesGebied, reisNaar, volgendeTaken, soortenStand, GEBIEDEN_CSS } from './gebiedenui.js';
 import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
@@ -36,8 +37,8 @@ const CSS = `${GEBIEDEN_CSS}
 .vo-beleidtab { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 0 24px 28px; }
 .vo-beleidtab .bw-beleid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); align-items: start; margin-top: 0; }
 .vo-beleidtab .bw-beleid > :not(.bw-rij) { grid-column: 1 / -1; }
-.vo-gebieden::-webkit-scrollbar, .vo-beleidtab::-webkit-scrollbar { width: 8px; }
-.vo-gebieden::-webkit-scrollbar-thumb, .vo-beleidtab::-webkit-scrollbar-thumb { border-radius: 4px; background: color-mix(in srgb, var(--ink) 18%, transparent); }
+.vo-gebieden::-webkit-scrollbar, .vo-beleidtab::-webkit-scrollbar { width: var(--ds-scroll-breed); height: var(--ds-scroll-breed); }
+.vo-gebieden::-webkit-scrollbar-thumb, .vo-beleidtab::-webkit-scrollbar-thumb { background: var(--ds-scroll-duim); border: 2px solid var(--ds-scroll-spoor); border-radius: var(--ds-scroll-rond); }
 .vo-top { flex: none; padding-top: 0; }
 .vo-top .pm-hero { flex: none; }
 .vo-hero { margin: 0 24px 16px; }
@@ -82,7 +83,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 
 // #906: één taak als kaart: het gebied en de soort boven, de taaknaam, de afstand vanaf hier en
 // één knop die het als doel op de kaart zet. Alleen wat volgendeTaken() al geeft, geen nieuwe data.
-const PIN = '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1a5 5 0 0 0-5 5c0 3.6 5 9 5 9s5-5.4 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>';
+const PIN = icoon('plek', { cls: 'ds-z-chip__icoon' }); // F6: Phosphor via icons.js
 function taakKaart(t, world, eerste) {
   const p = world ? hoofdspeler(world) : null;
   const af = p && Number.isFinite(t.x) && Number.isFinite(t.y) ? formatDistance(Math.hypot(t.x - p.x, t.y - p.y)) : '';
