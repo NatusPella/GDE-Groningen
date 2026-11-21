@@ -290,7 +290,7 @@ export default {
     const sched = diff > 1 ? `${fmtClock(diff)} te laat` : `gepland over ${fmtClock(-diff)}`;
     if (d.hold != null) {
       return {
-        marker: { x: stop.x, y: stop.y },
+        marker: { x: stop.x, y: stop.y, strict: true },
         progress: `Voor op schema · vertrek over ${Math.max(1, Math.ceil(d.hold))} s`,
         // het kopje zegt "volgende halte" en niet "tips": dit is de halte waar je heen rijdt (#502)
         goal: { label: `Volgende halte: ${stop.name}`, desc: 'Wacht tot de dienstregeling je laat gaan; de aftelling staat eronder' },
@@ -302,7 +302,7 @@ export default {
       if (d.next + k <= n) dots.push({ x: s.x, y: s.y, h: 3, label: `Halte ${s.name}` });
     }
     return {
-      marker: { x: stop.x, y: stop.y },
+      marker: { x: stop.x, y: stop.y, strict: true },
       dots,
       // de haltenaam staat in het kopje (goal.label), dus de regel eronder telt alleen de halten en de tijd:
       // geen tweede keer dezelfde naam over dezelfde regel (#502)

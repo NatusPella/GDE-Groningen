@@ -26,7 +26,7 @@ if (stops.length !== STOPS.length) {
 }
 
 function route(from, to) {
-  const world = { map, time: 0, health: 100, player: { x: from.x, y: from.y, inVehicle: { isBike: false, isBoat: false } }, storyGuide: { x: to.x, y: to.y, name: 'halte', step: 'bus' }, addMessage: () => {} };
+  const world = { map, time: 0, health: 100, player: { x: from.x, y: from.y, inVehicle: { isBike: false, isBoat: false } }, sideJob: { active: true, label: 'halte', marker: bus.default.view({ data: { stops: [{ ...to, name: "halte" }], due: [0], dueEnd: 0, next: 0, clock: 0 } }).marker }, addMessage: () => {} };
   R.updateRouting(0.1, world);
   const r = R.getActiveRoute();
   return r && r.pts.length > 1 ? r : null;
