@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **De straat en plaats naast de minikaart staan onderin en gaan alleen omhoog als er iets onder komt (#1079):** zolang het blok met je meters eronder verborgen is, zakt de locatiekaart naar de onderkant, gelijk met de minikaart; komt er iets onder (je meters, een ondertitel), dan gaat hij precies zoveel omhoog, met een korte glijbeweging (uit bij Rustig drukwerk en Beweging beperken). Een item dat maar even zichtbaar is laat de kaart niet bewegen.
+- **Geen "0/5" meer op de minikaart (#1079):** de politiechip toont het schild met het aantal eenheden alleen als er politie in beeld is, en de ster met "n/5" alleen vanaf één ster; zonder politie en zonder sterren verdwijnt de chip. Ook de uitleg leest geen "0 van 5 sterren" meer voor.
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.
