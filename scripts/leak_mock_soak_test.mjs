@@ -55,6 +55,27 @@ ok(last.geo <= warm.geo + 200, 'de geometrieteller blijft begrensd (de LRU van d
 ok(end.geo <= 400, 'na het vrijgeven van alle voertuigen blijft alleen de cache over', String(end.geo));
 ok(last.mat <= warm.mat + 120, 'materialen blijven begrensd', `${warm.mat} naar ${last.mat}`);
 
+
+// --- personen: een wedstrijd (padel, Fierljep-duel) bouwt vier personen met een racket en geeft ze terug via disposeObject (#1065) ---
+{
+  const { buildPersonMesh } = await import('../game/js/models3d_people.js');
+  const base = geoAlive.size;
+  const rows2 = [];
+  for (let i = 0; i < 400; i++) {
+    const grp = [];
+    for (let k = 0; k < 4; k++) {
+      const m = buildPersonMesh(0x3355aa + (i % 7) * 0x111111, 0xd9b48f, { seed: i * 4 + k });
+      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.045, 8), new THREE.MeshLambertMaterial({ color: 1 })); // het racket
+      m.add(r);
+      m.traverse((o) => { if (o.geometry) geoAlive.add(o.geometry); });
+      grp.push(m);
+    }
+    for (const m of grp) disposeObject(m);
+    if (i % 100 === 99) rows2.push(geoAlive.size);
+  }
+  console.log('personen: geometrieen na 100/200/300/400 wedstrijden van 4:', rows2.join(' '), 'begin', base);
+  ok(rows2[3] <= rows2[0] + 60, 'vier personen per wedstrijd: de geometrieteller blijft begrensd (persoonsgeometrie via de LRU, racket weg)', rows2.join());
+}
 if (process.argv.includes('--dump')) {
   const by = new Map();
   for (const g of geoAlive) { const k = `${Object.keys(g.userData || {}).join('+') || '-'} pos${g.attributes.position ? g.attributes.position.count : 0} idx${g.index ? 1 : 0}`; by.set(k, (by.get(k) || 0) + 1); }

@@ -1,5 +1,5 @@
 import { hoofdspeler } from './players.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { poleVault, findVaultSpot } from './fierljep.js';
 import { JELLE_LOOK } from './storycast.js';
@@ -149,7 +149,7 @@ export const FIERLJEP = {
     w.challengeHoldPlayer = false;
     stopCameraTake('pg-aim'); // (#728) camerastand, geen scène
     if (d.vault) d.vault.dispose();
-    for (const m of [d.me, d.jl]) if (m) m.removeFromParent();
+    for (const m of [d.me, d.jl]) if (m) { m.removeFromParent(); disposeObject(m); } // #1065: skelet, bottextuur en persoonsteller terug
     const s = d.s;
     if (s) { if (w.player.water) w.player.leaveWater(); w.player.x = s.runup.x; w.player.y = s.runup.y; w.player.angle = d.yaw; }
   },
