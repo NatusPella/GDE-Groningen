@@ -15,6 +15,7 @@ import { noteMoney } from './finance.js';
 import { hoofdspeler } from './players.js';
 import { regionName } from './bezitnews.js';
 import { MOBILE_SPOTS } from './business.js';
+import { renderSnackPanel } from './snackui.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
@@ -116,12 +117,12 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
     `<h3 class="m-h3">Jouw bedrijven</h3>${mineHtml}${mobileHtml(mobile, mobileOffers, money, day)}<h3 class="m-h3">In de buurt</h3>${nearHtml}${homesHtml(homes, money)}<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
 }
 
-// ---- de frietwagen (business.js, mobiel bedrijf): kopen, standplaats kiezen, verkopen ----
+// ---- de snackwagen (id frietwagen; business.js, mobiel bedrijf): kopen, standplaats kiezen, verkopen ----
 export function mobileHtml(mobile = [], offers = [], money = 0, day = 0) {
   const own = mobile.map((m) => `<div class="bd-rij" data-mobile="${esc(m.id)}"><span class="bd-naam"><b>${esc(m.def.label)}</b><span class="bd-feiten"><span>${esc(m.spotLabel)}</span><span>onderhoud ${Math.round(m.biz.q)}%</span><span>waarde ${euro(m.value)}</span>${m.forecast ? `<span>ongeveer ${euro(m.forecast.revenue)} omzet per dag</span>` : ''}</span><small class="mut">${esc(m.def.story)}</small></span>` +
     `<span class="bd-acties">${Object.keys(MOBILE_SPOTS).map((k) => btn('plek', esc(MOBILE_SPOTS[k].label), ` data-id="${esc(m.id)}" data-spot="${esc(k)}"`, k === m.spot)).join(' ')} ${btn('reno-mobiel', 'Renovatie', ` data-id="${esc(m.id)}"`)} ${askOr('verkoop-mobiel', m.id, `Verkoop ${euro(Math.round((m.biz.p * 0.75) / 5) * 5)}`, 'Zeker?')}</span></div>`).join('');
   const shop = offers.map((o) => `<div class="bd-rij" data-offer="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.label)} te koop</b><span class="bd-feiten"><span>${euro(o.price)}</span><span>geen pand nodig: je kiest zelf de standplaats</span></span><small class="mut">${esc(o.story)}</small></span><span class="bd-acties">${askOr('koop-mobiel', o.id, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price)}</span></div>`).join('');
-  return `<h3 class="m-h3">Frietwagen</h3>${own}${shop}`;
+  return `<h3 class="m-h3">Snackwagen</h3>${own}${shop}`;
 }
 
 // ---- woningen in de buurt (housing.js): kopen, verhuren (automatisch) en verkopen ----
@@ -158,6 +159,7 @@ export function renderBezitPanels(els, world) {
   if (els.overzicht) els.overzicht.innerHTML = overviewHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
   if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
   if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world) });
+  if (els.snack) renderSnackPanel(els.snack, world);
   const redo = () => renderBezitPanels(els, world);
   els.rerender = redo;
   if (bound === world) return;

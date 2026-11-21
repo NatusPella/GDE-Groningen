@@ -509,6 +509,8 @@ export function snackChainOwner(views = null) {
   const level = (c) => (c ? (c.links.some((l) => l.role === 'processor' && l.owned) ? 0.5 : 0) + (c.sourceCount > 0 ? 0.5 : 0) : 0);
   return (p) => (p === 'friet' ? level(by('friet')) : p === 'kaas' ? level(by('kaas')) : p === 'melk' ? ((by('kaas') || {}).sourceCount > 0 ? 0.5 : 0) : 0);
 }
+export const weekendOf = (cd) => weekendDay(cd);
+export const kermisAtOn = (cd) => snackCal(cd).kermisAt;
 const snackCal = (cd) => ({ weekend: weekendDay(cd), kermisAt: (s) => { const d = SPT.spotDef(s), f = d ? EV.festivalOn(d.region, cd) : null; return !!(f && f.kermis); } });
 // Een of meer dagen: geeft { own, passive, fixed, lines } (eigen wagen na compressOwn, medewerkers ruw voor de rem, vergunningen als min) en schrijft het onderhoud van de wagen terug.
 function tickSnack(w, S, from, last, money) {

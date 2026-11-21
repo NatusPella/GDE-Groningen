@@ -251,7 +251,7 @@ t('het menu: ketens, prijzen, nieuws, frietwagen en woningen staan in de panelen
   UI.renderBezitPanels(els, w);
   assert.match(els.overzicht.innerHTML, /Nieuws van het land/); assert.match(els.overzicht.innerHTML, /<h3 class="m-h3">Ketens<\/h3>/); assert.match(els.overzicht.innerHTML, /Prijzen vandaag per streek/);
   assert.match(els.overzicht.innerHTML, /data-chain="kaas"/); assert.match(els.overzicht.innerHTML, /data-bz-bind="kaas\|kaasmakerij"/);
-  assert.match(els.bedrijven.innerHTML, /Frietwagen te koop|Frietwagen/); assert.match(els.bedrijven.innerHTML, /Tessa en Tammo/);
+  assert.match(els.bedrijven.innerHTML, /Snackwagen te koop|Snackwagen/); assert.match(els.bedrijven.innerHTML, /Tessa en Tammo/);
 });
 
 console.log(`bezitlive_keten_test: ${n - fails}/${n} ok`);

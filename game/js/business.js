@@ -181,7 +181,7 @@ export const marketValue = (biz) => Math.round(finite(biz && biz.p, 0) * (0.7 + 
 // Geen pand-ID: een eigen id, omzet naar plek. Tessa en Tammo, 24 en net afgestudeerd, draaien hem zelf: er is geen loon en geen
 // personeelsknop; de prijs en de plek zijn je keuze. Er is er één per speler.
 export const MOBILE_TYPES = {
-  frietwagen: { id: 'frietwagen', type: 'frietwagen', cls: 'mobile', label: 'Frietwagen', product: 'Friet', price: 7500, baseRevenue: 80, priceOpt: 1.05,
+  frietwagen: { id: 'frietwagen', type: 'frietwagen', cls: 'mobile', label: 'Snackwagen', product: 'Friet', price: 7500, baseRevenue: 80, priceOpt: 1.05,
     story: 'Tessa en Tammo, 24, net afgestudeerd, draaien hem zelf.' },
 };
 export const MOBILE_IDS = Object.keys(MOBILE_TYPES);
