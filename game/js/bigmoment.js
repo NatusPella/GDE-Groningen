@@ -36,6 +36,7 @@ const cut = (s, max) => {
 // At most `max` words, the rest becomes an ellipsis: the same budget as the rest of the UI.
 import { isPauseMenuOpen } from './pausestate.js';
 import { hoofdspeler } from './players.js';
+import { planIntro, slaatOver } from './eindkaartimpact.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -93,7 +94,7 @@ export function bouwMoment(opts = {}) {
   if (tijd) delen.push(`Tijd: ${tijd}.`);
   if (sterren != null) delen.push(`${sterren} van 5 sterren.`);
   return {
-    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
+    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningWaarde: Number.isFinite(opts.beloning) ? opts.beloning : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
     aria: delen.join(' '),
   };
 }
@@ -214,6 +215,10 @@ function ensureCss() {
   link.rel = 'stylesheet';
   link.href = new URL('./bigmoment.css', import.meta.url).href;
   document.head.appendChild(link);
+  const impact = document.createElement('link'); // de eindkaart met impact: eigen animaties, los van de rustige big moments
+  impact.rel = 'stylesheet';
+  impact.href = new URL('./eindkaartimpact.css', import.meta.url).href;
+  document.head.appendChild(impact);
 }
 
 function sterrenHtml(n) {
@@ -226,15 +231,68 @@ function sterrenHtml(n) {
 
 function binnenHtml(m) {
   const meta = [];
-  if (m.beloning) meta.push(`<span class="bm-meta-i"><b>${esc(m.beloningLabel)}</b> ${esc(m.beloning)}</span>`);
-  if (m.tijd) meta.push(`<span class="bm-meta-i"><b>Tijd</b> ${esc(m.tijd)}</span>`);
+  if (m.beloning) meta.push(`<span class="bm-meta-i bm-i-beloning"><b>${esc(m.beloningLabel)}</b> <span class="bm-teller">${esc(m.beloning)}</span></span>`);
+  if (m.tijd) meta.push(`<span class="bm-meta-i bm-i-tijd"><b>Tijd</b> ${esc(m.tijd)}</span>`);
   const metaHtml = meta.length ? `<div class="bm-meta">${meta.join('')}</div>` : '';
   const kop = `<div class="bm-kop">${esc(m.kop)}</div>`;
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;
-  if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}</div>`;
+  if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;
   if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;
   if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
   return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${sterrenHtml(m.sterren)}<span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
+}
+
+// Het geluid van de eindkaart komt van buiten (cinematics.js koppelt audio.js): dit bestand blijft zonder audio-import testbaar.
+let eindkaartGeluid = null;
+export function setEindkaartGeluid(fn) { eindkaartGeluid = typeof fn === 'function' ? fn : null; }
+
+function rustigStand() {
+  const root = document.documentElement;
+  if (root.classList.contains('reduce-motion') || root.classList.contains('rustig-drukwerk')) return true;
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// De intro met impact van de band (eindkaartimpact.js): klassen en CSS-variabelen voor de staffeling, timers voor
+// geluid en teller. Een toets of klik (niet vastgehouden) slaat over en toont direct de eindstand. Geeft een
+// opruimfunctie terug; bij Beweging beperken of Rustig drukwerk blijft het bij de snelle fade en één geluid.
+function startImpact(el, m) {
+  const rustig = rustigStand();
+  const plan = planIntro({ soort: m.soort, beloning: m.beloningWaarde, tijd: !!m.tijd, sterren: m.soort === 'geslaagd' ? m.sterren : null, rustig });
+  const timers = [];
+  const speel = (g) => { if (eindkaartGeluid) { try { eindkaartGeluid(g.naam, g.i || 0); } catch (e) { /* geluid mag de kaart nooit breken */ } } };
+  if (!plan.impact) { plan.geluid.forEach(speel); return null; }
+  el.classList.add('bm-i');
+  const zet = (sel, eenh) => { const x = el.querySelector(sel); if (x) x.style.setProperty('--bm-n', String(eenh)); };
+  zet('.bm-klein', plan.onderdelen.find((o) => o.naam === 'klein').eenh);
+  zet('.bm-kop', plan.onderdelen.find((o) => o.naam === 'kop').eenh);
+  zet('.bm-regel', plan.onderdelen.find((o) => o.naam === 'regel').eenh);
+  for (const o of plan.onderdelen) if (o.naam === 'beloning' || o.naam === 'tijd') zet(`.bm-i-${o.naam}`, o.eenh);
+  el.querySelectorAll('.bm-ster').forEach((x, i) => { if (plan.sterren[i]) x.style.setProperty('--bm-n', String(plan.sterren[i].eenh)); });
+  if (plan.glans) zet('.bm-glans', plan.glans.eenh);
+  if (plan.schok) el.style.setProperty('--bm-schok-n', String(plan.schok.eenh));
+  const teller = el.querySelector('.bm-teller');
+  const eind = m.beloning;
+  if (plan.teller && teller) teller.textContent = formatBeloning(0) || '€ 0';
+  if (plan.teller && teller) for (const s of plan.teller.stappen) timers.push(setTimeout(() => { teller.textContent = formatBeloning(s.waarde); }, plan.teller.at + s.t));
+  for (const g of plan.geluid) timers.push(setTimeout(() => speel(g), g.at));
+  let weg = false;
+  const stop = () => {
+    if (weg) return;
+    weg = true;
+    timers.forEach(clearTimeout);
+    window.removeEventListener('keydown', op, true);
+    window.removeEventListener('pointerdown', op, true);
+  };
+  const op = (ev) => {
+    if (!slaatOver(ev)) return;
+    stop();
+    el.classList.add('bm-klaar'); // direct de eindstand: geen animaties meer, alle onderdelen vol in beeld
+    if (teller && plan.teller) teller.textContent = eind;
+  };
+  window.addEventListener('keydown', op, true);
+  window.addEventListener('pointerdown', op, true);
+  timers.push(setTimeout(stop, plan.totaal + 50));
+  return stop;
 }
 
 function toonNu(m, klaarCb) {
@@ -254,9 +312,11 @@ function toonNu(m, klaarCb) {
     const zb = document.querySelector('#hud .hud-zone-b');
     if (zb) el.style.top = plaatsTop(window.innerHeight * (m.compact ? 0.15 : 0.24), zb.getBoundingClientRect().bottom) + 'px'; // not from getComputedStyle: bigmoment.css may not be loaded yet at the first moment
   }
+  const stopImpact = m.vorm === 'band' ? startImpact(el, m) : null;
   requestAnimationFrame(() => el.classList.add('aan'));
   if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;
   const weg = () => {
+    if (stopImpact) stopImpact();
     el.classList.remove('aan');
     el.classList.add('uit');
     setTimeout(() => { el.remove(); if (m.vorm === 'rand' ? randActief === el : actief === el) { if (m.vorm === 'rand') randActief = null; else actief = null; } klaarCb(); }, 450);

@@ -10,7 +10,7 @@ import { getSettings } from './settings.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, buildingReach, groundLift } from './camerapath.js';
-import { playStoryVoice, setStoryScene, setStoryProbe, playTextMumble, pauseStoryVoice, resumeStoryVoice } from './audio.js';
+import { playEindkaartGeluid, playStoryVoice, setStoryScene, setStoryProbe, playTextMumble, pauseStoryVoice, resumeStoryVoice } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
@@ -29,7 +29,7 @@ import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler, isGast } from './players.js';
 import { wijkAt } from './wijkat.js';
-import { showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, rijdendVan } from './bigmoment.js';
+import { setEindkaartGeluid, showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, rijdendVan } from './bigmoment.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
@@ -119,6 +119,7 @@ function gameStarted() {
 
 export function initCinematics(w) {
   world = w;
+  setEindkaartGeluid(playEindkaartGeluid);
   if (els) return;
   setStoryProbe(() => !!active || isIntroPlaying());
   registerNarrative('scene', { active: () => !!active || isIntroPlaying() || isBannerUp() });
