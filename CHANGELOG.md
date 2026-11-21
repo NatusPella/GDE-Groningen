@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Pauzemenu: de omschrijving rechts van de kop is overal weg en de kop is compact (titel, datum en plek op één regel, de tabs er direct onder), zodat de inhoud meer ruimte krijgt; de lijst van Activiteiten en Verhaal groeit mee met het blad. Samen spelen: geen nieuwe regel, het blijft lokaal in je eigen menu.
+- Loopbanen: de vakken staan als kaarten in een raster over de beschikbare ruimte, met niveau, voortgangsbalk, wie er goed in is (Tammo of Tessa) en of je het vak al probeerde; het gekozen vak heeft een ruim detail met de hoofdknop (Doorgaan of Nu starten) direct bij de kop in plaats van rechtsonder, en de ladder en de volgende stap in twee kolommen.
 - Kaart: Reis erheen gaat nu alleen over hoe je reist: met de trein, de bus, de taxi of per boot, elk met prijs, duur en aanbevolen, en als iets niet kan staat de reden in de rij (te dichtbij, geen verbinding, te weinig geld). De optie 'Zelf gaan' en de zin 'Dat kan ook in Samen spelen' zijn weg: Zet waypoint is de manier om zelf te gaan.
 - Kaart: de toets staat voortaan IN de knop (Enter in Reis nu en Begrepen, Esc in Terug en Sluiten, een cijfer in elke vervoersrij en op de drie acties van de plekkaart), niet meer ernaast. Op een controller wordt dat de A- of B-knop van jouw controller en een cijfer verdwijnt.
 - Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.
