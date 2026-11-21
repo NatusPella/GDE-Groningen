@@ -53,7 +53,7 @@ Afbeeldingen in de beschrijving (`[img]`) kunnen later; ze moeten eerst als
 
 ```
 [h2]Een zomer in Grunn[/h2]
-Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Tammo wil Tessa, maar dat zegt hij niet. Al twaalf jaar niet.
+Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Tammo wil Tessa, maar dat zegt hij niet. Al sinds de studie niet.
 
 Dan ligt de [b]Gouden Eierbal[/b], de wisseltrofee van de Noordelijke Snackprijs, ineens niet meer in het museum. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 

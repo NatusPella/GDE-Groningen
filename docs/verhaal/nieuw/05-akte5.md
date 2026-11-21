@@ -48,8 +48,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Verloop** | 1) Tinus (naamkaart) en Henk. 2) Luik inbouwen (garage-keuze). 3) **Tammo heeft het horloge van zijn opa verpand bij Sjabbe om het luik te betalen** (zijn concrete daad). 4) De modder in; Tinus trekt ("Aan de trekhaak. Aan Tammo hebben we hier niks."). 5) Avond: scène in de schuur: "Sorry. Dat ik nooit wat zeg." (BEHOUDEN), Tammo's langere verontschuldiging, Tessa's openbaring, de knuffel. **Falen:** geen echt falen; de trekkertrek-proef mag je herhalen. |
 | **Leuk-element / uitdaging** | rust; de zachtste missie na het dieptepunt |
 | **Reizen** | 3 km |
-| **Romantiek (9/10)** | **De knuffel en de openbaring.** Tammo: "Ik heb twaalf jaar niks gezegd. Ik was bang dat je dan wegging." "Ik was boos om iets wat ik zelf deed. Sorry dat ik je alleen liet gaan." Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
-| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Haar regels zijn standaard Nederlands. Aanvulling 21-11: tot haar achtste woonde ze op een boerderij op het platteland (ergens in Nederland, bewust niet benoemd), voor ze naar het Oosterpark kwam; zie OPENING-BIJBEL.md, "Tessa komt van het platteland". |
+| **Romantiek (9/10)** | **De knuffel en de openbaring.** Tammo: "Ik heb vijf jaar niks gezegd. Ik was bang dat je dan wegging." "Ik was boos om iets wat ik zelf deed. Sorry dat ik je alleen liet gaan." Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
+| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achttiende in Stad voor de studie (sinds 21-11; eerder stond hier: vanaf haar achtste in het Oosterpark), elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Haar regels zijn standaard Nederlands. Aanvulling 21-11: tot haar achtste woonde ze op een boerderij op het platteland (ergens in Nederland, bewust niet benoemd), voor ze (via de studie) naar Stad kwam; zie OPENING-BIJBEL.md, "Tessa komt van het platteland". |
 | **Gevolg / haak** | de Fjord Frituur is klaar; de vrienden komen naar Stad (Mem en Oma bellen ze terug). |
 | **Behouden / nieuw** | "Hij is van ons. Hij weet het alleen nog niet." en de vier verzoeningsregels BEHOUDEN; de rest NIEUW |
 
@@ -60,7 +60,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 - **TESSA:** Je zei net iets. [BEHOUDEN]
 - **TAMMO:** Het voelde raar. [BEHOUDEN]
 - **TESSA:** Het klonk goed. [BEHOUDEN]
-- **TAMMO:** Jij zweeg omdat Mem het vroeg. Ik heb twaalf jaar niks gezegd. Ik was bang dat je dan wegging. [NIEUW]
+- **TAMMO:** Jij zweeg omdat Mem het vroeg. Ik heb vijf jaar niks gezegd. Ik was bang dat je dan wegging. [NIEUW]
 - **TAMMO:** Ik was boos om iets wat ik zelf deed. Sorry dat ik je alleen liet gaan. [NIEUW]
 - **TESSA:** Ik moet je iets vertellen. Ik heb op zeven plekken gewoond voor ik tien was. [NIEUW]
 

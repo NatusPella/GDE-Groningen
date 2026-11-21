@@ -810,7 +810,7 @@ Een schaal voor NPC-reacties en voor de beoordeling na een missie (van laag naar
 ### 6.1 Krentjebrij
 - **Wat:** bessensap met gort en krenten ("watergruwel"). Ouderwets en paars.
 - **Gebruik:** het levensdrankje van Oma Trijntje (geeft herstel van je gezondheid).
-  - **Oma Trijntje:** "Eet je krentjebrij." **Tammo:** "Ik ben vierendertig, oma." **Oma:** "Dan eet je hem al vierendertig jaar te weinig."
+  - **Oma Trijntje:** "Eet je krentjebrij." **Tammo:** "Ik ben vierentwintig, oma." **Oma:** "Dan eet je hem al vierentwintig jaar te weinig."
 - **Bronnen:** [Wikipedia NL, Groninger streekproducten](https://nl.wikipedia.org/wiki/Lijst_van_Groninger_streekproducten_en_gerechten) · [IGO Groningen, 8x Groningse lekkernijen](https://www.igogroningen.nl/groningen/typisch-groningen/groningse-lekkernij-recepten/)
 
 ### 6.2 Poffert

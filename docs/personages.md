@@ -21,7 +21,7 @@ Regels die voor iedereen gelden:
 ## Tammo
 **In één zin:** een droge Stadjer met een groot hart en een kleine portemonnee, die liever een grap maakt dan toegeeft dat hij iets eng vindt.
 
-**Naamkaart:** *Stadjer. Groot hart. Kleine portemonnee.* Tammo, Tessa en Rikus zijn het clubje van de stoep in het Oosterpark. Tammo is al twaalf jaar verliefd op Tessa en zegt het nooit; pas in de finale: "Ik wil bij jou blijven." Vijf woorden. Daarvoor zegt hij hooguit "Woist ja wel", zoals zijn opa.
+**Naamkaart:** *Stadjer. Groot hart. Kleine portemonnee.* Tammo en Rikus zijn vrienden van de stoep in het Oosterpark; Tessa kwam er tijdens de studie bij. Tammo is net afgestudeerd (24) en al sinds de studie verliefd op Tessa en zegt het nooit; pas in de finale: "Ik wil bij jou blijven." Vijf woorden. Daarvoor zegt hij hooguit "Woist ja wel", zoals zijn opa.
 
 - **Stem:** Orus, ingesproken in Gronings dialect: *a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties*. Daardoor zegt hij soms een Gronings woord waar de ondertitel Nederlands heeft ("Mien droom"). Emoties: droog, laconiek, zuchtend, deadpan, stiekem trots. Hij schreeuwt alleen als het echt misgaat, en dan klinkt hij "feller dan normaal".
 - **Zo praat hij:**
@@ -53,7 +53,7 @@ Regels die voor iedereen gelden:
   - hij verliest altijd van Tessa als hij gelijk wil hebben;
   - hij is eigenwijs en zit er soms gewoon naast; blijkt hij ongelijk te hebben, dan zegt hij droog: "Dat bedoelde ik ook.";
   - Tessa appt met "iemand uit Friesland" en Tammo wordt daar stilletjes jaloers van ("Is hij lang? Fierljepper zeker."). Het blijkt Mem Terpstra te zijn: "…Een moeder. Ik was jaloers op een moeder.";
-  - Rikus van Nachtstreek is zijn jeugdvriend uit het Oosterpark en plaagt hem op de radio.
+  - Rikus van Nachtstreek is zijn jeugdvriend uit het Oosterpark (van vóór de studie; Tessa leerde hem via Tammo kennen) en plaagt hem op de radio.
 - **Gave: duivenfluisteraar.** Tammo kan duiven sturen. Hij wordt geen duif: hij fluit of klikt met zijn tong, doet zijn ogen dicht en "springt" met de camera in de duif. Zo werkt de duivenmodus.
   - Bert ontdekt het in H4 ("Kiek. Die duiven luuster'n noar dij, jong."); Tammo doet er droog over ("Duiven luisteren naar niemand."), Tessa plaagt ("mijn vriend de duivenkoning").
   - Het groeit: de vlag in H10 ("Ik fluit. De duif pikt."), de duiven boven het vuurwerk in de finale, Rikus maakt er een jingle van, en Jelle is jaloers ("Friese meeuwen luisteren naar niemand.").
