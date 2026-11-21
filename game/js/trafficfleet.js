@@ -95,6 +95,7 @@ export function wijkProfileAt(map, x, y) {
   const name = best && bd < 1100 * 1100 ? best.name : '';
   p = { key: WIJK_PROFILE[name] || 'standaard', wijk: name };
   p.def = PROFILES[p.key];
+  if (profileCache.size >= 8192) profileCache.clear(); // de sleutel is een cel van 60 m: zonder grens groeit hij mee met elke gereden kilometer
   profileCache.set(k, p);
   return p;
 }
