@@ -207,7 +207,7 @@ passief staan, met de echte wapens en zonder blijvend verlies (#454); PvP houdt 
 
 **Regels.** Het meeste geluid wordt gesynthetiseerd; een paar CC0-opnames staan ernaast, beschreven
 in `game/audio/sfx/manifest.json`. De radio is G-Music met vier programmablokken
-(`game/js/musicpick.js:129`), een dag- en een nachtpool; een nummer uit de laatste 60% van de pool
+(`game/js/musicpick.js:135`), een dag- en een nachtpool; een nummer uit de laatste 60% van de pool
 komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Stings zijn procedureel
 (`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
 van (`game/js/audio/scenario.js:127`).

@@ -128,7 +128,7 @@ Alle stings zijn nu procedureel (`game/js/stings.js`, `game/js/sfx/missiebank.js
 
 ## Autoradio-zenders
 
-Er is één zender in het spel, **G-Music**, met vier programma's naar de speltijd (`PROGRAMMES` in `game/js/musicpick.js`): Proat in de ochtend (06 tot 10), De hits (10 tot 18), Avondproat (18 tot 22) en Nachtstreek (22 tot 06, Rikus draait streekmuziek door een oude radio). De praatsoorten (ident, nieuws, verkeer, weer, reclame, koeien, clip, Rikus) zijn spreektekst en staan in de stemmenlijst, niet hier. De reclames in `game/js/radioads.js` hebben alleen verzonnen afzenders. De nummers in de radiopool staan met hun verzonnen artiest in `GMUSIC_ARTISTS` (`game/js/audio/radio.js`); alle mp3's in `game/audio/gmusic/` staan in het manifest.
+Er zijn sinds 21-11 vier zenders te kiezen (zie [RADIOZENDERS-21-11.md](../RADIOZENDERS-21-11.md) en ADR 0046): G-Music, Nachtstreek (rustig), Wierde Radio (streek) en de geheime Ruisradio 108,7; Radio Noordkust staat als "Binnenkort" in de lijst. De hoofdzender is **G-Music**, met vier programma's naar de speltijd (`PROGRAMMES` in `game/js/musicpick.js`): Proat in de ochtend (06 tot 10), De hits (10 tot 18), Avondproat (18 tot 22) en Nachtstreek (22 tot 06, Rikus draait streekmuziek door een oude radio). De praatsoorten (ident, nieuws, verkeer, weer, reclame, koeien, clip, Rikus) zijn spreektekst en staan in de stemmenlijst, niet hier. De reclames in `game/js/radioads.js` hebben alleen verzonnen afzenders. De nummers in de radiopool staan met hun verzonnen artiest in `GMUSIC_ARTISTS` (`game/js/audio/radio.js`); alle mp3's in `game/audio/gmusic/` staan in het manifest.
 
 | ID | Moment | Sfeer | Tempo | Instrumenten | Lengte | Lus | Artiest / titel | Status | Koppeling |
 |---|---|---|---|---|---|---|---|---|---|
@@ -139,7 +139,7 @@ Er is één zender in het spel, **G-Music**, met vier programma's naar de spelti
 | C67 | Radio Proat (tweede zender, plan) | praatprogramma, regionaal | n.v.t. | DJ-stem, jingle | n.v.t. | nee | Radio Proat / Proat Mit Poat | ontbreekt | - |
 | C68 | Radio Noordkust (derde zender, plan) | kustpop, wadwind | 100 bpm | gitaar, wind | 3 min | nee | Radio Noordkust / Zunneschien en Zandkorrels | ontbreekt | - |
 
-C67 en C68 zijn alleen een plan (nog geen code en geen stemmenlijst). Een nieuwe zender betekent een eigen `PROGRAMMES`-pool en een DJ-stem in de stemmenlijst, dus een besluit voor de coördinator en geen losse koppeling.
+C67 is een plan (Radio Proat is Geesjes praatprogramma op G-Music, geen aparte zender). C68 heeft een zender in de code (Radio Noordkust, DJ Wadwind Wil) die als "Binnenkort" in de lijst staat tot er zes kustnummers zijn; er is nog geen kustmuziek en geen stemmenlijst. Een nieuwe zender betekent een eigen `PROGRAMMES`-pool en een DJ-stem in de stemmenlijst, dus een besluit voor de coördinator en geen losse koppeling.
 
 ## Wat de eigenaar nog moet leveren
 

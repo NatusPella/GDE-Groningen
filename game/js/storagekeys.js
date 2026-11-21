@@ -45,6 +45,7 @@ export const BASE_KEYS = {
   wijkLinesRecent: 'gde-wijk-lines-recent',
   radioHistory: 'gde-radio-history',
   radioTalk: 'gde-radio-praat',
+  radioChannel: 'gde-radio-zender', // de gekozen radiozender (radio.js, radiochannels.js): alleen dit apparaat, nieuw, geen oude naam
   fog: 'gde-fog',
   errorLog: 'gde-foutlog',
   snapshots: 'gde-snapshots',

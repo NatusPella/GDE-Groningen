@@ -76,7 +76,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | **Spelmenu** | | | | | | | |
 | Telefoon en apps | lokaal per apparaat | De telefoon is lokaal; een gast start een opdracht niet aan de telefoon maar bij het startpunt; delen van een voertuig staat in de telefoon (coopbezit). | Geen. | Niets te herstellen. | ja: 2 (phone 2) | `telefoon_berichten_test`, `coopbezit_test` | OK |
 | Spullen, Te doen en spelmenu (wacht op spullen-ui-21-11) | per speler | Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst. Het wapen in je hand zien de anderen als hetzelfde model (snapshot-veld weapon, zelfde bouwer). | Geen. | Niets te herstellen; het menu leest de actuele lijst. | ja: 6 (spelersregister 5, spullen 1) | `spullen_test`, `todo_ui_test`, `spullen3d_test`, `weapons3d_test`, `coopwapen_test`, `spelmenu_test`, `lobby_test` | OK |
-| Dieren, duif en vrijetijd | per speler | De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal; evenementen zijn van de wereld en worden bij de gast getoond. | Eigen dierenbezit en visboek per speler. | Niets te herstellen. | ja: 5 (aaien 2, pigeonmode 2, pigeonspots 1) | `pigeon_sync_test`, `dierenregister_test`, `evenementen_test` | OK |
+| Dieren, duif en vrijetijd | per speler | De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal (de radiozender ook, in een gedeeld voertuig kiest de bestuurder en volgt of stemt de passagier); evenementen zijn van de wereld en worden bij de gast getoond. | Eigen dierenbezit en visboek per speler. | Niets te herstellen. | ja: 5 (aaien 2, pigeonmode 2, pigeonspots 1) | `pigeon_sync_test`, `dierenregister_test`, `evenementen_test`, `radiochannels_test` | OK |
 | Stemmen (TTS), geluid en muziek | lokaal per apparaat | Opgenomen stemmen en geluid worden op elk apparaat zelf afgespeeld; geluidsevents van anderen komen via coopgeluid. | Geen. | Niets te herstellen. | nee | `coopgeluid_test`, `voicebank_retry_test`, `voice_lookup_audit_test` | OK |
 | **Sessie en profiel** | | | | | | | |
 | Startkeuze, naam en toestemming | per speler | Eerste start: naam en de vraag of je met anderen meedoet; een ontbrekende waarde is geen ja; nooit stil openbaar. | Geen. | Niets te herstellen; de keuze staat in gde-settings. | nee | `lobbyui_consent_test`, `sessiekeuze_test`, `sessionboot_test`, `coopsolo_test`, `onlinestart_test` | OK |
@@ -130,6 +130,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | `wijkenSeen` | speler | Welke wijken deze speler zag. |
 | `wijkLinesRecent` | apparaat | Recente wijkregels. |
 | `radioHistory` | apparaat | Radiogeschiedenis. |
+| `radioChannel` | apparaat | Gekozen radiozender. |
 | `radioTalk` | apparaat | Radiopraat. |
 | `fog` | apparaat | Mistvoorkeur. |
 | `errorLog` | apparaat | Foutlog. |

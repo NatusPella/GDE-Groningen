@@ -79,8 +79,10 @@ export function trackWeight(t, { hour, ago, poolSize, lastArtist, borrowed = fal
 }
 
 // history: track ids, newest last. Returns a track (or null for no tracks).
-export function pickTrack(tracks, history, { station = 'gmusic', hour = NaN, rng = Math.random, fresh = false } = {}) {
-  const pool = stationPool(tracks, station);
+// pool: de kant-en-klare nummers van een zender (radiostations.js), zonder lenen; avoid: ids die nu niet terug mogen (de minutenregel
+// van een zender), alleen zolang er iets anders over is.
+export function pickTrack(tracks, history, { station = 'gmusic', hour = NaN, rng = Math.random, fresh = false, pool: eigenPool = null, avoid = null } = {}) {
+  const pool = eigenPool ? eigenPool.map((t) => ({ t, borrowed: false })) : stationPool(tracks, station);
   if (!pool.length) return null;
   if (pool.length === 1) return pool[0].t;
   const n = pool.length;
@@ -88,6 +90,10 @@ export function pickTrack(tracks, history, { station = 'gmusic', hour = NaN, rng
   const recent = new Set(history.slice(-window));
   let cands = pool.filter((p) => !recent.has(p.t.id));
   if (!cands.length) cands = pool.filter((p) => p.t.id !== history[history.length - 1]);
+  if (avoid && avoid.size) {
+    const verder = cands.filter((p) => !avoid.has(p.t.id));
+    if (verder.length) cands = verder;
+  }
   const lastId = history[history.length - 1];
   if (fresh && NIEUW.firstOnFreshStart) {
     const unheard = pool.filter((p) => p.t.nieuw && !history.includes(p.t.id) && !p.borrowed);
