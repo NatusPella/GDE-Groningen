@@ -11,7 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
-- Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
+- Bij de allereerste start krijg je alleen de keuzekaart: Alleen spelen is direct spelen, zonder naam of akkoord. Doe je voor het eerst iets met Samen spelen, dan vult het spel eenmalig één kaart "Je naam voor Samen spelen" met je naam en het akkoord (STUN, brokers, IP-adres); dat wordt onthouden. Terug of Escape op die kaart brengt je terug naar de keuze. Wie al een naam en akkoord had, merkt niets.
+- Nieuw: Instellingen, Samen spelen. Daar pas je je naam aan (met dezelfde controle op verboden woorden en echte namen) en trek je je akkoord in; bij Samen spelen vraagt het spel dan alleen het akkoord opnieuw, je naam blijft.
 - De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
 - Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.
 - De hint "Houd SPATIE ingedrukt om over te slaan" is groter en beter leesbaar; de regel onder het doel bij je eigen waypoint zegt "je verhaalmissie wacht: ..." en de kaart "Weg uit beeld" toont geen rij lege sterren meer; de uitleg bij Zelf gaan op de kaart is natuurlijker verwoord.

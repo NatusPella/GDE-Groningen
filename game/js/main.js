@@ -151,9 +151,9 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
-import { maybeOpenOnlineStart } from './onlineconsentui.js';
 import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
 import { openLaunchChoice, openToestemming } from './launchchoiceui.js';
+import { openOnlineStart } from './onlineconsentui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
@@ -628,9 +628,9 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// De startvragen (launchchoice.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
-// elke start de keuzekaart Alleen of Samen. Alleen kiest het enkelspelerpad zonder netwerk; Samen vraagt zo nodig eerst de
-// toestemming en daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
+// De startvraag (launchchoice.js): bij elke start de keuzekaart Alleen of Samen, geen naamscherm. Alleen kiest het enkelspelerpad
+// zonder netwerk; Samen vraagt de eerste keer de kaart met naam en akkoord (of alleen het akkoord als dat is ingetrokken) en
+// daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
 let onlineVraag = null;
 function beginOnlineStartQuestion() {
   if (!onlineVraag) {
@@ -639,7 +639,7 @@ function beginOnlineStartQuestion() {
     onlineVraag = askLaunchChoice({
       plan,
       settings: () => getSettings(),
-      naam: () => maybeOpenOnlineStart(),
+      naam: () => openOnlineStart({ terug: true }),
       keuze: (index) => openLaunchChoice({ index }),
       toestemming: () => openToestemming(),
       sessie: () => new Promise((klaar) => openSamenKeuze({ onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
@@ -704,7 +704,7 @@ function armBootWatchdog() {
   const check = () => {
     bootWatchdog = 0;
     if (bootFinished) return;
-    // De verplichte naamkaart is geen hapering: zolang die openstaat telt de
+    // De kaart met naam en akkoord is geen hapering: zolang die openstaat telt de
     // wachter niet door en krijgt de speler na het invullen weer de volle tijd.
     if (document.getElementById && document.getElementById('online-start')) {
       seenMs = 0; visibleSince = document.hidden ? 0 : performance.now();

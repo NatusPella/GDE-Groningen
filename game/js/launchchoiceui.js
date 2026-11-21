@@ -5,7 +5,9 @@
 import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
 import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoice.js';
-import { geefToestemming } from './onlineconsent.js';
+import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
+import { openOnlineStart } from './onlineconsentui.js';
+import { getSettings } from './settings.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -125,4 +127,14 @@ export function openToestemming({ zet = undefined } = {}) {
   open = { promise, el };
   vink.focus();
   return promise;
+}
+
+// De poort voor alles wat met Samen spelen begint buiten de keuzekaart (het hoofdmenu, het paneel in het pauzemenu): is er nog
+// geen naam, dan de kaart met naam en akkoord; is alleen het akkoord weg, dan alleen de toestemmingskaart. Resolvet true als de
+// speler klaar is (of al klaar was), false bij Terug. Wie al een naam en akkoord heeft ziet niets.
+export async function ensureSamenProfile() {
+  const s = () => getSettings();
+  if (moetNaamVragen(s())) { if (!(await openOnlineStart({ terug: true }))) return false; }
+  if (moetToestemmingVragen(s())) { if (!(await openToestemming())) return false; }
+  return !moetNaamVragen(s()) && !moetToestemmingVragen(s());
 }

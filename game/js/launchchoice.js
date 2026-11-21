@@ -3,12 +3,12 @@
 // Geen netwerk en geen DOM hier: de keuze zelf gebruikt niets buiten het apparaat (constitution 4 en 10).
 //
 // De volgorde (vastgelegd in docs/COOP-GAST.md):
-//   1. eerste start (nog geen geldige naam bewaard): de naamkaart, EENMALIG en verplicht, alleen een naam en zonder netwerktoestemming
-//      (onlineconsent.js), dan de keuzekaart;
-//   2. elke volgende start: alleen de keuzekaart; wie al een naam heeft krijgt de naamkaart nooit opnieuw vanzelf;
-//   3. Alleen: het enkelspelerpad (Doorgaan of Nieuw spel zoals het was), het netwerk blijft dicht;
-//   4. Samen zonder bewaarde toestemming (nog nooit gegeven, ingetrokken in het spelerspaneel, of een oude 'nee'): eerst de toestemmingskaart,
-//      pas daarna kan er iets naar buiten; daarna de sessiekeuze (Een spel openen of Meedoen, samenkeuze.js);
+//   1. elke start: alleen de keuzekaart (ook de allereerste; geen naamscherm). Alleen = direct spelen, zonder naam of akkoord;
+//   2. Samen (of iets anders met Samen spelen, zie ensureSamenProfile in launchchoiceui.js) zonder bewaarde naam: de kaart "Je naam voor
+//      Samen spelen" met naam EN akkoord (onlineconsent.js), de eerste keer verplicht; beide worden onthouden (onlineNaam, onlineMeedoen);
+//   3. Samen met een naam maar zonder akkoord (ingetrokken in Instellingen, of een oude 'nee'): alleen de toestemmingskaart, de naam blijft;
+//      er gaat niets naar buiten vóór dat akkoord; daarna de sessiekeuze (Een spel openen of Meedoen, samenkeuze.js);
+//   4. wie al een naam en akkoord heeft krijgt niets nieuws; de naam en het akkoord pas je aan bij Instellingen, Samen spelen;
 //   5. testruns (--stil, --story-test, --clip, benchmark, autoplay, testbank) en ?startkeuze=alleen slaan de kaart over.
 // Er is geen "onthoud en sla over": de laatste keuze (gde-settings, startKeuze) is alleen de voorselectie.
 import { moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
@@ -44,14 +44,14 @@ export const isKeuze = (v) => v === 'alleen' || v === 'samen';
 export function launchPlan(settings = getSettings(), { testmodus = false, vlag = null } = {}) {
   if (vlag === 'alleen') return { naam: false, keuze: false, modus: 'alleen', reden: 'vlag' };
   if (testmodus && vlag !== 'vraag') return { naam: false, keuze: false, modus: null, reden: 'testmodus' };
-  return { naam: moetNaamVragen(settings), keuze: true, modus: null, reden: '' };
+  return { naam: false, keuze: true, modus: null, reden: '' }; // geen naamscherm bij de start: de naam komt bij Samen spelen
 }
 
 // Welke knop staat gekozen als de kaart opent: de laatste keuze, anders Alleen (het veilige, offline pad).
 export const voorselectie = (settings = getSettings()) => (settings && settings.startKeuze === 'samen' ? 1 : 0);
 
 // Na de keuze: wat is er nog nodig voordat het spel verder mag?
-//   'klaar' (Alleen), 'naam' (geen geldige naam: de naamkaart, daarna alsnog de toestemming), 'toestemming', of 'sessie' (Een spel openen / Meedoen).
+//   'klaar' (Alleen), 'naam' (geen geldige naam: de kaart met naam en akkoord), 'toestemming', of 'sessie' (Een spel openen / Meedoen).
 export function naKeuze(modus, settings = getSettings()) {
   if (modus !== 'samen') return 'klaar';
   if (moetNaamVragen(settings)) return 'naam';
@@ -88,16 +88,18 @@ export const getLaunchMode = () => launchMode;
 
 // De hele start-vraag als één stroom, met de schermen als losse functies (main.js geeft de echte schermen mee, de test nepschermen).
 //   deps: { plan, settings(), naam(), keuze(index), toestemming(), sessie(), samen(rol), bewaar(modus) }
-// naam() resolvet na een geldige naam, keuze() met 'alleen' of 'samen', toestemming() met true (akkoord) of false (terug),
+// naam() resolvet truthy na een geldige naam met akkoord (falsy: Terug), keuze() met 'alleen' of 'samen', toestemming() met true (akkoord) of false (terug),
 // sessie() met 'host' | 'gast' | 'lijst' of null (terug). Terug in Samen brengt je terug op de keuzekaart.
 export async function askLaunchChoice(deps) {
   const plan = deps.plan;
   if (!plan.keuze) return plan.modus;
-  if (plan.naam) await deps.naam();
   for (;;) {
     const modus = await deps.keuze(voorselectie(deps.settings()));
     let nextStep = naKeuze(modus, deps.settings());
-    if (nextStep === 'naam') { await deps.naam(); nextStep = naKeuze(modus, deps.settings()); }
+    if (nextStep === 'naam') {
+      if (!(await deps.naam())) continue; // Terug: naar de keuzekaart, Alleen blijft kunnen
+      nextStep = naKeuze(modus, deps.settings());
+    }
     if (nextStep === 'toestemming') {
       if (!(await deps.toestemming())) continue;
       nextStep = naKeuze(modus, deps.settings());
