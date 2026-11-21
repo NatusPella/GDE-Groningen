@@ -101,5 +101,24 @@ if (wil('bijbaan')) await probeer('bijbaan', async () => {
     await sleep(1500);
   }
 });
+if (wil('bijbaan2')) await probeer('bijbaan2', async () => {
+  const SJ = D.sidejobs; if (!SJ) throw new Error('geen __debug.sidejobs');
+  { const { P } = await imp('worldframe'); const c = P(100, 77); p.x = c[0]; p.y = c[1]; p.vx = p.vy = 0; p.z = 0; p.vz = 0; await sleep(9000); }
+  notities.sjApi = Object.keys(SJ).join(',');
+  let nr = 0;
+  for (const id of ['taxi', 'bus', 'bezorger', 'taxinacht', 'schoolrit', 'fietssoep']) {
+    if (p.inVehicle) { try { p.exitVehicle(map, w); } catch (e) { /* al uit */ } await sleep(600); }
+    let ok = false;
+    try { ok = SJ.start(id); } catch (e) { noteer('bijbaan-' + id, e && e.message); }
+    notities['bijbaan-' + id] = { start: ok };
+    if (!ok) continue;
+    nr++;
+    await sleep(5000); notities['bijbaan-' + id].na5s = JSON.stringify({ progress: SJ.progress && SJ.progress(), ctx: SJ.ctx && !!SJ.ctx(), last: SJ.last && SJ.last() }).slice(0, 300); await cap('j' + nr + '-' + id + '-start', 600);
+    const c = SJ.ctx && SJ.ctx(); notities['bijbaan-' + id].ctx = c ? JSON.stringify({ stage: c.stage || c.fase, goal: c.goal, voortgang: c.progress }).slice(0, 200) : null;
+    await sleep(9000); await cap('j' + nr + '-' + id + '-later', 600);
+    try { SJ.quit(); } catch (e) { /* al weg */ }
+    await sleep(2500);
+  }
+});
 clearInterval(skipper);
 return JSON.stringify({ size: SIZE, done, notities, hudtekst, fouten });

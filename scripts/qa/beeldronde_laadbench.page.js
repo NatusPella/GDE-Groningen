@@ -30,20 +30,22 @@ const index = await fetch('/world/index-provincie.json').then((r) => r.json()).t
 const plaats = (n) => index.places.find((x) => x.name === n);
 if (wil('laad')) {
   try {
-    // echte verre sprong: het laadscherm opent vanzelf; elke ~1,2 s een beeld zolang het open is
-    const dest = plaats('Delfzijl') || index.places[10];
-    p.x = dest.x; p.y = dest.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0;
-    let n = 0; const stappen = [];
-    for (let i = 0; i < 80 && !document.getElementById('load-screen'); i++) await sleep(100);
-    notities.laadschermOpen = !!document.getElementById('load-screen');
-    while (document.getElementById('load-screen') && n < 7) {
-      const el = document.getElementById('load-screen');
-      stappen.push((el.innerText || '').replace(/\s+/g, ' ').slice(0, 160));
-      await cap('l' + (++n) + '-laadscherm-echt', 600); await sleep(900);
+    // het echte laadscherm van opslaan/laden (kind 'save') en het snelle (kind 'snel'): elke ~1,5 s een beeld zolang het open is
+    const LS = await imp('loadscreen');
+    for (const [soort, nm] of [['save', 'Het Forum'], ['snel', 'De Grote Markt']]) {
+      const act = LS.startLoadScreen(w, { kind: soort, name: nm });
+      let n = 0; const stappen = [];
+      for (let i = 0; i < 6; i++) {
+        await sleep(1100);
+        const el = document.getElementById('load-screen'); if (!el) break;
+        stappen.push((el.innerText || '').replace(/s+/g, ' ').slice(0, 200));
+        if (i === 0) { const tip = el.querySelector('.ls-tip p'); if (tip) { tip.textContent = "{V} wisselt tijdens het rijden tussen filmcamera's."; await sleep(900); const k = tip.querySelector('*'); notities['tipToets-' + soort] = k ? { tag: k.tagName, klasse: k.className, rect: JSON.stringify(k.getBoundingClientRect()), tipRect: JSON.stringify(tip.getBoundingClientRect()), font: getComputedStyle(k).fontSize, tt: getComputedStyle(k).textTransform } : 'geen kind'; } }
+        await cap('l' + soort + (++n) + '-laadscherm-echt', 100);
+      }
+      notities['laadstappen-' + soort] = stappen;
+      await Promise.race([act.done, sleep(30000)]); await sleep(2500);
     }
-    notities.laadstappen = stappen;
-    for (let i = 0; i < 200 && document.getElementById('load-screen'); i++) await sleep(200);
-    await sleep(4000); await cap('l9-na-laden', 400);
+    await cap('l9-na-laden', 400);
   } catch (e) { noteer('laad', e && e.stack); }
 }
 if (wil('bench')) {
@@ -56,7 +58,7 @@ if (wil('bench')) {
     b.scrollIntoView({ block: 'center' }); await sleep(500); await cap('q1-benchmark-knop', 300);
     b.click(); await sleep(1500); await cap('q2-benchmark-na-klik', 300);
     // zoek een bevestigknop
-    const ok = [...document.querySelectorAll('button')].find((x) => /^(start|ja|doorgaan|draaien|begin)/i.test(x.textContent.trim()) && x.offsetParent);
+    const ok = [...document.querySelectorAll('button')].find((x) => /^(starten|start)$/i.test(x.textContent.trim()) && x.offsetParent);
     if (ok && !document.body.classList.contains('trailer-on')) { notities.bevestig = ok.textContent.trim(); ok.click(); }
     const t0 = performance.now(); let k = 0;
     while (performance.now() - t0 < 6 * 60 * 1000) {

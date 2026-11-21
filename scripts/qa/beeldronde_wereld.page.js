@@ -31,7 +31,8 @@ const vast = () => { w.clock = 13; w.weather = { active: false, timer: 1e9, kind
 vast(); setInterval(vast, 800);
 const gh = (x, y) => { try { return map.groundHeightAt(x, y, 0) || 0; } catch (e) { return 0; } };
 const cap = async (name, wait = 900) => { await sleep(wait); console.log('[capture] ' + name + '-' + BR); await sleep(800); done.push(name); };
-const probeer = async (naam, fn) => { try { await fn(); } catch (e) { done.push(naam + ' FOUT'); noteer(naam, e && (e.stack || e.message)); } w.cameraOverride = null; };
+function camUitLazy() { return camUit(); }
+const probeer = async (naam, fn) => { try { await fn(); } catch (e) { done.push(naam + ' FOUT'); noteer(naam, e && (e.stack || e.message)); } camUitLazy(); };
 const teleport = async (x, y, ms = 7000) => {
   if (p.inVehicle) p.exitVehicle(map, w);
   p.x = x; p.y = y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; p.gz = gh(x, y);
@@ -40,7 +41,9 @@ const teleport = async (x, y, ms = 7000) => {
   await sleep(ms);
   let n = 0; while (SC.streamPending && SC.streamPending().roads > 0 && n++ < 40) await sleep(500);
 };
-const cam = (x, y, z, lx, ly, lz, fov = 60) => { w.cameraOverride = { position: { x, y, z }, lookAt: { x: lx, y: ly, z: lz }, fov, cut: true }; };
+let camPose = null;
+const cam = (x, y, z, lx, ly, lz, fov = 60) => { camPose = { position: { x, y, z }, lookAt: { x: lx, y: ly, z: lz }, fov, cut: true }; cine.startCameraTake('qa-vrij', () => camPose, { letterbox: false, hideHud: false }); };
+const camUit = () => { try { cine.stopCameraTake('qa-vrij'); } catch (e) { /* geen take */ } camPose = null; };
 const index = await fetch('/world/index-provincie.json').then((r) => r.json()).then((j) => j.global);
 const plaats = (n) => index.places.find((x) => x.name === n);
 const lms = map.meta.landmarks || [];
@@ -49,8 +52,10 @@ notities.landmarksStation = lms.filter((l) => /station/i.test(l.name || '')).sli
 // ---- station Veendam ----
 if (wil('station')) await probeer('station', async () => {
   const v = plaats('Veendam'); if (!v) throw new Error('Veendam ontbreekt');
+  const ST = await imp('stationtravel'); const stl = (ST.getStationsForRender() || []); notities.stationsLijst = stl.map((q) => q.name + '@' + Math.round(q.x) + ',' + Math.round(q.y)).slice(0, 30);
+  const sv = stl.find((q) => /Veendam/i.test(q.name || '')); if (sv) lms.push({ name: 'Station Veendam', x: sv.x, y: sv.y });
   const dist = (l) => Math.hypot(l.x - v.x, l.y - v.y);
-  const st = lms.filter((l) => /station/i.test(l.name || '')).sort((a, b) => dist(a) - dist(b))[0];
+  const st = lms.filter((l) => /Station Veendam|station/i.test(l.name || '')).sort((a, b) => dist(a) - dist(b))[0];
   notities.veendam = { plaats: [Math.round(v.x), Math.round(v.y)], station: st ? [st.name, Math.round(st.x), Math.round(st.y), Math.round(dist(st))] : null };
   const t = st && dist(st) < 3000 ? st : v;
   await teleport(t.x, t.y, 9000);
@@ -87,13 +92,14 @@ if (wil('sloot')) await probeer('sloot', async () => {
   const WL = await imp('waterlevels');
   const pl = plaats('Zuidhorn') || plaats('Winsum'); await teleport(pl.x, pl.y, 8000);
   let doel = null;
-  for (let dx = -400; dx <= 400 && !doel; dx += 6) for (let dy = -400; dy <= 400 && !doel; dy += 6) {
-    const x = pl.x + dx, y = pl.y + dy;
+  for (const pl2 of [plaats('Zuidhorn'), plaats('Winsum'), plaats('Bedum'), plaats('Ten Boer')].filter(Boolean)) { if (doel) break; if (pl2 !== pl) await teleport(pl2.x, pl2.y, 6000);
+  for (let dx = -500; dx <= 500 && !doel; dx += 5) for (let dy = -500; dy <= 500 && !doel; dy += 5) {
+    const x = pl2.x + dx, y = pl2.y + dy;
     const q = WL.waterPolyAt(map, x, y, 0); if (!q) continue;
-    if (WL.waterPolyAt(map, x - 12, y, 0) || WL.waterPolyAt(map, x + 12, y, 0)) continue;
+    if ((WL.waterPolyAt(map, x - 10, y, 0) || WL.waterPolyAt(map, x + 10, y, 0)) && (WL.waterPolyAt(map, x, y - 10, 0) || WL.waterPolyAt(map, x, y + 10, 0))) continue;
     if (!map.nearestRoadPoint) continue;
     const r = map.nearestRoadPoint(x - 30, y, 14, true, true); if (r && r.road) doel = { x, y, weg: r, kind: q.kind || q.type || null };
-  }
+  } }
   notities.sloot = doel ? { x: Math.round(doel.x), y: Math.round(doel.y), kind: doel.kind } : null;
   if (!doel) throw new Error('geen sloot naast een weg gevonden');
   await teleport(doel.x - 30, doel.y, 5000);
@@ -120,10 +126,11 @@ if (wil('bord')) await probeer('bord', async () => {
     await teleport(pl.x, pl.y, 6000);
     for (const [dx, dy] of [[0, 0], [700, 0], [-700, 0], [0, 700], [0, -700]]) {
       await teleport(pl.x + dx, pl.y + dy, dx || dy ? 4000 : 0);
-      const lijst = BK.propsInRadius(pl.x + dx, pl.y + dy, 600, ['placesign']); if (lijst && lijst.length) { b = lijst[0]; break; }
+      const alle = BK.findProps(pl.x + dx, pl.y + dy, 900) || []; const lijst = alle.filter((q) => /sign|bord|wegwijzer/i.test(q.kind)); const kh = (notities.propKindsPerPlek = notities.propKindsPerPlek || {}); kh[n + dx + ',' + dy] = [...new Set(alle.map((q) => q.kind))].join(','); if (lijst.length) { b = lijst[0]; break; }
     }
     if (b) break;
   }
+  { const h = {}; for (const q of BK.findProps(p.x, p.y, 500) || []) h[q.kind] = (h[q.kind] || 0) + 1; notities.propKinds = h; }
   notities.bord = b ? { kind: b.kind, x: Math.round(b.x), y: Math.round(b.y), sleutels: Object.keys(b).join(',') } : null;
   if (!b) throw new Error('geen plaatsnaambord gevonden');
   await teleport(b.x, b.y, 5000);
@@ -158,13 +165,13 @@ if (wil('fiets')) await probeer('fiets', async () => {
   const BK = await imp('breakables'); const centrum = P(100, 77);
   await teleport(centrum[0], centrum[1], 7000);
   let r = null;
-  for (const [dx, dy] of [[0, 0], [250, 0], [-250, 0], [0, 250], [0, -250]]) { await teleport(centrum[0] + dx, centrum[1] + dy, dx || dy ? 3500 : 0); const l = BK.propsInRadius(centrum[0] + dx, centrum[1] + dy, 300, ['bikerack']); if (l && l.length) { r = l[0]; break; } }
+  for (const [dx, dy] of [[0, 0], [250, 0], [-250, 0], [0, 250], [0, -250]]) { await teleport(centrum[0] + dx, centrum[1] + dy, dx || dy ? 3500 : 0); const l = BK.propsInRadius(centrum[0] + dx, centrum[1] + dy, 300, ['bike', 'bikerack']); if (l && l.length) { r = l[0]; notities.fietsKindGevonden = r.kind; break; } }
   notities.fietsrek = r ? [Math.round(r.x), Math.round(r.y)] : null;
   if (!r) throw new Error('geen fietsenrek gevonden');
   await teleport(r.x + 1.2, r.y, 3000);
   const z = gh(r.x, r.y);
   cam(r.x + 5, r.y - 5, z + 2.2, r.x, r.y, z + 0.7, 60); await cap('w14-fietsenstalling-voor', 500);
-  w.cameraOverride = null; tap('e', 'KeyE'); await sleep(2500);
+  camUit(); tap('e', 'KeyE'); await sleep(2500);
   notities.fietsInVoertuig = !!p.inVehicle; notities.fietsKind = p.inVehicle ? (p.inVehicle.kind || p.inVehicle.type || p.inVehicle.model || '?') : null;
   notities.melding = (document.getElementById('hud') ? document.getElementById('hud').innerText : '').replace(/\s+/g, ' ').slice(0, 300);
   await cap('w15-fiets-gepakt', 500);
@@ -175,8 +182,9 @@ if (wil('vaar') || wil('lucht')) {
   const RT = await imp('routing');
   const stuur = async (naam) => { RT.setUserWaypoint(p.x + 900, p.y - 900, 'Doel ' + naam); await sleep(5000); };
   if (wil('vaar')) await probeer('vaar', async () => {
-    const haven = plaats('Delfzijl') || plaats('Groningen'); await teleport(haven.x, haven.y, 6000);
-    const bt = VEH.spawnBoatOnWater && VEH.spawnBoatOnWater(map, Math.random);
+    const WL2 = await imp('waterlevels'); await teleport(-874, 566, 7000);
+    const poly = WL2.waterPolyAt(map, -874, 566, 0); notities.vaarPoly = !!poly;
+    const bt = poly ? VEH.spawnBoatOnWater(map, poly, Math.random) : null;
     notities.boot = bt ? { x: Math.round(bt.x), y: Math.round(bt.y), kind: bt.kind || bt.model } : null;
     if (!bt) throw new Error('geen boot kunnen maken');
     bt.perfTemp = true; if (!w.vehicles.includes(bt)) w.vehicles.push(bt);
@@ -185,12 +193,6 @@ if (wil('vaar') || wil('lucht')) {
     notities.vaarRoute = (() => { const r = RT.getActiveRoute && RT.getActiveRoute(); return r ? { mode: r.mode, noRoute: !!r.noRoute, lengte: Math.round(r.length || 0) } : null; })();
     await cap('w16-vaarlijn-boot', 800);
     RT.clearUserWaypoint(); p.exitVehicle(map, w);
-  });
-  if (wil('lucht')) await probeer('lucht', async () => {
-    const c = P(100, 77); await teleport(c[0], c[1], 6000);
-    const pl = VEH.spawnPlaneNear ? VEH.spawnPlaneNear(map, c[0], c[1]) : null;
-    notities.vliegtuigApi = !!pl;
-    if (!pl) throw new Error('geen vliegtuig-spawn in vehicle.js');
   });
 }
 // ---- wereldkleuren op drie plekken ----
@@ -201,6 +203,41 @@ if (wil('kleur')) await probeer('kleur', async () => {
     if (soort === 'oog') cam(x - 12, y - 8, z + 4, x + 5, y + 5, z + 3, 70); else cam(x + 90, y - 90, z + 40, x, y, z, 60);
     await cap('w17-wereldkleur-' + nm, 700);
   }
+});
+
+// ---- penaltyuitleg: staat er een toets waar {SPATIE} hoort? ----
+if (wil('penalty2')) await probeer('penalty2', async () => {
+  const PN = window.__penalty; if (!PN) throw new Error('geen __penalty');
+  const g = PN.spot(); await teleport(g.x, g.y, 6000);
+  PN.start(true); await sleep(4000);
+  const el = [...document.querySelectorAll('#hud *')].filter((e) => /laat los bij het streepje/.test(e.textContent) && !e.querySelector('*:not(span):not(kbd):not(b)')).pop();
+  notities.penaltyUitleg = el ? el.outerHTML.slice(0, 700) : 'niet gevonden';
+  const kop = [...document.querySelectorAll('#hud *')].filter((e) => /^s*d+s+vans*d*s*$/i.test(e.textContent)).slice(0, 2).map((e) => e.outerHTML.slice(0, 300));
+  notities.penaltyKop = kop;
+  await cap('x1-penalty-uitleg', 500); PN.quit();
+});
+// ---- containermissie: kraan op de kade en container naast de weg ----
+if (wil('container2')) await probeer('container2', async () => {
+  const MQ = await imp('missionquery'); const MS = await imp('missions');
+  const defs = MQ.getMissionDefs(); const idx = defs.findIndex((d) => /containerlabyrint/.test(d.label));
+  if (idx < 0) throw new Error('missie niet gevonden');
+  for (let k = 0; k < 40 && !defs[idx].start; k++) await sleep(500);
+  notities.containerStart = MS.missionDebug.start(w, idx); await sleep(4000);
+  let vorige = -1;
+  for (let i = 0; i < 12; i++) {
+    const s2 = MS.missionDebug.state(); if (!s2 || s2.phase !== 'active') break;
+    const t = s2.info && s2.info.target;
+    if (s2.stage !== vorige && t) {
+      vorige = s2.stage; const z = gh(t.x, t.y);
+      const dx = t.x - p.x, dy = t.y - p.y, d = Math.hypot(dx, dy) || 1;
+      notities['containerDoel' + s2.stage] = { x: Math.round(t.x), y: Math.round(t.y), afstand: Math.round(d) };
+      cam(t.x - dx / d * 45 + dy / d * 20, t.y - dy / d * 45 - dx / d * 20, z + 12, t.x, t.y, z + 4, 60); await cap('x2-container-doel-stap' + s2.stage, 900);
+      cam(t.x + dy / d * 12, t.y - dx / d * 12, z + 3, t.x, t.y, z + 3, 70); await cap('x2-container-dichtbij-stap' + s2.stage, 900);
+      camUit();
+    }
+    MS.missionDebug.complete(w); await sleep(2500);
+  }
+  if (MS.isMissionActive()) MS.cancelActiveMission(w);
 });
 clearInterval(skipper);
 return JSON.stringify({ size: SIZE, done, notities, fouten });
