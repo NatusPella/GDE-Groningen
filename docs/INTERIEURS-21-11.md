@@ -1,6 +1,6 @@
 # Interieurs: echt naar binnen lopen in panden (epic #1150, 21-11)
 
-Wens van de eigenaar: "Kunnen we ook meer panden een echt enterable interieur geven? Zoals in Watch Dogs 2?" Besluit en alternatieven: [ADR 0042](../.specs-fire/standards/adr/0042-interieurs-in-het-pand-zelf.md). Spec: [wereld.md](../.specs-fire/standards/wereld.md). Wat in beeld nog gecontroleerd moet worden: [INTERIEURS-VERIFICATIE-21-11.md](INTERIEURS-VERIFICATIE-21-11.md).
+Wens van de eigenaar: "Kunnen we ook meer panden een echt enterable interieur geven? Zoals in Watch Dogs 2?" Besluit en alternatieven: [ADR 0044](../.specs-fire/standards/adr/0044-interieurs-in-het-pand-zelf.md). Spec: [wereld.md](../.specs-fire/standards/wereld.md). Wat in beeld nog gecontroleerd moet worden: [INTERIEURS-VERIFICATIE-21-11.md](INTERIEURS-VERIFICATIE-21-11.md).
 
 ## Besluit (eigenaar)
 

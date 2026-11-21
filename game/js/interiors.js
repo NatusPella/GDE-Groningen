@@ -1,4 +1,4 @@
-// Enterable interiors in the world itself (epic Interieurs, #1150, docs/INTERIEURS-21-11.md, ADR 0042). A building that has a front
+// Enterable interiors in the world itself (epic Interieurs, #1150, docs/INTERIEURS-21-11.md, ADR 0044). A building that has a front
 // door (b.entrance, set when its facade is drawn) gets, while the player is near, a real inside: the hall behind that door, built
 // lazily from the plan of interiorrules.js (kind, layout, windows), drawn in the building's own footprint on the real ground. You
 // walk through the door on foot: it opens as you come (a hinged leaf), the facade is cut open there (portalcut3d.js), the walker

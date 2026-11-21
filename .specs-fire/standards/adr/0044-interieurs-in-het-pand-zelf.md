@@ -1,4 +1,4 @@
-# 0042 - Interieurs in het pand zelf, lui gebouwd
+# 0044 - Interieurs in het pand zelf, lui gebouwd
 
 - **Status:** besloten (eigenaarseis, 21-11-2026; uitwerking epic #1150)
 - **Datum:** 21-11-2026

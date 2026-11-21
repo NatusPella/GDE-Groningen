@@ -99,7 +99,7 @@ Een verhaalplek uit Deel 4 is geen rij in dat systeem: het verhaal noemt de plek
    (`game/js/gebieden.js`, #414), anders telt hij niet mee voor de gebieden.
 7. Nederlands, verzonnen namen voor merken, altijd zomer; echte plaatsen en
    gebouwen mogen.
-8. Een pand dat je kunt betreden (interieurs, ADR 0042, `docs/INTERIEURS-21-11.md`) heeft zijn interieur IN het pand, binnen de
+8. Een pand dat je kunt betreden (interieurs, ADR 0044, `docs/INTERIEURS-21-11.md`) heeft zijn interieur IN het pand, binnen de
    voetafdruk en achter de voordeur van de gevel; nooit een teleport naar een apart gebied. Een nieuwe soort is data
    (`interiorkinds.js`) plus een recept (`interiorlayout.js`) en een tekenaar per itemtype (`interiorbuild3d.js`), deterministisch
    uit het pandzaad, lui gebouwd en bij vertrek vrijgegeven, met een test op geldigheid en budget.
