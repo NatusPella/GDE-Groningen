@@ -117,31 +117,31 @@ export function analyseRecords(id, records, opts = {}) {
     const c = r.camera;
     // CS-R06: een geen-getal in de camera
     if (!c || [c.position.x, c.position.y, c.position.z, c.lookAt.x, c.lookAt.y, c.lookAt.z, c.fov].some((v) => !Number.isFinite(v))) {
-      out.push(vondst(id, 'CS-R06', 'blokkerend', 'camera', `${wat}: de camera heeft een geen-getal (NaN) of ontbreekt`, { t }));
+      out.push(vondst(id, 'CS-R06', 'blokkerend', 'camera', `${wat}: de camera heeft een geen-getal (NaN) of ontbreekt`, { t, shot: r.shot }));
       continue;
     }
     // CS-R01: zwart of leeg beeld
     if (r.pixels) {
-      if (isBlack(r.pixels)) out.push(vondst(id, 'CS-R01', 'blokkerend', 'camera', `${wat}: zwart beeld (gemiddelde luma ${r.pixels.mean.toFixed(1)})`, { t }));
-      else if (isEmpty(r.pixels)) out.push(vondst(id, 'CS-R01', 'belangrijk', 'camera', `${wat}: een effen, leeg vlak (spreiding ${r.pixels.std.toFixed(1)}): lens in een muur of een lege hemel`, { t }));
+      if (isBlack(r.pixels)) out.push(vondst(id, 'CS-R01', 'blokkerend', 'camera', `${wat}: zwart beeld (gemiddelde luma ${r.pixels.mean.toFixed(1)})`, { t, shot: r.shot }));
+      else if (isEmpty(r.pixels)) out.push(vondst(id, 'CS-R01', 'belangrijk', 'camera', `${wat}: een effen, leeg vlak (spreiding ${r.pixels.std.toFixed(1)}): lens in een muur of een lege hemel`, { t, shot: r.shot }));
     }
     // CS-R02: camera in geometrie (dak of grond, of een kijkstraal die meteen iets raakt)
-    if (r.clip) out.push(vondst(id, 'CS-R02', 'blokkerend', 'camera', `${wat}: de camera staat in een gebouw of onder de grond`, { t }));
-    else if (r.near && r.near.hits >= 6) out.push(vondst(id, 'CS-R02', 'belangrijk', 'camera', `${wat}: ${r.near.hits} van 25 kijkstralen raken iets binnen ${MEET.nadichtbij} m (lens vol: boom, paal of rug)`, { t }));
+    if (r.clip) out.push(vondst(id, 'CS-R02', 'blokkerend', 'camera', `${wat}: de camera staat in een gebouw of onder de grond`, { t, shot: r.shot }));
+    else if (r.near && r.near.hits >= 6) out.push(vondst(id, 'CS-R02', 'belangrijk', 'camera', `${wat}: ${r.near.hits} van 25 kijkstralen raken iets binnen ${MEET.nadichtbij} m (lens vol: boom, paal of rug)`, { t, shot: r.shot }));
     // CS-R03: de spreker in beeld (projectie van het personage naar het scherm)
     if (r.speaker && r.speaker.expected !== false) {
       const sp = r.speaker;
       const aandeel = sp.rect ? onScreenShare(sp.rect, w, h) : 0;
-      if (!sp.inFront && sp.inFront !== undefined) out.push(vondst(id, 'CS-R03', 'blokkerend', 'camera', `${wat}: ${sp.name || sp.id} praat maar staat achter de camera`, { t }));
-      else if (aandeel < 0.15) out.push(vondst(id, 'CS-R03', r.phase === 'm' ? 'blokkerend' : 'belangrijk', 'camera', `${wat}: ${sp.name || sp.id} praat maar is niet in beeld (${(aandeel * 100).toFixed(0)}% op het scherm)`, { t }));
+      if (!sp.inFront && sp.inFront !== undefined) out.push(vondst(id, 'CS-R03', 'blokkerend', 'camera', `${wat}: ${sp.name || sp.id} praat maar staat achter de camera`, { t, shot: r.shot }));
+      else if (aandeel < 0.15) out.push(vondst(id, 'CS-R03', r.phase === 'm' ? 'blokkerend' : 'belangrijk', 'camera', `${wat}: ${sp.name || sp.id} praat maar is niet in beeld (${(aandeel * 100).toFixed(0)}% op het scherm)`, { t, shot: r.shot }));
       // CS-R04: de ondertitel over de spreker of over de HUD
-      if (r.subtitle && r.subtitle.rect && sp.rect && coverage(sp.rect, r.subtitle.rect) > MEET.overlap) out.push(vondst(id, 'CS-R04', 'belangrijk', 'camera', `${wat}: de ondertitel bedekt ${(coverage(sp.rect, r.subtitle.rect) * 100).toFixed(0)}% van ${sp.name || sp.id}`, { t }));
+      if (r.subtitle && r.subtitle.rect && sp.rect && coverage(sp.rect, r.subtitle.rect) > MEET.overlap) out.push(vondst(id, 'CS-R04', 'belangrijk', 'camera', `${wat}: de ondertitel bedekt ${(coverage(sp.rect, r.subtitle.rect) * 100).toFixed(0)}% van ${sp.name || sp.id}`, { t, shot: r.shot }));
     }
-    if (r.subtitle && r.subtitle.rect) for (const hud of r.hud || []) if (coverage(r.subtitle.rect, hud) > 0.1) { out.push(vondst(id, 'CS-R04', 'belangrijk', 'camera', `${wat}: de ondertitel overlapt een HUD-element`, { t })); break; }
+    if (r.subtitle && r.subtitle.rect) for (const hud of r.hud || []) if (coverage(r.subtitle.rect, hud) > 0.1) { out.push(vondst(id, 'CS-R04', 'belangrijk', 'camera', `${wat}: de ondertitel overlapt een HUD-element`, { t, shot: r.shot })); break; }
     // luminantiesprong tussen het eind van het ene shot en het begin van het volgende
     if (vorig && r.pixels && vorig.pixels && r.phase === 'b' && r.shot !== vorig.shot) {
       const d = Math.abs(r.pixels.mean - vorig.pixels.mean);
-      if (d >= MEET.sprong.belangrijk) out.push(vondst(id, 'CS-R05', d >= MEET.sprong.blokkerend ? 'blokkerend' : 'belangrijk', 'camera', `${wat}: plotselinge luminantiesprong van ${d.toFixed(0)} (van ${vorig.pixels.mean.toFixed(0)} naar ${r.pixels.mean.toFixed(0)}): belichting, dagtijd of weer wisselt tussen shots`, { t }));
+      if (d >= MEET.sprong.belangrijk) out.push(vondst(id, 'CS-R05', d >= MEET.sprong.blokkerend ? 'blokkerend' : 'belangrijk', 'camera', `${wat}: plotselinge luminantiesprong van ${d.toFixed(0)} (van ${vorig.pixels.mean.toFixed(0)} naar ${r.pixels.mean.toFixed(0)}): belichting, dagtijd of weer wisselt tussen shots`, { t, shot: r.shot }));
     }
     vorig = r;
     if (!perShot.has(r.shot)) perShot.set(r.shot, []);

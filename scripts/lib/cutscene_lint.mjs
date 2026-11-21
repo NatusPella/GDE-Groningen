@@ -14,7 +14,9 @@
 // (grap uitgelegd, geen ruimte na een punch); komische beats worden alleen als kandidaat gelabeld
 // (humorCandidates) voor het humorpanel, en tellen niet mee in de score.
 
-export const ERNST = { blokkerend: 'blokkerend', belangrijk: 'belangrijk', nit: 'nit' };
+import { simulateRecords, analyseRecords } from './cutscene_measure.mjs';
+
+export const ERNST ={ blokkerend: 'blokkerend', belangrijk: 'belangrijk', nit: 'nit' };
 const GEWICHT = { blokkerend: 25, belangrijk: 8, nit: 1 };
 
 export const RULES = {
@@ -505,6 +507,24 @@ export function checkVisual(unit) {
   return out;
 }
 
+// De projectiemetingen van laag 3 zonder pixels (simulateRecords): spreker op het scherm en ondertitel over de spreker, per shot één
+// vondst. Een R03 die een C05 op hetzelfde moment al meldt, komt er niet nog eens bij.
+function projectieVondsten(unit, bestaand) {
+  if (!unit.scene || !unit.def) return [];
+  const c05 = bestaand.filter((x) => x.regel === 'CS-C05');
+  const gezien = new Set();
+  const out = [];
+  for (const x of analyseRecords(unit.id, simulateRecords(unit))) {
+    if (x.regel !== 'CS-R03' && x.regel !== 'CS-R04') continue;
+    const sleutel = `${x.regel}|${x.shot}`;
+    if (gezien.has(sleutel)) continue;
+    if (x.regel === 'CS-R03' && c05.some((c) => Math.abs((c.t ?? -99) - x.t) < 3)) continue;
+    gezien.add(sleutel);
+    out.push({ ...x, bron: 'projectie' });
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------- samenstellen
 
 // Alle regels op één eenheid (de introductieregel draait over de hele lijn: checkIntroductions).
@@ -515,6 +535,7 @@ export function lintUnit(unit, ctx = {}) {
   v.push(...checkText(unit, ctx));
   v.push(...checkHumorStructure(unit));
   try { v.push(...checkCamera(unit)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'bemonsteren faalde: ' + String(e.message || e).slice(0, 120))); }
+  try { v.push(...projectieVondsten(unit, v)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'projectiemeting faalde: ' + String(e.message || e).slice(0, 120))); }
   try { v.push(...checkVisual(unit)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'visuele controle faalde: ' + String(e.message || e).slice(0, 120))); }
   return v;
 }
