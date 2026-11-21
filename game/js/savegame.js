@@ -25,6 +25,7 @@ import { getDifficultyProfile, setActiveDifficulty, profileFromSave } from './di
 import { legacyDifficultyLevel } from './settings.js';
 import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
+import { laadMetTerugval, BEWAREN_UIT_TEKST } from './loadrollback.js'; // #1073
 import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
@@ -304,6 +305,11 @@ function serialize(w) {
 
 export function saveGame(w = world, { toast = true, manual = false } = {}) {
   if (!w) return false;
+  // #1073: na een mislukte lading met een kapotte terugval bewaart niets; de vorige slot blijft heel
+  if (bewarenUit) {
+    if (manual && w.addMessage) w.addMessage(BEWAREN_UIT_TEKST, 8, { key: 'laden-mislukt' });
+    return !manual;
+  }
   // coöp (#95): de host bewaart zoals altijd; een gast bewaart het verhaal van de host niet,
   // alleen wat hij zelf verdiende komt in zijn eigen save (saveGuestEarnings)
   if (w.coopRole === 'client') return saveGuestEarnings(w);
@@ -577,12 +583,43 @@ function placeAt(w, x, y) {
 export const GAST_BEWAARD_TEKST = 'Je verdiensten zijn bewaard; het verhaal van de sessie staat in het opgeslagen spel van wie het spel opende.';
 export const coopSessieLoopt = (w) => !!(w && w.coopNet && !w.coopSolo);
 
+// #1073: staat de wereld na een mislukte lading half geladen (ook de terugval faalde), dan bewaart niets
+// meer tot een volgende lading slaagt: de autosave schreef anders de gemengde stand over de vorige slot.
+let bewarenUit = false;
+export const bewarenGeblokkeerd = () => bewarenUit;
+
 export function applySave(w, d) {
   if (!w || !d) return false;
   if (coopSessieLoopt(w)) return false;
   const m = d.v !== VERSION && migrateSave(d);
   if (m) d = m.data;
-  try {
+  let voor = null;
+  try { voor = serialize(w); } catch (e) { voor = null; }
+  const was = { loadedFromSave: w.loadedFromSave, loadCount: w.loadCount, boundSlot, lastSig, dirtyIn, missionSaveIn, playSeconds, lastMissionsDone };
+  const r = laadMetTerugval((x) => applySaveRaw(w, x), d, voor, (t, e) => console.error(t, e));
+  if (r.ok) { bewarenUit = false; return true; }
+  // niet geladen: de schrijfplek blijft die van vóór de poging (de terugval bindt de net gekozen slot
+  // anders aan de stand van de oude), en de bewaartimers staan terug of, bij een kapotte wereld, uit
+  w.loadedFromSave = was.loadedFromSave;
+  w.loadCount = was.loadCount;
+  boundSlot = was.boundSlot;
+  if (r.teruggezet) {
+    ({ lastSig, dirtyIn, missionSaveIn, playSeconds, lastMissionsDone } = was);
+  } else {
+    lastSig = null;
+    dirtyIn = -1;
+    missionSaveIn = -1;
+  }
+  if (r.kapot) {
+    bewarenUit = true;
+    if (w.addMessage) w.addMessage(BEWAREN_UIT_TEKST, 12, { key: 'laden-mislukt' });
+  }
+  return false;
+}
+
+// Gooit bij een fout in een stap; applySave beslist dan over de terugval.
+function applySaveRaw(w, d) {
+  {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();
     if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
@@ -660,9 +697,6 @@ export function applySave(w, d) {
     lastSig = null;
     bindSlot();
     return true;
-  } catch (e) {
-    console.error('Save laden mislukt', e);
-    return false;
   }
 }
 
