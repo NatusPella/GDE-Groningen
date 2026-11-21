@@ -3,6 +3,7 @@
 // luistert op `data-vb`. Hoofdknop per scherm: een primaire (geel), de rest stil; toetsenbord, controller en aanraken doen hetzelfde (gewone knoppen); Esc of B gaat terug (pausemenu).
 // Niet door een mens in beeld bekeken (zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
 import * as C from './voetbalcarriere.js';
+import { hoofdspeler } from './players.js';
 import * as O from './voetbalontwikkeling.js';
 import * as A from './voetbalagenda.js';
 import { ATTRS, ATTR_NAMES, ROLE_NAMES, TALENTS, attrCap, playerRating } from './voetbalspelers.js';
@@ -154,7 +155,7 @@ const CSS = `.vb-pane { display: grid; gap: var(--ds-s-2, 10px); padding: var(--
 .vb-vaardig .ds-z-rij__waarde { min-width: 180px; }`;
 let cssLoaded = false;
 const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return; cssLoaded = true; const el = document.createElement('style'); el.textContent = CSS; document.head.appendChild(el); };
-export const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: (w && w.player && w.player.character === 'tammo') ? 'tammo' : 'anita' });
+export const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
 let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
 let launcher = null;
