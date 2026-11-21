@@ -1,0 +1,73 @@
+{
+ "note": "Humorkeuze (#1134), ronde 5: nieuwe stappen N9-N12. Voorstel: het paneel heeft deze beats nog niet beoordeeld; de schrijver koos variant 1 (index 0).",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HN-05",
+   "scene": "N10",
+   "speaker": "TERRASGAST",
+   "context": "Terras aan de Grote Markt. De gast vroeg of Tammo en Tessa al samen zijn; zij beantwoorden dat als vraag over hun relatie. De gast bedoelde iets heel anders.",
+   "shot": "halve close-up op de gast met het menu; twee-shot Tammo en Tessa, geen reactieshot erna",
+   "variants": [
+    "Ik bedoelde de rekening.",
+    "Ik vroeg naar de rekening.",
+    "Ik wilde alleen betalen."
+   ],
+   "neutral": "Ik wilde graag afrekenen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HN-06",
+   "scene": "N12",
+   "speaker": "TAMMO",
+   "context": "De flat, bij de koelkast. Tessa heeft een lijstje gemaakt van wie wat kan en zet SAMEN met een dubbele punt op een lege regel. Tammo kijkt naar de lege regel en dan naar haar.",
+   "shot": "twee-shot bij de koelkast, dan een lange blik van Tammo op de lege regel",
+   "variants": [
+    "Dat wordt een mooie regel.",
+    "Ik hoop dat die regel lang wordt.",
+    "Die regel wil ik zelf invullen."
+   ],
+   "neutral": "Dat komt nog wel."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HN-07",
+   "scene": "N9",
+   "speaker": "TESSA",
+   "context": "Nacht op een dijk, in een oud busje met de achterdeuren open. Een schaap staat tussen hen in het beeld en kauwt op Tammo's sok; het bijna-moment is net voorbij.",
+   "shot": "twee-shot, dan het schaap in de deuropening, dan Tammo's voet zonder sok",
+   "variants": [
+    "Het eet je sok.",
+    "Het schaap eet je sok.",
+    "Hij heeft je sok."
+   ],
+   "neutral": "Het pakt je sok."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HN-08",
+   "scene": "N9",
+   "speaker": "TAMMO",
+   "context": "Nacht op een dijk. Tessa wijst naar de Grote Beer en zegt dat hij niet kijkt; Tammo kijkt naar haar vinger en niet naar de lucht.",
+   "shot": "halve close-up Tammo, zijn blik gaat langs haar vinger naar haar gezicht",
+   "variants": [
+    "Ik kijk naar de beer.",
+    "Ik kijk naar het sterrenbeeld.",
+    "Ik kijk wel degelijk."
+   ],
+   "neutral": "Ik kijk wel."
+  }
+ ]
+}

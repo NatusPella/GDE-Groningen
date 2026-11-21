@@ -5597,6 +5597,116 @@
    ]
   },
   {
+   "id": "N10",
+   "title": "Een middag op het terras",
+   "act": 2,
+   "region": "Stad, Grote Markt",
+   "vehicle": "terras",
+   "step": "N10",
+   "kind": "key",
+   "regie": [
+    "dinsdagmiddag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.",
+    "hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.",
+    "aan het eind van de middag is Tessa's fooienpot vol. Tammo heeft er twee glazen en een stoel op zijn naam."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Twee koffie, een thee, een tosti. Alles op één blad. Niet kantelen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik kantel niet. Ik rijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Terrasgast",
+     "key": "terras",
+     "text": "Zijn jullie al samen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Nee.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "banter",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat ligt eraan wat je met samen bedoelt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Nee, Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Terrasgast",
+     "key": "terras",
+     "text": "Ik bedoelde de rekening.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-05"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ah. Ja. Samen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dit is niet mijn vak.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Jouw vak is stilstaan als ik praat.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat kan ik.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "N8",
    "title": "Een avond bij Oma",
    "act": 2,
@@ -5739,6 +5849,191 @@
      "speaker": "Tessa",
      "key": "A",
      "text": "Ik zei het toch.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N11",
+   "title": "Een bezorgrondje bij Bedum",
+   "act": 2,
+   "region": "Hogeland, Bedum",
+   "vehicle": "bestelbus",
+   "step": "N11",
+   "kind": "key",
+   "regie": [
+    "woensdagmiddag. Een bezorgdienst zoekt een rijder voor een rondje met twaalf pakketten en één kaart zonder straatnamen. Tammo rijdt de bestelbus; Tessa zit naast hem met de lijst op haar knie.",
+    "hij zwenkt soepel om een trekker en zet de bus op de centimeter voor een brievenbus. Zij zoekt nog naar de koe."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Links. Bij de zwarte koe.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Welke zwarte koe? Hier staan er veertig.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Die met dat gezicht.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Pakket drie. Op de minuut.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is jouw vak.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En jij?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik kan geen kaart lezen. Wel een weiland.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Twaalf pakketten, tien minuten te vroeg.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik heb elf koeien geteld.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N12",
+   "title": "De lijst op de koelkast",
+   "act": 2,
+   "region": "Stad, Paddepoel",
+   "vehicle": "flat",
+   "step": "N12",
+   "kind": "key",
+   "regie": [
+    "woensdagavond. Ze halen schone sokken uit de flat. Op de koelkast hangt de lijst met twee kolommen. Tessa pakt een stift en schrijft er een derde bij: WIE KAN WAT.",
+    "ze schrijft SAMEN op de laatste regel en zet er een dubbele punt achter. Tammo kijkt naar de lege regel en dan naar haar."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Tammo. Rijden, wachten, de chauffeur bedanken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En jij?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Plannen, koeien, praten met mensen die ik niet ken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Er staat niks tussen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is de bedoeling. Daar komt het nog.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat wordt een mooie regel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-06"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Pak je sokken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dit zijn mijn laatste schone.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan wees er zuinig op.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -12662,6 +12957,127 @@
      "text": "Bewaar het. Ik heb dit niet gezegd.",
      "tag": "NIEUW",
      "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "N9",
+   "title": "Nacht op een dijk",
+   "act": 4,
+   "region": "Oldambt, de dijk bij de Dollard",
+   "vehicle": "Rikus' busje",
+   "step": "N9",
+   "kind": "key",
+   "regie": [
+    "nacht, de dag na de kraak in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.",
+    "ze wijst. Hij kijkt naar haar vinger, niet naar de lucht.",
+    "een lange stilte. Ze draait haar hoofd. Er is nog maar een hand tussen hun gezichten. Buiten klinkt zacht gemekker: een schaap staat in de open achterdeur, kauwend, en kijkt van de een naar de ander.",
+    "allebei lachen. Het schaap loopt weg met de sok. Het moment is voorbij en geen van beiden zegt er iets over."
+   ],
+   "lines": [
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. Ik zeg niks.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat daar is de Grote Beer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is een vliegtuig.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan is dat de Grote Beer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je kijkt niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik kijk naar de beer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-08"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is geen beer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is een schaap.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het eet je sok.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-07",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat was mijn laatste schone.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Welterusten, Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Welterusten.",
+     "tag": "NIEUW",
+     "channel": "stem",
      "textOnly": true
     }
    ]

@@ -158,6 +158,24 @@ RIKUS (telefoon): Dat weet ik. Hebben jullie dat logboek nog? [NIEUW]
 TESSA: Geprint. [NIEUW]
 RIKUS (telefoon): Bewaar het. Ik heb dit niet gezegd. [NIEUW]
 
+## [N9] Nacht op een dijk – Oldambt, de dijk bij de Dollard – Rikus' busje
+(regie: nacht, de dag na de kraak in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.)
+RIKUS (radio): Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. Ik zeg niks. [NIEUW]
+TESSA: Dat daar is de Grote Beer. [NIEUW]
+TAMMO: Dat is een vliegtuig. [NIEUW]
+TESSA: Dan is dat de Grote Beer. [NIEUW]
+(regie: ze wijst. Hij kijkt naar haar vinger, niet naar de lucht.)
+TESSA: Je kijkt niet. [NIEUW]
+TAMMO: Ik kijk naar de beer. [NIEUW]
+(regie: een lange stilte. Ze draait haar hoofd. Er is nog maar een hand tussen hun gezichten. Buiten klinkt zacht gemekker: een schaap staat in de open achterdeur, kauwend, en kijkt van de een naar de ander.)
+TESSA: Dat is geen beer. [NIEUW]
+TAMMO: Dat is een schaap. [NIEUW]
+TESSA: Het eet je sok. [NIEUW]
+TAMMO: Dat was mijn laatste schone. [NIEUW]
+(regie: allebei lachen. Het schaap loopt weg met de sok. Het moment is voorbij en geen van beiden zegt er iets over.)
+TESSA: Welterusten, Tammo. [NIEUW]
+TAMMO: Welterusten. [NIEUW]
+
 ## [M19.1] Stoom: intro – Veenkoloniën, Veendam, het perron – trein
 (regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
 TESSA: De machinist is omgekocht. Hij eet al een uur een eierbal. [NIEUW]

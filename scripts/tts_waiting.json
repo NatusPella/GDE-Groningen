@@ -374,6 +374,48 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Ik kantel niet. Ik rijd.",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Terrasgast",
+  "text": "Zijn jullie al samen?",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat ligt eraan wat je met samen bedoelt.",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Terrasgast",
+  "text": "Ik bedoelde de rekening.",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ah. Ja. Samen.",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dit is niet mijn vak.",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat kan ik.",
+  "scene": "N10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Deze?",
   "scene": "N8"
  },
@@ -412,6 +454,42 @@
   "speaker": "Tammo",
   "text": "Hij is zacht.",
   "scene": "N5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Welke zwarte koe? Hier staan er veertig.",
+  "scene": "N11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Pakket drie. Op de minuut.",
+  "scene": "N11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Twaalf pakketten, tien minuten te vroeg.",
+  "scene": "N11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Er staat niks tussen.",
+  "scene": "N12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat wordt een mooie regel.",
+  "scene": "N12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dit zijn mijn laatste schone.",
+  "scene": "N12"
  },
  {
   "reason": "spreektekst",
@@ -1012,6 +1090,42 @@
   "speaker": "Rikus",
   "text": "Bewaar het. Ik heb dit niet gezegd.",
   "scene": "O8"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. Ik zeg niks.",
+  "scene": "N9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is een vliegtuig.",
+  "scene": "N9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik kijk naar de beer.",
+  "scene": "N9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is een schaap.",
+  "scene": "N9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat was mijn laatste schone.",
+  "scene": "N9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Welterusten.",
+  "scene": "N9"
  },
  {
   "reason": "spreektekst",
