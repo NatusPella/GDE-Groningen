@@ -21,6 +21,11 @@ export const STREAM_LEAD_S = 3;
 export const STREAM_MAX_LEAD = 250; // m
 // the heading follows the moves with this time constant
 const STREAM_SMOOTH_S = 0.35;
+// #1016: the speed estimate attacks fast and lets go slowly: a sprint start or a floored gas pedal points the prefetch ahead within ~0.1 s
+// (a plain 0.35 s average still read walking pace after half a second, so the first 40 m ahead were queued late), and a short brake
+// or a corner does not drop the lead at once
+export const STREAM_ATTACK = 0.35;
+export const STREAM_RELEASE = 1.5;
 // a move this far in one frame (teleport, train, respawn, camera cut) is not a
 // speed: it would point the prefetch somewhere random
 const STREAM_CUT_M = 150;
@@ -41,7 +46,8 @@ export function advanceStreamAhead(s, x, y, dt, opts = {}) {
   if (moved > (opts.cutM ?? STREAM_CUT_M)) { s.speed = 0; s.lead = 0; return s; }
   const max = opts.maxSpeed ?? STREAM_MAX_SPEED;
   const k = Math.min(1, dt / (opts.smoothS ?? STREAM_SMOOTH_S));
-  s.speed += (Math.min(max, moved / dt) - s.speed) * k;
+  const v = Math.min(max, moved / dt);
+  s.speed += (v - s.speed) * Math.min(1, dt / ((opts.smoothS ?? STREAM_SMOOTH_S) * (v > s.speed ? STREAM_ATTACK : STREAM_RELEASE)));
   if (moved > 0.01) {
     const nx = dx / moved, ny = dy / moved;
     const bx = s.dirX + (nx - s.dirX) * k, by = s.dirY + (ny - s.dirY) * k;
