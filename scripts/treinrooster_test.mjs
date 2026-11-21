@@ -4,9 +4,9 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import { spelLijn, dienstenOp, dagsoortVan as dagsoortLib, secVan, maakRij, sorteerRijen, valideerRooster, STATIONS, SPEL_LIJNEN, SPEL_NAAM as SPEL_LIB } from './treinrooster_lib.mjs';
-import { geldigRooster, heeftStation, codesUit, rijenUitRooster, pasVertragingToe, bronNaam, dagsoortVan, laadRooster, SPEL_NAAM } from '../game/js/treinrooster.js';
+import { validSchedule, hasStop, codesUit, rijenUitRooster, pasVertragingToe, sourceName, dayTypeOf, laadRooster, GAME_NAMES } from '../game/js/treinrooster.js';
 import { meldSleutel } from '../game/js/livetreinen.js';
-import { bronStand, bronLabel, vertrekRegel, leeftijdTekst, SOORT } from '../game/js/treinbron.js';
+import { sourceState, bronLabel, departureLine, ageText, KIND } from '../game/js/treinbron.js';
 import { stationView, bordCellen, bordBron } from '../game/js/stationlife.js';
 import { weekdayOf } from '../game/js/calendar.js';
 
@@ -22,8 +22,8 @@ assert.strictEqual(spelLijn({ bestemming: 'Zwolle', herkomst: 'Groningen', soort
 assert.strictEqual(spelLijn({ bestemming: 'Assen', herkomst: 'Groningen', soort: 'S61' }), 'Stoptrein Assen');
 assert.ok(['Stoptrein Roodeschool', 'Stoptrein Delfzijl', 'Stoptrein Leeuwarden', 'Stoptrein Winschoten', 'Stoptrein Veendam', 'Stoptrein Assen', 'Intercity Zwolle'].every((l) => SPEL_LIJNEN.includes(l)));
 assert.ok(STATIONS.includes('Groningen') && STATIONS.includes('Haren') && STATIONS.includes('Zuidhorn') && STATIONS.includes('Delfzijl') && STATIONS.includes('Winschoten'));
-assert.deepStrictEqual(SPEL_LIB, SPEL_NAAM, 'bouwstap en spel noemen het centrale station gelijk');
-assert.strictEqual(bronNaam('Groningen Hoofdstation'), 'Groningen');
+assert.deepStrictEqual(SPEL_LIB, GAME_NAMES, 'bouwstap en spel noemen het centrale station gelijk');
+assert.strictEqual(sourceName('Groningen Hoofdstation'), 'Groningen');
 
 // --- de dagen en de tijden ---
 {
@@ -31,9 +31,9 @@ assert.strictEqual(bronNaam('Groningen Hoofdstation'), 'Groningen');
   assert.deepStrictEqual([...dienstenOp(kal, '20270818')], ['1'], 'alleen exception_type 1 telt');
   assert.deepStrictEqual([...dienstenOp(kal, '20270821')].sort(), ['1', '3']);
   assert.deepStrictEqual([0, 1, 5, 6].map(dagsoortLib), ['zo', 'werk', 'werk', 'za']);
-  assert.deepStrictEqual([0, 1, 5, 6].map(dagsoortVan), ['zo', 'werk', 'werk', 'za']);
+  assert.deepStrictEqual([0, 1, 5, 6].map(dayTypeOf), ['zo', 'werk', 'werk', 'za']);
   // de spelkalender: dag 1 is vrijdag 14 augustus, dag 2 zaterdag, dag 3 zondag
-  assert.deepStrictEqual([1, 2, 3, 4].map((n) => dagsoortVan(weekdayOf(n))), ['werk', 'za', 'zo', 'werk']);
+  assert.deepStrictEqual([1, 2, 3, 4].map((n) => dayTypeOf(weekdayOf(n))), ['werk', 'za', 'zo', 'werk']);
   assert.strictEqual(secVan('08:17:00'), 8 * 3600 + 17 * 60);
   assert.strictEqual(secVan('25:10:00'), 25 * 3600 + 600, 'GTFS kent tijden boven 24:00');
   assert.strictEqual(secVan('x'), null);
@@ -46,10 +46,10 @@ assert.strictEqual(bronNaam('Groningen Hoofdstation'), 'Groningen');
 const bestandUrl = new URL('../game/treinrooster.json', import.meta.url);
 const echt = JSON.parse(fs.readFileSync(bestandUrl, 'utf8'));
 {
-  assert.ok(geldigRooster(echt), 'het bestand is geldig');
+  assert.ok(validSchedule(echt), 'het bestand is geldig');
   assert.deepStrictEqual(valideerRooster(echt), []);
   assert.ok(fs.statSync(bestandUrl).size < 400 * 1024, 'compact: onder 400 KB');
-  assert.ok(heeftStation(echt, 'Groningen Hoofdstation') && heeftStation(echt, 'Haren') && heeftStation(echt, 'Sauwerd') && heeftStation(echt, 'Zuidhorn') && heeftStation(echt, 'Winsum'), 'de stations van de wereld hebben een rooster');
+  assert.ok(hasStop(echt, 'Groningen Hoofdstation') && hasStop(echt, 'Haren') && hasStop(echt, 'Sauwerd') && hasStop(echt, 'Zuidhorn') && hasStop(echt, 'Winsum'), 'de stations van de wereld hebben een rooster');
   assert.ok(codesUit(echt).has('gn') && codesUit(echt).size >= 20);
   // alleen de verzonnen lijnnamen en geen echte merken of vervoerders in het bestand (constitutie 2)
   assert.ok(echt.lijnen.every((l) => SPEL_LIJNEN.includes(l)), 'alleen lijnnamen van het spel');
@@ -122,29 +122,29 @@ const echt = JSON.parse(fs.readFileSync(bestandUrl, 'utf8'));
 {
   const nu = 10_000_000;
   const goed = { aan: true, laatsteOk: nu - 20000, reden: null, aantal: 120 };
-  assert.strictEqual(bronStand({ instelling: false, nu }).soort, SOORT.uit);
-  assert.strictEqual(bronStand({ instelling: false, nu }).kort, 'Rooster');
-  assert.strictEqual(bronStand({ stand: null, nu }).soort, SOORT.rooster);
-  assert.strictEqual(bronStand({ stand: { aan: true, laatsteOk: 0, reden: 'netwerk' }, nu }).reden, 'netwerk');
-  assert.ok(/niet bereikbaar/.test(bronStand({ stand: { aan: true, laatsteOk: 0, reden: 'netwerk' }, nu }).tekst));
-  assert.strictEqual(bronStand({ stand: { aan: true, laatsteOk: 0, reden: null }, nu }).reden, 'laden');
-  const live = bronStand({ stand: goed, nu });
-  assert.strictEqual(live.soort, SOORT.live); assert.strictEqual(live.kort, 'Live'); assert.ok(/20 s geleden/.test(live.tekst));
-  assert.strictEqual(bronStand({ stand: { ...goed, laatsteOk: nu - 200000 }, nu }).soort, SOORT.rooster, 'te oud: Rooster');
-  assert.strictEqual(bronStand({ stand: { ...goed, aantal: 0 }, nu }).reden, 'geen');
-  assert.ok(Object.values(['netwerk', 'time-out', 'status', 'te-groot', 'ongeldig', 'leeg']).every((r) => !/\b(error|exception|\d{3})\b/i.test(bronStand({ stand: { aan: true, laatsteOk: 0, reden: r }, nu }).tekst)), 'geen foutcodes in beeld');
-  assert.strictEqual(leeftijdTekst(2), 'zojuist'); assert.strictEqual(leeftijdTekst(200), '3 min geleden');
+  assert.strictEqual(sourceState({ instelling: false, nu }).soort, KIND.uit);
+  assert.strictEqual(sourceState({ instelling: false, nu }).kort, 'Rooster');
+  assert.strictEqual(sourceState({ stand: null, nu }).soort, KIND.rooster);
+  assert.strictEqual(sourceState({ stand: { aan: true, laatsteOk: 0, reden: 'netwerk' }, nu }).reden, 'netwerk');
+  assert.ok(/niet bereikbaar/.test(sourceState({ stand: { aan: true, laatsteOk: 0, reden: 'netwerk' }, nu }).tekst));
+  assert.strictEqual(sourceState({ stand: { aan: true, laatsteOk: 0, reden: null }, nu }).reden, 'laden');
+  const live = sourceState({ stand: goed, nu });
+  assert.strictEqual(live.soort, KIND.live); assert.strictEqual(live.kort, 'Live'); assert.ok(/20 s geleden/.test(live.tekst));
+  assert.strictEqual(sourceState({ stand: { ...goed, laatsteOk: nu - 200000 }, nu }).soort, KIND.rooster, 'te oud: Rooster');
+  assert.strictEqual(sourceState({ stand: { ...goed, aantal: 0 }, nu }).reden, 'geen');
+  assert.ok(Object.values(['netwerk', 'time-out', 'status', 'te-groot', 'ongeldig', 'leeg']).every((r) => !/\b(error|exception|\d{3})\b/i.test(sourceState({ stand: { aan: true, laatsteOk: 0, reden: r }, nu }).tekst)), 'geen foutcodes in beeld');
+  assert.strictEqual(ageText(2), 'zojuist'); assert.strictEqual(ageText(200), '3 min geleden');
   assert.ok(/Bron: open OV-gegevens/.test(bronLabel(live).regel) && bronLabel(live).kort === 'Live');
-  assert.ok(/Bron: open OV-gegevens/.test(bronLabel(bronStand({ instelling: false })).regel) && bronLabel(bronStand({ instelling: false })).kort === 'Rooster');
+  assert.ok(/Bron: open OV-gegevens/.test(bronLabel(sourceState({ instelling: false })).regel) && bronLabel(sourceState({ instelling: false })).kort === 'Rooster');
   assert.strictEqual(bronLabel(live, { eigenDienst: true }).kort, 'Rooster (eigen dienst)');
   // de regel van het eerste vertrek
-  assert.strictEqual(vertrekRegel({ tijd: 240, vertraging: 0, vervallen: false }, 0), 'Vertrekt over 4 min');
-  assert.strictEqual(vertrekRegel({ tijd: 240, vertraging: 180, vervallen: false }, 0), 'Vertrekt over 4 min · 3 min vertraagd');
-  assert.strictEqual(vertrekRegel({ tijd: 10, vertraging: 0, vervallen: false }, 0), 'Vertrekt nu');
-  assert.strictEqual(vertrekRegel({ tijd: 60, vertraging: 0, vervallen: false }, 0), 'Vertrekt over 1 min');
-  assert.strictEqual(vertrekRegel({ tijd: 600, vertraging: 59, vervallen: false }, 0), 'Vertrekt over 10 min', 'onder een minuut: niet vertraagd');
-  assert.strictEqual(vertrekRegel({ tijd: 600, vertraging: 0, vervallen: true }, 0), 'Deze trein rijdt niet');
-  assert.strictEqual(vertrekRegel(null, 0), '');
+  assert.strictEqual(departureLine({ tijd: 240, vertraging: 0, vervallen: false }, 0), 'Vertrekt over 4 min');
+  assert.strictEqual(departureLine({ tijd: 240, vertraging: 180, vervallen: false }, 0), 'Vertrekt over 4 min · 3 min vertraagd');
+  assert.strictEqual(departureLine({ tijd: 10, vertraging: 0, vervallen: false }, 0), 'Vertrekt nu');
+  assert.strictEqual(departureLine({ tijd: 60, vertraging: 0, vervallen: false }, 0), 'Vertrekt over 1 min');
+  assert.strictEqual(departureLine({ tijd: 600, vertraging: 59, vervallen: false }, 0), 'Vertrekt over 10 min', 'onder een minuut: niet vertraagd');
+  assert.strictEqual(departureLine({ tijd: 600, vertraging: 0, vervallen: true }, 0), 'Deze trein rijdt niet');
+  assert.strictEqual(departureLine(null, 0), '');
 }
 
 // --- het bord (stationlife.js): echte rijen, vertraging, bron ---
@@ -194,7 +194,7 @@ const echt = JSON.parse(fs.readFileSync(bestandUrl, 'utf8'));
   assert.strictEqual(await laadRooster(async () => ({ ok: false }), 'http://localhost/'), null);
   assert.strictEqual(await laadRooster(async () => ({ ok: true, json: async () => ({ v: 2 }) }), 'http://localhost/'), null, 'een ongeldig bestand telt niet');
   let url = '';
-  assert.ok(geldigRooster(await laadRooster(async (u) => { url = u; return { ok: true, json: async () => echt }; }, 'http://localhost/game/index.html')));
+  assert.ok(validSchedule(await laadRooster(async (u) => { url = u; return { ok: true, json: async () => echt }; }, 'http://localhost/game/index.html')));
   assert.strictEqual(url, 'http://localhost/game/treinrooster.json', 'een lokaal bestand naast index.html');
   assert.strictEqual(await laadRooster(null, 'http://localhost/'), null);
 }

@@ -12,7 +12,7 @@
 // bord het rooster zonder vertraging. Puur: geen THREE, geen DOM; fetch komt van buiten (in tests een nep-fetch).
 // Het ritme, de stand en de uitzetter staan in treinlive.js. Tests: scripts/livetreinen_test.mjs.
 
-export const LIVE_TREINEN = {
+export const LIVE_TRAINS = {
   url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',
   interval: 60000,        // ms tussen twee opvragen (minimaal; bij fouten langer)
   maxInterval: 600000,    // ms: de uitstel bij herhaalde fouten
@@ -24,7 +24,7 @@ export const LIVE_TREINEN = {
 };
 
 // Alles wat naar de dienst gaat: de vaste url en deze opties. Geen speler-id, naam, sleutel, cookie of account.
-export const VERZOEK = {
+export const REQUEST_OPTIONS = {
   method: 'GET',
   credentials: 'omit',
   cache: 'no-store',
@@ -66,7 +66,7 @@ function varintGroot(b, o) {
   }
 }
 // cb(veld, soort, waarde, begin, eind): soort 0 varint (waarde als int32 met teken, groot = zonder teken), 2 bytes (begin..eind)
-function velden(b, van, tot, cb) {
+function readFields(b, van, tot, cb) {
   const o = { p: van };
   while (o.p < tot) {
     const key = varintGroot(b, o), veld = Math.floor(key / 8), soort = key % 8;
@@ -83,7 +83,7 @@ const tekst = (b, a, e) => DEC.decode(b.subarray(a, e));
 // Eén tijdveld (StopTimeEvent): { delay (s, met teken), time (unix s) }
 function leesEvent(b, a, e) {
   const ev = { delay: null, time: null };
-  velden(b, a, e, (f, s, w, groot) => { if (s !== 0) return; if (f === 1) ev.delay = w; else if (f === 2) ev.time = groot; });
+  readFields(b, a, e, (f, s, w, groot) => { if (s !== 0) return; if (f === 1) ev.delay = w; else if (f === 2) ev.time = groot; });
   return ev;
 }
 
@@ -91,29 +91,29 @@ function leesEvent(b, a, e) {
 // Per melding: { nummer, datum ('20261121'), code, spoor, delay (s), time (unix s van het verwachte vertrek, of de aankomst), vervallen }.
 // Een rit die vervalt (trip.schedule_relationship = 3) of een halte die wordt overgeslagen (1 of 3 bij de halte) geeft vervallen: true.
 // Gooit bij een kapot bestand.
-export function leesTreinmeldingen(bytes, codes = null) {
+export function parseTrainReports(bytes, codes = null) {
   const b = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const uit = [];
-  velden(b, 0, b.length, (f, s, w, g, a, e) => {
+  readFields(b, 0, b.length, (f, s, w, g, a, e) => {
     if (f !== 2 || s !== 2) return;                               // FeedEntity
-    velden(b, a, e, (f2, s2, w2, g2, a2, e2) => {
+    readFields(b, a, e, (f2, s2, w2, g2, a2, e2) => {
       if (f2 !== 3 || s2 !== 2) return;                           // TripUpdate
-      let nummer = '', datum = '', ritVervalt = false;
+      let trainNumber = '', datum = '', ritVervalt = false;
       const halten = [];
-      velden(b, a2, e2, (f3, s3, w3, g3, a3, e3) => {
+      readFields(b, a2, e2, (f3, s3, w3, g3, a3, e3) => {
         if (f3 === 1 && s3 === 2) {                               // TripDescriptor
-          velden(b, a3, e3, (f4, s4, w4, g4, a4, e4) => {
+          readFields(b, a3, e3, (f4, s4, w4, g4, a4, e4) => {
             if (f4 === 3 && s4 === 2) datum = tekst(b, a4, e4);
             else if (f4 === 4 && s4 === 0) ritVervalt = w4 === 3;
-            else if (f4 === 1003 && s4 === 2) velden(b, a4, e4, (f5, s5, w5, g5, a5, e5) => { if (f5 === 2 && s5 === 2) nummer = tekst(b, a5, e5); });
+            else if (f4 === 1003 && s4 === 2) readFields(b, a4, e4, (f5, s5, w5, g5, a5, e5) => { if (f5 === 2 && s5 === 2) trainNumber = tekst(b, a5, e5); });
           });
         } else if (f3 === 2 && s3 === 2) {                        // StopTimeUpdate
           const h = { code: '', spoor: '', arr: null, dep: null, weg: false };
-          velden(b, a3, e3, (f4, s4, w4, g4, a4, e4) => {
+          readFields(b, a3, e3, (f4, s4, w4, g4, a4, e4) => {
             if (f4 === 2 && s4 === 2) h.arr = leesEvent(b, a4, e4);
             else if (f4 === 3 && s4 === 2) h.dep = leesEvent(b, a4, e4);
             else if (f4 === 5 && s4 === 0) h.weg = w4 === 1 || w4 === 3;
-            else if (f4 === 1003 && s4 === 2) velden(b, a4, e4, (f5, s5, w5, g5, a5, e5) => {
+            else if (f4 === 1003 && s4 === 2) readFields(b, a4, e4, (f5, s5, w5, g5, a5, e5) => {
               if (s5 !== 2) return;
               if (f5 === 2) h.spoor = tekst(b, a5, e5); else if (f5 === 4) h.code = tekst(b, a5, e5).toLowerCase();
             });
@@ -121,12 +121,12 @@ export function leesTreinmeldingen(bytes, codes = null) {
           halten.push(h);
         }
       });
-      if (!nummer) return;
+      if (!trainNumber) return;
       for (const h of halten) {
         if (!h.code || (codes && !codes.has(h.code))) continue;
         const ev = h.dep && h.dep.time != null ? h.dep : h.arr;
         if (!ev || ev.time == null) continue;
-        uit.push({ nummer, datum, code: h.code, spoor: h.spoor, delay: ev.delay == null ? 0 : ev.delay, time: ev.time, vervallen: ritVervalt || h.weg });
+        uit.push({ nummer: trainNumber, datum, code: h.code, spoor: h.spoor, delay: ev.delay == null ? 0 : ev.delay, time: ev.time, vervallen: ritVervalt || h.weg });
       }
     });
   });
@@ -134,7 +134,7 @@ export function leesTreinmeldingen(bytes, codes = null) {
 }
 
 // Seconden na middernacht in Nederland van een unix-tijd (de zomer- of wintertijd van die dag); zonder Intl valt het terug op UTC+2.
-export function nlSecVanDag(unix, timeZone = 'Europe/Amsterdam') {
+export function nlSecOfDay(unix, timeZone = 'Europe/Amsterdam') {
   try {
     const p = new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(unix * 1000));
     const g = (t) => +p.find((x) => x.type === t).value;
@@ -158,20 +158,20 @@ export const meldSleutel = (nummer, code, planSec) => `${nummer}|${code}|${Math.
 
 // De meldingen van de datum van vandaag (in NL) tot een opzoekbare stand: Map sleutel -> { vertraging (s, >= 0), vervallen }.
 // Vroeg (negatieve vertraging) telt als op tijd: het bord toont geen minuten "te vroeg".
-export function maakStand(meldingen, nuUnix, maxMeldingen = LIVE_TREINEN.maxMeldingen) {
+export function buildDelayMap(meldingen, nuUnix, maxMeldingen = LIVE_TRAINS.maxMeldingen) {
   const vandaag = nlDatum(nuUnix);
   const map = new Map();
   for (const m of meldingen) {
     if (m.datum && m.datum !== vandaag) continue;
     if (map.size >= maxMeldingen) break;
-    const plan = nlSecVanDag(m.time - m.delay);
+    const plan = nlSecOfDay(m.time - m.delay);
     map.set(meldSleutel(m.nummer, m.code, plan), { vertraging: Math.max(0, m.delay), vervallen: !!m.vervallen });
   }
   return map;
 }
 
 // Een Response-achtige voor de Electron-brug (de main-process-opvraag, vanwege CORS): { ok, status, bytes }.
-export function brugAlsFetch(brug) {
+export function bridgeAsFetch(brug) {
   return async () => {
     const r = await brug();
     if (!r || !r.bytes) throw new Error('brug');
@@ -203,24 +203,24 @@ async function leesBody(res, maxBytes) {
 
 // Eén opvraag. Geeft { ok: true, meldingen } of { ok: false, reden } (netwerk, time-out, status, te-groot, ongeldig, leeg). Gooit nooit.
 // codes: Set stationscodes uit het rooster; alleen die meldingen blijven over.
-export async function haalLiveTreinen({ fetchFn, codes = null, url = LIVE_TREINEN.url, timeout = LIVE_TREINEN.timeout, maxBytes = LIVE_TREINEN.maxBytes, maxMeldingen = LIVE_TREINEN.maxMeldingen, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
+export async function fetchLiveTrains({ fetchFn, codes = null, url = LIVE_TRAINS.url, timeout = LIVE_TRAINS.timeout, maxBytes = LIVE_TRAINS.maxBytes, maxMeldingen = LIVE_TRAINS.maxMeldingen, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
   if (typeof fetchFn !== 'function') return { ok: false, reden: 'netwerk' };
   const ac = typeof AbortController === 'function' ? new AbortController() : null;
   let timer;
-  const klok = new Promise((_, no) => { timer = setTimer(() => { if (ac) ac.abort(); no(new Error('time-out')); }, timeout); });
+  const timeoutPromise = new Promise((_, no) => { timer = setTimer(() => { if (ac) ac.abort(); no(new Error('time-out')); }, timeout); });
   try {
-    const werk = (async () => {
-      const res = await fetchFn(url, { ...VERZOEK, ...(ac ? { signal: ac.signal } : {}) });
+    const job = (async () => {
+      const res = await fetchFn(url, { ...REQUEST_OPTIONS, ...(ac ? { signal: ac.signal } : {}) });
       if (!res || !res.ok) return { ok: false, reden: 'status', status: res ? res.status || 0 : 0 };
       const bytes = await leesBody(res, maxBytes);
       if (!bytes) return { ok: false, reden: 'te-groot' };
       let alle;
-      try { alle = leesTreinmeldingen(bytes, codes); } catch { return { ok: false, reden: 'ongeldig' }; }
+      try { alle = parseTrainReports(bytes, codes); } catch { return { ok: false, reden: 'ongeldig' }; }
       const hier = alle.slice(0, maxMeldingen);
       return hier.length ? { ok: true, meldingen: hier } : { ok: false, reden: bytes.length > 0 ? 'leeg' : 'ongeldig' };
     })();
-    werk.catch(() => {});   // een laat falen na de time-out is geen onverwerkte fout
-    return await Promise.race([werk, klok]);
+    job.catch(() => {});   // een laat falen na de time-out is geen onverwerkte fout
+    return await Promise.race([job, timeoutPromise]);
   } catch (e) {
     return { ok: false, reden: e && e.message === 'time-out' ? 'time-out' : 'netwerk' };
   } finally {

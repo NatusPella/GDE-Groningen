@@ -41,17 +41,17 @@ const GEEL = 0xe8c93a;
 const HUID = 0xd9a77a;
 
 // Een stapel biljetten (gewone gekleurde vellen met een bandje, zonder opdruk) en munten; het niveau (0 tot 3) bepaalt hoeveel.
-function geld(g, { niveau = 1 } = {}) {
+function money(g, { niveau = 1 } = {}) {
   const n = Math.max(0, Math.min(3, Math.round(niveau)));
   const papier = [0x7fae78, 0x6e9ec4, 0xd8a24a];
-  const stapel = (x, z, lagen, kleur, rot) => {
+  const pile = (x, z, lagen, kleur, rot) => {
     const h = 0.12 * lagen;
     add(g, box(2.6, h, 1.3), mat(kleur, 0.9), x, h / 2, z, 0, rot);
     add(g, box(0.5, h + 0.04, 1.34), mat(0xe8e2d0, 0.9), x, h / 2, z, 0, rot);
   };
-  stapel(0, 0, 3 + n * 3, papier[0], 0);
-  if (n >= 1) stapel(-0.2, 1.5, 4 + n * 2, papier[1], 0.12);
-  if (n >= 2) stapel(0.35, -1.5, 8, papier[2], -0.1);
+  pile(0, 0, 3 + n * 3, papier[0], 0);
+  if (n >= 1) pile(-0.2, 1.5, 4 + n * 2, papier[1], 0.12);
+  if (n >= 2) pile(0.35, -1.5, 8, papier[2], -0.1);
   const munt = cyl(0.42, 0.42, 0.08, 16);
   const munten = 3 + n * 3;
   for (let i = 0; i < munten; i++) {
@@ -133,7 +133,7 @@ function aanwijzing(g) {
 }
 
 // Een dichte brief met een rode lakzegel: een geheimpje, we verklappen niets.
-function geheim(g) {
+function secret(g) {
   add(g, box(3.2, 0.12, 2.1), mat(0xe8e0c8, 0.9), 0, 0.06, 0);
   add(g, cone3(1.55, 1.0), mat(0xd8cfb4, 0.9), 0, 0.15, 0.55, Math.PI / 2, 0, Math.PI).scale.set(1, 1, 0.12);
   add(g, cyl(0.38, 0.38, 0.1, 14), mat(0xa81e1e, 0.4), 0, 0.22, 0.2);
@@ -141,7 +141,7 @@ function geheim(g) {
 }
 
 // Het motorblok van de Escapade: blok, vier cilinders, klepdeksel en een paar slangen.
-function motor(g) {
+function engine(g) {
   add(g, box(3.4, 1.2, 1.8), mat(0x6a7078, 0.4, 0.7), 0, 0.6, 0);
   add(g, box(3.2, 0.4, 1.6), mat(0x3a3e44, 0.5, 0.5), 0, 1.4, 0);
   for (let i = 0; i < 4; i++) add(g, box(0.5, 0.35, 1.4), mat(0xc8261e, 0.4, 0.3), -1.2 + i * 0.8, 1.77, 0);
@@ -202,18 +202,18 @@ function bel(g, { kleur = 0xd8b040 } = {}) {
 // Een neon-meeuw: platte meeuwsilhouet van blokken met een gloeiende rand, op een voetplaat.
 function neonmeeuw(g, { kleur = 0xff4fa8 } = {}) {
   add(g, box(3.4, 0.14, 1.4), mat(0x2a2c30, 0.5, 0.4), 0, 0.07, 0);
-  const lijn = glow(kleur);
-  add(g, ball(0.5, 10), lijn, 0, 1.2, 0).scale.set(1.5, 0.7, 0.5);
-  add(g, ball(0.28, 8), lijn, 0.85, 1.55, 0);
+  const line = glow(kleur);
+  add(g, ball(0.5, 10), line, 0, 1.2, 0).scale.set(1.5, 0.7, 0.5);
+  add(g, ball(0.28, 8), line, 0.85, 1.55, 0);
   add(g, cone3(0.14, 0.5), glow(0xf2c14a), 1.35, 1.5, 0, 0, 0, -Math.PI / 2);
   for (const s of [-1, 1]) {
-    add(g, box(0.18, 0.1, 1.9), lijn, -0.2, 1.55, s * 0.95, s * 0.2, 0.2 * s, 0).rotation.x = s * 0.5;
-    add(g, box(0.16, 0.08, 1.0), lijn, -0.2, 2.1, s * 1.75, s * 0.4, 0, 0);
+    add(g, box(0.18, 0.1, 1.9), line, -0.2, 1.55, s * 0.95, s * 0.2, 0.2 * s, 0).rotation.x = s * 0.5;
+    add(g, box(0.16, 0.08, 1.0), line, -0.2, 2.1, s * 1.75, s * 0.4, 0, 0);
   }
   add(g, cyl(0.05, 0.05, 0.9, 6), mat(0x3a3e44, 0.5), 0, 0.5, 0);
 }
 
-const BOUWERS = { geld, vuist, vis, aanwijzing, geheim, motor, bredeband, sperdiff, uitlaat, mosterd, bel, neonmeeuw };
+const BOUWERS = { geld: money, vuist, vis, aanwijzing, geheim: secret, motor: engine, bredeband, sperdiff, uitlaat, mosterd, bel, neonmeeuw };
 export const SPUL_TYPES = Object.keys(BOUWERS);
 
 // Het model voor { type, ...parameters }, of null voor een onbekende soort (de viewer valt dan terug op het icoon).

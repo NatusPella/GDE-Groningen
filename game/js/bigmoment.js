@@ -36,7 +36,7 @@ const cut = (s, max) => {
 // At most `max` words, the rest becomes an ellipsis: the same budget as the rest of the UI.
 import { isPauseMenuOpen } from './pausestate.js';
 import { hoofdspeler } from './players.js';
-import { planIntro, slaatOver } from './eindkaartimpact.js';
+import { planIntro, isSkipEvent } from './eindkaartimpact.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -284,7 +284,7 @@ function startImpact(el, m) {
     window.removeEventListener('pointerdown', op, true);
   };
   const op = (ev) => {
-    if (!slaatOver(ev)) return;
+    if (!isSkipEvent(ev)) return;
     stop();
     el.classList.add('bm-klaar'); // direct de eindstand: geen animaties meer, alle onderdelen vol in beeld
     if (teller && plan.teller) teller.textContent = eind;

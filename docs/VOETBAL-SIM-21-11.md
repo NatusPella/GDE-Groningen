@@ -82,8 +82,8 @@ Zie [COOP-GAST.md](COOP-GAST.md), rij "Voetbal Euroborg". Kort:
 
 ## Volledig veld, tactiek en competitie
 
-- **Formaten** (`FORMATEN` in `voetbalrules.js`): `klein` (5 tegen 5, 26 x 42 m) en `groot` (11 tegen 11, 56 x 90 m, strafschopgebied 30 x 13 m). Het veld is één gedeeld object (`VELD`) dat per wedstrijd wordt gezet (`zetFormaat`); de bal, de AI en de wereld lezen het daaruit. Op het grote veld zijn de reikwijdte en de duikbeweging van de keeper iets groter, de schoten harder, de AI schiet vanaf minder ver en de camera hangt hoger en verder terug. Er is steeds één wedstrijd tegelijk per proces.
-- **Vormingen** (tactiek, `VORMINGEN`): klein `2-2`, `3-1`, `1-3`; groot `4-4-2`, `4-3-3`, `3-5-2`. Elke speler heeft een rol (keeper, verdediger, middenvelder, aanvaller) en een basisplek die met de bal en met bezit meeschuift. De mensen krijgen eerst aanvallers, dan middenvelders, dan verdedigers; de keeper blijft computer.
+- **Formaten** (`FORMATEN` in `voetbalrules.js`): `klein` (5 tegen 5, 26 x 42 m) en `groot` (11 tegen 11, 56 x 90 m, strafschopgebied 30 x 13 m). Het veld is één gedeeld object (`PITCH`) dat per wedstrijd wordt gezet (`zetFormaat`); de bal, de AI en de wereld lezen het daaruit. Op het grote veld zijn de reikwijdte en de duikbeweging van de keeper iets groter, de schoten harder, de AI schiet vanaf minder ver en de camera hangt hoger en verder terug. Er is steeds één wedstrijd tegelijk per proces.
+- **Vormingen** (tactiek, `FORMATIONS`): klein `2-2`, `3-1`, `1-3`; groot `4-4-2`, `4-3-3`, `3-5-2`. Elke speler heeft een rol (keeper, verdediger, middenvelder, aanvaller) en een basisplek die met de bal en met bezit meeschuift. De mensen krijgen eerst aanvallers, dan middenvelders, dan verdedigers; de keeper blijft computer.
 - **Speelstijl** (`STIJLEN`): verdedigend, evenwichtig, aanvallend: de lijnen staan dieper of hoger en er zetten meer of minder spelers druk (op het grote veld één meer). De tegenstander kiest een eigen vorming (uit het zaad van de wedstrijd) en speelt evenwichtig.
 - **Kiezen:** E bij de poort opent solo een keuzescherm (het bord bovenin): {1} formaat, {2} competitie, {3} vorming, {4} stijl, {5} duur, {F} of Spatie begint, Backspace stopt. De keuze staat in `gde-voetbal-v1` (alleen dit apparaat). **Onderweg** wisselt {1} de speelstijl en {2} de vorming (controller: D-pad omhoog en links); de rollen volgen meteen.
 - **Competitie** (`voetbalcompetitie.js`): een seizoen is een halve competitie met zes clubs (Stadjers, Hunebedders, Wadlopers, Ommelanders, Veenpiraten, Kleibijters): vijf rondes van drie duels, drie punten voor winst en één voor gelijkspel. Jouw duel speel je zelf op het grote veld; de andere duels worden deterministisch uitgerekend op de sterkte van de clubs. Het bord na afloop meldt je plek; de stand staat in de opslag (een corrupte stand begint een nieuw seizoen). Kampioen worden geeft de prestatie **Kampioen van de Euroborg** en €120. Een onderbroken wedstrijd telt niet mee.
@@ -95,19 +95,19 @@ Zie [COOP-GAST.md](COOP-GAST.md), rij "Voetbal Euroborg". Kort:
 
 ## Tessa
 
-De eigenaar wil dat de speler voetbalt als Tessa. De tak `tessa-platteland-21-11` (`game/js/karakterbonus.js`) levert daarvoor de gegevens (sprint +6%, schot +8%, aanname +10%) en een `karakterVoorActiviteit('voetbal')`. Die tak staat nog niet op main; daarom is `game/js/voetbalkarakter.js` een interface met standaard-implementaties (geen bonus, geen wissel, geen extra teksten):
+De eigenaar wil dat de speler voetbalt als Tessa. De tak `tessa-platteland-21-11` (`game/js/karakterbonus.js`) levert daarvoor de gegevens (sprint +6%, schot +8%, aanname +10%) en een `characterForActivity('voetbal')`. Die tak staat nog niet op main; daarom is `game/js/voetbalkarakter.js` een interface met standaard-implementaties (geen bonus, geen wissel, geen extra teksten):
 
 - `voetbalBonusVan(karakter)`: de factoren per speler; de sim past ze toe op sprint, schotspreiding en de aanname (per mens, dus per speler in Samen spelen).
-- `karakterStart(w, 'voetbal')` bij het begin van een wedstrijd of penaltyserie en `karakterEind(w, bon)` bij het einde: het bestaande wisselmechanisme, terug aan het einde; een kapotte haak stopt de wedstrijd nooit.
-- `tessaRegel('viering')`: alleen tekst uit `TESSA_REGELS.voetbal`, gebruikt bij een doelpunt.
+- `characterEnter(w, 'voetbal')` bij het begin van een wedstrijd of penaltyserie en `karakterEind(w, bon)` bij het einde: het bestaande wisselmechanisme, terug aan het einde; een kapotte haak stopt de wedstrijd nooit.
+- `tessaLine('viering')`: alleen tekst uit `TESSA_LINES.voetbal`, gebruikt bij een doelpunt.
 
 **Bij de merge één regel** (bijvoorbeeld in `init` van `voetbal.js`, of waar de tak zijn eigen haken zet):
 
 ```js
 zetVoetbalKarakterHaken({
   bonus: (k) => ({ sprint: voetbalSprint(k), schot: voetbalSchot(k), aanname: voetbalAanname(k) }),
-  voorActiviteit: karakterVoorActiviteit,
-  regels: TESSA_REGELS.voetbal,
+  voorActiviteit: characterForActivity,
+  regels: TESSA_LINES.voetbal,
 });
 ```
 

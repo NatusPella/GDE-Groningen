@@ -3,8 +3,8 @@ import { hoofdspeler } from './players.js';
 // bij de speler, uit dienstregeling.js. Het deel zonder wereld is puur (testbaar zonder
 // browser: scripts/stationlife_test.mjs); updateStationLife hangt het aan HUD en geluid.
 import { vertrekBord, bordUitTreinen, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
-import { heeftStation, rijenUitRooster, pasVertragingToe } from './treinrooster.js';
-import { bronStand, bronLabel, vertrekRegel } from './treinbron.js';
+import { hasStop, rijenUitRooster, pasVertragingToe } from './treinrooster.js';
+import { sourceState, bronLabel, departureLine } from './treinbron.js';
 
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
@@ -48,11 +48,11 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 export const BORD_HORIZON = 90 * 60, BORD_MIN = 4, BORD_N = 5;
 // #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null), dienst (treindienst.js bouwDienst) }) volgt het bord de ECHTE dienstregeling
 // van dit station (treinrooster.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop. Elke bordrij is een
-// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (treindienst.js legTijden); een vertrek zonder trein in de wereld staat er niet.
+// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (treindienst.js legTimes); een vertrek zonder trein in de wereld staat er niet.
 // Een station zonder echt rooster (of zonder rij) houdt zijn eigen dienst (hieronder, label 'Rooster (eigen dienst)').
 export function stationView(station, clock, dag, treinen = null, schaal = 60, dienst = null) {
   const nu = ((clock % 24) + 24) % 24 * 3600;
-  if (dienst && dienst.rooster && heeftStation(dienst.rooster, station.name)) {
+  if (dienst && dienst.rooster && hasStop(dienst.rooster, station.name)) {
     const basis = rijenUitRooster(dienst.rooster, station.name, dienst.dagsoort || 'werk', nu, { aantal: BORD_N + 4, terug: 30, dienst: dienst.dienst || null });
     if (basis.length) {
       const bord = pasVertragingToe(basis, dienst.live).slice(0, BORD_N);
@@ -93,10 +93,10 @@ export function bordCellen(view) {
 // De bron van het bord in woorden (#1085): { kort: 'Live' | 'Rooster' | 'Rooster (eigen dienst)', regel, eerste } voor het label en de
 // regels onder het bord. De eerste regel is "Vertrekt over 4 min · 3 min vertraagd". liveStand: treinlive stand(); instelling: liveTreinen.
 export function bordBron(view, { instelling = true, liveStand = null, nu = Date.now() } = {}) {
-  const stand = bronStand({ instelling, stand: liveStand, nu });
+  const stand = sourceState({ instelling, stand: liveStand, nu });
   const label = bronLabel(stand, { eigenDienst: !view.echtRooster });
   const rij = view.bord.find((r) => !r.vervallen) || view.bord[0] || null;
-  return { ...label, soort: view.echtRooster ? stand.soort : 'eigen', eerste: view.echtRooster ? vertrekRegel(rij, view.nu) : '', tekst: stand.tekst };
+  return { ...label, soort: view.echtRooster ? stand.soort : 'eigen', eerste: view.echtRooster ? departureLine(rij, view.nu) : '', tekst: stand.tekst };
 }
 
 // Waar reizigers staan: aan de rechterkant van het spoor (kijkrichting van de eerste lijn), verspreid

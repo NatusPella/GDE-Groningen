@@ -23,7 +23,7 @@ const MEUBEL_IDS = [...meubelBron.matchAll(/^ {2}\{ id: '([a-z]+)', short:/gm)].
 export function alleItems() {
   const items = [];
   const put = (key, cat, viewer) => items.push({ key, cat, viewer });
-  put('geld', 'geld', SP.geldSpec(120));
+  put('geld', 'geld', SP.moneySpec(120));
   for (const k of Object.keys(W.WEAPONS)) put('w:' + k, ['throw', 'rocket'].includes(W.WEAPONS[k].kind) ? 'werp' : 'wapens', SP.wapenSpec(k));
   for (const ch of ['tammo', 'anita']) {
     const app = ch === 'anita' ? P.ANITA_APPEARANCE : P.TAMMO_APPEARANCE;
@@ -32,7 +32,7 @@ export function alleItems() {
   for (const id of MEUBEL_IDS) put('f:' + id, 'thuis', SP.meubelSpec(id));
   for (const [id] of E.TOONBANK) put('e:' + id, 'eten', SP.etenSpec(id));
   for (const s of V.SOORTEN) put('e:vis:' + s.id, 'eten', SP.etenSpec('vis:' + s.id));
-  for (const id of ['stempels', 'aanwijzingen', 'eieren', 'geheim']) put('k:' + id, 'kaart', SP.kaartSpec(id));
+  for (const id of ['stempels', 'aanwijzingen', 'eieren', 'geheim']) put('k:' + id, 'kaart', SP.cardSpec(id));
   for (const u of S.CAR_UPGRADES) put('u:auto:' + u.id, 'upgrade', SP.upgradeSpec('auto', u.id));
   for (const u of [...S.BIKE_UPGRADES, ...S.MOTO_UPGRADES]) put('u:tweewieler:' + u.id, 'upgrade', SP.upgradeSpec('tweewieler', u.id));
   for (const u of F.fjordUpgradeOffers({ money: 0 })) put('u:fjord:' + u.id, 'upgrade', SP.upgradeSpec('fjord', u.id));

@@ -55,7 +55,7 @@ import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // 
 import { beppeTodoItem } from './beppe_garden.js'; // #832
 import * as L from './loopbaan.js'; // #846: de loopbanen als één overkoepelende rij in Te doen
 import { getProfiel } from './loopbaanlive.js';
-import { wijkAt } from './wijkat.js';
+import { districtAt } from './wijkat.js';
 export { beginHierItems, beginHierCount };
 
 export const GROUPS = [
@@ -105,7 +105,7 @@ export function placeName(world, x, y) {
   if (best) return best;
   const rp = world.map.nearestRoadPoint(x, y, 60);
   if (rp && rp.road && rp.road.name) return rp.road.name;
-  const wijk = wijkAt(meta.neighbourhoodPoints || [], x, y);
+  const wijk = districtAt(meta.neighbourhoodPoints || [], x, y);
   return wijk ? wijk.name : '';
 }
 

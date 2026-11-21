@@ -84,7 +84,7 @@ for (let f = 0; f < nframes; f++) {
   SB.advanceStreamAhead(ahead, x, y, dt / 1000);
   const speed = Math.hypot(x1 - x, y1 - y) * 10;
   const boost = f * dt < 1500;
-  if (isNew) planner.beginFrame({ frameMs: lastFrameMs, boost, pressure: pressureNow });
+  if (isNew) planner.openFrame({ frameMs: lastFrameMs, boost, pressure: pressureNow });
   let frameMs = 0;
 
   // ---- tegels (echt) ----

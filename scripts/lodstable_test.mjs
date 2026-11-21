@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import {
   RING_KEEP_MAX, RING_HOLD_MS, selectRing, createRingSmoother, hystVisible, hystWidth, fadeStep, fadeSecs, facadeBand, createCooler,
-  DISPOSE_DELAY_MS, DISPOSE_PER_FRAME, speedScale, facadeSpeedScale, ringSpeedScale, farBuildDist, sampleRoute,
+  DISPOSE_DELAY_MS, DISPOSE_PER_FRAME, speedScale, facadeSpeedScale, ringSpeedScale, farBuildDist, thinPath,
 } from '../game/js/lodstable.js';
 import { streamRank, createStreamAhead, advanceStreamAhead } from '../game/js/streambudget.js';
 
@@ -169,15 +169,15 @@ ok(farBuildDist(500, 200) === 200 && farBuildDist(100, 400) === 100 && farBuildD
 
 // ---- routes vooraf ----
 {
-  ok(sampleRoute([]).length === 0 && sampleRoute(null).length === 0, 'lege route');
-  const r = sampleRoute([[0, 0], [1000, 0]], 250);
+  ok(thinPath([]).length === 0 && thinPath(null).length === 0, 'lege route');
+  const r = thinPath([[0, 0], [1000, 0]], 250);
   ok(r.length === 5 && r[0].s === 0 && r[4].s === 1000 && r[1].x === 250, 'recht stuk: om de 250 m, eerste en laatste altijd');
-  const bend = sampleRoute([[0, 0], [300, 0], [300, 300]], 200);
+  const bend = thinPath([[0, 0], [300, 0], [300, 300]], 200);
   ok(bend[1].x === 200 && bend[2].x === 300 && Math.abs(bend[2].y - 100) < 1e-9, 'de bemonstering loopt door de bocht');
   ok(bend[bend.length - 1].s === 600, 'de lengte klopt');
   ok(bend.every((p, i) => i === 0 || p.s > bend[i - 1].s), 's is strikt stijgend');
-  ok(sampleRoute([[0, 0], [100000, 0]], 10, 50).length <= 50, 'het maximum aantal punten');
-  ok(sampleRoute([[5, 5]]).length === 1 && sampleRoute([[5, 5], [5, 5]]).length === 1, 'een punt of nulrit');
+  ok(thinPath([[0, 0], [100000, 0]], 10, 50).length <= 50, 'het maximum aantal punten');
+  ok(thinPath([[5, 5]]).length === 1 && thinPath([[5, 5], [5, 5]]).length === 1, 'een punt of nulrit');
 }
 
 console.log(`lodstable_test: ${n} controles groen`);

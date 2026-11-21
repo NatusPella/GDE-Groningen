@@ -10,10 +10,10 @@
 // weg is (isOverlayHeld in achievements.js), dus de slag van de eindkaart en deze slag klinken nooit tegelijk.
 // Samen spelen (#429): een prestatie is per speler lokaal; dit plan wordt alleen gemaakt waar de toast getoond wordt.
 
-import { SNEL_MS, STAP_MS, MAX_TOTAAL_MS, tellerStappen } from './eindkaartimpact.js';
+import { FAST_MS, STEP_MS, MAX_TOTAAL_MS, counterSteps } from './eindkaartimpact.js';
 
-export const TELLER_MS = STAP_MS;   // de teller en de balk lopen hierover (250 ms: de balk vult in één stap, de teller tikt mee)
-export const MAX_ZICHTBAAR = 3;     // hooguit drie losse prestatiekaarten per reeks; de rest wordt één samenvatting
+export const TELLER_MS = STEP_MS;   // de teller en de balk lopen hierover (250 ms: de balk vult in één stap, de teller tikt mee)
+export const MAX_VISIBLE = 3;     // hooguit drie losse prestatiekaarten per reeks; de rest wordt één samenvatting
 export const KORT_FACTOR = 0.6;     // een korte kaart (er wachten er nog) blijft 60% van de gewone tijd staan
 export const KORT_MIN_S = 2.4;      // maar nooit korter dan 2,4 s
 
@@ -52,47 +52,47 @@ export function planPrestatie(o = {}) {
   const totaal = Number.isFinite(o.totaal) ? Math.max(0, Math.round(o.totaal)) : 0;
   const naar = Math.max(0, Math.min(totaal || Infinity, Math.round(o.behaald || 0)));
   const van = Math.max(0, naar - 1);
-  const balkWaarden = { van, naar, totaal, pctVan: pct(van, totaal), pctNaar: pct(naar, totaal), p: totaal ? naar / totaal : 0 };
+  const barValues = { van, naar, totaal, pctVan: pct(van, totaal), pctNaar: pct(naar, totaal), p: totaal ? naar / totaal : 0 };
   const basis = { zeldzaam, inkt, kort: !!o.kort };
   if (o.rustig) {
     // geen beweging, geen staffel: één slag, direct de eindstand
     return { ...basis, impact: false, totaal: 0, kaart: { at: 0 }, icoon: null, titel: null, beschrijving: null,
-      balk: o.kort ? null : { at: 0, duur: 0, ...balkWaarden }, teller: null, glans: null, geluid: [{ at: 0, naam: 'slag' }] };
+      balk: o.kort ? null : { at: 0, duur: 0, ...barValues }, teller: null, glans: null, geluid: [{ at: 0, naam: 'slag' }] };
   }
-  const at = (k) => Math.round(k * SNEL_MS);
-  const eenh = (ms) => Math.round((ms / SNEL_MS) * 100) / 100;
-  const kaart = { at: 0 };
+  const at = (k) => Math.round(k * FAST_MS);
+  const eenh = (ms) => Math.round((ms / FAST_MS) * 100) / 100;
+  const card = { at: 0 };
   const icoon = { at: at(1) }, titel = { at: at(2) }, beschrijving = { at: at(3) };
-  const geluid = [{ at: 0, naam: 'slag' }];
+  const sound = [{ at: 0, naam: 'slag' }];
   if (o.kort) {
     // een kaart in een reeks: de inslag, het icoon en de titel, zonder balk, teller of glans
-    const totaalMs = titel.at + STAP_MS;
-    return { ...basis, impact: true, totaal: totaalMs, kaart, icoon: { ...icoon, eenh: eenh(icoon.at) }, titel: { ...titel, eenh: eenh(titel.at) },
-      beschrijving: { at: beschrijving.at, eenh: eenh(beschrijving.at) }, balk: null, teller: null, glans: null, geluid };
+    const totaalMs = titel.at + STEP_MS;
+    return { ...basis, impact: true, totaal: totaalMs, kaart: card, icoon: { ...icoon, eenh: eenh(icoon.at) }, titel: { ...titel, eenh: eenh(titel.at) },
+      beschrijving: { at: beschrijving.at, eenh: eenh(beschrijving.at) }, balk: null, teller: null, glans: null, geluid: sound };
   }
-  const balk = { at: at(4), duur: TELLER_MS, ...balkWaarden };
-  const stappen = tellerStappen(Math.max(0, naar - van), TELLER_MS, 6).map((s) => ({ t: s.t, waarde: van + s.waarde, tik: s.tik }));
-  const teller = stappen.length ? { at: balk.at, duur: TELLER_MS, van, naar, stappen } : null;
+  const balk = { at: at(4), duur: TELLER_MS, ...barValues };
+  const steps = counterSteps(Math.max(0, naar - van), TELLER_MS, 6).map((s) => ({ t: s.t, waarde: van + s.waarde, tik: s.tik }));
+  const teller = steps.length ? { at: balk.at, duur: TELLER_MS, van, naar, stappen: steps } : null;
   const glansAt = balk.at + TELLER_MS;
-  let totaalMs = glansAt + STAP_MS;
-  if (teller) for (const s of teller.stappen) geluid.push({ at: teller.at + s.t, naam: s.tik === teller.stappen.length - 1 ? 'munt' : 'tik', i: s.tik });
-  geluid.push({ at: glansAt, naam: 'glans' });
+  let totaalMs = glansAt + STEP_MS;
+  if (teller) for (const s of teller.stappen) sound.push({ at: teller.at + s.t, naam: s.tik === teller.stappen.length - 1 ? 'munt' : 'tik', i: s.tik });
+  sound.push({ at: glansAt, naam: 'glans' });
   if (totaalMs > MAX_TOTAAL_MS) totaalMs = MAX_TOTAAL_MS; // de onderdelen zijn al gekozen onder de grens; dit is alleen de vangnet
-  geluid.sort((a, b) => a.at - b.at);
+  sound.sort((a, b) => a.at - b.at);
   return {
-    ...basis, impact: true, totaal: totaalMs, kaart,
+    ...basis, impact: true, totaal: totaalMs, kaart: card,
     icoon: { ...icoon, eenh: eenh(icoon.at) }, titel: { ...titel, eenh: eenh(titel.at) }, beschrijving: { ...beschrijving, eenh: eenh(beschrijving.at) },
-    balk: { ...balk, eenh: eenh(balk.at) }, teller, glans: { at: glansAt, eenh: eenh(glansAt) }, geluid,
+    balk: { ...balk, eenh: eenh(balk.at) }, teller, glans: { at: glansAt, eenh: eenh(glansAt) }, geluid: sound,
   };
 }
 
 // De wachtrij: de eerste van een reeks is een volle kaart, de volgende zijn kort, en zijn er na drie nog meer, dan komen ze
 // samen in één samenvatting (de prestaties zelf staan in het menu). index: hoeveelste van deze reeks (0 = de eerste),
 // resterend: hoeveel er nog staan te wachten, deze meegerekend.
-export function wachtrijStap({ index = 0, resterend = 1 } = {}) {
+export function queueStep({ index = 0, resterend = 1 } = {}) {
   const i = Math.max(0, Math.floor(index));
   const rest = Math.max(1, Math.floor(resterend));
-  if (i >= MAX_ZICHTBAAR && rest >= 2) return { variant: 'samenvatting', aantal: rest, nog: 0 };
+  if (i >= MAX_VISIBLE && rest >= 2) return { variant: 'samenvatting', aantal: rest, nog: 0 };
   if (i === 0) return { variant: 'vol', aantal: 1, nog: rest - 1 };
   return { variant: 'kort', aantal: 1, nog: rest - 1 };
 }
@@ -100,12 +100,12 @@ export function wachtrijStap({ index = 0, resterend = 1 } = {}) {
 // De hele reeks van n prestaties in één keer, voor de test en voor een voorspelling.
 export function wachtrijPlan(n) {
   const uit = [];
-  let over = Math.max(0, Math.floor(n));
+  let left = Math.max(0, Math.floor(n));
   let index = 0;
-  while (over > 0) {
-    const s = wachtrijStap({ index, resterend: over });
+  while (left > 0) {
+    const s = queueStep({ index, resterend: left });
     uit.push(s);
-    over -= s.aantal;
+    left -= s.aantal;
     index++;
   }
   return uit;
@@ -130,7 +130,7 @@ export const balkTekst = (x, totaal) => `${x}/${totaal} prestaties`;
 // ---- Het prestatiemenu ----
 // Een net-ontgrendelde rij glanst één keer per sessie (niet bij elke tab of klik); de categorie-teller tikt op van
 // wat er eerder stond naar wat er nu is, en een balk die al vol was staat er direct (geen herhaling).
-export function menuPlan({ vers = [], gezien = new Set(), vorigeTellers = new Map(), tellers = [], rustig = false } = {}) {
+export function listPlan({ vers = [], gezien = new Set(), vorigeTellers = new Map(), tellers = [], rustig = false } = {}) {
   const glans = [];
   for (const id of vers) if (!gezien.has(id)) { glans.push(id); gezien.add(id); }
   const tel = tellers.map(({ cat, done }) => {
@@ -138,8 +138,8 @@ export function menuPlan({ vers = [], gezien = new Set(), vorigeTellers = new Ma
     vorigeTellers.set(cat, done);
     if (rustig || was === done) return { cat, was, naar: done, stappen: [] };
     const d = Math.abs(done - was);
-    const stappen = tellerStappen(d, 300, 5).map((s) => ({ t: s.t, waarde: was + Math.sign(done - was) * s.waarde, tik: s.tik }));
-    return { cat, was, naar: done, stappen };
+    const steps = counterSteps(d, 300, 5).map((s) => ({ t: s.t, waarde: was + Math.sign(done - was) * s.waarde, tik: s.tik }));
+    return { cat, was, naar: done, stappen: steps };
   });
   return { glans: rustig ? [] : glans, tellers: tel };
 }

@@ -2,7 +2,7 @@
 //   node scripts/hudlinks_test.mjs
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP, LOCATIE_OMHOOG_MS, LOCATIE_OMLAAG_MS, LOCATIE_MOVE_MS } from '../game/js/hudlinks.js';
+import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP, LOCATIE_OMHOOG_MS, LOCATIE_DROP_MS, LOCATIE_MOVE_MS } from '../game/js/hudlinks.js';
 
 const lees = (p) => fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 let n = 0, fails = 0;
@@ -51,10 +51,10 @@ t('hysterese: de start geldt meteen; omhoog wacht 300 ms, omlaag 600 ms', () => 
   let r = locatieHysterese(null, 100, 0);
   assert.equal(r.lift, 100, 'de eerste stand meteen');
   r = locatieHysterese(r.staat, 0, 1000);
-  assert.equal(r.lift, 100); assert.equal(r.wacht, LOCATIE_OMLAAG_MS);
-  r = locatieHysterese(r.staat, 0, 1000 + LOCATIE_OMLAAG_MS - 1);
+  assert.equal(r.lift, 100); assert.equal(r.wacht, LOCATIE_DROP_MS);
+  r = locatieHysterese(r.staat, 0, 1000 + LOCATIE_DROP_MS - 1);
   assert.equal(r.lift, 100, 'nog net niet');
-  r = locatieHysterese(r.staat, 0, 1000 + LOCATIE_OMLAAG_MS);
+  r = locatieHysterese(r.staat, 0, 1000 + LOCATIE_DROP_MS);
   assert.equal(r.lift, 0, 'na 600 ms omlaag');
   r = locatieHysterese(r.staat, 100, 5000);
   assert.equal(r.lift, 0); assert.equal(r.wacht, LOCATIE_OMHOOG_MS);

@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { maakRuisRegister, schoon, RUIS_GRENS, RUIS_STRIKES } from '../../game/js/audio/ruisbronnen.js';
+import { createNoiseRegistry, schoon, RUIS_GRENS, RUIS_STRIKES } from '../../game/js/audio/ruisbronnen.js';
 import { formatAudioBlok } from '../../game/js/audiodiag.js';
 import { scoreClip, fft } from './ruisachtig_scan.mjs';
 
@@ -19,7 +19,7 @@ ok(schoon(NaN, 0) === 0 && schoon(Infinity, 3) === 3 && schoon('x', 1) === 1 && 
 
 // volg: tellen, einde, stapeling
 {
-  const r = maakRuisRegister();
+  const r = createNoiseRegistry();
   const a = fakeSrc(), b = fakeSrc(), c = fakeSrc();
   r.volg('bed:wind', a); r.volg('bed:regen', b);
   ok(r.stand().lussen === 2 && r.stand().stapeling === 0, 'twee lussen, geen stapeling');
@@ -37,7 +37,7 @@ ok(schoon(NaN, 0) === 0 && schoon(Infinity, 3) === 3 && schoon('x', 1) === 1 && 
 // bewaak en controleer: een open ruisstem die uit hoort te zijn
 {
   let gefixt = [];
-  const r = maakRuisRegister({ onFix: (naam, p) => { gefixt.push(naam); p.cancelScheduledValues(0); p.value = 0; } });
+  const r = createNoiseRegistry({ onFix: (naam, p) => { gefixt.push(naam); p.cancelScheduledValues(0); p.value = 0; } });
   const heli = fakeParam(0.35), schuur = fakeParam(0), piep = fakeParam(0.3);
   const w = { policeHeli: false, paused: false };
   r.bewaak('heli', heli, (x) => !!x.policeHeli);
@@ -57,12 +57,12 @@ ok(schoon(NaN, 0) === 0 && schoon(Infinity, 3) === 3 && schoon('x', 1) === 1 && 
   r.controleer(w); r.controleer(w); r.controleer(w);
   ok(r.stand().gecorrigeerd === 1, 'onder de hoorbaarheidsgrens: geen ingreep');
   // een NaN-gain staat vast en telt als open
-  const kapot = fakeParam(NaN); const r2 = maakRuisRegister({ onFix: (nm, p) => { p.value = 0; } });
+  const kapot = fakeParam(NaN); const r2 = createNoiseRegistry({ onFix: (nm, p) => { p.value = 0; } });
   r2.bewaak('kapot', kapot, () => false);
   r2.controleer({}); r2.controleer({});
   ok(kapot.value === 0 && r2.stand().gecorrigeerd === 1 && /NaN/.test(r2.stand().laatste), 'NaN-gain wordt dichtgezet');
   // een kapotte verwacht-functie laat de stem met rust
-  const r3 = maakRuisRegister(); const p3 = fakeParam(0.5);
+  const r3 = createNoiseRegistry(); const p3 = fakeParam(0.5);
   r3.bewaak('gooit', p3, () => { throw new Error('x'); });
   r3.controleer({}); r3.controleer({}); r3.controleer({});
   ok(p3.value === 0.5, 'een gooiende verwacht-functie grijpt niet in');

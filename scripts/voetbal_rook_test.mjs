@@ -59,7 +59,7 @@ assert.ok(berichten.some((b) => /Beloning/.test(b)) || w.money >= 0, 'het einde 
   const gp = { x: 1797.3, y: 1549.5, z: 0, character: 'anita', speed: 0, angle: 0, inVehicle: null };
   const gw = { player: gp, players: [gp], input, time: 0, addMessage() {}, wanted: 0, audioEvents: [], extraSpeakers: [], map: { surfaceAt: () => ({ z: 0.5 }) }, cameraOverride: null, money: 0, coopRole: 'client', coopNet: { role: 'client', session: { slot: 1, sendEvent: (b) => { verzonden.push(b); return true; } } } };
   const deeln = [{ slot: 0, naam: 'Tammo', char: 'tammo' }, { slot: 1, naam: 'Tessa', char: 'anita' }];
-  const host = V.maakWedstrijd(deeln, { duur: 'kort', seed: 3, tegenstander: 2 });
+  const host = V.makeMatch(deeln, { duur: 'kort', seed: 3, tegenstander: 2 });
   assert.ok(W.wedHandleHost(gw, W.startEvent('voetbal', deeln, 0, { live: 1, v: 'k.s.2.k.2-2.e' })), 'de start van de host zet de gast op zijn scherm');
   assert.ok(gw.voetbalGame && gw.voetbalGame.online === 'gast' && gw.coopKnoppenHaak, 'de gast speelt op zijn eigen scherm met zijn eigen knoppenhaak');
   assert.equal(gw.voetbalGame.sim.teams[1].id, 'ommelanders', 'de gast tekent dezelfde tegenstander');
@@ -83,12 +83,12 @@ assert.ok(berichten.some((b) => /Beloning/.test(b)) || w.money >= 0, 'het einde 
 
 // ---- de start naar de gasten en het keuzescherm met een competitie op het volledige veld
 {
-  const { codeerStart, leesStartV } = await import('../game/js/voetbal.js');
+  const { encodeKickoff, decodeKickoff } = await import('../game/js/voetbal.js');
   const o = { duur: 'kort', stand: 'uitdagend', tg: 4, formaat: 'groot', vorming: '3-5-2', stijl: 'verdedigend' };
-  const code = codeerStart(o);
+  const code = encodeKickoff(o);
   assert.ok(code.length <= 40, code);
-  assert.deepEqual(leesStartV(code), { duur: 'kort', stand: 'uitdagend', tegenstander: 4, formaat: 'groot', vorming: '3-5-2', stijl: 'verdedigend' });
-  assert.equal(leesStartV('rommel').formaat, 'klein'); assert.equal(leesStartV(null).stijl, 'evenwichtig');
+  assert.deepEqual(decodeKickoff(code), { duur: 'kort', stand: 'uitdagend', tegenstander: 4, formaat: 'groot', vorming: '3-5-2', stijl: 'verdedigend' });
+  assert.equal(decodeKickoff('rommel').formaat, 'klein'); assert.equal(decodeKickoff(null).stijl, 'evenwichtig');
   assert.equal(window.__voetbal.start === undefined, false);
   assert.ok(window.__voetbal.menu(), 'het keuzescherm opent');
   assert.ok(VOETBAL.active() && !w.voetbalGame, 'tijdens het keuzescherm loopt er nog geen wedstrijd');

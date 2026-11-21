@@ -9,23 +9,23 @@
 import { iconInner } from './icons.js';
 import { dsKleur } from './kaartkleuren.js';
 
-export const BAAN_INSET = 23; // afstand van het hart van een marker tot de kaartrand (px, op een kaart van 250)
-export const BAAN_STRAAL = 24; // de hoeken van de baan
+export const TRACK_INSET = 23; // afstand van het hart van een marker tot de kaartrand (px, op een kaart van 250)
+export const TRACK_RADIUS = 24; // de hoeken van de baan
 export const MIN_ACTIEF = 48; // afstand langs de baan tussen de boog en een punt
-export const MIN_PUNT = 28; // afstand langs de baan tussen twee punten
+export const MIN_DOT = 28; // afstand langs de baan tussen twee punten
 export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navdoel.js MAX_SECUNDAIR); medespelers en voertuigen tellen daar niet bij
 export const MAX_ANDEREN = 3; // en hooguit zoveel medespelers en eigen voertuigen als punt
 
 // ------------------------------------------------------------------ meetkunde
 // Een afgeronde vierkante baan met de klok mee vanaf het begin van de bovenrand. S: de breedte van de kaart.
-export function baan(S, inset = BAAN_INSET, radius = BAAN_STRAAL) {
+export function track(S, inset = TRACK_INSET, radius = TRACK_RADIUS) {
   const a = inset, b = S - inset, r = radius, w = b - a - 2 * r;
-  const stuk = [w, Math.PI * r / 2, w, Math.PI * r / 2, w, Math.PI * r / 2, w, Math.PI * r / 2];
-  const lengte = stuk.reduce((p, q) => p + q, 0);
-  function punt(s) {
+  const piece = [w, Math.PI * r / 2, w, Math.PI * r / 2, w, Math.PI * r / 2, w, Math.PI * r / 2];
+  const lengte = piece.reduce((p, q) => p + q, 0);
+  function dot(s) {
     s = ((s % lengte) + lengte) % lengte;
-    let i = 0; while (i < 7 && s > stuk[i]) { s -= stuk[i]; i++; }
-    const t = s / stuk[i];
+    let i = 0; while (i < 7 && s > piece[i]) { s -= piece[i]; i++; }
+    const t = s / piece[i];
     switch (i) {
       case 0: return [a + r + w * t, a];
       case 1: { const h = -Math.PI / 2 + t * Math.PI / 2; return [b - r + Math.cos(h) * r, a + r + Math.sin(h) * r]; }
@@ -39,22 +39,22 @@ export function baan(S, inset = BAAN_INSET, radius = BAAN_STRAAL) {
   }
   // de plek op de baan voor een schermhoek (radialen, 0 = rechts, met de klok mee): de s waarvan de hoek vanuit het midden er het dichtst bij ligt
   function sVoor(hoek) {
-    const doel = ((hoek % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const target = ((hoek % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     let best = 0, bd = 1e9;
     for (let s = 0; s < lengte; s += 0.5) {
-      const [x, y] = punt(s);
+      const [x, y] = dot(s);
       const h = (Math.atan2(y - S / 2, x - S / 2) + 2 * Math.PI) % (2 * Math.PI);
-      let d = Math.abs(h - doel); d = Math.min(d, 2 * Math.PI - d);
+      let d = Math.abs(h - target); d = Math.min(d, 2 * Math.PI - d);
       if (d < bd) { bd = d; best = s; }
     }
     return best;
   }
-  return { punt, sVoor, lengte, S };
+  return { punt: dot, sVoor, lengte, S };
 }
 
 // Markers uit elkaar schuiven langs de baan: de boog blijft staan, de rest gaat weg van wie te dichtbij zit. items: [{ s, actief }], wijzigt s.
-export function spreid(items, lengte, min = { actief: MIN_ACTIEF, punt: MIN_PUNT }) {
-  const afstand = (a, b) => { const d = Math.abs(a - b) % lengte; return Math.min(d, lengte - d); };
+export function spreid(items, lengte, min = { actief: MIN_ACTIEF, punt: MIN_DOT }) {
+  const distance = (a, b) => { const d = Math.abs(a - b) % lengte; return Math.min(d, lengte - d); };
   for (let ronde = 0; ronde < 40; ronde++) {
     let veranderd = false;
     for (const r of items) {
@@ -62,7 +62,7 @@ export function spreid(items, lengte, min = { actief: MIN_ACTIEF, punt: MIN_PUNT
       for (const o of items) {
         if (o === r) continue;
         const nodig = o.actief ? min.actief : min.punt;
-        const d = afstand(r.s, o.s);
+        const d = distance(r.s, o.s);
         if (d < nodig) {
           let delta = ((r.s - o.s) % lengte + lengte) % lengte; if (delta > lengte / 2) delta -= lengte;
           r.s += (delta >= 0 ? 1 : -1) * (nodig - d + 0.5); veranderd = true;
@@ -76,8 +76,8 @@ export function spreid(items, lengte, min = { actief: MIN_ACTIEF, punt: MIN_PUNT
 
 // De hele plaatsing: items [{ a (schermhoek in radialen), actief, ... }] -> dezelfde items met s, x, y; de boog eerst, daarna de punten uit elkaar.
 // Hooguit één actief item; wie er meer heeft, krijgt de rest als punt.
-export function plaats(items, S) {
-  const b = baan(S);
+export function place(items, S) {
+  const b = track(S);
   let gezien = false;
   const uit = items.map((i) => { const actief = !!i.actief && !gezien; if (actief) gezien = true; return { ...i, actief, s: b.sVoor(i.a) }; });
   spreid(uit, b.lengte);
@@ -128,11 +128,11 @@ function plaatje(ctx, cx, cy, tekst, k) {
 export function drawKompasRand(ctx, S, items, opties = {}) {
   if (!items.length) return [];
   const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
-  const { items: geplaatst, baan: b } = plaats(items, S);
+  const { items: geplaatst, baan: b } = place(items, S);
   ctx.save();
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   // de rustige stippellijn
-  const rand = baan(S);
+  const rand = track(S);
   ctx.beginPath();
   for (let i = 0; i <= 240; i++) { const [x, y] = rand.punt(rand.lengte * i / 240); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
   ctx.closePath();
@@ -165,7 +165,7 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
 // De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstand eronder, wachtende doelen
 // zijn kleine iconen. items: [{ sx, sy, kleur, icoon, actief, tekst, zonderSchijf }] in schermpixels; s: kaartschaal (1 = de maat van de minikaart).
 // zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen het afstandsplaatje komt eronder.
-export function drawKaartDoelen(ctx, items, opties = {}) {
+export function drawMapTargets(ctx, items, opties = {}) {
   if (!items.length) return;
   const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
   const s = opties.s || 1;

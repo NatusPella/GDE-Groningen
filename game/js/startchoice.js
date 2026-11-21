@@ -19,7 +19,7 @@ export const KEUZES = Object.freeze([
   { id: 'samen', label: 'Samen spelen', uitleg: 'Speel met vrienden in een eigen, besloten sessie.', icoon: 'samen', toets: '2' },
 ]);
 
-export const START_TEKST = Object.freeze({
+export const LAUNCH_TEXT = Object.freeze({
   eyebrow: 'Zomer vol misdaad',
   titel: 'Hoe wil je spelen?',
   uitleg: 'Je kiest bij elke start opnieuw. De wereld is voor beide hetzelfde.',
@@ -40,7 +40,7 @@ export const isKeuze = (v) => v === 'alleen' || v === 'samen';
 
 // Wat de start vraagt. `testmodus`: een geautomatiseerde run (main.js telt de vlaggen); `vlag`: ?startkeuze=
 //   'alleen' slaat de kaart over en speelt alleen (geen netwerk); 'vraag' toont de kaart ook in een testrun (beeld en tests).
-export function startPlan(settings = getSettings(), { testmodus = false, vlag = null } = {}) {
+export function launchPlan(settings = getSettings(), { testmodus = false, vlag = null } = {}) {
   if (vlag === 'alleen') return { naam: false, keuze: false, modus: 'alleen', reden: 'vlag' };
   if (testmodus && vlag !== 'vraag') return { naam: false, keuze: false, modus: null, reden: 'testmodus' };
   return { naam: moetNaamVragen(settings), keuze: true, modus: null, reden: '' };
@@ -81,28 +81,28 @@ export function bewaarKeuze(modus, { zet = setSetting } = {}) {
 }
 
 // De stand van deze sessie, voor main.js: 'alleen' houdt de automatische zoektocht naar een sessie dicht (sessionboot.js).
-let stand = null;
-export const zetStartModus = (modus) => { stand = isKeuze(modus) ? modus : null; };
-export const startModus = () => stand;
+let launchMode = null;
+export const applyLaunchMode = (modus) => { launchMode = isKeuze(modus) ? modus : null; };
+export const getLaunchMode = () => launchMode;
 
 // De hele start-vraag als één stroom, met de schermen als losse functies (main.js geeft de echte schermen mee, de test nepschermen).
 //   deps: { plan, settings(), naam(), keuze(index), toestemming(), sessie(), samen(rol), bewaar(modus) }
 // naam() resolvet na een geldige naam, keuze() met 'alleen' of 'samen', toestemming() met true (akkoord) of false (terug),
 // sessie() met 'host' | 'gast' | 'lijst' of null (terug). Terug in Samen brengt je terug op de keuzekaart.
-export async function startVragen(deps) {
+export async function askLaunchChoice(deps) {
   const plan = deps.plan;
   if (!plan.keuze) return plan.modus;
   if (plan.naam) await deps.naam();
   for (;;) {
     const modus = await deps.keuze(voorselectie(deps.settings()));
-    let stap = naKeuze(modus, deps.settings());
-    if (stap === 'naam') { await deps.naam(); stap = naKeuze(modus, deps.settings()); }
-    if (stap === 'toestemming') {
+    let nextStep = naKeuze(modus, deps.settings());
+    if (nextStep === 'naam') { await deps.naam(); nextStep = naKeuze(modus, deps.settings()); }
+    if (nextStep === 'toestemming') {
       if (!(await deps.toestemming())) continue;
-      stap = naKeuze(modus, deps.settings());
-      if (stap === 'toestemming') continue; // het akkoord is niet bewaard: nooit doorgaan op een gok
+      nextStep = naKeuze(modus, deps.settings());
+      if (nextStep === 'toestemming') continue; // het akkoord is niet bewaard: nooit doorgaan op een gok
     }
-    if (stap === 'sessie') {
+    if (nextStep === 'sessie') {
       const rol = await deps.sessie();
       if (!rol) continue;
       deps.samen(rol);

@@ -37,7 +37,7 @@ import { DOOR, STOVE, TABLE, BOARD, SOUP, CARD } from './beppe_visit_texts.js';
 import { MARK, sceneOnEnter, nextVisitMark, visitsDone, aliveVisit, pickMemory } from './beppe_boog_rules.js';
 import { FAREWELL_SCENE, MEMORY_UI, FIRST_VISIT } from './beppe_boog_texts.js';
 import { visitStatus, resetArc, arcTick, mark, marks, buildBeppeFigure } from './beppe_boog.js';
-import { startGesprek, stopGesprek, tickGesprek, gesprekActive } from './beppe_gesprek.js';
+import { openDialogue, stopGesprek, tickGesprek, gesprekActive } from './beppe_gesprek.js';
 
 export { visitStatus };
 
@@ -158,7 +158,7 @@ function fade(fn) {
   return true;
 }
 
-function setRoom(ctx, on) {
+function applyRoom(ctx, on) {
   const r = ctx.room;
   if (r) {
     r.visible = on;
@@ -179,7 +179,7 @@ function enter(w, ctx) {
   if (!site || inside) return false;
   return fade(() => {
     inside = { t: 0, last: { note: '', tip: '' }, pin: null };
-    setRoom(ctx, true);
+    applyRoom(ctx, true);
     putPlayer(w, site, SPOTS.enter, true);
     cameraNow(w, site);
     const vm = nextVisitMark(marks());
@@ -197,7 +197,7 @@ function enter(w, ctx) {
 function playScene(w, ctx, script, markId, soupAfter) {
   const p = hoofdspeler(w);
   if (inside) inside.pin = { x: p.x, y: p.y };
-  startGesprek(w, script, {
+  openDialogue(w, script, {
     done: (ww) => {
       mark(ww, markId);
       if (inside) inside.pin = null;
@@ -212,7 +212,7 @@ export function leave(w, ctx, silent = false) {
   const out = () => {
     stopGesprek(w);
     inside = null;
-    setRoom(ctx, false);
+    applyRoom(ctx, false);
     clearCamera(w);
     if (site) putPlayer(w, site, SPOTS.out, false);
   };
@@ -225,7 +225,7 @@ export function dropInside(w, ctx) {
   if (!inside) return;
   stopGesprek(w);
   inside = null;
-  setRoom(ctx, false);
+  applyRoom(ctx, false);
   if (w) clearCamera(w);
 }
 
@@ -330,7 +330,7 @@ function talk(w) {
   if (inside && note) inside.last.note = note.id;
   const p = hoofdspeler(w);
   if (inside) inside.pin = { x: p.x, y: p.y };
-  startGesprek(w, beats, { skippable: true, done: () => { if (inside) inside.pin = null; } });
+  openDialogue(w, beats, { skippable: true, done: () => { if (inside) inside.pin = null; } });
 }
 
 export function visitInteract(w, ctx) {

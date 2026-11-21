@@ -26,18 +26,18 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
 // één klasse in een leeg systeem krijgt het hele budget; met anderen met werk blijft hun aandeel vrij
 {
   const pl = createFramePlanner();
-  pl.beginFrame({ frameMs: 10 });
+  pl.openFrame({ frameMs: 10 });
   near(pl.grant('building', 100), PLAN.capMs, 1e-9, 'alleen: alles');
   const pl2 = createFramePlanner();
   // alle klassen hebben recent hun aandeel gebruikt (de reservering volgt het gebruik, niet het aandeel)
-  for (let i = 0; i < 80; i++) { pl2.beginFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) { const x = pl2.grant(k, 100); pl2.spend(k, x); } }
-  pl2.beginFrame({ frameMs: 10 });
+  for (let i = 0; i < 80; i++) { pl2.openFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) { const x = pl2.grant(k, 100); pl2.spend(k, x); } }
+  pl2.openFrame({ frameMs: 10 });
   const g = pl2.grant('tile', 100);
   ok(Math.abs(g - PLAN.capMs * CLASSES.tile) < 0.35, `met anderen die hun aandeel gebruiken: ongeveer zijn aandeel (${g.toFixed(2)} ms)`);
   // een klasse die weinig gebruikt laat ruimte vrij voor wie meer wil
   const pl3 = createFramePlanner();
-  for (let i = 0; i < 80; i++) { pl3.beginFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) { const x = pl3.grant(k, k === 'actors' ? 0.2 : 100); pl3.spend(k, k === 'actors' ? Math.min(x, 0.2) : x); } }
-  pl3.beginFrame({ frameMs: 10 });
+  for (let i = 0; i < 80; i++) { pl3.openFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) { const x = pl3.grant(k, k === 'actors' ? 0.2 : 100); pl3.spend(k, k === 'actors' ? Math.min(x, 0.2) : x); } }
+  pl3.openFrame({ frameMs: 10 });
   const gt = pl3.grant('tile', 0.8); pl3.spend('tile', gt); const gb = pl3.grant('building', 100);
   ok(gb > PLAN.capMs * CLASSES.building + 0.1, `de gebouwen krijgen meer dan hun aandeel als de actoren weinig gebruiken (${gb.toFixed(2)} ms)`);
   let sum = g; pl2.spend('tile', g);
@@ -49,8 +49,8 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
 // een klasse zonder werk laat zijn aandeel los (na activeFrames)
 {
   const pl = createFramePlanner();
-  for (let i = 0; i < PLAN.activeFrames + 2; i++) { pl.beginFrame({ frameMs: 10 }); pl.grant('building', 100); }
-  pl.beginFrame({ frameMs: 10 });
+  for (let i = 0; i < PLAN.activeFrames + 2; i++) { pl.openFrame({ frameMs: 10 }); pl.grant('building', 100); }
+  pl.openFrame({ frameMs: 10 });
   near(pl.grant('building', 100), PLAN.capMs, 1e-9, 'anderen zonder werk: het hele budget');
 }
 
@@ -59,7 +59,7 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
   const pl = createFramePlanner();
   let total = 0, frames = 0, maxF = 0;
   for (let f = 0; f < 300; f++) {
-    pl.beginFrame({ frameMs: 10 });
+    pl.openFrame({ frameMs: 10 });
     const g = pl.grant('building', 100);
     let spent = 0;
     // een systeem dat altijd werk heeft; elke eenheid kost 3 ms; de eerste eenheid mag altijd, daarna alleen binnen g
@@ -76,7 +76,7 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
   const pl = createFramePlanner({ capMs: 4, floorMs: 0 });
   let got = 0;
   for (let f = 0; f < 60; f++) {
-    pl.beginFrame({ frameMs: 100 }); // altijd traag: pool 0
+    pl.openFrame({ frameMs: 100 }); // altijd traag: pool 0
     const g = pl.grant('road', 5);
     if (g > 0) { got++; pl.spend('road', g); }
   }
@@ -87,9 +87,9 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
 // geen deadlock: een klasse met schuld krijgt weer ruimte binnen maxDebtFrames + 2 frames
 {
   const pl = createFramePlanner();
-  pl.beginFrame({ frameMs: 10 }); pl.grant('building', 100); pl.spend('building', 40); // een gigantisch stuk
+  pl.openFrame({ frameMs: 10 }); pl.grant('building', 100); pl.spend('building', 40); // een gigantisch stuk
   let frames = 0, g = 0;
-  do { pl.beginFrame({ frameMs: 10 }); g = pl.grant('building', 100); frames++; } while (g <= 0 && frames < 50);
+  do { pl.openFrame({ frameMs: 10 }); g = pl.grant('building', 100); frames++; } while (g <= 0 && frames < 50);
   ok(frames <= PLAN.maxDebtFrames + 2, `schuld is binnen ${frames} frames afbetaald`);
   ok(pl.stats().debt >= -PLAN.maxDebtFrames * PLAN.capMs - 1e-9, 'schuld nooit dieper dan het maximum');
 }
@@ -98,15 +98,15 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
 {
   const pl = createFramePlanner();
   let got = 0;
-  for (let f = 0; f < 40; f++) { pl.beginFrame({ frameMs: 10, hold: true }); const g = pl.grant('tile', 5); if (g > 0) got++; }
+  for (let f = 0; f < 40; f++) { pl.openFrame({ frameMs: 10, hold: true }); const g = pl.grant('tile', 5); if (g > 0) got++; }
   ok(got <= 40 / PLAN.starveFrames + 1 && got >= 1, 'vasthouding: hooguit de verhongeringseenheid');
 }
 
 // laadsluier: ruim budget en geen schuld
 {
   const pl = createFramePlanner();
-  pl.beginFrame({ frameMs: 10 }); pl.grant('building', 100); pl.spend('building', 40);
-  pl.beginFrame({ frameMs: 10, loading: true });
+  pl.openFrame({ frameMs: 10 }); pl.grant('building', 100); pl.spend('building', 40);
+  pl.openFrame({ frameMs: 10, loading: true });
   near(pl.grant('building', 100), PLAN.loadingMs, 1e-9, 'laadsluier: het volle budget ondanks schuld');
 }
 
@@ -116,24 +116,24 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
   const pl = createFramePlanner();
   const order = [];
   const mk = (id, rank, cost) => ({ cls: 'building', rank, est: cost, id, step: () => { t += cost; order.push(id); return true; } });
-  pl.beginFrame({ frameMs: 10 });
+  pl.openFrame({ frameMs: 10 });
   pl.submit(mk('ver', 900, 0.5)); pl.submit(mk('dichtbij', 10, 0.5)); pl.submit(mk('midden', 200, 0.5));
   pl.runQueue('building', now);
   ok(order.join() === 'dichtbij,midden,ver', `volgorde op rang: ${order}`);
   ok(pl.queue.length === 0, 'wachtrij leeg');
 
   const heavy = []; const mkh = (id) => ({ cls: 'building', rank: 1, est: 3, id, step: () => { t += 3; heavy.push(id); return true; } });
-  pl.beginFrame({ frameMs: 10, loading: true });
+  pl.openFrame({ frameMs: 10, loading: true });
   pl.submit(mkh('a')); pl.submit(mkh('b')); pl.submit(mkh('c'));
   pl.runQueue('building', now);
   ok(heavy.length === 1, `een duur stuk per frame (${heavy.length})`);
-  for (let f = 0; f < 5 && pl.queue.length; f++) { pl.beginFrame({ frameMs: 10, loading: true }); pl.runQueue('building', now); }
+  for (let f = 0; f < 5 && pl.queue.length; f++) { pl.openFrame({ frameMs: 10, loading: true }); pl.runQueue('building', now); }
   ok(heavy.length === 3 && pl.queue.length === 0, 'de rest volgt in de volgende frames');
 
   let parts = 0;
-  pl.beginFrame({ frameMs: 10 });
+  pl.openFrame({ frameMs: 10 });
   pl.submit({ cls: 'building', rank: 5, est: 0.2, step: () => { t += 0.2; parts++; return parts >= 5; } });
-  for (let f = 0; f < 30 && pl.queue.length; f++) { pl.beginFrame({ frameMs: 10 }); pl.runQueue('building', now); }
+  for (let f = 0; f < 30 && pl.queue.length; f++) { pl.openFrame({ frameMs: 10 }); pl.runQueue('building', now); }
   ok(parts === 5 && pl.queue.length === 0, 'een werkstuk in vijf stukjes is af');
 
   pl.submit({ cls: 'building', rank: 1, id: 'x', step: () => true }); pl.submit({ cls: 'building', rank: 1, id: 'y', step: () => true });
@@ -148,7 +148,7 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
   const pl = createFramePlanner();
   let farDone = -1, f = 0;
   for (; f < 3000 && farDone < 0; f++) {
-    pl.beginFrame({ frameMs: 10 });
+    pl.openFrame({ frameMs: 10 });
     if (f === 0) pl.submit({ cls: 'building', rank: 1500, est: 0.8, step: () => { t += 0.8; farDone = f; return true; } });
     for (let k = 0; k < 6; k++) pl.submit({ cls: 'building', rank: 5, est: 0.8, step: () => { t += 0.8; return true; } }); // 6 per frame, er passen er ~5
     pl.runQueue('building', now);
@@ -160,27 +160,27 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
 // spend telt per klasse en overschrijdingen
 {
   const pl = createFramePlanner();
-  pl.beginFrame({ frameMs: 10 });
+  pl.openFrame({ frameMs: 10 });
   const g = pl.grant('road', 100); pl.spend('road', g + 2);
   const s = pl.stats();
   ok(s.by.road.over === 1 && s.by.road.units === 1, 'overschrijding geteld');
 }
 
-// zonder beginFrame (een los gereedschap) slibt de planner niet dicht: na autoFrameMs begint grant zelf een frame
+// zonder openFrame (een los gereedschap) slibt de planner niet dicht: na autoFrameMs begint grant zelf een frame
 {
   const pl = createFramePlanner({ autoFrameMs: 30 });
-  pl.beginFrame({ frameMs: 10 });
+  pl.openFrame({ frameMs: 10 });
   let g = pl.grant('building', 100); pl.spend('building', 50);
   ok(pl.grant('road', 100) <= 4, 'binnen dezelfde frame is het budget op');
   await new Promise((r) => setTimeout(r, 60));
   g = pl.grant('building', 100);
-  ok(g > 0, `zonder beginFrame krijgt een systeem na een poos weer tijd (${g.toFixed(2)} ms)`);
+  ok(g > 0, `zonder openFrame krijgt een systeem na een poos weer tijd (${g.toFixed(2)} ms)`);
 }
 // uitgezet (?perfoff=planner): grant geeft wat het systeem wil
 {
   const pl = createFramePlanner();
   pl.setEnabled(false);
-  pl.beginFrame({ frameMs: 100 });
+  pl.openFrame({ frameMs: 100 });
   ok(pl.grant('building', 9) === 9 && pl.grant('road', 2.5) === 2.5, 'uitgezet: de oude constanten');
 }
 

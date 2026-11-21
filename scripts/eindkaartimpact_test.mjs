@@ -1,7 +1,7 @@
 // Planning en regels van de eindkaart met impact (game/js/eindkaartimpact.js, bigmoment.css):  node scripts/eindkaartimpact_test.mjs
 // Geen DOM, geen Electron: staffeltijden, teller, geluidsmomenten, de grens van 1,6 s en wat de CSS niet mag.
 import fs from 'node:fs';
-import { planIntro, tellerStappen, slaatOver, SNEL_MS, STAP_MS, MAX_TOTAAL_MS, MAX_TIKKEN } from '../game/js/eindkaartimpact.js';
+import { planIntro, counterSteps, isSkipEvent, FAST_MS, STEP_MS, MAX_TOTAAL_MS, MAX_TIKKEN } from '../game/js/eindkaartimpact.js';
 import { bouwMoment } from '../game/js/bigmoment.js';
 
 let n = 0, fails = 0;
@@ -9,19 +9,19 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 
 // de maten komen uit de tokens
 const tokens = fs.readFileSync(new URL('../game/js/ds-tokens.css', import.meta.url), 'utf8');
-ok(new RegExp(`--ds-m-snel:\\s*${SNEL_MS}ms`).test(tokens) && new RegExp(`--ds-m-max:\\s*${STAP_MS}ms`).test(tokens), 'SNEL_MS en STAP_MS volgen de tokens');
+ok(new RegExp(`--ds-m-snel:\\s*${FAST_MS}ms`).test(tokens) && new RegExp(`--ds-m-max:\\s*${STEP_MS}ms`).test(tokens), 'FAST_MS en STEP_MS volgen de tokens');
 
 // teller
-const t = tellerStappen(1250);
+const t = counterSteps(1250);
 ok(t.length > 0 && t.length <= MAX_TIKKEN, 'teller: een beperkt aantal tikken', t.length);
 ok(t[t.length - 1].waarde === 1250, 'teller: de laatste waarde is het doel');
 ok(t.every((s, i) => i === 0 || (s.waarde > t[i - 1].waarde && s.t > t[i - 1].t)), 'teller: stijgend in waarde en tijd');
 ok(t[0].waarde > t[1].waarde - t[0].waarde, 'teller: ease-out, de eerste stap is de grootste');
 ok(t.map((s) => s.tik).join() === t.map((_, i) => i).join(), 'teller: tik telt op van 0');
-ok(tellerStappen(0).length === 0 && tellerStappen(NaN).length === 0 && tellerStappen(-5).length === 0, 'teller: geen doel, geen stappen');
-const klein = tellerStappen(3);
+ok(counterSteps(0).length === 0 && counterSteps(NaN).length === 0 && counterSteps(-5).length === 0, 'teller: geen doel, geen stappen');
+const klein = counterSteps(3);
 ok(klein.length <= 3 && klein[klein.length - 1].waarde === 3, 'teller: een kleine som krijgt minder stappen', JSON.stringify(klein));
-ok(tellerStappen(1).length === 1 && tellerStappen(1)[0].waarde === 1, 'teller: één euro is één stap');
+ok(counterSteps(1).length === 1 && counterSteps(1)[0].waarde === 1, 'teller: één euro is één stap');
 
 // plan met impact
 const p = planIntro({ soort: 'geslaagd', beloning: 1250, tijd: true, sterren: 3 });
@@ -29,12 +29,12 @@ ok(p.impact && p.totaal <= MAX_TOTAAL_MS, 'plan: hooguit 1,6 s', p.totaal);
 const namen = p.onderdelen.map((o) => o.naam);
 ok(namen.join() === 'klein,kop,regel,beloning,tijd', 'plan: titel, regel, beloning, tijd in volgorde', namen.join());
 ok(p.onderdelen.every((o, i) => i === 0 || o.at > p.onderdelen[i - 1].at), 'plan: elk onderdeel komt later dan het vorige');
-ok(p.onderdelen.every((o) => o.at % SNEL_MS === 0 && o.eenh === o.at / SNEL_MS), 'plan: vertragingen zijn veelvouden van --ds-m-snel');
+ok(p.onderdelen.every((o) => o.at % FAST_MS === 0 && o.eenh === o.at / FAST_MS), 'plan: vertragingen zijn veelvouden van --ds-m-snel');
 ok(p.onderdelen[0].at > 0, 'plan: het vlak komt eerst, daarna de onderdelen');
-ok(p.sterren.length === 3 && p.sterren.every((s, i) => i === 0 || s.at - p.sterren[i - 1].at === SNEL_MS), 'plan: sterren slaan één voor één in');
+ok(p.sterren.length === 3 && p.sterren.every((s, i) => i === 0 || s.at - p.sterren[i - 1].at === FAST_MS), 'plan: sterren slaan één voor één in');
 ok(p.teller && p.teller.stappen[p.teller.stappen.length - 1].waarde === 1250, 'plan: de teller eindigt op de beloning');
-ok(p.glans && p.glans.at >= p.teller.at + p.teller.duur && p.glans.at + STAP_MS <= p.totaal, 'plan: de glans sluit af na de teller');
-ok(p.schok && p.schok.at > 0 && p.schok.at < STAP_MS, 'plan: de schok valt tijdens de landing van het vlak');
+ok(p.glans && p.glans.at >= p.teller.at + p.teller.duur && p.glans.at + STEP_MS <= p.totaal, 'plan: de glans sluit af na de teller');
+ok(p.schok && p.schok.at > 0 && p.schok.at < STEP_MS, 'plan: de schok valt tijdens de landing van het vlak');
 const g = p.geluid.map((x) => x.naam);
 ok(g[0] === 'whoosh' && g.includes('inslag') && g.includes('munt') && g[g.length - 1] === 'stempel', 'geluid: whoosh, inslag, munt, stempel op het eind', g.join());
 ok(g.filter((x) => x === 'tik').length === p.teller.stappen.length - 1, 'geluid: een tik per tellerstap, de laatste is de munt');
@@ -63,8 +63,8 @@ ok(!r.impact && r.totaal === 0 && r.onderdelen.length === 0 && r.teller === null
 ok(r.geluid.length === 1 && r.geluid[0].at === 0, 'rustig: één geluid direct');
 
 // overslaan
-ok(slaatOver({ type: 'keydown' }) && slaatOver({ type: 'pointerdown' }) && slaatOver({ type: 'touchstart' }), 'overslaan: toets en aanraking');
-ok(!slaatOver({ type: 'keydown', repeat: true }) && !slaatOver({ type: 'keyup' }) && !slaatOver({}), 'overslaan: een vastgehouden toets niet, loslaten niet');
+ok(isSkipEvent({ type: 'keydown' }) && isSkipEvent({ type: 'pointerdown' }) && isSkipEvent({ type: 'touchstart' }), 'overslaan: toets en aanraking');
+ok(!isSkipEvent({ type: 'keydown', repeat: true }) && !isSkipEvent({ type: 'keyup' }) && !isSkipEvent({}), 'overslaan: een vastgehouden toets niet, loslaten niet');
 
 // de kaart behoudt zijn woorden en zijn bedrag voor het eindbeeld
 const b = bouwMoment({ soort: 'geslaagd', beloning: 1250 });

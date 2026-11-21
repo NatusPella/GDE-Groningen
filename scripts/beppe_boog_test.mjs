@@ -220,7 +220,7 @@ ok(MAX_ALIVE_VISITS === 3, 'Beppe is er voor twee of drie bezoeken');
   ok(/GRACE_S/.test(boog) && /MARK\.farewell\)\) \{\s*\n?\s*if \(now - firstAt/.test(boog), 'een save die al voorbij het overlijden is zet zijn merken stil (geen nieuws, geen afscheid)');
   ok(/seen !== 'herinnering'/.test(boog), 'het nieuws komt alleen als het overlijden tijdens het spel gebeurt');
   const binnen = read('beppe_binnen.js');
-  ok(/startGesprek/.test(binnen) && /mark\(ww, markId\)/.test(binnen), 'de scène zet haar merk pas aan het eind (opslaan en laden midden in de scène speelt hem opnieuw)');
+  ok(/openDialogue/.test(binnen) && /mark\(ww, markId\)/.test(binnen), 'de scène zet haar merk pas aan het eind (opslaan en laden midden in de scène speelt hem opnieuw)');
   ok(/visitStatus\(\)\.phase === 'herinnering'/.test(binnen), 'het huis kent de levende en de herinneringsvariant');
   const garden = read('beppe_garden.js');
   ok(/visitStatus\(\)\.phase === 'herinnering' && !hasUnique/.test(garden), 'de herinneringskaart van het bankje hoort bij de herinneringsfase');

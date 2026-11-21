@@ -11,7 +11,7 @@ import { markerColors } from '../a11y.js';
 import { reducedMotion } from '../motion.js';
 import { airLine, airLineFault, airGuide, AIR_LINE_AHEAD_M, AIR_ALT_BAND } from '../airguide.js';
 import { noteRibbonRepair } from '../pathribbonwatch.js';
-import { airProfileFor, profileAt, profileLateral, airNeed, setAirNeed, getAirNeed, TURBINE_TIP_FACTOR, PYLON_TOP } from '../airprofile.js';
+import { airProfileFor, profileAt, profileLateral, airNeed, recordAirNeed, getAirNeed, TURBINE_TIP_FACTOR, PYLON_TOP } from '../airprofile.js';
 import { farPropsIn } from '../farprops.js';
 
 const HALF_W = 3.2;
@@ -182,10 +182,10 @@ export function updateAirLine3D(scene, dt, flying, route, me, map = null) {
   ensure(scene);
   const wanted = !!(flying && route && route.mode === 'fly' && route.target && me && route.remaining > 10 && !hiddenNow);
   stat.wanted = wanted;
-  if (!wanted) { root.visible = false; stat.shown = false; setAirNeed(null); return false; }
+  if (!wanted) { root.visible = false; stat.shown = false; recordAirNeed(null); return false; }
   const alt = route.alt || 80;
   const L = airLine(me, route.target, alt, AIR_LINE_AHEAD_M);
-  if (!L) { root.visible = false; stat.shown = false; setAirNeed(null); return false; }
+  if (!L) { root.visible = false; stat.shown = false; recordAirNeed(null); return false; }
   try {
     const dx = L.x1 - L.x0, dy = L.y1 - L.y0, l = Math.hypot(dx, dy) || 1;
     // het hoogteprofiel: één keer per route (opnieuw bij een andere route, afdrijven of een tegelwissel), nooit per frame
@@ -197,8 +197,8 @@ export function updateAirLine3D(scene, dt, flying, route, me, map = null) {
       zAt = (d) => profileAt(prof, s + d);
       goalZ = prof.atEnd ? profileAt(prof, prof.total) : alt;
       L.z1 = zAt(L.len);
-      setAirNeed(airNeed(prof, s, AIR_LINE_AHEAD_M));
-    } else setAirNeed(null);
+      recordAirNeed(airNeed(prof, s, AIR_LINE_AHEAD_M));
+    } else recordAirNeed(null);
     writeLine(L, dx / l, dy / l, zAt);
     const color = new THREE.Color(markerColors().mission);
     lineMesh.material.color.copy(color);

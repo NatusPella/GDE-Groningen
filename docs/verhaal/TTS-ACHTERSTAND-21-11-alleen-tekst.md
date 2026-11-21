@@ -34,7 +34,7 @@ Beppe heeft geen stem en krijgt er geen: haar regels staan in het gesprekspaneel
 
 ## Tessa komt van het platteland (#1005, #981, 21-11)
 
-Alleen tekst, niet ingesproken, niet in een geregistreerde spreektabel (`voice_coverage` ziet ze niet). De bron is `TESSA_REGELS` in `game/js/karakterbonus.js`. Zou de eigenaar ze willen laten inspreken: Tessa's bestaande stem, standaard Nederlands (geen Gronings), en een bijfiguur zonder eigen stem voor "een boer langs de weg" en "Mam".
+Alleen tekst, niet ingesproken, niet in een geregistreerde spreektabel (`voice_coverage` ziet ze niet). De bron is `TESSA_LINES` in `game/js/karakterbonus.js`. Zou de eigenaar ze willen laten inspreken: Tessa's bestaande stem, standaard Nederlands (geen Gronings), en een bijfiguur zonder eigen stem voor "een boer langs de weg" en "Mam".
 
 | Waar | Soort | Tekst |
 |---|---|---|
@@ -44,7 +44,7 @@ Alleen tekst, niet ingesproken, niet in een geregistreerde spreektabel (`voice_c
 | Eerste oogst als Tessa, bijmissie-beat | alleen tekst | Een boer langs de weg: "Jij komt niet uit de stad, hè?" Tessa: "Nee. Ergens op het platteland. Ik ruik nog naar koe." |
 | Eerste oogst als Tessa, telefoonbericht | alleen tekst | Mam: Ik zag in het nieuws een trekker. Jij, hè? Eet iets. Pa vraagt of de kleppen goed staan. |
 | Voetbal-uitleg (voor de voetbal-sim, nog niet gekoppeld) | alleen tekst | Tessa speelt al sinds haar zesde in het dorpsteam. ... |
-| Voetbal-viering, keepersneer, tegenstandersneer (idem) | alleen tekst | zie `TESSA_REGELS.voetbal` (2 + 2 + 2 regels) |
+| Voetbal-viering, keepersneer, tegenstandersneer (idem) | alleen tekst | zie `TESSA_LINES.voetbal` (2 + 2 + 2 regels) |
 | Kiekdoar-kop (idem, nog niet gekoppeld) | alleen tekst | KIEKDOAR: Boerendochter blijkt snelle voeten te hebben: "Ze rende al achter de koeien aan." |
 | Prestatie | alleen tekst | Boerendochter: Oogst als Tessa een veld op je eigen akker |
 

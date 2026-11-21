@@ -11,8 +11,8 @@ const spul = (type, extra = {}) => ({ kind: 'spul', spul: { type, ...extra } });
 const product = (key) => ({ kind: 'product', product: key });
 
 // Geld: hoe dik de stapels zijn, per bedrag (niveau 0 tot 3).
-export const geldNiveau = (bedrag) => { const b = Number(bedrag) || 0; return b < 50 ? 0 : b < 500 ? 1 : b < 5000 ? 2 : 3; };
-export const geldSpec = (bedrag) => spul('geld', { niveau: geldNiveau(bedrag) });
+export const moneyTier = (bedrag) => { const b = Number(bedrag) || 0; return b < 50 ? 0 : b < 500 ? 1 : b < 5000 ? 2 : 3; };
+export const moneySpec = (bedrag) => spul('geld', { niveau: moneyTier(bedrag) });
 
 // Wapens: alle sleutels van WEAPONS hebben een model in models3d_people.js, behalve de vuisten (die hebben er hier een).
 export const wapenSpec = (key) => (key === 'fists' ? spul('vuist') : key ? { kind: 'weapon', weapon: key } : null);
@@ -72,13 +72,13 @@ export const MEUBEL_PRODUCT = new Set(['kast', 'bank', 'lamp', 'bed', 'tv', 'pri
 export const meubelSpec = (id) => (MEUBEL_PRODUCT.has(id) ? product(id) : null);
 
 // Kaarten en verzamelingen.
-export const KAART_SPEC = {
+export const CARD_SPEC = {
   stempels: product('spaarkaart'),
   aanwijzingen: spul('aanwijzing'),
   eieren: product('eierbal'),
   geheim: spul('geheim'),
 };
-export const kaartSpec = (id) => KAART_SPEC[id] || null;
+export const cardSpec = (id) => CARD_SPEC[id] || null;
 
 // Upgrades: groep 'auto' (Escapade en andere auto's), 'tweewieler' (fiets, scooter) of 'fjord' (de Fjord Frituur).
 export const UPGRADE_SPEC = {

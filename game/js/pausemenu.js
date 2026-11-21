@@ -33,7 +33,7 @@ import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
-import { volgTabLijn } from './dsmicro.js'; // DS3: de glijdende onderstreping van de tabs (ds-micro.css)
+import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping van de tabs (ds-micro.css)
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
@@ -2340,7 +2340,7 @@ function showSubtab(of, name) {
   if (SUB_ALIAS[of] && SUB_ALIAS[of][name]) name = SUB_ALIAS[of][name];
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
-  for (const nav of root.querySelectorAll(`.ds-m-tabs:has([data-of="${of}"])`)) volgTabLijn(nav); // DS3: de streep glijdt naar de gekozen tab (en volgt het paneel als het zichtbaar wordt)
+  for (const nav of root.querySelectorAll(`.ds-m-tabs:has([data-of="${of}"])`)) trackTabLine(nav); // DS3: de streep glijdt naar de gekozen tab (en volgt het paneel als het zichtbaar wordt)
   for (const p of root.querySelectorAll(`[data-sub][data-of="${of}"]`)) p.hidden = p.dataset.sub !== name;
   if (of === 'verhaal' && pref.sub[of] === 'aanwijzingen' && name !== 'aanwijzingen') { markCluesSeen(); syncNavBadges(); } // nieuw blijft staan zolang je op het tabblad bent, weg als je het verlaat (#435)
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }

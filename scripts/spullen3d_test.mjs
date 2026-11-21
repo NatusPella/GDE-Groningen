@@ -77,7 +77,7 @@ t('de vissen: elke soort uit visdata heeft een regel en de drie vormen komen voo
 });
 
 t('geldniveau groeit met het bedrag en is begrensd', () => {
-  assert.deepEqual([0, 49, 50, 499, 500, 4999, 5000, 1e9, -5, NaN].map(SP.geldNiveau), [0, 0, 1, 1, 2, 2, 3, 3, 0, 0]);
+  assert.deepEqual([0, 49, 50, 499, 500, 4999, 5000, 1e9, -5, NaN].map(SP.moneyTier), [0, 0, 1, 1, 2, 2, 3, 3, 0, 0]);
 });
 
 t('specs zijn gewone data (JSON) en onbekende ids geven null in plaats van een fout', () => {

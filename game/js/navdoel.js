@@ -25,9 +25,9 @@ export const NAV_ROL = {
 };
 
 // De route-soorten van routing.js (user, mission, job, care) naar hun type: voor de routelijn en de 3D-ribbon.
-export const ROUTE_TYPE = { user: 'eigen', mission: 'missie', job: 'klus', care: 'zorg' };
+export const PATH_KIND = { user: 'eigen', mission: 'missie', job: 'klus', care: 'zorg' };
 // De paletsleutel van een route-soort (voor markerColors()[...]).
-export const routeRol = (kind) => NAV_ROL[ROUTE_TYPE[kind] || 'missie'] || 'mission';
+export const pathRole = (kind) => NAV_ROL[PATH_KIND[kind] || 'missie'] || 'mission';
 
 // Het type in de markering: de sleutel is de vorm, de waarde de Phosphor-naam (icons.js) die navpijl.js in het ronde icoon van de kompasboog tekent.
 export const GLYPH = { ster: 'ster', vlag: 'vlag', ruit: 'tas', kruis: 'ehbo', ring: 'helikopter', auto: 'auto', punt: 'doel', speler: 'speler' };
@@ -55,12 +55,12 @@ export function eigenGlyph(soort) {
   return soort === 'mission' || soort === 'challenge' ? 'ster' : soort === 'job' ? 'ruit' : soort === 'play' ? 'punt' : 'vlag';
 }
 
-const afstand = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-const geldig = (d) => !!d && Number.isFinite(d.x) && Number.isFinite(d.y);
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const valid = (d) => !!d && Number.isFinite(d.x) && Number.isFinite(d.y);
 
 // De route-lijn per manier van reizen: dezelfde doelen, andere lijn (de boot een vaarlijn, het luchtvaartuig een rechte lijn).
-const LIJN = { boot: 'vaar', lucht: 'lucht', ov: 'ov' };
-export const lijnVoor = (modus) => LIJN[modus] || 'weg';
+const LINE_STYLE = { boot: 'vaar', lucht: 'lucht', ov: 'ov' };
+export const lineStyleFor = (modus) => LINE_STYLE[modus] || 'weg';
 
 // s: een momentopname van de wereld (hud_panel.js bouwt hem; de test een eigen):
 //  speler {x, y}; modus 'lopen'|'fiets'|'auto'|'boot'|'ov'|'lucht';
@@ -74,8 +74,8 @@ export const lijnVoor = (modus) => LIJN[modus] || 'weg';
 //  groep [{x, y, name}];                         Samen spelen: de doelen van de groep, het dichtstbijzijnde per lijst
 //  zorg {x, y, name, waarom};                    een zorgdoel (opknappen, garage na een lekke band)
 //  klaar: ['eigen', ...]                         types die net klaar zijn (aankomst, afgerond): geen pijl
-export function bepaalNavDoelen(s) {
-  const uit = { actief: null, secundair: [], alle: [], verborgen: [], modus: s.modus || 'lopen', lijn: lijnVoor(s.modus), reden: null };
+export function resolveNavTargets(s) {
+  const uit = { actief: null, secundair: [], alle: [], verborgen: [], modus: s.modus || 'lopen', lijn: lineStyleFor(s.modus), reden: null };
   const verberg = (type, reden, id = type) => uit.verborgen.push({ type, id, reden });
   const sp = s.speler || { x: 0, y: 0 };
   const klaar = new Set(s.klaar || []);
@@ -83,21 +83,21 @@ export function bepaalNavDoelen(s) {
   if (s.bezig === 'minigame') { uit.reden = 'minigame'; for (const t of ['klus', 'missie', 'eigen', 'verhaal', 'zorg']) if (s[t]) verberg(t, 'minigame'); return uit; }
   if (s.bezig === 'heli') {
     uit.reden = 'heli';
-    if (geldig(s.heli)) { const d = maak('heli', s.heli, sp); d.rol = 'actief'; uit.actief = d; uit.alle.push(d); }
+    if (valid(s.heli)) { const d = make('heli', s.heli, sp); d.rol = 'actief'; uit.actief = d; uit.alle.push(d); }
     for (const t of ['klus', 'missie', 'eigen', 'verhaal', 'zorg']) if (s[t]) verberg(t, 'heli');
     return uit;
   }
 
   const kandidaten = [];
   const voeg = (type, bron, extra) => {
-    if (!geldig(bron)) return;
+    if (!valid(bron)) return;
     if (klaar.has(type)) { verberg(type, 'klaar'); return; }
-    kandidaten.push(maak(type, bron, sp, extra));
+    kandidaten.push(make(type, bron, sp, extra));
   };
   voeg('klus', s.klus);
   if (!s.klus) voeg('uitdaging', s.uitdaging); // zoals de minikaart: een klus gaat voor een uitdaging
   const m = s.missie;
-  if (geldig(m)) {
+  if (valid(m)) {
     if (s.klus) verberg('missie', 'klus actief');
     else if (m.fase === 'cooldown') verberg('missie', 'afgerond');
     else if (m.fase === 'active') voeg('missie', m, { id: 'missie' });
@@ -114,25 +114,25 @@ export function bepaalNavDoelen(s) {
 
   // dezelfde plek is één doel: het hoogste wint
   kandidaten.sort((a, b) => b.rank - a.rank || a.afstand - b.afstand);
-  const over = [];
+  const others = [];
   for (const d of kandidaten) {
-    const dubbel = over.find((o) => afstand(o, d) < SAMENVOEG_M);
-    if (dubbel) { dubbel.samengevoegd.push(d.type); verberg(d.type, 'zelfde plek als ' + dubbel.type, d.id); } else over.push(d);
+    const dubbel = others.find((o) => distance(o, d) < SAMENVOEG_M);
+    if (dubbel) { dubbel.samengevoegd.push(d.type); verberg(d.type, 'zelfde plek als ' + dubbel.type, d.id); } else others.push(d);
   }
 
-  const volg = over.filter((d) => NAV_TYPES[d.type].volg);
-  if (volg.length) {
-    volg[0].rol = 'actief';
-    uit.actief = volg[0];
-    uit.secundair = volg.slice(1, 1 + MAX_SECUNDAIR);
-    for (const d of volg.slice(1 + MAX_SECUNDAIR)) verberg(d.type, 'te veel pijlen');
+  const follow = others.filter((d) => NAV_TYPES[d.type].volg);
+  if (follow.length) {
+    follow[0].rol = 'actief';
+    uit.actief = follow[0];
+    uit.secundair = follow.slice(1, 1 + MAX_SECUNDAIR);
+    for (const d of follow.slice(1 + MAX_SECUNDAIR)) verberg(d.type, 'te veel pijlen');
   }
   for (const d of uit.secundair) d.rol = 'secundair';
   uit.alle = [...(uit.actief ? [uit.actief] : []), ...uit.secundair];
   return uit;
 }
 
-function maak(type, bron, sp, extra = {}) {
+function make(type, bron, sp, extra = {}) {
   const t = NAV_TYPES[type];
   return {
     type, id: extra.id || type, rank: t.rank + (extra.rankPlus || 0), rol: 'secundair', x: bron.x, y: bron.y, name: bron.name || t.label, glyph: extra.glyph || t.glyph,
@@ -141,7 +141,7 @@ function maak(type, bron, sp, extra = {}) {
 }
 
 // De kleur van een pijl: de paletrol van het type (palette = markerColors() uit a11y.js). Zorg en klus houden hun eigen kleur.
-export function navKleur(doel, palette) {
+export function navColor(doel, palette) {
   const rol = NAV_ROL[doel.type] || 'mission';
   return (palette && palette[rol]) || dsKleur('ink-geel');
 }
@@ -156,7 +156,7 @@ export function navTekst(doel, fmt = (m) => `${Math.round(m)} m`) {
 // De momentopname uit de wereld (minikaart en grote kaart bouwen hem hier, zodat ze nooit uit elkaar lopen). e: wat de wereld niet zelf weet:
 //  speler {x, y}, modus, busyGame (padel, kermis, heli), heli {x, y} (het doel van de heli-run), goal (goal.js getGoal), missieOpKaart (goal.js missionOnMap),
 //  groep [{x, y}] (Samen spelen), zorg {x, y, name} (lekke-bandgarage of de zorgroute).
-export function snapshotUitWereld(w, e) {
+export function snapshotFromWorld(w, e) {
   const m = w.mission;
   const job = w.sideJob && w.sideJob.active ? w.sideJob : null;
   const g = e.goal;
@@ -175,6 +175,6 @@ export function snapshotUitWereld(w, e) {
 }
 
 // De afstand bij het actieve doel: langs de route als die er is en naar dit doel loopt, anders hemelsbreed (dezelfde waarde als de doelregel in de HUD).
-export function afstandVoor(doel, route) {
+export function distanceFor(doel, route) {
   return route && route.target && Math.hypot(route.target.x - doel.x, route.target.y - doel.y) < 40 ? route.remaining : doel.afstand;
 }

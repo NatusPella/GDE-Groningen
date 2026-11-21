@@ -126,7 +126,7 @@ const A = { x: 0, y: 0 }, B = { x: 1200, y: 0 };
   P.resetAirProfile();
   const far = { x: 15000, y: 0 }, m2 = { x: 0, y: 0, z: 60 };
   let q = P.airProfileFor(testMap([]), m2, far, { base: 60 }, 0);
-  ok(q.s1 === P.AIR_WINDOW_M && !q.atEnd, 'lange route: het eerste stuk is 4 km');
+  ok(q.s1 === P.AIR_SPAN_M && !q.atEnd, 'lange route: het eerste stuk is 4 km');
   m2.x = 3000; q = P.airProfileFor(testMap([]), m2, far, { base: 60 }, 5);
   ok(P.airProfileStats().reason === 'stuk' && q.s0 === 0 && q.ax === 3000, 'het stuk raakt op: een nieuw stuk vanaf je plek');
   P.resetAirProfile();

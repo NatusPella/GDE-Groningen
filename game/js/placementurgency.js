@@ -22,7 +22,7 @@ export const URGENT_SLICE_MS = 6;
 
 let activityProbe = null;
 // main.js (of een minigame) zegt "er loopt een missie, minigame of activiteit die plaatsing nodig heeft"
-export function setActivityProbe(fn) { activityProbe = typeof fn === 'function' ? fn : null; }
+export function installActivityProbe(fn) { activityProbe = typeof fn === 'function' ? fn : null; }
 export function activityActive() { try { return !!(activityProbe && activityProbe()); } catch (e) { return false; } }
 
 // De kleinste afstand van de speler tot de punten van een venster (Infinity als de speler of de punten onbekend zijn).
@@ -39,7 +39,7 @@ export function nearestPointDist(points, focus) {
 
 // De stand van een venster. urgent: de speler koos het zelf (sync); near: afstand tot het dichtstbijzijnde punt (m);
 // activity: er loopt een activiteit; restoring: een savegame wordt hersteld; slice: de eigen slice van de aanroeper (ms).
-export function windowMode({ urgent = false, near = Infinity, activity = false, restoring = false, slice = 0 } = {}) {
+export function urgencyMode({ urgent = false, near = Infinity, activity = false, restoring = false, slice = 0 } = {}) {
   if (urgent) return { mode: 'sync', priority: -500, sliceMs: 0, held: false };
   if (restoring || activity || near <= URGENT_NEAR_M) {
     // dichtbij = dezelfde urgentie als de prefetch (afstand), een herstel of activiteit net zo hoog
@@ -50,6 +50,6 @@ export function windowMode({ urgent = false, near = Infinity, activity = false, 
 }
 
 // Kortweg voor tileplace.js: de stand uit de punten, de focus en de vlaggen.
-export function windowModeFor(points, focus, { urgent = false, slice = 0, restoring = false } = {}) {
-  return windowMode({ urgent, near: nearestPointDist(points, focus), activity: activityActive(), restoring, slice });
+export function urgencyModeFor(points, focus, { urgent = false, slice = 0, restoring = false } = {}) {
+  return urgencyMode({ urgent, near: nearestPointDist(points, focus), activity: activityActive(), restoring, slice });
 }

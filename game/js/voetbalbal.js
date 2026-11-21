@@ -1,25 +1,25 @@
 // De bal van de voetbalwedstrijd (#981): puur, deterministisch en zonder toeval in de natuurkunde (scripts/voetbal_test.mjs). Rollen met wrijving, stuiten, de palen en de lat
 // van de twee doelen, een doelpunt als de bal over de lijn tussen de palen gaat, en "uit" als hij het veld verlaat. Simpel maar plezierig: de wrijving is groot bij hoge snelheid
 // (een harde bal remt snel af), een stuit houdt ruim de helft. z is de hoogte van de onderkant van de bal boven het gras.
-import { VELD } from './voetbalrules.js';
+import { PITCH } from './voetbalrules.js';
 
 const G = 9.8;
-const R = VELD.BAL_R;
-const MAX_STAP = 1 / 120;
+const R = PITCH.BAL_R;
+const MAX_STEP = 1 / 120;
 
-export const maakBal = (x = 0, y = 0) => ({ x, y, z: 0, vx: 0, vy: 0, vz: 0, dood: false, netTeam: -1, laatsteTeam: -1, laatsteSpeler: -1 });
-export const balSnelheid = (b) => Math.hypot(b.vx, b.vy);
+export const makeBall = (x = 0, y = 0) => ({ x, y, z: 0, vx: 0, vy: 0, vz: 0, dood: false, netTeam: -1, laatsteTeam: -1, laatsteSpeler: -1 });
+export const ballSpeed = (b) => Math.hypot(b.vx, b.vy);
 export const zetBal = (b, x, y, z = 0) => { b.x = x; b.y = y; b.z = z; b.vx = b.vy = b.vz = 0; b.dood = false; b.netTeam = -1; };
 
 // Eén stap (dt mag groot zijn: hij wordt in stukjes gehakt). Geeft de gebeurtenissen: stuit, paal, lat, goal ({ team }), uit ({ kind: 'zij' | 'achter', x, y }).
-export function stapBal(b, dt, ev = []) {
-  const n = Math.max(1, Math.ceil(dt / MAX_STAP));
+export function stepBall(b, dt, ev = []) {
+  const n = Math.max(1, Math.ceil(dt / MAX_STEP));
   const h = dt / n;
-  for (let i = 0; i < n; i++) stapKlein(b, h, ev);
+  for (let i = 0; i < n; i++) stepSmall(b, h, ev);
   return ev;
 }
 
-function stapKlein(b, h, ev) {
+function stepSmall(b, h, ev) {
   const ox = b.x, oy = b.y;
   // verticaal
   if (b.z > 0 || b.vz > 0) {
@@ -43,9 +43,9 @@ function stapKlein(b, h, ev) {
   if (b.netTeam >= 0) { net(b, ev); return; }
   const zc = b.z + R;
   // de palen: vier cilinders op de hoeken van de doelen (de bal onder de lat)
-  if (zc < VELD.DOEL_H + 0.05) {
-    for (const px of [-(VELD.DOEL_B / 2), (VELD.DOEL_B / 2)]) for (const py of [-(VELD.L / 2), (VELD.L / 2)]) {
-      const dx = b.x - px, dy = b.y - py, d = Math.hypot(dx, dy), min = VELD.PAAL_R + R;
+  if (zc < PITCH.DOEL_H + 0.05) {
+    for (const px of [-(PITCH.DOEL_B / 2), (PITCH.DOEL_B / 2)]) for (const py of [-(PITCH.L / 2), (PITCH.L / 2)]) {
+      const dx = b.x - px, dy = b.y - py, d = Math.hypot(dx, dy), min = PITCH.PAAL_R + R;
       if (d < min && d > 1e-6) {
         const nx = dx / d, ny = dy / d, vn = b.vx * nx + b.vy * ny;
         if (vn < 0) { b.vx -= 1.65 * vn * nx; b.vy -= 1.65 * vn * ny; ev.push({ type: 'paal', sterkte: Math.min(1, -vn / 14) }); }
@@ -54,16 +54,16 @@ function stapKlein(b, h, ev) {
     }
   }
   // de lat en de doellijn: alleen tussen de palen en alleen naar buiten
-  for (const yl of [-(VELD.L / 2), (VELD.L / 2)]) {
-    if ((oy - yl) * (b.y - yl) > 0 || Math.abs(b.x) >= (VELD.DOEL_B / 2) || (b.y - oy) * yl <= 0) continue;
-    if (Math.abs(zc - VELD.DOEL_H) < R + 0.04) { // de lat
-      const boven = zc >= VELD.DOEL_H;
+  for (const yl of [-(PITCH.L / 2), (PITCH.L / 2)]) {
+    if ((oy - yl) * (b.y - yl) > 0 || Math.abs(b.x) >= (PITCH.DOEL_B / 2) || (b.y - oy) * yl <= 0) continue;
+    if (Math.abs(zc - PITCH.DOEL_H) < R + 0.04) { // de lat
+      const boven = zc >= PITCH.DOEL_H;
       b.y = oy; b.vy = -b.vy * 0.55; b.vz = (boven ? 1 : -1) * (Math.abs(b.vz) * 0.4 + 1.3);
-      b.z = boven ? Math.max(b.z, VELD.DOEL_H - R + 0.05) : Math.min(b.z, VELD.DOEL_H - R - 0.06);
+      b.z = boven ? Math.max(b.z, PITCH.DOEL_H - R + 0.05) : Math.min(b.z, PITCH.DOEL_H - R - 0.06);
       ev.push({ type: 'lat', sterkte: Math.min(1, Math.hypot(b.vx, b.vy) / 14) });
       return;
     }
-    if (zc < VELD.DOEL_H) { // een doelpunt: het team dat naar deze kant aanvalt scoort (team 0 valt aan naar +y)
+    if (zc < PITCH.DOEL_H) { // een doelpunt: het team dat naar deze kant aanvalt scoort (team 0 valt aan naar +y)
       b.netTeam = yl > 0 ? 0 : 1;
       ev.push({ type: 'goal', team: b.netTeam, x: b.x, y: yl });
       return;
@@ -71,30 +71,30 @@ function stapKlein(b, h, ev) {
   }
   // uit: over de zijlijn, of over de achterlijn naast of boven het doel
   if (!b.dood) {
-    if (Math.abs(b.x) > (VELD.B / 2)) { b.dood = true; ev.push({ type: 'uit', kind: 'zij', x: b.x, y: b.y }); }
-    else if (Math.abs(b.y) > (VELD.L / 2) + 0.02) { b.dood = true; ev.push({ type: 'uit', kind: 'achter', x: b.x, y: b.y }); }
+    if (Math.abs(b.x) > (PITCH.B / 2)) { b.dood = true; ev.push({ type: 'uit', kind: 'zij', x: b.x, y: b.y }); }
+    else if (Math.abs(b.y) > (PITCH.L / 2) + 0.02) { b.dood = true; ev.push({ type: 'uit', kind: 'achter', x: b.x, y: b.y }); }
   }
 }
 
 // In het net: de bal blijft binnen de palen, de lat en de achterkant van het net, en rolt uit.
 function net(b, ev) {
-  const diep = (VELD.L / 2) + VELD.DOEL_DIEPTE, rand = (VELD.DOEL_B / 2) - R;
+  const diep = (PITCH.L / 2) + PITCH.DOEL_DIEPTE, rand = (PITCH.DOEL_B / 2) - R;
   if (b.x > rand) { b.x = rand; b.vx = -Math.abs(b.vx) * 0.2; }
   if (b.x < -rand) { b.x = -rand; b.vx = Math.abs(b.vx) * 0.2; }
   if (b.y > diep - R) { b.y = diep - R; b.vy = -Math.abs(b.vy) * 0.12; }
   if (b.y < -diep + R) { b.y = -diep + R; b.vy = Math.abs(b.vy) * 0.12; }
-  const top = VELD.DOEL_H - 2 * R;
+  const top = PITCH.DOEL_H - 2 * R;
   if (b.z > top) { b.z = top; b.vz = -Math.abs(b.vz) * 0.2; }
 }
 
 // Waar de bal de lijn y = yl kruist als niemand hem raakt: { t (s), x, z } of null. Voor de keeper (en de test). Rekent op een kopie.
-export function kruisLijn(b, yl, max = 2.5) {
+export function crossLine(b, yl, max = 2.5) {
   if ((b.vy === 0) || ((yl - b.y) * b.vy < 0)) return null;
   const c = { ...b };
   const ev = [];
   for (let t = 0; t < max; t += 1 / 60) {
     const was = c.y;
-    stapBal(c, 1 / 60, ev);
+    stepBall(c, 1 / 60, ev);
     if ((was - yl) * (c.y - yl) <= 0 || c.netTeam >= 0) return { t: t + 1 / 60, x: c.x, z: c.z };
     if (c.dood) return null;
     ev.length = 0;

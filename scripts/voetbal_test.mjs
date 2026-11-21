@@ -4,24 +4,24 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
-  VELD, FORMATEN, zetFormaat, cleanFormaat, cleanVorming, cleanStijl, vormingNamen, vormingLijst, STIJLEN, drukZetters, leesVoorkeur, NAMEN_THUIS, NAMEN_UIT, KNOP, knopBits, TOETSEN, leesInvoer, invoerNaarActie, aiStand, maatStand, voetbalMedaille, recordWaarde, nieuwRecord, voetbalBeloning, vormingPlek, richtingVan, eigenDoelY, uitkomstVan, TEAMS, TEGENSTANDERS, ROLLEN, DUREN, klokTekst, leesDuurVoorkeur,
+  PITCH, FORMATEN, zetFormaat, cleanFormaat, cleanFormation, cleanStijl, formationNames, formationList, STIJLEN, drukZetters, leesVoorkeur, NAMES_HOME, NAMEN_UIT, KNOP, knopBits, TOETSEN, leesInvoer, invoerNaarActie, aiLevel, mateLevel, voetbalMedaille, recordValue, updatedRecord, voetbalBeloning, formationSpot, richtingVan, ownGoalY, uitkomstVan, TEAMS, OPPONENTS, ROLLEN, DUREN, clockText, leesDuurVoorkeur,
 } from '../game/js/voetbalrules.js';
-import { maakBal, stapBal, zetBal, kruisLijn } from '../game/js/voetbalbal.js';
+import { makeBall, stepBall, zetBal, crossLine } from '../game/js/voetbalbal.js';
 import {
-  maakWedstrijd, tikWedstrijd, zetTactiek, uitbalHervat, verlaatVoetbal, uitslagVoetbal, beloningVoetbal, medailleUitRij, snapVoetbal, leesLiveVoetbal, maakVoetbalSpiegel, voerInVoetbal, tikVoetbalSpiegel,
+  makeMatch, tikWedstrijd, zetTactiek, uitbalHervat, verlaatVoetbal, uitslagVoetbal, beloningVoetbal, medailleUitRij, snapVoetbal, leesLiveVoetbal, makeFootballMirror, voerInVoetbal, tikVoetbalSpiegel,
   snapLengte, FASEN, meedoenVoetbal,
 } from '../game/js/voetbalmatch.js';
-import { voetbalHudModel, voetbalBord, watNu, popVan, UITLEG, STAPPEN } from '../game/js/voetbalstatus.js';
+import { voetbalHudModel, voetbalBoard, watNu, popVan, UITLEG, STEPS } from '../game/js/voetbalstatus.js';
 import { simHudHtml } from '../game/js/simhud.js';
 import { VOETBAL_LINES } from '../game/js/voetbaldata.js';
 import { medailleTeksten } from '../game/js/difficulty_medals.js';
 import { padSlotFor } from '../game/js/controls.js';
 import { uitlegModel } from '../game/js/uitleg.js';
 import { eindEvent, leesWed, startEvent } from '../game/js/multiplayerwedstrijd.js';
-import { zetVoetbalKarakterHaken, wisKarakterHaken, voetbalBonusVan, karakterStart, karakterEind, tessaRegel } from '../game/js/voetbalkarakter.js';
+import { zetVoetbalKarakterHaken, wisKarakterHaken, voetbalBonusVan, characterEnter, karakterEind, tessaLine } from '../game/js/voetbalkarakter.js';
 import { KEYS } from '../game/js/storagekeys.js';
 import { speelWedstrijd } from './voetbal_botsim.mjs';
-import { speelschema, nieuweCompetitie, verwerkRonde, volgendeTegenstander, tabel, jouwPlek, isKampioen, leesCompetitie, simuleerDuel, MIJN_CLUB, COMP_CLUBS } from '../game/js/voetbalcompetitie.js';
+import { speelschema, newCompetition, applyRound, nextOpponent, tabel, yourRank, isKampioen, leesCompetitie, simuleerDuel, MIJN_CLUB, COMP_CLUBS } from '../game/js/voetbalcompetitie.js';
 import { makeRng } from '../game/js/minigamekit.js';
 
 let n = 0;
@@ -34,60 +34,60 @@ const mens = (slot = 0, naam = 'Jij') => ({ slot, naam, char: null });
 
 // ---------------------------------------------------------------- bal-fysica
 t('de bal rolt uit met wrijving en staat dan stil', () => {
-  const b = maakBal(0, -5); b.vy = 12;
+  const b = makeBall(0, -5); b.vy = 12;
   let vorig = 12;
-  for (let i = 0; i < 600; i++) { stapBal(b, DT); const s = Math.hypot(b.vx, b.vy); assert.ok(s <= vorig + 1e-9, 'alleen langzamer'); vorig = s; }
-  assert.equal(Math.hypot(b.vx, b.vy), 0); assert.ok(b.y > -5 && b.y < VELD.L / 2, `afstand ${b.y}`);
+  for (let i = 0; i < 600; i++) { stepBall(b, DT); const s = Math.hypot(b.vx, b.vy); assert.ok(s <= vorig + 1e-9, 'alleen langzamer'); vorig = s; }
+  assert.equal(Math.hypot(b.vx, b.vy), 0); assert.ok(b.y > -5 && b.y < PITCH.L / 2, `afstand ${b.y}`);
 });
 t('een harde bal remt in absolute zin harder dan een zachte', () => {
-  const a = maakBal(0, 0), c = maakBal(0, 0); a.vy = 20; c.vy = 4;
-  stapBal(a, 0.5); stapBal(c, 0.5);
+  const a = makeBall(0, 0), c = makeBall(0, 0); a.vy = 20; c.vy = 4;
+  stepBall(a, 0.5); stepBall(c, 0.5);
   assert.ok(20 - a.vy > 4 - c.vy, 'een harde bal verliest in absolute zin meer snelheid');
 });
 t('stuiten: de bal komt lager terug en rust uiteindelijk op het gras', () => {
-  const b = maakBal(0, 0); b.z = 3;
+  const b = makeBall(0, 0); b.z = 3;
   let hoogte = []; let stuiten = 0;
-  for (let i = 0; i < 400; i++) { const ev = stapBal(b, DT, []); stuiten += ev.filter((e) => e.type === 'stuit').length; if (b.vz < 0 && i > 0) hoogte.push(b.z); }
+  for (let i = 0; i < 400; i++) { const ev = stepBall(b, DT, []); stuiten += ev.filter((e) => e.type === 'stuit').length; if (b.vz < 0 && i > 0) hoogte.push(b.z); }
   assert.ok(stuiten >= 3); assert.equal(b.z, 0); assert.equal(b.vz, 0);
 });
 t('deterministisch: dezelfde start geeft dezelfde bal', () => {
-  const sim = () => { const b = maakBal(1, -3); b.vx = 3; b.vy = 9; b.vz = 4; for (let i = 0; i < 90; i++) stapBal(b, DT); return JSON.stringify(b); };
+  const sim = () => { const b = makeBall(1, -3); b.vx = 3; b.vy = 9; b.vz = 4; for (let i = 0; i < 90; i++) stepBall(b, DT); return JSON.stringify(b); };
   assert.equal(sim(), sim());
 });
 t('een doelpunt: de bal over de lijn tussen de palen onder de lat is een doelpunt voor het aanvallende team', () => {
-  const b = maakBal(0.5, VELD.L / 2 - 4); b.vy = 14; b.vz = 0.5;
-  const ev = []; for (let i = 0; i < 60; i++) stapBal(b, DT, ev);
+  const b = makeBall(0.5, PITCH.L / 2 - 4); b.vy = 14; b.vz = 0.5;
+  const ev = []; for (let i = 0; i < 60; i++) stepBall(b, DT, ev);
   const g = ev.filter((e) => e.type === 'goal'); assert.equal(g.length, 1); assert.equal(g[0].team, 0);
-  const c = maakBal(-0.5, -VELD.L / 2 + 4); c.vy = -14; const ev2 = []; for (let i = 0; i < 60; i++) stapBal(c, DT, ev2);
+  const c = makeBall(-0.5, -PITCH.L / 2 + 4); c.vy = -14; const ev2 = []; for (let i = 0; i < 60; i++) stepBall(c, DT, ev2);
   assert.equal(ev2.filter((e) => e.type === 'goal')[0].team, 1);
-  assert.ok(Math.abs(b.x) < VELD.DOEL_B / 2 && b.y < VELD.L / 2 + VELD.DOEL_DIEPTE, 'de bal blijft in het net');
+  assert.ok(Math.abs(b.x) < PITCH.DOEL_B / 2 && b.y < PITCH.L / 2 + PITCH.DOEL_DIEPTE, 'de bal blijft in het net');
 });
 t('een bal naast het doel is geen doelpunt maar uit; over de lat ook', () => {
-  const b = maakBal(3.5, VELD.L / 2 - 3); b.vy = 14; const ev = []; for (let i = 0; i < 40; i++) stapBal(b, DT, ev);
+  const b = makeBall(3.5, PITCH.L / 2 - 3); b.vy = 14; const ev = []; for (let i = 0; i < 40; i++) stepBall(b, DT, ev);
   assert.ok(!ev.some((e) => e.type === 'goal')); assert.ok(ev.some((e) => e.type === 'uit' && e.kind === 'achter'));
-  const c = maakBal(0, VELD.L / 2 - 3); c.vy = 12; c.vz = 7; const ev2 = []; for (let i = 0; i < 60; i++) stapBal(c, DT, ev2);
+  const c = makeBall(0, PITCH.L / 2 - 3); c.vy = 12; c.vz = 7; const ev2 = []; for (let i = 0; i < 60; i++) stepBall(c, DT, ev2);
   assert.ok(!ev2.some((e) => e.type === 'goal'));
 });
 t('de paal en de lat: de bal kaatst terug en telt niet als doelpunt', () => {
-  const b = maakBal(VELD.DOEL_B / 2 - 0.03, VELD.L / 2 - 3); b.vy = 14; const ev = []; for (let i = 0; i < 40; i++) stapBal(b, DT, ev);
+  const b = makeBall(PITCH.DOEL_B / 2 - 0.03, PITCH.L / 2 - 3); b.vy = 14; const ev = []; for (let i = 0; i < 40; i++) stepBall(b, DT, ev);
   assert.ok(ev.some((e) => e.type === 'paal'), 'paal');
-  const c = maakBal(0, VELD.L / 2 - 3); c.vy = 14; c.vz = 5.2; const ev2 = []; for (let i = 0; i < 40; i++) stapBal(c, DT, ev2);
+  const c = makeBall(0, PITCH.L / 2 - 3); c.vy = 14; c.vz = 5.2; const ev2 = []; for (let i = 0; i < 40; i++) stepBall(c, DT, ev2);
   assert.ok(ev2.some((e) => e.type === 'lat') || ev2.some((e) => e.type === 'goal') || ev2.some((e) => e.type === 'uit'), 'een bal op lathoogte raakt, gaat erin of eroverheen');
 });
 t('uit: de zijlijn geeft een inworp voor de ander; de achterlijn een hoekschop of doelschop', () => {
   const zij = uitbalHervat({ kind: 'zij', x: 13.1, y: 5 }, 0);
-  assert.deepEqual([zij.kind, zij.team], ['inworp', 1]); assert.ok(Math.abs(zij.x) <= VELD.B / 2);
+  assert.deepEqual([zij.kind, zij.team], ['inworp', 1]); assert.ok(Math.abs(zij.x) <= PITCH.B / 2);
   // team 1 raakte hem voor de achterlijn van team 1 (y > 0): hoekschop voor team 0
   const hoek = uitbalHervat({ kind: 'achter', x: 4, y: 21.1 }, 1);
-  assert.deepEqual([hoek.kind, hoek.team], ['hoek', 0]); assert.ok(Math.abs(hoek.y) < VELD.L / 2 && Math.abs(hoek.x) < VELD.B / 2);
+  assert.deepEqual([hoek.kind, hoek.team], ['hoek', 0]); assert.ok(Math.abs(hoek.y) < PITCH.L / 2 && Math.abs(hoek.x) < PITCH.B / 2);
   const doel = uitbalHervat({ kind: 'achter', x: 4, y: 21.1 }, 0);
-  assert.deepEqual([doel.kind, doel.team], ['doelschop', 1]); assert.ok(Math.abs(doel.y) < VELD.L / 2);
+  assert.deepEqual([doel.kind, doel.team], ['doelschop', 1]); assert.ok(Math.abs(doel.y) < PITCH.L / 2);
   assert.deepEqual([uitbalHervat({ kind: 'achter', x: -2, y: -21.1 }, 0).kind, uitbalHervat({ kind: 'achter', x: -2, y: -21.1 }, 0).team], ['hoek', 1]);
 });
 t('de keeper kan de kruising van de doellijn voorspellen', () => {
-  const b = maakBal(0, 8); b.vy = 14; b.vx = 2;
-  const k = kruisLijn(b, VELD.L / 2); assert.ok(k && k.t > 0.5 && k.t < 2 && k.x > 0.5 && k.x < 4);
-  assert.equal(kruisLijn(b, -VELD.L / 2), null, 'de andere kant op: nooit');
+  const b = makeBall(0, 8); b.vy = 14; b.vx = 2;
+  const k = crossLine(b, PITCH.L / 2); assert.ok(k && k.t > 0.5 && k.t < 2 && k.x > 0.5 && k.x < 4);
+  assert.equal(crossLine(b, -PITCH.L / 2), null, 'de andere kant op: nooit');
 });
 
 // ---------------------------------------------------------------- invoer naar actie
@@ -115,7 +115,7 @@ t('de toetsen zijn canonieke toetsen van de keymap en de controller kent ze', ()
 
 // ---------------------------------------------------------------- de wedstrijd: klok, aftrap, doelpunt, helften
 t('de aanloop: intro, aftrap, de klok loopt alleen in het spel', () => {
-  const m = maakWedstrijd([mens()], { duur: 'kort', seed: 3 });
+  const m = makeMatch([mens()], { duur: 'kort', seed: 3 });
   assert.equal(m.fase, 'intro'); assert.equal(m.klok, DUREN.kort);
   stap(m, 1); assert.equal(m.klok, DUREN.kort, 'de intro tikt de klok niet');
   tot(m, 'aftrap', 10); assert.equal(m.fase, 'aftrap'); assert.ok(m.bal.owner >= 0, 'de aftrap ligt bij een speler');
@@ -124,7 +124,7 @@ t('de aanloop: intro, aftrap, de klok loopt alleen in het spel', () => {
   const k1 = m.klok; stap(m, 2); assert.ok(m.klok < k1 - 1.5);
 });
 t('twee helften en een einde: rust, tweede aftrap door de ander, eindsignaal', () => {
-  const m = maakWedstrijd([], { duur: 'kort', seed: 5, aiBeide: true });
+  const m = makeMatch([], { duur: 'kort', seed: 5, aiBeide: true });
   const ev = tot(m, 'klaar', 400);
   assert.equal(m.fase, 'klaar'); assert.ok(ev.some((e) => e.type === 'fluit' && e.helft === 1)); assert.ok(ev.some((e) => e.type === 'einde'));
   const aftrappen = ev.filter((e) => e.type === 'aftrap'); assert.ok(aftrappen.length >= 2);
@@ -133,7 +133,7 @@ t('twee helften en een einde: rust, tweede aftrap door de ander, eindsignaal', (
   assert.equal(m.helft, 2); assert.equal(m.klok, 0);
 });
 t('een doelpunt: stand omhoog, viering, daarna trapt de tegenpartij af', () => {
-  const m = maakWedstrijd([mens()], { duur: 'kort', seed: 7 });
+  const m = makeMatch([mens()], { duur: 'kort', seed: 7 });
   tot(m, 'spel', 30);
   // zet de bal vlak voor het doel van team 1 en schiet hem erin
   const sch = m.spelers.find((p) => p.team === 0 && p.i === 3); m.bal.owner = -1; sch.x = 0; sch.y = 14; m.bal.x = 0.4; m.bal.y = 17; m.bal.vx = 0; m.bal.vz = 0; m.bal.vy = 15; m.bal.laatsteTeam = 0; m.bal.laatsteSpeler = sch.id; for (const p of m.spelers) if (p.team === 1) p.stun = 6; // de verdediging slaapt: dit test het doelpunt zelf
@@ -146,7 +146,7 @@ t('een doelpunt: stand omhoog, viering, daarna trapt de tegenpartij af', () => {
   assert.equal(m.spelers[m.bal.owner].team, 1);
 });
 t('slow-motion in het begin van de viering: de bal beweegt in de flits trager dan daarna', () => {
-  const m = maakWedstrijd([mens()], { duur: 'kort', seed: 9 });
+  const m = makeMatch([mens()], { duur: 'kort', seed: 9 });
   tot(m, 'spel', 30);
   for (const p of m.spelers) if (p.team === 1) p.stun = 6;
   m.bal.owner = -1; m.bal.x = 0; m.bal.y = 18.5; m.bal.vx = 0; m.bal.vz = 0; m.bal.vy = 20; m.bal.laatsteTeam = 0; m.bal.laatsteSpeler = 3;
@@ -155,14 +155,14 @@ t('slow-motion in het begin van de viering: de bal beweegt in de flits trager da
   assert.ok(m.fase === 'goal'); assert.ok(d1 < 0.1 * 20 * 0.5, 'trager dan de echte snelheid');
 });
 t('een eigen doelpunt telt voor de ander en geeft niemand een doelpunt', () => {
-  const m = maakWedstrijd([mens()], { duur: 'kort', seed: 11 });
+  const m = makeMatch([mens()], { duur: 'kort', seed: 11 });
   tot(m, 'spel', 30);
   const dader = m.spelers.find((p) => p.team === 0 && p.i === 1); for (const p of m.spelers) p.stun = 6; m.bal.owner = -1; m.bal.x = 0; m.bal.y = -18.5; m.bal.vx = 0; m.bal.vz = 0; m.bal.vy = -18; m.bal.laatsteTeam = 0; m.bal.laatsteSpeler = dader.id;
   const ev = tot(m, 'goal', 5); const g = ev.find((e) => e.type === 'goal');
   assert.deepEqual([g.team, g.eigen], [1, true]); assert.deepEqual(m.score, [0, 1]); assert.equal(m.mensen[0].doelpunten, 0);
 });
 t('uitbal: de bal gaat uit, een korte pauze, dan herstart de juiste speler en loopt het spel door', () => {
-  const m = maakWedstrijd([], { duur: 'kort', seed: 13, aiBeide: true });
+  const m = makeMatch([], { duur: 'kort', seed: 13, aiBeide: true });
   tot(m, 'spel', 30);
   m.bal.owner = -1; m.bal.x = HB() - 0.3; m.bal.y = 2; m.bal.vx = 8; m.bal.vy = 0; m.bal.laatsteTeam = 1; m.bal.laatsteSpeler = 5;
   const ev = tot(m, 'hervat', 5);
@@ -171,16 +171,16 @@ t('uitbal: de bal gaat uit, een korte pauze, dan herstart de juiste speler en lo
   const klokNu = m.klok; stap(m, 0.6); assert.equal(m.klok, klokNu, 'tijdens de pauze loopt de klok niet');
   tot(m, 'spel', 12); assert.equal(m.fase, 'spel', 'na de herstart wordt het weer gespeeld');
 });
-function HB() { return VELD.B / 2; }
+function HB() { return PITCH.B / 2; }
 t('de achterlijn: hoekschop of doelschop, de keeper trapt de doelschop', () => {
-  const m = maakWedstrijd([], { duur: 'kort', seed: 15, aiBeide: true });
+  const m = makeMatch([], { duur: 'kort', seed: 15, aiBeide: true });
   tot(m, 'spel', 30);
-  m.bal.owner = -1; m.bal.x = 8; m.bal.y = -VELD.L / 2 - 0.1; m.bal.vy = -5; m.bal.laatsteTeam = 1; m.bal.laatsteSpeler = 6; // team 1 raakt hem achter het doel van team 0: doelschop voor team 0
+  m.bal.owner = -1; m.bal.x = 8; m.bal.y = -PITCH.L / 2 - 0.1; m.bal.vy = -5; m.bal.laatsteTeam = 1; m.bal.laatsteSpeler = 6; // team 1 raakt hem achter het doel van team 0: doelschop voor team 0
   const ev = tot(m, 'hervat', 5); const h = ev.find((e) => e.type === 'hervat');
   assert.deepEqual([h.kind, h.team], ['doelschop', 0]); assert.equal(m.spelers[m.bal.owner].rol, 'keeper');
 });
 t('overtreding: een mislukte tackle van achteren of omver lopen geeft de ander een vrije bal; geen kaarten', () => {
-  const m = maakWedstrijd([], { duur: 'kort', seed: 17, aiBeide: true });
+  const m = makeMatch([], { duur: 'kort', seed: 17, aiBeide: true });
   tot(m, 'spel', 30);
   const dader = m.spelers.find((p) => p.team === 1 && p.i === 3), slachtoffer = m.spelers.find((p) => p.team === 0 && p.i === 3);
   slachtoffer.x = 0; slachtoffer.y = 0; slachtoffer.face = Math.PI / 2; slachtoffer.vx = 0; slachtoffer.vy = 3; slachtoffer.speed = 3;
@@ -195,7 +195,7 @@ t('overtreding: een mislukte tackle van achteren of omver lopen geeft de ander e
   assert.equal(m.stat.overtredingen[1], 1);
 });
 t('geen buitenspel: een aanvaller achter de laatste verdediger mag de bal gewoon krijgen', () => {
-  const m = maakWedstrijd([], { duur: 'kort', seed: 19, aiBeide: true });
+  const m = makeMatch([], { duur: 'kort', seed: 19, aiBeide: true });
   tot(m, 'spel', 30);
   const spits = m.spelers.find((p) => p.team === 0 && p.i === 4), pas = m.spelers.find((p) => p.team === 0 && p.i === 1);
   for (const p of m.spelers) if (p.team === 1) { p.x = -6 + p.i * 2; p.y = 2; } // iedereen van team 1 staat ver terug
@@ -206,13 +206,13 @@ t('geen buitenspel: een aanvaller achter de laatste verdediger mag de bal gewoon
 
 // ---------------------------------------------------------------- de AI
 t('de vorming blijft in het veld en de keeper in zijn zestien (60 seconden, alle rollen)', () => {
-  const m = maakWedstrijd([], { duur: 'normaal', seed: 21, aiBeide: true });
+  const m = makeMatch([], { duur: 'normaal', seed: 21, aiBeide: true });
   tot(m, 'spel', 30);
   let maxDichtbij = 99;
   for (let i = 0; i < 60 / DT; i++) {
     tikWedstrijd(m, DT);
     for (const p of m.spelers) {
-      assert.ok(Math.abs(p.x) <= VELD.B / 2 + 1e-6 && Math.abs(p.y) <= VELD.L / 2 + 1e-6, `${p.naam} buiten het veld (${p.x}, ${p.y})`);
+      assert.ok(Math.abs(p.x) <= PITCH.B / 2 + 1e-6 && Math.abs(p.y) <= PITCH.L / 2 + 1e-6, `${p.naam} buiten het veld (${p.x}, ${p.y})`);
       assert.ok([p.x, p.y, p.vx, p.vy, p.face].every(Number.isFinite));
     }
     for (let a = 0; a < 10; a++) for (let c = a + 1; c < 10; c++) maxDichtbij = Math.min(maxDichtbij, Math.hypot(m.spelers[a].x - m.spelers[c].x, m.spelers[a].y - m.spelers[c].y));
@@ -221,27 +221,27 @@ t('de vorming blijft in het veld en de keeper in zijn zestien (60 seconden, alle
 });
 t('de vormingsplekken: de keeper staat op zijn lijn, verdedigers achter aanvallers, alles in het veld', () => {
   for (const team of [0, 1]) for (const bal of [{ x: 0, y: 0 }, { x: 10, y: 15 }, { x: -12, y: -20 }]) for (const aanval of [true, false]) {
-    const pl = ROLLEN.map((_, i) => vormingPlek(team, i, bal, aanval));
-    for (const p of pl) assert.ok(Math.abs(p.x) <= VELD.B / 2 && Math.abs(p.y) <= VELD.L / 2);
-    const d = (p) => (p.y - eigenDoelY(team)) * richtingVan(team);
+    const pl = ROLLEN.map((_, i) => formationSpot(team, i, bal, aanval));
+    for (const p of pl) assert.ok(Math.abs(p.x) <= PITCH.B / 2 && Math.abs(p.y) <= PITCH.L / 2);
+    const d = (p) => (p.y - ownGoalY(team)) * richtingVan(team);
     assert.ok(d(pl[0]) < 3, 'de keeper bij zijn doel'); assert.ok(d(pl[1]) <= d(pl[3]) + 1e-6 && d(pl[2]) <= d(pl[4]) + 1e-6, 'verdedigers achter aanvallers');
   }
 });
 t('de moeilijkheid: reactietijd en spreiding dalen, snelheid en keeper stijgen; de maatjes blijven gelijk', () => {
-  const o = aiStand('ontspannen'), s = aiStand('standaard'), u = aiStand('uitdagend');
+  const o = aiLevel('ontspannen'), s = aiLevel('standaard'), u = aiLevel('uitdagend');
   assert.ok(o.reactie > s.reactie && s.reactie > u.reactie); assert.ok(o.spreiding > s.spreiding && s.spreiding > u.spreiding);
   assert.ok(o.tempo < s.tempo && s.tempo < u.tempo); assert.ok(o.keeper < s.keeper && s.keeper < u.keeper);
-  assert.equal(maatStand('uitdagend').reactie, maatStand('ontspannen').reactie, 'teamgenoten spelen niet slechter op een hogere stand');
-  assert.deepEqual(aiStand('onzin'), s, 'een onbekende stand is standaard');
-  const m = maakWedstrijd([mens()], { stand: 'uitdagend', seed: 1 }); assert.equal(m.ai[1].reactie, u.reactie); assert.equal(m.ai[0].reactie, maatStand('uitdagend').reactie);
+  assert.equal(mateLevel('uitdagend').reactie, mateLevel('ontspannen').reactie, 'teamgenoten spelen niet slechter op een hogere stand');
+  assert.deepEqual(aiLevel('onzin'), s, 'een onbekende stand is standaard');
+  const m = makeMatch([mens()], { stand: 'uitdagend', seed: 1 }); assert.equal(m.ai[1].reactie, u.reactie); assert.equal(m.ai[0].reactie, mateLevel('uitdagend').reactie);
 });
 t('de moeilijkheid werkt: een uitdagende tegenstander scoort vaker dan een ontspannen (gemiddeld over 24 wedstrijden)', () => {
-  const tegen = (stand) => { let g = 0; for (let s = 1; s <= 24; s++) { const m = maakWedstrijd([], { duur: 'kort', stand, seed: 100 + s }); tot(m, 'klaar', 400); g += m.score[1]; } return g / 24; };
+  const tegen = (stand) => { let g = 0; for (let s = 1; s <= 24; s++) { const m = makeMatch([], { duur: 'kort', stand, seed: 100 + s }); tot(m, 'klaar', 400); g += m.score[1]; } return g / 24; };
   const ont = tegen('ontspannen'), uit = tegen('uitdagend');
   assert.ok(uit >= ont, `uitdagend ${uit.toFixed(2)} tegen ontspannen ${ont.toFixed(2)}`);
 });
 t('een speler zonder mens is AI: wie wegvalt wordt overgenomen door de computer', () => {
-  const m = maakWedstrijd([mens(0), mens(1, 'Anke')], { duur: 'kort', seed: 23 });
+  const m = makeMatch([mens(0), mens(1, 'Anke')], { duur: 'kort', seed: 23 });
   assert.ok(meedoenVoetbal(m, 1)); assert.equal(verlaatVoetbal(m, 1), true); assert.equal(verlaatVoetbal(m, 1), false); assert.ok(!meedoenVoetbal(m, 1));
   tot(m, 'spel', 30); stap(m, 5, (slot) => ({ mx: 0, my: 0, buttons: 0 }));
   assert.ok(m.spelers.filter((p) => p.slot != null).length === 1, 'nog één speler wordt door een mens bestuurd');
@@ -250,7 +250,7 @@ t('een speler zonder mens is AI: wie wegvalt wordt overgenomen door de computer'
 
 // ---------------------------------------------------------------- de mens: lopen, schieten, passen, tackle, wisselen
 function inSpel(slots = [0], seed = 31) {
-  const m = maakWedstrijd(slots.map((s) => mens(s, `S${s}`)), { duur: 'normaal', seed });
+  const m = makeMatch(slots.map((s) => mens(s, `S${s}`)), { duur: 'normaal', seed });
   tot(m, 'spel', 30); for (const p of m.spelers) { p.cool = 0; p.stun = 0; }
   return m;
 }
@@ -385,8 +385,8 @@ t('de momentopname: past in 64 getallen, rondreis host naar gast geeft dezelfde 
   const st = leesLiveVoetbal(via); assert.ok(st);
   const start = leesWed(startEvent('voetbal', [{ slot: 0, naam: 'Host', char: 'tammo' }, { slot: 1, naam: 'Gast', char: 'anita' }], 0, { live: 1, v: 'normaal|standaard|2' }));
   assert.ok(start && start.live && start.v === 'normaal|standaard|2' && start.deeln.length === 2);
-  const sp = maakVoetbalSpiegel(start, 1, { duur: 'normaal', stand: 'standaard', tegenstander: 2 });
-  assert.equal(sp.teams[1].id, TEGENSTANDERS[2].id);
+  const sp = makeFootballMirror(start, 1, { duur: 'normaal', stand: 'standaard', tegenstander: 2 });
+  assert.equal(sp.teams[1].id, OPPONENTS[2].id);
   assert.ok(voerInVoetbal(sp, st)); assert.equal(voerInVoetbal(sp, { ...st, n: 3 }), false, 'een oudere momentopname telt niet');
   for (let i = 0; i < 30; i++) tikVoetbalSpiegel(sp, DT);
   m.spelers.forEach((p, i) => { assert.ok(Math.abs(sp.spelers[i].x - p.x) < 0.06 && Math.abs(sp.spelers[i].y - p.y) < 0.06, `speler ${i}`); });
@@ -401,11 +401,11 @@ t('een late gast of een gast die wegvalt: de spiegel krijgt hem weer als de host
   const m = inSpel([0, 1], 49); verlaatVoetbal(m, 1);
   const st = leesLiveVoetbal(JSON.parse(JSON.stringify(snapVoetbal(m, 1))));
   const start = leesWed(startEvent('voetbal', [{ slot: 0, naam: 'Host', char: '' }, { slot: 1, naam: 'Gast', char: '' }], 0, { live: 1 }));
-  const sp = maakVoetbalSpiegel(start, 1); voerInVoetbal(sp, st); assert.equal(sp.mijnId, -1, 'wie weg is bestuurt niets meer');
+  const sp = makeFootballMirror(start, 1); voerInVoetbal(sp, st); assert.equal(sp.mijnId, -1, 'wie weg is bestuurt niets meer');
   assert.equal(st.d[17], -1);
 });
 t('uitslag: winst, gelijk of verlies per mens; wie wegviel krijgt niets; eindbericht gaat heen en weer', () => {
-  const m = maakWedstrijd([mens(0, 'Host'), mens(1, 'Gast')], { duur: 'kort', seed: 51 });
+  const m = makeMatch([mens(0, 'Host'), mens(1, 'Gast')], { duur: 'kort', seed: 51 });
   m.score = [3, 0]; m.mensen[0].doelpunten = 3; m.mensen[1].doelpunten = 0; m.fase = 'klaar';
   const rijen = uitslagVoetbal(m);
   assert.deepEqual(rijen.map((r) => [r.slot, r.plek, r.tijd]), [[0, 1, 3], [1, 1, 0]]); assert.match(rijen[0].tekst, /^gewonnen: 3-0$/);
@@ -416,16 +416,16 @@ t('uitslag: winst, gelijk of verlies per mens; wie wegviel krijgt niets; eindber
   verlaatVoetbal(m, 1); const r2 = uitslagVoetbal(m); assert.equal(r2.find((r) => r.slot === 1).weg, true);
   assert.deepEqual(beloningVoetbal(r2.find((r) => r.slot === 1)), { geld: 0, xp: 0 });
   const g = beloningVoetbal(rijen[0]); assert.ok(g.geld > 0 && g.geld <= 60 && g.xp > 0);
-  const verlies = maakWedstrijd([mens()], { seed: 1 }); verlies.score = [0, 2]; assert.equal(uitslagVoetbal(verlies)[0].plek, 2); assert.equal(medailleUitRij(uitslagVoetbal(verlies)[0]).medaille, 0);
-  const gelijk = maakWedstrijd([mens()], { seed: 1 }); gelijk.score = [1, 1]; assert.equal(uitslagVoetbal(gelijk)[0].plek, 3);
+  const verlies = makeMatch([mens()], { seed: 1 }); verlies.score = [0, 2]; assert.equal(uitslagVoetbal(verlies)[0].plek, 2); assert.equal(medailleUitRij(uitslagVoetbal(verlies)[0]).medaille, 0);
+  const gelijk = makeMatch([mens()], { seed: 1 }); gelijk.score = [1, 1]; assert.equal(uitslagVoetbal(gelijk)[0].plek, 3);
   assert.ok(beloningVoetbal({ ...uitslagVoetbal(verlies)[0] }).geld < beloningVoetbal(uitslagVoetbal(gelijk)[0]).geld && beloningVoetbal(uitslagVoetbal(gelijk)[0]).geld < g.geld, 'winst > gelijk > verlies');
 });
 t('medailles en records: winst, winst met de nul, hattrick; een record telt alleen omhoog', () => {
   assert.equal(voetbalMedaille({ gf: 1, ga: 2 }), 0); assert.equal(voetbalMedaille({ gf: 1, ga: 1 }), 0); assert.equal(voetbalMedaille({ gf: 2, ga: 1 }), 1); assert.equal(voetbalMedaille({ gf: 1, ga: 0 }), 2);
   assert.equal(voetbalMedaille({ gf: 4, ga: 2, eigen: 3 }), 3); assert.equal(voetbalMedaille({ gf: 2, ga: 0, eigen: 3 }), 3);
-  assert.equal(recordWaarde({ gf: 1, ga: 4 }), 0); assert.equal(recordWaarde({ gf: 5, ga: 2 }), 3);
+  assert.equal(recordValue({ gf: 1, ga: 4 }), 0); assert.equal(recordValue({ gf: 5, ga: 2 }), 3);
   assert.equal(uitkomstVan(2, 1), 'winst'); assert.equal(uitkomstVan(1, 1), 'gelijk');
-  const r1 = nieuwRecord(null, { waarde: 2, medaille: 1 }); const r2 = nieuwRecord(r1, { waarde: 1, medaille: 3 }); const r3 = nieuwRecord(r2, { waarde: 4, medaille: 0 });
+  const r1 = updatedRecord(null, { waarde: 2, medaille: 1 }); const r2 = updatedRecord(r1, { waarde: 1, medaille: 3 }); const r3 = updatedRecord(r2, { waarde: 4, medaille: 0 });
   assert.deepEqual([r2.best, r2.medal, r2.runs, r2.nieuw], [2, 3, 2, false]); assert.deepEqual([r3.best, r3.medal, r3.nieuw], [4, 3, true]);
   assert.deepEqual(medailleTeksten('voetbal', 'standaard'), ['Winst', 'Winst met de nul', 'Winst met een hattrick']);
   assert.deepEqual(medailleTeksten('voetbal', 'uitdagend'), medailleTeksten('voetbal', 'standaard'), 'de eisen zijn de uitslag, ook op een andere stand');
@@ -452,7 +452,7 @@ t('prestaties: winst en hattrick bestaan in de lijst', () => {
 t('de HUD-strook: één stap actief, één primaire waarde, toetsen als token, alleen ds-tokens, de uitleg bij de aftrap', () => {
   const g = { fase: 'spel', helft: 1, klok: 75, score: [1, 0], namen: ['Stadjers', 'Hunebedders'], bezitTeam: 0, heeftBal: true, rol: 'veld', laad: 0, stamina: 0.6, moe: false, eigen: 1, bezit: [30, 20], uitleg: false };
   const m = voetbalHudModel(g);
-  assert.equal(m.stappen.length, STAPPEN.length); assert.equal(m.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(m.stappen.find((s) => s.stand === 'nu').label, 'Aanvallen');
+  assert.equal(m.stappen.length, STEPS.length); assert.equal(m.stappen.filter((s) => s.stand === 'nu').length, 1); assert.equal(m.stappen.find((s) => s.stand === 'nu').label, 'Aanvallen');
   assert.equal(m.cijfers.filter((c) => c.primair).length, 1); assert.ok(m.cijfers.every((c) => c.icoon)); assert.match(m.nu, /{F}/);
   assert.equal(voetbalHudModel({ ...g, bezitTeam: 1, heeftBal: false }).stappen.find((s) => s.stand === 'nu').label, 'Verdedigen');
   assert.equal(voetbalHudModel({ ...g, fase: 'hervat', hervat: 'hoek' }).stappen.find((s) => s.stand === 'nu').label, 'Herstart');
@@ -471,9 +471,9 @@ t('de HUD-strook: één stap actief, één primaire waarde, toetsen als token, a
 });
 t('het bord: de stand en de klok, de krachtmeter alleen tijdens het laden, en de flits van een doelpunt', () => {
   const g = { fase: 'spel', helft: 2, klok: 61, score: [2, 1], namen: ['Stadjers', 'Hunebedders'], laad: 0, tekst: '' };
-  const b = voetbalBord(g); assert.match(b.row, /Stadjers <b>2<\/b>/); assert.match(b.row, /<b>1<\/b> Hunebedders/); assert.match(b.row, /Tweede helft/); assert.match(b.row, /1:01/); assert.equal(b.meter, null);
-  assert.ok(voetbalBord({ ...g, laad: 0.4 }).meter.v === 0.4); assert.match(voetbalBord({ ...g, fase: 'goal', tekst: 'GOAL! Stadjers 3-1' }).flash, /GOAL/); assert.match(voetbalBord({ ...g, fase: 'rust' }).row, /rust/);
-  assert.equal(klokTekst(0), '0:00'); assert.equal(klokTekst(89.2), '1:30');
+  const b = voetbalBoard(g); assert.match(b.row, /Stadjers <b>2<\/b>/); assert.match(b.row, /<b>1<\/b> Hunebedders/); assert.match(b.row, /Tweede helft/); assert.match(b.row, /1:01/); assert.equal(b.meter, null);
+  assert.ok(voetbalBoard({ ...g, laad: 0.4 }).meter.v === 0.4); assert.match(voetbalBoard({ ...g, fase: 'goal', tekst: 'GOAL! Stadjers 3-1' }).flash, /GOAL/); assert.match(voetbalBoard({ ...g, fase: 'rust' }).row, /rust/);
+  assert.equal(clockText(0), '0:00'); assert.equal(clockText(89.2), '1:30');
   assert.equal(popVan({ type: 'goal', team: 0 }, 0).geluid, 'ui_verzameld'); assert.equal(popVan({ type: 'goal', team: 1 }, 0).geluid, null); assert.equal(popVan({ type: 'onbekend' }), null);
 });
 t('de teksten: verzonnen namen, Nederlands, elke soort heeft regels, geen echte clubs of merken', () => {
@@ -485,17 +485,17 @@ t('de teksten: verzonnen namen, Nederlands, elke soort heeft regels, geen echte 
 });
 t('de aansluiting op Tessa is een dunne laag: zonder haak neutraal, met haak bonus per speler en wissel terug aan het einde', () => {
   wisKarakterHaken();
-  assert.deepEqual(voetbalBonusVan('anita'), { sprint: 1, schot: 1, aanname: 1 }); assert.equal(karakterStart({}, 'voetbal'), null); assert.equal(tessaRegel('viering'), null); karakterEind({}, null);
+  assert.deepEqual(voetbalBonusVan('anita'), { sprint: 1, schot: 1, aanname: 1 }); assert.equal(characterEnter({}, 'voetbal'), null); assert.equal(tessaLine('viering'), null); karakterEind({}, null);
   const log = [];
   zetVoetbalKarakterHaken({ bonus: () => ({ sprint: 1.06, schot: 1.08, aanname: 1.1 }), voorActiviteit: (id) => ({ start: () => { log.push('start ' + id); return 1; }, eind: () => log.push('eind') }), regels: { viering: ['Tessa: kijk eens aan.'] } });
-  const bon = karakterStart({}, 'voetbal'); karakterEind({}, bon); assert.deepEqual(log, ['start voetbal', 'eind']);
-  assert.equal(tessaRegel('viering', () => 0), 'Tessa: kijk eens aan.');
+  const bon = characterEnter({}, 'voetbal'); karakterEind({}, bon); assert.deepEqual(log, ['start voetbal', 'eind']);
+  assert.equal(tessaLine('viering', () => 0), 'Tessa: kijk eens aan.');
   const b = voetbalBonusVan('anita'); assert.equal(b.sprint, 1.06);
   // de bonus werkt in de sim: sprint, schotspreiding en aanname
-  const run = (bonus) => { const m = maakWedstrijd([{ slot: 0, naam: 'T', bonus }], { seed: 61 }); tot(m, 'spel', 30); const p = m.spelers[m.mensen[0].ctl]; m.mensen[0].autoT = 1e9; m.bal.owner = -1; zetBal(m.bal, 11, 11); p.x = -5; p.y = -10; p.vx = p.vy = 0; p.stamina = 1; stap(m, 1.5, () => ({ mx: 0, my: -1, buttons: KNOP.SPRINT })); return p.y; };
+  const run = (bonus) => { const m = makeMatch([{ slot: 0, naam: 'T', bonus }], { seed: 61 }); tot(m, 'spel', 30); const p = m.spelers[m.mensen[0].ctl]; m.mensen[0].autoT = 1e9; m.bal.owner = -1; zetBal(m.bal, 11, 11); p.x = -5; p.y = -10; p.vx = p.vy = 0; p.stamina = 1; stap(m, 1.5, () => ({ mx: 0, my: -1, buttons: KNOP.SPRINT })); return p.y; };
   assert.ok(run({ sprint: 1.06 }) > run(undefined), 'Tessa sprint harder');
   zetVoetbalKarakterHaken({ bonus: null, voorActiviteit: () => { throw new Error('kapot'); }, regels: null });
-  assert.equal(karakterStart({}, 'voetbal'), null, 'een kapotte haak stopt de wedstrijd niet'); wisKarakterHaken();
+  assert.equal(characterEnter({}, 'voetbal'), null, 'een kapotte haak stopt de wedstrijd niet'); wisKarakterHaken();
 });
 t('de wedstrijd is een live wedstrijd van het bestaande kader, geen nieuw protocol', () => {
   const src = fs.readFileSync(new URL('../game/js/voetbal.js', import.meta.url), 'utf8');
@@ -505,7 +505,7 @@ t('de wedstrijd is een live wedstrijd van het bestaande kader, geen nieuw protoc
 });
 
 t('robuust: drie mensen met willekeurige invoer spelen een hele wedstrijd uit, zonder NaN, buiten het veld of vastlopers', () => {
-  const rng = makeRng(77), m = maakWedstrijd([mens(0), mens(1), mens(2)], { duur: 'kort', seed: 77 });
+  const rng = makeRng(77), m = makeMatch([mens(0), mens(1), mens(2)], { duur: 'kort', seed: 77 });
   const toets = [0, 0, 0]; let ev = [];
   const inv = (slot) => { if (rng() < 0.06) toets[slot] = Math.floor(rng() * 256) & ~(16 | 32); return { mx: Math.sin(m.tijd * 0.7 + slot * 2) * (rng() < 0.9 ? 1 : 0), my: Math.cos(m.tijd * 0.5 + slot) , buttons: toets[slot] }; };
   for (let i = 0; i < 400 / DT && m.fase !== 'klaar'; i++) {
@@ -522,27 +522,27 @@ t('de formaten: klein en groot, elke vorming heeft precies een keeper en het jui
   assert.equal(FORMATEN.klein.n, 5); assert.equal(FORMATEN.groot.n, 11);
   for (const f of ['klein', 'groot']) {
     assert.equal(zetFormaat(f), f);
-    for (const naam of vormingNamen(f)) {
-      const lijst = vormingLijst(f, naam);
+    for (const naam of formationNames(f)) {
+      const lijst = formationList(f, naam);
       assert.equal(lijst.length, FORMATEN[f].n, `${f} ${naam}`); assert.equal(lijst.filter((x) => x.rol === 'keeper').length, 1); assert.equal(lijst[0].rol, 'keeper');
       if (f === 'groot') assert.equal(+naam[0] + +naam[2] + +naam[4], 10, `${naam} heeft tien veldspelers`);
-      for (const team of [0, 1]) for (const bal of [{ x: 0, y: 0 }, { x: 9, y: VELD.L / 2 - 2 }, { x: -9, y: -VELD.L / 2 + 2 }]) for (const stijl of STIJLEN) {
-        lijst.forEach((_, i) => { const pl = vormingPlek(team, i, bal, true, false, { lijst, stijl }); assert.ok(Math.abs(pl.x) <= VELD.B / 2 && Math.abs(pl.y) <= VELD.L / 2, `${f} ${naam} ${i}`); });
+      for (const team of [0, 1]) for (const bal of [{ x: 0, y: 0 }, { x: 9, y: PITCH.L / 2 - 2 }, { x: -9, y: -PITCH.L / 2 + 2 }]) for (const stijl of STIJLEN) {
+        lijst.forEach((_, i) => { const pl = formationSpot(team, i, bal, true, false, { lijst, stijl }); assert.ok(Math.abs(pl.x) <= PITCH.B / 2 && Math.abs(pl.y) <= PITCH.L / 2, `${f} ${naam} ${i}`); });
       }
     }
   }
-  zetFormaat('groot'); assert.equal(VELD.L, 90); assert.equal(VELD.DOEL_B, 7.32); zetFormaat('klein'); assert.equal(VELD.L, 42);
-  assert.equal(cleanFormaat('x'), 'klein'); assert.equal(cleanVorming('groot', '9-9-9'), '4-4-2'); assert.equal(cleanStijl('?'), 'evenwichtig');
+  zetFormaat('groot'); assert.equal(PITCH.L, 90); assert.equal(PITCH.DOEL_B, 7.32); zetFormaat('klein'); assert.equal(PITCH.L, 42);
+  assert.equal(cleanFormaat('x'), 'klein'); assert.equal(cleanFormation('groot', '9-9-9'), '4-4-2'); assert.equal(cleanStijl('?'), 'evenwichtig');
 });
 t('de speelstijl bepaalt de diepte van de lijnen en het aantal spelers dat druk zet', () => {
   zetFormaat('groot');
-  const lijst = vormingLijst('groot', '4-4-2'), dr = (stijl) => vormingPlek(0, 5, { x: 0, y: 0 }, false, false, { lijst, stijl }).y, aan = (stijl) => vormingPlek(0, 9, { x: 0, y: 0 }, false, false, { lijst, stijl }).y;
+  const lijst = formationList('groot', '4-4-2'), dr = (stijl) => formationSpot(0, 5, { x: 0, y: 0 }, false, false, { lijst, stijl }).y, aan = (stijl) => formationSpot(0, 9, { x: 0, y: 0 }, false, false, { lijst, stijl }).y;
   assert.ok(dr('verdedigend') < dr('evenwichtig') && dr('evenwichtig') < dr('aanvallend') && aan('verdedigend') < aan('aanvallend'));
   assert.ok(drukZetters('verdedigend') < drukZetters('evenwichtig') && drukZetters('evenwichtig') < drukZetters('aanvallend'));
   zetFormaat('klein'); assert.ok(drukZetters('evenwichtig') < 3 && drukZetters('aanvallend') <= 3);
 });
 t('elf tegen elf: tweeëntwintig spelers, een eigen keeper per team, vier mensen op veldspelers, een hele wedstrijd tot het einde', () => {
-  const m = maakWedstrijd([mens(0), mens(1), mens(2), mens(3)], { duur: 'kort', seed: 12, formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend' });
+  const m = makeMatch([mens(0), mens(1), mens(2), mens(3)], { duur: 'kort', seed: 12, formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend' });
   assert.equal(m.spelers.length, 22); assert.equal(m.formaat, 'groot'); assert.deepEqual(m.spelers.filter((p) => p.rol === 'keeper').map((p) => p.id), [0, 11]);
   assert.equal(new Set(m.mensen.map((x) => x.ctl)).size, 4); assert.ok(m.mensen.every((x) => m.spelers[x.ctl].rol !== 'keeper'));
   assert.equal(m.spelers[m.mensen[0].ctl].rol, 'aanvaller', 'de eerste mens krijgt een aanvaller');
@@ -553,21 +553,21 @@ t('elf tegen elf: tweeëntwintig spelers, een eigen keeper per team, vier mensen
     for (const p of m.spelers) assert.ok([p.x, p.y].every(Number.isFinite) && Math.abs(p.x) <= 28.01 && Math.abs(p.y) <= 45.01, `${p.naam} buiten`);
   }
   assert.equal(m.fase, 'klaar');
-  assert.equal(VELD.L, 90, 'het veld blijft dat van de wedstrijd');
+  assert.equal(PITCH.L, 90, 'het veld blijft dat van de wedstrijd');
   zetFormaat('klein');
 });
 t('elf tegen elf past in de momentopname: 64 getallen, heen en terug op 5 cm nauwkeurig, ook voor een gast', () => {
-  const m = maakWedstrijd([mens(0), mens(1)], { duur: 'kort', seed: 14, formaat: 'groot' });
+  const m = makeMatch([mens(0), mens(1)], { duur: 'kort', seed: 14, formaat: 'groot' });
   tot(m, 'spel', 60); stap(m, 4, (slot) => ({ mx: slot ? -1 : 1, my: -1, buttons: 0 }));
   const snap = snapVoetbal(m, 1); assert.equal(snap.d.length, 64); assert.ok(snap.d.every(Number.isFinite));
   const st = leesLiveVoetbal(JSON.parse(JSON.stringify(snap))); assert.ok(st && leesWed(snap));
   const start = leesWed(startEvent('voetbal', [{ slot: 0, naam: 'A' }, { slot: 1, naam: 'B' }], 0, { live: 1, v: 'k.s.1.g.4-3-3.a' }));
-  const sp = maakVoetbalSpiegel(start, 1, { duur: 'kort', stand: 'standaard', tegenstander: 1, formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend' });
+  const sp = makeFootballMirror(start, 1, { duur: 'kort', stand: 'standaard', tegenstander: 1, formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend' });
   assert.equal(sp.spelers.length, 22); assert.ok(voerInVoetbal(sp, st));
   for (let i = 0; i < 40; i++) tikVoetbalSpiegel(sp, DT);
   m.spelers.forEach((p, i) => { assert.ok(Math.abs(sp.spelers[i].x - p.x) < 0.06 && Math.abs(sp.spelers[i].y - p.y) < 0.06, `speler ${i}: ${sp.spelers[i].x} tegen ${p.x}`); });
   assert.equal(sp.mijnId, m.mensen[1].ctl);
-  const klein = maakWedstrijd([mens(0)], { seed: 1 }); zetFormaat('groot'); assert.equal(voerInVoetbal(sp, { ...snapVoetbal(klein, 2), f: 'lv', n: 5 }), false, 'een momentopname van een ander formaat telt niet');
+  const klein = makeMatch([mens(0)], { seed: 1 }); zetFormaat('groot'); assert.equal(voerInVoetbal(sp, { ...snapVoetbal(klein, 2), f: 'lv', n: 5 }), false, 'een momentopname van een ander formaat telt niet');
   zetFormaat('klein');
   // de hoek en de vlaggen blijven heel in het getal
   m.spelers[3].face = -2.5; m.spelers[3].tackleT = 0.2; m.spelers[3].vier = 1;
@@ -575,7 +575,7 @@ t('elf tegen elf past in de momentopname: 64 getallen, heen en terug op 5 cm nau
   assert.ok(Math.abs(Math.cos(sp.spelers[3].face) - Math.cos(-2.5)) < 0.12 && sp.spelers[3].tackleT > 0 && sp.spelers[3].vier > 0);
 });
 t('tactiek tijdens de wedstrijd: een andere vorming verandert de rollen, een andere stijl de lijnen', () => {
-  const m = maakWedstrijd([mens()], { duur: 'kort', seed: 16, formaat: 'groot', vorming: '4-4-2' });
+  const m = makeMatch([mens()], { duur: 'kort', seed: 16, formaat: 'groot', vorming: '4-4-2' });
   const rol = (i) => m.spelers[i].rol;
   assert.equal([1, 2, 3, 4].every((i) => rol(i) === 'verdediger') && [5, 6, 7, 8].every((i) => rol(i) === 'middenvelder') && [9, 10].every((i) => rol(i) === 'aanvaller'), true);
   zetTactiek(m, 0, { vorming: '3-5-2', stijl: 'verdedigend' });
@@ -593,15 +593,15 @@ t('de competitie: een schema waarin elke club elke andere één keer speelt, pun
   const sch = speelschema(); assert.equal(sch.length, 5); assert.ok(sch.every((r) => r.length === 3));
   const paren = new Set(); for (const r of sch) { const ids = r.flat(); assert.equal(new Set(ids).size, 6, 'elke ronde speelt iedereen één keer'); for (const [a, b] of r) paren.add([a, b].sort().join('-')); }
   assert.equal(paren.size, 15, 'ieder duel komt precies één keer voor');
-  let c = nieuweCompetitie(5); assert.equal(c.ronde, 0); assert.equal(volgendeTegenstander(c) !== MIJN_CLUB && volgendeTegenstander(c) != null, true);
+  let c = newCompetition(5); assert.equal(c.ronde, 0); assert.equal(nextOpponent(c) !== MIJN_CLUB && nextOpponent(c) != null, true);
   const orig = JSON.stringify(c);
-  for (let r = 0; r < 5; r++) { const tg = volgendeTegenstander(c); assert.ok(tg && tg !== MIJN_CLUB, `ronde ${r} een tegenstander`); c = verwerkRonde(c, 3, 0); assert.ok(Object.values(c.stand).every((x) => x.g === c.ronde)); }
-  assert.equal(orig, JSON.stringify(nieuweCompetitie(5)), 'verwerkRonde laat de oude stand ongemoeid');
-  assert.ok(c.klaar && c.kampioen === MIJN_CLUB && isKampioen(c), 'vijf keer 3-0 is kampioen'); assert.equal(jouwPlek(c), 1);
-  const tb = tabel(c); assert.equal(tb.length, 6); assert.equal(tb[0].p, 15); assert.ok(tb.every((r, i) => i === 0 || tb[i - 1].p >= r.p)); assert.equal(volgendeTegenstander(c), null); assert.equal(verwerkRonde(c, 1, 1), c, 'een klaar seizoen verandert niet');
-  let v = nieuweCompetitie(5); for (let r = 0; r < 5; r++) v = verwerkRonde(v, 0, 2); assert.ok(!isKampioen(v) && jouwPlek(v) >= 5, 'vijf keer verliezen is geen kampioen');
-  const punt = tabel(verwerkRonde(nieuweCompetitie(5), 1, 1)).find((r) => r.id === MIJN_CLUB); assert.equal(punt.p, 1);
-  assert.deepEqual(verwerkRonde(nieuweCompetitie(9), 2, 2), verwerkRonde(nieuweCompetitie(9), 2, 2), 'deterministisch');
+  for (let r = 0; r < 5; r++) { const tg = nextOpponent(c); assert.ok(tg && tg !== MIJN_CLUB, `ronde ${r} een tegenstander`); c = applyRound(c, 3, 0); assert.ok(Object.values(c.stand).every((x) => x.g === c.ronde)); }
+  assert.equal(orig, JSON.stringify(newCompetition(5)), 'verwerkRonde laat de oude stand ongemoeid');
+  assert.ok(c.klaar && c.kampioen === MIJN_CLUB && isKampioen(c), 'vijf keer 3-0 is kampioen'); assert.equal(yourRank(c), 1);
+  const tb = tabel(c); assert.equal(tb.length, 6); assert.equal(tb[0].p, 15); assert.ok(tb.every((r, i) => i === 0 || tb[i - 1].p >= r.p)); assert.equal(nextOpponent(c), null); assert.equal(applyRound(c, 1, 1), c, 'een klaar seizoen verandert niet');
+  let v = newCompetition(5); for (let r = 0; r < 5; r++) v = applyRound(v, 0, 2); assert.ok(!isKampioen(v) && yourRank(v) >= 5, 'vijf keer verliezen is geen kampioen');
+  const punt = tabel(applyRound(newCompetition(5), 1, 1)).find((r) => r.id === MIJN_CLUB); assert.equal(punt.p, 1);
+  assert.deepEqual(applyRound(newCompetition(9), 2, 2), applyRound(newCompetition(9), 2, 2), 'deterministisch');
   assert.deepEqual(simuleerDuel('hunebedders', 'wadlopers', makeRng(4)), simuleerDuel('hunebedders', 'wadlopers', makeRng(4)));
   // de opslag: heen en terug, en corrupt geeft null zonder iets stuk te maken
   const terug = leesCompetitie(JSON.parse(JSON.stringify(c))); assert.ok(terug && terug.klaar && terug.kampioen === MIJN_CLUB);
@@ -616,8 +616,8 @@ t('de voorkeur: formaat, vorming, stijl, modus en seizoen worden schoon gelezen,
   assert.equal(leesVoorkeur('{kapot').formaat, 'klein');
 });
 t('de teksten en teams van het volledige veld zijn verzonnen: elf namen per team, zes clubs, geen echte namen', () => {
-  assert.equal(NAMEN_THUIS.length, 11); assert.equal(NAMEN_UIT.length, 11); assert.equal(new Set([...NAMEN_THUIS, ...NAMEN_UIT]).size, 22);
-  assert.equal(TEAMS.length, 6); assert.ok(!/\b(Ajax|Feyenoord|PSV|FC Groningen|Heerenveen|Oranje|Eredivisie|KNVB|UEFA|FIFA)\b/i.test(JSON.stringify([TEAMS, NAMEN_THUIS, NAMEN_UIT])));
+  assert.equal(NAMES_HOME.length, 11); assert.equal(NAMEN_UIT.length, 11); assert.equal(new Set([...NAMES_HOME, ...NAMEN_UIT]).size, 22);
+  assert.equal(TEAMS.length, 6); assert.ok(!/\b(Ajax|Feyenoord|PSV|FC Groningen|Heerenveen|Oranje|Eredivisie|KNVB|UEFA|FIFA)\b/i.test(JSON.stringify([TEAMS, NAMES_HOME, NAMEN_UIT])));
 });
 
 // ---------------------------------------------------------------- bot-sim: een kleine reeks (de volle 100 draait scripts/voetbal_botsim.mjs)

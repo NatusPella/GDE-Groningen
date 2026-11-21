@@ -128,7 +128,7 @@ export function farBuildDist(distPlayer, distAhead) {
 // ---- routes vooraf (taxi, trein, vlucht, rit-cutscenes) ----
 // Bemonstert een route (lijst [x, y]) om de `step` m: [{ x, y, s }] met s de afstand langs de route; de eerste en laatste
 // punten altijd. Een tegel die dichter bij het begin ligt wordt eerder gevraagd (prioriteit = s).
-export function sampleRoute(points, step = 250, maxPoints = 400) {
+export function thinPath(points, step = 250, maxPoints = 400) {
   const out = [];
   if (!points || !points.length) return out;
   let s = 0, next = 0;

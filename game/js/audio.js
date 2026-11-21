@@ -21,7 +21,7 @@ import { registerMemSource } from './memwatch.js';
 import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
 import { createParamMemo } from './audio/paramwrite.js';
 import { audioDiag, kiesLatencyHint, leesVorige } from './audiodiag.js';
-import { maakRuisRegister } from './audio/ruisbronnen.js';
+import { createNoiseRegistry } from './audio/ruisbronnen.js';
 import { setSpatialHost, makePanner, setPannerPos, distToListener, inverseGain, spatialOut, updateListener, MAX_DISTANCE, SOURCE_HEIGHT, HRTF_NEAR } from './audio/spatial.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
@@ -131,7 +131,7 @@ let worldReady = false;
 const VOICE_CAPS = [26, 54, 76];
 let activeVoices = 0;
 // de ruisbronnen (audio/ruisbronnen.js): telt de levende lussen en zet een doorlopende ruisstem die uit hoort te zijn maar open staat alsnog dicht
-const ruis = maakRuisRegister({ onFix: (naam, param) => { try { param.cancelScheduledValues(0); param.value = 0; paramMemo.forget(param); } catch (e) { /* al weg */ } fix('ruis-vast:' + naam); } });
+const ruis = createNoiseRegistry({ onFix: (naam, param) => { try { param.cancelScheduledValues(0); param.value = 0; paramMemo.forget(param); } catch (e) { /* al weg */ } fix('ruis-vast:' + naam); } });
 const stemTeller = createStemTeller();   // per categorie (sfx/stemlimiet.js)
 function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
 

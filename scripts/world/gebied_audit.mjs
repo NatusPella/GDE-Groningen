@@ -3,7 +3,7 @@
 // 1. data: polygonen die zonder reden groter zijn dan hun bbox-verwachting (omhullende groter dan de provincie of de gemeente),
 //    niet gesloten of te korte ringen, gaten buiten hun buitenring, buurten buiten hun wijk, centroide buiten het gebied;
 // 2. de keuze: een raster over de provincie; per punt wat het oude gedrag (dichtstbijzijnde wijkpunt) en het nieuwe gedrag
-//    (wijkAt) teruggeven, en hoeveel punten buiten de stad toch een stadswijk kregen.
+//    (districtAt) teruggeven, en hoeveel punten buiten de stad toch een stadswijk kregen.
 // Puur lezen: geen netwerk, geen schrijven. Exit 1 bij een datafout of als het nieuwe gedrag nog stadswijken buiten de stad geeft.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const imp = (p) => import(pathToFileURL(path.join(root, p)).href);
 const { ontvouw, grensVan, puntInGebied, puntInRing } = await imp('game/js/grenzen.js');
-const { wijkAt, STAD_WOONPLAATS } = await imp('game/js/wijkat.js');
+const { districtAt, CITY_LOCALITY } = await imp('game/js/wijkat.js');
 
 const arg = (n, d) => { const a = process.argv.find((s) => s.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const stap = Number(arg('stap', 250));
@@ -60,7 +60,7 @@ if (buurtZonderWijk) fout(`${buurtZonderWijk} buurten verwijzen naar een wijk di
 // de wijkpunten van de stad liggen in de stad (woonplaats Groningen)
 for (const p of pts) {
   const r = grensVan(gr, p.x, p.y);
-  if (!r.woonplaats || r.woonplaats.naam !== STAD_WOONPLAATS) fout(`wijkpunt ${p.name} ligt niet in woonplaats ${STAD_WOONPLAATS}`);
+  if (!r.woonplaats || r.woonplaats.naam !== CITY_LOCALITY) fout(`wijkpunt ${p.name} ligt niet in woonplaats ${CITY_LOCALITY}`);
 }
 
 // --- 2. de keuze op een raster ---
@@ -73,10 +73,10 @@ for (let x = pb[0]; x <= pb[2]; x += stap) {
     const r = grensVan(gr, x, y);
     if (!r.provincie) continue;
     inProv++;
-    const inStad = !!r.woonplaats && r.woonplaats.naam === STAD_WOONPLAATS;
+    const inStad = !!r.woonplaats && r.woonplaats.naam === CITY_LOCALITY;
     let best = null, bd = Infinity;
     for (const p of pts) { const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } }
-    const nieuw = wijkAt(pts, x, y, { grenzen: gr });
+    const nieuw = districtAt(pts, x, y, { grenzen: gr });
     if (!inStad) {
       buitenStad++;
       oudFout++;
@@ -91,9 +91,9 @@ for (let x = pb[0]; x <= pb[2]; x += stap) {
 const uit = { stap, punten: inProv, buitenStad, oudFoutBuitenStad: oudFout, nieuwFoutBuitenStad: nieuwFout, nieuweStadspunten: nieuwStad, maxAfstandTotWijkpunt: Math.round(maxAfstand), topOudeNamen: [...oudNamen].sort((a, b) => b[1] - a[1]).slice(0, 6), voorbeelden, datafouten: fouten.length };
 if (process.argv.includes('--json')) console.log(JSON.stringify({ ...uit, fouten }, null, 1));
 else {
-  console.log(`Raster ${stap} m over de provincie: ${inProv} punten, ${buitenStad} buiten woonplaats ${STAD_WOONPLAATS}.`);
+  console.log(`Raster ${stap} m over de provincie: ${inProv} punten, ${buitenStad} buiten woonplaats ${CITY_LOCALITY}.`);
   console.log(`Oud gedrag (dichtstbijzijnde wijkpunt, geen grens): ${oudFout} punten buiten de stad kregen een stadswijk (verste: ${uit.maxAfstandTotWijkpunt} m van het wijkpunt). Meest genoemd: ${uit.topOudeNamen.map(([n, c]) => `${n} ${c}`).join(', ')}.`);
-  console.log(`Nieuw gedrag (wijkAt): ${nieuwFout} punten buiten de stad met een stadswijk; ${nieuwStad} punten in de stad met een wijk.`);
+  console.log(`Nieuw gedrag (districtAt): ${nieuwFout} punten buiten de stad met een stadswijk; ${nieuwStad} punten in de stad met een wijk.`);
   for (const v of voorbeelden) console.log(`  voorbeeld: (${v.x}, ${v.y}) ${v.naam} in ${v.woonplaats}`);
   console.log(`Datafouten: ${fouten.length}, waarschuwingen: ${waarsch.length}`);
   for (const w of waarsch.slice(0, 20)) console.log('  ! ' + w);

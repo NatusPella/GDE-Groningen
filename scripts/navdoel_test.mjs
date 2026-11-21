@@ -1,8 +1,8 @@
 // navdoel.js en navpijl.js (#1078): welk doel de pijl volgt, wat wacht, wat dezelfde plek is, wat klaar is; de kleur per type en de pijl zelf.
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
-import { snapshotUitWereld, afstandVoor, bepaalNavDoelen, navKleur, navTekst, routeRol, eigenGlyph, lijnVoor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, ROUTE_TYPE } from '../game/js/navdoel.js';
-import { drawKaartDoelen, baan, plaats, spreid, drawKompasRand, BAAN_INSET, MIN_ACTIEF, MIN_PUNT } from '../game/js/navpijl.js';
+import { snapshotFromWorld, distanceFor, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navdoel.js';
+import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT } from '../game/js/navpijl.js';
 import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
 import { dsKleur, contrast, kaartLand } from '../game/js/kaartkleuren.js';
@@ -11,7 +11,7 @@ let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
 const sp = { x: 0, y: 0 };
 const bij = (x, y, extra = {}) => ({ x, y, name: 'doel', ...extra });
-const nav = (s) => bepaalNavDoelen({ speler: sp, modus: 'auto', ...s });
+const nav = (s) => resolveNavTargets({ speler: sp, modus: 'auto', ...s });
 const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 
 // 1. geen doel: een rustige kaart
@@ -23,7 +23,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 {
   const r = nav({ verhaal: bij(500, 0) });
   ok(r.actief && r.actief.type === 'verhaal' && r.actief.glyph === 'ster' && r.actief.rol === 'actief', 'verhaal is actief, met een ster');
-  ok(navKleur(r.actief, PALETTES.uit) === PALETTES.uit.mission, 'het verhaal is geel');
+  ok(navColor(r.actief, PALETTES.uit) === PALETTES.uit.mission, 'het verhaal is geel');
 }
 // 3. een eigen doel gaat voor het verhaal; het verhaal wacht (hol), geen tweede gevulde pijl
 {
@@ -31,8 +31,8 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(r.actief.type === 'eigen' && r.actief.glyph === 'vlag', 'eigen plek: actief met een vlag');
   ok(r.secundair.length === 1 && r.secundair[0].type === 'verhaal' && r.secundair[0].rol === 'secundair', 'het verhaal wacht');
   ok(r.alle.filter((d) => d.rol === 'actief').length === 1, 'precies één actief doel');
-  ok(navKleur(r.actief, PALETTES.uit) === PALETTES.uit.user, 'eigen doel is paars');
-  ok(navKleur(r.secundair[0], PALETTES.uit) === PALETTES.uit.mission, 'het wachtende verhaal houdt zijn gele icoonkleur');
+  ok(navColor(r.actief, PALETTES.uit) === PALETTES.uit.user, 'eigen doel is paars');
+  ok(navColor(r.secundair[0], PALETTES.uit) === PALETTES.uit.mission, 'het wachtende verhaal houdt zijn gele icoonkleur');
 }
 // 4. de speler zet een missie als doel en het verhaal wijst dezelfde missie aan: één doel, geen dubbele pin
 {
@@ -55,7 +55,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(r.actief.type === 'klus' && r.actief.glyph === 'ruit', 'klus is actief, een ruit');
   ok(r.verborgen.some((v) => v.type === 'missie' && v.reden === 'klus actief'), 'de missie is verborgen tijdens een klus');
   ok(!r.alle.some((d) => d.type === 'uitdaging' || d.type === 'missie'), 'geen uitdaging of missie naast de klus');
-  ok(navKleur(r.actief, PALETTES.uit) === PALETTES.uit.job, 'een klus houdt zijn eigen kleur');
+  ok(navColor(r.actief, PALETTES.uit) === PALETTES.uit.job, 'een klus houdt zijn eigen kleur');
 }
 // 7. minigame en heli-run: alles stil
 {
@@ -95,13 +95,13 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   const per = Object.fromEntries(['lopen', 'fiets', 'auto', 'boot', 'ov', 'lucht'].map((m) => [m, nav({ ...s, modus: m })]));
   ok(Object.values(per).every((r) => r.actief.type === 'eigen' && r.secundair.length === 1), 'in elke modus is hetzelfde doel actief');
   ok(per.boot.lijn === 'vaar' && per.lucht.lijn === 'lucht' && per.ov.lijn === 'ov' && per.auto.lijn === 'weg' && per.lopen.lijn === 'weg', 'de lijn volgt de manier van reizen');
-  ok(lijnVoor('fiets') === 'weg', 'een fiets rijdt over de weg');
+  ok(lineStyleFor('fiets') === 'weg', 'een fiets rijdt over de weg');
 }
 // 12. Samen spelen: het doel van de groep telt als missie; een gast met een eigen doel houdt zijn eigen doel erbij
 {
   const r = nav({ groep: [bij(0, 300)], eigen: bij(400, 0, { soort: 'place' }) });
   ok(r.actief.type === 'groep' && r.secundair[0].type === 'eigen', 'het doel van de groep gaat voor het eigen doel, dat wacht');
-  ok(navKleur(r.actief, PALETTES.uit) === PALETTES.uit.mission, 'de missie van de groep is geel');
+  ok(navColor(r.actief, PALETTES.uit) === PALETTES.uit.mission, 'de missie van de groep is geel');
 }
 // 13. dezelfde plek: het hoogste type wint, ook de gids op de missie
 {
@@ -112,13 +112,13 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 // 14. de kleur is één regel: wijzig NAV_ROL en alles volgt
 {
   const doel = { type: 'eigen', rol: 'actief' };
-  ok(navKleur(doel, PALETTES.uit) === PALETTES.uit.user && routeRol('user') === 'user', 'standaard: jouw doel is paars');
+  ok(navColor(doel, PALETTES.uit) === PALETTES.uit.user && pathRole('user') === 'user', 'standaard: jouw doel is paars');
   const oud = NAV_ROL.eigen;
   NAV_ROL.eigen = 'mission';
-  ok(navKleur(doel, PALETTES.uit) === PALETTES.uit.mission && routeRol('user') === 'mission', 'met één regel wordt jouw doel geel');
+  ok(navColor(doel, PALETTES.uit) === PALETTES.uit.mission && pathRole('user') === 'mission', 'met één regel wordt jouw doel geel');
   NAV_ROL.eigen = oud;
-  ok(routeRol('user') === 'user', 'terug op paars');
-  for (const kind of Object.keys(ROUTE_TYPE)) ok(Object.keys(PALETTES.uit).includes(routeRol(kind)), `routesoort ${kind} heeft een paletrol`);
+  ok(pathRole('user') === 'user', 'terug op paars');
+  for (const kind of Object.keys(PATH_KIND)) ok(Object.keys(PALETTES.uit).includes(pathRole(kind)), `routesoort ${kind} heeft een paletrol`);
   for (const [stand, pal] of Object.entries(PALETTES)) for (const t of Object.keys(NAV_ROL)) ok(typeof pal[NAV_ROL[t]] === 'string', `palet ${stand} heeft een kleur voor ${t}`);
 }
 // 15. de glyphs: elk volg-type heeft een eigen tekening en elk eigen doel een vorm
@@ -132,10 +132,10 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 }
 // 16. de kompasboog: meetkunde (vaste afstand tot de rand, markers schuiven uit elkaar, één boog) en tekenen (ook zonder beweging)
 {
-  const S = 250, b = baan(S);
+  const S = 250, b = track(S);
   let min = 1e9, max = 0;
   for (let q = 0; q < b.lengte; q += 3) { const [x, y] = b.punt(q); const d = Math.min(x, y, S - x, S - y); min = Math.min(min, d); max = Math.max(max, d); }
-  ok(Math.abs(min - BAAN_INSET) < 0.6 && max <= BAAN_INSET + 7.2, `de baan ligt op rechte stukken ${BAAN_INSET} px van de rand en rondt de hoeken af (${min.toFixed(1)}..${max.toFixed(1)})`);
+  ok(Math.abs(min - TRACK_INSET) < 0.6 && max <= TRACK_INSET + 7.2, `de baan ligt op rechte stukken ${TRACK_INSET} px van de rand en rondt de hoeken af (${min.toFixed(1)}..${max.toFixed(1)})`);
   for (const graden of [0, 45, 90, 135, 180, 225, 270, 315]) {
     const [x, y] = b.punt(b.sVoor(graden * Math.PI / 180));
     let h = Math.atan2(y - S / 2, x - S / 2) * 180 / Math.PI; h = (h + 360) % 360;
@@ -143,16 +143,16 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
     ok(d < 1.5, `de marker voor peiling ${graden} ligt in die richting (${d.toFixed(2)} graden ernaast)`);
   }
   // drie markers in bijna dezelfde richting liggen na het plaatsen niet op elkaar
-  const dicht = plaats([{ a: -0.9, actief: true }, { a: -0.85, actief: false }, { a: -0.95, actief: false }, { a: -0.88, actief: false }], S).items;
+  const dicht = place([{ a: -0.9, actief: true }, { a: -0.85, actief: false }, { a: -0.95, actief: false }, { a: -0.88, actief: false }], S).items;
   const langs = (p, q) => { const d = Math.abs(p.s - q.s) % b.lengte; return Math.min(d, b.lengte - d); };
   let goed = true;
   for (let i = 0; i < dicht.length; i++) for (let j = i + 1; j < dicht.length; j++) {
-    const nodig = dicht[i].actief || dicht[j].actief ? MIN_ACTIEF : MIN_PUNT;
+    const nodig = dicht[i].actief || dicht[j].actief ? MIN_ACTIEF : MIN_DOT;
     if (langs(dicht[i], dicht[j]) < nodig - 0.6) goed = false;
   }
   ok(goed, 'markers in dezelfde richting schuiven uit elkaar');
   ok(dicht.find((q) => q.actief).s === b.sVoor(-0.9), 'de boog van het doel blijft op zijn plek staan');
-  ok(plaats([{ a: 0, actief: true }, { a: 1, actief: true }], S).items.filter((q) => q.actief).length === 1, 'er is hooguit één boog');
+  ok(place([{ a: 0, actief: true }, { a: 1, actief: true }], S).items.filter((q) => q.actief).length === 1, 'er is hooguit één boog');
   ok(spreid([{ s: 5, actief: false }], b.lengte).length === 1, 'spreid met één punt doet niets');
 
   // tekenen op een nep-canvas met Path2D
@@ -178,7 +178,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 // 17. de bedrading: de minikaart leest nav, de oude losse pijlen zijn weg; de tokens staan er
 {
   const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
-  ok(/bepaalNavDoelen\(/.test(hud) && !/missionEdge|jobEdge|wpEdge|heliEdge|lekEdge/.test(hud), 'hud_panel.js: de minikaart krijgt zijn markeringen uit navdoel.js, geen losse missionEdge/jobEdge/wpEdge meer');
+  ok(/resolveNavTargets\(/.test(hud) && !/missionEdge|jobEdge|wpEdge|heliEdge|lekEdge/.test(hud), 'hud_panel.js: de minikaart krijgt zijn markeringen uit navdoel.js, geen losse missionEdge/jobEdge/wpEdge meer');
   ok(/NAV_ROL\.eigen/.test(hud), 'hud_panel.js: ROUTE_COLORS volgt NAV_ROL');
   ok(/drawKompasRand\(/.test(hud) && !/drawNavPijl|drawEdgeArrow/.test(hud), 'hud_panel.js tekent de kompasboog, niet de oude pijl');
   ok(/reducedMotion\(\)/.test(hud) && /--nav-doel/.test(hud), 'hud_panel.js: Beweging beperken en de kleur van de GPS-kaart');
@@ -193,19 +193,19 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 // 18. de momentopname uit de wereld (minikaart en grote kaart delen hem) en de afstand
 {
   const w = { mission: { marker: { x: 300, y: 0 }, phase: 'idle', label: 'M1' }, sideJob: null, storyGuide: { x: 302, y: 1, name: 'Gids' }, storyFreePlay: false };
-  const r = bepaalNavDoelen(snapshotUitWereld(w, { speler: sp, modus: 'auto', goal: { x: 0, y: 600, name: 'Plek', kind: 'place' }, missieOpKaart: true }));
+  const r = resolveNavTargets(snapshotFromWorld(w, { speler: sp, modus: 'auto', goal: { x: 0, y: 600, name: 'Plek', kind: 'place' }, missieOpKaart: true }));
   ok(r.actief.type === 'eigen' && r.secundair.length === 1 && r.secundair[0].id === 'missie', 'uit de wereld: eigen doel actief, de missie wacht, de gids valt samen met de missie');
-  const heli = bepaalNavDoelen(snapshotUitWereld({ ...w, heliRun: true }, { speler: sp, heli: { x: 0, y: 50 } }));
+  const heli = resolveNavTargets(snapshotFromWorld({ ...w, heliRun: true }, { speler: sp, heli: { x: 0, y: 50 } }));
   ok(heli.actief && heli.actief.type === 'heli' && heli.alle.length === 1, 'uit de wereld: een heli-run toont alleen zijn eigen doel');
-  const mini = bepaalNavDoelen(snapshotUitWereld(w, { speler: sp, busyGame: true }));
+  const mini = resolveNavTargets(snapshotFromWorld(w, { speler: sp, busyGame: true }));
   ok(mini.alle.length === 0, 'uit de wereld: een minigame laat de kaart rustig');
   const route = { target: { x: 0, y: 601 }, remaining: 910 };
-  ok(afstandVoor({ x: 0, y: 600, afstand: 600 }, route) === 910 && afstandVoor({ x: 50, y: 600, afstand: 600 }, route) === 600 && afstandVoor({ x: 0, y: 600, afstand: 600 }, null) === 600, 'de afstand volgt de route, anders hemelsbreed');
+  ok(distanceFor({ x: 0, y: 600, afstand: 600 }, route) === 910 && distanceFor({ x: 50, y: 600, afstand: 600 }, route) === 600 && distanceFor({ x: 0, y: 600, afstand: 600 }, null) === 600, 'de afstand volgt de route, anders hemelsbreed');
   const maak = () => { const tel = { fill: 0, stroke: 0, text: 0 }; const c = new Proxy({}, { get: (t, k) => (k === 'measureText' ? () => ({ width: 30 }) : k === 'fillText' ? () => { tel.text++; } : k in tel ? () => { tel[k]++; } : () => {}), set: () => true }); return { c, tel }; };
   const g = maak();
-  drawKaartDoelen(g.c, [{ sx: 50, sy: 60, kleur: '#f9c80e', icoon: 'ster', actief: true, tekst: '420 m' }, { sx: 90, sy: 60, kleur: '#c068ff', icoon: 'vlag', actief: false }, { sx: 120, sy: 60, kleur: '#c068ff', icoon: 'vlag', actief: true, tekst: '90 m', zonderSchijf: true }], { s: 1, beweging: false });
+  drawMapTargets(g.c, [{ sx: 50, sy: 60, kleur: '#f9c80e', icoon: 'ster', actief: true, tekst: '420 m' }, { sx: 90, sy: 60, kleur: '#c068ff', icoon: 'vlag', actief: false }, { sx: 120, sy: 60, kleur: '#c068ff', icoon: 'vlag', actief: true, tekst: '90 m', zonderSchijf: true }], { s: 1, beweging: false });
   ok(g.tel.text === 2 && g.tel.fill > 4, 'grote kaart: afstand bij het actieve doel, ook bij een doel met een eigen pin');
-  const leeg = maak(); drawKaartDoelen(leeg.c, [], {}); ok(leeg.tel.fill === 0, 'grote kaart: zonder doelen niets');
+  const leeg = maak(); drawMapTargets(leeg.c, [], {}); ok(leeg.tel.fill === 0, 'grote kaart: zonder doelen niets');
 }
 // 19. één geel (ds-tokens: ink-geel) en de 3D-bakens
 {
@@ -220,7 +220,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   const mm = fs.readFileSync(new URL('../game/js/missionmarker3d.js', import.meta.url), 'utf8');
   ok(/MARKER_COLOR_ACTIVE = 0xf9c80e/.test(mm), 'de ringen van de actieve missie zijn geel, niet cyaan');
   const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
-  ok(/bepaalNavDoelen\(snapshotUitWereld/.test(mv) && /drawKaartDoelen\(/.test(mv), 'de grote kaart leest navdoel.js');
+  ok(/resolveNavTargets\(snapshotFromWorld/.test(mv) && /drawMapTargets\(/.test(mv), 'de grote kaart leest navdoel.js');
 }
 
 console.log(`navdoel_test: ${n} controles, ${fails} fouten`);

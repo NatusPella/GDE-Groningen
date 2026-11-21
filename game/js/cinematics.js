@@ -28,7 +28,7 @@ import { interiorEyePose } from './carinterior.js';
 import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler, isGast } from './players.js';
-import { wijkAt } from './wijkat.js';
+import { districtAt } from './wijkat.js';
 import { setEindkaartGeluid, showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, rijdendVan } from './bigmoment.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
@@ -926,7 +926,7 @@ function wijkLine(name) {
 // De wijk waar de speler echt in staat, of null buiten de stad (wijkat.js): nooit het dichtstbijzijnde wijkpunt van ver weg.
 function currentWijk(w) {
   const { x, y } = hoofdspeler(w);
-  return wijkAt(w.map.meta.neighbourhoodPoints || [], x, y);
+  return districtAt(w.map.meta.neighbourhoodPoints || [], x, y);
 }
 
 // The wijk cards this save already showed (#726). The list travels in the savegame, so a new

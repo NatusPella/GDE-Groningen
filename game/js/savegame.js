@@ -40,7 +40,7 @@ import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThu
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
-import { karakterVoorSave, wisActiviteit } from './karakterbonus.js';
+import { karakterVoorSave, clearActivity } from './karakterbonus.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -609,7 +609,7 @@ export function applySave(w, d) {
     w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || Number.isFinite(ammo[d.weapon])) ? d.weapon : 'fists';
     for (const k of Object.keys(w.stats)) delete w.stats[k];
     Object.assign(w.stats, statsFromSave(d.stats));
-    wisActiviteit(w);
+    clearActivity(w);
     if (d.character === 'tammo' || d.character === 'anita') {
       w.player.character = d.character;
       if (w.companion) w.companion.character = d.character === 'tammo' ? 'anita' : 'tammo';

@@ -19,7 +19,7 @@ function nepWereld(spelers) {
   const world = { coopNet: { role: 'host', hub }, coop: { remote: false }, coopFigures: { 1: { slot: 1, x: 0, y: 0, input: inv[1] }, 2: { slot: 2, x: 0, y: 0, input: inv[2] }, 3: { slot: 3, x: 0, y: 0, input: inv[3] } }, messages: [], addMessage(t) { this.messages.push(t); } };
   return { world, log, hub, inv };
 }
-const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVoetbal, minSpelers: 2, maak: (deeln) => V.maakWedstrijd(deeln, { duur: 'kort', seed: 5, tegenstander: 1 }), start: (w, sim) => { op.sim = sim; return true; }, plek: () => ({ x: 50, y: 60 }), extra: () => ({ v: 'k.s.1.k.2-2.e' }), solo: () => 'solo' });
+const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVoetbal, minSpelers: 2, maak: (deeln) => V.makeMatch(deeln, { duur: 'kort', seed: 5, tegenstander: 1 }), start: (w, sim) => { op.sim = sim; return true; }, plek: () => ({ x: 50, y: 60 }), extra: () => ({ v: 'k.s.1.k.2-2.e' }), solo: () => 'solo' });
 
 { // uitnodigen en starten
   const betaald = []; const op = {};
@@ -121,12 +121,12 @@ const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVo
 
 { // het scherm van de gast
   const ev = []; const verzonden = [];
-  W.zetWedGastHaken('voetbal', { spiegel: (st, mijn) => V.maakVoetbalSpiegel(st, mijn, { duur: 'kort', stand: 'standaard', tegenstander: 1 }), voerIn: V.voerInVoetbal, start: (w, st, sp) => { ev.push(['start', st.v, !!sp]); return true; }, eind: (w, uit) => { ev.push(['eind', !!uit.gestopt]); }, tik: () => true });
+  W.zetWedGastHaken('voetbal', { spiegel: (st, mijn) => V.makeFootballMirror(st, mijn, { duur: 'kort', stand: 'standaard', tegenstander: 1 }), voerIn: V.voerInVoetbal, start: (w, st, sp) => { ev.push(['start', st.v, !!sp]); return true; }, eind: (w, uit) => { ev.push(['eind', !!uit.gestopt]); }, tik: () => true });
   const world = { coopNet: { role: 'client', session: { slot: 1, sendEvent: (b) => { verzonden.push(b); return true; } } }, messages: [], addMessage(t) { this.messages.push(t); } };
   W.wedHandleHost(world, W.startEvent('voetbal', MENSEN(2), 0, { live: 1, v: 'k.s.1.k.2-2.e' }));
   const G = world.coopWedGast;
   check('de start zet de gast op zijn eigen scherm met een spiegel', ev[0] && ev[0][1] === 'k.s.1.k.2-2.e' && ev[0][2] === true && G.spiegel && G.spiegel.mijnSlot === 1 && world.coopWedstrijd === true);
-  const m = V.maakWedstrijd(MENSEN(2), { duur: 'kort', seed: 2 });
+  const m = V.makeMatch(MENSEN(2), { duur: 'kort', seed: 2 });
   for (let i = 0; i < 300; i++) V.tikWedstrijd(m, DT, () => ({ mx: 0.3, my: -1, buttons: 0 }));
   check('een momentopname van de host komt in de spiegel', W.wedHandleHost(world, V.snapVoetbal(m, 5)) && G.spiegel.fase === m.fase && G.spiegel.n === 5 && G.spiegel.mijnId === m.mensen[1].ctl);
   check('een oudere momentopname wordt genegeerd', !W.wedHandleHost(world, V.snapVoetbal(m, 3)));

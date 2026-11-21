@@ -1,7 +1,7 @@
 // De aansluiting van de voetbalsim op het personage (#981, #1005): de speler voetbalt als TESSA (zij komt van het platteland en voetbalt al sinds het dorpsteam). Dit bestand is een
 // dunne, ontkoppelde laag met standaard-implementaties: zonder haken doet het niets (geen bonus, geen wissel, geen extra teksten), zodat de sim ook zonder de tak van de Tessa-agent
 // (karakterbonus.js, branch tessa-platteland-21-11) draait en test. Bij de merge zet één regel de haken (zie docs/VOETBAL-SIM-21-11.md):
-//   zetVoetbalKarakterHaken({ bonus: (k) => ({ sprint: voetbalSprint(k), schot: voetbalSchot(k), aanname: voetbalAanname(k) }), voorActiviteit: karakterVoorActiviteit, regels: TESSA_REGELS.voetbal });
+//   zetVoetbalKarakterHaken({ bonus: (k) => ({ sprint: voetbalSprint(k), schot: voetbalSchot(k), aanname: voetbalAanname(k) }), voorActiviteit: characterForActivity, regels: TESSA_LINES.voetbal });
 // De wissel is per speler: elke mens die meespeelt wisselt in zijn eigen spel (bij Samen spelen op zijn eigen scherm) en wisselt na afloop terug; de bonus geldt voor die speler.
 // Puur: geen DOM, geen THREE, geen wereld buiten wat de haken zelf aanraken.
 
@@ -21,7 +21,7 @@ export function voetbalBonusVan(karakter = KARAKTER_VOETBAL) {
 
 // Bij de start van een wedstrijd of penaltyserie: wissel (kort, soepel) naar Tessa via het bestaande mechanisme; geeft een bon terug die bij het einde terugwisselt.
 // Zonder haak (of zonder wissel) geeft dit null en gebeurt er niets.
-export function karakterStart(w, id = 'voetbal') {
+export function characterEnter(w, id = 'voetbal') {
   try {
     const act = haken.voorActiviteit ? haken.voorActiviteit(id) : null;
     if (!act) return null;
@@ -36,7 +36,7 @@ export function karakterEind(w, bon) {
 // Teksten van Tessa (alleen tekst): een viering na een doelpunt, een sneer naar de keeper of de tegenstander, de uitleg. Zonder haak: null.
 const kies = (lijst, rng) => (Array.isArray(lijst) && lijst.length ? lijst[Math.floor((rng ? rng() : Math.random()) * lijst.length) % lijst.length] : null);
 export const tessaUitleg = () => (haken.regels && haken.regels.uitleg) || null;
-export function tessaRegel(soort, rng) {
+export function tessaLine(soort, rng) {
   const r = haken.regels;
   return r ? kies(r[soort], rng) : null;
 }

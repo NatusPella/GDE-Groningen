@@ -17,7 +17,7 @@ import { tileKey, tileIndexOf } from './gdt.js';
 
 export const AIR_STEP_M = 20;           // bemonsteringsafstand langs de lijn
 export const AIR_HALF_W = 30;           // halve breedte van de strook die vrij moet zijn
-export const AIR_WINDOW_M = 4000;       // zoveel meter route per profiel (daarna een volgend stuk)
+export const AIR_SPAN_M = 4000;       // zoveel meter route per profiel (daarna een volgend stuk)
 export const AIR_REFRESH_M = 1500;      // een nieuw stuk als er minder dan dit aan profiel voor je ligt
 export const AIR_DEFAULT_ALT = 150;     // veilige standaardhoogte zolang de tegels langs de lijn niet geladen zijn
 export const AIR_TREE_M = 20;           // bomen: de grond +20 m telt altijd als obstakel
@@ -31,7 +31,7 @@ const SMOOTH_W = 3;                     // glad: opblazen en dubbel middelen ove
 const LEVEL_HEIGHT = 3.1;               // zoals heliflight.js en models3d_buildings.js
 const PITCHED_RIDGE = 2.6;
 // herkenbare hoge dingen die als gebouw in de tegels staan met een lage waarde h (de hoogte komt uit het model)
-const LANDMARK_TOP = { tower: 97, church: 45, mill: 25, castle: 28, station: 22 };
+const KIND_TOP = { tower: 97, church: 45, mill: 25, castle: 28, station: 22 };
 const NAME_TOP = { Martinitoren: 97 };
 export const TURBINE_TIP_FACTOR = 1.55; // gondelhoogte -> tip van het rotorblad
 export const PYLON_TOP = 48;
@@ -44,7 +44,7 @@ export function buildingTop(b) {
   if (b.type === 'houseboat') return 3;
   let top = Math.max(2.4, (b.h || 3) * LEVEL_HEIGHT) + (b.lift || 0) + ((b.h || 3) <= 3 ? PITCHED_RIDGE : 0);
   if (b.landmark) {
-    const L = NAME_TOP[b.landmark] || NAME_TOP[b.name] || LANDMARK_TOP[b.landmarkKind] || 0;
+    const L = NAME_TOP[b.landmark] || NAME_TOP[b.name] || KIND_TOP[b.landmarkKind] || 0;
     top = Math.max(top, L);
   }
   return top;
@@ -128,7 +128,7 @@ function corridorKeys(ax, ay, ux, uy, s0, s1) {
   return keys;
 }
 
-// Het profiel van de lijn a -> b (a, b: { x, y }), vanaf s0 meter na a (standaard 0), AIR_WINDOW_M meter ver.
+// Het profiel van de lijn a -> b (a, b: { x, y }), vanaf s0 meter na a (standaard 0), AIR_SPAN_M meter ver.
 // o: { plane, base (de aanbevolen vlieghoogte, route.alt), s0, window, extra, step }
 // Geeft { ax, ay, bx, by, ux, uy, total, s0, s1, ds, n, z[], need[], names[], ready, incomplete, sig, kind, base, k, atEnd }.
 export function buildAirProfile(map, a, b, o = {}) {
@@ -137,7 +137,7 @@ export function buildAirProfile(map, a, b, o = {}) {
   const dx = b.x - a.x, dy = b.y - a.y, total = Math.hypot(dx, dy);
   const ux = total > 0 ? dx / total : 1, uy = total > 0 ? dy / total : 0;
   const s0 = Math.max(0, Math.min(total, o.s0 || 0));
-  const s1 = Math.min(total, s0 + (o.window || AIR_WINDOW_M));
+  const s1 = Math.min(total, s0 + (o.window || AIR_SPAN_M));
   const n = Math.max(2, Math.ceil((s1 - s0) / ds) + 1);
   const base = Number.isFinite(o.base) ? o.base : kind === 'plane' ? 150 : 60;
   const margin = AIR_MARGIN[kind];
@@ -200,7 +200,7 @@ export function airNeedAdvice(need, meZ) {
 
 // De laatste piek voor de HUD (airline3d.js zet hem elk frame uit de cache, hud_panel.js leest hem): geen eigen bemonstering.
 let lastNeed = null;
-export const setAirNeed = (n) => { lastNeed = n; };
+export const recordAirNeed = (n) => { lastNeed = n; };
 export const getAirNeed = () => lastNeed;
 
 // ---- cache --------------------------------------------------------------------------------------------------------

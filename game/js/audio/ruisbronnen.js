@@ -17,13 +17,13 @@ export function schoon(x, fallback = 0) {
   return typeof x === 'number' && Number.isFinite(x) ? x : fallback;
 }
 
-export function maakRuisRegister({ onFix = () => {} } = {}) {
+export function createNoiseRegistry({ onFix = () => {} } = {}) {
   const live = new Map();          // naam -> aantal levende lussen
   const piek = new Map();          // naam -> hoogste aantal tegelijk
   const wacht = [];                // { naam, param, verwacht, strikes }
   const st = { gestart: 0, gestopt: 0, stapeling: 0, gecorrigeerd: 0, laatste: null };
 
-  function verlaag(naam) {
+  function release(naam) {
     st.gestopt++;
     live.set(naam, Math.max(0, (live.get(naam) || 0) - 1));
   }
@@ -36,7 +36,7 @@ export function maakRuisRegister({ onFix = () => {} } = {}) {
       if (n > (piek.get(naam) || 0)) piek.set(naam, n);
       if (n > max) { st.stapeling++; st.laatste = `stapeling ${naam}: ${n} tegelijk (max ${max})`; }
       let klaar = false;
-      const eind = () => { if (!klaar) { klaar = true; verlaag(naam); } };
+      const eind = () => { if (!klaar) { klaar = true; release(naam); } };
       if (src && typeof src.addEventListener === 'function') src.addEventListener('ended', eind);
       else if (src) { const vorige = src.onended; src.onended = (e) => { eind(); if (vorige) vorige.call(src, e); }; }
       return src;
@@ -47,23 +47,23 @@ export function maakRuisRegister({ onFix = () => {} } = {}) {
     },
     // elke watchdog-ronde. Geeft de namen terug die gecorrigeerd zijn.
     controleer(wereld) {
-      const gedaan = [];
+      const fixed = [];
       for (const w of wacht) {
         let mag = true;
         try { mag = !!w.verwacht(wereld); } catch (e) { mag = true; }
-        const waarde = schoon(w.param && w.param.value, Infinity);   // een NaN-gain telt als open
-        if (!mag && waarde > RUIS_GRENS) {
+        const level = schoon(w.param && w.param.value, Infinity);   // een NaN-gain telt als open
+        if (!mag && level > RUIS_GRENS) {
           w.strikes++;
           if (w.strikes >= RUIS_STRIKES) {
             w.strikes = 0;
             st.gecorrigeerd++;
-            st.laatste = `ruis-vast ${w.naam}: gain ${Number.isFinite(waarde) ? waarde.toFixed(3) : 'NaN'} terwijl hij uit hoort`;
+            st.laatste = `ruis-vast ${w.naam}: gain ${Number.isFinite(level) ? level.toFixed(3) : 'NaN'} terwijl hij uit hoort`;
             try { onFix(w.naam, w.param); } catch (e) { /* niet erg */ }
-            gedaan.push(w.naam);
+            fixed.push(w.naam);
           }
         } else w.strikes = 0;
       }
-      return gedaan;
+      return fixed;
     },
     stand() {
       let lussen = 0;

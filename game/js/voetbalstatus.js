@@ -2,10 +2,10 @@
 // jouw doelpunten, de adem als meter, een paar cijfers, één zin "wat nu" en de uitleg met animaties) en het bord bovenin (minigamekit.js createBoard: de stand en de klok, een
 // krachtmeter voor schot en voorzet, en de flits van een doelpunt). Toetsen staan als {TOKEN}: de HUD toont een toetsplaatje dat de echte keymap en de controller volgt.
 import { SIMICOON as I } from './simicoon.js';
-import { klokTekst } from './voetbalrules.js';
+import { clockText } from './voetbalrules.js';
 
 const ICOON = { aanval: 'worp', verdedig: 'schild', herstart: 'vlag', score: 'plaats', schoten: 'doel', tijd: I.klok, adem: 'rennen', bezit: 'stand' };
-export const STAPPEN = [
+export const STEPS = [
   { id: 'aanval', label: 'Aanvallen', icoon: ICOON.aanval },
   { id: 'verdedig', label: 'Verdedigen', icoon: ICOON.verdedig },
   { id: 'herstart', label: 'Herstart', icoon: ICOON.herstart },
@@ -18,23 +18,23 @@ export const UITLEG = [
   { toets: 'SPACE', animatie: 'houd', tekst: 'Schot: houd vast voor kracht' },
   { toets: ['CTRL', 'Q'], animatie: 'druk', tekst: 'Tackle en wissel van speler' },
 ];
-const HULP = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel';
+const HELP_TEXT = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const FASE_WOORD = { intro: 'Aanstaande', aftrap: 'Aftrap', spel: '', hervat: 'Herstart', goal: 'Doelpunt', rust: 'Rust', eind: 'Einde', klaar: 'Einde' };
+const PHASE_WORD = { intro: 'Aanstaande', aftrap: 'Aftrap', spel: '', hervat: 'Herstart', goal: 'Doelpunt', rust: 'Rust', eind: 'Einde', klaar: 'Einde' };
 const helftTekst = (h) => `${h === 2 ? 'Tweede' : 'Eerste'} helft`;
 
 // g: { fase, helft, klok, score: [a, b], namen: [a, b], bezitTeam (0, 1, of -1 als de bal los is), heeftBal (jij), rol ('keeper' | 'veld'), laad (0..1), laadSoort ('schot' | 'lang' | null),
 //      stamina (0..1), moe, eigen (jouw doelpunten), schoten (jouw), bezit: [a, b] (seconden), hervat ('inworp', ...), tekst (een flits), uitleg (bool), slomo }
-function stapVan(g) {
+function stepOf(g) {
   if (g.fase === 'aftrap' || g.fase === 'hervat') return 'herstart';
   return g.bezitTeam === 1 ? 'verdedig' : g.bezitTeam === 0 ? 'aanval' : 'verdedig';
 }
 
 export function voetbalHudModel(g) {
   if (!g) return null;
-  const idx = STAPPEN.findIndex((s) => s.id === stapVan(g));
-  const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i === idx ? 'nu' : 'straks' }));
+  const idx = STEPS.findIndex((s) => s.id === stepOf(g));
+  const steps = STEPS.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i === idx ? 'nu' : 'straks' }));
   const meter = { pct: Math.max(0, Math.min(100, (g.stamina == null ? 1 : g.stamina) * 100)), naam: 'Adem voor het sprinten', label: g.moe ? 'Buiten adem' : 'Adem', staat: g.moe ? 'laag' : '' };
   const cijfers = [
     { label: 'Jullie doelpunten', waarde: String((g.score || [0, 0])[0]), icoon: ICOON.score, primair: true },
@@ -42,10 +42,10 @@ export function voetbalHudModel(g) {
   ];
   if (g.bezit) { const tot = Math.max(1, g.bezit[0] + g.bezit[1]); cijfers.push({ label: 'Bezit', waarde: `${Math.round((g.bezit[0] / tot) * 100)}%`, icoon: ICOON.bezit }); }
   if (g.eigen != null) cijfers.push({ label: 'Jouw doelpunten', waarde: String(g.eigen), icoon: ICOON.schoten });
-  cijfers.push({ label: helftTekst(g.helft || 1), waarde: klokTekst(g.klok == null ? 0 : g.klok), icoon: ICOON.tijd });
+  cijfers.push({ label: helftTekst(g.helft || 1), waarde: clockText(g.klok == null ? 0 : g.klok), icoon: ICOON.tijd });
   return {
-    id: 'voetbal', controller: 'voetbal', titel: 'Voetbal Euroborg', icoon: ICOON.aanval, plek: g.formaatNaam || '5 tegen 5', stappen, meter, cijfers, uitleg: g.uitleg && (g.fase === 'aftrap' || g.fase === 'hervat') ? UITLEG : [],
-    nu: watNu(g), hulp: HULP, slecht: false,
+    id: 'voetbal', controller: 'voetbal', titel: 'Voetbal Euroborg', icoon: ICOON.aanval, plek: g.formaatNaam || '5 tegen 5', stappen: steps, meter, cijfers, uitleg: g.uitleg && (g.fase === 'aftrap' || g.fase === 'hervat') ? UITLEG : [],
+    nu: watNu(g), hulp: HELP_TEXT, slecht: false,
   };
 }
 
@@ -66,13 +66,13 @@ export function watNu(g) {
 }
 
 // Het bord bovenin: de stand met de klok, de kracht van een schot of voorzet als meter, de flits van een doelpunt of herstart, en de hulp.
-export function voetbalBord(g) {
+export function voetbalBoard(g) {
   if (!g) return null;
   const [a, b] = g.score || [0, 0], namen = g.namen || ['Stadjers', 'Hunebedders'];
-  const klokOver = g.fase === 'rust' ? 'rust' : g.fase === 'eind' || g.fase === 'klaar' ? 'einde' : klokTekst(g.klok == null ? 0 : g.klok);
-  const row = `<span>${esc(namen[0])} <b>${a}</b></span><span>-</span><span><b>${b}</b> ${esc(namen[1])}</span><span class="mg-klok">${esc(helftTekst(g.helft || 1))} · <b>${esc(klokOver)}</b></span>`;
+  const clockShown = g.fase === 'rust' ? 'rust' : g.fase === 'eind' || g.fase === 'klaar' ? 'einde' : clockText(g.klok == null ? 0 : g.klok);
+  const row = `<span>${esc(namen[0])} <b>${a}</b></span><span>-</span><span><b>${b}</b> ${esc(namen[1])}</span><span class="mg-klok">${esc(helftTekst(g.helft || 1))} · <b>${esc(clockShown)}</b></span>`;
   const meter = g.laad > 0.02 ? { v: g.laad, mark: null, color: 'var(--mk-job, #ff9a3c)', text: `${Math.round(g.laad * 100)}%` } : null;
-  const flash = g.tekst || FASE_WOORD[g.fase] || '';
+  const flash = g.tekst || PHASE_WORD[g.fase] || '';
   return { row, cells: null, meter, flash, bad: !!g.slecht, help: g.help || '' };
 }
 

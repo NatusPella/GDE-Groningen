@@ -5,7 +5,7 @@
 // scripts/bootplek_test.mjs.
 
 import { isInWater, boatDryPoints } from './util.js';
-import { bootPlekGeldig } from './vehicle/bootplekken.js';
+import { isBoatSpotValid } from './vehicle/bootplekken.js';
 
 export const BOOT_ZOEK = { maxR: 240, stap: 12 };
 
@@ -41,7 +41,7 @@ export function bootPlekOpKaart(map, boot, x, y, hoek = boot && boot.angle, opts
   for (const h of [a0, a0 + 0.4, a0 - 0.4, a0 + Math.PI / 2, a0 - Math.PI / 2]) {
     const p = vindBootPlek({
       x, y, ...opts,
-      isWater: (px, py) => isInWater(map, px, py) && (!logisch || bootPlekGeldig(map, px, py, boot)),
+      isWater: (px, py) => isInWater(map, px, py) && (!logisch || isBoatSpotValid(map, px, py, boot)),
       // een boot zonder model (of een kaart zonder kades) mag de sprong niet laten stuklopen
       vrij: (px, py) => { try { return boatDryPoints(map, boot, px, py, h) === 0; } catch (e) { return true; } },
     });

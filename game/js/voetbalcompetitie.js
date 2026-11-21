@@ -6,10 +6,10 @@ import { makeRng } from './minigamekit.js';
 
 export const MIJN_CLUB = 'stadjers';
 export const COMP_CLUBS = TEAMS.map((t) => t.id);          // zes
-export const PUNTEN = { winst: 3, gelijk: 1 };
+export const POINTS = { winst: 3, gelijk: 1 };
 // De sterkte van de computerclubs (jouw club speelt zelf): hoger is beter. Alleen voor de duels waar jij niet bij bent.
 const STERKTE = { stadjers: 1.0, hunebedders: 1.15, wadlopers: 1.0, ommelanders: 0.9, veenpiraten: 1.1, kleibijters: 0.85 };
-export const clubNaam = (id) => (TEAMS.find((t) => t.id === id) || { naam: id }).naam;
+export const clubName = (id) => (TEAMS.find((t) => t.id === id) || { naam: id }).naam;
 
 // Het speelschema (de cirkelmethode): n clubs geven n - 1 rondes van n / 2 duels, ieder speelt ieder één keer.
 export function speelschema(ids = COMP_CLUBS) {
@@ -25,22 +25,22 @@ export function speelschema(ids = COMP_CLUBS) {
 }
 
 const leegRij = () => ({ g: 0, w: 0, gl: 0, v: 0, vv: 0, tg: 0 });
-export function nieuweCompetitie(seed = 1) {
-  const stand = {};
-  for (const id of COMP_CLUBS) stand[id] = leegRij();
-  return { v: 1, seed: (seed >>> 0) || 1, ronde: 0, rondes: speelschema(), stand, uitslagen: [], klaar: false, kampioen: null };
+export function newCompetition(seed = 1) {
+  const ranking = {};
+  for (const id of COMP_CLUBS) ranking[id] = leegRij();
+  return { v: 1, seed: (seed >>> 0) || 1, ronde: 0, rondes: speelschema(), stand: ranking, uitslagen: [], klaar: false, kampioen: null };
 }
-const punten = (r) => r.w * PUNTEN.winst + r.gl * PUNTEN.gelijk;
+const points = (r) => r.w * POINTS.winst + r.gl * POINTS.gelijk;
 // De stand, de beste eerst: punten, doelsaldo, doelpunten voor, dan de volgorde van de clubs.
 export function tabel(comp) {
-  const rijen = COMP_CLUBS.map((id, i) => ({ id, naam: clubNaam(id), ...comp.stand[id], p: punten(comp.stand[id]), saldo: comp.stand[id].vv - comp.stand[id].tg, i }));
+  const rijen = COMP_CLUBS.map((id, i) => ({ id, naam: clubName(id), ...comp.stand[id], p: points(comp.stand[id]), saldo: comp.stand[id].vv - comp.stand[id].tg, i }));
   rijen.sort((a, b) => b.p - a.p || b.saldo - a.saldo || b.vv - a.vv || a.i - b.i);
   rijen.forEach((r, k) => { r.plek = k + 1; });
   return rijen;
 }
-export const jouwPlek = (comp) => (tabel(comp).find((r) => r.id === MIJN_CLUB) || {}).plek || 0;
+export const yourRank = (comp) => (tabel(comp).find((r) => r.id === MIJN_CLUB) || {}).plek || 0;
 // Wie jouw tegenstander is in de volgende ronde (of null als het seizoen klaar is).
-export function volgendeTegenstander(comp) {
+export function nextOpponent(comp) {
   if (!comp || comp.klaar || comp.ronde >= comp.rondes.length) return null;
   const d = comp.rondes[comp.ronde].find((x) => x.includes(MIJN_CLUB));
   return d ? d.find((x) => x !== MIJN_CLUB) : null;
@@ -51,13 +51,13 @@ export function simuleerDuel(a, b, rng) {
   const sa = STERKTE[a] || 1, sb = STERKTE[b] || 1;
   return [poisson(1.35 * sa / sb, rng), poisson(1.35 * sb / sa, rng)];
 }
-function boek(stand, id, vv, tg) {
-  const r = stand[id];
+function bookResult(ranking, id, vv, tg) {
+  const r = ranking[id];
   r.g++; r.vv += vv; r.tg += tg;
   if (vv > tg) r.w++; else if (vv < tg) r.v++; else r.gl++;
 }
 // Jouw uitslag (gf voor, ga tegen) van de huidige ronde wordt geboekt en de andere duels van die ronde worden uitgerekend. Geeft een nieuwe competitie terug (de oude blijft ongemoeid).
-export function verwerkRonde(comp, gf, ga) {
+export function applyRound(comp, gf, ga) {
   if (!comp || comp.klaar) return comp;
   const c = JSON.parse(JSON.stringify(comp));
   const rng = makeRng(c.seed * 977 + c.ronde * 31 + 7);
@@ -65,7 +65,7 @@ export function verwerkRonde(comp, gf, ga) {
   for (const [a, b] of c.rondes[c.ronde]) {
     let s;
     if (a === MIJN_CLUB) s = [gf | 0, ga | 0]; else if (b === MIJN_CLUB) s = [ga | 0, gf | 0]; else s = simuleerDuel(a, b, rng);
-    boek(c.stand, a, s[0], s[1]); boek(c.stand, b, s[1], s[0]);
+    bookResult(c.stand, a, s[0], s[1]); bookResult(c.stand, b, s[1], s[0]);
     uit.push([a, b, s[0], s[1]]);
   }
   c.uitslagen.push(uit);

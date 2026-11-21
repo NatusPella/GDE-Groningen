@@ -62,7 +62,7 @@ const keyCost = (a, b) => diffKeys(a, b).length;
 // Houdt bij welke programma's er na de start ontstaan. `phase` is 'compile' (binnen renderer.compile: bewust voorbereid) of 'draw'
 // (bij een tekenopdracht: linkt synchroon, een hapering). note(program) wordt vanuit de renderer-hook (scene3d pinShaderPrograms) geroepen.
 export function createProgramWatch({ now = () => (typeof performance !== 'undefined' ? performance.now() : 0), keep = 120, twins = 80 } = {}) {
-  let startAt = null, compiling = 0;
+  let markedAt = null, compiling = 0;
   const byName = new Map(); // shader naam -> laatste sleutels (voor de tweeling)
   const late = [];
   const n = { total: 0, beforeStart: 0, lateCompile: 0, lateDraw: 0 };
@@ -77,18 +77,18 @@ export function createProgramWatch({ now = () => (typeof performance !== 'undefi
     begin() { compiling++; },
     end() { if (compiling) compiling--; },
     get compiling() { return compiling > 0; },
-    markStart() { if (startAt === null) startAt = now(); },
-    get started() { return startAt !== null; },
+    markStart() { if (markedAt === null) markedAt = now(); },
+    get started() { return markedAt !== null; },
     note(p) {
       if (!p) return;
       const key = String(p.cacheKey || ''), name = p.name || p.type || '?';
       n.total++;
-      if (startAt !== null) {
+      if (markedAt !== null) {
         const phase = compiling > 0 ? 'compile' : 'draw';
         if (phase === 'compile') n.lateCompile++; else n.lateDraw++;
         if (late.length < keep) {
           const t = twinOf(name, key);
-          late.push({ at: +((now() - startAt) / 1000).toFixed(1), phase, name, diff: t ? t.diff : ['geen tweeling (nieuw soort)'] });
+          late.push({ at: +((now() - markedAt) / 1000).toFixed(1), phase, name, diff: t ? t.diff : ['geen tweeling (nieuw soort)'] });
         }
       } else n.beforeStart++;
       let list = byName.get(name);
@@ -100,14 +100,14 @@ export function createProgramWatch({ now = () => (typeof performance !== 'undefi
     late: () => late.slice(),
     // regels voor de technische info
     lines(limit = 12) {
-      if (startAt === null) return [];
+      if (markedAt === null) return [];
       const out = [`Programma's: ${n.total} in totaal, ${n.beforeStart} voor de start, ${n.lateCompile} na de start voorbereid (compile), ${n.lateDraw} na de start bij het tekenen`];
       const draws = late.filter((l) => l.phase === 'draw');
       if (draws.length) out.push(`Let op: ${n.lateDraw} shaders zijn pas bij het tekenen gelinkt (elk een mogelijke hapering); de laatste:`);
       for (const l of draws.slice(-limit)) out.push(`  +${l.at} s ${l.name}: ${l.diff.slice(0, 5).join('; ')}`);
       return out;
     },
-    reset() { startAt = null; compiling = 0; byName.clear(); late.length = 0; n.total = n.beforeStart = n.lateCompile = n.lateDraw = 0; },
+    reset() { markedAt = null; compiling = 0; byName.clear(); late.length = 0; n.total = n.beforeStart = n.lateCompile = n.lateDraw = 0; },
   };
 }
 

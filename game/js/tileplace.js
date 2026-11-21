@@ -8,7 +8,7 @@ import { pointInPolygon, closestPointOnSegment, nearestOnRoadList } from './util
 import { BG_DRAIN_MAX_MS, backgroundHeld, createDrainPump, joinQueues } from './tilestream.js';
 import { streamPlanner } from './streamplanner.js';
 import { URGENT_SLICE_MS } from './placementurgency.js';
-import { windowModeFor } from './placementurgency.js';
+import { urgencyModeFor } from './placementurgency.js';
 
 // A polygon's distance to a point, 0 inside it.
 function polyDist(x, y, pts) {
@@ -219,7 +219,7 @@ export async function withTiles(map, points, fn, { radius = 160, token = 'place'
     const t0 = performance.now();
     // placementurgency.js: een teleport (urgent) is synchroon; een venster bij de speler, bij een lopende activiteit of een herstel is
     // 'urgent' (afstandsprioriteit, 6 ms per frame, niet vastgehouden door een film of cutscene); de rest is achtergrond
-    const wm = windowModeFor(points, map.focusAt || null, { urgent, slice });
+    const wm = urgencyModeFor(points, map.focusAt || null, { urgent, slice });
     await Promise.all([...keys].map((k) => st.request(k, { priority: wm.priority }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
     const t1 = performance.now();
     const sliceMs = wm.sliceMs;

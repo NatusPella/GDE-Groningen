@@ -21,7 +21,7 @@ const ensure = () => panel || (panel = createChoicePanel('var(--ds-c-ink-geel, #
 
 export const gesprekActive = () => !!run;
 
-export function startGesprek(w, script, { done = null, skippable = false } = {}) {
+export function openDialogue(w, script, { done = null, skippable = false } = {}) {
   if (run) return false;
   run = createRunner(script);
   onDone = done;

@@ -4,8 +4,8 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { bouwDienst, actieveLegs, legTijden, legStand, maakDienstBron, dienstVanLeg, DIENST } = await import('../game/js/treindienst.js');
-const { rijenUitRooster, pasVertragingToe, geldigRooster } = await import('../game/js/treinrooster.js');
+const { bouwDienst, actieveLegs, legTimes, legState, createServiceSource, dienstVanLeg, DIENST } = await import('../game/js/treindienst.js');
+const { rijenUitRooster, pasVertragingToe, validSchedule } = await import('../game/js/treinrooster.js');
 const { meldSleutel } = await import('../game/js/livetreinen.js');
 const { stationView } = await import('../game/js/stationlife.js');
 
@@ -13,7 +13,7 @@ let fails = 0, n = 0;
 const ok = (c, m, i = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${i !== '' ? ' (' + i + ')' : ''}`); } };
 
 const rooster = JSON.parse(fs.readFileSync(new URL('../game/treinrooster.json', import.meta.url), 'utf8'));
-ok(geldigRooster(rooster), 'het rooster is geldig');
+ok(validSchedule(rooster), 'het rooster is geldig');
 
 // de spoorlijnen van het spel (zoals scripts/world/stad_spoor.mjs en cityroutes_src.json ze kennen; de afstanden zijn een proef)
 const H = 'Groningen Hoofdstation';
@@ -60,15 +60,15 @@ for (const stand of [null, 'vertraagd']) {
         ok(!!leg, `bordrij ${r.nummer} in ${naam} heeft een trein (geen bordregel zonder trein)`);
         if (!leg) continue;
         ok(leg.route === r.lijn && leg.nummer === r.nummer, 'dezelfde trein: rit-id, lijn en treinnummer');
-        const tijden = legTijden(leg, live);
+        const tijden = legTimes(leg, live);
         const j = r.halte;
         ok(leg.halten[j].st === naam && Math.abs((((tijden.weg[j] - r.tijd) % 86400) + 86400) % 86400) < 1, `de wereldtrein vertrekt op de tijd van het bord (${naam} ${r.nummer})`, `${tijden.weg[j]} vs ${r.tijd}`);
         // op het bord-moment staat de trein op de halte (de plek van de lijn), op de klok van de dag zelf
         const route = routesPlain[leg.routeIdx];
         const klok = tijden.weg[j] > 86400 ? tijden.weg[j] - 86400 : tijden.weg[j];
-        const st = legStand(leg, tijden.weg[j], route.len, tijden);
+        const st = legState(leg, tijden.weg[j], route.len, tijden);
         ok(st && st.staat === 'dwell' && Math.abs(st.s - leg.halten[j].s) < 0.01 && st.v === 0, `op de vertrektijd staat de trein op het perron van ${naam}`, JSON.stringify(st));
-        const later = legStand(leg, tijden.weg[j] + 60, route.len, tijden);
+        const later = legState(leg, tijden.weg[j] + 60, route.len, tijden);
         ok(!later || later.staat === 'run' || later.s !== leg.halten[j].s, 'een minuut na vertrek is de trein weg van het perron (onderweg, op de volgende halte of weg)', JSON.stringify(later));
         ok(!leg.halten[j].soort || leg.halten[j].soort !== 1, 'een bordrij is nooit een eindstation');
         rijenGetest++;
@@ -105,27 +105,27 @@ ok(rijenGetest > 150, 'genoeg bordrijen getoetst', rijenGetest);
   const rij = rijenUitRooster(rooster, 'Bedum', 'werk', nu, { aantal: 3, dienst })[0];
   const live = new Map([[meldSleutel(rij.nummer, rij.code, rij.plan), { vertraging: 0, vervallen: true }]]);
   const leg = dienst.leg(rij.rit);
-  const t = legTijden(leg, live);
-  ok(t.vervallen && legStand(leg, rij.plan, routesPlain[leg.routeIdx].len, t) === null, 'een vervallen rit heeft geen trein in de wereld');
+  const t = legTimes(leg, live);
+  ok(t.vervallen && legState(leg, rij.plan, routesPlain[leg.routeIdx].len, t) === null, 'een vervallen rit heeft geen trein in de wereld');
   ok(pasVertragingToe([rij], live)[0].vervallen, 'en het bord zegt dat hij vervalt');
 }
 
 // --- 3. de beweging: stil in de haltes, onderweg ertussen, deterministisch -------------------------------------------
 {
   const leg = dienst.legs.find((l) => l.halten.length >= 3 && !l.begin && !l.eind) || dienst.legs.find((l) => l.halten.length >= 3);
-  const t = legTijden(leg, null);
+  const t = legTimes(leg, null);
   const len = routesPlain[leg.routeIdx].len;
   const a = leg.halten[0], b = leg.halten[1];
-  const midden = legStand(leg, (t.weg[0] + t.aan[1]) / 2, len, t);
+  const midden = legState(leg, (t.weg[0] + t.aan[1]) / 2, len, t);
   ok(midden && midden.staat === 'run' && midden.v > 0 && (midden.s - a.s) * leg.dir > 0 && (b.s - midden.s) * leg.dir > 0, 'tussen twee haltes rijdt de trein er tussenin', JSON.stringify(midden));
   ok(midden.doel === b.idx, 'het doel is de volgende halte van de lijn');
-  const aankomst = legStand(leg, t.aan[1], len, t), vertrek = legStand(leg, t.weg[1], len, t);
+  const aankomst = legState(leg, t.aan[1], len, t), vertrek = legState(leg, t.weg[1], len, t);
   ok(aankomst && aankomst.s === b.s && vertrek && vertrek.s === b.s, 'in de halte staat hij op de halteplek');
-  ok(JSON.stringify(legStand(leg, t.weg[0] + 100, len, t)) === JSON.stringify(legStand(leg, t.weg[0] + 100, len, t)), 'dezelfde klok geeft dezelfde plek');
-  ok(legStand(leg, t.aan[leg.halten.length - 1] + 7200, len, t) === null && legStand(leg, t.aan[0] - 5000, len, t) === null, 'buiten zijn rit is hij er niet');
+  ok(JSON.stringify(legState(leg, t.weg[0] + 100, len, t)) === JSON.stringify(legState(leg, t.weg[0] + 100, len, t)), 'dezelfde klok geeft dezelfde plek');
+  ok(legState(leg, t.aan[leg.halten.length - 1] + 7200, len, t) === null && legState(leg, t.aan[0] - 5000, len, t) === null, 'buiten zijn rit is hij er niet');
   // een rit die van buiten de kaart komt, komt uit de richting waar hij vandaan komt binnen
   const binnen = dienst.legs.find((l) => !l.begin && l.dir === 1 && l.halten[0].s > 5000);
-  if (binnen) { const tt = legTijden(binnen, null); const s = legStand(binnen, tt.aan[0] - 20, routesPlain[binnen.routeIdx].len, tt); ok(!s || s.s < binnen.halten[0].s, 'een binnenkomende trein nadert vanaf de oorspronkelijke kant', JSON.stringify(s)); }
+  if (binnen) { const tt = legTimes(binnen, null); const s = legState(binnen, tt.aan[0] - 20, routesPlain[binnen.routeIdx].len, tt); ok(!s || s.s < binnen.halten[0].s, 'een binnenkomende trein nadert vanaf de oorspronkelijke kant', JSON.stringify(s)); }
   // de dienst van de machinist uit dezelfde leg: dezelfde haltes en tijden
   const d = dienstVanLeg(leg, t, leg.halten[0].st);
   ok(d && d.halten.length === leg.halten.length && d.halten[0].weg === t.weg[0] && d.rit === leg.id && d.halten[d.halten.length - 1].laatste, 'de machinist rijdt de rit van het bord');
@@ -135,12 +135,12 @@ ok(rijenGetest > 150, 'genoeg bordrijen getoetst', rijenGetest);
 // de bron per frame: dagsoort, klok en live stand
 {
   let dag = 'werk'; const stand = new Map();
-  const bron = maakDienstBron({ rooster: () => rooster, routes: () => routesPlain, dagsoort: () => dag, klok: (w) => w.clock, stand: () => stand });
+  const bron = createServiceSource({ rooster: () => rooster, routes: () => routesPlain, dagsoort: () => dag, klok: (w) => w.clock, stand: () => stand });
   const a = bron({ clock: 8.25 });
   ok(a && a.nu === 8.25 * 3600 && a.stand === stand && a.dienst.legs.length === dienst.legs.length, 'de bron geeft de dienst, de klok en de live stand');
   ok(bron({ clock: 25 }).nu === 3600, 'de klok loopt rond');
   dag = 'za'; ok(bron({ clock: 9 }).dienst.legs.length !== a.dienst.legs.length, 'een andere dagsoort een andere dienst');
-  ok(maakDienstBron({ rooster: () => null, routes: () => routesPlain, dagsoort: () => 'werk', klok: () => 0 })({}) === null, 'zonder rooster geen bron');
+  ok(createServiceSource({ rooster: () => null, routes: () => routesPlain, dagsoort: () => 'werk', klok: () => 0 })({}) === null, 'zonder rooster geen bron');
 }
 
 // --- 4. de wereld (railway.js): treinen komen uit het rooster ---------------------------------------------------------
@@ -156,7 +156,7 @@ const hw = newWorld(newMap()), gw = newWorld(newMap());
 Hst.initRailway(hw); Gst.initRailway(gw);
 ok(Hst.getTrains().length === 7, 'eerst de eigen dienst: een pendeltrein per lijn');
 let liveStand = null;
-const maak = (R) => maakDienstBron({ rooster: () => rooster, routes: R.getRoutes, dagsoort: () => 'werk', klok: (w) => w.clock, stand: () => liveStand });
+const maak = (R) => createServiceSource({ rooster: () => rooster, routes: R.getRoutes, dagsoort: () => 'werk', klok: (w) => w.clock, stand: () => liveStand });
 Hst.setTreinDienst(maak(Hst)); Gst.setTreinDienst(maak(Gst));
 hw.clock = 8 + 17 / 60;
 Hst.updateRailway(0.1, hw);

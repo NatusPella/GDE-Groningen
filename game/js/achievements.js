@@ -19,8 +19,8 @@ import { isOverlayHeld } from './overlayhold.js';
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
-import { planPrestatie, wachtrijStap, verblijfS, samenvattingTekst, balkTekst } from './achievementunlock.js'; // de prestatie als moment (wens 21-11)
-import { rustigeStand, tikGetal } from './dsmicro.js';
+import { planPrestatie, queueStep, verblijfS, samenvattingTekst, balkTekst } from './achievementunlock.js'; // de prestatie als moment (wens 21-11)
+import { calmState, tikGetal } from './dsmicro.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
 
 const KEY = KEYS.achievements;
@@ -311,7 +311,7 @@ let toastEl = null;
 let toastQueue = [];
 let toastUntil = 0;
 let toastTimer = 0;
-let toastBurst = 0;      // hoeveelste prestatiekaart van deze reeks (0 = de eerste: een volle kaart; wachtrijStap)
+let toastBurst = 0;      // hoeveelste prestatiekaart van deze reeks (0 = de eerste: een volle kaart; queueStep)
 let momentTimers = [];   // geluid, balk, teller en glans van de kaart die nu staat
 
 function blankLife() {
@@ -841,9 +841,9 @@ function showNextToast() {
   }
   const a = toastQueue[0];
   if (!el || !a) { toastUntil = 0; toastBurst = 0; return; }
-  // De wachtrij (achievementunlock.js, wachtrijStap): de eerste van een reeks is een volle kaart, de volgende zijn kort, en
+  // De wachtrij (achievementunlock.js, queueStep): de eerste van een reeks is een volle kaart, de volgende zijn kort, en
   // wachten er na drie nog meer, dan komen ze samen in één samenvatting (de prestaties zelf staan in het menu).
-  const stap = wachtrijStap({ index: toastBurst, resterend: toastQueue.length });
+  const stap = queueStep({ index: toastBurst, resterend: toastQueue.length });
   const samen = stap.variant === 'samenvatting' ? samenvattingTekst(stap.aantal) : null;
   // #643: de toast bezet zone E via het zonebord, net als een kaart van hudcards.js; is de zone bezet,
   // dan wacht hij even in plaats van over de plaatsnaam of het activiteitenbord te vallen (de prestatie blijft in de wachtrij).
@@ -858,7 +858,7 @@ function showNextToast() {
   noteToast();
   wisMomentTimers();
   const gold = !samen && (a.medal || a.id === 'alle_goud');
-  const rustig = rustigeStand();
+  const rustig = calmState();
   const { done, total, pct } = getAchievementSummary();
   const plan = planPrestatie({ id: a.id, cat: a.cat, medal: a.medal, hidden: a.hidden, behaald: done, totaal: total, kort: stap.variant !== 'vol', rustig });
   const inkt = samen ? 'bord' : plan.inkt;

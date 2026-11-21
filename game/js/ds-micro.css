@@ -99,7 +99,7 @@
 @keyframes ds-m-veeg { from { opacity: 0.5; translate: -120% 0; } to { opacity: 0; translate: 520% 0; } }
 
 /* ===== Tab en segment: glijdende onderstreping, zachte wissel van de inhoud ===== */
-/* Het JS (dsmicro.js, tabLijn) zet --ds-m-tab-x (px) en --ds-m-tab-w (px, een getal zonder eenheid) op .ds-m-tabs;
+/* Het JS (dsmicro.js, tabLine) zet --ds-m-tab-x (px) en --ds-m-tab-w (px, een getal zonder eenheid) op .ds-m-tabs;
    de lijn is 1 px breed en schaalt, zodat er geen layout verandert. */
 .ds-m-tabs { position: relative; }
 .ds-m-tabs__lijn {
@@ -111,7 +111,7 @@
   pointer-events: none;
   opacity: 0;
 }
-/* Pas als de streep echt gemeten is (dsmicro.js, zetTabLijn) zet het kader .ds-m-tabs--aan: dan neemt hij het over van de eigen
+/* Pas als de streep echt gemeten is (dsmicro.js, applyTabLine) zet het kader .ds-m-tabs--aan: dan neemt hij het over van de eigen
    onderstreping van de tab. Tot dan (of als het JS ontbreekt) blijft de oude streep staan, dus er is nooit een tab zonder streep. */
 .ds-m-tabs--aan > .ds-m-tabs__lijn { opacity: 1; }
 .ds-m-tabs--aan > [role="tab"][aria-selected="true"] { box-shadow: none; }

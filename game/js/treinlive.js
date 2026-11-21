@@ -7,27 +7,27 @@
 // Alles faalt zacht: bij een fout, time-out, te groot of ongeldig bestand, een lege feed, een bron die weg is of de instelling
 // uit, toont het bord het rooster zonder vertraging (stand() geeft dan geen vertragingen).
 
-import { LIVE_TREINEN, haalLiveTreinen, maakStand, brugAlsFetch } from './livetreinen.js';
+import { LIVE_TRAINS, fetchLiveTrains, buildDelayMap, bridgeAsFetch } from './livetreinen.js';
 
 // De opvraag: in Electron doet het main-proces hem (een renderer op gde:// mag zonder CORS-koppen niet lezen); in de
 // webversie direct. Zonder brug en zonder fetch is er geen bron. Alleen de vaste url uit livetreinen.js gaat mee.
 export function kiesFetch(omgeving = globalThis) {
-  const brug = omgeving && omgeving.gdeDesktop && omgeving.gdeDesktop.liveTreinen;
-  if (typeof brug === 'function') return brugAlsFetch(brug);
+  const bridge = omgeving && omgeving.gdeDesktop && omgeving.gdeDesktop.liveTreinen;
+  if (typeof bridge === 'function') return bridgeAsFetch(bridge);
   const fetchFn = omgeving && omgeving.fetch;
   if (typeof fetchFn === 'function') return (url, opties) => fetchFn.call(omgeving, url, opties);
   return null;
 }
 
-export function maakLiveTreinen({ fetchFn, nu = () => Date.now(), opts = {} } = {}) {
-  const cfg = { ...LIVE_TREINEN, ...opts };
+export function createLiveTrains({ fetchFn, nu = () => Date.now(), opts = {} } = {}) {
+  const cfg = { ...LIVE_TRAINS, ...opts };
   const jit = typeof cfg.jitter === 'function' ? cfg.jitter : () => 1 + (Math.random() * 2 - 1) * (cfg.spreiding || 0);
   const st = { aan: false, bezig: false, volgendeOp: 0, fouten: 0, reden: null, laatsteOk: 0, opgevraagd: 0 };
-  let kaart = new Map();    // sleutel (treinnummer|code|minuut) -> { vertraging, vervallen }
+  let delayByKey = new Map();    // sleutel (treinnummer|code|minuut) -> { vertraging, vervallen }
 
-  function wis() { kaart = new Map(); }
+  function wis() { delayByKey = new Map(); }
 
-  function verwerk(res, t) {
+  function handleResult(res, t) {
     if (!res.ok) {
       st.reden = res.reden;
       if (res.reden === 'leeg') { st.fouten = 0; st.volgendeOp = t + cfg.interval * jit(); wis(); return; }   // een lege feed is geen fout; het bord toont het rooster
@@ -37,7 +37,7 @@ export function maakLiveTreinen({ fetchFn, nu = () => Date.now(), opts = {} } = 
       return;
     }
     st.fouten = 0; st.reden = null; st.laatsteOk = t; st.volgendeOp = t + cfg.interval * jit();
-    kaart = maakStand(res.meldingen, t / 1000, cfg.maxMeldingen);
+    delayByKey = buildDelayMap(res.meldingen, t / 1000, cfg.maxMeldingen);
   }
 
   // Aanroepen per beeld (of vaker): vraagt zo nodig op. codes: Set stationscodes uit het rooster. Geeft de belofte terug (voor tests), anders null.
@@ -47,8 +47,8 @@ export function maakLiveTreinen({ fetchFn, nu = () => Date.now(), opts = {} } = 
     if (st.bezig || t < st.volgendeOp) return null;
     st.bezig = true; st.opgevraagd++;
     st.volgendeOp = t + cfg.interval;
-    return haalLiveTreinen({ fetchFn, codes, url: cfg.url, timeout: cfg.timeout, maxBytes: cfg.maxBytes, maxMeldingen: cfg.maxMeldingen }).then((res) => {
-      if (st.aan) verwerk(res, nu());
+    return fetchLiveTrains({ fetchFn, codes, url: cfg.url, timeout: cfg.timeout, maxBytes: cfg.maxBytes, maxMeldingen: cfg.maxMeldingen }).then((res) => {
+      if (st.aan) handleResult(res, nu());
       st.bezig = false;
       return res;
     });
@@ -57,23 +57,23 @@ export function maakLiveTreinen({ fetchFn, nu = () => Date.now(), opts = {} } = 
   // De vertragingen nu: de kaart, of null als de stand te oud is of de bron uit staat (dan toont het bord het rooster).
   function vertragingen(t = nu()) {
     if (!st.aan || !st.laatsteOk || t - st.laatsteOk > cfg.verouderd) return null;
-    return kaart;
+    return delayByKey;
   }
 
-  return { tick, vertragingen, stand: () => ({ ...st, aantal: kaart.size }), _wis: wis };
+  return { tick, vertragingen, stand: () => ({ ...st, aantal: delayByKey.size }), _wis: wis };
 }
 
 // De bron zoals main.js hem gebruikt: de stand hierboven plus de uitzetter (Instellingen) en de grens voor test- en devruns.
 // tick() bepaalt zelf of er opgevraagd mag worden. zetBron krijgt de bron (of null bij stop), zodat stationlife hem kan lezen.
-export function maakTreinLive({ fetchFn = kiesFetch(), instellingen = () => ({}), toegestaan = () => true, zetBron = () => {}, nu, opts } = {}) {
-  const bron = maakLiveTreinen({ fetchFn, nu, opts });
+export function createTrainLive({ fetchFn = kiesFetch(), instellingen = () => ({}), toegestaan = () => true, zetBron = () => {}, nu, opts } = {}) {
+  const bron = createLiveTrains({ fetchFn, nu, opts });
   zetBron(bron);
   return {
     bron,
     // Per beeld aanroepen met de stationscodes van het rooster; true = de speler heeft de optie aan.
     tick(codes, t) {
-      const aan = !!fetchFn && !!toegestaan() && instellingen().liveTreinen !== false;
-      return bron.tick(aan, codes, t);
+      const enabled = !!fetchFn && !!toegestaan() && instellingen().liveTreinen !== false;
+      return bron.tick(enabled, codes, t);
     },
     stand: () => bron.stand(),
     stop() { zetBron(null); },

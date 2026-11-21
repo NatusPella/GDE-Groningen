@@ -77,7 +77,7 @@ t('main.js leidt vier haken naar een echte Player-methode (enter, exit, drive, s
 // buiten de deur (bestuurTick). De trein loopt via cooptrein.js en raakt Player.prototype niet aan. Wat er dus overblijft
 // is de sluiting hieronder, en die is voor elke gast hetzelfde.
 const LID = /this\.([A-Za-z_$][\w$]*)\s*\(/g;
-const VELD = /this\.([A-Za-z_$][\w$]*)\b(?!\s*\()/g;
+const PITCH = /this\.([A-Za-z_$][\w$]*)\b(?!\s*\()/g;
 
 // De bron van een echte methode (geen tekstparser op regels: Function#toString is wat er werkelijk draait).
 const bronVan = (naam) => {
@@ -94,7 +94,7 @@ function sluiting(start) {
     methoden.add(naam);
     const bron = bronVan(naam);
     for (const m of bron.matchAll(LID)) if (typeof Player.prototype[m[1]] === 'function') wacht.push(m[1]);
-    for (const m of bron.matchAll(VELD)) velden.add(m[1]);
+    for (const m of bron.matchAll(PITCH)) velden.add(m[1]);
   }
   for (const naam of methoden) velden.delete(naam); // een aanroep is geen veld
   return { methoden, velden };

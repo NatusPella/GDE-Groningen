@@ -101,12 +101,12 @@ Eén bron voor bord en spoor: `game/js/treindienst.js` (puur, deterministisch). 
   beginstation (`soort` 2), zodat een trein in de wereld kan aankomen en klaarstaan. Een rit over het Hoofdstation valt in twee "legs", één per spoorlijn van het spel (de lijnen beginnen allemaal op het Hoofdstation); een
   leg heeft minstens twee haltes die op de lijn staan. Een rit met minder haltes in de wereld heeft geen trein en staat dus ook **niet** op het bord. De lijn bij een bordrij is de lijn van de trein (bij een doorgaande rit
   Delfzijl-Veendam is dat op elk station de lijn waar dat station aan ligt).
-- **Plek uit de klok (`legStand`):** tijd van de dag is de spelklok; op elke halte staat de trein stil tussen aankomst en vertrek (minstens 20 s), ertussen rijdt hij met een zachte S-curve over de afstand tot de volgende halte
+- **Plek uit de klok (`legState`):** tijd van de dag is de spelklok; op elke halte staat de trein stil tussen aankomst en vertrek (minstens 20 s), ertussen rijdt hij met een zachte S-curve over de afstand tot de volgende halte
   (snelheid en richting daaruit, voor de overwegen). Een beginnende trein staat 2 minuten voor vertrek klaar op het perron; een trein die van buiten de kaart komt rijdt vanaf de oorspronkelijke kant binnen en rijdt na zijn
   laatste halte weg; op een eindstation blijft hij 60 s staan. Niets wordt gesimuleerd of bijgehouden: dezelfde klok geeft dezelfde plek, ook voor treinen ver weg (ze verschijnen op de juiste plek als je in de buurt komt).
 - **In de wereld (`railway.js planTreinDienst`):** een lijn met ritten krijgt een pool van 8 treinen en verliest zijn pendeltrein; elke frame wordt elke actieve rit aan een poolspoor toegewezen en op zijn plek gezet
   (`t.rit`). Treinen zonder rit staan niet in `getTrains()`. Lijnen zonder ritten in de data houden hun eigen dienst. Meer dan 8 gelijktijdige ritten op een lijn: de rest rijdt niet (in de proef nooit meer dan 5).
-- **Bord = trein:** een bordrij heeft `rit` (het rit-id, `<treinnummer>@<lijn>`) en dezelfde tijden als de trein (`legTijden` en `vertragingVan` zijn één functie voor beide), ook met live vertraging: de trein staat op
+- **Bord = trein:** een bordrij heeft `rit` (het rit-id, `<treinnummer>@<lijn>`) en dezelfde tijden als de trein (`legTimes` en `vertragingVan` zijn één functie voor beide), ook met live vertraging: de trein staat op
   de verwachte tijd van het bord op het perron en vertrekt daarna; een vervallen rit is een bordrij "vervalt" zonder trein. Een bordrij zonder trein bestaat niet (rijen zonder leg worden niet getoond) en een trein zonder
   bordrij ook niet (elke leg heeft op elke halte behalve het eindpunt zijn rij); dat controleert `scripts/treindienst_test.mjs`.
 - **Instappen:** de trein van het bord staat op de vertrektijd (-120 s) op het perron en is te bestijgen zoals altijd (`stationtravel.js`, state `dwell`). De machinist rijdt dan de rit van die trein: haltes, tijden (met

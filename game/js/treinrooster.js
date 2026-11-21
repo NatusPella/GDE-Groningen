@@ -11,26 +11,26 @@
 
 import { meldSleutel } from './livetreinen.js';
 
-export const SPEL_NAAM = { Groningen: 'Groningen Hoofdstation' };
-const BRON_NAAM = Object.fromEntries(Object.entries(SPEL_NAAM).map(([b, s]) => [s, b]));
-export const bronNaam = (spelNaam) => BRON_NAAM[spelNaam] || spelNaam;
+export const GAME_NAMES = { Groningen: 'Groningen Hoofdstation' };
+const SOURCE_NAMES = Object.fromEntries(Object.entries(GAME_NAMES).map(([b, s]) => [s, b]));
+export const sourceName = (spelNaam) => SOURCE_NAMES[spelNaam] || spelNaam;
 
 // de dagsoort van een weekdag (0 = zondag, zoals calendar.js weekdayOf)
-export const dagsoortVan = (weekdag) => (weekdag === 0 ? 'zo' : weekdag === 6 ? 'za' : 'werk');
+export const dayTypeOf = (weekdag) => (weekdag === 0 ? 'zo' : weekdag === 6 ? 'za' : 'werk');
 
 // Zo ziet het bestand eruit; false = het spel valt terug op zijn eigen rooster.
-export function geldigRooster(r) {
+export function validSchedule(r) {
   return !!(r && r.v === 1 && Array.isArray(r.stations) && r.rit && r.rit.werk && r.rit.za && r.rit.zo && Array.isArray(r.lijnen) && Array.isArray(r.bestemmingen));
 }
 
 const indexVan = (r, spelNaam) => {
-  const n = bronNaam(spelNaam);
+  const n = sourceName(spelNaam);
   return r.stations.findIndex((s) => s.naam === n);
 };
-export const heeftStation = (r, spelNaam) => geldigRooster(r) && indexVan(r, spelNaam) >= 0 && !!r.rit.werk[indexVan(r, spelNaam)];
+export const hasStop = (r, spelNaam) => validSchedule(r) && indexVan(r, spelNaam) >= 0 && !!r.rit.werk[indexVan(r, spelNaam)];
 
 // De stationscodes in het bestand (voor het filter op de live feed).
-export const codesUit = (r) => new Set(geldigRooster(r) ? r.stations.map((s) => s.code).filter(Boolean) : []);
+export const codesUit = (r) => new Set(validSchedule(r) ? r.stations.map((s) => s.code).filter(Boolean) : []);
 
 // De volgende vertrekken op een station vanaf `nu` (s na middernacht), over middernacht heen (de vroege ochtend van de volgende dag).
 // Rij zoals dienstregeling.vertrekBord: { lijn, richting, dir, k, spoor, plan, tijd, vertraging: 0, reden: '', aankomst } plus
@@ -38,20 +38,20 @@ export const codesUit = (r) => new Set(geldigRooster(r) ? r.stations.map((s) => 
 // Met `dienst` (treindienst.js bouwDienst) telt alleen een vertrek waar een wereldtrein bij hoort: de rij krijgt de lijn van die trein (leg.route) en zijn rit-id,
 // zodat bord en trein dezelfde trein zijn en er geen bordregel zonder trein staat.
 export function rijenUitRooster(r, spelNaam, dagsoort, nu, { aantal = 8, terug = 30, dienst = null } = {}) {
-  if (!heeftStation(r, spelNaam)) return [];
+  if (!hasStop(r, spelNaam)) return [];
   const si = indexVan(r, spelNaam);
   const code = r.stations[si].code;
-  const dag = r.rit[dagsoort] && r.rit[dagsoort][si];
-  if (!dag || !dag.length) return [];
+  const dayRows = r.rit[dagsoort] && r.rit[dagsoort][si];
+  if (!dayRows || !dayRows.length) return [];
   const uit = [];
-  for (const dagVerschuiving of [0, 86400]) {
-    for (const x of dag) {
+  for (const dayShift of [0, 86400]) {
+    for (const x of dayRows) {
       if (x[6] === 1) continue;                        // eindstation: alleen aankomst, geen vertrek op het bord
-      const t = x[0] + dagVerschuiving;
+      const t = x[0] + dayShift;
       if (t < nu - terug) continue;
       const koppel = dienst ? dienst.vindRij(x[1], spelNaam) : null;
       if (dienst && !koppel) continue;
-      const aank = (x[5] > x[0] ? x[5] - 86400 : x[5]) + dagVerschuiving;
+      const aank = (x[5] > x[0] ? x[5] - 86400 : x[5]) + dayShift;
       uit.push({ lijn: koppel ? koppel.leg.route : r.lijnen[x[4]], rit: koppel ? koppel.leg.id : null, halte: koppel ? koppel.j : null, richting: r.bestemmingen[x[3]], dir: 1, k: `${x[1]}@${t}`, spoor: x[2], plan: t, tijd: t, vertraging: 0, reden: '', aankomst: aank, nummer: x[1], code, vervallen: false, live: false });
       if (uit.length >= aantal) return uit;
     }
@@ -69,13 +69,13 @@ export async function laadRooster(fetchFn = globalThis.fetch, basis = (typeof lo
     const res = await fetchFn(new URL('treinrooster.json', basis).href);
     if (!res.ok) return null;
     const r = await res.json();
-    return geldigRooster(r) ? r : null;
+    return validSchedule(r) ? r : null;
   } catch {
     return null;
   }
 }
 
-// De live stand (Map uit livetreinen.maakStand) op de rijen zetten: de vertraging per rit in seconden, en of de rit vervalt.
+// De live stand (Map uit livetreinen.buildDelayMap) op de rijen zetten: de vertraging per rit in seconden, en of de rit vervalt.
 // De vertraging van één vertrek (of aankomst) uit de live stand: { vertraging (s, 0 onder een minuut), vervallen, live }; null zonder melding.
 // Bord en wereldtrein gebruiken dezelfde functie, zodat ze dezelfde tijden hebben. plan: seconden na middernacht (ook boven 86400).
 export function vertragingVan(stand, nummer, code, plan) {

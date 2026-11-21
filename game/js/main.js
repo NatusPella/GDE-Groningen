@@ -151,8 +151,8 @@ import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from '.
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { maybeOpenOnlineStart } from './onlineconsentui.js';
-import { startPlan, startVragen, zetStartModus, startModus, bewaarKeuze } from './startchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
-import { openStartKeuze, openToestemming } from './startchoiceui.js';
+import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './startchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { openLaunchChoice, openToestemming } from './startchoiceui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
@@ -228,9 +228,9 @@ import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
-import { maakTreinLive } from './treinlive.js';
-import { maakDienstBron } from './treindienst.js';
-import { laadRooster as laadTreinRooster, codesUit as treinCodes, dagsoortVan as treinDagsoort } from './treinrooster.js';
+import { createTrainLive } from './treinlive.js';
+import { createServiceSource } from './treindienst.js';
+import { laadRooster as laadTreinRooster, codesUit as treinCodes, dayTypeOf as treinDagsoort } from './treinrooster.js';
 import { weekdayOf } from './calendar.js';
 import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de eerste live bus (#922)
 import { stapSlaOver } from './simlagen.js';
@@ -286,12 +286,12 @@ const busLive = maakBusLive({ zetBron: setLiveBussen, instellingen: getSettings,
 // als de bussen: uitzetter liveTreinen in Instellingen, zonder opvraag in de testruns). Zonder rooster houden de stations hun eigen dienst.
 let treinRooster = null;
 laadTreinRooster().then((r) => { treinRooster = r; });
-const treinLive = maakTreinLive({ instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
+const treinLive = createTrainLive({ instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
 // De treinen in de wereld volgen hetzelfde rooster als het bord (treindienst.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
 // spelen rekent iedereen zonder live vertraging, zodat host en gasten dezelfde treinen op dezelfde plek zien (de vertraging komt uit een eigen opvraag).
 const treinDagsoortVan = (w) => treinDagsoort(weekdayOf(calendarToday(w)));
 const treinLiveStand = (w) => (w && w.coopRole ? null : treinLive.bron.vertragingen());
-const treinDienstBron = maakDienstBron({ rooster: () => treinRooster, routes: getRoutes, dagsoort: treinDagsoortVan, klok: (w) => w.clock || 0, stand: treinLiveStand });
+const treinDienstBron = createServiceSource({ rooster: () => treinRooster, routes: getRoutes, dagsoort: treinDagsoortVan, klok: (w) => w.clock || 0, stand: treinLiveStand });
 setTreinDienst(treinDienstBron);
 const treinBord = (world) => {
   if (!treinRooster) return {};
@@ -634,17 +634,17 @@ let onlineVraag = null;
 function beginOnlineStartQuestion() {
   if (!onlineVraag) {
     const testmodus = !!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
-    const plan = startPlan(getSettings(), { testmodus, vlag: FLAGS.startkeuze });
-    onlineVraag = startVragen({
+    const plan = launchPlan(getSettings(), { testmodus, vlag: FLAGS.startkeuze });
+    onlineVraag = askLaunchChoice({
       plan,
       settings: () => getSettings(),
       naam: () => maybeOpenOnlineStart(),
-      keuze: (index) => openStartKeuze({ index }),
+      keuze: (index) => openLaunchChoice({ index }),
       toestemming: () => openToestemming(),
       sessie: () => new Promise((klaar) => openSamenKeuze({ onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
       samen: (rol) => requestOpenSamen(rol === 'host' ? { rol: 'host', gate: true } : { rol: 'gast', gate: true, lijst: rol === 'lijst' }),
       bewaar: (modus) => bewaarKeuze(modus),
-    }).then((modus) => { zetStartModus(modus); return modus; });
+    }).then((modus) => { applyLaunchMode(modus); return modus; });
   }
   return onlineVraag;
 }
@@ -960,7 +960,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // Zo staat de popup niet boven een laadscherm dat al "Klaar" zegt en hoeft hij
   // het laden niet stil te leggen.
   const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) || FLAGS.startkeuze === 'vraag';
-  if (FLAGS.startkeuze === 'alleen') zetStartModus('alleen'); // testruns en QA: de kaart overslaan, solo en zonder netwerk
+  if (FLAGS.startkeuze === 'alleen') applyLaunchMode('alleen'); // testruns en QA: de kaart overslaan, solo en zonder netwerk
   if (vraagOnline) beginOnlineStartQuestion();
   // opdracht 21-11: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
   if (!BOOT_WARM_ROUTE) await finishLoading();
@@ -1081,7 +1081,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
     // geeft na een paar pogingen op. Duurt het te lang of kan hij niet beginnen, dan valt de
     // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
-    const onlineNu = magOnline() && startModus() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startchoice.js)
+    const onlineNu = magOnline() && getLaunchMode() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startchoice.js)
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
     const soloKlaar = !onlineNu || sessionBootDone(world) || (soloWachtS > 12 && !sessionBootBezig(world));
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
@@ -1105,7 +1105,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // zoekt het spel een sessie of opent het er zelf een. Zonder toestemming gebeurt hier niets; de wereld
     // loopt gewoon door terwijl er gezocht wordt (sessionboot.js). Wie in het titelscherm al voor Samen
     // spelen koos, houdt de bestaande lobby: die gaat voor.
-    if (!wantsOpenSamen() && startModus() !== 'alleen') sessionBootTick(world, { onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) });
+    if (!wantsOpenSamen() && getLaunchMode() !== 'alleen') sessionBootTick(world, { onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) });
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
@@ -1141,7 +1141,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     planner.setEnabled(!perfOff('planner'));
     window.__streamPlanner = planner; // metingen in Electron: planner.stats()
     const cineNu = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || (world.cineQuiet && performance.now() < world.cineQuiet);
-    planner.beginFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, cine: !!cineNu, pressure: Math.min(1, streamPending().buildings / 24) });
+    planner.openFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, cine: !!cineNu, pressure: Math.min(1, streamPending().buildings / 24) });
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(hoofdspeler(world), world.cameraOverride, tileFollow, dt);

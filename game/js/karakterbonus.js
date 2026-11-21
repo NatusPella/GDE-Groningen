@@ -48,23 +48,23 @@ const factor = (v) => clamp(getal(v, 1), 1, MAX_FACTOR);
 export function farmFractie(karakter, taak, fractie) {
   const f = clamp(getal(fractie, 0), 0, 1);
   if (taak !== 'zaaien' && taak !== 'oogsten') return f;
-  const hulp = clamp(getal(farmBonus(karakter).foutloos, 0), 0, 0.6);
-  return clamp(f + (1 - f) * hulp, 0, 1);
+  const helper = clamp(getal(farmBonus(karakter).foutloos, 0), 0, 0.6);
+  return clamp(f + (1 - f) * helper, 0, 1);
 }
 export const farmOpbrengst = (karakter) => factor(farmBonus(karakter).opbrengst);
-export const farmSnelheid = (karakter) => factor(farmBonus(karakter).snelheid);
+export const farmSpeed = (karakter) => factor(farmBonus(karakter).snelheid);
 
 // Voetbal: de factoren voor de voetbal-sim (een getal om mee te vermenigvuldigen; 1 is neutraal).
 export const voetbalSprint = (karakter) => factor(voetbalBonus(karakter).sprint);
 export const voetbalSchot = (karakter) => factor(voetbalBonus(karakter).schotnauwkeurigheid);
 export const voetbalAanname = (karakter) => factor(voetbalBonus(karakter).aanname);
 // Een kans (0..1) met de aanname-bonus: nooit boven 0,99, zodat een bal nooit gegarandeerd goed gaat.
-export const aannameKans = (karakter, kans) => clamp(getal(kans, 0) * voetbalAanname(karakter), 0, 0.99);
+export const receiveChance = (karakter, kans) => clamp(getal(kans, 0) * voetbalAanname(karakter), 0, 0.99);
 
 const pct = (f) => Math.round((f - 1) * 100);
 
 // De uitleg in beeld (zichtbaar, niet verstopt): een korte regel per gebied met de bonussen in procenten.
-export function uitlegRegel(karakter, gebied) {
+export function explainLine(karakter, gebied) {
   if (karakter === 'anita') {
     if (gebied === 'farm') {
       const b = farmBonus('anita');
@@ -77,7 +77,7 @@ export function uitlegRegel(karakter, gebied) {
 }
 
 // Een korte regel voor een HUD-strook (de strook van de boerderij): leeg voor wie geen bonus heeft.
-export function kortRegel(karakter, gebied) {
+export function shortLine(karakter, gebied) {
   if (karakter !== 'anita') return '';
   return gebied === 'farm' ? `Tessa: boerendochter (${pct(farmBonus('anita').snelheid)}% sneller werk)` : `Tessa: dorpsteam (${pct(voetbalBonus('anita').sprint)}% sprint)`;
 }
@@ -88,16 +88,16 @@ export function kortRegel(karakter, gebied) {
 // fade met een regel) en wisselt terug als de activiteit klaar is. Het eigen personage blijft bewaard (karakterVoorSave), dus een
 // save midden in een activiteit laadt als wie je was. Samen spelen: elke speler wisselt voor zichzelf op zijn eigen apparaat (de
 // staat leeft op zijn eigen wereldobject); in een sessie met vaste personages (#95) blijft het lichaam zoals het is en gelden
-// alleen de Tessa-regels (de bonus) tijdens de activiteit. Voetbal-sim: roep startActiviteit(w, 'voetbal') bij het begin van een
-// wedstrijd of serie en eindActiviteit(w, 'voetbal') bij het einde (ook bij stoppen).
-export const KARAKTER_VOOR_ACTIVITEIT = Object.freeze({ farm: 'anita', voetbal: 'anita' });
-export const karakterVoorActiviteit = (soort) => KARAKTER_VOOR_ACTIVITEIT[soort] || null;
+// alleen de Tessa-regels (de bonus) tijdens de activiteit. Voetbal-sim: roep enterActivity(w, 'voetbal') bij het begin van een
+// wedstrijd of serie en endActivity(w, 'voetbal') bij het einde (ook bij stoppen).
+export const CHARACTER_FOR_ACTIVITY = Object.freeze({ farm: 'anita', voetbal: 'anita' });
+export const characterForActivity = (soort) => CHARACTER_FOR_ACTIVITY[soort] || null;
 export const EINDE_WACHT_S = 4;   // zo lang buiten de machine voor de activiteit als geëindigd telt (even uitstappen wisselt niet)
-const OVERNAME = Object.freeze({ farm: 'Tessa neemt het over: dit is haar terrein.', voetbal: 'Tessa neemt het over: dit is haar veld.' });
-export const overnameTekst = (soort) => OVERNAME[soort] || 'Tessa neemt het over.';
+const SUCCESSION = Object.freeze({ farm: 'Tessa neemt het over: dit is haar terrein.', voetbal: 'Tessa neemt het over: dit is haar veld.' });
+export const successionText = (soort) => SUCCESSION[soort] || 'Tessa neemt het over.';
 
-let haak = null;   // { mag(w) -> bool, toon(w, tekst) }: story.js zet de rustige overgang (fade) en weet wanneer wisselen niet mag
-export function zetWisselHaak(h) { haak = h || null; }
+let hook = null;   // { mag(w) -> bool, toon(w, tekst) }: story.js zet de rustige overgang (fade) en weet wanneer wisselen niet mag
+export function applySwitchHook(h) { hook = h || null; }
 
 const lichaam = (w) => hoofdspeler(w);
 const vast = (w) => !!(w && w.coop && w.coop.fixedChars);
@@ -111,40 +111,40 @@ function ruil(w, want) {
 }
 
 // De activiteit begint. Geeft true als het personage nu gewisseld is. Een tweede aanroep doet niets (houdt de activiteit vast).
-export function startActiviteit(w, soort, via = 'eigen') {
-  const want = karakterVoorActiviteit(soort);
+export function enterActivity(w, soort, via = 'eigen') {
+  const want = characterForActivity(soort);
   const p = lichaam(w);
   if (!w || !p || !want) return false;
   if (w.activiteitKar) { w.activiteitKar.uitSinds = 0; return false; }
-  if (!vast(w) && haak && haak.mag && !haak.mag(w)) return false;   // niet midden in een scene of vlucht: later opnieuw
+  if (!vast(w) && hook && hook.mag && !hook.mag(w)) return false;   // niet midden in een scene of vlucht: later opnieuw
   w.activiteitKar = { soort, vorig: p.character, uitSinds: 0, via };
   if (vast(w) || p.character === want) return false;
   ruil(w, want);
-  if (haak && haak.toon) haak.toon(w, overnameTekst(soort));
-  else if (typeof w.addMessage === 'function') w.addMessage(overnameTekst(soort), 3);
+  if (hook && hook.toon) hook.toon(w, successionText(soort));
+  else if (typeof w.addMessage === 'function') w.addMessage(successionText(soort), 3);
   return true;
 }
 
 // De activiteit is voorbij: terug naar wie je was. Geeft true als er gewisseld is.
-export function eindActiviteit(w, soort) {
+export function endActivity(w, soort) {
   const a = w && w.activiteitKar;
   if (!a || (soort && a.soort !== soort)) return false;
   w.activiteitKar = null;
   if (vast(w)) return false;
   const gewisseld = ruil(w, a.vorig);
-  if (gewisseld && haak && haak.toon) haak.toon(w, a.vorig === 'tammo' ? 'Tammo neemt het weer over.' : 'Tessa neemt het weer over.');
+  if (gewisseld && hook && hook.toon) hook.toon(w, a.vorig === 'tammo' ? 'Tammo neemt het weer over.' : 'Tessa neemt het weer over.');
   return gewisseld;
 }
 
 // Per beeld voor een activiteit zonder eigen begin en einde (de boerderij: in een machine of niet). bezig=false telt pas na
 // EINDE_WACHT_S als einde, zodat even uitstappen niet wisselt. Geeft 'start', 'eind' of null.
-export function volgActiviteit(w, soort, bezig, dt = 0) {
-  if (bezig) return startActiviteit(w, soort, 'beeld') ? 'start' : null;
+export function trackActivity(w, soort, bezig, dt = 0) {
+  if (bezig) return enterActivity(w, soort, 'beeld') ? 'start' : null;
   const a = w && w.activiteitKar;
   if (!a || a.soort !== soort || a.via !== 'beeld') return null;   // een activiteit met eigen einde (bijbaan, serie) beëindigt zichzelf
   a.uitSinds += Number.isFinite(dt) ? dt : 0;
   if (a.uitSinds < EINDE_WACHT_S) return null;
-  eindActiviteit(w, soort);
+  endActivity(w, soort);
   return 'eind';
 }
 
@@ -154,17 +154,17 @@ export function karakterVoorSave(w) {
   return w && w.activiteitKar ? w.activiteitKar.vorig : p ? p.character : 'tammo';
 }
 // Bij laden loopt een activiteit niet door; het personage komt uit de save.
-export function wisActiviteit(w) { if (w) w.activiteitKar = null; }
+export function clearActivity(w) { if (w) w.activiteitKar = null; }
 
 // --- persona-regels: Tessa's achtergrond komt er af en toe terloops in (niet elke klus) -------------------------------------
 export const PERSONA_COOLDOWN_S = 240;
-export const PERSONA_KANS = 0.4;
+export const PERSONA_CHANCE = 0.4;
 const laatst = {};   // per soort: wanneer er voor het laatst een regel kwam (per apparaat, dus per speler)
-export function personaRegel(soort, { rng = Math.random, nu = 0 } = {}) {
+export function personaLine(soort, { rng = Math.random, nu = 0 } = {}) {
   const pool = PERSONA_POOL[soort];
   if (!pool || !pool.length) return null;
   if (Number.isFinite(laatst[soort]) && nu - laatst[soort] < PERSONA_COOLDOWN_S) return null;
-  if (!(rng() < PERSONA_KANS)) return null;
+  if (!(rng() < PERSONA_CHANCE)) return null;
   laatst[soort] = nu;
   return pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
 }
@@ -193,9 +193,9 @@ const PERSONA_POOL = Object.freeze({
     'Tammo: Tessa kent dieren. Ik ken eigenlijk alleen duiven.',
   ]),
 });
-export const PERSONA_SOORTEN = Object.freeze(Object.keys(PERSONA_POOL));
+export const PERSONA_KINDS = Object.freeze(Object.keys(PERSONA_POOL));
 
-export const TESSA_REGELS = Object.freeze({
+export const TESSA_LINES = Object.freeze({
   farm: Object.freeze({
     hud: 'Tessa: boerendochter. Dit gaat mij sneller af, ik ben hier opgegroeid.',
     start: Object.freeze([

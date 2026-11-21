@@ -8,7 +8,7 @@ import { setVaarNet } from './vehicle.js';
 import { tileIndexOf } from './gdt.js';
 import { buildSluizen } from './sluizen.js';
 import { refitHoreca } from './horeca.js';
-import { setBootBron } from './vehicle/bootplekken.js';
+import { configureBoatSource } from './vehicle/bootplekken.js';
 
 let net = null;
 const get = (name) => fetch(new URL(name, location.href).href).then((r) => (r.ok ? r.json() : null)).catch(() => null);
@@ -18,7 +18,7 @@ export async function loadVaarnet(map) {
     const [fixes, file, sluizen, plekken, marinas] = await Promise.all([get('vaarnet_fixes.json'), get('vaarnet.json'), get('sluizen.json'), get('waterplekken.json'), get('marinas.json')]);
     if (sluizen && Array.isArray(sluizen.sluizen)) buildSluizen(sluizen.sluizen);   // the locks work with their gates (sluizen.js, #236)
     if (fixes && map && map.addWaterPatches) { map.addWaterPatches(patchRows(fixes).filter((r) => !r.strip)); refitHoreca(map); } // (the long sea strips: the sea tiles of seatiles.js cover them, #233; a café the patches put in water steps out)
-    if (file && Array.isArray(file.nodes)) { net = createVaarNet(file); setVaarNet(net); setSharedNet(net); setBootBron({ net, plekken, marinas }); }   // (waar een boot logisch ligt of vaart: vehicle/bootplekken.js)
+    if (file && Array.isArray(file.nodes)) { net = createVaarNet(file); setVaarNet(net); setSharedNet(net); configureBoatSource({ net, plekken, marinas }); }   // (waar een boot logisch ligt of vaart: vehicle/bootplekken.js)
   } catch (e) { console.warn('waterway network not loaded', e && e.message); }
 }
 

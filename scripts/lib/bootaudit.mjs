@@ -21,8 +21,8 @@ export async function maakAudit() {
     await W.laadRond(x, y, 500);
     const afmeer = extra.afmeer;
     let b;
-    if (afmeer) b = B.afmeerPlekGeldig(map, x, y, extra.hoek, klasse, { vinger: !!extra.vinger, anderen: extra.anderen, len: extra.len });
-    else b = B.bootPlekBeoordeel(map, x, y, klasse);
+    if (afmeer) b = B.isMooringSpotValid(map, x, y, extra.hoek, klasse, { vinger: !!extra.vinger, anderen: extra.anderen, len: extra.len });
+    else b = B.assessBoatSpot(map, x, y, klasse);
     const k = B.dichtstbijKade(x, y, 400);
     const p = waterPolyAt(map, x, y);
     return { cat, naam, x: Math.round(x), y: Math.round(y), klasse, ok: !!b.ok, reden: b.reden, breedte: b.breedte ?? B.lokaleBreedte(map, x, y), opNet: !!b.opNet, kade: b.kade ?? (k ? k.soort : null), afstKade: k ? Math.round(k.d) : null, water: p ? p.kind : null };

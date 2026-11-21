@@ -70,10 +70,10 @@ export function* graphBuildSteps(graphRoads, h) {
   // een CSR van 100.000+ kanten is een enkele stap te groot: ook hier een yield per blok kanten
   const csr = function* (flat, extra = null) {
     const m = flat.length / 3;
-    const start = new Int32Array(N + 1);
-    for (let e = 0; e < m; e++) { start[flat[e * 3] + 1]++; if (e && e % EDGES_PER_STEP === 0) yield 'tellen'; }
-    for (let i = 0; i < N; i++) start[i + 1] += start[i];
-    const fill = start.slice(0, N);
+    const offsets = new Int32Array(N + 1);
+    for (let e = 0; e < m; e++) { offsets[flat[e * 3] + 1]++; if (e && e % EDGES_PER_STEP === 0) yield 'tellen'; }
+    for (let i = 0; i < N; i++) offsets[i + 1] += offsets[i];
+    const fill = offsets.slice(0, N);
     const to = new Int32Array(m), len = new Float32Array(m);
     const road = extra ? new Int32Array(m) : null;
     for (let e = 0; e < m; e++) {
@@ -83,7 +83,7 @@ export function* graphBuildSteps(graphRoads, h) {
       len[k] = flat[e * 3 + 2];
       if (road) road[k] = extra[e];
     }
-    return { start, to, len, road };
+    return { start: offsets, to, len, road };
   };
   const components = (adj) => {
     const comp = new Int32Array(N).fill(-1);

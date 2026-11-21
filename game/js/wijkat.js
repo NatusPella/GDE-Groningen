@@ -5,20 +5,20 @@
 // neighbourhoodPoints, 66 punten, allemaal in de stad Groningen) ZONDER te kijken of de speler nog in de stad was. Wie in
 // Winsum, bij de Eemshaven of op de A7 stond, kreeg "Nieuwe buurt: Paddepoel-Noord" te horen. Nu geldt:
 //   - met de echte grenzen (grenzen.json): alleen binnen de woonplaats van de stad; daarbuiten is er geen stadswijk;
-//   - zonder grenzen: hooguit MAX_WIJK_AFSTAND meter van een wijkpunt, nooit verder;
+//   - zonder grenzen: hooguit MAX_DISTRICT_DISTANCE meter van een wijkpunt, nooit verder;
 //   - hoog in de lucht (duif, heli, vliegtuig) is er geen wijk: dan telt alleen de woonplaats.
 // Een plek zonder wijk geeft null; de aanroeper valt dan terug op de woonplaats, het dorp of Ommeland, nooit op een stadswijk.
 import { gebiedIn } from './grenzen.js';
 
-export const STAD_WOONPLAATS = 'Groningen';
-export const MAX_WIJK_AFSTAND = 700;   // zonder grenzen: verder dan dit van een wijkpunt is er geen wijk
+export const CITY_LOCALITY = 'Groningen';
+export const MAX_DISTRICT_DISTANCE = 700;   // zonder grenzen: verder dan dit van een wijkpunt is er geen wijk
 export const MAX_HOOGTE = 40;          // boven dit (m boven de grond) in de lucht noemen we geen wijk
 
 const getal = (v) => Number.isFinite(v);
 
 // De echte grenzen, zodra gebiedenbronnen.js ze geladen heeft (daar blijft het laden); tot dan geldt de afstandsgrens.
-let gedeeldeGrenzen = null;
-export const setWijkGrenzen = (g) => { gedeeldeGrenzen = g || null; };
+let sharedBounds = null;
+export const applyDistrictBounds = (g) => { sharedBounds = g || null; };
 
 // Het dichtstbijzijnde wijkpunt, of null. points: [{ name, x, y }]; opts: { grenzen, maxAfstand, hoogte }.
 export function dichtstbijzijnde(points, x, y) {
@@ -32,15 +32,15 @@ export function dichtstbijzijnde(points, x, y) {
   return { punt: best, afstand: bd };
 }
 
-export function wijkAt(points, x, y, opts = {}) {
+export function districtAt(points, x, y, opts = {}) {
   if (!getal(x) || !getal(y)) return null;
-  const { grenzen = gedeeldeGrenzen, maxAfstand = MAX_WIJK_AFSTAND, hoogte = 0 } = opts;
+  const { grenzen = sharedBounds, maxAfstand = MAX_DISTRICT_DISTANCE, hoogte = 0 } = opts;
   if (getal(hoogte) && hoogte > MAX_HOOGTE) return null;
   const { punt, afstand } = dichtstbijzijnde(points, x, y);
   if (!punt) return null;
   if (grenzen && Array.isArray(grenzen.woonplaatsen) && grenzen.woonplaatsen.length) {
     const wp = gebiedIn(grenzen.woonplaatsen, x, y);
-    return wp && wp.naam === STAD_WOONPLAATS ? punt : null;
+    return wp && wp.naam === CITY_LOCALITY ? punt : null;
   }
   return afstand <= maxAfstand ? punt : null;
 }
@@ -48,17 +48,17 @@ export function wijkAt(points, x, y, opts = {}) {
 // Een wijkwissel die je mag melden ("Nieuwe buurt", praatje): alleen bij een echte overgang tussen twee bepaalde wijken,
 // pas na `dwell` seconden in de nieuwe wijk, en niet na een sprong (reizen, laden, teleport, film: meer dan `sprong` meter
 // sinds de vorige meting). Na een sprong is de nieuwe wijk de nieuwe stand zonder melding. Pure toestandsmachine.
-//   const v = maakWijkVolger(); const melding = v.tik(dt, naam, x, y);  // naam of null
+//   const v = createDistrictTracker(); const melding = v.tik(dt, naam, x, y);  // naam of null
 // tik geeft de naam van de wijk als die nu gemeld moet worden, anders null.
-export function maakWijkVolger({ dwell = 3, sprong = 400 } = {}) {
+export function createDistrictTracker({ dwell = 3, sprong = 400 } = {}) {
   const s = { stand: null, kandidaat: null, tijd: 0, x: NaN, y: NaN, begin: true };
   return {
     stand: () => s.stand,
     tik(dt, naam, x, y) {
-      const sprongGemaakt = getal(s.x) && getal(x) && getal(y) && Math.hypot(x - s.x, y - s.y) > sprong;
+      const jumped = getal(s.x) && getal(x) && getal(y) && Math.hypot(x - s.x, y - s.y) > sprong;
       s.x = x; s.y = y;
       if (s.begin) { s.begin = false; s.stand = naam || null; return null; }   // de eerste meting is de beginstand
-      if (sprongGemaakt) { s.stand = naam || null; s.kandidaat = null; s.tijd = 0; return null; }
+      if (jumped) { s.stand = naam || null; s.kandidaat = null; s.tijd = 0; return null; }
       if (!naam) { s.kandidaat = null; s.tijd = 0; s.stand = null; return null; }   // buiten elke wijk: geen melding, wel de stand wissen
       if (naam === s.stand) { s.kandidaat = null; s.tijd = 0; return null; }
       if (s.kandidaat !== naam) { s.kandidaat = naam; s.tijd = 0; return null; }

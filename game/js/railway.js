@@ -86,7 +86,7 @@ let ready = false;
 // --- de treinen volgen het echte rooster (#1085, treindienst.js) -------------------------------------------------
 // main.js geeft een bron: (world) => { dienst, nu, stand } | null. Heeft een spoorlijn legs in de dienst, dan is haar kleine
 // "heen en weer"-trein weg en rijdt er een pool treinen die elk een rit (leg) van het bord spelen: de plek, snelheid, het stilstaan
-// op de haltes en de richting komen uit de spelklok (legStand), niet uit een simulatie, dus overal gelijk (host, gast, bord).
+// op de haltes en de richting komen uit de spelklok (legState), niet uit een simulatie, dus overal gelijk (host, gast, bord).
 // Een trein buiten de wereld (nog niet of niet meer actief) staat niet in getTrains(). Spoorlijnen zonder rooster houden hun eigen dienst.
 const POOL = 8;
 let dienstBron = null;

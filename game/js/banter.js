@@ -20,7 +20,7 @@ import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from '.
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { hoofdspeler } from './spelersregister.js'; // wie er praat is de speler achter dit scherm (#446)
 import { KEYS } from './storagekeys.js';
-import { wijkAt, maakWijkVolger } from './wijkat.js';
+import { districtAt, createDistrictTracker } from './wijkat.js';
 import { banterExchanges, banterLineVoice, storyDataReady } from './storytext.js';
 import { openBank } from './voicebank.js';
 
@@ -76,7 +76,7 @@ registerNarrative('sub-banter', { active: () => !!st.talk && !st.paused });
 function fresh() {
   return {
     ride: 0, lastEnd: 0, checkT: 0, progressT: PROGRESS_EVERY, talk: null, paused: false,
-    pending: [], rest: null, placeCd: new Map(), sitCd: new Map(), situations: [], wijk: null, wijkEntered: null, wijkVolger: maakWijkVolger(),
+    pending: [], rest: null, placeCd: new Map(), sitCd: new Map(), situations: [], wijk: null, wijkEntered: null, wijkVolger: createDistrictTracker(),
     mission: null, job: null, lastImpact: undefined, wanted: 0, flash: -Infinity, weather: '', hour: null, fastT: 0,
     done: new Set(), step: null, places: null,
   };
@@ -221,7 +221,7 @@ function watchWijk(dt) {
   if (!pts) return;
   const { x, y } = hoofdspeler(world);
   // alleen een wijk waar je echt in staat, met een korte verblijfstijd en zonder melding na een sprong (wijkat.js)
-  const best = wijkAt(pts, x, y);
+  const best = districtAt(pts, x, y);
   const gemeld = st.wijkVolger.tik(dt, best ? best.name : null, x, y);
   if (gemeld && WIJK_NAMES.has(gemeld)) st.wijkEntered = { name: gemeld, at: world.time };
   st.wijk = st.wijkVolger.stand();

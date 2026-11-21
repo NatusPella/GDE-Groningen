@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as P from '../game/js/achievementunlock.js';
 import * as D from '../game/js/dsmicro.js';
-import { SNEL_MS, STAP_MS, MAX_TOTAAL_MS } from '../game/js/eindkaartimpact.js';
+import { FAST_MS, STEP_MS, MAX_TOTAAL_MS } from '../game/js/eindkaartimpact.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lees = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -26,10 +26,10 @@ ok(['missies', 'rijden', 'verkennen', 'spoor', 'politie', 'sociaal'].every((c) =
 // ---- het plan van een volle kaart ----
 const vol = P.planPrestatie({ id: 'x', cat: 'rijden', behaald: 12, totaal: 200 });
 ok(vol.impact && !vol.kort && vol.totaal > 0 && vol.totaal <= MAX_TOTAAL_MS, 'een volle kaart duurt hooguit 1,6 s', String(vol.totaal));
-ok(vol.kaart.at === 0 && vol.icoon.at === SNEL_MS && vol.titel.at === 2 * SNEL_MS && vol.beschrijving.at === 3 * SNEL_MS, 'de onderdelen staffelen in stappen van 120 ms');
+ok(vol.kaart.at === 0 && vol.icoon.at === FAST_MS && vol.titel.at === 2 * FAST_MS && vol.beschrijving.at === 3 * FAST_MS, 'de onderdelen staffelen in stappen van 120 ms');
 ok(vol.icoon.eenh === 1 && vol.titel.eenh === 2 && vol.beschrijving.eenh === 3, 'eenh is de tijd in staffelstappen (voor --ds-moment-n)');
 ok(vol.balk.at > vol.beschrijving.at && vol.glans.at >= vol.balk.at + vol.balk.duur, 'de balk komt na de tekst en de glans sluit af');
-ok(vol.balk.duur <= STAP_MS, 'de balk vult hooguit 250 ms');
+ok(vol.balk.duur <= STEP_MS, 'de balk vult hooguit 250 ms');
 ok(vol.balk.van === 11 && vol.balk.naar === 12 && vol.balk.totaal === 200 && vol.balk.pctVan === 5 && vol.balk.pctNaar === 6, 'de balk loopt van 11/200 naar 12/200');
 ok(Math.abs(vol.balk.p - 0.06) < 1e-9, 'p is naar/totaal');
 ok(vol.teller && vol.teller.stappen.length >= 1 && vol.teller.stappen.at(-1).waarde === 12 && vol.teller.stappen[0].waarde > 11 - 1, 'de teller eindigt op het nieuwe aantal');
@@ -71,7 +71,7 @@ for (const nn of [1, 2, 3, 4, 5, 8, 20]) {
   const getoond = p.reduce((s, x) => s + x.aantal, 0);
   ok(getoond === nn && p.length <= 4, `de wachtrij van ${nn} toont elke prestatie precies één keer, in hooguit vier kaarten`, `${getoond}/${p.length}`);
 }
-ok(P.wachtrijStap({ index: 3, resterend: 1 }).variant === 'kort', 'als vierde met één over: kort, geen samenvatting van één');
+ok(P.queueStep({ index: 3, resterend: 1 }).variant === 'kort', 'als vierde met één over: kort, geen samenvatting van één');
 ok(P.verblijfS(6, 'vol') === 6 && P.verblijfS(6, 'kort') === 3.6 && P.verblijfS(3, 'kort') === 2.4 && P.verblijfS(6, 'samenvatting') === 3, 'verblijf: vol gewoon, kort 60% met een vloer van 2,4 s, samenvatting 3 s');
 ok(P.samenvattingTekst(3).titel === 'Nog 3 prestaties' && P.samenvattingTekst(1).titel === 'Nog 1 prestatie', 'de samenvatting is goed Nederlands (enkelvoud en meervoud)');
 ok(P.balkTekst(12, 200) === '12/200 prestaties', 'het balkje zegt "x/y prestaties"');
@@ -79,22 +79,22 @@ ok(P.balkTekst(12, 200) === '12/200 prestaties', 'het balkje zegt "x/y prestatie
 // ---- het menuplan ----
 {
   const gezien = new Set(), mem = new Map();
-  const a = P.menuPlan({ vers: ['p1', 'p2'], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 3 }, { cat: 'spoor', done: 0 }] });
+  const a = P.listPlan({ vers: ['p1', 'p2'], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 3 }, { cat: 'spoor', done: 0 }] });
   ok(a.glans.join() === 'p1,p2' && a.tellers.every((t) => t.stappen.length === 0), 'de eerste keer: de nieuwe rijen glanzen en er telt niets op');
-  const b = P.menuPlan({ vers: ['p1', 'p2', 'p3'], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 5 }, { cat: 'spoor', done: 0 }] });
+  const b = P.listPlan({ vers: ['p1', 'p2', 'p3'], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 5 }, { cat: 'spoor', done: 0 }] });
   ok(b.glans.join() === 'p3', 'een rij glanst maar één keer per sessie');
   const t = b.tellers.find((x) => x.cat === 'rijden');
   ok(t.was === 3 && t.naar === 5 && t.stappen.at(-1).waarde === 5 && t.stappen[0].waarde > 3, 'de categorie-teller tikt van 3 naar 5');
   ok(t.stappen.every((s) => s.t <= 300) && t.stappen.length <= 5, 'de tellerstappen vallen binnen 300 ms en zijn niet meer dan 5');
   ok(b.tellers.find((x) => x.cat === 'spoor').stappen.length === 0, 'een teller zonder verandering tikt niet');
-  const c = P.menuPlan({ vers: ['p9'], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 9 }], rustig: true });
+  const c = P.listPlan({ vers: ['p9'], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 9 }], rustig: true });
   ok(c.glans.length === 0 && c.tellers[0].stappen.length === 0, 'rustig: geen glans en geen teller');
-  const d = P.menuPlan({ vers: [], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 4 }] });
+  const d = P.listPlan({ vers: [], gezien, vorigeTellers: mem, tellers: [{ cat: 'rijden', done: 4 }] });
   ok(d.tellers[0].stappen.at(-1).waarde === 4 && d.tellers[0].stappen.every((s) => s.waarde < 9), 'een teller kan ook omlaag (een nieuw spel)');
 }
 
 // ---- de staffel van de lijstrijen ----
-ok(D.staffelStap(0) === 0 && D.staffelStap(8) === 8 && D.staffelStap(50) === D.STAFFEL_MAX && D.staffelStap(-3) === 0 && D.staffelStap(NaN) === 0, 'de staffelstap is 0 tot 8');
+ok(D.staggerStep(0) === 0 && D.staggerStep(8) === 8 && D.staggerStep(50) === D.STAFFEL_MAX && D.staggerStep(-3) === 0 && D.staggerStep(NaN) === 0, 'de staffelstap is 0 tot 8');
 ok(D.staffelNa(3) === 120 && D.staffelNa(99) === 320 && D.staffelNa(3, true) === 0, 'de vertraging is stap x 40 ms, hooguit 320 ms, 0 bij rustig');
 const rp = D.rijPlan(20);
 ok(rp.length === 20 && rp.filter((r) => r.beweegt).length === D.MAX_GELIJK && rp[11].beweegt && !rp[12].beweegt, 'hooguit 12 rijen bewegen tegelijk, de rest staat er direct');
@@ -108,20 +108,20 @@ ok(D.rijAttr(30, 'm-li').klasse === 'm-li' && D.rijAttr(30, 'm-li').stijl === ''
 ok(D.staffelDuur(5) === 4 * 40 + 250 && D.staffelDuur(0) === 0 && D.staffelDuur(100) <= 320 + 250 + 12 * 0, 'de staffel duurt hooguit 570 ms');
 
 // ---- tab, scroll, eenmalig, budget ----
-ok(JSON.stringify(D.tabLijn([{ left: 10, width: 80 }, { left: 100, width: 120 }], 1, { left: 4 })) === JSON.stringify({ x: 96, w: 120 }), 'de streep zit onder de actieve tab, vanaf de linkerrand van de rij');
-ok(D.tabLijn([], 0).w === 0 && D.tabLijn(null, 0).w === 0, 'zonder tabs geen streep');
+ok(JSON.stringify(D.tabLine([{ left: 10, width: 80 }, { left: 100, width: 120 }], 1, { left: 4 })) === JSON.stringify({ x: 96, w: 120 }), 'de streep zit onder de actieve tab, vanaf de linkerrand van de rij');
+ok(D.tabLine([], 0).w === 0 && D.tabLine(null, 0).w === 0, 'zonder tabs geen streep');
 ok(JSON.stringify(D.scrollRanden({ scrollTop: 0, clientHeight: 100, scrollHeight: 400 })) === JSON.stringify({ boven: false, onder: true }), 'bovenaan vervaagt alleen de onderrand');
 ok(D.scrollRanden({ scrollTop: 150, clientHeight: 100, scrollHeight: 400 }).boven && D.scrollRanden({ scrollTop: 150, clientHeight: 100, scrollHeight: 400 }).onder, 'in het midden vervagen beide randen');
 ok(!D.scrollRanden({ scrollTop: 300, clientHeight: 100, scrollHeight: 400 }).onder, 'onderaan vervaagt de onderrand niet');
 ok(!D.scrollRanden({ scrollTop: 0, clientHeight: 100, scrollHeight: 100 }).onder && !D.scrollRanden({}).boven, 'zonder scrollen vervaagt niets');
 { const s = new Set(); ok(D.eenmalig(s, 'a') === true && D.eenmalig(s, 'a') === false && D.eenmalig(s, 'b') === true, 'eenmalig geeft maar één keer true'); }
 ok(D.budget(new Array(20).fill({}), 12).filter((x) => x.beweegt).length === 12, 'het budget laat er hooguit 12 bewegen');
-ok(D.rustigeStand() === true, 'zonder document geldt de rustige stand (niets beweegt)');
+ok(D.calmState() === true, 'zonder document geldt de rustige stand (niets beweegt)');
 
 // ---- de koppeling ----
 const ui = lees('game/js/achievementsui.js');
-ok(/menuPlan\(/.test(ui) && /rijAttr\(/.test(ui) && /aanNaFrame\(/.test(ui) && /rijenKlaar\(/.test(ui), 'het prestatiemenu gebruikt het menuplan en de rij-helpers');
-ok(/wachtrijStap\(/.test(achSrc) && /planPrestatie\(/.test(achSrc) && /kind: 'prestatiemoment'/.test(achSrc), 'de toast gebruikt het plan, de wachtrij en het moment-geluid');
+ok(/listPlan\(/.test(ui) && /rijAttr\(/.test(ui) && /afterFrame\(/.test(ui) && /rijenKlaar\(/.test(ui), 'het prestatiemenu gebruikt het menuplan en de rij-helpers');
+ok(/queueStep\(/.test(achSrc) && /planPrestatie\(/.test(achSrc) && /kind: 'prestatiemoment'/.test(achSrc), 'de toast gebruikt het plan, de wachtrij en het moment-geluid');
 const audio = lees('game/js/audio.js');
 ok(/case 'prestatiemoment':/.test(audio) && /export function playPrestatieMoment/.test(audio) && /playPrestatieMoment\(e\.naam/.test(audio), 'audio.js speelt het moment-geluid op de sting-bus');
 const body = audio.slice(audio.indexOf('export function playPrestatieMoment'), audio.indexOf('export function playTimeWarning'));
@@ -129,7 +129,7 @@ ok(/bus: stingBus/.test(body) || /\.\.\.sting/.test(body), 'het moment-geluid lo
 ok(!/coopnet|sendCoop|broadcast/.test(achSrc.slice(achSrc.indexOf('function showNextToast'))), 'het moment stuurt niets over het net (lokaal per speler)');
 ok(/isOverlayHeld\('prestatie'\)/.test(achSrc), 'de prestatie wacht op de eindkaart: de slagen overlappen nooit');
 const eind = lees('game/js/eindkaartimpact.js');
-ok(/export function tellerStappen/.test(eind) && /from '\.\/eindkaartimpact\.js'/.test(lees('game/js/achievementunlock.js')), 'de staffel-helper van de eindkaart wordt hergebruikt');
+ok(/export function counterSteps/.test(eind) && /from '\.\/eindkaartimpact\.js'/.test(lees('game/js/achievementunlock.js')), 'de staffel-helper van de eindkaart wordt hergebruikt');
 ok(!/^import/m.test(lees('game/js/dsmicro.js')), 'dsmicro.js heeft geen imports (pure helpers, geen cyclus)');
 
 console.log(`${n - fails}/${n} prestatiemoment-controles groen`);

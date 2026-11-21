@@ -26,7 +26,7 @@ export async function laadBootWereld() {
   map.addWaterPatches(patchRows(json('vaarnet_fixes.json')).filter((r) => !r.strip));
   const net = createVaarNet(json('vaarnet.json'));
   setSharedNet(net);
-  B.setBootBron({ net, plekken: json('waterplekken.json'), marinas: json('marinas.json') });
+  B.configureBoatSource({ net, plekken: json('waterplekken.json'), marinas: json('marinas.json') });
   const loaded = new Set();
   // laad de tegels rond (x, y) tot straal r (rooster van 3 x 3 rond het punt)
   async function laadRond(x, y, r = 700) {

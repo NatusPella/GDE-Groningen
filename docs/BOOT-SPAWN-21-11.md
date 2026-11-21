@@ -29,21 +29,21 @@ De tabel komt uit `vaarnet.MIN_WIDTH` (dezelfde breedte waaronder water niet in 
 
 ## Afgemeerd
 
-`afmeerPlekGeldig`: de plek is geldig water, een anker ligt binnen 30 m, de hartlijn ligt hoogstens 4,5 m van de oever (dus niet midden in het water), de boot ligt **evenwijdig** aan de oeverlijn (marge 0,55 rad), niet op een brug (brugopening) en niet op een andere boot (afstand minstens de bootlengte). Ligplaatsen in een jachthaven liggen met de neus naar de steiger (`vinger: true`): daar tellen water, breedte, anker en de onderlinge afstand (de breedte).
+`isMooringSpotValid`: de plek is geldig water, een anker ligt binnen 30 m, de hartlijn ligt hoogstens 4,5 m van de oever (dus niet midden in het water), de boot ligt **evenwijdig** aan de oeverlijn (marge 0,55 rad), niet op een brug (brugopening) en niet op een andere boot (afstand minstens de bootlengte). Ligplaatsen in een jachthaven liggen met de neus naar de steiger (`vinger: true`): daar tellen water, breedte, anker en de onderlinge afstand (de breedte).
 
 ## Waar de regel zit
 
 | Plek | Wat |
 | --- | --- |
-| `spawnBoatOnWater` (vehicle/boatwater.js) | elke kandidaat uit de kanaalpunten gaat door `bootPlekGeldig`: ambient AI, politieboot, zeeschepen, golven. `opts.plek === false` voor wie de plek zelf kiest (verhuur en eigen boot bij de steiger, de warmup) |
+| `spawnBoatOnWater` (vehicle/boatwater.js) | elke kandidaat uit de kanaalpunten gaat door `isBoatSpotValid`: ambient AI, politieboot, zeeschepen, golven. `opts.plek === false` voor wie de plek zelf kiest (verhuur en eigen boot bij de steiger, de warmup) |
 | `manageBoatPopulation` | via `spawnBoatOnWater`; de uitkijk (`spawnWouldPop`) houdt de spawn buiten beeld, dus geen pop-in |
 | `countrylife.spawnBoat` | de decorboten op de maren (polderslootjes van 7 m) vervallen op elke plek die niet logisch is |
-| `spawnJobBoat` (sidejobkit.js), `spawnStoryBoat` en `spawnMissionBoat` (missions.js) | `leggBootGeldig`: een bijbaan- of missieboot vervalt nooit, maar schuift naar de dichtstbijzijnde geldige plek binnen 120 m waar de romp vrij ligt |
+| `spawnJobBoat` (sidejobkit.js), `spawnStoryBoat` en `spawnMissionBoat` (missions.js) | `ensureBoatValid`: een bijbaan- of missieboot vervalt nooit, maar schuift naar de dichtstbijzijnde geldige plek binnen 120 m waar de romp vrij ligt |
 | `bootPlekOpKaart` (bootplek.js, Reis nu met boot en de kaartsprong) | zoekt eerst alleen geldige plekken, daarna zoals voorheen alleen water (de sprong gaat voor) |
 | `shops.initShops` | meldt de verhuursteigers als anker aan (`voegAnkersToe`) |
-| `vaarload.loadVaarnet` | geeft het vaarnet, `waterplekken.json` en `marinas.json` aan `setBootBron` |
+| `vaarload.loadVaarnet` | geeft het vaarnet, `waterplekken.json` en `marinas.json` aan `configureBoatSource` |
 
-Het zoeken naar een andere plek is `vindGeldigeBootPlek` (ringen van 6 m, eerst de vaargeul, maximaal 150 m, anders `null`: de boot vervalt). Resultaten worden per cel (3 m voor de breedte, 0,5 m voor de plek) en per kaart onthouden en gewist zodra de watertegels veranderen (`map._waterVer`).
+Het zoeken naar een andere plek is `findValidBoatSpot` (ringen van 6 m, eerst de vaargeul, maximaal 150 m, anders `null`: de boot vervalt). Resultaten worden per cel (3 m voor de breedte, 0,5 m voor de plek) en per kaart onthouden en gewist zodra de watertegels veranderen (`map._waterVer`).
 
 ## Samen spelen
 
@@ -72,5 +72,5 @@ Noot: de verhuursteigers (Hoge der A, Noorderhaven) lagen 108 en 149 m van een b
 
 - Race- en minigameboten (regatta, bruggenrace, skutsje) volgen een vaste route; die staan niet in de audit.
 - De decorboot bij dorpsuitjes (`dorpsuitjes.js`) staat op een dorpsvijver of waterkant van het uitje zelf; niet gemeten.
-- De missieboten van akte 2 (M11 rubberboot) en akte 4 (Veendam) zijn alleen via `leggBootGeldig` afgedekt, niet in de audit gemeten (de coördinaten staan als lengte en breedtegraad).
+- De missieboten van akte 2 (M11 rubberboot) en akte 4 (Veendam) zijn alleen via `ensureBoatValid` afgedekt, niet in de audit gemeten (de coördinaten staan als lengte en breedtegraad).
 - Beeldcheck gevraagd: een jachthaven of verhuursteiger op het scherm (boten evenwijdig of neus naar de steiger), en een wandeling langs een polderkanaal zonder boten op de maren.

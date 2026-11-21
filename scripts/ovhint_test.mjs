@@ -1,21 +1,21 @@
 // De lichte OV-/taxihint (game/js/ovhint.js, #1091):  node scripts/ovhint_test.mjs
 import * as H from '../game/js/ovhint.js';
-import { OV_HINT_REGELS } from '../game/js/ovhintlines.js';
+import { OV_HINT_LINES } from '../game/js/ovhintlines.js';
 import * as T from '../game/js/storytravel.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
 const basis = () => ({ goal: { x: 10000, y: 0 }, speler: { x: 0, y: 0 }, nu: 1000, nuMs: 1e12, aan: true, rol: null, vervoer: 'voet', halteNabij: true, geld: 100, bezet: {} });
-const best = (i, s = H.verseStand(), z = H.verseSessie(), rnd = () => 0) => H.beslis(i, s, z, { rnd });
+const best = (i, s = H.freshState(), z = H.verseSessie(), rnd = () => 0) => H.beslis(i, s, z, { rnd });
 
 // de regels zelf: Nederlands, een toets-token, 3 tot 5 varianten, voor elke soort, geen namen van personages
-ok(OV_HINT_REGELS.length >= 3 && OV_HINT_REGELS.length <= 6, 'aantal varianten', OV_HINT_REGELS.length);
-ok(new Set(OV_HINT_REGELS.map((r) => r.id)).size === OV_HINT_REGELS.length, 'unieke id');
-ok(OV_HINT_REGELS.every((r) => r.tekst.includes('{M}') && !r.say.includes('{') && r.say.length > 10), 'token in de tekst, niet in de gesproken zin');
-ok(OV_HINT_REGELS.every((r) => !/Tammo|Tessa|Anita/.test(r.tekst + r.say)), 'geen personagenamen: beide kunnen het zeggen');
-ok(OV_HINT_REGELS.every((r) => r.tekst.replace('{M}', '') === r.say.replace(/ \(?\)?/g, ' ') || true), 'tekst en say bestaan');
-ok(H.soortenVoor({ halteNabij: false }).every((s) => s === 'taxi') && OV_HINT_REGELS.some((r) => r.soort === 'taxi'), 'zonder halte alleen taxiregels');
-ok(OV_HINT_REGELS.filter((r) => r.soort === 'beide').length >= 2, 'minstens twee varianten met OV');
+ok(OV_HINT_LINES.length >= 3 && OV_HINT_LINES.length <= 6, 'aantal varianten', OV_HINT_LINES.length);
+ok(new Set(OV_HINT_LINES.map((r) => r.id)).size === OV_HINT_LINES.length, 'unieke id');
+ok(OV_HINT_LINES.every((r) => r.tekst.includes('{M}') && !r.say.includes('{') && r.say.length > 10), 'token in de tekst, niet in de gesproken zin');
+ok(OV_HINT_LINES.every((r) => !/Tammo|Tessa|Anita/.test(r.tekst + r.say)), 'geen personagenamen: beide kunnen het zeggen');
+ok(OV_HINT_LINES.every((r) => r.tekst.replace('{M}', '') === r.say.replace(/ \(?\)?/g, ' ') || true), 'tekst en say bestaan');
+ok(H.kindsFor({ halteNabij: false }).every((s) => s === 'taxi') && OV_HINT_LINES.some((r) => r.soort === 'taxi'), 'zonder halte alleen taxiregels');
+ok(OV_HINT_LINES.filter((r) => r.soort === 'beide').length >= 2, 'minstens twee varianten met OV');
 
 // basis: ver doel, te voet, halte dichtbij: een hint, met OV erbij
 let b = best(basis());
@@ -34,7 +34,7 @@ ok(best({ ...basis(), goal: null }) === null, 'geen doel');
 // uitsluitingen
 for (const r of H.BEZET_REDENEN) ok(best({ ...basis(), bezet: { [r]: true } }) === null, `bezet: ${r}`);
 ok(H.bezetReden({}) === null && H.bezetReden({ missie: true, kaart: true }) === 'missie', 'bezetReden: eerste wint');
-for (const v of H.VERVOER_STIL) ok(best({ ...basis(), vervoer: v }) === null, `al in ${v}`);
+for (const v of H.SILENT_TRANSPORT) ok(best({ ...basis(), vervoer: v }) === null, `al in ${v}`);
 ok(best({ ...basis(), vervoer: 'auto' }) !== null && best({ ...basis(), vervoer: 'fiets' }) !== null, 'in de auto of op de fiets mag het wel');
 ok(best({ ...basis(), aan: false }) === null, 'Uitleg voor nieuwe spelers uit: geen hint');
 ok(best({ ...basis(), rol: 'gast' }) === null, 'Samen spelen: een gast kan niet reizen, geen hint');
@@ -42,7 +42,7 @@ ok(best({ ...basis(), rol: 'host' }) !== null, 'Samen spelen: wie het spel opend
 
 // cooldown en een hint per doel
 {
-  const s = H.verseStand(), z = H.verseSessie();
+  const s = H.freshState(), z = H.verseSessie();
   const d1 = H.beslis(basis(), s, z, { rnd: () => 0 });
   const s2 = H.gaToond(s, z, d1, 1000);
   ok(s2.getoond === 1 && s2.laatsteId === d1.regel.id, 'stand telt het getoonde');
@@ -56,12 +56,12 @@ ok(best({ ...basis(), rol: 'host' }) !== null, 'Samen spelen: wie het spel opend
 
 // onthouden per speler: gebruik en doorzaaien
 {
-  let s = H.verseStand();
+  let s = H.freshState();
   ok(H.beslis({ ...basis(), nuMs: 1e12 }, H.noteGebruikt(s, 1e12 - 1000), H.verseSessie()) === null, 'net een rit gemaakt: stil');
   ok(H.beslis({ ...basis(), nuMs: 1e12 + H.STIL_NA_GEBRUIK_MS + 1 }, H.noteGebruikt(s, 1e12), H.verseSessie()) !== null, 'lang geleden: weer mogelijk');
   let g = s; for (let k = 0; k < H.GENOEG_GEBRUIKT; k++) g = H.noteGebruikt(g, 1);
   ok(H.beslis(basis(), g, H.verseSessie()) === null, 'vaak gebruikt: de speler weet het');
-  const veel = { ...s, getoond: H.MAX_ZONDER_GEBRUIK };
+  const veel = { ...s, getoond: H.MAX_UNUSED_SHOWS };
   ok(H.beslis(basis(), veel, H.verseSessie()) === null, 'vaak getoond zonder gebruik: zwijgt');
   ok(H.beslis(basis(), { ...veel, gebruikt: 1, gebruiktOp: 1 }, H.verseSessie()) !== null, 'wel eens gebruikt: geen plafond voor getoond');
 }
@@ -70,20 +70,20 @@ ok(best({ ...basis(), rol: 'host' }) !== null, 'Samen spelen: wie het spel opend
 {
   const soorten = ['beide', 'taxi'];
   let laatste = '', herhaald = 0;
-  for (let k = 0; k < 200; k++) { const r = H.kiesRegel(soorten, laatste); if (r.id === laatste) herhaald++; laatste = r.id; }
+  for (let k = 0; k < 200; k++) { const r = H.pickLine(soorten, laatste); if (r.id === laatste) herhaald++; laatste = r.id; }
   ok(herhaald === 0, 'geen herhaling achter elkaar', herhaald);
-  const gezien = new Set(); for (let k = 0; k < 400; k++) gezien.add(H.kiesRegel(soorten, '').id);
-  ok(gezien.size === OV_HINT_REGELS.length, 'alle varianten komen voorbij');
-  ok(H.kiesRegel(['bestaatniet'], '') === null, 'geen regels: null');
+  const gezien = new Set(); for (let k = 0; k < 400; k++) gezien.add(H.pickLine(soorten, '').id);
+  ok(gezien.size === OV_HINT_LINES.length, 'alle varianten komen voorbij');
+  ok(H.pickLine(['bestaatniet'], '') === null, 'geen regels: null');
 }
 
 // opslag: kapot is leeg, rond is gelijk
-ok(JSON.stringify(H.leesStand('{kapot')) === JSON.stringify(H.verseStand()), 'kapotte opslag: leeg');
-ok(JSON.stringify(H.leesStand(null)) === JSON.stringify(H.verseStand()), 'geen opslag: leeg');
-ok(H.leesStand('{"getoond":-3,"gebruikt":"x"}').getoond === 0, 'rommel wordt 0');
+ok(JSON.stringify(H.readState('{kapot')) === JSON.stringify(H.freshState()), 'kapotte opslag: leeg');
+ok(JSON.stringify(H.readState(null)) === JSON.stringify(H.freshState()), 'geen opslag: leeg');
+ok(H.readState('{"getoond":-3,"gebruikt":"x"}').getoond === 0, 'rommel wordt 0');
 {
   const s = { getoond: 2, gebruikt: 1, gebruiktOp: 123, laatsteId: 'taxi-bel' };
-  ok(JSON.stringify(H.leesStand(H.stand2json(s))) === JSON.stringify(s), 'rondje opslag');
+  ok(JSON.stringify(H.readState(H.state2json(s))) === JSON.stringify(s), 'rondje opslag');
 }
 ok(H.sprekerVoor('anita') === 'Tammo' && H.sprekerVoor('tammo') === 'Anita' && H.sprekerVoor(undefined) === 'Anita', 'het andere personage spreekt');
 

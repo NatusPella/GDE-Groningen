@@ -55,7 +55,7 @@ import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
-import { wijkAt } from './wijkat.js';
+import { districtAt } from './wijkat.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
@@ -68,7 +68,7 @@ import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
-import { bepaalNavDoelen, snapshotUitWereld, afstandVoor, navKleur, NAV_ROL, GLYPH } from './navdoel.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, NAV_ROL, GLYPH } from './navdoel.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -926,7 +926,7 @@ function currentDistrict(world) {
   // The ~66 named neighbourhood/quarter points give a genre-style district name ("Binnenstad", "Ebbingekwartier", ...), but
   // only where the player really is in the city (wijkat.js): outside it the nearest point of the city is no wijk (before,
   // a spot in Winsum or on the A7 was "Paddepoel-Noord"). Out of the city and the wijken it is the place or Ommeland.
-  const wijk = wijkAt(meta.neighbourhoodPoints || [], x, y);
+  const wijk = districtAt(meta.neighbourhoodPoints || [], x, y);
   if (wijk) return wijk.name;
   for (const d of meta.districts || []) {
     for (const ring of d.rings) {
@@ -949,7 +949,7 @@ export function placeLabel(world, x, y) {
   for (const l of world.map.meta.landmarks || []) {
     if (Math.hypot(l.x - x, l.y - y) <= 90) return { name: l.name, country: false, district: '', line: LANDMARK_LINES[l.name] || '' };
   }
-  const wijk = wijkAt(world.map.meta.neighbourhoodPoints || [], x, y);
+  const wijk = districtAt(world.map.meta.neighbourhoodPoints || [], x, y);
   const best = wijk ? wijk.name : '';
   if (!best) { const a = areaNameAt(x, y); return { name: a.name || 'Grunn', country: false, district: a.name || '', line: townTeaser(a.name) }; }
   return { name: best, country: false, district: best, line: wijkBlurb(best) };
@@ -3004,7 +3004,7 @@ function drawMinimap(dt, world) {
   const careRoute = getCareRoute();
   const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
   const goalNu = getGoal();
-  const nav = bepaalNavDoelen(snapshotUitWereld(world, {
+  const nav = resolveNavTargets(snapshotFromWorld(world, {
     speler: { x: player.x, y: player.y }, modus: mmMode, busyGame, goal: goalNu, missieOpKaart: missionOnMap(world),
     heli: heliMarks && heliMarks.target ? heliMarks.target : null,
     groep: [dichtstbijDoel(gastDoelLijst, player.x, player.y), dichtstbijDoel(eigenGroepDoelen, player.x, player.y)].filter(Boolean).map((r) => r.doel).concat(gastStart ? [gastStart] : []),
@@ -3176,7 +3176,7 @@ function drawMinimap(dt, world) {
   for (const d of [...nav.secundair, ...(nav.actief ? [nav.actief] : [])]) {
     if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de markering aan de rand is voor wat buiten de kaart ligt
     const actief = d.rol === 'actief';
-    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navKleur(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(afstandVoor(d, actieveRoute)) : '' });
+    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(distanceFor(d, actieveRoute)) : '' });
   }
   drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion() });
 }

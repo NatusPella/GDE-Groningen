@@ -29,7 +29,7 @@ import { glyphHtml } from './keycap.js';
 import { createSharedPreview } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { reducedMotion } from './motion.js';
-import { geldSpec, wapenSpec, kledingSpec, etenSpec, meubelSpec, kaartSpec, upgradeSpec, modelLabel } from './spullen3d.js';
+import { moneySpec, wapenSpec, kledingSpec, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
 import { CATS, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
 // Phosphor-pictogrammen via icons.js (21-11), per categorie van deze lijst
@@ -198,7 +198,7 @@ function collect(w) {
 
   out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant',
     desc: 'Wat je op zak hebt om uit te geven. Waar het vandaan kwam en waar het heen ging, staat eronder in het kasboek.',
-    how: 'Missies, bijbaantjes en verkopen', perk: 'Gepakt worden kost een boete per ster', ledger: true, viewer: geldSpec(w.money) });
+    how: 'Missies, bijbaantjes en verkopen', perk: 'Gepakt worden kost een boete per ster', ledger: true, viewer: moneySpec(w.money) });
 
   const stock = new Map(WEAPON_STOCK.map((s) => [s.key, s]));
   const guns = Object.keys(WEAPONS).filter((k) => k !== 'fists' && !['throw', 'rocket'].includes(WEAPONS[k].kind));
@@ -266,20 +266,20 @@ function collect(w) {
   }
 
   const nogStempels = Math.max(0, shop.stampCard - shop.stamps);
-  out.push({ key: 'k:stempels', cat: 'kaart', viewer: kaartSpec('stempels'), icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`,
+  out.push({ key: 'k:stempels', cat: 'kaart', viewer: cardSpec('stempels'), icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`,
     desc: 'Elke aankoop bij Krant & Kauwgom levert een stempel. Vol is inleveren voor iets leuks.',
     how: 'Krant & Kauwgom', rows: [['Stand', nogStempels ? `nog ${nogStempels} ${nogStempels === 1 ? 'stempel' : 'stempels'}` : 'vol, inleveren maar']] });
   let jr = null;
   try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
-  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', viewer: kaartSpec('aanwijzingen'), icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`,
+  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', viewer: cardSpec('aanwijzingen'), icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`,
     desc: 'Alles wat je onderweg hoorde en zag over het verhaal. De volledige tekst staat bij Verhaal.', how: 'Verhaal',
     link: ['verhaal', 'Naar Verhaal'] });
   const eieren = getSaveSet('eierballen').size;
-  out.push({ key: 'k:eieren', cat: 'kaart', viewer: kaartSpec('eieren'), icon: 'kaart', title: 'Eierballen', sub: `${eieren} van ${EIERBAL_TOTAL} gevonden`,
+  out.push({ key: 'k:eieren', cat: 'kaart', viewer: cardSpec('eieren'), icon: 'kaart', title: 'Eierballen', sub: `${eieren} van ${EIERBAL_TOTAL} gevonden`,
     desc: 'Verstopt bij de bezienswaardigheden van de provincie. Zoeken maar.',
     link: ['todo', 'Naar Te doen'] });
   const geheimen = getSaveSet('geheimen').size;
-  out.push({ key: 'k:geheim', cat: 'kaart', viewer: kaartSpec('geheim'), icon: 'kaart', title: 'Geheimpjes', sub: `${geheimen} van ${SECRETS_TOTAL} gevonden`,
+  out.push({ key: 'k:geheim', cat: 'kaart', viewer: cardSpec('geheim'), icon: 'kaart', title: 'Geheimpjes', sub: `${geheimen} van ${SECRETS_TOTAL} gevonden`,
     desc: 'Kleine geheimpjes, hier en daar verstopt. We verklappen niks.',
     link: ['todo', 'Naar Te doen'] });
 

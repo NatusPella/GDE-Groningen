@@ -37,9 +37,9 @@ ok(sier.filter((r) => r.vervallen).length >= 90, 'de maar-decorboten vervallen (
 const rnd = seeded(5), b = A.W.net.nodes.filter((x) => x.type === 'haven')[3];
 await A.W.laadRond(b.x, b.y, 500);
 let t0 = performance.now();
-for (let i = 0; i < 400; i++) A.B.bootPlekGeldig(A.map, b.x + (rnd() - 0.5) * 300, b.y + (rnd() - 0.5) * 300, 'sloep');
+for (let i = 0; i < 400; i++) A.B.isBoatSpotValid(A.map, b.x + (rnd() - 0.5) * 300, b.y + (rnd() - 0.5) * 300, 'sloep');
 const koud = (performance.now() - t0) / 400;
-ok(koud < 1, `bootPlekGeldig koud < 1 ms: ${koud.toFixed(3)} ms`);
+ok(koud < 1, `isBoatSpotValid koud < 1 ms: ${koud.toFixed(3)} ms`);
 
 console.log(`boot_spawn: ${n - fails}/${n} checks passed (vast ${vast.length}, AI ${ai.length})`);
 process.exit(fails ? 1 : 0);

@@ -1,7 +1,7 @@
 // Bot-sim van de voetbalwedstrijd (#981): 100 wedstrijden computer tegen computer, met statistiek en bewakers: scripts/voetbal_botsim.mjs [aantal] [--duur=kort|normaal] [--stand=standaard] [--stil]
 // Eisen: gemiddeld 2 tot 5 doelpunten per wedstrijd, geen vastlopers (een wedstrijd die niet eindigt, een bal die lang stilligt zonder drager), geen NaN, niemand buiten het veld.
-import { maakWedstrijd, tikWedstrijd } from '../game/js/voetbalmatch.js';
-import { VELD } from '../game/js/voetbalrules.js';
+import { makeMatch, tikWedstrijd } from '../game/js/voetbalmatch.js';
+import { PITCH } from '../game/js/voetbalrules.js';
 
 const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : d; };
 const aantal = +(process.argv.find((x) => /^\d+$/.test(x)) || 100);
@@ -10,7 +10,7 @@ const stil = process.argv.includes('--stil');
 const DT = 1 / 30;
 
 export function speelWedstrijd(seed, { duur = 'normaal', stand = 'standaard', formaat = 'klein', stijl = 'evenwichtig' } = {}) {
-  const m = maakWedstrijd([], { duur, stand, seed, tegenstander: seed % 5, aiBeide: true, formaat, stijl });
+  const m = makeMatch([], { duur, stand, seed, tegenstander: seed % 5, aiBeide: true, formaat, stijl });
   const r = { seed, goals: 0, score: null, schoten: 0, overtredingen: 0, uit: 0, nan: 0, buiten: 0, vast: 0, langstStil: 0, stappen: 0, eindigde: false, fases: {}, redd: 0, tackles: 0, passes: 0, lang: 0, hervattingen: {} };
   let stilT = 0;
   const max = Math.ceil((m.duurHelft * 2 + 60) / DT) + 4000;
@@ -30,7 +30,7 @@ export function speelWedstrijd(seed, { duur = 'normaal', stand = 'standaard', fo
     if (![b.x, b.y, b.z, b.vx, b.vy, b.vz].every(Number.isFinite)) r.nan++;
     for (const p of m.spelers) {
       if (![p.x, p.y, p.vx, p.vy, p.face, p.stamina].every(Number.isFinite)) r.nan++;
-      else if (Math.abs(p.x) > VELD.B / 2 + 0.01 || Math.abs(p.y) > VELD.L / 2 + 0.01) r.buiten++;
+      else if (Math.abs(p.x) > PITCH.B / 2 + 0.01 || Math.abs(p.y) > PITCH.L / 2 + 0.01) r.buiten++;
     }
     r.fases[m.fase] = (r.fases[m.fase] || 0) + 1;
     // een vastloper: in het spel ligt de bal bijna stil zonder drager (of een herstart wacht eindeloos)

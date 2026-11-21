@@ -104,8 +104,8 @@ een gast ziet zijn eigen spullen. Er is geen EXTRA-bericht, geen snapshot en gee
 
 - `game/js/models3d_spullen.js`: een bouwer per soort, met parameters (geld: niveau; vis: vorm, lengte, hoogte, rug, buik, vin, strepen, bek, snor;
   mosterd: kleur van de saus; bel en neon: kleur). `scene3d.js` is niet aangeraakt.
-- `game/js/spullen3d.js`: puur (geen three); de tabellen en de bouwers van de specs (`wapenSpec`, `kledingSpec`, `etenSpec`, `meubelSpec`, `kaartSpec`,
-  `upgradeSpec`, `geldSpec`), de `VIS_LOOK`-tabel en de `TERUGVAL`-lijst.
+- `game/js/spullen3d.js`: puur (geen three); de tabellen en de bouwers van de specs (`wapenSpec`, `kledingSpec`, `etenSpec`, `meubelSpec`, `cardSpec`,
+  `upgradeSpec`, `moneySpec`), de `VIS_LOOK`-tabel en de `TERUGVAL`-lijst.
 - Low-poly, procedureel, verzonnen of generiek, geen merken, geen letters of tekst op de modellen (de test bewaakt dat de nieuwe module geen canvas gebruikt).
   Kleuren zijn vaste hexwaarden in dezelfde stijl als `shopmodels3d.js`, door `dsWereld` (het wereldpalet) gehaald.
 - Materialen zijn gedeeld per kleur (`markShared`), geometrie hoort bij de mesh en gaat weg bij dispose. Budget: 6.000 driehoeken per model; het zwaarste

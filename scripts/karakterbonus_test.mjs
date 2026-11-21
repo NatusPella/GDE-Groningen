@@ -31,7 +31,7 @@ t('de tabel heeft de afgesproken sleutels en gezonde getallen', () => {
   assert.equal(K.KARAKTER_BONUS.anita.farm.snelheid, 1.15);
 });
 t('balans: de bonus is klein (hooguit 15% op farm-tempo, 10% op voetbal)', () => {
-  assert.ok(K.farmSnelheid('anita') <= 1.15 && K.farmOpbrengst('anita') <= 1.05);
+  assert.ok(K.farmSpeed('anita') <= 1.15 && K.farmOpbrengst('anita') <= 1.05);
   assert.ok(K.voetbalSprint('anita') <= 1.1 && K.voetbalSchot('anita') <= 1.1 && K.voetbalAanname('anita') <= 1.1);
 });
 t('farmFractie: alleen zaaien en oogsten, nooit boven 1, nooit onder het origineel, geen NaN', () => {
@@ -45,24 +45,24 @@ t('farmFractie: alleen zaaien en oogsten, nooit boven 1, nooit onder het origine
   for (const f of [NaN, undefined, -3, 9, Infinity]) { const r = K.farmFractie('anita', 'oogsten', f); assert.ok(Number.isFinite(r) && r >= 0 && r <= 1, String(f)); }
 });
 t('voetbalfactoren en aannamekans: begrensd en zonder NaN', () => {
-  assert.ok(K.aannameKans('anita', 0.5) > K.aannameKans('tammo', 0.5));
-  assert.equal(K.aannameKans('anita', 0.95), 0.99);
-  assert.equal(K.aannameKans('anita', NaN), 0);
+  assert.ok(K.receiveChance('anita', 0.5) > K.receiveChance('tammo', 0.5));
+  assert.equal(K.receiveChance('anita', 0.95), 0.99);
+  assert.equal(K.receiveChance('anita', NaN), 0);
   assert.equal(K.voetbalSprint('tammo'), 1);
 });
 t('de uitleg toont de bonus voor Tessa en de eerlijke regel voor Tammo', () => {
-  assert.match(K.uitlegRegel('anita', 'farm'), /boerendochter/);
-  assert.match(K.uitlegRegel('anita', 'farm'), /15%/);
-  assert.match(K.uitlegRegel('anita', 'voetbal'), /dorpsteam/);
-  assert.equal(K.uitlegRegel('tammo', 'farm'), '');
-  assert.equal(K.kortRegel('tammo', 'farm'), '');
-  assert.match(K.kortRegel('anita', 'farm'), /boerendochter/);
+  assert.match(K.explainLine('anita', 'farm'), /boerendochter/);
+  assert.match(K.explainLine('anita', 'farm'), /15%/);
+  assert.match(K.explainLine('anita', 'voetbal'), /dorpsteam/);
+  assert.equal(K.explainLine('tammo', 'farm'), '');
+  assert.equal(K.shortLine('tammo', 'farm'), '');
+  assert.match(K.shortLine('anita', 'farm'), /boerendochter/);
 });
 t('de teksten: Nederlands, zonder echte merken of winter, en de prestatie hoort bij de definitie', () => {
-  const alle = JSON.stringify(K.TESSA_REGELS) + K.LORE;
+  const alle = JSON.stringify(K.TESSA_LINES) + K.LORE;
   assert.ok(!/sneeuw|winter|ijs\b/i.test(alle));
   assert.ok(!/Groningen/.test(K.LORE), 'het platteland is niet Groningen');
-  assert.equal(K.TESSA_REGELS.prestatie.titel, 'Boerendochter');
+  assert.equal(K.TESSA_LINES.prestatie.titel, 'Boerendochter');
 });
 t('werktuigen en werkgang: Tessa mag harder werken zonder slordig te zijn; Tammo niet', () => {
   assert.equal(WT.nieuwWerk('zaaien', {}).vMax, WT.BANDEN.zaaien.vMax);
@@ -100,76 +100,76 @@ t('boerderijlive.rondAf: boeren doe je als Tessa, dus de bonus geldt voor wie de
 });
 const wereld = (kar = 'tammo', extra = {}) => ({ player: { character: kar }, companion: { character: kar === 'tammo' ? 'anita' : 'tammo' }, msgs: [], addMessage(t) { this.msgs.push(t); }, ...extra });
 t('wissel: farm en voetbal worden gespeeld als Tessa, daarna terug naar het vorige personage; maat ruilt mee', () => {
-  K.zetWisselHaak(null);
+  K.applySwitchHook(null);
   for (const soort of ['farm', 'voetbal']) {
     const w = wereld('tammo');
-    assert.equal(K.startActiviteit(w, soort), true);
+    assert.equal(K.enterActivity(w, soort), true);
     assert.equal(w.player.character, 'anita'); assert.equal(w.companion.character, 'tammo');
     assert.match(w.msgs[0], /Tessa neemt het over: dit is haar/);
-    assert.equal(K.startActiviteit(w, soort), false, 'tweede start doet niets');
-    assert.equal(K.eindActiviteit(w, soort), true);
+    assert.equal(K.enterActivity(w, soort), false, 'tweede start doet niets');
+    assert.equal(K.endActivity(w, soort), true);
     assert.equal(w.player.character, 'tammo'); assert.equal(w.companion.character, 'anita'); assert.equal(w.activiteitKar, null);
   }
   const t2 = wereld('anita');
-  assert.equal(K.startActiviteit(t2, 'farm'), false, 'Tessa hoeft niet te wisselen');
-  assert.equal(K.eindActiviteit(t2, 'farm'), false); assert.equal(t2.player.character, 'anita');
+  assert.equal(K.enterActivity(t2, 'farm'), false, 'Tessa hoeft niet te wisselen');
+  assert.equal(K.endActivity(t2, 'farm'), false); assert.equal(t2.player.character, 'anita');
 });
 t('wissel: de haak bepaalt de overgang en kan wisselen uitstellen (scene, vlucht)', () => {
   const tekst = []; let mag = false;
-  K.zetWisselHaak({ mag: () => mag, toon: (w, x) => tekst.push(x) });
+  K.applySwitchHook({ mag: () => mag, toon: (w, x) => tekst.push(x) });
   const w = wereld('tammo');
-  assert.equal(K.startActiviteit(w, 'farm'), false); assert.equal(w.player.character, 'tammo'); assert.equal(w.activiteitKar, undefined);
+  assert.equal(K.enterActivity(w, 'farm'), false); assert.equal(w.player.character, 'tammo'); assert.equal(w.activiteitKar, undefined);
   mag = true;
-  assert.equal(K.startActiviteit(w, 'farm'), true); assert.equal(tekst.length, 1);
-  K.eindActiviteit(w, 'farm'); assert.match(tekst[1], /Tammo neemt het weer over/);
-  K.zetWisselHaak(null);
+  assert.equal(K.enterActivity(w, 'farm'), true); assert.equal(tekst.length, 1);
+  K.endActivity(w, 'farm'); assert.match(tekst[1], /Tammo neemt het weer over/);
+  K.applySwitchHook(null);
 });
-t('wissel: volgActiviteit wisselt bij instappen en pas na een paar seconden terug; een activiteit met eigen einde blijft staan', () => {
-  K.zetWisselHaak(null);
+t('wissel: trackActivity wisselt bij instappen en pas na een paar seconden terug; een activiteit met eigen einde blijft staan', () => {
+  K.applySwitchHook(null);
   const w = wereld('tammo');
-  assert.equal(K.volgActiviteit(w, 'farm', true, 0.016), 'start');
-  assert.equal(K.volgActiviteit(w, 'farm', false, 1), null); assert.equal(w.player.character, 'anita');
-  K.volgActiviteit(w, 'farm', true, 0.016);
-  assert.equal(K.volgActiviteit(w, 'farm', false, 3), null);
-  assert.equal(K.volgActiviteit(w, 'farm', false, 2), 'eind'); assert.equal(w.player.character, 'tammo');
-  const b = wereld('tammo'); K.startActiviteit(b, 'farm');
-  assert.equal(K.volgActiviteit(b, 'farm', false, 60), null); assert.equal(b.player.character, 'anita');
-  K.eindActiviteit(b, 'farm'); assert.equal(b.player.character, 'tammo');
-  assert.equal(K.volgActiviteit(null, 'farm', false, NaN), null);
-  assert.equal(K.volgActiviteit(wereld(), 'farm', false, NaN), null);
+  assert.equal(K.trackActivity(w, 'farm', true, 0.016), 'start');
+  assert.equal(K.trackActivity(w, 'farm', false, 1), null); assert.equal(w.player.character, 'anita');
+  K.trackActivity(w, 'farm', true, 0.016);
+  assert.equal(K.trackActivity(w, 'farm', false, 3), null);
+  assert.equal(K.trackActivity(w, 'farm', false, 2), 'eind'); assert.equal(w.player.character, 'tammo');
+  const b = wereld('tammo'); K.enterActivity(b, 'farm');
+  assert.equal(K.trackActivity(b, 'farm', false, 60), null); assert.equal(b.player.character, 'anita');
+  K.endActivity(b, 'farm'); assert.equal(b.player.character, 'tammo');
+  assert.equal(K.trackActivity(null, 'farm', false, NaN), null);
+  assert.equal(K.trackActivity(wereld(), 'farm', false, NaN), null);
 });
 t('opslaan en laden midden in een activiteit: de save bewaart het eigen personage; laden wist de activiteit', () => {
-  K.zetWisselHaak(null);
-  const w = wereld('tammo'); K.startActiviteit(w, 'voetbal');
+  K.applySwitchHook(null);
+  const w = wereld('tammo'); K.enterActivity(w, 'voetbal');
   assert.equal(w.player.character, 'anita'); assert.equal(K.karakterVoorSave(w), 'tammo');
-  K.wisActiviteit(w); assert.equal(w.activiteitKar, null);
+  K.clearActivity(w); assert.equal(w.activiteitKar, null);
   assert.equal(K.karakterVoorSave(wereld('anita')), 'anita'); assert.equal(K.karakterVoorSave(null), 'tammo');
-  const w2 = wereld('anita'); K.startActiviteit(w2, 'farm'); assert.equal(K.karakterVoorSave(w2), 'anita');
+  const w2 = wereld('anita'); K.enterActivity(w2, 'farm'); assert.equal(K.karakterVoorSave(w2), 'anita');
 });
 t('Samen spelen: elke speler wisselt voor zichzelf; bij vaste personages blijft het lichaam, de Tessa-regels gelden wel', () => {
-  K.zetWisselHaak(null);
+  K.applySwitchHook(null);
   const a = wereld('tammo'), b = wereld('anita');
-  K.startActiviteit(a, 'farm');
+  K.enterActivity(a, 'farm');
   assert.equal(a.player.character, 'anita'); assert.equal(b.player.character, 'anita'); assert.equal(b.activiteitKar, undefined);
-  K.eindActiviteit(a, 'farm'); assert.equal(a.player.character, 'tammo'); assert.equal(b.player.character, 'anita');
+  K.endActivity(a, 'farm'); assert.equal(a.player.character, 'tammo'); assert.equal(b.player.character, 'anita');
   const v = wereld('tammo', { coop: { fixedChars: true } });
-  assert.equal(K.startActiviteit(v, 'farm'), false); assert.equal(v.player.character, 'tammo'); assert.ok(v.activiteitKar);
-  assert.equal(K.karakterVoorSave(v), 'tammo'); assert.equal(K.karakterVoorActiviteit('farm'), 'anita');
-  K.eindActiviteit(v, 'farm'); assert.equal(v.player.character, 'tammo'); assert.equal(v.msgs.length, 0);
+  assert.equal(K.enterActivity(v, 'farm'), false); assert.equal(v.player.character, 'tammo'); assert.ok(v.activiteitKar);
+  assert.equal(K.karakterVoorSave(v), 'tammo'); assert.equal(K.characterForActivity('farm'), 'anita');
+  K.endActivity(v, 'farm'); assert.equal(v.player.character, 'tammo'); assert.equal(v.msgs.length, 0);
 });
 t('persona-regels: laag gedoseerd (kans en cooldown), per soort, alleen tekst', () => {
   K.wisPersona();
-  assert.equal(K.personaRegel('farm', { rng: () => 0.9, nu: 0 }), null, 'boven de kans');
-  const eerste = K.personaRegel('farm', { rng: () => 0.1, nu: 100 });
+  assert.equal(K.personaLine('farm', { rng: () => 0.9, nu: 0 }), null, 'boven de kans');
+  const eerste = K.personaLine('farm', { rng: () => 0.1, nu: 100 });
   assert.ok(typeof eerste === 'string' && eerste.length > 0);
-  assert.equal(K.personaRegel('farm', { rng: () => 0.1, nu: 100 + K.PERSONA_COOLDOWN_S - 1 }), null, 'cooldown');
-  assert.ok(K.personaRegel('farm', { rng: () => 0.1, nu: 100 + K.PERSONA_COOLDOWN_S }));
-  assert.ok(K.personaRegel('voetbal', { rng: () => 0.1, nu: 100 }), 'andere soort heeft een eigen cooldown');
-  assert.equal(K.personaRegel('onbekend', { rng: () => 0, nu: 0 }), null);
+  assert.equal(K.personaLine('farm', { rng: () => 0.1, nu: 100 + K.PERSONA_COOLDOWN_S - 1 }), null, 'cooldown');
+  assert.ok(K.personaLine('farm', { rng: () => 0.1, nu: 100 + K.PERSONA_COOLDOWN_S }));
+  assert.ok(K.personaLine('voetbal', { rng: () => 0.1, nu: 100 }), 'andere soort heeft een eigen cooldown');
+  assert.equal(K.personaLine('onbekend', { rng: () => 0, nu: 0 }), null);
   K.wisPersona(); let n = 0;
-  for (let i = 0; i < 1000; i++) if (K.personaRegel('farm', { rng: () => (i % 7) / 7, nu: i * 60 })) n++;
+  for (let i = 0; i < 1000; i++) if (K.personaLine('farm', { rng: () => (i % 7) / 7, nu: i * 60 })) n++;
   assert.ok(n > 0 && n < 400, 'af en toe, niet elke klus: ' + n);
-  for (const x of K.PERSONA_SOORTEN) { K.wisPersona(); const r = K.personaRegel(x, { rng: () => 0.01, nu: 0 }); assert.ok(r && !/sneeuw|winter|ijs\b/i.test(r)); }
+  for (const x of K.PERSONA_KINDS) { K.wisPersona(); const r = K.personaLine(x, { rng: () => 0.01, nu: 0 }); assert.ok(r && !/sneeuw|winter|ijs\b/i.test(r)); }
 });
 t('saves blijven werken: de boerderij heeft geen nieuw opslagveld voor de bonus', () => {
   const b = B.nieuweBoerderij();

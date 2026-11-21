@@ -13,8 +13,8 @@ import { SIDE_JOBS } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
-import { rijAttr, rijPlan, aanNaFrame, rijenKlaar, staffelDuur, rustigeStand, tikGetal } from './dsmicro.js';
-import { menuPlan } from './achievementunlock.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
+import { rijAttr, rijPlan, afterFrame, rijenKlaar, staffelDuur, calmState, tikGetal } from './dsmicro.js';
+import { listPlan } from './achievementunlock.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
 import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
 
 const CHEV = icoon('volgende');
@@ -81,7 +81,7 @@ let shownPct = null;
 let freshIds = new Set();
 let glansIds = new Set();            // rijen die in deze render hun glans krijgen (eenmalig per sessie)
 let staffelAan = false;              // deze render staffelt de rijen (eerste keer, tabwissel); een vouw of selectie niet
-const glansGezien = new Set();       // welke nieuwe rijen al glansden (menuPlan)
+const glansGezien = new Set();       // welke nieuwe rijen al glansden (listPlan)
 const tellerMem = new Map();         // het vorige aantal per categorie, voor de teller
 const balkMem = new Map();           // de vorige breedte per balk, zodat een balk vult van wat er was
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -108,7 +108,7 @@ function row(it, catLabel, i = 0) {
   if (it.unlocked) end = freshIds.has(it.id) ? '<span class="t g">nieuw</span>' + CHECK : CHECK;
   else if (it.hidden) end = LOCK;
   else if (bijna) end = `<span class="pa-row-end"><span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span><span class="pa-row-pct">${Math.round(pctOf(it))}%</span></span>`;
-  const ra = rijAttr(i, glansIds.has(it.id) ? 'ds-m-glans ds-m-glanst' : '', { rustig: !staffelAan || rustigeStand() }); // DS3: gestaffeld binnenkomen, een net-ontgrendelde rij glanst één keer
+  const ra = rijAttr(i, glansIds.has(it.id) ? 'ds-m-glans ds-m-glanst' : '', { rustig: !staffelAan || calmState() }); // DS3: gestaffeld binnenkomen, een net-ontgrendelde rij glanst één keer
   return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${bijna ? ' near' : ''}${sel === it.id ? ' sel' : ''}${ra.klasse ? ' ' + ra.klasse : ''}"${ra.stijl ? ` style="${ra.stijl}"` : ''} data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
     `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}${rowbar}</span>${end}</button>`;
 }
@@ -266,12 +266,12 @@ function heroHtml(sum, near, verborgen) {
     streep(pct, `${sum.done} van ${sum.total} behaald`, true) + '</section>';
 }
 
-// DS3 (ds-micro.css, achievementunlock.js menuPlan): de categorie-teller tikt op naar het nieuwe aantal, een balk vult van wat er
+// DS3 (ds-micro.css, achievementunlock.js listPlan): de categorie-teller tikt op naar het nieuwe aantal, een balk vult van wat er
 // was (nooit opnieuw bij een vouw of tabwissel), een balk die net vol is glanst één keer en de rijen zijn na het staffelen weer
 // gewone rijen. Alles blijft staan zoals het was bij Beweging beperken en Rustig drukwerk (dan doet deze functie niets).
 function microStap(el, plan) {
-  aanNaFrame([...el.querySelectorAll('.ds-m-pop')]); // de chips poppen (Bijna binnen, Alles gehaald); bij rustig meteen
-  if (rustigeStand() || typeof requestAnimationFrame !== 'function') { for (const b of el.querySelectorAll('.ds-z-balk[data-bk]')) balkMem.set(b.dataset.bk, parseFloat(b.style.getPropertyValue('--ds-z-w')) || 0); return; }
+  afterFrame([...el.querySelectorAll('.ds-m-pop')]); // de chips poppen (Bijna binnen, Alles gehaald); bij rustig meteen
+  if (calmState() || typeof requestAnimationFrame !== 'function') { for (const b of el.querySelectorAll('.ds-z-balk[data-bk]')) balkMem.set(b.dataset.bk, parseFloat(b.style.getPropertyValue('--ds-z-w')) || 0); return; }
   for (const b of el.querySelectorAll('.ds-z-balk[data-bk]')) {
     const id = b.dataset.bk;
     const w = parseFloat(b.style.getPropertyValue('--ds-z-w')) || 0;
@@ -292,7 +292,7 @@ function microStap(el, plan) {
     for (const s of t.stappen) setTimeout(() => { lab.textContent = `${s.waarde} van ${n}`; tikGetal(lab); }, s.t);
   }
   const rijen = [...el.querySelectorAll('.ds-m-rij')];
-  if (rijen.length) { aanNaFrame(rijen); rijenKlaar(rijen, staffelDuur(rijen.length)); }
+  if (rijen.length) { afterFrame(rijen); rijenKlaar(rijen, staffelDuur(rijen.length)); }
 }
 
 export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {}) {
@@ -300,7 +300,7 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
   const view = getAchievementView();
   if (!keepFresh) freshIds = new Set(view.flatMap((c) => c.items).filter((a) => isAchievementFresh(a.id)).map((a) => a.id));
   staffelAan = animeer != null ? !!animeer : !keepFresh;
-  const mp = menuPlan({ vers: [...freshIds], gezien: glansGezien, vorigeTellers: tellerMem, tellers: view.map((c) => ({ cat: c.cat, done: c.done })), rustig: rustigeStand() });
+  const mp = listPlan({ vers: [...freshIds], gezien: glansGezien, vorigeTellers: tellerMem, tellers: view.map((c) => ({ cat: c.cat, done: c.done })), rustig: calmState() });
   glansIds = new Set(mp.glans);
   if (unseenAchievementCount()) markAchievementsSeen();
   const sum = getAchievementSummary();

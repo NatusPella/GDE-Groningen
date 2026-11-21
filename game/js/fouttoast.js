@@ -15,7 +15,7 @@ export function frameErrorModel(err) {
   };
 }
 
-async function schrijfKlembord(tekst) {
+async function writeClipboard(tekst) {
   try {
     const D = window.gdeDesktop;
     if (D && D.clipboard) { D.clipboard.writeText(tekst.slice(0, 20000)); return true; }
@@ -59,7 +59,7 @@ export function showFrameError(err) {
   kopieer.addEventListener('click', async () => {
     let rapport = m.details;
     try { rapport = errorReport(); } catch (e) { /* de melding zelf is genoeg */ }
-    kopieer.textContent = (await schrijfKlembord(rapport)) ? 'Gekopieerd' : 'Kopiëren lukte niet';
+    kopieer.textContent = (await writeClipboard(rapport)) ? 'Gekopieerd' : 'Kopiëren lukte niet';
   });
   const sluit = document.createElement('button');
   sluit.type = 'button';

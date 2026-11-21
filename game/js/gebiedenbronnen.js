@@ -9,7 +9,7 @@ import { activitySpots } from './activities.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { FINDS, findPos, SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
 import { ontvouw } from './grenzen.js';
-import { setWijkGrenzen } from './wijkat.js';
+import { applyDistrictBounds } from './wijkat.js';
 import { lifetimeSnapshot } from './achievements.js';
 import { getProfiel as getLoopbaan } from './loopbaanlive.js';
 import { VAK_IDS } from './loopbaan.js';
@@ -63,7 +63,7 @@ function laadGrenzen() {
   grenzenBezig = true;
   fetch(new URL('grenzen.json', location.href).href)
     .then((r) => (r.ok ? r.json() : null))
-    .then((j) => { grenzen = ontvouw(j); setWijkGrenzen(grenzen); })
+    .then((j) => { grenzen = ontvouw(j); applyDistrictBounds(grenzen); })
     .catch((e) => { console.warn('grenzen niet geladen', e); })
     .finally(() => { grenzenKlaar = true; grenzenBezig = false; });
 }

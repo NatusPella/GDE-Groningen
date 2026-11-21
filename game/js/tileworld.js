@@ -23,7 +23,7 @@ import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { BACKGROUND_PRIORITY, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
-import { sampleRoute } from './lodstable.js';
+import { thinPath } from './lodstable.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
 import { joinMeta } from './poisections.js';
@@ -663,7 +663,7 @@ export class TileWorld extends GameMap {
     if (this._routeToken && st.cancel) st.cancel(this._routeToken);
     this._routeToken = token + ':' + (this._routeN = (this._routeN || 0) + 1);
     const asked = new Set();
-    for (const p of sampleRoute(points, step)) {
+    for (const p of thinPath(points, step)) {
       for (const k of st.keysAround(p.x, p.y, radius)) {
         if (asked.has(k)) continue;
         if (asked.size >= maxTiles) return asked.size;

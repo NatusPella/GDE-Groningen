@@ -15,7 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DS_TERUGVAL } from '../game/js/kaartkleuren.js';
 import { PALETTES } from '../game/js/a11y.js';
-import { bepaalNavDoelen, NAV_ROL } from '../game/js/navdoel.js';
+import { resolveNavTargets, NAV_ROL } from '../game/js/navdoel.js';
 import { iconInner } from '../game/js/icons.js';
 
 const UIT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'beeld-21-11', 'minimap-pijlen', 'mock.html');
@@ -174,7 +174,7 @@ const wereld = (h, afstand) => { const a = h * Math.PI / 180; return { x: Math.c
 function bouw(sc) {
   const snap = { speler: { x: 0, y: 0 }, modus: 'auto' };
   for (const [t, extra] of Object.entries(sc.s)) { const [h, m] = sc.pos[t]; const w = wereld(h, m); snap[t] = { x: w.x, y: w.y, name: t, ...extra }; }
-  const nav = bepaalNavDoelen(snap);
+  const nav = resolveNavTargets(snap);
   const lijst = nav.alle.map((d) => {
     const bron = Object.keys(sc.s).find((t) => { const w = wereld(sc.pos[t][0], sc.pos[t][1]); return Math.hypot(w.x - d.x, w.y - d.y) < 1; });
     const icoon = d.type === 'eigen' ? ICOON_EIGEN[(sc.s.eigen || {}).soort] || 'vlag' : ICOON[d.type] || 'ster';

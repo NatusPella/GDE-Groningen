@@ -2,13 +2,13 @@
 // spel (railway.getRoutes(): { name, len, stops: [{ name, s, offmap }] }) volgt per rit ("leg": één trein op één spoorlijn, met
 // haltetijden) waar die trein op de spelklok is. PUUR en DETERMINISTISCH: geen THREE, geen wereld, geen toeval, geen klok die
 // ergens bijgehouden wordt. Dezelfde spelklok geeft overal dezelfde trein op dezelfde plek: de host, een gast en het bord.
-// Een trein buiten bereik hoeft dus niet gesimuleerd: zijn plek volgt uit de klok (legStand). Tests: scripts/treindienst_test.mjs.
+// Een trein buiten bereik hoeft dus niet gesimuleerd: zijn plek volgt uit de klok (legState). Tests: scripts/treindienst_test.mjs.
 //
 // Wat een rit is. Het rooster heeft per station vertrekrijen met treinnummer; rijen met hetzelfde nummer in tijdsvolgorde zijn
 // één rit. Een rit die over het station Groningen (de knoop van alle spellijnen) rijdt valt in twee legs, één per spoorlijn
 // (zoals het spel de lijnen kent: elke lijn begint op het Hoofdstation). Een leg heeft minstens twee haltes die op de lijn staan;
 // een rit met minder haltes in de wereld heeft geen trein en staat dus ook niet op het bord.
-// Tijden: halte j: aan (aankomst) en weg (vertrek) in seconden na middernacht; met live vertraging per halte erbij (legTijden).
+// Tijden: halte j: aan (aankomst) en weg (vertrek) in seconden na middernacht; met live vertraging per halte erbij (legTimes).
 // Beweging: tussen twee haltes een zachte S-curve in de tijd (staat stil in de haltes, rijdt in de tussentijd). Komt de rit van
 // buiten de kaart (eerste halte van de wereld is niet de eerste van de rit), dan rijdt hij uit de richting waar hij vandaan komt
 // binnen; rijdt hij na zijn laatste halte door, dan rijdt hij weg; een eindstation in de wereld laat hem daar tot NABLIJF s staan.
@@ -32,23 +32,23 @@ export const DIENST = {
 // Geeft { legs, vindRij, perLijn, legMet }.
 export function bouwDienst(rooster, dagsoort, routes, opts = {}) {
   const cfg = { ...DIENST, ...opts };
-  const naamSpel = (n) => (n === 'Groningen' ? cfg.knoop : n);
-  const dag = rooster && rooster.rit && rooster.rit[dagsoort];
+  const gameName = (n) => (n === 'Groningen' ? cfg.knoop : n);
+  const dayRows = rooster && rooster.rit && rooster.rit[dagsoort];
   const legs = [];
-  if (!dag) return maakIndex(legs, routes);
+  if (!dayRows) return buildIndex(legs, routes);
   // 1. alle rijen per treinnummer
-  const perNummer = new Map();
-  for (const [si, rijen] of Object.entries(dag)) {
+  const byNumber = new Map();
+  for (const [si, rijen] of Object.entries(dayRows)) {
     const st = rooster.stations[+si];
     for (const x of rijen) {
-      const rij = { nummer: x[1], st: naamSpel(st.naam), code: st.code, weg: x[0], aan: x[5], spoor: x[2], dest: rooster.bestemmingen[x[3]], lijn: rooster.lijnen[x[4]], soort: x[6] || 0 };
-      if (!perNummer.has(x[1])) perNummer.set(x[1], []);
-      perNummer.get(x[1]).push(rij);
+      const rij = { nummer: x[1], st: gameName(st.naam), code: st.code, weg: x[0], aan: x[5], spoor: x[2], dest: rooster.bestemmingen[x[3]], lijn: rooster.lijnen[x[4]], soort: x[6] || 0 };
+      if (!byNumber.has(x[1])) byNumber.set(x[1], []);
+      byNumber.get(x[1]).push(rij);
     }
   }
   const stopMap = routes.map((r) => new Map(r.stops.map((s, i) => [s.name, { s: s.s, i, offmap: !!s.offmap }])));
   const telling = new Map();   // leg-id -> aantal, voor een uniek id bij een hergebruikt nummer
-  for (const [nummer, alle] of perNummer) {
+  for (const [nummer, alle] of byNumber) {
     alle.sort((a, b) => a.weg - b.weg || a.aan - b.aan);
     // 2. een nummer kan twee ritten op één dag zijn (ver uit elkaar): splitsen op een groot gat
     const ritten = [];
@@ -72,7 +72,7 @@ export function bouwDienst(rooster, dagsoort, routes, opts = {}) {
       const h = rit.findIndex((r) => r.st === cfg.knoop);
       const delen = h > 0 && h < rit.length - 1 ? [rit.slice(0, h + 1), rit.slice(h)] : [rit];
       delen.forEach((deel, di) => {
-        const leg = maakLeg(nummer, deel, routes, stopMap, { splitsing: delen.length === 2, deelIdx: di });
+        const leg = buildLeg(nummer, deel, routes, stopMap, { splitsing: delen.length === 2, deelIdx: di });
         if (!leg) return;
         const n = (telling.get(leg.id) || 0);
         telling.set(leg.id, n + 1);
@@ -81,10 +81,10 @@ export function bouwDienst(rooster, dagsoort, routes, opts = {}) {
       });
     }
   }
-  return maakIndex(legs, routes);
+  return buildIndex(legs, routes);
 }
 
-function maakLeg(nummer, deel, routes, stopMap, { splitsing = false, deelIdx = 0 } = {}) {
+function buildLeg(nummer, deel, routes, stopMap, { splitsing = false, deelIdx = 0 } = {}) {
   let best = null;
   for (let ri = 0; ri < routes.length; ri++) {
     const map = stopMap[ri];
@@ -99,12 +99,12 @@ function maakLeg(nummer, deel, routes, stopMap, { splitsing = false, deelIdx = 0
     if (!best || score > best.score) best = { ri, gedekt, op, score };
   }
   if (!best) return null;
-  const route = routes[best.ri], map = stopMap[best.ri];
+  const railLine = routes[best.ri], map = stopMap[best.ri];
   const halten = best.gedekt.map((r) => ({ st: r.st, code: r.code, s: map.get(r.st).s, idx: map.get(r.st).i, offmap: map.get(r.st).offmap, aan: r.aan, weg: r.weg, spoor: r.spoor, soort: r.soort, dest: r.dest }));
   // een leg begint als de rit er begint (soort 2) of als hij de tweede helft van een rit over de knoop is; hij eindigt als de rit er eindigt (soort 1) of als hij de eerste helft is
   halten[0].aan = Math.min(halten[0].aan, halten[0].weg);
   return {
-    id: `${nummer}@${route.name}`, nummer, route: route.name, routeIdx: best.ri, dir: best.op ? 1 : -1, halten,
+    id: `${nummer}@${railLine.name}`, nummer, route: railLine.name, routeIdx: best.ri, dir: best.op ? 1 : -1, halten,
     begin: halten[0].soort === 2 || (splitsing && deelIdx === 1),
     eind: halten[halten.length - 1].soort === 1 || (splitsing && deelIdx === 0),
     bestemming: halten[halten.length - 1].dest,
@@ -114,13 +114,13 @@ function maakLeg(nummer, deel, routes, stopMap, { splitsing = false, deelIdx = 0
   };
 }
 
-function maakIndex(legs, routes) {
+function buildIndex(legs, routes) {
   const perId = new Map(legs.map((l) => [l.id, l]));
   const perRij = new Map();      // nummer|station -> [{ leg, j }]
-  const perLijn = new Map();
+  const byLine = new Map();
   for (const leg of legs) {
-    if (!perLijn.has(leg.route)) perLijn.set(leg.route, []);
-    perLijn.get(leg.route).push(leg);
+    if (!byLine.has(leg.route)) byLine.set(leg.route, []);
+    byLine.get(leg.route).push(leg);
     leg.halten.forEach((h, j) => {
       const k = `${leg.nummer}|${h.st}`;
       if (!perRij.has(k)) perRij.set(k, []);
@@ -128,7 +128,7 @@ function maakIndex(legs, routes) {
     });
   }
   return {
-    legs, perId, perLijn,
+    legs, perId, perLijn: byLine,
     // de leg en de halte bij een bordrij (nummer + station): de leg waar het station niet het eindpunt is (een vertrek)
     vindRij(nummer, station) {
       const l = perRij.get(`${nummer}|${station}`);
@@ -141,9 +141,9 @@ function maakIndex(legs, routes) {
 
 // De haltetijden van een leg met de live vertraging (dezelfde functie als het bord: treinrooster.vertragingVan). stand: Map of null.
 // Geeft { aan: [], weg: [], vervallen, vertraging: [] } per halte. Een vervallen rit rijdt niet.
-export function legTijden(leg, stand, cfg = DIENST) {
+export function legTimes(leg, stand, cfg = DIENST) {
   const n = leg.halten.length;
-  const aan = [], weg = [], vertraging = [];
+  const arrivals = [], weg = [], vertraging = [];
   let vervallen = false;
   for (let j = 0; j < n; j++) {
     const h = leg.halten[j];
@@ -155,9 +155,9 @@ export function legTijden(leg, stand, cfg = DIENST) {
     if (!(j === n - 1 && leg.eind)) a = Math.min(a, w - cfg.minStop);   // een trein staat minstens even stil (het rooster heeft soms aankomst = vertrek)
     if (j > 0) { a = Math.max(a, weg[j - 1] + 10); w = Math.max(w, a); }
     if (j === n - 1 && leg.eind) w = a;
-    aan.push(a); weg.push(w);
+    arrivals.push(a); weg.push(w);
   }
-  return { aan, weg, vertraging, vervallen };
+  return { aan: arrivals, weg, vertraging, vervallen };
 }
 
 const glad = (u) => u * u * (3 - 2 * u);
@@ -166,7 +166,7 @@ const dglad = (u) => 6 * u * (1 - u);
 // Waar de trein van een leg is op tijd `nu` (s na middernacht). null = niet in de wereld (nog niet of niet meer, of vervallen).
 // Geeft { s, v (m/s, >= 0), dir, staat ('dwell' | 'run'), halte (index in leg.halten van de halte waar hij staat of heen rijdt),
 // doel (route-stopindex om naartoe), rest (s dat hij nog blijft staan), vertraging (s) }. routeLen: lengte van de spoorlijn (s).
-export function legStand(leg, nu, routeLen, tijden, cfg = DIENST) {
+export function legState(leg, nu, routeLen, tijden, cfg = DIENST) {
   if (tijden.vervallen) return null;
   const { aan, weg } = tijden;
   const n = leg.halten.length, dir = leg.dir;
@@ -214,20 +214,20 @@ export function actieveLegs(dienst, routes, nu, stand = null) {
     // de tijden lopen door na middernacht (> 86400): kijk ook naar de klok van morgen
     const tt = nu >= leg.van && nu <= leg.tot ? nu : nu + 86400 >= leg.van && nu + 86400 <= leg.tot ? nu + 86400 : null;
     if (tt === null) continue;
-    const route = routes[leg.routeIdx];
-    const tijden = legTijden(leg, stand);
-    const st = legStand(leg, tt, route.len, tijden);
-    if (st) uit.push({ leg, stand: st, tijden });
+    const railLine = routes[leg.routeIdx];
+    const times = legTimes(leg, stand);
+    const st = legState(leg, tt, railLine.len, times);
+    if (st) uit.push({ leg, stand: st, tijden: times });
   }
   return uit.sort((a, b) => (a.leg.id < b.leg.id ? -1 : 1));
 }
 
 // Een bordrij is dezelfde trein als de wereldtrein: zelfde rit-id en dezelfde tijden. Hulp voor tests en de omroep: de vertrektijd
 // van de leg op halte j met vertraging (gelijk aan rij.tijd van treinrooster.rijenUitRooster).
-export const vertrekVan = (leg, j, stand) => legTijden(leg, stand).weg[j];
+export const vertrekVan = (leg, j, stand) => legTimes(leg, stand).weg[j];
 
 // De dienst van de machinist uit een leg (machinist.js): dezelfde vorm als dienstregeling.dienstVanRit, maar met de haltes en tijden van de
-// trein van het bord (leg + tijden uit legTijden, dus met de live vertraging). vanaf: de halte waar de speler instapt; null als die niet in
+// trein van het bord (leg + tijden uit legTimes, dus met de live vertraging). vanaf: de halte waar de speler instapt; null als die niet in
 // de leg ligt of het eindpunt is (dan rijdt de machinist de verzonnen dienst van dienstregeling.js).
 export function dienstVanLeg(leg, tijden, vanaf, dag = 1) {
   if (!leg || !tijden) return null;
@@ -245,17 +245,17 @@ export function dienstVanLeg(leg, tijden, vanaf, dag = 1) {
 // De bron voor railway.setTreinDienst: bouwt de dienst per dagsoort één keer (zodra de spoorlijnen en het rooster er zijn) en geeft elke
 // frame { dienst, nu, stand } terug. Alles komt als functie binnen, zodat dit puur blijft: rooster() -> treinrooster.json of null,
 // routes() -> railway.getRoutes(), dagsoort(world) -> 'werk' | 'za' | 'zo', klok(world) -> spelklok in uren, stand(world) -> live vertragingen (Map) of null.
-export function maakDienstBron({ rooster, routes, dagsoort, klok, stand = () => null }) {
+export function createServiceSource({ rooster, routes, dagsoort, klok, stand = () => null }) {
   const cache = new Map();
   let sig = '';
   return (world) => {
     const r = rooster(), rs = routes();
     if (!r || !rs || !rs.length) return null;
-    const dag = dagsoort(world);
-    const nieuw = `${rs.length}:${rs.map((x) => x.stops.length).join(',')}`;
-    if (nieuw !== sig) { cache.clear(); sig = nieuw; }
-    if (!cache.has(dag)) cache.set(dag, bouwDienst(r, dag, rs));
+    const dayType = dagsoort(world);
+    const nextSig = `${rs.length}:${rs.map((x) => x.stops.length).join(',')}`;
+    if (nextSig !== sig) { cache.clear(); sig = nextSig; }
+    if (!cache.has(dayType)) cache.set(dayType, bouwDienst(r, dayType, rs));
     const nu = (((klok(world) % 24) + 24) % 24) * 3600;
-    return { dienst: cache.get(dag), nu, stand: stand(world) };
+    return { dienst: cache.get(dayType), nu, stand: stand(world) };
   };
 }

@@ -12,7 +12,7 @@
 // kaart: { x0, x1, bodem } de plek op de laagste stand; alleen nodig voor hindernissen.
 export const LOCATIE_GAP = 10;          // px: de ruimte tussen kaart en wat eronder staat (de gap van .hud-fcol)
 export const LOCATIE_OMHOOG_MS = 300;   // een item dat korter dan dit zichtbaar is laat de kaart niet bewegen
-export const LOCATIE_OMLAAG_MS = 600;   // terug omlaag wacht langer, zodat een knipperend item de kaart niet laat pompen
+export const LOCATIE_DROP_MS = 600;   // terug omlaag wacht langer, zodat een knipperend item de kaart niet laat pompen
 export const LOCATIE_MOVE_MS = 200;     // de glijdende verschuiving zelf (CSS), hoogstens 250 ms
 export const LOCATIE_MAX = 400;
 export const LOCATIE_EPS = 2;           // een verschil van minder dan dit is meetruis en telt niet
@@ -44,7 +44,7 @@ export const locatieVerschuiving = (stroomH, gap, lift) => Math.max(0, (eindig(s
 // Hysterese: de toegepaste stand verandert pas als de gewenste stand 300 ms (omhoog) of 600 ms (omlaag) aaneen anders is.
 // staat: null bij de start (dan geldt `wil` meteen) of het vorige resultaat. Geeft { staat, lift, wacht } met wacht = ms tot
 // de volgende controle (null = niets te wachten); de aanroeper plant daar één timer voor.
-export function locatieHysterese(staat, wil, nu, { omhoog = LOCATIE_OMHOOG_MS, omlaag = LOCATIE_OMLAAG_MS, eps = LOCATIE_EPS } = {}) {
+export function locatieHysterese(staat, wil, nu, { omhoog = LOCATIE_OMHOOG_MS, omlaag = LOCATIE_DROP_MS, eps = LOCATIE_EPS } = {}) {
   const w = eindig(wil) ? Math.max(0, wil) : 0;
   if (!staat) return { staat: { lift: w, wil: w, sinds: nu, richting: 0 }, lift: w, wacht: null };
   const verschil = w - staat.lift;

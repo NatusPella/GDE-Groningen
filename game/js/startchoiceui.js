@@ -4,13 +4,13 @@
 // Toetsen: pijlen en WASD, 1 en 2, Enter of spatie, Escape of Backspace (Alleen). Een controller geeft dezelfde toetsen (input.js).
 import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
-import { KEUZES, START_TEKST, TOESTEMMING_TEKST, toetsActie } from './startchoice.js';
+import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './startchoice.js';
 import { geefToestemming } from './onlineconsent.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De keuzekaart. `index` is de knop die de voorselectie heeft (alleen voor data-voorkeur; de focus zet mountStartKeuze).
-export function startKeuzeHtml({ index = 0 } = {}) {
+export function launchChoiceHtml({ index = 0 } = {}) {
   const knoppen = KEUZES.map((c, i) => `<button type="button" class="sk-keuze" data-keuze="${c.id}" data-i="${i}"${i === index ? ' data-voorkeur' : ''} aria-describedby="sk-u-${c.id}" aria-keyshortcuts="${c.toets}">
       <span class="sk-ic">${icoon(c.icoon, { cls: 'sk-icoon' })}</span>
       <span class="sk-label">${esc(c.label)}</span>
@@ -18,11 +18,11 @@ export function startKeuzeHtml({ index = 0 } = {}) {
       <span class="sk-uitleg" id="sk-u-${c.id}">${esc(c.uitleg)}</span>
     </button>`).join('');
   return `<section class="os-kaart sk-kaart" role="dialog" aria-modal="true" aria-labelledby="sk-titel" aria-describedby="sk-intro">
-    <p class="os-eb">${esc(START_TEKST.eyebrow)}</p>
-    <h2 id="sk-titel">${esc(START_TEKST.titel)}</h2>
-    <p class="os-uitleg" id="sk-intro">${esc(START_TEKST.uitleg)}</p>
-    <div class="sk-knoppen" role="group" aria-label="${esc(START_TEKST.aria)}">${knoppen}</div>
-    <p class="sk-hulp">${START_TEKST.hulp.map((h) => `<span>${keyTextHtml(esc(h))}</span>`).join('')}</p>
+    <p class="os-eb">${esc(LAUNCH_TEXT.eyebrow)}</p>
+    <h2 id="sk-titel">${esc(LAUNCH_TEXT.titel)}</h2>
+    <p class="os-uitleg" id="sk-intro">${esc(LAUNCH_TEXT.uitleg)}</p>
+    <div class="sk-knoppen" role="group" aria-label="${esc(LAUNCH_TEXT.aria)}">${knoppen}</div>
+    <p class="sk-hulp">${LAUNCH_TEXT.hulp.map((h) => `<span>${keyTextHtml(esc(h))}</span>`).join('')}</p>
   </section>`;
 }
 
@@ -42,7 +42,7 @@ export function toestemmingHtml() {
 }
 
 let open = null; // één kaart tegelijk
-function overlay() {
+function backdrop() {
   const el = document.createElement('div');
   el.id = 'online-start';
   el.className = 'os-overlay';
@@ -51,11 +51,11 @@ function overlay() {
 }
 
 // Resolvet met 'alleen' of 'samen'. Geen time-out: de kaart wacht op de speler (de bootwachter staat stil zolang #online-start bestaat).
-export function openStartKeuze({ index = 0 } = {}) {
+export function openLaunchChoice({ index = 0 } = {}) {
   if (open) return open.promise;
   if (typeof document === 'undefined' || !document.body) return Promise.resolve('alleen');
-  const el = overlay();
-  el.innerHTML = startKeuzeHtml({ index });
+  const el = backdrop();
+  el.innerHTML = launchChoiceHtml({ index });
   const knoppen = [...el.querySelectorAll('.sk-keuze')];
   let nu = Math.min(Math.max(index, 0), knoppen.length - 1);
   let klaar = () => {};
@@ -92,7 +92,7 @@ export function openStartKeuze({ index = 0 } = {}) {
 export function openToestemming({ zet = undefined } = {}) {
   if (open) return open.promise;
   if (typeof document === 'undefined' || !document.body) return Promise.resolve(false);
-  const el = overlay();
+  const el = backdrop();
   el.innerHTML = toestemmingHtml();
   let klaar = () => {};
   const promise = new Promise((r) => { klaar = r; });

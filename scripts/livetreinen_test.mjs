@@ -4,8 +4,8 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { LIVE_TREINEN, VERZOEK, leesTreinmeldingen, haalLiveTreinen, maakStand, meldSleutel, nlSecVanDag, nlDatum, brugAlsFetch } from '../game/js/livetreinen.js';
-import { maakLiveTreinen, maakTreinLive, kiesFetch } from '../game/js/treinlive.js';
+import { LIVE_TRAINS, REQUEST_OPTIONS, parseTrainReports, fetchLiveTrains, buildDelayMap, meldSleutel, nlSecOfDay, nlDatum, bridgeAsFetch } from '../game/js/livetreinen.js';
+import { createLiveTrains, createTrainLive, kiesFetch } from '../game/js/treinlive.js';
 
 // --- een kleine protobuf-schrijver voor het nepbestand (GTFS-RT TripUpdate met de OVapi-uitbreiding) ---
 const vi = (n) => { const o = []; let b = BigInt(n); if (b < 0n) b += 1n << 64n; while (b > 127n) { o.push(Number(b & 127n) | 128); b >>= 7n; } o.push(Number(b)); return o; };
@@ -38,7 +38,7 @@ const demo = () => feed(
 
 // --- lezen ---
 {
-  const m = leesTreinmeldingen(demo(), CODES);
+  const m = parseTrainReports(demo(), CODES);
   const per = (n, c) => m.find((x) => x.nummer === n && x.code === c);
   assert.strictEqual(m.length, 6, 'alleen de stations uit het rooster (ut valt weg)');
   assert.deepStrictEqual([per('37819', 'gn').delay, per('37819', 'gn').spoor], [180, '5']);
@@ -48,41 +48,41 @@ const demo = () => feed(
   assert.ok(per('200', 'gn').vervallen, 'een overgeslagen halte');
   assert.ok(!per('37819', 'gn').vervallen);
   assert.strictEqual(per('37819', 'gn').datum, '20261121');
-  assert.strictEqual(leesTreinmeldingen(demo()).length, 7, 'zonder filter alles');
-  assert.throws(() => leesTreinmeldingen(new Uint8Array([0x12, 0xff, 0x01, 0x00])));
-  assert.strictEqual(leesTreinmeldingen(new Uint8Array(0)).length, 0);
+  assert.strictEqual(parseTrainReports(demo()).length, 7, 'zonder filter alles');
+  assert.throws(() => parseTrainReports(new Uint8Array([0x12, 0xff, 0x01, 0x00])));
+  assert.strictEqual(parseTrainReports(new Uint8Array(0)).length, 0);
 }
 
 // --- tijd en sleutel ---
 {
-  assert.strictEqual(nlSecVanDag(T0), 9 * 3600, 'NL-tijd in de winter: UTC+1');
-  assert.strictEqual(nlSecVanDag(Date.UTC(2027, 7, 18, 8, 0, 0) / 1000), 10 * 3600, 'NL-tijd in de zomer: UTC+2');
+  assert.strictEqual(nlSecOfDay(T0), 9 * 3600, 'NL-tijd in de winter: UTC+1');
+  assert.strictEqual(nlSecOfDay(Date.UTC(2027, 7, 18, 8, 0, 0) / 1000), 10 * 3600, 'NL-tijd in de zomer: UTC+2');
   assert.strictEqual(nlDatum(T0), '20261121');
   assert.strictEqual(nlDatum(Date.UTC(2026, 10, 21, 23, 30, 0) / 1000), '20261122', 'na 23:00 UTC is het in Nederland al de volgende dag');
-  const m = leesTreinmeldingen(demo(), CODES);
-  const st = maakStand(m, T0);
+  const m = parseTrainReports(demo(), CODES);
+  const st = buildDelayMap(m, T0);
   // 37819: gepland = verwacht - vertraging = T0 + 600 -> 09:10 NL
   assert.deepStrictEqual(st.get(meldSleutel('37819', 'gn', 9 * 3600 + 600)), { vertraging: 180, vervallen: false });
   assert.deepStrictEqual(st.get(meldSleutel('6140', 'gn', 9 * 3600 + 1200)), { vertraging: 0, vervallen: false }, 'vroeg telt als op tijd');
   assert.ok(st.get(meldSleutel('100', 'gn', 9 * 3600 + 1800)).vervallen);
   assert.ok(![...st.keys()].some((k) => k.startsWith('300|')), 'meldingen voor morgen tellen niet mee voor vandaag');
-  assert.strictEqual(maakStand(m, T0, 2).size, 2, 'een maximum aan meldingen');
+  assert.strictEqual(buildDelayMap(m, T0, 2).size, 2, 'een maximum aan meldingen');
 }
 
 // --- de opvraag: niets van de speler ---
 {
   let gezien = null;
   const f = async (url, o) => { gezien = { url, o }; return respons(demo()); };
-  const r = await haalLiveTreinen({ fetchFn: f, codes: CODES });
+  const r = await fetchLiveTrains({ fetchFn: f, codes: CODES });
   assert.ok(r.ok && r.meldingen.length === 6);
-  assert.strictEqual(gezien.url, LIVE_TREINEN.url);
+  assert.strictEqual(gezien.url, LIVE_TRAINS.url);
   assert.ok(/^https:\/\/gtfs\.ovapi\.nl\/nl\/trainUpdates\.pb$/.test(gezien.url), 'vaste url, geen querystring');
   assert.strictEqual(gezien.o.method, 'GET');
   assert.strictEqual(gezien.o.credentials, 'omit');
   assert.strictEqual(gezien.o.referrerPolicy, 'no-referrer');
   assert.ok(!('body' in gezien.o), 'geen body');
   assert.deepStrictEqual(Object.keys(gezien.o.headers).sort(), ['Accept', 'User-Agent']);
-  const alles = JSON.stringify([gezien.url, VERZOEK]);
+  const alles = JSON.stringify([gezien.url, REQUEST_OPTIONS]);
   assert.ok(!/gde-|player|speler|naam|name|token|key|id=|cookie|authorization/i.test(alles.replace(/Accept|User-Agent|OpenDataLezer/g, '')), 'geen spelergegevens in de opvraag');
   const src = fs.readFileSync(new URL('../game/js/livetreinen.js', import.meta.url), 'utf8');
   assert.ok(!/localStorage|sessionStorage|storagekeys|getSettings|document\.cookie|navigator\./.test(src), 'livetreinen.js leest geen opslag of instellingen');
@@ -94,26 +94,26 @@ const demo = () => feed(
 // --- zacht falen ---
 {
   const f = (res) => async () => res;
-  assert.deepStrictEqual((await haalLiveTreinen({ fetchFn: f(respons(new Uint8Array(0), { ok: false, status: 503 })), codes: CODES })), { ok: false, reden: 'status', status: 503 });
-  assert.strictEqual((await haalLiveTreinen({ fetchFn: async () => { throw new Error('x'); }, codes: CODES })).reden, 'netwerk');
-  assert.strictEqual((await haalLiveTreinen({ fetchFn: f(respons(new Uint8Array([0x12, 0xff, 0x01]))), codes: CODES })).reden, 'ongeldig');
-  assert.strictEqual((await haalLiveTreinen({ fetchFn: f(respons(feed(rit({ nummer: '1', datum: '20261121', halten: [halte({ code: 'ut', spoor: '1', dep: { delay: 0, time: T0 } })] })))), codes: CODES })).reden, 'leeg', 'geen melding voor onze stations');
-  assert.strictEqual((await haalLiveTreinen({ fetchFn: f(respons(demo(), { cl: LIVE_TREINEN.maxBytes + 1 })), codes: CODES })).reden, 'te-groot');
-  assert.strictEqual((await haalLiveTreinen({ fetchFn: undefined })).reden, 'netwerk');
+  assert.deepStrictEqual((await fetchLiveTrains({ fetchFn: f(respons(new Uint8Array(0), { ok: false, status: 503 })), codes: CODES })), { ok: false, reden: 'status', status: 503 });
+  assert.strictEqual((await fetchLiveTrains({ fetchFn: async () => { throw new Error('x'); }, codes: CODES })).reden, 'netwerk');
+  assert.strictEqual((await fetchLiveTrains({ fetchFn: f(respons(new Uint8Array([0x12, 0xff, 0x01]))), codes: CODES })).reden, 'ongeldig');
+  assert.strictEqual((await fetchLiveTrains({ fetchFn: f(respons(feed(rit({ nummer: '1', datum: '20261121', halten: [halte({ code: 'ut', spoor: '1', dep: { delay: 0, time: T0 } })] })))), codes: CODES })).reden, 'leeg', 'geen melding voor onze stations');
+  assert.strictEqual((await fetchLiveTrains({ fetchFn: f(respons(demo(), { cl: LIVE_TRAINS.maxBytes + 1 })), codes: CODES })).reden, 'te-groot');
+  assert.strictEqual((await fetchLiveTrains({ fetchFn: undefined })).reden, 'netwerk');
   // time-out: de fetch hangt, de klok tikt
   let tikken = null;
-  const hangt = haalLiveTreinen({ fetchFn: () => new Promise(() => {}), codes: CODES, setTimer: (fn) => { tikken = fn; return 1; }, clearTimer: () => {} });
+  const hangt = fetchLiveTrains({ fetchFn: () => new Promise(() => {}), codes: CODES, setTimer: (fn) => { tikken = fn; return 1; }, clearTimer: () => {} });
   tikken();
   assert.strictEqual((await hangt).reden, 'time-out');
   // te groot bij streamen
-  const groot = async () => ({ ok: true, status: 200, headers: { get: () => null }, body: { getReader: () => ({ read: async () => ({ done: false, value: new Uint8Array(LIVE_TREINEN.maxBytes + 1) }), cancel: async () => {} }) } });
-  assert.strictEqual((await haalLiveTreinen({ fetchFn: groot, codes: CODES })).reden, 'te-groot');
+  const groot = async () => ({ ok: true, status: 200, headers: { get: () => null }, body: { getReader: () => ({ read: async () => ({ done: false, value: new Uint8Array(LIVE_TRAINS.maxBytes + 1) }), cancel: async () => {} }) } });
+  assert.strictEqual((await fetchLiveTrains({ fetchFn: groot, codes: CODES })).reden, 'te-groot');
 }
 
 // --- het ritme: een opvraag per minuut, backoff, spreiding, 429 ---
 {
   let t = T0 * 1000, n = 0, volgende = () => respons(demo());
-  const lt = maakLiveTreinen({ fetchFn: async () => { n++; return volgende(); }, nu: () => t, opts: { jitter: () => 1 } });
+  const lt = createLiveTrains({ fetchFn: async () => { n++; return volgende(); }, nu: () => t, opts: { jitter: () => 1 } });
   assert.strictEqual(lt.vertragingen(t), null, 'voor de eerste opvraag: geen vertragingen, het bord toont het rooster');
   await lt.tick(true, CODES, t);
   assert.strictEqual(n, 1);
@@ -126,30 +126,30 @@ const demo = () => feed(
   const w1 = lt.stand().volgendeOp - t;
   t = lt.stand().volgendeOp; await lt.tick(true, CODES, t);
   const w2 = lt.stand().volgendeOp - t;
-  assert.ok(w2 > w1 && w2 <= LIVE_TREINEN.maxInterval, 'het wachten verdubbelt');
-  assert.ok(lt.vertragingen(t) !== null || t - lt.stand().laatsteOk > LIVE_TREINEN.verouderd, 'de laatste goede stand blijft tot hij te oud is');
-  t += LIVE_TREINEN.verouderd + 1; assert.strictEqual(lt.vertragingen(t), null, 'te oude gegevens tellen niet meer: terug naar het rooster');
+  assert.ok(w2 > w1 && w2 <= LIVE_TRAINS.maxInterval, 'het wachten verdubbelt');
+  assert.ok(lt.vertragingen(t) !== null || t - lt.stand().laatsteOk > LIVE_TRAINS.verouderd, 'de laatste goede stand blijft tot hij te oud is');
+  t += LIVE_TRAINS.verouderd + 1; assert.strictEqual(lt.vertragingen(t), null, 'te oude gegevens tellen niet meer: terug naar het rooster');
   // 429 geeft meteen de lange rust
-  const lt2 = maakLiveTreinen({ fetchFn: async () => respons(new Uint8Array(0), { ok: false, status: 429 }), nu: () => t, opts: { jitter: () => 1 } });
+  const lt2 = createLiveTrains({ fetchFn: async () => respons(new Uint8Array(0), { ok: false, status: 429 }), nu: () => t, opts: { jitter: () => 1 } });
   await lt2.tick(true, CODES, t);
-  assert.strictEqual(lt2.stand().volgendeOp - t, LIVE_TREINEN.maxInterval);
+  assert.strictEqual(lt2.stand().volgendeOp - t, LIVE_TRAINS.maxInterval);
   // een lege feed is geen fout
-  const lt3 = maakLiveTreinen({ fetchFn: async () => respons(feed()), nu: () => t, opts: { jitter: () => 1 } });
+  const lt3 = createLiveTrains({ fetchFn: async () => respons(feed()), nu: () => t, opts: { jitter: () => 1 } });
   await lt3.tick(true, CODES, t);
   assert.strictEqual(lt3.stand().fouten, 0);
   // spreiding: standaard +-15%
   const gezien = new Set();
   for (let i = 0; i < 30; i++) {
-    const l = maakLiveTreinen({ fetchFn: async () => respons(demo()), nu: () => t });
+    const l = createLiveTrains({ fetchFn: async () => respons(demo()), nu: () => t });
     await l.tick(true, CODES, t);
     const d = l.stand().volgendeOp - t;
-    assert.ok(d >= LIVE_TREINEN.interval * 0.85 - 1 && d <= LIVE_TREINEN.interval * 1.15 + 1);
+    assert.ok(d >= LIVE_TRAINS.interval * 0.85 - 1 && d <= LIVE_TRAINS.interval * 1.15 + 1);
     gezien.add(Math.round(d / 100));
   }
   assert.ok(gezien.size > 3, 'de intervallen zijn gespreid');
   // zonder stationscodes (geen rooster) of uit: geen opvraag
   let m = 0;
-  const l4 = maakLiveTreinen({ fetchFn: async () => { m++; return respons(demo()); }, nu: () => t });
+  const l4 = createLiveTrains({ fetchFn: async () => { m++; return respons(demo()); }, nu: () => t });
   assert.strictEqual(l4.tick(true, new Set(), t), null); assert.strictEqual(l4.tick(false, CODES, t), null); assert.strictEqual(m, 0);
 }
 
@@ -158,46 +158,46 @@ const demo = () => feed(
   let viaBrug = 0, viaFetch = 0;
   const brug = async () => { viaBrug++; return { ok: true, status: 200, bytes: demo() }; };
   const omg = { gdeDesktop: { liveTreinen: brug }, fetch: async () => { viaFetch++; throw new Error('x'); } };
-  const via = await haalLiveTreinen({ fetchFn: kiesFetch(omg), codes: CODES });
+  const via = await fetchLiveTrains({ fetchFn: kiesFetch(omg), codes: CODES });
   assert.ok(via.ok); assert.strictEqual(viaBrug, 1); assert.strictEqual(viaFetch, 0, 'de brug gaat voor de directe fetch');
   let direct = 0;
-  await haalLiveTreinen({ fetchFn: kiesFetch({ fetch: async () => { direct++; return respons(demo()); } }), codes: CODES });
+  await fetchLiveTrains({ fetchFn: kiesFetch({ fetch: async () => { direct++; return respons(demo()); } }), codes: CODES });
   assert.strictEqual(direct, 1);
   assert.strictEqual(kiesFetch({}), null, 'zonder netwerk geen bron');
-  assert.ok((await brugAlsFetch(async () => ({ ok: true, status: 200, bytes: new Uint8Array([1, 2]) }))()).ok);
+  assert.ok((await bridgeAsFetch(async () => ({ ok: true, status: 200, bytes: new Uint8Array([1, 2]) }))()).ok);
 
   let t = 9_000_000, opgevraagd = 0, gezet = 'niets';
   let inst = { liveTreinen: false };
   const f = async () => { opgevraagd++; return respons(demo()); };
-  const tl = maakTreinLive({ fetchFn: f, nu: () => t, instellingen: () => inst, toegestaan: () => true, zetBron: (b) => { gezet = b; } });
+  const tl = createTrainLive({ fetchFn: f, nu: () => t, instellingen: () => inst, toegestaan: () => true, zetBron: (b) => { gezet = b; } });
   assert.ok(gezet && typeof gezet.vertragingen === 'function');
   assert.strictEqual(tl.tick(CODES, t), null); assert.strictEqual(opgevraagd, 0, 'instelling uit: geen opvraag');
   inst = { liveTreinen: true };
   await tl.tick(CODES, t);
   assert.strictEqual(opgevraagd, 1); assert.ok(tl.bron.vertragingen(t));
-  const tl2 = maakTreinLive({ fetchFn: f, nu: () => t, instellingen: () => ({ liveTreinen: true }), toegestaan: () => false });
+  const tl2 = createTrainLive({ fetchFn: f, nu: () => t, instellingen: () => ({ liveTreinen: true }), toegestaan: () => false });
   assert.strictEqual(tl2.tick(CODES, t), null); assert.strictEqual(opgevraagd, 1, 'een test- of devrun vraagt nooit op');
   inst = { liveTreinen: false };
   tl.tick(CODES, t);
   assert.strictEqual(tl.bron.vertragingen(t), null, 'uitgezet tijdens het spel: terug naar het rooster');
   assert.strictEqual(tl.stand().aantal, 0);
   tl.stop(); assert.strictEqual(gezet, null);
-  const zonderNet = maakTreinLive({ fetchFn: null, nu: () => t, instellingen: () => ({ liveTreinen: true }) });
+  const zonderNet = createTrainLive({ fetchFn: null, nu: () => t, instellingen: () => ({ liveTreinen: true }) });
   assert.strictEqual(zonderNet.tick(CODES, t), null);
 }
 
 // --- de desktop-opvraag (main-proces) heeft dezelfde url en grenzen ---
 {
   const cjs = createRequire(import.meta.url)('../desktop/livetreinen.cjs');
-  assert.strictEqual(cjs.LIVE_URL, LIVE_TREINEN.url);
-  assert.strictEqual(cjs.TIMEOUT, LIVE_TREINEN.timeout);
-  assert.strictEqual(cjs.MAX_BYTES, LIVE_TREINEN.maxBytes);
+  assert.strictEqual(cjs.LIVE_URL, LIVE_TRAINS.url);
+  assert.strictEqual(cjs.TIMEOUT, LIVE_TRAINS.timeout);
+  assert.strictEqual(cjs.MAX_BYTES, LIVE_TRAINS.maxBytes);
   let gezien;
   const bytes = demo();
   const nepFetch = async (url, o) => { gezien = { url, o }; let gedaan = false; return { ok: true, status: 200, body: { getReader: () => ({ read: async () => (gedaan ? { done: true } : ((gedaan = true), { done: false, value: bytes })) }) } }; };
   const r = await cjs.haalLiveTreinen(nepFetch);
   assert.ok(r.ok && r.bytes.length === bytes.length);
-  assert.strictEqual(gezien.url, LIVE_TREINEN.url); assert.strictEqual(gezien.o.method, 'GET'); assert.strictEqual(gezien.o.credentials, 'omit'); assert.strictEqual(gezien.o.referrerPolicy, 'no-referrer');
+  assert.strictEqual(gezien.url, LIVE_TRAINS.url); assert.strictEqual(gezien.o.method, 'GET'); assert.strictEqual(gezien.o.credentials, 'omit'); assert.strictEqual(gezien.o.referrerPolicy, 'no-referrer');
   assert.deepStrictEqual(Object.keys(gezien.o.headers).sort(), ['Accept', 'User-Agent']);
   assert.strictEqual((await cjs.haalLiveTreinen(async () => { throw new Error('x'); })).ok, false);
   assert.strictEqual((await cjs.haalLiveTreinen(async () => ({ ok: false, status: 404 }))).ok, false);
@@ -213,7 +213,7 @@ const demo = () => feed(
 
 // --- de echte feed (alleen als een afgehaalde kopie is aangeleverd: GDE_TRAIN_PB=<pad>) ---
 if (process.env.GDE_TRAIN_PB) {
-  const m = leesTreinmeldingen(fs.readFileSync(process.env.GDE_TRAIN_PB), new Set(['gn', 'hrn', 'asn']));
+  const m = parseTrainReports(fs.readFileSync(process.env.GDE_TRAIN_PB), new Set(['gn', 'hrn', 'asn']));
   assert.ok(m.length > 50, 'de echte feed levert meldingen voor Groningen');
   assert.ok(m.every((x) => /^\d+$/.test(x.nummer) && Number.isFinite(x.delay) && x.delay > -3600 && x.delay < 86400));
   console.log('echte feed:', m.length, 'meldingen,', m.filter((x) => x.delay >= 60).length, 'met vertraging');
