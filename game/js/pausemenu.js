@@ -68,7 +68,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
-import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
+import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, spullenNavigeer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -1387,9 +1387,13 @@ function onKey(e) {
     if (tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls(root, t);
     else if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
     else tabFocus(e.shiftKey ? -1 : 1);
+  } else if (tab === 'spullen' && (k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown') && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, k.toLowerCase())) {
+    consume(e);
   } else if (dir) {
     // de draaitafel van de Garage: links en rechts draaien het model als de
     // focus op het model staat (#610); omhoog/omlaag blijven focus verplaatsen
+    // de galerij van Spullen: pijltjes en D-pad lopen over de tegels (links, rechts, omhoog, omlaag); aan de rand neemt het menu het over
+    if (tab === 'spullen' && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, dir)) { consume(e); return; }
     if (tab === 'spullen' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('[data-spul-stage]') && turnSpullenViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     if (tab === 'garage' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('.gar-stage') && turnGarageViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     // the map pans with the arrows (and WASD) unless the rail has focus; staat de focus van een controller op een knop van
