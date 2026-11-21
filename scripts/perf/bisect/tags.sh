@@ -1,7 +1,8 @@
 #!/bin/bash
 # usage: tags.sh <preset> <rep> <tag...>   stage each tag, run once, remove again (one extra staged build at a time)
 P=$1; REP=$2; shift 2
-W=/c/Users/abuis/GIT/GDE-Groningen/.claude/worktrees/agent-a681be9f8f4d7da1c
+W=${GDE_WORK:-$(git rev-parse --show-toplevel)}   # de worktree met .pb/.pt (zet GDE_WORK als je er niet in staat)
+REPO=${GDE_REPO:-$(cd "$W/../../.." && pwd)}   # de hoofdmap met desktop/vendor-cache, node_modules en game/world
 B=$W/.pb
 for T in "$@"; do
   if [ ! -d $B/s$T/game ]; then

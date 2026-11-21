@@ -145,4 +145,4 @@ Kleine punten zonder issue: Verhaal-teller in de rail (nog een getal); rechtsbov
 
 ## Bestanden
 
-Alle absolute paden onder `C:\Users\abuis\GIT\GDE-Groningen\.claude\worktrees\agent-a9a1cb8bcc4a260bf\docs\beeld-21-11\beeldronde\` (mappen `rook`, `menu`, `menu1280`, `hud3`, `missies`, `missies2`, `missies3`, `wereld`, `wereld2`, `wereld3`, `laadbench2`, `trekker`).
+Alle paden zijn relatief aan `docs/beeld-21-11/beeldronde/` van de repo (`<WORKTREE>`: de map waarin de ronde is gedraaid) (mappen `rook`, `menu`, `menu1280`, `hud3`, `missies`, `missies2`, `missies3`, `wereld`, `wereld2`, `wereld3`, `laadbench2`, `trekker`).
