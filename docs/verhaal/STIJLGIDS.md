@@ -104,7 +104,7 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 | Feit | Waarde |
 |---|---|
 | Tammo | 24 jaar (*Ik ben vierentwintig, oma*), net afgestudeerd. Woont op de Escapade. Zie [../VERHAALCANON-21-11.md](../VERHAALCANON-21-11.md). |
-| Tessa en Tammo | kennen elkaar vijf jaar, sinds hun eerste Kiezelweek in de studietijd (21-11). De treinreis naar Delfzijl om naar de zee te kijken was een uitje uit die tijd. Tammo is er al sinds de studie verliefd op en zweeg vijf jaar (M26.7). Ze zijn net afgestudeerd en hebben hun eerste baantjes. Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). Rikus blijft Tammo's jeugdvriend uit het Oosterpark; Tessa kwam er tijdens de studie bij. |
+| Tessa en Tammo | kennen elkaar vijf jaar, sinds hun eerste Kiezelweek in de studietijd (21-11). De treinreis naar Delfzijl om naar de zee te kijken was een uitje uit die tijd. Tammo is er al sinds de studie verliefd op en zweeg vijf jaar (M26.7). Ze zijn net afgestudeerd en werkloos; hun eerste klusjes komen uit het spel. Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). Rikus blijft Tammo's jeugdvriend uit het Oosterpark; Tessa kwam er tijdens de studie bij. |
 | Oma Trijntje | 92. Won de Snackprijs in 1953. |
 | Mem (Gerda Terpstra) | 91. Werd in 1953 tweede, tegen Trijntje. Moeder van Jelle. "Zeventig jaar" is een afronding. |
 | Geesje | kosteres in Warffum, 84. Geen schoolvriendin van Trijntje: ze kent haar van de kerk. |

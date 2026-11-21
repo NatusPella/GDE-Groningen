@@ -11,7 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
-- Tammo en Tessa zijn net afgestudeerd en trekken de wijde wereld in: ze leerden elkaar vijf jaar geleden kennen tijdens de studie in Groningen (Rikus blijft Tammo's jeugdvriend). Tammo is vierentwintig ("Ik ben vierentwintig, oma."), Tessa geloofde zijn zeegrap vijf jaar en Tammo zweeg vijf jaar. Bio's, naamkaarten en prestatiekaarten volgen. Vier gesproken regels tonen tot de volgende opnameronde alleen ondertitels.
+- Tammo en Tessa zijn net afgestudeerd en trekken de wijde wereld in: ze leerden elkaar vijf jaar geleden kennen tijdens de studie in Groningen (Rikus blijft Tammo's jeugdvriend). Tammo is vierentwintig ("Ik ben vierentwintig, oma."), Tessa geloofde zijn zeegrap vijf jaar en Tammo zweeg vijf jaar. Bio's, naamkaarten en prestatiekaarten volgen. Ze zijn werkloos en hun eerste klusjes komen uit het spel; de slotkaart van de trailer zegt nu "Twee afgestudeerden. Eén frietwagen. Geen plek." Vier gesproken regels tonen tot de volgende opnameronde alleen ondertitels.
 - De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
 - Het schildje van de eenheden bij de politiechip op de minikaart is een Phosphor-icoon; sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
 - Boten van het omgevingsverkeer: de kanaalscan kan op verzoek eerst af zijn voor er een plek gekozen wordt (alleen voor tests en audits; in het spel blijft het tijdbudget van 3 ms), zodat dezelfde seed altijd dezelfde plekken geeft. De test van de bootplekken is stabiel (20 van 20 keer groen).

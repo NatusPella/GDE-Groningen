@@ -81,7 +81,7 @@ ok(/const OPENING_CUT = \[\];/.test(cut), 'de opening heeft geen stille, geschra
 
 // de haak staat in beeld: de slotkaart van de trailer zegt wat er aan de hand is
 const montage = fs.readFileSync(new URL('../game/js/intromontage.js', import.meta.url), 'utf8');
-ok(/im-kicker">Twee Stadjers\. Eén frietwagen\. Geen plek\.<\/div>/.test(montage), 'de slotkaart van de trailer noemt de haak: twee Stadjers, één frietwagen, geen plek');
+ok(/im-kicker">Twee afgestudeerden. Eén frietwagen. Geen plek.<\/div>/.test(montage), 'de slotkaart van de trailer noemt de haak: twee afgestudeerden, één frietwagen, geen plek');
 
 console.log(`${n - fails}/${n} verhaal_onthulling`);
 process.exit(fails ? 1 : 0);

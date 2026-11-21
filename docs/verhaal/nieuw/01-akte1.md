@@ -21,7 +21,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 
 ### Opening (cutscène, geen missie)
 
-**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart; de slotkaart zegt de haak: "Twee Stadjers. Eén frietwagen. Geen plek."), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
+**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart; de slotkaart zegt de haak: "Twee afgestudeerden. Eén frietwagen. Geen plek."), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
 
 **Opening, de keuken (uitsnede):**
 

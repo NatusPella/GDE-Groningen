@@ -4,7 +4,7 @@ Besluit van de eigenaar (21-11). Dit document is het canonblad voor alles wat de
 
 ## 1. Het besluit
 
-Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren al vrienden tijdens hun studie in Groningen en hebben nu hun eerste volwassen baantjes. Dat vervangt de oude canon: "ze kennen elkaar al twintig jaar sinds de treinreis als kinderen", Tammo is 34, "twaalf jaar verliefd". Blijft staan: Tessa komt van het platteland (boerendochter, dorpsteam, zie [verhaal/OPENING-BIJBEL.md](verhaal/OPENING-BIJBEL.md)), Beppe is Tammo's oma (eerst bezoek, dan overlijden), Rikus is Tammo's jeugdvriend uit Groningen.
+Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren al vrienden tijdens hun studie in Groningen en zijn nu werkloos: hun eerste klusjes komen uit het spel. Dat vervangt de oude canon: "ze kennen elkaar al twintig jaar sinds de treinreis als kinderen", Tammo is 34, "twaalf jaar verliefd". Blijft staan: Tessa komt van het platteland (boerendochter, dorpsteam, zie [verhaal/OPENING-BIJBEL.md](verhaal/OPENING-BIJBEL.md)), Beppe is Tammo's oma (eerst bezoek, dan overlijden), Rikus is Tammo's jeugdvriend uit Groningen.
 
 ## 2. Canonblad (de nieuwe feiten)
 
@@ -16,7 +16,7 @@ Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren a
 | Verliefd | Tammo is **al sinds de studie** verliefd op Tessa en zweeg **vijf jaar** (M26.7: "Dat duurde vijf jaar."). Toon en grap van de romance blijven; alleen het getal is kleiner. |
 | Studie van Tammo | Tammo had twee valse starts (de grappen "Hier gestudeerd, twee weken" bij het Academiegebouw en "Daar heb ik die drie weken gestudeerd" bij Zernike blijven staan), voor hij een opleiding vond waar hij bleef. Die opleiding noemen we niet. Hij is nu afgestudeerd. |
 | Studie van Tessa | Tessa kwam op haar achttiende van het platteland naar Stad voor de studie. De opleiding noemen we niet. Haar boerenkennis, het dorpsteam en de zeven plekken in haar jeugd blijven zoals ze waren. |
-| Eerste baantjes | AANNAME, nog niet in speltekst: Tammo heeft een kleine, vaak wisselende baan en kan "nooit iets betalen"; Tessa heeft haar eerste baan zonder vast contract. Dat verklaart waarom haar bank de frietwagenlening afwees ("uw plan is sympathiek") en waarom ze samen "precies genoeg voor een patatje" hebben. Het spel noemt geen werkgever (geen echte merken, geen echte bedrijven). |
+| Werk | **Besluit eigenaar 21-11:** beiden zijn werkloos net afgestudeerd. Geen kantoorbaan en geen boerderijbaan; hun eerste klusjes (bijbanen, missies) komen uit het spel zelf. Dat verklaart waarom de bank de frietwagenlening afwees en waarom ze samen "precies genoeg voor een patatje" hebben. Andere docs (voetbal, Bezit) zeggen "eerste klusjes", niet "eerste baantjes". Rikus heeft wel werk: de nachtradio. |
 | Rikus | Tammo's **jeugdvriend uit het Oosterpark** (van vóór de studie). Tessa leerde hem tijdens de studie via Tammo kennen. Zijn eerste baan is de nachtradio. |
 | Beppe | Tammo's oma (Fries), een ander personage dan Oma Trijntje. Dat Beppe Tessa "voor het eerst ziet" klopt nu des te beter: vijf jaar vrienden, nu eerst een bezoek. Geen tekstwijziging nodig. |
 | Oma Trijntje | 92. Tammo is haar kleinzoon (de krentjebrijregel); Tessa kent haar uit de studietijd. |
@@ -54,7 +54,7 @@ Tot de opname er is, tonen de regels alleen tekst (`textOnly` in `game/storydata
 
 | Bestand | Wat |
 |---|---|
-| `docs/verhaal/STIJLGIDS.md` (feitenblad, twee rijen) | leeftijd, kennismaking, verliefd, baantjes, Rikus |
+| `docs/verhaal/STIJLGIDS.md` (feitenblad, twee rijen) | leeftijd, kennismaking, verliefd, werkloos, klusjes, Rikus |
 | `docs/personages.md` (Tammo, Rikus) | clubje van de stoep, twaalf jaar |
 | `docs/verhaal/nieuw/00-OVERZICHT.md`, `01-akte1.md`, `02-akte2.md`, `05-akte5.md` | rolkolom Rikus, romantiek akte 1, oma-scène, openbaring en Tessa's verleden (Stad vanaf haar achttiende) |
 | `docs/verhaal/OPENING-BIJBEL.md` (Tessa van het platteland) | "tot haar achtste, voor het Oosterpark" wordt "tot haar achtste op het platteland, vanaf haar achttiende in Stad voor de studie" |
@@ -67,18 +67,35 @@ Tot de opname er is, tonen de regels alleen tekst (`textOnly` in `game/storydata
 | "Hier gestudeerd, twee weken" (M05.1) en "drie weken gestudeerd" (banter, Zernike) | Sluiten aan op de nieuwe canon (valse starts). Geen wijziging. |
 | "Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken." (T1) | Klopt als studie-uitje. Geen wijziging, dus de opname blijft. |
 | Beppe-teksten (`beppe_*texts.js`) | "Jullie zijn vrienden", "ziet Tessa voor het eerst": klopt. |
-| Trailer en Steam "Twee Stadjers. Eén frietwagen. Geen plek." (`intromontage.js:847`, test `verhaal_onthulling_test.mjs:84`, `winkelpagina.md:37`) | Tessa komt van het platteland, maar woont nu in Stad; "Stadjers" blijft verdedigbaar. Optie voor de eigenaar: "Twee afgestudeerden." |
+| Trailer, Steam en test: de slogan is vervangen (zie 5). | Besluit eigenaar 21-11. |
 | Archief (`docs/archief/**`), WITTE-RUIS-rapporten, gegenereerde lijsten | Historie, niet aanpassen. |
 | `lines`-opname "Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes." (alleen in manifest en archief) | Geen bron in code of scripts; oud en ongebruikt. Alleen opruimen als iemand hem wil terugbrengen (dan "al vijf jaar"). |
 | "Ik heb op zeven plekken gewoond voor ik tien was" (M22) en de zomers in Ljouwert | Blijft staan; botst zacht met "boerderij tot haar achtste", maar dat is al zo sinds de aanvulling van 21-11 (OPENING-BIJBEL). |
 | `docs/VOETBAL-CARRIERE-21-11.md` hoofdstuk 2b (botsingenlijst) | Stond niet op `origin/main` en de branch `voetbal-carriere-plan-21-11` is niet aangetroffen op origin; die lijst is dus niet naast deze audit gelegd. |
 
-## 4. Wat onzeker is (voor de eigenaar)
+## 4. Canon-kern: waarom het hoofdverhaal bestaat
 
-1. **Vijf jaar** voor "geloofd", "zweeg" en "verliefd" is een keuze (eerste Kiezelweek tot nu). Wil je het kleiner of vager ("al die jaren"), dan veranderen de vier regels weer.
+Wie wil wat en waarom: **Tessa ontdekt dat ze een frietwagen wil** en vindt het superleuk om dat samen met Tammo te doen. Zijn liefde voor autorijden en haar liefde voor vette snacks komen samen in de Fjord Frituur op de Escapade. Ze zijn net afgestudeerd, werkloos en zonder vast inkomen (de bank zei nee), dus de enige weg is de enige vrije standplaats, en die gaat naar de winnaar van de Snackprijs. Tammo wil vooral bij haar blijven (zijn vijf woorden); Tessa wil een thuis met wielen. Ze ontdekken zichzelf in Grunn: het echte leven begint hier. Jelle wil de markt en de bal. Dit is de motivatie voor elke missie; de logline in 00-OVERZICHT en de Steam-blurb volgen dit.
+
+## 5. Sloganopties (voor de eigenaar)
+
+1. **Twee afgestudeerden. Eén frietwagen. Geen plek.** (voorlopig gekozen: houdt de haak "geen plek" en de drieslag; nu in trailer, Steam-blurb, YouTube-afbeeldingen en test)
+2. Net afgestudeerd. Nog geen plan. Wel een frietwagen.
+3. Tammo rijdt. Tessa bakt. Samen sta je ergens.
+4. Het echte leven begint in Grunn, met friet.
+5. Twee studenten gaan het echte leven in. Eén frietwagen helpt.
+
+Alle opties zijn Nederlands, zonder echte merken, met "Grunn" zonder "de". De slogan staat in `game/js/intromontage.js`, `docs/steam/winkelpagina.md`, `scripts/youtube_images.mjs`, `scripts/youtube_thumbnails.mjs` en de test `scripts/verhaal_onthulling_test.mjs`.
+
+## 6. Besluiten van de eigenaar (21-11)
+
+Vijf jaar bevestigd. Werkloos (geen baantjes). Slogan zoals hierboven (voorlopig). Tammo's stemtag blijft "in his thirties" (consistentie met de bestaande clips).
+
+## 7. Wat onzeker is (voor de eigenaar)
+
+1. (Besluit 21-11: vijf jaar bevestigd.)
 2. **Gronings "vief"** (vijf) in de spreektekst van Tessa: controleer bij de TTS-ronde.
-3. **Tammo's baan en Tessa's baan** staan alleen in dit blad, niet in speltekst.
 4. **Tessa's verleden** ("zeven plekken", Ljouwert, boerderij, Stad vanaf haar achttiende) is nu consistent genoeg voor de speler, maar niet strak; een nette versie vraagt een besluit van jou.
-5. **"Twee Stadjers"** in trailer, Steam en een test (zie 3.4).
-6. **Stemtag van Tammo** (`scripts/tts_cast.mjs`, `docs/personages.md`): "man in his thirties". Niet gewijzigd, omdat een andere tag de stem van de nieuwe opnames kan laten afwijken van de honderden bestaande clips; de TTS-agent kan beoordelen of "in his twenties" past.
+5. De slogan (zie 5) is voorlopig; de eigenaar kiest.
+6. (Besluit 21-11: stemtag blijft.)
 7. De oude clips blijven tot de TTS-ronde in de manifesten; de regels zijn tot dan alleen tekst.

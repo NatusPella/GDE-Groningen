@@ -23,7 +23,7 @@ Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twis
 
 **Titel:** *Alles voor één eierbal* (bestaande arc-naam; het spel heet *GDE Groningen – Zomer vol misdaad*).
 
-**Logline:** Twee Stadjers zonder geld willen een frietwagen laten staan op de enige standplaats van Grunn, en moeten daarvoor de Noordelijke Snackprijs winnen. Een Friese snackbaron koopt plakje voor plakje de hele markt op om dat te voorkomen, en hij heeft de Gouden Eierbal echt uit het museum gehaald: vóór hen. Over de hele provincie, in twee weken, tegen een jury, een bal en een droge woordenwisseling in, tot zijn eigen moeder hem de bal afneemt en de beste eierbal wint.
+**Logline:** Twee net afgestudeerden zonder werk of geld willen een frietwagen laten staan op de enige standplaats van Grunn, en moeten daarvoor de Noordelijke Snackprijs winnen. Een Friese snackbaron koopt plakje voor plakje de hele markt op om dat te voorkomen, en hij heeft de Gouden Eierbal echt uit het museum gehaald: vóór hen. Over de hele provincie, in twee weken, tegen een jury, een bal en een droge woordenwisseling in, tot zijn eigen moeder hem de bal afneemt en de beste eierbal wint.
 
 **Algemeen doel (één zin, hardop in de opening door Tessa):** *"Wij winnen op 28 augustus de Noordelijke Snackprijs, dan krijgen we de enige vrije standplaats, en dan heeft de Fjord Frituur een thuis."*
 

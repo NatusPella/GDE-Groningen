@@ -34,7 +34,7 @@ tekens heeft: "GDE Groningen - Zomer vol misdaad" met een gewoon streepje.
 
 **NL** (237 tekens):
 
-> Twee Stadjers zonder geld willen de Gouden Eierbal stelen voor een frietwagen. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
+> Twee net afgestudeerden zonder werk of geld willen de Gouden Eierbal stelen voor een frietwagen. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
 
 **EN** (255 tekens):
 
