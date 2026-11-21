@@ -1,6 +1,7 @@
 // Stabiliteit en lekken (#1065): de opruimer van niet-eindige waarden en de bedrading van de reparaties (bronchecks voor wat in Node niet
 // draait: scene3d.js, main.js, desktop/main.js).
 //   node scripts/stabiliteit_test.mjs
+import './node3d.mjs';
 import fs from 'node:fs';
 import { sweepNonFinite } from '../game/js/finitesweep.js';
 
@@ -33,6 +34,23 @@ for (let i = 0; i < 1000; i++) sweepNonFinite(groot);
 const ms = Number(process.hrtime.bigint() - t0) / 1e6 / 1000;
 ok(ms < 0.2, 'een opruimronde kost minder dan 0,2 ms bij 400 auto\'s en 200 voetgangers', ms.toFixed(3) + ' ms');
 
+
+// --- haltebordjes (waymarkers3d.js trimSigns) ---
+{
+  const { trimSigns, SIGN_KEEP } = await import('../game/js/waymarkers3d.js');
+  let weg = 0;
+  const maak = () => ({ traverse(f) { f({ geometry: { dispose() { weg++; } }, material: { map: { dispose() { weg++; } }, dispose() { weg++; } } }); } });
+  const signs = new Map(); const root = { removed: 0, remove() { this.removed++; } };
+  for (let i = 0; i < 30; i++) signs.set('h' + i, maak());
+  const live = new Set(['h0', 'h1', 'h29']);
+  const n2 = trimSigns(root, signs, live);
+  ok(signs.size === SIGN_KEEP && n2 === 30 - SIGN_KEEP, 'trimSigns houdt hoogstens SIGN_KEEP borden', String(signs.size));
+  ok(live.has('h0') && signs.has('h0') && signs.has('h1') && signs.has('h29'), 'borden van de lopende rit blijven altijd');
+  ok(weg === n2 * 3 && root.removed === n2, 'geometrie, textuur en materiaal van elk weggegooid bord zijn vrijgegeven', String(weg));
+  ok(trimSigns(root, signs, live) === 0, 'een tweede ronde doet niets');
+  const allLive = new Map(); for (let i = 0; i < 12; i++) allLive.set('k' + i, maak());
+  ok(trimSigns(root, allLive, new Set([...allLive.keys()])) === 0 && allLive.size === 12, 'borden die allemaal nodig zijn blijven staan');
+}
 // --- bedrading ---
 const scene = src('game/js/scene3d.js');
 ok(/for \(const k of \['_geoStruct', '_geoOverDeck', '_geoBridgeCore'\]\)/.test(scene), 'freeRoadGeometry geeft ook _geoBridgeCore vrij');
