@@ -66,7 +66,7 @@ export const SHOTS = [
   S('c3-toren', 'C00.3', 71.0, 4.0, 'wide', 50, { kind: 'dolly', dist: 6 }, { at: 'Pleiadenlaan', establishing: true, cam: 'de woontoren, voor de deur een Escapade met een matras op het dak' }),
   S('c3-twee', 'C00.3', 75.0, 6.2, 'medium', 40, ST, { at: 'Pleiadenlaan', cam: 'tweeshot bij de auto; ze praten tegen elkaar, niet tegen de camera' }),
   S('c3-band', 'C00.3', 81.2, 2.2, 'close', 28, ST, { at: 'Pleiadenlaan', cam: 'close: de lekke band, een zucht lucht', sfx: 'band-sissen' }),
-  S('c3-zweef', 'C00.3', 83.4, 4.6, 'wide', 50, { kind: 'crane', dist: 3.6 }, { at: 'Paddepoel', cam: 'de zweefvlucht naar de spawn van de speler (flyShot)', cue: 'thema-groot', lower: 'Welkom in Grunn' }),
+  S('c3-zweef', 'C00.3', 83.4, 4.6, 'wide', 50, { kind: 'crane', dist: 3.6 }, { at: 'Paddepoel', cam: 'de zweefvlucht naar de startplek van de speler (flyShot)', cue: 'thema-groot', lower: 'Welkom in Grunn' }),
   S('c3-titel', 'C00.3', 88.0, 4.4, 'card', null, ST, { black: true, card: 'titel', cue: 'titel-sting' }),
 ];
 

@@ -8,9 +8,11 @@ import { getScene, prewarmStreamAt, disposeObject } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult, getBenchResult } from './gfxprofile.js';
-import { BENCH_ROUTE, BENCH_CATEGORIES, playStats, benchLooksBusy, BENCH_BUSY_NOTE, recommendStand, STAND_LABEL, shouldRemeasure, betterRun, ultraNote, benchMeasureAfter, frameStats, categoryStats, routeHitches, weakestCategory, compareRuns, compareText, packRun, readLastRun, writeLastRun, heapMb, heapPeak, memText } from './benchstats.js';
+import { BENCH_ROUTE, playStats, shouldRemeasure, betterRun, ultraNote, benchMeasureAfter, frameStats, categoryStats, routeHitches, packRun, readLastRun, writeLastRun, heapMb, heapPeak } from './benchstats.js';
 import { onBenchmarkStop } from './gamepad.js';
 import { glyphHtml } from './keycap.js';
+import { courseFor, commentaryFor, frameReport, fpsSeries, reportCard, normaliseChoice, COURSES } from './benchmarkmodel.js';
+import { showBenchmarkChoice, reportHtml, saveReport } from './benchmarkui.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -216,11 +218,12 @@ function ensureUi() {
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span> <span class="key is-kbg">' + glyphHtml('SPACE') + '</span> <span>ingedrukt om over te slaan</span></div>' +
     '<div class="tr-cancel"><span class="key is-kbg">' + glyphHtml('ESC') + '</span><span>Benchmark stoppen</span></div>' +
-    '<div class="tr-fps"></div>';
+    '<div class="tr-fps"></div>' +
+    '<div class="tr-prog"><span class="tr-prog__t"></span><div class="ds-z-balk"><div class="ds-z-balk__baan"><div class="ds-z-balk__vul"></div></div></div></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
   q('.tr-flash').addEventListener('animationend', (e) => e.target.classList.remove('go', 'big'));
-  ui = { root, flash: q('.tr-flash'), card: q('.tr-card'), sub: q('.tr-sub'), skip: q('.tr-skip'), fps: q('.tr-fps'), black: q('.tr-black'), name: q('.tr-name'), freeze: q('.tr-freeze'), cardKey: '', subKey: '', nameKey: '' };
+  ui = { root, flash: q('.tr-flash'), card: q('.tr-card'), sub: q('.tr-sub'), skip: q('.tr-skip'), fps: q('.tr-fps'), prog: q('.tr-prog__t'), progBar: q('.tr-prog .ds-z-balk'), black: q('.tr-black'), name: q('.tr-name'), freeze: q('.tr-freeze'), cardKey: '', subKey: '', nameKey: '' };
   return ui;
 }
 
@@ -646,6 +649,9 @@ const CUT_ORDER = {
 
 // The benchmark route (benchstats.js): the same shots on every run.
 CUT_ORDER.bench = BENCH_ROUTE.map(([id, d]) => [id, d]);
+// 21-11: the film route ('Grunn in een dag', benchmarkmodel.js) and its short cut: the same locked shots, in the order of a day
+CUT_ORDER.film = courseFor('film', 'volledig').map(([id, d]) => [id, d]);
+CUT_ORDER.filmkort = courseFor('film', 'kort').map(([id, d]) => [id, d]);
 
 // Shot fields: label (benchmark results), cuts ('vol' and/or 'kort';
 // verhaal and gameplay take theirs from CUT_ORDER), dur (seconds in the full
@@ -2132,6 +2138,7 @@ function frame(r, dt, realMs) {
     r.fpsAcc += realMs; r.fpsN++;
     if (r.fpsAcc > 500) {
       ui.fps.textContent = `BENCHMARK${r.label ? ` · ${r.label}` : ''} · ${Math.round(1000 / (r.fpsAcc / r.fpsN))} fps`;
+      if (r.shots.length > 1) { ui.prog.textContent = `Scène ${i + 1} van ${r.shots.length} · ${s.label}`; ui.progBar.style.setProperty('--ds-z-w', `${Math.round(100 * Math.min(1, r.T / Math.max(1, r.total)))}%`); }
       r.fpsAcc = 0; r.fpsN = 0;
     }
   }
@@ -2183,12 +2190,13 @@ function computeStats(r) {
   const heapNow = heapMb();
   const heap = r.heap ? heapPeak([r.heap.start, r.heap.peak, heapNow]) : heapNow;
   const play = playStats(r.stats.filter(Boolean));
-  return { play, avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, memoryNow: heapNow, heaviest: shots[0] || null, frames: all.length, shots, spikes };
+  const live = r.stats.filter(Boolean);
+  return { rep: frameReport(all), series: fpsSeries(live), play, avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, memoryNow: heapNow, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
 // resolves with { skipped, aborted, stats, continuation }.
-export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, frames = false, env, label = '' }) {
+export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, frames = false, env, label = '', commentary = null }) {
   if (running) return Promise.resolve({ skipped: true, aborted: true });
   ensureUi();
   return new Promise((resolve) => {
@@ -2198,6 +2206,8 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const planned = PLAN_CUTS.includes(cut) ? PLAN[cut].beats : null;
     const all = planned ? planned.map((b) => { const s = built.find((x) => x.id === b.shot); if (!s) throw new Error(`trailer: onbekende shot ${b.shot}`); durs.set(s, b.dur); beats.set(s, planBeat(b)); return s; }) : CUT_ORDER[cut] ? CUT_ORDER[cut].map(([id, d]) => { const s = built.find((b) => b.id === id); durs.set(s, d); return s; }) : built.filter((s) => s.cuts.includes(cut));
     const shots = shot != null && all[shot - 1] ? [all[shot - 1]] : all;
+    // the film route's commentary (Tammo and Tessa): subtitles on the shots, [at, dur, who, text]; the beat of a plan cut stays untouched
+    if (commentary) for (const sh of shots) if (commentary[sh.id]) sh.lines = commentary[sh.id];
     const starts = [];
     let total = 0;
     const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 }, heap: mode === 'benchmark' ? { start: heapMb(), peak: 0, at: 0 } : null };
@@ -2411,15 +2421,30 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
 // The benchmark from Instellingen: the full cut on the current settings,
 // then every other preset on the two heaviest shots of that run. A preset's
 // fps is the full run's average times its measured speed-up on those shots.
-export async function runBenchmarkSuite(world, env) {
+let nextChoice = null; // 'Nog een keer' measures again on the same choice without asking
+export async function runBenchmarkSuite(world, env, choiceIn = null) {
   const cur = currentPreset();
-  let res = await runTrailer(world, { mode: 'benchmark', cut: BENCH_RUNS ? 'vol' : 'bench', env });
+  // the choice screen (benchmarkui.js): route, length, commentary; the command line (--benchmark runs) keeps the old behaviour
+  let choice = choiceIn || nextChoice;
+  nextChoice = null;
+  if (!choice && !BENCH_RUNS) {
+    ensureUi();
+    choice = await showBenchmarkChoice({ preset: cur, presetLabel: cur ? presetLabel(cur) : '' });
+    if (!choice) return { aborted: true };
+  }
+  choice = normaliseChoice(choice || { course: 'classic' });
+  const cut = BENCH_RUNS ? 'vol' : choice.course === 'film' ? (choice.length === 'kort' ? 'filmkort' : 'film') : 'bench';
+  const bcut = BENCH_RUNS ? 'bench' : cut;
+  const commentary = commentaryFor(choice);
+  let res = await runTrailer(world, { mode: 'benchmark', cut, env, commentary });
+  res.choice = choice;
   // 0.64.1: a low first result is measured once more (compiles and streaming can hold one run back); the better one counts
   if (!BENCH_RUNS && !res.aborted && shouldRemeasure(res.stats, 0)) {
-    const again = await runTrailer(world, { mode: 'benchmark', cut: 'bench', env, label: 'Nog een meting' });
+    const again = await runTrailer(world, { mode: 'benchmark', cut: bcut, env, label: 'Nog een meting', commentary });
     if (!again.aborted && again.stats) res = betterRun(res, again);
     if (res.stats) res.stats.remeasured = true;
   }
+  res.choice = choice;
   if (res.aborted || !res.stats || BENCH_RUNS) return res;
   const probe = res.stats.shots.slice(0, 2);
   const fps = {};
@@ -2430,7 +2455,7 @@ export async function runBenchmarkSuite(world, env) {
     let ratio = 0, n = 0, aborted = false;
     try {
       for (const s of probe) {
-        const r = await runTrailer(world, { mode: 'benchmark', cut: 'bench', shot: s.idx + 1, env, label: presetLabel(name) });
+        const r = await runTrailer(world, { mode: 'benchmark', cut: bcut, shot: s.idx + 1, env, label: presetLabel(name) });
         if (r.aborted) { aborted = true; break; }
         if (r.stats) { ratio += r.stats.avg / s.fps; n++; }
       }
@@ -2440,6 +2465,7 @@ export async function runBenchmarkSuite(world, env) {
   }
   res.presetFps = fps;
   res.preset = cur;
+  res.choice = choice;
   return res;
 }
 
@@ -2483,21 +2509,6 @@ export function fadeOutTrailer(handOff, atBlack = null) {
 
 // --- benchmark results ----------------------------------------------------------------
 
-// One recommended preset (gfxprofile.js, advice in benchstats.js) that sets everything at once.
-function advise(stats) {
-  const st = getSettings();
-  const cur = currentPreset(st);
-  // what a player plays (no cutscene shots) decides; the whole route stays the headline number
-  const basis = stats.play ? { avg: stats.play.avg, low1: stats.play.low1, p95: stats.play.p95 } : stats;
-  const rec = recommendStand(basis, cur);
-  const word = STAND_LABEL[rec.stand];
-  const lead = rec.change === 'up' ? 'Er is ruimte over.' : rec.change === 'down' ? 'Grunn hapert hier en daar.' : '';
-  const apply = rec.change !== 'same' || (!cur && rec.stand) ? rec.stand : null;
-  const ultra = ultraNote(cur, stats.avg, (getBenchResult() || {}).fps);
-  if (benchLooksBusy(stats)) return { text: 'Eerst nog een keer meten', what: BENCH_BUSY_NOTE, apply: null, same: false };
-  return { text: `${lead ? lead + ' ' : ''}Aanbevolen: <b>${word}</b>`, what: `${rec.text} ${describePreset(rec.stand)}.${ultra ? ' ' + ultra : ''}`, apply, same: rec.change === 'same' && !!cur };
-}
-
 let resultEl = null;
 
 // Shows the results card; resolves with 'again' or 'back'.
@@ -2507,8 +2518,7 @@ export function showBenchmarkResults(res) {
   // the result also waits in Instellingen > Beeld (gfxprofile.js)
   if (!BENCH_RUNS) setBenchResult(stats, res.preset, res.presetFps || {});
   const prev = stats && !BENCH_RUNS ? readLastRun() : null;
-  const diff = stats ? compareRuns(prev, stats) : null;
-  if (stats && !BENCH_RUNS) writeLastRun(packRun({ stats, cats: stats.cats, preset: res.preset, memory: stats.memory }));
+  if (stats && !BENCH_RUNS) writeLastRun(packRun({ stats, cats: stats.cats, preset: res.preset, memory: stats.memory, course: res.choice && res.choice.course }));
   if (!resultEl) {
     resultEl = document.createElement('div');
     resultEl.id = 'trailer-result';
@@ -2523,39 +2533,12 @@ export function showBenchmarkResults(res) {
     if (showBenchmarkResults.runs < BENCH_RUNS) return Promise.resolve('again');
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) setTimeout(() => window.gdeDesktop.quit(), 500);
   }
-  const st = getSettings();
-  const r = Math.round;
-  const adv = stats ? advise(stats) : { text: 'Er is niets gemeten. Probeer het nog een keer.', apply: null };
-  // #379: the JS heap only when the browser gives it (performance.memory)
-  const mem = stats && stats.memory > 0 ? memText(stats.memory).split(' ') : null;
-  const meta = `Kwaliteit ${st.quality} · schaduwen ${st.shadows && QUALITY_PRESETS[st.quality].shadows ? 'aan' : 'uit'} · zichtafstand ${st.drawDistance} · resolutie ${Math.round(st.resolution * 100)}%${st.autoResolution ? ' (auto)' : ''}`;
-  // Het resultaat is een zeefdrukpaneel (designsysteem): cijfers als feiten, het advies in een bordgroene kaart, één gele hoofdknop.
-  const feit = (n, l, title = '') => `<li class="ds-z-feit"${title ? ` title="${title}"` : ''}><b class="ds-z-feit__n">${n}</b><span class="ds-z-feit__l">${l}</span></li>`;
-  const zwakste = stats ? weakestCategory(stats.cats) : null;
-  const cats = stats ? Object.entries(stats.cats).map(([c, v]) => {
-    const zwak = c === zwakste && stats.cats[c].avg < 60;
-    return `<li class="ds-z-chip${zwak ? ' ds-z-chip--probleem' : ''}">${BENCH_CATEGORIES[c]} <b>${r(v.avg)} fps</b>${zwak ? ' · laagste' : ''}</li>`;
-  }).join('') : '';
-  const heap = mem ? feit(`${mem[0]}<small> ${mem[1]}</small>`, 'JS-heap (piek)', 'De JavaScript-heap van het spel, de hoogste stand tijdens de meting. Niet het beeldgeheugen van de videokaart.') : '';
-  const play = stats && stats.play ? feit(r(stats.play.avg), 'fps in het spel', 'Zonder de cutscenes: wat je in het spel zelf ziet.') : '';
-  const cijfers = stats
-    ? `<ul class="tr-feiten">${feit(r(stats.avg), 'fps gemiddeld')}${feit(`${r(stats.p95)}<small> ms</small>`, 'p95-frametijd')}${feit(r(stats.low1), 'laagste 1%')}${play}${heap}</ul>
-    <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
-    ${cats ? `<ul class="tr-cats">${cats}</ul>` : ''}`
-    : '';
-  resultEl.innerHTML = `<div class="tr-res ds-zeef ds-z-kaart ds-z-kaart--recht">
-    <div class="ds-z-kaart__kop"><h2 id="tr-res-title" class="ds-z-kaart__titel">Benchmark</h2><span class="ds-z-chip">${innerWidth}×${innerHeight}</span></div>
-    <p class="tr-meta">${meta}</p>
-    ${cijfers}
-    <div class="tr-advice ds-z-kaart ds-z-kaart--bord ds-z-kaart--recht"><p class="tr-advice__kop">${adv.text}</p>${adv.what ? `<small>${adv.what}</small>` : ''}</div>
-    <div class="tr-actions">
-      <button type="button" class="ds-z-knop" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
-      <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="again">Nog een keer</button>
-      <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="settings">Instellingen</button>
-      <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="diag">Technische info kopiëren</button>
-      <button type="button" class="ds-z-knop${adv.apply ? ' ds-z-knop--secundair' : ''}" data-act="back">Terug {ESC}</button>
-    </div>
-    <p class="tr-keys">{ARROWS} kiezen · {ENTER} ok · {ESC} terug</p></div>`;
+  const cur = currentPreset(getSettings());
+  const course = COURSES[res.choice && res.choice.course] ? res.choice.course : 'classic';
+  const basis = stats && stats.play ? { avg: stats.play.avg, low1: stats.play.low1, p95: stats.play.p95 } : stats; // what a player plays decides
+  const card = reportCard({ stats, preset: res.preset || cur, presetFps: res.presetFps || {}, course, length: res.choice && res.choice.length, prev, size: [innerWidth, innerHeight], basis, describe: describePreset, extra: stats ? ultraNote(cur, stats.avg, (getBenchResult() || {}).fps) : '' });
+  const adv = { apply: card.empty || card.busy ? null : card.advice.apply };
+  resultEl.innerHTML = reportHtml(card);
   resultEl.hidden = false;
   document.body.classList.add('tr-result-open');
   const buttons = () => [...resultEl.querySelectorAll('button:not([hidden])')];
@@ -2577,7 +2560,12 @@ export function showBenchmarkResults(res) {
         buttons()[0].focus({ preventScroll: true });
       } else if (a === 'diag') {
         import('./gpudiag.js').then((G) => G.copyTechInfo()).then((ok) => { btn.textContent = ok ? 'Gekopieerd' : 'Kopiëren lukte niet'; }, () => { btn.textContent = 'Kopiëren lukte niet'; });
-      } else if (a === 'again' || a === 'back' || a === 'settings') close(a);
+      } else if (a === 'export') {
+        btn.textContent = saveReport(card) ? 'Bewaard in je downloads' : 'Bewaren lukte niet';
+      } else if (a === 'again' || a === 'back' || a === 'settings') {
+        if (a === 'again') nextChoice = res.choice || null; // measure again on the same choice, no new question
+        close(a);
+      }
     };
     const onClick = (e) => {
       const b = e.target.closest('button[data-act]');
