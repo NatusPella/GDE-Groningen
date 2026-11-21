@@ -227,3 +227,9 @@ In beeld te controleren (nog niet bekeken):
 - Samen spelen: een plek die een medespeler heeft staat bij jou als "van <naam>" en is niet te koop; een vervallen vergunning geeft de plek vrij.
 Bekende gaten: zie `BEZIT-21-11.md` 15.4 (verbruik niet van de keten, winkeldichtheid niet aangesloten, prijzenoorlog niet in de ketenleveringen, gast-meewerken zonder UI).
 
+
+## Ronde 2: transport van de claims, ontgrendeling
+
+Gebouwd: `bezitnet.js` (claims over het JSON-kanaal van Samen spelen: gast naar host, host naar de rest, aansluiten, wegvallen; een oude client negeert het bericht), `coopnet.js` (twee regels en een import), `bezitgate.js` sluit aan op de gedeelde poort van de verhaal-epic (`farm` = akte 2 voor Percelen, `bezit` = akte 3 voor Bedrijven; zolang de save geen `gate` heeft staat alles open), `bezitworldhooks.js` (Tessa-regels bij koop en aannemen). Test `bezitnet_test` (12): drie instanties met omgekeerde en gehusselde levering, aansluiten, wegvallen, oude client, de dagtik niet dubbel bij een hostwissel en niet bij een gast.
+Bug gevonden en gefixt: de dagtik begon niet als je precies één gekocht perceel had.
+In beeld te controleren: een sessie met twee spelers die hetzelfde perceel kopen (de verliezer krijgt zijn geld terug), omtrek en naam van de ander, wegvallen. De testbankstap voor suite alles (Electron) en de koppeling van `world.gate` (de save-poort van de verhaal-epic) zijn nog open.

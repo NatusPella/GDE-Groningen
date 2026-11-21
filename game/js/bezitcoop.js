@@ -63,6 +63,8 @@ export function createClaims(selfId) {
     drop(playerId) { let n = 0; for (const [id, c] of claims) if (c.from === playerId) { claims.delete(id); n++; } return n; },
     // De claim van een ander op dit perceel (voor de kaartlaag en de koopknop), of null. Onze eigen claim telt hier niet: dat is gewoon van jou.
     lookup(id) { const c = claims.get(id); return c && c.from !== selfId ? { name: c.name, color: c.color, playerId: c.from } : null; },
+    // alle claims (ook de eigen) met de afzender, voor het doorgeven aan een gast die aansluit
+    listAll() { const out = []; for (const [id, c] of claims) out.push({ id, from: c.from, name: c.name, color: c.color }); return out; },
     has: (id) => claims.has(id),
     // Voor de palen in de wereld: de claims van anderen als { id, name, color }.
     list() { const out = []; for (const [id, c] of claims) if (c.from !== selfId && PARCEL_RE.test(id)) out.push({ id, name: c.name, color: c.color }); return out; },

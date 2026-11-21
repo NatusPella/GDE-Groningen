@@ -141,6 +141,7 @@ export const bezitClosedText = (branch = 'land') => branchClosedText(branch);
 
 // ---- kopen en verkopen ----
 export function koopPerceel(w, id) {
+  if (coopEnsure) { try { coopEnsure(w); } catch (e) { /* geen sessie */ } }   // Samen spelen: het transport van de claims staat klaar voor de koop
   if (!branchOpen('land')) return { ok: false, why: 'dicht', text: branchClosedText('land') };
   const o = parcelOffer(id);
   if (!o) return { ok: false, why: 'onbekend', text: 'Dit perceel is niet gevonden.' };
@@ -160,6 +161,7 @@ export function koopPerceel(w, id) {
   return { ok: true, cost: o.price, name: o.name, text: `${o.name} is van jou voor ${euro(o.price)}.` };
 }
 export function verkoopPerceel(w, id) {
+  if (coopEnsure) { try { coopEnsure(w); } catch (e) { /* geen sessie */ } }
   const b = getBezit();
   const r = Z.sellParcel(b, id);
   if (!r.ok) return { ...r, text: r.why === 'start' ? 'Dit startperceel verkoop je niet.' : 'Dit perceel is niet van jou.' };
@@ -172,6 +174,8 @@ export function verkoopPerceel(w, id) {
 }
 
 // ---- Samen spelen: de claim (bezitcoop.js haakt hier in) ----
+let coopEnsure = null;
+export const setCoopEnsure = (fn) => { coopEnsure = typeof fn === 'function' ? fn : null; };
 export const setClaimLookup = (fn) => { claimLookup = typeof fn === 'function' ? fn : () => null; };
 export const claimOfKey = (key) => claimLookup(key);          // de claim van een medespeler op een sleutel (perceel-id of 'sp:<plek>'), of null
 export const sendClaim = (msg) => claimSend(msg);
@@ -452,7 +456,7 @@ export function dagTik(w) {
   const b = getBezit(), farm = getBoerderij();
   const day = Math.floor(farm.uren / 24);
   clock = { cal: calDayOf(w), farm: day };
-  if (!(Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length || SN.isActive(snackState()))) { b.x.lastDay = day; return null; }
+  if (!(Z.ownedCount(b) > 0 || Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length || SN.isActive(snackState()))) { b.x.lastDay = day; return null; }
   if (!Number.isFinite(b.x.lastDay)) { b.x.lastDay = day; return null; }                       // een bezit zonder vastgelegde dag begint vandaag te tellen
   const from = b.x.lastDay;
   if (day <= from) return null;
@@ -632,10 +636,12 @@ import { createClaims } from './bezitcoop.js';
 export function attachCoop(w, selfId, name, color, send) {
   const claims = createClaims(selfId);
   setClaimLookup((id) => claims.lookup(id));
-  setClaimSend((m) => { const full = { ...m, from: selfId, name, color, t: Date.now() }; claims.apply(full); if (typeof send === 'function') send(full); });
+  const announce = (m, t = Date.now()) => { const full = { ...m, from: selfId, name, color, t }; claims.apply(full); if (typeof send === 'function') send(full); return full; };
+  setClaimSend((m) => announce(m));
   if (w) w.bezitClaims = () => claims.list();
   return {
     claims,
+    announce,                                                              // een claim of loslating van deze speler melden (met een eigen tijd voor tests)
     receive(world, msg) { const r = claims.apply(msg); if (r.lost) { const b = SPT.spotOfClaim(msg.id) ? releaseLostSpot(world, msg.id) : releaseLostClaim(world, msg.id); if (b.ok && world.addMessage) world.addMessage(b.text, 4); } return r; },
     snapshot: () => claims.snapshot(),
     drop: (id) => claims.drop(id),

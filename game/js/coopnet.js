@@ -64,6 +64,7 @@ import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesL
 import { treinGebruik, treinUit, treinTick, treinStop, treinVan, gastTreinWeg, treinLoopPlek, treinLoopWeg, TREIN_TEKST } from './cooptrein.js'; // een gast als conducteur of passagier in de trein van de gastheer (#492)
 import { may as treinMay } from './treincoop.js'; // de conducteur bedient de deuren en de waakzaamheid (#492)
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
+import { bezitEvent, bezitLeave } from './bezitnet.js'; // de claims van Bezit (epic #1095, #1104): een gebeurtenis met k 'bezit'; een oude client negeert hem
 import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
@@ -360,6 +361,7 @@ export function startHost(world, info, opts = {}) {
       // De naam komt van de hub: die is al uit de lijst weg als dit draait.
       if (slot >= 1 && world.addMessage) world.addMessage(`${naam || gastNaam(world, slot)} heeft het spel verlaten.`, 3.5);
       bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
+      try { bezitLeave(world, slot); } catch (e) { /* geen bezit */ } // zijn claims verdwijnen
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot >= 1) removeFigure(world, slot); // elke gast is een figuur (#502): ook plek 1 verdwijnt uit de wereld
@@ -1247,6 +1249,7 @@ export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
+    case 'bezit': return bezitEvent(world, body, van); // claims van Bezit (bezitnet.js)
     case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, multiplayerwedstrijd.js)
     case 'bijbaan': return bijbaanHandleHost(world, body); // een bijbaan van de host: uitnodiging, doel, einde (#452, coopbijbaan.js)
     case 'bijbaangast': return bijbaanHandleGast(world, body, van); // een gast antwoordt, vraagt een bijbaan te starten of helpt (alleen de host luistert)
