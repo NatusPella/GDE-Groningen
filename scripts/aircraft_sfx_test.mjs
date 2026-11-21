@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { rotorParams, planeParams, planeRpmTarget, rpmStep, gearEvent, startNeeded, dopplerFactor, boatParams, edge } from '../game/js/sfx/aircraftmap.js';
-import { updateAircraftSfx, HELI_KEYS, PLANE_KEYS, BOAT_KEYS, keysReady, motorBoat } from '../game/js/sfx/aircraft.js';
+import { updateAircraftSfx, HELI_KEYS, PLANE_KEYS, BOAT_KEYS, keysReady, motorBoat, STEM_STIL_NA } from '../game/js/sfx/aircraft.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let fails = 0, n = 0;
@@ -80,9 +80,10 @@ ok(totaal < 4096, `samen ${Math.round(totaal)} kB, onder 4 MB`);
 
 // -- de sturing met een nagemaakte audiograaf -----------------------------------------------------------------------------------
 const calls = [];
+const bronnen = [];
 const param = (name) => ({ value: 0, setTargetAtTime(v, t, tau) { this.value = v; calls.push([name, v]); } });
 const node = (name) => ({ gain: param(name + '.gain'), frequency: param(name + '.f'), playbackRate: param(name + '.rate'), Q: { value: 0 }, positionX: param(''), positionY: param(''), positionZ: param(''), connect(x) { return x; }, disconnect() {}, start() {}, stop() {}, type: '' });
-const ctx = { currentTime: 0, createGain: () => node('gain'), createBiquadFilter: () => node('bq'), createBufferSource: () => { const s = node('src'); s.started = 0; s.start = () => { s.started++; }; return s; } };
+const ctx = { currentTime: 0, createGain: () => node('gain'), createBiquadFilter: () => node('bq'), createBufferSource: () => { const s = node('src'); s.started = 0; s.start = () => { s.started++; }; s.stop = () => { s.stopped = true; }; bronnen.push(s); return s; } };
 const bufs = new Set([...HELI_KEYS, ...PLANE_KEYS, ...BOAT_KEYS]);
 const kit = { ctx, samples: { has: (k) => bufs.has(k), buffer: () => ({ duration: 5 }) }, buses: { sfx: node('bus') }, listener: { x: 0, y: 1.6, z: 0 }, makePanner: () => node('pan'), setPannerPos() {} };
 ok(keysReady(kit, PLANE_KEYS) && keysReady(kit, HELI_KEYS) && !keysReady({ samples: { has: () => false } }, PLANE_KEYS) && !keysReady(null, PLANE_KEYS), 'keysReady: alleen met alle opnames');
@@ -106,6 +107,18 @@ kist.driver = null; kist.throttle = 0; kist.speed = 0; kist.onGround = true; kis
 for (let i = 0; i < 400; i++) stap();
 ok(thrown === null, 'audiograaf: geen fout bij uitlopen');
 ok(calls.length > 100, 'audiograaf: parameters gezet');
+
+// een stille lusstem wordt na STEM_STIL_NA gestopt (audit 21-11: de zes vliegtuiglussen liepen anders de hele sessie door op gain 0)
+{
+  const levend = () => bronnen.filter((b) => b.loop && b.started && !b.stopped).length;
+  ok(bronnen.length >= 6 && levend() >= 6, 'stemstop: de vliegtuiglussen lopen zolang het toestel net stilstond');
+  const per = 0.033; for (let i = 0; i < Math.ceil(STEM_STIL_NA / per) + 5; i++) stap();
+  ok(levend() === 0, 'stemstop: na lange stilte zijn alle lusbronnen gestopt', String(levend()));
+  ok(thrown === null, 'stemstop: geen fout bij het afbreken', String(thrown && thrown.stack));
+  const voor = bronnen.length;
+  kist.driver = 'player'; kist.throttle = 0.5; for (let i = 0; i < 20; i++) stap();
+  ok(bronnen.length > voor && levend() >= 6 && thrown === null, 'stemstop: het toestel bouwt de stem opnieuw bij nieuw gebruik');
+}
 
 // -- bedrading ----------------------------------------------------------------------------------------------------------
 const audioSrc = fs.readFileSync(path.join(ROOT, 'game', 'js', 'audio.js'), 'utf8');

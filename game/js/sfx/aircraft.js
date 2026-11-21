@@ -28,6 +28,11 @@ function loop(ctx, buf, dest, startRate = 1) {
   return { src, g };
 }
 const set = (ctx, param, v, tau = 0.12) => param.setTargetAtTime(Number.isFinite(v) ? v : 0, ctx.currentTime, tau);
+// Een lusstem die lang stil is, wordt gestopt en afgebroken (audit 21-11): zes plane- en twee boot-lussen liepen anders de hele sessie door
+// op gain 0. De stem wordt bij het volgende gebruik opnieuw gebouwd (de lus start toch op een willekeurige plek).
+export const STEM_STIL_NA = 20;
+function loopsOf(v) { return Object.values(v).filter((x) => x && x.src && x.g); }
+function disposeLoops(v) { dispose([...loopsOf(v).flatMap((l) => [l.src, l.g]), ...Object.values(v).filter((x) => x && x.connect && !x.src)]); }
 function dispose(nodes) { for (const n of nodes) { try { if (n.stop) n.stop(); n.disconnect(); } catch (e) { /* al gestopt */ } } }
 
 // -- helikopter (aangeroepen door sky.js) -------------------------------------------------------------------------------
@@ -73,7 +78,7 @@ function buildPlaneVoice() {
   const windLp = ctx.createBiquadFilter(); windLp.type = 'lowpass'; windLp.frequency.value = 800;
   windLp.connect(air);
   return {
-    air, level, panner, gate, windLp, shots: [],
+    air, level, panner, gate, windLp, shots: [], stil: 0,
     idle: loop(ctx, B('vliegtuig_stationair'), gate), high: loop(ctx, B('vliegtuig_toeren'), gate),
     wind: loop(ctx, B('vliegtuig_wind'), windLp), asfalt: loop(ctx, B('vliegtuig_rol_asfalt'), air), gras: loop(ctx, B('vliegtuig_rol_gras'), air),
     stall: loop(ctx, B('vliegtuig_overtrek'), air),
@@ -111,7 +116,8 @@ function updatePlane(dt, world) {
   }
   if (!best && st.v && st.rpm > 0.02) best = st.v;   // de schroef draait na
   if (!best) {
-    if (pv && pv.active) { set(ctx, pv.level.gain, 0, 0.3); pv.active = false; }
+    if (pv && pv.active) { set(ctx, pv.level.gain, 0, 0.3); pv.active = false; pv.stil = 0; }
+    if (pv && (pv.stil += dt) > STEM_STIL_NA) { disposeLoops(pv); pv = null; }
     st.v = null; st.rpm = 0; st.wasRunning = false;
     return;
   }
@@ -166,7 +172,11 @@ function updateBoat(dt, world) {
   if (!keysReady(kit, BOAT_KEYS)) return;
   const me = hoofdspeler(world);
   const v = me && me.inVehicle && motorBoat(me.inVehicle) ? me.inVehicle : null;
-  if (!v) { if (bv && boatSt.v) { set(ctx, bv.level.gain, 0, 0.4); boatSt.v = null; } return; }
+  if (!v) {
+    if (bv && boatSt.v) { set(ctx, bv.level.gain, 0, 0.4); boatSt.v = null; bv.stil = 0; }
+    if (bv && (bv.stil = (bv.stil || 0) + dt) > STEM_STIL_NA) { disposeLoops(bv); bv = null; }
+    return;
+  }
   if (!bv) {
     const air = ctx.createBiquadFilter(); air.type = 'lowpass'; air.frequency.value = 3000;
     const level = ctx.createGain(); level.gain.value = 0;
