@@ -5,7 +5,7 @@
 import { sfxLinks } from './latehooks.js';
 import { reducedMotion } from './motion.js';
 import { icoon } from './icons.js';
-import { uitlegModel, uitlegHtml, uitlegIconenAan, zetUitlegGlyph, startUitleg } from './uitleg.js';
+import { uitlegModel, uitlegHtml, uitlegIconenAan, uitlegInstellingSleutel, zetUitlegGlyph, startUitleg } from './uitleg.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // Een pictogram is een betekenisnaam uit iconmap.js (Phosphor, ADR 0041); een ruw lijnpad (<path ...>) blijft werken voor de modellen van ronde 1.
@@ -63,7 +63,7 @@ export function simHudHtml(m) {
 }
 
 // #804: het model is data; zijn JSON-vingerafdruk (plus de toetsplaatjes-versie) is een veelvoud goedkoper dan de hele HTML-string met esc, svg en icoon elk beeld.
-export function modelSleutel(m) { try { return glyphVer + '|' + JSON.stringify(m); } catch (e) { return null; } }
+export function modelSleutel(m) { try { return glyphVer + '|' + ((m && m.uitleg && m.uitleg.length) ? uitlegInstellingSleutel() : '') + '|' + JSON.stringify(m); } catch (e) { return null; } }
 let el = null, inhoud = null, pop = null, sleutel = '', popT = 0;
 
 function bouw() {

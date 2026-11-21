@@ -57,6 +57,8 @@ export function stapModel(s, opts = {}) {
   });
   return { toetsen, varianten, icoon: ic, animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: tekst.replace(/\{([A-Z0-9]+)\}/g, '$1 ').replace(/\s{2,}/g, ' ').trim() };
 }
+// De instellingen die de uitleg-markup bepalen (Uitleg met iconen aan/uit en de toetsindeling): een strook die hierop wacht, tekent opnieuw als ze wijzigen (review 21-11, simhud).
+export function uitlegInstellingSleutel() { try { return (uitlegIconenAan() ? '1' : '0') + JSON.stringify(safeBinds()); } catch (e) { return ''; } }
 function safeBinds() { try { return getSettings().keyBinds || {}; } catch (e) { return {}; } }
 
 // Een uitleg-definitie (of een sim-lijstje [{ icoon, tekst }]) naar het model. Meer dan 4 stappen worden afgekapt; minder dan 1 geeft null.

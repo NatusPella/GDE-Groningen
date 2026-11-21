@@ -25,7 +25,7 @@ import { UITLEG as PITCH } from '../game/js/pitchstatus.js';
 import { UITLEG as WANDEL } from '../game/js/wandelstatus.js';
 import { UITLEG as TAXI } from '../game/js/taxistatus.js';
 import { UITLEG as BUS } from '../game/js/busstatus.js';
-import { simHudHtml } from '../game/js/simhud.js';
+import { simHudHtml, modelSleutel } from '../game/js/simhud.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let fails = 0, n = 0;
@@ -122,6 +122,22 @@ for (const [id, lijst] of Object.entries(sims)) {
   setSetting('uitlegIconen', false);
   ok(U.uitlegBlok('basis-lopen') === '' && !U.uitlegIconenAan(), 'uit: geen markup, de aanroeper valt terug op tekst');
   setSetting('uitlegIconen', true);
+}
+
+// ---- review 21-11: de strook van een light sim tekent opnieuw na een wissel van Uitleg met iconen of een herbonden toets
+{
+  const { setSetting } = await import('../game/js/settings.js');
+  const m = { id: 'kart', titel: 'Kartbaan', uitleg: KART, nu: 'Start' };
+  const a = modelSleutel(m);
+  ok(a === modelSleutel(m), 'zelfde model en instellingen: dezelfde sleutel (geen hertekening per beeld)');
+  setSetting('uitlegIconen', false);
+  const b = modelSleutel(m);
+  ok(a !== b, 'Uitleg met iconen uit: nieuwe sleutel');
+  setSetting('uitlegIconen', true);
+  setSetting('keyBinds', { jump: 'KeyB' });
+  ok(modelSleutel(m) !== a, 'een herbonden toets: nieuwe sleutel');
+  setSetting('keyBinds', {});
+  ok(modelSleutel({ id: 'x', titel: 'Zonder uitleg' }) === modelSleutel({ id: 'x', titel: 'Zonder uitleg' }), 'zonder uitleg geen extra werk');
 }
 
 // ---- CSS: 13 px, geen hex, alleen tokens, uit bij verminderde beweging, lus van hooguit 1 s
