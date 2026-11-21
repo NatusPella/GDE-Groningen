@@ -3,7 +3,7 @@
 // in the buttons ({ENTER}, {ESC}: keycap.js), the controller walks the dialog (gamepad.js menu fallback: arrows, A), the micro-animations are
 // short and switched off by reduced motion. Nothing here talks to the network: "Bewaar als bestand" writes a local text file.
 import { keyTextHtml } from './keycap.js';
-import { choiceModel, normaliseChoice, cardSummary, exportText, exportName } from './benchmarkmodel.js';
+import { choiceModel, normaliseChoice, pickChoice, choiceKey, cardSummary, exportText, exportName } from './benchmarkmodel.js';
 
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const comma = (n, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toFixed(d).replace('.', ',');
@@ -41,6 +41,7 @@ export function showBenchmarkChoice({ preset = null, presetLabel = '', initial =
     document.body.appendChild(choiceEl);
   }
   let choice = normaliseChoice(initial || {});
+  let wish = !initial || initial.commentary !== false; // the commentary switch as the player left it (see pickChoice)
   const draw = (focusSel = null) => {
     choiceEl.innerHTML = choiceHtml(choiceModel(choice, { preset, presetLabel }));
     if (focusSel) { const f = choiceEl.querySelector(focusSel); if (f) f.focus({ preventScroll: true }); }
@@ -61,10 +62,8 @@ export function showBenchmarkChoice({ preset = null, presetLabel = '', initial =
     };
     const pick = (btn) => {
       const g = btn.dataset.groep;
-      if (g === 'course') choice = normaliseChoice({ ...choice, course: btn.dataset.id });
-      else if (g === 'length') choice = normaliseChoice({ ...choice, length: btn.dataset.id });
-      else if (g === 'commentary') choice = normaliseChoice({ ...choice, commentary: !choice.commentary });
-      else return false;
+      if (g !== 'course' && g !== 'length' && g !== 'commentary') return false;
+      ({ choice, wish } = pickChoice(choice, wish, g, btn.dataset.id));
       draw(`[data-groep="${g}"]${g === 'commentary' ? '' : `[data-id="${btn.dataset.id}"]`}`);
       return true;
     };
@@ -76,12 +75,11 @@ export function showBenchmarkChoice({ preset = null, presetLabel = '', initial =
     const onClick = (e) => { const b = e.target.closest('button'); if (b && !b.disabled) act(b); };
     const onKey = (e) => {
       const list = buttons();
-      const i = list.indexOf(document.activeElement);
-      if (e.key === 'Escape' || e.key === 'Backspace') close(null);
-      else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'Tab') list[(i + (e.shiftKey ? -1 : 1) + list.length) % list.length].focus();
-      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') list[(i - 1 + list.length) % list.length].focus();
-      else if (e.key === 'Enter' || e.key === ' ') { if (!e.repeat && i >= 0) act(list[i]); }
-      else return;
+      const step = choiceKey(e.key, { index: list.indexOf(document.activeElement), count: list.length, shift: e.shiftKey, repeat: e.repeat });
+      if (!step) return;
+      if (step.cancel) close(null);
+      else if (step.focus != null) list[step.focus].focus();
+      else if (step.press != null) act(list[step.press]);
       e.preventDefault();
       e.stopPropagation();
     };
