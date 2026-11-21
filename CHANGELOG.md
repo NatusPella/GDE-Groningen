@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Bij elke start kies je: Alleen spelen of Samen spelen (eigenaarsbesluit 21-11):** na het laadscherm vraagt het spel "Hoe wil je spelen?" met twee grote knoppen (pijlen, 1 en 2, Enter, controller; Escape kiest Alleen). Alleen spelen gebruikt het netwerk niet; Samen spelen ("Speel met vrienden in een eigen, besloten sessie") vraagt zo nodig eerst opnieuw het akkoord en toont dan Een spel openen of Meedoen. De naamkaart komt nog maar één keer, op de eerste start; wie al een naam heeft ziet alleen de keuzekaart. De laatste keuze staat voorgeselecteerd maar de kaart verschijnt altijd. Testruns slaan de kaart over (`?startkeuze=alleen`). Nog niet in beeld gezien.
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.

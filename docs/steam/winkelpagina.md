@@ -341,7 +341,7 @@ hetzelfde:
 
 NL:
 
-> Geen account, geen tracking, geen statistieken, geen advertenties. De game bewaart je voortgang en instellingen alleen op je eigen computer; fouten komen in een logboek op je eigen computer dat niets verstuurt (je kunt het zelf kopiëren als je een fout meldt). Het spel speelt altijd online in een eigen besloten sessie: daarvoor gaat je IP-adres naar een openbare STUN-server en loopt de versleutelde signalering via openbare brokers. Deel je de sessie of speel je mee, dan gaat je IP-adres ook naar je medespeler. Daarnaast staan de live busposities standaard aan (openbare leesopvraag zonder gegevens van jou, uit te zetten in Instellingen). Er is geen account, geen telemetrie en niets van je voortgang gaat naar buiten.
+> Geen account, geen tracking, geen statistieken, geen advertenties. De game bewaart je voortgang en instellingen alleen op je eigen computer; fouten komen in een logboek op je eigen computer dat niets verstuurt (je kunt het zelf kopiëren als je een fout meldt). Bij elke start kies je Alleen spelen of Samen spelen. Alleen spelen gebruikt het netwerk niet; Samen spelen is een eigen besloten sessie en daarvoor gaat je IP-adres naar een openbare STUN-server en loopt de versleutelde signalering via openbare brokers. Deel je de sessie of speel je mee, dan gaat je IP-adres ook naar je medespeler. Daarnaast staan de live busposities standaard aan (openbare leesopvraag zonder gegevens van jou, uit te zetten in Instellingen). Er is geen account, geen telemetrie en niets van je voortgang gaat naar buiten.
 
 EN:
 
