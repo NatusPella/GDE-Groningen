@@ -220,6 +220,8 @@ function minigameItems(world, acts = activityMapIcons(world)) {
     'Hellingen, een kist en leuningen. Ollie, kickflip, heelflip, spins en grindtrucs; elk nieuw kunstje in de keten telt zwaarder, een val kost je de keten.', [[1, '1.200 punten'], [2, '3.200 punten'], [3, '6.500 punten']]);
   mg('penalty', 'mg:penalty', 'penalty', 'Penaltyserie Euroborg', 'Euroborg · vijf schoten · gratis', 'penalty', (v) => `Record ${Math.round(v)} van 5`, 'Minigame · Euroborg',
     'Vijf penalty’s op de keeper van FC Grunn-achtig. Richt met {A}{D}{W}{S}, houd {SPATIE} en laat los bij het streepje. Naast, over of tegen de paal telt niet.', [[1, '2 doelpunten'], [2, '3 doelpunten'], [3, '5 doelpunten']]);
+  mg('voetbal', 'mg:voetbal', 'voetbal', 'Voetbal Euroborg', 'Euroborg · vijf tegen vijf · gratis', 'voetbal', (v) => `Record ${Math.round(v) > 0 ? 'winst met ' + Math.round(v) + ' doelpunt' + (Math.round(v) === 1 ? '' : 'en') + ' verschil' : 'nog geen winst'}`, 'Minigame · Euroborg',
+    'Vijf tegen vijf in de Euroborg, twee helften. Loop met {WASD}, speel over met {F} of {E}, schiet met {SPATIE} en zet druk met {CTRL}. Alleen of samen tegen de computer.', [[1, 'Winst'], [2, 'Winst met de nul'], [3, 'Winst met een hattrick']]);
   mg('kartbaan', 'mg:kartbaan', 'kartbaan', 'Karten bij Kardinge', 'Kardinge · drie ronden · gratis', 'kart-race', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Kardinge',
     'Drie ronden tegen drie rijders. Gas, rem en handrem: een lange drift geeft een versnelling. Eerste is goud, tweede zilver, derde brons.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
   // #673: de variant na de hoogste medaille, met een eigen record en een eigen doel
@@ -292,7 +294,7 @@ const LOOPBAAN_MG_PLEK = {
   golf: ['mg:discgolf', 'mg:pitchputt'],
   lucht: ['mg:vliegschool', 'mg:heli'],
   race: ['mg:kartbaan', 'mg:drift', 'mg:ringrace'],
-  buiten: ['mg:skatepark', 'mg:penalty', 'mg:zwembad', 'mg:klimtoren', 'mg:waterski'],
+  buiten: ['mg:skatepark', 'mg:penalty', 'mg:voetbal', 'mg:zwembad', 'mg:klimtoren', 'mg:waterski'],
 };
 const LOOPBAAN_ACT_LAAG = { hengelen: ['hengelen'], landbouw: ['boeren'], kermis: ['kermis'], horeca: ['pannenkoek'], buiten: ['wandeling'] };
 

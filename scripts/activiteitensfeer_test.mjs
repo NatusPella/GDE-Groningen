@@ -29,7 +29,7 @@ const moduleBronnen = lijst.map((naam) => {
   if (!file) return ACT; // de diensten (vluchtdienst, vaardienst) staan in activities.js zelf
   return lees(`game/js/${file}.js`);
 });
-const ACTIVITEIT_IDS = ['carbid', 'kermis', 'hoogvlieger', 'geheimen', 'drift', 'discgolf', 'pitchputt', 'penalty', 'skatepark', 'kartbaan', 'zwembad', 'klimtoren', 'waterski', 'carillon', 'pannenkoek', 'hengelen', 'boeren', 'wandeling', 'snackketen', 'evenementen', 'regatta', 'ringrace', 'vliegschool', 'safehuis', 'pvparena', 'vluchtdienst', 'vaardienst'];
+const ACTIVITEIT_IDS = ['carbid', 'kermis', 'hoogvlieger', 'geheimen', 'drift', 'discgolf', 'pitchputt', 'penalty', 'voetbal', 'skatepark', 'kartbaan', 'zwembad', 'klimtoren', 'waterski', 'carillon', 'pannenkoek', 'hengelen', 'boeren', 'wandeling', 'snackketen', 'evenementen', 'regatta', 'ringrace', 'vliegschool', 'safehuis', 'pvparena', 'vluchtdienst', 'vaardienst'];
 const activiteitIds = ACTIVITEIT_IDS;
 
 // --- de bestaande tabellen waarbinnen de sfeer moet blijven ------------------------------------
@@ -42,9 +42,9 @@ const tinten = new Set([...CS.match(/const TINT = \{([\s\S]*?)\n\};/)[1].matchAl
 
 // --- de tabel dekt alle activiteiten, en niets meer --------------------------------------------
 t('elke activiteit heeft een sfeer en andersom', () => {
-  assert.equal(activiteitIds.length, 27, 'activities.js heeft 27 activiteiten');
+  assert.equal(activiteitIds.length, 28, 'activities.js heeft 28 activiteiten');
   const extra = Object.keys(S.ACTIVITEIT_SFEER).filter((id) => !activiteitIds.includes(id));
-  assert.deepEqual(extra.sort(), ['machinist', 'padel', 'station'], 'naast de 27 activiteiten hebben padel, de machinist en het station een eigen sfeer');
+  assert.deepEqual(extra.sort(), ['machinist', 'padel', 'station'], 'naast de 28 activiteiten hebben padel, de machinist en het station een eigen sfeer');
   const alleIds = Object.keys(S.ACTIVITEIT_SFEER);
   for (const id of alleIds) assert.ok(S.sfeerVan(id), id);
   const namen = Object.keys(S.ACTIVITEIT_SFEER).map((id) => S.sfeerVan(id).naam);

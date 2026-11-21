@@ -330,7 +330,7 @@ function tackleControle(m, p) {
     m.ev.push({ type: 'tackle', team: p.team, speler: p.id });
   } else {
     p.stun = 0.7; p.tackleT = 0;
-    if ((achter && m.rng() < 0.55) || (p.speed > 7.0 && m.rng() < 0.25)) overtreding(m, p, o); else m.ev.push({ type: 'duel', speler: p.id });
+    if ((achter && m.rng() < 0.4) || (p.speed > 7.0 && m.rng() < 0.15)) overtreding(m, p, o); else m.ev.push({ type: 'duel', speler: p.id });
   }
 }
 
@@ -448,7 +448,7 @@ function veld(m, dt, invoer) {
   const sdt = goal && m.faseT > GOAL_S - SLOMO_S ? dt * SLOMO : dt;
   if (m.hervat && (m.fase === 'aftrap' || m.fase === 'hervat')) m.hervat.t += dt;
   wijsBesturing(m, dt, invoer);
-  for (const p of m.spelers) {
+  for (const p of (m.n % 2 ? m.spelers.slice().reverse() : m.spelers)) { // de volgorde wisselt per stap, zodat geen team voorrang heeft
     let it;
     if (p.slot != null) { const mens = m.mensen.find((x) => x.slot === p.slot && !x.weg); it = mens ? menselijkeIntentie(m, p, mens, dt) : NIETS; }
     else it = aiIntentie(m, p, sdt);

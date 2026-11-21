@@ -26,6 +26,7 @@ import { DRIFT_ZONE } from './driftzone.js';
 import { DISCGOLF } from './discgolf.js';
 import { PITCHPUTT } from './pitchputt.js';
 import { PENALTY } from './penalty.js'; // de penaltyserie in de Euroborg (#981)
+import { VOETBAL } from './voetbal.js'; // de voetbalwedstrijd in de Euroborg (#981)
 import { SKATEPARK } from './skatepark.js';
 import { KARTBAAN } from './kartbaan.js';
 import { ZWEMBAD } from './zwembad.js';
@@ -400,7 +401,7 @@ const VAARDIENST = dienstActiviteit({
   },
 });
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, PENALTY, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, BOEREN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, RINGRACE, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, PENALTY, VOETBAL, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, BOEREN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, RINGRACE, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
 
 // Alle id's in de lijst, in dezelfde volgorde: één bron voor de sfeer (#595), de startkaart (#678)
 // en de catalogus van "Te doen" (#677), zodat geen activiteit buiten een van die drie kan vallen.

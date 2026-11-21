@@ -1104,6 +1104,8 @@ export function tickCoopNet(world, dt) {
     }
     const inp = world.input;
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!((world.coopWiel || world.coopBestuurder || world.coopWedstrijd) && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control')), !world.coopInVoertuig && !!world.coopAanvalKnop, !world.coopInVoertuig && !!world.coopZichtKnop); // zicht: de kijker van het jachtgeweer; // springen en bukken te voet, de aanvalsknop met een wapen (#434)
+    // voetbal (#981): tijdens de wedstrijd krijgen de bits van dezelfde byte de betekenis van de voetbalknoppen (voetbalrules.js KNOP); geen nieuw bericht, wel andere bits
+    if (world.coopKnoppenHaak) { const kb = world.coopKnoppenHaak(inp); if (kb != null) m.buttons = kb & 0xff; }
     // de kluis draaien (#438): Spatie zet het cijfer vast, dus je springt of schiet niet en je blijft staan
     if (world.coopHeistDial) { m.mx = 0; m.my = 0; m.buttons = 0; }
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)

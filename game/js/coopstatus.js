@@ -76,7 +76,7 @@ const BIJBAAN = {
 
 // Activiteiten (activities.js, LIST): coöp-wedstrijden (registreerWedstrijd) en de lokale activiteiten van een gast (GAST_ACTIVITEITEN)
 const ACTIVITEIT = {
-  discgolf: WERKT, pitchputt: WERKT, penalty: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT, boeren: WERKT, regatta: WERKT, bruggenrace: WERKT, ringrace: WERKT,
+  discgolf: WERKT, pitchputt: WERKT, penalty: WERKT, voetbal: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT, boeren: WERKT, regatta: WERKT, bruggenrace: WERKT, ringrace: WERKT,
   dijkrace: WERKT, // de straatrace van M14 (De dijk): iedereen dezelfde auto, één gezamenlijke start (#443)
   vluchtdienst: DEELS, // de rondvlucht is host-only; als passagier meerijden mag (#492)
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
@@ -161,7 +161,7 @@ const SAMEN_KAN = [
   ['activiteit', 'carillon', 'de beiaard'], ['activiteit', 'boeren', 'boeren'],
   ['minigame', 'padel', 'padel'], ['activiteit', 'kartbaan', 'karten'], ['activiteit', 'pitchputt', 'golf'],
   ['activiteit', 'discgolf', 'discgolf'], ['activiteit', 'klimtoren', 'klimmen'],
-  ['activiteit', 'skatepark', 'skaten'], ['activiteit', 'penalty', 'penalty’s schieten'], ['activiteit', 'ringrace', 'de ringrace'],
+  ['activiteit', 'skatepark', 'skaten'], ['activiteit', 'penalty', 'penalty’s schieten'], ['activiteit', 'voetbal', 'voetballen'], ['activiteit', 'ringrace', 'de ringrace'],
 ];
 export const samenKan = () => SAMEN_KAN.filter(([soort, id]) => samenStatus(soort, id) === WERKT).map(([, , label]) => label);
 export const SAMEN_KAN_REGEL = 'Samen kan nu: ' + samenKan().join(', ') + '.';

@@ -64,7 +64,8 @@ if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}` || proce
   };
   if (!stil) console.log(JSON.stringify(samenvatting, null, 1));
   const fouten = [];
-  if (samenvatting.gemDoelpunten < 2 || samenvatting.gemDoelpunten > 5) fouten.push(`gemiddeld ${samenvatting.gemDoelpunten} doelpunten (eis 2 tot 5)`);
+  const [lo, hi] = duur === 'kort' ? [1, 3.5] : [2, 5];
+  if (samenvatting.gemDoelpunten < lo || samenvatting.gemDoelpunten > hi) fouten.push(`gemiddeld ${samenvatting.gemDoelpunten} doelpunten (eis ${lo} tot ${hi})`);
   if (samenvatting.nan) fouten.push(`${samenvatting.nan} NaN-waarden`);
   if (samenvatting.buiten) fouten.push(`${samenvatting.buiten} keer een speler buiten het veld`);
   if (samenvatting.vast) fouten.push(`${samenvatting.vast} vastlopers`);

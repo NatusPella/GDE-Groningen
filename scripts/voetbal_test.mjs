@@ -19,6 +19,7 @@ import { eindEvent, leesWed, startEvent } from '../game/js/multiplayerwedstrijd.
 import { zetVoetbalKarakterHaken, wisKarakterHaken, voetbalBonusVan, karakterStart, karakterEind, tessaRegel } from '../game/js/voetbalkarakter.js';
 import { KEYS } from '../game/js/storagekeys.js';
 import { speelWedstrijd } from './voetbal_botsim.mjs';
+import { makeRng } from '../game/js/minigamekit.js';
 
 let n = 0;
 const wacht = [];
@@ -493,6 +494,19 @@ t('de wedstrijd is een live wedstrijd van het bestaande kader, geen nieuw protoc
   assert.match(src, /registreerWedstrijd\('voetbal', \{[^}]*soort: 'live'/); assert.match(src, /zetWedGastHaken\('voetbal'/); assert.match(src, /wedLiveTik/);
   const proto = fs.readFileSync(new URL('../game/js/net/protocol.js', import.meta.url), 'utf8'); assert.ok(!/voetbal/i.test(proto), 'het netwerkprotocol blijft ongewijzigd');
   assert.ok(FASEN.includes('goal') && FASEN.includes('rust'));
+});
+
+t('robuust: drie mensen met willekeurige invoer spelen een hele wedstrijd uit, zonder NaN, buiten het veld of vastlopers', () => {
+  const rng = makeRng(77), m = maakWedstrijd([mens(0), mens(1), mens(2)], { duur: 'kort', seed: 77 });
+  const toets = [0, 0, 0]; let ev = [];
+  const inv = (slot) => { if (rng() < 0.06) toets[slot] = Math.floor(rng() * 256) & ~(16 | 32); return { mx: Math.sin(m.tijd * 0.7 + slot * 2) * (rng() < 0.9 ? 1 : 0), my: Math.cos(m.tijd * 0.5 + slot) , buttons: toets[slot] }; };
+  for (let i = 0; i < 400 / DT && m.fase !== 'klaar'; i++) {
+    ev.push(...tikWedstrijd(m, DT, inv));
+    for (const p of m.spelers) assert.ok([p.x, p.y, p.vx, p.vy, p.stamina].every(Number.isFinite) && Math.abs(p.x) <= 13.01 && Math.abs(p.y) <= 21.01);
+    assert.ok([m.bal.x, m.bal.y, m.bal.z].every(Number.isFinite));
+    assert.ok(new Set(m.mensen.map((x) => x.ctl)).size === 3);
+  }
+  assert.equal(m.fase, 'klaar'); assert.ok(ev.some((e) => e.type === 'schop'), 'er is gespeeld');
 });
 
 // ---------------------------------------------------------------- bot-sim: een kleine reeks (de volle 100 draait scripts/voetbal_botsim.mjs)

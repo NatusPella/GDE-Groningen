@@ -63,3 +63,9 @@
 .bk-paneel.ds-z-kaart { pointer-events: none; width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-6))); }
 .bk-regel, .bk-toetsen { display: flex; justify-content: center; }
 .bk-ronde { white-space: nowrap; }
+
+/* Voetbal (#981): de korte witte flits bij een doelpunt (voetbal.js); uit bij verminderde beweging (de code zet hem dan niet aan). */
+.vb-flits { position: fixed; inset: 0; z-index: 5; pointer-events: none; background: var(--ds-c-wit); opacity: 0; }
+.vb-flits--aan { animation: vb-flits calc(var(--ds-m-max) * 2) var(--ds-ease) both; }
+@keyframes vb-flits { 0% { opacity: 0.55; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .vb-flits--aan { animation: none; opacity: 0; } }

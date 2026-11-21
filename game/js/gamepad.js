@@ -154,6 +154,7 @@ function context() {
     if (sv && sv.isHeli) return 'heli';
     return 'vliegschool';
   }
+  if (w.voetbalGame) return GAME_PAD_CTX.voetbal; // ook een gast speelt voetbal op zijn eigen scherm (#981)
   if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   // de wandeling neemt de speler niet over (wandeling.js), maar B hoort hem wel te stoppen

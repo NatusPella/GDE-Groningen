@@ -215,6 +215,7 @@ export const STAT_VAK = {
   hengelSessions: { vak: 'hengelen', xp: 24, n: 1, premie: 10 },
   skateRuns: { vak: 'buiten', xp: 10, n: 1, premie: 10 },
   penaltySeries: { vak: 'buiten', xp: 12, n: 1, premie: 10 },
+  footballMatches: { vak: 'buiten', xp: 14, n: 1, premie: 10 },
   skiRuns: { vak: 'buiten', xp: 10, n: 1, premie: 10 },
   klimTops: { vak: 'buiten', xp: 15, n: 1, premie: 15 },
   zwemRuns: { vak: 'buiten', xp: 8, n: 1 },

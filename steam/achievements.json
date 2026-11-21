@@ -754,6 +754,22 @@
       "steamApiNaam": ""
     },
     {
+      "id": "voetbal_winst",
+      "titel": "Winst in de Euroborg",
+      "omschrijving": "Win een voetbalwedstrijd vijf tegen vijf in de Euroborg",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VOETBAL_WINST",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "voetbal_hattrick",
+      "titel": "Hattrick op het Euroborggras",
+      "omschrijving": "Scoor drie keer in één voetbalwedstrijd",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VOETBAL_HATTRICK",
+      "steamApiNaam": ""
+    },
+    {
       "id": "klim_foutloos",
       "titel": "Niet één keer gevallen",
       "omschrijving": "Klim de toren zonder te vallen",
