@@ -141,5 +141,69 @@ t('dagtik: een gast draait hem niet (main.js: het gastpad komt eerder terug; bro
   assert.ok(!guestLine.includes('bezitDagTik') && guestLine.includes('return; }'), 'het gastpad keert terug zonder de dagtik');
 });
 
+// ---- meewerken in een snackwagen: { k: 'bezit', a: 'snack-work', spot, hours, to } (gast -> host -> eigenaar) ----
+const werk = (order = 'fifo') => {
+  const net = netwerk(order);
+  net.add(0, 'host'); net.add(1, 'client'); net.add(2, 'client');
+  const o = [net.ensure(0), net.ensure(1), net.ensure(2)]; net.flush();
+  const got = [];
+  N.setSnackWorkHandler((m, w) => got.push({ slot: [...net.worlds.entries()].find(([, v]) => v === w)[0], m }));
+  return { net, o, got };
+};
+for (const order of ['fifo', 'omgekeerd', 'husselen']) {
+  t(`snack-work (${order}): een gast stuurt via de host naar de eigenaar (een andere gast); alleen die ontvangt het`, () => {
+    const { net, o, got } = werk(order);
+    o[1].net.announce({ id: 'sp:markt', action: 'claim' }, 1); net.flush();
+    assert.equal(N.sendSnackWork(net.worlds.get(2), { type: 'snack-work', spot: 'markt', hours: 6 }), true);
+    net.flush();
+    assert.equal(got.length, 1); assert.equal(got[0].slot, 1); assert.deepEqual(got[0].m, { type: 'snack-work', spot: 'markt', hours: 6, from: 2 });
+  });
+}
+t('snack-work: de host is de eigenaar: een gast stuurt en de host past het toe; de host als meewerker stuurt naar de gast', () => {
+  const { net, o, got } = werk('husselen');
+  o[0].net.announce({ id: 'sp:park', action: 'claim' }, 1); o[1].net.announce({ id: 'sp:dorp', action: 'claim' }, 2); net.flush();
+  assert.equal(N.sendSnackWork(net.worlds.get(2), { spot: 'park', hours: 4 }), true); net.flush();
+  assert.equal(got.length, 1); assert.equal(got[0].slot, 0); assert.equal(got[0].m.from, 2); assert.equal(got[0].m.hours, 4);
+  assert.equal(N.sendSnackWork(net.worlds.get(0), { spot: 'dorp', hours: 5 }), true); net.flush();
+  assert.equal(got.length, 2); assert.equal(got[1].slot, 1); assert.equal(got[1].m.from, 0);
+  assert.equal(N.sendSnackWork(net.worlds.get(0), { spot: 'park', hours: 5 }), false, 'de host kan niet meewerken in zijn eigen wagen');
+});
+t('snack-work: niet van een medespeler, onbekende plek of rommel wordt niet verstuurd; een vervalste ontvanger wordt door de host tegengehouden', () => {
+  const { net, o, got } = werk();
+  o[1].net.announce({ id: 'sp:markt', action: 'claim' }, 1); net.flush();
+  assert.equal(N.sendSnackWork(net.worlds.get(2), { spot: 'haven', hours: 6 }), false, 'geen claim');
+  for (const bad of [null, {}, { spot: 5, hours: 6 }, { spot: 'Markt!', hours: 6 }, { spot: 'markt', hours: 'veel' }, { spot: 'x', hours: 3 }]) assert.equal(N.sendSnackWork(net.worlds.get(2), bad), false);
+  // vervalst: gast 2 stuurt zelf een bericht met to = 2 (zichzelf) of een slot dat de plek niet heeft
+  for (const to of [2, 0, 7, -1, 'x', null]) N.handleBezit(net.worlds.get(0), { k: 'bezit', a: 'snack-work', spot: 'markt', hours: 6, to }, 2, net.tr.get(0));
+  N.handleBezit(net.worlds.get(0), { k: 'bezit', a: 'snack-work', spot: 'markt', hours: 6, to: 1 }, 0, net.tr.get(0));      // de host luistert alleen naar gasten
+  net.flush();
+  assert.equal(got.length, 0);
+  // een gast die een bericht krijgt voor een plek die niet van hem is: negeren
+  N.handleBezit(net.worlds.get(2), { k: 'bezit', a: 'snack-work', spot: 'markt', hours: 6, from: 1 }, 0, net.tr.get(2));
+  assert.equal(got.length, 0);
+});
+t('snack-work: uren worden begrensd en een oude client zonder ontvanger negeert het bericht zonder fout', () => {
+  const { net, o, got } = werk();
+  o[1].net.announce({ id: 'sp:markt', action: 'claim' }, 1); net.flush();
+  N.sendSnackWork(net.worlds.get(2), { spot: 'markt', hours: 99 }); net.flush();
+  assert.equal(got[0].m.hours, 14);
+  N.setSnackWorkHandler(null);
+  N.sendSnackWork(net.worlds.get(2), { spot: 'markt', hours: 6 });
+  assert.doesNotThrow(() => net.flush());
+  assert.equal(N.bezitEvent({}, { k: 'bezit', a: 'snack-work', spot: 'markt', hours: 6 }, 1), false, 'een oude client zonder sessie');
+});
+t('snack-work: het bericht blijft klein en de naam van de sleutel is k bezit (een oude client kent hem niet)', () => {
+  const { net, o } = werk();
+  o[1].net.announce({ id: 'sp:markt', action: 'claim' }, 1); net.flush();
+  const sent = []; const tr = net.tr.get(2); const orig = tr.toHost; tr.toHost = (b) => { sent.push(b); orig(b); };
+  N.sendSnackWork(net.worlds.get(2), { spot: 'markt', hours: 6 });
+  assert.equal(sent.length, 1); assert.equal(sent[0].k, 'bezit'); assert.equal(sent[0].a, 'snack-work'); assert.ok(JSON.stringify(sent[0]).length < 120);
+  N.setSnackWorkHandler(null);
+});
+t('main.js koppelt zender en ontvanger van snack-work aan snacklive (broncontrole)', () => {
+  const m = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
+  assert.match(m, /setSnackWorkSend\(\(m\) => sendSnackWork\(world, m\)\)/); assert.match(m, /setSnackWorkHandler\(\(m\) => snackReceiveWork\(m\)\)/);
+});
+
 console.log(`bezitnet_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
