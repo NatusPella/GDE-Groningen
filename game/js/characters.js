@@ -26,7 +26,7 @@ export const CHARACTERS = [
   {
     id: 'tammo', name: 'Tammo', speakers: ['Tammo'], model: 'tammo', always: true,
     role: 'Stadjer. Groot hart. Kleine portemonnee.',
-    bio: 'Droog, uit het Oosterpark, met een rode Fjord Escapade die nauwelijks rijdt. Kan duiven sturen, en doet daar heel gewoon over. Al twaalf jaar verliefd op zijn beste vriendin. Hij zegt het nooit.',
+    bio: 'Droog, uit het Oosterpark, met een rode Fjord Escapade die nauwelijks rijdt. Kan duiven sturen, en doet daar heel gewoon over. Net afgestudeerd en al sinds de studie verliefd op zijn beste vriendin. Hij zegt het nooit.',
     quote: 'Ik zeg niks. Dat is ook een antwoord.',
     relation: 'De helft van het duo, en sinds de KEI-week haar huisgenoot in Paddepoel. Zegt het belangrijke in vijf woorden.',
     missions: ['H3', 'H4', 'H5', 'H7', 'H9', 'H10', 'H12', 'H14', 'H17'],
@@ -42,7 +42,7 @@ export const CHARACTERS = [
   {
     id: 'rikus', name: 'Rikus', speakers: ['Rikus'], model: 'rikus',
     role: 'Nacht-dj van Radio Nachtstreek',
-    bio: 'De derde van het clubje van de stoep in het Oosterpark. Presenteert Nachtstreek, live, elke nacht: Bel Rikus, de fietstunnel-update, het storingsbericht en de peiling "Woist ja wel?". Weet alles en zegt niks, behalve op de radio.',
+    bio: 'De jeugdvriend van Tammo, van de stoep in het Oosterpark, later ook die van Tessa. Presenteert Nachtstreek, live, elke nacht: Bel Rikus, de fietstunnel-update, het storingsbericht en de peiling "Woist ja wel?". Weet alles en zegt niks, behalve op de radio.',
     quote: 'Ik zeg niks. Ik draai drie minuten stilte.',
     relation: 'Tammo\'s jeugdvriend. Wil de tweede friet.',
     missions: ['H1', 'H6', 'H18'],

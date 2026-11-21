@@ -118,7 +118,7 @@ const IMAGES = [
     html: () => page(1280, 720, `
       <div class="bg" style="background-image:url('${file(path.join(SRC_DIR, 'vitrine.jpg'))}');background-size:140% auto;background-position:5% 85%"></div>
       <div class="shade" style="background:linear-gradient(90deg, rgba(8,16,11,0.85) 0%, rgba(8,16,11,0.6) 40%, rgba(8,16,11,0) 62%)"></div>
-      <div class="col">${logo('big-sub', false)}<div class="hook">Twee Stadjers.<br>Eén Gouden Eierbal.</div><div class="tag">Verhaaltrailer</div></div>`,
+      <div class="col">${logo('big-sub', false)}<div class="hook">Twee afgestudeerden.<br>Eén Gouden Eierbal.</div><div class="tag">Verhaaltrailer</div></div>`,
     `.col { position: absolute; left: 60px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 34px; }
      .gde-logo { font-size: 200px; }
      .hook { font-size: 52px; }

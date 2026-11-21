@@ -386,7 +386,7 @@ TESSA: Dat bedoelde ik ook. [NIEUW]
 (regie: ze telt op haar vingers.)
 TESSA: Vijf woorden. [BEHOUDEN]
 TAMMO: Ik had er meer. Die waren minder goed. [BEHOUDEN]
-TESSA: Mien jong. Dat duurde twaalf jaar. [BEHOUDEN]
+TESSA: Mien jong. Dat duurde vijf jaar. [NIEUW]
 TAMMO: Kon minder. [BEHOUDEN]
 TESSA: Kon veel minder. [BEHOUDEN]
 RIKUS (radio): Peiling gesloten. [BEHOUDEN]

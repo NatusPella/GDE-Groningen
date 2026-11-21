@@ -20,7 +20,7 @@ Drie varianten:
 
 - **Kop:** "Groningen heeft al een open-wereldmisdaadgame: gratis, en de
   Martinitoren staat er gewoon in."
-- **Subkop:** "Twee Stadjers, een gestolen Gouden Eierbal en de hele provincie
+- **Subkop:** "Twee afgestudeerden, een gestolen Gouden Eierbal en de hele provincie
   om in rond te rijden. Gemaakt door één Groninger, in een paar maanden."
 - **Radiostem:** "Gratis jatten in je eigen stad. GDE Groningen – Zomer vol
   misdaad."

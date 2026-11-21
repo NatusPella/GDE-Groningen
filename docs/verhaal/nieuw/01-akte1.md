@@ -14,14 +14,14 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Dagen** | vr 14 (1.1), za 15 (1.2, 1.3), zo 16 (1.4, 1.5), ma 17 (1.6, 's nachts) |
 | **Wat de speler leert** | rijden zonder krassen, stunten, achtervolgen, formulieren, de duif, de fiets, sluipen; wie Tammo en Tessa zijn |
 | **Plot** | Tessa wil een thuis met wielen: de Fjord Frituur. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt plakje voor plakje de hele markt op, en dat plakje is bij de standplaatsen al definitief van hem. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4; artikel 9: bij verhindering het oudste jurylid). Tessa en Tammo willen de bal eerst pakken, als bewaking. De vitrine is al leeg: "Tige tank! – J." Jelle zegt op de radio dat hij hem heeft, en dat is waar. |
-| **Romantiek** | vriendschap, plagen, Tammo is al twaalf jaar verliefd, Tessa merkt niks. Stappen: oogcontact (1.5), de eerste handaanraking "voor de grip" (1.6) |
+| **Romantiek** | vriendschap, plagen, Tammo is al sinds de studie verliefd (vijf jaar), Tessa merkt niks. Stappen: oogcontact (1.5), de eerste handaanraking "voor de grip" (1.6) |
 | **Haak naar akte 2** | de politie zoekt twee Stadjers in het zwart, Jelle is de bewaarder (hij heeft de bal), en Tammo kan het kaartje niet loslaten: een dief die bedankt. |
 
 **Doel in de eerste 10 minuten (hardop):** opening, Tessa: winnen op 28 augustus, dan een standplaats. **Motief:** de huur, de bank zegt nee, Tessa wil ergens blijven. **Vroege antagonist:** Rikus' radio noemt de Fries al in minuut 2; Berend noemt hem in 1.1 (de klomp); Jelle komt zelf in beeld in 1.3 (± minuut 30), **eerst kil en zakelijk** ("Mijn juristen hebben dit loket vanochtend vooruit betaald"), met één "Foar mem" in de deuropening als eerste barst.
 
 ### Opening (cutscène, geen missie)
 
-**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart; de slotkaart zegt de haak: "Twee Stadjers. Eén frietwagen. Geen plek."), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
+**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart; de slotkaart zegt de haak: "Twee afgestudeerden. Eén frietwagen. Geen plek."), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
 
 **Opening, de keuken (uitsnede):**
 
