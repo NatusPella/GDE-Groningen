@@ -162,7 +162,7 @@ the next key press or click.
 | View / Menu | map / pause menu | map / pause menu | map / close |
 
 The helicopter climbs and descends on RT/LT and turns with LB/RB; a pigeon
-flaps on A, pecks on B, dives on LT and poops on RT or X; the Fjord Frituur
+flaps on A, pecks on B, dives on LT and poops on RT or X; the snackwagen
 puts its menu on the D-pad and bumpers. Buttons can be swapped under
 Besturing › Controller; rumble, the button style and the stick speed are under
 Instellingen › Controller.

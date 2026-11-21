@@ -105,7 +105,7 @@ Bron: `game/js/trailer.js`, cut `verhaal` (~80 s), shotlijst in
 **Beschrijving:**
 
 ```
-Augustus in Grunn. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen: de Fjord Frituur. In het Groninger Museum ligt de Gouden Eierbal, achttien karaat. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
+Augustus in Grunn. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen: de snackwagen. In het Groninger Museum ligt de Gouden Eierbal, achttien karaat. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 
 GDE Groningen – Zomer vol misdaad is een gratis open-wereld misdaadparodie in de echte straten van Groningen. Dertig verhaalmissies in vijf aktes plus Deel 4, de ringweg, kermis, kroegen, rondvaart en het Ommeland. Volledig ingesproken in het Nederlands, met een flinke scheut Gronings.
 
@@ -113,7 +113,7 @@ GDE Groningen – Zomer vol misdaad is een gratis open-wereld misdaadparodie in 
 ▶ itch.io: (link volgt)
 
 00:00 Een zomer in Grunn
-00:11 Tammo, Tessa en de Fjord Frituur
+00:11 Tammo, Tessa en de snackwagen
 00:25 De Gouden Eierbal en Jelle Terpstra
 00:43 Lange avonden
 00:59 28 augustus

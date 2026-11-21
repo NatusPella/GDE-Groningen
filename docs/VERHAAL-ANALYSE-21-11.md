@@ -248,7 +248,7 @@ Elk blad is bedoeld om vóór het herschrijven vast te leggen en is de toetsstee
 
 | Onderdeel | Inhoud |
 |---|---|
-| Doel (één zin) | Tessa en Tammo moeten honderdvijftig euro verdienen en zich inschrijven voor de Noordelijke Snackprijs, de enige weg naar een standplaats voor de Fjord Frituur. |
+| Doel (één zin) | Tessa en Tammo moeten honderdvijftig euro verdienen en zich inschrijven voor de Noordelijke Snackprijs, de enige weg naar een standplaats voor de snackwagen. |
 | Tegenstander | Jelle Terpstra, die de markt opkoopt en de wedstrijd wil winnen voor zijn moeder. |
 | Inzet | Tessa's droom van een thuis met wielen; Tammo blijft bij haar; zonder standplaats niets. |
 | Wie leren kennen, wanneer | Opening: Tammo, Tessa, Rikus (als jeugdvriend); M01: Berend; M02: Sjabbe (via Tessa: "ik ken iemand die opent wat niemand kan"); M03: Jelle (aangekondigd door Berend, chat, Sjabbe), Hoving (in één zin); M04: Bert (Tammo: "de beste vriend van mijn opa"); M05: Sjoerd; M06: Henk (eerst in M02 of M05 een korte scène). |
@@ -307,18 +307,18 @@ Elk blad is bedoeld om vóór het herschrijven vast te leggen en is de toetsstee
 
 | Onderdeel | Inhoud |
 |---|---|
-| Doel (één zin) | De Fjord Frituur op de Grote Markt krijgen, en daar de wedstrijd winnen met de beste eierbal. |
+| Doel (één zin) | De snackwagen op de Grote Markt krijgen, en daar de wedstrijd winnen met de beste eierbal. |
 | Tegenstander | Jelle in zijn eigen stad: de notaris, de limo, zijn kraam. |
 | Inzet | De standplaats; de relatie. |
 | Wie leren kennen | Niemand nieuws; iedereen komt terug (de colonne). Nieuwe lijn: het publiek, Rikus' uitzending. |
 | Kernscènes | De knuffel (M22.4, de emotionele kern); de colonne; de bak (Tammo bakt); de vijf woorden; Jelle en Mem. |
-| Wereld die opengaat | De Fjord Frituur als wagen die rijdt en groeit (ondernemerschap, Bezit-overzicht); de rest is vrij. |
+| Wereld die opengaat | De snackwagen als wagen die rijdt en groeit (ondernemerschap, Bezit-overzicht); de rest is vrij. |
 | Romantiek | Hoogtepunt: de vijf woorden, voor iedereen. |
 | Einde | De rij loopt tot de Korenbeurs. De wagen is een succes; wat nu? |
 
 ### Ruggengraat Deel 4: Nazomer (Loppersum, Bourtange; 14 tot 19 september) en daarna
 
-Doel: de wagen laten groeien en de gemeenschap iets teruggeven. Aanbeveling: Willemien (M27 tot en met M29) blijft maar krijgt een koppeling: ze is een vaste klant van de Fjord Frituur geworden of ze bakt Oma's recept na. M30 (het proefbeleg) wordt de uitnodiging voor de wereld die eronder ligt: boerderij, panden en voetbal zijn nu allemaal open. Na het einde loopt de open wereld door en elke loopbaan houdt een eigen vervolg (hoofdstuk 14).
+Doel: de wagen laten groeien en de gemeenschap iets teruggeven. Aanbeveling: Willemien (M27 tot en met M29) blijft maar krijgt een koppeling: ze is een vaste klant van de snackwagen geworden of ze bakt Oma's recept na. M30 (het proefbeleg) wordt de uitnodiging voor de wereld die eronder ligt: boerderij, panden en voetbal zijn nu allemaal open. Na het einde loopt de open wereld door en elke loopbaan houdt een eigen vervolg (hoofdstuk 14).
 
 ---
 
@@ -610,7 +610,7 @@ Aangemaakt op GitHub (21-11) met label `wens`, `impact-hoog` en een kostenlabel,
 
 ### 20.1 De frietwagen als thuisbasis en bedrijf
 
-De Fjord Frituur is niet alleen een doel, maar vanaf de eerste echte rit een **mobiel hoofdkwartier**: upgraden, het menu samenstellen, op locaties staan, klanten bedienen, omzet. Dat past bij de Bezit-epic (#1095, productieketen: boerderij naar eigen winkel). Verhaalkoppeling per akte (de wagen groeit mee met de lijn):
+De snackwagen is niet alleen een doel, maar vanaf de eerste echte rit een **mobiel hoofdkwartier**: upgraden, het menu samenstellen, op locaties staan, klanten bedienen, omzet. Dat past bij de Bezit-epic (#1095, productieketen: boerderij naar eigen winkel). Verhaalkoppeling per akte (de wagen groeit mee met de lijn):
 
 | Akte | De wagen is... | Waar het in het spel zit |
 |---|---|---|

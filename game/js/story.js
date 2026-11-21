@@ -719,7 +719,7 @@ function playRecap(part) {
 }
 
 // The end of the story: the epilogue (the last part's card lines) and the
-// Fjord Frituur. The credits wait until everything is done (playCredits).
+// snackwagen. The credits wait until everything is done (playCredits).
 function playFinale(part) {
   const P = PARTS[part];
   // the ending plays over the Grote Markt: the world streams around the player.
@@ -769,7 +769,7 @@ function playFinale(part) {
   const q = (spec) => playCinematic({ id: 'story-card', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
   const fromStudio = finaleShot(40);
   q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: GAME_TITLE, shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
-  // then the Fjord Frituur comes out from under its sheet and Tessa drives off in it
+  // then the snackwagen comes out from under its sheet and Tessa drives off in it
   queueFjordReveal(world);
   state.cards.add(part);
   const left = endingLeftText(getEnding());
@@ -1378,7 +1378,7 @@ export function getStoryJournal() {
   const found = CLUES.filter((c) => done.has(c.step)).map((c) => ({ ...c, isNew: rt.newClues.has(c.title) })).reverse();
   // the new story: Jelle's plakjes, and how each one ended (plakjes.js)
   const plakjes = plakjesState(done, step && step.id);
-  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length, plakjes };
+  return { why: step && step.finale ? 'Grunn is van jou. En de snackwagen staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length, plakjes };
 }
 
 // The clues per part, for a later "Verhaal" menu: { kop: [...], romp, staart }, each

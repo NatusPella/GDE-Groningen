@@ -3853,6 +3853,18 @@
       "status": "twijfel",
       "n": 1,
       "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
+    },
+    "tam": {
+      "nl": "Tam (voor Tammo)",
+      "status": "kennis",
+      "opm": "eigennaam: de snackwagen heet Tam & Tes (Tam = Tammo, Tes = Tessa); geen dialectwoord",
+      "bewijs": "eigen verzinsel, geen woordenboekbron nodig"
+    },
+    "tes": {
+      "nl": "Tes (voor Tessa)",
+      "status": "kennis",
+      "opm": "eigennaam: de snackwagen heet Tam & Tes (Tam = Tammo, Tes = Tessa); geen dialectwoord",
+      "bewijs": "eigen verzinsel, geen woordenboekbron nodig"
     }
   },
   "fries": {

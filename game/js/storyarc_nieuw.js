@@ -119,7 +119,7 @@ export const STEP_ALIAS = {
 
 const keep = (k, o) => ({ ...OUD_CHARACTERS[k], ...o });
 export const CHARACTERS = {
-  anita: keep('anita', { step: 'M00', bio: 'Snel, ad rem en de baas van het duo. Nederlandse, niet in Stad geboren, zomers in Ljouwert naast Mem. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.' }),
+  anita: keep('anita', { step: 'M00', bio: 'Snel, ad rem en de baas van het duo. Nederlandse, niet in Stad geboren, zomers in Ljouwert naast Mem. Ze droomt van de snackwagen, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.' }),
   tammo: keep('tammo', { step: 'M00', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Net afgestudeerd en al sinds de studie verliefd op zijn beste vriendin, en sinds de verhuisdag van 14 augustus haar huisgenoot in Paddepoel. Hij zegt het nooit.' }),
   rikus: keep('rikus', { step: 'M00' }),
   berend: keep('berend', { step: 'M01' }),
@@ -222,14 +222,14 @@ export const PARTS = {
   // of that part has played (storyarc.js nextStoryStep) and does not hold back the credits (story.js getEnding)
   nazomer: { title: 'Deel 4: Nazomer', name: 'Nazomer', date: '14 september', open: true, after: 'ontzet', end: 'Einde van Deel 4', big: 'Einde van Deel 4', textOnly: true,
     recap: [
-      ['Grote Markt', 'Eerder in GDE. Het Ontzet is gewonnen. De Fjord Frituur staat op de Vismarkt en de rij loopt tot de Korenbeurs.'],
+      ['Grote Markt', 'Eerder in GDE. Het Ontzet is gewonnen. De snackwagen staat op de Vismarkt en de rij loopt tot de Korenbeurs.'],
       ['Groninger Museum', 'De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en twee namen op het bordje.'],
       ['Paddepoel', "Op de elfde verdieping brandt 's avonds nog maar in één slaapkamer licht."],
     ],
     card: [
       ['Rikus', 'Moi. Nachtstreek, nazomer. In Loppersum brandt licht in de gang. Ik zeg niks.'],
       ['Rikus', 'In Bourtange won een bisschop van karton. Hij zegt dat het verkeerd voelde. Volgend jaar verliest hij weer.'],
-      ['Rikus', 'De Fjord Frituur staat op de Vismarkt. De rij loopt tot de Korenbeurs. Elke zomer rijdt hij één ronde.'],
+      ['Rikus', 'De snackwagen staat op de Vismarkt. De rij loopt tot de Korenbeurs. Elke zomer rijdt hij één ronde.'],
       ['Rikus', 'Jelle bestelde een eierbal, voor zijn oma. Hij betaalde contant. Uit een klomp, vermoed ik.'],
       ['Tessa', 'Dat was Deel 4.'],
       ['Tammo', 'Nu de rest van de wereld.'],
@@ -250,7 +250,7 @@ export const BRIDGES = [
   { id: 'O3', after: 'M06', via: 'car', scene: 'O3' },    // na de kraak: eerlijk winnen, Oma's 1953
   { id: 'O4', after: 'M08', via: 'car', scene: 'O4' },    // Mem belt Tessa (1): de jas
   { id: 'O5', after: 'M10', via: 'phone', scene: 'O5' },  // Mem belt Tessa (2): "Straks"
-  { id: 'O6', after: 'M13', via: 'phone', scene: 'O6' },  // Jelle biedt op de Fjord Frituur
+  { id: 'O6', after: 'M13', via: 'phone', scene: 'O6' },  // Jelle biedt op de snackwagen
   { id: 'O7', after: 'M16', via: 'car', scene: 'O7' },    // "Over zaterdag"
   { id: 'O8', after: 'M18', via: 'phone', scene: 'O8' },  // Rikus: de politie zoekt twee Stadjers; bewaar het logboek
   { id: 'O9', after: 'M21', via: 'phone', scene: 'O9' },  // apart: "Ik heb de auto"
@@ -366,13 +366,13 @@ export const STEPS = [
   // --- Akte 5: Ontzet (Westerkwartier en Stad, wo 26 - vr 28 augustus, epiloog 11 september) --
   M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 300, loopbanen: ['race'],
     story: { intro: ['M22.1'], outro: null, replay: ['M22.5'] }, scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'],
-    lead: ['T', "Tinus' schuur bij Zuidhorn. Henk bouwt een luik in de Escapade: dan is het de Fjord Frituur. Eerst de modder in, om de as te testen."] }),
+    lead: ['T', "Tinus' schuur bij Zuidhorn. Henk bouwt een luik in de Escapade: dan is het de snackwagen. Eerst de modder in, om de as te testen."] }),
   M('M23', 'ontzet', 'De colonne', 'colonne', { built: true, reward: 500,
     story: { intro: ['M23.1'], outro: ['M23.4'], replay: ['M23.5'] }, scenes: ['M23.1', 'M23.6', 'M23.7', 'M23.8', 'M23.2', 'M23.3', 'M23.4', 'M23.5'],
     lead: ['A', "Mem en Oma hebben de vrienden gebeld. We rijden samen naar de Grote Markt, vanaf Tinus' schuur."] }),
   M('M24', 'ontzet', "Er hangt iets Fries aan d'Olle Grieze", 'vlag', { built: true, reward: 600,
     story: { intro: ['M24.1'], outro: null, replay: ['M24.4'] }, scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'],
-    lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de Fjord Frituur: laat Berts duif de vijf touwen doorpikken.'] }),
+    lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de snackwagen: laat Berts duif de vijf touwen doorpikken.'] }),
   M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { built: true, reward: 600,
     story: { intro: ['M25.1'], outro: ['M25.4', 'M25.6'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.6', 'M25.5'],
     lead: ['A', "Oma's keuken aan de Noorderhaven. Bak vannacht een proefronde eierballen met alle vijf de ingrediënten: morgen is het Ontzet."] }),
@@ -426,7 +426,7 @@ export const CLUES = [
   { step: 'M07', kind: 'clue', title: 'Al het vet van Grunn', text: 'Jelle belde zelf: hij kocht al het vet van Grunn, voor één klomp. Zonder vet bakt niemand een eierbal, ook Oma niet. Dus pakten Tessa en Tammo de tankwagen.' },
   { step: 'M07', kind: 'hart', title: 'Iemand uit Friesland', text: 'Tessa kreeg weer een appje van iemand uit Friesland. Tammo vroeg of hij lang is.' },
   { step: 'M08', kind: 'clue', title: 'Gerda Terpstra, 1953', text: 'Oma Trijntje won in 1953. Tweede werd een Fries meisje: Gerda Terpstra, de mem van Jelle. Haar eierbal was beter. De jury wist het niet.' },
-  { step: 'M08', kind: 'clue', title: 'Het lijstje van Oma', text: 'Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Geesje heeft de eieren, Klaas het zout, de rest staat op het lijstje (Lammert, Roelfien en Wubbo). Dijkstra van het ziekenhuis helpt ook. Jelle koopt alles op. Het lijstje hangt aan het prikbord: dat is het menu van de Fjord Frituur.' },
+  { step: 'M08', kind: 'clue', title: 'Het lijstje van Oma', text: 'Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Geesje heeft de eieren, Klaas het zout, de rest staat op het lijstje (Lammert, Roelfien en Wubbo). Dijkstra van het ziekenhuis helpt ook. Jelle koopt alles op. Het lijstje hangt aan het prikbord: dat is het menu van de snackwagen.' },
   { step: 'M08', kind: 'hart', title: 'Niet tegen haar', text: 'Oma Trijntje: "Jij: één zin, hè. Niet zeventig jaar." Tammo zegt dat hij wel iets zegt. Oma: "Niet tegen haar."' },
   { step: 'M09', kind: 'clue', title: 'Een eierkoek per week', text: 'Jelle sloot de Dorpsweg en huurde een boer die dwars staat: een eierkoek per week, levenslang. Geesje: haar kippen hebben geen contract. Gerda Terpstra woonde in Ljouwert en belt Oma elk jaar op haar verjaardag.' },
   { step: 'M09', kind: 'hart', title: 'Boerendochter', text: 'Tessa is boerendochter: ze sorteerde eieren voor ze kon lezen en kent elke achterweg. Tammo wist het vijf jaar niet. Ze zei dat hij nooit naar de kippen vroeg.' },
@@ -472,7 +472,7 @@ export const CLUES = [
   { step: 'M28', kind: 'hart', title: 'Zonder praatje', text: 'Rikus draaide een nummer zonder praatje, voor iedereen die even ergens anders slaapt. Willemien: "Ik geloof het als ik het zie. Dat is niet boos. Dat is Gronings."' },
   { step: 'M29', kind: 'hart', title: 'Voor de grip', text: 'Op het erf in Loppersum vroeg Tessa of Tammo wilde dansen. Hij zei nee. Toen zei hij: "Voor de grip."' },
   { step: 'M30', kind: 'clue', title: 'Dan is winnen verkeerd', text: 'Berend won het proefbeleg van Bourtange, voor het eerst in veertig jaar. Hij zegt dat het verkeerd voelt. Volgend jaar verliest hij weer.' },
-  { step: 'M30', kind: 'hart', title: 'Zes woorden', text: '"Thuis is waar de kar staat." Zes woorden, zei Tessa. Kon minder. Elke zomer rijdt de Fjord Frituur één ronde.' },
+  { step: 'M30', kind: 'hart', title: 'Zes woorden', text: '"Thuis is waar de kar staat." Zes woorden, zei Tessa. Kon minder. Elke zomer rijdt de snackwagen één ronde.' },
   { step: 'M30', kind: 'clue', title: 'De wereld ligt open', text: 'Geesje heeft bieten die tot aan de weg staan, in Veendam zoeken ze een aanvalster, Sjabbe heeft een leeg pand en Willemien wil een tweede wagen. Jelle wacht tot de panden goedkoper worden.' },
   { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde vijf jaar. Kon minder. Daarna kuste ze hem, voor heel de Grote Markt. Berend telde elf seconden.' },
 ];

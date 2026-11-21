@@ -57,7 +57,7 @@ WILLEMIEN: Nog een ritje? De kat blijft hier. Die heeft het wel gezien. [NIEUW]
 ## [O11] Een eierbal – Loppersum – telefoon
 (regie: middag. De verhuisbus staat bij de wisselwoning. Tessa's telefoon: een onbekend nummer, en ze weet al wie.)
 JELLE (telefoon): Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn oma. [NIEUW]
-TESSA (telefoon): De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur. [NIEUW]
+TESSA (telefoon): De snackwagen staat op de Vismarkt, vanaf twaalf uur. [NIEUW]
 JELLE (telefoon): Mijn assistent haalt hem. Ik betaal contant. [NIEUW]
 TESSA (telefoon): Uit een klomp? [NIEUW]
 JELLE (telefoon): Dat is een ander gesprek. [NIEUW]
@@ -99,7 +99,7 @@ WILLEMIEN: Eén keer is genoeg. Dan is het waar. [NIEUW]
 WILLEMIEN: Kom maar binnen. Koffie staat. Het huis ook. [NIEUW]
 
 ## [T5.1] De weg naar Bourtange: onderweg – Westerwolde, de heide – auto
-(regie: zaterdag 19 september, ochtend. Een rechte weg over de heide, de Fjord Frituur met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet weglopen.)
+(regie: zaterdag 19 september, ochtend. Een rechte weg over de heide, de snackwagen met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet weglopen.)
 BEREND: Goidag. Het echte Beleg is volgend jaar. De vesting wil het groter. Ik wil eerst één proef. [NIEUW]
 TESSA: Met veertig man en een paard van karton? [NIEUW]
 BEREND: Met jullie. En met iedereen van Trijntjes lijstje. Ik heb ze allemaal gebeld. Ze kwamen nog voor ik was uitgepraat. [NIEUW]
@@ -182,7 +182,7 @@ TESSA: Hij zegt van niet. [NIEUW]
 OMA TRIJNTJE (telefoon): Dan is hij blij. [NIEUW]
 
 ## [M30.6] Het proefbeleg: de kar – Westerwolde, Bourtange, de poort – te voet
-(regie: avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakjes.)
+(regie: avond, de zon laag over de heide. De snackwagen staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakjes.)
 GEESJE: De bieten staan tot aan de weg, Tessa. Ik heb handen nodig. [NIEUW]
 BEREND: In Veendam zoeken ze een aanvalster. Ik heb je naam genoemd. [NIEUW]
 SJABBE (telefoon): Ik heb een pand. Het staat leeg. Jelle heeft het nog niet gezien. [NIEUW]
@@ -197,8 +197,8 @@ TESSA: Kon veel minder. [NIEUW]
 BEREND: Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar. [NIEUW]
 
 ## [O12] Wat nu – Stad, Paddepoel – flat
-(regie: avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open.)
-(regie: op de koelkast hangt de lijst. In de kolom "wij vinden" staat één regel, in twee handschriften: de Fjord Frituur.)
+(regie: avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: snackwagen, wat nu? Beneden staat de Escapade met het luik open.)
+(regie: op de koelkast hangt de lijst. In de kolom "wij vinden" staat één regel, in twee handschriften: de snackwagen.)
 TESSA: Wat nu? [NIEUW]
 TAMMO: Rijden. [NIEUW]
 TESSA: Waarheen? [NIEUW]

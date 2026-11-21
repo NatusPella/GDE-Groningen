@@ -6,7 +6,7 @@ Werkafspraken voor wie scènes van een akte herschrijft (mens of agent). Spec: [
 
 - Tammo en Tessa zijn 24, net afgestudeerd en werkloos, vijf jaar vrienden sinds de eerste studieweek; Tammo is vijf jaar stiekem verliefd. Rikus is Tammo's jeugdvriend. Oma Trijntje is Tammo's oma (92).
 - Tammo heeft een onverklaarde band met duiven: ze volgen en gehoorzamen hem; anderen merken het op, er is nooit uitleg. Bestaande duivengrappen ("mijn vriend de duivenkoning") blijven.
-- Kern: Tessa ontdekt dat ze een frietwagen wil (de Fjord Frituur) en doet dat met Tammo (zijn autoliefde, haar snackliefde). De wagen is thuisbasis en bedrijf.
+- Kern: Tessa ontdekt dat ze een frietwagen wil (de snackwagen) en doet dat met Tammo (zijn autoliefde, haar snackliefde). De wagen is thuisbasis en bedrijf.
 - Tegenstander en eindbaas: Jelle Terpstra (snackimperium: rijk, bureaucratisch, lang, arrogant, maar "Foar mem"); vroeg en vaak zichtbaar; hij saboteert, koopt panden op, stuurt handlangers; hij wordt verslagen met bureaucratie en vette snacks, nooit met geweld.
 - Romance is een hoofdlijn, zoet en komisch. Toon: warm, grappig, soms ontroerend.
 - "Grunn", nooit "de Grunn". Tessa spreekt standaard Nederlands. Altijd zomer. Satire, geen leed. Geen echte merken of personen.

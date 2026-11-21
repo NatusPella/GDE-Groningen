@@ -77,7 +77,7 @@ ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,scene,chase,scene,s
 {
   // M23 ally: one remembered choice, read again in M26 (chase time, the street scene, the tag)
   const col = byLabel('De colonne');
-  ok(col.stages[0].kind === 'choice' && col.stages[0].rounds[0].options.map((o) => o.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: choose the ally next to the Fjord Frituur');
+  ok(col.stages[0].kind === 'choice' && col.stages[0].rounds[0].options.map((o) => o.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: choose the ally next to the snackwagen');
   ok(col.remember.join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: the ally is remembered for M26');
   ok(col.stages[1].scriptIf.map((q) => q.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: a scene per ally');
   ok(col.stages.find((q) => q.kind === 'convoy').limoAfterIf['bond-bus'] > 30, 'M23: the bus holds the limo back');

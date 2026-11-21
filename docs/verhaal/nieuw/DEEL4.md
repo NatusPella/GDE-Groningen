@@ -22,7 +22,7 @@ Een kort, afgerond **Deel 4: Nazomer**, maandag 14 tot en met zaterdag 19 septem
 | M28 | De wisselwoning | Loppersum | De verhuisbus rustig naar de wisselwoning. Rikus draait één nummer zonder praatje. |
 | M29 | Terug | Loppersum | Het huis is klaar. Tafels op het erf, buurtfeest, de foto in de gang. "Voor de grip." |
 | T5 | De weg naar Bourtange | Westerwolde | Reisstap met reiskeuze (meerijden, zelf rijden, overslaan); Berend belt. |
-| M30 | Het proefbeleg | Vesting Bourtange | Berend wil één keer weten hoe winnen voelt. De vrienden van Oma: de gracht, de ophaalbrug, drie bolwerken. Berend wint en vindt dat verkeerd. Slotscène bij de Fjord Frituur: "Thuis is waar de kar staat." "Zes." "Kon minder." |
+| M30 | Het proefbeleg | Vesting Bourtange | Berend wil één keer weten hoe winnen voelt. De vrienden van Oma: de gracht, de ophaalbrug, drie bolwerken. Berend wint en vindt dat verkeerd. Slotscène bij de snackwagen: "Thuis is waar de kar staat." "Zes." "Kon minder." |
 
 **De NAM-zijlijn** is de reeks Scheuren (M27-M29) uit het F4a-script (Z26-Z28), nu als verhaal in de nieuwe lijn. Regels uit de constitution (punt 6) en `../PROVINCIE-VERHAAL.md` §8:
 

@@ -1204,7 +1204,7 @@
     {
       "id": "fjord_klaar",
       "titel": "Luik open",
-      "omschrijving": "Draai een dienst met de Fjord Frituur",
+      "omschrijving": "Draai een dienst met de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_KLAAR",
       "steamApiNaam": ""
@@ -1212,7 +1212,7 @@
     {
       "id": "fjord_goud",
       "titel": "Kon minder",
-      "omschrijving": "Goud in een dienst van de Fjord Frituur",
+      "omschrijving": "Goud in een dienst van de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_GOUD",
       "steamApiNaam": ""
@@ -1236,7 +1236,7 @@
     {
       "id": "fjord_1000",
       "titel": "Frituurbaron",
-      "omschrijving": "Verdien €1000 met de Fjord Frituur",
+      "omschrijving": "Verdien €1000 met de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_1000",
       "steamApiNaam": ""

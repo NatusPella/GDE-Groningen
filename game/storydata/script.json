@@ -229,7 +229,7 @@
    "step": "M00",
    "kind": "opening",
    "regie": [
-    "ochtend, vrijdag 14 augustus. De camera zakt langs d'Olle Grieze naar een smalle straat. Een zolderraam, een rode Escapade met een lekke band. Op een oude radio zacht Nachtstreek. Binnen zit Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: FJORD FRITUUR. Op de tafel ligt ook een folder van de Noordelijke Snackprijs, met een foto van een gouden eierbal. Tammo komt binnen met twee bakken koffie.",
+    "ochtend, vrijdag 14 augustus. De camera zakt langs d'Olle Grieze naar een smalle straat. Een zolderraam, een rode Escapade met een lekke band. Op een oude radio zacht Nachtstreek. Binnen zit Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: TAM & TES. Op de tafel ligt ook een folder van de Noordelijke Snackprijs, met een foto van een gouden eierbal. Tammo komt binnen met twee bakken koffie.",
     "ze schuift het huurcontract over de tafel. Haar telefoon trilt."
    ],
    "lines": [
@@ -302,11 +302,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
-     "tag": "BEHOUDEN",
+     "text": "Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -13149,11 +13148,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.",
-     "tag": "BEHOUDEN",
+     "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor een auto die hij niet heeft.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -13290,11 +13288,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Henks zender piept: onze auto staat al op een trein. Zonder auto geen Fjord Frituur.",
+     "text": "Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -14336,11 +14333,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij.",
+     "text": "Wij maken van de Escapade de snackwagen. Daar hoort een luik bij.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -14399,7 +14395,9 @@
    "vehicle": "Escapade",
    "step": "M22",
    "kind": "key",
-   "regie": [],
+   "regie": [
+    "Tessa wijst naar het luik. Daarop staat in witte letters TAM & TES. Henk kijkt naar het luik, dan naar Tammo, dan naar Tessa."
+   ],
    "lines": [
     {
      "speaker": "Henk",
@@ -14413,11 +14411,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is een Fjord Frituur.",
+     "text": "Dat is een snackwagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -14475,6 +14472,48 @@
      "textOnly": false,
      "rec": "lines",
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Welke naam?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Henk",
+     "key": "henk",
+     "text": "Tam. Tes.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "...Het rijmt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is een naam.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Henk",
+     "key": "henk",
+     "text": "Ik zeg niks. Eén koekje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "H5-10"
     },
     {
      "speaker": "Henk",
@@ -14793,11 +14832,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen.",
+     "text": "De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -14857,7 +14895,7 @@
    "title": "De colonne: intro",
    "act": 5,
    "region": "Westerkwartier, Tinus' schuur, vertrek",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M23",
    "kind": "intro",
    "gameplay": "één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.",
@@ -14955,7 +14993,7 @@
    "title": "De colonne: onderweg",
    "act": 5,
    "region": "Westerkwartier, Zuidhorn naar Aduard",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M23",
    "kind": "key",
    "regie": [],
@@ -15022,7 +15060,7 @@
    "title": "Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen)",
    "act": 5,
    "region": "Westerkwartier, Stad",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M23",
    "kind": "banter",
    "pool": "B5",
@@ -15202,7 +15240,7 @@
    "step": "M23",
    "kind": "key",
    "regie": [
-    "afloop van de keuze voor Wubbo. De bus rijdt naast de Fjord Frituur. Wubbo hangt uit het raam."
+    "afloop van de keuze voor Wubbo. De bus rijdt naast de snackwagen. Wubbo hangt uit het raam."
    ],
    "lines": [
     {
@@ -15262,7 +15300,7 @@
    "step": "M23",
    "kind": "key",
    "regie": [
-    "afloop van de keuze voor Tinus. De trekker ratelt naast de Fjord Frituur."
+    "afloop van de keuze voor Tinus. De trekker ratelt naast de snackwagen."
    ],
    "lines": [
     {
@@ -15323,7 +15361,7 @@
    "step": "M23",
    "kind": "key",
    "regie": [
-    "afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm over haar knot."
+    "afloop van de keuze voor Geesje. De scooter zoemt naast de snackwagen, Geesje met een helm over haar knot."
    ],
    "lines": [
     {
@@ -15361,7 +15399,7 @@
    "title": "De colonne: outro",
    "act": 5,
    "region": "Stad, Grote Markt",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M23",
    "kind": "outro",
    "regie": [
@@ -15422,7 +15460,7 @@
    "title": "De colonne: herhaling",
    "act": 5,
    "region": "Westerkwartier",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M23",
    "kind": "replay",
    "regie": [],
@@ -15498,11 +15536,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De vlag hangt precies boven de plek waar de Fjord Frituur morgen moet staan. Hij moet eraf.",
+     "text": "De vlag hangt precies boven de plek waar de snackwagen morgen moet staan. Hij moet eraf.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -15877,7 +15914,7 @@
    "title": "Het bod viel tegen: intro",
    "act": 5,
    "region": "Stad, Oma's keuken aan de Noorderhaven",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M25",
    "kind": "intro",
    "gameplay": "een oefenronde eierballen bakken met alle vijf ingrediënten, daarna Jelles bod afwijzen.",
@@ -16474,7 +16511,7 @@
    "kind": "intro",
    "gameplay": "de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen.",
    "regie": [
-    "vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de Fjord Frituur, blauw, met een luik; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen."
+    "vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de snackwagen, blauw, met een luik en in witte letters TAM & TES; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen."
    ],
    "lines": [
     {
@@ -16743,15 +16780,15 @@
    "title": "Ontzet, net als in 1672: de blokkade",
    "act": 5,
    "region": "Stad, Oude Boteringestraat",
-   "vehicle": "Fjord Frituur, duif",
+   "vehicle": "snackwagen, duif",
    "step": "M26",
    "kind": "key",
-   "gameplay": "Tessa rijdt de Fjord Frituur de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vrienden de straat achter hem afsluiten.",
+   "gameplay": "Tessa rijdt de snackwagen de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vrienden de straat achter hem afsluiten.",
    "regie": [
-    "kwart voor drie. De limo rijdt weg naar de notaris. Gameplay: Tessa rijdt de Fjord Frituur de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vrienden de straat achter hem afsluiten.",
+    "kwart voor drie. De limo rijdt weg naar de notaris. Gameplay: Tessa rijdt de snackwagen de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vrienden de straat achter hem afsluiten.",
     "de duiven plakken voor de voorruit. De chauffeur remt. De vrienden van de colonne sluiten de straten rond de limo af, een voor een.",
     "Durk en Douwe steken per ongeluk Berends vuurwerk aan. Rook, knallen, een regen van papieren sterren.",
-    "Tessa zet de Fjord Frituur dwars voor de limo. De limo komt tot stilstand met zijn neus tegen het luik.",
+    "Tessa zet de snackwagen dwars voor de limo. De limo komt tot stilstand met zijn neus tegen het luik.",
     "hij stapt achteruit uit de limo, struikelt over een duif en valt in het water langs de weg. De gouden koffer houdt hij boven water."
    ],
    "lines": [
@@ -16776,11 +16813,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De Fjord Frituur is breder dan de straat. Daar ga ik staan.",
+     "text": "De snackwagen is breder dan de straat. Daar ga ik staan.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -16901,11 +16937,11 @@
    "title": "Ontzet, net als in 1672: de straten dicht, de bus",
    "act": 5,
    "region": "Stad, rond de Oude Boteringestraat",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M26",
    "kind": "key",
    "regie": [
-    "de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur."
+    "de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de snackwagen."
    ],
    "lines": [
     {
@@ -16962,7 +16998,7 @@
    "title": "Ontzet, net als in 1672: de straten dicht, de trekker",
    "act": 5,
    "region": "Stad, rond de Oude Boteringestraat",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M26",
    "kind": "key",
    "regie": [
@@ -17013,7 +17049,7 @@
    "title": "Ontzet, net als in 1672: de straten dicht, de scooter",
    "act": 5,
    "region": "Stad, rond de Oude Boteringestraat",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "M26",
    "kind": "key",
    "regie": [
@@ -17284,47 +17320,42 @@
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig.",
+     "text": "Tam & Tes. Vijf van de vijf. Mijn stem was niet eens nodig.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -17352,29 +17383,26 @@
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
@@ -17388,11 +17416,10 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Fjord Frituur. Vier van de vijf. Ik was de laatste.",
+     "text": "Tam & Tes. Vier van de vijf. Ik was de laatste.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     }
    ]
   },
@@ -17411,11 +17438,10 @@
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
@@ -17429,11 +17455,10 @@
     {
      "speaker": "Jurylid",
      "key": "jurylid",
-     "text": "Fjord Frituur.",
+     "text": "Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jurylid",
@@ -17447,11 +17472,10 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Fjord Frituur. Drie van de vijf. Het is krap.",
+     "text": "Tam & Tes. Drie van de vijf. Het is krap.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -17561,11 +17585,10 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "De standplaats op de Vismarkt gaat naar de Fjord Frituur.",
+     "text": "De standplaats op de Vismarkt gaat naar Tam & Tes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Mem Terpstra",
@@ -17892,11 +17915,11 @@
    "title": "Epiloog",
    "act": 5,
    "region": "Stad, Vismarkt",
-   "vehicle": "Fjord Frituur",
+   "vehicle": "snackwagen",
    "step": "E",
    "kind": "epilogue",
    "regie": [
-    "twee weken later, vrijdag 11 september. Bij de Vismarkt staat de Fjord Frituur met een rij tot de Korenbeurs. Aan het luik hangt een bord: \"Eierbal met mosterd. Oma's recept.\" Ernaast een ingelijste foto van de Grote Markt: twee mensen achter een frituur, midden in een kus, met een bisschop op de achtergrond. Op het dak zitten drie duiven in een rij, als klanten.",
+    "twee weken later, vrijdag 11 september. Bij de Vismarkt staat de snackwagen met TAM & TES op het luik en een rij tot de Korenbeurs. Aan het luik hangt een bord: \"Eierbal met mosterd. Oma's recept.\" Ernaast een ingelijste foto van de Grote Markt: twee mensen achter een frituur, midden in een kus, met een bisschop op de achtergrond. Op het dak zitten drie duiven in een rij, als klanten.",
     "Tessa breekt een eierbal doormidden en geeft Tammo de helft. Ze blijft naast hem staan, haar schouder tegen de zijne."
    ],
    "lines": [
@@ -18011,7 +18034,7 @@
    "step": "E",
    "kind": "epilogue",
    "regie": [
-    "Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de Fjord Frituur."
+    "Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de snackwagen."
    ],
    "lines": [
     {
@@ -18150,7 +18173,7 @@
    "step": "E",
    "kind": "epilogue",
    "regie": [
-    "Rikus schuift het bakje friet naar de microfoon. In de Fjord Frituur draait Tessa de radio zachter."
+    "Rikus schuift het bakje friet naar de microfoon. In de snackwagen draait Tessa de radio zachter."
    ],
    "lines": [
     {
@@ -18642,7 +18665,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur.",
+     "text": "De snackwagen staat op de Vismarkt, vanaf twaalf uur.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -18952,7 +18975,7 @@
    "step": "T5",
    "kind": "travel",
    "regie": [
-    "zaterdag 19 september, ochtend. Een rechte weg over de heide, de Fjord Frituur met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet weglopen."
+    "zaterdag 19 september, ochtend. Een rechte weg over de heide, de snackwagen met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet weglopen."
    ],
    "lines": [
     {
@@ -19617,7 +19640,7 @@
    "step": "M30",
    "kind": "outro",
    "regie": [
-    "avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakjes."
+    "avond, de zon laag over de heide. De snackwagen staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakjes."
    ],
    "lines": [
     {
@@ -19737,8 +19760,8 @@
     "step": "M30"
    },
    "regie": [
-    "avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open.",
-    "op de koelkast hangt de lijst. In de kolom \"wij vinden\" staat één regel, in twee handschriften: de Fjord Frituur.",
+    "avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: snackwagen, wat nu? Beneden staat de Escapade met het luik open.",
+    "op de koelkast hangt de lijst. In de kolom \"wij vinden\" staat één regel, in twee handschriften: de snackwagen.",
     "op de galerij kijkt meneer Veldkamp om het hoekje, een duif op zijn arm."
    ],
    "lines": [

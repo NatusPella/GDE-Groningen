@@ -22,6 +22,10 @@ Kernkeuzes die hierbij horen (zie ook de veto-lijst):
 - De bestaande plotmotor blijft (de Noordelijke Snackprijs, de Gouden Eierbal, Oma Trijntjes recept van 1953, Jelles koopronde): hij is beproefd en geeft elke akte een obstakel. Wat verschuift is de betekenis: de wagen is in akte 1 tot en met 3 hooguit een tekening die Tessa niet durft te geloven; de ontdekking is M22 (de luik in de Escapade), de standplaats het Ontzet (M26).
 - Jelles verhaal: zijn moeder Mem (91), niet zijn oma, is de tweede in 1953 (leeftijd klopt; Oma Trijntje won). Oma Trijntje gaf haar toen niet de erkenning; Mem krijgt die uiteindelijk. De spelling blijft "Us Mem Snacks" (de opgenomen regels zeggen het hetzelfde), de handlangers blijven Durk en Douwe.
 
+## De naam van de wagen: Tam & Tes
+
+Eigenaar-besluit (21-11): de wagen heet **Tam & Tes** (Tam = Tammo, Tes = Tessa), en "Fjord Frituur" is overal vervangen (proza: "de snackwagen"). De grap wordt nooit uitgelegd: de naam staat als belettering op het luik (M22.2, het juryscherm in M26, het bord in de epiloog, de kaartlaag en de standplaats van Bezit) en Henk is de enige die het merkt ("Tam. Tes." ... "Ik zeg niks. Eén koekje."; humorbeat H5-10, paneel midden). De naam komt niet prominent in de marketing of de slogan voor. Het eerdere namenpaneel (14 kandidaten, 1-1-1) is door het besluit van de eigenaar vervallen.
+
 ## Wagen per akte (de flags)
 
 | Akte | De wagen is... | Flag |
@@ -30,7 +34,7 @@ Kernkeuzes die hierbij horen (zie ook de veto-lijst):
 | 2 | een recept: Oma's vijf ingrediënten | `wagen:menu` (M08) |
 | 3 | een plek die ze mogen gebruiken (Lammerts kade, de kermis) | `wagen:stek` (M13) |
 | 4 | een team dat meehelpt | `wagen:team` (M20) |
-| 5 | de ontdekking: het luik zit erin, de Fjord Frituur | `wagen:naam` (M22), `wagen:standplaats` (M26) |
+| 5 | de ontdekking: het luik zit erin, de snackwagen | `wagen:naam` (M22), `wagen:standplaats` (M26) |
 | Deel 4 | een bedrijf dat groeit (endgame) | `wagen:keten` (M30) |
 
 ## Spelersrol en wereld per akte
@@ -50,7 +54,7 @@ Bestaande saves houden alles wat al open was; alleen een nieuw spel begint dicht
 
 | Onderdeel | Inhoud |
 |---|---|
-| Doel | Honderdvijftig euro verdienen en zich inschrijven voor de Noordelijke Snackprijs: de enige weg naar een standplaats voor de Fjord Frituur. |
+| Doel | Honderdvijftig euro verdienen en zich inschrijven voor de Noordelijke Snackprijs: de enige weg naar een standplaats voor de snackwagen. |
 | Tegenstander | Jelle Terpstra, die de markt opkoopt. Hij is vroeg en vaak zichtbaar: radio, een geluidsbericht, dan in persoon (M03). |
 | Inzet | Tessa's droom van een thuis met wielen; Tammo blijft bij haar. |
 | Wagen | Een tekening op een bierviltje en een auto met een lekke band. Flag `wagen:idee`. |
@@ -99,7 +103,7 @@ Bestaande saves houden alles wat al open was; alleen een nieuw spel begint dicht
 |---|---|
 | Doel | De standplaats krijgen en het Ontzet winnen met de beste eierbal. |
 | Tegenstander | Jelle in zijn eigen stad: notaris, limo, kraam. Eindbaas: verslagen met zijn eigen vergunning en een formulier in drievoud. |
-| Wagen | De ontdekking (M22: het luik zit erin, de Fjord Frituur) en een standplaats (M26). Flags `wagen:naam` en `wagen:standplaats`. |
+| Wagen | De ontdekking (M22: het luik zit erin, de snackwagen) en een standplaats (M26). Flags `wagen:naam` en `wagen:standplaats`. |
 | Romantiek | Het hoogtepunt: de vijf woorden, voor iedereen. |
 | Einde | De rij loopt tot de Korenbeurs. Wat nu? |
 

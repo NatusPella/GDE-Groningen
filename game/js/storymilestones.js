@@ -1,4 +1,4 @@
-// Snackwagen-mijlpalen (#1136, WP13): de snackwagen (de Fjord Frituur) is een verhaaltwist die pas rond M22 een wagen wordt
+// Snackwagen-mijlpalen (#1136, WP13): de snackwagen (de snackwagen) is een verhaaltwist die pas rond M22 een wagen wordt
 // (kern 21-11: eerst zoeken Tammo en Tessa een plek in de wereld); daarna is hij thuisbasis en bedrijf en groeit hij mee met het verhaal. De
 // verhaalstappen leveren alleen mijlpalen als stille vlaggen (`wagen:*`); de bedrijfsmechaniek (upgrades, menu, omzet,
 // locaties, personeel) hoort bij de Bezit-epic en leest alleen deze vlaggen. Afspraak met Bezit en voetbal (verbindingspunten,
@@ -15,7 +15,7 @@ export const WAGEN_MILESTONES = [
   { flag: 'wagen:menu', step: 'M08', akte: 'romp', text: "Oma Trijntjes recept van 1953: vet, eieren, zout, meel en mosterd zijn het eerste menu." },
   { flag: 'wagen:stek', step: 'M13', akte: 'staart', text: "Lammerts kade en de kermis: de eerste plekken waar een wagen zou kunnen staan." },
   { flag: 'wagen:team', step: 'M20', akte: 'zuid', text: 'Berend, Tinus en Wubbo helpen: er is een team voor wat ze samen gaan doen.' },
-  { flag: 'wagen:naam', step: 'M22', akte: 'ontzet', text: 'Het luik zit erin: de Escapade is de Fjord Frituur, een snackwagen met een naam (de ontdekking na het herstel).' },
+  { flag: 'wagen:naam', step: 'M22', akte: 'ontzet', text: 'Het luik zit erin: de Escapade is een snackwagen en heet Tam & Tes (de ontdekking na het herstel).' },
   { flag: 'wagen:standplaats', step: 'M26', akte: 'ontzet', text: 'Een luik en een standplaats op de Vismarkt.' },
   { flag: 'wagen:keten', step: 'M30', akte: 'nazomer', text: 'De wagen groeit: een tweede wagen, een pand en de boerderij als leverancier zijn mogelijk (de endgame).' },
 ];

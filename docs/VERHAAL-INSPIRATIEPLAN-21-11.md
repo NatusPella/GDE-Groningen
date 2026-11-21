@@ -76,7 +76,7 @@ Status: **gebouwd** = staat in de 09-scripts en in script.json; **plan** = allee
 
 | Idee | Waar | Wie | Hoe | Status |
 |---|---|---|---|---|
-| A4 koelkastlijst (slot) | O12 | Tessa, Tammo | regie-regel: in de kolom "wij vinden" staat één regel in twee handschriften: de Fjord Frituur | gebouwd |
+| A4 koelkastlijst (slot) | O12 | Tessa, Tammo | regie-regel: in de kolom "wij vinden" staat één regel in twee handschriften: de snackwagen | gebouwd |
 | B8 de buurman | O12 | Meneer Veldkamp | "De duiven vragen of jullie blijven." (derde spreker, 9 regels) | gebouwd |
 | A19 koppelmoment per loopbaan | loopbaan.js, einde van een loopbaan | Tammo, Tessa | korte duo-scène per vak (zie hieronder) | plan |
 

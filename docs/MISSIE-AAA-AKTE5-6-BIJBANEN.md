@@ -48,7 +48,7 @@ Nieuw in deze ronde: het ritueel in [`sidejobbeats.js`](../game/js/sidejobbeats.
 | Activiteit | Nu | Mist | K |
 |---|---|---|---|
 | Bruggenrace | publiek bij start en laatste brug, startsein, brugsting | brugwachter als figuur, publiek op de bruggen | M |
-| Fjord Frituur-dienst | wachtrij van klanten met bestellingen | meer figuranten, sting bij een volle bak | S |
+| snackwagen-dienst | wachtrij van klanten met bestellingen | meer figuranten, sting bij een volle bak | S |
 | Skûtsje-sprint, Fierljep, Koe | zie het upgradeplan | geen groot gat | - |
 
 ## Samen spelen (regel per onderdeel)

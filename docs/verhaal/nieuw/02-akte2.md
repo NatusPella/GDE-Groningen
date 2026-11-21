@@ -1,6 +1,6 @@
 # Akte 2: "Het Noorden is groot" (Stad, Hogeland, Waddenzee; di 18 – do 20 augustus)
 
-Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2.md](09-script-akte2.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de Fjord Frituur en het recept gereedmaken.
+Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2.md](09-script-akte2.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de snackwagen en het recept gereedmaken.
 
 ## Intro van de akte
 
@@ -70,7 +70,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | | |
 |---|---|
 | **Id** | `A2-2` (`H12`, mission `fatbike`) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken** (Oma's recept en het lijstje met vijf vrienden) |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken** (Oma's recept en het lijstje met vijf vrienden) |
 | **Plaats** | Oude Ebbingestraat naar de Noorderhaven (Stad); Oma's kamer; di 18, middag |
 | **Voertuig** | te voet |
 | **Mechaniek / hergebruik** | `fatbike`-stage (stroom fatbikes over de stoep, `LANE_SPAWN_EVERY`); bestaande def |

@@ -361,7 +361,7 @@ const STORY = [
     // 15: H16 Iedereen heeft een rode auto gezien (the low point: Tammo's Escapade is gone)
     npc: null, ask: 6,
     intro: [
-      ['T', '"Tige tank foar de auto. – J." De Fjord Frituur. Zonder Fjord.', { clue: true }],
+      ['T', '"Tige tank foar de auto. – J." De snackwagen. Zonder Fjord.', { clue: true }],
       ['T', 'Wie heb je verteld waar we wonen?'],
       ['A', 'Niemand.'],
       ['T', 'Je appt al de hele week met Friesland.'],

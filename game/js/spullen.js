@@ -308,8 +308,8 @@ function collect(w) {
   for (const v of shop.vehicles) {
     for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, viewer: upgradeSpec(v.kind === 'bike' || v.kind === 'scooter' ? 'tweewieler' : 'auto', id), title: u.label || id, sub: v.label, desc: u.desc, how: u.price ? euro(u.price) : '' }); }
   }
-  for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, viewer: upgradeSpec('fjord', u.id), title: u.name, sub: 'Fjord Frituur', desc: u.blurb, how: euro(u.price) });
-  for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });
+  for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, viewer: upgradeSpec('fjord', u.id), title: u.name, sub: 'snackwagen', desc: u.blurb, how: euro(u.price) });
+  for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'snackwagen' ? null : ['garage', 'Naar Garage'] });
   counts.upgrade = `${ups.length} van ${upgradeTotaal(shop, fjordUpgradeOffers(w))}`;
   return { items: out, counts };
 }
@@ -530,7 +530,7 @@ function detailHtml() {
 // wordt los hertekend (spullenFocus) en houdt de stijl zo gewoon.
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
 // QoL (#985): hoeveel upgrades er te halen zijn voor wat je hebt: de Escapade, elk gekocht voertuig (naar zijn
-// soort) en de Fjord Frituur. Zo staat de teller als "3 van 8" en krijgt de categorie zijn voortgangsbalk.
+// soort) en de snackwagen. Zo staat de teller als "3 van 8" en krijgt de categorie zijn voortgangsbalk.
 export function upgradeTotaal(shop, fjordOffers = []) {
   let totaal = CAR_UPGRADES.length + fjordOffers.length;
   for (const v of (shop && shop.vehicles) || []) {

@@ -34,7 +34,7 @@ export const CHARACTERS = [
   {
     id: 'anita', name: 'Tessa', speakers: ['Anita'], model: 'anita', always: true,
     role: 'Heeft altijd een plan B. Plan A is ook van haar.',
-    bio: 'Snel, ad rem en de baas van het duo. Droomt van de Fjord Frituur, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto. Komt van het platteland: ze kan boeren en voetballen en zegt dat feitelijk.',
+    bio: 'Snel, ad rem en de baas van het duo. Droomt van de snackwagen, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto. Komt van het platteland: ze kan boeren en voetballen en zegt dat feitelijk.',
     quote: 'Rijden, niet praten.',
     relation: 'De andere helft. Huurde de flat in Paddepoel, met hem als huisgenoot. Leidt, regelt en wint meestal.',
     missions: ['H1', 'H2', 'H6', 'H8', 'H11', 'H13', 'H15', 'H16', 'H18'],

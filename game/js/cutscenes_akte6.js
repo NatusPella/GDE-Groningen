@@ -17,7 +17,7 @@ S['M27.intro'] = {
     { on: 'Hoe lang', actor: 'tessa', anim: 'shrug' },
     { on: 'Een paar weken, zeggen ze', actor: 'willemien', anim: 'shake' },
     { on: 'Graag', actor: 'tammo', anim: 'nod' },
-    // WP7: Willemien is vaste klant van de Fjord Frituur
+    // WP7: Willemien is vaste klant van de snackwagen
     { on: 'Ik ken jullie van het luik', actor: 'willemien', anim: 'point' },
     { on: 'De aannemer zet', actor: 'willemien', anim: 'point' },
     { on: 'Oma zei: gewoon dozen', actor: 'tessa', anim: 'nod' },
@@ -169,7 +169,7 @@ S['M29.outro'] = {
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:willemien,tessa@1'),
 };
 
-// --- M30 Het proefbeleg: the haystack, the moat, the bridge, the gate, the Fjord Frituur ---
+// --- M30 Het proefbeleg: the haystack, the moat, the bridge, the gate, the snackwagen ---
 S['M30.intro'] = {
   cast: {
     berend: { key: 'berend', at: [3.4, 0.4], face: 180, anim: 'idle', gest: ['point', 'hips', 'talk', 'point'] },

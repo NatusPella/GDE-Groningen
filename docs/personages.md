@@ -38,7 +38,7 @@ Regels die voor iedereen gelden:
   - "Ik zeg niks." (en dan zegt hij iets)
 - **Houdt van:**
   - eierballen, en dan wel warm;
-  - zijn rode **Fjord Escapade**, die nauwelijks rijdt. Die wordt aan het eind, met een luik erin, de eerste Fjord Frituur;
+  - zijn rode **Fjord Escapade**, die nauwelijks rijdt. Die wordt aan het eind, met een luik erin, de eerste snackwagen;
   - FC Groningen en Oosterpark-nostalgie;
   - d'Olle Grieze als baken ("dan ben ik thuis");
   - fietsen tegen de wind in, omdat dat karakter bouwt.
@@ -80,7 +80,7 @@ Regels die voor iedereen gelden:
 ## Tessa
 **In één zin:** snel, ad rem en de baas van het duo. Ze lacht om alles behalve om mensen die haar droom kleineren.
 
-**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze is Nederlandse, niet in Stad geboren: ze woonde als kind op een boerderij tot haar achtste, verhuisde daarna steeds en logeerde elke zomer in Ljouwert, in het huis naast Mem. Sinds 14 augustus woont ze met Tammo in de flat in Paddepoel. Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De Fjord Frituur, op een Fjord. Dan klopt de naam ook.").
+**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze is Nederlandse, niet in Stad geboren: ze woonde als kind op een boerderij tot haar achtste, verhuisde daarna steeds en logeerde elke zomer in Ljouwert, in het huis naast Mem. Sinds 14 augustus woont ze met Tammo in de flat in Paddepoel. Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De snackwagen, op een Fjord. Dan klopt de naam ook.").
 
 - **Stem:** Callirrhoe. Basistag: *Nederlandse vrouw, lacherig en ad rem*, in standaard Nederlands (#134): geen Gronings accent of dialectspelling, en een Gronings woord zou een grap over haar zijn. De opgenomen regels met een Groninger kleur blijven staan. Emoties: plagend, zelfverzekerd, enthousiast, bazig, warm, grinnikend.
 - **Zo praat ze:**
@@ -94,7 +94,7 @@ Regels die voor iedereen gelden:
   - "Rijden, niet praten."
   - "Dat regel ik wel even."
 - **Houdt van:**
-  - haar droom, de **Fjord Frituur**, een eigen frietwagen;
+  - haar droom, de **snackwagen**, een eigen frietwagen;
   - rijden, en vooral hard;
   - de rondvaart en het water;
   - het Noorderplantsoen bij de eerste zon;

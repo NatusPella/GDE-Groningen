@@ -1244,13 +1244,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-27"
 },
-"Anita|Dat is een Fjord Frituur.": {
+"Anita|Dat is een snackwagen.": {
 "src": "anita/dat_is_een_fjord_frituur_d8b2a668.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "Dat is een Fjord Frituur.",
+"input": "Dat is een snackwagen.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-29"
@@ -1705,24 +1705,24 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-27"
 },
-"Anita|De Fjord Frituur is breder dan de straat. Daar ga ik staan.": {
+"Anita|De snackwagen is breder dan de straat. Daar ga ik staan.": {
 "src": "anita/de_fjord_frituur_is_breder_dan_d_9ae304de.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "De Fjord Frituur is breder dan de straat. Daar ga ik staan.",
+"input": "De snackwagen is breder dan de straat. Daar ga ik staan.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Anita|De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen.": {
+"Anita|De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen.": {
 "src": "anita/de_fjord_frituur_is_een_thuis_op_e0be4fb1.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen.",
+"input": "De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-29"
@@ -1869,13 +1869,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
 },
-"Anita|De vlag hangt precies boven de plek waar de Fjord Frituur morgen moet staan. Hij moet eraf.": {
+"Anita|De vlag hangt precies boven de plek waar de snackwagen morgen moet staan. Hij moet eraf.": {
 "src": "anita/de_vlag_hangt_precies_boven_de_p_78683625.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "De vlag hangt precies boven de plek waar de Fjord Frituur morgen moet staan. Hij moet eraf.",
+"input": "De vlag hangt precies boven de plek waar de snackwagen morgen moet staan. Hij moet eraf.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-29"
@@ -2709,13 +2709,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
-"Anita|En als we winnen, staat de Fjord Frituur op de Vismarkt.": {
+"Anita|En als we winnen, staat de snackwagen op de Vismarkt.": {
 "src": "anita/en_als_we_winnen_staat_de_fjord__bf8c5806.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "En als we winnen, staat de Fjord Frituur op de Vismarkt.",
+"input": "En als we winnen, staat de snackwagen op de Vismarkt.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-26"
@@ -2731,13 +2731,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
 },
-"Anita|En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.": {
+"Anita|En de snackwagen is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.": {
 "src": "anita/en_de_fjord_frituur_is_van_ons_h_076bd186.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.",
+"input": "En de snackwagen is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aan de telefoon, uitdagend en vrolijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
@@ -3144,13 +3144,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-20"
 },
-"Anita|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.": {
+"Anita|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.": {
 "src": "anita/gronings_ontzet_de_noordelijke_s_7dfa54e0.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.",
+"input": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: opgewonden, fluisterend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
@@ -3220,13 +3220,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-29"
 },
-"Anita|Henks zender piept: onze auto staat al op een trein. Zonder auto geen Fjord Frituur.": {
+"Anita|Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen.": {
 "src": "anita/henks_zender_piept_onze_auto_sta_61d6697f.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "Henks zender piept: onze auto staat al op een trein. Zonder auto geen Fjord Frituur.",
+"input": "Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-29"
@@ -5773,13 +5773,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Anita|Onze eigen Fjord Frituur. Met kenteken, deze keer.": {
+"Anita|Onze eigen snackwagen. Met kenteken, deze keer.": {
 "src": "anita/onze_eigen_fjord_frituur_met_ken_f20cf151.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "Onze eigen Fjord Frituur. Met kenteken, deze keer.",
+"input": "Onze eigen snackwagen. Met kenteken, deze keer.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
@@ -6976,13 +6976,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Anita|Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij.": {
+"Anita|Wij maken van de Escapade de snackwagen. Daar hoort een luik bij.": {
 "src": "anita/wij_maken_van_de_escapade_de_fjo_f7d0a94c.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij.",
+"input": "Wij maken van de Escapade de snackwagen. Daar hoort een luik bij.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-29"
@@ -7020,13 +7020,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
 },
-"Anita|Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis.": {
+"Anita|Wij winnen op 28 augustus, wij krijgen die standplaats, en de snackwagen heeft een thuis.": {
 "src": "anita/wij_winnen_op_28_augustus_wij_kr_9eb0d95a.mp3",
 "model": "gemini-3.8-flash-lite-tts",
 "via": "google",
 "lang": "own",
 "voice": "Callirrhoe",
-"input": "Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis.",
+"input": "Wij winnen op 28 augustus, wij krijgen die standplaats, en de snackwagen heeft een thuis.",
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-25"
@@ -7523,13 +7523,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Berend Bos|De standplaats op de Vismarkt gaat naar de Fjord Frituur.": {
+"Berend Bos|De standplaats op de Vismarkt gaat naar de snackwagen.": {
 "src": "berend_bos/de_standplaats_op_de_vismarkt_ga_61c470fc.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "gro",
 "voice": "Charon",
-"input": "De standplaats op de Vismark goat noar de Fjord Frituur.",
+"input": "De standplaats op de Vismark goat noar de snackwagen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: nors, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
@@ -7652,35 +7652,35 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Berend Bos|Fjord Frituur. Drie van de vijf. Het is krap.": {
+"Berend Bos|snackwagen. Drie van de vijf. Het is krap.": {
 "src": "berend_bos/fjord_frituur_drie_van_de_vijf_h_b6b17891.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "gro",
 "voice": "Charon",
-"input": "Fjord Frituur. Drij van de vief. t Is krap.",
+"input": "snackwagen. Drij van de vief. t Is krap.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: nors, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Berend Bos|Fjord Frituur. Vier van de vijf. Ik was de laatste.": {
+"Berend Bos|snackwagen. Vier van de vijf. Ik was de laatste.": {
 "src": "berend_bos/fjord_frituur_vier_van_de_vijf_i_e2f3c999.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "gro",
 "voice": "Charon",
-"input": "Fjord Frituur. Vier van de vief. Ik was de lèste.",
+"input": "snackwagen. Vier van de vief. Ik was de lèste.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: mopperend, droog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Berend Bos|Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig.": {
+"Berend Bos|snackwagen. Vijf van de vijf. Mijn stem was niet eens nodig.": {
 "src": "berend_bos/fjord_frituur_vijf_van_de_vijf_m_6e7111ed.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "gro",
 "voice": "Charon",
-"input": "Fjord Frituur. Vief van de vief. Mien stem was nait ains neudig.",
+"input": "snackwagen. Vief van de vief. Mien stem was nait ains neudig.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: nors, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
@@ -11825,13 +11825,13 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Jurylid|Fjord Frituur.": {
+"Jurylid|snackwagen.": {
 "src": "jurylid/fjord_frituur_5a89a42d.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "gro",
 "voice": "Umbriel",
-"input": "Fjord Frituur.",
+"input": "snackwagen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; verontwaardigd jurylid van de Snackprijs. Tone: ongelovig, schamper.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
@@ -14261,12 +14261,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Rikus|Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.": {
+"Rikus|Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de snackwagen.": {
 "src": "rikus/eerder_in_gde_twee_stadjers_zond_045fd8bb.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Schedar",
-"input": "Aarder in GDE. Twij Stadjers zonder geld, en ain droom mit n luik: de Fjord Frituur.",
+"input": "Aarder in GDE. Twij Stadjers zonder geld, en ain droom mit n luik: de snackwagen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -16531,12 +16531,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Tammo|\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.": {
+"Tammo|\"Tige tank foar de auto. – J.\" De snackwagen. Zonder Fjord.": {
 "src": "tammo/tige_tank_foar_de_auto_j_de_fjor_ad0e71dc.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
-"input": "\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.",
+"input": "\"Tige tank foar de auto. – J.\" De snackwagen. Zonder Fjord.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -16918,12 +16918,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Tammo|Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.": {
+"Tammo|Dan rijdt hij nauwelijks voor jou. De snackwagen, op een Fjord. Dan klopt de naam ook.": {
 "src": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_f1f6d7cc.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
-"input": "Dan rijdt hai nauwelks veur die. De Fjord Frituur, op n Fjord. Dan klopt de naam ook.",
+"input": "Dan rijdt hai nauwelks veur die. De snackwagen, op n Fjord. Dan klopt de naam ook.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: warm, verlegen, droog, alsof het niks is.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -18571,12 +18571,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
-"Tammo|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.": {
+"Tammo|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.": {
 "src": "tammo/gronings_ontzet_de_noordelijke_s_fdaa654c.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
-"input": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade mit n luik: de aarste Fjord Frituur.",
+"input": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade mit n luik: de aarste snackwagen.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: samenzweerderig, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"

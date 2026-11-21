@@ -167,7 +167,7 @@
    "id": "H5-07",
    "scene": "E1",
    "speaker": "TAMMO",
-   "context": "Vismarkt, twee weken later. Drie duiven zitten in een rij op het dak van de Fjord Frituur, als wachtende klanten. Tammo houdt zijn handen omhoog: hij heeft niets gezegd.",
+   "context": "Vismarkt, twee weken later. Drie duiven zitten in een rij op het dak van de snackwagen, als wachtende klanten. Tammo houdt zijn handen omhoog: hij heeft niets gezegd.",
    "shot": "wide op het dak met de drie duiven, dan Tammo met zijn handen omhoog",
    "variants": [
     "Ik heb niks gezegd.",
@@ -193,7 +193,7 @@
    "id": "H5-08",
    "scene": "E2",
    "speaker": "TAMMO",
-   "context": "Radio in de Fjord Frituur. Rikus zegt voor de zoveelste keer dat hij niks zegt, terwijl hij het net heeft gezegd: er brandt maar in één slaapkamer licht.",
+   "context": "Radio in de snackwagen. Rikus zegt voor de zoveelste keer dat hij niks zegt, terwijl hij het net heeft gezegd: er brandt maar in één slaapkamer licht.",
    "shot": "halve close Tammo bij de radio, Tessa naast hem met een bakje friet",
    "variants": [
     "Dat zegt hij heel hard.",
@@ -219,7 +219,7 @@
    "id": "H5-09",
    "scene": "E2",
    "speaker": "TAMMO",
-   "context": "Radio in de Fjord Frituur. Rikus meldt dat Jelle weer een pand heeft gekocht; Tessa zegt dat hij doorkoopt, Tammo antwoordt in dezelfde maat.",
+   "context": "Radio in de snackwagen. Rikus meldt dat Jelle weer een pand heeft gekocht; Tessa zegt dat hij doorkoopt, Tammo antwoordt in dezelfde maat.",
    "shot": "twee-shot in het luik, Tessa knikt na de zin",
    "variants": [
     "Wij bakken door.",
@@ -227,6 +227,31 @@
     "Wij frituren door."
    ],
    "neutral": "Wij ook."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Henks vaste formule \"Ik zeg niks\" met het koekje als kicker laat de onuitgesproken verliefdheid liggen zonder uitleg.",
+    "certainty": "midden"
+   },
+   "id": "H5-10",
+   "scene": "M22.2",
+   "speaker": "HENK",
+   "context": "Het luik is af. Op het luik staat in witte letters TAM & TES. Henk (die zegt dat hij niks vraagt en altijd één koekje neemt) ziet het en kijkt van Tammo naar Tessa; Tammo zegt \"...Het rijmt.\" en Tessa \"Het is een naam.\" Niemand zegt dat het om hen gaat.",
+   "shot": "halve close-up Henk, dan Tammo die naar zijn schoenen kijkt; Tessa kijkt naar het luik",
+   "variants": [
+    "Ik zeg niks. Eén koekje.",
+    "Ik zeg niks. Ik pak een koekje.",
+    "Mooie letters. Eén koekje."
+   ],
+   "neutral": "Mooie naam."
   }
  ]
 }

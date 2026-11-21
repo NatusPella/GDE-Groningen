@@ -302,7 +302,7 @@ OMA TRIJNTJE: Dat zeg jij nu. [NIEUW]
 
 ## [M20.5] Het beleg van Bourtange: de klomp – Westerwolde, Bourtange, de parkeerplaats – te voet
 (regie: waar de Escapade stond ligt een klomp met een briefje.)
-TAMMO: "Tige tank foar de auto. – J." De Fjord Frituur. Zonder Fjord. [BEHOUDEN]
+TAMMO: "Tige tank foar de auto. – J." Hij bedankt ons voor een auto die hij niet heeft. [NIEUW]
 TAMMO: Wie heb je verteld waar we waren? [NIEUW]
 TESSA: Niemand. [BEHOUDEN]
 TAMMO: Je appt al de hele week met Friesland. [BEHOUDEN]
@@ -317,7 +317,7 @@ TESSA: Nee, dat klopt niet. Jij vraagt nooit wat. Je wordt stil, en dan boos op 
 OMA TRIJNTJE: Wij waren jullie voor. [NIEUW]
 MEM: Ik gebruikte jullie om Jelle te stoppen. Dat was verkeerd. [NIEUW]
 BEREND: Ik rijd jullie. Na de Snackprijs ga ik naar de politie, over dat museum. [NIEUW]
-TESSA: Henks zender piept: onze auto staat al op een trein. Zonder auto geen Fjord Frituur. [NIEUW]
+TESSA: Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen. [NIEUW]
 MEM: Neem de bal mee, famke. Bij jou is hij veiliger dan bij ons. [NIEUW]
 TESSA: Ik haal jouw auto wel terug. Alleen. [NIEUW]
 (regie: Tessa loopt weg met de bal in haar armen. Tammo blijft staan met de klomp in zijn handen.)

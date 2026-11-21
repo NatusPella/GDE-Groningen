@@ -18,7 +18,7 @@ const t = (naam, f) => { f(); n++; };
 t('de app komt uit de afzender of de opgave, nooit uit een bedrag in de tekst', () => {
   assert.equal(appForNote({ from: 'Kiekdoar' }), 'sikkom', 'Kiekdoar is de nieuwsapp');
   assert.equal(appForNote({ text: 'KIEKDOAR MELDT: onrust in Grunn' }), 'sikkom', 'de nieuwsregel herkent zijn eigen voorvoegsel');
-  assert.equal(appForNote({ from: 'Fjord Frituur', app: 'geld', text: 'Gisteren €120 omzet' }), 'geld', 'wat de melder meegeeft telt');
+  assert.equal(appForNote({ from: 'snackwagen', app: 'geld', text: 'Gisteren €120 omzet' }), 'geld', 'wat de melder meegeeft telt');
   assert.equal(appForNote({ text: 'Je bestelling kost €12' }), 'bericht', 'een bedrag maakt van een bericht geen bankmelding');
   assert.equal(appForNote({ from: 'GDE' }), 'bericht', 'een afzender zonder app is een gewoon bericht');
   assert.equal(appForNote({ app: 'onbekend', from: 'Kiekdoar' }), 'sikkom', 'een onbekende app valt terug op de afzender');

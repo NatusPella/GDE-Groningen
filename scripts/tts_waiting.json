@@ -2,6 +2,12 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.",
+  "scene": "C00.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Is dat het plan? Een frietwagen?",
   "scene": "C00.2"
  },
@@ -841,6 +847,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor een auto die hij niet heeft.",
+  "scene": "M20.5"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Geesje",
   "text": "Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Ik ga, jong.",
   "scene": "M21.4"
@@ -922,6 +934,30 @@
   "speaker": "Tammo",
   "text": "…Dat is waar. Ik kom naar Tinus.",
   "scene": "O9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Welke naam?",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Henk",
+  "text": "Tam. Tes.",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "...Het rijmt.",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Henk",
+  "text": "Ik zeg niks. Eén koekje.",
+  "scene": "M22.2"
  },
  {
   "reason": "spreektekst",
@@ -1096,6 +1132,84 @@
   "speaker": "Berend Bos",
   "text": "Dat is een eierbal die ergens vandaan komt.",
   "scene": "M26.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Tam & Tes. Vijf van de vijf. Mijn stem was niet eens nodig.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Tam & Tes. Vier van de vijf. Ik was de laatste.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Tam & Tes. Drie van de vijf. Het is krap.",
+  "scene": "M26.12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "De standplaats op de Vismarkt gaat naar Tam & Tes.",
+  "scene": "M26.13"
  },
  {
   "reason": "spreektekst",

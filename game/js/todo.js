@@ -559,15 +559,15 @@ function collectItems(world) {
   ];
 }
 
-// The Fjord Frituur upgrades (pg_foodtruck.js), bought from Te doen.
+// The snackwagen upgrades (pg_foodtruck.js), bought from Te doen.
 function fjordUpgradeItems(world) {
   const pa = world.postgameActions;
   if (!isPostgameOpen() || !pa || !pa.upgrades) return [];
   const fj = CHALLENGES.find((d) => d.id === 'fjord');
   return pa.upgrades().map((u) => ({
-    key: 'fu:' + u.id, group: 'nahetverhaal', icon: 'pg-' + (fj ? fj.icon : 'fjord'), title: `Fjord Frituur: ${u.name}`, status: u.owned ? 'klaar' : '',
+    key: 'fu:' + u.id, group: 'nahetverhaal', icon: 'pg-' + (fj ? fj.icon : 'fjord'), title: `snackwagen: ${u.name}`, status: u.owned ? 'klaar' : '',
     meta: u.blurb, medal: null, record: u.owned ? 'Gekocht' : euro(u.price), goal: null, upgrade: u.id,
-    detail: { kicker: 'Fjord Frituur · opknappen', text: u.blurb, rows: [['Prijs', euro(u.price)]] },
+    detail: { kicker: 'snackwagen · opknappen', text: u.blurb, rows: [['Prijs', euro(u.price)]] },
   }));
 }
 

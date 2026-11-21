@@ -2002,6 +2002,19 @@
   "file": "mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_00bf2429.mp3"
  },
  {
+  "key": "Anita|Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen.",
+  "speaker": "Anita",
+  "text": "Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen.",
+  "area": "M20.5",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/henks_zender_piept_onze_auto_sta_779a7d18.mp3"
+ },
+ {
   "key": "Mem Terpstra|Famke. De trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn. Daarna gaat hij naar Ljouwert.",
   "speaker": "Mem Terpstra",
   "text": "Famke. De trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn. Daarna gaat hij naar Ljouwert.",
@@ -2158,6 +2171,32 @@
   "file": "anita/ik_ook_9e34229c.mp3"
  },
  {
+  "key": "Anita|Wij maken van de Escapade de snackwagen. Daar hoort een luik bij.",
+  "speaker": "Anita",
+  "text": "Wij maken van de Escapade de snackwagen. Daar hoort een luik bij.",
+  "area": "M22.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/wij_maken_van_de_escapade_de_sna_face5df1.mp3"
+ },
+ {
+  "key": "Anita|Dat is een snackwagen.",
+  "speaker": "Anita",
+  "text": "Dat is een snackwagen.",
+  "area": "M22.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/dat_is_een_snackwagen_148b4aee.mp3"
+ },
+ {
   "key": "Anita|Het is een voordeur. Een voordeur die meerijdt.",
   "speaker": "Anita",
   "text": "Het is een voordeur. Een voordeur die meerijdt.",
@@ -2169,6 +2208,19 @@
   "tag": "ongeduldig, bazig",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
   "file": "anita/het_is_een_voordeur_een_voordeur_46e80c72.mp3"
+ },
+ {
+  "key": "Anita|Het is een naam.",
+  "speaker": "Anita",
+  "text": "Het is een naam.",
+  "area": "M22.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/het_is_een_naam_83e303b3.mp3"
  },
  {
   "key": "Anita|Ik moet je iets vertellen. Ik woonde op een boerderij tot ik acht was. Daarna ben ik steeds verhuisd.",
@@ -2195,6 +2247,32 @@
   "tag": "ongeduldig, bazig",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
   "file": "anita/mem_zegt_elke_zomer_jas_het_enig_4224b857.mp3"
+ },
+ {
+  "key": "Anita|De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen.",
+  "speaker": "Anita",
+  "text": "De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen.",
+  "area": "M22.4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/de_snackwagen_is_een_thuis_op_wi_5845b0cb.mp3"
+ },
+ {
+  "key": "Anita|De vlag hangt precies boven de plek waar de snackwagen morgen moet staan. Hij moet eraf.",
+  "speaker": "Anita",
+  "text": "De vlag hangt precies boven de plek waar de snackwagen morgen moet staan. Hij moet eraf.",
+  "area": "M24.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/de_vlag_hangt_precies_boven_de_p_6d464267.mp3"
  },
  {
   "key": "Anita|\"Foar mem.\" Voor zijn oma.",
@@ -2338,6 +2416,19 @@
   "tag": "ongelovig, vragend",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
   "file": "anita/en_de_gouden_eierbal_20aae43c.mp3"
+ },
+ {
+  "key": "Anita|De snackwagen is breder dan de straat. Daar ga ik staan.",
+  "speaker": "Anita",
+  "text": "De snackwagen is breder dan de straat. Daar ga ik staan.",
+  "area": "M26.4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/de_snackwagen_is_breder_dan_de_s_45a8c3b9.mp3"
  },
  {
   "key": "Anita|Je eigen vergunning, Jelle. Deze straat is vandaag afgesloten voor jouw evenement.",
@@ -2509,17 +2600,17 @@
   "file": "jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c927fd99.mp3"
  },
  {
-  "key": "Anita|De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur.",
+  "key": "Anita|De snackwagen staat op de Vismarkt, vanaf twaalf uur.",
   "speaker": "Anita",
-  "text": "De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur.",
+  "text": "De snackwagen staat op de Vismarkt, vanaf twaalf uur.",
   "area": "O11",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "lacherig, ad rem",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
-  "file": "anita/de_fjord_frituur_staat_op_de_vis_49d69040.mp3"
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/de_snackwagen_staat_op_de_vismar_c9043c3a.mp3"
  },
  {
   "key": "Jelle Terpstra|Mijn assistent haalt hem. Ik betaal contant.",
@@ -2693,6 +2784,20 @@
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
  },
  {
+  "key": "Tammo|\"Tige tank foar de auto. – J.\" De snackwagen. Zonder Fjord.",
+  "speaker": "Tammo",
+  "text": "\"Tige tank foar de auto. – J.\" De snackwagen. Zonder Fjord.",
+  "area": "Missie-cutscenes",
+  "out": "lines",
+  "lang": "gro",
+  "say": "\"Tige tank foar de auto. – J.\" De snackwagen. Zonder Fjord.",
+  "file": "tammo/tige_tank_foar_de_auto_j_de_snac_bece8bc9.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "sarcastisch, zuchtend",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend."
+ },
+ {
   "key": "Tammo|\"Iemand uit Friesland.\" Dat was zijn oma.",
   "speaker": "Tammo",
   "text": "\"Iemand uit Friesland.\" Dat was zijn oma.",
@@ -2705,6 +2810,90 @@
   "who": "dry, deadpan man in his thirties",
   "tag": "deadpan, licht verbaasd",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd."
+ },
+ {
+  "key": "Tammo|Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
+  "speaker": "Tammo",
+  "text": "Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
+  "area": "Intro-montage",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
+  "file": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_f1f6d7cc.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "warm, verlegen, droog, alsof het niks is",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: warm, verlegen, droog, alsof het niks is."
+ },
+ {
+  "key": "Tammo|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
+  "speaker": "Tammo",
+  "text": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
+  "area": "Missie-intro (terugval)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
+  "file": "tammo/gronings_ontzet_de_noordelijke_s_c980a213.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "samenzweerderig, zacht",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: samenzweerderig, zacht."
+ },
+ {
+  "key": "Anita|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
+  "speaker": "Anita",
+  "text": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
+  "area": "Missie-intro (terugval)",
+  "out": "lines",
+  "lang": "own",
+  "say": "Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.",
+  "file": "anita/gronings_ontzet_de_noordelijke_s_60a120cf.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "geamuseerd, zakelijk",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk."
+ },
+ {
+  "key": "Anita|Onze eigen snackwagen. Met kenteken, deze keer.",
+  "speaker": "Anita",
+  "text": "Onze eigen snackwagen. Met kenteken, deze keer.",
+  "area": "Na het verhaal (intro)",
+  "out": "lines",
+  "lang": "own",
+  "say": "Onze eigen snackwagen. Met kenteken, deze keer.",
+  "file": "anita/onze_eigen_snackwagen_met_kentek_4ef39a32.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem."
+ },
+ {
+  "key": "Anita|En de snackwagen is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.",
+  "speaker": "Anita",
+  "text": "En de snackwagen is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.",
+  "area": "Telefoon (gesprekken)",
+  "out": "lines",
+  "lang": "own",
+  "say": "En de snackwagen is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.",
+  "file": "anita/en_de_snackwagen_is_van_ons_hij__2e025aac.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "aan de telefoon, uitdagend en vrolijk",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aan de telefoon, uitdagend en vrolijk."
+ },
+ {
+  "key": "Ubbo|Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de snackwagen ook.",
+  "speaker": "Ubbo",
+  "text": "Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de snackwagen ook.",
+  "area": "Berichten (app)",
+  "out": "sms",
+  "lang": "gro",
+  "say": "Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de snackwagen ook.",
+  "file": "ubbo/alles_gedaan_grunn_is_van_jou_de_ef9cfbeb.mp3",
+  "voice": "Laomedeia",
+  "who": "de vriendelijke stem van de telefoon-app Ubbo",
+  "tag": "behulpzame app-assistent, opgewekt",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: behulpzame app-assistent, opgewekt."
  },
  {
   "key": "Tammo|Ver weg hè? Open de kaart, daar bel je een taxi.",
@@ -4401,32 +4590,32 @@
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast."
  },
  {
-  "key": "Tammo|De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
+  "key": "Tammo|De snackwagen staat open. Iedereen eet eierballen op de wal.",
   "speaker": "Tammo",
-  "text": "De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
+  "text": "De snackwagen staat open. Iedereen eet eierballen op de wal.",
   "area": "Hints (Tammo/Tessa)",
   "out": "hints",
   "lang": "gro",
-  "say": "De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
-  "file": "tammo/de_fjord_frituur_staat_open_iede_92a6524e.mp3",
+  "say": "De snackwagen staat open. Iedereen eet eierballen op de wal.",
+  "file": "tammo/de_snackwagen_staat_open_iederee_0a1ce2d5.mp3",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
-  "tag": "aanwijzend, gehaast",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: aanwijzend, gehaast."
+  "tag": "kort, alert, tegen de ander naast je",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je."
  },
  {
-  "key": "Anita|De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
+  "key": "Anita|De snackwagen staat open. Iedereen eet eierballen op de wal.",
   "speaker": "Anita",
-  "text": "De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
+  "text": "De snackwagen staat open. Iedereen eet eierballen op de wal.",
   "area": "Hints (Tammo/Tessa)",
   "out": "hints",
   "lang": "own",
-  "say": "De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
-  "file": "anita/de_fjord_frituur_staat_open_iede_522b54ea.mp3",
+  "say": "De snackwagen staat open. Iedereen eet eierballen op de wal.",
+  "file": "anita/de_snackwagen_staat_open_iederee_38820ad8.mp3",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "droog, adviserend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend."
+  "tag": "aanwijzend, gehaast",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast."
  },
  {
   "key": "Tammo|De rij staat binnen, achter de glazen deuren. Nummer 4117.",

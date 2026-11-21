@@ -29,7 +29,7 @@ export const BOURTANGE = {
   bolwerk2: [42489, 22952],  // south bastion on the wal (not on a bridge deck), 10 m from the water
   bolwerk3: [42319, 22859],  // west-south bastion on the wal (not on a bridge deck), 11 m from the water
   poort: [42498, 22892],     // the Munsterse Poort, where Berend rides in
-  plein: [42470, 22800],     // the Marktplein, where the Fjord Frituur stands
+  plein: [42470, 22800],     // the Marktplein, where the snackwagen stands
 };
 export const CHURCH = [42416.8, 22773.3]; // Kerk van Bourtange (landmarkkit.js)
 
@@ -129,7 +129,7 @@ export function buildAkte6Defs() {
         { kind: 'hold', posten: 'bolwerken', target: bourtangeAt('bolwerk3', 'Het derde bolwerk'), mode: 'foot', radius: 9, time: 6, ticks: ['De toren leunt. Hij leunt goed.', 'Nog even.'], label: 'Plant de vlag op het derde bolwerk', say: 'Blijf op het bolwerk staan tot de laatste vlag staat.', talk: { ids: ['M30.4'], from: 2, delay: 1.5 } },
         { kind: 'goto', target: bourtangeAt('poort', 'De poort'), mode: 'foot', radius: 9, label: 'Naar de poort: Berend rijdt binnen', say: 'Drie vlaggen. Naar de poort, Berend wil binnenrijden.' },
         { kind: 'scene', target: bourtangeAt('poort', 'De poort'), label: 'De poort', kicker: 'De poort van Bourtange', script: { ids: ['M30.5'] }, cast: [{ key: 'berend', pose: 'arms', at: [3.2, 1.0] }, { key: 'jelle', pose: 'hips', at: [-3.4, -1.4] }] },
-        { kind: 'goto', target: bourtangeAt('plein', 'De Fjord Frituur'), mode: 'foot', radius: 9, stop: 0.8, label: 'Naar de Fjord Frituur op het plein', say: 'De Fjord Frituur staat open. Iedereen eet eierballen op de wal.' },
+        { kind: 'goto', target: bourtangeAt('plein', 'De snackwagen'), mode: 'foot', radius: 9, stop: 0.8, label: 'Naar de snackwagen op het plein', say: 'De snackwagen staat open. Iedereen eet eierballen op de wal.' },
       ],
     },
   ];
@@ -194,8 +194,8 @@ export const KAARTEN_AKTE6 = {
       regels: [teller('Vlag', 6, { na: 2, duur: 7 })] },
     poort: { doel: 'Naar de poort: Berend rijdt binnen',
       regels: [wijzer('De poort', 182, 'Drie vlaggen staan. De poort ligt aan de zuidkant.', { na: 5, duur: 8 })] },
-    plein: { doel: 'Naar de Fjord Frituur op het plein', afloop: 'dit is het laatste stuk: eierballen op de wal',
-      regels: [wijzer('De Fjord Frituur', 96, 'De frituur staat op het Marktplein.', { na: 4, duur: 8 })] },
+    plein: { doel: 'Naar de snackwagen op het plein', afloop: 'dit is het laatste stuk: eierballen op de wal',
+      regels: [wijzer('De snackwagen', 96, 'De frituur staat op het Marktplein.', { na: 4, duur: 8 })] },
   },
 };
 
@@ -252,7 +252,7 @@ export const PLAN_PROEFBELEG = {
     { look: { shirt: 0x7a3a2a, skin: 0xd9a06e, seed: 8821, variant: 'male' }, along: 5.6, side: 3, a: -0.6, anim: 'cheer' },
   ],
 };
-// Het slot van het verhaal (M30, #955): de Fjord Frituur staat open op de wal bij de poort. De vrienden van Oma eten eierballen, Jelle
+// Het slot van het verhaal (M30, #955): de snackwagen staat open op de wal bij de poort. De vrienden van Oma eten eierballen, Jelle
 // zit natgeregend in een deken, Berend telt nog steeds en niemand staat stil. Een warm, rustig feest: geen publiek, geen jury,
 // alleen de mensen die de hele zomer meededen. Lichter van toon dan het plein van M26: hier wordt niets beoordeeld.
 export const PLAN_SLOTFEEST = {
@@ -336,7 +336,7 @@ export function applyAkte6(list) {
     lichter(vind(m30, 'hold', /vlag op het derde/));
     zet(vind(m30, 'hold', /vlag op het derde/), { kaart: K.M30.vlag3, wacht: { ...W.M30.vlag3 } });
     zet(vind(m30, 'goto', /poort: Berend/), { kaart: K.M30.poort });
-    zet(vind(m30, 'goto', /Fjord Frituur/), { kaart: K.M30.plein, dressing: 'slotfeest' }); // het slot: de vrienden op de wal, de frituur open
+    zet(vind(m30, 'goto', /snackwagen/), { kaart: K.M30.plein, dressing: 'slotfeest' }); // het slot: de vrienden op de wal, de frituur open
     // de poort: na de scène blijft een groot beeld hangen met de slotgedachte van Berend (alleen tekst, orbitcamera van missions.js)
     zet(vind(m30, 'scene', /^De poort$/), { big: 'Gewonnen. Het voelt verkeerd.' });
     for (const re of [/^De gracht$/, /^De ophaalbrug$/, /^De poort$/]) lichter(vind(m30, 'scene', re));

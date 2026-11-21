@@ -2,7 +2,7 @@
 
 Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan in [09-script-akte1.md](09-script-akte1.md); hier staat de opzet per missie met de openingsdialoog en één sleutelscène.
 
-**Tagregels voor dialoog in dit document:** `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat). `[NIEUW]` = nieuwe of gewijzigde regel (voorlopig alleen tekst, niet opgenomen). Spreker `TESSA` heet in de code `anita` / `A`. **Functie** = de ene taak die een missie in de oorzaak-en-gevolgketen heeft: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de Fjord Frituur en het recept gereedmaken. **Kanalen:** de radio vertelt alleen de wereld en dimt zodra een missie begint; briefings gebeuren ter plekke of per telefoon.
+**Tagregels voor dialoog in dit document:** `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat). `[NIEUW]` = nieuwe of gewijzigde regel (voorlopig alleen tekst, niet opgenomen). Spreker `TESSA` heet in de code `anita` / `A`. **Functie** = de ene taak die een missie in de oorzaak-en-gevolgketen heeft: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de snackwagen en het recept gereedmaken. **Kanalen:** de radio vertelt alleen de wereld en dimt zodra een missie begint; briefings gebeuren ter plekke of per telefoon.
 
 ## Intro van de akte
 
@@ -13,7 +13,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Tijd** | ca. 62 minuten (6 missies + opening) |
 | **Dagen** | vr 14 (1.1), za 15 (1.2, 1.3), zo 16 (1.4, 1.5), ma 17 (1.6, 's nachts) |
 | **Wat de speler leert** | rijden zonder krassen, stunten, achtervolgen, formulieren, de duif, de fiets, sluipen; wie Tammo en Tessa zijn |
-| **Plot** | Tessa wil een thuis met wielen: de Fjord Frituur. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt plakje voor plakje de hele markt op, en dat plakje is bij de standplaatsen al definitief van hem. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4; artikel 9: bij verhindering het oudste jurylid). Tessa en Tammo willen de bal eerst pakken, als bewaking. De vitrine is al leeg: "Tige tank! – J." Jelle zegt op de radio dat hij hem heeft, en dat is waar. |
+| **Plot** | Tessa wil een thuis met wielen: de snackwagen. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt plakje voor plakje de hele markt op, en dat plakje is bij de standplaatsen al definitief van hem. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4; artikel 9: bij verhindering het oudste jurylid). Tessa en Tammo willen de bal eerst pakken, als bewaking. De vitrine is al leeg: "Tige tank! – J." Jelle zegt op de radio dat hij hem heeft, en dat is waar. |
 | **Romantiek** | vriendschap, plagen, Tammo is al sinds de studie verliefd (vijf jaar), Tessa merkt niks. Stappen: oogcontact (1.5), de eerste handaanraking "voor de grip" (1.6) |
 | **Haak naar akte 2** | de politie zoekt twee Stadjers in het zwart, Jelle is de bewaarder (hij heeft de bal), en Tammo kan het kaartje niet loslaten: een dief die bedankt. |
 
@@ -33,7 +33,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 - **TAMMO:** Ik wel. De Escapade. [BEHOUDEN]
 - **TESSA:** Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen. [NIEUW]
 - **TAMMO:** De prijs voor de beste eierbal. [NIEUW]
-- **TESSA:** Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis. [NIEUW]
+- **TESSA:** Wij winnen op 28 augustus, wij krijgen die standplaats, en de snackwagen heeft een thuis. [NIEUW]
 - **TAMMO:** En tot die tijd? Hier past geen frietwagen. [NIEUW]
 - **TESSA:** Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 - **TESSA:** Als huisgenoten, Tammo. Teken nou maar. [BEHOUDEN]

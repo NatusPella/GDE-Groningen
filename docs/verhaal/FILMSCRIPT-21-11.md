@@ -566,6 +566,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - woensdag 26 augustus, ochtend. Een boerderijschuur, een trekker, Henk met een luik onder de arm. Naamkaart: TINUS. Tessa en Tammo staan aan weerszijden van de Escapade zonder elkaar aan te kijken. Gameplay: een luik in d
   - praat: Tinus, Henk, Tessa, Tammo
 - **M22.2** BUITEN – WESTERKWARTIER, TINUS' SCHUUR – DAG · Een luik erin: de garage · cutscene of gespeeld in de missie
+  - Tessa wijst naar het luik. Daarop staat in witte letters TAM & TES. Henk kijkt naar het luik, dan naar Tammo, dan naar Tessa.
   - praat: Henk, Tessa, Tammo, Sjabbe
 - **M22.3** BUITEN – WESTERKWARTIER, HET WEILAND – DAG · Een luik erin: de modder · cutscene of gespeeld in de missie
   - praat: Tinus, Tessa, Tammo
@@ -580,26 +581,26 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **M23.1** BINNEN – WESTERKWARTIER, TINUS' SCHUUR, VERTREK – OCHTEND · De colonne: intro · cutscene of gespeeld in de missie
   - donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: een scooter, een bus, een trekker, een bakkie, een aanhanger met een rubberboot. Gameplay: één colonne naar de Grote Markt; de groep bij elk
   - praat: Mem Terpstra, Tessa, Geesje, Wubbo, Tinus, Kapitein Klaas, Berend Bos
-- **M23.2** BUITEN – WESTERKWARTIER, ZUIDHORN NAAR ADUARD – DAG · De colonne: onderweg · cutscene of gespeeld in de missie
+- **M23.2** BINNEN – WESTERKWARTIER, ZUIDHORN NAAR ADUARD – DAG · De colonne: onderweg · cutscene of gespeeld in de missie
   - praat: Lammert, Roelfien, Jelle Terpstra, Tessa, Wubbo, Tinus
-- **B5** BUITEN – WESTERKWARTIER, STAD – DAG · Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen) · autogesprek
+- **B5** BINNEN – WESTERKWARTIER, STAD – DAG · Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen) · autogesprek
   - praat: Tessa, Tammo
 - **M23.3** BUITEN – WESTERKWARTIER, ADUARD – DAG · De colonne: Durk en Douwe lopen over · cutscene of gespeeld in de missie
   - Durk en Douwe op één fatbike, naast de colonne.
   - praat: Durk, Douwe, Tammo
 - **M23.6** BINNEN – WESTERKWARTIER, TINUS' SCHUUR, VERTREK – DAG · De colonne: de bus rijdt naast jullie · cutscene of gespeeld in de missie
-  - afloop van de keuze voor Wubbo. De bus rijdt naast de Fjord Frituur. Wubbo hangt uit het raam.
+  - afloop van de keuze voor Wubbo. De bus rijdt naast de snackwagen. Wubbo hangt uit het raam.
   - praat: Wubbo, Tessa, Tammo
-- **M23.7** BUITEN – WESTERKWARTIER, TINUS' SCHUUR, VERTREK – DAG · De colonne: de trekker rijdt naast jullie · cutscene of gespeeld in de missie
-  - afloop van de keuze voor Tinus. De trekker ratelt naast de Fjord Frituur.
+- **M23.7** BINNEN – WESTERKWARTIER, TINUS' SCHUUR, VERTREK – DAG · De colonne: de trekker rijdt naast jullie · cutscene of gespeeld in de missie
+  - afloop van de keuze voor Tinus. De trekker ratelt naast de snackwagen.
   - praat: Tinus, Tessa, Tammo
-- **M23.8** BUITEN – WESTERKWARTIER, TINUS' SCHUUR, VERTREK – DAG · De colonne: de scooter rijdt naast jullie · cutscene of gespeeld in de missie
-  - afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm over haar knot.
+- **M23.8** BINNEN – WESTERKWARTIER, TINUS' SCHUUR, VERTREK – DAG · De colonne: de scooter rijdt naast jullie · cutscene of gespeeld in de missie
+  - afloop van de keuze voor Geesje. De scooter zoemt naast de snackwagen, Geesje met een helm over haar knot.
   - praat: Geesje, Tessa
 - **M23.4** BUITEN – STAD, GROTE MARKT – DAG · De colonne: outro · cutscene of gespeeld in de missie
   - de colonne rijdt de Grote Markt op. Het publiek klapt.
   - praat: Tessa, Tammo, Rikus, Jelle Terpstra
-- **M23.5** BUITEN – WESTERKWARTIER – DAG · De colonne: herhaling · replay
+- **M23.5** BINNEN – WESTERKWARTIER – DAG · De colonne: herhaling · replay
   - praat: Tessa
 - **R5.0** BUITEN – STAD – DAG · Nachtstreek, donderdagavond · radio
   - praat: Torenwachter, Rikus
@@ -643,8 +644,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie M26: Ontzet, net als in 1672** (missie ontzet; speler-protagonist Tammo)
 
-- **M26.1** BUITEN – STAD, GROTE MARKT – DAG · Ontzet, net als in 1672: de uitzending · cutscene of gespeeld in de missie
-  - vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de Fjord Frituur, blauw, met een luik; naast hem de kraa
+- **M26.1** BINNEN – STAD, GROTE MARKT – DAG · Ontzet, net als in 1672: de uitzending · cutscene of gespeeld in de missie
+  - vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de snackwagen, blauw, met een luik en in witte letters T
   - praat: Rikus, Berend Bos, Kind in het publiek, Tessa, Tammo
 - **M26.2** BUITEN – STAD, GROTE MARKT, DE JURYTAFEL – DAG · Ontzet, net als in 1672: de regels · cutscene of gespeeld in de missie
   - Tessa legt het geprinte logboek van Wiebelwerk op de jurytafel. Berend staat op en klopt met zijn bisschopsstaf.
@@ -652,16 +653,16 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **M26.3** BUITEN – STAD, GROTE MARKT – DAG · Ontzet, net als in 1672: bakken en de kraam heel · cutscene of gespeeld in de missie
   - Gameplay: Tammo bakt de Groningse eierbal in drie rondes volgens Oma's recept: ei koken en pellen, zout, het grove meel, in het hete vet. Tessa serveert en houdt de kraam heel. In de kraam van Us Mem Snacks wordt een gla
   - praat: Oma Trijntje, Tammo, Tessa, Durk, Douwe
-- **M26.4** BUITEN – STAD, OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: de blokkade · cutscene of gespeeld in de missie
-  - kwart voor drie. De limo rijdt weg naar de notaris. Gameplay: Tessa rijdt de Fjord Frituur de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vri
+- **M26.4** BINNEN – STAD, OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: de blokkade · cutscene of gespeeld in de missie
+  - kwart voor drie. De limo rijdt weg naar de notaris. Gameplay: Tessa rijdt de snackwagen de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vriend
   - praat: Torenwachter, Tammo, Tessa, Duivenmelker Bert, Durk, Douwe, Jelle Terpstra
 - **M26.14** BINNEN – STAD, ROND DE OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: de straten dicht, de bus · cutscene of gespeeld in de missie
-  - de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur.
+  - de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de snackwagen.
   - praat: Wubbo, Tessa, Tammo
 - **M26.15** BUITEN – STAD, ROND DE OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: de straten dicht, de trekker · cutscene of gespeeld in de missie
   - Tinus trekt zijn trekker dwars voor de Gelkingestraat, midden tussen de fietsen.
   - praat: Tinus, Tessa, Tammo
-- **M26.16** BUITEN – STAD, ROND DE OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: de straten dicht, de scooter · cutscene of gespeeld in de missie
+- **M26.16** BINNEN – STAD, ROND DE OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: de straten dicht, de scooter · cutscene of gespeeld in de missie
   - Geesje zet de scooter dwars in de steeg naast de notaris.
   - praat: Geesje, Tessa, Tammo
 - **M26.5** BUITEN – STAD, OUDE BOTERINGESTRAAT – DAG · Ontzet, net als in 1672: Mem · cutscene of gespeeld in de missie
@@ -697,13 +698,13 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie E: Epiloog en slot** (activiteit; speler-protagonist Tammo)
 
 - **E1** BUITEN – STAD, VISMARKT – DAG · Epiloog · cutscene of gespeeld in de missie
-  - twee weken later, vrijdag 11 september. Bij de Vismarkt staat de Fjord Frituur met een rij tot de Korenbeurs. Aan het luik hangt een bord: "Eierbal met mosterd. Oma's recept." Ernaast een ingelijste foto van de Grote Mar
+  - twee weken later, vrijdag 11 september. Bij de Vismarkt staat de snackwagen met TAM & TES op het luik en een rij tot de Korenbeurs. Aan het luik hangt een bord: "Eierbal met mosterd. Oma's recept." Ernaast een ingelijste
   - praat: Rikus, Tessa, Tammo
 - **E2** BINNEN – STAD, NACHTSTREEK – DAG · Slot · cutscene of gespeeld in de missie
-  - Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de Fjord Frituur.
+  - Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de snackwagen.
   - praat: Rikus, Tessa, Tammo
-- **E3** BUITEN – STAD, NACHTSTREEK – DAG · Slot: de laatste regels · cutscene of gespeeld in de missie
-  - Rikus schuift het bakje friet naar de microfoon. In de Fjord Frituur draait Tessa de radio zachter.
+- **E3** BINNEN – STAD, NACHTSTREEK – DAG · Slot: de laatste regels · cutscene of gespeeld in de missie
+  - Rikus schuift het bakje friet naar de microfoon. In de snackwagen draait Tessa de radio zachter.
   - praat: Rikus
 
 ### Deel 4: Nazomer
@@ -756,7 +757,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie T5: De weg naar Bourtange** (activiteit; speler-protagonist Tammo)
 
 - **T5.1** BINNEN – WESTERWOLDE, DE HEIDE – OCHTEND · De weg naar Bourtange: onderweg · travel
-  - zaterdag 19 september, ochtend. Een rechte weg over de heide, de Fjord Frituur met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet 
+  - zaterdag 19 september, ochtend. Een rechte weg over de heide, de snackwagen met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet weg
   - praat: Berend Bos, Tessa, Tammo
 - **T5.2** BINNEN – WESTERWOLDE, BOURTANGE, DE HOOIBERG – DAG · De weg naar Bourtange: aankomst · cutscene of gespeeld in de missie
   - een hooiberg op de heide ten noorden van de vesting, heide in bloei, een kaart op een hooikar met bierviltjes als eenheden.
@@ -781,13 +782,13 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **M30.5** BINNEN – WESTERWOLDE, BOURTANGE, DE POORT – DAG · Het proefbeleg: de poort · cutscene of gespeeld in de missie
   - de poort van de vesting, de ophaalbrug neerwaarts. Een lange track achter Berend op het paard van karton naar binnen; de camera blijft laag en kijkt omhoog naar zijn gezicht. Dan een brede kraanshot over het plein met de
   - praat: Berend Bos, Tessa, Tammo, Rikus, Oma Trijntje
-- **M30.6** BUITEN – WESTERWOLDE, BOURTANGE, DE POORT – AVOND · Het proefbeleg: de kar · cutscene of gespeeld in de missie
-  - avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege b
+- **M30.6** BINNEN – WESTERWOLDE, BOURTANGE, DE POORT – AVOND · Het proefbeleg: de kar · cutscene of gespeeld in de missie
+  - avond, de zon laag over de heide. De snackwagen staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakj
   - praat: Geesje, Berend Bos, Sjabbe, Jelle Terpstra, Tessa, Tammo
 - **M30.7** BUITEN – WESTERWOLDE, BOURTANGE, DE HOOIBERG – DAG · Het proefbeleg: herhaling · replay
   - praat: Berend Bos
 - **O12** BINNEN – STAD, PADDEPOEL – AVOND · Wat nu · overgangsscène (BRIDGES)
-  - avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open.
+  - avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: snackwagen, wat nu? Beneden staat de Escapade met het luik open.
   - praat: Tessa, Tammo, Meneer Veldkamp
 
 ## Scènebord: personage per akte

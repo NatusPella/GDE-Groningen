@@ -211,7 +211,7 @@ export const ACHIEVEMENTS = [
   // description is the arrival line of the place (beppe_texts.js)
   { id: 'goed_eten', cat: 'verkennen', title: 'Goed eten', desc: HOUSE_ARRIVAL.body, hidden: true },
 
-  // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
+  // post-game (postgame.js): Jelle's challenges and the snackwagen
   { id: 'bruggen_klaar', cat: 'nahetverhaal', title: 'Elf bruggen', desc: 'Vaar de Elf Bruggenrace tegen Jelle uit' },
   { id: 'bruggen_goud', cat: 'nahetverhaal', title: 'Brêgekening', desc: 'Goud bij de Elf Bruggenrace', medal: true },
   { id: 'fierljep_klaar', cat: 'nahetverhaal', title: 'Polsstokhoogte', desc: 'Land een sprong bij het fierljep-duel' },
@@ -219,11 +219,11 @@ export const ACHIEVEMENTS = [
   { id: 'skutsje_klaar', cat: 'nahetverhaal', title: 'Wind in de zeilen', desc: 'Zeil de skûtsje-sprint tegen Jelle uit' },
   { id: 'skutsje_goud', cat: 'nahetverhaal', title: 'Skûtsjekening', desc: 'Goud bij de skûtsje-sprint', medal: true },
   { id: 'jelle_alles', cat: 'nahetverhaal', title: 'Better as ús', desc: 'Versla Jelle in alle drie de uitdagingen' },
-  { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de Fjord Frituur' },
-  { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de Fjord Frituur', medal: true },
+  { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de snackwagen' },
+  { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de snackwagen', medal: true },
   { id: 'koe_klaar', cat: 'nahetverhaal', title: 'Geertje is thuis', desc: 'Breng de prijskoe van Ome Jan terug naar zijn boerderij' },
   { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
-  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
+  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de snackwagen', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
   { id: 'trein_stations', cat: 'spoor', title: 'Alle haltes af', desc: 'Stap uit op 5 verschillende stations of haltes', set: 'trainStations', goal: 5 },
   { id: 'trein_dorp', cat: 'spoor', title: 'Dorpsstation', desc: 'Reis met de trein naar een dorpshalte', hidden: true },

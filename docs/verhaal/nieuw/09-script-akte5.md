@@ -6,7 +6,7 @@
 (regie: woensdag 26 augustus, ochtend. Een boerderijschuur, een trekker, Henk met een luik onder de arm. Naamkaart: TINUS. Tessa en Tammo staan aan weerszijden van de Escapade zonder elkaar aan te kijken. Gameplay: een luik in de Escapade inbouwen, de wagen de modder in rijden om te bewijzen dat de as het houdt, en hem met Tinus' trekker eruit trekken.)
 TINUS: Welkom in mijn schuur. Henk belde. Jullie zoeken een luik. [NIEUW]
 HENK: Ik heb een luik, een uitlaat en een koekje. Eén. [NIEUW]
-TESSA: Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij. [NIEUW]
+TESSA: Wij maken van de Escapade de snackwagen. Daar hoort een luik bij. [NIEUW]
 TAMMO: De Escapade is van mij. [NIEUW]
 TESSA: Hij is van ons, Tammo. [NIEUW]
 TAMMO: Hij is van ons. Hij weet het alleen nog niet. [BEHOUDEN]
@@ -15,13 +15,19 @@ HENK: Elke deuk is een karaktertrek. Dit wordt een karakterwagen. [NIEUW]
 
 ## [M22.2] Een luik erin: de garage – Westerkwartier, Tinus' schuur – Escapade
 HENK: Het luik zit aan de zijkant. Dan kun je serveren. [NIEUW]
-TESSA: Dat is een Fjord Frituur. [NIEUW]
+TESSA: Dat is een snackwagen. [NIEUW]
 TAMMO: Een Escapade met een gat. [NIEUW]
 HENK: Een karaktergat. [NIEUW]
 TESSA: Het is een voordeur. Een voordeur die meerijdt. [NIEUW]
 TESSA: Het is klaar. [NIEUW]
 TAMMO: Het bovenstuk is blauw. Dat was niet afgesproken. [NIEUW]
 TESSA: Het is de kleur van de naam. [NIEUW]
+TAMMO: Welke naam? [NIEUW]
+(regie: Tessa wijst naar het luik. Daarop staat in witte letters TAM & TES. Henk kijkt naar het luik, dan naar Tammo, dan naar Tessa.)
+HENK: Tam. Tes. [NIEUW]
+TAMMO: ...Het rijmt. [NIEUW]
+TESSA: Het is een naam. [NIEUW]
+HENK: Ik zeg niks. Eén koekje. [NIEUW]
 HENK: Het luik is betaald. Sjabbe vertelt wel hoe. [NIEUW]
 SJABBE (telefoon): Tammo belde vannacht, via Henk. Hij verkocht het horloge van zijn opa, via Bert. Dat betaalt het luik. Ik heb niks gevraagd. [NIEUW]
 TESSA: Het horloge van je opa? [NIEUW]
@@ -58,7 +64,7 @@ TESSA: Dat deed ik één keer. [NIEUW]
 TAMMO: Twee keer. [NIEUW]
 TAMMO: En die jas in augustus. [NIEUW]
 TESSA: Mem zegt elke zomer jas. Het enige wat hetzelfde bleef. [NIEUW]
-TESSA: De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen. [NIEUW]
+TESSA: De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen. [NIEUW]
 TESSA: Ik ging niet weg. [NIEUW]
 TAMMO: Je bleef nergens. [NIEUW]
 TESSA: Ik ben gebleven. [NIEUW]
@@ -67,7 +73,7 @@ TESSA: Ik ben gebleven. [NIEUW]
 ## [M22.5] Een luik erin: herhaling – Westerkwartier, Tinus' schuur – Escapade
 HENK: Het luik zit er al. Een deuk meer kan geen kwaad. [NIEUW]
 
-## [M23.1] De colonne: intro – Westerkwartier, Tinus' schuur, vertrek – Fjord Frituur
+## [M23.1] De colonne: intro – Westerkwartier, Tinus' schuur, vertrek – snackwagen
 (regie: donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: een scooter, een bus, een trekker, een bakkie, een aanhanger met een rubberboot. Gameplay: één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.)
 MEM (telefoon): Famke. Trijntje en ik hebben ze gebeld. Ze komen. [NIEUW]
 TESSA: Jelle huurt morgen de hele Markt. Vandaag staan wij er eerst. Wij voorop, de rest erachter, en niemand valt weg. [NIEUW]
@@ -79,7 +85,7 @@ BEREND: Ik rij achteraan, met vijftien kanonnen en een doos vuurwerk voor het On
 TESSA: Eén van jullie rijdt vlak naast ons en houdt Jelle bezig. Wie dat is, kiezen wij zo. [NIEUW]
 TESSA: Rijden. Niet praten. [NIEUW]
 
-## [M23.2] De colonne: onderweg – Westerkwartier, Zuidhorn naar Aduard – Fjord Frituur
+## [M23.2] De colonne: onderweg – Westerkwartier, Zuidhorn naar Aduard – snackwagen
 LAMMERT (telefoon): Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie. [NIEUW]
 ROELFIEN (telefoon): Ik vlieg boven jullie. Mijn vergunning is ingetrokken, maar ze kunnen me niet vinden. [NIEUW]
 JELLE (telefoon): Mevrouw. Elke brug op uw route heeft vandaag een vergunning van mij voor een evenement. Veel plezier. [NIEUW]
@@ -87,7 +93,7 @@ TESSA: Jelle probeert ons te splitsen. Blijf bij elkaar. [NIEUW]
 WUBBO (telefoon): Brug open. Ga maar. [NIEUW]
 TINUS: Ik trek hem weg. [NIEUW]
 
-## [B5] Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen) – Westerkwartier, Stad – Fjord Frituur
+## [B5] Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen) – Westerkwartier, Stad – snackwagen
 TESSA: Dat is Aduard. Hier houdt het Westerkwartier op. [NIEUW]
 TAMMO: Waar zie je dat aan? [NIEUW]
 TESSA: Meer fietsers, minder trekkers. Dat leer je als je vaak verhuist. [NIEUW]
@@ -109,7 +115,7 @@ DURK: Van alle mems. [NIEUW]
 DURK: En hier is je jas. Met een strikje. [NIEUW]
 
 ## [M23.6] De colonne: de bus rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – bus
-(regie: afloop van de keuze voor Wubbo. De bus rijdt naast de Fjord Frituur. Wubbo hangt uit het raam.)
+(regie: afloop van de keuze voor Wubbo. De bus rijdt naast de snackwagen. Wubbo hangt uit het raam.)
 WUBBO: Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil. [NIEUW]
 TESSA: En de bruggen? [NIEUW]
 WUBBO: Die open ik op afstand, met mijn sleutel. Open of dicht, nooit allebei. [NIEUW]
@@ -117,7 +123,7 @@ TAMMO: En Jelle? [NIEUW]
 WUBBO: Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet. [NIEUW]
 
 ## [M23.7] De colonne: de trekker rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – trekker
-(regie: afloop van de keuze voor Tinus. De trekker ratelt naast de Fjord Frituur.)
+(regie: afloop van de keuze voor Tinus. De trekker ratelt naast de snackwagen.)
 TINUS: Ik rij naast jullie, met de trekker. Hier kijk je niet ver: houtwallen. Maar ik trek alles weg wat Jelle neerzet. [NIEUW]
 TESSA: Ook een limo? [NIEUW]
 TINUS: Ook een limo. Aan de trekhaak, als het moet. [NIEUW]
@@ -125,12 +131,12 @@ TAMMO: Dat zei hij in de modder ook. [NIEUW]
 TESSA: En toen zaten we niet meer vast. [NIEUW]
 
 ## [M23.8] De colonne: de scooter rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – scooter
-(regie: afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm over haar knot.)
+(regie: afloop van de keuze voor Geesje. De scooter zoemt naast de snackwagen, Geesje met een helm over haar knot.)
 GEESJE: Ik rij naast jullie, op mijn scooter. Dit is een bedevaart. Ik ken elk steegje van hier tot de Grote Markt. [NIEUW]
 TESSA: Een scooter tegen een limo? [NIEUW]
 GEESJE: Een limo past niet in een steegje, jong. [NIEUW]
 
-## [M23.4] De colonne: outro – Stad, Grote Markt – Fjord Frituur
+## [M23.4] De colonne: outro – Stad, Grote Markt – snackwagen
 (regie: de colonne rijdt de Grote Markt op. Het publiek klapt.)
 TESSA: We zijn er. Allemaal. [NIEUW]
 TAMMO: De grootste stoet die Grunn ooit zag. [NIEUW]
@@ -138,7 +144,7 @@ TESSA: Dat gaat Rikus niet meer zeggen. Hij heeft alle woorden al gebruikt. [NIE
 RIKUS (radio): De colonne is aangekomen. Het is te groot om te beschrijven. [NIEUW]
 JELLE (telefoon): Mevrouw. De colonne is een evenement zonder vergunning. Ik stuur een rekening. [NIEUW]
 
-## [M23.5] De colonne: herhaling – Westerkwartier – Fjord Frituur
+## [M23.5] De colonne: herhaling – Westerkwartier – snackwagen
 TESSA: De colonne wacht niet. Rijden. Niet praten. [NIEUW]
 
 ## [R5.0] Nachtstreek, donderdagavond – Stad – radio
@@ -148,7 +154,7 @@ TORENWACHTER (radio): Iets Fries. Ik meld alleen. [BEHOUDEN]
 
 ## [M24.1] Er hangt iets Fries aan d'Olle Grieze: intro – Stad, Grote Markt – duif
 (regie: donderdag 27 augustus, avond. Een reuzenvlag van dertig meter met pompeblêden. Onderaan: FOAR MEM. Gameplay: Tammo is de duif en pikt vijf touwen van Jelles vlag door.)
-TESSA: De vlag hangt precies boven de plek waar de Fjord Frituur morgen moet staan. Hij moet eraf. [NIEUW]
+TESSA: De vlag hangt precies boven de plek waar de snackwagen morgen moet staan. Hij moet eraf. [NIEUW]
 BERT: Die Fries noemde d'Olle Grieze "in aardich tuorke". Een áárdig torentje! [BEHOUDEN]
 TESSA: "Foar mem." Voor zijn oma. [NIEUW]
 TAMMO: Hij hangt een vlag aan onze toren voor zijn oma. [NIEUW]
@@ -196,7 +202,7 @@ TESSA: In drievoud. De derde kopie is voor de ontvanger. Dat zijn wij. [NIEUW]
 APP TAMMO→TESSA (stil): Ik zeg het op de Grote Markt. Voor iedereen. [NIEUW]
 APP TESSA→TAMMO (stil): Ik wacht. [NIEUW]
 
-## [M25.1] Het bod viel tegen: intro – Stad, Oma's keuken aan de Noorderhaven – Fjord Frituur
+## [M25.1] Het bod viel tegen: intro – Stad, Oma's keuken aan de Noorderhaven – snackwagen
 (regie: donderdagnacht. Oma's keuken met deeg, mosterd, eieren, zout, grof meel en een pan met vet. Gameplay: een oefenronde eierballen bakken met alle vijf ingrediënten, daarna Jelles bod afwijzen.)
 TESSA: Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept. [NIEUW]
 OMA TRIJNTJE: Mosterd van Wubbo, eieren van Geesje, zout van Klaas, meel van Roelfien en vet van Lammert. Alles grof, zoals vroeger. [NIEUW]
@@ -272,7 +278,7 @@ TAMMO: Ik zeg liever niks. [NIEUW]
 ANNEKE: Dat zag ik al. Dat is een goed teken. [NIEUW]
 
 ## [M26.1] Ontzet, net als in 1672: de uitzending – Stad, Grote Markt – te voet
-(regie: vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de Fjord Frituur, blauw, met een luik; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen.)
+(regie: vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de snackwagen, blauw, met een luik en in witte letters TAM & TES; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen.)
 RIKUS (radio): Moi, Grunn. Nachtstreek, in het daglicht. Ik voel me een vleermuis. [BEHOUDEN]
 BEREND (in de rol): Grunn! Geef je over! [BEHOUDEN]
 KIND IN HET PUBLIEK: Nee! [BEHOUDEN]
@@ -306,11 +312,11 @@ DURK: Wij houden hem heel. Baas zegt… nee. Mem zegt. [NIEUW]
 TESSA: Dank je, Durk. Dank je, Douwe. [NIEUW]
 DURK: Net fertelle, hè? [BEHOUDEN]
 
-## [M26.4] Ontzet, net als in 1672: de blokkade – Stad, Oude Boteringestraat – Fjord Frituur, duif
-(regie: kwart voor drie. De limo rijdt weg naar de notaris. Gameplay: Tessa rijdt de Fjord Frituur de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vrienden de straat achter hem afsluiten.)
+## [M26.4] Ontzet, net als in 1672: de blokkade – Stad, Oude Boteringestraat – snackwagen, duif
+(regie: kwart voor drie. De limo rijdt weg naar de notaris. Gameplay: Tessa rijdt de snackwagen de straat in en zet hem dwars voor de limo, terwijl Tammo Berts duiven opfluit die het zicht van de chauffeur ontnemen, en de vrienden de straat achter hem afsluiten.)
 TORENWACHTER (telefoon): Tammo. De limo gaat de Oude Boteringestraat in. Het is kwart voor drie. [NIEUW]
 TAMMO: De ballen staan bij de jury. De kraam mag weg. [NIEUW]
-TESSA: De Fjord Frituur is breder dan de straat. Daar ga ik staan. [NIEUW]
+TESSA: De snackwagen is breder dan de straat. Daar ga ik staan. [NIEUW]
 TAMMO: Bert. Mijn duiven. [NIEUW]
 BERT: Ze staan klaar, jong. [NIEUW]
 TAMMO: Ik fluit. [NIEUW]
@@ -320,7 +326,7 @@ DURK: Douwe. Niet aanraken. [NIEUW]
 (regie: Durk en Douwe steken per ongeluk Berends vuurwerk aan. Rook, knallen, een regen van papieren sterren.)
 DOUWE: …Hè. [BEHOUDEN]
 TESSA: Rook! Links! De Fjord blijft staan. [NIEUW]
-(regie: Tessa zet de Fjord Frituur dwars voor de limo. De limo komt tot stilstand met zijn neus tegen het luik.)
+(regie: Tessa zet de snackwagen dwars voor de limo. De limo komt tot stilstand met zijn neus tegen het luik.)
 JELLE: Mevrouw. U staat op de openbare weg. Dat is een overtreding. Het is drie minuten voor drie. Ik moet… [NIEUW]
 (regie: hij stapt achteruit uit de limo, struikelt over een duif en valt in het water langs de weg. De gouden koffer houdt hij boven water.)
 DOUWE: …Plons. [NIEUW]
@@ -328,22 +334,22 @@ TESSA: Hij houdt de koffer weer boven water. [NIEUW]
 TAMMO: Hij is consistent. [NIEUW]
 TORENWACHTER (telefoon): Tammo. De klok staat op drie uur. De limo staat vast. Ik meld niet alleen. Ik klap. [NIEUW]
 
-## [M26.14] Ontzet, net als in 1672: de straten dicht, de bus – Stad, rond de Oude Boteringestraat – Fjord Frituur
-(regie: de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur.)
+## [M26.14] Ontzet, net als in 1672: de straten dicht, de bus – Stad, rond de Oude Boteringestraat – snackwagen
+(regie: de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de snackwagen.)
 WUBBO (telefoon): Poelestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. [NIEUW]
 TESSA: Dank je, Wubbo. [NIEUW]
 WUBBO (telefoon): Open of dicht, Tessa. Vandaag allebei. [NIEUW]
 TESSA: Dat mag niet. [NIEUW]
 TAMMO: Zijn bus, zijn regels. [NIEUW]
 
-## [M26.15] Ontzet, net als in 1672: de straten dicht, de trekker – Stad, rond de Oude Boteringestraat – Fjord Frituur
+## [M26.15] Ontzet, net als in 1672: de straten dicht, de trekker – Stad, rond de Oude Boteringestraat – snackwagen
 (regie: Tinus trekt zijn trekker dwars voor de Gelkingestraat, midden tussen de fietsen.)
 TINUS (telefoon): Gelkingestraat dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten. [NIEUW]
 TESSA: Je trekker past er net in. [NIEUW]
 TINUS (telefoon): Ik trek hem weg. De limo, niet de trekker. [NIEUW]
 TAMMO: In de stad ziet hij er nog groter uit. [NIEUW]
 
-## [M26.16] Ontzet, net als in 1672: de straten dicht, de scooter – Stad, rond de Oude Boteringestraat – Fjord Frituur
+## [M26.16] Ontzet, net als in 1672: de straten dicht, de scooter – Stad, rond de Oude Boteringestraat – snackwagen
 (regie: Geesje zet de scooter dwars in de steeg naast de notaris.)
 GEESJE (telefoon): De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien. [NIEUW]
 TESSA: Je zit te breien? [NIEUW]
@@ -382,28 +388,28 @@ BEREND: Stemmen. Jurylid één. [NIEUW]
 
 ## [M26.10] Ontzet, net als in 1672: de stemming, vijf van de vijf – Stad, Grote Markt – te voet
 (regie: de bak was foutloos. De jury stemt zonder te aarzelen.)
-JURYLID: Fjord Frituur. [NIEUW]
-JURYLID: Fjord Frituur. [NIEUW]
-JURYLID: Fjord Frituur. [NIEUW]
-JURYLID: Fjord Frituur. [NIEUW]
-BEREND: Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
+BEREND: Tam & Tes. Vijf van de vijf. Mijn stem was niet eens nodig. [NIEUW]
 JELLE: Vijf van de vijf. Mijn juristen willen weten wie dit organiseerde. [NIEUW]
 
 ## [M26.11] Ontzet, net als in 1672: de stemming, vier van de vijf – Stad, Grote Markt – te voet
 (regie: de bak had een paar mislukte ballen, maar de goede waren goed.)
-JURYLID: Fjord Frituur. [NIEUW]
-JURYLID: Fjord Frituur. [NIEUW]
-JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
 JURYLID: Us Mem Snacks. Ik heb een contract. [NIEUW]
-BEREND: Fjord Frituur. Vier van de vijf. Ik was de laatste. [NIEUW]
+BEREND: Tam & Tes. Vier van de vijf. Ik was de laatste. [NIEUW]
 
 ## [M26.12] Ontzet, net als in 1672: de stemming, drie van de vijf – Stad, Grote Markt – te voet
 (regie: de bak was rommelig, en de jury merkt het.)
-JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
 JURYLID: Us Mem Snacks. Ik heb een contract. [NIEUW]
-JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Tam & Tes. [NIEUW]
 JURYLID: Us Mem Snacks. De korrel is te grof. [NIEUW]
-BEREND: Fjord Frituur. Drie van de vijf. Het is krap. [NIEUW]
+BEREND: Tam & Tes. Drie van de vijf. Het is krap. [NIEUW]
 JELLE: Drie tegen twee. Mijn juristen willen een nieuwe stemming. [NIEUW]
 
 ## [M26.13] Ontzet, net als in 1672: de uitslag – Stad, Grote Markt – te voet
@@ -417,7 +423,7 @@ TAMMO: Hij praat Gronings. [BEHOUDEN]
 TESSA: Dan is het ernstig. [BEHOUDEN]
 JELLE: Better as ús. Net fertelle. [BEHOUDEN]
 BEREND: De Snackprijs gaat naar Grunn. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953. [NIEUW]
-BEREND: De standplaats op de Vismarkt gaat naar de Fjord Frituur. [NIEUW]
+BEREND: De standplaats op de Vismarkt gaat naar Tam & Tes. [NIEUW]
 MEM: De bal gaat terug naar het museum. Dat is zijn plek. [NIEUW]
 BEREND: En na afloop ga ik naar de politie, over twaalf augustus. Ik was belegeraar, geen getuige. Nu wel. [NIEUW]
 JELLE: De standplaatsen houd ik. Dat is juridisch dichtgetimmerd. De molen ook. De rest geef ik terug. [NIEUW]
@@ -459,8 +465,8 @@ BEREND: Elk jaar hetzelfde Ontzet. Ik verlies graag. [NIEUW]
 APP MEM→TESSA (stil): Tige tank, famke. – M. [NIEUW]
 APP TESSA→MEM (stil): Dank u, Mem. [NIEUW]
 
-## [E1] Epiloog – Stad, Vismarkt – Fjord Frituur
-(regie: twee weken later, vrijdag 11 september. Bij de Vismarkt staat de Fjord Frituur met een rij tot de Korenbeurs. Aan het luik hangt een bord: "Eierbal met mosterd. Oma's recept." Ernaast een ingelijste foto van de Grote Markt: twee mensen achter een frituur, midden in een kus, met een bisschop op de achtergrond. Op het dak zitten drie duiven in een rij, als klanten.)
+## [E1] Epiloog – Stad, Vismarkt – snackwagen
+(regie: twee weken later, vrijdag 11 september. Bij de Vismarkt staat de snackwagen met TAM & TES op het luik en een rij tot de Korenbeurs. Aan het luik hangt een bord: "Eierbal met mosterd. Oma's recept." Ernaast een ingelijste foto van de Grote Markt: twee mensen achter een frituur, midden in een kus, met een bisschop op de achtergrond. Op het dak zitten drie duiven in een rij, als klanten.)
 RIKUS (radio): Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op. [NIEUW]
 TESSA: Het is tweeëntwintig graden. [NIEUW]
 TAMMO: Het is Grunn. [BEHOUDEN]
@@ -475,7 +481,7 @@ TESSA: De duiven staan weer in de rij. [NIEUW]
 TAMMO: Ik heb niks gezegd. [NIEUW]
 
 ## [E2] Slot – Stad, Nachtstreek – radio
-(regie: Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de Fjord Frituur.)
+(regie: Rikus in de studio, met een bakje friet op het bureau. Tessa en Tammo luisteren mee in de snackwagen.)
 RIKUS (radio): Moi. Nachtstreek, het laatste kwartier. [BEHOUDEN]
 RIKUS (radio): De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje. [BEHOUDEN]
 RIKUS (radio): Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs. [BEHOUDEN]
@@ -492,7 +498,7 @@ RIKUS (radio): Mevrouw Hoving stapt na bijna vier weken volpension in Wildervank
 RIKUS (radio): De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht. [NIEUW]
 
 ## [E3] Slot: de laatste regels – Stad, Nachtstreek – radio
-(regie: Rikus schuift het bakje friet naar de microfoon. In de Fjord Frituur draait Tessa de radio zachter.)
+(regie: Rikus schuift het bakje friet naar de microfoon. In de snackwagen draait Tessa de radio zachter.)
 RIKUS (radio): De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje. [NIEUW]
 RIKUS (radio): Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets. [NIEUW]
 RIKUS (radio): De loketbediende van Loket B stond vooraan. Ze zei dat Tessa haar bij haar naam had gegroet. Dat doet niemand. [NIEUW]

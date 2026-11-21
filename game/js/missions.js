@@ -1513,7 +1513,7 @@ function startMission(world, def) {
       if (rs && rs.road) def.start = { ...rs };
     }
     if (def.heroCar) {
-      // act 5: the Escapade (the Fjord Frituur) waits at the start of the mission
+      // act 5: the Escapade (the snackwagen) waits at the start of the mission
       chainState().vehicle = heroCarTo(world, def.start) || (def.start.road ? spawnMissionCar(world, def) : null);
       if (chainState().vehicle && !world.vehicles.includes(chainState().vehicle)) world.vehicles.push(chainState().vehicle);
     } else if (def.vehicle === 'car' && def.start.road) {

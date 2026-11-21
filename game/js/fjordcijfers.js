@@ -1,4 +1,4 @@
-// #675: de cijfers van de Fjord Frituur, puur en zonder THREE: de dagomzet groeit met de gekochte
+// #675: de cijfers van de snackwagen, puur en zonder THREE: de dagomzet groeit met de gekochte
 // upgrades en de passieve opbrengst is daar een deel van — alleen als de wagen openstaat. Zo blijven de
 // economie en de balans te toetsen zonder de wereld (pg_foodtruck.js doet de wagen en de dienst).
 export const FJORD_DAG_BASIS = 120;

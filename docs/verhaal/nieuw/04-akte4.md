@@ -1,6 +1,6 @@
 # Akte 4: "Zuidwaarts" (Veenkoloniën en Westerwolde; ma 24 – di 25 augustus, 's nachts naar wo 26)
 
-Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4.md](09-script-akte4.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de Fjord Frituur en het recept gereedmaken.
+Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4.md](09-script-akte4.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de snackwagen en het recept gereedmaken.
 
 ## Intro van de akte
 
@@ -15,7 +15,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Romantiek** | na de kus: ongemak, ontwijken ("Over zaterdag." "Welke zaterdag?"), mooie momenten en pijnlijke. Het dieptepunt (4.4): Tammo ontdekt dat Tessa al weken met Mem appte en dat voor hem verzweeg. Tessa: "Ik kan niet weten wat je verwacht als je niets zegt." Zij vertrekt met de bal, hij blijft. |
 | **Haak naar akte 5** | Tessa redt de auto en verliest de bal; Tammo faalt bij het bijeen houden van de vrienden; ze zijn nog niet vrienden, maar beiden gaan naar Tinus' schuur. |
 
-**Dieptepunt (4.4-4.5):** Jelle heeft de echte bal terug. De Escapade is weg (en dus de Fjord Frituur, de wagen waarmee ze moeten inschrijven). Tessa en Tammo hebben ruzie en gaan elk hun eigen weg, tot het eind van 5.1 (de knuffel). De zin "Jij zegt nooit iets" is van allebei.
+**Dieptepunt (4.4-4.5):** Jelle heeft de echte bal terug. De Escapade is weg (en dus de snackwagen, de wagen waarmee ze moeten inschrijven). Tessa en Tammo hebben ruzie en gaan elk hun eigen weg, tot het eind van 5.1 (de knuffel). De zin "Jij zegt nooit iets" is van allebei.
 
 **Jelle grijpt in (mechanisch gevolg):** 4.1 koopt de fanfare weg (het ritme verdwijnt, Wubbo fluit); 4.3 koopt de machinist (de trein staat stil); 4.4 stuurt beleggers tegen de kruitkelder, steelt de Escapade (klomp met briefje); 4.5 pakt de bal van Tessa in het dubbele dilemma op de wagon.
 
@@ -117,7 +117,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Doel (hardop)** | "Houd de vesting tegen Jelles beleggers, spring over de gracht voor Durk en Douwe, en bescherm de bal in de kruitkelder tot hij in het bakkie ligt." |
 | **Motief** | Mem heeft Jelle uitgenodigd om de bal te laten zien; Durk en Douwe houden Tammo bezig ("de bezigheid"); Tessa wacht in de kruitkelder |
 | **Verloop** | 1) Het Beleg: verdedig de wallen met Berends mensen. 2) Durk en Douwe dagen Tammo uit (fierljepen over de gracht; Douwe: "…Plons." en dan "…Geen plons."; zijn jas met de autosleutel blijft bij Douwe). 3) Kruitkelder: Jelle laat Mem de bal zien, Mem neemt hem ("Nu is hij van mij."), Berend sluit de deur. 4) Mem: "Omdat mijn zoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef." (BEHOUDEN). 5) Jelle: "Dit is geen einde. Dit is een geschil." Hij haalt de beleggers. 6) **De speler houdt de kruitkelder met kartonnen kanonnen en draagt de bal naar het bakkie.** 7) Op de parkeerplaats: de Escapade is weg (D en D hadden de sleutel in de jas), de klomp met briefje, de ruzie, de verantwoording van Oma, Mem en Berend, en Mem geeft Tessa de bal. **Falen:** de vesting valt of de bal wordt afgepakt: je herstart het beleg; het dieptepunt zelf is niet te falen. |
-| **Jelle grijpt in** | **stuurt beleggers** tegen de kruitkelder en **steelt de Escapade** (de Fjord Frituur-wagen) |
+| **Jelle grijpt in** | **stuurt beleggers** tegen de kruitkelder en **steelt de Escapade** (de snackwagen-wagen) |
 | **Leuk-element / uitdaging** | het hoogtepunt van de komische actie: kartonnen kanonnen en fierljepen, dan een echte verdediging van de bal, dan een stille, pijnlijke scène |
 | **Reizen** | de missie zelf |
 | **Romantiek (3/10, het dieptepunt)** | Tammo: "Jij kende Mem." Tessa: "Ik wist niet waar de bal lag. Ik wist wel dat Mem iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen. En ik kan niet weten wat je verwacht als je niets zegt." Tammo: "Je zegt nooit iets." Tessa: "Jij zegt nooit iets!" |
@@ -138,12 +138,12 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | | |
 |---|---|
 | **Id** | `A4-5` (`H16`, mission `fjord`, verplaatst en gesplitst in twee solodelen) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken**: de wagen terug (Tessa) en de vrienden bij elkaar houden (Tammo) |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken**: de wagen terug (Tessa) en de vrienden bij elkaar houden (Tammo) |
 | **Plaats** | Deel Tessa: Bourtange naar Zuidhorn (de spoorlijn Groningen-Leeuwarden via Zuidhorn en Grijpskerk), di 25 's nachts. Deel Tammo: Tinus' schuur bij Zuidhorn, wo 26 vroege ochtend |
 | **Voertuig** | Tessa: Berends bakkie (ride-along) en de Escapade op een wagon (`fjordtrain.js`); Tammo: Tinus' trekker (de nachtrit) en te voet in de schuur |
 | **Mechaniek / hergebruik** | Tessa: `train`-stage (`fjordtrain.js`: `spawnFjordTrain`, `catchFjordTrainNow`), Henks zender (het piepje), `solo: true`, op de wagon een keuze: de auto of de bal (niet beide). Tammo: een gesprekspuzzel met keuzepaneel (`choicepanel.js`) waarin elke keuze faalt: de vrienden vertrekken (dit is ontworpen, geen falen) |
 | **Doel (hardop)** | Tessa: "Haal de Escapade terug van de trein." Tammo: "Houd Oma's vrienden bij elkaar, ook al zeggen ze nee." |
-| **Motief** | zonder de Escapade geen Fjord Frituur en geen inschrijving; zonder de vrienden geen recept; Jelles advocaten bellen de vrienden terug |
+| **Motief** | zonder de Escapade geen snackwagen en geen inschrijving; zonder de vrienden geen recept; Jelles advocaten bellen de vrienden terug |
 | **Verloop** | Tessa: 1) Autogesprek met Berend, 3 min ("Je zoekt iemand die blijft."). 2) Mems stille appje zegt waar de trein stopt (middernacht, de overweg in Zuidhorn); het piepje bevestigt het. 3) Op de wagon staan beleggers; Jelle belt: "U kunt de auto redden of de bal houden." Tessa kiest de auto en laat de rugzak vallen: **de beleggers pakken de bal en springen naar een limo.** 4) Op de bijrijdersstoel: een klomp, "Tige tank foar de bal. – J." Tammo: 1) Bij Tinus' schuur, 's ochtends, met Oma en Mem aan de telefoon. 2) Geesje, Klaas, Wubbo en Roelfien komen met hun ingrediënten; elk zegt dat de advocaten gebeld hebben. 3) Tammo: "Wacht." "Alsjeblieft." "Ik… zeg het niet goed." Ze vertrekken. **Falen:** Tessa: de trein ontsnapt: "Sikkom." Tammo: niet te falen. |
 | **Jelle grijpt in** | **steelt de wagon met de Escapade, pakt de bal af** (dubbel dilemma) en **laat de vrienden terugroepen door advocaten** |
 | **Leuk-element / uitdaging** | de enige solomissies, twee tegelijk; een trein achterna en een gesprek dat niet lukt |

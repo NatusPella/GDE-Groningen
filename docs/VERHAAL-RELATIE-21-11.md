@@ -17,6 +17,8 @@ Ze leerden elkaar kennen in de eerste studieweek (de Kiezelweek), vijf jaar gele
 - **Plekken:** de Martinitoren om half drie 's nachts, de mensa-trap, de achterbank van de Escapade, het dak van het museum (voor de duiven).
 - **Rituelen:** hij maakt de thee, zij kiest de muziek; zij betaalt de huur op tijd, hij brengt de boodschappen; hij vraagt nooit waarom zij weer iets heeft geregeld.
 
+De snackwagen heet **Tam & Tes** (Tam = Tammo, Tes = Tessa): hun gezamenlijke project draagt hun namen, en niemand legt dat uit.
+
 ## 3. Waarom werken ze zo goed samen, en waar niet?
 
 Complementair: Tessa regelt, ziet de weg, durft te vragen en dekt zijn aarzeling; Tammo rijdt, stuurt, ziet details en de mensen die niemand ziet, en dekt haar ongeduld. Beiden dekken elkaars blinde vlek: zij weet niet wanneer ze te hard gaat, hij weet niet wanneer hij moet zeggen wat hij voelt. Samen zijn ze een team dat precies de goede helft van de ander heeft.
@@ -70,7 +72,7 @@ Tammo is een hele lieve jongen, Tessa echt een schatje; ze zien van elkaar hoe l
 | 17 | 2 | Tammo's dagdroom: hij als stuntheld, Tessa als Koningin van de Friteuse ("Rijd mij naar de zon") | Tessa (hoort "je lacht in je slaap") | droomsequens in low-poly, dan halve close-up Tessa | T2 (nieuw) |
 | 18 | 3 | Een charmante zanger wil Tessa een liedje geven; Tammo zegt "Ze moet nog eten", zijn duif doet de rest | Tessa | halve close-up Tammo met de duif | M15.6 (nieuw) |
 | 19 | 3 | Tammo kiest bewust een onschuldig feit in plaats van zijn zin ("Het is ook iets. Een park."); Tessa: "Ik dacht even dat het iets was" | Tessa | twee-shot, haar blik te lang | B3.1 (nieuw, autogesprek) |
-| 20 | 3, 5 | De koelkastlijst groeit: "Tammo vindt" en "Tessa vindt" (akte 1), een nieuwe kolom "wij vinden" (akte 3: "Ik wacht op jou"), één regel in twee handschriften (Deel 4: de Fjord Frituur) | beiden | regie-regel en appjes | O1, A3.4, O12 |
+| 20 | 3, 5 | De koelkastlijst groeit: "Tammo vindt" en "Tessa vindt" (akte 1), een nieuwe kolom "wij vinden" (akte 3: "Ik wacht op jou"), één regel in twee handschriften (Deel 4: de snackwagen) | beiden | regie-regel en appjes | O1, A3.4, O12 |
 | 21 | 4 | Tessa maakt Tammo's onvoltooide zin af ("Dat ik te veel praat"); hij laat het zo | Tammo | twee-shot, hij kijkt naar de weg | B4.1 (nieuw) |
 | 22 | 5 | Lieke zegt hardop dat ze al samen zijn; Oma vraagt wanneer ze trouwen; Tessa's vader knikt bij de eierbal | Tessa en Tammo, de families | close-up Lieke, halve close-up Tammo | M25.6 (nieuw) |
 

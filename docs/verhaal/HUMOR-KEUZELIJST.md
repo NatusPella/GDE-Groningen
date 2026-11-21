@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 66 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -75,6 +75,7 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 | H5-07 | E1 | TAMMO | Ik heb niks gezegd. | variant 1, variant 3, variant 1 | midden | Ik heb niks gezegd: klassieke droge ontkenning. |
 | H5-08 | E2 | TAMMO | Dat zegt hij heel hard. | variant 1, neutraal, variant 2 | laag | Dat zegt hij heel hard: droge correctie op Rikus. |
 | H5-09 | E2 | TAMMO | Wij bakken door. | variant 3, variant 1, neutraal | laag | Zelfde maat als Tessa, kort. |
+| H5-10 | M22.2 | HENK | Ik zeg niks. Eén koekje. | variant 1, variant 1, variant 2 | midden | Henks vaste formule "Ik zeg niks" met het koekje als kicker laat de onuitgesproken verliefdheid liggen zonder uitleg. |
 | H6-01 | M27.1 | WILLEMIEN | Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. | variant 3, neutraal, variant 1 | laag | Concreet en vaste-klant-gevoel, derde in de rij. |
 | H6-02 | M29.2 | TAMMO | Een eierbal. Dat is anders. | variant 1, variant 1, variant 2 | laag | Directe terugkaatsing van Oma's antwoord, zonder uitleg. |
 | H6-03 | M30.6 | JELLE | Dat pand ken ik. Ik wacht tot de prijs zakt. | variant 1, variant 2, variant 2 | midden | Jelle wacht bureaucratisch op de prijs. |
@@ -310,25 +311,31 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 - variant 3: Achterop staat: elf seconden. Met een potlood.
 - neutraal: Hij heeft de foto mooi laten inlijsten.
 
-**H5-07** (E1): Vismarkt, twee weken later. Drie duiven zitten in een rij op het dak van de Fjord Frituur, als wachtende klanten. Tammo houdt zijn handen omhoog: hij heeft niets gezegd.
+**H5-07** (E1): Vismarkt, twee weken later. Drie duiven zitten in een rij op het dak van de snackwagen, als wachtende klanten. Tammo houdt zijn handen omhoog: hij heeft niets gezegd.
 - variant 1 (gekozen): Ik heb niks gezegd.
 - variant 2: Dat was ik niet.
 - variant 3: Ik fluit niet eens.
 - neutraal: Dat zijn er drie.
 
-**H5-08** (E2): Radio in de Fjord Frituur. Rikus zegt voor de zoveelste keer dat hij niks zegt, terwijl hij het net heeft gezegd: er brandt maar in één slaapkamer licht.
+**H5-08** (E2): Radio in de snackwagen. Rikus zegt voor de zoveelste keer dat hij niks zegt, terwijl hij het net heeft gezegd: er brandt maar in één slaapkamer licht.
 - variant 1 (gekozen): Dat zegt hij heel hard.
 - variant 2: Dat zegt hij elke keer.
 - variant 3: Hij zegt het wel erg duidelijk.
 - neutraal: Hij bedoelt het goed.
 
-**H5-09** (E2): Radio in de Fjord Frituur. Rikus meldt dat Jelle weer een pand heeft gekocht; Tessa zegt dat hij doorkoopt, Tammo antwoordt in dezelfde maat.
+**H5-09** (E2): Radio in de snackwagen. Rikus meldt dat Jelle weer een pand heeft gekocht; Tessa zegt dat hij doorkoopt, Tammo antwoordt in dezelfde maat.
 - variant 1 (gekozen): Wij bakken door.
 - variant 2: Dan bakken wij ook door.
 - variant 3: Wij frituren door.
 - neutraal: Wij ook.
 
-**H6-01** (M27.1): Loppersum, ochtend. Willemien blijkt een vaste klant van de Fjord Frituur: zij weet precies hoe ze haar eierbal wil en laat het zonder omhaal weten.
+**H5-10** (M22.2): Het luik is af. Op het luik staat in witte letters TAM & TES. Henk (die zegt dat hij niks vraagt en altijd één koekje neemt) ziet het en kijkt van Tammo naar Tessa; Tammo zegt "...Het rijmt." en Tessa "Het is een naam." Niemand zegt dat het om hen gaat.
+- variant 1 (gekozen): Ik zeg niks. Eén koekje.
+- variant 2: Ik zeg niks. Ik pak een koekje.
+- variant 3: Mooie letters. Eén koekje.
+- neutraal: Mooie naam.
+
+**H6-01** (M27.1): Loppersum, ochtend. Willemien blijkt een vaste klant van de snackwagen: zij weet precies hoe ze haar eierbal wil en laat het zonder omhaal weten.
 - variant 1 (gekozen): Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.
 - variant 2: Ik ken jullie van het luik. Elke woensdag. Eén eierbal, extra mosterd. Jullie weten het.
 - variant 3: Jullie kennen mij van het luik. Woensdag, extra mosterd. Zeg maar niks.

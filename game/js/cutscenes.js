@@ -202,7 +202,7 @@ const ACT_KEUKEN = {
     { t: 'L19', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.2, 0.45, 1.27], look: 'tammo@1.2', fov: 22 },
     { t: 'L20', shot: 'dolly', from: [0.5, -0.75, 1.4], to: [0.2, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
     { t: 'L21', shot: 'cut', at: [1.4, -1.2, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
-    { t: 'L21+1.3', shot: 'follow', target: 'tessa', dist: 1.1, side: -0.2, h: 1.55, fov: 44 },
+    { t: 'L21+1.3', shot: 'follow', target: 'tessa', dist: 1.5, side: 0.7, h: 1.6, fov: 44 },
     { t: 'L21+2.6', shot: 'dolly', from: [-1.0, -0.8, 1.4], to: [-1.0, -0.8, 1.6], look: [1.3, 1.7, 1.2], fov: 42 },
   ],
 };

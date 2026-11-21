@@ -710,22 +710,22 @@ De verhaalregels waarvan **nog geen enkel concept** bestaat, staan in [`GRONINGS
 | M26.15 | Tammo | In de stad ziet hij er nog groter uit. | In de stad ziet hai der nog grötter oet. |
 | M26.6 | Berend Bos | Eén verschil, dan stemmen we. De Friese bal is glad, van fijn meel. De Groninger heeft een korrel van grof meel. Die korrel proef je. Dat is een eierbal die ergens vandaan komt. | Ain verschil, dan stemmen wie. De Friese bal is glad, van fijn meel. De Grunneger het n korrel van grof meel. Dij korrel proef je. Dat is n eierbal dij ergens vandaan komt. |
 | M26.6 | Berend Bos | Stemmen. Jurylid één. | Stemmen. Jurylid ain. |
-| M26.10 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
-| M26.10 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
-| M26.10 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
-| M26.10 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
-| M26.10 | Berend Bos | Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig. | Fjord Frituur. Vief van de vief. Mien stem was nait ains neudig. |
-| M26.11 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
-| M26.11 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
-| M26.11 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
+| M26.10 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
+| M26.10 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
+| M26.10 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
+| M26.10 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
+| M26.10 | Berend Bos | snackwagen. Vijf van de vijf. Mijn stem was niet eens nodig. | snackwagen. Vief van de vief. Mien stem was nait ains neudig. |
+| M26.11 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
+| M26.11 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
+| M26.11 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
 | M26.11 | Jurylid | Us Mem Snacks. Ik heb een contract. | Us Mem Snacks. Ik heb n contract. |
-| M26.11 | Berend Bos | Fjord Frituur. Vier van de vijf. Ik was de laatste. | Fjord Frituur. Vier van de vief. Ik was de lèste. |
-| M26.12 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
+| M26.11 | Berend Bos | snackwagen. Vier van de vijf. Ik was de laatste. | snackwagen. Vier van de vief. Ik was de lèste. |
+| M26.12 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
 | M26.12 | Jurylid | Us Mem Snacks. Ik heb een contract. | Us Mem Snacks. Ik heb n contract. |
-| M26.12 | Jurylid | Fjord Frituur. | Fjord Frituur. *(gelijk)* |
+| M26.12 | Jurylid | snackwagen. | snackwagen. *(gelijk)* |
 | M26.12 | Jurylid | Us Mem Snacks. De korrel is te grof. | Us Mem Snacks. De korrel is te grof. *(gelijk)* |
-| M26.12 | Berend Bos | Fjord Frituur. Drie van de vijf. Het is krap. | Fjord Frituur. Drij van de vief. t Is krap. |
-| M26.13 | Berend Bos | De standplaats op de Vismarkt gaat naar de Fjord Frituur. | De standplaats op de Vismark goat noar de Fjord Frituur. |
+| M26.12 | Berend Bos | snackwagen. Drie van de vijf. Het is krap. | snackwagen. Drij van de vief. t Is krap. |
+| M26.13 | Berend Bos | De standplaats op de Vismarkt gaat naar de snackwagen. | De standplaats op de Vismark goat noar de snackwagen. |
 | M26.13 | Berend Bos | En na afloop ga ik naar de politie, over twaalf augustus. Ik was belegeraar, geen getuige. Nu wel. | En noa afloop goa ik noar de pliesie, over twaalf augustus. Ik was belegeraar, gain getuige. Nou wel. |
 | M26.9 | Berend Bos | Elk jaar hetzelfde Ontzet. Ik verlies graag. | Elk joar t zulfde Ontzet. Ik verlaus graag. |
 

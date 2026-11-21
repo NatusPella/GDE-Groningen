@@ -42,7 +42,7 @@ Bron: `spullen.js` (`collect`) en wat het leest. Er is geen gewicht en er zijn g
 | Eten, snacks van de toonbank | 14 | 14 (`shopmodels3d.js`) | 0 | 14 van 14 |
 | Eten, gevangen vis | 29 | 0 | 29 (één generator) | 29 van 29 |
 | Kaarten en verzamelingen | 4 | 2 (spaarkaart, eierbal) | 2 (aanwijzingen, geheimpje) | 4 van 4 |
-| Upgrades (Escapade, fiets, scooter, Fjord Frituur) | 17 | 10 | 7 | 17 van 17 |
+| Upgrades (Escapade, fiets, scooter, snackwagen) | 17 | 10 | 7 | 17 van 17 |
 | **Totaal** | **100** | **60** | **40** | **100 van 100** |
 
 ### Item voor item
@@ -67,13 +67,13 @@ Bron: `spullen.js` (`collect`) en wat het leest. Er is geen gewicht en er zijn g
 | Fiets: Racebanden, Zeven versnellingen, Opgevoerde accu | ja (`band`, `versnelling`, `accu`) | hergebruikt |
 | Scooter: Grote remschijven, Plakkende banden | ja (`schijf`, `band`) | hergebruikt |
 | Scooter: Sportuitlaat | nee | nieuw: `uitlaat` |
-| Fjord Frituur: Tweede frituurpan, Grote voorraad, Avondopenstelling | ja (`frituur`, `pakket`, `lamp`) | hergebruikt |
-| Fjord Frituur: Grunneger mosterd, Bel die "moi" zegt, Neon-meeuw | nee | nieuw: `mosterd`, `bel`, `neonmeeuw` |
+| snackwagen: Tweede frituurpan, Grote voorraad, Avondopenstelling | ja (`frituur`, `pakket`, `lamp`) | hergebruikt |
+| snackwagen: Grunneger mosterd, Bel die "moi" zegt, Neon-meeuw | nee | nieuw: `mosterd`, `bel`, `neonmeeuw` |
 
 ### Wat er niet in zit, met reden
 
 - **Upgrades van boten, kano en zeil:** `BOAT_UPGRADES`, `PADDLE_UPGRADES` en `SAIL_UPGRADES` staan nog niet in Spullen (de lijst kent alleen auto,
-  fiets, scooter en de Fjord Frituur; een boot valt nu op de auto-lijst terug en toont dan een ruwe id). Zodra Spullen ze toont, krijgen ze via
+  fiets, scooter en de snackwagen; een boot valt nu op de auto-lijst terug en toont dan een ruwe id). Zodra Spullen ze toont, krijgen ze via
   `upgradeSpec('boot', id)` een model. Dat is een eigen wens, geen onderdeel van deze viewer. Opgenomen als `TERUGVAL` in `spullen3d.js`.
 - **Hengel, golf, padel, boerderij:** dit zijn gedragingen en activiteiten, geen dingen in je bezit; ze staan niet in de Spullen-tab en hebben
   dus geen tegel. Een gevangen vis staat er wel (29 modellen). Of hengel, club en racket als los voorwerp een tegel verdienen, is een eigen wens; deze ronde niet onderzocht.

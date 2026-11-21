@@ -551,7 +551,7 @@ S['M22.2'] = {
   open: [{ actor: 'tessa', face: 'prop:escapade' }, { actor: 'tammo', face: 'prop:escapade' }, { actor: 'henk', face: 'prop:escapade' }],
   beats: [
     { on: 'Het luik zit aan de zijkant', actor: 'henk', anim: 'point' },
-    { on: 'Dat is een Fjord Frituur', actor: 'tessa', anim: 'shrug' },
+    { on: 'Dat is een snackwagen', actor: 'tessa', anim: 'shrug' },
     { on: 'Een Escapade met een gat', actor: 'tammo', anim: 'point' },
     { on: 'Een karaktergat', actor: 'henk', anim: 'nod' },
     // WP6: de voordeur die meerijdt (zaadje van "een thuis op wielen" in M22.4)
@@ -595,8 +595,8 @@ S['M22.4'] = {
     // WP6: de jas uit O4 komt terug; het enige wat elke zomer hetzelfde bleef
     { on: 'En die jas in augustus', actor: 'tammo', anim: 'point' },
     { on: 'Mem zegt elke zomer jas', actor: 'tessa', anim: 'shrug' },
-    { on: 'De Fjord Frituur is een thuis', actor: 'tessa', face: 'prop:escapade' },
-    { on: 'De Fjord Frituur is een thuis', dt: 0.3, actor: 'tessa', anim: 'point' },
+    { on: 'De snackwagen is een thuis', actor: 'tessa', face: 'prop:escapade' },
+    { on: 'De snackwagen is een thuis', dt: 0.3, actor: 'tessa', anim: 'point' },
     { on: 'Ik ging niet weg', actor: 'tessa', walk: [[2.2, -0.2]], speed: 0.6 },
     { on: 'Ik ging niet weg', dt: 0.4, actor: 'tessa', face: 'actor:tammo' },
     // de omhelzing: Tammo loopt naar haar toe, ze leunen in elkaar en de trekker ratelt door
@@ -743,21 +743,21 @@ const vote = (extra) => ({
 });
 S['M26.10'] = vote([
   { on: 3, actor: 'jurylid', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
+  { on: 'Tam & Tes. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Tam & Tes. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Tam & Tes. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
   { on: 'Vijf van de vijf. Mijn juristen', actor: 'jelle', anim: 'shake' },
 ]);
 S['M26.11'] = vote([
   { on: 3, actor: 'jurylid', anim: 'shake' },
-  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vier van de vijf', actor: 'kind', anim: 'cheer' },
+  { on: 'Tam & Tes. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Tam & Tes. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Tam & Tes. Vier van de vijf', actor: 'kind', anim: 'cheer' },
 ]);
 S['M26.12'] = vote([
   { on: 3, actor: 'jurylid', anim: 'shake' },
-  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tessa', anim: 'nod' },
-  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tammo', anim: 'nod' },
+  { on: 'Tam & Tes. Drie van de vijf', actor: 'tessa', anim: 'nod' },
+  { on: 'Tam & Tes. Drie van de vijf', actor: 'tammo', anim: 'nod' },
   { on: 'Drie tegen twee', actor: 'jelle', anim: 'shrug' },
 ]);
 S['M26.13'] = {
@@ -837,7 +837,7 @@ S['M18.7'] = {
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 
-// --- M23 who rides next to the Fjord Frituur (M23.6 Wubbo, M23.7 Tinus, M23.8 Geesje) and M26 the streets they close (M26.14-16) ---
+// --- M23 who rides next to the snackwagen (M23.6 Wubbo, M23.7 Tinus, M23.8 Geesje) and M26 the streets they close (M26.14-16) ---
 const FRIEND = (key, x, gest) => ({ [key]: { key, at: [x, 0.3], face: 180, anim: 'idle', gest } });
 const friendOpen = (key) => [{ actor: 'tessa', face: `actor:${key}` }, { actor: 'tammo', face: `actor:${key}` }];
 const friendWide = (key) => WIDE([-5, 4, 3.2], [-3, 3, 2.4], `mid:${key},tessa@1`);
@@ -925,7 +925,7 @@ S['M21.intro'] = {
 };
 
 // M26.4 lines 7-13, the blokkade (missions_akte5.js: script M26.4 from 7 to 14, a stage scene after the chase): Durk and Douwe light
-// Berend's fireworks, Tessa sets the Fjord Frituur across the street, Jelle gets out of the limo with a speech and steps back
+// Berend's fireworks, Tessa sets the snackwagen across the street, Jelle gets out of the limo with a speech and steps back
 // over a pigeon into the water. The limo nose to the hatch; Jelle's splash is a world sound, he comes back up on the far side.
 S['M26.4#7-14'] = {
   cast: {
