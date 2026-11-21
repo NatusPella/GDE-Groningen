@@ -10,6 +10,7 @@ import { BUILD_ONLY } from './lib/buildonly.mjs';
 
 // bouw-only volgens de grafiek maar bewust niet uitgesloten
 const KEEP = {
+  'interiorscene.js': 'epic Interieurs (#1150, ronde 2): de koppeling voor missies en cutscenes in een gebouw; de aansluiting op de missies volgt',
   'voetbalclub_bezit.js': 'voetbalcarrière (#1131): de koppeling met Bezit (clubeigendom) volgt in de epic Bezit',
   'voetbalsamen.js': 'voetbalcarrière (#1131): de koppeling met Samen spelen (beloning per speler) volgt',
   'cooproles.js': 'coop (#95) wordt nog aangesloten',
