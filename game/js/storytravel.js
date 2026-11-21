@@ -82,7 +82,7 @@ export function rideOption(beat) {
   };
 }
 
-// per frame. ctx: { on, step, state.flags, busy, world, ask(beat)->Promise, ride(optie,dest)->Promise, script }
+// per frame. ctx: { on, step, state.flags, busy, world, ask(beat)->Promise (optional, #1091: without it no panel opens), ride(optie,dest)->Promise, script }
 export function tickStoryTravel(ctx) {
   const { on, step, flags, world: w, ask, script } = ctx;
   if (!on || !step || step.end) return;
@@ -107,6 +107,9 @@ export function tickStoryTravel(ctx) {
   const d = decideTravel({ on, beat, handled: flags.has(REIS_FLAG(step.id)), busy: ctx.busy, dist, progress, moving });
   if (d === 'sla-over') { flags.add(REIS_FLAG(step.id)); tripStart.delete(step.id); return; }
   if (d !== 'vraag') return;
+  // #1091: zonder ask() geen keuzescherm met 1, 2 en 3: de stap is afgehandeld en de lichte hint (ovhintlive.js) wijst op taxi en OV;
+  // de bewuste keuze blijft op de kaart (Reis erheen). Zelf rijden of lopen is gewoon het spel.
+  if (typeof ask !== 'function') { flags.add(REIS_FLAG(step.id)); tripStart.delete(step.id); return; }
   asking = true;
   Promise.resolve(ask(beat)).then((choice) => {
     flags.add(REIS_FLAG(step.id));

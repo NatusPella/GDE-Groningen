@@ -10,6 +10,7 @@ import { withEllipsisAliases, voiceSpeaker } from '../game/js/voicebank.js';
 import { VIGNETTEN } from '../game/js/terugkeerscenes.js';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
+import { OV_HINT_REGELS } from '../game/js/ovhintlines.js';
 import { STEPS, PARTS, SPEAKERS } from '../game/js/storyarc.js';
 import { SMS_SAY, smsSpeaker, smsSpoken, cardSpoken } from '../game/js/smsvoice.js';
 import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT, RV_SCENES } from '../game/js/rondvaartlines.js';
@@ -413,6 +414,8 @@ export function collect() {
     if (!gameSrc.includes(t.replace(/'/g, '\\\'')) && !gameSrc.includes(t)) throw new Error(`cardlines.js COMPANION_CARDS: not in the game any more: ${t}`);
     hint(t);
   }
+  // de lichte OV-/taxihint (#1091, ovhint.js): het andere personage zegt `say` (zonder toets), in de hints-bank
+  for (const r of OV_HINT_REGELS) hint(r.say);
 
   // --- de nieuwe missiebestanden (missions_nieuw.js, missions_akte2/4/5/6.js): de doelregels (`say:`) die de partner
   // voorleest (hints-bank, zoals de regels van missions.js) en de vragen van de keuzegesprekken (lines-bank; de
