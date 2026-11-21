@@ -7,7 +7,7 @@ import {
   validScope, REPUTATION_KEY, RANGES, PRICE_SWING,
 } from '../game/js/reputation.js';
 import { KEYS } from '../game/js/storagekeys.js';
-import { noteService, noteHelp, jelleMirror, reputationView, BYSTANDER_LINES, JELLE_MIRROR } from '../game/js/reputation.js';
+import { noteService, noteHelp, jelleMirror, reputationView, CROWD_LINES, JELLE_MIRROR } from '../game/js/reputation.js';
 import { setReputationStorage, recordService, recordHelp, currentReputation, reputationNow } from '../game/js/reputationlive.js';
 
 let n = 0, fails = 0;
@@ -73,7 +73,7 @@ ok(h.kind === 50 && h.fame === 100 && reputationOf(h, 'buurt:markt') === 20, 've
 
 // lezen: een andere zin, Jelle spiegelt, de rij; nooit een slot
 const laag = { fame: 0, kind: -40 }, hoog = { fame: 90, kind: 40 };
-ok(reputationView(laag).line === BYSTANDER_LINES[0] && reputationView(hoog).line === BYSTANDER_LINES[2] && reputationView(emptyReputation()).line === BYSTANDER_LINES[1], 'een bijpersoon zegt een andere zin bij een andere stand');
+ok(reputationView(laag).line === CROWD_LINES[0] && reputationView(hoog).line === CROWD_LINES[2] && reputationView(emptyReputation()).line === CROWD_LINES[1], 'een bijpersoon zegt een andere zin bij een andere stand');
 ok(jelleMirror(emptyReputation()) === '' && jelleMirror({ fame: 45, kind: 0 }) === JELLE_MIRROR[0] && jelleMirror(hoog) === JELLE_MIRROR[1], 'Jelle spiegelt pas bij een bekende wagen');
 ok(reputationView(hoog).queue > reputationView(laag).queue && reputationView(hoog, 'markt').price < 1 && reputationView(laag).price > 1, 'een langere rij en een prijs die hoogstens 5% afwijkt');
 ok(Math.abs(reputationView(hoog, 'markt').price - 1) <= PRICE_SWING && Math.abs(reputationView(laag).price - 1) <= PRICE_SWING, 'de prijs wijkt nooit meer dan 5% af');

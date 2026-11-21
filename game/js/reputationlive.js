@@ -3,10 +3,10 @@
 // Een kapotte of ontbrekende opslag is geen fout: de reputatie blijft dan op nul.
 import { loadReputation, saveReputation, noteService, noteHelp, reputationView } from './reputation.js';
 
-let override = null;
-export const setReputationStorage = (s) => { override = s; };           // voor tests
+let injected = null;
+export const setReputationStorage = (s) => { injected = s; };           // voor tests
 const store = () => {
-  if (override) return override;
+  if (injected) return injected;
   try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; }
 };
 

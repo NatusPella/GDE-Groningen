@@ -115,7 +115,7 @@ export function noteHelp(state, spot, size = 1) {
   return /^[a-z0-9 -]{1,30}$/i.test(String(spot || '')) ? noteReputation(s, `buurt:${spot}`, 3 * w) : s;
 }
 // Een bijpersoon bij de wagen zegt iets anders; de zinnen zijn verzonnen en kort. [laag, midden, hoog] naar vriendelijkheid, met de buurt erbij.
-export const BYSTANDER_LINES = [
+export const CROWD_LINES = [
   'Die wagen? Ja, die staat er. Ik heb hem nog niet geprobeerd.',
   'Ik hoor goede dingen over die frietwagen.',
   'Ik ben speciaal voor uw friet gekomen. Iedereen praat erover.',
@@ -133,6 +133,6 @@ export function jelleMirror(state) {
 // Alles wat de wagenpagina toont, in één keer: de zin, Jelles spiegel en de rij (een getal voor NPC's, geen inkomen).
 export function reputationView(state, spot = null) {
   const scope = spot && isNeighbourhoodScope(`buurt:${spot}`) ? `buurt:${spot}` : null;
-  const line = reputationLine(state, BYSTANDER_LINES, 'kind');
+  const line = reputationLine(state, CROWD_LINES, 'kind');
   return { fame: reputationOf(state, 'fame'), kind: reputationOf(state, 'kind'), buurt: scope ? reputationOf(state, scope) : 0, line, jelle: jelleMirror(state), queue: queueLength(state), price: priceFactor(state, scope) };
 }
