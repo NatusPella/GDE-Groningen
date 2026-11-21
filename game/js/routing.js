@@ -531,7 +531,7 @@ function busyTarget(world) {
   // a minigame on the spot (padel, carbid, the kermis): no route to anything else meanwhile
   if (playerBusy(world, ['padel', 'activityGame']).busy) return null;
   const job = world.sideJob;
-  if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
+  if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label, strict: !!job.marker.strict } : null;
   const m = world.mission;
   if (m && m.marker && m.phase === 'active') return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return undefined;
@@ -928,7 +928,8 @@ function landRoute(world, target, mode, p) {
   const lvlTo = { z: Number.isFinite(target.z) ? target.z : 0, pen: Number.isFinite(target.z) ? LEVEL_PEN_START_M : LEVEL_PEN_TARGET_M / 2 };
   let to = snapToRoad(map, target.x, target.y, kind, lvlTo);
   let graphMode = driveOnly ? (avoid ? 'driveAvoid' : 'drive') : kind;
-  if (prefs.fastest) graphMode = driveOnly ? (avoid ? 'driveSoftAvoid' : 'driveSoft') : kind + 'Soft';
+  // de snelste route (met toeslagen) is voor de speler- en GPS-lijn; een buslijn (target.strict) volgt de strikte graaf: busbaan, richting, haltevolgorde
+  if (prefs.fastest && !target.strict) graphMode = driveOnly ? (avoid ? 'driveSoftAvoid' : 'driveSoft') : kind + 'Soft';
   let compromise = null, carTo = null;
   // targets in car-free areas (Grote Markt, Poelestraat): drive along the
   // streets as close as possible, the last bit over the pedestrian area
