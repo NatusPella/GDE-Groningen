@@ -87,6 +87,24 @@ ok(geraakt('game/js/achievementsui.js', 'ds-m-rij', 'ds-m-glans'), 'het prestati
 ok(geraakt("game/js/pausemenu.js", "ds-m-tabs", "trackTabLine", "ds-m-nieuw") && geraakt("game/js/hudcards.js", "ds-m-overshoot") && geraakt("game/js/hud_panel.js", "ds-m-tik", "tikGetal") && geraakt("game/js/hud_panel.css", "var(--ds-m-stempel)"), "de eerste set staat erin: pauzemenu-tabs en stippen, HUD-kaarten, geldteller en doelkaart");
 ok(/\[unreleased\]/i.test(lees('CHANGELOG.md')) && /Microanimaties/.test(lees('CHANGELOG.md')), 'de changelog noemt de microanimaties');
 
+// 5b. meldingen: een tijdelijke melding hoort een aflopend balkje te hebben (DESIGN_SYSTEM.md, "Meldingen: duur en aflopend balkje").
+// Een bestand dat een element laat verdwijnen met .add('out') op een timer is een tijdelijke melding; het staat in NOTICE_TYPES (game/js/noticetiming.js),
+// met een balkje, of met een reden waarom niet (kritiek, eigen regie, geen melding). Een nieuw bestand dat zo werkt zonder register, faalt hier.
+{
+  const reg = await import('../game/js/noticetiming.js');
+  const inReg = new Set(reg.NOTICE_TYPES.map((t) => t.bestand));
+  const tijdelijk = fs.readdirSync(path.join(ROOT, 'game/js')).filter((f) => f.endsWith('.js')).filter((f) => { const t = lees('game/js/' + f); return /classList\.add\('(out|uit)'\)/.test(t) && /setTimeout|\.left -= dt|until/.test(t); });
+  const mist = tijdelijk.filter((f) => !inReg.has(f));
+  ok(mist.length === 0, 'elke tijdelijke melding staat in NOTICE_TYPES (met balkje, of met een reden)', mist.join(', '));
+  for (const t of reg.NOTICE_TYPES) {
+    if (!t.balk) ok(typeof t.reden === 'string' && t.reden.length >= 20, 'melding zonder balkje heeft een reden: ' + t.id);
+    else ok(/ds-melding|noticeBar|runNoticeTimer/.test(lees('game/js/' + t.bestand)), 'melding met balkje gebruikt het gedeelde balkje: ' + t.id);
+  }
+  const css = lees('game/js/ds-melding.css');
+  ok(/transform: scaleX\(0\)/.test(css) && !/@keyframes ds-melding-tijd[^}]*(width|left|right)/.test(css), 'het balkje loopt alleen met transform');
+  ok(/steps\(var\(--ds-melding-stappen/.test(css), 'het balkje loopt bij Beweging beperken in stappen, en blijft zichtbaar');
+}
+
 // 6. de lezer van de css zelf
 ok(leesCss('@media (a) { .x { color: red; } } .y { top: 0; } @keyframes k { from { opacity: 0; } }').regels.length === 2, 'de css-lezer leest regels in en buiten @media');
 ok(microKlassen(micro).includes('ds-m-binnen') && microKlassen(micro).includes('ds-moment-stempel'), 'microKlassen vindt de klassen met beweging');

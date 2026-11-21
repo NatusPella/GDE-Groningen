@@ -676,6 +676,35 @@ The hard limit of 250 ms stays for every micro animation (`--ds-m-*`; the releas
 
 **Where it is applied (first set).** Pause-menu tabs (sliding underline, pop of the new dot on tabs and rail), HUD cards (`.ds-m-overshoot`), the money counter in the HUD (`.ds-m-tik` on money coming in), the objective card (the swap now runs on the tokens: 250 ms, the stamp easing, off under reduced motion), the achievement toast, the achievement menu (rows, chips, bars, counters, the button *Bekijk in de lijst*). Still to move over: the other `.ds-z-balk__vul` bars (their width transition predates this rule), the phone card and the other menus' rows.
 
+### Meldingen: duur en aflopend balkje
+
+The owner's wish (21 November): *some HUD items have a bar that runs down, so you know when a notice goes away; almost all notices may have that and stay in view about equally long, so you have time to read and you know when it goes.* One building block does it for every temporary notice: `game/js/noticetiming.js` (pure: duration, timer, queue, the register `NOTICE_TYPES`), `game/js/melding.js` (the DOM side: `noticeBar`, `runNoticeTimer`, `adjustRemaining`) and `game/js/ds-melding.css`. The inventory of every notice type is in [docs/MELDINGEN-21-11.md](docs/MELDINGEN-21-11.md).
+
+**Duration classes** (tokens `--ds-melding-*` in `ds-tokens.css`, kept equal to `DURATION_CLASSES` by `scripts/meldingtijd_test.mjs`):
+
+| Class | Time | For |
+|---|---|---|
+| `kort` | 4 s | a name, a few words, a menu notice, a queue with two or more waiting |
+| `normaal` | 6 s | one short sentence or a tip |
+| `lang` | 9 s | an explanation, or a sentence that teaches a key |
+| max | 10 s | the ceiling; a longer text lives in the text log (Pause > Help) |
+
+The time for a text is `2 s + characters / 15`, limited to 4 to 10 s and then rounded **up** to a class, so all notices have one of four durations. A notice that names a class keeps it as a floor; the text may lengthen it, never shorten it (a sentence is never cut before it can be read). Reading times are not animations: they do not go to 0 under "Beweging beperken".
+
+**The bar** (`.ds-melding__tijd`, inside an element with `.ds-melding`): 4 px (`--ds-melding-balk-h`) at the bottom edge, full at first and empty at the end, linear, moved **only with `transform: scaleX`** (never `width`); the duration is `--ds-melding-duur` on the notice, one of the four classes. Colour from tokens: **board green** (`--ds-melding-balk`) by default, **red** (`--ds-melding-balk-waarschuwing`, `.ds-melding--waarschuwing`) for danger and police, a light green (`--ds-melding-balk-donker`, `.ds-melding--donker`) on a dark card; **never yellow** (reserved). A critical notice (`.ds-melding--kritiek`, or a card that waits for a click) has no bar and closes with a button or a key; today that is the frame error and a card under "Leestijd: geen timer".
+
+**Pause and hover.** The timer stops while the game is paused, the pause menu is open, a cutscene hides the HUD (`cine-hide-hud`), a story call or subtitle holds the card back, or the player hovers over the notice (`.ds-melding--hover`, only for a notice that may take the pointer, today the achievement toast; HUD cards stay click-through to the world on purpose, #801). While it stands still the bar stands still (`.ds-melding--pauze`, `animation-play-state: paused`). A notice that belongs to a film (the name card) keeps running during that film (`film: false`).
+
+**Queue.** At most `max` visible (HUD cards: one), the rest wait in order of priority (`precedence`: critical, then higher priority, then the oldest); with two or more waiting, a notice that comes out of the queue is `kort` (`queueDuration`), and the one that is up is shortened only after it was readable for 3 s (`shortening`, the bar follows through `adjustRemaining`). A notice stays inside its zone (`hudstack.js`, `hudrules.js`): no overlap with other zones.
+
+**Reduced motion (decided).** The bar is information, not decoration: under "Beweging beperken", Rustig drukwerk and `prefers-reduced-motion` it stays visible and runs **in ten steps** (`steps(var(--ds-melding-stappen), end)`) instead of smoothly. The reading time does not change. Rejected: hiding the bar (the player no longer knows when it goes) and a static bar (it says nothing about what is left).
+
+**Screen reader.** The bar is `aria-hidden`; the text stays in the existing `aria-live` regions (the card stack, the toast, the menu notice). No new live region: one voice per notice.
+
+**Exceptions (with a reason, in `NOTICE_TYPES`).** The frame error (critical), the end card and big moments (their own direction and skip), banners, the district card and landmark shot (a cinematic moment), subtitles (their own reading time: the length of the spoken line), the saved tick (a 2 s status symbol), the loading screen, and the stunt brief (the activity decides; a follow-up). `scripts/ds3_dekking_test.mjs` fails a new file that removes an element with `.add('out')` on a timer and is not in the register.
+
+**Samen spelen.** Notices are local per player: nothing is synced or sent over the net; a guest sees only their own cards, toasts and bars.
+
 ### Rules for components (additions to the checklist)
 
 1. **No loose hex.** `ds-components.css` has no hex, `rgb()` or `hsl()`; only `var(--ds-...)`. `ds-tokens.css` has hex only as palette (`--ds-c-*`) and `rgba()` only in a shadow. New screens use the roles, not the palette.

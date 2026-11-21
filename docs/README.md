@@ -78,6 +78,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [INTOCHT.md](<INTOCHT.md>) | De intocht na een verovering: wachtrij, acht scènes, terugkijken en de host-only-regel (#704). |
 | [KAART-GEBIEDEN-20-11.md](<KAART-GEBIEDEN-20-11.md>) | Kaart en minikaart: kleuren uit de ds-tokens (`kaartkleuren.js`) en de vier gebiedstoestanden (onzichtbaar, zichtbaar, bezig, veroverd). Naslag; de kaartregels staan in de specs wereld en ui-taal. |
 | [KANALEN.md](<KANALEN.md>) | Input voor #92 (minder ruis, meer visuele communicatie), uit #104 (één planner). Dit bestand wordt gemaakt… |
+| [MELDINGEN-21-11.md](<MELDINGEN-21-11.md>) | Meldingen: inventaris van alle tijdelijke meldingen, de vier duurklassen (4, 6, 9, 10 s), het aflopende balkje, pauze en hover, en het besluit voor Beweging beperken. Naslag bij DESIGN_SYSTEM.md en ui-taal.md. |
 | [LEEFTIJD.md](<LEEFTIJD.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [LEGAL-AI-ASSETS.md](<LEGAL-AI-ASSETS.md>) | Dit is geen juridisch advies. Het is een leesverslag door een AI-assistent |
 | [LICENTIES.md](<LICENTIES.md>) | Stand van 3 oktober 2026. Dit is een inventaris en een advies, geen |

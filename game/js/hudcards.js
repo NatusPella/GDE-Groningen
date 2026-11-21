@@ -36,7 +36,9 @@ import { hoofdspeler } from './players.js';
 import { sfeerVan, sfeerStijl } from './carrieresfeer.js'; // #631: de sfeerband van de bijbaan op de kaart
 import { getSettings } from './settings.js';
 import { keyTextHtml, hasKeyText } from './keycap.js';
-import { cardSeconds, stickyCard } from './cardtime.js';
+import { stickyCard } from './cardtime.js';
+import { cardDuration } from './noticetiming.js'; // 4 / 6 / 9 / 10 s, voor alle meldingen gelijk
+import { adjustRemaining } from './melding.js'; // het aflopende balkje loopt mee als de rest verandert
 import { addCardLog, cardLogText } from './cardlog.js';
 import { opschuiven } from './microinteractions.js';
 
@@ -209,7 +211,7 @@ export function showCard(w, spec) {
   // #801: 'Leestijd' in Instellingen > Hints & uitleg; bij 'geen timer' wacht een
   // belangrijke kaart op een klik of Enter in plaats van vanzelf te verdwijnen.
   const mode = getSettings().readingTime || 'normaal';
-  const secs = cardSeconds({ textSeconds: readingSeconds(all), duration: spec.duration || 0, mode });
+  const secs = cardDuration({ textSeconds: readingSeconds(all), duration: spec.duration || 0, mode });
   const icon = spec.icon || (kind === 'missie' ? missionCardIcon(world, `${title} ${body} ${spec.kicker || ''}`) : null);
   const card = { spec: { ...spec, kind, title, body, icon }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
@@ -244,17 +246,19 @@ function cardHtml(c) {
     : '';
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
     `<div class="hc-text"><small>${esc(kicker)}</small>${band}${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
-    (c.sticky ? '<i class="hc-timer"></i><i class="hc-close">Klik of druk op Enter</i>' : '<i class="hc-timer"></i>');
+    (c.sticky ? '<i class="ds-melding__tijd hc-timer" aria-hidden="true"></i><i class="hc-close">Klik of druk op Enter</i>' : '<i class="ds-melding__tijd hc-timer" aria-hidden="true"></i>');
 }
 
 const zoneOf = (c) => cardZone(c.spec.kind);
+// gevaar en politie: het balkje is rood (ds-melding.css); de rest bordgroen
+const waarschuwing = (c) => (c.spec.kind === 'gevaar' || c.spec.kind === 'politie' ? ' ds-melding--waarschuwing' : '');
 
 function mount(c) {
   const el = document.createElement('div');
-  el.className = 'hud-card ds-mi-in ds-m-overshoot'; // ds-motion.css: inschuiven, staan, uitfaden; ds-micro.css: met een lichte overshoot (DS3)
+  el.className = 'hud-card ds-mi-in ds-m-overshoot ds-melding' + waarschuwing(c); // ds-motion.css: inschuiven, staan, uitfaden; ds-micro.css: met een lichte overshoot (DS3)
   el.dataset.kind = c.spec.kind;
   el.innerHTML = cardHtml(c);
-  if (!c.sticky) el.style.setProperty('--hc-dur', `${c.secs}s`);
+  if (!c.sticky) el.style.setProperty('--ds-melding-duur', `${c.secs}s`);
   if (c.sticky) el.classList.add('sticky');
   (zoneOf(c) === 'E' ? stackE : stackEl).appendChild(el);
   el.addEventListener('click', (ev) => {
@@ -281,7 +285,8 @@ function refresh(up, c) {
   up.el.dataset.kind = c.spec.kind;
   up.el.innerHTML = cardHtml(up);
   if (c.sticky) up.el.classList.add('sticky');
-  else { up.el.classList.remove('sticky'); up.el.style.setProperty('--hc-dur', `${c.secs}s`); }
+  else { up.el.classList.remove('sticky'); up.el.style.setProperty('--ds-melding-duur', `${c.secs}s`); }
+  up.el.classList.toggle('ds-melding--waarschuwing', waarschuwing(up) !== '');
   up.el.classList.remove('bump');
   requestAnimationFrame(() => up.el.classList.add('bump'));
 }
@@ -338,6 +343,7 @@ function tryHint(c) {
   voicedAt.set(h.key, world.time);
   lastVoiceAt = world.time;
   c.left = Math.max(c.left, h.v.dur + 0.6);
+  adjustRemaining(c.el, c.left);
 }
 
 // #801: het tekstlog openen als gewone (sticky) kaart; de les blijft daarna
@@ -381,6 +387,7 @@ export function updateCards(dt, w) {
   stackEl.classList.toggle('hc-held', held);
   const frozen = hudHidden() || w.paused || w.uiPaused || held || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
+  if (stackE) stackE.classList.toggle('paused', !!frozen); // het balkje van een E-kaart staat dan ook stil
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
   if (frozen) return;
   // during a phone call only dangers and the police get a card
@@ -437,5 +444,5 @@ export function updateCards(dt, w) {
   const weakest = up.filter((c) => zoneOf(c) === zoneOf(next) && CARD_KINDS[c.spec.kind].rank < CARD_KINDS[next.spec.kind].rank).sort((a, b) => a.left - b.left)[0];
   if (weakest) leave(weakest);
   // a waiting queue shortens the card that is up (but it stays readable)
-  else { const old = up.find((c) => zoneOf(c) === zoneOf(next) && c.secs - c.left > 3 && c.left > 1); if (old) old.left = Math.min(old.left, 1); }
+  else { const old = up.find((c) => zoneOf(c) === zoneOf(next) && c.secs - c.left > 3 && c.left > 1); if (old) { old.left = Math.min(old.left, 1); adjustRemaining(old.el, old.left); } }
 }

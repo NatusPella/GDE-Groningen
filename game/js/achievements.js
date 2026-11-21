@@ -21,6 +21,8 @@ import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
 import { planPrestatie, queueStep, verblijfS, samenvattingTekst, balkTekst } from './achievementunlock.js'; // de prestatie als moment (wens 21-11)
 import { calmState, tikGetal } from './dsmicro.js';
+import { runNoticeTimer } from './melding.js'; // het gedeelde aflopende balkje van alle meldingen
+import { toClass } from './noticetiming.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
 
 const KEY = KEYS.achievements;
@@ -322,6 +324,7 @@ let toastEl = null;
 let toastQueue = [];
 let toastUntil = 0;
 let toastTimer = 0;
+let toastMeld = null; // melding.js: het balkje en de timer van de kaart die nu staat
 let toastBurst = 0;      // hoeveelste prestatiekaart van deze reeks (0 = de eerste: een volle kaart; queueStep)
 let momentTimers = [];   // geluid, balk, teller en glans van de kaart die nu staat
 
@@ -813,7 +816,7 @@ function ensureToast() {
   style.textContent = CSS + CSS_EXTRA;
   document.head.appendChild(style);
   toastEl = document.createElement('div');
-  toastEl.className = 'ach-toast ds-mi-in';
+  toastEl.className = 'ach-toast ds-mi-in ds-melding';
   toastEl.setAttribute('role', 'status');
   toastEl.setAttribute('aria-live', 'polite');
   hud.appendChild(toastEl);
@@ -906,13 +909,22 @@ function showNextToast() {
   if (plan.impact) momentTimers.push(...momentStappen(el, plan));
   toastUntil = 1;
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    wisMomentTimers();
-    el.classList.remove('on', 'ds-moment-stempel');
-    el.classList.add('out');
-    zones.vacate('E', 'ach');
-    toastTimer = setTimeout(() => { if (!toastQueue.length) toastBurst = 0; showNextToast(); }, 450);
-  }, verblijfS(toastDuur(samen ? samen.titel : a.title, tekst), stap.variant) * 1000);
+  if (toastMeld) toastMeld.stop();
+  // De kaart houdt zijn eigen moment (ds-micro.css) en krijgt het gedeelde aflopende balkje (melding.js): de tijd staat stil bij
+  // pauze, menu, film en als de muis erboven staat. De duur is een gedeelde klas (4 / 6 / 9 / 10 s).
+  toastMeld = runNoticeTimer(el, {
+    duur: toClass(verblijfS(toastDuur(samen ? samen.titel : a.title, tekst), stap.variant)),
+    soort: 'donker',
+    hover: true,
+    staat: () => !!(world && (world.paused || world.uiPaused)),
+    onKlaar: () => {
+      wisMomentTimers();
+      el.classList.remove('on', 'ds-moment-stempel');
+      el.classList.add('out');
+      zones.vacate('E', 'ach');
+      toastTimer = setTimeout(() => { if (!toastQueue.length) toastBurst = 0; showNextToast(); }, 450);
+    },
+  });
 }
 
 // De timers van het moment (geluid, balk, teller, glans): bij een nieuwe kaart of het vertrek allemaal weg.
