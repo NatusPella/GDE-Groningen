@@ -571,10 +571,9 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   slides in under it and the boot screen fades out over it
   (`dismissLoading`). The first tiles round the save are prewarmed meanwhile.
 - Load screen (`loadscreen.js` + `.css`): Ken Burns picture from `img/laad/`
-  (the game's own renders), logo, "Eerder in het verhaal" from the part's
-  recap, the "Je gaat verder in" card and a progress bar from
-  `scene3d.js streamPending()`; one short text line at a time rotates in the
-  tip slot (where you are going or the story so far, then tips). Shown when loading a save (Doorgaan) and by
+  (the game's own renders), logo, the "Je gaat verder in" card and a progress bar from
+  `scene3d.js streamPending()` with ONE status line under it (text diet 21-11: no tips,
+  no story recap, no "Stap n van m"). Shown when loading a save (Doorgaan) and by
   `watchJumps` (main.js) for a jump over 700 m outside cutscenes.
 - `node scripts/hud_test.mjs` checks the rules, the turn finder and the
   access table.

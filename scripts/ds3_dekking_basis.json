@@ -395,17 +395,6 @@
   "emoji": 0,
   "svg": 0
  },
- "game/js/loadscreen.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 0,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 1
- },
  "game/js/loopbaanui.js": {
   "kleur": 0,
   "glas": 0,

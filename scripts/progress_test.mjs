@@ -54,7 +54,6 @@ const pm = lees('pausemenu.js');
 const ssl = lees('saveslotsui.js');
 const css = lees('pausemenu.css');
 const hcss = lees('hud_panel.css');
-const scss = lees('saveslots.css');
 // eigenaar 20-11 (#985): de voortgang staat niet meer in de HUD, alleen in het menu (Overzicht) en het savegame-overzicht
 ok(!/from '\.\/progresslive\.js'/.test(hud) && !/hud-done/.test(hud) && !/updateProgress\(/.test(hud), 'de HUD toont de totale voortgang niet meer (geen chipje, geen progresslive)');
 ok(!/hud-done/.test(hcss), 'het chipje heeft geen stijl meer');
@@ -64,12 +63,9 @@ ok(/from '\.\/progresslive\.js'/.test(pm) && /gameProgress\(\)/.test(pm), 'het O
 ok(/pm-progress/.test(pm) && /querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat boven aan de scrollende inhoud van Overzicht (#965)');
 ok(/#pause-menu \.pm-progress \{/.test(css), 'het voortgangsblok heeft een eigen stijl');
 
-ok(/saveProgress/.test(ssl) && /ssl-prog/.test(ssl), 'elke savekaart laat het voortgangspercentage van dat spel zien');
-// review 0.62: op de kleine kaart stond alleen "X%", terwijl de HUD en het Overzicht het
-// samengestelde cijfer tonen. Het label zegt nu zichtbaar dat dit het verhaal van die save is.
-ok(/ssl-prog[\s\S]{0,220}%\s*verhaal/.test(ssl), 'de kleine savekaart noemt zichtbaar dat het percentage over het verhaal gaat');
+// tekstdieet 21-11: de kleine savekaart toont geen percentage meer (naam, speeltijd, plek, datum); de grote Doorgaan-knop wel, met het label "verhaal"
+ok(/saveProgress/.test(ssl) && !/class="ssl-prog"/.test(ssl), 'de savekaart heeft geen voortgangsbalk meer');
 ok(/ssl-hero-prog/.test(ssl) && /% verhaal/.test(ssl), 'de grote Doorgaan-knop noemt het verhaalpercentage');
-ok(/#saveslots \.ssl-prog/.test(scss), 'het balkje op de savekaart heeft een eigen stijl');
 
 // geen tweede waarheid: nergens anders wordt het percentage opnieuw uitgerekend
 ok(!/getStorySteps\(\)\.filter\(\(s\) => s\.available\)/.test(pm), 'het menu rekent het verhaalpercentage niet zelf uit');

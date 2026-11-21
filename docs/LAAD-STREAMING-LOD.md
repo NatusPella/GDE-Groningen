@@ -229,7 +229,7 @@ Niet geverifieerd in beeld.
 
 De balk van het eerste laadscherm kent sinds opdracht 21-11 alle stappen van het opstarten (`BOOT_STEPS`, `bootPlan` in
 `game/js/loadlogic.js`) en staat pas vol als de laatste stap klaar is. `main.js` meldt elke stap met `setBootStep(id, deel)`;
-`startscreen.js` tekent balk, streepjes, "Stap n van m" en de zin van de stap. Stappen die een run niet heeft (testrun zonder
+`startscreen.js` tekent balk, streepjes en de ene statusregel met de zin van de stap (geen "Stap n van m"). Stappen die een run niet heeft (testrun zonder
 warm-up, openingsbeelden alleen met `?warmfilm`, geen geluid met `?stil`) vallen uit het plan; de gewichten worden dan opnieuw tot 1 geschaald.
 
 | Stap | Wat er gebeurt | Voortgang binnen de stap |
