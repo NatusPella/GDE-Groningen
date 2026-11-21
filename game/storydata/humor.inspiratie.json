@@ -5,7 +5,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Pointe landt op Tammo, droog en zonder uitleg.",
+    "certainty": "midden"
+   },
    "id": "HI-01",
    "scene": "M06.0",
    "speaker": "VELDKAMP",
@@ -21,8 +29,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     2
+    ],
+    "reason": "Kort, onhandig-lief en praktisch.",
+    "certainty": "laag"
+   },
    "id": "HI-02",
    "scene": "O1",
    "speaker": "TAMMO",
@@ -39,7 +55,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Praktisch, droog en korter dan de karakter-variant.",
+    "certainty": "hoog"
+   },
    "id": "HI-03",
    "scene": "B1.1",
    "speaker": "TAMMO",
@@ -56,7 +80,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Korte zelfspot, pointe laatste.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "HI-04",
    "scene": "B1.2",
    "speaker": "TAMMO",
@@ -73,7 +106,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Absurde non-uitleg waar Tessa's reactie precies op past.",
+    "certainty": "midden"
+   },
    "id": "HI-05",
    "scene": "B1.3",
    "speaker": "TAMMO",
@@ -89,8 +130,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     1
+    ],
+    "reason": "Eén woord is het beste ritme voor een onderbreking.",
+    "certainty": "hoog"
+   },
    "id": "HI-06",
    "scene": "B2.1",
    "speaker": "TAMMO",
@@ -107,7 +156,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Past bij zeventig jaar Oma en is warm en droog.",
+    "certainty": "hoog"
+   },
    "id": "HI-07",
    "scene": "B2.2",
    "speaker": "TAMMO",
@@ -124,7 +181,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Huurcontract is de droge anticlimax op zijn liefdesverklaring.",
+    "certainty": "midden"
+   },
    "id": "HI-08",
    "scene": "M10.5",
    "speaker": "TESSA",
@@ -141,7 +206,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     2,
+     0,
+     1
+    ],
+    "reason": "Droge onverwachte onderwerpskeuze, korte pointe.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "HI-09",
    "scene": "T2",
    "speaker": "TAMMO",
@@ -158,7 +232,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Onschuldig-schuldig en deadpan, laat de duif het werk doen.",
+    "certainty": "hoog"
+   },
    "id": "HI-10",
    "scene": "M15.6",
    "speaker": "TAMMO",
@@ -175,7 +257,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Droge terugtrekker met kicker Een park.",
+    "certainty": "midden"
+   },
    "id": "HI-11",
    "scene": "B3.1",
    "speaker": "TAMMO",
@@ -192,7 +282,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     1,
+     0,
+     0
+    ],
+    "reason": "Eigen eenheid zonder gezwam; Tessa's reactie klopt.",
+    "certainty": "midden"
+   },
    "id": "HI-12",
    "scene": "B3.2",
    "speaker": "TAMMO",
@@ -209,7 +307,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Onverwacht scherp en bescheiden, Tammo-achtig.",
+    "certainty": "hoog"
+   },
    "id": "HI-13",
    "scene": "B3.3",
    "speaker": "TAMMO",
@@ -225,8 +331,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     "neutral"
+    ],
+    "reason": "Kort vakmanschap zonder uitleg.",
+    "certainty": "midden"
+   },
    "id": "HI-14",
    "scene": "M17.5",
    "speaker": "STIEN",
@@ -242,8 +356,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     0,
+     1
+    ],
+    "reason": "Droog en scherp, past bij tien jaar en ziet alles.",
+    "certainty": "laag"
+   },
    "id": "HI-15",
    "scene": "B4.2",
    "speaker": "TAMMO",
@@ -260,7 +382,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Sluit exact aan op de herhaling in HI-17.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "HI-16",
    "scene": "M25.6",
    "speaker": "OMA TRIJNTJE",
@@ -277,7 +408,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Kind zegt het ongezouten, Tammo en Tessa weten het niet.",
+    "certainty": "hoog"
+   },
    "id": "HI-17",
    "scene": "M25.6",
    "speaker": "LIEKE",
@@ -294,7 +433,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Oma rechttoe rechtaan, lokt Tammo's zwijgen uit.",
+    "certainty": "hoog"
+   },
    "id": "HI-18",
    "scene": "M25.6",
    "speaker": "OMA TRIJNTJE",

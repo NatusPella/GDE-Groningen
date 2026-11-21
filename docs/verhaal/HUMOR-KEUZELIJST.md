@@ -15,6 +15,9 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 - **H5-08** (E2, TAMMO): gekozen "Dat zegt hij heel hard."; paneelsplit 1-1-1, zekerheid laag. Dat zegt hij heel hard: droge correctie op Rikus.
 - **H5-09** (E2, TAMMO): gekozen "Wij bakken door."; paneelsplit 1-1-1, zekerheid laag. Zelfde maat als Tessa, kort.
 - **H6-01** (M27.1, WILLEMIEN): gekozen "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd."; paneelsplit 1-1-1, zekerheid laag. Concreet en vaste-klant-gevoel, derde in de rij.
+- **HI-04** (B1.2, TAMMO): gekozen "Het was het enige."; paneelsplit 1-1-1, zekerheid laag. Korte zelfspot, pointe laatste.
+- **HI-09** (T2, TAMMO): gekozen "Ik droomde over verkeer."; paneelsplit 1-1-1, zekerheid laag. Droge onverwachte onderwerpskeuze, korte pointe.
+- **HI-16** (M25.6, OMA TRIJNTJE): gekozen "Dan gaan ze er later in."; paneelsplit 1-1-1, zekerheid laag. Sluit exact aan op de herhaling in HI-17.
 - **H06** (M02.5, TESSA): gekozen "Alleen of we een koekje wilden."; paneelsplit 1-1-1, zekerheid laag. Koekje wilden: Tessa's droge understatement.
 
 ## Lage zekerheid (twee van de drie, of onderling onzeker)
@@ -27,6 +30,8 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 - **H5-01** (M24.1): "Hij weet het niet, jong. Zij ook niet."
 - **H5-05** (M26.17): "Dat duurde elf seconden."
 - **H6-02** (M29.2): "Een eierbal. Dat is anders."
+- **HI-02** (O1): "Staat "thee" erbij?"
+- **HI-15** (B4.2): "Dan weet zij het eerder dan ik."
 - **H04** (O11): "Mijn juristen kijken naar die klomp."
 
 ## Alle beats
@@ -73,24 +78,24 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 | H6-01 | M27.1 | WILLEMIEN | Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. | variant 3, neutraal, variant 1 | laag | Concreet en vaste-klant-gevoel, derde in de rij. |
 | H6-02 | M29.2 | TAMMO | Een eierbal. Dat is anders. | variant 1, variant 1, variant 2 | laag | Directe terugkaatsing van Oma's antwoord, zonder uitleg. |
 | H6-03 | M30.6 | JELLE | Dat pand ken ik. Ik wacht tot de prijs zakt. | variant 1, variant 2, variant 2 | midden | Jelle wacht bureaucratisch op de prijs. |
-| HI-01 | M06.0 | VELDKAMP | Mijn duiven doen dat bij niemand. Hij wil naar Tammo. | niet beoordeeld |  |  |
-| HI-02 | O1 | TAMMO | En waar staat "thee"? | niet beoordeeld |  |  |
-| HI-03 | B1.1 | TAMMO | Het is een hele goede koelkast. | niet beoordeeld |  |  |
-| HI-04 | B1.2 | TAMMO | Het was het enige. | niet beoordeeld |  |  |
-| HI-05 | B1.3 | TAMMO | Dat hangt van de jas af. | niet beoordeeld |  |  |
-| HI-06 | B2.1 | TAMMO | Koe. Op de weg. | niet beoordeeld |  |  |
-| HI-07 | B2.2 | TAMMO | Eén. En zeventig jaar. | niet beoordeeld |  |  |
-| HI-08 | M10.5 | TESSA | Natuurlijk blijf je. Je hebt een huurcontract. | niet beoordeeld |  |  |
-| HI-09 | T2 | TAMMO | Ik droomde over verkeer. | niet beoordeeld |  |  |
-| HI-10 | M15.6 | TAMMO | Ik heb niks gezegd. | niet beoordeeld |  |  |
-| HI-11 | B3.1 | TAMMO | Het is ook iets. Een park. | niet beoordeeld |  |  |
-| HI-12 | B3.2 | TAMMO | Net zo hoog als zijn frikandel. | niet beoordeeld |  |  |
-| HI-13 | B3.3 | TAMMO | Iemand moet de bodem leggen. | niet beoordeeld |  |  |
-| HI-14 | M17.5 | STIEN | Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen. | niet beoordeeld |  |  |
-| HI-15 | B4.2 | TAMMO | Dan heb ik een probleem. | niet beoordeeld |  |  |
-| HI-16 | M25.6 | OMA TRIJNTJE | Dan gaan ze er later in. | niet beoordeeld |  |  |
-| HI-17 | M25.6 | LIEKE | Jullie zijn al samen. Jullie weten het alleen niet. | niet beoordeeld |  |  |
-| HI-18 | M25.6 | OMA TRIJNTJE | En wanneer trouwen jullie? | niet beoordeeld |  |  |
+| HI-01 | M06.0 | VELDKAMP | Mijn duiven doen dat bij niemand. Hij wil naar Tammo. | variant 1, variant 1, variant 2 | midden | Pointe landt op Tammo, droog en zonder uitleg. |
+| HI-02 | O1 | TAMMO | Staat "thee" erbij? | variant 1, variant 3, variant 3 | laag | Kort, onhandig-lief en praktisch. |
+| HI-03 | B1.1 | TAMMO | Het is een hele goede koelkast. | variant 1, variant 1, variant 1 | hoog | Praktisch, droog en korter dan de karakter-variant. |
+| HI-04 | B1.2 | TAMMO | Het was het enige. | variant 1, variant 3, variant 2 | laag | Korte zelfspot, pointe laatste. |
+| HI-05 | B1.3 | TAMMO | Dat hangt van de jas af. | variant 1, variant 1, variant 2 | midden | Absurde non-uitleg waar Tessa's reactie precies op past. |
+| HI-06 | B2.1 | TAMMO | Koe. | variant 2, variant 2, variant 2 | hoog | Eén woord is het beste ritme voor een onderbreking. |
+| HI-07 | B2.2 | TAMMO | Eén. En zeventig jaar. | variant 1, variant 1, variant 1 | hoog | Past bij zeventig jaar Oma en is warm en droog. |
+| HI-08 | M10.5 | TESSA | Natuurlijk blijf je. Je hebt een huurcontract. | variant 1, variant 1, variant 2 | midden | Huurcontract is de droge anticlimax op zijn liefdesverklaring. |
+| HI-09 | T2 | TAMMO | Ik droomde over verkeer. | variant 3, variant 1, variant 2 | laag | Droge onverwachte onderwerpskeuze, korte pointe. |
+| HI-10 | M15.6 | TAMMO | Ik heb niks gezegd. | variant 1, variant 1, variant 1 | hoog | Onschuldig-schuldig en deadpan, laat de duif het werk doen. |
+| HI-11 | B3.1 | TAMMO | Het is ook iets. Een park. | variant 1, variant 1, variant 1 | midden | Droge terugtrekker met kicker Een park. |
+| HI-12 | B3.2 | TAMMO | Net zo hoog als zijn frikandel. | variant 2, variant 1, variant 1 | midden | Eigen eenheid zonder gezwam; Tessa's reactie klopt. |
+| HI-13 | B3.3 | TAMMO | Iemand moet de bodem leggen. | variant 1, variant 1, variant 1 | hoog | Onverwacht scherp en bescheiden, Tammo-achtig. |
+| HI-14 | M17.5 | STIEN | Eerst het vet warm, dan de mensen. | variant 1, neutraal, neutraal | midden | Kort vakmanschap zonder uitleg. |
+| HI-15 | B4.2 | TAMMO | Dan weet zij het eerder dan ik. | variant 2, variant 1, variant 2 | laag | Droog en scherp, past bij tien jaar en ziet alles. |
+| HI-16 | M25.6 | OMA TRIJNTJE | Dan gaan ze er later in. | variant 1, variant 3, variant 2 | laag | Sluit exact aan op de herhaling in HI-17. |
+| HI-17 | M25.6 | LIEKE | Jullie zijn al samen. Jullie weten het alleen niet. | variant 1, variant 1, variant 1 | hoog | Kind zegt het ongezouten, Tammo en Tessa weten het niet. |
+| HI-18 | M25.6 | OMA TRIJNTJE | En wanneer trouwen jullie? | variant 1, variant 1, variant 1 | hoog | Oma rechttoe rechtaan, lokt Tammo's zwijgen uit. |
 | H01 | O1 | TAMMO | …Het was er al. | variant 2, variant 3, variant 3 | midden | Onhandige ontkenning met stilte. |
 | H02 | O2 | TAMMO | Ik weet het. | neutraal, neutraal, neutraal | midden | Ik weet het is warm en kort voor Rikus' slaap lekker. |
 | H03 | O6 | TESSA | Dat weet hij ook. Daarom belt hij mij. | variant 1, variant 2, variant 1 | midden | Daarom belt hij mij: droog en scherp. |
@@ -348,9 +353,9 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 - neutraal: Mijn duif wil naar Tammo.
 
 **HI-02** (O1): Flat, avond. Tessa heeft een lijst met twee kolommen op de koelkast gehangen (wat Tammo vindt, wat Tessa vindt); Tammo staat met twee koppen thee in de deur.
-- variant 1 (gekozen): En waar staat "thee"?
+- variant 1: En waar staat "thee"?
 - variant 2: Staat er ook bij dat ik de thee zet?
-- variant 3: Staat "thee" erbij?
+- variant 3 (gekozen): Staat "thee" erbij?
 - neutraal: Wat staat er bij mij?
 
 **HI-03** (B1.1): In de auto, akte 1. Tessa vraagt waarom iedereen denkt dat ze al een stel zijn; Tammo geeft een droog en volstrekt praktisch antwoord.
@@ -372,8 +377,8 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 - neutraal: Dat weet ik niet. Ik vraag het aan Bert.
 
 **HI-06** (B2.1): In de auto, akte 2, het bijna-moment: Tammo begint "eigenlijk—" en wordt onderbroken, nu door een koe op de weg.
-- variant 1 (gekozen): Koe. Op de weg.
-- variant 2: Koe.
+- variant 1: Koe. Op de weg.
+- variant 2 (gekozen): Koe.
 - variant 3: Een koe. Voor ons.
 - neutraal: Pas op, de weg.
 
@@ -420,14 +425,14 @@ Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats;
 - neutraal: Zo klinkt het goed.
 
 **HI-14** (M17.5): Onder brug elf in Veendam, akte 4. Stien (70, frituurhoudster) hoort dat Tessa een wagen "voor andere mensen" vindt en geeft haar eerste vakregel.
-- variant 1 (gekozen): Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen.
+- variant 1: Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen.
 - variant 2: Dat zei ik ook. Veertig jaar geleden. Eerst het vet warm, dan de mensen.
 - variant 3: Eerst het vet warm, dan de mensen. Veertig jaar, en ik heb het nog steeds niet fout.
-- neutraal: Eerst het vet warm, dan de mensen.
+- neutraal (gekozen): Eerst het vet warm, dan de mensen.
 
 **HI-15** (B4.2): In de auto, akte 4. Tessa kondigt aan dat haar moeder, haar vader en haar nichtje Lieke (tien, ziet alles) naar het Ontzet komen; Tammo reageert droog.
-- variant 1 (gekozen): Dan heb ik een probleem.
-- variant 2: Dan weet zij het eerder dan ik.
+- variant 1: Dan heb ik een probleem.
+- variant 2 (gekozen): Dan weet zij het eerder dan ik.
 - variant 3: Dan moet ik me gedragen.
 - neutraal: Ik ben benieuwd.
 

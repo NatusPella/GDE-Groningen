@@ -30,7 +30,9 @@ function around(b) {
   return { before: sc.lines.slice(Math.max(0, i - 3), i).map(f), after: sc.lines.slice(i + 1, i + 2).map(f) };
 }
 
-const arg = process.argv.slice(2);
+const NIEUW = process.argv.includes('--nieuw');
+if (NIEUW) for (let i = all.length - 1; i >= 0; i--) if (all[i].panel) all.splice(i, 1);
+const arg = process.argv.slice(2).filter((x) => x !== '--nieuw');
 if (arg[0] === '--decode') {
   const dir = arg[1];
   const keyMap = JSON.parse(fs.readFileSync(path.join(dir, 'sleutel.json'), 'utf8'));
