@@ -22,6 +22,7 @@ export const MISSION_IDS = [...BASIS_MISSION_IDS, ...NIEUW.NEW_MISSION_IDS];
 export const RETIRED_STEPS = BASIS_RETIRED_STEPS;
 export const STEP_ALIAS = NIEUW.STEP_ALIAS;
 export const BETWEEN_STEPS = NIEUW.BETWEEN_STEPS;
+export const BRIDGES = NIEUW.BRIDGES;
 
 // "Deel 1" for the date cards.
 export const partNumber = (part) => (PARTS[part] ? PARTS[part].title.split(':')[0] : '');

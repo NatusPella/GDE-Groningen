@@ -105,6 +105,14 @@ APP MEM→TESSA (stil): Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt o
 ## [M18.5] Wie draaide de camera's uit?: herhaling – Veenkoloniën, Veendam – te voet
 ACCOUNTMANAGER: Nog een intake? De koffie is nog warm. [NIEUW]
 
+## [O8] Bewaar het – Veenkoloniën, Veendam – telefoon
+(regie: avond. Het logboek van Wiebelwerk ligt geprint op de motorkap. Tammo's telefoon gaat: Rikus.)
+RIKUS (telefoon): Tammo. De politie zoekt twee Stadjers in het zwart. Dat heb je niet van mij. [NIEUW]
+TAMMO (telefoon): Wij zijn niet de dieven. [NIEUW]
+RIKUS (telefoon): Dat weet ik. Hebben jullie dat logboek nog? [NIEUW]
+TESSA: Geprint. [NIEUW]
+RIKUS (telefoon): Bewaar het. Ik heb dit niet gezegd. [NIEUW]
+
 ## [M19.1] Stoom: intro – Veenkoloniën, Veendam, het perron – trein
 (regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
 TESSA: We staan op het perron in Veendam, bij de museumlijn. De machinist is omgekocht en eet al een uur een eierbal. [NIEUW]
@@ -355,4 +363,14 @@ APP MEM→TESSA (stil): Nog vier dagen. Kom naar Bourtange. – M. [NIEUW]
 APP TESSA→MEM (stil): Ik kom. Hij weet het nog niet. [NIEUW]
 APP TAMMO→TESSA (stil): Ik vraag het niet. Maar ik wil het weten. [NIEUW]
 APP BEREND→TAMMO (stil): Kom mor. [BEHOUDEN]
+
+## [O9] Ik heb de auto – Westerkwartier, op weg naar Zuidhorn – telefoon
+(regie: avond. Tessa rijdt de teruggehaalde Escapade, Tammo staat langs een weg met zijn telefoon. Ze hebben elkaar de hele dag niet gebeld. Nu belt zij.)
+TESSA (telefoon): Ik heb de auto. [NIEUW]
+TAMMO (telefoon): Goed. [NIEUW]
+TESSA (telefoon): Hoe is het met de vrienden van Oma? [NIEUW]
+TAMMO (telefoon): Niet goed. Ik heb het niet goed gezegd. [NIEUW]
+TESSA (telefoon): Dat doet er niet toe. [NIEUW]
+TAMMO (telefoon): Ik kom naar Tinus. [NIEUW]
+TESSA (telefoon): Ik ook. [NIEUW]
 

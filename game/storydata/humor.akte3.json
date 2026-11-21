@@ -1,0 +1,158 @@
+{
+ "note": "Humorbeats van akte 3 (WP4 #1127, 21-11): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel. Variant 0 staat in docs/verhaal/nieuw/09-script-akte3.md. Schema: humor.json.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-01",
+   "scene": "R3.0",
+   "speaker": "JELLE",
+   "context": "Radio Nachtstreek, vrijdagochtend. Rikus zegt dat het luchtruim van niemand is; Jelle weet dat beter, want zijn juristen hebben het contract nagelezen.",
+   "shot": "geen beeld: radio over de stad, de Martinitoren bij ochtendlicht",
+   "variants": [
+    "Was. Mijn juristen hebben het contract nagelezen.",
+    "Dat was zo. Mijn juristen hebben dat rechtgezet.",
+    "Sinds vanochtend wel. Mijn juristen hebben het geregeld."
+   ],
+   "neutral": "Dat klopt niet meer. Mijn juristen hebben het geregeld."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-02",
+   "scene": "M12.3",
+   "speaker": "JELLE",
+   "context": "Boven de Dollard. Tammo heeft gefloten en een wolk duiven zit op Jelles ballonmand; Jelle grijpt zijn hoed.",
+   "shot": "halve close-up Jelle met zijn hand op zijn hoed, duiven op de rand van de mand",
+   "variants": [
+    "Er zitten duiven op mijn mand. Mijn juristen hebben duiven niet voorzien.",
+    "Duiven op mijn mand. Mijn juristen hadden duiven niet voorzien.",
+    "Mijn juristen hebben alles voorzien, behalve duiven."
+   ],
+   "neutral": "Er zitten duiven op mijn mand. Dat was niet de afspraak."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-03",
+   "scene": "M12.2",
+   "speaker": "TAMMO",
+   "context": "Het UMCG-dak. Rotor Roelf belt: wie \"misschien\" zegt, vliegt gratis. Tammo zegt het, zonder enige uitleg.",
+   "shot": "Tammo in de heli-opening, Tessa kijkt opzij; geen reactieshot op Roelf (alleen stem)",
+   "variants": [
+    "Misschien.",
+    "…Misschien.",
+    "Misschien. Een beetje."
+   ],
+   "neutral": "Ja, misschien."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-04",
+   "scene": "M14.1",
+   "speaker": "JELLE",
+   "context": "Op de dijk bij Bierum. Tessa merkt op dat Oma's vet in Lammerts woonschip ligt; Jelle zegt droog hoe zijn deurwaarder dat noemt.",
+   "shot": "twee-shot Jelle en de deurwaarder met de map, Tessa half in beeld aan de rand",
+   "variants": [
+    "Dat is nu inboedel.",
+    "Dat heet inboedel.",
+    "Dat vet is inboedel geworden."
+   ],
+   "neutral": "Dat valt onder het beslag."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-05",
+   "scene": "M15.5",
+   "speaker": "JELLE",
+   "context": "Kermis Winschoten, achter de proeverijtent. Jelle overhandigt Tessa een bedankbriefje: haar spandoek heeft zijn proeverij uitverkocht. Zijn juristen hebben het opgesteld.",
+   "shot": "Jelle met een envelop voor de kantoorwagen, drie juristen achter het raam; Tessa kijkt wantrouwig",
+   "variants": [
+    "Een bedankbriefje. \"Tige tank! – J.\" Uw spandoek heeft mijn proeverij uitverkocht.",
+    "Een bedankbriefje. \"Tige tank! – J.\" Uitverkocht, dankzij uw spandoek.",
+    "Een bedankbriefje. \"Tige tank! – J.\" Het spandoek was een succes."
+   ],
+   "neutral": "Een bedankbriefje voor het spandoek. \"Tige tank! – J.\""
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-06",
+   "scene": "M16.1",
+   "speaker": "GEERT",
+   "context": "Kermis Winschoten, avond. Tammo zei net \"Sinds nu\" over Geerts barman; Geert, die alles ziet en alles vertelt, geeft de speler wat Tammo zelf nooit zegt.",
+   "shot": "Geert met zijn tap, Tammo op de achtergrond kijkt naar Tessa en dan snel naar de tent",
+   "variants": [
+    "Hij kijkt al sinds de ingang naar je. Dat zie ik altijd.",
+    "Je vriend kijkt al sinds de ingang naar je. Ik zie alles.",
+    "Hij kijkt al sinds de ingang naar je, hoor."
+   ],
+   "neutral": "Hij kijkt al sinds de ingang naar je."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-07",
+   "scene": "M16.3",
+   "speaker": "DOUWE",
+   "context": "Bij de botsauto's. Jelle belt Durk en klinkt boos; Durk zegt dat Douwe moet ophangen. Douwe herhaalt het laatste woord van Durk, zoals altijd.",
+   "shot": "twee-shot Durk en Douwe, Durk houdt de telefoon op een armlengte, Douwe knikt traag",
+   "variants": [
+    "…op.",
+    "…ophangen.",
+    "…hang op."
+   ],
+   "neutral": "…Ja."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-08",
+   "scene": "M16.5",
+   "speaker": "DURK",
+   "context": "Op het bankje achter de botsauto's, na het gelijkspel. Durk, te beleefd om te liegen, vertelt waar de bal is.",
+   "shot": "langzame close-up op Durk, Douwe naast hem; Tessa en Tammo scherp op de achtergrond",
+   "variants": [
+    "Gaat mee, in de koffer. Onder het kussen van de limo. Baas slaapt erop.",
+    "Gaat mee, in de koffer. Onder het kussen van de limo. Baas slaapt met zijn hoofd erop.",
+    "Gaat mee, in de koffer, onder het kussen van de limo. Baas slaapt erop, geloof ik."
+   ],
+   "neutral": "Gaat mee, in de koffer onder het kussen van de limo."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H3-09",
+   "scene": "M16.5",
+   "speaker": "TESSA",
+   "context": "Direct na de kus doen ze beiden zakelijk: Tessa sluit af, Tammo antwoordt in één woord. Niemand kijkt de ander aan.",
+   "shot": "Tessa en Tammo een meter uit elkaar, allebei naar de grond; geen reactieshot op Durk",
+   "variants": [
+    "Goed. Maandag dan.",
+    "Prima. Maandag dan. Zakelijk.",
+    "Heel goed. Maandag."
+   ],
+   "neutral": "Dan zien we hem maandag in Veendam."
+  }
+ ]
+}
