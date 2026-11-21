@@ -469,7 +469,8 @@ export function applyVehicleLook(group, v, fit = null) {
   try {
     const body = ud.body || group;
     if (!body.geometry || !body.geometry.boundingBox) body.geometry && body.geometry.computeBoundingBox && body.geometry.computeBoundingBox();
-    const H = body.geometry && body.geometry.boundingBox ? body.geometry.boundingBox.max.y : 1.6;
+    const bbMaxY = body.geometry && body.geometry.boundingBox && body.geometry.boundingBox.max ? body.geometry.boundingBox.max.y : NaN;
+    const H = Number.isFinite(bbMaxY) && bbMaxY > 0 ? bbMaxY : 1.6; // nooit NaN in de belettering (ook niet bij een model zonder meetbare bounding box)
     applyFinish(group, look);
     applyRims(group, look, kind);
     const key = ['ov', kind, v.model.name || '', v.model.len, v.model.wid, v.model.color, look.finish ? '' : '', lookSig(look)].join('|');
