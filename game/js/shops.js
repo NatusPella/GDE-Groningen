@@ -574,6 +574,10 @@ export function removeOwnedEntry(world, key) {
 
 // --- interaction -------------------------------------------------------------
 
+// Interiors (interiors.js, #1150): a shop whose building has an interior with a counter is bought at in there, not at the marker outside.
+let interiorCheck = null;
+export function setShopInteriorCheck(fn) { interiorCheck = typeof fn === 'function' ? fn : null; }
+
 export function nearestShop(world) {
   const h = hoofdspeler(world);
   if (!shops.length || h.inVehicle || h.swimming) return null;
@@ -582,7 +586,7 @@ export function nearestShop(world) {
   for (const s of shops) {
     if (Math.abs(s.x - x) > bestD || Math.abs(s.y - y) > bestD) continue;
     const d = dist(x, y, s.x, s.y);
-    if (d <= bestD) { best = s; bestD = d; }
+    if (d <= bestD && !(interiorCheck && interiorCheck(s))) { best = s; bestD = d; }
   }
   return best;
 }

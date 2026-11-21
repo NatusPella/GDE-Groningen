@@ -20,25 +20,27 @@ import { makeSpotIndex, spotFor } from './interiorspots.js';
 import { markNotEnterable } from './interiormap.js';
 import { buildInteriorGeometry, buildLeafGeometry, solidMaterial, lampMaterial, glassMaterial, leafMaterial } from './interiorbuild3d.js';
 import { makeWalk } from './interiorwalk.js';
-import { makeWanderer, stepWanderer, mayWander } from './interiorwander.js';
+import { makeStage, makeActor, stepActor, STAFF_ROLES } from './interioractivity.js';
 import { walkGrid, reachable } from './interiorlayout.js';
 import { mulberry32 } from './rng.js';
 import { toWorld, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
-import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct } from './interiorbuy.js';
-import { shopInBuilding, openShopFromInterior } from './shops.js';
+import { getShopsForRender, openShopFromInterior, setShopInteriorCheck } from './shops.js';
+import { setHorecaInteriorCheck } from './horeca.js';
+import { distToRing } from './shopbind.js';
 import { noteMoney } from './finance.js';
 import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 
-export const BUILD_R = 20, DROP_R = 32, MAX_LIVE = 2, NPC_R = 16, MAX_NPC = 6;
+export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
 
-const S = { live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null }, pinned: new Set(), time: 0 };
+const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null }, pinned: new Set(), time: 0 };
 
 // homeStyle(b) -> { wall, floor, fabric } | null: the colours of a home the player lives in (Homebase: a variant per living place)
 // hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens);
@@ -64,6 +66,38 @@ function spotIndex() {
   if (!FAC.ready) return null;
   if (!S.spots || S.spotsN !== FAC.all.length) { S.spots = makeSpotIndex(FAC.all); S.spotsN = FAC.all.length; }
   return S.spots;
+}
+
+// Which building holds a shop or cafe marker of the game (its marker stands at the door, often on the pavement): the nearest building within
+// 9 m of the marker that can be entered. Cached per marker. Used to move the buying from the street to the counter inside.
+const markerBuilding = new WeakMap();
+function buildingOfMarker(m) {
+  if (markerBuilding.has(m)) return markerBuilding.get(m);
+  const w = S.world;
+  if (!w || !w.map || !w.map.buildingsNear) return null;
+  let best = null, bd = 9;
+  const near = w.map.buildingsNear(m.x, m.y, 10);
+  if (!near.length) return null; // the tile is not in yet: ask again later
+  for (const b of near) {
+    if (!b.pts || b.dropped || !planReady(b)) continue;
+    const d = distToRing(m.x, m.y, b.pts[0][0] === b.pts[b.pts.length - 1][0] && b.pts[0][1] === b.pts[b.pts.length - 1][1] ? b.pts.slice(0, -1) : b.pts);
+    if (d < bd) { const rec = planOf(b); if (rec.ok && rec.plan.kind !== 'woning') { bd = d; best = b; } }
+  }
+  markerBuilding.set(m, best);
+  return best;
+}
+const hasCounter = (plan) => plan.layout.use.some((u) => ['kopen', 'bestellen', 'balie', 'kappen'].includes(u.id));
+// true when the marker's building has an interior with a counter: the buying happens there, not at the marker on the street
+export function markerHasInterior(m) {
+  const b = buildingOfMarker(m);
+  if (!b) return false;
+  const rec = S.plans.get(b);
+  return !!(rec && rec.ok && hasCounter(rec.plan));
+}
+// the game shop (shops.js) whose building this is
+function gameShopOf(b) {
+  for (const s of getShopsForRender()) if (!s.country && buildingOfMarker(s) === b) return s;
+  return null;
 }
 
 function planOf(b) {
@@ -106,7 +140,18 @@ function build(w, rec) {
   scene.add(group);
   // the facade is cut open where the door is (the leaf and the reveal fill the gap)
   const box = { cx: fr.ox, cy: fr.oy, ux: fr.nx, uy: fr.ny, hl: 0.6, hw: plan.door.w / 2, top: ground + plan.door.h + 0.02, bottom: ground - 0.3 };
-  const ls = { b, plan, group, mesh, pivot, leaf, ground, box, boxes: [box], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
+  // The windows of the facade are cut open too (glass and wall), so from outside you look into the real room, its furniture and its
+  // people, instead of the fake room of the glass shader (interiorglass.js); beyond the build radius the fake room is what you see.
+  const winBoxes = [];
+  for (const wd of plan.windows || []) {
+    const u = wd.c - plan.doorC, a = Math.max(plan.hall.u0 + 0.05, u - wd.w / 2), c = Math.min(plan.hall.u1 - 0.05, u + wd.w / 2);
+    if (c - a < 0.3 || wd.y1 - wd.y0 < 0.3 || wd.y1 > plan.topY) continue;
+    if (a <= plan.door.w / 2 && c >= -plan.door.w / 2 && wd.y1 <= plan.door.h + 0.05) continue; // the door glass: the door gap is already open
+    const [wx, wy] = toWorld(fr, (a + c) / 2, 0);
+    winBoxes.push({ cx: wx, cy: wy, ux: fr.nx, uy: fr.ny, hl: 0.6, hw: (c - a) / 2, top: ground + wd.y1, bottom: ground + wd.y0 });
+  }
+  winBoxes.sort((p, q) => q.hw - p.hw);
+  const ls = { b, plan, group, mesh, pivot, leaf, ground, box, boxes: [box, ...winBoxes.slice(0, 7)], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
   registerPortalBoxes(ls, ls.boxes);
   ls.walk = makeWalk(plan, b.pts, () => ls.open > 0.55, ground);
   b.walk = ls.walk;
@@ -148,24 +193,30 @@ function addNpcs(ls) {
   const { plan } = ls, L = plan.layout;
   const accent = L.palette ? L.palette.accent : 0x3f6ea8;
   const all = [...L.npc.map((n) => ({ ...n, level: 1 })), ...(L.upper ? L.upper.npc.map((n) => ({ ...n, level: 2 })) : [])].slice(0, MAX_NPC);
-  if (!ls.grid) { ls.grid = walkGrid(L); ls.reach = reachable(L, ls.grid); }
-  const rnd = mulberry32(plan.seed ^ 0x6d2b79f5);
+  if (!ls.grid) { ls.grid = walkGrid(L); ls.reach = reachable(L, ls.grid); ls.stage = makeStage(L, ls.grid, ls.reach); }
   all.forEach((n, i) => {
     const look = npcLook(n.role, plan.seed, i, accent, plan.sub);
     let fig;
     try { fig = buildPersonMesh(look.shirt, look.skin, look.opts); } catch (e) { return; }
     const [x, z] = toWorld(plan.frame, n.u, n.v);
-    const lvl = n.level === 2 ? plan.floorH : 0;
-    fig.position.set(x - plan.frame.ox, ls.ground + lvl + 0.02, z - plan.frame.oy);
+    const baseY = ls.ground + (n.level === 2 ? plan.floorH : 0) + 0.02;
+    fig.position.set(x - plan.frame.ox, baseY, z - plan.frame.oy);
     fig.rotation.y = yawOfFace(plan.frame, n.face);
-    if (n.pose === 'sit') { try { seatPerson(fig); fig.position.y = ls.ground + lvl + 0.02 + seatedY(fig, 0.46); } catch (e) { /* stands then */ } }
+    // the pose (sitting, crouching, ringing up) comes from the pose source of the person system
+    const src = { state: 'alive', pose: n.pose === 'sit' ? 'sit' : null };
+    registerPoseSource(look.opts.seed, src);
+    let actor = null;
+    if (n.level === 1) {
+      const domain = STAFF_ROLES.has(n.role) ? reachable(L, ls.grid, { u: n.u, v: n.v }) : null;
+      actor = makeActor(ls.stage, n, mulberry32((plan.seed ^ (i * 7919 + 13)) >>> 0), i, domain);
+    }
     ls.group.add(fig);
-    ls.npcs.push({ fig, n, wander: n.level === 1 && mayWander(n) ? makeWanderer(ls.grid, ls.reach, rnd, n.u, n.v) : null });
+    ls.npcs.push({ fig, n, src, actor, seed: look.opts.seed, baseY });
   });
   ls.npcsOn = true;
 }
 function dropNpcs(ls) {
-  for (const o of ls.npcs) { ls.group.remove(o.fig); disposeObject(o.fig); }
+  for (const o of ls.npcs) { unregisterPoseSource(o.seed); ls.group.remove(o.fig); disposeObject(o.fig); }
   ls.npcs.length = 0;
   ls.npcsOn = false;
 }
@@ -221,18 +272,17 @@ function updateLive(w, ls, dt, p, onFoot) {
   else if (!wantNpcs && ls.npcsOn) dropNpcs(ls);
   if (ls.npcsOn && dd < NPC_R) {
     for (const o of ls.npcs) {
-      if (o.n.pose === 'sit') continue;
       let speed = 0;
-      if (o.wander) {
-        stepWanderer(o.wander, dt);
-        const [x, z] = toWorld(plan.frame, o.wander.u, o.wander.v);
-        o.fig.position.x = x - plan.frame.ox; o.fig.position.z = z - plan.frame.oy;
-        if (o.wander.moving) {
-          speed = 1.1;
-          const wx = plan.frame.tx * o.wander.hu - plan.frame.nx * o.wander.hv, wy = plan.frame.ty * o.wander.hu - plan.frame.ny * o.wander.hv;
-          o.fig.rotation.y = -Math.atan2(wy, wx);
-        }
-      }
+      const A = o.actor;
+      if (A) {
+        stepActor(ls.stage, A, dt);
+        const [x, z] = toWorld(plan.frame, A.u, A.v);
+        o.fig.position.set(x - plan.frame.ox, o.baseY, z - plan.frame.oy);
+        const wx = plan.frame.tx * A.hu - plan.frame.nx * A.hv, wy = plan.frame.ty * A.hu - plan.frame.ny * A.hv;
+        o.fig.rotation.y = -Math.atan2(wy, wx);
+        o.src.pose = A.pose;
+        speed = A.moving ? 1.1 : 0;
+      } else o.fig.position.y = o.baseY;
       try { animatePersonWalk(o.fig, speed, dt); } catch (e) { /* idles */ }
     }
   }
@@ -242,6 +292,7 @@ export function updateInteriors(dt, w) {
   if (!w || !w.map || !w.map.buildingsNear) return;
   const p = hoofdspeler(w);
   if (!p || !getScene()) return;
+  S.world = w;
   S.time += dt;
   const onFoot = !p.inVehicle && !p.swimming && !p.dead;
   if ((S.scan -= dt) <= 0) { S.scan = 0.3; scan(w, p); }
@@ -294,7 +345,7 @@ function useSpot(w, hit) {
   const n = Math.floor(S.time);
   switch (s.id) {
     case 'kopen': case 'bestellen': {
-      const gameShop = shopInBuilding(ls.b);
+      const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
       const prod = productFor(plan.kind, plan.sub);
       if (!prod) { say(w, NOT_FOR_SALE); return true; }
@@ -306,19 +357,19 @@ function useSpot(w, hit) {
       return true;
     }
     case 'passen': {
-      const gameShop = shopInBuilding(ls.b);
+      const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
       say(w, FITTING[n % FITTING.length]);
       return true;
     }
     case 'kappen': {
-      const gameShop = shopInBuilding(ls.b);
+      const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
       say(w, HAIRCUT[n % HAIRCUT.length]);
       return true;
     }
     case 'balie': {
-      const gameShop = shopInBuilding(ls.b);
+      const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true; // a garage or workshop of the game: its own menu (tuning, repair, paint)
       say(w, clerkLine(plan.kind, seed, n));
       return true;
@@ -341,6 +392,9 @@ export function tryInteriorInteract(w) {
 }
 
 export function initInteriors(w) {
+  S.world = w;
+  setShopInteriorCheck(markerHasInterior);
+  setHorecaInteriorCheck(markerHasInterior);
   for (const ls of [...S.live.values()]) drop(w, ls);
   S.inside = null;
   S.spots = null;

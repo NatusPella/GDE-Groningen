@@ -9,6 +9,8 @@ const { planInterior } = await import('../game/js/interiorrules.js');
 const { buildInteriorGeometry } = await import('../game/js/interiorbuild3d.js');
 const { chooseLive, BUILD_R, DROP_R, MAX_LIVE } = await import('../game/js/interiorplanner.js');
 const { building } = await import('./interior_fixtures.mjs');
+const { walkGrid, reachable } = await import('../game/js/interiorlayout.js');
+const { makeStage, makeActor, stepActor, STAFF_ROLES, MAX_ACTORS } = await import('../game/js/interioractivity.js');
 const { mulberry32 } = await import('../game/js/rng.js');
 
 let bad = 0, n = 0;
@@ -48,6 +50,7 @@ console.log(`  plannen: gemiddeld ${(planMs / street.length).toFixed(2)} ms, zwa
 
 // de wandeling
 const live = new Map(); // b -> { geometry, triangles, bytes }
+let worstFrame = 0, actorSteps = 0;
 let builds = 0, drops = 0, maxLive = 0, geoLive = 0, worstScan = 0, maxBytes = 0, thrash = 0;
 const builtCount = new Map();
 const visitDrops = new Map();
@@ -61,9 +64,17 @@ function pass(startX, endX, dir) {
     if (build) {
       const { geometry, triangles } = buildInteriorGeometry(build.plan, 0, { x: build.plan.frame.ox, y: build.plan.frame.oy });
       geoLive++;
-      live.set(build, { geometry, triangles, bytes: geometry.attributes.position.array.byteLength * (26 / 12) });
+      const L = build.plan.layout, grid = walkGrid(L), reach = reachable(L, grid), stage = makeStage(L, grid, reach);
+      const actors = L.npc.slice(0, MAX_ACTORS).map((np, i) => makeActor(stage, np, mulberry32(build.plan.seed ^ (i * 7919 + 13)), i, STAFF_ROLES.has(np.role) ? reachable(L, grid, { u: np.u, v: np.v }) : null));
+      live.set(build, { geometry, triangles, stage, actors, bytes: geometry.attributes.position.array.byteLength * (26 / 12) });
       builds++;
       builtCount.set(build, (builtCount.get(build) || 0) + 1);
+    }
+    // the people of every live interior act for 18 frames (0.3 s)
+    for (let f = 0; f < 18; f++) {
+      const t1 = performance.now();
+      for (const o of live.values()) for (const a of o.actors) { stepActor(o.stage, a, 1 / 60); actorSteps++; }
+      worstFrame = Math.max(worstFrame, performance.now() - t1);
     }
     maxLive = Math.max(maxLive, live.size);
     maxBytes = Math.max(maxBytes, [...live.values()].reduce((a, o) => a + o.bytes, 0));
@@ -114,7 +125,8 @@ ok(maxLive <= MAX_LIVE, 'ook terug nooit meer dan twee tegelijk');
   const r = chooseLive([], [{ id: s, d: 90, inside: true }]);
   ok(r.drops.length === 0, 'het interieur waar je in staat blijft bestaan');
 }
-console.log(`  wandeling: ${builds} gebouwd, ${drops} vrijgegeven, hooguit ${maxLive} tegelijk, zwaarste scan ${worstScan.toFixed(1)} ms, geheugen van wat leeft hooguit ${(maxBytes / 1024).toFixed(0)} KB`);
+console.log(`  wandeling: ${builds} gebouwd, ${drops} vrijgegeven, hooguit ${maxLive} tegelijk, zwaarste scan ${worstScan.toFixed(1)} ms, de mensen hooguit ${worstFrame.toFixed(2)} ms per beeld, geheugen van wat leeft hooguit ${(maxBytes / 1024).toFixed(0)} KB`);
+ok(worstFrame < 3, `de mensen van twee interieurs kosten hooguit 3 ms per beeld (${actorSteps} stappen)`, worstFrame.toFixed(2));
 ok(worstScan < 40, 'de zwaarste scan (plan is al gemaakt, geometrie bouwen) blijft onder 40 ms', worstScan.toFixed(1));
 ok(worstPlan < 40, 'het plan van een pand (eerste scan) blijft onder 40 ms', worstPlan.toFixed(1));
 ok(maxBytes < 3 * 1024 * 1024, 'wat leeft blijft onder 3 MB', String(maxBytes));

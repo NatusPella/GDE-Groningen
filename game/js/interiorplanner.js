@@ -3,7 +3,7 @@
 // build radius (nearest first) and the interiors that exist; output: which to throw away and which one to build now. At most one
 // build per call (a scan every 0.3 s: no frame builds two), never more than `max` alive, a drop only beyond `dropR` (hysteresis
 // against a player who stands on the border), never the one the player is in, and a far one makes room for a nearer one.
-export const BUILD_R = 20, DROP_R = 32, MAX_LIVE = 2;
+export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2;
 
 // want: [{ id, d }] sorted by d, d <= buildR; live: [{ id, d, inside }]
 export function chooseLive(want, live, o = {}) {

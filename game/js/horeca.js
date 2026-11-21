@@ -101,13 +101,17 @@ const TOASTS = [
 // Close enough to order: the prompt (prompts.js) and the E handler share it.
 export const HORECA_USE_RADIUS = 2.4;
 
+// Interiors (interiors.js, #1150): a cafe with an interior serves at its bar inside, not at the marker outside.
+let interiorCheck = null;
+export function setHorecaInteriorCheck(fn) { interiorCheck = typeof fn === 'function' ? fn : null; }
+
 export function nearestHorecaSpot(world) {
   if (!spots.length || hoofdspeler(world).inVehicle) return null;
   const { x: px, y: py } = hoofdspeler(world);
   let best = null, bestD = HORECA_USE_RADIUS;
   for (const spot of spots) {
     const d = dist(px, py, spot.x, spot.y);
-    if (d <= bestD) { best = spot; bestD = d; }
+    if (d <= bestD && !(interiorCheck && interiorCheck(spot))) { best = spot; bestD = d; }
   }
   return best;
 }
