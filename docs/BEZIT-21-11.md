@@ -327,7 +327,7 @@ marge.**
 
 ```
  melk (melkvee) ---> melkfabriek / kaasmakerij ---> kaas ---> supermarkt, winkel, markt
- aardappelen    ---> frietfabriek --------------> friet --> snackbar, horeca  (de Fjord Frituur)
+ aardappelen    ---> frietfabriek --------------> friet --> snackbar, horeca  (de snackwagen)
  graan          ---> meelmolen ---> bakkerij ---> brood --> bakker, supermarkt
  eieren (kippen)------------------------------------------> supermarkt, horeca
  gras           ---> hooi ---> eigen vee   (interne schakel, geen verkoop)
@@ -391,7 +391,7 @@ leren we het zelf, dan pas een ander."). Kans en cooldown zoals de bestaande per
 | treinstations, busstations en de haltes | reisbeats T1 tot T5 en de rit-flow hangen eraan |
 | het huidige missiedoel en het pand van elke opdracht die nu actief of nog te komen is | de opdracht moet kunnen; het pand **komt vrij** na het slot van de akte waarin het speelt (voorstel) |
 | je eigen safehouse en je huis (`safehuisplek`) | is al van jou |
-| Fjord Frituur, De Zonnehoek en andere verhaalplekken met een eigen eigenaar in de tekst | de tekst noemt de eigenaar; een koop moet de lijn niet breken |
+| De Zonnehoek en andere verhaalplekken met een eigen eigenaar in de tekst | de tekst noemt de eigenaar; een koop moet de lijn niet breken |
 | monumenten en landmarks (kerken, gemeentehuizen, de bekende torens) | Voorstel: **wel** te koop, maar alleen als "Beheer" (geen sloop, geen aanbouw, altijd toegankelijk). De eigenaar zei "alles"; dit is een zachte grens. |
 
 Een pand dat niet te koop is toont "Niet te koop" met de reden op de kaart (geen stille weigering). De lijst is data

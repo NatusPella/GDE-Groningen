@@ -11,6 +11,8 @@ export const MAX_WAGONS = 5;                           // hoogstens vijf tegelij
 export const PLAN_EVERY_S = 0.5;
 export const COLORS = { own: INK.homeBlue, fleet: INK.green, rival: INK.red };
 export const SIGNS = { own: 'SNACKWAGEN', fleet: 'SNACKWAGEN', rival: 'USMEM SNACKS' };
+// De naam op de eigen wagen: de verhaal-lead kiest hem; tot dan 'SNACKWAGEN'. Alleen hoofdletters en spaties, hoogstens 18 tekens.
+export const setOwnSign = (t) => { const s = String(t || '').toUpperCase().replace(/[^A-Z0-9 \u00C0-\u017F'-]/g, '').trim().slice(0, 18); SIGNS.own = s || 'SNACKWAGEN'; return SIGNS.own; };
 const SHIRTS = [0xe8c24a, 0xf4f1e6, 0x9bb8d3, 0xd98b5f];
 
 // sites: [{ spot, x, y, kind: 'own' | 'fleet' | 'rival', staff? }] (snacklive.wagonSites); player: { x, y }; current: de sleutels die al in beeld zijn.

@@ -33,7 +33,7 @@ export const BEZIT_UITSLUITING = {
   // een lijst van ID's (OSM) met een eigen reden: de koppeling van een verhaalplek aan een pand die de data nog niet kent
   ids: [],
   // verhaalplekken met een eigen eigenaar in de tekst: de naam komt uit de pandnaam of de winkelplek
-  storyNames: ['Fjord Frituur', 'De Zonnehoek', 'Boerderij De Zonnehoek', 'Notariaat De Zegelhoek'],
+  storyNames: ['De Zonnehoek', 'Boerderij De Zonnehoek', 'Notariaat De Zegelhoek'],
 };
 
 // De woorden van de redenen (voor de test: Nederlands, zonder merken).

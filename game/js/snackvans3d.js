@@ -1,6 +1,6 @@
 // De snackwagens in de wereld (Snackimperium, epic #1095, #1102): je eigen snackwagen, die van je medewerkers en die van Usmem Snacks staan geparkeerd op hun standplaats,
 // met een verkoper achter het luik. Hoogstens MAX_WAGONS (vijf, de dichtstbijzijnde) binnen de streamstraal (SPAWN_R 260 m, weg bij DESPAWN_R 340 m, zie snackvanplan.js).
-// Het wagenmodel is dat van de bestaande foodtruck (models3d_vehicles.js, de Fjord Frituur) in een eigen kleur met een eigen bord; de verkoper is de gedeelde persoonsfiguur
+// Het wagenmodel is dat van de bestaande foodtruck (models3d_vehicles.js) in een eigen kleur met een eigen bord; de verkoper is de gedeelde persoonsfiguur
 // (models3d_people.js). Wat wegvalt gaat via disposeObject (geheugen terug); het bord is een gedeeld materiaal per tekst. De planning is puur en loopt tweemaal per
 // seconde, er beweegt niets per beeld. Geen Math.random.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -36,7 +36,7 @@ function signMaterial(text, color) {
   SIGN_MATS.set(k, m);
   return m;
 }
-// Het bord van de foodtruck (de laatste mesh met een doos van 0,62 hoog) krijgt onze tekst in plaats van "Fjord Frituur".
+// Het bord van de foodtruck (de laatste mesh met een doos van 0,62 hoog) krijgt onze tekst in plaats van de oude tekst.
 function reSign(group, text, color) {
   const mat = signMaterial(text, color);
   if (!mat) return;

@@ -31,7 +31,7 @@ export const CHAIN_DEFS = {
   friet: { id: 'friet', name: 'Aardappelen naar friet', raw: 'aardappelen', output: 'friet', links: [
     L('aardappelen', 'source', 'Aardappelakker', { cap: 40000, perDay: 12000 }),
     L('frietfabriek', 'processor', 'Frietfabriek', { in: 'aardappelen', out: 'friet', yield: 0.65, perDay: 9000, cap: 20000 }),
-    L('snackbar', 'outlet', 'Snackbars (Fjord Frituur en andere)', { in: 'friet', perDay: 3500, cap: 8000 })] },
+    L('snackbar', 'outlet', 'Snackbars (jouw snackwagen en andere)', { in: 'friet', perDay: 3500, cap: 8000 })] },
   brood: { id: 'brood', name: 'Graan naar brood', raw: 'graan', output: 'brood', links: [
     L('graan', 'source', 'Graanakker', { cap: 40000, perDay: 12000 }),
     L('meelmolen', 'processor', 'Meelmolen', { in: 'graan', out: 'meel', yield: 0.8, perDay: 9000, cap: 20000 }),

@@ -43,7 +43,7 @@ t('het huidige missiedoel is nooit te koop; een opdracht die nog komt ook niet; 
 });
 t('safehuis, eigen huis en verhaalplekken zijn niet te koop', () => {
   assert.equal(X.excluded(row({ x: 10, y: 10 }), { home: [{ x: 12, y: 11 }] }).code, 'eigen');
-  assert.equal(X.excluded(row({ x: 300, y: 300 }), { storySpots: [{ x: 305, y: 300, name: 'Fjord Frituur' }] }).code, 'verhaal');
+  assert.equal(X.excluded(row({ x: 300, y: 300 }), { storySpots: [{ x: 305, y: 300, name: 'De Zonnehoek' }] }).code, 'verhaal');
   assert.equal(X.excluded(row({ osm: 77 }), { nameOf: (id) => (id === 77 ? 'De Zonnehoek' : '') }).code, 'verhaal');
   assert.equal(X.excluded(row({ osm: 78 }), { nameOf: () => 'Bakkerij Haverkamp' }), null);
 });

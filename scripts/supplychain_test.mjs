@@ -15,7 +15,7 @@ t('de zes ketens uit het ontwerp bestaan met bron, verwerker(s) en verkooppunt',
   for (const id of C.CHAIN_IDS) { const c = C.newChain(id); assert.equal(c.links[0].role, 'source'); assert.equal(c.links.at(-1).role, 'outlet'); assert.ok(c.links.slice(1, -1).every((l) => l.role === 'processor')); }
   assert.equal(C.newChain('brood').links.filter((l) => l.role === 'processor').length, 2);
   assert.equal(C.newChain('bestaat-niet'), null);
-  assert.match(C.CHAIN_DEFS.friet.links[2].label, /Fjord Frituur/); assert.match(C.CHAIN_DEFS.bieten.links[1].label, /Suikerhal Hoogkerk/);
+  assert.match(C.CHAIN_DEFS.friet.links[2].label, /jouw snackwagen/); assert.match(C.CHAIN_DEFS.bieten.links[1].label, /Suikerhal Hoogkerk/);
   assert.equal(C.CHAIN_DEFS.hooi.links[2].sale, 'internal');
 });
 t('grondstofprijzen: de gewassen zijn die van gewasmarkt.js', () => { for (const k of Object.keys(PRIJS_KG)) if (C.RAW_PRICE[k] !== undefined) assert.equal(C.RAW_PRICE[k], PRIJS_KG[k]); });
