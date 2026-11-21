@@ -61,7 +61,6 @@ export const MISSIE_EIGEN_MUZIEK = [
 export const BIJBAAN_EIGEN_MUZIEK = { skutsje: 'missie_water', bruggen: 'missie_feest' };
 
 export const sfeerBeschikbaar = (key) => BESCHIKBARE_SFEREN.includes(key);
-export const sfeerBestand = (key) => SFEER_BESTAND[key] || null;
 
 // De sfeer van een missie op dit moment uit de lijst (zonder te kijken of het bestand er is), of null.
 export function missieSfeer(code, stageIndex) {

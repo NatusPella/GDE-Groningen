@@ -28,7 +28,6 @@ export function startDienst(bc, { chauffeur = 0, aanboord = [] } = {}) {
 }
 
 export const doetMee = (bc, slot) => bc.deelnemers.includes(slot);
-export const magDelen = doetMee;
 
 // De rol van een speler die in de bus zit: chauffeur, hulpje (laagste meedoende slot dat niet de chauffeur is), passagier (doet mee,
 // zonder taak) of 'kijkt mee' (later ingestapt). Hulpje is er alleen als er iemand anders dan de chauffeur meedoet.

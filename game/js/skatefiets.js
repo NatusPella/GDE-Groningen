@@ -14,7 +14,6 @@ const REACH = 120; // m van de ingang waarbinnen de ronde telt
 let run = null;
 let nextMsg = 0;
 
-export const skatefietsRun = () => run;
 
 function invoer(w) {
   const p = hoofdspeler(w);

@@ -123,4 +123,3 @@ const LAYOUT = {
 export const plantLayout = (id) => LAYOUT[id] || { lijnen: [-2.2, 0, 2.2], stap: 2.5, schaal: 1 };
 
 export const plantMateriaal = () => new THREE.MeshLambertMaterial({ vertexColors: true });
-export const STADIUM_NAMEN = STADIA;

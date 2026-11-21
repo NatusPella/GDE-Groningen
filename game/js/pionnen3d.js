@@ -54,7 +54,6 @@ export function plaatsPionnen(world, spots, ground, onTik) {
 }
 
 export const pionnenOmgetikt = () => (run ? run.omgetikt : 0);
-export const pionnenActief = () => !!run;
 
 export function stopPionnen() {
   if (!run) return;

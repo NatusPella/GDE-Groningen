@@ -13,7 +13,6 @@ export function adoptSetLight(light) {
   if (light && !proxies.includes(light)) { light.userData.setDetached = 0; proxies.push(light); }
   return light;
 }
-export const adoptedSetLights = () => proxies;
 
 // 1: in the scene and not hidden by a parent, 0: hidden by a parent, -1: not in this scene
 function placeOf(o, scene) {

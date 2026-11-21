@@ -35,7 +35,6 @@ export const ACTIES = [
     reactie: 'Gratis? Dan blijven we nog wel een uurtje.', slot: 'Nog een? Dan blijven we nog wel een uurtje.' },
 ];
 const BY_ID = new Map(ACTIES.map((a) => [a.id, a]));
-export const actieById = (id) => BY_ID.get(id) || null;
 
 const rngOf = (r) => (typeof r === 'function' ? r : makeRng(r || 1));
 const pickOf = (list, rng) => list[Math.floor(rng() * list.length)];

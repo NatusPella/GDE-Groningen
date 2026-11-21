@@ -118,4 +118,3 @@ export function simHudPop(tekst, geluid = 'ui_verzameld') {
   if (geluid) { try { sfxLinks.uiFx(geluid); } catch (e) { /* geen geluid is geen ramp */ } }
 }
 
-export const _simHudEl = () => el;

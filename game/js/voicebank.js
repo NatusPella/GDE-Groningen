@@ -16,7 +16,6 @@ const banks = new Map();
 
 // wachttijd (ms) tussen de pogingen: de eerste meteen, dan na 400 ms en 1,2 s
 const RETRY_WACHT = [400, 1200];
-export const POGINGEN = RETRY_WACHT.length + 1;
 
 const voiceKey = (speaker, text) => speaker + '|' + text;
 

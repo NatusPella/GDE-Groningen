@@ -71,7 +71,6 @@ export const requestOpenSamen = (opts = {}) => { openOnStart = true; startOpts =
 export const takeOpenSamen = () => { const v = openOnStart; openOnStart = false; return v; };
 export const wantsOpenSamen = () => openOnStart;
 export const samenGate = () => !!startOpts.gate;
-export const samenKeuze = () => startOpts.rol || null;
 
 const store = () => { try { return localStorage; } catch (e) { return null; } };
 

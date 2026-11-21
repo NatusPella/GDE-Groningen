@@ -30,7 +30,6 @@ import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoic
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
 import { senderOf, bodyOf, appNaam, LEEG } from './phoneapp.js';
 
-export const PHONE_NAME = 'Pixie Vouw 11';
 const RING_TIME = 0.9;
 const MAX_DELIVER = 3;
 

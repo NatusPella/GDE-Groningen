@@ -15,7 +15,6 @@ const KIELZOG_MIN_SNELHEID = 5;  // m/s: eerder maakt een boot geen merkbaar kie
 const KIELZOG_HOEK = 0.36;       // tan(19,5 graden): zijwaartse spreiding per meter achter de boot (net als boatwake3d.js)
 const KIELZOG_MAX_ACHTER = 70;   // m: daarachter is het kielzog uitgedoofd
 const KLEIN_VAARTUIG = { sup: 0.2, supWit: 0.2, kano: 0.28, kajak: 0.28, waterfiets: 0.4 }; // golfhoogte (m) waarbij het omslaat
-export const KLEINE_SOORTEN = ['sup', 'kano', 'kajak', 'waterfiets'];
 const OMVAL_RISICO_PER_S = 1.1;  // hoe snel het risico oploopt boven de drempel
 const GENADE_S = 5;              // na het terugklimmen kan je even niet weer omvallen
 const MAX_DOELEN = 6;

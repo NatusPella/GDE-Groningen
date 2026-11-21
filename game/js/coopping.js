@@ -16,8 +16,6 @@ export const PING_TOETSEN = [
 ];
 export const PING_TEKST = Object.fromEntries(PING_TOETSEN.map((p) => [p.soort, p.tekst]));
 export const KIJK_AFSTAND = 25; // m: 'Kijk daar' wijst zoveel meter vooruit
-// kleur van het baken per soort als de afzender onbekend is
-export const SOORT_KLEUR = PING_ROLE; // oude naam, nu een paletrol per soort
 
 // Waar komt de ping te staan? 'Kom hier' en 'Help!' op je eigen plek, 'Kijk daar' een stuk voor je uit.
 export function pingPlek(lichaam, soort) {
