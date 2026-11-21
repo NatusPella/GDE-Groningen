@@ -251,6 +251,10 @@
 "src": "anita/henk_heeft_de_auto_klaargezet_in_6f438d54.mp3",
 "dur": 2.88
 },
+"Anita|Het Beleg begint. Berend is de bisschop en valt aan. Wij verdedigen de wallen.": {
+"src": "anita/het_beleg_begint_berend_is_de_bi_983218f1.mp3",
+"dur": 6.34
+},
 "Anita|Het is een fietsrace. Kom op je eigen fiets.": {
 "src": "anita/het_is_een_fietsrace_kom_op_je_e_319b10b7.mp3",
 "dur": 2.73
@@ -539,6 +543,10 @@
 "src": "anita/varen_de_diepenring_op_daar_komt_44fbd0d6.mp3",
 "dur": 3.66
 },
+"Anita|Vesting Bourtange, fakkels, een gracht en kartonnen kanonnen.": {
+"src": "anita/vesting_bourtange_fakkels_een_gr_1fd359cd.mp3",
+"dur": 4.88
+},
 "Anita|Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.": {
 "src": "anita/vlieg_naar_de_gele_knopen_van_de_834a4eb0.mp3",
 "dur": 4.86
@@ -622,6 +630,10 @@
 "Tammo|Bijna bij de sloot. Jelle zit er nog achter, dus blijf rijden.": {
 "src": "tammo/bijna_bij_de_sloot_jelle_zit_er__83facecc.mp3",
 "dur": 4.48
+},
+"Tammo|Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.": {
+"src": "tammo/blijf_op_de_wal_staan_de_kartonn_6715d693.mp3",
+"dur": 5.29
 },
 "Tammo|Boink! Die meeuw spreekt Fries.": {
 "src": "tammo/boink_die_meeuw_spreekt_fries_2abb9bb3.mp3",
@@ -826,6 +838,10 @@
 "Tammo|Henk heeft de auto klaargezet. Instappen, achter die trekker aan!": {
 "src": "tammo/henk_heeft_de_auto_klaargezet_in_d7a94fbf.mp3",
 "dur": 3.21
+},
+"Tammo|Het Beleg begint. Berend is de bisschop en valt aan. Wij verdedigen de wallen.": {
+"src": "tammo/het_beleg_begint_berend_is_de_bi_d17a7d8f.mp3",
+"dur": 5.68
 },
 "Tammo|Het is een fietsrace. Kom op je eigen fiets.": {
 "src": "tammo/het_is_een_fietsrace_kom_op_je_e_8e401af0.mp3",
@@ -1110,6 +1126,10 @@
 "Tammo|Varen! De Diepenring op, daar komt het skûtsje langs.": {
 "src": "tammo/varen_de_diepenring_op_daar_komt_b2fe627f.mp3",
 "dur": 2.87
+},
+"Tammo|Vesting Bourtange, fakkels, een gracht en kartonnen kanonnen.": {
+"src": "tammo/vesting_bourtange_fakkels_een_gr_5a320fa1.mp3",
+"dur": 5.74
 },
 "Tammo|Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.": {
 "src": "tammo/vlieg_naar_de_gele_knopen_van_de_1ac5623b.mp3",
