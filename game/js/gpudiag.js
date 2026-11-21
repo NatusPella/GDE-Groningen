@@ -157,11 +157,12 @@ export function startRestSampler(ms = 5000) {
       const s = typeof window !== 'undefined' ? window.__scene3d : null;
       const p = s && s.renderer && s.renderer.info.programs ? s.renderer.info.programs.length : 0;
       const tasks = longTasks.filter((x) => x.at + x.d >= last && x.at <= now);
+      // a heap reading only on a hitch (to see a garbage collection) and once per 5 s below: never one per frame (memwatch.js)
       const h = performance && performance.memory ? performance.memory.usedJSHeapSize / 1048576 : 0;
       noteHitch((now - t0) / 1000, dt, { programs: p - progs, longest: tasks.reduce((m, x) => Math.max(m, x.d), 0), heapDrop: heap && h && heap - h > 2 ? heap - h : 0 });
     }
     if (typeof window !== 'undefined' && window.__scene3d && window.__scene3d.renderer && window.__scene3d.renderer.info.programs) progs = window.__scene3d.renderer.info.programs.length;
-    if (performance && performance.memory) { heap = performance.memory.usedJSHeapSize / 1048576; heapTracker.note(now, heap); }
+    if (performance && performance.memory && heapTracker.due(now)) { heap = performance.memory.usedJSHeapSize / 1048576; heapTracker.note(now, heap); }
     last = now;
     requestAnimationFrame(step);
   };
@@ -326,7 +327,8 @@ const CSS = `
 `;
 
 let dlg = null;
-export async function showTechInfo() {
+let techRun = 0;
+export async function showTechInfo(opts) {
   if (typeof document === 'undefined') return;
   if (!dlg) {
     const style = document.createElement('style');
@@ -351,15 +353,19 @@ export async function showTechInfo() {
     document.body.appendChild(dlg);
   }
   dlg.hidden = false;
+  // a token per opening: a measurement that finishes after the dialog was closed or opened again must not touch the clipboard
+  const run = ++techRun;
   const pre = dlg.querySelector('[data-gd-text]');
   pre.textContent = 'Meten, een paar seconden…';
   dlg.querySelector('[data-gd="copy"]').textContent = 'Kopiëren';
   dlg.querySelector('[data-gd="copy"]').focus({ preventScroll: true });
   try {
-    pre.textContent = await techInfoText();
+    const text = await techInfoText(opts);
+    if (run !== techRun || dlg.hidden) return;
+    pre.textContent = text;
     // one click is enough: the block is on the clipboard as soon as it is ready
-    if (await writeClipboard(pre.textContent)) dlg.querySelector('[data-gd="copy"]').textContent = 'Gekopieerd';
-  } catch (e) { pre.textContent = `Meten mislukte: ${e && e.message}`; }
+    if (await writeClipboard(text) && run === techRun) dlg.querySelector('[data-gd="copy"]').textContent = 'Gekopieerd';
+  } catch (e) { if (run === techRun && !dlg.hidden) pre.textContent = `Meten mislukte: ${e && e.message}`; }
 }
 
 // main.js calls this once: starts the boot sampler, listens for Ctrl+Shift+G and opens the dialog for ?gpuinfo=1

@@ -1,7 +1,7 @@
 // Geheugenbewaking (#1004): goedkope tellers voor de technische info (Ctrl+Shift+G, gpudiag.js), zodat Nikky of de eigenaar
 // een hoge heap kan melden met cijfers: heappiek, groei per minuut, geladen tegels, audiobuffers, texturen en geometrieen.
 // Zuiver en zonder DOM: modules die geheugen vasthouden melden zich met registerMemSource(naam, () => ({ ... })); gpudiag.js leest ze.
-// Kosten: een performance.memory-lezing elke 5 s (note) en niets per beeld. scripts/memwatch_test.mjs bewaakt de rekenkunde.
+// Kosten: een performance.memory-lezing elke 5 s (due/note; gpudiag.js leest pas als due() waar is, en bij een hapering) en niets per beeld. scripts/memwatch_test.mjs bewaakt de rekenkunde.
 
 const sources = new Map();
 export function registerMemSource(name, fn) { if (typeof fn === 'function') sources.set(name, fn); }
@@ -21,6 +21,8 @@ export function createHeapTracker({ keep = MEM_KEEP } = {}) {
   let peak = 0, lastAt = -Infinity;
   const floor = [];  // het laagste punt per blok van 12 metingen (een minuut) (een goede schatting van de levende heap)
   return {
+    // is er weer een meting aan de beurt? Laat de aanroeper performance.memory dan pas lezen (niets per beeld lezen).
+    due(tMs) { return Number.isFinite(tMs) && tMs - lastAt >= MEM_EVERY_MS; },
     note(tMs, usedMB) {
       if (!(usedMB > 0) || !Number.isFinite(usedMB) || !Number.isFinite(tMs)) return false;
       if (tMs - lastAt < MEM_EVERY_MS) return false;
