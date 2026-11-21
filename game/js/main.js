@@ -161,7 +161,7 @@ import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
-import { loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
+import { loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig, zetPandIndexProbe as zetVoetbalPandIndex } from './voetbalcarrierelive.js';
 import { cardsBusy as voetbalCardsBusy } from './hudcards.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -210,7 +210,7 @@ import { tryQuickWaypoint } from './snelwaypoint.js'; // #836: T zet of wist je 
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
-import { initBezit, dayTick as bezitDagTik, getBezit } from './bezitlive.js';
+import { initBezit, dayTick as bezitDagTik, getBezit, getIndexNow as getBezitIndexNow } from './bezitlive.js';
 import { setBezitDifficultyProvider } from './bezitdifficulty.js';
 // Bezit leest zijn moeilijkheid via difficulty.js: alleen de omzet (incomeFactor, per speler, 0,75 tot 1,25); aankoopprijs en kosten blijven op 1: er is geen prijsoptie (besluit moeilijkheid #1169).
 setBezitDifficultyProvider((kind) => (kind === 'income' ? incomeFactor() : 1));
@@ -802,6 +802,7 @@ async function boot() {
   const shopPlaces = loadShopPlaces('stad.json');
   loadVoetbalParken(); // de voetbalparken voor de carrière (#1117, klein, een terugval zonder)
   zetVoetbalBezig(voetbalCardsBusy);
+  zetVoetbalPandIndex(() => { const ix = getBezitIndexNow(); return ix ? ix.buildings : null; });   // het sponsorpand uit de Bezit-pandindex, zodra die geladen is (voetbalbezit.js)
   const map = tiles ? tiles.world : await withDeadline(loadMap('stad.json', onMapProgress), MAP_LOAD_MS, 'kaart laden');
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');

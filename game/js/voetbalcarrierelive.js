@@ -15,6 +15,8 @@ import { getStoryView } from './storyquery.js';
 import { unlockAchievement } from './achievements.js';
 import { playerBusy } from './busy.js';
 import { narrativeBusy } from './narrative.js';
+import { makeSponsorPandIndex } from './voetbalbezit.js';
+import { betaalBanenUitgave } from './sidejobwereld.js';
 
 const WRITE_DELAY_MS = 1500;
 let career = null, storageOverride = null, timer = 0, dirty = false, prevClock = null, index = null;
@@ -175,5 +177,30 @@ export function updateBeats(dt, w) {
   if (w.addMessage) w.addMessage(hudLine(b, c.char), 7, { kind: 'tip', key: `voetbal-${b.id}` });
   career = markBeat(c, b, ctx.day); mark();
   return b;
+}
+// ---- clubaandelen en het sponsorpand (#1113, #1179) ----
+// De Bezit-pandindex (parcelindex.js createBuildingIndex) komt lui uit main.js: zonder index kiest een sponsor geen pand (het spel gaat gewoon door).
+let pandProbe = null;
+export function zetPandIndexProbe(fn) { pandProbe = typeof fn === 'function' ? fn : null; }
+export const getSponsorPandIndex = () => { try { const b = pandProbe && pandProbe(); return b ? makeSponsorPandIndex(b) : null; } catch (e) { return null; } };
+export function clubPlace(c = getCareer()) { const k = c && c.club ? getClub(c.club) : null; return k && Number.isFinite(k.x) && Number.isFinite(k.y) ? { x: k.x, y: k.y } : null; }
+// Een aandeel kopen: het bedrag gaat van het saldo af (betaalBanenUitgave, ook bij een gast zijn eigen geld); het kan alleen als de som er helemaal is.
+export function buyShare(w, clubId, share) {
+  const c = getCareer();
+  const money = w ? Math.max(0, Math.floor(w.money || 0)) : 0;
+  const r = C.buyClubShare(c, clubId, share, money, getClub);
+  if (!r.ok) return r;
+  const paid = betaalBanenUitgave(w, r.price, 'Overig uitgaven');
+  if (paid < r.price) { if (paid > 0 && w) w.money += paid; return { career: c, ok: false, reason: 'Het geld is er niet' }; }
+  career = r.career; mark();
+  if (w && w.addMessage) w.addMessage(`Aandeel in ${r.club}: ${euro(r.price)}`, 4, { kind: 'geld', key: 'voetbal-aandeel' });
+  return r;
+}
+export function sellShare(w, clubId) {
+  const r = C.sellClubShare(getCareer(), clubId);
+  if (!r.ok) return r;
+  career = r.career; mark();
+  if (w && r.price > 0) { w.money += r.price; if (w.addMessage) w.addMessage(`Aandeel verkocht: ${euro(r.price)}`, 4, { kind: 'geld', key: 'voetbal-aandeel' }); }
+  return r;
 }
 export { beatText };

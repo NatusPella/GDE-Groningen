@@ -14,6 +14,7 @@ import * as T from './voetbaltransfers.js';
 import * as Sp from './voetbalsponsors.js';
 import { formationList } from './voetbalrules.js';
 import * as V from './voetbalcarrierelive.js';
+import * as B from './voetbalclub_bezit.js';
 import { voetbalOpen, voetbalHint } from './voetbalpoort.js';
 
 export const TABS = [['vandaag', 'Vandaag'], ['selectie', 'Selectie'], ['kalender', 'Kalender'], ['stand', 'Stand'], ['training', 'Training']];
@@ -128,7 +129,15 @@ function viewManager(c, env) {
   const eigen = C.squadOf(c, c.club, env.getClub).filter((q) => !q.protagonist).slice(0, 18).map((q, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · rating ${playerRating(q)}</span><span class="ds-z-rij__waarde">${euro(T.sellPrice(q))} ${knop(`sell:${q.id}`, 'Verkoop', { uit: venster ? '' : 'Alleen in de pauze tussen de seizoenen' })}</span></li>`).join('');
   return `<p>${chip(`Clubkas ${euro(cash)}`)} ${chip(venster ? 'Transferperiode: nu' : 'Transferperiode: in de pauze')} ${chip('De kas is van de club, niet van jou')}</p>` +
     `<h3 class="ds-z-kaart__titel">Transfervrije spelers</h3>${marketRows ? `<ul class="ds-z-lijst vb-selectie">${marketRows}</ul>` : '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Niemand op de markt</p><p class="ds-z-leeg__tekst">Na elk seizoen komen er nieuwe spelers vrij.</p></div>'}` +
-    `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>`;
+    `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>` + viewShares(c, env);
+}
+// Clubaandelen (#1113): pas zichtbaar na het eerste aandeel of de manager-ontgrendeling; je koopt nooit je spaargeld leeg (een kwart blijft over).
+function viewShares(c, env) {
+  if (!B.isVisible(c)) return '';
+  const div = C.divisionOfMyClub(c) || 'talent', have = (c.bezit.clubs[c.club] || {}).aandeel || 0, money = Math.floor((env && env.money) || 0);
+  const buy = B.SHARES.filter((x) => have + x <= 1 + 1e-9).map((x) => { const r = B.canBuy(c, c.club, div, x, money); return knop(`share:buy:${c.club}:${x}`, `${Math.round(x * 100)}% voor ${euro(B.priceOf(div, x, B.ownedCount(c.bezit)))}`, { uit: r.ok ? '' : r.reason }); }).join(' ');
+  const rows = C.clubSharesOf(c).map((h, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(C.nameOf(env.getClub, h.club))}</span><span class="ds-z-rij__sub">${Math.round(h.aandeel * 100)}% sinds speldag ${h.sinds}</span><span class="ds-z-rij__waarde">${knop(`share:sell:${h.club}`, `Verkoop ${euro(Math.round(h.prijs * B.VERKOOP_FACTOR))}`, { ghost: true })}</span></li>`).join('');
+  return `<h3 class="ds-z-kaart__titel">Clubaandelen</h3><p>${chip('Rustig inkomen per ronde')} ${chip('Verkopen levert 75% op')}</p>${rows ? `<ul class="ds-z-lijst vb-selectie">${rows}</ul>` : ''}<p class="vb-acties">${buy}</p>`;
 }
 function viewUitnodiging(c, env) {
   if (!env.unlocked) return `<div class="ds-z-leeg"><p class="ds-z-leeg__kop">De voetbalcarrière komt later</p><p class="ds-z-leeg__tekst">${esc(env.hint || 'Dit komt later in het verhaal.')} De Euroborg en de penaltyserie kun je nu al spelen.</p></div>`;
@@ -155,7 +164,7 @@ const CSS = `.vb-pane { display: grid; gap: var(--ds-s-2, 10px); padding: var(--
 .vb-vaardig .ds-z-rij__waarde { min-width: 180px; }`;
 let cssLoaded = false;
 const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return; cssLoaded = true; const el = document.createElement('style'); el.textContent = CSS; document.head.appendChild(el); };
-const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
+const envFor = (w, progress = {}) => ({ money: w ? w.money || 0 : 0, getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
 let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
 let launcher = null;
@@ -179,7 +188,9 @@ function act(a) {
   else if (a === 'train') V.trainNow(wereld, c.focus, 0.8);
   else if (a === 'sim') V.finishMatch(wereld, null);
   else if (a.startsWith('tactic:')) { const [, k, v] = a.split(':'); V.replaceCareer(C.withTactic(c, k === 'formation' ? { formation: v } : { style: v })); }
-  else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), null); if (r.ok) V.replaceCareer(r.career); }
+  else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), V.getSponsorPandIndex(), V.clubPlace(c)); if (r.ok) V.replaceCareer(r.career); }
+  else if (a.startsWith('share:buy:')) { const [, , club, share] = a.split(':'); V.buyShare(wereld, club, Number(share)); }
+  else if (a.startsWith('share:sell:')) V.sellShare(wereld, a.slice(11));
   else if (a === 'offer:accept') { const r = C.acceptOffer(c); if (r.ok) V.replaceCareer(r.career); }
   else if (a === 'offer:decline') V.replaceCareer(C.declineOffer(c));
   else if (a.startsWith('buy:')) { const r = C.managerBuy(c, a.slice(4), V.getClub); if (r.ok) V.replaceCareer(r.career); }
