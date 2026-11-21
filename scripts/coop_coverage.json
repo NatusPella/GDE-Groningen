@@ -74,7 +74,8 @@
     "dialogueform*",
     "homebase*",
     "reputation*",
-    "unlockgate*"
+    "unlockgate*",
+    "storymultiplayer"
    ],
    "eigenaar": "wereld",
    "gast": "Meedoen? (J of N); wie J zegt loopt mee, anderen kijken. Stappen met rekwisieten bij de host zijn deels.",
@@ -84,7 +85,8 @@
     "scripts/coopmissie_test.mjs",
     "scripts/coopverhaal_test.mjs",
     "scripts/coopmissie_motor_test.mjs",
-    "scripts/coopmissie_audit_test.mjs"
+    "scripts/coopmissie_audit_test.mjs",
+    "scripts/multiplayerstorysteps_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -143,11 +145,8 @@
     "doc": "docs/VERHAAL-ANALYSE-21-11.md",
     "zoek": "een gast mag een bijbaan of loopbaan alleen beginnen als hij hem zelf heeft ontgrendeld"
    },
-   "wachtOp": "epic-verhaal-21-11",
-   "status": "gat",
-   "prio": "middel",
-   "lead": "Verhaal",
-   "gat": "Lead Verhaal meldt (epic-verhaal-21-11): storybridge_test.mjs bewijst dat een client of sessie geen overgangsscene speelt en dat storybridgerun.js niets over het net stuurt; unlockgate_test.mjs bewijst dat de poort alleen de meegegeven eigen voortgang leest (host en gast verschillen); COOP-GAST.md heeft een alinea voor overgangsscenes, poort, vlaggen en thuis. Wat overblijft is alleen de merge: daarna de status op OK zetten. Cutscene-deelname in een echt venster staat al in de suite alles (stap filmpje) en hoeft de lead niet te doen."
+   "status": "OK",
+   "prio": "-"
   },
   {
    "id": "recap",
@@ -710,29 +709,53 @@
   },
   {
    "id": "pings",
-   "naam": "Kaartping en roepjes (7, 8, 9)",
+   "naam": "Kaartping, roepjes (7, 8, 9) en een doel delen",
    "groep": "Kaart en navigatie",
    "modules": [
     "coopping",
     "cooppings3d",
-    "partnerhud"
+    "partnerhud",
+    "multiplayergoal"
    ],
    "eigenaar": "gesynct",
-   "gast": "Drie toetsen geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een regel.",
+   "gast": "Drie toetsen geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een regel; een ping op je doel (wiel) doet hetzelfde. Een doel delen is een voorstel (J of N): de navigator deelt met de bestuurder, de bestuurder met wie meerijdt.",
    "beloning": "Geen.",
-   "wegval": "Een ping vervalt vanzelf; niets te herstellen.",
+   "wegval": "Een ping of voorstel vervalt vanzelf; niets te herstellen.",
    "test": [
+    "scripts/multiplayerping_test.mjs",
+    "scripts/multiplayergoal_test.mjs",
     "scripts/coopspelers_test.mjs",
     "scripts/coophostwisselwereld_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
-    "zoek": "**Pings en waypoints (21-11)"
+    "zoek": "**Pings, snelle zinnen en een doel delen (21-11"
    },
-   "status": "gat",
-   "prio": "middel",
-   "issue": "#1159",
-   "gat": "Een ping kan alleen met 7, 8 of 9 vanaf je eigen plek; geen ping op een gekozen kaartpunt en geen waypoint delen (ook niet voor de bijrijder in een auto). Een eigen test voor coopping.js ontbreekt."
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "zinnen",
+   "naam": "Snelle zinnen, emotes, dempen en blokkeren",
+   "groep": "Kaart en navigatie",
+   "modules": [
+    "multiplayerphrases",
+    "multiplayerphrasesradial"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Een vaste lijst Nederlandse zinnen en emotes uit een wiel (T, controller X), zonder vrije tekst en alleen met opt-in; de host stuurt het id door, elke ontvanger zet de tekst erbij. Dempen en blokkeren per speler in de spelerslijst.",
+   "beloning": "Geen.",
+   "wegval": "Geen staat: wat gemist is blijft gemist. Dempen en blokkeren staan op naam in het geheugen en blijven na een hostwissel gelden; niets wordt opgeslagen.",
+   "test": [
+    "scripts/multiplayerphrases_test.mjs",
+    "scripts/playerstatus_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Snelle zinnen en emotes (T of controller X).**"
+   },
+   "status": "OK",
+   "prio": "-"
   },
   {
    "id": "kaart",

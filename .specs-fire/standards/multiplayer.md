@@ -236,3 +236,10 @@ bij de gastheer en boot) staat in `coopbestuurflow_test`. Electron
    regel zegt mag, code niet.
 3. Gastenkant arena, chat/voice (#451) en dedicated servers (#450) staan open.
 4. Niets met echte spelers op meerdere computers over internet bekeken.
+
+## Communicatie: snelle zinnen en een doel delen (#1159, ADR 0046)
+
+- Alleen een vaste lijst Nederlandse zinnen en emotes (`multiplayerphrases.js`), geen vrije tekst; over het net gaat het id (`{ k: 'zin', z }`), de ontvanger zet de tekst erbij. Opt-in (`samenZinnen`, standaard uit).
+- Dempen (zinnen en emotes) en blokkeren (ook pings en gedeelde doelen) per speler, in het geheugen en op naam, zonder opslag; ze blijven na een hostwissel gelden. Rate limit door host en ontvanger.
+- Een doel delen (`multiplayergoal.js`) is een voorstel met J of N; in een voertuig deelt de navigator met de bestuurder en de bestuurder met wie meerijdt.
+- Elke verhaalstap die geen missie is heeft een regel in `storymultiplayer.js`; zonder regel faalt `multiplayerstorysteps_test.mjs`.

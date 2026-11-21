@@ -1294,6 +1294,23 @@ const PHASES = {
         await sleep(s * 1000);
         const g = G.getGoal && G.getGoal();
         uit({ heeftDoel: !!(g && g.name === 'Alles-test') });
+      } else if (stap === 'zinnen') { // snelle zinnen (#1159, opt-in): een gast zegt "Dank je!", de anderen zien de regel; een gedempte speler niet
+        const S2 = await imp('settings'), N2 = await imp('coopnet');
+        S2.setSetting('samenZinnen', true);
+        const gezien = [], am = w.addMessage;
+        w.addMessage = function (m, ...r) { gezien.push(String(m)); return am && am.call(this, m, ...r); };
+        if (CFG.name === wie) N2.sayPhrase(W(), 'dank');
+        await sleep(s * 1000);
+        w.addMessage = am; S2.setSetting('samenZinnen', false);
+        uit({ regels: gezien.filter((m) => /Dank je/.test(m)) });
+      } else if (stap === 'doel') { // een doel delen (#1159, opt-in): de gast deelt zijn doel met iedereen; de anderen krijgen een voorstel (J of N), zijn eigen doel verandert niet
+        const S3 = await imp('settings'), N3 = await imp('coopnet');
+        S3.setSetting('samenZinnen', true);
+        if (CFG.name === wie) N3.shareGoal(W(), { x: W().player.x + 120, y: W().player.y + 120 }, 'iedereen');
+        await sleep(s * 1000);
+        const v = N3.goalProposal(W());
+        S3.setSetting('samenZinnen', false);
+        uit({ voorstel: !!v, x: v ? Math.round(v.x) : null });
       } else if (stap === 'outfit') { // kleding: de outfit-code in de spelerslijst (epic Kleding)
         let C = null; try { C = await imp('clothing'); } catch (e) { /* nog niet gemerged */ }
         if (!C) return uit({ skip: true, reden: 'clothing.js ontbreekt' });
