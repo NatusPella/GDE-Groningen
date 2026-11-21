@@ -12,7 +12,7 @@ import {
 import { makeBall, stepBall, zetBal, ballSpeed } from './voetbalbal.js';
 import { aiIntentie, besteOntvanger, NIETS } from './voetbalai.js';
 import { NEUTRALE_BONUS } from './voetbalkarakter.js';
-import { maakSpelregels, beoordeelFout, pasBeoordelingToe, blessureWissels, rustWissels, buitenspelBijSchop, strafschopPlek, noteer } from './voetbalspelregels.js';
+import { setupFifaRules, judgeFoul, pasBeoordelingToe, blessureWissels, rustWissels, offsideAtKick, penaltySpot, noteer } from './voetbalfifarules.js';
 
 export const FASEN = ['intro', 'aftrap', 'spel', 'hervat', 'goal', 'rust', 'eind', 'klaar'];
 export const HERVAT_KINDEN = ['aftrap', 'inworp', 'hoek', 'doelschop', 'vrij', 'strafschop'];   // nieuwe soorten komen achteraan: de index zit in de momentopname
@@ -44,7 +44,8 @@ function makePlayer(team, i, name, level, rol, perTeam) {
 
 // ratings: [[per plek van team 0], [idem team 1]] met { naam?, f: { sprint, schot, aanname, verd, uit } } (carrière, voetbalplayers.js simFactors); teams: [team0, team1] overschrijft de zes vaste clubs (voetbalclubs.js teamFor).
 // deeln: [{ slot, naam, char, bonus? }] (bonus: { sprint, schot, aanname } van het personage, voetbalkarakter.js; de mensen, de host eerst), opties: { duur 'kort' | 'normaal', stand (moeilijkheid), seed, tegenstander (0..3), aiBeide (voor de botsim: beide teams als tegenstander) }.
-export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig', teams: teamsOpt = null, ratings = null, regels = null } = {}) {
+export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig', teams: teamsOpt = null, ratings = null, regels = null, timings: timingsOpt = null } = {}) {
+  const timings = { intro: INTRO_S, rust: RUST_S, eind: EIND_S, ...(timingsOpt || null) };   // de presentatie (opstelling, rustpauze, samenvatting) vraagt langere pauzes dan de pure sim
   formaat = zetFormaat(formaat);
   const perTeam = FORMATEN[formaat].n;
   const rng = makeRng(seed);
@@ -67,12 +68,12 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
   for (const mm of humans) { players[mm.ctl].slot = mm.slot; players[mm.ctl].laatsteMens = mm.slot; }
   const duurHelft = duurVan(formaat, duur);
   const m = {
-    fase: 'intro', faseT: INTRO_S, helft: 1, klok: duurHelft, duurHelft, duurNaam: duur === 'kort' ? 'kort' : 'normaal', formaat, perTeam, tac, stand: level, seed, teams, ai, rng, spelers: players, bal: makeBall(0, 0), mensen: humans,
-    score: [0, 0], hervat: null, flash: null, flits: 0, ev: [], tijd: 0, n: 0, foulCd: 0, wisselRustTeam: 0, aftrapTeam: 0,
+    fase: 'intro', faseT: timings.intro, helft: 1, klok: duurHelft, duurHelft, duurNaam: duur === 'kort' ? 'kort' : 'normaal', formaat, perTeam, tac, stand: level, seed, teams, ai, rng, spelers: players, bal: makeBall(0, 0), mensen: humans,
+    timings, score: [0, 0], hervat: null, flash: null, flits: 0, ev: [], tijd: 0, n: 0, foulCd: 0, wisselRustTeam: 0, aftrapTeam: 0,
     stat: { schoten: [0, 0], overtredingen: [0, 0], bezit: [0, 0], uit: 0, doelpuntenVan: {} }, winnaar: null, spiegel: false, alleenAi: humans.length === 0,
   };
   m.bal.owner = -1;
-  maakSpelregels(m, regels);
+  setupFifaRules(m, regels);
   zetOpstelling(m, 0, true);
   return m;
 }
@@ -115,7 +116,7 @@ export function setupKickoff(m, team) {
 const HERVAT_TEKST = { inworp: 'Inworp', hoek: 'Hoekschop', doelschop: 'Doelschop', vrij: 'Vrije bal', strafschop: 'Strafschop' };
 // Een herstart op (x, y) voor team: de dichtstbijzijnde speler (bij een doelschop de keeper) neemt hem, tegenstanders gaan er een stukje vanaf.
 export function setupResume(m, kind, team, x, y, takerId = null) {
-  if (kind === 'strafschop') { const sp = strafschopPlek(1 - team); x = sp.x; y = sp.y; }
+  if (kind === 'strafschop') { const sp = penaltySpot(1 - team); x = sp.x; y = sp.y; }
   x = kl(x, -(PITCH.B / 2) + 0.4, (PITCH.B / 2) - 0.4); y = kl(y, -(PITCH.L / 2) + 0.4, (PITCH.L / 2) - 0.4);
   let taker = takerId != null ? m.spelers[takerId] : null;
   if (!taker) {
@@ -349,7 +350,7 @@ function schop(m, p, kick) {
   b.bs = -1;
   if (ontv && kick.soort !== 'schot' && ontv.team === p.team) {
     p.st.passes++; b.passVan = p.id; b.passNaar = ontv.id; b.passT = m.tijd;
-    if (buitenspelBijSchop(m, p, ontv)) b.bs = ontv.id;
+    if (offsideAtKick(m, p, ontv)) b.bs = ontv.id;
   }
   if (kick.soort === 'schot') {
     m.stat.schoten[p.team]++; p.st.schoten++; const mm = humanOf(m, p); if (mm) mm.schoten++;
@@ -401,13 +402,13 @@ function foul(m, dader, slachtoffer, hard = false) {
   m.foulCd = 1.5;
   m.stat.overtredingen[dader.team]++;
   m.ev.push({ type: 'overtreding', team: dader.team, speler: dader.id, x: slachtoffer.x, y: slachtoffer.y });
-  const b = beoordeelFout(m, dader, slachtoffer, hard);         // kaart, blessure en strafschop (voetbalspelregels.js; alles uit te zetten)
+  const b = judgeFoul(m, dader, slachtoffer, hard);         // kaart, blessure en strafschop (voetbalfifarules.js; alles uit te zetten)
   for (const e of pasBeoordelingToe(m, dader, slachtoffer, b)) m.ev.push(e);
   if (b.strafschop) setupResume(m, 'strafschop', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.rol === 'keeper' || b.blessure ? null : slachtoffer.id);
   else setupResume(m, 'vrij', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.id);
 }
 // Buitenspel (optioneel): de ontvanger van een pass stond voor de laatste verdedigers, de ander krijgt een vrije bal.
-function fluitBuitenspel(m, p) {
+function callOffside(m, p) {
   m.stat.buitenspel[p.team]++;
   m.ev.push({ type: 'buitenspel', team: p.team, speler: p.id });
   noteer(m, 'buitenspel', p.team, p.id);
@@ -445,7 +446,7 @@ function oppakken(m) {
   }
   if (!best) return;
   const { p, keeper, rel } = best;
-  if (!keeper && b.bs === p.id) { b.bs = -1; fluitBuitenspel(m, p); return; }
+  if (!keeper && b.bs === p.id) { b.bs = -1; callOffside(m, p); return; }
   b.bs = -1;
   if (keeper) {
     const lv = m.ai[p.team], vaardig = (p.slot != null ? 0.8 : lv.keeper) * (PITCH.L > 60 ? 0.78 : 1);
@@ -589,10 +590,10 @@ function einde_helft(m) {
   const b = m.bal;
   b.owner = -1; b.vx = b.vy = 0;
   m.ev.push({ type: 'fluit', helft: m.helft });
-  if (m.helft < HELFTEN) { for (const e of rustWissels(m)) m.ev.push(e); m.fase = 'rust'; m.faseT = RUST_S; m.flash = { tekst: `Rust: ${scoreTekst(m.score[0], m.score[1])}`, t: RUST_S }; return; }
-  m.fase = 'eind'; m.faseT = EIND_S;
+  if (m.helft < HELFTEN) { for (const e of rustWissels(m)) m.ev.push(e); m.fase = 'rust'; m.faseT = m.timings.rust; m.flash = { tekst: `Rust: ${scoreTekst(m.score[0], m.score[1])}`, t: m.timings.rust }; return; }
+  m.fase = 'eind'; m.faseT = m.timings.eind;
   m.winnaar = m.score[0] > m.score[1] ? 0 : m.score[1] > m.score[0] ? 1 : -1;
-  m.flash = { tekst: `Einde: ${m.teams[0].kort} ${scoreTekst(m.score[0], m.score[1])} ${m.teams[1].kort}`.slice(0, 60), t: EIND_S };
+  m.flash = { tekst: `Einde: ${m.teams[0].kort} ${scoreTekst(m.score[0], m.score[1])} ${m.teams[1].kort}`.slice(0, 60), t: m.timings.eind };
   m.ev.push({ type: 'einde', winnaar: m.winnaar });
 }
 
@@ -637,7 +638,7 @@ export function medailleUitRij(rij) {
 const FLASH_CODES = ['', 'goal', 'uit', 'rust', 'eind', 'hervat'];
 const flashCode = (m) => (m.fase === 'goal' ? 1 : m.fase === 'rust' ? 3 : m.fase === 'eind' ? 4 : m.fase === 'hervat' ? 5 : m.fase === 'aftrap' ? 5 : 0);
 // d: [fase, helft, klok, s0, s1, bx, by, bz, bvx, bvy, bvz, eigenaar, hervatsoort, flash, flits, slomo, ctl x4, dan per speler twee getallen]. Per speler: (x, y) in stappen van 5 cm in één
-// getal, en (hoek in 64 stappen, vlaggen) in één getal. Zo past elf tegen elf (44 + 20) in de 64 getallen die het bestaande live-bericht draagt.
+// getal, en (hoek in 64 stappen, flags) in één getal. Zo past elf tegen elf (44 + 20) in de 64 getallen die het bestaande live-bericht draagt.
 const SPOT_X = 40, SPOT_Y = 60, STAP = 20;
 const packSpot = (x, y) => Math.round(kl(x + SPOT_X, 0, 2 * SPOT_X - 0.05) * STAP) * 4096 + Math.round(kl(y + SPOT_Y, 0, 2 * SPOT_Y - 0.05) * STAP);
 const unpackSpot = (v) => ({ x: Math.floor(v / 4096) / STAP - SPOT_X, y: (v % 4096) / STAP - SPOT_Y });

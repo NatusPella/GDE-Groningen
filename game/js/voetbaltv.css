@@ -1,0 +1,66 @@
+/* De tv-overlay van de voetbalwedstrijd (voetbaloverlay.js, voetbalpresentatie.js; epic voetbal-fifa, 21-11). Alleen ds-tokens (var(--ds-...)), klassen met het voorvoegsel vbtv-.
+   Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. Niets neemt een klik. De kleur van een club komt als inline stijl van het embleem
+   (identiteitskleur, nooit het enige signaal: de naam en het patroon staan er ook). */
+.vbtv { position: fixed; inset: 0; z-index: 6; pointer-events: none; font-family: var(--ds-font-tekst); }
+.vbtv [hidden] { display: none; }
+/* de veldradar: linksboven, klein, in de rol "binnenkomend werk" (tijdens de wedstrijd komt daar niets anders) */
+.vbtv-radar.ds-z-kaart { position: absolute; left: var(--ds-s-4); top: var(--ds-s-4); padding: var(--ds-s-2); width: max-content; }
+.vbtv-radar svg { display: block; }
+.vbtv-rveld { fill: var(--ds-c-licht-groen); stroke: var(--ds-c-ink-inkt); stroke-width: 1; }
+.vbtv-rlijn { stroke: var(--ds-c-ink-inkt); stroke-width: 0.8; opacity: 0.6; }
+.vbtv-rleeg { fill: none; }
+.vbtv-r0 { fill: var(--ds-c-ink-bord); stroke: var(--ds-c-ink-inkt); stroke-width: 0.8; }
+.vbtv-r1 { fill: var(--ds-c-ink-roze); stroke: var(--ds-c-ink-inkt); stroke-width: 0.8; }
+.vbtv-rjij { fill: var(--ds-c-ink-geel); stroke-width: 1.4; }
+.vbtv-rbal { fill: var(--ds-c-wit); stroke: var(--ds-c-ink-inkt); stroke-width: 1; }
+/* het herhalingslabel */
+.vbtv-herhaling.ds-z-waarde { position: absolute; right: var(--ds-s-4); top: var(--ds-s-4); text-transform: uppercase; letter-spacing: var(--ds-ls-label); }
+/* de ondertitel van het commentaar: onderin het midden, één regel, de naam vet */
+.vbtv-ondertitel { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(var(--ds-s-4) + var(--ds-s-7)); margin: 0; max-width: min(calc(var(--ds-s-8) * 11), calc(100vw - var(--ds-s-8) * 2)); display: flex; gap: var(--ds-s-2); align-items: baseline;
+  padding: var(--ds-s-1) var(--ds-s-3); background: var(--ds-bg); color: var(--ds-tx); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); }
+.vbtv-ondertitel b { font-family: var(--ds-font-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; white-space: nowrap; }
+.vbtv-ondertitel b::after { content: ':'; }
+/* de grote kaarten: opstelling, rust en einde, midden in beeld (een cinematisch moment: de wedstrijd staat dan stil of loopt in de tussenpauze) */
+.vbtv-paneel.ds-z-kaart { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(calc(var(--ds-s-8) * 11), calc(100vw - var(--ds-s-6))); max-height: calc(100vh - var(--ds-s-8)); overflow: hidden; padding: var(--ds-s-4) var(--ds-s-5); display: grid; gap: var(--ds-s-3); }
+.vbtv-kop h2 { margin: 0; display: flex; align-items: center; justify-content: center; gap: var(--ds-s-3); font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); flex-wrap: wrap; text-align: center; }
+.vbtv-kop h2 b { font-size: var(--ds-t-display); text-shadow: var(--ds-misdruk); }
+.vbtv-eyebrow { display: block; text-align: center; font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
+.vbtv-twee { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-5); }
+.vbtv-kolom h3 { margin: 0; display: flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); }
+.vbtv-kolom--uit h3 { justify-content: flex-end; }
+.vbtv-sub { margin: 0 0 var(--ds-s-2); font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+.vbtv-kolom--uit .vbtv-sub { text-align: right; }
+.vbtv-kolom ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-s-1); }
+.vbtv-kolom li { display: grid; grid-template-columns: var(--ds-s-5) 1fr auto; gap: var(--ds-s-2); align-items: baseline; font-size: var(--ds-t-label); }
+.vbtv-kolom--uit li { grid-template-columns: auto 1fr var(--ds-s-5); direction: rtl; }
+.vbtv-kolom--uit li > * { direction: ltr; }
+.vbtv-kolom li em { font-style: normal; font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+.vbtv-nr { font-family: var(--ds-font-kop); font-weight: 800; text-align: center; }
+.vbtv-jij { background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); border-radius: var(--ds-r); padding: 0 var(--ds-s-1); }
+.vbtv-jij em { color: var(--ds-zeef-tx); }
+.vbtv-scorers { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-5); font-size: var(--ds-t-label); }
+.vbtv-scorers p { margin: 0; }
+.vbtv-scorers p:last-child { text-align: right; }
+.vbtv-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-s-1); }
+.vbtv-stats li { display: grid; grid-template-columns: var(--ds-s-8) 1fr var(--ds-s-8); gap: var(--ds-s-3); align-items: center; font-size: var(--ds-t-label); }
+.vbtv-sa { text-align: right; font-weight: 700; }
+.vbtv-sb { text-align: left; font-weight: 700; }
+.vbtv-sl { position: relative; text-align: center; padding-bottom: var(--ds-s-2); }
+.vbtv-sl i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--ds-s-1); background: var(--ds-c-ink-roze); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+.vbtv-sl i::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--vbtv-deel, 50%); background: var(--ds-c-ink-bord); }
+.vbtv-mvp { display: grid; justify-items: center; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-3); background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
+.vbtv-mvp b { font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); }
+.vbtv-mvp em { font-style: normal; font-size: var(--ds-t-hulp); }
+.vbtv-mvp .vbtv-eyebrow { color: var(--ds-zeef-tx); }
+.vbtv-hint { margin: 0; text-align: center; font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+/* het scorebord (de rij van het bord bovenin): embleem, kant, kaart- en blessure-icoontjes */
+.vbtv-kant { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.vbtv-logo { flex: none; }
+.vbtv-kaart { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-size: var(--ds-t-hulp); }
+.vbtv-kaart i { display: inline-block; width: var(--ds-s-2); height: var(--ds-s-3); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: 2px; }
+.vbtv-kaart--geel i { background: var(--ds-c-ink-geel); }
+.vbtv-kaart--rood i { background: var(--ds-c-rood); }
+.vbtv-kaart b { font-size: var(--ds-t-hulp); font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+.vbtv-blessure { display: inline-flex; }
+@media (max-width: 720px) { .vbtv-twee, .vbtv-scorers { grid-template-columns: 1fr; } .vbtv-kolom--uit h3, .vbtv-kolom--uit .vbtv-sub { text-align: left; justify-content: flex-start; } .vbtv-scorers p:last-child { text-align: left; } }
+@media (prefers-reduced-motion: reduce) { .vbtv * { animation: none; transition: none; } }

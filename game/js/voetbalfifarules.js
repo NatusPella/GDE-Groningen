@@ -4,31 +4,31 @@
 // Alle regels zijn uit te zetten (`regels`, de voorkeur in `gde-voetbal-v1`); met alles uit is de sim gelijk aan die van voor deze uitbreiding.
 import { PITCH, richtingVan, ownGoalY, inStrafschop } from './voetbalrules.js';
 
-export const REGELS_STANDAARD = Object.freeze({ kaarten: true, blessures: true, strafschoppen: true, buitenspel: false, wissels: true });
-export const REGEL_SLEUTELS = Object.keys(REGELS_STANDAARD);
+export const DEFAULT_RULES = Object.freeze({ kaarten: true, blessures: true, strafschoppen: true, buitenspel: false, wissels: true });
+export const RULE_KEYS = Object.keys(DEFAULT_RULES);
 // Alleen echte booleans worden overgenomen; al het andere is de standaard (een corrupte voorkeur breekt niets).
-export function cleanRegels(r) {
-  const o = { ...REGELS_STANDAARD };
-  if (r && typeof r === 'object') for (const k of REGEL_SLEUTELS) if (typeof r[k] === 'boolean') o[k] = r[k];
+export function cleanRules(r) {
+  const o = { ...DEFAULT_RULES };
+  if (r && typeof r === 'object') for (const k of RULE_KEYS) if (typeof r[k] === 'boolean') o[k] = r[k];
   return o;
 }
-export const GEEN_REGELS = Object.freeze({ kaarten: false, blessures: false, strafschoppen: false, buitenspel: false, wissels: false });
+export const NO_RULES = Object.freeze({ kaarten: false, blessures: false, strafschoppen: false, buitenspel: false, wissels: false });
 
 // De bank (verzonnen voornamen, geen echte voetballers): klein twee wissels per team, groot drie.
-export const BANK_THUIS = ['Anko', 'Dieuwke', 'Siebren', 'Hilde'];
-export const BANK_UIT = ['Tjeerd', 'Aaltje', 'Wubbe', 'Geesje'];
+export const BENCH_HOME = ['Anko', 'Dieuwke', 'Siebren', 'Hilde'];
+export const BENCH_AWAY = ['Tjeerd', 'Aaltje', 'Wubbe', 'Geesje'];
 export const bankGrootte = (perTeam) => (perTeam > 6 ? 3 : 2);
 
 // De strafschopstip van het team dat verdedigt: op ongeveer tweederde van de diepte van het strafschopgebied.
-export const strafschopPlek = (team) => ({ x: 0, y: ownGoalY(team) + richtingVan(team) * PITCH.STRAF_D * 0.62 });
+export const penaltySpot = (team) => ({ x: 0, y: ownGoalY(team) + richtingVan(team) * PITCH.STRAF_D * 0.62 });
 
 const fin = (x) => Number.isFinite(x);
 
 // Zet de regels, de bank en de statistieken op een wedstrijd (aan te roepen door makeMatch).
-export function maakSpelregels(m, regels = null) {
-  m.regels = cleanRegels(regels);
+export function setupFifaRules(m, regels = null) {
+  m.regels = cleanRules(regels);
   const n = bankGrootte(m.perTeam);
-  m.bank = [BANK_THUIS.slice(0, n), BANK_UIT.slice(0, n)];
+  m.bank = [BENCH_HOME.slice(0, n), BENCH_AWAY.slice(0, n)];
   m.wissels = [0, 0];
   const nul = () => [0, 0];
   Object.assign(m.stat, { geel: nul(), rood: nul(), blessures: nul(), wisselsTotaal: nul(), hoeken: nul(), ingooien: nul(), doelschoppen: nul(), vrijeTrappen: nul(), strafschoppen: nul(), buitenspel: nul(), opDoel: nul() });
@@ -64,8 +64,8 @@ export function stuurWeg(m, p) {
 
 // Een overtreding beoordelen: wat volgt er? hard = een fel of van achteren gemaakte fout. Geeft { strafschop, kaart: null | 'geel' | 'rood' | 'geelrood', blessure: bool }.
 // Het toeval komt uit m.rng (deterministisch per zaad).
-export function beoordeelFout(m, dader, slachtoffer, hard = false) {
-  const r = m.regels || GEEN_REGELS;
+export function judgeFoul(m, dader, slachtoffer, hard = false) {
+  const r = m.regels || NO_RULES;
   const uit = { strafschop: false, kaart: null, blessure: false };
   if (r.strafschoppen && inStrafschop(dader.team, slachtoffer.x, slachtoffer.y)) uit.strafschop = true;
   if (r.kaarten) {
@@ -98,22 +98,22 @@ export function pasBeoordelingToe(m, dader, slachtoffer, b) {
 }
 
 // Wisselen: de speler op plek `id` maakt plaats voor de volgende van de bank. De bestuurde speler van een mens wisselt alleen bij een blessure (dan blijft de besturing bij die plek).
-export function wisselSpeler(m, id, reden = 'moe') {
+export function substitute(m, id, reden = 'moe') {
   const p = m.spelers[id];
   if (!p || !m.regels || !m.regels.wissels || p.rood || p.rol === 'keeper') return null;
   const t = p.team, k = m.wissels[t];
   if (k >= m.bank[t].length) return null;
-  const nieuw = m.bank[t][k], oud = p.naam;
-  p.naam = nieuw; p.stamina = 1; p.moe = false; p.blessure = false; p.geel = 0; p.stun = 0; p.gewisseld++;
+  const newName = m.bank[t][k], oud = p.naam;
+  p.naam = newName; p.stamina = 1; p.moe = false; p.blessure = false; p.geel = 0; p.stun = 0; p.gewisseld++;
   m.wissels[t]++; m.stat.wisselsTotaal[t]++;
-  noteer(m, 'wissel', t, id, { uit: oud, in: nieuw });
-  return { type: 'wisselspeler', team: t, speler: id, uit: oud, in: nieuw, reden };
+  noteer(m, 'wissel', t, id, { uit: oud, in: newName });
+  return { type: 'wisselspeler', team: t, speler: id, uit: oud, in: newName, reden };
 }
 
 // Bij een dode bal gaan gekwetste spelers eruit (als er nog een wissel is); anders lopen ze kreupel door.
 export function blessureWissels(m) {
   const ev = [];
-  for (const p of m.spelers) if (p.blessure && !p.rood) { const e = wisselSpeler(m, p.id, 'blessure'); if (e) ev.push(e); }
+  for (const p of m.spelers) if (p.blessure && !p.rood) { const e = substitute(m, p.id, 'blessure'); if (e) ev.push(e); }
   return ev;
 }
 // In de rust wisselt de computer de moeste veldspeler van elk team, als er een wissel is en de speler echt moe is (geen mens-bestuurde speler).
@@ -122,7 +122,7 @@ export function rustWissels(m) {
   for (let t = 0; t < 2; t++) {
     const kand = m.spelers.filter((p) => p.team === t && !p.rood && p.rol !== 'keeper' && p.slot == null && !m.mensen.some((x) => !x.weg && x.ctl === p.id) && p.stamina < 0.72);
     kand.sort((a, b) => a.stamina - b.stamina || a.id - b.id);
-    const e = kand.length ? wisselSpeler(m, kand[0].id, 'moe') : null;
+    const e = kand.length ? substitute(m, kand[0].id, 'moe') : null;
     if (e) ev.push(e);
   }
   return ev;
@@ -130,7 +130,7 @@ export function rustWissels(m) {
 
 // Buitenspel (optioneel): bij een pass naar een speler die verder naar voren staat dan de bal en de een-na-laatste tegenstander in de helft van de tegenstander, wordt hij 'mogelijk buitenspel';
 // pas als hij de bal aanraakt (voordat een ander hem raakt) volgt het fluitsignaal.
-export function buitenspelBijSchop(m, p, ontv) {
+export function offsideAtKick(m, p, ontv) {
   if (!m.regels || !m.regels.buitenspel || !ontv || ontv.team !== p.team || ontv.rol === 'keeper') return false;
   const d = richtingVan(p.team), ontvY = ontv.y * d, balY = p.y * d;
   if (ontvY <= 0 || ontvY <= balY) return false;
@@ -151,7 +151,7 @@ export function statistiekenVan(m) {
 }
 
 // Man van de match: de speler met de hoogste waarde uit doelpunten, assists, reddingen en tackles, min kaarten; de winnaar krijgt een bonus. Gelijk: de laagste id (deterministisch).
-export function manVanDeMatch(m) {
+export function matchMvp(m) {
   let best = null, bw = -Infinity;
   for (const p of m.spelers) {
     const st = p.st || {};

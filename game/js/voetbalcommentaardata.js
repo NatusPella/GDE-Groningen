@@ -10,7 +10,7 @@ export const COMMENTATOREN = {
 };
 
 // Per soort: h (de verslaggever) en r (de kleurcommentator). `kans`: hoe groot de kans is dat de ander er nog iets achteraan zegt (0 tot 1); `prio`: 3 komt altijd door, 1 vervalt bij drukte.
-export const SOORTEN = {
+export const KINDS = {
   start: { prio: 3, kans: 0.9 }, tweedeHelft: { prio: 3, kans: 0.6 }, derby: { prio: 3, kans: 0.8 },
   kans: { prio: 1, kans: 0.3 }, schot: { prio: 1, kans: 0.2 }, redding: { prio: 2, kans: 0.5 }, paal: { prio: 2, kans: 0.6 },
   goalThuis: { prio: 3, kans: 0.9 }, goalUit: { prio: 3, kans: 0.9 }, goalEigen: { prio: 3, kans: 0.9 }, comeback: { prio: 3, kans: 0.8 },
@@ -18,7 +18,7 @@ export const SOORTEN = {
   strafschop: { prio: 3, kans: 0.8 }, hoek: { prio: 1, kans: 0.25 }, ingooi: { prio: 1, kans: 0.15 }, doelschop: { prio: 1, kans: 0.2 }, vrij: { prio: 1, kans: 0.25 },
   buitenspel: { prio: 2, kans: 0.4 }, uit: { prio: 1, kans: 0.15 }, overtreding: { prio: 1, kans: 0.3 },
   rust: { prio: 3, kans: 0.9 }, eindWinst: { prio: 3, kans: 0.9 }, eindVerlies: { prio: 3, kans: 0.9 }, eindGelijk: { prio: 3, kans: 0.9 },
-  vulling: { prio: 1, kans: 0.5 }, laatsteMinuut: { prio: 3, kans: 0.6 }, spanning: { prio: 2, kans: 0.5 }, manVanDeMatch: { prio: 3, kans: 0.8 },
+  vulling: { prio: 1, kans: 0.5 }, laatsteMinuut: { prio: 3, kans: 0.6 }, spanning: { prio: 2, kans: 0.5 }, manOfTheMatch: { prio: 3, kans: 0.8 },
   bezitThuis: { prio: 1, kans: 0.4 }, bezitUit: { prio: 1, kans: 0.4 },
 };
 
@@ -151,15 +151,15 @@ export const COMMENTAAR = {
     h: ['Wat een spanning! Het kan nog alle kanten op.', 'Dit blijft tot het einde spannend.', 'Het is een heel gelijkopgaande wedstrijd.'],
     r: ['Zo wil je voetbal zien: iedereen op het puntje van zijn stoel.', 'Met één doelpunt verschil is het nooit zeker.', 'Ik durf er niets over te zeggen. En dat zegt wat.'],
   },
-  manVanDeMatch: {
+  manOfTheMatch: {
     h: ['Man van de match: {speler}. Verdiend!', 'De prijs voor de beste speler gaat naar {speler}.', 'Wie was de beste? {speler}, zonder twijfel.'],
     r: ['Ik had hem ook gekozen. Ik zeg het alleen niet hardop.', 'Een prima prestatie, die niet zomaar uit de lucht komt vallen.', 'Dat is een speler die je in je team wilt.'],
   },
 };
 
 // Een aantal regels dat er altijd moet zijn (de test eist een ondergrens per soort en in totaal).
-export const MIN_PER_SOORT = 5;
+export const MIN_PER_KIND = 5;
 export const MIN_TOTAAL = 200;
-export const MAX_WOORDEN = 22;
+export const MAX_WORDS = 22;
 export const DERBYS = [['stadjers', 'ommelanders'], ['stadjers', 'hunebedders'], ['veenpiraten', 'kleibijters'], ['wadlopers', 'ommelanders']];
 export const isDerby = (a, b) => DERBYS.some(([x, y]) => (x === a && y === b) || (x === b && y === a));

@@ -569,7 +569,7 @@ t('elf tegen elf past in de momentopname: 64 getallen, heen en terug op 5 cm nau
   assert.equal(sp.mijnId, m.mensen[1].ctl);
   const klein = makeMatch([mens(0)], { seed: 1 }); zetFormaat('groot'); assert.equal(voerInVoetbal(sp, { ...snapVoetbal(klein, 2), f: 'lv', n: 5 }), false, 'een momentopname van een ander formaat telt niet');
   zetFormaat('klein');
-  // de hoek en de vlaggen blijven heel in het getal
+  // de hoek en de flags blijven heel in het getal
   m.spelers[3].face = -2.5; m.spelers[3].tackleT = 0.2; m.spelers[3].vier = 1;
   voerInVoetbal(sp, leesLiveVoetbal(JSON.parse(JSON.stringify(snapVoetbal(m, 9)))));
   assert.ok(Math.abs(Math.cos(sp.spelers[3].face) - Math.cos(-2.5)) < 0.12 && sp.spelers[3].tackleT > 0 && sp.spelers[3].vier > 0);

@@ -1,83 +1,83 @@
 // De commentaarmotor van de voetbalwedstrijd (epic voetbal-fifa, 21-11): puur, geen DOM en geen THREE (scripts/voetbal_fifa_test.mjs). Twee commentatoren (voetbalcommentaardata.js) praten mee met
 // de gebeurtenissen van de sim (voetbalmatch.js ev): aftrap, kans, schot, redding, doelpunt, kaart, blessure, wissel, hoekschop, strafschop, rust, einde, comeback en derby, met vulling in rustige minuten.
-// Afwisselend en niet herhalend: elke soort en commentator heeft een zak die leeg moet voordat een regel terugkomt (en nooit twee keer dezelfde regel achter elkaar), plus een geheugen van de laatste
-// dertig regels over alle soorten heen. Drukte wordt gedempt: een regel van lage prioriteit valt weg als er net iets gezegd is, een doelpunt of kaart komt altijd. Commentaar is lokaal (Samen spelen: iedere
+// Afwisselend en niet herhalend: elke soort en commentator heeft een zak die leeg moet voordat een entry terugkomt (en nooit twee keer dezelfde entry achter elkaar), plus een geheugen van de laatste
+// dertig regels over alle soorten heen. Drukte wordt gedempt: een entry van lage prioriteit valt weg als er net iets gezegd is, een doelpunt of kaart komt altijd. Commentaar is lokaal (Samen spelen: iedere
 // speler hoort het commentaar van zijn eigen spel; er gaat niets over het net).
-// Stemmen: een vaste regel (zonder accolade) heeft de sleutel `Hilbrand|tekst` of `Roelie|tekst` in de stembank (tts_cast, voice_wacht.json); een sjabloon of een regel zonder opname blijft ondertitel.
+// Stemmen: een vaste entry (zonder accolade) heeft de sleutel `Hilbrand|tekst` of `Roelie|tekst` in de stembank (tts_cast, voice_wacht.json); een sjabloon of een entry zonder opname blijft ondertitel.
 import { makeRng } from './minigamekit.js';
-import { COMMENTATOREN, SOORTEN, COMMENTAAR, isDerby } from './voetbalcommentaardata.js';
+import { COMMENTATOREN, KINDS, COMMENTAAR, isDerby } from './voetbalcommentaardata.js';
 
 const MEMORY = 30;
-const MIN_TUSSEN = { 1: 3.6, 2: 1.8, 3: 0 };     // seconden stilte die een regel van deze prioriteit nodig heeft
-const SOORT_INTERVAL = { kans: 14, schot: 11, uit: 20, ingooi: 24, overtreding: 12, vrij: 16, hoek: 14, doelschop: 20, redding: 7, vulling: 12, bezitThuis: 90, bezitUit: 90 };
+const MIN_TUSSEN = { 1: 3.6, 2: 1.8, 3: 0 };     // seconden stilte die een entry van deze prioriteit nodig heeft
+const KIND_INTERVAL = { kans: 14, schot: 11, uit: 20, ingooi: 24, overtreding: 12, vrij: 16, hoek: 14, doelschop: 20, redding: 7, vulling: 12, bezitThuis: 90, bezitUit: 90 };
 const LEEG = Object.freeze({ h: [], r: [] });
 
 export const isSjabloon = (t) => /\{[a-z]+\}/.test(t);
-// De sleutel van de stembank voor een regel; sjablonen hebben er geen (ze blijven ondertitel).
+// De sleutel van de stembank voor een entry; sjablonen hebben er geen (ze blijven ondertitel).
 export const stemSleutel = (wie, tekst) => (!tekst || isSjabloon(tekst) || !COMMENTATOREN[wie] ? null : `${COMMENTATOREN[wie].stem}|${tekst}`);
 export function vulSjabloon(tekst, v = {}) {
   return String(tekst).replace(/\{([a-z]+)\}/g, (all, k) => (v[k] != null && v[k] !== '' ? String(v[k]) : k === 'stand' ? '' : k === 'team' ? 'de ploeg' : k === 'speler' ? 'de speler' : 'de ander')).replace(/\s+([.,!?])/g, '$1').replace(/\s{2,}/g, ' ').trim();
 }
-export function alleRegels() {
+export function allLines() {
   const uit = [];
   for (const [soort, p] of Object.entries(COMMENTAAR)) for (const wie of ['h', 'r']) for (const tekst of p[wie] || []) uit.push({ soort, wie, tekst });
   return uit;
 }
-export function tellRegels() { return alleRegels().length; }
+export function countLines() { return allLines().length; }
 
 export function makeCommentaar({ seed = 1, teams = ['Stadjers', 'Hunebedders'], ids = ['stadjers', 'hunebedders'], duurHelft = 150 } = {}) {
   return {
     rng: makeRng((seed | 0) + 4242), teams, ids, duurHelft,
     zak: {}, laatsteIndex: {}, geheugen: [], rij: [], sinds: 99, laatsteWie: 'r', logboek: [], laatsteSoort: {}, t: 0, stilte: 0,
-    vlaggen: { start: false, laatste: false, spanning: [false, false, false], bezit: -999 }, scorePrev: [0, 0], gezegd: 0,
+    flags: { start: false, laatste: false, spanning: [false, false, false], bezit: -999 }, scorePrev: [0, 0], gezegd: 0,
   };
 }
 
-// Een regel uit de zak van (soort, wie): de zak wordt geschud als hij leeg is; nooit dezelfde als de vorige uit deze zak en nooit een die in het geheugen zit (als er keus is).
+// Een entry uit de zak van (soort, wie): de zak wordt geschud als hij leeg is; nooit dezelfde als de vorige uit deze zak en nooit een die in het geheugen zit (als er keus is).
 function trek(c, soort, wie) {
-  const lijst = (COMMENTAAR[soort] || LEEG)[wie] || [];
-  if (!lijst.length) return null;
+  const pool = (COMMENTAAR[soort] || LEEG)[wie] || [];
+  if (!pool.length) return null;
   const sleutel = `${soort}:${wie}`;
   let zak = c.zak[sleutel];
   if (!zak || !zak.length) {
-    zak = lijst.map((_, i) => i);
+    zak = pool.map((_, i) => i);
     for (let i = zak.length - 1; i > 0; i--) { const j = Math.floor(c.rng() * (i + 1)); [zak[i], zak[j]] = [zak[j], zak[i]]; }
     if (zak.length > 1 && zak[zak.length - 1] === c.laatsteIndex[sleutel]) zak.unshift(zak.pop()); // de eerstvolgende (aan het eind) is niet de vorige
     c.zak[sleutel] = zak;
   }
   let kies = zak.length - 1;
-  for (let k = zak.length - 1; k >= 0; k--) { if (!c.geheugen.includes(lijst[zak[k]])) { kies = k; break; } }
+  for (let k = zak.length - 1; k >= 0; k--) { if (!c.geheugen.includes(pool[zak[k]])) { kies = k; break; } }
   const idx = zak.splice(kies, 1)[0];
   c.laatsteIndex[sleutel] = idx;
-  const tekst = lijst[idx];
+  const tekst = pool[idx];
   c.geheugen.push(tekst); if (c.geheugen.length > MEMORY) c.geheugen.shift();
   return tekst;
 }
 
-const stand = (s) => `${s[0]}-${s[1]}`;
+const scoreText = (s) => `${s[0]}-${s[1]}`;
 function varsVan(c, ctx, extra = {}) {
   const sc = ctx && ctx.score ? ctx.score : [0, 0];
-  return { stand: stand(sc), team: c.teams[0], ander: c.teams[1], ...extra };
+  return { stand: scoreText(sc), team: c.teams[0], ander: c.teams[1], ...extra };
 }
 
-// Zet een regel in de rij: wie spreekt, na hoeveel seconden. Geeft de regel of null als hij door de drukte vervalt.
+// Zet een entry in de rij: wie spreekt, na hoeveel seconden. Geeft de entry of null als hij door de drukte vervalt.
 function plan(c, soort, wie, vars, vertraging = 0) {
   const tekst = trek(c, soort, wie);
   if (!tekst) return null;
-  const regel = { soort, wie, naam: COMMENTATOREN[wie].naam, stem: COMMENTATOREN[wie].stem, tekst: vulSjabloon(tekst, vars), sjabloon: isSjabloon(tekst), sleutel: stemSleutel(wie, tekst), vertraging, prio: (SOORTEN[soort] || { prio: 1 }).prio };
-  c.rij.push(regel);
-  return regel;
+  const entry = { soort, wie, naam: COMMENTATOREN[wie].naam, stem: COMMENTATOREN[wie].stem, tekst: vulSjabloon(tekst, vars), sjabloon: isSjabloon(tekst), sleutel: stemSleutel(wie, tekst), vertraging, prio: (KINDS[soort] || { prio: 1 }).prio };
+  c.rij.push(entry);
+  return entry;
 }
 
 const ander = (wie) => (wie === 'h' ? 'r' : 'h');
 // Een gebeurtenis van de sim in commentaar. Geeft de geplande regels (ook in c.rij; tikCommentaar speelt ze af).
 export function commentaarVoor(c, e, ctx = {}) {
   const uit = [];
-  const soortKans = (s) => (SOORTEN[s] || { kans: 0.3 }).kans;
+  const kindChance = (s) => (KINDS[s] || { kans: 0.3 }).kans;
   const zeg = (soort, extra = {}, eerste = 'h') => {
-    const p = SOORTEN[soort] || { prio: 1 };
+    const p = KINDS[soort] || { prio: 1 };
     if (p.prio < 3) {
-      const interval = SOORT_INTERVAL[soort] || 0;
+      const interval = KIND_INTERVAL[soort] || 0;
       if (interval && c.t - (c.laatsteSoort[soort] ?? -999) < interval) return;
       if (c.sinds < MIN_TUSSEN[p.prio] || c.rij.some((r) => r.prio >= p.prio)) return;
     } else c.rij = c.rij.filter((r) => r.prio >= 3);    // belangrijk nieuws gaat voor: de rij met kleine dingen vervalt
@@ -85,21 +85,21 @@ export function commentaarVoor(c, e, ctx = {}) {
     const a = plan(c, soort, eerste, vars, 0);
     if (!a) return;
     uit.push(a); c.laatsteSoort[soort] = c.t;
-    if (c.rng() < soortKans(soort)) { const b = plan(c, soort, ander(eerste), vars, 2.2 + c.rng() * 1.2); if (b) uit.push(b); }
+    if (c.rng() < kindChance(soort)) { const b = plan(c, soort, ander(eerste), vars, 2.2 + c.rng() * 1.2); if (b) uit.push(b); }
   };
-  const naam = (id) => (ctx.naamVan ? ctx.naamVan(id) : null) || '';
+  const nameOf = (id) => (ctx.naamVan ? ctx.naamVan(id) : null) || '';
   const t0 = (team) => (team === 0);
   switch (e.type) {
     case 'aftrap': {
-      if (!c.vlaggen.start && (!ctx.helft || ctx.helft === 1)) {
-        c.vlaggen.start = true;
+      if (!c.flags.start && (!ctx.helft || ctx.helft === 1)) {
+        c.flags.start = true;
         zeg('start');
         if (ctx.derby) { const d = plan(c, 'derby', 'h', varsVan(c, ctx), 6.5); if (d) uit.push(d); }
-      } else if (ctx.helft === 2 && !c.vlaggen.tweede) { c.vlaggen.tweede = true; zeg('tweedeHelft'); }
+      } else if (ctx.helft === 2 && !c.flags.tweede) { c.flags.tweede = true; zeg('tweedeHelft'); }
       break;
     }
     case 'goal': {
-      const t = e.team, sc = e.stand || ctx.score || [0, 0], spk = e.speler >= 0 ? naam(e.speler) : '';
+      const t = e.team, sc = e.stand || ctx.score || [0, 0], spk = e.speler >= 0 ? nameOf(e.speler) : '';
       const vorigVerschil = (c.scorePrev[t] - c.scorePrev[1 - t]);
       c.scorePrev = sc.slice();
       if (e.eigen) { zeg('goalEigen', { speler: spk, team: c.teams[t] }); break; }
@@ -112,13 +112,13 @@ export function commentaarVoor(c, e, ctx = {}) {
     case 'schop': if (e.soort === 'schot') zeg(e.sterkte > 0.65 ? 'kans' : 'schot'); break;
     case 'hervat': {
       const kind = e.kind, team = e.team;
-      const soort = { hoek: 'hoek', inworp: 'ingooi', doelschop: 'doelschop', vrij: 'vrij', strafschop: 'strafschop' }[kind];
-      if (soort) zeg(soort, { team: c.teams[team] });
+      const kindKey = { hoek: 'hoek', inworp: 'ingooi', doelschop: 'doelschop', vrij: 'vrij', strafschop: 'strafschop' }[kind];
+      if (kindKey) zeg(kindKey, { team: c.teams[team] });
       break;
     }
     case 'overtreding': zeg('overtreding'); break;
-    case 'kaart': zeg(e.kleur === 'rood' ? 'rood' : 'geel', { speler: naam(e.speler), team: c.teams[e.team] }, e.kleur === 'rood' ? 'h' : (c.rng() < 0.6 ? 'h' : 'r')); break;
-    case 'blessure': zeg('blessure', { speler: naam(e.speler), team: c.teams[e.team] }); break;
+    case 'kaart': zeg(e.kleur === 'rood' ? 'rood' : 'geel', { speler: nameOf(e.speler), team: c.teams[e.team] }, e.kleur === 'rood' ? 'h' : (c.rng() < 0.6 ? 'h' : 'r')); break;
+    case 'blessure': zeg('blessure', { speler: nameOf(e.speler), team: c.teams[e.team] }); break;
     case 'wisselspeler': zeg('wissel', { speler: e.in, team: c.teams[e.team] }); break;
     case 'buitenspel': zeg('buitenspel'); break;
     case 'uit': zeg('uit'); break;
@@ -144,13 +144,13 @@ export function tikCommentaar(c, dt, ctx = {}) {
     klinkt.push(r);
   }
   if (ctx.fase === 'spel' && !c.rij.length) {
-    const klokGespeeld = ctx.helft && ctx.duurHelft != null ? ctx.duurHelft - ctx.klok : 0;
+    const clockPlayed = ctx.helft && ctx.duurHelft != null ? ctx.duurHelft - ctx.klok : 0;
     const sc = ctx.score || [0, 0];
-    if (ctx.helft === 2 && ctx.klok != null && ctx.klok < ctx.duurHelft * 0.12 && !c.vlaggen.laatste) { c.vlaggen.laatste = true; const a = plan(c, 'laatsteMinuut', 'h', varsVan(c, ctx), 0); if (a && c.rng() < 0.6) plan(c, 'laatsteMinuut', 'r', varsVan(c, ctx), 2.4); }
-    else if (ctx.helft && Math.abs(sc[0] - sc[1]) <= 1 && sc[0] + sc[1] > 0 && klokGespeeld > ctx.duurHelft * 0.55 && !c.vlaggen.spanning[ctx.helft]) { c.vlaggen.spanning[ctx.helft] = true; plan(c, 'spanning', 'h', varsVan(c, ctx), 0); }
+    if (ctx.helft === 2 && ctx.klok != null && ctx.klok < ctx.duurHelft * 0.12 && !c.flags.laatste) { c.flags.laatste = true; const a = plan(c, 'laatsteMinuut', 'h', varsVan(c, ctx), 0); if (a && c.rng() < 0.6) plan(c, 'laatsteMinuut', 'r', varsVan(c, ctx), 2.4); }
+    else if (ctx.helft && Math.abs(sc[0] - sc[1]) <= 1 && sc[0] + sc[1] > 0 && clockPlayed > ctx.duurHelft * 0.55 && !c.flags.spanning[ctx.helft]) { c.flags.spanning[ctx.helft] = true; plan(c, 'spanning', 'h', varsVan(c, ctx), 0); }
     else if (c.sinds > 13 + c.rng() * 5) {
       const bz = ctx.bezit;
-      if (bz && c.t - c.vlaggen.bezit > 90 && (bz[0] > 62 || bz[1] > 62)) { c.vlaggen.bezit = c.t; plan(c, bz[0] > 62 ? 'bezitThuis' : 'bezitUit', c.rng() < 0.6 ? 'h' : 'r', varsVan(c, ctx), 0); }
+      if (bz && c.t - c.flags.bezit > 90 && (bz[0] > 62 || bz[1] > 62)) { c.flags.bezit = c.t; plan(c, bz[0] > 62 ? 'bezitThuis' : 'bezitUit', c.rng() < 0.6 ? 'h' : 'r', varsVan(c, ctx), 0); }
       else plan(c, 'vulling', c.laatsteWie === 'h' ? 'r' : 'h', varsVan(c, ctx), 0);
     }
   }
@@ -158,11 +158,11 @@ export function tikCommentaar(c, dt, ctx = {}) {
 }
 
 // De Man van de match is een los moment na het eindsignaal (de samenvatting).
-export function commentaarManVanDeMatch(c, naam) {
+export function commentMvp(c, naam) {
   c.rij = c.rij.filter((r) => r.prio >= 3);
   const vars = { speler: naam };
-  const a = plan(c, 'manVanDeMatch', 'h', vars, 0);
-  if (a && c.rng() < 0.8) plan(c, 'manVanDeMatch', 'r', vars, 2.6);
+  const a = plan(c, 'manOfTheMatch', 'h', vars, 0);
+  if (a && c.rng() < 0.8) plan(c, 'manOfTheMatch', 'r', vars, 2.6);
   return c.rij.slice();
 }
 export const derbyVan = (idA, idB) => isDerby(idA, idB);
