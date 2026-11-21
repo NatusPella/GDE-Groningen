@@ -3,6 +3,7 @@
 // Gemeten per glyph: het midden van de inkt (canvas actualBoundingBox op de basislijn van de glyph) tegen het midden van de tekst
 // (basislijn min de helft van het gemiddelde van x-hoogte en hoofdletterhoogte, uit het tekstfont). dy > 0 is lager dan de tekst.
 //   node scripts/ui/keycap_meet.mjs [--png=<map>] [--toon] [--oud=<map met game/>]
+//   node scripts/ui/keycap_meet.mjs --opening [--zonder-ink] [--png=<voorvoegsel>]   de overslaan-hint van de openings-/montagefilm, 1280x720 en 1920x1080, --ui 1 / 1,25 / 1,5
 // Exporteert meet() voor scripts/keycap_maat_test.mjs. Zonder Chrome geeft meet() null terug (de test slaat dan over, met melding).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -16,7 +17,7 @@ export const KEYS = ['SPACE', 'ENTER', 'SHIFT', 'TAB', 'ESC', 'W'];
 export const TOL_PX = 1;
 const CSS = ['fonts/fonts.css', 'js/menu.css', 'js/ds-tokens.css', 'js/ds-components.css', 'js/ds-keycap.css', 'js/a11y.css', 'js/hud_panel.css', 'js/prompts.css', 'js/hudcards.css', 'js/pausemenu.css', 'js/heist.css', 'js/onlineconsent.css', 'js/loadscreen.css'];
 
-export async function bouwMock(base = path.join(ROOT, 'game')) {
+export async function bouwMock(base = path.join(ROOT, 'game'), opts = {}) {
   const js = pathToFileURL(path.join(base, 'js')).href;
   const { glyphHtml, keyTextHtml, keyLabelGlyph } = await import(`${js}/keycap.js`);
   const ring = '<svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>';
@@ -37,12 +38,21 @@ export async function bouwMock(base = path.join(ROOT, 'game')) {
     add('menu-voetbalk (m-hint)', k, `<div class="m-foot" style="position:relative;right:auto;bottom:auto;height:auto"><span class="m-hint"><span class="m-kc is-kbg">${keyLabelGlyph({ SPACE: 'Spatie', ENTER: 'Enter', SHIFT: 'Shift', TAB: 'Tab', ESC: 'Esc', W: 'W' }[k]) || ''}</span>Terug</span></div>`, 'donker');
     add('ondertitel (cine-sub)', k, `<div id="cine" style="position:relative;inset:auto;height:60px;background:#2a2218"><div class="cine-sub" style="position:relative;opacity:1;left:auto;bottom:auto;transform:none;top:8px"><span class="cine-line">${keyTextHtml(`Houd ${tok(k)} ingedrukt om te rennen`)}</span></div></div>`);
   }
+  if (opts.opening) {
+    // de echte overslaan-hint van de openings-/montagefilm: de markup van cinematics.js (de toets als tekst 'SPATIE', door glyphs.js een glyph),
+    // in de echte #cine met letterbox (balken 11vh, zwart) en --ui; zonder en met ondertitel (dan staat de hint boven de balk).
+    V.length = 0;
+    const cineHtml = (extra) => `<div id="cine" class="letterbox show-skip active ${extra}"><div class="cine-bar top"></div><div class="cine-bar bottom"></div><div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line">Een ondertitel</span></div><div class="cine-skip">${ring}<span>Houd</span> <span class="hud-key">SPATIE</span> <span>ingedrukt om over te slaan</span></div></div>`;
+    add('opening/montage (balk)', 'SPACE', cineHtml(''), 'opening');
+    add('opening/montage (met ondertitel)', 'SPACE', cineHtml('has-sub'), 'opening');
+  }
   const rijen = V.map((v, i) => `<section class="v ${v.box}" data-i="${i}"><h6>${v.naam} · ${v.k}</h6><div class="vb">${v.html}</div></section>`).join('\n');
   const links = CSS.map((c) => `<link rel="stylesheet" href="${pathToFileURL(path.join(base, c)).href}">`).join('\n');
   const mock = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>keycap-meet</title>${links}
-<style>html,body{background:#4a4a4a;margin:0;padding:8px;font-family:Arial,sans-serif;overflow:visible!important;height:auto!important}.v{display:inline-block;width:420px;margin:4px;vertical-align:top;font:11px Arial;color:#ddd}.v h6{margin:0 0 2px;font:10px Arial;color:#bbb}.v .vb{position:relative;overflow:visible}.v.papier .vb{background:#f3ead3;color:#1d1b17;padding:6px}.v.donker .vb{background:#1d211f;padding:6px}</style></head><body>
+<style>html,body{background:#4a4a4a;margin:0;padding:8px;font-family:Arial,sans-serif;overflow:visible!important;height:auto!important}.v{display:inline-block;width:420px;margin:4px;vertical-align:top;font:11px Arial;color:#ddd}.v h6{margin:0 0 2px;font:10px Arial;color:#bbb}.v .vb{position:relative;overflow:visible}.v.papier .vb{background:#f3ead3;color:#1d1b17;padding:6px}.v.donker .vb{background:#1d211f;padding:6px}.v.opening{display:block;width:auto;margin:0}.v.opening h6{display:none}.v.opening .vb{position:static}</style></head><body class="cine-hide-hud">
 ${rijen}
 <pre id="res" style="display:none"></pre>
+${opts.opening ? `<script type="module">import { refreshGlyphs } from '${pathToFileURL(path.join(base, 'js/glyphs.js')).href}'; document.documentElement.style.setProperty('--ui', '${opts.opening.ui || 1}'); refreshGlyphs();${opts.opening.zonderInk ? " document.querySelectorAll('[data-ink]').forEach((e) => e.removeAttribute('data-ink'));" : ''} window.__glyphs = 1;</script>` : ''}
 <script>
 (${meetInPagina.toString()})(${JSON.stringify(V.map((v) => ({ naam: v.naam, k: v.k })))});
 </script></body></html>`;
@@ -92,7 +102,7 @@ function meetInPagina(V) {
       });
       root.querySelectorAll('.cine-skip-ring, .hx-skipchip > svg, .hud-hold-ring').forEach((ring) => {
         const rr = ring.getBoundingClientRect();
-        const beste = tekstKnopen[0]; if (!beste) return;
+        const beste = tekstKnopen.find((tn) => ring.parentElement && ring.parentElement.contains(tn)) || tekstKnopen[0]; if (!beste) return;
         const tcs = getComputedStyle(beste.parentElement);
         const tfont = `${tcs.fontStyle} ${tcs.fontWeight} ${tcs.fontSize} ${tcs.fontFamily}`;
         const tr = document.createRange(); tr.selectNodeContents(beste); const trect = tr.getClientRects()[0];
@@ -113,14 +123,14 @@ function chrome(args) {
 }
 
 /** { rijen: [...], png } of null zonder Chrome. */
-export async function meet({ base, png, breedte = 1400, hoogte = 1700 } = {}) {
+export async function meet({ base, png, breedte = 1400, hoogte = 1700, opening } = {}) {
   if (!CHROME) return null;
-  const { mock } = await bouwMock(base);
+  const { mock } = await bouwMock(base, { opening });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kcmeet-'));
   const file = path.join(dir, 'mock.html');
   fs.writeFileSync(file, mock);
   const url = pathToFileURL(file).href;
-  const r = chrome([`--user-data-dir=${path.join(dir, 'p')}`, '--dump-dom', url]);
+  const r = chrome([`--user-data-dir=${path.join(dir, 'p')}`, `--window-size=${breedte},${hoogte}`, '--dump-dom', url]);
   const m = /<pre id="res"[^>]*>([\s\S]*?)<\/pre>/.exec(r.stdout || '');
   let rijen = [];
   try { rijen = JSON.parse((m ? m[1] : '[]').replace(/&quot;/g, '"').replace(/&amp;/g, '&')); } catch (e) { rijen = []; }
@@ -135,8 +145,27 @@ export async function meet({ base, png, breedte = 1400, hoogte = 1700 } = {}) {
   return { rijen, png: pngPad };
 }
 
+/** De overslaan-hint van de openings-/montagefilm per scherm en --ui: [{ b, h, ui, rijen }] of null zonder Chrome. */
+export const OPENING_SCHERMEN = [[1280, 720], [1920, 1080]];
+export const OPENING_UI = [1, 1.25, 1.5];
+export async function meetOpening({ base, png, zonderInk = false } = {}) {
+  if (!CHROME) return null;
+  const uit = [];
+  for (const [b, h] of OPENING_SCHERMEN) for (const ui of OPENING_UI) {
+    const r = await meet({ base, breedte: b, hoogte: h, opening: { ui, zonderInk }, png: png && ui === 1 ? `${png}-${b}.png` : undefined });
+    uit.push({ b, h, ui, rijen: r.rijen });
+  }
+  return uit;
+}
+
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const arg = (k) => (process.argv.find((a) => a.startsWith(`--${k}=`)) || '').slice(k.length + 3);
+  if (process.argv.includes('--opening')) {
+    const res = await meetOpening({ base: arg('oud') ? path.join(arg('oud'), 'game') : undefined, png: arg('png') || undefined, zonderInk: process.argv.includes('--zonder-ink') });
+    if (!res) { console.log('keycap_meet: geen Chrome gevonden'); process.exit(0); }
+    for (const { b, h, ui, rijen } of res) for (const x of rijen) console.log(`  ${b}x${h} ui ${ui} ${x.naam.padEnd(34)} ${x.soort}: dy ${x.dy >= 0 ? '+' : ''}${x.dy.toFixed(1)} px` + (x.soort === 'glyph' ? ` (ink ${x.inkH.toFixed(0)} px, tekst ${x.tekstPx}px)` : ''));
+    process.exit(0);
+  }
   const res = await meet({ base: arg('oud') ? path.join(arg('oud'), 'game') : undefined, png: arg('png') || undefined });
   if (!res) { console.log('keycap_meet: geen Chrome gevonden'); process.exit(0); }
   const g = res.rijen.filter((x) => x.soort === 'glyph'), ri = res.rijen.filter((x) => x.soort === 'ring');
