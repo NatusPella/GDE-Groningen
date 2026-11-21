@@ -1,7 +1,7 @@
 // De prestatie als moment (wens van de eigenaar 21-11): een stempel die inslaat, een icoon dat ploft, titel en
 // beschrijving die gestaffeld komen, een balkje "x/y prestaties" dat oploopt en een glans die sluit. Dit bestand is
 // alleen de pure planning (geen DOM, geen audio): achievements.js zet er klassen, CSS-variabelen en timers van, en
-// scripts/achievementmoment_test.mjs test het. Het gebruikt de staffel-helper van de eindkaart (eindkaartimpact.js),
+// scripts/achievementunlock_test.mjs test het. Het gebruikt de staffel-helper van de eindkaart (eindkaartimpact.js),
 // dezelfde maten (120 ms staffel, 250 ms per onderdeel, hooguit 1,6 s) en dezelfde klassen uit ds-micro.css.
 //
 // Regels uit DESIGN_SYSTEM.md "Microanimaties (DS3)": één animatie per gebeurtenis, overslaan kan, bij Beweging beperken

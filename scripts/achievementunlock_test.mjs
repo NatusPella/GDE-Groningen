@@ -1,10 +1,10 @@
-// De prestatie als moment (game/js/achievementmoment.js) en de microanimatie-helpers (game/js/dsmicro.js): staffeltijden,
+// De prestatie als moment (game/js/achievementunlock.js) en de microanimatie-helpers (game/js/dsmicro.js): staffeltijden,
 // de wachtrij, de tellerstappen en het menuplan. Pure logica, geen browser.
-//   node scripts/achievementmoment_test.mjs
+//   node scripts/achievementunlock_test.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as P from '../game/js/achievementmoment.js';
+import * as P from '../game/js/achievementunlock.js';
 import * as D from '../game/js/dsmicro.js';
 import { SNEL_MS, STAP_MS, MAX_TOTAAL_MS } from '../game/js/eindkaartimpact.js';
 
@@ -129,7 +129,7 @@ ok(/bus: stingBus/.test(body) || /\.\.\.sting/.test(body), 'het moment-geluid lo
 ok(!/coopnet|sendCoop|broadcast/.test(achSrc.slice(achSrc.indexOf('function showNextToast'))), 'het moment stuurt niets over het net (lokaal per speler)');
 ok(/isOverlayHeld\('prestatie'\)/.test(achSrc), 'de prestatie wacht op de eindkaart: de slagen overlappen nooit');
 const eind = lees('game/js/eindkaartimpact.js');
-ok(/export function tellerStappen/.test(eind) && /from '\.\/eindkaartimpact\.js'/.test(lees('game/js/achievementmoment.js')), 'de staffel-helper van de eindkaart wordt hergebruikt');
+ok(/export function tellerStappen/.test(eind) && /from '\.\/eindkaartimpact\.js'/.test(lees('game/js/achievementunlock.js')), 'de staffel-helper van de eindkaart wordt hergebruikt');
 ok(!/^import/m.test(lees('game/js/dsmicro.js')), 'dsmicro.js heeft geen imports (pure helpers, geen cyclus)');
 
 console.log(`${n - fails}/${n} prestatiemoment-controles groen`);

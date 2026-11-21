@@ -82,7 +82,7 @@ for (const p of bronnen) {
 ok(onbekend.length === 0, 'elke gebruikte .ds-m-* of .ds-moment-* klasse bestaat in ds-micro.css', onbekend.slice(0, 5).join(', '));
 
 const geraakt = (bestand, ...woorden) => { const t = lees(bestand); return woorden.every((w) => t.includes(w)); };
-ok(geraakt('game/js/achievements.js', 'ds-moment-', 'achievementmoment.js'), 'de prestatietoast gebruikt hoogtepunt-klassen en achievementmoment.js');
+ok(geraakt('game/js/achievements.js', 'ds-moment-', 'achievementunlock.js'), 'de prestatietoast gebruikt hoogtepunt-klassen en achievementunlock.js');
 ok(geraakt('game/js/achievementsui.js', 'ds-m-rij', 'ds-m-glans'), 'het prestatiemenu gebruikt de rij- en glansklassen');
 ok(geraakt("game/js/pausemenu.js", "ds-m-tabs", "volgTabLijn", "ds-m-nieuw") && geraakt("game/js/hudcards.js", "ds-m-overshoot") && geraakt("game/js/hud_panel.js", "ds-m-tik", "tikGetal") && geraakt("game/js/hud_panel.css", "var(--ds-m-stempel)"), "de eerste set staat erin: pauzemenu-tabs en stippen, HUD-kaarten, geldteller en doelkaart");
 ok(/\[unreleased\]/i.test(lees('CHANGELOG.md')) && /Microanimaties/.test(lees('CHANGELOG.md')), 'de changelog noemt de microanimaties');
