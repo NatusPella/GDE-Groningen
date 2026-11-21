@@ -43,6 +43,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
 | opgeslagen | savegame.js | beslist zelf | P3 | F | nee: het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart | Weg als eigen element: een pictogram in het plaatsblok, of een kaart van de soort tip. |
+| recapkaart | recapcardrun.js | beslist zelf | n.v.t. | - | nee: de recapkaart Waar waren we? na Doorgaan: wacht op een rustig moment (geen scene, geen verhaalbeat), houdt de wereld stil (uiPaused) en sluit met Enter of Esc; alleen lokaal, niets in het opgeslagen spel |  |
 | binnenset | stagesets.js | beslist zelf | n.v.t. | - | nee: de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956) |  |
 | duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
 | toetsen | prompts.js, hudtext.js | 32 modules, 32 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
@@ -80,6 +81,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **spraak**: Het ene stemkanaal: een regel tegelijk, hogere klasse snijdt lagere af (speech.js, nu regels in hudbus).
 - **status**: De vaste HUD: sterren, geld, wapen, klok, kaart, balken, voertuig, doel, GPS (zones B, C, F, G). decideHud in hudrules.js zet ze neer.
 - **opgeslagen**: Het kleine Opgeslagen-vinkje links onder, bij de plaatsnaam.
+- **recapkaart**: 
 - **binnenset**: 
 - **duikscene**: 
 - **toetsen**: De toetstips onderaan rechts (zone H, maximaal twee): wat E, Spatie en de rest hier doen.
