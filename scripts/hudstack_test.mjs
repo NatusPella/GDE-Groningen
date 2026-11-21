@@ -58,10 +58,10 @@ t('de museumkaart: ondertitel en naamplaten blijven buiten de stapel (eigen lane
 // --- vaste zones (#1053, #1058): geen overlap bij 1280x720 en 1920x1080 ---------------------------------------------------------
 import fs from 'node:fs';
 import { uiScaleFor } from '../game/js/hudlook.js';
-import { duivenZones, zoneOverlap, pijlPlek, plaatSelectie, LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, HINTS_LINKS } from '../game/js/hudstack.js';
+import { duivenZones, duivenMaten, zoneOverlap, pijlPlek, plaatSelectie, LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, HINTS_LINKS } from '../game/js/hudstack.js';
 
 const VENSTERS = [[1280, 720], [1920, 1080], [1366, 768], [2560, 1440]];
-const hudPx = (w, h) => { const ui = uiScaleFor(w, h, 1, false); return [w / ui, h / ui]; };
+const hudPx = (w, h, user = 1) => { const ui = uiScaleFor(w, h, user, false); return [w / ui, h / ui]; };
 
 t('de zones van de duivenmodus raken elkaar nooit (1280x720, 1920x1080 en de tussenmaten)', () => {
   for (const [w, h] of VENSTERS) {
@@ -72,6 +72,22 @@ t('de zones van de duivenmodus raken elkaar nooit (1280x720, 1920x1080 en de tus
     assert.deepEqual(zoneOverlap(zones), [], `${w}x${h}: ${JSON.stringify(zoneOverlap(zones))}`);
     for (const z of zones) assert.ok(z.x >= 0 && z.y >= 0 && z.x + z.w <= vw + 1e-9 && z.y + z.h <= vh + 1e-9, `${w}x${h}: ${z.id} ligt in beeld`);
   }
+});
+
+t('ook bij Grootte interface 1,2 tot 1,5 raken de zones elkaar niet (review 21-11: het HUD-vlak wordt dan smaller dan 1100 px)', () => {
+  for (const [w, h] of VENSTERS) for (const user of [1.2, 1.25, 1.5]) {
+    const [vw, vh] = hudPx(w, h, user);
+    const ruimte = stapelRuimte(vh);
+    const s = stapel(duivenKaarten({ introActief: false, holdActief: true, hoogteActief: true }), { ruimte });
+    const { zones } = duivenZones(vw, vh, s.onder);
+    assert.deepEqual(zoneOverlap(zones), [], `${w}x${h} x${user} (HUD ${Math.round(vw)}x${Math.round(vh)}): ${JSON.stringify(zoneOverlap(zones))}`);
+    for (const z of zones) assert.ok(z.x >= -1e-9 && z.y >= 0 && z.x + z.w <= vw + 1e-9 && z.y + z.h <= vh + 1e-9, `${w}x${h} x${user}: ${z.id} ligt in beeld`);
+  }
+  assert.deepEqual(duivenMaten(1600), { links: 350, stapel: 480, boven: 600 }, 'op een ruim vlak blijven de vaste maten');
+  const m = duivenMaten(1000);
+  assert.ok(m.stapel < 480 && m.stapel >= 240 && m.links < 350, 'op een smal vlak krimpen ze');
+  const pg = fs.readFileSync(new URL('../game/js/pigeonguide.js', import.meta.url), 'utf8');
+  assert.ok(pg.includes('dom.stack.style.width = `${duivenMaten(vw).stapel}px`'),'de stapel gebruikt dezelfde breedte als zijn zone');
 });
 
 t('de richtingspijl blijft in de vrije band, ook als het doel ver buiten beeld ligt', () => {

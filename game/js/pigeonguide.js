@@ -7,7 +7,7 @@
 // - per gespot ding een ring rond de duif, een flits van de kolom en een belletje.
 // De logica staat in pigeonguidelogic.js (puur). Samen spelen: de spotmissie is van wie het spel opende (de duif is van de eigenaar, #525);
 // de gast ziet de duif vliegen maar heeft deze kolommen en kaart niet.
-import { stapel, stapelRuimte, duivenKaarten, duivenZones, pijlPlek, plaatSelectie, STAPEL_TOP } from './hudstack.js';
+import { stapel, stapelRuimte, duivenKaarten, duivenZones, duivenMaten, pijlPlek, plaatSelectie, STAPEL_TOP } from './hudstack.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
 import { maakSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
@@ -267,6 +267,7 @@ export function tickPigeonGuide(dt, world, o, flight) {
   dom.stack.style.top = `${top}px`;
   const stap = stapel(duivenKaarten({ introActief: false, holdActief: holdOn }), { top, ruimte: stapelRuimte(vh, top) });
   const { zones, pijl } = duivenZones(vw, vh, stap.onder, top);
+  dom.stack.style.width = `${duivenMaten(vw).stapel}px`; // krimpt mee bij Grootte interface > 1 (zelfde getal als de zone)
 
   // de pijl naar het dichtstbijzijnde doel, binnen de vrije band (nooit over paneel, stapel, kaarten of toetsbalk)
   if (n) {
