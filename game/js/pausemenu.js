@@ -14,12 +14,13 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
-import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
+import { skipCurrent } from './story.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave, saveFailReason } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
@@ -55,6 +56,7 @@ import { icoon } from './icons.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
+import { isRecapOpen } from './recapstate.js';
 import { resetOnboarding } from './onboarding.js';
 import { resetContextHints } from './contexthints.js';
 import { menuMelding } from './menumelding.js';
@@ -354,7 +356,7 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
   ['spel', 'Spel', 'Doorgaan, samen spelen en je spel opslaan'],
-  ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
+  ['verhaal', 'Verhaal', 'Opdrachten, personages en berichten'],
   ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
   ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
@@ -387,7 +389,7 @@ const RAIL_GROUPS = [
 const CHILD = { visboek: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
-  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
+  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages']],
   // #890/#897: Spel gaat over je spel zelf (overzicht, samen spelen, opslaan en stoppen).
   // Hoe het spel speelt (verkeer, rijden, de kaart), hoe je kijkt en hoe de uitleg in beeld staat,
   // zijn instellingen: die staan onder Instellingen (#979: Camera en Hints horen daar, niet als
@@ -407,7 +409,7 @@ const SUBTABS = {
   // #985 punt 7: dit tabblad heette ook "Spel", net als het rail-onderdeel waar je je save beheert.
   // Twee dingen met dezelfde naam in hetzelfde menu is een raadsel; "Spelregels" zegt wat erin staat
   // (moeilijkheid, verkeer, geweld, rijden) en botst nergens meer mee.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid'], ['online', 'Samen spelen']],
   // Bezit (epic #1095, #1099): Land en bedrijf is de oude Boerderij met drie onderdelen erbij; de id blijft 'boerderij' (zoekregel, hints, data-goto),
   // 'bezit' wijst ernaar door. Zonder voorkeur opent het op Boerderij: voor wie al boert verandert er niets.
   boerderij: [['overzicht', 'Overzicht'], ['boerderij', 'Boerderij'], ['bedrijven', 'Bedrijven'], ['tekoop', 'Te koop']],
@@ -813,7 +815,7 @@ ${keyReuseHtml()}
       ${toggle('autoAim', 'Automatisch richten', '{RMB} zoekt zelf het beste doelwit')}
       <div class="m-gh"><span>Sfeer</span></div>
       ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
-      ${toggle('terugkeerScene', 'Terugkeerscène', 'Een korte scène in de flat als je een opgeslagen spel laadt')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
+      ${toggle('terugkeerScene', 'Terugkeerscène', 'Een terugblik (Waar waren we?) en een korte scène in de flat als je een opgeslagen spel laadt')}`, `${pane('Camera & richten', 'Zicht', '<p>Te voet en in elk voertuig. Eerste persoon zet de camera op de ogen van je figuur; je lichaam en zijn schaduw zie je dan niet.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd tonen'], ['minimaal', 'Minimaal']], 'Slim toont geld, gezondheid, wapen en sterren alleen als het telt')}
       ${toggle('showMinimap', 'Minimap')}
@@ -835,6 +837,7 @@ ${keyReuseHtml()}
       <div class="m-gh"><span>Terugkijken</span></div>
       <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
       <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
+    ${tab('online', `<div class="pm-online" data-online-instelling></div>`, `${pane('Samen spelen', 'Je naam en je akkoord', '<p>Alleen bij Samen spelen gaat er iets naar buiten. Hier pas je je naam aan (andere spelers zien hem) of trek je je akkoord in; bij Samen spelen vraagt het spel er dan opnieuw om.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -1010,7 +1013,7 @@ export function initPauseMenu(w) {
             <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
-            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
+            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div></div>
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
           <section data-panel="loopbaan" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan"></div></section>
@@ -1322,7 +1325,7 @@ function consume(e) {
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // the play-ahead question (todo.js) has its own keys
-  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen()) return;
+  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen()) return;
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
@@ -2349,7 +2352,6 @@ function showSubtab(of, name) {
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
   for (const nav of root.querySelectorAll(`.ds-m-tabs:has([data-of="${of}"])`)) trackTabLine(nav); // DS3: de streep glijdt naar de gekozen tab (en volgt het paneel als het zichtbaar wordt)
   for (const p of root.querySelectorAll(`[data-sub][data-of="${of}"]`)) p.hidden = p.dataset.sub !== name;
-  if (of === 'verhaal' && pref.sub[of] === 'aanwijzingen' && name !== 'aanwijzingen') { markCluesSeen(); syncNavBadges(); } // nieuw blijft staan zolang je op het tabblad bent, weg als je het verlaat (#435)
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }
   const panel = root.querySelector(`[data-panel="${of}"]`);
   if (panel) panel.scrollTop = 0;
@@ -2536,19 +2538,15 @@ function rerenderTodo(keep) {
 }
 
 function syncNavBadges() {
-  let fresh = false;
-  try { fresh = getStoryJournal().found.some((c) => c.isNew); } catch (e) { /* story not ready */ }
   const nav = root.querySelector('[data-goto="todo"]');
   if (nav) nav.toggleAttribute('data-new', false);
   const met = anyFresh();
   const vNav = root.querySelector('[data-goto="verhaal"]');
-  if (vNav) vNav.toggleAttribute('data-new', fresh || met);
+  if (vNav) vNav.toggleAttribute('data-new', met);
   const unreadN = world ? phoneUnread(world) : 0;
   const unread = unreadN > 0;
   const vPeople = root.querySelector('[data-of="verhaal"][data-subtab="personages"]');
   if (vPeople) vPeople.toggleAttribute('data-new', met || unread);
-  const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
-  if (vClues) vClues.toggleAttribute('data-new', fresh);
   const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { if (id === 'spel' && text) n.innerHTML = `${icon('spelers', 'pm-ic n-ic')}${text}`; else n.textContent = text; // het aantal spelers met een poppetje (#435)
          if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
   // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
@@ -2561,7 +2559,7 @@ function syncNavBadges() {
   // het tabblad Spelers onder Samen spelen zegt hetzelfde als de rail: een poppetje en het aantal spelers (#435)
   const tabN = root.querySelector('[data-panel="spel"] [data-count="spelers"]');
   if (tabN) tabN.innerHTML = coopN ? `${icon('spelers', 'pm-ic n-ic')}${coopN}` : '';
-  // geen badge op Activiteiten: 'nieuw' hoort bij Verhaal (aanwijzingen en personages), niet bij de activiteiten (#435)
+  // geen badge op Activiteiten: 'nieuw' hoort bij Verhaal (personages), niet bij de activiteiten (#435)
   setN('todo', '');
   // 21-11 (beeldronde): geen getal in de rail; het bolletje (data-new) zegt "nieuw", het aantal ongelezen staat in de hero van Verhaal en voor schermlezers in het label
   setN('verhaal', '', unread ? `${unreadN} ongelezen` : '');
@@ -2599,7 +2597,7 @@ function afterSpelSub() {
 function renderVerhaalPanel() {
   const panel = root.querySelector('[data-panel="verhaal"]');
   try {
-    const view = pref.sub.verhaal === 'veroverd' ? 'opdrachten' : (pref.sub.verhaal || 'opdrachten');
+    const view = pref.sub.verhaal === 'personages' ? 'personages' : 'opdrachten'; // een oude keuze (veroverd, aanwijzingen) opent Opdrachten
     if (view === 'opdrachten') {
       // de lijst met opdrachten is van Te doen (todoui.js); het 3D-model van Personages gaat weg
       disposeVerhaalViewer();
@@ -2779,7 +2777,7 @@ function showTab(name, how) {
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
   if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
-  if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
+  if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); mountOnlineInstelling(root.querySelector('[data-online-instelling]'), { world }); }
   if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
   // Elke opening van een onderdeel begint bovenaan: het blad zelf (dat bij een lange inhoud
   // door focus kan zijn meegescrold), de paneelinhoud en de lijst/het detail erin (#906).
@@ -2839,7 +2837,6 @@ function setOpen(value, name = HOME, how = 'direct') {
     for (const box of root.querySelectorAll('[data-exit-confirm], [data-quit-confirm]')) box.hidden = true;
     syncQuestionLayers();
     origin = 'home';
-    try { markCluesSeen(); } catch (e) { /* verhaal niet klaar */ }
   }
   open = value;
   setPauseMenuOpen(value);

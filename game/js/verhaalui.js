@@ -1,15 +1,14 @@
 // The pause menu's Verhaal section: Personages (everyone you have spoken
 // to, from characters.js, with a turning model in the viewer; the others are
-// one quiet line with a silhouette) and Aanwijzingen (the clues per story
-// part). pausemenu.js owns the shell, keys and focus. The portraits and the
+// one quiet line with a silhouette). The Aanwijzingen tab is gone (21-11: hints and
+// clues added nothing; the story is told in scenes). pausemenu.js owns the shell, keys and focus. The portraits and the
 // viewer draw through vehiclepreview.js's shared renderer, like the garage.
 import { icoon } from './icons.js';
 import { CHARACTERS, CHARACTER_BY_ID, hasMet, isFresh, metCount, knownCharacters, unknownLine, markCharacterSeen } from './characters.js';
 import { createSharedPreview, renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { NPC } from './missionstory.js';
-import { getStorySteps, getStoryJournal, replayOpening } from './story.js';
-import { PARTS, CLUES, WHY, partName } from './storyarc.js';
+import { getStorySteps, replayOpening } from './story.js';
 import { speakerColor } from './speakers.js';
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
@@ -24,7 +23,7 @@ let worldRef = null;
 export function selectVerhaalCharacter(id) { selected = id; }
 let viewer = null;
 
-// De opmaak van Personages en Aanwijzingen. Kleuren gaan via de tokens van .gm en de
+// De opmaak van Personages. Kleuren gaan via de tokens van .gm en de
 // statusrollen via --mk-* (#479, #608); de chroom-achtergrond #17301f -> #0c140e staat
 // als achtergrondbasis in DESIGN_SYSTEM.md. Geen eigen rood of amber meer, zodat de
 // kleurenblindmodi meedoen; het woord (" · verloren", " · geblokkeerd") is de tweede cue.
@@ -73,35 +72,12 @@ const CSS = `
 #pause-menu .vh-held .vh-quote { padding-left: var(--ds-s-3); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); }
 #pause-menu .vh-held .vh-quote small { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
 #pause-menu .vh-held .ds-z-chip { align-self: flex-start; }
-#pause-menu .vh-kort { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-3); min-height: 44px; padding: 0 2px; box-shadow: inset 0 -1px 0 var(--line); font-family: var(--ds-font-zeef-kop); font-size: 22px; letter-spacing: 0.05em; color: var(--mut); text-transform: uppercase; }
-#pause-menu .vh-leeg { margin: var(--ds-s-2) 0 var(--ds-s-3); padding: var(--ds-s-4); }
 #pause-menu .vh-miss { display: flex; flex-wrap: wrap; gap: 8px; }
 #pause-menu .vh-miss span { font-family: var(--ds-font-zeef-kop); font-size: 20px; letter-spacing: 0.05em; color: var(--mut); }
 #pause-menu .vh-miss span[data-st="klaar"] { color: var(--g); }
 #pause-menu .vh-miss span[data-st="nu"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--g); text-underline-offset: 4px; }
-#pause-menu .vh-parts { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); max-width: 1000px; }
-#pause-menu .vh-part { display: flex; flex-direction: column; padding-bottom: 8px; }
-#pause-menu .vh-part .m-gh { padding-left: 0; }
-#pause-menu .vh-part[data-cur] .m-gh span:first-child { color: var(--ink); }
-#pause-menu .vh-pbar { max-width: 360px; margin-bottom: 16px; }
-#pause-menu .vh-why { font-size: 20px; line-height: 1.4; margin-bottom: 12px; max-width: 800px; }
-#pause-menu .vh-why b { font-weight: normal; color: var(--ink); }
-#pause-menu .vh-clues { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 4px 48px; max-width: 1000px; }
-#pause-menu .vh-clue { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; box-shadow: inset 0 -1px 0 var(--line); }
-#pause-menu .vh-clue b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 24px; letter-spacing: 0.05em; line-height: 1.1; }
-#pause-menu .vh-clue b em { font-style: normal; color: var(--g); margin-right: 4px; }
-#pause-menu .vh-clue p { font-size: 18px; line-height: 1.35; color: var(--mut); }
-#pause-menu .vh-clue[data-unknown] b { color: var(--mut); }
-#pause-menu .vh-clue.vh-rest { grid-column: 1 / -1; }
-#pause-menu .vh-gk { grid-column: 1 / -1; display: flex; gap: 10px; align-items: baseline; margin-top: 14px; font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mut); }
-#pause-menu .vh-gk em { font-style: normal; color: var(--g); letter-spacing: 0; text-transform: none; }
-#pause-menu .vh-plakje[data-state="gered"] b::after { content: ' · gered'; color: var(--g); }
-#pause-menu .vh-plakje[data-state="verloren"] b::after { content: ' · verloren'; color: var(--ds-c-rood-tx); }
-#pause-menu .vh-plakje[data-state="geblokkeerd"] b::after { content: ' · geblokkeerd'; color: var(--ds-zeef-tx); }
-#pause-menu .vh-plakje[data-state="open"] b::after { content: ' · nog open'; color: var(--mut); }
-#pause-menu .vh-clue[data-new] b::after { content: ' nieuw'; font-family: var(--ds-font-zeef-tekst); font-size: 18px; letter-spacing: 0; color: var(--g); }
-/* #904: de kop van Personages en Aanwijzingen is één rustige strook met de stand erin; de
-   geschiedenis en de aanwijzingen krijgen daardoor een begin in plaats van een lijst die maar loopt. */
+/* #904: de kop van Personages is één rustige strook met de stand erin; de
+   geschiedenis krijgt daardoor een begin in plaats van een lijst die maar loopt. */
 #pause-menu .vh-hero { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 14px 18px; background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
 #pause-menu .vh-hero-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; }
 #pause-menu .vh-hero-t { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 34px; line-height: 1; letter-spacing: 0.03em; }
@@ -111,15 +87,6 @@ const CSS = `
 #pause-menu .vh-party { display: flex; align-items: center; gap: 10px; font-size: 18px; }
 #pause-menu .vh-party b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.02em; color: var(--ink); }
 #pause-menu .vh-facts { grid-template-columns: auto minmax(0, 1fr); }
-#pause-menu .vh-clue-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-#pause-menu .vh-clue-kind { font-family: var(--ds-font-zeef-tekst); font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
-#pause-menu .vh-clue[data-kind="hart"] .vh-clue-kind { color: var(--ds-c-rood-tx); }
-#pause-menu .vh-part { position: relative; }
-#pause-menu .vh-part[data-cur] { box-shadow: inset 3px 0 0 var(--g); padding-left: 14px; }
-#pause-menu .vh-summary { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; padding: 14px 18px; border-radius: 12px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 45%, transparent); }
-#pause-menu .vh-summary b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 30px; letter-spacing: 0.03em; }
-#pause-menu .vh-summary p { margin: 0; font-size: 18px; line-height: 1.4; color: var(--mut); }
-#pause-menu .vh-summary .m-bar { width: 100%; max-width: 420px; height: 6px; }
 `;
 
 let styled = false;
@@ -255,70 +222,9 @@ function peopleHtml() {
     '</div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>';
 }
 
-// The plakjesbord of the new story: Jelle buys Grunn up slice by slice; each slice shows how it ended.
-function plakjesHtml(list) {
-  if (!list || !list.length) return '';
-  const count = (s) => list.filter((p) => p.state === s).length;
-  const tally = [['gered', 'gered'], ['verloren', 'verloren'], ['geblokkeerd', 'geblokkeerd']].map(([s, w]) => (count(s) ? `${count(s)} ${w}` : '')).filter(Boolean).join(' · ');
-  return `<section class="vh-part"><div class="m-gh"><span>De plakjes van Jelle</span><span>${esc(tally || 'allemaal nog open')}</span></div>` +
-    '<div class="vh-clues">' + list.map((p) => `<div class="vh-clue vh-plakje" data-state="${p.state}"><b>${p.n} · ${esc(p.name)}</b><p>${esc(p.text)}</p></div>`).join('') + '</div></section>';
-}
-
-// De volgorde van de delen bij Aanwijzingen: het deel waar je nu in zit, dan de delen met gevonden aanwijzingen (het nieuwste deel eerst), dan de rest.
-function partOrder(steps, found, cur) {
-  const score = (part) => {
-    if (cur && cur.part === part) return 0;
-    const mine = steps.filter((s) => s.part === part);
-    return CLUES.some((c) => mine.some((s) => s.id === c.step) && found.has(c.title)) ? 1 : 2;
-  };
-  return Object.keys(PARTS).reverse().map((part, i) => ({ part, i, sc: score(part) })).sort((a, b) => a.sc - b.sc || a.i - b.i).map((x) => x.part);
-}
-
-function cluesHtml() {
-  const steps = getStorySteps();
-  const jr = getStoryJournal();
-  const found = new Map(jr.found.map((c) => [c.title, c]));
-  const cur = steps.find((s) => s.current);
-  const pct = jr.total ? Math.round((jr.found.length / jr.total) * 100) : 0;
-  const kop = `<section class="vh-summary" aria-label="Aanwijzingen"><div class="vh-hero-top"><span class="m-eb">Aanwijzingen</span><span class="vh-party"><b>${jr.found.length}</b> van ${jr.total} gevonden</span></div>` +
-    `<span class="m-bar on" aria-hidden="true"><i data-bar="clues-all" data-w="${pct}"></i></span>` +
-    `<p>${cur ? `Je bent in ${esc(partName(cur.part))}. ` : ''}Wat je vindt, staat per hoofdstuk; het nieuwste bovenaan.</p></section>`;
-  return '<div class="vh-parts">' + kop + plakjesHtml(jr.plakjes) + partOrder(steps, found, cur).map((part) => { // waar je bent en wat je vond bovenaan (#435)
-    const list = steps.filter((s) => s.part === part);
-    const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
-    if (!clues.length) return '';
-    const known = clues.filter((c) => found.has(c.title));
-    const open = list.some((s) => s.available);
-    const here = cur && cur.part === part;
-    if (!open && !known.length) return '';
-    // Een hoofdstuk zonder gevonden aanwijzing waar je niet bent, is één rustige regel met een chip in plaats van een eigen blok met een
-    // lege balk: vijf van die blokken onder elkaar lazen als een muur van "nog te ontdekken" (#980).
-    if (!known.length && !(cur && cur.part === part)) {
-      return `<div class="vh-kort"><span>${esc(partName(part))}</span><span class="ds-zeef ds-z-chip">${icoon('slot', { cls: 'ds-z-chip__icoon' })}${clues.length} te ontdekken</span></div>`;
-    }
-    return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(partName(part))}${here ? ' · nu' : ''}</span><span>${known.length} van ${clues.length}</span></div>` +
-      `<span class="m-bar vh-pbar${known.length ? ' on' : ''}"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +
-      (here && WHY[part] ? `<p class="vh-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '') +
-      // per opdracht gegroepeerd, de nieuwste opdracht eerst (#435); de opdrachttitel is de
-      // enige aanduiding, geen missienummer (#913)
-      '<div class="vh-clues">' + [...list].reverse().map((st) => {
-        const mine = clues.filter((c) => c.step === st.id && found.has(c.title));
-        if (!mine.length) return '';
-        return `<div class="vh-gk"><span>${esc(st.title)}</span>${mine.some((c) => found.get(c.title).isNew) ? '<em>nieuw</em>' : ''}</div>` + mine.map((c) => {
-          const f = found.get(c.title);
-          return `<div class="vh-clue" data-kind="${c.kind}"${f.isNew ? ' data-new' : ''}><div class="vh-clue-head"><span class="vh-clue-kind">${c.kind === 'hart' ? 'Keerpunt' : 'Aanwijzing'}</span><b>${esc(c.title)}</b></div><p>${esc(c.text)}</p></div>`;
-        }).join('');
-      }).join('') +
-      // de nog niet gevonden aanwijzingen als één rustige regel, geen muur van vraagtekens (#92)
-      (!known.length ? '<div class="ds-zeef ds-z-leeg vh-leeg"><div class="ds-z-leeg__kop">Nog niets gevonden in dit hoofdstuk</div><p class="ds-z-leeg__tekst">Speel de opdracht uit: wat je ontdekt, staat hier met de opdracht erbij.</p></div>' : '') +
-      (known.length && known.length < clues.length ? `<div class="vh-clue vh-rest" data-unknown><b>${clues.length - known.length} nog te ontdekken</b></div>` : '') + '</div></section>';
-  }).join('') + '</div>';
-}
-
 // The sheet subtitle.
 export function verhaalSummary() {
-  const jr = getStoryJournal();
-  return `${metCount()} van ${CHARACTERS.length} personages ontmoet · ${jr.found.length} van ${jr.total} aanwijzingen`;
+  return `${metCount()} van ${CHARACTERS.length} personages ontmoet`;
 }
 
 export function renderVerhaal(panel, view, w = null) {
@@ -328,12 +234,6 @@ export function renderVerhaal(panel, view, w = null) {
   if (!el) return;
   disposeVerhaalViewer();
   for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]')) if (sub !== el && !sub.hasAttribute('data-keep')) sub.innerHTML = '';
-  if (view === 'aanwijzingen') {
-    el.innerHTML = cluesHtml();
-    fillBars(el, bars);
-    for (const n of el.querySelectorAll('.vh-clue[data-new]')) pop(n);
-    return;
-  }
   el.innerHTML = peopleHtml();
   fillBars(el, bars);
   loadPics(el);

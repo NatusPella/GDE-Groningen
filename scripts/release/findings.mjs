@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 const DEFAULT_OUT = path.join(os.tmpdir(), 'gde-findings');
 
 const SOURCES = ['code-review', 'vision', 'perf', 'rules', 'design', 'baseline', 'test'];
-const ASPECTS = ['correctness', 'rules', 'design', 'perf', 'ux', 'gameplay', 'visual', 'multiplayer', 'privacy', 'toegankelijkheid'];
+const ASPECTS = ['correctness', 'rules', 'design', 'perf', 'ux', 'gameplay', 'visual', 'cutscenes', 'multiplayer', 'privacy', 'toegankelijkheid'];
 const SEVERITIES = ['blokkerend', 'belangrijk', 'nit'];
 const SEVERITY_RANK = { blokkerend: 3, belangrijk: 2, nit: 1 };
 const COMMIT_PATTERN = /^[0-9a-f]{7,40}$/;

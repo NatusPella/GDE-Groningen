@@ -79,6 +79,7 @@ import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { updateTerugkeer } from './terugkeerrun.js';
+import { updateRecap, isRecapOpen } from './recapcardrun.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
 import { updateContextHints } from './contexthints.js';
@@ -150,9 +151,9 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
-import { maybeOpenOnlineStart } from './onlineconsentui.js';
-import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './startchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
-import { openLaunchChoice, openToestemming } from './startchoiceui.js';
+import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { openLaunchChoice, openToestemming } from './launchchoiceui.js';
+import { openOnlineStart } from './onlineconsentui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
@@ -230,9 +231,9 @@ import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
-import { createTrainLive } from './treinlive.js';
-import { createServiceSource } from './treindienst.js';
-import { laadRooster as laadTreinRooster, codesUit as treinCodes, dayTypeOf as treinDagsoort } from './treinrooster.js';
+import { createTrainLive } from './trainlive.js';
+import { createServiceSource } from './trainservice.js';
+import { laadRooster as laadTreinRooster, codesUit as treinCodes, dayTypeOf as treinDagsoort } from './trainschedule.js';
 import { weekdayOf } from './calendar.js';
 import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de eerste live bus (#922)
 import { stapSlaOver } from './simlagen.js';
@@ -284,12 +285,12 @@ registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tic
 // direct), houdt de stand bij en respecteert de instelling. Zonder netwerk-opvraag in de testruns.
 const liveBussenToegestaan = !(DEV || FLAGS.trailer);
 const busLive = maakBusLive({ zetBron: setLiveBussen, instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
-// live treinen (#1085): het echte rooster (game/treinrooster.json) op de vertrekborden, met de live vertragingen uit treinlive.js (zelfde opzet
+// live treinen (#1085): het echte rooster (game/trainschedule.json) op de vertrekborden, met de live vertragingen uit trainlive.js (zelfde opzet
 // als de bussen: uitzetter liveTreinen in Instellingen, zonder opvraag in de testruns). Zonder rooster houden de stations hun eigen dienst.
 let treinRooster = null;
 laadTreinRooster().then((r) => { treinRooster = r; });
 const treinLive = createTrainLive({ instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
-// De treinen in de wereld volgen hetzelfde rooster als het bord (treindienst.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
+// De treinen in de wereld volgen hetzelfde rooster als het bord (trainservice.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
 // spelen rekent iedereen zonder live vertraging, zodat host en gasten dezelfde treinen op dezelfde plek zien (de vertraging komt uit een eigen opvraag).
 const treinDagsoortVan = (w) => treinDagsoort(weekdayOf(calendarToday(w)));
 const treinLiveStand = (w) => (w && w.coopRole ? null : treinLive.bron.vertragingen());
@@ -629,9 +630,9 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// De startvragen (startchoice.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
-// elke start de keuzekaart Alleen of Samen. Alleen kiest het enkelspelerpad zonder netwerk; Samen vraagt zo nodig eerst de
-// toestemming en daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
+// De startvraag (launchchoice.js): bij elke start de keuzekaart Alleen of Samen, geen naamscherm. Alleen kiest het enkelspelerpad
+// zonder netwerk; Samen vraagt de eerste keer de kaart met naam en akkoord (of alleen het akkoord als dat is ingetrokken) en
+// daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
 let onlineVraag = null;
 function beginOnlineStartQuestion() {
   if (!onlineVraag) {
@@ -640,7 +641,7 @@ function beginOnlineStartQuestion() {
     onlineVraag = askLaunchChoice({
       plan,
       settings: () => getSettings(),
-      naam: () => maybeOpenOnlineStart(),
+      naam: () => openOnlineStart({ terug: true }),
       keuze: (index) => openLaunchChoice({ index }),
       toestemming: () => openToestemming(),
       sessie: () => new Promise((klaar) => openSamenKeuze({ onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
@@ -705,7 +706,7 @@ function armBootWatchdog() {
   const check = () => {
     bootWatchdog = 0;
     if (bootFinished) return;
-    // De verplichte naamkaart is geen hapering: zolang die openstaat telt de
+    // De kaart met naam en akkoord is geen hapering: zolang die openstaat telt de
     // wachter niet door en krijgt de speler na het invullen weer de volle tijd.
     if (document.getElementById && document.getElementById('online-start')) {
       seenMs = 0; visibleSince = document.hidden ? 0 : performance.now();
@@ -915,10 +916,10 @@ async function boot() {
   initInputDevice();
   initPadKeyboard();
   initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
-  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
-  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
+  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
+  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() });
   document.addEventListener('pointerlockchange', () => {
-    if (!document.pointerLockElement && lockVerlorenOpentMenu({ gestart: document.body.classList.contains('game-started'), menuOpen: menuOpen(), vraagOpen: isPlayAheadOpen() || isHelpOfferOpen() })) openPauseMenu();
+    if (!document.pointerLockElement && lockVerlorenOpentMenu({ gestart: document.body.classList.contains('game-started'), menuOpen: menuOpen(), vraagOpen: isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() })) openPauseMenu();
   });
   initDayNight(world);
   initCalendar(world);
@@ -1084,7 +1085,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
     // geeft na een paar pogingen op. Duurt het te lang of kan hij niet beginnen, dan valt de
     // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
-    const onlineNu = magOnline() && getLaunchMode() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startchoice.js)
+    const onlineNu = magOnline() && getLaunchMode() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (launchchoice.js)
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
     const soloKlaar = !onlineNu || sessionBootDone(world) || (soloWachtS > 12 && !sessionBootBezig(world));
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
@@ -1182,7 +1183,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStoryContact(world.paused ? 0 : dt, world);
     updatePractice(world.paused ? 0 : dt, world);
     // #986 #987: na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); wacht zelf op een rustig moment
-    updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    // de recapkaart 'Waar waren we?' komt eerst; de terugkeerscène wacht tot hij dicht is (menuOpen)
+    updateRecap(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || isRecapOpen());
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;

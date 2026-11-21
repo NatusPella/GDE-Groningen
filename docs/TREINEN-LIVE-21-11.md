@@ -58,14 +58,14 @@ komen uit de zoekresultaten en de openbare voorpagina's, niet uit de volledige v
 
 ### Deel 1: de echte dienstregeling bij het bouwen
 
-- **Bouwstap:** `node scripts/treinrooster_bouw.mjs --gtfs=<map met uitgepakte gtfs-nl.zip>` (puur: `scripts/treinrooster_lib.mjs`). De zip wordt alleen bij de ontwikkeling opgehaald
+- **Bouwstap:** `node scripts/trainschedule_build.mjs --gtfs=<map met uitgepakte gtfs-nl.zip>` (puur: `scripts/trainschedule_lib.mjs`). De zip wordt alleen bij de ontwikkeling opgehaald
   (`curl -H "User-Agent: OpenDataLezer/1" -o gtfs-nl.zip https://gtfs.ovapi.nl/nl/gtfs-nl.zip`, uitpakken in een eigen lege map); **het spel haalt de grote GTFS nooit op**. Het
-  script leest ca. 1,2 GB stop_times in een minuut en schrijft `game/treinrooster.json`: 217 KB, 26 stations, 3 dagsoorten.
+  script leest ca. 1,2 GB stop_times in een minuut en schrijft `game/trainschedule.json`: 217 KB, 26 stations, 3 dagsoorten.
 - **Filter:** alleen spoorroutes (route_type 2), alleen de stations in en rond Groningen (Groningen, Europapark, Noord, Haren, Assen, Zuidhorn, Grijpskerk, Sauwerd, Winsum, Uithuizen, Roodeschool,
   Eemshaven, Bedum, Stedum, Loppersum, Appingedam, Delfzijl West, Delfzijl, Kropswolde, Martenshoek, Hoogezand-Sappemeer, Zuidbroek, Veendam, Scheemda, Winschoten, Bad Nieuweschans). Per vertrek:
   tijd, treinnummer, spoor, bestemming, spellijn, aankomst. Het eindstation van een rit levert geen vertrek.
 - **Wat er niet in zit:** de vervoerder, een adres, een url, iets persoonlijks. Het bestand heeft alleen stations, tijden, treinnummers, sporen en bestemmingen (echte plaatsnamen mogen).
-  `treinrooster_test` bewaakt dat er geen echte merk- of vervoerdersnaam in staat.
+  `trainschedule_test` bewaakt dat er geen echte merk- of vervoerdersnaam in staat.
 - **Verzonnen lijnnamen:** een vertrek krijgt de lijn van het spel (Stoptrein Roodeschool, Delfzijl, Leeuwarden, Winschoten, Veendam, Assen, Intercity Zwolle) op de kant waar de trein heen
   rijdt (rijdt hij naar Groningen, dan op de plek waar hij vandaan komt). De bestemming op het bord is de echte plaats, de lijn en de omroep ("Noorderspoor-trein naar ...") blijven verzonnen.
 - **Tijd op de spelklok:** de spelklok loopt in uren van de lokale dag; het rooster is een zomerdag, dus **1 op 1**: 08:17 in het rooster is 08:17 op de spelklok. De spelkalender (augustus 2026,
@@ -80,7 +80,7 @@ komen uit de zoekresultaten en de openbare voorpagina's, niet uit de volledige v
 
 - **Bron:** `https://gtfs.ovapi.nl/nl/trainUpdates.pb`, alleen GET, vaste url, `credentials: 'omit'`, `referrerPolicy: 'no-referrer'`, geen cookies, geen id, geen querystring, alleen de kopregels
   `Accept` en `User-Agent`. 8 s time-out, maximaal 8 MB uitgepakt (de feed is nu 2,9 MB; de bussen mogen 3 MB, dat is hier te krap), hooguit 4.000 meldingen na het filteren op de stations.
-- **Electron:** het main-proces doet de opvraag (`desktop/livetreinen.cjs`, IPC `gde:live-treinen`, zonder argumenten; in het pakket opgenomen); het web doet hem direct (en valt bij een CORS-weigering zacht
+- **Electron:** het main-proces doet de opvraag (`desktop/livetrains.cjs`, IPC `gde:live-treinen`, zonder argumenten; in het pakket opgenomen); het web doet hem direct (en valt bij een CORS-weigering zacht
   terug op het rooster, zoals bij de bussen: de server stuurt geen CORS-koppen).
 - **Ritme:** één opvraag per minuut met ±15% spreiding, bij fouten verdubbelend tot 10 minuten, een 429 of 503 geeft meteen de lange rust, een lege feed is geen fout. De laatste goede stand blijft
   180 s staan; daarna toont het bord het rooster.
@@ -95,7 +95,7 @@ komen uit de zoekresultaten en de openbare voorpagina's, niet uit de volledige v
 
 ### Deel 3: spoor en bord zijn dezelfde trein (eigenaar 21-11: "het spoor en bord moeten overeenkomen")
 
-Eén bron voor bord en spoor: `game/js/treindienst.js` (puur, deterministisch). De treinen in de wereld rijden niet meer als een pendeltrein per lijn, maar zijn de ritten van het bord.
+Eén bron voor bord en spoor: `game/js/trainservice.js` (puur, deterministisch). De treinen in de wereld rijden niet meer als een pendeltrein per lijn, maar zijn de ritten van het bord.
 
 - **Ritten:** de rijen van het rooster met hetzelfde treinnummer in tijdsvolgorde zijn één rit. Het rooster bevat nu ook het **eindstation** van elke rit (alleen aankomst, `soort` 1; het staat niet op het bord) en het
   beginstation (`soort` 2), zodat een trein in de wereld kan aankomen en klaarstaan. Een rit over het Hoofdstation valt in twee "legs", één per spoorlijn van het spel (de lijnen beginnen allemaal op het Hoofdstation); een
@@ -108,7 +108,7 @@ Eén bron voor bord en spoor: `game/js/treindienst.js` (puur, deterministisch). 
   (`t.rit`). Treinen zonder rit staan niet in `getTrains()`. Lijnen zonder ritten in de data houden hun eigen dienst. Meer dan 8 gelijktijdige ritten op een lijn: de rest rijdt niet (in de proef nooit meer dan 5).
 - **Bord = trein:** een bordrij heeft `rit` (het rit-id, `<treinnummer>@<lijn>`) en dezelfde tijden als de trein (`legTimes` en `vertragingVan` zijn één functie voor beide), ook met live vertraging: de trein staat op
   de verwachte tijd van het bord op het perron en vertrekt daarna; een vervallen rit is een bordrij "vervalt" zonder trein. Een bordrij zonder trein bestaat niet (rijen zonder leg worden niet getoond) en een trein zonder
-  bordrij ook niet (elke leg heeft op elke halte behalve het eindpunt zijn rij); dat controleert `scripts/treindienst_test.mjs`.
+  bordrij ook niet (elke leg heeft op elke halte behalve het eindpunt zijn rij); dat controleert `scripts/trainservice_test.mjs`.
 - **Instappen:** de trein van het bord staat op de vertrektijd (-120 s) op het perron en is te bestijgen zoals altijd (`stationtravel.js`, state `dwell`). De machinist rijdt dan de rit van die trein: haltes, tijden (met
   live vertraging), richting en eindpunt uit dezelfde leg (`dienstVanLeg`, `machinist.js`); de andere cabine rijdt de oude verzonnen dienst. Een overgenomen trein blijft van de speler (de rit wordt niet dubbel gereden); geeft
   hij hem terug, dan komt de trein weer op de klokplek van zijn rit (of verdwijnt als die rit voorbij is).
@@ -117,10 +117,26 @@ Eén bron voor bord en spoor: `game/js/treindienst.js` (puur, deterministisch). 
 - **Wat het kost:** de dienst wordt één keer per dagsoort gebouwd (ca. 620 ritten) en elke frame worden alleen de ritten in hun tijdvenster doorgerekend (ca. 20 tot 25 tegelijk).
 
 **Samen spelen (zie ook docs/COOP-GAST.md):** de host bezit de verkeerspopulatie en de gasten zien dezelfde trein. Dat gaat **deterministisch uit de gezamenlijke spelklok**: de gast rekent `planTreinDienst` zelf uit
-en krijgt dezelfde ritten op dezelfde plek (testbank `treindienst_test`: host en gast hebben dezelfde treinen op dezelfde plek). De bestaande snapshot (`hostTreinen`, entiteit SOORT_TREIN) blijft: voor een
+en krijgt dezelfde ritten op dezelfde plek (testbank `trainservice_test`: host en gast hebben dezelfde treinen op dezelfde plek). De bestaande snapshot (`hostTreinen`, entiteit SOORT_TREIN) blijft: voor een
 rooster-trein is hij een controle (de gast bewaart het grootste verschil per lijn in `route.afwijking`), voor een door een speler **overgenomen** trein (bit 32 in het entiteit-id) volgt de gast de snapshot, zoals voor
 de gewone bestuurde trein. In Samen spelen rekenen bord en treinen **zonder live vertraging** (alle spelers het rooster): de live vertraging komt uit de eigen opvraag van elke speler en zou de treinen uit elkaar halen;
 het bord zegt dan "Rooster". Alleen voor wie solo speelt zijn de vertragingen op bord en trein live.
+
+### Deel 4: het bord als tijdlijn (eigenaar 21-11: "de blokken met de eerstvolgende treinen zijn niet duidelijk genoeg")
+
+Het linkerblok, de kop "Vertrekbord Perron" en de titel van het station blijven. De vier losse cellen zijn vervangen door **één kaart met een tijdlijn**: een verticale as met bovenaan "NU" en de
+spelkloktijd, en daaronder per trein (maximaal vijf) een punt op de as met de vertrektijd (tabulaire cijfers, bij vertraging de nieuwe tijd met de plantijd doorgestreept), de bestemming, de verzonnen
+lijnnaam, het spoor, de bron als woord (Live of Rooster), de vertraging als `+3` en "over 4 min" met een balk waarvan de lengte de afstand in tijd is (as van 15 minuten, groeit in stappen van 15 tot een uur;
+wat verder weg is staat aan het einde). De eerstvolgende trein is groot en bordgroen; de rest is rustig papier en inkt. Kleurtaal (DS3): geen geel (dat is "volg dit"); rood alleen voor "vervalt" en een
+vertraging van 10 minuten of meer; elke toestand heeft ook een vorm en een woord (cirkel = op tijd, ruit met ▲ = vertraagd, kruis met "Vervalt" = rijdt niet). De bronregel "Bron: open OV-gegevens" blijft onder de kaart.
+
+Eén bron van waarheid: `game/js/departuretimeline.js` is puur (sorteren, maximum, posities op de as, labels, toon, vorm, schermlezertekst; test `scripts/departuretimeline_test.mjs`); `departuretimelineui.js`
+tekent het (HTML en een patcher per trein: alleen een nieuwe trein schuift in, `ds-m-rij`; een veranderde minuut tikt één keer, `ds-m-tik`; alleen de eerstvolgende heeft de rustige live-stip,
+`ds-m-stip--live`; alles uit onder "Beweging beperken"). Schermlezers krijgen één zin per trein in een verborgen alinea; de visuele lijst is `aria-hidden`. Onder 1100 px breed vervalt de balk (de minuten blijven).
+Vergelijking oud en nieuw: `docs/beeld-21-11/vertrekbord/` (`node scripts/vertrekbord_mock.mjs` en `node scripts/vertrekbord_shots.mjs`, headless Chrome, geen Electron).
+
+**Het bord in de wereld:** er is in de wereld geen vertrekbord-textuur op het perron; het enige canvas daar is het naambord (`perrons3d.js bordTexture`, 512 x 128, vette 54 px, wit op blauw: goed leesbaar op afstand). Het
+vertrekbord is alleen het HUD-bord. Een toekomstig bord in de wereld hoeft alleen `buildTimeline(view)` te tekenen. Niet gebouwd, dus ook niet beoordeeld op leesbaarheid op afstand.
 
 ### Eerlijke beperking: de spelklok is niet de echte tijd
 
@@ -136,16 +152,16 @@ op een zwakke machine draait; in Electron is het ook de renderer. Een tweede sta
 
 | Onderdeel | Bestand | Test |
 |---|---|---|
-| bouwstap + filter, lijnkeuze, dagen, tijden | `scripts/treinrooster_bouw.mjs`, `scripts/treinrooster_lib.mjs` | `treinrooster_test` |
-| het rooster in het spel, tijdafbeelding, vertraging per rit | `game/js/treinrooster.js` | `treinrooster_test` |
-| bron in woorden (Live/Rooster), regel "Vertrekt over ..." | `game/js/treinbron.js` | `treinrooster_test` |
-| feed lezen, opvraag zonder spelergegevens, zacht falen | `game/js/livetreinen.js` | `livetreinen_test` |
-| ritme, backoff, spreiding, uitzetter, brug | `game/js/treinlive.js`, `desktop/livetreinen.cjs` | `livetreinen_test` |
-| bord (rijen, +N, vervalt, label, bronregel) | `game/js/stationlife.js` | `treinrooster_test`, `stationlife_test` |
-| treinen in de wereld uit het rooster, pool, gast, overgenomen trein, machinistdienst | `game/js/treindienst.js`, `game/js/railway.js`, `game/js/machinist.js`, `game/js/coopnet.js`, `game/js/coopworld.js` | `treindienst_test` (vraagt een gevendorde three, zoals `gasttrein_test`) |
+| bouwstap + filter, lijnkeuze, dagen, tijden | `scripts/trainschedule_build.mjs`, `scripts/trainschedule_lib.mjs` | `trainschedule_test` |
+| het rooster in het spel, tijdafbeelding, vertraging per rit | `game/js/trainschedule.js` | `trainschedule_test` |
+| bron in woorden (Live/Rooster), regel "Vertrekt over ..." | `game/js/trainsource.js` | `trainschedule_test` |
+| feed lezen, opvraag zonder spelergegevens, zacht falen | `game/js/livetrains.js` | `livetrains_test` |
+| ritme, backoff, spreiding, uitzetter, brug | `game/js/trainlive.js`, `desktop/livetrains.cjs` | `livetrains_test` |
+| bord (rijen, +N, vervalt, label, bronregel) | `game/js/stationlife.js` | `trainschedule_test`, `stationlife_test` |
+| treinen in de wereld uit het rooster, pool, gast, overgenomen trein, machinistdienst | `game/js/trainservice.js`, `game/js/railway.js`, `game/js/machinist.js`, `game/js/coopnet.js`, `game/js/coopworld.js` | `trainservice_test` (vraagt een gevendorde three, zoals `gasttrein_test`) |
 | Instellingen (`liveTreinen`) | `game/js/settings.js`, `game/js/pausemenu.js` | `spelmenu_test` |
 
-`livetreinen_test` draait ook tegen de echte feed als je `GDE_TRAIN_PB=<pad naar een afgehaalde trainUpdates.pb>` zet (21-11: 590 meldingen voor de drie stations die de test filtert, 16 met vertraging).
+`livetrains_test` draait ook tegen de echte feed als je `GDE_TRAIN_PB=<pad naar een afgehaalde trainUpdates.pb>` zet (21-11: 590 meldingen voor de drie stations die de test filtert, 16 met vertraging).
 Vooraf al gecontroleerd op de echte feed: 2.288 meldingen op de 26 stations, 98 met een vertraging van een minuut of meer, 0 vroege, 0 vervallen op dat moment; van de 2.971 werkdagrijen
 had 1.666 een melding voor vandaag (het was zaterdag).
 
@@ -155,13 +171,13 @@ Elke speler heeft zijn eigen opvraag en zijn eigen bord: het rooster is een best
 snapshot of een EXTRA-bericht. De spelklok en de speldag (en dus de dagsoort) volgen de gezamenlijke wereld; de gast gebruikt zijn eigen `calendarToday` zoals het stationsleven dat al deed. Een gast
 die de optie uit heeft of geen bron bereikt ziet het rooster zonder vertraging, de host kan een andere stand zien als zijn opvraag net een minuut eerder of later viel. Er is geen host-recht in: niemand
 beslist voor een ander. Valt iemand weg of sluit hij later aan, dan verandert er niets voor de anderen. De zichtbare treinen (`railway.js`) blijven van de wereld van wie het spel opende; het bord
-hangt daar niet meer van af. Test: pure tests; niet met twee instanties gezien.
+hangt daar niet meer van af. Test: pure tests; niet met twee instanties gezien. De tijdlijn op het bord (deel 4) is per speler lokaal: elke speler tekent zijn eigen bord uit zijn eigen opvraag; in Samen spelen rooster zonder live vertraging, zonder snapshot of EXTRA-bericht.
 
 ## Niet gedaan en niet gezien
 
 - Niets is in een draaiend spel bekeken (releasegate draait, geen Electron): de label op het bord, de regel "Vertrekt over ...", de kleur van `+N` en het gedrag in `?dev` zijn alleen met pure tests
   en `node --check` gecontroleerd. **Nog niet bekeken.**
-- Bord en spoor zijn getest op een eigen proefspoor met de echte data (`treindienst_test`, ook met vertraging, een vervallen rit, een gast en een overgenomen trein); niet op de gebouwde wereld en niet in beeld. De echte lijnen
+- Bord en spoor zijn getest op een eigen proefspoor met de echte data (`trainservice_test`, ook met vertraging, een vervallen rit, een gast en een overgenomen trein); niet op de gebouwde wereld en niet in beeld. De echte lijnen
   en haltes (en afstanden) van de wereld kunnen ritten anders afbakenen dan de proef; ritten zonder twee haltes op een lijn hebben geen trein (en geen bordrij).
 - **In beeld te controleren (nog niet bekeken):** (1) staat de trein op de bordtijd stil op het perron van het station en vertrekt hij de goede kant op; (2) rijden er geen treinen meer zonder bordrij en geen bordrij zonder trein
   (kijk naar het bord van Haren, Bedum, Sauwerd, Zuidhorn en Kropswolde); (3) komt een trein van buiten de kaart soepel binnen en rijdt hij aan het eind soepel weg, zonder te springen; (4) stap in een trein: melding "Dienst ..."
@@ -169,7 +185,7 @@ hangt daar niet meer van af. Test: pure tests; niet met twee instanties gezien.
   (7) het bord toont Live/Rooster en +N als er vertraging is; (8) na slapen of tijd versnellen springen treinen naar hun nieuwe klokplek (bedoeld).
 - Geen HUD-melding bij de eerste live trein, geen kaartlaag (er zijn geen posities).
 - `dienstregeling_test` kon niet draaien in deze werkmap (geen provinciedata); `dienstregeling.js` is niet aangepast (de verzonnen dienst blijft voor de andere cabine en voor lijnen zonder rooster); `stationlife_test`, `spelmenu_test`, `gasttrein_test`, `cooptrein_test` en `machinistdienst_test` wel gedraaid.
-- Het rooster is een momentopname van de feed van 20-11-2026 voor de zomer van 2027; verandert de echte dienstregeling dan moet `treinrooster_bouw.mjs` opnieuw draaien (geen automatische vernieuwing).
+- Het rooster is een momentopname van de feed van 20-11-2026 voor de zomer van 2027; verandert de echte dienstregeling dan moet `trainschedule_build.mjs` opnieuw draaien (geen automatische vernieuwing).
 - Twee spelers in Samen spelen: niet gezien.
 
 ## Bronnen

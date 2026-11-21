@@ -1414,7 +1414,7 @@ export function getStoryView() {
     done, total: avail.length,
   };
 }
-registerStoryQueries({ currentStep, storyFlag, getStoryView, storyVoorschotInfo, prepareStoryShop, getStorySave });
+registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave });
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).

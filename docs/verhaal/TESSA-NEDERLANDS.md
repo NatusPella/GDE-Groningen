@@ -95,7 +95,7 @@ M07.4 | Rijden, niet praten. | Rieden, nait proaten.
 M08.4 | Wat bedoelde ze, "niet tegen haar"? | Wat bedoelde zai, "nait tegen heur"?
 T1 | Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur. | N kaartje noar moakt nait oet woar. Doe kiekst te schuldig veur n conducteur.
 T1 | Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken. | Wust nog? Mit de trein noar Delfzijl, om noar de zee te kieken.
-T1 | Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd. | Doe zee dat de zee achter de diek lag. Ik heb t twintig joar leufd.
+T1 | Jij zei dat de zee achter de dijk lag. Ik heb het vijf jaar geloofd. | Doe zee dat de zee achter de diek lag. Ik heb t vief joar leufd.
 M09.3 | Twee. | Twij.
 M11.1 | Jij stuurt, ik zeg wanneer. | Doe stuurst, ik zeg wanneer.
 M11.3 | Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft. | N oefenbal. Hai oefent hoe hai hom aan zien moeke geft.
@@ -129,5 +129,5 @@ M26.6 | Dan is het ernstig. | Dan is t ernstig.
 M26.7 | Tammo. Iedereen luistert. | Tammo. Ieder luustert.
 M26.7 | Dat telt. Maar ik wil het één keer horen. | Dat telt. Mor ik wil t ain keer hoeren.
 M26.7 | Vijf woorden. | Vief woorden.
-M26.7 | Mien jong. Dat duurde twaalf jaar. | Mien jong. Dat dúúrde twaalf joar.
+M26.7 | Mien jong. Dat duurde vijf jaar. | Mien jong. Dat dúúrde vief joar.
 E1 | Spijt van de zomer? | Spiet van de zomer?

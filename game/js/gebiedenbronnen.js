@@ -9,7 +9,7 @@ import { activitySpots } from './activities.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { FINDS, findPos, SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
 import { ontvouw } from './grenzen.js';
-import { applyDistrictBounds } from './wijkat.js';
+import { applyDistrictBounds } from './districtat.js';
 import { lifetimeSnapshot } from './achievements.js';
 import { getProfiel as getLoopbaan } from './loopbaanlive.js';
 import { VAK_IDS } from './loopbaan.js';

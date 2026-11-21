@@ -92,7 +92,7 @@ ok(toelatenFlits([0, 100, 200], 1050), 'the gate opens after a second');
   ok(l.soort === 'geslaagd' && l.kop === STANDAARD.geslaagd.kop && l.regelNl.includes('KNAL IN DE POLDER') && l.beloning === '€ 750', 'a long mission title goes in the line, the reward stays');
   ok(momentVanWanted(2, 2) === null && momentVanWanted(NaN, 1) === null, 'no change in wanted, no moment');
   const op = bouwMoment(momentVanWanted(1, 3)), neer = bouwMoment(momentVanWanted(3, 1)), weg = bouwMoment(momentVanWanted(2, 0));
-  ok(op.vorm === 'rand' && op.sterren === 3 && neer.sterren === 1 && weg.sterren === 0, 'wanted up and down are edge tags with the star count');
+  ok(op.vorm === 'rand' && op.sterren === null && neer.sterren === null && weg.sterren === null && !/sterren/.test(op.aria + neer.aria + weg.aria), '#1080: wanted up and down are edge tags without a star count (one place for stars: the HUD card)');
   ok(op.klein !== neer.klein && neer.klein !== weg.klein, 'up, down and gone read differently in words');
   const bust = bouwMoment(momentVanOpgepakt({ busted: true, geld: 250 })), down = bouwMoment(momentVanOpgepakt({ busted: false, geld: 100 }));
   ok(bust.vorm === 'stempel' && bust.kop === 'Opgepakt' && bust.beloningLabel === 'Boete' && bust.beloning === '− € 250', 'busted is a stamp with a fine');

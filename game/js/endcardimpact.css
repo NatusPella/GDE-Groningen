@@ -1,0 +1,25 @@
+/* Eindkaart met impact (endcardimpact.js, wens 21-11): het gele vlak slaat in beeld met een kleine overshoot en een
+   lichte schok, de onderdelen komen gestaffeld, een glans sluit af. Elke stap is hooguit --ds-m-max (250 ms); elke
+   vertraging is een veelvoud van --ds-m-snel (--bm-n). Bij Beweging beperken en Rustig drukwerk zijn die tokens 0 en
+   zet de JS de klasse .bm-i niet: dan geldt alleen de snelle fade hierboven. .bm-klaar (toets of klik) toont direct de eindstand. */
+.bm-i .bm-band { animation: bm-slag var(--ds-m-max) var(--ds-ease) both, bm-puls var(--ds-m) var(--ds-ease) calc(var(--ds-m-snel) * var(--bm-schok-n, 1.25)) both; }
+.bm-i { animation: bm-schok var(--ds-m) var(--ds-ease) calc(var(--ds-m-snel) * var(--bm-schok-n, 1.25)) both; }
+.bm-i .bm-dim { inset: -4vmin; }
+.bm-i .bm-klein, .bm-i .bm-regel, .bm-i .bm-meta-i { animation: bm-binnen var(--ds-m-max) var(--ds-ease) calc(var(--ds-m-snel) * var(--bm-n, 0)) both; }
+.bm-i .bm-kop { animation: bm-inslag var(--ds-m-max) var(--ds-ease) calc(var(--ds-m-snel) * var(--bm-n, 0)) both; }
+.bm-i .bm-band .bm-ster { animation: bm-inslag var(--ds-m-max) var(--ds-ease) calc(var(--ds-m-snel) * var(--bm-n, 0)) both; }
+.bm-band .bm-sterren { margin-top: 0.4vh; }
+.bm-band { overflow: hidden; }
+.bm-glans { position: absolute; top: 0; bottom: 0; left: 0; width: 18%; opacity: 0; pointer-events: none; background: var(--ds-c-ink-papier); transform: skewX(-18deg); }
+.bm-i .bm-glans { animation: bm-glans var(--ds-m-max) var(--ds-ease) calc(var(--ds-m-snel) * var(--bm-n, 0)) both; }
+@keyframes bm-slag { from { opacity: 0; translate: -110vw 0; } 70% { opacity: 1; translate: 1.2vw 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes bm-puls { from { scale: 1; } 40% { scale: 1.02 1.06; } to { scale: 1; } }
+@keyframes bm-schok { 0% { translate: 0 0; } 25% { translate: 0 6px; } 55% { translate: 0 -4px; } 80% { translate: 0 2px; } 100% { translate: 0 0; } }
+@keyframes bm-binnen { from { opacity: 0; translate: -24px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes bm-inslag { from { opacity: 0; scale: 1.35; } 60% { opacity: 1; scale: 0.97; } to { opacity: 1; scale: 1; } }
+@keyframes bm-glans { from { opacity: 0.45; translate: -40% 0; } to { opacity: 0; translate: 640% 0; } }
+.bm-i.bm-klaar, .bm-i.bm-klaar .bm-band, .bm-i.bm-klaar .bm-klein, .bm-i.bm-klaar .bm-kop, .bm-i.bm-klaar .bm-regel, .bm-i.bm-klaar .bm-meta-i, .bm-i.bm-klaar .bm-ster { animation: none; opacity: 1; translate: none; scale: none; }
+.bm-i.bm-klaar { opacity: 1; }
+.bm-i.bm-klaar .bm-glans { animation: none; opacity: 0; }
+html.reduce-motion .bm-i, html.rustig-drukwerk .bm-i { animation: none; }
+@media (prefers-reduced-motion: reduce) { .bm-i, .bm-i * { animation: none; } }

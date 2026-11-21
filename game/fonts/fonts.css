@@ -7,10 +7,10 @@
 @font-face { font-family: 'Big Shoulders Display'; font-weight: 700; font-display: swap; src: url(BigShouldersDisplay-Bold.ttf) format('truetype'); }
 @font-face { font-family: 'Big Shoulders Display'; font-weight: 800; font-display: swap; src: url(BigShouldersDisplay-ExtraBold.ttf) format('truetype'); }
 @font-face { font-family: 'Big Shoulders Display'; font-weight: 900; font-display: swap; src: url(BigShouldersDisplay-Black.ttf) format('truetype'); }
-/* Toets- en knopglyphs (Kenney Input Prompts, CC0): één teken per toets of knop, zie game/js/inputglyphs.js */
-@font-face { font-family: 'GDE Toetsen'; font-display: block; src: url(input/input-keys.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen A'; font-display: block; src: url(input/input-xbox.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen B'; font-display: block; src: url(input/input-ps.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen Deck'; font-display: block; src: url(input/input-deck.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Knoppen Algemeen'; font-display: block; src: url(input/input-generic.ttf) format('truetype'); }
-@font-face { font-family: 'GDE Aanraking'; font-display: block; src: url(input/input-touch.ttf) format('truetype'); }
+/* Toets- en knopglyphs (Kenney Input Prompts, CC0): één teken per toets of knop, zie game/js/inputglyphs.js. De metrics zijn vast (ascent 10%, descent 0): een glyph met line-height 0 maakt zo op elk platform de regel niet hoger, hoe groot hij ook is (#1075) */
+@font-face { font-family: 'GDE Toetsen'; font-display: block; ascent-override: 10%; descent-override: 0%; line-gap-override: 0%; src: url(input/input-keys.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen A'; font-display: block; ascent-override: 10%; descent-override: 0%; line-gap-override: 0%; src: url(input/input-xbox.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen B'; font-display: block; ascent-override: 10%; descent-override: 0%; line-gap-override: 0%; src: url(input/input-ps.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen Deck'; font-display: block; ascent-override: 10%; descent-override: 0%; line-gap-override: 0%; src: url(input/input-deck.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Knoppen Algemeen'; font-display: block; ascent-override: 10%; descent-override: 0%; line-gap-override: 0%; src: url(input/input-generic.ttf) format('truetype'); }
+@font-face { font-family: 'GDE Aanraking'; font-display: block; ascent-override: 10%; descent-override: 0%; line-gap-override: 0%; src: url(input/input-touch.ttf) format('truetype'); }

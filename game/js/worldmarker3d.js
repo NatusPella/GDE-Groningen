@@ -9,7 +9,7 @@
 // yellow start, light blue objective, orange job, purple own goal).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from './a11y.js';
-import { NAV_ROL } from './navdoel.js';
+import { NAV_ROL } from './navtarget.js';
 import { FLAGS } from './devflags.js';
 import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpacity, glyphPulse, showLabel, labelText, columnNormalBlend, DAY_COLUMN_DARKEN, dayColumnOpacity } from './markerlook.js';
 
@@ -23,7 +23,7 @@ const MARKER_KINDS = {
   garage: { color: 'job' }, // de spuitdienst van een opdracht (#434): hetzelfde oranje als de garage op de kaart
   vehicle: { color: 'job' },
   checkpoint: { color: NAV_ROL.uitdaging }, // ring: de uitdaging na het verhaal
-  user: { color: NAV_ROL.eigen }, // navdoel.js: jouw eigen doel
+  user: { color: NAV_ROL.eigen }, // navtarget.js: jouw eigen doel
   job: { color: NAV_ROL.klus },
 };
 

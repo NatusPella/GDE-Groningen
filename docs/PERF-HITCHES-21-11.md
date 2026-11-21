@@ -74,13 +74,13 @@ In een node-test kun je geen echte renderer draaien (geen WebGL); daarom is de i
 ## 3. CPU-hotspots
 
 - **Graafopbouw in `routing.js`** (250 ms op de echte stad, hooguit een keer per seconde nadat de lagen stil zijn): de berekening is nu
-  `game/js/routegraphbuild.js graphBuildSteps`, een generator die na elke 250 wegen en elke 40.000 kanten `yield`t. `updateRouting` draait
+  `game/js/pathgraphbuild.js graphBuildSteps`, een generator die na elke 250 wegen en elke 40.000 kanten `yield`t. `updateRouting` draait
   hem per beeld met een budget van 4 ms (`GRAPH_STEP_MS`); de oude graaf blijft in gebruik tot de nieuwe klaar is (zoals voorheen tijdens
   een tegelstroom). Een routevraag die nu een graaf nodig heeft (`findWalkPath`, `planLandRoute`, `snapWaypoint`) maakt een lopende
   bouw achter elkaar af, onder dezelfde poort (`mayBuildGraph`, geen lopende tegelstroom, niet in de montage): dezelfde semantiek.
   De laagversies (`_roadVer`, `_buildingVer`) worden bij het **begin** van de bouw vastgelegd: verandert er tijdens de bouw iets, dan
   begint hij opnieuw en is de nieuwe graaf meteen weer verouderd.
-  Bewijs (`node scripts/routegraphbuild_test.mjs --bench`): stap voor stap geeft **dezelfde graaf** als achter elkaar (alle zes CSR's, de drie
+  Bewijs (`node scripts/pathgraphbuild_test.mjs --bench`): stap voor stap geeft **dezelfde graaf** als achter elkaar (alle zes CSR's, de drie
   componentenkaarten, knopen, wegindexen; 3000 wegen op een rooster met gedeelde knopen, eenrichting, bruggen, bus-only en
   doorsteken); op 20.000 wegen 47 ms achter elkaar tegen 116 stappen met een **langste stap van 7,5 ms** (de rest rond 0,3 ms). Op de
   echte stad (115.000 knopen) zijn de stappen groter; de eerste stap bevat ook `orderedRoads()` (raster plus sortering).
@@ -148,11 +148,11 @@ lijst noemt welk veld verschilt, en `programs.page.js` (`own`) welk materiaal he
 
 Is het van wie het spel opende? Nee: alles hier is lokaal per speler (graaf, minikaart, shaders, technische info). Een gast ziet geen
 verschil; de graaf komt uit dezelfde wegen en gebouwen. Beloning of voortgang: geen. Wegvallen of later aansluiten: de graaf volgt de
-eigen tegels. Dekking: `routegraphbuild_test`, `programwatch_test`, `setlights_test`, `laagbudget_test` (pure tests).
+eigen tegels. Dekking: `pathgraphbuild_test`, `programwatch_test`, `setlights_test`, `laagbudget_test` (pure tests).
 
 ## Tests en gates
 
-`routegraphbuild_test` (8), `programwatch_test` (26), `setlights_test` (17), `compiletarget_test` (5), `compileplanner_test` (7),
+`pathgraphbuild_test` (8), `programwatch_test` (26), `setlights_test` (17), `compiletarget_test` (5), `compileplanner_test` (7),
 `startroute_test` (98), `laagbudget_test` (13), `graphgate_test`, `nearestroad_test`, `firstperson_test` (328, `scene3d.js` 3817 regels),
 `gpudiag_test`, `hud_layout_test`, `hud_kleuren_test`, `busui_test`: groen. `node --check` op alle gewijzigde bestanden. De volledige
 suite, de zware audits en een Electron-verhaaltest zijn niet gedraaid (de coördinator doet die bij de release).

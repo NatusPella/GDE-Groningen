@@ -26,7 +26,7 @@ M15 (Midwolda), M09/M10/T1 (Warffum en Usquert), T2 (overstap in Winsum, uitstap
 | M12.3 *Doe bist schier* | Opgenomen regel. Zie [DIALECT-NALEZING.md](../DIALECT-NALEZING.md). |
 | M26.4 *gracht naast de Oude Boteringestraat* | De tekst zegt nu *water langs de weg*. Controleer in het spel of daar water ligt. |
 | T3 treinlengte 35 km, werkelijk ±80 km | Staat in `reisbeats.js`, niet in het script. |
-| *twintig jaar geloofd* (T1) naast *twaalf jaar niks gezegd* (M22.4) | Geen tegenspraak als de treinreis in hun jeugd was. Beide regels zijn opgenomen. |
+| *twintig jaar geloofd* (T1) naast *twaalf jaar niks gezegd* (M22.4) | Sinds 21-11 (canon: ze kennen elkaar uit de studie) vijf jaar geloofd en vijf jaar niks gezegd; de treinreis was een uitje uit hun eerste jaar. Beide regels zijn opnieuw te spreken (zie VERHAALCANON-21-11.md). |
 | Alle puntjes uit het constitution-rapport buiten het verhaalscript (merken in het instellingenmenu, Duitse toeristen, echte festivals) | Niet het verhaal; zie issue met die lijst. |
 
 ## Gebouwd in ronde 2

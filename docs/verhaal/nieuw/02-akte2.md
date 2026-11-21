@@ -83,7 +83,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Gevolg / haak** | Oma stuurt hen naar Geesje in Warffum |
 | **Behouden / nieuw** | intro, 1953-scène BEHOUDEN, lijstje en recept NIEUW |
 
-**Sleutelscène (Oma's kamer):** OMA TRIJNTJE: "Eet je krentjebrij." TAMMO: "Ik ben vierendertig, oma." (BEHOUDEN, niet aangeraakt.) OMA: "1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter." [NIEUW] TESSA: "Terpstra? Van Jelle?" OMA: "Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots." (BEHOUDEN.) TAMMO: "Jelle zegt: bij hem." OMA: "Jelle zegt veel." [NIEUW] Tessa: "We halen de ingrediënten voor Oma's recept bij haar vrienden. Dan kunnen we meedoen, ook als Jelle de voorraad van iedereen opkoopt." [NIEUW]
+**Sleutelscène (Oma's kamer):** OMA TRIJNTJE: "Eet je krentjebrij." TAMMO: "Ik ben vierentwintig, oma." (NIEUW sinds 21-11: de canon heeft hem net afgestudeerd; was vierendertig.) OMA: "1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter." [NIEUW] TESSA: "Terpstra? Van Jelle?" OMA: "Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots." (BEHOUDEN.) TAMMO: "Jelle zegt: bij hem." OMA: "Jelle zegt veel." [NIEUW] Tessa: "We halen de ingrediënten voor Oma's recept bij haar vrienden. Dan kunnen we meedoen, ook als Jelle de voorraad van iedereen opkoopt." [NIEUW]
 
 > **Te beoordelen.** A) Oma geeft het lijstje hier (voorstel). B) Het lijstje komt in stukjes. C) Oma zegt hardop dat Gerda haar vriendin is (raad ik af).
 

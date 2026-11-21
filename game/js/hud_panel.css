@@ -58,19 +58,19 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-special svg { width: 15px; height: 15px; fill: var(--ds-c-ink-geel); flex: none; }
 #hud .hud-special.small { background: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-geel) 35%, transparent); font-size: max(14px, var(--hud-min)); padding: 2px 8px; }
 
-#hud .hud-wanted { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
+#hud .hud-wanted { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+#hud .hud-wanted[hidden] { display: none; }
+#hud .hud-wanted .hw-sterren { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
+/* #1080: het statusje (Ze zoeken je / Weg uit beeld) en de aftelbalk staan in dezelfde kaart als de sterren */
+#hud .hud-wanted .hw-status { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+#hud .hud-wanted .hw-tekst { font: 800 max(13px, 1em) var(--ds-font-zeef-kop, inherit); letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.1; }
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: color-mix(in srgb, var(--ds-c-wit) 30%, transparent); stroke-width: 1.6; stroke-linejoin: round; }
 #hud .hud-wanted svg.on { fill: var(--ds-c-ink-geel); stroke: #7a6610; stroke-width: 1; }
 #hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2;
    animation: hud-star-blink var(--ds-m-max) steps(2, jump-none) 2; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
-#hud .hud-search {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 5px; padding: 8px 12px 9px; border-radius: 8px;
-  background: color-mix(in srgb, var(--ds-c-rood-glas) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-rood-glas) 60%, transparent);
-}
+#hud .hud-search { display: flex; flex-direction: column; align-items: flex-end; }
 #hud .hud-search[hidden] { display: none; }
-/* the red bar and the blinking stars say it; the words stay for screen readers only */
-#hud .hud-search > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #hud .hud-search > i { display: block; width: 200px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ds-c-wit) 15%, transparent); overflow: hidden; }
 #hud .hud-search > i > i { display: block; width: 0; height: 100%; background: var(--ds-c-rood-glas); transition: width var(--dur-bar, 300ms) linear; }
 
@@ -470,7 +470,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
 #cine .cine-skip { font-family: var(--ds-font-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0.3px; }
 #cine .cine-skip .hud-key { margin-right: 0; font-family: var(--ds-font-kop); letter-spacing: 1px; }
-#cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; vertical-align: middle; transform: rotate(-90deg); }
+#cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; transform: rotate(-90deg); }
 #cine .cine-skip-ring circle { fill: none; stroke: color-mix(in srgb, var(--ds-c-creme) 25%, transparent); stroke-width: 3; }
 #cine .cine-skip-ring .fill { stroke: var(--ds-c-licht-groen); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
 #cine .cine-skip.holding { color: var(--ds-c-creme); }
@@ -547,7 +547,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 @media (prefers-reduced-motion: reduce) { #cine .cine-banner.in, #cine .cine-banner.out { animation: none; opacity: 1; } #cine .cine-banner.out { opacity: 0; } #cine .cine-banner.in .cb-bar, #cine .cine-banner.in .cb-title, #cine .cine-banner.in .cb-reason, #cine .cine-banner.in .cb-fact, #cine .cine-banner.in .cb-reward, #cine .cine-banner.in .cb-stats div { animation: none; opacity: 1; transform: none; } }
 /* #cine sits outside #hud, so its small text follows the HUD scale here */
 #cine .cine-kicker, #cine .cine-chip { zoom: var(--ui, 1); }
-#cine .cine-skip { font-size: calc(14px * var(--ui, 1)); }
+#cine .cine-skip { font-size: max(15px, calc(18px * var(--ui, 1))); } /* leesbaar: 15 px vloer, het toetsplaatje staat op de tekstregel (21-11) */
 #cine .cine-sub { font-size: clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))); width: min(86vw, calc(820px * var(--ui, 1))); }
 
 #hud .hud-vehname {
@@ -705,19 +705,18 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 /* het papieren plaatje: elke waarde en kaart van de HUD */
 #hud .hud-clock, #hud .hud-wanted, #hud .hud-moneyrow, #hud .hud-weapon, #hud .hud-gps, #hud .hud-mission,
 #hud .hud-nowplaying, #hud .hud-race, #hud .hud-vehname, #hud .hud-location, #hud .hud-top-left .hud-id,
-#hud .hud-search, #hud .sp-main, #hud .hud-special {
+#hud .sp-main, #hud .hud-special {
   background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); box-shadow: var(--hud-schaduw);
   border-radius: 8px; text-shadow: none; box-sizing: border-box;
 }
 #hud .hud-clock { padding: 3px 12px 2px; }
-#hud .hud-wanted { padding: 4px 8px; width: max-content; margin-left: auto; align-items: center; }
+#hud .hud-wanted { padding: 4px 8px 5px; width: max-content; margin-left: auto; align-items: center; }
 #hud .hud-moneyrow { padding: 3px 12px 2px; align-items: baseline; }
 #hud .hud-weapon { padding: 3px 12px 3px 8px; }
 #hud .hud-top-left .hud-id { padding: 6px 12px 6px 8px; }
 #hud .hud-location { padding: 4px 12px 5px; }
 #hud .sp-main { padding: 4px 14px 6px; }
 #hud .hud-special { margin-right: 6px; box-shadow: none; }
-#hud .hud-search { background: var(--ds-probleem-vlak); border-color: var(--ds-probleem); }
 
 /* tekst op papier: inkt, geen creme of glaslaag */
 #hud .hud-date, #hud .hud-weapon-text, #hud .gps-dist span, #hud .gps-timer span, #hud .hud-obj-dist, #hud .sp-unit,
@@ -818,23 +817,8 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
 #hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }
 
-/* #952: icoon plus getal bij de politie: schild = eenheden in beeld, ster = gezocht (x van 5). Minstens 13 px, papier met inktrand */
-#hud .hud-mm-heat {
-  position: absolute; left: 10px; top: 10px; display: flex; gap: 0; align-items: center; z-index: 2;
-  padding: 2px 7px; background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); border-radius: 10px;
-  font: 800 max(13px, 1em) var(--ds-font-zeef-kop); line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
-}
-#hud .hud-mm-heat[hidden] { display: none; }
-#hud .hud-mm-heat span { display: inline-flex; align-items: center; gap: 3px; max-width: 6em; overflow: hidden; transition: max-width 0.2s ease, opacity 0.2s ease, margin 0.2s ease; }
-#hud .hud-mm-heat .mmh-ster { margin-left: 6px; }
-/* een deel zonder inhoud (0 sterren, of niemand in beeld) schuift weg; de chip past zijn breedte zonder sprong aan (<= 250 ms) */
-#hud .hud-mm-heat span.weg { max-width: 0; opacity: 0; margin-left: 0; }
-html.rustig-drukwerk #hud .hud-mm-heat span, html.reduce-motion #hud .hud-mm-heat span { transition: none; }
-@media (prefers-reduced-motion: reduce) { #hud .hud-mm-heat span { transition: none; } }
-#hud .hud-mm-heat svg { width: 15px; height: 15px; flex: 0 0 15px; fill: var(--ds-c-ink-papier); stroke: var(--hud-inkt); stroke-width: 1.8; stroke-linejoin: round; }
-#hud .hud-mm-heat .mmh-eenh svg { color: var(--ds-c-ink-inkt); }
-#hud .hud-mm-heat.warm .mmh-ster svg { fill: var(--ds-c-ink-roze); }
-#hud .hud-mm-heat.warm .mmh-ster b { color: var(--ds-c-rood-tx); }
+/* #1080: de rand van de minimap is rood tijdens de achtervolging en roze als ze je zoeken (geen sterren of cijfers op de kaart zelf; geen beweging) */
+#hud .hud-minimap-wrap.wanted.chase { box-shadow: 4px 4px 0 var(--ds-c-rood-glas); }
 
 /* Rustig drukwerk: de tokens nullen misdruk, schuinte en raster; hier nog de beweging en de lege ster als omtrek */
 html.rustig-drukwerk #hud .hud-money-delta.visible, html.rustig-drukwerk #hud .hud-mission.pop .hud-obj-text,
@@ -885,7 +869,7 @@ body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 #cine.sub-clue .cine-sub::before { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px * var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
 /* Overslaan: houd de toets ingedrukt; een papieren plaatje met een ring in zomergeel */
 #cine .cine-skip {
-  padding: 5px 12px 5px 8px; font-family: var(--ds-font-zeef-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0; color: var(--ds-c-ink-inkt);
+  padding: 8px 16px 8px 12px; font-family: var(--ds-font-zeef-tekst); font-size: max(15px, calc(18px * var(--ui, 1))); letter-spacing: 0; color: var(--ds-c-ink-inkt);
   background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
 }
 #cine .cine-skip.holding { color: var(--ds-c-ink-inkt); }

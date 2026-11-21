@@ -3,8 +3,10 @@ import { hoofdspeler } from './players.js';
 // bij de speler, uit dienstregeling.js. Het deel zonder wereld is puur (testbaar zonder
 // browser: scripts/stationlife_test.mjs); updateStationLife hangt het aan HUD en geluid.
 import { vertrekBord, bordUitTreinen, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
-import { hasStop, rijenUitRooster, pasVertragingToe } from './treinrooster.js';
-import { sourceState, bronLabel, departureLine } from './treinbron.js';
+import { hasStop, rijenUitRooster, pasVertragingToe } from './trainschedule.js';
+import { sourceState, bronLabel, departureLine } from './trainsource.js';
+import { buildTimeline } from './departuretimeline.js';
+import { createTimeline } from './departuretimelineui.js';
 
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
@@ -46,9 +48,9 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 // tien minuten weg is, is op de spelklok tien uur weg en gaf een bord met willekeurige tijden (#339). Met
 // minder dan BORD_MIN echte treinen vult het rooster het bord aan (dubbelen weggelaten), op volgorde van tijd.
 export const BORD_HORIZON = 90 * 60, BORD_MIN = 4, BORD_N = 5;
-// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null), dienst (treindienst.js bouwDienst) }) volgt het bord de ECHTE dienstregeling
-// van dit station (treinrooster.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop. Elke bordrij is een
-// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (treindienst.js legTimes); een vertrek zonder trein in de wereld staat er niet.
+// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null), dienst (trainservice.js bouwDienst) }) volgt het bord de ECHTE dienstregeling
+// van dit station (trainschedule.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop. Elke bordrij is een
+// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (trainservice.js legTimes); een vertrek zonder trein in de wereld staat er niet.
 // Een station zonder echt rooster (of zonder rij) houdt zijn eigen dienst (hieronder, label 'Rooster (eigen dienst)').
 export function stationView(station, clock, dag, treinen = null, schaal = 60, dienst = null) {
   const nu = ((clock % 24) + 24) % 24 * 3600;
@@ -91,7 +93,7 @@ export function bordCellen(view) {
 }
 
 // De bron van het bord in woorden (#1085): { kort: 'Live' | 'Rooster' | 'Rooster (eigen dienst)', regel, eerste } voor het label en de
-// regels onder het bord. De eerste regel is "Vertrekt over 4 min · 3 min vertraagd". liveStand: treinlive stand(); instelling: liveTreinen.
+// regels onder het bord. De eerste regel is "Vertrekt over 4 min · 3 min vertraagd". liveStand: trainlive stand(); instelling: liveTreinen.
 export function bordBron(view, { instelling = true, liveStand = null, nu = Date.now() } = {}) {
   const stand = sourceState({ instelling, stand: liveStand, nu });
   const label = bronLabel(stand, { eigenDienst: !view.echtRooster });
@@ -136,6 +138,7 @@ export function omroepStap(st, view, tijd) {
 let stations = null;
 let routesSig = '';
 let board = null;
+let timeline = null;  // de tijdlijn in het bord (departuretimelineui.js)
 let shown = false;
 let ost = omroepToestand();
 let lastName = '';
@@ -162,6 +165,7 @@ export function updateStationLife(dt, world, opts) {
     return;
   }
   if (!board) board = createBoard('station'); // #596: het vertrekbord uit de thematabel, geen eigen hex meer
+  if (!timeline && board.root && typeof board.root.querySelector === 'function') timeline = createTimeline(board.root, { before: board.root.querySelector('.mg-flash') });
   const v = cur.view;
   if (v.name !== lastName) { lastName = v.name; ost = omroepToestand(); }
   board.show();
@@ -169,11 +173,11 @@ export function updateStationLife(dt, world, opts) {
   const bron = bordBron(v, { instelling: opts.liveInstelling !== false, liveStand: opts.live ? opts.live.stand() : null });
   board.set({
     row: `<b>${v.name}</b> &middot; ${tijdLabel(v.nu)} <em class="mg-sfeer">${bron.kort}</em>`,
-    cells: bordCellen(v),
-    extra: bron.eerste ? `<span>${bron.eerste}</span>` : '',
+    cells: null, extra: '', // de eerstvolgende treinen staan als tijdlijn onder de kop (#1085)
     flash: v.eerst && v.eerst.vertraging >= 60 ? v.eerst.reden : '',
-    help: v.bord.length ? bron.regel : 'Geen treinen meer vandaag',
+    help: bron.regel, // de lege stand (geen treinen meer vandaag) staat in de tijdlijn zelf
   });
+  if (timeline) timeline.set(buildTimeline(v));
   const msg = omroepStap(ost, v, world.time);
   if (msg) world.addMessage(msg, 5);
 }

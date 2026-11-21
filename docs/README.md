@@ -49,7 +49,11 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [COOP-OVERDRAGEN.md](<COOP-OVERDRAGEN.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-TESTBANK.md](<COOP-TESTBANK.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [CREDITS.md](<CREDITS.md>) | Iedereen die meehielp, op volgorde van bijdrage, met de meetmethode en wat de eigenaar nog moet goedkeuren. |
+| [CUTSCENE-AUDIT-21-11.md](<CUTSCENE-AUDIT-21-11.md>) | Uitkomsten van de statische cutscene-linter (laag 2 van het cutscene-kwaliteitssysteem) op alle 204 cutscenes: aantallen per regel, de elf blokkerende vondsten, de 20 slechtste en wat de verhaal-lead (WP15 regie #1138, WP11 dialoogvorm #1134) moet fixen. |
+| [CUTSCENE-FAALLIJST-21-11.md](<CUTSCENE-FAALLIJST-21-11.md>) | De faallijst van de cutscene-linter: wat bestaande cutscenes nu laat falen (blokkerend per regel en de belangrijke vondsten per cutscene); de release is pas groen als hij leeg of uitgezonderd is. Gemaakt met `node scripts/cutscene_lint.mjs --lijst`. |
 | [CUTSCENE-ANIMATIE-20-11.md](<CUTSCENE-ANIMATIE-20-11.md>) | Werkdocument bij het idee van de eigenaar: audit van de animatie in cutscenes (bibliotheek, opbouw, tellingen per animatie, stilste scènes), het pose-clipsysteem met 47 gebaren en 11 kat-clips, de regiesjablonen, waar het is toegepast en wat niet is gezien (#955, #956). |
+| [CUTSCENE-AUDIT-OPUS-21-11.md](<CUTSCENE-AUDIT-OPUS-21-11.md>) | Kwalitatieve audit van 28 cutscenes (zonder Electron): wat werkt, wat niet, top-10 verbeterpunten, humor-structuur (grappenbank), prioriteitenlijst voor verhaal-epic (#1138, #1134, #1125). Code-lezing door Opus 5.5. |
+| [CUTSCENE-REGIE-21-11.md](<CUTSCENE-REGIE-21-11.md>) | Canon. De regie-bijbel van dit spel: shot-taal, toon, ondertitels, introducties, emotie-camera, continuïteit, open-wereld regels, anti-patronen, 30 toetsbare regels (R-xx), panel-werkwijze voor humor, rol van de eigenaar. Voor makers, reviewers en eigenaar. |
 | [DESIGN-AUDIT-CSS.md](<DESIGN-AUDIT-CSS.md>) | Naslag (#980, fase 1). Telling van wat de acht UI-CSS-bestanden feitelijk gebruiken (kleuren, radii, lettergroottes, ruimte) tegen [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)… |
 | [DESIGN-BEDIENING.md](<DESIGN-BEDIENING.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [DESIGN-COMPONENTEN.md](<DESIGN-COMPONENTEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
@@ -107,7 +111,10 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [KEUZESCHERMEN-21-11.md](<KEUZESCHERMEN-21-11.md>) | Keuzeschermen die de speler onderbreken (#1091). |
 | [SPULLEN-3D-21-11.md](<SPULLEN-3D-21-11.md>) | Spullen in 3D in het pauzemenu (#1086). |
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
+| [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
+| [VERHAAL-ANALYSE-21-11.md](<VERHAAL-ANALYSE-21-11.md>) | Verhaalanalyse: kan een speler met nul context het verhaal volgen? Top-20 problemen, ruggengraat per akte, introductie- en dialoogregels, tussenscènes, recap-kaart, ontgrendeling per akte en uitvoeringsplan.
+| [VOETBAL-CARRIERE-21-11.md](<VOETBAL-CARRIERE-21-11.md>) | Ontwerp van de voetbalcarrière (epic #1106): boog, seizoenen, ontwikkeling, manager, economie, clubbezit, UI, Samen spelen en stappenplan. |
 | [BOOT-SPAWN-21-11.md](<BOOT-SPAWN-21-11.md>) | Boten alleen waar dat logisch is: regel, audit en meting (boot-spawn). |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
 | [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |
@@ -186,6 +193,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SPEELTEST.md](<SPEELTEST.md>) | Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten; zonder save begint het verhaal m… |
 | [STEAM-CHECKLIST.md](<STEAM-CHECKLIST.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [STEAM-KLAAR.md](<STEAM-KLAAR.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [VERHAALCANON-21-11.md](<VERHAALCANON-21-11.md>) | Canonblad en audit: Tammo en Tessa zijn net afgestudeerd (24), kennen elkaar uit de studie; wat er in docs en speltekst veranderde en welke 4 gesproken regels opnieuw moeten. |
 | [TESSA-CIJFERS.md](<TESSA-CIJFERS.md>) | Gecontroleerd op 17 oktober 2026 met publieke CBS-pagina's. Het feitenblok |
 | [TAAL-VAN-DOCUMENTATIE.md](<TAAL-VAN-DOCUMENTATIE.md>) | Besluit voor de eigenaar: Nederlands of Engels in de docs, met de meting en twee opties. |
 | [UITLEG-MET-ICONEN.md](<UITLEG-MET-ICONEN.md>) | De regelwidget: uitleg met iconen en animaties in plaats van tekst, naar het voorbeeld van de eierrit, en de lijst van plekken waar de speler nu iets moet raden. |

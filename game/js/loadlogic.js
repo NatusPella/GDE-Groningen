@@ -118,7 +118,6 @@ export function stepDurations(entries, endMs) {
   const total = out.reduce((t, o) => t + o.ms, 0) || 1;
   return out.map((o) => ({ ...o, aandeel: o.ms / total }));
 }
-export const bootStepText = (step, total) => `Stap ${step.nr} van ${total}`;
 
 const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
 export const tipText = (t) => firstSentence(String(t).replace(/^Tip: /, '')).replace(/^./, (c) => c.toUpperCase());

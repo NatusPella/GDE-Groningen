@@ -10,7 +10,7 @@ import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerB
 import { glowMaterial, headlightGeometry } from './countryglow.js';
 import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL, makeTwoWheeler, attachToNearestRoad } from './vehicle.js';
 import { isSpawnHidden } from './pedestrians.js';
-import { isBoatSpotValid } from './vehicle/bootplekken.js';
+import { isBoatSpotValid } from './vehicle/boatspots.js';
 
 // Life in the Ommelanden: a few slow road users on the polder roads (a
 // tractor, a cyclist, the odd car), boats puttering along the maaren, and
@@ -594,7 +594,7 @@ function spawnBoat(px, py, dist, map = null) {
   const [x, y] = boatPos(b);
   // (the maaren are the polder grid's: not in the blocks the tiles cover, where their water is)
   if (!openLand(x, y) || provinceBlock(Math.floor(x / BLOCK), Math.floor(y / BLOCK)) || edgeDistance(x, y) < 30 || Math.hypot(x - px, y - py) < 120) return;
-  // een maar is een polderslootje van 7 m: daar vaart geen boot, alleen op water waar een boot logisch is (bootplekken.js)
+  // een maar is een polderslootje van 7 m: daar vaart geen boot, alleen op water waar een boot logisch is (boatspots.js)
   if (map && !isBoatSpotValid(map, x, y, 'kano')) return;
   b.g = new THREE.Mesh(cachedGeo('boat' + b.kind, () => boatGeometry(b.kind)), MAT);
   b.g.castShadow = true;

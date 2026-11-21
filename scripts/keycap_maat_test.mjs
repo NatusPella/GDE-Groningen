@@ -60,7 +60,7 @@ const ink = (set, name) => fonts[set].glyph(INPUT_GLYPHS[set][name]);
 for (const [set, names] of Object.entries(SAMPLES)) {
   for (const nm of names) {
     const g = ink(set, nm);
-    ok(g && g.y0 === 0, `${set}/${nm}: de inkt staat op de basislijn (y0 = 0), dus de daling --ds-kc-drop is font-onafhankelijk`, JSON.stringify(g));
+    ok(g && g.y0 === 0, `${set}/${nm}: de inkt staat op de basislijn (y0 = 0), dus de daling uit --ds-kc-mid is font-onafhankelijk`, JSON.stringify(g));
     ok(g && Math.abs(g.h - 983 / 2048) < 0.002 && Math.abs(g.adv - 0.5) < 0.001, `${set}/${nm}: inkthoogte 983/2048 en vooruitgang 0.5 em`, JSON.stringify(g));
   }
 }
@@ -71,12 +71,13 @@ const KEY_H = 983 / 2048;
 // ---------- 2. tokens en componentregels ----------
 const tokensCss = rd('game/js/ds-tokens.css');
 const tok = (name) => { const m = new RegExp(`--${name}:\\s*([^;]+);`).exec(tokensCss.slice(tokensCss.lastIndexOf('Toetsplaatjes als inline zetwerk'))); return m ? m[1].trim() : null; };
-const T = { cap: parseFloat(tok('ds-kc-cap')), ink: parseFloat(tok('ds-kc-ink')), floor: parseFloat(tok('ds-kc-floor')), drop: parseFloat(tok('ds-kc-drop')), letter: parseFloat(tok('ds-kc-letter')), letterMin: parseFloat(tok('ds-kc-letter-min')), lift: parseFloat(tok('ds-kc-lift')), gap: parseFloat(tok('ds-kc-gap')), opt: parseFloat(tok('ds-kc-opt')) };
+const T = { cap: parseFloat(tok('ds-kc-cap')), ink: parseFloat(tok('ds-kc-ink')), floor: parseFloat(tok('ds-kc-floor')), mid: parseFloat(tok('ds-kc-mid')), letter: parseFloat(tok('ds-kc-letter')), letterMin: parseFloat(tok('ds-kc-letter-min')), lift: parseFloat(tok('ds-kc-lift')), gap: parseFloat(tok('ds-kc-gap')), opt: parseFloat(tok('ds-kc-opt')) };
 for (const [k, v] of Object.entries(T)) ok(Number.isFinite(v), `token --ds-kc-${k} staat in ds-tokens.css`, String(v));
 ok(Math.abs(T.ink - KEY_H) < 0.005, `--ds-kc-ink (${T.ink}) volgt de fontinkt (${KEY_H.toFixed(3)})`);
 ok(T.cap <= 1.25, `in lopende tekst is het plaatje hoogstens 1.25 em (nu ${T.cap})`);
 ok(T.floor >= 18 && T.letterMin >= 13, `vloeren: plaatje minstens 18 px (${T.floor}), letter minstens 13 px (${T.letterMin})`);
 ok(T.letter * 16 >= 12 && T.cap / T.letter > 1, 'tekstplaatje: letter kleiner dan het plaatje');
+T.drop = T.ink * (T.mid / T.cap - 0.5); // de daling uit de CSS-formule, in glyph-em
 const TEXT_MID = 0.30; // halve letterhoogte van gemengde tekst (x-hoogte 0.5, kapitaal 0.7), in tekst-em boven de basislijn
 const centre = (cap) => (cap / T.ink) * (T.drop + T.ink / 2); // midden van het glyph boven de basislijn, in tekst-em
 ok(Math.abs(centre(T.cap) - TEXT_MID) < 0.04, `het glyph staat op de halve letterhoogte van de regel (${centre(T.cap).toFixed(3)} em, doel ${TEXT_MID})`);
@@ -90,7 +91,7 @@ ok(glyphRule, 'ds-keycap.css heeft de glyphregel .pad-g.pad-kn');
 if (glyphRule) {
   ok(/^inline\b/.test(decl(glyphRule, 'display')), 'glyph: display inline (staat in de regel, geen blok)');
   ok(/^0\b/.test(decl(glyphRule, 'line-height')), 'glyph: line-height 0, de regel wordt er niet hoger van');
-  ok(/var\(--ds-kc-drop\)/.test(decl(glyphRule, 'vertical-align')) && /1em/.test(decl(glyphRule, 'vertical-align')), 'glyph: vertical-align komt uit --ds-kc-drop (in glyph-em)');
+  ok(/var\(--ds-kc-mid\)/.test(decl(glyphRule, 'vertical-align')) && /1em/.test(decl(glyphRule, 'vertical-align')), 'glyph: vertical-align komt uit --ds-kc-mid (in glyph-em)');
   const fs = decl(glyphRule, 'font-size');
   ok(/var\(--ds-kc-cap\)/.test(fs) && /var\(--ds-kc-ink\)/.test(fs) && /var\(--ds-kc-floor\)/.test(fs) && /1em/.test(fs), 'glyph: font-size = cap / ink in tekst-em, met de vloer uit --ds-kc-floor', fs);
   ok(/!important/.test(decl(glyphRule, 'font-size')), 'glyph: font-size !important (contextregels als "#hud .hc-text span" raken ook de plaatjes)');
@@ -154,7 +155,7 @@ const W = (ch) => (/[iljtf.,:;'!|()\[\]/]/.test(ch) ? 0.3 : /[mwMW]/.test(ch) ? 
 const textW = (s) => [...s].reduce((a, c) => a + W(c), 0);
 const keysAdv = (cls, set) => (/pad-mouse/.test(cls) ? 778 / 2048 : 0.5);
 function scale(ctx, cls) { // glyph-schaal in tekst-em (zoals de font-size-regel)
-  const opt = /pad-mouse/.test(cls) ? 1.09 : T.opt;
+  const opt = T.opt;
   return Math.max((ctx.cap / T.ink) * opt, (ctx.floor / ctx.fs / T.ink) * opt);
 }
 // HTML -> lijst van tokens: { t:'tekst', s } | { t:'box', w, label, kind } | { t:'in', nowrap } | { t:'uit' }
@@ -336,6 +337,51 @@ const realSkip = scanSkipHints();
 for (const x of realSkip) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
 ok(realSkip.length === 0, `overslaan-hints (cine, heist, verhaal, trailer) zijn lopende tekst: geen flex, align-items of vertical-align (${realSkip.length})`);
 ok(real.length === 0, `de game-CSS heeft geen vaste px-maat voor een toetsplaatje (${real.length})`);
+
+// ---------- 6. inkthoogte per glyph, vaste fontmetrics, flexrijen op de basislijn (#1075, overslaan-hint 21-11) ----------
+{
+  const ink = await import('./input_glyph_ink.mjs');
+  const uit = ink.meetUit();
+  const lf = (x) => x.replace(/\r\n/g, '\n');
+  ok(lf(rd('game/js/inputglyphs_ink.js')) === ink.jsTekst(uit), 'inputglyphs_ink.js klopt met de fonts (node scripts/input_glyph_ink.mjs)');
+  ok(lf(rd('game/js/ds-keycap.css')) === ink.cssMet(lf(rd('game/js/ds-keycap.css')), uit), 'het ink-blok in ds-keycap.css klopt met de fonts');
+  ok(uit.keys[(INPUT_GLYPHS.keys.keyboard_space_outline).toString(16)] === 573, 'Spatie is 573/2048 hoog: een lage toets krijgt data-ink');
+  const { glyphHtml } = await import('../game/js/keycap.js');
+  ok(/data-ink="573"/.test(glyphHtml('SPACE')) && !/data-ink/.test(glyphHtml('W')), 'glyphHtml: Spatie heeft data-ink, W (standaardhoogte) niet');
+  ok(/data-ink="901"/.test(glyphHtml('LMB')), 'de muisglyph heeft data-ink (901): even hoge inkt als een toets');
+  const fontsCss = rd('game/fonts/fonts.css');
+  for (const fam of ['GDE Toetsen', 'GDE Knoppen A', 'GDE Knoppen B', 'GDE Knoppen Deck', 'GDE Knoppen Algemeen', 'GDE Aanraking']) {
+    const regel = fontsCss.split('\n').find((l) => l.includes(`font-family: '${fam}'`)) || '';
+    ok(/ascent-override:\s*10%/.test(regel) && /descent-override:\s*0%/.test(regel) && /line-gap-override:\s*0%/.test(regel), `${fam}: vaste fontmetrics (ascent 10%, descent 0): een glyph met line-height 0 maakt de regel op geen enkel platform hoger`);
+  }
+  ok(/align-items:\s*baseline\s*!important/.test(kcCss) && /\.ctx-row/.test(kcCss), 'hintrijen met flex staan op de basislijn (ds-keycap.css)');
+  ok(/\.cine-skip-ring[^{]*\{[^}]*vertical-align:\s*calc\(var\(--ds-kc-mid\)/.test(kcCss), 'de ring van een overslaan-hint staat op --ds-kc-mid, zoals de glyph');
+}
+
+// ---------- 7. echte meting in headless Chrome (scripts/ui/keycap_meet.mjs; geen Electron) ----------
+{
+  const { meet, TOL_PX, KEYS } = await import('./ui/keycap_meet.mjs');
+  const png = process.argv.includes('--png') ? ROOT + 'docs/beeld-21-11/keycap-skip/na.png' : undefined;
+  const res = await meet({ png });
+  if (!res) console.log('  (keycap_meet: geen Chrome gevonden, echte meting overgeslagen)');
+  else {
+    const g = res.rijen.filter((x) => x.soort === 'glyph'), ringen = res.rijen.filter((x) => x.soort === 'ring');
+    ok(g.length >= KEYS.length * 10, `de meting ziet de glyphs van alle hintvarianten (${g.length})`);
+    const namen = new Set(g.map((x) => x.naam));
+    for (const v of ['cine-skip', 'heist-skipchip', 'hud-hold', 'prompts', 'hintkaart', 'uitleg', 'knop met glyph', 'launchchoice-pil', 'menu-voetbalk', 'ondertitel']) ok([...namen].some((x) => x.startsWith(v)), `de meting dekt de variant ${v}`);
+    for (const x of g) {
+      ok(x.gfont, `${x.naam} ${x.k}: de glyph staat in het echte glyphfont`);
+      ok(Math.abs(x.dy) <= TOL_PX + 0.5, `${x.naam} ${x.k}: het midden van de glyph ligt binnen ${TOL_PX + 0.5} px van het midden van de tekst (nu ${x.dy.toFixed(1)} px bij ${x.tekstPx} px tekst)`);
+      ok(x.inkH >= 19.5, `${x.naam} ${x.k}: de inkt is minstens 20 px hoog, het label leesbaar (nu ${x.inkH.toFixed(1)} px)`);
+      ok(x.inkH <= x.tekstPx * 2.2, `${x.naam} ${x.k}: de inkt blijft binnen 2,2 keer de tekst (nu ${(x.inkH / x.tekstPx).toFixed(2)})`);
+    }
+    for (const x of g.filter((y) => y.k === 'SPACE')) {
+      const w = g.find((y) => y.naam === x.naam && y.k === 'W');
+      if (w) ok(Math.abs(x.inkH - w.inkH) <= 1.5, `${x.naam}: Spatie en W zijn even hoog (${x.inkH.toFixed(1)} tegen ${w.inkH.toFixed(1)} px)`);
+    }
+    for (const x of ringen.filter((y) => /skip/.test(y.naam))) ok(Math.abs(x.dy) <= TOL_PX, `${x.naam}: de ring staat op de tekstregel (nu ${x.dy.toFixed(1)} px)`);
+  }
+}
 
 if (TOON) { console.log(VOORB.join('\n\n')); console.log('\n' + STRUT_NOTE.join('\n')); }
 console.log(fails ? `keycap_maat_test: ${fails} FAIL` : `keycap_maat_test: ok (${n} controles)`);

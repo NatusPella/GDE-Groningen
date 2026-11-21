@@ -8,8 +8,8 @@ import { keyTextHtml } from './keycap.js';
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
 import { activityTodoItems } from './activities.js';
-import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
-import { PARTS, CLUES, WHY, partName } from './storyarc.js';
+import { getStoryView, getStorySteps, requestCredits } from './story.js';
+import { PARTS, WHY, partName } from './storyarc.js';
 import { getAchievementView, getAchievementSummary, getSaveSet, EIERBAL_TOTAL, MEDALS } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
@@ -48,7 +48,7 @@ const bewaarFilter = () => {
   try { localStorage.setItem(FILTER_KEY, JSON.stringify({ kind: ui.kind, near: ui.near })); } catch (e) { /* privémodus */ }
 };
 const startFilter = leesFilter();
-const ui = { kind: startFilter.kind, near: startFilter.near, sel: null, open: null, more: new Set(), folds: new Set(['clues', 'quick', 'voortgang']) };
+const ui = { kind: startFilter.kind, near: startFilter.near, sel: null, open: null, more: new Set(), folds: new Set(['quick', 'voortgang']) };
 const bars = new Map();
 const nums = new Map();
 
@@ -401,8 +401,6 @@ function nextHtml(cur) {
 // zijn maar gewoon twee hoofdstukken na elkaar.
 function storyHtml() {
   const steps = getStorySteps();
-  const jr = getStoryJournal();
-  const found = new Set(jr.found.map((c) => c.title));
   const cur = volgendeStap(steps);
   const curPart = cur ? cur.part : null;
   if (!ui.open) ui.open = new Set([curPart || PART_IDS[PART_IDS.length - 1]]);
@@ -422,8 +420,6 @@ function storyHtml() {
     const af = list.length > 0 && done === list.length;
     const nu = part === curPart;
     const open = ui.open.has(part) && openbaar;
-    const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
-    const known = clues.filter((c) => found.has(c.title));
     const count = `<span class="v"><span data-num="part-${part}" data-to="${done}">${done}</span>/${list.length}</span>`;
     const stand = af ? `Afgerond · ${done} van ${list.length}` : nu ? `${done} van ${list.length} · nu` : openbaar ? `${done} van ${list.length}` : wacht ? 'Wacht op het einde hiervoor' : 'Op slot';
     const ico = af ? svg(ICON.check) : !openbaar ? svg(ICON.lock) : svg(ICON.chev);
@@ -449,13 +445,10 @@ function storyHtml() {
     }).join('');
     const more = rest > 0 ? `<button type="button" class="m-more" data-part-more="${part}">Nog ${rest} ${rest === 1 ? 'stap' : 'stappen'} tot ${esc(list[list.length - 1].title)}</button>` : '';
     const why = nu && WHY[part] ? `<p class="m-note td-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '';
-    const clueInner = known.map((c) => `<p class="m-note"><b>${c.kind === 'hart' ? '&#9829; ' : ''}${esc(c.title)}</b> ${esc(c.text)}</p>`).join('') +
-      (known.length < clues.length ? `<p class="m-note">Nog ${clues.length - known.length} te ontdekken. Speel verder om ze te vinden.</p>` : '');
-    const clueHtml = clues.length ? disc('clues', 'Wat weten we?', known.length ? `${known.length} ${known.length === 1 ? 'aanwijzing' : 'aanwijzingen'}` : 'Nog niets gevonden', clueInner) : '';
     return `<section class="td-chapter td-chapter-open${nu ? ' td-here' : ''}${af ? ' td-done' : ''}">` +
       `<button type="button" class="m-gh m-ghbtn td-chapter-head" data-part-toggle="${part}" aria-expanded="true"><span class="cur">${esc(naam)}</span><span>${esc(stand)}</span></button>` +
       `<div class="m-bar td-pbar on"><i data-bar="part-${part}" data-w="${list.length ? Math.round((done / list.length) * 100) : 0}"></i></div>` +
-      `${body}${more}${why}${clueHtml}</section>`;
+      `${body}${more}${why}</section>`;
   }).join('');
 }
 
@@ -667,13 +660,12 @@ export function todoSummary(world) {
   const steps = getStorySteps().filter((s) => s.available);
   const sDone = steps.filter((s) => s.done).length;
   const ms = items.filter((it) => it.group === 'missies');
-  const jr = getStoryJournal();
   const end = getStoryView().ending;
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
     verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length),
     subTodo: `${items.filter(isActiviteit).length} dingen in en om Grunn · ${telDichtbij(items.filter(isActiviteit))} dichtbij · Veroverd staat in de rail`,
-    sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
+    sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies${toEnd}`,
   };
 }
 

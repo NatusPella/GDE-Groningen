@@ -62,7 +62,7 @@ const TODO_RE = /(?:\/\/|\/\*|^\s*\*|#|<!--)\s*(?:TODO|FIXME|HACK|XXX)\b/;
 // Goedgekeurde openbare leesopvragen (AGENTS.md constitutie 4: alleen OPHALEN, zonder spelergegevens, met uitzetter en terugval).
 // Een bestand staat hier alleen met zijn host en de reden; een URL op een andere host, of een fetch-aanroep, blijft blokkerend.
 export const NETWERK_GOEDGEKEURD = {
-  'game/js/livetreinen.js': { host: 'gtfs.ovapi.nl', reden: 'live treinvertragingen (#1085), besluit eigenaar 21-11, zie docs/TREINEN-LIVE-21-11.md en docs/LICENTIES.md; uitzetter liveTreinen' },
+  'game/js/livetrains.js': { host: 'gtfs.ovapi.nl', reden: 'live treinvertragingen (#1085), besluit eigenaar 21-11, zie docs/TREINEN-LIVE-21-11.md en docs/LICENTIES.md; uitzetter liveTreinen' },
 };
 // Lokaal lezen van wereldbestanden (zelfde herkomst, geen webadres, geen spelergegevens): een fetch zonder URL is geen externe verbinding.
 export const NETWERK_LOKAAL = {

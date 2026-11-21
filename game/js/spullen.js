@@ -18,7 +18,6 @@ import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
 import { fjordUpgradeOffers } from './pg_foodtruck.js';
 import { getHomeForRender } from './home.js';
 import { setUserWaypoint } from './routing.js';
-import { getStoryJournal } from './story.js';
 import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getLedger, summary } from './finance.js';
@@ -269,11 +268,6 @@ function collect(w) {
   out.push({ key: 'k:stempels', cat: 'kaart', viewer: cardSpec('stempels'), icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`,
     desc: 'Elke aankoop bij Krant & Kauwgom levert een stempel. Vol is inleveren voor iets leuks.',
     how: 'Krant & Kauwgom', rows: [['Stand', nogStempels ? `nog ${nogStempels} ${nogStempels === 1 ? 'stempel' : 'stempels'}` : 'vol, inleveren maar']] });
-  let jr = null;
-  try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
-  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', viewer: cardSpec('aanwijzingen'), icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`,
-    desc: 'Alles wat je onderweg hoorde en zag over het verhaal. De volledige tekst staat bij Verhaal.', how: 'Verhaal',
-    link: ['verhaal', 'Naar Verhaal'] });
   const eieren = getSaveSet('eierballen').size;
   out.push({ key: 'k:eieren', cat: 'kaart', viewer: cardSpec('eieren'), icon: 'kaart', title: 'Eierballen', sub: `${eieren} van ${EIERBAL_TOTAL} gevonden`,
     desc: 'Verstopt bij de bezienswaardigheden van de provincie. Zoeken maar.',

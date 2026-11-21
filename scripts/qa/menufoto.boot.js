@@ -4,7 +4,7 @@
   let n = 0;
   const iv = setInterval(() => {
     const el = document.getElementById('loading');
-    const info = { n, stap: el ? ((el.querySelector('.ld-step') || {}).textContent || '') : '', status: el ? ((el.querySelector('.ld-status') || {}).textContent || '').slice(0, 80) : '', balk: el && el.querySelector('.ld-fill') ? el.querySelector('.ld-fill').style.transform : '' };
+    const info = { n, stap: el ? ((el.querySelector('.ld-bar') || {}).getAttribute?.('aria-valuetext') || '') : '', status: el ? ((el.querySelector('.ld-status') || {}).textContent || '').slice(0, 80) : '', balk: el && el.querySelector('.ld-fill') ? el.querySelector('.ld-fill').style.transform : '' };
     console.log('[bootinfo] ' + JSON.stringify(info));
     console.log('[bootcap] ' + String(n).padStart(2, '0'));
     n++;

@@ -171,7 +171,7 @@ ok(/data-goto-sub="settings:besturing"/.test(pm.slice(pm.indexOf('function subta
 // Te doen: losse activiteiten; Verhaal: de opdrachten
 // Te doen: losse activiteiten in één lijst, met Dichtbij als filter (#607, was een eigen weergave)
 ok(/data-todo-near/.test(read('game/js/todoui.js')) && /setTodoFilter/.test(pm) && !/data-sub="dichtbij"/.test(pm) && !/data-todo-sort/.test(pm), 'Activiteiten heeft één lijst met een Dichtbij-filter in plaats van twee weergaven');
-ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']]"),'Verhaal heeft Opdrachten, Personages en Aanwijzingen; Veroverd staat sinds #676 in de rail');
+ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages']]"),'Verhaal heeft Opdrachten en Personages (Aanwijzingen is weg sinds 21-11); Veroverd staat sinds #676 in de rail');
 ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoStory\(/.test(pm) && /export function renderTodoStory/.test(read('game/js/todoui.js')), 'de verhaalopdrachten staan onder Verhaal, met dezelfde lijst en details');
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
@@ -255,7 +255,7 @@ ok(sp.includes('LEEG[deel]') && sp.includes('svg(it.icon)') && sp.includes('clas
 const ac = read('game/js/achievements.js');
 ok(ac.includes("id: 'kaart_alle'") && ac.includes("stat: 'gebied_provincie'") && read('game/js/achievementtracker.js').includes('syncGebiedStats') && read('game/js/gebieden.js').includes('function kaartVerkend'), 'Prestaties: de hele kaart verkend en de gebiedenvoortgang tellen mee');
 ok(read('game/js/player.js').includes('Even uitpuffen'), 'Shift zonder sprint zegt waarom');
-ok(vu.includes('vh-gk') && vu.includes('function partOrder('), 'Aanwijzingen: per opdracht gegroepeerd, nieuwste bovenaan');
+ok(!vu.includes('function cluesHtml(') && !pm.includes('data-sub="aanwijzingen"'), 'de Aanwijzingen-tab is weg (21-11: hints en clues voegden niets toe)');
 ok(pm.includes("setN('spel', coopN ? String(coopN) : ''") && read('game/js/coopspelers.js').includes('rijen.sort((a, b) => (a.jij'), 'de Spel-teller telt jezelf mee (de lijst begint met jou)');
 
 // #445: de kaart, waypoints en reizen
@@ -327,7 +327,7 @@ const ss = read('game/js/startscreen.js');
 ok(!/act: 'news'/.test(ss) && !/openNews/.test(ss), 'het titelscherm heeft geen tweede "Wat is er nieuw" meer (#601)');
 // Overzicht: "Snel instellen" is één gevouwen blok, geen rij instelschakelaars boven de kaart
 const todoSrc = read('game/js/todoui.js');
-ok(/folds: new Set\(\['clues', 'quick', 'voortgang'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
+ok(/folds: new Set\(\['quick', 'voortgang'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
   'Overzicht toont "Snel instellen" als één gevouwen blok (#601)');
 ok(/export function foldNote/.test(todoSrc) && /foldNote\(btn\.dataset\.fold, on\)/.test(pm), 'de vouwen van Over en Overzicht onthouden hun stand');
 // #965: de grote hero-kop van Spel > Overzicht schoof onder de tabbalk en werd daar

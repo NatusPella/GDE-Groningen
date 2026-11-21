@@ -1559,7 +1559,7 @@ function stingDuckMul(dt) {
   return 1 - 0.45 * stingDuck.level;
 }
 
-// De eindkaart met impact (bigmoment.js, eindkaartimpact.js): een whoosh bij het binnenkomen, een zware inslag, oplopende
+// De eindkaart met impact (bigmoment.js, endcardimpact.js): een whoosh bij het binnenkomen, een zware inslag, oplopende
 // tikjes bij de optellende beloning, een munt aan het eind, een klein sterrengeluid en een korte fanfare-stoot bij de glans.
 // Procedureel op de sting- en ui-bus (dus onder Effecten en de mute-knop), geen bestanden. Alleen voor jezelf: de kaart is
 // lokaal per speler. Bewust zonder melodie: de gewone missiesting speelt al op "geklaard!".

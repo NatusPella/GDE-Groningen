@@ -1,0 +1,4 @@
+{
+  "toelichting": "Gedocumenteerde uitzonderingen op de cutscene-regels (scripts/cutscene_lint.mjs, regie-bijbel docs/CUTSCENE-REGIE-21-11.md). De regels gelden voor ALLE cutscenes, ook de bestaande (eigenaar-besluit 21-11); er is geen stille baseline. Een regel die bij een bestaande cutscene bewust niet geldt, staat hier met een reden van minstens 20 tekens: { \"cutscene\": \"<id>\", \"regel\": \"CS-...\", \"regelNr\": <optioneel, regel in de scène>, \"reden\": \"waarom dit hier bewust zo is\", \"akkoord\": \"wie heeft dit goedgekeurd\" }. Een uitzondering die geen vondst meer dekt, wordt als fout gemeld: verwijder hem dan. Op 21-11 staat de lijst leeg: de huidige blokkerende vondsten moeten worden opgelost (WP15 regie #1138, WP11 dialoogvorm #1134), niet uitgezonderd.",
+  "uitzonderingen": []
+}

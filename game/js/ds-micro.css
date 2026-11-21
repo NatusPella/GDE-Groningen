@@ -165,7 +165,7 @@
 @keyframes ds-m-leven { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 /* ===== Hoogtepunten (.ds-moment-*): staffel van --ds-moment-stap, onderdeel --ds-moment-duur, geheel --ds-moment-max ===== */
-/* Zet --ds-moment-n (het staffelgetal uit het plan van achievementunlock.js of eindkaartimpact.js) op elk onderdeel. */
+/* Zet --ds-moment-n (het staffelgetal uit het plan van achievementunlock.js of endcardimpact.js) op elk onderdeel. */
 .ds-moment-stempel { animation: ds-moment-slag var(--ds-m-lang) var(--ds-m-stempel) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
 .ds-moment-binnen { animation: ds-moment-in var(--ds-m-lang) var(--ds-m-uit) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
 .ds-moment-ploft { animation: ds-moment-pof var(--ds-moment-duur) var(--ds-m-stempel) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }

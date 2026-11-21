@@ -100,6 +100,8 @@ export const BASE_KEYS = {
   // de voorkeur voor de duur van een voetbalwedstrijd (kort of normaal; voetbal.js, #981): per apparaat, nooit in een savegame
   voetbal: 'gde-voetbal-v1',
   terugkeer: 'gde-terugkeer-v1',
+  // the recap card 'Waar waren we?' after Doorgaan (recapkaartrun.js): the last step it was shown for and when; per device, never part of a savegame
+  recap: 'gde-recap-v1',
   // what this player did per wijk, plaats and streek (gebieden.js, #414): new, no legacy name, never part of a savegame
   gebieden: 'gde-gebieden-v1',
   // what this player has discovered of the province (verkenpunten.js/explorationlive.js, #825): per player,

@@ -37,7 +37,7 @@ Staat op GitHub (20 okt): beschrijving gelijk aan de tekst hierboven, topics `br
 
 **Ondertitel:** De Grootste Diefstal Ever, in de straten van Groningen.
 
-**Intro:** Twee Stadjers zonder geld willen de Gouden Eierbal stelen voor een
+**Intro:** Twee net afgestudeerden zonder werk of geld willen de Gouden Eierbal stelen voor een
 frietwagen. Rijd door de echte straten van Groningen, jat auto's, wip op de kermis,
 kruip de kroegen in en ontmoet een Fries met een plan. Het is altijd zomer. Woist ja wel.
 

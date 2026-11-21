@@ -97,7 +97,7 @@ export function compactBoard(width, height) {
 // komen uit de ene sfeertabel; een bord zonder sfeer houdt de neutrale balk.
 import { sfeerVan } from './activiteitensfeer.js';
 
-const CSS = `
+export const CSS = `
 #hud .mg-board[hidden] { display: none; }
 #hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 310px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: var(--ds-zeef-tx); text-shadow: none; pointer-events: none; z-index: 4; font-family: var(--ds-font-zeef-tekst);
   background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-top: var(--ds-s-2) solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }

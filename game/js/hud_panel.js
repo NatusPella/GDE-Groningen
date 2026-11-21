@@ -1,7 +1,7 @@
 import { glyphHtml } from './keycap.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
-import { wantedPhase } from './wantedstate.js';
+import { wantedPhase, wantedStatus, wantedAnnounce } from './wantedstate.js';
 import { levelOf, zoekBalkVulling } from './wantedlevels.js';
 import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { tikGetal } from './dsmicro.js'; // DS3: het geldgetal tikt even bij geld binnen (ds-micro.css, .ds-m-tik)
@@ -55,20 +55,19 @@ import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
-import { districtAt } from './wijkat.js';
+import { districtAt } from './districtat.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
-import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1079: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
-import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
+import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1141: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
-import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, NAV_ROL, GLYPH } from './navdoel.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, NAV_ROL, GLYPH } from './navtarget.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -102,6 +101,7 @@ import { bindMinimapOpen } from './minimaptap.js'; // #985
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
+import { getViewAnchor, easeAnchor, mapUpRotation } from './viewanchor.js'; // wat als jij telt: duif, heli, trein, voertuig of figuur (#1141)
 import { maakWidget, zetAankondiger } from './regelwidget.js'; // #987: regel als icoon en meter (eierrit)
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
@@ -115,6 +115,7 @@ let mmScale = 1.45;
 let mmSkip = 0, mmDt = 0;
 let mmMode = 'lopen';
 let mmRot = null;
+const mmEase = { heading: null, kind: null, t: 0 }; // zachte richting van de driehoek bij in- en uitstappen (viewanchor.js)
 
 // Genre convention: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
@@ -184,8 +185,7 @@ export function initHud(world) {
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
-    '<div class="hud-wanted" role="img"></div>' +
-    '<div class="hud-search" hidden><span>Uit zicht</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
+    '<div class="hud-wanted" role="img" hidden><div class="hw-sterren"></div><div class="hw-status"><b class="hw-tekst"></b><div class="hud-search" hidden><i role="img" aria-label="Zoekgebied"><i></i></i></div></div></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money ds-m-tik"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
@@ -261,14 +261,6 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
-  // #952: icoon plus getal bij de politie (schild = eenheden in beeld, ster = gezochtniveau van 5); verborgen zonder politie
-  const mmHeat = document.createElement('div');
-  mmHeat.className = 'hud-mm-heat';
-  mmHeat.hidden = true;
-  mmHeat.setAttribute('role', 'img');
-  mmHeat.innerHTML = `<span class="mmh-eenh">${icoon('schild')}<b class="mmh-n"></b></span>`
-    + `<span class="mmh-ster">${STAR}<b class="mmh-w"></b></span>`;
-  mmWrap.appendChild(mmHeat);
   root.appendChild(mmWrap);
   // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
@@ -335,6 +327,8 @@ export function initHud(world) {
     mute: topLeft.querySelector('.hud-mute'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
+    wantedStars: topRight.querySelector('.hw-sterren'),
+    wantedText: topRight.querySelector('.hw-tekst'),
     search: topRight.querySelector('.hud-search'),
     searchBar: topRight.querySelector('.hud-search i i'),
     clock: topRight.querySelector('.hud-clock'),
@@ -386,11 +380,6 @@ export function initHud(world) {
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
     mmWrap,
-    mmHeat,
-    mmHeatN: mmHeat.querySelector('.mmh-n'),
-    mmHeatW: mmHeat.querySelector('.mmh-w'),
-    mmHeatEenh: mmHeat.querySelector('.mmh-eenh'),
-    mmHeatSter: mmHeat.querySelector('.mmh-ster'),
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
@@ -411,7 +400,7 @@ export function initHud(world) {
   watchInput();
 }
 
-// #1079 (eigenaar, 21-11): de locatiekaart (straat + plaats) staat standaard onderaan de kolom naast de minimap. Het speler-blok
+// #1141 (eigenaar, 21-11): de locatiekaart (straat + plaats) staat standaard onderaan de kolom naast de minimap. Het speler-blok
 // eronder (meters) houdt zijn ruimte ook als het verborgen is (hv-off is alleen doorzichtig), dus de kaart zweefde boven een
 // lege plek. De regels staan in hudlinks.js; hier alleen het meten (bij een verandering, niet per frame) en het zetten van
 // --hud-loc-y, de verschuiving die de CSS als `translate` op .hud-location toepast.
@@ -763,7 +752,8 @@ export function updateHud(dt, world) {
   // De cadans hangt ook af van beweging: een stilstaande kaart (speler staat, geen rotatie of
   // zoom-easing) tekent op een rustige cadans (minimapcadence.js), een bewegende houdt zijn tempo.
   const mmP = hoofdspeler(world);
-  const mmCur = { x: mmP.x, y: mmP.y, yaw: world.pigeonMode ? mmP.angle : world.camYaw ?? mmP.angle };
+  const mmA = getViewAnchor(world, { body: mmP });
+  const mmCur = { x: mmA.x, y: mmA.y, yaw: mmA.upYaw };
   const mmMoved = minimapMoved(mmPrev, mmCur, mmSettling);
   if (!minimapRedrawDue(mmNow, mmLastAt, mmCostMs, mmMoved)) return;
   mmPrev = mmCur;
@@ -866,7 +856,7 @@ function updateVisibility(dt, world) {
     banner: isBannerUp(),
     busy, dialogue,
     idle: now - S.lastInput,
-    wanted: world.wanted, wantedAgo: S.wantedOff === Infinity ? 0 : now - S.wantedOff,
+    wanted: world.wanted,
     moneyAgo: now - S.moneyAt, moneySign: S.moneySign, nearShop: S.nearShop, moneyHeld: S.moneyHeld != null,
     armed: !!world.weapon && world.weapon !== 'fists', fighting: now - S.fightAt < 5, weaponAgo: now - S.weaponAt,
     hpFull: hp >= 99.5 && !(world.armor > 0 && world.armor < 100), hpAgo: now - S.hpAt, hpLow: hp < 30,
@@ -924,7 +914,7 @@ function currentDistrict(world) {
   const area = ommelandArea(x, y);
   if (area) return areaNameAt(x, y).name;
   // The ~66 named neighbourhood/quarter points give a genre-style district name ("Binnenstad", "Ebbingekwartier", ...), but
-  // only where the player really is in the city (wijkat.js): outside it the nearest point of the city is no wijk (before,
+  // only where the player really is in the city (districtat.js): outside it the nearest point of the city is no wijk (before,
   // a spot in Winsum or on the A7 was "Paddepoel-Noord"). Out of the city and the wijken it is the place or Ommeland.
   const wijk = districtAt(meta.neighbourhoodPoints || [], x, y);
   if (wijk) return wijk.name;
@@ -1069,7 +1059,7 @@ function updateGps(dt, world) {
   const v0 = p.inVehicle;
   const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null);
   gpsState.card = card;
-  // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navdoel.js)
+  // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navtarget.js)
   els.gps.style.setProperty('--nav-doel', route ? ROUTE_COLORS[route.kind] || '' : '');
   if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
@@ -1264,11 +1254,14 @@ function updateWanted(world) {
   els.search.hidden = !(searching && world.wanted > 0);
   const key = ster + (searching ? 's' : '');
   els.mmWrap.classList.toggle('wanted', ster > 0);
+  els.mmWrap.classList.toggle('chase', ster > 0 && !searching); // #1080: de rand pulseert rustig, alleen tijdens de achtervolging
   if (key === wantedKey) return;
   wantedKey = key;
   const wasSter = wantedShown;
-  if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
-  const stars = [...els.wanted.children];
+  if (!els.wantedStars.children.length) els.wantedStars.innerHTML = STAR.repeat(5);
+  const stars = [...els.wantedStars.children];
+  els.wanted.hidden = ster === 0; // #1080: geen lege sterrenrij bij 0; de kaart is er alleen als je gezocht wordt
+  els.wantedText.textContent = wantedStatus(ster, phase);
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)
   els.wanted.classList.add('changed');
@@ -1278,10 +1271,10 @@ function updateWanted(world) {
   for (let i = wantedShown; i < ster; i++) pop(stars[i]);
   wantedShown = ster;
   // #802: een nieuwe ster of het einde van de achtervolging een keer benoemen
-  if (ster !== wasSter) announce(ster === 0 ? 'Je bent niet meer gezocht' : `Politie: ${ster} van 5 sterren${searching ? ', ze zoeken je' : ', achtervolging'}`);
+  if (ster !== wasSter) announce(wantedAnnounce(ster, phase));
   els.wanted.classList.toggle('searching', searching && ster > 0);
   els.wanted.classList.toggle('chase', ster > 0 && !searching);
-  els.wanted.setAttribute('aria-label', `Gezocht: ${ster} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
+  els.wanted.setAttribute('aria-label', wantedAnnounce(ster, phase));
 }
 
 
@@ -1571,7 +1564,7 @@ function currentObjective(world) {
     const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - hoofdspeler(world).x, goal.y - hoofdspeler(world).y);
     const wait = storyWaiting(world);
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
-    const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
+    const sub = [first || goal.sub, formatDistance(d), wait ? `je verhaalmissie wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
     // the HUD takes no clicks: say where the goal can be dropped, the first few times
     return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
   }
@@ -1823,7 +1816,7 @@ function hexA(hex, a) {
 }
 
 function applyPalette(p = markerColors()) {
-  // navdoel.js NAV_ROL kiest per type de paletrol: de kleur van een route of pijl wijzigen is daar één regel
+  // navtarget.js NAV_ROL kiest per type de paletrol: de kleur van een route of pijl wijzigen is daar één regel
   Object.assign(ROUTE_COLORS, { user: p[NAV_ROL.eigen], mission: p[NAV_ROL.missie], job: p[NAV_ROL.klus], care: p[NAV_ROL.zorg] });
   C.red = p.danger;
   C.yellow = p.mission;
@@ -2844,14 +2837,19 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 // De cadans (#804: dure kaart 20 fps, lichte 30 fps, stilstaand rustig) staat in minimapcadence.js.
-let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true, mmHeatTip = '';
+const MAX_POLITIE_ICONEN = 3;
+let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true;
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
   sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
-  const player = hoofdspeler(world);
+  // "jij" is de bestuurde entiteit (viewanchor.js): plek, richting en kijkhoek komen van de duif, de heli, het voertuig of de trein;
+  // het lichaam leent de rest (inVehicle enz.)
+  const body = hoofdspeler(world);
+  const anchor = easeAnchor(mmEase, getViewAnchor(world, { body }), dt);
+  const player = Object.assign(Object.create(body), { x: anchor.x, y: anchor.y, angle: anchor.heading });
   const t = performance.now() / 1000;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2872,9 +2870,8 @@ function drawMinimap(dt, world) {
   // The map rotates so the camera heading always points up (or stays north-up
   // in the air or by setting); any world angle plus mapRotation gives its
   // on-screen angle. A change of mode turns it smoothly.
-  // a flying pigeon: its own heading (pigeonmode.js keeps player.angle on it)
-  const upYaw = world.pigeonMode ? player.angle : world.camYaw ?? player.angle;
-  const rotTarget = northUp(st.minimapNorth, mmMode) ? 0 : -Math.PI / 2 - upYaw;
+  // viewanchor.js: de camerahoek, maar de richting van de duif, heli, het vliegtuig en de trein, en bij een scenecamera de eigen richting
+  const rotTarget = mapUpRotation(anchor, northUp(st.minimapNorth, mmMode));
   if (mmRot == null) mmRot = rotTarget;
   let dr = rotTarget - mmRot;
   dr -= Math.round(dr / (Math.PI * 2)) * Math.PI * 2;
@@ -3000,7 +2997,7 @@ function drawMinimap(dt, world) {
   const groepDoelen = kaartDoelen(world);
   const eigenGroepDoelen = showMission || job ? [] : groepDoelen.filter((gd) => gd.eigen);
   const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoelLijst[0] && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
-  // #1078 navdoel.js: welk doel de pijl volgt (gevuld), welke wachten (hol) en welke doelen dezelfde plek zijn
+  // #1078 navtarget.js: welk doel de pijl volgt (gevuld), welke wachten (hol) en welke doelen dezelfde plek zijn
   const careRoute = getCareRoute();
   const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
   const goalNu = getGoal();
@@ -3100,64 +3097,12 @@ function drawMinimap(dt, world) {
   // roepjes van de medespelers (samen spelen, #367): een ster of kruis in de kleur van wie riep
   for (const m of world.coopPingMarks || []) if (!icon('partner', m.x, m.y, { kleur: m.kleur, vorm: m.vorm, angle: 0 })) partnerEdges.push({ a: edgeAngle(m.x, m.y), kleur: m.kleur });
 
-  // #638: bij vijf sterren stonden er tien schilden over de straten. De politie is nu één badge.
-  // #952: het aantal eenheden stond als kaal cijfer naast het schild en werd als heat gelezen.
-  // Nu toont een ring om het schild de warmte (één segment per ster) en kleine stippen de
-  // extra eenheden; de cijfers zijn weg. Review 0.63: de ring hoort er ook bij precies één
-  // eenheid, want de warmte geldt dan net zo goed.
+  // #638: bij vijf sterren stonden er tien schilden over de straten, dus hoogstens de MAX_POLITIE_ICONEN dichtstbijzijnde.
+  // #1080: geen ring, stippen of chip meer: de sterren staan op één plek (rechtsboven); de minimap toont alleen waar de politie staat.
   const polities = [];
-  forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind }));
-  const heatSter = Math.max(world.wanted | 0, world.coopHudWanted | 0);
-  const badge = policeBadge(polities.length, heatSter, { searching: !!(world.police && world.police.searching), time: t });
-  // de legenda bij de ring: tooltip en schermlezer van de minimap, alleen bijgewerkt als de tekst verandert
-  const heatTip = heatTooltip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
-  if (heatTip !== mmHeatTip) {
-    mmHeatTip = heatTip;
-    if (heatTip) { els.mmWrap.title = heatTip; els.mmWrap.setAttribute('aria-label', heatTip); }
-    else { els.mmWrap.removeAttribute('title'); els.mmWrap.removeAttribute('aria-label'); }
-    const chip = heatChip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
-    els.mmHeat.hidden = !chip;
-    if (chip) {
-      // elk deel schuift met een korte breedte-overgang in en uit (CSS .weg), de tekst blijft staan tijdens het uitschuiven
-      if (chip.toonEenheden) els.mmHeatN.textContent = chip.eenhedenTekst;
-      if (chip.toonSter) els.mmHeatW.textContent = chip.sterTekst;
-      els.mmHeatEenh.classList.toggle('weg', !chip.toonEenheden);
-      els.mmHeatSter.classList.toggle('weg', !chip.toonSter);
-      els.mmHeat.classList.toggle('warm', chip.sterren > 0);
-      els.mmHeat.title = chip.uitleg;
-      els.mmHeat.setAttribute('aria-label', chip.uitleg);
-    }
-  }
-  if (badge) {
-    let best = polities[0];
-    if (polities.length > 1) {
-      let bestD = Infinity;
-      for (const q of polities) { const d = (q.x - player.x) ** 2 + (q.y - player.y) ** 2; if (d < bestD) { bestD = d; best = q; } }
-    }
-    // bij één eenheid houdt het schild zijn eigen soort (voet, motor, paard); bij meer is het één badge
-    if (icon(polities.length === 1 ? best.kind : 'police', best.x, best.y)) {
-      const [sx, sy] = toScreen(best.x, best.y);
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineWidth = HEAT_RING.breed;
-      for (const s of badge.ring.segmenten) {
-        ctx.globalAlpha = s.aan ? Math.min(1, badge.ring.alpha + 0.3) : Math.min(0.5, badge.ring.alpha * 0.7);
-        ctx.strokeStyle = s.aan ? C.red : C.policeBlue;
-        ctx.beginPath();
-        ctx.arc(sx, sy, HEAT_RING.r, s.van, s.tot);
-        ctx.stroke();
-      }
-      // de eenheden zelf: stippen in plaats van een getal
-      ctx.globalAlpha = 1;
-      for (let i = 0; i < badge.dots; i++) {
-        const dx = sx + 7.2, dy = sy - 8.4 + i * 3.2;
-        ctx.beginPath(); ctx.arc(dx, dy, 1.35, 0, Math.PI * 2);
-        ctx.fillStyle = INK.cream; ctx.fill();
-        ctx.lineWidth = 1; ctx.strokeStyle = inkA('dark', 0.9); ctx.stroke();
-      }
-      ctx.restore();
-    }
-  }
+  forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind, d: (x - player.x) ** 2 + (y - player.y) ** 2 }));
+  if (polities.length > 1) polities.sort((a, b) => a.d - b.d);
+  for (let i = 0; i < polities.length && i < MAX_POLITIE_ICONEN; i++) icon(polities[i].kind, polities[i].x, polities[i].y);
   let cashN = 0;
   forEachCashTarget(world, (x, y) => { if (cashN < 3 && icon('cash', x, y)) cashN++; });
 
@@ -3176,9 +3121,13 @@ function drawMinimap(dt, world) {
   for (const d of [...nav.secundair, ...(nav.actief ? [nav.actief] : [])]) {
     if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de markering aan de rand is voor wat buiten de kaart ligt
     const actief = d.rol === 'actief';
-    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(distanceFor(d, actieveRoute)) : '' });
+    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '' });
   }
-  drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion() });
+  // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge, het windschijfje en de hitte-chip (zolang hij er is)
+  const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 28 }];
+  if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 30 });
+  if (els.mmHeat && !els.mmHeat.hidden) obstakels.push({ a: -3 * Math.PI / 4, nodig: 40 }, { a: -2.05, nodig: 56 });
+  drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion(), obstakels });
 }
 
 // A heli run (helirun.js): its rings as circles where they hang, the H to land

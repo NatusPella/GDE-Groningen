@@ -19,25 +19,47 @@ export const onlineNaamFout = (naam) => {
 };
 export const onlineNaamOk = (naam) => onlineNaamFout(naam) === '';
 export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !== true || !onlineNaamOk(settings.onlineNaam);
-// Sinds de startkeuze (Alleen of Samen, startchoice.js) zijn het twee vragen. De naamkaart komt EENMALIG, op de eerste start:
-// wie een geldige naam bewaarde krijgt hem nooit meer vanzelf (de naam past hij later aan in het pauzemenu). De toestemming
-// wordt pas gevraagd als iemand Samen kiest en ze niet (meer) bewaard is: Alleen spelen gebruikt het netwerk niet.
+// Sinds de startkeuze (Alleen of Samen, launchchoice.js) zijn het twee vragen, en beide komen pas bij Samen spelen: de kaart
+// met naam en akkoord de eerste keer, daarna nooit meer vanzelf. Is alleen het akkoord ingetrokken, dan vraagt het spel alleen
+// dat (de naam blijft). Alleen spelen gebruikt het netwerk niet en vraagt niets.
 export const moetNaamVragen = (settings = getSettings()) => !onlineNaamOk(settings.onlineNaam);
 export const moetToestemmingVragen = (settings = getSettings()) => settings.onlineMeedoen !== true;
+// De naam wijzigen (Instellingen): dezelfde regels als de kaart (verboden woorden, geen echte persoonsnamen); bij een fout blijft de oude naam.
+export function wijzigNaam(naam, { zet = setSetting } = {}) {
+  const fout = onlineNaamFout(naam);
+  if (fout) return { ok: false, error: fout };
+  const r = profielNaam(naam);
+  zet('onlineNaam', r.naam);
+  return { ok: true, naam: r.naam };
+}
 // Alleen de toestemming, voor wie al een naam heeft (Samen gekozen na een ingetrokken toestemming). De naam blijft zoals hij is.
 export function geefToestemming({ zet = setSetting } = {}) {
   zet('onlineMeedoen', true);
   return { ok: true, meedoen: true };
 }
 
-// What the first start shows: a name, and one honest question with two answers.
+// What the first Samen spelen step shows (21-11, owner): a name and the online agreement on ONE card, the first time the
+// player does anything with Samen spelen; Alleen spelen never sees it. Both are remembered (onlineNaam, onlineMeedoen).
 export const EERSTE_START = {
   titel: 'Je naam voor Samen spelen',
-  uitleg: `${CONSENT_TEXT} Bij elke start kies je zelf of je alleen of samen speelt; alleen bij Samen spelen gaat er iets naar buiten. Onder deze naam zien anderen je alleen als je een sessie deelt. Je kunt je naam later in het pauzemenu aanpassen.`,
+  uitleg: `${CONSENT_TEXT} Je kunt je naam en je akkoord later aanpassen of intrekken bij Instellingen, Samen spelen.`,
   naamLabel: 'Je naam',
   naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
   consent: 'Ik ga ermee akkoord dat het spel online verbindt met een STUN-server en openbare brokers; mijn IP-adres gaat daarvoor naar die diensten.',
   doorgaan: 'Doorgaan',
+  terug: 'Terug',
+};
+
+// Instellingen, Samen spelen: de naam en het akkoord, met dezelfde filter als de kaart.
+export const ONLINE_INSTELLING = {
+  titel: 'Samen spelen',
+  naamLabel: 'Je naam voor Samen spelen',
+  bewaar: 'Naam bewaren',
+  bewaard: 'Naam bewaard.',
+  akkoordAan: 'Je akkoord staat aan: het spel mag online verbinden met een STUN-server en openbare brokers als je Samen spelen kiest.',
+  akkoordUit: 'Je akkoord staat uit: het spel maakt geen verbinding. Bij Samen spelen vraagt het spel er opnieuw om.',
+  intrekken: 'Akkoord intrekken',
+  geven: 'Akkoord geven',
 };
 
 // The switch in the players panel, with one line of explanation.
@@ -51,9 +73,8 @@ export const SCHAKELAAR = {
   uit: 'Je speelt alleen. Je sessie gaat niet naar buiten.',
 };
 
-// De enige uitkomst van de eerste-startkaart: een verplichte naam. Dezelfde filter als
-// het profielveld (lobby.js) en altijd onlineMeedoen = true; niets wordt bewaard bij een
-// fout, zodat een typefout nooit een halve keuze achterlaat.
+// De uitkomst van de kaart "Je naam voor Samen spelen": een verplichte naam én het akkoord. Dezelfde filter als het
+// profielveld (lobby.js). Niets wordt bewaard bij een fout, zodat een typefout nooit een halve keuze achterlaat.
 export function kiesNaam(naam, { zet = setSetting, consent = true } = {}) {
   if (!consent) return { ok: false, error: 'Vink eerst de online-toestemming aan.' };
   const fout = onlineNaamFout(naam);
