@@ -18,6 +18,8 @@ export const FY = {
   'Het is augustus, Mem.': 'Het is augustus, moedertje.',
   '...Ja, Mem.': '...Ja, moedertje.',
   'Mem...': 'Moedertje...',
+  // akte 3 (WP4): Tessa appt Mem
+  'Ik zeg het hem niet. Maar het voelt niet fijn, Mem. – T.': 'Ik zeg het hem niet. Maar het voelt niet fijn, moedertje. – T.',
   'Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil.': 'Moedertje, vandaag was er een man met een trekker-limo. Hij zei dat zijn moeder niks wil.',
   'pompeblêden': 'pompeblêden (rode blaadjes uit de Friese vlag)',
   'iets wat van mem is': 'iets wat van mijn moeder is',
