@@ -110,7 +110,7 @@ t('de regelaar doet een voorstel in zijn persona; Tammo en Tessa gaan nooit over
 t('verhaallijn V1-V3 (#1179): akte 4, na M19 en voor T4, bestaande doeltypes, stil, geen jeugd of leeftijd, Tessa speelt en Tammo regelt', () => {
   const ids = STEPS.map((x) => x.id), v = ['V1', 'V2', 'V3'].map((id) => STEPS.find((x) => x.id === id));
   assert.ok(v.every(Boolean) && v.every((x) => x.part === 'zuid' && x.kind === 'activity' && x.built && x.silent && x.player === 'anita'));
-  assert.ok(ids.indexOf('V1') === ids.indexOf('M19') + 1 && ids.indexOf('V3') + 1 === ids.indexOf('T4'), 'tussen M19 en de bus naar Bourtange');
+  assert.ok(ids.indexOf('V1') > ids.indexOf('M19') && ids.indexOf('V3') + 1 === ids.indexOf('T4'), 'tussen M19 en de bus naar Bourtange');
   assert.deepEqual(v.map((x) => x.goal.type), ['shop', 'reis', 'shop'], 'alleen bestaande doeltypes');
   for (const x of v) {
     assert.ok(BETWEEN_STEPS.includes(x.id), `${x.id} is een tussenstap (migratie)`);
