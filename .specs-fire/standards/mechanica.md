@@ -203,7 +203,7 @@ van (`game/js/audio/scenario.js:127`).
 **Doel.** Levenslange prestaties per speler, en beeld dat zich aanpast.
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
-`recordStat` (`game/js/achievements.js:511`) en de gate (`:379`) zet ze stil bij een streek. Vier
+`recordStat` (`game/js/achievements.js:516`) en de gate (`:384`) zet ze stil bij een streek. Vier
 presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:10`). Automatische kwaliteit beoordeelt
 elke seconde op de mediaan, traag boven 27 ms (`:282`), schaalt de resolutie tot 50% (`:281`) en kent
 cpuniveau 0 tot 3 (`:284`); `simload.js` volgt dat niveau voor verkeer en voetgangers. Het bewuste
@@ -273,7 +273,7 @@ zijn de latere meting (#477).
 
 ## Open punten (met issue)
 
-- Loopbaan, boerderij en vliegschool lopen achter op de code: `docs/BOERDERIJ.md:26-31` noemt
+- Loopbaan, boerderij en vliegschool lopen achter op de code: `docs/BOERDERIJ.md:29-34` noemt
   vier gewassen (Uien ontbreekt), `boerderij.js:23` heeft er vijf; `docs/LOOPBAAN.md` mist de
   start van een vak (#431). (#473)
 - `docs/PERF-METING-2026-10-19.md` spreekt zichzelf tegen over de grootste kostenpost (#477).

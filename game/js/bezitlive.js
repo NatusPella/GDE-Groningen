@@ -16,6 +16,7 @@ import * as B from './boerderij.js';
 import { loadBezitIndex, createParcelIndex, createBuildingIndex } from './parcelindex.js';
 import { streekAt } from './regioleven.js';
 import { branchOpen, branchClosedText } from './bezitgate.js';
+import { unlockAchievement, setStatMax } from './achievements.js';
 import * as H from './holdingsmodel.js';
 import * as BZ from './business.js';
 import * as FX from './businessexclusion.js';
@@ -142,6 +143,7 @@ export function koopPerceel(w, id) {
   B.boek(farm, { kosten: o.price, post: 'aankoop' });
   claimSend({ id, action: 'claim' });
   markeer();
+  try { achieve(w); } catch (e) { /* prestaties niet klaar */ }
   return { ok: true, cost: o.price, name: o.name, text: `${o.name} is van jou voor ${euro(o.price)}.` };
 }
 export function verkoopPerceel(w, id) {
@@ -214,6 +216,7 @@ export function koopPand(w, osm) {
   if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Kopen lukt nu niet.' };
   noteMoney('Winkels'); w.money -= r.cost;
   markeer();
+  try { unlockAchievement(w, 'bz_winkel'); } catch (e) { /* prestaties niet klaar */ }
   return { ok: true, cost: r.cost, text: `Pand gekocht voor ${euro(r.cost)}.` };
 }
 export function verkoopPand(w, osm) {
@@ -314,4 +317,15 @@ export function attachCoop(w, selfId, name, color, send) {
     drop: (id) => claims.drop(id),
     stop() { setClaimLookup(null); setClaimSend(null); claims.clear(); if (w) w.bezitClaims = null; },
   };
+}
+
+// Prestaties na een koop: het eerste perceel, tien tegelijk en land in alle acht de streken (cheats en geschenken tellen niet: alleen een echte koop komt hier).
+function achieve(w) {
+  const b = getBezit();
+  const own = Object.keys(b.parcels).filter((id) => !b.parcels[id].lg);
+  if (own.length) unlockAchievement(w, 'bz_perceel');
+  setStatMax(w, 'bzPercelen', own.length);
+  const regions = new Set(own.map((id) => { const r = b.parcels[id]; return r.c ? regionOfPoint(r.c[0], r.c[1]) : 'overig'; }));
+  regions.delete('overig');
+  setStatMax(w, 'bzStreken', regions.size);
 }
