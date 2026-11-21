@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 246 scènes, 1.756 regels in act 1 tot en met 6; 57 zijn stille appjes en 454 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 246 scènes, 1.756 regels in act 1 tot en met 6; 57 zijn stille appjes en 455 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
@@ -162,6 +162,19 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
   en H18 → M26. De kus is M16 (`docs/verhaal/nieuw/09-script-akte3.md:219`; canon
   `docs/verhaal/nieuw/03-akte3.md:141` noemt hem "was H11"), dus `docs/personages.md:275`
   zet de kus ten onrechte op H13; volgens de tabel hoort H13 bij M11, de kustmissie.
+
+## De verhaal-epic van 21-11 (#1121)
+
+De kern (eigenaar, 21-11): twee net afgestudeerde vrienden zoeken een plekje in de wereld en zijn bang elkaar kwijt te raken; de snackwagen is een verhaaltwist (rond akte 4 en 5) en het eind een open wereld; Jelle is de gelaagde tegenstander (eikel tot de verzoening aan het eind). Uitgewerkt in [docs/verhaal/RUGGENGRAAT.md](../../docs/verhaal/RUGGENGRAAT.md), [docs/VERHAAL-RELATIE-21-11.md](../../docs/VERHAAL-RELATIE-21-11.md) en het gegenereerde [filmscript](../../docs/verhaal/FILMSCRIPT-21-11.md). Wat de bouw toevoegt, met zijn test:
+
+- **Overgangsscènes** (`BRIDGES` in `storyarc_nieuw.js`, `storybridge.js`, `storybridgerun.js`; `storybridge_test`): twaalf korte scènes tussen missies, nooit twee na opeenvolgende missies, overslaanbaar, lokaal, zonder voortgang.
+- **Ontgrendelpoort** (`unlockgate.js`; `unlockgate_test`): werelden per akte, een nieuw spel begint dicht, een oude save houdt alles; Bezit en voetbal registreren met `registerGateWorld`.
+- **Mijlpalen en romantiek** (`storymilestones.js`, `storyromance.js`): stille vlaggen `wagen:*` en `romantiek:*`, alleen toevoegen; een keuze verandert nooit het verloop of het einde.
+- **Humorkeuze** (`game/storydata/humor*.json`, `humor_panel_prepare.mjs`, `humor_doc.mjs`; `humor_test`): elke nieuwe komische beat heeft drie varianten en een neutrale terugval; een paneel van drie onafhankelijke beoordelaars kiest; de eigenaar heeft een veto-lijst ([HUMOR-KEUZELIJST.md](../../docs/verhaal/HUMOR-KEUZELIJST.md)).
+- **Dialoogvorm** (`dialogueform.js`; `dialoogvorm_test`): `{ov}`, `{cut}`, `{pause}` per regel; zonder tag verandert niets.
+- **Toetsen op de tekst** (`dialogue_rhythm_test`, `introduction_test`, `story_spine_test`): ritme, introducties en de ruggengraat; de allowlists worden alleen korter.
+- **Reputatie, thuis en carrière-tour** (`reputation.js`, `homebase.js`, `careertour.js`): zuivere modellen met tests; de koppeling aan de wereld staat in [docs/VERHAAL-VERIFICATIE-21-11.md](../../docs/VERHAAL-VERIFICATIE-21-11.md).
+- **Samen spelen:** iedereen is lokaal de hoofdpersoon die de stap nodig heeft en ziet de ander als partner-NPC; alles hierboven is per speler lokaal of scènetekst (zie docs/COOP-GAST.md).
 
 ## Afwijkingen tussen docs en code
 
