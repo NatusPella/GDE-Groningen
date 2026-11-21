@@ -194,7 +194,7 @@ export function initHud(world) {
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
   speedo.innerHTML = '<div class="sp-main"><b class="sp-val">0</b><span class="sp-unit">km/u</span><div class="sp-gears" role="img" aria-label="Versnelling"></div>' +
-    `<svg class="sp-rpm" viewBox="0 0 200 14" preserveAspectRatio="none" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
+    `<svg class="sp-rpm" viewBox="0 0 200 14" preserveAspectRatio="none" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` + // ds3-uitzondering: toerentalboog, de dash-lengte volgt het toerental (meetgeometrie, geen icoon)
     `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg></div>`;
   root.appendChild(speedo);
 
@@ -266,7 +266,7 @@ export function initHud(world) {
   mmHeat.className = 'hud-mm-heat';
   mmHeat.hidden = true;
   mmHeat.setAttribute('role', 'img');
-  mmHeat.innerHTML = '<span class="mmh-eenh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 4.5 5.4v6c0 4.7 3.1 8.5 7.5 10.1 4.4-1.6 7.5-5.4 7.5-10.1v-6z"/></svg><b class="mmh-n"></b></span>'
+  mmHeat.innerHTML = `<span class="mmh-eenh">${icoon('schild')}<b class="mmh-n"></b></span>`
     + `<span class="mmh-ster">${STAR}<b class="mmh-w"></b></span>`;
   mmWrap.appendChild(mmHeat);
   root.appendChild(mmWrap);

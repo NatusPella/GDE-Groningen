@@ -113,7 +113,7 @@ export async function maakAudit() {
         Math.random = seeded(s * 7919 + Math.round(px + py));
         const wereld = { map, player: { x: px, y: py, inVehicle: null }, vehicles: [], time: 100, dayNight: { hour: 13 } };
         const t0 = performance.now();
-        for (let k = 0; k < 40; k++) V.manageBoatPopulation(wereld, { target: 6 });
+        for (let k = 0; k < 40; k++) V.manageBoatPopulation(wereld, { target: 6, budget: Infinity });   // (de kanaalscan af voor de keuze: het tijdbudget van het spel maakt de plekken anders klokafhankelijk)
         for (const v of wereld.vehicles) {
           if (!v.isBoat) continue;
           const klasse = (v.model && v.model.kind) || 'sloep';

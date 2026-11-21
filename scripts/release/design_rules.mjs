@@ -214,12 +214,14 @@ const DS3_GEEN = /^game\/(?:world|audio|models|img|storydata|fonts)\//;
  * gebruik var(--ds-c-...) en de .ds-z-componenten. Dezelfde telling als scripts/ds3_ratel_test.mjs (de ratel),
  * per diffregel. Een regel met 'ds3-uitzondering' (met reden) en een bestand in BEWUST (scripts/lib/ds3_regels.mjs) zijn vrij.
  */
-export function checkDs3Line({ file, line, text } = {}) {
+export function checkDs3Line({ file, line, text } = {}, opts = {}) {
   const filePath = String(file ?? '').replaceAll('\\', '/');
   const raw = String(text ?? '');
   if (!DS3_UI.test(filePath) || DS3_GEEN.test(filePath) || !raw.trim() || FULL_LINE_COMMENT.test(raw)) return [];
   if (bewustReden(filePath) || /ds3-uitzondering/.test(raw)) return [];
-  const { n } = telBestand(filePath, raw);
+  const n = { ...telBestand(filePath, raw).n };
+  // nettotelling van de regelaudit: een soort die in dit bestand niet netto stijgt (een herschreven regel, de tokeniser) is geen nieuwe overtreding
+  if (opts.vrij) for (const s of opts.vrij) if (s in n) n[s] = 0;
   const reden = [];
   if (n.kleur) reden.push(`harde kleur (${n.kleur}x): gebruik var(--ds-c-...)`);
   if (n.glas) reden.push('glas-op-donker, verloop of backdrop-filter: het designsysteem is vlak papier met inktrand');
@@ -305,7 +307,7 @@ function finding({ file, line, text, ernst, categorie, titel, beschrijving, fix 
 }
 
 /** Losse kleurwaarden op een regel, zonder commentaar en zonder var()-terugval. */
-function strayColors(text, file) {
+export function strayColors(text, file) {
   let clean = stripComments(text, file);
   // De terugval van een token is de token zelf; die waarde keuren we niet.
   clean = clean.replace(/var\(\s*--[\w-]+\s*,\s*[^)]*\)/g, 'var()');
@@ -340,7 +342,8 @@ function strayColors(text, file) {
 }
 
 function fontFamilies(text, file) {
-  const clean = stripComments(text, file);
+  // een var(--token, terugval) is het token zelf; de terugval keuren we niet (zelfde afspraak als bij kleuren)
+  const clean = stripComments(text, file).replace(/var\(\s*--[\w-]+\s*,\s*[^)]*\)/g, 'var()');
   const values = [];
   for (const m of clean.matchAll(/font-family\s*:\s*([^;}]+)/gi)) values.push(m[1]);
   for (const m of clean.matchAll(/fontFamily\s*[:=]\s*(['"`])([^'"`]*)\1/g)) values.push(m[2]);
@@ -381,6 +384,14 @@ function shrinkingRelativeSizes(text, file) {
   return [...new Set(out)];
 }
 
+// Bestanden waar !important het ontwerp is, niet een noodgreep: de reduced-motion-takken en de toegankelijkheidsoverrides moeten
+// winnen van elke componentregel, en de maten van een toetsplaatje moeten winnen van contextregels als `#hud .hc-text span`.
+export const IMPORTANT_BEWUST = [
+  [/(?:^|\/)game\/js\/ds-beweging\.css$/, 'de reduced-motion-takken zetten beweging uit en moeten winnen van elke componentregel'],
+  [/(?:^|\/)game\/js\/ds-keycap\.css$/, 'de maatregels van het toetsplaatje moeten winnen van contextregels (zie de kop van het bestand)'],
+  [/(?:^|\/)game\/js\/a11y\.css$/, 'toegankelijkheidsinstellingen (toetsfont, contrast, maat) overschrijven bewust de auteursstijl'],
+];
+
 /**
  * Keurt één toegevoegde regel. Geeft een array bevindingen volgens $defs.bevinding
  * (bron 'design', aspect 'design') en verder niets.
@@ -401,7 +412,7 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
   const findings = [];
 
   // Kleur: losse hex of rgb() buiten de tokens, ook in een inline style.
-  if (candidates.kleur) {
+  if (candidates.kleur && !opts.vrijKleur) {
     let stray = strayColors(raw, filePath);
     if (allowed) stray = stray.filter((c) => !(c.startsWith('#') && allowed.has(c.slice(0, 7).toLowerCase())));
     if (stray.length) {
@@ -449,7 +460,7 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
   }
 
   // Nieuwe !important is een nit, geen blokkade.
-  if (candidates.important) {
+  if (candidates.important && !IMPORTANT_BEWUST.some(([re]) => re.test(filePath))) {
     findings.push(finding({
       file, line, text, ernst: 'nit', categorie: 'design-system',
       titel: 'Nieuwe !important',

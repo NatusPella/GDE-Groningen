@@ -765,8 +765,8 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 .pm-samen, .coop-hold { font-family: var(--ds-font-tekst); color: var(--ink, #f0ede4); }
 .pm-samen .coop-title, .coop-hold .coop-title { margin: 0 0 4px; font-family: var(--ds-font-kop); font-weight: normal; font-size: 40px; letter-spacing: 0.04em; }
 .pm-samen p, .coop-hold p { margin: 0; max-width: 640px; font-size: 22px; line-height: 1.35; }
-.pm-samen .coop-code, .coop-hold .coop-code { width: fit-content; max-width: 100%; margin: 4px 0; padding: 14px 18px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent); font-family: Consolas, 'Courier New', monospace; font-size: 26px; letter-spacing: 0.06em; user-select: all; overflow-wrap: anywhere; }
-.pm-samen .coop-input, .coop-hold .coop-input { box-sizing: border-box; width: 100%; max-width: 520px; height: 56px; padding: 0 16px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--ds-c-creme) 30%, transparent); background: color-mix(in srgb, var(--ds-c-ink-inkt) 35%, transparent); color: inherit; font-family: Consolas, 'Courier New', monospace; font-size: 24px; }
+.pm-samen .coop-code, .coop-hold .coop-code { width: fit-content; max-width: 100%; margin: 4px 0; padding: 14px 18px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent); font-family: var(--ds-font-code); font-size: 26px; letter-spacing: 0.06em; user-select: all; overflow-wrap: anywhere; }
+.pm-samen .coop-input, .coop-hold .coop-input { box-sizing: border-box; width: 100%; max-width: 520px; height: 56px; padding: 0 16px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--ds-c-creme) 30%, transparent); background: color-mix(in srgb, var(--ds-c-ink-inkt) 35%, transparent); color: inherit; font-family: var(--ds-font-code); font-size: 24px; }
 .pm-samen .coop-input:focus-visible, .coop-hold .coop-input:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
 .pm-samen .coop-error, .coop-hold .coop-error { color: var(--ds-c-rood-glas-tx); }
 .pm-samen .coop-btns, .pm-samen .coop-wensen, .coop-hold .coop-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
@@ -852,7 +852,7 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 #pause-menu .pm-hub-rijen li[data-hub-rij="besloten"]::before { content: '·'; }
 #pause-menu .pm-hub-rijen li[data-hub-rij="gasten"]::before { content: '+'; }
 #pause-menu .pm-hub-rijen li[data-hub-rij="eerder"]::before { content: '↺'; }
-#pause-menu .pm-hub-rijen li[data-hub-rij="code"] { font-family: Consolas, 'Courier New', monospace; letter-spacing: 0.02em; }
+#pause-menu .pm-hub-rijen li[data-hub-rij="code"] { font-family: var(--ds-font-code); letter-spacing: 0.02em; }
 #pause-menu .pm-hub-uitleg { margin: 0; max-width: 720px; font-size: 18px; line-height: 1.4; opacity: 0.85; }
 #pause-menu .pm-hub-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 #pause-menu .pm-hub-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }

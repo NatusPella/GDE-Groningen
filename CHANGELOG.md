@@ -9,6 +9,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+(De coördinator voegt deze regels bij 0.65.0.)
+
+- De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
+- Het schildje van de eenheden bij de politiechip op de minikaart is een Phosphor-icoon; sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
+- Boten van het omgevingsverkeer: de kanaalscan kan op verzoek eerst af zijn voor er een plek gekozen wordt (alleen voor tests en audits; in het spel blijft het tijdbudget van 3 ms), zodat dezelfde seed altijd dezelfde plekken geeft. De test van de bootplekken is stabiel (20 van 20 keer groen).
+- Regelaudit op de release-diff: telt netto per bestand (een herschreven regel is geen nieuwe overtreding), kent de goedgekeurde treinfeed, en keurt merken alleen in tekst; zie docs/DESIGN-AUDIT-UI-21-11.md.
+
 ## [0.65.0] - 2026-11-21
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(REPO, f), 'utf8');
 
-/** Rijen uit sectie 6: { naam, bron, beoordeling }. */
+/** Rijen uit sectie 6: { naam, bron, bronnen, beoordeling }; bron is het eerste bestand in de cel, bronnen alle bestanden die de naam bewust dragen. */
 export function parseRegister(md) {
   const at = md.indexOf('## 6. Register');
   if (at < 0) return [];
@@ -19,7 +19,8 @@ export function parseRegister(md) {
     const c = l.split('|').slice(1, -1).map((s) => s.trim());
     if (c.length < 5) continue;
     const m = c[2].match(/`([^`]+)`/);
-    rows.push({ naam: c[0], bron: m ? m[1] : '', beoordeling: c[4] });
+    const bronnen = [...c[2].matchAll(/`([^`]+)`/g)].map((x) => x[1]);
+    rows.push({ naam: c[0], bron: m ? m[1] : '', bronnen, beoordeling: c[4] });
   }
   return rows;
 }

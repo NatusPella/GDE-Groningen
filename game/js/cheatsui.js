@@ -2,6 +2,7 @@
 // quiet buttons, ??? for the locked ones, folded away). The one in focus is
 // explained beside the list. State and effects live in cheats.js.
 import { icoon } from './icons.js';
+import { keyTextHtml } from './keycap.js';
 import { CHEATS } from './cheatlist.js';
 import { ACHIEVEMENTS } from './achievements.js';
 import { STEPS, STEP_ALIAS } from './storyarc.js';
@@ -47,7 +48,6 @@ let lastW = null;
 let st = { pending: null }; // cheat waiting for its confirming press (#161)
 const TROPHY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8.5 20h7"/></svg>';
 const TROPHY_OFF = TROPHY.replace('</svg>', '<path d="M4 4l16 16"/></svg>');
-const key = (k) => `<span class="hud-key">${k}</span>`;
 
 function hintOf(c) {
   if (c.hint) return c.hint;
@@ -110,7 +110,7 @@ function paneHtml(w) {
   return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
     `<p>${open ? esc(c.desc) : esc(hintOf(c))}</p>` +
     (open ? `<p class="${impact(c) === 'veilig' ? 'g' : 'red'}">${impact(c) === 'veilig' ? 'Veilig voor prestaties. ' : 'Hindert prestaties. '}${noteOf(c)}</p>` : '') +
-    (open && st.pending === c.id ? `<p class="red">Weet je het zeker? Prestaties gaan uit zolang hij aan staat. Druk nog eens ${key('Enter')} (of {A}) om hem aan te zetten; een andere rij annuleert.</p>` : open && (!c.kind || c.kind === 'toggle') ? `<p class="mut">Bladeren verandert niets. Zet aan of uit met ${key('Enter')} (of {A}) op de knop.</p>` : '') +
+    (open && st.pending === c.id ? `<p class="red">Weet je het zeker? Prestaties gaan uit zolang hij aan staat. ${keyTextHtml('Druk nog eens {ENTER} (of {A}) om hem aan te zetten; een andere rij annuleert.')}</p>` : open && (!c.kind || c.kind === 'toggle') ? `<p class="mut">Bladeren verandert niets. ${keyTextHtml('Zet aan of uit met {ENTER} (of {A}) op de knop.')}</p>` : '') +
     '<span class="m-grow"></span>' +
     (busy ? '<p class="mut">Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.</p>' : '') +
     `<p class="g st-msg" role="status">${esc(msg)}</p>`;

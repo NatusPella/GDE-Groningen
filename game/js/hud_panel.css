@@ -832,7 +832,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 html.rustig-drukwerk #hud .hud-mm-heat span, html.reduce-motion #hud .hud-mm-heat span { transition: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-mm-heat span { transition: none; } }
 #hud .hud-mm-heat svg { width: 15px; height: 15px; flex: 0 0 15px; fill: var(--ds-c-ink-papier); stroke: var(--hud-inkt); stroke-width: 1.8; stroke-linejoin: round; }
-#hud .hud-mm-heat .mmh-eenh svg { fill: var(--ds-c-ink-inkt); stroke: var(--ds-c-ink-inkt); }
+#hud .hud-mm-heat .mmh-eenh svg { color: var(--ds-c-ink-inkt); }
 #hud .hud-mm-heat.warm .mmh-ster svg { fill: var(--ds-c-ink-roze); }
 #hud .hud-mm-heat.warm .mmh-ster b { color: var(--ds-c-rood-tx); }
 
