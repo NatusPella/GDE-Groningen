@@ -236,13 +236,14 @@ export function waterIndexAt(map, x, y) {
 }
 
 function polyWaterIndex(map, poly) {
-  if (poly._wi) return poly._wi;
+  // (#1089) niet `_wi`: dat is de bouw-id (een getal) van de waterrij (mapdata.js); een rij met id > 0 gaf dat getal terug als index
+  if (poly._polyIndex && typeof poly._polyIndex.inWater === 'function') return poly._polyIndex;
   const b = poly.bounds || [Infinity, Infinity, -Infinity, -Infinity];
   const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, r = Math.max(b[2] - b[0], b[3] - b[1]) / 2 + 40;
   const near = new Set(map.waterNear(cx, cy, r));
   near.add(poly);
   const st = staticWater(map);
-  return (poly._wi = createWaterIndex([...near].filter((w) => !st.has(w))));
+  return (poly._polyIndex = createWaterIndex([...near].filter((w) => !st.has(w))));
 }
 
 // the index over the streamed polygons around a tile (null: none there),

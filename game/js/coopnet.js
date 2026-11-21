@@ -880,6 +880,7 @@ function werkGroepenBij(world, n, huidig) {
 // Een nieuwe opdracht van de gastheer: elke gast krijgt "Meedoen?" (#429). Verplicht waar de stap de gast-hoofdrol nodig heeft
 // (world.coopStapRegel: haak die de coöp-regel van de huidige verhaalstap geeft, cooproles.js coopRule; zonder haak is meedoen vrij).
 function nodigUit(world, n, huidig) {
+  if (!n || !n.meedoen) return; // (#1089) een host zonder Meedoen-stand (mock, half opgebouwd) nodigt niemand uit, geen fout
   const sl = opdrachtSleutel(huidig && { actief: true, ...huidig });
   if (sl === (n.meedoen.opdracht || null)) return;
   if (!sl) { meedoenEinde(n.meedoen); return; }
