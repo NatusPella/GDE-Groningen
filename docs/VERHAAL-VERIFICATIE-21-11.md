@@ -49,3 +49,7 @@ Niet gedraaid of niet te draaien in deze fase: `storyflow_nieuw_test` en de were
 - **Nog niet gebouwd uit de inspiratielijst:** de ruildag-missie (A5), de nacht in de wagen (C15), de dubbele date (E26, Rikus heeft geen model en er is geen café), het zingen van het autoduet (alleen de tekstrichting staat in de muzieklijst). Gebouwd in ronde 2: A6 en A19 (loopbaanmomenten).
 - **Het slagen op vriendelijkheid** in de climax (NPC's die ze hielpen komen terug) en de **moeilijkheidsinstelling** (`difficulty.js`): niet gebouwd; nieuwe missies hebben geen harde timers.
 - **De 3D-prop van het prikbord of de koelkastlijst** in de flat.
+
+## De naam van de wagen (21-11, ronde 2)
+
+"Fjord Frituur" is overal vervangen (411 plekken in 103 bestanden plus de tts-bronlijsten); de wagen heet **Tam & Tes** (eigenaar-besluit), in proza "de snackwagen". In beeld te controleren: de belettering op het luik (M22.2, model in `models3d_vehicles.js`), het juryscherm en de stemmen (M26), het bord in de epiloog, Henks moment in M22.2. Niet aangeraakt (opening-agent): `introkitchen3d.js`, `intromontage.js`, `trailer.js`, `trailerplan.js` bevatten nog de oude naam. Stemmen: 21 opnames vervielen door de naamwijziging; de wachtlijst staat op 483 jobs. De naamgrap in C00.2 ("Dan klopt de naam ook") en M20.5 ("Zonder Fjord") is herschreven en wacht op de opening-agent en een humorronde. Open bij de volledige licht-run: `dialect_woorden_test` (dossiertekst en "pompeblêd-rode": van de dossierbranch), `coop_licht_test`, `icon_sweep_test`, `cutpreview_test` M29.2.
