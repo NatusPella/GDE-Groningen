@@ -9,7 +9,7 @@ const STORAGE_KEY = KEYS.mapLayers;
 // the minimap's own switches in older versions: removed when seen
 const OLD_MINIMAP_KEY = 'gte-minimap-layers';
 const ALWAYS_ON = new Set(['route', 'userWaypoint', 'police', 'mission']);
-const DEFAULT_OFF = new Set(['klussen']);
+const DEFAULT_OFF = new Set(['klussen', 'oogstklaarAlleen']);
 
 let layers = null;
 

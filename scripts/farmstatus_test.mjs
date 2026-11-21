@@ -12,7 +12,9 @@ const Live = await import('../game/js/boerderijlive.js');
 const PM = await import('../game/js/perceelmap.js');
 const IC = await import('../game/js/icons.js');
 const MI = await import('../game/js/mapicons.js');
+const MF = await import('../game/js/mapfilters.js');
 
+Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: (() => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; })() });   // nooit de echte opslag
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
 const nepOpslag = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
@@ -208,6 +210,23 @@ t('afnemers staan op de kaart (#1005)', () => {
   assert.equal(PM.drawPerceelMapIcon(ctx, 'perceel-afnemer', 2.1), true);
   assert.ok(calls.includes('fillText'), 'de letter A staat op de pin');
   S.zetAfnemerPlekken(null);
+});
+t('kaartfilter Alleen oogstklaar (#1005): uit is alles, aan blijft oogstklaar, machine en afnemer', () => {
+  const lijst = [{ kind: 'perceel-eigen-rijp' }, { kind: 'perceel-eigen-groeiend' }, { kind: 'perceel-koop' }, { kind: 'perceel-machine' }, { kind: 'perceel-afnemer' }];
+  assert.equal(PM.alleenOogstklaar(lijst, false), lijst, 'uit: dezelfde lijst');
+  assert.deepEqual(PM.alleenOogstklaar(lijst, true).map((q) => q.kind), ['perceel-eigen-rijp', 'perceel-machine', 'perceel-afnemer']);
+  const vlakken = [{ statusId: 'rijp' }, { statusId: 'geploegd' }, { statusId: 'groeiend' }];
+  assert.deepEqual(PM.alleenOogstklaar(vlakken, true), [{ statusId: 'rijp' }], 'kaartvlakken: alleen rijp');
+  assert.deepEqual(PM.alleenOogstklaar([], true), []);
+});
+t('de laag oogstklaarAlleen staat standaard uit en volgt de schakelaar (geen echte opslag)', () => {
+  assert.equal(MF.layerOn('oogstklaarAlleen'), false);
+  MF.setLayer('oogstklaarAlleen', true);
+  assert.equal(MF.layerOn('oogstklaarAlleen'), true);
+  const spots = PM.perceelMapSpots();
+  assert.ok(spots.every((q) => ['perceel-eigen-rijp', 'perceel-machine', 'perceel-afnemer'].includes(q.kind)), 'met het filter aan blijft alleen oogstklaar over');
+  MF.setLayer('oogstklaarAlleen', false);
+  assert.ok(PM.perceelMapSpots().some((q) => q.kind === 'perceel-koop' || q.kind === 'perceel-huur' || q.kind.startsWith('perceel-eigen')), 'uit: de percelen zijn er weer');
 });
 console.log(`farmstatus_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

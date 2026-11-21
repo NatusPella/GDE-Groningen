@@ -137,6 +137,7 @@ De boerderij is per speler (#429): wat je verdient en wat er in je schuur ligt b
 - **Meewerken:** een gast bestuurt een vrije machine van de host via de bestaande gast-bestuurderketen (`coopbestuur.js`, #434); zijn klus levert hem via `coopDeel` een deel op. Hij werkt de velden niet zelf bij.
 - **Zelf boeren:** de eigen akker van een gast is een lokale minigame (`boerderijgast.js`), met eigen geld, eigen opslag en eigen voortgang (#429); zijn gewassen groeien mee met de klok van de host.
 - **Wegvallen:** valt de host weg, dan verdwijnen de velden bij de gast; de eigen boerderij van de gast blijft in zijn eigen opslag.
+- **Kaartfilter Alleen oogstklaar (#1005):** een lokale kaartkeuze per speler (laag `oogstklaarAlleen` in `mapfilters.js`, standaard uit); niets gaat over het netwerk. Het filter werkt op wat de kaart toont (eigen velden, machines, afnemers), dus ook voor een gast op zijn eigen boerderij; test: `farmstatus_test`.
 - **Test:** `scripts/farmfieldguest_test.mjs` (coderen, status en groei bij de gast, te ver, opruimen) en `scripts/coopextra_test.mjs`.
 
 ## De opdrachtstand per groep (#452)

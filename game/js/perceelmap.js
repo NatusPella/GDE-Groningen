@@ -7,9 +7,17 @@ import { INK, inkA } from './mapstyle.js';
 import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken, afnemerPlekken } from './farmstatus.js';
 import { iconInner } from './icons.js';
 import { getBezit } from './bezitlive.js';
+import { layerOn } from './mapfilters.js';
 
 const pos = new Map();
 const wereld = (p) => { let q = pos.get(p.id); if (!q) { q = wgsToWorld(p.lat, p.lon); pos.set(p.id, q); } return q; };
+
+// #1005: het kaartfilter 'Alleen oogstklaar' (laag oogstklaarAlleen, standaard uit): van de velden en percelen blijft wat nu te oogsten valt, plus je machines en de afnemers (daar ga je heen).
+// Aangeboden akkers (te koop, te huur) en velden die nog groeien of een klus wachten verdwijnen, zodat je in één blik ziet waar je moet oogsten. Zuiver; `aan` komt van de laag.
+export function alleenOogstklaar(lijst, aan) {
+  if (!aan) return lijst;
+  return lijst.filter((q) => (q.kind ? q.kind === 'perceel-eigen-rijp' || q.kind === MACHINE_KIND || q.kind === AFNEMER_KIND : q.statusId === 'rijp'));   // spots hebben een kind, de kaartvlakken een statusId
+}
 
 export function perceelMapSpots() {
   const b = getBoerderij();
@@ -28,7 +36,7 @@ export function perceelMapSpots() {
   if (out.some((q) => q.kind.startsWith('perceel-eigen') || q.kind === 'perceel-machine')) {
     for (const a of afnemerPlekken()) out.push({ kind: 'perceel-afnemer', x: a.x, y: a.y, name: a.naam, sub: 'Afnemer van je oogst · klik voor een doel', id: 'afnemer-' + a.gewas, goal: { kind: 'place', name: a.naam, sub: 'Afnemer', x: a.x, y: a.y } });
   }
-  return out;
+  return alleenOogstklaar(out, layerOn('oogstklaarAlleen'));
 }
 
 const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'perceel-eigen': INK.greenLight };
@@ -93,7 +101,7 @@ export function eigenPerceelVlakken() {
       sub: `${p.soort === 'weiland' ? 'Weiland' : 'Akker'} · ${p.ha} ha · ${st.klaar ? 'oogstklaar' : st.kort} · nu: ${watNu(st, b.schuur.kg || 0).toLowerCase()}`,
     });
   }
-  return out;
+  return alleenOogstklaar(out, layerOn('oogstklaarAlleen'));
 }
 
 // Tekent het pictogram (hud_panel.js geeft de schaal s); geeft false voor een andere soort.
