@@ -342,12 +342,12 @@ html.rustig-drukwerk, .ds-rustig {
    tekst, zonder eenheid (zodat elke eigen em ze zelf oplost); alleen de vloeren zijn px. */
 :root {
   --ds-kc-cap: 1.25;          /* hoogte van het plaatje in tekst-em; in een hintrij (.ds-kc-rij) 1.5 */
-  --ds-kc-ink: 0.48;          /* inkthoogte van een toetsglyph in glyph-em (Kenney Input Prompts: 983 van 2048, op de basislijn) */
-  --ds-kc-floor: 18px;        /* het plaatje is nooit lager dan dit (in een HUD-hintrij 26 px, #985) */
-  --ds-kc-drop: -0.125;       /* glyph: daling onder de basislijn in glyph-em, zodat het plaatje op de halve letterhoogte van de tekst staat */
+  --ds-kc-ink: 0.48;          /* inkthoogte van een glyph in glyph-em (Kenney Input Prompts: 983 van 2048, op de basislijn); een lagere glyph (Spatie 573) zet [data-ink] */
+  --ds-kc-floor: 20px;        /* de inkt van het plaatje is nooit lager dan dit (in een HUD-hintrij 26 px, #985); bij 15 px tekst is 1,25 em al 18,75 px, dus 20 px */
+  --ds-kc-mid: 0.30;          /* het midden van het plaatje boven de basislijn, in tekst-em: de halve letterhoogte van gemengde tekst (x-hoogte en hoofdletter gemiddeld) */
   --ds-kc-letter: 0.8;        /* letter in een tekstplaatje, in tekst-em (nooit onder --ds-kc-letter-min) */
   --ds-kc-letter-min: 13px;
   --ds-kc-lift: 0.05;         /* tekstplaatje: stijging boven de basislijn in plaatje-em */
   --ds-kc-gap: 0.02;          /* glyph: ruimte aan weerszijden in glyph-em, naast de gewone spatie van de zin */
-  --ds-kc-opt: 1;             /* optische correctie per glyphsoort (muis 1.09: 901 tegen 983 hoog) */
+  --ds-kc-opt: 1;             /* optische correctie, standaard 1: de inkt is al overal even hoog (data-ink), dus de muis hoeft niet groter */
 }

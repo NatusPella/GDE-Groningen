@@ -3,7 +3,7 @@
 // Split out of prompts.js so hudcards.js can use it without pulling in three.js.
 import { physicalKey, tokenKey, keyName } from './controls.js';
 import { getSettings } from './settings.js';
-import { keyGlyph, mouseGlyph, MOUSE_TOKENS } from './inputglyphs.js';
+import { keyGlyph, mouseGlyph, MOUSE_TOKENS, inkAttr } from './inputglyphs.js';
 
 function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -32,7 +32,7 @@ export function glyphHtml(token, opts = {}) {
   } else if (MOUSE_TOKENS.includes(token)) {
     // the Kenney mouse icons (same set and look as the keys); the drawn mouse stays as the fallback when the font has no glyph
     const mg = mouseGlyph(token);
-    inner = `<span class="hud-mouse-g" data-gk="${gk}">` + (mg ? `<span class="pad-g pad-kn pad-key pad-mouse" data-set="keys" role="img" aria-label="${mg.word}">${mg.char}</span>` : MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w', MMB: 'w', DRAG: 'move' }[token])) + '</span>';
+    inner = `<span class="hud-mouse-g" data-gk="${gk}">` + (mg ? `<span class="pad-g pad-kn pad-key pad-mouse" data-set="keys"${inkAttr('keys', mg.char)} role="img" aria-label="${mg.word}">${mg.char}</span>` : MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w', MMB: 'w', DRAG: 'move' }[token])) + '</span>';
   } else {
     const canon = tokenKey(token);
     const phys = physicalKey(getSettings().keyBinds, canon);
@@ -56,7 +56,7 @@ function keyGlyphInner(phys) {
   const k = String(phys);
   const g = keyGlyph(k === ' ' ? 'space' : k === 'control' ? 'ctrl' : k);
   if (!g) return null;
-  return '<span class="pad-g pad-kn pad-key" data-set="keys" role="img" aria-label="' + esc(KEY_LABEL[k] || k.toUpperCase()) + '">' + g.char + '</span>';
+  return '<span class="pad-g pad-kn pad-key" data-set="keys"' + inkAttr('keys', g.char) + ' role="img" aria-label="' + esc(KEY_LABEL[k] || k.toUpperCase()) + '">' + g.char + '</span>';
 }
 // A key as it is written on a hint label ('Enter', 'Esc', 'Spatie', 'Tab', 'Q', '↑', 'F8'): its glyph, or null (a word like 'Muis' keeps its text).
 const LABEL_KEYS = { enter: 'enter', esc: 'escape', spatie: ' ', tab: 'tab', shift: 'shift', ctrl: 'control', alt: 'alt', backspace: 'backspace', del: 'delete', delete: 'delete', '↑': 'arrowup', '↓': 'arrowdown', '←': 'arrowleft', '→': 'arrowright' };

@@ -11,7 +11,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
-import { padSlotGlyph } from './inputglyphs.js';
+import { padSlotGlyph, inkAttr } from './inputglyphs.js';
 import { glyphHtml, BRACE_KEY_RE, BRACE_RUN_RE, groupKeyRuns, endKeyRuns, plainKeyText, keyLabelIcon, labelToken } from './keycap.js';
 
 const SEL = '[data-gk], kbd, .hud-key, .m-kc';
@@ -63,7 +63,7 @@ export function padGlyphInner(slot, family = padState().family) {
   if (kn) {
     const kind = ['a', 'b', 'x', 'y'].includes(slot) ? 'pad-face' : ['up', 'down', 'left', 'right', 'dpad'].includes(slot) ? 'pad-dp' : /^[lr]?s(tick)?$/.test(slot) ? 'pad-stick' : 'pad-sh';
     const word = SLOT_WORDS[['a', 'b', 'x', 'y'].includes(slot) ? glyphFaceSlot(slot, family) : slot] || label;
-    return `<span class="pad-g pad-kn ${kind}" data-set="${kn.set}" data-slot="${slot}" role="img" aria-label="${word}">${kn.char}</span>`;
+    return `<span class="pad-g pad-kn ${kind}" data-set="${kn.set}"${inkAttr(kn.set, kn.char)} data-slot="${slot}" role="img" aria-label="${word}">${kn.char}</span>`;
   }
   if (['a', 'b', 'x', 'y'].includes(slot)) {
     const t = L[glyphFaceSlot(slot, family)];

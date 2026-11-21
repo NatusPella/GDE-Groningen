@@ -178,7 +178,7 @@ const CSS = `
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
 #trailer .tr-skip .key { display: inline; } /* de toets is een glyph in de regel (ds-keycap.css, #1075) */
-#trailer .tr-skip svg { display: inline-block; width: 1.25em; height: 1.25em; margin-right: 0.4em; vertical-align: middle; transform: rotate(-90deg); }
+#trailer .tr-skip svg { display: inline-block; width: 1.25em; height: 1.25em; margin-right: 0.4em; transform: rotate(-90deg); }
 #trailer .tr-skip circle { fill: none; stroke-width: 3; }
 #trailer .tr-skip .fill { stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
 #trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; display: none; } /* uiterlijk: ds-schermen.css */
