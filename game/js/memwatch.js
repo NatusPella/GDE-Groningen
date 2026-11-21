@@ -12,7 +12,7 @@ export function memSources() {
 }
 
 export const MEM_EVERY_MS = 5000;
-export const MEM_KEEP = 120;   // 120 metingen van 5 s: de laatste 10 minuten
+const MEM_KEEP = 120;   // 120 metingen van 5 s: de laatste 10 minuten
 
 // De heapreeks: piek sinds de start en de groei over het venster (kleinste kwadraten, MB per minuut).
 // Een GC laat de lijn zagen; de helling over 10 minuten zegt of het bodemniveau stijgt (een lek) of niet.

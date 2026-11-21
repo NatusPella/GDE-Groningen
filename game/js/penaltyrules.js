@@ -12,7 +12,7 @@ export const U_MAX = 1.45;                // het richtkruis mag iets buiten de p
 export const V_MAX = 1.35;                // en iets boven de lat
 export const KRACHT_DOEL = 0.78;          // de kracht waarmee je het zuiverst schiet
 export const LAAD_S = 1.15;               // zoveel seconden houd je Spatie voor volle kracht
-export const MEDAILLE_BIJ = [2, 3, 5];   // doelpunten voor brons, zilver, goud (bij Standaard)
+const MEDAILLE_BIJ = [2, 3, 5];   // doelpunten voor brons, zilver, goud (bij Standaard)
 
 // De uitkomsten van een schot en hun tekst; elke uitkomst heeft een woord, nooit alleen een kleur.
 export const UITKOMSTEN = {

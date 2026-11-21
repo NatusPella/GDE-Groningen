@@ -8,10 +8,10 @@ import { assistFactors } from './assist.js';
 
 // De basis: 30% ruimer dan de oude zone. Een stand of hulp maakt het daarbovenop ruimer;
 // 'uitdagend' (0,85) houdt de zone iets smaller dan de basis, maar nooit smaller dan vroeger.
-export const BASE_GRACE = 1.3;
-export const MAX_GRACE = 2.1;
+const BASE_GRACE = 1.3;
+const MAX_GRACE = 2.1;
 export const MIN_ZONE = 0.14;   // breedte op de balk (0..1): hieronder is mikken niet meer te doen
-export const MAX_ZONE = 0.82;
+const MAX_ZONE = 0.82;
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const getal = (v, d) => (Number.isFinite(v) ? v : d);

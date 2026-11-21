@@ -15,7 +15,7 @@ export { progressText } from './progress.js';
 
 // De lopende stand van het verhaal: dezelfde vraag aan story.js die het menu ook stelt, zodat
 // het cijfer op de HUD en in het menu hetzelfde is.
-export function liveStoryCounts() {
+function liveStoryCounts() {
   try {
     const steps = getStorySteps().filter((s) => s.available);
     return { done: steps.filter((s) => s.done).length, total: steps.length };
@@ -25,7 +25,7 @@ export function liveStoryCounts() {
 }
 
 // De tellingen van alle vier de onderdelen.
-export function progressCounts() {
+function progressCounts() {
   const uit = { verhaal: liveStoryCounts() };
   try { const a = getAchievementSummary(); uit.prestaties = { done: a.done, total: a.total }; } catch (e) { /* nog niet geladen */ }
   try {

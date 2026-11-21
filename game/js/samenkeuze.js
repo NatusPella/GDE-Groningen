@@ -2,7 +2,7 @@
 // taal als de andere menu's (menu.css); daarna kiest wie het spel opent een opgeslagen spel (saveslotsui.js) en komt
 // de wachtkamer (lobbyui.js) in het spel zelf. De rol hoort bij de speler (#455): iedereen speelt lokaal zijn eigen
 // verhaal (Tammo of Tessa) en de anderen zien je als je online-avatar.
-export const SAMEN_KEUZES = [
+const SAMEN_KEUZES = [
   { act: 'host', label: 'Een spel openen', sub: 'Jij kiest het spel en nodigt de anderen uit' },
   { act: 'gast', label: 'Meedoen', sub: 'Speel mee in het spel van een ander, met een kamercode of een IP-adres' },
   { act: 'lijst', label: 'Openbare sessies', sub: 'Zie welke spelers een open sessie hebben en sluit met een klik aan' },

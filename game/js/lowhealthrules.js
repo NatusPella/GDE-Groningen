@@ -1,8 +1,8 @@
 // Zwaar gewond en doodgaan (#436): de pure regels van lowhealth.js (rode rand, wandelsnelheid, flits na een klap).
-export const LOW_HEALTH = 25;
+const LOW_HEALTH = 25;
 // the share of the normal walking pace left at the very lowest health
-export const SLOWEST = 0.7;
-export const FLASH_MIN_DROP = 8;
+const SLOWEST = 0.7;
+const FLASH_MIN_DROP = 8;
 
 // 0 at the threshold and above, 1 at (almost) dead; health 0 or lower (you are dying): 1, the screen stays fully red
 export function hurtLevel(health) {

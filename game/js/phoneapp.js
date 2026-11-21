@@ -36,7 +36,7 @@ export function bodyOf(e) {
 
 // De apps op de Pixie Vouw 11 hebben verzonnen namen (#998): geen echte merken, wel een knipoog.
 // De sleutel is de interne app (hudbus.js), de naam is wat de speler leest.
-export const APP_NAAM = {
+const APP_NAAM = {
   sikkom: 'Kiekdoar',
   bericht: 'Kletsmaar',
   geld: 'Knipbank',

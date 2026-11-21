@@ -10,14 +10,13 @@ import { hoofdspeler } from './players.js';
 
 import { bouwKielzogVeld, setKielzogVeld } from './kielzogveld.js';
 
-export const GOLF_REIKWIJDTE = 90;      // m rond de speler: verder wordt er niets berekend
-export const KIELZOG_MIN_SNELHEID = 5;  // m/s: eerder maakt een boot geen merkbaar kielzog
-export const KIELZOG_HOEK = 0.36;       // tan(19,5 graden): zijwaartse spreiding per meter achter de boot (net als boatwake3d.js)
-export const KIELZOG_MAX_ACHTER = 70;   // m: daarachter is het kielzog uitgedoofd
-export const KLEIN_VAARTUIG = { sup: 0.2, supWit: 0.2, kano: 0.28, kajak: 0.28, waterfiets: 0.4 }; // golfhoogte (m) waarbij het omslaat
-export const KLEINE_SOORTEN = ['sup', 'kano', 'kajak', 'waterfiets'];
-export const OMVAL_RISICO_PER_S = 1.1;  // hoe snel het risico oploopt boven de drempel
-export const GENADE_S = 5;              // na het terugklimmen kan je even niet weer omvallen
+const GOLF_REIKWIJDTE = 90;      // m rond de speler: verder wordt er niets berekend
+const KIELZOG_MIN_SNELHEID = 5;  // m/s: eerder maakt een boot geen merkbaar kielzog
+const KIELZOG_HOEK = 0.36;       // tan(19,5 graden): zijwaartse spreiding per meter achter de boot (net als boatwake3d.js)
+const KIELZOG_MAX_ACHTER = 70;   // m: daarachter is het kielzog uitgedoofd
+const KLEIN_VAARTUIG = { sup: 0.2, supWit: 0.2, kano: 0.28, kajak: 0.28, waterfiets: 0.4 }; // golfhoogte (m) waarbij het omslaat
+const OMVAL_RISICO_PER_S = 1.1;  // hoe snel het risico oploopt boven de drempel
+const GENADE_S = 5;              // na het terugklimmen kan je even niet weer omvallen
 const MAX_DOELEN = 6;
 
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
@@ -99,7 +98,7 @@ function boten(world, speler) {
 }
 
 // De speler valt van zijn plank: het vaartuig blijft drijven, de speler ligt nat in het water (E klimt terug).
-export function valInHetWater(world, v) {
+function valInHetWater(world, v) {
   const p = hoofdspeler(world);
   v.speed = 0; v.throttle = 0;
   v._golf.risico = 0; v._golf.genade = (world.time || 0) + GENADE_S;

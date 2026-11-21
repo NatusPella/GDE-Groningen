@@ -7,7 +7,7 @@ const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
 // Seconden waarmee bewolking en mist naar een nieuwe doelwaarde schuiven als de regio van de speler wisselt.
-export const COVER_EASE_S = 6;
+const COVER_EASE_S = 6;
 
 // Schuif v naar target met een tijdconstante van `secs` seconden (exponentieel, onafhankelijk van de framerate).
 export function easeTo(v, target, dt, secs = COVER_EASE_S) {

@@ -22,7 +22,6 @@ export const HAPTIC_EVENTS = {
   beat: (k) => [0.25 + 0.2 * k, 0.05, 90],
 };
 
-export const STRENGTHS = [['zacht', 0.5], ['normaal', 1], ['sterk', 1.4]];
 
 // Wat is er aan: de schakelaar, de sterkte en de bewegingsreductie.
 // Geeft de factor (0 = uit) waarmee elke magnitude wordt vermenigvuldigd.

@@ -14,7 +14,7 @@ export const CUP_R = 0.11;
 export const CUP_SPEED = 1.7;     // m/s: sneller dan dit (aan de rand) rolt de bal over of uit de hole
 export const DT = 0.005;
 export const SAMPLE = 0.02;       // één punt van de baan per 20 ms
-export const MAX_T = 24;
+const MAX_T = 24;
 export const LOFT = 0.62;         // rad: de lanceerhoek van een pitch (wedge)
 
 // mu: rollende wrijving (verlies in g); e: terugkaatsing loodrecht; keep: hoeveel van de zijwaartse snelheid een harde inslag behoudt

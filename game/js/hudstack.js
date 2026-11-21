@@ -75,14 +75,14 @@ export const LINKS_RAND = 46;       // px: de linkerrand van de HUD (--hud-edge)
 export const LINKS_KAART_TOP = 200; // px: missiekaart, prestatiekaart en nieuwsregel staan onder het paneel van de minigame
 export const LINKS_KAART_BREED = 350;
 export const MM = 250;              // px: de minikaart (--mm-size)
-export const MM_BODEM = 46;         // px: --mm-bottom
-export const PLAATS_BREED = 230;    // px: de plaatsnaam naast de minikaart
-export const PLAATS_H = 84;
+const MM_BODEM = 46;         // px: --mm-bottom
+const PLAATS_BREED = 230;    // px: de plaatsnaam naast de minikaart
+const PLAATS_H = 84;
 export const HINTS_LINKS = 560;     // px: de toetsbalk begint rechts van de plaatsnaam
 export const HINTS_H = 100;
-export const HINTS_BODEM = 22;
-export const STAPEL_BREED = 480;
-export const RECHTS_KAART_BREED = 280;
+const HINTS_BODEM = 22;
+const STAPEL_BREED = 480;
+const RECHTS_KAART_BREED = 280;
 
 // De breedtes die meekrimpen als de HUD smal wordt (Grootte interface 1,2 tot 1,5: het HUD-vlak is dan minder dan ~1140 px breed, review 21-11).
 // links: de missie- en prestatiekaart (de CSS neemt 30 % van de breedte, hooguit LINKS_KAART_BREED); stapel: de opdrachtkaarten tussen

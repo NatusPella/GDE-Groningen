@@ -11,9 +11,9 @@
 // {E} (toetsplaatje, keycap.js), nooit als losse letter.
 
 // De reeksbonus per klus (zie basisFor in sidejobs.js: 1 + 0.06 * min(reeks, 10)).
-export const REEKS_PER_KLUS = 0.06;
-export const REEKS_MAX = 10;
-export const REEKS_MIJLPALEN = [3, 5, 8, 10];
+const REEKS_PER_KLUS = 0.06;
+const REEKS_MAX = 10;
+const REEKS_MIJLPALEN = [3, 5, 8, 10];
 
 // De bonus (in procenten) die de volgende klus krijgt na `streak` klussen op rij.
 export const reeksBonusPct = (streak) => Math.round(REEKS_PER_KLUS * 100 * Math.min(Math.max(0, Math.floor(streak) || 0), REEKS_MAX));
@@ -146,7 +146,7 @@ export const BIJBAAN_BEATS = {
 };
 
 export const BEAT_LIJNEN = Object.keys(BIJBAAN_BEATS);
-export const beatVan = (id) => (Object.prototype.hasOwnProperty.call(BIJBAAN_BEATS, id) ? BIJBAAN_BEATS[id] : null);
+const beatVan = (id) => (Object.prototype.hasOwnProperty.call(BIJBAAN_BEATS, id) ? BIJBAAN_BEATS[id] : null);
 
 // De openingsregel van een dienst; de eerste twee diensten leggen ook de bediening uit (met toetsplaatje).
 export function openingVan(id, diensten = 99) {

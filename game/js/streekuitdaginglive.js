@@ -11,7 +11,6 @@ import { STREEKUITDAGING, startBij, doelBij, checkpoints, medailleVoor } from '.
 
 let run = null;
 
-export const streekuitdagingActief = () => !!run;
 export const getStreekuitdagingSpotsForRender = () => [{ ...STREEKUITDAGING.start, kind: 'streekuitdaging', naam: STREEKUITDAGING.naam }];
 
 export function tryStreekuitdaging(world) {

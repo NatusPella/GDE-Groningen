@@ -10,7 +10,7 @@
 
 import { handshakeInfo, startHost, stopCoopNet } from './coopnet.js';
 
-export const SOLO_MAX = 1;
+const SOLO_MAX = 1;
 
 export const isSoloHost = (world) => !!(world && world.coopSolo && world.coopNet && world.coopRole === 'host');
 

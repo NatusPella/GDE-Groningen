@@ -76,7 +76,7 @@ export function eerNa(vorige, spelerRel, sirRel) {
 
 export const PEND_S = 2.6; // Sir Cedric loopt naar de tee en richt zich
 export const SWING_S = 1.1; // zijn slag zelf: dan staat iedereen stil
-export const KIJKEN_KANS = 0.5;
+const KIJKEN_KANS = 0.5;
 
 export function newEtiquette(rand = Math.random) {
   return { rand, eer: 'sir', hole: null, sirRel: 0, spelerRel: 0, gepraat: 0, boos: 0 };

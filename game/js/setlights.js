@@ -13,7 +13,6 @@ export function adoptSetLight(light) {
   if (light && !proxies.includes(light)) { light.userData.setDetached = 0; proxies.push(light); }
   return light;
 }
-export const adoptedSetLights = () => proxies;
 
 // renderer.compile telt de lichten die op dat moment zichtbaar zijn; een set die de nachtrig leent heeft ze bij het tekenen verborgen
 // (syncSetLights). Compileer het dus ook zonder: anders krijgt het materiaal van de set een programma voor N+k lichten dat

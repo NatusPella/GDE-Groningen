@@ -178,7 +178,6 @@ export function soortenStand() {
   }
   return [...tel.values()].filter((r) => r.totaal > 0);
 }
-export const gekozenGebied = () => gekozen;
 export function kiesGebied(id) { gekozen = id; return detailHtml(); }
 export function detailHtml() {
   const o = getOverzicht();

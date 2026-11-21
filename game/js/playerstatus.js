@@ -39,7 +39,7 @@ export function statusVan(r, ctx = {}) {
 export const versieRegel = (versie) => (versie ? `Versie ${versie}, bij elke speler gelijk.` : '');
 
 // ---- Spel starten (wie het spel opende, in de wachtkamer)
-export const MIN_START = 2;
+const MIN_START = 2;
 export const START_LANG_NA_S = 10; // daarna zeggen we dat het langer duurt dan gewoonlijk (de gastheer kan 10 tot 57 s stilstaan)
 // ctx: { rol: 'host' | 'gast', spelers: [{ naam, verbinding }], bezig: bool, bezigS: seconden, gevraagd: bool (gast vroeg de start), opener }
 // Geeft { label, disabled, busy, hint }. Actief alleen als er minstens twee spelers zijn en niemand ontbreekt:

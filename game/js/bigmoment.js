@@ -17,7 +17,6 @@ export const MAX_WOORDEN = 14;   // the 14-word budget of ui-taal.md
 export const MAX_FLITS_PER_S = 3; // no flash above three a second (photosensitivity)
 export const MAX_WACHTRIJ = 3;
 export const RIJDEN_MS = 3;       // vanaf deze snelheid (m/s) of in een voertuig, boot of vliegtuig is de speler aan het rijden
-export const COMPACT_FACTOR = 0.6; // een compact moment is zo'n 40% kleiner en blijft korter staan
 
 // Defaults per kind: form, label, a Gronings exclamation with its Dutch line, how long it stays (ms).
 // "Grunn" never "de Grunn"; every Gronings line has its Dutch next to it (regelNl).

@@ -9,10 +9,10 @@ import { speler } from './spelersregister.js';
 
 export const ZEE_MAX = 3;
 // m rond de speler: eerst dichtbij proberen (van de kust is de zee vaak een kilometer weg), dan verder
-export const ZEE_SPAWN = { min: 250, max: 1500, stappen: [600, 1000, 1500] };
+const ZEE_SPAWN = { min: 250, max: 1500, stappen: [600, 1000, 1500] };
 export const ZEE_WEG = 2400;                      // m: verder weg wordt het schip opgeruimd
 export const ZEE_TIK_S = 5;
-export const ZEE_KANS = 0.4;                      // kans per tik dat er een bijkomt als er plek is
+const ZEE_KANS = 0.4;                      // kans per tik dat er een bijkomt als er plek is
 
 // (kind, gewicht)
 const MIX = [['zeeVracht', 32], ['zeeContainer', 26], ['zeeTanker', 20], ['zeeSleper', 22]];

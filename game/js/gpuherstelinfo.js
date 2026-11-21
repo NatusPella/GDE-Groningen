@@ -6,7 +6,7 @@ import { gpuState, describeGpu, veilForQualityChange } from './gpuherstel.js';
 import { setReportExtra } from './errorlog.js';
 import { onSettingsChange } from './settings.js';
 
-export const gpuDiagLines = () => describeGpu(gpuState, performance.now());
+const gpuDiagLines = () => describeGpu(gpuState, performance.now());
 
 export function initGpuHerstelInfo(hooks = {}) {
   setReportExtra(() => gpuDiagLines());

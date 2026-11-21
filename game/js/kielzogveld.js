@@ -16,11 +16,11 @@
 
 export const KIELZOG_VELD_MAX = 4;            // boten met een golf in het oppervlak
 export const KIELZOG_VELD_REIK = 70;          // m achter de boot: daar is de golf weg
-export const KIELZOG_VELD_MIN_SNELHEID = 5;   // m/s: langzamer maakt geen golf
+const KIELZOG_VELD_MIN_SNELHEID = 5;   // m/s: langzamer maakt geen golf
 export const KIELZOG_VELD_HOEK = 0.36;        // tan(19,5 graden): zijwaartse spreiding per meter (net als boatwake3d.js)
 export const KIELZOG_VELD_TOP = 0.22;         // m: bovengrens, ook als er vier golven samenvallen
-export const KIELZOG_VELD_DEEL = 0.55;        // het oppervlak toont dit deel van wat een romp in het kielzog voelt
-export const KIELZOG_VELD_BASIS = 0.12;       // m per vierkantswortel van de scheepslengte bij 6 m/s
+const KIELZOG_VELD_DEEL = 0.55;        // het oppervlak toont dit deel van wat een romp in het kielzog voelt
+const KIELZOG_VELD_BASIS = 0.12;       // m per vierkantswortel van de scheepslengte bij 6 m/s
 
 const f = (v) => v.toFixed(2);
 

@@ -7,9 +7,9 @@
 import { stopName } from './busservice.js';
 import { VERVOERDER, spoor as spoorVan } from './dienstregeling.js';
 
-export const HALTE_PROMPT_R = 9;   // m: zo dichtbij de paal staat de E-prompt
+const HALTE_PROMPT_R = 9;   // m: zo dichtbij de paal staat de E-prompt
 export const HALTE_ZIEN_R = 220;   // m: haltepalen binnen deze afstand staan in beeld
-export const HALTE_SAMEN = 14;     // m: haltes van verschillende lijnen die zo dicht liggen zijn één halte
+const HALTE_SAMEN = 14;     // m: haltes van verschillende lijnen die zo dicht liggen zijn één halte
 const CEL = 400;                   // m: rastercel van de haltes
 
 const naam = (line, i) => stopName(line, i);

@@ -25,15 +25,15 @@ export const STANDAARD_RECHT = 'iedereen'; // meenemen is delen; alleen ik houdt
 export const STANDAARD_PAND_RECHT = 'ik';  // je huis is van jou, tenzij je het deelt
 export const MAX_BEZORG = 2;   // per speler tegelijk in de sessie
 export const MAX_PANDEN = 3;
-export const MAX_UPGRADES = 8;
-export const MAX_DENTS = 12;
-export const SLEUTEL = /^[a-z0-9_]{1,24}$/; // een sleutel uit de garage ('hero' of een winkel)
+const MAX_UPGRADES = 8;
+const MAX_DENTS = 12;
+const SLEUTEL = /^[a-z0-9_]{1,24}$/; // een sleutel uit de garage ('hero' of een winkel)
 export const PAND_SLEUTEL = /^h:(pv|gm|wp|wk|bu):[a-z0-9]{1,24}$/i; // een huis uit je profiel ('h:wp:WP1017')
 // Een boot en de heli gaan als eigen soort over de lijn: elk heeft zijn eigen
 // plek nodig (water, open droge grond) en de host controleert dat met dezelfde
 // grenzen als bij een auto. 'voertuig' is de auto, fiets of step.
 export const SOORTEN = ['voertuig', 'boot', 'heli', 'pand'];
-export const SOORT_TEKST = { voertuig: 'voertuig', boot: 'boot', heli: 'helikopter' };
+const SOORT_TEKST = { voertuig: 'voertuig', boot: 'boot', heli: 'helikopter' };
 const HEX = /^#[0-9a-f]{6}$/i;
 
 // De soort bij een spec (ownedvehicles.js eigenSpec): boten en de heli hebben

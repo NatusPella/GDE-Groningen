@@ -30,7 +30,6 @@ export function dsKleur(naam) {
   cache.set(naam, k);
   return k;
 }
-export const vernieuwDsKleuren = () => cache.clear();
 
 // Hex naar 'rgba(r, g, b, a)'.
 export function hexA(hex, alpha) {

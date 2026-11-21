@@ -4,7 +4,7 @@
 // safety.js voedt ze elke frame en voert de vrijzetting uit.
 export const VAST_STIL_S = 6;      // zo lang stilstaan met gas voordat de hint komt
 export const VAST_HOUD_S = 1.5;    // zo lang Backspace vasthouden om vrij te komen
-export const VAST_SNELHEID = 0.4;  // m/s: daaronder staat het voertuig stil
+const VAST_SNELHEID = 0.4;  // m/s: daaronder staat het voertuig stil
 
 export const nieuwVast = () => ({ stil: 0, houd: 0, hint: false });
 

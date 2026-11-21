@@ -610,8 +610,6 @@ export const SAFEHUIS = {
   },
 };
 
-export const safehuisLijst = () => huizen;
-export const huisVanGebied = (gebiedId) => huizen.find((h) => h.gebied === gebiedId) || null;
 
 // Het snelreisanker: naar de deur van je eigen safehouse, met de bewakers van de kaartteleport (geen missie, geen politie, niet op het water).
 export function reisNaarHuis(huisIdent) {

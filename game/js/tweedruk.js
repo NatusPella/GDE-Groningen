@@ -2,7 +2,7 @@
 // al vanaf €1.000 (shoplist.js needsConfirm); de boerderij gebruikt dezelfde grens. Pure regels, geen DOM.
 import { euro } from './geldtekst.js';
 
-export const TWEEDE_DRUK_VANAF = 1000;
+const TWEEDE_DRUK_VANAF = 1000;
 export const TWEEDE_DRUK_MS = 8000;
 
 // De vraag bij een aankoop, of '' als het zonder kan.

@@ -6,7 +6,7 @@ import { charInfo } from './coopplayers.js';
 import { markerColors } from './a11y.js';
 // #809: de pingkleur komt uit de marker-/kleurenblindpaletten (a11y.js), niet uit
 // een eigen hex; de vorm (kruis/ster) blijft het tweede signaal.
-export const PING_ROLE = { hier: 'user', gevaar: 'danger', doel: 'mission' };
+const PING_ROLE = { hier: 'user', gevaar: 'danger', doel: 'mission' };
 
 // toets -> soort (de soort gaat over het net, partnerhud.js addPing kent 'hier', 'gevaar', 'doel')
 export const PING_TOETSEN = [
@@ -16,8 +16,6 @@ export const PING_TOETSEN = [
 ];
 export const PING_TEKST = Object.fromEntries(PING_TOETSEN.map((p) => [p.soort, p.tekst]));
 export const KIJK_AFSTAND = 25; // m: 'Kijk daar' wijst zoveel meter vooruit
-// kleur van het baken per soort als de afzender onbekend is
-export const SOORT_KLEUR = PING_ROLE; // oude naam, nu een paletrol per soort
 
 // Waar komt de ping te staan? 'Kom hier' en 'Help!' op je eigen plek, 'Kijk daar' een stuk voor je uit.
 export function pingPlek(lichaam, soort) {

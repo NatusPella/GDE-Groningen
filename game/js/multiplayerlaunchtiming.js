@@ -4,8 +4,8 @@
 // world.coopStartMeting. Stappen zet de code zelf met markeerStartStap('naam') op de plekken die er toe doen.
 // Alleen metingen: geen netwerk, geen opslag, geen spelergegevens. Puur deel (samenvatting) is getest in scripts/multiplayerlaunchtiming_test.mjs.
 
-export const START_METING_MS = 70000;
-export const START_DREMPEL_MS = 120;
+const START_METING_MS = 70000;
+const START_DREMPEL_MS = 120;
 
 // Samenvatting van een lijst { at, dur, stap, bron }: totaal geblokkeerd, langste, en per stap de som en de langste. Let op: een lange taak komt
 // ook als lange beeldsprong (raf) en als lange frame (loaf) voor, dus de totalen tellen tot drie keer; lees ze als ordegrootte en kijk naar top.

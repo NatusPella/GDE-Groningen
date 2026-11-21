@@ -124,7 +124,7 @@ export function applyFurnitureSave(d) {
 
 // --- shop (shops.js eikeaSections) ----------------------------------------------------
 
-export function furnitureShopItems(w, { pay, broke, preview }) {
+function furnitureShopItems(w, { pay, broke, preview }) {
   const n = state.owned.size + state.pending.size;
   return FURNITURE.map((f) => {
     const own = state.owned.has(f.id), coming = state.pending.has(f.id);
@@ -160,7 +160,7 @@ export function grantFurniture(ids) {
   return out;
 }
 
-export function furnitureShopNote() {
+function furnitureShopNote() {
   return state.pending.size ? `Besteld: ${[...state.pending].map((id) => BY_ID.get(id).short).join(', ')}. Wordt thuis bezorgd` : 'Alles wordt bezorgd in de Pleiadenlaan';
 }
 
@@ -332,7 +332,7 @@ export function fridgePerk(w) {
   return true;
 }
 
-export function furnitureJobBonus() {
+function furnitureJobBonus() {
   return has('bureau') ? JOB_BONUS : 1;
 }
 

@@ -9,7 +9,7 @@ import { shotAt } from './meerijden.js';
 // Het landschap schuift in de hele scène door; in het raamshot gaat het sneller
 // (je zit immers in de trein in plaats van ernaar te kijken).
 export const TREIN_SCROLL = 3.4;
-export const RAAM_SCROLL = 6.2;
+const RAAM_SCROLL = 6.2;
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const stationNaam = (stops, i) => (stops && stops[i] && stops[i].name) || '';
