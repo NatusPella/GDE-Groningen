@@ -1,9 +1,6 @@
 {
  "note": "Allowlist wacht op opname (#735): gegenereerd door scripts/voice_wacht.mjs uit tts_lines.json; leeg zodra de TTS-ronde klaar is.",
  "keys": [
-  "Accountmanager|En hoe lang bestaat uw bedrijf?",
-  "Accountmanager|Wat is uw merkpersoonlijkheid?",
-  "Accountmanager|Wilt u een chatbot?",
   "Anita|Aanvallen. Eerst de gracht: Lammert zet de sluis open, Klaas vaart.",
   "Anita|Alle vrienden rijden mee, maar één rijdt naast ons. Wie neemt Jelles limo voor zijn rekening?",
   "Anita|Alles bij elkaar: nu inschrijven, honderdvijftig euro contant.",
@@ -32,7 +29,6 @@
   "Anita|Dat zeg je elke dag.",
   "Anita|Dat zegt hij zelf ook.",
   "Anita|De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
-  "Anita|De accountmanager belt een collega. Nu snel naar de serverkamer.",
   "Anita|De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder.",
   "Anita|De derde deur. De bal blijft hier.",
   "Anita|De dozen staan klaar. Naar de verhuisbus voor het huis.",
@@ -170,7 +166,6 @@
   "Tammo|Dat was de oefening.",
   "Tammo|Dat wist de hele flat nu ook.",
   "Tammo|De Fjord Frituur staat open. Iedereen eet eierballen op de wal.",
-  "Tammo|De accountmanager belt een collega. Nu snel naar de serverkamer.",
   "Tammo|De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder.",
   "Tammo|De derde deur. De bal blijft hier.",
   "Tammo|De dozen staan klaar. Naar de verhuisbus voor het huis.",
@@ -205,7 +200,6 @@
   "Tammo|Het perron in Veendam. De machinist eet een eierbal op een bank.",
   "Tammo|Het staat je goed. Op dinsdag.",
   "Tammo|Hij is creatief.",
-  "Tammo|Hij loopt twee stappen achter je. De camera's draaien sneller en het groen is smaller.",
   "Tammo|Houd de deur van de kruitkelder met de kartonnen kanonnen. Jelles mannen komen in colberts.",
   "Tammo|Houd de snelheid erin. In de modder zakt hij weg als je stilstaat.",
   "Tammo|Houd ook de tweede deur. Daarna de derde.",

@@ -11,6 +11,10 @@
 "src": "accountmanager/de_serverkamer_is_niet_voor_klan_fccfc380.mp3",
 "dur": 4.49
 },
+"Accountmanager|En hoe lang bestaat uw bedrijf?": {
+"src": "accountmanager/en_hoe_lang_bestaat_uw_bedrijf_1d31a83a.mp3",
+"dur": 2.51
+},
 "Accountmanager|Iedereen is nieuw bij een intake. Ik loop even mee naar de koffieautomaat. In de gang.": {
 "src": "accountmanager/iedereen_is_nieuw_bij_een_intake_2da88382.mp3",
 "dur": 4.84
@@ -39,6 +43,10 @@
 "src": "accountmanager/warm_droog_en_een_beetje_groning_5c89903e.mp3",
 "dur": 6.53
 },
+"Accountmanager|Wat is uw merkpersoonlijkheid?": {
+"src": "accountmanager/wat_is_uw_merkpersoonlijkheid_2c829bb8.mp3",
+"dur": 2.92
+},
 "Accountmanager|Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte?": {
 "src": "accountmanager/welkom_bij_wiebelwerk_wij_maken__26db633d.mp3",
 "dur": 4.42
@@ -46,6 +54,10 @@
 "Accountmanager|Wiebelwerk doet niets verkeerds. Wij maken alleen websites.": {
 "src": "accountmanager/wiebelwerk_doet_niets_verkeerds__a53a26c0.mp3",
 "dur": 3.84
+},
+"Accountmanager|Wilt u een chatbot?": {
+"src": "accountmanager/wilt_u_een_chatbot_a0037fb0.mp3",
+"dur": 1.98
 },
 "Anita|\"De bewaarder.\" Daarbij staat: notaris, 28 augustus, drie uur. Meer niet.": {
 "src": "anita/de_bewaarder_daarbij_staat_notar_b7b1d620.mp3",

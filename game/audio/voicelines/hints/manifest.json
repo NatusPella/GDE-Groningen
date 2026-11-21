@@ -95,6 +95,10 @@
 "src": "anita/de_escapade_is_nog_te_traag_voor_c55970c9.mp3",
 "dur": 5.18
 },
+"Anita|De accountmanager belt een collega. Nu snel naar de serverkamer.": {
+"src": "anita/de_accountmanager_belt_een_colle_0c73e412.mp3",
+"dur": 4.5
+},
 "Anita|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
 "src": "anita/de_decorauto_blijft_hier_femke_l_adcd5e7d.mp3",
 "dur": 4.24
@@ -647,6 +651,10 @@
 "src": "tammo/de_escapade_is_nog_te_traag_voor_0b82da17.mp3",
 "dur": 4.31
 },
+"Tammo|De accountmanager belt een collega. Nu snel naar de serverkamer.": {
+"src": "tammo/de_accountmanager_belt_een_colle_22463d3f.mp3",
+"dur": 4.76
+},
 "Tammo|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
 "src": "tammo/de_decorauto_blijft_hier_femke_l_6c9ff5d3.mp3",
 "dur": 3.64
@@ -806,6 +814,10 @@
 "Tammo|Hij is terug. Instappen, Tessa. Hij rijdt nog. Nauwelijks.": {
 "src": "tammo/hij_is_terug_instappen_tessa_hij_d728dcf8.mp3",
 "dur": 3.47
+},
+"Tammo|Hij loopt twee stappen achter je. De camera's draaien sneller en het groen is smaller.": {
+"src": "tammo/hij_loopt_twee_stappen_achter_je_e2090ad3.mp3",
+"dur": 4.83
 },
 "Tammo|Hij slingert! Durk krijgt de zenuwen.": {
 "src": "tammo/hij_slingert_durk_krijgt_de_zenu_b2a528ef.mp3",

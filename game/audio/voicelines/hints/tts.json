@@ -258,6 +258,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
+"Anita|De accountmanager belt een collega. Nu snel naar de serverkamer.": {
+"src": "anita/de_accountmanager_belt_een_colle_0c73e412.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "De accountmanager belt een collega. Nu snel naar de serverkamer.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Anita|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
 "src": "anita/de_decorauto_blijft_hier_femke_l_adcd5e7d.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1728,6 +1739,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Tammo|De accountmanager belt een collega. Nu snel naar de serverkamer.": {
+"src": "tammo/de_accountmanager_belt_een_colle_22463d3f.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "De accountmanager belt n collega. Nou snel noar de serverkamer.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Tammo|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
 "src": "tammo/de_decorauto_blijft_hier_femke_l_6c9ff5d3.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2136,6 +2158,17 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Tammo|Hij loopt twee stappen achter je. De camera's draaien sneller en het groen is smaller.": {
+"src": "tammo/hij_loopt_twee_stappen_achter_je_e2090ad3.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "Hai lopt twij stappen achter die. De camera's draaien sneller en t groen is smaller.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
 },
 "Tammo|Hij slingert! Durk krijgt de zenuwen.": {
 "src": "tammo/hij_slingert_durk_krijgt_de_zenu_b2a528ef.mp3",
