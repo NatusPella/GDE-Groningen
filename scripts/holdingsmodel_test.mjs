@@ -10,6 +10,7 @@ import * as S from '../game/js/farmstaff.js';
 import * as L from '../game/js/livestock.js';
 import * as H from '../game/js/holdingsmodel.js';
 import { loonwerkKosten } from '../game/js/machines.js';
+import { setAreaPrice } from '../game/js/bezithooks.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; PC.wisExtraPercelen(); try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.stack || e.message).split('\n').slice(0, 6).join('\n   ')); } };
@@ -279,5 +280,24 @@ t('prestaties: bulk zaaien van 1000 percelen blijft bruikbaar', () => {
   assert.equal(r.done, 1000); assert.ok(tijd < 1000, `${tijd.toFixed(0)} ms`);
 });
 
+t('vee-opbrengst: zonder haak de vaste prijs, met de streekmarkt de streekprijs (eieren per stuk omgerekend), de kudde bepaalt de streek', () => {
+  const herds = { pAAA: { sp: 'koe', n: 10 }, pBBB: { sp: 'koe', n: 40 }, pCCC: { sp: 'kip', n: 5 } };
+  const spKoe = Object.values(L.SPECIES).find((x) => x.product === 'melk'), spKip = Object.values(L.SPECIES).find((x) => x.product === 'eieren');
+  const koe = Object.keys(L.SPECIES).find((k) => L.SPECIES[k] === spKoe), kip = Object.keys(L.SPECIES).find((k) => L.SPECIES[k] === spKip);
+  herds.pAAA.sp = koe; herds.pBBB.sp = koe; herds.pCCC.sp = kip;
+  setAreaPrice(null);
+  assert.equal(H.livestockRevenue('melk', 100, 5, herds), Math.round(100 * L.PRODUCT_PRICE.melk));
+  assert.equal(H.livestockRevenue('eieren', 80, 5, herds), Math.round(80 * L.PRODUCT_PRICE.eieren));
+  assert.equal(H.livestockRevenue('melk', 0, 5, herds), 0); assert.equal(H.livestockRevenue('melk', -5, 5, herds), 0); assert.equal(H.livestockRevenue('onbekend', 5, 5, herds), 0);
+  const seen = [];
+  setAreaPrice((gewas, kg, dag, veld, base) => { seen.push({ gewas, kg, dag, veld, base }); return base * 1.5; });
+  assert.equal(H.livestockRevenue('melk', 100, 7, herds), Math.round(100 * L.PRODUCT_PRICE.melk * 1.5));
+  assert.deepEqual([seen[0].gewas, seen[0].veld, seen[0].dag], ['melk', 'pBBB', 7]);       // de grootste melkkudde bepaalt de streek
+  assert.equal(H.livestockRevenue('eieren', 80, 7, herds), Math.round(80 * L.PRODUCT_PRICE.eieren * 1.5));
+  assert.equal(seen[1].kg, 80 * 0.125); assert.equal(seen[1].base, L.PRODUCT_PRICE.eieren / 0.125);   // de markt rekent in kilo
+  setAreaPrice(() => NaN);
+  assert.equal(H.livestockRevenue('melk', 100, 7, herds), Math.round(100 * L.PRODUCT_PRICE.melk), 'een kapotte haak valt terug op de vaste prijs');
+  setAreaPrice(null);
+});
 console.log(`holdingsmodel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -136,5 +136,31 @@ t('grenslijn THREE-kant: dunne LineSegments met een gedeeld materiaal, geometrie
   assert.ok(!/Math\.random|fetch\(/.test(srcLines));
   assert.ok(M.MAX_OUTLINES <= 40);
 });
+t('de planning met 1.000 percelen en 5.000 panden: hoogstens 200 palen, de dichtstbijzijnde eerst, en ruim onder het beeldbudget (hoofdlus hooguit 0,2 ms gemiddeld per beeld)', () => {
+  const b = mk(1000, 3);
+  const rows = [];
+  for (let i = 0; i < 5000; i++) { const osm = 1000 + i; Z.buyBuilding(b, osm, 5000, 1, 1e12, 'winkel'); rows.push([osm, (i % 100) * 4, Math.floor(i / 100) * 4, 200, 0, 6, 0]); }
+  const ix = { parcels: createParcelIndex({ v: 1, rows: [] }), buildings: createBuildingIndex({ v: 1, types: ['retail'], rows }) };
+  const run = () => M.planMarkers({ player: { x: 0, y: 0 }, bezit: b, index: ix });
+  const r = run();
+  assert.equal(r.length, M.MAX_MARKERS);
+  assert.ok(r.every((m, i, a) => i === 0 || a[i - 1].d <= m.d), 'gesorteerd');
+  for (let i = 0; i < 3; i++) run();
+  const t0 = performance.now();
+  for (let i = 0; i < 10; i++) run();
+  const per = (performance.now() - t0) / 10;
+  // de planning draait alleen bij 25 m verplaatsing of nieuw bezit (needsReplan), niet elk beeld: gemiddeld per beeld 1 op 60 beelden
+  assert.ok(per / 60 < 0.2, 'gemiddeld per beeld ' + (per / 60).toFixed(3) + ' ms (planning ' + per.toFixed(2) + ' ms)');
+  const v0 = performance.now();
+  for (let i = 0; i < 100; i++) M.bezitVersion(b);
+  assert.ok((performance.now() - v0) / 100 < 0.2, 'de versiecontrole elk beeld blijft onder 0,2 ms');
+});
+t('geen tegelherbouw bij kopen: bezit, markeringen en bezitlive raken de tegel- en wereldbouwer niet', () => {
+  for (const f of ['bezit.js', 'bezitmarker.js', 'bezitmarker3d.js', 'bezitlive.js']) {
+    const code = fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8').replace(/\/\/.*$/gm, '');
+    assert.ok(!/from '\.\/(worldbuilder|tilestream|tileloader|streaming|world3d|models3d_buildings)[a-z0-9_]*\.js'/i.test(code), f + ' importeert de wereldbouw');
+    assert.ok(!/rebuildTile|invalidateTile|reloadTile|dropTile/.test(code), f + ' herbouwt een tegel');
+  }
+});
 console.log(`bezitmarker_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
