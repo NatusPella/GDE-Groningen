@@ -42,7 +42,7 @@ import { lineVoiceFor } from './linevoice.js';
 import { playBubbleVoice } from './audio.js';
 import { VOETBAL_LINES, PROMPT_SUB } from './voetbaldata.js';
 import { newCompetition, leesCompetitie, nextOpponent, applyRound, tabel, yourRank, isKampioen, clubName, KAMPIOEN_BONUS } from './voetbalcompetitie.js';
-import { deriveTeams, encodeTeams, decodeTeams, decodeRatings, encodeRatings, teamOfSlot } from './voetbalsamen.js';
+import { deriveTeams, encodeTeams, decodeTeams, decodeRatings, encodeRatings, teamOfSlot, guestCareerExtra, LEVEL_CAP } from './voetbalsamen.js';
 import { simFactors } from './voetbalplayers.js';
 import { voetbalBonusVan, characterEnter, zetVoetbalKarakterHaken, karakterEind, tessaLine, tessaUitleg } from './voetbalkarakter.js';
 import { voetbalSprint, voetbalSchot, voetbalAanname, characterForActivity, enterActivity, endActivity, TESSA_LINES } from './karakterbonus.js';
@@ -919,6 +919,10 @@ function beloonLokaal(w, g, rij, jij = null) {
   recordStat(w, 'footballMatches');
   if (rij.plek === 1) unlockAchievement(w, 'voetbal_winst');
   if (r.eigen >= 3) unlockAchievement(w, 'voetbal_hattrick');
+  if (g.online === 'gast' && CL.hasCareer()) { // de host betaalt de gast al; zijn eigen carrière krijgt het verschil en de ervaring (60%), nooit competitiepunten (#1157)
+    const x = guestCareerExtra(rij, eigenKlasse() || 'talent', voetbalBeloning({ plek: rij.plek, nul: /-0/.test(rij.tekst || '') }).geld);
+    if (x.geld > 0 || x.xp > 0) loopbaanVerdien(w, 'buiten', x.geld, { xp: x.xp, n: 0, deel: false });
+  }
   if (jij && jij.geld > 0) { loopbaanVerdien(w, 'buiten', jij.geld, { xp: jij.xp, n: 0, uniek: 'voetbal-samen', deel: false }); w.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4); }
   else if (!g.online) { const b = voetbalBeloning({ plek: rij.plek, nul: /-0\b/.test(rij.tekst || '') }); if (b.geld > 0) { loopbaanVerdien(w, 'buiten', b.geld, { xp: b.xp, n: 0, deel: false }); w.addMessage(`Beloning: €${b.geld.toLocaleString('nl-NL')}`, 4); } }
   const stats = [['Stand', `${r.gf}-${r.ga}`], ['Jouw doelpunten', String(r.eigen)]];
@@ -938,9 +942,14 @@ function beloonLokaal(w, g, rij, jij = null) {
 // De bonus van een mens in de Samen-wedstrijd: de host speelt met zijn eigen personage; een gast geeft bij Meedoen zijn ratings mee (d.r, een compact blok), die de host klemt op het niveau van de klasse (#1114).
 function gastBonus(d, level) {
   const eigen = voetbalBonusVan();
-  const r = d.slot > 0 && d.r ? decodeRatings(d.r, level === 'uitdagend' ? 'kroon' : level === 'ontspannen' ? 'talent' : 'terp')[0] : null;
+  const perStand = level === 'uitdagend' ? 'kroon' : level === 'ontspannen' ? 'talent' : 'terp';
+  const eigenK = eigenKlasse(); // de host klemt ook op de klasse van zijn eigen carrière: een gast wordt nooit sterker dan wat de host zelf kan halen (#1157)
+  const klem = eigenK && LEVEL_CAP[eigenK] < LEVEL_CAP[perStand] ? eigenK : perStand;
+  const r = d.slot > 0 && d.r ? decodeRatings(d.r, klem)[0] : null;
   return r ? { ...eigen, ...r.f } : eigen;
 }
+// De klasse van deze speler in zijn eigen carrière; null zonder carrière (dan geldt alleen het niveau van de wereld).
+const eigenKlasse = () => { try { return CL.hasCareer() ? divisionOfMyClub(CL.getCareer()) || null : null; } catch (e) { return null; } };
 // Wat een gast bij Meedoen meestuurt: de factoren van zijn eigen carrière (leeg zonder carrière: dan telt alleen zijn personage).
 export function guestRatingsText() {
   try { if (!CL.hasCareer()) return ''; return encodeRatings([{ slot: 0, f: simFactors(CL.getCareer().me) }]); } catch (e) { return ''; }
