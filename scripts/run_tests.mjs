@@ -183,6 +183,9 @@ function main() {
     // De poort op de enkelspeler-aanname (#500): directe world.player-lezers mogen niet groeien.
     const psa = run(process.execPath, ['scripts/player_singleton_audit.mjs'], timeoutMs);
     note('player_singleton_audit.mjs', psa, classify(psa));
+    // De dekking van Samen spelen (21-11): elk systeem een Samen-regel, nieuwe modules bij een systeem, opslagsleutels per speler of als wereldstaat.
+    const cda = run(process.execPath, ['scripts/coop_dekking_audit.mjs'], timeoutMs);
+    note('coop_dekking_audit.mjs', cda, classify(cda));
     // De veldkeuring op het gedeelde World (#498): dezelfde poort die de lichte fase draait,
     // anders kan een nieuwe schrijver met groene CI naar main (#593).
     const we = run(process.execPath, ['scripts/world_eigenaar.mjs'], timeoutMs);

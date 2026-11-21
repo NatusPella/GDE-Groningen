@@ -769,3 +769,7 @@ Jouw keuze: [ A | B | C | D | Eigen voorstel: ______ ]
 ---
 
 Einde regie-bijbel. Versie 1.0, 21 november 2026.
+
+## Samen spelen
+
+Cutscenes zijn van wie het spel opende: een scène met een scriptbeschrijving gaat als data naar de gasten en speelt daar lokaal na, de overige filmpjes (eigen camerabaan) zijn alleen bij de host en geven de gast een regel tekst. Een gast slaat zijn eigen weergave over zonder dat het de scène van de host stopt. De regels van deze bijbel (ritme, introductie, humor) gelden voor beide kanten; de linter kijkt niet naar het netwerk. De details staan in [COOP-GAST.md](COOP-GAST.md) (Filmpjes zonder script) en worden bewaakt door `scripts/cutgast_test.mjs` en `scripts/coopcut_test.mjs`.

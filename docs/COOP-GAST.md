@@ -499,3 +499,23 @@ De carrière is van de speler zelf (`gde-voetbalcarriere-v1`, nooit gedeeld, noo
 - **Wegvallen of later aansluiten:** de computer neemt over, het team wordt nooit leeg; geen instap halverwege.
 - **Rivalen (derby):** de indeling is gepland (`planTeams`); mensen in team 1 vraagt nog een wijziging in `voetbalmatch.js` en is niet gebouwd. De koppeling van de regels aan `coopnet.js` is ook nog niet gemaakt (docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
 - **Clubbezit en sponsorpanden:** een aandeel is van de speler (Bezit-register); een stadionpand heeft een eigenaar, de laagste tijd en daarna het laagste speler-id wint.
+
+## Overige systemen: Samen-regels (21-11, dekking)
+
+Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/coop_dekking_audit.mjs`) kreeg elk systeem de zes vragen van AGENTS.md. Voor de systemen die hierboven geen eigen regel hadden staat die hier, kort.
+
+**Recap (Waar waren we?).** De kaart na Doorgaan bestaat alleen in een sessie van één (`savegame.js` `coopSessieLoopt`); een gast of een lopende sessie slaat hem over (`recapcard.js` zegt "meespeler"). De staat (`gde-recap-v1`) is per apparaat en zit nooit in een savegame. Geen beloning, niets te herstellen bij wegvallen of een hostwissel. Test: `scripts/recapcard_test.mjs`.
+
+**Pings en waypoints (21-11).** De drie roepjes (7 Kom hier, 8 Help!, 9 Kijk daar, `coopping.js`) geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een korte regel; ze vervallen vanzelf. Een navigatiedoel (waypoint) en de kaart zijn per speler: wat jij kiest ziet niemand anders, ook niet de bijrijder in jouw auto. Open: een ping op een gekozen kaartpunt en een waypoint delen bestaan niet (zie de matrix). Test: `scripts/coopspelers_test.mjs`.
+
+**Berovingen.** Een beroving (`muggings.js`) draait in de simulatie van wie het spel opende en kost een deel van diens eigen geld; een gast wordt nu niet beroofd. Dat is een bekend gat tegen de gelijkwaardigheid (zie de matrix); er is nooit geweld in beeld (constitutie 6). Test: `scripts/muggings_test.mjs`.
+
+**Telefoon en Te doen.** De telefoon en het Te doen-scherm zijn lokaal per speler; het filter van Te doen is per apparaat (`gde-todo-filter`). Een gast start een opdracht niet aan de telefoon of in Te doen maar bij het startpunt (`missieMagVanuitMenu`, #452). Het delen van een eigen voertuig staat in de telefoon (`coopbezit.js`). Tests: `scripts/telefoon_berichten_test.mjs`, `scripts/todo_ui_test.mjs`.
+
+**Dieren, duif en vrijetijd.** Dieren die je houdt (`gde-dieren-v1`) en het visboek zijn per speler. De duifmodus is van wie hem start; een gast bestuurt de duif mee (as, spatie, shift, #525) en kijken, stoppen en de camera blijven bij de eigenaar (`pigeonmode.js`). De fotomodus (`fotomodus.js`) en de radio zijn lokaal: een foto is een bestand op de eigen schijf en er gaat niets over het net. Evenementen zijn van de wereld (zie "Evenementen bij een gast"). Tests: `scripts/pigeon_sync_test.mjs`, `scripts/dierenregister_test.mjs`.
+
+**Stemmen, geluid en muziek.** Opgenomen stemmen, geluid en muziek speelt elk apparaat zelf af uit zijn eigen bestanden; dempen is van de speler zelf (`coopgeluid.js`). Geluid van andere spelers (schoten, motoren) komt als gebeurtenis binnen en wordt lokaal gespeeld. Er is geen spraakchat (#451, later en opt-in). Tests: `scripts/coopgeluid_test.mjs`, `scripts/voicebank_retry_test.mjs`.
+
+**Instellingen.** Instellingen (`gde-settings`) zijn per apparaat; niemand, ook niet wie het spel opende, past de instellingen van een ander aan. Cheats zijn de uitzondering die hierboven staat (uit zodra er een tweede speler is). Samen spelen aan of uit zetten staat bij Instellingen > Samen spelen. Tests: `scripts/settings_online_test.mjs`, `scripts/instellingen_test.mjs`.
+
+**Balans en groepsbonus.** Prijzen, loon en beloningen rekenen per speler en zijn voor iedereen gelijk (geen voordeel voor wie het spel opende); de groepsbonus van ADR 0020 komt per deelnemer erbovenop en is begrensd (`groepsbonus.js`). Zie [BALANS-21-11.md](BALANS-21-11.md).
