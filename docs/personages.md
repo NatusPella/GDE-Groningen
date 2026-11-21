@@ -275,6 +275,12 @@ Regels die voor iedereen gelden:
 | **Tinus** | trekkertrekker en re-enactor uit het Westerkwartier, met een schuur en een trekker | nog geen opname; *joviaal* | "De modder pakt eerst je auto. Je plannen komen daarna." (T4, M22) |
 | **Mevrouw Hoving** | bewaarder van de Gouden Eierbal en voorzitter van de jury (artikel 4); Jelle zet haar met een treinreis aan de kant | nog geen opname; *beleefd, oud, formeel* | "Wie de bal bewaart, tekent de uitslag." (M03) |
 | **Willemien** | familie van Oma Trijntje in Loppersum, woont in een huis dat blijft staan | nog geen opname; *nuchter, droog* | "Het is een huis. Het moet alleen even blijven staan." (M27) |
+| **Meneer Veldkamp** | oude buurman op elf negen in Paddepoel, met een duiventil op de galerij; wijs, zwijgzaam; zijn duiven vliegen naar Tammo en niet naar hem (de onverklaarde duivenband, nooit uitgelegd) | nog geen opname; *oud, zacht, weinig woorden* | "Mijn duiven doen dat bij niemand." (M06.0, O12, aftitelkaarten akte 1 en 4) |
+| **Daan** | kermiszanger en barman in Winschoten, charmant en te zeker van zichzelf; zaait één scène lang twijfel bij Tammo (jaloezie-lite, geen driehoek) | nog geen opname; *gladde zanger, vleiend* | "Eén couplet. Over een meisje met een spandoek." (M15.6) |
+| **Stien** | 70, al veertig jaar frituurhoudster onder brug elf in Veendam; mentor voor Tessa en later een vriendin van de wagen | nog geen opname; *kortaf, warm* | "Eerst het vet warm, dan de mensen." (M17.5) |
+| **Anneke** | Tessa's moeder, praktisch en direct; haar man (stil, nooit een regel) had kippen; komt onaangekondigd met een mand eieren | nog geen opname; *nuchter, plattelands* | "Jij belt nooit. Dan komen wij." (M25.6) |
+| **Lieke** | 10, Tessa's nichtje, gele regenjas; heeft het al lang door en zegt het hardop (alleen kinderhumor, nooit in gevaar) | nog geen opname; *helder, kinderstem* | "Jullie zijn al samen." (M25.6) |
+| **Femke** | keeper van Tessa's dorpsteam, vriendin van Tessa; alleen appjes en Rikus' radio (het tweede stel, Rikus en Femke, groeit langzaam en laag) | geen stem, alleen tekst | "Hij zegt het wel heel mooi." (A4.2) |
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw in het verhaal (`docs/verhaal/nieuw/00-OVERZICHT.md` §2) en hebben nog geen opgenomen stem; de stemkeuze staat open (`docs/verhaal/nieuw/07-TTS-RAMING.md` §5).
 
@@ -307,5 +313,7 @@ Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutsc
 | Rotor Roelf | `#2a9ab8` hemelsblauw | | Torenwachter | `#9a8f6a` steen |
 | Lammert | `#4c8fa8` petrolblauw | | Roelfien | `#79a23c` bladgroen |
 | Wubbo | `#6f8fb0` grijsblauw | | Tinus | `#b0883a` zandbruin |
-| Willemien | `#9a86b4` heidepaars | | | |
+| Willemien | `#9a86b4` heidepaars | | Meneer Veldkamp | `#7f9a5e` mosgroen |
+| Anneke | `#6aa07a` tuingroen | | Lieke | `#d9a920` regenjasgeel |
+| Daan | `#8d8fd0` kermislila | | Stien | `#c98f6a` frituurbruin |
 | Voorbijgangers, bazen, radio en navigatie | `#8a8a8a` neutraal grijs | | | |

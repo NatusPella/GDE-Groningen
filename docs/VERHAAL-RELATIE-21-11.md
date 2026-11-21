@@ -61,6 +61,21 @@ Tammo is een hele lieve jongen, Tessa echt een schatje; ze zien van elkaar hoe l
 | 13 | 5 | Tammo bakt de eerste eierbal voor Mem, niet voor de jury | Tessa | close-up op zijn handen | M26.5 (bestaand) |
 | 14 | 6 | Tessa houdt de deur open voor Willemien en haar kat | Tammo | halve close-up Tammo; hij pakt de doos | M27/M28 (bestaand) |
 
+### 4b. Aanvulling inspiratiepakket (21-11, zie [VERHAAL-INSPIRATIEPLAN-21-11.md](VERHAAL-INSPIRATIEPLAN-21-11.md))
+
+| # | Akte | Wat gebeurt er | Wie ziet het | Hoe getoond | Waar |
+|---|---|---|---|---|---|
+| 15 | 1 | Tammo begint "Tessa, eigenlijk—" en een bakfiets toetert; hij zegt niets meer (bijna-moment 1, de onvoltooide zin) | Tessa | halve close-up Tammo, dan de weg | O3 (nieuw, twee regels) |
+| 16 | 2 | Tammo zegt drie keer iets liefs maar onduidelijks; Tessa antwoordt steeds op de verkeerde vraag (misverstandsketen) | beiden, geen van beiden weet het | twee-shot in de Escapade | M10.5 (nieuw, zes regels) |
+| 17 | 2 | Tammo's dagdroom: hij als stuntheld, Tessa als Koningin van de Friteuse ("Rijd mij naar de zon") | Tessa (hoort "je lacht in je slaap") | droomsequens in low-poly, dan halve close-up Tessa | T2 (nieuw) |
+| 18 | 3 | Een charmante zanger wil Tessa een liedje geven; Tammo zegt "Ze moet nog eten", zijn duif doet de rest | Tessa | halve close-up Tammo met de duif | M15.6 (nieuw) |
+| 19 | 3 | Tammo kiest bewust een onschuldig feit in plaats van zijn zin ("Het is ook iets. Een park."); Tessa: "Ik dacht even dat het iets was" | Tessa | twee-shot, haar blik te lang | B3.1 (nieuw, autogesprek) |
+| 20 | 3, 5 | De koelkastlijst groeit: "Tammo vindt" en "Tessa vindt" (akte 1), een nieuwe kolom "wij vinden" (akte 3: "Ik wacht op jou"), één regel in twee handschriften (Deel 4: de Fjord Frituur) | beiden | regie-regel en appjes | O1, A3.4, O12 |
+| 21 | 4 | Tessa maakt Tammo's onvoltooide zin af ("Dat ik te veel praat"); hij laat het zo | Tammo | twee-shot, hij kijkt naar de weg | B4.1 (nieuw) |
+| 22 | 5 | Lieke zegt hardop dat ze al samen zijn; Oma vraagt wanneer ze trouwen; Tessa's vader knikt bij de eierbal | Tessa en Tammo, de families | close-up Lieke, halve close-up Tammo | M25.6 (nieuw) |
+
+De onvoltooide zin komt vier keer terug (O3, B2.1, B3.1, B4.1) en wordt uitbetaald met de vijf woorden in M26.7; daarna nooit meer.
+
 Regel: het bewijs wordt nooit uitgelegd. Hooguit zegt de ander één zin die het bevestigt (de reactie, geen toelichting).
 
 ## 5. Hoe dit de romantiek draagt
@@ -72,6 +87,8 @@ Regel: het bewijs wordt nooit uitgelegd. Hooguit zegt de ander één zin die het
 - **De keuzes** (storyromance.js): kleine toonverschillen, nooit een ander einde.
 
 ## 6. Personagekaarten
+
+**Rond Tessa en Tammo (inspiratiepakket):** **Meneer Veldkamp** (buurman, duiven, zwijgzaam, wijs: geeft Tammo's duivenband een thuis zonder uitleg), **Anneke** en haar man (Tessa's ouders: praktisch, plattelands, de ouderclash met Oma over vet en eieren), **Lieke** (nichtje, 10: ziet het eerder dan zij), **Daan** (de charmante zanger: één scène, geen driehoek), **Stien** (de frituurmentor onder brug elf) en **Femke** (keeper, vriendin van Tessa; alleen appjes, samen met Rikus het tweede stel).
 
 **Tessa (24).** Wil: iets vinden dat blijft en dat zij zelf is; ze weet nog niet wat. Bang voor: dat iedereen na de studie een eigen weg kiest en zij alleen overblijft (zeven plekken voor haar tiende). Praat: standaard Nederlands, direct, droog, praktisch, met een boerennuchterheid; een Gronings woord is een grap over haar. Tics: regelt alles, zet de wereld in een zin neer, kijkt eerst naar de uitgang. Tag in één zin: *"Rijden, niet praten."* Platteland: zomers naast Mem in Ljouwert, boerendochter.
 
