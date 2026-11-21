@@ -40,6 +40,9 @@ concurrency:
 
 jobs:
   apk:
+    # Publicatieregel (constitutie 8): een collaborator met schrijfrecht kan de workflow starten,
+    # maar de taak slaat dan over.
+    if: github.actor == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -82,8 +85,10 @@ jobs:
           restore-keys: opus-
 
       - name: De gestagede wereld van een release
+        env:
+          WORLD_TAG: ${{ inputs.world_tag }}
         run: |
-          if [ -n "${{ inputs.world_tag }}" ]; then TAG="${{ inputs.world_tag }}"; else TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName')"; fi
+          if [ -n "$WORLD_TAG" ]; then TAG="$WORLD_TAG"; else TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName')"; fi
           test -n "$TAG" || { echo "Geen release gevonden voor gde-world.tgz."; exit 1; }
           echo "Wereld uit $TAG"
           mkdir -p "$RUNNER_TEMP/gde-world"
