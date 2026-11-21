@@ -4,6 +4,7 @@
 // optionsKeyAction; een controller geeft dezelfde toetsen (input.js). Geen netwerk, geen opslag: het antwoord is een profiel.
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
 import { icoon } from './icons.js';
+import { tabInKaart } from './listnav.js';
 import { DIFFICULTY_DEFAULT, cleanProfile, setActiveDifficulty, difficultySummary } from './difficulty.js';
 import {
   CARD_TEXT, OPTION_DEFS, OPTION_GROUPS, levelCards, levelKeyAction, optionsKeyAction, stepDraft, draftLabel, draftLevel, difficultyPlan, needsDifficultyCard,
@@ -98,11 +99,16 @@ export function openDifficultyCard({ profile = { level: DIFFICULTY_DEFAULT } } =
   const rijIndex = (i) => items()[i] && items()[i].dataset.optie;
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Tab') { // aria-modal: Tab blijft op de kaart
+      const v = tabInKaart(items(), document.activeElement, e.shiftKey);
+      if (v) { e.preventDefault(); e.stopPropagation(); v.focus(); }
+      return;
+    }
     let a;
     const i = huidig();
     if (view === 'niveau') a = levelKeyAction(e.key, i);
     else a = optionsKeyAction(e.key, i, OPTION_DEFS.length);
-    if (!a) return; // Tab en de rest blijven gewoon werken
+    if (!a) return; // de rest blijft gewoon werken
     e.preventDefault();
     e.stopPropagation();
     if (e.repeat && a.stap == null && a.focus == null) return;
