@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Laadscherm (Samen spelen): een gast die nog op de eerste wereldstand wacht ziet onder de balk "Wachten op <naam>" met de naam van wie het spel opende; wie alleen speelt of het spel opende wacht op niemand en ziet de gewone stappen (#1002, #1001). Test: loadgate_test.
+- Minigames (Samen spelen): de tussenstand van de kartbaan en de klimtoren is één gedeelde tabel; wie wegvalt blijft staan met het woord "weg" in de laatste cel en niet alleen met een doorgestreepte kleur, en pitch & putt zet "weg" achter de naam. Per speler lokaal, er gaat niets over het net (#1000). Test: standtabel_test.
+- Golf en boerderij: de kopband van het bord heeft een eigen motief, maaistrepen bij golf en voren bij de boerderij, een lichte laag van de tekstinkt (8 en 10 procent) die de tekst op de band boven 4,5:1 houdt; Rustig drukwerk laat het motief vallen. Per speler lokaal (#1004). Test: ctxidentiteit_test.
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
 - Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.

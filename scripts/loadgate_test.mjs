@@ -1,6 +1,6 @@
 // De laadpoort en de ene vloeiende balk (opdracht 21-11, automatisch door):  node scripts/loadgate_test.mjs
 import fs from 'node:fs';
-import { createGate, gateTick, fadeMs, statusLine, HANG_S, FADE_MS } from '../game/js/loadgate.js';
+import { createGate, gateTick, fadeMs, statusLine, wachtOpGastheer, HANG_S, FADE_MS } from '../game/js/loadgate.js';
 import { easeBar, MAX_STEP_PER_FRAME, bootPlan, bootProgress } from '../game/js/loadlogic.js';
 
 let n = 0, fails = 0;
@@ -39,6 +39,11 @@ const tick = (g, o) => gateTick(g, { stap: 'Gebouwen en straten komen binnen', .
   ok(v.state === 'wacht-host' && v.actie === 'niets' && v.status === 'Wachten op Tammo', 'gast: Wachten op <naam>, ook na lange tijd');
   ok(tick(g, { elapsedS: 21, wachtOp: '' }).state === 'hangt', 'de gastheer is er, het laden loopt nog: terug naar de gewone staten');
 }
+// #1002: de bedrading: alleen een gast zonder eerste wereldstand wacht op de gastheer
+ok(wachtOpGastheer({ role: 'client', joined: false }, () => 'Tammo') === 'Tammo', 'een gast zonder wereldstand wacht op de gastheer');
+ok(wachtOpGastheer({ role: 'client', joined: false }, () => '') === 'wie het spel opende', 'zonder naam staat er "wie het spel opende"');
+ok(wachtOpGastheer({ role: 'client', joined: true }, () => 'Tammo') === '' && wachtOpGastheer({ role: 'host' }, () => 'x') === '' && wachtOpGastheer(null, () => 'x') === '', 'binnen, host of solo: wacht op niemand');
+ok(/wachtOpGastheer\(world\.coopNet/.test(fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url), 'utf8')), 'loadscreen.js geeft de gastheer door aan de poort');
 ok(tick(createGate(), null).state === 'laadt' && tick(createGate(), { elapsedS: NaN }).state === 'laadt', 'slechte invoer is veilig');
 ok(statusLine('laadt', '') === 'Het spel wordt geladen' && statusLine('klaar', 'x') === 'Klaar', 'statusLine: terugval en klaar');
 

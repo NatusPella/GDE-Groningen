@@ -434,10 +434,10 @@ html.reduce-motion .ds-uitleg .ds-uitleg__stap[data-anim] *, html.rustig-drukwer
 /* ---- Context-identiteit (#1004, proefset golf en farming; tabel in ctxidentiteit.js) ----
    Het paneel draagt `data-ctx`; de band, de tekst op de band en de stempel komen uit deze rollen, alleen met de bestaande inkten.
    Tekst op de band minstens 4,5:1 (test: ctxidentiteit_test), stempel minstens 13 px en nooit met misdruk; Rustig drukwerk zet hem recht. */
-[data-ctx="golf"] { --ds-ctx-band: var(--ds-c-ink-bord); --ds-ctx-band-tx: var(--ds-c-wit); --ds-ctx-stempel: "GOLF"; }
-[data-ctx="farming"] { --ds-ctx-band: var(--ds-c-ink-geel); --ds-ctx-band-tx: var(--ds-c-ink-inkt); --ds-ctx-stempel: "BOERDERIJ"; }
+[data-ctx="golf"] { --ds-ctx-band: var(--ds-c-ink-bord); --ds-ctx-band-tx: var(--ds-c-wit); --ds-ctx-stempel: "GOLF"; --ds-ctx-motief: var(--ds-motief-maaistrepen); }
+[data-ctx="farming"] { --ds-ctx-band: var(--ds-c-ink-geel); --ds-ctx-band-tx: var(--ds-c-ink-inkt); --ds-ctx-stempel: "BOERDERIJ"; --ds-ctx-motief: var(--ds-motief-voren); }
 /* zeefdrukkaart: de kopband in de inkt van de context, met de stempel rechts; op een gele band geen misdruk (roze op geel is slecht leesbaar) */
-.ds-z-kaart[data-ctx] > .ds-z-kaart__kop { background: var(--ds-ctx-band); color: var(--ds-ctx-band-tx); }
+.ds-z-kaart[data-ctx] > .ds-z-kaart__kop { background-color: var(--ds-ctx-band); background-image: var(--ds-ctx-motief, none); color: var(--ds-ctx-band-tx); } /* het motief komt uit ds-tokens.css (--ds-motief-*) */
 .ds-z-kaart[data-ctx="farming"] .ds-z-kaart__titel { text-shadow: none; }
 .ds-z-kaart[data-ctx] > .ds-z-kaart__kop::after {
   content: var(--ds-ctx-stempel); flex: none; padding: 0 var(--ds-s-2); border: var(--ds-lijn-dik) solid currentColor; border-radius: var(--ds-r);
@@ -452,6 +452,7 @@ html.reduce-motion .ds-uitleg .ds-uitleg__stap[data-anim] *, html.rustig-drukwer
   transform: rotate(calc(var(--ds-schuin) * -2));
 }
 .bd-hud[data-ctx] { --ds-kaart-rand: var(--ds-ctx-band); }
+:is(html.rustig-drukwerk, .ds-rustig) .ds-z-kaart[data-ctx] > .ds-z-kaart__kop { background-image: none; } /* Rustig drukwerk laat het motief vallen: de band is effen */
 :is(html.rustig-drukwerk, .ds-rustig) .ds-z-kaart[data-ctx] > .ds-z-kaart__kop::after, :is(html.rustig-drukwerk, .ds-rustig) #hud .mg-board[data-ctx] small::after { transform: none; }
 
 /* Toets in de knop (DS3, 21-11; dsbutton.js): een knop met een toets of controllerknop toont die als glyph BINNEN de knop, achter het label

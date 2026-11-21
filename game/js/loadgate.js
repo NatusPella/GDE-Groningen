@@ -32,6 +32,10 @@ export function gateTick(g, input) {
   return view(g, g.state, 'niets');
 }
 
+// Samen spelen (#1002): een gast wacht op wie het spel opende zolang de eerste wereldstand er niet is; wie solo speelt of de
+// host is, wacht op niemand. `naam` levert de naam van de gastheer (openerNaam); de gate blijft zo puur.
+export const wachtOpGastheer = (net, naam) => (net && net.role === 'client' && !net.joined ? String((naam && naam()) || 'wie het spel opende') : '');
+
 // De ene statusregel onder de balk: wat het spel nu doet (alleen echte stappen, geen nepteksten).
 export function statusLine(state, stap, wachtOp = '') {
   const s = String(stap || '').trim();

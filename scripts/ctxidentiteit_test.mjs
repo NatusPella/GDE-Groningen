@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CONTEXTEN, contextVan, zetContext } from '../game/js/ctxidentiteit.js';
+import { CONTEXTEN, MOTIEF_MAX, contextVan, zetContext } from '../game/js/ctxidentiteit.js';
 import { iconBekend } from '../game/js/icons.js';
-import { contrastRatio } from './release/ds_tokens_lib.mjs';
+import { contrastRatio, hexToRgb } from './release/ds_tokens_lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rd = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
@@ -33,6 +33,21 @@ ok(blok.length > 400 && !/#[0-9a-fA-F]{3,8}\b/.test(blok.replace(/#hud/g, '')), 
 ok(/font-size: var\(--ds-t-label\)/.test(blok) && /--ds-t-label:\s*(\d+)px/.test(tokens) && Number(tokens.match(/--ds-t-label:\s*(\d+)px/)[1]) >= 13, 'de stempel leest --ds-t-label (minstens 13 px)');
 ok(/rustig-drukwerk[^{]*\[data-ctx\][^{]*\{ transform: none/.test(blok), 'Rustig drukwerk zet de stempel recht');
 ok(!/text-shadow:\s*var\(--ds-misdruk\)/.test(blok) && /\[data-ctx="farming"\] \.ds-z-kaart__titel \{ text-shadow: none/.test(blok), 'geen misdruk op de gele band');
+
+// het motief in de kopband (#1004): de slechtste pixel is de band met het motief erdoor; daar moet de tekst nog 4,5:1 halen
+const meng = (a, b, pct) => `#${hexToRgb(a).map((v, i) => Math.round(v * (1 - pct / 100) + hexToRgb(b)[i] * (pct / 100)).toString(16).padStart(2, '0')).join('')}`;
+for (const [id, c] of Object.entries(CONTEXTEN)) {
+  ok(c.motief && ['maaistrepen', 'voren'].includes(c.motief.soort) && c.motief.sterkte > 0 && c.motief.sterkte <= MOTIEF_MAX, `${id}: het motief heeft een soort en een sterkte tot ${MOTIEF_MAX}%`);
+  const tokenNaam = `--ds-motief-${c.motief.soort}`;
+  const sterkte = Number((tokens.match(new RegExp(`${tokenNaam}:[^;]*currentColor ([0-9]+)%`)) || [])[1]);
+  ok(sterkte === c.motief.sterkte, `${id}: ${tokenNaam} in ds-tokens.css heeft de sterkte van de tabel (${sterkte}%)`);
+  const slechtste = meng(hex(INKT[c.band]), hex(INKT[c.tekst]), c.motief.sterkte);
+  ok(contrastRatio(hex(INKT[c.tekst]), slechtste) >= 4.5, `${id}: tekst op de band met het motief minstens 4,5:1 (${contrastRatio(hex(INKT[c.tekst]), slechtste).toFixed(1)})`);
+  const regel = comp.split('\n').find((l) => l.startsWith(`[data-ctx="${id}"]`));
+  ok(regel.includes(`--ds-ctx-motief: var(${tokenNaam})`) && !/gradient\(/.test(regel), `${id}: de component leest het motieftoken, geen verloop in de component`);
+}
+ok(/\.ds-z-kaart\[data-ctx\] > \.ds-z-kaart__kop \{ background-color: var\(--ds-ctx-band\); background-image: var\(--ds-ctx-motief, none\)/.test(comp), 'de kopband draagt het motief als achtergrondafbeelding');
+ok(/rustig-drukwerk, \.ds-rustig\) \.ds-z-kaart\[data-ctx\] > \.ds-z-kaart__kop \{ background-image: none; \}/.test(comp) && /\.ds-rustig \{[^}]*--ds-motief-maaistrepen: none;[^}]*--ds-motief-voren: none;/.test(tokens), 'Rustig drukwerk laat het motief vallen');
 
 // de functies
 ok(contextVan('discgolf') === 'golf' && contextVan('pitchputt') === 'golf' && contextVan('boerderij') === 'farming' && contextVan('skatepark') === null, 'contextVan koppelt de spellen van de proefset');

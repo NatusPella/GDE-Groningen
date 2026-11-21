@@ -19,7 +19,7 @@ import { onthullingScene } from './uitjescene.js';
 import { standActivity, recLine } from './standactivity.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp, standTabel } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
 import { WALL, ARMS, TOP_HOLD, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT, scaledMedalAt } from './climbrules.js';
 import { climbFx, pushFoley } from './sfx/minigamefoley.js';
@@ -282,8 +282,7 @@ function updateHud(w) {
   const height = s.ground ? 0 : Math.max(0, s.body + 1.15);
   // #620: de online stand is een tabel met tijd, hoogte en status per klimmer, geen rij stukjes tekst
   const online = g.online ? wedScoreRijen(w) : [];
-  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const stand = online.length ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Klimmer</th><th scope="col">Tijd</th><th scope="col">Stand</th></tr></thead><tbody>${online.map((r) => `<tr class="${r.weg ? 'weg' : ''}"><td>${online.indexOf(r) + 1}</td><th scope="row">${esc(r.naam)}</th><td>${r.banen === 1 ? fmtTime(r.slagen / 10) : '-'}</td><td>${r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'}</td></tr>`).join('')}</tbody></table>` : '';
+  const stand = online.length ? standTabel(['#', 'Klimmer', 'Tijd', 'Stand'], online.map((r) => ({ naam: r.naam, weg: r.weg, cellen: [r.banen === 1 ? fmtTime(r.slagen / 10) : '-', r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'] }))) : '';
   const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' && !g.rwAan ? 'Houd {A} en {D} allebei vast: je klimt omhoog' : '';
