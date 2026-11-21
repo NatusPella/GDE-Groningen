@@ -876,15 +876,15 @@ function updateTrainers(w) {
     if (!squads.length) { trainers.dispose(); trainers = null; }
   } catch (e) { if (trainers) { try { trainers.dispose(); } catch (e2) { /* weg */ } trainers = null; } }
 }
-let kaartCache = { sleutel: '', spots: [] };
-function kaartlaagSpots() {
+let mapCache = { sleutel: '', spots: [] };
+function mapLayerSpots() {
   try {
     if (!CL.hasCareer()) return [];
     const c = CL.getCareer(), nm = nextMatchOf(c);
     const sleutel = `${c.club}|${c.evDone}|${c.seasonNr}|${nm ? nm.opponent : ''}`;
-    if (kaartCache.sleutel === sleutel) return kaartCache.spots;
+    if (mapCache.sleutel === sleutel) return mapCache.spots;
     const spots = mapSpots(CL.getIndex(), { homeId: c.club, nextId: nm && !nm.isHome ? nm.opponent : null });
-    kaartCache = { sleutel, spots };
+    mapCache = { sleutel, spots };
     return spots;
   } catch (e) { return []; }
 }
@@ -997,7 +997,7 @@ export const VOETBAL = {
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: (voorCheck = false) => [{ id: 'voetbal', name: 'Voetbal Euroborg', x: GATE.x, y: GATE.y }, ...(voorCheck ? [] : kaartlaagSpots())],
+  spots: (voorCheck = false) => [{ id: 'voetbal', name: 'Voetbal Euroborg', x: GATE.x, y: GATE.y }, ...(voorCheck ? [] : mapLayerSpots())],
   prompt,
   secondary,
   interact,

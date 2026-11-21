@@ -75,6 +75,12 @@ t('derby in de sim: mensen in team 1 spelen hun eigen helft, de computer helpt b
   assert.ok(zonder.mensen.every((x) => x.team === 0), 'zonder team blijft alles zoals het was');
   assert.deepEqual(zonder.mensen.map((x) => x.ctl), V.makeMatch([{ slot: 0 }, { slot: 1 }], { duur: 'kort', seed: 1 }).mensen.map((x) => x.ctl));
 });
+t('de voorkeur Derby (toets 8) wordt bewaard en een kapotte waarde is uit', async () => {
+  const { leesVoorkeur } = await import('../game/js/voetbalrules.js');
+  assert.equal(leesVoorkeur(JSON.stringify({ derby: true })).derby, true);
+  assert.equal(leesVoorkeur(JSON.stringify({ derby: 'ja' })).derby, false);
+  assert.equal(leesVoorkeur(null).derby, false);
+});
 t('de beloning van een gast: geld en ervaring, nooit competitiepunten of een contractbonus; wie wegviel krijgt niets', () => {
   const w = guestReward({ outcome: 'winst', goals: 2 }, 'terp');
   assert.ok(w.geld > guestReward({ outcome: 'verlies' }, 'terp').geld);

@@ -53,9 +53,9 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
   const vT = cleanFormation(formaat, vorming), vU = cleanFormation(formaat, vormingTegen || namenV[seed % namenV.length]);
   const tac = [{ vorming: vT, stijl: cleanStijl(stijl), lijst: formationList(formaat, vT) }, { vorming: vU, stijl: cleanStijl(stijlTegen), lijst: formationList(formaat, vU) }];
   const order = [controlOrder(tac[0].lijst), controlOrder(tac[1].lijst)];
-  const mensTeam = (d) => (d && d.team === 1 ? 1 : 0);   // derby (#1114): een mens kan in team 1 spelen, tegen zijn vrienden
-  const heeftMens = [0, 1].map((t) => (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).some((d) => mensTeam(d) === t));
-  const ai = [aiBeide || (!heeftMens[0] && heeftMens[1]) ? aiLevel(level) : mateLevel(level), heeftMens[1] ? mateLevel(level) : aiLevel(level)];
+  const humanTeam = (d) => (d && d.team === 1 ? 1 : 0);   // derby (#1114): een mens kan in team 1 spelen, tegen zijn vrienden
+  const hasHuman = [0, 1].map((t) => (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).some((d) => humanTeam(d) === t));
+  const ai = [aiBeide || (!hasHuman[0] && hasHuman[1]) ? aiLevel(level) : mateLevel(level), hasHuman[1] ? mateLevel(level) : aiLevel(level)];
   const teams = teamsOpt && teamsOpt[0] && teamsOpt[1] ? [teamsOpt[0], teamsOpt[1]] : [TEAMS[0], opponent(tg)];
   const players = [];
   for (let t = 0; t < 2; t++) for (let i = 0; i < perTeam; i++) {
@@ -66,7 +66,7 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
   }
   const nTeam = [0, 0];
   const humans = (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).map((d) => {
-    const team = mensTeam(d), k = nTeam[team]++;
+    const team = humanTeam(d), k = nTeam[team]++;
     return { team, k };
   }).map(({ team, k }, j) => { const d = deeln[j]; return {
     slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, team, ctl: team * perTeam + (order[team][k] != null ? order[team][k] : order[team][order[team].length - 1]), weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRAAL_FAC, ...NEUTRALE_BONUS, ...(d.bonus || null) },

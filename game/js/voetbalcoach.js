@@ -17,12 +17,12 @@ export function coachSetup(c, getClub) {
   if (!canCoach(c)) return null;
   const m = C.nextMatch(c, getClub);
   if (!m) return null;
-  const vorming = cleanFormation('groot', c.tactic && c.tactic.formation), stijl = cleanStijl(c.tactic && c.tactic.style);
-  const roles = formationList('groot', vorming).map((x) => x.rol);
+  const formation = cleanFormation('groot', c.tactic && c.tactic.formation), style = cleanStijl(c.tactic && c.tactic.style);
+  const roles = formationList('groot', formation).map((x) => x.rol);
   const my = lineupFor(C.squadOf(c, c.club, getClub), roles), opp = lineupFor(C.squadOf(c, m.opponent, getClub), roles);
   const fac = (l) => l.map((x) => ({ naam: x.player ? x.player.name : undefined, f: x.factors }));
-  const teamFor = C.matchSetup(c, getClub, formationList('groot', vorming));
-  return { teams: teamFor ? teamFor.teams : null, ratings: [fac(my), fac(opp)], vorming, stijl, opponent: m.opponent, match: m };
+  const teamFor = C.matchSetup(c, getClub, formationList('groot', formation));
+  return { teams: teamFor ? teamFor.teams : null, ratings: [fac(my), fac(opp)], vorming: formation, stijl: style, opponent: m.opponent, match: m };
 }
 
 // Maakt de sim: geen mensen, dus `alleenAi`. De wedstrijdduur en de moeilijkheid komen van de aanroeper.
@@ -34,16 +34,16 @@ export function makeCoachMatch(setup, { duur = 'normaal', stand = 'standaard', s
 }
 
 // Een tactiekwissel onderweg: alleen in een coachwedstrijd, nooit tijdens een doelpuntviering, met rusttijd en een maximum. Geeft { ok, reden }.
-export function coachTactic(m, { vorming = null, stijl = null } = {}) {
+export function coachTactic(m, { vorming: formation = null, stijl: style = null } = {}) {
   if (!m || !m.coach || !m.alleenAi) return { ok: false, reden: 'Dit is geen coachwedstrijd' };
-  if (!(vorming || stijl)) return { ok: false, reden: 'Niets te wisselen' };
+  if (!(formation || style)) return { ok: false, reden: 'Niets te wisselen' };
   if (m.fase === 'klaar' || m.fase === 'eind') return { ok: false, reden: 'De wedstrijd is voorbij' };
   if (m.fase === 'goal') return { ok: false, reden: 'Wacht tot na het doelpunt' };
   const wacht = COACH_COOLDOWN_S - (m.tijd - m.coach.laatsteT);
   const rust = m.fase === 'rust';
   if (!rust && wacht > 0) return { ok: false, reden: `Nog ${Math.ceil(wacht)} seconden wachten` };
   if (m.coach.wissels >= COACH_MAX_CHANGES) return { ok: false, reden: 'Je hebt alle wissels gehad' };
-  zetTactiek(m, 0, { vorming, stijl });
+  zetTactiek(m, 0, { vorming: formation, stijl: style });
   m.coach.wissels++; m.coach.laatsteT = m.tijd;
   return { ok: true, reden: '' };
 }
