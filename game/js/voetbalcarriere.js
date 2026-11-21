@@ -357,9 +357,9 @@ export function acceptOffer(c) {
   s.club = s.offer.club; s.me.club = s.club; s.mate.club = s.club; s.offer = null; s.flags.moved = (s.flags.moved | 0) + 1; s.flags.bid = false;
   return { career: s, ok: true };
 }
-export function acceptSponsor(c, slotId, pandIndex = null) {
+export function acceptSponsor(c, slotId, pandIndex = null, plaats = null) {
   const club = c.club;
-  const r = Sp.accept(c.sponsors, slotId, pandIndex, null);
+  const r = Sp.accept(c.sponsors, slotId, pandIndex, plaats);
   void club;
   return r.ok ? { career: { ...c, sponsors: r.sponsors }, ok: true, slot: r.slot } : { career: c, ok: false };
 }
