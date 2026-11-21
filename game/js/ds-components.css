@@ -128,7 +128,7 @@ html.pad-active :is(.ds-kaart, .ds-knop):focus { outline: var(--ds-focus-dikte) 
 html.reduce-motion :is(.ds-kaart, .ds-knop, .ds-streep__vul) { transition: none; }
 html.reduce-motion .ds-kaart--in { animation: none; }
 html.reduce-motion .ds-kaart--klik:hover { transform: none; }
-html.reduce-motion :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-toets, .ds-z-waarde, .ds-z-balk__vul) { transition: none; }
+html.reduce-motion :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-toets, .ds-z-waarde, .ds-z-balk__vul), html.rustig-drukwerk .ds-z-balk__vul { transition: none; }
 html.reduce-motion :is(.ds-z-stempel--in, .ds-z-waarde--wijzig) { animation: none; }
 
 /* ===== Zomerse zeefdruk (ADR 0040, issue 992) =====
@@ -304,7 +304,8 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 /* ---- Voortgangsbalk: de lege baan is raster, de vulling een inkt; het label noemt altijd de getallen ---- */
 .ds-z-balk { --ds-z-w: 0%; display: flex; flex-direction: column; gap: var(--ds-s-1); width: 100%; font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); color: var(--ds-zeef-tx); }
 .ds-z-balk__baan { height: var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background-color: var(--ds-zeef-bg); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); overflow: hidden; }
-.ds-z-balk__vul { display: block; height: 100%; width: var(--ds-z-w); background: var(--ds-c-ink-bord); border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); transition: width var(--ds-m) var(--ds-ease); }
+/* De vulling is altijd even breed en schuift in de baan (overflow: hidden): translate in plaats van width (DS3: geen layout in een animatie, #1093); de inktrand blijft aan het eind van de vulling en wordt niet samengedrukt. */
+.ds-z-balk__vul { display: block; box-sizing: border-box; height: 100%; width: 100%; translate: calc(var(--ds-z-w) - 100%) 0; background: var(--ds-c-ink-bord); border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); transition: translate var(--ds-m) var(--ds-ease); }
 .ds-z-balk__label { font-weight: var(--ds-gewicht-vet); font-variant-numeric: tabular-nums; }
 .ds-z-balk--tijd .ds-z-balk__vul { background: var(--ds-zeef-primair); }
 .ds-z-balk--laag .ds-z-balk__vul { background: var(--ds-c-rood); }

@@ -120,7 +120,7 @@ html.reduce-motion #trailer-result { animation: none; }
 #drift-chip.dc-niv4, #drift-chip.dc-niv5 { border-width: calc(var(--ds-lijn-zeef) + 1px); }
 #drift-chip.dc-niv5 { background: var(--ds-c-sel-vlak); }
 #drift-chip .dc-pop { animation: ds-z-puls var(--ds-m-max) var(--ds-ease) 1; }
-#drift-chip .ds-z-balk__vul { transition: width var(--ds-m-snel) linear; }
+#drift-chip .ds-z-balk__vul { transition: translate var(--ds-m-snel) linear; }
 @media (prefers-reduced-motion: reduce) { #drift-chip .dc-pop { animation: none; } #drift-chip .ds-z-balk__vul { transition: none; } }
 html.reduce-motion #drift-chip .dc-pop, html.rustig-drukwerk #drift-chip .dc-pop { animation: none; }
 html.reduce-motion #drift-chip .ds-z-balk__vul, html.rustig-drukwerk #drift-chip .ds-z-balk__vul { transition: none; }
