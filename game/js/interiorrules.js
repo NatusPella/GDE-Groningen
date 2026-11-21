@@ -7,6 +7,8 @@ import { hash2 } from './rng.js';
 import { KINDS, kindOfBuilding, isOpen, opensAt, homeOpen, labelOf } from './interiorkinds.js';
 import { frameOf, findHall, synthEntrance, WALL_T } from './interiorframe.js';
 import { generateLayout } from './interiorlayout.js';
+import { mulberry32 } from './rng.js';
+import { hasUpper, makeStairs, generateUpper, MIN_FLOOR_H } from './interiorupper.js';
 import { homeLook } from './interiorlook.js';
 
 export const MIN_CEILING = 2.3;   // lower than this is no room to stand in
@@ -51,11 +53,25 @@ export function planInterior(b, opts = {}) {
   const seed = interiorSeed(b);
   const door = { w: Math.max(DOOR_GAP, en.w + 0.2), h: Math.min(en.h, ceiling - 0.15) };
   const look = ks.kind === 'woning' || ks.kind === 'kantoor' ? homeLook(en.look, seed / 4294967296) : null;
-  const layout = generateLayout({ kind: ks.kind, sub: ks.sub, seed, hall, door, height: ceiling, look });
+  // a second floor where the building has one and the kind can use it (woningen, kantoren, hotels, winkels met een etage)
+  let stairs = null, upper = null, layout = null, height2 = 0;
+  const floors = en.floors || 1, floorH = en.floorH || 3;
+  if (opts.upper !== false && floors >= 2 && hasUpper(ks.kind, ks.sub) && floorH >= MIN_FLOOR_H) {
+    stairs = makeStairs(hall, door, mulberry32(seed ^ 0x2545f491), floorH);
+    if (stairs) {
+      layout = generateLayout({ kind: ks.kind, sub: ks.sub, seed, hall, door, height: ceiling, look, stairs });
+      height2 = Math.max(2.3, Math.min(floorH - 0.15, (en.depth || floorH * 2) - floorH - 0.15));
+      upper = layout ? generateUpper({ kind: ks.kind, sub: ks.sub, seed, hall, door, height2, look }, layout, stairs) : null;
+      if (!upper) { stairs = null; layout = null; }
+    }
+  }
+  if (!layout) layout = generateLayout({ kind: ks.kind, sub: ks.sub, seed, hall, door, height: ceiling, look });
   if (!layout) return { ok: false, why: 'layout', kind: ks.kind };
+  layout.upper = upper;
   return {
     ok: true, kind: ks.kind, sub: ks.sub, seed, frame, hall, door, height: ceiling, layout, label: labelOf(ks.kind, ks.sub), shop: en.shop,
     doorC: en.c, windows: en.windows || [], doorColor: en.doorColor, frameColor: en.frameColor,
+    levels: upper ? 2 : 1, stairs, floorH, height2, topY: upper ? floorH + height2 : ceiling,
   };
 }
 

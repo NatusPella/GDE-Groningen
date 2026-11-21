@@ -50,7 +50,7 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
       if (x < minx - radius || x > maxx + radius || y < miny - radius || y > maxy + radius) continue;
       // a building with a live interior (interiors.js, #1150): the walkable hall and its open front door replace the footprint
       if (b.walk) {
-        const wk = b.walk.resolve(x, y, radius);
+        const wk = b.walk.resolve(x, y, radius, z);
         if (wk === true) continue;
         if (wk) { x = wk[0]; y = wk[1]; continue; }
       }

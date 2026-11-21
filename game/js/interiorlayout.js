@@ -36,8 +36,8 @@ const boxesMeet = (a, b, g = 0) => a.u0 < b.u1 + g && a.u1 > b.u0 - g && a.v0 < 
 // unit vector (du, dv) a face looks along
 export const faceDir = (face) => [[0, -1], [1, 0], [0, 1], [-1, 0]][face & 3];
 
-class Plan {
-  constructor(hall, door, rnd, height, density) {
+export class Plan {
+  constructor(hall, door, rnd, height, density, reserved = null) {
     this.hall = { ...hall };
     this.door = door; // { w, h }
     this.rnd = rnd;
@@ -50,7 +50,8 @@ class Plan {
     this.npc = [];
     this.use = [];      // spots of use { id, u, v, r, face }
     this.lamps = [];
-    this.reserved = [{ u0: -door.w / 2 - 0.5, u1: door.w / 2 + 0.5, v0: hall.v0 - 0.5, v1: hall.v0 + DOOR_CLEAR_D }];
+    this.stairs = null;
+    this.reserved = reserved || [{ u0: -door.w / 2 - 0.5, u1: door.w / 2 + 0.5, v0: hall.v0 - 0.5, v1: hall.v0 + DOOR_CLEAR_D }];
   }
 
   get W() { return this.hall.u1 - this.hall.u0; }
@@ -128,13 +129,13 @@ class Plan {
 
 // --- recipes ---------------------------------------------------------------------------------------------
 
-const lampGrid = (p) => {
+export const lampGrid = (p) => {
   const nu = Math.max(1, Math.round(p.W / 3.6)), nv = Math.max(1, Math.round(p.D / 3.6));
   for (let i = 0; i < nu; i++) for (let k = 0; k < nv; k++) p.lamps.push([p.hall.u0 + (i + 0.5) * p.W / nu, p.hall.v0 + (k + 0.5) * p.D / nv]);
 };
 
 // a loose customer or guest on a free spot of the floor (not in front of the door)
-function scatterPeople(p, role, n, pose = 'stand', margin = 0.9) {
+export function scatterPeople(p, role, n, pose = 'stand', margin = 0.9) {
   let tries = 0;
   while (n > 0 && tries++ < 40) {
     const u = p.hall.u0 + margin + p.rnd() * (p.W - 2 * margin), v = p.hall.v0 + 1.8 + p.rnd() * Math.max(0.1, p.D - 2.6);
@@ -280,7 +281,7 @@ function officeRecipe(p) {
   if (rec) { p.npcAt('receptionist', ru, H.v0 + 2.2 + 0.35 + 0.4, FACE.DOOR, 'stand'); p.useAt('balie', ru, H.v0 + 2.2 - 0.35 - 0.8, 1.4, { face: FACE.BACK }); }
   // a meeting room at the back (glass wall) when there is space
   let work = { ...H, v0: H.v0 + 3.4 };
-  if (D >= 9 && W >= 5) {
+  if (D >= 9 && W >= 5 && !p.stairs) {
     const mv = H.v1 - 3.4;
     p.partition('u', mv, H.u0, H.u1, H.u0 + W * 0.7, 1.0, p.height);
     p.rooms.push({ id: 'vergaderkamer', role: 'vergaderen', u0: H.u0, u1: H.u1, v0: mv + PART_T / 2, v1: H.v1 });
@@ -309,10 +310,11 @@ function homeRecipe(p) {
   const H = p.hall, W = p.W, D = p.D;
   const look = p.look || {};
   const living = { ...H, v1: H.v0 + Math.max(3.2, D * 0.55) };
-  const back = D >= 7.5;
+  // the foot of a stair must not be walled off: the partition then stands in front of it, or not at all
+  let back = D >= 7.5 && (!p.stairs || Math.min(living.v1, p.stairs.vBot - 1.4) >= H.v0 + 2.6);
   if (back) {
     // a partition between the living room and the back, a doorway at about 30% of the width
-    const pv = living.v1;
+    const pv = p.stairs ? Math.min(living.v1, p.stairs.vBot - 1.4) : living.v1;
     p.partition('u', pv, H.u0, H.u1, H.u0 + Math.max(1.2, W * (0.25 + p.rnd() * 0.3)), 0.95);
     living.v1 = pv - PART_T / 2;
     p.rooms.push({ id: 'woonkamer', role: 'wonen', u0: H.u0, u1: H.u1, v0: H.v0, v1: living.v1 });
@@ -476,7 +478,7 @@ const RECIPES = { winkel: shopRecipe, horeca: horecaRecipe, kantoor: officeRecip
 // Grid of the hall: a cell is walkable when a 0.3 m circle fits (clear of the walls and of every solid).
 export function walkGrid(layout) {
   const H = layout.hall, nu = Math.ceil((H.u1 - H.u0) / CELL), nv = Math.ceil((H.v1 - H.v0) / CELL);
-  const blocks = [...layout.walls, ...layout.items.filter((i) => i.solid).map(rectOf)];
+  const blocks = [...layout.walls, ...(layout.rails || []), ...(layout.blocks || []), ...layout.items.filter((i) => i.solid).map(rectOf)];
   const free = new Uint8Array(nu * nv);
   for (let k = 0; k < nv; k++) for (let i = 0; i < nu; i++) {
     const u = H.u0 + (i + 0.5) * CELL, v = H.v0 + (k + 0.5) * CELL;
@@ -492,12 +494,21 @@ export function walkGrid(layout) {
 }
 
 // Flood fill from the door; returns the reachable mask. The door cell is the one just behind the door.
-export function reachable(layout, grid = walkGrid(layout)) {
+export function reachable(layout, grid = walkGrid(layout), startAt = null) {
   const { free, nu, nv, H } = grid;
   const seen = new Uint8Array(nu * nv);
   const ci = Math.min(nu - 1, Math.max(0, Math.floor((0 - H.u0) / CELL))), ck = 0;
   let firstCell = -1;
   for (let k = 0; k < Math.min(nv, 4) && firstCell < 0; k++) for (let d = 0; d < 3 && firstCell < 0; d++) for (const s of [0, -1, 1]) { const i = ci + s * d; if (i >= 0 && i < nu && free[k * nu + i]) { firstCell = k * nu + i; break; } }
+  if (startAt) {
+    firstCell = -1;
+    let bd = Infinity;
+    for (let k = 0; k < nv; k++) for (let i = 0; i < nu; i++) {
+      if (!free[k * nu + i]) continue;
+      const d = Math.hypot(H.u0 + (i + 0.5) * CELL - startAt.u, H.v0 + (k + 0.5) * CELL - startAt.v);
+      if (d < bd) { bd = d; firstCell = k * nu + i; }
+    }
+  }
   if (firstCell < 0) return { seen, grid };
   const q = [firstCell]; seen[firstCell] = 1;
   while (q.length) {
@@ -527,10 +538,10 @@ export function reachableAt(res, u, v, r = 0.8) {
 export const STAFF = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'monteur']);
 
 // What is wrong with a layout (empty = valid): items out of the hall, in the doorway, unreachable spots.
-export function validateLayout(L) {
+export function validateLayout(L, startAt = null) {
   const bad = [];
   const H = L.hall;
-  const door = { u0: -L.door.w / 2, u1: L.door.w / 2, v0: H.v0 - 0.5, v1: H.v0 + DOOR_CLEAR_D };
+  const door = L.door ? { u0: -L.door.w / 2, u1: L.door.w / 2, v0: H.v0 - 0.5, v1: H.v0 + DOOR_CLEAR_D } : { u0: 0, u1: 0, v0: 0, v1: 0 };
   L.items.forEach((it, i) => {
     const r = rectOf(it);
     if (r.u0 < H.u0 - 1e-6 || r.u1 > H.u1 + 1e-6 || r.v0 < H.v0 - 1e-6 || r.v1 > H.v1 + 1e-6) bad.push(`item ${i} (${it.type}) buiten de hal`);
@@ -541,7 +552,7 @@ export function validateLayout(L) {
     const a = L.items[i], b = L.items[k];
     if (a.solid && b.solid && boxesMeet(rectOf(a), rectOf(b), -1e-6)) bad.push(`items ${i} en ${k} overlappen`);
   }
-  const res = reachable(L);
+  const res = reachable(L, walkGrid(L), startAt);
   const spots = [...L.npc.map((n) => ({ ...n, what: 'npc ' + n.role, r: 0.5 })), ...L.use.map((s) => ({ ...s, what: 'gebruik ' + s.id }))];
   for (const s of spots) if (s.pose !== 'sit' && !STAFF.has(s.role) && !reachableAt(res, s.u, s.v, s.r || 0.8)) bad.push(`${s.what} niet bereikbaar op (${s.u.toFixed(1)}, ${s.v.toFixed(1)})`);
   for (const w of L.walls) if (w.u0 < H.u0 - 0.2 || w.u1 > H.u1 + 0.2 || w.v0 < H.v0 - 0.2 || w.v1 > H.v1 + 0.2) bad.push('wand buiten de hal');
@@ -553,8 +564,8 @@ export function validateLayout(L) {
 const ESSENTIAL = new Set(['counter', 'bar', 'altar', 'carlift']);
 
 // What cannot be reached: people and spots of use on the free floor, and the rooms. { kind, i, u, v }
-function unreachable(L) {
-  const res = reachable(L), out = [];
+function unreachable(L, startAt = null) {
+  const res = reachable(L, walkGrid(L), startAt), out = [];
   L.npc.forEach((n, i) => { if (n.pose !== 'sit' && !STAFF.has(n.role) && !reachableAt(res, n.u, n.v, 0.5)) out.push({ kind: 'npc', i, u: n.u, v: n.v }); });
   L.use.forEach((s, i) => { if (!reachableAt(res, s.u, s.v, s.r || 0.8)) out.push({ kind: 'use', i, u: s.u, v: s.v }); });
   for (const r of L.rooms) { const u = (r.u0 + r.u1) / 2, v = (r.v0 + r.v1) / 2; if (!reachableAt(res, u, v, Math.min(1.2, (r.u1 - r.u0) / 2, (r.v1 - r.v0) / 2))) out.push({ kind: 'room', u, v }); }
@@ -563,9 +574,9 @@ function unreachable(L) {
 
 // Thin out a layout until everything is reachable: a person nobody can reach is dropped, and for a spot or a
 // room the nearest piece of furniture that is not the heart of the place is taken away. Deterministic.
-function repair(L) {
+export function repairLayout(L, startAt = null) {
   for (let k = 0; k < 60; k++) {
-    const bad = unreachable(L);
+    const bad = unreachable(L, startAt);
     if (!bad.length) return true;
     const t = bad[0];
     if (t.kind === 'npc') { L.npc.splice(t.i, 1); L.removed++; continue; }
@@ -590,22 +601,26 @@ export function generateLayout(spec) {
   const recipe = RECIPES[spec.kind];
   if (!recipe) return null;
   for (const density of [1, 0.6, 0.3, 0]) {
-    const p = new Plan(spec.hall, spec.door, mulberry32((spec.seed >>> 0) ^ 0x9e3779b9), spec.height, density);
+    const st = spec.stairs || null;
+    const reserved = st ? [{ u0: -spec.door.w / 2 - 0.5, u1: spec.door.w / 2 + 0.5, v0: spec.hall.v0 - 0.5, v1: spec.hall.v0 + DOOR_CLEAR_D }, { u0: st.u0 - 0.05, u1: st.u1 + 0.05, v0: st.vBot - 1.0, v1: st.vTop }] : null;
+    const p = new Plan(spec.hall, spec.door, mulberry32((spec.seed >>> 0) ^ 0x9e3779b9), spec.height, density, reserved);
+    p.stairs = st;
     p.look = spec.look || null;
     p.pickFabric = spec.look && spec.look.fabric != null ? spec.look.fabric : FABRIC[Math.floor(p.rnd() * FABRIC.length)];
     p.pickFabric2 = FABRIC[Math.floor(p.rnd() * FABRIC.length)];
     recipe(p, spec.sub);
     lampGrid(p);
+    if (st) p.useAt('trap', (st.u0 + st.u1) / 2, st.vBot - 0.5, 0.45); // the foot of the stair must be reachable
     const L = {
       v: 1, kind: spec.kind, sub: spec.sub || null, seed: spec.seed >>> 0, hall: p.hall, door: p.door, height: p.height,
       items: p.items, walls: p.walls, openings: p.openings, rooms: p.rooms, npc: p.npc, use: p.use, lamps: p.lamps,
-      palette: p.palette, density,
+      palette: p.palette, density, stairs: st, rails: st ? [{ u0: st.inner - 0.03, u1: st.inner + 0.03, v0: st.vBot, v1: st.vRamp, h: 1.0 }] : [],
     };
     L.removed = 0;
     // a person who stands inside a solid or a partition wall is dropped
     const body = (n) => ({ u0: n.u - 0.25, u1: n.u + 0.25, v0: n.v - 0.25, v1: n.v + 0.25 });
     L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && boxesMeet(body(n), rectOf(it))) && !L.walls.some((w) => boxesMeet(body(n), w)));
-    repair(L);
+    repairLayout(L);
     const bads = validateLayout(L);
     if (!bads.length) return L;
     generateLayout.lastBad = bads; // for the tests: why the last attempt failed

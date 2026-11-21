@@ -14,7 +14,7 @@ import { ITEM_TYPES, footprint, FACE } from './interiorlayout.js';
 import { hash2 } from './rng.js';
 
 export const G_SOLID = 0, G_LAMP = 1, G_GLASS = 2;
-export const MAX_TRIANGLES = 9000;
+export const MAX_TRIANGLES = 12000;
 
 export const solidMaterial = vcMaterial({ side: THREE.DoubleSide, emissive: 0x3a352c, emissiveIntensity: 1 });
 export const lampMaterial = new THREE.MeshBasicMaterial({ color: 0xfff1d6 });
@@ -34,9 +34,12 @@ const PRODUCTS = [0xd8423a, 0xf2c24a, 0x4f9a52, 0xf2efe6, 0x3a6ad8, 0xd88a3a, 0x
 export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
   const { frame, hall, layout, door } = plan;
   const H = plan.height;
+  const up = layout.upper || null, st = plan.stairs || null;
+  const Hw = up ? plan.topY : H; // the walls go up to the ceiling of the highest floor
+  let yOff = 0;
   const B = new GeoBuilder(3);
   const pal = layout.palette;
-  const P = (u, v, y) => { const [x, z] = toWorld(frame, u, v); return [x - origin.x, baseY + y, z - origin.y]; };
+  const P = (u, v, y) => { const [x, z] = toWorld(frame, u, v); return [x - origin.x, baseY + yOff + y, z - origin.y]; };
   const du = [frame.tx, 0, frame.ty], dv = [-frame.nx, 0, -frame.ny];
   const neg = (a) => [-a[0], -a[1], -a[2]];
   const UP = [0, 1, 0], DOWN = [0, -1, 0];
@@ -79,7 +82,22 @@ export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
   // the doorway: floor through the facade, a threshold strip
   q(P(-door.w / 2, 0, floorY), P(door.w / 2, 0, floorY), P(door.w / 2, hall.v0, floorY), P(-door.w / 2, hall.v0, floorY), UP, shade(fl, 0.9));
   box(-door.w / 2, door.w / 2, 0.08, 0.2, 0, 0.045, 0x9a9a98);
-  q(P(hall.u0, hall.v0, H), P(hall.u1, hall.v0, H), P(hall.u1, hall.v1, H), P(hall.u0, hall.v1, H), DOWN, pal.ceil);
+  const flatQuad = (u0, u1, v0, v1, y, out, c) => { if (u1 - u0 > 1e-4 && v1 - v0 > 1e-4) q(P(u0, v0, y), P(u1, v0, y), P(u1, v1, y), P(u0, v1, y), out, c); };
+  if (st) {
+    // the first-floor ceiling is the slab under the second floor, with the stairwell cut out of it
+    const hole = { u0: st.u0, u1: st.u1, v0: st.vBot, v1: st.vRamp };
+    for (const [y, out, c] of [[H, DOWN, pal.ceil], [plan.floorH, UP, shade(pal.floor, 0.9)]]) {
+      flatQuad(hall.u0, hall.u1, hall.v0, hole.v0, y, out, c);
+      flatQuad(hall.u0, hall.u1, hole.v1, hall.v1, y, out, c);
+      flatQuad(hall.u0, hole.u0, hole.v0, hole.v1, y, out, c);
+      flatQuad(hole.u1, hall.u1, hole.v0, hole.v1, y, out, c);
+    }
+    // the edge of the hole, from the slab down to the ceiling
+    wallAtV(hole.v0, hole.u0, hole.u1, H, plan.floorH, 1, shade(wallC0(), 0.8));
+    wallAtV(hole.v1, hole.u0, hole.u1, H, plan.floorH, -1, shade(wallC0(), 0.8));
+    wallAtU(st.inner, hole.v0, hole.v1, H, plan.floorH, st.side === 'left' ? 1 : -1, shade(wallC0(), 0.8));
+  } else flatQuad(hall.u0, hall.u1, hall.v0, hall.v1, H, DOWN, pal.ceil);
+  function wallC0() { return pal.wall; }
 
   // --- walls -----------------------------------------------------------------------------------------------
   const wallC = pal.wall, skirt = shade(pal.wall, 0.62), wain = plan.kind === 'woning' || plan.kind === 'horeca' ? shade(pal.wall, 0.8) : null;
@@ -87,12 +105,12 @@ export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
   // side and back walls, inward faces; a skirting board
   const solidWallV = (u, side) => {
     wallAtU(u, hall.v0, hall.v1, 0, 0.12, side, skirt);
-    if (wain) { wallAtU(u, hall.v0, hall.v1, 0.12, wainH, side, wain); wallAtU(u, hall.v0, hall.v1, wainH, H, side, wallC); } else wallAtU(u, hall.v0, hall.v1, 0.12, H, side, wallC);
+    if (wain) { wallAtU(u, hall.v0, hall.v1, 0.12, wainH, side, wain); wallAtU(u, hall.v0, hall.v1, wainH, Hw, side, wallC); } else wallAtU(u, hall.v0, hall.v1, 0.12, Hw, side, wallC);
   };
   solidWallV(hall.u0, 1); solidWallV(hall.u1, -1);
   const backWall = () => {
     wallAtV(hall.v1, hall.u0, hall.u1, 0, 0.12, -1, skirt);
-    if (wain) { wallAtV(hall.v1, hall.u0, hall.u1, 0.12, wainH, -1, wain); wallAtV(hall.v1, hall.u0, hall.u1, wainH, H, -1, wallC); } else wallAtV(hall.v1, hall.u0, hall.u1, 0.12, H, -1, wallC);
+    if (wain) { wallAtV(hall.v1, hall.u0, hall.u1, 0.12, wainH, -1, wain); wallAtV(hall.v1, hall.u0, hall.u1, wainH, Hw, -1, wallC); } else wallAtV(hall.v1, hall.u0, hall.u1, 0.12, Hw, -1, wallC);
   };
   backWall();
 
@@ -101,7 +119,7 @@ export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
   for (const w of plan.windows || []) {
     const u = w.c - plan.doorC, a = u - w.w / 2, b = u + w.w / 2;
     if (b < hall.u0 + 0.2 || a > hall.u1 - 0.2) continue;
-    const o = { u0: Math.max(hall.u0 + 0.05, a), u1: Math.min(hall.u1 - 0.05, b), y0: Math.max(0.05, w.y0), y1: Math.min(H - 0.1, w.y1) };
+    const o = { u0: Math.max(hall.u0 + 0.05, a), u1: Math.min(hall.u1 - 0.05, b), y0: Math.max(0.05, w.y0), y1: Math.min(Hw - 0.1, w.y1) };
     if (o.u1 - o.u0 < 0.25 || o.y1 - o.y0 < 0.3) continue;
     if (o.u0 >= opens[0].u0 - 1e-6 && o.u1 <= opens[0].u1 + 1e-6 && o.y1 <= opens[0].y1 + 1e-6) continue; // inside the door gap
     opens.push(o);
@@ -114,7 +132,7 @@ export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
     const here = opens.filter((o) => mid > o.u0 && mid < o.u1).map((o) => [o.y0, o.y1]).sort((a, b) => a[0] - b[0]);
     let y = 0;
     for (const [a, b] of here) { if (a > y) addFront(ua, ub, y, a); y = Math.max(y, b); }
-    if (y < H) addFront(ua, ub, y, H);
+    if (y < Hw) addFront(ua, ub, y, Hw);
   }
   function addFront(ua, ub, y0, y1) {
     // skirting at the foot, the wall colour above
@@ -132,23 +150,31 @@ export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
     if (!o.door) q(P(o.u0, 0, o.y0), P(o.u1, 0, o.y0), P(o.u1, hall.v0, o.y0), P(o.u0, hall.v0, o.y0), UP, shade(wallC, 1.0)); // the sill
   }
 
-  // --- partitions ------------------------------------------------------------------------------------------
-  for (const w of layout.walls) {
-    box(w.u0, w.u1, w.v0, w.v1, 0, w.h, shade(wallC, 0.97));
+  // --- partitions, lamps, items and rails, per floor -------------------------------------------------------
+  const drawLevel = (lay, off, hh) => {
+    yOff = off;
+    for (const w of lay.walls) box(w.u0, w.u1, w.v0, w.v1, 0, w.h, shade(wallC, 0.97));
+    for (const o of lay.openings) {
+      // a lintel over the doorway of a partition
+      if (o.axis === 'u') box(o.u - o.w / 2, o.u + o.w / 2, o.v - 0.06, o.v + 0.06, o.h, hh, shade(wallC, 0.97));
+      else box(o.u - 0.06, o.u + 0.06, o.v - o.w / 2, o.v + o.w / 2, o.h, hh, shade(wallC, 0.97));
+    }
+    for (const [u, v] of lay.lamps) box(u - 0.45, u + 0.45, v - 0.2, v + 0.2, hh - 0.05, hh - 0.01, 0xfff1d6, G_LAMP, true);
+    for (let k = 0; k < lay.items.length; k++) drawItem(lay.items[k], k);
+    if (lay === up) for (const r of lay.rails || []) box(r.u0, r.u1, r.v0, r.v1, 0, r.h, WOOD_D);
+    yOff = 0;
+  };
+  drawLevel(layout, 0, H);
+  if (up) {
+    flatQuad(hall.u0, hall.u1, hall.v0, hall.v1, plan.topY, DOWN, pal.ceil);
+    drawLevel(up, plan.floorH, plan.height2);
+    // the stair: steps from the ground floor to the landing, and a handrail on the inner side
+    const rampL = st.vRamp - st.vBot;
+    for (let i = 0; i < st.n; i++) box(st.u0, st.u1, st.vBot + i * rampL / st.n, st.vBot + (i + 1) * rampL / st.n, 0, (i + 1) * st.rise / st.n, i % 2 ? WOOD : WOOD_L);
+    const rx = st.inner;
+    q(P(rx - 0.025, st.vBot, 0.9), P(rx + 0.025, st.vBot, 0.9), P(rx + 0.025, st.vRamp, st.rise + 0.9), P(rx - 0.025, st.vRamp, st.rise + 0.9), UP, WOOD_D);
+    for (let i = 0; i <= 4; i++) { const v = st.vBot + 0.1 + i * (rampL - 0.2) / 4; box(rx - 0.03, rx + 0.03, v - 0.03, v + 0.03, st.rise * (v - st.vBot) / rampL, st.rise * (v - st.vBot) / rampL + 0.9, WOOD_D, G_SOLID, true); }
   }
-  for (const o of layout.openings) {
-    // a lintel over the doorway of a partition
-    if (o.axis === 'u') box(o.u - o.w / 2, o.u + o.w / 2, o.v - 0.06, o.v + 0.06, o.h, H, shade(wallC, 0.97));
-    else box(o.u - 0.06, o.u + 0.06, o.v - o.w / 2, o.v + o.w / 2, o.h, H, shade(wallC, 0.97));
-  }
-
-  // --- lamps -----------------------------------------------------------------------------------------------
-  for (const [u, v] of layout.lamps) {
-    box(u - 0.45, u + 0.45, v - 0.2, v + 0.2, H - 0.05, H - 0.01, 0xfff1d6, G_LAMP, true);
-  }
-
-  // --- items -----------------------------------------------------------------------------------------------
-  for (let k = 0; k < layout.items.length; k++) drawItem(layout.items[k], k);
 
   function drawItem(it, k) {
     const fn = DRAW[it.type];

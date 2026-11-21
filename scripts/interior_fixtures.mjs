@@ -12,7 +12,7 @@ export function building(kind, sub, w, d, rnd) {
   const c = w * (0.35 + rnd() * 0.3);
   const en = {
     ax: 0, ay: 0, tx: 1, ty: 0, nx: 0, ny: -1, len: w, c, w: kind === 'winkel' ? 1.1 : 1.0, h: 2.2, shop: kind === 'winkel',
-    floorH: kind === 'kerk' ? 10 : kind === 'station' ? 6 : 3.1, floors: 1, depth: kind === 'kerk' ? 10 : 6,
+    floorH: kind === 'kerk' ? 10 : kind === 'station' ? 6 : 3.1, floors: (kind === 'woning' || kind === 'kantoor' || kind === 'publiek' || kind === 'winkel') ? 2 : 1, depth: kind === 'kerk' ? 10 : 6.4,
     look: null, archetype: 'house', doorColor: 0x6b2a24, frameColor: 0x2a2b2d,
     windows: kind === 'winkel' ? [{ c: c - 2.4, w: 2.0, y0: 0.47, y1: 2.7 }, { c: c + 2.4, w: 2.0, y0: 0.47, y1: 2.7 }] : [{ c: c - 2.2, w: 1.2, y0: 0.9, y1: 2.1 }, { c: c + 2.2, w: 1.2, y0: 0.9, y1: 2.1 }],
   };

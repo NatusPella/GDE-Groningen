@@ -18,6 +18,9 @@ import { planInterior, doorState, planReady } from './interiorrules.js';
 import { makeSpotIndex, spotFor } from './interiorspots.js';
 import { buildInteriorGeometry, buildLeafGeometry, solidMaterial, lampMaterial, glassMaterial, leafMaterial } from './interiorbuild3d.js';
 import { makeWalk } from './interiorwalk.js';
+import { makeWanderer, stepWanderer, mayWander } from './interiorwander.js';
+import { walkGrid, reachable } from './interiorlayout.js';
+import { mulberry32 } from './rng.js';
 import { toWorld, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY } from './models3d_people.js';
@@ -92,11 +95,27 @@ function build(w, rec) {
   const box = { cx: fr.ox, cy: fr.oy, ux: fr.nx, uy: fr.ny, hl: 0.6, hw: plan.door.w / 2, top: ground + plan.door.h + 0.02, bottom: ground - 0.3 };
   const ls = { b, plan, group, mesh, pivot, leaf, ground, box, boxes: [box], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
   registerPortalBoxes(ls, ls.boxes);
-  ls.walk = makeWalk(plan, b.pts, () => ls.open > 0.55);
+  ls.walk = makeWalk(plan, b.pts, () => ls.open > 0.55, ground);
   b.walk = ls.walk;
   const p = hoofdspeler(w);
   if (p) updatePortals(p.x, p.y, true);
   return ls;
+}
+
+// The second floor and the stair: the walker's ground height (map.surfaceAt / groundHeightAt) comes from the stair and the upper floor of the
+// live interiors first, so he climbs the ramp with the normal follow-ground logic of player.js. One wrap per map, active only while a
+// stair interior lives; assignInteriorOptions({ upper: false }) switches it off.
+function installFloorHook(map) {
+  if (!map || map.interiorFloorHook) return;
+  map.interiorFloorHook = true;
+  const floorAt = (x, y, z) => {
+    for (const ls of S.live.values()) { if (!ls.plan.stairs) continue; const h = ls.walk.floorAt(x, y, z); if (h !== null) return h; }
+    return null;
+  };
+  const gAt = map.groundHeightAt && map.groundHeightAt.bind(map);
+  if (gAt) map.groundHeightAt = (x, y, zHint = 0, ...rest) => { const h = S.live.size ? floorAt(x, y, zHint) : null; return h !== null ? h : gAt(x, y, zHint, ...rest); };
+  const sAt = map.surfaceAt && map.surfaceAt.bind(map);
+  if (sAt) map.surfaceAt = (x, y, st, ...rest) => { if (S.live.size && st) { const h = floorAt(x, y, st.z); if (h !== null) return { z: h, ribbon: null, kind: 'ground' }; } return sAt(x, y, st, ...rest); };
 }
 
 function drop(w, ls) {
@@ -115,16 +134,20 @@ function drop(w, ls) {
 function addNpcs(ls) {
   const { plan } = ls, L = plan.layout;
   const accent = L.palette ? L.palette.accent : 0x3f6ea8;
-  L.npc.slice(0, MAX_NPC).forEach((n, i) => {
-    const look = npcLook(n.role, plan.seed, i, accent);
+  const all = [...L.npc.map((n) => ({ ...n, level: 1 })), ...(L.upper ? L.upper.npc.map((n) => ({ ...n, level: 2 })) : [])].slice(0, MAX_NPC);
+  if (!ls.grid) { ls.grid = walkGrid(L); ls.reach = reachable(L, ls.grid); }
+  const rnd = mulberry32(plan.seed ^ 0x6d2b79f5);
+  all.forEach((n, i) => {
+    const look = npcLook(n.role, plan.seed, i, accent, plan.sub);
     let fig;
     try { fig = buildPersonMesh(look.shirt, look.skin, look.opts); } catch (e) { return; }
     const [x, z] = toWorld(plan.frame, n.u, n.v);
-    fig.position.set(x - plan.frame.ox, ls.ground + 0.02, z - plan.frame.oy);
+    const lvl = n.level === 2 ? plan.floorH : 0;
+    fig.position.set(x - plan.frame.ox, ls.ground + lvl + 0.02, z - plan.frame.oy);
     fig.rotation.y = yawOfFace(plan.frame, n.face);
-    if (n.pose === 'sit') { try { seatPerson(fig); fig.position.y = ls.ground + 0.02 + seatedY(fig, 0.46) + 0.0; } catch (e) { /* stands then */ } }
+    if (n.pose === 'sit') { try { seatPerson(fig); fig.position.y = ls.ground + lvl + 0.02 + seatedY(fig, 0.46); } catch (e) { /* stands then */ } }
     ls.group.add(fig);
-    ls.npcs.push({ fig, n });
+    ls.npcs.push({ fig, n, wander: n.level === 1 && mayWander(n) ? makeWanderer(ls.grid, ls.reach, rnd, n.u, n.v) : null });
   });
   ls.npcsOn = true;
 }
@@ -137,6 +160,7 @@ function dropNpcs(ls) {
 // --- the update ------------------------------------------------------------------------------------------------
 
 function scan(w, p) {
+  installFloorHook(w.map);
   const near = w.map.buildingsNear(p.x, p.y, DROP_R + 12);
   const want = [];
   let computed = 0;
@@ -195,7 +219,23 @@ function updateLive(w, ls, dt, p, onFoot) {
   const wantNpcs = (st.open || inside) && dd < NPC_R;
   if (wantNpcs && !ls.npcsOn) addNpcs(ls);
   else if (!wantNpcs && ls.npcsOn) dropNpcs(ls);
-  if (ls.npcsOn && dd < NPC_R) for (const o of ls.npcs) { if (o.n.pose !== 'sit') { try { animatePersonWalk(o.fig, 0, dt); } catch (e) { /* idles */ } } }
+  if (ls.npcsOn && dd < NPC_R) {
+    for (const o of ls.npcs) {
+      if (o.n.pose === 'sit') continue;
+      let speed = 0;
+      if (o.wander) {
+        stepWanderer(o.wander, dt);
+        const [x, z] = toWorld(plan.frame, o.wander.u, o.wander.v);
+        o.fig.position.x = x - plan.frame.ox; o.fig.position.z = z - plan.frame.oy;
+        if (o.wander.moving) {
+          speed = 1.1;
+          const wx = plan.frame.tx * o.wander.hu - plan.frame.nx * o.wander.hv, wy = plan.frame.ty * o.wander.hu - plan.frame.ny * o.wander.hv;
+          o.fig.rotation.y = -Math.atan2(wy, wx);
+        }
+      }
+      try { animatePersonWalk(o.fig, speed, dt); } catch (e) { /* idles */ }
+    }
+  }
 }
 
 export function updateInteriors(dt, w) {

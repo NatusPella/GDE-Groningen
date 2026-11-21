@@ -37,7 +37,7 @@ for (const kind of KIND_IDS) {
       for (let k = 0; k < pos.length; k += 3) {
         if (!Number.isFinite(pos[k]) || !Number.isFinite(pos[k + 1]) || !Number.isFinite(pos[k + 2])) { finite = false; break; }
         const [u, v] = toLocal(fr, pos[k], pos[k + 2]);
-        if (u < plan.hall.u0 - 0.45 || u > plan.hall.u1 + 0.45 || v < -0.05 || v > plan.hall.v1 + 0.45 || pos[k + 1] < -0.01 || pos[k + 1] > plan.height + 0.5) outside++;
+        if (u < plan.hall.u0 - 0.45 || u > plan.hall.u1 + 0.45 || v < -0.05 || v > plan.hall.v1 + 0.45 || pos[k + 1] < -0.01 || pos[k + 1] > plan.topY + 0.5) outside++;
       }
       ok(finite, `${key}: geen NaN in de geometrie`);
       ok(outside === 0, `${key}: alles ligt binnen de hal, het plafond en de voorgevel`, String(outside));

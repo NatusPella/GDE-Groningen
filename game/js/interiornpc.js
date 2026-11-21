@@ -35,7 +35,21 @@ let provider = null;
 export function assignRoleOutfit(fn) { provider = typeof fn === 'function' ? fn : null; }
 
 // who stands in place `i` of building seed `seed`: { shirt, skin, opts } for buildPersonMesh(shirt, skin, opts)
-export function npcLook(role, seed, i, accent = 0x3f6ea8) {
+// The role pool of the outfit system (clothingdata.js ROLE_POOLS) that dresses each role of an interior; 'sub' (the shop type or
+// the café type) can refine it: a baker wears the baker's pool.
+export const CLOTHING_ROLE = {
+  winkelier: 'winkelier', klant: 'voetganger', barman: 'winkelier', gast: 'voetganger', receptionist: 'zakenman', medewerker: 'zakenman',
+  bewoner: 'voetganger', koster: 'zakenman', bezoeker: 'voetganger', loketmedewerker: 'zakenman', reiziger: 'toerist', bibliothecaris: 'winkelier',
+  lezer: 'student', monteur: 'bouwvakker', baliemedewerker: 'zakenman',
+};
+export function clothingRole(role, sub = null) {
+  if (role === 'winkelier' && sub === 'bakker') return 'bakker';
+  if ((role === 'winkelier' || role === 'barman') && (sub === 'snackbar' || sub === 'restaurant')) return 'kok';
+  if (role === 'gast' && sub === 'kroeg') return 'feestganger';
+  return CLOTHING_ROLE[role] || 'voetganger';
+}
+
+export function npcLook(role, seed, i, accent = 0x3f6ea8, sub = null) {
   const R = ROLES[role] || {};
   const h = (k) => hash2((seed % 100003) * 0.013 + k * 3.7, i * 1.31 + k * 0.77);
   const female = h(1) < 0.5;
@@ -46,7 +60,8 @@ export function npcLook(role, seed, i, accent = 0x3f6ea8) {
     variant: female ? 'female' : 'male', hair: pick(HAIR, 4), hairStyle: female ? pick(STYLES_F, 5) : pick(STYLES_M, 5),
     pants: pick(PANTS, 6), shoes: 0x2a1d14, seed: (seed + i * 97) % 9973,
   };
-  if (R.top || R.glasses) opts.look = { ...(R.top ? { top: R.top, topColor: shirt } : {}), ...(R.glasses ? { glasses: true } : {}) };
+  // the outfit system dresses the person from the role pool (epic Kleding); the look of the role is the fallback
+  opts.role = clothingRole(role, sub);
   const own = provider ? provider(role, seed, i) : null;
   if (own) return { shirt: own.shirt ?? shirt, skin: own.skin ?? skin, opts: { ...opts, ...(own.opts || {}) } };
   return { shirt, skin, opts };
