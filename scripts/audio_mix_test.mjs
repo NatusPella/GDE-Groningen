@@ -84,6 +84,20 @@ ok(capVoor('wapen', 2) >= capVoor('voetstap', 1), 'cap: een schot valt niet door
   ok(t.neem(null) === true, 'teller: zonder categorie altijd door');
 }
 ok(/stemTeller\.neem\(cat, prio\)/.test(aud) && /stemTeller\.geef\(cat\)/.test(aud), 'audio.js playBuf telt per categorie');
+{
+  // review 21-11 (N5): een mislukte start geeft de stem terug aan de teller (geen permanent volle categorie), en delay/rate worden bewaakt
+  const a = aud.indexOf('function playBuf');
+  const f = aud.slice(a, aud.indexOf('function playHit', a));
+  ok(/Number\.isFinite\(delay\)/.test(f) && /Number\.isFinite\(rate\)/.test(f), 'playBuf bewaakt delay en rate (geen NaN-tijd)');
+  ok(/catch \(e\) \{\s*activeVoices--;\s*stemTeller\.geef\(cat\);\s*return null;/.test(f), 'playBuf geeft de stem terug als de start mislukt');
+  // gedrag van de teller: neem zonder geef vult de categorie, geef maakt weer ruimte
+  const t = createStemTeller();
+  const cat = Object.keys(CAT_CAPS)[0];
+  let genomen = 0;
+  while (t.neem(cat, 1)) { if (++genomen > 200) break; }
+  t.geef(cat);
+  ok(t.neem(cat, 1) === true, 'teller: na geef is er weer ruimte');
+}
 ok((aud.match(/cat: info\.cat/g) || []).length >= 2, 'playFx en playSample geven hun categorie door');
 
 // 7. declick

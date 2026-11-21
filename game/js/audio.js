@@ -447,8 +447,12 @@ function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0
   const buffer = own || bank.get(name);
   if (!buffer) return null;
   // per categorie een grens (sfx/stemlimiet.js): een menigte stappen of dieren eet de stemmen van een knal niet op
+  // een niet-eindige delay of rate geeft NaN-tijden en een RangeError in start(): zonder deze bewaking zou de teller nooit teruggegeven worden (review 21-11)
+  if (!Number.isFinite(delay) || delay < 0) delay = 0;
+  if (!Number.isFinite(rate) || rate <= 0) rate = 1;
   if (!stemTeller.neem(cat, prio)) return null;
   activeVoices++;
+  try {
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = rate;
@@ -484,6 +488,11 @@ function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0
     if (out) out.release();
   };
   return src;
+  } catch (e) {
+    activeVoices--;
+    stemTeller.geef(cat);
+    return null;
+  }
 }
 
 function playHit(out) {
