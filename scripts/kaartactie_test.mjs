@@ -23,7 +23,7 @@ ok(m.acties.every((a) => a.icoon && a.label && a.sub), 'elke actie heeft een ico
 ok(m.acties[0].label === 'Zet waypoint' && m.acties[1].label === 'Reis erheen' && m.acties[2].label === 'Info', 'de labels');
 ok(/€ \d+ · ± \d+ min/.test(m.acties[1].sub), 'Reis erheen toont kosten en duur', m.acties[1].sub);
 const kaal = K.actieModel({ spot, speler, waypoint: null, opts: [] });
-ok(/Zelf gaan · ± \d+ min/.test(kaal.acties[1].sub), 'zonder ov: Reis erheen zegt dat je zelf gaat, met de duur', kaal.acties[1].sub);
+ok(/Geen .* hierheen|Niet beschikbaar|Te dichtbij/.test(kaal.acties[1].sub) && !/Zelf gaan/.test(kaal.acties[1].sub), 'zonder vervoer: Reis erheen zegt waarom er niets gaat (geen "Zelf gaan": dat is Zet waypoint)', kaal.acties[1].sub);
 
 // 2. een waypoint dat er staat wordt Haal weg; er is er één tegelijk
 const staat = K.actieModel({ spot, speler, waypoint: { x: 3010, y: 405 }, opts });
@@ -45,22 +45,25 @@ const gast = K.actieModel({ spot, speler, waypoint: null, opts, gast: true });
 ok(gast.acties[0].id === 'waypoint' && !gast.acties[0].disabled, 'een gast kan een waypoint zetten');
 ok(gast.acties[1].disabled && gast.acties[1].reden === K.GAST_REIS_MELDING && /eigen spel/.test(K.GAST_REIS_MELDING), 'een gast krijgt een duidelijke melding bij Reis erheen');
 const gk = K.reisKeuzes(opts, 3200, { gast: true });
-ok(gk.filter((r) => r.soort === 'snel').every((r) => r.disabled) && gk.find((r) => r.soort === 'zelf') && !gk.find((r) => r.soort === 'zelf').disabled, 'gast: snel reizen uit, zelf gaan aan');
+ok(gk.every((r) => r.disabled === K.GAST_REIS_KORT && !r.aanbevolen) && !gk.some((r) => r.id === 'zelf'), 'gast: elk vervoer uit met de reden, niets aanbevolen, en geen Zelf gaan');
 
 // 4. de reiskeuze: een zin per keuze, kosten, duur en één aanbevolen
 const keuzes = K.reisKeuzes(opts, 3200);
-ok(keuzes.every((r) => r.uitleg && r.kosten && r.duur), 'elke keuze heeft een zin, kosten en duur');
+ok(keuzes.filter((r) => !r.geenRoute).every((r) => r.uitleg && r.kosten && r.duur), 'elke keuze met een route heeft een zin, kosten en duur');
+ok(keuzes.every((r) => r.disabled || r.beschikbaar) && keuzes.every((r) => !r.beschikbaar || !r.disabled), 'elke rij is beschikbaar of heeft een reden');
 ok(keuzes.filter((r) => r.aanbevolen).length === 1, 'precies één keuze is aanbevolen', keuzes.map((r) => r.id + r.aanbevolen));
-ok(keuzes.at(-1).id === 'zelf' && keuzes.at(-1).kosten === 'gratis', 'Zelf gaan is er altijd en is gratis');
-ok(K.reisKeuzes([], 500).find((r) => r.id === 'zelf').aanbevolen, 'zonder ov is Zelf gaan de aanbevolen keuze');
+ok(!keuzes.some((r) => r.id === 'zelf'), 'Zelf gaan is geen reisoptie meer: dat is Zet waypoint (21-11)');
+ok(keuzes.map((r) => r.id).sort().join() === 'boot,bus,taxi,trein', 'de rijen zijn precies de actieve vervoerswijzen: trein, bus, taxi, boot');
+ok(K.reisKeuzes([], 500).every((r) => !r.aanbevolen && r.disabled), 'zonder vervoer: niets aanbevolen en overal een reden');
 const html = UI.actiesHtml(m, null) + UI.reisHtml(keuzes, 'trein') + UI.infoHtml(K.infoRegels({ spot, afstand: 3000 })) + UI.uitlegHtml();
 for (const id of ['waypoint', 'reis', 'info']) ok(html.includes(`data-card="${id}"`), `knop data-card=${id}`);
-ok(html.includes('aanbevolen') && html.includes('data-card="zelf"') && html.includes('data-card="kies:trein"'), 'de reiskeuze: aanbevolen, Zelf gaan en Snel reizen klikbaar');
-ok(html.includes('data-act="uitleg-sluit"') && html.includes('Besturing'), 'de uitleg is te sluiten en zegt waar je hem terugvindt');
-ok(!html.includes('mv-help-x') && (html.match(/data-act="uitleg-sluit"/g) || []).length === 1 && /Begrepen<\/button><span class="mv-help-toets[^"]*"[^>]*>[\s\S]*?<\/span><\/span>/.test(html) && !/Begrepen\s*<span/.test(html), 'de uitleg heeft één sluitknop Begrepen zonder icoon erin, met de Enter-toets als toetskap ernaast, en geen kruisje (21-11)');
+ok(html.includes('aanbevolen') && !html.includes('data-card="zelf"') && html.includes('data-card="kies:trein"'), 'de reiskeuze: aanbevolen en de vervoerswijzen klikbaar, geen Zelf gaan');
+ok(html.includes('data-act="uitleg-sluit"') && !html.includes('Instellingen'), 'de uitleg is te sluiten; de Hulp-knop op de kaart opent hem opnieuw (geen verwijzing naar Instellingen)');
+ok(!html.includes('mv-help-x') && (html.match(/data-act="uitleg-sluit"/g) || []).length === 1 && /<button[^>]*data-key="ENTER"[^>]*><span class="ds-z-knop__label">Begrepen<\/span><span class="ds-z-knop__toets"/.test(html) && !/mv-help-toets/.test(html), 'de uitleg heeft één sluitknop Begrepen met de Enter-toets IN de knop, en geen kruisje (21-11)');
 ok(UI.uitlegHtml({ gast: true }).includes('Samen spelen') && !UI.uitlegHtml().includes('Samen spelen'), 'een gast leest de Samen spelen-regel bij de uitleg');
+ok(!/Zelf gaan/.test(K.KAART_UITLEG.join(' ') + K.GAST_UITLEG + K.GAST_LEGENDA + K.LEGENDA_UITLEG.join(' ')), 'geen uitleg noemt Zelf gaan als reisoptie; Zet waypoint is zelf gaan');
 ok(/Je staat hier/.test(UI.hierHtml('Vismarkt')) && UI.hierHtml('Vismarkt').includes('Vismarkt'), 'hint bij je eigen plek op de kaart');
-ok(K.KAART_UITLEG.some((l) => /legenda/.test(l)) && UI.uitlegHtml().includes('legenda'), 'de eerste-keer-uitleg noemt de legenda');
+ok(K.KAART_UITLEG.some((l) => /legenda/.test(l)) && UI.uitlegHtml().includes('Lagen'), 'de eerste-keer-uitleg noemt de legenda (de regels) en de knop Lagen (de rijen)');
 const leg = UI.legendaHintHtml();
 ok(/Zet waypoint/.test(leg) && /Reis erheen/.test(leg) && /kosten en duur/.test(leg), 'legenda: wat een klik doet, met kosten en duur bij reizen', leg);
 ok(!leg.includes('Als gast') && UI.legendaHintHtml({ gast: true }).includes('eigen spel'), 'legenda: alleen een gast leest de Samen spelen-regel');

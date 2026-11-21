@@ -11,7 +11,9 @@ const FOCUSABLE = 'button, input, select, [tabindex]';
 export function mapControlList(root) {
   const overlay = root && root.querySelector('.mapview-overlay');
   if (!overlay) return [];
-  return [...overlay.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]') && !el.matches('canvas, .mapview-canvas'));
+  // een open kaartvenster (de reispopup of de eerste-keer-uitleg) is modaal: de D-pad blijft erin en loopt niet naar de knoppen eronder (21-11)
+  const scope = overlay.querySelector('.mv-reispop, .mv-help') || overlay;
+  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]') && !el.matches('canvas, .mapview-canvas'));
 }
 
 const focusCanvas = (root) => { const cv = root.querySelector('.mapview-canvas'); if (cv) cv.focus({ preventScroll: true }); };
