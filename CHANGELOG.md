@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Toetsplaatjes staan in de zin (#1075):** een toets, muisknop of controllerknop is nu een factor van de tekst eromheen (1,25 keer de letterhoogte, nooit lager dan 18 px) en staat op de halve letterhoogte van de regel, zodat hij als een woord van de zin leest en de regel niet hoger maakt. Een groep als "A / D" of "Shift + klik" en het woord vlak voor een toets breken niet meer halverwege (de D sprong in de Kist Kees-tip naar een nieuwe regel). De WASD-toetsen staan naast elkaar in plaats van in een blokje. Hintrijen (onderbalk, doelregel, pauzemenu) gebruiken 1,5 keer, in de HUD minstens 26 px. Samen spelen: lokaal.
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.
