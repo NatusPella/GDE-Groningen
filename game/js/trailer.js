@@ -8,7 +8,7 @@ import { getScene, prewarmStreamAt, disposeObject } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult, getBenchResult } from './gfxprofile.js';
-import { BENCH_ROUTE, playStats, shouldRemeasure, betterRun, ultraNote, benchMeasureAfter, frameStats, categoryStats, routeHitches, packRun, readLastRun, writeLastRun, heapMb, heapPeak } from './benchstats.js';
+import { BENCH_ROUTE, playStats, shouldRemeasure, betterRun, ultraNote, runDiagnosis, benchMeasureAfter, frameStats, categoryStats, routeHitches, packRun, readLastRun, writeLastRun, heapMb, heapPeak } from './benchstats.js';
 import { onBenchmarkStop } from './gamepad.js';
 import { glyphHtml } from './keycap.js';
 import { courseFor, commentaryFor, frameReport, fpsSeries, reportCard, normaliseChoice, COURSES } from './benchmarkmodel.js';
@@ -2536,7 +2536,8 @@ export function showBenchmarkResults(res) {
   const cur = currentPreset(getSettings());
   const course = COURSES[res.choice && res.choice.course] ? res.choice.course : 'classic';
   const basis = stats && stats.play ? { avg: stats.play.avg, low1: stats.play.low1, p95: stats.play.p95 } : stats; // what a player plays decides
-  const card = reportCard({ stats, preset: res.preset || cur, presetFps: res.presetFps || {}, course, length: res.choice && res.choice.length, prev, size: [innerWidth, innerHeight], basis, describe: describePreset, extra: stats ? ultraNote(cur, stats.avg, (getBenchResult() || {}).fps) : '' });
+  const diag = stats ? runDiagnosis({ avg: basis.avg, shots: stats.shots, current: res.preset || cur, presetFps: res.presetFps || {} }) : null; // #1015: is the limit the settings at all?
+  const card = reportCard({ stats, diag, preset: res.preset || cur, presetFps: res.presetFps || {}, course, length: res.choice && res.choice.length, prev, size: [innerWidth, innerHeight], basis, describe: describePreset, extra: stats ? ultraNote(cur, stats.avg, (getBenchResult() || {}).fps) : '' });
   const adv = { apply: card.empty || card.busy ? null : card.advice.apply };
   resultEl.innerHTML = reportHtml(card);
   resultEl.hidden = false;

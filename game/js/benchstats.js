@@ -207,7 +207,33 @@ const STAND_EXPLAIN = {
   vlot: 'Hoog heeft de look van Ultra met een korte zichtafstand: soepel op de meeste computers.',
   hoog: 'Ultra laat Grunn zien zoals bedoeld, met de verste zichtafstand. Deze computer houdt dat bij.',
 };
-export function recommendStand(stats, current) {
+// #1015: two things that make a low result say nothing about the settings. (1) Preset-insensitive: the next lower preset (measured on the slowest
+// scenes, presetFps) is not clearly faster, so lowering the setting cannot help; the limit is elsewhere (streaming, CPU, the driver, a busy
+// machine). (2) Uneven: the pooled average is far below the median scene, so a few scenes collapse (shader compiles, streaming) and the rest
+// is fine. The mean of all frames punishes such a collapse hard (24 fps on a strong AMD pc), the median over scenes does not.
+export const DIAG_LOWER_GAIN = 1.15;
+export const DIAG_UNEVEN_RATIO = 0.7;
+const median = (a) => { const s = a.filter((x) => Number.isFinite(x) && x > 0).sort((x, y) => x - y); if (!s.length) return 0; const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+export const medianShotFps = (shots) => median((shots || []).map((s) => s && s.fps));
+export function runDiagnosis({ avg, shots, current, presetFps } = {}) {
+  const i = STAND_ORDER.indexOf(current);
+  const medianFps = medianShotFps(shots);
+  const out = { kind: 'normal', medianFps, lowerGain: 0 };
+  const nShots = (shots || []).filter((s) => s && s.fps > 0).length;
+  const here = presetFps && presetFps[current] > 0 ? presetFps[current] : avg;
+  if (i > 0 && here > 0 && presetFps) {
+    const lower = STAND_ORDER.slice(0, i).map((k) => presetFps[k]).filter((x) => x > 0);
+    if (lower.length) { out.lowerGain = Math.max(...lower) / here; if (out.lowerGain < DIAG_LOWER_GAIN) out.kind = 'preset-insensitive'; }
+  }
+  if (out.kind === 'normal' && nShots >= 5 && avg > 0 && medianFps > 0 && avg / medianFps < DIAG_UNEVEN_RATIO) out.kind = 'uneven';
+  return out;
+}
+export const DIAG_TEXT = {
+  'preset-insensitive': 'Een lagere stand maakt het hier niet merkbaar sneller: de rem zit waarschijnlijk niet in de grafische stand (laden, processor, stuurprogramma of een druk systeem). Zet de stand daarom niet lager; start het spel opnieuw en meet nog een keer.',
+  uneven: 'Een paar scènes haperen (laden of shaders), de meeste lopen gewoon soepel. Een lagere stand lost dat niet op; start het spel opnieuw en meet nog een keer.',
+};
+
+export function recommendStand(stats, current, diag = null) {
   if (!stats) return { stand: current || 'vlot', change: 'same', text: 'Er is niets gemeten. Probeer het nog een keer.' };
   const i = STAND_ORDER.indexOf(current);
   const base = i < 0 ? 2 : i;
@@ -218,14 +244,16 @@ export function recommendStand(stats, current) {
   const roomy = (stats.avg >= 75 && stats.low1 >= 45 && stats.p95 <= 22) || locked60;
   const roomyUltra = (stats.avg >= 90 && stats.low1 >= 55 && stats.p95 <= 18) || (locked60 && stats.low1 >= 56 && stats.p95 <= 17.4);
   let to = base;
-  if (rough) to = Math.max(0, base - 1);
+  const blamed = rough && diag && DIAG_TEXT[diag.kind] ? diag.kind : null; // the settings are not the cause: do not lower them
+  if (rough && !blamed) to = Math.max(0, base - 1);
   else if (roomy && (base + 1 < 3 || roomyUltra)) to = Math.min(STAND_ORDER.length - 1, base + 1);
   const stand = STAND_ORDER[to];
   const change = to > base ? 'up' : to < base ? 'down' : 'same';
   let text = STAND_EXPLAIN[stand];
-  if (rough && change === 'same') text = 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.';
+  if (blamed) text = DIAG_TEXT[blamed];
+  else if (rough && change === 'same') text = 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.';
   else if (change === 'same' && i >= 0) text = `${STAND_LABEL[stand]} draait prima. ${STAND_EXPLAIN[stand]}`;
-  return { stand, change, text };
+  return { stand, change, text, ...(blamed ? { diag: blamed } : {}) };
 }
 
 // Difference with the previous run: positive fps/low1 = better, positive p95 = worse.

@@ -1,6 +1,6 @@
 // node scripts/benchstats_test.mjs: frame statistics, the profile advice, the
 // run comparison, the route and its storage (game/js/benchstats.js).
-import { frameStats, categoryStats, weakestCategory, recommendProfile, compareRuns, compareText, packRun, readLastRun, writeLastRun, BENCH_ROUTE, benchRouteSeconds, benchCategoryOf, heapMb, heapPeak, memText, playStats, shouldRemeasure, betterRun, ultraNote, recommendStand, STAND_LABEL, STAND_ORDER, benchMeasureAfter, benchLooksBusy } from '../game/js/benchstats.js';
+import { frameStats, categoryStats, weakestCategory, recommendProfile, compareRuns, compareText, packRun, readLastRun, writeLastRun, BENCH_ROUTE, benchRouteSeconds, benchCategoryOf, heapMb, heapPeak, memText, playStats, shouldRemeasure, betterRun, ultraNote, recommendStand, STAND_LABEL, STAND_ORDER, benchMeasureAfter, benchLooksBusy, runDiagnosis, medianShotFps } from '../game/js/benchstats.js';
 import { BASE_KEYS } from '../game/js/storagekeys.js';
 
 let fail = 0;
@@ -121,6 +121,31 @@ ok('no storage is fine', readLastRun({ getItem() { throw new Error('x'); } }) ==
   r = recommendStand(run(120, 80, 10), null);
   ok('eigen instellingen: gelden als Hoog', r.stand === 'hoog' || r.stand === 'vlot');
   ok('drukke meting wordt herkend', benchLooksBusy({ p95: 250, low1: 4 }) && benchLooksBusy({ p95: 60, low1: 5 }) && !benchLooksBusy({ p95: 30, low1: 40 }) && !benchLooksBusy(null));
+}
+
+// #1015: een lage score zegt niets over de stand als een lagere stand niet sneller is, of als een paar scènes instorten.
+{
+  const rough = { avg: 24, low1: 9, p95: 70 };
+  const shots = (arr) => arr.map((fps, idx) => ({ label: 's' + idx, fps, idx }));
+  let d = runDiagnosis({ avg: 24, shots: shots([24, 25, 23, 24, 26]), current: 'hoog', presetFps: { hoog: 24, vlot: 24.5, middel: 25, laag: 26 } });
+  ok('Ultra 24 en Hoog 24,5: stand-ongevoelig', d.kind === 'preset-insensitive' && d.lowerGain < 1.15, JSON.stringify(d));
+  let r = recommendStand(rough, 'hoog', d);
+  ok('stand-ongevoelig: Ultra blijft, geen stap omlaag, uitleg', r.stand === 'hoog' && r.change === 'same' && r.diag === 'preset-insensitive' && /niet lager/.test(r.text), JSON.stringify(r));
+  d = runDiagnosis({ avg: 24, shots: shots([24, 25, 23, 24, 26]), current: 'hoog', presetFps: { hoog: 24, vlot: 40, middel: 55, laag: 60 } });
+  ok('een lagere stand is duidelijk sneller: normaal', d.kind === 'normal');
+  r = recommendStand(rough, 'hoog', d);
+  ok('normaal: nog steeds een stap omlaag', r.stand === 'vlot' && r.change === 'down');
+  d = runDiagnosis({ avg: 30, shots: shots([70, 72, 68, 12, 65, 71]), current: 'vlot', presetFps: { vlot: 30, middel: 52, laag: 60 } });
+  ok('een paar ingestorte scènes: ongelijk, mediaan 69', d.kind === 'uneven' && Math.round(d.medianFps) === 69, JSON.stringify(d));
+  r = recommendStand(rough, 'vlot', d);
+  ok('ongelijk: geen stap omlaag', r.change === 'same' && r.diag === 'uneven');
+  d = runDiagnosis({ avg: 30, shots: shots([30, 31]), current: 'vlot', presetFps: {} });
+  ok('weinig scènes en geen presetmeting: normaal', d.kind === 'normal');
+  d = runDiagnosis({ avg: 24, shots: shots([24, 25, 23, 24, 26]), current: 'laag', presetFps: { laag: 24 } });
+  ok('Laag heeft niets lager: normaal', d.kind === 'normal');
+  r = recommendStand({ avg: 100, low1: 70, p95: 12 }, 'vlot', { kind: 'preset-insensitive' });
+  ok('een gladde run met ruimte: diag verandert niets', r.stand === 'hoog' && r.change === 'up' && !r.diag);
+  ok('mediaan over scènes', medianShotFps(shots([10, 50, 60])) === 50 && medianShotFps([]) === 0);
 }
 
 console.log(fail ? `${fail} FAILED` : 'all ok');
