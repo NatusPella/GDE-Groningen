@@ -16,6 +16,7 @@
 | Groei | Vaardigheden (tempo, schot, pass, uithouding), training via minigames en wedstrijdervaring, rollen en talenten. |
 | Club en geld | Clubbezit mogelijk (aandeel in een club of stadion), als onderdeel van het Bezit-menu. |
 | Samen spelen | Vrienden in je team (11v11) of als rivaliserend team; de carrière blijft per speler (#429). |
+| **Canon (21-11)** | Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren tijdens hun studie al vrienden en hebben nu hun eerste volwassen baantjes. Dus: geen jeugd- of leeftijdsfase; Tessa begint als net-afgestudeerde amateur in de laagste klasse en Tammo regelt het naast zijn eerste baan. Alles begint klein. |
 
 ## 1. Stand van zaken
 
@@ -58,15 +59,15 @@
 
 | Fase | Wat de speler doet | Marker |
 |---|---|---|
-| 1 Talent | Begint in de Talentenklasse bij De Stadjers (de talentenploeg): eerst alleen training en invalbeurten | uitnodiging van Tammo |
+| 1 Amateur | Net afgestudeerd, begint als amateur in de laagste klasse (de Talentenklasse, voor aspirant-spelers) bij De Stadjers: trainen in de avonduren naast haar baantjes, eerst invalbeurten | uitnodiging van Tammo |
 | 2 Debuut | Eerste wedstrijd in de basis of als invaller; eerste doelpunt | prestatie, appje |
 | 3 Selectie | Vaste basisspeler, promotie uit de Talentenklasse | promotie-ronde |
 | 4 Doorbraak | Terpklasse en beker; eerste bod van een andere club | bod via Tammo |
 | 5 Transfers | Contract kiezen of verlengen, van club wisselen | contractscherm |
 | 6 Kapitein | Aanvoerdersband bij een goed seizoen en tevredenheid van de selectie; tactiek mee beslissen | verhaalbeat |
-| 7 Trainer-coach | Vanaf seizoen 3 en kapitein: de technische staf (opstelling, transfers, budget, jeugdacademie); je mag blijven spelen | Tammo wordt trainer-coach |
+| 7 Trainer-coach | Vanaf seizoen 3 en kapitein: de technische staf (opstelling, transfers, budget, opleiding voor aspirant-spelers); je mag blijven spelen | Tammo wordt trainer-coach |
 
-De leeftijd van Tessa wordt nergens genoemd (`docs/verhaal/STIJLGIDS.md`). Daarom is "jeugd" een **klasse** (de Talentenklasse), geen leeftijd. Zie open vraag 1.
+**Canon van de eigenaar (21-11), antwoord op open vraag 1:** er is **geen jeugd- of leeftijdsfase**. Tessa is net afgestudeerd en begint als amateur in de laagste klasse; "Talentenklasse" blijft alleen de naam van die klasse voor aspirant-spelers (geen leeftijd). Een jeugdacademie in de managerlaag is een **opleiding voor aspirant-spelers** (instroom van talenten uit de regio, zonder leeftijd). Het verhaal is "de wijde wereld in": voetbal is een van de dingen die ze naast hun eerste echte baantjes proberen, geen jeugddroom die eindelijk uitkomt. Zie hoofdstuk 2b voor wat in het bestaande verhaal hiermee botst.
 
 ### Wanneer ontgrendelt het
 
@@ -83,18 +84,38 @@ Alles is een appje (stil, `app-stil`, dus geen TTS-ronde) of een kort gesprek in
 
 | Beat | Trigger | Voorbeeld |
 |---|---|---|
-| B1 Uitnodiging | ontgrendeling | Tammo: "De Stadjers zoeken talent. Ik heb jouw naam genoemd. Je hoeft alleen te komen." |
-| B2 Eerste training | uitnodiging aangenomen | Tessa: "Het ruikt hier naar gras en oud zweet. Prima." |
-| B3 Debuut | eerste wedstrijd | Tammo: "Je speelde alsof je dit al jaren doet." Tessa: "Dat klopt ook, bij het dorpsteam." |
+| B1 Uitnodiging | ontgrendeling | Tammo, tussen twee sollicitaties door: "De Stadjers zoeken nieuwe spelers. Ik heb jouw naam genoemd. Het is maar een avondje trainen." |
+| B2 Eerste training | uitnodiging aangenomen | Tessa: "Het ruikt hier naar gras en oud zweet. Net als vroeger bij het dorpsteam." |
+| B3 Debuut | eerste wedstrijd | Tammo: "Je speelde alsof je dit al jaren doet." Tessa: "Dat klopt ook. Het dorpsteam, weet je nog." |
 | B4 Eerste doelpunt | eerste eigen goal | Oma Trijntje op de tribune (tekst) |
-| B5 Promotie | einde seizoen 1 | Tammo: "Terpklasse. Je loon gaat omhoog, de bussen blijven vol." |
+| B5 Promotie | einde seizoen 1 | Tammo: "Terpklasse. Je vergoeding gaat omhoog. Mijn baan betaalt nog steeds minder." |
 | B6 Het eerste bod | seizoen 2, rating hoog genoeg | Tammo regelt: een club biedt; een keuze, geen druk |
 | B7 Beker | beker gewonnen of finale | Hilbrand (commentaar), Tessa kort |
 | B8 Kapitein | seizoen 3 | Tammo: "De selectie heeft gestemd." |
-| B9 Trainer-coach | na B8 en een volledig seizoen | Tammo: "Ik regel de papieren. Jij regelt de opstelling." |
+| B9 Trainer-coach | na B8 en een volledig seizoen | Tammo: "Ik regel de papieren naast mijn werk. Jij regelt de opstelling." |
 | B10 Aandeel | eerste keer genoeg geld voor clubbezit | Tammo: de kaart naar Bezit > Club |
 
-Regels: een beat is hooguit 14 woorden per HUD-bericht (`WORD_BUDGET`), "Grunn" nooit "de Grunn", geen echte clubs of personen, altijd zomer (geen winterstop; een seizoenspauze heet "pauze tussen de seizoenen"). Tessa en Tammo blijven in hun persona's (`PERSONA_POOL`, `karakterbonus.js`); Tammo's rol als zaakwaarnemer is nieuw en vraagt een korte regel in `docs/personages.md`.
+Regels voor de canon: Tammo regelt het **naast zijn eerste baan** (hij appt tussen werk en sollicitaties; hij is geen volleerd zaakwaarnemer: zijn kantoortje is een app en een koffiebon); Tessa en Tammo zijn vrienden uit hun studietijd, dus geen tekst over "al jaren" of "sinds kinderen" en geen beat die hun beginnende werkende leven tegenspreekt (geld is krap, begin klein). Regels: een beat is hooguit 14 woorden per HUD-bericht (`WORD_BUDGET`), "Grunn" nooit "de Grunn", geen echte clubs of personen, altijd zomer (geen winterstop; een seizoenspauze heet "pauze tussen de seizoenen"). Tessa en Tammo blijven in hun persona's (`PERSONA_POOL`, `karakterbonus.js`); Tammo's rol als zaakwaarnemer is nieuw en vraagt een korte regel in `docs/personages.md`.
+
+## 2b. Canon 21-11 en wat in het bestaande verhaal botst
+
+Canon van de eigenaar: Tammo en Tessa zijn net student af, trekken de wijde wereld in, waren tijdens hun studie al vrienden en hebben hun eerste volwassen baantjes. Gecontroleerd met grep op Tammo, Tessa, student, kennen, vriend, jeugd, kinderen en jaren in `docs/verhaal/`, `docs/personages.md`, `game/js/storyarc_nieuw.js`, `karakterbonus.js`, `cutscenes_akte*.js` en `banterlines.js`. Dit zijn **voorstellen om te beslissen of aan te passen; in dit plan is niets in het verhaal gewijzigd.**
+
+**Botst met de canon (te beslissen of aan te passen):**
+
+| Plek | Tekst | Botsing |
+|---|---|---|
+| `docs/verhaal/STIJLGIDS.md:107` (feitenblad) | "kennen elkaar al twintig jaar, sinds de treinreis naar Delfzijl als kinderen. Tammo is er twaalf jaar verliefd op en zweeg twaalf jaar (M26.7)" | vriendschap sinds de kindertijd en twaalf jaar, tegen "vrienden vanaf de studie" |
+| `docs/verhaal/STIJLGIDS.md:106` | "Tammo 34 jaar (Ik ben vierendertig, oma)" | een net-afgestudeerde van 34 is ongebruikelijk |
+| `game/js/storyarc_nieuw.js:121` (kaart Tammo, `bio`) | "Al twaalf jaar verliefd op zijn beste vriendin" | twaalf jaar past niet bij vrienden sinds de studie |
+| `game/js/storyarc_nieuw.js:418` (hint M26) | "Het duurde twaalf jaar. Kon minder." | idem |
+| `docs/personages.md:24` (naamkaart) | "Tammo, Tessa en Rikus zijn het clubje van de stoep in het Oosterpark. Tammo is al twaalf jaar verliefd" | clubje van de stoep suggereert jeugd; twaalf jaar |
+| `docs/personages.md:56, 222, 224` en `docs/verhaal/nieuw/00-OVERZICHT.md:50` | Rikus is Tammo's "jeugdvriend uit het Oosterpark" | jeugdvriend, tegen vrienden sinds de studie |
+| `docs/personages.md` en `storyarc_nieuw.js` (Tammo "Stadjer uit het Oosterpark", woont op de Escapade, verhuisdag 14 augustus naar Paddepoel) | | past, maar "baantjes en net studie af" is nergens genoemd: controleer of Tammo's werkende leven in de opening ergens anders uitgaat van een lange loopbaan |
+
+**Botst niet of past juist:** Tessa's dorpsteam sinds haar zesde en koeien melken voor schooltijd (`OPENING-BIJBEL.md:89`, `karakterbonus.js:3,174`): dat is van vóór de studie, dus de dorpsteambonus blijft geldig. `TESSA-NEDERLANDS.md:76` ("Tammo heeft hier nog gestudeerd. Twee weken.") en de scène in `cutscenes_akte1.js:414-419` (mensa, studeren) passen bij de canon; controleer alleen dat "twee weken" een korte episode naast een afgeronde studie blijft. `student` in `storyarc_nieuw.js:101` is een publiekstype. De vrienden van Oma Trijntje (Lammert, Geesje, Klaas, Roelfien, Wubbo) zijn haar vrienden, niet die van Tammo.
+
+**Wat dit voor het voetbalplan betekent:** de voetbalbeats gebruiken alleen "vrienden uit de studietijd", "mijn eerste baan" en "het dorpsteam, weet je nog" (Tessa's verleden vóór de studie); ze noemen nergens een gezamenlijke jeugd, een aantal jaren vriendschap of een leeftijd. Wat de canon voor het hoofdverhaal betekent (de twintig jaar, de twaalf jaar, de 34) beslist de eigenaar; de aanpassing is een verhaalissue en geen onderdeel van deze epic. Er staat dan geen regel in het voetbalplan die mee moet.
 
 ## 3. Seizoensstructuur en agenda
 
@@ -108,7 +129,7 @@ Drie divisies van acht clubs (24 verzonnen clubs); alle namen zijn bijnamen zond
 | Terpklasse | Terpbewoners, Poldergeesten, Biezenmaaiers, Wierdebouwers, Zandruiters, Meerkoeten, Turfstekers, Kikkerkoningen |
 | Talentenklasse (start) | Bietenbaronnen, Kanaalgasten, Slootgeesten, Boterbloemen, Heideschapen, Vlasbloemen, Klaverjassers, Pannenkoekers |
 
-De speler begint bij De Stadjers in de Talentenklasse (een talentenploeg: de naam De Stadjers blijft herkenbaar, de hoogste-groepclubs blijven wat ze zijn). Een eigen competitiecode `voetbalclubs.js` bewaart per club: id, naam, kort, kleuren, shirtpatroon, divisie, sterkte, budget.
+De speler begint bij De Stadjers in de Talentenklasse, de laagste klasse, als amateur die in de avonduren traint (canon 21-11; de klasse is voor aspirant-spelers, niet voor een leeftijd). De hoogste-groepclubs blijven wat ze zijn. Een eigen competitiecode `voetbalclubs.js` bewaart per club: id, naam, kort, kleuren, shirtpatroon, divisie, sterkte, budget.
 
 ### Seizoen
 
@@ -120,7 +141,7 @@ Een seizoen duurt ongeveer 14 wedstrijddagen:
 | Beker (Dijkbeker) | tot 4 rondes, knock-out met 16 clubs uit alle divisies | gelijkspel: strafschoppen (de penaltyserie `penalty.js` wordt hier de beslissing) |
 | Waddenbeker (Europees toernooi) | 3 tot 5 rondes, de top van de Kroonklasse | 16 verzonnen clubs aan de Noordzeekust, geen echte landen of clubs |
 | Einde seizoen | promotie en degradatie (top 2 omhoog, onderste 2 omlaag; in de Kroonklasse geen promotie, de kampioen speelt de Waddenbeker) | |
-| Pauze tussen de seizoenen | 3 speldagen: transfers, contracten, vakantiekaart, jeugdintake | geen winterstop, alles blijft zomer |
+| Pauze tussen de seizoenen | 3 speldagen: transfers, contracten, vakantiekaart, instroom van aspirant-spelers | geen winterstop, alles blijft zomer |
 
 Seizoen 1 is de "lichte vorm" van de eerste slice: alleen de Talentenklasse, 7 rondes, geen beker en geen Europa.
 
@@ -188,7 +209,7 @@ Het spel noemt dit **Trainer** (een Nederlands woord; "manager" staat in het ont
 | **Coachwedstrijd** | de wedstrijd met alleen computerspelers (`alleenAi`) en live tactiek; je kijkt en grijpt in, of je rekent uit |
 | **Transfers** | bieden, verkopen, uitlenen (alleen binnen de transferperiode: de pauze tussen de seizoenen en de eerste speldag van elke ronde) |
 | **Budget** | een clubkas (zie hoofdstuk 7); salarissen, transfersommen en onderhoud komen eruit |
-| **Jeugdacademie** | elke pauze een instroom van 2 talenten (generator uit het zaad); investeren vergroot kwaliteit en aantal; een Talentenklasse-ploeg als vijver |
+| **Opleiding voor aspirant-spelers** (geen jeugd) | elke pauze een instroom van 2 talenten (generator uit het zaad); investeren vergroot kwaliteit en aantal; de Talentenklasse als vijver |
 | **Tammo regelt** | als zaakwaarnemer onderhandelt hij je contract en sponsors (3 knoppen: aannemen, hoger vragen, afslaan); als trainer-coach is hij je assistent: hij doet de selectievoorstellen |
 
 Wie liever alleen speelt, kan de managerlaag negeren: Tammo's voorstellen worden dan automatisch aanvaard of weggelaten. De managerlaag is nooit verplicht en geeft geen dwang in het verhaal.
@@ -211,16 +232,16 @@ De gemengde speler verdient netto ongeveer **€1.100 per uur** (€440 per spel
 
 | Klasse | Salaris per ronde (contractdeel) | Winstbonus | Totaal gespeeld | Uitgerekend |
 |---|---:|---:|---:|---:|
-| Talentenklasse | €40 | €40 (winst), €15 (gelijk) | €80 tot €100 | €40 |
+| Talentenklasse (amateur: onkostenvergoeding) | €25 | €30 (winst), €10 (gelijk) | €55 tot €70 | €25 |
 | Terpklasse | €60 | €60 | €120 tot €150 | €60 |
 | Kroonklasse | €90 | €80 | €170 tot €210 | €90 |
 | Waddenbeker-ronde | n.v.t. | €120 per ronde | €120 tot €250 | n.v.t. |
 
-Seizoensbeloningen (eenmalig): promotie €300, bekerwinst €400, kampioen Terpklasse €500, kampioen Kroonklasse €1.200 (bestaande prestatie "Kampioen van de Euroborg" is €120 en blijft voor de vriendschappelijke competitie), Waddenbeker €1.000. Per seizoen is het totaal een kwart tot de helft van een gemiddeld inkomensblok van dezelfde speeltijd.
+Seizoensbeloningen (eenmalig): promotie €200, bekerwinst €400, kampioen Terpklasse €500, kampioen Kroonklasse €1.200 (bestaande prestatie "Kampioen van de Euroborg" is €120 en blijft voor de vriendschappelijke competitie), Waddenbeker €1.000. Per seizoen is het totaal een kwart tot de helft van een gemiddeld inkomensblok van dezelfde speeltijd.
 
 **Sponsors** (verzonnen namen, geen echte merken): twee tot drie sleuven per seizoen, elk een eenmalige som (€150 tot €800) bij een doel (een doelpunt, drie wedstrijden zonder verlies, promotie); een sponsor kiest Tammo's voorstel of je kiest zelf. Je kunt een sponsor nooit "verkopen" of ruilen; de sleuf is leeg tot het volgende seizoen.
 
-**Bijbanen en carrière:** de agenda laat ruimte; een speler die elke speldag naar een bijbaan gaat mist training maar geen wedstrijd. Het balansdoel is dat voetbal ongeveer als elke andere loopbaan telt, niet er boven uit.
+**Begin klein (canon 21-11):** Tessa en Tammo hebben net hun eerste baantjes. In de Talentenklasse is voetbal een **bijverdienste** (een onkostenvergoeding, geen salaris): per speelminuut ongeveer de helft van de baantjes, zodat de eerste echte verdienste uit bijbanen en loopbanen blijft komen en voetbal een keuze is om in te groeien. Het loon stijgt pas met de klasse (Terpklasse vanaf €60, Kroonklasse vanaf €90). **Bijbanen en carrière:** de agenda laat ruimte; een speler die elke speldag naar een bijbaan gaat mist training maar geen wedstrijd. Het balansdoel is dat voetbal ongeveer als elke andere loopbaan telt, niet er boven uit.
 
 ### Anti-uitbuiting
 
@@ -250,7 +271,7 @@ Seizoensbeloningen (eenmalig): promotie €300, bekerwinst €400, kampioen Terp
 
 Ontwerp van de tak (alleen het voetbalspecifieke):
 
-- **Aandeel in een club** (10%, 25%, 51%, 100%), eerst een club in de Talentenklasse. Waardestart (voorstel, te tunen in pakket 10): Talentenklasse €30.000, Terpklasse €80.000, Kroonklasse €250.000; een aandeel kost `aandeel x waarde x schaalprijs`. Een eigen club (100%) is een eindspel, geen begin.
+- **Aandeel in een club** (10%, 25%, 51%, 100%), eerst een club in de Talentenklasse. Waardestart (voorstel, te tunen in pakket 10): Talentenklasse €30.000, Terpklasse €80.000, Kroonklasse €250.000; een aandeel kost `aandeel x waarde x schaalprijs`. Een eigen club (100%) is een eindspel, geen begin. **Begin klein:** de speler heeft net de eerste baantjes; het eerste aandeel (10% van een Talentenklasse-club, €3.000) hoort bij het tempo van het eerste perceel uit Bezit (na ongeveer twee uur spelen; startgeld €500 plus de Duizendpoot-bonus van €2.000) en wordt pas gemeld (B10) als de speler het kan betalen zonder zijn spaargeld te legen. Het Bezit-startkapitaal is dus niet voor voetbal bedoeld: er is geen voetbalstartgeld en geen gift, en een club kopen is een late stap, na een perceel of een eerste winkeltje.
 - **Omzet per wedstrijdronde:** kaartjes (publiek x prijs; publiek volgt stadiongrootte, plek in de stand, vorm en de klantenpot van de stad), sponsors (per club, eenmalig per seizoen), minus salarissen en onderhoud. Dividend naar de eigenaar = aandeel x winst, 25% van de winst blijft in de clubkas.
 - **Opbrengst (balans):** een rustig passief inkomen **tussen de pacht (ongeveer 44 speeluren terugverdientijd) en de huur van een woning (ongeveer 160 speeluren) uit de Bezit-balans**: startwaarde **0,45% van de aankoopprijs per speldag** (ongeveer 60 speeluren, 1,35% per ronde van drie dagen), met een uitslag van plus of min 40% door vorm en plek. Een aandeel van 10% in een Talentenklasse-club (€3.000) levert dus ongeveer €14 per speldag. Zo is clubbezit **nooit** de snelste geldmachine en blijft het binnen de Bezit-regel dat passief hooguit een kwart van het actieve inkomen is. De getallen worden in pakket 10 met `economie_sim_test` bevestigd.
 - **Stadion en tribune:** een kleine, middelgrote en grote tribune als verbouwing van het stadionpand (prijs `m2 x €700` uit Bedrijven); capaciteit en kaartjesomzet stijgen, onderhoud ook. De tribunefase bepaalt ook het aantal toeschouwers in 3D (hoofdstuk 10).
@@ -411,7 +432,7 @@ Wat de speler doet, van begin tot eind, zonder transfers, managerlaag, bezit of 
 
 ## 17. Open vragen voor de eigenaar
 
-1. **Tessa's leeftijd en "jeugd".** Is een Talentenklasse (geen leeftijd) genoeg, of wil je dat de jeugdfase expliciet een leeftijdsfase is? Mijn aanbeveling: de Talentenklasse.
+1. ~~Tessa's leeftijd en jeugd~~ **Beantwoord (canon 21-11):** geen jeugd- of leeftijdsfase; net-afgestudeerde amateur in de laagste klasse.
 2. **Het woord Manager.** Is "Trainer" in de UI goed (Nederlands woord), of wil je "Manager"? Mijn aanbeveling: Trainer.
 3. **Aantal clubs en wedstrijden.** Acht clubs per divisie en zeven rondes (halve competitie): voldoende, of liever een dubbele competitie (veertien rondes, tot zes uur speeltijd per seizoen)?
 4. **Echt gebouw.** De Euroborg is een echt gebouw (toegestaan, een plaats). Mag een tweede stadion in de provincie (een kleiner veld) worden gebruikt voor de lagere klassen? Zo ja, welke plaats?
