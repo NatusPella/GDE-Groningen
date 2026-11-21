@@ -134,7 +134,7 @@ Er zijn sinds 21-11 vier zenders te kiezen (zie [RADIOZENDERS-21-11.md](../RADIO
 |---|---|---|---|---|---|---|---|---|---|
 | C63 | G-Music overdag: ochtend, hits en avond | stadsrap, drill, eurodance, punk | 90 tot 150 bpm | wisselend | 3 min per nummer | nee | Lil' Eierbal / Onder de Martinitoren | bestaat | gmusic:Onder_de_Martinitoren.mp3 |
 | C64 | Nachtstreek (Rikus, 22 tot 06) | streekmuziek, nachtelijk | 70 bpm | synth, ruis | 3 min per nummer | nee | Spookie Stadjer / De Geest van Oosterpark | bestaat | gmusic:De_Geest_Van_Oosterpark.mp3 |
-| C65 | G-Music-jingles (ident, overgang, knipoog, wanted) | kort, Gronings | n.v.t. | stem | 3 s | nee | G-Music / Dit is G-Music, de soundtrack van Grunn | bestaat | gmusic:jingles/station_id.wav |
+| C65 | G-Music-jingles (ident, overgang, knipoog, wanted) | kort, Gronings | n.v.t. | stem | 3 s | nee | G-Music / Dit is G-Music, de soundtrack van Grunn | bestaat | gmusic:jingles/station_id.ogg |
 | C66 | dagpool met nieuwe stijlen (4 tot 6 nummers) | akoestisch, zomerpop, funk, ska | 90 tot 120 bpm | wisselend | 3 min per nummer | nee | Zomerzoet Soezen / Bietenbloed en Zonnecrème | ontbreekt | - |
 | C67 | Radio Proat (tweede zender, plan) | praatprogramma, regionaal | n.v.t. | DJ-stem, jingle | n.v.t. | nee | Radio Proat / Proat Mit Poat | ontbreekt | - |
 | C68 | Radio Noordkust (derde zender, plan) | kustpop, wadwind | 100 bpm | gitaar, wind | 3 min | nee | Radio Noordkust / Zunneschien en Zandkorrels | ontbreekt | - |

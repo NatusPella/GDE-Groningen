@@ -69,7 +69,7 @@ ok(C.KEY_ACTIONS.some(([k, d]) => k === 'control' && /heli/.test(d)) && C.KEY_AC
 
 // the radio: one station, so one on/off key (N) on foot; in a vehicle LB is the trekker hef (#495)
 ok(C.KEY_ACTIONS.some(([k, d]) => k === 'n' && /radio aan of uit/i.test(d)), 'N turns the radio on or off');
-ok(!C.KEY_ACTIONS.some(([k]) => k === 'b') && !C.KEY_ACTIONS.some(([, d]) => /zender/i.test(d)), 'no previous/next station keys left');
+ok(!C.KEY_ACTIONS.some(([k]) => k === 'b') && !C.KEY_ACTIONS.some(([k, d]) => k !== 'n' && /zender/i.test(d)), 'no separate previous/next station keys left (the next station is Shift+N, radiokeuze 21-11)');
 ok(C.padSlotFor('N', 'foot') === 'up' && /radio aan of uit/i.test(C.slotUses('up')), 'N on foot is D-pad up, and Besturing says so', C.slotUses('up'));
 ok(C.PAD_MAPS.vehicle.lb === 't' && /hef/i.test(C.slotUses('lb')), 'LB in a vehicle is the trekker hef', C.slotUses('lb'));
 ok(JSON.stringify(C.normalizeKeyBinds({ b: ';', n: ';' })) === '{"n":";"}', 'a saved bind for the old B action is dropped, N keeps its own');
@@ -89,7 +89,7 @@ for (const [ctx, keys] of Object.entries(need)) {
 }
 
 // the phone is the pause menu (Esc): T is no longer a phone key, it is the trekker hef and the train walk (#495)
-ok(!C.KEY_ACTIONS.some(([k]) => k === 't') && !C.KEY_ACTIONS.some(([, d]) => /^telefoon$/i.test(d)), 'no T phone action left');
+ok(!C.KEY_ACTIONS.some(([k, d]) => k === 't' && !/snelle zinnen/i.test(d)) && !C.KEY_ACTIONS.some(([, d]) => /^telefoon$/i.test(d)), 'no T phone action left (T is the quick-phrase wheel in Samen spelen, #1159)');
 ok(C.PAD_MAPS.vehicle.lb === 't' && C.PAD_MAPS.train.down === 't', 'T is the trekker hef (LB) and the train walk (D-pad down)');
 ok(JSON.stringify(C.normalizeKeyBinds({ t: 'j', m: 'g' })) === '{"m":"g"}', 'a saved bind for the old T phone key is dropped, others stay');
 ok(C.padSlotFor('ESC', 'foot') === 'start' && C.padSlotFor('ESC', 'vehicle') === 'start', 'Esc (the phone) is Start on the pad');

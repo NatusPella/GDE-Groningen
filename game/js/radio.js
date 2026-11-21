@@ -143,7 +143,7 @@ function checkNewChannels(w) {
   if (added.length) {
     announced = [...announced, ...added];
     saveChannel();
-    for (const id of added) w.addMessage(`Nieuwe zender gevonden: ${channelById(id).name}. Kies hem in Instellingen > Geluid, of houd Shift ingedrukt en druk op N.`, 6);
+    for (const id of added) w.addMessage(`Nieuwe zender: ${channelById(id).name}. Kies hem in Instellingen > Geluid of met {SHIFT}+{N}.`, 6);
   }
   const target = channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL && open.includes(wanted) ? wanted : validChannel(channelId, open);
   if (target !== channelId) {

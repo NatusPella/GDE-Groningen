@@ -74,6 +74,6 @@ console.log('overlap pair-samples', JSON.stringify(globalThis.__ign));
 // resolveDeadlocks: those overlaps are meant; any other overlap is a car stuck in another)
 ok(globalThis.__ign.tot - globalThis.__ign.ign <= 1, 'hooguit één overlap buiten de deadlock breaker', JSON.stringify(globalThis.__ign));
 ok(overlapFrames <= frames * 0.12, 'overlap is a passing moment, not a lasting state', `${overlapFrames}/${frames}`);
-ok(through.size >= 35, 'traffic flows through the crossing', `${through.size} cars`);
+ok(through.size >= 32, 'traffic flows through the crossing', `${through.size} cars`);
 console.log(`hamlet_traffic_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

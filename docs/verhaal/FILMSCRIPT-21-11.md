@@ -54,8 +54,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie M01: Nul krassen, vijftienhonderd punten** (missie bakkiestunt; speler-protagonist Tammo)
 
-- **M01.1** BUITEN – STAD, MARTINIKERKHOF – MIDDAG · Nul krassen, vijftienhonderd punten: intro · cutscene of gespeeld in de missie
-  - vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een
+- **M01.1** BUITEN – STAD, MARTINIKERKHOF – DAG · Nul krassen, vijftienhonderd punten: intro · cutscene of gespeeld in de missie
+  - Naamkaart: BEREND BOS bij zijn eerste regel.
   - praat: Berend Bos, Tessa, Tammo
 - **M01.2** BUITEN – STAD, MARTINIKERKHOF NAAR DE GROTE MARKT – DAG · Nul krassen, vijftienhonderd punten: de klus · cutscene of gespeeld in de missie
   - Tessa's telefoon gaat. Een streamer van Kiekdoar filmt zichzelf, ergens op een terras.
@@ -81,8 +81,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie M02: Even pinnen** (missie pinautomaat; speler-protagonist Tammo)
 
-- **M02.1** BINNEN – STAD, HERESTRAAT – OCHTEND · Even pinnen: intro · cutscene of gespeeld in de missie
-  - zaterdag 15 augustus, half acht 's ochtends. De Escapade heeft een nieuwe band. Tessa staat bij een pinautomaat. Hij slikt haar pas in. Een zwarte trekker met een kabel. Twee reuzen trekken de hele automaat uit de muur e
+- **M02.1** BUITEN – STAD, HERESTRAAT – DAG · Even pinnen: intro · cutscene of gespeeld in de missie
+  - Naamkaart: DURK, daarna DOUWE, bij hun eerste regels.
   - praat: Tessa, Durk, Douwe, Tammo
 - **M02.2** BINNEN – STAD, HERESTRAAT NAAR PAND & POEN – DAG · Even pinnen: onderweg · cutscene of gespeeld in de missie
   - Gameplay: Tammo rijdt met de pinautomaat op de aanhanger, de politie in de spiegel.
@@ -107,8 +107,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie N2: Een duif op de gang** (activiteit; speler-protagonist Tammo)
 
-- **N2** BINNEN – STAD, PADDEPOEL, ELFDE VERDIEPING – AVOND · Een duif op de gang · cutscene of gespeeld in de missie
-  - vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.
+- **N2** BUITEN – STAD, PADDEPOEL, ELFDE VERDIEPING – DAG · Een duif op de gang · cutscene of gespeeld in de missie
+  - Naamkaart: MENEER VELDKAMP bij zijn eerste regel.
   - praat: Tammo, Tessa, Meneer Veldkamp
 
 **Sequentie N3: Soep bij Beppe** (activiteit; speler-protagonist Tammo)
@@ -328,8 +328,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie N6: Een dag op het water** (activiteit; speler-protagonist Tammo)
 
-- **N6** BUITEN – HOGELAND, NOORDPOLDERZIJL – MIDDAG · Een dag op het water · cutscene of gespeeld in de missie
-  - donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.
+- **N6** BUITEN – HOGELAND, NOORDPOLDERZIJL – DAG · Een dag op het water · cutscene of gespeeld in de missie
+  - Naamkaart: KAPITEIN KLAAS bij zijn eerste regel.
   - praat: Kapitein Klaas, Tammo, Tessa
 
 **Sequentie N7: De streekbus naar Winsum** (activiteit; speler-protagonist Tammo)
@@ -627,8 +627,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie T4: De bus naar Bourtange** (activiteit; speler-protagonist Tammo)
 
-- **T4.1** BINNEN – WESTERWOLDE, TER APEL-BOS – AVOND · De bus naar Bourtange: instappen · cutscene of gespeeld in de missie
-  - dinsdag 25 augustus, vroege avond, na een dag bussen regelen. Een heideweg, een oude bus, veertig mensen in bisschopsmantels en met kartonnen kanonnen. Reisbeat: meerijden, zelf rijden of skippen.
+- **T4.1** BINNEN – WESTERWOLDE, TER APEL-BOS – DAG · De bus naar Bourtange: instappen · cutscene of gespeeld in de missie
+  - Naamkaart: TINUS bij zijn eerste regel.
   - praat: Henk, Berend Bos, Tessa, Tammo, Tinus
 - **T4.2** BINNEN – WESTERWOLDE, DE HEIDE – DAG · De bus naar Bourtange: onderweg · travel
   - Tessa kijkt uit het raam, met haar telefoon in haar hand. Tammo zit twee rijen achter haar.

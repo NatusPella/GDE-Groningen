@@ -16,7 +16,7 @@ t('de toets staat in de bestuurbare acties', () => {
 });
 
 t('T blijft de trekkerhef en de treinwachttijd', () => {
-  assert.ok(!KEY_ACTIONS.some(([k]) => k === 't'), 'T is niet opnieuw bezet');
+  assert.ok(!KEY_ACTIONS.some(([k, d]) => k === 't' && !/snelle zinnen/i.test(d)), 'T is niet opnieuw bezet (behalve door het wiel met snelle zinnen, #1159)');
 });
 
 t('de sneltoets zet of wist een eigen waypoint en laat missies met rust', () => {
