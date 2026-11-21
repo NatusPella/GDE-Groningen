@@ -113,6 +113,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-METING-2026-10-19.md](<PERF-METING-2026-10-19.md>) | Dit is de actuele meetbron voor prestaties (zie `.specs-fire/standards/mechanica.md`, |
 | [PERF-BESLUITEN.md](<PERF-BESLUITEN.md>) | Bewuste prestatiebesluiten en de onderbouwing per punt. |
 | [PERF-STREAM-SOEPEL-21-11.md](<PERF-STREAM-SOEPEL-21-11.md>) | Soepeler streamen: één framebudget, bewegingsgericht vooruitladen en stabiele LOD-overgangen (#1016, #1052, #1008). |
+| [PERF-MEETPUNTEN-21-11.md](<PERF-MEETPUNTEN-21-11.md>) | Meetpunten voor de eindsweep over laden, opwarmen, pop-in en haperingen (#1008, #1016, #1046, #1052): commando, A-schakelaar, maat en voorgestelde grens, met een test die de verwijzingen bewaakt. |
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
 | [WITTE-RUIS-21-11.md](<WITTE-RUIS-21-11.md>) | Witte ruis in het spel: bronnen, oorzaken en maatregelen (#1084). |
 | [PERCEELRANDEN-21-11.md](<PERCEELRANDEN-21-11.md>) | Perceelranden: klassen en hoogten van randen rond percelen. |

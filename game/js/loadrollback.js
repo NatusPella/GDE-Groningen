@@ -15,7 +15,7 @@ export function laadMetTerugval(apply, data, snapshot, log = () => {}) {
     apply(data);
     return { ok: true, teruggezet: false, kapot: false };
   } catch (e) {
-    log('Save laden mislukt', e);
+    log('Laden van het opgeslagen spel mislukt', e);
   }
   if (snapshot) {
     try {
