@@ -60,13 +60,14 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 #hud .hud-wanted { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 #hud .hud-wanted[hidden] { display: none; }
-#hud .hud-wanted .hw-sterren { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
-/* #1080: het statusje (Ze zoeken je / Weg uit beeld) en de aftelbalk staan in dezelfde kaart als de sterren */
+/* #1175 (eigenaar 21-11): de sterren staan op de minimap (alleen bij 1 ster of meer); rechtsboven blijft alleen het statusje (Ze zoeken je / Weg uit beeld) met de aftelbalk, zonder eigen sterren */
+#hud .hud-mm-sterren { position: absolute; left: 10px; top: 10px; z-index: 2; display: flex; gap: 2px; align-items: center; padding: 3px 7px; line-height: 0; background: var(--hud-plaat); border: var(--hud-rand); border-radius: 10px; }
+#hud .hud-mm-sterren[hidden] { display: none; }
 #hud .hud-wanted .hw-status { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 #hud .hud-wanted .hw-tekst { font: 800 max(13px, 1em) var(--ds-font-zeef-kop, inherit); letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.1; }
-#hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: color-mix(in srgb, var(--ds-c-wit) 30%, transparent); stroke-width: 1.6; stroke-linejoin: round; }
-#hud .hud-wanted svg.on { fill: var(--ds-c-ink-geel); stroke: #7a6610; stroke-width: 1; }
-#hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2;
+#hud .hud-mm-sterren svg { width: 18px; height: 18px; flex: none; fill: none; stroke: color-mix(in srgb, var(--ds-c-wit) 30%, transparent); stroke-width: 1.6; stroke-linejoin: round; }
+#hud .hud-mm-sterren svg.on { fill: var(--ds-c-ink-geel); stroke: #7a6610; stroke-width: 1; }
+#hud .hud-mm-sterren.searching svg.on { stroke-dasharray: 3 2;
    animation: hud-star-blink var(--ds-m-max) steps(2, jump-none) 2; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
 #hud .hud-search { display: flex; flex-direction: column; align-items: flex-end; }
@@ -759,11 +760,11 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-weapon.switched .hud-weapon-icon { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze)); animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out), hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 
 /* wanted: roze sterren met inktrand; een lege ster is een raster (vorm en aantal, nooit alleen kleur) */
-#hud .hud-wanted svg { width: 28px; height: 28px; fill: url(#hud-raster); stroke: var(--hud-inkt); stroke-width: 1.8; opacity: 1; }
-#hud .hud-wanted svg.on { fill: var(--ds-c-ink-roze); stroke: var(--hud-inkt); stroke-width: 1.8; }
-#hud .hud-wanted.changed svg.on { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-inkt)); }
-#hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2; }
-#hud .hud-wanted svg:not(.on) { stroke-dasharray: none; }
+#hud .hud-mm-sterren svg { width: 18px; height: 18px; fill: url(#hud-raster); stroke: var(--hud-inkt); stroke-width: 1.8; opacity: 1; }
+#hud .hud-mm-sterren svg.on { fill: var(--ds-c-ink-roze); stroke: var(--hud-inkt); stroke-width: 1.8; }
+#hud .hud-mm-sterren.changed svg.on { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-inkt)); }
+#hud .hud-mm-sterren.searching svg.on { stroke-dasharray: 3 2; }
+#hud .hud-mm-sterren svg:not(.on) { stroke-dasharray: none; }
 #hud .hud-search > i { background: var(--ds-c-ink-papier); border: 1.5px solid var(--hud-inkt); height: 9px; }
 #hud .hud-search > i > i { background: var(--ds-probleem); }
 
@@ -822,8 +823,8 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 
 /* Rustig drukwerk: de tokens nullen misdruk, schuinte en raster; hier nog de beweging en de lege ster als omtrek */
 html.rustig-drukwerk #hud .hud-money-delta.visible, html.rustig-drukwerk #hud .hud-mission.pop .hud-obj-text,
-html.rustig-drukwerk #hud .hud-weapon.switched .hud-weapon-icon, html.rustig-drukwerk html.rustig-drukwerk #hud .hud-wanted svg:not(.on) { fill: none; }
-html.rustig-drukwerk #hud .hud-wanted.changed svg.on { filter: none; }
+html.rustig-drukwerk #hud .hud-weapon.switched .hud-weapon-icon, html.rustig-drukwerk html.rustig-drukwerk #hud .hud-mm-sterren svg:not(.on) { fill: none; }
+html.rustig-drukwerk #hud .hud-mm-sterren.changed svg.on { filter: none; }
 html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt); }
 @media (prefers-reduced-motion: reduce) {
   #hud .hud-money-delta.visible, #hud .hud-mission.pop .hud-obj-text, #hud .hud-weapon.switched .hud-weapon-icon { animation: none; }
@@ -833,20 +834,7 @@ html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt)
 #hud .hud-mate-pic { border-radius: 6px; background: var(--ds-c-ink-papier); }
 #hud .hud-mate-pic:not(:has(img.on)) { display: none; }
 
-/* #993: de prestatietoast (achievements.js) als papier met inktrand en harde schaduw, zonder glas, gloed of blur */
-body #hud .ach-toast {
-  background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
-  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 10px solid var(--ds-c-ink-bord); border-radius: 8px;
-  box-shadow: var(--ds-schaduw-hard);
-}
-body #hud .ach-toast.gold { border-left-color: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard); }
-body #hud .ach-toast::after, body #hud .ach-toast .ach-rays, body #hud .ach-toast .ach-spark { display: none; }
-body #hud .ach-toast .ach-ico, body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: none; }
-body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
-body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); }
-body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: none; }
-body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-zeef-tekst); letter-spacing: 0; }
-body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
+/* #1175: de prestatietoast staat nu geheel als DS3-kaart in achievements.js (één bron; geen tweede laag hier) */
 
 
 /* ===== Zeefdruk voor de overige HUD-lagen (ADR 0040, #985): ondertitels, overslaan, verhaal-overslaan ===== */
@@ -928,7 +916,7 @@ body.cine-hide-hud #story-skip { display: none; }
 /* #985 (eigenaar 20-11): de snelheidsmeter is één compact blok: de snelheid als hoofdgetal, de versnelling als klein getal rechts, de toeren als dunne balk eronder */
 #hud .hud-speedo { align-items: flex-end; gap: 0; }
 #hud .sp-main { display: grid; grid-template-columns: auto auto 1fr; align-items: end; column-gap: 6px; row-gap: 6px; padding: 7px 12px 8px; min-width: 150px; }
-#hud .sp-val { grid-column: 1; grid-row: 1; font-size: 40px; line-height: 0.9; min-width: 2ch; }
+#hud .sp-val { grid-column: 1; grid-row: 1; font-size: 52px; line-height: 0.9; min-width: 2ch; }
 #hud .sp-unit { grid-column: 2; grid-row: 1; font-size: max(13px, var(--hud-min, 13px)); line-height: 1.2; }
 #hud .sp-gears { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; gap: 4px; font-size: max(14px, var(--hud-min, 13px)); min-height: 0; line-height: 1; }
 #hud .sp-gears .warn { font-size: max(13px, var(--hud-min, 13px)); }

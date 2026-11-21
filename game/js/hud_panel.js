@@ -81,6 +81,7 @@ import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
 import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds } from './hudrules.js';
+import { goalTitle, travelMode } from './goaltext.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { airGuide, airSub, airEtaText } from './airguide.js';
@@ -186,7 +187,7 @@ export function initHud(world) {
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
-    '<div class="hud-wanted" role="img" hidden><div class="hw-sterren"></div><div class="hw-status"><b class="hw-tekst"></b><div class="hud-search" hidden><i role="img" aria-label="Zoekgebied"><i></i></i></div></div></div>' +
+    '<div class="hud-wanted" role="img" hidden><div class="hw-status"><b class="hw-tekst"></b><div class="hud-search" hidden><i role="img" aria-label="Zoekgebied"><i></i></i></div></div></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money ds-m-tik"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
@@ -262,6 +263,12 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
+  // #1175: de sterren staan op de minimap, alleen bij 1 ster of meer; de schermlezer hoort één regel (de aria-label van de statuskaart)
+  const mmSterren = document.createElement('div');
+  mmSterren.className = 'hud-mm-sterren';
+  mmSterren.hidden = true;
+  mmSterren.setAttribute('aria-hidden', 'true');
+  mmWrap.appendChild(mmSterren);
   root.appendChild(mmWrap);
   // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
@@ -328,7 +335,7 @@ export function initHud(world) {
     mute: topLeft.querySelector('.hud-mute'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
-    wantedStars: topRight.querySelector('.hw-sterren'),
+    wantedStars: mmSterren,
     wantedText: topRight.querySelector('.hw-tekst'),
     search: topRight.querySelector('.hud-search'),
     searchBar: topRight.querySelector('.hud-search i i'),
@@ -1261,18 +1268,21 @@ function updateWanted(world) {
   const wasSter = wantedShown;
   if (!els.wantedStars.children.length) els.wantedStars.innerHTML = STAR.repeat(5);
   const stars = [...els.wantedStars.children];
-  els.wanted.hidden = ster === 0; // #1080: geen lege sterrenrij bij 0; de kaart is er alleen als je gezocht wordt
+  els.wanted.hidden = ster === 0; // #1080: de statuskaart is er alleen als je gezocht wordt
+  els.wantedStars.hidden = ster === 0; // #1175: de sterren op de minimap ook niet bij 0
   els.wantedText.textContent = wantedStatus(ster, phase);
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)
-  els.wanted.classList.add('changed');
+  els.wantedStars.classList.add('changed');
   clearTimeout(wantedChangedT);
-  wantedChangedT = setTimeout(() => els.wanted.classList.remove('changed'), 1400);
+  wantedChangedT = setTimeout(() => els.wantedStars.classList.remove('changed'), 1400);
   // a new star pops in, one at a time
   for (let i = wantedShown; i < ster; i++) pop(stars[i]);
   wantedShown = ster;
   // #802: een nieuwe ster of het einde van de achtervolging een keer benoemen
   if (ster !== wasSter) announce(wantedAnnounce(ster, phase));
+  els.wantedStars.classList.toggle('searching', searching && ster > 0);
+  els.wantedStars.classList.toggle('chase', ster > 0 && !searching);
   els.wanted.classList.toggle('searching', searching && ster > 0);
   els.wanted.classList.toggle('chase', ster > 0 && !searching);
   els.wanted.setAttribute('aria-label', wantedAnnounce(ster, phase));
@@ -1535,19 +1545,21 @@ function zoekSub(world) {
 // again whenever the objective itself changes.
 function currentObjective(world) {
   const m = world.mission;
+  const hv = hoofdspeler(world).inVehicle || world.trainCam || null;
+  const modus = travelMode(hv, hv ? vehicleKind(hv, { train: hv === world.trainCam }) : null);
   const job = world.sideJob;
   if (job && job.active) {
     // een klus met een limiet van twee minuten leest als "1:42", niet als "102s"
     const timer = job.timeLeft != null ? clockText(job.timeLeft) : '';
     const g = job.goal;
-    return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer, secs: job.timeLeft };
+    return { kind: 'job', raw: g ? g.label : job.progress, title: goalTitle('job', g ? g.label : job.progress, modus), sub: g ? job.progress : '', hint: g ? g.desc : '', timer, secs: job.timeLeft };
   }
   if (m && m.phase === 'active') {
     const text = missionProgressText(m);
     const timer = m.timeLeft != null && !m.raceHud ? clockText(m.timeLeft) : '';
     const cut = text.search(/ · | \(\d+\/\d+\)$/);
     const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
-    if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer, secs: m.timeLeft };
+    if (text || timer) return { kind: 'mission', raw: cut > 0 ? text.slice(0, cut) : text, title: goalTitle('mission', cut > 0 ? text.slice(0, cut) : text, modus), sub, timer, secs: m.timeLeft };
   }
   if (world.wanted > 0 && !(m && m.phase === 'active')) {
     const searching = !!(world.police && world.police.searching);
@@ -1567,7 +1579,7 @@ function currentObjective(world) {
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
     const sub = [first || goal.sub, formatDistance(d), wait ? `je verhaalmissie wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
     // the HUD takes no clicks: say where the goal can be dropped, the first few times
-    return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
+    return { kind: 'goal', raw: goal.name, title: goalTitle('goal', goal.name, modus), sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
@@ -1579,7 +1591,7 @@ function currentObjective(world) {
       : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
       : inside ? 'Stap even uit de marker en weer terug'
       : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
-    return { kind: 'story', title: g.name, sub, timer: '' };
+    return { kind: 'story', raw: g.name, title: goalTitle('story', g.name, modus), sub, timer: '' };
   }
   return null;
 }
@@ -1609,7 +1621,7 @@ function updateMission(dt, world) {
     announce(tekst);
   }
   els.gps.classList.toggle('time-low', secs != null && secs <= 10);
-  const key = o.kind + '|' + o.title;
+  const key = o.kind + '|' + (o.raw ?? o.title); // de bestemming, niet het werkwoord: instappen laat het doel niet opnieuw verschijnen
   if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; }
   // a new objective first says how (the bijbaan's hint), then its counter
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
@@ -1627,7 +1639,7 @@ function updateMission(dt, world) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
     // #802: een nieuw doel een keer voorlezen
-    if (o.title) announce('Doel: ' + o.title);
+    if (o.title) announce(o.title); // de titel heeft zelf het werkwoord ("Ga naar: ...", "Bezig: ...")
     // a mission's objective stays up in pigeon mode too (H4's photos, H10's knots)
     els.mission.classList.toggle('in-mission', o.kind === 'mission');
     restartClass(els.mission, 'pop');

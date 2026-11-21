@@ -51,8 +51,7 @@ t('#840: de HUD-tekst blijft Nederlands en de decoratie is aria-hidden', () => {
   const ach = lees('achievements.js');
   assert.match(ach, /PRESTATIE ONTGRENDELD/);
   assert.match(ach, /ach-badge" aria-hidden="true"/);
-  assert.match(ach, /ach-rays/);
-  assert.match(ach, /ach-spark s1/);
+  assert.doesNotMatch(ach, /ach-rays|ach-spark/); // #1175: DS3, geen stralen of vonken
   assert.match(ach, /title: 'Prestatie ontgrendeld'|PRESTATIE ONTGRENDELD/);
 });
 

@@ -49,20 +49,20 @@ Een extra item dat onder de kaart komt hoort in `onder` (hoogte in de kolom) of 
 
 ## Eén wanted-systeem (#1142)
 
-Eerder waren er drie weergaven van "gezocht": lege sterren rechtsboven, een schild-chip met aantal eenheden en `n/5` op de minimap (met een heat-ring om het politie-icoon) en een rij sterren op de kaart "Weg uit beeld / Vrij". Dat las als een dubbel systeem (bij 0 sterren stond er toch een `3` en vijf lege sterren). Nu is er één plek met sterren.
+Eerder waren er drie weergaven van "gezocht": lege sterren rechtsboven, een schild-chip met aantal eenheden en `n/5` op de minimap (met een heat-ring om het politie-icoon) en een rij sterren op de kaart "Weg uit beeld / Vrij". Dat las als een dubbel systeem (bij 0 sterren stond er toch een `3` en vijf lege sterren). Nu is er één plek met sterren: de minimap (#1175, eigenaar 21-11: "Ik vond alleen de sterren op de mini-map prima"; de grote sterren rechtsboven zijn weer weg).
 
 | onderdeel | regel |
 |---|---|
-| sterren rechtsboven | de enige plek met sterren en cijfers; de kaart is verborgen bij 0 sterren (ook in Alles; geen lege rij, geen 4 s nagloed) |
-| statusje in dezelfde kaart | "Ze zoeken je" tijdens de achtervolging, "Weg uit beeld" met de aftelbalk als ze je kwijt zijn (`wantedStatus`) |
+| sterren op de minimap | de enige plek met sterren: een klein papieren vak linksboven op de kaart (`.hud-mm-sterren`), alleen bij 1 ster of meer (ook in Alles; geen lege rij, geen 4 s nagloed), geen cijfers; de schermlezer hoort ze niet apart (aria-hidden) |
+| statuskaart rechtsboven | alleen tekst, zonder sterren: "Ze zoeken je" tijdens de achtervolging, "Weg uit beeld" met de aftelbalk als ze je kwijt zijn (`wantedStatus`); verborgen bij 0 sterren |
 | kaart "Weg uit beeld / Vrij" | kort statuskaartje onder de HUD-kolom rechts (zone C), zonder eigen sterren; hetzelfde voor "Gezocht" en "Rustiger" |
 | minimap | geen chip, geen ring, geen stippen, geen sterren; de politie staat als gewone politie-iconen (hoogstens de drie dichtstbijzijnde) en de rand van de kaart is rood tijdens de achtervolging en roze als ze zoeken (geen beweging) |
 | schermlezer | één tekst, `wantedAnnounce`: "Gezocht: 3 van 5 sterren, achtervolging" (aria-label van de kaart en de aankondiging bij een wijziging); de minimap heeft alleen "Kaart openen" |
-| legenda "Zo werkt de kaart" | "Politie-eenheid: de dichtstbijzijnde eenheden in beeld; de sterren staan rechtsboven, en de rand van de kaart is rood tijdens een achtervolging" |
+| legenda "Zo werkt de kaart" | "Politie-eenheid: de dichtstbijzijnde eenheden in beeld; de sterren staan linksboven op de kaart (alleen als je gezocht wordt), en de rand van de kaart is rood tijdens een achtervolging" |
 
-HUD-zones: de wanted-kaart staat in zone C (rechtsboven, onder de klok). De kaart "Achtervolging eindigt zonder arrestatie" staat in zone A (links boven) en het doel in zone B (midden boven); ze delen geen kolom met de wanted-kaart, en de rand-tag zakt onder de kolom rechts (`randTop`).
+HUD-zones: de statuskaart (geen sterren) staat in zone C (rechtsboven, onder de klok). De kaart "Achtervolging eindigt zonder arrestatie" staat in zone A (links boven) en het doel in zone B (midden boven); ze delen geen kolom met de wanted-kaart, en de rand-tag zakt onder de kolom rechts (`randTop`).
 
-Samen spelen: de politie jaagt op één doelwit (`docs/COOP-GAST.md`, "Politie voor gasten"). Iedereen ziet de sterren van dat doelwit (snapshot); bij wie het spel opende staat het niveau van een gezochte gast ook in het HUD (`world.coopHudWanted`). Dat blijft zo: de kaart rechtsboven toont `max(world.wanted, world.coopHudWanted)`, op elke client.
+Samen spelen: de politie jaagt op één doelwit (`docs/COOP-GAST.md`, "Politie voor gasten"). Iedereen ziet de sterren van dat doelwit (snapshot); bij wie het spel opende staat het niveau van een gezochte gast ook in het HUD (`world.coopHudWanted`). Dat blijft zo: de sterren op de minimap en de statuskaart tonen `max(world.wanted, world.coopHudWanted)`, op elke client.
 
 ## Te verifiëren in beeld (nog niet bekeken: er is geen Electron gedraaid)
 
@@ -73,6 +73,6 @@ Per formaat 1280x720, 1920x1080 en 1024x600 (en `--ui` 1,0 tot 1,5):
 - met en zonder voortgangskaart (die is er niet meer; controleer dat er niets in zijn plaats staat).
 - tijdens ondertitels (auto-gesprek, radio): geen overlap met de kaart; op 1280x720 staan ze hoog (200 px) en raken ze de kaart niet.
 - tijdens de duivenspot-stapel (`hudstapel.js` zones, plaats-zone 230 px breed): geen overlap met de zones.
-- tijdens de politieachtervolging: rechtsboven sterren met Ze zoeken je, de minimaprand rood, geen chip; bij 0 sterren geen kaart rechtsboven.
+- tijdens de politieachtervolging: sterren op de minimap en rechtsboven alleen de statuskaart Ze zoeken je, de minimaprand rood, geen chip; bij 0 sterren geen sterren en geen kaart rechtsboven.
 - kortstondige items (minder dan 400 ms): de kaart beweegt niet; geen flikkering.
 - Rustig drukwerk en Beweging beperken: de kaart springt zonder glijden.
