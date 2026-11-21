@@ -14,6 +14,7 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
@@ -407,7 +408,7 @@ const SUBTABS = {
   // #985 punt 7: dit tabblad heette ook "Spel", net als het rail-onderdeel waar je je save beheert.
   // Twee dingen met dezelfde naam in hetzelfde menu is een raadsel; "Spelregels" zegt wat erin staat
   // (moeilijkheid, verkeer, geweld, rijden) en botst nergens meer mee.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid'], ['online', 'Samen spelen']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
@@ -832,6 +833,7 @@ ${keyReuseHtml()}
       <div class="m-gh"><span>Terugkijken</span></div>
       <div class="m-li pm-row">${rowName('Tekstlog', 'De laatste uitleg en tips opnieuw lezen')}<button type="button" class="m-bg" data-card-log>Openen</button></div>
       <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
+    ${tab('online', `<div class="pm-online" data-online-instelling></div>`, `${pane('Samen spelen', 'Je naam en je akkoord', '<p>Alleen bij Samen spelen gaat er iets naar buiten. Hier pas je je naam aan (andere spelers zien hem) of trek je je akkoord in; bij Samen spelen vraagt het spel er dan opnieuw om.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -2762,7 +2764,7 @@ function showTab(name, how) {
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
   if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
-  if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
+  if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); mountOnlineInstelling(root.querySelector('[data-online-instelling]'), { world }); }
   if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
   // Elke opening van een onderdeel begint bovenaan: het blad zelf (dat bij een lange inhoud
   // door focus kan zijn meegescrold), de paneelinhoud en de lijst/het detail erin (#906).

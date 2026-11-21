@@ -8,6 +8,7 @@ import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
+import { ensureSamenProfile } from './launchchoiceui.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
 import { stopSoloHost } from './coopsolo.js';
 import { isPauseMenuOpen } from './pausestate.js';
@@ -795,6 +796,8 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
         continueGame();
       } else if (it.act === 'samen') {
         stopSoloHost(world);
+        // iets met Samen spelen: de eerste keer eerst naam en akkoord (ensureSamenProfile); Terug brengt je terug in het menu
+        ensureSamenProfile().then((ok) => { if (!ok) { focus(sel); return; }
         // een echte menustroom: Gastheer worden (kies een opgeslagen spel of Nieuw spel) of Meedoen; daarna staat de wachtkamer klaar (main.js)
         openSamenKeuze({
           onClose: () => focus(sel),
@@ -808,6 +811,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
               onClose: () => focus(sel),
             });
           },
+        });
         });
       } else if (it.act === 'solo') {
         // no saved game at all (a first start, a throwaway profile of a test run): a new game starts at once, as the old Nieuw spel did
