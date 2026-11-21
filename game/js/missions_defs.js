@@ -143,7 +143,7 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
       startSpot: 'station',
       stages: [
         {
-          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', place: { landmark: 'Groninger Museum', label: 'Het Groninger Museum' }, say: 'Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.',
+          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', place: { landmark: 'Groninger Museum', label: 'Het Groninger Museum' }, say: 'Eerst even wennen: zweef boven het plein, dan door naar het museum. De toetsen staan onderaan.',
           targets: [
             { at: [-46.86, 864.79], label: 'Vliegles: zweef boven het Stationsplein' },
             { landmark: 'Groninger Museum', off: [-30, -22], label: 'Camera bij de noordgevel' },

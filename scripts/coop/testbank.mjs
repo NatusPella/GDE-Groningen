@@ -34,7 +34,7 @@ const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slech
 const TEGELIJK = flag('tegelijk'); // alle gasten starten meteen na de host en voeren de code tegelijk in (zoals vrienden in een groepsapp), niet één voor één
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const LIJST = SUITE === 'lijst'; // #983: de gast komt binnen via de openbare sessielijst (nep-MQTT-broker op 127.0.0.1), zonder de kamercode in te typen
-const ROUTE = arg('route', SUITE === 'kamer' || LIJST ? 'kamer' : 'direct');
+const ROUTE = arg('route', SUITE === 'kamer' || SUITE === 'overdracht' || SUITE === 'overname' || LIJST ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 // Extra Chromium-vlaggen voor de Electron-instanties (komma-gescheiden). Op een machine waar de
@@ -75,8 +75,25 @@ const P = {
     [34, 'gastbijbaan', { s: 40, wie: 'gast' }],
     me === 'gast2' ? [78, 'uitval', { s: 8, wie: 'gast2' }] : [78, 'wacht', { s: 28 }],
     me === 'host' ? [108, 'uitvalHost', { s: 0, wie: 'gast2' }] : [108, 'wacht', { s: 5 }],
-    [116, 'tab', { name: 'vier-tab-na' }], [124, 'wacht', { s: 6 }],
+    [116, 'tab', { name: 'vier-tab-na' }], [124, 'opslagcheck', {}], [126, 'wacht', { s: 6 }],
     ...(me === 'host' ? [[134, 'stopHost', {}]] : []),
+  ]])),
+  bijbaan: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: bijbanen door een gast in vier echte vensters: de gast start, een tweede doet mee (J), de host rondt af en betaalt per speler
+    [0, 'wacht', { s: 6 }],
+    [8, 'gastbijbaan', { s: 50, wie: 'gast', id: 'krantenwijk', beloon: 150 }],
+    [62, 'gastbijbaan', { s: 50, wie: 'gast2', id: 'bezorger', beloon: 200 }],
+    [116, 'bordenkapot', { s: 22 }], [140, 'opslagcheck', {}], [142, 'wacht', { s: 4 }],
+    ...(me === 'host' ? [[148, 'stopHost', {}]] : []),
+  ]])),
+  overdracht: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: hostwissel midden in een bijbaan van een gast, in vier echte vensters (route kamer, nep-tracker)
+    [0, 'wacht', { s: 6 }],
+    [8, 'gastbijbaan', { s: 110, wie: 'gast', id: 'krantenwijk', bied: 30 }],
+    [122, 'wacht', { s: 8 }],
+  ]])),
+  overname: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: de host valt hard weg (het proces wordt gedood) midden in een bijbaan van een gast: de opvolger neemt over (route kamer)
+    [0, 'wacht', { s: 6 }],
+    [8, 'gastbijbaan', { s: 120, wie: 'gast', id: 'krantenwijk' }],
+    [130, 'wacht', { s: 8 }],
   ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
@@ -311,6 +328,14 @@ if (SUITE === 'net' && code && GASTEN > 0 && (guest2 || guest)) {
   })();
 }
 
+if (SUITE === 'overname' && code) (async () => {
+  const e = await waitFor(host.events, 'gastbijbaan-begin', 900000);
+  if (!e) return;
+  await new Promise((r) => setTimeout(r, 30000));
+  notes.push('de host is hard gestopt (proces gedood) 30 s na het begin van de baan');
+  try { host.child.kill(); } catch (er) { /* al weg */ }
+})();
+
 const probeLog = [];
 const tp = code && ROUTE === 'direct' ? setInterval(() => { const m = /([0-9.]+):([0-9]+)-/.exec(guestCode); const t = Math.round((Date.now() - T0) / 1000); const k = net.connect({ host: m[1], port: +m[2], timeout: 2000 }); k.once('connect', () => { probeLog.push([t, 'open']); k.destroy(); }); k.once('error', (e) => probeLog.push([t, e.code])); k.once('timeout', () => { probeLog.push([t, 'time-out']); k.destroy(); }); }, 3000) : null;
 const res = await Promise.all([host.done, guest ? guest.done : Promise.resolve({ result: 'NIET GESTART' }), ...(GASTEN > 1 ? [guest2 ? guest2.done : Promise.resolve({ result: 'NIET GESTART' })] : []), ...(GASTEN > 2 ? [guest3 ? guest3.done : Promise.resolve({ result: 'NIET GESTART' })] : [])]);
@@ -501,11 +526,11 @@ const phase = (n, ph) => samples(n).filter((s) => s.ph === ph);
 const levend = (n) => { const alle = samples(n).filter((s) => s.role && s.roster && s.roster.length); return alle[alle.length - 1] || last(samples(n)); };
 const at = (E_, type, pred = () => true) => E_.find((e) => e.type === type && pred(e));
 
-check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
+if (SUITE !== 'overname') check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`); // bij 'overname' is de host met opzet gedood
 check(res[1].result === 'KLAAR', `gast: ${res[1].result} ${res[1].reason || ''}`);
 if (GASTEN > 1) check(res[2].result === 'KLAAR', `gast2: ${res[2].result} ${res[2].reason || ''}`);
 if (GASTEN > 2) check(res[3].result === 'KLAAR', `gast3: ${res[3].result} ${res[3].reason || ''}`);
-for (const n of NAMES) for (const [f, v] of Object.entries((res[NAMES.indexOf(n)] || {}).fasen || {})) check(v === 'ok', `${n}: fase ${f} ${v}`);
+for (const n of NAMES) if (!(SUITE === 'overname' && n === 'host')) for (const [f, v] of Object.entries((res[NAMES.indexOf(n)] || {}).fasen || {})) check(v === 'ok', `${n}: fase ${f} ${v}`);
 
 // toestemming: voor "Akkoord" is er niets verstuurd; daarna alleen wat de route nodig heeft
 const cons = of(H, 'toestemming')[0];
@@ -724,6 +749,70 @@ if (SUITE === 'touch' || SUITE === 'net') {
   const c0 = hs2.find((q) => q.f1), c1 = [...hs2].reverse().find((q) => q.f1); // de gast als figuur op de host (coopFigures[1])
   check(c0 && c1 && Math.hypot(c1.f1.x - c0.f1.x, c1.f1.y - c0.f1.y) > 4, 'touch: de gast bewoog niet op de host: ' + JSON.stringify([c0 && c0.f1, c1 && c1.f1]));
   note('aanraakbediening: ' + JSON.stringify({ knoppen: tu && tu.speelknoppen, half: th && th.axis, vol: tv && tv.axis }));
+}
+
+// ----- suites 'bijbaan' en 'vier' (#1011): een bijbaan door een gast in echte vensters
+if (SUITE === 'bijbaan') {
+  const bh = of(H, 'borden-host')[0];
+  check(!!bh, 'borden: de host brak niets'); if (bh) note('borden: ' + JSON.stringify(bh));
+  if (bh && bh.gebroken.length) for (const n of NAMES.filter((x) => x !== 'host')) {
+    const g = of(E[n], 'borden-gast')[0]; note(`borden ${n}: ${JSON.stringify(g && { kapot: g.kapot, vg: g.voetgangers, hostMesh: g.hostMesh })}`);
+    const keys = g && g.kapot ? g.kapot.map((k) => k[0]) : [];
+    check(!!g && bh.gebroken.every((k) => keys.includes(k)), `borden: ${n} kent de kapotte borden van de host niet (${JSON.stringify(g && g.kapot)})`);
+    check(!!g && (g.kapot || []).filter((k) => bh.gebroken.includes(k[0])).every((k) => k[1]), `borden: ${n} tekent een kapot bord nog heel`);
+  }
+}
+if (SUITE === 'bijbaan' || SUITE === 'vier') {
+  for (const n of NAMES) { const o = of(E[n], 'opslagcheck')[0]; check(!!o && !o.gde2 && !o.ip, `privacy: ${n} bewaart een directe code of IP-adres (${JSON.stringify(o && { gde2: o.gde2, ip: o.ip, sleutels: o.sleutels })})`); }
+  const e1 = (n, t, id) => of(E[n], t).filter((e) => !id || e.wie === id);
+  const rondes = SUITE === 'bijbaan' ? [['gast', 'krantenwijk', 150], ['gast2', 'bezorger', 200]] : [['gast', 'krantenwijk', 0]];
+  for (const [starter, baan, bedrag] of rondes) {
+    const eind = e1(starter, 'gastbijbaan-eind')[0];
+    check(!!eind && eind.deelde, `bijbaan ${baan}: de gast ${starter} startte de baan niet (deelt ${eind && eind.deelde})`);
+    check(e1('host', 'gastbijbaan-stand').every((e) => !e.sideJob.actief && !e.deelt), `bijbaan ${baan}: de host kreeg zelf een baan of een deelstand opgedrongen`);
+    if (!bedrag) continue;
+    const bel = of(H, 'gastbijbaan-beloning').find((e) => e.basis === bedrag);
+    check(!!bel && bel.ok, `bijbaan ${baan}: de host kon de beloning niet verdelen (${JSON.stringify(bel)})`);
+    note(`bijbaan ${baan}: meedoende plekken ${JSON.stringify(bel && bel.ja)}`);
+    for (const n of ['host', 'gast', 'gast2', 'gast3']) {
+      const w = e1(n, 'gastbijbaan-eind'); // geldWinst per venster, per ronde (volgorde van de rondes)
+      note(`bijbaan ${baan}: ${n} geldWinst ${JSON.stringify(w.map((x) => x.geldWinst))}`);
+    }
+    const idx = rondes.findIndex((r) => r[1] === baan);
+    const starterWinst = (e1(starter, 'gastbijbaan-eind')[SUITE === 'bijbaan' && starter === 'gast2' ? 1 : 0] || {}).geldWinst;
+    check(starterWinst === bedrag || starterWinst > 0, `bijbaan ${baan}: de starter ${starter} kreeg geen beloning (+${starterWinst}, verwacht ${bedrag})`);
+    check(!(e1('host', 'gastbijbaan-eind')[idx] || {}).geldWinst, `bijbaan ${baan}: de host (zonder J) kreeg geld`);
+  }
+}
+
+// ----- suite 'overname' (#1011): de host valt hard weg midden in een bijbaan van een gast
+if (SUITE === 'overname') {
+  const gasten = NAMES.filter((x) => x !== 'host');
+  const st = (n) => of(E[n], 'gastbijbaan-stand'), rol = (n) => { const l = st(n); return l.length ? l[l.length - 1].rol : null; };
+  note('rollen na afloop: ' + JSON.stringify({ gast: rol('gast'), gast2: rol('gast2'), gast3: rol('gast3') }));
+  const hosts = gasten.filter((n) => rol(n) === 'host');
+  check(hosts.length === 1, 'overname: er moet precies één opvolger host zijn (' + JSON.stringify(hosts) + ')');
+  for (const n of gasten) if (!hosts.includes(n)) check(rol(n) === 'client', `overname: ${n} is niet bij de nieuwe host (rol ${rol(n)})`);
+  for (const n of gasten) { const l = samples(n).slice(-6); check(l.some((x) => (x.partners || []).length >= gasten.length - 1), `overname: ${n} ziet na de overname niet alle medespelers`); }
+  const unieke = (n) => { const x = samples(n).slice(-1)[0]; const namen = ((x && x.partners) || []).map((p) => p[1]); return namen.length === new Set(namen).size; };
+  for (const n of gasten) check(unieke(n), `overname: ${n} ziet een dubbele speler`);
+  for (const n of gasten) { const l = st(n); check(!l.length || l[l.length - 1].geld >= 500, `overname: ${n} verloor geld (${l.length && l[l.length - 1].geld})`); }
+  for (const n of gasten) { let v = 0; const bad = samples(n).filter((x) => { const nieuw = (x.desyncN || 0) > v; v = Math.max(v, x.desyncN || 0); return nieuw; }); note(`desyncN ${n}: ${v}`); }
+}
+
+// ----- suite 'overdracht' (#1011): de hostwissel midden in een bijbaan
+if (SUITE === 'overdracht') {
+  const st = (n) => of(E[n], 'gastbijbaan-stand'), rol = (n) => { const l = st(n); return l.length ? l[l.length - 1].rol : null; };
+  const bod = of(H, 'overdracht-bod')[0];
+  check(!!bod && bod.r && bod.r.ok, 'overdracht: de host kon het spel niet aanbieden: ' + JSON.stringify(bod));
+  check(of(G, 'overdracht-j').length === 1, 'overdracht: de gast kreeg de vraag niet (J)');
+  note('rollen na afloop: ' + JSON.stringify({ host: rol('host'), gast: rol('gast'), gast2: rol('gast2'), gast3: rol('gast3') }));
+  check(rol('gast') === 'host', 'overdracht: de gast is geen host geworden (' + rol('gast') + ')');
+  check(rol('host') === 'client', 'overdracht: de oude host is geen gast geworden (' + rol('host') + ')');
+  for (const n of ['gast2', 'gast3']) check(rol(n) === 'client', `overdracht: ${n} is niet bij de nieuwe host (rol ${rol(n)})`);
+  for (const n of NAMES) { const l = samples(n); const laatste = l.slice(-6); check(laatste.some((x) => (x.partners || []).length >= EXPECT - 1), `overdracht: ${n} ziet na de wissel niet alle ${EXPECT - 1} medespelers`); }
+  const unieke = (n) => { const x = samples(n).slice(-1)[0]; const namen = ((x && x.partners) || []).map((p) => p[1]); return namen.length === new Set(namen).size; };
+  for (const n of NAMES) check(unieke(n), `overdracht: ${n} ziet een dubbele speler`);
 }
 
 // ----- suite 'verhaal'

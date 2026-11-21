@@ -1,6 +1,6 @@
 // Beelden van alle menu's en HUD-onderdelen die in de ronde na 0.64.0 zijn aangepast (opdracht voor feedback van de eigenaar).
 // Eén Electron (wegwerpprofiel in de uitvoermap), page-script scripts/qa/menufoto.page.js. Wijzigt geen spelcode.
-//   node scripts/qa/menufoto.mjs --out=<map> [--size=1920x1080] [--sets=esc,kaart,samen,hud,laad,reis,duif,bench] [--kern] [--boot]
+//   node scripts/qa/menufoto.mjs --out=<map> [--size=1920x1080] [--sets=esc,kaart,samen,hud,laad,reis,duif,bench] [--kern] [--boot] [--page=<ander page-script in scripts/qa>] [--minuten=40]
 // Draai het via het slot: node <worktree>\desktop\build\slots\slot.mjs run menufoto -- node scripts/qa/menufoto.mjs ...
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>. --boot legt ook het eerste laadscherm (boot-NN.png) vast.
 // Uitvoer: <out>/<nummer>-<scherm>-<breedte>.png, menufoto-<breedte>.json, run-<breedte>.log.
@@ -23,10 +23,11 @@ const profile = profileDirFor(`gde-test-mf-${process.pid}`, OUT);
 fs.mkdirSync(profile, { recursive: true });
 const script = path.join(OUT, `_page-${BREEDTE}-${process.pid}.js`);
 const cfg = { size: SIZE, sets: arg('sets', 'esc,kaart,samen,hud,laad,reis,duif,bench').split(','), kern: flag('kern') };
-fs.writeFileSync(script, `window.__mf = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'menufoto.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__mf = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, arg('page', 'menufoto.page.js')), 'utf8'));
 const hoofd = path.join(ROOT, '..', '..', '..', 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const electron = process.env.ELECTRON_EXE || process.env.GDE_ELECTRON || (fs.existsSync(path.join(ROOT, 'desktop', 'node_modules')) ? path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron') : hoofd);
-const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
+const tmp = path.join(OUT, '_tmp'); fs.mkdirSync(tmp, { recursive: true });
+const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1', TEMP: tmp, TMP: tmp, TMPDIR: tmp };
 env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR || path.join(ROOT, 'desktop', 'build', 'game'));
 delete env.ELECTRON_RUN_AS_NODE;
 const bootDir = path.join(OUT, `_boot-${BREEDTE}`);
@@ -34,7 +35,7 @@ const bootArgs = flag('boot') ? (fs.mkdirSync(bootDir, { recursive: true }), [`-
 const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${SIZE}`, '--no-sandbox', '--in-process-gpu',
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
   `--smoke-test=${path.join(OUT, '_s.png')}`, `--perf-script=${script}`, ...bootArgs],
-{ cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 40 * 60 * 1000, killSignal: 'SIGKILL' });
+{ cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: Number(arg('minuten', '40')) * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt:', r.error.message);
 fs.writeFileSync(path.join(OUT, `run-${BREEDTE}.log`), `${r.stdout || ''}\n${r.stderr || ''}`);
 fs.rmSync(profile, { recursive: true, force: true });

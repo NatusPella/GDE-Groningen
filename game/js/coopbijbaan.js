@@ -261,7 +261,7 @@ export function bijbaanBeloning(world, id, basis, vak = null, xp = 0, ronde = nu
 
 // De baan is voorbij (afgerond, mislukt of gestopt): iedereen die meekijkt hoort het en de toestand wordt opgeruimd.
 // Een baan van de host gaat naar alle gasten (wie meekeek, ziet dat het klaar is); de eigen baan van een gast (#492)
-// gaat alleen naar hem, zodat het einde van de een het doel van de ander niet wist.
+// gaat naar hem en naar wie meedoet, zodat het einde van de een het doel van de ander niet wist (een gast met een eigen baan negeert het: overEigenBaan).
 export function bijbaanEind(world, kind = 'ok', owner = 0) {
   const n = world.coopNet;
   if (!n || n.role !== 'host' || !n.hub) return false;
@@ -269,7 +269,12 @@ export function bijbaanEind(world, kind = 'ok', owner = 0) {
   if (!actief(st)) return false;
   const e = eindEvent(kind, st.owner | 0);
   if (!owner) for (const s of verbondenGasten(world)) n.hub.announce(e, s.slot);
-  else n.hub.announce(e, owner);
+  else {
+    n.hub.announce(e, owner);
+    // wie meedeed (J) of nog moest antwoorden hoort het einde ook (#1011): anders blijft hij 'meedoen' en kan hij geen eigen baan starten
+    const verb = verbondenSet(world);
+    for (const k of Object.keys(st.keuze || {}).map(Number)) if (k > 0 && k !== owner && verb.has(k) && (st.keuze[k] === 'ja' || st.keuze[k] === 'wacht')) n.hub.announce(e, k);
+  }
   eindeBijbaan(st);
   return true;
 }

@@ -55,4 +55,72 @@ t('de museumkaart: ondertitel en naamplaten blijven buiten de stapel (eigen lane
   assert.ok(r.onder < 720 * 0.5, `de stapel eindigt boven het midden (${r.onder} < 360)`);
 });
 
+// --- vaste zones (#1053, #1058): geen overlap bij 1280x720 en 1920x1080 ---------------------------------------------------------
+import fs from 'node:fs';
+import { uiScaleFor } from '../game/js/hudlook.js';
+import { duivenZones, zoneOverlap, pijlPlek, plaatSelectie, LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, HINTS_LINKS } from '../game/js/hudstapel.js';
+
+const VENSTERS = [[1280, 720], [1920, 1080], [1366, 768], [2560, 1440]];
+const hudPx = (w, h) => { const ui = uiScaleFor(w, h, 1, false); return [w / ui, h / ui]; };
+
+t('de zones van de duivenmodus raken elkaar nooit (1280x720, 1920x1080 en de tussenmaten)', () => {
+  for (const [w, h] of VENSTERS) {
+    const [vw, vh] = hudPx(w, h);
+    const ruimte = stapelRuimte(vh);
+    const s = stapel(duivenKaarten({ introActief: false, holdActief: true, hoogteActief: true }), { ruimte });
+    const { zones } = duivenZones(vw, vh, s.onder);
+    assert.deepEqual(zoneOverlap(zones), [], `${w}x${h}: ${JSON.stringify(zoneOverlap(zones))}`);
+    for (const z of zones) assert.ok(z.x >= 0 && z.y >= 0 && z.x + z.w <= vw + 1e-9 && z.y + z.h <= vh + 1e-9, `${w}x${h}: ${z.id} ligt in beeld`);
+  }
+});
+
+t('de richtingspijl blijft in de vrije band, ook als het doel ver buiten beeld ligt', () => {
+  for (const [w, h] of VENSTERS) {
+    const [vw, vh] = hudPx(w, h);
+    const s = stapel(duivenKaarten({ introActief: false, holdActief: true }), { ruimte: stapelRuimte(vh) });
+    const { zones, pijl } = duivenZones(vw, vh, s.onder);
+    assert.ok(pijl.w > 240 && pijl.h > 100, `${w}x${h}: de band is groot genoeg (${pijl.w} x ${pijl.h})`);
+    for (const e of [{ x: -1, y: 1 }, { x: 1, y: 1 }, { x: -1, y: -1 }, { x: 1, y: -1 }, { x: 0, y: 0, onScreen: true }, { x: -0.4, y: 0.2, onScreen: true }, { x: NaN, y: NaN }]) {
+      const p = pijlPlek(e, vw, vh, pijl, { w: 240, h: 100 });
+      const r = { id: 'pijl', x: p.x - 120, y: p.y - 50, w: 240, h: 100 };
+      assert.deepEqual(zoneOverlap([...zones, r]), [], `${w}x${h} ${JSON.stringify(e)}: ${JSON.stringify(zoneOverlap([...zones, r]))}`);
+    }
+  }
+});
+
+t('naamplaten: alleen het dichtstbijzijnde doel groot, de rest valt weg bij overlap, onder een kaart of buiten beeld', () => {
+  const [vw, vh] = [1600, 900];
+  const { zones } = duivenZones(vw, vh, 300);
+  const platen = [
+    { id: 'dichtbij', prio: 0, x: 800, y: 500, w: 240, h: 54 },
+    { id: 'over', prio: 1, x: 850, y: 520, w: 150, h: 34 },          // raakt de dichtstbijzijnde
+    { id: 'naast', prio: 2, x: 1100, y: 480, w: 150, h: 34 },
+    { id: 'onder-kaart', prio: 3, x: 800, y: 250, w: 150, h: 34 },   // in de stapel
+    { id: 'buiten', prio: 4, x: -20, y: 500, w: 150, h: 34 },
+    { id: 'kapot', prio: 5, x: NaN, y: 500, w: 150, h: 34 },
+  ];
+  assert.deepEqual(plaatSelectie(platen, vw, vh, zones), ['dichtbij', 'naast']);
+  assert.deepEqual(plaatSelectie(platen, vw, vh, zones, 1), ['dichtbij'], 'het maximum telt');
+  assert.deepEqual(plaatSelectie(null, vw, vh, zones), []);
+});
+
+t('de CSS gebruikt de getallen van de zones (links onder het paneel, toetsbalk rechts van de plaatsnaam)', () => {
+  const pm = fs.readFileSync(new URL('../game/js/pigeonmode.js', import.meta.url), 'utf8');
+  const hc = fs.readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
+  const pf = fs.readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');
+  assert.match(pm, new RegExp(`\\.ph-card \\{ position: absolute; top: ${LINKS_KAART_TOP}px; left: ${LINKS_RAND}px; width: min\\(calc\\(30vw / var\\(--ui, 1\\)\\), ${LINKS_KAART_BREED}px\\)`), 'prestatiekaart in de linkerzone');
+  assert.match(pm, new RegExp(`\\.ph-hints \\{ position: absolute; left: ${HINTS_LINKS}px; right: ${LINKS_RAND}px;`), 'toetsbalk in zijn zone');
+  assert.match(hc, new RegExp(`body\\.pigeon-mode #hud \\.hud-cards, body\\.heli-run #hud \\.hud-cards \\{ top: ${LINKS_KAART_TOP}px;`), 'missiekaart onder het paneel van duif en heli (#1058)');
+  assert.match(pf, new RegExp(`body\\.pigeon-mode #hud \\.phonefeed, body\\.heli-run #hud \\.phonefeed \\{ top: ${LINKS_KAART_TOP}px;`), 'nieuwsregel in dezelfde zone');
+  assert.match(hc, /body\.pg-melding #hud \.hud-cards, body\.pg-melding #hud \.phonefeed \{ visibility: hidden; \}/, 'de prestatiekaart gaat voor');
+});
+
+t('de toetsuitleg staat op één plek: de uitlegkaart "Je bent de duif" en de toetsen in de missietekst zijn weg', () => {
+  const pg = fs.readFileSync(new URL('../game/js/pigeonguide.js', import.meta.url), 'utf8');
+  const md = fs.readFileSync(new URL('../game/js/missions_defs.js', import.meta.url), 'utf8');
+  assert.ok(!/pg-intro|pg-keys|GUIDE_INTRO|glyphHtml/.test(pg), 'geen tweede toetsuitleg in de gids');
+  const say = (md.match(/kind: 'pigeon', spot: 'station'[^\n]*?say: '([^']+)'/) || [])[1] || '';
+  assert.ok(say.length > 20 && !/\bW\/S\b|Shift|WASD/.test(say), `de missietekst noemt geen toetsen meer: ${say}`);
+});
+
 console.log(`hudstapel_test: ${n}/${n} ok`);

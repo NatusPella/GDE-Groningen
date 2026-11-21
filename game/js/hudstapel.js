@@ -65,3 +65,83 @@ export function duivenKaarten({ introActief, holdActief, hoogteActief, intro = {
     { id: 'hoogte', prio: 1, h: hoogte.h, nodig: !!hoogteActief },
   ];
 }
+
+// --- vaste zones (#1053, #1058) ------------------------------------------------------------------------------------------------
+// Elk HUD-onderdeel van de duivenmodus en de minigame-lagen (heli, duif) heeft één vaste zone in HUD-px (het venster gedeeld door --ui);
+// deze rechthoeken mogen elkaar nooit raken (hudstapel_test.mjs, bij 1280x720 en 1920x1080). De CSS gebruikt dezelfde getallen
+// (pigeonmode.js, pigeonguide.js, hudcards.css, helirun.js); de test leest die bestanden na. Onderdelen die om dezelfde plek strijden
+// (missiekaart, prestatiekaart, nieuwsregel) delen één zone met een prioriteit: het hoogste wint, de rest wacht.
+export const LINKS_RAND = 46;       // px: de linkerrand van de HUD (--hud-edge)
+export const LINKS_KAART_TOP = 200; // px: missiekaart, prestatiekaart en nieuwsregel staan onder het paneel van de minigame
+export const LINKS_KAART_BREED = 350;
+export const MM = 250;              // px: de minikaart (--mm-size)
+export const MM_BODEM = 46;         // px: --mm-bottom
+export const PLAATS_BREED = 230;    // px: de plaatsnaam naast de minikaart
+export const PLAATS_H = 84;
+export const HINTS_LINKS = 560;     // px: de toetsbalk begint rechts van de plaatsnaam
+export const HINTS_H = 100;
+export const HINTS_BODEM = 22;
+export const STAPEL_BREED = 480;
+export const RECHTS_KAART_BREED = 280;
+
+const rect = (id, x, y, w, h) => ({ id, x, y, w: Math.max(0, w), h: Math.max(0, h) });
+
+// Alle zones van de duivenmodus voor een venster van vw x vh HUD-px, met de stapel zoals stapel() hem berekent (onder = de onderkant).
+// top: waar de stapel begint (STAPEL_TOP, of lager als de doel- en routekaart van de gewone HUD hoger zijn, bijvoorbeeld bij 1280x720 waar de doelregel omslaat).
+// Geeft { zones: [rect], pijl: rect }; pijl is de vrije band voor de richtingspijl.
+export function duivenZones(vw, vh, onder = STAPEL_TOP + 110, top = STAPEL_TOP) {
+  const mmTop = vh - MM_BODEM - MM;
+  const hintsW = Math.min(760, vw - HINTS_LINKS - LINKS_RAND);
+  const hintsY = vh - HINTS_BODEM - HINTS_H;
+  const zones = [
+    rect('paneel', 14, 12, 262, 140),
+    rect('bovenbalk', vw / 2 - 300, 34, 600, top - 8 - 34),   // doel- en routekaart van de gewone HUD
+    rect('stapel', vw / 2 - STAPEL_BREED / 2, top, STAPEL_BREED, onder - top),
+    rect('linkskaart', LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, mmTop - 12 - LINKS_KAART_TOP),
+    rect('meldingen', vw - 14 - RECHTS_KAART_BREED, 96, RECHTS_KAART_BREED, 84),
+    rect('minikaart', LINKS_RAND, mmTop, MM, MM),
+    rect('plaats', LINKS_RAND + MM + 16, vh - MM_BODEM - 4 - PLAATS_H, PLAATS_BREED, PLAATS_H),
+    rect('hints', HINTS_LINKS, hintsY, hintsW, HINTS_H),
+    rect('ondertitel', HINTS_LINKS, hintsY - 12 - 64, hintsW, 64),
+  ];
+  const pijlX = LINKS_RAND + LINKS_KAART_BREED + 14;
+  const pijlY = onder + 12;
+  const pijl = rect('pijl', pijlX, pijlY, vw - pijlX - 14 - RECHTS_KAART_BREED - 14, hintsY - 12 - 64 - 12 - pijlY);
+  return { zones, pijl };
+}
+
+// Elke twee zones die elkaar raken: [[a, b], ...] (leeg = goed)
+export function zoneOverlap(zones) {
+  const uit = [];
+  for (let i = 0; i < zones.length; i++) for (let j = i + 1; j < zones.length; j++) {
+    const a = zones[i], b = zones[j];
+    if (a.w > 0 && a.h > 0 && b.w > 0 && b.h > 0 && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) uit.push([a.id, b.id]);
+  }
+  return uit;
+}
+
+// Het midden van de richtingspijl (w x h px): naar de rand van het scherm (e.x, e.y in -1..1, y omhoog), maar altijd binnen de vrije band.
+// e.onScreen: het doel is in beeld; de pijl hangt dan 70 px boven het doel (ook binnen de band).
+export function pijlPlek(e, vw, vh, band, { w = 120, h = 84 } = {}) {
+  const x = vw / 2 + (eindig(e && e.x) ? e.x : 0) * vw / 2;
+  const y = vh / 2 - (eindig(e && e.y) ? e.y : 0) * vh / 2 - (e && e.onScreen ? 70 : 0);
+  const klem = (v, lo, hi) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
+  return { x: klem(x, band.x + w / 2, band.x + band.w - w / 2), y: klem(y, band.y + h / 2, band.y + band.h - h / 2) };
+}
+
+// Naamplaten in de wereld: welke blijven staan als ze elkaar of een zone van de HUD raken? platen: [{ id, prio, x, y, w, h }] met het
+// midden in HUD-px en prio 0 voor het dichtstbijzijnde doel (hoger = minder belangrijk). Een plaat valt weg als hij een belangrijkere plaat
+// of een blokzone raakt of buiten het scherm staat; er blijven er hooguit `max` staan. Geeft de ids die blijven.
+export function plaatSelectie(platen, vw, vh, blok = [], max = 3) {
+  const raakt = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const kept = [];
+  const lijst = (Array.isArray(platen) ? platen : []).filter((p) => p && eindig(p.x) && eindig(p.y) && eindig(p.w) && eindig(p.h)).sort((a, b) => (a.prio || 0) - (b.prio || 0));
+  for (const p of lijst) {
+    const r = { id: p.id, x: p.x - p.w / 2, y: p.y - p.h / 2, w: p.w, h: p.h };
+    if (r.x < 0 || r.y < 0 || r.x + r.w > vw || r.y + r.h > vh) continue;
+    if (kept.length >= max) continue;
+    if (blok.some((z) => raakt(r, z)) || kept.some((k) => raakt(r, k))) continue;
+    kept.push(r);
+  }
+  return kept.map((k) => k.id);
+}

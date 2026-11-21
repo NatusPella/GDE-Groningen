@@ -22,7 +22,7 @@ export const PLEKKEN = [
   { naam: '3-grotemarkt-avond', x: 106.3, y: 58.6, oog: true, a: 2.798, klok: 'avond' },
   { naam: '4-grotemarkt-nacht', x: 106.3, y: 58.6, oog: true, a: 2.798, klok: 'nacht' },
   { naam: '5-binnenstad-regen', x: 507.4, y: -164.4, oog: true, a: 0.138, klok: 'dag', weer: 'regen' },
-  { naam: '6-ommeland', x: 2769.7, y: -20431.3, d: 120, az: 0.8, h: 8, lz: 10, klok: 'dag' },
+  { naam: '6-ommeland', x: 2814.7, y: -20406.3, d: 120, az: 0.8, h: 8, lz: 10, klok: 'dag' },
   { naam: '7-haven-water', x: -874, y: 566, d: 70, az: 3.9, h: 26, lz: 0, klok: 'dag' },
   { naam: '8-kermis', x: 173.3, y: 108.2, d: 45, az: 2.2, h: 8, lz: 3, klok: 'avond' },
   { naam: '9-woonwijk', x: -768.5, y: -1144.3, d: 260, az: 0.5, h: 20, lz: 6, klok: 'dag' },

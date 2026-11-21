@@ -683,6 +683,8 @@ body.plane-flying #banter-sub, body.plane-flying #radio-sub {
 /* Ook buiten de vlucht schoof de ondertitel op 1024-1366 over de straatkolom en
    de minimap. Daar zakt hij boven die kolom en houdt hij de breedte tussen de
    randen (de kolommen zijn samen 46 + 250 px aan de linkerkant). */
+/* #1053: in de duivenmodus staat de toetsbalk onderaan (HINTS_H 100 + 22): de ondertitel hoort in zijn eigen zone eronder (hudstapel.js duivenZones 'ondertitel') */
+body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px * var(--ui, 1)) !important; max-width: min(760px, calc(100vw / var(--ui, 1) - 606px), 56vw) !important; }
 @media (min-width: 761px) and (max-width: 1366px) and (min-height: 641px) {
   #banter-sub, #radio-sub {
     bottom: calc(222px * var(--ui, 1)) !important;

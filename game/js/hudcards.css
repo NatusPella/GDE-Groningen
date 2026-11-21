@@ -117,7 +117,11 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   #hud .hud-card .hc-icon svg, #hud .hud-count.on { animation: none !important; }
   #hud .hud-count.on { opacity: 1; }
 }
-body.pigeon-mode #hud .hud-cards { top: 300px; }
+/* #1053/#1058: in de duivenmodus en bij de heli-ronde staat het paneel van de minigame linksboven; de missiekaart, de prestatiekaart en de nieuwsregel delen één zone daaronder
+   (hudstapel.js LINKS_KAART_TOP = 200): de prestatiekaart wint (body.pg-melding), dan de missiekaart, dan de nieuwsregel. Past de kaart niet boven de minikaart, dan wordt hij afgekapt in plaats van eroverheen te liggen. */
+body.pigeon-mode #hud .hud-cards, body.heli-run #hud .hud-cards { top: 200px; max-height: calc(100vh / var(--ui, 1) - 200px - var(--mm-size, 250px) - var(--mm-bottom, 46px) - 12px); overflow: hidden; }
+body.pg-melding #hud .hud-cards, body.pg-melding #hud .phonefeed { visibility: hidden; }
+body.pigeon-mode.hud-card-on #hud .phonefeed { visibility: hidden; }
 #hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 1.15em; min-width: 1.15em; margin: 0 2px; padding: 0 4px; font: bold max(0.72em, var(--hud-min))/1 'Arial Narrow', Arial, sans-serif; vertical-align: 0.08em; }
 
 

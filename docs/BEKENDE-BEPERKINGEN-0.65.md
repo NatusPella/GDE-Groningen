@@ -3,7 +3,8 @@
 Voor wie de nieuwe versie speelt. Eerlijk wat niet getest of niet af is. Niets hieronder is een reden om niet te spelen; het is wat je kunt tegenkomen. De feiten komen uit de agent-rapporten in de issues #1008 tot #1041 en uit `docs/*-21-11.md`; alles wat een agent niet in beeld heeft gezien staat als "nog niet bekeken".
 
 ## Samen spelen
-- **Een echte sessie met vier Electron-vensters is niet gedraaid.** Bezorgen met verdeelde adressen, de pannenkoekenwedstrijd en het proefbeleg bij Bourtange (M30) zijn bewezen met pure tests en met twee en vier spelers over echte TCP-verbindingen (`samenwedstrijd_tcp_test`, `samenmissies_tcp_test`), niet met echte vensters of over internet.
+- **Update 21-11 (samen-vensters-21-11):** een sessie met vier echte Electron-vensters is nu wel gedraaid (basis, vier, net, bijbaan door een gast, hostwissel via de kamerroute); zie docs/COOP-GAST.md "Vier echte vensters". Nog niet in vensters: Fatbikes ontwijken, penaltyserie, duivenspot, hostwissel tijdens een filmpje en over internet.
+- **Eerder: een echte sessie met vier Electron-vensters was niet gedraaid.** Bezorgen met verdeelde adressen, de pannenkoekenwedstrijd en het proefbeleg bij Bourtange (M30) zijn bewezen met pure tests en met twee en vier spelers over echte TCP-verbindingen (`samenwedstrijd_tcp_test`, `samenmissies_tcp_test`), niet met echte vensters of over internet.
 - Opnieuw verbinden na een hostwissel is alleen met de pure coöptests geprobeerd (`hostwissel_test`, `coop_scenarios_test`).
 - Iedereen moet op dezelfde versie zitten; verbind één voor één.
 
