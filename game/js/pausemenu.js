@@ -13,7 +13,7 @@ import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
-import { mountMapView, kaartUitlegSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
@@ -1541,7 +1541,7 @@ function goBack() {
   // het zoekvenster (21-11) gaat voor alles met Escape dicht
   if (findOpen()) { closeFind(); return; }
   // de eenmalige uitleg op de kaart gaat met Escape (en B) eerst weg; de kaart blijft open
-  if (tab === 'map' && kaartUitlegSluiten()) return;
+  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten())) return; // daarna de reispopup (21-11): terug naar de plekkaart
   // Spullen (#1013): een openstaande vraag "Weggooien?" gaat eerst weg met Escape
   if (tab === 'spullen' && spullenAnnuleer(activePanel())) return;
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit

@@ -26,7 +26,7 @@ ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95, 180, 217/.test(kau), 'de actiebalk heeft 
 // hij nooit meer vanzelf terug; hij blijft te vinden onder Instellingen > Besturing > Hulp.
 ok(/body\.insertAdjacentHTML\('beforeend', uitlegHtml/.test(mv),
   'de uitleg wordt als popup over de kaart geplaatst');
-ok(/\.mapview-overlay \.mv-help \{ position: absolute; inset: 0;/.test(kau),
+ok(/\.mapview-overlay :is\(\.mv-help, \.mv-reispop\) \{ position: absolute; inset: 0;/.test(kau),
   'de uitleg dekt de kaart af als popup in plaats van in een kolom te staan');
 ok(/role="dialog" aria-modal="true"/.test(kau) && /data-act="uitleg-sluit"/.test(kau) && !/aria-label="Sluiten"/.test(kau),
   'de popup is een dialoog met één sluitknop (Begrepen), geen kruisje');
@@ -37,7 +37,7 @@ ok(/#pause-menu \.mapview-overlay\.embedded \.mv-goal \{ display: none !importan
   'de reisbalk blijft weg (#132)');
 ok(!/\.mapview-legend, #pause-menu \.mapview-overlay\.embedded \.mv-layers/.test(pcss),
   'de legenda en de knop Lagen zijn niet meer verborgen');
-ok(/else toggleLegend\(false\)/.test(mv), 'na de eerste keer opent de kaart rustig zonder legenda');
+ok(/else \{ state\.legendGezien = true; toggleLegend\(false\); \}/.test(mv), 'na de eerste keer opent de kaart rustig zonder legenda');
 ok(/#pause-menu \.mapview-overlay\.embedded \.mapview-zoom \.m-bg \{ width: 56px; height: 56px/.test(pcss),
   'de zoemknoppen zijn 56 px, boven de 44 px touchmaat');
 ok(/knop Lagen rechtsboven opent de legenda/i.test(read('game/js/helpoverview.js')), 'Besturing, Hulp noemt de knop Lagen');

@@ -35,7 +35,7 @@ import { haltesVoorKaart } from './bushalte.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID, klikActie } from './kaartactie.js';
-import { actiesHtml, reisHtml, infoHtml, uitlegHtml, hierHtml, legendaHintHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
+import { actiesHtml, reisPopupHtml, infoHtml, uitlegHtml, hierHtml, legendaHintHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
 import { startMeerijden } from './reisrit.js';
@@ -2464,6 +2464,7 @@ function showCard(world, h, sx, sy) {
   const verhaal = !!(h.story && goal);
   const model = actieModel({ spot: { x: h.x, y: h.y, name: h.name }, speler: ik, waypoint: h.isGoal ? { x: h.x, y: h.y } : getUserWaypoint(), opts, fmt: formatDistance, gast, verhaal });
   let stapHtml = '';
+  let popup = null;
   state.reis = null;
   let gekozen = null;
   if (stap === 'reis') {
@@ -2471,10 +2472,14 @@ function showCard(world, h, sx, sy) {
     const keep0 = keep ? keep.gekozen : null;
     gekozen = (rijen.find((r) => r.id === keep0 && r.soort === 'snel') || rijen.find((r) => r.aanbevolen && r.soort === 'snel') || rijen.find((r) => r.soort === 'snel') || {}).id || null;
     const kleur = Object.fromEntries(kaartRijen(opts, optieRegel, gekozen).map((r) => [r.id, r.color]));
-    stapHtml = reisHtml(rijen, gekozen, kleur);
-    if (gast) stapHtml += `<p class="mv-note">${escHtml(GAST_REIS_MELDING)}</p>`;
+    // 21-11: de reiskeuze is een eigen popup (reisPopupHtml); de plekkaart groeit niet meer
     const sel = opts.find((o) => o.id === gekozen);
-    if (gekozen && sel && !gast) stapHtml += `<button type="button" class="mapview-btn" data-card="rij"${sel.afford ? '' : ' disabled'}>Reis nu · ${sel.price > 0 ? `€ ${sel.price}` : 'gratis'} · ${escHtml(sel.eta || '')} ${sel.afford ? keyTextHtml('{ENTER}') : ''}</button>`;
+    const prijs = sel ? (sel.price > 0 ? `€ ${sel.price}` : 'gratis') : '';
+    const melding = gast ? GAST_REIS_MELDING
+      : !opts.length ? 'Er gaat hier geen snelle verbinding heen. Kies Zelf gaan: dat zet een waypoint.'
+      : sel && !sel.afford ? (sel.blokkade || 'Je hebt te weinig geld voor deze rit.') : '';
+    popup = { naam: it ? it.title : h.name, afstand: formatDistance(d), rijen, gekozen, kleur, gast, melding,
+      reis: gekozen && sel && !gast ? { label: `Reis nu · ${prijs} · ${sel.eta || ''}`.trim(), uitgeschakeld: !sel.afford } : null };
     state.reis = { opts, gekozen, lagen: lijnLagen(opts, gekozen), dest: { x: h.x, y: h.y, name: h.name } };
   } else if (stap === 'info') {
     stapHtml = infoHtml(infoRegels({ spot: { x: h.x, y: h.y, name: it ? it.title : h.name }, sub: it ? it.meta : h.sub, afstand: d, fmt: formatDistance }));
@@ -2485,6 +2490,62 @@ function showCard(world, h, sx, sy) {
     '<div class="mv-btns"><button type="button" class="mv-link" data-card="close">Sluiten</button></div></div>';
   el.hidden = false;
   state.card = { h, it, gekozen, stap, model };
+  syncReisPopup(popup);
+}
+
+// De reispopup (21-11): een eigen venster over de kaart in plaats van een plekkaart die groeit. Dezelfde logica als eerst (reisKeuzes,
+// kies:, rij, zelf); alleen de plek waar de keuze staat is nieuw. Esc en Terug sluiten naar de plekkaart, Enter bevestigt, Tab blijft binnen.
+function syncReisPopup(popup) {
+  const body = state.overlay && state.overlay.querySelector('.mapview-body');
+  if (!body) return;
+  const oud = body.querySelector('.mv-reispop');
+  if (!popup) { if (oud) oud.remove(); return; }
+  const fc = oud && oud.contains(document.activeElement) && document.activeElement.dataset ? document.activeElement.dataset.card : null;
+  if (oud) oud.remove();
+  body.insertAdjacentHTML('beforeend', reisPopupHtml(popup));
+  const pop = body.querySelector('.mv-reispop');
+  // bij een andere keuze komt het venster niet opnieuw binnen schuiven
+  if (oud) pop.style.animation = 'none', pop.firstElementChild.style.animation = 'none';
+  const wens = (fc && [...pop.querySelectorAll('[data-card]')].find((b) => b.dataset.card === fc && !b.disabled)) || pop.querySelector('.mv-reispop-ok:not(:disabled)') || pop.querySelector('.mv-keuze.sel') || pop.querySelector('.mv-reispop-terug');
+  if (wens) wens.focus({ preventScroll: true });
+}
+// Esc en de B-knop (pausemenu.js goBack): eerst de reispopup dicht, terug naar de plekkaart; true als er een openstond.
+export function kaartReisPopupSluiten() {
+  const pop = state && state.overlay && state.overlay.querySelector('.mv-reispop');
+  if (!pop) return false;
+  if (state.card) state.card.stap = null;
+  if (state.card && state.card.h) showCard(state.world, state.card.h); else pop.remove();
+  const terug = state.cardEl && state.cardEl.querySelector('[data-card="reis"]');
+  (terug || state.canvas).focus({ preventScroll: true });
+  return true;
+}
+// Toetsen in de popup: Enter bevestigt (behalve op een keuze, daar kiest hij), Tab blijft binnen het venster, pijl omhoog en omlaag lopen langs de keuzes.
+function reisPopupToets(e, pop) {
+  const knoppen = [...pop.querySelectorAll('button:not(:disabled)')];
+  if (e.key === 'Enter' && !(e.target && e.target.closest && e.target.closest('.mv-keuze, .mv-reispop-terug'))) {
+    const ok = pop.querySelector('.mv-reispop-ok:not(:disabled)');
+    e.preventDefault();
+    if (ok) ok.click();
+    return true;
+  }
+  if (e.key === 'Enter') return true; // de focus doet zijn eigen klik; niets onder het venster krijgt de toets
+  if (e.key === 'Tab' && knoppen.length) {
+    const i = knoppen.indexOf(document.activeElement);
+    const n = e.shiftKey ? (i <= 0 ? knoppen.length - 1 : i - 1) : (i < 0 || i === knoppen.length - 1 ? 0 : i + 1);
+    e.preventDefault();
+    knoppen[n].focus({ preventScroll: true });
+    return true;
+  }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const keuzes = [...pop.querySelectorAll('.mv-keuze')];
+    const i = keuzes.indexOf(document.activeElement);
+    if (i >= 0 || keuzes.length) {
+      e.preventDefault();
+      keuzes[Math.max(0, Math.min(keuzes.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus({ preventScroll: true });
+    }
+    return true;
+  }
+  return false;
 }
 
 // De uitleg bij de kaart (#445; de toetsen en knoppen staan in de voetregel van het pauzemenu): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
@@ -2511,16 +2572,47 @@ function syncKaartUitleg(world) {
   const gast = !!world && world.coopRole === 'client' && !!world.coopNet;
   const box = state.overlay.querySelector('.mv-help');
   if (box) {
-    if ((box.dataset.gast === '1') !== gast) box.outerHTML = uitlegHtml({ gast });
+    if ((box.dataset.gast === '1') !== gast) { box.outerHTML = uitlegHtml({ gast }); plaatsWijzers(); }
   } else if (!kaartGezien()) {
     // eenmalige popup over de kaart; hij neemt zelf de focus, dus de kaart eronder is even rustig
     body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
     const knop = state.overlay.querySelector('.mv-help .mv-help-ok');
     if (knop) knop.focus({ preventScroll: true });
+    // de eerste keer is alles rustig (21-11): Lagen dicht, de kaart gedimd; rij 2 wijst naar de knop Lagen
+    toggleLegend(false);
+    plaatsWijzers();
   }
   // de legenda bovenaan Lagen zegt hetzelfde in het kort (#445)
   const leg = state.overlay.querySelector('.mv-leg-hint');
   if (leg && (leg.dataset.gast === '1') !== gast) leg.outerHTML = legendaHintHtml({ gast });
+}
+// De wijzers van de uitleg (21-11): een ring met het cijfer van de rij om het echte onderdeel van de kaart (zoekveld, knop Lagen), geplaatst
+// in de eigen laag van de uitleg, dus de kaart eronder verandert niet en de wijzer is geen focusdoel (aria-hidden).
+const WIJS_DOEL = { zoek: '.mapview-search', lagen: '.mv-layers' };
+let wijsLuistert = false;
+function plaatsWijzers() {
+  const box = state && state.overlay && state.overlay.querySelector('.mv-help');
+  if (!box) return;
+  box.querySelectorAll('.ds-uitleg-wijzer').forEach((w) => w.remove());
+  const hb = box.getBoundingClientRect();
+  const z = viewZoom();
+  [...box.querySelectorAll('.ds-uitleg__stap[data-wijs]')].forEach((li) => {
+    const doel = state.overlay.querySelector(WIJS_DOEL[li.dataset.wijs] || '.nergens');
+    if (!doel || doel.hidden) return;
+    const r = doel.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const nr = [...li.parentElement.children].indexOf(li) + 1;
+    const w = document.createElement('span');
+    w.className = 'ds-uitleg-wijzer';
+    w.setAttribute('aria-hidden', 'true');
+    w.style.cssText = `left:${Math.round((r.left - hb.left) / z - 4)}px;top:${Math.round((r.top - hb.top) / z - 4)}px;width:${Math.round(r.width / z + 8)}px;height:${Math.round(r.height / z + 8)}px`;
+    w.innerHTML = `<span class="ds-uitleg-wijzer__nr">${nr}</span>`;
+    box.insertBefore(w, box.firstChild);
+  });
+  if (!wijsLuistert) {
+    wijsLuistert = true;
+    window.addEventListener('resize', () => { if (state && state.overlay && state.overlay.querySelector('.mv-help')) plaatsWijzers(); });
+  }
 }
 // Escape en de B-knop van de controller sluiten eerst de uitleg, dan pas de kaart (pausemenu.js goBack): true als er een uitleg openstond.
 export function kaartUitlegSluiten() {
@@ -2566,6 +2658,7 @@ function hideCard() {
   state.card = null;
   state.reis = null;
   if (state.cardEl) state.cardEl.hidden = true;
+  syncReisPopup(null);
 }
 
 function cardAction(world, act) {
@@ -2577,9 +2670,10 @@ function cardAction(world, act) {
     showCard(world, c.h);
     return;
   }
+  if (act === 'reis-sluit') { kaartReisPopupSluiten(); return; }
   if (act === 'reis' || act === 'info') {
-    // uitklappen of weer inklappen; een gast leest waarom reizen hier niet kan
-    c.stap = c.stap === act ? null : act;
+    // Reis erheen opent de popup (een gast leest daarin waarom reizen hier niet kan); Info klapt de kaart uit of weer in
+    c.stap = act === 'reis' ? 'reis' : (c.stap === act ? null : act);
     c.melding = act === 'reis' && c.model && c.model.acties.some((a) => a.id === 'reis' && a.disabled) ? GAST_REIS_MELDING : null;
     showCard(world, c.h);
     return;
@@ -2629,6 +2723,7 @@ function canvasPos(e) {
 function handleKeys(dt, world) {
   const input = world.input;
   if (document.activeElement === state.searchInput) return;
+  if (state.overlay && state.overlay.querySelector('.mv-reispop, .mv-help')) return; // een open popup of uitleg: de pijltjes schuiven de kaart niet
   let px = 0, py = 0;
   if (input.isDown('a') || input.isDown('arrowleft')) px -= 1;
   if (input.isDown('d') || input.isDown('arrowright')) px += 1;
@@ -3090,6 +3185,13 @@ export function initMapView(world) {
     // de eenmalige uitleg gaat ook weg als je ernaast klikt, niet alleen op Begrepen
     const uitleg = state.overlay && state.overlay.querySelector('.mv-help');
     if (uitleg && e.target === uitleg) { sluitKaartUitleg(uitleg); return; }
+    // de reispopup (21-11): zijn knoppen dragen data-card, een klik naast het venster is Terug
+    const pop = state.overlay && state.overlay.querySelector('.mv-reispop');
+    if (pop) {
+      if (e.target === pop) { kaartReisPopupSluiten(); return; }
+      const pk = e.target.closest('.mv-reispop [data-card]');
+      if (pk) { cardAction(world, pk.dataset.card); return; }
+    }
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;
@@ -3238,6 +3340,9 @@ export function initMapView(world) {
     if (!state.open || e.target === si) return;
     // de eenmalige uitleg sluit met Enter of spatie, waar de focus ook staat (21-11)
     if ((e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()) { e.preventDefault(); return; }
+    // staat de reispopup open, dan is die van het toetsenbord (21-11): Enter bevestigt, Tab blijft binnen, Esc loopt via pausemenu.js goBack
+    const reisPop = state.overlay.querySelector('.mv-reispop');
+    if (reisPop && reisPopupToets(e, reisPop)) return;
     // Enter on the map itself (a controller's A): click under the crosshair
     if (e.key === 'Enter' && !e.defaultPrevented && !(e.target && e.target.closest && e.target.closest('button, input, a, select, .mapview-card'))) {
       e.preventDefault();
@@ -3298,8 +3403,11 @@ export function setMapActive(world, on) {
     openMap(world);
     // de legenda en de laagschakelaars staan de eerste keer open (#435); daarna opent
     // de kaart rustig en haalt de knop Lagen ze erbij (#602)
-    if (!state.legendGezien) { state.legendGezien = true; toggleLegend(true); }
-    else toggleLegend(false);
+    // behalve als de eerste-keer-uitleg openstaat (21-11): dan blijft Lagen dicht en wijst de uitleg naar de knop
+    const uitlegOpen = !!state.overlay.querySelector('.mv-help');
+    if (!state.legendGezien && !uitlegOpen) { state.legendGezien = true; toggleLegend(true); }
+    else { state.legendGezien = true; toggleLegend(false); }
+    if (uitlegOpen) plaatsWijzers();
     const ik = hoofdspeler(world);
     centreOn(ik.x, ik.y, 2);
     // staat de eenmalige uitleg open, dan houdt zijn knop de focus (21-11): met de focus op het doek deed Enter niets of klikte onder het richtkruis
