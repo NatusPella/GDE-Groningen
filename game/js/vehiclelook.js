@@ -98,12 +98,46 @@ export const OPTIONS = {
     O('tree', 'Geurboompje', 6, 'Ruikt naar een zomerse tuin'),
     O('flag', 'Vlaggetje', 8, 'Rood, wit en blauw in de wind'),
   ],
+  // alleen voor de snackwagen (het eindvoertuig van het verhaal): luifel, uitstalling, bakkenlicht, lucht en belettering
+  awning: [
+    O('stock', 'Standaard luifel', 0),
+    O('zon', 'Zonnige luifel', 35, 'Geel en wit, vrolijk vanaf de straat'),
+    O('bos', 'Bordgroene luifel', 35, 'Groen en wit, rustig voor het oog'),
+    O('roze', 'Zomerroze luifel', 40, 'Roze en wit, valt op in de rij'),
+  ],
+  display: [
+    O('none', 'Geen uitstalling', 0),
+    O('bord', 'Krijtbord', 25, 'De dagaanbieding in krijt'),
+    O('tafel', 'Klaptafel met krukjes', 60, 'Even zitten bij je bakje friet'),
+    O('vlaggen', 'Vlaggenlijn', 30, 'Wimpels langs de luifel'),
+  ],
+  beacon: [
+    O('none', 'Geen bakkenlicht', 0),
+    O('bak', 'Bakkenlicht', 55, 'Een gloeiende frituurmand op het dak, je ziet hem van ver'),
+    O('ring', 'Lampjesrand', 75, 'Een rij warme lampjes langs het dak'),
+  ],
+  air: [
+    O('none', 'Gewoon lucht', 0),
+    O('damp', 'Frituurdamp', 30, 'Dampwolkjes uit de afzuiger'),
+    O('geur', 'Geurpakket', 45, 'Je ruikt hem al voor je hem ziet'),
+    O('bijtjes', 'Bijtjes', 50, 'Een paar bijtjes zoemen rond de uitstalling'),
+  ],
+  snackName: [
+    O('none', 'Geen belettering', 0),
+    O('zonnedijk', 'Frituur Zonnedijk', 40),
+    O('kwark', 'Kwarkbakkie', 40),
+    O('eierbal', 'Eierbal Express', 40),
+    O('vethap', 'De Vette Hap', 40),
+    O('knabbel', 'Knabbel en Babbel', 40),
+    O('tammo', "Tammo's Friet", 40, 'Zijn eigen naam op de zijkant'),
+  ],
 };
 export const COLOR_PRICE = { color2: 18, rimColor: 20, lampColor: 15, glow: 55 };
 
 // Velden in codevolgorde. Voeg alleen achteraan toe en bump LOOK_VERSION bij een andere betekenis.
-const ENUMS = ['finish', 'stripe', 'decal', 'rimStyle', 'rimSize', 'tire', 'spoiler', 'kit', 'diffuser', 'roof', 'lamps', 'tint', 'exhaust', 'hanger'];
+const ENUMS = ['finish', 'stripe', 'decal', 'rimStyle', 'rimSize', 'tire', 'spoiler', 'kit', 'diffuser', 'roof', 'lamps', 'tint', 'exhaust', 'hanger', 'awning', 'display', 'beacon', 'air', 'snackName'];
 const COLORS = ['color2', 'rimColor', 'lampColor', 'glow'];
+export const ENUM_FIELDS = ENUMS;
 export const LOOK_FIELDS = [...ENUMS, ...COLORS, 'plate'];
 
 const idsOf = (f) => OPTIONS[f].map((o) => o.id);
@@ -118,23 +152,26 @@ export const CATEGORIES = [
   { id: 'carrosserie', label: 'Carrosserie', fields: ['spoiler', 'kit', 'diffuser', 'roof', 'exhaust'] },
   { id: 'licht', label: 'Licht en ruiten', fields: ['lamps', 'lampColor', 'glow', 'tint'] },
   { id: 'details', label: 'Details', fields: ['plate', 'hanger'] },
+  { id: 'snack', label: 'Snackwagen', fields: ['awning', 'display', 'beacon', 'air', 'snackName'] },
 ];
 
 export const FIELD_LABELS = {
   finish: 'Afwerking', color2: 'Tweede kleur', stripe: 'Strepen', decal: 'Sticker', rimStyle: 'Velgstijl', rimColor: 'Velgkleur',
   rimSize: 'Velgmaat', tire: 'Banden', spoiler: 'Spoiler', kit: 'Bodykit', diffuser: 'Diffuser', roof: 'Dak', lamps: 'Koplampen',
   lampColor: 'Lampkleur', glow: 'Underglow', tint: 'Raamfolie', exhaust: 'Uitlaat', hanger: 'Hanger', plate: 'Nummerbord',
+  awning: 'Luifel', display: 'Uitstalling', beacon: 'Bakkenlicht', air: 'Lucht', snackName: 'Belettering',
 };
 
 // De soorten voertuig die je kunt pimpen en wat erop kan. 'boot' is alleen cosmetisch, een NPC-bus kan niet.
+const SNACK_FIELDS = ['awning', 'display', 'beacon', 'air', 'snackName'];
 export const KIND_FIELDS = {
-  auto: LOOK_FIELDS,
-  frietwagen: ['finish', 'color2', 'stripe', 'decal', 'rimStyle', 'rimColor', 'rimSize', 'tire', 'lamps', 'lampColor', 'glow', 'tint', 'exhaust', 'plate', 'hanger'],
-  tweewieler: ['finish', 'color2', 'stripe', 'decal', 'rimColor', 'glow', 'plate'],
+  auto: LOOK_FIELDS.filter((f) => !SNACK_FIELDS.includes(f)),
+  snackwagen: ['finish', 'color2', 'stripe', 'decal', 'rimStyle', 'rimColor', 'rimSize', 'tire', 'lampColor', 'glow', 'tint', 'exhaust', 'plate', 'hanger', ...SNACK_FIELDS],
+  tweewieler: ['finish', 'rimColor', 'glow'],
   bus: ['finish', 'color2', 'stripe', 'decal', 'rimStyle', 'rimColor', 'glow', 'plate'],
   boot: ['finish', 'color2', 'stripe', 'decal'],
 };
-export const KIND_LABELS = { auto: 'Auto', frietwagen: 'Frietwagen', tweewieler: 'Tweewieler', bus: 'Bus', boot: 'Boot' };
+export const KIND_LABELS = { auto: 'Auto', snackwagen: 'Snackwagen', tweewieler: 'Tweewieler', bus: 'Bus', boot: 'Boot' };
 
 // Het soort uit de vlaggen van het voertuig; null = niet te pimpen (politie, wrak, trekker, vliegtuig, ...).
 export function lookKind(v) {
@@ -143,7 +180,7 @@ export function lookKind(v) {
   if (v.isBike || v.isScooter) return 'tweewieler';
   if (v.isBus) return v.driver === 'player' || v.playerOwned ? 'bus' : null; // NPC-bussen blijven zoals ze zijn
   const n = v.model && v.model.name;
-  if (n === 'foodtruck') return 'frietwagen';
+  if (n === 'foodtruck' || n === 'snackwagen' || v.isSnackwagen) return 'snackwagen'; // het eindvoertuig van het verhaal (docs/TUNING-21-11.md)
   if (n === 'truck' || n === 'tractor' || n === 'quad' || n === 'maaidorser' || n === 'laadmachine' || n === 'trekkerlimo') return null;
   return 'auto';
 }
@@ -332,6 +369,13 @@ export function generateLook(seed, ctx = {}) {
   if (p.hanger && r() < 0.6) raw.hanger = pick(r, p.hanger);
   if (p.tint && r() < 0.7) raw.tint = pick(r, p.tint);
   if (p.glow && r() < p.glow) raw.glow = pick(r, GLOW_COLORS).color;
+  if (kind === 'snackwagen') {
+    raw.awning = pick(r, ['zon', 'bos', 'roze', 'stock']);
+    raw.display = pick(r, ['bord', 'tafel', 'vlaggen', 'none']);
+    raw.beacon = pick(r, ['bak', 'ring', 'none']);
+    raw.air = pick(r, ['damp', 'geur', 'bijtjes', 'none']);
+    raw.snackName = pick(r, idsOf('snackName').slice(1));
+  }
   if (ctx.noGlow) delete raw.glow;
   return { look: sanitizeLook(raw, kind), bodyColor, style };
 }

@@ -1,7 +1,7 @@
 // Uiterlijk-tuning (game/js/vehiclelook.js en vehiclelookstore.js, epic Autotuning #1155): catalogus,
 // code, opschonen, prijzen, generator en opslag. Pure test, geen THREE.
 import {
-  OPTIONS, LOOK_FIELDS, CATEGORIES, KIND_FIELDS, BODY_COLORS, ACCENT_COLORS, GLOW_COLORS, PALETTES, STYLES, PRESETS_PER_VEHICLE,
+  OPTIONS, LOOK_FIELDS, ENUM_FIELDS, CATEGORIES, KIND_FIELDS, BODY_COLORS, ACCENT_COLORS, GLOW_COLORS, PALETTES, STYLES, PRESETS_PER_VEHICLE,
   lookKind, fieldsFor, categoriesFor, sanitizeLook, looksEqual, changedFields, fieldPrice, lookPrice, lookValue, flashiness,
   lookCode, parseLook, generateLook, seedOf, withField, cleanPlate, cleanBuildName, cleanColor, isStock,
 } from '../game/js/vehiclelook.js';
@@ -29,14 +29,24 @@ ok(LOOK_FIELDS.length === new Set(LOOK_FIELDS).size, 'unieke velden');
 for (const c of CATEGORIES) for (const f of c.fields) ok(LOOK_FIELDS.includes(f), 'categorieveld bestaat', f);
 ok(LOOK_FIELDS.every((f) => CATEGORIES.some((c) => c.fields.includes(f))), 'elk veld in een categorie');
 for (const [k, fs] of Object.entries(KIND_FIELDS)) ok(fs.every((f) => LOOK_FIELDS.includes(f)), 'soortvelden bestaan', k);
-ok(fieldsFor('auto').length === LOOK_FIELDS.length && fieldsFor('boot').length < fieldsFor('auto').length, 'auto kan alles, boot alleen cosmetisch');
+ok(fieldsFor('auto').length === LOOK_FIELDS.length - 5 && fieldsFor('snackwagen').length > fieldsFor('boot').length && fieldsFor('boot').length < fieldsFor('auto').length, 'auto kan alles, boot alleen cosmetisch');
 ok(categoriesFor('boot').every((c) => c.fields.length) && categoriesFor('boot').length < CATEGORIES.length, 'boot heeft minder categorieën');
 for (const p of Object.values(PALETTES)) for (const c of p) ok(/^#[0-9a-f]{6}$/i.test(c.color) && c.label, 'palet geldig', c.id);
 ok(BODY_COLORS.length >= 8 && ACCENT_COLORS.length >= 8 && GLOW_COLORS.length >= 4, 'paletten gevuld');
 
 // soorten
 ok(lookKind({ model: { name: 'sedan' } }) === 'auto', 'sedan is auto');
-ok(lookKind({ model: { name: 'foodtruck' } }) === 'frietwagen', 'foodtruck is frietwagen');
+ok(lookKind({ model: { name: 'foodtruck' } }) === 'snackwagen' && lookKind({ model: { name: 'snackwagen' } }) === 'snackwagen' && lookKind({ isSnackwagen: true, model: { name: 'van' } }) === 'snackwagen', 'foodtruck en snackwagen zijn snackwagen');
+{
+  const snack = sanitizeLook({ awning: 'zon', display: 'tafel', beacon: 'bak', air: 'bijtjes', snackName: 'tammo', spoiler: 'wing' }, 'snackwagen');
+  ok(snack.awning === 'zon' && snack.display === 'tafel' && snack.beacon === 'bak' && snack.air === 'bijtjes' && snack.snackName === 'tammo' && !snack.spoiler, 'snackwagen-velden blijven, spoiler niet');
+  ok(Object.keys(sanitizeLook({ awning: 'zon', beacon: 'bak' }, 'auto')).length === 0, 'een gewone auto krijgt geen luifel of bakkenlicht');
+  ok(looksEqual(parseLook(lookCode(snack, 'snackwagen'), 'snackwagen'), snack), 'snackwagen-code rondje');
+  const g = generateLook(9, { kind: 'snackwagen' }).look;
+  ok(g.snackName && !g.spoiler && !g.kit, 'generator voor de snackwagen');
+  ok(categoriesFor('snackwagen').some((c) => c.id === 'snack') && !categoriesFor('auto').some((c) => c.id === 'snack'), 'snack-categorie alleen voor de snackwagen');
+  ok(lookPrice({}, snack) > 150, 'snackwagen-pakket kost iets', String(lookPrice({}, snack)));
+}
 ok(lookKind({ isBike: true, model: {} }) === 'tweewieler' && lookKind({ isScooter: true, model: {} }) === 'tweewieler', 'tweewieler');
 ok(lookKind({ isBoat: true, model: {} }) === 'boot', 'boot');
 ok(lookKind({ isBus: true, model: {} }) === null, 'NPC-bus niet');
@@ -69,8 +79,8 @@ const code = lookCode(sample);
 ok(code.startsWith('L1') && code.length < 96, 'code kort genoeg', String(code.length));
 ok(looksEqual(parseLook(code), sample), 'code rondje', JSON.stringify(parseLook(code)));
 ok(lookCode({}) === '' && lookCode(null) === '', 'kale look is geen code');
-ok(parseLook('') === null && parseLook('L9xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx') === null && parseLook(42) === null && parseLook('L1' + '0'.repeat(14) + 'zzzzzz---') === null, 'onzincode');
-ok(parseLook('L1' + 'z'.repeat(14) + '----') !== null && isStock(parseLook('L1' + 'z'.repeat(14) + '----')), 'onbekende index valt terug op standaard');
+ok(parseLook('') === null && parseLook('L9xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx') === null && parseLook(42) === null && parseLook('L1' + '0'.repeat(ENUM_FIELDS.length) + 'zzzzzz---') === null, 'onzincode');
+ok(parseLook('L1' + 'z'.repeat(ENUM_FIELDS.length) + '----') !== null && isStock(parseLook('L1' + 'z'.repeat(ENUM_FIELDS.length) + '----')), 'onbekende index valt terug op standaard');
 ok(parseLook('L1' + '0'.repeat(200)) === null, 'te lange code geweigerd');
 ok(Object.keys(parseLook(code, 'boot')).every((f) => fieldsFor('boot').includes(f)), 'parse voor boot beperkt velden');
 for (let i = 0; i < 200; i++) { const g = generateLook(i).look; ok(looksEqual(parseLook(lookCode(g)), g), 'generator-code rondje', String(i)); if (fails) break; }
