@@ -4354,20 +4354,18 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik ben vierendertig, oma.",
-     "tag": "BEHOUDEN",
+     "text": "Ik ben vierentwintig, oma.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
-     "text": "Dan eet je hem al vierendertig jaar te weinig.",
-     "tag": "BEHOUDEN",
+     "text": "Dan eet je hem al vierentwintig jaar te weinig.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Oma Trijntje",
@@ -4617,11 +4615,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.",
-     "tag": "BEHOUDEN",
+     "text": "Jij zei dat de zee achter de dijk lag. Ik heb het vijf jaar geloofd.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -14717,11 +14714,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Mien jong. Dat duurde twaalf jaar.",
-     "tag": "BEHOUDEN",
+     "text": "Mien jong. Dat duurde vijf jaar.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {

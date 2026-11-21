@@ -1,5 +1,57 @@
 [
  {
+  "key": "Tammo|Ik ben vierentwintig, oma.",
+  "speaker": "Tammo",
+  "text": "Ik ben vierentwintig, oma.",
+  "area": "M08.3",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "mompelend, stiekem trots",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
+  "file": "tammo/ik_ben_vierentwintig_oma_5af68f6d.mp3"
+ },
+ {
+  "key": "Oma Trijntje|Dan eet je hem al vierentwintig jaar te weinig.",
+  "speaker": "Oma Trijntje",
+  "text": "Dan eet je hem al vierentwintig jaar te weinig.",
+  "area": "M08.3",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Sulafat",
+  "who": "oude Groningse oma, warm en stellig",
+  "tag": "warm, ontroerd",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse oma, warm en stellig. Tone: warm, ontroerd.",
+  "file": "oma_trijntje/dan_eet_je_hem_al_vierentwintig__baa9b0d6.mp3"
+ },
+ {
+  "key": "Anita|Jij zei dat de zee achter de dijk lag. Ik heb het vijf jaar geloofd.",
+  "speaker": "Anita",
+  "text": "Jij zei dat de zee achter de dijk lag. Ik heb het vijf jaar geloofd.",
+  "area": "T1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/jij_zei_dat_de_zee_achter_de_dij_4aae769f.mp3"
+ },
+ {
+  "key": "Anita|Mien jong. Dat duurde vijf jaar.",
+  "speaker": "Anita",
+  "text": "Mien jong. Dat duurde vijf jaar.",
+  "area": "M26.7",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/mien_jong_dat_duurde_vijf_jaar_d0a579f9.mp3"
+ },
+ {
   "key": "Tammo|Ver weg hè? Open de kaart, daar bel je een taxi.",
   "speaker": "Tammo",
   "text": "Ver weg hè? Open de kaart, daar bel je een taxi.",
