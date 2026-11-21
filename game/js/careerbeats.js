@@ -29,7 +29,7 @@ export const CAREER_BEATS = {
 };
 
 const speaker = { T: 'Tammo', A: 'Anita' };
-export const BEAT_KINDS = ['vraag', 'koppel'];
+const BEAT_KINDS = ['vraag', 'koppel'];
 
 // De regels als talk-regels voor storytalk.js playTalk (zonder opname: ondertitel).
 export function careerTalk(vak, kind) {

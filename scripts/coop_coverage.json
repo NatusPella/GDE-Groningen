@@ -102,7 +102,8 @@
     "cine*",
     "coopcut",
     "coopscene",
-    "reisbeats"
+    "reisbeats",
+    "openingfilm"
    ],
    "eigenaar": "wereld",
    "gast": "Scenes met een scriptbeschrijving gaan als data naar de gast en spelen lokaal na; host-only momenten krijgen een regel tekst.",
@@ -1477,6 +1478,10 @@
   {
    "glob": "characterdossiers*",
    "reden": "Alleen tekst en data voor de personagekaart (Verhaal > Personages); lokaal per speler, geen spelstaat."
+  },
+  {
+   "glob": "benchmark*",
+   "reden": "Prestatiemeting van dit apparaat (benchmark en advies); lokaal, geen spelstaat."
   }
  ],
  "opslag": {

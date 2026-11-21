@@ -233,7 +233,7 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 214 | Missie-cutscenes | Anita (Callirrhoe) | `lines/anita/een_oefenbal_hij_oefent_hoe_hij__b4840ae1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
 | 215 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/tige_tank_foar_de_auto_j_de_snac_bece8bc9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
 | 216 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
-| 217 | Intro-montage | Tammo (Orus) | `lines/tammo/dan_rijdt_hij_nauwelijks_voor_jo_f1f6d7cc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
+| 217 | Intro-montage | Tammo (Orus) | `lines/tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
 | 218 | Missie-intro (terugval) | Tammo (Orus) | `lines/tammo/gronings_ontzet_de_noordelijke_s_c980a213.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
 | 219 | Missie-intro (terugval) | Anita (Callirrhoe) | `lines/anita/gronings_ontzet_de_noordelijke_s_60a120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
 | 220 | Na het verhaal (intro) | Anita (Callirrhoe) | `lines/anita/onze_eigen_snackwagen_met_kentek_4ef39a32.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |

@@ -4,7 +4,7 @@
 import { KEYS } from './storagekeys.js';
 
 export const WORLD_COLOR_MODES = ['uit', 'subtiel', 'drukwerk'];
-export const WORLD_COLOR_DEFAULT = 'subtiel';
+const WORLD_COLOR_DEFAULT = 'subtiel';
 
 // Per stand: de menging van de materiaalkleuren met de inkten (worldpalette.js; subtiel is het besluit van 21-11, 0,4) en de sterkte
 // van de lichtgrading (worldgrade.js: 1 = de waarden in de dataset, 0 = niets).

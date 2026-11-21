@@ -10,11 +10,11 @@ export const COURSES = {
   film: { id: 'film', label: 'Grunn in een dag', sub: 'Een mini-film: zonsopgang, markt, polder, water, kermis, storm en nacht. Met commentaar van Tammo en Tessa.', course: FILM_ROUTE },
   classic: { id: 'classic', label: 'Klassiek', sub: 'De oorspronkelijke route van eerdere versies. Kies deze om met oude metingen te vergelijken.', course: BENCH_ROUTE },
 };
-export const LENGTHS = {
+const LENGTHS = {
   volledig: { id: 'volledig', label: 'Volledig', sub: 'Alle scènes, ca. 1 minuut' },
   kort: { id: 'kort', label: 'Kort', sub: 'Een keuze uit de zwaarste scènes, ca. 30 s' },
 };
-export const COURSE_IDS = Object.keys(COURSES);
+const COURSE_IDS = Object.keys(COURSES);
 export const DEFAULT_CHOICE = { course: 'film', length: 'volledig', commentary: true };
 
 // The shots of a choice: [[id, seconds, category]]. The classic course has no short cut (it stays exactly as it was, so it stays comparable).
@@ -67,8 +67,8 @@ export const COMMENTARY = {
   storm: ['Anita', 'Zomerstorm. Hij blijft niet lang.'],
   race: ['Tammo', 'Ik hou me maar even vast.'],
 };
-export const COMMENT_AT = 0.6;
-export const COMMENT_DUR = 2.8;
+const COMMENT_AT = 0.6;
+const COMMENT_DUR = 2.8;
 // the lines for runTrailer: { shot id: [[at, dur, who, text]] }; empty when the commentary is off or the course is the classic one
 export function commentaryFor(choice) {
   const c = normaliseChoice(choice);
@@ -81,7 +81,7 @@ export function commentaryFor(choice) {
 // --- statistics for the report card -----------------------------------------------------------------------------
 
 const clean = (ms) => (ms || []).filter((x) => Number.isFinite(x) && x > 0);
-export function percentile(sorted, p) {
+function percentile(sorted, p) {
   if (!sorted.length) return 0;
   return sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * p) - 1))];
 }

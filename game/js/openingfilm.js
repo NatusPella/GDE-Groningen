@@ -79,7 +79,7 @@ export const LINES = [
   L('L44', 'A', 'Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band.', 'nieuw', 'C00.3', { kind: 'line', emotion: 'neutral', tag: 'nuchter, een beetje moedeloos' }),
   L('L45', 'A', 'Dus we lenen een bakkie. Rijden, niet praten.', 'nieuw', 'C00.3', { kind: 'punch', emotion: 'neutral', humor: true, tag: 'beslist, snel' }),
 ];
-export const lineById = (id) => LINES.find((l) => l.id === id);
+const lineById = (id) => LINES.find((l) => l.id === id);
 export const linesOf = (scene = null) => LINES.filter((l) => !scene || l.scene === scene);
 // the recordings that live outside the story bank (the trailer voice): { 'Speaker|text': { src (under game/), dur (s) } }, read by intromontage.js voiceOf
 export const FILM_VOICES = { 'Rikus|Augustus. In Grunn heet dat zomer.': { src: 'audio/voicelines/trailer/rikus_augustus.mp3', dur: 3.1 } };
@@ -89,7 +89,7 @@ export const FILM_VOICES = { 'Rikus|Augustus. In Grunn heet dat zomer.': { src: 
 const S = (id, scene, make, type, fov, move, extra = {}) => ({ id, scene, make, type, fov, move, lines: [], minDur: 3, ...extra });
 const ST = { kind: 'static', dist: 0 };
 // Shot types and their lens (R-05): wide 46-54, medium 36-44, close 20-32. Camera height is eye level (1.55-1.65 m) unless `why` says otherwise (R-06).
-export const FOV_RANGE = { wide: [46, 54], beauty: [46, 54], medium: [34, 44], close: [20, 32], insert: [20, 32] };
+const FOV_RANGE = { wide: [46, 54], beauty: [46, 54], medium: [34, 44], close: [20, 32], insert: [20, 32] };
 
 export const SEQUENCE = [
   // --- C00.1: cold open ---
@@ -141,11 +141,11 @@ export const MUSIC = [
 
 // --- helpers and validators --------------------------------------------------------------------------------------
 
-export const wordsOf = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
-export const moveSpeed = (s) => (s.minDur > 0 ? s.move.dist / s.minDur : 0);
+const wordsOf = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
+const moveSpeed = (s) => (s.minDur > 0 ? s.move.dist / s.minDur : 0);
 const r1 = (n) => Math.round(n * 10) / 10;
 // the montage's own reading time (intromontage.js readDur) for a line without a recording, used here as an estimate of every line
-export const readDur = (text) => Math.max(1.6, String(text).length / 14);
+const readDur = (text) => Math.max(1.6, String(text).length / 14);
 
 // The estimated timeline: a shot lasts its lead, its lines (and gaps) and 0.3 s, at least minDur. The engine rounds a shot up to the next beat of the
 // theme, so the real film is a little longer than this (at most one beat, 0,54 s, per shot).
