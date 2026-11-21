@@ -38,22 +38,6 @@ const KIND_OF = new Map([
 // maar het kruispuntmodel per tegel (junctionRows, junctions.js tileJunctionNodes).
 const SIGNAL_RULE = RULES.indexOf('signal');
 const hasSignalArm = (rows) => rows.some((row) => (row.a || []).some((a) => a[3] === SIGNAL_RULE));
-// #1052: hoeveel tegels om de stadstegels heen resident blijven (zie loadTileWorld)
-export const CITY_RING_TILES = 3;
-// de tegels binnen `ring` tegels van een stadstegel die niet zelf stad zijn (en geen overlay): pure functie van de index
-export function cityRingKeys(index, cityKeys, ring) {
-  if (!(ring > 0)) return [];
-  const city = new Set(cityKeys);
-  const at = [];
-  for (const k of cityKeys) { const t = index.tiles[k]; if (t && Number.isFinite(t.i) && Number.isFinite(t.j)) at.push(t); }
-  if (!at.length) return [];
-  const out = [];
-  for (const [k, t] of Object.entries(index.tiles)) {
-    if (city.has(k) || !t || t.ov || t.in || !Number.isFinite(t.i) || !Number.isFinite(t.j)) continue;
-    for (const c of at) if (Math.abs(c.i - t.i) <= ring && Math.abs(c.j - t.j) <= ring) { out.push(k); break; }
-  }
-  return out;
-}
 // the sections whose rows the game keeps without their id (rowsOf)
 const ID_ASIDE = [...KIND_OF.keys()];
 // Tile decoder workers: as many as the store's concurrency (4) when the machine has the cores, leaving two for the main
@@ -688,14 +672,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   await Promise.all(loose.map((k) => store.request(k, { priority: 0 })));
   world.tileQueue.run(1e9);
   // De eerste opbouw is klaar: laat de stad los zodat de store haar kan streamen.
-  if (unpinCity) {
-    for (const k of keys) store.unpin(k);
-    // #1052: de ring om de stad blijft wel resident (vastgepind, op de achtergrond binnengehaald): de eerste scenes en de
-    // eerste wandeling raken tegels tot ca. 3 km om de stad, en elke eerste keer kost de hoofdthread een tegelstap
-    // (zonder pin: 3,6 s per 30 s op Hoog, de Vismarkt 37 naar 10 fps). 139 tegels, 6,8 MB ruw, ca. 180 MB heap.
-    const ring = opts.cityRing != null ? Math.max(0, Number(opts.cityRing) || 0) : CITY_RING_TILES;
-    for (const k of cityRingKeys(index, keys, ring)) { store.pin(k); store.request(k, { priority: 3000 }).catch(() => {}); }
-  }
+  if (unpinCity) for (const k of keys) store.unpin(k);
   // the baked ground belongs to exactly this world; when it does not fit the
   // game builds it itself (never half or wrong ground under the city)
   if (bakedRead) world.terrainCache = await readBakedTerrain(bakedRead, world);
