@@ -383,26 +383,29 @@
     "housing",
     "pitch*",
     "rival",
-    "snack*"
+    "snack*",
+    "chaintrucks*"
    ],
    "eigenaar": "speler",
-   "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen als gekleurde omtrek met naam (ID-verzameling); een gast kan op andermans perceel meewerken voor loon.",
-   "beloning": "Oogst en voortgang naar de eigenaar; loon (nieuw geld) en eigen Landbouw-punten naar de gast.",
+   "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen en standplaatsen als gekleurde omtrek met naam (ID-verzameling, claims sp:<plek>); een gast kan op andermans perceel of in andermans snackwagen meewerken voor loon (bericht snack-work: gast, host-relay, eigenaar). De ketenwagens en het personeel in de wereld zijn per speler en niet te zien voor een gast.",
+   "beloning": "Oogst, verkoopbonus en voortgang naar de eigenaar; loon (nieuw geld) en eigen Landbouw-punten naar de gast.",
    "wegval": "Het veld blijft staan zoals het is; de claim leeft in de eigen progress en overleeft een hostwissel.",
    "test": [
     "scripts/bezitcoop_test.mjs",
     "scripts/business_test.mjs",
-    "scripts/bezitnet_test.mjs"
+    "scripts/bezitnet_test.mjs",
+    "scripts/snackstory_test.mjs",
+    "scripts/chaintrucks_test.mjs",
+    "scripts/chaintrucks3d_test.mjs",
+    "scripts/coop/bezitstap_test.mjs",
+    "scripts/snacklive_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Bezit (21-11, epic Bezit)"
    },
-   "wachtOp": "epic-bezit-21-11",
-   "status": "gat",
-   "prio": "hoog",
-   "lead": "Bezit",
-   "gat": "Lead Bezit meldt (epic-bezit-21-11): de sectie Bezit staat in COOP-GAST.md; scripts/bezitnet_test.mjs (12) bewijst met drie instanties over een nep-netwerk dat claims convergeren, aansluiten en wegvallen werken en dat de dagtik niet dubbel telt bij een terugspringende klok (hostwissel) en niet bij een gast draait; transport bezitnet.js over het JSON-kanaal k bezit. Open: de testbankstap bezit in de suite alles (bezitnet.handleBezit of ensureBezitNet gebruiken), sponsorpanden van het voetbal naar de Bezit-pandindex (parcelindex.createBuildingIndex), en na de merge de opslagsleutel gde-bezit-v1 (scope speler) in dit manifest indelen en de status op OK zetten."
+   "status": "OK",
+   "prio": "-"
   },
   {
    "id": "voetbalcarriere",
